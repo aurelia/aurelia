@@ -1,4 +1,4 @@
-import { IIndexable, InterfaceSymbol, IRegistry, PLATFORM } from '@aurelia/kernel';
+import { IIndexable, InterfaceSymbol, IRegistry } from '@aurelia/kernel';
 import { ForOfStatement } from '../../binding/ast';
 import { Binding } from '../../binding/binding';
 import { AttributeDefinition, IAttributeDefinition } from '../../definitions';
@@ -7,7 +7,7 @@ import { IRenderable, IView, IViewFactory, State } from '../../lifecycle';
 import { CollectionObserver, IBatchedCollectionSubscriber, IObservedArray, IScope, LifecycleFlags, ObservedCollection } from '../../observation';
 import { BindingContext, Scope } from '../../observation/binding-context';
 import { getCollectionObserver } from '../../observation/observer-locator';
-import { ProxyObserver } from '../../observation/proxy-observer';
+import { getRawIfProxy, ProxyObserver } from '../../observation/proxy-observer';
 import { SetterObserver } from '../../observation/setter-observer';
 import { bindable } from '../../templating/bindable';
 import { CustomAttributeResource, ICustomAttribute, ICustomAttributeResource } from '../custom-attribute';
@@ -55,7 +55,7 @@ export class Repeat<C extends ObservedCollection = IObservedArray, T extends INo
   public bound(flags: LifecycleFlags): void {
     let current = this.renderable.$bindableHead as Binding;
     while (current !== null) {
-      if (PLATFORM.getRawIfProxy(current.target) === PLATFORM.getRawIfProxy(this) && current.targetProperty === 'items') {
+      if (getRawIfProxy(current.target) === getRawIfProxy(this) && current.targetProperty === 'items') {
         this.forOf = current.sourceExpression as ForOfStatement;
         break;
       }

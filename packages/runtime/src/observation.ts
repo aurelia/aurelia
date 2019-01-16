@@ -69,6 +69,15 @@ export function stringifyLifecycleFlags(flags: LifecycleFlags): string {
   return flagNames.join('|');
 }
 
+export interface IProxyObserver<TObj extends object = object, TMut extends MutationKind = MutationKind.proxy> extends ISubscriberCollection<TMut> {
+  proxy: IProxy<TObj>;
+}
+
+export type IProxy<TObj extends object = object> = TObj & {
+  $raw: TObj;
+  $observer: IProxyObserver<TObj>;
+};
+
 /** @internal */
 export const enum SubscriberFlags {
   None            = 0,

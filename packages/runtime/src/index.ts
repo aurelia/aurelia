@@ -145,7 +145,9 @@ export {
   propertyObserver
 } from './observation/property-observer';
 export {
-  ProxyObserver
+  ProxyObserver,
+  getProxyOrSelf,
+  getRawIfProxy
 } from './observation/proxy-observer';
 export {
   SelfObserver

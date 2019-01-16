@@ -1,23 +1,46 @@
-import { Tracer, PLATFORM } from '@aurelia/kernel';
-import { IPropertySubscriber, IProxySubscriber, ISubscriberCollection, LifecycleFlags, MutationKind } from '../observation';
+import { Tracer } from '@aurelia/kernel';
+import {
+  IPropertySubscriber,
+  IProxy,
+  IProxyObserver,
+  IProxySubscriber,
+  LifecycleFlags,
+  MutationKind
+} from '../observation';
 import { subscriberCollection } from './subscriber-collection';
 
 const slice = Array.prototype.slice;
 
-export interface IProxyObserver<M extends MutationKind, T extends object = object> extends ISubscriberCollection<M> {
-  proxy: T;
+const lookup: WeakMap<object, IProxy> = new WeakMap();
+
+export function getProxyOrSelf<T extends object = object>(obj: T): T {
+  if ((obj as { $raw?: T }).$raw === undefined) {
+    const proxy = lookup.get(obj) as T;
+    if (proxy === undefined) {
+      return obj;
+    }
+    return proxy;
+  }
+  return obj;
+}
+export function getRawIfProxy<T extends object = object>(obj: T): T {
+  const raw = (obj as { $raw?: T }).$raw;
+  if (raw === undefined) {
+    return obj;
+  }
+  return raw;
 }
 
-export interface ProxySubscriberCollection<T extends object = object> extends IProxyObserver<MutationKind.instance, T> {}
+export interface ProxySubscriberCollection<TObj extends object = object> extends IProxyObserver<TObj, MutationKind.instance> {}
 
 @subscriberCollection(MutationKind.instance)
-export class ProxySubscriberCollection<T extends object = object> implements ProxySubscriberCollection<T> {
-  public readonly proxy: T;
-  public readonly raw: T;
+export class ProxySubscriberCollection<TObj extends object = object> implements ProxySubscriberCollection<TObj> {
+  public readonly proxy: IProxy<TObj>;
+  public readonly raw: TObj;
   public readonly key: PropertyKey;
-  constructor(proxy: T, key: PropertyKey) {
+  constructor(proxy: IProxy<TObj>, key: PropertyKey) {
     if (Tracer.enabled) { Tracer.enter('ProxySubscriberCollection.constructor', slice.call(arguments)); }
-    this.raw = PLATFORM.getRawIfProxy(proxy);
+    this.raw = getRawIfProxy(proxy);
     this.key = key;
     this.proxy = proxy;
     this.subscribe = this.addSubscriber;
@@ -37,27 +60,27 @@ export class ProxySubscriberCollection<T extends object = object> implements Pro
   }
 }
 
-export interface ProxyObserver<T extends object = object> extends IProxyObserver<MutationKind.proxy, T> {}
+export interface ProxyObserver<TObj extends object = object> extends IProxyObserver<TObj, MutationKind.proxy> {}
 
 @subscriberCollection(MutationKind.proxy)
-export class ProxyObserver<T extends object = object> implements ProxyObserver<T> {
-  public readonly proxy: T;
-  private readonly subscribers: Record<PropertyKey, ProxySubscriberCollection<T>>;
+export class ProxyObserver<TObj extends object = object> implements ProxyObserver<TObj> {
+  public readonly proxy: IProxy<TObj>;
+  private readonly subscribers: Record<PropertyKey, ProxySubscriberCollection<TObj>>;
 
-  constructor(obj: T) {
+  constructor(obj: TObj) {
     if (Tracer.enabled) { Tracer.enter('ProxyObserver.constructor', slice.call(arguments)); }
-    this.proxy = new Proxy(obj, this);
-    PLATFORM.proxyLookup.set(obj, this.proxy);
+    this.proxy = new Proxy<TObj>(obj, this) as IProxy<TObj>;
+    lookup.set(obj, this.proxy);
     this.subscribers = {};
     if (Tracer.enabled) { Tracer.leave(); }
   }
 
-  public static getOrCreate<T extends object>(obj: T & { $raw?: T; $observer?: ProxyObserver<T> }): IProxyObserver<MutationKind.instance | MutationKind.proxy, T>;
-  public static getOrCreate<T extends object>(obj: T & { $raw?: T; $observer?: ProxyObserver<T> }, key: PropertyKey): IProxyObserver<MutationKind.instance | MutationKind.proxy, T>;
-  public static getOrCreate<T extends object>(obj: T & { $raw?: T; $observer?: ProxyObserver<T> }, key?: PropertyKey): IProxyObserver<MutationKind.instance | MutationKind.proxy, T> {
+  public static getOrCreate<T extends object>(obj: T & { $raw?: T; $observer?: ProxyObserver<T> }): IProxyObserver<T, MutationKind.proxy>;
+  public static getOrCreate<T extends object>(obj: T & { $raw?: T; $observer?: ProxyObserver<T> }, key: PropertyKey): IProxyObserver<T, MutationKind.instance>;
+  public static getOrCreate<T extends object>(obj: T & { $raw?: T; $observer?: ProxyObserver<T> }, key?: PropertyKey): IProxyObserver<T, MutationKind.instance | MutationKind.proxy> {
     let proxyObserver: ProxyObserver<T>;
     if (obj.$raw === undefined) {
-      const proxy = PLATFORM.proxyLookup.get(obj);
+      const proxy = lookup.get(obj);
       if (proxy === undefined) {
         proxyObserver = new ProxyObserver(obj);
       } else {
@@ -73,14 +96,14 @@ export class ProxyObserver<T extends object = object> implements ProxyObserver<T
     if (subscribers === undefined) {
       subscribers = proxyObserver.subscribers[key as string | number] = new ProxySubscriberCollection(proxyObserver.proxy, key);
     }
-    return subscribers as IProxyObserver<MutationKind.instance | MutationKind.proxy, T>;
+    return subscribers;
   }
 
   public static isProxy<T extends object>(obj: T & { $raw?: T }): obj is T & { $raw: T; $observer: ProxyObserver<T> } {
     return obj.$raw !== undefined;
   }
 
-  public get(target: T, p: PropertyKey, receiver?: unknown): unknown {
+  public get(target: TObj, p: PropertyKey, receiver?: unknown): unknown {
     if (p === '$observer') {
       return this;
     }
@@ -90,7 +113,7 @@ export class ProxyObserver<T extends object = object> implements ProxyObserver<T
     return target[p];
   }
 
-  public set(target: T, p: PropertyKey, value: unknown, receiver?: unknown): boolean {
+  public set(target: TObj, p: PropertyKey, value: unknown, receiver?: unknown): boolean {
     const oldValue = target[p];
     if (oldValue !== value) {
       Reflect.set(target, p, value, target);
@@ -100,7 +123,7 @@ export class ProxyObserver<T extends object = object> implements ProxyObserver<T
     return true;
   }
 
-  public deleteProperty(target: T, p: PropertyKey): boolean {
+  public deleteProperty(target: TObj, p: PropertyKey): boolean {
     const oldValue = target[p];
     if (Reflect.deleteProperty(target, p)) {
       if (oldValue !== undefined) {
@@ -112,7 +135,7 @@ export class ProxyObserver<T extends object = object> implements ProxyObserver<T
     return false;
   }
 
-  public defineProperty(target: T, p: PropertyKey, attributes: PropertyDescriptor): boolean {
+  public defineProperty(target: TObj, p: PropertyKey, attributes: PropertyDescriptor): boolean {
     const oldValue = target[p];
     if (Reflect.defineProperty(target, p, attributes)) {
       if (attributes.value !== oldValue) {
@@ -124,7 +147,8 @@ export class ProxyObserver<T extends object = object> implements ProxyObserver<T
     return false;
   }
 
-  public apply(target: T, thisArg: unknown, argArray?: unknown[]): unknown {
+  public apply(target: TObj, thisArg: unknown, argArray?: unknown[]): unknown {
+    // tslint:disable-next-line:ban-types // Reflect API dictates this
     return Reflect.apply(target as Function, target, argArray);
   }
 

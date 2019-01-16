@@ -1,6 +1,7 @@
 import { DI, IContainer, IRegistry, PLATFORM, Profiler, Registration } from '@aurelia/kernel';
 import { IDOM, INode } from './dom';
 import { LifecycleFlags } from './observation';
+import { getRawIfProxy } from './observation/proxy-observer';
 import { ExposedContext, IRenderingEngine } from './rendering-engine';
 import { CustomElementResource, ICustomElement, ICustomElementType, IProjectorLocator } from './resources/custom-element';
 
@@ -63,7 +64,7 @@ export class Aurelia {
     } else {
       component = componentOrType as ICustomElement;
     }
-    component = PLATFORM.getRawIfProxy(component);
+    component = getRawIfProxy(component);
 
     const startTask = () => {
       host.$au = this;

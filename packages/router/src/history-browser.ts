@@ -47,7 +47,7 @@ export class HistoryBrowser {
   private isReplacing: boolean;
   private isRefreshing: boolean;
 
-  private ignorePathChange: ((value?: {} | PromiseLike<{}>) => void) | null;
+  private ignorePathChange?: ((value?: {} | PromiseLike<{}>) => void) | null;
 
   constructor() {
     this.location = window.location;

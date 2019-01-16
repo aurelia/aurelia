@@ -46,7 +46,7 @@ export class Viewport {
   private readonly router: Router;
 
   private clear: boolean;
-  private elementResolve: ((value?: void | PromiseLike<void>) => void) | null;
+  private elementResolve?: ((value?: void | PromiseLike<void>) => void) | null;
 
   constructor(router: Router, name: string, element: Element, owningScope: Scope, scope: Scope, options?: IViewportOptions) {
     this.router = router;

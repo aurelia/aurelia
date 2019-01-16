@@ -1,4 +1,4 @@
-import { IRegistry } from '@aurelia/kernel';
+import { InterfaceSymbol, IRegistry } from '@aurelia/kernel';
 import { Binding, IObserverLocator, IScope, LifecycleFlags } from '@aurelia/runtime';
 import { CheckedObserver } from '../../observation/checked-observer';
 import { IEventSubscriber } from '../../observation/event-manager';
@@ -11,7 +11,7 @@ export declare type UpdateTriggerableBinding = Binding & {
     targetObserver: UpdateTriggerableObserver;
 };
 export declare class UpdateTriggerBindingBehavior {
-    static readonly inject: ReadonlyArray<Function>;
+    static readonly inject: ReadonlyArray<InterfaceSymbol<unknown>>;
     static register: IRegistry['register'];
     private readonly observerLocator;
     constructor(observerLocator: IObserverLocator);

@@ -245,7 +245,7 @@
           this.disconnected = false;
       }
       equals(fn, context) {
-          return this.fn === fn && this.context === (context || null);
+          return this.fn === fn && this.context === (context === undefined ? null : context);
       }
       notify(frameDelta) {
           if (this.fn !== null) {
@@ -537,12 +537,11 @@
   // https://www.typescriptlang.org/docs/handbook/decorators.html#metadata
   // https://rbuckton.github.io/reflect-metadata/
   // As the official spec proposal uses "any", we use it here as well and suppress related typedef linting warnings.
+  // tslint:disable:no-any ban-types
   if (!('getOwnMetadata' in Reflect)) {
-      // tslint:disable-next-line:no-any
       Reflect.getOwnMetadata = function (metadataKey, target) {
           return target[metadataKey];
       };
-      // tslint:disable-next-line:no-any
       Reflect.metadata = function (metadataKey, metadataValue) {
           return function (target) {
               target[metadataKey] = metadataValue;
@@ -580,23 +579,23 @@
           return dependencies;
       },
       createInterface(friendlyName) {
-          const Key = function (target, property, index) {
-              Key.friendlyName = friendlyName || 'Interface';
+          const Interface = function (target, property, index) {
+              Interface.friendlyName = friendlyName || 'Interface';
               if (target === undefined) {
-                  throw Reporter.error(16, Key.friendlyName, Key); // TODO: add error (trying to resolve an InterfaceSymbol that has no registrations)
+                  throw Reporter.error(16, Interface.friendlyName, Interface); // TODO: add error (trying to resolve an InterfaceSymbol that has no registrations)
               }
-              (target.inject || (target.inject = []))[index] = Key;
+              (target.inject || (target.inject = []))[index] = Interface;
               return target;
           };
-          Key.noDefault = function () {
-              return Key;
+          Interface.noDefault = function () {
+              return Interface;
           };
-          Key.withDefault = function (configure) {
-              Key.withDefault = function () {
-                  throw Reporter.error(17, Key);
+          Interface.withDefault = function (configure) {
+              Interface.withDefault = function () {
+                  throw Reporter.error(17, Interface);
               };
-              Key.register = function (container, key) {
-                  const trueKey = key || Key;
+              Interface.register = function (container, key) {
+                  const trueKey = key || Interface;
                   return configure({
                       instance(value) {
                           return container.registerResolver(trueKey, new Resolver(trueKey, 0 /* instance */, value));
@@ -615,9 +614,9 @@
                       },
                   });
               };
-              return Key;
+              return Interface;
           };
-          return Key;
+          return Interface;
       },
       inject(...dependencies) {
           return function (target, key, descriptor) {
@@ -709,13 +708,13 @@
   const IServiceLocator = IContainer;
   function createResolver(getter) {
       return function (key) {
-          const Key = function Key(target, property, descriptor) {
-              DI.inject(Key)(target, property, descriptor);
+          const resolver = function (target, property, descriptor) {
+              DI.inject(resolver)(target, property, descriptor);
           };
-          Key.resolve = function (handler, requestor) {
+          resolver.resolve = function (handler, requestor) {
               return getter(key, handler, requestor);
           };
-          return Key;
+          return resolver;
       };
   }
   const inject = DI.inject;

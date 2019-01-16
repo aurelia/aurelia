@@ -7,10 +7,10 @@ export interface IRouteableCustomElementType extends ICustomElementType {
     parameters?: string[];
 }
 export interface IRouteableCustomElement extends ICustomElement {
-    canEnter?: Function;
-    enter?: Function;
-    canLeave?: Function;
-    leave?: Function;
+    canEnter?(nextInstruction?: INavigationInstruction, instruction?: INavigationInstruction): boolean | Promise<boolean>;
+    enter?(parameters?: string[] | Record<string, string>, nextInstruction?: INavigationInstruction, instruction?: INavigationInstruction): void | Promise<void>;
+    canLeave?(nextInstruction?: INavigationInstruction, instruction?: INavigationInstruction): boolean | Promise<boolean>;
+    leave?(nextInstruction?: INavigationInstruction, instruction?: INavigationInstruction): void | Promise<void>;
 }
 export interface IViewportOptions {
     scope?: boolean;
@@ -36,7 +36,7 @@ export declare class Viewport {
     nextComponent: IRouteableCustomElement;
     private readonly router;
     private clear;
-    private elementResolve;
+    private elementResolve?;
     constructor(router: Router, name: string, element: Element, owningScope: Scope, scope: Scope, options?: IViewportOptions);
     setNextContent(content: ICustomElementType | string, instruction: INavigationInstruction): boolean;
     setElement(element: Element, options: IViewportOptions): void;

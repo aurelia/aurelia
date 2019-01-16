@@ -1,4 +1,4 @@
-import { IContainer } from '@aurelia/kernel';
+import { IContainer, InterfaceSymbol } from '@aurelia/kernel';
 import { ICustomElementType } from '@aurelia/runtime';
 import { HistoryBrowser, IHistoryOptions, INavigationInstruction } from './history-browser';
 import { AnchorEventInfo, LinkHandler } from './link-handler';
@@ -6,10 +6,10 @@ import { INavRoute, Nav } from './nav';
 import { IComponentViewport, Scope } from './scope';
 import { IViewportOptions, Viewport } from './viewport';
 export interface IRouterOptions extends IHistoryOptions {
-    reportCallback?: Function;
     separators?: IRouteSeparators;
-    transformFromUrl?: Function;
-    transformToUrl?: Function;
+    reportCallback?(instruction: INavigationInstruction): void;
+    transformFromUrl?(path: string, router: Router): string;
+    transformToUrl?(states: IComponentViewportParameters[], router: Router): string;
 }
 export interface IComponentViewportParameters {
     component: ICustomElementType | string;
@@ -40,7 +40,7 @@ export interface IRouteSeparators {
 }
 export declare class Router {
     container: IContainer;
-    static readonly inject: ReadonlyArray<Function>;
+    static readonly inject: ReadonlyArray<InterfaceSymbol<unknown>>;
     viewports: Record<string, Viewport>;
     rootScope: Scope;
     scopes: Scope[];
@@ -67,8 +67,8 @@ export declare class Router {
     addViewport(name: string, element: Element, options?: IViewportOptions): Viewport;
     removeViewport(viewport: Viewport): void;
     removeScope(scope: Scope): void;
-    goto(pathOrViewports: string | Object, title?: string, data?: Record<string, unknown>): void;
-    replace(pathOrViewports: string | Object, title?: string, data?: Record<string, unknown>): void;
+    goto(pathOrViewports: string | Record<string, Viewport>, title?: string, data?: Record<string, unknown>): void;
+    replace(pathOrViewports: string | Record<string, Viewport>, title?: string, data?: Record<string, unknown>): void;
     refresh(): void;
     back(): void;
     forward(): void;

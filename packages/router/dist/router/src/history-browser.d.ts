@@ -9,7 +9,7 @@ export interface IHistoryEntry {
     data?: Record<string, unknown>;
 }
 export interface IHistoryOptions {
-    callback?: Function;
+    callback?(instruction: INavigationInstruction): void;
 }
 export interface INavigationFlags {
     isFirst?: boolean;
@@ -38,7 +38,7 @@ export declare class HistoryBrowser {
     private isCancelling;
     private isReplacing;
     private isRefreshing;
-    private ignorePathChange;
+    private ignorePathChange?;
     constructor();
     activate(options?: IHistoryOptions): Promise<void>;
     deactivate(): void;

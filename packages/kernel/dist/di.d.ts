@@ -1,7 +1,6 @@
-import { Constructable, IIndexable, Injectable, Primitive } from './interfaces';
-export declare type ResolveCallback<T = any> = (handler?: IContainer, requestor?: IContainer, resolver?: IResolver) => T;
-export declare type Key<T> = InterfaceSymbol<T> | Primitive | IIndexable | Function;
-export declare type InterfaceSymbol<T> = (target: Injectable<T>, property: string, index: number) => any;
+import { Constructable, IIndexable, Injectable, InterfaceSymbol, Primitive } from './interfaces';
+export declare type ResolveCallback<T = unknown> = (handler?: IContainer, requestor?: IContainer, resolver?: IResolver) => T;
+export declare type Key<T> = InterfaceSymbol<T> | Primitive | IIndexable | Constructable;
 export interface IDefaultableInterfaceSymbol<T> extends InterfaceSymbol<T> {
     withDefault(configure: (builder: IResolverBuilder<T>) => IResolver): InterfaceSymbol<T>;
     noDefault(): InterfaceSymbol<T>;
@@ -16,12 +15,12 @@ export interface IRegistration<T = any> {
     register(container: IContainer, key?: Key<T>): IResolver<T>;
 }
 export interface IFactory<T = any> {
-    readonly Type: Function;
+    readonly Type: Constructable;
     registerTransformer(transformer: (instance: T) => T): boolean;
-    construct(container: IContainer, dynamicDependencies?: Function[]): T;
+    construct(container: IContainer, dynamicDependencies?: Key<unknown>[]): T;
 }
 export interface IServiceLocator {
-    has(key: any, searchAncestors: boolean): boolean;
+    has<K>(key: Constructable | Key<unknown> | IResolver<unknown> | K, searchAncestors: boolean): boolean;
     get<K>(key: Constructable | Key<unknown> | IResolver<unknown> | K): K extends InterfaceSymbol<infer T> ? T : K extends Constructable ? InstanceType<K> : K extends IResolverLike<infer T1, unknown> ? T1 extends Constructable ? InstanceType<T1> : T1 : K;
     getAll<K>(key: Constructable | Key<unknown> | IResolver<unknown> | K): K extends InterfaceSymbol<infer T> ? ReadonlyArray<T> : K extends Constructable ? ReadonlyArray<InstanceType<K>> : K extends IResolverLike<infer T1, unknown> ? T1 extends Constructable ? ReadonlyArray<InstanceType<T1>> : ReadonlyArray<T1> : ReadonlyArray<K>;
 }
@@ -62,10 +61,10 @@ declare function createContainer(registry: IRegistry): IContainer;
 declare function createContainer(registry: IRegistry | Record<string, Partial<IRegistry>>): IContainer;
 export declare const DI: {
     createContainer: typeof createContainer;
-    getDesignParamTypes(target: Function): Function[];
-    getDependencies(Type: Function | Injectable<{}>): Function[];
-    createInterface<T = any>(friendlyName?: string): IDefaultableInterfaceSymbol<T>;
-    inject(...dependencies: Function[]): (target: Injectable<{}>, key?: string, descriptor?: number | PropertyDescriptor) => void;
+    getDesignParamTypes(target: Constructable<{}>): Key<unknown>[];
+    getDependencies(Type: Constructable<{}> | Injectable<{}>): Key<unknown>[];
+    createInterface<T = unknown>(friendlyName?: string): IDefaultableInterfaceSymbol<T>;
+    inject(...dependencies: Key<unknown>[]): (target: Injectable<{}>, key?: string, descriptor?: number | PropertyDescriptor) => void;
     /**
      * Registers the `target` class as a transient dependency; each time the dependency is resolved
      * a new instance will be created.
@@ -108,7 +107,7 @@ export declare const DI: {
 };
 export declare const IContainer: InterfaceSymbol<IContainer>;
 export declare const IServiceLocator: InterfaceSymbol<IServiceLocator>;
-export declare const inject: (...dependencies: Function[]) => (target: Injectable<{}>, key?: string, descriptor?: number | PropertyDescriptor) => void;
+export declare const inject: (...dependencies: Key<unknown>[]) => (target: Injectable<{}>, key?: string, descriptor?: number | PropertyDescriptor) => void;
 declare function transientDecorator<T extends Constructable>(target: T & Partial<RegisterSelf<T>>): T & RegisterSelf<T>;
 /**
  * Registers the decorated class as a transient dependency; each time the dependency is resolved
@@ -159,16 +158,16 @@ class Foo { }
 ```
  */
 export declare function singleton<T extends Constructable>(target: T & Partial<RegisterSelf<T>>): T & RegisterSelf<T>;
-export declare const all: (key: any) => (target: Injectable<{}>, key?: string, descriptor?: number | PropertyDescriptor) => void;
-export declare const lazy: (key: any) => (target: Injectable<{}>, key?: string, descriptor?: number | PropertyDescriptor) => void;
-export declare const optional: (key: any) => (target: Injectable<{}>, key?: string, descriptor?: number | PropertyDescriptor) => void;
+export declare const all: (key: unknown) => (target: Injectable<{}>, key?: string, descriptor?: number | PropertyDescriptor) => void;
+export declare const lazy: (key: unknown) => (target: Injectable<{}>, key?: string, descriptor?: number | PropertyDescriptor) => void;
+export declare const optional: (key: unknown) => (target: Injectable<{}>, key?: string, descriptor?: number | PropertyDescriptor) => void;
 export declare const Registration: {
-    instance(key: any, value: any): IRegistration<any>;
-    singleton(key: any, value: Function): IRegistration<any>;
-    transient(key: any, value: Function): IRegistration<any>;
-    callback(key: any, callback: ResolveCallback<any>): IRegistration<any>;
-    alias(originalKey: any, aliasKey: any): IRegistration<any>;
-    interpret(interpreterKey: any, ...rest: any[]): IRegistry;
+    instance(key: Key<unknown>, value: unknown): IRegistration<any>;
+    singleton(key: Key<unknown>, value: Constructable<{}>): IRegistration<any>;
+    transient(key: Key<unknown>, value: Constructable<{}>): IRegistration<any>;
+    callback(key: Key<unknown>, callback: ResolveCallback<unknown>): IRegistration<any>;
+    alias(originalKey: Key<unknown>, aliasKey: Key<unknown>): IRegistration<any>;
+    interpret(interpreterKey: Key<{}>, ...rest: Constructable<{}>[]): IRegistry;
 };
 export {};
 //# sourceMappingURL=di.d.ts.map

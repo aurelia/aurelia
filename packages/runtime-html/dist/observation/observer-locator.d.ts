@@ -1,7 +1,7 @@
-import { IContainer, IResolver } from '@aurelia/kernel';
+import { IContainer, InterfaceSymbol, IResolver } from '@aurelia/kernel';
 import { IBindingTargetAccessor, IBindingTargetObserver, IDOM, ILifecycle, IObserverLocator, ITargetAccessorLocator, ITargetObserverLocator } from '@aurelia/runtime';
 export declare class TargetObserverLocator implements ITargetObserverLocator {
-    static readonly inject: ReadonlyArray<Function>;
+    static readonly inject: ReadonlyArray<InterfaceSymbol<unknown>>;
     private readonly dom;
     constructor(dom: IDOM);
     static register(container: IContainer): IResolver<ITargetObserverLocator>;
@@ -10,7 +10,7 @@ export declare class TargetObserverLocator implements ITargetObserverLocator {
     handles(obj: unknown): boolean;
 }
 export declare class TargetAccessorLocator implements ITargetAccessorLocator {
-    static readonly inject: ReadonlyArray<Function>;
+    static readonly inject: ReadonlyArray<InterfaceSymbol<unknown>>;
     private readonly dom;
     constructor(dom: IDOM);
     static register(container: IContainer): IResolver<ITargetAccessorLocator>;

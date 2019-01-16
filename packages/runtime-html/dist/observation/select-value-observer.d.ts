@@ -21,7 +21,7 @@ export declare class SelectValueObserver implements SelectValueObserver {
     oldValue: unknown;
     defaultValue: unknown;
     flush: () => void;
-    private dom;
+    private readonly dom;
     private arrayObserver;
     private nodeObserver;
     constructor(lifecycle: ILifecycle, obj: ISelectElement, handler: IEventSubscriber, observerLocator: IObserverLocator, dom: IDOM);

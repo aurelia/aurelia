@@ -651,9 +651,9 @@
           if (!component.canEnter) {
               return Promise.resolve(true);
           }
-          // tslint:disable-next-line:no-console
-          console.log('viewport canEnter', component.canEnter(this.nextInstruction, this.instruction));
           const result = component.canEnter(this.nextInstruction, this.instruction);
+          // tslint:disable-next-line:no-console
+          console.log('viewport canEnter', result);
           if (typeof result === 'boolean') {
               return Promise.resolve(result);
           }
@@ -1169,6 +1169,7 @@
           if ((instruction.isBack || instruction.isForward) && instruction.fullStatePath) {
               instruction.path = instruction.fullStatePath;
               fullStateInstruction = true;
+              // tslint:disable-next-line:no-commented-code
               // if (!confirm('Perform history navigation?')) {
               //   this.historyBrowser.cancel();
               //   this.processingNavigation = null;
@@ -1290,7 +1291,7 @@
               this.addedViewports.push({ viewport: viewport, component: component });
           }
       }
-      // public view(views: Object, title?: string, data?: Object): Promise<void> {
+      // public view(views: string | Record<string, Viewport>, title?: string, data?: Record<string, unknown>): Promise<void> {
       //   console.log('Router.view:', views, title, data);
       // tslint:disable-next-line:no-commented-code
       //   if (title) {

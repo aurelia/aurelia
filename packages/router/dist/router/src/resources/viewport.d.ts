@@ -1,8 +1,9 @@
+import { Constructable, InterfaceSymbol } from '@aurelia/kernel';
 import { LifecycleFlags } from '@aurelia/runtime';
 import { Router } from '../router';
 import { Viewport } from '../viewport';
 export declare class ViewportCustomElement {
-    static readonly inject: ReadonlyArray<Function>;
+    static readonly inject: ReadonlyArray<InterfaceSymbol<unknown> | Constructable>;
     name: string;
     scope: boolean;
     usedBy: string;

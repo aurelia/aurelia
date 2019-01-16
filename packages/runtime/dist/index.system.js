@@ -238,6 +238,7 @@ System.register('runtime', ['@aurelia/kernel'], function (exports, module) {
       }
 
       function subscriberCollection(mutationKind) {
+          // tslint:disable-next-line:ban-types // ClassDecorator expects it to be derived from Function
           return function (target) {
               const proto = target.prototype;
               proto._subscriberFlags = 0 /* None */;
@@ -402,6 +403,7 @@ System.register('runtime', ['@aurelia/kernel'], function (exports, module) {
           return false;
       }
       function batchedSubscriberCollection() {
+          // tslint:disable-next-line:ban-types // ClassDecorator expects it to be derived from Function
           return function (target) {
               const proto = target.prototype;
               proto._batchedSubscriberFlags = 0 /* None */;
@@ -562,6 +564,7 @@ System.register('runtime', ['@aurelia/kernel'], function (exports, module) {
           this.currentValue = null;
       }
       function propertyObserver() {
+          // tslint:disable-next-line:ban-types // ClassDecorator expects it to be derived from Function
           return function (target) {
               subscriberCollection(MutationKind.instance)(target);
               const proto = target.prototype;
@@ -3398,6 +3401,7 @@ System.register('runtime', ['@aurelia/kernel'], function (exports, module) {
           this.propertyKey = '';
       }
       function targetObserver(defaultValue = null) {
+          // tslint:disable-next-line:ban-types // ClassDecorator expects it to be derived from Function
           return function (target) {
               subscriberCollection(MutationKind.instance)(target);
               const proto = target.prototype;
@@ -3447,6 +3451,7 @@ System.register('runtime', ['@aurelia/kernel'], function (exports, module) {
           return this.lengthObserver === undefined ? (this.lengthObserver = new CollectionLengthObserver(this, this.lengthPropertyName)) : this.lengthObserver;
       }
       function collectionObserver(kind) {
+          // tslint:disable-next-line:ban-types // ClassDecorator expects it to be derived from Function
           return function (target) {
               subscriberCollection(MutationKind.collection)(target);
               batchedSubscriberCollection()(target);

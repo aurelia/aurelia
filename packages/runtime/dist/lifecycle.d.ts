@@ -1,4 +1,4 @@
-import { IContainer, IDisposable, Immutable, IResolver, IServiceLocator, Omit } from '@aurelia/kernel';
+import { IContainer, IDisposable, Immutable, InterfaceSymbol, IResolver, IServiceLocator, Omit } from '@aurelia/kernel';
 import { IConnectableBinding } from './binding/connectable';
 import { ITargetedInstruction, TemplateDefinition, TemplatePartDefinitions } from './definitions';
 import { INode, INodeSequence, IRenderLocation } from './dom';
@@ -73,11 +73,11 @@ export interface IRenderable<T extends INode = INode> extends IBindables, IAttac
      */
     readonly $scope: IScope;
 }
-export declare const IRenderable: import("@aurelia/kernel").InterfaceSymbol<IRenderable<INode>>;
+export declare const IRenderable: InterfaceSymbol<IRenderable<INode>>;
 export interface IRenderContext<T extends INode = INode> extends IServiceLocator {
     createChild(): IRenderContext<T>;
-    render(renderable: IRenderable<T>, targets: ArrayLike<Object>, templateDefinition: TemplateDefinition, host?: T, parts?: TemplatePartDefinitions): void;
-    beginComponentOperation(renderable: IRenderable<T>, target: Object, instruction: Immutable<ITargetedInstruction>, factory?: IViewFactory<T>, parts?: TemplatePartDefinitions, location?: IRenderLocation<T>, locationIsContainer?: boolean): IDisposable;
+    render(renderable: IRenderable<T>, targets: ArrayLike<object>, templateDefinition: TemplateDefinition, host?: T, parts?: TemplatePartDefinitions): void;
+    beginComponentOperation(renderable: IRenderable<T>, target: object, instruction: Immutable<ITargetedInstruction>, factory?: IViewFactory<T>, parts?: TemplatePartDefinitions, location?: IRenderLocation<T>, locationIsContainer?: boolean): IDisposable;
 }
 export interface IView<T extends INode = INode> extends IBindScope, IRenderable<T>, IAttach, IMountable {
     readonly cache: IViewCache<T>;
@@ -114,7 +114,7 @@ export interface IViewFactory<T extends INode = INode> extends IViewCache<T> {
     readonly name: string;
     create(): IView<T>;
 }
-export declare const IViewFactory: import("@aurelia/kernel").InterfaceSymbol<IViewFactory<INode>>;
+export declare const IViewFactory: InterfaceSymbol<IViewFactory<INode>>;
 export interface ILifecycleCreated extends IHooks, IState {
     /**
      * Called at the end of `$hydrate`.
@@ -517,9 +517,9 @@ export interface ILifecycle extends IBindLifecycle, IAttachLifecycle {
     registerTask(task: ILifecycleTask): void;
     finishTask(task: ILifecycleTask): void;
 }
-export declare const ILifecycle: import("@aurelia/kernel").InterfaceSymbol<ILifecycle>;
+export declare const ILifecycle: InterfaceSymbol<ILifecycle>;
 export declare class CompositionCoordinator {
-    static readonly inject: ReadonlyArray<Function>;
+    static readonly inject: ReadonlyArray<InterfaceSymbol<unknown>>;
     readonly $lifecycle: ILifecycle;
     onSwapComplete: () => void;
     private currentView;

@@ -1,1 +1,1 @@
-{"version":3,"file":"property-observer.d.ts","sourceRoot":"","sources":["../packages/runtime/src/observation/property-observer.ts"],"names":[],"mappings":"AAqCA,wBAAgB,gBAAgB,IAAI,cAAc,CAoBjD"}
+{"version":3,"file":"property-observer.d.ts","sourceRoot":"","sources":["../packages/runtime/src/observation/property-observer.ts"],"names":[],"mappings":"AAqCA,wBAAgB,gBAAgB,IAAI,cAAc,CAqBjD"}

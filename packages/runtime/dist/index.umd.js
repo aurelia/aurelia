@@ -163,6 +163,7 @@
   }
 
   function subscriberCollection(mutationKind) {
+      // tslint:disable-next-line:ban-types // ClassDecorator expects it to be derived from Function
       return function (target) {
           const proto = target.prototype;
           proto._subscriberFlags = 0 /* None */;
@@ -327,6 +328,7 @@
       return false;
   }
   function batchedSubscriberCollection() {
+      // tslint:disable-next-line:ban-types // ClassDecorator expects it to be derived from Function
       return function (target) {
           const proto = target.prototype;
           proto._batchedSubscriberFlags = 0 /* None */;
@@ -487,6 +489,7 @@
       this.currentValue = null;
   }
   function propertyObserver() {
+      // tslint:disable-next-line:ban-types // ClassDecorator expects it to be derived from Function
       return function (target) {
           subscriberCollection(exports.MutationKind.instance)(target);
           const proto = target.prototype;
@@ -3318,6 +3321,7 @@
       this.propertyKey = '';
   }
   function targetObserver(defaultValue = null) {
+      // tslint:disable-next-line:ban-types // ClassDecorator expects it to be derived from Function
       return function (target) {
           subscriberCollection(exports.MutationKind.instance)(target);
           const proto = target.prototype;
@@ -3367,6 +3371,7 @@
       return this.lengthObserver === undefined ? (this.lengthObserver = new exports.CollectionLengthObserver(this, this.lengthPropertyName)) : this.lengthObserver;
   }
   function collectionObserver(kind) {
+      // tslint:disable-next-line:ban-types // ClassDecorator expects it to be derived from Function
       return function (target) {
           subscriberCollection(exports.MutationKind.collection)(target);
           batchedSubscriberCollection()(target);

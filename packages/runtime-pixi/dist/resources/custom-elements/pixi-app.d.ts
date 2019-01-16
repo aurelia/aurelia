@@ -1,8 +1,8 @@
-import { IRegistry } from '@aurelia/kernel';
+import { Constructable, IRegistry } from '@aurelia/kernel';
 import { Application, ApplicationOptions, Container } from 'pixi.js';
 export declare class PixiApp {
     static readonly register: IRegistry['register'];
-    static readonly inject: Function[];
+    static readonly inject: Constructable[];
     readonly app: Application;
     stage: Container;
     options?: ApplicationOptions;

@@ -4,14 +4,15 @@ export interface IViewportComponent {
     viewport?: string;
     component: string | ICustomElementType;
 }
+export declare type NavComponent = string | ICustomElementType | IViewportComponent;
 export declare class NavRoute {
     nav: Nav;
-    components: string | ICustomElementType | IViewportComponent;
+    components: NavComponent;
     title: string;
     link?: string;
     linkActive?: string;
     children?: NavRoute[];
-    meta?: Object;
+    meta?: Record<string, unknown>;
     active: string;
     private readonly observerLocator;
     private readonly observer;
@@ -20,7 +21,7 @@ export declare class NavRoute {
     handleChange(): void;
     _active(): string;
     toggleActive(): void;
-    _link(components: string | ICustomElementType | IViewportComponent): string;
+    _link(components: NavComponent): string;
     private activeChild;
     private linkName;
 }

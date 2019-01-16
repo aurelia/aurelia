@@ -166,6 +166,7 @@ function __decorate(decorators, target, key, desc) {
 }
 
 function subscriberCollection(mutationKind) {
+    // tslint:disable-next-line:ban-types // ClassDecorator expects it to be derived from Function
     return function (target) {
         const proto = target.prototype;
         proto._subscriberFlags = 0 /* None */;
@@ -330,6 +331,7 @@ function hasSubscriber(subscriber) {
     return false;
 }
 function batchedSubscriberCollection() {
+    // tslint:disable-next-line:ban-types // ClassDecorator expects it to be derived from Function
     return function (target) {
         const proto = target.prototype;
         proto._batchedSubscriberFlags = 0 /* None */;
@@ -490,6 +492,7 @@ function dispose() {
     this.currentValue = null;
 }
 function propertyObserver() {
+    // tslint:disable-next-line:ban-types // ClassDecorator expects it to be derived from Function
     return function (target) {
         subscriberCollection(MutationKind.instance)(target);
         const proto = target.prototype;
@@ -3326,6 +3329,7 @@ function dispose$1() {
     this.propertyKey = '';
 }
 function targetObserver(defaultValue = null) {
+    // tslint:disable-next-line:ban-types // ClassDecorator expects it to be derived from Function
     return function (target) {
         subscriberCollection(MutationKind.instance)(target);
         const proto = target.prototype;
@@ -3375,6 +3379,7 @@ function getLengthObserver() {
     return this.lengthObserver === undefined ? (this.lengthObserver = new CollectionLengthObserver(this, this.lengthPropertyName)) : this.lengthObserver;
 }
 function collectionObserver(kind) {
+    // tslint:disable-next-line:ban-types // ClassDecorator expects it to be derived from Function
     return function (target) {
         subscriberCollection(MutationKind.collection)(target);
         batchedSubscriberCollection()(target);

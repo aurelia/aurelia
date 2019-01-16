@@ -23,8 +23,8 @@ export declare class Scope {
     private scopeViewportParts;
     private availableViewports;
     constructor(router: Router, element: Element, parent: Scope);
-    findViewports(viewports?: Record<string, string>): IFindViewportsResult;
-    foundViewport(viewports: Record<string, string>, scopeViewportParts: Record<string, string[][]>, viewportPart: string, component: ICustomElementType | string, viewport: Viewport): IFindViewportsResult;
+    findViewports(viewports?: Record<string, string | Viewport>): IFindViewportsResult;
+    foundViewport(viewports: Record<string, string | Viewport>, scopeViewportParts: Record<string, string[][]>, viewportPart: string, component: ICustomElementType | string, viewport: Viewport): IFindViewportsResult;
     addViewport(name: string, element: Element, options?: IViewportOptions): Viewport;
     removeViewport(viewport: Viewport): number;
     removeScope(): void;

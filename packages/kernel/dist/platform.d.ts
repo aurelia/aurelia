@@ -1,14 +1,14 @@
 import { IPerformanceEntry, ITimerHandler, IWindowOrWorkerGlobalScope } from './interfaces';
 declare function $noop(): void;
 export declare class Ticker {
-    private head;
     private requestId;
     private frameDelta;
     private lastTime;
     private started;
     private promise;
     private resolve;
-    private tick;
+    private readonly head;
+    private readonly tick;
     constructor();
     add(fn: (frameDelta?: number) => void, context: unknown): this;
     remove(fn: (frameDelta?: number) => void, context: unknown): this;

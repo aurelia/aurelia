@@ -267,7 +267,7 @@ async function createBundle(): Promise<void> {
       plugins,
       external
     });
-    let minifiedBundle: rollup.RollupSingleFileBuild = null;
+    let minifiedBundle: rollup.RollupBuild = null;
 
     //'amd' | 'cjs' | 'system' | 'es' | 'esm' | 'iife' | 'umd'
 

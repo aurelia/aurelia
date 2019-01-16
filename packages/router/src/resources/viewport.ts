@@ -12,7 +12,7 @@ export class ViewportCustomElement {
   public static readonly kind = CustomElementResource;
   public static readonly description: TemplateDefinition = {
     name: 'au-viewport',
-    template: '<div class="viewport-header"> Viewport: <b><au-m class="au"></au-m></b> </div>',
+    template: '<div class="viewport-header"> Viewport: <b><au-m class="au"></au-m> </b> </div>',
     cache: 0,
     build: { required: false },
     bindables: {

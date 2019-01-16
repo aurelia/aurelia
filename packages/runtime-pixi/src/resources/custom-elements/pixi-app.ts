@@ -1,4 +1,4 @@
-import { IRegistry } from '@aurelia/kernel';
+import { Constructable, IRegistry } from '@aurelia/kernel';
 import {
   bindable,
   customElement
@@ -13,7 +13,7 @@ import {
 export class PixiApp {
   public static readonly register: IRegistry['register'];
 
-  public static readonly inject: Function[] = [Element];
+  public static readonly inject: Constructable[] = [Element];
 
   public get app(): Application {
     return this._app;

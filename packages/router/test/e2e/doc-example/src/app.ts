@@ -57,7 +57,7 @@ export class App {
       //   }
       //   return parts.join('/');
       // }
-    });
+    }).catch(error => { throw error; });
     this.router.addNav('app-menu', [
       {
         title: 'Authors',

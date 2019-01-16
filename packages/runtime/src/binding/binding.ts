@@ -1,6 +1,6 @@
 import { IServiceLocator, Reporter, Tracer } from '@aurelia/kernel';
 import { IBindScope, ILifecycle, State } from '../lifecycle';
-import { AccessorOrObserver, IBindingTargetObserver, IScope, LifecycleFlags } from '../observation';
+import { AccessorOrObserver, IBindingTargetObserver, IObservable, IScope, LifecycleFlags } from '../observation';
 import { IObserverLocator } from '../observation/observer-locator';
 import { ExpressionKind, ForOfStatement, hasBind, hasUnbind, IsBindingBehavior } from './ast';
 import { BindingMode } from './binding-mode';
@@ -35,14 +35,14 @@ export class Binding implements IPartialConnectableBinding {
   public mode: BindingMode;
   public observerLocator: IObserverLocator;
   public sourceExpression: IsBindingBehavior | ForOfStatement;
-  public target: Object;
+  public target: IObservable;
   public targetProperty: string;
 
   public targetObserver: AccessorOrObserver;
 
   public persistentFlags: LifecycleFlags;
 
-  constructor(sourceExpression: IsBindingBehavior | ForOfStatement, target: Object, targetProperty: string, mode: BindingMode, observerLocator: IObserverLocator, locator: IServiceLocator) {
+  constructor(sourceExpression: IsBindingBehavior | ForOfStatement, target: IObservable, targetProperty: string, mode: BindingMode, observerLocator: IObserverLocator, locator: IServiceLocator) {
     this.$nextBind = null;
     this.$prevBind = null;
     this.$state = State.none;

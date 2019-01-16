@@ -57,7 +57,7 @@ const getName = (o: any) => Object.prototype.toString.call(o).slice(8, -1);
 
 describe('Binding', () => {
   let dummySourceExpression: IExpression;
-  let dummyTarget: Object;
+  let dummyTarget: Record<string, unknown>;
   let dummyTargetProperty: string;
   let dummyMode: BindingMode;
 

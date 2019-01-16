@@ -1,5 +1,5 @@
 
-import { IContainer, IResolver, Registration } from '@aurelia/kernel';
+import { IContainer, InterfaceSymbol, IResolver, Registration } from '@aurelia/kernel';
 import {
   IBindingTargetAccessor,
   IBindingTargetObserver,
@@ -71,7 +71,7 @@ const overrideProps = (function (o: Record<string, boolean>): typeof o {
 })(Object.create(null));
 
 export class TargetObserverLocator implements ITargetObserverLocator {
-  public static readonly inject: ReadonlyArray<Function> = [IDOM];
+  public static readonly inject: ReadonlyArray<InterfaceSymbol<unknown>> = [IDOM];
 
   private readonly dom: IDOM;
 
@@ -134,7 +134,7 @@ export class TargetObserverLocator implements ITargetObserverLocator {
 }
 
 export class TargetAccessorLocator implements ITargetAccessorLocator {
-  public static readonly inject: ReadonlyArray<Function> = [IDOM];
+  public static readonly inject: ReadonlyArray<InterfaceSymbol<unknown>> = [IDOM];
 
   private readonly dom: IDOM;
 

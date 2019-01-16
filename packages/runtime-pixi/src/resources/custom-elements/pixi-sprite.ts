@@ -82,6 +82,7 @@ export class PixiSprite {
   @bindable public cacheAsBitmap?: boolean;
   @bindable public cursor?: string;
   @bindable public filterArea?: Rectangle;
+  // tslint:disable-next-line:ban-types // Object usage is "inherited" from Pixi.
   @bindable public filters?: Filter<Object>[];
   @bindable public hitArea?: Rectangle | Circle | Ellipse | Polygon | RoundedRectangle;
   @bindable public interactive?: boolean;
@@ -138,6 +139,7 @@ export class PixiSprite {
   }
   @bindable public pluginName?: string;
   @bindable public roundPixels?: boolean;
+  // tslint:disable-next-line:ban-types // Object usage is "inherited" from Pixi.
   @bindable public shader?: Filter<Object> | Shader;
   @bindable public texture?: Texture;
   @bindable public tint?: number;

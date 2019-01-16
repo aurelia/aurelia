@@ -9,14 +9,16 @@ export interface IViewportComponent {
   component: string | ICustomElementType;
 }
 
+export type NavComponent = string | ICustomElementType | IViewportComponent;
+
 export class NavRoute {
   public nav: Nav;
-  public components: string | ICustomElementType | IViewportComponent;
+  public components: NavComponent;
   public title: string;
   public link?: string;
   public linkActive?: string;
   public children?: NavRoute[];
-  public meta?: Object;
+  public meta?: Record<string, unknown>;
 
   public active: string = '';
 
@@ -33,7 +35,7 @@ export class NavRoute {
       active: '',
     });
     this.link = this._link(this.components);
-    this.linkActive = route.consideredActive ? this._link((route.consideredActive as string | ICustomElementType | IViewportComponent)) : this.link;
+    this.linkActive = route.consideredActive ? this._link(route.consideredActive) : this.link;
     this.observerLocator = this.nav.router.container.get(IObserverLocator);
     this.observer = this.observerLocator.getObserver(this.nav.router, 'activeComponents') as IPropertyObserver<Router, 'activeComponents'>;
     this.observer.subscribe(this);
@@ -72,7 +74,7 @@ export class NavRoute {
     this.active = (this.active.startsWith('nav-active') ? '' : 'nav-active');
   }
 
-  public _link(components: string | ICustomElementType | IViewportComponent): string {
+  public _link(components: NavComponent): string {
     if (Array.isArray(components)) {
       return components.map((value) => this.linkName(value)).join(this.nav.router.separators.sibling);
     } else {
@@ -91,7 +93,7 @@ export class NavRoute {
     return false;
   }
 
-  private linkName(component: string | ICustomElementType | IViewportComponent): string {
+  private linkName(component: NavComponent): string {
     if (!component) {
       return '';
     } else if (typeof component === 'string') {

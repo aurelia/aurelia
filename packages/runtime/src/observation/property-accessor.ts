@@ -1,12 +1,12 @@
 import { IBindingTargetAccessor } from '../observation';
 
-export interface PropertyAccessor extends IBindingTargetAccessor<Object, string> {}
+export interface PropertyAccessor extends IBindingTargetAccessor<Record<string, unknown>, string> {}
 
 export class PropertyAccessor implements PropertyAccessor {
-  public obj: Object;
+  public obj: Record<string, unknown>;
   public propertyKey: string;
 
-  constructor(obj: Object, propertyKey: string) {
+  constructor(obj: Record<string, unknown>, propertyKey: string) {
     this.obj = obj;
     this.propertyKey = propertyKey;
   }

@@ -125,7 +125,7 @@ function countSubscribers(observer: any): number {
   return count;
 }
 
-export function executeSharedPropertyObserverTests(observer: any, done: Function): void {
+export function executeSharedPropertyObserverTests(observer: any, done: () => void): void {
   const context = 'test-context';
   let callable0: any = { call: spy() };
   const callable1 = { call: spy() };

@@ -11,7 +11,7 @@ function wrap(inner: string, tag: string): string {
   return `<${tag}>${inner}</${tag}>`;
 }
 
-function verifyThrows(call: Function): void {
+function verifyThrows(call: () => void): void {
   let err;
   try {
     call();
@@ -21,7 +21,7 @@ function verifyThrows(call: Function): void {
   expect(err instanceof Error).to.equal(true);
 }
 
-function verifyDoesNotThrow(call: Function): void {
+function verifyDoesNotThrow(call: () => void): void {
   let err;
   try {
     call();

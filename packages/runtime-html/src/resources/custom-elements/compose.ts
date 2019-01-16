@@ -1,4 +1,4 @@
-import { Constructable, Immutable, IRegistry } from '@aurelia/kernel';
+import { Constructable, Immutable, InterfaceSymbol, IRegistry } from '@aurelia/kernel';
 import {
   bindable,
   CompositionCoordinator,
@@ -28,10 +28,11 @@ const composeSource: ITemplateDefinition = {
 const composeProps = ['subject', 'composing'];
 
 export type Subject<T extends INode = Node> = IViewFactory<T> | IView<T> | RenderPlan<T> | Constructable | TemplateDefinition;
+export type MaybeSubjectPromise<T> = Subject<T> | Promise<Subject<T>> | null;
 
 export interface Compose<T extends INode = Node> extends ICustomElement<T> {}
 export class Compose<T extends INode = Node> implements Compose<T> {
-  public static readonly inject: ReadonlyArray<Function> = [IDOM, IRenderable, ITargetedInstruction, IRenderingEngine, CompositionCoordinator];
+  public static readonly inject: ReadonlyArray<InterfaceSymbol<unknown>|Constructable> = [IDOM, IRenderable, ITargetedInstruction, IRenderingEngine, CompositionCoordinator];
 
   public static readonly register: IRegistry['register'];
   public static readonly kind: ICustomElementResource<Node>;
@@ -40,7 +41,7 @@ export class Compose<T extends INode = Node> implements Compose<T> {
   public static readonly shadowOptions: TemplateDefinition['shadowOptions'];
   public static readonly bindables: TemplateDefinition['bindables'];
 
-  @bindable public subject: Subject<T> | Promise<Subject<T>> | null;
+  @bindable public subject: MaybeSubjectPromise<T>;
   @bindable public composing: boolean;
 
   private readonly dom: IDOM;
@@ -48,7 +49,7 @@ export class Compose<T extends INode = Node> implements Compose<T> {
   private readonly properties: Record<string, TargetedInstruction>;
   private readonly renderable: IRenderable<T>;
   private readonly renderingEngine: IRenderingEngine;
-  private lastSubject: Subject<T> | Promise<Subject<T>> | null;
+  private lastSubject: MaybeSubjectPromise<T>;
 
   constructor(
     dom: IDOM<T>,
@@ -110,7 +111,7 @@ export class Compose<T extends INode = Node> implements Compose<T> {
     this.startComposition(newValue, previousValue, flags);
   }
 
-  private startComposition(subject: Subject<T> | Promise<Subject<T>> | null, _previousSubject: Subject<T> | Promise<Subject<T>> | null, flags: LifecycleFlags): void {
+  private startComposition(subject: MaybeSubjectPromise<T>, _previousSubject: MaybeSubjectPromise<T>, flags: LifecycleFlags): void {
     if (this.lastSubject === subject) {
       return;
     }

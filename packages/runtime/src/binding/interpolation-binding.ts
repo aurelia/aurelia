@@ -1,6 +1,6 @@
 import { IServiceLocator } from '@aurelia/kernel';
 import { IBindScope, State } from '../lifecycle';
-import { IBindingTargetAccessor, IScope, LifecycleFlags } from '../observation';
+import { IBindingTargetAccessor, IObservable, IScope, LifecycleFlags } from '../observation';
 import { IObserverLocator } from '../observation/observer-locator';
 import { IExpression, Interpolation } from './ast';
 import { IBinding } from './binding';
@@ -20,10 +20,10 @@ export class MultiInterpolationBinding implements IBinding {
   public locator: IServiceLocator;
   public mode: BindingMode;
   public parts: InterpolationBinding[];
-  public target: Object;
+  public target: IObservable;
   public targetProperty: string;
 
-  constructor(observerLocator: IObserverLocator, interpolation: Interpolation, target: Object, targetProperty: string, mode: BindingMode, locator: IServiceLocator) {
+  constructor(observerLocator: IObserverLocator, interpolation: Interpolation, target: IObservable, targetProperty: string, mode: BindingMode, locator: IServiceLocator) {
     this.$nextBind = null;
     this.$prevBind = null;
     this.$state = State.none;
@@ -89,13 +89,13 @@ export class InterpolationBinding implements IPartialConnectableBinding {
   public mode: BindingMode;
   public observerLocator: IObserverLocator;
   public sourceExpression: IExpression;
-  public target: Object;
+  public target: IObservable;
   public targetProperty: string;
 
   public targetObserver: IBindingTargetAccessor;
 
   // tslint:disable-next-line:parameters-max-number
-  constructor(sourceExpression: IExpression, interpolation: Interpolation, target: Object, targetProperty: string, mode: BindingMode, observerLocator: IObserverLocator, locator: IServiceLocator, isFirst: boolean) {
+  constructor(sourceExpression: IExpression, interpolation: Interpolation, target: IObservable, targetProperty: string, mode: BindingMode, observerLocator: IObserverLocator, locator: IServiceLocator, isFirst: boolean) {
     this.$state = State.none;
 
     this.interpolation = interpolation;

@@ -1,8 +1,18 @@
-import { TestContext } from '../util';
-import { CustomElementResource, Aurelia, ICustomElement, IDOM, IProjectorLocator, IRenderingEngine, INode, LifecycleFlags, Scope, BindingContext } from '@aurelia/runtime';
-import { expect } from 'chai';
 import { InterfaceSymbol } from '@aurelia/kernel';
-
+import {
+  Aurelia,
+  BindingContext,
+  CustomElementResource,
+  ICustomElement,
+  IDOM,
+  INode,
+  IProjectorLocator,
+  IRenderingEngine,
+  LifecycleFlags,
+  Scope
+} from '@aurelia/runtime';
+import { expect } from 'chai';
+import { TestContext } from '../util';
 
 describe('DI', function() {
   function setup() {

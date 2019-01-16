@@ -30,7 +30,7 @@ const slice = Array.prototype.slice;
 @instructionRenderer(HTMLTargetedInstructionType.textBinding)
 /** @internal */
 export class TextBindingRenderer implements IInstructionRenderer {
-  public static readonly inject: ReadonlyArray<InterfaceSymbol<unknown>> = [IExpressionParser, IObserverLocator];
+  public static readonly inject: ReadonlyArray<InterfaceSymbol> = [IExpressionParser, IObserverLocator];
   public static readonly register: IRegistry['register'];
 
   private readonly parser: IExpressionParser;
@@ -62,7 +62,7 @@ export class TextBindingRenderer implements IInstructionRenderer {
 @instructionRenderer(HTMLTargetedInstructionType.listenerBinding)
 /** @internal */
 export class ListenerBindingRenderer implements IInstructionRenderer {
-  public static readonly inject: ReadonlyArray<InterfaceSymbol<unknown>> = [IExpressionParser, IEventManager];
+  public static readonly inject: ReadonlyArray<InterfaceSymbol> = [IExpressionParser, IEventManager];
   public static readonly register: IRegistry['register'];
 
   private readonly parser: IExpressionParser;
@@ -97,7 +97,7 @@ export class SetAttributeRenderer implements IInstructionRenderer {
 @instructionRenderer(HTMLTargetedInstructionType.stylePropertyBinding)
 /** @internal */
 export class StylePropertyBindingRenderer implements IInstructionRenderer {
-  public static readonly inject: ReadonlyArray<InterfaceSymbol<unknown>> = [IExpressionParser, IObserverLocator];
+  public static readonly inject: ReadonlyArray<InterfaceSymbol> = [IExpressionParser, IObserverLocator];
   public static readonly register: IRegistry['register'];
 
   private readonly parser: IExpressionParser;

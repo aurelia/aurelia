@@ -66,7 +66,7 @@ function getPropertyDescriptor(subject: object, name: string): PropertyDescripto
 
 /** @internal */
 export class ObserverLocator implements IObserverLocator {
-  public static readonly inject: ReadonlyArray<InterfaceSymbol<unknown>> = [ILifecycle, IDirtyChecker, ITargetObserverLocator, ITargetAccessorLocator];
+  public static readonly inject: ReadonlyArray<InterfaceSymbol> = [ILifecycle, IDirtyChecker, ITargetObserverLocator, ITargetAccessorLocator];
 
   private readonly adapters: IObjectObservationAdapter[];
   private readonly dirtyChecker: IDirtyChecker;

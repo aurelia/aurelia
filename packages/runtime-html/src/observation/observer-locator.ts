@@ -71,7 +71,7 @@ const overrideProps = (function (o: Record<string, boolean>): typeof o {
 })(Object.create(null));
 
 export class TargetObserverLocator implements ITargetObserverLocator {
-  public static readonly inject: ReadonlyArray<InterfaceSymbol<unknown>> = [IDOM];
+  public static readonly inject: ReadonlyArray<InterfaceSymbol> = [IDOM];
 
   private readonly dom: IDOM;
 
@@ -134,7 +134,7 @@ export class TargetObserverLocator implements ITargetObserverLocator {
 }
 
 export class TargetAccessorLocator implements ITargetAccessorLocator {
-  public static readonly inject: ReadonlyArray<InterfaceSymbol<unknown>> = [IDOM];
+  public static readonly inject: ReadonlyArray<InterfaceSymbol> = [IDOM];
 
   private readonly dom: IDOM;
 

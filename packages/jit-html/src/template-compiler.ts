@@ -60,7 +60,7 @@ const { enter, leave } = Profiler.createTimer('TemplateCompiler');
  * @internal
  */
 export class TemplateCompiler implements ITemplateCompiler {
-  public static readonly inject: ReadonlyArray<InterfaceSymbol<unknown>> = [ITemplateElementFactory, IAttributeParser, IExpressionParser];
+  public static readonly inject: ReadonlyArray<InterfaceSymbol> = [ITemplateElementFactory, IAttributeParser, IExpressionParser];
 
   private readonly factory: ITemplateElementFactory;
   private readonly attrParser: IAttributeParser;

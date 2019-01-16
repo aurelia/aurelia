@@ -307,7 +307,7 @@ describe(spec, () => {
       public attaching() {
         this.$lifecycle.registerTask({
           done: false,
-          canCancel() {return false; },
+          canCancel() { return false; },
           cancel() { return; },
           wait() {
             this.done = true;
@@ -366,7 +366,7 @@ describe(spec, () => {
       public attaching() {
         this.$lifecycle.registerTask({
           done: false,
-          canCancel() {return false; },
+          canCancel() { return false; },
           cancel() { return; },
           wait() {
             this.done = true;
@@ -430,11 +430,11 @@ describe(spec, () => {
       public attaching() {
         this.$lifecycle.registerTask({
           done: false,
-          canCancel() {return false; },
+          canCancel() { return false; },
           cancel() { return; },
           wait() {
             this.done = true;
-            return Promise.resolve().then(() => {}).then(() => {}).then(() => {});
+            return Promise.resolve().then(() => { return; }).then(() => { return; }).then(() => { return; });
           }
         });
       }
@@ -497,11 +497,11 @@ describe(spec, () => {
       public attaching() {
         this.$lifecycle.registerTask({
           done: false,
-          canCancel() {return false; },
+          canCancel() { return false; },
           cancel() { return; },
           wait() {
             this.done = true;
-            return Promise.resolve().then(() => {}).then(() => {}).then(() => {});
+            return Promise.resolve().then(() => { return; }).then(() => {return; }).then(() => { return; });
           }
         });
       }
@@ -561,7 +561,7 @@ describe(spec, () => {
       public detaching() {
         this.$lifecycle.registerTask({
           done: false,
-          canCancel() {return false; },
+          canCancel() { return false; },
           cancel() { return; },
           wait() {
             this.done = true;
@@ -622,7 +622,7 @@ describe(spec, () => {
       public detaching() {
         this.$lifecycle.registerTask({
           done: false,
-          canCancel() {return false; },
+          canCancel() { return false; },
           cancel() { return; },
           wait() {
             this.done = true;
@@ -683,11 +683,11 @@ describe(spec, () => {
       public detaching() {
         this.$lifecycle.registerTask({
           done: false,
-          canCancel() {return false; },
-          cancel() {return},
+          canCancel() { return false; },
+          cancel() { return; },
           wait() {
             this.done = true;
-            return Promise.resolve().then(() => {}).then(() => {}).then(() => {});
+            return Promise.resolve().then(() => { return; }).then(() => { return; }).then(() => { return; });
           }
         });
       }
@@ -747,11 +747,11 @@ describe(spec, () => {
       public detaching() {
         this.$lifecycle.registerTask({
           done: false,
-          canCancel() {return false; },
-          cancel() {return},
+          canCancel() { return false; },
+          cancel() { return; },
           wait() {
             this.done = true;
-            return Promise.resolve().then(() => {}).then(() => {}).then(() => {});
+            return Promise.resolve().then(() => { return; }).then(() => { return; }).then(() => {return; });
           }
         });
       }

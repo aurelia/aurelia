@@ -40,6 +40,7 @@ import {
   LifecycleFlags,
   MutationKind
 } from './observation';
+import { ProxyObserver } from './observation/proxy-observer';
 import { SelfObserver } from './observation/self-observer';
 import { subscriberCollection } from './observation/subscriber-collection';
 import { ICustomAttribute, ICustomAttributeType } from './resources/custom-attribute';
@@ -73,7 +74,7 @@ export const ITemplateFactory = DI.createInterface<ITemplateFactory>('ITemplateF
 export interface ITemplate<T extends INode = INode> {
   readonly renderContext: IRenderContext<T>;
   readonly dom: IDOM<T>;
-  render(renderable: IRenderable<T>, host?: T, parts?: Immutable<Record<string, ITemplateDefinition>>): void;
+  render(renderable: IRenderable<T>, host?: T, parts?: Immutable<Record<string, ITemplateDefinition>>, flags?: LifecycleFlags): void;
 }
 
 // This is the main implementation of ITemplate.
@@ -96,10 +97,12 @@ export class CompiledTemplate<T extends INode = INode> implements ITemplate {
     this.renderContext = renderContext;
   }
 
-  public render(renderable: IRenderable<T>, host?: T, parts?: TemplatePartDefinitions): void {
+  public render(renderable: IRenderable<T>, host?: T, parts?: TemplatePartDefinitions, flags: LifecycleFlags = LifecycleFlags.none): void {
     const nodes = (renderable as Writable<IRenderable>).$nodes = this.factory.createNodeSequence();
     (renderable as Writable<IRenderable>).$context = this.renderContext;
-    const flags = this.definition.useProxies ? LifecycleFlags.useProxies : LifecycleFlags.none;
+    if (this.definition.useProxies) {
+      flags |= LifecycleFlags.useProxies;
+    }
     this.renderContext.render(flags, renderable, nodes.findTargets(), this.definition, host, parts);
   }
 }
@@ -514,23 +517,36 @@ export class RuntimeBehavior {
     const bindables = this.bindables;
     const observableNames = Object.getOwnPropertyNames(bindables);
 
-    for (let i = 0, ii = observableNames.length; i < ii; ++i) {
-      const name = observableNames[i];
+    if (flags & LifecycleFlags.useProxies) {
+      for (let i = 0, ii = observableNames.length; i < ii; ++i) {
+        const name = observableNames[i];
 
-      observers[name] = new SelfObserver(
-        flags,
-        instance,
-        name,
-        bindables[name].callback
-      );
+        observers[name] = new SelfObserver(
+          flags,
+          ProxyObserver.getOrCreate(instance).proxy,
+          name,
+          bindables[name].callback
+        );
+      }
+    } else {
+      for (let i = 0, ii = observableNames.length; i < ii; ++i) {
+        const name = observableNames[i];
 
-      createGetterSetter(flags, instance, name);
+        observers[name] = new SelfObserver(
+          flags,
+          instance,
+          name,
+          bindables[name].callback
+        );
+
+        createGetterSetter(flags, instance, name);
+      }
+
+      Reflect.defineProperty(instance, '$observers', {
+        enumerable: false,
+        value: observers
+      });
     }
-
-    Reflect.defineProperty(instance, '$observers', {
-      enumerable: false,
-      value: observers
-    });
 
     return observers;
   }

@@ -145,7 +145,7 @@ export interface IViewCache<T extends INode = INode> {
 
 export interface IViewFactory<T extends INode = INode> extends IViewCache<T> {
   readonly name: string;
-  create(): IView<T>;
+  create(flags?: LifecycleFlags): IView<T>;
 }
 
 export const IViewFactory = DI.createInterface<IViewFactory>('IViewFactory').noDefault();
@@ -1385,15 +1385,19 @@ export class CompositionCoordinator {
   }
 
   private enqueue(view: IView | PromiseSwap): void {
+    if (Tracer.enabled) { Tracer.enter('CompositionCoordinator.enqueue', slice.call(arguments)); }
     if (this.queue === null) {
       this.queue = [];
     }
 
     this.queue.push(view);
+    if (Tracer.enabled) { Tracer.leave(); }
   }
 
   private swap(view: IView, flags: LifecycleFlags): void {
+    if (Tracer.enabled) { Tracer.enter('CompositionCoordinator.swap', slice.call(arguments)); }
     if (this.currentView === view) {
+      if (Tracer.enabled) { Tracer.leave(); }
       return;
     }
 
@@ -1442,9 +1446,11 @@ export class CompositionCoordinator {
         this.processNext();
       }).catch(error => { throw error; });
     }
+    if (Tracer.enabled) { Tracer.leave(); }
   }
 
   private processNext(): void {
+    if (Tracer.enabled) { Tracer.enter('CompositionCoordinator.processNext', slice.call(arguments)); }
     if (this.queue !== null && this.queue.length > 0) {
       const next = this.queue.pop();
       this.queue.length = 0;
@@ -1457,6 +1463,7 @@ export class CompositionCoordinator {
     } else {
       this.swapTask = LifecycleTask.done;
     }
+    if (Tracer.enabled) { Tracer.leave(); }
   }
 }
 
@@ -1497,14 +1504,17 @@ export class AggregateLifecycleTask implements ILifecycleTask<void> {
   }
 
   public addTask(task: ILifecycleTask): void {
+    if (Tracer.enabled) { Tracer.enter('AggregateLifecycleTask.addTask', slice.call(arguments)); }
     if (!task.done) {
       this.done = false;
       this.tasks.push(task);
       task.wait().then(() => { this.tryComplete(); }).catch(error => { throw error; });
     }
+    if (Tracer.enabled) { Tracer.leave(); }
   }
 
   public removeTask(task: ILifecycleTask): void {
+    if (Tracer.enabled) { Tracer.enter('AggregateLifecycleTask.removeTask', slice.call(arguments)); }
     if (task.done) {
       const idx = this.tasks.indexOf(task);
       if (idx !== -1) {
@@ -1515,6 +1525,7 @@ export class AggregateLifecycleTask implements ILifecycleTask<void> {
       this.owner.finishTask(this);
       this.owner = null;
     }
+    if (Tracer.enabled) { Tracer.leave(); }
   }
 
   public canCancel(): boolean {
@@ -1556,6 +1567,7 @@ export class AggregateLifecycleTask implements ILifecycleTask<void> {
   }
 
   private complete(notCancelled: boolean): void {
+    if (Tracer.enabled) { Tracer.enter('AggregateLifecycleTask.complete', slice.call(arguments)); }
     this.done = true;
 
     if (notCancelled && this.owner !== null) {
@@ -1569,6 +1581,7 @@ export class AggregateLifecycleTask implements ILifecycleTask<void> {
     if (this.resolve !== null) {
       this.resolve();
     }
+    if (Tracer.enabled) { Tracer.leave(); }
   }
 }
 

@@ -1,6 +1,7 @@
 import { IIndexable, PLATFORM, Tracer } from '@aurelia/kernel';
 import { IPropertyObserver, LifecycleFlags } from '../observation';
 import { propertyObserver } from './property-observer';
+import { ProxyObserver } from './proxy-observer';
 
 const slice = Array.prototype.slice;
 const noop = PLATFORM.noop;
@@ -14,7 +15,7 @@ export class SelfObserver implements SelfObserver {
   public propertyKey: string;
   public currentValue: unknown;
 
-  private readonly callback: (newValue: unknown, oldValue: unknown) => unknown;
+  private readonly callback: (newValue: unknown, oldValue: unknown, flags?: LifecycleFlags) => unknown;
 
   constructor(
     flags: LifecycleFlags,
@@ -24,13 +25,27 @@ export class SelfObserver implements SelfObserver {
   ) {
     if (Tracer.enabled) { Tracer.enter('SelfObserver.constructor', slice.call(arguments)); }
     this.persistentFlags = flags & LifecycleFlags.persistentBindingFlags;
-    this.obj = instance;
-    this.propertyKey = propertyName;
-    this.currentValue = instance[propertyName];
-    this.callback = callbackName in instance
-      ? instance[callbackName].bind(instance)
-      : noop;
+    if (ProxyObserver.isProxy(instance)) {
+      instance.$observer.subscribe(this, propertyName);
+      this.obj = instance.$raw;
+      this.propertyKey = propertyName;
+      this.currentValue = instance.$raw[propertyName];
+      this.callback = callbackName in instance.$raw
+        ? instance[callbackName].bind(instance)
+        : noop;
+    } else {
+      this.obj = instance;
+      this.propertyKey = propertyName;
+      this.currentValue = instance[propertyName];
+      this.callback = callbackName in instance
+        ? instance[callbackName].bind(instance)
+        : noop;
+    }
     if (Tracer.enabled) { Tracer.leave(); }
+  }
+
+  public handleChange(newValue: unknown, oldValue: unknown, flags: LifecycleFlags): void {
+    this.setValue(newValue, flags);
   }
 
   public getValue(): unknown {
@@ -44,7 +59,7 @@ export class SelfObserver implements SelfObserver {
       this.currentValue = newValue;
 
       if (!(flags & LifecycleFlags.fromBind)) {
-        const coercedValue = this.callback(newValue, currentValue);
+        const coercedValue = this.callback(newValue, currentValue, flags);
 
         if (coercedValue !== undefined) {
           this.currentValue = newValue = coercedValue;

@@ -63,6 +63,7 @@ export class Aurelia {
     } else {
       component = componentOrType as ICustomElement;
     }
+    component = PLATFORM.getRawIfProxy(component);
 
     const startTask = () => {
       host.$au = this;

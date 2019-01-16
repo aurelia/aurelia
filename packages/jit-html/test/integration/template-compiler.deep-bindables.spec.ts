@@ -1,484 +1,694 @@
-import {
-  Constructable,
-  IContainer
-} from '@aurelia/kernel';
+import { ITraceInfo, Tracer } from '@aurelia/kernel';
 import {
   Aurelia,
-  bindable,
   CustomElementResource,
-  ICustomElementType,
-  ILifecycle
+  LifecycleFlags,
+  ProxyObserver
 } from '@aurelia/runtime';
 import { expect } from 'chai';
-import { HTMLTestContext } from '../util';
-import { baseSuite } from './template-compiler.base';
+import { disableTracing, enableTracing } from '../unit/util';
+import { TestContext } from '../util';
 
 const spec = 'template-compiler.deep-bindables';
 
-type TFooA = Constructable<{ a1: string; a2: string; a3: string }> & ICustomElementType;
-type TFooB = Constructable<{ b1: string; b2: string; b3: string }> & ICustomElementType;
-type TFooC = Constructable<{ c1: string; c2: string; c3: string }> & ICustomElementType;
-type TApp = Constructable<{ $1: string; $2: string; $3: string }> & ICustomElementType & TFooA & TFooB & TFooC;
+describe(spec, function () {
+  function setup() {
+    const ctx = TestContext.createHTMLTestContext();
+    const container = ctx.container;
+    const lifecycle = ctx.lifecycle;
+    const au = new Aurelia(container);
+    const host = ctx.createElement('div');
 
-// #region parentSuite
-const parentSuite = baseSuite.clone<IContainer, Aurelia, ILifecycle, HTMLElement, TApp, TFooA, TFooB, TFooC, HTMLElement, HTMLElement, HTMLElement>(spec);
-
-parentSuite.addDataSlot('e').addData('app').setFactory(ctx => {
-  const { a: container } = ctx;
-  const $ctx = container.get<HTMLTestContext>(HTMLTestContext);
-  const template = $ctx.createElement('template') as HTMLTemplateElement;
-  const text = $ctx.doc.createTextNode('${$1}${$2}${$3}');
-  const fooA_el = $ctx.createElement('foo-a');
-
-  fooA_el.setAttribute('a1.bind', '$1');
-  fooA_el.setAttribute('a2.bind', '$2');
-  fooA_el.setAttribute('a3.bind', '$3');
-
-  template.content.appendChild(text);
-  template.content.appendChild(fooA_el);
-
-  const $App = CustomElementResource.define({ name: 'app', template }, class App {});
-  container.register($App);
-  ctx.i = fooA_el;
-  return $App;
-});
-parentSuite.addDataSlot('f').addData('foo-a').setFactory(ctx => {
-  const { a: container } = ctx;
-  const $ctx = container.get<HTMLTestContext>(HTMLTestContext);
-  const template = $ctx.createElement('template') as HTMLTemplateElement;
-  const text = $ctx.doc.createTextNode('${a1}${a2}${a3}');
-  const fooB_el = $ctx.createElement('foo-b');
-
-  fooB_el.setAttribute('b1.bind', 'a1');
-  fooB_el.setAttribute('b2.bind', 'a2');
-  fooB_el.setAttribute('b3.bind', 'a3');
-
-  template.content.appendChild(text);
-  template.content.appendChild(fooB_el);
-
-  class FooA {
-    @bindable() public a1: string;
-    @bindable() public a2: string;
-    @bindable() public a3: string;
-    @bindable() public display: boolean;
-    @bindable() public things: any[];
+    return { ctx, container, lifecycle, au, host };
   }
-  const $FooA = CustomElementResource.define({ name: 'foo-a', template }, FooA);
-  container.register($FooA);
-  ctx.j = fooB_el;
-  return $FooA;
-});
-parentSuite.addDataSlot('g').addData('foo-b').setFactory(ctx => {
-  const { a: container } = ctx;
-  const $ctx = container.get<HTMLTestContext>(HTMLTestContext);
-  const template = $ctx.createElement('template') as HTMLTemplateElement;
-  const text = $ctx.doc.createTextNode('${b1}${b2}${b3}');
-  const fooC_el = $ctx.createElement('foo-c');
 
-  fooC_el.setAttribute('c1.bind', 'b1');
-  fooC_el.setAttribute('c2.bind', 'b2');
-  fooC_el.setAttribute('c3.bind', 'b3');
+  for (const useProxies of [true, false]) {
+    it(`useProxies=${useProxies}`, function() {
+      this.timeout(30000);
+      const { ctx, container, lifecycle, au, host } = setup();
 
-  template.content.appendChild(text);
-  template.content.appendChild(fooC_el);
+      const bindables = {
+        max: { property: 'max', attribute: 'max' },
+        depth: { property: 'depth', attribute: 'depth' },
+        items: { property: 'items', attribute: 'items' },
+        item: { property: 'item', attribute: 'item' }
+      };
+      const FooA = CustomElementResource.define(
+        {
+          name: 'foo-a',
+          template: `a\${depth}.\${item} <foo-a if.bind="depth<=max" repeat.for="i of items" max.bind="max" depth.bind="depth+1" items.bind="items" item.bind="i"></foo-a>`,
+          useProxies
+        },
+        class { public static bindables = bindables; }
+      );
 
-  class FooB {
-    @bindable() public b1: string;
-    @bindable() public b2: string;
-    @bindable() public b3: string;
-    @bindable() public display: boolean;
-    @bindable() public things: any[];
-  }
-  const $FooB = CustomElementResource.define({ name: 'foo-b', template }, FooB);
-  container.register($FooB);
-  ctx.k = fooC_el;
-  return $FooB;
-});
-parentSuite.addDataSlot('h').addData('foo-c').setFactory(ctx => {
-  const { a: container } = ctx;
-  const $ctx = container.get<HTMLTestContext>(HTMLTestContext);
-  const template = $ctx.createElement('template') as HTMLTemplateElement;
-  const text = $ctx.doc.createTextNode('${c1}${c2}${c3}');
+      const FooB = CustomElementResource.define(
+        {
+          name: 'foo-b',
+          template: `b\${depth}.\${item} <foo-b if.bind="depth<=max" repeat.for="i of items" max.bind="max" depth.bind="depth+1" items.bind="items" item.bind="i"></foo-b>`,
+          useProxies
+        },
+        class { public static bindables = bindables; }
+      );
 
-  template.content.appendChild(text);
+      const App = CustomElementResource.define(
+        {
+          name: 'app',
+          template: `<foo-a if.bind="a" max.bind="max" depth.bind="depth+1" items.bind="items" item.bind="0"></foo-a><foo-b else max.bind="max" depth.bind="depth+1" items.bind="items" item.bind="0"></foo-b>`,
+          useProxies,
+          dependencies: [FooA, FooB]
+        },
+        class {}
+      );
 
-  class FooC {
-    @bindable() public c1: string;
-    @bindable() public c2: string;
-    @bindable() public c3: string;
-    @bindable() public display: boolean;
-    @bindable() public things: any[];
-  }
-  const $FooC = CustomElementResource.define({ name: 'foo-c', template }, FooC);
-  container.register($FooC);
-  return $FooC;
-});
+      let component = new App() as InstanceType<typeof App> & {
+        a: boolean;
+        max: number;
+        depth: number;
+        items: number[];
+      };
+      if (useProxies) {
+        component = ProxyObserver.getOrCreate(component).proxy;
+      }
 
-// #endregion
 
-// #region basic
-const nonWrappedBasic = parentSuite.clone<IContainer, Aurelia, ILifecycle, HTMLElement, TApp, TFooA, TFooB, TFooC, HTMLElement, HTMLElement, HTMLElement>(spec);
-const wrappedBasic = parentSuite.clone<IContainer, Aurelia, ILifecycle, HTMLElement, TApp, TFooA, TFooB, TFooC, HTMLElement, HTMLElement, HTMLElement>(spec);
+      function verify() {
+        lifecycle.processFlushQueue(LifecycleFlags.none);
+        const { a, max, items } = component;
+        expect(host.textContent).to.equal(getExpectedText(a ? 'a' : 'b', max, items, 0, 1));
+      }
+      function getExpectedText(prefix: string, max: number, items: unknown[], item: unknown, depth: number): string {
+        let text = `${prefix}${depth}.${item} `;
+        if (depth <= max) {
+          const len = items.length;
+          let i = 0;
+          for (i = 0; i < len; ++i) {
+            text += getExpectedText(prefix, max, items, items[i], depth + 1);
+          }
+        }
+        return text;
+      }
 
-wrappedBasic.addActionSlot('wrap in div')
-  .addAction('setup', ctx => {
-    const {
-      e: { description: { template: appTemplate } },
-      f: { description: { template: fooATemplate } },
-      g: { description: { template: fooBTemplate } },
-      h: { description: { template: fooCTemplate } }
-    } = ctx;
+      let trace = true;
 
-    const $ctx = ctx.a.get<HTMLTestContext>(HTMLTestContext);
-    for (const template of [appTemplate, fooATemplate, fooBTemplate, fooCTemplate] as HTMLTemplateElement[]) {
-      const div = $ctx.createElement('div');
-      div.appendChild(template.content);
-      template.content.appendChild(div);
-    }
-  });
+      component.a = true;
+      component.max = 3;
+      component.depth = 0;
+      component.items = [1, 2, 3];
 
-for (const suite of [nonWrappedBasic, wrappedBasic]) {
-  suite.addActionSlot('act')
-    .addAction('assign', ctx => {
-      const { b: au, c: lifecycle, d: host, e: app } = ctx;
+      const calls = {
+        'ProxyObserver.constructor': [] as ITraceInfo[],
+        'ProxySubscriberCollection.constructor': [] as ITraceInfo[],
+        'SelfObserver.constructor': [] as ITraceInfo[],
+        'SetterObserver.constructor': [] as ITraceInfo[]
+      };
+      if (trace) {
+        enableTracing();
+        Tracer.enableLiveLogging({
+          write(info) {
+            if (calls[info.name] === undefined) {
+              calls[info.name] = 0;
+            }
+            if (typeof calls[info.name] === 'object') {
+              calls[info.name].push(info);
+            } else {
+              ++calls[info.name];
+            }
+          }
+        });
+      }
 
-      const component = new app();
-      component.$1 = '1';
-      component.$2 = '2';
-      component.$3 = '3';
+      au.app({ host, component, useProxies });
+      au.start();
 
-      au.app({ host, component }).start();
+      verify();
+      component.max = 2;
+      component.items = [1, 2, 3];
 
-      expect(host.textContent).to.equal('123'.repeat(4));
-    })
-    .addAction('no assign', ctx => {
-      const { b: au, c: lifecycle, d: host, e: app } = ctx;
-      const component = new app();
+      verify();
 
-      au.app({ host, component }).start();
+      component.a = false;
 
-      expect(host.textContent).to.equal('undefined'.repeat(12));
+      verify();
+
+      if (trace) {
+        disableTracing();
+      }
+
+      const names = ['ProxyObserver', 'ProxySubscriberCollection', 'SelfObserver', 'SetterObserver'];
+      for (const name of names) {
+        calls[`${name}.constructor`].sort((a, b) => a.depth < b.depth ? -1 : b.depth < a.depth ? 1 : 0);
+        for (const call of calls[`${name}.constructor`]) {
+          console.log(`${call.depth}`.padEnd(2, ' ') + ' '.repeat(call.depth) + call.name)
+        }
+      }
     });
+  }
 
-  suite.addActionSlot('teardown')
-    .addAction(null, ctx => {
-      const { a: container, b: au, c: lifecycle, d: host, e: app, f: fooA, g: fooB, h: fooC } = ctx;
 
-      au.stop();
-      expect(lifecycle['flushCount']).to.equal(0);
-      //expect(host.textContent).to.equal('');
-    });
+// TODO: replace these tests with cartesian loop and remove these comments
 
-  suite.load();
-  suite.run();
-}
-// #endregion
+  // it('works 2', function() {
+  //   this.timeout(30000);
+  //   let count = 100000;
+  //   const { ctx, container, lifecycle, au, host } = setup();
+  //   let useProxies = true;
 
-// #region noBindables
-const noBindables = parentSuite.clone<IContainer, Aurelia, ILifecycle, HTMLElement, TApp, TFooA, TFooB, TFooC, HTMLElement, HTMLElement, HTMLElement>(spec);
-noBindables.addActionSlot('remove bindables')
-  .addAction('setup', ctx => {
-    const { i: fooA_el, j: fooB_el, k: fooC_el } = ctx;
-    for (const el of [fooA_el, fooB_el, fooC_el]) {
-      while (el.attributes[0]) {
-        el.removeAttribute(el.attributes[0].name);
-      }
-    }
-  });
+  //   const Foo = CustomElementResource.define(
+  //     {
+  //       name: 'foo',
+  //       template: `\${a}\${b}\${c}\${d}\${e}\${f}\${g}\${h}\${i}\${j}`,
+  //       useProxies
+  //     },
+  //     class {
+  //       public a = 'a';
+  //       public b = 'b';
+  //       public c = 'c';
+  //       public d = 'd';
+  //       public e = 'e';
+  //       public f = 'f';
+  //       public g = 'g';
+  //       public h = 'h';
+  //       public i = 'i';
+  //       public j = 'j';
+  //     }
+  //   );
+  //   const App = CustomElementResource.define(
+  //     {
+  //       name: 'app',
+  //       template: `<foo repeat.for="i of ${count}"></foo>`,
+  //       useProxies,
+  //       dependencies: [Foo]
+  //     },
+  //     class {}
+  //   );
 
-noBindables.addActionSlot('act')
-  .addAction('assign 1', ctx => {
-    const { b: au, c: lifecycle, d: host, e: app } = ctx;
+  //   const component = new App();
 
-    const component = new app();
-    component.$1 = '1';
-    component.$2 = '2';
-    component.$3 = '3';
+  //   let trace = false;
+  //   if (trace) {
+  //     enableTracing();
+  //     Tracer.enableLiveLogging({
+  //       write(info) {
+  //         const [name, op] = info.name.split('.');
+  //         if (['ProxyObserver', 'SetterObserver'].includes(name)) {
+  //           console.log(`${host.textContent.padEnd(40, ' ')}-${' '.repeat(info.depth)}: ${info.name}`);
+  //         }
+  //       }
+  //     });
+  //   }
 
-    au.app({ host, component }).start();
+  //   au.app({ host, component, useProxies });
+  //   au.start();
 
-    expect(host.textContent).to.equal(`123${'undefined'.repeat(9)}`);
-  })
-  .addAction('assign 2', ctx => {
-    const { b: au, c: lifecycle, d: host, e: app } = ctx;
+  //   let expectedText = '';
+  //   for (let i = 0, ii = count; i < ii; ++i) {
+  //     expectedText += 'abcdefghij';
+  //   }
+  //   expect(host.textContent).to.equal(expectedText);
 
-    const component = new app();
-    component.a1 = '1';
-    component.a2 = '2';
-    component.a3 = '3';
+  //   au.stop();
 
-    au.app({ host, component }).start();
+  //   // stage = 'mutation 1';
+  //   // component.max = 2;
+  //   // component.items = [1, 2];
+  //   // verify();
 
-    expect(host.textContent).to.equal('undefined'.repeat(12));
-  })
-  .addAction('assign 3', ctx => {
-    const { b: au, c: lifecycle, d: host, e: app } = ctx;
+  //   // stage = 'mutation 2';
+  //   // component.a = false;
+  //   // verify();
 
-    const component = new app();
-    component.b1 = '1';
-    component.b2 = '2';
-    component.b3 = '3';
+  //   if (trace) {
+  //     disableTracing();
+  //   }
+  // });
+});
 
-    au.app({ host, component }).start();
 
-    expect(host.textContent).to.equal('undefined'.repeat(12));
-  })
-  .addAction('assign 4', ctx => {
-    const { b: au, c: lifecycle, d: host, e: app } = ctx;
+// type TFooA = Constructable<{ a1: string; a2: string; a3: string }> & ICustomElementType;
+// type TFooB = Constructable<{ b1: string; b2: string; b3: string }> & ICustomElementType;
+// type TFooC = Constructable<{ c1: string; c2: string; c3: string }> & ICustomElementType;
+// type TApp = Constructable<{ $1: string; $2: string; $3: string }> & ICustomElementType & TFooA & TFooB & TFooC;
 
-    const component = new app();
-    component.c1 = '1';
-    component.c2 = '2';
-    component.c3 = '3';
+// // #region parentSuite
+// const parentSuite = baseSuite.clone<IContainer, Aurelia, ILifecycle, HTMLElement, TApp, TFooA, TFooB, TFooC, HTMLElement, HTMLElement, HTMLElement>(spec);
 
-    au.app({ host, component }).start();
+// parentSuite.addDataSlot('e').addData('app').setFactory(ctx => {
+//   const { a: container } = ctx;
+//   const $ctx = container.get<HTMLTestContext>(HTMLTestContext);
+//   const template = $ctx.createElement('template') as HTMLTemplateElement;
+//   const text = $ctx.doc.createTextNode('${$1}${$2}${$3}');
+//   const fooA_el = $ctx.createElement('foo-a');
 
-    expect(host.textContent).to.equal('undefined'.repeat(12));
-  });
+//   fooA_el.setAttribute('a1.bind', '$1');
+//   fooA_el.setAttribute('a2.bind', '$2');
+//   fooA_el.setAttribute('a3.bind', '$3');
 
-noBindables.load();
-noBindables.run();
+//   template.content.appendChild(text);
+//   template.content.appendChild(fooA_el);
 
-// #endregion
+//   const $App = CustomElementResource.define({ name: 'app', template }, class App {});
+//   container.register($App);
+//   ctx.i = fooA_el;
+//   return $App;
+// });
+// parentSuite.addDataSlot('f').addData('foo-a').setFactory(ctx => {
+//   const { a: container } = ctx;
+//   const $ctx = container.get<HTMLTestContext>(HTMLTestContext);
+//   const template = $ctx.createElement('template') as HTMLTemplateElement;
+//   const text = $ctx.doc.createTextNode('${a1}${a2}${a3}');
+//   const fooB_el = $ctx.createElement('foo-b');
 
-// #region duplicated
-const duplicated = parentSuite.clone<IContainer, Aurelia, ILifecycle, HTMLElement, TApp, TFooA, TFooB, TFooC, HTMLElement, HTMLElement, HTMLElement>(spec);
-duplicated.addActionSlot('duplicate')
-  .addAction('setup', ctx => {
-    const { f: $fooA, g: $fooB, h: $fooC,  i: fooA_el, j: fooB_el, k: fooC_el } = ctx;
-    const fooC_clone = fooC_el.cloneNode(true);
-    for (let i = 0; i < 100; ++i) {
-      ($fooB.description.template as HTMLTemplateElement).content.appendChild(fooC_clone.cloneNode(true));
-    }
+//   fooB_el.setAttribute('b1.bind', 'a1');
+//   fooB_el.setAttribute('b2.bind', 'a2');
+//   fooB_el.setAttribute('b3.bind', 'a3');
 
-    const fooB_clone = fooB_el.cloneNode(true);
-    for (let i = 0; i < 10; ++i) {
-      ($fooA.description.template as HTMLTemplateElement).content.appendChild(fooB_clone.cloneNode(true));
-    }
-  });
+//   template.content.appendChild(text);
+//   template.content.appendChild(fooB_el);
 
-duplicated.addActionSlot('act')
-  .addAction('assign', ctx => {
-    const { b: au, c: lifecycle, d: host, e: app } = ctx;
+//   class FooA {
+//     @bindable() public a1: string;
+//     @bindable() public a2: string;
+//     @bindable() public a3: string;
+//     @bindable() public display: boolean;
+//     @bindable() public things: any[];
+//   }
+//   const $FooA = CustomElementResource.define({ name: 'foo-a', template }, FooA);
+//   container.register($FooA);
+//   ctx.j = fooB_el;
+//   return $FooA;
+// });
+// parentSuite.addDataSlot('g').addData('foo-b').setFactory(ctx => {
+//   const { a: container } = ctx;
+//   const $ctx = container.get<HTMLTestContext>(HTMLTestContext);
+//   const template = $ctx.createElement('template') as HTMLTemplateElement;
+//   const text = $ctx.doc.createTextNode('${b1}${b2}${b3}');
+//   const fooC_el = $ctx.createElement('foo-c');
 
-    const component = new app();
-    component.$1 = '1';
-    component.$2 = '2';
-    component.$3 = '3';
+//   fooC_el.setAttribute('c1.bind', 'b1');
+//   fooC_el.setAttribute('c2.bind', 'b2');
+//   fooC_el.setAttribute('c3.bind', 'b3');
 
-    au.app({ host, component }).start();
+//   template.content.appendChild(text);
+//   template.content.appendChild(fooC_el);
 
-    expect(host.textContent).to.equal('123'.repeat(1124));
-  })
-  .addAction('no assign', ctx => {
-    const { b: au, c: lifecycle, d: host, e: app } = ctx;
-    const component = new app();
+//   class FooB {
+//     @bindable() public b1: string;
+//     @bindable() public b2: string;
+//     @bindable() public b3: string;
+//     @bindable() public display: boolean;
+//     @bindable() public things: any[];
+//   }
+//   const $FooB = CustomElementResource.define({ name: 'foo-b', template }, FooB);
+//   container.register($FooB);
+//   ctx.k = fooC_el;
+//   return $FooB;
+// });
+// parentSuite.addDataSlot('h').addData('foo-c').setFactory(ctx => {
+//   const { a: container } = ctx;
+//   const $ctx = container.get<HTMLTestContext>(HTMLTestContext);
+//   const template = $ctx.createElement('template') as HTMLTemplateElement;
+//   const text = $ctx.doc.createTextNode('${c1}${c2}${c3}');
 
-    au.app({ host, component }).start();
+//   template.content.appendChild(text);
 
-    expect(host.textContent).to.equal('undefined'.repeat(1124 * 3));
-  });
+//   class FooC {
+//     @bindable() public c1: string;
+//     @bindable() public c2: string;
+//     @bindable() public c3: string;
+//     @bindable() public display: boolean;
+//     @bindable() public things: any[];
+//   }
+//   const $FooC = CustomElementResource.define({ name: 'foo-c', template }, FooC);
+//   container.register($FooC);
+//   return $FooC;
+// });
 
-duplicated.load();
-duplicated.run();
+// // #endregion
 
-// #endregion
+// // #region basic
+// const nonWrappedBasic = parentSuite.clone<IContainer, Aurelia, ILifecycle, HTMLElement, TApp, TFooA, TFooB, TFooC, HTMLElement, HTMLElement, HTMLElement>(spec);
+// const wrappedBasic = parentSuite.clone<IContainer, Aurelia, ILifecycle, HTMLElement, TApp, TFooA, TFooB, TFooC, HTMLElement, HTMLElement, HTMLElement>(spec);
 
-// #region staticTemplateCtrl
-const staticTemplateCtrl = parentSuite.clone<IContainer, Aurelia, ILifecycle, HTMLElement, TApp, TFooA, TFooB, TFooC, HTMLElement, HTMLElement, HTMLElement>(spec);
+// wrappedBasic.addActionSlot('wrap in div')
+//   .addAction('setup', ctx => {
+//     const {
+//       e: { description: { template: appTemplate } },
+//       f: { description: { template: fooATemplate } },
+//       g: { description: { template: fooBTemplate } },
+//       h: { description: { template: fooCTemplate } }
+//     } = ctx;
 
-staticTemplateCtrl.addActionSlot('static template controller')
-  .addAction('prepend if+repeat', ctx => {
-    const { i: fooA_el, j: fooB_el, k: fooC_el } = ctx;
-    for (const el of [fooA_el, fooB_el, fooC_el]) {
-      const attributes = [];
-      while (el.attributes[0]) {
-        attributes.push(el.attributes[0]);
-        el.removeAttribute(el.attributes[0].name);
-      }
-      el.setAttribute('if.bind', 'true');
-      el.setAttribute('repeat.for', 'i of 1');
-      while (attributes[0]) {
-        el.setAttribute(attributes[0].name, attributes[0].value);
-        attributes.shift();
-      }
-    }
-  })
-  .addAction('prepend if', ctx => {
-    const { i: fooA_el, j: fooB_el, k: fooC_el } = ctx;
-    for (const el of [fooA_el, fooB_el, fooC_el]) {
-      const attributes = [];
-      while (el.attributes[0]) {
-        attributes.push(el.attributes[0]);
-        el.removeAttribute(el.attributes[0].name);
-      }
-      el.setAttribute('if.bind', 'true');
-      while (attributes[0]) {
-        el.setAttribute(attributes[0].name, attributes[0].value);
-        attributes.shift();
-      }
-    }
-  })
-  .addAction('prepend repeat', ctx => {
-    const { i: fooA_el, j: fooB_el, k: fooC_el } = ctx;
-    for (const el of [fooA_el, fooB_el, fooC_el]) {
-      const attributes = [];
-      while (el.attributes[0]) {
-        attributes.push(el.attributes[0]);
-        el.removeAttribute(el.attributes[0].name);
-      }
-      el.setAttribute('repeat.for', 'i of 1');
-      while (attributes[0]) {
-        el.setAttribute(attributes[0].name, attributes[0].value);
-        attributes.shift();
-      }
-    }
-  })
-  .addAction('append if+repeat', ctx => {
-    const { i: fooA_el, j: fooB_el, k: fooC_el } = ctx;
-    for (const el of [fooA_el, fooB_el, fooC_el]) {
-      el.setAttribute('if.bind', 'true');
-      el.setAttribute('repeat.for', 'i of 1');
-    }
-  })
-  .addAction('append repeat', ctx => {
-    const { i: fooA_el, j: fooB_el, k: fooC_el } = ctx;
-    for (const el of [fooA_el, fooB_el, fooC_el]) {
-      el.setAttribute('repeat.for', 'i of 1');
-    }
-  })
-  .addAction('append if', ctx => {
-    const { i: fooA_el, j: fooB_el, k: fooC_el } = ctx;
-    for (const el of [fooA_el, fooB_el, fooC_el]) {
-      el.setAttribute('if.bind', 'true');
-    }
-  });
+//     const $ctx = ctx.a.get<HTMLTestContext>(HTMLTestContext);
+//     for (const template of [appTemplate, fooATemplate, fooBTemplate, fooCTemplate] as HTMLTemplateElement[]) {
+//       const div = $ctx.createElement('div');
+//       div.appendChild(template.content);
+//       template.content.appendChild(div);
+//     }
+//   });
 
-staticTemplateCtrl.addActionSlot('act')
-  .addAction(null, ctx => {
-    const { b: au, c: lifecycle, d: host, e: app } = ctx;
+// for (const suite of [nonWrappedBasic, wrappedBasic]) {
+//   suite.addActionSlot('act')
+//     .addAction('assign', ctx => {
+//       const { b: au, c: lifecycle, d: host, e: app } = ctx;
 
-    const component = new app();
-    component.$1 = '1';
-    component.$2 = '2';
-    component.$3 = '3';
+//       const component = new app();
+//       component.$1 = '1';
+//       component.$2 = '2';
+//       component.$3 = '3';
 
-    au.app({ host, component }).start();
+//       au.app({ host, component }).start();
 
-    expect(host.textContent).to.equal('123'.repeat(4));
-  });
+//       expect(host.textContent).to.equal('123'.repeat(4));
+//     })
+//     .addAction('no assign', ctx => {
+//       const { b: au, c: lifecycle, d: host, e: app } = ctx;
+//       const component = new app();
 
-staticTemplateCtrl.load();
-staticTemplateCtrl.run();
+//       au.app({ host, component }).start();
 
-// #endregion
+//       expect(host.textContent).to.equal('undefined'.repeat(12));
+//     });
 
-// #region boundTemplateCtrl
-const boundTemplateCtrl = parentSuite.clone<IContainer, Aurelia, ILifecycle, HTMLElement, TApp, TFooA, TFooB, TFooC, HTMLElement, HTMLElement, HTMLElement>(spec);
+//   suite.addActionSlot('teardown')
+//     .addAction(null, ctx => {
+//       const { a: container, b: au, c: lifecycle, d: host, e: app, f: fooA, g: fooB, h: fooC } = ctx;
 
-boundTemplateCtrl.addActionSlot('bound template controller')
-  .addAction('prepend if+repeat', ctx => {
-    const { i: fooA_el, j: fooB_el, k: fooC_el } = ctx;
-    for (const el of [fooA_el, fooB_el, fooC_el]) {
-      const attributes = [];
-      while (el.attributes[0]) {
-        attributes.push(el.attributes[0]);
-        el.removeAttribute(el.attributes[0].name);
-      }
-      el.setAttribute('if.bind', 'display');
-      el.setAttribute('repeat.for', 'i of things');
-      el.setAttribute('things.bind', 'things');
-      el.setAttribute('display.bind', 'display');
-      while (attributes[0]) {
-        el.setAttribute(attributes[0].name, attributes[0].value);
-        attributes.shift();
-      }
-    }
-  })
-  .addAction('prepend repeat', ctx => {
-    const { i: fooA_el, j: fooB_el, k: fooC_el } = ctx;
-    for (const el of [fooA_el, fooB_el, fooC_el]) {
-      const attributes = [];
-      while (el.attributes[0]) {
-        attributes.push(el.attributes[0]);
-        el.removeAttribute(el.attributes[0].name);
-      }
-      el.setAttribute('repeat.for', 'i of things');
-      el.setAttribute('things.bind', 'things');
-      while (attributes[0]) {
-        el.setAttribute(attributes[0].name, attributes[0].value);
-        attributes.shift();
-      }
-    }
-  })
-  .addAction('prepend if', ctx => {
-    const { i: fooA_el, j: fooB_el, k: fooC_el } = ctx;
-    for (const el of [fooA_el, fooB_el, fooC_el]) {
-      const attributes = [];
-      while (el.attributes[0]) {
-        attributes.push(el.attributes[0]);
-        el.removeAttribute(el.attributes[0].name);
-      }
-      el.setAttribute('if.bind', 'display');
-      el.setAttribute('display.bind', 'display');
-      while (attributes[0]) {
-        el.setAttribute(attributes[0].name, attributes[0].value);
-        attributes.shift();
-      }
-    }
-  })
-  .addAction('append if+repeat', ctx => {
-    const { i: fooA_el, j: fooB_el, k: fooC_el } = ctx;
-    for (const el of [fooA_el, fooB_el, fooC_el]) {
-      el.setAttribute('things.bind', 'things');
-      el.setAttribute('display.bind', 'display');
-      el.setAttribute('if.bind', 'display');
-      el.setAttribute('repeat.for', 'i of things');
-    }
-  })
-  .addAction('append repeat', ctx => {
-    const { i: fooA_el, j: fooB_el, k: fooC_el } = ctx;
-    for (const el of [fooA_el, fooB_el, fooC_el]) {
-      el.setAttribute('things.bind', 'things');
-      el.setAttribute('repeat.for', 'i of things');
-    }
-  })
-  .addAction('append if', ctx => {
-    const { i: fooA_el, j: fooB_el, k: fooC_el } = ctx;
-    for (const el of [fooA_el, fooB_el, fooC_el]) {
-      el.setAttribute('display.bind', 'display');
-      el.setAttribute('if.bind', 'display');
-    }
-  });
+//       au.stop();
+//       expect(lifecycle['flushCount']).to.equal(0);
+//       //expect(host.textContent).to.equal('');
+//     });
 
-boundTemplateCtrl.addActionSlot('act')
-  .addAction('1', ctx => {
-    const { b: au, c: lifecycle, d: host, e: app } = ctx;
+//   suite.load();
+//   suite.run();
+// }
+// // #endregion
 
-    const component = new app();
-    component.$1 = '1';
-    component.$2 = '2';
-    component.$3 = '3';
-    component.display = true;
-    component.things = [1];
+// // #region noBindables
+// const noBindables = parentSuite.clone<IContainer, Aurelia, ILifecycle, HTMLElement, TApp, TFooA, TFooB, TFooC, HTMLElement, HTMLElement, HTMLElement>(spec);
+// noBindables.addActionSlot('remove bindables')
+//   .addAction('setup', ctx => {
+//     const { i: fooA_el, j: fooB_el, k: fooC_el } = ctx;
+//     for (const el of [fooA_el, fooB_el, fooC_el]) {
+//       while (el.attributes[0]) {
+//         el.removeAttribute(el.attributes[0].name);
+//       }
+//     }
+//   });
 
-    au.app({ host, component }).start();
+// noBindables.addActionSlot('act')
+//   .addAction('assign 1', ctx => {
+//     const { b: au, c: lifecycle, d: host, e: app } = ctx;
 
-    expect(host.textContent).to.equal('123'.repeat(4));
-  })
-  .addAction('2', ctx => {
-    const { b: au, c: lifecycle, d: host, e: app } = ctx;
+//     const component = new app();
+//     component.$1 = '1';
+//     component.$2 = '2';
+//     component.$3 = '3';
 
-    const component = new app();
-    component.$1 = '1';
-    component.$2 = '2';
-    component.$3 = '3';
+//     au.app({ host, component }).start();
 
-    au.app({ host, component }).start();
+//     expect(host.textContent).to.equal('123' + 'undefined'.repeat(9));
+//   })
+//   .addAction('assign 2', ctx => {
+//     const { b: au, c: lifecycle, d: host, e: app } = ctx;
 
-    expect(host.textContent).to.equal('123');
-  });
+//     const component = new app();
+//     component.a1 = '1';
+//     component.a2 = '2';
+//     component.a3 = '3';
 
-boundTemplateCtrl.load();
-boundTemplateCtrl.run();
-// #endregion
+//     au.app({ host, component }).start();
+
+//     expect(host.textContent).to.equal('undefined'.repeat(12));
+//   })
+//   .addAction('assign 3', ctx => {
+//     const { b: au, c: lifecycle, d: host, e: app } = ctx;
+
+//     const component = new app();
+//     component.b1 = '1';
+//     component.b2 = '2';
+//     component.b3 = '3';
+
+//     au.app({ host, component }).start();
+
+//     expect(host.textContent).to.equal('undefined'.repeat(12));
+//   })
+//   .addAction('assign 4', ctx => {
+//     const { b: au, c: lifecycle, d: host, e: app } = ctx;
+
+//     const component = new app();
+//     component.c1 = '1';
+//     component.c2 = '2';
+//     component.c3 = '3';
+
+//     au.app({ host, component }).start();
+
+//     expect(host.textContent).to.equal('undefined'.repeat(12));
+//   });
+
+// noBindables.load();
+// noBindables.run();
+
+// // #endregion
+
+// // #region duplicated
+// const duplicated = parentSuite.clone<IContainer, Aurelia, ILifecycle, HTMLElement, TApp, TFooA, TFooB, TFooC, HTMLElement, HTMLElement, HTMLElement>(spec);
+// duplicated.addActionSlot('duplicate')
+//   .addAction('setup', ctx => {
+//     const { f: $fooA, g: $fooB, h: $fooC,  i: fooA_el, j: fooB_el, k: fooC_el } = ctx;
+//     const fooC_clone = fooC_el.cloneNode(true);
+//     for (let i = 0; i < 100; ++i) {
+//       ($fooB.description.template as HTMLTemplateElement).content.appendChild(fooC_clone.cloneNode(true));
+//     }
+
+//     const fooB_clone = fooB_el.cloneNode(true);
+//     for (let i = 0; i < 10; ++i) {
+//       ($fooA.description.template as HTMLTemplateElement).content.appendChild(fooB_clone.cloneNode(true));
+//     }
+//   });
+
+// duplicated.addActionSlot('act')
+//   .addAction('assign', ctx => {
+//     const { b: au, c: lifecycle, d: host, e: app } = ctx;
+
+//     const component = new app();
+//     component.$1 = '1';
+//     component.$2 = '2';
+//     component.$3 = '3';
+
+//     au.app({ host, component }).start();
+
+//     expect(host.textContent).to.equal('123'.repeat(1124));
+//   })
+//   .addAction('no assign', ctx => {
+//     const { b: au, c: lifecycle, d: host, e: app } = ctx;
+//     const component = new app();
+
+//     au.app({ host, component }).start();
+
+//     expect(host.textContent).to.equal('undefined'.repeat(1124 * 3));
+//   });
+
+// duplicated.load();
+// duplicated.run();
+
+// // #endregion
+
+// // #region staticTemplateCtrl
+// const staticTemplateCtrl = parentSuite.clone<IContainer, Aurelia, ILifecycle, HTMLElement, TApp, TFooA, TFooB, TFooC, HTMLElement, HTMLElement, HTMLElement>(spec);
+
+// staticTemplateCtrl.addActionSlot('static template controller')
+//   .addAction('prepend if+repeat', ctx => {
+//     const { i: fooA_el, j: fooB_el, k: fooC_el } = ctx;
+//     for (const el of [fooA_el, fooB_el, fooC_el]) {
+//       const attributes = [];
+//       while (el.attributes[0]) {
+//         attributes.push(el.attributes[0]);
+//         el.removeAttribute(el.attributes[0].name);
+//       }
+//       el.setAttribute('if.bind', 'true');
+//       el.setAttribute('repeat.for', 'i of 1');
+//       while (attributes[0]) {
+//         el.setAttribute(attributes[0].name, attributes[0].value);
+//         attributes.shift();
+//       }
+//     }
+//   })
+//   .addAction('prepend if', ctx => {
+//     const { i: fooA_el, j: fooB_el, k: fooC_el } = ctx;
+//     for (const el of [fooA_el, fooB_el, fooC_el]) {
+//       const attributes = [];
+//       while (el.attributes[0]) {
+//         attributes.push(el.attributes[0]);
+//         el.removeAttribute(el.attributes[0].name);
+//       }
+//       el.setAttribute('if.bind', 'true');
+//       while (attributes[0]) {
+//         el.setAttribute(attributes[0].name, attributes[0].value);
+//         attributes.shift();
+//       }
+//     }
+//   })
+//   .addAction('prepend repeat', ctx => {
+//     const { i: fooA_el, j: fooB_el, k: fooC_el } = ctx;
+//     for (const el of [fooA_el, fooB_el, fooC_el]) {
+//       const attributes = [];
+//       while (el.attributes[0]) {
+//         attributes.push(el.attributes[0]);
+//         el.removeAttribute(el.attributes[0].name);
+//       }
+//       el.setAttribute('repeat.for', 'i of 1');
+//       while (attributes[0]) {
+//         el.setAttribute(attributes[0].name, attributes[0].value);
+//         attributes.shift();
+//       }
+//     }
+//   })
+//   .addAction('append if+repeat', ctx => {
+//     const { i: fooA_el, j: fooB_el, k: fooC_el } = ctx;
+//     for (const el of [fooA_el, fooB_el, fooC_el]) {
+//       el.setAttribute('if.bind', 'true');
+//       el.setAttribute('repeat.for', 'i of 1');
+//     }
+//   })
+//   .addAction('append repeat', ctx => {
+//     const { i: fooA_el, j: fooB_el, k: fooC_el } = ctx;
+//     for (const el of [fooA_el, fooB_el, fooC_el]) {
+//       el.setAttribute('repeat.for', 'i of 1');
+//     }
+//   })
+//   .addAction('append if', ctx => {
+//     const { i: fooA_el, j: fooB_el, k: fooC_el } = ctx;
+//     for (const el of [fooA_el, fooB_el, fooC_el]) {
+//       el.setAttribute('if.bind', 'true');
+//     }
+//   });
+
+// staticTemplateCtrl.addActionSlot('act')
+//   .addAction(null, ctx => {
+//     const { b: au, c: lifecycle, d: host, e: app } = ctx;
+
+//     const component = new app();
+//     component.$1 = '1';
+//     component.$2 = '2';
+//     component.$3 = '3';
+
+//     au.app({ host, component }).start();
+
+//     expect(host.textContent).to.equal('123'.repeat(4));
+//   });
+
+// staticTemplateCtrl.load();
+// staticTemplateCtrl.run();
+
+// // #endregion
+
+// // #region boundTemplateCtrl
+// const boundTemplateCtrl = parentSuite.clone<IContainer, Aurelia, ILifecycle, HTMLElement, TApp, TFooA, TFooB, TFooC, HTMLElement, HTMLElement, HTMLElement>(spec);
+
+// boundTemplateCtrl.addActionSlot('bound template controller')
+//   .addAction('prepend if+repeat', ctx => {
+//     const { i: fooA_el, j: fooB_el, k: fooC_el } = ctx;
+//     for (const el of [fooA_el, fooB_el, fooC_el]) {
+//       const attributes = [];
+//       while (el.attributes[0]) {
+//         attributes.push(el.attributes[0]);
+//         el.removeAttribute(el.attributes[0].name);
+//       }
+//       el.setAttribute('if.bind', 'display');
+//       el.setAttribute('repeat.for', 'i of things');
+//       el.setAttribute('things.bind', 'things');
+//       el.setAttribute('display.bind', 'display');
+//       while (attributes[0]) {
+//         el.setAttribute(attributes[0].name, attributes[0].value);
+//         attributes.shift();
+//       }
+//     }
+//   })
+//   .addAction('prepend repeat', ctx => {
+//     const { i: fooA_el, j: fooB_el, k: fooC_el } = ctx;
+//     for (const el of [fooA_el, fooB_el, fooC_el]) {
+//       const attributes = [];
+//       while (el.attributes[0]) {
+//         attributes.push(el.attributes[0]);
+//         el.removeAttribute(el.attributes[0].name);
+//       }
+//       el.setAttribute('repeat.for', 'i of things');
+//       el.setAttribute('things.bind', 'things');
+//       while (attributes[0]) {
+//         el.setAttribute(attributes[0].name, attributes[0].value);
+//         attributes.shift();
+//       }
+//     }
+//   })
+//   .addAction('prepend if', ctx => {
+//     const { i: fooA_el, j: fooB_el, k: fooC_el } = ctx;
+//     for (const el of [fooA_el, fooB_el, fooC_el]) {
+//       const attributes = [];
+//       while (el.attributes[0]) {
+//         attributes.push(el.attributes[0]);
+//         el.removeAttribute(el.attributes[0].name);
+//       }
+//       el.setAttribute('if.bind', 'display');
+//       el.setAttribute('display.bind', 'display');
+//       while (attributes[0]) {
+//         el.setAttribute(attributes[0].name, attributes[0].value);
+//         attributes.shift();
+//       }
+//     }
+//   })
+//   .addAction('append if+repeat', ctx => {
+//     const { i: fooA_el, j: fooB_el, k: fooC_el } = ctx;
+//     for (const el of [fooA_el, fooB_el, fooC_el]) {
+//       el.setAttribute('things.bind', 'things');
+//       el.setAttribute('display.bind', 'display');
+//       el.setAttribute('if.bind', 'display');
+//       el.setAttribute('repeat.for', 'i of things');
+//     }
+//   })
+//   .addAction('append repeat', ctx => {
+//     const { i: fooA_el, j: fooB_el, k: fooC_el } = ctx;
+//     for (const el of [fooA_el, fooB_el, fooC_el]) {
+//       el.setAttribute('things.bind', 'things');
+//       el.setAttribute('repeat.for', 'i of things');
+//     }
+//   })
+//   .addAction('append if', ctx => {
+//     const { i: fooA_el, j: fooB_el, k: fooC_el } = ctx;
+//     for (const el of [fooA_el, fooB_el, fooC_el]) {
+//       el.setAttribute('display.bind', 'display');
+//       el.setAttribute('if.bind', 'display');
+//     }
+//   });
+
+// boundTemplateCtrl.addActionSlot('act')
+//   .addAction('1', ctx => {
+//     const { b: au, c: lifecycle, d: host, e: app } = ctx;
+
+//     const component = new app();
+//     component.$1 = '1';
+//     component.$2 = '2';
+//     component.$3 = '3';
+//     component.display = true;
+//     component.things = [1];
+
+//     au.app({ host, component }).start();
+
+//     expect(host.textContent).to.equal('123'.repeat(4));
+//   })
+//   .addAction('2', ctx => {
+//     const { b: au, c: lifecycle, d: host, e: app } = ctx;
+
+//     const component = new app();
+//     component.$1 = '1';
+//     component.$2 = '2';
+//     component.$3 = '3';
+
+//     au.app({ host, component }).start();
+
+//     expect(host.textContent).to.equal('123');
+//   });
+
+// boundTemplateCtrl.load();
+// boundTemplateCtrl.run();
+// // #endregion

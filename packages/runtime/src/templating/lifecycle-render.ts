@@ -4,6 +4,7 @@ import { IDOM, INode } from '../dom';
 import { Hooks, IRenderContext } from '../lifecycle';
 import { LifecycleFlags } from '../observation';
 import { Scope } from '../observation/binding-context';
+import { ProxyObserver } from '../observation/proxy-observer';
 import { IRenderingEngine, ITemplate } from '../rendering-engine';
 import { ICustomAttribute, ICustomAttributeType } from '../resources/custom-attribute';
 import { ICustomElement, ICustomElementType, IProjectorLocator } from '../resources/custom-element';
@@ -78,7 +79,13 @@ export function $hydrateElement(
   const Type = this.constructor as ICustomElementType;
   const description = Type.description;
 
-  this.$scope = Scope.create(flags, this, null);
+  let bindingContext: typeof this;
+  if (flags & LifecycleFlags.useProxies) {
+    bindingContext = ProxyObserver.getOrCreate(this).proxy;
+  } else {
+    bindingContext = this;
+  }
+  this.$scope = Scope.create(flags, bindingContext, null);
   this.$host = host;
   this.$projector = projectorLocator.getElementProjector(dom, this, host, description);
 

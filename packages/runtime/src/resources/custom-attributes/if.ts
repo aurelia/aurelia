@@ -3,6 +3,7 @@ import { AttributeDefinition, IAttributeDefinition } from '../../definitions';
 import { INode, IRenderLocation } from '../../dom';
 import { CompositionCoordinator, IView, IViewFactory } from '../../lifecycle';
 import { LifecycleFlags } from '../../observation';
+import { ProxyObserver } from '../../observation/proxy-observer';
 import { bindable } from '../../templating/bindable';
 import { CustomAttributeResource, ICustomAttribute, ICustomAttributeResource } from '../custom-attribute';
 
@@ -70,6 +71,9 @@ export class If<T extends INode = INode> implements If<T> {
   }
 
   public valueChanged(newValue: boolean, oldValue: boolean, flags: LifecycleFlags): void {
+    if (ProxyObserver.isProxy(this)) {
+      flags |= LifecycleFlags.useProxies;
+    }
     if (flags & LifecycleFlags.fromFlush) {
       const view = this.updateView(flags);
       this.coordinator.compose(view, flags);
@@ -79,6 +83,9 @@ export class If<T extends INode = INode> implements If<T> {
   }
 
   public flush(flags: LifecycleFlags): void {
+    if (ProxyObserver.isProxy(this)) {
+      flags |= LifecycleFlags.useProxies;
+    }
     const view = this.updateView(flags);
     this.coordinator.compose(view, flags);
   }
@@ -101,7 +108,7 @@ export class If<T extends INode = INode> implements If<T> {
   /** @internal */
   public ensureView(view: IView<T> | null, factory: IViewFactory<T>, flags: LifecycleFlags): IView<T> {
     if (view === null) {
-      view = factory.create();
+      view = factory.create(flags);
     }
 
     view.hold(this.location);

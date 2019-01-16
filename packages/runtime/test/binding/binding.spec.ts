@@ -296,7 +296,7 @@ describe('Binding', () => {
           expect(expr.evaluate).to.have.been.calledWithExactly(flags, scope, container);
 
           expect(expr.connect).to.have.been.calledOnce;
-          expect(expr.connect).to.have.been.calledWithExactly(flags | LifecycleFlags.mustEvaluate, sut.$scope, sut);
+          expect(expr.connect).to.have.been.calledWithExactly(flags, sut.$scope, sut);
 
           expect(targetObserver.setValue).to.have.been.calledOnce;
           expect(targetObserver.setValue).to.have.been.calledWithExactly(srcVal, flags | LifecycleFlags.updateTargetInstance);
@@ -308,12 +308,12 @@ describe('Binding', () => {
             expect(sut.observeProperty).to.have.been.calledTwice;
 
             const obj = scope.bindingContext[expr.object['name']];
-            expect(sut.observeProperty).to.have.been.calledWithExactly(flags | LifecycleFlags.mustEvaluate , obj, expr.name);
-            expect(sut.observeProperty).to.have.been.calledWithExactly(flags | LifecycleFlags.mustEvaluate, scope.bindingContext, expr.object['name']);
+            expect(sut.observeProperty).to.have.been.calledWithExactly(flags , obj, expr.name);
+            expect(sut.observeProperty).to.have.been.calledWithExactly(flags, scope.bindingContext, expr.object['name']);
           } else if (expr instanceof AccessScope) {
             expect(sut.addObserver).to.have.been.calledOnce;
             expect(sut.observeProperty).to.have.been.calledOnce;
-            expect(sut.observeProperty).to.have.been.calledWithExactly(flags | LifecycleFlags.mustEvaluate, scope.bindingContext, expr.name);
+            expect(sut.observeProperty).to.have.been.calledWithExactly(flags, scope.bindingContext, expr.name);
           } else {
             expect(sut.addObserver).not.to.have.been.called;
             expect(sut.observeProperty).not.to.have.been.called;
@@ -639,7 +639,7 @@ describe('Binding', () => {
           expect(expr.evaluate).to.have.been.calledWithExactly(flags, scope, container);
 
           expect(expr.connect).to.have.been.calledOnce;
-          expect(expr.connect).to.have.been.calledWithExactly(flags | LifecycleFlags.mustEvaluate, scope, sut);
+          expect(expr.connect).to.have.been.calledWithExactly(flags, scope, sut);
 
           expect(targetObserver.setValue).to.have.been.calledOnce;
           expect(targetObserver.setValue).to.have.been.calledWithExactly(srcVal, flags | LifecycleFlags.updateTargetInstance);
@@ -652,12 +652,12 @@ describe('Binding', () => {
             expect(sut.addObserver).to.have.been.calledTwice;
             expect(sut.observeProperty).to.have.been.calledTwice;
             const obj = scope.bindingContext[expr.object['name']];
-            expect(sut.observeProperty).to.have.been.calledWithExactly(flags | LifecycleFlags.mustEvaluate, obj, expr.name);
-            expect(sut.observeProperty).to.have.been.calledWithExactly(flags | LifecycleFlags.mustEvaluate, scope.bindingContext, expr.object['name']);
+            expect(sut.observeProperty).to.have.been.calledWithExactly(flags, obj, expr.name);
+            expect(sut.observeProperty).to.have.been.calledWithExactly(flags, scope.bindingContext, expr.object['name']);
           } else if (expr instanceof AccessScope) {
             expect(sut.addObserver).to.have.been.calledOnce;
             expect(sut.observeProperty).to.have.been.calledOnce;
-            expect(sut.observeProperty).to.have.been.calledWithExactly(flags | LifecycleFlags.mustEvaluate, scope.bindingContext, expr.name);
+            expect(sut.observeProperty).to.have.been.calledWithExactly(flags, scope.bindingContext, expr.name);
           } else {
             expect(sut.addObserver).not.to.have.been.called;
             expect(sut.observeProperty).not.to.have.been.called;

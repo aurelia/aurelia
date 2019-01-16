@@ -54,6 +54,7 @@ import {
 } from './rendering-engine';
 import { ICustomAttribute } from './resources/custom-attribute';
 import { ICustomElement, IProjectorLocator } from './resources/custom-element';
+import { ProxyObserver } from './observation/proxy-observer';
 
 const slice = Array.prototype.slice;
 

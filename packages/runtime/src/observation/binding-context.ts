@@ -95,9 +95,7 @@ export class BindingContext implements IBindingContext {
     if (scope === null) {
       throw Reporter.error(RuntimeError.NullScope);
     }
-    let owner: IScope | IOverrideContext = scope;
-    let overrideContext = owner.overrideContext;
-    let isParentOverride = false;
+    let overrideContext = scope.overrideContext;
 
     if (ancestor > 0) {
       // jump up the required number of ancestor contexts (eg $parent.$parent requires two jumps)
@@ -107,50 +105,22 @@ export class BindingContext implements IBindingContext {
           return undefined;
         }
         ancestor--;
-        owner = overrideContext;
-        overrideContext = owner.parentOverrideContext;
-        isParentOverride = true;
+        overrideContext = overrideContext.parentOverrideContext;
       }
 
       if (Tracer.enabled) { Tracer.leave(); }
-      if (flags & LifecycleFlags.useProxies) {
-        if (name in overrideContext) {
-          if (isParentOverride) {
-            return (owner as OverrideContext).parentOverrideContext = ProxyObserver.getOrCreate(overrideContext).proxy;
-          } else {
-            return (owner as Scope).overrideContext = ProxyObserver.getOrCreate(overrideContext).proxy;
-          }
-        } else {
-          return (overrideContext as OverrideContext).bindingContext = ProxyObserver.getOrCreate(overrideContext.bindingContext).proxy;
-        }
-      } else {
-        return name in overrideContext ? overrideContext : overrideContext.bindingContext;
-      }
+      return name in overrideContext ? overrideContext : overrideContext.bindingContext;
     }
 
     // traverse the context and it's ancestors, searching for a context that has the name.
     while (overrideContext && !(name in overrideContext) && !(overrideContext.bindingContext && name in overrideContext.bindingContext)) {
-      owner = overrideContext;
-      isParentOverride = true;
       overrideContext = overrideContext.parentOverrideContext;
     }
 
     if (overrideContext) {
       if (Tracer.enabled) { Tracer.leave(); }
       // we located a context with the property.  return it.
-      if (flags & LifecycleFlags.useProxies) {
-        if (name in overrideContext) {
-          if (isParentOverride) {
-            return (owner as OverrideContext).parentOverrideContext = ProxyObserver.getOrCreate(overrideContext).proxy;
-          } else {
-            return (owner as Scope).overrideContext = ProxyObserver.getOrCreate(overrideContext).proxy;
-          }
-        } else {
-          return (overrideContext as OverrideContext).bindingContext = ProxyObserver.getOrCreate(overrideContext.bindingContext).proxy;
-        }
-      } else {
-        return name in overrideContext ? overrideContext : overrideContext.bindingContext;
-      }
+      return name in overrideContext ? overrideContext : overrideContext.bindingContext;
     }
 
     // the name wasn't found. see if parent scope traversal is allowed and if so, try that
@@ -174,17 +144,7 @@ export class BindingContext implements IBindingContext {
       return null;
     }
     if (Tracer.enabled) { Tracer.leave(); }
-    if (flags & LifecycleFlags.useProxies) {
-      if (scope.bindingContext) {
-        return (scope as Scope).bindingContext = ProxyObserver.getOrCreate(scope.bindingContext).proxy;
-      } else if (scope.overrideContext) {
-        return (scope as Scope).overrideContext = ProxyObserver.getOrCreate(scope.overrideContext).proxy;
-      } else {
-        return scope.overrideContext;
-      }
-    } else {
-      return scope.bindingContext || scope.overrideContext;
-    }
+    return scope.bindingContext || scope.overrideContext;
   }
 
   public getObservers(flags: LifecycleFlags): ObserversLookup<IOverrideContext> {
@@ -242,11 +202,7 @@ export class Scope implements IScope {
   public static create(flags: LifecycleFlags, bc: IBindingContext | IBindScope, oc?: IOverrideContext | null): Scope {
     if (Tracer.enabled) { Tracer.enter('Scope.create', slice.call(arguments)); }
     if (Tracer.enabled) { Tracer.leave(); }
-    const scope = new Scope(bc, oc === null || oc === undefined ? OverrideContext.create(flags, bc, oc) : oc);
-    if (flags & LifecycleFlags.useProxies) {
-      return ProxyObserver.getOrCreate(scope).proxy;
-    }
-    return scope;
+    return new Scope(bc, oc === null || oc === undefined ? OverrideContext.create(flags, bc, oc) : oc);
   }
 
   public static fromOverride(flags: LifecycleFlags, oc: IOverrideContext): Scope {
@@ -255,11 +211,7 @@ export class Scope implements IScope {
       throw Reporter.error(RuntimeError.NilOverrideContext);
     }
     if (Tracer.enabled) { Tracer.leave(); }
-    const scope = new Scope(oc.bindingContext, oc);
-    if (flags & LifecycleFlags.useProxies) {
-      return ProxyObserver.getOrCreate(scope).proxy;
-    }
-    return scope;
+    return new Scope(oc.bindingContext, oc);
   }
 
   public static fromParent(flags: LifecycleFlags, ps: IScope | null, bc: IBindingContext | IBindScope): Scope {
@@ -268,11 +220,7 @@ export class Scope implements IScope {
       throw Reporter.error(RuntimeError.NilParentScope);
     }
     if (Tracer.enabled) { Tracer.leave(); }
-    const scope = new Scope(bc, OverrideContext.create(flags, bc, ps.overrideContext));
-    if (flags & LifecycleFlags.useProxies) {
-      return ProxyObserver.getOrCreate(scope).proxy;
-    }
-    return scope;
+    return new Scope(bc, OverrideContext.create(flags, bc, ps.overrideContext));
   }
 }
 
@@ -292,11 +240,7 @@ export class OverrideContext implements IOverrideContext {
   public static create(flags: LifecycleFlags, bc: IBindingContext | IBindScope, poc: IOverrideContext | null): OverrideContext {
     if (Tracer.enabled) { Tracer.enter('OverrideContext.create', slice.call(arguments)); }
     if (Tracer.enabled) { Tracer.leave(); }
-    const oc = new OverrideContext(bc, poc === undefined ? null : poc);
-    if (flags & LifecycleFlags.useProxies) {
-      return ProxyObserver.getOrCreate(oc).proxy;
-    }
-    return oc;
+    return new OverrideContext(bc, poc === undefined ? null : poc);
   }
 
   public getObservers(): ObserversLookup<IOverrideContext> {

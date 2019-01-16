@@ -98,7 +98,7 @@ export class ObserverLocator implements IObserverLocator {
       return ((obj as { $observer?: ProxyObserver }).$observer) as unknown as AccessorOrObserver; // TODO: fix typings (and ensure proper contracts ofc)
     }
     if (flags & LifecycleFlags.useProxies && typeof obj === 'object') {
-      return ProxyObserver.getOrCreate(obj) as unknown as AccessorOrObserver; // TODO: fix typings (and ensure proper contracts ofc)
+      return ProxyObserver.getOrCreate(obj, propertyName) as unknown as AccessorOrObserver; // TODO: fix typings (and ensure proper contracts ofc)
     }
     if (isBindingContext(obj)) {
       return obj.getObservers(flags).getOrCreate(flags, obj, propertyName);
@@ -135,6 +135,9 @@ export class ObserverLocator implements IObserverLocator {
       return this.targetAccessorLocator.getAccessor(flags, this.lifecycle, obj, propertyName);
     }
 
+    if (flags & LifecycleFlags.useProxies) {
+      return ProxyObserver.getOrCreate(obj, propertyName) as unknown as AccessorOrObserver;
+    }
     return new PropertyAccessor(obj, propertyName);
   }
 

@@ -467,6 +467,24 @@ const camelCaseLookup: Record<string, string> = {};
 const kebabCaseLookup: Record<string, string> = {};
 
 export const PLATFORM = {
+  proxyLookup: new WeakMap<object, object>(),
+  getProxyOrSelf<T extends object = object>(obj: T): T {
+    if ((obj as { $raw?: T }).$raw === undefined) {
+      const proxy = this.proxyLookup.get(obj) as T;
+      if (proxy === undefined) {
+        return obj;
+      }
+      return proxy;
+    }
+    return obj;
+  },
+  getRawIfProxy<T extends object = object>(obj: T): T {
+    const raw = (obj as { $raw?: T }).$raw;
+    if (raw === undefined) {
+      return obj;
+    }
+    return raw;
+  },
   global: $global,
   ticker: new Ticker(),
   emptyArray: Object.freeze([]),

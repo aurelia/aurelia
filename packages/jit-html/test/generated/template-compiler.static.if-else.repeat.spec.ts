@@ -1,4 +1,4 @@
-// tslint:disable:quotemark member-access
+// tslint:disable:quotemark member-access no-all-duplicated-branches
 import { Profiler } from "@aurelia/kernel";
 import { Aurelia, CustomElementResource } from "@aurelia/runtime";
 import { expect } from "chai";

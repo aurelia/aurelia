@@ -1,14 +1,14 @@
 export class MockBrowserHistoryLocation {
-  public changeCallback: Function;
+  public changeCallback?: () => void;
 
-  private readonly states: Object[] = [{}];
+  private readonly states: Record<string, unknown>[] = [{}];
   private readonly paths: string[] = [''];
   private index: number = 0;
 
   get length(): number {
     return this.states.length;
   }
-  get state(): Object {
+  get state(): Record<string, unknown> {
     return this.states[this.index];
   }
   get path(): string {
@@ -89,7 +89,7 @@ export class MockBrowserHistoryLocation {
     return parts;
   }
 
-  public pushState(data: Object, title: string, path: string) {
+  public pushState(data: Record<string, unknown>, title: string, path: string) {
     this.states.splice(this.index + 1);
     this.paths.splice(this.index + 1);
     this.states.push(data);
@@ -97,7 +97,7 @@ export class MockBrowserHistoryLocation {
     this.index++;
   }
 
-  public replaceState(data: Object, title: string, path: string) {
+  public replaceState(data: Record<string, unknown>, title: string, path: string) {
     this.states[this.index] = data;
     this.paths[this.index] = path;
   }

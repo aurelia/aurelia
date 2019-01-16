@@ -45,7 +45,7 @@ export class StyleAttributeAccessor implements StyleAttributeAccessor {
     if (newValue !== null) {
       if (newValue instanceof Object) {
         let value: string;
-        for (style in (newValue as Object)) {
+        for (style in newValue) {
           if (newValue.hasOwnProperty(style)) {
             value = newValue[style];
             style = style.replace(/([A-Z])/g, m => `-${m.toLowerCase()}`);

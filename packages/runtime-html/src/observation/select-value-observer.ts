@@ -52,7 +52,7 @@ export class SelectValueObserver implements SelectValueObserver {
 
   public flush: () => void;
 
-  private dom: IDOM;
+  private readonly dom: IDOM;
   private arrayObserver: ICollectionObserver<CollectionKind.array>;
   private nodeObserver: MutationObserver;
 

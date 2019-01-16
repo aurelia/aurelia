@@ -5,6 +5,7 @@ import {
 import { expect } from 'chai';
 import {
   Binding,
+  LifecycleFlags,
   ThrottleBindingBehavior
 } from '../../../src/index';
 
@@ -12,7 +13,7 @@ describe('ThrottleBindingBehavior', () => {
   const container: IContainer = DI.createContainer();
   let sut: ThrottleBindingBehavior;
   let binding: Binding;
-  let originalFn: Function;
+  let originalFn: (value: unknown, flags: LifecycleFlags) => void;
 
   beforeEach(() => {
     sut = new ThrottleBindingBehavior();

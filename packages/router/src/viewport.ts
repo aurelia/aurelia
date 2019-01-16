@@ -10,10 +10,10 @@ export interface IRouteableCustomElementType extends ICustomElementType {
 }
 
 export interface IRouteableCustomElement extends ICustomElement {
-  canEnter?: Function;
-  enter?: Function;
-  canLeave?: Function;
-  leave?: Function;
+  canEnter?(nextInstruction?: INavigationInstruction, instruction?: INavigationInstruction): boolean|Promise<boolean>;
+  enter?(parameters?: string[] | Record<string, string>, nextInstruction?: INavigationInstruction, instruction?: INavigationInstruction): void|Promise<void>;
+  canLeave?(nextInstruction?: INavigationInstruction, instruction?: INavigationInstruction): boolean|Promise<boolean>;
+  leave?(nextInstruction?: INavigationInstruction, instruction?: INavigationInstruction): void|Promise<void>;
 }
 
 export interface IViewportOptions {
@@ -46,7 +46,7 @@ export class Viewport {
   private readonly router: Router;
 
   private clear: boolean;
-  private elementResolve: Function;
+  private elementResolve?: ((value?: void | PromiseLike<void>) => void) | null;
 
   constructor(router: Router, name: string, element: Element, owningScope: Scope, scope: Scope, options?: IViewportOptions) {
     this.router = router;
@@ -167,9 +167,9 @@ export class Viewport {
       return Promise.resolve(true);
     }
 
-    // tslint:disable-next-line:no-console
-    console.log('viewport canEnter', component.canEnter(this.nextInstruction, this.instruction));
     const result = component.canEnter(this.nextInstruction, this.instruction);
+    // tslint:disable-next-line:no-console
+    console.log('viewport canEnter', result);
     if (typeof result === 'boolean') {
       return Promise.resolve(result);
     }

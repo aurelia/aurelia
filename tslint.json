@@ -60,7 +60,7 @@
     "match-default-export-name": false,
     "mocha-avoid-only": true,
     "mocha-no-side-effect-code": true,
-    "no-any": true,
+    "no-any": { "severity": "warning" },
     "no-arg": true,
     "no-backbone-get-set-outside-model": false,
     "no-bitwise": false,
@@ -135,7 +135,10 @@
     "chai-vague-errors": false,
     "class-name": false,
     "comment-format": true,
-    "completed-docs": [true, "classes"],
+    "completed-docs": {
+      "severity": "warning",
+      "options": "classes"
+    },
     "export-name": false,
     "function-name": false,
     "import-name": true,
@@ -248,7 +251,16 @@
     * Controversial/Configurable rules.
     */
     "ban": false,                // only enable this if you have some code pattern that you want to ban
-    "ban-types": false,
+    "ban-types": {
+      "options": [
+        ["Object", "Avoid using the `Object` type. Prefer a specific lookup type, like `Record<string, unknown>`, or use `object` (lowercase) when referring simply to non-primitives."],
+        ["{}", "Avoid using the `{}` type. Prefer a specific lookup type, like `Record<string, unknown>`, or use `object` (lowercase) when referring simply to non-primitives."],
+        ["Function", "Avoid using the `Function` type. Prefer a specific function type, like `() => void`, or use `Constructable` / `Class<TProto, TStatic>` when referring to a constructor function."],
+        ["Boolean", "Avoid using the `Boolean` type. Did you mean `boolean`?"],
+        ["Number", "Avoid using the `Number` type. Did you mean `number`?"],
+        ["String", "Avoid using the `String` type. Did you mean `string`?"]
+      ]
+    },
     "cyclomatic-complexity": false,
     "deprecation": false, // deprecated APIs are sometimes unavoidable
     "file-header": false,  // enable this rule only if you are legally required to add a file header
@@ -272,7 +284,10 @@
   /**
     * Sonarts rules
     */
-    "cognitive-complexity": [true, 30],
+    "cognitive-complexity": {
+      "severity": "warning",
+      "options": 30
+    },
     "max-union-size": [true, 5],
     "no-extra-semicolon": false,
     "no-identical-functions": false,

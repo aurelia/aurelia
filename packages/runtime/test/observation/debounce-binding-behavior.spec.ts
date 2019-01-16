@@ -17,7 +17,7 @@ describe('DebounceBindingBehavior', () => {
   const container: IContainer = DI.createContainer();
   let sut: DebounceBindingBehavior;
   let binding: Binding;
-  let originalFn: Function;
+  let originalFn: (newValue: unknown, previousValue: unknown, flags: LifecycleFlags) => void;
 
   beforeEach(() => {
     sut = new DebounceBindingBehavior();

@@ -320,9 +320,9 @@ export class TestBuilder<T extends Constructable> {
     this.Type = Type;
   }
 
-  public static app<T extends Object>(obj: T, defBuilder: DefinitionBuilder): T extends Constructable ? TestBuilder<Class<InstanceType<T>, T>> : TestBuilder<Class<T, {}>>;
-  public static app<T extends Object>(obj: T, defCb: DefinitionCb): T extends Constructable ? TestBuilder<Class<InstanceType<T>, T>> : TestBuilder<Class<T, {}>>;
-  public static app<T extends Object>(obj: T, defCbOrBuilder: DefinitionCb | DefinitionBuilder): T extends Constructable ? TestBuilder<Class<InstanceType<T>, T>> : TestBuilder<Class<T, {}>> {
+  public static app<T extends object>(obj: T, defBuilder: DefinitionBuilder): T extends Constructable ? TestBuilder<Class<InstanceType<T>, T>> : TestBuilder<Class<T, {}>>;
+  public static app<T extends object>(obj: T, defCb: DefinitionCb): T extends Constructable ? TestBuilder<Class<InstanceType<T>, T>> : TestBuilder<Class<T, {}>>;
+  public static app<T extends object>(obj: T, defCbOrBuilder: DefinitionCb | DefinitionBuilder): T extends Constructable ? TestBuilder<Class<InstanceType<T>, T>> : TestBuilder<Class<T, {}>> {
     let definition: ITemplateDefinition;
     if (defCbOrBuilder instanceof DefinitionBuilder) {
       definition = defCbOrBuilder.build();
@@ -336,7 +336,7 @@ export class TestBuilder<T extends Constructable> {
     return new TestBuilder(App) as any;
   }
 
-  public element(obj: Object, def: DefinitionCb): TestBuilder<T> {
+  public element(obj: Record<string, unknown>, def: DefinitionCb): TestBuilder<T> {
     const definition = def(DefinitionBuilder.element()).build();
     const Type = obj['prototype'] ? obj : function() {
       Object.assign(this, obj);
@@ -354,7 +354,7 @@ export class TestBuilder<T extends Constructable> {
   }
 }
 
-export class TestContext<T extends Object> {
+export class TestContext<T extends object> {
   public container: IContainer;
   public host: INode;
   public component: ICustomElement & T;

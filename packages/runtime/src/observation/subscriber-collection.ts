@@ -12,6 +12,7 @@ import {
 } from '../observation';
 
 export function subscriberCollection<T extends MutationKind>(mutationKind: T): ClassDecorator {
+  // tslint:disable-next-line:ban-types // ClassDecorator expects it to be derived from Function
   return function(target: Function): void {
     const proto = target.prototype as ISubscriberCollection<MutationKind.instance | MutationKind.collection>;
 
@@ -189,6 +190,7 @@ function hasSubscriber<T extends MutationKind>(this: ISubscriberCollection<T>, s
 }
 
 export function batchedSubscriberCollection(): ClassDecorator {
+  // tslint:disable-next-line:ban-types // ClassDecorator expects it to be derived from Function
   return function(target: Function): void {
     const proto = target.prototype as IBatchedSubscriberCollection<MutationKind.collection>;
 

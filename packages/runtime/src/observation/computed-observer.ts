@@ -1,4 +1,4 @@
-import { PLATFORM, Reporter, Tracer } from '@aurelia/kernel';
+import { Constructable, PLATFORM, Reporter, Tracer } from '@aurelia/kernel';
 import { ILifecycle } from '../lifecycle';
 import {
   IBatchedSubscribable,
@@ -26,7 +26,7 @@ export interface ComputedOverrides {
 export type ComputedLookup = { computed?: Record<string, ComputedOverrides> };
 
 export function computed(config: ComputedOverrides): PropertyDecorator {
-  return function(target: Object & ComputedLookup, key: string): void {
+  return function(target: Constructable & ComputedLookup, key: string): void {
     (target.computed || (target.computed = {}))[key] = config;
   };
 }
@@ -38,7 +38,7 @@ export function createComputedObserver(
   observerLocator: IObserverLocator,
   dirtyChecker: IDirtyChecker,
   lifecycle: ILifecycle,
-  instance: IObservable & { constructor: Function & ComputedLookup },
+  instance: IObservable & { constructor: IObservable & ComputedLookup },
   propertyName: string,
   descriptor: PropertyDescriptor): IBindingTargetObserver {
 

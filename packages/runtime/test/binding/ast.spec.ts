@@ -34,11 +34,9 @@ import {
   HtmlLiteral,
   IConnectableBinding,
   Interpolation,
-  IsAssign,
   isAssignable,
   IsBinary,
   IsBindingBehavior,
-  IsConditional,
   IScope,
   ISignaler,
   IsLeftHandSide,
@@ -49,8 +47,7 @@ import {
   isPureLiteral,
   isResource,
   IsUnary,
-  IsValueConverter,
-  LifecycleFlags,
+  LifecycleFlags as LF,
   ObjectBindingPattern,
   ObjectLiteral,
   observes,
@@ -874,18 +871,18 @@ describe('AccessKeyed', () => {
 
   it('evaluates member on bindingContext', () => {
     const scope = createScopeForTest({ foo: { bar: 'baz' } });
-    expect(expression.evaluate(0, scope, null)).to.equal('baz');
+    expect(expression.evaluate(LF.none, scope, null)).to.equal('baz');
   });
 
   it('evaluates member on overrideContext', () => {
     const scope = createScopeForTest({});
     scope.overrideContext.foo = { bar: 'baz' };
-    expect(expression.evaluate(0, scope, null)).to.equal('baz');
+    expect(expression.evaluate(LF.none, scope, null)).to.equal('baz');
   });
 
   it('assigns member on bindingContext', () => {
     const scope = createScopeForTest({ foo: { bar: 'baz' } });
-    expression.assign(0, scope, null, 'bang');
+    expression.assign(LF.none, scope, null, 'bang');
     // @ts-ignore
     expect(scope.bindingContext.foo.bar).to.equal('bang');
   });
@@ -893,39 +890,39 @@ describe('AccessKeyed', () => {
   it('assigns member on overrideContext', () => {
     const scope = createScopeForTest({});
     scope.overrideContext.foo = { bar: 'baz' };
-    expression.assign(0, scope, null, 'bang');
+    expression.assign(LF.none, scope, null, 'bang');
     // @ts-ignore
     expect(scope.overrideContext.foo.bar).to.equal('bang');
   });
 
   it('evaluates null/undefined object', () => {
     let scope = createScopeForTest({ foo: null });
-    expect(expression.evaluate(0, scope, null)).to.equal(undefined);
+    expect(expression.evaluate(LF.none, scope, null)).to.equal(undefined);
     scope = createScopeForTest({ foo: undefined });
-    expect(expression.evaluate(0, scope, null)).to.equal(undefined);
+    expect(expression.evaluate(LF.none, scope, null)).to.equal(undefined);
     scope = createScopeForTest({});
-    expect(expression.evaluate(0, scope, null)).to.equal(undefined);
+    expect(expression.evaluate(LF.none, scope, null)).to.equal(undefined);
   });
 
   it('does not observes property in keyed object access when key is number', () => {
     const scope = createScopeForTest({ foo: { '0': 'hello world' } });
     const expression2 = new AccessKeyed(new AccessScope('foo', 0), new PrimitiveLiteral(0));
-    expect(expression2.evaluate(0, scope, null)).to.equal('hello world');
+    expect(expression2.evaluate(LF.none, scope, null)).to.equal('hello world');
     const binding = { observeProperty: spy() };
-    expression2.connect(0, scope, binding as any);
-    expect(binding.observeProperty.getCalls()[0]).to.have.been.calledWith(0, scope.bindingContext, 'foo');
-    expect(binding.observeProperty.getCalls()[1]).to.have.been.calledWith(0, scope.bindingContext.foo, 0);
+    expression2.connect(LF.none, scope, binding as any);
+    expect(binding.observeProperty.getCalls()[0]).to.have.been.calledWith(LF.none, scope.bindingContext, 'foo');
+    expect(binding.observeProperty.getCalls()[1]).to.have.been.calledWith(LF.none, scope.bindingContext.foo, 0);
     expect(binding.observeProperty.callCount).to.equal(2);
   });
 
   it('does not observe property in keyed array access when key is number', () => {
     const scope = createScopeForTest({ foo: ['hello world'] });
     const expression3 = new AccessKeyed(new AccessScope('foo', 0), new PrimitiveLiteral(0));
-    expect(expression3.evaluate(0, scope, null)).to.equal('hello world');
+    expect(expression3.evaluate(LF.none, scope, null)).to.equal('hello world');
     const binding = { observeProperty: spy() };
-    expression3.connect(0, scope, binding as any);
-    expect(binding.observeProperty).to.have.been.calledWith(0, scope.bindingContext, 'foo');
-    expect(binding.observeProperty).not.to.have.been.calledWith(0, scope.bindingContext.foo, 0);
+    expression3.connect(LF.none, scope, binding as any);
+    expect(binding.observeProperty).to.have.been.calledWith(LF.none, scope.bindingContext, 'foo');
+    expect(binding.observeProperty).not.to.have.been.calledWith(LF.none, scope.bindingContext.foo, 0);
     expect(binding.observeProperty.callCount).to.equal(1);
   });
 
@@ -950,7 +947,7 @@ describe('AccessKeyed', () => {
           const scope = createScopeForTest({ foo: obj });
           const sut = new AccessKeyed(new AccessScope('foo', 0), key);
           const binding = { observeProperty: spy() };
-          sut.connect(0, scope, binding as any);
+          sut.connect(LF.none, scope, binding as any);
           expect(binding.observeProperty.callCount).to.equal(1);
         });
       })
@@ -1055,7 +1052,7 @@ describe('AccessMember', () => {
       it(`${t1}.${t2}.evaluate() -> connect -> assign`, () => {
         const scope = createScopeForTest({ foo: obj });
         const sut = new AccessMember(new AccessScope('foo', 0), prop);
-        const actual = sut.evaluate(LifecycleFlags.none, scope, null);
+        const actual = sut.evaluate(LF.none, scope, null);
         if (canHaveProperty) {
           expect(actual).to.equal(value);
         } else {
@@ -1066,7 +1063,7 @@ describe('AccessMember', () => {
           }
         }
         const binding = { observeProperty: spy() };
-        sut.connect(0, scope, binding as any);
+        sut.connect(LF.none, scope, binding as any);
         if (isFalsey) {
           expect(binding.observeProperty.callCount).to.equal(1);
         } else {
@@ -1075,7 +1072,7 @@ describe('AccessMember', () => {
 
         if (!(obj instanceof Object)) {
           expect(scope.bindingContext['foo']).not.to.be.instanceof(Object);
-          sut.assign(0, scope, binding as any, 42);
+          sut.assign(LF.none, scope, binding as any, 42);
           expect(scope.bindingContext['foo']).to.be.instanceof(Object);
           // @ts-ignore
           expect(scope.bindingContext['foo'][prop]).to.equal(42);
@@ -1086,18 +1083,18 @@ describe('AccessMember', () => {
 
   it('evaluates member on bindingContext', () => {
     const scope = createScopeForTest({ foo: { bar: 'baz' } });
-    expect(expression.evaluate(0, scope, null)).to.equal('baz');
+    expect(expression.evaluate(LF.none, scope, null)).to.equal('baz');
   });
 
   it('evaluates member on overrideContext', () => {
     const scope = createScopeForTest({});
     scope.overrideContext.foo = { bar: 'baz' };
-    expect(expression.evaluate(0, scope, null)).to.equal('baz');
+    expect(expression.evaluate(LF.none, scope, null)).to.equal('baz');
   });
 
   it('assigns member on bindingContext', () => {
     const scope = createScopeForTest({ foo: { bar: 'baz' } });
-    expression.assign(0, scope, null, 'bang');
+    expression.assign(LF.none, scope, null, 'bang');
     // @ts-ignore
     expect(scope.bindingContext.foo.bar).to.equal('bang');
   });
@@ -1105,14 +1102,14 @@ describe('AccessMember', () => {
   it('assigns member on overrideContext', () => {
     const scope = createScopeForTest({});
     scope.overrideContext.foo = { bar: 'baz' };
-    expression.assign(0, scope, null, 'bang');
+    expression.assign(LF.none, scope, null, 'bang');
     // @ts-ignore
     expect(scope.overrideContext.foo.bar).to.equal('bang');
   });
 
   it('returns the assigned value', () => {
     const scope = createScopeForTest({ foo: { bar: 'baz' } });
-    expect(expression.assign(0, scope, null, 'bang')).to.equal('bang');
+    expect(expression.assign(LF.none, scope, null, 'bang')).to.equal('bang');
   });
 
   describe('does not attempt to observe property when object is falsey', () => {
@@ -1133,7 +1130,7 @@ describe('AccessMember', () => {
           const scope = createScopeForTest({ foo: obj });
           const sut = new AccessMember(new AccessScope('foo', 0), prop);
           const binding = { observeProperty: spy() };
-          sut.connect(0, scope, binding as any);
+          sut.connect(LF.none, scope, binding as any);
           expect(binding.observeProperty.callCount).to.equal(1);
         });
       })
@@ -1159,7 +1156,7 @@ describe('AccessMember', () => {
           const scope = createScopeForTest({ foo: obj });
           const expression2 = new AccessMember(new AccessScope('foo', 0), prop);
           const binding = { observeProperty: spy() };
-          expression2.connect(0, scope, binding as any);
+          expression2.connect(LF.none, scope, binding as any);
           expect(binding.observeProperty.callCount).to.equal(2);
         });
       })
@@ -1173,142 +1170,142 @@ describe('AccessScope', () => {
   const binding = { observeProperty: spy() };
 
   it('evaluates undefined bindingContext', () => {
-    const scope = Scope.create(0, undefined, null);
-    expect(foo.evaluate(0, scope, null)).to.equal(undefined);
+    const scope = Scope.create(LF.none, undefined, null);
+    expect(foo.evaluate(LF.none, scope, null)).to.equal(undefined);
   });
 
   it('assigns undefined bindingContext', () => {
-    const scope = Scope.create(0, undefined, null);
-    foo.assign(0, scope, null, 'baz');
+    const scope = Scope.create(LF.none, undefined, null);
+    foo.assign(LF.none, scope, null, 'baz');
     expect(scope.overrideContext.foo).to.equal('baz');
   });
 
   it('connects undefined bindingContext', () => {
-    const scope = Scope.create(0, undefined, null);
+    const scope = Scope.create(LF.none, undefined, null);
     (binding.observeProperty as any).resetHistory();
-    foo.connect(0, scope, binding as any);
-    expect(binding.observeProperty).to.have.been.calledWith(0, scope.overrideContext, 'foo');
+    foo.connect(LF.none, scope, binding as any);
+    expect(binding.observeProperty).to.have.been.calledWith(LF.none, scope.overrideContext, 'foo');
   });
 
   it('evaluates null bindingContext', () => {
-    const scope = Scope.create(0, null, null);
-    expect(foo.evaluate(0, scope, null)).to.equal(undefined);
+    const scope = Scope.create(LF.none, null, null);
+    expect(foo.evaluate(LF.none, scope, null)).to.equal(undefined);
   });
 
   it('assigns null bindingContext', () => {
-    const scope = Scope.create(0, null, null);
-    foo.assign(0, scope, null, 'baz');
+    const scope = Scope.create(LF.none, null, null);
+    foo.assign(LF.none, scope, null, 'baz');
     expect(scope.overrideContext.foo).to.equal('baz');
   });
 
   it('connects null bindingContext', () => {
-    const scope = Scope.create(0, null, null);
+    const scope = Scope.create(LF.none, null, null);
     (binding.observeProperty as any).resetHistory();
-    foo.connect(0, scope, binding as any);
-    expect(binding.observeProperty).to.have.been.calledWith(0, scope.overrideContext, 'foo');
+    foo.connect(LF.none, scope, binding as any);
+    expect(binding.observeProperty).to.have.been.calledWith(LF.none, scope.overrideContext, 'foo');
   });
 
   it('evaluates defined property on bindingContext', () => {
     const scope = createScopeForTest({ foo: 'bar' });
-    expect(foo.evaluate(0, scope, null)).to.equal('bar');
+    expect(foo.evaluate(LF.none, scope, null)).to.equal('bar');
   });
 
   it('evaluates defined property on overrideContext', () => {
     const scope = createScopeForTest({ abc: 'xyz' });
     scope.overrideContext.foo = 'bar';
-    expect(foo.evaluate(0, scope, null)).to.equal('bar');
+    expect(foo.evaluate(LF.none, scope, null)).to.equal('bar');
   });
 
   it('assigns defined property on bindingContext', () => {
     const scope = createScopeForTest({ foo: 'bar' });
-    foo.assign(0, scope, null, 'baz');
+    foo.assign(LF.none, scope, null, 'baz');
     expect(scope.bindingContext.foo).to.equal('baz');
   });
 
   it('assigns undefined property to bindingContext', () => {
     const scope = createScopeForTest({ abc: 'xyz' });
-    foo.assign(0, scope, null, 'baz');
+    foo.assign(LF.none, scope, null, 'baz');
     expect(scope.bindingContext.foo).to.equal('baz');
   });
 
   it('assigns defined property on overrideContext', () => {
     const scope = createScopeForTest({ abc: 'xyz' });
     scope.overrideContext.foo = 'bar';
-    foo.assign(0, scope, null, 'baz');
+    foo.assign(LF.none, scope, null, 'baz');
     expect(scope.overrideContext.foo).to.equal('baz');
   });
 
   it('connects defined property on bindingContext', () => {
     const scope = createScopeForTest({ foo: 'bar' });
     (binding.observeProperty as any).resetHistory();
-    foo.connect(0, scope, binding as any);
-    expect(binding.observeProperty).to.have.been.calledWith(0, scope.bindingContext, 'foo');
+    foo.connect(LF.none, scope, binding as any);
+    expect(binding.observeProperty).to.have.been.calledWith(LF.none, scope.bindingContext, 'foo');
   });
 
   it('connects defined property on overrideContext', () => {
     const scope = createScopeForTest({ abc: 'xyz' });
     scope.overrideContext.foo = 'bar';
     (binding.observeProperty as any).resetHistory();
-    foo.connect(0, scope, binding as any);
-    expect(binding.observeProperty).to.have.been.calledWith(0, scope.overrideContext, 'foo');
+    foo.connect(LF.none, scope, binding as any);
+    expect(binding.observeProperty).to.have.been.calledWith(LF.none, scope.overrideContext, 'foo');
   });
 
   it('connects undefined property on bindingContext', () => {
     const scope = createScopeForTest({ abc: 'xyz' });
     (binding.observeProperty as any).resetHistory();
-    foo.connect(0, scope, binding as any);
-    expect(binding.observeProperty).to.have.been.calledWith(0, scope.bindingContext, 'foo');
+    foo.connect(LF.none, scope, binding as any);
+    expect(binding.observeProperty).to.have.been.calledWith(LF.none, scope.bindingContext, 'foo');
   });
 
   it('evaluates defined property on first ancestor bindingContext', () => {
     const scope = createScopeForTest({ abc: 'xyz' }, { foo: 'bar' });
-    expect(foo.evaluate(0, scope, null)).to.equal('bar');
-    expect($parentfoo.evaluate(0, scope, null)).to.equal('bar');
+    expect(foo.evaluate(LF.none, scope, null)).to.equal('bar');
+    expect($parentfoo.evaluate(LF.none, scope, null)).to.equal('bar');
   });
 
   it('evaluates defined property on first ancestor overrideContext', () => {
     const scope = createScopeForTest({ abc: 'xyz' }, { def: 'rsw' });
     scope.overrideContext.parentOverrideContext.foo = 'bar';
-    expect(foo.evaluate(0, scope, null)).to.equal('bar');
-    expect($parentfoo.evaluate(0, scope, null)).to.equal('bar');
+    expect(foo.evaluate(LF.none, scope, null)).to.equal('bar');
+    expect($parentfoo.evaluate(LF.none, scope, null)).to.equal('bar');
   });
 
   it('assigns defined property on first ancestor bindingContext', () => {
     const scope = createScopeForTest({ abc: 'xyz' }, { foo: 'bar' });
-    foo.assign(0, scope, null, 'baz');
+    foo.assign(LF.none, scope, null, 'baz');
     expect(scope.overrideContext.parentOverrideContext.bindingContext.foo).to.equal('baz');
-    $parentfoo.assign(0, scope, null, 'beep');
+    $parentfoo.assign(LF.none, scope, null, 'beep');
     expect(scope.overrideContext.parentOverrideContext.bindingContext.foo).to.equal('beep');
   });
 
   it('assigns defined property on first ancestor overrideContext', () => {
     const scope = createScopeForTest({ abc: 'xyz' }, { def: 'rsw' });
     scope.overrideContext.parentOverrideContext.foo = 'bar';
-    foo.assign(0, scope, null, 'baz');
+    foo.assign(LF.none, scope, null, 'baz');
     expect(scope.overrideContext.parentOverrideContext.foo).to.equal('baz');
-    $parentfoo.assign(0, scope, null, 'beep');
+    $parentfoo.assign(LF.none, scope, null, 'beep');
     expect(scope.overrideContext.parentOverrideContext.foo).to.equal('beep');
   });
 
   it('connects defined property on first ancestor bindingContext', () => {
     const scope = createScopeForTest({ abc: 'xyz' }, { foo: 'bar' });
     (binding.observeProperty as any).resetHistory();
-    foo.connect(0, scope, binding as any);
-    expect(binding.observeProperty).to.have.been.calledWith(0, scope.overrideContext.parentOverrideContext.bindingContext, 'foo');
+    foo.connect(LF.none, scope, binding as any);
+    expect(binding.observeProperty).to.have.been.calledWith(LF.none, scope.overrideContext.parentOverrideContext.bindingContext, 'foo');
     (binding.observeProperty as any).resetHistory();
-    $parentfoo.connect(0, scope, binding as any);
-    expect(binding.observeProperty).to.have.been.calledWith(0, scope.overrideContext.parentOverrideContext.bindingContext, 'foo');
+    $parentfoo.connect(LF.none, scope, binding as any);
+    expect(binding.observeProperty).to.have.been.calledWith(LF.none, scope.overrideContext.parentOverrideContext.bindingContext, 'foo');
   });
 
   it('connects defined property on first ancestor overrideContext', () => {
     const scope = createScopeForTest({ abc: 'xyz' }, { def: 'rsw' });
     scope.overrideContext.parentOverrideContext.foo = 'bar';
     (binding.observeProperty as any).resetHistory();
-    foo.connect(0, scope, binding as any);
-    expect(binding.observeProperty).to.have.been.calledWith(0, scope.overrideContext.parentOverrideContext, 'foo');
+    foo.connect(LF.none, scope, binding as any);
+    expect(binding.observeProperty).to.have.been.calledWith(LF.none, scope.overrideContext.parentOverrideContext, 'foo');
     (binding.observeProperty as any).resetHistory();
-    $parentfoo.connect(0, scope, binding as any);
-    expect(binding.observeProperty).to.have.been.calledWith(0, scope.overrideContext.parentOverrideContext, 'foo');
+    $parentfoo.connect(LF.none, scope, binding as any);
+    expect(binding.observeProperty).to.have.been.calledWith(LF.none, scope.overrideContext.parentOverrideContext, 'foo');
   });
 
   it('connects undefined property on first ancestor bindingContext', () => {
@@ -1316,8 +1313,8 @@ describe('AccessScope', () => {
     // @ts-ignore
     scope.overrideContext.parentOverrideContext.parentOverrideContext = OverrideContext.create({ foo: 'bar' }, null);
     (binding.observeProperty as any).resetHistory();
-    $parentfoo.connect(0, scope, binding as any);
-    expect(binding.observeProperty).to.have.been.calledWith(0, scope.overrideContext.parentOverrideContext.bindingContext, 'foo');
+    $parentfoo.connect(LF.none, scope, binding as any);
+    expect(binding.observeProperty).to.have.been.calledWith(LF.none, scope.overrideContext.parentOverrideContext.bindingContext, 'foo');
   });
 });
 
@@ -1329,49 +1326,49 @@ describe('AccessThis', () => {
   it('evaluates undefined bindingContext', () => {
     const coc = OverrideContext.create;
 
-    let scope = { overrideContext: coc(0, undefined, null) };
-    expect($parent2.evaluate(0, scope as any, null)).to.equal(undefined);
-    expect($parent$parent.evaluate(0, scope as any, null)).to.equal(undefined);
-    expect($parent$parent$parent.evaluate(0, scope as any, null)).to.equal(undefined);
+    let scope = { overrideContext: coc(LF.none, undefined, null) };
+    expect($parent2.evaluate(LF.none, scope as any, null)).to.equal(undefined);
+    expect($parent$parent.evaluate(LF.none, scope as any, null)).to.equal(undefined);
+    expect($parent$parent$parent.evaluate(LF.none, scope as any, null)).to.equal(undefined);
 
-    scope = { overrideContext: coc(0, undefined, coc(0, undefined, null)) };
-    expect($parent2.evaluate(0, scope as any, null)).to.equal(undefined);
-    expect($parent$parent.evaluate(0, scope as any, null)).to.equal(undefined);
-    expect($parent$parent$parent.evaluate(0, scope as any, null)).to.equal(undefined);
+    scope = { overrideContext: coc(LF.none, undefined, coc(LF.none, undefined, null)) };
+    expect($parent2.evaluate(LF.none, scope as any, null)).to.equal(undefined);
+    expect($parent$parent.evaluate(LF.none, scope as any, null)).to.equal(undefined);
+    expect($parent$parent$parent.evaluate(LF.none, scope as any, null)).to.equal(undefined);
 
-    scope = { overrideContext: coc(0, undefined, coc(0, undefined, coc(0, undefined, null))) };
-    expect($parent2.evaluate(0, scope as any, null)).to.equal(undefined);
-    expect($parent$parent.evaluate(0, scope as any, null)).to.equal(undefined);
-    expect($parent$parent$parent.evaluate(0, scope as any, null)).to.equal(undefined);
+    scope = { overrideContext: coc(LF.none, undefined, coc(LF.none, undefined, coc(LF.none, undefined, null))) };
+    expect($parent2.evaluate(LF.none, scope as any, null)).to.equal(undefined);
+    expect($parent$parent.evaluate(LF.none, scope as any, null)).to.equal(undefined);
+    expect($parent$parent$parent.evaluate(LF.none, scope as any, null)).to.equal(undefined);
 
-    scope = { overrideContext: coc(0, undefined, coc(0, undefined, coc(0, undefined, coc(0, undefined, null)))) };
-    expect($parent2.evaluate(0, scope as any, null)).to.equal(undefined);
-    expect($parent$parent.evaluate(0, scope as any, null)).to.equal(undefined);
-    expect($parent$parent$parent.evaluate(0, scope as any, null)).to.equal(undefined);
+    scope = { overrideContext: coc(LF.none, undefined, coc(LF.none, undefined, coc(LF.none, undefined, coc(LF.none, undefined, null)))) };
+    expect($parent2.evaluate(LF.none, scope as any, null)).to.equal(undefined);
+    expect($parent$parent.evaluate(LF.none, scope as any, null)).to.equal(undefined);
+    expect($parent$parent$parent.evaluate(LF.none, scope as any, null)).to.equal(undefined);
   });
 
   it('evaluates null bindingContext', () => {
     const coc = OverrideContext.create;
 
-    let scope = { overrideContext: coc(0, null, null) };
-    expect($parent.evaluate(0, scope as any, null)).to.equal(undefined);
-    expect($parent$parent.evaluate(0, scope as any, null)).to.equal(undefined);
-    expect($parent$parent$parent.evaluate(0, scope as any, null)).to.equal(undefined);
+    let scope = { overrideContext: coc(LF.none, null, null) };
+    expect($parent.evaluate(LF.none, scope as any, null)).to.equal(undefined);
+    expect($parent$parent.evaluate(LF.none, scope as any, null)).to.equal(undefined);
+    expect($parent$parent$parent.evaluate(LF.none, scope as any, null)).to.equal(undefined);
 
-    scope = { overrideContext: coc(0, null, coc(0, null, null)) };
-    expect($parent.evaluate(0, scope as any, null)).to.equal(null);
-    expect($parent$parent.evaluate(0, scope as any, null)).to.equal(undefined);
-    expect($parent$parent$parent.evaluate(0, scope as any, null)).to.equal(undefined);
+    scope = { overrideContext: coc(LF.none, null, coc(LF.none, null, null)) };
+    expect($parent.evaluate(LF.none, scope as any, null)).to.equal(null);
+    expect($parent$parent.evaluate(LF.none, scope as any, null)).to.equal(undefined);
+    expect($parent$parent$parent.evaluate(LF.none, scope as any, null)).to.equal(undefined);
 
-    scope = { overrideContext: coc(0, null, coc(0, null, coc(0, null, null))) };
-    expect($parent.evaluate(0, scope as any, null)).to.equal(null);
-    expect($parent$parent.evaluate(0, scope as any, null)).to.equal(null);
-    expect($parent$parent$parent.evaluate(0, scope as any, null)).to.equal(undefined);
+    scope = { overrideContext: coc(LF.none, null, coc(LF.none, null, coc(LF.none, null, null))) };
+    expect($parent.evaluate(LF.none, scope as any, null)).to.equal(null);
+    expect($parent$parent.evaluate(LF.none, scope as any, null)).to.equal(null);
+    expect($parent$parent$parent.evaluate(LF.none, scope as any, null)).to.equal(undefined);
 
-    scope = { overrideContext: coc(0, null, coc(0, null, coc(0, null, coc(0, null, null)))) };
-    expect($parent.evaluate(0, scope as any, null)).to.equal(null);
-    expect($parent$parent.evaluate(0, scope as any, null)).to.equal(null);
-    expect($parent$parent$parent.evaluate(0, scope as any, null)).to.equal(null);
+    scope = { overrideContext: coc(LF.none, null, coc(LF.none, null, coc(LF.none, null, coc(LF.none, null, null)))) };
+    expect($parent.evaluate(LF.none, scope as any, null)).to.equal(null);
+    expect($parent$parent.evaluate(LF.none, scope as any, null)).to.equal(null);
+    expect($parent$parent$parent.evaluate(LF.none, scope as any, null)).to.equal(null);
   });
 
   it('evaluates defined bindingContext', () => {
@@ -1380,33 +1377,33 @@ describe('AccessThis', () => {
     const b = { b: 'b' };
     const c = { c: 'c' };
     const d = { d: 'd' };
-    let scope = { overrideContext: coc(0, a, null) };
-    expect($parent.evaluate(0, scope as any, null)).to.equal(undefined);
-    expect($parent$parent.evaluate(0, scope as any, null)).to.equal(undefined);
-    expect($parent$parent$parent.evaluate(0, scope as any, null)).to.equal(undefined);
+    let scope = { overrideContext: coc(LF.none, a, null) };
+    expect($parent.evaluate(LF.none, scope as any, null)).to.equal(undefined);
+    expect($parent$parent.evaluate(LF.none, scope as any, null)).to.equal(undefined);
+    expect($parent$parent$parent.evaluate(LF.none, scope as any, null)).to.equal(undefined);
 
-    scope = { overrideContext: coc(0, a, coc(0, b, null)) };
-    expect($parent.evaluate(0, scope as any, null)).to.equal(b);
-    expect($parent$parent.evaluate(0, scope as any, null)).to.equal(undefined);
-    expect($parent$parent$parent.evaluate(0, scope as any, null)).to.equal(undefined);
+    scope = { overrideContext: coc(LF.none, a, coc(LF.none, b, null)) };
+    expect($parent.evaluate(LF.none, scope as any, null)).to.equal(b);
+    expect($parent$parent.evaluate(LF.none, scope as any, null)).to.equal(undefined);
+    expect($parent$parent$parent.evaluate(LF.none, scope as any, null)).to.equal(undefined);
 
-    scope = { overrideContext: coc(0, a, coc(0, b, coc(0, c, null))) };
-    expect($parent.evaluate(0, scope as any, null)).to.equal(b);
-    expect($parent$parent.evaluate(0, scope as any, null)).to.equal(c);
-    expect($parent$parent$parent.evaluate(0, scope as any, null)).to.equal(undefined);
+    scope = { overrideContext: coc(LF.none, a, coc(LF.none, b, coc(LF.none, c, null))) };
+    expect($parent.evaluate(LF.none, scope as any, null)).to.equal(b);
+    expect($parent$parent.evaluate(LF.none, scope as any, null)).to.equal(c);
+    expect($parent$parent$parent.evaluate(LF.none, scope as any, null)).to.equal(undefined);
 
-    scope = { overrideContext: coc(0, a, coc(0, b, coc(0, c, coc(0, d, null)))) };
-    expect($parent.evaluate(0, scope as any, null)).to.equal(b);
-    expect($parent$parent.evaluate(0, scope as any, null)).to.equal(c);
-    expect($parent$parent$parent.evaluate(0, scope as any, null)).to.equal(d);
+    scope = { overrideContext: coc(LF.none, a, coc(LF.none, b, coc(LF.none, c, coc(LF.none, d, null)))) };
+    expect($parent.evaluate(LF.none, scope as any, null)).to.equal(b);
+    expect($parent$parent.evaluate(LF.none, scope as any, null)).to.equal(c);
+    expect($parent$parent$parent.evaluate(LF.none, scope as any, null)).to.equal(d);
   });
 });
 
 describe('Assign', () => {
   it('can chain assignments', () => {
     const foo = new Assign(new AccessScope('foo', 0), new AccessScope('bar', 0));
-    const scope = Scope.create(0, undefined, null);
-    foo.assign(0, scope, null as any, 1 as any);
+    const scope = Scope.create(LF.none, undefined, null);
+    foo.assign(LF.none, scope, null as any, 1 as any);
     expect(scope.overrideContext.foo).to.equal(1);
     expect(scope.overrideContext.bar).to.equal(1);
   });
@@ -1462,45 +1459,45 @@ describe('Binary', () => {
   it('concats strings', () => {
     let expression = new Binary('+', new PrimitiveLiteral('a'), new PrimitiveLiteral('b'));
     let scope = createScopeForTest({});
-    expect(expression.evaluate(0, scope, null)).to.equal('ab');
+    expect(expression.evaluate(LF.none, scope, null)).to.equal('ab');
 
     expression = new Binary('+', new PrimitiveLiteral('a'), $null);
     scope = createScopeForTest({});
-    expect(expression.evaluate(0, scope, null)).to.equal('anull');
+    expect(expression.evaluate(LF.none, scope, null)).to.equal('anull');
 
     expression = new Binary('+', $null, new PrimitiveLiteral('b'));
     scope = createScopeForTest({});
-    expect(expression.evaluate(0, scope, null)).to.equal('nullb');
+    expect(expression.evaluate(LF.none, scope, null)).to.equal('nullb');
 
     expression = new Binary('+', new PrimitiveLiteral('a'), $undefined);
     scope = createScopeForTest({});
-    expect(expression.evaluate(0, scope, null)).to.equal('aundefined');
+    expect(expression.evaluate(LF.none, scope, null)).to.equal('aundefined');
 
     expression = new Binary('+', $undefined, new PrimitiveLiteral('b'));
     scope = createScopeForTest({});
-    expect(expression.evaluate(0, scope, null)).to.equal('undefinedb');
+    expect(expression.evaluate(LF.none, scope, null)).to.equal('undefinedb');
   });
 
   it('adds numbers', () => {
     let expression = new Binary('+', new PrimitiveLiteral(1), new PrimitiveLiteral(2));
     let scope = createScopeForTest({});
-    expect(expression.evaluate(0, scope, null)).to.equal(3);
+    expect(expression.evaluate(LF.none, scope, null)).to.equal(3);
 
     expression = new Binary('+', new PrimitiveLiteral(1), $null);
     scope = createScopeForTest({});
-    expect(expression.evaluate(0, scope, null)).to.equal(1);
+    expect(expression.evaluate(LF.none, scope, null)).to.equal(1);
 
     expression = new Binary('+', $null, new PrimitiveLiteral(2));
     scope = createScopeForTest({});
-    expect(expression.evaluate(0, scope, null)).to.equal(2);
+    expect(expression.evaluate(LF.none, scope, null)).to.equal(2);
 
     expression = new Binary('+', new PrimitiveLiteral(1), $undefined);
     scope = createScopeForTest({});
-    expect(expression.evaluate(0, scope, null)).to.be.NaN;
+    expect(expression.evaluate(LF.none, scope, null)).to.be.NaN;
 
     expression = new Binary('+', $undefined, new PrimitiveLiteral(2));
     scope = createScopeForTest({});
-    expect(expression.evaluate(0, scope, null)).to.be.NaN;
+    expect(expression.evaluate(LF.none, scope, null)).to.be.NaN;
   });
 
   describe('performs \'in\'', () => {
@@ -1524,7 +1521,7 @@ describe('Binary', () => {
 
     for (const { expr, expected } of tests) {
       it(expr.toString(), () => {
-        expect(expr.evaluate(0, scope, null)).to.equal(expected);
+        expect(expr.evaluate(LF.none, scope, null)).to.equal(expected);
       });
     }
   });
@@ -1583,7 +1580,7 @@ describe('Binary', () => {
 
     for (const { expr, expected } of tests) {
       it(expr.toString(), () => {
-        expect(expr.evaluate(0, scope, null)).to.equal(expected);
+        expect(expr.evaluate(LF.none, scope, null)).to.equal(expected);
       });
     }
   });
@@ -1595,24 +1592,24 @@ describe('CallMember', () => {
     const bindingContext = { foo: { bar: () => 'baz' } };
     const scope = createScopeForTest(bindingContext);
     spy(bindingContext.foo, 'bar');
-    expect(expression.evaluate(0, scope, null)).to.equal('baz');
+    expect(expression.evaluate(LF.none, scope, null)).to.equal('baz');
     expect((bindingContext.foo.bar as any).callCount).to.equal(1);
   });
 
   it('evaluate handles null/undefined member', () => {
     const expression = new CallMember(new AccessScope('foo', 0), 'bar', []);
-    expect(expression.evaluate(0, createScopeForTest({ foo: {} }), null)).to.equal(undefined);
-    expect(expression.evaluate(0, createScopeForTest({ foo: { bar: undefined } }), null)).to.equal(undefined);
-    expect(expression.evaluate(0, createScopeForTest({ foo: { bar: null } }), null)).to.equal(undefined);
+    expect(expression.evaluate(LF.none, createScopeForTest({ foo: {} }), null)).to.equal(undefined);
+    expect(expression.evaluate(LF.none, createScopeForTest({ foo: { bar: undefined } }), null)).to.equal(undefined);
+    expect(expression.evaluate(LF.none, createScopeForTest({ foo: { bar: null } }), null)).to.equal(undefined);
   });
 
   it('evaluate throws when mustEvaluate and member is null or undefined', () => {
     const expression = new CallMember(new AccessScope('foo', 0), 'bar', []);
     const mustEvaluate = true;
-    expect(() => expression.evaluate(LifecycleFlags.mustEvaluate, createScopeForTest({}), null)).to.throw();
-    expect(() => expression.evaluate(LifecycleFlags.mustEvaluate, createScopeForTest({ foo: {} }), null)).to.throw();
-    expect(() => expression.evaluate(LifecycleFlags.mustEvaluate, createScopeForTest({ foo: { bar: undefined } }), null)).to.throw();
-    expect(() => expression.evaluate(LifecycleFlags.mustEvaluate, createScopeForTest({ foo: { bar: null } }), null)).to.throw();
+    expect(() => expression.evaluate(LF.mustEvaluate, createScopeForTest({}), null)).to.throw();
+    expect(() => expression.evaluate(LF.mustEvaluate, createScopeForTest({ foo: {} }), null)).to.throw();
+    expect(() => expression.evaluate(LF.mustEvaluate, createScopeForTest({ foo: { bar: undefined } }), null)).to.throw();
+    expect(() => expression.evaluate(LF.mustEvaluate, createScopeForTest({ foo: { bar: null } }), null)).to.throw();
   });
 });
 
@@ -1622,53 +1619,53 @@ describe('CallScope', () => {
   const binding: { observeProperty: SinonSpy } = { observeProperty: spy() };
 
   it('evaluates undefined bindingContext', () => {
-    const scope = Scope.create(0, undefined, null);
-    expect(foo.evaluate(0, scope, null)).to.equal(undefined);
-    expect(hello.evaluate(0, scope, null)).to.equal(undefined);
+    const scope = Scope.create(LF.none, undefined, null);
+    expect(foo.evaluate(LF.none, scope, null)).to.equal(undefined);
+    expect(hello.evaluate(LF.none, scope, null)).to.equal(undefined);
   });
 
   it('throws when mustEvaluate and evaluating undefined bindingContext', () => {
-    const scope = Scope.create(0, undefined, null);
+    const scope = Scope.create(LF.none, undefined, null);
     const mustEvaluate = true;
-    expect(() => foo.evaluate(LifecycleFlags.mustEvaluate, scope, null)).to.throw();
-    expect(() => hello.evaluate(LifecycleFlags.mustEvaluate, scope, null)).to.throw();
+    expect(() => foo.evaluate(LF.mustEvaluate, scope, null)).to.throw();
+    expect(() => hello.evaluate(LF.mustEvaluate, scope, null)).to.throw();
   });
 
   it('connects undefined bindingContext', () => {
-    const scope = Scope.create(0, undefined, null);
+    const scope = Scope.create(LF.none, undefined, null);
     (binding.observeProperty as any).resetHistory();
-    foo.connect(0, scope, binding as any);
+    foo.connect(LF.none, scope, binding as any);
     expect(binding.observeProperty.callCount).to.equal(0);
-    hello.connect(0, scope, binding as any);
-    expect(binding.observeProperty).to.have.been.calledWith(0, scope.overrideContext, 'arg');
+    hello.connect(LF.none, scope, binding as any);
+    expect(binding.observeProperty).to.have.been.calledWith(LF.none, scope.overrideContext, 'arg');
   });
 
   it('evaluates null bindingContext', () => {
-    const scope = Scope.create(0, null, null);
-    expect(foo.evaluate(0, scope, null)).to.equal(undefined);
-    expect(hello.evaluate(0, scope, null)).to.equal(undefined);
+    const scope = Scope.create(LF.none, null, null);
+    expect(foo.evaluate(LF.none, scope, null)).to.equal(undefined);
+    expect(hello.evaluate(LF.none, scope, null)).to.equal(undefined);
   });
 
   it('throws when mustEvaluate and evaluating null bindingContext', () => {
-    const scope = Scope.create(0, null, null);
+    const scope = Scope.create(LF.none, null, null);
     const mustEvaluate = true;
-    expect(() => foo.evaluate(LifecycleFlags.mustEvaluate, scope, null)).to.throw();
-    expect(() => hello.evaluate(LifecycleFlags.mustEvaluate, scope, null)).to.throw();
+    expect(() => foo.evaluate(LF.mustEvaluate, scope, null)).to.throw();
+    expect(() => hello.evaluate(LF.mustEvaluate, scope, null)).to.throw();
   });
 
   it('connects null bindingContext', () => {
-    const scope = Scope.create(0, null, null);
+    const scope = Scope.create(LF.none, null, null);
     (binding.observeProperty as any).resetHistory();
-    foo.connect(0, scope, binding as any);
+    foo.connect(LF.none, scope, binding as any);
     expect(binding.observeProperty.callCount).to.equal(0);
-    hello.connect(0, scope, binding as any);
-    expect(binding.observeProperty).to.have.been.calledWith(0, scope.overrideContext, 'arg');
+    hello.connect(LF.none, scope, binding as any);
+    expect(binding.observeProperty).to.have.been.calledWith(LF.none, scope.overrideContext, 'arg');
   });
 
   it('evaluates defined property on bindingContext', () => {
     const scope = createScopeForTest({ foo: () => 'bar', hello: arg => arg, arg: 'world' });
-    expect(foo.evaluate(0, scope, null)).to.equal('bar');
-    expect(hello.evaluate(0, scope, null)).to.equal('world');
+    expect(foo.evaluate(LF.none, scope, null)).to.equal('bar');
+    expect(hello.evaluate(LF.none, scope, null)).to.equal('world');
   });
 
   it('evaluates defined property on overrideContext', () => {
@@ -1676,17 +1673,17 @@ describe('CallScope', () => {
     scope.overrideContext.foo = () => 'bar';
     scope.overrideContext.hello = arg => arg;
     scope.overrideContext.arg = 'world';
-    expect(foo.evaluate(0, scope, null)).to.equal('bar');
-    expect(hello.evaluate(0, scope, null)).to.equal('world');
+    expect(foo.evaluate(LF.none, scope, null)).to.equal('bar');
+    expect(hello.evaluate(LF.none, scope, null)).to.equal('world');
   });
 
   it('connects defined property on bindingContext', () => {
     const scope = createScopeForTest({ foo: 'bar' });
     (binding.observeProperty as any).resetHistory();
-    foo.connect(0, scope, binding as any);
+    foo.connect(LF.none, scope, binding as any);
     expect(binding.observeProperty.callCount).to.equal(0);
-    hello.connect(0, scope, binding as any);
-    expect(binding.observeProperty).to.have.been.calledWith(0, scope.bindingContext, 'arg');
+    hello.connect(LF.none, scope, binding as any);
+    expect(binding.observeProperty).to.have.been.calledWith(LF.none, scope.bindingContext, 'arg');
   });
 
   it('connects defined property on overrideContext', () => {
@@ -1695,25 +1692,25 @@ describe('CallScope', () => {
     scope.overrideContext.hello = arg => arg;
     scope.overrideContext.arg = 'world';
     (binding.observeProperty as any).resetHistory();
-    foo.connect(0, scope, binding as any);
+    foo.connect(LF.none, scope, binding as any);
     expect(binding.observeProperty.callCount).to.equal(0);
-    hello.connect(0, scope, binding as any);
-    expect(binding.observeProperty).to.have.been.calledWith(0, scope.overrideContext, 'arg');
+    hello.connect(LF.none, scope, binding as any);
+    expect(binding.observeProperty).to.have.been.calledWith(LF.none, scope.overrideContext, 'arg');
   });
 
   it('connects undefined property on bindingContext', () => {
     const scope = createScopeForTest({ abc: 'xyz' });
     (binding.observeProperty as any).resetHistory();
-    foo.connect(0, scope, binding as any);
+    foo.connect(LF.none, scope, binding as any);
     expect(binding.observeProperty.callCount).to.equal(0);
-    hello.connect(0, scope, binding as any);
-    expect(binding.observeProperty).to.have.been.calledWith(0, scope.bindingContext, 'arg');
+    hello.connect(LF.none, scope, binding as any);
+    expect(binding.observeProperty).to.have.been.calledWith(LF.none, scope.bindingContext, 'arg');
   });
 
   it('evaluates defined property on first ancestor bindingContext', () => {
     const scope = createScopeForTest({ abc: 'xyz' }, { foo: () => 'bar', hello: arg => arg, arg: 'world' });
-    expect(foo.evaluate(0, scope, null)).to.equal('bar');
-    expect(hello.evaluate(0, scope, null)).to.equal('world');
+    expect(foo.evaluate(LF.none, scope, null)).to.equal('bar');
+    expect(hello.evaluate(LF.none, scope, null)).to.equal('world');
   });
 
   it('evaluates defined property on first ancestor overrideContext', () => {
@@ -1721,17 +1718,17 @@ describe('CallScope', () => {
     scope.overrideContext.parentOverrideContext.foo = () => 'bar';
     scope.overrideContext.parentOverrideContext.hello = arg => arg;
     scope.overrideContext.parentOverrideContext.arg = 'world';
-    expect(foo.evaluate(0, scope, null)).to.equal('bar');
-    expect(hello.evaluate(0, scope, null)).to.equal('world');
+    expect(foo.evaluate(LF.none, scope, null)).to.equal('bar');
+    expect(hello.evaluate(LF.none, scope, null)).to.equal('world');
   });
 
   it('connects defined property on first ancestor bindingContext', () => {
     const scope = createScopeForTest({ abc: 'xyz' }, { foo: () => 'bar', hello: arg => arg, arg: 'world' });
     (binding.observeProperty as any).resetHistory();
-    foo.connect(0, scope, binding as any);
+    foo.connect(LF.none, scope, binding as any);
     expect(binding.observeProperty.callCount).to.equal(0);
-    hello.connect(0, scope, binding as any);
-    expect(binding.observeProperty).to.have.been.calledWith(0, scope.overrideContext.parentOverrideContext.bindingContext, 'arg');
+    hello.connect(LF.none, scope, binding as any);
+    expect(binding.observeProperty).to.have.been.calledWith(LF.none, scope.overrideContext.parentOverrideContext.bindingContext, 'arg');
   });
 
   it('connects defined property on first ancestor overrideContext', () => {
@@ -1740,10 +1737,10 @@ describe('CallScope', () => {
     scope.overrideContext.parentOverrideContext.hello = arg => arg;
     scope.overrideContext.parentOverrideContext.arg = 'world';
     (binding.observeProperty as any).resetHistory();
-    foo.connect(0, scope, binding as any);
+    foo.connect(LF.none, scope, binding as any);
     expect(binding.observeProperty.callCount).to.equal(0);
-    hello.connect(0, scope, binding as any);
-    expect(binding.observeProperty).to.have.been.calledWith(0, scope.overrideContext.parentOverrideContext, 'arg');
+    hello.connect(LF.none, scope, binding as any);
+    expect(binding.observeProperty).to.have.been.calledWith(LF.none, scope.overrideContext.parentOverrideContext, 'arg');
   });
 });
 
@@ -1836,7 +1833,7 @@ describe('LiteralTemplate', () => {
   for (const { expr, expected, ctx } of tests) {
     it(`evaluates ${expected}`, () => {
       const scope = createScopeForTest(ctx);
-      expect(expr.evaluate(0, scope, null)).to.equal(expected);
+      expect(expr.evaluate(LF.none, scope, null)).to.equal(expected);
     });
   }
 });
@@ -1860,7 +1857,7 @@ describe('Unary', () => {
 
     for (const { expr, expected } of tests) {
       it(expr.toString(), () => {
-        expect(expr.evaluate(0, scope, null)).to.equal(expected);
+        expect(expr.evaluate(LF.none, scope, null)).to.equal(expected);
       });
     }
   });
@@ -1883,7 +1880,7 @@ describe('Unary', () => {
 
     for (const { expr } of tests) {
       it(expr.toString(), () => {
-        expect(expr.evaluate(0, scope, null)).to.equal(undefined);
+        expect(expr.evaluate(LF.none, scope, null)).to.equal(undefined);
       });
     }
 
@@ -1892,21 +1889,21 @@ describe('Unary', () => {
       const foo = () => (fooCalled = true);
       scope = createScopeForTest({ foo });
       const expr = new Unary('void', new CallScope('foo', [], 0));
-      expect(expr.evaluate(0, scope, null)).to.equal(undefined);
+      expect(expr.evaluate(LF.none, scope, null)).to.equal(undefined);
       expect(fooCalled).to.equal(true);
     });
   });
 });
 
 describe('BindingBehavior', () => {
-  type $1 = [/*title*/string, /*flags*/LifecycleFlags];
+  type $1 = [/*title*/string, /*flags*/LF];
   type $2 = [/*title*/string, /*$kind*/ExpressionKind];
   type $3 = [/*title*/string, /*scope*/IScope, /*sut*/BindingBehavior, /*mock*/MockBindingBehavior, /*locator*/IServiceLocator, /*binding*/IConnectableBinding, /*value*/any, /*argValues*/any[]];
 
-  const flagVariations: (() => $1)[] = // [/*title*/string, /*flags*/LifecycleFlags],
+  const flagVariations: (() => $1)[] = // [/*title*/string, /*flags*/LF],
   [
-    () => [`fromBind  `, LifecycleFlags.fromBind],
-    () => [`fromUnbind`, LifecycleFlags.fromUnbind]
+    () => [`fromBind  `, LF.fromBind],
+    () => [`fromUnbind`, LF.fromUnbind]
   ];
 
   const kindVariations: (($1: $1) => $2)[] = // [/*title*/string, /*$kind*/ExpressionKind],
@@ -1932,7 +1929,7 @@ describe('BindingBehavior', () => {
       const observerLocator = createObserverLocator();
       const binding = new Binding(expr as any, null, null, null, observerLocator, locator);
 
-      const scope = Scope.create(0, { foo: value }, null);
+      const scope = Scope.create(LF.none, { foo: value }, null);
       return [`foo&mock`, scope, sut, mock, locator, binding, value, []];
     },
     // test with 1 argument
@@ -1949,7 +1946,7 @@ describe('BindingBehavior', () => {
       const observerLocator = createObserverLocator();
       const binding = new Binding(expr as any, null, null, null, observerLocator, locator);
 
-      const scope = Scope.create(0, { foo: value, a: arg1 }, null);
+      const scope = Scope.create(LF.none, { foo: value, a: arg1 }, null);
       return [`foo&mock:a`, scope, sut, mock, locator, binding, value, [arg1]];
     },
     // test with 3 arguments
@@ -1972,7 +1969,7 @@ describe('BindingBehavior', () => {
       const observerLocator = createObserverLocator();
       const binding = new Binding(expr as any, null, null, null, observerLocator, locator);
 
-      const scope = Scope.create(0, { foo: value, a: arg1, b: arg2, c: arg3 }, null);
+      const scope = Scope.create(LF.none, { foo: value, a: arg1, b: arg2, c: arg3 }, null);
       return [`foo&mock:a:b:c`, scope, sut, mock, locator, binding, value, [arg1, arg2, arg3]];
     }
   ];
@@ -2165,14 +2162,14 @@ describe('BindingBehavior', () => {
 });
 
 describe('ValueConverter', () => {
-  type $1 = [/*title*/string, /*flags*/LifecycleFlags];
+  type $1 = [/*title*/string, /*flags*/LF];
   type $2 = [/*title*/string, /*signals*/string[], /*signaler*/MockSignaler];
   type $3 = [/*title*/string, /*scope*/IScope, /*sut*/ValueConverter, /*mock*/MockValueConverter, /*locator*/IServiceLocator, /*binding*/IConnectableBinding, /*value*/any, /*argValues*/any[], /*methods*/string[]];
 
-  const flagVariations: (() => $1)[] = // [/*title*/string, /*flags*/LifecycleFlags],
+  const flagVariations: (() => $1)[] = // [/*title*/string, /*flags*/LF],
   [
-    () => [`fromBind  `, LifecycleFlags.fromBind],
-    () => [`fromUnbind`, LifecycleFlags.fromUnbind]
+    () => [`fromBind  `, LF.fromBind],
+    () => [`fromUnbind`, LF.fromUnbind]
   ];
 
   const kindVariations: (($1: $1) => $2)[] = // [/*title*/string, /*signals*/string[], /*signaler*/ISignaler],
@@ -2198,7 +2195,7 @@ describe('ValueConverter', () => {
       const observerLocator = createObserverLocator();
       const binding = new Binding(expr as any, null, null, null, observerLocator, locator);
 
-      const scope = Scope.create(0, { foo: value }, null);
+      const scope = Scope.create(LF.none, { foo: value }, null);
       return [`foo|mock`, scope, sut, mock, locator, binding, value, [], methods];
     },
     // test without arguments, no fromView
@@ -2215,7 +2212,7 @@ describe('ValueConverter', () => {
       const observerLocator = createObserverLocator();
       const binding = new Binding(expr as any, null, null, null, observerLocator, locator);
 
-      const scope = Scope.create(0, { foo: value }, null);
+      const scope = Scope.create(LF.none, { foo: value }, null);
       return [`foo|mock`, scope, sut, mock, locator, binding, value, [], methods];
     },
     // test without arguments, no toView
@@ -2232,7 +2229,7 @@ describe('ValueConverter', () => {
       const observerLocator = createObserverLocator();
       const binding = new Binding(expr as any, null, null, null, observerLocator, locator);
 
-      const scope = Scope.create(0, { foo: value }, null);
+      const scope = Scope.create(LF.none, { foo: value }, null);
       return [`foo|mock`, scope, sut, mock, locator, binding, value, [], methods];
     },
     // test without arguments
@@ -2249,7 +2246,7 @@ describe('ValueConverter', () => {
       const observerLocator = createObserverLocator();
       const binding = new Binding(expr as any, null, null, null, observerLocator, locator);
 
-      const scope = Scope.create(0, { foo: value }, null);
+      const scope = Scope.create(LF.none, { foo: value }, null);
       return [`foo|mock`, scope, sut, mock, locator, binding, value, [], methods];
     },
     // test with 1 argument
@@ -2267,7 +2264,7 @@ describe('ValueConverter', () => {
       const observerLocator = createObserverLocator();
       const binding = new Binding(expr as any, null, null, null, observerLocator, locator);
 
-      const scope = Scope.create(0, { foo: value, a: arg1 }, null);
+      const scope = Scope.create(LF.none, { foo: value, a: arg1 }, null);
       return [`foo|mock:a`, scope, sut, mock, locator, binding, value, [arg1], methods];
     },
     // test with 3 arguments
@@ -2291,7 +2288,7 @@ describe('ValueConverter', () => {
       const observerLocator = createObserverLocator();
       const binding = new Binding(expr as any, null, null, null, observerLocator, locator);
 
-      const scope = Scope.create(0, { foo: value, a: arg1, b: arg2, c: arg3 }, null);
+      const scope = Scope.create(LF.none, { foo: value, a: arg1, b: arg2, c: arg3 }, null);
       return [`foo|mock:a:b:c`, scope, sut, mock, locator, binding, value, [arg1, arg2, arg3], methods];
     }
   ];

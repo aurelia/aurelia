@@ -41,6 +41,8 @@ describe('ProxyObserver', function() {
     { t: '              "foo"', name:               'foo' }
   ];
 
+  // tslint:disable
+  // using strange objects is the point of this test, so don't complain
   const objSpecs: ObjSpec[] = [
     { t: '                 {}', createObj() { return                  {}; } },
     { t: 'Object.create(null)', createObj() { return Object.create(null); } },
@@ -58,6 +60,7 @@ describe('ProxyObserver', function() {
     { t: '  Promise.resolve()', createObj() { return   Promise.resolve(); } },
     { t: '  new Proxy({}, {})', createObj() { return   new Proxy({}, {}); } }
   ];
+  // tslint:enable
 
   eachCartesianJoin([valueSpecs, propertySpecs, objSpecs], function(valueSpec, propertySpec, objSpec) {
     it(`valueSpec ${valueSpec.t}, propertySpec ${propertySpec.t} objSpec ${objSpec.t}`, function() {
@@ -100,7 +103,7 @@ describe('ProxyObserver', function() {
           proxyFlags = $flags;
         }
       };
-      observer.subscribe(subscriber, name);
+      (observer as ProxyObserver).subscribe(subscriber, name);
       observer.subscribe(proxySubscriber);
 
       observer.proxy[name] = value;
@@ -122,6 +125,8 @@ describe('ProxyObserver', function() {
         expect(proxyCallCount).to.equal(prevCallCount, 'callCount #4');
       }
 
+      // (it's the point of the test)
+      // tslint:disable-next-line:no-dynamic-delete
       delete observer.proxy[name];
 
       if (value !== undefined) {

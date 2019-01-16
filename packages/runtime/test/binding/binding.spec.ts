@@ -18,7 +18,7 @@ import {
   IPropertyChangeNotifier,
   IPropertySubscriber,
   IScope,
-  LifecycleFlags,
+  LifecycleFlags as LF,
   ObjectLiteral,
   PrimitiveLiteral,
   PropertyAccessor,
@@ -122,8 +122,8 @@ describe('Binding', () => {
     const sut = new Binding(expr as any, target, 'val', BindingMode.toView, observerLocator, container);
     const scope = Scope.create(0, ctx, null);
 
-    sut.$bind(LifecycleFlags.fromBind, scope);
-    lifecycle.processConnectQueue(LifecycleFlags.none);
+    sut.$bind(LF.fromBind, scope);
+    lifecycle.processConnectQueue(LF.none);
 
     expect(target.val).to.equal(count);
 
@@ -139,7 +139,7 @@ describe('Binding', () => {
     }
     const scope2 = Scope.create(0, ctx2, null);
 
-    sut.$bind(LifecycleFlags.fromBind, scope2);
+    sut.$bind(LF.fromBind, scope2);
 
     expect(target.val).to.equal(count * 3);
   }).timeout(20000);
@@ -163,10 +163,10 @@ describe('Binding', () => {
       () => [new PrimitiveLiteral(undefined),                          `undefined  `]
     ];
 
-    const flagsVariations: (() => [LifecycleFlags, string])[] = [
-      () => [LifecycleFlags.fromBind,                                            `fromBind               `],
-      () => [LifecycleFlags.updateTargetInstance,                                `updateTarget           `],
-      () => [LifecycleFlags.updateTargetInstance | LifecycleFlags.fromFlush, `updateTarget|fromFlush `]
+    const flagsVariations: (() => [LF, string])[] = [
+      () => [LF.fromBind,                                            `fromBind               `],
+      () => [LF.updateTargetInstance,                                `updateTarget           `],
+      () => [LF.updateTargetInstance | LF.fromFlush, `updateTarget|fromFlush `]
     ];
 
     const scopeVariations: (() => [IScope, string])[] = [
@@ -184,7 +184,7 @@ describe('Binding', () => {
         it(`$bind() [one-time]  target=${$1} prop=${$2} expr=${$3} flags=${$4} scope=${$5}`, () => {
           // - Arrange -
           const { sut, lifecycle, container, observerLocator } = setup(expr, target, prop, BindingMode.oneTime);
-          const srcVal = expr.evaluate(LifecycleFlags.none, scope, container);
+          const srcVal = expr.evaluate(LF.none, scope, container);
           const targetObserver = observerLocator.getAccessor(0, target, prop);
           const $stub = stub(observerLocator, 'getAccessor').returns(targetObserver);
           $stub.withArgs(0, target, prop);
@@ -209,7 +209,7 @@ describe('Binding', () => {
           expect(expr.evaluate).to.have.been.calledWithExactly(flags, scope, container);
 
           expect(targetObserver.setValue).to.have.been.calledOnce;
-          expect(targetObserver.setValue).to.have.been.calledWithExactly(srcVal, flags | LifecycleFlags.updateTargetInstance);
+          expect(targetObserver.setValue).to.have.been.calledWithExactly(srcVal, flags | LF.updateTargetInstance);
           expect(lifecycle.flushCount).to.equal(0);
         });
       }
@@ -237,10 +237,10 @@ describe('Binding', () => {
       () => [new PrimitiveLiteral(undefined),                          `undefined  `]
     ];
 
-    const flagsVariations: (() => [LifecycleFlags, string])[] = [
-      () => [LifecycleFlags.fromBind,                                            `fromBind               `],
-      () => [LifecycleFlags.updateTargetInstance,                                `updateTarget           `],
-      () => [LifecycleFlags.updateTargetInstance | LifecycleFlags.fromFlush, `updateTarget|fromFlush `]
+    const flagsVariations: (() => [LF, string])[] = [
+      () => [LF.fromBind,                                            `fromBind               `],
+      () => [LF.updateTargetInstance,                                `updateTarget           `],
+      () => [LF.updateTargetInstance | LF.fromFlush, `updateTarget|fromFlush `]
     ];
 
     const scopeVariations: (() => [IScope, string])[] = [
@@ -258,7 +258,7 @@ describe('Binding', () => {
         it(`$bind() [to-view]  target=${$1} prop=${$2} expr=${$3} flags=${$4} scope=${$5}`, () => {
           // - Arrange - Part 1
           const { sut, lifecycle, container, observerLocator } = setup(expr, target, prop, BindingMode.toView);
-          const srcVal = expr.evaluate(LifecycleFlags.none, scope, container);
+          const srcVal = expr.evaluate(LF.none, scope, container);
           const targetObserver = observerLocator.getAccessor(0, target, prop);
 
           const $stub = stub(observerLocator, 'getAccessor').returns(targetObserver);
@@ -299,7 +299,7 @@ describe('Binding', () => {
           expect(expr.connect).to.have.been.calledWithExactly(flags, sut.$scope, sut);
 
           expect(targetObserver.setValue).to.have.been.calledOnce;
-          expect(targetObserver.setValue).to.have.been.calledWithExactly(srcVal, flags | LifecycleFlags.updateTargetInstance);
+          expect(targetObserver.setValue).to.have.been.calledWithExactly(srcVal, flags | LF.updateTargetInstance);
           expect(lifecycle.flushCount).to.equal(0);
 
           // verify the behavior of the sourceExpression (redundant)
@@ -371,7 +371,7 @@ describe('Binding', () => {
 
           if (observer00) {
             // verify the behavior of the sourceExpression / sourceObserver (redundant)
-            flags = LifecycleFlags.updateTargetInstance;
+            flags = LF.updateTargetInstance;
             if (observer01) {
               expect(observer00.setValue).not.to.have.been.called;
               expect(observer01.setValue).to.have.been.calledOnce;
@@ -456,10 +456,10 @@ describe('Binding', () => {
       () => [new AccessScope('foo'), `foo `]
     ];
 
-    const flagsVariations: (() => [LifecycleFlags, string])[] = [
-      () => [LifecycleFlags.fromBind,                                            `fromBind               `],
-      () => [LifecycleFlags.updateTargetInstance,                                `updateTarget           `],
-      () => [LifecycleFlags.updateTargetInstance | LifecycleFlags.fromFlush, `updateTarget|fromFlush `]
+    const flagsVariations: (() => [LF, string])[] = [
+      () => [LF.fromBind,                                            `fromBind               `],
+      () => [LF.updateTargetInstance,                                `updateTarget           `],
+      () => [LF.updateTargetInstance | LF.fromFlush, `updateTarget|fromFlush `]
     ];
 
     const scopeVariations: (() => [IScope, string])[] = [
@@ -473,7 +473,7 @@ describe('Binding', () => {
         it(`$bind() [from-view]  target=${$1} prop=${$2} newValue=${$3} expr=${$4} flags=${$5} scope=${$6}`, () => {
           // - Arrange - Part 1
           const { sut, lifecycle, container, observerLocator } = setup(expr, target, prop, BindingMode.fromView);
-          const targetObserver = observerLocator.getObserver(0, target, prop) as IBindingTargetObserver;
+          const targetObserver = observerLocator.getObserver(LF.none, target, prop) as IBindingTargetObserver;
           massSpy(targetObserver, 'subscribe');
 
           ensureNotCalled(expr, 'evaluate', 'connect', 'assign');
@@ -508,7 +508,7 @@ describe('Binding', () => {
           massSpy(sut, 'handleChange');
           massSpy(expr, 'evaluate', 'assign');
 
-          flags = LifecycleFlags.updateSourceExpression;
+          flags = LF.updateSourceExpression;
 
           // - Act - Part 2
           targetObserver.setValue(newValue, flags);
@@ -574,9 +574,9 @@ describe('Binding', () => {
       () => [new PrimitiveLiteral(undefined),                          `undefined  `]
     ];
 
-    const flagsVariations: (() => [LifecycleFlags, string])[] = [
-      () => [LifecycleFlags.fromBind,             `fromBind     `],
-      () => [LifecycleFlags.updateTargetInstance, `updateTarget `]
+    const flagsVariations: (() => [LF, string])[] = [
+      () => [LF.fromBind,             `fromBind     `],
+      () => [LF.updateTargetInstance, `updateTarget `]
     ];
 
     const scopeVariations: (() => [IScope, string])[] = [
@@ -596,8 +596,8 @@ describe('Binding', () => {
           const originalScope = JSON.parse(JSON.stringify(scope));
           // - Arrange - Part 1
           const { sut, lifecycle, container, observerLocator } = setup(expr, target, prop, BindingMode.twoWay);
-          const srcVal = expr.evaluate(LifecycleFlags.none, scope, container);
-          const targetObserver = observerLocator.getObserver(0, target, prop) as IBindingTargetObserver;
+          const srcVal = expr.evaluate(LF.none, scope, container);
+          const targetObserver = observerLocator.getObserver(LF.none, target, prop) as IBindingTargetObserver;
 
           massSpy(targetObserver, 'setValue', 'getValue', 'callSubscribers', 'subscribe');
           massSpy(expr, 'evaluate', 'connect', 'assign');
@@ -642,7 +642,7 @@ describe('Binding', () => {
           expect(expr.connect).to.have.been.calledWithExactly(flags, scope, sut);
 
           expect(targetObserver.setValue).to.have.been.calledOnce;
-          expect(targetObserver.setValue).to.have.been.calledWithExactly(srcVal, flags | LifecycleFlags.updateTargetInstance);
+          expect(targetObserver.setValue).to.have.been.calledWithExactly(srcVal, flags | LF.updateTargetInstance);
 
           expect(targetObserver.subscribe).to.have.been.calledOnce;
           expect(targetObserver.subscribe).to.have.been.calledWithExactly(sut);
@@ -665,7 +665,7 @@ describe('Binding', () => {
 
           expect(lifecycle.flushCount).to.equal(0);
           expect(targetObserver['setValue']).to.have.been.calledOnce;
-          expect(targetObserver['setValue']).to.have.been.calledWithExactly(srcVal, flags | LifecycleFlags.updateTargetInstance);
+          expect(targetObserver['setValue']).to.have.been.calledWithExactly(srcVal, flags | LF.updateTargetInstance);
 
           // verify the behavior of the targetObserver (redundant)
           if (srcVal instanceof Object) {
@@ -676,7 +676,7 @@ describe('Binding', () => {
             expect(targetObserver.currentValue).to.equal(srcVal);
           }
 
-          if (!(flags & LifecycleFlags.fromBind)) {
+          if (!(flags & LF.fromBind)) {
             expect(targetObserver.callSubscribers).to.have.been.calledOnce;
           } else {
             expect(targetObserver.callSubscribers).not.to.have.been.called;
@@ -733,7 +733,7 @@ describe('Binding', () => {
 
           if (observer00) {
             // verify the behavior of the sourceExpression / sourceObserver (redundant)
-            flags = LifecycleFlags.updateTargetInstance;
+            flags = LF.updateTargetInstance;
             if (observer01) {
               expect(observer00.setValue).not.to.have.been.called;
               expect(observer01.setValue).to.have.been.calledOnce;
@@ -808,7 +808,7 @@ describe('Binding', () => {
           massSpy(sut, 'handleChange');
           massSpy(expr, 'evaluate', 'assign');
 
-          flags = LifecycleFlags.updateSourceExpression;
+          flags = LF.updateSourceExpression;
 
           // - Act - Part 3
           targetObserver.setValue(newValue2, flags);
@@ -846,7 +846,7 @@ describe('Binding', () => {
       const { sut } = setup();
       const scope: any = {};
       sut['$scope'] = scope;
-      sut.$unbind(LifecycleFlags.fromUnbind);
+      sut.$unbind(LF.fromUnbind);
       expect(sut['$scope'] === scope).to.equal(true);
     });
 
@@ -859,11 +859,11 @@ describe('Binding', () => {
       const unobserveSpy = spy(sut, 'unobserve');
       const unbindSpy = dummySourceExpression.unbind = spy();
       (dummySourceExpression as any).$kind |= ExpressionKind.HasUnbind;
-      sut.$unbind(LifecycleFlags.fromUnbind);
+      sut.$unbind(LF.fromUnbind);
       expect(sut['$scope']).to.equal(null);
       expect(sut['$state'] & State.isBound).to.equal(0);
       //expect(unobserveSpy).to.have.been.calledWith(true);
-      //expect(unbindSpy).to.have.been.calledWith(LifecycleFlags.fromUnbind, scope, sut);
+      //expect(unbindSpy).to.have.been.calledWith(LF.fromUnbind, scope, sut);
     });
   });
 

@@ -1,4 +1,4 @@
-import { LifecycleFlags } from '@aurelia/runtime';
+import { LifecycleFlags as LF } from '@aurelia/runtime';
 import { expect } from 'chai';
 import { spy } from 'sinon';
 import { SelectValueObserver } from '../../src/index';
@@ -15,9 +15,9 @@ describe('SelectValueObserver', () => {
     const optionElements = options.map(o => `<option value="${o}">${o}</option>`).join('\n');
     const markup = `<select ${multiple ? 'multiple' : ''}>\n${optionElements}\n</select>`;
     const el = ctx.createElementFromMarkup(markup) as HTMLSelectElement;
-    const sut = observerLocator.getObserver(0, el, 'value') as SelectValueObserver;
-    sut.setValue(initialValue, LifecycleFlags.none);
-    lifecycle.processFlushQueue(LifecycleFlags.none);
+    const sut = observerLocator.getObserver(LF.none, el, 'value') as SelectValueObserver;
+    sut.setValue(initialValue, LF.none);
+    lifecycle.processFlushQueue(LF.none);
 
     return { ctx, lifecycle, el, sut, dom };
   }
@@ -32,12 +32,12 @@ describe('SelectValueObserver', () => {
           it(`sets 'value' from "${initial}" to "${next}"`, () => {
             const { lifecycle, el } = createFixture(initial, values);
 
-            lifecycle.processFlushQueue(LifecycleFlags.none);
+            lifecycle.processFlushQueue(LF.none);
             expect(el.value).to.equal(initial);
 
             el.options.item(values.indexOf(next)).selected = true;
 
-            lifecycle.processFlushQueue(LifecycleFlags.none);
+            lifecycle.processFlushQueue(LF.none);
             expect(el.value).to.equal(next);
           });
         }
@@ -238,7 +238,7 @@ describe('SelectValueObserver', () => {
         const { observerLocator } = ctx;
 
         const el = select(...optionFactories.map(create => create(ctx)))(ctx);
-        const sut = observerLocator.getObserver(0, el, 'value') as SelectValueObserver;
+        const sut = observerLocator.getObserver(LF.none, el, 'value') as SelectValueObserver;
         sut.oldValue = sut.currentValue = initialValue;
         return { ctx, el, sut };
       }

@@ -19,8 +19,10 @@ import {
   IScope,
   ITemplate,
   LifecycleFlags,
+  ProxyObserver,
   Repeat,
-  Scope } from '../../../src/index';
+  Scope
+} from '../../../src/index';
 import { RuntimeBehavior } from '../../../src/rendering-engine';
 import { ViewFactory } from '../../../src/templating/view';
 import {
@@ -319,7 +321,12 @@ describe(`Repeat`, () => {
       const renderable: IRenderable<AuNode> = {
         $bindableHead: binding
       } as any;
-      const sut = new Repeat<IObservedArray, AuNode>(location, renderable, itemFactory);
+      let sut: Repeat<IObservedArray, AuNode>;
+      if (useProxies) {
+        sut = new ProxyObserver(new Repeat<IObservedArray, AuNode>(location, renderable, itemFactory)).proxy;
+      } else {
+        sut = new Repeat<IObservedArray, AuNode>(location, renderable, itemFactory);
+      }
       binding.target = sut;
 
       (sut as Writable<Repeat>).$scope = null;

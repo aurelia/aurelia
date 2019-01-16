@@ -20,7 +20,9 @@ import {
   IScope,
   ITemplate,
   LifecycleFlags,
-  Scope } from '../../../src/index';
+  ProxyObserver,
+  Scope
+} from '../../../src/index';
 import { RuntimeBehavior } from '../../../src/rendering-engine';
 import { ViewFactory } from '../../../src/templating/view';
 import {
@@ -213,9 +215,15 @@ describe(`If/Else`, () => {
 
       const ifFactory = new ViewFactory<AuNode>('if-view', ifTemplate, lifecycle);
       const elseFactory = new ViewFactory<AuNode>('else-view', elseTemplate, lifecycle);
-
-      const sut = new If<AuNode>(ifFactory, location, new CompositionCoordinator(lifecycle));
-      const elseSut = new Else<AuNode>(elseFactory);
+      let sut: If<AuNode>;
+      let elseSut: Else<AuNode>;
+      if (useProxies) {
+        sut = new ProxyObserver(new If<AuNode>(ifFactory, location, new CompositionCoordinator(lifecycle))).proxy;
+        elseSut = new ProxyObserver(new Else<AuNode>(elseFactory)).proxy;
+      } else {
+        sut = new If<AuNode>(ifFactory, location, new CompositionCoordinator(lifecycle));
+        elseSut = new Else<AuNode>(elseFactory);
+      }
       elseSut.link(sut);
 
       (sut as Writable<If>).$scope = null;

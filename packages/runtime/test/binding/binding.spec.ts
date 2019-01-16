@@ -698,7 +698,7 @@ describe('Binding', () => {
           } else {
             ensureNotCalled(targetObserver, 'setValue');
             ensureNotCalled(sut, 'handleChange', 'addObserver', 'observeProperty', 'unobserve');
-            ensureNotCalled(expr, 'evaluate', 'connect');
+            ensureNotCalled(expr, 'evaluate');
           }
 
           // - Act - Part 2

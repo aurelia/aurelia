@@ -3,7 +3,7 @@ import { LifecycleFlags } from '@aurelia/runtime';
 import { Router } from '../router';
 import { Viewport } from '../viewport';
 export declare class ViewportCustomElement {
-    static readonly inject: ReadonlyArray<InterfaceSymbol<unknown> | Constructable>;
+    static readonly inject: ReadonlyArray<InterfaceSymbol | Constructable>;
     name: string;
     scope: boolean;
     usedBy: string;

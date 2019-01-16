@@ -47,9 +47,9 @@ export declare type Class<T, C = IIndexable> = C & {
     readonly prototype: T;
     new (...args: unknown[]): T;
 };
-export declare type InterfaceSymbol<T> = (target: Injectable<T>, property: string, index: number) => any;
+export declare type InterfaceSymbol<T = unknown> = (target: Injectable<T>, property: string, index: number) => any;
 export declare type Injectable<T = {}> = Constructable<T> & {
-    inject?: (InterfaceSymbol<unknown> | Constructable)[];
+    inject?: (InterfaceSymbol | Constructable)[];
 };
 export declare type IIndexable<T extends object = object> = T & {
     [key: string]: unknown;

@@ -7,7 +7,7 @@ import { ICustomAttribute, ICustomAttributeResource } from '../custom-attribute'
 export interface If<T extends INode = INode> extends ICustomAttribute<T> {
 }
 export declare class If<T extends INode = INode> implements If<T> {
-    static readonly inject: ReadonlyArray<InterfaceSymbol<unknown> | Constructable>;
+    static readonly inject: ReadonlyArray<InterfaceSymbol | Constructable>;
     static readonly register: IRegistry['register'];
     static readonly bindables: IAttributeDefinition['bindables'];
     static readonly kind: ICustomAttributeResource;
@@ -31,7 +31,7 @@ export declare class If<T extends INode = INode> implements If<T> {
 export interface Else<T extends INode = INode> extends ICustomAttribute<T> {
 }
 export declare class Else<T extends INode = INode> implements Else<T> {
-    static readonly inject: ReadonlyArray<InterfaceSymbol<unknown>>;
+    static readonly inject: ReadonlyArray<InterfaceSymbol>;
     static readonly register: IRegistry['register'];
     static readonly bindables: IAttributeDefinition['bindables'];
     static readonly kind: ICustomAttributeResource;

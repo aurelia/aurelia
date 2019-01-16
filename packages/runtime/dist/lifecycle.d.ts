@@ -519,7 +519,7 @@ export interface ILifecycle extends IBindLifecycle, IAttachLifecycle {
 }
 export declare const ILifecycle: InterfaceSymbol<ILifecycle>;
 export declare class CompositionCoordinator {
-    static readonly inject: ReadonlyArray<InterfaceSymbol<unknown>>;
+    static readonly inject: ReadonlyArray<InterfaceSymbol>;
     readonly $lifecycle: ILifecycle;
     onSwapComplete: () => void;
     private currentView;

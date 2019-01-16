@@ -7,7 +7,7 @@ import { ICustomAttribute, ICustomAttributeResource } from '../custom-attribute'
 export interface Replaceable<T extends INode = INode> extends ICustomAttribute<T> {
 }
 export declare class Replaceable<T extends INode = INode> implements Replaceable<T> {
-    static readonly inject: ReadonlyArray<InterfaceSymbol<unknown>>;
+    static readonly inject: ReadonlyArray<InterfaceSymbol>;
     static readonly register: IRegistry['register'];
     static readonly bindables: IAttributeDefinition['bindables'];
     static readonly kind: ICustomAttributeResource;

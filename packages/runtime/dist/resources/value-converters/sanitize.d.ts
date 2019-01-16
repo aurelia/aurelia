@@ -11,7 +11,7 @@ export declare const ISanitizer: InterfaceSymbol<ISanitizer>;
  * Simple html sanitization converter to preserve whitelisted elements and attributes on a bound property containing html.
  */
 export declare class SanitizeValueConverter {
-    static readonly inject: ReadonlyArray<InterfaceSymbol<unknown>>;
+    static readonly inject: ReadonlyArray<InterfaceSymbol>;
     static register: IRegistry['register'];
     private readonly sanitizer;
     constructor(sanitizer: ISanitizer);

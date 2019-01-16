@@ -6,7 +6,7 @@ export declare type SignalableBinding = Binding & {
     signal: string | string[];
 };
 export declare class SignalBindingBehavior {
-    static readonly inject: ReadonlyArray<InterfaceSymbol<unknown>>;
+    static readonly inject: ReadonlyArray<InterfaceSymbol>;
     static register: IRegistry['register'];
     private readonly signaler;
     constructor(signaler: ISignaler);

@@ -6,7 +6,7 @@ export declare type MaybeSubjectPromise<T> = Subject<T> | Promise<Subject<T>> | 
 export interface Compose<T extends INode = Node> extends ICustomElement<T> {
 }
 export declare class Compose<T extends INode = Node> implements Compose<T> {
-    static readonly inject: ReadonlyArray<InterfaceSymbol<unknown> | Constructable>;
+    static readonly inject: ReadonlyArray<InterfaceSymbol | Constructable>;
     static readonly register: IRegistry['register'];
     static readonly kind: ICustomElementResource<Node>;
     static readonly description: TemplateDefinition;

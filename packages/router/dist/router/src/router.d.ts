@@ -40,7 +40,7 @@ export interface IRouteSeparators {
 }
 export declare class Router {
     container: IContainer;
-    static readonly inject: ReadonlyArray<InterfaceSymbol<unknown>>;
+    static readonly inject: ReadonlyArray<InterfaceSymbol>;
     viewports: Record<string, Viewport>;
     rootScope: Scope;
     scopes: Scope[];

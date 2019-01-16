@@ -11,7 +11,7 @@ export declare type UpdateTriggerableBinding = Binding & {
     targetObserver: UpdateTriggerableObserver;
 };
 export declare class UpdateTriggerBindingBehavior {
-    static readonly inject: ReadonlyArray<InterfaceSymbol<unknown>>;
+    static readonly inject: ReadonlyArray<InterfaceSymbol>;
     static register: IRegistry['register'];
     private readonly observerLocator;
     constructor(observerLocator: IObserverLocator);

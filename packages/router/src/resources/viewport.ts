@@ -4,7 +4,7 @@ import { Router } from '../router';
 import { IViewportOptions, Viewport } from '../viewport';
 
 export class ViewportCustomElement {
-  public static readonly inject: ReadonlyArray<InterfaceSymbol<unknown>|Constructable> = [Router, INode];
+  public static readonly inject: ReadonlyArray<InterfaceSymbol|Constructable> = [Router, INode];
 
   @bindable public name: string;
   @bindable public scope: boolean;

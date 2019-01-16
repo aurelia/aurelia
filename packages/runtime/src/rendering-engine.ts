@@ -163,7 +163,7 @@ export const IRenderingEngine = DI.createInterface<IRenderingEngine>('IRendering
 
 /** @internal */
 export class RenderingEngine implements IRenderingEngine {
-  public static readonly inject: ReadonlyArray<InterfaceSymbol<unknown>> = [IContainer, ITemplateFactory, ILifecycle, all(ITemplateCompiler)];
+  public static readonly inject: ReadonlyArray<InterfaceSymbol> = [IContainer, ITemplateFactory, ILifecycle, all(ITemplateCompiler)];
 
   private readonly behaviorLookup: Map<ICustomElementType | ICustomAttributeType, RuntimeBehavior>;
   private readonly compilers: Record<string, ITemplateCompiler>;

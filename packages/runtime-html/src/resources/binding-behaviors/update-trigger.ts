@@ -18,7 +18,7 @@ export type UpdateTriggerableBinding = Binding & {
 };
 
 export class UpdateTriggerBindingBehavior {
-  public static readonly inject: ReadonlyArray<InterfaceSymbol<unknown>> = [IObserverLocator];
+  public static readonly inject: ReadonlyArray<InterfaceSymbol> = [IObserverLocator];
 
   public static register: IRegistry['register'];
 

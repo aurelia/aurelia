@@ -9,7 +9,7 @@ export type SignalableBinding = Binding & {
 };
 
 export class SignalBindingBehavior {
-  public static readonly inject: ReadonlyArray<InterfaceSymbol<unknown>> = [ISignaler];
+  public static readonly inject: ReadonlyArray<InterfaceSymbol> = [ISignaler];
 
   public static register: IRegistry['register'];
 

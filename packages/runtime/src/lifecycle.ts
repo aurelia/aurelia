@@ -1297,7 +1297,7 @@ export class Lifecycle implements ILifecycle {
 }
 
 export class CompositionCoordinator {
-  public static readonly inject: ReadonlyArray<InterfaceSymbol<unknown>> = [ILifecycle];
+  public static readonly inject: ReadonlyArray<InterfaceSymbol> = [ILifecycle];
 
   public readonly $lifecycle: ILifecycle;
 

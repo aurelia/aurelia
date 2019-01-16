@@ -8,7 +8,7 @@ import { CustomAttributeResource, ICustomAttribute, ICustomAttributeResource } f
 
 export interface If<T extends INode = INode> extends ICustomAttribute<T> {}
 export class If<T extends INode = INode> implements If<T> {
-  public static readonly inject: ReadonlyArray<InterfaceSymbol<unknown>|Constructable> = [IViewFactory, IRenderLocation, CompositionCoordinator];
+  public static readonly inject: ReadonlyArray<InterfaceSymbol|Constructable> = [IViewFactory, IRenderLocation, CompositionCoordinator];
 
   public static readonly register: IRegistry['register'];
   public static readonly bindables: IAttributeDefinition['bindables'];
@@ -113,7 +113,7 @@ CustomAttributeResource.define({ name: 'if', isTemplateController: true }, If);
 
 export interface Else<T extends INode = INode> extends ICustomAttribute<T> {}
 export class Else<T extends INode = INode> implements Else<T> {
-  public static readonly inject: ReadonlyArray<InterfaceSymbol<unknown>> = [IViewFactory];
+  public static readonly inject: ReadonlyArray<InterfaceSymbol> = [IViewFactory];
 
   public static readonly register: IRegistry['register'];
   public static readonly bindables: IAttributeDefinition['bindables'];

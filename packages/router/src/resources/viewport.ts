@@ -99,27 +99,7 @@ export class ViewportCustomElement {
     const templateFactory = parentContext.get(ITemplateFactory);
     const renderContext = createRenderContext(dom, parentContext, null, null);
 
-    const definition: TemplateDefinition = {
-      name: 'au-viewport',
-      template: dom.createTemplate('<div class="viewport-header"> Viewport: <b><au-m class="au"></au-m> </b> </div>'),
-      cache: 0,
-      build: { required: false },
-      bindables: {
-        name: { property: 'name', attribute: 'name' },
-        scope: { property: 'scope', attribute: 'scope' },
-        usedBy: { property: 'usedBy', attribute: 'used-by' },
-        default: { property: 'default', attribute: 'default' },
-        noLink: { property: 'noLink', attribute: 'no-link' },
-        noHistory: { property: 'noHistory', attribute: 'no-history' }
-      },
-      instructions: [[{ type: 'ha', from: new Interpolation(['', ''], [new AccessScope('name')]) } as unknown as ITargetedInstruction]],
-      dependencies: PLATFORM.emptyArray,
-      surrogates: PLATFORM.emptyArray,
-      containerless: false,
-      shadowOptions: null,
-      hasSlots: false
-    };
-    const template = templateFactory.create(renderContext, definition);
+    const template = templateFactory.create(renderContext, ViewportCustomElement.description);
     template.render(this, host, PLATFORM.emptyObject);
 
     this.created();

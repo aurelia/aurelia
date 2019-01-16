@@ -104,7 +104,7 @@ export class Scope {
       let newScope = false;
       if (name.endsWith(this.router.separators.ownsScope)) {
         newScope = true;
-        name = name.substr(0, name.length - 1);
+        name = name.substring(0, name.length - 1);
       }
       if (!this.viewports[name]) {
         this.addViewport(name, null, { scope: newScope, forceDescription: true });
@@ -194,7 +194,7 @@ export class Scope {
   //   let newScope = false;
   //   if (name.endsWith(this.router.separators.ownsScope)) {
   //     newScope = true;
-  //     name = name.substr(0, name.length - 1);
+  //     name = name.substring(0, name.length - 1);
   //   }
   //   const viewport = this.resolveViewport(name, comp) || this.addViewport(name, null, { scope: newScope });
   //   if (!parts.length) {

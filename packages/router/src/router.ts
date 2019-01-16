@@ -118,7 +118,7 @@ export class Router {
   public linkCallback = (info: AnchorEventInfo): void => {
     let href = info.href;
     if (href.startsWith('#')) {
-      href = href.substr(1);
+      href = href.substring(1);
     }
     if (!href.startsWith('/')) {
       const scope = this.closestScope(info.anchor);
@@ -177,7 +177,7 @@ export class Router {
     if (path === this.separators.clear || path.startsWith(this.separators.clear + this.separators.add)) {
       clearViewports = true;
       if (path.startsWith(this.separators.clear)) {
-        path = path.substr(1);
+        path = path.substring(1);
       }
     }
 
@@ -360,7 +360,7 @@ export class Router {
     const views: Record<string, string> = {};
     // TODO: Let this govern start of scope
     if (path.startsWith('/')) {
-      path = path.substr(1);
+      path = path.substring(1);
     }
     const sections: string[] = path.split(this.separators.sibling);
 

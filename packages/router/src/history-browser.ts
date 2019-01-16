@@ -331,7 +331,7 @@ export class HistoryBrowser {
   }
 
   private getPath(): string {
-    const hash = this.location.hash.substr(1);
+    const hash = this.location.hash.substring(1);
     return hash.split('?')[0];
   }
   private setPath(path: string, replace: boolean = false): void {
@@ -354,7 +354,7 @@ export class HistoryBrowser {
   }
 
   private getSearch(): string {
-    const hash = this.location.hash.substr(1);
+    const hash = this.location.hash.substring(1);
     const hashSearches = hash.split('?');
     hashSearches.shift();
     return hashSearches.length > 0 ? hashSearches.shift() : '';

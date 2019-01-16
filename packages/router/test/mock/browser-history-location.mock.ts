@@ -41,7 +41,7 @@ export class MockBrowserHistoryLocation {
   }
   set hash(value: string) {
     if (value.startsWith('#')) {
-      value = value.substr(1);
+      value = value.substring(1);
     }
     const parts = this.parts;
     // const hashFirst = parts.shift();

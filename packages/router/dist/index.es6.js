@@ -258,7 +258,7 @@ class HistoryBrowser {
         return (this.historyEntries ? this.historyEntries.slice(0, this.currentEntry.index + 1).map((value) => value.title) : []);
     }
     getPath() {
-        const hash = this.location.hash.substr(1);
+        const hash = this.location.hash.substring(1);
         return hash.split('?')[0];
     }
     setPath(path, replace = false) {
@@ -280,7 +280,7 @@ class HistoryBrowser {
         this.pathChanged();
     }
     getSearch() {
-        const hash = this.location.hash.substr(1);
+        const hash = this.location.hash.substring(1);
         const hashSearches = hash.split('?');
         hashSearches.shift();
         return hashSearches.length > 0 ? hashSearches.shift() : '';
@@ -863,7 +863,7 @@ class Scope {
             let newScope = false;
             if (name.endsWith(this.router.separators.ownsScope)) {
                 newScope = true;
-                name = name.substr(0, name.length - 1);
+                name = name.substring(0, name.length - 1);
             }
             if (!this.viewports[name]) {
                 this.addViewport(name, null, { scope: newScope, forceDescription: true });
@@ -946,7 +946,7 @@ class Scope {
     //   let newScope = false;
     //   if (name.endsWith(this.router.separators.ownsScope)) {
     //     newScope = true;
-    //     name = name.substr(0, name.length - 1);
+    //     name = name.substring(0, name.length - 1);
     //   }
     //   const viewport = this.resolveViewport(name, comp) || this.addViewport(name, null, { scope: newScope });
     //   if (!parts.length) {
@@ -1098,7 +1098,7 @@ class Router {
         this.linkCallback = (info) => {
             let href = info.href;
             if (href.startsWith('#')) {
-                href = href.substr(1);
+                href = href.substring(1);
             }
             if (!href.startsWith('/')) {
                 const scope = this.closestScope(info.anchor);
@@ -1183,7 +1183,7 @@ class Router {
         if (path === this.separators.clear || path.startsWith(this.separators.clear + this.separators.add)) {
             clearViewports = true;
             if (path.startsWith(this.separators.clear)) {
-                path = path.substr(1);
+                path = path.substring(1);
             }
         }
         const parsedQuery = parseQuery(instruction.query);
@@ -1340,7 +1340,7 @@ class Router {
         const views = {};
         // TODO: Let this govern start of scope
         if (path.startsWith('/')) {
-            path = path.substr(1);
+            path = path.substring(1);
         }
         const sections = path.split(this.separators.sibling);
         // TODO: Remove this once multi level recursiveness is fixed

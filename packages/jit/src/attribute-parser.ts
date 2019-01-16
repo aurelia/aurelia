@@ -12,7 +12,7 @@ const { enter, leave } = Profiler.createTimer('AttributeParser');
 
 /** @internal */
 export class AttributeParser implements IAttributeParser {
-  public static readonly inject: ReadonlyArray<InterfaceSymbol<unknown>> = [ISyntaxInterpreter, all(IAttributePattern)];
+  public static readonly inject: ReadonlyArray<InterfaceSymbol> = [ISyntaxInterpreter, all(IAttributePattern)];
 
   private readonly interpreter: ISyntaxInterpreter;
   private readonly cache: Record<string, Interpretation>;

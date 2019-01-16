@@ -86,7 +86,7 @@ export function instructionRenderer<TType extends string>(instructionType: TType
 
 /* @internal */
 export class Renderer implements IRenderer {
-  public static readonly inject: ReadonlyArray<InterfaceSymbol<unknown>> = [all(IInstructionRenderer)];
+  public static readonly inject: ReadonlyArray<InterfaceSymbol> = [all(IInstructionRenderer)];
 
   public instructionRenderers: Record<InstructionTypeName, IInstructionRenderer>;
 
@@ -183,7 +183,7 @@ export class SetPropertyRenderer implements IInstructionRenderer {
 @instructionRenderer(TargetedInstructionType.hydrateElement)
 /** @internal */
 export class CustomElementRenderer implements IInstructionRenderer {
-  public static readonly inject: ReadonlyArray<InterfaceSymbol<unknown>> = [IRenderingEngine];
+  public static readonly inject: ReadonlyArray<InterfaceSymbol> = [IRenderingEngine];
   public static readonly register: IRegistry['register'];
 
   private readonly renderingEngine: IRenderingEngine;
@@ -218,7 +218,7 @@ export class CustomElementRenderer implements IInstructionRenderer {
 @instructionRenderer(TargetedInstructionType.hydrateAttribute)
 /** @internal */
 export class CustomAttributeRenderer implements IInstructionRenderer {
-  public static readonly inject: ReadonlyArray<InterfaceSymbol<unknown>> = [IRenderingEngine];
+  public static readonly inject: ReadonlyArray<InterfaceSymbol> = [IRenderingEngine];
   public static readonly register: IRegistry['register'];
 
   private readonly renderingEngine: IRenderingEngine;
@@ -252,7 +252,7 @@ export class CustomAttributeRenderer implements IInstructionRenderer {
 @instructionRenderer(TargetedInstructionType.hydrateTemplateController)
 /** @internal */
 export class TemplateControllerRenderer implements IInstructionRenderer {
-  public static readonly inject: ReadonlyArray<InterfaceSymbol<unknown>> = [IRenderingEngine];
+  public static readonly inject: ReadonlyArray<InterfaceSymbol> = [IRenderingEngine];
   public static readonly register: IRegistry['register'];
 
   private readonly renderingEngine: IRenderingEngine;
@@ -291,7 +291,7 @@ export class TemplateControllerRenderer implements IInstructionRenderer {
 @instructionRenderer(TargetedInstructionType.hydrateLetElement)
 /** @internal */
 export class LetElementRenderer implements IInstructionRenderer {
-  public static readonly inject: ReadonlyArray<InterfaceSymbol<unknown>> = [IExpressionParser, IObserverLocator];
+  public static readonly inject: ReadonlyArray<InterfaceSymbol> = [IExpressionParser, IObserverLocator];
   public static readonly register: IRegistry['register'];
 
   private readonly parser: IExpressionParser;
@@ -320,7 +320,7 @@ export class LetElementRenderer implements IInstructionRenderer {
 @instructionRenderer(TargetedInstructionType.callBinding)
 /** @internal */
 export class CallBindingRenderer implements IInstructionRenderer {
-  public static readonly inject: ReadonlyArray<InterfaceSymbol<unknown>> = [IExpressionParser, IObserverLocator];
+  public static readonly inject: ReadonlyArray<InterfaceSymbol> = [IExpressionParser, IObserverLocator];
   public static readonly register: IRegistry['register'];
 
   private readonly parser: IExpressionParser;
@@ -343,7 +343,7 @@ export class CallBindingRenderer implements IInstructionRenderer {
 @instructionRenderer(TargetedInstructionType.refBinding)
 /** @internal */
 export class RefBindingRenderer implements IInstructionRenderer {
-  public static readonly inject: ReadonlyArray<InterfaceSymbol<unknown>> = [IExpressionParser];
+  public static readonly inject: ReadonlyArray<InterfaceSymbol> = [IExpressionParser];
   public static readonly register: IRegistry['register'];
 
   private readonly parser: IExpressionParser;
@@ -364,7 +364,7 @@ export class RefBindingRenderer implements IInstructionRenderer {
 @instructionRenderer(TargetedInstructionType.interpolation)
 /** @internal */
 export class InterpolationBindingRenderer implements IInstructionRenderer {
-  public static readonly inject: ReadonlyArray<InterfaceSymbol<unknown>> = [IExpressionParser, IObserverLocator];
+  public static readonly inject: ReadonlyArray<InterfaceSymbol> = [IExpressionParser, IObserverLocator];
   public static readonly register: IRegistry['register'];
 
   private readonly parser: IExpressionParser;
@@ -392,7 +392,7 @@ export class InterpolationBindingRenderer implements IInstructionRenderer {
 @instructionRenderer(TargetedInstructionType.propertyBinding)
 /** @internal */
 export class PropertyBindingRenderer implements IInstructionRenderer {
-  public static readonly inject: ReadonlyArray<InterfaceSymbol<unknown>> = [IExpressionParser, IObserverLocator];
+  public static readonly inject: ReadonlyArray<InterfaceSymbol> = [IExpressionParser, IObserverLocator];
   public static readonly register: IRegistry['register'];
 
   private readonly parser: IExpressionParser;
@@ -415,7 +415,7 @@ export class PropertyBindingRenderer implements IInstructionRenderer {
 @instructionRenderer(TargetedInstructionType.iteratorBinding)
 /** @internal */
 export class IteratorBindingRenderer implements IInstructionRenderer {
-  public static readonly inject: ReadonlyArray<InterfaceSymbol<unknown>> = [IExpressionParser, IObserverLocator];
+  public static readonly inject: ReadonlyArray<InterfaceSymbol> = [IExpressionParser, IObserverLocator];
   public static readonly register: IRegistry['register'];
 
   private readonly parser: IExpressionParser;

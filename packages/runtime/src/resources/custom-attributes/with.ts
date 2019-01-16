@@ -9,7 +9,7 @@ import { CustomAttributeResource, ICustomAttribute, ICustomAttributeResource } f
 
 export interface With<T extends INode = INode> extends ICustomAttribute<T> {}
 export class With<T extends INode = INode> implements With<T>  {
-  public static readonly inject: ReadonlyArray<InterfaceSymbol<unknown>> = [IViewFactory, IRenderLocation];
+  public static readonly inject: ReadonlyArray<InterfaceSymbol> = [IViewFactory, IRenderLocation];
 
   public static readonly register: IRegistry['register'];
   public static readonly bindables: IAttributeDefinition['bindables'];

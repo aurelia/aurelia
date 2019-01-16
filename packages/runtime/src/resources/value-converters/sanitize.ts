@@ -22,7 +22,7 @@ export const ISanitizer = DI.createInterface<ISanitizer>('ISanitizer').withDefau
  * Simple html sanitization converter to preserve whitelisted elements and attributes on a bound property containing html.
  */
 export class SanitizeValueConverter {
-  public static readonly inject: ReadonlyArray<InterfaceSymbol<unknown>> = [ISanitizer];
+  public static readonly inject: ReadonlyArray<InterfaceSymbol> = [ISanitizer];
 
   public static register: IRegistry['register'];
 

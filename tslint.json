@@ -250,7 +250,10 @@
   /**
     * Controversial/Configurable rules.
     */
-    "ban": false,                // only enable this if you have some code pattern that you want to ban
+    "ban": [
+      true,
+      {"name": ["*", "substr"], "message": "'substr' is considered a legacy function and should be avoided when possible. Use 'substring' instead."}
+    ],
     "ban-types": {
       "options": [
         ["Object", "Avoid using the `Object` type. Prefer a specific lookup type, like `Record<string, unknown>`, or use `object` (lowercase) when referring simply to non-primitives."],

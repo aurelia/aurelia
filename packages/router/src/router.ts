@@ -303,7 +303,7 @@ export class Router {
     }
   }
 
-  // public view(views: Object, title?: string, data?: Object): Promise<void> {
+  // public view(views: string | Record<string, Viewport>, title?: string, data?: Record<string, unknown>): Promise<void> {
   //   console.log('Router.view:', views, title, data);
 
   // tslint:disable-next-line:no-commented-code

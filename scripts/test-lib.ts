@@ -1,5 +1,6 @@
 import { expect } from 'chai';
 import { SinonStub, spy } from 'sinon';
+// tslint:disable-next-line:no-duplicate-imports
 import * as sinon from 'sinon';
 
 const toStringTag = Object.prototype.toString;
@@ -174,7 +175,7 @@ export function jsonStringify(o: any): string {
   }
 }
 
-export function htmlStringify(node: Object & { nodeName?: string; content?: any; innerHTML?: string; textContent?: string; childNodes?: ArrayLike<Object>; nodeType?: number }): string {
+export function htmlStringify(node: object & { nodeName?: string; content?: any; innerHTML?: string; textContent?: string; childNodes?: ArrayLike<object>; nodeType?: number }): string {
   if (node === null) {
     return 'null';
   }
@@ -289,10 +290,10 @@ export function lazyProduct(sets: any[][], f: (...args: any[]) => void, context?
 }
 
 const returnTrue = () => true;
-const filterCache = new Map<string, Map<Object, PropertyDescriptorMap>>();
+const filterCache = new Map<string, Map<object, PropertyDescriptorMap>>();
 
-export function getAllPropertyDescriptors(proto: Object, filter: (pd: PropertyDescriptor) => boolean = returnTrue): PropertyDescriptorMap {
-  let pdCache = new Map<Object, PropertyDescriptorMap>();
+export function getAllPropertyDescriptors(proto: object, filter: (pd: PropertyDescriptor) => boolean = returnTrue): PropertyDescriptorMap {
+  let pdCache = new Map<object, PropertyDescriptorMap>();
 
   if (filter === returnTrue) {
     let pdMap = pdCache.get(proto);
@@ -321,7 +322,7 @@ export function getAllPropertyDescriptors(proto: Object, filter: (pd: PropertyDe
   }
 }
 
-function $getAllPropertyDescriptors(proto: Object, filter: (pd: PropertyDescriptor) => boolean = returnTrue): PropertyDescriptorMap {
+function $getAllPropertyDescriptors(proto: object, filter: (pd: PropertyDescriptor) => boolean = returnTrue): PropertyDescriptorMap {
   const allDescriptors: PropertyDescriptorMap = {};
   while (proto !== Object.prototype) {
     const descriptors = Object.getOwnPropertyDescriptors(proto);

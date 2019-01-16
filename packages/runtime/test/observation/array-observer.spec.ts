@@ -514,7 +514,7 @@ function getNumberFactory(arraySize: number) {
   };
 }
 
-function getValueFactory(getNumber: Function, type: string, types: string[]): Function {
+function getValueFactory(getNumber: (i: number) => unknown, type: string, types: string[]): (i: number) => unknown {
   switch (type) {
     case 'undefined':
       return () => undefined;
@@ -523,7 +523,7 @@ function getValueFactory(getNumber: Function, type: string, types: string[]): Fu
     case 'boolean':
       return (i) => i % 2 === 0;
     case 'string':
-      return (i) => getNumber(i).toString();
+      return (i) => (getNumber(i) as object).toString();
     case 'number':
       return getNumber;
     case 'object':
@@ -541,7 +541,7 @@ function getValueFactory(getNumber: Function, type: string, types: string[]): Fu
   }
 }
 
-function synchronize(oldArr: Object[], indexMap: number[], newArr: Object[]): void {
+function synchronize(oldArr: unknown[], indexMap: number[], newArr: unknown[]): void {
   if (newArr.length === 0 && oldArr.length === 0) {
     return;
   }

@@ -7,7 +7,7 @@ describe('SelfBindingBehavior', () => {
   const container: IContainer = DI.createContainer();
   let sut: SelfBindingBehavior;
   let binding: Binding;
-  let originalCallSource: Function;
+  let originalCallSource: () => void;
 
   beforeEach(() => {
     sut = new SelfBindingBehavior();

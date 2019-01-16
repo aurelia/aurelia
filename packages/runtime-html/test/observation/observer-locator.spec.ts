@@ -3,10 +3,10 @@ import {
   CollectionLengthObserver,
   CustomSetterObserver,
   DirtyCheckProperty,
+  LifecycleFlags as LF,
   PrimitiveObserver,
   PropertyAccessor,
-  SetterObserver,
-  LifecycleFlags as LF
+  SetterObserver
 } from '@aurelia/runtime';
 import { expect } from 'chai';
 import { spy } from 'sinon';
@@ -45,7 +45,7 @@ describe('ObserverLocator', () => {
     const attr = el.attributes[0];
     const expected = sut.getObserver(LF.none, el, attr.name);
     it(_`getAccessor() - ${markup} - returns ${expected.constructor.name}`, () => {
-      const actual = sut.getAccessor(0, el, attr.name);
+      const actual = sut.getAccessor(LF.none, el, attr.name);
       expect(actual).to.be.instanceof(expected['constructor']);
     });
   }
@@ -69,7 +69,7 @@ describe('ObserverLocator', () => {
   //     const el = ctx.createElement(markup) as Element;
   //     const attr = el.attributes[0];
   //     const { sut } = setup();
-  //     const actual = sut.getAccessor(0, el, attr.name);
+  //     const actual = sut.getAccessor(LF.none, el, attr.name);
   //     expect(actual.constructor.name).to.equal(DataAttributeAccessor.name);
   //     expect(actual).to.be.instanceof(DataAttributeAccessor);
   //   });
@@ -86,7 +86,7 @@ describe('ObserverLocator', () => {
       const { ctx, sut } = setup();
       const el = ctx.createElementFromMarkup(markup);
       const attr = el.attributes[0];
-      const actual = sut.getAccessor(0, el, attr.name);
+      const actual = sut.getAccessor(LF.none, el, attr.name);
       expect(actual.constructor.name).to.equal(DataAttributeAccessor.name);
       expect(actual).to.be.instanceof(DataAttributeAccessor);
     });
@@ -103,7 +103,7 @@ describe('ObserverLocator', () => {
       const { ctx, sut } = setup();
       const el = ctx.createElementFromMarkup(markup);
       const attr = el.attributes[0];
-      const actual = sut.getAccessor(0, el, attr.name);
+      const actual = sut.getAccessor(LF.none, el, attr.name);
       expect(actual.constructor.name).to.equal(ElementPropertyAccessor.name);
       expect(actual).to.be.instanceof(ElementPropertyAccessor);
     });
@@ -127,7 +127,7 @@ describe('ObserverLocator', () => {
       const { ctx, sut } = setup();
       const el = ctx.createElementFromMarkup(markup);
       const attr = el.attributes[0];
-      const actual = sut.getAccessor(0, el, attr.name);
+      const actual = sut.getAccessor(LF.none, el, attr.name);
       expect(actual.constructor.name).to.equal(ElementPropertyAccessor.name);
       expect(actual).to.be.instanceof(ElementPropertyAccessor);
     });
@@ -136,7 +136,7 @@ describe('ObserverLocator', () => {
   it(_`getAccessor() - {} - returns PropertyAccessor`, () => {
     const { sut } = setup();
     const obj = {};
-    const actual = sut.getAccessor(0, obj, 'foo');
+    const actual = sut.getAccessor(LF.none, obj, 'foo');
     expect(actual.constructor.name).to.equal(PropertyAccessor.name);
     expect(actual).to.be.instanceof(PropertyAccessor);
   });
@@ -282,9 +282,13 @@ describe('ObserverLocator', () => {
     for (const hasAdapterObserver of [true, false]) {
       for (const adapterIsDefined of hasAdapterObserver ? [true, false] : [false]) {
         const descriptors = {
+          //@ts-ignore
           ...Object.getOwnPropertyDescriptors(TestContext.Node.prototype),
+          //@ts-ignore
           ...Object.getOwnPropertyDescriptors(TestContext.Element.prototype),
+          //@ts-ignore
           ...Object.getOwnPropertyDescriptors(TestContext.HTMLElement.prototype),
+          //@ts-ignore
           ...Object.getOwnPropertyDescriptors(TestContext.HTMLDivElement.prototype)
         };
         for (const property of Object.keys(descriptors)) {

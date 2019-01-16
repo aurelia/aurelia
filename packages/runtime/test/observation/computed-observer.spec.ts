@@ -9,7 +9,7 @@ import {
   IObserverLocator,
   ITargetAccessorLocator,
   ITargetObserverLocator,
-  LifecycleFlags
+  LifecycleFlags as LF
 } from '../../src/index';
 import { ComputedOverrides, createComputedObserver } from '../../src/observation/computed-observer';
 import { BindingTraceWriter, disableTracing, enableTracing } from '../util';
@@ -115,15 +115,15 @@ describe('ComputedObserver', function() {
       Reflect.defineProperty(instance, 'prop', propDescriptor);
       Reflect.defineProperty(instance, 'dep', depDescriptor);
 
-      const expectedFlags = LifecycleFlags.updateTargetInstance;
+      const expectedFlags = LF.updateTargetInstance;
 
       let callCount1 = 0;
       let evaluated1: unknown;
       let newValue1: unknown;
       let oldValue1: unknown;
-      let flags1: LifecycleFlags;
+      let flags1: LF;
       const subscriber1 = {
-        handleChange($newValue: unknown, $oldValue: unknown, $flags: LifecycleFlags) {
+        handleChange($newValue: unknown, $oldValue: unknown, $flags: LF) {
           evaluated1 = instance.prop;
           newValue1 = $newValue;
           oldValue1 = $oldValue;
@@ -135,9 +135,9 @@ describe('ComputedObserver', function() {
       let evaluated2: unknown;
       let newValue2: unknown;
       let oldValue2: unknown;
-      let flags2: LifecycleFlags;
+      let flags2: LF;
       const subscriber2 = {
-        handleChange($newValue: unknown, $oldValue: unknown, $flags: LifecycleFlags) {
+        handleChange($newValue: unknown, $oldValue: unknown, $flags: LF) {
           evaluated2 = instance.prop;
           newValue2 = $newValue;
           oldValue2 = $oldValue;
@@ -169,7 +169,7 @@ describe('ComputedObserver', function() {
       if (propInitialValue) {
         enableTracing();
       }
-      const sut = createComputedObserver(0, locator, dirtyChecker, lifecycle, instance, 'prop', propDescriptor);
+      const sut = createComputedObserver(LF.none, locator, dirtyChecker, lifecycle, instance, 'prop', propDescriptor);
       sut.subscribe(subscriber1);
       sut.subscribe(subscriber2);
 
@@ -352,7 +352,7 @@ describe('ComputedObserver', function() {
       let newValue1: unknown;
       let oldValue1: unknown;
       const subscriber1 = {
-        handleChange($newValue: unknown, $oldValue: unknown, $flags: LifecycleFlags) {
+        handleChange($newValue: unknown, $oldValue: unknown, $flags: LF) {
           evaluated1 = parent['getter'];
           newValue1 = $newValue;
           oldValue1 = $oldValue;
@@ -362,7 +362,7 @@ describe('ComputedObserver', function() {
       enableTracing();
       Tracer.enableLiveLogging(BindingTraceWriter);
 
-      const sut = createComputedObserver(0, locator, dirtyChecker, lifecycle, parent, 'getter', pd);
+      const sut = createComputedObserver(LF.none, locator, dirtyChecker, lifecycle, parent, 'getter', pd);
       sut.subscribe(subscriber1);
 
       let verifiedCount = 0;
@@ -442,7 +442,7 @@ describe('ComputedObserver', function() {
 
     const foo = new Foo();
 
-    const sut = createComputedObserver(0, locator, dirtyChecker, lifecycle, foo, 'bar', pd);
+    const sut = createComputedObserver(LF.none, locator, dirtyChecker, lifecycle, foo, 'bar', pd);
 
     expect(sut).to.be.instanceof(DirtyCheckProperty);
   });
@@ -460,7 +460,7 @@ describe('ComputedObserver', function() {
     const foo = new Foo();
     let err: Error;
     try {
-      createComputedObserver(0, locator, dirtyChecker, lifecycle, foo, 'bar', pd);
+      createComputedObserver(LF.none, locator, dirtyChecker, lifecycle, foo, 'bar', pd);
     } catch (e) {
       err = e;
     }

@@ -120,7 +120,7 @@ describe('Binding', () => {
     const lifecycle = container.get(ILifecycle) as Lifecycle;
     const target = {val: 0};
     const sut = new Binding(expr as any, target, 'val', BindingMode.toView, observerLocator, container);
-    const scope = Scope.create(0, ctx, null);
+    const scope = Scope.create(LF.none, ctx, null);
 
     sut.$bind(LF.fromBind, scope);
     lifecycle.processConnectQueue(LF.none);
@@ -137,7 +137,7 @@ describe('Binding', () => {
     for (let i = 0; i < count; ++i) {
       ctx2[args[i]] = 3;
     }
-    const scope2 = Scope.create(0, ctx2, null);
+    const scope2 = Scope.create(LF.none, ctx2, null);
 
     sut.$bind(LF.fromBind, scope2);
 
@@ -185,9 +185,9 @@ describe('Binding', () => {
           // - Arrange -
           const { sut, lifecycle, container, observerLocator } = setup(expr, target, prop, BindingMode.oneTime);
           const srcVal = expr.evaluate(LF.none, scope, container);
-          const targetObserver = observerLocator.getAccessor(0, target, prop);
+          const targetObserver = observerLocator.getAccessor(LF.none, target, prop);
           const $stub = stub(observerLocator, 'getAccessor').returns(targetObserver);
-          $stub.withArgs(0, target, prop);
+          $stub.withArgs(LF.none, target, prop);
 
           massSpy(targetObserver, 'setValue', 'getValue');
           massSpy(expr, 'evaluate');
@@ -259,10 +259,10 @@ describe('Binding', () => {
           // - Arrange - Part 1
           const { sut, lifecycle, container, observerLocator } = setup(expr, target, prop, BindingMode.toView);
           const srcVal = expr.evaluate(LF.none, scope, container);
-          const targetObserver = observerLocator.getAccessor(0, target, prop);
+          const targetObserver = observerLocator.getAccessor(LF.none, target, prop);
 
           const $stub = stub(observerLocator, 'getAccessor').returns(targetObserver);
-          $stub.withArgs(0, target, prop);
+          $stub.withArgs(LF.none, target, prop);
 
           massSpy(targetObserver, 'setValue', 'getValue');
           massSpy(expr, 'evaluate', 'connect');

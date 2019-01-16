@@ -8,7 +8,8 @@ import {
   IRenderable,
   IRenderContext,
   IRenderer,
-  IRenderingEngine
+  IRenderingEngine,
+  LifecycleFlags as LF
 } from '@aurelia/runtime';
 import { expect } from 'chai';
 import { spy } from 'sinon';
@@ -70,7 +71,7 @@ describe('Renderer', () => {
       it(_`instruction=${instruction}`, () => {
         const { ctx, sut, dom, renderable, target, placeholder, wrapper, renderContext } = setup();
 
-        sut.instructionRenderers[instruction.type].render(0, dom, renderContext, renderable, target, instruction);
+        sut.instructionRenderers[instruction.type].render(LF.none, dom, renderContext, renderable, target, instruction);
 
         expect(renderable.$bindableHead).to.be.a('object', 'renderable.$bindableHead');
         expect(renderable.$bindableHead).to.equal(renderable.$bindableTail);
@@ -95,7 +96,7 @@ describe('Renderer', () => {
           it(_`instruction=${instruction}`, () => {
             const { ctx, sut, dom, renderable, target, wrapper, renderContext } = setup();
 
-            sut.instructionRenderers[instruction.type].render(0, dom, renderContext, renderable, target, instruction);
+            sut.instructionRenderers[instruction.type].render(LF.none, dom, renderContext, renderable, target, instruction);
 
             expect(renderable.$bindableHead).to.be.a('object', 'renderable.$bindableHead');
             expect(renderable.$bindableHead).to.equal(renderable.$bindableTail);
@@ -120,7 +121,7 @@ describe('Renderer', () => {
         it(_`instruction=${instruction}`, () => {
           const { ctx, sut, dom, renderable, target, wrapper, renderContext } = setup();
 
-          sut.instructionRenderers[instruction.type].render(0, dom, renderContext, renderable, target, instruction);
+          sut.instructionRenderers[instruction.type].render(LF.none, dom, renderContext, renderable, target, instruction);
 
           expect(renderable.$bindableHead).to.be.a('object', 'renderable.$bindableHead');
           expect(renderable.$bindableHead).to.equal(renderable.$bindableTail);
@@ -143,7 +144,7 @@ describe('Renderer', () => {
         it(_`instruction=${instruction}`, () => {
           const { ctx, sut, dom, renderable, target, wrapper, renderContext } = setup();
 
-          sut.instructionRenderers[instruction.type].render(0, dom, renderContext, renderable, target, instruction);
+          sut.instructionRenderers[instruction.type].render(LF.none, dom, renderContext, renderable, target, instruction);
 
           expect(renderable.$bindableHead).to.equal(null, 'renderable.$bindableHead');
           expect(target.getAttribute(to)).to.equal(`${value}`);

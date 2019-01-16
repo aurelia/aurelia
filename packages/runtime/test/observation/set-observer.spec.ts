@@ -4,7 +4,7 @@ import {
   disableSetObservation,
   enableSetObservation,
   IndexMap,
-  LifecycleFlags,
+  LifecycleFlags as LF,
   SetObserver
 } from '../../src/index';
 import { Lifecycle } from '../../src/lifecycle';
@@ -50,7 +50,7 @@ describe(`SetObserver`, () => {
     it('add', () => {
       const s = new SpySubscriber();
       const set = new Set();
-      sut = new SetObserver(0, new Lifecycle(), set);
+      sut = new SetObserver(LF.none, new Lifecycle(), set);
       sut.subscribe(s);
       set.add(1);
       expect(s.handleChange).to.have.been.calledWith('add', match(x => x[0] === 1));
@@ -61,7 +61,7 @@ describe(`SetObserver`, () => {
     it('add', () => {
       const s = new SpySubscriber();
       const set = new Set();
-      sut = new SetObserver(0, new Lifecycle(), set);
+      sut = new SetObserver(LF.none, new Lifecycle(), set);
       sut.subscribe(s);
       sut.unsubscribe(s);
       set.add(1);
@@ -73,12 +73,12 @@ describe(`SetObserver`, () => {
     it('add', () => {
       const s = new SpySubscriber();
       const set = new Set();
-      sut = new SetObserver(0, new Lifecycle(), set);
+      sut = new SetObserver(LF.none, new Lifecycle(), set);
       sut.subscribeBatched(s);
       set.add(1);
       const indexMap: IndexMap = sut.indexMap.slice();
       indexMap.deletedItems = sut.indexMap.deletedItems;
-      sut.flush(LifecycleFlags.none);
+      sut.flush(LF.none);
       expect(s.handleBatchedChange).to.have.been.calledWith(indexMap);
     });
   });
@@ -87,11 +87,11 @@ describe(`SetObserver`, () => {
     it('add', () => {
       const s = new SpySubscriber();
       const set = new Set();
-      sut = new SetObserver(0, new Lifecycle(), set);
+      sut = new SetObserver(LF.none, new Lifecycle(), set);
       sut.subscribeBatched(s);
       sut.unsubscribeBatched(s);
       set.add(1);
-      sut.flush(LifecycleFlags.none);
+      sut.flush(LF.none);
       expect(s.handleBatchedChange).not.to.have.been.called;
     });
   });
@@ -102,9 +102,9 @@ describe(`SetObserver`, () => {
     it('add', () => {
       const s = new SpySubscriber();
       const set = new Set();
-      sut = new SetObserver(0, new Lifecycle(), set);
+      sut = new SetObserver(LF.none, new Lifecycle(), set);
       sut.subscribeBatched(s);
-      sut.flush(LifecycleFlags.none);
+      sut.flush(LF.none);
       expect(s.handleBatchedChange).to.have.been.called;
     });
   });
@@ -120,7 +120,7 @@ describe(`SetObserver`, () => {
             const set = new Set(Array.from(init));
             const expectedSet = new Set(Array.from(init));
             const newItems = items && items.slice();
-            sut = new SetObserver(0, new Lifecycle(), set);
+            sut = new SetObserver(LF.none, new Lifecycle(), set);
             let expectedResult;
             let actualResult;
             let i = 0;
@@ -148,7 +148,7 @@ describe(`SetObserver`, () => {
             const set = new Set(Array.from(init));
             const copy = new Set(Array.from(init));
             const newItems = items && items.slice();
-            sut = new SetObserver(0, new Lifecycle(), set);
+            sut = new SetObserver(LF.none, new Lifecycle(), set);
             let i = 0;
             while (i < repeat) {
               incrementItems(newItems, i);
@@ -181,7 +181,7 @@ describe(`SetObserver`, () => {
             const set = new Set(Array.from(init));
             const expectedSet = new Set(Array.from(init));
             const newItems = items && items.slice();
-            sut = new SetObserver(0, new Lifecycle(), set);
+            sut = new SetObserver(LF.none, new Lifecycle(), set);
             let expectedResult;
             let actualResult;
             let i = 0;
@@ -209,7 +209,7 @@ describe(`SetObserver`, () => {
             const set = new Set(Array.from(init));
             const copy = new Set(Array.from(init));
             const newItems = items && items.slice();
-            sut = new SetObserver(0, new Lifecycle(), set);
+            sut = new SetObserver(LF.none, new Lifecycle(), set);
             let i = 0;
             while (i < repeat) {
               incrementItems(newItems, i);
@@ -239,7 +239,7 @@ describe(`SetObserver`, () => {
         it(`size=${padRight(init.size, 2)} repeat=${repeat} - behaves as native`, () => {
           const set = new Set(Array.from(init));
           const expectedSet = new Set(Array.from(init));
-          sut = new SetObserver(0, new Lifecycle(), set);
+          sut = new SetObserver(LF.none, new Lifecycle(), set);
           let i = 0;
           while (i < repeat) {
             const expectedResult = expectedSet.clear();
@@ -253,7 +253,7 @@ describe(`SetObserver`, () => {
         it(`size=${padRight(init.size, 2)} repeat=${repeat} - tracks changes`, () => {
           const set = new Set(Array.from(init));
           const copy = new Set(Array.from(init));
-          sut = new SetObserver(0, new Lifecycle(), set);
+          sut = new SetObserver(LF.none, new Lifecycle(), set);
           let i = 0;
           while (i < repeat) {
             set.clear();

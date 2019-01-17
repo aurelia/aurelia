@@ -66,7 +66,6 @@ executors:
 jobs:
 
   unit_test:
-    executor: docker-aurelia
     parameters:
       coverage:
         type: boolean
@@ -74,6 +73,9 @@ jobs:
       npm_command:
         type: string
         default: "test"
+      e:
+        type: executor
+    executor: << parameters.e >>
     steps:
       - checkout
       - run: npm ci --ignore-scripts
@@ -243,16 +245,18 @@ workflows:
       - unit_test:
           <<: *filter_ignore_develop_release
           name: unit_test_chrome
+          e: docker-aurelia
       - unit_test:
           <<: *filter_ignore_develop_release
           name: unit_test_firefox
+          e: docker-aurelia
           npm_command: "test-firefox"
           coverage: false
       - unit_test:
           <<: *filter_ignore_develop_release
           name: unit_test_node
+          e: docker-circleci
           npm_command: "test-node"
-          executor: docker-circleci
           coverage: false
       - lint_packages:
           <<: *filter_ignore_develop_release
@@ -309,14 +313,17 @@ workflows:
       - unit_test:
           <<: *filter_only_tag
           name: unit_test_chrome
+          e: docker-aurelia
       - unit_test:
           <<: *filter_only_tag
           name: unit_test_firefox
+          e: docker-aurelia
           npm_command: "test-firefox"
           coverage: false
       - unit_test:
           <<: *filter_only_tag
           name: unit_test_node
+          e: docker-circleci
           npm_command: "test-node"
           coverage: false
       - lint_packages:

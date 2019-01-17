@@ -403,7 +403,7 @@ this.au.router = (function (exports, runtime, kernel) {
           this.link = this._link(this.components);
           this.linkActive = route.consideredActive ? this._link(route.consideredActive) : this.link;
           this.observerLocator = this.nav.router.container.get(runtime.IObserverLocator);
-          this.observer = this.observerLocator.getObserver(this.nav.router, 'activeComponents');
+          this.observer = this.observerLocator.getObserver(runtime.LifecycleFlags.none, this.nav.router, 'activeComponents');
           this.observer.subscribe(this);
       }
       get hasChildren() {
@@ -778,7 +778,8 @@ this.au.router = (function (exports, runtime, kernel) {
           const dom = container.get(runtime.IDOM);
           const projectorLocator = container.get(runtime.IProjectorLocator);
           const renderingEngine = container.get(runtime.IRenderingEngine);
-          component.$hydrate(dom, projectorLocator, renderingEngine, host, null);
+          // TODO: get useProxies settings from the template definition
+          component.$hydrate(runtime.LifecycleFlags.none, dom, projectorLocator, renderingEngine, host, null);
           component.$bind(runtime.LifecycleFlags.fromStartTask | runtime.LifecycleFlags.fromBind, null);
           component.$attach(runtime.LifecycleFlags.fromStartTask);
       }

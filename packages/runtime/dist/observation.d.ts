@@ -28,10 +28,18 @@ export declare enum LifecycleFlags {
     parentUnmountQueued = 1048576,
     doNotUpdateDOM = 2097152,
     isTraversingParentScope = 4194304,
-    persistentBindingFlags = 8388608,
-    allowParentScopeTraversal = 8388608
+    persistentBindingFlags = 25165824,
+    allowParentScopeTraversal = 8388608,
+    useProxies = 16777216
 }
 export declare function stringifyLifecycleFlags(flags: LifecycleFlags): string;
+export interface IProxyObserver<TObj extends object = object, TMut extends MutationKind = MutationKind.proxy> extends ISubscriberCollection<TMut> {
+    proxy: IProxy<TObj>;
+}
+export declare type IProxy<TObj extends object = object> = TObj & {
+    $raw: TObj;
+    $observer: IProxyObserver<TObj>;
+};
 export declare enum DelegationStrategy {
     none = 0,
     capturing = 1,
@@ -79,7 +87,8 @@ export declare type IndexMap = number[] & {
  */
 export declare enum MutationKind {
     instance = 1,
-    collection = 2
+    collection = 2,
+    proxy = 4
 }
 /**
  * Describes a type that specifically tracks changes in an object property, or simply something that can have a getter and/or setter
@@ -113,9 +122,24 @@ export interface IPropertySubscriber<TValue = unknown> {
     handleChange(newValue: TValue, previousValue: TValue, flags: LifecycleFlags): void;
 }
 /**
+ * Represents a (subscriber) function that can be called by a ProxyChangeNotifier
+ */
+export declare type IProxyChangeHandler<TValue = unknown> = (key: PropertyKey, newValue: TValue, previousValue: TValue, flags: LifecycleFlags) => void;
+/**
+ * Represents a (observer) function that can notify subscribers of mutations on a proxy
+ */
+export interface IProxyChangeNotifier extends IProxyChangeHandler {
+}
+/**
+ * Describes a (subscriber) type that has a function conforming to the IProxyChangeHandler interface
+ */
+export interface IProxySubscriber<TValue = unknown> {
+    handleChange(key: PropertyKey, newValue: TValue, previousValue: TValue, flags: LifecycleFlags): void;
+}
+/**
  * Represents a (subscriber) function that can be called by a CollectionChangeNotifier
  */
-export declare type ICollectionChangeHandler = (origin: string, args: IArguments | null, flags?: LifecycleFlags) => void;
+export declare type ICollectionChangeHandler = (origin: string, args: IArguments | null, flags: LifecycleFlags) => void;
 /**
  * Represents a (observer) function that can notify subscribers of mutations in a collection
  */
@@ -124,7 +148,7 @@ export interface ICollectionChangeNotifier extends ICollectionChangeHandler {
 /**
  * Represents a (subscriber) function that can be called by a BatchedCollectionChangeNotifier
  */
-export declare type IBatchedCollectionChangeHandler = (indexMap: number[]) => void;
+export declare type IBatchedCollectionChangeHandler = (indexMap: number[], flags: LifecycleFlags) => void;
 /**
  * Represents a (observer) function that can notify subscribers of batched mutations in a collection
  */
@@ -140,12 +164,12 @@ export interface ICollectionSubscriber {
  * Describes a (subscriber) type that has a function conforming to the IBatchedCollectionChangeNotifier interface
  */
 export interface IBatchedCollectionSubscriber {
-    handleBatchedChange(indexMap: number[]): void;
+    handleBatchedChange(indexMap: number[], flags: LifecycleFlags): void;
 }
 /**
  * Either a property or collection subscriber
  */
-export declare type Subscriber = ICollectionSubscriber | IPropertySubscriber;
+export declare type Subscriber = ICollectionSubscriber | IPropertySubscriber | IProxySubscriber;
 /**
  * Either a batched property or batched collection subscriber
  */
@@ -153,7 +177,7 @@ export declare type BatchedSubscriber = IBatchedCollectionSubscriber;
 /**
  * Helper type that translates from mutationKind enum to the correct subscriber interface
  */
-export declare type MutationKindToSubscriber<T> = T extends MutationKind.instance ? IPropertySubscriber : T extends MutationKind.collection ? ICollectionSubscriber : never;
+export declare type MutationKindToSubscriber<T> = T extends MutationKind.instance ? IPropertySubscriber : T extends MutationKind.collection ? ICollectionSubscriber : T extends MutationKind.proxy ? IProxySubscriber : never;
 /**
  * Helper type that translates from mutationKind enum to the correct batched subscriber interface
  */
@@ -161,7 +185,7 @@ export declare type MutationKindToBatchedSubscriber<T> = T extends MutationKind.
 /**
  * Helper type that translates from mutationKind enum to the correct notifier interface
  */
-export declare type MutationKindToNotifier<T> = T extends MutationKind.instance ? IPropertyChangeNotifier : T extends MutationKind.collection ? ICollectionChangeNotifier : never;
+export declare type MutationKindToNotifier<T> = T extends MutationKind.instance ? IPropertyChangeNotifier : T extends MutationKind.collection ? ICollectionChangeNotifier : T extends MutationKind.proxy ? IProxyChangeNotifier : never;
 /**
  * Helper type that translates from mutationKind enum to the correct batched notifier interface
  */
@@ -210,6 +234,7 @@ export declare type PropertyObserver = IPropertyObserver<IIndexable, string>;
 export declare type Collection = unknown[] | Set<unknown> | Map<unknown, unknown>;
 interface IObservedCollection {
     $observer?: CollectionObserver;
+    $raw?: this;
 }
 /**
  * An array that is being observed for mutations
@@ -248,18 +273,19 @@ export interface IPatch {
  * An observer that tracks collection mutations and notifies subscribers (either directly or in batches)
  */
 export interface ICollectionObserver<T extends CollectionKind> extends IDisposable, ICollectionChangeTracker<CollectionKindToType<T>>, ISubscriberCollection<MutationKind.collection>, IBatchedSubscriberCollection<MutationKind.collection> {
+    persistentFlags: LifecycleFlags;
     collection: ObservedCollectionKindToType<T>;
     lengthPropertyName: LengthPropertyName<CollectionKindToType<T>>;
     collectionKind: T;
     lengthObserver: IBindingTargetObserver & IPatch;
-    getLengthObserver(): IBindingTargetObserver;
+    getLengthObserver(flags: LifecycleFlags): IBindingTargetObserver;
 }
 export declare type CollectionObserver = ICollectionObserver<CollectionKind>;
 export interface IBindingContext {
     [key: string]: unknown;
     readonly $synthetic?: true;
     readonly $observers?: ObserversLookup<IOverrideContext>;
-    getObservers?(): ObserversLookup<IOverrideContext>;
+    getObservers?(flags: LifecycleFlags): ObserversLookup<IOverrideContext>;
 }
 export interface IOverrideContext {
     [key: string]: unknown;
@@ -267,7 +293,7 @@ export interface IOverrideContext {
     readonly $observers?: ObserversLookup<IOverrideContext>;
     readonly bindingContext: IBindingContext;
     readonly parentOverrideContext: IOverrideContext | null;
-    getObservers(): ObserversLookup<IOverrideContext>;
+    getObservers(flags: LifecycleFlags): ObserversLookup<IOverrideContext>;
 }
 export interface IScope {
     readonly bindingContext: IBindingContext;
@@ -278,7 +304,7 @@ export interface IObserversLookup<TObj extends IIndexable = IIndexable, TKey ext
 export declare type ObserversLookup<TObj extends IIndexable = IIndexable, TKey extends keyof TObj = Exclude<keyof TObj, '$synthetic' | '$observers' | 'bindingContext' | 'overrideContext' | 'parentOverrideContext'>> = {
     [P in TKey]: PropertyObserver;
 } & {
-    getOrCreate(obj: IBindingContext | IOverrideContext, key: string): PropertyObserver;
+    getOrCreate(flags: LifecycleFlags, obj: IBindingContext | IOverrideContext, key: string): PropertyObserver;
 };
 export declare type IObservable = IIndexable & {
     readonly $synthetic?: false;

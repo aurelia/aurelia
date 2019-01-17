@@ -2,14 +2,14 @@ import { Class, Constructable, Immutable, IResourceKind, IResourceType, Omit } f
 import { IAttributeDefinition } from '../definitions';
 import { INode } from '../dom';
 import { IAttach, IBindScope, ILifecycleHooks, ILifecycleUnbindAfterDetach, IRenderable } from '../lifecycle';
-import { IChangeTracker } from '../observation';
+import { IChangeTracker, LifecycleFlags } from '../observation';
 import { IRenderingEngine } from '../rendering-engine';
 declare type CustomAttributeStaticProperties = Pick<Immutable<Required<IAttributeDefinition>>, 'bindables'>;
 export declare type CustomAttributeConstructor = Constructable & CustomAttributeStaticProperties;
 export interface ICustomAttributeType<T extends INode = INode> extends IResourceType<IAttributeDefinition, ICustomAttribute<T>>, CustomAttributeStaticProperties {
 }
 export interface ICustomAttribute<T extends INode = INode> extends Partial<IChangeTracker>, ILifecycleHooks, IBindScope, ILifecycleUnbindAfterDetach, IAttach, IRenderable<T> {
-    $hydrate(renderingEngine: IRenderingEngine): void;
+    $hydrate(flags: LifecycleFlags, renderingEngine: IRenderingEngine): void;
 }
 export interface ICustomAttributeResource<T extends INode = INode> extends IResourceKind<IAttributeDefinition, ICustomAttribute<T>, Class<ICustomAttribute<T>> & CustomAttributeStaticProperties> {
 }

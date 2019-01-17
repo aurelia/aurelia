@@ -18,6 +18,7 @@ export { IObjectObservationAdapter, IObserverLocator, ITargetObserverLocator, IT
 export { PrimitiveObserver } from './observation/primitive-observer';
 export { PropertyAccessor } from './observation/property-accessor';
 export { propertyObserver } from './observation/property-observer';
+export { ProxyObserver } from './observation/proxy-observer';
 export { SelfObserver } from './observation/self-observer';
 export { SetterObserver } from './observation/setter-observer';
 export { ISignaler } from './observation/signaler';

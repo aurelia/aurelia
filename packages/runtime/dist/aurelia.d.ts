@@ -2,6 +2,7 @@ import { IContainer, IRegistry } from '@aurelia/kernel';
 import { IDOM, INode } from './dom';
 import { ICustomElement } from './resources/custom-element';
 export interface ISinglePageApp<THost extends INode = INode> {
+    useProxies?: boolean;
     dom?: IDOM;
     host: THost;
     component: unknown;

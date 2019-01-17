@@ -12,6 +12,7 @@ export interface SelectValueObserver extends IBindingTargetObserver<ISelectEleme
 }
 export declare class SelectValueObserver implements SelectValueObserver {
     readonly isDOMObserver: true;
+    readonly persistentFlags: LifecycleFlags;
     lifecycle: ILifecycle;
     obj: ISelectElement;
     handler: IEventSubscriber;
@@ -24,7 +25,7 @@ export declare class SelectValueObserver implements SelectValueObserver {
     private readonly dom;
     private arrayObserver;
     private nodeObserver;
-    constructor(lifecycle: ILifecycle, obj: ISelectElement, handler: IEventSubscriber, observerLocator: IObserverLocator, dom: IDOM);
+    constructor(flags: LifecycleFlags, lifecycle: ILifecycle, obj: ISelectElement, handler: IEventSubscriber, observerLocator: IObserverLocator, dom: IDOM);
     getValue(): unknown;
     setValueCore(newValue: unknown, flags: LifecycleFlags): void;
     handleBatchedChange(indexMap: number[]): void;

@@ -37,8 +37,9 @@
       LifecycleFlags[LifecycleFlags["isTraversingParentScope"] = 4194304] = "isTraversingParentScope";
       // Bitmask for flags that need to be stored on a binding during $bind for mutation
       // callbacks outside of $bind
-      LifecycleFlags[LifecycleFlags["persistentBindingFlags"] = 8388608] = "persistentBindingFlags";
+      LifecycleFlags[LifecycleFlags["persistentBindingFlags"] = 25165824] = "persistentBindingFlags";
       LifecycleFlags[LifecycleFlags["allowParentScopeTraversal"] = 8388608] = "allowParentScopeTraversal";
+      LifecycleFlags[LifecycleFlags["useProxies"] = 16777216] = "useProxies";
   })(exports.LifecycleFlags || (exports.LifecycleFlags = {}));
   function stringifyLifecycleFlags(flags) {
       const flagNames = [];
@@ -131,6 +132,7 @@
   (function (MutationKind) {
       MutationKind[MutationKind["instance"] = 1] = "instance";
       MutationKind[MutationKind["collection"] = 2] = "collection";
+      MutationKind[MutationKind["proxy"] = 4] = "proxy";
   })(exports.MutationKind || (exports.MutationKind = {}));
   (function (CollectionKind) {
       CollectionKind[CollectionKind["indexed"] = 8] = "indexed";
@@ -175,7 +177,16 @@
           proto.removeSubscriber = removeSubscriber;
           proto.hasSubscriber = hasSubscriber;
           proto.hasSubscribers = hasSubscribers;
-          proto.callSubscribers = (mutationKind === exports.MutationKind.instance ? callPropertySubscribers : callCollectionSubscribers);
+          switch (mutationKind) {
+              case exports.MutationKind.instance:
+                  proto.callSubscribers = callPropertySubscribers;
+                  break;
+              case exports.MutationKind.collection:
+                  proto.callSubscribers = callCollectionSubscribers;
+                  break;
+              case exports.MutationKind.proxy:
+                  proto.callSubscribers = callProxySubscribers;
+          }
       };
   }
   function addSubscriber(subscriber) {
@@ -299,6 +310,33 @@
       }
       this.lifecycle.enqueueFlush(this).catch(error => { throw error; });
   }
+  function callProxySubscribers(key, newValue, previousValue, flags) {
+      const subscriber0 = this._subscriber0;
+      const subscriber1 = this._subscriber1;
+      const subscriber2 = this._subscriber2;
+      let subscribers = this._subscribersRest;
+      if (subscribers !== null) {
+          subscribers = subscribers.slice();
+      }
+      if (subscriber0 !== null) {
+          subscriber0.handleChange(key, newValue, previousValue, flags);
+      }
+      if (subscriber1 !== null) {
+          subscriber1.handleChange(key, newValue, previousValue, flags);
+      }
+      if (subscriber2 !== null) {
+          subscriber2.handleChange(key, newValue, previousValue, flags);
+      }
+      const length = subscribers && subscribers.length;
+      if (length !== undefined && length > 0) {
+          for (let i = 0; i < length; ++i) {
+              const subscriber = subscribers[i];
+              if (subscriber !== null) {
+                  subscriber.handleChange(key, newValue, previousValue, flags);
+              }
+          }
+      }
+  }
   function hasSubscribers() {
       return this._subscriberFlags !== 0 /* None */;
   }
@@ -402,7 +440,7 @@
       }
       return false;
   }
-  function callBatchedCollectionSubscribers(indexMap) {
+  function callBatchedCollectionSubscribers(indexMap, flags) {
       const subscriber0 = this._batchedSubscriber0;
       const subscriber1 = this._batchedSubscriber1;
       const subscriber2 = this._batchedSubscriber2;
@@ -411,20 +449,20 @@
           subscribers = subscribers.slice();
       }
       if (subscriber0 !== null) {
-          subscriber0.handleBatchedChange(indexMap);
+          subscriber0.handleBatchedChange(indexMap, flags);
       }
       if (subscriber1 !== null) {
-          subscriber1.handleBatchedChange(indexMap);
+          subscriber1.handleBatchedChange(indexMap, flags);
       }
       if (subscriber2 !== null) {
-          subscriber2.handleBatchedChange(indexMap);
+          subscriber2.handleBatchedChange(indexMap, flags);
       }
       const length = subscribers && subscribers.length;
       if (length !== undefined && length > 0) {
           for (let i = 0; i < length; ++i) {
               const subscriber = subscribers[i];
               if (subscriber !== null) {
-                  subscriber.handleBatchedChange(indexMap);
+                  subscriber.handleBatchedChange(indexMap, flags);
               }
           }
       }
@@ -457,6 +495,160 @@
       }
       return false;
   }
+
+  var ProxyObserver_1;
+  const lookup = new WeakMap();
+  let ProxySubscriberCollection = class ProxySubscriberCollection {
+      constructor(proxy, raw, key) {
+          this.raw = raw;
+          this.key = key;
+          this.proxy = proxy;
+          this.subscribe = this.addSubscriber;
+          this.unsubscribe = this.removeSubscriber;
+      }
+      setValue(value, flags) {
+          const oldValue = this.raw[this.key];
+          if (oldValue !== value) {
+              this.raw[this.key] = value;
+              this.callSubscribers(value, oldValue, flags | exports.LifecycleFlags.useProxies | exports.LifecycleFlags.updateTargetInstance);
+          }
+      }
+      getValue() {
+          return this.raw[this.key];
+      }
+  };
+  ProxySubscriberCollection = __decorate([
+      subscriberCollection(exports.MutationKind.instance)
+  ], ProxySubscriberCollection);
+  exports.ProxyObserver = ProxyObserver_1 = class ProxyObserver {
+      constructor(obj) {
+          this.raw = obj;
+          this.proxy = new Proxy(obj, this);
+          lookup.set(obj, this.proxy);
+          this.subscribers = {};
+      }
+      static getProxyOrSelf(obj) {
+          if (obj.$raw === undefined) {
+              const proxy = lookup.get(obj);
+              if (proxy === undefined) {
+                  return obj;
+              }
+              return proxy;
+          }
+          return obj;
+      }
+      static getRawIfProxy(obj) {
+          const raw = obj.$raw;
+          if (raw === undefined) {
+              return obj;
+          }
+          return raw;
+      }
+      static getOrCreate(obj, key) {
+          let proxyObserver;
+          if (obj.$raw === undefined) {
+              const proxy = lookup.get(obj);
+              if (proxy === undefined) {
+                  proxyObserver = new ProxyObserver_1(obj);
+              }
+              else {
+                  proxyObserver = proxy.$observer;
+              }
+          }
+          else {
+              proxyObserver = obj.$observer;
+          }
+          if (arguments.length === 1) {
+              return proxyObserver;
+          }
+          let subscribers = proxyObserver.subscribers[key];
+          if (subscribers === undefined) {
+              const raw = this.getRawIfProxy(obj);
+              const proxy = proxyObserver.proxy;
+              subscribers = proxyObserver.subscribers[key] = new ProxySubscriberCollection(proxy, raw, key);
+          }
+          return subscribers;
+      }
+      static isProxy(obj) {
+          return obj.$raw !== undefined;
+      }
+      get(target, p, receiver) {
+          if (p === '$observer') {
+              return this;
+          }
+          if (p === '$raw') {
+              return target;
+          }
+          return target[p];
+      }
+      set(target, p, value, receiver) {
+          const oldValue = target[p];
+          if (oldValue !== value) {
+              Reflect.set(target, p, value, target);
+              this.callPropertySubscribers(value, oldValue, p);
+              this.callSubscribers(p, value, oldValue, exports.LifecycleFlags.useProxies | exports.LifecycleFlags.updateTargetInstance);
+          }
+          return true;
+      }
+      deleteProperty(target, p) {
+          const oldValue = target[p];
+          if (Reflect.deleteProperty(target, p)) {
+              if (oldValue !== undefined) {
+                  this.callPropertySubscribers(undefined, oldValue, p);
+                  this.callSubscribers(p, undefined, oldValue, exports.LifecycleFlags.useProxies | exports.LifecycleFlags.updateTargetInstance);
+              }
+              return true;
+          }
+          return false;
+      }
+      defineProperty(target, p, attributes) {
+          const oldValue = target[p];
+          if (Reflect.defineProperty(target, p, attributes)) {
+              if (attributes.value !== oldValue) {
+                  this.callPropertySubscribers(attributes.value, oldValue, p);
+                  this.callSubscribers(p, attributes.value, oldValue, exports.LifecycleFlags.useProxies | exports.LifecycleFlags.updateTargetInstance);
+              }
+              return true;
+          }
+          return false;
+      }
+      apply(target, thisArg, argArray) {
+          // tslint:disable-next-line:ban-types // Reflect API dictates this
+          return Reflect.apply(target, target, argArray);
+      }
+      subscribe(subscriber, key) {
+          if (arguments.length === 1) {
+              this.addSubscriber(subscriber);
+          }
+          else {
+              let subscribers = this.subscribers[key];
+              if (subscribers === undefined) {
+                  subscribers = this.subscribers[key] = new ProxySubscriberCollection(this.proxy, this.raw, key);
+              }
+              subscribers.addSubscriber(subscriber);
+          }
+      }
+      unsubscribe(subscriber, key) {
+          if (arguments.length === 1) {
+              this.removeSubscriber(subscriber);
+          }
+          else {
+              const subscribers = this.subscribers[key];
+              if (subscribers !== undefined) {
+                  subscribers.removeSubscriber(subscriber);
+              }
+          }
+      }
+      callPropertySubscribers(newValue, oldValue, key) {
+          const subscribers = this.subscribers[key];
+          if (subscribers !== undefined) {
+              subscribers.callSubscribers(newValue, oldValue, exports.LifecycleFlags.useProxies | exports.LifecycleFlags.updateTargetInstance);
+          }
+      }
+  };
+  exports.ProxyObserver = ProxyObserver_1 = __decorate([
+      subscriberCollection(exports.MutationKind.proxy)
+  ], exports.ProxyObserver);
 
   const defineProperty = Reflect.defineProperty;
   // note: we're reusing the same object for setting all descriptors, just changing some properties as needed
@@ -509,7 +701,8 @@
   }
 
   exports.SetterObserver = class SetterObserver {
-      constructor(obj, propertyKey) {
+      constructor(flags, obj, propertyKey) {
+          this.persistentFlags = flags & exports.LifecycleFlags.persistentBindingFlags;
           this.obj = obj;
           this.propertyKey = propertyKey;
       }
@@ -521,7 +714,7 @@
           if (currentValue !== newValue) {
               this.currentValue = newValue;
               if (!(flags & exports.LifecycleFlags.fromBind)) {
-                  this.callSubscribers(newValue, currentValue, flags);
+                  this.callSubscribers(newValue, currentValue, this.persistentFlags | flags);
               }
               // If subscribe() has been called, the target property descriptor is replaced by these getter/setter methods,
               // so calling obj[propertyKey] will actually return this.currentValue.
@@ -548,10 +741,10 @@
   })(RuntimeError || (RuntimeError = {}));
   /** @internal */
   class InternalObserversLookup {
-      getOrCreate(obj, key) {
+      getOrCreate(flags, obj, key) {
           let observer = this[key];
           if (observer === undefined) {
-              observer = this[key] = new exports.SetterObserver(obj, key);
+              observer = this[key] = new exports.SetterObserver(flags, obj, key);
           }
           return observer;
       }
@@ -574,8 +767,12 @@
               }
           }
       }
-      static create(keyOrObj, value) {
-          return new BindingContext(keyOrObj, value);
+      static create(flags, keyOrObj, value) {
+          const bc = new BindingContext(keyOrObj, value);
+          if (flags & exports.LifecycleFlags.useProxies) {
+              return exports.ProxyObserver.getOrCreate(bc).proxy;
+          }
+          return bc;
       }
       static get(scope, name, ancestor, flags) {
           if (scope === undefined) {
@@ -623,7 +820,7 @@
           }
           return scope.bindingContext || scope.overrideContext;
       }
-      getObservers() {
+      getObservers(flags) {
           let observers = this.$observers;
           if (observers === undefined) {
               this.$observers = observers = new InternalObserversLookup();
@@ -637,20 +834,20 @@
           this.overrideContext = overrideContext;
           this.parentScope = null;
       }
-      static create(bc, oc) {
-          return new Scope(bc, oc === null || oc === undefined ? OverrideContext.create(bc, oc) : oc);
+      static create(flags, bc, oc) {
+          return new Scope(bc, oc === null || oc === undefined ? OverrideContext.create(flags, bc, oc) : oc);
       }
-      static fromOverride(oc) {
+      static fromOverride(flags, oc) {
           if (oc === null || oc === undefined) {
               throw kernel.Reporter.error(252 /* NilOverrideContext */);
           }
           return new Scope(oc.bindingContext, oc);
       }
-      static fromParent(ps, bc) {
+      static fromParent(flags, ps, bc) {
           if (ps === null || ps === undefined) {
               throw kernel.Reporter.error(253 /* NilParentScope */);
           }
-          return new Scope(bc, OverrideContext.create(bc, ps.overrideContext));
+          return new Scope(bc, OverrideContext.create(flags, bc, ps.overrideContext));
       }
   }
   class OverrideContext {
@@ -659,7 +856,7 @@
           this.bindingContext = bindingContext;
           this.parentOverrideContext = parentOverrideContext;
       }
-      static create(bc, poc) {
+      static create(flags, bc, poc) {
           return new OverrideContext(bc, poc === undefined ? null : poc);
       }
       getObservers() {
@@ -1116,7 +1313,7 @@
       connect(flags, scope, binding) {
           const name = this.name;
           const context = BindingContext.get(scope, name, this.ancestor, flags);
-          binding.observeProperty(context, name);
+          binding.observeProperty(flags, context, name);
       }
       accept(visitor) {
           return visitor.visitAccessScope(this);
@@ -1145,7 +1342,7 @@
           const obj = this.object.evaluate(flags, scope, null);
           this.object.connect(flags, scope, binding);
           if (obj) {
-              binding.observeProperty(obj, this.name);
+              binding.observeProperty(flags, obj, this.name);
           }
       }
       accept(visitor) {
@@ -1182,7 +1379,7 @@
               // observe the property represented by the key as long as it's not an array indexer
               // (note: string indexers behave the same way as numeric indexers as long as they represent numbers)
               if (!(Array.isArray(obj) && isNumeric(key))) {
-                  binding.observeProperty(obj, key);
+                  binding.observeProperty(flags, obj, key);
               }
           }
       }
@@ -2661,8 +2858,8 @@
       ensureEnoughSlotNames(i);
   }
   /** @internal */
-  function observeProperty(obj, propertyName) {
-      const observer = this.observerLocator.getObserver(obj, propertyName);
+  function observeProperty(flags, obj, propertyName) {
+      const observer = this.observerLocator.getObserver(flags, obj, propertyName);
       /* Note: we need to cast here because we can indeed get an accessor instead of an observer,
        *  in which case the call to observer.subscribe will throw. It's not very clean and we can solve this in 2 ways:
        *  1. Fail earlier: only let the locator resolve observers from .getObserver, and throw if no branches are left (e.g. it would otherwise return an accessor)
@@ -2734,6 +2931,7 @@
           this.sourceExpression = sourceExpression;
           this.target = target;
           this.targetProperty = targetProperty;
+          this.persistentFlags = exports.LifecycleFlags.none;
       }
       updateTarget(value, flags) {
           flags |= this.persistentFlags;
@@ -2802,10 +3000,10 @@
           let targetObserver = this.targetObserver;
           if (!targetObserver) {
               if (mode & fromView) {
-                  targetObserver = this.targetObserver = this.observerLocator.getObserver(this.target, this.targetProperty);
+                  targetObserver = this.targetObserver = this.observerLocator.getObserver(flags, this.target, this.targetProperty);
               }
               else {
-                  targetObserver = this.targetObserver = this.observerLocator.getAccessor(this.target, this.targetProperty);
+                  targetObserver = this.targetObserver = this.observerLocator.getAccessor(flags, this.target, this.targetProperty);
               }
           }
           if (targetObserver.bind) {
@@ -2817,7 +3015,7 @@
               this.updateTarget(sourceExpression.evaluate(flags, scope, this.locator), flags);
           }
           if (mode & toView) {
-              this.$lifecycle.enqueueConnect(this);
+              sourceExpression.connect(flags, scope, this);
           }
           if (mode & fromView) {
               targetObserver.subscribe(this);
@@ -2874,7 +3072,7 @@
           this.$state = 0 /* none */;
           this.locator = locator;
           this.sourceExpression = sourceExpression;
-          this.targetObserver = observerLocator.getObserver(target, targetProperty);
+          this.targetObserver = observerLocator.getObserver(exports.LifecycleFlags.none, target, targetProperty);
       }
       callSource(args) {
           const overrideContext = this.$scope.overrideContext;
@@ -2920,7 +3118,7 @@
           // remove isBound and isUnbinding flags
           this.$state &= ~(2 /* isBound */ | 64 /* isUnbinding */);
       }
-      observeProperty(obj, propertyName) {
+      observeProperty(flags, obj, propertyName) {
           return;
       }
       handleChange(newValue, previousValue, flags) {
@@ -3100,7 +3298,7 @@
           this.sourceExpression = sourceExpression;
           this.target = target;
           this.targetProperty = targetProperty;
-          this.targetObserver = observerLocator.getAccessor(target, targetProperty);
+          this.targetObserver = observerLocator.getAccessor(exports.LifecycleFlags.none, target, targetProperty);
       }
       updateTarget(value, flags) {
           this.targetObserver.setValue(value, flags | exports.LifecycleFlags.updateTargetInstance);
@@ -3275,7 +3473,7 @@
           // remove isBound and isUnbinding flags
           this.$state &= ~(2 /* isBound */ | 64 /* isUnbinding */);
       }
-      observeProperty(obj, propertyName) {
+      observeProperty(flags, obj, propertyName) {
           return;
       }
       handleChange(newValue, previousValue, flags) {
@@ -3337,10 +3535,10 @@
       };
   }
 
-  function flush$1() {
-      this.callBatchedSubscribers(this.indexMap);
+  function flush$1(flags) {
+      this.callBatchedSubscribers(this.indexMap, flags | this.persistentFlags);
       if (!!this.lengthObserver) {
-          this.lengthObserver.patch(exports.LifecycleFlags.fromFlush | exports.LifecycleFlags.updateTargetInstance);
+          this.lengthObserver.patch(exports.LifecycleFlags.fromFlush | exports.LifecycleFlags.updateTargetInstance | this.persistentFlags);
       }
       this.resetIndexMap();
   }
@@ -3590,30 +3788,38 @@
   const observe = {
       // https://tc39.github.io/ecma262/#sec-array.prototype.push
       push: function () {
-          const o = this.$observer;
-          if (o === undefined) {
-              return $push.apply(this, arguments);
+          let $this = this;
+          if ($this.$raw !== undefined) {
+              $this = $this.$raw;
           }
-          const len = this.length;
+          const o = $this.$observer;
+          if (o === undefined) {
+              return $push.apply($this, arguments);
+          }
+          const len = $this.length;
           const argCount = arguments.length;
           if (argCount === 0) {
               return len;
           }
-          this.length = o.indexMap.length = len + argCount;
+          $this.length = o.indexMap.length = len + argCount;
           let i = len;
-          while (i < this.length) {
-              this[i] = arguments[i - len];
+          while (i < $this.length) {
+              $this[i] = arguments[i - len];
               o.indexMap[i] = -2;
               i++;
           }
-          o.callSubscribers('push', arguments, exports.LifecycleFlags.isCollectionMutation);
-          return this.length;
+          o.callSubscribers('push', arguments, o.persistentFlags | exports.LifecycleFlags.isCollectionMutation);
+          return $this.length;
       },
       // https://tc39.github.io/ecma262/#sec-array.prototype.unshift
       unshift: function () {
-          const o = this.$observer;
+          let $this = this;
+          if ($this.$raw !== undefined) {
+              $this = $this.$raw;
+          }
+          const o = $this.$observer;
           if (o === undefined) {
-              return $unshift.apply(this, arguments);
+              return $unshift.apply($this, arguments);
           }
           const argCount = arguments.length;
           const inserts = new Array(argCount);
@@ -3622,48 +3828,60 @@
               inserts[i++] = -2;
           }
           $unshift.apply(o.indexMap, inserts);
-          const len = $unshift.apply(this, arguments);
-          o.callSubscribers('unshift', arguments, exports.LifecycleFlags.isCollectionMutation);
+          const len = $unshift.apply($this, arguments);
+          o.callSubscribers('unshift', arguments, o.persistentFlags | exports.LifecycleFlags.isCollectionMutation);
           return len;
       },
       // https://tc39.github.io/ecma262/#sec-array.prototype.pop
       pop: function () {
-          const o = this.$observer;
+          let $this = this;
+          if ($this.$raw !== undefined) {
+              $this = $this.$raw;
+          }
+          const o = $this.$observer;
           if (o === undefined) {
-              return $pop.call(this);
+              return $pop.call($this);
           }
           const indexMap = o.indexMap;
-          const element = $pop.call(this);
+          const element = $pop.call($this);
           // only mark indices as deleted if they actually existed in the original array
           const index = indexMap.length - 1;
           if (indexMap[index] > -1) {
               $pop.call(indexMap.deletedItems, element);
           }
           $pop.call(indexMap);
-          o.callSubscribers('pop', arguments, exports.LifecycleFlags.isCollectionMutation);
+          o.callSubscribers('pop', arguments, o.persistentFlags | exports.LifecycleFlags.isCollectionMutation);
           return element;
       },
       // https://tc39.github.io/ecma262/#sec-array.prototype.shift
       shift: function () {
-          const o = this.$observer;
+          let $this = this;
+          if ($this.$raw !== undefined) {
+              $this = $this.$raw;
+          }
+          const o = $this.$observer;
           if (o === undefined) {
-              return $shift.call(this);
+              return $shift.call($this);
           }
           const indexMap = o.indexMap;
-          const element = $shift.call(this);
+          const element = $shift.call($this);
           // only mark indices as deleted if they actually existed in the original array
           if (indexMap[0] > -1) {
               $shift.call(indexMap.deletedItems, element);
           }
           $shift.call(indexMap);
-          o.callSubscribers('shift', arguments, exports.LifecycleFlags.isCollectionMutation);
+          o.callSubscribers('shift', arguments, o.persistentFlags | exports.LifecycleFlags.isCollectionMutation);
           return element;
       },
       // https://tc39.github.io/ecma262/#sec-array.prototype.splice
       splice: function (start, deleteCount) {
-          const o = this.$observer;
+          let $this = this;
+          if ($this.$raw !== undefined) {
+              $this = $this.$raw;
+          }
+          const o = $this.$observer;
           if (o === undefined) {
-              return $splice.apply(this, arguments);
+              return $splice.apply($this, arguments);
           }
           const indexMap = o.indexMap;
           if (deleteCount > 0) {
@@ -3671,7 +3889,7 @@
               const to = i + deleteCount;
               while (i < to) {
                   if (indexMap[i] > -1) {
-                      $splice.call(indexMap.deletedItems, this[i]);
+                      $splice.call(indexMap.deletedItems, $this[i]);
                   }
                   i++;
               }
@@ -3689,51 +3907,61 @@
           else if (argCount === 2) {
               $splice.call(indexMap, start, deleteCount);
           }
-          const deleted = $splice.apply(this, arguments);
-          o.callSubscribers('splice', arguments, exports.LifecycleFlags.isCollectionMutation);
+          const deleted = $splice.apply($this, arguments);
+          o.callSubscribers('splice', arguments, o.persistentFlags | exports.LifecycleFlags.isCollectionMutation);
           return deleted;
       },
       // https://tc39.github.io/ecma262/#sec-array.prototype.reverse
       reverse: function () {
-          const o = this.$observer;
-          if (o === undefined) {
-              return $reverse.call(this);
+          let $this = this;
+          if ($this.$raw !== undefined) {
+              $this = $this.$raw;
           }
-          const len = this.length;
+          const o = $this.$observer;
+          if (o === undefined) {
+              $reverse.call($this);
+              return this;
+          }
+          const len = $this.length;
           const middle = (len / 2) | 0;
           let lower = 0;
           // tslint:disable:no-statements-same-line
           while (lower !== middle) {
               const upper = len - lower - 1;
-              const lowerValue = this[lower];
+              const lowerValue = $this[lower];
               const lowerIndex = o.indexMap[lower];
-              const upperValue = this[upper];
+              const upperValue = $this[upper];
               const upperIndex = o.indexMap[upper];
-              this[lower] = upperValue;
+              $this[lower] = upperValue;
               o.indexMap[lower] = upperIndex;
-              this[upper] = lowerValue;
+              $this[upper] = lowerValue;
               o.indexMap[upper] = lowerIndex;
               lower++;
           }
           // tslint:enable:no-statements-same-line
-          o.callSubscribers('reverse', arguments, exports.LifecycleFlags.isCollectionMutation);
+          o.callSubscribers('reverse', arguments, o.persistentFlags | exports.LifecycleFlags.isCollectionMutation);
           return this;
       },
       // https://tc39.github.io/ecma262/#sec-array.prototype.sort
       // https://github.com/v8/v8/blob/master/src/js/array.js
       sort: function (compareFn) {
-          const o = this.$observer;
-          if (o === undefined) {
-              return $sort.call(this, compareFn);
+          let $this = this;
+          if ($this.$raw !== undefined) {
+              $this = $this.$raw;
           }
-          const len = this.length;
+          const o = $this.$observer;
+          if (o === undefined) {
+              $sort.call($this, compareFn);
+              return this;
+          }
+          const len = $this.length;
           if (len < 2) {
               return this;
           }
-          quickSort(this, o.indexMap, 0, len, preSortCompare);
+          quickSort($this, o.indexMap, 0, len, preSortCompare);
           let i = 0;
           while (i < len) {
-              if (this[i] === undefined) {
+              if ($this[i] === undefined) {
                   break;
               }
               i++;
@@ -3741,8 +3969,8 @@
           if (compareFn === undefined || typeof compareFn !== 'function' /*spec says throw a TypeError, should we do that too?*/) {
               compareFn = sortCompare;
           }
-          quickSort(this, o.indexMap, 0, i, compareFn);
-          o.callSubscribers('sort', arguments, exports.LifecycleFlags.isCollectionMutation);
+          quickSort($this, o.indexMap, 0, i, compareFn);
+          o.callSubscribers('sort', arguments, o.persistentFlags | exports.LifecycleFlags.isCollectionMutation);
           return this;
       }
   };
@@ -3771,18 +3999,19 @@
       }
   }
   exports.ArrayObserver = class ArrayObserver {
-      constructor(lifecycle, array) {
+      constructor(flags, lifecycle, array) {
           this.lifecycle = lifecycle;
           array.$observer = this;
           this.collection = array;
+          this.flags = flags & exports.LifecycleFlags.persistentBindingFlags;
           this.resetIndexMap();
       }
   };
   exports.ArrayObserver = __decorate([
       collectionObserver(9 /* array */)
   ], exports.ArrayObserver);
-  function getArrayObserver(lifecycle, array) {
-      return array.$observer || new exports.ArrayObserver(lifecycle, array);
+  function getArrayObserver(flags, lifecycle, array) {
+      return array.$observer || new exports.ArrayObserver(flags, lifecycle, array);
   }
 
   const proto$1 = Map.prototype;
@@ -3796,16 +4025,21 @@
   const observe$1 = {
       // https://tc39.github.io/ecma262/#sec-map.prototype.map
       set: function (key, value) {
-          const o = this.$observer;
-          if (o === undefined) {
-              return $set.call(this, key, value);
+          let $this = this;
+          if ($this.$raw !== undefined) {
+              $this = $this.$raw;
           }
-          const oldSize = this.size;
-          $set.call(this, key, value);
-          const newSize = this.size;
+          const o = $this.$observer;
+          if (o === undefined) {
+              $set.call($this, key, value);
+              return this;
+          }
+          const oldSize = $this.size;
+          $set.call($this, key, value);
+          const newSize = $this.size;
           if (newSize === oldSize) {
               let i = 0;
-              for (const entry of this.entries()) {
+              for (const entry of $this.entries()) {
                   if (entry[0] === key) {
                       if (entry[1] !== value) {
                           o.indexMap[i] = -2;
@@ -3817,54 +4051,62 @@
               return this;
           }
           o.indexMap[oldSize] = -2;
-          o.callSubscribers('set', arguments, exports.LifecycleFlags.isCollectionMutation);
+          o.callSubscribers('set', arguments, o.persistentFlags | exports.LifecycleFlags.isCollectionMutation);
           return this;
       },
       // https://tc39.github.io/ecma262/#sec-map.prototype.clear
       clear: function () {
-          const o = this.$observer;
-          if (o === undefined) {
-              return $clear.call(this);
+          let $this = this;
+          if ($this.$raw !== undefined) {
+              $this = $this.$raw;
           }
-          const size = this.size;
+          const o = $this.$observer;
+          if (o === undefined) {
+              return $clear.call($this);
+          }
+          const size = $this.size;
           if (size > 0) {
               const indexMap = o.indexMap;
               let i = 0;
-              for (const entry of this.keys()) {
+              for (const entry of $this.keys()) {
                   if (indexMap[i] > -1) {
                       indexMap.deletedItems.push(entry);
                   }
                   i++;
               }
-              $clear.call(this);
+              $clear.call($this);
               indexMap.length = 0;
-              o.callSubscribers('clear', arguments, exports.LifecycleFlags.isCollectionMutation);
+              o.callSubscribers('clear', arguments, o.persistentFlags | exports.LifecycleFlags.isCollectionMutation);
           }
           return undefined;
       },
       // https://tc39.github.io/ecma262/#sec-map.prototype.delete
       delete: function (value) {
-          const o = this.$observer;
-          if (o === undefined) {
-              return $delete.call(this, value);
+          let $this = this;
+          if ($this.$raw !== undefined) {
+              $this = $this.$raw;
           }
-          const size = this.size;
+          const o = $this.$observer;
+          if (o === undefined) {
+              return $delete.call($this, value);
+          }
+          const size = $this.size;
           if (size === 0) {
               return false;
           }
           let i = 0;
           const indexMap = o.indexMap;
-          for (const entry of this.keys()) {
+          for (const entry of $this.keys()) {
               if (entry === value) {
                   if (indexMap[i] > -1) {
                       indexMap.deletedItems.push(entry);
                   }
                   indexMap.splice(i, 1);
-                  return $delete.call(this, value);
+                  return $delete.call($this, value);
               }
               i++;
           }
-          o.callSubscribers('delete', arguments, exports.LifecycleFlags.isCollectionMutation);
+          o.callSubscribers('delete', arguments, o.persistentFlags | exports.LifecycleFlags.isCollectionMutation);
           return false;
       }
   };
@@ -3893,18 +4135,19 @@
       }
   }
   exports.MapObserver = class MapObserver {
-      constructor(lifecycle, map) {
+      constructor(flags, lifecycle, map) {
           this.lifecycle = lifecycle;
           map.$observer = this;
           this.collection = map;
+          this.flags = flags & exports.LifecycleFlags.persistentBindingFlags;
           this.resetIndexMap();
       }
   };
   exports.MapObserver = __decorate([
       collectionObserver(6 /* map */)
   ], exports.MapObserver);
-  function getMapObserver(lifecycle, map) {
-      return map.$observer || new exports.MapObserver(lifecycle, map);
+  function getMapObserver(flags, lifecycle, map) {
+      return map.$observer || new exports.MapObserver(flags, lifecycle, map);
   }
 
   const proto$2 = Set.prototype;
@@ -3918,65 +4161,78 @@
   const observe$2 = {
       // https://tc39.github.io/ecma262/#sec-set.prototype.add
       add: function (value) {
-          const o = this.$observer;
-          if (o === undefined) {
-              return $add.call(this, value);
+          let $this = this;
+          if ($this.$raw !== undefined) {
+              $this = $this.$raw;
           }
-          const oldSize = this.size;
-          $add.call(this, value);
-          const newSize = this.size;
+          const o = $this.$observer;
+          if (o === undefined) {
+              $add.call($this, value);
+              return this;
+          }
+          const oldSize = $this.size;
+          $add.call($this, value);
+          const newSize = $this.size;
           if (newSize === oldSize) {
               return this;
           }
           o.indexMap[oldSize] = -2;
-          o.callSubscribers('add', arguments, exports.LifecycleFlags.isCollectionMutation);
+          o.callSubscribers('add', arguments, o.persistentFlags | exports.LifecycleFlags.isCollectionMutation);
           return this;
       },
       // https://tc39.github.io/ecma262/#sec-set.prototype.clear
       clear: function () {
-          const o = this.$observer;
-          if (o === undefined) {
-              return $clear$1.call(this);
+          let $this = this;
+          if ($this.$raw !== undefined) {
+              $this = $this.$raw;
           }
-          const size = this.size;
+          const o = $this.$observer;
+          if (o === undefined) {
+              return $clear$1.call($this);
+          }
+          const size = $this.size;
           if (size > 0) {
               const indexMap = o.indexMap;
               let i = 0;
-              for (const entry of this.keys()) {
+              for (const entry of $this.keys()) {
                   if (indexMap[i] > -1) {
                       indexMap.deletedItems.push(entry);
                   }
                   i++;
               }
-              $clear$1.call(this);
+              $clear$1.call($this);
               indexMap.length = 0;
-              o.callSubscribers('clear', arguments, exports.LifecycleFlags.isCollectionMutation);
+              o.callSubscribers('clear', arguments, o.persistentFlags | exports.LifecycleFlags.isCollectionMutation);
           }
           return undefined;
       },
       // https://tc39.github.io/ecma262/#sec-set.prototype.delete
       delete: function (value) {
-          const o = this.$observer;
-          if (o === undefined) {
-              return $delete$1.call(this, value);
+          let $this = this;
+          if ($this.$raw !== undefined) {
+              $this = $this.$raw;
           }
-          const size = this.size;
+          const o = $this.$observer;
+          if (o === undefined) {
+              return $delete$1.call($this, value);
+          }
+          const size = $this.size;
           if (size === 0) {
               return false;
           }
           let i = 0;
           const indexMap = o.indexMap;
-          for (const entry of this.keys()) {
+          for (const entry of $this.keys()) {
               if (entry === value) {
                   if (indexMap[i] > -1) {
                       indexMap.deletedItems.push(entry);
                   }
                   indexMap.splice(i, 1);
-                  return $delete$1.call(this, value);
+                  return $delete$1.call($this, value);
               }
               i++;
           }
-          o.callSubscribers('delete', arguments, exports.LifecycleFlags.isCollectionMutation);
+          o.callSubscribers('delete', arguments, o.persistentFlags | exports.LifecycleFlags.isCollectionMutation);
           return false;
       }
   };
@@ -4005,18 +4261,19 @@
       }
   }
   exports.SetObserver = class SetObserver {
-      constructor(lifecycle, observedSet) {
+      constructor(flags, lifecycle, observedSet) {
           this.lifecycle = lifecycle;
           observedSet.$observer = this;
           this.collection = observedSet;
+          this.flags = flags & exports.LifecycleFlags.persistentBindingFlags;
           this.resetIndexMap();
       }
   };
   exports.SetObserver = __decorate([
       collectionObserver(7 /* set */)
   ], exports.SetObserver);
-  function getSetObserver(lifecycle, observedSet) {
-      return observedSet.$observer || new exports.SetObserver(lifecycle, observedSet);
+  function getSetObserver(flags, lifecycle, observedSet) {
+      return observedSet.$observer || new exports.SetObserver(flags, lifecycle, observedSet);
   }
 
   function computed(config) {
@@ -4026,7 +4283,7 @@
   }
   const computedOverrideDefaults = { static: false, volatile: false };
   /* @internal */
-  function createComputedObserver(observerLocator, dirtyChecker, lifecycle, instance, propertyName, descriptor) {
+  function createComputedObserver(flags, observerLocator, dirtyChecker, lifecycle, instance, propertyName, descriptor) {
       if (descriptor.configurable === false) {
           return dirtyChecker.createProperty(instance, propertyName);
       }
@@ -4034,11 +4291,11 @@
           const overrides = instance.constructor.computed && instance.constructor.computed[propertyName] || computedOverrideDefaults;
           if (descriptor.set) {
               if (overrides.volatile) {
-                  return new exports.GetterObserver(overrides, instance, propertyName, descriptor, observerLocator, lifecycle);
+                  return new exports.GetterObserver(flags, overrides, instance, propertyName, descriptor, observerLocator, lifecycle);
               }
               return new exports.CustomSetterObserver(instance, propertyName, descriptor);
           }
-          return new exports.GetterObserver(overrides, instance, propertyName, descriptor, observerLocator, lifecycle);
+          return new exports.GetterObserver(flags, overrides, instance, propertyName, descriptor, observerLocator, lifecycle);
       }
       throw kernel.Reporter.error(18, propertyName);
   }
@@ -4082,7 +4339,7 @@
   // Used when there is a setter but the value of the getter can change based on properties set outside of the setter.
   /** @internal */
   exports.GetterObserver = class GetterObserver {
-      constructor(overrides, obj, propertyKey, descriptor, observerLocator, lifecycle) {
+      constructor(flags, overrides, obj, propertyKey, descriptor, observerLocator, lifecycle) {
           this.obj = obj;
           this.propertyKey = propertyKey;
           this.isCollecting = false;
@@ -4092,7 +4349,7 @@
           this.overrides = overrides;
           this.subscriberCount = 0;
           this.descriptor = descriptor;
-          this.proxy = new Proxy(obj, createGetterTraps(observerLocator, this));
+          this.proxy = new Proxy(obj, createGetterTraps(flags, observerLocator, this));
           const get = () => this.getValue();
           Reflect.defineProperty(obj, propertyKey, { get });
       }
@@ -4169,7 +4426,7 @@
       subscriberCollection(exports.MutationKind.instance)
   ], exports.GetterObserver);
   const toStringTag$1 = Object.prototype.toString;
-  function createGetterTraps(observerLocator, observer) {
+  function createGetterTraps(flags, observerLocator, observer) {
       const traps = {
           get: function (target, key, receiver) {
               if (observer.doNotCollect(key)) {
@@ -4179,29 +4436,29 @@
               // at least) or they will throw.
               switch (toStringTag$1.call(target)) {
                   case '[object Array]':
-                      observer.addCollectionDep(observerLocator.getArrayObserver(target));
+                      observer.addCollectionDep(observerLocator.getArrayObserver(flags, target));
                       if (key === 'length') {
                           return Reflect.get(target, key, target);
                       }
                   case '[object Map]':
-                      observer.addCollectionDep(observerLocator.getMapObserver(target));
+                      observer.addCollectionDep(observerLocator.getMapObserver(flags, target));
                       if (key === 'size') {
                           return Reflect.get(target, key, target);
                       }
                   case '[object Set]':
-                      observer.addCollectionDep(observerLocator.getSetObserver(target));
+                      observer.addCollectionDep(observerLocator.getSetObserver(flags, target));
                       if (key === 'size') {
                           return Reflect.get(target, key, target);
                       }
                   default:
-                      observer.addPropertyDep(observerLocator.getObserver(target, key));
+                      observer.addPropertyDep(observerLocator.getObserver(flags, target, key));
               }
-              return proxyOrValue(target, key, observerLocator, observer);
+              return proxyOrValue(flags, target, key, observerLocator, observer);
           }
       };
       return traps;
   }
-  function proxyOrValue(target, key, observerLocator, observer) {
+  function proxyOrValue(flags, target, key, observerLocator, observer) {
       const value = Reflect.get(target, key, target);
       if (typeof value === 'function') {
           return target[key].bind(target);
@@ -4209,7 +4466,7 @@
       if (typeof value !== 'object' || value === null) {
           return value;
       }
-      return new Proxy(value, createGetterTraps(observerLocator, observer));
+      return new Proxy(value, createGetterTraps(flags, observerLocator, observer));
   }
 
   const IDirtyChecker = kernel.DI.createInterface('IDirtyChecker').withDefault(x => x.singleton(DirtyChecker));
@@ -4398,16 +4655,19 @@
       static register(container) {
           return kernel.Registration.singleton(IObserverLocator, this).register(container);
       }
-      getObserver(obj, propertyName) {
+      getObserver(flags, obj, propertyName) {
+          if (flags & exports.LifecycleFlags.useProxies && typeof obj === 'object') {
+              return exports.ProxyObserver.getOrCreate(obj, propertyName); // TODO: fix typings (and ensure proper contracts ofc)
+          }
           if (isBindingContext(obj)) {
-              return obj.getObservers().getOrCreate(obj, propertyName);
+              return obj.getObservers(flags).getOrCreate(flags, obj, propertyName);
           }
           let observersLookup = obj.$observers;
           let observer;
           if (observersLookup && propertyName in observersLookup) {
               return observersLookup[propertyName];
           }
-          observer = this.createPropertyObserver(obj, propertyName);
+          observer = this.createPropertyObserver(flags, obj, propertyName);
           if (!observer.doNotCache) {
               if (observersLookup === undefined) {
                   observersLookup = this.getOrCreateObserversLookup(obj);
@@ -4419,23 +4679,26 @@
       addAdapter(adapter) {
           this.adapters.push(adapter);
       }
-      getAccessor(obj, propertyName) {
-          if (this.targetAccessorLocator.handles(obj)) {
-              if (this.targetObserverLocator.overridesAccessor(obj, propertyName)) {
-                  return this.getObserver(obj, propertyName);
+      getAccessor(flags, obj, propertyName) {
+          if (this.targetAccessorLocator.handles(flags, obj)) {
+              if (this.targetObserverLocator.overridesAccessor(flags, obj, propertyName)) {
+                  return this.getObserver(flags, obj, propertyName);
               }
-              return this.targetAccessorLocator.getAccessor(this.lifecycle, obj, propertyName);
+              return this.targetAccessorLocator.getAccessor(flags, this.lifecycle, obj, propertyName);
+          }
+          if (flags & exports.LifecycleFlags.useProxies) {
+              return exports.ProxyObserver.getOrCreate(obj, propertyName);
           }
           return new PropertyAccessor(obj, propertyName);
       }
-      getArrayObserver(observedArray) {
-          return getArrayObserver(this.lifecycle, observedArray);
+      getArrayObserver(flags, observedArray) {
+          return getArrayObserver(flags, this.lifecycle, observedArray);
       }
-      getMapObserver(observedMap) {
-          return getMapObserver(this.lifecycle, observedMap);
+      getMapObserver(flags, observedMap) {
+          return getMapObserver(flags, this.lifecycle, observedMap);
       }
-      getSetObserver(observedSet) {
-          return getSetObserver(this.lifecycle, observedSet);
+      getSetObserver(flags, observedSet) {
+          return getSetObserver(flags, this.lifecycle, observedSet);
       }
       getOrCreateObserversLookup(obj) {
           return obj.$observers || this.createObserversLookup(obj);
@@ -4452,23 +4715,23 @@
           }
           return value;
       }
-      getAdapterObserver(obj, propertyName, descriptor) {
+      getAdapterObserver(flags, obj, propertyName, descriptor) {
           for (let i = 0, ii = this.adapters.length; i < ii; i++) {
               const adapter = this.adapters[i];
-              const observer = adapter.getObserver(obj, propertyName, descriptor);
+              const observer = adapter.getObserver(flags, obj, propertyName, descriptor);
               if (observer) {
                   return observer;
               }
           }
           return null;
       }
-      createPropertyObserver(obj, propertyName) {
+      createPropertyObserver(flags, obj, propertyName) {
           if (!(obj instanceof Object)) {
               return new PrimitiveObserver(obj, propertyName);
           }
           let isNode = false;
-          if (this.targetObserverLocator.handles(obj)) {
-              const observer = this.targetObserverLocator.getObserver(this.lifecycle, this, obj, propertyName);
+          if (this.targetObserverLocator.handles(flags, obj)) {
+              const observer = this.targetObserverLocator.getObserver(flags, this.lifecycle, this, obj, propertyName);
               if (observer !== null) {
                   return observer;
               }
@@ -4481,17 +4744,17 @@
           switch (tag) {
               case '[object Array]':
                   if (propertyName === 'length') {
-                      return this.getArrayObserver(obj).getLengthObserver();
+                      return this.getArrayObserver(flags, obj).getLengthObserver(flags);
                   }
                   return this.dirtyChecker.createProperty(obj, propertyName);
               case '[object Map]':
                   if (propertyName === 'size') {
-                      return this.getMapObserver(obj).getLengthObserver();
+                      return this.getMapObserver(flags, obj).getLengthObserver(flags);
                   }
                   return this.dirtyChecker.createProperty(obj, propertyName);
               case '[object Set]':
                   if (propertyName === 'size') {
-                      return this.getSetObserver(obj).getLengthObserver();
+                      return this.getSetObserver(flags, obj).getLengthObserver(flags);
                   }
                   return this.dirtyChecker.createProperty(obj, propertyName);
           }
@@ -4501,7 +4764,7 @@
                   return descriptor.get.getObserver(obj);
               }
               // attempt to use an adapter before resorting to dirty checking.
-              const adapterObserver = this.getAdapterObserver(obj, propertyName, descriptor);
+              const adapterObserver = this.getAdapterObserver(flags, obj, propertyName, descriptor);
               if (adapterObserver) {
                   return adapterObserver;
               }
@@ -4509,20 +4772,20 @@
                   // TODO: use MutationObserver
                   return this.dirtyChecker.createProperty(obj, propertyName);
               }
-              return createComputedObserver(this, this.dirtyChecker, this.lifecycle, obj, propertyName, descriptor);
+              return createComputedObserver(flags, this, this.dirtyChecker, this.lifecycle, obj, propertyName, descriptor);
           }
-          return new exports.SetterObserver(obj, propertyName);
+          return new exports.SetterObserver(flags, obj, propertyName);
       }
   }
   ObserverLocator.inject = [ILifecycle, IDirtyChecker, ITargetObserverLocator, ITargetAccessorLocator];
-  function getCollectionObserver(lifecycle, collection) {
+  function getCollectionObserver(flags, lifecycle, collection) {
       switch (toStringTag$2.call(collection)) {
           case '[object Array]':
-              return getArrayObserver(lifecycle, collection);
+              return getArrayObserver(flags, lifecycle, collection);
           case '[object Map]':
-              return getMapObserver(lifecycle, collection);
+              return getMapObserver(flags, lifecycle, collection);
           case '[object Set]':
-              return getSetObserver(lifecycle, collection);
+              return getSetObserver(flags, lifecycle, collection);
       }
       return null;
   }
@@ -4532,13 +4795,28 @@
 
   const noop$1 = kernel.PLATFORM.noop;
   exports.SelfObserver = class SelfObserver {
-      constructor(instance, propertyName, callbackName) {
-          this.obj = instance;
-          this.propertyKey = propertyName;
-          this.currentValue = instance[propertyName];
-          this.callback = callbackName in instance
-              ? instance[callbackName].bind(instance)
-              : noop$1;
+      constructor(flags, instance, propertyName, callbackName) {
+          this.persistentFlags = flags & exports.LifecycleFlags.persistentBindingFlags;
+          if (exports.ProxyObserver.isProxy(instance)) {
+              instance.$observer.subscribe(this, propertyName);
+              this.obj = instance.$raw;
+              this.propertyKey = propertyName;
+              this.currentValue = instance.$raw[propertyName];
+              this.callback = callbackName in instance.$raw
+                  ? instance[callbackName].bind(instance)
+                  : noop$1;
+          }
+          else {
+              this.obj = instance;
+              this.propertyKey = propertyName;
+              this.currentValue = instance[propertyName];
+              this.callback = callbackName in instance
+                  ? instance[callbackName].bind(instance)
+                  : noop$1;
+          }
+      }
+      handleChange(newValue, oldValue, flags) {
+          this.setValue(newValue, flags);
       }
       getValue() {
           return this.currentValue;
@@ -4548,7 +4826,7 @@
           if (currentValue !== newValue) {
               this.currentValue = newValue;
               if (!(flags & exports.LifecycleFlags.fromBind)) {
-                  const coercedValue = this.callback(newValue, currentValue);
+                  const coercedValue = this.callback(newValue, currentValue, flags);
                   if (coercedValue !== undefined) {
                       this.currentValue = newValue = coercedValue;
                   }
@@ -4831,6 +5109,7 @@
           this.containerless = false;
           this.shadowOptions = null;
           this.hasSlots = false;
+          this.useProxies = false;
       }
   }
   const templateDefinitionAssignables = [
@@ -4840,7 +5119,8 @@
       'build',
       'containerless',
       'shadowOptions',
-      'hasSlots'
+      'hasSlots',
+      'useProxies'
   ];
   const templateDefinitionArrays = [
       'instructions',
@@ -4848,11 +5128,13 @@
       'surrogates'
   ];
   // tslint:disable-next-line:parameters-max-number // TODO: Reduce complexity (currently at 64)
-  function buildTemplateDefinition(ctor, nameOrDef, template, cache, build, bindables, instructions, dependencies, surrogates, containerless, shadowOptions, hasSlots) {
+  function buildTemplateDefinition(ctor, nameOrDef, template, cache, build, bindables, instructions, dependencies, surrogates, containerless, shadowOptions, hasSlots, useProxies) {
       const def = new DefaultTemplateDefinition();
       // all cases fall through intentionally
       const argLen = arguments.length;
       switch (argLen) {
+          case 13: if (useProxies !== null)
+              def.useProxies = useProxies;
           case 12: if (hasSlots !== null)
               def.hasSlots = hasSlots;
           case 11: if (shadowOptions !== null)
@@ -5165,6 +5447,9 @@
       }
       const scope = this.$scope;
       scope.parentScope = parentScope;
+      // --------
+      // TODO: refactor this: bind the non-component bindables before `binding` hook, so repeat.for can use `binding` instead of `bound`, etc
+      // --------
       const lifecycle = this.$lifecycle;
       lifecycle.beginBind();
       // add isBinding flag
@@ -5273,23 +5558,30 @@
 
   const { enter: enter$2, leave: leave$2 } = kernel.Profiler.createTimer('RenderLifecycle');
   /** @internal */
-  function $hydrateAttribute(renderingEngine) {
+  function $hydrateAttribute(flags, renderingEngine) {
       const Type = this.constructor;
-      renderingEngine.applyRuntimeBehavior(Type, this);
+      renderingEngine.applyRuntimeBehavior(flags, Type, this);
       if (this.$hooks & 2 /* hasCreated */) {
-          this.created();
+          this.created(flags);
       }
   }
   /** @internal */
-  function $hydrateElement(dom, projectorLocator, renderingEngine, host, parentContext, options = kernel.PLATFORM.emptyObject) {
+  function $hydrateElement(flags, dom, projectorLocator, renderingEngine, host, parentContext, options = kernel.PLATFORM.emptyObject) {
       const Type = this.constructor;
       const description = Type.description;
-      this.$scope = Scope.create(this, null);
+      let bindingContext;
+      if (flags & exports.LifecycleFlags.useProxies) {
+          bindingContext = exports.ProxyObserver.getOrCreate(this).proxy;
+      }
+      else {
+          bindingContext = this;
+      }
+      this.$scope = Scope.create(flags, bindingContext, null);
       this.$host = host;
       this.$projector = projectorLocator.getElementProjector(dom, this, host, description);
-      renderingEngine.applyRuntimeBehavior(Type, this);
+      renderingEngine.applyRuntimeBehavior(flags, Type, this);
       if (this.$hooks & 1024 /* hasRender */) {
-          const result = this.render(host, options.parts, parentContext);
+          const result = this.render(flags, host, options.parts, parentContext);
           if (result && 'getElementTemplate' in result) {
               const template = result.getElementTemplate(renderingEngine, Type, parentContext);
               template.render(this, host, options.parts);
@@ -5300,7 +5592,7 @@
           template.render(this, host, options.parts);
       }
       if (this.$hooks & 2 /* hasCreated */) {
-          this.created();
+          this.created(flags);
       }
   }
 
@@ -5403,7 +5695,8 @@
           defaultBindingMode: defaultBindingMode === undefined || defaultBindingMode === null ? exports.BindingMode.toView : defaultBindingMode,
           hasDynamicOptions: def.hasDynamicOptions === undefined ? false : def.hasDynamicOptions,
           isTemplateController: def.isTemplateController === undefined ? false : def.isTemplateController,
-          bindables: Object.assign({}, Type.bindables, def.bindables)
+          bindables: Object.assign({}, Type.bindables, def.bindables),
+          useProxies: def.useProxies === undefined ? false : def.useProxies
       };
   }
 
@@ -5442,6 +5735,9 @@
           }
           if (config.mode === undefined) {
               config.mode = exports.BindingMode.toView;
+          }
+          if (config.useProxies === undefined) {
+              config.useProxies = false;
           }
           if (arguments.length > 1) {
               // Non invocation:
@@ -5509,6 +5805,9 @@
           this.coordinator.caching(flags);
       }
       valueChanged(newValue, oldValue, flags) {
+          if (exports.ProxyObserver.isProxy(this)) {
+              flags |= exports.LifecycleFlags.useProxies;
+          }
           if (flags & exports.LifecycleFlags.fromFlush) {
               const view = this.updateView(flags);
               this.coordinator.compose(view, flags);
@@ -5518,6 +5817,9 @@
           }
       }
       flush(flags) {
+          if (exports.ProxyObserver.isProxy(this)) {
+              flags |= exports.LifecycleFlags.useProxies;
+          }
           const view = this.updateView(flags);
           this.coordinator.compose(view, flags);
       }
@@ -5538,7 +5840,7 @@
       /** @internal */
       ensureView(view, factory, flags) {
           if (view === null) {
-              view = factory.create();
+              view = factory.create(flags);
           }
           view.hold(this.location);
           return view;
@@ -5570,12 +5872,12 @@
           this.views = [];
       }
       binding(flags) {
-          this.checkCollectionObserver();
+          this.checkCollectionObserver(flags);
       }
       bound(flags) {
           let current = this.renderable.$bindableHead;
           while (current !== null) {
-              if (current.target === this && current.targetProperty === 'items') {
+              if (exports.ProxyObserver.getRawIfProxy(current.target) === exports.ProxyObserver.getRawIfProxy(this) && current.targetProperty === 'items') {
                   this.forOf = current.sourceExpression;
                   break;
               }
@@ -5601,7 +5903,7 @@
           }
       }
       unbound(flags) {
-          this.checkCollectionObserver();
+          this.checkCollectionObserver(flags);
           const { views } = this;
           for (let i = 0, ii = views.length; i < ii; ++i) {
               const view = views[i];
@@ -5610,16 +5912,19 @@
       }
       // called by SetterObserver (sync)
       itemsChanged(newValue, oldValue, flags) {
-          this.checkCollectionObserver();
+          this.checkCollectionObserver(flags);
           this.processViews(null, flags | exports.LifecycleFlags.updateTargetInstance);
       }
       // called by a CollectionObserver (async)
-      handleBatchedChange(indexMap) {
-          this.processViews(indexMap, exports.LifecycleFlags.fromFlush | exports.LifecycleFlags.updateTargetInstance);
+      handleBatchedChange(indexMap, flags) {
+          this.processViews(indexMap, flags | exports.LifecycleFlags.fromFlush | exports.LifecycleFlags.updateTargetInstance);
       }
       // if the indexMap === null, it is an instance mutation, otherwise it's an items mutation
       // TODO: Reduce complexity (currently at 46)
       processViews(indexMap, flags) {
+          if (exports.ProxyObserver.isProxy(this)) {
+              flags |= exports.LifecycleFlags.useProxies;
+          }
           const { views, $lifecycle } = this;
           if (this.$state & 2 /* isBound */) {
               const { local, $scope, factory, forOf, items } = this;
@@ -5628,7 +5933,7 @@
               if (oldLength < newLength) {
                   views.length = newLength;
                   for (let i = oldLength; i < newLength; ++i) {
-                      views[i] = factory.create();
+                      views[i] = factory.create(flags);
                   }
               }
               else if (newLength < oldLength) {
@@ -5656,10 +5961,10 @@
                   forOf.iterate(items, (arr, i, item) => {
                       const view = views[i];
                       if (!!view.$scope && view.$scope.bindingContext[local] === item) {
-                          view.$bind(flags, Scope.fromParent($scope, view.$scope.bindingContext));
+                          view.$bind(flags, Scope.fromParent(flags, $scope, view.$scope.bindingContext));
                       }
                       else {
-                          view.$bind(flags, Scope.fromParent($scope, BindingContext.create(local, item)));
+                          view.$bind(flags, Scope.fromParent(flags, $scope, BindingContext.create(flags, local, item)));
                       }
                   });
               }
@@ -5667,10 +5972,10 @@
                   forOf.iterate(items, (arr, i, item) => {
                       const view = views[i];
                       if (!!view.$scope && (indexMap[i] === i || view.$scope.bindingContext[local] === item)) {
-                          view.$bind(flags, Scope.fromParent($scope, view.$scope.bindingContext));
+                          view.$bind(flags, Scope.fromParent(flags, $scope, view.$scope.bindingContext));
                       }
                       else {
-                          view.$bind(flags, Scope.fromParent($scope, BindingContext.create(local, item)));
+                          view.$bind(flags, Scope.fromParent(flags, $scope, BindingContext.create(flags, local, item)));
                       }
                   });
               }
@@ -5698,10 +6003,10 @@
               $lifecycle.endAttach(flags);
           }
       }
-      checkCollectionObserver() {
+      checkCollectionObserver(flags) {
           const oldObserver = this.observer;
           if (this.$state & (2 /* isBound */ | 1 /* isBinding */)) {
-              const newObserver = this.observer = getCollectionObserver(this.$lifecycle, this.items);
+              const newObserver = this.observer = getCollectionObserver(flags, this.$lifecycle, this.items);
               if (oldObserver !== newObserver && oldObserver) {
                   oldObserver.unsubscribeBatched(this);
               }
@@ -5767,7 +6072,7 @@
           this.currentView.$unbind(flags);
       }
       bindChild(flags) {
-          const scope = Scope.fromParent(this.$scope, this.value);
+          const scope = Scope.fromParent(flags, this.$scope, this.value);
           this.currentView.$bind(flags, scope);
       }
   }
@@ -6007,7 +6312,7 @@
           }
           return false;
       }
-      create() {
+      create(flags) {
           const cache = this.cache;
           let view;
           if (cache !== null && cache.length > 0) {
@@ -6016,7 +6321,7 @@
               return view;
           }
           view = new View(this.lifecycle, this);
-          this.template.render(view);
+          this.template.render(view, null, null, flags);
           if (!view.$nodes) {
               throw kernel.Reporter.error(90);
           }
@@ -6081,10 +6386,13 @@
           this.factory = factory;
           this.renderContext = renderContext;
       }
-      render(renderable, host, parts) {
+      render(renderable, host, parts, flags = exports.LifecycleFlags.none) {
           const nodes = renderable.$nodes = this.factory.createNodeSequence();
           renderable.$context = this.renderContext;
-          this.renderContext.render(renderable, nodes.findTargets(), this.definition, host, parts);
+          if (this.definition.useProxies) {
+              flags |= exports.LifecycleFlags.useProxies;
+          }
+          this.renderContext.render(flags, renderable, nodes.findTargets(), this.definition, host, parts);
       }
   }
   // This is an implementation of ITemplate that always returns a node sequence representing "no DOM" to render.
@@ -6140,13 +6448,13 @@
           }
           return factory;
       }
-      applyRuntimeBehavior(Type, instance) {
+      applyRuntimeBehavior(flags, Type, instance) {
           let found = this.behaviorLookup.get(Type);
           if (!found) {
               found = RuntimeBehavior.create(Type);
               this.behaviorLookup.set(Type, found);
           }
-          found.applyTo(instance, this.lifecycle);
+          found.applyTo(flags, instance, this.lifecycle);
       }
       templateFromSource(dom, definition, parentContext, componentType) {
           if (parentContext === null) {
@@ -6188,8 +6496,8 @@
       if (componentType) {
           componentType.register(context);
       }
-      context.render = function (renderable, targets, templateDefinition, host, parts) {
-          renderer.render(dom, this, renderable, targets, templateDefinition, host, parts);
+      context.render = function (flags, renderable, targets, templateDefinition, host, parts) {
+          renderer.render(flags, dom, this, renderable, targets, templateDefinition, host, parts);
       };
       context.beginComponentOperation = function (renderable, target, instruction, factory, parts, location) {
           renderableProvider.prepare(renderable);
@@ -6317,17 +6625,17 @@
           behavior.bindables = Component.description.bindables;
           return behavior;
       }
-      applyTo(instance, lifecycle) {
+      applyTo(flags, instance, lifecycle) {
           instance.$lifecycle = lifecycle;
           if ('$projector' in instance) {
-              this.applyToElement(lifecycle, instance);
+              this.applyToElement(flags, lifecycle, instance);
           }
           else {
-              this.applyToCore(instance);
+              this.applyToCore(flags, instance);
           }
       }
-      applyToElement(lifecycle, instance) {
-          const observers = this.applyToCore(instance);
+      applyToElement(flags, lifecycle, instance) {
+          const observers = this.applyToCore(flags, instance);
           observers.$children = new ChildrenObserver(lifecycle, instance);
           Reflect.defineProperty(instance, '$children', {
               enumerable: false,
@@ -6336,27 +6644,35 @@
               }
           });
       }
-      applyToCore(instance) {
+      applyToCore(flags, instance) {
           const observers = {};
           const bindables = this.bindables;
           const observableNames = Object.getOwnPropertyNames(bindables);
-          for (let i = 0, ii = observableNames.length; i < ii; ++i) {
-              const name = observableNames[i];
-              observers[name] = new exports.SelfObserver(instance, name, bindables[name].callback);
-              createGetterSetter(instance, name);
+          if (flags & exports.LifecycleFlags.useProxies) {
+              for (let i = 0, ii = observableNames.length; i < ii; ++i) {
+                  const name = observableNames[i];
+                  observers[name] = new exports.SelfObserver(flags, exports.ProxyObserver.getOrCreate(instance).proxy, name, bindables[name].callback);
+              }
           }
-          Reflect.defineProperty(instance, '$observers', {
-              enumerable: false,
-              value: observers
-          });
+          else {
+              for (let i = 0, ii = observableNames.length; i < ii; ++i) {
+                  const name = observableNames[i];
+                  observers[name] = new exports.SelfObserver(flags, instance, name, bindables[name].callback);
+                  createGetterSetter(flags, instance, name);
+              }
+              Reflect.defineProperty(instance, '$observers', {
+                  enumerable: false,
+                  value: observers
+              });
+          }
           return observers;
       }
   }
-  function createGetterSetter(instance, name) {
+  function createGetterSetter(flags, instance, name) {
       Reflect.defineProperty(instance, name, {
           enumerable: true,
           get: function () { return this['$observers'][name].getValue(); },
-          set: function (value) { this['$observers'][name].setValue(value, exports.LifecycleFlags.updateTargetInstance); }
+          set: function (value) { this['$observers'][name].setValue(value, (flags & exports.LifecycleFlags.persistentBindingFlags) | exports.LifecycleFlags.updateTargetInstance); }
       });
   }
 
@@ -6388,6 +6704,12 @@
               const domInitializer = this.container.get(IDOMInitializer);
               dom = domInitializer.initialize(config);
           }
+          let startFlags = exports.LifecycleFlags.fromStartTask;
+          let stopFlags = exports.LifecycleFlags.fromStopTask;
+          if (config.useProxies) {
+              startFlags |= exports.LifecycleFlags.useProxies;
+              stopFlags |= exports.LifecycleFlags.useProxies;
+          }
           let component;
           const componentOrType = config.component;
           if (CustomElementResource.isType(componentOrType)) {
@@ -6397,6 +6719,7 @@
           else {
               component = componentOrType;
           }
+          component = exports.ProxyObserver.getRawIfProxy(component);
           const startTask = () => {
               host.$au = this;
               if (!this.components.includes(component)) {
@@ -6404,15 +6727,15 @@
                   this.components.push(component);
                   const re = this.container.get(IRenderingEngine);
                   const pl = this.container.get(IProjectorLocator);
-                  component.$hydrate(dom, pl, re, host, this.container);
+                  component.$hydrate(startFlags, dom, pl, re, host, this.container);
               }
-              component.$bind(exports.LifecycleFlags.fromStartTask | exports.LifecycleFlags.fromBind, null);
-              component.$attach(exports.LifecycleFlags.fromStartTask | exports.LifecycleFlags.fromAttach);
+              component.$bind(startFlags | exports.LifecycleFlags.fromBind, null);
+              component.$attach(startFlags | exports.LifecycleFlags.fromAttach);
           };
           this.startTasks.push(startTask);
           this.stopTasks.push(() => {
-              component.$detach(exports.LifecycleFlags.fromStopTask | exports.LifecycleFlags.fromDetach);
-              component.$unbind(exports.LifecycleFlags.fromStopTask | exports.LifecycleFlags.fromUnbind);
+              component.$detach(stopFlags | exports.LifecycleFlags.fromDetach);
+              component.$unbind(stopFlags | exports.LifecycleFlags.fromUnbind);
               host.$au = null;
           });
           if (this.isStarted) {
@@ -6421,7 +6744,7 @@
           return this;
       }
       root() {
-          return this._root;
+          return exports.ProxyObserver.getProxyOrSelf(this._root);
       }
       start() {
           for (const runStartTask of this.startTasks) {
@@ -6474,7 +6797,7 @@
       static register(container) {
           return kernel.Registration.singleton(IRenderer, this).register(container);
       }
-      render(dom, context, renderable, targets, definition, host, parts) {
+      render(flags, dom, context, renderable, targets, definition, host, parts) {
           const targetInstructions = definition.instructions;
           const instructionRenderers = this.instructionRenderers;
           if (targets.length !== targetInstructions.length) {
@@ -6490,14 +6813,14 @@
               const target = targets[i];
               for (let j = 0, jj = instructions.length; j < jj; ++j) {
                   const current = instructions[j];
-                  instructionRenderers[current.type].render(dom, context, renderable, target, current, parts);
+                  instructionRenderers[current.type].render(flags, dom, context, renderable, target, current, parts);
               }
           }
           if (host) {
               const surrogateInstructions = definition.surrogates;
               for (let i = 0, ii = surrogateInstructions.length; i < ii; ++i) {
                   const current = surrogateInstructions[i];
-                  instructionRenderers[current.type].render(dom, context, renderable, host, current, parts);
+                  instructionRenderers[current.type].render(flags, dom, context, renderable, host, current, parts);
               }
           }
       }
@@ -6534,7 +6857,7 @@
   let SetPropertyRenderer = 
   /** @internal */
   class SetPropertyRenderer {
-      render(dom, context, renderable, target, instruction) {
+      render(flags, dom, context, renderable, target, instruction) {
           target[instruction.to] = instruction.value;
       }
   };
@@ -6548,16 +6871,16 @@
       constructor(renderingEngine) {
           this.renderingEngine = renderingEngine;
       }
-      render(dom, context, renderable, target, instruction) {
+      render(flags, dom, context, renderable, target, instruction) {
           const operation = context.beginComponentOperation(renderable, target, instruction, null, null, target, true);
           const component = context.get(customElementKey(instruction.res));
           const instructionRenderers = context.get(IRenderer).instructionRenderers;
           const projectorLocator = context.get(IProjectorLocator);
           const childInstructions = instruction.instructions;
-          component.$hydrate(dom, projectorLocator, this.renderingEngine, target, context, instruction);
+          component.$hydrate(flags, dom, projectorLocator, this.renderingEngine, target, context, instruction);
           for (let i = 0, ii = childInstructions.length; i < ii; ++i) {
               const current = childInstructions[i];
-              instructionRenderers[current.type].render(dom, context, renderable, component, current);
+              instructionRenderers[current.type].render(flags, dom, context, renderable, component, current);
           }
           addBindable(renderable, component);
           addAttachable(renderable, component);
@@ -6575,15 +6898,15 @@
       constructor(renderingEngine) {
           this.renderingEngine = renderingEngine;
       }
-      render(dom, context, renderable, target, instruction) {
+      render(flags, dom, context, renderable, target, instruction) {
           const operation = context.beginComponentOperation(renderable, target, instruction);
           const component = context.get(customAttributeKey(instruction.res));
           const instructionRenderers = context.get(IRenderer).instructionRenderers;
           const childInstructions = instruction.instructions;
-          component.$hydrate(this.renderingEngine);
+          component.$hydrate(flags, this.renderingEngine);
           for (let i = 0, ii = childInstructions.length; i < ii; ++i) {
               const current = childInstructions[i];
-              instructionRenderers[current.type].render(dom, context, renderable, component, current);
+              instructionRenderers[current.type].render(flags, dom, context, renderable, component, current);
           }
           addBindable(renderable, component);
           addAttachable(renderable, component);
@@ -6601,19 +6924,19 @@
       constructor(renderingEngine) {
           this.renderingEngine = renderingEngine;
       }
-      render(dom, context, renderable, target, instruction, parts) {
+      render(flags, dom, context, renderable, target, instruction, parts) {
           const factory = this.renderingEngine.getViewFactory(dom, instruction.def, context);
           const operation = context.beginComponentOperation(renderable, target, instruction, factory, parts, dom.convertToRenderLocation(target), false);
           const component = context.get(customAttributeKey(instruction.res));
           const instructionRenderers = context.get(IRenderer).instructionRenderers;
           const childInstructions = instruction.instructions;
-          component.$hydrate(this.renderingEngine);
+          component.$hydrate(flags, this.renderingEngine);
           if (instruction.link) {
               component.link(renderable.$attachableTail);
           }
           for (let i = 0, ii = childInstructions.length; i < ii; ++i) {
               const current = childInstructions[i];
-              instructionRenderers[current.type].render(dom, context, renderable, component, current);
+              instructionRenderers[current.type].render(flags, dom, context, renderable, component, current);
           }
           addBindable(renderable, component);
           addAttachable(renderable, component);
@@ -6632,7 +6955,7 @@
           this.parser = parser;
           this.observerLocator = observerLocator;
       }
-      render(dom, context, renderable, target, instruction) {
+      render(flags, dom, context, renderable, target, instruction) {
           dom.remove(target);
           const childInstructions = instruction.instructions;
           const toViewModel = instruction.toViewModel;
@@ -6656,7 +6979,7 @@
           this.parser = parser;
           this.observerLocator = observerLocator;
       }
-      render(dom, context, renderable, target, instruction) {
+      render(flags, dom, context, renderable, target, instruction) {
           const expr = ensureExpression(this.parser, instruction.from, 153 /* CallCommand */);
           const bindable = new Call(expr, target, instruction.to, this.observerLocator, context);
           addBindable(renderable, bindable);
@@ -6673,7 +6996,7 @@
       constructor(parser) {
           this.parser = parser;
       }
-      render(dom, context, renderable, target, instruction) {
+      render(flags, dom, context, renderable, target, instruction) {
           const expr = ensureExpression(this.parser, instruction.from, 1280 /* IsRef */);
           const bindable = new Ref(expr, target, context);
           addBindable(renderable, bindable);
@@ -6691,7 +7014,7 @@
           this.parser = parser;
           this.observerLocator = observerLocator;
       }
-      render(dom, context, renderable, target, instruction) {
+      render(flags, dom, context, renderable, target, instruction) {
           let bindable;
           const expr = ensureExpression(this.parser, instruction.from, 2048 /* Interpolation */);
           if (expr.isMulti) {
@@ -6715,7 +7038,7 @@
           this.parser = parser;
           this.observerLocator = observerLocator;
       }
-      render(dom, context, renderable, target, instruction) {
+      render(flags, dom, context, renderable, target, instruction) {
           const expr = ensureExpression(this.parser, instruction.from, 48 /* IsPropertyCommand */ | instruction.mode);
           const bindable = new exports.Binding(expr, target, instruction.to, instruction.mode, this.observerLocator, context);
           addBindable(renderable, bindable);
@@ -6733,7 +7056,7 @@
           this.parser = parser;
           this.observerLocator = observerLocator;
       }
-      render(dom, context, renderable, target, instruction) {
+      render(flags, dom, context, renderable, target, instruction) {
           const expr = ensureExpression(this.parser, instruction.from, 539 /* ForCommand */);
           const bindable = new exports.Binding(expr, target, instruction.to, exports.BindingMode.toView, this.observerLocator, context);
           addBindable(renderable, bindable);

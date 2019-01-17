@@ -2,7 +2,7 @@ import { Class, Constructable, IResourceKind, IResourceType } from '@aurelia/ker
 import { IElementHydrationOptions, ITemplateDefinition, TemplateDefinition } from '../definitions';
 import { IDOM, INode, INodeSequence, IRenderLocation } from '../dom';
 import { IAttach, IBind, ILifecycleHooks, ILifecycleUnbindAfterDetach, IMountable, IRenderable, IRenderContext } from '../lifecycle';
-import { IChangeTracker } from '../observation';
+import { IChangeTracker, LifecycleFlags } from '../observation';
 import { IRenderingEngine } from '../rendering-engine';
 import { ILifecycleRender } from '../templating/lifecycle-render';
 export interface ICustomElementType<T extends INode = INode> extends IResourceType<ITemplateDefinition, ICustomElement<T>>, ICustomElementStaticProperties {
@@ -27,11 +27,12 @@ export interface ICustomElementStaticProperties {
     containerless?: TemplateDefinition['containerless'];
     shadowOptions?: TemplateDefinition['shadowOptions'];
     bindables?: TemplateDefinition['bindables'];
+    useProxies?: TemplateDefinition['useProxies'];
 }
 export interface ICustomElement<T extends INode = INode> extends Partial<IChangeTracker>, ILifecycleHooks, ILifecycleRender, IBind, ILifecycleUnbindAfterDetach, IAttach, IMountable, IRenderable<T> {
     readonly $projector: IElementProjector;
     readonly $host: CustomElementHost;
-    $hydrate(dom: IDOM, projectorLocator: IProjectorLocator, renderingEngine: IRenderingEngine, host: INode, parentContext: IRenderContext | null, options?: IElementHydrationOptions): void;
+    $hydrate(flags: LifecycleFlags, dom: IDOM, projectorLocator: IProjectorLocator, renderingEngine: IRenderingEngine, host: INode, parentContext: IRenderContext | null, options?: IElementHydrationOptions): void;
 }
 export interface ICustomElementResource<T extends INode = INode> extends IResourceKind<ITemplateDefinition, ICustomElement<T>, Class<ICustomElement<T>> & ICustomElementStaticProperties> {
     behaviorFor(node: T): ICustomElement<T> | null;

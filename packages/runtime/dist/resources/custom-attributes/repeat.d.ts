@@ -34,7 +34,7 @@ export declare class Repeat<C extends ObservedCollection = IObservedArray, T ext
     detaching(flags: LifecycleFlags): void;
     unbound(flags: LifecycleFlags): void;
     itemsChanged(newValue: C, oldValue: C, flags: LifecycleFlags): void;
-    handleBatchedChange(indexMap: number[] | null): void;
+    handleBatchedChange(indexMap: number[] | null, flags: LifecycleFlags): void;
     private processViews;
     private checkCollectionObserver;
 }

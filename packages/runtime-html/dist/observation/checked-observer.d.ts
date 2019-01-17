@@ -14,6 +14,7 @@ export interface CheckedObserver extends IBindingTargetObserver<IInputElement, s
 }
 export declare class CheckedObserver implements CheckedObserver {
     readonly isDOMObserver: true;
+    readonly persistentFlags: LifecycleFlags;
     currentFlags: LifecycleFlags;
     currentValue: unknown;
     defaultValue: unknown;
@@ -25,7 +26,7 @@ export declare class CheckedObserver implements CheckedObserver {
     oldValue: unknown;
     private arrayObserver;
     private valueObserver;
-    constructor(lifecycle: ILifecycle, obj: IInputElement, handler: IEventSubscriber, observerLocator: IObserverLocator);
+    constructor(flags: LifecycleFlags, lifecycle: ILifecycle, obj: IInputElement, handler: IEventSubscriber, observerLocator: IObserverLocator);
     getValue(): unknown;
     setValueCore(newValue: unknown, flags: LifecycleFlags): void;
     handleBatchedChange(): void;

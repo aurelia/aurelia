@@ -5,9 +5,10 @@ export interface SetterObserver extends IPropertyObserver<IIndexable, string> {
 export declare class SetterObserver implements SetterObserver {
     subscribe: (subscriber: IPropertySubscriber) => void;
     unsubscribe: (subscriber: IPropertySubscriber) => void;
+    readonly persistentFlags: LifecycleFlags;
     obj: IIndexable;
     propertyKey: string;
-    constructor(obj: IIndexable, propertyKey: string);
+    constructor(flags: LifecycleFlags, obj: IIndexable, propertyKey: string);
     getValue(): unknown;
     setValue(newValue: unknown, flags: LifecycleFlags): void;
 }

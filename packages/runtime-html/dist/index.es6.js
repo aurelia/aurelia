@@ -64,7 +64,7 @@ class Listener {
         // remove isBound and isUnbinding flags
         this.$state &= ~(2 /* isBound */ | 64 /* isUnbinding */);
     }
-    observeProperty(obj, propertyName) {
+    observeProperty(flags, obj, propertyName) {
         return;
     }
     handleChange(newValue, previousValue, flags) {
@@ -121,7 +121,8 @@ const defaultMatcher = (a, b) => {
     return a === b;
 };
 let CheckedObserver = class CheckedObserver {
-    constructor(lifecycle, obj, handler, observerLocator) {
+    constructor(flags, lifecycle, obj, handler, observerLocator) {
+        this.persistentFlags = flags & LifecycleFlags.persistentBindingFlags;
         this.isDOMObserver = true;
         this.handler = handler;
         this.lifecycle = lifecycle;
@@ -143,7 +144,7 @@ let CheckedObserver = class CheckedObserver {
             this.arrayObserver = null;
         }
         if (this.obj.type === 'checkbox' && Array.isArray(newValue)) {
-            this.arrayObserver = this.observerLocator.getArrayObserver(newValue);
+            this.arrayObserver = this.observerLocator.getArrayObserver(this.persistentFlags | flags, newValue);
             this.arrayObserver.subscribeBatched(this);
         }
         this.synchronizeElement();
@@ -186,7 +187,7 @@ let CheckedObserver = class CheckedObserver {
         if (newValue === oldValue) {
             return;
         }
-        this.callSubscribers(this.currentValue, this.oldValue, flags);
+        this.callSubscribers(this.currentValue, this.oldValue, this.persistentFlags | flags);
     }
     handleEvent() {
         let value = this.currentValue;
@@ -537,7 +538,8 @@ function defaultMatcher$1(a, b) {
     return a === b;
 }
 let SelectValueObserver = class SelectValueObserver {
-    constructor(lifecycle, obj, handler, observerLocator, dom) {
+    constructor(flags, lifecycle, obj, handler, observerLocator, dom) {
+        this.persistentFlags = flags & LifecycleFlags.persistentBindingFlags;
         this.isDOMObserver = true;
         this.lifecycle = lifecycle;
         this.obj = obj;
@@ -558,7 +560,7 @@ let SelectValueObserver = class SelectValueObserver {
             this.arrayObserver = null;
         }
         if (isArray) {
-            this.arrayObserver = this.observerLocator.getArrayObserver(newValue);
+            this.arrayObserver = this.observerLocator.getArrayObserver(this.persistentFlags | flags, newValue);
             this.arrayObserver.subscribeBatched(this);
         }
         this.synchronizeOptions();
@@ -572,7 +574,7 @@ let SelectValueObserver = class SelectValueObserver {
     }
     // called when a different value was assigned
     handleChange(newValue, previousValue, flags) {
-        this.setValue(newValue, flags);
+        this.setValue(newValue, this.persistentFlags | flags);
     }
     notify(flags) {
         if (flags & LifecycleFlags.fromBind) {
@@ -583,7 +585,7 @@ let SelectValueObserver = class SelectValueObserver {
         if (newValue === oldValue) {
             return;
         }
-        this.callSubscribers(newValue, oldValue, flags);
+        this.callSubscribers(newValue, oldValue, this.persistentFlags | flags);
     }
     handleEvent() {
         // "from-view" changes are always synchronous now, so immediately sync the value and notify subscribers
@@ -935,13 +937,13 @@ class TargetObserverLocator {
     static register(container) {
         return Registration.singleton(ITargetObserverLocator, this).register(container);
     }
-    getObserver(lifecycle, observerLocator, obj, propertyName) {
+    getObserver(flags, lifecycle, observerLocator, obj, propertyName) {
         switch (propertyName) {
             case 'checked':
-                return new CheckedObserver(lifecycle, obj, new EventSubscriber(this.dom, inputEvents), observerLocator);
+                return new CheckedObserver(flags, lifecycle, obj, new EventSubscriber(this.dom, inputEvents), observerLocator);
             case 'value':
                 if (obj['tagName'] === 'SELECT') {
-                    return new SelectValueObserver(lifecycle, obj, new EventSubscriber(this.dom, selectEvents), observerLocator, this.dom);
+                    return new SelectValueObserver(flags, lifecycle, obj, new EventSubscriber(this.dom, selectEvents), observerLocator, this.dom);
                 }
                 return new ValueAttributeObserver(lifecycle, obj, propertyName, new EventSubscriber(this.dom, inputEvents));
             case 'files':
@@ -958,7 +960,7 @@ class TargetObserverLocator {
             case 'css':
                 return new StyleAttributeAccessor(lifecycle, obj);
             case 'model':
-                return new SetterObserver(obj, propertyName);
+                return new SetterObserver(flags, obj, propertyName);
             case 'role':
                 return new DataAttributeAccessor(lifecycle, obj, propertyName);
             default:
@@ -975,10 +977,10 @@ class TargetObserverLocator {
         }
         return null;
     }
-    overridesAccessor(obj, propertyName) {
+    overridesAccessor(flags, obj, propertyName) {
         return overrideProps[propertyName] === true;
     }
-    handles(obj) {
+    handles(flags, obj) {
         return this.dom.isNodeInstance(obj);
     }
 }
@@ -990,7 +992,7 @@ class TargetAccessorLocator {
     static register(container) {
         return Registration.singleton(ITargetAccessorLocator, this).register(container);
     }
-    getAccessor(lifecycle, obj, propertyName) {
+    getAccessor(flags, lifecycle, obj, propertyName) {
         switch (propertyName) {
             case 'textContent':
                 // note: this case is just an optimization (textContent is the most often used property)
@@ -1021,7 +1023,7 @@ class TargetAccessorLocator {
                 return new ElementPropertyAccessor(lifecycle, obj, propertyName);
         }
     }
-    handles(obj) {
+    handles(flags, obj) {
         return this.dom.isNodeInstance(obj);
     }
 }
@@ -1077,8 +1079,9 @@ class UpdateTriggerBindingBehavior {
         if (binding.mode !== BindingMode.twoWay && binding.mode !== BindingMode.fromView) {
             throw Reporter.error(10);
         }
+        this.persistentFlags = flags & LifecycleFlags.persistentBindingFlags;
         // ensure the binding's target observer has been set.
-        const targetObserver$$1 = this.observerLocator.getObserver(binding.target, binding.targetProperty);
+        const targetObserver$$1 = this.observerLocator.getObserver(this.persistentFlags | flags, binding.target, binding.targetProperty);
         if (!targetObserver$$1.handler) {
             throw Reporter.error(10);
         }
@@ -1180,7 +1183,7 @@ class RenderPlan {
     getElementTemplate(engine, Type) {
         return engine.getElementTemplate(this.dom, this.definition, null, Type);
     }
-    createView(engine, parentContext) {
+    createView(flags, engine, parentContext) {
         return this.getViewFactory(engine, parentContext).create();
     }
     getViewFactory(engine, parentContext) {
@@ -1340,7 +1343,7 @@ class Compose {
         this.coordinator.compose(subject, flags);
     }
     resolveView(subject, flags) {
-        const view = this.provideViewFor(subject);
+        const view = this.provideViewFor(subject, flags);
         if (view) {
             view.hold(this.$projector.host);
             view.lockScope(this.renderable.$scope);
@@ -1348,7 +1351,7 @@ class Compose {
         }
         return null;
     }
-    provideViewFor(subject) {
+    provideViewFor(subject, flags) {
         if (!subject) {
             return null;
         }
@@ -1356,7 +1359,7 @@ class Compose {
             return subject;
         }
         if ('createView' in subject) { // RenderPlan
-            return subject.createView(this.renderingEngine, this.renderable.$context);
+            return subject.createView(flags, this.renderingEngine, this.renderable.$context);
         }
         if ('create' in subject) { // IViewFactory
             return subject.create();
@@ -1365,7 +1368,7 @@ class Compose {
             return this.renderingEngine.getViewFactory(this.dom, subject, this.renderable.$context).create();
         }
         // Constructable (Custom Element Constructor)
-        return createElement(this.dom, subject, this.properties, this.$projector.children).createView(this.renderingEngine, this.renderable.$context);
+        return createElement(this.dom, subject, this.properties, this.$projector.children).createView(flags, this.renderingEngine, this.renderable.$context);
     }
 }
 Compose.inject = [IDOM, IRenderable, ITargetedInstruction, IRenderingEngine, CompositionCoordinator];
@@ -1717,7 +1720,7 @@ class TextBindingRenderer {
         this.parser = parser;
         this.observerLocator = observerLocator;
     }
-    render(dom, context, renderable, target, instruction) {
+    render(flags, dom, context, renderable, target, instruction) {
         const next = target.nextSibling;
         if (dom.isMarker(target)) {
             dom.remove(target);
@@ -1745,7 +1748,7 @@ class ListenerBindingRenderer {
         this.parser = parser;
         this.eventManager = eventManager;
     }
-    render(dom, context, renderable, target, instruction) {
+    render(flags, dom, context, renderable, target, instruction) {
         const expr = ensureExpression(this.parser, instruction.from, 80 /* IsEventCommand */ | (instruction.strategy + 6 /* DelegationStrategyDelta */));
         const bindable$$1 = new Listener(dom, instruction.to, instruction.strategy, expr, target, instruction.preventDefault, this.eventManager, context);
         addBindable(renderable, bindable$$1);
@@ -1759,7 +1762,7 @@ ListenerBindingRenderer = __decorate([
 let SetAttributeRenderer = 
 /** @internal */
 class SetAttributeRenderer {
-    render(dom, context, renderable, target, instruction) {
+    render(flags, dom, context, renderable, target, instruction) {
         target.setAttribute(instruction.to, instruction.value);
     }
 };
@@ -1774,7 +1777,7 @@ class StylePropertyBindingRenderer {
         this.parser = parser;
         this.observerLocator = observerLocator;
     }
-    render(dom, context, renderable, target, instruction) {
+    render(flags, dom, context, renderable, target, instruction) {
         const expr = ensureExpression(this.parser, instruction.from, 48 /* IsPropertyCommand */ | BindingMode.toView);
         const bindable$$1 = new Binding(expr, target.style, instruction.to, BindingMode.toView, this.observerLocator, context);
         addBindable(renderable, bindable$$1);

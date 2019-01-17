@@ -3,6 +3,7 @@ import { BindingType, IExpressionParser } from './binding/expression-parser';
 import { ICallBindingInstruction, IHydrateAttributeInstruction, IHydrateElementInstruction, IHydrateLetElementInstruction, IHydrateTemplateController, IInterpolationInstruction, IIteratorBindingInstruction, IPropertyBindingInstruction, IRefBindingInstruction, ISetPropertyInstruction, TemplatePartDefinitions } from './definitions';
 import { IDOM, INode } from './dom';
 import { IAttach, IAttachables, IBindables, IBindScope, IRenderable, IRenderContext } from './lifecycle';
+import { LifecycleFlags } from './observation';
 import { IObserverLocator } from './observation/observer-locator';
 import { IInstructionRenderer, IInstructionTypeClassifier, IRenderingEngine } from './rendering-engine';
 declare type DecoratableInstructionRenderer<TType extends string, TProto, TClass> = Class<TProto & Partial<IInstructionTypeClassifier<TType> & Pick<IInstructionRenderer, 'render'>>, TClass> & Partial<IRegistry>;
@@ -14,28 +15,28 @@ export declare function addBindable(renderable: IBindables, bindable: IBindScope
 export declare function addAttachable(renderable: IAttachables, attachable: IAttach): void;
 export declare class SetPropertyRenderer implements IInstructionRenderer {
     static readonly register: IRegistry['register'];
-    render(dom: IDOM, context: IRenderContext, renderable: IRenderable, target: Record<string, unknown>, instruction: ISetPropertyInstruction): void;
+    render(flags: LifecycleFlags, dom: IDOM, context: IRenderContext, renderable: IRenderable, target: object, instruction: ISetPropertyInstruction): void;
 }
 export declare class CustomElementRenderer implements IInstructionRenderer {
     static readonly inject: ReadonlyArray<InterfaceSymbol>;
     static readonly register: IRegistry['register'];
     private readonly renderingEngine;
     constructor(renderingEngine: IRenderingEngine);
-    render(dom: IDOM, context: IRenderContext, renderable: IRenderable, target: INode, instruction: IHydrateElementInstruction): void;
+    render(flags: LifecycleFlags, dom: IDOM, context: IRenderContext, renderable: IRenderable, target: INode, instruction: IHydrateElementInstruction): void;
 }
 export declare class CustomAttributeRenderer implements IInstructionRenderer {
     static readonly inject: ReadonlyArray<InterfaceSymbol>;
     static readonly register: IRegistry['register'];
     private readonly renderingEngine;
     constructor(renderingEngine: IRenderingEngine);
-    render(dom: IDOM, context: IRenderContext, renderable: IRenderable, target: INode, instruction: IHydrateAttributeInstruction): void;
+    render(flags: LifecycleFlags, dom: IDOM, context: IRenderContext, renderable: IRenderable, target: INode, instruction: IHydrateAttributeInstruction): void;
 }
 export declare class TemplateControllerRenderer implements IInstructionRenderer {
     static readonly inject: ReadonlyArray<InterfaceSymbol>;
     static readonly register: IRegistry['register'];
     private readonly renderingEngine;
     constructor(renderingEngine: IRenderingEngine);
-    render(dom: IDOM, context: IRenderContext, renderable: IRenderable, target: INode, instruction: IHydrateTemplateController, parts?: TemplatePartDefinitions): void;
+    render(flags: LifecycleFlags, dom: IDOM, context: IRenderContext, renderable: IRenderable, target: INode, instruction: IHydrateTemplateController, parts?: TemplatePartDefinitions): void;
 }
 export declare class LetElementRenderer implements IInstructionRenderer {
     static readonly inject: ReadonlyArray<InterfaceSymbol>;
@@ -43,7 +44,7 @@ export declare class LetElementRenderer implements IInstructionRenderer {
     private readonly parser;
     private readonly observerLocator;
     constructor(parser: IExpressionParser, observerLocator: IObserverLocator);
-    render(dom: IDOM, context: IRenderContext, renderable: IRenderable, target: INode, instruction: IHydrateLetElementInstruction): void;
+    render(flags: LifecycleFlags, dom: IDOM, context: IRenderContext, renderable: IRenderable, target: INode, instruction: IHydrateLetElementInstruction): void;
 }
 export declare class CallBindingRenderer implements IInstructionRenderer {
     static readonly inject: ReadonlyArray<InterfaceSymbol>;
@@ -51,14 +52,14 @@ export declare class CallBindingRenderer implements IInstructionRenderer {
     private readonly parser;
     private readonly observerLocator;
     constructor(parser: IExpressionParser, observerLocator: IObserverLocator);
-    render(dom: IDOM, context: IRenderContext, renderable: IRenderable, target: INode, instruction: ICallBindingInstruction): void;
+    render(flags: LifecycleFlags, dom: IDOM, context: IRenderContext, renderable: IRenderable, target: INode, instruction: ICallBindingInstruction): void;
 }
 export declare class RefBindingRenderer implements IInstructionRenderer {
     static readonly inject: ReadonlyArray<InterfaceSymbol>;
     static readonly register: IRegistry['register'];
     private readonly parser;
     constructor(parser: IExpressionParser);
-    render(dom: IDOM, context: IRenderContext, renderable: IRenderable, target: INode, instruction: IRefBindingInstruction): void;
+    render(flags: LifecycleFlags, dom: IDOM, context: IRenderContext, renderable: IRenderable, target: INode, instruction: IRefBindingInstruction): void;
 }
 export declare class InterpolationBindingRenderer implements IInstructionRenderer {
     static readonly inject: ReadonlyArray<InterfaceSymbol>;
@@ -66,7 +67,7 @@ export declare class InterpolationBindingRenderer implements IInstructionRendere
     private readonly parser;
     private readonly observerLocator;
     constructor(parser: IExpressionParser, observerLocator: IObserverLocator);
-    render(dom: IDOM, context: IRenderContext, renderable: IRenderable, target: INode, instruction: IInterpolationInstruction): void;
+    render(flags: LifecycleFlags, dom: IDOM, context: IRenderContext, renderable: IRenderable, target: INode, instruction: IInterpolationInstruction): void;
 }
 export declare class PropertyBindingRenderer implements IInstructionRenderer {
     static readonly inject: ReadonlyArray<InterfaceSymbol>;
@@ -74,7 +75,7 @@ export declare class PropertyBindingRenderer implements IInstructionRenderer {
     private readonly parser;
     private readonly observerLocator;
     constructor(parser: IExpressionParser, observerLocator: IObserverLocator);
-    render(dom: IDOM, context: IRenderContext, renderable: IRenderable, target: INode, instruction: IPropertyBindingInstruction): void;
+    render(flags: LifecycleFlags, dom: IDOM, context: IRenderContext, renderable: IRenderable, target: INode, instruction: IPropertyBindingInstruction): void;
 }
 export declare class IteratorBindingRenderer implements IInstructionRenderer {
     static readonly inject: ReadonlyArray<InterfaceSymbol>;
@@ -82,7 +83,7 @@ export declare class IteratorBindingRenderer implements IInstructionRenderer {
     private readonly parser;
     private readonly observerLocator;
     constructor(parser: IExpressionParser, observerLocator: IObserverLocator);
-    render(dom: IDOM, context: IRenderContext, renderable: IRenderable, target: INode, instruction: IIteratorBindingInstruction): void;
+    render(flags: LifecycleFlags, dom: IDOM, context: IRenderContext, renderable: IRenderable, target: INode, instruction: IIteratorBindingInstruction): void;
 }
 export {};
 //# sourceMappingURL=renderer.d.ts.map

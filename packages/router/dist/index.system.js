@@ -1,14 +1,14 @@
 System.register('router', ['@aurelia/runtime', '@aurelia/kernel'], function (exports, module) {
   'use strict';
-  var IObserverLocator, CustomElementResource, IDOM, IProjectorLocator, IRenderingEngine, LifecycleFlags, Aurelia, INode, bindable, customElement, IContainer, inject;
+  var IObserverLocator, LifecycleFlags, CustomElementResource, IDOM, IProjectorLocator, IRenderingEngine, Aurelia, INode, bindable, customElement, IContainer, inject;
   return {
     setters: [function (module) {
       IObserverLocator = module.IObserverLocator;
+      LifecycleFlags = module.LifecycleFlags;
       CustomElementResource = module.CustomElementResource;
       IDOM = module.IDOM;
       IProjectorLocator = module.IProjectorLocator;
       IRenderingEngine = module.IRenderingEngine;
-      LifecycleFlags = module.LifecycleFlags;
       Aurelia = module.Aurelia;
       INode = module.INode;
       bindable = module.bindable;
@@ -420,7 +420,7 @@ System.register('router', ['@aurelia/runtime', '@aurelia/kernel'], function (exp
               this.link = this._link(this.components);
               this.linkActive = route.consideredActive ? this._link(route.consideredActive) : this.link;
               this.observerLocator = this.nav.router.container.get(IObserverLocator);
-              this.observer = this.observerLocator.getObserver(this.nav.router, 'activeComponents');
+              this.observer = this.observerLocator.getObserver(LifecycleFlags.none, this.nav.router, 'activeComponents');
               this.observer.subscribe(this);
           }
           get hasChildren() {
@@ -795,7 +795,8 @@ System.register('router', ['@aurelia/runtime', '@aurelia/kernel'], function (exp
               const dom = container.get(IDOM);
               const projectorLocator = container.get(IProjectorLocator);
               const renderingEngine = container.get(IRenderingEngine);
-              component.$hydrate(dom, projectorLocator, renderingEngine, host, null);
+              // TODO: get useProxies settings from the template definition
+              component.$hydrate(LifecycleFlags.none, dom, projectorLocator, renderingEngine, host, null);
               component.$bind(LifecycleFlags.fromStartTask | LifecycleFlags.fromBind, null);
               component.$attach(LifecycleFlags.fromStartTask);
           }

@@ -65,7 +65,7 @@ this.au.runtimeHtml = (function (exports, kernel, runtime) {
           // remove isBound and isUnbinding flags
           this.$state &= ~(2 /* isBound */ | 64 /* isUnbinding */);
       }
-      observeProperty(obj, propertyName) {
+      observeProperty(flags, obj, propertyName) {
           return;
       }
       handleChange(newValue, previousValue, flags) {
@@ -122,7 +122,8 @@ this.au.runtimeHtml = (function (exports, kernel, runtime) {
       return a === b;
   };
   exports.CheckedObserver = class CheckedObserver {
-      constructor(lifecycle, obj, handler, observerLocator) {
+      constructor(flags, lifecycle, obj, handler, observerLocator) {
+          this.persistentFlags = flags & runtime.LifecycleFlags.persistentBindingFlags;
           this.isDOMObserver = true;
           this.handler = handler;
           this.lifecycle = lifecycle;
@@ -144,7 +145,7 @@ this.au.runtimeHtml = (function (exports, kernel, runtime) {
               this.arrayObserver = null;
           }
           if (this.obj.type === 'checkbox' && Array.isArray(newValue)) {
-              this.arrayObserver = this.observerLocator.getArrayObserver(newValue);
+              this.arrayObserver = this.observerLocator.getArrayObserver(this.persistentFlags | flags, newValue);
               this.arrayObserver.subscribeBatched(this);
           }
           this.synchronizeElement();
@@ -187,7 +188,7 @@ this.au.runtimeHtml = (function (exports, kernel, runtime) {
           if (newValue === oldValue) {
               return;
           }
-          this.callSubscribers(this.currentValue, this.oldValue, flags);
+          this.callSubscribers(this.currentValue, this.oldValue, this.persistentFlags | flags);
       }
       handleEvent() {
           let value = this.currentValue;
@@ -538,7 +539,8 @@ this.au.runtimeHtml = (function (exports, kernel, runtime) {
       return a === b;
   }
   exports.SelectValueObserver = class SelectValueObserver {
-      constructor(lifecycle, obj, handler, observerLocator, dom) {
+      constructor(flags, lifecycle, obj, handler, observerLocator, dom) {
+          this.persistentFlags = flags & runtime.LifecycleFlags.persistentBindingFlags;
           this.isDOMObserver = true;
           this.lifecycle = lifecycle;
           this.obj = obj;
@@ -559,7 +561,7 @@ this.au.runtimeHtml = (function (exports, kernel, runtime) {
               this.arrayObserver = null;
           }
           if (isArray) {
-              this.arrayObserver = this.observerLocator.getArrayObserver(newValue);
+              this.arrayObserver = this.observerLocator.getArrayObserver(this.persistentFlags | flags, newValue);
               this.arrayObserver.subscribeBatched(this);
           }
           this.synchronizeOptions();
@@ -573,7 +575,7 @@ this.au.runtimeHtml = (function (exports, kernel, runtime) {
       }
       // called when a different value was assigned
       handleChange(newValue, previousValue, flags) {
-          this.setValue(newValue, flags);
+          this.setValue(newValue, this.persistentFlags | flags);
       }
       notify(flags) {
           if (flags & runtime.LifecycleFlags.fromBind) {
@@ -584,7 +586,7 @@ this.au.runtimeHtml = (function (exports, kernel, runtime) {
           if (newValue === oldValue) {
               return;
           }
-          this.callSubscribers(newValue, oldValue, flags);
+          this.callSubscribers(newValue, oldValue, this.persistentFlags | flags);
       }
       handleEvent() {
           // "from-view" changes are always synchronous now, so immediately sync the value and notify subscribers
@@ -936,13 +938,13 @@ this.au.runtimeHtml = (function (exports, kernel, runtime) {
       static register(container) {
           return kernel.Registration.singleton(runtime.ITargetObserverLocator, this).register(container);
       }
-      getObserver(lifecycle, observerLocator, obj, propertyName) {
+      getObserver(flags, lifecycle, observerLocator, obj, propertyName) {
           switch (propertyName) {
               case 'checked':
-                  return new exports.CheckedObserver(lifecycle, obj, new EventSubscriber(this.dom, inputEvents), observerLocator);
+                  return new exports.CheckedObserver(flags, lifecycle, obj, new EventSubscriber(this.dom, inputEvents), observerLocator);
               case 'value':
                   if (obj['tagName'] === 'SELECT') {
-                      return new exports.SelectValueObserver(lifecycle, obj, new EventSubscriber(this.dom, selectEvents), observerLocator, this.dom);
+                      return new exports.SelectValueObserver(flags, lifecycle, obj, new EventSubscriber(this.dom, selectEvents), observerLocator, this.dom);
                   }
                   return new exports.ValueAttributeObserver(lifecycle, obj, propertyName, new EventSubscriber(this.dom, inputEvents));
               case 'files':
@@ -959,7 +961,7 @@ this.au.runtimeHtml = (function (exports, kernel, runtime) {
               case 'css':
                   return new exports.StyleAttributeAccessor(lifecycle, obj);
               case 'model':
-                  return new runtime.SetterObserver(obj, propertyName);
+                  return new runtime.SetterObserver(flags, obj, propertyName);
               case 'role':
                   return new exports.DataAttributeAccessor(lifecycle, obj, propertyName);
               default:
@@ -976,10 +978,10 @@ this.au.runtimeHtml = (function (exports, kernel, runtime) {
           }
           return null;
       }
-      overridesAccessor(obj, propertyName) {
+      overridesAccessor(flags, obj, propertyName) {
           return overrideProps[propertyName] === true;
       }
-      handles(obj) {
+      handles(flags, obj) {
           return this.dom.isNodeInstance(obj);
       }
   }
@@ -991,7 +993,7 @@ this.au.runtimeHtml = (function (exports, kernel, runtime) {
       static register(container) {
           return kernel.Registration.singleton(runtime.ITargetAccessorLocator, this).register(container);
       }
-      getAccessor(lifecycle, obj, propertyName) {
+      getAccessor(flags, lifecycle, obj, propertyName) {
           switch (propertyName) {
               case 'textContent':
                   // note: this case is just an optimization (textContent is the most often used property)
@@ -1022,7 +1024,7 @@ this.au.runtimeHtml = (function (exports, kernel, runtime) {
                   return new exports.ElementPropertyAccessor(lifecycle, obj, propertyName);
           }
       }
-      handles(obj) {
+      handles(flags, obj) {
           return this.dom.isNodeInstance(obj);
       }
   }
@@ -1078,8 +1080,9 @@ this.au.runtimeHtml = (function (exports, kernel, runtime) {
           if (binding.mode !== runtime.BindingMode.twoWay && binding.mode !== runtime.BindingMode.fromView) {
               throw kernel.Reporter.error(10);
           }
+          this.persistentFlags = flags & runtime.LifecycleFlags.persistentBindingFlags;
           // ensure the binding's target observer has been set.
-          const targetObserver = this.observerLocator.getObserver(binding.target, binding.targetProperty);
+          const targetObserver = this.observerLocator.getObserver(this.persistentFlags | flags, binding.target, binding.targetProperty);
           if (!targetObserver.handler) {
               throw kernel.Reporter.error(10);
           }
@@ -1180,7 +1183,7 @@ this.au.runtimeHtml = (function (exports, kernel, runtime) {
       getElementTemplate(engine, Type) {
           return engine.getElementTemplate(this.dom, this.definition, null, Type);
       }
-      createView(engine, parentContext) {
+      createView(flags, engine, parentContext) {
           return this.getViewFactory(engine, parentContext).create();
       }
       getViewFactory(engine, parentContext) {
@@ -1340,7 +1343,7 @@ this.au.runtimeHtml = (function (exports, kernel, runtime) {
           this.coordinator.compose(subject, flags);
       }
       resolveView(subject, flags) {
-          const view = this.provideViewFor(subject);
+          const view = this.provideViewFor(subject, flags);
           if (view) {
               view.hold(this.$projector.host);
               view.lockScope(this.renderable.$scope);
@@ -1348,7 +1351,7 @@ this.au.runtimeHtml = (function (exports, kernel, runtime) {
           }
           return null;
       }
-      provideViewFor(subject) {
+      provideViewFor(subject, flags) {
           if (!subject) {
               return null;
           }
@@ -1356,7 +1359,7 @@ this.au.runtimeHtml = (function (exports, kernel, runtime) {
               return subject;
           }
           if ('createView' in subject) { // RenderPlan
-              return subject.createView(this.renderingEngine, this.renderable.$context);
+              return subject.createView(flags, this.renderingEngine, this.renderable.$context);
           }
           if ('create' in subject) { // IViewFactory
               return subject.create();
@@ -1365,7 +1368,7 @@ this.au.runtimeHtml = (function (exports, kernel, runtime) {
               return this.renderingEngine.getViewFactory(this.dom, subject, this.renderable.$context).create();
           }
           // Constructable (Custom Element Constructor)
-          return createElement(this.dom, subject, this.properties, this.$projector.children).createView(this.renderingEngine, this.renderable.$context);
+          return createElement(this.dom, subject, this.properties, this.$projector.children).createView(flags, this.renderingEngine, this.renderable.$context);
       }
   }
   Compose.inject = [runtime.IDOM, runtime.IRenderable, runtime.ITargetedInstruction, runtime.IRenderingEngine, runtime.CompositionCoordinator];
@@ -1716,7 +1719,7 @@ this.au.runtimeHtml = (function (exports, kernel, runtime) {
           this.parser = parser;
           this.observerLocator = observerLocator;
       }
-      render(dom, context, renderable, target, instruction) {
+      render(flags, dom, context, renderable, target, instruction) {
           const next = target.nextSibling;
           if (dom.isMarker(target)) {
               dom.remove(target);
@@ -1744,7 +1747,7 @@ this.au.runtimeHtml = (function (exports, kernel, runtime) {
           this.parser = parser;
           this.eventManager = eventManager;
       }
-      render(dom, context, renderable, target, instruction) {
+      render(flags, dom, context, renderable, target, instruction) {
           const expr = runtime.ensureExpression(this.parser, instruction.from, 80 /* IsEventCommand */ | (instruction.strategy + 6 /* DelegationStrategyDelta */));
           const bindable = new Listener(dom, instruction.to, instruction.strategy, expr, target, instruction.preventDefault, this.eventManager, context);
           runtime.addBindable(renderable, bindable);
@@ -1758,7 +1761,7 @@ this.au.runtimeHtml = (function (exports, kernel, runtime) {
   let SetAttributeRenderer = 
   /** @internal */
   class SetAttributeRenderer {
-      render(dom, context, renderable, target, instruction) {
+      render(flags, dom, context, renderable, target, instruction) {
           target.setAttribute(instruction.to, instruction.value);
       }
   };
@@ -1773,7 +1776,7 @@ this.au.runtimeHtml = (function (exports, kernel, runtime) {
           this.parser = parser;
           this.observerLocator = observerLocator;
       }
-      render(dom, context, renderable, target, instruction) {
+      render(flags, dom, context, renderable, target, instruction) {
           const expr = runtime.ensureExpression(this.parser, instruction.from, 48 /* IsPropertyCommand */ | runtime.BindingMode.toView);
           const bindable = new runtime.Binding(expr, target.style, instruction.to, runtime.BindingMode.toView, this.observerLocator, context);
           runtime.addBindable(renderable, bindable);

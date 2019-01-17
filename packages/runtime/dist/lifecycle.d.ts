@@ -76,7 +76,7 @@ export interface IRenderable<T extends INode = INode> extends IBindables, IAttac
 export declare const IRenderable: InterfaceSymbol<IRenderable<INode>>;
 export interface IRenderContext<T extends INode = INode> extends IServiceLocator {
     createChild(): IRenderContext<T>;
-    render(renderable: IRenderable<T>, targets: ArrayLike<object>, templateDefinition: TemplateDefinition, host?: T, parts?: TemplatePartDefinitions): void;
+    render(flags: LifecycleFlags, renderable: IRenderable<T>, targets: ArrayLike<object>, templateDefinition: TemplateDefinition, host?: T, parts?: TemplatePartDefinitions): void;
     beginComponentOperation(renderable: IRenderable<T>, target: object, instruction: Immutable<ITargetedInstruction>, factory?: IViewFactory<T>, parts?: TemplatePartDefinitions, location?: IRenderLocation<T>, locationIsContainer?: boolean): IDisposable;
 }
 export interface IView<T extends INode = INode> extends IBindScope, IRenderable<T>, IAttach, IMountable {
@@ -112,7 +112,7 @@ export interface IViewCache<T extends INode = INode> {
 }
 export interface IViewFactory<T extends INode = INode> extends IViewCache<T> {
     readonly name: string;
-    create(): IView<T>;
+    create(flags?: LifecycleFlags): IView<T>;
 }
 export declare const IViewFactory: InterfaceSymbol<IViewFactory<INode>>;
 export interface ILifecycleCreated extends IHooks, IState {
@@ -132,7 +132,7 @@ export interface ILifecycleCreated extends IHooks, IState {
      * This hook is called right before the `$bind` lifecycle starts, making this the last opportunity
      * for any high-level post processing on initialized properties.
      */
-    created?(): void;
+    created?(flags: LifecycleFlags): void;
 }
 export interface ILifecycleBinding extends IHooks, IState {
     /**

@@ -1,5 +1,5 @@
 import { Class, IIndexable } from '@aurelia/kernel';
-import { IBindingTargetObserver, IPropertySubscriber, LifecycleFlags } from '../observation';
+import { IPropertySubscriber, ISubscribable, LifecycleFlags, MutationKind } from '../observation';
 import { IObserverLocator } from '../observation/observer-locator';
 import { IBinding } from './binding';
 export interface IPartialConnectableBinding extends IBinding, IPropertySubscriber {
@@ -10,8 +10,8 @@ export interface IConnectableBinding extends IPartialConnectableBinding {
     $nextPatch?: IConnectableBinding;
     observerSlots: number;
     version: number;
-    observeProperty(obj: IIndexable, propertyName: string): void;
-    addObserver(observer: IBindingTargetObserver): void;
+    observeProperty(flags: LifecycleFlags, obj: IIndexable, propertyName: string): void;
+    addObserver(observer: ISubscribable<MutationKind.instance | MutationKind.proxy>): void;
     unobserve(all?: boolean): void;
     connect(flags: LifecycleFlags): void;
     patch(flags: LifecycleFlags): void;

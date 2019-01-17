@@ -1,4 +1,4 @@
-import { IObserverLocator, CustomElementResource, IDOM, IProjectorLocator, IRenderingEngine, LifecycleFlags, Aurelia, INode, bindable, customElement } from '@aurelia/runtime';
+import { IObserverLocator, LifecycleFlags, CustomElementResource, IDOM, IProjectorLocator, IRenderingEngine, Aurelia, INode, bindable, customElement } from '@aurelia/runtime';
 import { IContainer, inject } from '@aurelia/kernel';
 
 class HistoryBrowser {
@@ -402,7 +402,7 @@ class NavRoute {
         this.link = this._link(this.components);
         this.linkActive = route.consideredActive ? this._link(route.consideredActive) : this.link;
         this.observerLocator = this.nav.router.container.get(IObserverLocator);
-        this.observer = this.observerLocator.getObserver(this.nav.router, 'activeComponents');
+        this.observer = this.observerLocator.getObserver(LifecycleFlags.none, this.nav.router, 'activeComponents');
         this.observer.subscribe(this);
     }
     get hasChildren() {
@@ -777,7 +777,8 @@ class Viewport {
         const dom = container.get(IDOM);
         const projectorLocator = container.get(IProjectorLocator);
         const renderingEngine = container.get(IRenderingEngine);
-        component.$hydrate(dom, projectorLocator, renderingEngine, host, null);
+        // TODO: get useProxies settings from the template definition
+        component.$hydrate(LifecycleFlags.none, dom, projectorLocator, renderingEngine, host, null);
         component.$bind(LifecycleFlags.fromStartTask | LifecycleFlags.fromBind, null);
         component.$attach(LifecycleFlags.fromStartTask);
     }

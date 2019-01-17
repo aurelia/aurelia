@@ -10,6 +10,7 @@ export interface IBindableDescription {
     callback?: string;
     attribute?: string;
     property?: string;
+    useProxies?: boolean;
 }
 /**
  * TargetedInstructionType enum values become the property names for the associated renderers when they are injected
@@ -50,6 +51,7 @@ export interface ITemplateDefinition extends IResourceDefinition {
         mode: 'open' | 'closed';
     };
     hasSlots?: boolean;
+    useProxies?: boolean;
 }
 export declare type TemplateDefinition = ResourceDescription<ITemplateDefinition>;
 export declare type TemplatePartDefinitions = Record<string, ResourcePartDescription<ITemplateDefinition>>;
@@ -60,6 +62,7 @@ export interface IAttributeDefinition extends IResourceDefinition {
     isTemplateController?: boolean;
     hasDynamicOptions?: boolean;
     bindables?: Record<string, IBindableDescription>;
+    useProxies?: boolean;
 }
 export declare type AttributeDefinition = Immutable<Required<IAttributeDefinition>> | null;
 export declare type InstructionTypeName = string;
@@ -141,5 +144,5 @@ export declare function buildTemplateDefinition(ctor: null, def: Immutable<ITemp
 export declare function buildTemplateDefinition(ctor: CustomElementConstructor | null, nameOrDef: string | Immutable<ITemplateDefinition>): TemplateDefinition;
 export declare function buildTemplateDefinition(ctor: CustomElementConstructor | null, name: string | null, template: unknown, cache?: number | '*' | null, build?: IBuildInstruction | boolean | null, bindables?: Record<string, IBindableDescription> | null, instructions?: ReadonlyArray<ReadonlyArray<ITargetedInstruction>> | null, dependencies?: ReadonlyArray<unknown> | null, surrogates?: ReadonlyArray<ITargetedInstruction> | null, containerless?: boolean | null, shadowOptions?: {
     mode: 'open' | 'closed';
-} | null, hasSlots?: boolean | null): TemplateDefinition;
+} | null, hasSlots?: boolean | null, useProxies?: boolean | null): TemplateDefinition;
 //# sourceMappingURL=definitions.d.ts.map

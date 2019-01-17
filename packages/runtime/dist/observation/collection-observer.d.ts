@@ -4,7 +4,6 @@ export interface CollectionLengthObserver extends IBindingTargetObserver<Collect
 }
 export declare class CollectionLengthObserver implements CollectionLengthObserver, IPatch {
     currentValue: number;
-    currentFlags: LifecycleFlags;
     obj: Collection;
     propertyKey: 'length' | 'size';
     constructor(obj: Collection, propertyKey: 'length' | 'size');

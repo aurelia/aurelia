@@ -17,7 +17,7 @@ export declare class Ref implements IBinding {
     constructor(sourceExpression: IsBindingBehavior, target: IObservable, locator: IServiceLocator);
     $bind(flags: LifecycleFlags, scope: IScope): void;
     $unbind(flags: LifecycleFlags): void;
-    observeProperty(obj: IIndexable, propertyName: string): void;
+    observeProperty(flags: LifecycleFlags, obj: IIndexable, propertyName: string): void;
     handleChange(newValue: unknown, previousValue: unknown, flags: LifecycleFlags): void;
 }
 //# sourceMappingURL=ref.d.ts.map

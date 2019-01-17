@@ -107,7 +107,7 @@ export class InterpolationBinding implements IPartialConnectableBinding {
     this.target = target;
     this.targetProperty = targetProperty;
 
-    this.targetObserver = observerLocator.getAccessor(target, targetProperty);
+    this.targetObserver = observerLocator.getAccessor(LifecycleFlags.none, target, targetProperty);
   }
 
   public updateTarget(value: unknown, flags: LifecycleFlags): void {

@@ -1,6 +1,7 @@
 import { DI, IContainer, IRegistry, PLATFORM, Profiler, Registration } from '@aurelia/kernel';
 import { IDOM, INode } from './dom';
 import { LifecycleFlags } from './observation';
+import { ProxyObserver } from './observation/proxy-observer';
 import { ExposedContext, IRenderingEngine } from './rendering-engine';
 import { CustomElementResource, ICustomElement, ICustomElementType, IProjectorLocator } from './resources/custom-element';
 
@@ -8,6 +9,7 @@ const { enter: enterStart, leave: leaveStart } = Profiler.createTimer('Aurelia.s
 const { enter: enterStop, leave: leaveStop } = Profiler.createTimer('Aurelia.stop');
 
 export interface ISinglePageApp<THost extends INode = INode> {
+  useProxies?: boolean;
   dom?: IDOM;
   host: THost;
   component: unknown;
@@ -48,6 +50,12 @@ export class Aurelia {
       const domInitializer = this.container.get(IDOMInitializer);
       dom = domInitializer.initialize(config);
     }
+    let startFlags = LifecycleFlags.fromStartTask;
+    let stopFlags = LifecycleFlags.fromStopTask;
+    if (config.useProxies) {
+      startFlags |= LifecycleFlags.useProxies;
+      stopFlags |= LifecycleFlags.useProxies;
+    }
     let component: ICustomElement;
     const componentOrType = config.component as ICustomElement | ICustomElementType;
     if (CustomElementResource.isType(componentOrType as ICustomElementType)) {
@@ -56,6 +64,7 @@ export class Aurelia {
     } else {
       component = componentOrType as ICustomElement;
     }
+    component = ProxyObserver.getRawIfProxy(component);
 
     const startTask = () => {
       host.$au = this;
@@ -64,18 +73,18 @@ export class Aurelia {
         this.components.push(component);
         const re = this.container.get(IRenderingEngine);
         const pl = this.container.get(IProjectorLocator);
-        component.$hydrate(dom, pl, re, host, this.container as ExposedContext);
+        component.$hydrate(startFlags, dom, pl, re, host, this.container as ExposedContext);
       }
 
-      component.$bind(LifecycleFlags.fromStartTask | LifecycleFlags.fromBind, null);
-      component.$attach(LifecycleFlags.fromStartTask | LifecycleFlags.fromAttach);
+      component.$bind(startFlags | LifecycleFlags.fromBind, null);
+      component.$attach(startFlags | LifecycleFlags.fromAttach);
     };
 
     this.startTasks.push(startTask);
 
     this.stopTasks.push(() => {
-      component.$detach(LifecycleFlags.fromStopTask | LifecycleFlags.fromDetach);
-      component.$unbind(LifecycleFlags.fromStopTask | LifecycleFlags.fromUnbind);
+      component.$detach(stopFlags | LifecycleFlags.fromDetach);
+      component.$unbind(stopFlags | LifecycleFlags.fromUnbind);
       host.$au = null;
     });
 
@@ -87,7 +96,7 @@ export class Aurelia {
   }
 
   public root(): ICustomElement | null {
-    return this._root;
+    return ProxyObserver.getProxyOrSelf(this._root);
   }
 
   public start(): this {

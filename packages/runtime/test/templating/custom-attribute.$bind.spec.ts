@@ -1,5 +1,5 @@
 import { expect } from 'chai';
-import { Hooks, LifecycleFlags, Scope, State } from '../../src/index';
+import { Hooks, LifecycleFlags as LF, Scope, State } from '../../src/index';
 import { createCustomAttribute, CustomAttribute } from '../resources/custom-attribute._builder';
 import { eachCartesianJoin } from '../util';
 
@@ -18,7 +18,7 @@ describe('@customAttribute', () => {
           sut.$state |= State.isBound;
           sut.$scope = null;
         },
-        getScope(sut: CustomAttribute) { return Scope.create(sut, null); }
+        getScope(sut: CustomAttribute) { return Scope.create(LF.none, sut, null); }
       },
       {
         description: '$isBound: true, $scope: null, same scope',
@@ -38,9 +38,9 @@ describe('@customAttribute', () => {
         callsBehaviors: true,
         setProps(sut: CustomAttribute) {
           sut.$state |= State.isBound;
-          sut.$scope = Scope.create(sut, null);
+          sut.$scope = Scope.create(LF.none, sut, null);
         },
-        getScope(sut: CustomAttribute) { return Scope.create(sut, null); }
+        getScope(sut: CustomAttribute) { return Scope.create(LF.none, sut, null); }
       },
       {
         description: '$isBound: true, $scope !== null, same scope',
@@ -49,7 +49,7 @@ describe('@customAttribute', () => {
         callsBehaviors: false,
         setProps(sut: CustomAttribute) {
           sut.$state |= State.isBound;
-          sut.$scope = Scope.create(sut, null);
+          sut.$scope = Scope.create(LF.none, sut, null);
         },
         getScope(sut: CustomAttribute) { return sut.$scope; }
       },
@@ -62,7 +62,7 @@ describe('@customAttribute', () => {
         setProps(sut: CustomAttribute) {
           sut.$scope = null;
         },
-        getScope(sut: CustomAttribute) { return Scope.create(sut, null); }
+        getScope(sut: CustomAttribute) { return Scope.create(LF.none, sut, null); }
       },
       {
         description: '$isBound: false, $scope: null, same scope',
@@ -80,9 +80,9 @@ describe('@customAttribute', () => {
         callsUnbind: false,
         callsBehaviors: true,
         setProps(sut: CustomAttribute) {
-          sut.$scope = Scope.create(sut, null);
+          sut.$scope = Scope.create(LF.none, sut, null);
         },
-        getScope(sut: CustomAttribute) { return Scope.create(sut, null); }
+        getScope(sut: CustomAttribute) { return Scope.create(LF.none, sut, null); }
       },
       {
         description: '$isBound: false, $scope !== null, same scope',
@@ -90,7 +90,7 @@ describe('@customAttribute', () => {
         callsUnbind: false,
         callsBehaviors: true,
         setProps(sut: CustomAttribute) {
-          sut.$scope = Scope.create(sut, null);
+          sut.$scope = Scope.create(LF.none, sut, null);
         },
         getScope(sut: CustomAttribute) { return sut.$scope; }
       }
@@ -98,33 +98,33 @@ describe('@customAttribute', () => {
 
     const flagsSpecs = [
       {
-        description: 'flags: LifecycleFlags.fromBind',
+        description: 'flags: LF.fromBind',
         expectation: 'passed-through flags: fromBind',
         getFlags() {
-          return LifecycleFlags.fromBind;
+          return LF.fromBind;
         },
         getExpectedFlags() {
-          return LifecycleFlags.fromBind;
+          return LF.fromBind;
         }
       },
       {
-        description: 'flags: LifecycleFlags.fromUnbind',
+        description: 'flags: LF.fromUnbind',
         expectation: 'passed-through flags: fromBind|fromUnbind',
         getFlags() {
-          return LifecycleFlags.fromUnbind;
+          return LF.fromUnbind;
         },
         getExpectedFlags() {
-          return LifecycleFlags.fromBind | LifecycleFlags.fromUnbind;
+          return LF.fromBind | LF.fromUnbind;
         }
       },
       {
-        description: 'flags: LifecycleFlags.updateTargetInstance',
+        description: 'flags: LF.updateTargetInstance',
         expectation: 'passed-through flags: fromBind|updateTargetInstance',
         getFlags() {
-          return LifecycleFlags.updateTargetInstance;
+          return LF.updateTargetInstance;
         },
         getExpectedFlags() {
-          return LifecycleFlags.fromBind | LifecycleFlags.updateTargetInstance;
+          return LF.fromBind | LF.updateTargetInstance;
         }
       }
     ];
@@ -136,7 +136,7 @@ describe('@customAttribute', () => {
         getHooks() {
           return Hooks.hasBinding;
         },
-        verifyBehaviorInvocation(sut: CustomAttribute, flags: LifecycleFlags) {
+        verifyBehaviorInvocation(sut: CustomAttribute, flags: LF) {
           sut.verifyBindingCalled(flags);
           sut.verifyNoFurtherCalls();
         }
@@ -147,7 +147,7 @@ describe('@customAttribute', () => {
         getHooks() {
           return Hooks.none;
         },
-        verifyBehaviorInvocation(sut: CustomAttribute, flags: LifecycleFlags) {
+        verifyBehaviorInvocation(sut: CustomAttribute, flags: LF) {
           sut.verifyNoFurtherCalls();
         }
       },
@@ -157,7 +157,7 @@ describe('@customAttribute', () => {
         getHooks() {
           return Hooks.hasBinding | Hooks.hasBound;
         },
-        verifyBehaviorInvocation(sut: CustomAttribute, flags: LifecycleFlags) {
+        verifyBehaviorInvocation(sut: CustomAttribute, flags: LF) {
           sut.verifyBoundCalled(flags);
           sut.verifyBindingCalled(flags);
           sut.verifyNoFurtherCalls();
@@ -169,7 +169,7 @@ describe('@customAttribute', () => {
         getHooks() {
           return Hooks.hasBound;
         },
-        verifyBehaviorInvocation(sut: CustomAttribute, flags: LifecycleFlags) {
+        verifyBehaviorInvocation(sut: CustomAttribute, flags: LF) {
           sut.verifyBoundCalled(flags);
           sut.verifyNoFurtherCalls();
         }
@@ -247,22 +247,22 @@ describe('@customAttribute', () => {
 
     const flagsSpec = [
       {
-        description: 'flags: LifecycleFlags.fromBind',
+        description: 'flags: LF.fromBind',
         expectation: 'passed-through flags: fromUnbind|fromBind',
-        getFlags() { return LifecycleFlags.fromUnbind; },
-        getExpectedFlags() { return LifecycleFlags.fromUnbind; }
+        getFlags() { return LF.fromUnbind; },
+        getExpectedFlags() { return LF.fromUnbind; }
       },
       {
-        description: 'flags: LifecycleFlags.fromUnbind',
+        description: 'flags: LF.fromUnbind',
         expectation: 'passed-through flags: fromUnbind',
-        getFlags() { return LifecycleFlags.fromUnbind; },
-        getExpectedFlags() { return LifecycleFlags.fromUnbind | LifecycleFlags.fromUnbind; }
+        getFlags() { return LF.fromUnbind; },
+        getExpectedFlags() { return LF.fromUnbind | LF.fromUnbind; }
       },
       {
-        description: 'flags: LifecycleFlags.updateTargetInstance',
+        description: 'flags: LF.updateTargetInstance',
         expectation: 'passed-through flags: fromUnbind|updateTargetInstance',
-        getFlags() { return LifecycleFlags.updateTargetInstance; },
-        getExpectedFlags() { return LifecycleFlags.fromUnbind | LifecycleFlags.updateTargetInstance; }
+        getFlags() { return LF.updateTargetInstance; },
+        getExpectedFlags() { return LF.fromUnbind | LF.updateTargetInstance; }
       }
     ];
 
@@ -271,7 +271,7 @@ describe('@customAttribute', () => {
         description: 'Hooks.hasUnbinding',
         expectation: 'calls unbinding(), does NOT call unbound()',
         getHooks() { return Hooks.hasUnbinding; },
-        verifyBehaviorInvocation(sut: CustomAttribute, flags: LifecycleFlags) {
+        verifyBehaviorInvocation(sut: CustomAttribute, flags: LF) {
           sut.verifyUnbindingCalled(flags);
           sut.verifyNoFurtherCalls();
         }
@@ -280,7 +280,7 @@ describe('@customAttribute', () => {
         description: 'Hooks.none',
         expectation: 'does NOT call unbinding(), does NOT call unbound()',
         getHooks() { return Hooks.none; },
-        verifyBehaviorInvocation(sut: CustomAttribute, flags: LifecycleFlags) {
+        verifyBehaviorInvocation(sut: CustomAttribute, flags: LF) {
           sut.verifyNoFurtherCalls();
         }
       },
@@ -288,7 +288,7 @@ describe('@customAttribute', () => {
         description: 'Hooks.hasUnbinding | Hooks.hasUnbound',
         expectation: 'calls unbinding(), calls unbound()',
         getHooks() { return Hooks.hasUnbinding | Hooks.hasUnbound; },
-        verifyBehaviorInvocation(sut: CustomAttribute, flags: LifecycleFlags) {
+        verifyBehaviorInvocation(sut: CustomAttribute, flags: LF) {
           sut.verifyUnboundCalled(flags);
           sut.verifyUnbindingCalled(flags);
           sut.verifyNoFurtherCalls();
@@ -298,7 +298,7 @@ describe('@customAttribute', () => {
         description: 'Hooks.hasUnbound',
         expectation: 'does NOT call unbinding(), calls unbound()',
         getHooks() { return Hooks.hasUnbound; },
-        verifyBehaviorInvocation(sut: CustomAttribute, flags: LifecycleFlags) {
+        verifyBehaviorInvocation(sut: CustomAttribute, flags: LF) {
           sut.verifyUnboundCalled(flags);
           sut.verifyNoFurtherCalls();
         }

@@ -1,5 +1,5 @@
 import { expect } from 'chai';
-import { Hooks, ICustomElementType,  INode, IRenderingEngine, ITemplate } from '../../src/index';
+import { Hooks, ICustomElementType,  INode, IRenderingEngine, ITemplate, LifecycleFlags } from '../../src/index';
 import { createCustomElement, CustomElement } from '../resources/custom-element._builder';
 import { eachCartesianJoin } from '../util';
 
@@ -53,7 +53,7 @@ describe('@customElement', () => {
         let getElementTemplateDescription;
         let getElementTemplateType;
         const renderingEngine: IRenderingEngine = {
-          applyRuntimeBehavior(type: ICustomElementType, instance: CustomElement) {
+          applyRuntimeBehavior(flags: LifecycleFlags, type: ICustomElementType, instance: CustomElement) {
             instance.$hooks = hooksSpec.getHooks();
             appliedType = type;
             appliedInstance = instance;
@@ -69,6 +69,7 @@ describe('@customElement', () => {
 
         // Act
         sut.$hydrate(
+          0,
           {} as any,
           { getElementProjector() { return null; }} as any,
           renderingEngine,

@@ -8,6 +8,7 @@ import {
   IObserverLocator,
   ITargetAccessorLocator,
   ITargetObserverLocator,
+  LifecycleFlags,
   SetterObserver
 } from '@aurelia/runtime';
 import { AttributeNSAccessor } from './attribute-ns-accessor';
@@ -83,13 +84,13 @@ export class TargetObserverLocator implements ITargetObserverLocator {
     return Registration.singleton(ITargetObserverLocator, this).register(container);
   }
 
-  public getObserver(lifecycle: ILifecycle, observerLocator: IObserverLocator, obj: Node, propertyName: string): IBindingTargetObserver | IBindingTargetAccessor {
+  public getObserver(flags: LifecycleFlags, lifecycle: ILifecycle, observerLocator: IObserverLocator, obj: Node, propertyName: string): IBindingTargetObserver | IBindingTargetAccessor {
     switch (propertyName) {
       case 'checked':
-        return new CheckedObserver(lifecycle, obj as IInputElement, new EventSubscriber(this.dom, inputEvents), observerLocator);
+        return new CheckedObserver(flags, lifecycle, obj as IInputElement, new EventSubscriber(this.dom, inputEvents), observerLocator);
       case 'value':
         if (obj['tagName'] === 'SELECT') {
-          return new SelectValueObserver(lifecycle, obj as ISelectElement, new EventSubscriber(this.dom, selectEvents), observerLocator, this.dom);
+          return new SelectValueObserver(flags, lifecycle, obj as ISelectElement, new EventSubscriber(this.dom, selectEvents), observerLocator, this.dom);
         }
         return new ValueAttributeObserver(lifecycle, obj, propertyName, new EventSubscriber(this.dom, inputEvents));
       case 'files':
@@ -106,7 +107,7 @@ export class TargetObserverLocator implements ITargetObserverLocator {
       case 'css':
         return new StyleAttributeAccessor(lifecycle, obj as HTMLElement);
       case 'model':
-        return new SetterObserver(obj, propertyName);
+        return new SetterObserver(flags, obj, propertyName);
       case 'role':
         return new DataAttributeAccessor(lifecycle, obj as HTMLElement, propertyName);
       default:
@@ -124,11 +125,11 @@ export class TargetObserverLocator implements ITargetObserverLocator {
     return null;
   }
 
-  public overridesAccessor(obj: Node, propertyName: string): boolean {
+  public overridesAccessor(flags: LifecycleFlags, obj: Node, propertyName: string): boolean {
     return overrideProps[propertyName] === true;
   }
 
-  public handles(obj: unknown): boolean {
+  public handles(flags: LifecycleFlags, obj: unknown): boolean {
     return this.dom.isNodeInstance(obj);
   }
 }
@@ -146,7 +147,7 @@ export class TargetAccessorLocator implements ITargetAccessorLocator {
     return Registration.singleton(ITargetAccessorLocator, this).register(container);
   }
 
-  public getAccessor(lifecycle: ILifecycle, obj: Node, propertyName: string): IBindingTargetAccessor {
+  public getAccessor(flags: LifecycleFlags, lifecycle: ILifecycle, obj: Node, propertyName: string): IBindingTargetAccessor {
     switch (propertyName) {
       case 'textContent':
         // note: this case is just an optimization (textContent is the most often used property)
@@ -178,7 +179,7 @@ export class TargetAccessorLocator implements ITargetAccessorLocator {
     }
   }
 
-  public handles(obj: Node): boolean {
+  public handles(flags: LifecycleFlags, obj: Node): boolean {
     return this.dom.isNodeInstance(obj);
   }
 }

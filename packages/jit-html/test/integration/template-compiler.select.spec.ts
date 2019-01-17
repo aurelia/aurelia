@@ -1,5 +1,5 @@
 import { Primitive } from '@aurelia/kernel';
-import { LifecycleFlags } from '@aurelia/runtime';
+import { LifecycleFlags as LF } from '@aurelia/runtime';
 import { SelectValueObserver } from '@aurelia/runtime-html';
 import { expect } from 'chai';
 import { HTMLTestContext, TestContext } from '../util';
@@ -51,18 +51,18 @@ describe('template-compiler.select', () => {
       // expect(select1.value).to.equal('1');
       // expect(select2.value).to.equal('1');
       // expect(select3.value).to.equal('3');
-      // lifecycle.flush(LifecycleFlags.none);
+      // lifecycle.flush(LF.none);
       // after flush changes, view model value should propagate to <select/>s
       expect(select1.value).to.equal('2');
       expect(select2.value).to.equal('2');
       // vCurrent does not attempt to correct <select/> value
       // vNext shouldn't for compat
       expect(select3.value).to.equal('3');
-      const observer3 = observerLocator.getObserver(select3, 'value') as SelectValueObserver;
+      const observer3 = observerLocator.getObserver(LF.none, select3, 'value') as SelectValueObserver;
       expect(observer3.currentValue).to.equal('2');
 
       // expect no state changes after flushing
-      lifecycle.processFlushQueue(LifecycleFlags.none);
+      lifecycle.processFlushQueue(LF.none);
       expect(select1.value).to.equal('2');
       expect(select2.value).to.equal('2');
       expect(select3.value).to.equal('3');
@@ -102,11 +102,11 @@ describe('template-compiler.select', () => {
       // expect(select1.value).to.equal('1');
       // expect(select2.value).to.equal('1');
       // expect(select3.value).to.equal('3');
-      // lifecycle.flush(LifecycleFlags.none);
+      // lifecycle.flush(LF.none);
       expect(component.selectedValue).to.equal('2');
 
       // Verify observer 3 will take the view model value, regardless valid value from view model
-      const observer3 = observerLocator.getObserver(select3, 'value') as SelectValueObserver;
+      const observer3 = observerLocator.getObserver(LF.none, select3, 'value') as SelectValueObserver;
       expect(observer3.currentValue).to.equal('2');
 
       // simulate change from under input
@@ -114,13 +114,13 @@ describe('template-compiler.select', () => {
       select2.dispatchEvent(new ctx.CustomEvent('change', { bubbles: true }));
 
       expect(component.selectedValue).to.equal('1');
-      const observer1 = observerLocator.getObserver(select1, 'value') as SelectValueObserver;
+      const observer1 = observerLocator.getObserver(LF.none, select1, 'value') as SelectValueObserver;
       expect(observer1.currentValue).to.equal('1');
       // verify observer 3 will take the view model value from changes, regardless valid value from view model
       expect(observer3.currentValue).to.equal('1');
 
       // expect no state changes after flushing
-      lifecycle.processFlushQueue(LifecycleFlags.none);
+      lifecycle.processFlushQueue(LF.none);
       expect(component.selectedValue).to.equal('1');
       expect(observer1.currentValue).to.equal('1');
       expect(observer3.currentValue).to.equal('1');
@@ -164,25 +164,25 @@ describe('template-compiler.select', () => {
       const select1 = host.querySelector('#select1');
       const select2 = host.querySelector('#select2');
       const select3 = host.querySelector('#select3');
-      const observer1 = observerLocator.getObserver(select1, 'value') as SelectValueObserver;
-      const observer2 = observerLocator.getObserver(select2, 'value') as SelectValueObserver;
-      const observer3 = observerLocator.getObserver(select3, 'value') as SelectValueObserver;
+      const observer1 = observerLocator.getObserver(LF.none, select1, 'value') as SelectValueObserver;
+      const observer2 = observerLocator.getObserver(LF.none, select2, 'value') as SelectValueObserver;
+      const observer3 = observerLocator.getObserver(LF.none, select3, 'value') as SelectValueObserver;
       expect(observer1.currentValue).to.equal(component.selectedValues);
       expect(observer2.currentValue).to.equal(component.selectedValues);
       expect(observer3.currentValue).to.equal(component.selectedValues);
-      lifecycle.processFlushQueue(LifecycleFlags.none);
+      lifecycle.processFlushQueue(LF.none);
       const options = host.querySelectorAll('option');
       options.forEach(optionA => {
         expect(optionA.selected).to.be[component.selectedValues.includes(optionA.value) ? 'true' : 'false'];
       });
       component.selectedValues = [];
-      lifecycle.processFlushQueue(LifecycleFlags.none);
+      lifecycle.processFlushQueue(LF.none);
       options.forEach(optionB => {
         expect(optionB.selected).to.equal(false);
       });
 
       // expect no state changes after flushing
-      lifecycle.processFlushQueue(LifecycleFlags.none);
+      lifecycle.processFlushQueue(LF.none);
       options.forEach(optionC => {
         expect(optionC.selected).to.equal(false);
       });
@@ -222,19 +222,19 @@ describe('template-compiler.select', () => {
       const select1 = host.querySelector('#select1') as HTMLSelectElement;
       const select2 = host.querySelector('#select2') as HTMLSelectElement;
       const select3 = host.querySelector('#select3') as HTMLSelectElement;
-      const observer1 = observerLocator.getObserver(select1, 'value') as SelectValueObserver;
-      const observer2 = observerLocator.getObserver(select2, 'value') as SelectValueObserver;
-      const observer3 = observerLocator.getObserver(select3, 'value') as SelectValueObserver;
+      const observer1 = observerLocator.getObserver(LF.none, select1, 'value') as SelectValueObserver;
+      const observer2 = observerLocator.getObserver(LF.none, select2, 'value') as SelectValueObserver;
+      const observer3 = observerLocator.getObserver(LF.none, select3, 'value') as SelectValueObserver;
       expect(observer1.currentValue).to.equal(component.selectedValues);
       expect(observer2.currentValue).to.equal(component.selectedValues);
       expect(observer3.currentValue).to.equal(component.selectedValues);
-      lifecycle.processFlushQueue(LifecycleFlags.none);
+      lifecycle.processFlushQueue(LF.none);
       const options = host.querySelectorAll('option');
       options.forEach(option1 => {
         expect(option1.selected).to.be[component.selectedValues.includes(option1.value) ? 'true' : 'false'];
       });
       component.selectedValues = [];
-      lifecycle.processFlushQueue(LifecycleFlags.none);
+      lifecycle.processFlushQueue(LF.none);
       options.forEach(option2 => {
         expect(option2.selected).to.equal(false);
       });
@@ -249,7 +249,7 @@ describe('template-compiler.select', () => {
       });
 
       // expect no state changes after flushing
-      lifecycle.processFlushQueue(LifecycleFlags.none);
+      lifecycle.processFlushQueue(LF.none);
       expect(component.selectedValues.toString()).to.equal(['8', '9', '10', '11', '12'].toString());
       [].forEach.call(select2.options, (option5: HTMLOptionElement) => {
         option5.selected = true;
@@ -274,7 +274,7 @@ describe('template-compiler.select', () => {
     expect(host.firstElementChild['value']).to.equal('1');
     component.selectedValue = '2';
     expect(host.firstElementChild['value']).to.equal('1');
-    lifecycle.processFlushQueue(LifecycleFlags.none);
+    lifecycle.processFlushQueue(LF.none);
     expect(host.firstElementChild['value']).to.equal('2');
     expect(host.firstElementChild.childNodes.item(1)['selected']).to.equal(true);
     tearDown(au, lifecycle, host);

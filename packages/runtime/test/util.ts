@@ -1,7 +1,6 @@
 import {
   IContainer,
   ITraceInfo,
-  PLATFORM,
   Registration,
   Tracer
 } from '@aurelia/kernel';
@@ -33,6 +32,7 @@ import {
   IObserverLocator,
   IScope,
   ITemplateDefinition,
+  LifecycleFlags as LF,
   OverrideContext,
   Scope,
   stringifyLifecycleFlags
@@ -103,9 +103,9 @@ export const checkDelay = 20;
 
 export function createScopeForTest(bindingContext: any = {}, parentBindingContext?: any): IScope {
   if (parentBindingContext) {
-    return Scope.create(bindingContext, OverrideContext.create(bindingContext, OverrideContext.create(parentBindingContext, null)));
+    return Scope.create(LF.none, bindingContext, OverrideContext.create(LF.none, bindingContext, OverrideContext.create(LF.none, parentBindingContext, null)));
   }
-  return Scope.create(bindingContext, OverrideContext.create(bindingContext, null));
+  return Scope.create(LF.none, bindingContext, OverrideContext.create(LF.none, bindingContext, null));
 }
 
 function countSubscribers(observer: any): number {

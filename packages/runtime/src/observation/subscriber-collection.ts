@@ -14,7 +14,7 @@ import {
 export function subscriberCollection<T extends MutationKind>(mutationKind: T): ClassDecorator {
   // tslint:disable-next-line:ban-types // ClassDecorator expects it to be derived from Function
   return function(target: Function): void {
-    const proto = target.prototype as ISubscriberCollection<MutationKind.instance | MutationKind.collection>;
+    const proto = target.prototype as ISubscriberCollection<MutationKind.instance | MutationKind.collection | MutationKind.proxy>;
 
     proto._subscriberFlags = SubscriberFlags.None;
     proto._subscriber0 = null;
@@ -26,7 +26,16 @@ export function subscriberCollection<T extends MutationKind>(mutationKind: T): C
     proto.removeSubscriber = removeSubscriber;
     proto.hasSubscriber = hasSubscriber;
     proto.hasSubscribers = hasSubscribers;
-    proto.callSubscribers = (mutationKind === MutationKind.instance ? callPropertySubscribers : callCollectionSubscribers);
+    switch (mutationKind) {
+      case MutationKind.instance:
+        proto.callSubscribers = callPropertySubscribers;
+        break;
+      case MutationKind.collection:
+        proto.callSubscribers = callCollectionSubscribers;
+        break;
+      case MutationKind.proxy:
+        proto.callSubscribers = callProxySubscribers;
+    }
   };
 }
 
@@ -91,11 +100,7 @@ function removeSubscriber<T extends MutationKind>(this: ISubscriberCollection<T>
   return false;
 }
 
-function callPropertySubscribers(
-  this: ISubscriberCollection<MutationKind.instance>,
-  newValue: unknown,
-  previousValue: unknown,
-  flags: LifecycleFlags): void {
+function callPropertySubscribers(this: ISubscriberCollection<MutationKind.instance>, newValue: unknown, previousValue: unknown, flags: LifecycleFlags): void {
   /**
    * Note: change handlers may have the side-effect of adding/removing subscribers to this collection during this
    * callSubscribers invocation, so we're caching them all before invoking any.
@@ -159,6 +164,33 @@ function callCollectionSubscribers(this: ISubscriberCollection<MutationKind.coll
   this.lifecycle.enqueueFlush(this).catch(error => { throw error; });
 }
 
+function callProxySubscribers(this: ISubscriberCollection<MutationKind.proxy>, key: PropertyKey, newValue: unknown, previousValue: unknown, flags: LifecycleFlags): void {
+  const subscriber0 = this._subscriber0;
+  const subscriber1 = this._subscriber1;
+  const subscriber2 = this._subscriber2;
+  let subscribers = this._subscribersRest;
+  if (subscribers !== null) {
+    subscribers = subscribers.slice();
+  }
+  if (subscriber0 !== null) {
+    subscriber0.handleChange(key, newValue, previousValue, flags);
+  }
+  if (subscriber1 !== null) {
+    subscriber1.handleChange(key, newValue, previousValue, flags);
+  }
+  if (subscriber2 !== null) {
+    subscriber2.handleChange(key, newValue, previousValue, flags);
+  }
+  const length = subscribers && subscribers.length;
+  if (length !== undefined && length > 0) {
+    for (let i = 0; i < length; ++i) {
+      const subscriber = subscribers[i];
+      if (subscriber !== null) {
+        subscriber.handleChange(key, newValue, previousValue, flags);
+      }
+    }
+  }
+}
 function hasSubscribers<T extends MutationKind>(this: ISubscriberCollection<T>): boolean {
   return this._subscriberFlags !== SubscriberFlags.None;
 }
@@ -269,7 +301,7 @@ function removeBatchedSubscriber(this: IBatchedSubscriberCollection<MutationKind
   return false;
 }
 
-function callBatchedCollectionSubscribers(this: IBatchedSubscriberCollection<MutationKind.collection>, indexMap: IndexMap): void {
+function callBatchedCollectionSubscribers(this: IBatchedSubscriberCollection<MutationKind.collection>, indexMap: IndexMap, flags: LifecycleFlags): void {
   const subscriber0 = this._batchedSubscriber0;
   const subscriber1 = this._batchedSubscriber1;
   const subscriber2 = this._batchedSubscriber2;
@@ -278,20 +310,20 @@ function callBatchedCollectionSubscribers(this: IBatchedSubscriberCollection<Mut
     subscribers = subscribers.slice();
   }
   if (subscriber0 !== null) {
-    subscriber0.handleBatchedChange(indexMap);
+    subscriber0.handleBatchedChange(indexMap, flags);
   }
   if (subscriber1 !== null) {
-    subscriber1.handleBatchedChange(indexMap);
+    subscriber1.handleBatchedChange(indexMap, flags);
   }
   if (subscriber2 !== null) {
-    subscriber2.handleBatchedChange(indexMap);
+    subscriber2.handleBatchedChange(indexMap, flags);
   }
   const length = subscribers && subscribers.length;
   if (length !== undefined && length > 0) {
     for (let i = 0; i < length; ++i) {
       const subscriber = subscribers[i];
       if (subscriber !== null) {
-        subscriber.handleBatchedChange(indexMap);
+        subscriber.handleBatchedChange(indexMap, flags);
       }
     }
   }

@@ -1,6 +1,6 @@
 // NOTE: this file is currently not in use
 
-import { ICustomElementType, IObserverLocator, IPropertyObserver } from '@aurelia/runtime';
+import { ICustomElementType, IObserverLocator, IPropertyObserver, LifecycleFlags } from '@aurelia/runtime';
 import { INavRoute, Nav } from './nav';
 import { Router } from './router';
 
@@ -37,7 +37,7 @@ export class NavRoute {
     this.link = this._link(this.components);
     this.linkActive = route.consideredActive ? this._link(route.consideredActive) : this.link;
     this.observerLocator = this.nav.router.container.get(IObserverLocator);
-    this.observer = this.observerLocator.getObserver(this.nav.router, 'activeComponents') as IPropertyObserver<Router, 'activeComponents'>;
+    this.observer = this.observerLocator.getObserver(LifecycleFlags.none, this.nav.router, 'activeComponents') as IPropertyObserver<Router, 'activeComponents'>;
     this.observer.subscribe(this);
   }
 

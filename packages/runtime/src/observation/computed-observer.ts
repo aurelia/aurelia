@@ -35,6 +35,7 @@ const computedOverrideDefaults: ComputedOverrides = { static: false, volatile: f
 
 /* @internal */
 export function createComputedObserver(
+  flags: LifecycleFlags,
   observerLocator: IObserverLocator,
   dirtyChecker: IDirtyChecker,
   lifecycle: ILifecycle,
@@ -51,11 +52,11 @@ export function createComputedObserver(
 
     if (descriptor.set) {
       if (overrides.volatile) {
-        return new GetterObserver(overrides, instance, propertyName, descriptor, observerLocator, lifecycle);
+        return new GetterObserver(flags, overrides, instance, propertyName, descriptor, observerLocator, lifecycle);
       }
       return new CustomSetterObserver(instance, propertyName, descriptor);
     }
-    return new GetterObserver(overrides, instance, propertyName, descriptor, observerLocator, lifecycle);
+    return new GetterObserver(flags, overrides, instance, propertyName, descriptor, observerLocator, lifecycle);
   }
   throw Reporter.error(18, propertyName);
 }
@@ -134,7 +135,7 @@ export class GetterObserver implements GetterObserver {
   private subscriberCount: number;
   private isCollecting: boolean;
 
-  constructor(overrides: ComputedOverrides, obj: IObservable, propertyKey: string, descriptor: PropertyDescriptor, observerLocator: IObserverLocator, lifecycle: ILifecycle) {
+  constructor(flags: LifecycleFlags, overrides: ComputedOverrides, obj: IObservable, propertyKey: string, descriptor: PropertyDescriptor, observerLocator: IObserverLocator, lifecycle: ILifecycle) {
     this.obj = obj;
     this.propertyKey = propertyKey;
     this.isCollecting = false;
@@ -145,7 +146,7 @@ export class GetterObserver implements GetterObserver {
     this.overrides = overrides;
     this.subscriberCount = 0;
     this.descriptor = descriptor;
-    this.proxy = new Proxy(obj, createGetterTraps(observerLocator, this));
+    this.proxy = new Proxy(obj, createGetterTraps(flags, observerLocator, this));
 
     const get = (): unknown => this.getValue();
     Reflect.defineProperty(obj, propertyKey, { get });
@@ -239,7 +240,7 @@ export class GetterObserver implements GetterObserver {
 
 const toStringTag = Object.prototype.toString;
 
-function createGetterTraps(observerLocator: IObserverLocator, observer: GetterObserver): ProxyHandler<object> {
+function createGetterTraps(flags: LifecycleFlags, observerLocator: IObserverLocator, observer: GetterObserver): ProxyHandler<object> {
   if (Tracer.enabled) { Tracer.enter('computed.createGetterTraps', slice.call(arguments)); }
   const traps = {
     get: function(target: object, key: PropertyKey, receiver?: unknown): unknown {
@@ -253,36 +254,36 @@ function createGetterTraps(observerLocator: IObserverLocator, observer: GetterOb
       // at least) or they will throw.
       switch (toStringTag.call(target)) {
         case '[object Array]':
-          observer.addCollectionDep(observerLocator.getArrayObserver(target as unknown[]));
+          observer.addCollectionDep(observerLocator.getArrayObserver(flags, target as unknown[]));
           if (key === 'length') {
             if (Tracer.enabled) { Tracer.leave(); }
             return Reflect.get(target, key, target);
           }
         case '[object Map]':
-          observer.addCollectionDep(observerLocator.getMapObserver(target as Map<unknown, unknown>));
+          observer.addCollectionDep(observerLocator.getMapObserver(flags, target as Map<unknown, unknown>));
           if (key === 'size') {
             if (Tracer.enabled) { Tracer.leave(); }
             return Reflect.get(target, key, target);
           }
         case '[object Set]':
-          observer.addCollectionDep(observerLocator.getSetObserver(target as Set<unknown>));
+          observer.addCollectionDep(observerLocator.getSetObserver(flags, target as Set<unknown>));
           if (key === 'size') {
             if (Tracer.enabled) { Tracer.leave(); }
             return Reflect.get(target, key, target);
           }
         default:
-          observer.addPropertyDep(observerLocator.getObserver(target, key as string) as IBindingTargetObserver);
+          observer.addPropertyDep(observerLocator.getObserver(flags, target, key as string) as IBindingTargetObserver);
       }
 
       if (Tracer.enabled) { Tracer.leave(); }
-      return proxyOrValue(target, key, observerLocator, observer);
+      return proxyOrValue(flags, target, key, observerLocator, observer);
     }
   };
   if (Tracer.enabled) { Tracer.leave(); }
   return traps;
 }
 
-function proxyOrValue(target: object, key: PropertyKey, observerLocator: IObserverLocator, observer: GetterObserver): ProxyHandler<object> {
+function proxyOrValue(flags: LifecycleFlags, target: object, key: PropertyKey, observerLocator: IObserverLocator, observer: GetterObserver): ProxyHandler<object> {
   const value = Reflect.get(target, key, target);
   if (typeof value === 'function') {
     return target[key].bind(target);
@@ -290,5 +291,5 @@ function proxyOrValue(target: object, key: PropertyKey, observerLocator: IObserv
   if (typeof value !== 'object' || value === null) {
     return value;
   }
-  return new Proxy(value, createGetterTraps(observerLocator, observer));
+  return new Proxy(value, createGetterTraps(flags, observerLocator, observer));
 }

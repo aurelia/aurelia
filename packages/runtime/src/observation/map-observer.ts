@@ -1,3 +1,4 @@
+import { Tracer } from '@aurelia/kernel';
 import { ILifecycle } from '../lifecycle';
 import { CollectionKind, ICollectionObserver, IObservedMap, LifecycleFlags } from '../observation';
 import { collectionObserver } from './collection-observer';
@@ -17,16 +18,21 @@ const methods = ['set', 'clear', 'delete'];
 const observe = {
   // https://tc39.github.io/ecma262/#sec-map.prototype.map
   set: function(this: IObservedMap, key: unknown, value: unknown): ReturnType<typeof $set> {
-    const o = this.$observer;
-    if (o === undefined) {
-      return $set.call(this, key, value);
+    let $this = this;
+    if ($this.$raw !== undefined) {
+      $this = $this.$raw;
     }
-    const oldSize = this.size;
-    $set.call(this, key, value);
-    const newSize = this.size;
+    const o = $this.$observer;
+    if (o === undefined) {
+      $set.call($this, key, value);
+      return this;
+    }
+    const oldSize = $this.size;
+    $set.call($this, key, value);
+    const newSize = $this.size;
     if (newSize === oldSize) {
       let i = 0;
-      for (const entry of this.entries()) {
+      for (const entry of $this.entries()) {
         if (entry[0] === key) {
           if (entry[1] !== value) {
             o.indexMap[i] = -2;
@@ -38,54 +44,62 @@ const observe = {
       return this;
     }
     o.indexMap[oldSize] = -2;
-    o.callSubscribers('set', arguments, LifecycleFlags.isCollectionMutation);
+    o.callSubscribers('set', arguments, o.persistentFlags | LifecycleFlags.isCollectionMutation);
     return this;
   },
   // https://tc39.github.io/ecma262/#sec-map.prototype.clear
   clear: function(this: IObservedMap): ReturnType<typeof $clear>  {
-    const o = this.$observer;
-    if (o === undefined) {
-      return $clear.call(this);
+    let $this = this;
+    if ($this.$raw !== undefined) {
+      $this = $this.$raw;
     }
-    const size = this.size;
+    const o = $this.$observer;
+    if (o === undefined) {
+      return $clear.call($this);
+    }
+    const size = $this.size;
     if (size > 0) {
       const indexMap = o.indexMap;
       let i = 0;
-      for (const entry of this.keys()) {
+      for (const entry of $this.keys()) {
         if (indexMap[i] > -1) {
           indexMap.deletedItems.push(entry);
         }
         i++;
       }
-      $clear.call(this);
+      $clear.call($this);
       indexMap.length = 0;
-      o.callSubscribers('clear', arguments, LifecycleFlags.isCollectionMutation);
+      o.callSubscribers('clear', arguments, o.persistentFlags | LifecycleFlags.isCollectionMutation);
     }
     return undefined;
   },
   // https://tc39.github.io/ecma262/#sec-map.prototype.delete
   delete: function(this: IObservedMap, value: unknown): ReturnType<typeof $delete> {
-    const o = this.$observer;
-    if (o === undefined) {
-      return $delete.call(this, value);
+    let $this = this;
+    if ($this.$raw !== undefined) {
+      $this = $this.$raw;
     }
-    const size = this.size;
+    const o = $this.$observer;
+    if (o === undefined) {
+      return $delete.call($this, value);
+    }
+    const size = $this.size;
     if (size === 0) {
       return false;
     }
     let i = 0;
     const indexMap = o.indexMap;
-    for (const entry of this.keys()) {
+    for (const entry of $this.keys()) {
       if (entry === value) {
         if (indexMap[i] > -1) {
           indexMap.deletedItems.push(entry);
         }
         indexMap.splice(i, 1);
-        return $delete.call(this, value);
+        return $delete.call($this, value);
       }
       i++;
     }
-    o.callSubscribers('delete', arguments, LifecycleFlags.isCollectionMutation);
+    o.callSubscribers('delete', arguments, o.persistentFlags | LifecycleFlags.isCollectionMutation);
     return false;
   }
 };
@@ -120,6 +134,8 @@ export function disableMapObservation(): void {
   }
 }
 
+const slice = Array.prototype.slice;
+
 export interface MapObserver extends ICollectionObserver<CollectionKind.map> {}
 
 @collectionObserver(CollectionKind.map)
@@ -128,15 +144,19 @@ export class MapObserver implements MapObserver {
   public lifecycle: ILifecycle;
 
   public collection: IObservedMap;
+  public readonly flags: LifecycleFlags;
 
-  constructor(lifecycle: ILifecycle, map: IObservedMap) {
+  constructor(flags: LifecycleFlags, lifecycle: ILifecycle, map: IObservedMap) {
+    if (Tracer.enabled) { Tracer.enter('MapObserver.constructor', slice.call(arguments)); }
     this.lifecycle = lifecycle;
     map.$observer = this;
     this.collection = map;
+    this.flags = flags & LifecycleFlags.persistentBindingFlags;
     this.resetIndexMap();
+    if (Tracer.enabled) { Tracer.leave(); }
   }
 }
 
-export function getMapObserver(lifecycle: ILifecycle, map: IObservedMap): MapObserver {
-  return (map.$observer as MapObserver) || new MapObserver(lifecycle, map);
+export function getMapObserver(flags: LifecycleFlags, lifecycle: ILifecycle, map: IObservedMap): MapObserver {
+  return (map.$observer as MapObserver) || new MapObserver(flags, lifecycle, map);
 }

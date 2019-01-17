@@ -1,4 +1,4 @@
-import { Hooks, LifecycleFlags, Scope, State } from '../../src/index';
+import { Hooks, LifecycleFlags as LF, Scope, State } from '../../src/index';
 import { createCustomElement, CustomElement } from '../resources/custom-element._builder';
 import { eachCartesianJoin } from '../util';
 
@@ -27,33 +27,33 @@ describe('@customElement', () => {
 
     const flagsSpecs = [
       {
-        description: 'flags: LifecycleFlags.fromBind',
+        description: 'flags: LF.fromBind',
         expectation: 'passed-through flags: fromBind',
         getFlags() {
-          return LifecycleFlags.fromBind;
+          return LF.fromBind;
         },
         getExpectedFlags() {
-          return LifecycleFlags.fromBind;
+          return LF.fromBind;
         }
       },
       {
-        description: 'flags: LifecycleFlags.fromUnbind',
+        description: 'flags: LF.fromUnbind',
         expectation: 'passed-through flags: fromBind|fromUnbind',
         getFlags() {
-          return LifecycleFlags.fromUnbind;
+          return LF.fromUnbind;
         },
         getExpectedFlags() {
-          return LifecycleFlags.fromBind | LifecycleFlags.fromUnbind;
+          return LF.fromBind | LF.fromUnbind;
         }
       },
       {
-        description: 'flags: LifecycleFlags.updateTargetInstance',
+        description: 'flags: LF.updateTargetInstance',
         expectation: 'passed-through flags: fromBind|updateTargetInstance',
         getFlags() {
-          return LifecycleFlags.updateTargetInstance;
+          return LF.updateTargetInstance;
         },
         getExpectedFlags() {
-          return LifecycleFlags.fromBind | LifecycleFlags.updateTargetInstance;
+          return LF.fromBind | LF.updateTargetInstance;
         }
       }
     ];
@@ -65,7 +65,7 @@ describe('@customElement', () => {
         getHooks() {
           return Hooks.hasBinding;
         },
-        verifyBehaviorInvocation(sut: CustomElement, flags: LifecycleFlags) {
+        verifyBehaviorInvocation(sut: CustomElement, flags: LF) {
           sut.verifyBindingCalled(flags);
           sut.verifyNoFurtherCalls();
         }
@@ -76,7 +76,7 @@ describe('@customElement', () => {
         getHooks() {
           return Hooks.none;
         },
-        verifyBehaviorInvocation(sut: CustomElement, flags: LifecycleFlags) {
+        verifyBehaviorInvocation(sut: CustomElement, flags: LF) {
           sut.verifyNoFurtherCalls();
         }
       },
@@ -86,7 +86,7 @@ describe('@customElement', () => {
         getHooks() {
           return Hooks.hasBinding | Hooks.hasBound;
         },
-        verifyBehaviorInvocation(sut: CustomElement, flags: LifecycleFlags) {
+        verifyBehaviorInvocation(sut: CustomElement, flags: LF) {
           sut.verifyBoundCalled(flags);
           sut.verifyBindingCalled(flags);
           sut.verifyNoFurtherCalls();
@@ -98,7 +98,7 @@ describe('@customElement', () => {
         getHooks() {
           return Hooks.hasBound;
         },
-        verifyBehaviorInvocation(sut: CustomElement, flags: LifecycleFlags) {
+        verifyBehaviorInvocation(sut: CustomElement, flags: LF) {
           sut.verifyBoundCalled(flags);
           sut.verifyNoFurtherCalls();
         }
@@ -112,7 +112,7 @@ describe('@customElement', () => {
         // Arrange
         const { sut } = createCustomElement('foo');
         psSpec.setProps(sut);
-        sut.$scope = Scope.create(sut, null);
+        sut.$scope = Scope.create(LF.none, sut, null);
         sut.$bindableHead = sut.$bindableTail = null;
         sut.$attachableHead = sut.$attachableTail = null;
         sut.$hooks = hooksSpec.getHooks();
@@ -155,22 +155,22 @@ describe('@customElement', () => {
 
     const flagsSpecs = [
       {
-        description: 'flags: LifecycleFlags.fromBind',
+        description: 'flags: LF.fromBind',
         expectation: 'passed-through flags: fromUnbind|fromBind',
-        getFlags() { return LifecycleFlags.fromUnbind; },
-        getExpectedFlags() { return LifecycleFlags.fromUnbind; }
+        getFlags() { return LF.fromUnbind; },
+        getExpectedFlags() { return LF.fromUnbind; }
       },
       {
-        description: 'flags: LifecycleFlags.fromUnbind',
+        description: 'flags: LF.fromUnbind',
         expectation: 'passed-through flags: fromUnbind',
-        getFlags() { return LifecycleFlags.fromUnbind; },
-        getExpectedFlags() { return LifecycleFlags.fromUnbind | LifecycleFlags.fromUnbind; }
+        getFlags() { return LF.fromUnbind; },
+        getExpectedFlags() { return LF.fromUnbind | LF.fromUnbind; }
       },
       {
-        description: 'flags: LifecycleFlags.updateTargetInstance',
+        description: 'flags: LF.updateTargetInstance',
         expectation: 'passed-through flags: fromUnbind|updateTargetInstance',
-        getFlags() { return LifecycleFlags.updateTargetInstance; },
-        getExpectedFlags() { return LifecycleFlags.fromUnbind | LifecycleFlags.updateTargetInstance; }
+        getFlags() { return LF.updateTargetInstance; },
+        getExpectedFlags() { return LF.fromUnbind | LF.updateTargetInstance; }
       }
     ];
 
@@ -179,7 +179,7 @@ describe('@customElement', () => {
         description: 'Hooks.hasUnbinding',
         expectation: 'calls unbinding(), does NOT call unbound()',
         getHooks() { return Hooks.hasUnbinding; },
-        verifyBehaviorInvocation(sut: CustomElement, flags: LifecycleFlags) {
+        verifyBehaviorInvocation(sut: CustomElement, flags: LF) {
           sut.verifyUnbindingCalled(flags);
           sut.verifyNoFurtherCalls();
         }
@@ -188,7 +188,7 @@ describe('@customElement', () => {
         description: 'Hooks.none',
         expectation: 'does NOT call unbinding(), does NOT call unbound()',
         getHooks() { return Hooks.none; },
-        verifyBehaviorInvocation(sut: CustomElement, flags: LifecycleFlags) {
+        verifyBehaviorInvocation(sut: CustomElement, flags: LF) {
           sut.verifyNoFurtherCalls();
         }
       },
@@ -196,7 +196,7 @@ describe('@customElement', () => {
         description: 'Hooks.hasUnbinding | Hooks.hasUnbound',
         expectation: 'calls unbinding(), calls unbound()',
         getHooks() { return Hooks.hasUnbinding | Hooks.hasUnbound; },
-        verifyBehaviorInvocation(sut: CustomElement, flags: LifecycleFlags) {
+        verifyBehaviorInvocation(sut: CustomElement, flags: LF) {
           sut.verifyUnboundCalled(flags);
           sut.verifyUnbindingCalled(flags);
           sut.verifyNoFurtherCalls();
@@ -206,7 +206,7 @@ describe('@customElement', () => {
         description: 'Hooks.hasUnbound',
         expectation: 'does NOT call unbinding(), calls unbound()',
         getHooks() { return Hooks.hasUnbound; },
-        verifyBehaviorInvocation(sut: CustomElement, flags: LifecycleFlags) {
+        verifyBehaviorInvocation(sut: CustomElement, flags: LF) {
           sut.verifyUnboundCalled(flags);
           sut.verifyNoFurtherCalls();
         }
@@ -220,7 +220,7 @@ describe('@customElement', () => {
         // Arrange
         const { sut } = createCustomElement('foo');
         psSpec.setProps(sut);
-        sut.$scope = Scope.create(sut, null);
+        sut.$scope = Scope.create(LF.none, sut, null);
         sut.$bindableHead = sut.$bindableTail = null;
         sut.$attachableHead = sut.$attachableTail = null;
         sut.$hooks = hooksSpec.getHooks();

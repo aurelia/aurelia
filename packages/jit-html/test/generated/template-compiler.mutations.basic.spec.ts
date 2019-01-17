@@ -1,4 +1,4 @@
-// tslint:disable:quotemark member-access
+// tslint:disable:quotemark member-access no-all-duplicated-branches
 import { Aurelia, CustomElementResource, INode } from "@aurelia/runtime";
 import { expect } from "chai";
 import { TestContext } from "../util";
@@ -16,11 +16,11 @@ describe("generated.template-compiler.mutations.basic", function () {
         });
         const items = [];
         const Foo = CustomElementResource.define({ name: "foo", template: "<template><div repeat.for=\"item of items\">${item}</div></template>" }, class {
+            static inject = [INode];
             items = items;
             el;
             $lifecycle;
             cycled = false;
-            static inject = [INode];
             constructor(el) {
                 this.el = el;
             }
@@ -84,11 +84,11 @@ describe("generated.template-compiler.mutations.basic", function () {
         });
         const items = [];
         const Foo = CustomElementResource.define({ name: "foo", template: "<template><div repeat.for=\"item of items\">${item}</div></template>" }, class {
+            static inject = [INode];
             items = items;
             el;
             $lifecycle;
             cycled = false;
-            static inject = [INode];
             constructor(el) {
                 this.el = el;
             }
@@ -147,12 +147,12 @@ describe("generated.template-compiler.mutations.basic", function () {
         });
         const items = [];
         const Foo = CustomElementResource.define({ name: "foo", template: "<template><div repeat.for=\"item of items\" if.bind=\"item % mod === 0\">${item}</div></template>" }, class {
+            static inject = [INode];
             items = items;
             mod = 2;
             el;
             $lifecycle;
             cycled = false;
-            static inject = [INode];
             constructor(el) {
                 this.el = el;
             }
@@ -217,12 +217,12 @@ describe("generated.template-compiler.mutations.basic", function () {
         });
         const items = [];
         const Foo = CustomElementResource.define({ name: "foo", template: "<template><div repeat.for=\"item of items\" if.bind=\"item % mod === 0\">${item}</div></template>" }, class {
+            static inject = [INode];
             items = items;
             mod = 2;
             el;
             $lifecycle;
             cycled = false;
-            static inject = [INode];
             constructor(el) {
                 this.el = el;
             }

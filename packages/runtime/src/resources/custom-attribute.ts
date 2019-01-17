@@ -26,7 +26,7 @@ import {
   ILifecycleUnbindAfterDetach,
   IRenderable
 } from '../lifecycle';
-import { IChangeTracker } from '../observation';
+import { IChangeTracker, LifecycleFlags } from '../observation';
 import { IRenderingEngine } from '../rendering-engine';
 import {
   $attachAttribute,
@@ -55,7 +55,7 @@ export interface ICustomAttribute<T extends INode = INode> extends
   IAttach,
   IRenderable<T> {
 
-  $hydrate(renderingEngine: IRenderingEngine): void;
+  $hydrate(flags: LifecycleFlags, renderingEngine: IRenderingEngine): void;
 }
 
 export interface ICustomAttributeResource<T extends INode = INode> extends
@@ -203,7 +203,8 @@ export function createCustomAttributeDescription(def: IAttributeDefinition, Type
     defaultBindingMode: defaultBindingMode === undefined || defaultBindingMode === null ? BindingMode.toView : defaultBindingMode,
     hasDynamicOptions: def.hasDynamicOptions === undefined ? false : def.hasDynamicOptions,
     isTemplateController: def.isTemplateController === undefined ? false : def.isTemplateController,
-    bindables: {...Type.bindables, ...def.bindables}
+    bindables: {...Type.bindables, ...def.bindables},
+    useProxies: def.useProxies === undefined ? false : def.useProxies
   };
 }
 

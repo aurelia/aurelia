@@ -1,4 +1,4 @@
-import { IPropertySubscriber, LifecycleFlags } from '@aurelia/runtime';
+import { IPropertySubscriber, LifecycleFlags as LF } from '@aurelia/runtime';
 import { expect } from 'chai';
 import { SinonSpy, spy } from 'sinon';
 import { ValueAttributeObserver } from '../../src/index';
@@ -28,7 +28,7 @@ describe('ValueAttributeObserver', () => {
         const el = ctx.createElementFromMarkup(`<input type="${inputType}"/>`) as HTMLInputElement;
         ctx.doc.body.appendChild(el);
 
-        const sut = observerLocator.getObserver(el, 'value') as ValueAttributeObserver;
+        const sut = observerLocator.getObserver(LF.none, el, 'value') as ValueAttributeObserver;
 
         const subscriber: IPropertySubscriber = { handleChange: spy() };
         if (hasSubscriber) {
@@ -58,24 +58,24 @@ describe('ValueAttributeObserver', () => {
               const changeCountAfter = expectedValueBefore !== expectedValueAfter ? 1 : 0;
               let callCount = 0;
 
-              sut.setValue(valueBefore, LifecycleFlags.none);
+              sut.setValue(valueBefore, LF.none);
               expect(lifecycle.flushCount).to.equal(changeCountBefore, 'lifecycle.flushCount 1');
-              lifecycle.processFlushQueue(LifecycleFlags.none);
+              lifecycle.processFlushQueue(LF.none);
               expect(el.value).to.equal(expectedValueBefore, 'el.value 1');
               expect(sut.getValue()).to.equal(expectedValueBefore, 'sut.getValue() 1');
               if (hasSubscriber && changeCountBefore) {
                 callCount++;
-                expect(subscriber.handleChange).to.have.been.calledWith(expectedValueBefore, sut.defaultValue, LifecycleFlags.fromSyncFlush | LifecycleFlags.updateTargetInstance);
+                expect(subscriber.handleChange).to.have.been.calledWith(expectedValueBefore, sut.defaultValue, LF.fromSyncFlush | LF.updateTargetInstance);
               }
 
-              sut.setValue(valueAfter, LifecycleFlags.none);
+              sut.setValue(valueAfter, LF.none);
               expect(lifecycle.flushCount).to.equal(changeCountAfter, 'lifecycle.flushCount 2');
-              lifecycle.processFlushQueue(LifecycleFlags.none);
+              lifecycle.processFlushQueue(LF.none);
               expect(el.value).to.equal(expectedValueAfter, 'el.value 2');
               expect(sut.getValue()).to.equal(expectedValueAfter, 'sut.getValue() 2');
               if (hasSubscriber && changeCountAfter) {
                 callCount++;
-                expect(subscriber.handleChange).to.have.been.calledWith(expectedValueAfter, expectedValueBefore, LifecycleFlags.fromSyncFlush | LifecycleFlags.updateTargetInstance);
+                expect(subscriber.handleChange).to.have.been.calledWith(expectedValueAfter, expectedValueBefore, LF.fromSyncFlush | LF.updateTargetInstance);
               }
               if (hasSubscriber) {
                 expect((subscriber.handleChange as SinonSpy).getCalls().length).to.equal(callCount);
@@ -96,7 +96,7 @@ describe('ValueAttributeObserver', () => {
         const el = ctx.createElementFromMarkup(`<input type="${inputType}"/>`) as HTMLInputElement;
         ctx.doc.body.appendChild(el);
 
-        const sut = observerLocator.getObserver(el, 'value') as ValueAttributeObserver;
+        const sut = observerLocator.getObserver(LF.none, el, 'value') as ValueAttributeObserver;
 
         const subscriber: IPropertySubscriber = { handleChange: spy() };
         sut.subscribe(subscriber);
@@ -128,7 +128,7 @@ describe('ValueAttributeObserver', () => {
               expect(sut.getValue()).to.equal(expectedValueBefore, 'sut.getValue() 1');
               if (expectedValueBefore !== '') {
                 callCount++;
-                expect(subscriber.handleChange).to.have.been.calledWith(expectedValueBefore, sut.defaultValue, LifecycleFlags.updateSourceExpression | LifecycleFlags.fromDOMEvent);
+                expect(subscriber.handleChange).to.have.been.calledWith(expectedValueBefore, sut.defaultValue, LF.updateSourceExpression | LF.fromDOMEvent);
               }
 
               el.value = valueAfter;
@@ -137,7 +137,7 @@ describe('ValueAttributeObserver', () => {
               expect(sut.getValue()).to.equal(expectedValueAfter, 'sut.getValue() 2');
               if (expectedValueBefore !== expectedValueAfter) {
                 callCount++;
-                expect(subscriber.handleChange).to.have.been.calledWith(expectedValueAfter, expectedValueBefore, LifecycleFlags.updateSourceExpression | LifecycleFlags.fromDOMEvent);
+                expect(subscriber.handleChange).to.have.been.calledWith(expectedValueAfter, expectedValueBefore, LF.updateSourceExpression | LF.fromDOMEvent);
               }
               expect((subscriber.handleChange as SinonSpy).getCalls().length).to.equal(callCount);
 

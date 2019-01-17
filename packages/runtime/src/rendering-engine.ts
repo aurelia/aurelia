@@ -40,6 +40,7 @@ import {
   LifecycleFlags,
   MutationKind
 } from './observation';
+import { ProxyObserver } from './observation/proxy-observer';
 import { SelfObserver } from './observation/self-observer';
 import { subscriberCollection } from './observation/subscriber-collection';
 import { ICustomAttribute, ICustomAttributeType } from './resources/custom-attribute';
@@ -73,7 +74,7 @@ export const ITemplateFactory = DI.createInterface<ITemplateFactory>('ITemplateF
 export interface ITemplate<T extends INode = INode> {
   readonly renderContext: IRenderContext<T>;
   readonly dom: IDOM<T>;
-  render(renderable: IRenderable<T>, host?: T, parts?: Immutable<Record<string, ITemplateDefinition>>): void;
+  render(renderable: IRenderable<T>, host?: T, parts?: Immutable<Record<string, ITemplateDefinition>>, flags?: LifecycleFlags): void;
 }
 
 // This is the main implementation of ITemplate.
@@ -96,10 +97,13 @@ export class CompiledTemplate<T extends INode = INode> implements ITemplate {
     this.renderContext = renderContext;
   }
 
-  public render(renderable: IRenderable<T>, host?: T, parts?: TemplatePartDefinitions): void {
+  public render(renderable: IRenderable<T>, host?: T, parts?: TemplatePartDefinitions, flags: LifecycleFlags = LifecycleFlags.none): void {
     const nodes = (renderable as Writable<IRenderable>).$nodes = this.factory.createNodeSequence();
     (renderable as Writable<IRenderable>).$context = this.renderContext;
-    this.renderContext.render(renderable, nodes.findTargets(), this.definition, host, parts);
+    if (this.definition.useProxies) {
+      flags |= LifecycleFlags.useProxies;
+    }
+    this.renderContext.render(flags, renderable, nodes.findTargets(), this.definition, host, parts);
   }
 }
 
@@ -121,7 +125,7 @@ export interface IInstructionTypeClassifier<TType extends string = string> {
 }
 
 export interface IInstructionRenderer<TType extends InstructionTypeName = InstructionTypeName> extends Partial<IInstructionTypeClassifier<TType>> {
-  render(dom: IDOM, context: IRenderContext, renderable: IRenderable, target: unknown, instruction: ITargetedInstruction, ...rest: unknown[]): void;
+  render(flags: LifecycleFlags, dom: IDOM, context: IRenderContext, renderable: IRenderable, target: unknown, instruction: ITargetedInstruction, ...rest: unknown[]): void;
 }
 
 export const IInstructionRenderer = DI.createInterface<IInstructionRenderer>('IInstructionRenderer').noDefault();
@@ -129,6 +133,7 @@ export const IInstructionRenderer = DI.createInterface<IInstructionRenderer>('II
 export interface IRenderer {
   instructionRenderers: Record<string, IInstructionRenderer>;
   render(
+    flags: LifecycleFlags,
     dom: IDOM,
     context: IRenderContext,
     renderable: IRenderable,
@@ -155,8 +160,8 @@ export interface IRenderingEngine {
     parentContext: IRenderContext<T> | null
   ): IViewFactory<T>;
 
-  applyRuntimeBehavior<T extends INode = INode>(Type: ICustomAttributeType<T>, instance: ICustomAttribute<T>): void;
-  applyRuntimeBehavior<T extends INode = INode>(Type: ICustomElementType<T>, instance: ICustomElement<T>): void;
+  applyRuntimeBehavior<T extends INode = INode>(flags: LifecycleFlags, Type: ICustomAttributeType<T>, instance: ICustomAttribute<T>): void;
+  applyRuntimeBehavior<T extends INode = INode>(flags: LifecycleFlags, Type: ICustomElementType<T>, instance: ICustomElement<T>): void;
 }
 
 export const IRenderingEngine = DI.createInterface<IRenderingEngine>('IRenderingEngine').withDefault(x => x.singleton(RenderingEngine));
@@ -233,7 +238,7 @@ export class RenderingEngine implements IRenderingEngine {
     return factory as IViewFactory<T>;
   }
 
-  public applyRuntimeBehavior(Type: ICustomAttributeType | ICustomElementType, instance: ICustomAttribute | ICustomElement): void {
+  public applyRuntimeBehavior(flags: LifecycleFlags, Type: ICustomAttributeType | ICustomElementType, instance: ICustomAttribute | ICustomElement): void {
     let found = this.behaviorLookup.get(Type);
 
     if (!found) {
@@ -241,7 +246,7 @@ export class RenderingEngine implements IRenderingEngine {
       this.behaviorLookup.set(Type, found);
     }
 
-    found.applyTo(instance, this.lifecycle);
+    found.applyTo(flags, instance, this.lifecycle);
   }
 
   private templateFromSource(
@@ -305,8 +310,8 @@ export function createRenderContext(
     componentType.register(context);
   }
 
-  context.render = function(this: IRenderContext, renderable: IRenderable, targets: ArrayLike<INode>, templateDefinition: TemplateDefinition, host?: INode, parts?: TemplatePartDefinitions): void {
-    renderer.render(dom, this, renderable, targets, templateDefinition, host, parts);
+  context.render = function(this: IRenderContext, flags: LifecycleFlags, renderable: IRenderable, targets: ArrayLike<INode>, templateDefinition: TemplateDefinition, host?: INode, parts?: TemplatePartDefinitions): void {
+    renderer.render(flags, dom, this, renderable, targets, templateDefinition, host, parts);
   };
 
   context.beginComponentOperation = function(renderable: IRenderable, target: INode, instruction: ITargetedInstruction, factory: IViewFactory | null, parts?: TemplatePartDefinitions, location?: IRenderLocation): IDisposable {
@@ -485,17 +490,17 @@ export class RuntimeBehavior {
     return behavior;
   }
 
-  public applyTo(instance: ICustomAttribute | ICustomElement, lifecycle: ILifecycle): void {
+  public applyTo(flags: LifecycleFlags, instance: ICustomAttribute | ICustomElement, lifecycle: ILifecycle): void {
     instance.$lifecycle = lifecycle;
     if ('$projector' in instance) {
-      this.applyToElement(lifecycle, instance);
+      this.applyToElement(flags, lifecycle, instance);
     } else {
-      this.applyToCore(instance);
+      this.applyToCore(flags, instance);
     }
   }
 
-  private applyToElement(lifecycle: ILifecycle, instance: ICustomElement): void {
-    const observers = this.applyToCore(instance);
+  private applyToElement(flags: LifecycleFlags, lifecycle: ILifecycle, instance: ICustomElement): void {
+    const observers = this.applyToCore(flags, instance);
 
     observers.$children = new ChildrenObserver(lifecycle, instance);
 
@@ -507,37 +512,51 @@ export class RuntimeBehavior {
     });
   }
 
-  private applyToCore(instance: ICustomAttribute | ICustomElement): IIndexable {
+  private applyToCore(flags: LifecycleFlags, instance: ICustomAttribute | ICustomElement): IIndexable {
     const observers = {};
     const bindables = this.bindables;
     const observableNames = Object.getOwnPropertyNames(bindables);
 
-    for (let i = 0, ii = observableNames.length; i < ii; ++i) {
-      const name = observableNames[i];
+    if (flags & LifecycleFlags.useProxies) {
+      for (let i = 0, ii = observableNames.length; i < ii; ++i) {
+        const name = observableNames[i];
 
-      observers[name] = new SelfObserver(
-        instance,
-        name,
-        bindables[name].callback
-      );
+        observers[name] = new SelfObserver(
+          flags,
+          ProxyObserver.getOrCreate(instance).proxy,
+          name,
+          bindables[name].callback
+        );
+      }
+    } else {
+      for (let i = 0, ii = observableNames.length; i < ii; ++i) {
+        const name = observableNames[i];
 
-      createGetterSetter(instance, name);
+        observers[name] = new SelfObserver(
+          flags,
+          instance,
+          name,
+          bindables[name].callback
+        );
+
+        createGetterSetter(flags, instance, name);
+      }
+
+      Reflect.defineProperty(instance, '$observers', {
+        enumerable: false,
+        value: observers
+      });
     }
-
-    Reflect.defineProperty(instance, '$observers', {
-      enumerable: false,
-      value: observers
-    });
 
     return observers;
   }
 }
 
-function createGetterSetter(instance: ICustomAttribute | ICustomElement, name: string): void {
+function createGetterSetter(flags: LifecycleFlags, instance: ICustomAttribute | ICustomElement, name: string): void {
   Reflect.defineProperty(instance, name, {
     enumerable: true,
     get: function(): unknown { return this['$observers'][name].getValue(); },
-    set: function(value: unknown): void { this['$observers'][name].setValue(value, LifecycleFlags.updateTargetInstance); }
+    set: function(value: unknown): void { this['$observers'][name].setValue(value, (flags & LifecycleFlags.persistentBindingFlags) | LifecycleFlags.updateTargetInstance); }
   });
 }
 

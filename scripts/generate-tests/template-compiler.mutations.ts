@@ -71,11 +71,11 @@ function generateAndEmit(): void {
           $$const('Foo', $call('CustomElementResource.define', [
             $expression({ name: 'foo', template: `<template><div repeat.for="item of items">\${item}</div></template>` }),
             $class([
+              $property('inject', [class INode {}], true),
               $property('items', $id('items')),
               $property('el'),
               $property('$lifecycle'),
               $property('cycled', false),
-              $property('inject', [class INode {}], true),
               $method('constructor', [$$assign('this.el', 'el')], [$param('el')]),
               $hook('binding', $$call('this.items.push', [$expression(1)])),
               $hook('bound', $$call('this.items.push', [$expression(2)]), false, ['', '']),
@@ -112,11 +112,11 @@ function generateAndEmit(): void {
           $$const('Foo', $call('CustomElementResource.define', [
             $expression({ name: 'foo', template: `<template><div repeat.for="item of items">\${item}</div></template>` }),
             $class([
+              $property('inject', [class INode {}], true),
               $property('items', $id('items')),
               $property('el'),
               $property('$lifecycle'),
               $property('cycled', false),
-              $property('inject', [class INode {}], true),
               $method('constructor', [$$assign('this.el', 'el')], [$param('el')]),
               $hook('binding', $$call('this.items.push', [$expression(1)])),
               $hook('bound', $$call('this.items.push', [$expression(2)]), false, ['', '']),
@@ -153,12 +153,12 @@ function generateAndEmit(): void {
           $$const('Foo', $call('CustomElementResource.define', [
             $expression({ name: 'foo', template: `<template><div repeat.for="item of items" if.bind="item % mod === 0">\${item}</div></template>` }),
             $class([
+              $property('inject', [class INode {}], true),
               $property('items', $id('items')),
               $property('mod', 2),
               $property('el'),
               $property('$lifecycle'),
               $property('cycled', false),
-              $property('inject', [class INode {}], true),
               $method('constructor', [$$assign('this.el', 'el')], [$param('el')]),
               $hook('binding', $$call('this.items.push', [$expression(1)])),
               $hook('bound', $$call('this.items.push', [$expression(2)]), false, ['', '']),
@@ -195,12 +195,12 @@ function generateAndEmit(): void {
           $$const('Foo', $call('CustomElementResource.define', [
             $expression({ name: 'foo', template: `<template><div repeat.for="item of items" if.bind="item % mod === 0">\${item}</div></template>` }),
             $class([
+              $property('inject', [class INode {}], true),
               $property('items', $id('items')),
               $property('mod', 2),
               $property('el'),
               $property('$lifecycle'),
               $property('cycled', false),
-              $property('inject', [class INode {}], true),
               $method('constructor', [$$assign('this.el', 'el')], [$param('el')]),
               $hook('binding', $$call('this.items.push', [$expression(1)])),
               $hook('bound', $$call('this.items.push', [$expression(2)]), false, ['', '']),

@@ -13,6 +13,7 @@ import {
   IObserverLocator,
   IRenderable,
   IRenderContext,
+  LifecycleFlags,
   MultiInterpolationBinding
 } from '@aurelia/runtime';
 import { Listener } from './binding/listener';
@@ -41,7 +42,7 @@ export class TextBindingRenderer implements IInstructionRenderer {
     this.observerLocator = observerLocator;
   }
 
-  public render(dom: IDOM, context: IRenderContext, renderable: IRenderable, target: ChildNode, instruction: ITextBindingInstruction): void {
+  public render(flags: LifecycleFlags, dom: IDOM, context: IRenderContext, renderable: IRenderable, target: ChildNode, instruction: ITextBindingInstruction): void {
     if (Tracer.enabled) { Tracer.enter('TextBindingRenderer.render', slice.call(arguments)); }
     const next = target.nextSibling;
     if (dom.isMarker(target)) {
@@ -73,7 +74,7 @@ export class ListenerBindingRenderer implements IInstructionRenderer {
     this.eventManager = eventManager;
   }
 
-  public render(dom: IDOM, context: IRenderContext, renderable: IRenderable, target: HTMLElement, instruction: IListenerBindingInstruction): void {
+  public render(flags: LifecycleFlags, dom: IDOM, context: IRenderContext, renderable: IRenderable, target: HTMLElement, instruction: IListenerBindingInstruction): void {
     if (Tracer.enabled) { Tracer.enter('ListenerBindingRenderer.render', slice.call(arguments)); }
     const expr = ensureExpression(this.parser, instruction.from, BindingType.IsEventCommand | (instruction.strategy + BindingType.DelegationStrategyDelta));
     const bindable = new Listener(dom, instruction.to, instruction.strategy, expr, target, instruction.preventDefault, this.eventManager, context);
@@ -87,7 +88,7 @@ export class ListenerBindingRenderer implements IInstructionRenderer {
 export class SetAttributeRenderer implements IInstructionRenderer {
   public static readonly register: IRegistry['register'];
 
-  public render(dom: IDOM, context: IRenderContext, renderable: IRenderable, target: HTMLElement, instruction: ISetAttributeInstruction): void {
+  public render(flags: LifecycleFlags, dom: IDOM, context: IRenderContext, renderable: IRenderable, target: HTMLElement, instruction: ISetAttributeInstruction): void {
     if (Tracer.enabled) { Tracer.enter('SetAttributeRenderer.render', slice.call(arguments)); }
     target.setAttribute(instruction.to, instruction.value);
     if (Tracer.enabled) { Tracer.leave(); }
@@ -108,7 +109,7 @@ export class StylePropertyBindingRenderer implements IInstructionRenderer {
     this.observerLocator = observerLocator;
   }
 
-  public render(dom: IDOM, context: IRenderContext, renderable: IRenderable, target: HTMLElement, instruction: IStylePropertyBindingInstruction): void {
+  public render(flags: LifecycleFlags, dom: IDOM, context: IRenderContext, renderable: IRenderable, target: HTMLElement, instruction: IStylePropertyBindingInstruction): void {
     if (Tracer.enabled) { Tracer.enter('StylePropertyBindingRenderer.render', slice.call(arguments)); }
     const expr = ensureExpression(this.parser, instruction.from, BindingType.IsPropertyCommand | BindingMode.toView);
     const bindable = new Binding(expr, target.style, instruction.to, BindingMode.toView, this.observerLocator, context);

@@ -40,6 +40,7 @@ export interface IBindableDescription {
   callback?: string;
   attribute?: string;
   property?: string;
+  useProxies?: boolean;
 }
 
 /**
@@ -81,6 +82,7 @@ export interface ITemplateDefinition extends IResourceDefinition {
   containerless?: boolean;
   shadowOptions?: { mode: 'open' | 'closed' };
   hasSlots?: boolean;
+  useProxies?: boolean;
 }
 
 export type TemplateDefinition = ResourceDescription<ITemplateDefinition>;
@@ -94,6 +96,7 @@ export interface IAttributeDefinition extends IResourceDefinition {
   isTemplateController?: boolean;
   hasDynamicOptions?: boolean;
   bindables?: Record<string, IBindableDescription>;
+  useProxies?: boolean;
 }
 
 export type AttributeDefinition = Immutable<Required<IAttributeDefinition>> | null;
@@ -226,6 +229,7 @@ class DefaultTemplateDefinition implements Required<ITemplateDefinition> {
   public containerless: ITemplateDefinition['containerless'];
   public shadowOptions: ITemplateDefinition['shadowOptions'];
   public hasSlots: ITemplateDefinition['hasSlots'];
+  public useProxies: ITemplateDefinition['useProxies'];
 
   constructor() {
     this.name = 'unnamed';
@@ -239,6 +243,7 @@ class DefaultTemplateDefinition implements Required<ITemplateDefinition> {
     this.containerless = false;
     this.shadowOptions = null;
     this.hasSlots = false;
+    this.useProxies = false;
   }
 }
 
@@ -249,7 +254,8 @@ const templateDefinitionAssignables = [
   'build',
   'containerless',
   'shadowOptions',
-  'hasSlots'
+  'hasSlots',
+  'useProxies'
 ];
 
 const templateDefinitionArrays = [
@@ -286,7 +292,8 @@ export function buildTemplateDefinition(
   surrogates?: ReadonlyArray<ITargetedInstruction> | null,
   containerless?: boolean | null,
   shadowOptions?: { mode: 'open' | 'closed' } | null,
-  hasSlots?: boolean | null): TemplateDefinition;
+  hasSlots?: boolean | null,
+  useProxies?: boolean | null): TemplateDefinition;
 // tslint:disable-next-line:parameters-max-number // TODO: Reduce complexity (currently at 64)
 export function buildTemplateDefinition(
   ctor: CustomElementConstructor | null,
@@ -300,13 +307,15 @@ export function buildTemplateDefinition(
   surrogates?: ReadonlyArray<ITargetedInstruction> | null,
   containerless?: boolean | null,
   shadowOptions?: { mode: 'open' | 'closed' } | null,
-  hasSlots?: boolean | null): TemplateDefinition {
+  hasSlots?: boolean | null,
+  useProxies?: boolean | null): TemplateDefinition {
 
   const def = new DefaultTemplateDefinition();
 
   // all cases fall through intentionally
   const argLen = arguments.length;
   switch (argLen) {
+    case 13: if (useProxies !== null) def.useProxies = useProxies;
     case 12: if (hasSlots !== null) def.hasSlots = hasSlots;
     case 11: if (shadowOptions !== null) def.shadowOptions = shadowOptions;
     case 10: if (containerless !== null) def.containerless = containerless;

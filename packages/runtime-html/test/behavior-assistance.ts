@@ -9,6 +9,7 @@ import {
   IRenderable,
   IRenderingEngine,
   ITargetedInstruction,
+  LifecycleFlags as LF,
   TargetedInstructionType
 } from '@aurelia/runtime';
 import { InstanceProvider } from '../../runtime/src/rendering-engine';
@@ -48,7 +49,7 @@ export function hydrateCustomElement<T>(Type: Constructable<T>, ctx: HTMLTestCon
 
   const renderingEngine = container.get(IRenderingEngine);
   const projectorLocator = container.get(IProjectorLocator);
-  element.$hydrate(dom, projectorLocator, renderingEngine, host);
+  element.$hydrate(LF.none, dom, projectorLocator, renderingEngine, host);
 
   return { element, parent };
 }

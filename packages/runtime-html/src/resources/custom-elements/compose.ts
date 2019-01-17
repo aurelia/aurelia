@@ -129,7 +129,7 @@ export class Compose<T extends INode = Node> implements Compose<T> {
   }
 
   private resolveView(subject: Subject<T> | null, flags: LifecycleFlags): IView<T> | null {
-    const view = this.provideViewFor(subject);
+    const view = this.provideViewFor(subject, flags);
 
     if (view) {
       view.hold(this.$projector.host);
@@ -140,7 +140,7 @@ export class Compose<T extends INode = Node> implements Compose<T> {
     return null;
   }
 
-  private provideViewFor(subject: Subject<T> | null): IView<T> | null {
+  private provideViewFor(subject: Subject<T> | null, flags: LifecycleFlags): IView<T> | null {
     if (!subject) {
       return null;
     }
@@ -151,6 +151,7 @@ export class Compose<T extends INode = Node> implements Compose<T> {
 
     if ('createView' in subject) { // RenderPlan
       return subject.createView(
+        flags,
         this.renderingEngine,
         this.renderable.$context
       ) as IView<T>;
@@ -175,6 +176,7 @@ export class Compose<T extends INode = Node> implements Compose<T> {
       this.properties,
       this.$projector.children
     ).createView(
+      flags,
       this.renderingEngine,
       this.renderable.$context
     ) as IView<T>;

@@ -181,7 +181,7 @@ export class ViewFactory<T extends INode = INode> implements IViewFactory<T> {
     return false;
   }
 
-  public create(): IView<T> {
+  public create(flags?: LifecycleFlags): IView<T> {
     const cache = this.cache;
     let view: View<T>;
 
@@ -192,7 +192,7 @@ export class ViewFactory<T extends INode = INode> implements IViewFactory<T> {
     }
 
     view = new View<T>(this.lifecycle, this);
-    this.template.render(view);
+    this.template.render(view, null, null, flags);
     if (!view.$nodes) {
       throw Reporter.error(90);
     }

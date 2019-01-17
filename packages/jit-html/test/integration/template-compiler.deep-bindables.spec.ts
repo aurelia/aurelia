@@ -1,4 +1,4 @@
-import { ITraceInfo, Tracer } from '@aurelia/kernel';
+import { ITraceInfo, Tracer, Profiler } from '@aurelia/kernel';
 import {
   Aurelia,
   CustomElementResource,
@@ -8,7 +8,7 @@ import {
 } from '@aurelia/runtime';
 import { expect } from 'chai';
 import { disableTracing, enableTracing } from '../unit/util';
-import { TestContext } from '../util';
+import { TestContext, writeProfilerReport } from '../util';
 
 const spec = 'template-compiler.deep-bindables';
 
@@ -139,6 +139,66 @@ describe(spec, function () {
         //   console.log(`${call.depth}`.padEnd(2, ' ') + ' '.repeat(call.depth) + call.name)
         // }
       }
+    });
+  }
+
+  for (const useProxies of [true, false]) {
+    it.only(`profile, useProxies=${useProxies}`, function() {
+      this.timeout(30000);
+      const { ctx, container, lifecycle, au, host } = setup();
+
+      const bindingCount = 3;
+      const elementCount = 5000;
+
+      const arr = Array(bindingCount).fill(0);
+
+      const bindables = {
+        ...arr
+          .map((v, i) => ({[`item${i + 1}`]: { property: `item${i + 1}`, attribute: `item${i + 1}` }}))
+          .reduce(
+            (acc, cur) => {
+              Object.assign(acc, cur);
+              return acc;
+            },
+            {}
+          )
+      };
+
+      const interpolations = arr.map((v, i) => `\${item${i + 1}}`).join('');
+      const bindings = arr.map((v, i) => `item${i + 1}.bind="item${i + 1}"`).join(' ');
+      const Foo = CustomElementResource.define(
+        {
+          name: 'foo',
+          template: `${interpolations}`,
+          useProxies
+        },
+        class { public static bindables = bindables; }
+      );
+
+      class $App {
+        public item1: string = '$1';
+        public item2: string = '$2';
+        public item3: string = '$3';
+      }
+      const App = CustomElementResource.define(
+        {
+          name: 'app',
+          template: `<foo repeat.for="i of ${elementCount}" ${bindings}></foo>`,
+          useProxies,
+          dependencies: [Foo]
+        },
+        $App
+      );
+
+      Profiler.enable();
+
+      au.app({ host, component: App, useProxies });
+      au.start();
+      au.stop();
+
+      Profiler.disable();
+
+      writeProfilerReport(`deep-bindables useProxies:${useProxies}`);
     });
   }
 

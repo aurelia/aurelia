@@ -143,7 +143,7 @@ describe(spec, function () {
   }
 
   for (const useProxies of [true, false]) {
-    it.only(`profile, useProxies=${useProxies}`, function() {
+    it(`profile, useProxies=${useProxies}`, function() {
       this.timeout(30000);
       const { ctx, container, lifecycle, au, host } = setup();
 

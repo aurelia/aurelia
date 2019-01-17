@@ -59,6 +59,21 @@ executors:
     working_directory: *working_dir
     docker:
       - image: "aureliaeffect/circleci-v2:latest"
+# # # # # # # # # # # # # # # #
+# - Commands -
+# # # # # # # # # # # # # # # #
+commands:
+
+  checkout_install:
+    steps:
+      - checkout
+      - run: npm ci --ignore-scripts
+
+  checkout_install_bootstrap:
+    steps:
+      - checkout
+      - run: npm ci --ignore-scripts
+      - run: npm run bootstrap
 
 # # # # # # # # # # # # # # # #
 # - Jobs -
@@ -77,9 +92,7 @@ jobs:
         type: executor
     executor: << parameters.e >>
     steps:
-      - checkout
-      - run: npm ci --ignore-scripts
-      - run: npm run bootstrap
+      - checkout_install_bootstrap
       - run: npm run build
       - run: npm run << parameters.npm_command >>
       - when:
@@ -106,9 +119,7 @@ jobs:
   lint_packages:
     executor: docker-circleci
     steps:
-      - checkout
-      - run: npm ci --ignore-scripts
-      - run: npm run bootstrap
+      - checkout_install_bootstrap
       - run: npm run lint
 
   merge_and_dist:
@@ -122,9 +133,7 @@ jobs:
         type: string
         default: "chore(all): add latest build artifacts"
     steps:
-      - checkout
-      - run: npm ci --ignore-scripts
-      - run: npm run bootstrap
+      - checkout_install_bootstrap
       - run: npm run build
       - run: npm run bundle:release
       - run: ./node_modules/.bin/lerna clean -y
@@ -145,9 +154,7 @@ jobs:
   e2e_browserstack:
     executor: docker-circleci
     steps:
-      - checkout
-      - run: npm ci --ignore-scripts
-      - run: npm run bootstrap
+      - checkout_install_bootstrap
       - run: npm run build
       - run:
           name: "Install e2e tests"
@@ -173,8 +180,7 @@ jobs:
       channel:
         type: string
     steps:
-      - checkout
-      - run: npm ci --ignore-scripts
+      - checkout_install
       - run:
           name: "Authenticate with registry"
           command: echo "//registry.npmjs.org/:_authToken=$NPM_TOKEN" >> ~/.npmrc
@@ -182,7 +188,7 @@ jobs:
 
   # Standalone wdio test jobs
   e2e_wdio:
-    executor: docker-aurelia
+    executor: docker-circleci
     parameters:
       path:
         type: string
@@ -196,8 +202,7 @@ jobs:
         type: boolean
         default: false
     steps:
-      - checkout
-      - run: npm ci --ignore-scripts
+      - checkout_install
       - when:
           condition: << parameters.build >>
           steps:
@@ -293,10 +298,10 @@ workflows:
       - merge_and_dist:
           <<: *filter_only_master
           requires:
-            - lint_packages
             - unit_test_chrome
             - unit_test_firefox
             - unit_test_node
+            - lint_packages
             - e2e_browserstack
             - jit-aurelia-cli-ts
             - jit-fuse-box-ts
@@ -333,9 +338,10 @@ workflows:
       - merge_and_dist:
           <<: *filter_only_tag
           requires:
-            - lint_packages
             - unit_test_chrome
             - unit_test_firefox
+            - unit_test_node
+            - lint_packages
             - e2e_browserstack
           from: $CIRCLE_TAG
           to: release

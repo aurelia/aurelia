@@ -37,7 +37,7 @@
     "chai": "^4.2.0",
     "chromedriver": "^2.44.0",
     "cross-env": "^5.2.0",
-    "event-stream": "^4.0.1",
+    "event-stream": "3.3.4",
     "gulp": "^4.0.0",
     "gulp-changed-in-place": "^2.3.0",
     "gulp-if": "^2.0.2",

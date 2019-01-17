@@ -12,25 +12,6 @@ import { subscriberCollection } from './subscriber-collection';
 const slice = Array.prototype.slice;
 
 const lookup: WeakMap<object, IProxy> = new WeakMap();
-
-export function getProxyOrSelf<T extends object = object>(obj: T): T {
-  if ((obj as { $raw?: T }).$raw === undefined) {
-    const proxy = lookup.get(obj) as T;
-    if (proxy === undefined) {
-      return obj;
-    }
-    return proxy;
-  }
-  return obj;
-}
-export function getRawIfProxy<T extends object = object>(obj: T): T {
-  const raw = (obj as { $raw?: T }).$raw;
-  if (raw === undefined) {
-    return obj;
-  }
-  return raw;
-}
-
 export interface ProxySubscriberCollection<TObj extends object = object> extends IProxyObserver<TObj, MutationKind.instance> {}
 
 @subscriberCollection(MutationKind.instance)
@@ -38,9 +19,9 @@ export class ProxySubscriberCollection<TObj extends object = object> implements 
   public readonly proxy: IProxy<TObj>;
   public readonly raw: TObj;
   public readonly key: PropertyKey;
-  constructor(proxy: IProxy<TObj>, key: PropertyKey) {
+  constructor(proxy: IProxy<TObj>, raw: TObj, key: PropertyKey) {
     if (Tracer.enabled) { Tracer.enter('ProxySubscriberCollection.constructor', slice.call(arguments)); }
-    this.raw = getRawIfProxy(proxy);
+    this.raw = raw;
     this.key = key;
     this.proxy = proxy;
     this.subscribe = this.addSubscriber;
@@ -65,14 +46,34 @@ export interface ProxyObserver<TObj extends object = object> extends IProxyObser
 @subscriberCollection(MutationKind.proxy)
 export class ProxyObserver<TObj extends object = object> implements ProxyObserver<TObj> {
   public readonly proxy: IProxy<TObj>;
+  public readonly raw: TObj;
   private readonly subscribers: Record<PropertyKey, ProxySubscriberCollection<TObj>>;
 
   constructor(obj: TObj) {
     if (Tracer.enabled) { Tracer.enter('ProxyObserver.constructor', slice.call(arguments)); }
+    this.raw = obj;
     this.proxy = new Proxy<TObj>(obj, this) as IProxy<TObj>;
     lookup.set(obj, this.proxy);
     this.subscribers = {};
     if (Tracer.enabled) { Tracer.leave(); }
+  }
+
+  public static getProxyOrSelf<T extends object = object>(obj: T): T {
+    if ((obj as { $raw?: T }).$raw === undefined) {
+      const proxy = lookup.get(obj) as T;
+      if (proxy === undefined) {
+        return obj;
+      }
+      return proxy;
+    }
+    return obj;
+  }
+  public static getRawIfProxy<T extends object = object>(obj: T): T {
+    const raw = (obj as { $raw?: T }).$raw;
+    if (raw === undefined) {
+      return obj;
+    }
+    return raw;
   }
 
   public static getOrCreate<T extends object>(obj: T & { $raw?: T; $observer?: ProxyObserver<T> }): IProxyObserver<T, MutationKind.proxy>;
@@ -94,7 +95,9 @@ export class ProxyObserver<TObj extends object = object> implements ProxyObserve
     }
     let subscribers = proxyObserver.subscribers[key as string | number];
     if (subscribers === undefined) {
-      subscribers = proxyObserver.subscribers[key as string | number] = new ProxySubscriberCollection(proxyObserver.proxy, key);
+      const raw = this.getRawIfProxy(obj);
+      const proxy = proxyObserver.proxy;
+      subscribers = proxyObserver.subscribers[key as string | number] = new ProxySubscriberCollection(proxy, raw, key);
     }
     return subscribers;
   }
@@ -160,7 +163,7 @@ export class ProxyObserver<TObj extends object = object> implements ProxyObserve
     } else {
       let subscribers = this.subscribers[key as string | number];
       if (subscribers === undefined) {
-        subscribers = this.subscribers[key as string | number] = new ProxySubscriberCollection(this.proxy, key);
+        subscribers = this.subscribers[key as string | number] = new ProxySubscriberCollection(this.proxy, this.raw, key);
       }
       subscribers.addSubscriber(subscriber as IPropertySubscriber);
     }

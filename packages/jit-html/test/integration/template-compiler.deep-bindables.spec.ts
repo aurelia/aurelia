@@ -2,6 +2,7 @@ import { ITraceInfo, Tracer } from '@aurelia/kernel';
 import {
   Aurelia,
   CustomElementResource,
+  ICustomElement,
   LifecycleFlags,
   ProxyObserver
 } from '@aurelia/runtime';
@@ -51,6 +52,12 @@ describe(spec, function () {
         class { public static bindables = bindables; }
       );
 
+      class $App {
+        public a: boolean = true;
+        public max: number = 3;
+        public depth: number = 0;
+        public items: number[] = [1, 2, 3];
+      }
       const App = CustomElementResource.define(
         {
           name: 'app',
@@ -58,23 +65,12 @@ describe(spec, function () {
           useProxies,
           dependencies: [FooA, FooB]
         },
-        class {}
+        $App
       );
 
-      let component = new App() as InstanceType<typeof App> & {
-        a: boolean;
-        max: number;
-        depth: number;
-        items: number[];
-      };
-      if (useProxies) {
-        component = ProxyObserver.getOrCreate(component).proxy;
-      }
-
-
-      function verify() {
+      function verify(c: ICustomElement & $App) {
         lifecycle.processFlushQueue(LifecycleFlags.none);
-        const { a, max, items } = component;
+        const { a, max, items } = c;
         expect(host.textContent).to.equal(getExpectedText(a ? 'a' : 'b', max, items, 0, 1));
       }
       function getExpectedText(prefix: string, max: number, items: unknown[], item: unknown, depth: number): string {
@@ -90,11 +86,6 @@ describe(spec, function () {
       }
 
       let trace = true;
-
-      component.a = true;
-      component.max = 3;
-      component.depth = 0;
-      component.items = [1, 2, 3];
 
       const calls = {
         'ProxyObserver.constructor': [] as ITraceInfo[],
@@ -118,29 +109,35 @@ describe(spec, function () {
         });
       }
 
-      au.app({ host, component, useProxies });
+      au.app({ host, component: App, useProxies });
       au.start();
+      const component = au.root() as ICustomElement & $App;;
 
-      verify();
+      verify(component);
       component.max = 2;
       component.items = [1, 2, 3];
 
-      verify();
+      verify(component);
 
       component.a = false;
 
-      verify();
+      verify(component);
 
       if (trace) {
         disableTracing();
       }
 
+      if (useProxies) {
+        expect(calls['SetterObserver.constructor'].length).to.equal(0, 'calls[\'SetterObserver.constructor\'].length');
+      } else {
+        expect(calls['ProxyObserver.constructor'].length).to.equal(0, 'calls[\'ProxyObserver.constructor\'].length');
+      }
       const names = ['ProxyObserver', 'ProxySubscriberCollection', 'SelfObserver', 'SetterObserver'];
       for (const name of names) {
-        calls[`${name}.constructor`].sort((a, b) => a.depth < b.depth ? -1 : b.depth < a.depth ? 1 : 0);
-        for (const call of calls[`${name}.constructor`]) {
-          console.log(`${call.depth}`.padEnd(2, ' ') + ' '.repeat(call.depth) + call.name)
-        }
+        // calls[`${name}.constructor`].sort((a, b) => a.depth < b.depth ? -1 : b.depth < a.depth ? 1 : 0);
+        // for (const call of calls[`${name}.constructor`]) {
+        //   console.log(`${call.depth}`.padEnd(2, ' ') + ' '.repeat(call.depth) + call.name)
+        // }
       }
     });
   }

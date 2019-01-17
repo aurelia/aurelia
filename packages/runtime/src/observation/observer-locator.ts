@@ -94,9 +94,6 @@ export class ObserverLocator implements IObserverLocator {
   }
 
   public getObserver(flags: LifecycleFlags, obj: IObservable|IBindingContext, propertyName: string): AccessorOrObserver {
-    if ((obj as { $raw?: unknown }).$raw !== undefined) {
-      return ((obj as { $observer?: ProxyObserver }).$observer) as unknown as AccessorOrObserver; // TODO: fix typings (and ensure proper contracts ofc)
-    }
     if (flags & LifecycleFlags.useProxies && typeof obj === 'object') {
       return ProxyObserver.getOrCreate(obj, propertyName) as unknown as AccessorOrObserver; // TODO: fix typings (and ensure proper contracts ofc)
     }

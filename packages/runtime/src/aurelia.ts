@@ -1,7 +1,7 @@
 import { DI, IContainer, IRegistry, PLATFORM, Profiler, Registration } from '@aurelia/kernel';
 import { IDOM, INode } from './dom';
 import { LifecycleFlags } from './observation';
-import { getRawIfProxy } from './observation/proxy-observer';
+import { ProxyObserver } from './observation/proxy-observer';
 import { ExposedContext, IRenderingEngine } from './rendering-engine';
 import { CustomElementResource, ICustomElement, ICustomElementType, IProjectorLocator } from './resources/custom-element';
 
@@ -64,7 +64,7 @@ export class Aurelia {
     } else {
       component = componentOrType as ICustomElement;
     }
-    component = getRawIfProxy(component);
+    component = ProxyObserver.getRawIfProxy(component);
 
     const startTask = () => {
       host.$au = this;
@@ -96,7 +96,7 @@ export class Aurelia {
   }
 
   public root(): ICustomElement | null {
-    return this._root;
+    return ProxyObserver.getProxyOrSelf(this._root);
   }
 
   public start(): this {

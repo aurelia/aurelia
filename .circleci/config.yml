@@ -195,7 +195,7 @@ jobs:
       build:
         type: boolean
         default: false
-      bundle:
+      iife:
         type: boolean
         default: false
       publish_local:
@@ -209,9 +209,9 @@ jobs:
             - run: npm run bootstrap
             - run: npm run build
       - when:
-          condition: << parameters.bundle >>
+          condition: << parameters.iife >>
           steps:
-            - run: npm run bundle:all
+            - run: ./node_modules/.bin/ts-node -P scripts/tsconfig.json scripts/bundle.ts iife jit-html-browser
       - when:
           condition: << parameters.publish_local >>
           steps:
@@ -272,16 +272,22 @@ workflows:
           name: jit-aurelia-cli-ts
           path: "local/jit-aurelia-cli-ts"
           build: true
+          requires:
+            - unit_test_chrome # not a real dependency, only to order the jobs in the most efficient way
       - e2e_wdio:
           <<: *filter_ignore_develop_release
           name: jit-fuse-box-ts
           path: "local/jit-fuse-box-ts"
           build: true
+          requires:
+            - unit_test_firefox # not a real dependency, only to order the jobs in the most efficient way
       - e2e_wdio:
           <<: *filter_ignore_develop_release
           name: jit-webpack-ts
           path: "local/jit-webpack-ts"
           build: true
+          requires:
+            - lint_packages # not a real dependency, only to order the jobs in the most efficient way
       - e2e_wdio:
           <<: *filter_ignore_develop_release
           name: jit-parcel-ts
@@ -293,8 +299,9 @@ workflows:
           name: jit-iife-inline
           path: "local/jit-iife-inline"
           build: true
-          bundle: true
-          publish_local: true
+          iife: true
+          requires:
+            - unit_test_node # not a real dependency, only to order the jobs in the most efficient way
       - merge_and_dist:
           <<: *filter_only_master
           requires:

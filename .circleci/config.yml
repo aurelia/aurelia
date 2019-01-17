@@ -4,45 +4,37 @@ version: 2.1
 # # # # # # # # # # # # # # # #
 # - Scalar variables -
 # # # # # # # # # # # # # # # #
-scalar-1: &node_modules_cache_key aurelia-{{ .Branch }}-{{ checksum "package.json" }}-{{ checksum "package-lock.json" }}
-
-scalar-2: &working_dir ~/repo
+scalar-1: &working_dir ~/repo
 
 # # # # # # # # # # # # # # # #
 # - Map variables -
 # # # # # # # # # # # # # # # #
-map-1: &package_globs
-  paths:
-    - packages/*/dist
-    - packages/*/node_modules
-    - packages/*/*.tgz
-
-map-2: &filter_ignore_develop_release
+map-1: &filter_ignore_develop_release
   filters:
     branches:
       ignore:
         - develop
         - release
 
-map-3: &filter_only_master
+map-2: &filter_only_master
   filters:
     branches:
       only:
         - master
 
-map-4: &filter_only_release
+map-3: &filter_only_release
   filters:
     branches:
       only:
         - release
 
-map-5: &filter_only_develop
+map-4: &filter_only_develop
   filters:
     branches:
       only:
         - develop
 
-map-6: &filter_only_tag
+map-5: &filter_only_tag
   filters:
     branches:
       ignore: /.*/
@@ -68,313 +60,10 @@ executors:
     docker:
       - image: "aureliaeffect/circleci-v2:latest"
 
-
-# # # # # # # # # # # # # # # #
-# - Commands -
-# # # # # # # # # # # # # # # #
-commands:
-
-  # first_* commands are initializers for jobs, they must come first
-  first_npm_install:
-    steps:
-      - checkout
-      - run:
-          name: "Run npm install"
-          command: npm ci --ignore-scripts
-
-  first_npm_install_wdio:
-    steps:
-      - run:
-          name: "Install wdio"
-          command: |
-            cd ./test/wdio
-            npm ci
-
-  first_npm_install_wdio_case:
-    parameters:
-      path:
-        type: string
-      e2e:
-        type: boolean
-        default: true
-    steps:
-      - checkout
-      - run:
-          name: "Run npm install"
-          command: |
-            cd ./test/wdio/cases/<< parameters.path >>
-            npm install
-      - when:
-          condition: << parameters.e2e >>
-          steps:
-            - first_npm_install_wdio
-
-  # implies first_npm_install
-  first_restore_cache:
-    steps:
-      - checkout
-      - restore_cache:
-          key: *node_modules_cache_key
-
-  # implies first_restore_cache
-  first_attach_workspace:
-    steps:
-      - first_restore_cache
-      - attach_workspace:
-          at: *working_dir
-
-  # first_* commands are finalizers for jobs, they must come last
-  last_save_cache:
-    steps:
-      - save_cache:
-          key: *node_modules_cache_key
-          paths:
-            - node_modules
-
-  last_persist_workspace:
-    steps:
-      - persist_to_workspace:
-          root: *working_dir
-          <<: *package_globs
-
-  # do_* commands are arbitrary commands that run in-between first and last
-  # - build related -
-  do_build_wdio_app:
-    parameters:
-      path:
-        type: string
-    steps:
-      - run:
-          name: "Build wdio test app"
-          command: |
-            cd ./test/wdio/cases/<< parameters.path >>
-            npm run build
-
-  do_build_packages:
-    steps:
-      - run:
-          name: "Bootstrap and build packages"
-          command: |
-            npm run bootstrap
-            npm run build
-
-  do_bundle_packages:
-    steps:
-      - run:
-          name: "Bundle packages"
-          command: npm run bundle:all
-
-  do_publish_local:
-    steps:
-      - run:
-          name: "Publish packages locally"
-          command: npm run publish:local
-
-  do_lint_packages:
-    steps:
-      - run:
-          name: "Lint packages"
-          command: npm run lint
-
-  # - test related -
-  do_serve_wdio_app:
-    parameters:
-      path:
-        type: string
-    steps:
-      - run:
-          name: "Serve wdio test app"
-          background: true
-          command: |
-            cd ./test/wdio/cases/<< parameters.path >>
-            npm run serve
-
-  do_test_wdio_app:
-    parameters:
-      path:
-        type: string
-    steps:
-      - run:
-          name: "Run wdio test"
-          command: |
-            cd ./test/wdio
-            npm run test
-
-  do_coverage_codecov:
-    steps:
-      - run:
-          name: "Process coverage for Codecov"
-          command: |
-            codecov -f ~/repo/coverage/coverage-final.json
-          when: always
-
-  do_coverage_codeclimate:
-    steps:
-      - run:
-          name: "Process coverage results for Code Climate"
-          command: |
-            ~/cc-test-reporter format-coverage ~/repo/coverage/lcov.info -t lcov -o ~/repo/coverage/cc-final.json
-            ~/cc-test-reporter upload-coverage -i ~/repo/coverage/cc-final.json
-          environment:
-            CC_TEST_REPORTER_ID: 29ad19bd108faacbd91b36265a5b5e891b404571ebf937f40655157877aa71a1
-          when: always
-
-  do_e2e_browserstack:
-    steps:
-      - run:
-          name: "Install e2e tests"
-          command: |
-            cd ./test/browserstack
-            npm ci
-            npm run build
-      - run:
-          name: "Serve e2e app in the background"
-          background: true
-          command: |
-            cd ./test/browserstack
-            npm run start
-      - run:
-          name: "Run e2e tests"
-          command: |
-            cd ./test/browserstack
-            npm run e2e
-
-  # - git related -
-  do_git_merge:
-    parameters:
-      from_branch:
-        type: string
-        default: "master"
-      to_branch:
-        type: string
-    steps:
-      - run:
-          name: "Merge << parameters.from_branch >> into << parameters.to_branch >>"
-          command: |
-            git checkout << parameters.to_branch >>
-            git merge << parameters.from_branch >> --no-ff --no-edit -Xtheirs
-
-  do_git_stash_dist:
-    steps:
-      - run:
-          name: "Cleanup unwanted files"
-          command: |
-            ./node_modules/.bin/lerna clean -y
-            rm -rf packages/*/dist/build/**
-      - run:
-          name: "Stash dist folders"
-          command: |
-            git add packages/\*/dist/* --force
-            git stash
-
-  do_git_commit_dist:
-    parameters:
-      message:
-        type: string
-        default: "chore(all): add latest build artifacts"
-    steps:
-      - run:
-          name: "Overwrite existing with stashed dist folders"
-          command: |
-            rm -rf packages/*/dist
-            git add .
-            git stash pop
-            git add packages/\*/dist/* --force
-      - run:
-          name: "Replace package.json refs and add them"
-          command: |
-            npm run change-package-refs:rollup
-            git add .
-      - run:
-          name: "Commit dist folders and package.jsons"
-          command: git commit --allow-empty -m "<< parameters.message >>"
-
-  do_git_push:
-    parameters:
-      to_branch:
-        type: string
-    steps:
-      - run:
-          name: "Push << parameters.to_branch >>"
-          command: git push origin << parameters.to_branch >>
-
-  # - publish related -
-  do_publish:
-    parameters:
-      channel:
-        type: string
-    steps:
-      - run:
-          name: "Authenticate with registry"
-          command: echo "//registry.npmjs.org/:_authToken=$NPM_TOKEN" >> ~/.npmrc
-      - run:
-          name: "Publish to @<< parameters.channel >>"
-          command: |
-            npm run publish:<< parameters.channel >>
-            npm run upload-dist:<< parameters.channel >>
-
 # # # # # # # # # # # # # # # #
 # - Jobs -
 # # # # # # # # # # # # # # # #
 jobs:
-
-  # Must come before any other job
-  install_root:
-    executor: docker-circleci
-    steps:
-      - first_npm_install
-      - last_save_cache
-
-  # Requires install_root
-  build_packages:
-    executor: docker-circleci
-    steps:
-      - first_restore_cache
-      - do_build_packages
-      - last_persist_workspace
-
-  # Requires install_root
-  lint_packages:
-    executor: docker-circleci
-    steps:
-      - first_restore_cache
-      - do_lint_packages
-
-  # Requires build_packages
-  bundle_packages:
-    executor: docker-circleci
-    steps:
-      - first_attach_workspace
-      - do_bundle_packages
-      - last_persist_workspace
-
-  # Requires bundle_packages
-  publish_local:
-    executor: docker-circleci
-    steps:
-      - first_attach_workspace
-      - do_publish_local
-      - last_persist_workspace
-
-  # Requires bundle_packages
-  merge_and_dist:
-    executor: docker-aurelia
-    parameters:
-      from:
-        type: string
-        default: "master"
-      to:
-        type: string
-        default: "dev"
-    steps:
-      - first_attach_workspace
-      - do_git_stash_dist
-      - do_git_merge:
-          from_branch: << parameters.from >>
-          to_branch: << parameters.to >>
-      - do_git_commit_dist
-      - do_git_push:
-          to_branch: << parameters.to >>
 
   unit_test:
     executor: docker-aurelia
@@ -386,31 +75,95 @@ jobs:
         type: string
         default: "test"
     steps:
-      - first_npm_install
-      # can't safely restore cache here because this uses a different executor with a different node version
+      - checkout
+      - run: npm ci --ignore-scripts
+      - run: npm run bootstrap
+      - run: npm run build
       - run: npm run << parameters.npm_command >>
       - when:
           condition: << parameters.coverage >>
           steps:
-            - do_coverage_codeclimate
-            - do_coverage_codecov
-            - store_test_results:
-                path: ~/repo/coverage
-            - store_artifacts:
-                path: ~/repo/coverage
+            - run:
+                name: "Process coverage results for Code Climate"
+                command: |
+                  ~/cc-test-reporter format-coverage coverage/lcov.info -t lcov -o coverage/cc-final.json
+                  ~/cc-test-reporter upload-coverage -i coverage/cc-final.json
+                environment:
+                  CC_TEST_REPORTER_ID: 29ad19bd108faacbd91b36265a5b5e891b404571ebf937f40655157877aa71a1
+                when: always
+            - run:
+                name: "Process coverage for Codecov"
+                command: |
+                  codecov -f coverage/coverage-final.json
+                when: always
+      - store_test_results:
+          path: coverage
+      - store_artifacts:
+          path: coverage
 
-  unit_test_node:
+  lint_packages:
     executor: docker-circleci
     steps:
-      - first_attach_workspace
-      - run: npm run test-node
+      - checkout
+      - run: npm ci --ignore-scripts
+      - run: npm run bootstrap
+      - run: npm run lint
 
-  # Requires bundle_packages
+  merge_and_dist:
+    executor: docker-aurelia
+    parameters:
+      from:
+        type: string
+      to:
+        type: string
+      message:
+        type: string
+        default: "chore(all): add latest build artifacts"
+    steps:
+      - checkout
+      - run: npm ci --ignore-scripts
+      - run: npm run bootstrap
+      - run: npm run build
+      - run: npm run bundle:release
+      - run: ./node_modules/.bin/lerna clean -y
+      - run: rm -rf packages/*/dist/build/**
+      - run: git add packages/\*/dist/* --force
+      - run: git stash
+      - run: git checkout << parameters.to >>
+      - run: git merge << parameters.from >> --no-ff --no-edit -Xtheirs
+      - run: rm -rf packages/*/dist
+      - run: git add .
+      - run: git stash pop
+      - run: git add packages/\*/dist/* --force
+      - run: npm run change-package-refs:rollup
+      - run: git add .
+      - run: git commit --allow-empty -m "<< parameters.message >>"
+      - run: git push origin << parameters.to >>
+
   e2e_browserstack:
     executor: docker-circleci
     steps:
-      - first_attach_workspace
-      - do_e2e_browserstack
+      - checkout
+      - run: npm ci --ignore-scripts
+      - run: npm run bootstrap
+      - run: npm run build
+      - run:
+          name: "Install e2e tests"
+          command: |
+            cd test/browserstack
+            npm ci
+            npm run build
+      - run:
+          name: "Serve e2e app in the background"
+          background: true
+          command: |
+            cd test/browserstack
+            npm run start
+      - run:
+          name: "Run e2e tests"
+          command: |
+            cd test/browserstack
+            npm run e2e
 
   publish_npm:
     executor: docker-aurelia
@@ -418,9 +171,12 @@ jobs:
       channel:
         type: string
     steps:
-      - first_npm_install
-      - do_publish:
-          channel: << parameters.channel >>
+      - checkout
+      - run: npm ci --ignore-scripts
+      - run:
+          name: "Authenticate with registry"
+          command: echo "//registry.npmjs.org/:_authToken=$NPM_TOKEN" >> ~/.npmrc
+      - run: npm run publish:<< parameters.channel >>
 
   # Standalone wdio test jobs
   e2e_wdio:
@@ -428,22 +184,53 @@ jobs:
     parameters:
       path:
         type: string
-      attach:
+      build:
+        type: boolean
+        default: false
+      bundle:
+        type: boolean
+        default: false
+      publish_local:
         type: boolean
         default: false
     steps:
+      - checkout
+      - run: npm ci --ignore-scripts
       - when:
-          condition: << parameters.attach >>
+          condition: << parameters.build >>
           steps:
-            - first_attach_workspace
-      - first_npm_install_wdio_case:
-          path: << parameters.path >>
-      - do_build_wdio_app:
-          path: << parameters.path >>
-      - do_serve_wdio_app:
-          path: << parameters.path >>
-      - do_test_wdio_app:
-          path: << parameters.path >>
+            - run: npm run bootstrap
+            - run: npm run build
+      - when:
+          condition: << parameters.bundle >>
+          steps:
+            - run: npm run bundle:all
+      - when:
+          condition: << parameters.publish_local >>
+          steps:
+            - run: npm run publish:local
+      - run:
+          name: "Install wdio"
+          command: |
+            cd test/wdio
+            npm ci
+      - run:
+          name: "Install & build test app"
+          command: |
+            cd test/wdio/cases/<< parameters.path >>
+            npm install
+            npm run build
+      - run:
+          name: "Serve wdio test app"
+          background: true
+          command: |
+            cd test/wdio/cases/<< parameters.path >>
+            npm run serve
+      - run:
+          name: "Run wdio test"
+          command: |
+            cd test/wdio
+            npm run test
 
 # # # # # # # # # # # # # # # #
 # - Workflows -
@@ -453,8 +240,6 @@ workflows:
   # Triggered by push to master or topic branches
   build_test:
     jobs:
-      - install_root:
-          <<: *filter_ignore_develop_release
       - unit_test:
           <<: *filter_ignore_develop_release
           name: unit_test_chrome
@@ -463,81 +248,64 @@ workflows:
           name: unit_test_firefox
           npm_command: "test-firefox"
           coverage: false
-      - build_packages:
+      - unit_test:
           <<: *filter_ignore_develop_release
-          requires:
-            - install_root
+          name: unit_test_node
+          npm_command: "test-node"
+          executor: docker-circleci
+          coverage: false
       - lint_packages:
           <<: *filter_ignore_develop_release
-          requires:
-            - install_root
-      - unit_test_node:
-          <<: *filter_ignore_develop_release
-          requires:
-            - build_packages
-      - bundle_packages:
-          <<: *filter_ignore_develop_release
-          requires:
-            - build_packages
-      - publish_local:
-          <<: *filter_ignore_develop_release
-          requires:
-            - bundle_packages
       - e2e_browserstack:
           <<: *filter_only_master
-          requires:
-            - build_packages
       - e2e_wdio:
           <<: *filter_ignore_develop_release
           name: jit-aurelia-cli-ts
           path: "local/jit-aurelia-cli-ts"
-          attach: true
-          requires:
-            - build_packages
+          build: true
       - e2e_wdio:
           <<: *filter_ignore_develop_release
           name: jit-fuse-box-ts
           path: "local/jit-fuse-box-ts"
-          attach: true
-          requires:
-            - build_packages
+          build: true
       - e2e_wdio:
           <<: *filter_ignore_develop_release
           name: jit-webpack-ts
           path: "local/jit-webpack-ts"
-          attach: true
-          requires:
-            - build_packages
+          build: true
       - e2e_wdio:
           <<: *filter_ignore_develop_release
           name: jit-parcel-ts
           path: "local/jit-parcel-ts"
-          attach: true
-          requires:
-            - publish_local
+          build: true
+          publish_local: true
       - e2e_wdio:
           <<: *filter_ignore_develop_release
           name: jit-iife-inline
           path: "local/jit-iife-inline"
-          attach: true
-          requires:
-            - bundle_packages
+          build: true
+          bundle: true
+          publish_local: true
       - merge_and_dist:
           <<: *filter_only_master
           requires:
             - lint_packages
             - unit_test_chrome
             - unit_test_firefox
-            - bundle_packages
+            - unit_test_node
             - e2e_browserstack
-          to: "develop"
+            - jit-aurelia-cli-ts
+            - jit-fuse-box-ts
+            - jit-webpack-ts
+            - jit-parcel-ts
+            - jit-iife-inline
+          from: master
+          to: develop
 
   # Runs build and tests, and pushes the built artifacts to the release branch (which then triggers publish_latest)
   # Triggered by push to tag
   build_test_push_release:
     jobs:
-      - install_root:
-          <<: *filter_only_tag
       - unit_test:
           <<: *filter_only_tag
           name: unit_test_chrome
@@ -546,38 +314,21 @@ workflows:
           name: unit_test_firefox
           npm_command: "test-firefox"
           coverage: false
-      - build_packages:
+      - unit_test:
           <<: *filter_only_tag
-          requires:
-            - install_root
+          name: unit_test_node
+          npm_command: "test-node"
+          coverage: false
       - lint_packages:
           <<: *filter_only_tag
-          requires:
-            - install_root
-      - unit_test_node:
-          <<: *filter_only_tag
-          requires:
-            - build_packages
-      - bundle_packages:
-          <<: *filter_only_tag
-          requires:
-            - build_packages
       - e2e_browserstack:
           <<: *filter_only_tag
-          requires:
-            - build_packages
-      - publish_local:
-          <<: *filter_ignore_develop_release
-          requires:
-            - bundle_packages
       - merge_and_dist:
           <<: *filter_only_tag
           requires:
             - lint_packages
             - unit_test_chrome
             - unit_test_firefox
-            - bundle_packages
-            - publish_local
             - e2e_browserstack
           from: $CIRCLE_TAG
           to: release
@@ -586,27 +337,6 @@ workflows:
   # Triggered by push to release branch
   publish_latest:
     jobs:
-      # verify the packages before asking approval
-      - e2e_wdio:
-          <<: *filter_only_release
-          name: jit-aurelia-cli-ts
-          path: "local/jit-aurelia-cli-ts"
-      - e2e_wdio:
-          <<: *filter_only_release
-          name: jit-fuse-box-ts
-          path: "local/jit-fuse-box-ts"
-      - e2e_wdio:
-          <<: *filter_only_release
-          name: jit-parcel-ts
-          path: "local/jit-parcel-ts"
-      - e2e_wdio:
-          <<: *filter_only_release
-          name: jit-webpack-ts
-          path: "local/jit-webpack-ts"
-      - e2e_wdio:
-          <<: *filter_only_release
-          name: jit-iife-inline
-          path: "local/jit-iife-inline"
       # artifacts are already prepared and committed by the tag workflow, so only approval + publish remains
       - request_publish_latest:
           <<: *filter_only_release

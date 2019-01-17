@@ -19,8 +19,10 @@ import {
   IScope,
   ITemplate,
   LifecycleFlags,
+  ProxyObserver,
   Repeat,
-  Scope } from '../../../src/index';
+  Scope
+} from '../../../src/index';
 import { RuntimeBehavior } from '../../../src/rendering-engine';
 import { ViewFactory } from '../../../src/templating/view';
 import {
@@ -54,6 +56,9 @@ describe(`Repeat`, () => {
 
   interface Spec {
     t: string;
+  }
+  interface UseProxiesSpec extends Spec {
+    useProxies: boolean;
   }
   interface DuplicateOperationSpec extends Spec {
     bindTwice: boolean;
@@ -166,6 +171,11 @@ describe(`Repeat`, () => {
     }
   }
 
+  const useProxiesSpecs: UseProxiesSpec[] = [
+    { t: '1', useProxies: false },
+    { t: '2', useProxies: true  }
+  ];
+
   const duplicateOperationSpecs: DuplicateOperationSpec[] = [
     { t: '1', bindTwice: false, newScopeForDuplicateBind: false, attachTwice: false, detachTwice: false, unbindTwice: false },
     { t: '2', bindTwice: true,  newScopeForDuplicateBind: false, attachTwice: true,  detachTwice: true,  unbindTwice: true  },
@@ -267,14 +277,16 @@ describe(`Repeat`, () => {
     { t: '5', bindFlags1: startBind,  attachFlags1: startAttach, detachFlags1: stopDetach,  unbindFlags1: stopUnbind,  bindFlags2: startBind,  attachFlags2: startAttach, detachFlags2: stopDetach,  unbindFlags2: stopUnbind  }
   ];
 
-  eachCartesianJoin([duplicateOperationSpecs, bindSpecs, flagsSpecs], (duplicateOperationSpec, bindSpec, flagsSpec) => {
+  eachCartesianJoin([useProxiesSpecs, duplicateOperationSpecs, bindSpecs, flagsSpecs], (useProxiesSpec, duplicateOperationSpec, bindSpec, flagsSpec) => {
     it(`verify repeat behavior - duplicateOperationSpec ${duplicateOperationSpec.t}, bindSpec ${bindSpec.t}, flagsSpec ${flagsSpec.t}, `, async () => {
+      const { useProxies } = useProxiesSpec;
       const { bindTwice, attachTwice, detachTwice, unbindTwice, newScopeForDuplicateBind } = duplicateOperationSpec;
       const { items: $items, flush, mutations } = bindSpec;
       const { bindFlags1, attachFlags1, detachFlags1, unbindFlags1, bindFlags2, attachFlags2, detachFlags2, unbindFlags2 } = flagsSpec;
 
       const items = $items.slice();
       // common stuff
+      const baseFlags = useProxies ? LifecycleFlags.useProxies : LifecycleFlags.none;
       const container = AuDOMConfiguration.createContainer();
       const dom = container.get<AuDOM>(IDOM);
       const observerLocator = container.get(IObserverLocator);
@@ -292,6 +304,7 @@ describe(`Repeat`, () => {
 
           const nodes = new AuNodeSequence(dom, wrapper);
           const itemBinding = new Binding(new AccessScope('item'), text, 'textContent', BindingMode.toView, observerLocator, container);
+          binding.persistentFlags |= baseFlags;
 
           (itemRenderable as Writable<typeof itemRenderable>).$nodes = nodes;
           addBindable(itemRenderable, itemBinding);
@@ -308,33 +321,38 @@ describe(`Repeat`, () => {
       const renderable: IRenderable<AuNode> = {
         $bindableHead: binding
       } as any;
-      const sut = new Repeat<IObservedArray, AuNode>(location, renderable, itemFactory);
+      let sut: Repeat<IObservedArray, AuNode>;
+      if (useProxies) {
+        sut = new ProxyObserver(new Repeat<IObservedArray, AuNode>(location, renderable, itemFactory)).proxy;
+      } else {
+        sut = new Repeat<IObservedArray, AuNode>(location, renderable, itemFactory);
+      }
       binding.target = sut;
 
       (sut as Writable<Repeat>).$scope = null;
 
       const repeatBehavior = RuntimeBehavior.create(Repeat);
-      repeatBehavior.applyTo(sut, lifecycle);
+      repeatBehavior.applyTo(baseFlags, sut, lifecycle);
 
       // -- Round 1 --
-      let scope = Scope.create(BindingContext.create());
+      let scope = Scope.create(baseFlags, BindingContext.create(baseFlags));
 
       sut.items = items;
       const expectedText1 = sut.items ? sut.items.join('') : '';
 
-      runBindLifecycle(lifecycle, sut, bindFlags1, scope);
+      runBindLifecycle(lifecycle, sut, baseFlags | bindFlags1, scope);
 
       if (bindTwice) {
         if (newScopeForDuplicateBind) {
-          scope = Scope.create(scope.bindingContext);
+          scope = Scope.create(baseFlags, scope.bindingContext);
         }
-        runBindLifecycle(lifecycle, sut, bindFlags1, scope);
+        runBindLifecycle(lifecycle, sut, baseFlags | bindFlags1, scope);
       }
 
-      runAttachLifecycle(lifecycle, sut, attachFlags1);
+      runAttachLifecycle(lifecycle, sut, baseFlags | attachFlags1);
       expect(host.textContent).to.equal(expectedText1, 'host.textContent #1');
       if (attachTwice) {
-        runAttachLifecycle(lifecycle, sut, attachFlags1);
+        runAttachLifecycle(lifecycle, sut, baseFlags | attachFlags1);
         expect(host.textContent).to.equal(expectedText1, 'host.textContent #2');
       }
 
@@ -342,7 +360,7 @@ describe(`Repeat`, () => {
       const expectedText2 = sut.items ? sut.items.join('') : '';
 
       if (flush) {
-        lifecycle.processFlushQueue(none);
+        lifecycle.processFlushQueue(baseFlags);
         expect(host.textContent).to.equal(expectedText2, 'host.textContent #3');
       } else {
         const assign = mutations.find(m => m.op === 'assign') as AssignSpec;
@@ -353,16 +371,16 @@ describe(`Repeat`, () => {
         }
       }
 
-      runDetachLifecycle(lifecycle, sut, detachFlags1);
+      runDetachLifecycle(lifecycle, sut, baseFlags | detachFlags1);
       if (detachTwice) {
-        runDetachLifecycle(lifecycle, sut, detachFlags1);
+        runDetachLifecycle(lifecycle, sut, baseFlags | detachFlags1);
       }
 
       expect(host.textContent).to.equal('', 'host.textContent #6');
 
-      runUnbindLifecycle(lifecycle, sut, unbindFlags1);
+      runUnbindLifecycle(lifecycle, sut, baseFlags | unbindFlags1);
       if (unbindTwice) {
-        runUnbindLifecycle(lifecycle, sut, unbindFlags1);
+        runUnbindLifecycle(lifecycle, sut, baseFlags | unbindFlags1);
       }
 
       // -- Round 2 --
@@ -370,18 +388,18 @@ describe(`Repeat`, () => {
       sut.items = items;
       const expectedText3 = sut.items ? sut.items.join('') : '';
 
-      runBindLifecycle(lifecycle, sut, bindFlags2, scope);
+      runBindLifecycle(lifecycle, sut, baseFlags | bindFlags2, scope);
       if (bindTwice) {
         if (newScopeForDuplicateBind) {
-          scope = Scope.create(scope.bindingContext);
+          scope = Scope.create(baseFlags, scope.bindingContext);
         }
-        runBindLifecycle(lifecycle, sut, bindFlags2, scope);
+        runBindLifecycle(lifecycle, sut, baseFlags | bindFlags2, scope);
       }
 
-      runAttachLifecycle(lifecycle, sut, attachFlags2);
+      runAttachLifecycle(lifecycle, sut, baseFlags | attachFlags2);
       expect(host.textContent).to.equal(expectedText3, 'host.textContent #7');
       if (attachTwice) {
-        runAttachLifecycle(lifecycle, sut, attachFlags2);
+        runAttachLifecycle(lifecycle, sut, baseFlags | attachFlags2);
         expect(host.textContent).to.equal(expectedText3, 'host.textContent #8');
       }
 
@@ -389,7 +407,7 @@ describe(`Repeat`, () => {
       const expectedText4 = sut.items ? sut.items.join('') : '';
 
       if (flush) {
-        lifecycle.processFlushQueue(none);
+        lifecycle.processFlushQueue(baseFlags);
         expect(host.textContent).to.equal(expectedText4, 'host.textContent #9');
       } else {
         const assign = mutations.find(m => m.op === 'assign') as AssignSpec;
@@ -400,16 +418,16 @@ describe(`Repeat`, () => {
         }
       }
 
-      runDetachLifecycle(lifecycle, sut, detachFlags2);
+      runDetachLifecycle(lifecycle, sut, baseFlags | detachFlags2);
       if (detachTwice) {
-        runDetachLifecycle(lifecycle, sut, detachFlags2);
+        runDetachLifecycle(lifecycle, sut, baseFlags | detachFlags2);
       }
 
       expect(host.textContent).to.equal('', 'host.textContent #12');
 
-      runUnbindLifecycle(lifecycle, sut, unbindFlags2);
+      runUnbindLifecycle(lifecycle, sut, baseFlags | unbindFlags2);
       if (unbindTwice) {
-        runUnbindLifecycle(lifecycle, sut, unbindFlags2);
+        runUnbindLifecycle(lifecycle, sut, baseFlags | unbindFlags2);
       }
     });
   });

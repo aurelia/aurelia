@@ -56,7 +56,7 @@ export class With<T extends INode = INode> implements With<T>  {
   }
 
   private bindChild(flags: LifecycleFlags): void {
-    const scope = Scope.fromParent(this.$scope, this.value);
+    const scope = Scope.fromParent(flags, this.$scope, this.value);
     this.currentView.$bind(flags, scope);
   }
 }

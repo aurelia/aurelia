@@ -16,11 +16,11 @@ import { targetObserver } from './target-observer';
 
 const slice = Array.prototype.slice;
 
-function flush(this: CollectionObserver): void {
+function flush(this: CollectionObserver, flags: LifecycleFlags): void {
   if (Tracer.enabled) { Tracer.enter(`${this['constructor'].name}.flush`, slice.call(arguments)); }
-  this.callBatchedSubscribers(this.indexMap);
+  this.callBatchedSubscribers(this.indexMap, flags | this.persistentFlags);
   if (!!this.lengthObserver) {
-    this.lengthObserver.patch(LifecycleFlags.fromFlush | LifecycleFlags.updateTargetInstance);
+    this.lengthObserver.patch(LifecycleFlags.fromFlush | LifecycleFlags.updateTargetInstance | this.persistentFlags);
   }
   this.resetIndexMap();
   if (Tracer.enabled) { Tracer.leave(); }
@@ -88,7 +88,6 @@ export interface CollectionLengthObserver extends IBindingTargetObserver<Collect
 @targetObserver()
 export class CollectionLengthObserver implements CollectionLengthObserver, IPatch {
   public currentValue: number;
-  public currentFlags: LifecycleFlags;
 
   public obj: Collection;
   public propertyKey: 'length' | 'size';

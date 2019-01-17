@@ -12,7 +12,7 @@ import {
   IRenderLocation,
   IView,
   IViewFactory,
-  LifecycleFlags
+  LifecycleFlags as LF
 } from '../../../src/index';
 import { Lifecycle } from '../../../src/lifecycle';
 import { InstanceProvider } from '../../../src/rendering-engine';
@@ -62,7 +62,7 @@ export function ensureSingleChildTemplateControllerBehaviors<T extends ICustomAt
     let bindCalled = false;
     child.$bind = function() { bindCalled = true; };
 
-    attribute.$bind(LifecycleFlags.fromBind, createScopeForTest());
+    attribute.$bind(LF.fromBind, createScopeForTest());
 
     expect(bindCalled).to.equal(true);
   });
@@ -88,22 +88,22 @@ export function ensureSingleChildTemplateControllerBehaviors<T extends ICustomAt
     let unbindCalled = false;
     child.$unbind = function() { unbindCalled = true; };
 
-    attribute.$bind(LifecycleFlags.fromBind, createScopeForTest());
-    attribute.$unbind(LifecycleFlags.fromUnbind);
+    attribute.$bind(LF.fromBind, createScopeForTest());
+    attribute.$unbind(LF.fromUnbind);
 
     expect(unbindCalled).to.equal(true);
   });
 
   function runAttachLifecycle(lifecycle: Lifecycle, item: IAttach) {
     lifecycle.beginAttach();
-    item.$attach(LifecycleFlags.none);
-    lifecycle.endAttach(LifecycleFlags.none);
+    item.$attach(LF.none);
+    lifecycle.endAttach(LF.none);
   }
 
   function runDetachLifecycle(lifecycle: Lifecycle, item: IAttach) {
     lifecycle.beginDetach();
-    item.$detach(LifecycleFlags.none);
-    lifecycle.endDetach(LifecycleFlags.none);
+    item.$detach(LF.none);
+    lifecycle.endDetach(LF.none);
   }
 }
 
@@ -156,7 +156,7 @@ export function hydrateCustomAttribute<T extends ICustomAttributeType>(
     CustomAttributeResource.keyFrom(AttributeType.description.name)
   );
   const renderingEngine = container.get(IRenderingEngine);
-  attribute.$hydrate(renderingEngine);
+  attribute.$hydrate(LF.none, renderingEngine);
 
   return { attribute: attribute as Overwrite<InstanceType<T>, ICustomAttribute<AuNode>>, location, lifecycle };
 }

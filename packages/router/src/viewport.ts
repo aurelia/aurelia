@@ -315,7 +315,8 @@ export class Viewport {
     const projectorLocator = container.get(IProjectorLocator);
     const renderingEngine = container.get(IRenderingEngine);
 
-    component.$hydrate(dom, projectorLocator, renderingEngine, host, null);
+    // TODO: get useProxies settings from the template definition
+    component.$hydrate(LifecycleFlags.none, dom, projectorLocator, renderingEngine, host, null);
     component.$bind(LifecycleFlags.fromStartTask | LifecycleFlags.fromBind, null);
     component.$attach(LifecycleFlags.fromStartTask);
   }

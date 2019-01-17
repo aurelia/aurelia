@@ -1,4 +1,4 @@
-import { AccessScope, BindingIdentifier, ForOfStatement, Interpolation, IsBindingBehavior } from './binding/ast';
+import { ForOfStatement, Interpolation, IsBindingBehavior } from './binding/ast';
 import { BindingMode } from './binding/binding-mode';
 import {
   ICallBindingInstruction,

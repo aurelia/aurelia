@@ -1,4 +1,4 @@
-import { DI, PLATFORM, Reporter } from '@aurelia/kernel';
+import { DI, PLATFORM, Reporter, Tracer } from '@aurelia/kernel';
 import { IBindingTargetObserver, IObservable, IPropertySubscriber, LifecycleFlags } from '../observation';
 import { propertyObserver } from './property-observer';
 
@@ -107,6 +107,8 @@ export class DirtyChecker {
   }
 }
 
+const slice = Array.prototype.slice;
+
 export interface DirtyCheckProperty extends IBindingTargetObserver { }
 
 @propertyObserver()
@@ -118,10 +120,12 @@ export class DirtyCheckProperty implements DirtyCheckProperty {
   private readonly dirtyChecker: IDirtyChecker;
 
   constructor(dirtyChecker: IDirtyChecker, obj: IObservable, propertyKey: string) {
+    if (Tracer.enabled) { Tracer.enter('DirtyCheckProperty.constructor', slice.call(arguments)); }
     this.obj = obj;
     this.propertyKey = propertyKey;
 
     this.dirtyChecker = dirtyChecker;
+    if (Tracer.enabled) { Tracer.leave(); }
   }
 
   public isDirty(): boolean {

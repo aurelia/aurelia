@@ -22,6 +22,7 @@ export class UpdateTriggerBindingBehavior {
 
   public static register: IRegistry['register'];
 
+  public persistentFlags: LifecycleFlags;
   private readonly observerLocator: IObserverLocator;
 
   constructor(observerLocator: IObserverLocator) {
@@ -37,8 +38,10 @@ export class UpdateTriggerBindingBehavior {
       throw Reporter.error(10);
     }
 
+    this.persistentFlags = flags & LifecycleFlags.persistentBindingFlags;
+
     // ensure the binding's target observer has been set.
-    const targetObserver = this.observerLocator.getObserver(binding.target, binding.targetProperty) as UpdateTriggerableObserver;
+    const targetObserver = this.observerLocator.getObserver(this.persistentFlags | flags, binding.target, binding.targetProperty) as UpdateTriggerableObserver;
     if (!targetObserver.handler) {
       throw Reporter.error(10);
     }

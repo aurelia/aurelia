@@ -81,7 +81,7 @@ export class Ref implements IBinding {
     if (Tracer.enabled) { Tracer.leave(); }
   }
 
-  public observeProperty(obj: IIndexable, propertyName: string): void {
+  public observeProperty(flags: LifecycleFlags, obj: IIndexable, propertyName: string): void {
     return;
   }
 

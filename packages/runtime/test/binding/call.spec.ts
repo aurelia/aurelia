@@ -13,7 +13,7 @@ import {
   IExpression,
   ILifecycle,
   IScope,
-  LifecycleFlags,
+  LifecycleFlags as LF,
   SetterObserver
 } from '../../src/index';
 import { Lifecycle } from '../../src/lifecycle';
@@ -70,8 +70,8 @@ describe('Call', () => {
         it(`$bind() target=${$1} prop=${$2} expr=${$3} scope=${$4} renewScope=${$5}`, () => {
           // - Arrange -
           const { sut, lifecycle, observerLocator } = setup(expr, target, prop);
-          const flags = LifecycleFlags.none;
-          const targetObserver = observerLocator.getObserver(target, prop);
+          const flags = LF.none;
+          const targetObserver = observerLocator.getObserver(LF.none, target, prop);
 
           massSpy(scope.bindingContext, 'theFunc');
           massSpy(sut, 'callSource');
@@ -154,8 +154,8 @@ describe('Call', () => {
         it(`$bind() target=${$1} prop=${$2} expr=${$3} scope=${$4}`, () => {
           // - Arrange -
           const { sut, lifecycle, observerLocator } = setup(expr, target, prop);
-          const flags = LifecycleFlags.none;
-          const targetObserver = observerLocator.getObserver(target, prop);
+          const flags = LF.none;
+          const targetObserver = observerLocator.getObserver(LF.none, target, prop);
 
           massSpy(scope.bindingContext, 'theFunc');
           massSpy(sut, 'callSource');
@@ -252,8 +252,8 @@ describe('Call', () => {
         it(`$bind() target=${$1} prop=${$2} args=${$3} expr=${$4} scope=${$5}`, () => {
           // - Arrange -
           const { sut, lifecycle, observerLocator } = setup(expr, target, prop);
-          const flags = LifecycleFlags.none;
-          const targetObserver = observerLocator.getObserver(target, prop);
+          const flags = LF.none;
+          const targetObserver = observerLocator.getObserver(LF.none, target, prop);
 
           massSpy(scope.bindingContext, 'theFunc');
           massSpy(sut, 'callSource');

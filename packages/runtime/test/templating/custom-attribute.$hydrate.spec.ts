@@ -1,5 +1,5 @@
 import { expect } from 'chai';
-import { Hooks, ICustomAttributeType, IRenderingEngine, State } from '../../src/index';
+import { Hooks, ICustomAttributeType, IRenderingEngine, LifecycleFlags as LF, State } from '../../src/index';
 import { createCustomAttribute, CustomAttribute } from '../resources/custom-attribute._builder';
 import { eachCartesianJoin } from '../util';
 
@@ -37,7 +37,7 @@ describe('@customAttribute', () => {
         let appliedType: ICustomAttributeType;
         let appliedInstance: CustomAttribute;
         const renderingEngine: IRenderingEngine = {
-          applyRuntimeBehavior(type: ICustomAttributeType, instance: CustomAttribute) {
+          applyRuntimeBehavior(flags: LF, type: ICustomAttributeType, instance: CustomAttribute) {
             instance.$hooks = hooksSpec.getHooks();
             appliedType = type;
             appliedInstance = instance;
@@ -45,11 +45,11 @@ describe('@customAttribute', () => {
         } as any;
 
         // Act
-        sut.$hydrate(renderingEngine);
+        sut.$hydrate(LF.none, renderingEngine);
 
         // Assert
         expect(sut).to.not.have.$state.isAttached('sut.$isAttached');
-        expect(sut.$state & State.isBound).to.equal(0, 'sut.$isBound');
+        expect(sut.$state & State.isBound).to.equal(LF.none, 'sut.$isBound');
         expect(sut.$scope).to.equal(null, 'sut.$scope');
 
         expect(appliedType).to.equal(Type, 'appliedType');

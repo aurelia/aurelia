@@ -1,7 +1,7 @@
 import { expect } from 'chai';
 import {
   Hooks,
-  LifecycleFlags,
+  LifecycleFlags as LF,
   Scope,
   State
 } from '../../src/index';
@@ -64,7 +64,7 @@ describe('@customElement', () => {
         const { sut } = createCustomElement('foo');
         const initState = sut.$state;
         sut.$state |= State.isBound;
-        sut.$scope = Scope.create(sut, null);
+        sut.$scope = Scope.create(LF.none, sut, null);
         sut.$bindableHead = sut.$bindableTail = null;
         sut.$attachableHead = sut.$attachableTail = null;
         propsSpec.setProps(sut);
@@ -85,15 +85,15 @@ describe('@customElement', () => {
         } as any;
 
         // Act
-        sut.$attach(LifecycleFlags.none);
+        sut.$attach(LF.none);
 
         // Assert
         if (propsSpec.callsBehaviors) {
           if (hooks & Hooks.hasAttached) {
-            sut.verifyAttachedCalled(LifecycleFlags.fromAttach);
+            sut.verifyAttachedCalled(LF.fromAttach);
           }
           if (hooks & Hooks.hasAttaching) {
-            sut.verifyAttachingCalled(LifecycleFlags.fromAttach);
+            sut.verifyAttachingCalled(LF.fromAttach);
           }
         }
         sut.verifyNoFurtherCalls();
@@ -155,7 +155,7 @@ describe('@customElement', () => {
         // Arrange
         const { sut } = createCustomElement('foo');
         sut.$state |= State.isBound;
-        sut.$scope = Scope.create(sut, null);
+        sut.$scope = Scope.create(LF.none, sut, null);
         sut.$bindableHead = sut.$bindableTail = null;
         sut.$attachableHead = sut.$attachableTail = null;
         propsSpec.setProps(sut);
@@ -170,15 +170,15 @@ describe('@customElement', () => {
         } as any;
 
         // Act
-        sut.$detach(LifecycleFlags.none);
+        sut.$detach(LF.none);
 
         // Assert
         if (propsSpec.callsBehaviors) {
           if (hooks & Hooks.hasDetached) {
-            sut.verifyDetachedCalled(LifecycleFlags.fromDetach | LifecycleFlags.parentUnmountQueued);
+            sut.verifyDetachedCalled(LF.fromDetach | LF.parentUnmountQueued);
           }
           if (hooks & Hooks.hasDetaching) {
-            sut.verifyDetachingCalled(LifecycleFlags.fromDetach | LifecycleFlags.parentUnmountQueued);
+            sut.verifyDetachingCalled(LF.fromDetach | LF.parentUnmountQueued);
           }
         }
         sut.verifyNoFurtherCalls();
@@ -210,18 +210,18 @@ describe('@customElement', () => {
         // Arrange
         const { sut } = createCustomElement('foo');
         sut.$state |= State.isBound;
-        sut.$scope = Scope.create(sut, null);
+        sut.$scope = Scope.create(LF.none, sut, null);
         sut.$bindableHead = sut.$bindableTail = null;
         sut.$attachableHead = sut.$attachableTail = null;
         const hooks = hooksSpec.getHooks();
         sut.$hooks = hooks;
 
         // Act
-        sut.$cache(LifecycleFlags.none);
+        sut.$cache(LF.none);
 
         // Assert
         if (hooks & Hooks.hasCaching) {
-          sut.verifyCachingCalled(LifecycleFlags.fromCache);
+          sut.verifyCachingCalled(LF.fromCache);
         }
         sut.verifyNoFurtherCalls();
       });
@@ -242,7 +242,7 @@ describe('@customElement', () => {
         }
       } as any;
 
-      sut.$mount(LifecycleFlags.none);
+      sut.$mount(LF.none);
 
       expect(projectCalled).to.equal(true, 'projectCalled');
       expect(projectNodes).to.equal(nodes, 'projectNodes');
@@ -264,7 +264,7 @@ describe('@customElement', () => {
       } as any;
       sut.$state |= State.isMounted;
 
-      sut.$unmount(LifecycleFlags.none);
+      sut.$unmount(LF.none);
 
       expect(takeCalled).to.equal(true, 'takeCalled');
       expect(takeNodes).to.equal(nodes, 'takeNodes');

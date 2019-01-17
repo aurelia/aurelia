@@ -7,6 +7,7 @@ import {
   IRenderer,
   IRenderingEngine,
   IScope,
+  LifecycleFlags as LF,
   OverrideContext,
   Scope,
   State
@@ -50,9 +51,9 @@ export const checkDelay = 20;
 
 export function createScopeForTest(bindingContext: any = {}, parentBindingContext?: any): IScope {
   if (parentBindingContext) {
-    return Scope.create(bindingContext, OverrideContext.create(bindingContext, OverrideContext.create(parentBindingContext, null)));
+    return Scope.create(bindingContext, OverrideContext.create(LF.none, bindingContext, OverrideContext.create(LF.none, parentBindingContext, null)));
   }
-  return Scope.create(bindingContext, OverrideContext.create(bindingContext, null));
+  return Scope.create(bindingContext, OverrideContext.create(LF.none, bindingContext, null));
 }
 
 export class SpySubscriber {

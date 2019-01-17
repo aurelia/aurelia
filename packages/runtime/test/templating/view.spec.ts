@@ -20,7 +20,7 @@ import {
   IScope,
   ITemplate,
   IView,
-  LifecycleFlags,
+  LifecycleFlags as LF,
   Scope
 } from '../../src/index';
 import { Lifecycle } from '../../src/lifecycle';
@@ -148,22 +148,22 @@ describe(`ViewFactory`, () => {
 //   addBindable(renderable, new Binding(this.sourceExpression, nodes.firstChild, 'textContent', BindingMode.toView, this.observerLocator, this.container));
 // }
 describe('View', () => {
-  function runBindLifecycle(lifecycle: ILifecycle, view: IView<AuNode>, flags: LifecycleFlags, scope: IScope): void {
+  function runBindLifecycle(lifecycle: ILifecycle, view: IView<AuNode>, flags: LF, scope: IScope): void {
     lifecycle.beginBind();
     view.$bind(flags, scope);
     lifecycle.endBind(flags);
   }
-  function runUnbindLifecycle(lifecycle: ILifecycle, view: IView<AuNode>, flags: LifecycleFlags): void {
+  function runUnbindLifecycle(lifecycle: ILifecycle, view: IView<AuNode>, flags: LF): void {
     lifecycle.beginUnbind();
     view.$unbind(flags);
     lifecycle.endUnbind(flags);
   }
-  function runAttachLifecycle(lifecycle: ILifecycle, view: IView<AuNode>, flags: LifecycleFlags): void {
+  function runAttachLifecycle(lifecycle: ILifecycle, view: IView<AuNode>, flags: LF): void {
     lifecycle.beginAttach();
     view.$attach(flags);
     lifecycle.endAttach(flags);
   }
-  function runDetachLifecycle(lifecycle: ILifecycle, view: IView<AuNode>, flags: LifecycleFlags): void {
+  function runDetachLifecycle(lifecycle: ILifecycle, view: IView<AuNode>, flags: LF): void {
     lifecycle.beginDetach();
     view.$detach(flags);
     lifecycle.endDetach(flags);
@@ -202,15 +202,15 @@ describe('View', () => {
     relAfterDetach2: boolean;
   }
   interface FlagsSpec extends Spec {
-    bindFlags1: LifecycleFlags;
-    attachFlags1: LifecycleFlags;
-    detachFlags1: LifecycleFlags;
-    unbindFlags1: LifecycleFlags;
+    bindFlags1: LF;
+    attachFlags1: LF;
+    detachFlags1: LF;
+    unbindFlags1: LF;
 
-    bindFlags2: LifecycleFlags;
-    attachFlags2: LifecycleFlags;
-    detachFlags2: LifecycleFlags;
-    unbindFlags2: LifecycleFlags;
+    bindFlags2: LF;
+    attachFlags2: LF;
+    detachFlags2: LF;
+    unbindFlags2: LF;
   }
 
   const cacheSpecs: CacheSpec[] = [
@@ -257,13 +257,13 @@ describe('View', () => {
     { t: '16', relBeforeDetach1: true,  relBeforeEndDetach1: false, relAfterDetach1: false, relBeforeDetach2: true,  relBeforeEndDetach2: false, relAfterDetach2: false },
   ];
 
-  const none = LifecycleFlags.none;
-  const start = LifecycleFlags.fromStartTask;
-  const stop = LifecycleFlags.fromStopTask;
-  const bind = LifecycleFlags.fromBind;
-  const attach = LifecycleFlags.fromAttach;
-  const detach = LifecycleFlags.fromDetach;
-  const unbind = LifecycleFlags.fromUnbind;
+  const none = LF.none;
+  const start = LF.fromStartTask;
+  const stop = LF.fromStopTask;
+  const bind = LF.fromBind;
+  const attach = LF.fromAttach;
+  const detach = LF.fromDetach;
+  const unbind = LF.fromUnbind;
   const startBind = start | bind;
   const startAttach = start | attach;
   const stopDetach = stop | detach;
@@ -447,7 +447,7 @@ describe('View', () => {
 
       // - Round 1 - bind
 
-      const scope1 = Scope.create(BindingContext.create(propName, propValue1));
+      const scope1 = Scope.create(LF.none, BindingContext.create(LF.none, propName, propValue1));
       if (lockScope1) {
         sut.lockScope(scope1);
       }
@@ -460,7 +460,7 @@ describe('View', () => {
       if (bindTwice) {
         let newScope: Scope;
         if (newScopeForSecondBind) {
-          newScope = Scope.create(BindingContext.create(propName, duplicateBindValue));
+          newScope = Scope.create(LF.none, BindingContext.create(LF.none, propName, duplicateBindValue));
         } else {
           scope1.bindingContext[propName] = duplicateBindValue;
           newScope = scope1;
@@ -531,7 +531,7 @@ describe('View', () => {
 
       let scope2: Scope;
       if (newScopeForSecondBind) {
-        scope2 = Scope.create(BindingContext.create(propName, propValue2));
+        scope2 = Scope.create(LF.none, BindingContext.create(LF.none, propName, propValue2));
       } else {
         scope1.bindingContext[propName] = propValue2;
         scope2 = scope1;
@@ -548,7 +548,7 @@ describe('View', () => {
       if (bindTwice) {
         let newScope: Scope;
         if (newScopeForSecondBind) {
-          newScope = Scope.create(BindingContext.create(propName, duplicateBindValue));
+          newScope = Scope.create(LF.none, BindingContext.create(LF.none, propName, duplicateBindValue));
         } else {
           scope2.bindingContext[propName] = duplicateBindValue;
           newScope = scope2;

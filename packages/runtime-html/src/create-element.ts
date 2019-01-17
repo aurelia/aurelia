@@ -10,6 +10,7 @@ import {
   ITemplate,
   IView,
   IViewFactory,
+  LifecycleFlags,
   TargetedInstructionType,
   TemplateDefinition
 } from '@aurelia/runtime';
@@ -18,7 +19,12 @@ import { SetAttributeInstruction } from './instructions';
 
 const slice = Array.prototype.slice;
 
-export function createElement<T extends INode = Node>(dom: IDOM<T>, tagOrType: string | Constructable, props?: Record<string, string | HTMLTargetedInstruction>, children?: ArrayLike<unknown>): RenderPlan<T> {
+export function createElement<T extends INode = Node>(
+  dom: IDOM<T>,
+  tagOrType: string | Constructable,
+  props?: Record<string, string | HTMLTargetedInstruction>,
+  children?: ArrayLike<unknown>
+): RenderPlan<T> {
   if (typeof tagOrType === 'string') {
     return createElementForTag(dom, tagOrType, props, children);
   } else {
@@ -55,7 +61,7 @@ export class RenderPlan<T extends INode = Node> {
     return engine.getElementTemplate(this.dom, this.definition, null, Type);
   }
 
-  public createView(engine: IRenderingEngine, parentContext?: IRenderContext): IView {
+  public createView(flags: LifecycleFlags, engine: IRenderingEngine, parentContext?: IRenderContext): IView {
     return this.getViewFactory(engine, parentContext).create();
   }
 

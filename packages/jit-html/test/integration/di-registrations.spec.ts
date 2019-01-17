@@ -8,7 +8,7 @@ import {
   INode,
   IProjectorLocator,
   IRenderingEngine,
-  LifecycleFlags,
+  LifecycleFlags as LF,
   Scope
 } from '@aurelia/runtime';
 import { expect } from 'chai';
@@ -206,12 +206,12 @@ describe('DI', function() {
 
           public binding(this: ICustomElement & this): void {
             this.child = this.$context.get<ICustomElement>('custom-element:foo');
-            this.child.$hydrate(this.$context.get(IDOM), this.$context.get(IProjectorLocator), this.$context.get(IRenderingEngine), this.node, this.$context);
-            this.child.$bind(LifecycleFlags.none, Scope.create(BindingContext.create()));
+            this.child.$hydrate(LF.none, this.$context.get(IDOM), this.$context.get(IProjectorLocator), this.$context.get(IRenderingEngine), this.node, this.$context);
+            this.child.$bind(LF.none, Scope.create(LF.none, BindingContext.create(LF.none)));
           }
 
           public attaching(): void {
-            this.child.$attach(LifecycleFlags.none);
+            this.child.$attach(LF.none);
           }
         }
       );
@@ -249,12 +249,12 @@ describe('DI', function() {
 
           public binding(this: ICustomElement & this): void {
             this.child = this.$context.get<ICustomElement>('custom-element:bar');
-            this.child.$hydrate(this.$context.get(IDOM), this.$context.get(IProjectorLocator), this.$context.get(IRenderingEngine), this.node, this.$context);
-            this.child.$bind(LifecycleFlags.none, Scope.create(BindingContext.create()));
+            this.child.$hydrate(LF.none, this.$context.get(IDOM), this.$context.get(IProjectorLocator), this.$context.get(IRenderingEngine), this.node, this.$context);
+            this.child.$bind(LF.none, Scope.create(LF.none, BindingContext.create(LF.none)));
           }
 
           public attaching(): void {
-            this.child.$attach(LifecycleFlags.none);
+            this.child.$attach(LF.none);
           }
         }
       );
@@ -301,12 +301,12 @@ describe('DI', function() {
 
           public binding(this: ICustomElement & this): void {
             this.child = this.$context.get<ICustomElement>('custom-element:baz');
-            this.child.$hydrate(this.$context.get(IDOM), this.$context.get(IProjectorLocator), this.$context.get(IRenderingEngine), this.node, this.$context);
-            this.child.$bind(LifecycleFlags.none, Scope.create(BindingContext.create()));
+            this.child.$hydrate(LF.none, this.$context.get(IDOM), this.$context.get(IProjectorLocator), this.$context.get(IRenderingEngine), this.node, this.$context);
+            this.child.$bind(LF.none, Scope.create(LF.none, BindingContext.create(LF.none)));
           }
 
           public attaching(): void {
-            this.child.$attach(LifecycleFlags.none);
+            this.child.$attach(LF.none);
           }
         }
       );

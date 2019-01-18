@@ -1,5 +1,4 @@
-import { IServiceLocator, StrictPrimitive } from '@aurelia/kernel';
-import { IConnectableBinding } from './binding/connectable';
+import { IIndexable, IServiceLocator, StrictPrimitive } from '@aurelia/kernel';
 import { ExpressionKind, LifecycleFlags } from './flags';
 import { Collection, IScope, ObservedCollection } from './observation';
 
@@ -54,11 +53,16 @@ export interface IVisitor<T = unknown> {
 export interface IExpression {
   readonly $kind: ExpressionKind;
   accept<T>(visitor: IVisitor<T>): T;
-  connect(flags: LifecycleFlags, scope: IScope, binding: IConnectableBinding): void;
+  connect(flags: LifecycleFlags, scope: IScope, binding: IConnectable): void;
   evaluate(flags: LifecycleFlags, scope: IScope, locator: IServiceLocator): unknown;
   assign?(flags: LifecycleFlags, scope: IScope, locator: IServiceLocator, value: unknown): unknown;
-  bind?(flags: LifecycleFlags, scope: IScope, binding: IConnectableBinding): void;
-  unbind?(flags: LifecycleFlags, scope: IScope, binding: IConnectableBinding): void;
+  bind?(flags: LifecycleFlags, scope: IScope, binding: IConnectable): void;
+  unbind?(flags: LifecycleFlags, scope: IScope, binding: IConnectable): void;
+}
+
+export interface IConnectable {
+  readonly locator: IServiceLocator;
+  observeProperty(flags: LifecycleFlags, obj: IIndexable, propertyName: string): void;
 }
 
 export interface IBindingBehaviorExpression extends IExpression {
@@ -68,8 +72,8 @@ export interface IBindingBehaviorExpression extends IExpression {
   readonly args: ReadonlyArray<IsAssign>;
   readonly behaviorKey: string;
   assign(flags: LifecycleFlags, scope: IScope, locator: IServiceLocator, value: unknown): unknown;
-  bind(flags: LifecycleFlags, scope: IScope, binding: IConnectableBinding): void;
-  unbind(flags: LifecycleFlags, scope: IScope, binding: IConnectableBinding): void;
+  bind(flags: LifecycleFlags, scope: IScope, binding: IConnectable): void;
+  unbind(flags: LifecycleFlags, scope: IScope, binding: IConnectable): void;
 }
 
 export interface IValueConverterExpression extends IExpression {
@@ -79,7 +83,7 @@ export interface IValueConverterExpression extends IExpression {
   readonly args: ReadonlyArray<IsAssign>;
   readonly converterKey: string;
   assign(flags: LifecycleFlags, scope: IScope, locator: IServiceLocator, value: unknown): unknown;
-  unbind(flags: LifecycleFlags, scope: IScope, binding: IConnectableBinding): void;
+  unbind(flags: LifecycleFlags, scope: IScope, binding: IConnectable): void;
 }
 
 export interface IAssignExpression extends IExpression {

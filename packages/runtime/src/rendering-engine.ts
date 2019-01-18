@@ -26,6 +26,7 @@ import {
   TemplatePartDefinitions
 } from './definitions';
 import { IDOM, INode, INodeSequenceFactory, IRenderLocation, NodeSequence } from './dom';
+import { LifecycleFlags } from './flags';
 import {
   ILifecycle,
   IRenderable,
@@ -37,7 +38,6 @@ import {
   IPropertySubscriber,
   ISubscribable,
   ISubscriberCollection,
-  LifecycleFlags,
   MutationKind
 } from './observation';
 import { ProxyObserver } from './observation/proxy-observer';

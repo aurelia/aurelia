@@ -10,7 +10,7 @@ import {
   ResourcePartDescription
 } from '@aurelia/kernel';
 import { ForOfStatement, Interpolation, IsBindingBehavior } from './binding/ast';
-import { BindingMode } from './binding/binding-mode';
+import { BindingMode } from './flags';
 import { CustomElementHost, ICustomElement } from './resources/custom-element';
 
 /** @internal */

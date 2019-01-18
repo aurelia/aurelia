@@ -1,5 +1,6 @@
 import { Class, IIndexable, Tracer } from '@aurelia/kernel';
-import { IBindingTargetObserver, IPropertySubscriber, ISubscribable, LifecycleFlags, MutationKind } from '../observation';
+import { LifecycleFlags } from '../flags';
+import { IBindingTargetObserver, IPropertySubscriber, ISubscribable, MutationKind } from '../observation';
 import { IObserverLocator } from '../observation/observer-locator';
 import { IBinding } from './binding';
 

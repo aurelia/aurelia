@@ -1,10 +1,10 @@
 import { IIndexable, Reporter, StrictPrimitive, Tracer } from '@aurelia/kernel';
+import { LifecycleFlags } from '../flags';
 import { IBindScope } from '../lifecycle';
 import {
   IBindingContext,
   IOverrideContext,
   IScope,
-  LifecycleFlags,
   ObservedCollection,
   ObserversLookup,
   PropertyObserver

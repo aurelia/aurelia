@@ -20,7 +20,6 @@ export {
   HasAncestor,
   IVisitor,
   IExpression,
-  ExpressionKind,
   connects,
   observes,
   callsFunction,
@@ -62,9 +61,6 @@ export {
   ForOfStatement,
   Interpolation
 } from './binding/ast';
-export {
-  BindingMode
-} from './binding/binding-mode';
 export {
   IBinding,
   Binding
@@ -321,6 +317,14 @@ export {
   INodeSequenceFactory
 } from './dom';
 export {
+  BindingMode,
+  ExpressionKind,
+  Hooks,
+  LifecycleFlags,
+  State,
+  stringifyLifecycleFlags
+} from './flags';
+export {
   CallBindingInstruction,
   FromViewBindingInstruction,
   HydrateAttributeInstruction,
@@ -339,7 +343,6 @@ export {
 export {
   AggregateLifecycleTask,
   CompositionCoordinator,
-  Hooks,
   IAttach,
   IAttachables,
   IAttachLifecycle,
@@ -380,8 +383,7 @@ export {
   IViewCache,
   IViewFactory,
   LifecycleTask,
-  PromiseTask,
-  State
+  PromiseTask
 } from './lifecycle';
 export {
   AccessorOrObserver,
@@ -420,12 +422,10 @@ export {
   IScope,
   ISubscribable,
   ISubscriberCollection,
-  LifecycleFlags,
   MutationKind,
   ObservedCollection,
   ObserversLookup,
   PropertyObserver,
-  stringifyLifecycleFlags,
   Subscriber
 } from './observation';
 export {

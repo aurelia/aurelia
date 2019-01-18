@@ -1,10 +1,10 @@
 import { Tracer } from '@aurelia/kernel';
+import { LifecycleFlags } from '../flags';
 import {
   IPropertySubscriber,
   IProxy,
   IProxyObserver,
   IProxySubscriber,
-  LifecycleFlags,
   MutationKind
 } from '../observation';
 import { subscriberCollection } from './subscriber-collection';

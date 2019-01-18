@@ -1,6 +1,6 @@
 import { Profiler, Tracer, Writable } from '@aurelia/kernel';
-import { Hooks, IView, State } from '../lifecycle';
-import { LifecycleFlags } from '../observation';
+import { Hooks, LifecycleFlags, State } from '../flags';
+import { IView } from '../lifecycle';
 import { ICustomAttribute } from '../resources/custom-attribute';
 import { ICustomElement } from '../resources/custom-element';
 

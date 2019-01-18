@@ -14,37 +14,10 @@ import {
 import { IConnectableBinding } from './binding/connectable';
 import { ITargetedInstruction, TemplateDefinition, TemplatePartDefinitions } from './definitions';
 import { INode, INodeSequence, IRenderLocation } from './dom';
-import { IChangeTracker, IScope, LifecycleFlags } from './observation';
+import { Hooks, LifecycleFlags, State } from './flags';
+import { IChangeTracker, IScope } from './observation';
 
 const slice = Array.prototype.slice;
-
-export const enum State {
-  none                  = 0b000000000000,
-  isBinding             = 0b000000000001,
-  isBound               = 0b000000000010,
-  isAttaching           = 0b000000000100,
-  isAttached            = 0b000000001000,
-  isMounted             = 0b000000010000,
-  isDetaching           = 0b000000100000,
-  isUnbinding           = 0b000001000000,
-  isCached              = 0b000010000000,
-  isContainerless       = 0b000100000000
-}
-
-export const enum Hooks {
-  none                   = 0b000000000001,
-  hasCreated             = 0b000000000010,
-  hasBinding             = 0b000000000100,
-  hasBound               = 0b000000001000,
-  hasAttaching           = 0b000000010000,
-  hasAttached            = 0b000000100000,
-  hasDetaching           = 0b000001000000,
-  hasDetached            = 0b000010000000,
-  hasUnbinding           = 0b000100000000,
-  hasUnbound             = 0b001000000000,
-  hasRender              = 0b010000000000,
-  hasCaching             = 0b100000000000
-}
 
 export interface IHooks {
   $hooks?: Hooks;

@@ -1,6 +1,6 @@
 import { Constructable, PLATFORM } from '@aurelia/kernel';
-import { BindingMode } from '../binding/binding-mode';
 import { BindableSource, IBindableDescription } from '../definitions';
+import { BindingMode } from '../flags';
 
 /**
  * Decorator: Specifies custom behavior for a bindable property.

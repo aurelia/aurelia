@@ -1,6 +1,7 @@
 import { Tracer } from '@aurelia/kernel';
+import { LifecycleFlags } from '../flags';
 import { ILifecycle } from '../lifecycle';
-import { CollectionKind, ICollectionObserver, IObservedMap, LifecycleFlags } from '../observation';
+import { CollectionKind, ICollectionObserver, IObservedMap } from '../observation';
 import { collectionObserver } from './collection-observer';
 
 const proto = Map.prototype;

@@ -1,10 +1,10 @@
 import { DI, PLATFORM, Reporter } from '@aurelia/kernel';
+import { ExpressionKind } from '../flags';
 import {
   AccessMember,
   AccessScope,
   CallMember,
   CallScope,
-  ExpressionKind,
   ForOfStatement,
   Interpolation,
   IsBindingBehavior,

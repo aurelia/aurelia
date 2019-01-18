@@ -10,7 +10,6 @@ import {
   Tracer
 } from '@aurelia/kernel';
 import { Binding } from './binding/binding';
-import { BindingMode } from './binding/binding-mode';
 import { Call } from './binding/call';
 import { BindingType, IExpressionParser } from './binding/expression-parser';
 import { InterpolationBinding, MultiInterpolationBinding } from './binding/interpolation-binding';
@@ -36,6 +35,7 @@ import {
   TemplatePartDefinitions
 } from './definitions';
 import { IDOM, INode } from './dom';
+import { BindingMode, LifecycleFlags } from './flags';
 import {
   IAttach,
   IAttachables,
@@ -44,7 +44,6 @@ import {
   IRenderable,
   IRenderContext,
 } from './lifecycle';
-import { LifecycleFlags } from './observation';
 import { IObserverLocator } from './observation/observer-locator';
 import {
   IInstructionRenderer,
@@ -54,7 +53,6 @@ import {
 } from './rendering-engine';
 import { ICustomAttribute } from './resources/custom-attribute';
 import { ICustomElement, IProjectorLocator } from './resources/custom-element';
-import { ProxyObserver } from './observation/proxy-observer';
 
 const slice = Array.prototype.slice;
 

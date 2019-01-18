@@ -1,5 +1,6 @@
 import { Reporter, Tracer } from '@aurelia/kernel';
 import { INode, INodeSequence, IRenderLocation } from '../dom';
+import { LifecycleFlags, State } from '../flags';
 import {
   IAttach,
   IBindScope,
@@ -9,10 +10,9 @@ import {
   IRenderContext,
   IView,
   IViewCache,
-  IViewFactory,
-  State
+  IViewFactory
 } from '../lifecycle';
-import { IScope, LifecycleFlags } from '../observation';
+import { IScope } from '../observation';
 import { ITemplate } from '../rendering-engine';
 import { $attachView, $cacheView, $detachView, $mountView, $unmountView } from './lifecycle-attach';
 import { $bindView, $unbindView } from './lifecycle-bind';

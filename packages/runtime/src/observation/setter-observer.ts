@@ -1,5 +1,6 @@
 import { IIndexable, Tracer } from '@aurelia/kernel';
-import { IPropertyObserver, IPropertySubscriber, LifecycleFlags } from '../observation';
+import { LifecycleFlags } from '../flags';
+import { IPropertyObserver, IPropertySubscriber } from '../observation';
 import { propertyObserver } from './property-observer';
 
 const slice = Array.prototype.slice;

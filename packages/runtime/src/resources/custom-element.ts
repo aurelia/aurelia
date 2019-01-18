@@ -19,8 +19,8 @@ import {
   TemplateDefinition
 } from '../definitions';
 import { IDOM, INode, INodeSequence, IRenderLocation } from '../dom';
+import { Hooks, LifecycleFlags } from '../flags';
 import {
-  Hooks,
   IAttach,
   IBind,
   ILifecycleHooks,
@@ -29,7 +29,7 @@ import {
   IRenderable,
   IRenderContext
 } from '../lifecycle';
-import { IChangeTracker, LifecycleFlags } from '../observation';
+import { IChangeTracker } from '../observation';
 import { IRenderingEngine } from '../rendering-engine';
 import {
   $attachElement,

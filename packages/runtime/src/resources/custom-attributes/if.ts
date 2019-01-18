@@ -1,8 +1,8 @@
 import { Constructable, InterfaceSymbol, IRegistry } from '@aurelia/kernel';
 import { AttributeDefinition, IAttributeDefinition } from '../../definitions';
 import { INode, IRenderLocation } from '../../dom';
+import { LifecycleFlags } from '../../flags';
 import { CompositionCoordinator, IView, IViewFactory } from '../../lifecycle';
-import { LifecycleFlags } from '../../observation';
 import { ProxyObserver } from '../../observation/proxy-observer';
 import { bindable } from '../../templating/bindable';
 import { CustomAttributeResource, ICustomAttribute, ICustomAttributeResource } from '../custom-attribute';

@@ -1,5 +1,4 @@
 import { ForOfStatement, Interpolation, IsBindingBehavior } from './binding/ast';
-import { BindingMode } from './binding/binding-mode';
 import {
   ICallBindingInstruction,
   IHydrateAttributeInstruction,
@@ -16,6 +15,7 @@ import {
   ITemplateDefinition,
   TargetedInstructionType
 } from './definitions';
+import { BindingMode } from './flags';
 
 export class InterpolationInstruction implements IInterpolationInstruction {
   public type: TargetedInstructionType.interpolation;

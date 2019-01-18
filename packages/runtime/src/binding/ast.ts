@@ -1,110 +1,59 @@
 import { IIndexable, IServiceLocator, PLATFORM, Reporter, StrictPrimitive } from '@aurelia/kernel';
+import {
+  BinaryOperator,
+  BindingIdentifierOrPattern,
+  CallsFunction,
+  Connects,
+  HasAncestor,
+  HasBind,
+  HasUnbind,
+  IAccessKeyedExpression,
+  IAccessMemberExpression,
+  IAccessScopeExpression,
+  IAccessThisExpression,
+  IArrayBindingPattern,
+  IArrayLiteralExpression,
+  IAssignExpression,
+  IBinaryExpression,
+  IBindingBehaviorExpression,
+  IBindingIdentifier,
+  ICallFunctionExpression,
+  ICallMemberExpression,
+  ICallScopeExpression,
+  IConditionalExpression,
+  IExpression,
+  IForOfStatement,
+  IHtmlLiteralExpression,
+  IInterpolationExpression,
+  IObjectBindingPattern,
+  IObjectLiteralExpression,
+  IPrimitiveLiteralExpression,
+  IsAssign,
+  IsAssignable,
+  IsBinary,
+  IsBindingBehavior,
+  IsExpressionOrStatement,
+  IsLeftHandSide,
+  IsLiteral,
+  IsPrimary,
+  IsResource,
+  IsValueConverter,
+  ITaggedTemplateExpression,
+  ITemplateExpression,
+  IUnaryExpression,
+  IValueConverterExpression,
+  IVisitor,
+  Observes,
+  UnaryOperator
+} from '../ast';
+import { ExpressionKind, LifecycleFlags } from '../flags';
 import { IBindScope } from '../lifecycle';
-import { Collection, IBindingContext, IOverrideContext, IScope, LifecycleFlags, ObservedCollection } from '../observation';
+import { Collection, IBindingContext, IOverrideContext, IScope, ObservedCollection } from '../observation';
 import { BindingContext } from '../observation/binding-context';
 import { ISignaler } from '../observation/signaler';
-import { BindingBehaviorResource } from '../resources/binding-behavior';
+import { BindingBehaviorResource, IBindingBehavior } from '../resources/binding-behavior';
 import { IValueConverter, ValueConverterResource } from '../resources/value-converter';
-import { IBinding } from './binding';
 import { IConnectableBinding } from './connectable';
-
-export type IsPrimary = AccessThis | AccessScope | ArrayLiteral | ObjectLiteral | PrimitiveLiteral | Template;
-export type IsLiteral = ArrayLiteral | ObjectLiteral | PrimitiveLiteral | Template;
-export type IsLeftHandSide = IsPrimary | CallFunction | CallMember | CallScope | AccessMember | AccessKeyed | TaggedTemplate;
-export type IsUnary = IsLeftHandSide | Unary;
-export type IsBinary = IsUnary | Binary;
-export type IsConditional = IsBinary | Conditional;
-export type IsAssign = IsConditional | Assign;
-export type IsValueConverter = IsAssign | ValueConverter;
-export type IsBindingBehavior = IsValueConverter | BindingBehavior;
-export type IsAssignable = AccessScope | AccessKeyed | AccessMember | Assign;
-export type IsExpression = IsBindingBehavior | Interpolation;
-export type IsExpressionOrStatement = IsExpression | ForOfStatement | BindingIdentifierOrPattern | HtmlLiteral;
-export type Connects = AccessScope | ArrayLiteral | ObjectLiteral | Template | Unary | CallScope | AccessMember | AccessKeyed | TaggedTemplate | Binary | Conditional | ValueConverter | BindingBehavior | ForOfStatement;
-export type Observes = AccessScope | AccessKeyed | AccessMember;
-export type CallsFunction = CallFunction | CallScope | CallMember | TaggedTemplate;
-export type IsResource = ValueConverter | BindingBehavior;
-export type HasBind = BindingBehavior;
-export type HasUnbind = ValueConverter | BindingBehavior;
-export type HasAncestor = AccessThis | AccessScope | CallScope;
-
-export interface IVisitor<T = unknown> {
-  visitAccessKeyed(expr: AccessKeyed): T;
-  visitAccessMember(expr: AccessMember): T;
-  visitAccessScope(expr: AccessScope): T;
-  visitAccessThis(expr: AccessThis): T;
-  visitArrayBindingPattern(expr: ArrayBindingPattern): T;
-  visitArrayLiteral(expr: ArrayLiteral): T;
-  visitAssign(expr: Assign): T;
-  visitBinary(expr: Binary): T;
-  visitBindingBehavior(expr: BindingBehavior): T;
-  visitBindingIdentifier(expr: BindingIdentifier): T;
-  visitCallFunction(expr: CallFunction): T;
-  visitCallMember(expr: CallMember): T;
-  visitCallScope(expr: CallScope): T;
-  visitConditional(expr: Conditional): T;
-  visitForOfStatement(expr: ForOfStatement): T;
-  visitHtmlLiteral(expr: HtmlLiteral): T;
-  visitInterpolation(expr: Interpolation): T;
-  visitObjectBindingPattern(expr: ObjectBindingPattern): T;
-  visitObjectLiteral(expr: ObjectLiteral): T;
-  visitPrimitiveLiteral(expr: PrimitiveLiteral): T;
-  visitTaggedTemplate(expr: TaggedTemplate): T;
-  visitTemplate(expr: Template): T;
-  visitUnary(expr: Unary): T;
-  visitValueConverter(expr: ValueConverter): T;
-}
-
-export interface IExpression {
-  readonly $kind: ExpressionKind;
-  evaluate(flags: LifecycleFlags, scope: IScope, locator: IServiceLocator | null): unknown;
-  connect(flags: LifecycleFlags, scope: IScope, binding: IConnectableBinding): void;
-  accept<T>(visitor: IVisitor<T>): T;
-  assign?(flags: LifecycleFlags, scope: IScope, locator: IServiceLocator | null, value: unknown): unknown;
-  bind?(flags: LifecycleFlags, scope: IScope, binding: IBinding): void;
-  unbind?(flags: LifecycleFlags, scope: IScope, binding: IBinding): void;
-}
-
-export const enum ExpressionKind {
-  Connects             = 0b000000000001_00000, // The expression's connect() function calls observeProperty and/or calls connect() on another expression that it wraps (all expressions except for AccessThis, PrimitiveLiteral, CallMember/Function and Assign)
-  Observes             = 0b000000000010_00000, // The expression's connect() function calls observeProperty (only AccessScope, AccessMember and AccessKeyed do this)
-  CallsFunction        = 0b000000000100_00000, // Calls a function (CallFunction, CallScope, CallMember, TaggedTemplate) -> needs a valid function object returning from its lefthandside's evaluate()
-  HasAncestor          = 0b000000001000_00000, // Has an "ancestor" property, meaning the expression could climb up the context (only AccessThis, AccessScope and CallScope)
-  IsPrimary            = 0b000000010000_00000, // Is a primary expression according to ES parsing rules
-  IsLeftHandSide       = 0b000000100000_00000, // Is a left-hand side expression according to ES parsing rules, includes IsPrimary
-  HasBind              = 0b000001000000_00000, // Has a bind() method (currently only BindingBehavior)
-  HasUnbind            = 0b000010000000_00000, // Has an unbind() method (currentl only BindingBehavior and ValueConverter)
-  IsAssignable         = 0b000100000000_00000, // Is an assignable expression according to ES parsing rules (only AccessScope, AccessMember, AccessKeyed ans Assign)
-  IsLiteral            = 0b001000000000_00000, // Is an Aurelia resource (ValueConverter or BindingBehavior)
-  IsResource           = 0b010000000000_00000, // Is literal expression (Primitive, Array, Object or Template)
-  IsForDeclaration     = 0b100000000000_00000, // Is a For declaration (for..of, for..in -> currently only ForOfStatement)
-  Type                 = 0b000000000000_11111, // Type mask to uniquely identify each AST class (concrete types start below)
-  // ---------------------------------------------------------------------------------------------------------------------------
-  AccessThis           = 0b000000111000_00001, //               HasAncestor
-  AccessScope          = 0b000100111011_00010, // IsAssignable  HasAncestor       Observes  Connects
-  ArrayLiteral         = 0b001000110001_00011, //                                           Connects
-  ObjectLiteral        = 0b001000110001_00100, //                                           Connects
-  PrimitiveLiteral     = 0b001000110000_00101, //
-  Template             = 0b001000110001_00110, //                                           Connects
-  Unary                = 0b000000000001_00111, //                                           Connects
-  CallScope            = 0b000000101101_01000, //               HasAncestor  CallsFunction  Connects
-  CallMember           = 0b000000100100_01001, //                            CallsFunction
-  CallFunction         = 0b000000100100_01010, //                            CallsFunction
-  AccessMember         = 0b000100100011_01011, // IsAssignable                    Observes  Connects
-  AccessKeyed          = 0b000100100011_01100, // IsAssignable                    Observes  Connects
-  TaggedTemplate       = 0b000000100101_01101, //                            CallsFunction  Connects
-  Binary               = 0b000000000001_01110, //                                           Connects
-  Conditional          = 0b000000000001_11111, //                                           Connects
-  Assign               = 0b000100000000_10000, // IsAssignable
-  ValueConverter       = 0b010010000001_10001, //                                           Connects
-  BindingBehavior      = 0b010011000001_10010, //                                           Connects
-  HtmlLiteral          = 0b000000000001_10011, //                                           Connects
-  ArrayBindingPattern  = 0b100000000000_10100, //
-  ObjectBindingPattern = 0b100000000000_10101, //
-  BindingIdentifier    = 0b100000000000_10110, //
-  ForOfStatement       = 0b000000000001_10111, //                                           Connects
-  Interpolation        = 0b000000000000_11000  //
-}
 
 export function connects(expr: IsExpressionOrStatement): expr is Connects {
   return (expr.$kind & ExpressionKind.Connects) === ExpressionKind.Connects;
@@ -178,8 +127,8 @@ const enum RuntimeError {
   NullScope = 251, // trying to evaluate on an unbound binding
 }
 
-export class BindingBehavior implements IExpression {
-  public $kind: ExpressionKind.BindingBehavior;
+export class BindingBehavior implements IBindingBehaviorExpression {
+  public readonly $kind: ExpressionKind.BindingBehavior;
   public readonly expression: IsBindingBehavior;
   public readonly name: string;
   public readonly args: ReadonlyArray<IsAssign>;
@@ -227,7 +176,7 @@ export class BindingBehavior implements IExpression {
       (this.expression as BindingBehavior).bind(flags, scope, binding);
     }
     const behaviorKey = this.behaviorKey;
-    const behavior = locator.get<BindingBehavior>(behaviorKey);
+    const behavior = locator.get<IBindingBehavior>(behaviorKey);
     if (!behavior) {
       throw Reporter.error(RuntimeError.NoBehaviorFound, this);
     }
@@ -252,8 +201,8 @@ export class BindingBehavior implements IExpression {
   }
 }
 
-export class ValueConverter implements IExpression {
-  public $kind: ExpressionKind.ValueConverter;
+export class ValueConverter implements IValueConverterExpression {
+  public readonly $kind: ExpressionKind.ValueConverter;
   public readonly expression: IsValueConverter;
   public readonly name: string;
   public readonly args: ReadonlyArray<IsAssign>;
@@ -353,8 +302,8 @@ export class ValueConverter implements IExpression {
   }
 }
 
-export class Assign implements IExpression {
-  public $kind: ExpressionKind.Assign;
+export class Assign implements IAssignExpression {
+  public readonly $kind: ExpressionKind.Assign;
   public readonly target: IsAssignable;
   public readonly value: IsAssign;
 
@@ -382,8 +331,8 @@ export class Assign implements IExpression {
   }
 }
 
-export class Conditional implements IExpression {
-  public $kind: ExpressionKind.Conditional;
+export class Conditional implements IConditionalExpression {
+  public readonly $kind: ExpressionKind.Conditional;
   public assign: IExpression['assign'];
   public readonly condition: IsBinary;
   public readonly yes: IsAssign;
@@ -419,10 +368,10 @@ export class Conditional implements IExpression {
   }
 }
 
-export class AccessThis implements IExpression {
+export class AccessThis implements IAccessThisExpression {
   public static readonly $this: AccessThis = new AccessThis(0);
   public static readonly $parent: AccessThis = new AccessThis(1);
-  public $kind: ExpressionKind.AccessThis;
+  public readonly $kind: ExpressionKind.AccessThis;
   public assign: IExpression['assign'];
   public connect: IExpression['connect'];
   public readonly ancestor: number;
@@ -454,8 +403,8 @@ export class AccessThis implements IExpression {
   }
 }
 
-export class AccessScope implements IExpression {
-  public $kind: ExpressionKind.AccessScope;
+export class AccessScope implements IAccessScopeExpression {
+  public readonly $kind: ExpressionKind.AccessScope;
   public readonly name: string;
   public readonly ancestor: number;
 
@@ -487,8 +436,8 @@ export class AccessScope implements IExpression {
   }
 }
 
-export class AccessMember implements IExpression {
-  public $kind: ExpressionKind.AccessMember;
+export class AccessMember implements IAccessMemberExpression {
+  public readonly $kind: ExpressionKind.AccessMember;
   public readonly object: IsLeftHandSide;
   public readonly name: string;
 
@@ -526,8 +475,8 @@ export class AccessMember implements IExpression {
   }
 }
 
-export class AccessKeyed implements IExpression {
-  public $kind: ExpressionKind.AccessKeyed;
+export class AccessKeyed implements IAccessKeyedExpression {
+  public readonly $kind: ExpressionKind.AccessKeyed;
   public readonly object: IsLeftHandSide;
   public readonly key: IsAssign;
 
@@ -573,8 +522,8 @@ export class AccessKeyed implements IExpression {
   }
 }
 
-export class CallScope implements IExpression {
-  public $kind: ExpressionKind.CallScope;
+export class CallScope implements ICallScopeExpression {
+  public readonly $kind: ExpressionKind.CallScope;
   public assign: IExpression['assign'];
   public readonly name: string;
   public readonly args: ReadonlyArray<IsAssign>;
@@ -610,8 +559,8 @@ export class CallScope implements IExpression {
   }
 }
 
-export class CallMember implements IExpression {
-  public $kind: ExpressionKind.CallMember;
+export class CallMember implements ICallMemberExpression {
+  public readonly $kind: ExpressionKind.CallMember;
   public assign: IExpression['assign'];
   public readonly object: IsLeftHandSide;
   public readonly name: string;
@@ -651,8 +600,8 @@ export class CallMember implements IExpression {
   }
 }
 
-export class CallFunction implements IExpression {
-  public $kind: ExpressionKind.CallFunction;
+export class CallFunction implements ICallFunctionExpression {
+  public readonly $kind: ExpressionKind.CallFunction;
   public assign: IExpression['assign'];
   public readonly func: IsLeftHandSide;
   public readonly args: ReadonlyArray<IsAssign>;
@@ -691,10 +640,8 @@ export class CallFunction implements IExpression {
   }
 }
 
-export type BinaryOperator = '&&' | '||' |  '==' |  '===' |  '!=' |  '!==' |  'instanceof' |  'in' |  '+' |  '-' |  '*' |  '/' |  '%' |  '<' |  '>' |  '<=' |  '>=';
-
-export class Binary implements IExpression {
-  public $kind: ExpressionKind.Binary;
+export class Binary implements IBinaryExpression {
+  public readonly $kind: ExpressionKind.Binary;
   public assign: IExpression['assign'];
   public readonly operation: BinaryOperator;
   public readonly left: IsBinary;
@@ -798,10 +745,8 @@ export class Binary implements IExpression {
   }
 }
 
-export type UnaryOperator = 'void' | 'typeof' | '!' | '-' | '+';
-
-export class Unary implements IExpression {
-  public $kind: ExpressionKind.Unary;
+export class Unary implements IUnaryExpression {
+  public readonly $kind: ExpressionKind.Unary;
   public assign: IExpression['assign'];
   public readonly operation: UnaryOperator;
   public readonly expression: IsLeftHandSide;
@@ -844,13 +789,13 @@ export class Unary implements IExpression {
     return visitor.visitUnary(this);
   }
 }
-export class PrimitiveLiteral<TValue extends StrictPrimitive = StrictPrimitive> implements IExpression {
+export class PrimitiveLiteral<TValue extends StrictPrimitive = StrictPrimitive> implements IPrimitiveLiteralExpression {
   public static readonly $undefined: PrimitiveLiteral<undefined> = new PrimitiveLiteral<undefined>(undefined);
   public static readonly $null: PrimitiveLiteral<null> = new PrimitiveLiteral<null>(null);
   public static readonly $true: PrimitiveLiteral<true> = new PrimitiveLiteral<true>(true);
   public static readonly $false: PrimitiveLiteral<false> = new PrimitiveLiteral<false>(false);
   public static readonly $empty: PrimitiveLiteral<string> = new PrimitiveLiteral<''>('');
-  public $kind: ExpressionKind.PrimitiveLiteral;
+  public readonly $kind: ExpressionKind.PrimitiveLiteral;
   public connect: IExpression['connect'];
   public assign: IExpression['assign'];
   public readonly value: TValue;
@@ -871,8 +816,8 @@ export class PrimitiveLiteral<TValue extends StrictPrimitive = StrictPrimitive> 
   }
 }
 
-export class HtmlLiteral implements IExpression {
-  public $kind: ExpressionKind.HtmlLiteral;
+export class HtmlLiteral implements IHtmlLiteralExpression {
+  public readonly $kind: ExpressionKind.HtmlLiteral;
   public assign: IExpression['assign'];
   public readonly parts: ReadonlyArray<HtmlLiteral>;
 
@@ -906,9 +851,9 @@ export class HtmlLiteral implements IExpression {
   }
 }
 
-export class ArrayLiteral implements IExpression {
+export class ArrayLiteral implements IArrayLiteralExpression {
   public static readonly $empty: ArrayLiteral = new ArrayLiteral(PLATFORM.emptyArray);
-  public $kind: ExpressionKind.ArrayLiteral;
+  public readonly $kind: ExpressionKind.ArrayLiteral;
   public assign: IExpression['assign'];
   public readonly elements: ReadonlyArray<IsAssign>;
 
@@ -940,9 +885,9 @@ export class ArrayLiteral implements IExpression {
   }
 }
 
-export class ObjectLiteral implements IExpression {
+export class ObjectLiteral implements IObjectLiteralExpression {
   public static readonly $empty: ObjectLiteral = new ObjectLiteral(PLATFORM.emptyArray, PLATFORM.emptyArray);
-  public $kind: ExpressionKind.ObjectLiteral;
+  public readonly $kind: ExpressionKind.ObjectLiteral;
   public assign: IExpression['assign'];
   public readonly keys: ReadonlyArray<number | string>;
   public readonly values: ReadonlyArray<IsAssign>;
@@ -977,9 +922,9 @@ export class ObjectLiteral implements IExpression {
   }
 }
 
-export class Template implements IExpression {
+export class Template implements ITemplateExpression {
   public static readonly $empty: Template = new Template(['']);
-  public $kind: ExpressionKind.Template;
+  public readonly $kind: ExpressionKind.Template;
   public assign: IExpression['assign'];
   public readonly cooked: ReadonlyArray<string>;
   public readonly expressions: ReadonlyArray<IsAssign>;
@@ -1015,8 +960,8 @@ export class Template implements IExpression {
   }
 }
 
-export class TaggedTemplate implements IExpression {
-  public $kind: ExpressionKind.TaggedTemplate;
+export class TaggedTemplate implements ITaggedTemplateExpression {
+  public readonly $kind: ExpressionKind.TaggedTemplate;
   public assign: IExpression['assign'];
   public readonly cooked: ReadonlyArray<string> & { raw?: ReadonlyArray<string> };
   public readonly func: IsLeftHandSide;
@@ -1058,8 +1003,8 @@ export class TaggedTemplate implements IExpression {
   }
 }
 
-export class ArrayBindingPattern implements IExpression {
-  public $kind: ExpressionKind.ArrayBindingPattern;
+export class ArrayBindingPattern implements IArrayBindingPattern {
+  public readonly $kind: ExpressionKind.ArrayBindingPattern;
   public readonly elements: ReadonlyArray<IsAssign>;
 
   // We'll either have elements, or keys+values, but never all 3
@@ -1087,8 +1032,8 @@ export class ArrayBindingPattern implements IExpression {
   }
 }
 
-export class ObjectBindingPattern implements IExpression {
-  public $kind: ExpressionKind.ObjectBindingPattern;
+export class ObjectBindingPattern implements IObjectBindingPattern {
+  public readonly $kind: ExpressionKind.ObjectBindingPattern;
   public readonly keys: ReadonlyArray<string | number>;
   public readonly values: ReadonlyArray<IsAssign>;
 
@@ -1118,8 +1063,8 @@ export class ObjectBindingPattern implements IExpression {
   }
 }
 
-export class BindingIdentifier implements IExpression {
-  public $kind: ExpressionKind.BindingIdentifier;
+export class BindingIdentifier implements IBindingIdentifier {
+  public readonly $kind: ExpressionKind.BindingIdentifier;
   public readonly name: string;
 
   constructor(name: string) {
@@ -1139,14 +1084,12 @@ export class BindingIdentifier implements IExpression {
   }
 }
 
-export type BindingIdentifierOrPattern = BindingIdentifier | ArrayBindingPattern | ObjectBindingPattern;
-
 const toStringTag = Object.prototype.toString;
 
 // https://tc39.github.io/ecma262/#sec-iteration-statements
 // https://tc39.github.io/ecma262/#sec-for-in-and-for-of-statements
-export class ForOfStatement implements IExpression {
-  public $kind: ExpressionKind.ForOfStatement;
+export class ForOfStatement implements IForOfStatement {
+  public readonly $kind: ExpressionKind.ForOfStatement;
   public assign: IExpression['assign'];
   public readonly declaration: BindingIdentifierOrPattern;
   public readonly iterable: IsBindingBehavior;
@@ -1185,8 +1128,8 @@ export class ForOfStatement implements IExpression {
 * so while this implementation is identical to Template and we could reuse that one, we don't want to lock outselves in to potentially the wrong abstraction
 * but this class might be a candidate for removal if it turns out it does provide all we need
 */
-export class Interpolation implements IExpression {
-  public $kind: ExpressionKind.Interpolation;
+export class Interpolation implements IInterpolationExpression {
+  public readonly $kind: ExpressionKind.Interpolation;
   public assign: IExpression['assign'];
   public readonly parts: ReadonlyArray<string>;
   public readonly expressions: ReadonlyArray<IsBindingBehavior>;
@@ -1224,37 +1167,6 @@ export class Interpolation implements IExpression {
     return visitor.visitInterpolation(this);
   }
 }
-
-/*
-* Note: for a property that is always the same, directly assigning it to the prototype is more efficient CPU wise
-* (gets assigned once, instead of per constructor call) as well as memory wise (stored once, instead of per instance)
-*
-* This gives us a cheap way to add some extra information to the AST for the runtime to do things more efficiently.
-*/
-BindingBehavior.prototype.$kind = ExpressionKind.BindingBehavior;
-ValueConverter.prototype.$kind = ExpressionKind.ValueConverter;
-Assign.prototype.$kind = ExpressionKind.Assign;
-Conditional.prototype.$kind = ExpressionKind.Conditional;
-AccessThis.prototype.$kind = ExpressionKind.AccessThis;
-AccessScope.prototype.$kind = ExpressionKind.AccessScope;
-AccessMember.prototype.$kind = ExpressionKind.AccessMember;
-AccessKeyed.prototype.$kind = ExpressionKind.AccessKeyed;
-CallScope.prototype.$kind = ExpressionKind.CallScope;
-CallMember.prototype.$kind = ExpressionKind.CallMember;
-CallFunction.prototype.$kind = ExpressionKind.CallFunction;
-Binary.prototype.$kind = ExpressionKind.Binary;
-Unary.prototype.$kind = ExpressionKind.Unary;
-PrimitiveLiteral.prototype.$kind = ExpressionKind.PrimitiveLiteral;
-HtmlLiteral.prototype.$kind = ExpressionKind.HtmlLiteral;
-ArrayLiteral.prototype.$kind = ExpressionKind.ArrayLiteral;
-ObjectLiteral.prototype.$kind = ExpressionKind.ObjectLiteral;
-Template.prototype.$kind = ExpressionKind.Template;
-TaggedTemplate.prototype.$kind = ExpressionKind.TaggedTemplate;
-ArrayBindingPattern.prototype.$kind = ExpressionKind.ArrayBindingPattern;
-ObjectBindingPattern.prototype.$kind = ExpressionKind.ObjectBindingPattern;
-BindingIdentifier.prototype.$kind = ExpressionKind.BindingIdentifier;
-ForOfStatement.prototype.$kind = ExpressionKind.ForOfStatement;
-Interpolation.prototype.$kind = ExpressionKind.Interpolation;
 
 /// Evaluate the [list] in context of the [scope].
 function evalList(flags: LifecycleFlags, scope: IScope, locator: IServiceLocator | null, list: ReadonlyArray<IExpression>): unknown[] {

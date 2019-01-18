@@ -1,8 +1,9 @@
 import { InterfaceSymbol, IRegistry } from '@aurelia/kernel';
 import { AttributeDefinition, IAttributeDefinition } from '../../definitions';
 import { INode, IRenderLocation } from '../../dom';
-import { IBindScope, IView, IViewFactory, State } from '../../lifecycle';
-import { IBindingContext, LifecycleFlags } from '../../observation';
+import { LifecycleFlags, State } from '../../flags';
+import { IBindScope, IView, IViewFactory } from '../../lifecycle';
+import { IBindingContext } from '../../observation';
 import { Scope } from '../../observation/binding-context';
 import { bindable } from '../../templating/bindable';
 import { CustomAttributeResource, ICustomAttribute, ICustomAttributeResource } from '../custom-attribute';

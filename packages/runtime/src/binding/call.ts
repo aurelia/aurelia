@@ -1,8 +1,10 @@
 import { IServiceLocator, Tracer } from '@aurelia/kernel';
-import { IBindScope, State } from '../lifecycle';
-import { IAccessor, IBindingContext, IObservable, IScope, LifecycleFlags } from '../observation';
+import { IsBindingBehavior } from '../ast';
+import { LifecycleFlags, State } from '../flags';
+import { IBindScope } from '../lifecycle';
+import { IAccessor, IBindingContext, IObservable, IScope } from '../observation';
 import { IObserverLocator } from '../observation/observer-locator';
-import { hasBind, hasUnbind, IsBindingBehavior } from './ast';
+import { hasBind, hasUnbind } from './ast';
 import { IConnectableBinding } from './connectable';
 
 const slice = Array.prototype.slice;

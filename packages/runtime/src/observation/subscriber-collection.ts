@@ -1,10 +1,10 @@
+import { LifecycleFlags } from '../flags';
 import {
   IBatchedCollectionSubscriber,
   IBatchedSubscriberCollection,
   IndexMap,
   IPropertySubscriber,
   ISubscriberCollection,
-  LifecycleFlags,
   MutationKind,
   MutationKindToBatchedSubscriber,
   MutationKindToSubscriber,

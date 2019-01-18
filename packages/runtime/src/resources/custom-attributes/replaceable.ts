@@ -1,8 +1,8 @@
 import { InterfaceSymbol, IRegistry } from '@aurelia/kernel';
 import { AttributeDefinition, IAttributeDefinition } from '../../definitions';
 import { INode, IRenderLocation } from '../../dom';
+import { LifecycleFlags } from '../../flags';
 import { IView, IViewFactory } from '../../lifecycle';
-import { LifecycleFlags } from '../../observation';
 import { CustomAttributeResource, ICustomAttribute, ICustomAttributeResource } from '../custom-attribute';
 
 export interface Replaceable<T extends INode = INode> extends ICustomAttribute<T> {}

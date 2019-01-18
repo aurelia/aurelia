@@ -10,7 +10,6 @@ import {
   Tracer
 } from '@aurelia/kernel';
 import { Binding } from './binding/binding';
-import { BindingMode } from './binding/binding-mode';
 import { Call } from './binding/call';
 import { BindingType, IExpressionParser } from './binding/expression-parser';
 import { InterpolationBinding, MultiInterpolationBinding } from './binding/interpolation-binding';
@@ -36,15 +35,13 @@ import {
   TemplatePartDefinitions
 } from './definitions';
 import { IDOM, INode } from './dom';
+import { BindingMode, LifecycleFlags } from './flags';
 import {
   IAttach,
-  IAttachables,
-  IBindables,
   IBindScope,
   IRenderable,
   IRenderContext,
 } from './lifecycle';
-import { LifecycleFlags } from './observation';
 import { IObserverLocator } from './observation/observer-locator';
 import {
   IInstructionRenderer,
@@ -54,7 +51,6 @@ import {
 } from './rendering-engine';
 import { ICustomAttribute } from './resources/custom-attribute';
 import { ICustomElement, IProjectorLocator } from './resources/custom-element';
-import { ProxyObserver } from './observation/proxy-observer';
 
 const slice = Array.prototype.slice;
 
@@ -144,7 +140,7 @@ export function ensureExpression<TFrom>(parser: IExpressionParser, srcOrExpr: TF
   return srcOrExpr as Exclude<TFrom, string>;
 }
 
-export function addBindable(renderable: IBindables, bindable: IBindScope): void {
+export function addBindable(renderable: IRenderable, bindable: IBindScope): void {
   if (Tracer.enabled) { Tracer.enter('addBindable', slice.call(arguments)); }
   bindable.$prevBind = renderable.$bindableTail;
   bindable.$nextBind = null;
@@ -157,7 +153,7 @@ export function addBindable(renderable: IBindables, bindable: IBindScope): void 
   if (Tracer.enabled) { Tracer.leave(); }
 }
 
-export function addAttachable(renderable: IAttachables, attachable: IAttach): void {
+export function addAttachable(renderable: IRenderable, attachable: IAttach): void {
   if (Tracer.enabled) { Tracer.enter('addAttachable', slice.call(arguments)); }
   attachable.$prevAttach = renderable.$attachableTail;
   attachable.$nextAttach = null;

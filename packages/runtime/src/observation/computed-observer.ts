@@ -1,4 +1,5 @@
 import { Constructable, PLATFORM, Reporter, Tracer } from '@aurelia/kernel';
+import { LifecycleFlags } from '../flags';
 import { ILifecycle } from '../lifecycle';
 import {
   IBatchedSubscribable,
@@ -6,7 +7,6 @@ import {
   IObservable,
   IPropertySubscriber,
   ISubscribable,
-  LifecycleFlags,
   MutationKind
 } from '../observation';
 import { IDirtyChecker } from './dirty-checker';

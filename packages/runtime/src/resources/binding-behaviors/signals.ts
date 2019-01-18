@@ -1,6 +1,7 @@
 import { InterfaceSymbol, IRegistry, Reporter } from '@aurelia/kernel';
 import { Binding } from '../../binding/binding';
-import { IScope, LifecycleFlags } from '../../observation';
+import { LifecycleFlags } from '../../flags';
+import { IScope } from '../../observation';
 import { ISignaler } from '../../observation/signaler';
 import { BindingBehaviorResource } from '../binding-behavior';
 

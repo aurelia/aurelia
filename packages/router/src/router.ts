@@ -203,7 +203,7 @@ export class Router {
     const usedViewports = (clearViewports ? this.rootScope.allViewports().filter((value) => value.component !== null) : []);
     const defaultViewports = this.rootScope.allViewports().filter((value) => value.options.default && value.component === null);
 
-    let keepHistoryEntry = instruction.isFirst;
+    const updatedViewports: Viewport[] = [];
 
     // TODO: Take care of cancellations down in subsets/iterations
     let { componentViewports, viewportsRemaining } = this.rootScope.findViewports(views);
@@ -255,7 +255,18 @@ export class Router {
         this.processingNavigation = null;
         return Promise.resolve();
       }
-      results = await Promise.all(changedViewports.map((value) => value.canEnter()));
+      results = await Promise.all(changedViewports.map(async (value) => {
+        const canEnter = await value.canEnter();
+        if (typeof canEnter === 'boolean') {
+          if (canEnter) {
+            return value.enter();
+          } else {
+            return false;
+          }
+        }
+        // TODO: Deal with redirects
+        return true;
+      }));
       if (results.findIndex((value) => value === false) >= 0) {
         this.historyBrowser.cancel();
         this.processingNavigation = null;
@@ -269,9 +280,7 @@ export class Router {
       //   return Promise.resolve();
       // }
 
-      if (changedViewports.reduce((accumulated: boolean, current: Viewport) => !current.options.noHistory || accumulated, keepHistoryEntry)) {
-        keepHistoryEntry = true;
-      }
+      updatedViewports.push(...changedViewports);
 
       // TODO: Fix multi level recursiveness!
       const remaining = this.rootScope.findViewports();
@@ -288,9 +297,12 @@ export class Router {
 
     this.replacePaths(instruction);
 
-    if (!keepHistoryEntry) {
+    // Remove history entry if no history viewports updated
+    if (!instruction.isFirst && !updatedViewports.reduce((accumulated: boolean, current: Viewport) => !current.options.noHistory || accumulated, instruction.isFirst)) {
       this.historyBrowser.pop().catch(error => { throw error; });
     }
+
+    updatedViewports.map((value) => value.finalizeContentChange());
     this.processingNavigation = null;
 
     if (this.pendingNavigations.length) {
@@ -411,10 +423,10 @@ export class Router {
     return parentScope.addViewport(name, element, container, options);
   }
   // Called from the viewport custom element
-  public removeViewport(viewport: Viewport): void {
+  public removeViewport(viewport: Viewport, element: Element, container: IRenderContext): void {
     // TODO: There's something hinky with remove!
     const scope = viewport.owningScope;
-    if (!scope.removeViewport(viewport)) {
+    if (!scope.removeViewport(viewport, element, container)) {
       this.removeScope(scope);
     }
   }

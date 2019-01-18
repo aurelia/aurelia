@@ -237,12 +237,14 @@ export class Scope {
     }
     return viewport;
   }
-  public removeViewport(viewport: Viewport): number {
-    if (viewport.scope) {
-      this.router.removeScope(viewport.scope);
+  public removeViewport(viewport: Viewport, element: Element, container: IRenderContext): number {
+    if ((!element && !container) || viewport.remove(element, container)) {
+      if (viewport.scope) {
+        this.router.removeScope(viewport.scope);
+      }
+      // tslint:disable-next-line:no-dynamic-delete
+      delete this.viewports[viewport.name];
     }
-    // tslint:disable-next-line:no-dynamic-delete
-    delete this.viewports[viewport.name];
     return Object.keys(this.viewports).length;
   }
 
@@ -251,7 +253,7 @@ export class Scope {
       child.removeScope();
     }
     for (const viewport in this.viewports) {
-      this.router.removeViewport(this.viewports[viewport]);
+      this.router.removeViewport(this.viewports[viewport], null, null);
     }
   }
 
@@ -338,24 +340,24 @@ export class Scope {
 
   // This is not an optimal way of doing this
   private closestViewportOld(element: Element): Viewport {
-  let closest: number = Number.MAX_SAFE_INTEGER;
-  let viewport: Viewport;
-  for (const vp in this.viewports) {
-    const viewportElement = this.viewports[vp].element;
-    let el = element;
-    let i = 0;
-    while (el) {
-      if (el === viewportElement) {
-        break;
+    let closest: number = Number.MAX_SAFE_INTEGER;
+    let viewport: Viewport;
+    for (const vp in this.viewports) {
+      const viewportElement = this.viewports[vp].element;
+      let el = element;
+      let i = 0;
+      while (el) {
+        if (el === viewportElement) {
+          break;
+        }
+        i++;
+        el = el.parentElement;
       }
-      i++;
-      el = el.parentElement;
+      if (i < closest) {
+        closest = i;
+        viewport = this.viewports[vp];
+      }
     }
-    if (i < closest) {
-      closest = i;
-      viewport = this.viewports[vp];
-    }
+    return viewport;
   }
-  return viewport;
-}
 }

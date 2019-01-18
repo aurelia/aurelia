@@ -1,4 +1,4 @@
-import { IDOM, INode, Interpolation, IsExpressionOrStatement } from '@aurelia/runtime';
+import { AnyBindingExpression, IDOM, IInterpolationExpression, INode } from '@aurelia/runtime';
 import { AttrSyntax } from './ast';
 import { IBindingCommand } from './binding-command';
 import { AttrInfo, BindableInfo, ElementInfo } from './resource-model';
@@ -161,12 +161,12 @@ export class PlainAttributeSymbol implements IAttributeSymbol {
   public flags: SymbolFlags;
   public syntax: AttrSyntax;
   public command: IBindingCommand | null;
-  public expression: IsExpressionOrStatement | null;
+  public expression: AnyBindingExpression | null;
 
   constructor(
     syntax: AttrSyntax,
     command: IBindingCommand | null,
-    expression: IsExpressionOrStatement | null
+    expression: AnyBindingExpression | null
   ) {
     this.flags = SymbolFlags.isPlainAttribute;
     this.syntax = syntax;
@@ -186,14 +186,14 @@ export class BindingSymbol implements ISymbol {
   public flags: SymbolFlags;
   public command: IBindingCommand | null;
   public bindable: BindableInfo;
-  public expression: IsExpressionOrStatement | null;
+  public expression: AnyBindingExpression | null;
   public rawValue: string;
   public target: string;
 
   constructor(
     command: IBindingCommand | null,
     bindable: BindableInfo,
-    expression: IsExpressionOrStatement | null,
+    expression: AnyBindingExpression | null,
     rawValue: string,
     target: string
   ) {
@@ -348,10 +348,10 @@ export class PlainElementSymbol implements IElementSymbol {
 export class TextSymbol implements INodeSymbol, ISymbolWithMarker {
   public flags: SymbolFlags;
   public physicalNode: INode;
-  public interpolation: Interpolation;
+  public interpolation: IInterpolationExpression;
   public marker: INode;
 
-  constructor(dom: IDOM, node: INode, interpolation: Interpolation) {
+  constructor(dom: IDOM, node: INode, interpolation: IInterpolationExpression) {
     this.flags = SymbolFlags.isText | SymbolFlags.hasMarker;
     this.physicalNode = node;
     this.interpolation = interpolation;

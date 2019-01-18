@@ -1,6 +1,6 @@
 import {
   DelegationStrategy,
-  Interpolation,
+  IInterpolationExpression,
   IsBindingBehavior,
   ITargetedInstruction
 } from '@aurelia/runtime';
@@ -14,9 +14,9 @@ import {
 export class TextBindingInstruction implements ITextBindingInstruction {
   public type: HTMLTargetedInstructionType.textBinding;
 
-  public from: string | Interpolation;
+  public from: string | IInterpolationExpression;
 
-  constructor(from: string | Interpolation) {
+  constructor(from: string | IInterpolationExpression) {
     this.type = HTMLTargetedInstructionType.textBinding;
 
     this.from = from;

@@ -1,6 +1,7 @@
 import { Tracer } from '@aurelia/kernel';
+import { LifecycleFlags } from '../flags';
 import { ILifecycle } from '../lifecycle';
-import { CollectionKind, ICollectionObserver, IndexMap, IObservedArray, LifecycleFlags } from '../observation';
+import { CollectionKind, ICollectionObserver, IndexMap, IObservedArray } from '../observation';
 import { collectionObserver } from './collection-observer';
 
 // https://tc39.github.io/ecma262/#sec-sortcompare

@@ -1,4 +1,5 @@
 import { DI, IContainer, InterfaceSymbol, IResolver, Primitive, Registration, Reporter } from '@aurelia/kernel';
+import { LifecycleFlags } from '../flags';
 import { ILifecycle } from '../lifecycle';
 import {
   AccessorOrObserver,
@@ -11,8 +12,7 @@ import {
   IObservable,
   IObservedArray,
   IObservedMap,
-  IObservedSet,
-  LifecycleFlags
+  IObservedSet
 } from '../observation';
 import { getArrayObserver } from './array-observer';
 import { createComputedObserver } from './computed-observer';

@@ -25,8 +25,8 @@ import {
   IBuildInstruction,
   IDOM,
   IExpressionParser,
+  IInterpolationExpression,
   ILetBindingInstruction,
-  Interpolation,
   InterpolationInstruction,
   IsBindingBehavior,
   ITargetedInstruction,
@@ -222,7 +222,7 @@ export class TemplateCompiler implements ITemplateCompiler {
         return new SetPropertyInstruction(symbol.rawValue, symbol.bindable.propName);
       } else {
         // either an element binding interpolation or a dynamic options attribute binding interpolation
-        return new InterpolationInstruction(symbol.expression as Interpolation, symbol.bindable.propName);
+        return new InterpolationInstruction(symbol.expression as IInterpolationExpression, symbol.bindable.propName);
       }
     } else {
       // either an element binding command, dynamic options attribute binding command,
@@ -262,7 +262,7 @@ export class TemplateCompiler implements ITemplateCompiler {
         return new SetAttributeInstruction(symbol.syntax.rawValue, symbol.syntax.target);
       } else {
         // a plain attribute with an interpolation
-        return new InterpolationInstruction(symbol.expression as Interpolation, symbol.syntax.target);
+        return new InterpolationInstruction(symbol.expression as IInterpolationExpression, symbol.syntax.target);
       }
     } else {
       // a plain attribute with a binding command

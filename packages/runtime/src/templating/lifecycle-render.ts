@@ -1,8 +1,8 @@
 import { PLATFORM, Profiler, Tracer, Writable } from '@aurelia/kernel';
 import { IElementHydrationOptions, TemplateDefinition } from '../definitions';
 import { IDOM, INode } from '../dom';
-import { Hooks, IRenderContext } from '../lifecycle';
-import { LifecycleFlags } from '../observation';
+import { Hooks, LifecycleFlags } from '../flags';
+import { IRenderContext } from '../lifecycle';
 import { Scope } from '../observation/binding-context';
 import { ProxyObserver } from '../observation/proxy-observer';
 import { IRenderingEngine, ITemplate } from '../rendering-engine';

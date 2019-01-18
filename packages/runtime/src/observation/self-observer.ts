@@ -1,5 +1,6 @@
 import { IIndexable, PLATFORM, Tracer } from '@aurelia/kernel';
-import { IPropertyObserver, LifecycleFlags } from '../observation';
+import { LifecycleFlags } from '../flags';
+import { IPropertyObserver } from '../observation';
 import { propertyObserver } from './property-observer';
 import { ProxyObserver } from './proxy-observer';
 

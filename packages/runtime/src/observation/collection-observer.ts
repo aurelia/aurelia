@@ -1,4 +1,5 @@
 import { Tracer } from '@aurelia/kernel';
+import { LifecycleFlags } from '../flags';
 import {
   Collection,
   CollectionKind,
@@ -8,7 +9,6 @@ import {
   IndexMap,
   IPatch,
   IPropertySubscriber,
-  LifecycleFlags,
   MutationKind
 } from '../observation';
 import { batchedSubscriberCollection, subscriberCollection } from './subscriber-collection';

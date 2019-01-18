@@ -1,5 +1,6 @@
 import { DI, PLATFORM, Reporter, Tracer } from '@aurelia/kernel';
-import { IBindingTargetObserver, IObservable, IPropertySubscriber, LifecycleFlags } from '../observation';
+import { LifecycleFlags } from '../flags';
+import { IBindingTargetObserver, IObservable, IPropertySubscriber } from '../observation';
 import { propertyObserver } from './property-observer';
 
 export interface IDirtyChecker {

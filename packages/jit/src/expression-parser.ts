@@ -538,14 +538,12 @@ function parseArrayLiteralExpression(state: ParserState, access: Access, binding
     if (consumeOpt(state, Token.Comma)) {
       elements.push($undefined);
       if ((state.currentToken as Token) === Token.CloseBracket) {
-        elements.push($undefined);
         break;
       }
     } else {
       elements.push(parse(state, access, Precedence.Assign, bindingType & ~BindingType.IsIterator));
       if (consumeOpt(state, Token.Comma)) {
         if ((state.currentToken as Token) === Token.CloseBracket) {
-          elements.push($undefined);
           break;
         }
       } else {

@@ -128,7 +128,7 @@ const enum RuntimeError {
 }
 
 export class BindingBehavior implements IBindingBehaviorExpression {
-  public $kind: ExpressionKind.BindingBehavior;
+  public readonly $kind: ExpressionKind.BindingBehavior;
   public readonly expression: IsBindingBehavior;
   public readonly name: string;
   public readonly args: ReadonlyArray<IsAssign>;
@@ -202,7 +202,7 @@ export class BindingBehavior implements IBindingBehaviorExpression {
 }
 
 export class ValueConverter implements IValueConverterExpression {
-  public $kind: ExpressionKind.ValueConverter;
+  public readonly $kind: ExpressionKind.ValueConverter;
   public readonly expression: IsValueConverter;
   public readonly name: string;
   public readonly args: ReadonlyArray<IsAssign>;
@@ -303,7 +303,7 @@ export class ValueConverter implements IValueConverterExpression {
 }
 
 export class Assign implements IAssignExpression {
-  public $kind: ExpressionKind.Assign;
+  public readonly $kind: ExpressionKind.Assign;
   public readonly target: IsAssignable;
   public readonly value: IsAssign;
 
@@ -332,7 +332,7 @@ export class Assign implements IAssignExpression {
 }
 
 export class Conditional implements IConditionalExpression {
-  public $kind: ExpressionKind.Conditional;
+  public readonly $kind: ExpressionKind.Conditional;
   public assign: IExpression['assign'];
   public readonly condition: IsBinary;
   public readonly yes: IsAssign;
@@ -371,7 +371,7 @@ export class Conditional implements IConditionalExpression {
 export class AccessThis implements IAccessThisExpression {
   public static readonly $this: AccessThis = new AccessThis(0);
   public static readonly $parent: AccessThis = new AccessThis(1);
-  public $kind: ExpressionKind.AccessThis;
+  public readonly $kind: ExpressionKind.AccessThis;
   public assign: IExpression['assign'];
   public connect: IExpression['connect'];
   public readonly ancestor: number;
@@ -404,7 +404,7 @@ export class AccessThis implements IAccessThisExpression {
 }
 
 export class AccessScope implements IAccessScopeExpression {
-  public $kind: ExpressionKind.AccessScope;
+  public readonly $kind: ExpressionKind.AccessScope;
   public readonly name: string;
   public readonly ancestor: number;
 
@@ -437,7 +437,7 @@ export class AccessScope implements IAccessScopeExpression {
 }
 
 export class AccessMember implements IAccessMemberExpression {
-  public $kind: ExpressionKind.AccessMember;
+  public readonly $kind: ExpressionKind.AccessMember;
   public readonly object: IsLeftHandSide;
   public readonly name: string;
 
@@ -476,7 +476,7 @@ export class AccessMember implements IAccessMemberExpression {
 }
 
 export class AccessKeyed implements IAccessKeyedExpression {
-  public $kind: ExpressionKind.AccessKeyed;
+  public readonly $kind: ExpressionKind.AccessKeyed;
   public readonly object: IsLeftHandSide;
   public readonly key: IsAssign;
 
@@ -523,7 +523,7 @@ export class AccessKeyed implements IAccessKeyedExpression {
 }
 
 export class CallScope implements ICallScopeExpression {
-  public $kind: ExpressionKind.CallScope;
+  public readonly $kind: ExpressionKind.CallScope;
   public assign: IExpression['assign'];
   public readonly name: string;
   public readonly args: ReadonlyArray<IsAssign>;
@@ -560,7 +560,7 @@ export class CallScope implements ICallScopeExpression {
 }
 
 export class CallMember implements ICallMemberExpression {
-  public $kind: ExpressionKind.CallMember;
+  public readonly $kind: ExpressionKind.CallMember;
   public assign: IExpression['assign'];
   public readonly object: IsLeftHandSide;
   public readonly name: string;
@@ -601,7 +601,7 @@ export class CallMember implements ICallMemberExpression {
 }
 
 export class CallFunction implements ICallFunctionExpression {
-  public $kind: ExpressionKind.CallFunction;
+  public readonly $kind: ExpressionKind.CallFunction;
   public assign: IExpression['assign'];
   public readonly func: IsLeftHandSide;
   public readonly args: ReadonlyArray<IsAssign>;
@@ -641,7 +641,7 @@ export class CallFunction implements ICallFunctionExpression {
 }
 
 export class Binary implements IBinaryExpression {
-  public $kind: ExpressionKind.Binary;
+  public readonly $kind: ExpressionKind.Binary;
   public assign: IExpression['assign'];
   public readonly operation: BinaryOperator;
   public readonly left: IsBinary;
@@ -746,7 +746,7 @@ export class Binary implements IBinaryExpression {
 }
 
 export class Unary implements IUnaryExpression {
-  public $kind: ExpressionKind.Unary;
+  public readonly $kind: ExpressionKind.Unary;
   public assign: IExpression['assign'];
   public readonly operation: UnaryOperator;
   public readonly expression: IsLeftHandSide;
@@ -795,7 +795,7 @@ export class PrimitiveLiteral<TValue extends StrictPrimitive = StrictPrimitive> 
   public static readonly $true: PrimitiveLiteral<true> = new PrimitiveLiteral<true>(true);
   public static readonly $false: PrimitiveLiteral<false> = new PrimitiveLiteral<false>(false);
   public static readonly $empty: PrimitiveLiteral<string> = new PrimitiveLiteral<''>('');
-  public $kind: ExpressionKind.PrimitiveLiteral;
+  public readonly $kind: ExpressionKind.PrimitiveLiteral;
   public connect: IExpression['connect'];
   public assign: IExpression['assign'];
   public readonly value: TValue;
@@ -817,7 +817,7 @@ export class PrimitiveLiteral<TValue extends StrictPrimitive = StrictPrimitive> 
 }
 
 export class HtmlLiteral implements IHtmlLiteralExpression {
-  public $kind: ExpressionKind.HtmlLiteral;
+  public readonly $kind: ExpressionKind.HtmlLiteral;
   public assign: IExpression['assign'];
   public readonly parts: ReadonlyArray<HtmlLiteral>;
 
@@ -853,7 +853,7 @@ export class HtmlLiteral implements IHtmlLiteralExpression {
 
 export class ArrayLiteral implements IArrayLiteralExpression {
   public static readonly $empty: ArrayLiteral = new ArrayLiteral(PLATFORM.emptyArray);
-  public $kind: ExpressionKind.ArrayLiteral;
+  public readonly $kind: ExpressionKind.ArrayLiteral;
   public assign: IExpression['assign'];
   public readonly elements: ReadonlyArray<IsAssign>;
 
@@ -887,7 +887,7 @@ export class ArrayLiteral implements IArrayLiteralExpression {
 
 export class ObjectLiteral implements IObjectLiteralExpression {
   public static readonly $empty: ObjectLiteral = new ObjectLiteral(PLATFORM.emptyArray, PLATFORM.emptyArray);
-  public $kind: ExpressionKind.ObjectLiteral;
+  public readonly $kind: ExpressionKind.ObjectLiteral;
   public assign: IExpression['assign'];
   public readonly keys: ReadonlyArray<number | string>;
   public readonly values: ReadonlyArray<IsAssign>;
@@ -924,7 +924,7 @@ export class ObjectLiteral implements IObjectLiteralExpression {
 
 export class Template implements ITemplateExpression {
   public static readonly $empty: Template = new Template(['']);
-  public $kind: ExpressionKind.Template;
+  public readonly $kind: ExpressionKind.Template;
   public assign: IExpression['assign'];
   public readonly cooked: ReadonlyArray<string>;
   public readonly expressions: ReadonlyArray<IsAssign>;
@@ -961,7 +961,7 @@ export class Template implements ITemplateExpression {
 }
 
 export class TaggedTemplate implements ITaggedTemplateExpression {
-  public $kind: ExpressionKind.TaggedTemplate;
+  public readonly $kind: ExpressionKind.TaggedTemplate;
   public assign: IExpression['assign'];
   public readonly cooked: ReadonlyArray<string> & { raw?: ReadonlyArray<string> };
   public readonly func: IsLeftHandSide;
@@ -1004,7 +1004,7 @@ export class TaggedTemplate implements ITaggedTemplateExpression {
 }
 
 export class ArrayBindingPattern implements IArrayBindingPattern {
-  public $kind: ExpressionKind.ArrayBindingPattern;
+  public readonly $kind: ExpressionKind.ArrayBindingPattern;
   public readonly elements: ReadonlyArray<IsAssign>;
 
   // We'll either have elements, or keys+values, but never all 3
@@ -1033,7 +1033,7 @@ export class ArrayBindingPattern implements IArrayBindingPattern {
 }
 
 export class ObjectBindingPattern implements IObjectBindingPattern {
-  public $kind: ExpressionKind.ObjectBindingPattern;
+  public readonly $kind: ExpressionKind.ObjectBindingPattern;
   public readonly keys: ReadonlyArray<string | number>;
   public readonly values: ReadonlyArray<IsAssign>;
 
@@ -1064,7 +1064,7 @@ export class ObjectBindingPattern implements IObjectBindingPattern {
 }
 
 export class BindingIdentifier implements IBindingIdentifier {
-  public $kind: ExpressionKind.BindingIdentifier;
+  public readonly $kind: ExpressionKind.BindingIdentifier;
   public readonly name: string;
 
   constructor(name: string) {
@@ -1089,7 +1089,7 @@ const toStringTag = Object.prototype.toString;
 // https://tc39.github.io/ecma262/#sec-iteration-statements
 // https://tc39.github.io/ecma262/#sec-for-in-and-for-of-statements
 export class ForOfStatement implements IForOfStatement {
-  public $kind: ExpressionKind.ForOfStatement;
+  public readonly $kind: ExpressionKind.ForOfStatement;
   public assign: IExpression['assign'];
   public readonly declaration: BindingIdentifierOrPattern;
   public readonly iterable: IsBindingBehavior;
@@ -1129,7 +1129,7 @@ export class ForOfStatement implements IForOfStatement {
 * but this class might be a candidate for removal if it turns out it does provide all we need
 */
 export class Interpolation implements IInterpolationExpression {
-  public $kind: ExpressionKind.Interpolation;
+  public readonly $kind: ExpressionKind.Interpolation;
   public assign: IExpression['assign'];
   public readonly parts: ReadonlyArray<string>;
   public readonly expressions: ReadonlyArray<IsBindingBehavior>;
@@ -1167,37 +1167,6 @@ export class Interpolation implements IInterpolationExpression {
     return visitor.visitInterpolation(this);
   }
 }
-
-/*
-* Note: for a property that is always the same, directly assigning it to the prototype is more efficient CPU wise
-* (gets assigned once, instead of per constructor call) as well as memory wise (stored once, instead of per instance)
-*
-* This gives us a cheap way to add some extra information to the AST for the runtime to do things more efficiently.
-*/
-BindingBehavior.prototype.$kind = ExpressionKind.BindingBehavior;
-ValueConverter.prototype.$kind = ExpressionKind.ValueConverter;
-Assign.prototype.$kind = ExpressionKind.Assign;
-Conditional.prototype.$kind = ExpressionKind.Conditional;
-AccessThis.prototype.$kind = ExpressionKind.AccessThis;
-AccessScope.prototype.$kind = ExpressionKind.AccessScope;
-AccessMember.prototype.$kind = ExpressionKind.AccessMember;
-AccessKeyed.prototype.$kind = ExpressionKind.AccessKeyed;
-CallScope.prototype.$kind = ExpressionKind.CallScope;
-CallMember.prototype.$kind = ExpressionKind.CallMember;
-CallFunction.prototype.$kind = ExpressionKind.CallFunction;
-Binary.prototype.$kind = ExpressionKind.Binary;
-Unary.prototype.$kind = ExpressionKind.Unary;
-PrimitiveLiteral.prototype.$kind = ExpressionKind.PrimitiveLiteral;
-HtmlLiteral.prototype.$kind = ExpressionKind.HtmlLiteral;
-ArrayLiteral.prototype.$kind = ExpressionKind.ArrayLiteral;
-ObjectLiteral.prototype.$kind = ExpressionKind.ObjectLiteral;
-Template.prototype.$kind = ExpressionKind.Template;
-TaggedTemplate.prototype.$kind = ExpressionKind.TaggedTemplate;
-ArrayBindingPattern.prototype.$kind = ExpressionKind.ArrayBindingPattern;
-ObjectBindingPattern.prototype.$kind = ExpressionKind.ObjectBindingPattern;
-BindingIdentifier.prototype.$kind = ExpressionKind.BindingIdentifier;
-ForOfStatement.prototype.$kind = ExpressionKind.ForOfStatement;
-Interpolation.prototype.$kind = ExpressionKind.Interpolation;
 
 /// Evaluate the [list] in context of the [scope].
 function evalList(flags: LifecycleFlags, scope: IScope, locator: IServiceLocator | null, list: ReadonlyArray<IExpression>): unknown[] {

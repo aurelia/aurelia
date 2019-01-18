@@ -1,6 +1,6 @@
 import { inject } from '@aurelia//kernel';
 import { customElement } from '@aurelia/runtime';
-import { AuthorsRepository } from '../repositories/authors';
+import { AuthorsRepository } from '../../repositories/authors';
 
 @customElement({
   name: 'authors', template: `<template>

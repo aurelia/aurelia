@@ -302,7 +302,7 @@ export class Router {
       this.historyBrowser.pop().catch(error => { throw error; });
     }
 
-    updatedViewports.map((value) => value.finalizeContentChange());
+    updatedViewports.forEach((value) => value.finalizeContentChange());
     this.processingNavigation = null;
 
     if (this.pendingNavigations.length) {
@@ -547,27 +547,6 @@ export class Router {
       }
       container = container.parent;
     }
-  }
-
-  private closestScopeOld(element: Element): Scope {
-    let closest: number = Number.MAX_SAFE_INTEGER;
-    let scope: Scope;
-    for (const sc of this.scopes) {
-      let el = element;
-      let i = 0;
-      while (el) {
-        if (el === sc.element) {
-          break;
-        }
-        i++;
-        el = el.parentElement;
-      }
-      if (i < closest) {
-        closest = i;
-        scope = sc;
-      }
-    }
-    return scope;
   }
 
   private removeStateDuplicates(states: string[]): string[] {

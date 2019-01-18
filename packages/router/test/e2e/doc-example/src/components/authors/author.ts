@@ -1,7 +1,7 @@
 import { inject } from '@aurelia//kernel';
 import { customElement } from '@aurelia/runtime';
-import { Router } from '../../../../../src';
-import { AuthorsRepository } from '../repositories/authors';
+import { Router } from '../../../../../../src';
+import { AuthorsRepository } from '../../repositories/authors';
 
 @customElement({
   name: 'author', template: `<template>
@@ -37,9 +37,5 @@ export class Author {
         components: 'about-authors'
       },
     ]);
-  }
-
-  public created(...rest) {
-    console.log('Created', rest);
   }
 }

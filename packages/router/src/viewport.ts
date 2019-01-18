@@ -95,7 +95,7 @@ export class Viewport {
       }
     }
 
-    // Can be (resolved) type or string (to be resolved later)
+    // Can be a (resolved) type or a string (to be resolved later)
     this.nextContent = content;
     this.nextInstruction = instruction;
     this.nextParameters = parameters;
@@ -241,8 +241,6 @@ export class Viewport {
     }
 
     if (this.nextComponent) {
-      // await this.enter();
-
       // Only when next component activation is done
       if (this.component) {
         this.removeComponent(this.component);
@@ -383,6 +381,7 @@ export class Viewport {
     if (component === null) {
       return null;
     }
+    // TODO: Remove once "local registration is fixed"
     component = this.componentName(component);
     const container = this.container || this.router.container;
     if (typeof component !== 'string') {
@@ -405,8 +404,6 @@ export class Viewport {
     await this.waitForElement();
 
     this.nextComponent = this.componentInstance(component);
-    // const container = this.container || this.router.container;
-    // this.nextComponent = container.get<IRouteableCustomElement>(CustomElementResource.keyFrom(component.description.name));
 
     const host: INode = this.element as INode;
     const container = this.container || this.router.container;
@@ -415,7 +412,7 @@ export class Viewport {
     this.nextComponent.$hydrate(LifecycleFlags.none, container, host);
   }
   private unloadComponent(component: ICustomElement): void {
-    // component.$unbind(LifecycleFlags.fromStopTask | LifecycleFlags.fromUnbind);
+    // TODO: We might want to do something here eventually, who knows?
   }
 
   private initializeComponent(component: ICustomElement): void {
@@ -426,13 +423,11 @@ export class Viewport {
   }
 
   private addComponent(component: ICustomElement): void {
-    // component.$bind(LifecycleFlags.fromStartTask | LifecycleFlags.fromBind, null);
     component.$attach(LifecycleFlags.fromStartTask);
   }
 
   private removeComponent(component: ICustomElement): void {
     component.$detach(LifecycleFlags.fromStopTask);
-    // component.$unbind(LifecycleFlags.fromStopTask | LifecycleFlags.fromUnbind);
   }
 
   private async waitForElement(): Promise<void> {

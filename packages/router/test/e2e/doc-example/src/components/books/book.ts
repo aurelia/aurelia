@@ -1,7 +1,7 @@
 import { inject } from '@aurelia//kernel';
 import { customElement } from '@aurelia/runtime';
-import { Router } from '../../../../../src';
-import { BooksRepository } from '../repositories/books';
+import { Router } from '../../../../../../src';
+import { BooksRepository } from '../../repositories/books';
 
 @customElement({
   name: 'book', template: `<template>

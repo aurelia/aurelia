@@ -1,5 +1,5 @@
 import { customElement } from '@aurelia/runtime';
-import { AuthorsRepository } from '../repositories/authors';
+import { AuthorsRepository } from '../../repositories/authors';
 
 @customElement({ name: 'author-details', template: `<template>
 <h3>Details about the author</h3>

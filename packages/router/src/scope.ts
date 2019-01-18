@@ -189,38 +189,6 @@ export class Scope {
     };
   }
 
-  // public findViewport(name: string): Viewport {
-  //   const parts = name.split(this.router.separators.scope);
-  //   const names = parts.shift().split(this.router.separators.viewport);
-  //   const comp = names.shift();
-  //   name = names.shift();
-  //   let newScope = false;
-  //   if (name.endsWith(this.router.separators.ownsScope)) {
-  //     newScope = true;
-  //     name = name.substring(0, name.length - 1);
-  //   }
-  //   const viewport = this.resolveViewport(name, comp) || this.addViewport(name, null, null, { scope: newScope });
-  //   if (!parts.length) {
-  //     return viewport;
-  //   } else {
-  //     const scope = viewport.scope || viewport.owningScope;
-  //     return scope.findViewport(parts.join(this.router.separators.scope));
-  //   }
-  // }
-
-  // public resolveViewport(name: string, component: string): Viewport {
-  //   if (name.length && name.charAt(0) !== '?') {
-  //     return this.viewports[name];
-  //   }
-  //   // Need more ways to resolve viewport based on component name!
-  //   const comp = this.resolveComponent(component);
-  //   if (comp.viewport) {
-  //     name = comp.viewport;
-  //     return this.viewports[name];
-  //   }
-  //   return null;
-  // }
-
   public addViewport(name: string, element: Element, container: IRenderContext, options?: IViewportOptions): Viewport {
     let viewport = this.viewports[name];
     if (!viewport) {
@@ -305,25 +273,13 @@ export class Scope {
       parents.unshift(this.viewport.description(full));
     }
     let viewport: Viewport = this.parent.closestViewport((this.container as any).parent);
-    // let viewport: Viewport = this.parent.closestViewport(this.element.parentElement);
     while (viewport && viewport.owningScope === this.parent) {
       parents.unshift(viewport.description(full));
       viewport = this.closestViewport((viewport.container as any).parent);
-      // viewport = this.closestViewport(viewport.element.parentElement);
     }
     parents.unshift(this.parent.context(full));
 
     return parents.filter((value) => value && value.length).join(this.router.separators.scope);
-  }
-
-  private resolveComponent(component: ICustomElementType | string): IViewportCustomElementType {
-    if (typeof component === 'string') {
-      const resolver = this.router.container.getResolver(CustomElementResource.keyFrom(component));
-      if (resolver !== null) {
-        component = resolver.getFactory(this.router.container).Type as ICustomElementType;
-      }
-    }
-    return component as ICustomElementType;
   }
 
   private closestViewport(container: IRenderContext): Viewport {
@@ -336,28 +292,5 @@ export class Scope {
       container = (container as any).parent;
     }
     return null;
-  }
-
-  // This is not an optimal way of doing this
-  private closestViewportOld(element: Element): Viewport {
-    let closest: number = Number.MAX_SAFE_INTEGER;
-    let viewport: Viewport;
-    for (const vp in this.viewports) {
-      const viewportElement = this.viewports[vp].element;
-      let el = element;
-      let i = 0;
-      while (el) {
-        if (el === viewportElement) {
-          break;
-        }
-        i++;
-        el = el.parentElement;
-      }
-      if (i < closest) {
-        closest = i;
-        viewport = this.viewports[vp];
-      }
-    }
-    return viewport;
   }
 }

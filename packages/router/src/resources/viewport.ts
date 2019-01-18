@@ -41,36 +41,34 @@ export class ViewportCustomElement {
     template.render(this as any, host, parts);
   }
 
-  public created(...rest) {
-    console.log('Created', rest);
-    // const booleanAttributes = {
-    //   'scope': 'scope',
-    //   'no-link': 'noLink',
-    //   'no-history': 'noHistory',
-    // };
-    // const valueAttributes = {
-    //   'used-by': 'usedBy',
-    //   'default': 'default',
-    // };
-
-    // const name = this.element.hasAttribute('name') ? this.element.getAttribute('name') : 'default';
-    // const options: IViewportOptions = {};
-
-    // for (const attribute in booleanAttributes) {
-    //   if (this.element.hasAttribute[attribute]) {
-    //     options[booleanAttributes[attribute]] = true;
-    //   }
-    // }
-    // for (const attribute in valueAttributes) {
-    //   if (this.element.hasAttribute(attribute)) {
-    //     const value = this.element.getAttribute(attribute);
-    //     if (value && value.length) {
-    //       options[valueAttributes[attribute]] = value;
-    //     }
-    //   }
-    // }
-    // this.viewport = this.router.addViewport(name, this.element, (this as any).$context.get(IContainer), options);
-  }
+  // public created(...rest): void {
+  //   console.log('Created', rest);
+  //   const booleanAttributes = {
+  //     'scope': 'scope',
+  //     'no-link': 'noLink',
+  //     'no-history': 'noHistory',
+  //   };
+  //   const valueAttributes = {
+  //     'used-by': 'usedBy',
+  //     'default': 'default',
+  //   };
+  //   const name = this.element.hasAttribute('name') ? this.element.getAttribute('name') : 'default';
+  //   const options: IViewportOptions = {};
+  //   for (const attribute in booleanAttributes) {
+  //     if (this.element.hasAttribute[attribute]) {
+  //       options[booleanAttributes[attribute]] = true;
+  //     }
+  //   }
+  //   for (const attribute in valueAttributes) {
+  //     if (this.element.hasAttribute(attribute)) {
+  //       const value = this.element.getAttribute(attribute);
+  //       if (value && value.length) {
+  //         options[valueAttributes[attribute]] = value;
+  //       }
+  //     }
+  //   }
+  //   this.viewport = this.router.addViewport(name, this.element, (this as any).$context.get(IContainer), options);
+  // }
 
   public bound(): void {
     const options: IViewportOptions = { scope: this.element.hasAttribute('scope') };

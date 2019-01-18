@@ -272,22 +272,30 @@ workflows:
           name: jit-aurelia-cli-ts
           path: "local/jit-aurelia-cli-ts"
           build: true
+          requires:
+            - jit-iife-inline # not a real requirement but forces long-running jobs to go first
       - e2e_wdio:
           <<: *filter_ignore_develop_release
           name: jit-fuse-box-ts
           path: "local/jit-fuse-box-ts"
           build: true
+          requires:
+            - jit-iife-inline # not a real requirement but forces long-running jobs to go first
       - e2e_wdio:
           <<: *filter_ignore_develop_release
           name: jit-webpack-ts
           path: "local/jit-webpack-ts"
           build: true
+          requires:
+            - jit-iife-inline # not a real requirement but forces long-running jobs to go first
       - e2e_wdio:
           <<: *filter_ignore_develop_release
           name: jit-parcel-ts
           path: "local/jit-parcel-ts"
           build: true
           publish_local: true
+          requires:
+            - jit-iife-inline # not a real requirement but forces long-running jobs to go first
       - e2e_wdio:
           <<: *filter_ignore_develop_release
           name: jit-iife-inline

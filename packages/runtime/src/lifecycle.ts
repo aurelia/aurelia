@@ -28,27 +28,21 @@ export interface IState {
   $lifecycle?: ILifecycle;
 }
 
-export interface IBindables {
+/**
+ * An object containing the necessary information to render something for display.
+ */
+export interface IRenderable<T extends INode = INode> extends IState {
   /**
    * The Bindings, Views, CustomElements, CustomAttributes and other bindable components that belong to this instance.
    */
   $bindableHead?: IBindScope;
   $bindableTail?: IBindScope;
-}
-
-export interface IAttachables {
 
   /**
    * The Views, CustomElements, CustomAttributes and other attachable components that belong to this instance.
    */
   $attachableHead?: IAttach;
   $attachableTail?: IAttach;
-}
-
-/**
- * An object containing the necessary information to render something for display.
- */
-export interface IRenderable<T extends INode = INode> extends IBindables, IAttachables, IState {
 
   /**
    * The (dependency) context of this instance.
@@ -123,7 +117,15 @@ export interface IViewFactory<T extends INode = INode> extends IViewCache<T> {
 
 export const IViewFactory = DI.createInterface<IViewFactory>('IViewFactory').noDefault();
 
-export interface ILifecycleCreated extends IHooks, IState {
+/**
+ * Defines optional lifecycle hooks that will be called only when they are implemented.
+ */
+export interface ILifecycleHooks extends IHooks, IState {
+  /** @internal */$nextBound?: ILifecycleHooks;
+  /** @internal */$nextUnbound?: ILifecycleHooks;
+  /** @internal */$nextAttached?: ILifecycleHooks;
+  /** @internal */$nextDetached?: ILifecycleHooks;
+
   /**
    * Called at the end of `$hydrate`.
    *
@@ -141,9 +143,7 @@ export interface ILifecycleCreated extends IHooks, IState {
    * for any high-level post processing on initialized properties.
    */
   created?(flags: LifecycleFlags): void;
-}
 
-export interface ILifecycleBinding extends IHooks, IState {
   /**
    * Called at the start of `$bind`, before this instance and its children (if any) are bound.
    *
@@ -162,10 +162,6 @@ export interface ILifecycleBinding extends IHooks, IState {
    * and the third lifecycle hook (after `render` and `created`) of the very first this.lifecycle.
    */
   binding?(flags: LifecycleFlags): void;
-}
-
-export interface ILifecycleBound extends IHooks, IState {
-  /** @internal */$nextBound?: ILifecycleBound;
 
   /**
    * Called at the end of `$bind`, after this instance and its children (if any) are bound.
@@ -185,9 +181,7 @@ export interface ILifecycleBound extends IHooks, IState {
    * and the fourth lifecycle hook (after `render`, `created` and `binding`) of the very first this.lifecycle.
    */
   bound?(flags: LifecycleFlags): void;
-}
 
-export interface ILifecycleUnbinding extends IHooks, IState {
   /**
    * Called at the start of `$unbind`, before this instance and its children (if any) are unbound.
    *
@@ -207,10 +201,6 @@ export interface ILifecycleUnbinding extends IHooks, IState {
    *
    */
   unbinding?(flags: LifecycleFlags): void;
-}
-
-export interface ILifecycleUnbound extends IHooks, IState {
-  /** @internal */$nextUnbound?: ILifecycleUnbound;
 
   /**
    * Called at the end of `$unbind`, after this instance and its children (if any) are unbound.
@@ -232,9 +222,7 @@ export interface ILifecycleUnbound extends IHooks, IState {
    * The lifecycle either ends here, or starts at `$bind` again.
    */
   unbound?(flags: LifecycleFlags): void;
-}
 
-export interface ILifecycleAttaching extends IHooks, IState {
   /**
    * Called at the start of `$attach`, before this instance and its children (if any) are attached.
    *
@@ -251,10 +239,6 @@ export interface ILifecycleAttaching extends IHooks, IState {
    * the nodes are added to the DOM.
    */
   attaching?(flags: LifecycleFlags): void;
-}
-
-export interface ILifecycleAttached extends IHooks, IState {
-  /** @internal */$nextAttached?: ILifecycleAttached;
 
   /**
    * Called at the end of `$attach`, after this instance and its children (if any) are attached.
@@ -270,9 +254,7 @@ export interface ILifecycleAttached extends IHooks, IState {
    * to be fully initialized, bound, rendered, added to the DOM and ready for use.
    */
   attached?(flags: LifecycleFlags): void;
-}
 
-export interface ILifecycleDetaching extends IHooks, IState {
   /**
    * Called at the start of `$detach`, before this instance and its children (if any) are detached.
    *
@@ -287,10 +269,6 @@ export interface ILifecycleDetaching extends IHooks, IState {
    * the nodes are removed from the DOM.
    */
   detaching?(flags: LifecycleFlags): void;
-}
-
-export interface ILifecycleDetached extends IHooks, IState {
-  /** @internal */$nextDetached?: ILifecycleDetached;
 
   /**
    * Called at the end of `$detach`, after this instance and its children (if any) are detached.
@@ -305,9 +283,7 @@ export interface ILifecycleDetached extends IHooks, IState {
    * If no `$unbind` lifecycle is queued, this is the last opportunity to make state changes before the lifecycle ends.
    */
   detached?(flags: LifecycleFlags): void;
-}
 
-export interface ILifecycleCaching extends IHooks, IState {
   /**
    * Called during `$unmount` (which happens during `$detach`), specifically after the
    * `$nodes` are removed from the DOM, but before the view is actually added to the cache.
@@ -322,21 +298,6 @@ export interface ILifecycleCaching extends IHooks, IState {
    */
   caching?(flags: LifecycleFlags): void;
 }
-
-/**
- * Defines optional lifecycle hooks that will be called only when they are implemented.
- */
-export interface ILifecycleHooks extends
-  ILifecycleCreated,
-  ILifecycleBinding,
-  ILifecycleBound,
-  ILifecycleUnbinding,
-  ILifecycleUnbound,
-  ILifecycleAttaching,
-  ILifecycleAttached,
-  ILifecycleDetaching,
-  ILifecycleDetached,
-  ILifecycleCaching { }
 
 export interface ILifecycleCache {
   $cache(flags: LifecycleFlags): void;
@@ -444,7 +405,7 @@ const marker = Object.freeze(Object.create(null));
  * tree they reside.
  */
 
-export interface IFlushLifecycle {
+export interface ILifecycle {
   processFlushQueue(flags: LifecycleFlags): void;
 
   /**
@@ -457,9 +418,7 @@ export interface IFlushLifecycle {
    * This queue is primarily used by DOM target observers and collection observers.
    */
   enqueueFlush(requestor: IChangeTracker): Promise<void>;
-}
 
-export interface IBindLifecycle extends IFlushLifecycle {
   processConnectQueue(flags: LifecycleFlags): void;
   processPatchQueue(flags: LifecycleFlags): void;
   processBindQueue(flags: LifecycleFlags): void;
@@ -481,7 +440,7 @@ export interface IBindLifecycle extends IFlushLifecycle {
    * This method is idempotent; adding the same item more than once has the same effect as
    * adding it once.
    */
-  enqueueBound(requestor: ILifecycleBound): void;
+  enqueueBound(requestor: ILifecycleHooks): void;
 
   /**
    * Add a `connect` callback to the queue, to be invoked *after* mounting and *before*
@@ -519,7 +478,7 @@ export interface IBindLifecycle extends IFlushLifecycle {
    * This method is idempotent; adding the same item more than once has the same effect as
    * adding it once.
    */
-  enqueueUnbound(requestor: ILifecycleUnbound): void;
+  enqueueUnbound(requestor: ILifecycleHooks): void;
 
   /**
    * Close / shrink an unbind batch for invoking queued `unbound` callbacks.
@@ -531,9 +490,7 @@ export interface IBindLifecycle extends IFlushLifecycle {
    * This default will work, but is generally less efficient.
    */
   endUnbind(flags: LifecycleFlags): ILifecycleTask;
-}
 
-export interface IAttachLifecycle extends IFlushLifecycle {
   processAttachQueue(flags: LifecycleFlags): void;
   processDetachQueue(flags: LifecycleFlags): void;
 
@@ -563,7 +520,7 @@ export interface IAttachLifecycle extends IFlushLifecycle {
    * This method is idempotent; adding the same item more than once has the same effect as
    * adding it once.
    */
-  enqueueAttached(requestor: ILifecycleAttached): void;
+  enqueueAttached(requestor: ILifecycleHooks): void;
 
   /**
    * Close / shrink an attach batch for invoking queued `$mount` and `attached` callbacks.
@@ -601,7 +558,7 @@ export interface IAttachLifecycle extends IFlushLifecycle {
    * This method is idempotent; adding the same item more than once has the same effect as
    * adding it once.
    */
-  enqueueDetached(requestor: ILifecycleDetached): void;
+  enqueueDetached(requestor: ILifecycleHooks): void;
 
   /**
    * Add an `$unbind` callback to the queue, to be invoked when the current detach batch
@@ -623,9 +580,7 @@ export interface IAttachLifecycle extends IFlushLifecycle {
    * This default will work, but is generally less efficient.
    */
   endDetach(flags: LifecycleFlags): ILifecycleTask;
-}
 
-export interface ILifecycle extends IBindLifecycle, IAttachLifecycle {
   registerTask(task: ILifecycleTask): void;
   finishTask(task: ILifecycleTask): void;
 }
@@ -648,26 +603,26 @@ export class Lifecycle implements ILifecycle {
   /** @internal */public patchHead: IConnectableBinding;
   /** @internal */public patchTail: IConnectableBinding;
 
-  /** @internal */public boundHead: ILifecycleBound;
-  /** @internal */public boundTail: ILifecycleBound;
+  /** @internal */public boundHead: ILifecycleHooks;
+  /** @internal */public boundTail: ILifecycleHooks;
 
   /** @internal */public mountHead: ILifecycleMount;
   /** @internal */public mountTail: ILifecycleMount;
 
-  /** @internal */public attachedHead: ILifecycleAttached;
-  /** @internal */public attachedTail: ILifecycleAttached;
+  /** @internal */public attachedHead: ILifecycleHooks;
+  /** @internal */public attachedTail: ILifecycleHooks;
 
   /** @internal */public unmountHead: ILifecycleUnmount;
   /** @internal */public unmountTail: ILifecycleUnmount;
 
-  /** @internal */public detachedHead: ILifecycleDetached;
-  /** @internal */public detachedTail: ILifecycleDetached;
+  /** @internal */public detachedHead: ILifecycleHooks;
+  /** @internal */public detachedTail: ILifecycleHooks;
 
   /** @internal */public unbindAfterDetachHead: ILifecycleUnbindAfterDetach;
   /** @internal */public unbindAfterDetachTail: ILifecycleUnbindAfterDetach;
 
-  /** @internal */public unboundHead: ILifecycleUnbound;
-  /** @internal */public unboundTail: ILifecycleUnbound;
+  /** @internal */public unboundHead: ILifecycleHooks;
+  /** @internal */public unboundTail: ILifecycleHooks;
 
   /** @internal */public flushed: Promise<void>;
   /** @internal */public promise: Promise<void>;
@@ -692,20 +647,20 @@ export class Lifecycle implements ILifecycle {
   /** @internal */public connect: IConnectableBinding['connect'];
   /** @internal */public $nextPatch: IConnectableBinding;
   /** @internal */public patch: IConnectableBinding['patch'];
-  /** @internal */public $nextBound: ILifecycleBound;
-  /** @internal */public bound: ILifecycleBound['bound'];
+  /** @internal */public $nextBound: ILifecycleHooks;
+  /** @internal */public bound: ILifecycleHooks['bound'];
   /** @internal */public $nextMount: ILifecycleMount;
   /** @internal */public $mount: ILifecycleMount['$mount'];
-  /** @internal */public $nextAttached: ILifecycleAttached;
-  /** @internal */public attached: ILifecycleAttached['attached'];
+  /** @internal */public $nextAttached: ILifecycleHooks;
+  /** @internal */public attached: ILifecycleHooks['attached'];
   /** @internal */public $nextUnmount: ILifecycleUnmount;
   /** @internal */public $unmount: ILifecycleUnmount['$unmount'];
-  /** @internal */public $nextDetached: ILifecycleDetached;
-  /** @internal */public detached: ILifecycleDetached['detached'];
+  /** @internal */public $nextDetached: ILifecycleHooks;
+  /** @internal */public detached: ILifecycleHooks['detached'];
   /** @internal */public $nextUnbindAfterDetach: ILifecycleUnbindAfterDetach;
   /** @internal */public $unbind: ILifecycleUnbindAfterDetach['$unbind'];
-  /** @internal */public $nextUnbound: ILifecycleUnbound;
-  /** @internal */public unbound: ILifecycleUnbound['unbound'];
+  /** @internal */public $nextUnbound: ILifecycleHooks;
+  /** @internal */public unbound: ILifecycleHooks['unbound'];
 
   /** @internal */public task: AggregateLifecycleTask | null;
 
@@ -856,7 +811,7 @@ export class Lifecycle implements ILifecycle {
     if (Tracer.enabled) { Tracer.leave(); }
   }
 
-  public enqueueBound(requestor: ILifecycleBound): void {
+  public enqueueBound(requestor: ILifecycleHooks): void {
     if (Tracer.enabled) { Tracer.enter('Lifecycle.enqueueBound', slice.call(arguments)); }
     // build a standard singly linked list for bound callbacks
     if (requestor.$nextBound === null) {
@@ -964,7 +919,7 @@ export class Lifecycle implements ILifecycle {
     while (this.boundCount > 0) {
       this.boundCount = 0;
       let current = this.boundHead.$nextBound;
-      let next: ILifecycleBound;
+      let next: ILifecycleHooks;
       this.boundHead = this.boundTail = this;
       do {
         current.bound(flags);
@@ -983,7 +938,7 @@ export class Lifecycle implements ILifecycle {
     if (Tracer.enabled) { Tracer.leave(); }
   }
 
-  public enqueueUnbound(requestor: ILifecycleUnbound): void {
+  public enqueueUnbound(requestor: ILifecycleHooks): void {
     if (Tracer.enabled) { Tracer.enter('Lifecycle.enqueueUnbound', slice.call(arguments)); }
     // This method is idempotent; adding the same item more than once has the same effect as
     // adding it once.
@@ -1022,7 +977,7 @@ export class Lifecycle implements ILifecycle {
     while (this.unboundCount > 0) {
       this.unboundCount = 0;
       let current = this.unboundHead.$nextUnbound;
-      let next: ILifecycleUnbound;
+      let next: ILifecycleHooks;
       this.unboundHead = this.unboundTail = this;
       do {
         current.unbound(flags);
@@ -1055,7 +1010,7 @@ export class Lifecycle implements ILifecycle {
     if (Tracer.enabled) { Tracer.leave(); }
   }
 
-  public enqueueAttached(requestor: ILifecycleAttached): void {
+  public enqueueAttached(requestor: ILifecycleHooks): void {
     if (Tracer.enabled) { Tracer.enter('Lifecycle.enqueueAttached', slice.call(arguments)); }
     // This method is idempotent; adding the same item more than once has the same effect as
     // adding it once.
@@ -1171,7 +1126,7 @@ export class Lifecycle implements ILifecycle {
     if (Tracer.enabled) { Tracer.leave(); }
   }
 
-  public enqueueDetached(requestor: ILifecycleDetached): void {
+  public enqueueDetached(requestor: ILifecycleHooks): void {
     if (Tracer.enabled) { Tracer.enter('Lifecycle.enqueueDetached', slice.call(arguments)); }
     // This method is idempotent; adding the same item more than once has the same effect as
     // adding it once.

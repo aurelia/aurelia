@@ -38,8 +38,6 @@ import { IDOM, INode } from './dom';
 import { BindingMode, LifecycleFlags } from './flags';
 import {
   IAttach,
-  IAttachables,
-  IBindables,
   IBindScope,
   IRenderable,
   IRenderContext,
@@ -142,7 +140,7 @@ export function ensureExpression<TFrom>(parser: IExpressionParser, srcOrExpr: TF
   return srcOrExpr as Exclude<TFrom, string>;
 }
 
-export function addBindable(renderable: IBindables, bindable: IBindScope): void {
+export function addBindable(renderable: IRenderable, bindable: IBindScope): void {
   if (Tracer.enabled) { Tracer.enter('addBindable', slice.call(arguments)); }
   bindable.$prevBind = renderable.$bindableTail;
   bindable.$nextBind = null;
@@ -155,7 +153,7 @@ export function addBindable(renderable: IBindables, bindable: IBindScope): void 
   if (Tracer.enabled) { Tracer.leave(); }
 }
 
-export function addAttachable(renderable: IAttachables, attachable: IAttach): void {
+export function addAttachable(renderable: IRenderable, attachable: IAttach): void {
   if (Tracer.enabled) { Tracer.enter('addAttachable', slice.call(arguments)); }
   attachable.$prevAttach = renderable.$attachableTail;
   attachable.$nextAttach = null;

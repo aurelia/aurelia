@@ -1,9 +1,9 @@
 import { IIndexable, IServiceLocator, Reporter, Tracer } from '@aurelia/kernel';
+import { IExpression } from '../ast';
 import { LifecycleFlags, State } from '../flags';
 import { IBindScope, ILifecycle } from '../lifecycle';
 import { IObservable, IScope } from '../observation';
 import { IObserverLocator } from '../observation/observer-locator';
-import { IExpression } from './ast';
 import { connectable, IConnectableBinding, IPartialConnectableBinding } from './connectable';
 
 const slice = Array.prototype.slice;

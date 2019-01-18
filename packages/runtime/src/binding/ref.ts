@@ -1,8 +1,9 @@
 import { IIndexable, IServiceLocator, Tracer } from '@aurelia/kernel';
+import { IsBindingBehavior } from '../ast';
 import { LifecycleFlags, State } from '../flags';
 import { IBindScope } from '../lifecycle';
 import { IObservable, IScope } from '../observation';
-import { hasBind, hasUnbind, IsBindingBehavior } from './ast';
+import { hasBind, hasUnbind } from './ast';
 import { IBinding } from './binding';
 import { IConnectableBinding } from './connectable';
 

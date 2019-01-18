@@ -9,7 +9,7 @@ import {
   ResourceDescription,
   ResourcePartDescription
 } from '@aurelia/kernel';
-import { ForOfStatement, Interpolation, IsBindingBehavior } from './binding/ast';
+import { IForOfStatement, IInterpolationExpression, IsBindingBehavior } from './ast';
 import { BindingMode } from './flags';
 import { CustomElementHost, ICustomElement } from './resources/custom-element';
 
@@ -135,7 +135,7 @@ export function isTargetedInstruction(value: unknown): value is TargetedInstruct
 
 export interface IInterpolationInstruction extends ITargetedInstruction {
   type: TargetedInstructionType.interpolation;
-  from: string | Interpolation;
+  from: string | IInterpolationExpression;
   to: string;
 }
 
@@ -149,7 +149,7 @@ export interface IPropertyBindingInstruction extends ITargetedInstruction {
 
 export interface IIteratorBindingInstruction extends ITargetedInstruction {
   type: TargetedInstructionType.iteratorBinding;
-  from: string | ForOfStatement;
+  from: string | IForOfStatement;
   to: string;
 }
 
@@ -199,7 +199,7 @@ export interface IHydrateLetElementInstruction extends ITargetedInstruction {
 
 export interface ILetBindingInstruction extends ITargetedInstruction {
   type: TargetedInstructionType.letBinding;
-  from: string | IsBindingBehavior | Interpolation;
+  from: string | IsBindingBehavior | IInterpolationExpression;
   to: string;
 }
 

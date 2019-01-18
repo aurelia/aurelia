@@ -1,9 +1,10 @@
 import { IServiceLocator, Reporter, Tracer } from '@aurelia/kernel';
+import { IForOfStatement, IsBindingBehavior } from '../ast';
 import { BindingMode, ExpressionKind, LifecycleFlags, State } from '../flags';
 import { IBindScope, ILifecycle } from '../lifecycle';
 import { AccessorOrObserver, IBindingTargetObserver, IObservable, IScope } from '../observation';
 import { IObserverLocator } from '../observation/observer-locator';
-import { ForOfStatement, hasBind, hasUnbind, IsBindingBehavior } from './ast';
+import { hasBind, hasUnbind } from './ast';
 import { connectable, IConnectableBinding, IPartialConnectableBinding } from './connectable';
 
 const slice = Array.prototype.slice;
@@ -34,7 +35,7 @@ export class Binding implements IPartialConnectableBinding {
   public locator: IServiceLocator;
   public mode: BindingMode;
   public observerLocator: IObserverLocator;
-  public sourceExpression: IsBindingBehavior | ForOfStatement;
+  public sourceExpression: IsBindingBehavior | IForOfStatement;
   public target: IObservable;
   public targetProperty: string;
 
@@ -42,7 +43,7 @@ export class Binding implements IPartialConnectableBinding {
 
   public persistentFlags: LifecycleFlags;
 
-  constructor(sourceExpression: IsBindingBehavior | ForOfStatement, target: IObservable, targetProperty: string, mode: BindingMode, observerLocator: IObserverLocator, locator: IServiceLocator) {
+  constructor(sourceExpression: IsBindingBehavior | IForOfStatement, target: IObservable, targetProperty: string, mode: BindingMode, observerLocator: IObserverLocator, locator: IServiceLocator) {
     this.$nextBind = null;
     this.$prevBind = null;
     this.$state = State.none;

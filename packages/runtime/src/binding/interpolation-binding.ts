@@ -1,9 +1,9 @@
 import { IServiceLocator } from '@aurelia/kernel';
+import { IExpression, IInterpolationExpression } from '../ast';
 import { BindingMode, LifecycleFlags, State } from '../flags';
 import { IBindScope } from '../lifecycle';
 import { IBindingTargetAccessor, IObservable, IScope } from '../observation';
 import { IObserverLocator } from '../observation/observer-locator';
-import { IExpression, Interpolation } from './ast';
 import { IBinding } from './binding';
 import { connectable, IConnectableBinding, IPartialConnectableBinding } from './connectable';
 
@@ -15,7 +15,7 @@ export class MultiInterpolationBinding implements IBinding {
   public $state: State;
   public $scope: IScope;
 
-  public interpolation: Interpolation;
+  public interpolation: IInterpolationExpression;
   public observerLocator: IObserverLocator;
   public locator: IServiceLocator;
   public mode: BindingMode;
@@ -23,7 +23,7 @@ export class MultiInterpolationBinding implements IBinding {
   public target: IObservable;
   public targetProperty: string;
 
-  constructor(observerLocator: IObserverLocator, interpolation: Interpolation, target: IObservable, targetProperty: string, mode: BindingMode, locator: IServiceLocator) {
+  constructor(observerLocator: IObserverLocator, interpolation: IInterpolationExpression, target: IObservable, targetProperty: string, mode: BindingMode, locator: IServiceLocator) {
     this.$nextBind = null;
     this.$prevBind = null;
     this.$state = State.none;
@@ -83,7 +83,7 @@ export class InterpolationBinding implements IPartialConnectableBinding {
   public $scope: IScope;
   public $state: State;
 
-  public interpolation: Interpolation;
+  public interpolation: IInterpolationExpression;
   public isFirst: boolean;
   public locator: IServiceLocator;
   public mode: BindingMode;
@@ -95,7 +95,7 @@ export class InterpolationBinding implements IPartialConnectableBinding {
   public targetObserver: IBindingTargetAccessor;
 
   // tslint:disable-next-line:parameters-max-number
-  constructor(sourceExpression: IExpression, interpolation: Interpolation, target: IObservable, targetProperty: string, mode: BindingMode, observerLocator: IObserverLocator, locator: IServiceLocator, isFirst: boolean) {
+  constructor(sourceExpression: IExpression, interpolation: IInterpolationExpression, target: IObservable, targetProperty: string, mode: BindingMode, observerLocator: IObserverLocator, locator: IServiceLocator, isFirst: boolean) {
     this.$state = State.none;
 
     this.interpolation = interpolation;

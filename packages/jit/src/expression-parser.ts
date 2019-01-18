@@ -1,14 +1,46 @@
 import { Profiler, Reporter } from '@aurelia/kernel';
 import {
-  AccessKeyed, AccessMember, AccessScope, AccessThis,
-  ArrayBindingPattern, ArrayLiteral, Assign, Binary,
-  BinaryOperator, BindingBehavior, BindingIdentifier,
-  BindingIdentifierOrPattern, BindingType, CallFunction,
-  CallMember, CallScope, Conditional, ExpressionKind, ForOfStatement,
-  Interpolation, IsAssign, IsAssignable,
-  IsBinary, IsBindingBehavior, IsConditional,
-  IsExpressionOrStatement, IsLeftHandSide, IsPrimary, IsUnary,
-  IsValueConverter, ObjectBindingPattern, ObjectLiteral, PrimitiveLiteral, TaggedTemplate, Template, Unary, UnaryOperator, ValueConverter
+  AccessKeyed,
+  AccessMember,
+  AccessScope,
+  AccessThis,
+  ArrayBindingPattern,
+  ArrayLiteral,
+  Assign,
+  Binary,
+  BinaryOperator,
+  BindingBehavior,
+  BindingIdentifier,
+  BindingIdentifierOrPattern,
+  BindingType,
+  CallFunction,
+  CallMember,
+  CallScope,
+  Conditional,
+  ExpressionKind,
+  ForOfStatement,
+  IForOfStatement,
+  IInterpolationExpression,
+  Interpolation,
+  IPrimitiveLiteralExpression,
+  IsAssign,
+  IsAssignable,
+  IsBinary,
+  IsBindingBehavior,
+  IsConditional,
+  IsExpressionOrStatement,
+  IsLeftHandSide,
+  IsPrimary,
+  IsUnary,
+  IsValueConverter,
+  ObjectBindingPattern,
+  ObjectLiteral,
+  PrimitiveLiteral,
+  TaggedTemplate,
+  Template,
+  Unary,
+  UnaryOperator,
+  ValueConverter
 } from '@aurelia/runtime';
 import { Access, Char, Precedence, Token, unescapeCode } from './common';
 
@@ -74,8 +106,8 @@ const enum SemanticError {
 }
 
 export function parseExpression<TType extends BindingType = BindingType.BindCommand>(input: string, bindingType?: TType):
-  TType extends BindingType.Interpolation ? Interpolation :
-  TType extends BindingType.ForCommand ? ForOfStatement :
+  TType extends BindingType.Interpolation ? IInterpolationExpression :
+  TType extends BindingType.ForCommand ? IForOfStatement :
   IsBindingBehavior {
 
   $state.input = input;
@@ -108,8 +140,8 @@ export function parse<TPrec extends Precedence, TType extends BindingType>(state
   TPrec extends Precedence.LogicalAND ? IsBinary :
   TPrec extends Precedence.LogicalOR ? IsBinary :
   TPrec extends Precedence.Variadic ?
-    TType extends BindingType.Interpolation ? Interpolation :
-    TType extends BindingType.ForCommand ? ForOfStatement :
+    TType extends BindingType.Interpolation ? IInterpolationExpression :
+    TType extends BindingType.ForCommand ? IForOfStatement :
     never : never {
   if (Profiler.enabled) { enter(); }
 
@@ -253,7 +285,7 @@ export function parse<TPrec extends Precedence, TType extends BindingType>(state
     case Token.UndefinedKeyword:
     case Token.TrueKeyword:
     case Token.FalseKeyword:
-      result = TokenValues[state.currentToken & Token.Type] as PrimitiveLiteral;
+      result = TokenValues[state.currentToken & Token.Type] as IPrimitiveLiteralExpression;
       state.assignable = false;
       nextToken(state);
       access = Access.Reset;
@@ -562,7 +594,7 @@ function parseArrayLiteralExpression(state: ParserState, access: Access, binding
   }
 }
 
-function parseForOfStatement(state: ParserState, result: BindingIdentifier | ArrayBindingPattern | ObjectBindingPattern): ForOfStatement {
+function parseForOfStatement(state: ParserState, result: BindingIdentifierOrPattern): ForOfStatement {
   if ((result.$kind & ExpressionKind.IsForDeclaration) === 0) {
     throw Reporter.error(SyntaxError.InvalidForDeclaration, { state });
   }

@@ -1,4 +1,4 @@
-import { ForOfStatement, Interpolation, IsBindingBehavior } from './binding/ast';
+import { IForOfStatement, IInterpolationExpression, IsBindingBehavior } from './ast';
 import {
   ICallBindingInstruction,
   IHydrateAttributeInstruction,
@@ -20,10 +20,10 @@ import { BindingMode } from './flags';
 export class InterpolationInstruction implements IInterpolationInstruction {
   public type: TargetedInstructionType.interpolation;
 
-  public from: string | Interpolation;
+  public from: string | IInterpolationExpression;
   public to: string;
 
-  constructor(from: string | Interpolation, to: string) {
+  constructor(from: string | IInterpolationExpression, to: string) {
     this.type = TargetedInstructionType.interpolation;
 
     this.from = from;
@@ -106,10 +106,10 @@ export class TwoWayBindingInstruction implements IPropertyBindingInstruction {
 export class IteratorBindingInstruction implements IIteratorBindingInstruction {
   public type: TargetedInstructionType.iteratorBinding;
 
-  public from: string | ForOfStatement;
+  public from: string | IForOfStatement;
   public to: string;
 
-  constructor(from: string | ForOfStatement, to: string) {
+  constructor(from: string | IForOfStatement, to: string) {
     this.type = TargetedInstructionType.iteratorBinding;
 
     this.from = from;
@@ -222,10 +222,10 @@ export class LetElementInstruction implements IHydrateLetElementInstruction {
 export class LetBindingInstruction implements ILetBindingInstruction {
   public type: TargetedInstructionType.letBinding;
 
-  public from: string | IsBindingBehavior | Interpolation;
+  public from: string | IsBindingBehavior | IInterpolationExpression;
   public to: string;
 
-  constructor(from: string | IsBindingBehavior | Interpolation, to: string) {
+  constructor(from: string | IsBindingBehavior | IInterpolationExpression, to: string) {
     this.type = TargetedInstructionType.letBinding;
 
     this.from = from;

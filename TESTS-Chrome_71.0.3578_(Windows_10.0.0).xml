@@ -1,0 +1,764 @@
+<?xml version="1.0"?>
+<testsuite name="Chrome 71.0.3578 (Windows 10.0.0)" package="" timestamp="2019-01-18T22:22:58" id="0" hostname="JW-SURFACE" tests="62" errors="0" failures="0" time="6.37">
+  <properties>
+    <property name="browser.fullName" value="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/71.0.3578.98 Safari/537.36"/>
+  </properties>
+  <testcase name="HistoryBrowser can be created" time="0" classname="Chrome_71_0_3578_(Windows_10_0_0).HistoryBrowser"/>
+  <testcase name="LinkHandler can be created" time="0.001" classname="Chrome_71_0_3578_(Windows_10_0_0).LinkHandler"/>
+  <testcase name="LinkHandler can be activated" time="0.002" classname="Chrome_71_0_3578_(Windows_10_0_0).LinkHandler"/>
+  <testcase name="LinkHandler can be deactivated" time="0.002" classname="Chrome_71_0_3578_(Windows_10_0_0).LinkHandler"/>
+  <testcase name="LinkHandler throws when activated while active" time="0.004" classname="Chrome_71_0_3578_(Windows_10_0_0).LinkHandler"/>
+  <testcase name="Nav generates nav with a link" time="0.047" classname="Chrome_71_0_3578_(Windows_10_0_0).Nav"/>
+  <testcase name="Nav generates nav with an active link" time="0.019" classname="Chrome_71_0_3578_(Windows_10_0_0).Nav"/>
+  <testcase name="Nav generates nav with child links" time="0.015" classname="Chrome_71_0_3578_(Windows_10_0_0).Nav"/>
+  <testcase name="Router can be created" time="0.006" classname="Chrome_71_0_3578_(Windows_10_0_0).Router"/>
+  <testcase name="Router handles state strings" time="0.006" classname="Chrome_71_0_3578_(Windows_10_0_0).Router"/>
+  <testcase name="Router loads viewports left and right" time="0.004" classname="Chrome_71_0_3578_(Windows_10_0_0).Router"/>
+  <testcase name="Router navigates to foo in left" time="0.106" classname="Chrome_71_0_3578_(Windows_10_0_0).Router"/>
+  <testcase name="Router clears viewport" time="0.211" classname="Chrome_71_0_3578_(Windows_10_0_0).Router"/>
+  <testcase name="Router clears all viewports" time="0.212" classname="Chrome_71_0_3578_(Windows_10_0_0).Router"/>
+  <testcase name="Router queues navigations" time="0.107" classname="Chrome_71_0_3578_(Windows_10_0_0).Router"/>
+  <testcase name="Router replaces foo in left" time="0.206" classname="Chrome_71_0_3578_(Windows_10_0_0).Router"/>
+  <testcase name="Router navigates to bar in right" time="0.106" classname="Chrome_71_0_3578_(Windows_10_0_0).Router"/>
+  <testcase name="Router navigates to foo in left then bar in right" time="0.207" classname="Chrome_71_0_3578_(Windows_10_0_0).Router"/>
+  <testcase name="Router navigates back and forward with one viewport" time="0.417" classname="Chrome_71_0_3578_(Windows_10_0_0).Router"/>
+  <testcase name="Router navigates back and forward with two viewports" time="0.416" classname="Chrome_71_0_3578_(Windows_10_0_0).Router"/>
+  <testcase name="Router navigates to foo/bar in left/right" time="0.111" classname="Chrome_71_0_3578_(Windows_10_0_0).Router"/>
+  <testcase name="Router cancels if not canLeave" time="0.212" classname="Chrome_71_0_3578_(Windows_10_0_0).Router"/>
+  <testcase name="Router navigates to foo/bar in left/right containing baz/qux respectively" time="0.107" classname="Chrome_71_0_3578_(Windows_10_0_0).Router"/>
+  <testcase name="Router handles anchor click" time="0.21" classname="Chrome_71_0_3578_(Windows_10_0_0).Router"/>
+  <testcase name="Router understands used-by" time="0.231" classname="Chrome_71_0_3578_(Windows_10_0_0).Router"/>
+  <testcase name="Router does not update fullStatePath on wrong history entry" time="0.006" classname="Chrome_71_0_3578_(Windows_10_0_0).Router"/>
+  <testcase name="Router parses parameters after viewport" time="0.218" classname="Chrome_71_0_3578_(Windows_10_0_0).Router"/>
+  <testcase name="Router parses named parameters after viewport" time="0.215" classname="Chrome_71_0_3578_(Windows_10_0_0).Router"/>
+  <testcase name="Router parses parameters after viewport individually" time="0.209" classname="Chrome_71_0_3578_(Windows_10_0_0).Router"/>
+  <testcase name="Router parses parameters without viewport" time="0.21" classname="Chrome_71_0_3578_(Windows_10_0_0).Router"/>
+  <testcase name="Router parses named parameters without viewport" time="0.207" classname="Chrome_71_0_3578_(Windows_10_0_0).Router"/>
+  <testcase name="Router parses multiple parameters after viewport" time="0.207" classname="Chrome_71_0_3578_(Windows_10_0_0).Router"/>
+  <testcase name="Router parses multiple name parameters after viewport" time="0.206" classname="Chrome_71_0_3578_(Windows_10_0_0).Router"/>
+  <testcase name="Router parses querystring" time="0.207" classname="Chrome_71_0_3578_(Windows_10_0_0).Router"/>
+  <testcase name="Router overrides querystring with parameter" time="0.312" classname="Chrome_71_0_3578_(Windows_10_0_0).Router"/>
+  <testcase name="Router loads scoped viewport" time="0" classname="Chrome_71_0_3578_(Windows_10_0_0).Router">
+    <skipped/>
+  </testcase>
+  <testcase name="Router local deps verify that the test isn't broken" time="0.107" classname="Chrome_71_0_3578_(Windows_10_0_0).Router"/>
+  <testcase name="Router local deps navigates to locally registered dep" time="0.107" classname="Chrome_71_0_3578_(Windows_10_0_0).Router"/>
+  <testcase name="Router local deps navigates to locally registered dep - nested" time="0.118" classname="Chrome_71_0_3578_(Windows_10_0_0).Router"/>
+  <testcase name="Router local deps navigates to locally registered dep - double nested - case #1" time="0.113" classname="Chrome_71_0_3578_(Windows_10_0_0).Router"/>
+  <testcase name="Router local deps navigates to locally registered dep - double nested - case #2" time="0.107" classname="Chrome_71_0_3578_(Windows_10_0_0).Router"/>
+  <testcase name="Router local deps navigates to locally registered dep - double nested - case #3" time="0.114" classname="Chrome_71_0_3578_(Windows_10_0_0).Router"/>
+  <testcase name="Router local deps navigates to locally registered dep - double nested - case #4" time="0.104" classname="Chrome_71_0_3578_(Windows_10_0_0).Router"/>
+  <testcase name="Router local deps navigates to locally registered dep - conflicting scoped siblings - case #1" time="0.208" classname="Chrome_71_0_3578_(Windows_10_0_0).Router"/>
+  <testcase name="Router local deps navigates to locally registered dep - conflicting scoped siblings - case #2" time="0.209" classname="Chrome_71_0_3578_(Windows_10_0_0).Router"/>
+  <testcase name="Router local deps navigates to locally registered dep - conflicting scoped siblings - case #3" time="0.208" classname="Chrome_71_0_3578_(Windows_10_0_0).Router"/>
+  <testcase name="Router local deps navigates to locally registered dep recursively path: global1/conflict, expectedText: /.*global1.*conflict1.*/" time="0" classname="Chrome_71_0_3578_(Windows_10_0_0).Router">
+    <skipped/>
+  </testcase>
+  <testcase name="Router local deps navigates to locally registered dep recursively path: global1/conflict/conflict, expectedText: /.*global1.*conflict1.*conflict1.*/" time="0" classname="Chrome_71_0_3578_(Windows_10_0_0).Router">
+    <skipped/>
+  </testcase>
+  <testcase name="Router local deps navigates to locally registered dep recursively path: local2/conflict, expectedText: /.*local2.*conflict2.*/" time="0" classname="Chrome_71_0_3578_(Windows_10_0_0).Router">
+    <skipped/>
+  </testcase>
+  <testcase name="Router local deps navigates to locally registered dep recursively path: local2/conflict/conflict, expectedText: /.*local2.*conflict2.*conflict2.*/" time="0" classname="Chrome_71_0_3578_(Windows_10_0_0).Router">
+    <skipped/>
+  </testcase>
+  <testcase name="Router local deps navigates to locally registered dep recursively path: local2/global1/conflict, expectedText: /.*local2.*global1.*conflict1.*/" time="0" classname="Chrome_71_0_3578_(Windows_10_0_0).Router">
+    <skipped/>
+  </testcase>
+  <testcase name="Router local deps navigates to locally registered dep recursively path: local2/global1/conflict/conflict, expectedText: /.*local2.*global1.*conflict1.*conflict1.*/" time="0" classname="Chrome_71_0_3578_(Windows_10_0_0).Router">
+    <skipped/>
+  </testcase>
+  <testcase name="Router local deps navigates to locally registered dep recursively path: local2/local2/conflict/conflict, expectedText: /.*local2.*local2.*conflict2.*conflict2.*/" time="0" classname="Chrome_71_0_3578_(Windows_10_0_0).Router">
+    <skipped/>
+  </testcase>
+  <testcase name="Router local deps navigates to locally registered dep recursively path: local2/conflict/global1/conflict, expectedText: /.*local2.*conflict2.*global1.*conflict1.*/" time="0" classname="Chrome_71_0_3578_(Windows_10_0_0).Router">
+    <skipped/>
+  </testcase>
+  <testcase name="Router local deps navigates to locally registered dep recursively path: local2/conflict/local2/conflict, expectedText: /.*local2.*conflict2.*local2.*conflict2.*/" time="0" classname="Chrome_71_0_3578_(Windows_10_0_0).Router">
+    <skipped/>
+  </testcase>
+  <testcase name="Viewport can be created" time="0" classname="Chrome_71_0_3578_(Windows_10_0_0).Viewport"/>
+  <testcase name="Viewport resolving globals resolves component name from string" time="0.006" classname="Chrome_71_0_3578_(Windows_10_0_0).Viewport"/>
+  <testcase name="Viewport resolving globals resolves component name from type" time="0.002" classname="Chrome_71_0_3578_(Windows_10_0_0).Viewport"/>
+  <testcase name="Viewport resolving globals resolves component type from string" time="0.001" classname="Chrome_71_0_3578_(Windows_10_0_0).Viewport"/>
+  <testcase name="Viewport resolving globals resolves component type from type" time="0.002" classname="Chrome_71_0_3578_(Windows_10_0_0).Viewport"/>
+  <testcase name="Viewport resolving globals resolves component instance from string" time="0.001" classname="Chrome_71_0_3578_(Windows_10_0_0).Viewport"/>
+  <testcase name="Viewport resolving globals resolves component instance from type" time="0.001" classname="Chrome_71_0_3578_(Windows_10_0_0).Viewport"/>
+  <system-out>
+    <![CDATA[Chrome 71.0.3578 (Windows 10.0.0) INFO: 'Starting application in debug mode.'
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'Viewport added', 'app', <au-viewport name="app" used-by="foo" default="foo" class="au"></au-viewport>
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'path changed to', '', null, null
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'navigated', Object{path: '', fullStatePath: null, index: 0, query: ''}, [Object{path: '', fullStatePath: null, index: 0, query: ''}], 1
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'callback', Object{path: '', fullStatePath: null, index: 0, query: ''}, Object{isNew: true, isFirst: true}
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'Viewport enter', 'app'
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'Viewport loadContent', 'app'
+,Chrome 71.0.3578 (Windows 10.0.0) INFO: 'Starting application in debug mode.'
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'Viewport added', 'app', <au-viewport name="app" used-by="bar" default="bar" class="au"></au-viewport>
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'path changed to', '', null, null
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'navigated', Object{path: '', fullStatePath: null, index: 0, query: ''}, [Object{path: '', fullStatePath: null, index: 0, query: ''}], 1
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'callback', Object{path: '', fullStatePath: null, index: 0, query: ''}, Object{isNew: true, isFirst: true}
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'Viewport enter', 'app'
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'Viewport added', 'main-viewport', <au-viewport name="main-viewport" default="baz" class="au"></au-viewport>
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'Viewport loadContent', 'app'
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'Viewport enter', 'main-viewport'
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'Viewport loadContent', 'main-viewport'
+,Chrome 71.0.3578 (Windows 10.0.0) INFO: 'Starting application in debug mode.'
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'Viewport added', 'app', <au-viewport name="app" used-by="qux" default="qux" class="au"></au-viewport>
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'path changed to', '', null, null
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'navigated', Object{path: '', fullStatePath: null, index: 0, query: ''}, [Object{path: '', fullStatePath: null, index: 0, query: ''}], 1
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'callback', Object{path: '', fullStatePath: null, index: 0, query: ''}, Object{isNew: true, isFirst: true}
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'Viewport enter', 'app'
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'Viewport added', 'main-viewport', <au-viewport name="main-viewport" default="baz" class="au"></au-viewport>
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'Viewport loadContent', 'app'
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'Viewport enter', 'main-viewport'
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'Viewport loadContent', 'main-viewport'
+,Chrome 71.0.3578 (Windows 10.0.0) INFO: 'Starting application in debug mode.'
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'Viewport added', 'left', <au-viewport name="left" class="au"></au-viewport>
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'Viewport added', 'right', <au-viewport name="right" class="au"></au-viewport>
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'path changed to', '', null, null
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'navigated', Object{path: '', fullStatePath: null, index: 0, query: ''}, [Object{path: '', fullStatePath: null, index: 0, query: ''}], 1
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'callback', Object{path: '', fullStatePath: null, index: 0, query: ''}, Object{isNew: true, isFirst: true}
+,Chrome 71.0.3578 (Windows 10.0.0) INFO: 'Starting application in debug mode.'
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'Viewport added', 'left', <au-viewport name="left" class="au"></au-viewport>
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'Viewport added', 'right', <au-viewport name="right" class="au"></au-viewport>
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'path changed to', '', null, null
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'navigated', Object{path: '', fullStatePath: null, index: 0, query: ''}, [Object{path: '', fullStatePath: null, index: 0, query: ''}], 1
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'callback', Object{path: '', fullStatePath: null, index: 0, query: ''}, Object{isNew: true, isFirst: true}
+,Chrome 71.0.3578 (Windows 10.0.0) INFO: 'Starting application in debug mode.'
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'Viewport added', 'left', <au-viewport name="left" class="au"></au-viewport>
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'Viewport added', 'right', <au-viewport name="right" class="au"></au-viewport>
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'path changed to', '', null, null
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'navigated', Object{path: '', fullStatePath: null, index: 0, query: ''}, [Object{path: '', fullStatePath: null, index: 0, query: ''}], 1
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'callback', Object{path: '', fullStatePath: null, index: 0, query: ''}, Object{isNew: true, isFirst: true}
+,Chrome 71.0.3578 (Windows 10.0.0) INFO: 'Starting application in debug mode.'
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'Viewport added', 'left', <au-viewport name="left" class="au"></au-viewport>
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'Viewport added', 'right', <au-viewport name="right" class="au"></au-viewport>
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'path changed to', '', null, null
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'navigated', Object{path: '', fullStatePath: null, index: 0, query: ''}, [Object{path: '', fullStatePath: null, index: 0, query: ''}], 1
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'callback', Object{path: '', fullStatePath: null, index: 0, query: ''}, Object{isNew: true, isFirst: true}
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'path changed to', 'foo@left', Object{path: 'foo@left', fullStatePath: null, title: undefined, data: undefined}, Object{path: '', fullStatePath: '-', index: 0, query: ''}
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'navigated', Object{path: 'foo@left', fullStatePath: null, index: 1}, [Object{path: '', fullStatePath: '-', index: 0, query: ''}, Object{path: 'foo@left', fullStatePath: null, title: undefined, data: undefined, index: 1}], 1
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'callback', Object{path: 'foo@left', fullStatePath: null, title: undefined, data: undefined, index: 1}, Object{isNew: true}
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'Viewport enter', 'left'
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'Viewport added', 'foo', <au-viewport name="foo" class="au"></au-viewport>
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'Viewport loadContent', 'left'
+,Chrome 71.0.3578 (Windows 10.0.0) INFO: 'Starting application in debug mode.'
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'Viewport added', 'left', <au-viewport name="left" class="au"></au-viewport>
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'Viewport added', 'right', <au-viewport name="right" class="au"></au-viewport>
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'path changed to', '', null, null
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'navigated', Object{path: '', fullStatePath: null, index: 0, query: ''}, [Object{path: '', fullStatePath: null, index: 0, query: ''}], 1
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'callback', Object{path: '', fullStatePath: null, index: 0, query: ''}, Object{isNew: true, isFirst: true}
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'path changed to', 'foo@left', Object{path: 'foo@left', fullStatePath: null, title: undefined, data: undefined}, Object{path: '', fullStatePath: '-', index: 0, query: ''}
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'navigated', Object{path: 'foo@left', fullStatePath: null, index: 1}, [Object{path: '', fullStatePath: '-', index: 0, query: ''}, Object{path: 'foo@left', fullStatePath: null, title: undefined, data: undefined, index: 1}], 1
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'callback', Object{path: 'foo@left', fullStatePath: null, title: undefined, data: undefined, index: 1}, Object{isNew: true}
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'Viewport enter', 'left'
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'Viewport added', 'foo', <au-viewport name="foo" class="au"></au-viewport>
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'Viewport loadContent', 'left'
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'path changed to', '-@left', Object{path: '-@left', fullStatePath: null, title: undefined, data: undefined}, Object{path: 'foo', fullStatePath: '-+foo@left', title: undefined, data: undefined, index: 1}
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'navigated', Object{path: '-@left', fullStatePath: null, index: 2}, [Object{path: '', fullStatePath: '-', index: 0, query: ''}, Object{path: 'foo', fullStatePath: '-+foo@left', title: undefined, data: undefined, index: 1}, Object{path: '-@left', fullStatePath: null, title: undefined, data: undefined, index: 2}], 1
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'callback', Object{path: '-@left', fullStatePath: null, title: undefined, data: undefined, index: 2}, Object{isNew: true}
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'Viewport enter', 'left'
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'Viewport loadContent', 'left'
+,Chrome 71.0.3578 (Windows 10.0.0) INFO: 'Starting application in debug mode.'
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'Viewport added', 'left', <au-viewport name="left" class="au"></au-viewport>
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'Viewport added', 'right', <au-viewport name="right" class="au"></au-viewport>
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'path changed to', '', null, null
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'navigated', Object{path: '', fullStatePath: null, index: 0, query: ''}, [Object{path: '', fullStatePath: null, index: 0, query: ''}], 1
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'callback', Object{path: '', fullStatePath: null, index: 0, query: ''}, Object{isNew: true, isFirst: true}
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'path changed to', 'foo@left', Object{path: 'foo@left', fullStatePath: null, title: undefined, data: undefined}, Object{path: '', fullStatePath: '-', index: 0, query: ''}
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'navigated', Object{path: 'foo@left', fullStatePath: null, index: 1}, [Object{path: '', fullStatePath: '-', index: 0, query: ''}, Object{path: 'foo@left', fullStatePath: null, title: undefined, data: undefined, index: 1}], 1
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'callback', Object{path: 'foo@left', fullStatePath: null, title: undefined, data: undefined, index: 1}, Object{isNew: true}
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'Viewport enter', 'left'
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'Viewport added', 'foo', <au-viewport name="foo" class="au"></au-viewport>
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'Viewport loadContent', 'left'
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'path changed to', 'bar@right', Object{path: 'bar@right', fullStatePath: null, title: undefined, data: undefined}, Object{path: 'foo', fullStatePath: '-+foo@left', title: undefined, data: undefined, index: 1}
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'navigated', Object{path: 'bar@right', fullStatePath: null, index: 2}, [Object{path: '', fullStatePath: '-', index: 0, query: ''}, Object{path: 'foo', fullStatePath: '-+foo@left', title: undefined, data: undefined, index: 1}, Object{path: 'bar@right', fullStatePath: null, title: undefined, data: undefined, index: 2}], 1
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'callback', Object{path: 'bar@right', fullStatePath: null, title: undefined, data: undefined, index: 2}, Object{isNew: true}
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'Viewport enter', 'right'
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'Viewport added', 'bar', <au-viewport name="bar" class="au"></au-viewport>
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'Viewport loadContent', 'right'
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'path changed to', '-', Object{path: '-', fullStatePath: null, title: undefined, data: undefined}, Object{path: 'foo+bar', fullStatePath: '-+foo@left+bar@right', title: undefined, data: undefined, index: 2}
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'navigated', Object{path: '-', fullStatePath: null, index: 3}, [Object{path: '', fullStatePath: '-', index: 0, query: ''}, Object{path: 'foo', fullStatePath: '-+foo@left', title: undefined, data: undefined, index: 1}, Object{path: 'foo+bar', fullStatePath: '-+foo@left+bar@right', title: undefined, data: undefined, index: 2}, Object{path: '-', fullStatePath: null, title: undefined, data: undefined, index: 3}], 1
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'callback', Object{path: '-', fullStatePath: null, title: undefined, data: undefined, index: 3}, Object{isNew: true}
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'MOCK: notifyChange', '#/foo+bar', Object{HistoryEntries: [Object{path: ..., fullStatePath: ..., index: ..., query: ...}, Object{path: ..., fullStatePath: ..., title: ..., data: ..., index: ...}, Object{path: ..., fullStatePath: ..., title: ..., data: ..., index: ...}], HistoryOffset: 1, HistoryEntry: Object{path: 'foo+bar', fullStatePath: '-+foo@left+bar@right', title: undefined, data: undefined, index: 2}}
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: '=== ignore path change', '/foo+bar'
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'MOCK: notifyChange', '#/foo', Object{HistoryEntries: [Object{path: ..., fullStatePath: ..., index: ..., query: ...}, Object{path: ..., fullStatePath: ..., title: ..., data: ..., index: ...}], HistoryOffset: 1, HistoryEntry: Object{path: 'foo', fullStatePath: '-+foo@left', title: undefined, data: undefined, index: 1}}
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: '=== ignore path change', '/foo'
+,Chrome 71.0.3578 (Windows 10.0.0) INFO: 'Starting application in debug mode.'
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'Viewport added', 'left', <au-viewport name="left" class="au"></au-viewport>
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'Viewport added', 'right', <au-viewport name="right" class="au"></au-viewport>
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'path changed to', '', null, null
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'navigated', Object{path: '', fullStatePath: null, index: 0, query: ''}, [Object{path: '', fullStatePath: null, index: 0, query: ''}], 1
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'callback', Object{path: '', fullStatePath: null, index: 0, query: ''}, Object{isNew: true, isFirst: true}
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'path changed to', '/foo@left', Object{path: '/foo@left', fullStatePath: null, title: undefined, data: undefined}, Object{path: '', fullStatePath: '-', index: 0, query: ''}
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'navigated', Object{path: '/foo@left', fullStatePath: null, index: 1}, [Object{path: '', fullStatePath: '-', index: 0, query: ''}, Object{path: '/foo@left', fullStatePath: null, title: undefined, data: undefined, index: 1}], 1
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'callback', Object{path: '/foo@left', fullStatePath: null, title: undefined, data: undefined, index: 1}, Object{isNew: true}
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'path changed to', '/bar@left', Object{path: '/bar@left', fullStatePath: null, title: undefined, data: undefined}, Object{path: '/foo@left', fullStatePath: null, title: undefined, data: undefined, index: 1}
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'navigated', Object{path: '/bar@left', fullStatePath: null, index: 2}, [Object{path: '', fullStatePath: '-', index: 0, query: ''}, Object{path: '/foo@left', fullStatePath: null, title: undefined, data: undefined, index: 1}, Object{path: '/bar@left', fullStatePath: null, title: undefined, data: undefined, index: 2}], 1
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'callback', Object{path: '/bar@left', fullStatePath: null, title: undefined, data: undefined, index: 2}, Object{isNew: true}
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'Viewport enter', 'left'
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'Viewport added', 'foo', <au-viewport name="foo" class="au"></au-viewport>
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'Viewport loadContent', 'left'
+,Chrome 71.0.3578 (Windows 10.0.0) WARN: 'replacePath: entry not matching currentEntry', Object{path: '/foo@left', fullStatePath: null, title: undefined, data: undefined, index: 1, isNew: true, previous: Object{path: '', fullStatePath: '-', index: 0, query: ''}, parameters: Object{}, parameterList: []}, Object{path: '/bar@left', fullStatePath: null, title: undefined, data: undefined, index: 2}
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'Viewport enter', 'left'
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'Viewport added', 'bar', <au-viewport name="bar" class="au"></au-viewport>
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'Viewport loadContent', 'left'
+,Chrome 71.0.3578 (Windows 10.0.0) INFO: 'Starting application in debug mode.'
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'Viewport added', 'left', <au-viewport name="left" class="au"></au-viewport>
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'Viewport added', 'right', <au-viewport name="right" class="au"></au-viewport>
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'path changed to', '', null, null
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'navigated', Object{path: '', fullStatePath: null, index: 0, query: ''}, [Object{path: '', fullStatePath: null, index: 0, query: ''}], 1
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'callback', Object{path: '', fullStatePath: null, index: 0, query: ''}, Object{isNew: true, isFirst: true}
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'path changed to', 'foo@left', Object{path: 'foo@left', fullStatePath: null, title: undefined, data: undefined}, Object{path: '', fullStatePath: '-', index: 0, query: ''}
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'navigated', Object{path: 'foo@left', fullStatePath: null, index: 1}, [Object{path: '', fullStatePath: '-', index: 0, query: ''}, Object{path: 'foo@left', fullStatePath: null, title: undefined, data: undefined, index: 1}], 1
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'callback', Object{path: 'foo@left', fullStatePath: null, title: undefined, data: undefined, index: 1}, Object{isNew: true}
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'Viewport enter', 'left'
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'Viewport added', 'foo', <au-viewport name="foo" class="au"></au-viewport>
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'Viewport loadContent', 'left'
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'path changed to', 'bar@left', Object{path: 'bar@left', fullStatePath: null, title: undefined, data: undefined}, Object{path: 'foo', fullStatePath: '-+foo@left', title: undefined, data: undefined, index: 1}
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'navigated', Object{path: 'bar@left', fullStatePath: null, index: 1}, [Object{path: '', fullStatePath: '-', index: 0, query: ''}, Object{path: 'bar@left', fullStatePath: null, title: undefined, data: undefined, index: 1}], 1
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'callback', Object{path: 'bar@left', fullStatePath: null, title: undefined, data: undefined, index: 1}, Object{isNew: true, isReplace: true}
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'Viewport enter', 'left'
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'Viewport added', 'bar', <au-viewport name="bar" class="au"></au-viewport>
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'Viewport loadContent', 'left'
+,Chrome 71.0.3578 (Windows 10.0.0) INFO: 'Starting application in debug mode.'
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'Viewport added', 'left', <au-viewport name="left" class="au"></au-viewport>
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'Viewport added', 'right', <au-viewport name="right" class="au"></au-viewport>
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'path changed to', '', null, null
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'navigated', Object{path: '', fullStatePath: null, index: 0, query: ''}, [Object{path: '', fullStatePath: null, index: 0, query: ''}], 1
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'callback', Object{path: '', fullStatePath: null, index: 0, query: ''}, Object{isNew: true, isFirst: true}
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'path changed to', '/bar@right', Object{path: '/bar@right', fullStatePath: null, title: undefined, data: undefined}, Object{path: '', fullStatePath: '-', index: 0, query: ''}
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'navigated', Object{path: '/bar@right', fullStatePath: null, index: 1}, [Object{path: '', fullStatePath: '-', index: 0, query: ''}, Object{path: '/bar@right', fullStatePath: null, title: undefined, data: undefined, index: 1}], 1
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'callback', Object{path: '/bar@right', fullStatePath: null, title: undefined, data: undefined, index: 1}, Object{isNew: true}
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'Viewport enter', 'right'
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'Viewport added', 'bar', <au-viewport name="bar" class="au"></au-viewport>
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'Viewport loadContent', 'right'
+,Chrome 71.0.3578 (Windows 10.0.0) INFO: 'Starting application in debug mode.'
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'Viewport added', 'left', <au-viewport name="left" class="au"></au-viewport>
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'Viewport added', 'right', <au-viewport name="right" class="au"></au-viewport>
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'path changed to', '', null, null
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'navigated', Object{path: '', fullStatePath: null, index: 0, query: ''}, [Object{path: '', fullStatePath: null, index: 0, query: ''}], 1
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'callback', Object{path: '', fullStatePath: null, index: 0, query: ''}, Object{isNew: true, isFirst: true}
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'path changed to', '/foo@left', Object{path: '/foo@left', fullStatePath: null, title: undefined, data: undefined}, Object{path: '', fullStatePath: '-', index: 0, query: ''}
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'navigated', Object{path: '/foo@left', fullStatePath: null, index: 1}, [Object{path: '', fullStatePath: '-', index: 0, query: ''}, Object{path: '/foo@left', fullStatePath: null, title: undefined, data: undefined, index: 1}], 1
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'callback', Object{path: '/foo@left', fullStatePath: null, title: undefined, data: undefined, index: 1}, Object{isNew: true}
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'Viewport enter', 'left'
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'Viewport added', 'foo', <au-viewport name="foo" class="au"></au-viewport>
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'Viewport loadContent', 'left'
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'path changed to', '/bar@right', Object{path: '/bar@right', fullStatePath: null, title: undefined, data: undefined}, Object{path: 'foo', fullStatePath: '-+foo@left', title: undefined, data: undefined, index: 1}
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'navigated', Object{path: '/bar@right', fullStatePath: null, index: 2}, [Object{path: '', fullStatePath: '-', index: 0, query: ''}, Object{path: 'foo', fullStatePath: '-+foo@left', title: undefined, data: undefined, index: 1}, Object{path: '/bar@right', fullStatePath: null, title: undefined, data: undefined, index: 2}], 1
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'callback', Object{path: '/bar@right', fullStatePath: null, title: undefined, data: undefined, index: 2}, Object{isNew: true}
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'Viewport enter', 'right'
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'Viewport added', 'bar', <au-viewport name="bar" class="au"></au-viewport>
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'Viewport loadContent', 'right'
+,Chrome 71.0.3578 (Windows 10.0.0) INFO: 'Starting application in debug mode.'
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'Viewport added', 'left', <au-viewport name="left" class="au"></au-viewport>
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'Viewport added', 'right', <au-viewport name="right" class="au"></au-viewport>
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'path changed to', '', null, null
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'navigated', Object{path: '', fullStatePath: null, index: 0, query: ''}, [Object{path: '', fullStatePath: null, index: 0, query: ''}], 1
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'callback', Object{path: '', fullStatePath: null, index: 0, query: ''}, Object{isNew: true, isFirst: true}
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'path changed to', '/foo@left', Object{path: '/foo@left', fullStatePath: null, title: undefined, data: undefined}, Object{path: '', fullStatePath: '-', index: 0, query: ''}
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'navigated', Object{path: '/foo@left', fullStatePath: null, index: 1}, [Object{path: '', fullStatePath: '-', index: 0, query: ''}, Object{path: '/foo@left', fullStatePath: null, title: undefined, data: undefined, index: 1}], 1
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'callback', Object{path: '/foo@left', fullStatePath: null, title: undefined, data: undefined, index: 1}, Object{isNew: true}
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'Viewport enter', 'left'
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'Viewport added', 'foo', <au-viewport name="foo" class="au"></au-viewport>
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'Viewport loadContent', 'left'
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'path changed to', '/bar@left', Object{path: '/bar@left', fullStatePath: null, title: undefined, data: undefined}, Object{path: 'foo', fullStatePath: '-+foo@left', title: undefined, data: undefined, index: 1}
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'navigated', Object{path: '/bar@left', fullStatePath: null, index: 2}, [Object{path: '', fullStatePath: '-', index: 0, query: ''}, Object{path: 'foo', fullStatePath: '-+foo@left', title: undefined, data: undefined, index: 1}, Object{path: '/bar@left', fullStatePath: null, title: undefined, data: undefined, index: 2}], 1
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'callback', Object{path: '/bar@left', fullStatePath: null, title: undefined, data: undefined, index: 2}, Object{isNew: true}
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'Viewport enter', 'left'
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'Viewport added', 'bar', <au-viewport name="bar" class="au"></au-viewport>
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'Viewport loadContent', 'left'
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'MOCK: notifyChange', '#/foo', Object{HistoryEntries: [Object{path: ..., fullStatePath: ..., index: ..., query: ...}, Object{path: ..., fullStatePath: ..., title: ..., data: ..., index: ...}], HistoryOffset: 1, HistoryEntry: Object{path: 'foo', fullStatePath: '-+foo@left', title: undefined, data: undefined, index: 1}}
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'path changed to', '/foo', null, Object{path: 'bar', fullStatePath: '-+bar@left', title: undefined, data: undefined, index: 2}
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'navigated', Object{path: 'foo', fullStatePath: '-+foo@left', title: undefined, data: undefined, index: 1}, [Object{path: '', fullStatePath: '-', index: 0, query: ''}, Object{path: 'foo', fullStatePath: '-+foo@left', title: undefined, data: undefined, index: 1}, Object{path: 'bar', fullStatePath: '-+bar@left', title: undefined, data: undefined, index: 2}], 1
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'callback', Object{path: 'foo', fullStatePath: '-+foo@left', title: undefined, data: undefined, index: 1}, Object{isBack: true}
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'Viewport enter', 'left'
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'Viewport added', 'foo', <au-viewport name="foo" class="au"></au-viewport>
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'Viewport loadContent', 'left'
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'MOCK: notifyChange', '#/bar', Object{HistoryEntries: [Object{path: ..., fullStatePath: ..., index: ..., query: ...}, Object{path: ..., fullStatePath: ..., title: ..., data: ..., index: ...}, Object{path: ..., fullStatePath: ..., title: ..., data: ..., index: ...}], HistoryOffset: 1, HistoryEntry: Object{path: 'bar', fullStatePath: '-+bar@left', title: undefined, data: undefined, index: 2}}
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'path changed to', '/bar', null, Object{path: 'foo', fullStatePath: '-+foo@left', title: undefined, data: undefined, index: 1}
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'navigated', Object{path: 'bar', fullStatePath: '-+bar@left', title: undefined, data: undefined, index: 2}, [Object{path: '', fullStatePath: '-', index: 0, query: ''}, Object{path: 'foo', fullStatePath: '-+foo@left', title: undefined, data: undefined, index: 1}, Object{path: 'bar', fullStatePath: '-+bar@left', title: undefined, data: undefined, index: 2}], 1
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'callback', Object{path: 'bar', fullStatePath: '-+bar@left', title: undefined, data: undefined, index: 2}, Object{isForward: true}
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'Viewport enter', 'left'
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'Viewport added', 'bar', <au-viewport name="bar" class="au"></au-viewport>
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'Viewport loadContent', 'left'
+,Chrome 71.0.3578 (Windows 10.0.0) INFO: 'Starting application in debug mode.'
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'Viewport added', 'left', <au-viewport name="left" class="au"></au-viewport>
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'Viewport added', 'right', <au-viewport name="right" class="au"></au-viewport>
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'path changed to', '', null, null
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'navigated', Object{path: '', fullStatePath: null, index: 0, query: ''}, [Object{path: '', fullStatePath: null, index: 0, query: ''}], 1
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'callback', Object{path: '', fullStatePath: null, index: 0, query: ''}, Object{isNew: true, isFirst: true}
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'path changed to', '/foo@left', Object{path: '/foo@left', fullStatePath: null, title: undefined, data: undefined}, Object{path: '', fullStatePath: '-', index: 0, query: ''}
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'navigated', Object{path: '/foo@left', fullStatePath: null, index: 1}, [Object{path: '', fullStatePath: '-', index: 0, query: ''}, Object{path: '/foo@left', fullStatePath: null, title: undefined, data: undefined, index: 1}], 1
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'callback', Object{path: '/foo@left', fullStatePath: null, title: undefined, data: undefined, index: 1}, Object{isNew: true}
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'Viewport enter', 'left'
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'Viewport added', 'foo', <au-viewport name="foo" class="au"></au-viewport>
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'Viewport loadContent', 'left'
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'path changed to', '/bar@right', Object{path: '/bar@right', fullStatePath: null, title: undefined, data: undefined}, Object{path: 'foo', fullStatePath: '-+foo@left', title: undefined, data: undefined, index: 1}
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'navigated', Object{path: '/bar@right', fullStatePath: null, index: 2}, [Object{path: '', fullStatePath: '-', index: 0, query: ''}, Object{path: 'foo', fullStatePath: '-+foo@left', title: undefined, data: undefined, index: 1}, Object{path: '/bar@right', fullStatePath: null, title: undefined, data: undefined, index: 2}], 1
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'callback', Object{path: '/bar@right', fullStatePath: null, title: undefined, data: undefined, index: 2}, Object{isNew: true}
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'Viewport enter', 'right'
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'Viewport added', 'bar', <au-viewport name="bar" class="au"></au-viewport>
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'Viewport loadContent', 'right'
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'MOCK: notifyChange', '#/foo', Object{HistoryEntries: [Object{path: ..., fullStatePath: ..., index: ..., query: ...}, Object{path: ..., fullStatePath: ..., title: ..., data: ..., index: ...}], HistoryOffset: 1, HistoryEntry: Object{path: 'foo', fullStatePath: '-+foo@left', title: undefined, data: undefined, index: 1}}
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'path changed to', '/foo', null, Object{path: 'foo+bar', fullStatePath: '-+foo@left+bar@right', title: undefined, data: undefined, index: 2}
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'navigated', Object{path: 'foo', fullStatePath: '-+foo@left', title: undefined, data: undefined, index: 1}, [Object{path: '', fullStatePath: '-', index: 0, query: ''}, Object{path: 'foo', fullStatePath: '-+foo@left', title: undefined, data: undefined, index: 1}, Object{path: 'foo+bar', fullStatePath: '-+foo@left+bar@right', title: undefined, data: undefined, index: 2}], 1
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'callback', Object{path: 'foo', fullStatePath: '-+foo@left', title: undefined, data: undefined, index: 1}, Object{isBack: true}
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'Viewport enter', 'right'
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'Viewport loadContent', 'right'
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'MOCK: notifyChange', '#/foo+bar', Object{HistoryEntries: [Object{path: ..., fullStatePath: ..., index: ..., query: ...}, Object{path: ..., fullStatePath: ..., title: ..., data: ..., index: ...}, Object{path: ..., fullStatePath: ..., title: ..., data: ..., index: ...}], HistoryOffset: 1, HistoryEntry: Object{path: 'foo+bar', fullStatePath: '-+foo@left+bar@right', title: undefined, data: undefined, index: 2}}
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'path changed to', '/foo+bar', null, Object{path: 'foo', fullStatePath: '-+foo@left', title: undefined, data: undefined, index: 1}
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'navigated', Object{path: 'foo+bar', fullStatePath: '-+foo@left+bar@right', title: undefined, data: undefined, index: 2}, [Object{path: '', fullStatePath: '-', index: 0, query: ''}, Object{path: 'foo', fullStatePath: '-+foo@left', title: undefined, data: undefined, index: 1}, Object{path: 'foo+bar', fullStatePath: '-+foo@left+bar@right', title: undefined, data: undefined, index: 2}], 1
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'callback', Object{path: 'foo+bar', fullStatePath: '-+foo@left+bar@right', title: undefined, data: undefined, index: 2}, Object{isForward: true}
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'Viewport enter', 'right'
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'Viewport added', 'bar', <au-viewport name="bar" class="au"></au-viewport>
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'Viewport loadContent', 'right'
+,Chrome 71.0.3578 (Windows 10.0.0) INFO: 'Starting application in debug mode.'
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'Viewport added', 'left', <au-viewport name="left" class="au"></au-viewport>
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'Viewport added', 'right', <au-viewport name="right" class="au"></au-viewport>
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'path changed to', '', null, null
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'navigated', Object{path: '', fullStatePath: null, index: 0, query: ''}, [Object{path: '', fullStatePath: null, index: 0, query: ''}], 1
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'callback', Object{path: '', fullStatePath: null, index: 0, query: ''}, Object{isNew: true, isFirst: true}
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'path changed to', '/foo@left+bar@right', Object{path: '/foo@left+bar@right', fullStatePath: null, title: undefined, data: undefined}, Object{path: '', fullStatePath: '-', index: 0, query: ''}
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'navigated', Object{path: '/foo@left+bar@right', fullStatePath: null, index: 1}, [Object{path: '', fullStatePath: '-', index: 0, query: ''}, Object{path: '/foo@left+bar@right', fullStatePath: null, title: undefined, data: undefined, index: 1}], 1
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'callback', Object{path: '/foo@left+bar@right', fullStatePath: null, title: undefined, data: undefined, index: 1}, Object{isNew: true}
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'Viewport enter', 'left'
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'Viewport added', 'foo', <au-viewport name="foo" class="au"></au-viewport>
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'Viewport enter', 'right'
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'Viewport added', 'bar', <au-viewport name="bar" class="au"></au-viewport>
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'Viewport loadContent', 'left'
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'Viewport loadContent', 'right'
+,Chrome 71.0.3578 (Windows 10.0.0) INFO: 'Starting application in debug mode.'
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'Viewport added', 'left', <au-viewport name="left" class="au"></au-viewport>
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'Viewport added', 'right', <au-viewport name="right" class="au"></au-viewport>
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'path changed to', '', null, null
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'navigated', Object{path: '', fullStatePath: null, index: 0, query: ''}, [Object{path: '', fullStatePath: null, index: 0, query: ''}], 1
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'callback', Object{path: '', fullStatePath: null, index: 0, query: ''}, Object{isNew: true, isFirst: true}
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'path changed to', '/baz@left+qux@right', Object{path: '/baz@left+qux@right', fullStatePath: null, title: undefined, data: undefined}, Object{path: '', fullStatePath: '-', index: 0, query: ''}
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'navigated', Object{path: '/baz@left+qux@right', fullStatePath: null, index: 1}, [Object{path: '', fullStatePath: '-', index: 0, query: ''}, Object{path: '/baz@left+qux@right', fullStatePath: null, title: undefined, data: undefined, index: 1}], 1
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'callback', Object{path: '/baz@left+qux@right', fullStatePath: null, title: undefined, data: undefined, index: 1}, Object{isNew: true}
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'viewport canEnter', true
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'Viewport enter', 'left'
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'Viewport enter', 'right'
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'Viewport added', 'baz', <au-viewport name="baz" class="au"></au-viewport>
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'Viewport added', 'qux', <au-viewport name="qux" class="au"></au-viewport>
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'Viewport loadContent', 'left'
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'Viewport loadContent', 'right'
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'path changed to', '/foo@left+bar@right', Object{path: '/foo@left+bar@right', fullStatePath: null, title: undefined, data: undefined}, Object{path: 'baz+qux', fullStatePath: '-+baz@left+qux@right', title: undefined, data: undefined, index: 1}
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'navigated', Object{path: '/foo@left+bar@right', fullStatePath: null, index: 2}, [Object{path: '', fullStatePath: '-', index: 0, query: ''}, Object{path: 'baz+qux', fullStatePath: '-+baz@left+qux@right', title: undefined, data: undefined, index: 1}, Object{path: '/foo@left+bar@right', fullStatePath: null, title: undefined, data: undefined, index: 2}], 1
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'callback', Object{path: '/foo@left+bar@right', fullStatePath: null, title: undefined, data: undefined, index: 2}, Object{isNew: true}
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'viewport canLeave', false
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'MOCK: notifyChange', '#/baz+qux', Object{HistoryEntries: [Object{path: ..., fullStatePath: ..., index: ..., query: ...}, Object{path: ..., fullStatePath: ..., title: ..., data: ..., index: ...}], HistoryOffset: 1, HistoryEntry: Object{path: 'baz+qux', fullStatePath: '-+baz@left+qux@right', title: undefined, data: undefined, index: 1}}
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'path changed to', '/baz+qux', null, Object{path: '/foo@left+bar@right', fullStatePath: null, title: undefined, data: undefined, index: 2}
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'navigated', Object{path: 'baz+qux', fullStatePath: '-+baz@left+qux@right', title: undefined, data: undefined, index: 1}, [Object{path: '', fullStatePath: '-', index: 0, query: ''}, Object{path: 'baz+qux', fullStatePath: '-+baz@left+qux@right', title: undefined, data: undefined, index: 1}, Object{path: '/foo@left+bar@right', fullStatePath: null, title: undefined, data: undefined, index: 2}], 1
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'callback', Object{path: 'baz+qux', fullStatePath: '-+baz@left+qux@right', title: undefined, data: undefined, index: 1}, Object{isBack: true, isCancel: true}
+,Chrome 71.0.3578 (Windows 10.0.0) INFO: 'Starting application in debug mode.'
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'Viewport added', 'left', <au-viewport name="left" class="au"></au-viewport>
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'Viewport added', 'right', <au-viewport name="right" class="au"></au-viewport>
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'path changed to', '', null, null
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'navigated', Object{path: '', fullStatePath: null, index: 0, query: ''}, [Object{path: '', fullStatePath: null, index: 0, query: ''}], 1
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'callback', Object{path: '', fullStatePath: null, index: 0, query: ''}, Object{isNew: true, isFirst: true}
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'path changed to', '/foo@left+bar@right+baz@foo+qux@bar', Object{path: '/foo@left+bar@right+baz@foo+qux@bar', fullStatePath: null, title: undefined, data: undefined}, Object{path: '', fullStatePath: '-', index: 0, query: ''}
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'navigated', Object{path: '/foo@left+bar@right+baz@foo+qux@bar', fullStatePath: null, index: 1}, [Object{path: '', fullStatePath: '-', index: 0, query: ''}, Object{path: '/foo@left+bar@right+baz@foo+qux@bar', fullStatePath: null, title: undefined, data: undefined, index: 1}], 1
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'callback', Object{path: '/foo@left+bar@right+baz@foo+qux@bar', fullStatePath: null, title: undefined, data: undefined, index: 1}, Object{isNew: true}
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'Viewport enter', 'left'
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'Viewport added', 'foo', <au-viewport name="foo" class="au"></au-viewport>
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'Viewport enter', 'right'
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'Viewport added', 'bar', <au-viewport name="bar" class="au"></au-viewport>
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'viewport canEnter', true
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'Viewport enter', 'foo'
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'Viewport added', 'baz', <au-viewport name="baz" class="au"></au-viewport>
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'Viewport enter', 'bar'
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'Viewport added', 'qux', <au-viewport name="qux" class="au"></au-viewport>
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'Viewport loadContent', 'left'
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'Viewport loadContent', 'right'
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'Viewport loadContent', 'foo'
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'Viewport loadContent', 'bar'
+,Chrome 71.0.3578 (Windows 10.0.0) INFO: 'Starting application in debug mode.'
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'Viewport added', 'left', <au-viewport name="left" class="au"></au-viewport>
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'Viewport added', 'right', <au-viewport name="right" class="au"></au-viewport>
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'path changed to', '', null, null
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'navigated', Object{path: '', fullStatePath: null, index: 0, query: ''}, [Object{path: '', fullStatePath: null, index: 0, query: ''}], 1
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'callback', Object{path: '', fullStatePath: null, index: 0, query: ''}, Object{isNew: true, isFirst: true}
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'path changed to', '/foo@left', Object{path: '/foo@left', fullStatePath: null, title: undefined, data: undefined}, Object{path: '', fullStatePath: '-', index: 0, query: ''}
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'navigated', Object{path: '/foo@left', fullStatePath: null, index: 1}, [Object{path: '', fullStatePath: '-', index: 0, query: ''}, Object{path: '/foo@left', fullStatePath: null, title: undefined, data: undefined, index: 1}], 1
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'callback', Object{path: '/foo@left', fullStatePath: null, title: undefined, data: undefined, index: 1}, Object{isNew: true}
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'Viewport enter', 'left'
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'Viewport added', 'foo', <au-viewport name="foo" class="au"></au-viewport>
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'Viewport loadContent', 'left'
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'MOCK: notifyChange', '#/baz@foo', Object{}
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'path changed to', '/baz@foo', null, Object{path: 'foo', fullStatePath: '-+foo@left', title: undefined, data: undefined, index: 1}
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'navigated', Object{path: '/baz@foo', fullStatePath: null, index: 2, query: ''}, [Object{path: '', fullStatePath: '-', index: 0, query: ''}, Object{path: 'foo', fullStatePath: '-+foo@left', title: undefined, data: undefined, index: 1}, Object{path: '/baz@foo', fullStatePath: null, index: 2, query: ''}], 1
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'callback', Object{path: '/baz@foo', fullStatePath: null, index: 2, query: ''}, Object{isNew: true}
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'Viewport enter', 'foo'
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'Viewport added', 'baz', <au-viewport name="baz" class="au"></au-viewport>
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'Viewport loadContent', 'foo'
+,Chrome 71.0.3578 (Windows 10.0.0) INFO: 'Starting application in debug mode.'
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'Viewport added', 'left', <au-viewport name="left" class="au"></au-viewport>
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'Viewport added', 'right', <au-viewport name="right" class="au"></au-viewport>
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'path changed to', '', null, null
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'navigated', Object{path: '', fullStatePath: null, index: 0, query: ''}, [Object{path: '', fullStatePath: null, index: 0, query: ''}], 1
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'callback', Object{path: '', fullStatePath: null, index: 0, query: ''}, Object{isNew: true, isFirst: true}
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'path changed to', '/corge@left', Object{path: '/corge@left', fullStatePath: null, title: undefined, data: undefined}, Object{path: '', fullStatePath: '-', index: 0, query: ''}
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'navigated', Object{path: '/corge@left', fullStatePath: null, index: 1}, [Object{path: '', fullStatePath: '-', index: 0, query: ''}, Object{path: '/corge@left', fullStatePath: null, title: undefined, data: undefined, index: 1}], 1
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'callback', Object{path: '/corge@left', fullStatePath: null, title: undefined, data: undefined, index: 1}, Object{isNew: true}
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'Viewport enter', 'left'
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'Viewport added', 'corge', <au-viewport name="corge" used-by="baz" class="au"></au-viewport>
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'Viewport loadContent', 'left'
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'path changed to', '/baz', Object{path: '/baz', fullStatePath: null, title: undefined, data: undefined}, Object{path: 'corge', fullStatePath: '-+corge@left', title: undefined, data: undefined, index: 1}
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'navigated', Object{path: '/baz', fullStatePath: null, index: 2}, [Object{path: '', fullStatePath: '-', index: 0, query: ''}, Object{path: 'corge', fullStatePath: '-+corge@left', title: undefined, data: undefined, index: 1}, Object{path: '/baz', fullStatePath: null, title: undefined, data: undefined, index: 2}], 1
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'callback', Object{path: '/baz', fullStatePath: null, title: undefined, data: undefined, index: 2}, Object{isNew: true}
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'Viewport enter', 'corge'
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'Viewport added', 'baz', <au-viewport name="baz" class="au"></au-viewport>
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'Viewport loadContent', 'corge'
+,Chrome 71.0.3578 (Windows 10.0.0) INFO: 'Starting application in debug mode.'
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'Viewport added', 'left', <au-viewport name="left" class="au"></au-viewport>
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'Viewport added', 'right', <au-viewport name="right" class="au"></au-viewport>
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'path changed to', '', null, null
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'navigated', Object{path: '', fullStatePath: null, index: 0, query: ''}, [Object{path: '', fullStatePath: null, index: 0, query: ''}], 1
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'callback', Object{path: '', fullStatePath: null, index: 0, query: ''}, Object{isNew: true, isFirst: true}
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'path changed to', '/foo@left', Object{path: '/foo@left', fullStatePath: null, title: undefined, data: undefined}, Object{path: '', fullStatePath: '-', index: 0, query: ''}
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'navigated', Object{path: '/foo@left', fullStatePath: null, index: 1}, [Object{path: '', fullStatePath: '-', index: 0, query: ''}, Object{path: '/foo@left', fullStatePath: null, title: undefined, data: undefined, index: 1}], 1
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'callback', Object{path: '/foo@left', fullStatePath: null, title: undefined, data: undefined, index: 1}, Object{isNew: true}
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'path changed to', '/bar@left', Object{path: '/bar@left', fullStatePath: null, title: undefined, data: undefined}, Object{path: '/foo@left', fullStatePath: null, title: undefined, data: undefined, index: 1}
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'navigated', Object{path: '/bar@left', fullStatePath: null, index: 2}, [Object{path: '', fullStatePath: '-', index: 0, query: ''}, Object{path: '/foo@left', fullStatePath: null, title: undefined, data: undefined, index: 1}, Object{path: '/bar@left', fullStatePath: null, title: undefined, data: undefined, index: 2}], 1
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'callback', Object{path: '/bar@left', fullStatePath: null, title: undefined, data: undefined, index: 2}, Object{isNew: true}
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'path changed to', '/baz@left', Object{path: '/baz@left', fullStatePath: null, title: undefined, data: undefined}, Object{path: '/bar@left', fullStatePath: null, title: undefined, data: undefined, index: 2}
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'navigated', Object{path: '/baz@left', fullStatePath: null, index: 3}, [Object{path: '', fullStatePath: '-', index: 0, query: ''}, Object{path: '/foo@left', fullStatePath: null, title: undefined, data: undefined, index: 1}, Object{path: '/bar@left', fullStatePath: null, title: undefined, data: undefined, index: 2}, Object{path: '/baz@left', fullStatePath: null, title: undefined, data: undefined, index: 3}], 1
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'callback', Object{path: '/baz@left', fullStatePath: null, title: undefined, data: undefined, index: 3}, Object{isNew: true}
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'Viewport enter', 'left'
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'Viewport added', 'foo', <au-viewport name="foo" class="au"></au-viewport>
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'Viewport loadContent', 'left'
+,Chrome 71.0.3578 (Windows 10.0.0) WARN: 'replacePath: entry not matching currentEntry', Object{path: '/foo@left', fullStatePath: null, title: undefined, data: undefined, index: 1, isNew: true, previous: Object{path: '', fullStatePath: '-', index: 0, query: ''}, parameters: Object{}, parameterList: []}, Object{path: '/baz@left', fullStatePath: null, title: undefined, data: undefined, index: 3}
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'Viewport enter', 'left'
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'Viewport added', 'bar', <au-viewport name="bar" class="au"></au-viewport>
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'Viewport loadContent', 'left'
+,Chrome 71.0.3578 (Windows 10.0.0) WARN: 'replacePath: entry not matching currentEntry', Object{path: '/bar@left', fullStatePath: null, title: undefined, data: undefined, index: 2, isNew: true, previous: Object{path: '/foo@left', fullStatePath: null, title: undefined, data: undefined, index: 1}, parameters: Object{}, parameterList: []}, Object{path: '/baz@left', fullStatePath: null, title: undefined, data: undefined, index: 3}
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'Viewport enter', 'left'
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'Viewport added', 'baz', <au-viewport name="baz" class="au"></au-viewport>
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'Viewport loadContent', 'left'
+,Chrome 71.0.3578 (Windows 10.0.0) INFO: 'Starting application in debug mode.'
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'Viewport added', 'left', <au-viewport name="left" class="au"></au-viewport>
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'Viewport added', 'right', <au-viewport name="right" class="au"></au-viewport>
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'path changed to', '', null, null
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'navigated', Object{path: '', fullStatePath: null, index: 0, query: ''}, [Object{path: '', fullStatePath: null, index: 0, query: ''}], 1
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'callback', Object{path: '', fullStatePath: null, index: 0, query: ''}, Object{isNew: true, isFirst: true}
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'path changed to', '/bar@left=123', Object{path: '/bar@left=123', fullStatePath: null, title: undefined, data: undefined}, Object{path: '', fullStatePath: '-', index: 0, query: ''}
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'navigated', Object{path: '/bar@left=123', fullStatePath: null, index: 1}, [Object{path: '', fullStatePath: '-', index: 0, query: ''}, Object{path: '/bar@left=123', fullStatePath: null, title: undefined, data: undefined, index: 1}], 1
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'callback', Object{path: '/bar@left=123', fullStatePath: null, title: undefined, data: undefined, index: 1}, Object{isNew: true}
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'Viewport enter', 'left'
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'Viewport added', 'bar', <au-viewport name="bar" class="au"></au-viewport>
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'Viewport loadContent', 'left'
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'path changed to', '/bar@left=456', Object{path: '/bar@left=456', fullStatePath: null, title: undefined, data: undefined}, Object{path: 'bar=123', fullStatePath: '-+bar@left=123', title: undefined, data: undefined, index: 1}
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'navigated', Object{path: '/bar@left=456', fullStatePath: null, index: 2}, [Object{path: '', fullStatePath: '-', index: 0, query: ''}, Object{path: 'bar=123', fullStatePath: '-+bar@left=123', title: undefined, data: undefined, index: 1}, Object{path: '/bar@left=456', fullStatePath: null, title: undefined, data: undefined, index: 2}], 1
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'callback', Object{path: '/bar@left=456', fullStatePath: null, title: undefined, data: undefined, index: 2}, Object{isNew: true}
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'Viewport enter', 'left'
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'Viewport added', 'bar', <au-viewport name="bar" class="au"></au-viewport>
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'Viewport loadContent', 'left'
+,Chrome 71.0.3578 (Windows 10.0.0) INFO: 'Starting application in debug mode.'
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'Viewport added', 'left', <au-viewport name="left" class="au"></au-viewport>
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'Viewport added', 'right', <au-viewport name="right" class="au"></au-viewport>
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'path changed to', '', null, null
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'navigated', Object{path: '', fullStatePath: null, index: 0, query: ''}, [Object{path: '', fullStatePath: null, index: 0, query: ''}], 1
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'callback', Object{path: '', fullStatePath: null, index: 0, query: ''}, Object{isNew: true, isFirst: true}
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'path changed to', '/bar@left=id=123', Object{path: '/bar@left=id=123', fullStatePath: null, title: undefined, data: undefined}, Object{path: '', fullStatePath: '-', index: 0, query: ''}
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'navigated', Object{path: '/bar@left=id=123', fullStatePath: null, index: 1}, [Object{path: '', fullStatePath: '-', index: 0, query: ''}, Object{path: '/bar@left=id=123', fullStatePath: null, title: undefined, data: undefined, index: 1}], 1
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'callback', Object{path: '/bar@left=id=123', fullStatePath: null, title: undefined, data: undefined, index: 1}, Object{isNew: true}
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'Viewport enter', 'left'
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'Viewport added', 'bar', <au-viewport name="bar" class="au"></au-viewport>
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'Viewport loadContent', 'left'
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'path changed to', '/bar@left=id=456', Object{path: '/bar@left=id=456', fullStatePath: null, title: undefined, data: undefined}, Object{path: 'bar=id=123', fullStatePath: '-+bar@left=id=123', title: undefined, data: undefined, index: 1}
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'navigated', Object{path: '/bar@left=id=456', fullStatePath: null, index: 2}, [Object{path: '', fullStatePath: '-', index: 0, query: ''}, Object{path: 'bar=id=123', fullStatePath: '-+bar@left=id=123', title: undefined, data: undefined, index: 1}, Object{path: '/bar@left=id=456', fullStatePath: null, title: undefined, data: undefined, index: 2}], 1
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'callback', Object{path: '/bar@left=id=456', fullStatePath: null, title: undefined, data: undefined, index: 2}, Object{isNew: true}
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'Viewport enter', 'left'
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'Viewport added', 'bar', <au-viewport name="bar" class="au"></au-viewport>
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'Viewport loadContent', 'left'
+,Chrome 71.0.3578 (Windows 10.0.0) INFO: 'Starting application in debug mode.'
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'Viewport added', 'left', <au-viewport name="left" class="au"></au-viewport>
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'Viewport added', 'right', <au-viewport name="right" class="au"></au-viewport>
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'path changed to', '', null, null
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'navigated', Object{path: '', fullStatePath: null, index: 0, query: ''}, [Object{path: '', fullStatePath: null, index: 0, query: ''}], 1
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'callback', Object{path: '', fullStatePath: null, index: 0, query: ''}, Object{isNew: true, isFirst: true}
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'path changed to', '/bar@left=123', Object{path: '/bar@left=123', fullStatePath: null, title: undefined, data: undefined}, Object{path: '', fullStatePath: '-', index: 0, query: ''}
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'navigated', Object{path: '/bar@left=123', fullStatePath: null, index: 1}, [Object{path: '', fullStatePath: '-', index: 0, query: ''}, Object{path: '/bar@left=123', fullStatePath: null, title: undefined, data: undefined, index: 1}], 1
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'callback', Object{path: '/bar@left=123', fullStatePath: null, title: undefined, data: undefined, index: 1}, Object{isNew: true}
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'Viewport enter', 'left'
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'Viewport added', 'bar', <au-viewport name="bar" class="au"></au-viewport>
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'Viewport loadContent', 'left'
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'path changed to', '/bar@right=456', Object{path: '/bar@right=456', fullStatePath: null, title: undefined, data: undefined}, Object{path: 'bar=123', fullStatePath: '-+bar@left=123', title: undefined, data: undefined, index: 1}
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'navigated', Object{path: '/bar@right=456', fullStatePath: null, index: 2}, [Object{path: '', fullStatePath: '-', index: 0, query: ''}, Object{path: 'bar=123', fullStatePath: '-+bar@left=123', title: undefined, data: undefined, index: 1}, Object{path: '/bar@right=456', fullStatePath: null, title: undefined, data: undefined, index: 2}], 1
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'callback', Object{path: '/bar@right=456', fullStatePath: null, title: undefined, data: undefined, index: 2}, Object{isNew: true}
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'Viewport enter', 'right'
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'Viewport added', 'bar', <au-viewport name="bar" class="au"></au-viewport>
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'Viewport loadContent', 'right'
+,Chrome 71.0.3578 (Windows 10.0.0) INFO: 'Starting application in debug mode.'
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'Viewport added', 'left', <au-viewport name="left" class="au"></au-viewport>
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'Viewport added', 'right', <au-viewport name="right" class="au"></au-viewport>
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'path changed to', '', null, null
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'navigated', Object{path: '', fullStatePath: null, index: 0, query: ''}, [Object{path: '', fullStatePath: null, index: 0, query: ''}], 1
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'callback', Object{path: '', fullStatePath: null, index: 0, query: ''}, Object{isNew: true, isFirst: true}
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'path changed to', '/corge@left', Object{path: '/corge@left', fullStatePath: null, title: undefined, data: undefined}, Object{path: '', fullStatePath: '-', index: 0, query: ''}
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'navigated', Object{path: '/corge@left', fullStatePath: null, index: 1}, [Object{path: '', fullStatePath: '-', index: 0, query: ''}, Object{path: '/corge@left', fullStatePath: null, title: undefined, data: undefined, index: 1}], 1
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'callback', Object{path: '/corge@left', fullStatePath: null, title: undefined, data: undefined, index: 1}, Object{isNew: true}
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'Viewport enter', 'left'
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'Viewport added', 'corge', <au-viewport name="corge" used-by="baz" class="au"></au-viewport>
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'Viewport loadContent', 'left'
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'path changed to', '/baz=123', Object{path: '/baz=123', fullStatePath: null, title: undefined, data: undefined}, Object{path: 'corge', fullStatePath: '-+corge@left', title: undefined, data: undefined, index: 1}
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'navigated', Object{path: '/baz=123', fullStatePath: null, index: 2}, [Object{path: '', fullStatePath: '-', index: 0, query: ''}, Object{path: 'corge', fullStatePath: '-+corge@left', title: undefined, data: undefined, index: 1}, Object{path: '/baz=123', fullStatePath: null, title: undefined, data: undefined, index: 2}], 1
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'callback', Object{path: '/baz=123', fullStatePath: null, title: undefined, data: undefined, index: 2}, Object{isNew: true}
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'Viewport enter', 'corge'
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'Viewport added', 'baz', <au-viewport name="baz" class="au"></au-viewport>
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'Viewport loadContent', 'corge'
+,Chrome 71.0.3578 (Windows 10.0.0) INFO: 'Starting application in debug mode.'
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'Viewport added', 'left', <au-viewport name="left" class="au"></au-viewport>
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'Viewport added', 'right', <au-viewport name="right" class="au"></au-viewport>
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'path changed to', '', null, null
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'navigated', Object{path: '', fullStatePath: null, index: 0, query: ''}, [Object{path: '', fullStatePath: null, index: 0, query: ''}], 1
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'callback', Object{path: '', fullStatePath: null, index: 0, query: ''}, Object{isNew: true, isFirst: true}
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'path changed to', '/corge@left', Object{path: '/corge@left', fullStatePath: null, title: undefined, data: undefined}, Object{path: '', fullStatePath: '-', index: 0, query: ''}
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'navigated', Object{path: '/corge@left', fullStatePath: null, index: 1}, [Object{path: '', fullStatePath: '-', index: 0, query: ''}, Object{path: '/corge@left', fullStatePath: null, title: undefined, data: undefined, index: 1}], 1
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'callback', Object{path: '/corge@left', fullStatePath: null, title: undefined, data: undefined, index: 1}, Object{isNew: true}
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'Viewport enter', 'left'
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'Viewport added', 'corge', <au-viewport name="corge" used-by="baz" class="au"></au-viewport>
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'Viewport loadContent', 'left'
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'path changed to', '/baz=id=123', Object{path: '/baz=id=123', fullStatePath: null, title: undefined, data: undefined}, Object{path: 'corge', fullStatePath: '-+corge@left', title: undefined, data: undefined, index: 1}
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'navigated', Object{path: '/baz=id=123', fullStatePath: null, index: 2}, [Object{path: '', fullStatePath: '-', index: 0, query: ''}, Object{path: 'corge', fullStatePath: '-+corge@left', title: undefined, data: undefined, index: 1}, Object{path: '/baz=id=123', fullStatePath: null, title: undefined, data: undefined, index: 2}], 1
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'callback', Object{path: '/baz=id=123', fullStatePath: null, title: undefined, data: undefined, index: 2}, Object{isNew: true}
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'Viewport enter', 'corge'
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'Viewport added', 'baz', <au-viewport name="baz" class="au"></au-viewport>
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'Viewport loadContent', 'corge'
+,Chrome 71.0.3578 (Windows 10.0.0) INFO: 'Starting application in debug mode.'
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'Viewport added', 'left', <au-viewport name="left" class="au"></au-viewport>
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'Viewport added', 'right', <au-viewport name="right" class="au"></au-viewport>
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'path changed to', '', null, null
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'navigated', Object{path: '', fullStatePath: null, index: 0, query: ''}, [Object{path: '', fullStatePath: null, index: 0, query: ''}], 1
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'callback', Object{path: '', fullStatePath: null, index: 0, query: ''}, Object{isNew: true, isFirst: true}
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'path changed to', '/bar@left=123&OneTwoThree', Object{path: '/bar@left=123&OneTwoThree', fullStatePath: null, title: undefined, data: undefined}, Object{path: '', fullStatePath: '-', index: 0, query: ''}
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'navigated', Object{path: '/bar@left=123&OneTwoThree', fullStatePath: null, index: 1}, [Object{path: '', fullStatePath: '-', index: 0, query: ''}, Object{path: '/bar@left=123&OneTwoThree', fullStatePath: null, title: undefined, data: undefined, index: 1}], 1
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'callback', Object{path: '/bar@left=123&OneTwoThree', fullStatePath: null, title: undefined, data: undefined, index: 1}, Object{isNew: true}
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'Viewport enter', 'left'
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'Viewport added', 'bar', <au-viewport name="bar" class="au"></au-viewport>
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'Viewport loadContent', 'left'
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'path changed to', '/bar@left=456&FourFiveSix', Object{path: '/bar@left=456&FourFiveSix', fullStatePath: null, title: undefined, data: undefined}, Object{path: 'bar=123&OneTwoThree', fullStatePath: '-+bar@left=123&OneTwoThree', title: undefined, data: undefined, index: 1}
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'navigated', Object{path: '/bar@left=456&FourFiveSix', fullStatePath: null, index: 2}, [Object{path: '', fullStatePath: '-', index: 0, query: ''}, Object{path: 'bar=123&OneTwoThree', fullStatePath: '-+bar@left=123&OneTwoThree', title: undefined, data: undefined, index: 1}, Object{path: '/bar@left=456&FourFiveSix', fullStatePath: null, title: undefined, data: undefined, index: 2}], 1
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'callback', Object{path: '/bar@left=456&FourFiveSix', fullStatePath: null, title: undefined, data: undefined, index: 2}, Object{isNew: true}
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'Viewport enter', 'left'
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'Viewport added', 'bar', <au-viewport name="bar" class="au"></au-viewport>
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'Viewport loadContent', 'left'
+,Chrome 71.0.3578 (Windows 10.0.0) INFO: 'Starting application in debug mode.'
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'Viewport added', 'left', <au-viewport name="left" class="au"></au-viewport>
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'Viewport added', 'right', <au-viewport name="right" class="au"></au-viewport>
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'path changed to', '', null, null
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'navigated', Object{path: '', fullStatePath: null, index: 0, query: ''}, [Object{path: '', fullStatePath: null, index: 0, query: ''}], 1
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'callback', Object{path: '', fullStatePath: null, index: 0, query: ''}, Object{isNew: true, isFirst: true}
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'path changed to', '/bar@left=id=123&name=OneTwoThree', Object{path: '/bar@left=id=123&name=OneTwoThree', fullStatePath: null, title: undefined, data: undefined}, Object{path: '', fullStatePath: '-', index: 0, query: ''}
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'navigated', Object{path: '/bar@left=id=123&name=OneTwoThree', fullStatePath: null, index: 1}, [Object{path: '', fullStatePath: '-', index: 0, query: ''}, Object{path: '/bar@left=id=123&name=OneTwoThree', fullStatePath: null, title: undefined, data: undefined, index: 1}], 1
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'callback', Object{path: '/bar@left=id=123&name=OneTwoThree', fullStatePath: null, title: undefined, data: undefined, index: 1}, Object{isNew: true}
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'Viewport enter', 'left'
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'Viewport added', 'bar', <au-viewport name="bar" class="au"></au-viewport>
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'Viewport loadContent', 'left'
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'path changed to', '/bar@left=name=FourFiveSix&id=456', Object{path: '/bar@left=name=FourFiveSix&id=456', fullStatePath: null, title: undefined, data: undefined}, Object{path: 'bar=id=123&name=OneTwoThree', fullStatePath: '-+bar@left=id=123&name=OneTwoThree', title: undefined, data: undefined, index: 1}
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'navigated', Object{path: '/bar@left=name=FourFiveSix&id=456', fullStatePath: null, index: 2}, [Object{path: '', fullStatePath: '-', index: 0, query: ''}, Object{path: 'bar=id=123&name=OneTwoThree', fullStatePath: '-+bar@left=id=123&name=OneTwoThree', title: undefined, data: undefined, index: 1}, Object{path: '/bar@left=name=FourFiveSix&id=456', fullStatePath: null, title: undefined, data: undefined, index: 2}], 1
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'callback', Object{path: '/bar@left=name=FourFiveSix&id=456', fullStatePath: null, title: undefined, data: undefined, index: 2}, Object{isNew: true}
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'Viewport enter', 'left'
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'Viewport added', 'bar', <au-viewport name="bar" class="au"></au-viewport>
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'Viewport loadContent', 'left'
+,Chrome 71.0.3578 (Windows 10.0.0) INFO: 'Starting application in debug mode.'
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'Viewport added', 'left', <au-viewport name="left" class="au"></au-viewport>
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'Viewport added', 'right', <au-viewport name="right" class="au"></au-viewport>
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'path changed to', '', null, null
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'navigated', Object{path: '', fullStatePath: null, index: 0, query: ''}, [Object{path: '', fullStatePath: null, index: 0, query: ''}], 1
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'callback', Object{path: '', fullStatePath: null, index: 0, query: ''}, Object{isNew: true, isFirst: true}
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'path changed to', '/bar@left', Object{path: '/bar@left?id=123', fullStatePath: null, title: undefined, data: undefined}, Object{path: '', fullStatePath: '-', index: 0, query: ''}
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'navigated', Object{path: '/bar@left', fullStatePath: null, index: 1, query: 'id=123'}, [Object{path: '', fullStatePath: '-', index: 0, query: ''}, Object{path: '/bar@left', fullStatePath: null, index: 1, query: 'id=123'}], 1
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'callback', Object{path: '/bar@left', fullStatePath: null, index: 1, query: 'id=123'}, Object{isNew: true}
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'Viewport enter', 'left'
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'Viewport added', 'bar', <au-viewport name="bar" class="au"></au-viewport>
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'Viewport loadContent', 'left'
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'path changed to', '/bar@left', Object{path: '/bar@left?id=456&name=FourFiveSix', fullStatePath: null, title: undefined, data: undefined}, Object{path: 'bar?id=123', fullStatePath: '-+bar@left?id=123', index: 1, query: 'id=123'}
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'navigated', Object{path: '/bar@left', fullStatePath: null, index: 2, query: 'id=456&name=FourFiveSix'}, [Object{path: '', fullStatePath: '-', index: 0, query: ''}, Object{path: 'bar?id=123', fullStatePath: '-+bar@left?id=123', index: 1, query: 'id=123'}, Object{path: '/bar@left', fullStatePath: null, index: 2, query: 'id=456&name=FourFiveSix'}], 1
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'callback', Object{path: '/bar@left', fullStatePath: null, index: 2, query: 'id=456&name=FourFiveSix'}, Object{isNew: true}
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'Viewport enter', 'left'
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'Viewport added', 'bar', <au-viewport name="bar" class="au"></au-viewport>
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'Viewport loadContent', 'left'
+,Chrome 71.0.3578 (Windows 10.0.0) INFO: 'Starting application in debug mode.'
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'Viewport added', 'left', <au-viewport name="left" class="au"></au-viewport>
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'Viewport added', 'right', <au-viewport name="right" class="au"></au-viewport>
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'path changed to', '', null, null
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'navigated', Object{path: '', fullStatePath: null, index: 0, query: ''}, [Object{path: '', fullStatePath: null, index: 0, query: ''}], 1
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'callback', Object{path: '', fullStatePath: null, index: 0, query: ''}, Object{isNew: true, isFirst: true}
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'path changed to', '/bar@left=456', Object{path: '/bar@left=456?id=123', fullStatePath: null, title: undefined, data: undefined}, Object{path: '', fullStatePath: '-', index: 0, query: ''}
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'navigated', Object{path: '/bar@left=456', fullStatePath: null, index: 1, query: 'id=123'}, [Object{path: '', fullStatePath: '-', index: 0, query: ''}, Object{path: '/bar@left=456', fullStatePath: null, index: 1, query: 'id=123'}], 1
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'callback', Object{path: '/bar@left=456', fullStatePath: null, index: 1, query: 'id=123'}, Object{isNew: true}
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'Viewport enter', 'left'
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'Viewport added', 'bar', <au-viewport name="bar" class="au"></au-viewport>
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'Viewport loadContent', 'left'
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'path changed to', '/bar@left=456&FourFiveSix', Object{path: '/bar@left=456&FourFiveSix?id=123&name=OneTwoThree', fullStatePath: null, title: undefined, data: undefined}, Object{path: 'bar=456?id=123', fullStatePath: '-+bar@left=456?id=123', index: 1, query: 'id=123'}
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'navigated', Object{path: '/bar@left=456&FourFiveSix', fullStatePath: null, index: 2, query: 'id=123&name=OneTwoThree'}, [Object{path: '', fullStatePath: '-', index: 0, query: ''}, Object{path: 'bar=456?id=123', fullStatePath: '-+bar@left=456?id=123', index: 1, query: 'id=123'}, Object{path: '/bar@left=456&FourFiveSix', fullStatePath: null, index: 2, query: 'id=123&name=OneTwoThree'}], 1
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'callback', Object{path: '/bar@left=456&FourFiveSix', fullStatePath: null, index: 2, query: 'id=123&name=OneTwoThree'}, Object{isNew: true}
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'Viewport enter', 'left'
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'Viewport added', 'bar', <au-viewport name="bar" class="au"></au-viewport>
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'Viewport loadContent', 'left'
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'path changed to', '/bar@left=name=SevenEightNine&id=789', Object{path: '/bar@left=name=SevenEightNine&id=789?id=123&name=OneTwoThree', fullStatePath: null, title: undefined, data: undefined}, Object{path: 'bar=456&FourFiveSix?id=123&name=OneTwoThree', fullStatePath: '-+bar@left=456&FourFiveSix?id=123&name=OneTwoThree', index: 2, query: 'id=123&name=OneTwoThree'}
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'navigated', Object{path: '/bar@left=name=SevenEightNine&id=789', fullStatePath: null, index: 3, query: 'id=123&name=OneTwoThree'}, [Object{path: '', fullStatePath: '-', index: 0, query: ''}, Object{path: 'bar=456?id=123', fullStatePath: '-+bar@left=456?id=123', index: 1, query: 'id=123'}, Object{path: 'bar=456&FourFiveSix?id=123&name=OneTwoThree', fullStatePath: '-+bar@left=456&FourFiveSix?id=123&name=OneTwoThree', index: 2, query: 'id=123&name=OneTwoThree'}, Object{path: '/bar@left=name=SevenEightNine&id=789', fullStatePath: null, index: 3, query: 'id=123&name=OneTwoThree'}], 1
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'callback', Object{path: '/bar@left=name=SevenEightNine&id=789', fullStatePath: null, index: 3, query: 'id=123&name=OneTwoThree'}, Object{isNew: true}
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'Viewport enter', 'left'
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'Viewport added', 'bar', <au-viewport name="bar" class="au"></au-viewport>
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'Viewport loadContent', 'left'
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'Viewport added', 'default', <au-viewport class="au"></au-viewport>
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'path changed to', '', null, null
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'navigated', Object{path: '', fullStatePath: null, index: 0, query: ''}, [Object{path: '', fullStatePath: null, index: 0, query: ''}], 1
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'callback', Object{path: '', fullStatePath: null, index: 0, query: ''}, Object{isNew: true, isFirst: true}
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'path changed to', '/global', Object{path: '/global', fullStatePath: null, title: undefined, data: undefined}, Object{path: '', fullStatePath: '-', index: 0, query: ''}
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'navigated', Object{path: '/global', fullStatePath: null, index: 1}, [Object{path: '', fullStatePath: '-', index: 0, query: ''}, Object{path: '/global', fullStatePath: null, title: undefined, data: undefined, index: 1}], 1
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'callback', Object{path: '/global', fullStatePath: null, title: undefined, data: undefined, index: 1}, Object{isNew: true}
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'Viewport enter', 'default'
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'Viewport loadContent', 'default'
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'Viewport added', 'default', <au-viewport class="au"></au-viewport>
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'path changed to', '', null, null
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'navigated', Object{path: '', fullStatePath: null, index: 0, query: ''}, [Object{path: '', fullStatePath: null, index: 0, query: ''}], 1
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'callback', Object{path: '', fullStatePath: null, index: 0, query: ''}, Object{isNew: true, isFirst: true}
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'path changed to', '/local', Object{path: '/local', fullStatePath: null, title: undefined, data: undefined}, Object{path: '', fullStatePath: '-', index: 0, query: ''}
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'navigated', Object{path: '/local', fullStatePath: null, index: 1}, [Object{path: '', fullStatePath: '-', index: 0, query: ''}, Object{path: '/local', fullStatePath: null, title: undefined, data: undefined, index: 1}], 1
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'callback', Object{path: '/local', fullStatePath: null, title: undefined, data: undefined, index: 1}, Object{isNew: true}
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'Viewport enter', 'default'
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'Viewport loadContent', 'default'
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'Viewport added', 'default', <au-viewport class="au"></au-viewport>
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'path changed to', '', null, null
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'navigated', Object{path: '', fullStatePath: null, index: 0, query: ''}, [Object{path: '', fullStatePath: null, index: 0, query: ''}], 1
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'callback', Object{path: '', fullStatePath: null, index: 0, query: ''}, Object{isNew: true, isFirst: true}
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'path changed to', '/local1+local2', Object{path: '/local1+local2', fullStatePath: null, title: undefined, data: undefined}, Object{path: '', fullStatePath: '-', index: 0, query: ''}
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'navigated', Object{path: '/local1+local2', fullStatePath: null, index: 1}, [Object{path: '', fullStatePath: '-', index: 0, query: ''}, Object{path: '/local1+local2', fullStatePath: null, title: undefined, data: undefined, index: 1}], 1
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'callback', Object{path: '/local1+local2', fullStatePath: null, title: undefined, data: undefined, index: 1}, Object{isNew: true}
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'Viewport enter', 'default'
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'Viewport added', 'one', <au-viewport name="one" class="au"></au-viewport>
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'Viewport loadContent', 'default'
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'Viewport enter', 'one'
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'Viewport loadContent', 'one'
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'Viewport added', 'default', <au-viewport class="au"></au-viewport>
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'path changed to', '', null, null
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'navigated', Object{path: '', fullStatePath: null, index: 0, query: ''}, [Object{path: '', fullStatePath: null, index: 0, query: ''}], 1
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'callback', Object{path: '', fullStatePath: null, index: 0, query: ''}, Object{isNew: true, isFirst: true}
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'path changed to', '/local1+local2+global3', Object{path: '/local1+local2+global3', fullStatePath: null, title: undefined, data: undefined}, Object{path: '', fullStatePath: '-', index: 0, query: ''}
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'navigated', Object{path: '/local1+local2+global3', fullStatePath: null, index: 1}, [Object{path: '', fullStatePath: '-', index: 0, query: ''}, Object{path: '/local1+local2+global3', fullStatePath: null, title: undefined, data: undefined, index: 1}], 1
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'callback', Object{path: '/local1+local2+global3', fullStatePath: null, title: undefined, data: undefined, index: 1}, Object{isNew: true}
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'Viewport enter', 'default'
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'Viewport added', 'one', <au-viewport name="one" used-by="local2" class="au"></au-viewport>
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'Viewport loadContent', 'default'
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'Viewport enter', 'one'
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'Viewport added', 'two', <au-viewport name="two" used-by="global3" class="au"></au-viewport>
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'Viewport loadContent', 'one'
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'Viewport enter', 'two'
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'Viewport loadContent', 'two'
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'Viewport added', 'default', <au-viewport class="au"></au-viewport>
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'path changed to', '', null, null
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'navigated', Object{path: '', fullStatePath: null, index: 0, query: ''}, [Object{path: '', fullStatePath: null, index: 0, query: ''}], 1
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'callback', Object{path: '', fullStatePath: null, index: 0, query: ''}, Object{isNew: true, isFirst: true}
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'path changed to', '/local1+global2+local3', Object{path: '/local1+global2+local3', fullStatePath: null, title: undefined, data: undefined}, Object{path: '', fullStatePath: '-', index: 0, query: ''}
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'navigated', Object{path: '/local1+global2+local3', fullStatePath: null, index: 1}, [Object{path: '', fullStatePath: '-', index: 0, query: ''}, Object{path: '/local1+global2+local3', fullStatePath: null, title: undefined, data: undefined, index: 1}], 1
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'callback', Object{path: '/local1+global2+local3', fullStatePath: null, title: undefined, data: undefined, index: 1}, Object{isNew: true}
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'Viewport enter', 'default'
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'Viewport added', 'one', <au-viewport name="one" used-by="global2" class="au"></au-viewport>
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'Viewport loadContent', 'default'
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'Viewport enter', 'one'
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'Viewport added', 'two', <au-viewport name="two" used-by="local3" class="au"></au-viewport>
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'Viewport loadContent', 'one'
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'Viewport enter', 'two'
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'Viewport loadContent', 'two'
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'Viewport added', 'default', <au-viewport class="au"></au-viewport>
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'path changed to', '', null, null
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'navigated', Object{path: '', fullStatePath: null, index: 0, query: ''}, [Object{path: '', fullStatePath: null, index: 0, query: ''}], 1
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'callback', Object{path: '', fullStatePath: null, index: 0, query: ''}, Object{isNew: true, isFirst: true}
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'path changed to', '/global1+local2+local3', Object{path: '/global1+local2+local3', fullStatePath: null, title: undefined, data: undefined}, Object{path: '', fullStatePath: '-', index: 0, query: ''}
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'navigated', Object{path: '/global1+local2+local3', fullStatePath: null, index: 1}, [Object{path: '', fullStatePath: '-', index: 0, query: ''}, Object{path: '/global1+local2+local3', fullStatePath: null, title: undefined, data: undefined, index: 1}], 1
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'callback', Object{path: '/global1+local2+local3', fullStatePath: null, title: undefined, data: undefined, index: 1}, Object{isNew: true}
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'Viewport enter', 'default'
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'Viewport added', 'one', <au-viewport name="one" used-by="local2" class="au"></au-viewport>
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'Viewport loadContent', 'default'
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'Viewport enter', 'one'
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'Viewport added', 'two', <au-viewport name="two" used-by="local3" class="au"></au-viewport>
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'Viewport loadContent', 'one'
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'Viewport enter', 'two'
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'Viewport loadContent', 'two'
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'Viewport added', 'default', <au-viewport class="au"></au-viewport>
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'path changed to', '', null, null
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'navigated', Object{path: '', fullStatePath: null, index: 0, query: ''}, [Object{path: '', fullStatePath: null, index: 0, query: ''}], 1
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'callback', Object{path: '', fullStatePath: null, index: 0, query: ''}, Object{isNew: true, isFirst: true}
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'path changed to', '/local1+local2+local3', Object{path: '/local1+local2+local3', fullStatePath: null, title: undefined, data: undefined}, Object{path: '', fullStatePath: '-', index: 0, query: ''}
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'navigated', Object{path: '/local1+local2+local3', fullStatePath: null, index: 1}, [Object{path: '', fullStatePath: '-', index: 0, query: ''}, Object{path: '/local1+local2+local3', fullStatePath: null, title: undefined, data: undefined, index: 1}], 1
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'callback', Object{path: '/local1+local2+local3', fullStatePath: null, title: undefined, data: undefined, index: 1}, Object{isNew: true}
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'Viewport enter', 'default'
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'Viewport added', 'one', <au-viewport name="one" used-by="local2" class="au"></au-viewport>
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'Viewport loadContent', 'default'
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'Viewport enter', 'one'
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'Viewport added', 'two', <au-viewport name="two" used-by="local3" class="au"></au-viewport>
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'Viewport loadContent', 'one'
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'Viewport enter', 'two'
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'Viewport loadContent', 'two'
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'Viewport added', 'default', <au-viewport class="au"></au-viewport>
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'path changed to', '', null, null
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'navigated', Object{path: '', fullStatePath: null, index: 0, query: ''}, [Object{path: '', fullStatePath: null, index: 0, query: ''}], 1
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'callback', Object{path: '', fullStatePath: null, index: 0, query: ''}, Object{isNew: true, isFirst: true}
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'path changed to', '/local1@default+conflict@one', Object{path: '/local1@default+conflict@one', fullStatePath: null, title: undefined, data: undefined}, Object{path: '', fullStatePath: '-', index: 0, query: ''}
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'navigated', Object{path: '/local1@default+conflict@one', fullStatePath: null, index: 1}, [Object{path: '', fullStatePath: '-', index: 0, query: ''}, Object{path: '/local1@default+conflict@one', fullStatePath: null, title: undefined, data: undefined, index: 1}], 1
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'callback', Object{path: '/local1@default+conflict@one', fullStatePath: null, title: undefined, data: undefined, index: 1}, Object{isNew: true}
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'Viewport enter', 'default'
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'Viewport added', 'one', <au-viewport name="one" class="au"></au-viewport>
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'Viewport enter', 'one'
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'Viewport loadContent', 'default'
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'Viewport loadContent', 'one'
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'path changed to', '/local2@default+conflict@two', Object{path: '/local2@default+conflict@two', fullStatePath: null, title: undefined, data: undefined}, Object{path: 'local1+conflict', fullStatePath: '-+local1@default+conflict@one', title: undefined, data: undefined, index: 1}
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'navigated', Object{path: '/local2@default+conflict@two', fullStatePath: null, index: 2}, [Object{path: '', fullStatePath: '-', index: 0, query: ''}, Object{path: 'local1+conflict', fullStatePath: '-+local1@default+conflict@one', title: undefined, data: undefined, index: 1}, Object{path: '/local2@default+conflict@two', fullStatePath: null, title: undefined, data: undefined, index: 2}], 1
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'callback', Object{path: '/local2@default+conflict@two', fullStatePath: null, title: undefined, data: undefined, index: 2}, Object{isNew: true}
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'Viewport enter', 'default'
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'Viewport added', 'two', <au-viewport name="two" class="au"></au-viewport>
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'Viewport enter', 'two'
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'Viewport loadContent', 'default'
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'Viewport loadContent', 'two'
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'Viewport added', 'default', <au-viewport class="au"></au-viewport>
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'path changed to', '', null, null
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'navigated', Object{path: '', fullStatePath: null, index: 0, query: ''}, [Object{path: '', fullStatePath: null, index: 0, query: ''}], 1
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'callback', Object{path: '', fullStatePath: null, index: 0, query: ''}, Object{isNew: true, isFirst: true}
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'path changed to', '/global1@default+conflict@one', Object{path: '/global1@default+conflict@one', fullStatePath: null, title: undefined, data: undefined}, Object{path: '', fullStatePath: '-', index: 0, query: ''}
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'navigated', Object{path: '/global1@default+conflict@one', fullStatePath: null, index: 1}, [Object{path: '', fullStatePath: '-', index: 0, query: ''}, Object{path: '/global1@default+conflict@one', fullStatePath: null, title: undefined, data: undefined, index: 1}], 1
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'callback', Object{path: '/global1@default+conflict@one', fullStatePath: null, title: undefined, data: undefined, index: 1}, Object{isNew: true}
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'Viewport enter', 'default'
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'Viewport added', 'one', <au-viewport name="one" class="au"></au-viewport>
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'Viewport enter', 'one'
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'Viewport loadContent', 'default'
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'Viewport loadContent', 'one'
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'path changed to', '/global2@default+conflict@two', Object{path: '/global2@default+conflict@two', fullStatePath: null, title: undefined, data: undefined}, Object{path: 'global1+conflict', fullStatePath: '-+global1@default+conflict@one', title: undefined, data: undefined, index: 1}
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'navigated', Object{path: '/global2@default+conflict@two', fullStatePath: null, index: 2}, [Object{path: '', fullStatePath: '-', index: 0, query: ''}, Object{path: 'global1+conflict', fullStatePath: '-+global1@default+conflict@one', title: undefined, data: undefined, index: 1}, Object{path: '/global2@default+conflict@two', fullStatePath: null, title: undefined, data: undefined, index: 2}], 1
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'callback', Object{path: '/global2@default+conflict@two', fullStatePath: null, title: undefined, data: undefined, index: 2}, Object{isNew: true}
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'Viewport enter', 'default'
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'Viewport added', 'two', <au-viewport name="two" class="au"></au-viewport>
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'Viewport enter', 'two'
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'Viewport loadContent', 'default'
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'Viewport loadContent', 'two'
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'Viewport added', 'default', <au-viewport class="au"></au-viewport>
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'path changed to', '', null, null
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'navigated', Object{path: '', fullStatePath: null, index: 0, query: ''}, [Object{path: '', fullStatePath: null, index: 0, query: ''}], 1
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'callback', Object{path: '', fullStatePath: null, index: 0, query: ''}, Object{isNew: true, isFirst: true}
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'path changed to', '/local1@default+conflict@one', Object{path: '/local1@default+conflict@one', fullStatePath: null, title: undefined, data: undefined}, Object{path: '', fullStatePath: '-', index: 0, query: ''}
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'navigated', Object{path: '/local1@default+conflict@one', fullStatePath: null, index: 1}, [Object{path: '', fullStatePath: '-', index: 0, query: ''}, Object{path: '/local1@default+conflict@one', fullStatePath: null, title: undefined, data: undefined, index: 1}], 1
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'callback', Object{path: '/local1@default+conflict@one', fullStatePath: null, title: undefined, data: undefined, index: 1}, Object{isNew: true}
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'Viewport enter', 'default'
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'Viewport added', 'one', <au-viewport name="one" class="au"></au-viewport>
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'Viewport enter', 'one'
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'Viewport loadContent', 'default'
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'Viewport loadContent', 'one'
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'path changed to', '/global2@default+conflict@two', Object{path: '/global2@default+conflict@two', fullStatePath: null, title: undefined, data: undefined}, Object{path: 'local1+conflict', fullStatePath: '-+local1@default+conflict@one', title: undefined, data: undefined, index: 1}
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'navigated', Object{path: '/global2@default+conflict@two', fullStatePath: null, index: 2}, [Object{path: '', fullStatePath: '-', index: 0, query: ''}, Object{path: 'local1+conflict', fullStatePath: '-+local1@default+conflict@one', title: undefined, data: undefined, index: 1}, Object{path: '/global2@default+conflict@two', fullStatePath: null, title: undefined, data: undefined, index: 2}], 1
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'callback', Object{path: '/global2@default+conflict@two', fullStatePath: null, title: undefined, data: undefined, index: 2}, Object{isNew: true}
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'Viewport enter', 'default'
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'Viewport added', 'two', <au-viewport name="two" class="au"></au-viewport>
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'Viewport enter', 'two'
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'Viewport loadContent', 'default'
+,Chrome 71.0.3578 (Windows 10.0.0) LOG: 'Viewport loadContent', 'two'
+
+]]>
+  </system-out>
+  <system-err/>
+</testsuite>

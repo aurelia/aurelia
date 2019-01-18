@@ -1,5 +1,5 @@
 import { IContainer } from '@aurelia/kernel';
-import { CustomElementResource, ICustomElement, ICustomElementType, IDOM, INode, IProjectorLocator, IRenderingEngine, LifecycleFlags, IRenderContext } from '@aurelia/runtime';
+import { CustomElementResource, ICustomElement, ICustomElementType, IDOM, INode, IProjectorLocator, IRenderContext, IRenderingEngine, LifecycleFlags } from '@aurelia/runtime';
 import { INavigationInstruction } from './history-browser';
 import { mergeParameters } from './parser';
 import { Router } from './router';
@@ -367,7 +367,7 @@ export class Viewport {
     if (component === null) {
       return null;
     } else if (typeof component !== 'string') {
-      return component as IRouteableCustomElementType;
+      return component;
     } else {
       const container = this.container || this.router.container;
       const resolver = container.get(IContainer).getResolver(CustomElementResource.keyFrom(component));

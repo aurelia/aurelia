@@ -4,7 +4,7 @@ import { Router } from '../router';
 import { IViewportOptions, Viewport } from '../viewport';
 
 export class ViewportCustomElement {
-  public static readonly inject: ReadonlyArray<InterfaceSymbol<unknown>|Constructable> = [Router, INode, IRenderingEngine];
+  public static readonly inject: ReadonlyArray<InterfaceSymbol<unknown> | Constructable> = [Router, INode, IRenderingEngine];
 
   @bindable public name: string;
   @bindable public scope: boolean;
@@ -33,7 +33,7 @@ export class ViewportCustomElement {
     this.viewport = null;
   }
 
-    public render(host: INode, parts: Record<string, TemplateDefinition>, parentContext: IRenderContext | null): IElementTemplateProvider | void {
+  public render(flags: LifecycleFlags, host: INode, parts: Record<string, TemplateDefinition>, parentContext: IRenderContext | null): IElementTemplateProvider | void {
     const Type = this.constructor as any;
     const dom = parentContext.get(IDOM);
     const template = this.renderingEngine.getElementTemplate(dom, Type.description, parentContext, Type);

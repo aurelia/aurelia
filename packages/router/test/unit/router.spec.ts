@@ -460,6 +460,7 @@ describe('Router', () => {
     await teardown(host, router, 1);
   });
 
+  // TODO: Fix scoped viewports!
   xit('loads scoped viewport', async function () {
     this.timeout(30000);
     const { host, router } = await setup();
@@ -540,9 +541,6 @@ describe('Router', () => {
 
       expect(host.textContent).to.match(/.*global.*/);
 
-      //await $goto(router, 'local');
-
-      //expect(host.textContent).to.equal(' Viewport: default local');
       await $teardown(host, router);
     });
 
@@ -558,7 +556,7 @@ describe('Router', () => {
     });
 
     it('navigates to locally registered dep - nested', async function () {
-      const Local2 = define({ name: 'local2', template: 'local2' }, class {});
+      const Local2 = define({ name: 'local2', template: 'local2' }, class { });
       const Local1 = define({ name: 'local1', template: 'local1<au-viewport name="one"></au-viewport>', dependencies: [Local2] }, null);
       const { host, router } = await $setup([Local1]);
 

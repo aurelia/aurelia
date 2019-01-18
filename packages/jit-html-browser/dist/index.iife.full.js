@@ -9960,7 +9960,6 @@ var au = (function (exports) {
             if (consumeOpt(state, 1572875 /* Comma */)) {
                 elements.push($undefined);
                 if (state.currentToken === 1835021 /* CloseBracket */) {
-                    elements.push($undefined);
                     break;
                 }
             }
@@ -9968,7 +9967,6 @@ var au = (function (exports) {
                 elements.push(parse(state, access, 62 /* Assign */, bindingType & ~512 /* IsIterator */));
                 if (consumeOpt(state, 1572875 /* Comma */)) {
                     if (state.currentToken === 1835021 /* CloseBracket */) {
-                        elements.push($undefined);
                         break;
                     }
                 }

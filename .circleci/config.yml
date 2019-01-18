@@ -272,22 +272,16 @@ workflows:
           name: jit-aurelia-cli-ts
           path: "local/jit-aurelia-cli-ts"
           build: true
-          requires:
-            - unit_test_chrome # not a real dependency, only to order the jobs in the most efficient way
       - e2e_wdio:
           <<: *filter_ignore_develop_release
           name: jit-fuse-box-ts
           path: "local/jit-fuse-box-ts"
           build: true
-          requires:
-            - unit_test_firefox # not a real dependency, only to order the jobs in the most efficient way
       - e2e_wdio:
           <<: *filter_ignore_develop_release
           name: jit-webpack-ts
           path: "local/jit-webpack-ts"
           build: true
-          requires:
-            - lint_packages # not a real dependency, only to order the jobs in the most efficient way
       - e2e_wdio:
           <<: *filter_ignore_develop_release
           name: jit-parcel-ts
@@ -300,8 +294,6 @@ workflows:
           path: "local/jit-iife-inline"
           build: true
           iife: true
-          requires:
-            - unit_test_node # not a real dependency, only to order the jobs in the most efficient way
       - merge_and_dist:
           <<: *filter_only_master
           requires:

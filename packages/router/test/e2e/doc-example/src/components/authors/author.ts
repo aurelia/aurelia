@@ -2,6 +2,7 @@ import { inject } from '@aurelia//kernel';
 import { customElement } from '@aurelia/runtime';
 import { Router } from '../../../../../../src';
 import { AuthorsRepository } from '../../repositories/authors';
+import { Information } from './information';
 
 @customElement({
   name: 'author', template: `<template>
@@ -13,8 +14,10 @@ import { AuthorsRepository } from '../../repositories/authors';
   </ul>
 </div>
 <au-nav name="author-menu"></au-nav>
-<au-viewport name="author-tabs" default="author-details=\${author.id}" used-by="about-authors,author-details" no-history></au-viewport>
-</template>` })
+<au-viewport name="author-tabs" default="author-details=\${author.id}" used-by="about-authors,author-details,information" no-history></au-viewport>
+</template>`,
+  dependencies: [Information as any]
+})
 @inject(Router, AuthorsRepository)
 export class Author {
   public static parameters = ['id'];
@@ -35,6 +38,10 @@ export class Author {
       {
         title: 'About authors',
         components: 'about-authors'
+      },
+      {
+        title: 'Author information',
+        components: 'information'
       },
     ]);
   }

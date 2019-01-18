@@ -1,5 +1,6 @@
 import { Immutable } from '@aurelia/kernel';
-import { IPropertySubscriber, LifecycleFlags } from '../observation';
+import { LifecycleFlags } from '../flags';
+import { IPropertySubscriber } from '../observation';
 declare type Signal = string;
 export interface ISignaler {
     signals: Immutable<Record<string, Set<IPropertySubscriber>>>;

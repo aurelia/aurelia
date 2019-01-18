@@ -1,6 +1,7 @@
 import { InterfaceSymbol } from '@aurelia/kernel';
+import { LifecycleFlags } from '../flags';
 import { ILifecycle } from '../lifecycle';
-import { AccessorOrObserver, CollectionKind, CollectionObserver, IBindingContext, IBindingTargetAccessor, IBindingTargetObserver, ICollectionObserver, IObservable, IObservedArray, IObservedMap, IObservedSet, LifecycleFlags } from '../observation';
+import { AccessorOrObserver, CollectionKind, CollectionObserver, IBindingContext, IBindingTargetAccessor, IBindingTargetObserver, ICollectionObserver, IObservable, IObservedArray, IObservedMap, IObservedSet } from '../observation';
 export interface IObjectObservationAdapter {
     getObserver(flags: LifecycleFlags, object: unknown, propertyName: string, descriptor: PropertyDescriptor): IBindingTargetObserver;
 }

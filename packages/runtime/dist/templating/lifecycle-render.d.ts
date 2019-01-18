@@ -1,7 +1,7 @@
 import { TemplateDefinition } from '../definitions';
 import { INode } from '../dom';
+import { LifecycleFlags } from '../flags';
 import { IRenderContext } from '../lifecycle';
-import { LifecycleFlags } from '../observation';
 import { IRenderingEngine, ITemplate } from '../rendering-engine';
 import { ICustomElementType } from '../resources/custom-element';
 export interface IElementTemplateProvider {

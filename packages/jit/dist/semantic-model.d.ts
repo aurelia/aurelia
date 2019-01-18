@@ -1,4 +1,4 @@
-import { IDOM, INode, Interpolation, IsExpressionOrStatement } from '@aurelia/runtime';
+import { AnyBindingExpression, IDOM, IInterpolationExpression, INode } from '@aurelia/runtime';
 import { AttrSyntax } from './ast';
 import { IBindingCommand } from './binding-command';
 import { AttrInfo, BindableInfo, ElementInfo } from './resource-model';
@@ -103,8 +103,8 @@ export declare class PlainAttributeSymbol implements IAttributeSymbol {
     flags: SymbolFlags;
     syntax: AttrSyntax;
     command: IBindingCommand | null;
-    expression: IsExpressionOrStatement | null;
-    constructor(syntax: AttrSyntax, command: IBindingCommand | null, expression: IsExpressionOrStatement | null);
+    expression: AnyBindingExpression | null;
+    constructor(syntax: AttrSyntax, command: IBindingCommand | null, expression: AnyBindingExpression | null);
 }
 /**
  * Either an attribute on an custom element that maps to a declared bindable property of that element,
@@ -117,10 +117,10 @@ export declare class BindingSymbol implements ISymbol {
     flags: SymbolFlags;
     command: IBindingCommand | null;
     bindable: BindableInfo;
-    expression: IsExpressionOrStatement | null;
+    expression: AnyBindingExpression | null;
     rawValue: string;
     target: string;
-    constructor(command: IBindingCommand | null, bindable: BindableInfo, expression: IsExpressionOrStatement | null, rawValue: string, target: string);
+    constructor(command: IBindingCommand | null, bindable: BindableInfo, expression: AnyBindingExpression | null, rawValue: string, target: string);
 }
 /**
  * A html element that is associated with a registered resource either via its (lowerCase) `nodeName`
@@ -177,8 +177,8 @@ export declare class PlainElementSymbol implements IElementSymbol {
 export declare class TextSymbol implements INodeSymbol, ISymbolWithMarker {
     flags: SymbolFlags;
     physicalNode: INode;
-    interpolation: Interpolation;
+    interpolation: IInterpolationExpression;
     marker: INode;
-    constructor(dom: IDOM, node: INode, interpolation: Interpolation);
+    constructor(dom: IDOM, node: INode, interpolation: IInterpolationExpression);
 }
 //# sourceMappingURL=semantic-model.d.ts.map

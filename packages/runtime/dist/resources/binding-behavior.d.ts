@@ -1,6 +1,7 @@
 import { Class, IResourceDefinition, IResourceKind, IResourceType } from '@aurelia/kernel';
 import { IBinding } from '../binding/binding';
-import { IScope, LifecycleFlags } from '../observation';
+import { LifecycleFlags } from '../flags';
+import { IScope } from '../observation';
 export interface IBindingBehavior {
     bind(flags: LifecycleFlags, scope: IScope, binding: IBinding): void;
     unbind(flags: LifecycleFlags, scope: IScope, binding: IBinding): void;

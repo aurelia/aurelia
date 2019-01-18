@@ -1,11 +1,10 @@
-import { ForOfStatement, Interpolation, IsBindingBehavior } from './ast';
-declare type BindingExpression = Interpolation | ForOfStatement | IsBindingBehavior;
+import { AnyBindingExpression, IForOfStatement, IInterpolationExpression, IsBindingBehavior } from '../ast';
 export interface IExpressionParser {
-    cache(expressions: Record<string, BindingExpression>): void;
-    parse(expression: string, bindingType: BindingType.ForCommand): ForOfStatement;
-    parse(expression: string, bindingType: BindingType.Interpolation): Interpolation;
+    cache(expressions: Record<string, AnyBindingExpression>): void;
+    parse(expression: string, bindingType: BindingType.ForCommand): IForOfStatement;
+    parse(expression: string, bindingType: BindingType.Interpolation): IInterpolationExpression;
     parse(expression: string, bindingType: Exclude<BindingType, BindingType.ForCommand | BindingType.Interpolation>): IsBindingBehavior;
-    parse(expression: string, bindingType: BindingType): BindingExpression;
+    parse(expression: string, bindingType: BindingType): AnyBindingExpression;
 }
 export declare const IExpressionParser: import("@aurelia/kernel").InterfaceSymbol<IExpressionParser>;
 export declare const enum BindingType {
@@ -35,5 +34,4 @@ export declare const enum BindingType {
     ForCommand = 539,
     CustomCommand = 284
 }
-export {};
 //# sourceMappingURL=expression-parser.d.ts.map

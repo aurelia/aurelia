@@ -1,8 +1,9 @@
 import { InterfaceSymbol, IRegistry } from '@aurelia/kernel';
 import { AttributeDefinition, IAttributeDefinition } from '../../definitions';
 import { INode, IRenderLocation } from '../../dom';
+import { LifecycleFlags } from '../../flags';
 import { IBindScope, IViewFactory } from '../../lifecycle';
-import { IBindingContext, LifecycleFlags } from '../../observation';
+import { IBindingContext } from '../../observation';
 import { ICustomAttribute, ICustomAttributeResource } from '../custom-attribute';
 export interface With<T extends INode = INode> extends ICustomAttribute<T> {
 }

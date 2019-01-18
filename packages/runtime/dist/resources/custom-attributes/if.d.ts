@@ -1,8 +1,8 @@
 import { Constructable, InterfaceSymbol, IRegistry } from '@aurelia/kernel';
 import { AttributeDefinition, IAttributeDefinition } from '../../definitions';
 import { INode, IRenderLocation } from '../../dom';
+import { LifecycleFlags } from '../../flags';
 import { CompositionCoordinator, IView, IViewFactory } from '../../lifecycle';
-import { LifecycleFlags } from '../../observation';
 import { ICustomAttribute, ICustomAttributeResource } from '../custom-attribute';
 export interface If<T extends INode = INode> extends ICustomAttribute<T> {
 }

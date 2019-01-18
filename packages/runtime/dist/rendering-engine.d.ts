@@ -1,8 +1,9 @@
 import { Immutable, ImmutableArray, InterfaceSymbol, IRegistry, IResourceDescriptions } from '@aurelia/kernel';
 import { InstructionTypeName, ITargetedInstruction, ITemplateDefinition, TemplateDefinition, TemplatePartDefinitions } from './definitions';
 import { IDOM, INode, INodeSequenceFactory } from './dom';
+import { LifecycleFlags } from './flags';
 import { IRenderable, IRenderContext, IViewFactory } from './lifecycle';
-import { IAccessor, ISubscribable, ISubscriberCollection, LifecycleFlags, MutationKind } from './observation';
+import { IAccessor, ISubscribable, ISubscriberCollection, MutationKind } from './observation';
 import { ICustomAttribute, ICustomAttributeType } from './resources/custom-attribute';
 import { ICustomElement, ICustomElementType } from './resources/custom-element';
 export interface ITemplateCompiler {

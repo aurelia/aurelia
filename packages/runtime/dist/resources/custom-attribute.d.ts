@@ -1,8 +1,9 @@
 import { Class, Constructable, Immutable, IResourceKind, IResourceType, Omit } from '@aurelia/kernel';
 import { IAttributeDefinition } from '../definitions';
 import { INode } from '../dom';
+import { LifecycleFlags } from '../flags';
 import { IAttach, IBindScope, ILifecycleHooks, ILifecycleUnbindAfterDetach, IRenderable } from '../lifecycle';
-import { IChangeTracker, LifecycleFlags } from '../observation';
+import { IChangeTracker } from '../observation';
 import { IRenderingEngine } from '../rendering-engine';
 declare type CustomAttributeStaticProperties = Pick<Immutable<Required<IAttributeDefinition>>, 'bindables'>;
 export declare type CustomAttributeConstructor = Constructable & CustomAttributeStaticProperties;

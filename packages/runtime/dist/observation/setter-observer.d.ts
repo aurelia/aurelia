@@ -1,5 +1,6 @@
 import { IIndexable } from '@aurelia/kernel';
-import { IPropertyObserver, IPropertySubscriber, LifecycleFlags } from '../observation';
+import { LifecycleFlags } from '../flags';
+import { IPropertyObserver, IPropertySubscriber } from '../observation';
 export interface SetterObserver extends IPropertyObserver<IIndexable, string> {
 }
 export declare class SetterObserver implements SetterObserver {

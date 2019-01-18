@@ -1,6 +1,7 @@
 import { IIndexable, StrictPrimitive } from '@aurelia/kernel';
+import { LifecycleFlags } from '../flags';
 import { IBindScope } from '../lifecycle';
-import { IBindingContext, IOverrideContext, IScope, LifecycleFlags, ObservedCollection, ObserversLookup } from '../observation';
+import { IBindingContext, IOverrideContext, IScope, ObservedCollection, ObserversLookup } from '../observation';
 declare type BindingContextValue = ObservedCollection | StrictPrimitive | IIndexable;
 export declare class BindingContext implements IBindingContext {
     [key: string]: BindingContextValue;

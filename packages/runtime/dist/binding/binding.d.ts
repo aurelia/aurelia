@@ -1,9 +1,9 @@
 import { IServiceLocator } from '@aurelia/kernel';
-import { IBindScope, ILifecycle, State } from '../lifecycle';
-import { AccessorOrObserver, IObservable, IScope, LifecycleFlags } from '../observation';
+import { IForOfStatement, IsBindingBehavior } from '../ast';
+import { BindingMode, LifecycleFlags, State } from '../flags';
+import { IBindScope, ILifecycle } from '../lifecycle';
+import { AccessorOrObserver, IObservable, IScope } from '../observation';
 import { IObserverLocator } from '../observation/observer-locator';
-import { ForOfStatement, IsBindingBehavior } from './ast';
-import { BindingMode } from './binding-mode';
 import { IConnectableBinding, IPartialConnectableBinding } from './connectable';
 export interface IBinding extends IBindScope {
     readonly locator: IServiceLocator;
@@ -22,12 +22,12 @@ export declare class Binding implements IPartialConnectableBinding {
     locator: IServiceLocator;
     mode: BindingMode;
     observerLocator: IObserverLocator;
-    sourceExpression: IsBindingBehavior | ForOfStatement;
+    sourceExpression: IsBindingBehavior | IForOfStatement;
     target: IObservable;
     targetProperty: string;
     targetObserver: AccessorOrObserver;
     persistentFlags: LifecycleFlags;
-    constructor(sourceExpression: IsBindingBehavior | ForOfStatement, target: IObservable, targetProperty: string, mode: BindingMode, observerLocator: IObserverLocator, locator: IServiceLocator);
+    constructor(sourceExpression: IsBindingBehavior | IForOfStatement, target: IObservable, targetProperty: string, mode: BindingMode, observerLocator: IObserverLocator, locator: IServiceLocator);
     updateTarget(value: unknown, flags: LifecycleFlags): void;
     updateSource(value: unknown, flags: LifecycleFlags): void;
     handleChange(newValue: unknown, _previousValue: unknown, flags: LifecycleFlags): void;

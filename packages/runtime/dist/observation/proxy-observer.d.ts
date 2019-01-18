@@ -1,4 +1,5 @@
-import { IPropertySubscriber, IProxy, IProxyObserver, IProxySubscriber, LifecycleFlags, MutationKind } from '../observation';
+import { LifecycleFlags } from '../flags';
+import { IPropertySubscriber, IProxy, IProxyObserver, IProxySubscriber, MutationKind } from '../observation';
 export interface ProxySubscriberCollection<TObj extends object = object> extends IProxyObserver<TObj, MutationKind.instance> {
 }
 export declare class ProxySubscriberCollection<TObj extends object = object> implements ProxySubscriberCollection<TObj> {

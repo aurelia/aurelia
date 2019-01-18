@@ -1,7 +1,8 @@
 import { IIndexable, IServiceLocator } from '@aurelia/kernel';
-import { IBindScope, State } from '../lifecycle';
-import { IObservable, IScope, LifecycleFlags } from '../observation';
-import { IsBindingBehavior } from './ast';
+import { IsBindingBehavior } from '../ast';
+import { LifecycleFlags, State } from '../flags';
+import { IBindScope } from '../lifecycle';
+import { IObservable, IScope } from '../observation';
 import { IBinding } from './binding';
 import { IConnectableBinding } from './connectable';
 export interface Ref extends IConnectableBinding {

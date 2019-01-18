@@ -2,8 +2,9 @@ import { InterfaceSymbol, IRegistry } from '@aurelia/kernel';
 import { ForOfStatement } from '../../binding/ast';
 import { AttributeDefinition, IAttributeDefinition } from '../../definitions';
 import { INode, IRenderLocation } from '../../dom';
+import { LifecycleFlags } from '../../flags';
 import { IRenderable, IView, IViewFactory } from '../../lifecycle';
-import { CollectionObserver, IBatchedCollectionSubscriber, IObservedArray, IScope, LifecycleFlags, ObservedCollection } from '../../observation';
+import { CollectionObserver, IBatchedCollectionSubscriber, IObservedArray, IScope, ObservedCollection } from '../../observation';
 import { SetterObserver } from '../../observation/setter-observer';
 import { ICustomAttribute, ICustomAttributeResource } from '../custom-attribute';
 export interface Repeat<C extends ObservedCollection, T extends INode = INode> extends ICustomAttribute<T>, IBatchedCollectionSubscriber {

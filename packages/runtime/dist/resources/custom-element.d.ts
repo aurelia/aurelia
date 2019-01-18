@@ -1,8 +1,9 @@
 import { Class, Constructable, IResourceKind, IResourceType } from '@aurelia/kernel';
 import { IElementHydrationOptions, ITemplateDefinition, TemplateDefinition } from '../definitions';
 import { IDOM, INode, INodeSequence, IRenderLocation } from '../dom';
+import { LifecycleFlags } from '../flags';
 import { IAttach, IBind, ILifecycleHooks, ILifecycleUnbindAfterDetach, IMountable, IRenderable, IRenderContext } from '../lifecycle';
-import { IChangeTracker, LifecycleFlags } from '../observation';
+import { IChangeTracker } from '../observation';
 import { IRenderingEngine } from '../rendering-engine';
 import { ILifecycleRender } from '../templating/lifecycle-render';
 export interface ICustomElementType<T extends INode = INode> extends IResourceType<ITemplateDefinition, ICustomElement<T>>, ICustomElementStaticProperties {

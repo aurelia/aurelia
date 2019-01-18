@@ -1,16 +1,17 @@
-import { Class, IIndexable } from '@aurelia/kernel';
-import { IPropertySubscriber, ISubscribable, LifecycleFlags, MutationKind } from '../observation';
+import { Class } from '@aurelia/kernel';
+import { IConnectable } from '../ast';
+import { LifecycleFlags } from '../flags';
+import { IPropertySubscriber, ISubscribable, MutationKind } from '../observation';
 import { IObserverLocator } from '../observation/observer-locator';
 import { IBinding } from './binding';
 export interface IPartialConnectableBinding extends IBinding, IPropertySubscriber {
     observerLocator: IObserverLocator;
 }
-export interface IConnectableBinding extends IPartialConnectableBinding {
+export interface IConnectableBinding extends IPartialConnectableBinding, IConnectable {
     $nextConnect?: IConnectableBinding;
     $nextPatch?: IConnectableBinding;
     observerSlots: number;
     version: number;
-    observeProperty(flags: LifecycleFlags, obj: IIndexable, propertyName: string): void;
     addObserver(observer: ISubscribable<MutationKind.instance | MutationKind.proxy>): void;
     unobserve(all?: boolean): void;
     connect(flags: LifecycleFlags): void;

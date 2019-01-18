@@ -1,7 +1,7 @@
 import { IRegistry } from '@aurelia/kernel';
 import { Binding } from '../../binding/binding';
-import { BindingMode } from '../../binding/binding-mode';
-import { IScope, LifecycleFlags } from '../../observation';
+import { BindingMode, LifecycleFlags } from '../../flags';
+import { IScope } from '../../observation';
 export declare type WithMode = {
     mode: BindingMode;
     originalMode?: BindingMode;

@@ -1677,6 +1677,50 @@ var au = (function (exports) {
     }
     AttributeParser.inject = [ISyntaxInterpreter, all(IAttributePattern)];
 
+    /*
+    * Note: the oneTime binding now has a non-zero value for 2 reasons:
+    *  - plays nicer with bitwise operations (more consistent code, more explicit settings)
+    *  - allows for potentially having something like BindingMode.oneTime | BindingMode.fromView, where an initial value is set once to the view but updates from the view also propagate back to the view model
+    *
+    * Furthermore, the "default" mode would be for simple ".bind" expressions to make it explicit for our logic that the default is being used.
+    * This essentially adds extra information which binding could use to do smarter things and allows bindingBehaviors that add a mode instead of simply overwriting it
+    */
+    var BindingMode;
+    (function (BindingMode) {
+        BindingMode[BindingMode["oneTime"] = 1] = "oneTime";
+        BindingMode[BindingMode["toView"] = 2] = "toView";
+        BindingMode[BindingMode["fromView"] = 4] = "fromView";
+        BindingMode[BindingMode["twoWay"] = 6] = "twoWay";
+        BindingMode[BindingMode["default"] = 8] = "default";
+    })(BindingMode || (BindingMode = {}));
+    var State$1;
+    (function (State) {
+        State[State["none"] = 0] = "none";
+        State[State["isBinding"] = 1] = "isBinding";
+        State[State["isBound"] = 2] = "isBound";
+        State[State["isAttaching"] = 4] = "isAttaching";
+        State[State["isAttached"] = 8] = "isAttached";
+        State[State["isMounted"] = 16] = "isMounted";
+        State[State["isDetaching"] = 32] = "isDetaching";
+        State[State["isUnbinding"] = 64] = "isUnbinding";
+        State[State["isCached"] = 128] = "isCached";
+        State[State["isContainerless"] = 256] = "isContainerless";
+    })(State$1 || (State$1 = {}));
+    var Hooks;
+    (function (Hooks) {
+        Hooks[Hooks["none"] = 1] = "none";
+        Hooks[Hooks["hasCreated"] = 2] = "hasCreated";
+        Hooks[Hooks["hasBinding"] = 4] = "hasBinding";
+        Hooks[Hooks["hasBound"] = 8] = "hasBound";
+        Hooks[Hooks["hasAttaching"] = 16] = "hasAttaching";
+        Hooks[Hooks["hasAttached"] = 32] = "hasAttached";
+        Hooks[Hooks["hasDetaching"] = 64] = "hasDetaching";
+        Hooks[Hooks["hasDetached"] = 128] = "hasDetached";
+        Hooks[Hooks["hasUnbinding"] = 256] = "hasUnbinding";
+        Hooks[Hooks["hasUnbound"] = 512] = "hasUnbound";
+        Hooks[Hooks["hasRender"] = 1024] = "hasRender";
+        Hooks[Hooks["hasCaching"] = 2048] = "hasCaching";
+    })(Hooks || (Hooks = {}));
     var LifecycleFlags;
     (function (LifecycleFlags) {
         LifecycleFlags[LifecycleFlags["none"] = 0] = "none";
@@ -1786,8 +1830,75 @@ var au = (function (exports) {
         if (flags & LifecycleFlags.allowParentScopeTraversal) {
             flagNames.push('allowParentScopeTraversal');
         }
+        if (flags & LifecycleFlags.useProxies) {
+            flagNames.push('useProxies');
+        }
         return flagNames.join('|');
     }
+    var ExpressionKind;
+    (function (ExpressionKind) {
+        ExpressionKind[ExpressionKind["Connects"] = 32] = "Connects";
+        ExpressionKind[ExpressionKind["Observes"] = 64] = "Observes";
+        ExpressionKind[ExpressionKind["CallsFunction"] = 128] = "CallsFunction";
+        ExpressionKind[ExpressionKind["HasAncestor"] = 256] = "HasAncestor";
+        ExpressionKind[ExpressionKind["IsPrimary"] = 512] = "IsPrimary";
+        ExpressionKind[ExpressionKind["IsLeftHandSide"] = 1024] = "IsLeftHandSide";
+        ExpressionKind[ExpressionKind["HasBind"] = 2048] = "HasBind";
+        ExpressionKind[ExpressionKind["HasUnbind"] = 4096] = "HasUnbind";
+        ExpressionKind[ExpressionKind["IsAssignable"] = 8192] = "IsAssignable";
+        ExpressionKind[ExpressionKind["IsLiteral"] = 16384] = "IsLiteral";
+        ExpressionKind[ExpressionKind["IsResource"] = 32768] = "IsResource";
+        ExpressionKind[ExpressionKind["IsForDeclaration"] = 65536] = "IsForDeclaration";
+        ExpressionKind[ExpressionKind["Type"] = 31] = "Type";
+        // ---------------------------------------------------------------------------------------------------------------------------
+        ExpressionKind[ExpressionKind["AccessThis"] = 1793] = "AccessThis";
+        ExpressionKind[ExpressionKind["AccessScope"] = 10082] = "AccessScope";
+        ExpressionKind[ExpressionKind["ArrayLiteral"] = 17955] = "ArrayLiteral";
+        ExpressionKind[ExpressionKind["ObjectLiteral"] = 17956] = "ObjectLiteral";
+        ExpressionKind[ExpressionKind["PrimitiveLiteral"] = 17925] = "PrimitiveLiteral";
+        ExpressionKind[ExpressionKind["Template"] = 17958] = "Template";
+        ExpressionKind[ExpressionKind["Unary"] = 39] = "Unary";
+        ExpressionKind[ExpressionKind["CallScope"] = 1448] = "CallScope";
+        ExpressionKind[ExpressionKind["CallMember"] = 1161] = "CallMember";
+        ExpressionKind[ExpressionKind["CallFunction"] = 1162] = "CallFunction";
+        ExpressionKind[ExpressionKind["AccessMember"] = 9323] = "AccessMember";
+        ExpressionKind[ExpressionKind["AccessKeyed"] = 9324] = "AccessKeyed";
+        ExpressionKind[ExpressionKind["TaggedTemplate"] = 1197] = "TaggedTemplate";
+        ExpressionKind[ExpressionKind["Binary"] = 46] = "Binary";
+        ExpressionKind[ExpressionKind["Conditional"] = 63] = "Conditional";
+        ExpressionKind[ExpressionKind["Assign"] = 8208] = "Assign";
+        ExpressionKind[ExpressionKind["ValueConverter"] = 36913] = "ValueConverter";
+        ExpressionKind[ExpressionKind["BindingBehavior"] = 38962] = "BindingBehavior";
+        ExpressionKind[ExpressionKind["HtmlLiteral"] = 51] = "HtmlLiteral";
+        ExpressionKind[ExpressionKind["ArrayBindingPattern"] = 65556] = "ArrayBindingPattern";
+        ExpressionKind[ExpressionKind["ObjectBindingPattern"] = 65557] = "ObjectBindingPattern";
+        ExpressionKind[ExpressionKind["BindingIdentifier"] = 65558] = "BindingIdentifier";
+        ExpressionKind[ExpressionKind["ForOfStatement"] = 55] = "ForOfStatement";
+        ExpressionKind[ExpressionKind["Interpolation"] = 24] = "Interpolation"; //
+    })(ExpressionKind || (ExpressionKind = {}));
+
+    /*! *****************************************************************************
+    Copyright (c) Microsoft Corporation. All rights reserved.
+    Licensed under the Apache License, Version 2.0 (the "License"); you may not use
+    this file except in compliance with the License. You may obtain a copy of the
+    License at http://www.apache.org/licenses/LICENSE-2.0
+
+    THIS CODE IS PROVIDED ON AN *AS IS* BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+    KIND, EITHER EXPRESS OR IMPLIED, INCLUDING WITHOUT LIMITATION ANY IMPLIED
+    WARRANTIES OR CONDITIONS OF TITLE, FITNESS FOR A PARTICULAR PURPOSE,
+    MERCHANTABLITY OR NON-INFRINGEMENT.
+
+    See the Apache Version 2.0 License for specific language governing permissions
+    and limitations under the License.
+    ***************************************************************************** */
+
+    function __decorate(decorators, target, key, desc) {
+        var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+        if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
+        else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+        return c > 3 && r && Object.defineProperty(target, key, r), r;
+    }
+
     /** @internal */
     var SubscriberFlags;
     (function (SubscriberFlags) {
@@ -1821,28 +1932,6 @@ var au = (function (exports) {
         CollectionKind[CollectionKind["map"] = 6] = "map";
         CollectionKind[CollectionKind["set"] = 7] = "set";
     })(CollectionKind || (CollectionKind = {}));
-
-    /*! *****************************************************************************
-    Copyright (c) Microsoft Corporation. All rights reserved.
-    Licensed under the Apache License, Version 2.0 (the "License"); you may not use
-    this file except in compliance with the License. You may obtain a copy of the
-    License at http://www.apache.org/licenses/LICENSE-2.0
-
-    THIS CODE IS PROVIDED ON AN *AS IS* BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
-    KIND, EITHER EXPRESS OR IMPLIED, INCLUDING WITHOUT LIMITATION ANY IMPLIED
-    WARRANTIES OR CONDITIONS OF TITLE, FITNESS FOR A PARTICULAR PURPOSE,
-    MERCHANTABLITY OR NON-INFRINGEMENT.
-
-    See the Apache Version 2.0 License for specific language governing permissions
-    and limitations under the License.
-    ***************************************************************************** */
-
-    function __decorate(decorators, target, key, desc) {
-        var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
-        if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
-        else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
-        return c > 3 && r && Object.defineProperty(target, key, r), r;
-    }
 
     function subscriberCollection(mutationKind) {
         // tslint:disable-next-line:ban-types // ClassDecorator expects it to be derived from Function
@@ -2641,47 +2730,6 @@ var au = (function (exports) {
         define: define$1
     };
 
-    var ExpressionKind;
-    (function (ExpressionKind) {
-        ExpressionKind[ExpressionKind["Connects"] = 32] = "Connects";
-        ExpressionKind[ExpressionKind["Observes"] = 64] = "Observes";
-        ExpressionKind[ExpressionKind["CallsFunction"] = 128] = "CallsFunction";
-        ExpressionKind[ExpressionKind["HasAncestor"] = 256] = "HasAncestor";
-        ExpressionKind[ExpressionKind["IsPrimary"] = 512] = "IsPrimary";
-        ExpressionKind[ExpressionKind["IsLeftHandSide"] = 1024] = "IsLeftHandSide";
-        ExpressionKind[ExpressionKind["HasBind"] = 2048] = "HasBind";
-        ExpressionKind[ExpressionKind["HasUnbind"] = 4096] = "HasUnbind";
-        ExpressionKind[ExpressionKind["IsAssignable"] = 8192] = "IsAssignable";
-        ExpressionKind[ExpressionKind["IsLiteral"] = 16384] = "IsLiteral";
-        ExpressionKind[ExpressionKind["IsResource"] = 32768] = "IsResource";
-        ExpressionKind[ExpressionKind["IsForDeclaration"] = 65536] = "IsForDeclaration";
-        ExpressionKind[ExpressionKind["Type"] = 31] = "Type";
-        // ---------------------------------------------------------------------------------------------------------------------------
-        ExpressionKind[ExpressionKind["AccessThis"] = 1793] = "AccessThis";
-        ExpressionKind[ExpressionKind["AccessScope"] = 10082] = "AccessScope";
-        ExpressionKind[ExpressionKind["ArrayLiteral"] = 17955] = "ArrayLiteral";
-        ExpressionKind[ExpressionKind["ObjectLiteral"] = 17956] = "ObjectLiteral";
-        ExpressionKind[ExpressionKind["PrimitiveLiteral"] = 17925] = "PrimitiveLiteral";
-        ExpressionKind[ExpressionKind["Template"] = 17958] = "Template";
-        ExpressionKind[ExpressionKind["Unary"] = 39] = "Unary";
-        ExpressionKind[ExpressionKind["CallScope"] = 1448] = "CallScope";
-        ExpressionKind[ExpressionKind["CallMember"] = 1161] = "CallMember";
-        ExpressionKind[ExpressionKind["CallFunction"] = 1162] = "CallFunction";
-        ExpressionKind[ExpressionKind["AccessMember"] = 9323] = "AccessMember";
-        ExpressionKind[ExpressionKind["AccessKeyed"] = 9324] = "AccessKeyed";
-        ExpressionKind[ExpressionKind["TaggedTemplate"] = 1197] = "TaggedTemplate";
-        ExpressionKind[ExpressionKind["Binary"] = 46] = "Binary";
-        ExpressionKind[ExpressionKind["Conditional"] = 63] = "Conditional";
-        ExpressionKind[ExpressionKind["Assign"] = 8208] = "Assign";
-        ExpressionKind[ExpressionKind["ValueConverter"] = 36913] = "ValueConverter";
-        ExpressionKind[ExpressionKind["BindingBehavior"] = 38962] = "BindingBehavior";
-        ExpressionKind[ExpressionKind["HtmlLiteral"] = 51] = "HtmlLiteral";
-        ExpressionKind[ExpressionKind["ArrayBindingPattern"] = 65556] = "ArrayBindingPattern";
-        ExpressionKind[ExpressionKind["ObjectBindingPattern"] = 65557] = "ObjectBindingPattern";
-        ExpressionKind[ExpressionKind["BindingIdentifier"] = 65558] = "BindingIdentifier";
-        ExpressionKind[ExpressionKind["ForOfStatement"] = 55] = "ForOfStatement";
-        ExpressionKind[ExpressionKind["Interpolation"] = 24] = "Interpolation"; //
-    })(ExpressionKind || (ExpressionKind = {}));
     function connects(expr) {
         return (expr.$kind & 32 /* Connects */) === 32 /* Connects */;
     }
@@ -3568,36 +3616,6 @@ var au = (function (exports) {
             return visitor.visitInterpolation(this);
         }
     }
-    /*
-    * Note: for a property that is always the same, directly assigning it to the prototype is more efficient CPU wise
-    * (gets assigned once, instead of per constructor call) as well as memory wise (stored once, instead of per instance)
-    *
-    * This gives us a cheap way to add some extra information to the AST for the runtime to do things more efficiently.
-    */
-    BindingBehavior.prototype.$kind = 38962 /* BindingBehavior */;
-    ValueConverter.prototype.$kind = 36913 /* ValueConverter */;
-    Assign.prototype.$kind = 8208 /* Assign */;
-    Conditional.prototype.$kind = 63 /* Conditional */;
-    AccessThis.prototype.$kind = 1793 /* AccessThis */;
-    AccessScope.prototype.$kind = 10082 /* AccessScope */;
-    AccessMember.prototype.$kind = 9323 /* AccessMember */;
-    AccessKeyed.prototype.$kind = 9324 /* AccessKeyed */;
-    CallScope.prototype.$kind = 1448 /* CallScope */;
-    CallMember.prototype.$kind = 1161 /* CallMember */;
-    CallFunction.prototype.$kind = 1162 /* CallFunction */;
-    Binary.prototype.$kind = 46 /* Binary */;
-    Unary.prototype.$kind = 39 /* Unary */;
-    PrimitiveLiteral.prototype.$kind = 17925 /* PrimitiveLiteral */;
-    HtmlLiteral.prototype.$kind = 51 /* HtmlLiteral */;
-    ArrayLiteral.prototype.$kind = 17955 /* ArrayLiteral */;
-    ObjectLiteral.prototype.$kind = 17956 /* ObjectLiteral */;
-    Template.prototype.$kind = 17958 /* Template */;
-    TaggedTemplate.prototype.$kind = 1197 /* TaggedTemplate */;
-    ArrayBindingPattern.prototype.$kind = 65556 /* ArrayBindingPattern */;
-    ObjectBindingPattern.prototype.$kind = 65557 /* ObjectBindingPattern */;
-    BindingIdentifier.prototype.$kind = 65558 /* BindingIdentifier */;
-    ForOfStatement.prototype.$kind = 55 /* ForOfStatement */;
-    Interpolation.prototype.$kind = 24 /* Interpolation */;
     /// Evaluate the [list] in context of the [scope].
     function evalList(flags, scope, locator, list) {
         const len = list.length;
@@ -3681,51 +3699,6 @@ var au = (function (exports) {
         ['[object Undefined]'](result) { return 0; }
     };
 
-    /*
-    * Note: the oneTime binding now has a non-zero value for 2 reasons:
-    *  - plays nicer with bitwise operations (more consistent code, more explicit settings)
-    *  - allows for potentially having something like BindingMode.oneTime | BindingMode.fromView, where an initial value is set once to the view but updates from the view also propagate back to the view model
-    *
-    * Furthermore, the "default" mode would be for simple ".bind" expressions to make it explicit for our logic that the default is being used.
-    * This essentially adds extra information which binding could use to do smarter things and allows bindingBehaviors that add a mode instead of simply overwriting it
-    */
-    var BindingMode;
-    (function (BindingMode) {
-        BindingMode[BindingMode["oneTime"] = 1] = "oneTime";
-        BindingMode[BindingMode["toView"] = 2] = "toView";
-        BindingMode[BindingMode["fromView"] = 4] = "fromView";
-        BindingMode[BindingMode["twoWay"] = 6] = "twoWay";
-        BindingMode[BindingMode["default"] = 8] = "default";
-    })(BindingMode || (BindingMode = {}));
-
-    var State$1;
-    (function (State) {
-        State[State["none"] = 0] = "none";
-        State[State["isBinding"] = 1] = "isBinding";
-        State[State["isBound"] = 2] = "isBound";
-        State[State["isAttaching"] = 4] = "isAttaching";
-        State[State["isAttached"] = 8] = "isAttached";
-        State[State["isMounted"] = 16] = "isMounted";
-        State[State["isDetaching"] = 32] = "isDetaching";
-        State[State["isUnbinding"] = 64] = "isUnbinding";
-        State[State["isCached"] = 128] = "isCached";
-        State[State["isContainerless"] = 256] = "isContainerless";
-    })(State$1 || (State$1 = {}));
-    var Hooks;
-    (function (Hooks) {
-        Hooks[Hooks["none"] = 1] = "none";
-        Hooks[Hooks["hasCreated"] = 2] = "hasCreated";
-        Hooks[Hooks["hasBinding"] = 4] = "hasBinding";
-        Hooks[Hooks["hasBound"] = 8] = "hasBound";
-        Hooks[Hooks["hasAttaching"] = 16] = "hasAttaching";
-        Hooks[Hooks["hasAttached"] = 32] = "hasAttached";
-        Hooks[Hooks["hasDetaching"] = 64] = "hasDetaching";
-        Hooks[Hooks["hasDetached"] = 128] = "hasDetached";
-        Hooks[Hooks["hasUnbinding"] = 256] = "hasUnbinding";
-        Hooks[Hooks["hasUnbound"] = 512] = "hasUnbound";
-        Hooks[Hooks["hasRender"] = 1024] = "hasRender";
-        Hooks[Hooks["hasCaching"] = 2048] = "hasCaching";
-    })(Hooks || (Hooks = {}));
     const IRenderable = DI.createInterface('IRenderable').noDefault();
     const IViewFactory = DI.createInterface('IViewFactory').noDefault();
     const marker = Object.freeze(Object.create(null));
@@ -8982,7 +8955,6 @@ var au = (function (exports) {
 
     var index$1 = /*#__PURE__*/Object.freeze({
         CallFunction: CallFunction,
-        get ExpressionKind () { return ExpressionKind; },
         connects: connects,
         observes: observes,
         callsFunction: callsFunction,
@@ -9019,7 +8991,6 @@ var au = (function (exports) {
         BindingIdentifier: BindingIdentifier,
         ForOfStatement: ForOfStatement,
         Interpolation: Interpolation,
-        get BindingMode () { return BindingMode; },
         get Binding () { return Binding; },
         Call: Call,
         connectable: connectable,
@@ -9120,6 +9091,12 @@ var au = (function (exports) {
         IRenderLocation: IRenderLocation,
         IDOM: IDOM,
         NodeSequence: NodeSequence,
+        get BindingMode () { return BindingMode; },
+        get ExpressionKind () { return ExpressionKind; },
+        get Hooks () { return Hooks; },
+        get LifecycleFlags () { return LifecycleFlags; },
+        get State () { return State$1; },
+        stringifyLifecycleFlags: stringifyLifecycleFlags,
         CallBindingInstruction: CallBindingInstruction,
         FromViewBindingInstruction: FromViewBindingInstruction,
         HydrateAttributeInstruction: HydrateAttributeInstruction,
@@ -9136,18 +9113,14 @@ var au = (function (exports) {
         TwoWayBindingInstruction: TwoWayBindingInstruction,
         AggregateLifecycleTask: AggregateLifecycleTask,
         CompositionCoordinator: CompositionCoordinator,
-        get Hooks () { return Hooks; },
         ILifecycle: ILifecycle,
         IRenderable: IRenderable,
         IViewFactory: IViewFactory,
         LifecycleTask: LifecycleTask,
         PromiseTask: PromiseTask,
-        get State () { return State$1; },
         get CollectionKind () { return CollectionKind; },
         get DelegationStrategy () { return DelegationStrategy; },
-        get LifecycleFlags () { return LifecycleFlags; },
         get MutationKind () { return MutationKind; },
-        stringifyLifecycleFlags: stringifyLifecycleFlags,
         instructionRenderer: instructionRenderer,
         ensureExpression: ensureExpression,
         addAttachable: addAttachable,

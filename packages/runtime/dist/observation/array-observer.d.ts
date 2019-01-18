@@ -1,5 +1,6 @@
+import { LifecycleFlags } from '../flags';
 import { ILifecycle } from '../lifecycle';
-import { CollectionKind, ICollectionObserver, IObservedArray, LifecycleFlags } from '../observation';
+import { CollectionKind, ICollectionObserver, IObservedArray } from '../observation';
 export declare function enableArrayObservation(): void;
 export declare function disableArrayObservation(): void;
 export interface ArrayObserver extends ICollectionObserver<CollectionKind.array> {

@@ -1,5 +1,6 @@
+import { LifecycleFlags } from '../flags';
 import { ILifecycle } from '../lifecycle';
-import { CollectionKind, ICollectionObserver, IObservedMap, LifecycleFlags } from '../observation';
+import { CollectionKind, ICollectionObserver, IObservedMap } from '../observation';
 export declare function enableMapObservation(): void;
 export declare function disableMapObservation(): void;
 export interface MapObserver extends ICollectionObserver<CollectionKind.map> {

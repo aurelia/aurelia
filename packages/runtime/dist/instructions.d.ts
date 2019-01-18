@@ -1,11 +1,11 @@
-import { ForOfStatement, Interpolation, IsBindingBehavior } from './binding/ast';
-import { BindingMode } from './binding/binding-mode';
+import { IForOfStatement, IInterpolationExpression, IsBindingBehavior } from './ast';
 import { ICallBindingInstruction, IHydrateAttributeInstruction, IHydrateElementInstruction, IHydrateLetElementInstruction, IHydrateTemplateController, IInterpolationInstruction, IIteratorBindingInstruction, ILetBindingInstruction, IPropertyBindingInstruction, IRefBindingInstruction, ISetPropertyInstruction, ITargetedInstruction, ITemplateDefinition, TargetedInstructionType } from './definitions';
+import { BindingMode } from './flags';
 export declare class InterpolationInstruction implements IInterpolationInstruction {
     type: TargetedInstructionType.interpolation;
-    from: string | Interpolation;
+    from: string | IInterpolationExpression;
     to: string;
-    constructor(from: string | Interpolation, to: string);
+    constructor(from: string | IInterpolationExpression, to: string);
 }
 export declare class OneTimeBindingInstruction implements IPropertyBindingInstruction {
     type: TargetedInstructionType.propertyBinding;
@@ -41,9 +41,9 @@ export declare class TwoWayBindingInstruction implements IPropertyBindingInstruc
 }
 export declare class IteratorBindingInstruction implements IIteratorBindingInstruction {
     type: TargetedInstructionType.iteratorBinding;
-    from: string | ForOfStatement;
+    from: string | IForOfStatement;
     to: string;
-    constructor(from: string | ForOfStatement, to: string);
+    constructor(from: string | IForOfStatement, to: string);
 }
 export declare class CallBindingInstruction implements ICallBindingInstruction {
     type: TargetedInstructionType.callBinding;
@@ -91,8 +91,8 @@ export declare class LetElementInstruction implements IHydrateLetElementInstruct
 }
 export declare class LetBindingInstruction implements ILetBindingInstruction {
     type: TargetedInstructionType.letBinding;
-    from: string | IsBindingBehavior | Interpolation;
+    from: string | IsBindingBehavior | IInterpolationExpression;
     to: string;
-    constructor(from: string | IsBindingBehavior | Interpolation, to: string);
+    constructor(from: string | IsBindingBehavior | IInterpolationExpression, to: string);
 }
 //# sourceMappingURL=instructions.d.ts.map

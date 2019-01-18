@@ -1,38 +1,5 @@
 import { IDisposable, IIndexable } from '@aurelia/kernel';
-export declare enum LifecycleFlags {
-    none = 0,
-    mustEvaluate = 524288,
-    mutation = 3,
-    isCollectionMutation = 1,
-    isInstanceMutation = 2,
-    update = 28,
-    updateTargetObserver = 4,
-    updateTargetInstance = 8,
-    updateSourceExpression = 16,
-    from = 524256,
-    fromFlush = 224,
-    fromAsyncFlush = 32,
-    fromSyncFlush = 64,
-    fromTick = 128,
-    fromStartTask = 256,
-    fromStopTask = 512,
-    fromBind = 1024,
-    fromUnbind = 2048,
-    fromAttach = 4096,
-    fromDetach = 8192,
-    fromCache = 16384,
-    fromDOMEvent = 32768,
-    fromObserverSetter = 65536,
-    fromBindableHandler = 131072,
-    fromLifecycleTask = 262144,
-    parentUnmountQueued = 1048576,
-    doNotUpdateDOM = 2097152,
-    isTraversingParentScope = 4194304,
-    persistentBindingFlags = 25165824,
-    allowParentScopeTraversal = 8388608,
-    useProxies = 16777216
-}
-export declare function stringifyLifecycleFlags(flags: LifecycleFlags): string;
+import { LifecycleFlags } from './flags';
 export interface IProxyObserver<TObj extends object = object, TMut extends MutationKind = MutationKind.proxy> extends ISubscriberCollection<TMut> {
     proxy: IProxy<TObj>;
 }

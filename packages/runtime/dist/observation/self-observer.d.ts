@@ -1,5 +1,6 @@
 import { IIndexable } from '@aurelia/kernel';
-import { IPropertyObserver, LifecycleFlags } from '../observation';
+import { LifecycleFlags } from '../flags';
+import { IPropertyObserver } from '../observation';
 export interface SelfObserver extends IPropertyObserver<IIndexable, string> {
 }
 export declare class SelfObserver implements SelfObserver {

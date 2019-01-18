@@ -1,6 +1,7 @@
 import { InterfaceSymbol, IRegistry } from '@aurelia/kernel';
 import { Binding } from '../../binding/binding';
-import { IScope, LifecycleFlags } from '../../observation';
+import { LifecycleFlags } from '../../flags';
+import { IScope } from '../../observation';
 import { ISignaler } from '../../observation/signaler';
 export declare type SignalableBinding = Binding & {
     signal: string | string[];

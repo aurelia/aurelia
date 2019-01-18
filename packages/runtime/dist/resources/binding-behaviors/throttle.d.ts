@@ -1,6 +1,7 @@
 import { IRegistry } from '@aurelia/kernel';
 import { IBinding } from '../../binding/binding';
-import { IScope, LifecycleFlags } from '../../observation';
+import { LifecycleFlags } from '../../flags';
+import { IScope } from '../../observation';
 export declare type ThrottleableBinding = IBinding & {
     throttledMethod: ((value: unknown) => unknown) & {
         originalName: string;

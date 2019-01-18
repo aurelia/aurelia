@@ -1,4 +1,5 @@
-import { Collection, CollectionKind, IBindingTargetObserver, IPatch, IPropertySubscriber, LifecycleFlags } from '../observation';
+import { LifecycleFlags } from '../flags';
+import { Collection, CollectionKind, IBindingTargetObserver, IPatch, IPropertySubscriber } from '../observation';
 export declare function collectionObserver(kind: CollectionKind.array | CollectionKind.set | CollectionKind.map): ClassDecorator;
 export interface CollectionLengthObserver extends IBindingTargetObserver<Collection, string> {
 }

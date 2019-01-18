@@ -1169,7 +1169,8 @@ describe('xml node compiler tests', () => {
   ];
 
   for (const markup of markups) {
-    it(markup, () => {
+    const escaped = markup.replace(/\b/g, '\\b').replace(/\t/g, '\\t').replace(/\n/g, '\\n').replace(/\v/g, '\\v').replace(/\f/g, '\\f').replace(/\r/g, '\\r');
+    it(escaped, () => {
       const ctx = TestContext.createHTMLTestContext();
       const parser = new ctx.DOMParser();
       const doc = parser.parseFromString(markup, 'application/xml');

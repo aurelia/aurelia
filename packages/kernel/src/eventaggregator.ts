@@ -89,7 +89,7 @@ export class EventAggregator {
     let i: number;
 
     if (!channelOrType) {
-      throw new Error('Event was invalid.');
+      throw Reporter.error(0); // TODO: create error code for 'Event was invalid.'
     }
 
     if (typeof channelOrType === 'string') {
@@ -124,7 +124,7 @@ export class EventAggregator {
     let subscribers: (EventAggregatorCallback | Handler)[];
 
     if (!channelOrType) {
-      throw new Error('Event channel/type was invalid.');
+      throw Reporter.error(0); // TODO: create error code for 'Event channel/type was invalid.'
     }
 
     if (typeof channelOrType === 'string') {

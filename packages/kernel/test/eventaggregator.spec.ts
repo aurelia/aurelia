@@ -1,7 +1,21 @@
 import { expect } from 'chai';
-import { EventAggregator } from '../src/index';
+import { DI, EventAggregator } from '../src/index';
 
 describe('event aggregator', () => {
+
+  describe('register', () => {
+
+    it('registers the EventAggregator as singleton', () => {
+      const Type = EventAggregator;
+      const container = DI.createContainer();
+
+      Type.register(container);
+
+      const resolved1 = container.get(EventAggregator);
+      const resolved2 = container.get(EventAggregator);
+      expect(resolved1).to.equal(resolved2);
+    });
+  });
 
   describe('subscribe', () => {
 

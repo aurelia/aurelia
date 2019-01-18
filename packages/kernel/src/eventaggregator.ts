@@ -6,8 +6,10 @@ import { Reporter } from './reporter';
  * Represents a handler for an EventAggregator event.
  */
 class Handler {
-  public messageType: Constructable;
-  public callback: EventAggregatorCallback;
+  /** @internal */
+  public readonly messageType: Constructable;
+  /** @internal */
+  public readonly callback: EventAggregatorCallback;
 
   constructor(messageType: Constructable, callback: EventAggregatorCallback) {
     this.messageType = messageType;
@@ -53,8 +55,10 @@ export type EventAggregatorCallback = (data?: unknown, event?: string) => unknow
  * Enables loosely coupled publish/subscribe messaging.
  */
 export class EventAggregator {
-  public eventLookup: Record<string, EventAggregatorCallback[]>;
-  public messageHandlers: Handler[];
+  /** @internal */
+  public readonly eventLookup: Record<string, EventAggregatorCallback[]>;
+  /** @internal */
+  public readonly messageHandlers: Handler[];
 
   /**
    * Creates an instance of the EventAggregator class.

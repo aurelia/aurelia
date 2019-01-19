@@ -62,7 +62,7 @@ export class App {
       {
         title: 'Authors',
         components: [Authors, About],
-        consideredActive: [Authors as unknown as ICustomElementType],
+        consideredActive: [Authors],
       },
       {
         title: 'Books',

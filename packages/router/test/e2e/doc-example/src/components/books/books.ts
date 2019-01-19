@@ -1,5 +1,5 @@
 import { inject } from '@aurelia//kernel';
-import { customElement } from '@aurelia/runtime';
+import { customElement, ICustomElement } from '@aurelia/runtime';
 import { BooksRepository } from '../../repositories/books';
 
 @customElement({
@@ -18,3 +18,4 @@ export class Books {
 
   get books() { return this.booksRepository.books(); }
 }
+export interface Books extends ICustomElement<HTMLElement> { }

@@ -1,5 +1,5 @@
 import { inject } from '@aurelia/kernel';
-import { customElement } from '@aurelia/runtime';
+import { customElement, ICustomElementType } from '@aurelia/runtime';
 import { Router } from '../../../../../router/src/index';
 import { About } from './components/about';
 import { Authors } from './components/authors/authors';
@@ -62,7 +62,7 @@ export class App {
       {
         title: 'Authors',
         components: [Authors, About],
-        consideredActive: [Authors],
+        consideredActive: [Authors as unknown as ICustomElementType],
       },
       {
         title: 'Books',

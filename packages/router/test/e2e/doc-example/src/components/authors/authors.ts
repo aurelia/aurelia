@@ -1,5 +1,5 @@
 import { inject } from '@aurelia//kernel';
-import { customElement } from '@aurelia/runtime';
+import { customElement, ICustomElement } from '@aurelia/runtime';
 import { AuthorsRepository } from '../../repositories/authors';
 
 @customElement({
@@ -18,3 +18,4 @@ export class Authors {
 
   get authors() { return this.authorsRepository.authors(); }
 }
+export interface Authors extends ICustomElement<HTMLElement> { }

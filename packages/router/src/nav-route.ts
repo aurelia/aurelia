@@ -1,19 +1,10 @@
-// NOTE: this file is currently not in use
-
 import { ICustomElementType, IObserverLocator, IPropertyObserver, LifecycleFlags } from '@aurelia/runtime';
-import { INavRoute, Nav } from './nav';
+import { INavRoute, IViewportComponent, Nav, NavComponent } from './nav';
 import { Router } from './router';
-
-export interface IViewportComponent {
-  viewport?: string;
-  component: string | ICustomElementType;
-}
-
-export type NavComponent = string | ICustomElementType | IViewportComponent;
 
 export class NavRoute {
   public nav: Nav;
-  public components: NavComponent;
+  public components: NavComponent | NavComponent[];
   public title: string;
   public link?: string;
   public linkActive?: string;
@@ -74,7 +65,7 @@ export class NavRoute {
     this.active = (this.active.startsWith('nav-active') ? '' : 'nav-active');
   }
 
-  public _link(components: NavComponent): string {
+  public _link(components: NavComponent | NavComponent[]): string {
     if (Array.isArray(components)) {
       return components.map((value) => this.linkName(value)).join(this.nav.router.separators.sibling);
     } else {

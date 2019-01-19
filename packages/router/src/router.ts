@@ -318,59 +318,6 @@ export class Router {
     }
   }
 
-  // public view(views: string | Record<string, Viewport>, title?: string, data?: Record<string, unknown>): Promise<void> {
-  //   console.log('Router.view:', views, title, data);
-
-  // tslint:disable-next-line:no-commented-code
-  //   if (title) {
-  //     this.historyBrowser.setEntryTitle(title);
-  //   }
-
-  // tslint:disable-next-line:no-commented-code
-  //   const viewports: Viewport[] = [];
-  //   for (const v in views) {
-  //     const component: ICustomElementType = views[v];
-  //     const viewport = this.findViewport(`${v}:${component}`);
-  //     if (viewport.setNextContent(component, { path: '' })) {
-  //       viewports.push(viewport);
-  //     }
-  //   }
-
-  // tslint:disable-next-line:no-commented-code
-  //   // We've gone via a redirected route back to same viewport status so
-  //   // we need to remove the added history entry for the redirect
-  //   if (!viewports.length && this.isRedirecting) {
-  //     this.historyBrowser.cancel();
-  //     this.isRedirecting = false;
-  //   }
-
-  // tslint:disable-next-line:no-commented-code
-  //   let cancel: boolean = false;
-  //   return Promise.all(viewports.map((value) => value.canLeave()))
-  //     .then((promises: boolean[]) => {
-  //       if (cancel || promises.findIndex((value) => value === false) >= 0) {
-  //         cancel = true;
-  //         return Promise.resolve([]);
-  //       } else {
-  //         return Promise.all(viewports.map((value) => value.canEnter()));
-  //       }
-  //     }).then((promises: boolean[]) => {
-  //       if (cancel || promises.findIndex((value) => value === false) >= 0) {
-  //         cancel = true;
-  //         return Promise.resolve([]);
-  //       } else {
-  //         return Promise.all(viewports.map((value) => value.loadContent()));
-  //       }
-  //     }).then(() => {
-  //       if (cancel) {
-  //         this.historyBrowser.cancel();
-  //       }
-  //     }).then(() => {
-  //       const viewports = Object.values(this.viewports).map((value) => value.description()).filter((value) => value && value.length);
-  //       this.historyBrowser.history.replaceState({}, null, '#/' + viewports.join('/'));
-  //     });
-  // }
-
   public findViews(path: string): Record<string, string> {
     const views: Record<string, string> = {};
     // TODO: Let this govern start of scope

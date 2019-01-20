@@ -159,6 +159,8 @@ function define<T extends Constructable>(this: ICustomElementResource, nameOrDef
   proto.$scope = null;
   proto.$hooks = 0;
 
+  proto.$earlyBindableHead = null;
+  proto.$earlyBindableTail = null;
   proto.$bindableHead = null;
   proto.$bindableTail = null;
   proto.$attachableHead = null;

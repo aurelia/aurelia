@@ -35,7 +35,7 @@ export class With<T extends INode = INode> implements With<T>  {
   }
 
   public valueChanged(this: With): void {
-    if (this.$state & State.isBound) {
+    if (this.$state & (State.isBound | State.isBinding)) {
       this.bindChild(LifecycleFlags.fromBindableHandler);
     }
   }

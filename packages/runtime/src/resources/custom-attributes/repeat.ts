@@ -51,10 +51,7 @@ export class Repeat<C extends ObservedCollection = IObservedArray, T extends INo
 
   public binding(flags: LifecycleFlags): void {
     this.checkCollectionObserver(flags);
-  }
-
-  public bound(flags: LifecycleFlags): void {
-    let current = this.renderable.$bindableHead as Binding;
+    let current = this.renderable.$earlyBindableHead as Binding;
     while (current !== null) {
       if (ProxyObserver.getRawIfProxy(current.target) === ProxyObserver.getRawIfProxy(this) && current.targetProperty === 'items') {
         this.forOf = current.sourceExpression as ForOfStatement;
@@ -85,7 +82,7 @@ export class Repeat<C extends ObservedCollection = IObservedArray, T extends INo
     }
   }
 
-  public unbound(flags: LifecycleFlags): void {
+  public unbinding(flags: LifecycleFlags): void {
     this.checkCollectionObserver(flags);
 
     const { views } = this;
@@ -113,7 +110,7 @@ export class Repeat<C extends ObservedCollection = IObservedArray, T extends INo
       flags |= LifecycleFlags.useProxies;
     }
     const { views, $lifecycle } = this;
-    if (this.$state & State.isBound) {
+    if (this.$state & (State.isBound | State.isBinding)) {
       const { local, $scope, factory, forOf, items } = this;
       const oldLength = views.length;
       const newLength = forOf.count(items);
@@ -165,7 +162,7 @@ export class Repeat<C extends ObservedCollection = IObservedArray, T extends INo
       $lifecycle.endBind(flags);
     }
 
-    if (this.$state & State.isAttached) {
+    if (this.$state & (State.isAttached | State.isAttaching)) {
       const { location } = this;
       $lifecycle.beginAttach();
       if (indexMap === null) {

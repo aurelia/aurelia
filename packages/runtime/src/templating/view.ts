@@ -24,6 +24,9 @@ export interface View<T extends INode = INode> extends IView<T> {}
 
 /** @internal */
 export class View<T extends INode = INode> implements IView<T> {
+  public $earlyBindableHead: IBindScope;
+  public $earlyBindableTail: IBindScope;
+
   public $bindableHead: IBindScope;
   public $bindableTail: IBindScope;
 
@@ -52,6 +55,9 @@ export class View<T extends INode = INode> implements IView<T> {
   public readonly $lifecycle: ILifecycle;
 
   constructor($lifecycle: ILifecycle, cache: IViewCache<T>) {
+    this.$earlyBindableHead = null;
+    this.$earlyBindableTail = null;
+
     this.$bindableHead = null;
     this.$bindableTail = null;
 

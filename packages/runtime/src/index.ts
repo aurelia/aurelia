@@ -444,7 +444,8 @@ export {
   instructionRenderer,
   ensureExpression,
   addAttachable,
-  addBindable
+  addBindable,
+  addEarlyBindable
 } from './renderer';
 export {
   CompiledTemplate,

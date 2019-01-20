@@ -319,7 +319,7 @@ describe(`Repeat`, () => {
         sourceExpression: new ForOfStatement(new BindingIdentifier('item'), new AccessScope('items'))
       } as any;
       const renderable: IRenderable<AuNode> = {
-        $bindableHead: binding
+        $earlyBindableHead: binding
       } as any;
       let sut: Repeat<IObservedArray, AuNode>;
       if (useProxies) {

@@ -1,6 +1,6 @@
 import { InterfaceSymbol, IRegistry, Tracer } from '@aurelia/kernel';
 import {
-  addBindable,
+  addEarlyBindable,
   Binding,
   BindingMode,
   BindingType,
@@ -55,7 +55,7 @@ export class TextBindingRenderer implements IInstructionRenderer {
     } else {
       bindable = new InterpolationBinding(expr.firstExpression, expr, next, 'textContent', BindingMode.toView, this.observerLocator, context, true);
     }
-    addBindable(renderable, bindable);
+    addEarlyBindable(renderable, bindable);
     if (Tracer.enabled) { Tracer.leave(); }
   }
 }
@@ -78,7 +78,7 @@ export class ListenerBindingRenderer implements IInstructionRenderer {
     if (Tracer.enabled) { Tracer.enter('ListenerBindingRenderer.render', slice.call(arguments)); }
     const expr = ensureExpression(this.parser, instruction.from, BindingType.IsEventCommand | (instruction.strategy + BindingType.DelegationStrategyDelta));
     const bindable = new Listener(dom, instruction.to, instruction.strategy, expr, target, instruction.preventDefault, this.eventManager, context);
-    addBindable(renderable, bindable);
+    addEarlyBindable(renderable, bindable);
     if (Tracer.enabled) { Tracer.leave(); }
   }
 }
@@ -113,7 +113,7 @@ export class StylePropertyBindingRenderer implements IInstructionRenderer {
     if (Tracer.enabled) { Tracer.enter('StylePropertyBindingRenderer.render', slice.call(arguments)); }
     const expr = ensureExpression(this.parser, instruction.from, BindingType.IsPropertyCommand | BindingMode.toView);
     const bindable = new Binding(expr, target.style, instruction.to, BindingMode.toView, this.observerLocator, context);
-    addBindable(renderable, bindable);
+    addEarlyBindable(renderable, bindable);
     if (Tracer.enabled) { Tracer.leave(); }
   }
 }

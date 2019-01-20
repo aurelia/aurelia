@@ -17,6 +17,9 @@ import { NodeSequenceFactory } from '../../src/dom';
 import { HTMLTestContext } from '../util';
 
 export class FakeView implements IView {
+  public $earlyBindableHead: IBindScope;
+  public $earlyBindableTail: IBindScope;
+
   public $bindableHead: IBindScope;
   public $bindableTail: IBindScope;
 
@@ -45,6 +48,9 @@ export class FakeView implements IView {
   public readonly $lifecycle: ILifecycle;
 
   constructor(ctx: HTMLTestContext) {
+    this.$earlyBindableHead = null;
+    this.$earlyBindableTail = null;
+
     this.$bindableHead = null;
     this.$bindableTail = null;
 

@@ -14,6 +14,8 @@ export class FakeRenderable implements IRenderable {
   public $hooks: ICustomElement['$hooks'] = 0;
   public $state: ICustomElement['$state'] = 0;
 
+  public $earlyBindableHead: ICustomElement['$earlyBindableHead'] = null;
+  public $earlyBindableTail: ICustomElement['$earlyBindableTail'] = null;
   public $bindableHead: ICustomElement['$bindableHead'] = null;
   public $bindableTail: ICustomElement['$bindableTail'] = null;
   public $attachableHead: ICustomElement['$attachableHead'] = null;

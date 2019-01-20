@@ -202,25 +202,23 @@ describe('template-compiler.custom-elements', () => {
 
       switch (i) {
         case 0: // root component -> foo1
-          cur = current.$bindableHead;
+          cur = current.$earlyBindableHead;
           expect(cur).to.be.instanceof(Binding);
           expect(cur._observer0).be.instanceof(SetterObserver);
           expect(cur._observer1).to.equal(undefined);
           expect(cur.targetObserver).to.be.instanceof(PropertyAccessor);
 
           cur = cur.$nextBind;
-          expect(cur).to.be.instanceof(childCtor);
-
-          cur = cur.$nextBind;
           expect(cur).to.be.instanceof(InterpolationBinding);
           expect(cur.target.nodeName).to.equal('#text');
           expect(cur.targetObserver).to.be.instanceof(ElementPropertyAccessor);
-
           expect(cur.$nextBind).to.equal(null, 'cur.$nextBind');
-          current = cur.$prevBind;
+
+          cur = current = current.$bindableHead;
+          expect(cur).to.be.instanceof(childCtor, `cur.$bindableHead ${i}`);
           break;
         case 1: // foo1 -> foo2
-          cur = current.$bindableHead;
+          cur = current.$earlyBindableHead;
           expect(cur).to.be.instanceof(Binding);
           expect(cur._observer0).be.instanceof(SelfObserver);
           expect(cur._observer1).to.equal(undefined);
@@ -233,19 +231,18 @@ describe('template-compiler.custom-elements', () => {
           expect(cur.targetObserver).to.be.instanceof(PropertyAccessor);
 
           cur = cur.$nextBind;
-          expect(cur).to.be.instanceof(childCtor);
-
-          cur = cur.$nextBind;
           expect(cur).to.be.instanceof(InterpolationBinding);
           expect(cur.target.nodeName).to.equal('#text');
           expect(cur.targetObserver).to.be.instanceof(ElementPropertyAccessor);
           expect(cur.$nextBind).to.equal(null, 'cur.$nextBind');
-          current = cur.$prevBind;
+
+          cur = current = current.$bindableHead;
+          expect(cur).to.be.instanceof(childCtor, `cur.$bindableHead ${i}`);
           break;
         case 2:
         case 3:
         case 4: // foo2 -> foo3-5
-          cur = current.$bindableHead;
+          cur = current.$earlyBindableHead;
           expect(cur).to.be.instanceof(Binding);
           expect(cur._observer0).be.instanceof(SelfObserver);
           expect(cur._observer1).to.equal(undefined);
@@ -256,16 +253,15 @@ describe('template-compiler.custom-elements', () => {
           expect(cur._observer0).be.instanceof(SelfObserver);
           expect(cur._observer1).to.equal(undefined);
           expect(cur.targetObserver).to.be.instanceof(PropertyAccessor);
-
-          cur = cur.$nextBind;
-          expect(cur).to.be.instanceof(childCtor);
 
           cur = cur.$nextBind;
           expect(cur).to.be.instanceof(InterpolationBinding);
           expect(cur.target.nodeName).to.equal('#text');
           expect(cur.targetObserver).to.be.instanceof(ElementPropertyAccessor);
           expect(cur.$nextBind).to.equal(null, 'cur.$nextBind');
-          current = cur.$prevBind;
+
+          cur = current = current.$bindableHead;
+          expect(cur).to.be.instanceof(childCtor, `cur.$bindableHead ${i}`);
       }
 
       i++;

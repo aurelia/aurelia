@@ -140,6 +140,19 @@ export function ensureExpression<TFrom>(parser: IExpressionParser, srcOrExpr: TF
   return srcOrExpr as Exclude<TFrom, string>;
 }
 
+export function addEarlyBindable(renderable: IRenderable, bindable: IBindScope): void {
+  if (Tracer.enabled) { Tracer.enter('addEarlyBindable', slice.call(arguments)); }
+  bindable.$prevBind = renderable.$earlyBindableTail;
+  bindable.$nextBind = null;
+  if (renderable.$earlyBindableTail === null) {
+    renderable.$earlyBindableHead = bindable;
+  } else {
+    renderable.$earlyBindableTail.$nextBind = bindable;
+  }
+  renderable.$earlyBindableTail = bindable;
+  if (Tracer.enabled) { Tracer.leave(); }
+}
+
 export function addBindable(renderable: IRenderable, bindable: IBindScope): void {
   if (Tracer.enabled) { Tracer.enter('addBindable', slice.call(arguments)); }
   bindable.$prevBind = renderable.$bindableTail;
@@ -309,7 +322,7 @@ export class LetElementRenderer implements IInstructionRenderer {
       const childInstruction = childInstructions[i];
       const expr = ensureExpression(this.parser, childInstruction.from, BindingType.IsPropertyCommand);
       const bindable = new LetBinding(expr, childInstruction.to, this.observerLocator, context, toViewModel);
-      addBindable(renderable, bindable);
+      addEarlyBindable(renderable, bindable);
     }
     if (Tracer.enabled) { Tracer.leave(); }
   }
@@ -333,7 +346,7 @@ export class CallBindingRenderer implements IInstructionRenderer {
     if (Tracer.enabled) { Tracer.enter('CallBindingRenderer.render', slice.call(arguments)); }
     const expr = ensureExpression(this.parser, instruction.from, BindingType.CallCommand);
     const bindable = new Call(expr, target, instruction.to, this.observerLocator, context);
-    addBindable(renderable, bindable);
+    addEarlyBindable(renderable, bindable);
     if (Tracer.enabled) { Tracer.leave(); }
   }
 }
@@ -354,7 +367,7 @@ export class RefBindingRenderer implements IInstructionRenderer {
     if (Tracer.enabled) { Tracer.enter('RefBindingRenderer.render', slice.call(arguments)); }
     const expr = ensureExpression(this.parser, instruction.from, BindingType.IsRef);
     const bindable = new Ref(expr, target, context);
-    addBindable(renderable, bindable);
+    addEarlyBindable(renderable, bindable);
     if (Tracer.enabled) { Tracer.leave(); }
   }
 }
@@ -382,7 +395,7 @@ export class InterpolationBindingRenderer implements IInstructionRenderer {
     } else {
       bindable = new InterpolationBinding(expr.firstExpression, expr, target, instruction.to, BindingMode.toView, this.observerLocator, context, true);
     }
-    addBindable(renderable, bindable);
+    addEarlyBindable(renderable, bindable);
     if (Tracer.enabled) { Tracer.leave(); }
   }
 }
@@ -405,7 +418,7 @@ export class PropertyBindingRenderer implements IInstructionRenderer {
     if (Tracer.enabled) { Tracer.enter('PropertyBindingRenderer.render', slice.call(arguments)); }
     const expr = ensureExpression(this.parser, instruction.from, BindingType.IsPropertyCommand | instruction.mode);
     const bindable = new Binding(expr, target, instruction.to, instruction.mode, this.observerLocator, context);
-    addBindable(renderable, bindable);
+    addEarlyBindable(renderable, bindable);
     if (Tracer.enabled) { Tracer.leave(); }
   }
 }
@@ -428,7 +441,7 @@ export class IteratorBindingRenderer implements IInstructionRenderer {
     if (Tracer.enabled) { Tracer.enter('IteratorBindingRenderer.render', slice.call(arguments)); }
     const expr = ensureExpression(this.parser, instruction.from, BindingType.ForCommand);
     const bindable = new Binding(expr, target, instruction.to, BindingMode.toView, this.observerLocator, context);
-    addBindable(renderable, bindable);
+    addEarlyBindable(renderable, bindable);
     if (Tracer.enabled) { Tracer.leave(); }
   }
 }

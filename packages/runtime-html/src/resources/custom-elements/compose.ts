@@ -16,7 +16,8 @@ import {
   IViewFactory,
   LifecycleFlags,
   TargetedInstruction,
-  TemplateDefinition
+  TemplateDefinition,
+  ICustomElementType
 } from '@aurelia/runtime';
 import { createElement, RenderPlan } from '../../create-element';
 
@@ -24,6 +25,21 @@ const composeSource: ITemplateDefinition = {
   name: 'au-compose',
   containerless: true
 };
+
+
+export interface IViewportComponent<T extends INode = INode> {
+  viewport?: string;
+  component: string | Partial<ICustomElementType<T>>;
+}
+
+export interface Books extends ICustomElement<HTMLElement> {}
+export class Books implements Books {
+}
+
+const viewport: IViewportComponent = {
+  component: Books
+}
+
 
 const composeProps = ['subject', 'composing'];
 

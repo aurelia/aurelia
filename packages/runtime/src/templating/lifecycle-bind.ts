@@ -78,11 +78,17 @@ export function $bindElement(this: Writable<IBindable>, flags: LifecycleFlags, p
     lifecycle.enqueueBound(this);
   }
 
+  let current = this.$earlyBindableHead;
+  while (current !== null) {
+    current.$bind(flags, scope);
+    current = current.$nextBind;
+  }
+
   if (hooks & Hooks.hasBinding) {
     this.binding(flags);
   }
 
-  let current = this.$bindableHead;
+  current = this.$bindableHead;
   while (current !== null) {
     current.$bind(flags, scope);
     current = current.$nextBind;
@@ -114,7 +120,14 @@ export function $bindView(this: Writable<IBindable>, flags: LifecycleFlags, scop
   this.$state |= State.isBinding;
 
   this.$scope = scope;
-  let current = this.$bindableHead;
+
+  let current = this.$earlyBindableHead;
+  while (current !== null) {
+    current.$bind(flags, scope);
+    current = current.$nextBind;
+  }
+
+  current = this.$bindableHead;
   while (current !== null) {
     current.$bind(flags, scope);
     current = current.$nextBind;
@@ -170,11 +183,17 @@ export function $unbindElement(this: Writable<IBindable>, flags: LifecycleFlags)
       lifecycle.enqueueUnbound(this);
     }
 
+    let current = this.$earlyBindableTail;
+    while (current !== null) {
+      current.$unbind(flags);
+      current = current.$prevBind;
+    }
+
     if (hooks & Hooks.hasUnbinding) {
       this.unbinding(flags);
     }
 
-    let current = this.$bindableTail;
+    current = this.$bindableTail;
     while (current !== null) {
       current.$unbind(flags);
       current = current.$prevBind;
@@ -199,7 +218,13 @@ export function $unbindView(this: Writable<IBindable>, flags: LifecycleFlags): v
 
     flags |= LifecycleFlags.fromUnbind;
 
-    let current = this.$bindableTail;
+    let current = this.$earlyBindableTail;
+    while (current !== null) {
+      current.$unbind(flags);
+      current = current.$prevBind;
+    }
+
+    current = this.$bindableTail;
     while (current !== null) {
       current.$unbind(flags);
       current = current.$prevBind;

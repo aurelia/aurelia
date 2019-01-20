@@ -16,6 +16,9 @@ import {
 import { AuDOM, AuNode, AuNodeSequence } from '../au-dom';
 
 export class FakeView implements IView<AuNode> {
+  public $earlyBindableHead: IBindScope;
+  public $earlyBindableTail: IBindScope;
+
   public $bindableHead: IBindScope;
   public $bindableTail: IBindScope;
 
@@ -44,6 +47,9 @@ export class FakeView implements IView<AuNode> {
   public readonly $lifecycle: ILifecycle;
 
   constructor($lifecycle: ILifecycle) {
+    this.$earlyBindableHead = null;
+    this.$earlyBindableTail = null;
+
     this.$bindableHead = null;
     this.$bindableTail = null;
 

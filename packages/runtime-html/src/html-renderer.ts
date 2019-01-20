@@ -1,6 +1,6 @@
 import { InterfaceSymbol, IRegistry, Tracer } from '@aurelia/kernel';
 import {
-  addBindable,
+  addBinding,
   Binding,
   BindingMode,
   BindingType,
@@ -48,14 +48,14 @@ export class TextBindingRenderer implements IInstructionRenderer {
     if (dom.isMarker(target)) {
       dom.remove(target);
     }
-    let bindable: MultiInterpolationBinding | InterpolationBinding;
+    let binding: MultiInterpolationBinding | InterpolationBinding;
     const expr = ensureExpression(this.parser, instruction.from, BindingType.Interpolation);
     if (expr.isMulti) {
-      bindable = new MultiInterpolationBinding(this.observerLocator, expr, next, 'textContent', BindingMode.toView, context);
+      binding = new MultiInterpolationBinding(this.observerLocator, expr, next, 'textContent', BindingMode.toView, context);
     } else {
-      bindable = new InterpolationBinding(expr.firstExpression, expr, next, 'textContent', BindingMode.toView, this.observerLocator, context, true);
+      binding = new InterpolationBinding(expr.firstExpression, expr, next, 'textContent', BindingMode.toView, this.observerLocator, context, true);
     }
-    addBindable(renderable, bindable);
+    addBinding(renderable, binding);
     if (Tracer.enabled) { Tracer.leave(); }
   }
 }
@@ -77,8 +77,8 @@ export class ListenerBindingRenderer implements IInstructionRenderer {
   public render(flags: LifecycleFlags, dom: IDOM, context: IRenderContext, renderable: IRenderable, target: HTMLElement, instruction: IListenerBindingInstruction): void {
     if (Tracer.enabled) { Tracer.enter('ListenerBindingRenderer.render', slice.call(arguments)); }
     const expr = ensureExpression(this.parser, instruction.from, BindingType.IsEventCommand | (instruction.strategy + BindingType.DelegationStrategyDelta));
-    const bindable = new Listener(dom, instruction.to, instruction.strategy, expr, target, instruction.preventDefault, this.eventManager, context);
-    addBindable(renderable, bindable);
+    const binding = new Listener(dom, instruction.to, instruction.strategy, expr, target, instruction.preventDefault, this.eventManager, context);
+    addBinding(renderable, binding);
     if (Tracer.enabled) { Tracer.leave(); }
   }
 }
@@ -112,8 +112,8 @@ export class StylePropertyBindingRenderer implements IInstructionRenderer {
   public render(flags: LifecycleFlags, dom: IDOM, context: IRenderContext, renderable: IRenderable, target: HTMLElement, instruction: IStylePropertyBindingInstruction): void {
     if (Tracer.enabled) { Tracer.enter('StylePropertyBindingRenderer.render', slice.call(arguments)); }
     const expr = ensureExpression(this.parser, instruction.from, BindingType.IsPropertyCommand | BindingMode.toView);
-    const bindable = new Binding(expr, target.style, instruction.to, BindingMode.toView, this.observerLocator, context);
-    addBindable(renderable, bindable);
+    const binding = new Binding(expr, target.style, instruction.to, BindingMode.toView, this.observerLocator, context);
+    addBinding(renderable, binding);
     if (Tracer.enabled) { Tracer.leave(); }
   }
 }

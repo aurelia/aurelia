@@ -1,6 +1,6 @@
 import { IIndexable, Reporter, StrictPrimitive, Tracer } from '@aurelia/kernel';
 import { LifecycleFlags } from '../flags';
-import { IBindScope } from '../lifecycle';
+import { IBinding } from '../lifecycle';
 import {
   IBindingContext,
   IOverrideContext,
@@ -87,7 +87,7 @@ export class BindingContext implements IBindingContext {
     return bc;
   }
 
-  public static get(scope: IScope, name: string, ancestor: number, flags: LifecycleFlags): IBindingContext | IOverrideContext | IBindScope {
+  public static get(scope: IScope, name: string, ancestor: number, flags: LifecycleFlags): IBindingContext | IOverrideContext | IBinding {
     if (Tracer.enabled) { Tracer.enter('BindingContext.get', slice.call(arguments)); }
     if (scope === undefined) {
       throw Reporter.error(RuntimeError.UndefinedScope);
@@ -159,13 +159,13 @@ export class BindingContext implements IBindingContext {
 }
 
 export class Scope implements IScope {
-  public bindingContext: IBindingContext | IBindScope;
+  public bindingContext: IBindingContext | IBinding;
   public overrideContext: IOverrideContext;
   // parentScope is strictly internal API and mainly for replaceable template controller.
   // NOT intended for regular scope traversal!
   /** @internal */public readonly parentScope: IScope | null;
 
-  private constructor(bindingContext: IBindingContext | IBindScope, overrideContext: IOverrideContext) {
+  private constructor(bindingContext: IBindingContext | IBinding, overrideContext: IOverrideContext) {
     this.bindingContext = bindingContext;
     this.overrideContext = overrideContext;
     this.parentScope = null;
@@ -178,7 +178,7 @@ export class Scope implements IScope {
    * or when you simply want to prevent binding expressions from traversing up the scope.
    * @param bc The `BindingContext` to back the `Scope` with.
    */
-  public static create(flags: LifecycleFlags, bc: IBindingContext | IBindScope): Scope;
+  public static create(flags: LifecycleFlags, bc: IBindingContext | IBinding): Scope;
   /**
    * Create a new `Scope` backed by the provided `BindingContext` and `OverrideContext`.
    *
@@ -188,7 +188,7 @@ export class Scope implements IScope {
    * during binding, it will traverse up via the `parentOverrideContext` of the `OverrideContext` until
    * it finds the property.
    */
-  public static create(flags: LifecycleFlags, bc: IBindingContext | IBindScope, oc: IOverrideContext): Scope;
+  public static create(flags: LifecycleFlags, bc: IBindingContext | IBinding, oc: IOverrideContext): Scope;
   /**
    * Create a new `Scope` backed by the provided `BindingContext` and `OverrideContext`.
    *
@@ -198,8 +198,8 @@ export class Scope implements IScope {
    * @param bc The `BindingContext` to back the `Scope` with.
    * @param oc null. This overload is functionally equivalent to not passing this argument at all.
    */
-  public static create(flags: LifecycleFlags, bc: IBindingContext | IBindScope, oc: null): Scope;
-  public static create(flags: LifecycleFlags, bc: IBindingContext | IBindScope, oc?: IOverrideContext | null): Scope {
+  public static create(flags: LifecycleFlags, bc: IBindingContext | IBinding, oc: null): Scope;
+  public static create(flags: LifecycleFlags, bc: IBindingContext | IBinding, oc?: IOverrideContext | null): Scope {
     if (Tracer.enabled) { Tracer.enter('Scope.create', slice.call(arguments)); }
     if (Tracer.enabled) { Tracer.leave(); }
     return new Scope(bc, oc === null || oc === undefined ? OverrideContext.create(flags, bc, oc) : oc);
@@ -214,7 +214,7 @@ export class Scope implements IScope {
     return new Scope(oc.bindingContext, oc);
   }
 
-  public static fromParent(flags: LifecycleFlags, ps: IScope | null, bc: IBindingContext | IBindScope): Scope {
+  public static fromParent(flags: LifecycleFlags, ps: IScope | null, bc: IBindingContext | IBinding): Scope {
     if (Tracer.enabled) { Tracer.enter('Scope.fromParent', slice.call(arguments)); }
     if (ps === null || ps === undefined) {
       throw Reporter.error(RuntimeError.NilParentScope);
@@ -228,16 +228,16 @@ export class OverrideContext implements IOverrideContext {
   [key: string]: ObservedCollection | StrictPrimitive | IIndexable;
 
   public readonly $synthetic: true;
-  public bindingContext: IBindingContext | IBindScope;
+  public bindingContext: IBindingContext | IBinding;
   public parentOverrideContext: IOverrideContext | null;
 
-  private constructor(bindingContext: IBindingContext | IBindScope, parentOverrideContext: IOverrideContext | null) {
+  private constructor(bindingContext: IBindingContext | IBinding, parentOverrideContext: IOverrideContext | null) {
     this.$synthetic = true;
     this.bindingContext = bindingContext;
     this.parentOverrideContext = parentOverrideContext;
   }
 
-  public static create(flags: LifecycleFlags, bc: IBindingContext | IBindScope, poc: IOverrideContext | null): OverrideContext {
+  public static create(flags: LifecycleFlags, bc: IBindingContext | IBinding, poc: IOverrideContext | null): OverrideContext {
     if (Tracer.enabled) { Tracer.enter('OverrideContext.create', slice.call(arguments)); }
     if (Tracer.enabled) { Tracer.leave(); }
     return new OverrideContext(bc, poc === undefined ? null : poc);

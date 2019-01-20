@@ -55,7 +55,7 @@
 //   const factory = new ViewFactory(null, new MockTextNodeTemplate(expressions.item, observerLocator, container) as any, lifecycle);
 //   const renderable = { } as any;
 //   const sut = new Repeat<T>(location, renderable, factory);
-//   renderable.$bindableHead = renderable.$bindableTail = new Binding(expressions.items, sut, 'items', BindingMode.toView, null, container as any);
+//   renderable.$componentHead = renderable.$componentTail = new Binding(expressions.items, sut, 'items', BindingMode.toView, null, container as any);
 //   sut.$state = 0;
 //   sut.$scope = null;
 //   const behavior = RuntimeBehavior.create(Repeat as any, sut);

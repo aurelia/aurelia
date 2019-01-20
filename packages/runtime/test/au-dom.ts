@@ -13,7 +13,7 @@ import {
 } from '../../jit/src/index';
 import { TargetedInstruction } from '../dist';
 import {
-  addBindable,
+  addBinding,
   Aurelia,
   BasicConfiguration,
   Binding,
@@ -600,7 +600,7 @@ export class AuTextRenderer implements IInstructionRenderer {
       realTarget = target;
     }
     const bindable = new Binding(instruction.from, realTarget, 'textContent', BindingMode.toView, this.observerLocator, context);
-    addBindable(renderable, bindable);
+    addBinding(renderable, bindable);
     if (Tracer.enabled) { Tracer.leave(); }
   }
 }

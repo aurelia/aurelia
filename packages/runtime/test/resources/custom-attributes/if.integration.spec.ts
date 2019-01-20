@@ -7,7 +7,7 @@ import {
 } from '../../../../../scripts/test-lib';
 import {
   AccessScope,
-  addBindable,
+  addBinding,
   Binding,
   BindingContext,
   BindingMode,
@@ -193,7 +193,7 @@ describe(`If/Else`, () => {
           binding.persistentFlags |= baseFlags;
 
           (renderable as Writable<typeof renderable>).$nodes = nodes;
-          addBindable(renderable, binding);
+          addBinding(renderable, binding);
         }
       };
 
@@ -209,7 +209,7 @@ describe(`If/Else`, () => {
           binding.persistentFlags |= baseFlags;
 
           (renderable as Writable<typeof renderable>).$nodes = nodes;
-          addBindable(renderable, binding);
+          addBinding(renderable, binding);
         }
       };
 

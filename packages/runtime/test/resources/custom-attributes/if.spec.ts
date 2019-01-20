@@ -1,7 +1,7 @@
 import { expect } from 'chai';
 import {
   Else,
-  IAttach,
+  IComponent,
   If,
   IView,
   LifecycleFlags
@@ -132,13 +132,13 @@ describe('The "if" template controller', () => {
     return ifAttr['coordinator']['currentView'] as IView<AuNode>;
   }
 
-  function runAttachLifecycle(lifecycle: Lifecycle, item: IAttach) {
+  function runAttachLifecycle(lifecycle: Lifecycle, item: IComponent) {
     lifecycle.beginAttach();
     item.$attach(LifecycleFlags.none);
     lifecycle.endAttach(LifecycleFlags.none);
   }
 
-  function runDetachLifecycle(lifecycle: Lifecycle, item: IAttach) {
+  function runDetachLifecycle(lifecycle: Lifecycle, item: IComponent) {
     lifecycle.beginDetach();
     item.$detach(LifecycleFlags.none);
     lifecycle.endDetach(LifecycleFlags.none);

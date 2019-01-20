@@ -6,7 +6,6 @@ import {
   InterfaceSymbol,
   IResolver,
   IServiceLocator,
-  Omit,
   PLATFORM,
   Registration,
   Tracer
@@ -28,21 +27,31 @@ export interface IState {
   $lifecycle?: ILifecycle;
 }
 
+export interface IBinding {
+  readonly $nextBinding: IBinding | null;
+  readonly $prevBinding: IBinding | null;
+  readonly locator: IServiceLocator;
+  readonly $scope: IScope | null;
+  readonly $state: State;
+  $bind(flags: LifecycleFlags, scope: IScope): void;
+  $unbind(flags: LifecycleFlags): void;
+}
+
 /**
  * An object containing the necessary information to render something for display.
  */
 export interface IRenderable<T extends INode = INode> extends IState {
   /**
-   * The Bindings, Views, CustomElements, CustomAttributes and other bindable components that belong to this instance.
+   * The Bindings that belong to this instance.
    */
-  $bindableHead?: IBindScope;
-  $bindableTail?: IBindScope;
+  $bindingHead?: IBinding;
+  $bindingTail?: IBinding;
 
   /**
-   * The Views, CustomElements, CustomAttributes and other attachable components that belong to this instance.
+   * The Views, CustomElements, CustomAttributes and other components that are children of this instance.
    */
-  $attachableHead?: IAttach;
-  $attachableTail?: IAttach;
+  $componentHead?: IComponent;
+  $componentTail?: IComponent;
 
   /**
    * The (dependency) context of this instance.
@@ -74,7 +83,7 @@ export interface IRenderContext<T extends INode = INode> extends IServiceLocator
   beginComponentOperation(renderable: IRenderable<T>, target: object, instruction: Immutable<ITargetedInstruction>, factory?: IViewFactory<T>, parts?: TemplatePartDefinitions, location?: IRenderLocation<T>, locationIsContainer?: boolean): IDisposable;
 }
 
-export interface IView<T extends INode = INode> extends IBindScope, IRenderable<T>, IAttach, IMountable {
+export interface IView<T extends INode = INode> extends IRenderable<T>, IComponent, IMountable {
   readonly cache: IViewCache<T>;
   readonly isFree: boolean;
   readonly location: IRenderLocation<T>;
@@ -299,23 +308,15 @@ export interface ILifecycleHooks extends IHooks, IState {
   caching?(flags: LifecycleFlags): void;
 }
 
-export interface ILifecycleCache {
-  $cache(flags: LifecycleFlags): void;
-}
-
-export interface ICachable extends ILifecycleCache { }
-
-export interface ILifecycleAttach {
+export interface IComponent {
+  readonly $nextComponent: IComponent | null;
+  readonly $prevComponent: IComponent | null;
+  $nextUnbindAfterDetach: IComponent | null;
+  $bind(flags: LifecycleFlags, scope?: IScope): void;
+  $unbind(flags: LifecycleFlags): void;
   $attach(flags: LifecycleFlags): void;
-}
-
-export interface ILifecycleDetach {
   $detach(flags: LifecycleFlags): void;
-}
-
-export interface IAttach extends ILifecycleAttach, ILifecycleDetach, ICachable {
-  /** @internal */$nextAttach: IAttach;
-  /** @internal */$prevAttach: IAttach;
+  $cache(flags: LifecycleFlags): void;
 }
 
 export interface ILifecycleMount {
@@ -340,32 +341,6 @@ export interface ILifecycleUnmount {
   $unmount(flags: LifecycleFlags): boolean | void;
 }
 export interface IMountable extends ILifecycleMount, ILifecycleUnmount { }
-
-export interface ILifecycleUnbind {
-  $state?: State;
-  $unbind(flags: LifecycleFlags): void;
-}
-
-export interface ILifecycleUnbindAfterDetach extends ILifecycleUnbind {
-  $nextUnbindAfterDetach?: ILifecycleUnbindAfterDetach;
-}
-
-export interface ILifecycleBind {
-  $state?: State;
-  $bind(flags: LifecycleFlags, scope?: IScope): void;
-}
-
-export interface ILifecycleBindScope {
-  $state?: State;
-  $bind(flags: LifecycleFlags, scope: IScope): void;
-}
-
-export interface IBind extends ILifecycleBind, ILifecycleUnbind {
-  /** @internal */$nextBind: IBindScope;
-  /** @internal */$prevBind: IBindScope;
-}
-
-export interface IBindScope extends Omit<IBind, '$bind'>, ILifecycleBindScope { }
 
 const marker = Object.freeze(Object.create(null));
 
@@ -568,7 +543,7 @@ export interface ILifecycle {
    * This method is idempotent; adding the same item more than once has the same effect as
    * adding it once.
    */
-  enqueueUnbindAfterDetach(requestor: ILifecycleUnbind): void;
+  enqueueUnbindAfterDetach(requestor: IComponent): void;
 
   /**
    * Close / shrink a detach batch for invoking queued `$unmount` and `detached` callbacks.
@@ -618,8 +593,8 @@ export class Lifecycle implements ILifecycle {
   /** @internal */public detachedHead: ILifecycleHooks;
   /** @internal */public detachedTail: ILifecycleHooks;
 
-  /** @internal */public unbindAfterDetachHead: ILifecycleUnbindAfterDetach;
-  /** @internal */public unbindAfterDetachTail: ILifecycleUnbindAfterDetach;
+  /** @internal */public unbindAfterDetachHead: IComponent;
+  /** @internal */public unbindAfterDetachTail: IComponent;
 
   /** @internal */public unboundHead: ILifecycleHooks;
   /** @internal */public unboundTail: ILifecycleHooks;
@@ -657,8 +632,8 @@ export class Lifecycle implements ILifecycle {
   /** @internal */public $unmount: ILifecycleUnmount['$unmount'];
   /** @internal */public $nextDetached: ILifecycleHooks;
   /** @internal */public detached: ILifecycleHooks['detached'];
-  /** @internal */public $nextUnbindAfterDetach: ILifecycleUnbindAfterDetach;
-  /** @internal */public $unbind: ILifecycleUnbindAfterDetach['$unbind'];
+  /** @internal */public $nextUnbindAfterDetach: IComponent;
+  /** @internal */public $unbind: IComponent['$unbind'];
   /** @internal */public $nextUnbound: ILifecycleHooks;
   /** @internal */public unbound: ILifecycleHooks['unbound'];
 
@@ -694,8 +669,8 @@ export class Lifecycle implements ILifecycle {
     this.detachedHead = this; //LOL
     this.detachedTail = this;
 
-    this.unbindAfterDetachHead = this;
-    this.unbindAfterDetachTail = this;
+    this.unbindAfterDetachHead = this as unknown as IComponent;
+    this.unbindAfterDetachTail = this as unknown as IComponent;
 
     this.unboundHead = this;
     this.unboundTail = this;
@@ -1140,7 +1115,7 @@ export class Lifecycle implements ILifecycle {
     if (Tracer.enabled) { Tracer.leave(); }
   }
 
-  public enqueueUnbindAfterDetach(requestor: ILifecycleUnbindAfterDetach): void {
+  public enqueueUnbindAfterDetach(requestor: IComponent): void {
     if (Tracer.enabled) { Tracer.enter('Lifecycle.enqueueUnbindAfterDetach', slice.call(arguments)); }
     // This method is idempotent; adding the same item more than once has the same effect as
     // adding it once.
@@ -1209,7 +1184,7 @@ export class Lifecycle implements ILifecycle {
       this.beginUnbind();
       this.unbindAfterDetachCount = 0;
       let currentUnbind = this.unbindAfterDetachHead.$nextUnbindAfterDetach;
-      this.unbindAfterDetachHead = this.unbindAfterDetachTail = this;
+      this.unbindAfterDetachHead = this.unbindAfterDetachTail = this as unknown as IComponent;
       let nextUnbind: typeof currentUnbind;
 
       do {

@@ -2,10 +2,9 @@ import { Reporter, Tracer } from '@aurelia/kernel';
 import { INode, INodeSequence, IRenderLocation } from '../dom';
 import { LifecycleFlags, State } from '../flags';
 import {
-  IAttach,
-  IBindScope,
+  IBinding,
+  IComponent,
   ILifecycle,
-  ILifecycleUnbind,
   IMountable,
   IRenderContext,
   IView,
@@ -15,7 +14,7 @@ import {
 import { IScope } from '../observation';
 import { ITemplate } from '../rendering-engine';
 import { $attachView, $cacheView, $detachView, $mountView, $unmountView } from './lifecycle-attach';
-import { $bindView, $unbindView } from './lifecycle-bind';
+import { $bindView, $lockedBind, $lockedUnbind, $unbindView } from './lifecycle-bind';
 
 const slice = Array.prototype.slice;
 
@@ -24,22 +23,19 @@ export interface View<T extends INode = INode> extends IView<T> {}
 
 /** @internal */
 export class View<T extends INode = INode> implements IView<T> {
-  public $bindableHead: IBindScope;
-  public $bindableTail: IBindScope;
+  public $bindingHead: IBinding;
+  public $bindingTail: IBinding;
 
-  public $nextBind: IBindScope;
-  public $prevBind: IBindScope;
+  public $componentHead: IComponent;
+  public $componentTail: IComponent;
 
-  public $attachableHead: IAttach;
-  public $attachableTail: IAttach;
-
-  public $nextAttach: IAttach;
-  public $prevAttach: IAttach;
+  public $nextComponent: IComponent;
+  public $prevComponent: IComponent;
 
   public $nextMount: IMountable;
   public $nextUnmount: IMountable;
 
-  public $nextUnbindAfterDetach: ILifecycleUnbind;
+  public $nextUnbindAfterDetach: IComponent;
 
   public $state: State;
   public $scope: IScope;
@@ -52,17 +48,17 @@ export class View<T extends INode = INode> implements IView<T> {
   public readonly $lifecycle: ILifecycle;
 
   constructor($lifecycle: ILifecycle, cache: IViewCache<T>) {
-    this.$bindableHead = null;
-    this.$bindableTail = null;
+    this.$bindingHead = null;
+    this.$bindingTail = null;
 
-    this.$nextBind = null;
-    this.$prevBind = null;
+    this.$componentHead = null;
+    this.$componentTail = null;
 
-    this.$attachableHead = null;
-    this.$attachableTail = null;
+    this.$componentHead = null;
+    this.$componentTail = null;
 
-    this.$nextAttach = null;
-    this.$prevAttach = null;
+    this.$nextComponent = null;
+    this.$prevComponent = null;
 
     this.$nextMount = null;
     this.$nextUnmount = null;
@@ -116,8 +112,8 @@ export class View<T extends INode = INode> implements IView<T> {
   public lockScope(scope: IScope): void {
     if (Tracer.enabled) { Tracer.enter('View.lockScope', slice.call(arguments)); }
     this.$scope = scope;
-    this.$bind = lockedBind;
-    this.$unbind = lockedUnbind;
+    this.$bind = $lockedBind;
+    this.$unbind = $lockedUnbind;
     if (Tracer.enabled) { Tracer.leave(); }
   }
 
@@ -198,45 +194,6 @@ export class ViewFactory<T extends INode = INode> implements IViewFactory<T> {
     }
     return view;
   }
-}
-
-function lockedBind<T extends INode = INode>(this: View<T>, flags: LifecycleFlags): void {
-  if (Tracer.enabled) { Tracer.enter(`View.lockedBind`, slice.call(arguments)); }
-  if (this.$state & State.isBound) {
-    if (Tracer.enabled) { Tracer.leave(); }
-    return;
-  }
-
-  flags |= LifecycleFlags.fromBind;
-  const lockedScope = this.$scope;
-  let current = this.$bindableHead;
-  while (current !== null) {
-    current.$bind(flags, lockedScope);
-    current = current.$nextBind;
-  }
-
-  this.$state |= State.isBound;
-  if (Tracer.enabled) { Tracer.leave(); }
-}
-
-function lockedUnbind<T extends INode = INode>(this: IView<T>, flags: LifecycleFlags): void {
-  if (Tracer.enabled) { Tracer.enter(`View.lockedUnbind`, slice.call(arguments)); }
-  if (this.$state & State.isBound) {
-    // add isUnbinding flag
-    this.$state |= State.isUnbinding;
-
-    flags |= LifecycleFlags.fromUnbind;
-
-    let current = this.$bindableTail;
-    while (current !== null) {
-      current.$unbind(flags);
-      current = current.$prevBind;
-    }
-
-    // remove isBound and isUnbinding flags
-    this.$state &= ~(State.isBound | State.isUnbinding);
-  }
-  if (Tracer.enabled) { Tracer.leave(); }
 }
 
 ((proto: IView): void => {

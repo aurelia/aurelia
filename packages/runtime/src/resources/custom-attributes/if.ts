@@ -1,7 +1,7 @@
 import { Constructable, InterfaceSymbol, IRegistry } from '@aurelia/kernel';
 import { AttributeDefinition, IAttributeDefinition } from '../../definitions';
 import { INode, IRenderLocation } from '../../dom';
-import { LifecycleFlags } from '../../flags';
+import { LifecycleFlags, State } from '../../flags';
 import { CompositionCoordinator, IView, IViewFactory } from '../../lifecycle';
 import { ProxyObserver } from '../../observation/proxy-observer';
 import { bindable } from '../../templating/bindable';
@@ -71,14 +71,16 @@ export class If<T extends INode = INode> implements If<T> {
   }
 
   public valueChanged(newValue: boolean, oldValue: boolean, flags: LifecycleFlags): void {
-    if (ProxyObserver.isProxy(this)) {
-      flags |= LifecycleFlags.useProxies;
-    }
-    if (flags & LifecycleFlags.fromFlush) {
-      const view = this.updateView(flags);
-      this.coordinator.compose(view, flags);
-    } else {
-      this.$lifecycle.enqueueFlush(this).catch(error => { throw error; });
+    if (this.$state & (State.isBound | State.isBinding)) {
+      if (ProxyObserver.isProxy(this)) {
+        flags |= LifecycleFlags.useProxies;
+      }
+      if (flags & LifecycleFlags.fromFlush) {
+        const view = this.updateView(flags);
+        this.coordinator.compose(view, flags);
+      } else {
+        this.$lifecycle.enqueueFlush(this).catch(error => { throw error; });
+      }
     }
   }
 

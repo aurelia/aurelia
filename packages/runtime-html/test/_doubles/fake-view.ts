@@ -1,8 +1,7 @@
 import {
-  IAttach,
-  IBindScope,
+  IBinding,
+  IComponent,
   ILifecycle,
-  ILifecycleUnbind,
   IMountable,
   INodeSequence,
   IRenderContext,
@@ -17,22 +16,22 @@ import { NodeSequenceFactory } from '../../src/dom';
 import { HTMLTestContext } from '../util';
 
 export class FakeView implements IView {
-  public $bindableHead: IBindScope;
-  public $bindableTail: IBindScope;
+  public $bindingHead: IBinding;
+  public $bindingTail: IBinding;
 
-  public $nextBind: IBindScope;
-  public $prevBind: IBindScope;
+  public $nextBinding: IBinding;
+  public $prevBinding: IBinding;
 
-  public $attachableHead: IAttach;
-  public $attachableTail: IAttach;
+  public $componentHead: IComponent;
+  public $componentTail: IComponent;
 
-  public $nextAttach: IAttach;
-  public $prevAttach: IAttach;
+  public $nextComponent: IComponent;
+  public $prevComponent: IComponent;
 
   public $nextMount: IMountable;
   public $nextUnmount: IMountable;
 
-  public $nextUnbindAfterDetach: ILifecycleUnbind;
+  public $nextUnbindAfterDetach: IComponent;
 
   public $state: State;
   public $scope: IScope;
@@ -45,17 +44,20 @@ export class FakeView implements IView {
   public readonly $lifecycle: ILifecycle;
 
   constructor(ctx: HTMLTestContext) {
-    this.$bindableHead = null;
-    this.$bindableTail = null;
+    this.$bindingHead = null;
+    this.$bindingTail = null;
 
-    this.$nextBind = null;
-    this.$prevBind = null;
+    this.$componentHead = null;
+    this.$componentTail = null;
 
-    this.$attachableHead = null;
-    this.$attachableTail = null;
+    this.$nextBinding = null;
+    this.$prevBinding = null;
 
-    this.$nextAttach = null;
-    this.$prevAttach = null;
+    this.$componentHead = null;
+    this.$componentTail = null;
+
+    this.$nextComponent = null;
+    this.$prevComponent = null;
 
     this.$nextMount = null;
     this.$nextUnmount = null;

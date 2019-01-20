@@ -1492,7 +1492,7 @@ describe('generated.template-compiler.static (with tracing)', function () {
 //         const binding = new Binding(new AccessScope(ifPropName), text, 'textContent', BindingMode.toView, observerLocator, container);
 
 //         (renderable as Writable<typeof renderable>).$nodes = nodes;
-//         addBindable(renderable, binding);
+//         addBinding(renderable, binding);
 //       }
 //     };
 
@@ -1507,7 +1507,7 @@ describe('generated.template-compiler.static (with tracing)', function () {
 //         const binding = new Binding(new AccessScope(elsePropName), text, 'textContent', BindingMode.toView, observerLocator, container);
 
 //         (renderable as Writable<typeof renderable>).$nodes = nodes;
-//         addBindable(renderable, binding);
+//         addBinding(renderable, binding);
 //       }
 //     };
 

@@ -21,10 +21,8 @@ import {
 import { IDOM, INode, INodeSequence, IRenderLocation } from '../dom';
 import { Hooks, LifecycleFlags } from '../flags';
 import {
-  IAttach,
-  IBind,
+  IComponent,
   ILifecycleHooks,
-  ILifecycleUnbindAfterDetach,
   IMountable,
   IRenderable,
   IRenderContext
@@ -83,9 +81,7 @@ export interface ICustomElement<T extends INode = INode> extends
   Partial<IChangeTracker>,
   ILifecycleHooks,
   ILifecycleRender,
-  IBind,
-  ILifecycleUnbindAfterDetach,
-  IAttach,
+  IComponent,
   IMountable,
   IRenderable<T> {
 
@@ -149,20 +145,18 @@ function define<T extends Constructable>(this: ICustomElementResource, nameOrDef
   proto.$unbind = $unbindElement;
   proto.$cache = $cacheElement;
 
-  proto.$prevBind = null;
-  proto.$nextBind = null;
-  proto.$prevAttach = null;
-  proto.$nextAttach = null;
+  proto.$prevComponent = null;
+  proto.$nextComponent = null;
 
   proto.$nextUnbindAfterDetach = null;
 
   proto.$scope = null;
   proto.$hooks = 0;
 
-  proto.$bindableHead = null;
-  proto.$bindableTail = null;
-  proto.$attachableHead = null;
-  proto.$attachableTail = null;
+  proto.$bindingHead = null;
+  proto.$bindingTail = null;
+  proto.$componentHead = null;
+  proto.$componentTail = null;
 
   proto.$mount = $mountElement;
   proto.$unmount = $unmountElement;

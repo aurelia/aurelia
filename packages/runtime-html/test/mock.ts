@@ -9,8 +9,8 @@ import {
 import {
   AccessMember,
   AccessScope,
-  addAttachable,
-  addBindable,
+  addBinding,
+  addComponent,
   Binding,
   BindingMode,
   CompositionCoordinator,
@@ -168,7 +168,7 @@ export class MockTextNodeTemplate {
 
   public render(renderable: Partial<IRenderable>, host?: INode, parts?: TemplatePartDefinitions): void {
     const nodes = (renderable as Writable<IRenderable>).$nodes = new MockTextNodeSequence(undefined);
-    addBindable(renderable, new Binding(this.sourceExpression, nodes.firstChild, 'textContent', BindingMode.toView, this.observerLocator, this.container));
+    addBinding(renderable as IRenderable, new Binding(this.sourceExpression, nodes.firstChild, 'textContent', BindingMode.toView, this.observerLocator, this.container));
   }
 }
 
@@ -199,11 +199,10 @@ export class MockIfTextNodeTemplate {
     (sut as any)['$scope'] = null;
 
     const behavior = RuntimeBehavior.create(If as any);
-    behavior.applyTo(sut, this.lifecycle);
+    behavior.applyTo(LifecycleFlags.none, sut, this.lifecycle);
 
-    addAttachable(renderable, sut);
-    addBindable(renderable, new Binding(this.sourceExpression, sut, 'value', BindingMode.toView, this.observerLocator, this.container));
-    addBindable(renderable, sut);
+    addComponent(renderable as IRenderable, sut);
+    addBinding(renderable as IRenderable, new Binding(this.sourceExpression, sut, 'value', BindingMode.toView, this.observerLocator, this.container));
   }
 }
 
@@ -230,29 +229,27 @@ export class MockIfElseTextNodeTemplate {
     (ifSut as any)['$scope'] = null;
 
     const ifBehavior = RuntimeBehavior.create(If as any);
-    ifBehavior.applyTo(ifSut, this.lifecycle);
+    ifBehavior.applyTo(LifecycleFlags.none, ifSut, this.lifecycle);
 
-    addAttachable(renderable, ifSut);
-    addBindable(renderable, new Binding(this.sourceExpression, ifSut, 'value', BindingMode.toView, this.observerLocator, this.container));
-    addBindable(renderable, ifSut);
+    addComponent(renderable as IRenderable, ifSut);
+    addBinding(renderable as IRenderable, new Binding(this.sourceExpression, ifSut, 'value', BindingMode.toView, this.observerLocator, this.container));
 
     const elseFactory = new ViewFactory(null, new MockTextNodeTemplate(expressions.else, observerLocator, this.container) as any, this.lifecycle);
 
     //@ts-ignore
     const elseSut = new Else(elseFactory);
 
-    elseSut.link(renderable.$attachableTail as any);
+    elseSut.link(renderable.$componentTail as any);
 
     (elseSut as any)['$isAttached'] = false;
     (elseSut as any)['$state'] = State.none;
     (elseSut as any)['$scope'] = null;
 
     const elseBehavior = RuntimeBehavior.create(Else as any);
-    elseBehavior.applyTo(elseSut as any, this.lifecycle);
+    elseBehavior.applyTo(LifecycleFlags.none, elseSut as any, this.lifecycle);
 
-    addAttachable(renderable, elseSut as any);
-    addBindable(renderable, new Binding(this.sourceExpression, elseSut, 'value', BindingMode.toView, this.observerLocator, this.container));
-    addBindable(renderable, elseSut as any);
+    addComponent(renderable as IRenderable, elseSut as any);
+    addBinding(renderable as IRenderable, new Binding(this.sourceExpression, elseSut, 'value', BindingMode.toView, this.observerLocator, this.container));
   }
 }
 
@@ -285,9 +282,9 @@ export class MockRenderingEngine implements IRenderingEngine {
     return this.renderer;
   }
 
-  public applyRuntimeBehavior(type: IResourceType<IAttributeDefinition, ICustomAttribute>, instance: ICustomAttribute): void;
-  public applyRuntimeBehavior(type: ICustomElementType, instance: ICustomElement): void;
-  public applyRuntimeBehavior(type: any, instance: any) {
+  public applyRuntimeBehavior(flags: LifecycleFlags, type: IResourceType<IAttributeDefinition, ICustomAttribute>, instance: ICustomAttribute): void;
+  public applyRuntimeBehavior(flags: LifecycleFlags, type: ICustomElementType, instance: ICustomElement): void;
+  public applyRuntimeBehavior(flags: LifecycleFlags, type: any, instance: any) {
     this.trace(`applyRuntimeBehavior`, type, instance);
     this.runtimeBehaviorApplicator(type, instance);
   }

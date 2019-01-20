@@ -34,7 +34,15 @@ describe('Renderer', () => {
     const container = AuDOMConfiguration.createContainer();
     IExpressionParserRegistration.register(container as any);
     const dom = container.get(IDOM);
-    const renderable: IRenderable = { $bindableHead: null, $bindableTail: null, $attachableHead: null, $attachableTail: null, $context: null, $nodes: null, $scope: null };
+    const renderable: IRenderable = {
+      $bindingHead: null,
+      $bindingTail: null,
+      $componentHead: null,
+      $componentTail: null,
+      $context: null,
+      $nodes: null,
+      $scope: null
+    };
     container.register(Registration.instance(IRenderable, renderable));
     const target = AuNode.createMarker();
 
@@ -71,9 +79,11 @@ describe('Renderer', () => {
 
             sut.instructionRenderers[instruction.type].render(LF.none, dom, renderContext, renderable, target, instruction);
 
-            expect(renderable.$bindableHead).to.be.a('object', 'renderable.$bindableHead');
-            expect(renderable.$bindableHead).to.equal(renderable.$bindableTail);
-            const bindable = renderable.$bindableHead as InterpolationBinding;
+            expect(renderable.$componentHead).to.equal(null);
+            expect(renderable.$componentTail).to.equal(null);
+            expect(renderable.$bindingHead).to.be.a('object', 'renderable.$componentHead');
+            expect(renderable.$bindingHead).to.equal(renderable.$bindingTail);
+            const bindable = renderable.$bindingHead as InterpolationBinding;
             expect(bindable.target).to.equal(target);
             expect(bindable.sourceExpression['name']).to.equal('foo');
             expect(bindable.mode).to.equal(instruction.mode);
@@ -93,9 +103,11 @@ describe('Renderer', () => {
 
           sut.instructionRenderers[instruction.type].render(LF.none, dom, renderContext, renderable, target, instruction);
 
-          expect(renderable.$bindableHead).to.be.a('object', 'renderable.$bindableHead');
-          expect(renderable.$bindableHead).to.equal(renderable.$bindableTail);
-          const bindable = renderable.$bindableHead as InterpolationBinding;
+          expect(renderable.$componentHead).to.equal(null);
+          expect(renderable.$componentTail).to.equal(null);
+          expect(renderable.$bindingHead).to.be.a('object', 'renderable.$componentHead');
+          expect(renderable.$bindingHead).to.equal(renderable.$bindingTail);
+          const bindable = renderable.$bindingHead as InterpolationBinding;
           expect(bindable.targetObserver['obj']).to.equal(target);
           expect(bindable.targetObserver['propertyKey']).to.equal(to);
           expect(bindable.sourceExpression['name']).to.equal('foo');
@@ -112,9 +124,11 @@ describe('Renderer', () => {
 
         sut.instructionRenderers[instruction.type].render(LF.none, dom, renderContext, renderable, target, instruction);
 
-        expect(renderable.$bindableHead).to.be.a('object', 'renderable.$bindableHead');
-        expect(renderable.$bindableHead).to.equal(renderable.$bindableTail);
-        const bindable = renderable.$bindableHead as InterpolationBinding;
+        expect(renderable.$componentHead).to.equal(null);
+        expect(renderable.$componentTail).to.equal(null);
+        expect(renderable.$bindingHead).to.be.a('object', 'renderable.$componentHead');
+        expect(renderable.$bindingHead).to.equal(renderable.$bindingTail);
+        const bindable = renderable.$bindingHead as InterpolationBinding;
         expect(bindable.target).to.equal(target);
         expect(bindable.sourceExpression['name']).to.equal('foo');
       });
@@ -130,7 +144,10 @@ describe('Renderer', () => {
 
           sut.instructionRenderers[instruction.type].render(LF.none, dom, renderContext, renderable, target, instruction);
 
-          expect(renderable.$bindableHead).to.equal(null, 'renderable.$bindableHead');
+          expect(renderable.$componentHead).to.equal(null);
+          expect(renderable.$componentTail).to.equal(null);
+          expect(renderable.$bindingHead).to.equal(null);
+          expect(renderable.$bindingTail).to.equal(null);
           expect(target[to]).to.equal(value);
         });
       }
@@ -171,10 +188,12 @@ describe('Renderer', () => {
           if (instructions.length) {
             expect(component.foo).to.equal('bar');
           }
-          expect(renderable.$bindableHead).to.equal(component);
-          expect(renderable.$bindableHead).to.equal(renderable.$bindableTail);
-          expect(renderable.$attachableHead).to.equal(component);
-          expect(renderable.$attachableHead).to.equal(renderable.$attachableTail);
+          expect(renderable.$bindingHead).to.equal(null);
+          expect(renderable.$bindingTail).to.equal(null);
+          expect(renderable.$componentHead).to.equal(component);
+          expect(renderable.$componentHead).to.equal(renderable.$componentTail);
+          expect(renderable.$componentHead).to.equal(component);
+          expect(renderable.$componentHead).to.equal(renderable.$componentTail);
         });
       }
     }
@@ -195,8 +214,10 @@ describe('Renderer', () => {
 
             sut.instructionRenderers[instruction.type].render(LF.none, dom, renderContext, renderable, target, instruction);
 
-            expect(renderable.$bindableHead).to.be.a('object', 'renderable.$bindableHead');
-            expect(renderable.$bindableHead).to.equal(renderable.$bindableTail);
+            expect(renderable.$bindingHead).to.be.a('object', 'renderable.$componentHead');
+            expect(renderable.$bindingHead).to.equal(renderable.$bindingTail);
+            expect(renderable.$componentHead).to.equal(null);
+            expect(renderable.$componentTail).to.equal(null);
           });
         }
       }

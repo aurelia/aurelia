@@ -1,6 +1,7 @@
 import { IRegistry, PLATFORM } from '@aurelia/kernel';
-import { Binding, IBinding } from '../../binding/binding';
+import { Binding } from '../../binding/binding';
 import { BindingMode, LifecycleFlags } from '../../flags';
+import { IBinding } from '../../lifecycle';
 import { IScope } from '../../observation';
 import { BindingBehaviorResource } from '../binding-behavior';
 

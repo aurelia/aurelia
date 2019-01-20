@@ -78,7 +78,7 @@ export interface IRenderContext<T extends INode = INode> extends IServiceLocator
   beginComponentOperation(renderable: IRenderable<T>, target: object, instruction: Immutable<ITargetedInstruction>, factory?: IViewFactory<T>, parts?: TemplatePartDefinitions, location?: IRenderLocation<T>, locationIsContainer?: boolean): IDisposable;
 }
 
-export interface IView<T extends INode = INode> extends IRenderable<T>, IComponent, IMountable {
+export interface IView<T extends INode = INode> extends IRenderable<T>, IMountableComponent {
   readonly cache: IViewCache<T>;
   readonly isFree: boolean;
   readonly location: IRenderLocation<T>;
@@ -257,17 +257,14 @@ export interface IComponent {
   $cache(flags: LifecycleFlags): void;
 }
 
-export interface ILifecycleMount {
-  /** @internal */$nextMount?: ILifecycleMount;
+export interface IMountableComponent extends IComponent {
+  /** @internal */$nextMount?: IMountableComponent;
+  /** @internal */$nextUnmount?: IMountableComponent;
 
   /**
    * Add the `$nodes` of this instance to the Host or RenderLocation that this instance is holding.
    */
   $mount(flags: LifecycleFlags): void;
-}
-
-export interface ILifecycleUnmount {
-  /** @internal */$nextUnmount?: ILifecycleUnmount;
 
   /**
    * Remove the `$nodes` of this instance from the Host or RenderLocation that this instance is holding, optionally returning them to a cache.
@@ -278,7 +275,6 @@ export interface ILifecycleUnmount {
    */
   $unmount(flags: LifecycleFlags): boolean | void;
 }
-export interface IMountable extends ILifecycleMount, ILifecycleUnmount { }
 
 const marker = Object.freeze(Object.create(null));
 
@@ -424,7 +420,7 @@ export interface ILifecycle {
    * This method is idempotent; adding the same item more than once has the same effect as
    * adding it once.
    */
-  enqueueMount(requestor: ILifecycleMount): void;
+  enqueueMount(requestor: IMountableComponent): void;
 
   /**
    * Add an `attached` callback to the queue, to be invoked when the current attach batch
@@ -462,7 +458,7 @@ export interface ILifecycle {
    * This method is idempotent; adding the same item more than once has the same effect as
    * adding it once.
    */
-  enqueueUnmount(requestor: ILifecycleUnmount): void;
+  enqueueUnmount(requestor: IMountableComponent): void;
 
   /**
    * Add a `detached` callback to the queue, to be invoked when the current detach batch
@@ -519,14 +515,14 @@ export class Lifecycle implements ILifecycle {
   /** @internal */public boundHead: ILifecycleHooks;
   /** @internal */public boundTail: ILifecycleHooks;
 
-  /** @internal */public mountHead: ILifecycleMount;
-  /** @internal */public mountTail: ILifecycleMount;
+  /** @internal */public mountHead: IMountableComponent;
+  /** @internal */public mountTail: IMountableComponent;
 
   /** @internal */public attachedHead: ILifecycleHooks;
   /** @internal */public attachedTail: ILifecycleHooks;
 
-  /** @internal */public unmountHead: ILifecycleUnmount;
-  /** @internal */public unmountTail: ILifecycleUnmount;
+  /** @internal */public unmountHead: IMountableComponent;
+  /** @internal */public unmountTail: IMountableComponent;
 
   /** @internal */public detachedHead: ILifecycleHooks;
   /** @internal */public detachedTail: ILifecycleHooks;
@@ -562,12 +558,12 @@ export class Lifecycle implements ILifecycle {
   /** @internal */public patch: IConnectableBinding['patch'];
   /** @internal */public $nextBound: ILifecycleHooks;
   /** @internal */public bound: ILifecycleHooks['bound'];
-  /** @internal */public $nextMount: ILifecycleMount;
-  /** @internal */public $mount: ILifecycleMount['$mount'];
+  /** @internal */public $nextMount: IMountableComponent;
+  /** @internal */public $mount: IMountableComponent['$mount'];
   /** @internal */public $nextAttached: ILifecycleHooks;
   /** @internal */public attached: ILifecycleHooks['attached'];
-  /** @internal */public $nextUnmount: ILifecycleUnmount;
-  /** @internal */public $unmount: ILifecycleUnmount['$unmount'];
+  /** @internal */public $nextUnmount: IMountableComponent;
+  /** @internal */public $unmount: IMountableComponent['$unmount'];
   /** @internal */public $nextDetached: ILifecycleHooks;
   /** @internal */public detached: ILifecycleHooks['detached'];
   /** @internal */public $nextUnbindAfterDetach: IComponent;
@@ -595,14 +591,14 @@ export class Lifecycle implements ILifecycle {
     this.boundHead = this;
     this.boundTail = this;
 
-    this.mountHead = this;
-    this.mountTail = this;
+    this.mountHead = this as unknown as IMountableComponent;
+    this.mountTail = this as unknown as IMountableComponent;
 
     this.attachedHead = this;
     this.attachedTail = this;
 
-    this.unmountHead = this;
-    this.unmountTail = this;
+    this.unmountHead = this as unknown as IMountableComponent;
+    this.unmountTail = this as unknown as IMountableComponent;
 
     this.detachedHead = this; //LOL
     this.detachedTail = this;
@@ -909,7 +905,7 @@ export class Lifecycle implements ILifecycle {
     if (Tracer.enabled) { Tracer.leave(); }
   }
 
-  public enqueueMount(requestor: ILifecycleMount): void {
+  public enqueueMount(requestor: IMountableComponent): void {
     if (Tracer.enabled) { Tracer.enter('Lifecycle.enqueueMount', slice.call(arguments)); }
     // This method is idempotent; adding the same item more than once has the same effect as
     // adding it once.
@@ -966,7 +962,7 @@ export class Lifecycle implements ILifecycle {
     if (this.mountCount > 0) {
       this.mountCount = 0;
       let currentMount = this.mountHead.$nextMount;
-      this.mountHead = this.mountTail = this;
+      this.mountHead = this.mountTail = this as unknown as IMountableComponent;
       let nextMount: typeof currentMount;
 
       do {
@@ -1007,7 +1003,7 @@ export class Lifecycle implements ILifecycle {
     if (Tracer.enabled) { Tracer.leave(); }
   }
 
-  public enqueueUnmount(requestor: ILifecycleUnmount): void {
+  public enqueueUnmount(requestor: IMountableComponent): void {
     if (Tracer.enabled) { Tracer.enter('Lifecycle.enqueueUnmount', slice.call(arguments)); }
     // This method is idempotent; adding the same item more than once has the same effect as
     // adding it once.
@@ -1022,17 +1018,17 @@ export class Lifecycle implements ILifecycle {
     // if an item being queued for unmounting is already in the mount queue,
     // remove it from the mount queue (this can occur in some very exotic situations
     // and should be dealt with in a less hacky way)
-    if ((requestor as ILifecycleMount & ILifecycleUnmount).$nextMount !== null) {
-      let current = this.mountHead as ILifecycleMount & ILifecycleUnmount;
-      let next = current.$nextMount as ILifecycleMount & ILifecycleUnmount;
+    if (requestor.$nextMount !== null) {
+      let current = this.mountHead;
+      let next = current.$nextMount;
       while (next !== requestor) {
         current = next;
-        next = current.$nextMount as ILifecycleMount & ILifecycleUnmount;
+        next = current.$nextMount;
       }
       current.$nextMount = next.$nextMount;
       next.$nextMount = null;
       if (this.mountTail === next) {
-        this.mountTail = this;
+        this.mountTail = this as unknown as IMountableComponent;
       }
       --this.mountCount;
     }
@@ -1093,7 +1089,7 @@ export class Lifecycle implements ILifecycle {
     if (this.unmountCount > 0) {
       this.unmountCount = 0;
       let currentUnmount = this.unmountHead.$nextUnmount;
-      this.unmountHead = this.unmountTail = this;
+      this.unmountHead = this.unmountTail = this as unknown as IMountableComponent;
       let nextUnmount: typeof currentUnmount;
 
       do {

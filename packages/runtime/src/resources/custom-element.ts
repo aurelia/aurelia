@@ -21,9 +21,8 @@ import {
 import { IDOM, INode, INodeSequence, IRenderLocation } from '../dom';
 import { Hooks, LifecycleFlags } from '../flags';
 import {
-  IComponent,
   ILifecycleHooks,
-  IMountable,
+  IMountableComponent,
   IRenderable,
   IRenderContext
 } from '../lifecycle';
@@ -81,8 +80,7 @@ export interface ICustomElement<T extends INode = INode> extends
   Partial<IChangeTracker>,
   ILifecycleHooks,
   ILifecycleRender,
-  IComponent,
-  IMountable,
+  IMountableComponent,
   IRenderable<T> {
 
   readonly $projector: IElementProjector;

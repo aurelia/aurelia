@@ -5,7 +5,7 @@ import {
   IBinding,
   IComponent,
   ILifecycle,
-  IMountable,
+  IMountableComponent,
   IRenderContext,
   IView,
   IViewCache,
@@ -32,8 +32,8 @@ export class View<T extends INode = INode> implements IView<T> {
   public $nextComponent: IComponent;
   public $prevComponent: IComponent;
 
-  public $nextMount: IMountable;
-  public $nextUnmount: IMountable;
+  public $nextMount: IMountableComponent;
+  public $nextUnmount: IMountableComponent;
 
   public $nextUnbindAfterDetach: IComponent;
 

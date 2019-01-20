@@ -313,7 +313,7 @@ export class Viewport {
     const container = this.router.container;
 
     // TODO: get useProxies settings from the template definition
-    component.$hydrate(LifecycleFlags.none, container, host, null);
+    component.$hydrate(LifecycleFlags.none, container, host);
     component.$bind(LifecycleFlags.fromStartTask | LifecycleFlags.fromBind, null);
     component.$attach(LifecycleFlags.fromStartTask);
   }

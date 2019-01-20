@@ -68,6 +68,7 @@ System.register('runtime', ['@aurelia/kernel'], function (exports, module) {
         ensureExpression: ensureExpression,
         addAttachable: addAttachable,
         addBindable: addBindable,
+        addEarlyBindable: addEarlyBindable,
         createRenderContext: createRenderContext,
         ViewCompileFlags: void 0
       });
@@ -5522,10 +5523,15 @@ System.register('runtime', ['@aurelia/kernel'], function (exports, module) {
           if (hooks & 8 /* hasBound */) {
               lifecycle.enqueueBound(this);
           }
+          let current = this.$earlyBindableHead;
+          while (current !== null) {
+              current.$bind(flags, scope);
+              current = current.$nextBind;
+          }
           if (hooks & 4 /* hasBinding */) {
               this.binding(flags);
           }
-          let current = this.$bindableHead;
+          current = this.$bindableHead;
           while (current !== null) {
               current.$bind(flags, scope);
               current = current.$nextBind;
@@ -5547,7 +5553,12 @@ System.register('runtime', ['@aurelia/kernel'], function (exports, module) {
           // add isBinding flag
           this.$state |= 1 /* isBinding */;
           this.$scope = scope;
-          let current = this.$bindableHead;
+          let current = this.$earlyBindableHead;
+          while (current !== null) {
+              current.$bind(flags, scope);
+              current = current.$nextBind;
+          }
+          current = this.$bindableHead;
           while (current !== null) {
               current.$bind(flags, scope);
               current = current.$nextBind;
@@ -5588,10 +5599,15 @@ System.register('runtime', ['@aurelia/kernel'], function (exports, module) {
               if (hooks & 512 /* hasUnbound */) {
                   lifecycle.enqueueUnbound(this);
               }
+              let current = this.$earlyBindableTail;
+              while (current !== null) {
+                  current.$unbind(flags);
+                  current = current.$prevBind;
+              }
               if (hooks & 256 /* hasUnbinding */) {
                   this.unbinding(flags);
               }
-              let current = this.$bindableTail;
+              current = this.$bindableTail;
               while (current !== null) {
                   current.$unbind(flags);
                   current = current.$prevBind;
@@ -5608,7 +5624,12 @@ System.register('runtime', ['@aurelia/kernel'], function (exports, module) {
               // add isUnbinding flag
               this.$state |= 64 /* isUnbinding */;
               flags |= LifecycleFlags.fromUnbind;
-              let current = this.$bindableTail;
+              let current = this.$earlyBindableTail;
+              while (current !== null) {
+                  current.$unbind(flags);
+                  current = current.$prevBind;
+              }
+              current = this.$bindableTail;
               while (current !== null) {
                   current.$unbind(flags);
                   current = current.$prevBind;
@@ -5868,15 +5889,17 @@ System.register('runtime', ['@aurelia/kernel'], function (exports, module) {
               this.coordinator.caching(flags);
           }
           valueChanged(newValue, oldValue, flags) {
-              if (ProxyObserver.isProxy(this)) {
-                  flags |= LifecycleFlags.useProxies;
-              }
-              if (flags & LifecycleFlags.fromFlush) {
-                  const view = this.updateView(flags);
-                  this.coordinator.compose(view, flags);
-              }
-              else {
-                  this.$lifecycle.enqueueFlush(this).catch(error => { throw error; });
+              if (this.$state & (2 /* isBound */ | 1 /* isBinding */)) {
+                  if (ProxyObserver.isProxy(this)) {
+                      flags |= LifecycleFlags.useProxies;
+                  }
+                  if (flags & LifecycleFlags.fromFlush) {
+                      const view = this.updateView(flags);
+                      this.coordinator.compose(view, flags);
+                  }
+                  else {
+                      this.$lifecycle.enqueueFlush(this).catch(error => { throw error; });
+                  }
               }
           }
           flush(flags) {
@@ -5936,9 +5959,7 @@ System.register('runtime', ['@aurelia/kernel'], function (exports, module) {
           }
           binding(flags) {
               this.checkCollectionObserver(flags);
-          }
-          bound(flags) {
-              let current = this.renderable.$bindableHead;
+              let current = this.renderable.$earlyBindableHead;
               while (current !== null) {
                   if (ProxyObserver.getRawIfProxy(current.target) === ProxyObserver.getRawIfProxy(this) && current.targetProperty === 'items') {
                       this.forOf = current.sourceExpression;
@@ -5965,7 +5986,7 @@ System.register('runtime', ['@aurelia/kernel'], function (exports, module) {
                   view.release(flags);
               }
           }
-          unbound(flags) {
+          unbinding(flags) {
               this.checkCollectionObserver(flags);
               const { views } = this;
               for (let i = 0, ii = views.length; i < ii; ++i) {
@@ -5989,7 +6010,7 @@ System.register('runtime', ['@aurelia/kernel'], function (exports, module) {
                   flags |= LifecycleFlags.useProxies;
               }
               const { views, $lifecycle } = this;
-              if (this.$state & 2 /* isBound */) {
+              if (this.$state & (2 /* isBound */ | 1 /* isBinding */)) {
                   const { local, $scope, factory, forOf, items } = this;
                   const oldLength = views.length;
                   const newLength = forOf.count(items);
@@ -6044,7 +6065,7 @@ System.register('runtime', ['@aurelia/kernel'], function (exports, module) {
                   }
                   $lifecycle.endBind(flags);
               }
-              if (this.$state & 8 /* isAttached */) {
+              if (this.$state & (8 /* isAttached */ | 4 /* isAttaching */)) {
                   const { location } = this;
                   $lifecycle.beginAttach();
                   if (indexMap === null) {
@@ -6118,7 +6139,7 @@ System.register('runtime', ['@aurelia/kernel'], function (exports, module) {
               this.currentView.hold(location);
           }
           valueChanged() {
-              if (this.$state & 2 /* isBound */) {
+              if (this.$state & (2 /* isBound */ | 1 /* isBinding */)) {
                   this.bindChild(LifecycleFlags.fromBindableHandler);
               }
           }
@@ -6181,6 +6202,8 @@ System.register('runtime', ['@aurelia/kernel'], function (exports, module) {
           proto.$nextUnbindAfterDetach = null;
           proto.$scope = null;
           proto.$hooks = 0;
+          proto.$earlyBindableHead = null;
+          proto.$earlyBindableTail = null;
           proto.$bindableHead = null;
           proto.$bindableTail = null;
           proto.$attachableHead = null;
@@ -6283,6 +6306,8 @@ System.register('runtime', ['@aurelia/kernel'], function (exports, module) {
       /** @internal */
       class View {
           constructor($lifecycle, cache) {
+              this.$earlyBindableHead = null;
+              this.$earlyBindableTail = null;
               this.$bindableHead = null;
               this.$bindableTail = null;
               this.$nextBind = null;
@@ -6896,6 +6921,17 @@ System.register('runtime', ['@aurelia/kernel'], function (exports, module) {
           }
           return srcOrExpr;
       }
+      function addEarlyBindable(renderable, bindable) {
+          bindable.$prevBind = renderable.$earlyBindableTail;
+          bindable.$nextBind = null;
+          if (renderable.$earlyBindableTail === null) {
+              renderable.$earlyBindableHead = bindable;
+          }
+          else {
+              renderable.$earlyBindableTail.$nextBind = bindable;
+          }
+          renderable.$earlyBindableTail = bindable;
+      }
       function addBindable(renderable, bindable) {
           bindable.$prevBind = renderable.$bindableTail;
           bindable.$nextBind = null;
@@ -7027,7 +7063,7 @@ System.register('runtime', ['@aurelia/kernel'], function (exports, module) {
                   const childInstruction = childInstructions[i];
                   const expr = ensureExpression(this.parser, childInstruction.from, 48 /* IsPropertyCommand */);
                   const bindable = new LetBinding(expr, childInstruction.to, this.observerLocator, context, toViewModel);
-                  addBindable(renderable, bindable);
+                  addEarlyBindable(renderable, bindable);
               }
           }
       };
@@ -7046,7 +7082,7 @@ System.register('runtime', ['@aurelia/kernel'], function (exports, module) {
           render(flags, dom, context, renderable, target, instruction) {
               const expr = ensureExpression(this.parser, instruction.from, 153 /* CallCommand */);
               const bindable = new Call(expr, target, instruction.to, this.observerLocator, context);
-              addBindable(renderable, bindable);
+              addEarlyBindable(renderable, bindable);
           }
       };
       CallBindingRenderer.inject = [IExpressionParser, IObserverLocator];
@@ -7063,7 +7099,7 @@ System.register('runtime', ['@aurelia/kernel'], function (exports, module) {
           render(flags, dom, context, renderable, target, instruction) {
               const expr = ensureExpression(this.parser, instruction.from, 1280 /* IsRef */);
               const bindable = new Ref(expr, target, context);
-              addBindable(renderable, bindable);
+              addEarlyBindable(renderable, bindable);
           }
       };
       RefBindingRenderer.inject = [IExpressionParser];
@@ -7087,7 +7123,7 @@ System.register('runtime', ['@aurelia/kernel'], function (exports, module) {
               else {
                   bindable = new InterpolationBinding(expr.firstExpression, expr, target, instruction.to, BindingMode.toView, this.observerLocator, context, true);
               }
-              addBindable(renderable, bindable);
+              addEarlyBindable(renderable, bindable);
           }
       };
       InterpolationBindingRenderer.inject = [IExpressionParser, IObserverLocator];
@@ -7105,7 +7141,7 @@ System.register('runtime', ['@aurelia/kernel'], function (exports, module) {
           render(flags, dom, context, renderable, target, instruction) {
               const expr = ensureExpression(this.parser, instruction.from, 48 /* IsPropertyCommand */ | instruction.mode);
               const bindable = new Binding(expr, target, instruction.to, instruction.mode, this.observerLocator, context);
-              addBindable(renderable, bindable);
+              addEarlyBindable(renderable, bindable);
           }
       };
       PropertyBindingRenderer.inject = [IExpressionParser, IObserverLocator];
@@ -7123,7 +7159,7 @@ System.register('runtime', ['@aurelia/kernel'], function (exports, module) {
           render(flags, dom, context, renderable, target, instruction) {
               const expr = ensureExpression(this.parser, instruction.from, 539 /* ForCommand */);
               const bindable = new Binding(expr, target, instruction.to, BindingMode.toView, this.observerLocator, context);
-              addBindable(renderable, bindable);
+              addEarlyBindable(renderable, bindable);
           }
       };
       IteratorBindingRenderer.inject = [IExpressionParser, IObserverLocator];

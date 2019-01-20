@@ -30,10 +30,9 @@ export declare class Repeat<C extends ObservedCollection = IObservedArray, T ext
     views: IView<T>[];
     constructor(location: IRenderLocation<T>, renderable: IRenderable<T>, factory: IViewFactory<T>);
     binding(flags: LifecycleFlags): void;
-    bound(flags: LifecycleFlags): void;
     attaching(flags: LifecycleFlags): void;
     detaching(flags: LifecycleFlags): void;
-    unbound(flags: LifecycleFlags): void;
+    unbinding(flags: LifecycleFlags): void;
     itemsChanged(newValue: C, oldValue: C, flags: LifecycleFlags): void;
     handleBatchedChange(indexMap: number[] | null, flags: LifecycleFlags): void;
     private processViews;

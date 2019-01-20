@@ -1,5 +1,5 @@
 import { DI, Registration, Reporter, PLATFORM } from '@aurelia/kernel';
-import { LifecycleFlags, hasBind, hasUnbind, targetObserver, DelegationStrategy, ITargetObserverLocator, SetterObserver, IDOM, ITargetAccessorLocator, ILifecycle, BindingBehaviorResource, BindingMode, IObserverLocator, buildTemplateDefinition, HydrateElementInstruction, IRenderable, ITargetedInstruction, IRenderingEngine, CompositionCoordinator, bindable, CustomElementResource, INode, ITemplateFactory, CompiledTemplate, NodeSequence, IExpressionParser, instructionRenderer, ensureExpression, MultiInterpolationBinding, InterpolationBinding, addBindable, Binding, IProjectorLocator, BasicConfiguration } from '@aurelia/runtime';
+import { LifecycleFlags, hasBind, hasUnbind, targetObserver, DelegationStrategy, ITargetObserverLocator, SetterObserver, IDOM, ITargetAccessorLocator, ILifecycle, BindingBehaviorResource, BindingMode, IObserverLocator, buildTemplateDefinition, HydrateElementInstruction, IRenderable, ITargetedInstruction, IRenderingEngine, CompositionCoordinator, bindable, CustomElementResource, INode, ITemplateFactory, CompiledTemplate, NodeSequence, IExpressionParser, instructionRenderer, ensureExpression, MultiInterpolationBinding, InterpolationBinding, addEarlyBindable, Binding, IProjectorLocator, BasicConfiguration } from '@aurelia/runtime';
 
 class Listener {
     // tslint:disable-next-line:parameters-max-number
@@ -1733,7 +1733,7 @@ class TextBindingRenderer {
         else {
             bindable$$1 = new InterpolationBinding(expr.firstExpression, expr, next, 'textContent', BindingMode.toView, this.observerLocator, context, true);
         }
-        addBindable(renderable, bindable$$1);
+        addEarlyBindable(renderable, bindable$$1);
     }
 };
 TextBindingRenderer.inject = [IExpressionParser, IObserverLocator];
@@ -1751,7 +1751,7 @@ class ListenerBindingRenderer {
     render(flags, dom, context, renderable, target, instruction) {
         const expr = ensureExpression(this.parser, instruction.from, 80 /* IsEventCommand */ | (instruction.strategy + 6 /* DelegationStrategyDelta */));
         const bindable$$1 = new Listener(dom, instruction.to, instruction.strategy, expr, target, instruction.preventDefault, this.eventManager, context);
-        addBindable(renderable, bindable$$1);
+        addEarlyBindable(renderable, bindable$$1);
     }
 };
 ListenerBindingRenderer.inject = [IExpressionParser, IEventManager];
@@ -1780,7 +1780,7 @@ class StylePropertyBindingRenderer {
     render(flags, dom, context, renderable, target, instruction) {
         const expr = ensureExpression(this.parser, instruction.from, 48 /* IsPropertyCommand */ | BindingMode.toView);
         const bindable$$1 = new Binding(expr, target.style, instruction.to, BindingMode.toView, this.observerLocator, context);
-        addBindable(renderable, bindable$$1);
+        addEarlyBindable(renderable, bindable$$1);
     }
 };
 StylePropertyBindingRenderer.inject = [IExpressionParser, IObserverLocator];

@@ -11,6 +11,7 @@ declare type DecoratedInstructionRenderer<TType extends string, TProto, TClass> 
 declare type InstructionRendererDecorator<TType extends string> = <TProto, TClass>(target: DecoratableInstructionRenderer<TType, TProto, TClass>) => DecoratedInstructionRenderer<TType, TProto, TClass>;
 export declare function instructionRenderer<TType extends string>(instructionType: TType): InstructionRendererDecorator<TType>;
 export declare function ensureExpression<TFrom>(parser: IExpressionParser, srcOrExpr: TFrom, bindingType: BindingType): Exclude<TFrom, string>;
+export declare function addEarlyBindable(renderable: IRenderable, bindable: IBindScope): void;
 export declare function addBindable(renderable: IRenderable, bindable: IBindScope): void;
 export declare function addAttachable(renderable: IRenderable, attachable: IAttach): void;
 export declare class SetPropertyRenderer implements IInstructionRenderer {

@@ -1,6 +1,7 @@
 import { inject } from '@aurelia//kernel';
 import { customElement, ICustomElement } from '@aurelia/runtime';
 import { AuthorsRepository } from '../../repositories/authors';
+import { wait } from '../../utils';
 
 @customElement({
   name: 'authors', template: `<template>
@@ -17,5 +18,9 @@ export class Authors {
   constructor(private readonly authorsRepository: AuthorsRepository) { }
 
   get authors() { return this.authorsRepository.authors(); }
+
+  public enter() {
+    return wait(3000);
+  }
 }
 export interface Authors extends ICustomElement<HTMLElement> { }

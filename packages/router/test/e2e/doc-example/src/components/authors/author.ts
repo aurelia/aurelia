@@ -3,6 +3,7 @@ import { customElement } from '@aurelia/runtime';
 import { Router } from '../../../../../../src';
 import { AuthorsRepository } from '../../repositories/authors';
 import { Information } from './information';
+import { wait } from '../../utils';
 
 @customElement({
   name: 'author', template: `<template>
@@ -44,5 +45,6 @@ export class Author {
         components: 'information'
       },
     ]);
+    return wait(2000);
   }
 }

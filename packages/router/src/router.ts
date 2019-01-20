@@ -76,6 +76,10 @@ export class Router {
     this.linkHandler = new LinkHandler();
   }
 
+  public get isNavigating(): boolean {
+    return this.processingNavigation !== null;
+  }
+
   public activate(options?: IRouterOptions): Promise<void> {
     if (this.isActive) {
       throw new Error('Router has already been activated.');
@@ -245,15 +249,14 @@ export class Router {
       // we need to remove the added history entry for the redirect
       // TODO: Take care of empty subsets/iterations where previous has length
       if (!changedViewports.length && this.isRedirecting) {
-        this.historyBrowser.cancel();
+        const result = this.cancelNavigation([...changedViewports, ...updatedViewports], instruction);
         this.isRedirecting = false;
+        return result;
       }
 
       let results = await Promise.all(changedViewports.map((value) => value.canLeave()));
       if (results.findIndex((value) => value === false) >= 0) {
-        this.historyBrowser.cancel();
-        this.processingNavigation = null;
-        return Promise.resolve();
+        return this.cancelNavigation([...changedViewports, ...updatedViewports], instruction);
       }
       results = await Promise.all(changedViewports.map(async (value) => {
         const canEnter = await value.canEnter();
@@ -268,11 +271,12 @@ export class Router {
         return true;
       }));
       if (results.some(result => result === false)) {
-        this.historyBrowser.cancel();
-        this.processingNavigation = null;
-        return Promise.resolve();
+        return this.cancelNavigation([...changedViewports, ...updatedViewports], instruction);
       }
-      await Promise.all(changedViewports.map((value) => value.loadContent()));
+
+      // TODO: Should it be kept here?
+      // await Promise.all(changedViewports.map((value) => value.loadContent()));
+
       // TODO: Remove this once multi level recursiveness has been fixed
       // results = await Promise.all(changedViewports.map((value) => value.loadContent()));
       // if (results.findIndex((value) => value === false) >= 0) {
@@ -295,6 +299,7 @@ export class Router {
       viewportsRemaining = remaining.viewportsRemaining;
     }
 
+    await Promise.all(updatedViewports.map((value) => value.loadContent()));
     this.replacePaths(instruction);
 
     // Remove history entry if no history viewports updated
@@ -476,6 +481,19 @@ export class Router {
   }
   public findNav(name: string): Nav {
     return this.navs[name];
+  }
+
+  private cancelNavigation(updatedViewports: Viewport[], instruction: INavigationInstruction): Promise<void> {
+    updatedViewports.forEach((viewport) => {
+      viewport.abortContentChange();
+    });
+    if (instruction.isNew) {
+      this.historyBrowser.pop();
+    } else {
+      this.historyBrowser.cancel();
+    }
+    this.processingNavigation = null;
+    return Promise.resolve();
   }
 
   private ensureRootScope(): void {

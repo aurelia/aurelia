@@ -31,6 +31,34 @@
       font-size: 120%;
     }
 
+    app>div.routing {
+      cursor: wait;
+    }
+
+    span.loader {
+      display: none;
+
+      border: 4px solid #fafafa;
+      border-top: 4px solid #777;
+      border-radius: 50%;
+      width: 20px;
+      height: 20px;
+      animation: spin 1.25s linear infinite;
+    }
+
+    @keyframes spin {
+      0% {
+        transform: rotate(0deg);
+      }
+      100% {
+        transform: rotate(360deg);
+      }
+    }
+
+    span.loader.routing {
+      display: inline-block;
+    }
+
     au-viewport[name="lists"] {
       display: inline-block;
       width: 20%;
@@ -50,6 +78,10 @@
 
     .viewport-header {
       /* display: none; */
+    }
+
+    au-nav {
+      display: inline-block;
     }
 
     nav ul {
@@ -94,14 +126,17 @@
       padding-bottom: 10px;
       margin-bottom: 0;
     }
+
     au-viewport[name="chat"] au-viewport {
       display: inline-block;
       width: 40%;
       vertical-align: top;
     }
+
     au-viewport[name="chat-main"] {
       border-right: 1px solid #777;
     }
+
     au-viewport[name="chat-details"] input {
       width: 100%;
     }

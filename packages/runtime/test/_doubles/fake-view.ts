@@ -1,8 +1,7 @@
 import {
-  IAttach,
-  IBindScope,
+  IBinding,
+  IComponent,
   ILifecycle,
-  ILifecycleUnbind,
   IMountable,
   INodeSequence,
   IRenderContext,
@@ -16,25 +15,22 @@ import {
 import { AuDOM, AuNode, AuNodeSequence } from '../au-dom';
 
 export class FakeView implements IView<AuNode> {
-  public $earlyBindableHead: IBindScope;
-  public $earlyBindableTail: IBindScope;
+  public $bindingHead: IBinding;
+  public $bindingTail: IBinding;
 
-  public $bindableHead: IBindScope;
-  public $bindableTail: IBindScope;
+  public $nextBinding: IBinding;
+  public $prevBinding: IBinding;
 
-  public $nextBind: IBindScope;
-  public $prevBind: IBindScope;
+  public $componentHead: IComponent;
+  public $componentTail: IComponent;
 
-  public $attachableHead: IAttach;
-  public $attachableTail: IAttach;
-
-  public $nextAttach: IAttach;
-  public $prevAttach: IAttach;
+  public $nextComponent: IComponent;
+  public $prevComponent: IComponent;
 
   public $nextMount: IMountable;
   public $nextUnmount: IMountable;
 
-  public $nextUnbindAfterDetach: ILifecycleUnbind;
+  public $nextUnbindAfterDetach: IComponent;
 
   public $state: State;
   public $scope: IScope;
@@ -47,20 +43,17 @@ export class FakeView implements IView<AuNode> {
   public readonly $lifecycle: ILifecycle;
 
   constructor($lifecycle: ILifecycle) {
-    this.$earlyBindableHead = null;
-    this.$earlyBindableTail = null;
+    this.$bindingHead = null;
+    this.$bindingTail = null;
 
-    this.$bindableHead = null;
-    this.$bindableTail = null;
+    this.$nextBinding = null;
+    this.$prevBinding = null;
 
-    this.$nextBind = null;
-    this.$prevBind = null;
+    this.$componentHead = null;
+    this.$componentTail = null;
 
-    this.$attachableHead = null;
-    this.$attachableTail = null;
-
-    this.$nextAttach = null;
-    this.$prevAttach = null;
+    this.$nextComponent = null;
+    this.$prevComponent = null;
 
     this.$nextMount = null;
     this.$nextUnmount = null;

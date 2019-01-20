@@ -113,9 +113,9 @@ describe('@customElement', () => {
         const { sut } = createCustomElement('foo');
         psSpec.setProps(sut);
         sut.$scope = Scope.create(LF.none, sut, null);
-        sut.$earlyBindableHead = sut.$earlyBindableTail = null;
-        sut.$bindableHead = sut.$bindableTail = null;
-        sut.$attachableHead = sut.$attachableTail = null;
+        sut.$bindingHead = sut.$bindingTail = null;
+        sut.$componentHead = sut.$componentTail = null;
+        sut.$componentHead = sut.$componentTail = null;
         sut.$hooks = hooksSpec.getHooks();
         const expectedFlags = flagsSpec.getExpectedFlags();
         const flags = flagsSpec.getFlags();
@@ -222,9 +222,9 @@ describe('@customElement', () => {
         const { sut } = createCustomElement('foo');
         psSpec.setProps(sut);
         sut.$scope = Scope.create(LF.none, sut, null);
-        sut.$earlyBindableHead = sut.$earlyBindableTail = null;
-        sut.$bindableHead = sut.$bindableTail = null;
-        sut.$attachableHead = sut.$attachableTail = null;
+        sut.$bindingHead = sut.$bindingTail = null;
+        sut.$componentHead = sut.$componentTail = null;
+        sut.$componentHead = sut.$componentTail = null;
         sut.$hooks = hooksSpec.getHooks();
         const expectedFlags = flagsSpec.getExpectedFlags();
         const flags = flagsSpec.getFlags();

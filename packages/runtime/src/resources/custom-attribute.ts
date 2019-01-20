@@ -19,10 +19,9 @@ import {
 import { INode } from '../dom';
 import { BindingMode, Hooks, LifecycleFlags } from '../flags';
 import {
-  IAttach,
-  IBindScope,
+  IBinding,
+  IComponent,
   ILifecycleHooks,
-  ILifecycleUnbindAfterDetach,
   IRenderable
 } from '../lifecycle';
 import { IChangeTracker } from '../observation';
@@ -49,9 +48,7 @@ export interface ICustomAttributeType<T extends INode = INode> extends
 export interface ICustomAttribute<T extends INode = INode> extends
   Partial<IChangeTracker>,
   ILifecycleHooks,
-  IBindScope,
-  ILifecycleUnbindAfterDetach,
-  IAttach,
+  IComponent,
   IRenderable<T> {
 
   $hydrate(flags: LifecycleFlags, renderingEngine: IRenderingEngine): void;
@@ -142,10 +139,8 @@ function define<T extends Constructable>(this: ICustomAttributeResource, nameOrD
   proto.$unbind = $unbindAttribute;
   proto.$cache = $cacheAttribute;
 
-  proto.$prevBind = null;
-  proto.$nextBind = null;
-  proto.$prevAttach = null;
-  proto.$nextAttach = null;
+  proto.$prevComponent = null;
+  proto.$nextComponent = null;
 
   proto.$nextUnbindAfterDetach = null;
 

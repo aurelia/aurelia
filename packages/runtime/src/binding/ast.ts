@@ -47,7 +47,7 @@ import {
   UnaryOperator
 } from '../ast';
 import { ExpressionKind, LifecycleFlags } from '../flags';
-import { IBindScope } from '../lifecycle';
+import { IBinding } from '../lifecycle';
 import { Collection, IBindingContext, IOverrideContext, IScope, ObservedCollection } from '../observation';
 import { BindingContext } from '../observation/binding-context';
 import { ISignaler } from '../observation/signaler';
@@ -414,7 +414,7 @@ export class AccessScope implements IAccessScopeExpression {
     this.ancestor = ancestor;
   }
 
-  public evaluate(flags: LifecycleFlags, scope: IScope, locator: IServiceLocator): IBindingContext | IBindScope | IOverrideContext {
+  public evaluate(flags: LifecycleFlags, scope: IScope, locator: IServiceLocator): IBindingContext | IBinding | IOverrideContext {
     const name = this.name;
     return BindingContext.get(scope, name, this.ancestor, flags)[name];
   }

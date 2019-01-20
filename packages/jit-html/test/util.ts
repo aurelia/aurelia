@@ -25,7 +25,7 @@ export function getVisibleText(au, host) {
 }
 
 function $getVisibleText(root, context) {
-  let current = root.$attachableHead;
+  let current = root.$componentHead;
   while (current) {
     if (current.$projector && current.$projector.shadowRoot) {
       context.text += current.$projector.shadowRoot.textContent;
@@ -39,7 +39,7 @@ function $getVisibleText(root, context) {
         $getVisibleText(view, context);
       }
     }
-    current = current.$nextAttach;
+    current = current.$nextComponent;
   }
 }
 

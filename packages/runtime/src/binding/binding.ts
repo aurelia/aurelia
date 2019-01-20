@@ -1,18 +1,13 @@
 import { IServiceLocator, Reporter, Tracer } from '@aurelia/kernel';
 import { IForOfStatement, IsBindingBehavior } from '../ast';
 import { BindingMode, ExpressionKind, LifecycleFlags, State } from '../flags';
-import { IBindScope, ILifecycle } from '../lifecycle';
+import { IBinding, ILifecycle } from '../lifecycle';
 import { AccessorOrObserver, IBindingTargetObserver, IObservable, IScope } from '../observation';
 import { IObserverLocator } from '../observation/observer-locator';
 import { hasBind, hasUnbind } from './ast';
 import { connectable, IConnectableBinding, IPartialConnectableBinding } from './connectable';
 
 const slice = Array.prototype.slice;
-
-export interface IBinding extends IBindScope {
-  readonly locator: IServiceLocator;
-  readonly $scope: IScope;
-}
 
 // BindingMode is not a const enum (and therefore not inlined), so assigning them to a variable to save a member accessor is a minor perf tweak
 const { oneTime, toView, fromView } = BindingMode;
@@ -24,8 +19,8 @@ export interface Binding extends IConnectableBinding {}
 
 @connectable()
 export class Binding implements IPartialConnectableBinding {
-  public $nextBind: IBindScope;
-  public $prevBind: IBindScope;
+  public $nextBinding: IBinding;
+  public $prevBinding: IBinding;
   public $state: State;
   public $lifecycle: ILifecycle;
   public $nextConnect: IConnectableBinding;
@@ -44,8 +39,8 @@ export class Binding implements IPartialConnectableBinding {
   public persistentFlags: LifecycleFlags;
 
   constructor(sourceExpression: IsBindingBehavior | IForOfStatement, target: IObservable, targetProperty: string, mode: BindingMode, observerLocator: IObserverLocator, locator: IServiceLocator) {
-    this.$nextBind = null;
-    this.$prevBind = null;
+    this.$nextBinding = null;
+    this.$prevBinding = null;
     this.$state = State.none;
     this.$lifecycle = locator.get(ILifecycle);
     this.$nextConnect = null;

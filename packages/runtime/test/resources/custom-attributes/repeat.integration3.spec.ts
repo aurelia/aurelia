@@ -5,7 +5,7 @@ import {
 } from '../../../../../scripts/test-lib';
 import {
   AccessScope,
-  addBindable,
+  addBinding,
   Binding,
   BindingContext,
   BindingIdentifier,
@@ -307,7 +307,7 @@ describe(`Repeat`, () => {
           binding.persistentFlags |= baseFlags;
 
           (itemRenderable as Writable<typeof itemRenderable>).$nodes = nodes;
-          addBindable(itemRenderable, itemBinding);
+          addBinding(itemRenderable, itemBinding);
         }
       };
 
@@ -319,7 +319,7 @@ describe(`Repeat`, () => {
         sourceExpression: new ForOfStatement(new BindingIdentifier('item'), new AccessScope('items'))
       } as any;
       const renderable: IRenderable<AuNode> = {
-        $earlyBindableHead: binding
+        $bindingHead: binding
       } as any;
       let sut: Repeat<IObservedArray, AuNode>;
       if (useProxies) {

@@ -7,8 +7,8 @@ import {
 } from '../../../../scripts/test-lib';
 import {
   AccessScope,
-  addAttachable,
-  addBindable,
+  addBinding,
+  addComponent,
   Binding,
   BindingContext,
   BindingMode,
@@ -145,7 +145,7 @@ describe(`ViewFactory`, () => {
 
 // public render(renderable: Partial<IRenderable>, host?: INode, parts?: TemplatePartDefinitions): void {
 //   const nodes = (<Writable<IRenderable>>renderable).$nodes = new MockTextNodeSequence();
-//   addBindable(renderable, new Binding(this.sourceExpression, nodes.firstChild, 'textContent', BindingMode.toView, this.observerLocator, this.container));
+//   addBinding(renderable, new Binding(this.sourceExpression, nodes.firstChild, 'textContent', BindingMode.toView, this.observerLocator, this.container));
 // }
 describe('View', () => {
   function runBindLifecycle(lifecycle: ILifecycle, view: IView<AuNode>, flags: LF, scope: IScope): void {
@@ -411,7 +411,7 @@ describe('View', () => {
           const binding = new Binding(new AccessScope(propName), text, 'textContent', BindingMode.oneTime, observerLocator, container);
 
           (renderable as Writable<typeof renderable>).$nodes = nodes;
-          addBindable(renderable, binding);
+          addBinding(renderable, binding);
         }
       };
       const childFactory = new ViewFactory<AuNode>('child', childTemplate, lifecycle);
@@ -430,13 +430,12 @@ describe('View', () => {
           const binding = new Binding(new AccessScope(propName), text, 'textContent', BindingMode.oneTime, observerLocator, container);
 
           (renderable as Writable<typeof renderable>).$nodes = nodes;
-          addBindable(renderable, binding);
+          addBinding(renderable, binding);
 
           for (let i = 0; i < childCount; ++i) {
             const child = childSuts[i] = childFactory.create();
             child.hold(childLocs[i]);
-            addBindable(renderable, child);
-            addAttachable(renderable, child);
+            addComponent(renderable, child);
           }
         }
       };

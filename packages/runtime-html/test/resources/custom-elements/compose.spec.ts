@@ -1,4 +1,4 @@
-import { CustomElementResource, IAttach, ITemplateDefinition, IViewFactory, LifecycleFlags } from '@aurelia/runtime';
+import { CustomElementResource, IComponent, ITemplateDefinition, IViewFactory, LifecycleFlags } from '@aurelia/runtime';
 import { expect } from 'chai';
 import { Compose, RenderPlan } from '../../../src/index';
 import { FakeViewFactory } from '../../_doubles/fake-view-factory';
@@ -276,13 +276,13 @@ describe('The "compose" custom element', () => {
     return compose['coordinator']['currentView'];
   }
 
-  function runAttachLifecycle(ctx: HTMLTestContext, item: IAttach) {
+  function runAttachLifecycle(ctx: HTMLTestContext, item: IComponent) {
     ctx.lifecycle.beginAttach();
     item.$attach(LifecycleFlags.none);
     ctx.lifecycle.endAttach(LifecycleFlags.none);
   }
 
-  function runDetachLifecycle(ctx: HTMLTestContext, item: IAttach) {
+  function runDetachLifecycle(ctx: HTMLTestContext, item: IComponent) {
     ctx.lifecycle.beginDetach();
     item.$detach(LifecycleFlags.none);
     ctx.lifecycle.endDetach(LifecycleFlags.none);

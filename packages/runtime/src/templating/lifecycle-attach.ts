@@ -1,9 +1,9 @@
 import { Profiler, Tracer, Writable } from '@aurelia/kernel';
 import { Hooks, LifecycleFlags, State } from '../flags';
-import { IAttach, ILifecycleHooks, IMountable, IRenderable, IView } from '../lifecycle';
+import { IComponent, ILifecycleHooks, IMountable, IRenderable, IView } from '../lifecycle';
 import { ICustomElement } from '../resources/custom-element';
 
-interface IAttachable extends IRenderable, ILifecycleHooks, IAttach { }
+interface IAttachable extends IRenderable, ILifecycleHooks, IComponent { }
 
 const slice = Array.prototype.slice;
 
@@ -65,10 +65,10 @@ export function $attachElement(this: Writable<IAttachable & IMountable>, flags: 
     this.attaching(flags);
   }
 
-  let current = this.$attachableHead;
+  let current = this.$componentHead;
   while (current !== null) {
     current.$attach(flags);
-    current = current.$nextAttach;
+    current = current.$nextComponent;
   }
 
   lifecycle.enqueueMount(this);
@@ -96,10 +96,10 @@ export function $attachView(this: Writable<IAttachable & IMountable>, flags: Lif
   this.$state |= State.isAttaching;
   flags |= LifecycleFlags.fromAttach;
 
-  let current = this.$attachableHead;
+  let current = this.$componentHead;
   while (current !== null) {
     current.$attach(flags);
-    current = current.$nextAttach;
+    current = current.$nextComponent;
   }
 
   this.$lifecycle.enqueueMount(this);
@@ -161,10 +161,10 @@ export function $detachElement(this: Writable<IAttachable & IMountable>, flags: 
       this.detaching(flags);
     }
 
-    let current = this.$attachableTail;
+    let current = this.$componentTail;
     while (current !== null) {
       current.$detach(flags);
-      current = current.$prevAttach;
+      current = current.$prevComponent;
     }
 
     // remove isAttached and isDetaching flags
@@ -194,10 +194,10 @@ export function $detachView(this: Writable<IAttachable & IMountable>, flags: Lif
       flags |= LifecycleFlags.parentUnmountQueued;
     }
 
-    let current = this.$attachableTail;
+    let current = this.$componentTail;
     while (current !== null) {
       current.$detach(flags);
-      current = current.$prevAttach;
+      current = current.$prevComponent;
     }
 
     // remove isAttached and isDetaching flags
@@ -224,10 +224,10 @@ export function $cacheElement(this: Writable<IAttachable>, flags: LifecycleFlags
     this.caching(flags);
   }
 
-  let current = this.$attachableTail;
+  let current = this.$componentTail;
   while (current !== null) {
     current.$cache(flags);
-    current = current.$prevAttach;
+    current = current.$prevComponent;
   }
   if (Tracer.enabled) { Tracer.leave(); }
 }
@@ -236,10 +236,10 @@ export function $cacheElement(this: Writable<IAttachable>, flags: LifecycleFlags
 export function $cacheView(this: Writable<IAttachable>, flags: LifecycleFlags): void {
   if (Tracer.enabled) { Tracer.enter(`${this['constructor'].name}.$cacheView`, slice.call(arguments)); }
   flags |= LifecycleFlags.fromCache;
-  let current = this.$attachableTail;
+  let current = this.$componentTail;
   while (current !== null) {
     current.$cache(flags);
-    current = current.$prevAttach;
+    current = current.$prevComponent;
   }
 }
 

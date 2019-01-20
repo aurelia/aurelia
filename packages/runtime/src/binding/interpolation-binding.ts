@@ -1,17 +1,16 @@
 import { IServiceLocator } from '@aurelia/kernel';
 import { IExpression, IInterpolationExpression } from '../ast';
 import { BindingMode, LifecycleFlags, State } from '../flags';
-import { IBindScope } from '../lifecycle';
+import { IBinding } from '../lifecycle';
 import { IBindingTargetAccessor, IObservable, IScope } from '../observation';
 import { IObserverLocator } from '../observation/observer-locator';
-import { IBinding } from './binding';
 import { connectable, IConnectableBinding, IPartialConnectableBinding } from './connectable';
 
 const { toView, oneTime } = BindingMode;
 
 export class MultiInterpolationBinding implements IBinding {
-  public $nextBind: IBindScope;
-  public $prevBind: IBindScope;
+  public $nextBinding: IBinding;
+  public $prevBinding: IBinding;
   public $state: State;
   public $scope: IScope;
 
@@ -24,8 +23,8 @@ export class MultiInterpolationBinding implements IBinding {
   public targetProperty: string;
 
   constructor(observerLocator: IObserverLocator, interpolation: IInterpolationExpression, target: IObservable, targetProperty: string, mode: BindingMode, locator: IServiceLocator) {
-    this.$nextBind = null;
-    this.$prevBind = null;
+    this.$nextBinding = null;
+    this.$prevBinding = null;
     this.$state = State.none;
     this.$scope = null;
 

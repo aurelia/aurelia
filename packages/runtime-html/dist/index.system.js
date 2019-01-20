@@ -1,6 +1,6 @@
 System.register('runtimeHtml', ['@aurelia/kernel', '@aurelia/runtime'], function (exports, module) {
   'use strict';
-  var DI, Registration, Reporter, PLATFORM, LifecycleFlags, hasBind, hasUnbind, targetObserver, DelegationStrategy, ITargetObserverLocator, SetterObserver, IDOM, ITargetAccessorLocator, ILifecycle, BindingBehaviorResource, BindingMode, IObserverLocator, buildTemplateDefinition, HydrateElementInstruction, IRenderable, ITargetedInstruction, IRenderingEngine, CompositionCoordinator, bindable, CustomElementResource, INode, ITemplateFactory, CompiledTemplate, NodeSequence, IExpressionParser, instructionRenderer, ensureExpression, MultiInterpolationBinding, InterpolationBinding, addEarlyBindable, Binding, IProjectorLocator, BasicConfiguration;
+  var DI, Registration, Reporter, PLATFORM, LifecycleFlags, hasBind, hasUnbind, targetObserver, DelegationStrategy, ITargetObserverLocator, SetterObserver, IDOM, ITargetAccessorLocator, ILifecycle, BindingBehaviorResource, BindingMode, IObserverLocator, buildTemplateDefinition, HydrateElementInstruction, IRenderable, ITargetedInstruction, IRenderingEngine, CompositionCoordinator, bindable, CustomElementResource, INode, ITemplateFactory, CompiledTemplate, NodeSequence, IExpressionParser, instructionRenderer, ensureExpression, MultiInterpolationBinding, InterpolationBinding, addBindable, Binding, IProjectorLocator, BasicConfiguration;
   return {
     setters: [function (module) {
       DI = module.DI;
@@ -38,7 +38,7 @@ System.register('runtimeHtml', ['@aurelia/kernel', '@aurelia/runtime'], function
       ensureExpression = module.ensureExpression;
       MultiInterpolationBinding = module.MultiInterpolationBinding;
       InterpolationBinding = module.InterpolationBinding;
-      addEarlyBindable = module.addEarlyBindable;
+      addBindable = module.addBindable;
       Binding = module.Binding;
       IProjectorLocator = module.IProjectorLocator;
       BasicConfiguration = module.BasicConfiguration;
@@ -1784,7 +1784,7 @@ System.register('runtimeHtml', ['@aurelia/kernel', '@aurelia/runtime'], function
               else {
                   bindable$$1 = new InterpolationBinding(expr.firstExpression, expr, next, 'textContent', BindingMode.toView, this.observerLocator, context, true);
               }
-              addEarlyBindable(renderable, bindable$$1);
+              addBindable(renderable, bindable$$1);
           }
       };
       TextBindingRenderer.inject = [IExpressionParser, IObserverLocator];
@@ -1802,7 +1802,7 @@ System.register('runtimeHtml', ['@aurelia/kernel', '@aurelia/runtime'], function
           render(flags, dom, context, renderable, target, instruction) {
               const expr = ensureExpression(this.parser, instruction.from, 80 /* IsEventCommand */ | (instruction.strategy + 6 /* DelegationStrategyDelta */));
               const bindable$$1 = new Listener(dom, instruction.to, instruction.strategy, expr, target, instruction.preventDefault, this.eventManager, context);
-              addEarlyBindable(renderable, bindable$$1);
+              addBindable(renderable, bindable$$1);
           }
       };
       ListenerBindingRenderer.inject = [IExpressionParser, IEventManager];
@@ -1831,7 +1831,7 @@ System.register('runtimeHtml', ['@aurelia/kernel', '@aurelia/runtime'], function
           render(flags, dom, context, renderable, target, instruction) {
               const expr = ensureExpression(this.parser, instruction.from, 48 /* IsPropertyCommand */ | BindingMode.toView);
               const bindable$$1 = new Binding(expr, target.style, instruction.to, BindingMode.toView, this.observerLocator, context);
-              addEarlyBindable(renderable, bindable$$1);
+              addBindable(renderable, bindable$$1);
           }
       };
       StylePropertyBindingRenderer.inject = [IExpressionParser, IObserverLocator];

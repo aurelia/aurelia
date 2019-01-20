@@ -1,14 +1,6 @@
 import { Constructable, Immutable, InterfaceSymbol, IRegistry } from '@aurelia/kernel';
-import { CompositionCoordinator, ICustomElement, ICustomElementResource, IDOM, IHydrateElementInstruction, INode, IRenderable, IRenderingEngine, IView, IViewFactory, LifecycleFlags, TemplateDefinition, ICustomElementType } from '@aurelia/runtime';
+import { CompositionCoordinator, ICustomElement, ICustomElementResource, IDOM, IHydrateElementInstruction, INode, IRenderable, IRenderingEngine, IView, IViewFactory, LifecycleFlags, TemplateDefinition } from '@aurelia/runtime';
 import { RenderPlan } from '../../create-element';
-export interface IViewportComponent<T extends INode = INode> {
-    viewport?: string;
-    component: string | Partial<ICustomElementType<T>>;
-}
-export interface Books extends ICustomElement<HTMLElement> {
-}
-export declare class Books implements Books {
-}
 export declare type Subject<T extends INode = Node> = IViewFactory<T> | IView<T> | RenderPlan<T> | Constructable | TemplateDefinition;
 export declare type MaybeSubjectPromise<T> = Subject<T> | Promise<Subject<T>> | null;
 export interface Compose<T extends INode = Node> extends ICustomElement<T> {

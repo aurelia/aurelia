@@ -586,13 +586,13 @@ var au = (function (exports) {
         },
         createInterface(friendlyName) {
             const Interface = function (target, property, index) {
+                Interface.friendlyName = friendlyName || 'Interface';
                 if (target === undefined) {
                     throw Reporter.error(16, Interface.friendlyName, Interface); // TODO: add error (trying to resolve an InterfaceSymbol that has no registrations)
                 }
                 (target.inject || (target.inject = []))[index] = Interface;
                 return target;
             };
-            Interface.friendlyName = friendlyName || 'Interface';
             Interface.noDefault = function () {
                 return Interface;
             };
@@ -850,14 +850,10 @@ var au = (function (exports) {
     function isRegistry(obj) {
         return typeof obj.register === 'function';
     }
-    function isClass(obj) {
-        return obj.prototype !== undefined;
-    }
     /** @internal */
     class Container {
         constructor(configuration = {}) {
             this.parent = null;
-            this.registerDepth = 0;
             this.resolvers = new Map();
             this.configuration = configuration;
             this.factories = configuration.factories || (configuration.factories = new Map());
@@ -865,19 +861,10 @@ var au = (function (exports) {
             this.resolvers.set(IContainer, containerResolver);
         }
         register(...params) {
-            if (++this.registerDepth === 100) {
-                throw new Error('Unable to autoregister dependency');
-                // TODO: change to reporter.error and add various possible causes in description.
-                // Most likely cause is trying to register a plain object that does not have a
-                // register method and is not a class constructor
-            }
             for (let i = 0, ii = params.length; i < ii; ++i) {
                 const current = params[i];
                 if (isRegistry(current)) {
                     current.register(this);
-                }
-                else if (isClass(current)) {
-                    Registration.singleton(current, current).register(this);
                 }
                 else {
                     const keys = Object.keys(current);
@@ -894,7 +881,6 @@ var au = (function (exports) {
                     }
                 }
             }
-            --this.registerDepth;
             return this;
         }
         registerResolver(key, resolver) {
@@ -7141,15 +7127,10 @@ var au = (function (exports) {
         if (hooks & 8 /* hasBound */) {
             lifecycle.enqueueBound(this);
         }
-        let current = this.$earlyBindableHead;
-        while (current !== null) {
-            current.$bind(flags, scope);
-            current = current.$nextBind;
-        }
         if (hooks & 4 /* hasBinding */) {
             this.binding(flags);
         }
-        current = this.$bindableHead;
+        let current = this.$bindableHead;
         while (current !== null) {
             current.$bind(flags, scope);
             current = current.$nextBind;
@@ -7171,12 +7152,7 @@ var au = (function (exports) {
         // add isBinding flag
         this.$state |= 1 /* isBinding */;
         this.$scope = scope;
-        let current = this.$earlyBindableHead;
-        while (current !== null) {
-            current.$bind(flags, scope);
-            current = current.$nextBind;
-        }
-        current = this.$bindableHead;
+        let current = this.$bindableHead;
         while (current !== null) {
             current.$bind(flags, scope);
             current = current.$nextBind;
@@ -7217,15 +7193,10 @@ var au = (function (exports) {
             if (hooks & 512 /* hasUnbound */) {
                 lifecycle.enqueueUnbound(this);
             }
-            let current = this.$earlyBindableTail;
-            while (current !== null) {
-                current.$unbind(flags);
-                current = current.$prevBind;
-            }
             if (hooks & 256 /* hasUnbinding */) {
                 this.unbinding(flags);
             }
-            current = this.$bindableTail;
+            let current = this.$bindableTail;
             while (current !== null) {
                 current.$unbind(flags);
                 current = current.$prevBind;
@@ -7242,12 +7213,7 @@ var au = (function (exports) {
             // add isUnbinding flag
             this.$state |= 64 /* isUnbinding */;
             flags |= LifecycleFlags.fromUnbind;
-            let current = this.$earlyBindableTail;
-            while (current !== null) {
-                current.$unbind(flags);
-                current = current.$prevBind;
-            }
-            current = this.$bindableTail;
+            let current = this.$bindableTail;
             while (current !== null) {
                 current.$unbind(flags);
                 current = current.$prevBind;
@@ -7507,17 +7473,15 @@ var au = (function (exports) {
             this.coordinator.caching(flags);
         }
         valueChanged(newValue, oldValue, flags) {
-            if (this.$state & (2 /* isBound */ | 1 /* isBinding */)) {
-                if (ProxyObserver.isProxy(this)) {
-                    flags |= LifecycleFlags.useProxies;
-                }
-                if (flags & LifecycleFlags.fromFlush) {
-                    const view = this.updateView(flags);
-                    this.coordinator.compose(view, flags);
-                }
-                else {
-                    this.$lifecycle.enqueueFlush(this).catch(error => { throw error; });
-                }
+            if (ProxyObserver.isProxy(this)) {
+                flags |= LifecycleFlags.useProxies;
+            }
+            if (flags & LifecycleFlags.fromFlush) {
+                const view = this.updateView(flags);
+                this.coordinator.compose(view, flags);
+            }
+            else {
+                this.$lifecycle.enqueueFlush(this).catch(error => { throw error; });
             }
         }
         flush(flags) {
@@ -7577,7 +7541,9 @@ var au = (function (exports) {
         }
         binding(flags) {
             this.checkCollectionObserver(flags);
-            let current = this.renderable.$earlyBindableHead;
+        }
+        bound(flags) {
+            let current = this.renderable.$bindableHead;
             while (current !== null) {
                 if (ProxyObserver.getRawIfProxy(current.target) === ProxyObserver.getRawIfProxy(this) && current.targetProperty === 'items') {
                     this.forOf = current.sourceExpression;
@@ -7604,7 +7570,7 @@ var au = (function (exports) {
                 view.release(flags);
             }
         }
-        unbinding(flags) {
+        unbound(flags) {
             this.checkCollectionObserver(flags);
             const { views } = this;
             for (let i = 0, ii = views.length; i < ii; ++i) {
@@ -7628,7 +7594,7 @@ var au = (function (exports) {
                 flags |= LifecycleFlags.useProxies;
             }
             const { views, $lifecycle } = this;
-            if (this.$state & (2 /* isBound */ | 1 /* isBinding */)) {
+            if (this.$state & 2 /* isBound */) {
                 const { local, $scope, factory, forOf, items } = this;
                 const oldLength = views.length;
                 const newLength = forOf.count(items);
@@ -7683,7 +7649,7 @@ var au = (function (exports) {
                 }
                 $lifecycle.endBind(flags);
             }
-            if (this.$state & (8 /* isAttached */ | 4 /* isAttaching */)) {
+            if (this.$state & 8 /* isAttached */) {
                 const { location } = this;
                 $lifecycle.beginAttach();
                 if (indexMap === null) {
@@ -7757,7 +7723,7 @@ var au = (function (exports) {
             this.currentView.hold(location);
         }
         valueChanged() {
-            if (this.$state & (2 /* isBound */ | 1 /* isBinding */)) {
+            if (this.$state & 2 /* isBound */) {
                 this.bindChild(LifecycleFlags.fromBindableHandler);
             }
         }
@@ -7820,8 +7786,6 @@ var au = (function (exports) {
         proto.$nextUnbindAfterDetach = null;
         proto.$scope = null;
         proto.$hooks = 0;
-        proto.$earlyBindableHead = null;
-        proto.$earlyBindableTail = null;
         proto.$bindableHead = null;
         proto.$bindableTail = null;
         proto.$attachableHead = null;
@@ -7924,8 +7888,6 @@ var au = (function (exports) {
     /** @internal */
     class View {
         constructor($lifecycle, cache) {
-            this.$earlyBindableHead = null;
-            this.$earlyBindableTail = null;
             this.$bindableHead = null;
             this.$bindableTail = null;
             this.$nextBind = null;
@@ -8539,17 +8501,6 @@ var au = (function (exports) {
         }
         return srcOrExpr;
     }
-    function addEarlyBindable(renderable, bindable) {
-        bindable.$prevBind = renderable.$earlyBindableTail;
-        bindable.$nextBind = null;
-        if (renderable.$earlyBindableTail === null) {
-            renderable.$earlyBindableHead = bindable;
-        }
-        else {
-            renderable.$earlyBindableTail.$nextBind = bindable;
-        }
-        renderable.$earlyBindableTail = bindable;
-    }
     function addBindable(renderable, bindable) {
         bindable.$prevBind = renderable.$bindableTail;
         bindable.$nextBind = null;
@@ -8681,7 +8632,7 @@ var au = (function (exports) {
                 const childInstruction = childInstructions[i];
                 const expr = ensureExpression(this.parser, childInstruction.from, 48 /* IsPropertyCommand */);
                 const bindable = new LetBinding(expr, childInstruction.to, this.observerLocator, context, toViewModel);
-                addEarlyBindable(renderable, bindable);
+                addBindable(renderable, bindable);
             }
         }
     };
@@ -8700,7 +8651,7 @@ var au = (function (exports) {
         render(flags, dom, context, renderable, target, instruction) {
             const expr = ensureExpression(this.parser, instruction.from, 153 /* CallCommand */);
             const bindable = new Call(expr, target, instruction.to, this.observerLocator, context);
-            addEarlyBindable(renderable, bindable);
+            addBindable(renderable, bindable);
         }
     };
     CallBindingRenderer.inject = [IExpressionParser, IObserverLocator];
@@ -8717,7 +8668,7 @@ var au = (function (exports) {
         render(flags, dom, context, renderable, target, instruction) {
             const expr = ensureExpression(this.parser, instruction.from, 1280 /* IsRef */);
             const bindable = new Ref(expr, target, context);
-            addEarlyBindable(renderable, bindable);
+            addBindable(renderable, bindable);
         }
     };
     RefBindingRenderer.inject = [IExpressionParser];
@@ -8741,7 +8692,7 @@ var au = (function (exports) {
             else {
                 bindable = new InterpolationBinding(expr.firstExpression, expr, target, instruction.to, BindingMode.toView, this.observerLocator, context, true);
             }
-            addEarlyBindable(renderable, bindable);
+            addBindable(renderable, bindable);
         }
     };
     InterpolationBindingRenderer.inject = [IExpressionParser, IObserverLocator];
@@ -8759,7 +8710,7 @@ var au = (function (exports) {
         render(flags, dom, context, renderable, target, instruction) {
             const expr = ensureExpression(this.parser, instruction.from, 48 /* IsPropertyCommand */ | instruction.mode);
             const bindable = new Binding(expr, target, instruction.to, instruction.mode, this.observerLocator, context);
-            addEarlyBindable(renderable, bindable);
+            addBindable(renderable, bindable);
         }
     };
     PropertyBindingRenderer.inject = [IExpressionParser, IObserverLocator];
@@ -8777,7 +8728,7 @@ var au = (function (exports) {
         render(flags, dom, context, renderable, target, instruction) {
             const expr = ensureExpression(this.parser, instruction.from, 539 /* ForCommand */);
             const bindable = new Binding(expr, target, instruction.to, BindingMode.toView, this.observerLocator, context);
-            addEarlyBindable(renderable, bindable);
+            addBindable(renderable, bindable);
         }
     };
     IteratorBindingRenderer.inject = [IExpressionParser, IObserverLocator];
@@ -9174,7 +9125,6 @@ var au = (function (exports) {
         ensureExpression: ensureExpression,
         addAttachable: addAttachable,
         addBindable: addBindable,
-        addEarlyBindable: addEarlyBindable,
         CompiledTemplate: CompiledTemplate,
         createRenderContext: createRenderContext,
         IInstructionRenderer: IInstructionRenderer,
@@ -12737,7 +12687,7 @@ var au = (function (exports) {
             else {
                 bindable$$1 = new InterpolationBinding(expr.firstExpression, expr, next, 'textContent', BindingMode.toView, this.observerLocator, context, true);
             }
-            addEarlyBindable(renderable, bindable$$1);
+            addBindable(renderable, bindable$$1);
         }
     };
     TextBindingRenderer.inject = [IExpressionParser, IObserverLocator];
@@ -12755,7 +12705,7 @@ var au = (function (exports) {
         render(flags, dom, context, renderable, target, instruction) {
             const expr = ensureExpression(this.parser, instruction.from, 80 /* IsEventCommand */ | (instruction.strategy + 6 /* DelegationStrategyDelta */));
             const bindable$$1 = new Listener(dom, instruction.to, instruction.strategy, expr, target, instruction.preventDefault, this.eventManager, context);
-            addEarlyBindable(renderable, bindable$$1);
+            addBindable(renderable, bindable$$1);
         }
     };
     ListenerBindingRenderer.inject = [IExpressionParser, IEventManager];
@@ -12784,7 +12734,7 @@ var au = (function (exports) {
         render(flags, dom, context, renderable, target, instruction) {
             const expr = ensureExpression(this.parser, instruction.from, 48 /* IsPropertyCommand */ | BindingMode.toView);
             const bindable$$1 = new Binding(expr, target.style, instruction.to, BindingMode.toView, this.observerLocator, context);
-            addEarlyBindable(renderable, bindable$$1);
+            addBindable(renderable, bindable$$1);
         }
     };
     StylePropertyBindingRenderer.inject = [IExpressionParser, IObserverLocator];

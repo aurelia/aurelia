@@ -584,13 +584,13 @@ System.register('kernel', [], function (exports, module) {
           },
           createInterface(friendlyName) {
               const Interface = function (target, property, index) {
+                  Interface.friendlyName = friendlyName || 'Interface';
                   if (target === undefined) {
                       throw Reporter.error(16, Interface.friendlyName, Interface); // TODO: add error (trying to resolve an InterfaceSymbol that has no registrations)
                   }
                   (target.inject || (target.inject = []))[index] = Interface;
                   return target;
               };
-              Interface.friendlyName = friendlyName || 'Interface';
               Interface.noDefault = function () {
                   return Interface;
               };
@@ -848,14 +848,10 @@ System.register('kernel', [], function (exports, module) {
       function isRegistry(obj) {
           return typeof obj.register === 'function';
       }
-      function isClass(obj) {
-          return obj.prototype !== undefined;
-      }
       /** @internal */
       class Container {
           constructor(configuration = {}) {
               this.parent = null;
-              this.registerDepth = 0;
               this.resolvers = new Map();
               this.configuration = configuration;
               this.factories = configuration.factories || (configuration.factories = new Map());
@@ -863,19 +859,10 @@ System.register('kernel', [], function (exports, module) {
               this.resolvers.set(IContainer, containerResolver);
           }
           register(...params) {
-              if (++this.registerDepth === 100) {
-                  throw new Error('Unable to autoregister dependency');
-                  // TODO: change to reporter.error and add various possible causes in description.
-                  // Most likely cause is trying to register a plain object that does not have a
-                  // register method and is not a class constructor
-              }
               for (let i = 0, ii = params.length; i < ii; ++i) {
                   const current = params[i];
                   if (isRegistry(current)) {
                       current.register(this);
-                  }
-                  else if (isClass(current)) {
-                      Registration.singleton(current, current).register(this);
                   }
                   else {
                       const keys = Object.keys(current);
@@ -892,7 +879,6 @@ System.register('kernel', [], function (exports, module) {
                       }
                   }
               }
-              --this.registerDepth;
               return this;
           }
           registerResolver(key, resolver) {

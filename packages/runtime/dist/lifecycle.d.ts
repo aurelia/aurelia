@@ -16,13 +16,7 @@ export interface IState {
  */
 export interface IRenderable<T extends INode = INode> extends IState {
     /**
-     * The Bindings that belong to this instance and need to be bound before the `binding()` hook is invoked.
-     */
-    $earlyBindableHead?: IBindScope;
-    $earlyBindableTail?: IBindScope;
-    /**
-     * The Views, CustomElements, CustomAttributes and other bindable components that belong to this instance
-     * and should be invoked after the `binding()` hook of this instance but before the `bound()` lifecycle starts.
+     * The Bindings, Views, CustomElements, CustomAttributes and other bindable components that belong to this instance.
      */
     $bindableHead?: IBindScope;
     $bindableTail?: IBindScope;

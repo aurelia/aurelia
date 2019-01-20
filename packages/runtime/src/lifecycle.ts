@@ -17,11 +17,6 @@ import { Hooks, LifecycleFlags, State } from './flags';
 import { IChangeTracker, IScope } from './observation';
 
 const slice = Array.prototype.slice;
-
-export interface IHooks {
-  $hooks?: Hooks;
-}
-
 export interface IState {
   $state?: State;
   $lifecycle?: ILifecycle;
@@ -129,7 +124,8 @@ export const IViewFactory = DI.createInterface<IViewFactory>('IViewFactory').noD
 /**
  * Defines optional lifecycle hooks that will be called only when they are implemented.
  */
-export interface ILifecycleHooks extends IHooks, IState {
+export interface ILifecycleHooks extends IState {
+  $hooks?: Hooks;
   /** @internal */$nextBound?: ILifecycleHooks;
   /** @internal */$nextUnbound?: ILifecycleHooks;
   /** @internal */$nextAttached?: ILifecycleHooks;

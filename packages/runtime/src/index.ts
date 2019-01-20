@@ -371,7 +371,6 @@ export {
   CompositionCoordinator,
   IComponent,
   IBinding,
-  IHooks,
   ILifecycle,
   ILifecycleHooks,
   ILifecycleMount,

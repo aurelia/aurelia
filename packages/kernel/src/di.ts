@@ -1,5 +1,5 @@
 /// <reference types="reflect-metadata" />
-import { Constructable, IIndexable, Injectable, InterfaceSymbol, Primitive } from './interfaces';
+import { Class, Constructable, IIndexable, Injectable, InterfaceSymbol, Primitive } from './interfaces';
 import { PLATFORM } from './platform';
 import { Reporter, Tracer } from './reporter';
 import { IResourceType } from './resource';
@@ -150,13 +150,13 @@ export const DI = {
 
   createInterface<T = unknown>(friendlyName?: string): IDefaultableInterfaceSymbol<T> {
     const Interface: IDefaultableInterfaceSymbol<T> & Partial<IRegistration<T> & {friendlyName: string}> = function(target: Injectable, property: string, index: number): unknown {
-      Interface.friendlyName = friendlyName || 'Interface';
       if (target === undefined) {
         throw Reporter.error(16, Interface.friendlyName, Interface); // TODO: add error (trying to resolve an InterfaceSymbol that has no registrations)
       }
       (target.inject || (target.inject = []))[index] = Interface;
       return target;
     };
+    Interface.friendlyName = friendlyName || 'Interface';
 
     Interface.noDefault = function(): InterfaceSymbol<T> {
       return Interface;
@@ -528,9 +528,14 @@ function isRegistry(obj: IRegistry | Record<string, IRegistry>): obj is IRegistr
   return typeof obj.register === 'function';
 }
 
+function isClass<T extends { prototype?: unknown }>(obj: T): obj is Class<unknown, T> {
+  return obj.prototype !== undefined;
+}
+
 /** @internal */
 export class Container implements IContainer {
   private parent: Container | null;
+  private registerDepth: number;
   private readonly resolvers: Map<InterfaceSymbol<IContainer>, IResolver>;
   private readonly factories: Map<Constructable, IFactory>;
   private readonly configuration: IContainerConfiguration;
@@ -538,6 +543,7 @@ export class Container implements IContainer {
 
   constructor(configuration: IContainerConfiguration = {}) {
     this.parent = null;
+    this.registerDepth = 0;
     this.resolvers = new Map<InterfaceSymbol<IContainer>, IResolver>();
     this.configuration = configuration;
     this.factories = configuration.factories || (configuration.factories = new Map());
@@ -552,10 +558,18 @@ export class Container implements IContainer {
   public register(registry: IRegistry): this;
   public register(registry: IRegistry | Record<string, Partial<IRegistry>>): this;
   public register(...params: (IRegistry | Record<string, Partial<IRegistry>>)[]): this {
+    if (++this.registerDepth === 100) {
+      throw new Error('Unable to autoregister dependency');
+      // TODO: change to reporter.error and add various possible causes in description.
+      // Most likely cause is trying to register a plain object that does not have a
+      // register method and is not a class constructor
+    }
     for (let i = 0, ii = params.length; i < ii; ++i) {
       const current = params[i] as IRegistry | Record<string, IRegistry>;
       if (isRegistry(current)) {
         current.register(this);
+      } else if (isClass(current)) {
+        Registration.singleton(current, current).register(this);
       } else {
         const keys = Object.keys(current);
         for (let j = 0, jj = keys.length; j < jj; ++j) {
@@ -570,6 +584,7 @@ export class Container implements IContainer {
         }
       }
     }
+    --this.registerDepth;
     return this;
   }
 

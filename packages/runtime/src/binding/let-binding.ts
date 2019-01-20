@@ -1,7 +1,7 @@
 import { IIndexable, IServiceLocator, Reporter, Tracer } from '@aurelia/kernel';
 import { IExpression } from '../ast';
 import { LifecycleFlags, State } from '../flags';
-import { IBindScope, ILifecycle } from '../lifecycle';
+import { IBinding, ILifecycle } from '../lifecycle';
 import { IObservable, IScope } from '../observation';
 import { IObserverLocator } from '../observation/observer-locator';
 import { connectable, IConnectableBinding, IPartialConnectableBinding } from './connectable';
@@ -12,8 +12,8 @@ export interface LetBinding extends IConnectableBinding {}
 
 @connectable()
 export class LetBinding implements IPartialConnectableBinding {
-  public $nextBind: IBindScope;
-  public $prevBind: IBindScope;
+  public $nextBinding: IBinding;
+  public $prevBinding: IBinding;
   public $state: State;
   public $lifecycle: ILifecycle;
   public $scope: IScope;
@@ -27,8 +27,8 @@ export class LetBinding implements IPartialConnectableBinding {
   private readonly toViewModel: boolean;
 
   constructor(sourceExpression: IExpression, targetProperty: string, observerLocator: IObserverLocator, locator: IServiceLocator, toViewModel: boolean = false) {
-    this.$nextBind = null;
-    this.$prevBind = null;
+    this.$nextBinding = null;
+    this.$prevBinding = null;
     this.$state = State.none;
     this.$lifecycle = locator.get(ILifecycle);
     this.$scope = null;

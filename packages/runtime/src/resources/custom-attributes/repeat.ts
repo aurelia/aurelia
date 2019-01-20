@@ -51,13 +51,13 @@ export class Repeat<C extends ObservedCollection = IObservedArray, T extends INo
 
   public binding(flags: LifecycleFlags): void {
     this.checkCollectionObserver(flags);
-    let current = this.renderable.$earlyBindableHead as Binding;
+    let current = this.renderable.$bindingHead as Binding;
     while (current !== null) {
       if (ProxyObserver.getRawIfProxy(current.target) === ProxyObserver.getRawIfProxy(this) && current.targetProperty === 'items') {
         this.forOf = current.sourceExpression as ForOfStatement;
         break;
       }
-      current = current.$nextBind as Binding;
+      current = current.$nextBinding as Binding;
     }
     this.local = this.forOf.declaration.evaluate(flags, this.$scope, null) as string;
 

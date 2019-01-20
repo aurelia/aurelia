@@ -2,7 +2,7 @@ import { Constructable, IContainer, Overwrite, Registration } from '@aurelia/ker
 import { expect } from 'chai';
 import {
   CustomAttributeResource,
-  IAttach,
+  IComponent,
   ICustomAttribute,
   ICustomAttributeType,
   IDOM,
@@ -94,13 +94,13 @@ export function ensureSingleChildTemplateControllerBehaviors<T extends ICustomAt
     expect(unbindCalled).to.equal(true);
   });
 
-  function runAttachLifecycle(lifecycle: Lifecycle, item: IAttach) {
+  function runAttachLifecycle(lifecycle: Lifecycle, item: IComponent) {
     lifecycle.beginAttach();
     item.$attach(LF.none);
     lifecycle.endAttach(LF.none);
   }
 
-  function runDetachLifecycle(lifecycle: Lifecycle, item: IAttach) {
+  function runDetachLifecycle(lifecycle: Lifecycle, item: IComponent) {
     lifecycle.beginDetach();
     item.$detach(LF.none);
     lifecycle.endDetach(LF.none);

@@ -1,7 +1,7 @@
 import { IServiceLocator, Tracer } from '@aurelia/kernel';
 import { IsBindingBehavior } from '../ast';
 import { LifecycleFlags, State } from '../flags';
-import { IBindScope } from '../lifecycle';
+import { IBinding } from '../lifecycle';
 import { IAccessor, IBindingContext, IObservable, IScope } from '../observation';
 import { IObserverLocator } from '../observation/observer-locator';
 import { hasBind, hasUnbind } from './ast';
@@ -11,8 +11,8 @@ const slice = Array.prototype.slice;
 
 export interface Call extends IConnectableBinding {}
 export class Call {
-  public $nextBind: IBindScope;
-  public $prevBind: IBindScope;
+  public $nextBinding: IBinding;
+  public $prevBinding: IBinding;
   public $state: State;
   public $scope: IScope;
 
@@ -21,8 +21,8 @@ export class Call {
   public targetObserver: IAccessor;
 
   constructor(sourceExpression: IsBindingBehavior, target: IObservable | IBindingContext, targetProperty: string, observerLocator: IObserverLocator, locator: IServiceLocator) {
-    this.$nextBind = null;
-    this.$prevBind = null;
+    this.$nextBinding = null;
+    this.$prevBinding = null;
     this.$state = State.none;
 
     this.locator = locator;

@@ -4,7 +4,6 @@ import {
   hasBind,
   hasUnbind,
   IBinding,
-  IBindScope,
   IConnectableBinding,
   IDOM,
   IsBindingBehavior,
@@ -20,8 +19,8 @@ export interface Listener extends IConnectableBinding {}
 export class Listener implements IBinding {
   public dom: IDOM;
 
-  public $nextBind: IBindScope;
-  public $prevBind: IBindScope;
+  public $nextBinding: IBinding;
+  public $prevBinding: IBinding;
   public $state: State;
   public $scope: IScope;
 
@@ -47,8 +46,8 @@ export class Listener implements IBinding {
     locator: IServiceLocator
   ) {
     this.dom = dom;
-    this.$nextBind = null;
-    this.$prevBind = null;
+    this.$nextBinding = null;
+    this.$prevBinding = null;
     this.$state = State.none;
 
     this.delegationStrategy = delegationStrategy;

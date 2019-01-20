@@ -5,21 +5,17 @@ export class FakeRenderable implements IRenderable {
   public $nodes: IRenderable['$nodes'] = null;
   public $lifecycle: IRenderable['$lifecycle'] = null;
 
-  public $prevBind: ICustomElement['$prevBind'] = null;
-  public $nextBind: ICustomElement['$nextBind'] = null;
-  public $prevAttach: ICustomElement['$prevAttach'] = null;
-  public $nextAttach: ICustomElement['$nextAttach'] = null;
+  public $prevComponent: ICustomElement['$prevComponent'] = null;
+  public $nextComponent: ICustomElement['$nextComponent'] = null;
 
   public $scope: ICustomElement['$scope'] = null;
   public $hooks: ICustomElement['$hooks'] = 0;
   public $state: ICustomElement['$state'] = 0;
 
-  public $earlyBindableHead: ICustomElement['$earlyBindableHead'] = null;
-  public $earlyBindableTail: ICustomElement['$earlyBindableTail'] = null;
-  public $bindableHead: ICustomElement['$bindableHead'] = null;
-  public $bindableTail: ICustomElement['$bindableTail'] = null;
-  public $attachableHead: ICustomElement['$attachableHead'] = null;
-  public $attachableTail: ICustomElement['$attachableTail'] = null;
+  public $bindingHead: ICustomElement['$bindingHead'] = null;
+  public $bindingTail: ICustomElement['$bindingTail'] = null;
+  public $componentHead: ICustomElement['$componentHead'] = null;
+  public $componentTail: ICustomElement['$componentTail'] = null;
 
   public $nextMount: ICustomElement['$nextMount'] = null;
   public $nextUnmount: ICustomElement['$nextUnmount'] = null;

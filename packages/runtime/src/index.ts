@@ -89,7 +89,6 @@ export {
   UnaryOperator
 } from './ast';
 export {
-  IBinding,
   Binding
 } from './binding/binding';
 export {
@@ -370,22 +369,13 @@ export {
 export {
   AggregateLifecycleTask,
   CompositionCoordinator,
-  IAttach,
-  IBind,
-  IBindScope,
-  ICachable,
+  IComponent,
+  IBinding,
   IHooks,
   ILifecycle,
-  ILifecycleAttach,
-  ILifecycleBind,
-  ILifecycleBindScope,
-  ILifecycleCache,
-  ILifecycleDetach,
   ILifecycleHooks,
   ILifecycleMount,
   ILifecycleTask,
-  ILifecycleUnbind,
-  ILifecycleUnbindAfterDetach,
   ILifecycleUnmount,
   IMountable,
   IRenderable,
@@ -443,9 +433,8 @@ export {
 export {
   instructionRenderer,
   ensureExpression,
-  addAttachable,
-  addBindable,
-  addEarlyBindable
+  addComponent,
+  addBinding
 } from './renderer';
 export {
   CompiledTemplate,

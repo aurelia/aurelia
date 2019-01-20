@@ -1,15 +1,15 @@
 import { IServiceLocator } from '@aurelia/kernel';
 import { IExpression } from '../ast';
 import { LifecycleFlags, State } from '../flags';
-import { IBindScope, ILifecycle } from '../lifecycle';
+import { IBinding, ILifecycle } from '../lifecycle';
 import { IObservable, IScope } from '../observation';
 import { IObserverLocator } from '../observation/observer-locator';
 import { IConnectableBinding, IPartialConnectableBinding } from './connectable';
 export interface LetBinding extends IConnectableBinding {
 }
 export declare class LetBinding implements IPartialConnectableBinding {
-    $nextBind: IBindScope;
-    $prevBind: IBindScope;
+    $nextBinding: IBinding;
+    $prevBinding: IBinding;
     $state: State;
     $lifecycle: ILifecycle;
     $scope: IScope;

@@ -1,6 +1,6 @@
 import { IRegistry } from '@aurelia/kernel';
-import { IBinding } from '../../binding/binding';
 import { LifecycleFlags } from '../../flags';
+import { IBinding } from '../../lifecycle';
 import { IScope } from '../../observation';
 export declare type DebounceableBinding = IBinding & {
     debouncedMethod: ((newValue: unknown, oldValue: unknown, flags: LifecycleFlags) => void) & {

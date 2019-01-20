@@ -1,9 +1,9 @@
 import { Class } from '@aurelia/kernel';
 import { IConnectable } from '../ast';
 import { LifecycleFlags } from '../flags';
+import { IBinding } from '../lifecycle';
 import { IPropertySubscriber, ISubscribable, MutationKind } from '../observation';
 import { IObserverLocator } from '../observation/observer-locator';
-import { IBinding } from './binding';
 export interface IPartialConnectableBinding extends IBinding, IPropertySubscriber {
     observerLocator: IObserverLocator;
 }

@@ -1,12 +1,12 @@
 import { IIndexable, IServiceLocator } from '@aurelia/kernel';
-import { DelegationStrategy, IBinding, IBindScope, IConnectableBinding, IDOM, IsBindingBehavior, IScope, LifecycleFlags, State } from '@aurelia/runtime';
+import { DelegationStrategy, IBinding, IConnectableBinding, IDOM, IsBindingBehavior, IScope, LifecycleFlags, State } from '@aurelia/runtime';
 import { IEventManager } from '../observation/event-manager';
 export interface Listener extends IConnectableBinding {
 }
 export declare class Listener implements IBinding {
     dom: IDOM;
-    $nextBind: IBindScope;
-    $prevBind: IBindScope;
+    $nextBinding: IBinding;
+    $prevBinding: IBinding;
     $state: State;
     $scope: IScope;
     delegationStrategy: DelegationStrategy;

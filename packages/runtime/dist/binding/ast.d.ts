@@ -1,7 +1,7 @@
 import { IIndexable, IServiceLocator, StrictPrimitive } from '@aurelia/kernel';
 import { BinaryOperator, BindingIdentifierOrPattern, CallsFunction, Connects, HasAncestor, HasBind, HasUnbind, IAccessKeyedExpression, IAccessMemberExpression, IAccessScopeExpression, IAccessThisExpression, IArrayBindingPattern, IArrayLiteralExpression, IAssignExpression, IBinaryExpression, IBindingBehaviorExpression, IBindingIdentifier, ICallFunctionExpression, ICallMemberExpression, ICallScopeExpression, IConditionalExpression, IExpression, IForOfStatement, IHtmlLiteralExpression, IInterpolationExpression, IObjectBindingPattern, IObjectLiteralExpression, IPrimitiveLiteralExpression, IsAssign, IsAssignable, IsBinary, IsBindingBehavior, IsExpressionOrStatement, IsLeftHandSide, IsLiteral, IsPrimary, IsResource, IsValueConverter, ITaggedTemplateExpression, ITemplateExpression, IUnaryExpression, IValueConverterExpression, IVisitor, Observes, UnaryOperator } from '../ast';
 import { ExpressionKind, LifecycleFlags } from '../flags';
-import { IBindScope } from '../lifecycle';
+import { IBinding } from '../lifecycle';
 import { Collection, IBindingContext, IOverrideContext, IScope, ObservedCollection } from '../observation';
 import { IConnectableBinding } from './connectable';
 export declare function connects(expr: IsExpressionOrStatement): expr is Connects;
@@ -83,7 +83,7 @@ export declare class AccessScope implements IAccessScopeExpression {
     readonly name: string;
     readonly ancestor: number;
     constructor(name: string, ancestor?: number);
-    evaluate(flags: LifecycleFlags, scope: IScope, locator: IServiceLocator): IBindingContext | IBindScope | IOverrideContext;
+    evaluate(flags: LifecycleFlags, scope: IScope, locator: IServiceLocator): IBindingContext | IBinding | IOverrideContext;
     assign(flags: LifecycleFlags, scope: IScope, locator: IServiceLocator, value: unknown): unknown;
     connect(flags: LifecycleFlags, scope: IScope, binding: IConnectableBinding): void;
     accept<T>(visitor: IVisitor<T>): T;

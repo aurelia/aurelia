@@ -2891,8 +2891,8 @@
   const toViewOrOneTime = toView | oneTime;
   exports.Binding = class Binding {
       constructor(sourceExpression, target, targetProperty, mode, observerLocator, locator) {
-          this.$nextBind = null;
-          this.$prevBind = null;
+          this.$nextBinding = null;
+          this.$prevBinding = null;
           this.$state = 0 /* none */;
           this.$lifecycle = locator.get(ILifecycle);
           this.$nextConnect = null;
@@ -3040,8 +3040,8 @@
 
   class Call {
       constructor(sourceExpression, target, targetProperty, observerLocator, locator) {
-          this.$nextBind = null;
-          this.$prevBind = null;
+          this.$nextBinding = null;
+          this.$prevBinding = null;
           this.$state = 0 /* none */;
           this.locator = locator;
           this.sourceExpression = sourceExpression;
@@ -3213,8 +3213,8 @@
   const { toView: toView$1, oneTime: oneTime$1 } = exports.BindingMode;
   class MultiInterpolationBinding {
       constructor(observerLocator, interpolation, target, targetProperty, mode, locator) {
-          this.$nextBind = null;
-          this.$prevBind = null;
+          this.$nextBinding = null;
+          this.$prevBinding = null;
           this.$state = 0 /* none */;
           this.$scope = null;
           this.interpolation = interpolation;
@@ -3332,8 +3332,8 @@
 
   exports.LetBinding = class LetBinding {
       constructor(sourceExpression, targetProperty, observerLocator, locator, toViewModel = false) {
-          this.$nextBind = null;
-          this.$prevBind = null;
+          this.$nextBinding = null;
+          this.$prevBinding = null;
           this.$state = 0 /* none */;
           this.$lifecycle = locator.get(ILifecycle);
           this.$scope = null;
@@ -3403,8 +3403,8 @@
 
   class Ref {
       constructor(sourceExpression, target, locator) {
-          this.$nextBind = null;
-          this.$prevBind = null;
+          this.$nextBinding = null;
+          this.$prevBinding = null;
           this.$state = 0 /* none */;
           this.locator = locator;
           this.sourceExpression = sourceExpression;
@@ -5212,10 +5212,10 @@
       if (hooks & 16 /* hasAttaching */) {
           this.attaching(flags);
       }
-      let current = this.$attachableHead;
+      let current = this.$componentHead;
       while (current !== null) {
           current.$attach(flags);
-          current = current.$nextAttach;
+          current = current.$nextComponent;
       }
       lifecycle.enqueueMount(this);
       // add isAttached flag, remove isAttaching flag
@@ -5234,10 +5234,10 @@
       // add isAttaching flag
       this.$state |= 4 /* isAttaching */;
       flags |= exports.LifecycleFlags.fromAttach;
-      let current = this.$attachableHead;
+      let current = this.$componentHead;
       while (current !== null) {
           current.$attach(flags);
-          current = current.$nextAttach;
+          current = current.$nextComponent;
       }
       this.$lifecycle.enqueueMount(this);
       // add isAttached flag, remove isAttaching flag
@@ -5285,10 +5285,10 @@
           if (hooks & 64 /* hasDetaching */) {
               this.detaching(flags);
           }
-          let current = this.$attachableTail;
+          let current = this.$componentTail;
           while (current !== null) {
               current.$detach(flags);
-              current = current.$prevAttach;
+              current = current.$prevComponent;
           }
           // remove isAttached and isDetaching flags
           this.$state &= ~(8 /* isAttached */ | 32 /* isDetaching */);
@@ -5311,10 +5311,10 @@
               this.$lifecycle.enqueueUnmount(this);
               flags |= exports.LifecycleFlags.parentUnmountQueued;
           }
-          let current = this.$attachableTail;
+          let current = this.$componentTail;
           while (current !== null) {
               current.$detach(flags);
-              current = current.$prevAttach;
+              current = current.$prevComponent;
           }
           // remove isAttached and isDetaching flags
           this.$state &= ~(8 /* isAttached */ | 32 /* isDetaching */);
@@ -5333,19 +5333,19 @@
       if (this.$hooks & 2048 /* hasCaching */) {
           this.caching(flags);
       }
-      let current = this.$attachableTail;
+      let current = this.$componentTail;
       while (current !== null) {
           current.$cache(flags);
-          current = current.$prevAttach;
+          current = current.$prevComponent;
       }
   }
   /** @internal */
   function $cacheView(flags) {
       flags |= exports.LifecycleFlags.fromCache;
-      let current = this.$attachableTail;
+      let current = this.$componentTail;
       while (current !== null) {
           current.$cache(flags);
-          current = current.$prevAttach;
+          current = current.$prevComponent;
       }
   }
   /** @internal */
@@ -5420,9 +5420,6 @@
       }
       const scope = this.$scope;
       scope.parentScope = parentScope;
-      // --------
-      // TODO: refactor this: bind the non-component bindables before `binding` hook, so repeat.for can use `binding` instead of `bound`, etc
-      // --------
       const lifecycle = this.$lifecycle;
       lifecycle.beginBind();
       // add isBinding flag
@@ -5432,13 +5429,18 @@
       if (hooks & 8 /* hasBound */) {
           lifecycle.enqueueBound(this);
       }
+      let binding = this.$bindingHead;
+      while (binding !== null) {
+          binding.$bind(flags, scope);
+          binding = binding.$nextBinding;
+      }
       if (hooks & 4 /* hasBinding */) {
           this.binding(flags);
       }
-      let current = this.$bindableHead;
-      while (current !== null) {
-          current.$bind(flags, scope);
-          current = current.$nextBind;
+      let component = this.$componentHead;
+      while (component !== null) {
+          component.$bind(flags, scope);
+          component = component.$nextComponent;
       }
       // add isBound flag and remove isBinding flag
       this.$state |= 2 /* isBound */;
@@ -5457,10 +5459,38 @@
       // add isBinding flag
       this.$state |= 1 /* isBinding */;
       this.$scope = scope;
-      let current = this.$bindableHead;
-      while (current !== null) {
-          current.$bind(flags, scope);
-          current = current.$nextBind;
+      let binding = this.$bindingHead;
+      while (binding !== null) {
+          binding.$bind(flags, scope);
+          binding = binding.$nextBinding;
+      }
+      let component = this.$componentHead;
+      while (component !== null) {
+          component.$bind(flags, scope);
+          component = component.$nextComponent;
+      }
+      // add isBound flag and remove isBinding flag
+      this.$state |= 2 /* isBound */;
+      this.$state &= ~1 /* isBinding */;
+  }
+  /** @internal */
+  function $lockedBind(flags) {
+      flags |= exports.LifecycleFlags.fromBind;
+      if (this.$state & 2 /* isBound */) {
+          return;
+      }
+      // add isBinding flag
+      this.$state |= 1 /* isBinding */;
+      const scope = this.$scope;
+      let binding = this.$bindingHead;
+      while (binding !== null) {
+          binding.$bind(flags, scope);
+          binding = binding.$nextBinding;
+      }
+      let component = this.$componentHead;
+      while (component !== null) {
+          component.$bind(flags, scope);
+          component = component.$nextComponent;
       }
       // add isBound flag and remove isBinding flag
       this.$state |= 2 /* isBound */;
@@ -5498,13 +5528,18 @@
           if (hooks & 512 /* hasUnbound */) {
               lifecycle.enqueueUnbound(this);
           }
+          let binding = this.$bindingTail;
+          while (binding !== null) {
+              binding.$unbind(flags);
+              binding = binding.$prevBinding;
+          }
           if (hooks & 256 /* hasUnbinding */) {
               this.unbinding(flags);
           }
-          let current = this.$bindableTail;
-          while (current !== null) {
-              current.$unbind(flags);
-              current = current.$prevBind;
+          let component = this.$componentTail;
+          while (component !== null) {
+              component.$unbind(flags);
+              component = component.$prevComponent;
           }
           this.$scope.parentScope = null;
           // remove isBound and isUnbinding flags
@@ -5518,14 +5553,39 @@
           // add isUnbinding flag
           this.$state |= 64 /* isUnbinding */;
           flags |= exports.LifecycleFlags.fromUnbind;
-          let current = this.$bindableTail;
-          while (current !== null) {
-              current.$unbind(flags);
-              current = current.$prevBind;
+          let binding = this.$bindingTail;
+          while (binding !== null) {
+              binding.$unbind(flags);
+              binding = binding.$prevBinding;
+          }
+          let component = this.$componentTail;
+          while (component !== null) {
+              component.$unbind(flags);
+              component = component.$prevComponent;
           }
           // remove isBound and isUnbinding flags
           this.$state &= ~(2 /* isBound */ | 64 /* isUnbinding */);
           this.$scope = null;
+      }
+  }
+  /** @internal */
+  function $lockedUnbind(flags) {
+      if (this.$state & 2 /* isBound */) {
+          // add isUnbinding flag
+          this.$state |= 64 /* isUnbinding */;
+          flags |= exports.LifecycleFlags.fromUnbind;
+          let binding = this.$bindingTail;
+          while (binding !== null) {
+              binding.$unbind(flags);
+              binding = binding.$prevBinding;
+          }
+          let component = this.$componentTail;
+          while (component !== null) {
+              component.$unbind(flags);
+              component = component.$prevComponent;
+          }
+          // remove isBound and isUnbinding flags
+          this.$state &= ~(2 /* isBound */ | 64 /* isUnbinding */);
       }
   }
 
@@ -5611,10 +5671,8 @@
       proto.$detach = $detachAttribute;
       proto.$unbind = $unbindAttribute;
       proto.$cache = $cacheAttribute;
-      proto.$prevBind = null;
-      proto.$nextBind = null;
-      proto.$prevAttach = null;
-      proto.$nextAttach = null;
+      proto.$prevComponent = null;
+      proto.$nextComponent = null;
       proto.$nextUnbindAfterDetach = null;
       proto.$scope = null;
       proto.$hooks = 0;
@@ -5778,15 +5836,17 @@
           this.coordinator.caching(flags);
       }
       valueChanged(newValue, oldValue, flags) {
-          if (exports.ProxyObserver.isProxy(this)) {
-              flags |= exports.LifecycleFlags.useProxies;
-          }
-          if (flags & exports.LifecycleFlags.fromFlush) {
-              const view = this.updateView(flags);
-              this.coordinator.compose(view, flags);
-          }
-          else {
-              this.$lifecycle.enqueueFlush(this).catch(error => { throw error; });
+          if (this.$state & (2 /* isBound */ | 1 /* isBinding */)) {
+              if (exports.ProxyObserver.isProxy(this)) {
+                  flags |= exports.LifecycleFlags.useProxies;
+              }
+              if (flags & exports.LifecycleFlags.fromFlush) {
+                  const view = this.updateView(flags);
+                  this.coordinator.compose(view, flags);
+              }
+              else {
+                  this.$lifecycle.enqueueFlush(this).catch(error => { throw error; });
+              }
           }
       }
       flush(flags) {
@@ -5846,15 +5906,13 @@
       }
       binding(flags) {
           this.checkCollectionObserver(flags);
-      }
-      bound(flags) {
-          let current = this.renderable.$bindableHead;
+          let current = this.renderable.$bindingHead;
           while (current !== null) {
               if (exports.ProxyObserver.getRawIfProxy(current.target) === exports.ProxyObserver.getRawIfProxy(this) && current.targetProperty === 'items') {
                   this.forOf = current.sourceExpression;
                   break;
               }
-              current = current.$nextBind;
+              current = current.$nextBinding;
           }
           this.local = this.forOf.declaration.evaluate(flags, this.$scope, null);
           this.processViews(null, flags);
@@ -5875,7 +5933,7 @@
               view.release(flags);
           }
       }
-      unbound(flags) {
+      unbinding(flags) {
           this.checkCollectionObserver(flags);
           const { views } = this;
           for (let i = 0, ii = views.length; i < ii; ++i) {
@@ -5899,7 +5957,7 @@
               flags |= exports.LifecycleFlags.useProxies;
           }
           const { views, $lifecycle } = this;
-          if (this.$state & 2 /* isBound */) {
+          if (this.$state & (2 /* isBound */ | 1 /* isBinding */)) {
               const { local, $scope, factory, forOf, items } = this;
               const oldLength = views.length;
               const newLength = forOf.count(items);
@@ -5954,7 +6012,7 @@
               }
               $lifecycle.endBind(flags);
           }
-          if (this.$state & 8 /* isAttached */) {
+          if (this.$state & (8 /* isAttached */ | 4 /* isAttaching */)) {
               const { location } = this;
               $lifecycle.beginAttach();
               if (indexMap === null) {
@@ -6028,7 +6086,7 @@
           this.currentView.hold(location);
       }
       valueChanged() {
-          if (this.$state & 2 /* isBound */) {
+          if (this.$state & (2 /* isBound */ | 1 /* isBinding */)) {
               this.bindChild(exports.LifecycleFlags.fromBindableHandler);
           }
       }
@@ -6084,17 +6142,15 @@
       proto.$detach = $detachElement;
       proto.$unbind = $unbindElement;
       proto.$cache = $cacheElement;
-      proto.$prevBind = null;
-      proto.$nextBind = null;
-      proto.$prevAttach = null;
-      proto.$nextAttach = null;
+      proto.$prevComponent = null;
+      proto.$nextComponent = null;
       proto.$nextUnbindAfterDetach = null;
       proto.$scope = null;
       proto.$hooks = 0;
-      proto.$bindableHead = null;
-      proto.$bindableTail = null;
-      proto.$attachableHead = null;
-      proto.$attachableTail = null;
+      proto.$bindingHead = null;
+      proto.$bindingTail = null;
+      proto.$componentHead = null;
+      proto.$componentTail = null;
       proto.$mount = $mountElement;
       proto.$unmount = $unmountElement;
       proto.$nextMount = null;
@@ -6193,14 +6249,14 @@
   /** @internal */
   class View {
       constructor($lifecycle, cache) {
-          this.$bindableHead = null;
-          this.$bindableTail = null;
-          this.$nextBind = null;
-          this.$prevBind = null;
-          this.$attachableHead = null;
-          this.$attachableTail = null;
-          this.$nextAttach = null;
-          this.$prevAttach = null;
+          this.$bindingHead = null;
+          this.$bindingTail = null;
+          this.$componentHead = null;
+          this.$componentTail = null;
+          this.$componentHead = null;
+          this.$componentTail = null;
+          this.$nextComponent = null;
+          this.$prevComponent = null;
           this.$nextMount = null;
           this.$nextUnmount = null;
           this.$nextUnbindAfterDetach = null;
@@ -6240,8 +6296,8 @@
       }
       lockScope(scope) {
           this.$scope = scope;
-          this.$bind = lockedBind;
-          this.$unbind = lockedUnbind;
+          this.$bind = $lockedBind;
+          this.$unbind = $lockedUnbind;
       }
   }
   /** @internal */
@@ -6302,33 +6358,6 @@
       }
   }
   ViewFactory.maxCacheSize = 0xFFFF;
-  function lockedBind(flags) {
-      if (this.$state & 2 /* isBound */) {
-          return;
-      }
-      flags |= exports.LifecycleFlags.fromBind;
-      const lockedScope = this.$scope;
-      let current = this.$bindableHead;
-      while (current !== null) {
-          current.$bind(flags, lockedScope);
-          current = current.$nextBind;
-      }
-      this.$state |= 2 /* isBound */;
-  }
-  function lockedUnbind(flags) {
-      if (this.$state & 2 /* isBound */) {
-          // add isUnbinding flag
-          this.$state |= 64 /* isUnbinding */;
-          flags |= exports.LifecycleFlags.fromUnbind;
-          let current = this.$bindableTail;
-          while (current !== null) {
-              current.$unbind(flags);
-              current = current.$prevBind;
-          }
-          // remove isBound and isUnbinding flags
-          this.$state &= ~(2 /* isBound */ | 64 /* isUnbinding */);
-      }
-  }
   ((proto) => {
       proto.$bind = $bindView;
       proto.$unbind = $unbindView;
@@ -6805,27 +6834,27 @@
       }
       return srcOrExpr;
   }
-  function addBindable(renderable, bindable) {
-      bindable.$prevBind = renderable.$bindableTail;
-      bindable.$nextBind = null;
-      if (renderable.$bindableTail === null) {
-          renderable.$bindableHead = bindable;
+  function addBinding(renderable, binding) {
+      binding.$prevBinding = renderable.$bindingTail;
+      binding.$nextBinding = null;
+      if (renderable.$bindingTail === null) {
+          renderable.$bindingHead = binding;
       }
       else {
-          renderable.$bindableTail.$nextBind = bindable;
+          renderable.$bindingTail.$nextBinding = binding;
       }
-      renderable.$bindableTail = bindable;
+      renderable.$bindingTail = binding;
   }
-  function addAttachable(renderable, attachable) {
-      attachable.$prevAttach = renderable.$attachableTail;
-      attachable.$nextAttach = null;
-      if (renderable.$attachableTail === null) {
-          renderable.$attachableHead = attachable;
+  function addComponent(renderable, component) {
+      component.$prevComponent = renderable.$componentTail;
+      component.$nextComponent = null;
+      if (renderable.$componentTail === null) {
+          renderable.$componentHead = component;
       }
       else {
-          renderable.$attachableTail.$nextAttach = attachable;
+          renderable.$componentTail.$nextComponent = component;
       }
-      renderable.$attachableTail = attachable;
+      renderable.$componentTail = component;
   }
   let SetPropertyRenderer = 
   /** @internal */
@@ -6855,8 +6884,7 @@
               const current = childInstructions[i];
               instructionRenderers[current.type].render(flags, dom, context, renderable, component, current);
           }
-          addBindable(renderable, component);
-          addAttachable(renderable, component);
+          addComponent(renderable, component);
           operation.dispose();
       }
   };
@@ -6881,8 +6909,7 @@
               const current = childInstructions[i];
               instructionRenderers[current.type].render(flags, dom, context, renderable, component, current);
           }
-          addBindable(renderable, component);
-          addAttachable(renderable, component);
+          addComponent(renderable, component);
           operation.dispose();
       }
   };
@@ -6905,14 +6932,13 @@
           const childInstructions = instruction.instructions;
           component.$hydrate(flags, this.renderingEngine);
           if (instruction.link) {
-              component.link(renderable.$attachableTail);
+              component.link(renderable.$componentTail);
           }
           for (let i = 0, ii = childInstructions.length; i < ii; ++i) {
               const current = childInstructions[i];
               instructionRenderers[current.type].render(flags, dom, context, renderable, component, current);
           }
-          addBindable(renderable, component);
-          addAttachable(renderable, component);
+          addComponent(renderable, component);
           operation.dispose();
       }
   };
@@ -6935,8 +6961,8 @@
           for (let i = 0, ii = childInstructions.length; i < ii; ++i) {
               const childInstruction = childInstructions[i];
               const expr = ensureExpression(this.parser, childInstruction.from, 48 /* IsPropertyCommand */);
-              const bindable = new exports.LetBinding(expr, childInstruction.to, this.observerLocator, context, toViewModel);
-              addBindable(renderable, bindable);
+              const binding = new exports.LetBinding(expr, childInstruction.to, this.observerLocator, context, toViewModel);
+              addBinding(renderable, binding);
           }
       }
   };
@@ -6954,8 +6980,8 @@
       }
       render(flags, dom, context, renderable, target, instruction) {
           const expr = ensureExpression(this.parser, instruction.from, 153 /* CallCommand */);
-          const bindable = new Call(expr, target, instruction.to, this.observerLocator, context);
-          addBindable(renderable, bindable);
+          const binding = new Call(expr, target, instruction.to, this.observerLocator, context);
+          addBinding(renderable, binding);
       }
   };
   CallBindingRenderer.inject = [IExpressionParser, IObserverLocator];
@@ -6971,8 +6997,8 @@
       }
       render(flags, dom, context, renderable, target, instruction) {
           const expr = ensureExpression(this.parser, instruction.from, 1280 /* IsRef */);
-          const bindable = new Ref(expr, target, context);
-          addBindable(renderable, bindable);
+          const binding = new Ref(expr, target, context);
+          addBinding(renderable, binding);
       }
   };
   RefBindingRenderer.inject = [IExpressionParser];
@@ -6988,15 +7014,15 @@
           this.observerLocator = observerLocator;
       }
       render(flags, dom, context, renderable, target, instruction) {
-          let bindable;
+          let binding;
           const expr = ensureExpression(this.parser, instruction.from, 2048 /* Interpolation */);
           if (expr.isMulti) {
-              bindable = new MultiInterpolationBinding(this.observerLocator, expr, target, instruction.to, exports.BindingMode.toView, context);
+              binding = new MultiInterpolationBinding(this.observerLocator, expr, target, instruction.to, exports.BindingMode.toView, context);
           }
           else {
-              bindable = new exports.InterpolationBinding(expr.firstExpression, expr, target, instruction.to, exports.BindingMode.toView, this.observerLocator, context, true);
+              binding = new exports.InterpolationBinding(expr.firstExpression, expr, target, instruction.to, exports.BindingMode.toView, this.observerLocator, context, true);
           }
-          addBindable(renderable, bindable);
+          addBinding(renderable, binding);
       }
   };
   InterpolationBindingRenderer.inject = [IExpressionParser, IObserverLocator];
@@ -7013,8 +7039,8 @@
       }
       render(flags, dom, context, renderable, target, instruction) {
           const expr = ensureExpression(this.parser, instruction.from, 48 /* IsPropertyCommand */ | instruction.mode);
-          const bindable = new exports.Binding(expr, target, instruction.to, instruction.mode, this.observerLocator, context);
-          addBindable(renderable, bindable);
+          const binding = new exports.Binding(expr, target, instruction.to, instruction.mode, this.observerLocator, context);
+          addBinding(renderable, binding);
       }
   };
   PropertyBindingRenderer.inject = [IExpressionParser, IObserverLocator];
@@ -7031,8 +7057,8 @@
       }
       render(flags, dom, context, renderable, target, instruction) {
           const expr = ensureExpression(this.parser, instruction.from, 539 /* ForCommand */);
-          const bindable = new exports.Binding(expr, target, instruction.to, exports.BindingMode.toView, this.observerLocator, context);
-          addBindable(renderable, bindable);
+          const binding = new exports.Binding(expr, target, instruction.to, exports.BindingMode.toView, this.observerLocator, context);
+          addBinding(renderable, binding);
       }
   };
   IteratorBindingRenderer.inject = [IExpressionParser, IObserverLocator];
@@ -7401,8 +7427,8 @@
   exports.PromiseTask = PromiseTask;
   exports.instructionRenderer = instructionRenderer;
   exports.ensureExpression = ensureExpression;
-  exports.addAttachable = addAttachable;
-  exports.addBindable = addBindable;
+  exports.addComponent = addComponent;
+  exports.addBinding = addBinding;
   exports.CompiledTemplate = CompiledTemplate;
   exports.createRenderContext = createRenderContext;
   exports.IInstructionRenderer = IInstructionRenderer;

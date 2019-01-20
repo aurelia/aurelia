@@ -1,15 +1,15 @@
 import { IServiceLocator } from '@aurelia/kernel';
 import { IsBindingBehavior } from '../ast';
 import { LifecycleFlags, State } from '../flags';
-import { IBindScope } from '../lifecycle';
+import { IBinding } from '../lifecycle';
 import { IAccessor, IBindingContext, IObservable, IScope } from '../observation';
 import { IObserverLocator } from '../observation/observer-locator';
 import { IConnectableBinding } from './connectable';
 export interface Call extends IConnectableBinding {
 }
 export declare class Call {
-    $nextBind: IBindScope;
-    $prevBind: IBindScope;
+    $nextBinding: IBinding;
+    $prevBinding: IBinding;
     $state: State;
     $scope: IScope;
     locator: IServiceLocator;

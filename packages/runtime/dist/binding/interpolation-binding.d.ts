@@ -1,14 +1,13 @@
 import { IServiceLocator } from '@aurelia/kernel';
 import { IExpression, IInterpolationExpression } from '../ast';
 import { BindingMode, LifecycleFlags, State } from '../flags';
-import { IBindScope } from '../lifecycle';
+import { IBinding } from '../lifecycle';
 import { IBindingTargetAccessor, IObservable, IScope } from '../observation';
 import { IObserverLocator } from '../observation/observer-locator';
-import { IBinding } from './binding';
 import { IConnectableBinding, IPartialConnectableBinding } from './connectable';
 export declare class MultiInterpolationBinding implements IBinding {
-    $nextBind: IBindScope;
-    $prevBind: IBindScope;
+    $nextBinding: IBinding;
+    $prevBinding: IBinding;
     $state: State;
     $scope: IScope;
     interpolation: IInterpolationExpression;

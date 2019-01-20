@@ -8,8 +8,8 @@
       // tslint:disable-next-line:parameters-max-number
       constructor(dom, targetEvent, delegationStrategy, sourceExpression, target, preventDefault, eventManager, locator) {
           this.dom = dom;
-          this.$nextBind = null;
-          this.$prevBind = null;
+          this.$nextBinding = null;
+          this.$prevBinding = null;
           this.$state = 0 /* none */;
           this.delegationStrategy = delegationStrategy;
           this.locator = locator;
@@ -1726,15 +1726,15 @@
           if (dom.isMarker(target)) {
               dom.remove(target);
           }
-          let bindable;
+          let binding;
           const expr = runtime.ensureExpression(this.parser, instruction.from, 2048 /* Interpolation */);
           if (expr.isMulti) {
-              bindable = new runtime.MultiInterpolationBinding(this.observerLocator, expr, next, 'textContent', runtime.BindingMode.toView, context);
+              binding = new runtime.MultiInterpolationBinding(this.observerLocator, expr, next, 'textContent', runtime.BindingMode.toView, context);
           }
           else {
-              bindable = new runtime.InterpolationBinding(expr.firstExpression, expr, next, 'textContent', runtime.BindingMode.toView, this.observerLocator, context, true);
+              binding = new runtime.InterpolationBinding(expr.firstExpression, expr, next, 'textContent', runtime.BindingMode.toView, this.observerLocator, context, true);
           }
-          runtime.addBindable(renderable, bindable);
+          runtime.addBinding(renderable, binding);
       }
   };
   TextBindingRenderer.inject = [runtime.IExpressionParser, runtime.IObserverLocator];
@@ -1751,8 +1751,8 @@
       }
       render(flags, dom, context, renderable, target, instruction) {
           const expr = runtime.ensureExpression(this.parser, instruction.from, 80 /* IsEventCommand */ | (instruction.strategy + 6 /* DelegationStrategyDelta */));
-          const bindable = new Listener(dom, instruction.to, instruction.strategy, expr, target, instruction.preventDefault, this.eventManager, context);
-          runtime.addBindable(renderable, bindable);
+          const binding = new Listener(dom, instruction.to, instruction.strategy, expr, target, instruction.preventDefault, this.eventManager, context);
+          runtime.addBinding(renderable, binding);
       }
   };
   ListenerBindingRenderer.inject = [runtime.IExpressionParser, IEventManager];
@@ -1780,8 +1780,8 @@
       }
       render(flags, dom, context, renderable, target, instruction) {
           const expr = runtime.ensureExpression(this.parser, instruction.from, 48 /* IsPropertyCommand */ | runtime.BindingMode.toView);
-          const bindable = new runtime.Binding(expr, target.style, instruction.to, runtime.BindingMode.toView, this.observerLocator, context);
-          runtime.addBindable(renderable, bindable);
+          const binding = new runtime.Binding(expr, target.style, instruction.to, runtime.BindingMode.toView, this.observerLocator, context);
+          runtime.addBinding(renderable, binding);
       }
   };
   StylePropertyBindingRenderer.inject = [runtime.IExpressionParser, runtime.IObserverLocator];

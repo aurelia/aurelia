@@ -1,15 +1,14 @@
 import { IIndexable, IServiceLocator } from '@aurelia/kernel';
 import { IsBindingBehavior } from '../ast';
 import { LifecycleFlags, State } from '../flags';
-import { IBindScope } from '../lifecycle';
+import { IBinding } from '../lifecycle';
 import { IObservable, IScope } from '../observation';
-import { IBinding } from './binding';
 import { IConnectableBinding } from './connectable';
 export interface Ref extends IConnectableBinding {
 }
 export declare class Ref implements IBinding {
-    $nextBind: IBindScope;
-    $prevBind: IBindScope;
+    $nextBinding: IBinding;
+    $prevBinding: IBinding;
     $state: State;
     $scope: IScope;
     locator: IServiceLocator;

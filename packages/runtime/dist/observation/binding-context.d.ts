@@ -1,6 +1,6 @@
 import { IIndexable, StrictPrimitive } from '@aurelia/kernel';
 import { LifecycleFlags } from '../flags';
-import { IBindScope } from '../lifecycle';
+import { IBinding } from '../lifecycle';
 import { IBindingContext, IOverrideContext, IScope, ObservedCollection, ObserversLookup } from '../observation';
 declare type BindingContextValue = ObservedCollection | StrictPrimitive | IIndexable;
 export declare class BindingContext implements IBindingContext {
@@ -26,11 +26,11 @@ export declare class BindingContext implements IBindingContext {
      * to keep strong typing in situations where the arguments are dynamic.
      */
     static create(flags: LifecycleFlags, keyOrObj?: string | IIndexable, value?: BindingContextValue): BindingContext;
-    static get(scope: IScope, name: string, ancestor: number, flags: LifecycleFlags): IBindingContext | IOverrideContext | IBindScope;
+    static get(scope: IScope, name: string, ancestor: number, flags: LifecycleFlags): IBindingContext | IOverrideContext | IBinding;
     getObservers(flags: LifecycleFlags): ObserversLookup<IOverrideContext>;
 }
 export declare class Scope implements IScope {
-    bindingContext: IBindingContext | IBindScope;
+    bindingContext: IBindingContext | IBinding;
     overrideContext: IOverrideContext;
     private constructor();
     /**
@@ -40,7 +40,7 @@ export declare class Scope implements IScope {
      * or when you simply want to prevent binding expressions from traversing up the scope.
      * @param bc The `BindingContext` to back the `Scope` with.
      */
-    static create(flags: LifecycleFlags, bc: IBindingContext | IBindScope): Scope;
+    static create(flags: LifecycleFlags, bc: IBindingContext | IBinding): Scope;
     /**
      * Create a new `Scope` backed by the provided `BindingContext` and `OverrideContext`.
      *
@@ -50,7 +50,7 @@ export declare class Scope implements IScope {
      * during binding, it will traverse up via the `parentOverrideContext` of the `OverrideContext` until
      * it finds the property.
      */
-    static create(flags: LifecycleFlags, bc: IBindingContext | IBindScope, oc: IOverrideContext): Scope;
+    static create(flags: LifecycleFlags, bc: IBindingContext | IBinding, oc: IOverrideContext): Scope;
     /**
      * Create a new `Scope` backed by the provided `BindingContext` and `OverrideContext`.
      *
@@ -60,17 +60,17 @@ export declare class Scope implements IScope {
      * @param bc The `BindingContext` to back the `Scope` with.
      * @param oc null. This overload is functionally equivalent to not passing this argument at all.
      */
-    static create(flags: LifecycleFlags, bc: IBindingContext | IBindScope, oc: null): Scope;
+    static create(flags: LifecycleFlags, bc: IBindingContext | IBinding, oc: null): Scope;
     static fromOverride(flags: LifecycleFlags, oc: IOverrideContext): Scope;
-    static fromParent(flags: LifecycleFlags, ps: IScope | null, bc: IBindingContext | IBindScope): Scope;
+    static fromParent(flags: LifecycleFlags, ps: IScope | null, bc: IBindingContext | IBinding): Scope;
 }
 export declare class OverrideContext implements IOverrideContext {
     [key: string]: ObservedCollection | StrictPrimitive | IIndexable;
     readonly $synthetic: true;
-    bindingContext: IBindingContext | IBindScope;
+    bindingContext: IBindingContext | IBinding;
     parentOverrideContext: IOverrideContext | null;
     private constructor();
-    static create(flags: LifecycleFlags, bc: IBindingContext | IBindScope, poc: IOverrideContext | null): OverrideContext;
+    static create(flags: LifecycleFlags, bc: IBindingContext | IBinding, poc: IOverrideContext | null): OverrideContext;
     getObservers(): ObserversLookup<IOverrideContext>;
 }
 export {};

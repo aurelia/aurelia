@@ -1,4 +1,4 @@
-import { IContainer, IDisposable, Immutable, InterfaceSymbol, IResolver, IServiceLocator, Omit } from '@aurelia/kernel';
+import { IContainer, IDisposable, Immutable, InterfaceSymbol, IResolver, IServiceLocator } from '@aurelia/kernel';
 import { IConnectableBinding } from './binding/connectable';
 import { ITargetedInstruction, TemplateDefinition, TemplatePartDefinitions } from './definitions';
 import { INode, INodeSequence, IRenderLocation } from './dom';
@@ -11,20 +11,29 @@ export interface IState {
     $state?: State;
     $lifecycle?: ILifecycle;
 }
+export interface IBinding {
+    readonly $nextBinding: IBinding | null;
+    readonly $prevBinding: IBinding | null;
+    readonly locator: IServiceLocator;
+    readonly $scope: IScope | null;
+    readonly $state: State;
+    $bind(flags: LifecycleFlags, scope: IScope): void;
+    $unbind(flags: LifecycleFlags): void;
+}
 /**
  * An object containing the necessary information to render something for display.
  */
 export interface IRenderable<T extends INode = INode> extends IState {
     /**
-     * The Bindings, Views, CustomElements, CustomAttributes and other bindable components that belong to this instance.
+     * The Bindings that belong to this instance.
      */
-    $bindableHead?: IBindScope;
-    $bindableTail?: IBindScope;
+    $bindingHead?: IBinding;
+    $bindingTail?: IBinding;
     /**
-     * The Views, CustomElements, CustomAttributes and other attachable components that belong to this instance.
+     * The Views, CustomElements, CustomAttributes and other components that are children of this instance.
      */
-    $attachableHead?: IAttach;
-    $attachableTail?: IAttach;
+    $componentHead?: IComponent;
+    $componentTail?: IComponent;
     /**
      * The (dependency) context of this instance.
      *
@@ -50,7 +59,7 @@ export interface IRenderContext<T extends INode = INode> extends IServiceLocator
     render(flags: LifecycleFlags, renderable: IRenderable<T>, targets: ArrayLike<object>, templateDefinition: TemplateDefinition, host?: T, parts?: TemplatePartDefinitions): void;
     beginComponentOperation(renderable: IRenderable<T>, target: object, instruction: Immutable<ITargetedInstruction>, factory?: IViewFactory<T>, parts?: TemplatePartDefinitions, location?: IRenderLocation<T>, locationIsContainer?: boolean): IDisposable;
 }
-export interface IView<T extends INode = INode> extends IBindScope, IRenderable<T>, IAttach, IMountable {
+export interface IView<T extends INode = INode> extends IRenderable<T>, IComponent, IMountable {
     readonly cache: IViewCache<T>;
     readonly isFree: boolean;
     readonly location: IRenderLocation<T>;
@@ -253,18 +262,15 @@ export interface ILifecycleHooks extends IHooks, IState {
      */
     caching?(flags: LifecycleFlags): void;
 }
-export interface ILifecycleCache {
-    $cache(flags: LifecycleFlags): void;
-}
-export interface ICachable extends ILifecycleCache {
-}
-export interface ILifecycleAttach {
+export interface IComponent {
+    readonly $nextComponent: IComponent | null;
+    readonly $prevComponent: IComponent | null;
+    $nextUnbindAfterDetach: IComponent | null;
+    $bind(flags: LifecycleFlags, scope?: IScope): void;
+    $unbind(flags: LifecycleFlags): void;
     $attach(flags: LifecycleFlags): void;
-}
-export interface ILifecycleDetach {
     $detach(flags: LifecycleFlags): void;
-}
-export interface IAttach extends ILifecycleAttach, ILifecycleDetach, ICachable {
+    $cache(flags: LifecycleFlags): void;
 }
 export interface ILifecycleMount {
     /**
@@ -283,25 +289,6 @@ export interface ILifecycleUnmount {
     $unmount(flags: LifecycleFlags): boolean | void;
 }
 export interface IMountable extends ILifecycleMount, ILifecycleUnmount {
-}
-export interface ILifecycleUnbind {
-    $state?: State;
-    $unbind(flags: LifecycleFlags): void;
-}
-export interface ILifecycleUnbindAfterDetach extends ILifecycleUnbind {
-    $nextUnbindAfterDetach?: ILifecycleUnbindAfterDetach;
-}
-export interface ILifecycleBind {
-    $state?: State;
-    $bind(flags: LifecycleFlags, scope?: IScope): void;
-}
-export interface ILifecycleBindScope {
-    $state?: State;
-    $bind(flags: LifecycleFlags, scope: IScope): void;
-}
-export interface IBind extends ILifecycleBind, ILifecycleUnbind {
-}
-export interface IBindScope extends Omit<IBind, '$bind'>, ILifecycleBindScope {
 }
 export interface ILifecycle {
     processFlushQueue(flags: LifecycleFlags): void;
@@ -448,7 +435,7 @@ export interface ILifecycle {
      * This method is idempotent; adding the same item more than once has the same effect as
      * adding it once.
      */
-    enqueueUnbindAfterDetach(requestor: ILifecycleUnbind): void;
+    enqueueUnbindAfterDetach(requestor: IComponent): void;
     /**
      * Close / shrink a detach batch for invoking queued `$unmount` and `detached` callbacks.
      * @param flags The flags that will be passed into the `$unmount` and `detached` callbacks.

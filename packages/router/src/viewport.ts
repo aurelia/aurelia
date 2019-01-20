@@ -1,4 +1,4 @@
-import { CustomElementResource, ICustomElement, ICustomElementType, IDOM, INode, IProjectorLocator, IRenderingEngine, LifecycleFlags } from '@aurelia/runtime';
+import { CustomElementResource, ICustomElement, ICustomElementType, INode, LifecycleFlags } from '@aurelia/runtime';
 import { INavigationInstruction } from './history-browser';
 import { mergeParameters } from './parser';
 import { Router } from './router';
@@ -311,12 +311,9 @@ export class Viewport {
   private addComponent(component: ICustomElement): void {
     const host: INode = this.element as INode;
     const container = this.router.container;
-    const dom = container.get(IDOM);
-    const projectorLocator = container.get(IProjectorLocator);
-    const renderingEngine = container.get(IRenderingEngine);
 
     // TODO: get useProxies settings from the template definition
-    component.$hydrate(LifecycleFlags.none, dom, projectorLocator, renderingEngine, host, null);
+    component.$hydrate(LifecycleFlags.none, container, host, null);
     component.$bind(LifecycleFlags.fromStartTask | LifecycleFlags.fromBind, null);
     component.$attach(LifecycleFlags.fromStartTask);
   }

@@ -10,6 +10,7 @@ import {
   IRegistry,
   IResolver,
   IResourceDescriptions,
+  IServiceLocator,
   PLATFORM,
   Reporter,
   RuntimeCompilationResources,
@@ -150,7 +151,7 @@ export interface IRenderingEngine {
   getElementTemplate<T extends INode = INode>(
     dom: IDOM<T>,
     definition: TemplateDefinition,
-    parentContext: IRenderContext<T> | null,
+    parentContext: IServiceLocator,
     componentType: ICustomElementType<T> | null
   ): ITemplate<T>;
 

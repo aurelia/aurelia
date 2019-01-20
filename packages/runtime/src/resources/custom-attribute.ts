@@ -5,6 +5,7 @@ import {
   Immutable,
   IResourceKind,
   IResourceType,
+  IServiceLocator,
   Omit,
   PLATFORM,
   Registration,
@@ -19,13 +20,11 @@ import {
 import { INode } from '../dom';
 import { BindingMode, Hooks, LifecycleFlags } from '../flags';
 import {
-  IBinding,
   IComponent,
   ILifecycleHooks,
   IRenderable
 } from '../lifecycle';
 import { IChangeTracker } from '../observation';
-import { IRenderingEngine } from '../rendering-engine';
 import {
   $attachAttribute,
   $cacheAttribute,
@@ -51,7 +50,7 @@ export interface ICustomAttribute<T extends INode = INode> extends
   IComponent,
   IRenderable<T> {
 
-  $hydrate(flags: LifecycleFlags, renderingEngine: IRenderingEngine): void;
+  $hydrate(flags: LifecycleFlags, parentContext: IServiceLocator): void;
 }
 
 export interface ICustomAttributeResource<T extends INode = INode> extends

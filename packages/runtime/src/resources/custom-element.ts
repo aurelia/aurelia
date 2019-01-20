@@ -5,6 +5,7 @@ import {
   IContainer,
   IResourceKind,
   IResourceType,
+  IServiceLocator,
   Registration,
   Reporter,
   Writable
@@ -23,11 +24,9 @@ import { Hooks, LifecycleFlags } from '../flags';
 import {
   ILifecycleHooks,
   IMountableComponent,
-  IRenderable,
-  IRenderContext
+  IRenderable
 } from '../lifecycle';
 import { IChangeTracker } from '../observation';
-import { IRenderingEngine } from '../rendering-engine';
 import {
   $attachElement,
   $cacheElement,
@@ -86,15 +85,7 @@ export interface ICustomElement<T extends INode = INode> extends
   readonly $projector: IElementProjector;
   readonly $host: CustomElementHost;
 
-  $hydrate(
-    flags: LifecycleFlags,
-    dom: IDOM,
-    projectorLocator: IProjectorLocator,
-    renderingEngine: IRenderingEngine,
-    host: INode,
-    parentContext: IRenderContext | null,
-    options?: IElementHydrationOptions
-  ): void;
+  $hydrate(flags: LifecycleFlags, parentContext: IServiceLocator, host: INode, options?: IElementHydrationOptions): void;
 }
 
 export interface ICustomElementResource<T extends INode = INode> extends

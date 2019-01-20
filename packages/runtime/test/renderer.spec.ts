@@ -184,7 +184,7 @@ describe('Renderer', () => {
           expect(renderContext.beginComponentOperation).to.have.been.calledWith(renderable, target, instruction);
           expect(renderContext.get).to.have.been.calledWith(`custom-attribute:${res}`);
           const component = (renderContext.get as SinonSpy).getCalls()[0].returnValue;
-          expect(component.$hydrate).to.have.been.calledWith(LF.none, renderingEngine);
+          expect(component.$hydrate).to.have.been.calledWith(LF.none, renderContext);
           if (instructions.length) {
             expect(component.foo).to.equal('bar');
           }

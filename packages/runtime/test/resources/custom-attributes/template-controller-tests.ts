@@ -8,7 +8,6 @@ import {
   IDOM,
   ILifecycle,
   INode,
-  IRenderingEngine,
   IRenderLocation,
   IView,
   IViewFactory,
@@ -155,8 +154,7 @@ export function hydrateCustomAttribute<T extends ICustomAttributeType>(
   const attribute = container.get<InstanceType<T> & ICustomAttribute<AuNode>>(
     CustomAttributeResource.keyFrom(AttributeType.description.name)
   );
-  const renderingEngine = container.get(IRenderingEngine);
-  attribute.$hydrate(LF.none, renderingEngine);
+  attribute.$hydrate(LF.none, container);
 
   return { attribute: attribute as Overwrite<InstanceType<T>, ICustomAttribute<AuNode>>, location, lifecycle };
 }

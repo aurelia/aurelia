@@ -206,7 +206,7 @@ describe('DI', function() {
 
           public binding(this: ICustomElement & this): void {
             this.child = this.$context.get<ICustomElement>('custom-element:foo');
-            this.child.$hydrate(LF.none, this.$context.get(IDOM), this.$context.get(IProjectorLocator), this.$context.get(IRenderingEngine), this.node, this.$context);
+            this.child.$hydrate(LF.none, this.$context, this.node);
             this.child.$bind(LF.none, Scope.create(LF.none, BindingContext.create(LF.none)));
           }
 
@@ -249,7 +249,7 @@ describe('DI', function() {
 
           public binding(this: ICustomElement & this): void {
             this.child = this.$context.get<ICustomElement>('custom-element:bar');
-            this.child.$hydrate(LF.none, this.$context.get(IDOM), this.$context.get(IProjectorLocator), this.$context.get(IRenderingEngine), this.node, this.$context);
+            this.child.$hydrate(LF.none, this.$context, this.node);
             this.child.$bind(LF.none, Scope.create(LF.none, BindingContext.create(LF.none)));
           }
 
@@ -301,7 +301,7 @@ describe('DI', function() {
 
           public binding(this: ICustomElement & this): void {
             this.child = this.$context.get<ICustomElement>('custom-element:baz');
-            this.child.$hydrate(LF.none, this.$context.get(IDOM), this.$context.get(IProjectorLocator), this.$context.get(IRenderingEngine), this.node, this.$context);
+            this.child.$hydrate(LF.none, this.$context, this.node);
             this.child.$bind(LF.none, Scope.create(LF.none, BindingContext.create(LF.none)));
           }
 

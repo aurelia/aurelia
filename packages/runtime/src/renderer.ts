@@ -38,10 +38,10 @@ import {
 import { IDOM, INode } from './dom';
 import { BindingMode, LifecycleFlags } from './flags';
 import {
+  IBinding,
   IComponent,
   IRenderable,
   IRenderContext,
-  IBinding,
 } from './lifecycle';
 import { IObserverLocator } from './observation/observer-locator';
 import {
@@ -51,7 +51,7 @@ import {
   IRenderingEngine
 } from './rendering-engine';
 import { ICustomAttribute } from './resources/custom-attribute';
-import { ICustomElement, IProjectorLocator } from './resources/custom-element';
+import { ICustomElement } from './resources/custom-element';
 
 const slice = Array.prototype.slice;
 
@@ -182,24 +182,16 @@ export class SetPropertyRenderer implements IInstructionRenderer {
 @instructionRenderer(TargetedInstructionType.hydrateElement)
 /** @internal */
 export class CustomElementRenderer implements IInstructionRenderer {
-  public static readonly inject: ReadonlyArray<InterfaceSymbol> = [IRenderingEngine];
   public static readonly register: IRegistry['register'];
-
-  private readonly renderingEngine: IRenderingEngine;
-
-  constructor(renderingEngine: IRenderingEngine) {
-    this.renderingEngine = renderingEngine;
-  }
 
   public render(flags: LifecycleFlags, dom: IDOM, context: IRenderContext, renderable: IRenderable, target: INode, instruction: IHydrateElementInstruction): void {
     if (Tracer.enabled) { Tracer.enter('CustomElementRenderer.render', slice.call(arguments)); }
     const operation = context.beginComponentOperation(renderable, target, instruction, null, null, target, true);
     const component = context.get<ICustomElement>(customElementKey(instruction.res));
     const instructionRenderers = context.get(IRenderer).instructionRenderers;
-    const projectorLocator = context.get(IProjectorLocator);
     const childInstructions = instruction.instructions;
 
-    component.$hydrate(flags, dom, projectorLocator, this.renderingEngine, target, context, instruction as IElementHydrationOptions);
+    component.$hydrate(flags, context, target, instruction as IElementHydrationOptions);
 
     for (let i = 0, ii = childInstructions.length; i < ii; ++i) {
       const current = childInstructions[i];
@@ -216,14 +208,7 @@ export class CustomElementRenderer implements IInstructionRenderer {
 @instructionRenderer(TargetedInstructionType.hydrateAttribute)
 /** @internal */
 export class CustomAttributeRenderer implements IInstructionRenderer {
-  public static readonly inject: ReadonlyArray<InterfaceSymbol> = [IRenderingEngine];
   public static readonly register: IRegistry['register'];
-
-  private readonly renderingEngine: IRenderingEngine;
-
-  constructor(renderingEngine: IRenderingEngine) {
-    this.renderingEngine = renderingEngine;
-  }
 
   public render(flags: LifecycleFlags, dom: IDOM, context: IRenderContext, renderable: IRenderable, target: INode, instruction: IHydrateAttributeInstruction): void {
     if (Tracer.enabled) { Tracer.enter('CustomAttributeRenderer.render', slice.call(arguments)); }
@@ -232,7 +217,7 @@ export class CustomAttributeRenderer implements IInstructionRenderer {
     const instructionRenderers = context.get(IRenderer).instructionRenderers;
     const childInstructions = instruction.instructions;
 
-    component.$hydrate(flags, this.renderingEngine);
+    component.$hydrate(flags, context);
 
     for (let i = 0, ii = childInstructions.length; i < ii; ++i) {
       const current = childInstructions[i];
@@ -266,7 +251,7 @@ export class TemplateControllerRenderer implements IInstructionRenderer {
     const instructionRenderers = context.get(IRenderer).instructionRenderers;
     const childInstructions = instruction.instructions;
 
-    component.$hydrate(flags, this.renderingEngine);
+    component.$hydrate(flags, context);
 
     if (instruction.link) {
       (component as ICustomAttribute & { link(componentTail: IComponent): void}).link(renderable.$componentTail);

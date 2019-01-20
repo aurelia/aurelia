@@ -1,8 +1,7 @@
-import { PLATFORM, Profiler, Tracer, Writable } from '@aurelia/kernel';
+import { IServiceLocator, PLATFORM, Profiler, Tracer, Writable } from '@aurelia/kernel';
 import { IElementHydrationOptions, TemplateDefinition } from '../definitions';
 import { IDOM, INode } from '../dom';
 import { Hooks, LifecycleFlags } from '../flags';
-import { IRenderContext } from '../lifecycle';
 import { Scope } from '../observation/binding-context';
 import { ProxyObserver } from '../observation/proxy-observer';
 import { IRenderingEngine, ITemplate } from '../rendering-engine';
@@ -14,7 +13,7 @@ const slice = Array.prototype.slice;
 const { enter, leave } = Profiler.createTimer('RenderLifecycle');
 
 export interface IElementTemplateProvider {
-  getElementTemplate(renderingEngine: IRenderingEngine, customElementType: ICustomElementType | null, parentContext: IRenderContext | null): ITemplate;
+  getElementTemplate(renderingEngine: IRenderingEngine, customElementType: ICustomElementType | null, parentContext: IServiceLocator): ITemplate;
 }
 
 export interface ILifecycleRender {
@@ -41,18 +40,15 @@ export interface ILifecycleRender {
    * This is the first "hydrate" lifecycle hook. It happens only once per instance (contrary to bind/attach
    * which can happen many times per instance), though it can happen many times per type (once for each instance)
    */
-  render?(flags: LifecycleFlags, host: INode, parts: Record<string, TemplateDefinition>, parentContext: IRenderContext | null): IElementTemplateProvider | void;
+  render?(flags: LifecycleFlags, host: INode, parts: Record<string, TemplateDefinition>, parentContext: IServiceLocator): IElementTemplateProvider | void;
 }
 
 /** @internal */
-export function $hydrateAttribute(
-  this: Writable<ICustomAttribute>,
-  flags: LifecycleFlags,
-  renderingEngine: IRenderingEngine
-): void {
+export function $hydrateAttribute(this: Writable<ICustomAttribute>, flags: LifecycleFlags, parentContext: IServiceLocator): void {
   if (Tracer.enabled) { Tracer.enter(`${this['constructor'].name}.$hydrateAttribute`, slice.call(arguments)); }
   if (Profiler.enabled) { enter(); }
   const Type = this.constructor as ICustomAttributeType;
+  const renderingEngine = parentContext.get(IRenderingEngine);
 
   renderingEngine.applyRuntimeBehavior(flags, Type, this);
 
@@ -64,20 +60,14 @@ export function $hydrateAttribute(
 }
 
 /** @internal */
-export function $hydrateElement(
-  this: Writable<ICustomElement>,
-  flags: LifecycleFlags,
-  dom: IDOM,
-  projectorLocator: IProjectorLocator,
-  renderingEngine: IRenderingEngine,
-  host: INode,
-  parentContext: IRenderContext | null,
-  options: IElementHydrationOptions = PLATFORM.emptyObject
-): void {
+export function $hydrateElement(this: Writable<ICustomElement>, flags: LifecycleFlags, parentContext: IServiceLocator, host: INode, options: IElementHydrationOptions = PLATFORM.emptyObject): void {
   if (Tracer.enabled) { Tracer.enter(`${this['constructor'].name}.$hydrateElement`, slice.call(arguments)); }
   if (Profiler.enabled) { enter(); }
   const Type = this.constructor as ICustomElementType;
   const description = Type.description;
+  const projectorLocator = parentContext.get(IProjectorLocator);
+  const renderingEngine = parentContext.get(IRenderingEngine);
+  const dom = parentContext.get(IDOM);
 
   let bindingContext: typeof this;
   if (flags & LifecycleFlags.useProxies) {

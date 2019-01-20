@@ -4,4 +4,8 @@ import { customElement } from '@aurelia/runtime';
 <h3>About authors</h3>
 <p>Authors write books. Books are good for you. End of story.</p>
 </template>` })
-export class AboutAuthors {}
+export class AboutAuthors {
+  public canEnter() {
+    return false;
+  }
+}

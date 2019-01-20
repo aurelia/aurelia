@@ -9,8 +9,11 @@ import { Books } from './components/books/books';
 @customElement({
   name: 'app', template:
     `<template>
-  <div style="padding: 20px;">
-    <au-nav name="app-menu"></au-nav>
+  <div class="\${router.isNavigating ? 'routing' : ''}">
+    <div>
+      <au-nav name="app-menu"></au-nav>
+      <span class="loader \${router.isNavigating ? 'routing' : ''}">&nbsp;</span>
+    </div>
     <au-viewport name="lists" used-by="authors,books" default="authors"></au-viewport>
     <au-viewport name="content" default="about"></au-viewport>
     <au-viewport name="chat" used-by="chat" no-link no-history></au-viewport>
@@ -78,5 +81,8 @@ export class App {
         title: 'Chat',
       },
     ]);
+  }
+  public get isRouting(): boolean {
+    return this.router.processNavigations !== null;
   }
 }

@@ -270,7 +270,7 @@ export class Viewport {
     this.previousViewportState = null;
   }
   // TODO: Call this on cancel
-  public async restorePreviousContent(): Promise<void> {
+  public async abortContentChange(): Promise<void> {
     if (this.entered) {
       await this.nextComponent.leave();
     }

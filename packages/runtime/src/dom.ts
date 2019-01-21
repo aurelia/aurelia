@@ -1,6 +1,6 @@
 import { DI, IContainer, IResolver, PLATFORM } from '@aurelia/kernel';
 
-export interface INode extends Object {}
+export interface INode extends Object { }
 
 export const INode = DI.createInterface<INode>('INode').noDefault();
 
@@ -53,6 +53,8 @@ export interface IDOM<T extends INode = INode> {
   convertToRenderLocation(node: T): IRenderLocation<T>;
   createDocumentFragment(markupOrNode?: string | T): T;
   createElement(name: string): T;
+  createCustomEvent<T = any>(eventType: string, options?: CustomEventInit<T>): CustomEvent<T>;
+  dispatchEvent(evt): void;
   createNodeObserver?(node: T, cb: (...args: unknown[]) => void, init: unknown): unknown;
   createTemplate(markup?: string): T;
   createTextNode(text: string): T;

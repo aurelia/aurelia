@@ -11,10 +11,10 @@ export interface IRouteableCustomElementType extends ICustomElementType {
 }
 
 export interface IRouteableCustomElement extends ICustomElement {
-  canEnter?(nextInstruction?: INavigationInstruction, instruction?: INavigationInstruction): boolean|Promise<boolean>;
-  enter?(parameters?: string[] | Record<string, string>, nextInstruction?: INavigationInstruction, instruction?: INavigationInstruction): void|Promise<void>;
-  canLeave?(nextInstruction?: INavigationInstruction, instruction?: INavigationInstruction): boolean|Promise<boolean>;
-  leave?(nextInstruction?: INavigationInstruction, instruction?: INavigationInstruction): void|Promise<void>;
+  canEnter?(nextInstruction?: INavigationInstruction, instruction?: INavigationInstruction): boolean | Promise<boolean>;
+  enter?(parameters?: string[] | Record<string, string>, nextInstruction?: INavigationInstruction, instruction?: INavigationInstruction): void | Promise<void>;
+  canLeave?(nextInstruction?: INavigationInstruction, instruction?: INavigationInstruction): boolean | Promise<boolean>;
+  leave?(nextInstruction?: INavigationInstruction, instruction?: INavigationInstruction): void | Promise<void>;
 }
 
 export interface IViewportOptions {
@@ -24,6 +24,14 @@ export interface IViewportOptions {
   noLink?: boolean;
   noHistory?: boolean;
   forceDescription?: boolean;
+}
+
+const enum NavigationStatuses {
+  none = 0,
+  loaded = 1,
+  initialized = 2,
+  entered = 3,
+  added = 4,
 }
 
 export class Viewport {
@@ -51,7 +59,7 @@ export class Viewport {
   private elementResolve?: ((value?: void | PromiseLike<void>) => void) | null;
 
   private previousViewportState?: Viewport;
-  private entered: boolean;
+  private navigationStatus: NavigationStatuses;
 
   constructor(router: Router, name: string, element: Element, context: IRenderContext, owningScope: Scope, scope: Scope, options?: IViewportOptions) {
     this.router = router;
@@ -74,7 +82,7 @@ export class Viewport {
     this.nextComponent = null;
     this.elementResolve = null;
     this.previousViewportState = null;
-    this.entered = false;
+    this.navigationStatus = NavigationStatuses.none;
   }
 
   public setNextContent(content: ICustomElementType | string, instruction: INavigationInstruction): boolean {
@@ -99,7 +107,7 @@ export class Viewport {
     this.nextContent = content;
     this.nextInstruction = instruction;
     this.nextParameters = parameters;
-    this.entered = false;
+    this.navigationStatus = NavigationStatuses.none;
 
     if ((typeof content === 'string' && this.componentName(this.content) !== content) ||
       (typeof content !== 'string' && this.content !== content) ||
@@ -219,7 +227,7 @@ export class Viewport {
       this.nextInstruction.parameters = merged.namedParameters;
       this.nextInstruction.parameterList = merged.parameterList;
       await this.nextComponent.enter(merged.merged, this.nextInstruction, this.instruction);
-      this.entered = false;
+      this.navigationStatus = NavigationStatuses.entered;
     }
     this.initializeComponent(this.nextComponent);
     return true;
@@ -268,15 +276,23 @@ export class Viewport {
 
   public finalizeContentChange(): void {
     this.previousViewportState = null;
+    this.navigationStatus = NavigationStatuses.none;
   }
-  // TODO: Call this on cancel
   public async abortContentChange(): Promise<void> {
-    if (this.entered) {
-      await this.nextComponent.leave();
+    switch (this.navigationStatus) {
+      case NavigationStatuses.added:
+        this.removeComponent(this.nextComponent);
+      case NavigationStatuses.entered:
+        await this.nextComponent.leave();
+      case NavigationStatuses.initialized:
+        this.terminateComponent(this.nextComponent);
+      case NavigationStatuses.loaded:
+        this.unloadComponent();
     }
     if (this.previousViewportState) {
       Object.assign(this, this.previousViewportState);
     }
+    this.navigationStatus = NavigationStatuses.none;
   }
 
   public description(full: boolean = false): string {
@@ -411,6 +427,7 @@ export class Viewport {
 
     // TODO: get proxyStrategy settings from the template definition
     this.nextComponent.$hydrate(LifecycleFlags.none, container, host);
+    this.navigationStatus = NavigationStatuses.loaded;
   }
   private unloadComponent(): void {
     // TODO: We might want to do something here eventually, who knows?
@@ -418,6 +435,7 @@ export class Viewport {
 
   private initializeComponent(component: ICustomElement): void {
     component.$bind(LifecycleFlags.fromStartTask | LifecycleFlags.fromBind, null);
+    this.navigationStatus = NavigationStatuses.initialized;
   }
   private terminateComponent(component: ICustomElement): void {
     component.$unbind(LifecycleFlags.fromStopTask | LifecycleFlags.fromUnbind);
@@ -425,8 +443,8 @@ export class Viewport {
 
   private addComponent(component: ICustomElement): void {
     component.$attach(LifecycleFlags.fromStartTask);
+    this.navigationStatus = NavigationStatuses.added;
   }
-
   private removeComponent(component: ICustomElement): void {
     component.$detach(LifecycleFlags.fromStopTask);
   }

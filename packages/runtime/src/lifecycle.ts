@@ -17,11 +17,6 @@ import { Hooks, LifecycleFlags, State } from './flags';
 import { IChangeTracker, IScope } from './observation';
 
 const slice = Array.prototype.slice;
-
-export interface IHooks {
-  $hooks?: Hooks;
-}
-
 export interface IState {
   $state?: State;
   $lifecycle?: ILifecycle;
@@ -83,7 +78,7 @@ export interface IRenderContext<T extends INode = INode> extends IServiceLocator
   beginComponentOperation(renderable: IRenderable<T>, target: object, instruction: Immutable<ITargetedInstruction>, factory?: IViewFactory<T>, parts?: TemplatePartDefinitions, location?: IRenderLocation<T>, locationIsContainer?: boolean): IDisposable;
 }
 
-export interface IView<T extends INode = INode> extends IRenderable<T>, IComponent, IMountable {
+export interface IView<T extends INode = INode> extends IRenderable<T>, IMountableComponent {
   readonly cache: IViewCache<T>;
   readonly isFree: boolean;
   readonly location: IRenderLocation<T>;
@@ -129,7 +124,8 @@ export const IViewFactory = DI.createInterface<IViewFactory>('IViewFactory').noD
 /**
  * Defines optional lifecycle hooks that will be called only when they are implemented.
  */
-export interface ILifecycleHooks extends IHooks, IState {
+export interface ILifecycleHooks extends IState {
+  $hooks?: Hooks;
   /** @internal */$nextBound?: ILifecycleHooks;
   /** @internal */$nextUnbound?: ILifecycleHooks;
   /** @internal */$nextAttached?: ILifecycleHooks;
@@ -137,12 +133,6 @@ export interface ILifecycleHooks extends IHooks, IState {
 
   /**
    * Called at the end of `$hydrate`.
-   *
-   * The following key properties are now assigned and initialized (see `IRenderable` for more detail):
-   * - `this.$bindables`
-   * - `this.$attachables`
-   * - `this.$scope` (null if this is a custom attribute, or contains the view model if this is a custom element)
-   * - `this.$nodes`
    *
    * @description
    * This is the second and last "hydrate" lifecycle hook (after `render`). It happens only once per instance (contrary to bind/attach
@@ -156,16 +146,6 @@ export interface ILifecycleHooks extends IHooks, IState {
   /**
    * Called at the start of `$bind`, before this instance and its children (if any) are bound.
    *
-   * - `this.$isBound` is false.
-   * - `this.$scope` is initialized.
-   *
-   * @param flags Contextual information about the lifecycle, such as what triggered it.
-   * Some uses for this hook:
-   * - `flags & LifecycleFlags.fromStartTask`: the Aurelia app is starting (this is the initial bind)
-   * - `flags & LifecycleFlags.fromBind`: this is a normal `$bind` lifecycle
-   * - `flags & LifecycleFlags.updateTargetInstance`: this `$bind` was triggered by some upstream observer and is not a real `$bind` lifecycle
-   * - `flags & LifecycleFlags.fromFlush` (only occurs in conjunction with updateTargetInstance): the update was queued to a `LinkedChangeList` which is now being flushed
-   *
    * @description
    * This is the first "create" lifecycle hook of the hooks that can occur multiple times per instance,
    * and the third lifecycle hook (after `render` and `created`) of the very first this.lifecycle.
@@ -175,16 +155,6 @@ export interface ILifecycleHooks extends IHooks, IState {
   /**
    * Called at the end of `$bind`, after this instance and its children (if any) are bound.
    *
-   * - `$isBound` is true.
-   * - `this.$scope` is initialized.
-   *
-   * @param flags Contextual information about the lifecycle, such as what triggered it.
-   * Some uses for this hook:
-   * - `flags & LifecycleFlags.fromStartTask`: the Aurelia app is starting (this is the initial bind)
-   * - `flags & LifecycleFlags.fromBind`: this is a normal `$bind` lifecycle
-   * - `flags & LifecycleFlags.updateTargetInstance`: this `$bind` was triggered by some upstream observer and is not a real `$bind` lifecycle
-   * - `flags & LifecycleFlags.fromFlush` (only occurs in conjunction with updateTargetInstance): the update was queued to a `LinkedChangeList` which is now being flushed
-   *
    * @description
    * This is the second "create" lifecycle hook (after `binding`) of the hooks that can occur multiple times per instance,
    * and the fourth lifecycle hook (after `render`, `created` and `binding`) of the very first this.lifecycle.
@@ -193,15 +163,6 @@ export interface ILifecycleHooks extends IHooks, IState {
 
   /**
    * Called at the start of `$unbind`, before this instance and its children (if any) are unbound.
-   *
-   * - `this.$isBound` is true.
-   * - `this.$scope` is still available.
-   *
-   * @param flags Contextual information about the lifecycle, such as what triggered it.
-   * Some uses for this hook:
-   * - `flags & LifecycleFlags.fromBind`: the component is just switching scope
-   * - `flags & LifecycleFlags.fromUnbind`: the component is really disposing
-   * - `flags & LifecycleFlags.fromStopTask`: the Aurelia app is stopping
    *
    * @description
    * This is the fourth "cleanup" lifecycle hook (after `detaching`, `caching` and `detached`)
@@ -214,16 +175,6 @@ export interface ILifecycleHooks extends IHooks, IState {
   /**
    * Called at the end of `$unbind`, after this instance and its children (if any) are unbound.
    *
-   * - `this.$isBound` is false at this point.
-   *
-   * - `this.$scope` may not be available anymore (unless it's a `@customElement`)
-   *
-   * @param flags Contextual information about the lifecycle, such as what triggered it.
-   * Some uses for this hook:
-   * - `flags & LifecycleFlags.fromBind`: the component is just switching scope
-   * - `flags & LifecycleFlags.fromUnbind`: the component is really disposing
-   * - `flags & LifecycleFlags.fromStopTask`: the Aurelia app is stopping
-   *
    * @description
    * This is the fifth (and last) "cleanup" lifecycle hook (after `detaching`, `caching`, `detached`
    * and `unbinding`).
@@ -234,11 +185,6 @@ export interface ILifecycleHooks extends IHooks, IState {
 
   /**
    * Called at the start of `$attach`, before this instance and its children (if any) are attached.
-   *
-   * `$isAttached` is false.
-   *
-   * @param encapsulationSource Ask Rob.
-   * @param lifecycle Utility that encapsulates the attach sequence for a hierarchy of attachables and guarantees the correct attach order.
    *
    * @description
    * This is the third "create" lifecycle hook (after `binding` and `bound`) of the hooks that can occur multiple times per instance,
@@ -251,8 +197,6 @@ export interface ILifecycleHooks extends IHooks, IState {
 
   /**
    * Called at the end of `$attach`, after this instance and its children (if any) are attached.
-   *
-   * - `$isAttached` is true.
    *
    * @description
    * This is the fourth (and last) "create" lifecycle hook (after `binding`, `bound` and `attaching`) of the hooks that can occur
@@ -267,10 +211,6 @@ export interface ILifecycleHooks extends IHooks, IState {
   /**
    * Called at the start of `$detach`, before this instance and its children (if any) are detached.
    *
-   * - `$isAttached` is true.
-   *
-   * @param lifecycle Utility that encapsulates the detach sequence for a hierarchy of attachables and guarantees the correct detach order.
-   *
    * @description
    * This is the first "cleanup" lifecycle hook.
    *
@@ -281,8 +221,6 @@ export interface ILifecycleHooks extends IHooks, IState {
 
   /**
    * Called at the end of `$detach`, after this instance and its children (if any) are detached.
-   *
-   * - `$isAttached` is false.
    *
    * @description
    * This is the third "cleanup" lifecycle hook (after `detaching` and `caching`).
@@ -319,17 +257,14 @@ export interface IComponent {
   $cache(flags: LifecycleFlags): void;
 }
 
-export interface ILifecycleMount {
-  /** @internal */$nextMount?: ILifecycleMount;
+export interface IMountableComponent extends IComponent {
+  /** @internal */$nextMount?: IMountableComponent;
+  /** @internal */$nextUnmount?: IMountableComponent;
 
   /**
    * Add the `$nodes` of this instance to the Host or RenderLocation that this instance is holding.
    */
   $mount(flags: LifecycleFlags): void;
-}
-
-export interface ILifecycleUnmount {
-  /** @internal */$nextUnmount?: ILifecycleUnmount;
 
   /**
    * Remove the `$nodes` of this instance from the Host or RenderLocation that this instance is holding, optionally returning them to a cache.
@@ -340,7 +275,6 @@ export interface ILifecycleUnmount {
    */
   $unmount(flags: LifecycleFlags): boolean | void;
 }
-export interface IMountable extends ILifecycleMount, ILifecycleUnmount { }
 
 const marker = Object.freeze(Object.create(null));
 
@@ -486,7 +420,7 @@ export interface ILifecycle {
    * This method is idempotent; adding the same item more than once has the same effect as
    * adding it once.
    */
-  enqueueMount(requestor: ILifecycleMount): void;
+  enqueueMount(requestor: IMountableComponent): void;
 
   /**
    * Add an `attached` callback to the queue, to be invoked when the current attach batch
@@ -524,7 +458,7 @@ export interface ILifecycle {
    * This method is idempotent; adding the same item more than once has the same effect as
    * adding it once.
    */
-  enqueueUnmount(requestor: ILifecycleUnmount): void;
+  enqueueUnmount(requestor: IMountableComponent): void;
 
   /**
    * Add a `detached` callback to the queue, to be invoked when the current detach batch
@@ -581,14 +515,14 @@ export class Lifecycle implements ILifecycle {
   /** @internal */public boundHead: ILifecycleHooks;
   /** @internal */public boundTail: ILifecycleHooks;
 
-  /** @internal */public mountHead: ILifecycleMount;
-  /** @internal */public mountTail: ILifecycleMount;
+  /** @internal */public mountHead: IMountableComponent;
+  /** @internal */public mountTail: IMountableComponent;
 
   /** @internal */public attachedHead: ILifecycleHooks;
   /** @internal */public attachedTail: ILifecycleHooks;
 
-  /** @internal */public unmountHead: ILifecycleUnmount;
-  /** @internal */public unmountTail: ILifecycleUnmount;
+  /** @internal */public unmountHead: IMountableComponent;
+  /** @internal */public unmountTail: IMountableComponent;
 
   /** @internal */public detachedHead: ILifecycleHooks;
   /** @internal */public detachedTail: ILifecycleHooks;
@@ -624,12 +558,12 @@ export class Lifecycle implements ILifecycle {
   /** @internal */public patch: IConnectableBinding['patch'];
   /** @internal */public $nextBound: ILifecycleHooks;
   /** @internal */public bound: ILifecycleHooks['bound'];
-  /** @internal */public $nextMount: ILifecycleMount;
-  /** @internal */public $mount: ILifecycleMount['$mount'];
+  /** @internal */public $nextMount: IMountableComponent;
+  /** @internal */public $mount: IMountableComponent['$mount'];
   /** @internal */public $nextAttached: ILifecycleHooks;
   /** @internal */public attached: ILifecycleHooks['attached'];
-  /** @internal */public $nextUnmount: ILifecycleUnmount;
-  /** @internal */public $unmount: ILifecycleUnmount['$unmount'];
+  /** @internal */public $nextUnmount: IMountableComponent;
+  /** @internal */public $unmount: IMountableComponent['$unmount'];
   /** @internal */public $nextDetached: ILifecycleHooks;
   /** @internal */public detached: ILifecycleHooks['detached'];
   /** @internal */public $nextUnbindAfterDetach: IComponent;
@@ -657,14 +591,14 @@ export class Lifecycle implements ILifecycle {
     this.boundHead = this;
     this.boundTail = this;
 
-    this.mountHead = this;
-    this.mountTail = this;
+    this.mountHead = this as unknown as IMountableComponent;
+    this.mountTail = this as unknown as IMountableComponent;
 
     this.attachedHead = this;
     this.attachedTail = this;
 
-    this.unmountHead = this;
-    this.unmountTail = this;
+    this.unmountHead = this as unknown as IMountableComponent;
+    this.unmountTail = this as unknown as IMountableComponent;
 
     this.detachedHead = this; //LOL
     this.detachedTail = this;
@@ -971,7 +905,7 @@ export class Lifecycle implements ILifecycle {
     if (Tracer.enabled) { Tracer.leave(); }
   }
 
-  public enqueueMount(requestor: ILifecycleMount): void {
+  public enqueueMount(requestor: IMountableComponent): void {
     if (Tracer.enabled) { Tracer.enter('Lifecycle.enqueueMount', slice.call(arguments)); }
     // This method is idempotent; adding the same item more than once has the same effect as
     // adding it once.
@@ -1028,7 +962,7 @@ export class Lifecycle implements ILifecycle {
     if (this.mountCount > 0) {
       this.mountCount = 0;
       let currentMount = this.mountHead.$nextMount;
-      this.mountHead = this.mountTail = this;
+      this.mountHead = this.mountTail = this as unknown as IMountableComponent;
       let nextMount: typeof currentMount;
 
       do {
@@ -1069,7 +1003,7 @@ export class Lifecycle implements ILifecycle {
     if (Tracer.enabled) { Tracer.leave(); }
   }
 
-  public enqueueUnmount(requestor: ILifecycleUnmount): void {
+  public enqueueUnmount(requestor: IMountableComponent): void {
     if (Tracer.enabled) { Tracer.enter('Lifecycle.enqueueUnmount', slice.call(arguments)); }
     // This method is idempotent; adding the same item more than once has the same effect as
     // adding it once.
@@ -1084,17 +1018,17 @@ export class Lifecycle implements ILifecycle {
     // if an item being queued for unmounting is already in the mount queue,
     // remove it from the mount queue (this can occur in some very exotic situations
     // and should be dealt with in a less hacky way)
-    if ((requestor as ILifecycleMount & ILifecycleUnmount).$nextMount !== null) {
-      let current = this.mountHead as ILifecycleMount & ILifecycleUnmount;
-      let next = current.$nextMount as ILifecycleMount & ILifecycleUnmount;
+    if (requestor.$nextMount !== null) {
+      let current = this.mountHead;
+      let next = current.$nextMount;
       while (next !== requestor) {
         current = next;
-        next = current.$nextMount as ILifecycleMount & ILifecycleUnmount;
+        next = current.$nextMount;
       }
       current.$nextMount = next.$nextMount;
       next.$nextMount = null;
       if (this.mountTail === next) {
-        this.mountTail = this;
+        this.mountTail = this as unknown as IMountableComponent;
       }
       --this.mountCount;
     }
@@ -1155,7 +1089,7 @@ export class Lifecycle implements ILifecycle {
     if (this.unmountCount > 0) {
       this.unmountCount = 0;
       let currentUnmount = this.unmountHead.$nextUnmount;
-      this.unmountHead = this.unmountTail = this;
+      this.unmountHead = this.unmountTail = this as unknown as IMountableComponent;
       let nextUnmount: typeof currentUnmount;
 
       do {

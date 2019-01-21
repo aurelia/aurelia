@@ -1,5 +1,6 @@
+import { IServiceLocator } from '@aurelia/kernel';
 import { expect } from 'chai';
-import { Hooks, ICustomAttributeType, IRenderingEngine, LifecycleFlags as LF, State } from '../../src/index';
+import { Hooks, ICustomAttributeType, LifecycleFlags as LF, State } from '../../src/index';
 import { createCustomAttribute, CustomAttribute } from '../resources/custom-attribute._builder';
 import { eachCartesianJoin } from '../util';
 
@@ -36,16 +37,20 @@ describe('@customAttribute', () => {
 
         let appliedType: ICustomAttributeType;
         let appliedInstance: CustomAttribute;
-        const renderingEngine: IRenderingEngine = {
-          applyRuntimeBehavior(flags: LF, type: ICustomAttributeType, instance: CustomAttribute) {
-            instance.$hooks = hooksSpec.getHooks();
-            appliedType = type;
-            appliedInstance = instance;
+        const context: IServiceLocator = {
+          get(key: unknown): unknown {
+            return {
+              applyRuntimeBehavior(flags: LF, type: ICustomAttributeType, instance: CustomAttribute) {
+                instance.$hooks = hooksSpec.getHooks();
+                appliedType = type;
+                appliedInstance = instance;
+              }
+            };
           }
         } as any;
 
         // Act
-        sut.$hydrate(LF.none, renderingEngine);
+        sut.$hydrate(LF.none, context);
 
         // Assert
         expect(sut).to.not.have.$state.isAttached('sut.$isAttached');

@@ -4,7 +4,7 @@ import { HistoryBrowser, IHistoryOptions, INavigationInstruction } from './histo
 import { AnchorEventInfo, LinkHandler } from './link-handler';
 import { INavRoute, Nav } from './nav';
 import { IParsedQuery, parseQuery } from './parser';
-import { IComponentViewport, Scope } from './scope';
+import { ChildContainer, IComponentViewport, Scope } from './scope';
 import { closestCustomElement } from './utils';
 import { IViewportOptions, Viewport } from './viewport';
 
@@ -123,7 +123,7 @@ export class Router {
     }
     if (!href.startsWith('/')) {
       const scope = this.closestScope(info.anchor);
-      const context = scope.context();
+      const context = scope.scopeContext();
       if (context) {
         href = `/${context}${this.separators.scope}${href}`;
       }
@@ -418,17 +418,17 @@ export class Router {
   }
 
   // Called from the viewport custom element in attached()
-  public addViewport(name: string, element: Element, container: IRenderContext, options?: IViewportOptions): Viewport {
+  public addViewport(name: string, element: Element, context: IRenderContext, options?: IViewportOptions): Viewport {
     // tslint:disable-next-line:no-console
     console.log('Viewport added', name, element);
     const parentScope = this.findScope(element);
-    return parentScope.addViewport(name, element, container, options);
+    return parentScope.addViewport(name, element, context, options);
   }
   // Called from the viewport custom element
-  public removeViewport(viewport: Viewport, element: Element, container: IRenderContext): void {
+  public removeViewport(viewport: Viewport, element: Element, context: IRenderContext): void {
     // TODO: There's something hinky with remove!
     const scope = viewport.owningScope;
-    if (!scope.removeViewport(viewport, element, container)) {
+    if (!scope.removeViewport(viewport, element, context)) {
       this.removeScope(scope);
     }
   }
@@ -541,9 +541,9 @@ export class Router {
 
   private closestScope(element: Element): Scope {
     const el = closestCustomElement(element);
-    let container = el.$customElement.$context.get(IContainer);
+    let container: ChildContainer = el.$customElement.$context.get(IContainer);
     while (container) {
-      const scope = this.scopes.find((item) => item.container.get(IContainer) === container);
+      const scope = this.scopes.find((item) => item.context.get(IContainer) === container);
       if (scope) {
         return scope;
       }

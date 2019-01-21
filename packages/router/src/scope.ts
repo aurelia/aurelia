@@ -18,11 +18,11 @@ export interface IFindViewportsResult {
   viewportsRemaining?: boolean;
 }
 
-type ChildContainer = IContainer & { parent?: ChildContainer };
+export type ChildContainer = IContainer & { parent?: ChildContainer };
 
 export class Scope {
   public element: Element;
-  public container: IRenderContext;
+  public context: IRenderContext;
   public parent: Scope;
 
   public viewport: Viewport;
@@ -35,10 +35,10 @@ export class Scope {
   private scopeViewportParts: Record<string, string[][]>;
   private availableViewports: Record<string, Viewport>;
 
-  constructor(router: Router, element: Element, container: IRenderContext, parent: Scope) {
+  constructor(router: Router, element: Element, context: IRenderContext, parent: Scope) {
     this.router = router;
     this.element = element;
-    this.container = container;
+    this.context = context;
     this.parent = parent;
 
     this.viewport = null;
@@ -188,25 +188,25 @@ export class Scope {
     };
   }
 
-  public addViewport(name: string, element: Element, container: IRenderContext, options?: IViewportOptions): Viewport {
+  public addViewport(name: string, element: Element, context: IRenderContext, options?: IViewportOptions): Viewport {
     let viewport = this.viewports[name];
     if (!viewport) {
       let scope: Scope;
       if (options.scope) {
-        scope = new Scope(this.router, element, container, this);
+        scope = new Scope(this.router, element, context, this);
         this.router.scopes.push(scope);
       }
 
-      viewport = this.viewports[name] = new Viewport(this.router, name, element, container, this, scope, options);
+      viewport = this.viewports[name] = new Viewport(this.router, name, element, context, this, scope, options);
     }
     // TODO: Either explain why || instead of && here (might only need one) or change it to && if that should turn out to not be relevant
-    if (element || container) {
-      viewport.setElement(element, container, options);
+    if (element || context) {
+      viewport.setElement(element, context, options);
     }
     return viewport;
   }
-  public removeViewport(viewport: Viewport, element: Element, container: IRenderContext): number {
-    if ((!element && !container) || viewport.remove(element, container)) {
+  public removeViewport(viewport: Viewport, element: Element, context: IRenderContext): number {
+    if ((!element && !context) || viewport.remove(element, context)) {
       if (viewport.scope) {
         this.router.removeScope(viewport.scope);
       }
@@ -263,7 +263,7 @@ export class Scope {
     return viewports;
   }
 
-  public context(full: boolean = false): string {
+  public scopeContext(full: boolean = false): string {
     if (!this.element || !this.parent) {
       return '';
     }
@@ -271,25 +271,24 @@ export class Scope {
     if (this.viewport) {
       parents.unshift(this.viewport.description(full));
     }
-    let viewport: Viewport = this.parent.closestViewport((this.container as any).parent);
+    let viewport: Viewport = this.parent.closestViewport((this.context.get(IContainer) as ChildContainer).parent);
     while (viewport && viewport.owningScope === this.parent) {
       parents.unshift(viewport.description(full));
-      viewport = this.closestViewport((viewport.container as any).parent);
+      viewport = this.closestViewport((viewport.context.get(IContainer) as ChildContainer).parent);
     }
-    parents.unshift(this.parent.context(full));
+    parents.unshift(this.parent.scopeContext(full));
 
     return parents.filter((value) => value && value.length).join(this.router.separators.scope);
   }
 
-  private closestViewport(context: IRenderContext): Viewport {
+  private closestViewport(container: ChildContainer): Viewport {
     const viewports = Object.values(this.viewports);
-    let container = context.get(IContainer);
     while (container) {
-      const viewport = viewports.find((item) => item.container.get(IContainer) === container);
+      const viewport = viewports.find((item) => item.context.get(IContainer) === container);
       if (viewport) {
         return viewport;
       }
-      container = (container as ChildContainer).parent;
+      container = container.parent;
     }
     return null;
   }

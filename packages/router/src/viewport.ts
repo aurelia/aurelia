@@ -29,7 +29,7 @@ export interface IViewportOptions {
 export class Viewport {
   public name: string;
   public element: Element;
-  public container: IRenderContext;
+  public context: IRenderContext;
   public owningScope: Scope;
   public scope: Scope;
   public options?: IViewportOptions;
@@ -53,11 +53,11 @@ export class Viewport {
   private previousViewportState?: Viewport;
   private entered: boolean;
 
-  constructor(router: Router, name: string, element: Element, container: IRenderContext, owningScope: Scope, scope: Scope, options?: IViewportOptions) {
+  constructor(router: Router, name: string, element: Element, context: IRenderContext, owningScope: Scope, scope: Scope, options?: IViewportOptions) {
     this.router = router;
     this.name = name;
     this.element = element;
-    this.container = container;
+    this.context = context;
     this.owningScope = owningScope;
     this.scope = scope;
     this.options = options;
@@ -89,7 +89,7 @@ export class Viewport {
         content = cp.shift();
         parameters = cp.length ? cp.join(this.router.separators.parameters) : null;
         // If we've got a container, we're good to resolve type
-        if (this.container) {
+        if (this.context) {
           content = this.componentType(content);
         }
       }
@@ -112,7 +112,7 @@ export class Viewport {
     return false;
   }
 
-  public setElement(element: Element, container: IRenderContext, options: IViewportOptions): void {
+  public setElement(element: Element, context: IRenderContext, options: IViewportOptions): void {
     // First added viewport with element is always scope viewport (except for root scope)
     if (this.scope && this.scope.parent && !this.scope.viewport) {
       this.scope.viewport = this;
@@ -141,8 +141,8 @@ export class Viewport {
         this.elementResolve();
       }
     }
-    if (this.container !== container) {
-      this.container = container;
+    if (this.context !== context) {
+      this.context = context;
     }
 
     if (!this.component && !this.nextComponent && this.options.default) {
@@ -150,8 +150,8 @@ export class Viewport {
     }
   }
 
-  public remove(element: Element, container: IRenderContext): boolean {
-    return this.element === element && this.container === container;
+  public remove(element: Element, context: IRenderContext): boolean {
+    return this.element === element && this.context === context;
   }
 
   public async canLeave(): Promise<boolean> {
@@ -297,7 +297,7 @@ export class Viewport {
   }
 
   public scopedDescription(full: boolean = false): string {
-    const descriptions = [this.owningScope.context(full), this.description(full)];
+    const descriptions = [this.owningScope.scopeContext(full), this.description(full)];
     return descriptions.filter((value) => value && value.length).join(this.router.separators.scope);
   }
 
@@ -369,7 +369,7 @@ export class Viewport {
     } else if (typeof component !== 'string') {
       return component;
     } else {
-      const container = this.container || this.router.container;
+      const container = this.context || this.router.container;
       const resolver = container.get(IContainer).getResolver(CustomElementResource.keyFrom(component));
       if (resolver !== null) {
         return resolver.getFactory(container.get(IContainer)).Type as IRouteableCustomElementType;
@@ -383,7 +383,7 @@ export class Viewport {
     }
     // TODO: Remove once "local registration is fixed"
     component = this.componentName(component);
-    const container = this.container || this.router.container;
+    const container = this.context || this.router.container;
     if (typeof component !== 'string') {
       return container.get(IContainer).get<IRouteableCustomElement>(component);
     } else {
@@ -406,7 +406,7 @@ export class Viewport {
     this.nextComponent = this.componentInstance(component);
 
     const host: INode = this.element as INode;
-    const container = this.container || this.router.container;
+    const container = this.context || this.router.container;
 
     // TODO: get useProxies settings from the template definition
     this.nextComponent.$hydrate(LifecycleFlags.none, container, host);

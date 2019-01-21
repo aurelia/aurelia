@@ -203,9 +203,8 @@ export class Router {
       this.historyBrowser.setEntryTitle(title);
     }
 
-    this.ensureRootScope();
-    const usedViewports = (clearViewports ? this.rootScope.allViewports().filter((value) => value.component !== null) : []);
-    const defaultViewports = this.rootScope.allViewports().filter((value) => value.options.default && value.component === null);
+    const usedViewports = (clearViewports ? this.allViewports().filter((value) => value.component !== null) : []);
+    const defaultViewports = this.allViewports().filter((value) => value.options.default && value.component === null);
 
     const updatedViewports: Viewport[] = [];
 
@@ -383,6 +382,10 @@ export class Router {
     if (!scope.removeViewport(viewport, element, context)) {
       this.removeScope(scope);
     }
+  }
+  public allViewports(): Viewport[] {
+    this.ensureRootScope();
+    return this.rootScope.allViewports();
   }
 
   public removeScope(scope: Scope): void {

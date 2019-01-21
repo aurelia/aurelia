@@ -47,7 +47,7 @@ export interface IRouteSeparators {
 }
 
 export class Router {
-  public static readonly inject: ReadonlyArray<InterfaceSymbol<unknown>> = [IContainer];
+  public static readonly inject: ReadonlyArray<InterfaceSymbol> = [IContainer];
 
   public viewports: Record<string, Viewport> = {};
 
@@ -267,7 +267,7 @@ export class Router {
         // TODO: Deal with redirects
         return true;
       }));
-      if (results.findIndex((value) => value === false) >= 0) {
+      if (results.some(result => result === false)) {
         this.historyBrowser.cancel();
         this.processingNavigation = null;
         return Promise.resolve();
@@ -298,11 +298,13 @@ export class Router {
     this.replacePaths(instruction);
 
     // Remove history entry if no history viewports updated
-    if (!instruction.isFirst && !updatedViewports.reduce((accumulated: boolean, current: Viewport) => !current.options.noHistory || accumulated, instruction.isFirst)) {
+    if (!instruction.isFirst && updatedViewports.every(viewport => viewport.options.noHistory)) {
       this.historyBrowser.pop().catch(error => { throw error; });
     }
 
-    updatedViewports.forEach((value) => value.finalizeContentChange());
+    updatedViewports.forEach((viewport) => {
+      viewport.finalizeContentChange();
+    });
     this.processingNavigation = null;
 
     if (this.pendingNavigations.length) {
@@ -531,17 +533,17 @@ export class Router {
 
   private ensureRootScope(): void {
     if (!this.rootScope) {
-      const aureliaRootElement = this.container.get(Aurelia).root().$host;
-      this.rootScope = new Scope(this, aureliaRootElement as Element, aureliaRootElement.$customElement.$context, null);
+      const root = this.container.get(Aurelia).root();
+      this.rootScope = new Scope(this, root.$host as Element, root.$context, null);
       this.scopes.push(this.rootScope);
     }
   }
 
   private closestScope(element: Element): Scope {
     const el = closestCustomElement(element);
-    let container = (el as any).$customElement.$context.get(IContainer);
+    let container = el.$customElement.$context.get(IContainer);
     while (container) {
-      const scope = this.scopes.find((value) => value.container === container);
+      const scope = this.scopes.find((item) => item.container.get(IContainer) === container);
       if (scope) {
         return scope;
       }

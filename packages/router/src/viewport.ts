@@ -154,49 +154,49 @@ export class Viewport {
     return this.element === element && this.container === container;
   }
 
-  public canLeave(): Promise<boolean> {
+  public async canLeave(): Promise<boolean> {
     if (!this.component) {
-      return Promise.resolve(true);
+      return true;
     }
 
     const component: IRouteableCustomElement = this.component;
     if (!component.canLeave) {
-      return Promise.resolve(true);
+      return true;
     }
     // tslint:disable-next-line:no-console
     console.log('viewport canLeave', component.canLeave(this.instruction, this.nextInstruction));
 
     const result = component.canLeave(this.instruction, this.nextInstruction);
     if (typeof result === 'boolean') {
-      return Promise.resolve(result);
+      return result;
     }
     return result;
   }
 
   public async canEnter(): Promise<boolean> {
     if (this.clear) {
-      return Promise.resolve(true);
+      return true;
     }
 
     if (!this.nextContent) {
-      return Promise.resolve(false);
+      return false;
     }
 
     await this.loadComponent(this.nextContent);
     if (!this.nextComponent) {
-      return Promise.resolve(false);
+      return false;
     }
 
     const component: IRouteableCustomElement = this.nextComponent;
     if (!component.canEnter) {
-      return Promise.resolve(true);
+      return true;
     }
 
     const result = component.canEnter(this.nextInstruction, this.instruction);
     // tslint:disable-next-line:no-console
     console.log('viewport canEnter', result);
     if (typeof result === 'boolean') {
-      return Promise.resolve(result);
+      return result;
     }
     return result;
   }
@@ -206,22 +206,22 @@ export class Viewport {
     console.log('Viewport enter', this.name);
 
     if (this.clear) {
-      return Promise.resolve(true);
+      return true;
     }
 
     if (!this.nextComponent) {
-      return Promise.resolve(false);
+      return false;
     }
 
     if (this.nextComponent.enter) {
       const merged = mergeParameters(this.nextParameters, this.nextInstruction.query, (this.nextContent as IRouteableCustomElementType).parameters);
-      this.nextInstruction.parameters = merged.parameters;
-      this.nextInstruction.parameterList = merged.list;
+      this.nextInstruction.parameters = merged.namedParameters;
+      this.nextInstruction.parameterList = merged.parameterList;
       await this.nextComponent.enter(merged.merged, this.nextInstruction, this.instruction);
       this.entered = false;
     }
     this.initializeComponent(this.nextComponent);
-    return Promise.resolve(true);
+    return true;
   }
 
   public async loadContent(): Promise<boolean> {
@@ -262,7 +262,7 @@ export class Viewport {
 
     this.nextContent = this.nextParameters = this.nextInstruction = this.nextComponent = null;
 
-    return Promise.resolve(true);
+    return true;
   }
 
   public finalizeContentChange(): void {

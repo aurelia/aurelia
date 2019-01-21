@@ -18,6 +18,8 @@ export interface IFindViewportsResult {
   viewportsRemaining?: boolean;
 }
 
+type ChildContainer = IContainer & { parent?: ChildContainer };
+
 export class Scope {
   public element: Element;
   public container: IRenderContext;
@@ -86,8 +88,7 @@ export class Scope {
           componentViewports.push(...found.componentViewports);
           viewportsRemaining = viewportsRemaining || found.viewportsRemaining;
           this.availableViewports[name] = null;
-          // tslint:disable-next-line:no-dynamic-delete
-          delete this.scopeViewportParts[viewportPart];
+          Reflect.deleteProperty(this.scopeViewportParts, viewportPart);
           break;
         }
       }
@@ -119,8 +120,7 @@ export class Scope {
         componentViewports.push(...found.componentViewports);
         viewportsRemaining = viewportsRemaining || found.viewportsRemaining;
         this.availableViewports[name] = null;
-        // tslint:disable-next-line:no-dynamic-delete
-        delete this.scopeViewportParts[viewportPart];
+        Reflect.deleteProperty(this.scopeViewportParts, viewportPart);
       }
     }
 
@@ -143,8 +143,7 @@ export class Scope {
         componentViewports.push(...found.componentViewports);
         viewportsRemaining = viewportsRemaining || found.viewportsRemaining;
         this.availableViewports[viewport.name] = null;
-        // tslint:disable-next-line:no-dynamic-delete
-        delete this.scopeViewportParts[viewportPart];
+        Reflect.deleteProperty(this.scopeViewportParts, viewportPart);
         break;
       }
     }
@@ -200,6 +199,7 @@ export class Scope {
 
       viewport = this.viewports[name] = new Viewport(this.router, name, element, container, this, scope, options);
     }
+    // TODO: Either explain why || instead of && here (might only need one) or change it to && if that should turn out to not be relevant
     if (element || container) {
       viewport.setElement(element, container, options);
     }
@@ -210,8 +210,7 @@ export class Scope {
       if (viewport.scope) {
         this.router.removeScope(viewport.scope);
       }
-      // tslint:disable-next-line:no-dynamic-delete
-      delete this.viewports[viewport.name];
+      Reflect.deleteProperty(this.viewports, viewport.name);
     }
     return Object.keys(this.viewports).length;
   }
@@ -282,14 +281,15 @@ export class Scope {
     return parents.filter((value) => value && value.length).join(this.router.separators.scope);
   }
 
-  private closestViewport(container: IRenderContext): Viewport {
+  private closestViewport(context: IRenderContext): Viewport {
     const viewports = Object.values(this.viewports);
+    let container = context.get(IContainer);
     while (container) {
-      const viewport = viewports.find((value) => value.container === container);
+      const viewport = viewports.find((item) => item.container.get(IContainer) === container);
       if (viewport) {
         return viewport;
       }
-      container = (container as any).parent;
+      container = (container as ChildContainer).parent;
     }
     return null;
   }

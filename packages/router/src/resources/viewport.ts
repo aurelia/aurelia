@@ -1,10 +1,11 @@
 import { Constructable, IContainer, InterfaceSymbol, Writable } from '@aurelia/kernel';
-import { bindable, createRenderContext, CustomElementResource, IDOM, IElementTemplateProvider, INode, IRenderContext, IRenderingEngine, ITemplate, LifecycleFlags, TemplateDefinition } from '@aurelia/runtime';
+import { bindable, createRenderContext, CustomElementResource, ICustomElement, IDOM, IElementTemplateProvider, INode, IRenderContext, IRenderingEngine, ITemplate, LifecycleFlags, TemplateDefinition } from '@aurelia/runtime';
 import { Router } from '../router';
 import { IViewportOptions, Viewport } from '../viewport';
 
+export interface ViewportCustomElement extends ICustomElement<Element> { }
 export class ViewportCustomElement {
-  public static readonly inject: ReadonlyArray<InterfaceSymbol<unknown> | Constructable> = [Router, INode, IRenderingEngine];
+  public static readonly inject: ReadonlyArray<InterfaceSymbol|Constructable> = [Router, INode, IRenderingEngine];
 
   @bindable public name: string;
   @bindable public scope: boolean;
@@ -38,7 +39,7 @@ export class ViewportCustomElement {
     const dom = parentContext.get(IDOM);
     const template = this.renderingEngine.getElementTemplate(dom, Type.description, parentContext, Type);
     (template as Writable<ITemplate>).renderContext = createRenderContext(dom, parentContext, Type.description.dependencies, Type);
-    template.render(this as any, host, parts);
+    template.render(this, host, parts);
   }
 
   // public created(...rest): void {
@@ -84,10 +85,10 @@ export class ViewportCustomElement {
     if (this.element.hasAttribute('no-history')) {
       options.noHistory = true;
     }
-    this.viewport = this.router.addViewport(this.name, this.element, (this as any).$context.get(IContainer), options);
+    this.viewport = this.router.addViewport(this.name, this.element, this.$context, options);
   }
   public unbound(): void {
-    this.router.removeViewport(this.viewport, this.element, (this as any).$context.get(IContainer));
+    this.router.removeViewport(this.viewport, this.element, this.$context);
   }
 
   public binding(flags: LifecycleFlags): void {

@@ -2,6 +2,7 @@ export interface IHistoryEntry {
   path: string;
   fullStatePath: string;
   index?: number;
+  firstEntry?: boolean;
   title?: string;
   query?: string;
   parameters?: Record<string, string>;
@@ -301,6 +302,9 @@ export class HistoryBrowser {
           index: this.history.length - this.historyOffset,
           query: search,
         };
+        if (navigationFlags.isFirst) {
+          historyEntry.firstEntry = true;
+        }
         this.historyEntries = this.historyEntries.slice(0, historyEntry.index);
         this.historyEntries.push(historyEntry);
         this.setState({

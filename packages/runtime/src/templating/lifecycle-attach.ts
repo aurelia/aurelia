@@ -268,7 +268,10 @@ export function $unmountElement(this: Writable<ICustomElement & IAttachable>, fl
   if (Tracer.enabled) { Tracer.leave(); }
 }
 
-/** @internal */
+/**
+ * @internal
+ * Add the `$nodes` of this instance to the Host or RenderLocation that this instance is holding.
+ */
 export function $mountView(this: Writable<IView>, flags: LifecycleFlags): void {
   if (Tracer.enabled) { Tracer.enter('IView', '$mount', slice.call(arguments)); }
   if (!(this.$state & State.isMounted)) {
@@ -278,7 +281,14 @@ export function $mountView(this: Writable<IView>, flags: LifecycleFlags): void {
   if (Tracer.enabled) { Tracer.leave(); }
 }
 
-/** @internal */
+/**
+ * @internal
+ * Remove the `$nodes` of this instance from the Host or RenderLocation that this instance is holding, optionally returning them to a cache.
+ * @returns
+ * - `true` if the instance has been returned to the cache.
+ * - `false` if the cache (typically ViewFactory) did not allow the instance to be cached.
+ * - `undefined` (void) if the instance does not support caching. Functionally equivalent to `false` // not happening
+ */
 export function $unmountView(this: Writable<IView>, flags: LifecycleFlags): boolean {
   if (Tracer.enabled) { Tracer.enter('IView', '$unmount', slice.call(arguments)); }
   if (this.$state & State.isMounted) {

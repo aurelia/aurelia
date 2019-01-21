@@ -8,6 +8,7 @@ import {
   Reporter,
   Writable
 } from '@aurelia/kernel';
+
 import {
   CompiledTemplate,
   IDOM,
@@ -64,41 +65,55 @@ export class HTMLDOM implements IDOM {
   public addEventListener(eventName: string, subscriber: EventListenerOrEventListenerObject, publisher?: Node, options?: boolean | AddEventListenerOptions): void {
     (publisher || this.doc).addEventListener(eventName, subscriber, options);
   }
+
   public appendChild(parent: Node, child: Node): void {
     parent.appendChild(child);
   }
+
   public cloneNode<T>(node: T, deep?: boolean): T {
     return (node as unknown as Node).cloneNode(deep !== false) as unknown as T;
   }
+
   public convertToRenderLocation(node: Node): IRenderLocation {
     if (this.isRenderLocation(node)) {
       return node; // it's already a IRenderLocation (converted by FragmentNodeSequence)
     }
+
     if (node.parentNode === null) {
       throw Reporter.error(52);
     }
+
     const locationEnd = this.doc.createComment('au-end');
     const locationStart = this.doc.createComment('au-start');
+
     node.parentNode.replaceChild(locationEnd, node);
+
     locationEnd.parentNode.insertBefore(locationStart, locationEnd);
+
     (locationEnd as IRenderLocation).$start = locationStart as IRenderLocation;
     (locationStart as IRenderLocation).$nodes = null;
+
     return locationEnd as IRenderLocation;
   }
+
   public createDocumentFragment(markupOrNode?: string | Node): DocumentFragment {
     if (markupOrNode === undefined || markupOrNode === null) {
       return this.doc.createDocumentFragment();
     }
+
     if (this.isNodeInstance(markupOrNode)) {
       if ((markupOrNode as HTMLTemplateElement).content !== undefined) {
         return (markupOrNode as HTMLTemplateElement).content;
       }
+
       const fragment = this.doc.createDocumentFragment();
       fragment.appendChild(markupOrNode);
       return fragment;
     }
+
     return this.createTemplate(markupOrNode).content;
   }
+
   public createElement(name: string): HTMLElement {
     return this.doc.createElement(name);
   }
@@ -120,42 +135,53 @@ export class HTMLDOM implements IDOM {
         takeRecords(): MutationRecord[] { return PLATFORM.emptyArray as MutationRecord[]; }
       };
     }
+
     const observer = new MutationObserver(cb);
     observer.observe(node, init);
     return observer;
   }
+
   public createTemplate(markup?: unknown): HTMLTemplateElement {
     if (markup === undefined || markup === null) {
       return this.doc.createElement('template');
     }
+
     const template = this.doc.createElement('template');
     template.innerHTML = (markup as string | object).toString();
+
     return template;
   }
   public createTextNode(text: string): Text {
     return this.doc.createTextNode(text);
   }
+
   public insertBefore(nodeToInsert: Node, referenceNode: Node): void {
     referenceNode.parentNode.insertBefore(nodeToInsert, referenceNode);
   }
+
   public isMarker(node: unknown): node is HTMLElement {
     return (node as AuMarker).nodeName === 'AU-M';
   }
+
   public isNodeInstance(potentialNode: unknown): potentialNode is Node {
     return potentialNode !== null && potentialNode !== undefined && (potentialNode as Node).nodeType > 0;
   }
+
   public isRenderLocation(node: unknown): node is IRenderLocation {
     return (node as Comment).textContent === 'au-end';
   }
+
   public makeTarget(node: unknown): void {
     (node as Element).className = 'au';
   }
+
   public registerElementResolver(container: IContainer, resolver: IResolver): void {
     container.registerResolver(INode, resolver);
     container.registerResolver(this.Node, resolver);
     container.registerResolver(this.Element, resolver);
     container.registerResolver(this.HTMLElement, resolver);
   }
+
   public remove(node: Node): void {
     if ((node as ChildNode).remove) {
       (node as ChildNode).remove();
@@ -163,9 +189,11 @@ export class HTMLDOM implements IDOM {
       node.parentNode.removeChild(node);
     }
   }
+
   public removeEventListener(eventName: string, subscriber: EventListenerOrEventListenerObject, publisher?: Node, options?: boolean | EventListenerOptions): void {
     (publisher || this.doc).removeEventListener(eventName, subscriber, options);
   }
+
   public setAttribute(node: Element, name: string, value: unknown): void {
     node.setAttribute(name, value as string);
   }
@@ -237,11 +265,13 @@ export class FragmentNodeSequence implements INodeSequence {
     let i = 0;
     let ii = targetNodeList.length;
     const targets = this.targets = Array(ii);
+
     while (i < ii) {
       // eagerly convert all markers to RenderLocations (otherwise the renderer
       // will do it anyway) and store them in the target list (since the comments
       // can't be queried)
       const target = targetNodeList[i];
+
       if (target.nodeName === 'AU-M') {
         // note the renderer will still call this method, but it will just return the
         // location if it sees it's already a location
@@ -252,6 +282,7 @@ export class FragmentNodeSequence implements INodeSequence {
       }
       ++i;
     }
+
     const childNodeList = fragment.childNodes;
     i = 0;
     ii = childNodeList.length;
@@ -395,6 +426,7 @@ export class AuMarker implements INode {
   public get parentNode(): Node & ParentNode {
     return this.nextSibling.parentNode;
   }
+
   public readonly nextSibling: Node;
   public readonly previousSibling: Node;
   public readonly content?: Node;
@@ -408,6 +440,7 @@ export class AuMarker implements INode {
     this.nextSibling = next;
     this.textContent = '';
   }
+
   public remove(): void { /* do nothing */ }
 }
 

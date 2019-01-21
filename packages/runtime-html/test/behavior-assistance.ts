@@ -5,9 +5,7 @@ import {
   ICustomElement,
   ICustomElementType,
   IHydrateElementInstruction,
-  IProjectorLocator,
   IRenderable,
-  IRenderingEngine,
   ITargetedInstruction,
   LifecycleFlags as LF,
   TargetedInstructionType
@@ -47,9 +45,7 @@ export function hydrateCustomElement<T>(Type: Constructable<T>, ctx: HTMLTestCon
     CustomElementResource.keyFrom(ElementType.description.name)
   ) as T & ICustomElement & InstanceType<typeof Type>;
 
-  const renderingEngine = container.get(IRenderingEngine);
-  const projectorLocator = container.get(IProjectorLocator);
-  element.$hydrate(LF.none, dom, projectorLocator, renderingEngine, host);
+  element.$hydrate(LF.none, container, host);
 
   return { element, parent };
 }

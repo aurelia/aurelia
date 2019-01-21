@@ -1,4 +1,4 @@
-import { Class, Constructable, DI, IContainer, Registration } from '@aurelia/kernel';
+import { Class, Constructable, IContainer } from '@aurelia/kernel';
 import {
   BindingType,
   CustomElementResource,
@@ -8,12 +8,9 @@ import {
 
   HydrateTemplateController,
   ICustomElement,
-  IDOM,
   ILifecycle,
   INode,
   Interpolation,
-
-  IProjectorLocator,
 
   IRenderingEngine,
 
@@ -29,7 +26,6 @@ import {
 import { BasicConfiguration } from '../../jit-html/src/index';
 import { parseExpression } from '../../jit/src/index';
 import { HTMLTargetedInstruction, TextBindingInstruction } from '../src/index';
-import { ExposedContext } from './mock';
 
 export type TemplateCb = (builder: TemplateBuilder) => TemplateBuilder;
 export type InstructionCb = (builder: InstructionBuilder) => InstructionBuilder;
@@ -377,10 +373,8 @@ export class TestContext<T extends object> {
 
   public hydrate(renderingEngine?: IRenderingEngine, host?: INode): void {
     renderingEngine = renderingEngine || this.container.get(IRenderingEngine);
-    const projectorLocator = this.container.get(IProjectorLocator);
-    const dom = this.container.get(IDOM);
     host = host || this.host;
-    this.component.$hydrate(dom, projectorLocator, renderingEngine, host, this.container as ExposedContext);
+    this.component.$hydrate(LifecycleFlags.none, this.container, host);
   }
 
   public bind(flags?: LifecycleFlags): void {

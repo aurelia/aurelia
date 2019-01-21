@@ -1,6 +1,6 @@
 import { Profiler, Tracer, Writable } from '@aurelia/kernel';
 import { Hooks, LifecycleFlags, State } from '../flags';
-import { IComponent, ILifecycleHooks, IMountable, IRenderable, IView } from '../lifecycle';
+import { IComponent, ILifecycleHooks, IMountableComponent, IRenderable, IView } from '../lifecycle';
 import { ICustomElement } from '../resources/custom-element';
 
 interface IAttachable extends IRenderable, ILifecycleHooks, IComponent { }
@@ -45,7 +45,7 @@ export function $attachAttribute(this: Writable<IAttachable>, flags: LifecycleFl
 
 /** @internal */
 // tslint:disable-next-line:no-ignored-initial-value
-export function $attachElement(this: Writable<IAttachable & IMountable>, flags: LifecycleFlags): void {
+export function $attachElement(this: Writable<IAttachable & IMountableComponent>, flags: LifecycleFlags): void {
   if (Tracer.enabled) { Tracer.enter(`${this['constructor'].name}.$attachElement`, slice.call(arguments)); }
   if (Profiler.enabled) { enter(); }
   if (this.$state & State.isAttached) {
@@ -86,7 +86,7 @@ export function $attachElement(this: Writable<IAttachable & IMountable>, flags: 
 }
 
 /** @internal */
-export function $attachView(this: Writable<IAttachable & IMountable>, flags: LifecycleFlags): void {
+export function $attachView(this: Writable<IAttachable & IMountableComponent>, flags: LifecycleFlags): void {
   if (Tracer.enabled) { Tracer.enter(`${this['constructor'].name}.$attachView`, slice.call(arguments)); }
   if (this.$state & State.isAttached) {
     if (Tracer.enabled) { Tracer.leave(); }
@@ -139,7 +139,7 @@ export function $detachAttribute(this: Writable<IAttachable>, flags: LifecycleFl
 
 /** @internal */
 // tslint:disable-next-line:no-ignored-initial-value
-export function $detachElement(this: Writable<IAttachable & IMountable>, flags: LifecycleFlags): void {
+export function $detachElement(this: Writable<IAttachable & IMountableComponent>, flags: LifecycleFlags): void {
   if (Tracer.enabled) { Tracer.enter(`${this['constructor'].name}.$detachElement`, slice.call(arguments)); }
   if (this.$state & State.isAttached) {
     const lifecycle = this.$lifecycle;
@@ -179,7 +179,7 @@ export function $detachElement(this: Writable<IAttachable & IMountable>, flags: 
 }
 
 /** @internal */
-export function $detachView(this: Writable<IAttachable & IMountable>, flags: LifecycleFlags): void {
+export function $detachView(this: Writable<IAttachable & IMountableComponent>, flags: LifecycleFlags): void {
   if (Tracer.enabled) { Tracer.enter(`${this['constructor'].name}.$detachView`, slice.call(arguments)); }
   if (this.$state & State.isAttached) {
     // add isDetaching flag

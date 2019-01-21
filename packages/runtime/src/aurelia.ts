@@ -2,8 +2,8 @@ import { DI, IContainer, IRegistry, PLATFORM, Profiler, Registration } from '@au
 import { IDOM, INode } from './dom';
 import { LifecycleFlags } from './flags';
 import { ProxyObserver } from './observation/proxy-observer';
-import { ExposedContext, IRenderingEngine } from './rendering-engine';
-import { CustomElementResource, ICustomElement, ICustomElementType, IProjectorLocator } from './resources/custom-element';
+import { ExposedContext } from './rendering-engine';
+import { CustomElementResource, ICustomElement, ICustomElementType } from './resources/custom-element';
 
 const { enter: enterStart, leave: leaveStart } = Profiler.createTimer('Aurelia.start');
 const { enter: enterStop, leave: leaveStop } = Profiler.createTimer('Aurelia.stop');
@@ -43,13 +43,10 @@ export class Aurelia {
 
   public app(config: ISinglePageApp): this {
     const host = config.host as INode & {$au?: Aurelia | null};
-    let dom: IDOM;
-    if (this.container.has(IDOM, false)) {
-      dom = this.container.get(IDOM);
-    } else {
-      const domInitializer = this.container.get(IDOMInitializer);
-      dom = domInitializer.initialize(config);
-    }
+
+    const domInitializer = this.container.get(IDOMInitializer);
+    domInitializer.initialize(config);
+
     let startFlags = LifecycleFlags.fromStartTask;
     let stopFlags = LifecycleFlags.fromStopTask;
     if (config.useProxies) {
@@ -71,9 +68,7 @@ export class Aurelia {
       if (!this.components.includes(component)) {
         this._root = component;
         this.components.push(component);
-        const re = this.container.get(IRenderingEngine);
-        const pl = this.container.get(IProjectorLocator);
-        component.$hydrate(startFlags, dom, pl, re, host, this.container as ExposedContext);
+        component.$hydrate(startFlags, this.container as ExposedContext, host);
       }
 
       component.$bind(startFlags | LifecycleFlags.fromBind, null);

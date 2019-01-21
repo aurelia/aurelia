@@ -2,7 +2,7 @@ import {
   IBinding,
   IComponent,
   ILifecycle,
-  IMountable,
+  IMountableComponent,
   INodeSequence,
   IRenderContext,
   IRenderLocation,
@@ -28,8 +28,8 @@ export class FakeView implements IView {
   public $nextComponent: IComponent;
   public $prevComponent: IComponent;
 
-  public $nextMount: IMountable;
-  public $nextUnmount: IMountable;
+  public $nextMount: IMountableComponent;
+  public $nextUnmount: IMountableComponent;
 
   public $nextUnbindAfterDetach: IComponent;
 

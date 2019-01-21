@@ -1,5 +1,6 @@
+import { IServiceLocator } from '@aurelia/kernel';
 import { expect } from 'chai';
-import { Hooks, ICustomElementType,  INode, IRenderingEngine, ITemplate, LifecycleFlags } from '../../src/index';
+import { Hooks, ICustomElementType,  IDOM, INode, IProjectorLocator, IRenderingEngine, ITemplate, LifecycleFlags as LF } from '../../src/index';
 import { createCustomElement, CustomElement } from '../resources/custom-element._builder';
 import { eachCartesianJoin } from '../util';
 
@@ -53,7 +54,7 @@ describe('@customElement', () => {
         let getElementTemplateDescription;
         let getElementTemplateType;
         const renderingEngine: IRenderingEngine = {
-          applyRuntimeBehavior(flags: LifecycleFlags, type: ICustomElementType, instance: CustomElement) {
+          applyRuntimeBehavior(flags: LF, type: ICustomElementType, instance: CustomElement) {
             instance.$hooks = hooksSpec.getHooks();
             appliedType = type;
             appliedInstance = instance;
@@ -66,16 +67,25 @@ describe('@customElement', () => {
           }
         } as any;
         const host: INode = {} as any;
+        const context: IServiceLocator = {
+          get(key: unknown): unknown {
+            switch (key) {
+              case IDOM:
+                return {};
+              case IProjectorLocator:
+                return {
+                  getElementProjector() {
+                    return null;
+                  }
+                } as any;
+              case IRenderingEngine:
+                return renderingEngine;
+            }
+          }
+        } as any;
 
         // Act
-        sut.$hydrate(
-          0,
-          {} as any,
-          { getElementProjector() { return null; }} as any,
-          renderingEngine,
-          host,
-          null
-        );
+        sut.$hydrate(LF.none, context, host);
 
         // Assert
         expect(sut).to.not.have.$state.isAttached('sut.$isAttached');

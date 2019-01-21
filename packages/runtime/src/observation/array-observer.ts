@@ -213,7 +213,7 @@ const observe = {
     // only mark indices as deleted if they actually existed in the original array
     const index = indexMap.length - 1;
     if (indexMap[index] > -1) {
-      $pop.call(indexMap.deletedItems, element);
+      indexMap.deletedItems.push(indexMap[index]);
     }
     $pop.call(indexMap);
     o.callSubscribers('pop', arguments, o.persistentFlags | LifecycleFlags.isCollectionMutation);
@@ -233,7 +233,7 @@ const observe = {
     const element = $shift.call($this);
     // only mark indices as deleted if they actually existed in the original array
     if (indexMap[0] > -1) {
-      $shift.call(indexMap.deletedItems, element);
+      indexMap.deletedItems.push(indexMap[0]);
     }
     $shift.call(indexMap);
     o.callSubscribers('shift', arguments, o.persistentFlags | LifecycleFlags.isCollectionMutation);
@@ -255,7 +255,7 @@ const observe = {
       const to = i + deleteCount;
       while (i < to) {
         if (indexMap[i] > -1) {
-          $splice.call(indexMap.deletedItems, $this[i]);
+          indexMap.deletedItems.push(indexMap[i]);
         }
         i++;
       }

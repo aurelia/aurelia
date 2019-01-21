@@ -102,6 +102,15 @@ export class HTMLDOM implements IDOM {
   public createElement(name: string): HTMLElement {
     return this.doc.createElement(name);
   }
+
+  public createCustomEvent<T = any>(eventType: string, options?: CustomEventInit<T>): CustomEvent<T> {
+    return new this.wnd.CustomEvent(eventType, options);
+  }
+
+  public dispatchEvent(evt): void {
+    this.doc.dispatchEvent(evt);
+  }
+
   public createNodeObserver(node: Node, cb: MutationCallback, init: MutationObserverInit): MutationObserver {
     if (typeof MutationObserver === 'undefined') {
       // TODO: find a proper response for this scenario

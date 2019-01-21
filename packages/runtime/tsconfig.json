@@ -4,7 +4,13 @@
     "declarationDir": "dist",
     "outDir": "dist/build",
     "preserveConstEnums": true,
-    "rootDir": "src"
+    "rootDir": "src",
+    "lib": [
+      "esnext",
+      "dom"
+    ]
   },
-  "include": ["src"]
+  "include": [
+    "src"
+  ]
 }

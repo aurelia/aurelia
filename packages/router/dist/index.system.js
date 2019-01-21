@@ -1,14 +1,11 @@
 System.register('router', ['@aurelia/runtime', '@aurelia/kernel'], function (exports, module) {
   'use strict';
-  var IObserverLocator, LifecycleFlags, CustomElementResource, IDOM, IProjectorLocator, IRenderingEngine, Aurelia, INode, bindable, customElement, IContainer, inject;
+  var IObserverLocator, LifecycleFlags, CustomElementResource, Aurelia, INode, bindable, customElement, IContainer, inject;
   return {
     setters: [function (module) {
       IObserverLocator = module.IObserverLocator;
       LifecycleFlags = module.LifecycleFlags;
       CustomElementResource = module.CustomElementResource;
-      IDOM = module.IDOM;
-      IProjectorLocator = module.IProjectorLocator;
-      IRenderingEngine = module.IRenderingEngine;
       Aurelia = module.Aurelia;
       INode = module.INode;
       bindable = module.bindable;
@@ -792,11 +789,8 @@ System.register('router', ['@aurelia/runtime', '@aurelia/kernel'], function (exp
           addComponent(component) {
               const host = this.element;
               const container = this.router.container;
-              const dom = container.get(IDOM);
-              const projectorLocator = container.get(IProjectorLocator);
-              const renderingEngine = container.get(IRenderingEngine);
               // TODO: get useProxies settings from the template definition
-              component.$hydrate(LifecycleFlags.none, dom, projectorLocator, renderingEngine, host, null);
+              component.$hydrate(LifecycleFlags.none, container, host);
               component.$bind(LifecycleFlags.fromStartTask | LifecycleFlags.fromBind, null);
               component.$attach(LifecycleFlags.fromStartTask);
           }

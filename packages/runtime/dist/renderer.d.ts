@@ -3,7 +3,7 @@ import { BindingType, IExpressionParser } from './binding/expression-parser';
 import { ICallBindingInstruction, IHydrateAttributeInstruction, IHydrateElementInstruction, IHydrateLetElementInstruction, IHydrateTemplateController, IInterpolationInstruction, IIteratorBindingInstruction, IPropertyBindingInstruction, IRefBindingInstruction, ISetPropertyInstruction, TemplatePartDefinitions } from './definitions';
 import { IDOM, INode } from './dom';
 import { LifecycleFlags } from './flags';
-import { IComponent, IRenderable, IRenderContext, IBinding } from './lifecycle';
+import { IBinding, IComponent, IRenderable, IRenderContext } from './lifecycle';
 import { IObserverLocator } from './observation/observer-locator';
 import { IInstructionRenderer, IInstructionTypeClassifier, IRenderingEngine } from './rendering-engine';
 declare type DecoratableInstructionRenderer<TType extends string, TProto, TClass> = Class<TProto & Partial<IInstructionTypeClassifier<TType> & Pick<IInstructionRenderer, 'render'>>, TClass> & Partial<IRegistry>;
@@ -18,17 +18,11 @@ export declare class SetPropertyRenderer implements IInstructionRenderer {
     render(flags: LifecycleFlags, dom: IDOM, context: IRenderContext, renderable: IRenderable, target: object, instruction: ISetPropertyInstruction): void;
 }
 export declare class CustomElementRenderer implements IInstructionRenderer {
-    static readonly inject: ReadonlyArray<InterfaceSymbol>;
     static readonly register: IRegistry['register'];
-    private readonly renderingEngine;
-    constructor(renderingEngine: IRenderingEngine);
     render(flags: LifecycleFlags, dom: IDOM, context: IRenderContext, renderable: IRenderable, target: INode, instruction: IHydrateElementInstruction): void;
 }
 export declare class CustomAttributeRenderer implements IInstructionRenderer {
-    static readonly inject: ReadonlyArray<InterfaceSymbol>;
     static readonly register: IRegistry['register'];
-    private readonly renderingEngine;
-    constructor(renderingEngine: IRenderingEngine);
     render(flags: LifecycleFlags, dom: IDOM, context: IRenderContext, renderable: IRenderable, target: INode, instruction: IHydrateAttributeInstruction): void;
 }
 export declare class TemplateControllerRenderer implements IInstructionRenderer {

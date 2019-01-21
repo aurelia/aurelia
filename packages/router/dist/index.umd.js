@@ -777,11 +777,8 @@
       addComponent(component) {
           const host = this.element;
           const container = this.router.container;
-          const dom = container.get(runtime.IDOM);
-          const projectorLocator = container.get(runtime.IProjectorLocator);
-          const renderingEngine = container.get(runtime.IRenderingEngine);
           // TODO: get useProxies settings from the template definition
-          component.$hydrate(runtime.LifecycleFlags.none, dom, projectorLocator, renderingEngine, host, null);
+          component.$hydrate(runtime.LifecycleFlags.none, container, host);
           component.$bind(runtime.LifecycleFlags.fromStartTask | runtime.LifecycleFlags.fromBind, null);
           component.$attach(runtime.LifecycleFlags.fromStartTask);
       }

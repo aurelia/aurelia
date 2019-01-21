@@ -4,9 +4,6 @@ import { ITargetedInstruction, TemplateDefinition, TemplatePartDefinitions } fro
 import { INode, INodeSequence, IRenderLocation } from './dom';
 import { Hooks, LifecycleFlags, State } from './flags';
 import { IChangeTracker, IScope } from './observation';
-export interface IHooks {
-    $hooks?: Hooks;
-}
 export interface IState {
     $state?: State;
     $lifecycle?: ILifecycle;
@@ -59,7 +56,7 @@ export interface IRenderContext<T extends INode = INode> extends IServiceLocator
     render(flags: LifecycleFlags, renderable: IRenderable<T>, targets: ArrayLike<object>, templateDefinition: TemplateDefinition, host?: T, parts?: TemplatePartDefinitions): void;
     beginComponentOperation(renderable: IRenderable<T>, target: object, instruction: Immutable<ITargetedInstruction>, factory?: IViewFactory<T>, parts?: TemplatePartDefinitions, location?: IRenderLocation<T>, locationIsContainer?: boolean): IDisposable;
 }
-export interface IView<T extends INode = INode> extends IRenderable<T>, IComponent, IMountable {
+export interface IView<T extends INode = INode> extends IRenderable<T>, IMountableComponent {
     readonly cache: IViewCache<T>;
     readonly isFree: boolean;
     readonly location: IRenderLocation<T>;
@@ -98,15 +95,10 @@ export declare const IViewFactory: InterfaceSymbol<IViewFactory<INode>>;
 /**
  * Defines optional lifecycle hooks that will be called only when they are implemented.
  */
-export interface ILifecycleHooks extends IHooks, IState {
+export interface ILifecycleHooks extends IState {
+    $hooks?: Hooks;
     /**
      * Called at the end of `$hydrate`.
-     *
-     * The following key properties are now assigned and initialized (see `IRenderable` for more detail):
-     * - `this.$bindables`
-     * - `this.$attachables`
-     * - `this.$scope` (null if this is a custom attribute, or contains the view model if this is a custom element)
-     * - `this.$nodes`
      *
      * @description
      * This is the second and last "hydrate" lifecycle hook (after `render`). It happens only once per instance (contrary to bind/attach
@@ -119,16 +111,6 @@ export interface ILifecycleHooks extends IHooks, IState {
     /**
      * Called at the start of `$bind`, before this instance and its children (if any) are bound.
      *
-     * - `this.$isBound` is false.
-     * - `this.$scope` is initialized.
-     *
-     * @param flags Contextual information about the lifecycle, such as what triggered it.
-     * Some uses for this hook:
-     * - `flags & LifecycleFlags.fromStartTask`: the Aurelia app is starting (this is the initial bind)
-     * - `flags & LifecycleFlags.fromBind`: this is a normal `$bind` lifecycle
-     * - `flags & LifecycleFlags.updateTargetInstance`: this `$bind` was triggered by some upstream observer and is not a real `$bind` lifecycle
-     * - `flags & LifecycleFlags.fromFlush` (only occurs in conjunction with updateTargetInstance): the update was queued to a `LinkedChangeList` which is now being flushed
-     *
      * @description
      * This is the first "create" lifecycle hook of the hooks that can occur multiple times per instance,
      * and the third lifecycle hook (after `render` and `created`) of the very first this.lifecycle.
@@ -137,16 +119,6 @@ export interface ILifecycleHooks extends IHooks, IState {
     /**
      * Called at the end of `$bind`, after this instance and its children (if any) are bound.
      *
-     * - `$isBound` is true.
-     * - `this.$scope` is initialized.
-     *
-     * @param flags Contextual information about the lifecycle, such as what triggered it.
-     * Some uses for this hook:
-     * - `flags & LifecycleFlags.fromStartTask`: the Aurelia app is starting (this is the initial bind)
-     * - `flags & LifecycleFlags.fromBind`: this is a normal `$bind` lifecycle
-     * - `flags & LifecycleFlags.updateTargetInstance`: this `$bind` was triggered by some upstream observer and is not a real `$bind` lifecycle
-     * - `flags & LifecycleFlags.fromFlush` (only occurs in conjunction with updateTargetInstance): the update was queued to a `LinkedChangeList` which is now being flushed
-     *
      * @description
      * This is the second "create" lifecycle hook (after `binding`) of the hooks that can occur multiple times per instance,
      * and the fourth lifecycle hook (after `render`, `created` and `binding`) of the very first this.lifecycle.
@@ -154,15 +126,6 @@ export interface ILifecycleHooks extends IHooks, IState {
     bound?(flags: LifecycleFlags): void;
     /**
      * Called at the start of `$unbind`, before this instance and its children (if any) are unbound.
-     *
-     * - `this.$isBound` is true.
-     * - `this.$scope` is still available.
-     *
-     * @param flags Contextual information about the lifecycle, such as what triggered it.
-     * Some uses for this hook:
-     * - `flags & LifecycleFlags.fromBind`: the component is just switching scope
-     * - `flags & LifecycleFlags.fromUnbind`: the component is really disposing
-     * - `flags & LifecycleFlags.fromStopTask`: the Aurelia app is stopping
      *
      * @description
      * This is the fourth "cleanup" lifecycle hook (after `detaching`, `caching` and `detached`)
@@ -174,16 +137,6 @@ export interface ILifecycleHooks extends IHooks, IState {
     /**
      * Called at the end of `$unbind`, after this instance and its children (if any) are unbound.
      *
-     * - `this.$isBound` is false at this point.
-     *
-     * - `this.$scope` may not be available anymore (unless it's a `@customElement`)
-     *
-     * @param flags Contextual information about the lifecycle, such as what triggered it.
-     * Some uses for this hook:
-     * - `flags & LifecycleFlags.fromBind`: the component is just switching scope
-     * - `flags & LifecycleFlags.fromUnbind`: the component is really disposing
-     * - `flags & LifecycleFlags.fromStopTask`: the Aurelia app is stopping
-     *
      * @description
      * This is the fifth (and last) "cleanup" lifecycle hook (after `detaching`, `caching`, `detached`
      * and `unbinding`).
@@ -193,11 +146,6 @@ export interface ILifecycleHooks extends IHooks, IState {
     unbound?(flags: LifecycleFlags): void;
     /**
      * Called at the start of `$attach`, before this instance and its children (if any) are attached.
-     *
-     * `$isAttached` is false.
-     *
-     * @param encapsulationSource Ask Rob.
-     * @param lifecycle Utility that encapsulates the attach sequence for a hierarchy of attachables and guarantees the correct attach order.
      *
      * @description
      * This is the third "create" lifecycle hook (after `binding` and `bound`) of the hooks that can occur multiple times per instance,
@@ -209,8 +157,6 @@ export interface ILifecycleHooks extends IHooks, IState {
     attaching?(flags: LifecycleFlags): void;
     /**
      * Called at the end of `$attach`, after this instance and its children (if any) are attached.
-     *
-     * - `$isAttached` is true.
      *
      * @description
      * This is the fourth (and last) "create" lifecycle hook (after `binding`, `bound` and `attaching`) of the hooks that can occur
@@ -224,10 +170,6 @@ export interface ILifecycleHooks extends IHooks, IState {
     /**
      * Called at the start of `$detach`, before this instance and its children (if any) are detached.
      *
-     * - `$isAttached` is true.
-     *
-     * @param lifecycle Utility that encapsulates the detach sequence for a hierarchy of attachables and guarantees the correct detach order.
-     *
      * @description
      * This is the first "cleanup" lifecycle hook.
      *
@@ -237,8 +179,6 @@ export interface ILifecycleHooks extends IHooks, IState {
     detaching?(flags: LifecycleFlags): void;
     /**
      * Called at the end of `$detach`, after this instance and its children (if any) are detached.
-     *
-     * - `$isAttached` is false.
      *
      * @description
      * This is the third "cleanup" lifecycle hook (after `detaching` and `caching`).
@@ -272,13 +212,11 @@ export interface IComponent {
     $detach(flags: LifecycleFlags): void;
     $cache(flags: LifecycleFlags): void;
 }
-export interface ILifecycleMount {
+export interface IMountableComponent extends IComponent {
     /**
      * Add the `$nodes` of this instance to the Host or RenderLocation that this instance is holding.
      */
     $mount(flags: LifecycleFlags): void;
-}
-export interface ILifecycleUnmount {
     /**
      * Remove the `$nodes` of this instance from the Host or RenderLocation that this instance is holding, optionally returning them to a cache.
      * @returns
@@ -287,8 +225,6 @@ export interface ILifecycleUnmount {
      * - `undefined` (void) if the instance does not support caching. Functionally equivalent to `false`
      */
     $unmount(flags: LifecycleFlags): boolean | void;
-}
-export interface IMountable extends ILifecycleMount, ILifecycleUnmount {
 }
 export interface ILifecycle {
     processFlushQueue(flags: LifecycleFlags): void;
@@ -384,7 +320,7 @@ export interface ILifecycle {
      * This method is idempotent; adding the same item more than once has the same effect as
      * adding it once.
      */
-    enqueueMount(requestor: ILifecycleMount): void;
+    enqueueMount(requestor: IMountableComponent): void;
     /**
      * Add an `attached` callback to the queue, to be invoked when the current attach batch
      * is ended via `endAttach` by the top-most caller.
@@ -418,7 +354,7 @@ export interface ILifecycle {
      * This method is idempotent; adding the same item more than once has the same effect as
      * adding it once.
      */
-    enqueueUnmount(requestor: ILifecycleUnmount): void;
+    enqueueUnmount(requestor: IMountableComponent): void;
     /**
      * Add a `detached` callback to the queue, to be invoked when the current detach batch
      * is ended via `endAttach` by the top-most caller.

@@ -7298,148 +7298,6 @@ var au = (function (exports) {
         }
     }
 
-    const { enter: enter$3, leave: leave$3 } = Profiler.createTimer('RenderLifecycle');
-    /** @internal */
-    function $hydrateAttribute(flags, renderingEngine) {
-        const Type = this.constructor;
-        renderingEngine.applyRuntimeBehavior(flags, Type, this);
-        if (this.$hooks & 2 /* hasCreated */) {
-            this.created(flags);
-        }
-    }
-    /** @internal */
-    function $hydrateElement(flags, dom, projectorLocator, renderingEngine, host, parentContext, options = PLATFORM.emptyObject) {
-        const Type = this.constructor;
-        const description = Type.description;
-        let bindingContext;
-        if (flags & LifecycleFlags.useProxies) {
-            bindingContext = ProxyObserver.getOrCreate(this).proxy;
-        }
-        else {
-            bindingContext = this;
-        }
-        this.$scope = Scope.create(flags, bindingContext, null);
-        this.$host = host;
-        this.$projector = projectorLocator.getElementProjector(dom, this, host, description);
-        renderingEngine.applyRuntimeBehavior(flags, Type, this);
-        if (this.$hooks & 1024 /* hasRender */) {
-            const result = this.render(flags, host, options.parts, parentContext);
-            if (result && 'getElementTemplate' in result) {
-                const template = result.getElementTemplate(renderingEngine, Type, parentContext);
-                template.render(this, host, options.parts);
-            }
-        }
-        else {
-            const template = renderingEngine.getElementTemplate(dom, description, parentContext, Type);
-            template.render(this, host, options.parts);
-        }
-        if (this.$hooks & 2 /* hasCreated */) {
-            this.created(flags);
-        }
-    }
-
-    /** @internal */
-    function registerAttribute(container) {
-        const description = this.description;
-        const resourceKey = this.kind.keyFrom(description.name);
-        const aliases = description.aliases;
-        container.register(Registration.transient(resourceKey, this));
-        for (let i = 0, ii = aliases.length; i < ii; ++i) {
-            const aliasKey = this.kind.keyFrom(aliases[i]);
-            container.register(Registration.alias(resourceKey, aliasKey));
-        }
-    }
-    function customAttribute(nameOrDefinition) {
-        return target => CustomAttributeResource.define(nameOrDefinition, target);
-    }
-    function templateController(nameOrDefinition) {
-        return target => CustomAttributeResource.define(typeof nameOrDefinition === 'string'
-            ? { isTemplateController: true, name: nameOrDefinition }
-            : Object.assign({ isTemplateController: true }, nameOrDefinition), target);
-    }
-    function dynamicOptionsDecorator(target) {
-        target.hasDynamicOptions = true;
-        return target;
-    }
-    function dynamicOptions(target) {
-        return target === undefined ? dynamicOptionsDecorator : dynamicOptionsDecorator(target);
-    }
-    function isType$2(Type) {
-        return Type.kind === this;
-    }
-    function define$2(nameOrDefinition, ctor) {
-        const Type = ctor;
-        const description = createCustomAttributeDescription(typeof nameOrDefinition === 'string' ? { name: nameOrDefinition } : nameOrDefinition, Type);
-        const proto = Type.prototype;
-        Type.kind = CustomAttributeResource;
-        Type.description = description;
-        Type.register = registerAttribute;
-        proto.$hydrate = $hydrateAttribute;
-        proto.$bind = $bindAttribute;
-        proto.$attach = $attachAttribute;
-        proto.$detach = $detachAttribute;
-        proto.$unbind = $unbindAttribute;
-        proto.$cache = $cacheAttribute;
-        proto.$prevComponent = null;
-        proto.$nextComponent = null;
-        proto.$nextUnbindAfterDetach = null;
-        proto.$scope = null;
-        proto.$hooks = 0;
-        proto.$state = 0;
-        if ('flush' in proto) {
-            proto.$nextFlush = null;
-        }
-        if ('binding' in proto)
-            proto.$hooks |= 4 /* hasBinding */;
-        if ('bound' in proto) {
-            proto.$hooks |= 8 /* hasBound */;
-            proto.$nextBound = null;
-        }
-        if ('unbinding' in proto)
-            proto.$hooks |= 256 /* hasUnbinding */;
-        if ('unbound' in proto) {
-            proto.$hooks |= 512 /* hasUnbound */;
-            proto.$nextUnbound = null;
-        }
-        if ('created' in proto)
-            proto.$hooks |= 2 /* hasCreated */;
-        if ('attaching' in proto)
-            proto.$hooks |= 16 /* hasAttaching */;
-        if ('attached' in proto) {
-            proto.$hooks |= 32 /* hasAttached */;
-            proto.$nextAttached = null;
-        }
-        if ('detaching' in proto)
-            proto.$hooks |= 64 /* hasDetaching */;
-        if ('caching' in proto)
-            proto.$hooks |= 2048 /* hasCaching */;
-        if ('detached' in proto) {
-            proto.$hooks |= 128 /* hasDetached */;
-            proto.$nextDetached = null;
-        }
-        return Type;
-    }
-    const CustomAttributeResource = {
-        name: customAttributeName,
-        keyFrom: customAttributeKey,
-        isType: isType$2,
-        define: define$2
-    };
-    /** @internal */
-    function createCustomAttributeDescription(def, Type) {
-        const aliases = def.aliases;
-        const defaultBindingMode = def.defaultBindingMode;
-        return {
-            name: def.name,
-            aliases: aliases === undefined || aliases === null ? PLATFORM.emptyArray : aliases,
-            defaultBindingMode: defaultBindingMode === undefined || defaultBindingMode === null ? BindingMode.toView : defaultBindingMode,
-            hasDynamicOptions: def.hasDynamicOptions === undefined ? false : def.hasDynamicOptions,
-            isTemplateController: def.isTemplateController === undefined ? false : def.isTemplateController,
-            bindables: Object.assign({}, Type.bindables, def.bindables),
-            useProxies: def.useProxies === undefined ? false : def.useProxies
-        };
-    }
-
     const INode = DI.createInterface('INode').noDefault();
     const IRenderLocation = DI.createInterface('IRenderLocation').noDefault();
     const IDOM = DI.createInterface('IDOM').noDefault();
@@ -7458,502 +7316,6 @@ var au = (function (exports) {
     const NodeSequence = {
         empty: emptySequence
     };
-
-    function bindable(configOrTarget, prop) {
-        let config;
-        const decorator = function decorate($target, $prop) {
-            const Type = $target.constructor;
-            let bindables = Type.bindables;
-            if (bindables === undefined) {
-                bindables = Type.bindables = {};
-            }
-            if (!config.attribute) {
-                config.attribute = PLATFORM.kebabCase($prop);
-            }
-            if (!config.callback) {
-                config.callback = `${$prop}Changed`;
-            }
-            if (config.mode === undefined) {
-                config.mode = BindingMode.toView;
-            }
-            if (config.useProxies === undefined) {
-                config.useProxies = false;
-            }
-            if (arguments.length > 1) {
-                // Non invocation:
-                // - @bindable
-                // Invocation with or w/o opts:
-                // - @bindable()
-                // - @bindable({...opts})
-                config.property = $prop;
-            }
-            bindables[config.property] = config;
-        };
-        if (arguments.length > 1) {
-            // Non invocation:
-            // - @bindable
-            config = {};
-            decorator(configOrTarget, prop);
-            return;
-        }
-        else if (typeof configOrTarget === 'string') {
-            // ClassDecorator
-            // - @bindable('bar')
-            // Direct call:
-            // - @bindable('bar')(Foo)
-            config = {};
-            return decorator;
-        }
-        // Invocation with or w/o opts:
-        // - @bindable()
-        // - @bindable({...opts})
-        config = (configOrTarget || {});
-        return decorator;
-    }
-
-    class If {
-        constructor(ifFactory, location, coordinator) {
-            this.value = false;
-            this.coordinator = coordinator;
-            this.elseFactory = null;
-            this.elseView = null;
-            this.ifFactory = ifFactory;
-            this.ifView = null;
-            this.location = location;
-        }
-        binding(flags) {
-            const view = this.updateView(flags);
-            this.coordinator.compose(view, flags);
-            this.coordinator.binding(flags, this.$scope);
-        }
-        attaching(flags) {
-            this.coordinator.attaching(flags);
-        }
-        detaching(flags) {
-            this.coordinator.detaching(flags);
-        }
-        unbinding(flags) {
-            this.coordinator.unbinding(flags);
-        }
-        caching(flags) {
-            if (this.ifView !== null && this.ifView.release(flags)) {
-                this.ifView = null;
-            }
-            if (this.elseView !== null && this.elseView.release(flags)) {
-                this.elseView = null;
-            }
-            this.coordinator.caching(flags);
-        }
-        valueChanged(newValue, oldValue, flags) {
-            if (this.$state & (2 /* isBound */ | 1 /* isBinding */)) {
-                if (ProxyObserver.isProxy(this)) {
-                    flags |= LifecycleFlags.useProxies;
-                }
-                if (flags & LifecycleFlags.fromFlush) {
-                    const view = this.updateView(flags);
-                    this.coordinator.compose(view, flags);
-                }
-                else {
-                    this.$lifecycle.enqueueFlush(this).catch(error => { throw error; });
-                }
-            }
-        }
-        flush(flags) {
-            if (ProxyObserver.isProxy(this)) {
-                flags |= LifecycleFlags.useProxies;
-            }
-            const view = this.updateView(flags);
-            this.coordinator.compose(view, flags);
-        }
-        /** @internal */
-        updateView(flags) {
-            let view;
-            if (this.value) {
-                view = this.ifView = this.ensureView(this.ifView, this.ifFactory, flags);
-            }
-            else if (this.elseFactory !== null) {
-                view = this.elseView = this.ensureView(this.elseView, this.elseFactory, flags);
-            }
-            else {
-                view = null;
-            }
-            return view;
-        }
-        /** @internal */
-        ensureView(view, factory, flags) {
-            if (view === null) {
-                view = factory.create(flags);
-            }
-            view.hold(this.location);
-            return view;
-        }
-    }
-    If.inject = [IViewFactory, IRenderLocation, CompositionCoordinator];
-    __decorate([
-        bindable
-    ], If.prototype, "value", void 0);
-    CustomAttributeResource.define({ name: 'if', isTemplateController: true }, If);
-    class Else {
-        constructor(factory) {
-            this.factory = factory;
-        }
-        link(ifBehavior) {
-            ifBehavior.elseFactory = this.factory;
-        }
-    }
-    Else.inject = [IViewFactory];
-    CustomAttributeResource.define({ name: 'else', isTemplateController: true }, Else);
-
-    class Repeat {
-        constructor(location, renderable, factory) {
-            this.factory = factory;
-            this.hasPendingInstanceMutation = false;
-            this.location = location;
-            this.observer = null;
-            this.renderable = renderable;
-            this.views = [];
-        }
-        binding(flags) {
-            this.checkCollectionObserver(flags);
-            let current = this.renderable.$bindingHead;
-            while (current !== null) {
-                if (ProxyObserver.getRawIfProxy(current.target) === ProxyObserver.getRawIfProxy(this) && current.targetProperty === 'items') {
-                    this.forOf = current.sourceExpression;
-                    break;
-                }
-                current = current.$nextBinding;
-            }
-            this.local = this.forOf.declaration.evaluate(flags, this.$scope, null);
-            this.processViews(null, flags);
-        }
-        attaching(flags) {
-            const { views, location } = this;
-            for (let i = 0, ii = views.length; i < ii; ++i) {
-                const view = views[i];
-                view.hold(location);
-                view.$attach(flags);
-            }
-        }
-        detaching(flags) {
-            const { views } = this;
-            for (let i = 0, ii = views.length; i < ii; ++i) {
-                const view = views[i];
-                view.$detach(flags);
-                view.release(flags);
-            }
-        }
-        unbinding(flags) {
-            this.checkCollectionObserver(flags);
-            const { views } = this;
-            for (let i = 0, ii = views.length; i < ii; ++i) {
-                const view = views[i];
-                view.$unbind(flags);
-            }
-        }
-        // called by SetterObserver (sync)
-        itemsChanged(newValue, oldValue, flags) {
-            this.checkCollectionObserver(flags);
-            this.processViews(null, flags | LifecycleFlags.updateTargetInstance);
-        }
-        // called by a CollectionObserver (async)
-        handleBatchedChange(indexMap, flags) {
-            this.processViews(indexMap, flags | LifecycleFlags.fromFlush | LifecycleFlags.updateTargetInstance);
-        }
-        // if the indexMap === null, it is an instance mutation, otherwise it's an items mutation
-        // TODO: Reduce complexity (currently at 46)
-        processViews(indexMap, flags) {
-            if (ProxyObserver.isProxy(this)) {
-                flags |= LifecycleFlags.useProxies;
-            }
-            const { views, $lifecycle } = this;
-            if (this.$state & (2 /* isBound */ | 1 /* isBinding */)) {
-                const { local, $scope, factory, forOf, items } = this;
-                const oldLength = views.length;
-                const newLength = forOf.count(items);
-                if (oldLength < newLength) {
-                    views.length = newLength;
-                    for (let i = oldLength; i < newLength; ++i) {
-                        views[i] = factory.create(flags);
-                    }
-                }
-                else if (newLength < oldLength) {
-                    $lifecycle.beginDetach();
-                    for (let i = newLength, view = views[i]; i < oldLength; view = views[++i]) {
-                        view.release(flags);
-                        view.$detach(flags);
-                    }
-                    $lifecycle.endDetach(flags);
-                    $lifecycle.beginUnbind();
-                    for (let i = newLength, view = views[i]; i < oldLength; view = views[++i]) {
-                        view.$unbind(flags);
-                    }
-                    $lifecycle.endUnbind(flags);
-                    views.length = newLength;
-                    if (newLength === 0) {
-                        return;
-                    }
-                }
-                else if (newLength === 0) {
-                    return;
-                }
-                $lifecycle.beginBind();
-                if (indexMap === null) {
-                    forOf.iterate(items, (arr, i, item) => {
-                        const view = views[i];
-                        if (!!view.$scope && view.$scope.bindingContext[local] === item) {
-                            view.$bind(flags, Scope.fromParent(flags, $scope, view.$scope.bindingContext));
-                        }
-                        else {
-                            view.$bind(flags, Scope.fromParent(flags, $scope, BindingContext.create(flags, local, item)));
-                        }
-                    });
-                }
-                else {
-                    forOf.iterate(items, (arr, i, item) => {
-                        const view = views[i];
-                        if (!!view.$scope && (indexMap[i] === i || view.$scope.bindingContext[local] === item)) {
-                            view.$bind(flags, Scope.fromParent(flags, $scope, view.$scope.bindingContext));
-                        }
-                        else {
-                            view.$bind(flags, Scope.fromParent(flags, $scope, BindingContext.create(flags, local, item)));
-                        }
-                    });
-                }
-                $lifecycle.endBind(flags);
-            }
-            if (this.$state & (8 /* isAttached */ | 4 /* isAttaching */)) {
-                const { location } = this;
-                $lifecycle.beginAttach();
-                if (indexMap === null) {
-                    for (let i = 0, ii = views.length; i < ii; ++i) {
-                        const view = views[i];
-                        view.hold(location);
-                        view.$attach(flags);
-                    }
-                }
-                else {
-                    for (let i = 0, ii = views.length; i < ii; ++i) {
-                        if (indexMap[i] !== i) {
-                            const view = views[i];
-                            view.hold(location);
-                            view.$attach(flags);
-                        }
-                    }
-                }
-                $lifecycle.endAttach(flags);
-            }
-        }
-        checkCollectionObserver(flags) {
-            const oldObserver = this.observer;
-            if (this.$state & (2 /* isBound */ | 1 /* isBinding */)) {
-                const newObserver = this.observer = getCollectionObserver(flags, this.$lifecycle, this.items);
-                if (oldObserver !== newObserver && oldObserver) {
-                    oldObserver.unsubscribeBatched(this);
-                }
-                if (newObserver) {
-                    newObserver.subscribeBatched(this);
-                }
-            }
-            else if (oldObserver) {
-                oldObserver.unsubscribeBatched(this);
-            }
-        }
-    }
-    Repeat.inject = [IRenderLocation, IRenderable, IViewFactory];
-    __decorate([
-        bindable
-    ], Repeat.prototype, "items", void 0);
-    CustomAttributeResource.define({ name: 'repeat', isTemplateController: true }, Repeat);
-
-    class Replaceable {
-        constructor(factory, location) {
-            this.factory = factory;
-            this.currentView = this.factory.create();
-            this.currentView.hold(location);
-        }
-        binding(flags) {
-            this.currentView.$bind(flags | LifecycleFlags.allowParentScopeTraversal, this.$scope);
-        }
-        attaching(flags) {
-            this.currentView.$attach(flags);
-        }
-        detaching(flags) {
-            this.currentView.$detach(flags);
-        }
-        unbinding(flags) {
-            this.currentView.$unbind(flags);
-        }
-    }
-    Replaceable.inject = [IViewFactory, IRenderLocation];
-    CustomAttributeResource.define({ name: 'replaceable', isTemplateController: true }, Replaceable);
-
-    class With {
-        constructor(factory, location) {
-            this.value = null;
-            this.factory = factory;
-            this.currentView = this.factory.create();
-            this.currentView.hold(location);
-        }
-        valueChanged() {
-            if (this.$state & (2 /* isBound */ | 1 /* isBinding */)) {
-                this.bindChild(LifecycleFlags.fromBindableHandler);
-            }
-        }
-        binding(flags) {
-            this.bindChild(flags);
-        }
-        attaching(flags) {
-            this.currentView.$attach(flags);
-        }
-        detaching(flags) {
-            this.currentView.$detach(flags);
-        }
-        unbinding(flags) {
-            this.currentView.$unbind(flags);
-        }
-        bindChild(flags) {
-            const scope = Scope.fromParent(flags, this.$scope, this.value);
-            this.currentView.$bind(flags, scope);
-        }
-    }
-    With.inject = [IViewFactory, IRenderLocation];
-    __decorate([
-        bindable
-    ], With.prototype, "value", void 0);
-    CustomAttributeResource.define({ name: 'with', isTemplateController: true }, With);
-
-    const IProjectorLocator = DI.createInterface('IProjectorLocator').noDefault();
-    /** @internal */
-    function registerElement(container) {
-        const resourceKey = this.kind.keyFrom(this.description.name);
-        container.register(Registration.transient(resourceKey, this));
-    }
-    function customElement(nameOrDefinition) {
-        return (target => CustomElementResource.define(nameOrDefinition, target));
-    }
-    function isType$3(Type) {
-        return Type.kind === this;
-    }
-    function define$3(nameOrDefinition, ctor = null) {
-        if (!nameOrDefinition) {
-            throw Reporter.error(70);
-        }
-        const Type = (ctor === null ? class HTMLOnlyElement {
-        } : ctor);
-        const description = buildTemplateDefinition(Type, nameOrDefinition);
-        const proto = Type.prototype;
-        Type.kind = CustomElementResource;
-        Type.description = description;
-        Type.register = registerElement;
-        proto.$hydrate = $hydrateElement;
-        proto.$bind = $bindElement;
-        proto.$attach = $attachElement;
-        proto.$detach = $detachElement;
-        proto.$unbind = $unbindElement;
-        proto.$cache = $cacheElement;
-        proto.$prevComponent = null;
-        proto.$nextComponent = null;
-        proto.$nextUnbindAfterDetach = null;
-        proto.$scope = null;
-        proto.$hooks = 0;
-        proto.$bindingHead = null;
-        proto.$bindingTail = null;
-        proto.$componentHead = null;
-        proto.$componentTail = null;
-        proto.$mount = $mountElement;
-        proto.$unmount = $unmountElement;
-        proto.$nextMount = null;
-        proto.$nextUnmount = null;
-        proto.$projector = null;
-        if ('flush' in proto) {
-            proto.$nextFlush = null;
-        }
-        if ('binding' in proto)
-            proto.$hooks |= 4 /* hasBinding */;
-        if ('bound' in proto) {
-            proto.$hooks |= 8 /* hasBound */;
-            proto.$nextBound = null;
-        }
-        if ('unbinding' in proto)
-            proto.$hooks |= 256 /* hasUnbinding */;
-        if ('unbound' in proto) {
-            proto.$hooks |= 512 /* hasUnbound */;
-            proto.$nextUnbound = null;
-        }
-        if ('render' in proto)
-            proto.$hooks |= 1024 /* hasRender */;
-        if ('created' in proto)
-            proto.$hooks |= 2 /* hasCreated */;
-        if ('attaching' in proto)
-            proto.$hooks |= 16 /* hasAttaching */;
-        if ('attached' in proto) {
-            proto.$hooks |= 32 /* hasAttached */;
-            proto.$nextAttached = null;
-        }
-        if ('detaching' in proto)
-            proto.$hooks |= 64 /* hasDetaching */;
-        if ('caching' in proto)
-            proto.$hooks |= 2048 /* hasCaching */;
-        if ('detached' in proto) {
-            proto.$hooks |= 128 /* hasDetached */;
-            proto.$nextDetached = null;
-        }
-        return Type;
-    }
-    const CustomElementResource = {
-        name: customElementName,
-        keyFrom: customElementKey,
-        isType: isType$3,
-        behaviorFor: customElementBehavior,
-        define: define$3
-    };
-    const defaultShadowOptions = {
-        mode: 'open'
-    };
-    function useShadowDOM(targetOrOptions) {
-        const options = typeof targetOrOptions === 'function' || !targetOrOptions
-            ? defaultShadowOptions
-            : targetOrOptions;
-        function useShadowDOMDecorator(target) {
-            target.shadowOptions = options;
-            return target;
-        }
-        return typeof targetOrOptions === 'function' ? useShadowDOMDecorator(targetOrOptions) : useShadowDOMDecorator;
-    }
-    function containerlessDecorator(target) {
-        target.containerless = true;
-        return target;
-    }
-    function containerless(target) {
-        return target === undefined ? containerlessDecorator : containerlessDecorator(target);
-    }
-
-    const SCRIPT_REGEX = /<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi;
-    const ISanitizer = DI.createInterface('ISanitizer').withDefault(x => x.singleton(class {
-        sanitize(input) {
-            return input.replace(SCRIPT_REGEX, '');
-        }
-    }));
-    /**
-     * Simple html sanitization converter to preserve whitelisted elements and attributes on a bound property containing html.
-     */
-    class SanitizeValueConverter {
-        constructor(sanitizer) {
-            this.sanitizer = sanitizer;
-        }
-        /**
-         * Process the provided markup that flows to the view.
-         * @param untrustedMarkup The untrusted markup to be sanitized.
-         */
-        toView(untrustedMarkup) {
-            if (untrustedMarkup === null || untrustedMarkup === undefined) {
-                return null;
-            }
-            return this.sanitizer.sanitize(untrustedMarkup);
-        }
-    }
-    SanitizeValueConverter.inject = [ISanitizer];
-    ValueConverterResource.define('sanitize', SanitizeValueConverter);
 
     /** @internal */
     class View {
@@ -8388,6 +7750,648 @@ var au = (function (exports) {
         });
     }
 
+    const IProjectorLocator = DI.createInterface('IProjectorLocator').noDefault();
+    /** @internal */
+    function registerElement(container) {
+        const resourceKey = this.kind.keyFrom(this.description.name);
+        container.register(Registration.transient(resourceKey, this));
+    }
+    function customElement(nameOrDefinition) {
+        return (target => CustomElementResource.define(nameOrDefinition, target));
+    }
+    function isType$2(Type) {
+        return Type.kind === this;
+    }
+    function define$2(nameOrDefinition, ctor = null) {
+        if (!nameOrDefinition) {
+            throw Reporter.error(70);
+        }
+        const Type = (ctor === null ? class HTMLOnlyElement {
+        } : ctor);
+        const description = buildTemplateDefinition(Type, nameOrDefinition);
+        const proto = Type.prototype;
+        Type.kind = CustomElementResource;
+        Type.description = description;
+        Type.register = registerElement;
+        proto.$hydrate = $hydrateElement;
+        proto.$bind = $bindElement;
+        proto.$attach = $attachElement;
+        proto.$detach = $detachElement;
+        proto.$unbind = $unbindElement;
+        proto.$cache = $cacheElement;
+        proto.$prevComponent = null;
+        proto.$nextComponent = null;
+        proto.$nextUnbindAfterDetach = null;
+        proto.$scope = null;
+        proto.$hooks = 0;
+        proto.$bindingHead = null;
+        proto.$bindingTail = null;
+        proto.$componentHead = null;
+        proto.$componentTail = null;
+        proto.$mount = $mountElement;
+        proto.$unmount = $unmountElement;
+        proto.$nextMount = null;
+        proto.$nextUnmount = null;
+        proto.$projector = null;
+        if ('flush' in proto) {
+            proto.$nextFlush = null;
+        }
+        if ('binding' in proto)
+            proto.$hooks |= 4 /* hasBinding */;
+        if ('bound' in proto) {
+            proto.$hooks |= 8 /* hasBound */;
+            proto.$nextBound = null;
+        }
+        if ('unbinding' in proto)
+            proto.$hooks |= 256 /* hasUnbinding */;
+        if ('unbound' in proto) {
+            proto.$hooks |= 512 /* hasUnbound */;
+            proto.$nextUnbound = null;
+        }
+        if ('render' in proto)
+            proto.$hooks |= 1024 /* hasRender */;
+        if ('created' in proto)
+            proto.$hooks |= 2 /* hasCreated */;
+        if ('attaching' in proto)
+            proto.$hooks |= 16 /* hasAttaching */;
+        if ('attached' in proto) {
+            proto.$hooks |= 32 /* hasAttached */;
+            proto.$nextAttached = null;
+        }
+        if ('detaching' in proto)
+            proto.$hooks |= 64 /* hasDetaching */;
+        if ('caching' in proto)
+            proto.$hooks |= 2048 /* hasCaching */;
+        if ('detached' in proto) {
+            proto.$hooks |= 128 /* hasDetached */;
+            proto.$nextDetached = null;
+        }
+        return Type;
+    }
+    const CustomElementResource = {
+        name: customElementName,
+        keyFrom: customElementKey,
+        isType: isType$2,
+        behaviorFor: customElementBehavior,
+        define: define$2
+    };
+    const defaultShadowOptions = {
+        mode: 'open'
+    };
+    function useShadowDOM(targetOrOptions) {
+        const options = typeof targetOrOptions === 'function' || !targetOrOptions
+            ? defaultShadowOptions
+            : targetOrOptions;
+        function useShadowDOMDecorator(target) {
+            target.shadowOptions = options;
+            return target;
+        }
+        return typeof targetOrOptions === 'function' ? useShadowDOMDecorator(targetOrOptions) : useShadowDOMDecorator;
+    }
+    function containerlessDecorator(target) {
+        target.containerless = true;
+        return target;
+    }
+    function containerless(target) {
+        return target === undefined ? containerlessDecorator : containerlessDecorator(target);
+    }
+
+    const { enter: enter$3, leave: leave$3 } = Profiler.createTimer('RenderLifecycle');
+    /** @internal */
+    function $hydrateAttribute(flags, parentContext) {
+        const Type = this.constructor;
+        const renderingEngine = parentContext.get(IRenderingEngine);
+        renderingEngine.applyRuntimeBehavior(flags, Type, this);
+        if (this.$hooks & 2 /* hasCreated */) {
+            this.created(flags);
+        }
+    }
+    /** @internal */
+    function $hydrateElement(flags, parentContext, host, options = PLATFORM.emptyObject) {
+        const Type = this.constructor;
+        const description = Type.description;
+        const projectorLocator = parentContext.get(IProjectorLocator);
+        const renderingEngine = parentContext.get(IRenderingEngine);
+        const dom = parentContext.get(IDOM);
+        let bindingContext;
+        if (flags & LifecycleFlags.useProxies) {
+            bindingContext = ProxyObserver.getOrCreate(this).proxy;
+        }
+        else {
+            bindingContext = this;
+        }
+        this.$scope = Scope.create(flags, bindingContext, null);
+        this.$host = host;
+        this.$projector = projectorLocator.getElementProjector(dom, this, host, description);
+        renderingEngine.applyRuntimeBehavior(flags, Type, this);
+        if (this.$hooks & 1024 /* hasRender */) {
+            const result = this.render(flags, host, options.parts, parentContext);
+            if (result && 'getElementTemplate' in result) {
+                const template = result.getElementTemplate(renderingEngine, Type, parentContext);
+                template.render(this, host, options.parts);
+            }
+        }
+        else {
+            const template = renderingEngine.getElementTemplate(dom, description, parentContext, Type);
+            template.render(this, host, options.parts);
+        }
+        if (this.$hooks & 2 /* hasCreated */) {
+            this.created(flags);
+        }
+    }
+
+    /** @internal */
+    function registerAttribute(container) {
+        const description = this.description;
+        const resourceKey = this.kind.keyFrom(description.name);
+        const aliases = description.aliases;
+        container.register(Registration.transient(resourceKey, this));
+        for (let i = 0, ii = aliases.length; i < ii; ++i) {
+            const aliasKey = this.kind.keyFrom(aliases[i]);
+            container.register(Registration.alias(resourceKey, aliasKey));
+        }
+    }
+    function customAttribute(nameOrDefinition) {
+        return target => CustomAttributeResource.define(nameOrDefinition, target);
+    }
+    function templateController(nameOrDefinition) {
+        return target => CustomAttributeResource.define(typeof nameOrDefinition === 'string'
+            ? { isTemplateController: true, name: nameOrDefinition }
+            : Object.assign({ isTemplateController: true }, nameOrDefinition), target);
+    }
+    function dynamicOptionsDecorator(target) {
+        target.hasDynamicOptions = true;
+        return target;
+    }
+    function dynamicOptions(target) {
+        return target === undefined ? dynamicOptionsDecorator : dynamicOptionsDecorator(target);
+    }
+    function isType$3(Type) {
+        return Type.kind === this;
+    }
+    function define$3(nameOrDefinition, ctor) {
+        const Type = ctor;
+        const description = createCustomAttributeDescription(typeof nameOrDefinition === 'string' ? { name: nameOrDefinition } : nameOrDefinition, Type);
+        const proto = Type.prototype;
+        Type.kind = CustomAttributeResource;
+        Type.description = description;
+        Type.register = registerAttribute;
+        proto.$hydrate = $hydrateAttribute;
+        proto.$bind = $bindAttribute;
+        proto.$attach = $attachAttribute;
+        proto.$detach = $detachAttribute;
+        proto.$unbind = $unbindAttribute;
+        proto.$cache = $cacheAttribute;
+        proto.$prevComponent = null;
+        proto.$nextComponent = null;
+        proto.$nextUnbindAfterDetach = null;
+        proto.$scope = null;
+        proto.$hooks = 0;
+        proto.$state = 0;
+        if ('flush' in proto) {
+            proto.$nextFlush = null;
+        }
+        if ('binding' in proto)
+            proto.$hooks |= 4 /* hasBinding */;
+        if ('bound' in proto) {
+            proto.$hooks |= 8 /* hasBound */;
+            proto.$nextBound = null;
+        }
+        if ('unbinding' in proto)
+            proto.$hooks |= 256 /* hasUnbinding */;
+        if ('unbound' in proto) {
+            proto.$hooks |= 512 /* hasUnbound */;
+            proto.$nextUnbound = null;
+        }
+        if ('created' in proto)
+            proto.$hooks |= 2 /* hasCreated */;
+        if ('attaching' in proto)
+            proto.$hooks |= 16 /* hasAttaching */;
+        if ('attached' in proto) {
+            proto.$hooks |= 32 /* hasAttached */;
+            proto.$nextAttached = null;
+        }
+        if ('detaching' in proto)
+            proto.$hooks |= 64 /* hasDetaching */;
+        if ('caching' in proto)
+            proto.$hooks |= 2048 /* hasCaching */;
+        if ('detached' in proto) {
+            proto.$hooks |= 128 /* hasDetached */;
+            proto.$nextDetached = null;
+        }
+        return Type;
+    }
+    const CustomAttributeResource = {
+        name: customAttributeName,
+        keyFrom: customAttributeKey,
+        isType: isType$3,
+        define: define$3
+    };
+    /** @internal */
+    function createCustomAttributeDescription(def, Type) {
+        const aliases = def.aliases;
+        const defaultBindingMode = def.defaultBindingMode;
+        return {
+            name: def.name,
+            aliases: aliases === undefined || aliases === null ? PLATFORM.emptyArray : aliases,
+            defaultBindingMode: defaultBindingMode === undefined || defaultBindingMode === null ? BindingMode.toView : defaultBindingMode,
+            hasDynamicOptions: def.hasDynamicOptions === undefined ? false : def.hasDynamicOptions,
+            isTemplateController: def.isTemplateController === undefined ? false : def.isTemplateController,
+            bindables: Object.assign({}, Type.bindables, def.bindables),
+            useProxies: def.useProxies === undefined ? false : def.useProxies
+        };
+    }
+
+    function bindable(configOrTarget, prop) {
+        let config;
+        const decorator = function decorate($target, $prop) {
+            const Type = $target.constructor;
+            let bindables = Type.bindables;
+            if (bindables === undefined) {
+                bindables = Type.bindables = {};
+            }
+            if (!config.attribute) {
+                config.attribute = PLATFORM.kebabCase($prop);
+            }
+            if (!config.callback) {
+                config.callback = `${$prop}Changed`;
+            }
+            if (config.mode === undefined) {
+                config.mode = BindingMode.toView;
+            }
+            if (config.useProxies === undefined) {
+                config.useProxies = false;
+            }
+            if (arguments.length > 1) {
+                // Non invocation:
+                // - @bindable
+                // Invocation with or w/o opts:
+                // - @bindable()
+                // - @bindable({...opts})
+                config.property = $prop;
+            }
+            bindables[config.property] = config;
+        };
+        if (arguments.length > 1) {
+            // Non invocation:
+            // - @bindable
+            config = {};
+            decorator(configOrTarget, prop);
+            return;
+        }
+        else if (typeof configOrTarget === 'string') {
+            // ClassDecorator
+            // - @bindable('bar')
+            // Direct call:
+            // - @bindable('bar')(Foo)
+            config = {};
+            return decorator;
+        }
+        // Invocation with or w/o opts:
+        // - @bindable()
+        // - @bindable({...opts})
+        config = (configOrTarget || {});
+        return decorator;
+    }
+
+    class If {
+        constructor(ifFactory, location, coordinator) {
+            this.value = false;
+            this.coordinator = coordinator;
+            this.elseFactory = null;
+            this.elseView = null;
+            this.ifFactory = ifFactory;
+            this.ifView = null;
+            this.location = location;
+        }
+        binding(flags) {
+            const view = this.updateView(flags);
+            this.coordinator.compose(view, flags);
+            this.coordinator.binding(flags, this.$scope);
+        }
+        attaching(flags) {
+            this.coordinator.attaching(flags);
+        }
+        detaching(flags) {
+            this.coordinator.detaching(flags);
+        }
+        unbinding(flags) {
+            this.coordinator.unbinding(flags);
+        }
+        caching(flags) {
+            if (this.ifView !== null && this.ifView.release(flags)) {
+                this.ifView = null;
+            }
+            if (this.elseView !== null && this.elseView.release(flags)) {
+                this.elseView = null;
+            }
+            this.coordinator.caching(flags);
+        }
+        valueChanged(newValue, oldValue, flags) {
+            if (this.$state & (2 /* isBound */ | 1 /* isBinding */)) {
+                if (ProxyObserver.isProxy(this)) {
+                    flags |= LifecycleFlags.useProxies;
+                }
+                if (flags & LifecycleFlags.fromFlush) {
+                    const view = this.updateView(flags);
+                    this.coordinator.compose(view, flags);
+                }
+                else {
+                    this.$lifecycle.enqueueFlush(this).catch(error => { throw error; });
+                }
+            }
+        }
+        flush(flags) {
+            if (ProxyObserver.isProxy(this)) {
+                flags |= LifecycleFlags.useProxies;
+            }
+            const view = this.updateView(flags);
+            this.coordinator.compose(view, flags);
+        }
+        /** @internal */
+        updateView(flags) {
+            let view;
+            if (this.value) {
+                view = this.ifView = this.ensureView(this.ifView, this.ifFactory, flags);
+            }
+            else if (this.elseFactory !== null) {
+                view = this.elseView = this.ensureView(this.elseView, this.elseFactory, flags);
+            }
+            else {
+                view = null;
+            }
+            return view;
+        }
+        /** @internal */
+        ensureView(view, factory, flags) {
+            if (view === null) {
+                view = factory.create(flags);
+            }
+            view.hold(this.location);
+            return view;
+        }
+    }
+    If.inject = [IViewFactory, IRenderLocation, CompositionCoordinator];
+    __decorate([
+        bindable
+    ], If.prototype, "value", void 0);
+    CustomAttributeResource.define({ name: 'if', isTemplateController: true }, If);
+    class Else {
+        constructor(factory) {
+            this.factory = factory;
+        }
+        link(ifBehavior) {
+            ifBehavior.elseFactory = this.factory;
+        }
+    }
+    Else.inject = [IViewFactory];
+    CustomAttributeResource.define({ name: 'else', isTemplateController: true }, Else);
+
+    class Repeat {
+        constructor(location, renderable, factory) {
+            this.factory = factory;
+            this.hasPendingInstanceMutation = false;
+            this.location = location;
+            this.observer = null;
+            this.renderable = renderable;
+            this.views = [];
+        }
+        binding(flags) {
+            this.checkCollectionObserver(flags);
+            let current = this.renderable.$bindingHead;
+            while (current !== null) {
+                if (ProxyObserver.getRawIfProxy(current.target) === ProxyObserver.getRawIfProxy(this) && current.targetProperty === 'items') {
+                    this.forOf = current.sourceExpression;
+                    break;
+                }
+                current = current.$nextBinding;
+            }
+            this.local = this.forOf.declaration.evaluate(flags, this.$scope, null);
+            this.processViews(null, flags);
+        }
+        attaching(flags) {
+            const { views, location } = this;
+            for (let i = 0, ii = views.length; i < ii; ++i) {
+                const view = views[i];
+                view.hold(location);
+                view.$attach(flags);
+            }
+        }
+        detaching(flags) {
+            const { views } = this;
+            for (let i = 0, ii = views.length; i < ii; ++i) {
+                const view = views[i];
+                view.$detach(flags);
+                view.release(flags);
+            }
+        }
+        unbinding(flags) {
+            this.checkCollectionObserver(flags);
+            const { views } = this;
+            for (let i = 0, ii = views.length; i < ii; ++i) {
+                const view = views[i];
+                view.$unbind(flags);
+            }
+        }
+        // called by SetterObserver (sync)
+        itemsChanged(newValue, oldValue, flags) {
+            this.checkCollectionObserver(flags);
+            this.processViews(null, flags | LifecycleFlags.updateTargetInstance);
+        }
+        // called by a CollectionObserver (async)
+        handleBatchedChange(indexMap, flags) {
+            this.processViews(indexMap, flags | LifecycleFlags.fromFlush | LifecycleFlags.updateTargetInstance);
+        }
+        // if the indexMap === null, it is an instance mutation, otherwise it's an items mutation
+        // TODO: Reduce complexity (currently at 46)
+        processViews(indexMap, flags) {
+            if (ProxyObserver.isProxy(this)) {
+                flags |= LifecycleFlags.useProxies;
+            }
+            const { views, $lifecycle } = this;
+            if (this.$state & (2 /* isBound */ | 1 /* isBinding */)) {
+                const { local, $scope, factory, forOf, items } = this;
+                const oldLength = views.length;
+                const newLength = forOf.count(items);
+                if (oldLength < newLength) {
+                    views.length = newLength;
+                    for (let i = oldLength; i < newLength; ++i) {
+                        views[i] = factory.create(flags);
+                    }
+                }
+                else if (newLength < oldLength) {
+                    $lifecycle.beginDetach();
+                    for (let i = newLength, view = views[i]; i < oldLength; view = views[++i]) {
+                        view.release(flags);
+                        view.$detach(flags);
+                    }
+                    $lifecycle.endDetach(flags);
+                    $lifecycle.beginUnbind();
+                    for (let i = newLength, view = views[i]; i < oldLength; view = views[++i]) {
+                        view.$unbind(flags);
+                    }
+                    $lifecycle.endUnbind(flags);
+                    views.length = newLength;
+                    if (newLength === 0) {
+                        return;
+                    }
+                }
+                else if (newLength === 0) {
+                    return;
+                }
+                $lifecycle.beginBind();
+                if (indexMap === null) {
+                    forOf.iterate(items, (arr, i, item) => {
+                        const view = views[i];
+                        if (!!view.$scope && view.$scope.bindingContext[local] === item) {
+                            view.$bind(flags, Scope.fromParent(flags, $scope, view.$scope.bindingContext));
+                        }
+                        else {
+                            view.$bind(flags, Scope.fromParent(flags, $scope, BindingContext.create(flags, local, item)));
+                        }
+                    });
+                }
+                else {
+                    forOf.iterate(items, (arr, i, item) => {
+                        const view = views[i];
+                        if (!!view.$scope && (indexMap[i] === i || view.$scope.bindingContext[local] === item)) {
+                            view.$bind(flags, Scope.fromParent(flags, $scope, view.$scope.bindingContext));
+                        }
+                        else {
+                            view.$bind(flags, Scope.fromParent(flags, $scope, BindingContext.create(flags, local, item)));
+                        }
+                    });
+                }
+                $lifecycle.endBind(flags);
+            }
+            if (this.$state & (8 /* isAttached */ | 4 /* isAttaching */)) {
+                const { location } = this;
+                $lifecycle.beginAttach();
+                if (indexMap === null) {
+                    for (let i = 0, ii = views.length; i < ii; ++i) {
+                        const view = views[i];
+                        view.hold(location);
+                        view.$attach(flags);
+                    }
+                }
+                else {
+                    for (let i = 0, ii = views.length; i < ii; ++i) {
+                        if (indexMap[i] !== i) {
+                            const view = views[i];
+                            view.hold(location);
+                            view.$attach(flags);
+                        }
+                    }
+                }
+                $lifecycle.endAttach(flags);
+            }
+        }
+        checkCollectionObserver(flags) {
+            const oldObserver = this.observer;
+            if (this.$state & (2 /* isBound */ | 1 /* isBinding */)) {
+                const newObserver = this.observer = getCollectionObserver(flags, this.$lifecycle, this.items);
+                if (oldObserver !== newObserver && oldObserver) {
+                    oldObserver.unsubscribeBatched(this);
+                }
+                if (newObserver) {
+                    newObserver.subscribeBatched(this);
+                }
+            }
+            else if (oldObserver) {
+                oldObserver.unsubscribeBatched(this);
+            }
+        }
+    }
+    Repeat.inject = [IRenderLocation, IRenderable, IViewFactory];
+    __decorate([
+        bindable
+    ], Repeat.prototype, "items", void 0);
+    CustomAttributeResource.define({ name: 'repeat', isTemplateController: true }, Repeat);
+
+    class Replaceable {
+        constructor(factory, location) {
+            this.factory = factory;
+            this.currentView = this.factory.create();
+            this.currentView.hold(location);
+        }
+        binding(flags) {
+            this.currentView.$bind(flags | LifecycleFlags.allowParentScopeTraversal, this.$scope);
+        }
+        attaching(flags) {
+            this.currentView.$attach(flags);
+        }
+        detaching(flags) {
+            this.currentView.$detach(flags);
+        }
+        unbinding(flags) {
+            this.currentView.$unbind(flags);
+        }
+    }
+    Replaceable.inject = [IViewFactory, IRenderLocation];
+    CustomAttributeResource.define({ name: 'replaceable', isTemplateController: true }, Replaceable);
+
+    class With {
+        constructor(factory, location) {
+            this.value = null;
+            this.factory = factory;
+            this.currentView = this.factory.create();
+            this.currentView.hold(location);
+        }
+        valueChanged() {
+            if (this.$state & (2 /* isBound */ | 1 /* isBinding */)) {
+                this.bindChild(LifecycleFlags.fromBindableHandler);
+            }
+        }
+        binding(flags) {
+            this.bindChild(flags);
+        }
+        attaching(flags) {
+            this.currentView.$attach(flags);
+        }
+        detaching(flags) {
+            this.currentView.$detach(flags);
+        }
+        unbinding(flags) {
+            this.currentView.$unbind(flags);
+        }
+        bindChild(flags) {
+            const scope = Scope.fromParent(flags, this.$scope, this.value);
+            this.currentView.$bind(flags, scope);
+        }
+    }
+    With.inject = [IViewFactory, IRenderLocation];
+    __decorate([
+        bindable
+    ], With.prototype, "value", void 0);
+    CustomAttributeResource.define({ name: 'with', isTemplateController: true }, With);
+
+    const SCRIPT_REGEX = /<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi;
+    const ISanitizer = DI.createInterface('ISanitizer').withDefault(x => x.singleton(class {
+        sanitize(input) {
+            return input.replace(SCRIPT_REGEX, '');
+        }
+    }));
+    /**
+     * Simple html sanitization converter to preserve whitelisted elements and attributes on a bound property containing html.
+     */
+    class SanitizeValueConverter {
+        constructor(sanitizer) {
+            this.sanitizer = sanitizer;
+        }
+        /**
+         * Process the provided markup that flows to the view.
+         * @param untrustedMarkup The untrusted markup to be sanitized.
+         */
+        toView(untrustedMarkup) {
+            if (untrustedMarkup === null || untrustedMarkup === undefined) {
+                return null;
+            }
+            return this.sanitizer.sanitize(untrustedMarkup);
+        }
+    }
+    SanitizeValueConverter.inject = [ISanitizer];
+    ValueConverterResource.define('sanitize', SanitizeValueConverter);
+
     const { enter: enterStart, leave: leaveStart } = Profiler.createTimer('Aurelia.start');
     const { enter: enterStop, leave: leaveStop } = Profiler.createTimer('Aurelia.stop');
     class Aurelia {
@@ -8408,14 +8412,8 @@ var au = (function (exports) {
         }
         app(config) {
             const host = config.host;
-            let dom;
-            if (this.container.has(IDOM, false)) {
-                dom = this.container.get(IDOM);
-            }
-            else {
-                const domInitializer = this.container.get(IDOMInitializer);
-                dom = domInitializer.initialize(config);
-            }
+            const domInitializer = this.container.get(IDOMInitializer);
+            domInitializer.initialize(config);
             let startFlags = LifecycleFlags.fromStartTask;
             let stopFlags = LifecycleFlags.fromStopTask;
             if (config.useProxies) {
@@ -8437,9 +8435,7 @@ var au = (function (exports) {
                 if (!this.components.includes(component)) {
                     this._root = component;
                     this.components.push(component);
-                    const re = this.container.get(IRenderingEngine);
-                    const pl = this.container.get(IProjectorLocator);
-                    component.$hydrate(startFlags, dom, pl, re, host, this.container);
+                    component.$hydrate(startFlags, this.container, host);
                 }
                 component.$bind(startFlags | LifecycleFlags.fromBind, null);
                 component.$attach(startFlags | LifecycleFlags.fromAttach);
@@ -8580,16 +8576,12 @@ var au = (function (exports) {
     let CustomElementRenderer = 
     /** @internal */
     class CustomElementRenderer {
-        constructor(renderingEngine) {
-            this.renderingEngine = renderingEngine;
-        }
         render(flags, dom, context, renderable, target, instruction) {
             const operation = context.beginComponentOperation(renderable, target, instruction, null, null, target, true);
             const component = context.get(customElementKey(instruction.res));
             const instructionRenderers = context.get(IRenderer).instructionRenderers;
-            const projectorLocator = context.get(IProjectorLocator);
             const childInstructions = instruction.instructions;
-            component.$hydrate(flags, dom, projectorLocator, this.renderingEngine, target, context, instruction);
+            component.$hydrate(flags, context, target, instruction);
             for (let i = 0, ii = childInstructions.length; i < ii; ++i) {
                 const current = childInstructions[i];
                 instructionRenderers[current.type].render(flags, dom, context, renderable, component, current);
@@ -8598,7 +8590,6 @@ var au = (function (exports) {
             operation.dispose();
         }
     };
-    CustomElementRenderer.inject = [IRenderingEngine];
     CustomElementRenderer = __decorate([
         instructionRenderer("ra" /* hydrateElement */)
         /** @internal */
@@ -8606,15 +8597,12 @@ var au = (function (exports) {
     let CustomAttributeRenderer = 
     /** @internal */
     class CustomAttributeRenderer {
-        constructor(renderingEngine) {
-            this.renderingEngine = renderingEngine;
-        }
         render(flags, dom, context, renderable, target, instruction) {
             const operation = context.beginComponentOperation(renderable, target, instruction);
             const component = context.get(customAttributeKey(instruction.res));
             const instructionRenderers = context.get(IRenderer).instructionRenderers;
             const childInstructions = instruction.instructions;
-            component.$hydrate(flags, this.renderingEngine);
+            component.$hydrate(flags, context);
             for (let i = 0, ii = childInstructions.length; i < ii; ++i) {
                 const current = childInstructions[i];
                 instructionRenderers[current.type].render(flags, dom, context, renderable, component, current);
@@ -8623,7 +8611,6 @@ var au = (function (exports) {
             operation.dispose();
         }
     };
-    CustomAttributeRenderer.inject = [IRenderingEngine];
     CustomAttributeRenderer = __decorate([
         instructionRenderer("rb" /* hydrateAttribute */)
         /** @internal */
@@ -8640,7 +8627,7 @@ var au = (function (exports) {
             const component = context.get(customAttributeKey(instruction.res));
             const instructionRenderers = context.get(IRenderer).instructionRenderers;
             const childInstructions = instruction.instructions;
-            component.$hydrate(flags, this.renderingEngine);
+            component.$hydrate(flags, context);
             if (instruction.link) {
                 component.link(renderable.$componentTail);
             }

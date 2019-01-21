@@ -1,11 +1,11 @@
+import { IServiceLocator } from '@aurelia/kernel';
 import { TemplateDefinition } from '../definitions';
 import { INode } from '../dom';
 import { LifecycleFlags } from '../flags';
-import { IRenderContext } from '../lifecycle';
 import { IRenderingEngine, ITemplate } from '../rendering-engine';
 import { ICustomElementType } from '../resources/custom-element';
 export interface IElementTemplateProvider {
-    getElementTemplate(renderingEngine: IRenderingEngine, customElementType: ICustomElementType | null, parentContext: IRenderContext | null): ITemplate;
+    getElementTemplate(renderingEngine: IRenderingEngine, customElementType: ICustomElementType | null, parentContext: IServiceLocator): ITemplate;
 }
 export interface ILifecycleRender {
     /**
@@ -31,6 +31,6 @@ export interface ILifecycleRender {
      * This is the first "hydrate" lifecycle hook. It happens only once per instance (contrary to bind/attach
      * which can happen many times per instance), though it can happen many times per type (once for each instance)
      */
-    render?(flags: LifecycleFlags, host: INode, parts: Record<string, TemplateDefinition>, parentContext: IRenderContext | null): IElementTemplateProvider | void;
+    render?(flags: LifecycleFlags, host: INode, parts: Record<string, TemplateDefinition>, parentContext: IServiceLocator): IElementTemplateProvider | void;
 }
 //# sourceMappingURL=lifecycle-render.d.ts.map

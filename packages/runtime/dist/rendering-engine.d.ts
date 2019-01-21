@@ -1,4 +1,4 @@
-import { Immutable, ImmutableArray, InterfaceSymbol, IRegistry, IResourceDescriptions } from '@aurelia/kernel';
+import { Immutable, ImmutableArray, InterfaceSymbol, IRegistry, IResourceDescriptions, IServiceLocator } from '@aurelia/kernel';
 import { InstructionTypeName, ITargetedInstruction, ITemplateDefinition, TemplateDefinition, TemplatePartDefinitions } from './definitions';
 import { IDOM, INode, INodeSequenceFactory } from './dom';
 import { LifecycleFlags } from './flags';
@@ -46,7 +46,7 @@ export interface IRenderer {
 }
 export declare const IRenderer: InterfaceSymbol<IRenderer>;
 export interface IRenderingEngine {
-    getElementTemplate<T extends INode = INode>(dom: IDOM<T>, definition: TemplateDefinition, parentContext: IRenderContext<T> | null, componentType: ICustomElementType<T> | null): ITemplate<T>;
+    getElementTemplate<T extends INode = INode>(dom: IDOM<T>, definition: TemplateDefinition, parentContext: IServiceLocator, componentType: ICustomElementType<T> | null): ITemplate<T>;
     getViewFactory<T extends INode = INode>(dom: IDOM<T>, source: Immutable<ITemplateDefinition>, parentContext: IRenderContext<T> | null): IViewFactory<T>;
     applyRuntimeBehavior<T extends INode = INode>(flags: LifecycleFlags, Type: ICustomAttributeType<T>, instance: ICustomAttribute<T>): void;
     applyRuntimeBehavior<T extends INode = INode>(flags: LifecycleFlags, Type: ICustomElementType<T>, instance: ICustomElement<T>): void;

@@ -1,4 +1,4 @@
-import { IObserverLocator, LifecycleFlags, CustomElementResource, IDOM, IProjectorLocator, IRenderingEngine, Aurelia, INode, bindable, customElement } from '@aurelia/runtime';
+import { IObserverLocator, LifecycleFlags, CustomElementResource, Aurelia, INode, bindable, customElement } from '@aurelia/runtime';
 import { IContainer, inject } from '@aurelia/kernel';
 
 class HistoryBrowser {
@@ -774,11 +774,8 @@ class Viewport {
     addComponent(component) {
         const host = this.element;
         const container = this.router.container;
-        const dom = container.get(IDOM);
-        const projectorLocator = container.get(IProjectorLocator);
-        const renderingEngine = container.get(IRenderingEngine);
         // TODO: get useProxies settings from the template definition
-        component.$hydrate(LifecycleFlags.none, dom, projectorLocator, renderingEngine, host, null);
+        component.$hydrate(LifecycleFlags.none, container, host);
         component.$bind(LifecycleFlags.fromStartTask | LifecycleFlags.fromBind, null);
         component.$attach(LifecycleFlags.fromStartTask);
     }

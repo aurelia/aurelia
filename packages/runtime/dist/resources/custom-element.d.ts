@@ -1,10 +1,9 @@
-import { Class, Constructable, IResourceKind, IResourceType } from '@aurelia/kernel';
+import { Class, Constructable, IResourceKind, IResourceType, IServiceLocator } from '@aurelia/kernel';
 import { IElementHydrationOptions, ITemplateDefinition, TemplateDefinition } from '../definitions';
 import { IDOM, INode, INodeSequence, IRenderLocation } from '../dom';
 import { LifecycleFlags } from '../flags';
-import { IComponent, ILifecycleHooks, IMountable, IRenderable, IRenderContext } from '../lifecycle';
+import { ILifecycleHooks, IMountableComponent, IRenderable } from '../lifecycle';
 import { IChangeTracker } from '../observation';
-import { IRenderingEngine } from '../rendering-engine';
 import { ILifecycleRender } from '../templating/lifecycle-render';
 export interface ICustomElementType<T extends INode = INode> extends IResourceType<ITemplateDefinition, ICustomElement<T>>, ICustomElementStaticProperties {
     description: TemplateDefinition;
@@ -30,10 +29,10 @@ export interface ICustomElementStaticProperties {
     bindables?: TemplateDefinition['bindables'];
     useProxies?: TemplateDefinition['useProxies'];
 }
-export interface ICustomElement<T extends INode = INode> extends Partial<IChangeTracker>, ILifecycleHooks, ILifecycleRender, IComponent, IMountable, IRenderable<T> {
+export interface ICustomElement<T extends INode = INode> extends Partial<IChangeTracker>, ILifecycleHooks, ILifecycleRender, IMountableComponent, IRenderable<T> {
     readonly $projector: IElementProjector;
     readonly $host: CustomElementHost;
-    $hydrate(flags: LifecycleFlags, dom: IDOM, projectorLocator: IProjectorLocator, renderingEngine: IRenderingEngine, host: INode, parentContext: IRenderContext | null, options?: IElementHydrationOptions): void;
+    $hydrate(flags: LifecycleFlags, parentContext: IServiceLocator, host: INode, options?: IElementHydrationOptions): void;
 }
 export interface ICustomElementResource<T extends INode = INode> extends IResourceKind<ITemplateDefinition, ICustomElement<T>, Class<ICustomElement<T>> & ICustomElementStaticProperties> {
     behaviorFor(node: T): ICustomElement<T> | null;

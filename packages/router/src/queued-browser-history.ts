@@ -1,5 +1,4 @@
 import { PLATFORM } from '@aurelia/kernel';
-import { wait } from './../test/e2e/doc-example/src/utils';
 
 export interface QueuedBrowserHistory extends History {
   activate(callback: Function): void;
@@ -9,7 +8,7 @@ export interface QueuedBrowserHistory extends History {
 interface QueueItem {
   object: Object;
   method: string;
-  parameters: any[];
+  parameters: unknown[];
   resolve: Function;
 }
 
@@ -20,7 +19,6 @@ export class QueuedBrowserHistory implements History {
   private isActive: boolean;
   private processingItem: QueueItem;
   private callback: Function;
-  private isTicking: boolean;
 
   constructor() {
     this.history = window.history;
@@ -28,7 +26,6 @@ export class QueuedBrowserHistory implements History {
     this.isActive = false;
     this.processingItem = null;
     this.callback = null;
-    this.isTicking = false;
   }
 
   public activate(callback: Function): void {
@@ -37,10 +34,12 @@ export class QueuedBrowserHistory implements History {
     }
     this.isActive = true;
     this.callback = callback;
+    PLATFORM.ticker.add(this.dequeue, this);
     window.addEventListener('popstate', this.handlePopstate);
   }
   public deactivate(): void {
     window.removeEventListener('popstate', this.handlePopstate);
+    PLATFORM.ticker.remove(this.dequeue, this);
     this.callback = null;
     this.isActive = false;
   }
@@ -97,24 +96,11 @@ export class QueuedBrowserHistory implements History {
   }
 
   private async dequeue(delta?: number): Promise<void> {
-    if (!this.queue.length) {
-      if (this.isTicking) {
-        console.log('queued-browser-history STOPPING tick');
-        PLATFORM.ticker.remove(this.dequeue, this);
-        this.isTicking = false;
-      }
-      return;
-    }
-    if (this.processingItem !== null) {
-      if (!this.isTicking) {
-        console.log('queued-browser-history STARTING tick');
-        this.isTicking = true;
-        PLATFORM.ticker.add(this.dequeue, this);
-      }
+    if (!this.queue.length || this.processingItem !== null) {
       return;
     }
     this.processingItem = this.queue.shift();
-    console.log('queued-browser-history', delta ? 'tick' : '', this.processingItem.method, this.processingItem.parameters);
+    console.log('queued-browser-history', delta, this.processingItem.method, this.processingItem.parameters);
     const method = this.processingItem.object[this.processingItem.method];
     method.apply(this.processingItem.object, this.processingItem.parameters);
     const resolve = this.processingItem.resolve;

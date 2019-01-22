@@ -11,32 +11,32 @@ export class HttpClient {
    * The current number of active requests.
    * Requests being processed by interceptors are considered active.
    */
-  activeRequestCount: number = 0;
+  public activeRequestCount: number = 0;
 
   /**
    * Indicates whether or not the client is currently making one or more requests.
    */
-  isRequesting: boolean = false;
+  public isRequesting: boolean = false;
 
   /**
    * Indicates whether or not the client has been configured.
    */
-  isConfigured: boolean = false;
+  public isConfigured: boolean = false;
 
   /**
    * The base URL set by the config.
    */
-  baseUrl: string = '';
+  public baseUrl: string = '';
 
   /**
    * The default request init to merge with values specified at request time.
    */
-  defaults: RequestInit = null;
+  public defaults: RequestInit = null;
 
   /**
    * The interceptors to be run during requests.
    */
-  interceptors: Interceptor[] = [];
+  public interceptors: Interceptor[] = [];
 
   /**
    * Creates an instance of HttpClient.

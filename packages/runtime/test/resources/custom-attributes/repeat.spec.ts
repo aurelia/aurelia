@@ -1,512 +1,514 @@
-import { expect } from 'chai';
-import { IndexMap } from '../../../src/index';
-import { longestIncreasingSubsequence } from '../../../src/resources/custom-attributes/repeat';
-import { assertArrayEqual } from '../../observation/array-observer.spec';
+// TODO: unit test this stuff in a somewhat manageable way
 
-function createIndexMap(items: number[], deletedItems?: number[]): IndexMap {
-  items['deletedItems'] = deletedItems;
-  return items;
-}
+// import { expect } from 'chai';
+// import { IndexMap } from '../../../src/index';
+// import { longestIncreasingSubsequence } from '../../../src/resources/custom-attributes/repeat';
+// import { assertArrayEqual } from '../../observation/array-observer.spec';
 
-describe.only('longestIncreasingSubsequence', function() {
+// function createIndexMap(items: number[], deletedItems?: number[]): IndexMap {
+//   items['deletedItems'] = deletedItems;
+//   return items;
+// }
 
-  interface Spec {
-    indexMap: IndexMap;
-    expected: number[];
-  }
-  const specs: Spec[] = [
-    {
-      indexMap: createIndexMap([-2]),
-      expected: [0]
-    },
-    {
-      indexMap: createIndexMap([0]),
-      expected: [0]
-    },
-    {
-      indexMap: createIndexMap([1]),
-      expected: [0]
-    },
-    {
-      indexMap: createIndexMap([-2, -2]),
-      expected: [1]
-    },
-    {
-      indexMap: createIndexMap([-2, 0]),
-      expected: [0]
-    },
-    {
-      indexMap: createIndexMap([-2, 1]),
-      expected: [1]
-    },
-    {
-      indexMap: createIndexMap([0, -2]),
-      expected: [1]
-    },
-    {
-      indexMap: createIndexMap([0, 0]),
-      expected: [0]
-    },
-    {
-      indexMap: createIndexMap([0, 1]),
-      expected: [0, 1]
-    },
-    {
-      indexMap: createIndexMap([1, -2]),
-      expected: [1]
-    },
-    {
-      indexMap: createIndexMap([1, 0]),
-      expected: [0]
-    },
-    {
-      indexMap: createIndexMap([1, 1]),
-      expected: [0]
-    },
-    {
-      indexMap: createIndexMap([-2, -2, -2]),
-      expected: [2]
-    },
-    {
-      indexMap: createIndexMap([-2, -2, 0]),
-      expected: [1]
-    },
-    {
-      indexMap: createIndexMap([-2, -2, 1]),
-      expected: [2]
-    },
-    {
-      indexMap: createIndexMap([-2, 0, -2]),
-      expected: [2]
-    },
-    {
-      indexMap: createIndexMap([-2, 0, 0]),
-      expected: [0]
-    },
-    {
-      indexMap: createIndexMap([-2, 0, 1]),
-      expected: [2]
-    },
-    {
-      indexMap: createIndexMap([-2, 1, -2]),
-      expected: [2]
-    },
-    {
-      indexMap: createIndexMap([-2, 1, 0]),
-      expected: [1]
-    },
-    {
-      indexMap: createIndexMap([-2, 1, 1]),
-      expected: [1]
-    },
-    {
-      indexMap: createIndexMap([0, -2, -2]),
-      expected: [2]
-    },
-    {
-      indexMap: createIndexMap([0, -2, 0]),
-      expected: [1]
-    },
-    {
-      indexMap: createIndexMap([0, -2, 1]),
-      expected: [2]
-    },
-    {
-      indexMap: createIndexMap([0, 0, -2]),
-      expected: [2]
-    },
-    {
-      indexMap: createIndexMap([0, 0, 0]),
-      expected: [0]
-    },
-    {
-      indexMap: createIndexMap([0, 0, 1]),
-      expected: [0, 2]
-    },
-    {
-      indexMap: createIndexMap([0, 1, -2]),
-      expected: [0, 1]
-    },
-    {
-      indexMap: createIndexMap([0, 1, 0]),
-      expected: [0, 1]
-    },
-    {
-      indexMap: createIndexMap([0, 1, 1]),
-      expected: [0, 1]
-    },
-    {
-      indexMap: createIndexMap([1, -2, -2]),
-      expected: [2]
-    },
-    {
-      indexMap: createIndexMap([1, -2, 0]),
-      expected: [1]
-    },
-    {
-      indexMap: createIndexMap([1, -2, 1]),
-      expected: [2]
-    },
-    {
-      indexMap: createIndexMap([1, 0, -2]),
-      expected: [2]
-    },
-    {
-      indexMap: createIndexMap([1, 0, 0]),
-      expected: [0]
-    },
-    {
-      indexMap: createIndexMap([1, 0, 1]),
-      expected: [0]
-    },
-    {
-      indexMap: createIndexMap([1, 1, -2]),
-      expected: [2]
-    },
-    {
-      indexMap: createIndexMap([1, 1, 0]),
-      expected: [0]
-    },
-    {
-      indexMap: createIndexMap([1, 1, 1]),
-      expected: [0]
-    },
-    {
-      indexMap: createIndexMap([-2, -2, -2, -2]),
-      expected: [3]
-    },
-    {
-      indexMap: createIndexMap([-2, -2, -2, 0]),
-      expected: [2]
-    },
-    {
-      indexMap: createIndexMap([-2, -2, -2, 1]),
-      expected: [3]
-    },
-    {
-      indexMap: createIndexMap([-2, -2, 0, -2]),
-      expected: [3]
-    },
-    {
-      indexMap: createIndexMap([-2, -2, 0, 0]),
-      expected: [1]
-    },
-    {
-      indexMap: createIndexMap([-2, -2, 0, 1]),
-      expected: [3]
-    },
-    {
-      indexMap: createIndexMap([-2, -2, 1, -2]),
-      expected: [3]
-    },
-    {
-      indexMap: createIndexMap([-2, -2, 1, 0]),
-      expected: [2]
-    },
-    {
-      indexMap: createIndexMap([-2, -2, 1, 1]),
-      expected: [2]
-    },
-    {
-      indexMap: createIndexMap([-2, 0, -2, -2]),
-      expected: [3]
-    },
-    {
-      indexMap: createIndexMap([-2, 0, -2, 0]),
-      expected: [2]
-    },
-    {
-      indexMap: createIndexMap([-2, 0, -2, 1]),
-      expected: [3]
-    },
-    {
-      indexMap: createIndexMap([-2, 0, 0, -2]),
-      expected: [3]
-    },
-    {
-      indexMap: createIndexMap([-2, 0, 0, 0]),
-      expected: [0]
-    },
-    {
-      indexMap: createIndexMap([-2, 0, 0, 1]),
-      expected: [3]
-    },
-    {
-      indexMap: createIndexMap([-2, 0, 1, -2]),
-      expected: [3]
-    },
-    {
-      indexMap: createIndexMap([-2, 0, 1, 0]),
-      expected: [2]
-    },
-    {
-      indexMap: createIndexMap([-2, 0, 1, 1]),
-      expected: [2]
-    },
-    {
-      indexMap: createIndexMap([-2, 1, -2, -2]),
-      expected: [3]
-    },
-    {
-      indexMap: createIndexMap([-2, 1, -2, 0]),
-      expected: [2]
-    },
-    {
-      indexMap: createIndexMap([-2, 1, -2, 1]),
-      expected: [3]
-    },
-    {
-      indexMap: createIndexMap([-2, 1, 0, -2]),
-      expected: [3]
-    },
-    {
-      indexMap: createIndexMap([-2, 1, 0, 0]),
-      expected: [1]
-    },
-    {
-      indexMap: createIndexMap([-2, 1, 0, 1]),
-      expected: [1]
-    },
-    {
-      indexMap: createIndexMap([-2, 1, 1, -2]),
-      expected: [3]
-    },
-    {
-      indexMap: createIndexMap([-2, 1, 1, 0]),
-      expected: [1]
-    },
-    {
-      indexMap: createIndexMap([-2, 1, 1, 1]),
-      expected: [1]
-    },
+// describe.only('longestIncreasingSubsequence', function() {
 
-
-    {
-      indexMap: createIndexMap([0, -2, -2, -2]),
-      expected: [3]
-    },
-    {
-      indexMap: createIndexMap([0, -2, -2, 0]),
-      expected: [2]
-    },
-    {
-      indexMap: createIndexMap([0, -2, -2, 1]),
-      expected: [3]
-    },
-    {
-      indexMap: createIndexMap([0, -2, 0, -2]),
-      expected: [3]
-    },
-    {
-      indexMap: createIndexMap([0, -2, 0, 0]),
-      expected: [1]
-    },
-    {
-      indexMap: createIndexMap([0, -2, 0, 1]),
-      expected: [3]
-    },
-    {
-      indexMap: createIndexMap([0, -2, 1, -2]),
-      expected: [3]
-    },
-    {
-      indexMap: createIndexMap([0, -2, 1, 0]),
-      expected: [2]
-    },
-    {
-      indexMap: createIndexMap([0, -2, 1, 1]),
-      expected: [2]
-    },
-    {
-      indexMap: createIndexMap([0, 0, -2, -2]),
-      expected: [3]
-    },
-    {
-      indexMap: createIndexMap([0, 0, -2, 0]),
-      expected: [2]
-    },
-    {
-      indexMap: createIndexMap([0, 0, -2, 1]),
-      expected: [3]
-    },
-    {
-      indexMap: createIndexMap([0, 0, 0, -2]),
-      expected: [3]
-    },
-    {
-      indexMap: createIndexMap([0, 0, 0, 0]),
-      expected: [0]
-    },
-    {
-      indexMap: createIndexMap([0, 0, 0, 1]),
-      expected: [0, 3]
-    },
-    {
-      indexMap: createIndexMap([0, 0, 1, -2]),
-      expected: [0, 2]
-    },
-    {
-      indexMap: createIndexMap([0, 0, 1, 0]),
-      expected: [0, 2]
-    },
-    {
-      indexMap: createIndexMap([0, 0, 1, 1]),
-      expected: [0, 2]
-    },
-    {
-      indexMap: createIndexMap([0, 1, -2, -2]),
-      expected: [0, 1]
-    },
-    {
-      indexMap: createIndexMap([0, 1, -2, 0]),
-      expected: [0, 1]
-    },
-    {
-      indexMap: createIndexMap([0, 1, -2, 1]),
-      expected: [0, 1]
-    },
-    {
-      indexMap: createIndexMap([0, 1, 0, -2]),
-      expected: [0, 1]
-    },
-    {
-      indexMap: createIndexMap([0, 1, 0, 0]),
-      expected: [0, 1]
-    },
-    {
-      indexMap: createIndexMap([0, 1, 0, 1]),
-      expected: [0, 1]
-    },
-    {
-      indexMap: createIndexMap([0, 1, 1, -2]),
-      expected: [0, 1]
-    },
-    {
-      indexMap: createIndexMap([0, 1, 1, 0]),
-      expected: [0, 1]
-    },
-    {
-      indexMap: createIndexMap([0, 1, 1, 1]),
-      expected: [0, 1]
-    },
+//   interface Spec {
+//     indexMap: IndexMap;
+//     expected: number[];
+//   }
+//   const specs: Spec[] = [
+//     {
+//       indexMap: createIndexMap([-2]),
+//       expected: [0]
+//     },
+//     {
+//       indexMap: createIndexMap([0]),
+//       expected: [0]
+//     },
+//     {
+//       indexMap: createIndexMap([1]),
+//       expected: [0]
+//     },
+//     {
+//       indexMap: createIndexMap([-2, -2]),
+//       expected: [1]
+//     },
+//     {
+//       indexMap: createIndexMap([-2, 0]),
+//       expected: [0]
+//     },
+//     {
+//       indexMap: createIndexMap([-2, 1]),
+//       expected: [1]
+//     },
+//     {
+//       indexMap: createIndexMap([0, -2]),
+//       expected: [1]
+//     },
+//     {
+//       indexMap: createIndexMap([0, 0]),
+//       expected: [0]
+//     },
+//     {
+//       indexMap: createIndexMap([0, 1]),
+//       expected: [0, 1]
+//     },
+//     {
+//       indexMap: createIndexMap([1, -2]),
+//       expected: [1]
+//     },
+//     {
+//       indexMap: createIndexMap([1, 0]),
+//       expected: [0]
+//     },
+//     {
+//       indexMap: createIndexMap([1, 1]),
+//       expected: [0]
+//     },
+//     {
+//       indexMap: createIndexMap([-2, -2, -2]),
+//       expected: [2]
+//     },
+//     {
+//       indexMap: createIndexMap([-2, -2, 0]),
+//       expected: [1]
+//     },
+//     {
+//       indexMap: createIndexMap([-2, -2, 1]),
+//       expected: [2]
+//     },
+//     {
+//       indexMap: createIndexMap([-2, 0, -2]),
+//       expected: [2]
+//     },
+//     {
+//       indexMap: createIndexMap([-2, 0, 0]),
+//       expected: [0]
+//     },
+//     {
+//       indexMap: createIndexMap([-2, 0, 1]),
+//       expected: [2]
+//     },
+//     {
+//       indexMap: createIndexMap([-2, 1, -2]),
+//       expected: [2]
+//     },
+//     {
+//       indexMap: createIndexMap([-2, 1, 0]),
+//       expected: [1]
+//     },
+//     {
+//       indexMap: createIndexMap([-2, 1, 1]),
+//       expected: [1]
+//     },
+//     {
+//       indexMap: createIndexMap([0, -2, -2]),
+//       expected: [2]
+//     },
+//     {
+//       indexMap: createIndexMap([0, -2, 0]),
+//       expected: [1]
+//     },
+//     {
+//       indexMap: createIndexMap([0, -2, 1]),
+//       expected: [2]
+//     },
+//     {
+//       indexMap: createIndexMap([0, 0, -2]),
+//       expected: [2]
+//     },
+//     {
+//       indexMap: createIndexMap([0, 0, 0]),
+//       expected: [0]
+//     },
+//     {
+//       indexMap: createIndexMap([0, 0, 1]),
+//       expected: [0, 2]
+//     },
+//     {
+//       indexMap: createIndexMap([0, 1, -2]),
+//       expected: [0, 1]
+//     },
+//     {
+//       indexMap: createIndexMap([0, 1, 0]),
+//       expected: [0, 1]
+//     },
+//     {
+//       indexMap: createIndexMap([0, 1, 1]),
+//       expected: [0, 1]
+//     },
+//     {
+//       indexMap: createIndexMap([1, -2, -2]),
+//       expected: [2]
+//     },
+//     {
+//       indexMap: createIndexMap([1, -2, 0]),
+//       expected: [1]
+//     },
+//     {
+//       indexMap: createIndexMap([1, -2, 1]),
+//       expected: [2]
+//     },
+//     {
+//       indexMap: createIndexMap([1, 0, -2]),
+//       expected: [2]
+//     },
+//     {
+//       indexMap: createIndexMap([1, 0, 0]),
+//       expected: [0]
+//     },
+//     {
+//       indexMap: createIndexMap([1, 0, 1]),
+//       expected: [0]
+//     },
+//     {
+//       indexMap: createIndexMap([1, 1, -2]),
+//       expected: [2]
+//     },
+//     {
+//       indexMap: createIndexMap([1, 1, 0]),
+//       expected: [0]
+//     },
+//     {
+//       indexMap: createIndexMap([1, 1, 1]),
+//       expected: [0]
+//     },
+//     {
+//       indexMap: createIndexMap([-2, -2, -2, -2]),
+//       expected: [3]
+//     },
+//     {
+//       indexMap: createIndexMap([-2, -2, -2, 0]),
+//       expected: [2]
+//     },
+//     {
+//       indexMap: createIndexMap([-2, -2, -2, 1]),
+//       expected: [3]
+//     },
+//     {
+//       indexMap: createIndexMap([-2, -2, 0, -2]),
+//       expected: [3]
+//     },
+//     {
+//       indexMap: createIndexMap([-2, -2, 0, 0]),
+//       expected: [1]
+//     },
+//     {
+//       indexMap: createIndexMap([-2, -2, 0, 1]),
+//       expected: [3]
+//     },
+//     {
+//       indexMap: createIndexMap([-2, -2, 1, -2]),
+//       expected: [3]
+//     },
+//     {
+//       indexMap: createIndexMap([-2, -2, 1, 0]),
+//       expected: [2]
+//     },
+//     {
+//       indexMap: createIndexMap([-2, -2, 1, 1]),
+//       expected: [2]
+//     },
+//     {
+//       indexMap: createIndexMap([-2, 0, -2, -2]),
+//       expected: [3]
+//     },
+//     {
+//       indexMap: createIndexMap([-2, 0, -2, 0]),
+//       expected: [2]
+//     },
+//     {
+//       indexMap: createIndexMap([-2, 0, -2, 1]),
+//       expected: [3]
+//     },
+//     {
+//       indexMap: createIndexMap([-2, 0, 0, -2]),
+//       expected: [3]
+//     },
+//     {
+//       indexMap: createIndexMap([-2, 0, 0, 0]),
+//       expected: [0]
+//     },
+//     {
+//       indexMap: createIndexMap([-2, 0, 0, 1]),
+//       expected: [3]
+//     },
+//     {
+//       indexMap: createIndexMap([-2, 0, 1, -2]),
+//       expected: [3]
+//     },
+//     {
+//       indexMap: createIndexMap([-2, 0, 1, 0]),
+//       expected: [2]
+//     },
+//     {
+//       indexMap: createIndexMap([-2, 0, 1, 1]),
+//       expected: [2]
+//     },
+//     {
+//       indexMap: createIndexMap([-2, 1, -2, -2]),
+//       expected: [3]
+//     },
+//     {
+//       indexMap: createIndexMap([-2, 1, -2, 0]),
+//       expected: [2]
+//     },
+//     {
+//       indexMap: createIndexMap([-2, 1, -2, 1]),
+//       expected: [3]
+//     },
+//     {
+//       indexMap: createIndexMap([-2, 1, 0, -2]),
+//       expected: [3]
+//     },
+//     {
+//       indexMap: createIndexMap([-2, 1, 0, 0]),
+//       expected: [1]
+//     },
+//     {
+//       indexMap: createIndexMap([-2, 1, 0, 1]),
+//       expected: [1]
+//     },
+//     {
+//       indexMap: createIndexMap([-2, 1, 1, -2]),
+//       expected: [3]
+//     },
+//     {
+//       indexMap: createIndexMap([-2, 1, 1, 0]),
+//       expected: [1]
+//     },
+//     {
+//       indexMap: createIndexMap([-2, 1, 1, 1]),
+//       expected: [1]
+//     },
 
 
+//     {
+//       indexMap: createIndexMap([0, -2, -2, -2]),
+//       expected: [3]
+//     },
+//     {
+//       indexMap: createIndexMap([0, -2, -2, 0]),
+//       expected: [2]
+//     },
+//     {
+//       indexMap: createIndexMap([0, -2, -2, 1]),
+//       expected: [3]
+//     },
+//     {
+//       indexMap: createIndexMap([0, -2, 0, -2]),
+//       expected: [3]
+//     },
+//     {
+//       indexMap: createIndexMap([0, -2, 0, 0]),
+//       expected: [1]
+//     },
+//     {
+//       indexMap: createIndexMap([0, -2, 0, 1]),
+//       expected: [3]
+//     },
+//     {
+//       indexMap: createIndexMap([0, -2, 1, -2]),
+//       expected: [3]
+//     },
+//     {
+//       indexMap: createIndexMap([0, -2, 1, 0]),
+//       expected: [2]
+//     },
+//     {
+//       indexMap: createIndexMap([0, -2, 1, 1]),
+//       expected: [2]
+//     },
+//     {
+//       indexMap: createIndexMap([0, 0, -2, -2]),
+//       expected: [3]
+//     },
+//     {
+//       indexMap: createIndexMap([0, 0, -2, 0]),
+//       expected: [2]
+//     },
+//     {
+//       indexMap: createIndexMap([0, 0, -2, 1]),
+//       expected: [3]
+//     },
+//     {
+//       indexMap: createIndexMap([0, 0, 0, -2]),
+//       expected: [3]
+//     },
+//     {
+//       indexMap: createIndexMap([0, 0, 0, 0]),
+//       expected: [0]
+//     },
+//     {
+//       indexMap: createIndexMap([0, 0, 0, 1]),
+//       expected: [0, 3]
+//     },
+//     {
+//       indexMap: createIndexMap([0, 0, 1, -2]),
+//       expected: [0, 2]
+//     },
+//     {
+//       indexMap: createIndexMap([0, 0, 1, 0]),
+//       expected: [0, 2]
+//     },
+//     {
+//       indexMap: createIndexMap([0, 0, 1, 1]),
+//       expected: [0, 2]
+//     },
+//     {
+//       indexMap: createIndexMap([0, 1, -2, -2]),
+//       expected: [0, 1]
+//     },
+//     {
+//       indexMap: createIndexMap([0, 1, -2, 0]),
+//       expected: [0, 1]
+//     },
+//     {
+//       indexMap: createIndexMap([0, 1, -2, 1]),
+//       expected: [0, 1]
+//     },
+//     {
+//       indexMap: createIndexMap([0, 1, 0, -2]),
+//       expected: [0, 1]
+//     },
+//     {
+//       indexMap: createIndexMap([0, 1, 0, 0]),
+//       expected: [0, 1]
+//     },
+//     {
+//       indexMap: createIndexMap([0, 1, 0, 1]),
+//       expected: [0, 1]
+//     },
+//     {
+//       indexMap: createIndexMap([0, 1, 1, -2]),
+//       expected: [0, 1]
+//     },
+//     {
+//       indexMap: createIndexMap([0, 1, 1, 0]),
+//       expected: [0, 1]
+//     },
+//     {
+//       indexMap: createIndexMap([0, 1, 1, 1]),
+//       expected: [0, 1]
+//     },
 
-    {
-      indexMap: createIndexMap([1, -2, -2, -2]),
-      expected: [3]
-    },
-    {
-      indexMap: createIndexMap([1, -2, -2, 0]),
-      expected: [2]
-    },
-    {
-      indexMap: createIndexMap([1, -2, -2, 1]),
-      expected: [3]
-    },
-    {
-      indexMap: createIndexMap([1, -2, 0, -2]),
-      expected: [3]
-    },
-    {
-      indexMap: createIndexMap([1, -2, 0, 0]),
-      expected: [1]
-    },
-    {
-      indexMap: createIndexMap([1, -2, 0, 1]),
-      expected: [3]
-    },
-    {
-      indexMap: createIndexMap([1, -2, 1, -2]),
-      expected: [3]
-    },
-    {
-      indexMap: createIndexMap([1, -2, 1, 0]),
-      expected: [2]
-    },
-    {
-      indexMap: createIndexMap([1, -2, 1, 1]),
-      expected: [2]
-    },
-    {
-      indexMap: createIndexMap([1, 0, -2, -2]),
-      expected: [3]
-    },
-    {
-      indexMap: createIndexMap([1, 0, -2, 0]),
-      expected: [2]
-    },
-    {
-      indexMap: createIndexMap([1, 0, -2, 1]),
-      expected: [3]
-    },
-    {
-      indexMap: createIndexMap([1, 0, 0, -2]),
-      expected: [3]
-    },
-    {
-      indexMap: createIndexMap([1, 0, 0, 0]),
-      expected: [0]
-    },
-    {
-      indexMap: createIndexMap([1, 0, 0, 1]),
-      expected: [0]
-    },
-    {
-      indexMap: createIndexMap([1, 0, 1, -2]),
-      expected: [3]
-    },
-    {
-      indexMap: createIndexMap([1, 0, 1, 0]),
-      expected: [0]
-    },
-    {
-      indexMap: createIndexMap([1, 0, 1, 1]),
-      expected: [0]
-    },
-    {
-      indexMap: createIndexMap([1, 1, -2, -2]),
-      expected: [3]
-    },
-    {
-      indexMap: createIndexMap([1, 1, -2, 0]),
-      expected: [2]
-    },
-    {
-      indexMap: createIndexMap([1, 1, -2, 1]),
-      expected: [3]
-    },
-    {
-      indexMap: createIndexMap([1, 1, 0, -2]),
-      expected: [3]
-    },
-    {
-      indexMap: createIndexMap([1, 1, 0, 0]),
-      expected: [0]
-    },
-    {
-      indexMap: createIndexMap([1, 1, 0, 1]),
-      expected: [0]
-    },
-    {
-      indexMap: createIndexMap([1, 1, 1, -2]),
-      expected: [3]
-    },
-    {
-      indexMap: createIndexMap([1, 1, 1, 0]),
-      expected: [0]
-    },
-    {
-      indexMap: createIndexMap([1, 1, 1, 1]),
-      expected: [0]
-    }
-  ];
 
-  for (const spec of specs) {
-    it.only(`${JSON.stringify(spec)}`, function() {
-      const { indexMap, expected } = spec;
-      const actual = longestIncreasingSubsequence(indexMap);
-      assertArrayEqual([...actual], expected);
-    });
-  }
-});
+
+//     {
+//       indexMap: createIndexMap([1, -2, -2, -2]),
+//       expected: [3]
+//     },
+//     {
+//       indexMap: createIndexMap([1, -2, -2, 0]),
+//       expected: [2]
+//     },
+//     {
+//       indexMap: createIndexMap([1, -2, -2, 1]),
+//       expected: [3]
+//     },
+//     {
+//       indexMap: createIndexMap([1, -2, 0, -2]),
+//       expected: [3]
+//     },
+//     {
+//       indexMap: createIndexMap([1, -2, 0, 0]),
+//       expected: [1]
+//     },
+//     {
+//       indexMap: createIndexMap([1, -2, 0, 1]),
+//       expected: [3]
+//     },
+//     {
+//       indexMap: createIndexMap([1, -2, 1, -2]),
+//       expected: [3]
+//     },
+//     {
+//       indexMap: createIndexMap([1, -2, 1, 0]),
+//       expected: [2]
+//     },
+//     {
+//       indexMap: createIndexMap([1, -2, 1, 1]),
+//       expected: [2]
+//     },
+//     {
+//       indexMap: createIndexMap([1, 0, -2, -2]),
+//       expected: [3]
+//     },
+//     {
+//       indexMap: createIndexMap([1, 0, -2, 0]),
+//       expected: [2]
+//     },
+//     {
+//       indexMap: createIndexMap([1, 0, -2, 1]),
+//       expected: [3]
+//     },
+//     {
+//       indexMap: createIndexMap([1, 0, 0, -2]),
+//       expected: [3]
+//     },
+//     {
+//       indexMap: createIndexMap([1, 0, 0, 0]),
+//       expected: [0]
+//     },
+//     {
+//       indexMap: createIndexMap([1, 0, 0, 1]),
+//       expected: [0]
+//     },
+//     {
+//       indexMap: createIndexMap([1, 0, 1, -2]),
+//       expected: [3]
+//     },
+//     {
+//       indexMap: createIndexMap([1, 0, 1, 0]),
+//       expected: [0]
+//     },
+//     {
+//       indexMap: createIndexMap([1, 0, 1, 1]),
+//       expected: [0]
+//     },
+//     {
+//       indexMap: createIndexMap([1, 1, -2, -2]),
+//       expected: [3]
+//     },
+//     {
+//       indexMap: createIndexMap([1, 1, -2, 0]),
+//       expected: [2]
+//     },
+//     {
+//       indexMap: createIndexMap([1, 1, -2, 1]),
+//       expected: [3]
+//     },
+//     {
+//       indexMap: createIndexMap([1, 1, 0, -2]),
+//       expected: [3]
+//     },
+//     {
+//       indexMap: createIndexMap([1, 1, 0, 0]),
+//       expected: [0]
+//     },
+//     {
+//       indexMap: createIndexMap([1, 1, 0, 1]),
+//       expected: [0]
+//     },
+//     {
+//       indexMap: createIndexMap([1, 1, 1, -2]),
+//       expected: [3]
+//     },
+//     {
+//       indexMap: createIndexMap([1, 1, 1, 0]),
+//       expected: [0]
+//     },
+//     {
+//       indexMap: createIndexMap([1, 1, 1, 1]),
+//       expected: [0]
+//     }
+//   ];
+
+//   for (const spec of specs) {
+//     it.only(`${JSON.stringify(spec)}`, function() {
+//       const { indexMap, expected } = spec;
+//       const actual = longestIncreasingSubsequence(indexMap);
+//       assertArrayEqual([...actual], expected);
+//     });
+//   }
+// });

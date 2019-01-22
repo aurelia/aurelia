@@ -1131,7 +1131,7 @@ export class ForOfStatement implements IForOfStatement {
 
   public unbind(flags: LifecycleFlags, scope: IScope, binding: IConnectableBinding): void {
     if (hasUnbind(this.iterable)) {
-      this.iterable.bind(flags, scope, binding);
+      this.iterable.unbind(flags, scope, binding);
     }
   }
 

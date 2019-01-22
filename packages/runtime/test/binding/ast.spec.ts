@@ -2764,7 +2764,7 @@ describe('helper functions', () => {
     expect(hasBind(new ArrayBindingPattern([])     )).to.equal(false);
     expect(hasBind(new ObjectBindingPattern([], []))).to.equal(false);
     expect(hasBind(new BindingIdentifier('')       )).to.equal(false);
-    expect(hasBind(new ForOfStatement(e, e)        )).to.equal(false);
+    expect(hasBind(new ForOfStatement(e, e)        )).to.equal(true);
     expect(hasBind(new Interpolation([])           )).to.equal(false);
   });
 
@@ -2791,7 +2791,7 @@ describe('helper functions', () => {
     expect(hasUnbind(new ArrayBindingPattern([])     )).to.equal(false);
     expect(hasUnbind(new ObjectBindingPattern([], []))).to.equal(false);
     expect(hasUnbind(new BindingIdentifier('')       )).to.equal(false);
-    expect(hasUnbind(new ForOfStatement(e, e)        )).to.equal(false);
+    expect(hasUnbind(new ForOfStatement(e, e)        )).to.equal(true);
     expect(hasUnbind(new Interpolation([])           )).to.equal(false);
   });
 

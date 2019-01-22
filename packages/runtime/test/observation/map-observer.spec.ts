@@ -279,10 +279,21 @@ function synchronize(oldMap: Map<any, any>, indexMap: IndexMap, newMap: Map<any,
     return;
   }
 
-  for (const entry of indexMap.deletedItems) {
-    oldMap.delete(entry);
-  }
   let i = 0;
+  const toDelete = [];
+  for (const deleted of indexMap.deletedItems) {
+    i = 0;
+    for (const entry of oldMap.keys()) {
+      if (i === deleted) {
+        toDelete.push(entry);
+      }
+      i++;
+    }
+  }
+  for (const del of toDelete) {
+    oldMap.delete(del);
+  }
+  i = 0;
   for (const entry of newMap.keys()) {
     if (indexMap[i] === -2) {
       oldMap.set(entry, entry);

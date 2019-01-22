@@ -2,6 +2,8 @@ import { DI, IContainer, IResolver, PLATFORM } from '@aurelia/kernel';
 
 export interface INode extends Object { }
 
+export const DOM: IDOM = {} as IDOM;
+
 export const INode = DI.createInterface<INode>('INode').noDefault();
 
 export const IRenderLocation = DI.createInterface<IRenderLocation>('IRenderLocation').noDefault();

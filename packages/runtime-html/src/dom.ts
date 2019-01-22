@@ -11,6 +11,7 @@ import {
 
 import {
   CompiledTemplate,
+  DOM,
   IDOM,
   INode,
   INodeSequence,

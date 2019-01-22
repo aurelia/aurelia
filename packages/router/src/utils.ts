@@ -1,8 +1,8 @@
 import { CustomElementHost } from '@aurelia/runtime';
 
-export function closestCustomElement(element: Element): CustomElementHost {
+export function closestCustomElement(element: CustomElementHost<Element>): CustomElementHost {
   while (element) {
-    if ((element as CustomElementHost).$customElement) {
+    if ((element).$customElement) {
       break;
     }
     element = element.parentElement;

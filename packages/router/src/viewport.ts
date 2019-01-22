@@ -123,7 +123,7 @@ export class Viewport {
     if (this.element !== element) {
       // TODO: Restore this state on navigation cancel
       this.previousViewportState = { ...this };
-      this.freshState();
+      this.clearState();
       this.element = element;
       if (options && options.usedBy) {
         this.options.usedBy = options.usedBy;
@@ -150,6 +150,7 @@ export class Viewport {
     }
   }
 
+  // TODO: Will probably end up changing stuff due to the remove (hence the name)
   public remove(element: Element, context: IRenderContext): boolean {
     return this.element === element && this.context === context;
   }
@@ -391,7 +392,7 @@ export class Viewport {
     }
   }
 
-  private freshState(): void {
+  private clearState(): void {
     this.options = {};
 
     this.content = null;

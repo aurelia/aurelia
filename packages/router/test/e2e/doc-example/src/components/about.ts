@@ -9,7 +9,7 @@ import { wait } from '../utils';
 </template>` })
 export class About {
   public enter() {
-    return wait(6000);
+    return wait(4000);
   }
 }
 export interface About extends ICustomElement<HTMLElement> { }

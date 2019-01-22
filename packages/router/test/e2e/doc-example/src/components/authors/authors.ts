@@ -20,7 +20,7 @@ export class Authors {
   get authors() { return this.authorsRepository.authors(); }
 
   public enter() {
-    return wait(3000);
+    return wait(2000);
   }
 }
 export interface Authors extends ICustomElement<HTMLElement> { }

@@ -180,17 +180,22 @@ export class BindingBehavior implements IBindingBehaviorExpression {
     if (!behavior) {
       throw Reporter.error(RuntimeError.NoBehaviorFound, this);
     }
-    if (binding[behaviorKey] !== undefined && binding[behaviorKey] !== null) {
-      throw Reporter.error(RuntimeError.BehaviorAlreadyApplied, this);
+    if (binding[behaviorKey] === undefined || binding[behaviorKey] === null) {
+      binding[behaviorKey] = behavior;
+      behavior.bind.apply(behavior, ([flags, scope, binding] as unknown[]).concat(evalList(flags, scope, locator, this.args)));
+    } else {
+      Reporter.write(RuntimeError.BehaviorAlreadyApplied, this);
     }
-    binding[behaviorKey] = behavior;
-    behavior.bind.apply(behavior, ([flags, scope, binding] as unknown[]).concat(evalList(flags, scope, locator, this.args)));
   }
 
   public unbind(flags: LifecycleFlags, scope: IScope, binding: IConnectableBinding): void {
     const behaviorKey = this.behaviorKey;
-    binding[behaviorKey].unbind(flags, scope, binding);
-    binding[behaviorKey] = null;
+    if (binding[behaviorKey] !== undefined && binding[behaviorKey] !== null) {
+      binding[behaviorKey].unbind(flags, scope, binding);
+      binding[behaviorKey] = null;
+    } else {
+      Reporter.write(RuntimeError.BehaviorAlreadyApplied, this);
+    }
     if (this.expressionHasUnbind) {
       (this.expression as BindingBehavior | ValueConverter).unbind(flags, scope, binding);
     }

@@ -1,7 +1,9 @@
 import { Constructable, InterfaceSymbol } from '@aurelia/kernel';
-import { LifecycleFlags } from '@aurelia/runtime';
+import { ICustomElement, IElementTemplateProvider, INode, IRenderContext, IRenderingEngine, LifecycleFlags, TemplateDefinition } from '@aurelia/runtime';
 import { Router } from '../router';
 import { Viewport } from '../viewport';
+export interface ViewportCustomElement extends ICustomElement<Element> {
+}
 export declare class ViewportCustomElement {
     static readonly inject: ReadonlyArray<InterfaceSymbol | Constructable>;
     name: string;
@@ -13,9 +15,11 @@ export declare class ViewportCustomElement {
     viewport: Viewport;
     private readonly router;
     private readonly element;
-    constructor(router: Router, element: Element);
-    attached(): void;
-    detached(): void;
+    private readonly renderingEngine;
+    constructor(router: Router, element: Element, renderingEngine: IRenderingEngine);
+    render(flags: LifecycleFlags, host: INode, parts: Record<string, TemplateDefinition>, parentContext: IRenderContext | null): IElementTemplateProvider | void;
+    bound(): void;
+    unbound(): void;
     binding(flags: LifecycleFlags): void;
     attaching(flags: LifecycleFlags): void;
     detaching(flags: LifecycleFlags): void;

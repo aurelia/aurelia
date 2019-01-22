@@ -1,5 +1,5 @@
 import { IContainer, InterfaceSymbol } from '@aurelia/kernel';
-import { ICustomElementType } from '@aurelia/runtime';
+import { ICustomElementType, IRenderContext } from '@aurelia/runtime';
 import { HistoryBrowser, IHistoryOptions, INavigationInstruction } from './history-browser';
 import { AnchorEventInfo, LinkHandler } from './link-handler';
 import { INavRoute, Nav } from './nav';
@@ -64,8 +64,8 @@ export declare class Router {
     addProcessingViewport(viewport: Viewport, component: string): void;
     findViews(path: string): Record<string, string>;
     findScope(element: Element): Scope;
-    addViewport(name: string, element: Element, options?: IViewportOptions): Viewport;
-    removeViewport(viewport: Viewport): void;
+    addViewport(name: string, element: Element, context: IRenderContext, options?: IViewportOptions): Viewport;
+    removeViewport(viewport: Viewport, element: Element, context: IRenderContext): void;
     removeScope(scope: Scope): void;
     goto(pathOrViewports: string | Record<string, Viewport>, title?: string, data?: Record<string, unknown>): void;
     replace(pathOrViewports: string | Record<string, Viewport>, title?: string, data?: Record<string, unknown>): void;

@@ -1,4 +1,4 @@
-import { ICustomElement, ICustomElementType, LifecycleFlags } from '@aurelia/runtime';
+import { ICustomElement, ICustomElementType, IRenderContext, LifecycleFlags } from '@aurelia/runtime';
 import { INavigationInstruction } from './history-browser';
 import { Router } from './router';
 import { Scope } from './scope';
@@ -23,11 +23,12 @@ export interface IViewportOptions {
 export declare class Viewport {
     name: string;
     element: Element;
+    context: IRenderContext;
     owningScope: Scope;
     scope: Scope;
     options?: IViewportOptions;
     content: IRouteableCustomElementType;
-    nextContent: IRouteableCustomElementType;
+    nextContent: IRouteableCustomElementType | string;
     parameters: string;
     nextParameters: string;
     instruction: INavigationInstruction;
@@ -37,12 +38,18 @@ export declare class Viewport {
     private readonly router;
     private clear;
     private elementResolve?;
-    constructor(router: Router, name: string, element: Element, owningScope: Scope, scope: Scope, options?: IViewportOptions);
+    private previousViewportState?;
+    private entered;
+    constructor(router: Router, name: string, element: Element, context: IRenderContext, owningScope: Scope, scope: Scope, options?: IViewportOptions);
     setNextContent(content: ICustomElementType | string, instruction: INavigationInstruction): boolean;
-    setElement(element: Element, options: IViewportOptions): void;
+    setElement(element: Element, context: IRenderContext, options: IViewportOptions): void;
+    remove(element: Element, context: IRenderContext): boolean;
     canLeave(): Promise<boolean>;
     canEnter(): Promise<boolean>;
+    enter(): Promise<boolean>;
     loadContent(): Promise<boolean>;
+    finalizeContentChange(): void;
+    restorePreviousContent(): Promise<void>;
     description(full?: boolean): string;
     scopedDescription(full?: boolean): string;
     wantComponent(component: ICustomElementType | string): boolean;
@@ -51,7 +58,14 @@ export declare class Viewport {
     attaching(flags: LifecycleFlags): void;
     detaching(flags: LifecycleFlags): void;
     unbinding(flags: LifecycleFlags): void;
+    componentName(component: IRouteableCustomElementType | string): string;
+    componentType(component: IRouteableCustomElementType | string): IRouteableCustomElementType;
+    componentInstance(component: IRouteableCustomElementType | string): IRouteableCustomElement;
+    private clearState;
     private loadComponent;
+    private unloadComponent;
+    private initializeComponent;
+    private terminateComponent;
     private addComponent;
     private removeComponent;
     private waitForElement;

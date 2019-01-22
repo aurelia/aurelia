@@ -1,4 +1,4 @@
-import { IObserverLocator, LifecycleFlags, CustomElementResource, Aurelia, INode, bindable, customElement } from '@aurelia/runtime';
+import { IObserverLocator, LifecycleFlags, CustomElementResource, Aurelia, IDOM, createRenderContext, INode, IRenderingEngine, bindable, customElement } from '@aurelia/runtime';
 import { IContainer, inject } from '@aurelia/kernel';
 
 class HistoryBrowser {
@@ -322,7 +322,7 @@ class LinkHandler {
             href: null,
             anchor: null
         };
-        const target = LinkHandler.findClosestAnchor(event.target);
+        const target = LinkHandler.closestAnchor(event.target);
         if (!target || !LinkHandler.targetIsThisWindow(target)) {
             return info;
         }
@@ -345,7 +345,7 @@ class LinkHandler {
      * @param el The element to search upward from.
      * @returns The link element that is the closest ancestor.
      */
-    static findClosestAnchor(el) {
+    static closestAnchor(el) {
         while (el) {
             if (el.tagName === 'A') {
                 return el;
@@ -387,7 +387,6 @@ class LinkHandler {
     }
 }
 
-// NOTE: this file is currently not in use
 class NavRoute {
     constructor(nav, route) {
         this.active = '';
@@ -470,7 +469,6 @@ class NavRoute {
     }
 }
 
-// NOTE: this file is currently not in use
 class Nav {
     constructor(router, name) {
         this.router = router;
@@ -536,17 +534,18 @@ function mergeParameters(parameters, query, specifiedParameters) {
         merged = params;
     }
     return {
-        parameters: params,
-        list: list,
+        namedParameters: params,
+        parameterList: list,
         merged: merged,
     };
 }
 
 class Viewport {
-    constructor(router, name, element, owningScope, scope, options) {
+    constructor(router, name, element, context, owningScope, scope, options) {
         this.router = router;
         this.name = name;
         this.element = element;
+        this.context = context;
         this.owningScope = owningScope;
         this.scope = scope;
         this.options = options;
@@ -560,6 +559,8 @@ class Viewport {
         this.component = null;
         this.nextComponent = null;
         this.elementResolve = null;
+        this.previousViewportState = null;
+        this.entered = false;
     }
     setNextContent(content, instruction) {
         let parameters;
@@ -573,21 +574,27 @@ class Viewport {
                 const cp = content.split(this.router.separators.parameters);
                 content = cp.shift();
                 parameters = cp.length ? cp.join(this.router.separators.parameters) : null;
-                const resolver = this.router.container.getResolver(CustomElementResource.keyFrom(content));
-                if (resolver !== null) {
-                    content = resolver.getFactory(this.router.container).Type;
+                // If we've got a container, we're good to resolve type
+                if (this.context) {
+                    content = this.componentType(content);
                 }
             }
         }
+        // Can be a (resolved) type or a string (to be resolved later)
         this.nextContent = content;
         this.nextInstruction = instruction;
         this.nextParameters = parameters;
-        if (this.content !== content || this.parameters !== parameters || !this.instruction || this.instruction.query !== instruction.query || instruction.isRefresh) {
+        this.entered = false;
+        if ((typeof content === 'string' && this.componentName(this.content) !== content) ||
+            (typeof content !== 'string' && this.content !== content) ||
+            this.parameters !== parameters ||
+            !this.instruction || this.instruction.query !== instruction.query ||
+            instruction.isRefresh) {
             return true;
         }
         return false;
     }
-    setElement(element, options) {
+    setElement(element, context, options) {
         // First added viewport with element is always scope viewport (except for root scope)
         if (this.scope && this.scope.parent && !this.scope.viewport) {
             this.scope.viewport = this;
@@ -595,7 +602,10 @@ class Viewport {
         if (this.scope && !this.scope.element) {
             this.scope.element = element;
         }
-        if (!this.element) {
+        if (this.element !== element) {
+            // TODO: Restore this state on navigation cancel
+            this.previousViewportState = Object.assign({}, this);
+            this.clearState();
             this.element = element;
             if (options && options.usedBy) {
                 this.options.usedBy = options.usedBy;
@@ -613,48 +623,74 @@ class Viewport {
                 this.elementResolve();
             }
         }
+        if (this.context !== context) {
+            this.context = context;
+        }
         if (!this.component && !this.nextComponent && this.options.default) {
             this.router.addProcessingViewport(this, this.options.default);
         }
     }
-    canLeave() {
+    // TODO: Will probably end up changing stuff due to the remove (hence the name)
+    remove(element, context) {
+        return this.element === element && this.context === context;
+    }
+    async canLeave() {
         if (!this.component) {
-            return Promise.resolve(true);
+            return true;
         }
         const component = this.component;
         if (!component.canLeave) {
-            return Promise.resolve(true);
+            return true;
         }
         // tslint:disable-next-line:no-console
         console.log('viewport canLeave', component.canLeave(this.instruction, this.nextInstruction));
         const result = component.canLeave(this.instruction, this.nextInstruction);
         if (typeof result === 'boolean') {
-            return Promise.resolve(result);
+            return result;
         }
         return result;
     }
-    canEnter() {
+    async canEnter() {
         if (this.clear) {
-            return Promise.resolve(true);
+            return true;
         }
         if (!this.nextContent) {
-            return Promise.resolve(false);
+            return false;
         }
-        this.loadComponent(this.nextContent);
+        await this.loadComponent(this.nextContent);
         if (!this.nextComponent) {
-            return Promise.resolve(false);
+            return false;
         }
         const component = this.nextComponent;
         if (!component.canEnter) {
-            return Promise.resolve(true);
+            return true;
         }
         const result = component.canEnter(this.nextInstruction, this.instruction);
         // tslint:disable-next-line:no-console
         console.log('viewport canEnter', result);
         if (typeof result === 'boolean') {
-            return Promise.resolve(result);
+            return result;
         }
         return result;
+    }
+    async enter() {
+        // tslint:disable-next-line:no-console
+        console.log('Viewport enter', this.name);
+        if (this.clear) {
+            return true;
+        }
+        if (!this.nextComponent) {
+            return false;
+        }
+        if (this.nextComponent.enter) {
+            const merged = mergeParameters(this.nextParameters, this.nextInstruction.query, this.nextContent.parameters);
+            this.nextInstruction.parameters = merged.namedParameters;
+            this.nextInstruction.parameterList = merged.parameterList;
+            await this.nextComponent.enter(merged.merged, this.nextInstruction, this.instruction);
+            this.entered = false;
+        }
+        this.initializeComponent(this.nextComponent);
+        return true;
     }
     async loadContent() {
         // tslint:disable-next-line:no-console
@@ -666,25 +702,16 @@ class Viewport {
             // No need to wait for next component activation
             if (!this.nextComponent) {
                 this.removeComponent(this.component);
+                this.terminateComponent(this.component);
+                this.unloadComponent(this.component);
             }
         }
         if (this.nextComponent) {
-            if (this.nextComponent.enter) {
-                const merged = mergeParameters(this.nextParameters, this.nextInstruction.query, this.nextContent.parameters);
-                this.nextInstruction.parameters = merged.parameters;
-                this.nextInstruction.parameterList = merged.list;
-                await this.nextComponent.enter(merged.merged, this.nextInstruction, this.instruction);
-            }
-            if (!this.element) {
-                // TODO: Refactor this once multi level recursiveness is fixed
-                await this.waitForElement();
-                if (!this.element) {
-                    return Promise.resolve(false);
-                }
-            }
             // Only when next component activation is done
             if (this.component) {
                 this.removeComponent(this.component);
+                this.terminateComponent(this.component);
+                this.unloadComponent(this.component);
             }
             this.addComponent(this.nextComponent);
             this.content = this.nextContent;
@@ -697,11 +724,23 @@ class Viewport {
             this.instruction = this.nextInstruction;
         }
         this.nextContent = this.nextParameters = this.nextInstruction = this.nextComponent = null;
-        return Promise.resolve(true);
+        return true;
+    }
+    finalizeContentChange() {
+        this.previousViewportState = null;
+    }
+    // TODO: Call this on cancel
+    async restorePreviousContent() {
+        if (this.entered) {
+            await this.nextComponent.leave();
+        }
+        if (this.previousViewportState) {
+            Object.assign(this, this.previousViewportState);
+        }
     }
     description(full = false) {
         if (this.content) {
-            const component = this.content.description.name;
+            const component = this.componentName(this.content);
             const newScope = this.scope ? this.router.separators.ownsScope : '';
             const parameters = this.parameters ? this.router.separators.parameters + this.parameters : '';
             if (full || newScope.length || this.options.forceDescription) {
@@ -717,7 +756,7 @@ class Viewport {
         }
     }
     scopedDescription(full = false) {
-        const descriptions = [this.owningScope.context(full), this.description(full)];
+        const descriptions = [this.owningScope.scopeContext(full), this.description(full)];
         return descriptions.filter((value) => value && value.length).join(this.router.separators.scope);
     }
     // TODO: Deal with non-string components
@@ -768,20 +807,76 @@ class Viewport {
             this.component.$unbind(flags);
         }
     }
-    loadComponent(component) {
-        this.nextComponent = this.router.container.get(CustomElementResource.keyFrom(component.description.name));
+    componentName(component) {
+        if (component === null) {
+            return null;
+        }
+        else if (typeof component === 'string') {
+            return component;
+        }
+        else {
+            return component.description.name;
+        }
+    }
+    componentType(component) {
+        if (component === null) {
+            return null;
+        }
+        else if (typeof component !== 'string') {
+            return component;
+        }
+        else {
+            const container = this.context || this.router.container;
+            const resolver = container.get(IContainer).getResolver(CustomElementResource.keyFrom(component));
+            if (resolver !== null) {
+                return resolver.getFactory(container.get(IContainer)).Type;
+            }
+            return null;
+        }
+    }
+    componentInstance(component) {
+        if (component === null) {
+            return null;
+        }
+        // TODO: Remove once "local registration is fixed"
+        component = this.componentName(component);
+        const container = this.context || this.router.container;
+        if (typeof component !== 'string') {
+            return container.get(IContainer).get(component);
+        }
+        else {
+            return container.get(IContainer).get(CustomElementResource.keyFrom(component));
+        }
+    }
+    clearState() {
+        this.options = {};
+        this.content = null;
+        this.parameters = null;
+        this.instruction = null;
+        this.component = null;
+    }
+    async loadComponent(component) {
+        await this.waitForElement();
+        this.nextComponent = this.componentInstance(component);
+        const host = this.element;
+        const container = this.context || this.router.container;
+        // TODO: get useProxies settings from the template definition
+        this.nextComponent.$hydrate(LifecycleFlags.none, container, host);
+    }
+    unloadComponent(component) {
+        // TODO: We might want to do something here eventually, who knows?
+    }
+    initializeComponent(component) {
+        component.$bind(LifecycleFlags.fromStartTask | LifecycleFlags.fromBind, null);
+    }
+    terminateComponent(component) {
+        component.$unbind(LifecycleFlags.fromStopTask | LifecycleFlags.fromUnbind);
     }
     addComponent(component) {
-        const host = this.element;
-        const container = this.router.container;
-        // TODO: get useProxies settings from the template definition
-        component.$hydrate(LifecycleFlags.none, container, host);
-        component.$bind(LifecycleFlags.fromStartTask | LifecycleFlags.fromBind, null);
         component.$attach(LifecycleFlags.fromStartTask);
     }
     removeComponent(component) {
         component.$detach(LifecycleFlags.fromStopTask);
-        component.$unbind(LifecycleFlags.fromStopTask | LifecycleFlags.fromUnbind);
     }
     async waitForElement() {
         if (this.element) {
@@ -795,9 +890,10 @@ class Viewport {
 }
 
 class Scope {
-    constructor(router, element, parent) {
+    constructor(router, element, context, parent) {
         this.router = router;
         this.element = element;
+        this.context = context;
         this.parent = parent;
         this.viewport = null;
         this.children = [];
@@ -841,8 +937,7 @@ class Scope {
                     componentViewports.push(...found.componentViewports);
                     viewportsRemaining = viewportsRemaining || found.viewportsRemaining;
                     this.availableViewports[name] = null;
-                    // tslint:disable-next-line:no-dynamic-delete
-                    delete this.scopeViewportParts[viewportPart];
+                    Reflect.deleteProperty(this.scopeViewportParts, viewportPart);
                     break;
                 }
             }
@@ -864,7 +959,7 @@ class Scope {
                 name = name.substring(0, name.length - 1);
             }
             if (!this.viewports[name]) {
-                this.addViewport(name, null, { scope: newScope, forceDescription: true });
+                this.addViewport(name, null, null, { scope: newScope, forceDescription: true });
                 this.availableViewports[name] = this.viewports[name];
             }
             const viewport = this.availableViewports[name];
@@ -873,8 +968,7 @@ class Scope {
                 componentViewports.push(...found.componentViewports);
                 viewportsRemaining = viewportsRemaining || found.viewportsRemaining;
                 this.availableViewports[name] = null;
-                // tslint:disable-next-line:no-dynamic-delete
-                delete this.scopeViewportParts[viewportPart];
+                Reflect.deleteProperty(this.scopeViewportParts, viewportPart);
             }
         }
         // Finally, only one accepting viewport left?
@@ -896,8 +990,7 @@ class Scope {
                 componentViewports.push(...found.componentViewports);
                 viewportsRemaining = viewportsRemaining || found.viewportsRemaining;
                 this.availableViewports[viewport.name] = null;
-                // tslint:disable-next-line:no-dynamic-delete
-                delete this.scopeViewportParts[viewportPart];
+                Reflect.deleteProperty(this.scopeViewportParts, viewportPart);
                 break;
             }
         }
@@ -936,57 +1029,29 @@ class Scope {
             viewportsRemaining: viewportsRemaining,
         };
     }
-    // public findViewport(name: string): Viewport {
-    //   const parts = name.split(this.router.separators.scope);
-    //   const names = parts.shift().split(this.router.separators.viewport);
-    //   const comp = names.shift();
-    //   name = names.shift();
-    //   let newScope = false;
-    //   if (name.endsWith(this.router.separators.ownsScope)) {
-    //     newScope = true;
-    //     name = name.substring(0, name.length - 1);
-    //   }
-    //   const viewport = this.resolveViewport(name, comp) || this.addViewport(name, null, { scope: newScope });
-    //   if (!parts.length) {
-    //     return viewport;
-    //   } else {
-    //     const scope = viewport.scope || viewport.owningScope;
-    //     return scope.findViewport(parts.join(this.router.separators.scope));
-    //   }
-    // }
-    // public resolveViewport(name: string, component: string): Viewport {
-    //   if (name.length && name.charAt(0) !== '?') {
-    //     return this.viewports[name];
-    //   }
-    //   // Need more ways to resolve viewport based on component name!
-    //   const comp = this.resolveComponent(component);
-    //   if (comp.viewport) {
-    //     name = comp.viewport;
-    //     return this.viewports[name];
-    //   }
-    //   return null;
-    // }
-    addViewport(name, element, options) {
+    addViewport(name, element, context, options) {
         let viewport = this.viewports[name];
         if (!viewport) {
             let scope;
             if (options.scope) {
-                scope = new Scope(this.router, element, this);
+                scope = new Scope(this.router, element, context, this);
                 this.router.scopes.push(scope);
             }
-            viewport = this.viewports[name] = new Viewport(this.router, name, element, this, scope, options);
+            viewport = this.viewports[name] = new Viewport(this.router, name, element, context, this, scope, options);
         }
-        if (element) {
-            viewport.setElement(element, options);
+        // TODO: Either explain why || instead of && here (might only need one) or change it to && if that should turn out to not be relevant
+        if (element || context) {
+            viewport.setElement(element, context, options);
         }
         return viewport;
     }
-    removeViewport(viewport) {
-        if (viewport.scope) {
-            this.router.removeScope(viewport.scope);
+    removeViewport(viewport, element, context) {
+        if ((!element && !context) || viewport.remove(element, context)) {
+            if (viewport.scope) {
+                this.router.removeScope(viewport.scope);
+            }
+            Reflect.deleteProperty(this.viewports, viewport.name);
         }
-        // tslint:disable-next-line:no-dynamic-delete
-        delete this.viewports[viewport.name];
         return Object.keys(this.viewports).length;
     }
     removeScope() {
@@ -994,7 +1059,7 @@ class Scope {
             child.removeScope();
         }
         for (const viewport in this.viewports) {
-            this.router.removeViewport(this.viewports[viewport]);
+            this.router.removeViewport(this.viewports[viewport], null, null);
         }
     }
     renderViewport(viewport) {
@@ -1032,7 +1097,7 @@ class Scope {
         }
         return viewports;
     }
-    context(full = false) {
+    scopeContext(full = false) {
         if (!this.element || !this.parent) {
             return '';
         }
@@ -1040,45 +1105,35 @@ class Scope {
         if (this.viewport) {
             parents.unshift(this.viewport.description(full));
         }
-        let viewport = this.parent.closestViewport(this.element.parentElement);
+        let viewport = this.parent.closestViewport(this.context.get(IContainer).parent);
         while (viewport && viewport.owningScope === this.parent) {
             parents.unshift(viewport.description(full));
-            viewport = this.closestViewport(viewport.element.parentElement);
+            viewport = this.closestViewport(viewport.context.get(IContainer).parent);
         }
-        parents.unshift(this.parent.context(full));
+        parents.unshift(this.parent.scopeContext(full));
         return parents.filter((value) => value && value.length).join(this.router.separators.scope);
     }
-    resolveComponent(component) {
-        if (typeof component === 'string') {
-            const resolver = this.router.container.getResolver(CustomElementResource.keyFrom(component));
-            if (resolver !== null) {
-                component = resolver.getFactory(this.router.container).Type;
+    closestViewport(container) {
+        const viewports = Object.values(this.viewports);
+        while (container) {
+            const viewport = viewports.find((item) => item.context.get(IContainer) === container);
+            if (viewport) {
+                return viewport;
             }
+            container = container.parent;
         }
-        return component;
+        return null;
     }
-    // This is not an optimal way of doing this
-    closestViewport(element) {
-        let closest = Number.MAX_SAFE_INTEGER;
-        let viewport;
-        for (const vp in this.viewports) {
-            const viewportElement = this.viewports[vp].element;
-            let el = element;
-            let i = 0;
-            while (el) {
-                if (el === viewportElement) {
-                    break;
-                }
-                i++;
-                el = el.parentElement;
-            }
-            if (i < closest) {
-                closest = i;
-                viewport = this.viewports[vp];
-            }
+}
+
+function closestCustomElement(element) {
+    while (element) {
+        if ((element).$customElement) {
+            break;
         }
-        return viewport;
+        element = element.parentElement;
     }
+    return element;
 }
 
 class Router {
@@ -1100,7 +1155,7 @@ class Router {
             }
             if (!href.startsWith('/')) {
                 const scope = this.closestScope(info.anchor);
-                const context = scope.context();
+                const context = scope.scopeContext();
                 if (context) {
                     href = `/${context}${this.separators.scope}${href}`;
                 }
@@ -1195,14 +1250,14 @@ class Router {
         this.ensureRootScope();
         const usedViewports = (clearViewports ? this.rootScope.allViewports().filter((value) => value.component !== null) : []);
         const defaultViewports = this.rootScope.allViewports().filter((value) => value.options.default && value.component === null);
-        let keepHistoryEntry = instruction.isFirst;
+        const updatedViewports = [];
         // TODO: Take care of cancellations down in subsets/iterations
         let { componentViewports, viewportsRemaining } = this.rootScope.findViewports(views);
         let guard = 100;
         while (componentViewports.length || viewportsRemaining || defaultViewports.length) {
             // Guard against endless loop
             if (!guard--) {
-                break;
+                throw new Error('Failed to resolve all viewports');
             }
             const changedViewports = [];
             for (const componentViewport of componentViewports) {
@@ -1244,8 +1299,20 @@ class Router {
                 this.processingNavigation = null;
                 return Promise.resolve();
             }
-            results = await Promise.all(changedViewports.map((value) => value.canEnter()));
-            if (results.findIndex((value) => value === false) >= 0) {
+            results = await Promise.all(changedViewports.map(async (value) => {
+                const canEnter = await value.canEnter();
+                if (typeof canEnter === 'boolean') {
+                    if (canEnter) {
+                        return value.enter();
+                    }
+                    else {
+                        return false;
+                    }
+                }
+                // TODO: Deal with redirects
+                return true;
+            }));
+            if (results.some(result => result === false)) {
                 this.historyBrowser.cancel();
                 this.processingNavigation = null;
                 return Promise.resolve();
@@ -1257,9 +1324,7 @@ class Router {
             //   this.historyBrowser.cancel();
             //   return Promise.resolve();
             // }
-            if (changedViewports.reduce((accumulated, current) => !current.options.noHistory || accumulated, keepHistoryEntry)) {
-                keepHistoryEntry = true;
-            }
+            updatedViewports.push(...changedViewports);
             // TODO: Fix multi level recursiveness!
             const remaining = this.rootScope.findViewports();
             componentViewports = [];
@@ -1273,9 +1338,13 @@ class Router {
             viewportsRemaining = remaining.viewportsRemaining;
         }
         this.replacePaths(instruction);
-        if (!keepHistoryEntry) {
+        // Remove history entry if no history viewports updated
+        if (!instruction.isFirst && updatedViewports.every(viewport => viewport.options.noHistory)) {
             this.historyBrowser.pop().catch(error => { throw error; });
         }
+        updatedViewports.forEach((viewport) => {
+            viewport.finalizeContentChange();
+        });
         this.processingNavigation = null;
         if (this.pendingNavigations.length) {
             this.processNavigations().catch(error => { throw error; });
@@ -1376,17 +1445,17 @@ class Router {
         return this.closestScope(element);
     }
     // Called from the viewport custom element in attached()
-    addViewport(name, element, options) {
+    addViewport(name, element, context, options) {
         // tslint:disable-next-line:no-console
         console.log('Viewport added', name, element);
         const parentScope = this.findScope(element);
-        return parentScope.addViewport(name, element, options);
+        return parentScope.addViewport(name, element, context, options);
     }
     // Called from the viewport custom element
-    removeViewport(viewport) {
+    removeViewport(viewport, element, context) {
         // TODO: There's something hinky with remove!
         const scope = viewport.owningScope;
-        if (!scope.removeViewport(viewport)) {
+        if (!scope.removeViewport(viewport, element, context)) {
             this.removeScope(scope);
         }
     }
@@ -1483,30 +1552,21 @@ class Router {
     }
     ensureRootScope() {
         if (!this.rootScope) {
-            const aureliaRootElement = this.container.get(Aurelia).root().$host;
-            this.rootScope = new Scope(this, aureliaRootElement, null);
+            const root = this.container.get(Aurelia).root();
+            this.rootScope = new Scope(this, root.$host, root.$context, null);
             this.scopes.push(this.rootScope);
         }
     }
     closestScope(element) {
-        let closest = Number.MAX_SAFE_INTEGER;
-        let scope;
-        for (const sc of this.scopes) {
-            let el = element;
-            let i = 0;
-            while (el) {
-                if (el === sc.element) {
-                    break;
-                }
-                i++;
-                el = el.parentElement;
+        const el = closestCustomElement(element);
+        let container = el.$customElement.$context.get(IContainer);
+        while (container) {
+            const scope = this.scopes.find((item) => item.context.get(IContainer) === container);
+            if (scope) {
+                return scope;
             }
-            if (i < closest) {
-                closest = i;
-                scope = sc;
-            }
+            container = container.parent;
         }
-        return scope;
     }
     removeStateDuplicates(states) {
         let sorted = states.slice().sort((a, b) => b.split(this.separators.scope).length - a.split(this.separators.scope).length);
@@ -1568,9 +1628,10 @@ function __decorate(decorators, target, key, desc) {
 }
 
 class ViewportCustomElement {
-    constructor(router, element) {
+    constructor(router, element, renderingEngine) {
         this.router = router;
         this.element = element;
+        this.renderingEngine = renderingEngine;
         this.name = 'default';
         this.scope = null;
         this.usedBy = null;
@@ -1579,7 +1640,42 @@ class ViewportCustomElement {
         this.noHistory = null;
         this.viewport = null;
     }
-    attached() {
+    render(flags, host, parts, parentContext) {
+        const Type = this.constructor;
+        const dom = parentContext.get(IDOM);
+        const template = this.renderingEngine.getElementTemplate(dom, Type.description, parentContext, Type);
+        template.renderContext = createRenderContext(dom, parentContext, Type.description.dependencies, Type);
+        template.render(this, host, parts);
+    }
+    // public created(...rest): void {
+    //   console.log('Created', rest);
+    //   const booleanAttributes = {
+    //     'scope': 'scope',
+    //     'no-link': 'noLink',
+    //     'no-history': 'noHistory',
+    //   };
+    //   const valueAttributes = {
+    //     'used-by': 'usedBy',
+    //     'default': 'default',
+    //   };
+    //   const name = this.element.hasAttribute('name') ? this.element.getAttribute('name') : 'default';
+    //   const options: IViewportOptions = {};
+    //   for (const attribute in booleanAttributes) {
+    //     if (this.element.hasAttribute[attribute]) {
+    //       options[booleanAttributes[attribute]] = true;
+    //     }
+    //   }
+    //   for (const attribute in valueAttributes) {
+    //     if (this.element.hasAttribute(attribute)) {
+    //       const value = this.element.getAttribute(attribute);
+    //       if (value && value.length) {
+    //         options[valueAttributes[attribute]] = value;
+    //       }
+    //     }
+    //   }
+    //   this.viewport = this.router.addViewport(name, this.element, (this as any).$context.get(IContainer), options);
+    // }
+    bound() {
         const options = { scope: this.element.hasAttribute('scope') };
         if (this.usedBy && this.usedBy.length) {
             options.usedBy = this.usedBy;
@@ -1593,10 +1689,10 @@ class ViewportCustomElement {
         if (this.element.hasAttribute('no-history')) {
             options.noHistory = true;
         }
-        this.viewport = this.router.addViewport(this.name, this.element, options);
+        this.viewport = this.router.addViewport(this.name, this.element, this.$context, options);
     }
-    detached() {
-        this.router.removeViewport(this.viewport);
+    unbound() {
+        this.router.removeViewport(this.viewport, this.element, this.$context);
     }
     binding(flags) {
         if (this.viewport) {
@@ -1619,7 +1715,7 @@ class ViewportCustomElement {
         }
     }
 }
-ViewportCustomElement.inject = [Router, INode];
+ViewportCustomElement.inject = [Router, INode, IRenderingEngine];
 __decorate([
     bindable
 ], ViewportCustomElement.prototype, "name", void 0);

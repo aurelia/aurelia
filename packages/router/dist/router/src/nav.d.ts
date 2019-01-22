@@ -1,9 +1,14 @@
 import { ICustomElementType } from '@aurelia/runtime';
-import { NavComponent, NavRoute } from './nav-route';
+import { NavRoute } from './nav-route';
 import { Router } from './router';
+export interface IViewportComponent {
+    viewport?: string;
+    component: string | Partial<ICustomElementType>;
+}
+export declare type NavComponent = string | Partial<ICustomElementType> | IViewportComponent;
 export interface INavRoute {
-    components: string | ICustomElementType | Record<string, unknown>;
-    consideredActive?: NavComponent;
+    components: NavComponent | NavComponent[];
+    consideredActive?: NavComponent | NavComponent[];
     link?: string;
     title: string;
     children?: INavRoute[];

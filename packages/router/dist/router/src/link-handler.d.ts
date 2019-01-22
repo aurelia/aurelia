@@ -45,7 +45,7 @@ export declare class LinkHandler {
      * @param el The element to search upward from.
      * @returns The link element that is the closest ancestor.
      */
-    private static findClosestAnchor;
+    private static closestAnchor;
     /**
      * Gets a value indicating whether or not an anchor targets the current window.
      *

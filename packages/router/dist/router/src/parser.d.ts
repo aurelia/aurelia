@@ -3,8 +3,8 @@ export interface IParsedQuery {
     list: string[];
 }
 export interface IMergedParameters {
-    parameters: Record<string, string>;
-    list: string[];
+    namedParameters: Record<string, string>;
+    parameterList: string[];
     merged: string[] | Record<string, string>;
 }
 export declare function parseQuery(query: string): IParsedQuery;

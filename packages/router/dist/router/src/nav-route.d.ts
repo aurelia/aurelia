@@ -1,13 +1,7 @@
-import { ICustomElementType } from '@aurelia/runtime';
-import { INavRoute, Nav } from './nav';
-export interface IViewportComponent {
-    viewport?: string;
-    component: string | ICustomElementType;
-}
-export declare type NavComponent = string | ICustomElementType | IViewportComponent;
+import { INavRoute, Nav, NavComponent } from './nav';
 export declare class NavRoute {
     nav: Nav;
-    components: NavComponent;
+    components: NavComponent | NavComponent[];
     title: string;
     link?: string;
     linkActive?: string;
@@ -21,7 +15,7 @@ export declare class NavRoute {
     handleChange(): void;
     _active(): string;
     toggleActive(): void;
-    _link(components: NavComponent): string;
+    _link(components: NavComponent | NavComponent[]): string;
     private activeChild;
     private linkName;
 }

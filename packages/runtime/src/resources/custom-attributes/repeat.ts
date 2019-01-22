@@ -65,7 +65,7 @@ export class Repeat<C extends ObservedCollection = IObservedArray, T extends INo
     }
     this.local = this.forOf.declaration.evaluate(flags, this.$scope, null) as string;
 
-    if (flags & LifecycleFlags.keyedMode) {
+    if (this.keyed || (flags & LifecycleFlags.keyedMode) > 0) {
       this.processViewsKeyed(null, flags);
     } else {
       this.processViewsNonKeyed(null, flags);
@@ -104,7 +104,7 @@ export class Repeat<C extends ObservedCollection = IObservedArray, T extends INo
   public itemsChanged(newValue: C, oldValue: C, flags: LifecycleFlags): void {
     this.checkCollectionObserver(flags);
     flags |= LifecycleFlags.updateTargetInstance;
-    if (flags & LifecycleFlags.keyedMode) {
+    if (this.keyed || (flags & LifecycleFlags.keyedMode) > 0) {
       this.processViewsKeyed(null, flags);
     } else {
       this.processViewsNonKeyed(null, flags);
@@ -207,7 +207,6 @@ export class Repeat<C extends ObservedCollection = IObservedArray, T extends INo
       flags |= LifecycleFlags.useProxies;
     }
     const { $lifecycle, local, $scope, factory, forOf, items } = this;
-    const mapLen = indexMap.length;
     let views = this.views;
     if (indexMap === null) {
       if (this.$state & (State.isBound | State.isBinding)) {
@@ -251,6 +250,7 @@ export class Repeat<C extends ObservedCollection = IObservedArray, T extends INo
         $lifecycle.endAttach(flags);
       }
     } else {
+      const mapLen = indexMap.length;
       let view: IView<T>;
       const deleted = indexMap.deletedItems;
       const deletedLen = deleted.length;
@@ -307,25 +307,58 @@ export class Repeat<C extends ObservedCollection = IObservedArray, T extends INo
 
       if (this.$state & (State.isAttached | State.isAttaching)) {
         const { location } = this;
+        const seq = longestIncreasingSubsequence(indexMap);
+        const seqLen = seq.length;
+        $lifecycle.beginDetach();
         $lifecycle.beginAttach();
         const operation: Partial<IMountableComponent> = {
           $mount(): void {
             let next = location;
-            const seq = longestIncreasingSubsequence(indexMap);
-            const seqLen = seq.length;
             let j = seqLen - 1;
             let i = indexMap.length - 1;
             for (; i >= 0; --i) {
               if (indexMap[i] === -2) {
                 view = views[i];
+
+                view.$state |= State.isAttaching;
+
+                let current = view.$componentHead;
+                while (current !== null) {
+                  current.$attach(flags | LifecycleFlags.fromAttach);
+                  current = current.$nextComponent;
+                }
+
                 view.$nodes.insertBefore(next);
-                view.$state |= State.isMounted;
+
+                view.$state |= (State.isMounted | State.isAttached);
+                view.$state &= ~State.isAttaching;
                 next = view.$nodes.firstChild;
               } else if (j < 0 || seqLen === 1 || i !== seq[j]) {
                 view = views[indexMap[i]];
+                view.$state |= State.isDetaching;
+
+                let current = view.$componentTail;
+                while (current !== null) {
+                  current.$detach(flags | LifecycleFlags.fromDetach);
+                  current = current.$prevComponent;
+                }
                 view.$nodes.remove();
+
+                view.$state &= ~(State.isAttached | State.isDetaching | State.isMounted);
+
+                view.$state |= State.isAttaching;
+
+                current = view.$componentHead;
+                while (current !== null) {
+                  current.$attach(flags | LifecycleFlags.fromAttach);
+                  current = current.$nextComponent;
+                }
+
                 view.$nodes.insertBefore(next);
-                view.$state |= State.isMounted;
+
+                view.$state |= (State.isMounted | State.isAttached);
+                view.$state &= ~State.isAttaching;
+
                 next = view.$nodes.firstChild;
               } else {
                 view = views[i];
@@ -339,6 +372,7 @@ export class Repeat<C extends ObservedCollection = IObservedArray, T extends INo
 
         $lifecycle.enqueueMount(operation as IMountableComponent);
 
+        $lifecycle.endDetach(flags);
         $lifecycle.endAttach(flags);
       }
     }

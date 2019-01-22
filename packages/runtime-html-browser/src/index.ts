@@ -29,7 +29,8 @@ class BrowserDOMInitializer implements IDOMInitializer {
           config.host.ownerDocument,
           Node,
           Element,
-          HTMLElement
+          HTMLElement,
+          CustomEvent
         );
       } else {
         dom = new HTMLDOM(
@@ -37,7 +38,8 @@ class BrowserDOMInitializer implements IDOMInitializer {
           document,
           Node,
           Element,
-          HTMLElement
+          HTMLElement,
+          CustomEvent
         );
       }
     } else {
@@ -46,7 +48,8 @@ class BrowserDOMInitializer implements IDOMInitializer {
         document,
         Node,
         Element,
-        HTMLElement
+        HTMLElement,
+        CustomEvent
       );
     }
     Registration.instance(IDOM, dom).register(this.container);

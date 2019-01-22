@@ -1,4 +1,5 @@
-import { CustomElementResource, ICustomElementType } from '@aurelia/runtime';
+import { IContainer } from '@aurelia/kernel';
+import { CustomElementResource, ICustomElementType, IRenderContext } from '@aurelia/runtime';
 import { Router } from './router';
 import { IFindViewportsResult } from './scope';
 import { IViewportOptions, Viewport } from './viewport';
@@ -17,8 +18,11 @@ export interface IFindViewportsResult {
   viewportsRemaining?: boolean;
 }
 
+export type ChildContainer = IContainer & { parent?: ChildContainer };
+
 export class Scope {
   public element: Element;
+  public context: IRenderContext;
   public parent: Scope;
 
   public viewport: Viewport;
@@ -31,9 +35,10 @@ export class Scope {
   private scopeViewportParts: Record<string, string[][]>;
   private availableViewports: Record<string, Viewport>;
 
-  constructor(router: Router, element: Element, parent: Scope) {
+  constructor(router: Router, element: Element, context: IRenderContext, parent: Scope) {
     this.router = router;
     this.element = element;
+    this.context = context;
     this.parent = parent;
 
     this.viewport = null;
@@ -83,8 +88,7 @@ export class Scope {
           componentViewports.push(...found.componentViewports);
           viewportsRemaining = viewportsRemaining || found.viewportsRemaining;
           this.availableViewports[name] = null;
-          // tslint:disable-next-line:no-dynamic-delete
-          delete this.scopeViewportParts[viewportPart];
+          Reflect.deleteProperty(this.scopeViewportParts, viewportPart);
           break;
         }
       }
@@ -107,7 +111,7 @@ export class Scope {
         name = name.substring(0, name.length - 1);
       }
       if (!this.viewports[name]) {
-        this.addViewport(name, null, { scope: newScope, forceDescription: true });
+        this.addViewport(name, null, null, { scope: newScope, forceDescription: true });
         this.availableViewports[name] = this.viewports[name];
       }
       const viewport = this.availableViewports[name];
@@ -116,8 +120,7 @@ export class Scope {
         componentViewports.push(...found.componentViewports);
         viewportsRemaining = viewportsRemaining || found.viewportsRemaining;
         this.availableViewports[name] = null;
-        // tslint:disable-next-line:no-dynamic-delete
-        delete this.scopeViewportParts[viewportPart];
+        Reflect.deleteProperty(this.scopeViewportParts, viewportPart);
       }
     }
 
@@ -140,8 +143,7 @@ export class Scope {
         componentViewports.push(...found.componentViewports);
         viewportsRemaining = viewportsRemaining || found.viewportsRemaining;
         this.availableViewports[viewport.name] = null;
-        // tslint:disable-next-line:no-dynamic-delete
-        delete this.scopeViewportParts[viewportPart];
+        Reflect.deleteProperty(this.scopeViewportParts, viewportPart);
         break;
       }
     }
@@ -186,60 +188,30 @@ export class Scope {
     };
   }
 
-  // public findViewport(name: string): Viewport {
-  //   const parts = name.split(this.router.separators.scope);
-  //   const names = parts.shift().split(this.router.separators.viewport);
-  //   const comp = names.shift();
-  //   name = names.shift();
-  //   let newScope = false;
-  //   if (name.endsWith(this.router.separators.ownsScope)) {
-  //     newScope = true;
-  //     name = name.substring(0, name.length - 1);
-  //   }
-  //   const viewport = this.resolveViewport(name, comp) || this.addViewport(name, null, { scope: newScope });
-  //   if (!parts.length) {
-  //     return viewport;
-  //   } else {
-  //     const scope = viewport.scope || viewport.owningScope;
-  //     return scope.findViewport(parts.join(this.router.separators.scope));
-  //   }
-  // }
-
-  // public resolveViewport(name: string, component: string): Viewport {
-  //   if (name.length && name.charAt(0) !== '?') {
-  //     return this.viewports[name];
-  //   }
-  //   // Need more ways to resolve viewport based on component name!
-  //   const comp = this.resolveComponent(component);
-  //   if (comp.viewport) {
-  //     name = comp.viewport;
-  //     return this.viewports[name];
-  //   }
-  //   return null;
-  // }
-
-  public addViewport(name: string, element: Element, options?: IViewportOptions): Viewport {
+  public addViewport(name: string, element: Element, context: IRenderContext, options?: IViewportOptions): Viewport {
     let viewport = this.viewports[name];
     if (!viewport) {
       let scope: Scope;
       if (options.scope) {
-        scope = new Scope(this.router, element, this);
+        scope = new Scope(this.router, element, context, this);
         this.router.scopes.push(scope);
       }
 
-      viewport = this.viewports[name] = new Viewport(this.router, name, element, this, scope, options);
+      viewport = this.viewports[name] = new Viewport(this.router, name, element, context, this, scope, options);
     }
-    if (element) {
-      viewport.setElement(element, options);
+    // TODO: Either explain why || instead of && here (might only need one) or change it to && if that should turn out to not be relevant
+    if (element || context) {
+      viewport.setElement(element, context, options);
     }
     return viewport;
   }
-  public removeViewport(viewport: Viewport): number {
-    if (viewport.scope) {
-      this.router.removeScope(viewport.scope);
+  public removeViewport(viewport: Viewport, element: Element, context: IRenderContext): number {
+    if ((!element && !context) || viewport.remove(element, context)) {
+      if (viewport.scope) {
+        this.router.removeScope(viewport.scope);
+      }
+      Reflect.deleteProperty(this.viewports, viewport.name);
     }
-    // tslint:disable-next-line:no-dynamic-delete
-    delete this.viewports[viewport.name];
     return Object.keys(this.viewports).length;
   }
 
@@ -248,7 +220,7 @@ export class Scope {
       child.removeScope();
     }
     for (const viewport in this.viewports) {
-      this.router.removeViewport(this.viewports[viewport]);
+      this.router.removeViewport(this.viewports[viewport], null, null);
     }
   }
 
@@ -291,7 +263,7 @@ export class Scope {
     return viewports;
   }
 
-  public context(full: boolean = false): string {
+  public scopeContext(full: boolean = false): string {
     if (!this.element || !this.parent) {
       return '';
     }
@@ -299,46 +271,25 @@ export class Scope {
     if (this.viewport) {
       parents.unshift(this.viewport.description(full));
     }
-    let viewport: Viewport = this.parent.closestViewport(this.element.parentElement);
+    let viewport: Viewport = this.parent.closestViewport((this.context.get(IContainer) as ChildContainer).parent);
     while (viewport && viewport.owningScope === this.parent) {
       parents.unshift(viewport.description(full));
-      viewport = this.closestViewport(viewport.element.parentElement);
+      viewport = this.closestViewport((viewport.context.get(IContainer) as ChildContainer).parent);
     }
-    parents.unshift(this.parent.context(full));
+    parents.unshift(this.parent.scopeContext(full));
 
     return parents.filter((value) => value && value.length).join(this.router.separators.scope);
   }
 
-  private resolveComponent(component: ICustomElementType | string): IViewportCustomElementType {
-    if (typeof component === 'string') {
-      const resolver = this.router.container.getResolver(CustomElementResource.keyFrom(component));
-      if (resolver !== null) {
-        component = resolver.getFactory(this.router.container).Type as ICustomElementType;
+  private closestViewport(container: ChildContainer): Viewport {
+    const viewports = Object.values(this.viewports);
+    while (container) {
+      const viewport = viewports.find((item) => item.context.get(IContainer) === container);
+      if (viewport) {
+        return viewport;
       }
+      container = container.parent;
     }
-    return component as ICustomElementType;
-  }
-
-  // This is not an optimal way of doing this
-  private closestViewport(element: Element): Viewport {
-    let closest: number = Number.MAX_SAFE_INTEGER;
-    let viewport: Viewport;
-    for (const vp in this.viewports) {
-      const viewportElement = this.viewports[vp].element;
-      let el = element;
-      let i = 0;
-      while (el) {
-        if (el === viewportElement) {
-          break;
-        }
-        i++;
-        el = el.parentElement;
-      }
-      if (i < closest) {
-        closest = i;
-        viewport = this.viewports[vp];
-      }
-    }
-    return viewport;
+    return null;
   }
 }

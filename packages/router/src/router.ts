@@ -1,10 +1,11 @@
 import { IContainer, InterfaceSymbol } from '@aurelia/kernel';
-import { Aurelia, ICustomElementType } from '@aurelia/runtime';
+import { Aurelia, ICustomElementType, IRenderContext } from '@aurelia/runtime';
 import { HistoryBrowser, IHistoryOptions, INavigationInstruction } from './history-browser';
 import { AnchorEventInfo, LinkHandler } from './link-handler';
 import { INavRoute, Nav } from './nav';
 import { IParsedQuery, parseQuery } from './parser';
-import { IComponentViewport, Scope } from './scope';
+import { ChildContainer, IComponentViewport, Scope } from './scope';
+import { closestCustomElement } from './utils';
 import { IViewportOptions, Viewport } from './viewport';
 
 export interface IRouterOptions extends IHistoryOptions {
@@ -122,7 +123,7 @@ export class Router {
     }
     if (!href.startsWith('/')) {
       const scope = this.closestScope(info.anchor);
-      const context = scope.context();
+      const context = scope.scopeContext();
       if (context) {
         href = `/${context}${this.separators.scope}${href}`;
       }
@@ -202,7 +203,7 @@ export class Router {
     const usedViewports = (clearViewports ? this.rootScope.allViewports().filter((value) => value.component !== null) : []);
     const defaultViewports = this.rootScope.allViewports().filter((value) => value.options.default && value.component === null);
 
-    let keepHistoryEntry = instruction.isFirst;
+    const updatedViewports: Viewport[] = [];
 
     // TODO: Take care of cancellations down in subsets/iterations
     let { componentViewports, viewportsRemaining } = this.rootScope.findViewports(views);
@@ -210,7 +211,7 @@ export class Router {
     while (componentViewports.length || viewportsRemaining || defaultViewports.length) {
       // Guard against endless loop
       if (!guard--) {
-        break;
+        throw new Error('Failed to resolve all viewports');
       }
       const changedViewports: Viewport[] = [];
       for (const componentViewport of componentViewports) {
@@ -254,8 +255,19 @@ export class Router {
         this.processingNavigation = null;
         return Promise.resolve();
       }
-      results = await Promise.all(changedViewports.map((value) => value.canEnter()));
-      if (results.findIndex((value) => value === false) >= 0) {
+      results = await Promise.all(changedViewports.map(async (value) => {
+        const canEnter = await value.canEnter();
+        if (typeof canEnter === 'boolean') {
+          if (canEnter) {
+            return value.enter();
+          } else {
+            return false;
+          }
+        }
+        // TODO: Deal with redirects
+        return true;
+      }));
+      if (results.some(result => result === false)) {
         this.historyBrowser.cancel();
         this.processingNavigation = null;
         return Promise.resolve();
@@ -268,9 +280,7 @@ export class Router {
       //   return Promise.resolve();
       // }
 
-      if (changedViewports.reduce((accumulated: boolean, current: Viewport) => !current.options.noHistory || accumulated, keepHistoryEntry)) {
-        keepHistoryEntry = true;
-      }
+      updatedViewports.push(...changedViewports);
 
       // TODO: Fix multi level recursiveness!
       const remaining = this.rootScope.findViewports();
@@ -287,9 +297,14 @@ export class Router {
 
     this.replacePaths(instruction);
 
-    if (!keepHistoryEntry) {
+    // Remove history entry if no history viewports updated
+    if (!instruction.isFirst && updatedViewports.every(viewport => viewport.options.noHistory)) {
       this.historyBrowser.pop().catch(error => { throw error; });
     }
+
+    updatedViewports.forEach((viewport) => {
+      viewport.finalizeContentChange();
+    });
     this.processingNavigation = null;
 
     if (this.pendingNavigations.length) {
@@ -403,17 +418,17 @@ export class Router {
   }
 
   // Called from the viewport custom element in attached()
-  public addViewport(name: string, element: Element, options?: IViewportOptions): Viewport {
+  public addViewport(name: string, element: Element, context: IRenderContext, options?: IViewportOptions): Viewport {
     // tslint:disable-next-line:no-console
     console.log('Viewport added', name, element);
     const parentScope = this.findScope(element);
-    return parentScope.addViewport(name, element, options);
+    return parentScope.addViewport(name, element, context, options);
   }
   // Called from the viewport custom element
-  public removeViewport(viewport: Viewport): void {
+  public removeViewport(viewport: Viewport, element: Element, context: IRenderContext): void {
     // TODO: There's something hinky with remove!
     const scope = viewport.owningScope;
-    if (!scope.removeViewport(viewport)) {
+    if (!scope.removeViewport(viewport, element, context)) {
       this.removeScope(scope);
     }
   }
@@ -518,31 +533,22 @@ export class Router {
 
   private ensureRootScope(): void {
     if (!this.rootScope) {
-      const aureliaRootElement = this.container.get(Aurelia).root().$host;
-      this.rootScope = new Scope(this, aureliaRootElement as Element, null);
+      const root = this.container.get(Aurelia).root();
+      this.rootScope = new Scope(this, root.$host as Element, root.$context, null);
       this.scopes.push(this.rootScope);
     }
   }
 
   private closestScope(element: Element): Scope {
-    let closest: number = Number.MAX_SAFE_INTEGER;
-    let scope: Scope;
-    for (const sc of this.scopes) {
-      let el = element;
-      let i = 0;
-      while (el) {
-        if (el === sc.element) {
-          break;
-        }
-        i++;
-        el = el.parentElement;
+    const el = closestCustomElement(element);
+    let container: ChildContainer = el.$customElement.$context.get(IContainer);
+    while (container) {
+      const scope = this.scopes.find((item) => item.context.get(IContainer) === container);
+      if (scope) {
+        return scope;
       }
-      if (i < closest) {
-        closest = i;
-        scope = sc;
-      }
+      container = container.parent;
     }
-    return scope;
   }
 
   private removeStateDuplicates(states: string[]): string[] {

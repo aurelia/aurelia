@@ -1,4 +1,5 @@
-import { CustomElementResource, ICustomElement, ICustomElementType, INode, LifecycleFlags } from '@aurelia/runtime';
+import { IContainer } from '@aurelia/kernel';
+import { CustomElementResource, ICustomElement, ICustomElementType, IDOM, INode, IProjectorLocator, IRenderContext, IRenderingEngine, LifecycleFlags } from '@aurelia/runtime';
 import { INavigationInstruction } from './history-browser';
 import { mergeParameters } from './parser';
 import { Router } from './router';
@@ -28,12 +29,13 @@ export interface IViewportOptions {
 export class Viewport {
   public name: string;
   public element: Element;
+  public context: IRenderContext;
   public owningScope: Scope;
   public scope: Scope;
   public options?: IViewportOptions;
 
   public content: IRouteableCustomElementType;
-  public nextContent: IRouteableCustomElementType;
+  public nextContent: IRouteableCustomElementType | string;
   public parameters: string;
   public nextParameters: string;
 
@@ -48,10 +50,14 @@ export class Viewport {
   private clear: boolean;
   private elementResolve?: ((value?: void | PromiseLike<void>) => void) | null;
 
-  constructor(router: Router, name: string, element: Element, owningScope: Scope, scope: Scope, options?: IViewportOptions) {
+  private previousViewportState?: Viewport;
+  private entered: boolean;
+
+  constructor(router: Router, name: string, element: Element, context: IRenderContext, owningScope: Scope, scope: Scope, options?: IViewportOptions) {
     this.router = router;
     this.name = name;
     this.element = element;
+    this.context = context;
     this.owningScope = owningScope;
     this.scope = scope;
     this.options = options;
@@ -67,6 +73,8 @@ export class Viewport {
     this.component = null;
     this.nextComponent = null;
     this.elementResolve = null;
+    this.previousViewportState = null;
+    this.entered = false;
   }
 
   public setNextContent(content: ICustomElementType | string, instruction: INavigationInstruction): boolean {
@@ -80,25 +88,31 @@ export class Viewport {
         const cp = content.split(this.router.separators.parameters);
         content = cp.shift();
         parameters = cp.length ? cp.join(this.router.separators.parameters) : null;
-        const resolver = this.router.container.getResolver(CustomElementResource.keyFrom(content));
-        if (resolver !== null) {
-          content = resolver.getFactory(this.router.container).Type as ICustomElementType;
+        // If we've got a container, we're good to resolve type
+        if (this.context) {
+          content = this.componentType(content);
         }
       }
     }
 
-    this.nextContent = content as ICustomElementType;
+    // Can be a (resolved) type or a string (to be resolved later)
+    this.nextContent = content;
     this.nextInstruction = instruction;
     this.nextParameters = parameters;
+    this.entered = false;
 
-    if (this.content !== content || this.parameters !== parameters || !this.instruction || this.instruction.query !== instruction.query || instruction.isRefresh) {
+    if ((typeof content === 'string' && this.componentName(this.content) !== content) ||
+      (typeof content !== 'string' && this.content !== content) ||
+      this.parameters !== parameters ||
+      !this.instruction || this.instruction.query !== instruction.query ||
+      instruction.isRefresh) {
       return true;
     }
 
     return false;
   }
 
-  public setElement(element: Element, options: IViewportOptions): void {
+  public setElement(element: Element, context: IRenderContext, options: IViewportOptions): void {
     // First added viewport with element is always scope viewport (except for root scope)
     if (this.scope && this.scope.parent && !this.scope.viewport) {
       this.scope.viewport = this;
@@ -106,7 +120,10 @@ export class Viewport {
     if (this.scope && !this.scope.element) {
       this.scope.element = element;
     }
-    if (!this.element) {
+    if (this.element !== element) {
+      // TODO: Restore this state on navigation cancel
+      this.previousViewportState = { ...this };
+      this.clearState();
       this.element = element;
       if (options && options.usedBy) {
         this.options.usedBy = options.usedBy;
@@ -124,56 +141,88 @@ export class Viewport {
         this.elementResolve();
       }
     }
+    if (this.context !== context) {
+      this.context = context;
+    }
+
     if (!this.component && !this.nextComponent && this.options.default) {
       this.router.addProcessingViewport(this, this.options.default);
     }
   }
 
-  public canLeave(): Promise<boolean> {
+  // TODO: Will probably end up changing stuff due to the remove (hence the name)
+  public remove(element: Element, context: IRenderContext): boolean {
+    return this.element === element && this.context === context;
+  }
+
+  public async canLeave(): Promise<boolean> {
     if (!this.component) {
-      return Promise.resolve(true);
+      return true;
     }
 
     const component: IRouteableCustomElement = this.component;
     if (!component.canLeave) {
-      return Promise.resolve(true);
+      return true;
     }
     // tslint:disable-next-line:no-console
     console.log('viewport canLeave', component.canLeave(this.instruction, this.nextInstruction));
 
     const result = component.canLeave(this.instruction, this.nextInstruction);
     if (typeof result === 'boolean') {
-      return Promise.resolve(result);
+      return result;
     }
     return result;
   }
 
-  public canEnter(): Promise<boolean> {
+  public async canEnter(): Promise<boolean> {
     if (this.clear) {
-      return Promise.resolve(true);
+      return true;
     }
 
     if (!this.nextContent) {
-      return Promise.resolve(false);
+      return false;
     }
 
-    this.loadComponent(this.nextContent);
+    await this.loadComponent(this.nextContent);
     if (!this.nextComponent) {
-      return Promise.resolve(false);
+      return false;
     }
 
     const component: IRouteableCustomElement = this.nextComponent;
     if (!component.canEnter) {
-      return Promise.resolve(true);
+      return true;
     }
 
     const result = component.canEnter(this.nextInstruction, this.instruction);
     // tslint:disable-next-line:no-console
     console.log('viewport canEnter', result);
     if (typeof result === 'boolean') {
-      return Promise.resolve(result);
+      return result;
     }
     return result;
+  }
+
+  public async enter(): Promise<boolean> {
+    // tslint:disable-next-line:no-console
+    console.log('Viewport enter', this.name);
+
+    if (this.clear) {
+      return true;
+    }
+
+    if (!this.nextComponent) {
+      return false;
+    }
+
+    if (this.nextComponent.enter) {
+      const merged = mergeParameters(this.nextParameters, this.nextInstruction.query, (this.nextContent as IRouteableCustomElementType).parameters);
+      this.nextInstruction.parameters = merged.namedParameters;
+      this.nextInstruction.parameterList = merged.parameterList;
+      await this.nextComponent.enter(merged.merged, this.nextInstruction, this.instruction);
+      this.entered = false;
+    }
+    this.initializeComponent(this.nextComponent);
+    return true;
   }
 
   public async loadContent(): Promise<boolean> {
@@ -187,32 +236,21 @@ export class Viewport {
       // No need to wait for next component activation
       if (!this.nextComponent) {
         this.removeComponent(this.component);
+        this.terminateComponent(this.component);
+        this.unloadComponent(this.component);
       }
     }
 
     if (this.nextComponent) {
-      if (this.nextComponent.enter) {
-        const merged = mergeParameters(this.nextParameters, this.nextInstruction.query, this.nextContent.parameters);
-        this.nextInstruction.parameters = merged.parameters;
-        this.nextInstruction.parameterList = merged.list;
-        await this.nextComponent.enter(merged.merged, this.nextInstruction, this.instruction);
-      }
-
-      if (!this.element) {
-        // TODO: Refactor this once multi level recursiveness is fixed
-        await this.waitForElement();
-        if (!this.element) {
-          return Promise.resolve(false);
-        }
-      }
-
       // Only when next component activation is done
       if (this.component) {
         this.removeComponent(this.component);
+        this.terminateComponent(this.component);
+        this.unloadComponent(this.component);
       }
       this.addComponent(this.nextComponent);
 
-      this.content = this.nextContent;
+      this.content = this.nextContent as IRouteableCustomElementType;
       this.parameters = this.nextParameters;
       this.instruction = this.nextInstruction;
       this.component = this.nextComponent;
@@ -225,12 +263,25 @@ export class Viewport {
 
     this.nextContent = this.nextParameters = this.nextInstruction = this.nextComponent = null;
 
-    return Promise.resolve(true);
+    return true;
+  }
+
+  public finalizeContentChange(): void {
+    this.previousViewportState = null;
+  }
+  // TODO: Call this on cancel
+  public async restorePreviousContent(): Promise<void> {
+    if (this.entered) {
+      await this.nextComponent.leave();
+    }
+    if (this.previousViewportState) {
+      Object.assign(this, this.previousViewportState);
+    }
   }
 
   public description(full: boolean = false): string {
     if (this.content) {
-      const component = this.content.description.name;
+      const component = this.componentName(this.content);
       const newScope: string = this.scope ? this.router.separators.ownsScope : '';
       const parameters = this.parameters ? this.router.separators.parameters + this.parameters : '';
       if (full || newScope.length || this.options.forceDescription) {
@@ -247,7 +298,7 @@ export class Viewport {
   }
 
   public scopedDescription(full: boolean = false): string {
-    const descriptions = [this.owningScope.context(full), this.description(full)];
+    const descriptions = [this.owningScope.scopeContext(full), this.description(full)];
     return descriptions.filter((value) => value && value.length).join(this.router.separators.scope);
   }
 
@@ -304,23 +355,80 @@ export class Viewport {
     }
   }
 
-  private loadComponent(component: ICustomElementType): void {
-    this.nextComponent = this.router.container.get<IRouteableCustomElement>(CustomElementResource.keyFrom(component.description.name));
+  public componentName(component: IRouteableCustomElementType | string): string {
+    if (component === null) {
+      return null;
+    } else if (typeof component === 'string') {
+      return component;
+    } else {
+      return component.description.name;
+    }
+  }
+  public componentType(component: IRouteableCustomElementType | string): IRouteableCustomElementType {
+    if (component === null) {
+      return null;
+    } else if (typeof component !== 'string') {
+      return component;
+    } else {
+      const container = this.context || this.router.container;
+      const resolver = container.get(IContainer).getResolver(CustomElementResource.keyFrom(component));
+      if (resolver !== null) {
+        return resolver.getFactory(container.get(IContainer)).Type as IRouteableCustomElementType;
+      }
+      return null;
+    }
+  }
+  public componentInstance(component: IRouteableCustomElementType | string): IRouteableCustomElement {
+    if (component === null) {
+      return null;
+    }
+    // TODO: Remove once "local registration is fixed"
+    component = this.componentName(component);
+    const container = this.context || this.router.container;
+    if (typeof component !== 'string') {
+      return container.get(IContainer).get<IRouteableCustomElement>(component);
+    } else {
+      return container.get(IContainer).get<IRouteableCustomElement>(CustomElementResource.keyFrom(component));
+    }
+  }
+
+  private clearState(): void {
+    this.options = {};
+
+    this.content = null;
+    this.parameters = null;
+    this.instruction = null;
+    this.component = null;
+  }
+
+  private async loadComponent(component: ICustomElementType | string): Promise<void> {
+    await this.waitForElement();
+
+    this.nextComponent = this.componentInstance(component);
+
+    const host: INode = this.element as INode;
+    const container = this.context || this.router.container;
+
+    // TODO: get useProxies settings from the template definition
+    this.nextComponent.$hydrate(LifecycleFlags.none, container, host);
+  }
+  private unloadComponent(component: ICustomElement): void {
+    // TODO: We might want to do something here eventually, who knows?
+  }
+
+  private initializeComponent(component: ICustomElement): void {
+    component.$bind(LifecycleFlags.fromStartTask | LifecycleFlags.fromBind, null);
+  }
+  private terminateComponent(component: ICustomElement): void {
+    component.$unbind(LifecycleFlags.fromStopTask | LifecycleFlags.fromUnbind);
   }
 
   private addComponent(component: ICustomElement): void {
-    const host: INode = this.element as INode;
-    const container = this.router.container;
-
-    // TODO: get useProxies settings from the template definition
-    component.$hydrate(LifecycleFlags.none, container, host);
-    component.$bind(LifecycleFlags.fromStartTask | LifecycleFlags.fromBind, null);
     component.$attach(LifecycleFlags.fromStartTask);
   }
 
   private removeComponent(component: ICustomElement): void {
     component.$detach(LifecycleFlags.fromStopTask);
-    component.$unbind(LifecycleFlags.fromStopTask | LifecycleFlags.fromUnbind);
   }
 
   private async waitForElement(): Promise<void> {

@@ -1,6 +1,6 @@
 import { inject } from '@aurelia//kernel';
 import { customElement } from '@aurelia/runtime';
-import { UsersRepository } from '../repositories/users';
+import { UsersRepository } from '../../repositories/users';
 
 @customElement({
   name: 'chat-users', template: `<template>

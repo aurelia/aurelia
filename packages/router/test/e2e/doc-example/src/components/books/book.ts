@@ -1,7 +1,8 @@
 import { inject } from '@aurelia//kernel';
 import { customElement } from '@aurelia/runtime';
-import { Router } from '../../../../../src';
-import { BooksRepository } from '../repositories/books';
+import { Router } from '../../../../../../src';
+import { BooksRepository } from '../../repositories/books';
+import { Information } from './information';
 
 @customElement({
   name: 'book', template: `<template>
@@ -13,8 +14,10 @@ import { BooksRepository } from '../repositories/books';
   </ul>
 </div>
 <au-nav name="book-menu"></au-nav>
-<au-viewport name="book-tabs" default="book-details=\${book.id}" used-by="about-books,book-details" no-link></au-viewport>
-</template>` })
+<au-viewport name="book-tabs" default="book-details=\${book.id}" used-by="about-books,book-details,information" no-link></au-viewport>
+</template>`,
+  dependencies: [Information as any]
+})
 @inject(Router, BooksRepository)
 export class Book {
   public static parameters = ['id'];
@@ -35,6 +38,10 @@ export class Book {
       {
         title: 'About books',
         components: 'about-books'
+      },
+      {
+        title: 'Book information',
+        components: 'information'
       },
     ]);
   }

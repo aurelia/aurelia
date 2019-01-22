@@ -4,8 +4,8 @@ export interface IParsedQuery {
 }
 
 export interface IMergedParameters {
-  parameters: Record<string, string>;
-  list: string[];
+  namedParameters: Record<string, string>;
+  parameterList: string[];
   merged: string[] | Record<string, string>;
 }
 
@@ -54,8 +54,8 @@ export function mergeParameters(parameters: string, query: string, specifiedPara
   }
 
   return {
-    parameters: params,
-    list: list,
+    namedParameters: params,
+    parameterList: list,
     merged: merged,
   };
 }

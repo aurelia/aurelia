@@ -1,10 +1,11 @@
-import { Constructable, InterfaceSymbol } from '@aurelia/kernel';
-import { bindable, CustomElementResource, INode, LifecycleFlags } from '@aurelia/runtime';
+import { Constructable, IContainer, InterfaceSymbol, Writable } from '@aurelia/kernel';
+import { bindable, createRenderContext, CustomElementResource, ICustomElement, IDOM, IElementTemplateProvider, INode, IRenderContext, IRenderingEngine, ITemplate, LifecycleFlags, TemplateDefinition } from '@aurelia/runtime';
 import { Router } from '../router';
 import { IViewportOptions, Viewport } from '../viewport';
 
+export interface ViewportCustomElement extends ICustomElement<Element> { }
 export class ViewportCustomElement {
-  public static readonly inject: ReadonlyArray<InterfaceSymbol|Constructable> = [Router, INode];
+  public static readonly inject: ReadonlyArray<InterfaceSymbol|Constructable> = [Router, INode, IRenderingEngine];
 
   @bindable public name: string;
   @bindable public scope: boolean;
@@ -17,10 +18,12 @@ export class ViewportCustomElement {
 
   private readonly router: Router;
   private readonly element: Element;
+  private readonly renderingEngine: IRenderingEngine;
 
-  constructor(router: Router, element: Element) {
+  constructor(router: Router, element: Element, renderingEngine: IRenderingEngine) {
     this.router = router;
     this.element = element;
+    this.renderingEngine = renderingEngine;
 
     this.name = 'default';
     this.scope = null;
@@ -31,7 +34,44 @@ export class ViewportCustomElement {
     this.viewport = null;
   }
 
-  public attached(): void {
+  public render(flags: LifecycleFlags, host: INode, parts: Record<string, TemplateDefinition>, parentContext: IRenderContext | null): IElementTemplateProvider | void {
+    const Type = this.constructor as any;
+    const dom = parentContext.get(IDOM);
+    const template = this.renderingEngine.getElementTemplate(dom, Type.description, parentContext, Type);
+    (template as Writable<ITemplate>).renderContext = createRenderContext(dom, parentContext, Type.description.dependencies, Type);
+    template.render(this, host, parts);
+  }
+
+  // public created(...rest): void {
+  //   console.log('Created', rest);
+  //   const booleanAttributes = {
+  //     'scope': 'scope',
+  //     'no-link': 'noLink',
+  //     'no-history': 'noHistory',
+  //   };
+  //   const valueAttributes = {
+  //     'used-by': 'usedBy',
+  //     'default': 'default',
+  //   };
+  //   const name = this.element.hasAttribute('name') ? this.element.getAttribute('name') : 'default';
+  //   const options: IViewportOptions = {};
+  //   for (const attribute in booleanAttributes) {
+  //     if (this.element.hasAttribute[attribute]) {
+  //       options[booleanAttributes[attribute]] = true;
+  //     }
+  //   }
+  //   for (const attribute in valueAttributes) {
+  //     if (this.element.hasAttribute(attribute)) {
+  //       const value = this.element.getAttribute(attribute);
+  //       if (value && value.length) {
+  //         options[valueAttributes[attribute]] = value;
+  //       }
+  //     }
+  //   }
+  //   this.viewport = this.router.addViewport(name, this.element, (this as any).$context.get(IContainer), options);
+  // }
+
+  public bound(): void {
     const options: IViewportOptions = { scope: this.element.hasAttribute('scope') };
     if (this.usedBy && this.usedBy.length) {
       options.usedBy = this.usedBy;
@@ -45,10 +85,10 @@ export class ViewportCustomElement {
     if (this.element.hasAttribute('no-history')) {
       options.noHistory = true;
     }
-    this.viewport = this.router.addViewport(this.name, this.element, options);
+    this.viewport = this.router.addViewport(this.name, this.element, this.$context, options);
   }
-  public detached(): void {
-    this.router.removeViewport(this.viewport);
+  public unbound(): void {
+    this.router.removeViewport(this.viewport, this.element, this.$context);
   }
 
   public binding(flags: LifecycleFlags): void {

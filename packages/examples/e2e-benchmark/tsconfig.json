@@ -1,9 +1,13 @@
 {
-  "extends": "../../tsconfig-build.json",
   "compilerOptions": {
-    "rootDir": ".",
+    "emitDecoratorMetadata": true,
+    "experimentalDecorators": true,
+    "lib": ["esnext", "dom"],
+    "module": "umd",
+    "moduleResolution": "node",
     "outDir": "dist",
-    "importHelpers": false
+    "rootDir": ".",
+    "target": "es2018"
   },
   "include": ["."]
 }

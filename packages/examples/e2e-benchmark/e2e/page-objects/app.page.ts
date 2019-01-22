@@ -97,6 +97,36 @@ export class AppPage {
     await this.reverseTodosButton.click();
   }
 
+  public static get insertTodosButton() {
+    return browser.findElement(By.css(cssSelectors.insertTodosButton));
+  }
+
+  public static async insertTodos() {
+    await browser.wait(until.elementLocated(By.css(cssSelectors.insertTodosButton)), 1000);
+    log(`click Insert todos`);
+    await this.insertTodosButton.click();
+  }
+
+  public static get removeTodosButton() {
+    return browser.findElement(By.css(cssSelectors.removeTodosButton));
+  }
+
+  public static async removeTodos() {
+    await browser.wait(until.elementLocated(By.css(cssSelectors.removeTodosButton)), 1000);
+    log(`click Remove todos`);
+    await this.removeTodosButton.click();
+  }
+
+  public static get swapTodosButton() {
+    return browser.findElement(By.css(cssSelectors.swapTodosButton));
+  }
+
+  public static async swapTodos() {
+    await browser.wait(until.elementLocated(By.css(cssSelectors.swapTodosButton)), 1000);
+    log(`click Swap todos`);
+    await this.swapTodosButton.click();
+  }
+
   public static get descriptionInterpolation() {
     return browser.findElement(By.css(cssSelectors.descriptionText));
   }

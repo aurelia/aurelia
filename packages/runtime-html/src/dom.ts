@@ -46,6 +46,7 @@ export class HTMLDOM implements IDOM {
   public readonly Node: typeof Node;
   public readonly Element: typeof Element;
   public readonly HTMLElement: typeof HTMLElement;
+  public readonly CustomEvent: typeof CustomEvent;
   private readonly wnd: Window;
   private readonly doc: Document;
 
@@ -54,13 +55,15 @@ export class HTMLDOM implements IDOM {
     doc: Document,
     TNode: typeof Node,
     TElement: typeof Element,
-    THTMLElement: typeof HTMLElement
+    THTMLElement: typeof HTMLElement,
+    TCustomEvent: typeof CustomEvent
   ) {
     this.wnd = wnd;
     this.doc = doc;
     this.Node = TNode;
     this.Element = TElement;
     this.HTMLElement = THTMLElement;
+    this.CustomEvent = TCustomEvent;
   }
 
   public addEventListener(eventName: string, subscriber: EventListenerOrEventListenerObject, publisher?: Node, options?: boolean | AddEventListenerOptions): void {
@@ -120,7 +123,7 @@ export class HTMLDOM implements IDOM {
   }
 
   public createCustomEvent<T = any>(eventType: string, options?: CustomEventInit<T>): CustomEvent<T> {
-    return new this.wnd.CustomEvent(eventType, options);
+    return new this.CustomEvent(eventType, options);
   }
 
   public dispatchEvent(evt): void {

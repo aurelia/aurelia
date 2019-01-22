@@ -1,11 +1,12 @@
 import { inject } from '@aurelia/kernel';
-import { customElement, ICustomElementType } from '@aurelia/runtime';
+import { customElement } from '@aurelia/runtime';
 import { Router } from '../../../../../router/src/index';
 import { About } from './components/about';
 import { Authors } from './components/authors/authors';
 import { Books } from './components/books/books';
+import { AuthorsRepository } from './repositories/authors';
 
-@inject(Router)
+@inject(Router, AuthorsRepository)
 @customElement({
   name: 'app', template:
     `<template>
@@ -14,6 +15,12 @@ import { Books } from './components/books/books';
       <au-nav name="app-menu"></au-nav>
       <span class="loader \${router.isNavigating ? 'routing' : ''}">&nbsp;</span>
     </div>
+    <div class="info">
+      In this test, the <i>Authors</i> list and <i>Author</i> component have a 2 second wait/delay on <pre>enter</pre>,
+      the <i>About</i> component has a 4 second delay on <pre>enter</pre> and <i>Author details</i> stops navigation
+      in <pre>canEnter</pre>. (Meaning that <i>Author</i> can't be opened since it has <i>Author details</i> as default
+      and the navigation is rolled back after 2 seconds.)
+    </div>
     <au-viewport name="lists" used-by="authors,books" default="authors"></au-viewport>
     <au-viewport name="content" default="about"></au-viewport>
     <au-viewport name="chat" used-by="chat" no-link no-history></au-viewport>
@@ -21,7 +28,8 @@ import { Books } from './components/books/books';
 </template>
 ` })
 export class App {
-  constructor(private readonly router: Router) {
+  constructor(private readonly router: Router, authorsRepository: AuthorsRepository) {
+    authorsRepository.authors(); // Only here to initialize repositories
     this.router.activate({
       // transformFromUrl: (path, router) => {
       //   if (!path.length) {

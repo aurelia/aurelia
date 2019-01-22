@@ -1,3 +1,4 @@
+import { QueuedBrowserHistory } from './queued-browser-history';
 export interface IHistoryEntry {
   path: string;
   fullStatePath: string;
@@ -34,7 +35,8 @@ export class HistoryBrowser {
   public historyOffset: number;
   public replacedEntry: IHistoryEntry;
 
-  public history: History;
+  // public history: History;
+  public history: QueuedBrowserHistory;
   public location: Location;
 
   private activeEntry: IHistoryEntry;
@@ -52,7 +54,8 @@ export class HistoryBrowser {
 
   constructor() {
     this.location = window.location;
-    this.history = window.history;
+    // this.history = window.history;
+    this.history = new QueuedBrowserHistory();
 
     this.currentEntry = null;
     this.historyEntries = null;
@@ -81,7 +84,8 @@ export class HistoryBrowser {
     this.isActive = true;
     this.options = { ...options };
 
-    window.addEventListener('popstate', this.pathChanged);
+    // window.addEventListener('popstate', this.pathChanged);
+    this.history.activate(this.pathChanged);
 
     return Promise.resolve().then(() => {
       this.setPath(this.getPath(), true);
@@ -146,23 +150,25 @@ export class HistoryBrowser {
   }
 
   public async pop(): Promise<void> {
-    // TODO: Make sure we don't back out of application
     let state;
     // tslint:disable-next-line:promise-must-complete
     let wait = new Promise((resolve, reject): void => {
       this.ignorePathChange = resolve;
     });
-    this.history.go(-1);
+    await this.history.go(-1);
     await wait;
     const path = this.location.toString();
     state = this.history.state;
-    // tslint:disable-next-line:promise-must-complete
-    wait = new Promise((resolve, reject): void => {
-      this.ignorePathChange = resolve;
-    });
-    this.history.go(-1);
-    await wait;
-    this.history.pushState(state, null, path);
+    // TODO: Fix browser forward bug after pop on first entry
+    if (!state.HistoryEntry.firstEntry) {
+      // tslint:disable-next-line:promise-must-complete
+      wait = new Promise((resolve, reject): void => {
+        this.ignorePathChange = resolve;
+      });
+      await this.history.go(-1);
+      await wait;
+      this.history.pushState(state, null, path);
+    }
   }
 
   public setState(key: string | Record<string, unknown>, value?: Record<string, unknown>): void {

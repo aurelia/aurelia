@@ -16,162 +16,174 @@ const parentSuite = baseSuite.clone<IContainer, Aurelia, ILifecycle, HTMLElement
 
 // repeater + if + custom element
 parentSuite.addDataSlot('f') // Template (custom element)
-  .addData('01').setValue(
-    `<template>
-      <div repeat.for="item of items">
-        <div if.bind="display">
-          \${item.if}
-        </div>
-        <div else>
-          \${item.else}
-        </div>
-      </div>
-    </template>`)
-  .addData('02').setValue(
-    `<template>
-      <div repeat.for="item of items">
-        <div if.bind="display">
-          <div if.bind="true">
-            \${item.if}
-          </div>
-        </div>
-        <div else>
-          \${item.else}
-        </div>
-      </div>
-    </template>`)
-  .addData('03').setValue(
-    `<template>
-      <div repeat.for="item of items">
-        <div if.bind="display">
-          <div if.bind="false">
-            do_not_show
-          </div>
-          <div else>
-            \${item.if}
-          </div>
-        </div>
-        <div else>
-          \${item.else}
-        </div>
-      </div>
-    </template>`)
-  .addData('04').setValue(
-    `<template>
-      <div if.bind="true" repeat.for="item of items">
-        <div if.bind="display">
-          \${item.if}
-        </div>
-        <div else>
-          \${item.else}
-        </div>
-      </div>
-    </template>`)
-  .addData('05').setValue(
-    `<template>
-      <div if.bind="false">do_not_show</div>
-      <div else repeat.for="item of items">
-        <div if.bind="display">
-          \${item.if}
-        </div>
-        <div else>
-          \${item.else}
-        </div>
-      </div>
-    </template>`)
-  .addData('06').setValue(
-    `<template>
-      <div repeat.for="item of items">
-        <div if.bind="display" repeat.for="i of 1">
-          \${item.if}
-        </div>
-        <div else repeat.for="i of 1">
-          \${item.else}
-        </div>
-      </div>
-    </template>`)
-  .addData('07').setValue(
-    `<template>
-      <div if.bind="true" repeat.for="item of items">
-        <div if.bind="display" repeat.for="i of 1">
-          \${item.if}
-        </div>
-        <div else repeat.for="i of 1">
-          \${item.else}
-        </div>
-      </div>
-    </template>`)
-  .addData('08').setValue(
-    `<template>
-      <div repeat.for="a of 1">
-        <div repeat.for="item of items">
-          <div if.bind="display">
-            \${item.if}
-          </div>
-          <div else>
-            \${item.else}
-          </div>
-        </div>
-      </div>
-    </template>`)
-  .addData('09').setValue(
-    `<template>
-      <template repeat.for="item of items">
-        <div if.bind="display">
-          \${item.if}
-        </div>
-        <div else>
-          \${item.else}
-        </div>
-      </template>
-    </template>`)
-  .addData('10').setValue(
-    `<template>
-      <div repeat.for="item of items">
-        <template if.bind="display">
-          \${item.if}
-        </template>
-        <template else>
-          \${item.else}
-        </template>
-      </div>
-    </template>`)
-  .addData('11').setValue(
-    `<template>
-      <template repeat.for="item of items">
-        <template if.bind="display">
-          \${item.if}
-        </template>
-        <template else>
-          \${item.else}
-        </template>
-      </template>
-    </template>`)
-  .addData('12').setValue(
-    `<template>
-      <div if.bind="display" repeat.for="item of items">
+.addData('101').setValue(
+  `<template>
+    <div repeat.for="item of items">
+      <div if.bind="display">
         \${item.if}
       </div>
-      <div else repeat.for="item of items">
+      <div else>
         \${item.else}
       </div>
-    </template>`)
-  .addData('13').setValue(
-    `<template>
+    </div>
+  </template>`)
+.addData('102').setValue(
+  `<template>
+    <div repeat.for="item of items">
       <div if.bind="display">
-        <div repeat.for="item of items">
+        <div if.bind="true">
           \${item.if}
         </div>
       </div>
       <div else>
-        <div repeat.for="item of items">
+        \${item.else}
+      </div>
+    </div>
+  </template>`)
+.addData('103').setValue(
+  `<template>
+    <div repeat.for="item of items">
+      <div if.bind="display">
+        <div if.bind="false">
+          do_not_show
+        </div>
+        <div else>
+          \${item.if}
+        </div>
+      </div>
+      <div else>
+        \${item.else}
+      </div>
+    </div>
+  </template>`)
+.addData('104').setValue(
+  `<template>
+    <div if.bind="true" repeat.for="item of items">
+      <div if.bind="display">
+        \${item.if}
+      </div>
+      <div else>
+        \${item.else}
+      </div>
+    </div>
+  </template>`)
+.addData('105').setValue(
+  `<template>
+    <div if.bind="false">do_not_show</div>
+    <div else repeat.for="item of items">
+      <div if.bind="display">
+        \${item.if}
+      </div>
+      <div else>
+        \${item.else}
+      </div>
+    </div>
+  </template>`)
+.addData('106').setValue(
+  `<template>
+    <div repeat.for="item of items">
+      <div if.bind="display" repeat.for="i of 1">
+        \${item.if}
+      </div>
+      <div else repeat.for="i of 1">
+        \${item.else}
+      </div>
+    </div>
+  </template>`)
+.addData('107').setValue(
+  `<template>
+    <div if.bind="true" repeat.for="item of items">
+      <div if.bind="display" repeat.for="i of 1">
+        \${item.if}
+      </div>
+      <div else repeat.for="i of 1">
+        \${item.else}
+      </div>
+    </div>
+  </template>`)
+.addData('108').setValue(
+  `<template>
+    <div repeat.for="a of 1">
+      <div repeat.for="item of items">
+        <div if.bind="display">
+          \${item.if}
+        </div>
+        <div else>
           \${item.else}
         </div>
       </div>
-    </template>`)
-  .addData('14').setValue(
-    `<template>
-      <div repeat.for="item of items" with.bind="item">
+    </div>
+  </template>`)
+.addData('109').setValue(
+  `<template>
+    <template repeat.for="item of items">
+      <div if.bind="display">
+        \${item.if}
+      </div>
+      <div else>
+        \${item.else}
+      </div>
+    </template>
+  </template>`)
+.addData('110').setValue(
+  `<template>
+    <div repeat.for="item of items">
+      <template if.bind="display">
+        \${item.if}
+      </template>
+      <template else>
+        \${item.else}
+      </template>
+    </div>
+  </template>`)
+.addData('111').setValue(
+  `<template>
+    <template repeat.for="item of items">
+      <template if.bind="display">
+        \${item.if}
+      </template>
+      <template else>
+        \${item.else}
+      </template>
+    </template>
+  </template>`)
+.addData('112').setValue(
+  `<template>
+    <div if.bind="display" repeat.for="item of items">
+      \${item.if}
+    </div>
+    <div else repeat.for="item of items">
+      \${item.else}
+    </div>
+  </template>`)
+.addData('113').setValue(
+  `<template>
+    <div if.bind="display">
+      <div repeat.for="item of items">
+        \${item.if}
+      </div>
+    </div>
+    <div else>
+      <div repeat.for="item of items">
+        \${item.else}
+      </div>
+    </div>
+  </template>`)
+.addData('114').setValue(
+  `<template>
+    <div repeat.for="item of items" with.bind="item">
+      <div if.bind="display">
+        \${if}
+      </div>
+      <div else>
+        \${else}
+      </div>
+    </div>
+  </template>`)
+.addData('115').setValue(
+  `<template>
+    <div repeat.for="item of items">
+      <div with.bind="item">
         <div if.bind="display">
           \${if}
         </div>
@@ -179,20 +191,186 @@ parentSuite.addDataSlot('f') // Template (custom element)
           \${else}
         </div>
       </div>
-    </template>`)
-  .addData('15').setValue(
-    `<template>
-      <div repeat.for="item of items">
-        <div with.bind="item">
-          <div if.bind="display">
-            \${if}
-          </div>
-          <div else>
-            \${else}
-          </div>
+    </div>
+  </template>`)
+// keyed mode begins here
+.addData('201').setValue(
+  `<template>
+    <div repeat.for="item of items & keyed">
+      <div if.bind="display">
+        \${item.if}
+      </div>
+      <div else>
+        \${item.else}
+      </div>
+    </div>
+  </template>`)
+.addData('202').setValue(
+  `<template>
+    <div repeat.for="item of items & keyed">
+      <div if.bind="display">
+        <div if.bind="true">
+          \${item.if}
         </div>
       </div>
-    </template>`);
+      <div else>
+        \${item.else}
+      </div>
+    </div>
+  </template>`)
+.addData('203').setValue(
+  `<template>
+    <div repeat.for="item of items & keyed">
+      <div if.bind="display">
+        <div if.bind="false">
+          do_not_show
+        </div>
+        <div else>
+          \${item.if}
+        </div>
+      </div>
+      <div else>
+        \${item.else}
+      </div>
+    </div>
+  </template>`)
+.addData('204').setValue(
+  `<template>
+    <div if.bind="true" repeat.for="item of items & keyed">
+      <div if.bind="display">
+        \${item.if}
+      </div>
+      <div else>
+        \${item.else}
+      </div>
+    </div>
+  </template>`)
+.addData('205').setValue(
+  `<template>
+    <div if.bind="false">do_not_show</div>
+    <div else repeat.for="item of items & keyed">
+      <div if.bind="display">
+        \${item.if}
+      </div>
+      <div else>
+        \${item.else}
+      </div>
+    </div>
+  </template>`)
+.addData('206').setValue(
+  `<template>
+    <div repeat.for="item of items & keyed">
+      <div if.bind="display" repeat.for="i of 1 & keyed">
+        \${item.if}
+      </div>
+      <div else repeat.for="i of 1 & keyed">
+        \${item.else}
+      </div>
+    </div>
+  </template>`)
+.addData('207').setValue(
+  `<template>
+    <div if.bind="true" repeat.for="item of items & keyed">
+      <div if.bind="display" repeat.for="i of 1 & keyed">
+        \${item.if}
+      </div>
+      <div else repeat.for="i of 1 & keyed">
+        \${item.else}
+      </div>
+    </div>
+  </template>`)
+.addData('208').setValue(
+  `<template>
+    <div repeat.for="a of 1 & keyed">
+      <div repeat.for="item of items & keyed">
+        <div if.bind="display">
+          \${item.if}
+        </div>
+        <div else>
+          \${item.else}
+        </div>
+      </div>
+    </div>
+  </template>`)
+.addData('209').setValue(
+  `<template>
+    <template repeat.for="item of items & keyed">
+      <div if.bind="display">
+        \${item.if}
+      </div>
+      <div else>
+        \${item.else}
+      </div>
+    </template>
+  </template>`)
+.addData('210').setValue(
+  `<template>
+    <div repeat.for="item of items & keyed">
+      <template if.bind="display">
+        \${item.if}
+      </template>
+      <template else>
+        \${item.else}
+      </template>
+    </div>
+  </template>`)
+.addData('211').setValue(
+  `<template>
+    <template repeat.for="item of items & keyed">
+      <template if.bind="display">
+        \${item.if}
+      </template>
+      <template else>
+        \${item.else}
+      </template>
+    </template>
+  </template>`)
+.addData('212').setValue(
+  `<template>
+    <div if.bind="display" repeat.for="item of items & keyed">
+      \${item.if}
+    </div>
+    <div else repeat.for="item of items & keyed">
+      \${item.else}
+    </div>
+  </template>`)
+.addData('213').setValue(
+  `<template>
+    <div if.bind="display">
+      <div repeat.for="item of items & keyed">
+        \${item.if}
+      </div>
+    </div>
+    <div else>
+      <div repeat.for="item of items & keyed">
+        \${item.else}
+      </div>
+    </div>
+  </template>`)
+.addData('214').setValue(
+  `<template>
+    <div repeat.for="item of items & keyed" with.bind="item">
+      <div if.bind="display">
+        \${if}
+      </div>
+      <div else>
+        \${else}
+      </div>
+    </div>
+  </template>`)
+.addData('215').setValue(
+  `<template>
+    <div repeat.for="item of items & keyed">
+      <div with.bind="item">
+        <div if.bind="display">
+          \${if}
+        </div>
+        <div else>
+          \${else}
+        </div>
+      </div>
+    </div>
+  </template>`);
 
 parentSuite.addDataSlot('g') // Items (initial)
   .addData('01').setFactory(c => [[{if: 1,   else: 2},   {if: 3,   else: 4}                                              ], '13',   '24'])
@@ -230,6 +408,30 @@ parentSuite.addDataSlot('h') // Markup (app)
         do_not_show
       </div>
       <foo else repeat.for="i of count" items.bind="items" display.bind="display">
+      </foo>
+    </template>`)
+    // keyed mode begins here
+  .addData('06').setValue(
+    `<template>
+      <foo repeat.for="i of count & keyed" items.bind="items" display.bind="display">
+      </foo>
+    </template>`)
+  .addData('07').setValue(
+    `<template>
+      <foo repeat.for="i of count & keyed" if.bind="true" items.bind="items" display.bind="display">
+      </foo>
+    </template>`)
+  .addData('08').setValue(
+    `<template>
+      <foo if.bind="true" repeat.for="i of count & keyed" items.bind="items" display.bind="display">
+      </foo>
+    </template>`)
+  .addData('09').setValue(
+    `<template>
+      <div if.bind="false">
+        do_not_show
+      </div>
+      <foo else repeat.for="i of count & keyed" items.bind="items" display.bind="display">
       </foo>
     </template>`);
 // // TODO: doesn't remove all nodes it needs to remove (or something), renders too much

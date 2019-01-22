@@ -32,7 +32,14 @@ suite.addDataSlot('f')
   .addData('04').setFactory(({e: [items, tpl]}) => `<template><div if.bind="false"></div><div else repeat.for="item of ${items}">${tpl}</div></template>`)
   .addData('05').setFactory(({e: [items, tpl]}) => `<template><template repeat.for="item of ${items}">${tpl}</template></template>`)
   .addData('06').setFactory(({e: [items, tpl]}) => `<template><template repeat.for="item of ${items}"><div if.bind="true">${tpl}</div></template></template>`)
-  .addData('07').setFactory(({e: [items, tpl]}) => `<template><template repeat.for="item of ${items}"><div if.bind="false"></div><div else>${tpl}</div></template></template>`);
+  .addData('07').setFactory(({e: [items, tpl]}) => `<template><template repeat.for="item of ${items}"><div if.bind="false"></div><div else>${tpl}</div></template></template>`)
+  .addData('08').setFactory(({e: [items, tpl]}) => `<template><div repeat.for="item of ${items} & keyed">${tpl}</div></template>`)
+  .addData('09').setFactory(({e: [items, tpl]}) => `<template><div repeat.for="item of ${items} & keyed" if.bind="true">${tpl}</div></template>`)
+  .addData('10').setFactory(({e: [items, tpl]}) => `<template><div if.bind="true" repeat.for="item of ${items} & keyed">${tpl}</div></template>`)
+  .addData('11').setFactory(({e: [items, tpl]}) => `<template><div if.bind="false"></div><div else repeat.for="item of ${items} & keyed">${tpl}</div></template>`)
+  .addData('12').setFactory(({e: [items, tpl]}) => `<template><template repeat.for="item of ${items} & keyed">${tpl}</template></template>`)
+  .addData('13').setFactory(({e: [items, tpl]}) => `<template><template repeat.for="item of ${items} & keyed"><div if.bind="true">${tpl}</div></template></template>`)
+  .addData('14').setFactory(({e: [items, tpl]}) => `<template><template repeat.for="item of ${items} & keyed"><div if.bind="false"></div><div else>${tpl}</div></template></template>`);
 
 suite.addActionSlot('setup')
   .addAction(null, ctx => {

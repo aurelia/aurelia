@@ -6,19 +6,22 @@ import { BindingBehaviorResource } from '../binding-behavior';
 
 type WithKey = IObservable & {
   key: string | null;
+  keyed?: boolean;
 };
 
 export class KeyedBindingBehavior {
   public static register: IRegistry['register'];
 
   public bind(flags: LifecycleFlags, scope: IScope, binding: Binding, key: string): void {
-    binding.persistentFlags |= LifecycleFlags.keyedMode;
+    // key is a lie (at the moment), we don't actually use it
     (binding.target as WithKey).key = key;
+    // we do use keyeD though
+    (binding.target as WithKey).keyed = true;
   }
 
   public unbind(flags: LifecycleFlags, scope: IScope, binding: Binding): void {
-    binding.persistentFlags &= ~LifecycleFlags.keyedMode;
     (binding.target as WithKey).key = null;
+    (binding.target as WithKey).keyed = false;
   }
 }
 

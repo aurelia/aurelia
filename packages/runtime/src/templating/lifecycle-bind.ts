@@ -211,12 +211,6 @@ export function $unbindElement(this: Writable<IBindable>, flags: LifecycleFlags)
       lifecycle.enqueueUnbound(this);
     }
 
-    let binding = this.$bindingTail;
-    while (binding !== null) {
-      binding.$unbind(flags);
-      binding = binding.$prevBinding;
-    }
-
     if (hooks & Hooks.hasUnbinding) {
       this.unbinding(flags);
     }
@@ -225,6 +219,12 @@ export function $unbindElement(this: Writable<IBindable>, flags: LifecycleFlags)
     while (component !== null) {
       component.$unbind(flags);
       component = component.$prevComponent;
+    }
+
+    let binding = this.$bindingTail;
+    while (binding !== null) {
+      binding.$unbind(flags);
+      binding = binding.$prevBinding;
     }
 
     (this.$scope as Writable<IScope>).parentScope = null;
@@ -246,16 +246,16 @@ export function $unbindView(this: Writable<IBindable>, flags: LifecycleFlags): v
 
     flags |= LifecycleFlags.fromUnbind;
 
-    let binding = this.$bindingTail;
-    while (binding !== null) {
-      binding.$unbind(flags);
-      binding = binding.$prevBinding;
-    }
-
     let component = this.$componentTail;
     while (component !== null) {
       component.$unbind(flags);
       component = component.$prevComponent;
+    }
+
+    let binding = this.$bindingTail;
+    while (binding !== null) {
+      binding.$unbind(flags);
+      binding = binding.$prevBinding;
     }
 
     // remove isBound and isUnbinding flags
@@ -274,16 +274,16 @@ export function $lockedUnbind(this: IBindable, flags: LifecycleFlags): void {
 
     flags |= LifecycleFlags.fromUnbind;
 
-    let binding = this.$bindingTail;
-    while (binding !== null) {
-      binding.$unbind(flags);
-      binding = binding.$prevBinding;
-    }
-
     let component = this.$componentTail;
     while (component !== null) {
       component.$unbind(flags);
       component = component.$prevComponent;
+    }
+
+    let binding = this.$bindingTail;
+    while (binding !== null) {
+      binding.$unbind(flags);
+      binding = binding.$prevBinding;
     }
 
     // remove isBound and isUnbinding flags

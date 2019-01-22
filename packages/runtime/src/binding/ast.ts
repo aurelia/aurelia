@@ -1118,6 +1118,18 @@ export class ForOfStatement implements IForOfStatement {
     this.iterable.connect(flags, scope, binding);
   }
 
+  public bind(flags: LifecycleFlags, scope: IScope, binding: IConnectableBinding): void {
+    if (hasBind(this.iterable)) {
+      this.iterable.bind(flags, scope, binding);
+    }
+  }
+
+  public unbind(flags: LifecycleFlags, scope: IScope, binding: IConnectableBinding): void {
+    if (hasUnbind(this.iterable)) {
+      this.iterable.bind(flags, scope, binding);
+    }
+  }
+
   public accept<T>(visitor: IVisitor<T>): T {
     return visitor.visitForOfStatement(this);
   }

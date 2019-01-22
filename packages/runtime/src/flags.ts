@@ -149,6 +149,6 @@ export const enum ExpressionKind {
   ArrayBindingPattern  = 0b100000000000_10100, //
   ObjectBindingPattern = 0b100000000000_10101, //
   BindingIdentifier    = 0b100000000000_10110, //
-  ForOfStatement       = 0b000000000001_10111, //                                           Connects
+  ForOfStatement       = 0b000011000001_10111, //                                           Connects
   Interpolation        = 0b000000000000_11000  //
 }

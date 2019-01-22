@@ -1,23 +1,24 @@
 import { DebugConfiguration } from '@aurelia/debug';
 import { BasicConfiguration } from '@aurelia/jit-html-browser';
 import { Aurelia, IDOM } from '@aurelia/runtime';
+import { registerComponent } from './utils';
 
 import { NavCustomElement, ViewportCustomElement } from '../../../../../router/src/index';
 import { App } from './app';
 
 import { About } from './components/about';
-import { AboutAuthors } from './components/about-authors';
-import { AboutBooks } from './components/about-books';
-import { Author } from './components/author';
-import { AuthorDetails } from './components/author-details';
-import { Authors } from './components/authors';
-import { Book } from './components/book';
-import { BookDetails } from './components/book-details';
-import { Books } from './components/books';
+import { AboutAuthors } from './components/authors/about-authors';
+import { Author } from './components/authors/author';
+import { AuthorDetails } from './components/authors/author-details';
+import { Authors } from './components/authors/authors';
+import { AboutBooks } from './components/books/about-books';
+import { Book } from './components/books/book';
+import { BookDetails } from './components/books/book-details';
+import { Books } from './components/books/books';
 
-import { Chat } from './components/chat';
-import { ChatUser } from './components/chat-user';
-import { ChatUsers } from './components/chat-users';
+import { Chat } from './components/chat/chat';
+import { ChatUser } from './components/chat/chat-user';
+import { ChatUsers } from './components/chat/chat-users';
 
 const container = BasicConfiguration.createContainer();
 
@@ -25,7 +26,9 @@ container.register(
   ViewportCustomElement as any,
   NavCustomElement as any,
   App as any,
-
+);
+registerComponent(
+  container,
   About as any,
   AboutAuthors as any,
   AboutBooks as any,

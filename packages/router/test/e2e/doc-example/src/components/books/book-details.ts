@@ -1,5 +1,5 @@
 import { customElement } from '@aurelia/runtime';
-import { BooksRepository } from '../repositories/books';
+import { BooksRepository } from '../../repositories/books';
 
 @customElement({ name: 'book-details', template: `<template>
 <h3>Details about the book</h3>

@@ -53,7 +53,7 @@ export class LinkHandler {
       anchor: null
     };
 
-    const target = LinkHandler.findClosestAnchor(event.target as Element);
+    const target = LinkHandler.closestAnchor(event.target as Element);
     if (!target || !LinkHandler.targetIsThisWindow(target)) {
       return info;
     }
@@ -82,7 +82,7 @@ export class LinkHandler {
    * @param el The element to search upward from.
    * @returns The link element that is the closest ancestor.
    */
-  private static findClosestAnchor(el: Element): Element {
+  private static closestAnchor(el: Element): Element {
     while (el) {
       if (el.tagName === 'A') {
         return el;

@@ -1,4 +1,4 @@
-import { customElement } from '@aurelia/runtime';
+import { customElement, ICustomElement } from '@aurelia/runtime';
 
 @customElement({ name: 'about', template: `<template>
 <h3>Basic routing example: authors and books</h3>
@@ -6,3 +6,4 @@ import { customElement } from '@aurelia/runtime';
 <p>This About component is displayed at application start and when navigating to Authors or Books lists in the navbar above.</p>
 </template>` })
 export class About {}
+export interface About extends ICustomElement<HTMLElement> { }

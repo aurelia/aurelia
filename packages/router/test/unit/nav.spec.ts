@@ -4,6 +4,7 @@ import { BasicConfiguration } from '../../../jit-html-browser/src/index';
 import { Aurelia, CustomElementResource, IDOM } from '../../../runtime/src/index';
 import { NavCustomElement, Router, ViewportCustomElement } from '../../src/index';
 import { MockBrowserHistoryLocation } from '../mock/browser-history-location.mock';
+import { registerComponent } from './utils';
 
 describe('Nav', () => {
   it('generates nav with a link', async function () {
@@ -64,7 +65,7 @@ const setup = async (component): Promise<{ au; container; host; router }> => {
 
   container.register(Router as any);
   container.register(ViewportCustomElement as any, NavCustomElement as any);
-  container.register(Foo, Bar, Baz, Qux);
+  registerComponent(container, Foo, Bar, Baz, Qux);
 
   const router = container.get(Router);
   const mockBrowserHistoryLocation = new MockBrowserHistoryLocation();

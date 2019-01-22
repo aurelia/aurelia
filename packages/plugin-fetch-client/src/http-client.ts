@@ -56,7 +56,7 @@ export class HttpClient {
    * @returns The chainable instance of this HttpClient.
    * @chainable
    */
-  configure(config: RequestInit | ((config: HttpClientConfiguration) => void) | HttpClientConfiguration): HttpClient {
+  public configure(config: RequestInit | ((config: HttpClientConfiguration) => void) | HttpClientConfiguration): HttpClient {
     let normalizedConfig: HttpClientConfiguration;
 
     if (typeof config === 'object') {
@@ -64,25 +64,27 @@ export class HttpClient {
     } else if (typeof config === 'function') {
       normalizedConfig = new HttpClientConfiguration();
       normalizedConfig.baseUrl = this.baseUrl;
-      normalizedConfig.defaults = Object.assign({}, this.defaults);
+      normalizedConfig.defaults = { ...this.defaults };
       normalizedConfig.interceptors = this.interceptors;
 
-      let c = config(normalizedConfig);
+      const c = config(normalizedConfig);
+      //tslint:disable-next-line no-any
       if (HttpClientConfiguration.prototype.isPrototypeOf(c as any)) {
+        //tslint:disable-next-line no-any
         normalizedConfig = c as any;
       }
     } else {
       throw new Error('invalid config');
     }
 
-    let defaults = normalizedConfig.defaults;
+    const defaults = normalizedConfig.defaults;
     if (defaults && Headers.prototype.isPrototypeOf(defaults.headers)) {
       // Headers instances are not iterable in all browsers. Require a plain
       // object here to allow default headers to be merged into request headers.
       throw new Error('Default headers must be a plain object.');
     }
 
-    let interceptors = normalizedConfig.interceptors;
+    const interceptors = normalizedConfig.interceptors;
 
     if (interceptors && interceptors.length) {
       // find if there is a RetryInterceptor
@@ -119,7 +121,7 @@ export class HttpClient {
    * the Request.
    * @returns A Promise for the Response from the fetch request.
    */
-  fetch(input: Request | string, init?: RequestInit): Promise<Response> {
+  public fetch(input: Request | string, init?: RequestInit): Promise<Response> {
     trackRequestStart(this);
 
     let request = this.buildRequest(input, init);
@@ -156,13 +158,14 @@ export class HttpClient {
       );
   }
 
-  buildRequest(input: string | Request, init: RequestInit): Request {
-    let defaults = this.defaults || {};
+  public buildRequest(input: string | Request, init: RequestInit): Request {
+    const defaults = this.defaults || {};
     let request: Request;
+    //tslint:disable-next-line no-any
     let body: any;
     let requestContentType: string;
 
-    let parsedDefaultHeaders = parseHeaderValues(defaults.headers);
+    const parsedDefaultHeaders = parseHeaderValues(defaults.headers);
     if (Request.prototype.isPrototypeOf(input)) {
       request = input as Request;
       requestContentType = new Headers(request.headers).get('Content-Type');
@@ -171,8 +174,8 @@ export class HttpClient {
         init = {} as RequestInit;
       }
       body = init.body;
-      let bodyObj = body ? { body } : null;
-      let requestInit = Object.assign({}, defaults, { headers: {} }, init, bodyObj);
+      const bodyObj = body ? { body } : null;
+      const requestInit = { ...defaults, headers: {}, ...init, ...bodyObj };
       requestContentType = new Headers(requestInit.headers).get('Content-Type');
       request = new Request(getRequestUrl(this.baseUrl, input as string), requestInit);
     }
@@ -201,7 +204,7 @@ export class HttpClient {
    * the Request.
    * @returns A Promise for the Response from the fetch request.
    */
-  get(input: Request | string, init?: RequestInit): Promise<Response> {
+  public get(input: Request | string, init?: RequestInit): Promise<Response> {
     return this.fetch(input, init);
   }
 
@@ -215,7 +218,8 @@ export class HttpClient {
    * the Request.
    * @returns A Promise for the Response from the fetch request.
    */
-  post(input: Request | string, body?: any, init?: RequestInit): Promise<Response> {
+  //tslint:disable-next-line no-any
+  public post(input: Request | string, body?: any, init?: RequestInit): Promise<Response> {
     return callFetch(this, input, body, init, 'POST');
   }
 
@@ -229,7 +233,8 @@ export class HttpClient {
    * the Request.
    * @returns A Promise for the Response from the fetch request.
    */
-  put(input: Request | string, body?: any, init?: RequestInit): Promise<Response> {
+  //tslint:disable-next-line no-any
+  public put(input: Request | string, body?: any, init?: RequestInit): Promise<Response> {
     return callFetch(this, input, body, init, 'PUT');
   }
 
@@ -243,7 +248,8 @@ export class HttpClient {
    * the Request.
    * @returns A Promise for the Response from the fetch request.
    */
-  patch(input: Request | string, body?: any, init?: RequestInit): Promise<Response> {
+  //tslint:disable-next-line no-any
+  public patch(input: Request | string, body?: any, init?: RequestInit): Promise<Response> {
     return callFetch(this, input, body, init, 'PATCH');
   }
 
@@ -257,32 +263,33 @@ export class HttpClient {
    * the Request.
    * @returns A Promise for the Response from the fetch request.
    */
-  delete(input: Request | string, body?: any, init?: RequestInit): Promise<Response> {
+  //tslint:disable-next-line no-any
+  public delete(input: Request | string, body?: any, init?: RequestInit): Promise<Response> {
     return callFetch(this, input, body, init, 'DELETE');
   }
 }
 
 const absoluteUrlRegexp = /^([a-z][a-z0-9+\-.]*:)?\/\//i;
 
-function trackRequestStart(client: HttpClient) {
+function trackRequestStart(client: HttpClient): void {
   client.isRequesting = !!(++client.activeRequestCount);
   if (client.isRequesting) {
-    let evt = DOM.createCustomEvent('aurelia-fetch-client-request-started', { bubbles: true, cancelable: true });
+    const evt = DOM.createCustomEvent('aurelia-fetch-client-request-started', { bubbles: true, cancelable: true });
     setTimeout(() => DOM.dispatchEvent(evt), 1);
   }
 }
 
-function trackRequestEnd(client: HttpClient) {
+function trackRequestEnd(client: HttpClient): void {
   client.isRequesting = !!(--client.activeRequestCount);
   if (!client.isRequesting) {
-    let evt = DOM.createCustomEvent('aurelia-fetch-client-requests-drained', { bubbles: true, cancelable: true });
+    const evt = DOM.createCustomEvent('aurelia-fetch-client-requests-drained', { bubbles: true, cancelable: true });
     setTimeout(() => DOM.dispatchEvent(evt), 1);
   }
 }
 
-function parseHeaderValues(headers: object) {
-  let parsedHeaders = {};
-  for (let name in headers || {}) {
+function parseHeaderValues(headers: object): object {
+  const parsedHeaders = {};
+  for (const name in headers || {}) {
     if (headers.hasOwnProperty(name)) {
       parsedHeaders[name] = (typeof headers[name] === 'function') ? headers[name]() : headers[name];
     }
@@ -290,7 +297,7 @@ function parseHeaderValues(headers: object) {
   return parsedHeaders;
 }
 
-function getRequestUrl(baseUrl: string, url: string) {
+function getRequestUrl(baseUrl: string, url: string): string {
   if (absoluteUrlRegexp.test(url)) {
     return url;
   }
@@ -298,8 +305,8 @@ function getRequestUrl(baseUrl: string, url: string) {
   return (baseUrl || '') + url;
 }
 
-function setDefaultHeaders(headers: Headers, defaultHeaders: object) {
-  for (let name in defaultHeaders || {}) {
+function setDefaultHeaders(headers: Headers, defaultHeaders: object): void {
+  for (const name in defaultHeaders || {}) {
     if (defaultHeaders.hasOwnProperty(name) && !headers.has(name)) {
       headers.set(name, defaultHeaders[name]);
     }
@@ -318,8 +325,8 @@ function processResponse(response: Promise<Response>, interceptors: Interceptor[
 function applyInterceptors(input: Request | Promise<Response | Request>, interceptors: Interceptor[], successName: ValidInterceptorMethodName, errorName: ValidInterceptorMethodName, ...interceptorArgs: any[]) {
   return (interceptors || [])
     .reduce((chain, interceptor) => {
-      let successHandler = interceptor[successName];
-      let errorHandler = interceptor[errorName];
+      const successHandler = interceptor[successName];
+      const errorHandler = interceptor[errorName];
 
       return chain.then(
         successHandler && (value => successHandler.call(interceptor, value, ...interceptorArgs)) || identity,

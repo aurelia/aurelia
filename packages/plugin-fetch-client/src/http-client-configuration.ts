@@ -1,4 +1,4 @@
-import { RequestInit, Interceptor, RetryConfiguration } from './interfaces';
+import { Interceptor, RequestInit, RetryConfiguration } from './interfaces';
 import { RetryInterceptor } from './retry-interceptor';
 
 /**
@@ -8,7 +8,7 @@ export class HttpClientConfiguration {
   /**
    * The base URL to be prepended to each Request's url before sending.
    */
-  baseUrl: string = '';
+  public baseUrl: string = '';
 
   /**
    * Default values to apply to init objects when creating Requests. Note that
@@ -16,12 +16,12 @@ export class HttpClientConfiguration {
    * Request provides its own defaults and discards the original init object.
    * See also https://developer.mozilla.org/en-US/docs/Web/API/Request/Request
    */
-  defaults: RequestInit = {};
+  public defaults: RequestInit = {};
 
   /**
    * Interceptors to be added to the HttpClient.
    */
-  interceptors: Interceptor[] = [];
+  public interceptors: Interceptor[] = [];
 
   /**
    * Sets the baseUrl.
@@ -30,7 +30,7 @@ export class HttpClientConfiguration {
    * @returns The chainable instance of this configuration object.
    * @chainable
    */
-  withBaseUrl(baseUrl: string): HttpClientConfiguration {
+  public withBaseUrl(baseUrl: string): HttpClientConfiguration {
     this.baseUrl = baseUrl;
     return this;
   }
@@ -42,7 +42,7 @@ export class HttpClientConfiguration {
    * @returns The chainable instance of this configuration object.
    * @chainable
    */
-  withDefaults(defaults: RequestInit): HttpClientConfiguration {
+  public withDefaults(defaults: RequestInit): HttpClientConfiguration {
     this.defaults = defaults;
     return this;
   }
@@ -58,7 +58,7 @@ export class HttpClientConfiguration {
    * @returns The chainable instance of this configuration object.
    * @chainable
    */
-  withInterceptor(interceptor: Interceptor): HttpClientConfiguration {
+  public withInterceptor(interceptor: Interceptor): HttpClientConfiguration {
     this.interceptors.push(interceptor);
     return this;
   }
@@ -69,8 +69,8 @@ export class HttpClientConfiguration {
    * @returns The chainable instance of this configuration object.
    * @chainable
    */
-  useStandardConfiguration(): HttpClientConfiguration {
-    let standardConfig = { credentials: 'same-origin' };
+  public useStandardConfiguration(): HttpClientConfiguration {
+    const standardConfig = { credentials: 'same-origin' };
     Object.assign(this.defaults, standardConfig, this.defaults);
     return this.rejectErrorResponses();
   }
@@ -85,18 +85,18 @@ export class HttpClientConfiguration {
    * @returns The chainable instance of this configuration object.
    * @chainable
    */
-  rejectErrorResponses(): HttpClientConfiguration {
+  public rejectErrorResponses(): HttpClientConfiguration {
     return this.withInterceptor({ response: rejectOnError });
   }
 
-  withRetry(config?: RetryConfiguration) {
+  public withRetry(config?: RetryConfiguration): HttpClientConfiguration {
     const interceptor: Interceptor = new RetryInterceptor(config);
 
     return this.withInterceptor(interceptor);
   }
 }
 
-function rejectOnError(response) {
+function rejectOnError(response: Response): Response {
   if (!response.ok) {
     throw response;
   }

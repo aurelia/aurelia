@@ -17,5 +17,5 @@ npm install --save @aurelia/fetch-client
 For our nightly builds:
 
 ```bash
-npm install --save @aurelia/fetcb-client@dev
+npm install --save @aurelia/fetch-client@dev
 ```

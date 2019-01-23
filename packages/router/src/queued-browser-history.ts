@@ -12,7 +12,7 @@ interface QueueItem {
   resolve: Function;
 }
 
-export class QueuedBrowserHistory implements History {
+export class QueuedBrowserHistory implements QueuedBrowserHistory {
   public history: History;
 
   private readonly queue: QueueItem[];

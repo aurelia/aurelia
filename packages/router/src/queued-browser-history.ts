@@ -6,7 +6,7 @@ export interface QueuedBrowserHistory extends History {
 }
 
 interface QueueItem {
-  object: Object;
+  object: object;
   method: string;
   parameters: unknown[];
   resolve: Function;
@@ -15,7 +15,7 @@ interface QueueItem {
 export class QueuedBrowserHistory implements History {
   public history: History;
 
-  private queue: QueueItem[];
+  private readonly queue: QueueItem[];
   private isActive: boolean;
   private processingItem: QueueItem;
   private callback: Function;
@@ -72,7 +72,7 @@ export class QueuedBrowserHistory implements History {
     await this.enqueue(this.history, 'replaceState', [data, title, url]);
   }
 
-  private handlePopstate = async (ev: PopStateEvent): Promise<void> => {
+  private readonly handlePopstate = async (ev: PopStateEvent): Promise<void> => {
     await this.enqueue(this, 'popstate', [ev]);
   }
 
@@ -80,7 +80,7 @@ export class QueuedBrowserHistory implements History {
     this.callback(ev);
   }
 
-  private enqueue(object: Object, method: string, parameters: any[]): Promise<void> {
+  private enqueue(object: object, method: string, parameters: unknown[]): Promise<void> {
     let _resolve;
     const promise: Promise<void> = new Promise((resolve) => {
       _resolve = resolve;

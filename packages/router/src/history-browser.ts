@@ -35,7 +35,6 @@ export class HistoryBrowser {
   public historyOffset: number;
   public replacedEntry: IHistoryEntry;
 
-  // public history: History;
   public history: QueuedBrowserHistory;
   public location: Location;
 
@@ -54,7 +53,6 @@ export class HistoryBrowser {
 
   constructor() {
     this.location = window.location;
-    // this.history = window.history;
     this.history = new QueuedBrowserHistory();
 
     this.currentEntry = null;
@@ -84,7 +82,6 @@ export class HistoryBrowser {
     this.isActive = true;
     this.options = { ...options };
 
-    // window.addEventListener('popstate', this.pathChanged);
     this.history.activate(this.pathChanged);
 
     return Promise.resolve().then(() => {
@@ -93,7 +90,7 @@ export class HistoryBrowser {
   }
 
   public deactivate(): void {
-    window.removeEventListener('popstate', this.pathChanged);
+    this.history.deactivate();
     this.isActive = false;
   }
 

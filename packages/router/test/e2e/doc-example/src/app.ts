@@ -90,7 +90,4 @@ export class App {
       },
     ]);
   }
-  public get isRouting(): boolean {
-    return this.router.processNavigations !== null;
-  }
 }

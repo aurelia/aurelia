@@ -47,7 +47,7 @@ export interface Subscription extends IDisposable {}
  * @param data The optional data published on the channel.
  * @param event The event that triggered the callback. Only available on channel based messaging.
  */
-export type EventAggregatorCallback = (data?: unknown, event?: string) => unknown;
+export type EventAggregatorCallback<T = unknown> = (data?: T, event?: string) => unknown;
 
 /**
  * Enables loosely coupled publish/subscribe messaging.
@@ -72,10 +72,15 @@ export class EventAggregator {
 
   /**
    * Publishes a message.
-   * @param channelOrType The event or channel to publish to.
+   * @param channel The channel to publish to.
    * @param data The data to publish on the channel.
    */
   public publish(channel: string, data?: unknown): void;
+  /**
+   * Publishes a message.
+   * @param channelOrType The event to publish to.
+   * @param data The data to publish on the channel.
+   */
   public publish(type: InstanceType<Constructable>): void;
   public publish(channelOrType: string | InstanceType<Constructable>, data?: unknown): void {
     let subscribers: (EventAggregatorCallback | Handler)[];
@@ -86,33 +91,40 @@ export class EventAggregator {
     }
 
     if (typeof channelOrType === 'string') {
-      subscribers = this.eventLookup[channelOrType];
+      const channel: string = channelOrType;
+      subscribers = this.eventLookup[channel];
       if (subscribers) {
         subscribers = subscribers.slice();
         i = subscribers.length;
 
         while (i--) {
-          invokeCallback(subscribers[i] as EventAggregatorCallback, data, channelOrType);
+          invokeCallback(subscribers[i] as EventAggregatorCallback, data, channel);
         }
       }
     } else {
+      const type: InstanceType<Constructable> = channelOrType;
       subscribers = this.messageHandlers.slice();
       i = subscribers.length;
 
       while (i--) {
-        invokeHandler(subscribers[i] as Handler, channelOrType);
+        invokeHandler(subscribers[i] as Handler, type);
       }
     }
   }
 
   /**
-   * Subscribes to a message channel or message type.
-   * @param channelOrType The event channel or event data type.
+   * Subscribes to a message channel.
+   * @param channelOrType The event channel.
    * @param callback The callback to be invoked when the specified message is published.
    */
-  public subscribe(channel: string, callback: EventAggregatorCallback): IDisposable;
-  public subscribe(type: Constructable, callback: EventAggregatorCallback): IDisposable;
-  public subscribe(channelOrType: string | Constructable, callback: EventAggregatorCallback): IDisposable {
+  public subscribe<T>(channel: string, callback: EventAggregatorCallback<T>): IDisposable;
+  /**
+   * Subscribes to a message type.
+   * @param channelOrType The event data type.
+   * @param callback The callback to be invoked when the specified message is published.
+   */
+  public subscribe<T extends Constructable>(type: T, callback: EventAggregatorCallback<InstanceType<T>>): IDisposable;
+  public subscribe<T extends Constructable>(channelOrType: string | T, callback: EventAggregatorCallback<T | InstanceType<T>>): IDisposable {
     let handler: EventAggregatorCallback | Handler;
     let subscribers: (EventAggregatorCallback | Handler)[];
 
@@ -121,10 +133,12 @@ export class EventAggregator {
     }
 
     if (typeof channelOrType === 'string') {
+      const channel: string = channelOrType;
       handler = callback;
-      subscribers = this.eventLookup[channelOrType] || (this.eventLookup[channelOrType] = []);
+      subscribers = this.eventLookup[channel] || (this.eventLookup[channel] = []);
     } else {
-      handler = new Handler(channelOrType, callback);
+      const type: T = channelOrType;
+      handler = new Handler(type, callback);
       subscribers = this.messageHandlers;
     }
 
@@ -141,14 +155,19 @@ export class EventAggregator {
   }
 
   /**
-   * Subscribes to a message channel or message type, then disposes the subscription automatically after the first message is received.
-   * @param channelOrType The event channel or event data type.
+   * Subscribes to a message channel, then disposes the subscription automatically after the first message is received.
+   * @param channel The event channel.
    * @param callback The callback to be invoked when the specified message is published.
    */
-  public subscribeOnce(channel: string, callback: EventAggregatorCallback): IDisposable;
-  public subscribeOnce(type: Constructable, callback: EventAggregatorCallback): IDisposable;
-  public subscribeOnce(channelOrType: string | Constructable, callback: EventAggregatorCallback): IDisposable {
-    const sub = this.subscribe(channelOrType as Constructable, (data, event) => {
+  public subscribeOnce<T>(channel: string, callback: EventAggregatorCallback<T>): IDisposable;
+  /**
+   * Subscribes to a message type, then disposes the subscription automatically after the first message is received.
+   * @param type The event data type.
+   * @param callback The callback to be invoked when the specified message is published.
+   */
+  public subscribeOnce<T extends Constructable>(type: T, callback: EventAggregatorCallback<InstanceType<T>>): IDisposable;
+  public subscribeOnce<T extends Constructable>(channelOrType: string | T, callback: EventAggregatorCallback<T | InstanceType<T>>): IDisposable {
+    const sub = this.subscribe(channelOrType as T, (data?: T, event?: string) => {
       sub.dispose();
       return callback(data, event);
     });

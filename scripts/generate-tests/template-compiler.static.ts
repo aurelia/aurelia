@@ -221,7 +221,24 @@ const repeat$13_2: TplCtrl = {
 repeat$13_1.opposite = repeat$13_2;
 repeat$13_2.opposite = repeat$13_1;
 
-const repeats = [repeat$11_1, repeat$12_1, repeat$13_1];
+const repeat$14_1: TplCtrl = {
+  id: 'repeat$14',
+  value: ['a', 'b', 'c'],
+  prop: 'item',
+  attr: 'repeat.for="item of [\'a\', \'b\', \'c\'] & keyed"',
+  properties: []
+};
+const repeat$14_2: TplCtrl = {
+  id: 'repeat$14',
+  value: [],
+  prop: 'item',
+  attr: 'repeat.for="item of [] & keyed"',
+  properties: []
+};
+repeat$14_1.opposite = repeat$14_2;
+repeat$14_2.opposite = repeat$14_1;
+
+const repeats = [repeat$11_1, repeat$12_1, repeat$13_1, repeat$14_1];
 
 function generateTests(testTags: Tag[], textBindings: TextBinding[], ifElsePairs: TplCtrl[], repeaters: TplCtrl[]): Record<string, Statement[]> {
   const tests: Record<string, Statement[]> = {};

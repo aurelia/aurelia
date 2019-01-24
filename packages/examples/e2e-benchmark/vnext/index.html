@@ -26,7 +26,7 @@
       constructor() {
         this.queuedActions = [];
         this.previousLifecycle = null;
-        this.changeSet = null;
+        this.lifecycle = null;
       }
       markEnd() {
         const actions = this.queuedActions;
@@ -67,7 +67,7 @@
       instrumenter.markLifecycle('body-loaded');
   </script>
   <app></app>
-  <script src="dist/bundle.js"></script>
+  <script src="dist/main.js"></script>
   <script>
       instrumenter.markLifecycle('script-loaded');
   </script>

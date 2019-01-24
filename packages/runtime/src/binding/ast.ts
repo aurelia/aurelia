@@ -180,17 +180,24 @@ export class BindingBehavior implements IBindingBehaviorExpression {
     if (!behavior) {
       throw Reporter.error(RuntimeError.NoBehaviorFound, this);
     }
-    if (binding[behaviorKey] !== undefined && binding[behaviorKey] !== null) {
-      throw Reporter.error(RuntimeError.BehaviorAlreadyApplied, this);
+    if (binding[behaviorKey] === undefined || binding[behaviorKey] === null) {
+      binding[behaviorKey] = behavior;
+      behavior.bind.apply(behavior, ([flags, scope, binding] as unknown[]).concat(evalList(flags, scope, locator, this.args)));
+    } else {
+      Reporter.write(RuntimeError.BehaviorAlreadyApplied, this);
     }
-    binding[behaviorKey] = behavior;
-    behavior.bind.apply(behavior, ([flags, scope, binding] as unknown[]).concat(evalList(flags, scope, locator, this.args)));
   }
 
   public unbind(flags: LifecycleFlags, scope: IScope, binding: IConnectableBinding): void {
     const behaviorKey = this.behaviorKey;
-    binding[behaviorKey].unbind(flags, scope, binding);
-    binding[behaviorKey] = null;
+    if (binding[behaviorKey] !== undefined && binding[behaviorKey] !== null) {
+      binding[behaviorKey].unbind(flags, scope, binding);
+      binding[behaviorKey] = null;
+    } else {
+      // TODO: this is a temporary hack to make testing repeater keyed mode easier,
+      // we should remove this idempotency again when track-by attribute is implemented
+      Reporter.write(RuntimeError.BehaviorAlreadyApplied, this);
+    }
     if (this.expressionHasUnbind) {
       (this.expression as BindingBehavior | ValueConverter).unbind(flags, scope, binding);
     }
@@ -1116,6 +1123,18 @@ export class ForOfStatement implements IForOfStatement {
   public connect(flags: LifecycleFlags, scope: IScope, binding: IConnectableBinding): void {
     this.declaration.connect(flags, scope, binding);
     this.iterable.connect(flags, scope, binding);
+  }
+
+  public bind(flags: LifecycleFlags, scope: IScope, binding: IConnectableBinding): void {
+    if (hasBind(this.iterable)) {
+      this.iterable.bind(flags, scope, binding);
+    }
+  }
+
+  public unbind(flags: LifecycleFlags, scope: IScope, binding: IConnectableBinding): void {
+    if (hasUnbind(this.iterable)) {
+      this.iterable.unbind(flags, scope, binding);
+    }
   }
 
   public accept<T>(visitor: IVisitor<T>): T {

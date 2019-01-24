@@ -1,56 +1,283 @@
-import { IContainer, PLATFORM } from '@aurelia/kernel';
-import { Aurelia, CustomElementResource, ILifecycle } from '@aurelia/runtime';
+import { Aurelia, CustomElementResource } from '@aurelia/runtime';
 import { expect } from 'chai';
-import { baseSuite } from './template-compiler.base';
+import { eachCartesianJoin } from '../unit/util';
+import { TestContext } from '../util';
+import { TestConfiguration } from './resources';
 
 const spec = 'template-compiler.repeater';
 
-const suite = baseSuite.clone<IContainer, Aurelia, ILifecycle, HTMLElement, [string, string, string, (component: any) => void], string>(spec);
-suite.addDataSlot('e')
-  .addData('01').setValue([`[a,b,c]`,             `\${item}`,               `123`,    (c: {a: number; b: number; c: number}) => {c.a = 1; c.b = 2; c.c = 3; }]) // tslint:disable-line:no-statements-same-line
-  .addData('02').setValue([`[c,b,a]|sort`,        `\${item}`,               `123`,    (c: {a: number; b: number; c: number}) => {c.a = 1; c.b = 2; c.c = 3; }]) // tslint:disable-line:no-statements-same-line
-  .addData('03').setValue([`[1+1,2+1,3+1]`,       `\${item}`,               `234`,    PLATFORM.noop])
-  .addData('04').setValue([`[1,2,3]`,             `\${item}`,               `123`,    PLATFORM.noop])
-  .addData('05').setValue([`[3,2,1]|sort`,        `\${item}`,               `123`,    PLATFORM.noop])
-  .addData('06').setValue([`[{i:1},{i:2},{i:3}]`, `\${item.i}`,             `123`,    PLATFORM.noop])
-  .addData('07').setValue([`[[1],[2],[3]]`,       `\${item[0]}`,            `123`,    PLATFORM.noop])
-  .addData('08').setValue([`[[a],[b],[c]]`,       `\${item[0]}`,            `123`,    (c: {a: number; b: number; c: number}) => {c.a = 1; c.b = 2; c.c = 3; }]) // tslint:disable-line:no-statements-same-line
-  .addData('09').setValue([`3`,                   `\${item}`,               `012`,    PLATFORM.noop])
-  .addData('10').setValue([`null`,                `\${item}`,               ``,       PLATFORM.noop])
-  .addData('11').setValue([`undefined`,           `\${item}`,               ``,       PLATFORM.noop])
-  .addData('12').setValue([`items`,               `\${item}`,               `123`,    (c: {items: string[]}) => c.items = ['1', '2', '3']])
-  .addData('13').setValue([`items|sort`,          `\${item}`,               `123`,    (c: {items: string[]}) => c.items = ['3', '2', '1']])
-  .addData('14').setValue([`items`,               `\${item.i}`,             `123`,    (c: {items: {i: number}[]}) => c.items = [{i: 1}, {i: 2}, {i: 3}]])
-  .addData('15').setValue([`items|sort:'i'`,      `\${item.i}`,             `123`,    (c: {items: {i: number}[]}) => c.items = [{i: 3}, {i: 2}, {i: 1}]])
-  .addData('16').setValue([`items`,               `\${item}`,               `123`,    (c: {items: Set<string>}) => c.items = new Set(['1', '2', '3'])])
-  .addData('17').setValue([`items`,               `\${item[0]}\${item[1]}`, `1a2b3c`, (c: {items: Map<string, string>}) => c.items = new Map([['1', 'a'], ['2', 'b'], ['3', 'c']])]);
+describe(spec, function() {
+    interface Spec {
+      t: string;
+    }
+    interface BindSpec extends Spec {
+      forof: string;
+      item: string;
+      expected: string;
+      initialize(component: unknown): void;
+    }
+    interface TemplateSpec extends Spec {
+      createTemplate(forof: string, item: string): string;
+    }
 
-suite.addDataSlot('f')
-  .addData('01').setFactory(({e: [items, tpl]}) => `<template><div repeat.for="item of ${items}">${tpl}</div></template>`)
-  .addData('02').setFactory(({e: [items, tpl]}) => `<template><div repeat.for="item of ${items}" if.bind="true">${tpl}</div></template>`)
-  .addData('03').setFactory(({e: [items, tpl]}) => `<template><div if.bind="true" repeat.for="item of ${items}">${tpl}</div></template>`)
-  .addData('04').setFactory(({e: [items, tpl]}) => `<template><div if.bind="false"></div><div else repeat.for="item of ${items}">${tpl}</div></template>`)
-  .addData('05').setFactory(({e: [items, tpl]}) => `<template><template repeat.for="item of ${items}">${tpl}</template></template>`)
-  .addData('06').setFactory(({e: [items, tpl]}) => `<template><template repeat.for="item of ${items}"><div if.bind="true">${tpl}</div></template></template>`)
-  .addData('07').setFactory(({e: [items, tpl]}) => `<template><template repeat.for="item of ${items}"><div if.bind="false"></div><div else>${tpl}</div></template></template>`);
+    const bindSpecs: BindSpec[] = [
+      {
+        t: '01',
+        forof: `[a,b,c]`,
+        item: `\${item}`,
+        expected: `123`,
+        initialize(c: {a: number; b: number; c: number}) {
+          c.a = 1;
+          c.b = 2;
+          c.c = 3;
+        }
+      },
+      {
+        t: '02',
+        forof: `[c,b,a]|sort`,
+        item: `\${item}`,
+        expected: `123`,
+        initialize(c: {a: number; b: number; c: number}) {
+          c.a = 1;
+          c.b = 2;
+          c.c = 3;
+        }
+      },
+      {
+        t: '03',
+        forof: `[1+1,2+1,3+1]`,
+        item: `\${item}`,
+        expected: `234`,
+        initialize() {}
+      },
+      {
+        t: '04',
+        forof: `[1,2,3]`,
+        item: `\${item}`,
+        expected: `123`,
+        initialize() {}
+      },
+      {
+        t: '05',
+        forof: `[3,2,1]|sort`,
+        item: `\${item}`,
+        expected: `123`,
+        initialize() {}
+      },
+      {
+        t: '06',
+        forof: `[{i:1},{i:2},{i:3}]`,
+        item: `\${item.i}`,
+        expected: `123`,
+        initialize() {}
+      },
+      {
+        t: '07',
+        forof: `[[1],[2],[3]]`,
+        item: `\${item[0]}`,
+        expected: `123`,
+        initialize() {}
+      },
+      {
+        t: '08',
+        forof: `[[a],[b],[c]]`,
+        item: `\${item[0]}`,
+        expected: `123`,
+        initialize(c: {a: number; b: number; c: number}) {
+          c.a = 1;
+          c.b = 2;
+          c.c = 3;
+        }
+      },
+      {
+        t: '09',
+        forof: `3`,
+        item: `\${item}`,
+        expected: `012`,
+        initialize() {}
+      },
+      {
+        t: '10',
+        forof: `null`,
+        item: `\${item}`,
+        expected: ``,
+        initialize() {}
+      },
+      {
+        t: '11',
+        forof: `undefined`,
+        item: `\${item}`,
+        expected: ``,
+        initialize() {}
+      },
+      {
+        t: '12',
+        forof: `items`,
+        item: `\${item}`,
+        expected: `123`,
+        initialize(c: {items: string[]}) {
+          c.items = ['1', '2', '3'];
+        }
+      },
+      {
+        t: '13',
+        forof: `items|sort`,
+        item: `\${item}`,
+        expected: `123`,
+        initialize(c: {items: string[]}) {
+          c.items = ['3', '2', '1'];
+        }
+      },
+      {
+        t: '14',
+        forof: `items`,
+        item: `\${item.i}`,
+        expected: `123`,
+        initialize(c: {items: {i: number}[]}) {
+           c.items = [{i: 1}, {i: 2}, {i: 3}];
+        }
+      },
+      {
+        t: '15',
+        forof: `items|sort:'i'`,
+        item: `\${item.i}`,
+        expected: `123`,
+        initialize(c: {items: {i: number}[]}) {
+           c.items = [{i: 3}, {i: 2}, {i: 1}];
+        }
+      },
+      {
+        t: '16',
+        forof: `items`,
+        item: `\${item}`,
+        expected: `123`,
+        initialize(c: {items: Set<string>}) {
+           c.items = new Set(['1', '2', '3']);
+        }
+      },
+      {
+        t: '17',
+        forof: `items`,
+        item: `\${item[0]}\${item[1]}`,
+        expected: `1a2b3c`,
+        initialize(c: {items: Map<string, string>}) {
+           c.items = new Map([['1', 'a'], ['2', 'b'], ['3', 'c']]);
+        }
+      }
+    ];
 
-suite.addActionSlot('setup')
-  .addAction(null, ctx => {
-    const {  b: au, c: lifecycle, d: host, e: [a1, a2, expected, initialize], f: markup } = ctx;
-    class App {}
-    const $App = CustomElementResource.define({ name: 'app', template: markup }, App);
-    const component = new $App();
-    initialize(component);
+    const templateSpecs: TemplateSpec[] = [
+      {
+        t: '01',
+        createTemplate(items, tpl) {
+          return `<template><div repeat.for="item of ${items}">${tpl}</div></template>`;
+        }
+      },
+      {
+        t: '02',
+        createTemplate(items, tpl) {
+          return `<template><div repeat.for="item of ${items}" if.bind="true">${tpl}</div></template>`;
+        }
+      },
+      {
+        t: '03',
+        createTemplate(items, tpl) {
+          return `<template><div if.bind="true" repeat.for="item of ${items}">${tpl}</div></template>`;
+        }
+      },
+      {
+        t: '04',
+        createTemplate(items, tpl) {
+          return `<template><div if.bind="false"></div><div else repeat.for="item of ${items}">${tpl}</div></template>`;
+        }
+      },
+      {
+        t: '05',
+        createTemplate(items, tpl) {
+          return `<template><template repeat.for="item of ${items}">${tpl}</template></template>`;
+        }
+      },
+      {
+        t: '06',
+        createTemplate(items, tpl) {
+        return `<template><template repeat.for="item of ${items}"><div if.bind="true">${tpl}</div></template></template>`;
+      }
+      },
+      {
+        t: '07',
+        createTemplate(items, tpl) {
+          return `<template><template repeat.for="item of ${items}"><div if.bind="false"></div><div else>${tpl}</div></template></template>`;
+        }
+      },
+      {
+        t: '08',
+        createTemplate(items, tpl) {
+          return `<template><div repeat.for="item of ${items} & keyed">${tpl}</div></template>`;
+        }
+      },
+      {
+        t: '09',
+        createTemplate(items, tpl) {
+          return `<template><div repeat.for="item of ${items} & keyed" if.bind="true">${tpl}</div></template>`;
+        }
+      },
+      {
+        t: '10',
+        createTemplate(items, tpl) {
+          return `<template><div if.bind="true" repeat.for="item of ${items} & keyed">${tpl}</div></template>`;
+        }
+      },
+      {
+        t: '11',
+        createTemplate(items, tpl) {
+          return `<template><div if.bind="false"></div><div else repeat.for="item of ${items} & keyed">${tpl}</div></template>`;
+        }
+      },
+      {
+        t: '12',
+        createTemplate(items, tpl) {
+          return `<template><template repeat.for="item of ${items} & keyed">${tpl}</template></template>`;
+        }
+      },
+      {
+        t: '13',
+        createTemplate(items, tpl) {
+          return `<template><template repeat.for="item of ${items} & keyed"><div if.bind="true">${tpl}</div></template></template>`;
+        }
+      },
+      {
+        t: '14',
+        createTemplate(items, tpl) {
+          return `<template><template repeat.for="item of ${items} & keyed"><div if.bind="false"></div><div else>${tpl}</div></template></template>`;
+        }
+      },
+    ];
 
-    au.app({ component, host }).start();
+    eachCartesianJoin([bindSpecs, templateSpecs], (bindSpec, templateSpec) => {
+      it(`bindSpec ${bindSpec.t}, templateSpec ${templateSpec.t}`, function() {
+        const { forof, item, expected, initialize } = bindSpec;
+        const { createTemplate } = templateSpec;
 
-    expect(host.textContent).to.equal(expected);
+        const ctx = TestContext.createHTMLTestContext();
+        const { container } = ctx;
+        container.register(TestConfiguration);
 
-    au.stop();
+        const markup = createTemplate(forof, item);
+        const App = CustomElementResource.define({ name: 'app', template: markup }, class {});
 
-    expect(lifecycle['flushCount']).to.equal(0);
-    expect(host.textContent).to.equal('');
-  });
+        const host = ctx.createElement('div');
+        const component = new App();
+        initialize(component);
 
-suite.load();
-suite.run();
+        const au = new Aurelia(container);
+        au.app({ host, component });
+        au.start();
+
+        expect(host.textContent).to.equal(expected);
+
+        au.stop();
+
+        expect(host.textContent).to.equal('');
+      });
+    });
+});

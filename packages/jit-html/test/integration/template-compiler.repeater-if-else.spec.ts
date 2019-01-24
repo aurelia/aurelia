@@ -1,422 +1,569 @@
-import { IContainer } from '@aurelia/kernel';
 import {
   Aurelia,
-  bindable,
   CustomElementResource,
   ILifecycle,
   LifecycleFlags
 } from '@aurelia/runtime';
 import { expect } from 'chai';
-import { baseSuite } from './template-compiler.base';
+import { eachCartesianJoin } from '../unit/util';
+import { TestContext } from '../util';
+import { TestConfiguration } from './resources';
 import { trimFull } from './util';
 
 const spec = 'template-compiler.repeater-if-else';
 
-const parentSuite = baseSuite.clone<IContainer, Aurelia, ILifecycle, HTMLElement, any, string, [any[], string, string], string, number, any>(spec);
+describe(spec, function() {
 
-// repeater + if + custom element
-parentSuite.addDataSlot('f') // Template (custom element)
-  .addData('01').setValue(
-    `<template>
-      <div repeat.for="item of items">
-        <div if.bind="display">
-          \${item.if}
-        </div>
-        <div else>
-          \${item.else}
-        </div>
-      </div>
-    </template>`)
-  .addData('02').setValue(
-    `<template>
-      <div repeat.for="item of items">
-        <div if.bind="display">
-          <div if.bind="true">
+  interface Spec {
+    t: string;
+  }
+  interface BehaviorsSpec extends Spec {
+    behaviors: string;
+  }
+  interface CETemplateSpec extends Spec {
+    createCETemplate(behaviors: string): string;
+  }
+  interface ItemsSpec extends Spec {
+    ifText: string;
+    elseText: string;
+    createItems(): any[];
+  }
+  interface AppTemplateSpec extends Spec {
+    createAppTemplate(behaviors: string): string;
+  }
+  interface CountSpec extends Spec {
+    count: number;
+  }
+  interface MutationSpec extends Spec {
+    execute(component: { items: any[]; display: boolean }, lifecycle: ILifecycle, host: Element, count: number, ifText: string, elseText: string): void;
+  }
+
+  const behaviorsSpecs: BehaviorsSpec[] = [
+    {
+      t: '01',
+      behaviors: ''
+    },
+    {
+      t: '02',
+      behaviors: '& keyed'
+    }
+  ];
+
+  const ceTemplateSpecs: CETemplateSpec[] = [
+    {
+      t: '101',
+      createCETemplate(behaviors: string): string {
+        return  `<template>
+          <div repeat.for="item of items ${behaviors}">
+            <div if.bind="display">
+              \${item.if}
+            </div>
+            <div else>
+              \${item.else}
+            </div>
+          </div>
+        </template>`;
+      }
+    },
+    {
+      t: '102',
+      createCETemplate(behaviors: string): string {
+        return `<template>
+          <div repeat.for="item of items ${behaviors}">
+            <div if.bind="display">
+              <div if.bind="true">
+                \${item.if}
+              </div>
+            </div>
+            <div else>
+              \${item.else}
+            </div>
+          </div>
+        </template>`;
+      }
+    },
+    {
+      t: '103',
+      createCETemplate(behaviors: string): string {
+        return `<template>
+          <div repeat.for="item of items ${behaviors}">
+            <div if.bind="display">
+              <div if.bind="false">
+                do_not_show
+              </div>
+              <div else>
+                \${item.if}
+              </div>
+            </div>
+            <div else>
+              \${item.else}
+            </div>
+          </div>
+        </template>`;
+      }
+    },
+    {
+      t: '104',
+      createCETemplate(behaviors: string): string {
+        return `<template>
+          <div if.bind="true" repeat.for="item of items ${behaviors}">
+            <div if.bind="display">
+              \${item.if}
+            </div>
+            <div else>
+              \${item.else}
+            </div>
+          </div>
+        </template>`;
+      }
+    },
+    {
+      t: '105',
+      createCETemplate(behaviors: string): string {
+        return `<template>
+          <div if.bind="false">do_not_show</div>
+          <div else repeat.for="item of items ${behaviors}">
+            <div if.bind="display">
+              \${item.if}
+            </div>
+            <div else>
+              \${item.else}
+            </div>
+          </div>
+        </template>`;
+      }
+    },
+    {
+      t: '106',
+      createCETemplate(behaviors: string): string {
+        return `<template>
+          <div repeat.for="item of items ${behaviors}">
+            <div if.bind="display" repeat.for="i of 1 ${behaviors}">
+              \${item.if}
+            </div>
+            <div else repeat.for="i of 1 ${behaviors}">
+              \${item.else}
+            </div>
+          </div>
+        </template>`;
+      }
+    },
+    {
+      t: '107',
+      createCETemplate(behaviors: string): string {
+        return `<template>
+          <div if.bind="true" repeat.for="item of items ${behaviors}">
+            <div if.bind="display" repeat.for="i of 1 ${behaviors}">
+              \${item.if}
+            </div>
+            <div else repeat.for="i of 1 ${behaviors}">
+              \${item.else}
+            </div>
+          </div>
+        </template>`;
+      }
+    },
+    {
+      t: '108',
+      createCETemplate(behaviors: string): string {
+        return `<template>
+          <div repeat.for="a of 1 ${behaviors}">
+            <div repeat.for="item of items ${behaviors}">
+              <div if.bind="display">
+                \${item.if}
+              </div>
+              <div else>
+                \${item.else}
+              </div>
+            </div>
+          </div>
+        </template>`;
+      }
+    },
+    {
+      t: '109',
+      createCETemplate(behaviors: string): string {
+        return `<template>
+          <template repeat.for="item of items ${behaviors}">
+            <div if.bind="display">
+              \${item.if}
+            </div>
+            <div else>
+              \${item.else}
+            </div>
+          </template>
+        </template>`;
+      }
+    },
+    {
+      t: '110',
+      createCETemplate(behaviors: string): string {
+        return `<template>
+          <div repeat.for="item of items ${behaviors}">
+            <template if.bind="display">
+              \${item.if}
+            </template>
+            <template else>
+              \${item.else}
+            </template>
+          </div>
+        </template>`;
+      }
+    },
+    {
+      t: '111',
+      createCETemplate(behaviors: string): string {
+        return `<template>
+          <template repeat.for="item of items ${behaviors}">
+            <template if.bind="display">
+              \${item.if}
+            </template>
+            <template else>
+              \${item.else}
+            </template>
+          </template>
+        </template>`;
+      }
+    },
+    {
+      t: '112',
+      createCETemplate(behaviors: string): string {
+        return `<template>
+          <div if.bind="display" repeat.for="item of items ${behaviors}">
             \${item.if}
           </div>
-        </div>
-        <div else>
-          \${item.else}
-        </div>
-      </div>
-    </template>`)
-  .addData('03').setValue(
-    `<template>
-      <div repeat.for="item of items">
-        <div if.bind="display">
+          <div else repeat.for="item of items ${behaviors}">
+            \${item.else}
+          </div>
+        </template>`;
+      }
+    },
+    {
+      t: '113',
+      createCETemplate(behaviors: string): string {
+        return `<template>
+          <div if.bind="display">
+            <div repeat.for="item of items ${behaviors}">
+              \${item.if}
+            </div>
+          </div>
+          <div else>
+            <div repeat.for="item of items ${behaviors}">
+              \${item.else}
+            </div>
+          </div>
+        </template>`;
+      }
+    },
+    {
+      t: '114',
+      createCETemplate(behaviors: string): string {
+        return `<template>
+          <div repeat.for="item of items ${behaviors}" with.bind="item">
+            <div if.bind="display">
+              \${if}
+            </div>
+            <div else>
+              \${else}
+            </div>
+          </div>
+        </template>`;
+      }
+    },
+    {
+      t: '115',
+      createCETemplate(behaviors: string): string {
+        return `<template>
+          <div repeat.for="item of items ${behaviors}">
+            <div with.bind="item">
+              <div if.bind="display">
+                \${if}
+              </div>
+              <div else>
+                \${else}
+              </div>
+            </div>
+          </div>
+        </template>`;
+      }
+    }
+  ];
+
+  const appTemplateSpecs: AppTemplateSpec[] = [
+    {
+      t: '01',
+      createAppTemplate(behaviors: string): string {
+        return `<template>
+          <foo repeat.for="i of count ${behaviors}" items.bind="items" display.bind="display">
+          </foo>
+        </template>`;
+      }
+    },
+    {
+      t: '02',
+      createAppTemplate(behaviors: string): string {
+        return `<template>
+          <foo repeat.for="i of count ${behaviors}" if.bind="true" items.bind="items" display.bind="display">
+          </foo>
+        </template>`;
+      }
+    },
+    {
+      t: '03',
+      createAppTemplate(behaviors: string): string {
+        return `<template>
+          <div repeat.for="i of count ${behaviors}">
+            <div if.bind="false">
+              do_not_show
+            </div>
+            <foo else items.bind="items" display.bind="display">
+            </foo>
+          </div>
+        </template>`;
+      }
+    },
+    {
+      t: '04',
+      createAppTemplate(behaviors: string): string {
+        return `<template>
+          <foo if.bind="true" repeat.for="i of count ${behaviors}" items.bind="items" display.bind="display">
+          </foo>
+        </template>`;
+      }
+    },
+    {
+      t: '05',
+      createAppTemplate(behaviors: string): string {
+        return `<template>
           <div if.bind="false">
             do_not_show
           </div>
-          <div else>
-            \${item.if}
-          </div>
-        </div>
-        <div else>
-          \${item.else}
-        </div>
-      </div>
-    </template>`)
-  .addData('04').setValue(
-    `<template>
-      <div if.bind="true" repeat.for="item of items">
-        <div if.bind="display">
-          \${item.if}
-        </div>
-        <div else>
-          \${item.else}
-        </div>
-      </div>
-    </template>`)
-  .addData('05').setValue(
-    `<template>
-      <div if.bind="false">do_not_show</div>
-      <div else repeat.for="item of items">
-        <div if.bind="display">
-          \${item.if}
-        </div>
-        <div else>
-          \${item.else}
-        </div>
-      </div>
-    </template>`)
-  .addData('06').setValue(
-    `<template>
-      <div repeat.for="item of items">
-        <div if.bind="display" repeat.for="i of 1">
-          \${item.if}
-        </div>
-        <div else repeat.for="i of 1">
-          \${item.else}
-        </div>
-      </div>
-    </template>`)
-  .addData('07').setValue(
-    `<template>
-      <div if.bind="true" repeat.for="item of items">
-        <div if.bind="display" repeat.for="i of 1">
-          \${item.if}
-        </div>
-        <div else repeat.for="i of 1">
-          \${item.else}
-        </div>
-      </div>
-    </template>`)
-  .addData('08').setValue(
-    `<template>
-      <div repeat.for="a of 1">
-        <div repeat.for="item of items">
-          <div if.bind="display">
-            \${item.if}
-          </div>
-          <div else>
-            \${item.else}
-          </div>
-        </div>
-      </div>
-    </template>`)
-  .addData('09').setValue(
-    `<template>
-      <template repeat.for="item of items">
-        <div if.bind="display">
-          \${item.if}
-        </div>
-        <div else>
-          \${item.else}
-        </div>
-      </template>
-    </template>`)
-  .addData('10').setValue(
-    `<template>
-      <div repeat.for="item of items">
-        <template if.bind="display">
-          \${item.if}
-        </template>
-        <template else>
-          \${item.else}
-        </template>
-      </div>
-    </template>`)
-  .addData('11').setValue(
-    `<template>
-      <template repeat.for="item of items">
-        <template if.bind="display">
-          \${item.if}
-        </template>
-        <template else>
-          \${item.else}
-        </template>
-      </template>
-    </template>`)
-  .addData('12').setValue(
-    `<template>
-      <div if.bind="display" repeat.for="item of items">
-        \${item.if}
-      </div>
-      <div else repeat.for="item of items">
-        \${item.else}
-      </div>
-    </template>`)
-  .addData('13').setValue(
-    `<template>
-      <div if.bind="display">
-        <div repeat.for="item of items">
-          \${item.if}
-        </div>
-      </div>
-      <div else>
-        <div repeat.for="item of items">
-          \${item.else}
-        </div>
-      </div>
-    </template>`)
-  .addData('14').setValue(
-    `<template>
-      <div repeat.for="item of items" with.bind="item">
-        <div if.bind="display">
-          \${if}
-        </div>
-        <div else>
-          \${else}
-        </div>
-      </div>
-    </template>`)
-  .addData('15').setValue(
-    `<template>
-      <div repeat.for="item of items">
-        <div with.bind="item">
-          <div if.bind="display">
-            \${if}
-          </div>
-          <div else>
-            \${else}
-          </div>
-        </div>
-      </div>
-    </template>`);
-
-parentSuite.addDataSlot('g') // Items (initial)
-  .addData('01').setFactory(c => [[{if: 1,   else: 2},   {if: 3,   else: 4}                                              ], '13',   '24'])
-  .addData('02').setFactory(c => [[{if: 'a', else: 'b'}, {if: 'c', else: 'd'}, {if: 'e', else: 'f'}, {if: 'g', else: 'h'}], 'aceg', 'bdfh']);
-
-parentSuite.addDataSlot('h') // Markup (app)
-  .addData('01').setValue(
-    `<template>
-      <foo repeat.for="i of count" items.bind="items" display.bind="display">
-      </foo>
-    </template>`)
-  .addData('02').setValue(
-    `<template>
-      <foo repeat.for="i of count" if.bind="true" items.bind="items" display.bind="display">
-      </foo>
-    </template>`)
-  .addData('03').setValue(
-    `<template>
-      <div repeat.for="i of count">
-        <div if.bind="false">
-          do_not_show
-        </div>
-        <foo else items.bind="items" display.bind="display">
-        </foo>
-      </div>
-    </template>`)
-  .addData('04').setValue(
-    `<template>
-      <foo if.bind="true" repeat.for="i of count" items.bind="items" display.bind="display">
-      </foo>
-    </template>`)
-  .addData('05').setValue(
-    `<template>
-      <div if.bind="false">
-        do_not_show
-      </div>
-      <foo else repeat.for="i of count" items.bind="items" display.bind="display">
-      </foo>
-    </template>`);
-// // TODO: doesn't remove all nodes it needs to remove (or something), renders too much
-//   .addData('06').setValue(
-//     `<template>
-//       <div if.bind="false">
-//         do_not_show
-//       </div>
-//       <foo items.bind="items" display.bind="display" else repeat.for="i of count">
-//       </foo>
-//     </template>`)
-// // TODO: incorrect bindings (or something), renders too little
-  // .addData('07').setValue(
-  //   `<template>
-  //     <foo items.bind="items" display.bind="display" repeat.for="i of count">
-  //     </foo>
-  //   </template>`)
-
-parentSuite.addDataSlot('i') // count
-  .addData('01').setValue(1)
-  .addData('02').setValue(3);
-
-parentSuite.addActionSlot('setup')
-  .addAction(null, ctx => {
-    const { a: container, b: au, c: lifecycle, d: host, f: template, g: [initialItems, ifText, elseText], h: markup, i: count } = ctx;
-    class Foo {
-      @bindable public items: any[];
-      @bindable public display: boolean;
+          <foo else repeat.for="i of count ${behaviors}" items.bind="items" display.bind="display">
+          </foo>
+        </template>`;
+      }
     }
-    const $Foo = CustomElementResource.define({ name: 'foo', template }, Foo);
-    container.register($Foo);
-    class App {
-      public items: any[] = initialItems;
-      public display: boolean = false;
-      public count: number = count;
+  ];
+
+  const itemsSpecs: ItemsSpec[] = [
+    {
+      t: '01',
+      createItems() {
+        return [{if: 1,   else: 2},   {if: 3,   else: 4}]
+      },
+      ifText: '13',
+      elseText: '24'
+    },
+    {
+      t: '02',
+      createItems() {
+        return [{if: 'a', else: 'b'}, {if: 'c', else: 'd'}, {if: 'e', else: 'f'}, {if: 'g', else: 'h'}];
+      },
+      ifText: 'aceg',
+      elseText: 'bdfh'
     }
-    const $App = CustomElementResource.define({ name: 'app', template: markup }, App);
-    const component = new $App();
-    au.app({ host, component }).start();
-    lifecycle.processFlushQueue(LifecycleFlags.none);
+  ];
 
-    expect(trimFull(host.textContent)).to.equal(elseText.repeat(count));
+  const countSpecs: CountSpec[] = [
+    {
+      t: '01',
+      count: 1
+    },
+    {
+      t: '02',
+      count: 3
+    }
+  ];
 
-    ctx.e = component;
-  });
+  const mutationSpecs: MutationSpec[] = [
+    {
+      t: '01',
+      execute(component: { items: any[]; display: boolean }, lifecycle: ILifecycle, host: Element, count: number, ifText: string, elseText: string): void {
+        component.display = true;
+        lifecycle.processFlushQueue(LifecycleFlags.none);
 
-const mutations = parentSuite.clone<IContainer, Aurelia, ILifecycle, HTMLElement, any, string, [any[], string, string], string, number, any>();
-const removals = parentSuite.clone<IContainer, Aurelia, ILifecycle, HTMLElement, any, string, [any[], string, string], string, number, any>();
-const additions = parentSuite.clone<IContainer, Aurelia, ILifecycle, HTMLElement, any, string, [any[], string, string], string, number, any>();
+        expect(trimFull(host.textContent)).to.equal(ifText.repeat(count));
+      }
+    },
+    {
+      t: '01',
+      execute(component: { items: any[]; display: boolean }, lifecycle: ILifecycle, host: Element, count: number, ifText: string, elseText: string): void {
+        component.display = true;
+        lifecycle.processFlushQueue(LifecycleFlags.none);
+        component.display = false;
+        lifecycle.processFlushQueue(LifecycleFlags.none);
 
-mutations.addActionSlot('mutate') // Tests/assertions
-  // swap the if/else
-  .addAction('01', ctx => {
-    const { c: lifecycle, d: host, e: component, g: [g1, ifText, elseText], i: count } = ctx;
-    component.display = true;
-    lifecycle.processFlushQueue(LifecycleFlags.none);
+        expect(trimFull(host.textContent)).to.equal(elseText.repeat(count));
+      }
+    },
+    {
+      t: '01',
+      execute(component: { items: any[]; display: boolean }, lifecycle: ILifecycle, host: Element, count: number, ifText: string, elseText: string): void {
+        component.items = [{if: 2, else: 1}, {if: 4, else: 3}];
+        lifecycle.processFlushQueue(LifecycleFlags.none);
 
-    expect(trimFull(host.textContent)).to.equal(ifText.repeat(count));
-  })
-  // swap the if/else twice
-  .addAction('02', ctx => {
-    const { c: lifecycle, d: host, e: component, g: [g1, ifText, elseText], i: count } = ctx;
-    component.display = true;
-    lifecycle.processFlushQueue(LifecycleFlags.none);
-    component.display = false;
-    lifecycle.processFlushQueue(LifecycleFlags.none);
+        expect(trimFull(host.textContent)).to.equal('13'.repeat(count));
+      }
+    },
+    {
+      t: '01',
+      execute(component: { items: any[]; display: boolean }, lifecycle: ILifecycle, host: Element, count: number, ifText: string, elseText: string): void {
+        component.items[0].if = 5;
+        component.items[0].else = 6;
+        component.items[1].if = 7;
+        component.items[1].else = 8;
+        lifecycle.processFlushQueue(LifecycleFlags.none);
 
-    expect(trimFull(host.textContent)).to.equal(elseText.repeat(count));
-  })
-  // assign items with the if/else swapped
-  .addAction('03', ctx => {
-    const { c: lifecycle, d: host, e: component, g: [g1, ifText, elseText], i: count } = ctx;
-    component.items = [{if: 2, else: 1}, {if: 4, else: 3}];
-    lifecycle.processFlushQueue(LifecycleFlags.none);
+        expect(trimFull(host.textContent)).to.equal((`68${elseText.slice(2)}`).repeat(count));
+      }
+    },
+    {
+      t: '01',
+      execute(component: { items: any[]; display: boolean }, lifecycle: ILifecycle, host: Element, count: number, ifText: string, elseText: string): void {
+        component.items.reverse();
+        lifecycle.processFlushQueue(LifecycleFlags.none);
 
-    expect(trimFull(host.textContent)).to.equal('13'.repeat(count));
-  })
-  // change the if/else values of the items
-  .addAction('04', ctx => {
-    const { c: lifecycle, d: host, e: component, g: [g1, ifText, elseText], i: count } = ctx;
-    component.items[0].if = 5;
-    component.items[0].else = 6;
-    component.items[1].if = 7;
-    component.items[1].else = 8;
-    lifecycle.processFlushQueue(LifecycleFlags.none);
+        expect(trimFull(host.textContent)).to.equal((elseText.split('').reverse().join('')).repeat(count));
+      }
+    },
+    {
+      t: '01',
+      execute(component: { items: any[]; display: boolean }, lifecycle: ILifecycle, host: Element, count: number, ifText: string, elseText: string): void {
+        component.items.reverse();
+        component.display = true;
+        lifecycle.processFlushQueue(LifecycleFlags.none);
 
-    expect(trimFull(host.textContent)).to.equal((`68${elseText.slice(2)}`).repeat(count));
-  })
-  // reverse the items
-  .addAction('05', ctx => {
-    const { c: lifecycle, d: host, e: component, g: [g1, ifText, elseText], i: count } = ctx;
-    component.items.reverse();
-    lifecycle.processFlushQueue(LifecycleFlags.none);
+        expect(trimFull(host.textContent)).to.equal((ifText.split('').reverse().join('')).repeat(count));
+      }
+    },
+    {
+      t: '01',
+      execute(component: { items: any[]; display: boolean }, lifecycle: ILifecycle, host: Element, count: number, ifText: string, elseText: string): void {
+        component.items = [{if: 'a', else: 'b'}];
+        lifecycle.processFlushQueue(LifecycleFlags.none);
 
-    expect(trimFull(host.textContent)).to.equal((elseText.split('').reverse().join('')).repeat(count));
-  })
-  // reverse the items + swap the if/else
-  .addAction('06', ctx => {
-    const { c: lifecycle, d: host, e: component, g: [g1, ifText, elseText], i: count } = ctx;
-    component.items.reverse();
-    component.display = true;
-    lifecycle.processFlushQueue(LifecycleFlags.none);
+        expect(trimFull(host.textContent)).to.equal('b'.repeat(count));
+      }
+    },
+    {
+      t: '01',
+      execute(component: { items: any[]; display: boolean }, lifecycle: ILifecycle, host: Element, count: number, ifText: string, elseText: string): void {
+        component.items = [{if: 'a', else: 'b'}];
+        component.display = true;
+        lifecycle.processFlushQueue(LifecycleFlags.none);
 
-    expect(trimFull(host.textContent)).to.equal((ifText.split('').reverse().join('')).repeat(count));
-  });
+        expect(trimFull(host.textContent)).to.equal('a'.repeat(count));
+      }
+    },
+    {
+      t: '01',
+      execute(component: { items: any[]; display: boolean }, lifecycle: ILifecycle, host: Element, count: number, ifText: string, elseText: string): void {
+        component.items.pop();
+        lifecycle.processFlushQueue(LifecycleFlags.none);
 
-removals.addActionSlot('remove')
-  // assign an item less
-  .addAction('01', ctx => {
-    const { c: lifecycle, d: host, e: component, g: [g1, ifText, elseText], i: count } = ctx;
-    component.items = [{if: 'a', else: 'b'}];
-    lifecycle.processFlushQueue(LifecycleFlags.none);
+        expect(trimFull(host.textContent)).to.equal(elseText.slice(0, -1).repeat(count));
+      }
+    },
+    {
+      t: '01',
+      execute(component: { items: any[]; display: boolean }, lifecycle: ILifecycle, host: Element, count: number, ifText: string, elseText: string): void {
+        component.items.pop();
+        component.display = true;
+        lifecycle.processFlushQueue(LifecycleFlags.none);
 
-    expect(trimFull(host.textContent)).to.equal('b'.repeat(count));
-  })
-  // assign an item less + swap the if/else
-  .addAction('02', ctx => {
-    const { c: lifecycle, d: host, e: component, g: [g1, ifText, elseText], i: count } = ctx;
-    component.items = [{if: 'a', else: 'b'}];
-    component.display = true;
-    lifecycle.processFlushQueue(LifecycleFlags.none);
+        expect(trimFull(host.textContent)).to.equal(ifText.slice(0, -1).repeat(count));
+      }
+    },
+    {
+      t: '01',
+      execute(component: { items: any[]; display: boolean }, lifecycle: ILifecycle, host: Element, count: number, ifText: string, elseText: string): void {
+        component.items = component.items.slice().concat({if: 'x', else: 'y'});
+        lifecycle.processFlushQueue(LifecycleFlags.none);
 
-    expect(trimFull(host.textContent)).to.equal('a'.repeat(count));
-  })
-  // pop an item
-  .addAction('03', ctx => {
-    const { c: lifecycle, d: host, e: component, g: [g1, ifText, elseText], i: count } = ctx;
-    component.items.pop();
-    lifecycle.processFlushQueue(LifecycleFlags.none);
+        expect(trimFull(host.textContent)).to.equal(`${elseText}y`.repeat(count));
+      }
+    },
+    {
+      t: '01',
+      execute(component: { items: any[]; display: boolean }, lifecycle: ILifecycle, host: Element, count: number, ifText: string, elseText: string): void {
+        component.items = [{if: 'a', else: 'b'}, {if: 'c', else: 'd'}, {if: 'e', else: 'f'}];
+        component.display = true;
+        lifecycle.processFlushQueue(LifecycleFlags.none);
 
-    expect(trimFull(host.textContent)).to.equal(elseText.slice(0, -1).repeat(count));
-  })
-  // pop an item + swap the if/else
-  .addAction('04', ctx => {
-    const { c: lifecycle, d: host, e: component, g: [g1, ifText, elseText], i: count } = ctx;
-    component.items.pop();
-    component.display = true;
-    lifecycle.processFlushQueue(LifecycleFlags.none);
+        expect(trimFull(host.textContent)).to.equal('ace'.repeat(count));
+      }
+    },
+    {
+      t: '01',
+      execute(component: { items: any[]; display: boolean }, lifecycle: ILifecycle, host: Element, count: number, ifText: string, elseText: string): void {
+        component.items.push({if: 5, else: 6});
+        lifecycle.processFlushQueue(LifecycleFlags.none);
 
-    expect(trimFull(host.textContent)).to.equal(ifText.slice(0, -1).repeat(count));
-  });
+        expect(trimFull(host.textContent)).to.equal(`${elseText}6`.repeat(count));
+      }
+    },
+    {
+      t: '01',
+      execute(component: { items: any[]; display: boolean }, lifecycle: ILifecycle, host: Element, count: number, ifText: string, elseText: string): void {
+        component.items.push({if: 5, else: 6});
+        component.display = true;
+        lifecycle.processFlushQueue(LifecycleFlags.none);
 
-additions.addActionSlot('add')
-  // assign an item more
-  .addAction('01', ctx => {
-    const { c: lifecycle, d: host, e: component, g: [g1, ifText, elseText], i: count } = ctx;
-    component.items = component.items.slice().concat({if: 'x', else: 'y'});
-    lifecycle.processFlushQueue(LifecycleFlags.none);
+        expect(trimFull(host.textContent)).to.equal(`${ifText}5`.repeat(count));
+      }
+    }
+  ];
 
-    expect(trimFull(host.textContent)).to.equal(`${elseText}y`.repeat(count));
-  })
-  // assign an item more + swap the if/else
-  .addAction('02', ctx => {
-    const { c: lifecycle, d: host, e: component, g: [g1, ifText, elseText], i: count } = ctx;
-    component.items = [{if: 'a', else: 'b'}, {if: 'c', else: 'd'}, {if: 'e', else: 'f'}];
-    component.display = true;
-    lifecycle.processFlushQueue(LifecycleFlags.none);
+  eachCartesianJoin(
+    [behaviorsSpecs, ceTemplateSpecs, appTemplateSpecs, itemsSpecs, countSpecs, mutationSpecs],
+    (behaviorsSpec, ceTemplateSpec, appTemplateSpec, itemsSpec, countSpec, mutationSpec) => {
 
-    expect(trimFull(host.textContent)).to.equal('ace'.repeat(count));
-  })
-  // push an item
-  .addAction('03', ctx => {
-    const { c: lifecycle, d: host, e: component, g: [g1, ifText, elseText], i: count } = ctx;
-    component.items.push({if: 5, else: 6});
-    lifecycle.processFlushQueue(LifecycleFlags.none);
+    it(`behaviorsSpec ${behaviorsSpec.t}, ceTemplateSpec ${ceTemplateSpec.t}, appTemplateSpec ${appTemplateSpec.t}, itemsSpec ${itemsSpec.t}, countSpec ${countSpec.t}, mutationSpec ${mutationSpec.t}`, function() {
+      const { behaviors } = behaviorsSpec;
+      const { createCETemplate } = ceTemplateSpec;
+      const { createAppTemplate } = appTemplateSpec;
+      const { ifText, elseText, createItems } = itemsSpec;
+      const { count } = countSpec;
+      const { execute } = mutationSpec;
 
-    expect(trimFull(host.textContent)).to.equal(`${elseText}6`.repeat(count));
-  })
-  // push an item + swap the if/else
-  .addAction('04', ctx => {
-    const { c: lifecycle, d: host, e: component, g: [g1, ifText, elseText], i: count } = ctx;
-    component.items.push({if: 5, else: 6});
-    component.display = true;
-    lifecycle.processFlushQueue(LifecycleFlags.none);
+      const ctx = TestContext.createHTMLTestContext();
+      const { container } = ctx;
+      container.register(TestConfiguration);
 
-    expect(trimFull(host.textContent)).to.equal(`${ifText}5`.repeat(count));
-  });
+      const initialItems = createItems();
 
-for (const suite of [mutations, removals, additions]) {
-  suite.addActionSlot('teardown')
-    .addAction(null, ctx => {
-      const { b: au, c: lifecycle, d: host } = ctx;
+      class $Foo {
+        public static bindables = {
+          items: { property: 'items', attribute: 'items' },
+          display: { property: 'display', attribute: 'display' }
+        };
+        public items: any[];
+        public display: boolean;
+      }
+      const Foo = CustomElementResource.define({ name: 'foo', template: createCETemplate(behaviors) }, $Foo);
+      container.register(Foo);
+      class $App {
+        public items: any[] = initialItems;
+        public display: boolean = false;
+        public count: number = count;
+      }
+      const App = CustomElementResource.define({ name: 'app', template: createAppTemplate(behaviors) }, $App);
+
+      const host = ctx.createElement('div');
+      const component = new App();
+
+      const au = new Aurelia(container);
+      au.app({ host, component });
+      au.start();
+
+      expect(trimFull(host.textContent)).to.equal(elseText.repeat(count));
+
+      execute(component as any, ctx.lifecycle, host, count, ifText, elseText);
+
       au.stop();
-      expect(lifecycle['flushCount']).to.equal(0);
       expect(trimFull(host.textContent)).to.equal('');
     });
+  });
 
-  suite.load();
-  suite.run();
-}
+});
+

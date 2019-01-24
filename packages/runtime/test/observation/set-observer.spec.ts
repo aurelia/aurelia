@@ -279,10 +279,21 @@ function synchronize(oldSet: Set<any>, indexMap: IndexMap, newSet: Set<any>): vo
     return;
   }
 
-  for (const entry of indexMap.deletedItems) {
-    oldSet.delete(entry);
-  }
   let i = 0;
+  const toDelete = [];
+  for (const deleted of indexMap.deletedItems) {
+    i = 0;
+    for (const entry of oldSet.keys()) {
+      if (i === deleted) {
+        toDelete.push(entry);
+      }
+      i++;
+    }
+  }
+  for (const del of toDelete) {
+    oldSet.delete(del);
+  }
+  i = 0;
   for (const entry of newSet.keys()) {
     if (indexMap[i] === -2) {
       oldSet.add(entry);

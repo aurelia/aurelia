@@ -74,20 +74,19 @@ export class EventAggregator {
   public publish(channel: string, data?: unknown): void;
   /**
    * Publishes a message.
-   * @param channelOrType The event to publish to.
-   * @param data The data to publish on the channel.
+   * @param instance The instance to publish to.
    */
-  public publish(type: InstanceType<Constructable>): void;
-  public publish(channelOrType: string | InstanceType<Constructable>, data?: unknown): void {
+  public publish(instance: InstanceType<Constructable>): void;
+  public publish(channelOrInstance: string | InstanceType<Constructable>, data?: unknown): void {
     let subscribers: (EventAggregatorCallback | Handler)[];
     let i: number;
 
-    if (!channelOrType) {
+    if (!channelOrInstance) {
       throw Reporter.error(0); // TODO: create error code for 'Event was invalid.'
     }
 
-    if (typeof channelOrType === 'string') {
-      const channel: string = channelOrType;
+    if (typeof channelOrInstance === 'string') {
+      const channel: string = channelOrInstance;
       subscribers = this.eventLookup[channel];
       if (subscribers) {
         subscribers = subscribers.slice();
@@ -98,25 +97,25 @@ export class EventAggregator {
         }
       }
     } else {
-      const type: InstanceType<Constructable> = channelOrType;
+      const instance: InstanceType<Constructable> = channelOrInstance;
       subscribers = this.messageHandlers.slice();
       i = subscribers.length;
 
       while (i--) {
-        invokeHandler(subscribers[i] as Handler, type);
+        invokeHandler(subscribers[i] as Handler, instance);
       }
     }
   }
 
   /**
    * Subscribes to a message channel.
-   * @param channelOrType The event channel.
+   * @param channel The event channel.
    * @param callback The callback to be invoked when the specified message is published.
    */
   public subscribe<T>(channel: string, callback: EventAggregatorCallback<T>): IDisposable;
   /**
    * Subscribes to a message type.
-   * @param channelOrType The event data type.
+   * @param type The event data type.
    * @param callback The callback to be invoked when the specified message is published.
    */
   public subscribe<T extends Constructable>(type: T, callback: EventAggregatorCallback<InstanceType<T>>): IDisposable;

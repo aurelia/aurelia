@@ -13,9 +13,8 @@ import {
   stringify
 } from '../util';
 
-function assertArrayEqual(actual: any[], expected: any[]): void {
+export function assertArrayEqual(actual: ReadonlyArray<any>, expected: ReadonlyArray<any>): void {
   const len = actual.length;
-  expect(len).to.equal(expected.length, `expected.length=${expected.length}, actual.length=${actual.length}`);
   let i = 0;
   while (i < len) {
     if (actual[i] !== expected[i]) {
@@ -29,6 +28,7 @@ function assertArrayEqual(actual: any[], expected: any[]): void {
     }
     i++;
   }
+  expect(len).to.equal(expected.length, `expected.length=${expected.length}, actual.length=${actual.length}`);
 }
 
 describe(`ArrayObserver`, () => {

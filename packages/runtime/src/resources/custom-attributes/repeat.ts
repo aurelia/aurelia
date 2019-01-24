@@ -4,8 +4,8 @@ import { Binding } from '../../binding/binding';
 import { AttributeDefinition, IAttributeDefinition } from '../../definitions';
 import { INode, IRenderLocation } from '../../dom';
 import { LifecycleFlags, State } from '../../flags';
-import { IRenderable, IView, IViewFactory } from '../../lifecycle';
-import { CollectionObserver, IBatchedCollectionSubscriber, IObservedArray, IScope, ObservedCollection } from '../../observation';
+import { IMountableComponent, IRenderable, IView, IViewFactory } from '../../lifecycle';
+import { CollectionObserver, IBatchedCollectionSubscriber, IndexMap, IObservedArray, IScope, ObservedCollection } from '../../observation';
 import { BindingContext, Scope } from '../../observation/binding-context';
 import { getCollectionObserver } from '../../observation/observer-locator';
 import { ProxyObserver } from '../../observation/proxy-observer';
@@ -35,6 +35,8 @@ export class Repeat<C extends ObservedCollection = IObservedArray, T extends INo
   public renderable: IRenderable<T>;
   public factory: IViewFactory<T>;
   public views: IView<T>[];
+  public key: string | null;
+  public keyed: boolean;
 
   constructor(
     location: IRenderLocation<T>,
@@ -47,6 +49,8 @@ export class Repeat<C extends ObservedCollection = IObservedArray, T extends INo
     this.observer = null;
     this.renderable = renderable;
     this.views = [];
+    this.key = null;
+    this.keyed = false;
   }
 
   public binding(flags: LifecycleFlags): void {
@@ -61,7 +65,11 @@ export class Repeat<C extends ObservedCollection = IObservedArray, T extends INo
     }
     this.local = this.forOf.declaration.evaluate(flags, this.$scope, null) as string;
 
-    this.processViews(null, flags);
+    if (this.keyed || (flags & LifecycleFlags.keyedMode) > 0) {
+      this.processViewsKeyed(null, flags);
+    } else {
+      this.processViewsNonKeyed(null, flags);
+    }
   }
 
   public attaching(flags: LifecycleFlags): void {
@@ -95,17 +103,27 @@ export class Repeat<C extends ObservedCollection = IObservedArray, T extends INo
   // called by SetterObserver (sync)
   public itemsChanged(newValue: C, oldValue: C, flags: LifecycleFlags): void {
     this.checkCollectionObserver(flags);
-    this.processViews(null, flags | LifecycleFlags.updateTargetInstance);
+    flags |= LifecycleFlags.updateTargetInstance;
+    if (this.keyed || (flags & LifecycleFlags.keyedMode) > 0) {
+      this.processViewsKeyed(null, flags);
+    } else {
+      this.processViewsNonKeyed(null, flags);
+    }
   }
 
   // called by a CollectionObserver (async)
   public handleBatchedChange(indexMap: number[] | null, flags: LifecycleFlags): void {
-    this.processViews(indexMap, flags | LifecycleFlags.fromFlush | LifecycleFlags.updateTargetInstance);
+    flags |= (LifecycleFlags.fromFlush | LifecycleFlags.updateTargetInstance);
+    if (this.keyed || (flags & LifecycleFlags.keyedMode) > 0) {
+      this.processViewsKeyed(indexMap, flags);
+    } else {
+      this.processViewsNonKeyed(indexMap, flags);
+    }
   }
 
   // if the indexMap === null, it is an instance mutation, otherwise it's an items mutation
   // TODO: Reduce complexity (currently at 46)
-  private processViews(indexMap: number[] | null, flags: LifecycleFlags): void {
+  private processViewsNonKeyed(indexMap: number[] | null, flags: LifecycleFlags): void {
     if (ProxyObserver.isProxy(this)) {
       flags |= LifecycleFlags.useProxies;
     }
@@ -184,6 +202,184 @@ export class Repeat<C extends ObservedCollection = IObservedArray, T extends INo
     }
   }
 
+  private processViewsKeyed(indexMap: IndexMap | null, flags: LifecycleFlags): void {
+    if (ProxyObserver.isProxy(this)) {
+      flags |= LifecycleFlags.useProxies;
+    }
+    const { $lifecycle, local, $scope, factory, forOf, items } = this;
+    let views = this.views;
+    if (indexMap === null) {
+      if (this.$state & (State.isBound | State.isBinding)) {
+        $lifecycle.beginDetach();
+        const oldLength = views.length;
+        let view: IView;
+        for (let i = 0; i < oldLength; ++i) {
+          view = views[i];
+          view.release(flags);
+          view.$detach(flags);
+        }
+        $lifecycle.endDetach(flags);
+        $lifecycle.beginUnbind();
+        for (let i = 0; i < oldLength; ++i) {
+          view = views[i];
+          view.$unbind(flags);
+        }
+        $lifecycle.endUnbind(flags);
+
+        const newLen = forOf.count(items);
+        views = this.views = Array(newLen);
+
+        $lifecycle.beginBind();
+        forOf.iterate(items, (arr, i, item: (string | number | boolean | ObservedCollection | IIndexable)) => {
+          view = views[i] = factory.create(flags);
+          view.$bind(flags, Scope.fromParent(flags, $scope, BindingContext.create(flags, local, item)));
+        });
+        $lifecycle.endBind(flags);
+      }
+
+      if (this.$state & (State.isAttached | State.isAttaching)) {
+        const { location } = this;
+        $lifecycle.beginAttach();
+        let view: IView;
+        const len = views.length;
+        for (let i = 0; i < len; ++i) {
+          view = views[i];
+          view.hold(location);
+          view.$attach(flags);
+        }
+        $lifecycle.endAttach(flags);
+      }
+    } else {
+      const mapLen = indexMap.length;
+      let view: IView<T>;
+      const deleted = indexMap.deletedItems;
+      const deletedLen = deleted.length;
+      let i = 0;
+      if (this.$state & (State.isBound | State.isBinding)) {
+        // first detach+unbind+(remove from array) the deleted view indices
+        if (deletedLen > 0) {
+          $lifecycle.beginDetach();
+          i = 0;
+          for (; i < deletedLen; ++i) {
+            view = views[deleted[i]];
+            view.release(flags);
+            view.$detach(flags);
+          }
+          $lifecycle.endDetach(flags);
+          $lifecycle.beginUnbind();
+          for (i = 0; i < deletedLen; ++i) {
+            view = views[deleted[i]];
+            view.$unbind(flags);
+          }
+          $lifecycle.endUnbind(flags);
+          i = 0;
+          let j = 0;
+          let k = 0;
+          deleted.sort();
+          for (; i < deletedLen; ++i) {
+            j = deleted[i] - i;
+            views.splice(j, 1);
+            k = 0;
+            for (; k < mapLen; ++k) {
+              if (indexMap[k] >= j) {
+                --indexMap[k];
+              }
+            }
+          }
+        }
+
+        // then insert new views at the "added" indices to bring the views array in aligment with indexMap size
+        $lifecycle.beginBind();
+        i = 0;
+        for (; i < mapLen; ++i) {
+          if (indexMap[i] === -2) {
+            view = factory.create(flags);
+            view.$bind(flags, Scope.fromParent(flags, $scope, BindingContext.create(flags, local, items[i])));
+            views.splice(i, 0, view);
+          }
+        }
+        $lifecycle.endBind(flags);
+        if (views.length !== mapLen) {
+          // TODO: create error code and use reporter with more informative message
+          throw new Error(`viewsLen=${views.length}, mapLen=${mapLen}`);
+        }
+      }
+
+      if (this.$state & (State.isAttached | State.isAttaching)) {
+        const { location } = this;
+        // this algorithm retrieves the indices of the longest increasing subsequence of items in the repeater
+        // the items on those indices are not moved; this minimizes the number of DOM operations that need to be performed
+        const seq = longestIncreasingSubsequence(indexMap);
+        const seqLen = seq.length;
+        $lifecycle.beginDetach();
+        $lifecycle.beginAttach();
+        const operation: Partial<IMountableComponent> = {
+          $mount(): void {
+            let next = location;
+            let j = seqLen - 1;
+            let i = indexMap.length - 1;
+            for (; i >= 0; --i) {
+              if (indexMap[i] === -2) {
+                view = views[i];
+
+                view.$state |= State.isAttaching;
+
+                let current = view.$componentHead;
+                while (current !== null) {
+                  current.$attach(flags | LifecycleFlags.fromAttach);
+                  current = current.$nextComponent;
+                }
+
+                view.$nodes.insertBefore(next);
+
+                view.$state |= (State.isMounted | State.isAttached);
+                view.$state &= ~State.isAttaching;
+                next = view.$nodes.firstChild;
+              } else if (j < 0 || seqLen === 1 || i !== seq[j]) {
+                view = views[indexMap[i]];
+                view.$state |= State.isDetaching;
+
+                let current = view.$componentTail;
+                while (current !== null) {
+                  current.$detach(flags | LifecycleFlags.fromDetach);
+                  current = current.$prevComponent;
+                }
+                view.$nodes.remove();
+
+                view.$state &= ~(State.isAttached | State.isDetaching | State.isMounted);
+
+                view.$state |= State.isAttaching;
+
+                current = view.$componentHead;
+                while (current !== null) {
+                  current.$attach(flags | LifecycleFlags.fromAttach);
+                  current = current.$nextComponent;
+                }
+
+                view.$nodes.insertBefore(next);
+
+                view.$state |= (State.isMounted | State.isAttached);
+                view.$state &= ~State.isAttaching;
+
+                next = view.$nodes.firstChild;
+              } else {
+                view = views[i];
+                next = view.$nodes.firstChild;
+                --j;
+              }
+            }
+          },
+          $nextMount: null
+        };
+
+        $lifecycle.enqueueMount(operation as IMountableComponent);
+
+        $lifecycle.endDetach(flags);
+        $lifecycle.endAttach(flags);
+      }
+    }
+  }
+
   private checkCollectionObserver(flags: LifecycleFlags): void {
     const oldObserver = this.observer;
     if (this.$state & (State.isBound | State.isBinding)) {
@@ -200,3 +396,73 @@ export class Repeat<C extends ObservedCollection = IObservedArray, T extends INo
   }
 }
 CustomAttributeResource.define({ name: 'repeat', isTemplateController: true }, Repeat);
+
+// Based on inferno's lis_algorithm @ https://github.com/infernojs/inferno/blob/master/packages/inferno/src/DOM/patching.ts#L732
+// with some tweaks to make it just a bit faster + account for IndexMap (and some names changes for readability)
+/** @internal */
+export function longestIncreasingSubsequence(indexMap: IndexMap): Uint8Array | Uint16Array | Uint32Array {
+  const len = indexMap.length;
+  const maxIdx = len + (indexMap.deletedItems && indexMap.deletedItems.length || 0);
+  let Type: Uint8ArrayConstructor | Uint16ArrayConstructor | Uint32ArrayConstructor;
+  if (maxIdx < 0xFF) {
+    Type = Uint8Array;
+  } else if (maxIdx < 0xFFFF) {
+    Type = Uint16Array;
+  } else {
+    Type = Uint32Array;
+  }
+  const prevIndices = new Type(len);
+  const tailIndices = new Type(len);
+
+  let cursor = 0;
+  let cur = 0;
+  let prev = 0;
+  let i = 0;
+  let j = 0;
+  let low = 0;
+  let high = 0;
+  let mid = 0;
+
+  for (; i < len; i++) {
+    cur = indexMap[i];
+    if (cur !== -2) {
+      j = tailIndices[cursor];
+
+      prev = indexMap[j];
+      if (prev !== -2 && prev < cur) {
+        prevIndices[i] = j;
+        tailIndices[++cursor] = i;
+        continue;
+      }
+
+      low = 0;
+      high = cursor;
+
+      while (low < high) {
+        mid = (low + high) >> 1;
+        prev = indexMap[tailIndices[mid]];
+        if (prev !== -2 && prev < cur) {
+          low = mid + 1;
+        } else {
+          high = mid;
+        }
+      }
+
+      prev = indexMap[tailIndices[low]];
+      if (cur < prev || prev === -2) {
+        if (low > 0) {
+          prevIndices[i] = tailIndices[low - 1];
+        }
+        tailIndices[low] = i;
+      }
+    }
+  }
+  const result = new Type(++cursor);
+  cur = tailIndices[cursor - 1];
+
+  while (cursor-- > 0) {
+    result[cursor] = cur;
+    cur = prevIndices[cur];
+  }
+  return result;
+}

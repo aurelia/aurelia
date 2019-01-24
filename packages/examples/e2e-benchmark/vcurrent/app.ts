@@ -20,6 +20,9 @@ class Todo {
     <button id="toggleTodos" class="ui button" click.trigger="toggleTodos()">Toggle Todos</button>
     <button id="updateTodos" class="ui button" click.trigger="updateTodos()">Update Todos</button>
     <button id="reverseTodos" class="ui button" click.trigger="reverseTodos()">Reverse Todos</button>
+    <button id="insertTodos" class="ui button" click.trigger="insertTodos()">Insert Todos</button>
+    <button id="removeTodos" class="ui button" click.trigger="removeTodos()">Remove Todos</button>
+    <button id="swapTodos" class="ui button" click.trigger="swapTodos()">Swap Todos</button>
 
     <div id="descriptionText">\${description}</div>
 
@@ -92,6 +95,40 @@ export class App {
   public reverseTodos(): void {
     instrumenter.markActionStart(`app-reverseTodos-${this.todos.length}`, true);
     this.todos.reverse();
+    setTimeout(() => {
+      instrumenter.markEnd();
+    });
+  }
+
+  public insertTodos(): void {
+    instrumenter.markActionStart(`app-insertTodos-${this.todos.length}`, true);
+    let stepSize = this.todos.length / 10 | 0;
+    for (let i = 0; i < 10; ++i) {
+      this.todos.splice(stepSize + (i * stepSize), 0, new Todo(this.description, this));
+    }
+    setTimeout(() => {
+      instrumenter.markEnd();
+    });
+  }
+
+  public removeTodos(): void {
+    instrumenter.markActionStart(`app-removeTodos-${this.todos.length}`, true);
+    let stepSize = this.todos.length / 10 | 0;
+    for (let i = 0; i < 10; ++i) {
+      this.todos.splice(stepSize + (i * stepSize), 1);
+    }
+    setTimeout(() => {
+      instrumenter.markEnd();
+    });
+  }
+
+  public swapTodos(): void {
+    instrumenter.markActionStart(`app-swapTodos-${this.todos.length}`, true);
+    let stepSize = this.todos.length / 3 | 0;
+    const todos1 = this.todos.splice(stepSize, 1);
+    const todos2 = this.todos.splice(stepSize * 2, 1);
+    this.todos.splice(stepSize, 0, ...todos2);
+    this.todos.splice(stepSize * 2, 0, ...todos1);
     setTimeout(() => {
       instrumenter.markEnd();
     });

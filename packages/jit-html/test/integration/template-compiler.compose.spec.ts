@@ -95,8 +95,12 @@ describe(spec, () => {
       template: `<template><template as-element="au-compose" subject.bind="sub"></template></template>`
     },
     {
-      t: '3',
+      t: '13',
       template: `<template><au-compose repeat.for="i of 1" subject.bind="sub"></au-compose></template>`
+    },
+    {
+      t: '23',
+      template: `<template><au-compose repeat.for="i of 1 & keyed" subject.bind="sub"></au-compose></template>`
     },
     {
       t: '4',
@@ -107,20 +111,36 @@ describe(spec, () => {
       template: `<template><div if.bind="false"></div><au-compose else subject.bind="sub"></au-compose></template>`
     },
     {
-      t: '6',
+      t: '16',
       template: `<template><au-compose if.bind="true" repeat.for="i of 1" subject.bind="sub"></au-compose></template>`
     },
     {
-      t: '7',
+      t: '17',
       template: `<template><au-compose if.bind="true" repeat.for="i of 1" subject.bind="sub"></au-compose></template>`
     },
     {
-      t: '8',
+      t: '18',
       template: `<template><au-compose subject.bind="sub" if.bind="true" repeat.for="i of 1"></au-compose></template>`
     },
     {
-      t: '9',
+      t: '19',
       template: `<template><au-compose if.bind="true" subject.bind="sub" repeat.for="i of 1"></au-compose></template>`
+    },
+    {
+      t: '26',
+      template: `<template><au-compose if.bind="true" repeat.for="i of 1 & keyed" subject.bind="sub"></au-compose></template>`
+    },
+    {
+      t: '27',
+      template: `<template><au-compose if.bind="true" repeat.for="i of 1 & keyed" subject.bind="sub"></au-compose></template>`
+    },
+    {
+      t: '28',
+      template: `<template><au-compose subject.bind="sub" if.bind="true" repeat.for="i of 1 & keyed"></au-compose></template>`
+    },
+    {
+      t: '29',
+      template: `<template><au-compose if.bind="true" subject.bind="sub" repeat.for="i of 1 & keyed"></au-compose></template>`
     },
   ];
 

@@ -64,7 +64,7 @@ const observe = {
       let i = 0;
       for (const entry of $this.keys()) {
         if (indexMap[i] > -1) {
-          indexMap.deletedItems.push(entry);
+          indexMap.deletedItems.push(indexMap[i]);
         }
         i++;
       }
@@ -93,7 +93,7 @@ const observe = {
     for (const entry of $this.keys()) {
       if (entry === value) {
         if (indexMap[i] > -1) {
-          indexMap.deletedItems.push(entry);
+          indexMap.deletedItems.push(indexMap[i]);
         }
         indexMap.splice(i, 1);
         return $delete.call($this, value);

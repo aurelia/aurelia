@@ -1,17 +1,8 @@
 import {
-  Constructable,
-  IContainer
-} from '@aurelia/kernel';
-import {
-  Aurelia,
-  CustomElementResource,
-  ICustomElementType,
-  ILifecycle,
   LifecycleFlags
 } from '@aurelia/runtime';
 import { expect } from 'chai';
 import { HTMLTestContext, TestContext } from '../util';
-import { baseSuite } from './template-compiler.base';
 import {
   setupAndStart,
   tearDown
@@ -55,60 +46,3 @@ describe(spec, () => {
   });
 
 });
-
-type TApp = Constructable<{ ifText: string; elseText: string; show: boolean }> & ICustomElementType;
-const suite = baseSuite.clone<IContainer, Aurelia, ILifecycle, HTMLElement, TApp, InstanceType<TApp>>(spec);
-
-suite.addDataSlot('e').addData('app').setFactory(ctx => {
-  const { a: container } = ctx;
-  const $ctx = container.get<HTMLTestContext>(HTMLTestContext);
-  const template = $ctx.createElement('template') as HTMLTemplateElement;
-
-  const ifTemplate = $ctx.createElement('template') as HTMLTemplateElement;
-  const elseTemplate = $ctx.createElement('template') as HTMLTemplateElement;
-  template.content.appendChild(ifTemplate);
-  template.content.appendChild(elseTemplate);
-  const ifText = $ctx.doc.createTextNode('${ifText}');
-  const elseText = $ctx.doc.createTextNode('${elseText}');
-  ifTemplate.content.appendChild(ifText);
-  elseTemplate.content.appendChild(elseText);
-  ifTemplate.setAttribute('if.bind', 'show');
-  elseTemplate.setAttribute('else', '');
-
-  const $App = CustomElementResource.define({ name: 'app', template }, class App {
-    public ifText: string;
-    public elseText: string;
-    public show: boolean;
-  });
-  container.register($App);
-  return $App;
-});
-
-suite.addActionSlot('setup').addAction(null, ctx => {
-  const { a: container, b: au, c: lifecycle, d: host, e: app } = ctx;
-
-  const component = ctx.f = new app();
-  component.ifText = '1';
-  component.elseText = '2';
-  component.show = true;
-
-  au.app({ component, host }).start();
-});
-
-suite.addActionSlot('act')
-.addAction('1', ctx => {
-  const { c: lifecycle, d: host, f: component } = ctx;
-
-  expect(host.textContent).to.equal('1');
-
-  component['show'] = false;
-
-  expect(host.textContent).to.equal('1');
-
-  lifecycle.processFlushQueue(LifecycleFlags.none);
-
-  expect(host.textContent).to.equal('2');
-});
-
-suite.load();
-suite.run();

@@ -10,6 +10,9 @@ export class AppConstants {
       toggleTodosButton: '#toggleTodos',
       updateTodosButton: '#updateTodos',
       reverseTodosButton: '#reverseTodos',
+      insertTodosButton: '#insertTodos',
+      removeTodosButton: '#removeTodos',
+      swapTodosButton: '#swapTodos',
       descriptionText: '#descriptionText'
     };
   }

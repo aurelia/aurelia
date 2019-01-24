@@ -194,6 +194,8 @@ export class BindingBehavior implements IBindingBehaviorExpression {
       binding[behaviorKey].unbind(flags, scope, binding);
       binding[behaviorKey] = null;
     } else {
+      // TODO: this is a temporary hack to make testing repeater keyed mode easier,
+      // we should remove this idempotency again when track-by attribute is implemented
       Reporter.write(RuntimeError.BehaviorAlreadyApplied, this);
     }
     if (this.expressionHasUnbind) {

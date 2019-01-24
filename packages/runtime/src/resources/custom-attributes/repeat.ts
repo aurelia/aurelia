@@ -307,6 +307,8 @@ export class Repeat<C extends ObservedCollection = IObservedArray, T extends INo
 
       if (this.$state & (State.isAttached | State.isAttaching)) {
         const { location } = this;
+        // this algorithm retrieves the indices of the longest increasing subsequence of items in the repeater
+        // the items on those indices are not moved; this minimizes the number of DOM operations that need to be performed
         const seq = longestIncreasingSubsequence(indexMap);
         const seqLen = seq.length;
         $lifecycle.beginDetach();

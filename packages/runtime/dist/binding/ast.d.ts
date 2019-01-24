@@ -290,6 +290,8 @@ export declare class ForOfStatement implements IForOfStatement {
     count(result: ObservedCollection | number | null | undefined): number;
     iterate(result: ObservedCollection | number | null | undefined, func: (arr: Collection, index: number, item: unknown) => void): void;
     connect(flags: LifecycleFlags, scope: IScope, binding: IConnectableBinding): void;
+    bind(flags: LifecycleFlags, scope: IScope, binding: IConnectableBinding): void;
+    unbind(flags: LifecycleFlags, scope: IScope, binding: IConnectableBinding): void;
     accept<T>(visitor: IVisitor<T>): T;
 }
 export declare class Interpolation implements IInterpolationExpression {

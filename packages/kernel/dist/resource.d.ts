@@ -1,15 +1,15 @@
 import { IContainer, IRegistry } from './di';
 import { Class, Constructable, Immutable } from './interfaces';
-export interface IResourceDefinition {
+export interface IResourceDefinition extends Object {
     name: string;
 }
 export interface IResourceKind<TDef, TProto, TClass extends Class<TProto, unknown> = Class<TProto>> {
     readonly name: string;
     keyFrom(name: string): string;
     isType<T>(Type: T & Partial<IResourceType<TDef, TProto>>): Type is T & TClass & IResourceType<TDef, TProto>;
-    define<T extends Constructable>(name: string, ctor: T): T & TClass & IResourceType<TDef, TProto>;
-    define<T extends Constructable>(definition: TDef, ctor: T): T & TClass & IResourceType<TDef, TProto>;
-    define<T extends Constructable>(nameOrDefinition: string | TDef, ctor: T): T & TClass & IResourceType<TDef, TProto>;
+    define<T extends Constructable>(name: string, ctor?: T): T & TClass & IResourceType<TDef, TProto>;
+    define<T extends Constructable>(definition: TDef, ctor?: T): T & TClass & IResourceType<TDef, TProto>;
+    define<T extends Constructable>(nameOrDefinition: string | TDef, ctor?: T): T & TClass & IResourceType<TDef, TProto>;
 }
 export declare type ResourceDescription<TDef> = Immutable<Required<TDef>>;
 export declare type ResourcePartDescription<TDef> = Immutable<TDef>;

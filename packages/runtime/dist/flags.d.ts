@@ -60,9 +60,10 @@ export declare enum LifecycleFlags {
     parentUnmountQueued = 1048576,
     doNotUpdateDOM = 2097152,
     isTraversingParentScope = 4194304,
-    persistentBindingFlags = 25165824,
+    persistentBindingFlags = 58720256,
     allowParentScopeTraversal = 8388608,
-    useProxies = 16777216
+    useProxies = 16777216,
+    keyedMode = 33554432
 }
 export declare function stringifyLifecycleFlags(flags: LifecycleFlags): string;
 export declare const enum ExpressionKind {
@@ -101,7 +102,7 @@ export declare const enum ExpressionKind {
     ArrayBindingPattern = 65556,
     ObjectBindingPattern = 65557,
     BindingIdentifier = 65558,
-    ForOfStatement = 55,
+    ForOfStatement = 6199,
     Interpolation = 24
 }
 //# sourceMappingURL=flags.d.ts.map

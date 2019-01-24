@@ -1769,9 +1769,10 @@ var au = (function (exports) {
         LifecycleFlags[LifecycleFlags["isTraversingParentScope"] = 4194304] = "isTraversingParentScope";
         // Bitmask for flags that need to be stored on a binding during $bind for mutation
         // callbacks outside of $bind
-        LifecycleFlags[LifecycleFlags["persistentBindingFlags"] = 25165824] = "persistentBindingFlags";
+        LifecycleFlags[LifecycleFlags["persistentBindingFlags"] = 58720256] = "persistentBindingFlags";
         LifecycleFlags[LifecycleFlags["allowParentScopeTraversal"] = 8388608] = "allowParentScopeTraversal";
         LifecycleFlags[LifecycleFlags["useProxies"] = 16777216] = "useProxies";
+        LifecycleFlags[LifecycleFlags["keyedMode"] = 33554432] = "keyedMode";
     })(LifecycleFlags || (LifecycleFlags = {}));
     function stringifyLifecycleFlags(flags) {
         const flagNames = [];
@@ -1887,7 +1888,7 @@ var au = (function (exports) {
         ExpressionKind[ExpressionKind["ArrayBindingPattern"] = 65556] = "ArrayBindingPattern";
         ExpressionKind[ExpressionKind["ObjectBindingPattern"] = 65557] = "ObjectBindingPattern";
         ExpressionKind[ExpressionKind["BindingIdentifier"] = 65558] = "BindingIdentifier";
-        ExpressionKind[ExpressionKind["ForOfStatement"] = 55] = "ForOfStatement";
+        ExpressionKind[ExpressionKind["ForOfStatement"] = 6199] = "ForOfStatement";
         ExpressionKind[ExpressionKind["Interpolation"] = 24] = "Interpolation"; //
     })(ExpressionKind || (ExpressionKind = {}));
 
@@ -2856,16 +2857,25 @@ var au = (function (exports) {
             if (!behavior) {
                 throw Reporter.error(203 /* NoBehaviorFound */, this);
             }
-            if (binding[behaviorKey] !== undefined && binding[behaviorKey] !== null) {
-                throw Reporter.error(204 /* BehaviorAlreadyApplied */, this);
+            if (binding[behaviorKey] === undefined || binding[behaviorKey] === null) {
+                binding[behaviorKey] = behavior;
+                behavior.bind.apply(behavior, [flags, scope, binding].concat(evalList(flags, scope, locator, this.args)));
             }
-            binding[behaviorKey] = behavior;
-            behavior.bind.apply(behavior, [flags, scope, binding].concat(evalList(flags, scope, locator, this.args)));
+            else {
+                Reporter.write(204 /* BehaviorAlreadyApplied */, this);
+            }
         }
         unbind(flags, scope, binding) {
             const behaviorKey = this.behaviorKey;
-            binding[behaviorKey].unbind(flags, scope, binding);
-            binding[behaviorKey] = null;
+            if (binding[behaviorKey] !== undefined && binding[behaviorKey] !== null) {
+                binding[behaviorKey].unbind(flags, scope, binding);
+                binding[behaviorKey] = null;
+            }
+            else {
+                // TODO: this is a temporary hack to make testing repeater keyed mode easier,
+                // we should remove this idempotency again when track-by attribute is implemented
+                Reporter.write(204 /* BehaviorAlreadyApplied */, this);
+            }
             if (this.expressionHasUnbind) {
                 this.expression.unbind(flags, scope, binding);
             }
@@ -3571,7 +3581,7 @@ var au = (function (exports) {
     // https://tc39.github.io/ecma262/#sec-for-in-and-for-of-statements
     class ForOfStatement {
         constructor(declaration, iterable) {
-            this.$kind = 55 /* ForOfStatement */;
+            this.$kind = 6199 /* ForOfStatement */;
             this.assign = PLATFORM.noop;
             this.declaration = declaration;
             this.iterable = iterable;
@@ -3588,6 +3598,16 @@ var au = (function (exports) {
         connect(flags, scope, binding) {
             this.declaration.connect(flags, scope, binding);
             this.iterable.connect(flags, scope, binding);
+        }
+        bind(flags, scope, binding) {
+            if (hasBind(this.iterable)) {
+                this.iterable.bind(flags, scope, binding);
+            }
+        }
+        unbind(flags, scope, binding) {
+            if (hasUnbind(this.iterable)) {
+                this.iterable.unbind(flags, scope, binding);
+            }
         }
         accept(visitor) {
             return visitor.visitForOfStatement(this);
@@ -4843,7 +4863,7 @@ var au = (function (exports) {
                     case 24 /* Interpolation */:
                         interpolationLookup[expression] = expr;
                         break;
-                    case 55 /* ForOfStatement */:
+                    case 6199 /* ForOfStatement */:
                         forOfLookup[expression] = expr;
                         break;
                     default:
@@ -5519,7 +5539,7 @@ var au = (function (exports) {
             // only mark indices as deleted if they actually existed in the original array
             const index = indexMap.length - 1;
             if (indexMap[index] > -1) {
-                $pop.call(indexMap.deletedItems, element);
+                indexMap.deletedItems.push(indexMap[index]);
             }
             $pop.call(indexMap);
             o.callSubscribers('pop', arguments, o.persistentFlags | LifecycleFlags.isCollectionMutation);
@@ -5539,7 +5559,7 @@ var au = (function (exports) {
             const element = $shift.call($this);
             // only mark indices as deleted if they actually existed in the original array
             if (indexMap[0] > -1) {
-                $shift.call(indexMap.deletedItems, element);
+                indexMap.deletedItems.push(indexMap[0]);
             }
             $shift.call(indexMap);
             o.callSubscribers('shift', arguments, o.persistentFlags | LifecycleFlags.isCollectionMutation);
@@ -5561,7 +5581,7 @@ var au = (function (exports) {
                 const to = i + deleteCount;
                 while (i < to) {
                     if (indexMap[i] > -1) {
-                        $splice.call(indexMap.deletedItems, $this[i]);
+                        indexMap.deletedItems.push(indexMap[i]);
                     }
                     i++;
                 }
@@ -5742,7 +5762,7 @@ var au = (function (exports) {
                 let i = 0;
                 for (const entry of $this.keys()) {
                     if (indexMap[i] > -1) {
-                        indexMap.deletedItems.push(entry);
+                        indexMap.deletedItems.push(indexMap[i]);
                     }
                     i++;
                 }
@@ -5771,7 +5791,7 @@ var au = (function (exports) {
             for (const entry of $this.keys()) {
                 if (entry === value) {
                     if (indexMap[i] > -1) {
-                        indexMap.deletedItems.push(entry);
+                        indexMap.deletedItems.push(indexMap[i]);
                     }
                     indexMap.splice(i, 1);
                     return $delete.call($this, value);
@@ -5868,7 +5888,7 @@ var au = (function (exports) {
                 let i = 0;
                 for (const entry of $this.keys()) {
                     if (indexMap[i] > -1) {
-                        indexMap.deletedItems.push(entry);
+                        indexMap.deletedItems.push(indexMap[i]);
                     }
                     i++;
                 }
@@ -5897,7 +5917,7 @@ var au = (function (exports) {
             for (const entry of $this.keys()) {
                 if (entry === value) {
                     if (indexMap[i] > -1) {
-                        indexMap.deletedItems.push(entry);
+                        indexMap.deletedItems.push(indexMap[i]);
                     }
                     indexMap.splice(i, 1);
                     return $delete$1.call($this, value);
@@ -7237,11 +7257,6 @@ var au = (function (exports) {
             if (hooks & 512 /* hasUnbound */) {
                 lifecycle.enqueueUnbound(this);
             }
-            let binding = this.$bindingTail;
-            while (binding !== null) {
-                binding.$unbind(flags);
-                binding = binding.$prevBinding;
-            }
             if (hooks & 256 /* hasUnbinding */) {
                 this.unbinding(flags);
             }
@@ -7249,6 +7264,11 @@ var au = (function (exports) {
             while (component !== null) {
                 component.$unbind(flags);
                 component = component.$prevComponent;
+            }
+            let binding = this.$bindingTail;
+            while (binding !== null) {
+                binding.$unbind(flags);
+                binding = binding.$prevBinding;
             }
             this.$scope.parentScope = null;
             // remove isBound and isUnbinding flags
@@ -7262,15 +7282,15 @@ var au = (function (exports) {
             // add isUnbinding flag
             this.$state |= 64 /* isUnbinding */;
             flags |= LifecycleFlags.fromUnbind;
-            let binding = this.$bindingTail;
-            while (binding !== null) {
-                binding.$unbind(flags);
-                binding = binding.$prevBinding;
-            }
             let component = this.$componentTail;
             while (component !== null) {
                 component.$unbind(flags);
                 component = component.$prevComponent;
+            }
+            let binding = this.$bindingTail;
+            while (binding !== null) {
+                binding.$unbind(flags);
+                binding = binding.$prevBinding;
             }
             // remove isBound and isUnbinding flags
             this.$state &= ~(2 /* isBound */ | 64 /* isUnbinding */);
@@ -7283,15 +7303,15 @@ var au = (function (exports) {
             // add isUnbinding flag
             this.$state |= 64 /* isUnbinding */;
             flags |= LifecycleFlags.fromUnbind;
-            let binding = this.$bindingTail;
-            while (binding !== null) {
-                binding.$unbind(flags);
-                binding = binding.$prevBinding;
-            }
             let component = this.$componentTail;
             while (component !== null) {
                 component.$unbind(flags);
                 component = component.$prevComponent;
+            }
+            let binding = this.$bindingTail;
+            while (binding !== null) {
+                binding.$unbind(flags);
+                binding = binding.$prevBinding;
             }
             // remove isBound and isUnbinding flags
             this.$state &= ~(2 /* isBound */ | 64 /* isUnbinding */);
@@ -8155,6 +8175,8 @@ var au = (function (exports) {
             this.observer = null;
             this.renderable = renderable;
             this.views = [];
+            this.key = null;
+            this.keyed = false;
         }
         binding(flags) {
             this.checkCollectionObserver(flags);
@@ -8167,7 +8189,12 @@ var au = (function (exports) {
                 current = current.$nextBinding;
             }
             this.local = this.forOf.declaration.evaluate(flags, this.$scope, null);
-            this.processViews(null, flags);
+            if (this.keyed || (flags & LifecycleFlags.keyedMode) > 0) {
+                this.processViewsKeyed(null, flags);
+            }
+            else {
+                this.processViewsNonKeyed(null, flags);
+            }
         }
         attaching(flags) {
             const { views, location } = this;
@@ -8196,15 +8223,27 @@ var au = (function (exports) {
         // called by SetterObserver (sync)
         itemsChanged(newValue, oldValue, flags) {
             this.checkCollectionObserver(flags);
-            this.processViews(null, flags | LifecycleFlags.updateTargetInstance);
+            flags |= LifecycleFlags.updateTargetInstance;
+            if (this.keyed || (flags & LifecycleFlags.keyedMode) > 0) {
+                this.processViewsKeyed(null, flags);
+            }
+            else {
+                this.processViewsNonKeyed(null, flags);
+            }
         }
         // called by a CollectionObserver (async)
         handleBatchedChange(indexMap, flags) {
-            this.processViews(indexMap, flags | LifecycleFlags.fromFlush | LifecycleFlags.updateTargetInstance);
+            flags |= (LifecycleFlags.fromFlush | LifecycleFlags.updateTargetInstance);
+            if (this.keyed || (flags & LifecycleFlags.keyedMode) > 0) {
+                this.processViewsKeyed(indexMap, flags);
+            }
+            else {
+                this.processViewsNonKeyed(indexMap, flags);
+            }
         }
         // if the indexMap === null, it is an instance mutation, otherwise it's an items mutation
         // TODO: Reduce complexity (currently at 46)
-        processViews(indexMap, flags) {
+        processViewsNonKeyed(indexMap, flags) {
             if (ProxyObserver.isProxy(this)) {
                 flags |= LifecycleFlags.useProxies;
             }
@@ -8286,6 +8325,168 @@ var au = (function (exports) {
                 $lifecycle.endAttach(flags);
             }
         }
+        processViewsKeyed(indexMap, flags) {
+            if (ProxyObserver.isProxy(this)) {
+                flags |= LifecycleFlags.useProxies;
+            }
+            const { $lifecycle, local, $scope, factory, forOf, items } = this;
+            let views = this.views;
+            if (indexMap === null) {
+                if (this.$state & (2 /* isBound */ | 1 /* isBinding */)) {
+                    $lifecycle.beginDetach();
+                    const oldLength = views.length;
+                    let view;
+                    for (let i = 0; i < oldLength; ++i) {
+                        view = views[i];
+                        view.release(flags);
+                        view.$detach(flags);
+                    }
+                    $lifecycle.endDetach(flags);
+                    $lifecycle.beginUnbind();
+                    for (let i = 0; i < oldLength; ++i) {
+                        view = views[i];
+                        view.$unbind(flags);
+                    }
+                    $lifecycle.endUnbind(flags);
+                    const newLen = forOf.count(items);
+                    views = this.views = Array(newLen);
+                    $lifecycle.beginBind();
+                    forOf.iterate(items, (arr, i, item) => {
+                        view = views[i] = factory.create(flags);
+                        view.$bind(flags, Scope.fromParent(flags, $scope, BindingContext.create(flags, local, item)));
+                    });
+                    $lifecycle.endBind(flags);
+                }
+                if (this.$state & (8 /* isAttached */ | 4 /* isAttaching */)) {
+                    const { location } = this;
+                    $lifecycle.beginAttach();
+                    let view;
+                    const len = views.length;
+                    for (let i = 0; i < len; ++i) {
+                        view = views[i];
+                        view.hold(location);
+                        view.$attach(flags);
+                    }
+                    $lifecycle.endAttach(flags);
+                }
+            }
+            else {
+                const mapLen = indexMap.length;
+                let view;
+                const deleted = indexMap.deletedItems;
+                const deletedLen = deleted.length;
+                let i = 0;
+                if (this.$state & (2 /* isBound */ | 1 /* isBinding */)) {
+                    // first detach+unbind+(remove from array) the deleted view indices
+                    if (deletedLen > 0) {
+                        $lifecycle.beginDetach();
+                        i = 0;
+                        for (; i < deletedLen; ++i) {
+                            view = views[deleted[i]];
+                            view.release(flags);
+                            view.$detach(flags);
+                        }
+                        $lifecycle.endDetach(flags);
+                        $lifecycle.beginUnbind();
+                        for (i = 0; i < deletedLen; ++i) {
+                            view = views[deleted[i]];
+                            view.$unbind(flags);
+                        }
+                        $lifecycle.endUnbind(flags);
+                        i = 0;
+                        let j = 0;
+                        let k = 0;
+                        deleted.sort();
+                        for (; i < deletedLen; ++i) {
+                            j = deleted[i] - i;
+                            views.splice(j, 1);
+                            k = 0;
+                            for (; k < mapLen; ++k) {
+                                if (indexMap[k] >= j) {
+                                    --indexMap[k];
+                                }
+                            }
+                        }
+                    }
+                    // then insert new views at the "added" indices to bring the views array in aligment with indexMap size
+                    $lifecycle.beginBind();
+                    i = 0;
+                    for (; i < mapLen; ++i) {
+                        if (indexMap[i] === -2) {
+                            view = factory.create(flags);
+                            view.$bind(flags, Scope.fromParent(flags, $scope, BindingContext.create(flags, local, items[i])));
+                            views.splice(i, 0, view);
+                        }
+                    }
+                    $lifecycle.endBind(flags);
+                    if (views.length !== mapLen) {
+                        // TODO: create error code and use reporter with more informative message
+                        throw new Error(`viewsLen=${views.length}, mapLen=${mapLen}`);
+                    }
+                }
+                if (this.$state & (8 /* isAttached */ | 4 /* isAttaching */)) {
+                    const { location } = this;
+                    // this algorithm retrieves the indices of the longest increasing subsequence of items in the repeater
+                    // the items on those indices are not moved; this minimizes the number of DOM operations that need to be performed
+                    const seq = longestIncreasingSubsequence(indexMap);
+                    const seqLen = seq.length;
+                    $lifecycle.beginDetach();
+                    $lifecycle.beginAttach();
+                    const operation = {
+                        $mount() {
+                            let next = location;
+                            let j = seqLen - 1;
+                            let i = indexMap.length - 1;
+                            for (; i >= 0; --i) {
+                                if (indexMap[i] === -2) {
+                                    view = views[i];
+                                    view.$state |= 4 /* isAttaching */;
+                                    let current = view.$componentHead;
+                                    while (current !== null) {
+                                        current.$attach(flags | LifecycleFlags.fromAttach);
+                                        current = current.$nextComponent;
+                                    }
+                                    view.$nodes.insertBefore(next);
+                                    view.$state |= (16 /* isMounted */ | 8 /* isAttached */);
+                                    view.$state &= ~4 /* isAttaching */;
+                                    next = view.$nodes.firstChild;
+                                }
+                                else if (j < 0 || seqLen === 1 || i !== seq[j]) {
+                                    view = views[indexMap[i]];
+                                    view.$state |= 32 /* isDetaching */;
+                                    let current = view.$componentTail;
+                                    while (current !== null) {
+                                        current.$detach(flags | LifecycleFlags.fromDetach);
+                                        current = current.$prevComponent;
+                                    }
+                                    view.$nodes.remove();
+                                    view.$state &= ~(8 /* isAttached */ | 32 /* isDetaching */ | 16 /* isMounted */);
+                                    view.$state |= 4 /* isAttaching */;
+                                    current = view.$componentHead;
+                                    while (current !== null) {
+                                        current.$attach(flags | LifecycleFlags.fromAttach);
+                                        current = current.$nextComponent;
+                                    }
+                                    view.$nodes.insertBefore(next);
+                                    view.$state |= (16 /* isMounted */ | 8 /* isAttached */);
+                                    view.$state &= ~4 /* isAttaching */;
+                                    next = view.$nodes.firstChild;
+                                }
+                                else {
+                                    view = views[i];
+                                    next = view.$nodes.firstChild;
+                                    --j;
+                                }
+                            }
+                        },
+                        $nextMount: null
+                    };
+                    $lifecycle.enqueueMount(operation);
+                    $lifecycle.endDetach(flags);
+                    $lifecycle.endAttach(flags);
+                }
+            }
+        }
         checkCollectionObserver(flags) {
             const oldObserver = this.observer;
             if (this.$state & (2 /* isBound */ | 1 /* isBinding */)) {
@@ -8307,6 +8508,71 @@ var au = (function (exports) {
         bindable
     ], Repeat.prototype, "items", void 0);
     CustomAttributeResource.define({ name: 'repeat', isTemplateController: true }, Repeat);
+    // Based on inferno's lis_algorithm @ https://github.com/infernojs/inferno/blob/master/packages/inferno/src/DOM/patching.ts#L732
+    // with some tweaks to make it just a bit faster + account for IndexMap (and some names changes for readability)
+    /** @internal */
+    function longestIncreasingSubsequence(indexMap) {
+        const len = indexMap.length;
+        const maxIdx = len + (indexMap.deletedItems && indexMap.deletedItems.length || 0);
+        let Type;
+        if (maxIdx < 0xFF) {
+            Type = Uint8Array;
+        }
+        else if (maxIdx < 0xFFFF) {
+            Type = Uint16Array;
+        }
+        else {
+            Type = Uint32Array;
+        }
+        const prevIndices = new Type(len);
+        const tailIndices = new Type(len);
+        let cursor = 0;
+        let cur = 0;
+        let prev = 0;
+        let i = 0;
+        let j = 0;
+        let low = 0;
+        let high = 0;
+        let mid = 0;
+        for (; i < len; i++) {
+            cur = indexMap[i];
+            if (cur !== -2) {
+                j = tailIndices[cursor];
+                prev = indexMap[j];
+                if (prev !== -2 && prev < cur) {
+                    prevIndices[i] = j;
+                    tailIndices[++cursor] = i;
+                    continue;
+                }
+                low = 0;
+                high = cursor;
+                while (low < high) {
+                    mid = (low + high) >> 1;
+                    prev = indexMap[tailIndices[mid]];
+                    if (prev !== -2 && prev < cur) {
+                        low = mid + 1;
+                    }
+                    else {
+                        high = mid;
+                    }
+                }
+                prev = indexMap[tailIndices[low]];
+                if (cur < prev || prev === -2) {
+                    if (low > 0) {
+                        prevIndices[i] = tailIndices[low - 1];
+                    }
+                    tailIndices[low] = i;
+                }
+            }
+        }
+        const result = new Type(++cursor);
+        cur = tailIndices[cursor - 1];
+        while (cursor-- > 0) {
+            result[cursor] = cur;
+            cur = prevIndices[cur];
+        }
+        return result;
+    }
 
     class Replaceable {
         constructor(factory, location) {
@@ -8764,6 +9030,20 @@ var au = (function (exports) {
         /** @internal */
     ], IteratorBindingRenderer);
 
+    class KeyedBindingBehavior {
+        bind(flags, scope, binding, key) {
+            // key is a lie (at the moment), we don't actually use it
+            binding.target.key = key;
+            // we do use keyeD though
+            binding.target.keyed = true;
+        }
+        unbind(flags, scope, binding) {
+            binding.target.key = null;
+            binding.target.keyed = false;
+        }
+    }
+    BindingBehaviorResource.define('keyed', KeyedBindingBehavior);
+
     const IObserverLocatorRegistration = ObserverLocator;
     const ILifecycleRegistration = Lifecycle;
     const IRendererRegistration = Renderer;
@@ -8785,6 +9065,7 @@ var au = (function (exports) {
     const WithRegistration = With;
     const SanitizeValueConverterRegistration = SanitizeValueConverter;
     const DebounceBindingBehaviorRegistration = DebounceBindingBehavior;
+    const KeyedBindingBehaviorRegistration = KeyedBindingBehavior;
     const OneTimeBindingBehaviorRegistration = OneTimeBindingBehavior;
     const ToViewBindingBehaviorRegistration = ToViewBindingBehavior;
     const FromViewBindingBehaviorRegistration = FromViewBindingBehavior;
@@ -8805,6 +9086,7 @@ var au = (function (exports) {
         WithRegistration,
         SanitizeValueConverterRegistration,
         DebounceBindingBehaviorRegistration,
+        KeyedBindingBehaviorRegistration,
         OneTimeBindingBehaviorRegistration,
         ToViewBindingBehaviorRegistration,
         FromViewBindingBehaviorRegistration,

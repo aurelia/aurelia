@@ -28,6 +28,8 @@ export declare class Repeat<C extends ObservedCollection = IObservedArray, T ext
     renderable: IRenderable<T>;
     factory: IViewFactory<T>;
     views: IView<T>[];
+    key: string | null;
+    keyed: boolean;
     constructor(location: IRenderLocation<T>, renderable: IRenderable<T>, factory: IViewFactory<T>);
     binding(flags: LifecycleFlags): void;
     attaching(flags: LifecycleFlags): void;
@@ -35,7 +37,8 @@ export declare class Repeat<C extends ObservedCollection = IObservedArray, T ext
     unbinding(flags: LifecycleFlags): void;
     itemsChanged(newValue: C, oldValue: C, flags: LifecycleFlags): void;
     handleBatchedChange(indexMap: number[] | null, flags: LifecycleFlags): void;
-    private processViews;
+    private processViewsNonKeyed;
+    private processViewsKeyed;
     private checkCollectionObserver;
 }
 //# sourceMappingURL=repeat.d.ts.map

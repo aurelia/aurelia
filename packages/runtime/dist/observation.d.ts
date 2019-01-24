@@ -47,7 +47,7 @@ export declare type AccessorOrObserver = IBindingTargetAccessor | IBindingTarget
  * The deletedItems property contains the items (in case of an array) or keys (in case of map or set) that have been deleted.
  */
 export declare type IndexMap = number[] & {
-    deletedItems?: unknown[];
+    deletedItems?: number[];
 };
 /**
  * Mostly just a marker enum to help with typings (specifically to reduce duplication)

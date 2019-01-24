@@ -17,8 +17,8 @@ export declare type Connects = IAccessScopeExpression | IArrayLiteralExpression 
 export declare type Observes = IAccessScopeExpression | IAccessKeyedExpression | IAccessMemberExpression;
 export declare type CallsFunction = ICallFunctionExpression | ICallScopeExpression | ICallMemberExpression | ITaggedTemplateExpression;
 export declare type IsResource = IValueConverterExpression | IBindingBehaviorExpression;
-export declare type HasBind = IBindingBehaviorExpression;
-export declare type HasUnbind = IValueConverterExpression | IBindingBehaviorExpression;
+export declare type HasBind = IBindingBehaviorExpression | IForOfStatement;
+export declare type HasUnbind = IValueConverterExpression | IBindingBehaviorExpression | IForOfStatement;
 export declare type HasAncestor = IAccessThisExpression | IAccessScopeExpression | ICallScopeExpression;
 export declare type AnyBindingExpression = IInterpolationExpression | IForOfStatement | IsBindingBehavior;
 export interface IVisitor<T = unknown> {
@@ -193,6 +193,8 @@ export interface IForOfStatement extends IExpression {
     readonly iterable: IsBindingBehavior;
     count(result: ObservedCollection | number | null | undefined): number;
     iterate(result: ObservedCollection | number | null | undefined, func: (arr: Collection, index: number, item: unknown) => void): void;
+    bind(flags: LifecycleFlags, scope: IScope, binding: IConnectable): void;
+    unbind(flags: LifecycleFlags, scope: IScope, binding: IConnectable): void;
 }
 export interface IInterpolationExpression extends IExpression {
     readonly $kind: ExpressionKind.Interpolation;

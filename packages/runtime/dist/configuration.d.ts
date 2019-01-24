@@ -16,6 +16,7 @@ export declare const ReplaceableRegistration: IRegistry;
 export declare const WithRegistration: IRegistry;
 export declare const SanitizeValueConverterRegistration: IRegistry;
 export declare const DebounceBindingBehaviorRegistration: IRegistry;
+export declare const KeyedBindingBehaviorRegistration: IRegistry;
 export declare const OneTimeBindingBehaviorRegistration: IRegistry;
 export declare const ToViewBindingBehaviorRegistration: IRegistry;
 export declare const FromViewBindingBehaviorRegistration: IRegistry;

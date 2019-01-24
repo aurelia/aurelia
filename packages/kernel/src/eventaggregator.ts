@@ -1,5 +1,5 @@
 import { IContainer, IResolver, Registration } from './di';
-import { Constructable } from './interfaces';
+import { Constructable, IDisposable } from './interfaces';
 import { Reporter } from './reporter';
 
 /**
@@ -39,15 +39,8 @@ function invokeHandler(handler: Handler, data: InstanceType<Constructable>): voi
   }
 }
 
-/**
- * Represents a disposable subscription to an EventAggregator event.
- */
-export interface Subscription {
-  /**
-   * Disposes the subscription.
-   */
-  dispose(): void;
-}
+// TODO: move this to a v1-compat package
+export interface Subscription extends IDisposable {}
 
 /**
  * Enables loosely coupled publish/subscribe messaging.
@@ -83,7 +76,7 @@ export class EventAggregator {
    * @param data The data to publish on the channel.
    */
   public publish(channel: string, data?: unknown): void;
-  public publish(type: InstanceType<Constructable>, data?: unknown): void;
+  public publish(type: InstanceType<Constructable>): void;
   public publish(channelOrType: string | InstanceType<Constructable>, data?: unknown): void {
     let subscribers: (EventAggregatorCallback | Handler)[];
     let i: number;
@@ -117,9 +110,9 @@ export class EventAggregator {
    * @param channelOrType The event channel or event data type.
    * @param callback The callback to be invoked when the specified message is published.
    */
-  public subscribe(channel: string, callback: EventAggregatorCallback): Subscription;
-  public subscribe(type: Constructable, callback: EventAggregatorCallback): Subscription;
-  public subscribe(channelOrType: string | Constructable, callback: EventAggregatorCallback): Subscription {
+  public subscribe(channel: string, callback: EventAggregatorCallback): IDisposable;
+  public subscribe(type: Constructable, callback: EventAggregatorCallback): IDisposable;
+  public subscribe(channelOrType: string | Constructable, callback: EventAggregatorCallback): IDisposable {
     let handler: EventAggregatorCallback | Handler;
     let subscribers: (EventAggregatorCallback | Handler)[];
 
@@ -152,9 +145,9 @@ export class EventAggregator {
    * @param channelOrType The event channel or event data type.
    * @param callback The callback to be invoked when the specified message is published.
    */
-  public subscribeOnce(channel: string, callback: EventAggregatorCallback): Subscription;
-  public subscribeOnce(type: Constructable, callback: EventAggregatorCallback): Subscription;
-  public subscribeOnce(channelOrType: string | Constructable, callback: EventAggregatorCallback): Subscription {
+  public subscribeOnce(channel: string, callback: EventAggregatorCallback): IDisposable;
+  public subscribeOnce(type: Constructable, callback: EventAggregatorCallback): IDisposable;
+  public subscribeOnce(channelOrType: string | Constructable, callback: EventAggregatorCallback): IDisposable {
     const sub = this.subscribe(channelOrType as Constructable, (data, event) => {
       sub.dispose();
       return callback(data, event);

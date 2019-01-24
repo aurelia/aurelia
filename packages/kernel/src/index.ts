@@ -77,6 +77,5 @@ export {
 } from './resource';
 export {
   EventAggregator,
-  EventAggregatorCallback,
-  Subscription
+  EventAggregatorCallback
 } from './eventaggregator';

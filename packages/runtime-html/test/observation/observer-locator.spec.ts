@@ -240,7 +240,7 @@ describe('ObserverLocator', () => {
                       if (hasOverrides) {
                         obj.constructor['computed'] = { isVolatile };
                       }
-                      Object.defineProperty(obj, 'foo', descriptor);
+                      Reflect.defineProperty(obj, 'foo', descriptor);
                       if (hasSetter && configurable && !hasGetter && !(hasAdapterObserver && adapterIsDefined)) {
                         expect(() => sut.getObserver(LF.none, obj, 'foo')).to.throw(/18/);
                       } else {
@@ -334,7 +334,7 @@ describe('ObserverLocator', () => {
     const obj = {};
     const write = Reporter.write;
     Reporter.write = spy();
-    Object.defineProperty(obj, '$observers', { value: undefined });
+    Reflect.defineProperty(obj, '$observers', { value: undefined });
     sut.getObserver(LF.none, obj, 'foo');
     expect(Reporter.write).to.have.been.calledWith(0);
     Reporter.write = write;

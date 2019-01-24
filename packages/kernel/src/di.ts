@@ -564,16 +564,23 @@ export class Container implements IContainer {
       // Most likely cause is trying to register a plain object that does not have a
       // register method and is not a class constructor
     }
+    let current: IRegistry | Record<string, IRegistry>;
+    let keys: string[];
+    let value: IRegistry;
+    let j: number;
+    let jj: number;
     for (let i = 0, ii = params.length; i < ii; ++i) {
-      const current = params[i] as IRegistry | Record<string, IRegistry>;
+      current = params[i] as IRegistry | Record<string, IRegistry>;
       if (isRegistry(current)) {
         current.register(this);
       } else if (isClass(current)) {
         Registration.singleton(current, current).register(this);
       } else {
-        const keys = Object.keys(current);
-        for (let j = 0, jj = keys.length; j < jj; ++j) {
-          const value = current[keys[j]];
+        keys = Object.keys(current);
+        j = 0;
+        jj = keys.length;
+        for (; j < jj; ++j) {
+          value = current[keys[j]];
           // note: we could remove this if-branch and call this.register directly
           // - the extra check is just a perf tweak to create fewer unnecessary arrays by the spread operator
           if (isRegistry(value)) {
@@ -636,9 +643,10 @@ export class Container implements IContainer {
     }
 
     let current: Container = this;
+    let resolver: IResolver;
 
     while (current !== null) {
-      const resolver = current.resolvers.get(key as InterfaceSymbol<IContainer>);
+      resolver = current.resolvers.get(key as InterfaceSymbol<IContainer>);
 
       if (resolver === undefined) {
         if (current.parent === null) {
@@ -672,9 +680,10 @@ export class Container implements IContainer {
     }
 
     let current: Container = this;
+    let resolver: IResolver;
 
     while (current !== null) {
-      let resolver = current.resolvers.get(key as InterfaceSymbol<IContainer>);
+      resolver = current.resolvers.get(key as InterfaceSymbol<IContainer>);
 
       if (resolver === undefined) {
         if (current.parent === null) {
@@ -695,9 +704,10 @@ export class Container implements IContainer {
     validateKey(key);
 
     let current: Container | null = this;
+    let resolver: IResolver;
 
     while (current !== null) {
-      const resolver = current.resolvers.get(key as InterfaceSymbol<IContainer>);
+      resolver = current.resolvers.get(key as InterfaceSymbol<IContainer>);
 
       if (resolver === undefined) {
         if (this.parent === null) {

@@ -25,12 +25,11 @@ const enum RuntimeError {
 export class InternalObserversLookup {
   public getOrCreate(flags: LifecycleFlags, obj: IBindingContext | IOverrideContext, key: string): PropertyObserver {
     if (Tracer.enabled) { Tracer.enter('InternalObserversLookup.getOrCreate', slice.call(arguments)); }
-    let observer = this[key];
-    if (observer === undefined) {
-      observer = this[key] = new SetterObserver(flags, obj, key);
+    if (this[key] === undefined) {
+      this[key] = new SetterObserver(flags, obj, key);
     }
     if (Tracer.enabled) { Tracer.leave(); }
-    return observer;
+    return this[key];
   }
 }
 
@@ -149,12 +148,11 @@ export class BindingContext implements IBindingContext {
 
   public getObservers(flags: LifecycleFlags): ObserversLookup<IOverrideContext> {
     if (Tracer.enabled) { Tracer.enter('BindingContext.getObservers', slice.call(arguments)); }
-    let observers = this.$observers;
-    if (observers === undefined) {
-      this.$observers = observers = new InternalObserversLookup() as ObserversLookup<IOverrideContext>;
+    if (this.$observers === undefined) {
+      this.$observers = new InternalObserversLookup() as ObserversLookup<IOverrideContext>;
     }
     if (Tracer.enabled) { Tracer.leave(); }
-    return observers;
+    return this.$observers;
   }
 }
 
@@ -245,11 +243,10 @@ export class OverrideContext implements IOverrideContext {
 
   public getObservers(): ObserversLookup<IOverrideContext> {
     if (Tracer.enabled) { Tracer.enter('OverrideContext.getObservers', slice.call(arguments)); }
-    let observers = this.$observers;
-    if (observers === undefined) {
-      this.$observers = observers = new InternalObserversLookup();
+    if (this.$observers === undefined) {
+      this.$observers = new InternalObserversLookup();
     }
     if (Tracer.enabled) { Tracer.leave(); }
-    return observers as ObserversLookup<IOverrideContext>;
+    return this.$observers as ObserversLookup<IOverrideContext>;
   }
 }

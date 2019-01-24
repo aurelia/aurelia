@@ -73,9 +73,6 @@ export class Binding implements IPartialConnectableBinding {
       return;
     }
 
-    const sourceExpression = this.sourceExpression;
-    const $scope = this.$scope;
-    const locator = this.locator;
     flags |= this.persistentFlags;
 
     if (this.mode === BindingMode.fromView) {
@@ -84,20 +81,17 @@ export class Binding implements IPartialConnectableBinding {
     }
 
     if (flags & LifecycleFlags.updateTargetInstance) {
-      const targetObserver = this.targetObserver;
-      const mode = this.mode;
-
-      const previousValue = targetObserver.getValue();
+      const previousValue = this.targetObserver.getValue();
       // if the only observable is an AccessScope then we can assume the passed-in newValue is the correct and latest value
-      if (sourceExpression.$kind !== ExpressionKind.AccessScope || this.observerSlots > 1) {
-        newValue = sourceExpression.evaluate(flags, $scope, locator);
+      if (this.sourceExpression.$kind !== ExpressionKind.AccessScope || this.observerSlots > 1) {
+        newValue = this.sourceExpression.evaluate(flags, this.$scope, this.locator);
       }
       if (newValue !== previousValue) {
         this.updateTarget(newValue, flags);
       }
-      if ((mode & oneTime) === 0) {
+      if ((this.mode & oneTime) === 0) {
         this.version++;
-        sourceExpression.connect(flags, $scope, this);
+        this.sourceExpression.connect(flags, this.$scope, this);
         this.unobserve(false);
       }
       if (Tracer.enabled) { Tracer.leave(); }
@@ -105,7 +99,7 @@ export class Binding implements IPartialConnectableBinding {
     }
 
     if (flags & LifecycleFlags.updateSourceExpression) {
-      if (newValue !== sourceExpression.evaluate(flags, $scope, locator)) {
+      if (newValue !== this.sourceExpression.evaluate(flags, this.$scope, this.locator)) {
         this.updateSource(newValue, flags);
       }
       if (Tracer.enabled) { Tracer.leave(); }
@@ -138,10 +132,9 @@ export class Binding implements IPartialConnectableBinding {
       sourceExpression.bind(flags, scope, this);
     }
 
-    const mode = this.mode;
     let targetObserver = this.targetObserver as IBindingTargetObserver;
     if (!targetObserver) {
-      if (mode & fromView) {
+      if (this.mode & fromView) {
         targetObserver = this.targetObserver = this.observerLocator.getObserver(flags, this.target, this.targetProperty) as IBindingTargetObserver;
       } else {
         targetObserver = this.targetObserver = this.observerLocator.getAccessor(flags, this.target, this.targetProperty) as IBindingTargetObserver;
@@ -153,13 +146,13 @@ export class Binding implements IPartialConnectableBinding {
 
     // during bind, binding behavior might have changed sourceExpression
     sourceExpression = this.sourceExpression;
-    if (mode & toViewOrOneTime) {
+    if (this.mode & toViewOrOneTime) {
       this.updateTarget(sourceExpression.evaluate(flags, scope, this.locator), flags);
     }
-    if (mode & toView) {
+    if (this.mode & toView) {
       sourceExpression.connect(flags, scope, this);
     }
-    if (mode & fromView) {
+    if (this.mode & fromView) {
       targetObserver.subscribe(this);
     }
 
@@ -181,18 +174,16 @@ export class Binding implements IPartialConnectableBinding {
     // clear persistent flags
     this.persistentFlags = LifecycleFlags.none;
 
-    const sourceExpression = this.sourceExpression;
-    if (hasUnbind(sourceExpression)) {
-      sourceExpression.unbind(flags, this.$scope, this);
+    if (hasUnbind(this.sourceExpression)) {
+      this.sourceExpression.unbind(flags, this.$scope, this);
     }
     this.$scope = null;
 
-    const targetObserver = this.targetObserver as IBindingTargetObserver;
-    if (targetObserver.unbind) {
-      targetObserver.unbind(flags);
+    if ((this.targetObserver as IBindingTargetObserver).unbind) {
+      (this.targetObserver as IBindingTargetObserver).unbind(flags);
     }
-    if (targetObserver.unsubscribe) {
-      targetObserver.unsubscribe(this);
+    if ((this.targetObserver as IBindingTargetObserver).unsubscribe) {
+      (this.targetObserver as IBindingTargetObserver).unsubscribe(this);
     }
     this.unobserve(true);
 

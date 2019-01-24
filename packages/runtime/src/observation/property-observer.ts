@@ -29,8 +29,7 @@ function subscribe(this: PropertyObserver, subscriber: IPropertySubscriber): voi
 }
 
 function dispose(this: PropertyObserver): void {
-  // tslint:disable-next-line:no-dynamic-delete
-  delete this.obj[this.propertyKey];
+  Reflect.deleteProperty(this.obj, this.propertyKey);
   this.obj = null;
   this.propertyKey = null;
   this.currentValue = null;

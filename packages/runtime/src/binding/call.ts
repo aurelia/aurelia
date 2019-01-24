@@ -37,8 +37,7 @@ export class Call {
     const result = this.sourceExpression.evaluate(LifecycleFlags.mustEvaluate, this.$scope, this.locator);
 
     for (const prop in args) {
-      // tslint:disable-next-line:no-dynamic-delete
-      delete overrideContext[prop];
+      Reflect.deleteProperty(overrideContext, prop);
     }
 
     if (Tracer.enabled) { Tracer.leave(); }
@@ -60,9 +59,8 @@ export class Call {
 
     this.$scope = scope;
 
-    const sourceExpression = this.sourceExpression;
-    if (hasBind(sourceExpression)) {
-      sourceExpression.bind(flags, scope, this);
+    if (hasBind(this.sourceExpression)) {
+      this.sourceExpression.bind(flags, scope, this);
     }
 
     this.targetObserver.setValue($args => this.callSource($args), flags);
@@ -82,9 +80,8 @@ export class Call {
     // add isUnbinding flag
     this.$state |= State.isUnbinding;
 
-    const sourceExpression = this.sourceExpression;
-    if (hasUnbind(sourceExpression)) {
-      sourceExpression.unbind(flags, this.$scope, this);
+    if (hasUnbind(this.sourceExpression)) {
+      this.sourceExpression.unbind(flags, this.$scope, this);
     }
 
     this.$scope = null;

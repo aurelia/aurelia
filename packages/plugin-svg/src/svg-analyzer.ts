@@ -214,13 +214,13 @@ function createElement(html: string): Element {
 if (createElement('<svg><altGlyph /></svg>').firstElementChild.nodeName === 'altglyph' && svgElements.altGlyph) {
   // handle chrome casing inconsistencies.
   (svgElements as {altglyph?: string[]}).altglyph = svgElements.altGlyph;
-  delete svgElements.altGlyph;
+  Reflect.deleteProperty(svgElements, 'altGlyph');
   (svgElements as {altglyphdef?: string[]}).altglyphdef = svgElements.altGlyphDef;
-  delete svgElements.altGlyphDef;
+  Reflect.deleteProperty(svgElements, 'altGlyphDef');
   (svgElements as {altglyphitem?: string[]}).altglyphitem = svgElements.altGlyphItem;
-  delete svgElements.altGlyphItem;
+  Reflect.deleteProperty(svgElements, 'altGlyphItem');
   (svgElements as {glyphref?: string[]}).glyphref = svgElements.glyphRef;
-  delete svgElements.glyphRef;
+  Reflect.deleteProperty(svgElements, 'glyphRef');
 }
 
 export function register(container: IContainer): void {

@@ -125,9 +125,7 @@ describe('ProxyObserver', function() {
         expect(proxyCallCount).to.equal(prevCallCount, 'callCount #4');
       }
 
-      // (it's the point of the test)
-      // tslint:disable-next-line:no-dynamic-delete
-      delete observer.proxy[name];
+      Reflect.deleteProperty(observer.proxy, name);
 
       if (value !== undefined) {
         expect(callCount).to.equal(++prevCallCount, 'callCount #5');

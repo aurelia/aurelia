@@ -74,8 +74,9 @@ export class Repeat<C extends ObservedCollection = IObservedArray, T extends INo
 
   public attaching(flags: LifecycleFlags): void {
     const { views, location } = this;
+    let view: IView;
     for (let i = 0, ii = views.length; i < ii; ++i) {
-      const view = views[i];
+      view = views[i];
       view.hold(location);
       view.$attach(flags);
     }
@@ -83,8 +84,9 @@ export class Repeat<C extends ObservedCollection = IObservedArray, T extends INo
 
   public detaching(flags: LifecycleFlags): void {
     const { views } = this;
+    let view: IView;
     for (let i = 0, ii = views.length; i < ii; ++i) {
-      const view = views[i];
+      view = views[i];
       view.$detach(flags);
       view.release(flags);
     }
@@ -94,8 +96,9 @@ export class Repeat<C extends ObservedCollection = IObservedArray, T extends INo
     this.checkCollectionObserver(flags);
 
     const { views } = this;
+    let view: IView;
     for (let i = 0, ii = views.length; i < ii; ++i) {
-      const view = views[i];
+      view = views[i];
       view.$unbind(flags);
     }
   }
@@ -128,6 +131,7 @@ export class Repeat<C extends ObservedCollection = IObservedArray, T extends INo
       flags |= LifecycleFlags.useProxies;
     }
     const { views, $lifecycle } = this;
+    let view: IView;
     if (this.$state & (State.isBound | State.isBinding)) {
       const { local, $scope, factory, forOf, items } = this;
       const oldLength = views.length;
@@ -139,13 +143,15 @@ export class Repeat<C extends ObservedCollection = IObservedArray, T extends INo
         }
       } else if (newLength < oldLength) {
         $lifecycle.beginDetach();
-        for (let i = newLength, view = views[i]; i < oldLength; view = views[++i]) {
+        for (let i = newLength; i < oldLength; ++i) {
+          view = views[i];
           view.release(flags);
           view.$detach(flags);
         }
         $lifecycle.endDetach(flags);
         $lifecycle.beginUnbind();
-        for (let i = newLength, view = views[i]; i < oldLength; view = views[++i]) {
+        for (let i = newLength; i < oldLength; ++i) {
+          view = views[i];
           view.$unbind(flags);
         }
         $lifecycle.endUnbind(flags);
@@ -160,7 +166,7 @@ export class Repeat<C extends ObservedCollection = IObservedArray, T extends INo
       $lifecycle.beginBind();
       if (indexMap === null) {
         forOf.iterate(items, (arr, i, item: (string | number | boolean | ObservedCollection | IIndexable)) => {
-          const view = views[i];
+          view = views[i];
           if (!!view.$scope && view.$scope.bindingContext[local] === item) {
             view.$bind(flags, Scope.fromParent(flags, $scope, view.$scope.bindingContext));
           } else {
@@ -169,7 +175,7 @@ export class Repeat<C extends ObservedCollection = IObservedArray, T extends INo
         });
       } else {
         forOf.iterate(items, (arr, i, item: (string | number | boolean | ObservedCollection | IIndexable)) => {
-          const view = views[i];
+          view = views[i];
           if (!!view.$scope && (indexMap[i] === i || view.$scope.bindingContext[local] === item)) {
             view.$bind(flags, Scope.fromParent(flags, $scope, view.$scope.bindingContext));
           } else {
@@ -185,14 +191,14 @@ export class Repeat<C extends ObservedCollection = IObservedArray, T extends INo
       $lifecycle.beginAttach();
       if (indexMap === null) {
         for (let i = 0, ii = views.length; i < ii; ++i) {
-          const view = views[i];
+          view = views[i];
           view.hold(location);
           view.$attach(flags);
         }
       } else {
         for (let i = 0, ii = views.length; i < ii; ++i) {
           if (indexMap[i] !== i) {
-            const view = views[i];
+            view = views[i];
             view.hold(location);
             view.$attach(flags);
           }
@@ -317,7 +323,7 @@ export class Repeat<C extends ObservedCollection = IObservedArray, T extends INo
           $mount(): void {
             let next = location;
             let j = seqLen - 1;
-            let i = indexMap.length - 1;
+            i = indexMap.length - 1;
             for (; i >= 0; --i) {
               if (indexMap[i] === -2) {
                 view = views[i];

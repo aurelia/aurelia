@@ -101,7 +101,7 @@ const descriptorProps = {
   configurable: true
 };
 
-const def = Object.defineProperty;
+const def = Reflect.defineProperty;
 
 for (const method of methods) {
   def(observe[method], 'observing', { value: true, writable: false, configurable: false, enumerable: false });

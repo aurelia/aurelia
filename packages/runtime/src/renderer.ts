@@ -2,6 +2,7 @@ import {
   all,
   Class,
   IContainer,
+  ImmutableArray,
   InterfaceSymbol,
   IRegistry,
   IResolver,
@@ -10,6 +11,7 @@ import {
   Tracer,
   Writable
 } from '@aurelia/kernel';
+import { AnyBindingExpression } from './ast';
 import { Binding } from './binding/binding';
 import { Call } from './binding/call';
 import { BindingType, IExpressionParser } from './binding/expression-parser';
@@ -27,10 +29,12 @@ import {
   IHydrateTemplateController,
   IInterpolationInstruction,
   IIteratorBindingInstruction,
+  ILetBindingInstruction,
   InstructionTypeName,
   IPropertyBindingInstruction,
   IRefBindingInstruction,
   ISetPropertyInstruction,
+  ITargetedInstruction,
   TargetedInstructionType,
   TemplateDefinition,
   TemplatePartDefinitions
@@ -112,12 +116,15 @@ export class Renderer implements IRenderer {
         throw Reporter.error(31);
       }
     }
+    let instructions: ImmutableArray<ITargetedInstruction>;
+    let target: INode;
+    let current: ITargetedInstruction;
     for (let i = 0, ii = targets.length; i < ii; ++i) {
-      const instructions = targetInstructions[i];
-      const target = targets[i];
+      instructions = targetInstructions[i];
+      target = targets[i];
 
       for (let j = 0, jj = instructions.length; j < jj; ++j) {
-        const current = instructions[j];
+        current = instructions[j];
         instructionRenderers[current.type].render(flags, dom, context, renderable, target, current, parts);
       }
     }
@@ -126,7 +133,7 @@ export class Renderer implements IRenderer {
       const surrogateInstructions = definition.surrogates;
 
       for (let i = 0, ii = surrogateInstructions.length; i < ii; ++i) {
-        const current = surrogateInstructions[i];
+        current = surrogateInstructions[i];
         instructionRenderers[current.type].render(flags, dom, context, renderable, host, current, parts);
       }
     }
@@ -193,8 +200,9 @@ export class CustomElementRenderer implements IInstructionRenderer {
 
     component.$hydrate(flags, context, target, instruction as IElementHydrationOptions);
 
+    let current: ITargetedInstruction;
     for (let i = 0, ii = childInstructions.length; i < ii; ++i) {
-      const current = childInstructions[i];
+      current = childInstructions[i];
       instructionRenderers[current.type].render(flags, dom, context, renderable, component, current);
     }
 
@@ -219,8 +227,9 @@ export class CustomAttributeRenderer implements IInstructionRenderer {
 
     component.$hydrate(flags, context);
 
+    let current: ITargetedInstruction;
     for (let i = 0, ii = childInstructions.length; i < ii; ++i) {
-      const current = childInstructions[i];
+      current = childInstructions[i];
       instructionRenderers[current.type].render(flags, dom, context, renderable, component, current);
     }
 
@@ -257,8 +266,9 @@ export class TemplateControllerRenderer implements IInstructionRenderer {
       (component as ICustomAttribute & { link(componentTail: IComponent): void}).link(renderable.$componentTail);
     }
 
+    let current: ITargetedInstruction;
     for (let i = 0, ii = childInstructions.length; i < ii; ++i) {
-      const current = childInstructions[i];
+      current = childInstructions[i];
       instructionRenderers[current.type].render(flags, dom, context, renderable, component, current);
     }
 
@@ -288,10 +298,14 @@ export class LetElementRenderer implements IInstructionRenderer {
     dom.remove(target);
     const childInstructions = instruction.instructions;
     const toViewModel = instruction.toViewModel;
+
+    let childInstruction: ILetBindingInstruction;
+    let expr: AnyBindingExpression;
+    let binding: LetBinding;
     for (let i = 0, ii = childInstructions.length; i < ii; ++i) {
-      const childInstruction = childInstructions[i];
-      const expr = ensureExpression(this.parser, childInstruction.from, BindingType.IsPropertyCommand);
-      const binding = new LetBinding(expr, childInstruction.to, this.observerLocator, context, toViewModel);
+      childInstruction = childInstructions[i];
+      expr = ensureExpression(this.parser, childInstruction.from, BindingType.IsPropertyCommand);
+      binding = new LetBinding(expr, childInstruction.to, this.observerLocator, context, toViewModel);
       addBinding(renderable, binding);
     }
     if (Tracer.enabled) { Tracer.leave(); }

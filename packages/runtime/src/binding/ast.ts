@@ -133,8 +133,6 @@ export class BindingBehavior implements IBindingBehaviorExpression {
   public readonly name: string;
   public readonly args: ReadonlyArray<IsAssign>;
   public readonly behaviorKey: string;
-  private readonly expressionHasBind: boolean;
-  private readonly expressionHasUnbind: boolean;
 
   constructor(expression: IsBindingBehavior, name: string, args: ReadonlyArray<IsAssign>) {
     this.$kind = ExpressionKind.BindingBehavior;
@@ -142,8 +140,6 @@ export class BindingBehavior implements IBindingBehaviorExpression {
     this.name = name;
     this.args = args;
     this.behaviorKey = BindingBehaviorResource.keyFrom(this.name);
-    this.expressionHasBind = hasBind(expression);
-    this.expressionHasUnbind = hasUnbind(expression);
   }
 
   public evaluate(flags: LifecycleFlags, scope: IScope, locator: IServiceLocator): unknown {
@@ -172,8 +168,8 @@ export class BindingBehavior implements IBindingBehaviorExpression {
     if (!locator) {
       throw Reporter.error(RuntimeError.NoLocator, this);
     }
-    if (this.expressionHasBind) {
-      (this.expression as BindingBehavior).bind(flags, scope, binding);
+    if (hasBind(this.expression)) {
+      this.expression.bind(flags, scope, binding);
     }
     const behaviorKey = this.behaviorKey;
     const behavior = locator.get<IBindingBehavior>(behaviorKey);
@@ -198,8 +194,8 @@ export class BindingBehavior implements IBindingBehaviorExpression {
       // we should remove this idempotency again when track-by attribute is implemented
       Reporter.write(RuntimeError.BehaviorAlreadyApplied, this);
     }
-    if (this.expressionHasUnbind) {
-      (this.expression as BindingBehavior | ValueConverter).unbind(flags, scope, binding);
+    if (hasUnbind(this.expression)) {
+      this.expression.unbind(flags, scope, binding);
     }
   }
 
@@ -422,20 +418,17 @@ export class AccessScope implements IAccessScopeExpression {
   }
 
   public evaluate(flags: LifecycleFlags, scope: IScope, locator: IServiceLocator): IBindingContext | IBinding | IOverrideContext {
-    const name = this.name;
-    return BindingContext.get(scope, name, this.ancestor, flags)[name];
+    return BindingContext.get(scope, this.name, this.ancestor, flags)[this.name];
   }
 
   public assign(flags: LifecycleFlags, scope: IScope, locator: IServiceLocator, value: unknown): unknown {
-    const name = this.name;
-    const context = BindingContext.get(scope, name, this.ancestor, flags);
-    return context ? (context[name] = value) : undefined;
+    const context = BindingContext.get(scope, this.name, this.ancestor, flags);
+    return context ? (context[this.name] = value) : undefined;
   }
 
   public connect(flags: LifecycleFlags, scope: IScope, binding: IConnectableBinding): void {
-    const name = this.name;
-    const context = BindingContext.get(scope, name, this.ancestor, flags);
-    binding.observeProperty(flags, context, name);
+    const context = BindingContext.get(scope, this.name, this.ancestor, flags);
+    binding.observeProperty(flags, context, this.name);
   }
 
   public accept<T>(visitor: IVisitor<T>): T {
@@ -837,8 +830,9 @@ export class HtmlLiteral implements IHtmlLiteralExpression {
   public evaluate(flags: LifecycleFlags, scope: IScope, locator: IServiceLocator): string {
     const elements = this.parts;
     let result = '';
+    let value;
     for (let i = 0, ii = elements.length; i < ii; ++i) {
-      const value = elements[i].evaluate(flags, scope, locator);
+      value = elements[i].evaluate(flags, scope, locator);
       if (value === undefined || value === null) {
         continue;
       }
@@ -1214,8 +1208,9 @@ function isNumeric(value: unknown): value is number {
   if (valueType !== 'string') return false;
   const len = (value as string).length;
   if (len === 0) return false;
+  let char;
   for (let i = 0; i < len; ++i) {
-    const char = (value as string).charCodeAt(i);
+    char = (value as string).charCodeAt(i);
     if (char < 0x30 /*0*/ || char > 0x39/*9*/) {
       return false;
     }

@@ -1,7 +1,7 @@
 import { PLATFORM } from '@aurelia/kernel';
 
 export interface QueuedBrowserHistory extends History {
-  activate(callback: Function): void;
+  activate(callback: (ev?: PopStateEvent) => void): void;
   deactivate(): void;
 }
 
@@ -9,7 +9,8 @@ interface QueueItem {
   object: object;
   method: string;
   parameters: unknown[];
-  resolve: Function;
+  // TODO: Could someone verify this? It's the resolve from a Promise<void>
+  resolve: ((value?: void | PromiseLike<void>) => void);
 }
 
 export class QueuedBrowserHistory implements QueuedBrowserHistory {
@@ -18,7 +19,7 @@ export class QueuedBrowserHistory implements QueuedBrowserHistory {
   private readonly queue: QueueItem[];
   private isActive: boolean;
   private processingItem: QueueItem;
-  private callback: Function;
+  private callback: (ev?: PopStateEvent) => void;
 
   constructor() {
     this.history = window.history;
@@ -28,7 +29,7 @@ export class QueuedBrowserHistory implements QueuedBrowserHistory {
     this.callback = null;
   }
 
-  public activate(callback: Function): void {
+  public activate(callback: (ev?: PopStateEvent) => void): void {
     if (this.isActive) {
       throw new Error('Queued browser history has already been activated.');
     }
@@ -47,6 +48,7 @@ export class QueuedBrowserHistory implements QueuedBrowserHistory {
   get length(): number {
     return this.history.length;
   }
+  // tslint:disable-next-line:no-any - typed according to DOM
   get state(): any {
     return this.history.state;
   }
@@ -64,10 +66,12 @@ export class QueuedBrowserHistory implements QueuedBrowserHistory {
     return this.go(1);
   }
 
+  // tslint:disable-next-line:no-any - typed according to DOM
   public async pushState(data: any, title: string, url?: string | null): Promise<void> {
     await this.enqueue(this.history, 'pushState', [data, title, url]);
   }
 
+  // tslint:disable-next-line:no-any - typed according to DOM
   public async replaceState(data: any, title: string, url?: string | null): Promise<void> {
     await this.enqueue(this.history, 'replaceState', [data, title, url]);
   }
@@ -82,6 +86,7 @@ export class QueuedBrowserHistory implements QueuedBrowserHistory {
 
   private enqueue(object: object, method: string, parameters: unknown[]): Promise<void> {
     let _resolve;
+    // TODO: Is it okay to suppress this lint or is there a prefered solution?
     const promise: Promise<void> = new Promise((resolve) => {
       _resolve = resolve;
     });
@@ -91,7 +96,7 @@ export class QueuedBrowserHistory implements QueuedBrowserHistory {
       parameters: parameters,
       resolve: _resolve,
     });
-    this.dequeue();
+    this.dequeue().catch(error => { throw error; });
     return promise;
   }
 
@@ -100,7 +105,6 @@ export class QueuedBrowserHistory implements QueuedBrowserHistory {
       return;
     }
     this.processingItem = this.queue.shift();
-    console.log('queued-browser-history', delta, this.processingItem.method, this.processingItem.parameters);
     const method = this.processingItem.object[this.processingItem.method];
     method.apply(this.processingItem.object, this.processingItem.parameters);
     const resolve = this.processingItem.resolve;

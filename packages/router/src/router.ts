@@ -117,7 +117,6 @@ export class Router {
     }
     this.linkHandler.deactivate();
     this.historyBrowser.deactivate();
-    return;
   }
 
   public linkCallback = (info: AnchorEventInfo): void => {
@@ -155,6 +154,7 @@ export class Router {
 
     if (instruction.isCancel) {
       this.processingNavigation = null;
+      this.processNavigations().catch(error => { throw error; });
       return Promise.resolve();
     }
 
@@ -196,11 +196,12 @@ export class Router {
 
     if (!views && !Object.keys(views).length && !clearViewports) {
       this.processingNavigation = null;
+      this.processNavigations().catch(error => { throw error; });
       return Promise.resolve();
     }
 
     if (title) {
-      this.historyBrowser.setEntryTitle(title);
+      await this.historyBrowser.setEntryTitle(title);
     }
 
     const usedViewports = (clearViewports ? this.allViewports().filter((value) => value.component !== null) : []);
@@ -250,6 +251,7 @@ export class Router {
       if (!changedViewports.length && this.isRedirecting) {
         const result = this.cancelNavigation([...changedViewports, ...updatedViewports], instruction);
         this.isRedirecting = false;
+        this.processNavigations().catch(error => { throw error; });
         return result;
       }
 
@@ -279,8 +281,7 @@ export class Router {
       // TODO: Remove this once multi level recursiveness has been fixed
       // results = await Promise.all(changedViewports.map((value) => value.loadContent()));
       // if (results.findIndex((value) => value === false) >= 0) {
-      //   this.historyBrowser.cancel();
-      //   return Promise.resolve();
+      //   return this.historyBrowser.cancel();
       // }
 
       updatedViewports.push(...changedViewports);
@@ -299,11 +300,11 @@ export class Router {
     }
 
     await Promise.all(updatedViewports.map((value) => value.loadContent()));
-    this.replacePaths(instruction);
+    await this.replacePaths(instruction);
 
     // Remove history entry if no history viewports updated
     if (!instruction.isFirst && updatedViewports.every(viewport => viewport.options.noHistory)) {
-      this.historyBrowser.pop().catch(error => { throw error; });
+      await this.historyBrowser.pop().catch(error => { throw error; });
     }
 
     updatedViewports.forEach((viewport) => {
@@ -311,9 +312,7 @@ export class Router {
     });
     this.processingNavigation = null;
 
-    if (this.pendingNavigations.length) {
-      this.processNavigations().catch(error => { throw error; });
-    }
+    this.processNavigations().catch(error => { throw error; });
   }
 
   public addProcessingViewport(viewport: Viewport, component: string): void {
@@ -398,31 +397,31 @@ export class Router {
     }
   }
 
-  public goto(pathOrViewports: string | Record<string, Viewport>, title?: string, data?: Record<string, unknown>): void {
+  public goto(pathOrViewports: string | Record<string, Viewport>, title?: string, data?: Record<string, unknown>): Promise<void> {
     if (typeof pathOrViewports === 'string') {
-      this.historyBrowser.goto(pathOrViewports, title, data);
+      return this.historyBrowser.goto(pathOrViewports, title, data);
     }
     // else {
     //   this.view(pathOrViewports, title, data);
     // }
   }
 
-  public replace(pathOrViewports: string | Record<string, Viewport>, title?: string, data?: Record<string, unknown>): void {
+  public replace(pathOrViewports: string | Record<string, Viewport>, title?: string, data?: Record<string, unknown>): Promise<void> {
     if (typeof pathOrViewports === 'string') {
-      this.historyBrowser.replace(pathOrViewports, title, data);
+      return this.historyBrowser.replace(pathOrViewports, title, data);
     }
   }
 
-  public refresh(): void {
-    this.historyBrowser.refresh();
+  public refresh(): Promise<void> {
+    return this.historyBrowser.refresh();
   }
 
-  public back(): void {
-    this.historyBrowser.back();
+  public back(): Promise<void> {
+    return this.historyBrowser.back();
   }
 
-  public forward(): void {
-    this.historyBrowser.forward();
+  public forward(): Promise<void> {
+    return this.historyBrowser.forward();
   }
 
   public statesToString(states: IComponentViewportParameters[]): string {
@@ -486,17 +485,17 @@ export class Router {
     return this.navs[name];
   }
 
-  private cancelNavigation(updatedViewports: Viewport[], instruction: INavigationInstruction): Promise<void> {
+  private async cancelNavigation(updatedViewports: Viewport[], instruction: INavigationInstruction): Promise<void> {
     updatedViewports.forEach((viewport) => {
-      viewport.abortContentChange();
+      viewport.abortContentChange().catch(error => { throw error; });
     });
     if (instruction.isNew) {
-      this.historyBrowser.pop();
+      await this.historyBrowser.pop();
     } else {
-      this.historyBrowser.cancel();
+      await this.historyBrowser.cancel();
     }
     this.processingNavigation = null;
-    return Promise.resolve();
+    this.processNavigations().catch(error => { throw error; });
   }
 
   private ensureRootScope(): void {
@@ -541,7 +540,7 @@ export class Router {
     return unique;
   }
 
-  private replacePaths(instruction: INavigationInstruction): void {
+  private replacePaths(instruction: INavigationInstruction): Promise<void> {
     this.activeComponents = this.rootScope.viewportStates(true, true);
     this.activeComponents = this.removeStateDuplicates(this.activeComponents);
 
@@ -556,7 +555,7 @@ export class Router {
     fullViewportStates = this.removeStateDuplicates(fullViewportStates);
     fullViewportStates.unshift(this.separators.clear);
     const query = (instruction.query && instruction.query.length ? `?${instruction.query}` : '');
-    this.historyBrowser.replacePath(
+    return this.historyBrowser.replacePath(
       state + query,
       fullViewportStates.join(this.separators.sibling) + query,
       instruction);

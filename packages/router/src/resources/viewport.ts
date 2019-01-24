@@ -1,5 +1,5 @@
-import { Constructable, IContainer, InterfaceSymbol, Writable } from '@aurelia/kernel';
-import { bindable, createRenderContext, CustomElementResource, ICustomElement, IDOM, IElementTemplateProvider, INode, IRenderContext, IRenderingEngine, ITemplate, LifecycleFlags, TemplateDefinition } from '@aurelia/runtime';
+import { Constructable, InterfaceSymbol, Writable } from '@aurelia/kernel';
+import { bindable, createRenderContext, CustomElementResource, ICustomElement, ICustomElementType, IDOM, IElementTemplateProvider, INode, IRenderContext, IRenderingEngine, ITemplate, LifecycleFlags, TemplateDefinition } from '@aurelia/runtime';
 import { Router } from '../router';
 import { IViewportOptions, Viewport } from '../viewport';
 
@@ -35,7 +35,7 @@ export class ViewportCustomElement {
   }
 
   public render(flags: LifecycleFlags, host: INode, parts: Record<string, TemplateDefinition>, parentContext: IRenderContext | null): IElementTemplateProvider | void {
-    const Type = this.constructor as any;
+    const Type = this.constructor as ICustomElementType;
     const dom = parentContext.get(IDOM);
     const template = this.renderingEngine.getElementTemplate(dom, Type.description, parentContext, Type);
     (template as Writable<ITemplate>).renderContext = createRenderContext(dom, parentContext, Type.description.dependencies, Type);

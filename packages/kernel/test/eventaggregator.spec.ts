@@ -136,6 +136,16 @@ describe('event aggregator', () => {
 
     });
 
+    describe('invalid events', () => {
+      const ea = new EventAggregator();
+      const callback = function() { return; };
+
+      it('throws if channelOrType is undefined', () => {
+        expect(() => { ea.subscribe(undefined, callback); }).to.throw('Code 0');
+      });
+
+    });
+
   });
 
   describe('subscribeOnce', () => {
@@ -386,6 +396,15 @@ describe('event aggregator', () => {
         ea.publish(new DinnerEvent(data));
 
         expect(someMessage.message).to.equal(data);
+      });
+
+    });
+
+    describe('invalid events', () => {
+      const ea = new EventAggregator();
+
+      it('throws if channelOrType is undefined', () => {
+        expect(() => { ea.publish(undefined, {}); }).to.throw('Code 0');
       });
 
     });

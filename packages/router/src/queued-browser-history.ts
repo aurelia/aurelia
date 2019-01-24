@@ -14,6 +14,7 @@ interface QueueItem {
 }
 
 export class QueuedBrowserHistory implements QueuedBrowserHistory {
+  public window: Window;
   public history: History;
 
   private readonly queue: QueueItem[];
@@ -22,6 +23,7 @@ export class QueuedBrowserHistory implements QueuedBrowserHistory {
   private callback: (ev?: PopStateEvent) => void;
 
   constructor() {
+    this.window = window;
     this.history = window.history;
     this.queue = [];
     this.isActive = false;
@@ -36,10 +38,10 @@ export class QueuedBrowserHistory implements QueuedBrowserHistory {
     this.isActive = true;
     this.callback = callback;
     PLATFORM.ticker.add(this.dequeue, this);
-    window.addEventListener('popstate', this.handlePopstate);
+    this.window.addEventListener('popstate', this.handlePopstate);
   }
   public deactivate(): void {
-    window.removeEventListener('popstate', this.handlePopstate);
+    this.window.removeEventListener('popstate', this.handlePopstate);
     PLATFORM.ticker.remove(this.dequeue, this);
     this.callback = null;
     this.isActive = false;

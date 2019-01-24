@@ -212,13 +212,13 @@
   if (createElement('<svg><altGlyph /></svg>').firstElementChild.nodeName === 'altglyph' && svgElements.altGlyph) {
       // handle chrome casing inconsistencies.
       svgElements.altglyph = svgElements.altGlyph;
-      delete svgElements.altGlyph;
+      Reflect.deleteProperty(svgElements, 'altGlyph');
       svgElements.altglyphdef = svgElements.altGlyphDef;
-      delete svgElements.altGlyphDef;
+      Reflect.deleteProperty(svgElements, 'altGlyphDef');
       svgElements.altglyphitem = svgElements.altGlyphItem;
-      delete svgElements.altGlyphItem;
+      Reflect.deleteProperty(svgElements, 'altGlyphItem');
       svgElements.glyphref = svgElements.glyphRef;
-      delete svgElements.glyphRef;
+      Reflect.deleteProperty(svgElements, 'glyphRef');
   }
   function register(container) {
       container.registerTransformer(runtimeHtml.ISVGAnalyzer, analyzer => {

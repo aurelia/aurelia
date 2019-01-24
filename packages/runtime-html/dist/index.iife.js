@@ -21,7 +21,7 @@ this.au.runtimeHtml = (function (exports, kernel, runtime) {
           const overrideContext = this.$scope.overrideContext;
           overrideContext.$event = event;
           const result = this.sourceExpression.evaluate(runtime.LifecycleFlags.mustEvaluate, this.$scope, this.locator);
-          delete overrideContext.$event;
+          Reflect.deleteProperty(overrideContext, '$event');
           if (result !== true && this.preventDefault) {
               event.preventDefault();
           }

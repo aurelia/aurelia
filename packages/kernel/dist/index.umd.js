@@ -865,8 +865,13 @@
               // Most likely cause is trying to register a plain object that does not have a
               // register method and is not a class constructor
           }
+          let current;
+          let keys;
+          let value;
+          let j;
+          let jj;
           for (let i = 0, ii = params.length; i < ii; ++i) {
-              const current = params[i];
+              current = params[i];
               if (isRegistry(current)) {
                   current.register(this);
               }
@@ -874,9 +879,11 @@
                   Registration.singleton(current, current).register(this);
               }
               else {
-                  const keys = Object.keys(current);
-                  for (let j = 0, jj = keys.length; j < jj; ++j) {
-                      const value = current[keys[j]];
+                  keys = Object.keys(current);
+                  j = 0;
+                  jj = keys.length;
+                  for (; j < jj; ++j) {
+                      value = current[keys[j]];
                       // note: we could remove this if-branch and call this.register directly
                       // - the extra check is just a perf tweak to create fewer unnecessary arrays by the spread operator
                       if (isRegistry(value)) {
@@ -929,8 +936,9 @@
               return key;
           }
           let current = this;
+          let resolver;
           while (current !== null) {
-              const resolver = current.resolvers.get(key);
+              resolver = current.resolvers.get(key);
               if (resolver === undefined) {
                   if (current.parent === null) {
                       return autoRegister ? this.jitRegister(key, current) : null;
@@ -956,8 +964,9 @@
               return key.resolve(this, this);
           }
           let current = this;
+          let resolver;
           while (current !== null) {
-              let resolver = current.resolvers.get(key);
+              resolver = current.resolvers.get(key);
               if (resolver === undefined) {
                   if (current.parent === null) {
                       resolver = this.jitRegister(key, current);
@@ -973,8 +982,9 @@
       getAll(key) {
           validateKey(key);
           let current = this;
+          let resolver;
           while (current !== null) {
-              const resolver = current.resolvers.get(key);
+              resolver = current.resolvers.get(key);
               if (resolver === undefined) {
                   if (this.parent === null) {
                       return PLATFORM.emptyArray;

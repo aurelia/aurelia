@@ -758,8 +758,7 @@ this.au.runtime = (function (exports, kernel) {
       this.addSubscriber(subscriber);
   }
   function dispose() {
-      // tslint:disable-next-line:no-dynamic-delete
-      delete this.obj[this.propertyKey];
+      Reflect.deleteProperty(this.obj, this.propertyKey);
       this.obj = null;
       this.propertyKey = null;
       this.currentValue = null;
@@ -826,11 +825,10 @@ this.au.runtime = (function (exports, kernel) {
   /** @internal */
   class InternalObserversLookup {
       getOrCreate(flags, obj, key) {
-          let observer = this[key];
-          if (observer === undefined) {
-              observer = this[key] = new exports.SetterObserver(flags, obj, key);
+          if (this[key] === undefined) {
+              this[key] = new exports.SetterObserver(flags, obj, key);
           }
-          return observer;
+          return this[key];
       }
   }
   class BindingContext {
@@ -905,11 +903,10 @@ this.au.runtime = (function (exports, kernel) {
           return scope.bindingContext || scope.overrideContext;
       }
       getObservers(flags) {
-          let observers = this.$observers;
-          if (observers === undefined) {
-              this.$observers = observers = new InternalObserversLookup();
+          if (this.$observers === undefined) {
+              this.$observers = new InternalObserversLookup();
           }
-          return observers;
+          return this.$observers;
       }
   }
   class Scope {
@@ -944,11 +941,10 @@ this.au.runtime = (function (exports, kernel) {
           return new OverrideContext(bc, poc === undefined ? null : poc);
       }
       getObservers() {
-          let observers = this.$observers;
-          if (observers === undefined) {
-              this.$observers = observers = new InternalObserversLookup();
+          if (this.$observers === undefined) {
+              this.$observers = new InternalObserversLookup();
           }
-          return observers;
+          return this.$observers;
       }
   }
 
@@ -1123,8 +1119,6 @@ this.au.runtime = (function (exports, kernel) {
           this.name = name;
           this.args = args;
           this.behaviorKey = BindingBehaviorResource.keyFrom(this.name);
-          this.expressionHasBind = hasBind(expression);
-          this.expressionHasUnbind = hasUnbind(expression);
       }
       evaluate(flags, scope, locator) {
           return this.expression.evaluate(flags, scope, locator);
@@ -1149,7 +1143,7 @@ this.au.runtime = (function (exports, kernel) {
           if (!locator) {
               throw kernel.Reporter.error(202 /* NoLocator */, this);
           }
-          if (this.expressionHasBind) {
+          if (hasBind(this.expression)) {
               this.expression.bind(flags, scope, binding);
           }
           const behaviorKey = this.behaviorKey;
@@ -1176,7 +1170,7 @@ this.au.runtime = (function (exports, kernel) {
               // we should remove this idempotency again when track-by attribute is implemented
               kernel.Reporter.write(204 /* BehaviorAlreadyApplied */, this);
           }
-          if (this.expressionHasUnbind) {
+          if (hasUnbind(this.expression)) {
               this.expression.unbind(flags, scope, binding);
           }
       }
@@ -1355,18 +1349,15 @@ this.au.runtime = (function (exports, kernel) {
           this.ancestor = ancestor;
       }
       evaluate(flags, scope, locator) {
-          const name = this.name;
-          return BindingContext.get(scope, name, this.ancestor, flags)[name];
+          return BindingContext.get(scope, this.name, this.ancestor, flags)[this.name];
       }
       assign(flags, scope, locator, value) {
-          const name = this.name;
-          const context = BindingContext.get(scope, name, this.ancestor, flags);
-          return context ? (context[name] = value) : undefined;
+          const context = BindingContext.get(scope, this.name, this.ancestor, flags);
+          return context ? (context[this.name] = value) : undefined;
       }
       connect(flags, scope, binding) {
-          const name = this.name;
-          const context = BindingContext.get(scope, name, this.ancestor, flags);
-          binding.observeProperty(flags, context, name);
+          const context = BindingContext.get(scope, this.name, this.ancestor, flags);
+          binding.observeProperty(flags, context, this.name);
       }
       accept(visitor) {
           return visitor.visitAccessScope(this);
@@ -1684,8 +1675,9 @@ this.au.runtime = (function (exports, kernel) {
       evaluate(flags, scope, locator) {
           const elements = this.parts;
           let result = '';
+          let value;
           for (let i = 0, ii = elements.length; i < ii; ++i) {
-              const value = elements[i].evaluate(flags, scope, locator);
+              value = elements[i].evaluate(flags, scope, locator);
               if (value === undefined || value === null) {
                   continue;
               }
@@ -1978,8 +1970,9 @@ this.au.runtime = (function (exports, kernel) {
       const len = value.length;
       if (len === 0)
           return false;
+      let char;
       for (let i = 0; i < len; ++i) {
-          const char = value.charCodeAt(i);
+          char = value.charCodeAt(i);
           if (char < 0x30 /*0*/ || char > 0x39 /*9*/) {
               return false;
           }
@@ -2936,34 +2929,29 @@ this.au.runtime = (function (exports, kernel) {
           if (!(this.$state & 2 /* isBound */)) {
               return;
           }
-          const sourceExpression = this.sourceExpression;
-          const $scope = this.$scope;
-          const locator = this.locator;
           flags |= this.persistentFlags;
           if (this.mode === exports.BindingMode.fromView) {
               flags &= ~exports.LifecycleFlags.updateTargetInstance;
               flags |= exports.LifecycleFlags.updateSourceExpression;
           }
           if (flags & exports.LifecycleFlags.updateTargetInstance) {
-              const targetObserver = this.targetObserver;
-              const mode = this.mode;
-              const previousValue = targetObserver.getValue();
+              const previousValue = this.targetObserver.getValue();
               // if the only observable is an AccessScope then we can assume the passed-in newValue is the correct and latest value
-              if (sourceExpression.$kind !== 10082 /* AccessScope */ || this.observerSlots > 1) {
-                  newValue = sourceExpression.evaluate(flags, $scope, locator);
+              if (this.sourceExpression.$kind !== 10082 /* AccessScope */ || this.observerSlots > 1) {
+                  newValue = this.sourceExpression.evaluate(flags, this.$scope, this.locator);
               }
               if (newValue !== previousValue) {
                   this.updateTarget(newValue, flags);
               }
-              if ((mode & oneTime) === 0) {
+              if ((this.mode & oneTime) === 0) {
                   this.version++;
-                  sourceExpression.connect(flags, $scope, this);
+                  this.sourceExpression.connect(flags, this.$scope, this);
                   this.unobserve(false);
               }
               return;
           }
           if (flags & exports.LifecycleFlags.updateSourceExpression) {
-              if (newValue !== sourceExpression.evaluate(flags, $scope, locator)) {
+              if (newValue !== this.sourceExpression.evaluate(flags, this.$scope, this.locator)) {
                   this.updateSource(newValue, flags);
               }
               return;
@@ -2987,10 +2975,9 @@ this.au.runtime = (function (exports, kernel) {
           if (hasBind(sourceExpression)) {
               sourceExpression.bind(flags, scope, this);
           }
-          const mode = this.mode;
           let targetObserver = this.targetObserver;
           if (!targetObserver) {
-              if (mode & fromView) {
+              if (this.mode & fromView) {
                   targetObserver = this.targetObserver = this.observerLocator.getObserver(flags, this.target, this.targetProperty);
               }
               else {
@@ -3002,13 +2989,13 @@ this.au.runtime = (function (exports, kernel) {
           }
           // during bind, binding behavior might have changed sourceExpression
           sourceExpression = this.sourceExpression;
-          if (mode & toViewOrOneTime) {
+          if (this.mode & toViewOrOneTime) {
               this.updateTarget(sourceExpression.evaluate(flags, scope, this.locator), flags);
           }
-          if (mode & toView) {
+          if (this.mode & toView) {
               sourceExpression.connect(flags, scope, this);
           }
-          if (mode & fromView) {
+          if (this.mode & fromView) {
               targetObserver.subscribe(this);
           }
           // add isBound flag and remove isBinding flag
@@ -3023,17 +3010,15 @@ this.au.runtime = (function (exports, kernel) {
           this.$state |= 64 /* isUnbinding */;
           // clear persistent flags
           this.persistentFlags = exports.LifecycleFlags.none;
-          const sourceExpression = this.sourceExpression;
-          if (hasUnbind(sourceExpression)) {
-              sourceExpression.unbind(flags, this.$scope, this);
+          if (hasUnbind(this.sourceExpression)) {
+              this.sourceExpression.unbind(flags, this.$scope, this);
           }
           this.$scope = null;
-          const targetObserver = this.targetObserver;
-          if (targetObserver.unbind) {
-              targetObserver.unbind(flags);
+          if (this.targetObserver.unbind) {
+              this.targetObserver.unbind(flags);
           }
-          if (targetObserver.unsubscribe) {
-              targetObserver.unsubscribe(this);
+          if (this.targetObserver.unsubscribe) {
+              this.targetObserver.unsubscribe(this);
           }
           this.unobserve(true);
           // remove isBound and isUnbinding flags
@@ -3070,8 +3055,7 @@ this.au.runtime = (function (exports, kernel) {
           Object.assign(overrideContext, args);
           const result = this.sourceExpression.evaluate(exports.LifecycleFlags.mustEvaluate, this.$scope, this.locator);
           for (const prop in args) {
-              // tslint:disable-next-line:no-dynamic-delete
-              delete overrideContext[prop];
+              Reflect.deleteProperty(overrideContext, prop);
           }
           return result;
       }
@@ -3085,9 +3069,8 @@ this.au.runtime = (function (exports, kernel) {
           // add isBinding flag
           this.$state |= 1 /* isBinding */;
           this.$scope = scope;
-          const sourceExpression = this.sourceExpression;
-          if (hasBind(sourceExpression)) {
-              sourceExpression.bind(flags, scope, this);
+          if (hasBind(this.sourceExpression)) {
+              this.sourceExpression.bind(flags, scope, this);
           }
           this.targetObserver.setValue($args => this.callSource($args), flags);
           // add isBound flag and remove isBinding flag
@@ -3100,9 +3083,8 @@ this.au.runtime = (function (exports, kernel) {
           }
           // add isUnbinding flag
           this.$state |= 64 /* isUnbinding */;
-          const sourceExpression = this.sourceExpression;
-          if (hasUnbind(sourceExpression)) {
-              sourceExpression.unbind(flags, this.$scope, this);
+          if (hasUnbind(this.sourceExpression)) {
+              this.sourceExpression.unbind(flags, this.$scope, this);
           }
           this.$scope = null;
           this.targetObserver.setValue(null, flags);
@@ -3438,9 +3420,8 @@ this.au.runtime = (function (exports, kernel) {
           // add isBinding flag
           this.$state |= 1 /* isBinding */;
           this.$scope = scope;
-          const sourceExpression = this.sourceExpression;
-          if (hasBind(sourceExpression)) {
-              sourceExpression.bind(flags, scope, this);
+          if (hasBind(this.sourceExpression)) {
+              this.sourceExpression.bind(flags, scope, this);
           }
           this.sourceExpression.assign(flags, this.$scope, this.locator, this.target);
           // add isBound flag and remove isBinding flag
@@ -3970,7 +3951,7 @@ this.au.runtime = (function (exports, kernel) {
       enumerable: false,
       configurable: true
   };
-  const def = Object.defineProperty;
+  const def = Reflect.defineProperty;
   for (const method of methods) {
       def(observe[method], 'observing', { value: true, writable: false, configurable: false, enumerable: false });
   }
@@ -4106,7 +4087,7 @@ this.au.runtime = (function (exports, kernel) {
       enumerable: false,
       configurable: true
   };
-  const def$1 = Object.defineProperty;
+  const def$1 = Reflect.defineProperty;
   for (const method of methods$1) {
       def$1(observe$1[method], 'observing', { value: true, writable: false, configurable: false, enumerable: false });
   }
@@ -4232,7 +4213,7 @@ this.au.runtime = (function (exports, kernel) {
       enumerable: false,
       configurable: true
   };
-  const def$2 = Object.defineProperty;
+  const def$2 = Reflect.defineProperty;
   for (const method of methods$2) {
       def$2(observe$2[method], 'observing', { value: true, writable: false, configurable: false, enumerable: false });
   }
@@ -6486,16 +6467,18 @@ this.au.runtime = (function (exports, kernel) {
       }
       attaching(flags) {
           const { views, location } = this;
+          let view;
           for (let i = 0, ii = views.length; i < ii; ++i) {
-              const view = views[i];
+              view = views[i];
               view.hold(location);
               view.$attach(flags);
           }
       }
       detaching(flags) {
           const { views } = this;
+          let view;
           for (let i = 0, ii = views.length; i < ii; ++i) {
-              const view = views[i];
+              view = views[i];
               view.$detach(flags);
               view.release(flags);
           }
@@ -6503,8 +6486,9 @@ this.au.runtime = (function (exports, kernel) {
       unbinding(flags) {
           this.checkCollectionObserver(flags);
           const { views } = this;
+          let view;
           for (let i = 0, ii = views.length; i < ii; ++i) {
-              const view = views[i];
+              view = views[i];
               view.$unbind(flags);
           }
       }
@@ -6536,6 +6520,7 @@ this.au.runtime = (function (exports, kernel) {
               flags |= exports.LifecycleFlags.useProxies;
           }
           const { views, $lifecycle } = this;
+          let view;
           if (this.$state & (2 /* isBound */ | 1 /* isBinding */)) {
               const { local, $scope, factory, forOf, items } = this;
               const oldLength = views.length;
@@ -6548,13 +6533,15 @@ this.au.runtime = (function (exports, kernel) {
               }
               else if (newLength < oldLength) {
                   $lifecycle.beginDetach();
-                  for (let i = newLength, view = views[i]; i < oldLength; view = views[++i]) {
+                  for (let i = newLength; i < oldLength; ++i) {
+                      view = views[i];
                       view.release(flags);
                       view.$detach(flags);
                   }
                   $lifecycle.endDetach(flags);
                   $lifecycle.beginUnbind();
-                  for (let i = newLength, view = views[i]; i < oldLength; view = views[++i]) {
+                  for (let i = newLength; i < oldLength; ++i) {
+                      view = views[i];
                       view.$unbind(flags);
                   }
                   $lifecycle.endUnbind(flags);
@@ -6569,7 +6556,7 @@ this.au.runtime = (function (exports, kernel) {
               $lifecycle.beginBind();
               if (indexMap === null) {
                   forOf.iterate(items, (arr, i, item) => {
-                      const view = views[i];
+                      view = views[i];
                       if (!!view.$scope && view.$scope.bindingContext[local] === item) {
                           view.$bind(flags, Scope.fromParent(flags, $scope, view.$scope.bindingContext));
                       }
@@ -6580,7 +6567,7 @@ this.au.runtime = (function (exports, kernel) {
               }
               else {
                   forOf.iterate(items, (arr, i, item) => {
-                      const view = views[i];
+                      view = views[i];
                       if (!!view.$scope && (indexMap[i] === i || view.$scope.bindingContext[local] === item)) {
                           view.$bind(flags, Scope.fromParent(flags, $scope, view.$scope.bindingContext));
                       }
@@ -6596,7 +6583,7 @@ this.au.runtime = (function (exports, kernel) {
               $lifecycle.beginAttach();
               if (indexMap === null) {
                   for (let i = 0, ii = views.length; i < ii; ++i) {
-                      const view = views[i];
+                      view = views[i];
                       view.hold(location);
                       view.$attach(flags);
                   }
@@ -6604,7 +6591,7 @@ this.au.runtime = (function (exports, kernel) {
               else {
                   for (let i = 0, ii = views.length; i < ii; ++i) {
                       if (indexMap[i] !== i) {
-                          const view = views[i];
+                          view = views[i];
                           view.hold(location);
                           view.$attach(flags);
                       }
@@ -6724,7 +6711,7 @@ this.au.runtime = (function (exports, kernel) {
                       $mount() {
                           let next = location;
                           let j = seqLen - 1;
-                          let i = indexMap.length - 1;
+                          i = indexMap.length - 1;
                           for (; i >= 0; --i) {
                               if (indexMap[i] === -2) {
                                   view = views[i];
@@ -7070,18 +7057,21 @@ this.au.runtime = (function (exports, kernel) {
                   throw kernel.Reporter.error(31);
               }
           }
+          let instructions;
+          let target;
+          let current;
           for (let i = 0, ii = targets.length; i < ii; ++i) {
-              const instructions = targetInstructions[i];
-              const target = targets[i];
+              instructions = targetInstructions[i];
+              target = targets[i];
               for (let j = 0, jj = instructions.length; j < jj; ++j) {
-                  const current = instructions[j];
+                  current = instructions[j];
                   instructionRenderers[current.type].render(flags, dom, context, renderable, target, current, parts);
               }
           }
           if (host) {
               const surrogateInstructions = definition.surrogates;
               for (let i = 0, ii = surrogateInstructions.length; i < ii; ++i) {
-                  const current = surrogateInstructions[i];
+                  current = surrogateInstructions[i];
                   instructionRenderers[current.type].render(flags, dom, context, renderable, host, current, parts);
               }
           }
@@ -7136,8 +7126,9 @@ this.au.runtime = (function (exports, kernel) {
           const instructionRenderers = context.get(IRenderer).instructionRenderers;
           const childInstructions = instruction.instructions;
           component.$hydrate(flags, context, target, instruction);
+          let current;
           for (let i = 0, ii = childInstructions.length; i < ii; ++i) {
-              const current = childInstructions[i];
+              current = childInstructions[i];
               instructionRenderers[current.type].render(flags, dom, context, renderable, component, current);
           }
           addComponent(renderable, component);
@@ -7157,8 +7148,9 @@ this.au.runtime = (function (exports, kernel) {
           const instructionRenderers = context.get(IRenderer).instructionRenderers;
           const childInstructions = instruction.instructions;
           component.$hydrate(flags, context);
+          let current;
           for (let i = 0, ii = childInstructions.length; i < ii; ++i) {
-              const current = childInstructions[i];
+              current = childInstructions[i];
               instructionRenderers[current.type].render(flags, dom, context, renderable, component, current);
           }
           addComponent(renderable, component);
@@ -7185,8 +7177,9 @@ this.au.runtime = (function (exports, kernel) {
           if (instruction.link) {
               component.link(renderable.$componentTail);
           }
+          let current;
           for (let i = 0, ii = childInstructions.length; i < ii; ++i) {
-              const current = childInstructions[i];
+              current = childInstructions[i];
               instructionRenderers[current.type].render(flags, dom, context, renderable, component, current);
           }
           addComponent(renderable, component);
@@ -7209,10 +7202,13 @@ this.au.runtime = (function (exports, kernel) {
           dom.remove(target);
           const childInstructions = instruction.instructions;
           const toViewModel = instruction.toViewModel;
+          let childInstruction;
+          let expr;
+          let binding;
           for (let i = 0, ii = childInstructions.length; i < ii; ++i) {
-              const childInstruction = childInstructions[i];
-              const expr = ensureExpression(this.parser, childInstruction.from, 48 /* IsPropertyCommand */);
-              const binding = new exports.LetBinding(expr, childInstruction.to, this.observerLocator, context, toViewModel);
+              childInstruction = childInstructions[i];
+              expr = ensureExpression(this.parser, childInstruction.from, 48 /* IsPropertyCommand */);
+              binding = new exports.LetBinding(expr, childInstruction.to, this.observerLocator, context, toViewModel);
               addBinding(renderable, binding);
           }
       }

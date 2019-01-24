@@ -71,7 +71,7 @@ System.register('runtimeHtml', ['@aurelia/kernel', '@aurelia/runtime'], function
               const overrideContext = this.$scope.overrideContext;
               overrideContext.$event = event;
               const result = this.sourceExpression.evaluate(LifecycleFlags.mustEvaluate, this.$scope, this.locator);
-              delete overrideContext.$event;
+              Reflect.deleteProperty(overrideContext, '$event');
               if (result !== true && this.preventDefault) {
                   event.preventDefault();
               }

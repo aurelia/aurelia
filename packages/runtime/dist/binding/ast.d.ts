@@ -23,8 +23,6 @@ export declare class BindingBehavior implements IBindingBehaviorExpression {
     readonly name: string;
     readonly args: ReadonlyArray<IsAssign>;
     readonly behaviorKey: string;
-    private readonly expressionHasBind;
-    private readonly expressionHasUnbind;
     constructor(expression: IsBindingBehavior, name: string, args: ReadonlyArray<IsAssign>);
     evaluate(flags: LifecycleFlags, scope: IScope, locator: IServiceLocator): unknown;
     assign(flags: LifecycleFlags, scope: IScope, locator: IServiceLocator, value: unknown): unknown;

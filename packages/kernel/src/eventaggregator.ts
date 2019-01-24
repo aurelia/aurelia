@@ -66,10 +66,6 @@ export class EventAggregator {
     this.messageHandlers = [];
   }
 
-  public static register(container: IContainer): IResolver<EventAggregator> {
-    return Registration.singleton(EventAggregator, this).register(container);
-  }
-
   /**
    * Publishes a message.
    * @param channel The channel to publish to.

@@ -151,10 +151,6 @@ describe('AST', () => {
     ...AccessScopeList,
     ...LiteralList
   ];
-  const SimpleAccessList: [string, AccessThis | AccessScope][] = [
-    ...AccessThisList,
-    ...AccessScopeList
-  ];
   // 2. parseMemberExpression.MemberExpression [ AssignmentExpression ]
   const SimpleAccessKeyedList: [string, IsLeftHandSide][] = [
     ...AccessScopeList
@@ -280,10 +276,6 @@ describe('AST', () => {
   // This forms the group Precedence.LogicalOR
   const SimpleLogicalORList: [string, Binary][] = [
     [`$38||$39`, new Binary('||', new AccessScope('$38'), new AccessScope('$39'))]
-  ];
-  const SimpleIsLogicalORList: [string, IsBinary][] = [
-    ...SimpleIsLogicalANDList,
-    ...SimpleLogicalORList
   ];
 
   // This forms the group Precedence.Conditional

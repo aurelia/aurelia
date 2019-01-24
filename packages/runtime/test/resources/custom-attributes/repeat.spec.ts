@@ -281,8 +281,6 @@
 //       indexMap: createIndexMap([-2, 1, 1, 1]),
 //       expected: [1]
 //     },
-
-
 //     {
 //       indexMap: createIndexMap([0, -2, -2, -2]),
 //       expected: [3]
@@ -391,9 +389,6 @@
 //       indexMap: createIndexMap([0, 1, 1, 1]),
 //       expected: [0, 1]
 //     },
-
-
-
 //     {
 //       indexMap: createIndexMap([1, -2, -2, -2]),
 //       expected: [3]

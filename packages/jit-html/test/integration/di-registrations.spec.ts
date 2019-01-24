@@ -240,7 +240,7 @@ describe('DI', function() {
           template: 'foo'
         },
         class {
-          public static inject: InterfaceSymbol<unknown>[] = [INode];
+          public static inject: InterfaceSymbol[] = [INode];
           public node: INode;
           public child: ICustomElement;
           constructor(node: INode) {
@@ -292,7 +292,7 @@ describe('DI', function() {
           template: 'bar'
         },
         class {
-          public static inject: InterfaceSymbol<unknown>[] = [INode];
+          public static inject: InterfaceSymbol[] = [INode];
           public node: INode;
           public child: ICustomElement;
           constructor(node: INode) {

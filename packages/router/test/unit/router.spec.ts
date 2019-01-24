@@ -477,7 +477,7 @@ describe('Router', () => {
     await waitForNavigation(router);
     expect(host.textContent).to.contain('Viewport: foo');
 
-    (host as any).getElementsByTagName('SPAN')[0].click();
+    host.getElementsByTagName('SPAN')[0].click();
     await waitForNavigation(router);
     expect(host.textContent).to.contain('Viewport: baz');
 
@@ -514,7 +514,7 @@ describe('Router', () => {
       router.historyBrowser.history = mockBrowserHistoryLocation as any;
       router.historyBrowser.location = mockBrowserHistoryLocation as any;
 
-      router.activate();
+      router.activate().catch(error => { throw error; });
       await Promise.resolve();
 
       return { container, host, component, au, router };
@@ -522,7 +522,7 @@ describe('Router', () => {
     async function $teardown(host, router) {
       document.body.removeChild(host);
       router.deactivate();
-    };
+    }
 
     async function $goto(router: Router, path: string) {
       router.goto(`/${path}`);
@@ -613,7 +613,7 @@ describe('Router', () => {
       const Local3 = define({ name: 'local3', template: 'local3' }, null);
       const Local2 = define({ name: 'local2', template: 'local2<au-viewport name="two" used-by="local3"></au-viewport>', dependencies: [Local3] }, null);
       const Local1 = define({ name: 'local1', template: 'local1<au-viewport name="one" used-by="local2"></au-viewport>', dependencies: [Local2] }, null);
-      const { host, router, container } = await $setup([Local1]);
+      const { host, router } = await $setup([Local1]);
 
       await $goto(router, 'local1+local2+local3');
 

@@ -1,4 +1,4 @@
-import { DI, IContainer, IRegistry, PLATFORM, Profiler, Registration } from '@aurelia/kernel';
+import { DI, IContainer, IRegistry, PLATFORM, Profiler, Registration, Reporter } from '@aurelia/kernel';
 import { IDOM, INode } from './dom';
 import { LifecycleFlags } from './flags';
 import { ProxyObserver } from './observation/proxy-observer';
@@ -10,6 +10,7 @@ const { enter: enterStop, leave: leaveStop } = Profiler.createTimer('Aurelia.sto
 
 export interface ISinglePageApp<THost extends INode = INode> {
   useProxies?: boolean;
+  patchMode?: boolean;
   dom?: IDOM;
   host: THost;
   component: unknown;
@@ -52,6 +53,14 @@ export class Aurelia {
     if (config.useProxies) {
       startFlags |= LifecycleFlags.useProxies;
       stopFlags |= LifecycleFlags.useProxies;
+      if (config.patchMode) {
+        throw Reporter.error(0); // cannot combine useProxies with patchMode
+        // TODO: create error code
+      }
+    }
+    if (config.patchMode) {
+      startFlags |= LifecycleFlags.patchMode;
+      stopFlags |= LifecycleFlags.patchMode;
     }
     let component: ICustomElement;
     const componentOrType = config.component as ICustomElement | ICustomElementType;

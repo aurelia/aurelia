@@ -36,6 +36,7 @@ import {
 } from '../templating/lifecycle-attach';
 import {
   $bindElement,
+  $patch,
   $unbindElement
 } from '../templating/lifecycle-bind';
 import {
@@ -129,6 +130,7 @@ function define<T extends Constructable>(this: ICustomElementResource, nameOrDef
 
   proto.$hydrate = $hydrateElement;
   proto.$bind = $bindElement;
+  proto.$patch = $patch;
   proto.$attach = $attachElement;
   proto.$detach = $detachElement;
   proto.$unbind = $unbindElement;
@@ -136,6 +138,7 @@ function define<T extends Constructable>(this: ICustomElementResource, nameOrDef
 
   proto.$prevComponent = null;
   proto.$nextComponent = null;
+  proto.$nextPatch = null;
 
   proto.$nextUnbindAfterDetach = null;
 

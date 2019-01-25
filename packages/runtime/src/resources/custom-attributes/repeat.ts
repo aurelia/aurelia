@@ -9,7 +9,6 @@ import { CollectionObserver, IBatchedCollectionSubscriber, IndexMap, IObservedAr
 import { BindingContext, Scope } from '../../observation/binding-context';
 import { getCollectionObserver } from '../../observation/observer-locator';
 import { ProxyObserver } from '../../observation/proxy-observer';
-import { SetterObserver } from '../../observation/setter-observer';
 import { bindable } from '../../templating/bindable';
 import { CustomAttributeResource, ICustomAttribute, ICustomAttributeResource } from '../custom-attribute';
 
@@ -25,7 +24,6 @@ export class Repeat<C extends ObservedCollection = IObservedArray, T extends INo
   @bindable public items: C;
 
   public $scope: IScope;
-  public $observers: { items: SetterObserver };
 
   public forOf: ForOfStatement;
   public hasPendingInstanceMutation: boolean;

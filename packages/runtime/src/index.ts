@@ -412,7 +412,7 @@ export {
   IObservedSet,
   IObserversLookup,
   IOverrideContext,
-  IPatch,
+  IPatchable,
   IPropertyChangeHandler,
   IPropertyChangeNotifier,
   IPropertyChangeTracker,

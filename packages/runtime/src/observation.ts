@@ -1,5 +1,5 @@
 import { IDisposable, IIndexable } from '@aurelia/kernel';
-import { LifecycleFlags } from './flags';
+import { LifecycleFlags, State } from './flags';
 import { ILifecycle } from './lifecycle';
 
 export interface IProxyObserver<TObj extends object = object, TMut extends MutationKind = MutationKind.proxy> extends ISubscriberCollection<TMut> {
@@ -92,10 +92,14 @@ export enum MutationKind {
   proxy      = 0b100
 }
 
+export interface IPatchable {
+  $patch(flags: LifecycleFlags): void;
+}
+
 /**
  * Describes a type that specifically tracks changes in an object property, or simply something that can have a getter and/or setter
  */
-export interface IPropertyChangeTracker<TObj extends Record<string, unknown>, TProp = keyof TObj, TValue = unknown> {
+export interface IPropertyChangeTracker<TObj extends Record<string, unknown>, TProp = keyof TObj, TValue = unknown> extends IPatchable {
   obj: TObj;
   propertyKey?: TProp;
   currentValue?: TValue;
@@ -262,6 +266,7 @@ export interface IPropertyObserver<TObj extends Record<string, unknown>, TProp e
   IPropertyChangeTracker<TObj, TProp>,
   ISubscriberCollection<MutationKind.instance> {
   observing: boolean;
+  persistentFlags: LifecycleFlags;
 }
 
 /**
@@ -331,12 +336,6 @@ export type ObservedCollectionKindToType<T> =
   T extends CollectionKind.keyed ? IObservedSet | IObservedMap :
   never;
 
-// TODO: organize this (for now it's a quick fix for length observer, but we may actually want this
-// in every observer for alternative change tracking mechanisms)
-export interface IPatch {
-  patch(flags: LifecycleFlags): void;
-}
-
 /**
  * An observer that tracks collection mutations and notifies subscribers (either directly or in batches)
  */
@@ -349,7 +348,7 @@ export interface ICollectionObserver<T extends CollectionKind> extends
     collection: ObservedCollectionKindToType<T>;
     lengthPropertyName: LengthPropertyName<CollectionKindToType<T>>;
     collectionKind: T;
-    lengthObserver: IBindingTargetObserver & IPatch;
+    lengthObserver: IBindingTargetObserver & IPatchable;
     getLengthObserver(flags: LifecycleFlags): IBindingTargetObserver;
 }
 export type CollectionObserver = ICollectionObserver<CollectionKind>;

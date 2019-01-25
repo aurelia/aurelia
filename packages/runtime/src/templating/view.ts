@@ -14,7 +14,7 @@ import {
 import { IScope } from '../observation';
 import { ITemplate } from '../rendering-engine';
 import { $attachView, $cacheView, $detachView, $mountView, $unmountView } from './lifecycle-attach';
-import { $bindView, $lockedBind, $lockedUnbind, $unbindView } from './lifecycle-bind';
+import { $bindView, $lockedBind, $lockedUnbind, $patch, $unbindView } from './lifecycle-bind';
 
 const slice = Array.prototype.slice;
 
@@ -31,6 +31,7 @@ export class View<T extends INode = INode> implements IView<T> {
 
   public $nextComponent: IComponent;
   public $prevComponent: IComponent;
+  public $nextPatch: IComponent;
 
   public $nextMount: IMountableComponent;
   public $nextUnmount: IMountableComponent;
@@ -59,6 +60,7 @@ export class View<T extends INode = INode> implements IView<T> {
 
     this.$nextComponent = null;
     this.$prevComponent = null;
+    this.$nextPatch = null;
 
     this.$nextMount = null;
     this.$nextUnmount = null;
@@ -198,6 +200,7 @@ export class ViewFactory<T extends INode = INode> implements IViewFactory<T> {
 
 ((proto: IView): void => {
   proto.$bind = $bindView;
+  proto.$patch = $patch;
   proto.$unbind = $unbindView;
   proto.$attach = $attachView;
   proto.$detach = $detachView;

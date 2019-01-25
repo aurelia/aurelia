@@ -32,6 +32,7 @@ import {
 } from '../templating/lifecycle-attach';
 import {
   $bindAttribute,
+  $patch,
   $unbindAttribute
 } from '../templating/lifecycle-bind';
 import { $hydrateAttribute } from '../templating/lifecycle-render';
@@ -133,6 +134,7 @@ function define<T extends Constructable>(this: ICustomAttributeResource, nameOrD
 
   proto.$hydrate = $hydrateAttribute;
   proto.$bind = $bindAttribute;
+  proto.$patch = $patch;
   proto.$attach = $attachAttribute;
   proto.$detach = $detachAttribute;
   proto.$unbind = $unbindAttribute;
@@ -140,6 +142,7 @@ function define<T extends Constructable>(this: ICustomAttributeResource, nameOrD
 
   proto.$prevComponent = null;
   proto.$nextComponent = null;
+  proto.$nextPatch = null;
 
   proto.$nextUnbindAfterDetach = null;
 

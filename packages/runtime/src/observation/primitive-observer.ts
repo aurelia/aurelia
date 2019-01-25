@@ -17,6 +17,7 @@ export class PrimitiveObserver implements IAccessor, ISubscribable<MutationKind.
   public subscribe: () => void;
   public unsubscribe: () => void;
   public dispose: () => void;
+  public $patch: () => void;
 
   public doNotCache: boolean = true;
   public obj: Primitive;
@@ -45,3 +46,4 @@ PrimitiveObserver.prototype.setValue = noop;
 PrimitiveObserver.prototype.subscribe = noop;
 PrimitiveObserver.prototype.unsubscribe = noop;
 PrimitiveObserver.prototype.dispose = noop;
+PrimitiveObserver.prototype.$patch = noop;

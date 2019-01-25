@@ -17,12 +17,13 @@ const observedPropertyDescriptor: PropertyDescriptor = {
 function subscribe(this: PropertyObserver, subscriber: IPropertySubscriber): void {
   if (this.observing === false) {
     this.observing = true;
-    const { obj, propertyKey } = this;
-    this.currentValue = obj[propertyKey];
-    observedPropertyDescriptor.get = () => this.getValue();
-    observedPropertyDescriptor.set = value => { this.setValue(value, LifecycleFlags.updateTargetInstance); };
-    if (!defineProperty(obj, propertyKey, observedPropertyDescriptor)) {
-      Reporter.write(1, propertyKey, obj);
+    this.currentValue = this.obj[this.propertyKey];
+    if ((this.persistentFlags & LifecycleFlags.patchMode) === 0) {
+      observedPropertyDescriptor.get = () => this.getValue();
+      observedPropertyDescriptor.set = value => { this.setValue(value, LifecycleFlags.updateTargetInstance); };
+      if (!defineProperty(this.obj, this.propertyKey, observedPropertyDescriptor)) {
+        Reporter.write(1, this.propertyKey, this.obj);
+      }
     }
   }
   this.addSubscriber(subscriber);

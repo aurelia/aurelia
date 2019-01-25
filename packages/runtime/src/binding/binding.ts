@@ -24,7 +24,6 @@ export class Binding implements IPartialConnectableBinding {
   public $state: State;
   public $lifecycle: ILifecycle;
   public $nextConnect: IConnectableBinding;
-  public $nextPatch: IConnectableBinding;
   public $scope: IScope;
 
   public locator: IServiceLocator;
@@ -44,7 +43,6 @@ export class Binding implements IPartialConnectableBinding {
     this.$state = State.none;
     this.$lifecycle = locator.get(ILifecycle);
     this.$nextConnect = null;
-    this.$nextPatch = null;
     this.$scope = null;
 
     this.locator = locator;
@@ -201,11 +199,10 @@ export class Binding implements IPartialConnectableBinding {
     if (Tracer.enabled) { Tracer.leave(); }
   }
 
-  public patch(flags: LifecycleFlags): void {
-    if (Tracer.enabled) { Tracer.enter('Binding.patch', slice.call(arguments)); }
+  public $patch(flags: LifecycleFlags): void {
+    if (Tracer.enabled) { Tracer.enter('Binding.$patch', slice.call(arguments)); }
     if (this.$state & State.isBound) {
-      flags |= this.persistentFlags;
-      this.updateTarget(this.sourceExpression.evaluate(flags | LifecycleFlags.mustEvaluate, this.$scope, this.locator), flags);
+      this.targetObserver.$patch(flags | this.persistentFlags);
     }
     if (Tracer.enabled) { Tracer.leave(); }
   }

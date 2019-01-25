@@ -1,6 +1,7 @@
 import { IIndexable, Tracer } from '@aurelia/kernel';
 import { LifecycleFlags } from '../flags';
 import { IPropertyObserver, IPropertySubscriber } from '../observation';
+import { patchProperties } from './patch-properties';
 import { propertyObserver } from './property-observer';
 
 const slice = Array.prototype.slice;
@@ -43,5 +44,16 @@ export class SetterObserver implements SetterObserver {
         this.obj[this.propertyKey] = newValue;
       }
     }
+  }
+  public $patch(flags: LifecycleFlags): void {
+    const newValue = this.obj[this.propertyKey];
+    const oldValue = this.currentValue;
+    if (oldValue !== newValue) {
+      this.currentValue = newValue;
+      if (!(flags & LifecycleFlags.fromBind)) {
+        this.callSubscribers(newValue, oldValue, this.persistentFlags | flags);
+      }
+    }
+    patchProperties(newValue, flags);
   }
 }

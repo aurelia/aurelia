@@ -23,188 +23,206 @@ describe(spec, function () {
     return { ctx, container, lifecycle, au, host };
   }
 
-  for (const useProxies of [true, false]) {
-    for (const keyed of [true, false]) {
-      it(`useProxies=${useProxies}, keyed=${keyed}`, function() {
-        const bb = keyed ? ' & keyed' : '';
-        this.timeout(30000);
-        const { ctx, container, lifecycle, au, host } = setup();
+  for (const patchMode of [true/*, false*/]) {
+    for (const useProxies of [true, false]) {
+      if (patchMode && useProxies) {
+        continue;
+      }
+      for (const keyed of [true, false]) {
+        it(`patchMode=${patchMode}, useProxies=${useProxies}, keyed=${keyed}`, function() {
+          const bb = keyed ? ' & keyed' : '';
+          this.timeout(30000);
+          const { ctx, container, lifecycle, au, host } = setup();
 
-        const bindables = {
-          max: { property: 'max', attribute: 'max' },
-          depth: { property: 'depth', attribute: 'depth' },
-          items: { property: 'items', attribute: 'items' },
-          item: { property: 'item', attribute: 'item' }
-        };
-        const FooA = CustomElementResource.define(
-          {
-            name: 'foo-a',
-            template: `a\${depth}.\${item} <foo-a if.bind="depth<=max" repeat.for="i of items${bb}" max.bind="max" depth.bind="depth+1" items.bind="items" item.bind="i"></foo-a>`,
-            useProxies
-          },
-          class { public static bindables = bindables; }
-        );
+          const bindables = {
+            max: { property: 'max', attribute: 'max' },
+            depth: { property: 'depth', attribute: 'depth' },
+            items: { property: 'items', attribute: 'items' },
+            item: { property: 'item', attribute: 'item' }
+          };
+          const FooA = CustomElementResource.define(
+            {
+              name: 'foo-a',
+              template: `a\${depth}.\${item} <foo-a if.bind="depth<=max" repeat.for="i of items${bb}" max.bind="max" depth.bind="depth+1" items.bind="items" item.bind="i"></foo-a>`,
+              useProxies,
+              patchMode
+            },
+            class { public static bindables = bindables; }
+          );
 
-        const FooB = CustomElementResource.define(
-          {
-            name: 'foo-b',
-            template: `b\${depth}.\${item} <foo-b if.bind="depth<=max" repeat.for="i of items${bb}" max.bind="max" depth.bind="depth+1" items.bind="items" item.bind="i"></foo-b>`,
-            useProxies
-          },
-          class { public static bindables = bindables; }
-        );
+          const FooB = CustomElementResource.define(
+            {
+              name: 'foo-b',
+              template: `b\${depth}.\${item} <foo-b if.bind="depth<=max" repeat.for="i of items${bb}" max.bind="max" depth.bind="depth+1" items.bind="items" item.bind="i"></foo-b>`,
+              useProxies,
+              patchMode
+            },
+            class { public static bindables = bindables; }
+          );
 
-        class $App {
-          public a: boolean = true;
-          public max: number = 3;
-          public depth: number = 0;
-          public items: number[] = [1, 2, 3];
-        }
-        const App = CustomElementResource.define(
-          {
-            name: 'app',
-            template: `<foo-a if.bind="a" max.bind="max" depth.bind="depth+1" items.bind="items" item.bind="0"></foo-a><foo-b else max.bind="max" depth.bind="depth+1" items.bind="items" item.bind="0"></foo-b>`,
-            useProxies,
-            dependencies: [FooA, FooB]
-          },
-          $App
-        );
-
-        function verify(c: ICustomElement & $App) {
-          lifecycle.processFlushQueue(LifecycleFlags.none);
-          const { a, max, items } = c;
-          expect(host.textContent).to.equal(getExpectedText(a ? 'a' : 'b', max, items, 0, 1));
-        }
-        function getExpectedText(prefix: string, max: number, items: unknown[], item: unknown, depth: number): string {
-          let text = `${prefix}${depth}.${item} `;
-          if (depth <= max) {
-            const len = items.length;
-            let i = 0;
-            for (i = 0; i < len; ++i) {
-              text += getExpectedText(prefix, max, items, items[i], depth + 1);
-            }
+          class $App {
+            public a: boolean = true;
+            public max: number = 3;
+            public depth: number = 0;
+            public items: number[] = [1, 2, 3];
           }
-          return text;
-        }
+          const App = CustomElementResource.define(
+            {
+              name: 'app',
+              template: `<foo-a if.bind="a" max.bind="max" depth.bind="depth+1" items.bind="items" item.bind="0"></foo-a><foo-b else max.bind="max" depth.bind="depth+1" items.bind="items" item.bind="0"></foo-b>`,
+              useProxies,
+              patchMode,
+              dependencies: [FooA, FooB]
+            },
+            $App
+          );
 
-        let trace = true;
-
-        const calls = {
-          'ProxyObserver.constructor': [] as ITraceInfo[],
-          'ProxySubscriberCollection.constructor': [] as ITraceInfo[],
-          'SelfObserver.constructor': [] as ITraceInfo[],
-          'SetterObserver.constructor': [] as ITraceInfo[]
-        };
-        if (trace) {
-          enableTracing();
-          Tracer.enableLiveLogging({
-            write(info) {
-              if (calls[info.name] === undefined) {
-                calls[info.name] = 0;
-              }
-              if (typeof calls[info.name] === 'object') {
-                calls[info.name].push(info);
-              } else {
-                ++calls[info.name];
+          function verify(c: ICustomElement & $App) {
+            lifecycle.processFlushQueue(LifecycleFlags.none);
+            if (patchMode) {
+              c.$patch(LifecycleFlags.none);
+            }
+            const { a, max, items } = c;
+            expect(host.textContent).to.equal(getExpectedText(a ? 'a' : 'b', max, items, 0, 1));
+          }
+          function getExpectedText(prefix: string, max: number, items: unknown[], item: unknown, depth: number): string {
+            let text = `${prefix}${depth}.${item} `;
+            if (depth <= max) {
+              const len = items.length;
+              let i = 0;
+              for (i = 0; i < len; ++i) {
+                text += getExpectedText(prefix, max, items, items[i], depth + 1);
               }
             }
-          });
-        }
+            return text;
+          }
 
-        au.app({ host, component: App, useProxies });
-        au.start();
-        const component = au.root() as ICustomElement & $App;;
+          let trace = true;
 
-        verify(component);
-        component.max = 2;
-        component.items = [1, 2, 3];
+          const calls = {
+            'ProxyObserver.constructor': [] as ITraceInfo[],
+            'ProxySubscriberCollection.constructor': [] as ITraceInfo[],
+            'SelfObserver.constructor': [] as ITraceInfo[],
+            'SetterObserver.constructor': [] as ITraceInfo[]
+          };
+          if (trace) {
+            enableTracing();
+            Tracer.enableLiveLogging({
+              write(info) {
+                if (calls[info.name] === undefined) {
+                  calls[info.name] = 0;
+                }
+                if (typeof calls[info.name] === 'object') {
+                  calls[info.name].push(info);
+                } else {
+                  ++calls[info.name];
+                }
+              }
+            });
+          }
 
-        verify(component);
+          au.app({ host, component: App, useProxies, patchMode });
+          au.start();
+          const component = au.root() as ICustomElement & $App;;
 
-        component.a = false;
+          verify(component);
+          component.max = 2;
+          component.items = [1, 2, 3];
 
-        verify(component);
+          verify(component);
 
-        if (trace) {
-          disableTracing();
-        }
+          component.a = false;
 
-        if (useProxies) {
-          expect(calls['SetterObserver.constructor'].length).to.equal(0, 'calls[\'SetterObserver.constructor\'].length');
-        } else {
-          expect(calls['ProxyObserver.constructor'].length).to.equal(0, 'calls[\'ProxyObserver.constructor\'].length');
-        }
-        const names = ['ProxyObserver', 'ProxySubscriberCollection', 'SelfObserver', 'SetterObserver'];
-        for (const name of names) {
-          // calls[`${name}.constructor`].sort((a, b) => a.depth < b.depth ? -1 : b.depth < a.depth ? 1 : 0);
-          // for (const call of calls[`${name}.constructor`]) {
-          //   console.log(`${call.depth}`.padEnd(2, ' ') + ' '.repeat(call.depth) + call.name)
-          // }
-        }
-      });
+          verify(component);
+
+          if (trace) {
+            disableTracing();
+          }
+
+          if (useProxies) {
+            expect(calls['SetterObserver.constructor'].length).to.equal(0, 'calls[\'SetterObserver.constructor\'].length');
+          } else {
+            expect(calls['ProxyObserver.constructor'].length).to.equal(0, 'calls[\'ProxyObserver.constructor\'].length');
+          }
+          const names = ['ProxyObserver', 'ProxySubscriberCollection', 'SelfObserver', 'SetterObserver'];
+          for (const name of names) {
+            // calls[`${name}.constructor`].sort((a, b) => a.depth < b.depth ? -1 : b.depth < a.depth ? 1 : 0);
+            // for (const call of calls[`${name}.constructor`]) {
+            //   console.log(`${call.depth}`.padEnd(2, ' ') + ' '.repeat(call.depth) + call.name)
+            // }
+          }
+        });
+      }
     }
   }
 
-  for (const useProxies of [true, false]) {
-    for (const keyed of [true, false]) {
-      it(`profile, useProxies=${useProxies}, keyed=${keyed}`, function() {
-        const bb = keyed ? ' & keyed' : '';
-        this.timeout(30000);
-        const { ctx, container, lifecycle, au, host } = setup();
+  for (const patchMode of [true/*, false*/]) {
+    for (const useProxies of [true, false]) {
+      if (patchMode && useProxies) {
+        continue;
+      }
+      for (const keyed of [true, false]) {
+        it(`profile, patchMode=${patchMode}, useProxies=${useProxies}, keyed=${keyed}`, function() {
+          const bb = keyed ? ' & keyed' : '';
+          this.timeout(30000);
+          const { ctx, container, lifecycle, au, host } = setup();
 
-        const bindingCount = 3;
-        const elementCount = 5000;
+          const bindingCount = 3;
+          const elementCount = 5000;
 
-        const arr = Array(bindingCount).fill(0);
+          const arr = Array(bindingCount).fill(0);
 
-        const bindables = {
-          ...arr
-            .map((v, i) => ({[`item${i + 1}`]: { property: `item${i + 1}`, attribute: `item${i + 1}` }}))
-            .reduce(
-              (acc, cur) => {
-                Object.assign(acc, cur);
-                return acc;
-              },
-              {}
-            )
-        };
+          const bindables = {
+            ...arr
+              .map((v, i) => ({[`item${i + 1}`]: { property: `item${i + 1}`, attribute: `item${i + 1}` }}))
+              .reduce(
+                (acc, cur) => {
+                  Object.assign(acc, cur);
+                  return acc;
+                },
+                {}
+              )
+          };
 
-        const interpolations = arr.map((v, i) => `\${item${i + 1}}`).join('');
-        const bindings = arr.map((v, i) => `item${i + 1}.bind="item${i + 1}"`).join(' ');
-        const Foo = CustomElementResource.define(
-          {
-            name: 'foo',
-            template: `${interpolations}`,
-            useProxies
-          },
-          class { public static bindables = bindables; }
-        );
+          const interpolations = arr.map((v, i) => `\${item${i + 1}}`).join('');
+          const bindings = arr.map((v, i) => `item${i + 1}.bind="item${i + 1}"`).join(' ');
+          const Foo = CustomElementResource.define(
+            {
+              name: 'foo',
+              template: `${interpolations}`,
+              useProxies,
+              patchMode
+            },
+            class { public static bindables = bindables; }
+          );
 
-        class $App {
-          public item1: string = '$1';
-          public item2: string = '$2';
-          public item3: string = '$3';
-        }
-        const App = CustomElementResource.define(
-          {
-            name: 'app',
-            template: `<foo repeat.for="i of ${elementCount}${bb}" ${bindings}></foo>`,
-            useProxies,
-            dependencies: [Foo]
-          },
-          $App
-        );
+          class $App {
+            public item1: string = '$1';
+            public item2: string = '$2';
+            public item3: string = '$3';
+          }
+          const App = CustomElementResource.define(
+            {
+              name: 'app',
+              template: `<foo repeat.for="i of ${elementCount}${bb}" ${bindings}></foo>`,
+              useProxies,
+              patchMode,
+              dependencies: [Foo]
+            },
+            $App
+          );
 
-        Profiler.enable();
+          Profiler.enable();
 
-        au.app({ host, component: App, useProxies });
-        au.start();
-        au.stop();
+          au.app({ host, component: App, useProxies, patchMode });
+          au.start();
+          au.stop();
 
-        Profiler.disable();
+          Profiler.disable();
 
-        writeProfilerReport(`deep-bindables useProxies:${useProxies}`);
-      });
+          writeProfilerReport(`deep-bindables useProxies:${useProxies} patchMode:${patchMode}`);
+        });
+      }
     }
   }
 

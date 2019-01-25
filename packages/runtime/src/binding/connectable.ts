@@ -2,7 +2,7 @@ import { Class, IIndexable, Tracer } from '@aurelia/kernel';
 import { IConnectable } from '../ast';
 import { LifecycleFlags } from '../flags';
 import { IBinding } from '../lifecycle';
-import { IBindingTargetObserver, IPropertySubscriber, ISubscribable, MutationKind } from '../observation';
+import { IBindingTargetObserver, IPatchable, IPropertySubscriber, ISubscribable, MutationKind } from '../observation';
 import { IObserverLocator } from '../observation/observer-locator';
 
 // TODO: add connect-queue (or something similar) back in when everything else is working, to improve startup time
@@ -28,15 +28,13 @@ export interface IPartialConnectableBinding extends IBinding, IPropertySubscribe
   observerLocator: IObserverLocator;
 }
 
-export interface IConnectableBinding extends IPartialConnectableBinding, IConnectable {
+export interface IConnectableBinding extends IPartialConnectableBinding, IConnectable, IPatchable {
   $nextConnect?: IConnectableBinding;
-  $nextPatch?: IConnectableBinding;
   observerSlots: number;
   version: number;
   addObserver(observer: ISubscribable<MutationKind.instance | MutationKind.proxy>): void;
   unobserve(all?: boolean): void;
   connect(flags: LifecycleFlags): void;
-  patch(flags: LifecycleFlags): void;
 }
 
 /** @internal */

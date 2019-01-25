@@ -2,6 +2,7 @@ import { Tracer } from '@aurelia/kernel';
 import { LifecycleFlags } from '../flags';
 import { ILifecycle } from '../lifecycle';
 import { IBindingTargetAccessor, MutationKind } from '../observation';
+import { patchProperties } from './patch-properties';
 import { subscriberCollection } from './subscriber-collection';
 
 const slice = Array.prototype.slice;
@@ -53,6 +54,19 @@ function flush(this: BindingTargetAccessor, flags: LifecycleFlags): void {
   if (Tracer.enabled) { Tracer.leave(); }
 }
 
+function patch(this: BindingTargetAccessor, flags: LifecycleFlags): void {
+  if (Tracer.enabled) { Tracer.enter(`${this['constructor'].name}.$patch`, slice.call(arguments)); }
+
+  const newValue = this.getValue();
+  if (this.currentValue !== newValue) {
+    this.setValueCore(newValue, this.currentFlags | flags | LifecycleFlags.updateTargetInstance);
+    this.currentValue = newValue;
+  }
+  patchProperties(newValue, flags);
+
+  if (Tracer.enabled) { Tracer.leave(); }
+}
+
 function dispose(this: BindingTargetAccessor): void {
   this.currentValue = null;
   this.oldValue = null;
@@ -77,6 +91,7 @@ export function targetObserver(defaultValue: unknown = null): ClassDecorator {
     proto.obj = null;
     proto.propertyKey = '';
 
+    proto.$patch = proto.$patch || patch;
     proto.setValue = proto.setValue || setValue;
     proto.flush = proto.flush || flush;
     proto.dispose = proto.dispose || dispose;

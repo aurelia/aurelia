@@ -83,6 +83,7 @@ export interface ITemplateDefinition extends IResourceDefinition {
   shadowOptions?: { mode: 'open' | 'closed' };
   hasSlots?: boolean;
   useProxies?: boolean;
+  patchMode?: boolean;
 }
 
 export type TemplateDefinition = ResourceDescription<ITemplateDefinition>;
@@ -230,6 +231,7 @@ class DefaultTemplateDefinition implements Required<ITemplateDefinition> {
   public shadowOptions: ITemplateDefinition['shadowOptions'];
   public hasSlots: ITemplateDefinition['hasSlots'];
   public useProxies: ITemplateDefinition['useProxies'];
+  public patchMode: ITemplateDefinition['patchMode'];
 
   constructor() {
     this.name = 'unnamed';
@@ -244,6 +246,7 @@ class DefaultTemplateDefinition implements Required<ITemplateDefinition> {
     this.shadowOptions = null;
     this.hasSlots = false;
     this.useProxies = false;
+    this.patchMode = false;
   }
 }
 
@@ -255,7 +258,8 @@ const templateDefinitionAssignables = [
   'containerless',
   'shadowOptions',
   'hasSlots',
-  'useProxies'
+  'useProxies',
+  'patchMode'
 ];
 
 const templateDefinitionArrays = [
@@ -293,7 +297,8 @@ export function buildTemplateDefinition(
   containerless?: boolean | null,
   shadowOptions?: { mode: 'open' | 'closed' } | null,
   hasSlots?: boolean | null,
-  useProxies?: boolean | null): TemplateDefinition;
+  useProxies?: boolean | null,
+  patchMode?: boolean | null): TemplateDefinition;
 // tslint:disable-next-line:parameters-max-number // TODO: Reduce complexity (currently at 64)
 export function buildTemplateDefinition(
   ctor: CustomElementConstructor | null,
@@ -308,13 +313,15 @@ export function buildTemplateDefinition(
   containerless?: boolean | null,
   shadowOptions?: { mode: 'open' | 'closed' } | null,
   hasSlots?: boolean | null,
-  useProxies?: boolean | null): TemplateDefinition {
+  useProxies?: boolean | null,
+  patchMode?: boolean | null): TemplateDefinition {
 
   const def = new DefaultTemplateDefinition();
 
   // all cases fall through intentionally
   const argLen = arguments.length;
   switch (argLen) {
+    case 14: if (patchMode !== null) def.patchMode = patchMode;
     case 13: if (useProxies !== null) def.useProxies = useProxies;
     case 12: if (hasSlots !== null) def.hasSlots = hasSlots;
     case 11: if (shadowOptions !== null) def.shadowOptions = shadowOptions;

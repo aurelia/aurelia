@@ -75,3 +75,7 @@ export {
   ResourcePartDescription,
   RuntimeCompilationResources
 } from './resource';
+export {
+  EventAggregator,
+  EventAggregatorCallback
+} from './eventaggregator';

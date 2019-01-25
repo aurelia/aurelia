@@ -4,4 +4,5 @@ export { PLATFORM } from './platform';
 export { ITraceInfo, ITraceWriter, Reporter, Tracer } from './reporter';
 export { Profiler } from './profiler';
 export { IResourceDefinition, IResourceDescriptions, IResourceKind, IResourceType, ResourceDescription, ResourcePartDescription, RuntimeCompilationResources } from './resource';
+export { EventAggregator, EventAggregatorCallback } from './eventaggregator';
 //# sourceMappingURL=index.d.ts.map

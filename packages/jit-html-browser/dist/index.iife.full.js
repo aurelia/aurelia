@@ -1244,6 +1244,108 @@ var au = (function (exports) {
         }
     }
 
+    /**
+     * Represents a handler for an EventAggregator event.
+     */
+    class Handler {
+        constructor(messageType, callback) {
+            this.messageType = messageType;
+            this.callback = callback;
+        }
+        handle(message) {
+            if (message instanceof this.messageType) {
+                this.callback.call(null, message);
+            }
+        }
+    }
+    function invokeCallback(callback, data, event) {
+        try {
+            callback(data, event);
+        }
+        catch (e) {
+            Reporter.error(0, e); // TODO: create error code
+        }
+    }
+    function invokeHandler(handler, data) {
+        try {
+            handler.handle(data);
+        }
+        catch (e) {
+            Reporter.error(0, e); // TODO: create error code
+        }
+    }
+    /**
+     * Enables loosely coupled publish/subscribe messaging.
+     */
+    class EventAggregator {
+        /**
+         * Creates an instance of the EventAggregator class.
+         */
+        constructor() {
+            this.eventLookup = {};
+            this.messageHandlers = [];
+        }
+        publish(channelOrInstance, data) {
+            let subscribers;
+            let i;
+            if (!channelOrInstance) {
+                throw Reporter.error(0); // TODO: create error code for 'Event was invalid.'
+            }
+            if (typeof channelOrInstance === 'string') {
+                const channel = channelOrInstance;
+                subscribers = this.eventLookup[channel];
+                if (subscribers) {
+                    subscribers = subscribers.slice();
+                    i = subscribers.length;
+                    while (i--) {
+                        invokeCallback(subscribers[i], data, channel);
+                    }
+                }
+            }
+            else {
+                const instance = channelOrInstance;
+                subscribers = this.messageHandlers.slice();
+                i = subscribers.length;
+                while (i--) {
+                    invokeHandler(subscribers[i], instance);
+                }
+            }
+        }
+        subscribe(channelOrType, callback) {
+            let handler;
+            let subscribers;
+            if (!channelOrType) {
+                throw Reporter.error(0); // TODO: create error code for 'Event channel/type was invalid.'
+            }
+            if (typeof channelOrType === 'string') {
+                const channel = channelOrType;
+                handler = callback;
+                subscribers = this.eventLookup[channel] || (this.eventLookup[channel] = []);
+            }
+            else {
+                const type = channelOrType;
+                handler = new Handler(type, callback);
+                subscribers = this.messageHandlers;
+            }
+            subscribers.push(handler);
+            return {
+                dispose() {
+                    const idx = subscribers.indexOf(handler);
+                    if (idx !== -1) {
+                        subscribers.splice(idx, 1);
+                    }
+                }
+            };
+        }
+        subscribeOnce(channelOrType, callback) {
+            const sub = this.subscribe(channelOrType, (data, event) => {
+                sub.dispose();
+                return callback(data, event);
+            });
+            return sub;
+        }
+    }
+
 
 
     var index = /*#__PURE__*/Object.freeze({
@@ -1261,7 +1363,8 @@ var au = (function (exports) {
         Reporter: Reporter,
         Tracer: Tracer,
         Profiler: Profiler,
-        RuntimeCompilationResources: RuntimeCompilationResources
+        RuntimeCompilationResources: RuntimeCompilationResources,
+        EventAggregator: EventAggregator
     });
 
     /** @internal */

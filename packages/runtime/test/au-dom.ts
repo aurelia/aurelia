@@ -50,9 +50,9 @@ import {
   IteratorBindingInstruction,
   LetBindingInstruction,
   LetElementInstruction,
+  LifecycleFlags,
   TemplateDefinition,
-  ToViewBindingInstruction,
-  LifecycleFlags
+  ToViewBindingInstruction
 } from '../src/index';
 
 const slice = Array.prototype.slice;

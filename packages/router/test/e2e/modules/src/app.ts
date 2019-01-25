@@ -108,7 +108,7 @@ export class App {
 
   public updateTitle() {
     this.title = this.router.historyBrowser.titles.join(' > ');
-    setTimeout(() => this.updateTitle(), 150);
+    setTimeout(() => { this.updateTitle(); }, 150);
   }
   public clickAbc() {
     this.router.goto({ left: AbcComponent, right: AbcComponent }, 'first', { id: 123 });

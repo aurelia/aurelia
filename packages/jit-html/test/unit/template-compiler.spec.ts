@@ -441,7 +441,7 @@ function createTplCtrlAttributeInstruction(attr: string, value: string) {
 function createTemplateController(ctx: HTMLTestContext, attr: string, target: string, value: string, tagName: string, finalize: boolean, childInstr?, childTpl?): CTCResult {
   // multiple template controllers per element
   if (tagName === null) {
-    const node = ctx.createElementFromMarkup(childTpl) as Element;
+    const node = ctx.createElementFromMarkup(childTpl);
     const attributes = [];
     while (node.attributes.length) {
       attributes.unshift(node.attributes[0]);

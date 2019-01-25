@@ -10,7 +10,7 @@ export declare class ProxySubscriberCollection<TObj extends object = object> imp
     setValue(value: unknown, flags?: LifecycleFlags): void;
     getValue(): unknown;
 }
-export interface ProxyObserver<TObj extends object = object> extends IProxyObserver<TObj, MutationKind.proxy> {
+export interface ProxyObserver<TObj extends object = object> extends IProxyObserver<TObj> {
 }
 export declare class ProxyObserver<TObj extends object = object> implements ProxyObserver<TObj> {
     readonly proxy: IProxy<TObj>;
@@ -22,7 +22,7 @@ export declare class ProxyObserver<TObj extends object = object> implements Prox
     static getOrCreate<T extends object>(obj: T & {
         $raw?: T;
         $observer?: ProxyObserver<T>;
-    }): IProxyObserver<T, MutationKind.proxy>;
+    }): IProxyObserver<T>;
     static getOrCreate<T extends object>(obj: T & {
         $raw?: T;
         $observer?: ProxyObserver<T>;

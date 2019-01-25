@@ -310,8 +310,6 @@ export function createObserverLocator(containerOrLifecycle?: IContainer | ILifec
     lifecycle = new Lifecycle();
   } else if ('get' in containerOrLifecycle) {
     lifecycle = containerOrLifecycle.get(ILifecycle);
-  } else {
-    lifecycle = lifecycle;
   }
   const dummyLocator: any = {
     handles(): boolean {

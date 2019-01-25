@@ -243,9 +243,8 @@ describe(`MapObserver`, () => {
           sut = new MapObserver(LF.none, new Lifecycle(), map);
           let i = 0;
           while (i < repeat) {
-            const expectedResult = expectedMap.clear();
-            const actualResult = map.clear();
-            expect(expectedResult === actualResult).to.equal(true);
+            expectedMap.clear();
+            map.clear();
             assetMapEqual(map, expectedMap);
             i++;
           }

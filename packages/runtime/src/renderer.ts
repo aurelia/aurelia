@@ -104,6 +104,7 @@ export class Renderer implements IRenderer {
     return Registration.singleton(IRenderer, this).register(container);
   }
 
+  // tslint:disable-next-line:parameters-max-number
   public render(flags: LifecycleFlags, dom: IDOM, context: IRenderContext, renderable: IRenderable, targets: ArrayLike<INode>, definition: TemplateDefinition, host?: INode, parts?: TemplatePartDefinitions): void {
     if (Tracer.enabled) { Tracer.enter('Renderer.render', slice.call(arguments)); }
     const targetInstructions = definition.instructions;

@@ -242,9 +242,8 @@ describe(`SetObserver`, () => {
           sut = new SetObserver(LF.none, new Lifecycle(), set);
           let i = 0;
           while (i < repeat) {
-            const expectedResult = expectedSet.clear();
-            const actualResult = set.clear();
-            expect(expectedResult === actualResult).to.equal(true);
+            expectedSet.clear();
+            set.clear();
             assetSetEqual(set, expectedSet);
             i++;
           }

@@ -2,14 +2,14 @@ import { IIndexable, Registration, Tracer } from '@aurelia/kernel';
 import { expect } from 'chai';
 import { eachCartesianJoin } from '../../../../scripts/test-lib';
 import {
-  BasicConfiguration,
   DirtyCheckProperty,
   IDirtyChecker,
   ILifecycle,
   IObserverLocator,
   ITargetAccessorLocator,
   ITargetObserverLocator,
-  LifecycleFlags as LF
+  LifecycleFlags as LF,
+  RuntimeBasicConfiguration
 } from '../../src/index';
 import { ComputedOverrides, createComputedObserver } from '../../src/observation/computed-observer';
 import { BindingTraceWriter, disableTracing, enableTracing } from '../util';
@@ -20,7 +20,7 @@ declare var document;
 
 describe('ComputedObserver', function() {
   function setup() {
-    const container = BasicConfiguration.createContainer();
+    const container = RuntimeBasicConfiguration.createContainer();
     const innerLocator = {
       handles() { return false; }
     };

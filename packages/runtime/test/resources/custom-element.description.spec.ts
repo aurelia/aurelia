@@ -28,7 +28,8 @@ describe('@customElement', () => {
     'containerless',
     'shadowOptions',
     'hasSlots',
-    'useProxies'
+    'useProxies',
+    'patchMode'
   ];
 
   it('creates the default template description', () => {
@@ -46,6 +47,7 @@ describe('@customElement', () => {
     expect(Type.description.shadowOptions).to.equal(null, 'shadowOptions');
     expect(Type.description.hasSlots).to.equal(false, 'hasSlots');
     expect(Type.description.useProxies).to.equal(false, 'useProxies');
+    expect(Type.description.patchMode).to.equal(false, 'patchMode');
     expect(Object.keys(Type.description)).to.deep.equal(descriptionKeys);
   });
 
@@ -92,6 +94,7 @@ describe('@customElement', () => {
       expect(Type.description.shadowOptions).to.equal(null, 'shadowOptions');
       expect(Type.description.hasSlots).to.equal(false, 'hasSlots');
       expect(Type.description.useProxies).to.equal(false, 'useProxies');
+      expect(Type.description.patchMode).to.equal(false, 'patchMode');
       expect(Object.keys(Type.description)).to.deep.equal(descriptionKeys);
     });
   });
@@ -139,6 +142,7 @@ describe('@customElement', () => {
       expect(Type.description.shadowOptions).to.equal(null, 'shadowOptions');
       expect(Type.description.hasSlots).to.equal(false, 'hasSlots');
       expect(Type.description.useProxies).to.equal(false, 'useProxies');
+      expect(Type.description.patchMode).to.equal(false, 'patchMode');
       expect(Object.keys(Type.description)).to.deep.equal(descriptionKeys);
     });
   });
@@ -198,6 +202,7 @@ describe('@customElement', () => {
       expect(Type.description.shadowOptions).to.equal(null, 'shadowOptions');
       expect(Type.description.hasSlots).to.equal(false, 'hasSlots');
       expect(Type.description.useProxies).to.equal(false, 'useProxies');
+      expect(Type.description.patchMode).to.equal(false, 'patchMode');
       expect(Object.keys(Type.description)).to.deep.equal(descriptionKeys);
     });
   });
@@ -244,6 +249,7 @@ describe('@customElement', () => {
       expect(Type.description.shadowOptions).to.equal(null, 'shadowOptions');
       expect(Type.description.hasSlots).to.equal(false, 'hasSlots');
       expect(Type.description.useProxies).to.equal(false, 'useProxies');
+      expect(Type.description.patchMode).to.equal(false, 'patchMode');
       expect(Object.keys(Type.description)).to.deep.equal(descriptionKeys);
     });
   });
@@ -322,6 +328,7 @@ describe('@customElement', () => {
       expect(Type.description.shadowOptions).to.equal(null, 'shadowOptions');
       expect(Type.description.hasSlots).to.equal(false, 'hasSlots');
       expect(Type.description.useProxies).to.equal(false, 'useProxies');
+      expect(Type.description.patchMode).to.equal(false, 'patchMode');
       expect(Object.keys(Type.description)).to.deep.equal(descriptionKeys);
     });
   });
@@ -378,6 +385,7 @@ describe('@customElement', () => {
       expect(Type.description.shadowOptions).to.equal(null, 'shadowOptions');
       expect(Type.description.hasSlots).to.equal(false, 'hasSlots');
       expect(Type.description.useProxies).to.equal(false, 'useProxies');
+      expect(Type.description.patchMode).to.equal(false, 'patchMode');
       expect(Object.keys(Type.description)).to.deep.equal(descriptionKeys);
     });
   });
@@ -434,6 +442,7 @@ describe('@customElement', () => {
       expect(Type.description.shadowOptions).to.equal(null, 'shadowOptions');
       expect(Type.description.hasSlots).to.equal(false, 'hasSlots');
       expect(Type.description.useProxies).to.equal(false, 'useProxies');
+      expect(Type.description.patchMode).to.equal(false, 'patchMode');
       expect(Object.keys(Type.description)).to.deep.equal(descriptionKeys);
     });
   });
@@ -490,6 +499,7 @@ describe('@customElement', () => {
       expect(Type.description.shadowOptions).to.equal(null, 'shadowOptions');
       expect(Type.description.hasSlots).to.equal(false, 'hasSlots');
       expect(Type.description.useProxies).to.equal(false, 'useProxies');
+      expect(Type.description.patchMode).to.equal(false, 'patchMode');
       expect(Object.keys(Type.description)).to.deep.equal(descriptionKeys);
     });
   });
@@ -561,6 +571,7 @@ describe('@customElement', () => {
       expect(Type.description.shadowOptions).to.equal(null, 'shadowOptions');
       expect(Type.description.hasSlots).to.equal(false, 'hasSlots');
       expect(Type.description.useProxies).to.equal(false, 'useProxies');
+      expect(Type.description.patchMode).to.equal(false, 'patchMode');
       expect(Object.keys(Type.description)).to.deep.equal(descriptionKeys);
     });
   });
@@ -625,6 +636,7 @@ describe('@customElement', () => {
       expect(Type.description.shadowOptions).to.deep.equal(shadowOptionsSpec.getExpectedShadowOptions(), 'shadowOptions');
       expect(Type.description.hasSlots).to.equal(false, 'hasSlots');
       expect(Type.description.useProxies).to.equal(false, 'useProxies');
+      expect(Type.description.patchMode).to.equal(false, 'patchMode');
       expect(Object.keys(Type.description)).to.deep.equal(descriptionKeys);
     });
   });
@@ -672,6 +684,103 @@ describe('@customElement', () => {
       expect(Type.description.shadowOptions).to.equal(null, 'shadowOptions');
       expect(Type.description.hasSlots).to.equal(hasSlotsSpec.getExpectedHasSlots(), 'hasSlots');
       expect(Type.description.useProxies).to.equal(false, 'useProxies');
+      expect(Type.description.patchMode).to.equal(false, 'patchMode');
+      expect(Object.keys(Type.description)).to.deep.equal(descriptionKeys);
+    });
+  });
+
+  const useProxiesSpecs = [
+    {
+      description: 'useProxies is undefined',
+      expectation: 'uses false',
+      getHasSlots() { return undefined; },
+      getExpectedUseProxies() { return false; }
+    },
+    {
+      description: 'useProxies is null',
+      expectation: 'uses false',
+      getHasSlots() { return null; },
+      getExpectedUseProxies() { return false; }
+    },
+    {
+      description: 'useProxies is false',
+      expectation: 'uses false',
+      getHasSlots() { return false; },
+      getExpectedUseProxies() { return false; }
+    },
+    {
+      description: 'useProxies is true',
+      expectation: 'uses true',
+      getHasSlots() { return true; },
+      getExpectedUseProxies() { return true; }
+    }
+  ];
+
+  eachCartesianJoin([useProxiesSpecs], (useProxiesSpec) => {
+    it(`${useProxiesSpec.expectation} if ${useProxiesSpec.description}`, () => {
+      const { Type } = createCustomElement({ useProxies: useProxiesSpec.getHasSlots() } as any);
+      expect(Type.description).to.be.a('object', 'description');
+      expect(Type.description.name).to.equal('unnamed', 'name');
+      expect(Type.description.template).to.equal(null, 'template');
+      expect(Type.description.cache).to.equal(0, 'cache');
+      expect(Type.description.build).to.deep.equal({ required: true, compiler: 'default' }, 'build');
+      expect(Type.description.bindables).to.deep.equal({}, 'bindables');
+      expect(Type.description.instructions).to.equal(PLATFORM.emptyArray, 'instructions');
+      expect(Type.description.dependencies).to.equal(PLATFORM.emptyArray, 'dependencies');
+      expect(Type.description.surrogates).to.equal(PLATFORM.emptyArray, 'surrogates');
+      expect(Type.description.containerless).to.equal(false, 'containerless');
+      expect(Type.description.shadowOptions).to.equal(null, 'shadowOptions');
+      expect(Type.description.hasSlots).to.equal(false, 'hasSlots');
+      expect(Type.description.useProxies).to.equal(useProxiesSpec.getExpectedUseProxies(), 'useProxies');
+      expect(Type.description.patchMode).to.equal(false, 'patchMode');
+      expect(Object.keys(Type.description)).to.deep.equal(descriptionKeys);
+    });
+  });
+
+  const patchModeSpecs = [
+    {
+      description: 'patchMode is undefined',
+      expectation: 'uses false',
+      getHasSlots() { return undefined; },
+      getExpectedPatchMode() { return false; }
+    },
+    {
+      description: 'patchMode is null',
+      expectation: 'uses false',
+      getHasSlots() { return null; },
+      getExpectedPatchMode() { return false; }
+    },
+    {
+      description: 'patchMode is false',
+      expectation: 'uses false',
+      getHasSlots() { return false; },
+      getExpectedPatchMode() { return false; }
+    },
+    {
+      description: 'patchMode is true',
+      expectation: 'uses true',
+      getHasSlots() { return true; },
+      getExpectedPatchMode() { return true; }
+    }
+  ];
+
+  eachCartesianJoin([patchModeSpecs], (patchModeSpec) => {
+    it(`${patchModeSpec.expectation} if ${patchModeSpec.description}`, () => {
+      const { Type } = createCustomElement({ patchMode: patchModeSpec.getHasSlots() } as any);
+      expect(Type.description).to.be.a('object', 'description');
+      expect(Type.description.name).to.equal('unnamed', 'name');
+      expect(Type.description.template).to.equal(null, 'template');
+      expect(Type.description.cache).to.equal(0, 'cache');
+      expect(Type.description.build).to.deep.equal({ required: true, compiler: 'default' }, 'build');
+      expect(Type.description.bindables).to.deep.equal({}, 'bindables');
+      expect(Type.description.instructions).to.equal(PLATFORM.emptyArray, 'instructions');
+      expect(Type.description.dependencies).to.equal(PLATFORM.emptyArray, 'dependencies');
+      expect(Type.description.surrogates).to.equal(PLATFORM.emptyArray, 'surrogates');
+      expect(Type.description.containerless).to.equal(false, 'containerless');
+      expect(Type.description.shadowOptions).to.equal(null, 'shadowOptions');
+      expect(Type.description.hasSlots).to.equal(false, 'hasSlots');
+      expect(Type.description.useProxies).to.equal(false, 'useProxies');
+      expect(Type.description.patchMode).to.equal(patchModeSpec.getExpectedPatchMode(), 'patchMode');
       expect(Object.keys(Type.description)).to.deep.equal(descriptionKeys);
     });
   });

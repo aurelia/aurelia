@@ -15,7 +15,6 @@ import { TargetedInstruction } from '../dist';
 import {
   addBinding,
   Aurelia,
-  BasicConfiguration,
   Binding,
   BindingMode,
   BindingType,
@@ -50,9 +49,10 @@ import {
   IteratorBindingInstruction,
   LetBindingInstruction,
   LetElementInstruction,
+  LifecycleFlags,
+  RuntimeBasicConfiguration,
   TemplateDefinition,
-  ToViewBindingInstruction,
-  LifecycleFlags
+  ToViewBindingInstruction
 } from '../src/index';
 
 const slice = Array.prototype.slice;
@@ -608,7 +608,7 @@ export class AuTextRenderer implements IInstructionRenderer {
 export const AuDOMConfiguration = {
   register(container: IContainer): void {
     container.register(
-      BasicConfiguration,
+      RuntimeBasicConfiguration,
       AuTextRenderer as unknown as IRegistry,
       Registration.singleton(IDOM, AuDOM),
       Registration.singleton(IDOMInitializer, AuDOMInitializer),

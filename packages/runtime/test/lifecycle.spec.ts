@@ -44,7 +44,7 @@ describe('Lifecycle', () => {
     const functionProps = [
       'flush',
       'connect',
-      'patch',
+      '$patch',
       'bound',
       '$mount',
       'attached',

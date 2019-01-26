@@ -26,9 +26,6 @@ import {
 } from '../src/index';
 import { _ } from './util';
 
-//tslint:disable:no-unnecessary-field-initialization
-//tslint:disable:no-empty
-
 function assertIsMutableArray(arr: any[], length: number): void {
   expect(Array.isArray(arr)).to.equal(true);
   expect(arr instanceof Array).to.equal(true);
@@ -68,7 +65,7 @@ describe(`The DI object`, () => {
     });
 
     it(`returns PLATFORM.emptyArray if the class has no constructor args or decorators`, () => {
-      class Foo { constructor() {} }
+      class Foo { constructor() { return; } }
       const actual = DI.getDesignParamTypes(Foo);
       expect(actual).to.equal(PLATFORM.emptyArray);
     });
@@ -108,7 +105,7 @@ describe(`The DI object`, () => {
 
     describe(`returns an empty array if the class has a decorator but no constructor args`, () => {
       @decorator()
-      class Foo { constructor() {} }
+      class Foo { constructor() { return; } }
 
       it(_`${Foo}`, () => {
         const actual = DI.getDesignParamTypes(Foo);
@@ -120,18 +117,18 @@ describe(`The DI object`, () => {
         function anonDecorator(): ClassDecorator { return (target: any) => cls = target; }
         // @ts-ignore
         @anonDecorator()
-        class { constructor() {} }
+        class { constructor() { return; } }
         const actual = DI.getDesignParamTypes(cls);
         assertIsMutableArray(actual, 0);
       });
     });
 
     describe(`falls back to Object for declarations that cannot be statically analyzed`, () => {
-      interface argCtor {}
+      interface ArgCtor {}
       for (const argCtor of [
         class Bar {},
-        function() {},
-        () => {},
+        function() { return; },
+        () => { return; },
         class {},
         {},
         Error,
@@ -140,7 +137,7 @@ describe(`The DI object`, () => {
         (class Bar {}).prototype.constructor
       ] as any[]) {
         @decorator()
-        class FooDecoratorInvocation { constructor(public arg: argCtor) {} }
+        class FooDecoratorInvocation { constructor(public arg: ArgCtor) {} }
 
         it(_`${FooDecoratorInvocation} { constructor(${argCtor}) }`, () => {
           const actual = DI.getDesignParamTypes(FooDecoratorInvocation);
@@ -149,7 +146,7 @@ describe(`The DI object`, () => {
         });
 
         @(decorator as any)
-        class FooDecoratorNonInvocation { constructor(public arg: argCtor) {} }
+        class FooDecoratorNonInvocation { constructor(public arg: ArgCtor) {} }
 
         it(_`${FooDecoratorNonInvocation} { constructor(${argCtor}) }`, () => {
           const actual = DI.getDesignParamTypes(FooDecoratorInvocation);
@@ -183,19 +180,20 @@ describe(`The DI object`, () => {
       const AnonClassInterface: AnonClassInterface = class {};
 
       interface VarFunc {}
-      const VarFunc = function() {};
+      const VarFunc = function() { return; };
 
       interface VarFuncInterface {}
-      const VarFuncInterface: VarFuncInterface = function() {};
+      const VarFuncInterface: VarFuncInterface = function() { return; };
 
       interface Func {}
+      // tslint:disable-next-line:no-empty
       function Func() {}
 
       interface Arrow {}
-      const Arrow = () => {};
+      const Arrow = () => { return; };
 
       interface ArrowInterface {}
-      const ArrowInterface: ArrowInterface = () => {};
+      const ArrowInterface: ArrowInterface = () => { return; };
 
       describe(`decorator invocation`, () => {
         @decorator()
@@ -280,11 +278,12 @@ describe(`The DI object`, () => {
 
       const AnonClass = class {};
 
-      const VarFunc = function() {};
+      const VarFunc = function() { return; };
 
+      // tslint:disable-next-line:no-empty
       function Func() {}
 
-      const Arrow = () => {};
+      const Arrow = () => { return; };
 
       describe(`decorator invocation`, () => {
         @decorator()
@@ -352,7 +351,7 @@ describe(`The DI object`, () => {
     it(`uses getDesignParamTypes() if the static inject property does not exist`, () => {
       class Bar {}
       @decorator()
-      class Foo { constructor(bar: Bar) {} }
+      class Foo { constructor(bar: Bar) { return; } }
       const actual = DI.getDependencies(Foo);
       expect(getDesignParamTypes).to.have.been.calledWith(Foo);
       expect(actual).to.deep.equal([Bar]);
@@ -361,7 +360,7 @@ describe(`The DI object`, () => {
     it(`uses getDesignParamTypes() if the static inject property is undefined`, () => {
       class Bar {}
       @decorator()
-      class Foo { public static inject = undefined; constructor(bar: Bar) {} }
+      class Foo { public static inject; constructor(bar: Bar) { return; } }
       const actual = DI.getDependencies(Foo);
       expect(getDesignParamTypes).to.have.been.calledWith(Foo);
       expect(actual).to.deep.equal([Bar]);
@@ -518,14 +517,14 @@ describe(`The DI object`, () => {
       });
 
       it(`callback without key`, () => {
-        const callback = () => {};
+        const callback = () => { return; };
         sut.withDefault(builder => builder.callback(callback));
         (sut as any).register(container);
         expect(registerResolver).to.have.been.calledWith(sut, matchResolver(sut, ResolverStrategy.callback, callback));
       });
 
       it(`callback with key`, () => {
-        const callback = () => {};
+        const callback = () => { return; };
         sut.withDefault(builder => builder.callback(callback));
         (sut as any).register(container, 'key');
         expect(registerResolver).to.have.been.calledWith('key', matchResolver('key', ResolverStrategy.callback, callback));
@@ -560,19 +559,19 @@ describe(`The inject decorator`, () => {
 
   it(`can decorate classes with implicit dependencies`, () => {
     @inject()
-    class Foo { constructor(dep1: Dep1, dep2: Dep2, dep3: Dep3) {} }
+    class Foo { constructor(dep1: Dep1, dep2: Dep2, dep3: Dep3) { return; } }
 
     expect(Foo['inject']).to.deep.equal([Dep1, Dep2, Dep3]);
   });
 
   it(`can decorate constructor parameters explicitly`, () => {
-    class Foo { constructor(@inject(Dep1)dep1, @inject(Dep2)dep2, @inject(Dep3)dep3) {} }
+    class Foo { constructor(@inject(Dep1)dep1, @inject(Dep2)dep2, @inject(Dep3)dep3) { return; } }
 
     expect(Foo['inject']).to.deep.equal([Dep1, Dep2, Dep3]);
   });
 
   it(`can decorate constructor parameters implicitly`, () => {
-    class Foo { constructor(@inject() dep1: Dep1, @inject() dep2: Dep2, @inject() dep3: Dep3) {} }
+    class Foo { constructor(@inject() dep1: Dep1, @inject() dep2: Dep2, @inject() dep3: Dep3) { return; } }
 
     expect(Foo['inject']).to.deep.equal([Dep1, Dep2, Dep3]);
   });
@@ -822,9 +821,9 @@ describe(`The Factory class`, () => {
       class Foo {public bar; public baz; }
       const sut = Factory.create(Foo);
       // tslint:disable-next-line:prefer-object-spread
-      sut.registerTransformer(foo => Object.assign(foo, { bar: 1 }));
+      sut.registerTransformer(foo2 => Object.assign(foo2, { bar: 1 }));
       // tslint:disable-next-line:prefer-object-spread
-      sut.registerTransformer(foo => Object.assign(foo, { baz: 2 }));
+      sut.registerTransformer(foo2 => Object.assign(foo2, { baz: 2 }));
       const foo = sut.construct(container);
       expect(foo.bar).to.equal(1);
       expect(foo.baz).to.equal(2);
@@ -1102,7 +1101,7 @@ describe(`The Registration object`, () => {
   });
 
   it(`callback() returns the correct resolver`, () => {
-    const callback = () => {};
+    const callback = () => { return; };
     const actual = Registration.callback('key', callback);
     expect(actual['key']).to.equal('key');
     expect(actual['strategy']).to.equal(ResolverStrategy.callback);
@@ -1118,7 +1117,9 @@ describe(`The Registration object`, () => {
 });
 
 describe(`The classInvokers object`, () => {
-  const container = { get(t) { return new t(); } } as any as IContainer;
+  const container = { get(t) {
+    return new t();
+  } } as any as IContainer;
   class Foo { public args: any[]; constructor(...args: any[]) { this.args = args; } }
 
   class Dep1 {}
@@ -1180,7 +1181,9 @@ describe(`The classInvokers object`, () => {
 });
 
 describe(`The invokeWithDynamicDependencies function`, () => {
-  const container = { get(t) { return 'static' + t; } } as any as IContainer;
+  const container = { get(t) {
+    return `static${t}`;
+  } } as any as IContainer;
   class Foo { public args: any[]; constructor(...args: any[]) { this.args = args; } }
 
   const deps = [class Dep1 {}, class Dep2 {}, class Dep3 {}];
@@ -1203,7 +1206,7 @@ describe(`The invokeWithDynamicDependencies function`, () => {
 
   it(_`handles staticDeps is ${deps}`, () => {
     const actual = invokeWithDynamicDependencies(container, Foo, deps, []) as Foo;
-    expect(actual.args).to.deep.equal(deps.map(d => 'static' + d));
+    expect(actual.args).to.deep.equal(deps.map(d => `static${d}`));
   });
 
   it(`handles dynamicDeps is null`, () => {
@@ -1224,9 +1227,9 @@ describe(`The invokeWithDynamicDependencies function`, () => {
 
   it(_`handles staticDeps is ${deps} and dynamicDeps is ${deps}`, () => {
     const actual = invokeWithDynamicDependencies(container, Foo, deps, deps) as Foo;
-    expect(actual.args[0]).to.equal('static' + deps[0]);
-    expect(actual.args[1]).to.equal('static' + deps[1]);
-    expect(actual.args[2]).to.equal('static' + deps[2]);
+    expect(actual.args[0]).to.equal(`static${deps[0]}`);
+    expect(actual.args[1]).to.equal(`static${deps[1]}`);
+    expect(actual.args[2]).to.equal(`static${deps[2]}`);
     expect(actual.args[3]).to.equal(deps[0]);
     expect(actual.args[4]).to.equal(deps[1]);
     expect(actual.args[5]).to.equal(deps[2]);

@@ -349,7 +349,7 @@ describe(spec, function() {
     {
       t: '01',
       createItems() {
-        return [{if: 1,   else: 2},   {if: 3,   else: 4}]
+        return [{if: 1,   else: 2},   {if: 3,   else: 4}];
       },
       ifText: '13',
       elseText: '24'
@@ -566,4 +566,3 @@ describe(spec, function() {
   });
 
 });
-

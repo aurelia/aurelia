@@ -3,8 +3,7 @@ import {
   Aurelia,
   CustomElementResource,
   ICustomElement,
-  LifecycleFlags,
-  ProxyObserver
+  LifecycleFlags
 } from '@aurelia/runtime';
 import { expect } from 'chai';
 import { disableTracing, enableTracing } from '../unit/util';
@@ -32,7 +31,7 @@ describe(spec, function () {
         it(`patchMode=${patchMode}, useProxies=${useProxies}, keyed=${keyed}`, function() {
           const bb = keyed ? ' & keyed' : '';
           this.timeout(30000);
-          const { ctx, container, lifecycle, au, host } = setup();
+          const { lifecycle, au, host } = setup();
 
           const bindables = {
             max: { property: 'max', attribute: 'max' },
@@ -97,7 +96,7 @@ describe(spec, function () {
             return text;
           }
 
-          let trace = true;
+          const trace = true;
 
           const calls = {
             'ProxyObserver.constructor': [] as ITraceInfo[],
@@ -145,7 +144,7 @@ describe(spec, function () {
             expect(calls['ProxyObserver.constructor'].length).to.equal(0, 'calls[\'ProxyObserver.constructor\'].length');
           }
           const names = ['ProxyObserver', 'ProxySubscriberCollection', 'SelfObserver', 'SetterObserver'];
-          for (const name of names) {
+          for (const {} of names) {
             // calls[`${name}.constructor`].sort((a, b) => a.depth < b.depth ? -1 : b.depth < a.depth ? 1 : 0);
             // for (const call of calls[`${name}.constructor`]) {
             //   console.log(`${call.depth}`.padEnd(2, ' ') + ' '.repeat(call.depth) + call.name)
@@ -165,7 +164,7 @@ describe(spec, function () {
         it(`profile, patchMode=${patchMode}, useProxies=${useProxies}, keyed=${keyed}`, function() {
           const bb = keyed ? ' & keyed' : '';
           this.timeout(30000);
-          const { ctx, container, lifecycle, au, host } = setup();
+          const { au, host } = setup();
 
           const bindingCount = 3;
           const elementCount = 5000;
@@ -225,7 +224,6 @@ describe(spec, function () {
       }
     }
   }
-
 
 // TODO: replace these tests with cartesian loop and remove these comments
 
@@ -304,7 +302,6 @@ describe(spec, function () {
   //   }
   // });
 });
-
 
 // type TFooA = Constructable<{ a1: string; a2: string; a3: string }> & ICustomElementType;
 // type TFooB = Constructable<{ b1: string; b2: string; b3: string }> & ICustomElementType;

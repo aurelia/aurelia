@@ -245,11 +245,6 @@ describe(spec, () => {
     expect(getVisibleText(au, host)).to.equal('');
   });
 
-
-
-
-
-
   // repeater with custom element
   it('203.', () => {
     @customElement({ name: 'foo', template: '<template>a</template>', instructions: [], build: { required: true, compiler: 'default' } })

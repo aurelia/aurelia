@@ -401,22 +401,24 @@ export class Repeat<C extends ObservedCollection = IObservedArray, T extends INo
 }
 CustomAttributeResource.define({ name: 'repeat', isTemplateController: true }, Repeat);
 
+type UintArray = Uint8Array | Uint16Array | Uint32Array;
+let prevIndices: UintArray;
+let tailIndices: UintArray;
+let maxLen = 0;
+
 // Based on inferno's lis_algorithm @ https://github.com/infernojs/inferno/blob/master/packages/inferno/src/DOM/patching.ts#L732
 // with some tweaks to make it just a bit faster + account for IndexMap (and some names changes for readability)
 /** @internal */
 export function longestIncreasingSubsequence(indexMap: IndexMap): Uint8Array | Uint16Array | Uint32Array {
   const len = indexMap.length;
-  const maxIdx = len + (indexMap.deletedItems && indexMap.deletedItems.length || 0);
-  let Type: Uint8ArrayConstructor | Uint16ArrayConstructor | Uint32ArrayConstructor;
-  if (maxIdx < 0xFF) {
-    Type = Uint8Array;
-  } else if (maxIdx < 0xFFFF) {
-    Type = Uint16Array;
-  } else {
-    Type = Uint32Array;
+  const origLen = len + (indexMap.deletedItems && indexMap.deletedItems.length || 0);
+  const TArr = origLen < 0xFF ? Uint8Array : origLen < 0xFFFF ? Uint16Array : Uint32Array;
+
+  if (len > maxLen) {
+    maxLen = len;
+    prevIndices = new TArr(len);
+    tailIndices = new TArr(len);
   }
-  const prevIndices = new Type(len);
-  const tailIndices = new Type(len);
 
   let cursor = 0;
   let cur = 0;
@@ -430,12 +432,12 @@ export function longestIncreasingSubsequence(indexMap: IndexMap): Uint8Array | U
   for (; i < len; i++) {
     cur = indexMap[i];
     if (cur !== -2) {
-      j = tailIndices[cursor];
+      j = prevIndices[cursor];
 
       prev = indexMap[j];
       if (prev !== -2 && prev < cur) {
-        prevIndices[i] = j;
-        tailIndices[++cursor] = i;
+        tailIndices[i] = j;
+        prevIndices[++cursor] = i;
         continue;
       }
 
@@ -444,7 +446,7 @@ export function longestIncreasingSubsequence(indexMap: IndexMap): Uint8Array | U
 
       while (low < high) {
         mid = (low + high) >> 1;
-        prev = indexMap[tailIndices[mid]];
+        prev = indexMap[prevIndices[mid]];
         if (prev !== -2 && prev < cur) {
           low = mid + 1;
         } else {
@@ -452,21 +454,23 @@ export function longestIncreasingSubsequence(indexMap: IndexMap): Uint8Array | U
         }
       }
 
-      prev = indexMap[tailIndices[low]];
+      prev = indexMap[prevIndices[low]];
       if (cur < prev || prev === -2) {
         if (low > 0) {
-          prevIndices[i] = tailIndices[low - 1];
+          prevIndices[i] = prevIndices[low - 1];
         }
-        tailIndices[low] = i;
+        prevIndices[low] = i;
       }
     }
   }
-  const result = new Type(++cursor);
-  cur = tailIndices[cursor - 1];
+  i = ++cursor;
+  const result = new TArr(i);
+  cur = prevIndices[cursor - 1];
 
   while (cursor-- > 0) {
     result[cursor] = cur;
-    cur = prevIndices[cur];
+    cur = tailIndices[cur];
   }
+  while (i-- > 0) prevIndices[i] = 0;
   return result;
 }

@@ -48,35 +48,35 @@ describe(spec, function() {
         forof: `[1+1,2+1,3+1]`,
         item: `\${item}`,
         expected: `234`,
-        initialize() {}
+        initialize() { return; }
       },
       {
         t: '04',
         forof: `[1,2,3]`,
         item: `\${item}`,
         expected: `123`,
-        initialize() {}
+        initialize() { return; }
       },
       {
         t: '05',
         forof: `[3,2,1]|sort`,
         item: `\${item}`,
         expected: `123`,
-        initialize() {}
+        initialize() { return; }
       },
       {
         t: '06',
         forof: `[{i:1},{i:2},{i:3}]`,
         item: `\${item.i}`,
         expected: `123`,
-        initialize() {}
+        initialize() { return; }
       },
       {
         t: '07',
         forof: `[[1],[2],[3]]`,
         item: `\${item[0]}`,
         expected: `123`,
-        initialize() {}
+        initialize() { return; }
       },
       {
         t: '08',
@@ -94,21 +94,21 @@ describe(spec, function() {
         forof: `3`,
         item: `\${item}`,
         expected: `012`,
-        initialize() {}
+        initialize() { return; }
       },
       {
         t: '10',
         forof: `null`,
         item: `\${item}`,
         expected: ``,
-        initialize() {}
+        initialize() { return; }
       },
       {
         t: '11',
         forof: `undefined`,
         item: `\${item}`,
         expected: ``,
-        initialize() {}
+        initialize() { return; }
       },
       {
         t: '12',

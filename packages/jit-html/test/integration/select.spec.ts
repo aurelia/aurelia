@@ -44,9 +44,9 @@ describe('select', () => {
         }
       );
       au.app({ host, component }).start();
-      const select1 = host.querySelector('#select1') as HTMLSelectElement;
-      const select2 = host.querySelector('#select2') as HTMLSelectElement;
-      const select3 = host.querySelector('#select3') as HTMLSelectElement;
+      const select1: HTMLSelectElement = host.querySelector('#select1');
+      const select2: HTMLSelectElement = host.querySelector('#select2');
+      const select3: HTMLSelectElement = host.querySelector('#select3');
       // Inititally, <select/>s are not affected by view model values
       // expect(select1.value).to.equal('1');
       // expect(select2.value).to.equal('1');
@@ -94,9 +94,9 @@ describe('select', () => {
         }
       );
       au.app({ host, component }).start();
-      const select1 = host.querySelector('#select1') as HTMLSelectElement;
-      const select2 = host.querySelector('#select2') as HTMLSelectElement;
-      const select3 = host.querySelector('#select3') as HTMLSelectElement;
+      const select1: HTMLSelectElement = host.querySelector('#select1');
+      const select2: HTMLSelectElement = host.querySelector('#select2');
+      const select3: HTMLSelectElement = host.querySelector('#select3');
       //expect(component.selectedValue).to.equal('2');
       // Inititally, <select/>s are not affected by view model values
       // expect(select1.value).to.equal('1');
@@ -219,9 +219,9 @@ describe('select', () => {
           public selectedValues: Primitive[] = [];
         }
       );
-      const select1 = host.querySelector('#select1') as HTMLSelectElement;
-      const select2 = host.querySelector('#select2') as HTMLSelectElement;
-      const select3 = host.querySelector('#select3') as HTMLSelectElement;
+      const select1: HTMLSelectElement = host.querySelector('#select1');
+      const select2: HTMLSelectElement = host.querySelector('#select2');
+      const select3: HTMLSelectElement = host.querySelector('#select3');
       const observer1 = observerLocator.getObserver(LF.none, select1, 'value') as SelectValueObserver;
       const observer2 = observerLocator.getObserver(LF.none, select2, 'value') as SelectValueObserver;
       const observer3 = observerLocator.getObserver(LF.none, select3, 'value') as SelectValueObserver;

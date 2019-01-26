@@ -1,4 +1,4 @@
-import { ITraceInfo, Tracer, Profiler } from '@aurelia/kernel';
+import { ITraceInfo, Profiler, Tracer } from '@aurelia/kernel';
 import {
   Aurelia,
   CustomElementResource,
@@ -10,7 +10,7 @@ import { expect } from 'chai';
 import { disableTracing, enableTracing } from '../unit/util';
 import { TestContext, writeProfilerReport } from '../util';
 
-const spec = 'template-compiler.deep-bindables';
+const spec = 'deep-bindables';
 
 describe(spec, function () {
   function setup() {

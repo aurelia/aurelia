@@ -10,7 +10,7 @@ import { TestContext } from '../util';
 import { TestConfiguration } from './resources';
 import { trimFull } from './util';
 
-const spec = 'template-compiler.repeater-if-else';
+const spec = 'repeater-if-else';
 
 describe(spec, function() {
 

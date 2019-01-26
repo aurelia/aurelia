@@ -14,7 +14,7 @@ import { TestContext } from '../util';
 import { trimFull } from './util';
 
 const build = { required: true, compiler: 'default' };
-const spec = 'template-compiler.compose';
+const spec = 'compose';
 
 describe(spec, () => {
   function setup(): SpecContext {

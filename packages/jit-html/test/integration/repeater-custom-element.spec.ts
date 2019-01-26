@@ -13,7 +13,7 @@ import {
   tearDown
 } from './util';
 
-const spec = 'template-compiler.repeater-custom-element';
+const spec = 'repeater-custom-element';
 
 describe(spec, () => {
   let ctx: HTMLTestContext;

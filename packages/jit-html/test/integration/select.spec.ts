@@ -11,7 +11,7 @@ import {
 } from './util';
 
 // TemplateCompiler - <select/> Integration
-describe('template-compiler.select', () => {
+describe('select', () => {
   let ctx: HTMLTestContext;
 
   beforeEach(() => {

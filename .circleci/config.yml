@@ -129,6 +129,8 @@ jobs:
         type: string
       to:
         type: string
+      channel:
+        type: string
       message:
         type: string
         default: "chore(all): add latest build artifacts"
@@ -147,6 +149,7 @@ jobs:
       - run: git stash pop
       - run: git add packages/\*/dist/* --force
       - run: npm run change-package-refs:rollup
+      - run: npm run bump-version:<< parameters.channel >>
       - run: git add .
       - run: git commit --allow-empty -m "<< parameters.message >>"
       - run: git push origin << parameters.to >>
@@ -317,6 +320,7 @@ workflows:
             - jit-iife-inline
           from: master
           to: develop
+          channel: dev
 
   # Runs build and tests, and pushes the built artifacts to the release branch (which then triggers publish_latest)
   # Triggered by push to tag
@@ -352,6 +356,7 @@ workflows:
             - e2e_browserstack
           from: $CIRCLE_TAG
           to: release
+          channel: latest
 
   # Asks for manual approval and then publishes from the release branch to npm@latest
   # Triggered by push to release branch

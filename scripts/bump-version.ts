@@ -37,7 +37,7 @@ export async function updateDependencyVersions(newVersion: string): Promise<void
   }
   const lernaJson = JSON.parse(readFileSync(project['lerna.json'].path, { encoding: 'utf8' }));
   lernaJson.version = newVersion;
-  writeFileSync(project['lerna.json'].path, JSON.stringify(lernaJson, null, 2), { encoding: 'utf8' });
+  writeFileSync(project['lerna.json'].path, `${JSON.stringify(lernaJson, null, 2)}\n`, { encoding: 'utf8' });
 }
 
 export function getDate(sep?: string): string {
@@ -64,3 +64,23 @@ export function getNewVersion(major: string | number, minor: string | number, pa
   log(`${c.cyan('new version')} ${newVersion}`);
   return newVersion;
 }
+
+function parseArgs(): {tag: string} {
+  const args = process.argv.slice(2);
+  const tag = args[0];
+  log(args.join(' '));
+  return { tag };
+}
+
+async function run(): Promise<void> {
+  const { tag } = parseArgs();
+  const { major, minor, patch } = getCurrentVersion();
+  const newVersion = getNewVersion(major, minor, patch, tag);
+  if (tag === 'dev') {
+    await updateDependencyVersions(newVersion);
+  }
+}
+
+run().then(() => {
+  log(`Done.`);
+});

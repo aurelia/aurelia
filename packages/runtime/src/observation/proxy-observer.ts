@@ -41,7 +41,7 @@ export class ProxySubscriberCollection<TObj extends object = object> implements 
   }
 }
 
-export interface ProxyObserver<TObj extends object = object> extends IProxyObserver<TObj, MutationKind.proxy> {}
+export interface ProxyObserver<TObj extends object = object> extends IProxyObserver<TObj> {}
 
 @subscriberCollection(MutationKind.proxy)
 export class ProxyObserver<TObj extends object = object> implements ProxyObserver<TObj> {
@@ -76,7 +76,7 @@ export class ProxyObserver<TObj extends object = object> implements ProxyObserve
     return raw;
   }
 
-  public static getOrCreate<T extends object>(obj: T & { $raw?: T; $observer?: ProxyObserver<T> }): IProxyObserver<T, MutationKind.proxy>;
+  public static getOrCreate<T extends object>(obj: T & { $raw?: T; $observer?: ProxyObserver<T> }): IProxyObserver<T>;
   public static getOrCreate<T extends object>(obj: T & { $raw?: T; $observer?: ProxyObserver<T> }, key: PropertyKey): IProxyObserver<T, MutationKind.instance>;
   public static getOrCreate<T extends object>(obj: T & { $raw?: T; $observer?: ProxyObserver<T> }, key?: PropertyKey): IProxyObserver<T, MutationKind.instance | MutationKind.proxy> {
     let proxyObserver: ProxyObserver<T>;

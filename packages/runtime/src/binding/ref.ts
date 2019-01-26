@@ -44,9 +44,8 @@ export class Ref implements IBinding {
 
     this.$scope = scope;
 
-    const sourceExpression = this.sourceExpression;
-    if (hasBind(sourceExpression)) {
-      sourceExpression.bind(flags, scope, this);
+    if (hasBind(this.sourceExpression)) {
+      this.sourceExpression.bind(flags, scope, this);
     }
 
     this.sourceExpression.assign(flags, this.$scope, this.locator, this.target);

@@ -437,7 +437,7 @@ describe(`ArrayObserver`, () => {
     const reverseOrNot = [true, false];
     for (const arraySize of arraySizes) {
       const getNumber = getNumberFactory(arraySize);
-      let init = new Array(arraySize);
+      const init = new Array(arraySize);
 
       for (const type of types) {
         const getValue = getValueFactory(getNumber, type, types);
@@ -449,7 +449,7 @@ describe(`ArrayObserver`, () => {
 
         for (const reverse of reverseOrNot) {
           if (reverse) {
-            init = init.reverse();
+            init.reverse();
           }
           for (const compareFn of compareFns) {
             it(`size=${padRight(init.length, 4)} type=${padRight(type, 9)} reverse=${padRight(reverse, 5)} sortFunc=${compareFn} - behaves as native`, () => {

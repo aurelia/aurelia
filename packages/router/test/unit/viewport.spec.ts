@@ -9,7 +9,7 @@ const define = (CustomElementResource as any).define;
 
 describe('Viewport', () => {
   it('can be created', () => {
-    const sut = new Viewport(null, null, null, null, null, null);
+    new Viewport(null, null, null, null, null, null);
   });
 
   describe('resolving globals', function () {

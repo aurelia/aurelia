@@ -74,8 +74,9 @@ export class Repeat<C extends ObservedCollection = IObservedArray, T extends INo
 
   public attaching(flags: LifecycleFlags): void {
     const { views, location } = this;
+    let view: IView;
     for (let i = 0, ii = views.length; i < ii; ++i) {
-      const view = views[i];
+      view = views[i];
       view.hold(location);
       view.$attach(flags);
     }
@@ -83,8 +84,9 @@ export class Repeat<C extends ObservedCollection = IObservedArray, T extends INo
 
   public detaching(flags: LifecycleFlags): void {
     const { views } = this;
+    let view: IView;
     for (let i = 0, ii = views.length; i < ii; ++i) {
-      const view = views[i];
+      view = views[i];
       view.$detach(flags);
       view.release(flags);
     }
@@ -94,8 +96,9 @@ export class Repeat<C extends ObservedCollection = IObservedArray, T extends INo
     this.checkCollectionObserver(flags);
 
     const { views } = this;
+    let view: IView;
     for (let i = 0, ii = views.length; i < ii; ++i) {
-      const view = views[i];
+      view = views[i];
       view.$unbind(flags);
     }
   }
@@ -128,6 +131,7 @@ export class Repeat<C extends ObservedCollection = IObservedArray, T extends INo
       flags |= LifecycleFlags.useProxies;
     }
     const { views, $lifecycle } = this;
+    let view: IView;
     if (this.$state & (State.isBound | State.isBinding)) {
       const { local, $scope, factory, forOf, items } = this;
       const oldLength = views.length;
@@ -139,13 +143,15 @@ export class Repeat<C extends ObservedCollection = IObservedArray, T extends INo
         }
       } else if (newLength < oldLength) {
         $lifecycle.beginDetach();
-        for (let i = newLength, view = views[i]; i < oldLength; view = views[++i]) {
+        for (let i = newLength; i < oldLength; ++i) {
+          view = views[i];
           view.release(flags);
           view.$detach(flags);
         }
         $lifecycle.endDetach(flags);
         $lifecycle.beginUnbind();
-        for (let i = newLength, view = views[i]; i < oldLength; view = views[++i]) {
+        for (let i = newLength; i < oldLength; ++i) {
+          view = views[i];
           view.$unbind(flags);
         }
         $lifecycle.endUnbind(flags);
@@ -160,7 +166,7 @@ export class Repeat<C extends ObservedCollection = IObservedArray, T extends INo
       $lifecycle.beginBind();
       if (indexMap === null) {
         forOf.iterate(items, (arr, i, item: (string | number | boolean | ObservedCollection | IIndexable)) => {
-          const view = views[i];
+          view = views[i];
           if (!!view.$scope && view.$scope.bindingContext[local] === item) {
             view.$bind(flags, Scope.fromParent(flags, $scope, view.$scope.bindingContext));
           } else {
@@ -169,7 +175,7 @@ export class Repeat<C extends ObservedCollection = IObservedArray, T extends INo
         });
       } else {
         forOf.iterate(items, (arr, i, item: (string | number | boolean | ObservedCollection | IIndexable)) => {
-          const view = views[i];
+          view = views[i];
           if (!!view.$scope && (indexMap[i] === i || view.$scope.bindingContext[local] === item)) {
             view.$bind(flags, Scope.fromParent(flags, $scope, view.$scope.bindingContext));
           } else {
@@ -185,14 +191,14 @@ export class Repeat<C extends ObservedCollection = IObservedArray, T extends INo
       $lifecycle.beginAttach();
       if (indexMap === null) {
         for (let i = 0, ii = views.length; i < ii; ++i) {
-          const view = views[i];
+          view = views[i];
           view.hold(location);
           view.$attach(flags);
         }
       } else {
         for (let i = 0, ii = views.length; i < ii; ++i) {
           if (indexMap[i] !== i) {
-            const view = views[i];
+            view = views[i];
             view.hold(location);
             view.$attach(flags);
           }
@@ -317,7 +323,7 @@ export class Repeat<C extends ObservedCollection = IObservedArray, T extends INo
           $mount(): void {
             let next = location;
             let j = seqLen - 1;
-            let i = indexMap.length - 1;
+            i = indexMap.length - 1;
             for (; i >= 0; --i) {
               if (indexMap[i] === -2) {
                 view = views[i];
@@ -397,22 +403,24 @@ export class Repeat<C extends ObservedCollection = IObservedArray, T extends INo
 }
 CustomAttributeResource.define({ name: 'repeat', isTemplateController: true }, Repeat);
 
+type UintArray = Uint8Array | Uint16Array | Uint32Array;
+let prevIndices: UintArray;
+let tailIndices: UintArray;
+let maxLen = 0;
+
 // Based on inferno's lis_algorithm @ https://github.com/infernojs/inferno/blob/master/packages/inferno/src/DOM/patching.ts#L732
 // with some tweaks to make it just a bit faster + account for IndexMap (and some names changes for readability)
 /** @internal */
 export function longestIncreasingSubsequence(indexMap: IndexMap): Uint8Array | Uint16Array | Uint32Array {
   const len = indexMap.length;
-  const maxIdx = len + (indexMap.deletedItems && indexMap.deletedItems.length || 0);
-  let Type: Uint8ArrayConstructor | Uint16ArrayConstructor | Uint32ArrayConstructor;
-  if (maxIdx < 0xFF) {
-    Type = Uint8Array;
-  } else if (maxIdx < 0xFFFF) {
-    Type = Uint16Array;
-  } else {
-    Type = Uint32Array;
+  const origLen = len + (indexMap.deletedItems && indexMap.deletedItems.length || 0);
+  const TArr = origLen < 0xFF ? Uint8Array : origLen < 0xFFFF ? Uint16Array : Uint32Array;
+
+  if (len > maxLen) {
+    maxLen = len;
+    prevIndices = new TArr(len);
+    tailIndices = new TArr(len);
   }
-  const prevIndices = new Type(len);
-  const tailIndices = new Type(len);
 
   let cursor = 0;
   let cur = 0;
@@ -426,12 +434,12 @@ export function longestIncreasingSubsequence(indexMap: IndexMap): Uint8Array | U
   for (; i < len; i++) {
     cur = indexMap[i];
     if (cur !== -2) {
-      j = tailIndices[cursor];
+      j = prevIndices[cursor];
 
       prev = indexMap[j];
       if (prev !== -2 && prev < cur) {
-        prevIndices[i] = j;
-        tailIndices[++cursor] = i;
+        tailIndices[i] = j;
+        prevIndices[++cursor] = i;
         continue;
       }
 
@@ -440,7 +448,7 @@ export function longestIncreasingSubsequence(indexMap: IndexMap): Uint8Array | U
 
       while (low < high) {
         mid = (low + high) >> 1;
-        prev = indexMap[tailIndices[mid]];
+        prev = indexMap[prevIndices[mid]];
         if (prev !== -2 && prev < cur) {
           low = mid + 1;
         } else {
@@ -448,21 +456,23 @@ export function longestIncreasingSubsequence(indexMap: IndexMap): Uint8Array | U
         }
       }
 
-      prev = indexMap[tailIndices[low]];
+      prev = indexMap[prevIndices[low]];
       if (cur < prev || prev === -2) {
         if (low > 0) {
-          prevIndices[i] = tailIndices[low - 1];
+          prevIndices[i] = prevIndices[low - 1];
         }
-        tailIndices[low] = i;
+        prevIndices[low] = i;
       }
     }
   }
-  const result = new Type(++cursor);
-  cur = tailIndices[cursor - 1];
+  i = ++cursor;
+  const result = new TArr(i);
+  cur = prevIndices[cursor - 1];
 
   while (cursor-- > 0) {
     result[cursor] = cur;
-    cur = prevIndices[cur];
+    cur = tailIndices[cur];
   }
+  while (i-- > 0) prevIndices[i] = 0;
   return result;
 }

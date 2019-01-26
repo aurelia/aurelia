@@ -67,7 +67,7 @@ export class Listener implements IBinding {
 
     const result = this.sourceExpression.evaluate(LifecycleFlags.mustEvaluate, this.$scope, this.locator);
 
-    delete overrideContext.$event;
+    Reflect.deleteProperty(overrideContext, '$event');
 
     if (result !== true && this.preventDefault) {
       event.preventDefault();

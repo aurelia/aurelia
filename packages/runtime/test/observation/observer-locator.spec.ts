@@ -210,7 +210,7 @@
 //                       obj.constructor['computed'] = { isVolatile };
 //                     }
 //                     it(_`getObserver() - descriptor=${descriptor}, hasGetter=${hasGetter}, hasSetter=${hasSetter}, hasOverrides=${hasOverrides}, isVolatile=${isVolatile}, hasAdapterObserver=${hasAdapterObserver}, adapterIsDefined=${adapterIsDefined}`, () => {
-//                       Object.defineProperty(obj, 'foo', descriptor);
+//                       Reflect.defineProperty(obj, 'foo', descriptor);
 //                       if (hasSetter && configurable && !hasGetter && !(hasAdapterObserver && adapterIsDefined)) {
 //                         expect(() => sut.getObserver(obj, 'foo')).to.throw(/18/);
 //                       } else {
@@ -296,7 +296,7 @@
 //     const obj = {};
 //     const write = Reporter.write;
 //     Reporter.write = spy();
-//     Object.defineProperty(obj, '$observers', { value: undefined })
+//     Reflect.defineProperty(obj, '$observers', { value: undefined })
 //     sut.getObserver(obj, 'foo');
 //     expect(Reporter.write).to.have.been.calledWith(0);
 //     Reporter.write = write;

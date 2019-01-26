@@ -1,0 +1,32 @@
+<div class="container">
+  <div class="level">
+    <div class="level-left">
+      <div class="level-item">
+        <div class="buttons">
+          <a class="button is-primary" @click="create(1000)">Create 1000</a>
+          <a class="button is-primary" @click="clear()">Clear</a>
+        </div>
+      </div>
+      <div class="level-item">
+        <label class="checkbox">
+          <input type="checkbox" checked.two-way="keyedMode">
+          Keyed mode
+        </label>
+      </div>
+      <div class="level-item">
+        <label class="checkbox">
+          <input type="checkbox" checked.two-way="patchMode" :disabled="proxyMode">
+          Patch mode
+        </label>
+      </div>
+      <div class="level-item">
+        <label class="checkbox">
+          <input type="checkbox" checked.two-way="proxyMode" :disabled="patchMode">
+          Proxy mode
+        </label>
+      </div>
+    </div>
+  </div>
+
+  <au-compose :subject="subject"></au-compose>
+</div>

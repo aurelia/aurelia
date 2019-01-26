@@ -1,5 +1,5 @@
 import { DI, IContainer, IRegistry } from '@aurelia/kernel';
-import { BasicConfiguration as RuntimeBasicConfiguration, IExpressionParser } from '@aurelia/runtime';
+import { IExpressionParser, RuntimeBasicConfiguration } from '@aurelia/runtime';
 import {
   AtPrefixedTriggerAttributePattern,
   ColonPrefixedBindAttributePattern,

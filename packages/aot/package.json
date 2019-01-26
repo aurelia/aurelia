@@ -1,6 +1,6 @@
 {
   "name": "@aurelia/aot",
-  "version": "0.3.0",
+  "version": "0.3.0-dev.20190126",
   "main": "dist/index.umd.js",
   "module": "dist/index.es6.js",
   "jsnext:main": "dist/index.es6.js",
@@ -46,9 +46,9 @@
     "access": "public"
   },
   "dependencies": {
-    "@aurelia/jit": "0.3.0",
-    "@aurelia/kernel": "0.3.0",
-    "@aurelia/runtime": "0.3.0"
+    "@aurelia/jit": "0.3.0-dev.20190126",
+    "@aurelia/kernel": "0.3.0-dev.20190126",
+    "@aurelia/runtime": "0.3.0-dev.20190126"
   },
   "devDependencies": {
     "@types/chai": "^4.1.7",

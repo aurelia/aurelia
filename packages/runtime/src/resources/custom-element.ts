@@ -83,8 +83,8 @@ export interface ICustomElement<T extends INode = INode> extends
   IMountableComponent,
   IRenderable<T> {
 
-  readonly $projector: IElementProjector;
-  readonly $host: CustomElementHost;
+  readonly $projector: IElementProjector<T>;
+  readonly $host: CustomElementHost<T>;
 
   $hydrate(flags: LifecycleFlags, parentContext: IServiceLocator, host: INode, options?: IElementHydrationOptions): void;
 }

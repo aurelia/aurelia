@@ -45,9 +45,9 @@ export interface ILifecycleRender {
 
 /** @internal */
 export function $hydrateAttribute(this: Writable<ICustomAttribute>, flags: LifecycleFlags, parentContext: IServiceLocator): void {
-  if (Tracer.enabled) { Tracer.enter(`${this['constructor'].name}.$hydrateAttribute`, slice.call(arguments)); }
   if (Profiler.enabled) { enter(); }
   const Type = this.constructor as ICustomAttributeType;
+  if (Tracer.enabled) { Tracer.enter(`${Type.description.name}.$hydrate`, slice.call(arguments)); }
   const renderingEngine = parentContext.get(IRenderingEngine);
 
   renderingEngine.applyRuntimeBehavior(flags, Type, this);
@@ -61,9 +61,9 @@ export function $hydrateAttribute(this: Writable<ICustomAttribute>, flags: Lifec
 
 /** @internal */
 export function $hydrateElement(this: Writable<ICustomElement>, flags: LifecycleFlags, parentContext: IServiceLocator, host: INode, options: IElementHydrationOptions = PLATFORM.emptyObject): void {
-  if (Tracer.enabled) { Tracer.enter(`${this['constructor'].name}.$hydrateElement`, slice.call(arguments)); }
   if (Profiler.enabled) { enter(); }
   const Type = this.constructor as ICustomElementType;
+  if (Tracer.enabled) { Tracer.enter(`${Type.description.name}.$hydrate`, slice.call(arguments)); }
   const description = Type.description;
   const projectorLocator = parentContext.get(IProjectorLocator);
   const renderingEngine = parentContext.get(IRenderingEngine);

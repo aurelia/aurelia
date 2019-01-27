@@ -182,8 +182,13 @@ jobs:
     parameters:
       channel:
         type: string
+      branch:
+        type: string
     steps:
-      - checkout_install
+      - checkout
+      - run: git checkout << parameters.branch >>
+      - run: git pull
+      - run: npm ci --ignore-scripts
       - run:
           name: "Authenticate with registry"
           command: echo "//registry.npmjs.org/:_authToken=$NPM_TOKEN" >> ~/.npmrc
@@ -371,6 +376,7 @@ workflows:
           requires:
             - request_publish_latest
           channel: latest
+          branch: release
       # verify the latest packages after publishing them
       - e2e_wdio:
           <<: *filter_only_release
@@ -409,61 +415,52 @@ workflows:
           requires:
             - publish_npm
 
-  publish_dev:
-    jobs:
-      - publish_npm:
-          <<: *filter_only_develop
-          channel: dev
-      # verify the dev packages after publishing them
-      - e2e_wdio:
-          <<: *filter_only_develop
-          name: jit-aurelia-cli-ts
-          path: "dev/jit-aurelia-cli-ts"
-          requires:
-            - publish_npm
-      - e2e_wdio:
-          <<: *filter_only_develop
-          name: jit-browserify-ts
-          path: "dev/jit-browserify-ts"
-          requires:
-            - publish_npm
-      - e2e_wdio:
-          <<: *filter_only_develop
-          name: jit-fuse-box-ts
-          path: "dev/jit-fuse-box-ts"
-          requires:
-            - publish_npm
-      - e2e_wdio:
-          <<: *filter_only_develop
-          name: jit-parcel-ts
-          path: "dev/jit-parcel-ts"
-          requires:
-            - publish_npm
-      - e2e_wdio:
-          <<: *filter_only_develop
-          name: jit-webpack-ts
-          path: "dev/jit-webpack-ts"
-          requires:
-            - publish_npm
-      - e2e_wdio:
-          <<: *filter_only_develop
-          name: jit-iife-inline
-          path: "dev/jit-iife-inline"
-          requires:
-            - publish_npm
-
   # Runs build and tests, and pushes the built artifacts to the develop branch (which then triggers publish_dev)
   # Triggered by schedule once per day on 0:00 UTC on the master branch
   build_test_push_dev:
     triggers:
       - schedule:
           <<: *filter_only_master
-          cron: "0 5 * * *"
+          cron: "45 18 * * *"
     jobs:
       # this merge_and_dist is only to ensure the correct version in develop branch
       - merge_and_dist:
-          <<: *filter_only_master
           from: master
           to: develop
           channel: dev
-
+      - publish_npm:
+          channel: dev
+          branch: develop
+          requires:
+            - merge_and_dist
+      # verify the dev packages after publishing them
+      - e2e_wdio:
+          name: jit-aurelia-cli-ts
+          path: "dev/jit-aurelia-cli-ts"
+          requires:
+            - publish_npm
+      - e2e_wdio:
+          name: jit-browserify-ts
+          path: "dev/jit-browserify-ts"
+          requires:
+            - publish_npm
+      - e2e_wdio:
+          name: jit-fuse-box-ts
+          path: "dev/jit-fuse-box-ts"
+          requires:
+            - publish_npm
+      - e2e_wdio:
+          name: jit-parcel-ts
+          path: "dev/jit-parcel-ts"
+          requires:
+            - publish_npm
+      - e2e_wdio:
+          name: jit-webpack-ts
+          path: "dev/jit-webpack-ts"
+          requires:
+            - publish_npm
+      - e2e_wdio:
+          name: jit-iife-inline
+          path: "dev/jit-iife-inline"
+          requires:
+            - publish_npm

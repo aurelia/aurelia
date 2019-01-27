@@ -386,7 +386,7 @@ describe(spec, function() {
       }
     },
     {
-      t: '01',
+      t: '02',
       execute(component: { items: any[]; display: boolean }, lifecycle: ILifecycle, host: Element, count: number, ifText: string, elseText: string): void {
         component.display = true;
         lifecycle.processFlushQueue(LifecycleFlags.none);
@@ -397,7 +397,7 @@ describe(spec, function() {
       }
     },
     {
-      t: '01',
+      t: '03',
       execute(component: { items: any[]; display: boolean }, lifecycle: ILifecycle, host: Element, count: number, ifText: string, elseText: string): void {
         component.items = [{if: 2, else: 1}, {if: 4, else: 3}];
         lifecycle.processFlushQueue(LifecycleFlags.none);
@@ -406,7 +406,7 @@ describe(spec, function() {
       }
     },
     {
-      t: '01',
+      t: '04',
       execute(component: { items: any[]; display: boolean }, lifecycle: ILifecycle, host: Element, count: number, ifText: string, elseText: string): void {
         component.items[0].if = 5;
         component.items[0].else = 6;
@@ -418,7 +418,7 @@ describe(spec, function() {
       }
     },
     {
-      t: '01',
+      t: '05',
       execute(component: { items: any[]; display: boolean }, lifecycle: ILifecycle, host: Element, count: number, ifText: string, elseText: string): void {
         component.items.reverse();
         lifecycle.processFlushQueue(LifecycleFlags.none);
@@ -427,7 +427,7 @@ describe(spec, function() {
       }
     },
     {
-      t: '01',
+      t: '06',
       execute(component: { items: any[]; display: boolean }, lifecycle: ILifecycle, host: Element, count: number, ifText: string, elseText: string): void {
         component.items.reverse();
         component.display = true;
@@ -437,7 +437,7 @@ describe(spec, function() {
       }
     },
     {
-      t: '01',
+      t: '07',
       execute(component: { items: any[]; display: boolean }, lifecycle: ILifecycle, host: Element, count: number, ifText: string, elseText: string): void {
         component.items = [{if: 'a', else: 'b'}];
         lifecycle.processFlushQueue(LifecycleFlags.none);
@@ -446,7 +446,7 @@ describe(spec, function() {
       }
     },
     {
-      t: '01',
+      t: '08',
       execute(component: { items: any[]; display: boolean }, lifecycle: ILifecycle, host: Element, count: number, ifText: string, elseText: string): void {
         component.items = [{if: 'a', else: 'b'}];
         component.display = true;
@@ -456,7 +456,7 @@ describe(spec, function() {
       }
     },
     {
-      t: '01',
+      t: '09',
       execute(component: { items: any[]; display: boolean }, lifecycle: ILifecycle, host: Element, count: number, ifText: string, elseText: string): void {
         component.items.pop();
         lifecycle.processFlushQueue(LifecycleFlags.none);
@@ -465,7 +465,7 @@ describe(spec, function() {
       }
     },
     {
-      t: '01',
+      t: '10',
       execute(component: { items: any[]; display: boolean }, lifecycle: ILifecycle, host: Element, count: number, ifText: string, elseText: string): void {
         component.items.pop();
         component.display = true;
@@ -475,7 +475,7 @@ describe(spec, function() {
       }
     },
     {
-      t: '01',
+      t: '11',
       execute(component: { items: any[]; display: boolean }, lifecycle: ILifecycle, host: Element, count: number, ifText: string, elseText: string): void {
         component.items = component.items.slice().concat({if: 'x', else: 'y'});
         lifecycle.processFlushQueue(LifecycleFlags.none);
@@ -484,7 +484,7 @@ describe(spec, function() {
       }
     },
     {
-      t: '01',
+      t: '12',
       execute(component: { items: any[]; display: boolean }, lifecycle: ILifecycle, host: Element, count: number, ifText: string, elseText: string): void {
         component.items = [{if: 'a', else: 'b'}, {if: 'c', else: 'd'}, {if: 'e', else: 'f'}];
         component.display = true;
@@ -494,7 +494,7 @@ describe(spec, function() {
       }
     },
     {
-      t: '01',
+      t: '13',
       execute(component: { items: any[]; display: boolean }, lifecycle: ILifecycle, host: Element, count: number, ifText: string, elseText: string): void {
         component.items.push({if: 5, else: 6});
         lifecycle.processFlushQueue(LifecycleFlags.none);
@@ -503,7 +503,7 @@ describe(spec, function() {
       }
     },
     {
-      t: '01',
+      t: '14',
       execute(component: { items: any[]; display: boolean }, lifecycle: ILifecycle, host: Element, count: number, ifText: string, elseText: string): void {
         component.items.push({if: 5, else: 6});
         component.display = true;

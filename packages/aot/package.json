@@ -1,6 +1,6 @@
 {
   "name": "@aurelia/aot",
-  "version": "0.3.0",
+  "version": "0.3.0-dev.20190127",
   "main": "dist/build/index.js",
   "module": "dist/build/index.js",
   "jsnext:main": "dist/build/index.js",
@@ -46,9 +46,9 @@
     "access": "public"
   },
   "dependencies": {
-    "@aurelia/jit": "0.3.0",
-    "@aurelia/kernel": "0.3.0",
-    "@aurelia/runtime": "0.3.0"
+    "@aurelia/jit": "0.3.0-dev.20190127",
+    "@aurelia/kernel": "0.3.0-dev.20190127",
+    "@aurelia/runtime": "0.3.0-dev.20190127"
   },
   "devDependencies": {
     "@types/chai": "^4.1.7",

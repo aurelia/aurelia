@@ -6,7 +6,7 @@ describe('util', () => {
     it('returns valid JSON', () => {
       const data = { test: 'data' };
       const result = JSON.parse(json(data));
-      expect(data).to.equal(result);
+      expect(data).to.deep.equal(result);
     });
   });
 });

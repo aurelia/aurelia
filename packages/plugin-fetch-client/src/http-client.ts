@@ -1,6 +1,6 @@
 import { DOM } from '@aurelia/runtime';
 import { HttpClientConfiguration } from './http-client-configuration';
-import { Interceptor, RequestInit, ValidInterceptorMethodName } from './interfaces';
+import { Interceptor, ValidInterceptorMethodName } from './interfaces';
 import { RetryInterceptor } from './retry-interceptor';
 
 /**
@@ -165,7 +165,7 @@ export class HttpClient {
     let body: any;
     let requestContentType: string;
 
-    const parsedDefaultHeaders = parseHeaderValues(defaults.headers);
+    const parsedDefaultHeaders = parseHeaderValues(defaults.headers) as HeadersInit;
     if (Request.prototype.isPrototypeOf(input)) {
       request = input as Request;
       requestContentType = new Headers(request.headers).get('Content-Type');
@@ -175,8 +175,8 @@ export class HttpClient {
       }
       body = init.body;
       const bodyObj = body ? { body } : null;
-      const requestInit = { ...defaults, headers: {}, ...init, ...bodyObj };
-      requestContentType = new Headers(requestInit.headers).get('Content-Type');
+      const requestInit = { ...defaults, headers: {}, ...init, ...bodyObj } as RequestInit;
+      requestContentType = new Headers(requestInit.headers as Headers).get('Content-Type');
       request = new Request(getRequestUrl(this.baseUrl, input as string), requestInit);
     }
     if (!requestContentType) {

@@ -64,7 +64,7 @@ export class RetryInterceptor implements Interceptor {
    */
   public response(response: Response, request: RetryableRequest): Response {
     // retry was successful, so clean up after ourselves
-    delete request.retryConfig;
+    Reflect.deleteProperty(request, 'retryConfig');
     return response;
   }
 
@@ -104,12 +104,12 @@ export class RetryInterceptor implements Interceptor {
           }
 
           // no more retries, so clean up
-          delete request.retryConfig;
+          Reflect.deleteProperty(request, 'retryConfig');
           throw error;
         });
       }
       // no more retries, so clean up
-      delete request.retryConfig;
+      Reflect.deleteProperty(request, 'retryConfig');
       throw error;
     });
   }

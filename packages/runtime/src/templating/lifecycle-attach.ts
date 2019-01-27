@@ -18,7 +18,7 @@ const { enter, leave } = Profiler.createTimer('AttachLifecycle');
 // tslint:disable-next-line:no-ignored-initial-value
 export function $attachAttribute(this: Writable<IAttachable>, flags: LifecycleFlags): void {
   if (Profiler.enabled) { enter(); }
-  if (Tracer.enabled) { Tracer.enter(`${this.constructor.description && this.constructor.description.name || this.constructor.name}.$attach`, slice.call(arguments)); }
+  if (Tracer.enabled) { Tracer.enter(this.constructor.description && this.constructor.description.name || this.constructor.name, '$attach', slice.call(arguments)); }
   if (this.$state & State.isAttached) {
     if (Profiler.enabled) { leave(); }
     if (Tracer.enabled) { Tracer.leave(); }
@@ -52,7 +52,7 @@ export function $attachAttribute(this: Writable<IAttachable>, flags: LifecycleFl
 // tslint:disable-next-line:no-ignored-initial-value
 export function $attachElement(this: Writable<IAttachable & IMountableComponent>, flags: LifecycleFlags): void {
   if (Profiler.enabled) { enter(); }
-  if (Tracer.enabled) { Tracer.enter(`${this.constructor.description && this.constructor.description.name || this.constructor.name}.$attach`, slice.call(arguments)); }
+  if (Tracer.enabled) { Tracer.enter(this.constructor.description && this.constructor.description.name || this.constructor.name, '$attach', slice.call(arguments)); }
   if (this.$state & State.isAttached) {
     if (Profiler.enabled) { leave(); }
     if (Tracer.enabled) { Tracer.leave(); }
@@ -92,7 +92,7 @@ export function $attachElement(this: Writable<IAttachable & IMountableComponent>
 
 /** @internal */
 export function $attachView(this: Writable<IAttachable & IMountableComponent>, flags: LifecycleFlags): void {
-  if (Tracer.enabled) { Tracer.enter(`IView.$attach`, slice.call(arguments)); }
+  if (Tracer.enabled) { Tracer.enter('IView', '$attach', slice.call(arguments)); }
   if (this.$state & State.isAttached) {
     if (Tracer.enabled) { Tracer.leave(); }
     return;
@@ -118,7 +118,7 @@ export function $attachView(this: Writable<IAttachable & IMountableComponent>, f
 /** @internal */
 // tslint:disable-next-line:no-ignored-initial-value
 export function $detachAttribute(this: Writable<IAttachable>, flags: LifecycleFlags): void {
-  if (Tracer.enabled) { Tracer.enter(`${this.constructor.description && this.constructor.description.name || this.constructor.name}.$detach`, slice.call(arguments)); }
+  if (Tracer.enabled) { Tracer.enter(this.constructor.description && this.constructor.description.name || this.constructor.name, '$detach', slice.call(arguments)); }
   if (this.$state & State.isAttached) {
     const lifecycle = this.$lifecycle;
     lifecycle.beginDetach();
@@ -145,7 +145,7 @@ export function $detachAttribute(this: Writable<IAttachable>, flags: LifecycleFl
 /** @internal */
 // tslint:disable-next-line:no-ignored-initial-value
 export function $detachElement(this: Writable<IAttachable & IMountableComponent>, flags: LifecycleFlags): void {
-  if (Tracer.enabled) { Tracer.enter(`${this.constructor.description && this.constructor.description.name || this.constructor.name}.$detach`, slice.call(arguments)); }
+  if (Tracer.enabled) { Tracer.enter(this.constructor.description && this.constructor.description.name || this.constructor.name, '$detach', slice.call(arguments)); }
   if (this.$state & State.isAttached) {
     const lifecycle = this.$lifecycle;
     lifecycle.beginDetach();
@@ -185,7 +185,7 @@ export function $detachElement(this: Writable<IAttachable & IMountableComponent>
 
 /** @internal */
 export function $detachView(this: Writable<IAttachable & IMountableComponent>, flags: LifecycleFlags): void {
-  if (Tracer.enabled) { Tracer.enter(`IView.$detach`, slice.call(arguments)); }
+  if (Tracer.enabled) { Tracer.enter('IView', '$detach', slice.call(arguments)); }
   if (this.$state & State.isAttached) {
     // add isDetaching flag
     this.$state |= State.isDetaching;
@@ -213,7 +213,7 @@ export function $detachView(this: Writable<IAttachable & IMountableComponent>, f
 
 /** @internal */
 export function $cacheAttribute(this: Writable<IAttachable>, flags: LifecycleFlags): void {
-  if (Tracer.enabled) { Tracer.enter(`${this.constructor.description && this.constructor.description.name || this.constructor.name}.$cache`, slice.call(arguments)); }
+  if (Tracer.enabled) { Tracer.enter(this.constructor.description && this.constructor.description.name || this.constructor.name, '$cache', slice.call(arguments)); }
   flags |= LifecycleFlags.fromCache;
   if (this.$hooks & Hooks.hasCaching) {
     this.caching(flags);
@@ -223,7 +223,7 @@ export function $cacheAttribute(this: Writable<IAttachable>, flags: LifecycleFla
 
 /** @internal */
 export function $cacheElement(this: Writable<IAttachable>, flags: LifecycleFlags): void {
-  if (Tracer.enabled) { Tracer.enter(`${this.constructor.description && this.constructor.description.name || this.constructor.name}.$cache`, slice.call(arguments)); }
+  if (Tracer.enabled) { Tracer.enter(this.constructor.description && this.constructor.description.name || this.constructor.name, '$cache', slice.call(arguments)); }
   flags |= LifecycleFlags.fromCache;
   if (this.$hooks & Hooks.hasCaching) {
     this.caching(flags);
@@ -239,7 +239,7 @@ export function $cacheElement(this: Writable<IAttachable>, flags: LifecycleFlags
 
 /** @internal */
 export function $cacheView(this: Writable<IAttachable>, flags: LifecycleFlags): void {
-  if (Tracer.enabled) { Tracer.enter(`IView.$cache`, slice.call(arguments)); }
+  if (Tracer.enabled) { Tracer.enter('IView', '$cache', slice.call(arguments)); }
   flags |= LifecycleFlags.fromCache;
   let current = this.$componentTail;
   while (current !== null) {
@@ -250,7 +250,7 @@ export function $cacheView(this: Writable<IAttachable>, flags: LifecycleFlags): 
 
 /** @internal */
 export function $mountElement(this: Writable<ICustomElement & IAttachable>, flags: LifecycleFlags): void {
-  if (Tracer.enabled) { Tracer.enter(`${this.constructor.description && this.constructor.description.name || this.constructor.name}.$mountElement`, slice.call(arguments)); }
+  if (Tracer.enabled) { Tracer.enter(this.constructor.description && this.constructor.description.name || this.constructor.name, '$mountElement', slice.call(arguments)); }
   if (!(this.$state & State.isMounted)) {
     this.$state |= State.isMounted;
     this.$projector.project(this.$nodes);
@@ -260,7 +260,7 @@ export function $mountElement(this: Writable<ICustomElement & IAttachable>, flag
 
 /** @internal */
 export function $unmountElement(this: Writable<ICustomElement & IAttachable>, flags: LifecycleFlags): void {
-  if (Tracer.enabled) { Tracer.enter(`${this.constructor.description && this.constructor.description.name || this.constructor.name}.$unmountElement`, slice.call(arguments)); }
+  if (Tracer.enabled) { Tracer.enter(this.constructor.description && this.constructor.description.name || this.constructor.name, '$unmountElement', slice.call(arguments)); }
   if (this.$state & State.isMounted) {
     this.$state &= ~State.isMounted;
     this.$projector.take(this.$nodes);
@@ -270,7 +270,7 @@ export function $unmountElement(this: Writable<ICustomElement & IAttachable>, fl
 
 /** @internal */
 export function $mountView(this: Writable<IView>, flags: LifecycleFlags): void {
-  if (Tracer.enabled) { Tracer.enter(`IView.$mount`, slice.call(arguments)); }
+  if (Tracer.enabled) { Tracer.enter('IView', '$mount', slice.call(arguments)); }
   if (!(this.$state & State.isMounted)) {
     this.$state |= State.isMounted;
     this.$nodes.insertBefore(this.location);
@@ -280,7 +280,7 @@ export function $mountView(this: Writable<IView>, flags: LifecycleFlags): void {
 
 /** @internal */
 export function $unmountView(this: Writable<IView>, flags: LifecycleFlags): boolean {
-  if (Tracer.enabled) { Tracer.enter(`IView.$unmount`, slice.call(arguments)); }
+  if (Tracer.enabled) { Tracer.enter('IView', '$unmount', slice.call(arguments)); }
   if (this.$state & State.isMounted) {
     this.$state &= ~State.isMounted;
     this.$nodes.remove();

@@ -17,7 +17,7 @@ export class SetterObserver implements SetterObserver {
   public propertyKey: string;
 
   constructor(flags: LifecycleFlags, obj: IIndexable, propertyKey: string) {
-    if (Tracer.enabled) { Tracer.enter('SetterObserver.constructor', slice.call(arguments)); }
+    if (Tracer.enabled) { Tracer.enter('SetterObserver', 'constructor', slice.call(arguments)); }
     this.persistentFlags = flags & LifecycleFlags.persistentBindingFlags;
     this.obj = obj;
     this.propertyKey = propertyKey;

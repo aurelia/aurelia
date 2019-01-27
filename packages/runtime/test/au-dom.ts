@@ -402,7 +402,7 @@ export class AuProjector implements IElementProjector {
   }
 
   public project(nodes: INodeSequence): void {
-    if (Tracer.enabled) { Tracer.enter('AuProjector.project', slice.call(arguments)); }
+    if (Tracer.enabled) { Tracer.enter('AuProjector', 'project', slice.call(arguments)); }
     if (this.host.isRenderLocation) {
       nodes.insertBefore(this.host);
     } else {
@@ -412,7 +412,7 @@ export class AuProjector implements IElementProjector {
   }
 
   public take(nodes: INodeSequence): void {
-    if (Tracer.enabled) { Tracer.enter('AuProjector.take', slice.call(arguments)); }
+    if (Tracer.enabled) { Tracer.enter('AuProjector', 'take', slice.call(arguments)); }
     nodes.remove();
     if (Tracer.enabled) { Tracer.leave(); }
   }
@@ -600,7 +600,7 @@ export class AuTextRenderer implements IInstructionRenderer {
   }
 
   public render(flags: LifecycleFlags, dom: IDOM, context: IRenderContext<AuNode>, renderable: IRenderable<AuNode>, target: AuNode, instruction: AuTextInstruction): void {
-    if (Tracer.enabled) { Tracer.enter('AuTextRenderer.render', slice.call(arguments)); }
+    if (Tracer.enabled) { Tracer.enter('AuTextRenderer', 'render', slice.call(arguments)); }
     let realTarget: AuNode;
     if (target.isRenderLocation) {
       realTarget = AuNode.createText();

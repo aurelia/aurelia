@@ -24,7 +24,7 @@ export class SelfObserver implements SelfObserver {
     propertyName: string,
     callbackName: string
   ) {
-    if (Tracer.enabled) { Tracer.enter('SelfObserver.constructor', slice.call(arguments)); }
+    if (Tracer.enabled) { Tracer.enter('SelfObserver', 'constructor', slice.call(arguments)); }
     this.persistentFlags = flags & LifecycleFlags.persistentBindingFlags;
     if (ProxyObserver.isProxy(instance)) {
       instance.$observer.subscribe(this, propertyName);

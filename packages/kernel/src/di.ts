@@ -483,7 +483,7 @@ export class Factory implements IFactory {
   }
 
   public construct(container: IContainer, dynamicDependencies?: Key<unknown>[]): Constructable {
-    if (Tracer.enabled) { Tracer.enter(`Factory.construct`, slice.call(arguments).concat(this.Type)); }
+    if (Tracer.enabled) { Tracer.enter('Factory', 'construct', slice.call(arguments).concat(this.Type)); }
     const transformers = this.transformers;
     let instance = dynamicDependencies !== undefined
       ? this.invoker.invokeWithDynamicDependencies(container, this.Type, this.dependencies, dynamicDependencies)
@@ -671,7 +671,7 @@ export class Container implements IContainer {
   }
 
   public get(key: Key<IContainer>|IResolver): any {
-    if (Tracer.enabled) { Tracer.enter(`Container.get`, slice.call(arguments)); }
+    if (Tracer.enabled) { Tracer.enter('Container', 'get', slice.call(arguments)); }
     validateKey(key);
 
     if ((key as IResolver).resolve) {

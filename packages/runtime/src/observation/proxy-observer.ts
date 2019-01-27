@@ -20,7 +20,7 @@ export class ProxySubscriberCollection<TObj extends object = object> implements 
   public readonly raw: TObj;
   public readonly key: PropertyKey;
   constructor(proxy: IProxy<TObj>, raw: TObj, key: PropertyKey) {
-    if (Tracer.enabled) { Tracer.enter('ProxySubscriberCollection.constructor', slice.call(arguments)); }
+    if (Tracer.enabled) { Tracer.enter('ProxySubscriberCollection', 'constructor', slice.call(arguments)); }
     this.raw = raw;
     this.key = key;
     this.proxy = proxy;
@@ -50,7 +50,7 @@ export class ProxyObserver<TObj extends object = object> implements ProxyObserve
   private readonly subscribers: Record<PropertyKey, ProxySubscriberCollection<TObj>>;
 
   constructor(obj: TObj) {
-    if (Tracer.enabled) { Tracer.enter('ProxyObserver.constructor', slice.call(arguments)); }
+    if (Tracer.enabled) { Tracer.enter('ProxyObserver', 'constructor', slice.call(arguments)); }
     this.raw = obj;
     this.proxy = new Proxy<TObj>(obj, this) as IProxy<TObj>;
     lookup.set(obj, this.proxy);

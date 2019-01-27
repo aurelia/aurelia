@@ -137,7 +137,7 @@ export class SetObserver implements SetObserver {
   public readonly flags: LifecycleFlags;
 
   constructor(flags: LifecycleFlags, lifecycle: ILifecycle, observedSet: IObservedSet) {
-    if (Tracer.enabled) { Tracer.enter('SetObserver.constructor', slice.call(arguments)); }
+    if (Tracer.enabled) { Tracer.enter('SetObserver', 'constructor', slice.call(arguments)); }
     this.lifecycle = lifecycle;
     observedSet.$observer = this;
     this.collection = observedSet;

@@ -378,7 +378,7 @@ export class ArrayObserver implements ArrayObserver {
   public readonly flags: LifecycleFlags;
 
   constructor(flags: LifecycleFlags, lifecycle: ILifecycle, array: IObservedArray) {
-    if (Tracer.enabled) { Tracer.enter('ArrayObserver.constructor', slice.call(arguments)); }
+    if (Tracer.enabled) { Tracer.enter('ArrayObserver', 'constructor', slice.call(arguments)); }
     this.lifecycle = lifecycle;
     array.$observer = this;
     this.collection = array;

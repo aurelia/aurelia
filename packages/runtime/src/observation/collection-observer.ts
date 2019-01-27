@@ -17,7 +17,7 @@ import { targetObserver } from './target-observer';
 const slice = Array.prototype.slice;
 
 function flush(this: CollectionObserver, flags: LifecycleFlags): void {
-  if (Tracer.enabled) { Tracer.enter(`${this['constructor'].name}.flush`, slice.call(arguments)); }
+  if (Tracer.enabled) { Tracer.enter(this['constructor'].name, 'flush', slice.call(arguments)); }
   this.callBatchedSubscribers(this.indexMap, flags | this.persistentFlags);
   if (!!this.lengthObserver) {
     this.lengthObserver.$patch(LifecycleFlags.fromFlush | LifecycleFlags.updateTargetInstance | this.persistentFlags);

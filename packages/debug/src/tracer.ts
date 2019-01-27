@@ -1,7 +1,8 @@
 import { ITraceInfo, ITraceWriter, PLATFORM, Tracer as RuntimeTracer } from '@aurelia/kernel';
 
 const marker: ITraceInfo = {
-  name: 'marker',
+  objName: 'marker',
+  methodName: 'noop',
   params: PLATFORM.emptyArray,
   depth: -1,
   prev: null,
@@ -12,14 +13,16 @@ class TraceInfo implements ITraceInfo {
   public static tail: ITraceInfo = marker;
   public static stack: ITraceInfo[] = [];
 
-  public readonly name: string;
+  public readonly objName: string;
+  public readonly methodName: string;
   public readonly depth: number;
   public params: unknown[] | null;
   public next: ITraceInfo | null;
   public prev: ITraceInfo | null;
 
-  constructor(name: string, params: unknown[] | null) {
-    this.name = name;
+  constructor(objName: string, methodName: string, params: unknown[] | null) {
+    this.objName = objName;
+    this.methodName = methodName;
     this.depth = TraceInfo.stack.length;
     this.params = params;
     this.next = marker;
@@ -44,8 +47,8 @@ class TraceInfo implements ITraceInfo {
     TraceInfo.stack = [];
   }
 
-  public static enter(name: string, params: unknown[] | null): ITraceInfo {
-    return new TraceInfo(name, params);
+  public static enter(objName: string, methodName: string, params: unknown[] | null): ITraceInfo {
+    return new TraceInfo(objName, methodName, params);
   }
 
   public static leave(): ITraceInfo {
@@ -68,12 +71,13 @@ export const Tracer: typeof RuntimeTracer = {
   /**
    * Call this at the start of a method/function.
    * Each call to `enter` **must** have an accompanying call to `leave` for the tracer to work properly.
-   * @param name Any human-friendly name to identify the traced method with.
+   * @param objName Any human-friendly name to identify the traced object with.
+   * @param methodName Any human-friendly name to identify the traced method with.
    * @param args Pass in `Array.prototype.slice.call(arguments)` to also trace the parameters, or `null` if this is not needed (to save memory/cpu)
    */
-  enter(name: string, args: unknown[] | null): void {
+  enter(objName: string, methodName: string, args: unknown[] | null): void {
     if (this.enabled) {
-      const info = TraceInfo.enter(name, args);
+      const info = TraceInfo.enter(objName, methodName, args);
       if (this.liveLoggingEnabled) {
         this.liveWriter.write(info);
       }
@@ -128,5 +132,11 @@ export const Tracer: typeof RuntimeTracer = {
   disableLiveLogging(): void {
     this.liveLoggingEnabled = false;
     this.liveWriter = null;
+  }
+};
+
+export const LiveTraceWriter: ITraceWriter = {
+  write(info: ITraceInfo): void {
+
   }
 };

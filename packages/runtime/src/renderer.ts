@@ -106,7 +106,7 @@ export class Renderer implements IRenderer {
 
   // tslint:disable-next-line:parameters-max-number
   public render(flags: LifecycleFlags, dom: IDOM, context: IRenderContext, renderable: IRenderable, targets: ArrayLike<INode>, definition: TemplateDefinition, host?: INode, parts?: TemplatePartDefinitions): void {
-    if (Tracer.enabled) { Tracer.enter('Renderer.render', slice.call(arguments)); }
+    if (Tracer.enabled) { Tracer.enter('Renderer', 'render', slice.call(arguments)); }
     const targetInstructions = definition.instructions;
     const instructionRenderers = this.instructionRenderers;
 
@@ -150,7 +150,7 @@ export function ensureExpression<TFrom>(parser: IExpressionParser, srcOrExpr: TF
 }
 
 export function addBinding(renderable: IRenderable, binding: IBinding): void {
-  if (Tracer.enabled) { Tracer.enter('addBinding', slice.call(arguments)); }
+  if (Tracer.enabled) { Tracer.enter('Renderer', 'addBinding', slice.call(arguments)); }
   (binding as Writable<IBinding>).$prevBinding = renderable.$bindingTail;
   (binding as Writable<IBinding>).$nextBinding = null;
   if (renderable.$bindingTail === null) {
@@ -163,7 +163,7 @@ export function addBinding(renderable: IRenderable, binding: IBinding): void {
 }
 
 export function addComponent(renderable: IRenderable, component: IComponent): void {
-  if (Tracer.enabled) { Tracer.enter('addComponent', slice.call(arguments)); }
+  if (Tracer.enabled) { Tracer.enter('Renderer', 'addComponent', slice.call(arguments)); }
   (component as Writable<IComponent>).$prevComponent = renderable.$componentTail;
   (component as Writable<IComponent>).$nextComponent = null;
   if (renderable.$componentTail === null) {
@@ -181,7 +181,7 @@ export class SetPropertyRenderer implements IInstructionRenderer {
   public static readonly register: IRegistry['register'];
 
   public render(flags: LifecycleFlags, dom: IDOM, context: IRenderContext, renderable: IRenderable, target: object, instruction: ISetPropertyInstruction): void {
-    if (Tracer.enabled) { Tracer.enter('SetPropertyRenderer.render', slice.call(arguments)); }
+    if (Tracer.enabled) { Tracer.enter('SetPropertyRenderer', 'render', slice.call(arguments)); }
     target[instruction.to] = instruction.value;
     if (Tracer.enabled) { Tracer.leave(); }
   }
@@ -193,7 +193,7 @@ export class CustomElementRenderer implements IInstructionRenderer {
   public static readonly register: IRegistry['register'];
 
   public render(flags: LifecycleFlags, dom: IDOM, context: IRenderContext, renderable: IRenderable, target: INode, instruction: IHydrateElementInstruction): void {
-    if (Tracer.enabled) { Tracer.enter('CustomElementRenderer.render', slice.call(arguments)); }
+    if (Tracer.enabled) { Tracer.enter('CustomElementRenderer', 'render', slice.call(arguments)); }
     const operation = context.beginComponentOperation(renderable, target, instruction, null, null, target, true);
     const component = context.get<ICustomElement>(customElementKey(instruction.res));
     const instructionRenderers = context.get(IRenderer).instructionRenderers;
@@ -220,7 +220,7 @@ export class CustomAttributeRenderer implements IInstructionRenderer {
   public static readonly register: IRegistry['register'];
 
   public render(flags: LifecycleFlags, dom: IDOM, context: IRenderContext, renderable: IRenderable, target: INode, instruction: IHydrateAttributeInstruction): void {
-    if (Tracer.enabled) { Tracer.enter('CustomAttributeRenderer.render', slice.call(arguments)); }
+    if (Tracer.enabled) { Tracer.enter('CustomAttributeRenderer', 'render', slice.call(arguments)); }
     const operation = context.beginComponentOperation(renderable, target, instruction);
     const component = context.get<ICustomAttribute>(customAttributeKey(instruction.res));
     const instructionRenderers = context.get(IRenderer).instructionRenderers;
@@ -254,7 +254,7 @@ export class TemplateControllerRenderer implements IInstructionRenderer {
   }
 
   public render(flags: LifecycleFlags, dom: IDOM, context: IRenderContext, renderable: IRenderable, target: INode, instruction: IHydrateTemplateController, parts?: TemplatePartDefinitions): void {
-    if (Tracer.enabled) { Tracer.enter('TemplateControllerRenderer.render', slice.call(arguments)); }
+    if (Tracer.enabled) { Tracer.enter('TemplateControllerRenderer', 'render', slice.call(arguments)); }
     const factory = this.renderingEngine.getViewFactory(dom, instruction.def, context);
     const operation = context.beginComponentOperation(renderable, target, instruction, factory, parts, dom.convertToRenderLocation(target), false);
     const component = context.get<ICustomAttribute>(customAttributeKey(instruction.res));
@@ -295,7 +295,7 @@ export class LetElementRenderer implements IInstructionRenderer {
   }
 
   public render(flags: LifecycleFlags, dom: IDOM, context: IRenderContext, renderable: IRenderable, target: INode, instruction: IHydrateLetElementInstruction): void {
-    if (Tracer.enabled) { Tracer.enter('LetElementRenderer.render', slice.call(arguments)); }
+    if (Tracer.enabled) { Tracer.enter('LetElementRenderer', 'render', slice.call(arguments)); }
     dom.remove(target);
     const childInstructions = instruction.instructions;
     const toViewModel = instruction.toViewModel;
@@ -328,7 +328,7 @@ export class CallBindingRenderer implements IInstructionRenderer {
   }
 
   public render(flags: LifecycleFlags, dom: IDOM, context: IRenderContext, renderable: IRenderable, target: INode, instruction: ICallBindingInstruction): void {
-    if (Tracer.enabled) { Tracer.enter('CallBindingRenderer.render', slice.call(arguments)); }
+    if (Tracer.enabled) { Tracer.enter('CallBindingRenderer', 'render', slice.call(arguments)); }
     const expr = ensureExpression(this.parser, instruction.from, BindingType.CallCommand);
     const binding = new Call(expr, target, instruction.to, this.observerLocator, context);
     addBinding(renderable, binding);
@@ -349,7 +349,7 @@ export class RefBindingRenderer implements IInstructionRenderer {
   }
 
   public render(flags: LifecycleFlags, dom: IDOM, context: IRenderContext, renderable: IRenderable, target: INode, instruction: IRefBindingInstruction): void {
-    if (Tracer.enabled) { Tracer.enter('RefBindingRenderer.render', slice.call(arguments)); }
+    if (Tracer.enabled) { Tracer.enter('RefBindingRenderer', 'render', slice.call(arguments)); }
     const expr = ensureExpression(this.parser, instruction.from, BindingType.IsRef);
     const binding = new Ref(expr, target, context);
     addBinding(renderable, binding);
@@ -372,7 +372,7 @@ export class InterpolationBindingRenderer implements IInstructionRenderer {
   }
 
   public render(flags: LifecycleFlags, dom: IDOM, context: IRenderContext, renderable: IRenderable, target: INode, instruction: IInterpolationInstruction): void {
-    if (Tracer.enabled) { Tracer.enter('InterpolationBindingRenderer.render', slice.call(arguments)); }
+    if (Tracer.enabled) { Tracer.enter('InterpolationBindingRenderer', 'render', slice.call(arguments)); }
     let binding: MultiInterpolationBinding | InterpolationBinding;
     const expr = ensureExpression(this.parser, instruction.from, BindingType.Interpolation);
     if (expr.isMulti) {
@@ -400,7 +400,7 @@ export class PropertyBindingRenderer implements IInstructionRenderer {
   }
 
   public render(flags: LifecycleFlags, dom: IDOM, context: IRenderContext, renderable: IRenderable, target: INode, instruction: IPropertyBindingInstruction): void {
-    if (Tracer.enabled) { Tracer.enter('PropertyBindingRenderer.render', slice.call(arguments)); }
+    if (Tracer.enabled) { Tracer.enter('PropertyBindingRenderer', 'render', slice.call(arguments)); }
     const expr = ensureExpression(this.parser, instruction.from, BindingType.IsPropertyCommand | instruction.mode);
     const binding = new Binding(expr, target, instruction.to, instruction.mode, this.observerLocator, context);
     addBinding(renderable, binding);
@@ -423,7 +423,7 @@ export class IteratorBindingRenderer implements IInstructionRenderer {
   }
 
   public render(flags: LifecycleFlags, dom: IDOM, context: IRenderContext, renderable: IRenderable, target: INode, instruction: IIteratorBindingInstruction): void {
-    if (Tracer.enabled) { Tracer.enter('IteratorBindingRenderer.render', slice.call(arguments)); }
+    if (Tracer.enabled) { Tracer.enter('IteratorBindingRenderer', 'render', slice.call(arguments)); }
     const expr = ensureExpression(this.parser, instruction.from, BindingType.ForCommand);
     const binding = new Binding(expr, target, instruction.to, BindingMode.toView, this.observerLocator, context);
     addBinding(renderable, binding);

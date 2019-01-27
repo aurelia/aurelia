@@ -99,22 +99,22 @@ describe(spec, function () {
           const trace = true;
 
           const calls = {
-            'ProxyObserver.constructor': [] as ITraceInfo[],
-            'ProxySubscriberCollection.constructor': [] as ITraceInfo[],
-            'SelfObserver.constructor': [] as ITraceInfo[],
-            'SetterObserver.constructor': [] as ITraceInfo[]
+            'ProxyObserver': [] as ITraceInfo[],
+            'ProxySubscriberCollection': [] as ITraceInfo[],
+            'SelfObserver': [] as ITraceInfo[],
+            'SetterObserver': [] as ITraceInfo[]
           };
           if (trace) {
             enableTracing();
             Tracer.enableLiveLogging({
               write(info) {
-                if (calls[info.name] === undefined) {
-                  calls[info.name] = 0;
+                if (calls[info.objName] === undefined) {
+                  calls[info.objName] = 0;
                 }
-                if (typeof calls[info.name] === 'object') {
-                  calls[info.name].push(info);
+                if (typeof calls[info.objName] === 'object') {
+                  calls[info.objName].push(info);
                 } else {
-                  ++calls[info.name];
+                  ++calls[info.objName];
                 }
               }
             });

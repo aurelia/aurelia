@@ -148,7 +148,7 @@ export class MapObserver implements MapObserver {
   public readonly flags: LifecycleFlags;
 
   constructor(flags: LifecycleFlags, lifecycle: ILifecycle, map: IObservedMap) {
-    if (Tracer.enabled) { Tracer.enter('MapObserver.constructor', slice.call(arguments)); }
+    if (Tracer.enabled) { Tracer.enter('MapObserver', 'constructor', slice.call(arguments)); }
     this.lifecycle = lifecycle;
     map.$observer = this;
     this.collection = map;

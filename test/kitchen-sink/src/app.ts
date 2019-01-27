@@ -40,7 +40,7 @@ export class App {
     // Tracer.enabled = true;
     // Tracer.enableLiveLogging({
     //   write(info: ITraceInfo): void {
-    //     console.log(`${' '.repeat(info.depth)}${info.name}`);
+    //     console.log(`${' '.repeat(info.depth)}${info.objName}.${info.methodName}`);
     //   }
     // });
     this.$host.textContent = '';

@@ -24,7 +24,7 @@ import {
 } from '../../../scripts/test-lib';
 import {
   Tracer as DebugTracer
-} from '../../debug/src/reporter';
+} from '../../debug/src/tracer';
 import {
   CustomElementResource,
   ICustomElement,
@@ -84,7 +84,7 @@ export const BindingTraceWriter = {
       }
     }
     output += ')';
-    console.debug(`${'  '.repeat(info.depth)}${info.name} - ${output}`);
+    console.debug(`${'  '.repeat(info.depth)}${info.objName}.${info.methodName} - ${output}`);
   }
 };
 

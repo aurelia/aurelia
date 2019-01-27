@@ -18,7 +18,7 @@ type BindingTargetAccessor = IBindingTargetAccessor & {
 };
 
 function setValue(this: BindingTargetAccessor, newValue: unknown, flags: LifecycleFlags): Promise<void> {
-  if (Tracer.enabled) { Tracer.enter(`${this['constructor'].name}.setValue`, slice.call(arguments)); }
+  if (Tracer.enabled) { Tracer.enter(this['constructor'].name, 'setValue', slice.call(arguments)); }
   const currentValue = this.currentValue;
   newValue = newValue === null || newValue === undefined ? this.defaultValue : newValue;
   if (currentValue !== newValue) {
@@ -37,7 +37,7 @@ function setValue(this: BindingTargetAccessor, newValue: unknown, flags: Lifecyc
 }
 
 function flush(this: BindingTargetAccessor, flags: LifecycleFlags): void {
-  if (Tracer.enabled) { Tracer.enter(`${this['constructor'].name}.flush`, slice.call(arguments)); }
+  if (Tracer.enabled) { Tracer.enter(this['constructor'].name, 'flush', slice.call(arguments)); }
   if (this.isDOMObserver && (flags & LifecycleFlags.doNotUpdateDOM)) {
     // re-queue the change so it will still propagate on flush when it's attached again
     this.lifecycle.enqueueFlush(this).catch(error => { throw error; });
@@ -55,7 +55,7 @@ function flush(this: BindingTargetAccessor, flags: LifecycleFlags): void {
 }
 
 function patch(this: BindingTargetAccessor, flags: LifecycleFlags): void {
-  if (Tracer.enabled) { Tracer.enter(`${this['constructor'].name}.$patch`, slice.call(arguments)); }
+  if (Tracer.enabled) { Tracer.enter(this['constructor'].name, '$patch', slice.call(arguments)); }
 
   const newValue = this.getValue();
   if (this.currentValue !== newValue) {

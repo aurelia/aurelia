@@ -1,5 +1,5 @@
-import { IContainer, IRegistry, PLATFORM } from '@aurelia/kernel';
-import { AttributeDefinition, bindable, BindingMode, CustomAttributeResource, IAttributeDefinition, ICustomAttributeResource, INode, IBindableDescription } from '@aurelia/runtime';
+import { IContainer, IRegistry, PLATFORM, Registration } from '@aurelia/kernel';
+import { AttributeDefinition, bindable, BindingMode, CustomAttributeResource, IAttributeDefinition, IBindableDescription, ICustomAttributeResource, INode } from '@aurelia/runtime';
 import { addListener, removeListener } from './utils';
 
 // tslint:disable
@@ -219,11 +219,12 @@ BlurCustomAttribute.register = function(container: IContainer): void {
   container.register(Registration.transient(CustomAttributeResource.keyFrom('blur'), this));
 }
 
-bindable({ mode: BindingMode.twoWay })(BlurCustomAttribute, 'value');
 BlurCustomAttribute.bindables = ['onBlur', 'linkedWith', 'linkMultiple', 'searchSubTree'].reduce((bindables, prop) => {
   bindables[prop] = { property: prop, attribute: PLATFORM.kebabCase(prop) };
   return bindables;
-}, {} as Record<string, IBindableDescription>);
+}, {
+  value: { property: 'value', attribute: 'value', mode: BindingMode.twoWay }
+} as Record<string, IBindableDescription>);
 
 /*******************************
  * EVENTS ORDER

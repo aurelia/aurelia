@@ -4,6 +4,8 @@ import { addListener, removeListener } from './utils';
 
 export interface FocusCustomAttribute extends ICustomAttribute {}
 export class FocusCustomAttribute implements FocusCustomAttribute  {
+
+  // tslint:disable-next-line:ban-types
   public static readonly inject: ReadonlyArray<Function> = [INode];
 
   public static readonly register: IRegistry['register'];
@@ -61,6 +63,9 @@ export class FocusCustomAttribute implements FocusCustomAttribute  {
     removeListener(el, 'blur', this);
   }
 
+  /**
+   * EventTarget interface handler for better memory usage
+   */
   public handleEvent(e: FocusEvent): void {
     if (e.type === 'focus') {
       this.value = true;

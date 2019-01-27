@@ -255,7 +255,7 @@ function unregister(attr: BlurCustomAttribute): void {
 }
 
 let alreadyChecked = false;
-let cleanCheckTimeout: unknown = 0;
+let cleanCheckTimeout: number = 0;
 function revertAlreadyChecked() {
   alreadyChecked = false;
   cleanCheckTimeout = 0;
@@ -270,14 +270,14 @@ function handlePointerDown(e: PointerEvent): void {
     }
   }
   alreadyChecked = true;
-  cleanCheckTimeout = setTimeout(revertAlreadyChecked, 50);
+  cleanCheckTimeout = PLATFORM.setTimeout(revertAlreadyChecked, 50);
 }
 
 function handleTouchStart(e: TouchEvent): void {
   if (alreadyChecked) {
     // If user listen to mouse even, dont revert, let mousedownHandler do the job
     if (!useMouse) {
-      clearTimeout(cleanCheckTimeout);
+      PLATFORM.clearTimeout(cleanCheckTimeout);
       revertAlreadyChecked();
     }
     return;
@@ -290,12 +290,12 @@ function handleTouchStart(e: TouchEvent): void {
     }
   }
   alreadyChecked = true;
-  cleanCheckTimeout = setTimeout(revertAlreadyChecked, 50);
+  cleanCheckTimeout = PLATFORM.setTimeout(revertAlreadyChecked, 50);
 }
 
 function handleMousedown(e: MouseEvent): void {
   if (alreadyChecked) {
-    clearTimeout(cleanCheckTimeout);
+    PLATFORM.clearTimeout(cleanCheckTimeout);
     revertAlreadyChecked();
     return;
   }
@@ -307,12 +307,12 @@ function handleMousedown(e: MouseEvent): void {
     }
   }
   alreadyChecked = true;
-  cleanCheckTimeout = setTimeout(revertAlreadyChecked, 50);
+  cleanCheckTimeout = PLATFORM.setTimeout(revertAlreadyChecked, 50);
 }
 
 function handleWindowFocus(e: FocusEvent): void {
   if (alreadyChecked) {
-    clearTimeout(cleanCheckTimeout);
+    PLATFORM.clearTimeout(cleanCheckTimeout);
     revertAlreadyChecked();
     return;
   }

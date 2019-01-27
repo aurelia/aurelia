@@ -1,5 +1,5 @@
 import lerna from 'lerna';
-import { getCurrentVersion, getNewVersion } from './bump-version';
+import { getCurrentVersion, getNewVersion } from './get-version-info';
 import { createLogger } from './logger';
 
 const log = createLogger('publish');

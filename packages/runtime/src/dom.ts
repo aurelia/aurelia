@@ -1,4 +1,4 @@
-import { DI, IContainer, IResolver, PLATFORM, Reporter, Class } from '@aurelia/kernel';
+import { DI, IContainer, IResolver, PLATFORM, Reporter } from '@aurelia/kernel';
 
 export interface INode extends Object { }
 
@@ -53,9 +53,8 @@ export interface IDOM<T extends INode = INode> {
   convertToRenderLocation(node: T): IRenderLocation<T>;
   createDocumentFragment(markupOrNode?: string | T): T;
   createElement(name: string): T;
-  // tslint:disable-next-line:no-any // this is how the DOM is typed
-  createCustomEvent<TDetail = any>(eventType: string, options?: CustomEventInit<TDetail>): CustomEvent<TDetail>;
-  dispatchEvent(evt: Event): void;
+  createCustomEvent(eventType: string, options?: unknown): unknown;
+  dispatchEvent(evt: unknown): void;
   createNodeObserver?(node: T, cb: (...args: unknown[]) => void, init: unknown): unknown;
   createTemplate(markup?: string): T;
   createTextNode(text: string): T;

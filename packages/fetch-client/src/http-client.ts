@@ -1,51 +1,65 @@
-import { DOM } from '@aurelia/runtime';
+import { DOM, IDOM } from '@aurelia/runtime';
+import { HTMLDOM } from '@aurelia/runtime-html';
 import { HttpClientConfiguration } from './http-client-configuration';
 import { Interceptor, ValidInterceptorMethodName } from './interfaces';
 import { RetryInterceptor } from './retry-interceptor';
+import { InterfaceSymbol, PLATFORM } from '@aurelia/kernel';
+
+const absoluteUrlRegexp = /^([a-z][a-z0-9+\-.]*:)?\/\//i;
 
 /**
  * An HTTP client based on the Fetch API.
  */
 export class HttpClient {
+  public static readonly inject: InterfaceSymbol[] = [IDOM];
+
   /**
    * The current number of active requests.
    * Requests being processed by interceptors are considered active.
    */
-  public activeRequestCount: number = 0;
+  public activeRequestCount: number;
 
   /**
    * Indicates whether or not the client is currently making one or more requests.
    */
-  public isRequesting: boolean = false;
+  public isRequesting: boolean;
 
   /**
    * Indicates whether or not the client has been configured.
    */
-  public isConfigured: boolean = false;
+  public isConfigured: boolean;
 
   /**
    * The base URL set by the config.
    */
-  public baseUrl: string = '';
+  public baseUrl: string;
 
   /**
    * The default request init to merge with values specified at request time.
    */
-  public defaults: RequestInit = null;
+  public defaults: RequestInit;
 
   /**
    * The interceptors to be run during requests.
    */
-  public interceptors: Interceptor[] = [];
+  public interceptors: Interceptor[];
 
+  private readonly dom: HTMLDOM;
   /**
    * Creates an instance of HttpClient.
    */
-  constructor() {
-    if (typeof fetch === 'undefined') {
+  constructor(dom: HTMLDOM) {
+    if (dom.window.fetch === undefined) {
       // tslint:disable-next-line:max-line-length
       throw new Error('HttpClient requires a Fetch API implementation, but the current environment doesn\'t support it. You may need to load a polyfill such as https://github.com/github/fetch');
     }
+    this.dom = dom;
+    this.activeRequestCount = 0;
+    this.isRequesting = false;
+    this.isConfigured = false;
+    this.baseUrl = '';
+    this.defaults = null;
+    this.interceptors = [];
   }
 
   /**
@@ -57,6 +71,7 @@ export class HttpClient {
    * @chainable
    */
   public configure(config: RequestInit | ((config: HttpClientConfiguration) => void) | HttpClientConfiguration): HttpClient {
+
     let normalizedConfig: HttpClientConfiguration;
 
     if (typeof config === 'object') {
@@ -122,10 +137,10 @@ export class HttpClient {
    * @returns A Promise for the Response from the fetch request.
    */
   public fetch(input: Request | string, init?: RequestInit): Promise<Response> {
-    trackRequestStart(this);
+    this.trackRequestStart();
 
     let request = this.buildRequest(input, init);
-    return processRequest(request, this.interceptors, this).then(result => {
+    return this.processRequest(request, this.interceptors).then(result => {
       let response = null;
 
       if (Response.prototype.isPrototypeOf(result)) {
@@ -138,7 +153,7 @@ export class HttpClient {
         throw new Error(`An invalid result was returned by the interceptor chain. Expected a Request or Response instance, but got [${result}]`);
       }
 
-      return processResponse(response, this.interceptors, request, this);
+      return this.processResponse(response, this.interceptors, request);
     })
       .then(result => {
         if (Request.prototype.isPrototypeOf(result)) {
@@ -148,11 +163,11 @@ export class HttpClient {
       })
       .then(
         result => {
-          trackRequestEnd(this);
+          this.trackRequestEnd();
           return result;
         },
         error => {
-          trackRequestEnd(this);
+          this.trackRequestEnd();
           throw error;
         }
       );
@@ -220,7 +235,7 @@ export class HttpClient {
    */
   //tslint:disable-next-line no-any
   public post(input: Request | string, body?: any, init?: RequestInit): Promise<Response> {
-    return callFetch(this, input, body, init, 'POST');
+    return this.callFetch(input, body, init, 'POST');
   }
 
   /**
@@ -235,7 +250,7 @@ export class HttpClient {
    */
   //tslint:disable-next-line no-any
   public put(input: Request | string, body?: any, init?: RequestInit): Promise<Response> {
-    return callFetch(this, input, body, init, 'PUT');
+    return this.callFetch(input, body, init, 'PUT');
   }
 
   /**
@@ -250,7 +265,7 @@ export class HttpClient {
    */
   //tslint:disable-next-line no-any
   public patch(input: Request | string, body?: any, init?: RequestInit): Promise<Response> {
-    return callFetch(this, input, body, init, 'PATCH');
+    return this.callFetch(input, body, init, 'PATCH');
   }
 
   /**
@@ -265,27 +280,58 @@ export class HttpClient {
    */
   //tslint:disable-next-line no-any
   public delete(input: Request | string, body?: any, init?: RequestInit): Promise<Response> {
-    return callFetch(this, input, body, init, 'DELETE');
+    return this.callFetch(input, body, init, 'DELETE');
+  }
+
+  private trackRequestStart(): void {
+    this.isRequesting = !!(++this.activeRequestCount);
+    if (this.isRequesting) {
+      const evt = DOM.createCustomEvent('aurelia-fetch-client-request-started', { bubbles: true, cancelable: true });
+      PLATFORM.setTimeout(() => DOM.dispatchEvent(evt), 1);
+    }
+  }
+
+  private trackRequestEnd(): void {
+    this.isRequesting = !!(--this.activeRequestCount);
+    if (!this.isRequesting) {
+      const evt = DOM.createCustomEvent('aurelia-fetch-client-requests-drained', { bubbles: true, cancelable: true });
+      PLATFORM.setTimeout(() => DOM.dispatchEvent(evt), 1);
+    }
+  }
+
+  private processRequest(request: Request, interceptors: Interceptor[]) {
+    return this.applyInterceptors(request, interceptors, 'request', 'requestError', this);
+  }
+
+  private processResponse(response: Promise<Response>, interceptors: Interceptor[], request: Request) {
+    return this.applyInterceptors(response, interceptors, 'response', 'responseError', request, this);
+  }
+
+  // tslint:disable-next-line:max-line-length
+  private applyInterceptors(input: Request | Promise<Response | Request>, interceptors: Interceptor[], successName: ValidInterceptorMethodName, errorName: ValidInterceptorMethodName, ...interceptorArgs: any[]) {
+    return (interceptors || [])
+      .reduce((chain, interceptor) => {
+        const successHandler = interceptor[successName];
+        const errorHandler = interceptor[errorName];
+
+        return chain.then(
+          successHandler && (value => successHandler.call(interceptor, value, ...interceptorArgs)) || identity,
+          errorHandler && (reason => errorHandler.call(interceptor, reason, ...interceptorArgs)) || thrower);
+      }, Promise.resolve(input));
+  }
+
+  private callFetch(input: string | Request, body: any, init: RequestInit, method: string) {
+    if (!init) {
+      init = {};
+    }
+    init.method = method;
+    if (body) {
+      init.body = body;
+    }
+    return this.fetch(input, init);
   }
 }
 
-const absoluteUrlRegexp = /^([a-z][a-z0-9+\-.]*:)?\/\//i;
-
-function trackRequestStart(client: HttpClient): void {
-  client.isRequesting = !!(++client.activeRequestCount);
-  if (client.isRequesting) {
-    const evt = DOM.createCustomEvent('aurelia-fetch-client-request-started', { bubbles: true, cancelable: true });
-    setTimeout(() => DOM.dispatchEvent(evt), 1);
-  }
-}
-
-function trackRequestEnd(client: HttpClient): void {
-  client.isRequesting = !!(--client.activeRequestCount);
-  if (!client.isRequesting) {
-    const evt = DOM.createCustomEvent('aurelia-fetch-client-requests-drained', { bubbles: true, cancelable: true });
-    setTimeout(() => DOM.dispatchEvent(evt), 1);
-  }
-}
 
 function parseHeaderValues(headers: object): object {
   const parsedHeaders = {};
@@ -313,27 +359,6 @@ function setDefaultHeaders(headers: Headers, defaultHeaders: object): void {
   }
 }
 
-function processRequest(request: Request, interceptors: Interceptor[], http: HttpClient) {
-  return applyInterceptors(request, interceptors, 'request', 'requestError', http);
-}
-
-function processResponse(response: Promise<Response>, interceptors: Interceptor[], request: Request, http: HttpClient) {
-  return applyInterceptors(response, interceptors, 'response', 'responseError', request, http);
-}
-
-// tslint:disable-next-line:max-line-length
-function applyInterceptors(input: Request | Promise<Response | Request>, interceptors: Interceptor[], successName: ValidInterceptorMethodName, errorName: ValidInterceptorMethodName, ...interceptorArgs: any[]) {
-  return (interceptors || [])
-    .reduce((chain, interceptor) => {
-      const successHandler = interceptor[successName];
-      const errorHandler = interceptor[errorName];
-
-      return chain.then(
-        successHandler && (value => successHandler.call(interceptor, value, ...interceptorArgs)) || identity,
-        errorHandler && (reason => errorHandler.call(interceptor, reason, ...interceptorArgs)) || thrower);
-    }, Promise.resolve(input));
-}
-
 function isJSON(str) {
   try {
     JSON.parse(str);
@@ -350,15 +375,4 @@ function identity(x: any): any {
 
 function thrower(x: any): never {
   throw x;
-}
-
-function callFetch(client: HttpClient, input: string | Request, body: any, init: RequestInit, method: string) {
-  if (!init) {
-    init = {};
-  }
-  init.method = method;
-  if (body) {
-    init.body = body;
-  }
-  return client.fetch(input, init);
 }

@@ -1,6 +1,6 @@
 import { PLATFORM } from '@aurelia/kernel';
-import { Interceptor, RetryConfiguration } from './interfaces';
 import { HttpClient } from './http-client';
+import { Interceptor, RetryConfiguration } from './interfaces';
 
 export const retryStrategy: {
   fixed: 0;
@@ -21,10 +21,10 @@ const defaultRetryConfig: RetryConfiguration = {
 };
 
 export class RetryInterceptor implements Interceptor {
-  retryConfig: RetryConfiguration;
+  public retryConfig: RetryConfiguration;
 
   constructor(retryConfig?: RetryConfiguration) {
-    this.retryConfig = Object.assign({}, defaultRetryConfig, retryConfig || {});
+    this.retryConfig = {...defaultRetryConfig, ...(retryConfig || {})};
 
     if (this.retryConfig.strategy === retryStrategy.exponential &&
       this.retryConfig.interval <= 1000) {
@@ -32,10 +32,10 @@ export class RetryInterceptor implements Interceptor {
     }
   }
 
-  request(request: Request): Request {
-    let $r = request as Request & { retryConfig?: RetryConfiguration };
+  public request(request: Request): Request {
+    const $r = request as Request & { retryConfig?: RetryConfiguration };
     if (!$r.retryConfig) {
-      $r.retryConfig = Object.assign({}, this.retryConfig);
+      $r.retryConfig = {...this.retryConfig};
       $r.retryConfig.counter = 0;
     }
 
@@ -45,14 +45,14 @@ export class RetryInterceptor implements Interceptor {
     return request;
   }
 
-  response(response: Response, request: Request): Response {
+  public response(response: Response, request: Request): Response {
     // retry was successful, so clean up after ourselves
     delete (request as any).retryConfig;
     return response;
   }
 
-  responseError(error: Response, request: Request, httpClient: HttpClient) {
-    const { retryConfig } = request as Request & { retryConfig: RetryConfiguration };
+  public responseError(error: Response, request: Request, httpClient: HttpClient) {
+    const { retryConfig } = (request as Request & { retryConfig: RetryConfiguration });
     const { requestClone } = retryConfig;
     return Promise.resolve().then(() => {
       if (retryConfig.counter < retryConfig.maxRetries) {
@@ -63,14 +63,14 @@ export class RetryInterceptor implements Interceptor {
             retryConfig.counter++;
             return new Promise(resolve => PLATFORM.global.setTimeout(resolve, calculateDelay(retryConfig) || 0))
               .then(() => {
-                let newRequest = requestClone.clone();
+                const newRequest = requestClone.clone();
                 if (typeof (retryConfig.beforeRetry) === 'function') {
                   return retryConfig.beforeRetry(newRequest, httpClient);
                 }
                 return newRequest;
               })
               .then(newRequest => {
-                return httpClient.fetch(Object.assign(newRequest, { retryConfig }));
+                return httpClient.fetch({...newRequest,  retryConfig} as any);
               });
           }
 

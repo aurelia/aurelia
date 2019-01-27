@@ -109,7 +109,8 @@ export {
 } from './definitions';
 export {
   NodeType,
-  HTMLDOM
+  HTMLDOM,
+  DOM
 } from './dom';
 export {
   CaptureBindingInstruction,

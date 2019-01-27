@@ -15,6 +15,7 @@
     { "path": "jit-html-jsdom" },
     { "path": "jit-pixi" },
     { "path": "debug" },
+    { "path": "fetch-client" },
     { "path": "testing" },
     { "path": "aot" },
     { "path": "plugin-parcel" },

@@ -335,6 +335,7 @@ export {
   TemplatePartDefinitions
 } from './definitions';
 export {
+  DOM,
   INode,
   IRenderLocation,
   IDOM,

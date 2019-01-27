@@ -32,7 +32,8 @@ class JSDOMInitializer implements IDOMInitializer {
           config.host.ownerDocument,
           this.jsdom.window.Node,
           this.jsdom.window.Element,
-          this.jsdom.window.HTMLElement
+          this.jsdom.window.HTMLElement,
+          this.jsdom.window.CustomEvent
         );
       } else {
         if (config.host) {
@@ -43,7 +44,8 @@ class JSDOMInitializer implements IDOMInitializer {
           this.jsdom.window.document,
           this.jsdom.window.Node,
           this.jsdom.window.Element,
-          this.jsdom.window.HTMLElement
+          this.jsdom.window.HTMLElement,
+          this.jsdom.window.CustomEvent
         );
       }
     } else {
@@ -52,7 +54,8 @@ class JSDOMInitializer implements IDOMInitializer {
         this.jsdom.window.document,
         this.jsdom.window.Node,
         this.jsdom.window.Element,
-        this.jsdom.window.HTMLElement
+        this.jsdom.window.HTMLElement,
+        this.jsdom.window.CustomEvent
       );
     }
     Registration.instance(IDOM, dom).register(this.container);

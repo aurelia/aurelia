@@ -366,6 +366,15 @@ export class AuDOM implements IDOM<AuNode> {
   public setAttribute(node: AuNode, name: string, value: unknown): void {
     (node as Record<string, unknown>)[name] = value;
   }
+  public createCustomEvent(eventType: string, options?: unknown): unknown {
+    throw new Error('Method not implemented.');
+  }
+  public dispatchEvent(evt: unknown): void {
+    throw new Error('Method not implemented.');
+  }
+  public createNodeObserver?(node: AuNode, cb: (...args: unknown[]) => void, init: unknown): unknown {
+    throw new Error('Method not implemented.');
+  }
 }
 
 export class AuProjectorLocator implements IProjectorLocator {

@@ -57,8 +57,6 @@
     "@types/node": "^10.12.18",
     "@types/sinon": "^7.0.3",
     "@types/sinon-chai": "^3.2.2",
-    "@aurelia/runtime-html-browser": "0.3.0",
-    "@aurelia/runtime-html-jsdom": "0.3.0",
     "chai": "^4.2.0",
     "cross-env": "^5.2.0",
     "istanbul-instrumenter-loader": "^3.0.1",
@@ -83,7 +81,7 @@
     "tslib": "^1.9.3",
     "tslint": "^5.12.0",
     "tslint-microsoft-contrib": "^6.0.0",
-    "tslint-sonarts": "^1.8.0",
+    "tslint-sonarts": "^1.9.0",
     "typescript": "^3.2.2",
     "webpack": "^4.28.4"
   }

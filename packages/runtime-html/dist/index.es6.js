@@ -1,5 +1,5 @@
 import { DI, Registration, Reporter, PLATFORM } from '@aurelia/kernel';
-import { LifecycleFlags, hasBind, hasUnbind, targetObserver, DelegationStrategy, ITargetObserverLocator, SetterObserver, IDOM, ITargetAccessorLocator, ILifecycle, BindingBehaviorResource, BindingMode, IObserverLocator, buildTemplateDefinition, HydrateElementInstruction, IRenderable, ITargetedInstruction, IRenderingEngine, CompositionCoordinator, bindable, CustomElementResource, INode, ITemplateFactory, CompiledTemplate, NodeSequence, IExpressionParser, instructionRenderer, ensureExpression, MultiInterpolationBinding, InterpolationBinding, addBinding, Binding, IProjectorLocator, BasicConfiguration } from '@aurelia/runtime';
+import { LifecycleFlags, hasBind, hasUnbind, targetObserver, DelegationStrategy, ITargetObserverLocator, SetterObserver, IDOM, ITargetAccessorLocator, ILifecycle, BindingBehaviorResource, BindingMode, IObserverLocator, buildTemplateDefinition, HydrateElementInstruction, IRenderable, ITargetedInstruction, IRenderingEngine, CompositionCoordinator, bindable, CustomElementResource, DOM, INode, ITemplateFactory, CompiledTemplate, NodeSequence, IExpressionParser, instructionRenderer, ensureExpression, MultiInterpolationBinding, InterpolationBinding, addBinding, Binding, IProjectorLocator, BasicConfiguration } from '@aurelia/runtime';
 
 class Listener {
     // tslint:disable-next-line:parameters-max-number
@@ -1399,15 +1399,24 @@ function isRenderLocation(node) {
     return node.textContent === 'au-end';
 }
 class HTMLDOM {
-    constructor(wnd, doc, TNode, TElement, THTMLElement) {
-        this.wnd = wnd;
-        this.doc = doc;
+    constructor(window, document, TNode, TElement, THTMLElement, TCustomEvent) {
+        this.window = window;
+        this.document = document;
         this.Node = TNode;
         this.Element = TElement;
         this.HTMLElement = THTMLElement;
+        this.CustomEvent = TCustomEvent;
+        if (DOM.isInitialized) {
+            Reporter.write(1001); // TODO: create reporters code // DOM already initialized (just info)
+            DOM.destroy();
+        }
+        DOM.initialize(this);
+    }
+    static register(container) {
+        return Registration.alias(IDOM, this).register(container);
     }
     addEventListener(eventName, subscriber, publisher, options) {
-        (publisher || this.doc).addEventListener(eventName, subscriber, options);
+        (publisher || this.document).addEventListener(eventName, subscriber, options);
     }
     appendChild(parent, child) {
         parent.appendChild(child);
@@ -1422,8 +1431,8 @@ class HTMLDOM {
         if (node.parentNode === null) {
             throw Reporter.error(52);
         }
-        const locationEnd = this.doc.createComment('au-end');
-        const locationStart = this.doc.createComment('au-start');
+        const locationEnd = this.document.createComment('au-end');
+        const locationStart = this.document.createComment('au-start');
         node.parentNode.replaceChild(locationEnd, node);
         locationEnd.parentNode.insertBefore(locationStart, locationEnd);
         locationEnd.$start = locationStart;
@@ -1432,20 +1441,30 @@ class HTMLDOM {
     }
     createDocumentFragment(markupOrNode) {
         if (markupOrNode === undefined || markupOrNode === null) {
-            return this.doc.createDocumentFragment();
+            return this.document.createDocumentFragment();
         }
         if (this.isNodeInstance(markupOrNode)) {
             if (markupOrNode.content !== undefined) {
                 return markupOrNode.content;
             }
-            const fragment = this.doc.createDocumentFragment();
+            const fragment = this.document.createDocumentFragment();
             fragment.appendChild(markupOrNode);
             return fragment;
         }
         return this.createTemplate(markupOrNode).content;
     }
     createElement(name) {
-        return this.doc.createElement(name);
+        return this.document.createElement(name);
+    }
+    fetch(input, init) {
+        return this.window.fetch(input, init);
+    }
+    // tslint:disable-next-line:no-any // this is how the DOM is typed
+    createCustomEvent(eventType, options) {
+        return new this.CustomEvent(eventType, options);
+    }
+    dispatchEvent(evt) {
+        this.document.dispatchEvent(evt);
     }
     createNodeObserver(node, cb, init) {
         if (typeof MutationObserver === 'undefined') {
@@ -1462,14 +1481,14 @@ class HTMLDOM {
     }
     createTemplate(markup) {
         if (markup === undefined || markup === null) {
-            return this.doc.createElement('template');
+            return this.document.createElement('template');
         }
-        const template = this.doc.createElement('template');
+        const template = this.document.createElement('template');
         template.innerHTML = markup.toString();
         return template;
     }
     createTextNode(text) {
-        return this.doc.createTextNode(text);
+        return this.document.createTextNode(text);
     }
     insertBefore(nodeToInsert, referenceNode) {
         referenceNode.parentNode.insertBefore(nodeToInsert, referenceNode);
@@ -1501,12 +1520,13 @@ class HTMLDOM {
         }
     }
     removeEventListener(eventName, subscriber, publisher, options) {
-        (publisher || this.doc).removeEventListener(eventName, subscriber, options);
+        (publisher || this.document).removeEventListener(eventName, subscriber, options);
     }
     setAttribute(node, name, value) {
         node.setAttribute(name, value);
     }
 }
+const $DOM = DOM;
 /**
  * A specialized INodeSequence with optimizations for text (interpolation) bindings
  * The contract of this INodeSequence is:
@@ -1972,5 +1992,5 @@ const BasicConfiguration$1 = {
     }
 };
 
-export { Listener, AttributeNSAccessor, CheckedObserver, ClassAttributeAccessor, DataAttributeAccessor, ElementPropertyAccessor, ListenerTracker, DelegateOrCaptureSubscription, TriggerSubscription, IEventManager, EventSubscriber, TargetAccessorLocator, TargetObserverLocator, SelectValueObserver, StyleAttributeAccessor, ISVGAnalyzer, ValueAttributeObserver, AttrBindingBehavior, SelfBindingBehavior, UpdateTriggerBindingBehavior, Compose, IProjectorLocatorRegistration, ITargetAccessorLocatorRegistration, ITargetObserverLocatorRegistration, ITemplateFactoryRegistration, DefaultComponents, AttrBindingBehaviorRegistration, SelfBindingBehaviorRegistration, UpdateTriggerBindingBehaviorRegistration, ComposeRegistration, DefaultResources, ListenerBindingRendererRegistration, SetAttributeRendererRegistration, StylePropertyBindingRendererRegistration, TextBindingRendererRegistration, DefaultRenderers, BasicConfiguration$1 as BasicConfiguration, createElement, RenderPlan, HTMLTargetedInstructionType, isHTMLTargetedInstruction, NodeType, HTMLDOM, CaptureBindingInstruction, DelegateBindingInstruction, SetAttributeInstruction, StylePropertyBindingInstruction, TextBindingInstruction, TriggerBindingInstruction };
+export { Listener, AttributeNSAccessor, CheckedObserver, ClassAttributeAccessor, DataAttributeAccessor, ElementPropertyAccessor, ListenerTracker, DelegateOrCaptureSubscription, TriggerSubscription, IEventManager, EventSubscriber, TargetAccessorLocator, TargetObserverLocator, SelectValueObserver, StyleAttributeAccessor, ISVGAnalyzer, ValueAttributeObserver, AttrBindingBehavior, SelfBindingBehavior, UpdateTriggerBindingBehavior, Compose, IProjectorLocatorRegistration, ITargetAccessorLocatorRegistration, ITargetObserverLocatorRegistration, ITemplateFactoryRegistration, DefaultComponents, AttrBindingBehaviorRegistration, SelfBindingBehaviorRegistration, UpdateTriggerBindingBehaviorRegistration, ComposeRegistration, DefaultResources, ListenerBindingRendererRegistration, SetAttributeRendererRegistration, StylePropertyBindingRendererRegistration, TextBindingRendererRegistration, DefaultRenderers, BasicConfiguration$1 as BasicConfiguration, createElement, RenderPlan, HTMLTargetedInstructionType, isHTMLTargetedInstruction, NodeType, HTMLDOM, $DOM as DOM, CaptureBindingInstruction, DelegateBindingInstruction, SetAttributeInstruction, StylePropertyBindingInstruction, TextBindingInstruction, TriggerBindingInstruction };
 //# sourceMappingURL=index.es6.js.map

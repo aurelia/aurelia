@@ -5593,6 +5593,74 @@
   const INode = kernel.DI.createInterface('INode').noDefault();
   const IRenderLocation = kernel.DI.createInterface('IRenderLocation').noDefault();
   const IDOM = kernel.DI.createInterface('IDOM').noDefault();
+  const ni = function (...args) {
+      throw kernel.Reporter.error(1000); // TODO: create error code (not implemented exception)
+      // tslint:disable-next-line:no-any // this function doesn't need typing because it is never directly called
+  };
+  const niDOM = {
+      addEventListener: ni,
+      appendChild: ni,
+      cloneNode: ni,
+      convertToRenderLocation: ni,
+      createDocumentFragment: ni,
+      createElement: ni,
+      createCustomEvent: ni,
+      dispatchEvent: ni,
+      createNodeObserver: ni,
+      createTemplate: ni,
+      createTextNode: ni,
+      insertBefore: ni,
+      isMarker: ni,
+      isNodeInstance: ni,
+      isRenderLocation: ni,
+      makeTarget: ni,
+      registerElementResolver: ni,
+      remove: ni,
+      removeEventListener: ni,
+      setAttribute: ni
+  };
+  const DOM = Object.assign({}, niDOM, { get isInitialized() {
+          return Reflect.get(this, '$initialized') === true;
+      },
+      initialize(dom) {
+          if (this.isInitialized) {
+              throw kernel.Reporter.error(1001); // TODO: create error code (already initialized, check isInitialized property and call destroy() if you want to assign a different dom)
+          }
+          const descriptors = {};
+          const protos = [dom];
+          let proto = Object.getPrototypeOf(dom);
+          while (proto && proto !== Object.prototype) {
+              protos.unshift(proto);
+              proto = Object.getPrototypeOf(proto);
+          }
+          for (proto of protos) {
+              Object.assign(descriptors, Object.getOwnPropertyDescriptors(proto));
+          }
+          const keys = [];
+          let key;
+          let descriptor;
+          for (key in descriptors) {
+              descriptor = descriptors[key];
+              if (descriptor.configurable && descriptor.writable) {
+                  Reflect.defineProperty(this, key, descriptor);
+                  keys.push(key);
+              }
+          }
+          Reflect.set(this, '$domKeys', keys);
+          Reflect.set(this, '$initialized', true);
+      },
+      destroy() {
+          if (!this.isInitialized) {
+              throw kernel.Reporter.error(1002); // TODO: create error code (already destroyed)
+          }
+          const keys = Reflect.get(this, '$domKeys');
+          keys.forEach(key => {
+              Reflect.deleteProperty(this, key);
+          });
+          Object.assign(this, niDOM);
+          Reflect.set(this, '$domKeys', kernel.PLATFORM.emptyArray);
+          Reflect.set(this, '$initialized', false);
+      } });
   // This is an implementation of INodeSequence that represents "no DOM" to render.
   // It's used in various places to avoid null and to encode
   // the explicit idea of "no view".
@@ -7665,6 +7733,7 @@
   exports.buildTemplateDefinition = buildTemplateDefinition;
   exports.isTargetedInstruction = isTargetedInstruction;
   exports.ITargetedInstruction = ITargetedInstruction;
+  exports.DOM = DOM;
   exports.INode = INode;
   exports.IRenderLocation = IRenderLocation;
   exports.IDOM = IDOM;

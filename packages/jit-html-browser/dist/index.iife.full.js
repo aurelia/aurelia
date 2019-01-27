@@ -7415,6 +7415,74 @@ var au = (function (exports) {
     const INode = DI.createInterface('INode').noDefault();
     const IRenderLocation = DI.createInterface('IRenderLocation').noDefault();
     const IDOM = DI.createInterface('IDOM').noDefault();
+    const ni = function (...args) {
+        throw Reporter.error(1000); // TODO: create error code (not implemented exception)
+        // tslint:disable-next-line:no-any // this function doesn't need typing because it is never directly called
+    };
+    const niDOM = {
+        addEventListener: ni,
+        appendChild: ni,
+        cloneNode: ni,
+        convertToRenderLocation: ni,
+        createDocumentFragment: ni,
+        createElement: ni,
+        createCustomEvent: ni,
+        dispatchEvent: ni,
+        createNodeObserver: ni,
+        createTemplate: ni,
+        createTextNode: ni,
+        insertBefore: ni,
+        isMarker: ni,
+        isNodeInstance: ni,
+        isRenderLocation: ni,
+        makeTarget: ni,
+        registerElementResolver: ni,
+        remove: ni,
+        removeEventListener: ni,
+        setAttribute: ni
+    };
+    const DOM = Object.assign({}, niDOM, { get isInitialized() {
+            return Reflect.get(this, '$initialized') === true;
+        },
+        initialize(dom) {
+            if (this.isInitialized) {
+                throw Reporter.error(1001); // TODO: create error code (already initialized, check isInitialized property and call destroy() if you want to assign a different dom)
+            }
+            const descriptors = {};
+            const protos = [dom];
+            let proto = Object.getPrototypeOf(dom);
+            while (proto && proto !== Object.prototype) {
+                protos.unshift(proto);
+                proto = Object.getPrototypeOf(proto);
+            }
+            for (proto of protos) {
+                Object.assign(descriptors, Object.getOwnPropertyDescriptors(proto));
+            }
+            const keys = [];
+            let key;
+            let descriptor;
+            for (key in descriptors) {
+                descriptor = descriptors[key];
+                if (descriptor.configurable && descriptor.writable) {
+                    Reflect.defineProperty(this, key, descriptor);
+                    keys.push(key);
+                }
+            }
+            Reflect.set(this, '$domKeys', keys);
+            Reflect.set(this, '$initialized', true);
+        },
+        destroy() {
+            if (!this.isInitialized) {
+                throw Reporter.error(1002); // TODO: create error code (already destroyed)
+            }
+            const keys = Reflect.get(this, '$domKeys');
+            keys.forEach(key => {
+                Reflect.deleteProperty(this, key);
+            });
+            Object.assign(this, niDOM);
+            Reflect.set(this, '$domKeys', PLATFORM.emptyArray);
+            Reflect.set(this, '$initialized', false);
+        } });
     // This is an implementation of INodeSequence that represents "no DOM" to render.
     // It's used in various places to avoid null and to encode
     // the explicit idea of "no view".
@@ -9506,6 +9574,7 @@ var au = (function (exports) {
         isTargetedInstruction: isTargetedInstruction,
         ITargetedInstruction: ITargetedInstruction,
         get TargetedInstructionType () { return TargetedInstructionType; },
+        DOM: DOM,
         INode: INode,
         IRenderLocation: IRenderLocation,
         IDOM: IDOM,
@@ -12772,15 +12841,24 @@ var au = (function (exports) {
         return node.textContent === 'au-end';
     }
     class HTMLDOM {
-        constructor(wnd, doc, TNode, TElement, THTMLElement) {
-            this.wnd = wnd;
-            this.doc = doc;
+        constructor(window, document, TNode, TElement, THTMLElement, TCustomEvent) {
+            this.window = window;
+            this.document = document;
             this.Node = TNode;
             this.Element = TElement;
             this.HTMLElement = THTMLElement;
+            this.CustomEvent = TCustomEvent;
+            if (DOM.isInitialized) {
+                Reporter.write(1001); // TODO: create reporters code // DOM already initialized (just info)
+                DOM.destroy();
+            }
+            DOM.initialize(this);
+        }
+        static register(container) {
+            return Registration.alias(IDOM, this).register(container);
         }
         addEventListener(eventName, subscriber, publisher, options) {
-            (publisher || this.doc).addEventListener(eventName, subscriber, options);
+            (publisher || this.document).addEventListener(eventName, subscriber, options);
         }
         appendChild(parent, child) {
             parent.appendChild(child);
@@ -12795,8 +12873,8 @@ var au = (function (exports) {
             if (node.parentNode === null) {
                 throw Reporter.error(52);
             }
-            const locationEnd = this.doc.createComment('au-end');
-            const locationStart = this.doc.createComment('au-start');
+            const locationEnd = this.document.createComment('au-end');
+            const locationStart = this.document.createComment('au-start');
             node.parentNode.replaceChild(locationEnd, node);
             locationEnd.parentNode.insertBefore(locationStart, locationEnd);
             locationEnd.$start = locationStart;
@@ -12805,20 +12883,30 @@ var au = (function (exports) {
         }
         createDocumentFragment(markupOrNode) {
             if (markupOrNode === undefined || markupOrNode === null) {
-                return this.doc.createDocumentFragment();
+                return this.document.createDocumentFragment();
             }
             if (this.isNodeInstance(markupOrNode)) {
                 if (markupOrNode.content !== undefined) {
                     return markupOrNode.content;
                 }
-                const fragment = this.doc.createDocumentFragment();
+                const fragment = this.document.createDocumentFragment();
                 fragment.appendChild(markupOrNode);
                 return fragment;
             }
             return this.createTemplate(markupOrNode).content;
         }
         createElement(name) {
-            return this.doc.createElement(name);
+            return this.document.createElement(name);
+        }
+        fetch(input, init) {
+            return this.window.fetch(input, init);
+        }
+        // tslint:disable-next-line:no-any // this is how the DOM is typed
+        createCustomEvent(eventType, options) {
+            return new this.CustomEvent(eventType, options);
+        }
+        dispatchEvent(evt) {
+            this.document.dispatchEvent(evt);
         }
         createNodeObserver(node, cb, init) {
             if (typeof MutationObserver === 'undefined') {
@@ -12835,14 +12923,14 @@ var au = (function (exports) {
         }
         createTemplate(markup) {
             if (markup === undefined || markup === null) {
-                return this.doc.createElement('template');
+                return this.document.createElement('template');
             }
-            const template = this.doc.createElement('template');
+            const template = this.document.createElement('template');
             template.innerHTML = markup.toString();
             return template;
         }
         createTextNode(text) {
-            return this.doc.createTextNode(text);
+            return this.document.createTextNode(text);
         }
         insertBefore(nodeToInsert, referenceNode) {
             referenceNode.parentNode.insertBefore(nodeToInsert, referenceNode);
@@ -12874,12 +12962,13 @@ var au = (function (exports) {
             }
         }
         removeEventListener(eventName, subscriber, publisher, options) {
-            (publisher || this.doc).removeEventListener(eventName, subscriber, options);
+            (publisher || this.document).removeEventListener(eventName, subscriber, options);
         }
         setAttribute(node, name, value) {
             node.setAttribute(name, value);
         }
     }
+    const $DOM = DOM;
     /**
      * A specialized INodeSequence with optimizations for text (interpolation) bindings
      * The contract of this INodeSequence is:
@@ -13391,6 +13480,7 @@ var au = (function (exports) {
         isHTMLTargetedInstruction: isHTMLTargetedInstruction,
         get NodeType () { return NodeType; },
         HTMLDOM: HTMLDOM,
+        DOM: $DOM,
         CaptureBindingInstruction: CaptureBindingInstruction,
         DelegateBindingInstruction: DelegateBindingInstruction,
         SetAttributeInstruction: SetAttributeInstruction,
@@ -14371,14 +14461,14 @@ var au = (function (exports) {
                     dom = config.dom;
                 }
                 else if (config.host.ownerDocument !== null) {
-                    dom = new HTMLDOM(window, config.host.ownerDocument, Node, Element, HTMLElement);
+                    dom = new HTMLDOM(window, config.host.ownerDocument, Node, Element, HTMLElement, CustomEvent);
                 }
                 else {
-                    dom = new HTMLDOM(window, document, Node, Element, HTMLElement);
+                    dom = new HTMLDOM(window, document, Node, Element, HTMLElement, CustomEvent);
                 }
             }
             else {
-                dom = new HTMLDOM(window, document, Node, Element, HTMLElement);
+                dom = new HTMLDOM(window, document, Node, Element, HTMLElement, CustomEvent);
             }
             Registration.instance(IDOM, dom).register(this.container);
             return dom;

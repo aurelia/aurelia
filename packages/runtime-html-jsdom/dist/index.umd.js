@@ -22,17 +22,17 @@
                   dom = config.dom;
               }
               else if (config.host.ownerDocument) {
-                  dom = new runtimeHtml.HTMLDOM(this.jsdom.window, config.host.ownerDocument, this.jsdom.window.Node, this.jsdom.window.Element, this.jsdom.window.HTMLElement);
+                  dom = new runtimeHtml.HTMLDOM(this.jsdom.window, config.host.ownerDocument, this.jsdom.window.Node, this.jsdom.window.Element, this.jsdom.window.HTMLElement, this.jsdom.window.CustomEvent);
               }
               else {
                   if (config.host) {
                       this.jsdom.window.document.body.appendChild(config.host);
                   }
-                  dom = new runtimeHtml.HTMLDOM(this.jsdom.window, this.jsdom.window.document, this.jsdom.window.Node, this.jsdom.window.Element, this.jsdom.window.HTMLElement);
+                  dom = new runtimeHtml.HTMLDOM(this.jsdom.window, this.jsdom.window.document, this.jsdom.window.Node, this.jsdom.window.Element, this.jsdom.window.HTMLElement, this.jsdom.window.CustomEvent);
               }
           }
           else {
-              dom = new runtimeHtml.HTMLDOM(this.jsdom.window, this.jsdom.window.document, this.jsdom.window.Node, this.jsdom.window.Element, this.jsdom.window.HTMLElement);
+              dom = new runtimeHtml.HTMLDOM(this.jsdom.window, this.jsdom.window.document, this.jsdom.window.Node, this.jsdom.window.Element, this.jsdom.window.HTMLElement, this.jsdom.window.CustomEvent);
           }
           kernel.Registration.instance(runtime.IDOM, dom).register(this.container);
           return dom;

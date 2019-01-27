@@ -17,6 +17,6 @@ export { Subject, Compose } from './resources/custom-elements/compose';
 export { IProjectorLocatorRegistration, ITargetAccessorLocatorRegistration, ITargetObserverLocatorRegistration, ITemplateFactoryRegistration, DefaultComponents, AttrBindingBehaviorRegistration, SelfBindingBehaviorRegistration, UpdateTriggerBindingBehaviorRegistration, ComposeRegistration, DefaultResources, ListenerBindingRendererRegistration, SetAttributeRendererRegistration, StylePropertyBindingRendererRegistration, TextBindingRendererRegistration, DefaultRenderers, BasicConfiguration } from './configuration';
 export { createElement, RenderPlan } from './create-element';
 export { HTMLAttributeInstruction, HTMLInstructionRow, HTMLNodeInstruction, HTMLTargetedInstruction, HTMLTargetedInstructionType, IListenerBindingInstruction, ISetAttributeInstruction, isHTMLTargetedInstruction, IStylePropertyBindingInstruction, ITextBindingInstruction } from './definitions';
-export { NodeType, HTMLDOM } from './dom';
+export { NodeType, HTMLDOM, DOM } from './dom';
 export { CaptureBindingInstruction, DelegateBindingInstruction, SetAttributeInstruction, StylePropertyBindingInstruction, TextBindingInstruction, TriggerBindingInstruction } from './instructions';
 //# sourceMappingURL=index.d.ts.map

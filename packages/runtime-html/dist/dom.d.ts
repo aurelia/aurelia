@@ -18,15 +18,20 @@ export declare class HTMLDOM implements IDOM {
     readonly Node: typeof Node;
     readonly Element: typeof Element;
     readonly HTMLElement: typeof HTMLElement;
-    private readonly wnd;
-    private readonly doc;
-    constructor(wnd: Window, doc: Document, TNode: typeof Node, TElement: typeof Element, THTMLElement: typeof HTMLElement);
+    readonly CustomEvent: typeof CustomEvent;
+    readonly window: Window;
+    readonly document: Document;
+    constructor(window: Window, document: Document, TNode: typeof Node, TElement: typeof Element, THTMLElement: typeof HTMLElement, TCustomEvent: typeof CustomEvent);
+    static register(container: IContainer): IResolver<HTMLDOM>;
     addEventListener(eventName: string, subscriber: EventListenerOrEventListenerObject, publisher?: Node, options?: boolean | AddEventListenerOptions): void;
     appendChild(parent: Node, child: Node): void;
     cloneNode<T>(node: T, deep?: boolean): T;
     convertToRenderLocation(node: Node): IRenderLocation;
     createDocumentFragment(markupOrNode?: string | Node): DocumentFragment;
     createElement(name: string): HTMLElement;
+    fetch(input: RequestInfo, init?: RequestInit): Promise<Response>;
+    createCustomEvent<T = any>(eventType: string, options?: CustomEventInit<T>): CustomEvent<T>;
+    dispatchEvent(evt: Event): void;
     createNodeObserver(node: Node, cb: MutationCallback, init: MutationObserverInit): MutationObserver;
     createTemplate(markup?: unknown): HTMLTemplateElement;
     createTextNode(text: string): Text;
@@ -40,6 +45,8 @@ export declare class HTMLDOM implements IDOM {
     removeEventListener(eventName: string, subscriber: EventListenerOrEventListenerObject, publisher?: Node, options?: boolean | EventListenerOptions): void;
     setAttribute(node: Element, name: string, value: unknown): void;
 }
+declare const $DOM: HTMLDOM;
+export { $DOM as DOM };
 export interface AuMarker extends INode {
 }
 //# sourceMappingURL=dom.d.ts.map

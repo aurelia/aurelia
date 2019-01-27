@@ -1398,15 +1398,24 @@ this.au.runtimeHtml = (function (exports, kernel, runtime) {
       return node.textContent === 'au-end';
   }
   class HTMLDOM {
-      constructor(wnd, doc, TNode, TElement, THTMLElement) {
-          this.wnd = wnd;
-          this.doc = doc;
+      constructor(window, document, TNode, TElement, THTMLElement, TCustomEvent) {
+          this.window = window;
+          this.document = document;
           this.Node = TNode;
           this.Element = TElement;
           this.HTMLElement = THTMLElement;
+          this.CustomEvent = TCustomEvent;
+          if (runtime.DOM.isInitialized) {
+              kernel.Reporter.write(1001); // TODO: create reporters code // DOM already initialized (just info)
+              runtime.DOM.destroy();
+          }
+          runtime.DOM.initialize(this);
+      }
+      static register(container) {
+          return kernel.Registration.alias(runtime.IDOM, this).register(container);
       }
       addEventListener(eventName, subscriber, publisher, options) {
-          (publisher || this.doc).addEventListener(eventName, subscriber, options);
+          (publisher || this.document).addEventListener(eventName, subscriber, options);
       }
       appendChild(parent, child) {
           parent.appendChild(child);
@@ -1421,8 +1430,8 @@ this.au.runtimeHtml = (function (exports, kernel, runtime) {
           if (node.parentNode === null) {
               throw kernel.Reporter.error(52);
           }
-          const locationEnd = this.doc.createComment('au-end');
-          const locationStart = this.doc.createComment('au-start');
+          const locationEnd = this.document.createComment('au-end');
+          const locationStart = this.document.createComment('au-start');
           node.parentNode.replaceChild(locationEnd, node);
           locationEnd.parentNode.insertBefore(locationStart, locationEnd);
           locationEnd.$start = locationStart;
@@ -1431,20 +1440,30 @@ this.au.runtimeHtml = (function (exports, kernel, runtime) {
       }
       createDocumentFragment(markupOrNode) {
           if (markupOrNode === undefined || markupOrNode === null) {
-              return this.doc.createDocumentFragment();
+              return this.document.createDocumentFragment();
           }
           if (this.isNodeInstance(markupOrNode)) {
               if (markupOrNode.content !== undefined) {
                   return markupOrNode.content;
               }
-              const fragment = this.doc.createDocumentFragment();
+              const fragment = this.document.createDocumentFragment();
               fragment.appendChild(markupOrNode);
               return fragment;
           }
           return this.createTemplate(markupOrNode).content;
       }
       createElement(name) {
-          return this.doc.createElement(name);
+          return this.document.createElement(name);
+      }
+      fetch(input, init) {
+          return this.window.fetch(input, init);
+      }
+      // tslint:disable-next-line:no-any // this is how the DOM is typed
+      createCustomEvent(eventType, options) {
+          return new this.CustomEvent(eventType, options);
+      }
+      dispatchEvent(evt) {
+          this.document.dispatchEvent(evt);
       }
       createNodeObserver(node, cb, init) {
           if (typeof MutationObserver === 'undefined') {
@@ -1461,14 +1480,14 @@ this.au.runtimeHtml = (function (exports, kernel, runtime) {
       }
       createTemplate(markup) {
           if (markup === undefined || markup === null) {
-              return this.doc.createElement('template');
+              return this.document.createElement('template');
           }
-          const template = this.doc.createElement('template');
+          const template = this.document.createElement('template');
           template.innerHTML = markup.toString();
           return template;
       }
       createTextNode(text) {
-          return this.doc.createTextNode(text);
+          return this.document.createTextNode(text);
       }
       insertBefore(nodeToInsert, referenceNode) {
           referenceNode.parentNode.insertBefore(nodeToInsert, referenceNode);
@@ -1500,12 +1519,13 @@ this.au.runtimeHtml = (function (exports, kernel, runtime) {
           }
       }
       removeEventListener(eventName, subscriber, publisher, options) {
-          (publisher || this.doc).removeEventListener(eventName, subscriber, options);
+          (publisher || this.document).removeEventListener(eventName, subscriber, options);
       }
       setAttribute(node, name, value) {
           node.setAttribute(name, value);
       }
   }
+  const $DOM = runtime.DOM;
   /**
    * A specialized INodeSequence with optimizations for text (interpolation) bindings
    * The contract of this INodeSequence is:
@@ -2004,6 +2024,7 @@ this.au.runtimeHtml = (function (exports, kernel, runtime) {
   exports.RenderPlan = RenderPlan;
   exports.isHTMLTargetedInstruction = isHTMLTargetedInstruction;
   exports.HTMLDOM = HTMLDOM;
+  exports.DOM = $DOM;
   exports.CaptureBindingInstruction = CaptureBindingInstruction;
   exports.DelegateBindingInstruction = DelegateBindingInstruction;
   exports.SetAttributeInstruction = SetAttributeInstruction;

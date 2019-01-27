@@ -42,6 +42,8 @@ export interface IDOM<T extends INode = INode> {
     convertToRenderLocation(node: T): IRenderLocation<T>;
     createDocumentFragment(markupOrNode?: string | T): T;
     createElement(name: string): T;
+    createCustomEvent(eventType: string, options?: unknown): unknown;
+    dispatchEvent(evt: unknown): void;
     createNodeObserver?(node: T, cb: (...args: unknown[]) => void, init: unknown): unknown;
     createTemplate(markup?: string): T;
     createTextNode(text: string): T;
@@ -55,6 +57,11 @@ export interface IDOM<T extends INode = INode> {
     removeEventListener(eventName: string, subscriber: unknown, publisher?: unknown, options?: unknown): void;
     setAttribute(node: T, name: string, value: unknown): void;
 }
+export declare const DOM: IDOM & {
+    readonly isInitialized: boolean;
+    initialize(dom: IDOM): void;
+    destroy(): void;
+};
 export declare const NodeSequence: {
     empty: INodeSequence<INode>;
 };

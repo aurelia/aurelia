@@ -5611,6 +5611,74 @@ function $lockedUnbind(flags) {
 const INode = DI.createInterface('INode').noDefault();
 const IRenderLocation = DI.createInterface('IRenderLocation').noDefault();
 const IDOM = DI.createInterface('IDOM').noDefault();
+const ni = function (...args) {
+    throw Reporter.error(1000); // TODO: create error code (not implemented exception)
+    // tslint:disable-next-line:no-any // this function doesn't need typing because it is never directly called
+};
+const niDOM = {
+    addEventListener: ni,
+    appendChild: ni,
+    cloneNode: ni,
+    convertToRenderLocation: ni,
+    createDocumentFragment: ni,
+    createElement: ni,
+    createCustomEvent: ni,
+    dispatchEvent: ni,
+    createNodeObserver: ni,
+    createTemplate: ni,
+    createTextNode: ni,
+    insertBefore: ni,
+    isMarker: ni,
+    isNodeInstance: ni,
+    isRenderLocation: ni,
+    makeTarget: ni,
+    registerElementResolver: ni,
+    remove: ni,
+    removeEventListener: ni,
+    setAttribute: ni
+};
+const DOM = Object.assign({}, niDOM, { get isInitialized() {
+        return Reflect.get(this, '$initialized') === true;
+    },
+    initialize(dom) {
+        if (this.isInitialized) {
+            throw Reporter.error(1001); // TODO: create error code (already initialized, check isInitialized property and call destroy() if you want to assign a different dom)
+        }
+        const descriptors = {};
+        const protos = [dom];
+        let proto = Object.getPrototypeOf(dom);
+        while (proto && proto !== Object.prototype) {
+            protos.unshift(proto);
+            proto = Object.getPrototypeOf(proto);
+        }
+        for (proto of protos) {
+            Object.assign(descriptors, Object.getOwnPropertyDescriptors(proto));
+        }
+        const keys = [];
+        let key;
+        let descriptor;
+        for (key in descriptors) {
+            descriptor = descriptors[key];
+            if (descriptor.configurable && descriptor.writable) {
+                Reflect.defineProperty(this, key, descriptor);
+                keys.push(key);
+            }
+        }
+        Reflect.set(this, '$domKeys', keys);
+        Reflect.set(this, '$initialized', true);
+    },
+    destroy() {
+        if (!this.isInitialized) {
+            throw Reporter.error(1002); // TODO: create error code (already destroyed)
+        }
+        const keys = Reflect.get(this, '$domKeys');
+        keys.forEach(key => {
+            Reflect.deleteProperty(this, key);
+        });
+        Object.assign(this, niDOM);
+        Reflect.set(this, '$domKeys', PLATFORM.emptyArray);
+        Reflect.set(this, '$initialized', false);
+    } });
 // This is an implementation of INodeSequence that represents "no DOM" to render.
 // It's used in various places to avoid null and to encode
 // the explicit idea of "no view".
@@ -7566,5 +7634,5 @@ class LetBindingInstruction {
     }
 }
 
-export { CallFunction, connects, observes, callsFunction, hasAncestor, isAssignable, isLeftHandSide, isPrimary, isResource, hasBind, hasUnbind, isLiteral, arePureLiterals, isPureLiteral, BindingBehavior, ValueConverter, Assign, Conditional, AccessThis, AccessScope, AccessMember, AccessKeyed, CallScope, CallMember, Binary, Unary, PrimitiveLiteral, HtmlLiteral, ArrayLiteral, ObjectLiteral, Template, TaggedTemplate, ArrayBindingPattern, ObjectBindingPattern, BindingIdentifier, ForOfStatement, Interpolation, Binding, Call, connectable, IExpressionParser, BindingType, MultiInterpolationBinding, InterpolationBinding, LetBinding, Ref, ArrayObserver, enableArrayObservation, disableArrayObservation, MapObserver, enableMapObservation, disableMapObservation, SetObserver, enableSetObservation, disableSetObservation, BindingContext, Scope, OverrideContext, collectionObserver, CollectionLengthObserver, computed, CustomSetterObserver, GetterObserver, IDirtyChecker, DirtyCheckProperty, DirtyCheckSettings, IObserverLocator, ITargetObserverLocator, ITargetAccessorLocator, getCollectionObserver, PrimitiveObserver, PropertyAccessor, propertyObserver, ProxyObserver, SelfObserver, SetterObserver, ISignaler, subscriberCollection, batchedSubscriberCollection, targetObserver, bindingBehavior, BindingBehaviorResource, BindingModeBehavior, OneTimeBindingBehavior, ToViewBindingBehavior, FromViewBindingBehavior, TwoWayBindingBehavior, DebounceBindingBehavior, SignalBindingBehavior, ThrottleBindingBehavior, customAttribute, CustomAttributeResource, dynamicOptions, templateController, If, Else, Repeat, Replaceable, With, containerless, customElement, CustomElementResource, IProjectorLocator, useShadowDOM, valueConverter, ValueConverterResource, ISanitizer, SanitizeValueConverter, bindable, Aurelia, IDOMInitializer, IfRegistration, ElseRegistration, RepeatRegistration, ReplaceableRegistration, WithRegistration, SanitizeValueConverterRegistration, DebounceBindingBehaviorRegistration, OneTimeBindingBehaviorRegistration, ToViewBindingBehaviorRegistration, FromViewBindingBehaviorRegistration, SignalBindingBehaviorRegistration, ThrottleBindingBehaviorRegistration, TwoWayBindingBehaviorRegistration, DefaultResources as BasicResources, IObserverLocatorRegistration as ObserverLocatorRegistration, ILifecycleRegistration as LifecycleRegistration, IRendererRegistration as RendererRegistration, RuntimeBasicConfiguration as BasicConfiguration, buildTemplateDefinition, isTargetedInstruction, ITargetedInstruction, TargetedInstructionType, INode, IRenderLocation, IDOM, NodeSequence, BindingMode, ExpressionKind, Hooks, LifecycleFlags, State, stringifyLifecycleFlags, CallBindingInstruction, FromViewBindingInstruction, HydrateAttributeInstruction, HydrateElementInstruction, HydrateTemplateController, InterpolationInstruction, IteratorBindingInstruction, LetBindingInstruction, LetElementInstruction, OneTimeBindingInstruction, RefBindingInstruction, SetPropertyInstruction, ToViewBindingInstruction, TwoWayBindingInstruction, AggregateLifecycleTask, CompositionCoordinator, ILifecycle, IRenderable, IViewFactory, LifecycleTask, PromiseTask, CollectionKind, DelegationStrategy, MutationKind, instructionRenderer, ensureExpression, addComponent, addBinding, CompiledTemplate, createRenderContext, IInstructionRenderer, IRenderer, IRenderingEngine, ITemplateCompiler, ITemplateFactory, ViewCompileFlags };
+export { CallFunction, connects, observes, callsFunction, hasAncestor, isAssignable, isLeftHandSide, isPrimary, isResource, hasBind, hasUnbind, isLiteral, arePureLiterals, isPureLiteral, BindingBehavior, ValueConverter, Assign, Conditional, AccessThis, AccessScope, AccessMember, AccessKeyed, CallScope, CallMember, Binary, Unary, PrimitiveLiteral, HtmlLiteral, ArrayLiteral, ObjectLiteral, Template, TaggedTemplate, ArrayBindingPattern, ObjectBindingPattern, BindingIdentifier, ForOfStatement, Interpolation, Binding, Call, connectable, IExpressionParser, BindingType, MultiInterpolationBinding, InterpolationBinding, LetBinding, Ref, ArrayObserver, enableArrayObservation, disableArrayObservation, MapObserver, enableMapObservation, disableMapObservation, SetObserver, enableSetObservation, disableSetObservation, BindingContext, Scope, OverrideContext, collectionObserver, CollectionLengthObserver, computed, CustomSetterObserver, GetterObserver, IDirtyChecker, DirtyCheckProperty, DirtyCheckSettings, IObserverLocator, ITargetObserverLocator, ITargetAccessorLocator, getCollectionObserver, PrimitiveObserver, PropertyAccessor, propertyObserver, ProxyObserver, SelfObserver, SetterObserver, ISignaler, subscriberCollection, batchedSubscriberCollection, targetObserver, bindingBehavior, BindingBehaviorResource, BindingModeBehavior, OneTimeBindingBehavior, ToViewBindingBehavior, FromViewBindingBehavior, TwoWayBindingBehavior, DebounceBindingBehavior, SignalBindingBehavior, ThrottleBindingBehavior, customAttribute, CustomAttributeResource, dynamicOptions, templateController, If, Else, Repeat, Replaceable, With, containerless, customElement, CustomElementResource, IProjectorLocator, useShadowDOM, valueConverter, ValueConverterResource, ISanitizer, SanitizeValueConverter, bindable, Aurelia, IDOMInitializer, IfRegistration, ElseRegistration, RepeatRegistration, ReplaceableRegistration, WithRegistration, SanitizeValueConverterRegistration, DebounceBindingBehaviorRegistration, OneTimeBindingBehaviorRegistration, ToViewBindingBehaviorRegistration, FromViewBindingBehaviorRegistration, SignalBindingBehaviorRegistration, ThrottleBindingBehaviorRegistration, TwoWayBindingBehaviorRegistration, DefaultResources as BasicResources, IObserverLocatorRegistration as ObserverLocatorRegistration, ILifecycleRegistration as LifecycleRegistration, IRendererRegistration as RendererRegistration, RuntimeBasicConfiguration as BasicConfiguration, buildTemplateDefinition, isTargetedInstruction, ITargetedInstruction, TargetedInstructionType, DOM, INode, IRenderLocation, IDOM, NodeSequence, BindingMode, ExpressionKind, Hooks, LifecycleFlags, State, stringifyLifecycleFlags, CallBindingInstruction, FromViewBindingInstruction, HydrateAttributeInstruction, HydrateElementInstruction, HydrateTemplateController, InterpolationInstruction, IteratorBindingInstruction, LetBindingInstruction, LetElementInstruction, OneTimeBindingInstruction, RefBindingInstruction, SetPropertyInstruction, ToViewBindingInstruction, TwoWayBindingInstruction, AggregateLifecycleTask, CompositionCoordinator, ILifecycle, IRenderable, IViewFactory, LifecycleTask, PromiseTask, CollectionKind, DelegationStrategy, MutationKind, instructionRenderer, ensureExpression, addComponent, addBinding, CompiledTemplate, createRenderContext, IInstructionRenderer, IRenderer, IRenderingEngine, ITemplateCompiler, ITemplateFactory, ViewCompileFlags };
 //# sourceMappingURL=index.es6.js.map

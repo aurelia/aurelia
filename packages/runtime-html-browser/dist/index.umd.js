@@ -21,14 +21,14 @@
                   dom = config.dom;
               }
               else if (config.host.ownerDocument !== null) {
-                  dom = new runtimeHtml.HTMLDOM(window, config.host.ownerDocument, Node, Element, HTMLElement);
+                  dom = new runtimeHtml.HTMLDOM(window, config.host.ownerDocument, Node, Element, HTMLElement, CustomEvent);
               }
               else {
-                  dom = new runtimeHtml.HTMLDOM(window, document, Node, Element, HTMLElement);
+                  dom = new runtimeHtml.HTMLDOM(window, document, Node, Element, HTMLElement, CustomEvent);
               }
           }
           else {
-              dom = new runtimeHtml.HTMLDOM(window, document, Node, Element, HTMLElement);
+              dom = new runtimeHtml.HTMLDOM(window, document, Node, Element, HTMLElement, CustomEvent);
           }
           kernel.Registration.instance(runtime.IDOM, dom).register(this.container);
           return dom;

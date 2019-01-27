@@ -32,14 +32,14 @@ System.register('runtimeHtmlBrowser', ['@aurelia/kernel', '@aurelia/runtime', '@
                       dom = config.dom;
                   }
                   else if (config.host.ownerDocument !== null) {
-                      dom = new HTMLDOM(window, config.host.ownerDocument, Node, Element, HTMLElement);
+                      dom = new HTMLDOM(window, config.host.ownerDocument, Node, Element, HTMLElement, CustomEvent);
                   }
                   else {
-                      dom = new HTMLDOM(window, document, Node, Element, HTMLElement);
+                      dom = new HTMLDOM(window, document, Node, Element, HTMLElement, CustomEvent);
                   }
               }
               else {
-                  dom = new HTMLDOM(window, document, Node, Element, HTMLElement);
+                  dom = new HTMLDOM(window, document, Node, Element, HTMLElement, CustomEvent);
               }
               Registration.instance(IDOM, dom).register(this.container);
               return dom;

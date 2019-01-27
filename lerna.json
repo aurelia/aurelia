@@ -3,12 +3,12 @@
   "packages": [
     "packages/aot",
     "packages/debug",
+    "packages/fetch-client",
     "packages/jit",
     "packages/jit-html",
     "packages/jit-html-browser",
     "packages/jit-html-jsdom",
     "packages/jit-pixi",
-    "packages/plugin-fetch-client",
     "packages/kernel",
     "packages/plugin-parcel",
     "packages/plugin-requirejs",

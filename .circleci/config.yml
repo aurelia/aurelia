@@ -421,7 +421,7 @@ workflows:
     triggers:
       - schedule:
           <<: *filter_only_master
-          cron: "05 22 * * *"
+          cron: "0 5 * * *"
     jobs:
       # this merge_and_dist is only to ensure the correct version in develop branch
       - merge_and_dist:

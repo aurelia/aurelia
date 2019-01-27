@@ -1,6 +1,5 @@
 import {
   Constructable,
-  DI,
   IContainer,
   IResolver,
   PLATFORM,
@@ -47,27 +46,36 @@ export class HTMLDOM implements IDOM {
   public readonly Element: typeof Element;
   public readonly HTMLElement: typeof HTMLElement;
   public readonly CustomEvent: typeof CustomEvent;
-  private readonly wnd: Window;
-  private readonly doc: Document;
+  public readonly window: Window;
+  public readonly document: Document;
 
   constructor(
-    wnd: Window,
-    doc: Document,
+    window: Window,
+    document: Document,
     TNode: typeof Node,
     TElement: typeof Element,
     THTMLElement: typeof HTMLElement,
     TCustomEvent: typeof CustomEvent
   ) {
-    this.wnd = wnd;
-    this.doc = doc;
+    this.window = window;
+    this.document = document;
     this.Node = TNode;
     this.Element = TElement;
     this.HTMLElement = THTMLElement;
     this.CustomEvent = TCustomEvent;
+    if (DOM.isInitialized) {
+      Reporter.write(1001); // TODO: create reporters code // DOM already initialized (just info)
+      DOM.destroy();
+    }
+    DOM.initialize(this);
+  }
+
+  public static register(container: IContainer): IResolver<HTMLDOM> {
+    return Registration.alias(IDOM, this).register(container);
   }
 
   public addEventListener(eventName: string, subscriber: EventListenerOrEventListenerObject, publisher?: Node, options?: boolean | AddEventListenerOptions): void {
-    (publisher || this.doc).addEventListener(eventName, subscriber, options);
+    (publisher || this.document).addEventListener(eventName, subscriber, options);
   }
 
   public appendChild(parent: Node, child: Node): void {
@@ -87,8 +95,8 @@ export class HTMLDOM implements IDOM {
       throw Reporter.error(52);
     }
 
-    const locationEnd = this.doc.createComment('au-end');
-    const locationStart = this.doc.createComment('au-start');
+    const locationEnd = this.document.createComment('au-end');
+    const locationStart = this.document.createComment('au-start');
 
     node.parentNode.replaceChild(locationEnd, node);
 
@@ -102,7 +110,7 @@ export class HTMLDOM implements IDOM {
 
   public createDocumentFragment(markupOrNode?: string | Node): DocumentFragment {
     if (markupOrNode === undefined || markupOrNode === null) {
-      return this.doc.createDocumentFragment();
+      return this.document.createDocumentFragment();
     }
 
     if (this.isNodeInstance(markupOrNode)) {
@@ -110,7 +118,7 @@ export class HTMLDOM implements IDOM {
         return (markupOrNode as HTMLTemplateElement).content;
       }
 
-      const fragment = this.doc.createDocumentFragment();
+      const fragment = this.document.createDocumentFragment();
       fragment.appendChild(markupOrNode);
       return fragment;
     }
@@ -119,15 +127,20 @@ export class HTMLDOM implements IDOM {
   }
 
   public createElement(name: string): HTMLElement {
-    return this.doc.createElement(name);
+    return this.document.createElement(name);
   }
 
+  public fetch(input: RequestInfo, init?: RequestInit): Promise<Response> {
+    return this.window.fetch(input, init);
+  }
+
+  // tslint:disable-next-line:no-any // this is how the DOM is typed
   public createCustomEvent<T = any>(eventType: string, options?: CustomEventInit<T>): CustomEvent<T> {
     return new this.CustomEvent(eventType, options);
   }
 
-  public dispatchEvent(evt): void {
-    this.doc.dispatchEvent(evt);
+  public dispatchEvent(evt: Event): void {
+    this.document.dispatchEvent(evt);
   }
 
   public createNodeObserver(node: Node, cb: MutationCallback, init: MutationObserverInit): MutationObserver {
@@ -147,16 +160,16 @@ export class HTMLDOM implements IDOM {
 
   public createTemplate(markup?: unknown): HTMLTemplateElement {
     if (markup === undefined || markup === null) {
-      return this.doc.createElement('template');
+      return this.document.createElement('template');
     }
 
-    const template = this.doc.createElement('template');
+    const template = this.document.createElement('template');
     template.innerHTML = (markup as string | object).toString();
 
     return template;
   }
   public createTextNode(text: string): Text {
-    return this.doc.createTextNode(text);
+    return this.document.createTextNode(text);
   }
 
   public insertBefore(nodeToInsert: Node, referenceNode: Node): void {
@@ -195,13 +208,16 @@ export class HTMLDOM implements IDOM {
   }
 
   public removeEventListener(eventName: string, subscriber: EventListenerOrEventListenerObject, publisher?: Node, options?: boolean | EventListenerOptions): void {
-    (publisher || this.doc).removeEventListener(eventName, subscriber, options);
+    (publisher || this.document).removeEventListener(eventName, subscriber, options);
   }
 
   public setAttribute(node: Element, name: string, value: unknown): void {
     node.setAttribute(name, value as string);
   }
 }
+
+const $DOM = DOM as unknown as HTMLDOM;
+export { $DOM as DOM };
 
 /**
  * A specialized INodeSequence with optimizations for text (interpolation) bindings

@@ -253,7 +253,7 @@ export class HTMLTestContext {
     this.Comment = CommentType;
     this.doc = wnd.document;
     this.domParser = this.doc.createElement('div');
-    this.dom = new HTMLDOM(this.wnd, this.doc, NodeType, ElementType, HTMLElementType);
+    this.dom = new HTMLDOM(this.wnd, this.doc, NodeType, ElementType, HTMLElementType, CustomEventType);
     this._container = null;
     this._observerLocator = null;
     this._lifecycle = null;

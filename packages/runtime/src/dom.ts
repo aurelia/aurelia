@@ -1,8 +1,6 @@
-import { DI, IContainer, IResolver, PLATFORM } from '@aurelia/kernel';
+import { DI, IContainer, IResolver, PLATFORM, Reporter, Class } from '@aurelia/kernel';
 
 export interface INode extends Object { }
-
-export const DOM: IDOM = {} as IDOM;
 
 export const INode = DI.createInterface<INode>('INode').noDefault();
 
@@ -55,8 +53,9 @@ export interface IDOM<T extends INode = INode> {
   convertToRenderLocation(node: T): IRenderLocation<T>;
   createDocumentFragment(markupOrNode?: string | T): T;
   createElement(name: string): T;
-  createCustomEvent<T = any>(eventType: string, options?: CustomEventInit<T>): CustomEvent<T>;
-  dispatchEvent(evt): void;
+  // tslint:disable-next-line:no-any // this is how the DOM is typed
+  createCustomEvent<TDetail = any>(eventType: string, options?: CustomEventInit<TDetail>): CustomEvent<TDetail>;
+  dispatchEvent(evt: Event): void;
   createNodeObserver?(node: T, cb: (...args: unknown[]) => void, init: unknown): unknown;
   createTemplate(markup?: string): T;
   createTextNode(text: string): T;
@@ -70,6 +69,84 @@ export interface IDOM<T extends INode = INode> {
   removeEventListener(eventName: string, subscriber: unknown, publisher?: unknown, options?: unknown): void;
   setAttribute(node: T, name: string, value: unknown): void;
 }
+
+const ni = function(...args: unknown[]): unknown {
+  throw Reporter.error(1000); // TODO: create error code (not implemented exception)
+  // tslint:disable-next-line:no-any // this function doesn't need typing because it is never directly called
+} as any;
+
+const niDOM: IDOM = {
+  addEventListener: ni,
+  appendChild: ni,
+  cloneNode: ni,
+  convertToRenderLocation: ni,
+  createDocumentFragment: ni,
+  createElement: ni,
+  createCustomEvent: ni,
+  dispatchEvent: ni,
+  createNodeObserver: ni,
+  createTemplate: ni,
+  createTextNode: ni,
+  insertBefore: ni,
+  isMarker: ni,
+  isNodeInstance: ni,
+  isRenderLocation: ni,
+  makeTarget: ni,
+  registerElementResolver: ni,
+  remove: ni,
+  removeEventListener: ni,
+  setAttribute: ni
+};
+
+export const DOM: IDOM & {
+  readonly isInitialized: boolean;
+  initialize(dom: IDOM): void;
+  destroy(): void;
+} = {
+  ...niDOM,
+  get isInitialized(): boolean {
+    return Reflect.get(this, '$initialized') === true;
+  },
+  initialize(dom: IDOM): void {
+    if (this.isInitialized) {
+      throw Reporter.error(1001); // TODO: create error code (already initialized, check isInitialized property and call destroy() if you want to assign a different dom)
+    }
+    const descriptors: PropertyDescriptorMap = {};
+    const protos: IDOM[] = [dom];
+    let proto = Object.getPrototypeOf(dom);
+    while (proto && proto !== Object.prototype) {
+      protos.unshift(proto);
+      proto = Object.getPrototypeOf(proto);
+    }
+    for (proto of protos) {
+      Object.assign(descriptors, Object.getOwnPropertyDescriptors(proto));
+    }
+    const keys: string[] = [];
+    let key: string;
+    let descriptor: PropertyDescriptor;
+    for (key in descriptors) {
+      descriptor = descriptors[key];
+      if (descriptor.configurable && descriptor.writable) {
+        Reflect.defineProperty(this, key, descriptor);
+        keys.push(key);
+      }
+    }
+    Reflect.set(this, '$domKeys', keys);
+    Reflect.set(this, '$initialized', true);
+  },
+  destroy(): void {
+    if (!this.isInitialized) {
+      throw Reporter.error(1002); // TODO: create error code (already destroyed)
+    }
+    const keys = Reflect.get(this, '$domKeys') as string[];
+    keys.forEach(key => {
+      Reflect.deleteProperty(this, key);
+    });
+    Object.assign(this, niDOM);
+    Reflect.set(this, '$domKeys', PLATFORM.emptyArray);
+    Reflect.set(this, '$initialized', false);
+  }
+};
 
 // This is an implementation of INodeSequence that represents "no DOM" to render.
 // It's used in various places to avoid null and to encode

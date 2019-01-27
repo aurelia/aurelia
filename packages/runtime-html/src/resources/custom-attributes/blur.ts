@@ -1,5 +1,5 @@
-import { IRegistry, IContainer, Registration, Writable } from '@aurelia/kernel';
-import { AttributeDefinition, bindable, BindingMode, CustomAttributeResource, IAttributeDefinition, ICustomAttribute, ICustomAttributeResource, INode, State } from '@aurelia/runtime';
+import { IContainer, IRegistry, Registration, PLATFORM } from '@aurelia/kernel';
+import { AttributeDefinition, bindable, BindingMode, CustomAttributeResource, IAttributeDefinition, ICustomAttributeResource, INode, IBindableDescription } from '@aurelia/runtime';
 import { addListener, removeListener } from './utils';
 
 // tslint:disable
@@ -8,7 +8,7 @@ let useMouse = false;
 // let usePointer = false;
 // let useFocus = false;
 
-export interface BlurConfig {
+export interface BlurListenerConfig {
   touch?: boolean;
   mouse?: boolean;
   pointer?: boolean;
@@ -37,7 +37,7 @@ const defaultBubbleEventInit: AddEventListenerOptions = {
 export class BlurCustomAttribute {
 
   public static register: IRegistry['register'];
-  public static readonly bindables: IAttributeDefinition['bindables'];
+  public static bindables: IAttributeDefinition['bindables'];
   public static readonly kind: ICustomAttributeResource;
   public static readonly description: AttributeDefinition;
 
@@ -77,7 +77,7 @@ export class BlurCustomAttribute {
     }
   }
 
-  public static use(cfg: BlurConfig): void {
+  public static use(cfg: BlurListenerConfig): void {
     const blurListeners = BlurCustomAttribute.listen;
     for (const prop in cfg) {
       if (prop in blurListeners) {
@@ -135,8 +135,8 @@ export class BlurCustomAttribute {
     if (!this.value) {
       return false;
     }
-    let els;
-    let el;
+    let els: ArrayLike<Element>;
+    let el: string | Element | { contains(el: Element): boolean };
     let i: number, ii: number;
     let j: number, jj: number;
     let links: string | Element | (string | Element)[];
@@ -150,10 +150,17 @@ export class BlurCustomAttribute {
       return false;
     }
 
-    const { linkedWith, linkingContext } = this;
+    const doc = document;
+    const linkedWith = this.linkedWith;
+    const linkingContext = this.linkingContext;
 
     links = Array.isArray(linkedWith) ? linkedWith : [linkedWith];
-    contextNode = (typeof linkingContext === 'string' ? document.querySelector(linkingContext) : linkingContext) || document.body;
+    contextNode = (typeof linkingContext === 'string'
+        ? doc.querySelector(linkingContext)
+        : linkingContext
+      )
+      || document.body;
+
     for (i = 0, ii = links.length; i < ii; ++i) {
       el = links[i];
       // When user specify to link with something by a string, it acts as a CSS selector
@@ -174,7 +181,7 @@ export class BlurCustomAttribute {
           // that usually generate contents to document body
           els = contextNode!.children;
           for (j = 0, jj = els.length; j < jj; ++j) {
-            if (els[j].matches(el)) {
+            if ((els as Element[])[j].matches(el)) {
               return true;
             }
           }
@@ -213,7 +220,10 @@ BlurCustomAttribute.register = function(container: IContainer): void {
 }
 
 bindable({ mode: BindingMode.twoWay })(BlurCustomAttribute, 'value');
-['onBlur', 'linkedWith', 'linkMultiple', 'searchSubTree'].forEach(prop => bindable(prop)(BlurCustomAttribute));
+BlurCustomAttribute.bindables = ['onBlur', 'linkedWith', 'linkMultiple', 'searchSubTree'].reduce((bindables, prop) => {
+  bindables[prop] = { property: prop, attribute: PLATFORM.kebabCase(prop) };
+  return bindables;
+}, {} as Record<string, IBindableDescription>);
 
 /*******************************
  * EVENTS ORDER

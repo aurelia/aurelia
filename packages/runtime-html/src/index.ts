@@ -68,6 +68,11 @@ export {
 } from './resources/custom-elements/compose';
 
 export {
+  BlurCustomAttribute,
+  BlurListenerConfig
+} from './resources/custom-attributes/blur';
+
+export {
   IProjectorLocatorRegistration,
   ITargetAccessorLocatorRegistration,
   ITargetObserverLocatorRegistration,

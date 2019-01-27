@@ -421,7 +421,7 @@ workflows:
     triggers:
       - schedule:
           <<: *filter_only_master
-          cron: "30 18 * * *"
+          cron: "45 18 * * *"
     jobs:
       # this merge_and_dist is only to ensure the correct version in develop branch
       - merge_and_dist:
@@ -431,6 +431,8 @@ workflows:
       - publish_npm:
           channel: dev
           branch: develop
+          requires:
+            - merge_and_dist
       # verify the dev packages after publishing them
       - e2e_wdio:
           name: jit-aurelia-cli-ts

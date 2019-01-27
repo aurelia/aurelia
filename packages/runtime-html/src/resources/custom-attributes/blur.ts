@@ -1,4 +1,4 @@
-import { IContainer, IRegistry, Registration, PLATFORM } from '@aurelia/kernel';
+import { IContainer, IRegistry, PLATFORM } from '@aurelia/kernel';
 import { AttributeDefinition, bindable, BindingMode, CustomAttributeResource, IAttributeDefinition, ICustomAttributeResource, INode, IBindableDescription } from '@aurelia/runtime';
 import { addListener, removeListener } from './utils';
 
@@ -255,7 +255,7 @@ function unregister(attr: BlurCustomAttribute): void {
 }
 
 let alreadyChecked = false;
-let cleanCheckTimeout: number = 0;
+let cleanCheckTimeout: unknown = 0;
 function revertAlreadyChecked() {
   alreadyChecked = false;
   cleanCheckTimeout = 0;

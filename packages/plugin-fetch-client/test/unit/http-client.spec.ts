@@ -1,49 +1,47 @@
 import { PLATFORM } from '@aurelia/kernel';
+import { expect } from 'chai';
+import { match, SinonSpy, SinonStub, spy, stub } from 'sinon';
 import { HttpClient } from '../../src/http-client';
 import { HttpClientConfiguration } from '../../src/http-client-configuration';
 import { Interceptor } from '../../src/interfaces';
 import { retryStrategy } from '../../src/retry-interceptor';
 import { json } from '../../src/util';
 
-describe('HttpClient', () => {
-  let originalFetch = window.fetch;
+describe('HttpClient', function() {
+  const originalFetch = window.fetch;
   let client;
-  let fetch: jasmine.Spy;
+  let fetch: SinonStub;
 
-  function setUpTests() {
-    beforeEach(() => {
-      client = new HttpClient();
-      fetch = window.fetch = jasmine.createSpy('fetch');
-    });
-
-    afterEach(() => {
-      fetch = window.fetch = originalFetch as any;
-    });
-  }
-
-  setUpTests();
-
-  it('errors on missing fetch implementation', () => {
-    window.fetch = undefined;
-    expect(() => new HttpClient()).toThrow();
+  beforeEach(function() {
+    client = new HttpClient();
+    fetch = window.fetch = stub();
   });
 
-  describe('configure', () => {
-    it('accepts plain objects', () => {
-      let defaults = {};
+  afterEach(function() {
+    fetch = window.fetch = originalFetch as any;
+  });
+
+  it('errors on missing fetch implementation', function() {
+    window.fetch = undefined;
+    expect(() => new HttpClient()).to.throw();
+  });
+
+  describe('configure', function() {
+    it('accepts plain objects', function() {
+      const defaults = {};
       client.configure(defaults);
 
-      expect(client.isConfigured).toBe(true);
-      expect(client.defaults).toBe(defaults);
+      expect(client.isConfigured).to.equal(true);
+      expect(client.defaults).to.equal(defaults);
     });
 
-    it('accepts configuration callbacks', () => {
-      let defaults = { foo: true };
-      let baseUrl = '/test';
-      let interceptor = {};
+    it('accepts configuration callbacks', function() {
+      const defaults = { foo: true };
+      const baseUrl = '/test';
+      const interceptor = {};
 
       client.configure(config => {
-        expect(config).toEqual(jasmine.any(HttpClientConfiguration));
+        expect(config).to.be.instanceof(HttpClientConfiguration);
 
         return config
           .withDefaults(defaults)
@@ -51,61 +49,60 @@ describe('HttpClient', () => {
           .withInterceptor(interceptor);
       });
 
-      expect(client.isConfigured).toBe(true);
-      expect(client.defaults.foo).toBe(true);
-      expect(client.baseUrl).toBe(baseUrl);
-      expect(client.interceptors.indexOf(interceptor)).toBe(0);
+      expect(client.isConfigured).to.equal(true);
+      expect(client.defaults.foo).to.equal(true);
+      expect(client.baseUrl).to.equal(baseUrl);
+      expect(client.interceptors.indexOf(interceptor)).to.equal(0);
     });
 
-    it('accepts configuration override', () => {
-      let defaults = { foo: true };
+    it('accepts configuration override', function() {
+      const defaults = { foo: true };
 
       client.configure(config => config.withDefaults(defaults));
 
-
       client.configure(config => {
-        expect(config.defaults.foo).toBe(true);
+        expect(config.defaults.foo).to.equal(true);
       });
     });
 
-    it('rejects invalid configs', () => {
-      expect(() => client.configure(1)).toThrow();
+    it('rejects invalid configs', function() {
+      expect(() => client.configure(1)).to.throw();
     });
 
-    it('applies standard configuration', () => {
+    it('applies standard configuration', function() {
       client.configure(config => config.useStandardConfiguration());
 
-      expect(client.defaults.credentials).toBe('same-origin');
-      expect(client.interceptors.length).toBe(1);
+      expect(client.defaults.credentials).to.equal('same-origin');
+      expect(client.interceptors.length).to.equal(1);
     });
 
-    it('rejects error responses', () => {
+    it('rejects error responses', function() {
       client.configure(config => config.rejectErrorResponses());
 
-      expect(client.interceptors.length).toBe(1);
+      expect(client.interceptors.length).to.equal(1);
     });
   });
 
-  describe('fetch', () => {
-    it('makes requests with string inputs', (done) => {
-      fetch.and.returnValue(emptyResponse(200));
+  describe('fetch', function() {
+    it('makes requests with string inputs', function(done) {
+      fetch.returns(emptyResponse(200));
 
       client
         .fetch('http://example.com/some/cool/path')
         .then(result => {
-          expect(result.ok).toBe(true);
+          expect(result.ok).to.equal(true);
         })
         .catch(result => {
-          expect(result).not.toBe(result);
+          expect(result).not.to.equal(result);
         })
         .then(() => {
-          expect(fetch).toHaveBeenCalled();
+          expect(fetch).to.have.callCount(1);
           done();
         });
     });
 
-    it('makes proper requests with json() inputs', (done) => {
-      fetch.and.returnValue(emptyResponse(200));
+    it('makes proper requests with json() inputs', function(done) {
+      fetch.returns(emptyResponse(200));
 
       client
         .fetch('http://example.com/some/cool/path', {
@@ -113,22 +110,22 @@ describe('HttpClient', () => {
           body: json({ test: 'object' })
         })
         .then(result => {
-          expect(result.ok).toBe(true);
+          expect(result.ok).to.equal(true);
         })
         .catch(result => {
-          expect(result).not.toBe(result);
+          expect(result).not.to.equal(result);
         })
         .then(() => {
-          expect(fetch).toHaveBeenCalled();
-          let [request] = fetch.calls.first().args;
-          expect(request.headers.has('content-type')).toBe(true);
-          expect(request.headers.get('content-type')).toMatch(/application\/json/);
+          expect(fetch).to.have.callCount(1);
+          const [request] = fetch.getCall(1).args;
+          expect(request.headers.has('content-type')).to.equal(true);
+          expect(request.headers.get('content-type')).to.match(/application\/json/);
           done();
         });
     });
 
-    it('makes proper requests with JSON.stringify inputs', (done) => {
-      fetch.and.returnValue(emptyResponse(200));
+    it('makes proper requests with JSON.stringify inputs', function(done) {
+      fetch.returns(emptyResponse(200));
 
       client
         .fetch('http://example.com/some/cool/path', {
@@ -136,74 +133,74 @@ describe('HttpClient', () => {
           body: JSON.stringify({ test: 'object' })
         })
         .then(result => {
-          expect(result.ok).toBe(true);
+          expect(result.ok).to.equal(true);
         })
         .catch(result => {
-          expect(result).not.toBe(result);
+          expect(result).not.to.equal(result);
         })
         .then(() => {
-          expect(fetch).toHaveBeenCalled();
-          let [request] = fetch.calls.first().args;
-          expect(request.headers.has('content-type')).toBe(true);
-          expect(request.headers.get('content-type')).toMatch(/application\/json/);
+          expect(fetch).to.have.callCount(1);
+          const [request] = fetch.getCall(1).args;
+          expect(request.headers.has('content-type')).to.equal(true);
+          expect(request.headers.get('content-type')).to.match(/application\/json/);
           done();
         });
     });
 
-    it('makes requests with null RequestInit', (done) => {
-      fetch.and.returnValue(emptyResponse(200));
+    it('makes requests with null RequestInit', function(done) {
+      fetch.returns(emptyResponse(200));
 
       client
         .fetch('http://example.com/some/cool/path', null)
         .then(result => {
-          expect(result.ok).toBe(true);
+          expect(result.ok).to.equal(true);
         })
         .catch(result => {
-          expect(result).not.toBe(result);
+          expect(result).not.to.equal(result);
         })
         .then(() => {
-          expect(fetch).toHaveBeenCalled();
+          expect(fetch).to.have.callCount(1);
           done();
         });
     });
 
-    it('makes requests with Request inputs', (done) => {
-      fetch.and.returnValue(emptyResponse(200));
+    it('makes requests with Request inputs', function(done) {
+      fetch.returns(emptyResponse(200));
 
       client
         .fetch(new Request('http://example.com/some/cool/path'))
         .then(result => {
-          expect(result.ok).toBe(true);
+          expect(result.ok).to.equal(true);
         })
         .catch(result => {
-          expect(result).not.toBe(result);
+          expect(result).not.to.equal(result);
         })
         .then(() => {
-          expect(fetch).toHaveBeenCalled();
+          expect(fetch).to.have.callCount(1);
           done();
         });
     });
 
-    it('makes requests with Request inputs when configured', (done) => {
-      fetch.and.returnValue(emptyResponse(200));
+    it('makes requests with Request inputs when configured', function(done) {
+      fetch.returns(emptyResponse(200));
 
       client.configure(config => config.withBaseUrl('http://example.com/'));
 
       client
         .fetch(new Request('some/cool/path'))
         .then(result => {
-          expect(result.ok).toBe(true);
+          expect(result.ok).to.equal(true);
         })
         .catch(result => {
-          expect(result).not.toBe(result);
+          expect(result).not.to.equal(result);
         })
         .then(() => {
-          expect(fetch).toHaveBeenCalled();
+          expect(fetch).to.have.callCount(1);
           done();
         });
     });
 
-    it('makes request and aborts with an AbortController signal', (done) => {
+    it('makes request and aborts with an AbortController signal', function(done) {
       fetch = window.fetch = originalFetch as any;
 
       const controller = new AbortController();
@@ -211,11 +208,11 @@ describe('HttpClient', () => {
       client
         .fetch('http://jsonplaceholder.typicode.com/users', { signal: controller.signal })
         .then(result => {
-          expect(result).not.toBe(result);
+          expect(result).not.to.equal(result);
         })
         .catch(result => {
-          expect(result instanceof Error).toBe(true);
-          expect(result.name).toBe('AbortError');
+          expect(result instanceof Error).to.equal(true);
+          expect(result.name).to.equal('AbortError');
         })
         .then(() => {
           done();
@@ -225,415 +222,413 @@ describe('HttpClient', () => {
     });
   });
 
-  describe('get', () => {
-    it('passes-through to fetch', (done) => {
-      fetch.and.returnValue(emptyResponse(200));
+  describe('get', function() {
+    it('passes-through to fetch', function(done) {
+      fetch.returns(emptyResponse(200));
 
       client
         .get('http://example.com/some/cool/path')
         .then(result => {
-          expect(result.ok).toBe(true);
+          expect(result.ok).to.equal(true);
         })
         .catch(result => {
-          expect(result).not.toBe(result);
+          expect(result).not.to.equal(result);
         })
         .then(() => {
-          expect(fetch).toHaveBeenCalled();
+          expect(fetch).to.have.callCount(1);
           done();
         });
     });
   });
 
-  describe('post', () => {
-    it('sets method to POST and body of request and calls fetch', (done) => {
-      fetch.and.returnValue(emptyResponse(200));
+  describe('post', function() {
+    it('sets method to POST and body of request and calls fetch', function(done) {
+      fetch.returns(emptyResponse(200));
 
       client
         .post('http://example.com/some/cool/path', JSON.stringify({ test: 'object' }))
         .then(result => {
-          expect(result.ok).toBe(true);
+          expect(result.ok).to.equal(true);
         })
         .catch(result => {
-          expect(result).not.toBe(result);
+          expect(result).not.to.equal(result);
         })
         .then(() => {
-          expect(fetch).toHaveBeenCalled();
+          expect(fetch).to.have.callCount(1);
           done();
         });
     });
   });
 
-  describe('put', () => {
-    it('sets method to PUT and body of request and calls fetch', (done) => {
-      fetch.and.returnValue(emptyResponse(200));
+  describe('put', function() {
+    it('sets method to PUT and body of request and calls fetch', function(done) {
+      fetch.returns(emptyResponse(200));
 
       client
         .put('http://example.com/some/cool/path', JSON.stringify({ test: 'object' }))
         .then(result => {
-          expect(result.ok).toBe(true);
+          expect(result.ok).to.equal(true);
         })
         .catch(result => {
-          expect(result).not.toBe(result);
+          expect(result).not.to.equal(result);
         })
         .then(() => {
-          expect(fetch).toHaveBeenCalled();
+          expect(fetch).to.have.callCount(1);
           done();
         });
     });
   });
 
-  describe('patch', () => {
-    it('sets method to PATCH and body of request and calls fetch', (done) => {
-      fetch.and.returnValue(emptyResponse(200));
+  describe('patch', function() {
+    it('sets method to PATCH and body of request and calls fetch', function(done) {
+      fetch.returns(emptyResponse(200));
 
       client
         .patch('http://example.com/some/cool/path', JSON.stringify({ test: 'object' }))
         .then(result => {
-          expect(result.ok).toBe(true);
+          expect(result.ok).to.equal(true);
         })
         .catch(result => {
-          expect(result).not.toBe(result);
+          expect(result).not.to.equal(result);
         })
         .then(() => {
-          expect(fetch).toHaveBeenCalled();
+          expect(fetch).to.have.callCount(1);
           done();
         });
     });
   });
 
-  describe('delete', () => {
-    it('sets method to DELETE and body of request and calls fetch', (done) => {
-      fetch.and.returnValue(emptyResponse(200));
+  describe('delete', function() {
+    it('sets method to DELETE and body of request and calls fetch', function(done) {
+      fetch.returns(emptyResponse(200));
 
       client
         .delete('http://example.com/some/cool/path', JSON.stringify({ test: 'object' }))
         .then(result => {
-          expect(result.ok).toBe(true);
+          expect(result.ok).to.equal(true);
         })
         .catch(result => {
-          expect(result).not.toBe(result);
+          expect(result).not.to.equal(result);
         })
         .then(() => {
-          expect(fetch).toHaveBeenCalled();
+          expect(fetch).to.have.callCount(1);
           done();
         });
     });
   });
 
-  describe('interceptors', () => {
-    setUpTests();
+  describe('interceptors', function() {
 
-    it('run on request', (done) => {
-      fetch.and.returnValue(emptyResponse(200));
-      let interceptor = { request(r) { return r; }, requestError(r) { throw r; } };
-      spyOn(interceptor, 'request').and.callThrough();
-      spyOn(interceptor, 'requestError').and.callThrough();
+    it('run on request', function(done) {
+      fetch.returns(emptyResponse(200));
+      const interceptor = { request(r) { return r; }, requestError(r) { throw r; } };
+      stub(interceptor, 'request').callThrough();
+      stub(interceptor, 'requestError').callThrough();
 
       client.interceptors.push(interceptor);
 
       client.fetch('path')
         .then(() => {
-          expect(interceptor.request).toHaveBeenCalledWith(jasmine.any(Request), client);
-          expect(interceptor.requestError).not.toHaveBeenCalled();
+          expect(interceptor.request).to.have.been.calledWith(match.instanceOf(Request), client);
+          expect(interceptor.requestError).not.to.have.callCount(1);
           done();
         });
     });
 
-    it('run on request error', (done) => {
-      fetch.and.returnValue(emptyResponse(200));
-      let interceptor = { request(r) { return r; }, requestError(r) { throw r; } };
-      spyOn(interceptor, 'request').and.callThrough();
-      spyOn(interceptor, 'requestError').and.callThrough();
+    it('run on request error', function(done) {
+      fetch.returns(emptyResponse(200));
+      const interceptor = { request(r) { return r; }, requestError(r) { throw r; } };
+      stub(interceptor, 'request').callThrough();
+      stub(interceptor, 'requestError').callThrough();
 
       client.interceptors.push({ request() { return Promise.reject(new Error('test')); } });
       client.interceptors.push(interceptor);
 
       client.fetch()
         .catch(() => {
-          expect(interceptor.request).not.toHaveBeenCalled();
-          expect(interceptor.requestError).toHaveBeenCalledWith(jasmine.any(Error), client);
+          expect(interceptor.request).not.to.have.callCount(1);
+          expect(interceptor.requestError).to.have.been.calledWith(match.instanceOf(Error), client);
           done();
         });
     });
 
-    it('run on response', (done) => {
-      fetch.and.returnValue(emptyResponse(200));
-      let interceptor = { response(r) { return r; }, responseError(r) { throw r; } };
-      spyOn(interceptor, 'response').and.callThrough();
-      spyOn(interceptor, 'responseError').and.callThrough();
+    it('run on response', function(done) {
+      fetch.returns(emptyResponse(200));
+      const interceptor = { response(r) { return r; }, responseError(r) { throw r; } };
+      stub(interceptor, 'response').callThrough();
+      stub(interceptor, 'responseError').callThrough();
 
       client.interceptors.push(interceptor);
 
       client.fetch('path')
         .then(() => {
-          expect(interceptor.response).toHaveBeenCalledWith(jasmine.any(Response), jasmine.any(Request), client);
-          expect(interceptor.responseError).not.toHaveBeenCalled();
+          expect(interceptor.response).to.have.been.calledWith(match.instanceOf(Response), match.instanceOf(Request), client);
+          expect(interceptor.responseError).not.to.have.callCount(1);
           done();
         });
     });
 
-    it('run on response error', (done) => {
-      fetch.and.returnValue(Promise.reject(new Response(null, { status: 500 })));
-      let interceptor = { response(r) { return r; }, responseError(r) { throw r; } };
-      spyOn(interceptor, 'response').and.callThrough();
-      spyOn(interceptor, 'responseError').and.callThrough();
+    it('run on response error', function(done) {
+      fetch.returns(Promise.reject(new Response(null, { status: 500 })));
+      const interceptor = { response(r) { return r; }, responseError(r) { throw r; } };
+      stub(interceptor, 'response').callThrough();
+      stub(interceptor, 'responseError').callThrough();
 
       client.interceptors.push(interceptor);
 
       client.fetch('path')
         .catch(() => {
-          expect(interceptor.response).not.toHaveBeenCalled();
-          expect(interceptor.responseError).toHaveBeenCalledWith(jasmine.any(Response), jasmine.any(Request), client);
+          expect(interceptor.response).not.to.have.callCount(1);
+          expect(interceptor.responseError).to.have.been.calledWith(match.instanceOf(Response), match.instanceOf(Request), client);
           done();
         });
     });
 
-    it('forward requests', (done) => {
+    it('forward requests', function(done) {
       const path = 'retry';
       let retry = 3;
-      fetch.and.returnValue(Promise.reject(new Response(null, { status: 500 })));
-      let interceptor: Interceptor = {
+      fetch.returns(Promise.reject(new Response(null, { status: 500 })));
+      const interceptor: Interceptor = {
         response(r) { return r; },
         responseError(r) {
           if (retry--) {
-            let request = client.buildRequest(path);
+            const request = client.buildRequest(path);
             return request;
           } else {
             throw r;
           }
         }
       };
-      spyOn(interceptor, 'response').and.callThrough();
-      spyOn(interceptor, 'responseError').and.callThrough();
+      stub(interceptor, 'response').callThrough();
+      stub(interceptor, 'responseError').callThrough();
 
       client.interceptors.push(interceptor);
 
       client.fetch(path)
         .catch(() => {
-          expect(interceptor.response).not.toHaveBeenCalled();
-          expect(interceptor.responseError).toHaveBeenCalledWith(jasmine.any(Response), jasmine.any(Request), client);
-          expect(fetch).toHaveBeenCalledTimes(4);
+          expect(interceptor.response).not.to.have.callCount(1);
+          expect(interceptor.responseError).to.have.been.calledWith(match.instanceOf(Response), match.instanceOf(Request), client);
+          expect(fetch).to.have.callCount(4);
           done();
         });
     });
 
-    it('normalizes input for interceptors', (done) => {
-      fetch.and.returnValue(emptyResponse(200));
+    it('normalizes input for interceptors', function(done) {
+      fetch.returns(emptyResponse(200));
       let request;
       client.interceptors.push({ request(r) { request = r; return r; } });
 
       client
         .fetch('http://example.com/some/cool/path')
         .then(() => {
-          expect(request instanceof Request).toBe(true);
+          expect(request instanceof Request).to.equal(true);
           done();
         });
     });
 
-    it('runs multiple interceptors', (done) => {
-      fetch.and.returnValue(emptyResponse(200));
-      let first = { request(r) { return r; } };
-      let second = { request(r) { return r; } };
-      spyOn(first, 'request').and.callThrough();
-      spyOn(second, 'request').and.callThrough();
+    it('runs multiple interceptors', function(done) {
+      fetch.returns(emptyResponse(200));
+      const first = { request(r) { return r; } };
+      const second = { request(r) { return r; } };
+      stub(first, 'request').callThrough();
+      stub(second, 'request').callThrough();
 
       client.interceptors.push(first);
       client.interceptors.push(second);
 
       client.fetch('path')
         .then(() => {
-          expect(first.request).toHaveBeenCalledWith(jasmine.any(Request), client);
-          expect(second.request).toHaveBeenCalledWith(jasmine.any(Request), client);
+          expect(first.request).to.have.been.calledWith(match.instanceOf(Request), client);
+          expect(second.request).to.have.been.calledWith(match.instanceOf(Request), client);
           done();
         });
     });
 
-    it('request interceptors can modify request', (done) => {
-      fetch.and.returnValue(emptyResponse(200));
-      let interceptor = { request() { return new Request('http://aurelia.io/'); } };
+    it('request interceptors can modify request', function(done) {
+      fetch.returns(emptyResponse(200));
+      const interceptor = { request() { return new Request('http://aurelia.io/'); } };
 
       client.interceptors.push(interceptor);
 
       client.fetch('first')
         .then(() => {
-          expect(fetch.calls.mostRecent().args[0].url).toBe('http://aurelia.io/');
+          expect(fetch.lastCall.args[0].url).to.equal('http://aurelia.io/');
           done();
         });
     });
 
-    it('request interceptors can short circuit request', (done) => {
-      let response = new Response();
-      let interceptor = { request() { return response; } };
+    it('request interceptors can short circuit request', function(done) {
+      const response = new Response();
+      const interceptor = { request() { return response; } };
 
       client.interceptors.push(interceptor);
 
       client.fetch('path')
         .then((r) => {
-          expect(r).toBe(response);
-          expect(fetch).not.toHaveBeenCalled();
+          expect(r).to.equal(response);
+          expect(fetch).not.to.have.callCount(1);
           done();
         });
     });
 
-    it('doesn\'t reject unsuccessful responses', (done) => {
-      let response = new Response(null, { status: 500 });
-      fetch.and.returnValue(Promise.resolve(response));
+    it('doesn\'t reject unsuccessful responses', function(done) {
+      const response = new Response(null, { status: 500 });
+      fetch.returns(Promise.resolve(response));
 
       client.fetch('path')
         .catch((r) => {
-          expect(r).not.toBe(response);
+          expect(r).not.to.equal(response);
         })
         .then((r) => {
-          expect(r.ok).toBe(false);
+          expect(r.ok).to.equal(false);
           done();
         });
     });
 
-    describe('rejectErrorResponses', () => {
-      it('can reject error responses', (done) => {
-        let response = new Response(null, { status: 500 });
-        fetch.and.returnValue(Promise.resolve(response));
+    describe('rejectErrorResponses', function() {
+      it('can reject error responses', function(done) {
+        const response = new Response(null, { status: 500 });
+        fetch.returns(Promise.resolve(response));
 
         client.configure(config => config.rejectErrorResponses());
         client.fetch('path')
           .then((r) => {
-            expect(r).not.toBe(r);
+            expect(r).not.to.equal(r);
           })
           .catch((r) => {
-            expect(r).toBe(response);
+            expect(r).to.equal(response);
             done();
           });
       });
 
-      it('resolves successful requests', (done) => {
-        fetch.and.returnValue(emptyResponse(200));
+      it('resolves successful requests', function(done) {
+        fetch.returns(emptyResponse(200));
 
         client.configure(config => config.rejectErrorResponses());
         client.fetch('path')
           .catch((r) => {
-            expect(r).not.toBe(r);
+            expect(r).not.to.equal(r);
           })
           .then((r) => {
-            expect(r.ok).toBe(true);
+            expect(r.ok).to.equal(true);
             done();
           });
       });
     });
   });
 
-  describe('default request parameters', () => {
-    setUpTests();
+  describe('default request parameters', function() {
 
-    it('applies baseUrl to requests', (done) => {
-      fetch.and.returnValue(emptyResponse(200));
+    it('applies baseUrl to requests', function(done) {
+      fetch.returns(emptyResponse(200));
       client.baseUrl = 'http://aurelia.io/';
 
       client.fetch('path')
         .then(() => {
-          let [request] = fetch.calls.first().args;
-          expect(request.url).toBe('http://aurelia.io/path');
+          const [request] = fetch.getCall(1).args;
+          expect(request.url).to.equal('http://aurelia.io/path');
           done();
         });
     });
 
-    it('doesn\'t apply baseUrl to absolute URLs', (done) => {
-      fetch.and.returnValue(emptyResponse(200));
+    it('doesn\'t apply baseUrl to absolute URLs', function(done) {
+      fetch.returns(emptyResponse(200));
       client.baseUrl = 'http://aurelia.io/';
 
       client.fetch('https://example.com/test')
         .then(() => {
-          let [request] = fetch.calls.first().args;
-          expect(request.url).toBe('https://example.com/test');
+          const [request] = fetch.getCall(1).args;
+          expect(request.url).to.equal('https://example.com/test');
           done();
         });
     });
 
-    it('applies default headers to requests with no headers', (done) => {
-      fetch.and.returnValue(emptyResponse(200));
+    it('applies default headers to requests with no headers', function(done) {
+      fetch.returns(emptyResponse(200));
       client.defaults = { headers: { 'x-foo': 'bar' } };
 
       client.fetch('path')
         .then(() => {
-          let [request] = fetch.calls.first().args;
-          expect(request.headers.has('x-foo')).toBe(true);
-          expect(request.headers.get('x-foo')).toBe('bar');
+          const [request] = fetch.getCall(1).args;
+          expect(request.headers.has('x-foo')).to.equal(true);
+          expect(request.headers.get('x-foo')).to.equal('bar');
           done();
         });
     });
 
-    it('applies default headers to requests with other headers', (done) => {
-      fetch.and.returnValue(emptyResponse(200));
+    it('applies default headers to requests with other headers', function(done) {
+      fetch.returns(emptyResponse(200));
       client.defaults = { headers: { 'x-foo': 'bar' } };
 
       client.fetch('path', { headers: { 'x-baz': 'bat' } })
         .then(() => {
-          let [request] = fetch.calls.first().args;
-          expect(request.headers.has('x-foo')).toBe(true);
-          expect(request.headers.has('x-baz')).toBe(true);
-          expect(request.headers.get('x-foo')).toBe('bar');
-          expect(request.headers.get('x-baz')).toBe('bat');
+          const [request] = fetch.getCall(1).args;
+          expect(request.headers.has('x-foo')).to.equal(true);
+          expect(request.headers.has('x-baz')).to.equal(true);
+          expect(request.headers.get('x-foo')).to.equal('bar');
+          expect(request.headers.get('x-baz')).to.equal('bat');
           done();
         });
     });
 
-    it('applies default headers to requests using Headers instance', (done) => {
-      fetch.and.returnValue(emptyResponse(200));
+    it('applies default headers to requests using Headers instance', function(done) {
+      fetch.returns(emptyResponse(200));
       client.defaults = { headers: { 'x-foo': 'bar' } };
 
       client.fetch('path', { headers: new Headers({ 'x-baz': 'bat' }) })
         .then(() => {
-          let [request] = fetch.calls.first().args;
-          expect(request.headers.has('x-foo')).toBe(true);
-          expect(request.headers.has('x-baz')).toBe(true);
-          expect(request.headers.get('x-foo')).toBe('bar');
-          expect(request.headers.get('x-baz')).toBe('bat');
+          const [request] = fetch.getCall(1).args;
+          expect(request.headers.has('x-foo')).to.equal(true);
+          expect(request.headers.has('x-baz')).to.equal(true);
+          expect(request.headers.get('x-foo')).to.equal('bar');
+          expect(request.headers.get('x-baz')).to.equal('bat');
           done();
         });
     });
 
-    it('does not overwrite request headers with default headers', (done) => {
-      fetch.and.returnValue(emptyResponse(200));
+    it('does not overwrite request headers with default headers', function(done) {
+      fetch.returns(emptyResponse(200));
       client.defaults = { headers: { 'x-foo': 'bar' } };
 
       client.fetch('path', { headers: { 'x-foo': 'baz' } })
         .then(() => {
-          let [request] = fetch.calls.first().args;
-          expect(request.headers.has('x-foo')).toBe(true);
-          expect(request.headers.get('x-foo')).toBe('baz');
+          const [request] = fetch.getCall(1).args;
+          expect(request.headers.has('x-foo')).to.equal(true);
+          expect(request.headers.get('x-foo')).to.equal('baz');
           done();
         });
     });
 
-    it('evaluates default header function values with no headers', (done) => {
-      fetch.and.returnValue(emptyResponse(200));
+    it('evaluates default header function values with no headers', function(done) {
+      fetch.returns(emptyResponse(200));
       client.defaults = { headers: { 'x-foo': () => 'bar' } };
 
       client.fetch('path')
         .then(() => {
-          let [request] = fetch.calls.first().args;
-          expect(request.headers.has('x-foo')).toBe(true);
-          expect(request.headers.get('x-foo')).toBe('bar');
+          const [request] = fetch.getCall(1).args;
+          expect(request.headers.has('x-foo')).to.equal(true);
+          expect(request.headers.get('x-foo')).to.equal('bar');
           done();
         });
     });
 
-    it('evaluates default header function values with other headers', (done) => {
-      fetch.and.returnValue(emptyResponse(200));
+    it('evaluates default header function values with other headers', function(done) {
+      fetch.returns(emptyResponse(200));
       client.defaults = { headers: { 'x-foo': () => 'bar' } };
 
       client.fetch('path', { headers: { 'x-baz': 'bat' } })
         .then(() => {
-          let [request] = fetch.calls.first().args;
-          expect(request.headers.has('x-foo')).toBe(true);
-          expect(request.headers.has('x-baz')).toBe(true);
-          expect(request.headers.get('x-foo')).toBe('bar');
-          expect(request.headers.get('x-baz')).toBe('bat');
+          const [request] = fetch.getCall(1).args;
+          expect(request.headers.has('x-foo')).to.equal(true);
+          expect(request.headers.has('x-baz')).to.equal(true);
+          expect(request.headers.get('x-foo')).to.equal('bar');
+          expect(request.headers.get('x-baz')).to.equal('bat');
           done();
         });
     });
 
-    it('evaluates default header function values on each request', (done) => {
-      fetch.and.returnValue(emptyResponse(200));
+    it('evaluates default header function values on each request', function(done) {
+      fetch.returns(emptyResponse(200));
       let value = 0;
       client.defaults = {
         headers: {
@@ -644,69 +639,62 @@ describe('HttpClient', () => {
         }
       };
 
-      let promises = [];
+      const promises = [];
       promises.push(client.fetch('path1'));
       promises.push(client.fetch('path2'));
 
       Promise.all(promises)
         .then(() => {
-          let [request1] = fetch.calls.first().args;
-          let [request2] = fetch.calls.mostRecent().args;
-          expect(request1.headers.has('x-foo')).toBe(true);
-          expect(request1.headers.get('x-foo')).toBe('1');
-          expect(request2.headers.has('x-foo')).toBe(true);
-          expect(request2.headers.get('x-foo')).toBe('2');
+          const [request1] = fetch.getCall(1).args;
+          const [request2] = fetch.lastCall.args;
+          expect(request1.headers.has('x-foo')).to.equal(true);
+          expect(request1.headers.get('x-foo')).to.equal('1');
+          expect(request2.headers.has('x-foo')).to.equal(true);
+          expect(request2.headers.get('x-foo')).to.equal('2');
           done();
         });
     });
 
-    it('uses default content-type header', (done) => {
-      fetch.and.returnValue(emptyResponse(200));
-      let contentType = 'application/octet-stream';
+    it('uses default content-type header', function(done) {
+      fetch.returns(emptyResponse(200));
+      const contentType = 'application/octet-stream';
       client.defaults = { method: 'post', body: '{}', headers: { 'content-type': contentType } };
 
       client.fetch('path')
         .then(() => {
-          let [request] = fetch.calls.first().args;
-          expect(request.headers.has('content-type')).toBe(true);
-          expect(request.headers.get('content-type')).toBe(contentType);
+          const [request] = fetch.getCall(1).args;
+          expect(request.headers.has('content-type')).to.equal(true);
+          expect(request.headers.get('content-type')).to.equal(contentType);
           done();
         });
     });
   });
 
-  describe('retry', () => {
-    const originalTimeout = jasmine.DEFAULT_TIMEOUT_INTERVAL;
-    beforeEach(() => {
+  describe('retry', function() {
+    this.timeout(10000);
+    beforeEach(function() {
       client = new HttpClient();
-      // fetch = window.fetch = jasmine.createSpy('fetch');
-      jasmine.DEFAULT_TIMEOUT_INTERVAL = 10000;
     });
 
-    afterEach(() => {
-      // fetch = window.fetch = originalFetch as any;
-      jasmine.DEFAULT_TIMEOUT_INTERVAL = originalTimeout;
-    });
-
-    it('fails if multiple RetryInterceptors are defined', () => {
+    it('fails if multiple RetryInterceptors are defined', function() {
       const configure = () => {
         client.configure(config => config.withRetry().withRetry());
       };
 
-      expect(configure).toThrowError('Only one RetryInterceptor is allowed.');
+      expect(configure).to.throw('Only one RetryInterceptor is allowed.');
     });
 
-    it('fails if RetryInterceptor is not last interceptor defined', () => {
+    it('fails if RetryInterceptor is not last interceptor defined', function() {
       const configure = () => {
         client.configure(config => config.withRetry().rejectErrorResponses());
       };
 
-      expect(configure).toThrowError('The retry interceptor must be the last interceptor defined.');
+      expect(configure).to.throw('The retry interceptor must be the last interceptor defined.');
     });
 
-    it('retries the specified number of times', (done) => {
-      let response = new Response(null, { status: 500 });
-      fetch.and.returnValue(Promise.resolve(response));
+    it('retries the specified number of times', function(done) {
+      const response = new Response(null, { status: 500 });
+      fetch.returns(Promise.resolve(response));
 
       client.configure(config => config.rejectErrorResponses().withRetry({
         maxRetries: 3,
@@ -714,20 +702,20 @@ describe('HttpClient', () => {
       }));
       client.fetch('path')
         .then((r) => {
-          done.fail('fetch did not error');
+          done('fetch did not error');
         })
         .catch((r) => {
           // 1 original call plus 3 retries
-          expect(fetch).toHaveBeenCalledTimes(4);
+          expect(fetch).to.have.callCount(4);
           done();
         });
     });
 
-    it('continues with retry when doRetry returns true', (done) => {
-      let response = new Response(null, { status: 500 });
-      fetch.and.returnValue(Promise.resolve(response));
+    it('continues with retry when doRetry returns true', function(done) {
+      const response = new Response(null, { status: 500 });
+      fetch.returns(Promise.resolve(response));
 
-      let doRetryCallback = jasmine.createSpy('doRetry').and.returnValue(true);
+      const doRetryCallback = stub().returns(true);
 
       client.configure(config => config.rejectErrorResponses().withRetry({
         maxRetries: 2,
@@ -736,22 +724,22 @@ describe('HttpClient', () => {
       }));
       client.fetch('path')
         .then((r) => {
-          done.fail('fetch did not error');
+          done('fetch did not error');
         })
         .catch((r) => {
           // 1 original call plus 2 retries
-          expect(fetch).toHaveBeenCalledTimes(3);
+          expect(fetch).to.have.callCount(3);
           // only called on retries
-          expect(doRetryCallback).toHaveBeenCalledTimes(2);
+          expect(doRetryCallback).to.have.callCount(2);
           done();
         });
     });
 
-    it('does not retry when doRetry returns false', (done) => {
-      let response = new Response(null, { status: 500 });
-      fetch.and.returnValue(Promise.resolve(response));
+    it('does not retry when doRetry returns false', function(done) {
+      const response = new Response(null, { status: 500 });
+      fetch.returns(Promise.resolve(response));
 
-      let doRetryCallback = jasmine.createSpy('doRetry').and.returnValue(false);
+      const doRetryCallback = stub().returns(false);
 
       client.configure(config => config.rejectErrorResponses().withRetry({
         maxRetries: 2,
@@ -760,22 +748,22 @@ describe('HttpClient', () => {
       }));
       client.fetch('path')
         .then((r) => {
-          done.fail('fetch did not error');
+          done('fetch did not error');
         })
         .catch((r) => {
           // 1 original call plus 0 retries
-          expect(fetch).toHaveBeenCalledTimes(1);
+          expect(fetch).to.have.callCount(1);
           // only called on retries
-          expect(doRetryCallback).toHaveBeenCalledTimes(1);
+          expect(doRetryCallback).to.have.callCount(1);
           done();
         });
     });
 
-    it('calls beforeRetry callback when specified', (done) => {
-      let response = new Response(null, { status: 500 });
-      fetch.and.returnValue(Promise.resolve(response));
+    it('calls beforeRetry callback when specified', function(done) {
+      const response = new Response(null, { status: 500 });
+      fetch.returns(Promise.resolve(response));
 
-      let beforeRetryCallback = jasmine.createSpy('beforeRetry').and.returnValue(new Request('path'));
+      const beforeRetryCallback = stub().returns(new Request('path'));
 
       client.configure(config => config.rejectErrorResponses().withRetry({
         maxRetries: 2,
@@ -785,21 +773,21 @@ describe('HttpClient', () => {
       return client
         .fetch('path')
         .then(
-          () => done.fail('fetch did not error'),
+          () => done('fetch did not error'),
           () => {
             // 1 original call plus 2 retries
-            expect(fetch).toHaveBeenCalledTimes(3);
+            expect(fetch).to.have.callCount(3);
             // only called on retries
-            expect(beforeRetryCallback).toHaveBeenCalledTimes(2);
+            expect(beforeRetryCallback).to.have.callCount(2);
             done();
           });
     });
 
-    it('calls custom retry strategy callback when specified', (done) => {
-      let response = new Response(null, { status: 500 });
-      fetch.and.returnValue(Promise.resolve(response));
+    it('calls custom retry strategy callback when specified', function(done) {
+      const response = new Response(null, { status: 500 });
+      fetch.returns(Promise.resolve(response));
 
-      let strategyRetryCallback = jasmine.createSpy('strategy').and.returnValue(10);
+      const strategyRetryCallback = stub().returns(10);
 
       client.configure(config => config.rejectErrorResponses().withRetry({
         maxRetries: 2,
@@ -807,21 +795,21 @@ describe('HttpClient', () => {
       }));
       return client.fetch('path')
         .then(
-          () => done.fail('fetch did not error'),
+          () => done('fetch did not error'),
           () => {
             // 1 original call plus 2 retries
-            expect(fetch).toHaveBeenCalledTimes(3);
+            expect(fetch).to.have.callCount(3);
             // only called on retries
-            expect(strategyRetryCallback).toHaveBeenCalledTimes(2);
+            expect(strategyRetryCallback).to.have.callCount(2);
             done();
           });
     });
 
-    it('waits correct number amount of time with fixed retry strategy', (done) => {
-      let response = new Response(null, { status: 500 });
-      fetch.and.returnValue(Promise.resolve(response));
+    it('waits correct number amount of time with fixed retry strategy', function(done) {
+      const response = new Response(null, { status: 500 });
+      fetch.returns(Promise.resolve(response));
 
-      spyOn(PLATFORM.global, 'setTimeout').and.callThrough();
+      stub(PLATFORM.global, 'setTimeout').callThrough();
 
       client.configure(config => config.rejectErrorResponses().withRetry({
         maxRetries: 2,
@@ -830,22 +818,22 @@ describe('HttpClient', () => {
       }));
       return client.fetch('path')
         .then(
-          () => done.fail('fetch did not error'),
+          () => done('fetch did not error'),
           () => {
             // setTimeout is called when request starts and end, so those args need to filtered out
-            const callArgs = (PLATFORM.global.setTimeout as jasmine.Spy).calls.allArgs().filter(args => args[1] > 1);
+            const callArgs = (PLATFORM.global.setTimeout as SinonSpy).args.filter(args => args[1] > 1);
             // only called on retries
-            expect(callArgs[0]).toEqual([jasmine.any(Function), 250]);
-            expect(callArgs[1]).toEqual([jasmine.any(Function), 250]);
+            expect(callArgs[0]).to.equal([match.instanceOf(Function), 250]);
+            expect(callArgs[1]).to.equal([match.instanceOf(Function), 250]);
             done();
           });
     });
 
-    it('waits correct number amount of time with incremental retry strategy', (done) => {
-      let response = new Response(null, { status: 500 });
-      fetch.and.returnValue(Promise.resolve(response));
+    it('waits correct number amount of time with incremental retry strategy', function(done) {
+      const response = new Response(null, { status: 500 });
+      fetch.returns(Promise.resolve(response));
 
-      spyOn(PLATFORM.global, 'setTimeout').and.callThrough();
+      stub(PLATFORM.global, 'setTimeout').callThrough();
 
       client.configure(config => config.rejectErrorResponses().withRetry({
         maxRetries: 2,
@@ -855,23 +843,23 @@ describe('HttpClient', () => {
       return client
         .fetch('path')
         .then(
-          () => done.fail('fetch did not error'),
+          () => done('fetch did not error'),
           () => {
             // setTimeout is called when request starts and end, so those args need to filtered out
-            const callArgs = (PLATFORM.global.setTimeout as jasmine.Spy).calls.allArgs().filter(args => args[1] > 1);
+            const callArgs = (PLATFORM.global.setTimeout as SinonSpy).args.filter(args => args[1] > 1);
             // only called on retries
-            expect(callArgs.length).toBe(2);
-            expect(callArgs[0]).toEqual([jasmine.any(Function), 250]);
-            expect(callArgs[1]).toEqual([jasmine.any(Function), 500]);
+            expect(callArgs.length).to.equal(2);
+            expect(callArgs[0]).to.equal([match.instanceOf(Function), 250]);
+            expect(callArgs[1]).to.equal([match.instanceOf(Function), 500]);
             done();
           });
     });
 
-    it('waits correct number amount of time with exponential retry strategy', (done) => {
-      let response = new Response(null, { status: 500 });
-      fetch.and.returnValue(Promise.resolve(response));
+    it('waits correct number amount of time with exponential retry strategy', function(done) {
+      const response = new Response(null, { status: 500 });
+      fetch.returns(Promise.resolve(response));
 
-      spyOn(PLATFORM.global, 'setTimeout').and.callThrough();
+      stub(PLATFORM.global, 'setTimeout').callThrough();
 
       client.configure(config => config.rejectErrorResponses().withRetry({
         maxRetries: 2,
@@ -881,27 +869,28 @@ describe('HttpClient', () => {
       return client
         .fetch('path')
         .then(
-          () => done.fail('fetch did not error'),
+          () => done('fetch did not error'),
           () => {
             // setTimeout is called when request starts and end, so those args need to filtered out
-            const callArgs = (PLATFORM.global.setTimeout as jasmine.Spy).calls.allArgs().filter(args => args[1] > 1);
+            const callArgs = (PLATFORM.global.setTimeout as SinonSpy).args.filter(args => args[1] > 1);
             // only called on retries
-            expect(callArgs.length).toBe(2);
-            expect(callArgs[0]).toEqual([jasmine.any(Function), 2000]);
-            expect(callArgs[1]).toEqual([jasmine.any(Function), 4000]);
+            expect(callArgs.length).to.equal(2);
+            expect(callArgs[0]).to.equal([match.instanceOf(Function), 2000]);
+            expect(callArgs[1]).to.equal([match.instanceOf(Function), 4000]);
             done();
           });
     });
 
-    it('waits correct number amount of time with random retry strategy', (done) => {
-      let response = new Response(null, { status: 500 });
+    it('waits correct number amount of time with random retry strategy', function(done) {
+      const response = new Response(null, { status: 500 });
       const firstRandom = 0.1;
       const secondRandom = 0.4;
 
-      fetch.and.returnValue(Promise.resolve(response));
+      fetch.returns(Promise.resolve(response));
 
-      spyOn(PLATFORM.global, 'setTimeout').and.callThrough();
-      spyOn(Math, 'random').and.returnValues(firstRandom, secondRandom);
+      stub(PLATFORM.global, 'setTimeout').callThrough();
+      stub(Math, 'random').onCall(0).returns(firstRandom);
+      stub(Math, 'random').onCall(1).returns(secondRandom);
 
       client.configure(config => config.rejectErrorResponses().withRetry({
         maxRetries: 2,
@@ -917,23 +906,24 @@ describe('HttpClient', () => {
       return client
         .fetch('path')
         .then(
-          () => done.fail('fetch did not error'),
+          () => done('fetch did not error'),
           () => {
             // setTimeout is called when request starts and end, so those args need to filtered out
-            const callArgs = (PLATFORM.global.setTimeout as jasmine.Spy).calls.allArgs().filter(args => args[1] > 1);
+            const callArgs = (PLATFORM.global.setTimeout as SinonSpy).args.filter(args => args[1] > 1);
             // only called on retries
-            expect(callArgs[0]).toEqual([jasmine.any(Function), firstInterval]);
-            expect(callArgs[1]).toEqual([jasmine.any(Function), secondInterval]);
+            expect(callArgs[0]).to.equal([match.instanceOf(Function), firstInterval]);
+            expect(callArgs[1]).to.equal([match.instanceOf(Function), secondInterval]);
             done();
           }
         );
     });
 
-    it('successfully returns without error if a retry succeeds', (done) => {
-      let firstResponse = new Response(null, { status: 500 });
-      let secondResponse = new Response(null, { status: 200 });
+    it('successfully returns without error if a retry succeeds', function(done) {
+      const firstResponse = new Response(null, { status: 500 });
+      const secondResponse = new Response(null, { status: 200 });
 
-      fetch.and.returnValues(Promise.resolve(firstResponse), Promise.resolve(secondResponse));
+      fetch.onCall(0).returns(Promise.resolve(firstResponse));
+      fetch.onCall(1).returns(Promise.resolve(secondResponse));
 
       client.configure(config => config.rejectErrorResponses().withRetry({
         maxRetries: 3,
@@ -945,135 +935,137 @@ describe('HttpClient', () => {
         .then(
           (r) => {
             // 1 original call plus 1 retry
-            expect(fetch).toHaveBeenCalledTimes(2);
-            expect(r).toEqual(secondResponse);
+            expect(fetch).to.have.callCount(2);
+            expect(r).to.equal(secondResponse);
             done();
           },
-          () => done.fail('retry was unsuccessful'));
+          () => done('retry was unsuccessful'));
     });
   });
 
-  describe('isRequesting', () => {
-    it('is set to true when starting a request', (done) => {
-      fetch.and.returnValue(emptyResponse(200));
+  describe('isRequesting', function() {
+    it('is set to true when starting a request', function(done) {
+      fetch.returns(emptyResponse(200));
 
-      expect(client.isRequesting).withContext('Before start').toBe(false);
-      let request = client.fetch('http://example.com/some/cool/path');
-      expect(client.isRequesting).withContext('When started').toBe(true);
+      expect(client.isRequesting, 'Before start').to.equal(false);
+      const request = client.fetch('http://example.com/some/cool/path');
+      expect(client.isRequesting, 'When started').to.equal(true);
       request.then(() => {
-        expect(fetch).toHaveBeenCalled();
+        expect(fetch).to.have.callCount(1);
         done();
       });
     });
-    it('is set to false when request is finished', (done) => {
-      fetch.and.returnValue(emptyResponse(200));
+    it('is set to false when request is finished', function(done) {
+      fetch.returns(emptyResponse(200));
 
-      expect(client.isRequesting).withContext('Before start').toBe(false);
-      let request = client.fetch('http://example.com/some/cool/path');
-      expect(client.isRequesting).withContext('When started').toBe(true);
+      expect(client.isRequesting, 'Before start').to.equal(false);
+      const request = client.fetch('http://example.com/some/cool/path');
+      expect(client.isRequesting, 'When started').to.equal(true);
       request.then(() => {
-        expect(client.isRequesting).withContext('When finished').toBe(false);
+        expect(client.isRequesting, 'When finished').to.equal(false);
       }).then(() => {
-        expect(fetch).toHaveBeenCalled();
+        expect(fetch).to.have.callCount(1);
         done();
       });
     });
-    it('is still true when a request is still in progress', (done) => {
-      let firstResponse = emptyResponse(200)
-      let secondResponse = new Promise((resolve) => {
+    it('is still true when a request is still in progress', function(done) {
+      const firstResponse = emptyResponse(200);
+      const secondResponse = new Promise((resolve) => {
         setTimeout(() => {
           resolve(emptyResponse(200));
-        }, 200)
+        },         200);
       });
 
-      fetch.and.returnValues(firstResponse, secondResponse);
-      expect(client.isRequesting).withContext('Before start').toBe(false);
+      fetch.onCall(0).returns(firstResponse);
+      fetch.onCall(1).returns(secondResponse);
+      expect(client.isRequesting, 'Before start').to.equal(false);
 
-      let request1 = client.fetch('http://example.com/some/cool/path');
-      let request2 = client.fetch('http://example.com/some/cool/path');
-      expect(client.isRequesting).withContext('When started').toBe(true);
+      const request1 = client.fetch('http://example.com/some/cool/path');
+      const request2 = client.fetch('http://example.com/some/cool/path');
+      expect(client.isRequesting, 'When started').to.equal(true);
       request1.then(() => {
-        expect(client.isRequesting).withContext('When request 1 is completed').toBe(true);
+        expect(client.isRequesting, 'When request 1 is completed').to.equal(true);
       });
       setTimeout(() => {
-        expect(client.isRequesting).withContext('After 100ms').toBe(true);
-      }, 100);
+        expect(client.isRequesting, 'After 100ms').to.equal(true);
+      },         100);
       request2.then(() => {
-        expect(client.isRequesting).withContext('When all requests are finished').toBe(false);
+        expect(client.isRequesting, 'When all requests are finished').to.equal(false);
       }).then(() => {
-        expect(fetch).toHaveBeenCalledTimes(2);
+        expect(fetch).to.have.callCount(2);
         done();
       });
     });
-    it('is set to false when request is rejected', (done) => {
-      fetch.and.returnValue(Promise.reject(new Error('Failed to fetch')));
+    it('is set to false when request is rejected', function(done) {
+      fetch.returns(Promise.reject(new Error('Failed to fetch')));
 
-      expect(client.isRequesting).withContext('Before start').toBe(false);
+      expect(client.isRequesting, 'Before start').to.equal(false);
       client.fetch('http://example.com/some/cool/path').then(result => {
-        expect(result).not.toBe(result);
+        expect(result).not.to.equal(result);
       }).catch((result) => {
-        expect(result instanceof Error).toBe(true);
-        expect(result.message).toBe('Failed to fetch');
-        expect(client.isRequesting).withContext('When finished').toBe(false);
+        expect(result instanceof Error).to.equal(true);
+        expect(result.message).to.equal('Failed to fetch');
+        expect(client.isRequesting, 'When finished').to.equal(false);
         return Promise.resolve();
       }).then(() => {
-        expect(fetch).toHaveBeenCalled();
+        expect(fetch).to.have.callCount(1);
         done();
-      })
+      });
     });
 
-    it('stays true during a series of retries', (done) => {
-      let response = new Response(null, { status: 500 });
-      fetch.and.returnValue(Promise.resolve(response));
+    it('stays true during a series of retries', function(done) {
+      const response = new Response(null, { status: 500 });
+      fetch.returns(Promise.resolve(response));
 
       client.configure(config => config.rejectErrorResponses().withRetry({
         maxRetries: 3,
         interval: 100
       }));
 
-      expect(client.isRequesting).withContext('Before start').toBe(false);
-      let request = client.fetch('path');
-      expect(client.isRequesting).withContext('When started').toBe(true);
+      expect(client.isRequesting, 'Before start').to.equal(false);
+      const request = client.fetch('path');
+      expect(client.isRequesting, 'When started').to.equal(true);
       setTimeout(() => {
-        expect(client.isRequesting).withContext('After 100ms').toBe(true);
-      }, 100);
+        expect(client.isRequesting, 'After 100ms').to.equal(true);
+      },         100);
       setTimeout(() => {
-        expect(client.isRequesting).withContext('After 200ms').toBe(true);
-      }, 200);
+        expect(client.isRequesting, 'After 200ms').to.equal(true);
+      },         200);
       request.then((result) => {
-        done.fail('fetch did not error');
+        done('fetch did not error');
       }).catch((r) => {
         // 1 original call plus 3 retries
-        expect(fetch).toHaveBeenCalledTimes(4);
+        expect(fetch).to.have.callCount(4);
         done();
       });
     });
-    it('is set to false after a series of retry that fail', (done) => {
-      let response = new Response(null, { status: 500 });
-      fetch.and.returnValue(Promise.resolve(response));
+    it('is set to false after a series of retry that fail', function(done) {
+      const response = new Response(null, { status: 500 });
+      fetch.returns(Promise.resolve(response));
 
       client.configure(config => config.rejectErrorResponses().withRetry({
         maxRetries: 3,
         interval: 100
       }));
 
-      expect(client.isRequesting).withContext('Before start').toBe(false);
-      let request = client.fetch('path');
-      expect(client.isRequesting).withContext('When started').toBe(true);
+      expect(client.isRequesting, 'Before start').to.equal(false);
+      const request = client.fetch('path');
+      expect(client.isRequesting, 'When started').to.equal(true);
       request.then((result) => {
-        done.fail('fetch did not error');
+        done('fetch did not error');
       }).catch(() => {
         // 1 original call plus 3 retries
-        expect(fetch).toHaveBeenCalledTimes(4);
-        expect(client.isRequesting).withContext('When finished').toBe(false);
+        expect(fetch).to.have.callCount(4);
+        expect(client.isRequesting, 'When finished').to.equal(false);
         done();
       });
     });
-    it('is set to false after a series of retry that fail that succeed', (done) => {
-      let firstResponse = new Response(null, { status: 500 });
-      let secondResponse = new Response(null, { status: 200 });
+    it('is set to false after a series of retry that fail that succeed', function(done) {
+      const firstResponse = new Response(null, { status: 500 });
+      const secondResponse = new Response(null, { status: 200 });
 
-      fetch.and.returnValues(Promise.resolve(firstResponse), Promise.resolve(secondResponse));
+      fetch.onCall(0).returns(Promise.resolve(firstResponse));
+      fetch.onCall(1).returns(Promise.resolve(secondResponse));
 
       client.configure(config => config.rejectErrorResponses().withRetry({
         maxRetries: 3,
@@ -1081,48 +1073,48 @@ describe('HttpClient', () => {
         strategy: retryStrategy.fixed
       }));
 
-      expect(client.isRequesting).withContext('Before start').toBe(false);
-      let request = client.fetch('path');
-      expect(client.isRequesting).withContext('When started').toBe(true);
+      expect(client.isRequesting, 'Before start').to.equal(false);
+      const request = client.fetch('path');
+      expect(client.isRequesting, 'When started').to.equal(true);
       request.then(() => {
         // 1 original call plus 1 retry
-        expect(fetch).toHaveBeenCalledTimes(2);
-        expect(client.isRequesting).withContext('When finished').toBe(false);
+        expect(fetch).to.have.callCount(2);
+        expect(client.isRequesting, 'When finished').to.equal(false);
         done();
       }).catch((result) => {
-        done.fail('fetch did error');
+        done('fetch did error');
       });
     });
-    it('forward requests', (done) => {
+    it('forward requests', function(done) {
       const path = 'retry';
       let retry = 3;
-      fetch.and.returnValue(Promise.reject(new Response(null, { status: 500 })));
-      let interceptor: Interceptor = {
+      fetch.returns(Promise.reject(new Response(null, { status: 500 })));
+      const interceptor: Interceptor = {
         response(r) { return r; },
         responseError(r) {
           if (retry--) {
-            let request = client.buildRequest(path);
+            const request = client.buildRequest(path);
             return request;
           } else {
             throw r;
           }
         }
       };
-      spyOn(interceptor, 'response').and.callThrough();
-      spyOn(interceptor, 'responseError').and.callThrough();
+      stub(interceptor, 'response').callThrough();
+      stub(interceptor, 'responseError').callThrough();
 
       client.interceptors.push(interceptor);
 
       // add check before fetch, this one passes.
-      expect(client.isRequesting).toBe(false);
+      expect(client.isRequesting).to.equal(false);
 
       client.fetch(path)
         .catch(() => {
-          expect(interceptor.response).not.toHaveBeenCalled();
-          expect(interceptor.responseError).toHaveBeenCalledWith(jasmine.any(Response), jasmine.any(Request), client);
-          expect(fetch).toHaveBeenCalledTimes(4);
-          expect(client.activeRequestCount).toBe(0);
-          expect(client.isRequesting).toBe(false);
+          expect(interceptor.response).not.to.have.callCount(1);
+          expect(interceptor.responseError).to.have.been.calledWith(match.instanceOf(Response), match.instanceOf(Request), client);
+          expect(fetch).to.have.callCount(4);
+          expect(client.activeRequestCount).to.equal(0);
+          expect(client.isRequesting).to.equal(false);
           done();
         });
     });

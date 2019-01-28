@@ -43,6 +43,9 @@ export class SelfObserver implements SelfObserver {
         ? instance[callbackName].bind(instance)
         : noop;
     }
+    if (flags & LifecycleFlags.patchMode) {
+      this.getValue = this.getValueDirect;
+    }
     if (Tracer.enabled) { Tracer.leave(); }
   }
 
@@ -53,11 +56,14 @@ export class SelfObserver implements SelfObserver {
   public getValue(): unknown {
     return this.currentValue;
   }
+  public getValueDirect(): unknown {
+    return this.obj[this.propertyKey];
+  }
 
   public setValue(newValue: unknown, flags: LifecycleFlags): void {
     const currentValue = this.currentValue;
 
-    if (currentValue !== newValue) {
+    if (currentValue !== newValue || (flags & LifecycleFlags.patchMode)) {
       this.currentValue = newValue;
 
       if (!(flags & LifecycleFlags.fromBind)) {
@@ -72,6 +78,7 @@ export class SelfObserver implements SelfObserver {
     }
   }
   public $patch(flags: LifecycleFlags): void {
-    patchProperties(this.obj[this.propertyKey], flags);
+    this.callback(this.obj[this.propertyKey], this.currentValue, this.persistentFlags | flags);
+    this.callSubscribers(this.obj[this.propertyKey], this.currentValue, this.persistentFlags | flags);
   }
 }

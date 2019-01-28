@@ -21,15 +21,21 @@ export class SetterObserver implements SetterObserver {
     this.persistentFlags = flags & LifecycleFlags.persistentBindingFlags;
     this.obj = obj;
     this.propertyKey = propertyKey;
+    if (flags & LifecycleFlags.patchMode) {
+      this.getValue = this.getValueDirect;
+    }
     if (Tracer.enabled) { Tracer.leave(); }
   }
 
   public getValue(): unknown {
     return this.currentValue;
   }
+  public getValueDirect(): unknown {
+    return this.obj[this.propertyKey];
+  }
   public setValue(newValue: unknown, flags: LifecycleFlags): void {
     const currentValue = this.currentValue;
-    if (currentValue !== newValue) {
+    if (currentValue !== newValue || (flags & LifecycleFlags.patchMode)) {
       this.currentValue = newValue;
       if (!(flags & LifecycleFlags.fromBind)) {
         this.callSubscribers(newValue, currentValue, this.persistentFlags | flags);
@@ -46,14 +52,7 @@ export class SetterObserver implements SetterObserver {
     }
   }
   public $patch(flags: LifecycleFlags): void {
-    const newValue = this.obj[this.propertyKey];
-    const oldValue = this.currentValue;
-    if (oldValue !== newValue) {
-      this.currentValue = newValue;
-      if (!(flags & LifecycleFlags.fromBind)) {
-        this.callSubscribers(newValue, oldValue, this.persistentFlags | flags);
-      }
-    }
-    patchProperties(newValue, flags);
+    this.callSubscribers(this.obj[this.propertyKey], this.currentValue, this.persistentFlags | flags);
+    patchProperties(this.obj[this.propertyKey], flags);
   }
 }

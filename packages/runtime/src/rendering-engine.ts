@@ -543,7 +543,9 @@ export class RuntimeBehavior {
           bindables[name].callback
         );
 
-        createGetterSetter(flags, instance, name);
+        if (!(flags & LifecycleFlags.patchMode)) {
+          createGetterSetter(flags, instance, name);
+        }
       }
 
       Reflect.defineProperty(instance, '$observers', {

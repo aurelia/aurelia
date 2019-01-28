@@ -22,7 +22,7 @@ describe(spec, function () {
     return { ctx, container, lifecycle, au, host };
   }
 
-  for (const patchMode of [/*true*/, false]) { // TODO: fix patch mode
+  for (const patchMode of [true, false]) {
     for (const useProxies of [true, false]) {
       if (patchMode && useProxies) {
         continue;
@@ -31,6 +31,7 @@ describe(spec, function () {
         it(`patchMode=${patchMode}, useProxies=${useProxies}, keyed=${keyed}`, function() {
           const bb = keyed ? ' & keyed' : '';
           this.timeout(30000);
+          let num = 0;
           const { lifecycle, au, host } = setup();
 
           const bindables = {
@@ -77,12 +78,12 @@ describe(spec, function () {
           );
 
           function verify(c: ICustomElement & $App) {
-            lifecycle.processFlushQueue(LifecycleFlags.none);
             if (patchMode) {
               c.$patch(LifecycleFlags.none);
             }
+            lifecycle.processFlushQueue(LifecycleFlags.none);
             const { a, max, items } = c;
-            expect(host.textContent).to.equal(getExpectedText(a ? 'a' : 'b', max, items, 0, 1));
+            expect(host.textContent, `#${++num}`).to.equal(getExpectedText(a ? 'a' : 'b', max, items, 0, 1));
           }
           function getExpectedText(prefix: string, max: number, items: unknown[], item: unknown, depth: number): string {
             let text = `${prefix}${depth}.${item} `;

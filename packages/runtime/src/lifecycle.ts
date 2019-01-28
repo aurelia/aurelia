@@ -332,7 +332,6 @@ export interface ILifecycle {
   enqueueFlush(requestor: IChangeTracker): Promise<void>;
 
   processConnectQueue(flags: LifecycleFlags): void;
-  processPatchQueue(flags: LifecycleFlags): void;
   processBindQueue(flags: LifecycleFlags): void;
   processUnbindQueue(flags: LifecycleFlags): void;
 
@@ -344,8 +343,6 @@ export interface ILifecycle {
    * Each `beginBind` *must* be matched by an `endBind`.
    */
   beginBind(): void;
-
-  beginPatch(): void;
 
   /**
    * Add a `bound` callback to the queue, to be invoked when the current bind batch
@@ -365,8 +362,6 @@ export interface ILifecycle {
    */
   enqueueConnect(requestor: IConnectableBinding): void;
 
-  enqueuePatch(requestor: IComponent): void;
-
   /**
    * Close / shrink a bind batch for invoking queued `bound` callbacks.
    * @param flags The flags that will be passed into the `bound` callbacks.
@@ -377,8 +372,6 @@ export interface ILifecycle {
    * This default will work, but is generally less efficient.
    */
   endBind(flags: LifecycleFlags): ILifecycleTask;
-
-  endPatch(flags: LifecycleFlags): ILifecycleTask;
 
   /**
    * Open up / expand an unbind batch for enqueueing `unbound` callbacks.
@@ -519,9 +512,6 @@ export class Lifecycle implements ILifecycle {
   /** @internal */public connectHead: IConnectableBinding;
   /** @internal */public connectTail: IConnectableBinding;
 
-  /** @internal */public patchHead: IComponent;
-  /** @internal */public patchTail: IComponent;
-
   /** @internal */public boundHead: ILifecycleHooks;
   /** @internal */public boundTail: ILifecycleHooks;
 
@@ -563,9 +553,7 @@ export class Lifecycle implements ILifecycle {
   /** @internal */public $nextFlush: IChangeTracker;
   /** @internal */public flush: IChangeTracker['flush'];
   /** @internal */public $nextConnect: IConnectableBinding;
-  /** @internal */public connect: IConnectableBinding['connect'];
-  /** @internal */public $nextPatch: IComponent;
-  /** @internal */public $patch: IComponent['$patch'];
+  /** @internal */public connect: IConnectableBinding['connect'];;
   /** @internal */public $nextBound: ILifecycleHooks;
   /** @internal */public bound: ILifecycleHooks['bound'];
   /** @internal */public $nextMount: IMountableComponent;
@@ -595,9 +583,6 @@ export class Lifecycle implements ILifecycle {
 
     this.connectHead = this as unknown as IConnectableBinding; // this cast is safe because we know exactly which properties we'll use
     this.connectTail = this as unknown as IConnectableBinding;
-
-    this.patchHead = this as unknown as IComponent;
-    this.patchTail = this as unknown as IComponent;
 
     this.boundHead = this;
     this.boundTail = this;
@@ -638,8 +623,6 @@ export class Lifecycle implements ILifecycle {
     this.flush = PLATFORM.noop;
     this.$nextConnect = marker;
     this.connect = PLATFORM.noop;
-    this.$nextPatch = marker;
-    this.$patch = PLATFORM.noop;
     this.$nextBound = marker;
     this.bound = PLATFORM.noop;
     this.$nextMount = marker;
@@ -772,60 +755,6 @@ export class Lifecycle implements ILifecycle {
         current.connect(flags);
         next = current.$nextConnect;
         current.$nextConnect = null;
-        current = next;
-      } while (current !== marker);
-    }
-    if (Tracer.enabled) { Tracer.leave(); }
-  }
-
-  public beginPatch(): void {
-    if (Tracer.enabled) { Tracer.enter('Lifecycle', 'beginPatch', slice.call(arguments)); }
-    ++this.patchDepth;
-    if (Tracer.enabled) { Tracer.leave(); }
-  }
-
-  public enqueuePatch(requestor: IComponent): void {
-    if (Tracer.enabled) { Tracer.enter('Lifecycle', 'enqueuePatch', slice.call(arguments)); }
-    if (requestor.$nextPatch === null) {
-      requestor.$nextPatch = marker;
-      this.patchTail.$nextPatch = requestor;
-      this.patchTail = requestor;
-      ++this.patchCount;
-    }
-    if (Tracer.enabled) { Tracer.leave(); }
-  }
-
-  public endPatch(flags: LifecycleFlags): ILifecycleTask {
-    if (Tracer.enabled) { Tracer.enter('Lifecycle', 'endPatch', slice.call(arguments)); }
-    // close / shrink a patch batch
-    if (--this.patchDepth === 0) {
-
-      this.processPatchQueue(flags);
-
-      if (Tracer.enabled) { Tracer.leave(); }
-      return LifecycleTask.done;
-    }
-    if (Tracer.enabled) { Tracer.leave(); }
-  }
-
-  public processPatchQueue(flags: LifecycleFlags): void {
-    if (Tracer.enabled) { Tracer.enter('Lifecycle', 'processPatchQueue', slice.call(arguments)); }
-    // flush before patching, but only if this is the initial bind;
-    // no DOM is attached yet so we can safely let everything propagate
-    if (flags & LifecycleFlags.fromStartTask) {
-      this.processFlushQueue(flags | LifecycleFlags.fromSyncFlush);
-    }
-    // patch callbacks may lead to additional bind operations, so keep looping until
-    // the patch head is back to `this` (though this will typically happen in the first iteration)
-    while (this.patchCount > 0) {
-      this.patchCount = 0;
-      let current = this.patchHead.$nextPatch;
-      this.patchHead = this.patchTail = this as unknown as IComponent;
-      let next: typeof current;
-      do {
-        patchProperties(current, flags);
-        next = current.$nextPatch;
-        current.$nextPatch = null;
         current = next;
       } while (current !== marker);
     }

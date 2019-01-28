@@ -1,7 +1,7 @@
 import { Tracer } from '@aurelia/kernel';
 import { LifecycleFlags } from '../flags';
 import { IBindingTargetAccessor } from '../observation';
-import { patchProperties } from './patch-properties';
+import { patchProperties, patchProperty } from './patch-properties';
 
 export interface PropertyAccessor extends IBindingTargetAccessor<Record<string, unknown>, string> {}
 const slice = Array.prototype.slice;
@@ -26,6 +26,6 @@ export class PropertyAccessor implements PropertyAccessor {
   }
 
   public $patch(flags: LifecycleFlags): void {
-    patchProperties(this.obj[this.propertyKey], flags);
+    patchProperty(this.obj, this.propertyKey, flags);
   }
 }

@@ -1,12 +1,8 @@
-import { IIndexable } from '@aurelia/kernel';
 import { LifecycleFlags } from '../flags';
 import { AccessorOrObserver, CollectionKind, ICollectionObserver, IObserversLookup } from '../observation';
 
-function hasObservers(value: unknown): value is { $observers: IObserversLookup } {
-  return value !== null && typeof value === 'object' && (value as IIndexable).$observers !== undefined;
-}
-function hasObserver(value: unknown): value is { $observer: ICollectionObserver<CollectionKind.indexed | CollectionKind.keyed> } {
-  return value !== null && typeof value === 'object' && (value as IIndexable).$observer !== undefined;
+export function mayHaveObservers(value: unknown): value is { $observers: IObserversLookup; $observer: ICollectionObserver<CollectionKind.indexed | CollectionKind.keyed> } {
+  return value !== null && typeof value === 'object';
 }
 
 /**
@@ -14,17 +10,28 @@ function hasObserver(value: unknown): value is { $observer: ICollectionObserver<
  * If so, then patch all of its properties recursively. This is essentially a dirty check.
  */
 export function patchProperties(value: unknown, flags: LifecycleFlags): void {
-  if (hasObservers(value)) {
-    const observers = value.$observers;
-    let key: string;
-    let observer: AccessorOrObserver;
-    for (key in observers) {
-      observer = observers[key];
-      if (observer.$patch !== undefined) {
-        observer.$patch(flags | LifecycleFlags.patchMode | LifecycleFlags.updateTargetInstance);
+  if (mayHaveObservers(value)) {
+    if (value.$observers !== undefined) {
+      const observers = value.$observers;
+      let key: string;
+      let observer: AccessorOrObserver;
+      for (key in observers) {
+        observer = observers[key];
+        if (observer.$patch !== undefined) {
+          observer.$patch(flags | LifecycleFlags.patchMode | LifecycleFlags.updateTargetInstance);
+        }
       }
+    } else if (value.$observer !== undefined && value.$observer.$patch !== undefined) {
+      value.$observer.$patch(flags | LifecycleFlags.patchMode | LifecycleFlags.updateTargetInstance);
     }
-  } else if (hasObserver(value)) {
-    value.$observer.$patch(flags | LifecycleFlags.patchMode | LifecycleFlags.updateTargetInstance);
+  }
+}
+
+export function patchProperty(value: unknown, key: string, flags: LifecycleFlags): void {
+  if (mayHaveObservers(value) && value.$observers !== undefined) {
+    const observer = value.$observers[key];
+    if (observer && observer.$patch !== undefined) {
+      observer.$patch(flags | LifecycleFlags.patchMode | LifecycleFlags.updateTargetInstance);
+    }
   }
 }

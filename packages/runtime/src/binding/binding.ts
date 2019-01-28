@@ -4,6 +4,7 @@ import { BindingMode, ExpressionKind, LifecycleFlags, State } from '../flags';
 import { IBinding, ILifecycle } from '../lifecycle';
 import { AccessorOrObserver, IBindingTargetObserver, IObservable, IScope } from '../observation';
 import { IObserverLocator } from '../observation/observer-locator';
+import { patchProperty } from '../observation/patch-properties';
 import { hasBind, hasUnbind } from './ast';
 import { connectable, IConnectableBinding, IPartialConnectableBinding } from './connectable';
 
@@ -57,6 +58,9 @@ export class Binding implements IPartialConnectableBinding {
   public updateTarget(value: unknown, flags: LifecycleFlags): void {
     flags |= this.persistentFlags;
     this.targetObserver.setValue(value, flags | LifecycleFlags.updateTargetInstance);
+    if (flags & LifecycleFlags.patchMode) {
+      this.targetObserver.$patch(flags);
+    }
   }
 
   public updateSource(value: unknown, flags: LifecycleFlags): void {

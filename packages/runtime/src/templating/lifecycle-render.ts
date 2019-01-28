@@ -65,6 +65,10 @@ export function $hydrateElement(this: Writable<ICustomElement>, flags: Lifecycle
   const Type = this.constructor as ICustomElementType;
   if (Tracer.enabled) { Tracer.enter(Type.description.name, '$hydrate', slice.call(arguments)); }
   const description = Type.description;
+
+  if (description.patchMode) {
+    flags |= LifecycleFlags.patchMode;
+  }
   const projectorLocator = parentContext.get(IProjectorLocator);
   const renderingEngine = parentContext.get(IRenderingEngine);
   const dom = parentContext.get(IDOM);
@@ -75,6 +79,7 @@ export function $hydrateElement(this: Writable<ICustomElement>, flags: Lifecycle
   } else {
     bindingContext = this;
   }
+
   this.$scope = Scope.create(flags, bindingContext, null);
   this.$host = host;
   this.$projector = projectorLocator.getElementProjector(dom, this, host, description);

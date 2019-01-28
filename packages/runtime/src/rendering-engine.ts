@@ -104,6 +104,9 @@ export class CompiledTemplate<T extends INode = INode> implements ITemplate {
     if (this.definition.useProxies) {
       flags |= LifecycleFlags.useProxies;
     }
+    if (this.definition.patchMode) {
+      flags |= LifecycleFlags.patchMode;
+    }
     this.renderContext.render(flags, renderable, nodes.findTargets(), this.definition, host, parts);
   }
 }

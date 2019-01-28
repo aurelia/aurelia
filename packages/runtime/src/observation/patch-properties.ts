@@ -1,9 +1,12 @@
 import { IIndexable } from '@aurelia/kernel';
 import { LifecycleFlags } from '../flags';
-import { AccessorOrObserver, IObserversLookup } from '../observation';
+import { AccessorOrObserver, CollectionKind, ICollectionObserver, IObserversLookup } from '../observation';
 
 function hasObservers(value: unknown): value is { $observers: IObserversLookup } {
   return value !== null && typeof value === 'object' && (value as IIndexable).$observers !== undefined;
+}
+function hasObserver(value: unknown): value is { $observer: ICollectionObserver<CollectionKind.indexed | CollectionKind.keyed> } {
+  return value !== null && typeof value === 'object' && (value as IIndexable).$observer !== undefined;
 }
 
 /**
@@ -21,5 +24,7 @@ export function patchProperties(value: unknown, flags: LifecycleFlags): void {
         observer.$patch(flags | LifecycleFlags.patchMode | LifecycleFlags.updateTargetInstance);
       }
     }
+  } else if (hasObserver(value)) {
+    value.$observer.$patch(flags | LifecycleFlags.patchMode | LifecycleFlags.updateTargetInstance);
   }
 }

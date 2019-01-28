@@ -341,6 +341,7 @@ export type ObservedCollectionKindToType<T> =
  */
 export interface ICollectionObserver<T extends CollectionKind> extends
   IDisposable,
+  IPatchable,
   ICollectionChangeTracker<CollectionKindToType<T>>,
   ISubscriberCollection<MutationKind.collection>,
   IBatchedSubscriberCollection<MutationKind.collection> {

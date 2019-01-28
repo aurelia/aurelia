@@ -1,6 +1,7 @@
 import { IIndexable, PLATFORM, Tracer } from '@aurelia/kernel';
 import { LifecycleFlags } from '../flags';
 import { IPropertyObserver } from '../observation';
+import { patchProperties } from './patch-properties';
 import { propertyObserver } from './property-observer';
 import { ProxyObserver } from './proxy-observer';
 
@@ -69,5 +70,8 @@ export class SelfObserver implements SelfObserver {
         this.callSubscribers(newValue, currentValue, flags);
       }
     }
+  }
+  public $patch(flags: LifecycleFlags): void {
+    patchProperties(this.obj[this.propertyKey], flags);
   }
 }

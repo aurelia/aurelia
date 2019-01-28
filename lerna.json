@@ -20,6 +20,7 @@
     "packages/runtime-html-browser",
     "packages/runtime-html-jsdom",
     "packages/runtime-pixi",
+    "packages/store",
     "packages/testing",
     "packages/validation"
   ],

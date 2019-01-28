@@ -58,7 +58,7 @@ describe(`If/Else`, () => {
     t: string;
   }
   interface UseProxiesSpec extends Spec {
-    useProxies: boolean;
+    proxyStrategy: boolean;
   }
   interface DuplicateOperationSpec extends Spec {
     bindTwice: boolean;
@@ -97,8 +97,8 @@ describe(`If/Else`, () => {
   }
 
   const useProxiesSpecs: UseProxiesSpec[] = [
-    { t: '1', useProxies: false },
-    { t: '2', useProxies: true  }
+    { t: '1', proxyStrategy: false },
+    { t: '2', proxyStrategy: true  }
   ];
 
   const duplicateOperationSpecs: DuplicateOperationSpec[] = [
@@ -164,14 +164,14 @@ describe(`If/Else`, () => {
 
   eachCartesianJoin([useProxiesSpecs, duplicateOperationSpecs, bindSpecs, mutationSpecs, flagsSpecs], (useProxiesSpec, duplicateOperationSpec, bindSpec, mutationSpec, flagsSpec) => {
     it(`verify if/else behavior - useProxiesSpec ${useProxiesSpec.t}, duplicateOperationSpec ${duplicateOperationSpec.t}, bindSpec ${bindSpec.t}, mutationSpec ${mutationSpec.t}, flagsSpec ${flagsSpec.t}, `, async () => {
-      const { useProxies } = useProxiesSpec;
+      const { proxyStrategy } = useProxiesSpec;
       const { bindTwice, attachTwice, detachTwice, unbindTwice, newScopeForDuplicateBind, newValueForDuplicateBind } = duplicateOperationSpec;
       const { ifPropName, elsePropName, ifText, elseText, value1, value2 } = bindSpec;
       const { newValue1, flush1, newValue2, flush2 } = mutationSpec;
       const { bindFlags1, attachFlags1, detachFlags1, unbindFlags1, bindFlags2, attachFlags2, detachFlags2, unbindFlags2 } = flagsSpec;
 
       // common stuff
-      const baseFlags = useProxies ? LifecycleFlags.useProxies : LifecycleFlags.none;
+      const baseFlags = proxyStrategy ? LifecycleFlags.proxyStrategy : LifecycleFlags.none;
       const container = AuDOMConfiguration.createContainer();
       const dom = container.get<AuDOM>(IDOM);
       const observerLocator = container.get(IObserverLocator);
@@ -217,7 +217,7 @@ describe(`If/Else`, () => {
       const elseFactory = new ViewFactory<AuNode>('else-view', elseTemplate, lifecycle);
       let sut: If<AuNode>;
       let elseSut: Else<AuNode>;
-      if (useProxies) {
+      if (proxyStrategy) {
         sut = new ProxyObserver(new If<AuNode>(ifFactory, location, new CompositionCoordinator(lifecycle))).proxy;
         elseSut = new ProxyObserver(new Else<AuNode>(elseFactory)).proxy;
       } else {

@@ -73,7 +73,7 @@ export class If<T extends INode = INode> implements If<T> {
   public valueChanged(newValue: boolean, oldValue: boolean, flags: LifecycleFlags): void {
     if (this.$state & (State.isBound | State.isBinding)) {
       if (ProxyObserver.isProxy(this)) {
-        flags |= LifecycleFlags.useProxies;
+        flags |= LifecycleFlags.proxyStrategy;
       }
       if (flags & LifecycleFlags.fromFlush) {
         const view = this.updateView(flags);
@@ -86,7 +86,7 @@ export class If<T extends INode = INode> implements If<T> {
 
   public flush(flags: LifecycleFlags): void {
     if (ProxyObserver.isProxy(this)) {
-      flags |= LifecycleFlags.useProxies;
+      flags |= LifecycleFlags.proxyStrategy;
     }
     const view = this.updateView(flags);
     this.coordinator.compose(view, flags);

@@ -409,7 +409,7 @@ export class Viewport {
     const host: INode = this.element as INode;
     const container = this.context || this.router.container;
 
-    // TODO: get useProxies settings from the template definition
+    // TODO: get proxyStrategy settings from the template definition
     this.nextComponent.$hydrate(LifecycleFlags.none, container, host);
   }
   private unloadComponent(component: ICustomElement): void {

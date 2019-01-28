@@ -1,6 +1,6 @@
 import { PLATFORM } from '@aurelia/kernel';
 import { expect } from 'chai';
-import { BindingMode, customAttribute, IAttributeDefinition } from '../../src/index';
+import { BindingMode, BindingStrategy, customAttribute, IAttributeDefinition } from '../../src/index';
 import { eachCartesianJoin } from '../util';
 import { createCustomAttribute } from './custom-attribute._builder';
 
@@ -9,7 +9,7 @@ import { createCustomAttribute } from './custom-attribute._builder';
 // because this allows us to add a message to the assertion describing which property was checked, making it
 // easier to pin down the source of the error when a test fail.
 describe('@customAttribute', () => {
-  const descriptionKeys = ['name', 'aliases', 'defaultBindingMode', 'hasDynamicOptions', 'isTemplateController', 'bindables', 'useProxies'];
+  const descriptionKeys = ['name', 'aliases', 'defaultBindingMode', 'hasDynamicOptions', 'isTemplateController', 'bindables', 'strategy'];
 
   it('creates the default attribute description', () => {
     const { Type } = createCustomAttribute('foo');
@@ -20,7 +20,7 @@ describe('@customAttribute', () => {
     expect(Type.description.hasDynamicOptions).to.equal(false, 'hasDynamicOptions');
     expect(Type.description.isTemplateController).to.equal(false, 'isTemplateController');
     expect(Type.description.bindables).to.deep.equal({}, 'bindables');
-    expect(Type.description.useProxies).to.equal(false, 'useProxies');
+    expect(Type.description.strategy).to.equal(BindingStrategy.getterSetter, 'strategy');
     expect(Object.keys(Type.description)).to.deep.equal(descriptionKeys);
   });
 
@@ -87,7 +87,7 @@ describe('@customAttribute', () => {
       expect(Type.description.hasDynamicOptions).to.equal(false, 'hasDynamicOptions');
       expect(Type.description.isTemplateController).to.equal(false, 'isTemplateController');
       expect(Type.description.bindables).to.deep.equal({}, 'bindables');
-      expect(Type.description.useProxies).to.equal(false, 'useProxies');
+      expect(Type.description.strategy).to.equal(BindingStrategy.getterSetter, 'strategy');
       expect(Object.keys(Type.description)).to.deep.equal(descriptionKeys);
     });
   });
@@ -171,7 +171,7 @@ describe('@customAttribute', () => {
       expect(Type.description.hasDynamicOptions).to.equal(false, 'hasDynamicOptions');
       expect(Type.description.isTemplateController).to.equal(false, 'isTemplateController');
       expect(Type.description.bindables).to.deep.equal({}, 'bindables');
-      expect(Type.description.useProxies).to.equal(false, 'useProxies');
+      expect(Type.description.strategy).to.equal(BindingStrategy.getterSetter, 'strategy');
       expect(Object.keys(Type.description)).to.deep.equal(descriptionKeys);
     });
   });
@@ -251,7 +251,7 @@ describe('@customAttribute', () => {
       expect(Type.description.hasDynamicOptions).to.equal(false, 'hasDynamicOptions');
       expect(Type.description.isTemplateController).to.equal(false, 'isTemplateController');
       expect(description.bindables).to.deep.equal(expectedBindables, 'bindables');
-      expect(Type.description.useProxies).to.equal(false, 'useProxies');
+      expect(Type.description.strategy).to.equal(BindingStrategy.getterSetter, 'strategy');
       expect(Object.keys(Type.description)).to.deep.equal(descriptionKeys);
     });
   });

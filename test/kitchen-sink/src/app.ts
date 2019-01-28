@@ -2,7 +2,7 @@ import {startFPSMonitor, startMemMonitor, initProfiler, startProfile, endProfile
 import * as faker from 'faker';
 import './app.scss';
 
-import { customElement, ICustomElement, IDOM, CustomElementResource, buildTemplateDefinition, IteratorBindingInstruction, HydrateTemplateController, InterpolationInstruction, bindable } from '@aurelia/runtime';
+import { customElement, ICustomElement, IDOM, CustomElementResource, buildTemplateDefinition, IteratorBindingInstruction, HydrateTemplateController, InterpolationInstruction, bindable, BindingStrategy } from '@aurelia/runtime';
 import { Subject, createElement, TextBindingInstruction } from '@aurelia/runtime-html'
 
 startFPSMonitor();
@@ -25,9 +25,9 @@ export class App {
   public rows: any[];
   public cols: string[];
   public subject: Subject;
-  @bindable public keyedMode: boolean;
-  @bindable public patchMode: boolean;
-  @bindable public proxyMode: boolean;
+  @bindable public keyedStrategy: boolean;
+  @bindable public patchStrategy: boolean;
+  @bindable public proxyStrategy: boolean;
 
   constructor() {
     this.rows = [];
@@ -51,6 +51,16 @@ export class App {
   }
 
   private createSubject(): void {
+    let strategy: BindingStrategy;
+    if (this.keyedStrategy) {
+      strategy |= BindingStrategy.keyed;
+    }
+    if (this.proxyStrategy) {
+      strategy |= BindingStrategy.proxies;
+    }
+    if (this.patchStrategy) {
+      strategy |= BindingStrategy.patch;
+    }
     const dom = this.$context.get<IDOM<Node>>(IDOM);
     this.subject = createElement<Node>(dom, 'table', {
       class: 'table is-fullwidth',
@@ -61,11 +71,10 @@ export class App {
               name: '',
               template: '<th><au-m class="au"></au-m> </th>',
               instructions: [[new TextBindingInstruction('${col | pascal}')]],
-              useProxies: this.proxyMode,
-              patchMode: this.patchMode
+              strategy
             },
             'repeat',
-            [new IteratorBindingInstruction(this.keyedMode ? 'col of cols & keyed' : 'col of cols', 'items')]
+            [new IteratorBindingInstruction(this.keyedStrategy ? 'col of cols & keyed' : 'col of cols', 'items')]
           )
         })
       ]),
@@ -77,15 +86,14 @@ export class App {
                 name: '',
                 template: '<td><au-m class="au"></au-m> </td>',
                 instructions: [[new TextBindingInstruction('${row[col]}')]],
-                useProxies: this.proxyMode,
-                patchMode: this.patchMode
+                strategy
               },
               'repeat',
-              [new IteratorBindingInstruction(this.keyedMode ? 'col of cols & keyed' : 'col of cols', 'items')]
+              [new IteratorBindingInstruction(this.keyedStrategy ? 'col of cols & keyed' : 'col of cols', 'items')]
             )]]
           },
           'repeat',
-          [new IteratorBindingInstruction(this.keyedMode ? 'row of rows & keyed' : 'row of rows', 'items')]
+          [new IteratorBindingInstruction(this.keyedStrategy ? 'row of rows & keyed' : 'row of rows', 'items')]
         )
       })
     ]);

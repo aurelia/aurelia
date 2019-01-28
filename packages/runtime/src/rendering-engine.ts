@@ -101,12 +101,7 @@ export class CompiledTemplate<T extends INode = INode> implements ITemplate {
   public render(renderable: IRenderable<T>, host?: T, parts?: TemplatePartDefinitions, flags: LifecycleFlags = LifecycleFlags.none): void {
     const nodes = (renderable as Writable<IRenderable>).$nodes = this.factory.createNodeSequence();
     (renderable as Writable<IRenderable>).$context = this.renderContext;
-    if (this.definition.useProxies) {
-      flags |= LifecycleFlags.useProxies;
-    }
-    if (this.definition.patchMode) {
-      flags |= LifecycleFlags.patchMode;
-    }
+    flags |= this.definition.strategy;
     this.renderContext.render(flags, renderable, nodes.findTargets(), this.definition, host, parts);
   }
 }
@@ -521,7 +516,7 @@ export class RuntimeBehavior {
     const bindables = this.bindables;
     const observableNames = Object.getOwnPropertyNames(bindables);
 
-    if (flags & LifecycleFlags.useProxies) {
+    if (flags & LifecycleFlags.proxyStrategy) {
       for (let i = 0, ii = observableNames.length; i < ii; ++i) {
         const name = observableNames[i];
 
@@ -543,7 +538,7 @@ export class RuntimeBehavior {
           bindables[name].callback
         );
 
-        if (!(flags & LifecycleFlags.patchMode)) {
+        if (!(flags & LifecycleFlags.patchStrategy)) {
           createGetterSetter(flags, instance, name);
         }
       }

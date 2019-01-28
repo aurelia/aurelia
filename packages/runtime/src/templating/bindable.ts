@@ -36,8 +36,8 @@ export function bindable<T extends InstanceType<Constructable & Partial<WithBind
     if (config.mode === undefined) {
       config.mode = BindingMode.toView;
     }
-    if (config.useProxies === undefined) {
-      config.useProxies = false;
+    if (config.proxyStrategy === undefined) {
+      config.proxyStrategy = false;
     }
     if (arguments.length > 1) {
       // Non invocation:

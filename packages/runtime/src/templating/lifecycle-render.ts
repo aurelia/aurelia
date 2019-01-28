@@ -48,6 +48,9 @@ export function $hydrateAttribute(this: Writable<ICustomAttribute>, flags: Lifec
   if (Profiler.enabled) { enter(); }
   const Type = this.constructor as ICustomAttributeType;
   if (Tracer.enabled) { Tracer.enter(Type.description.name, '$hydrate', slice.call(arguments)); }
+  const description = Type.description;
+
+  flags |= description.strategy;
   const renderingEngine = parentContext.get(IRenderingEngine);
 
   renderingEngine.applyRuntimeBehavior(flags, Type, this);
@@ -66,15 +69,13 @@ export function $hydrateElement(this: Writable<ICustomElement>, flags: Lifecycle
   if (Tracer.enabled) { Tracer.enter(Type.description.name, '$hydrate', slice.call(arguments)); }
   const description = Type.description;
 
-  if (description.patchMode) {
-    flags |= LifecycleFlags.patchMode;
-  }
+  flags |= description.strategy;
   const projectorLocator = parentContext.get(IProjectorLocator);
   const renderingEngine = parentContext.get(IRenderingEngine);
   const dom = parentContext.get(IDOM);
 
   let bindingContext: typeof this;
-  if (flags & LifecycleFlags.useProxies) {
+  if (flags & LifecycleFlags.proxyStrategy) {
     bindingContext = ProxyObserver.getOrCreate(this).proxy;
   } else {
     bindingContext = this;

@@ -133,7 +133,7 @@ new Aurelia().register(BasicConfiguration, { register }).app(
                   </g>
                 </svg>
               `,
-              //patchMode: true,
+              //strategy: BindingStrategy.patch,
               bindables: { count: { property: 'count', attribute: 'count', callback: 'update' } }
             },
             class {

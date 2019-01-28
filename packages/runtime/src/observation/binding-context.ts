@@ -80,7 +80,7 @@ export class BindingContext implements IBindingContext {
   public static create(flags: LifecycleFlags, keyOrObj?: string | IIndexable, value?: BindingContextValue): BindingContext;
   public static create(flags: LifecycleFlags, keyOrObj?: string | IIndexable, value?: BindingContextValue): BindingContext {
     const bc = new BindingContext(keyOrObj, value);
-    if (flags & LifecycleFlags.useProxies) {
+    if (flags & LifecycleFlags.proxyStrategy) {
       return ProxyObserver.getOrCreate(bc).proxy;
     }
     return bc;

@@ -18,7 +18,7 @@ import {
   IAttributeDefinition
 } from '../definitions';
 import { INode } from '../dom';
-import { BindingMode, Hooks, LifecycleFlags } from '../flags';
+import { BindingMode, ensureValidStrategy, Hooks, LifecycleFlags } from '../flags';
 import {
   IComponent,
   ILifecycleHooks,
@@ -200,7 +200,7 @@ export function createCustomAttributeDescription(def: IAttributeDefinition, Type
     hasDynamicOptions: def.hasDynamicOptions === undefined ? false : def.hasDynamicOptions,
     isTemplateController: def.isTemplateController === undefined ? false : def.isTemplateController,
     bindables: {...Type.bindables, ...def.bindables},
-    useProxies: def.useProxies === undefined ? false : def.useProxies
+    strategy: ensureValidStrategy(def.strategy)
   };
 }
 

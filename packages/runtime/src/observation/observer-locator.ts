@@ -94,7 +94,7 @@ export class ObserverLocator implements IObserverLocator {
   }
 
   public getObserver(flags: LifecycleFlags, obj: IObservable|IBindingContext, propertyName: string): AccessorOrObserver {
-    if (flags & LifecycleFlags.useProxies && typeof obj === 'object') {
+    if (flags & LifecycleFlags.proxyStrategy && typeof obj === 'object') {
       return ProxyObserver.getOrCreate(obj, propertyName) as unknown as AccessorOrObserver; // TODO: fix typings (and ensure proper contracts ofc)
     }
     if (isBindingContext(obj)) {
@@ -132,7 +132,7 @@ export class ObserverLocator implements IObserverLocator {
       return this.targetAccessorLocator.getAccessor(flags, this.lifecycle, obj, propertyName);
     }
 
-    if (flags & LifecycleFlags.useProxies) {
+    if (flags & LifecycleFlags.proxyStrategy) {
       return ProxyObserver.getOrCreate(obj, propertyName) as unknown as AccessorOrObserver;
     }
     return new PropertyAccessor(obj, propertyName);

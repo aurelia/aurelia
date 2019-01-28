@@ -21,7 +21,7 @@ export class SetterObserver implements SetterObserver {
     this.persistentFlags = flags & LifecycleFlags.persistentBindingFlags;
     this.obj = obj;
     this.propertyKey = propertyKey;
-    if (flags & LifecycleFlags.patchMode) {
+    if (flags & LifecycleFlags.patchStrategy) {
       this.getValue = this.getValueDirect;
     }
     if (Tracer.enabled) { Tracer.leave(); }
@@ -35,7 +35,7 @@ export class SetterObserver implements SetterObserver {
   }
   public setValue(newValue: unknown, flags: LifecycleFlags): void {
     const currentValue = this.currentValue;
-    if (currentValue !== newValue || (flags & LifecycleFlags.patchMode)) {
+    if (currentValue !== newValue || (flags & LifecycleFlags.patchStrategy)) {
       this.currentValue = newValue;
       if (!(flags & LifecycleFlags.fromBind)) {
         this.callSubscribers(newValue, currentValue, this.persistentFlags | flags);

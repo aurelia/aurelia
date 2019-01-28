@@ -10,7 +10,7 @@ import {
   ResourcePartDescription
 } from '@aurelia/kernel';
 import { IForOfStatement, IInterpolationExpression, IsBindingBehavior } from './ast';
-import { BindingMode } from './flags';
+import { BindingMode, BindingStrategy, ensureValidStrategy } from './flags';
 import { CustomElementHost, ICustomElement } from './resources/custom-element';
 
 /** @internal */
@@ -40,7 +40,7 @@ export interface IBindableDescription {
   callback?: string;
   attribute?: string;
   property?: string;
-  useProxies?: boolean;
+  proxyStrategy?: boolean;
 }
 
 /**
@@ -82,8 +82,7 @@ export interface ITemplateDefinition extends IResourceDefinition {
   containerless?: boolean;
   shadowOptions?: { mode: 'open' | 'closed' };
   hasSlots?: boolean;
-  useProxies?: boolean;
-  patchMode?: boolean;
+  strategy?: BindingStrategy;
 }
 
 export type TemplateDefinition = ResourceDescription<ITemplateDefinition>;
@@ -97,7 +96,7 @@ export interface IAttributeDefinition extends IResourceDefinition {
   isTemplateController?: boolean;
   hasDynamicOptions?: boolean;
   bindables?: Record<string, IBindableDescription>;
-  useProxies?: boolean;
+  strategy?: BindingStrategy;
 }
 
 export type AttributeDefinition = Immutable<Required<IAttributeDefinition>> | null;
@@ -230,8 +229,7 @@ class DefaultTemplateDefinition implements Required<ITemplateDefinition> {
   public containerless: ITemplateDefinition['containerless'];
   public shadowOptions: ITemplateDefinition['shadowOptions'];
   public hasSlots: ITemplateDefinition['hasSlots'];
-  public useProxies: ITemplateDefinition['useProxies'];
-  public patchMode: ITemplateDefinition['patchMode'];
+  public strategy: ITemplateDefinition['strategy'];
 
   constructor() {
     this.name = 'unnamed';
@@ -245,8 +243,7 @@ class DefaultTemplateDefinition implements Required<ITemplateDefinition> {
     this.containerless = false;
     this.shadowOptions = null;
     this.hasSlots = false;
-    this.useProxies = false;
-    this.patchMode = false;
+    this.strategy = BindingStrategy.getterSetter;
   }
 }
 
@@ -257,9 +254,7 @@ const templateDefinitionAssignables = [
   'build',
   'containerless',
   'shadowOptions',
-  'hasSlots',
-  'useProxies',
-  'patchMode'
+  'hasSlots'
 ];
 
 const templateDefinitionArrays = [
@@ -297,8 +292,7 @@ export function buildTemplateDefinition(
   containerless?: boolean | null,
   shadowOptions?: { mode: 'open' | 'closed' } | null,
   hasSlots?: boolean | null,
-  useProxies?: boolean | null,
-  patchMode?: boolean | null): TemplateDefinition;
+  strategy?: BindingStrategy | null): TemplateDefinition;
 // tslint:disable-next-line:parameters-max-number // TODO: Reduce complexity (currently at 64)
 export function buildTemplateDefinition(
   ctor: CustomElementConstructor | null,
@@ -313,16 +307,14 @@ export function buildTemplateDefinition(
   containerless?: boolean | null,
   shadowOptions?: { mode: 'open' | 'closed' } | null,
   hasSlots?: boolean | null,
-  useProxies?: boolean | null,
-  patchMode?: boolean | null): TemplateDefinition {
+  strategy?: BindingStrategy | null): TemplateDefinition {
 
   const def = new DefaultTemplateDefinition();
 
   // all cases fall through intentionally
   const argLen = arguments.length;
   switch (argLen) {
-    case 14: if (patchMode !== null) def.patchMode = patchMode;
-    case 13: if (useProxies !== null) def.useProxies = useProxies;
+    case 13: if (strategy !== null) def.strategy = ensureValidStrategy(strategy);
     case 12: if (hasSlots !== null) def.hasSlots = hasSlots;
     case 11: if (shadowOptions !== null) def.shadowOptions = shadowOptions;
     case 10: if (containerless !== null) def.containerless = containerless;
@@ -350,6 +342,7 @@ export function buildTemplateDefinition(
           def.name = nameOrDef;
         }
       } else if (nameOrDef !== null) {
+        def.strategy = ensureValidStrategy(nameOrDef.strategy);
         templateDefinitionAssignables.forEach(prop => {
           if (nameOrDef[prop]) {
             def[prop] = nameOrDef[prop];

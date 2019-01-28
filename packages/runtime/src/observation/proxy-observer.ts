@@ -33,7 +33,7 @@ export class ProxySubscriberCollection<TObj extends object = object> implements 
     const oldValue = this.raw[this.key];
     if (oldValue !== value) {
       this.raw[this.key] = value;
-      this.callSubscribers(value, oldValue, flags | LifecycleFlags.useProxies | LifecycleFlags.updateTargetInstance);
+      this.callSubscribers(value, oldValue, flags | LifecycleFlags.proxyStrategy | LifecycleFlags.updateTargetInstance);
     }
   }
   public getValue(): unknown {
@@ -121,7 +121,7 @@ export class ProxyObserver<TObj extends object = object> implements ProxyObserve
     if (oldValue !== value) {
       Reflect.set(target, p, value, target);
       this.callPropertySubscribers(value, oldValue, p);
-      this.callSubscribers(p, value, oldValue, LifecycleFlags.useProxies | LifecycleFlags.updateTargetInstance);
+      this.callSubscribers(p, value, oldValue, LifecycleFlags.proxyStrategy | LifecycleFlags.updateTargetInstance);
     }
     return true;
   }
@@ -131,7 +131,7 @@ export class ProxyObserver<TObj extends object = object> implements ProxyObserve
     if (Reflect.deleteProperty(target, p)) {
       if (oldValue !== undefined) {
         this.callPropertySubscribers(undefined, oldValue, p);
-        this.callSubscribers(p, undefined, oldValue, LifecycleFlags.useProxies | LifecycleFlags.updateTargetInstance);
+        this.callSubscribers(p, undefined, oldValue, LifecycleFlags.proxyStrategy | LifecycleFlags.updateTargetInstance);
       }
       return true;
     }
@@ -143,7 +143,7 @@ export class ProxyObserver<TObj extends object = object> implements ProxyObserve
     if (Reflect.defineProperty(target, p, attributes)) {
       if (attributes.value !== oldValue) {
         this.callPropertySubscribers(attributes.value, oldValue, p);
-        this.callSubscribers(p, attributes.value, oldValue, LifecycleFlags.useProxies | LifecycleFlags.updateTargetInstance);
+        this.callSubscribers(p, attributes.value, oldValue, LifecycleFlags.proxyStrategy | LifecycleFlags.updateTargetInstance);
       }
       return true;
     }
@@ -185,7 +185,7 @@ export class ProxyObserver<TObj extends object = object> implements ProxyObserve
   private callPropertySubscribers(newValue: unknown, oldValue: unknown, key: PropertyKey): void {
     const subscribers = this.subscribers[key as string | number];
     if (subscribers !== undefined) {
-      subscribers.callSubscribers(newValue, oldValue, LifecycleFlags.useProxies | LifecycleFlags.updateTargetInstance);
+      subscribers.callSubscribers(newValue, oldValue, LifecycleFlags.proxyStrategy | LifecycleFlags.updateTargetInstance);
     }
   }
 }

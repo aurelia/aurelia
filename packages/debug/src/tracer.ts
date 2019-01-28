@@ -532,9 +532,10 @@ export function stringifyLifecycleFlags(flags: LifecycleFlags): string {
   if (flags & LifecycleFlags.doNotUpdateDOM) { flagNames.push('doNotUpdateDOM'); }
   if (flags & LifecycleFlags.isTraversingParentScope) { flagNames.push('isTraversingParentScope'); }
   if (flags & LifecycleFlags.allowParentScopeTraversal) { flagNames.push('allowParentScopeTraversal'); }
-  if (flags & LifecycleFlags.useProxies) { flagNames.push('useProxies'); }
-  if (flags & LifecycleFlags.keyedMode) { flagNames.push('keyedMode'); }
-  if (flags & LifecycleFlags.patchMode) { flagNames.push('patchMode'); }
+  if (flags & LifecycleFlags.getterSetterStrategy) { flagNames.push('getterSetterStrategy'); }
+  if (flags & LifecycleFlags.proxyStrategy) { flagNames.push('proxyStrategy'); }
+  if (flags & LifecycleFlags.keyedStrategy) { flagNames.push('keyedStrategy'); }
+  if (flags & LifecycleFlags.patchStrategy) { flagNames.push('patchStrategy'); }
 
   if (flagNames.length === 0) {
     return 'none';

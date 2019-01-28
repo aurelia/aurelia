@@ -360,6 +360,7 @@ export {
 } from './dom';
 export {
   BindingMode,
+  BindingStrategy,
   ExpressionKind,
   Hooks,
   LifecycleFlags,

@@ -43,7 +43,7 @@ export class SelfObserver implements SelfObserver {
         ? instance[callbackName].bind(instance)
         : noop;
     }
-    if (flags & LifecycleFlags.patchMode) {
+    if (flags & LifecycleFlags.patchStrategy) {
       this.getValue = this.getValueDirect;
     }
     if (Tracer.enabled) { Tracer.leave(); }
@@ -63,7 +63,7 @@ export class SelfObserver implements SelfObserver {
   public setValue(newValue: unknown, flags: LifecycleFlags): void {
     const currentValue = this.currentValue;
 
-    if (currentValue !== newValue || (flags & LifecycleFlags.patchMode)) {
+    if (currentValue !== newValue || (flags & LifecycleFlags.patchStrategy)) {
       this.currentValue = newValue;
 
       if (!(flags & LifecycleFlags.fromBind)) {

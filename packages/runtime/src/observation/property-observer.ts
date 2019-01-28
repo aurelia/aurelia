@@ -18,7 +18,7 @@ function subscribe(this: PropertyObserver, subscriber: IPropertySubscriber): voi
   if (this.observing === false) {
     this.observing = true;
     this.currentValue = this.obj[this.propertyKey];
-    if ((this.persistentFlags & LifecycleFlags.patchMode) === 0) {
+    if ((this.persistentFlags & LifecycleFlags.patchStrategy) === 0) {
       observedPropertyDescriptor.get = () => this.getValue();
       observedPropertyDescriptor.set = value => { this.setValue(value, LifecycleFlags.updateTargetInstance); };
       if (!defineProperty(this.obj, this.propertyKey, observedPropertyDescriptor)) {

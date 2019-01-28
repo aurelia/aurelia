@@ -14,6 +14,59 @@ export enum BindingMode {
   default  = 0b1000
 }
 
+export const enum BindingStrategy {
+  /**
+   * Configures all components "below" this one to operate in getterSetter binding mode.
+   * This is the default; if no strategy is specified, this one is implied.
+   *
+   * This strategy is the most compatible, convenient and has the best performance on frequently updated bindings on components that are infrequently replaced.
+   * However, it also consumes the most resources on initialization.
+   *
+   * Cannot be combined with `proxies` or `patch`.
+   */
+  getterSetter = 0b0001,
+  /**
+   * Configures all components "below" this one to operate in proxy binding mode.
+   * No getters/setters are created.
+   *
+   * This strategy consumes significantly fewer resources than `getterSetter` on initialization and has the best performance on infrequently updated bindings on
+   * components that are frequently replaced.
+   * However, it consumes more resources on updates.
+   *
+   * Cannot be combined with `getterSetter` or `patch`.
+   */
+  proxies      = 0b0010,
+  /**
+   * Configures all components "below" this one to operate in patched binding mode.
+   * Nothing is observed; to propagate changes, you manually need to call `$patch` on the component.
+   *
+   * This strategy consumes the least amount of resources and has the fastest initialization.
+   * Performance on updates will depend heavily on how it's used, but tends to be worse on a large number of
+   * nested bindings/components due to a larger number of reads on all properties.
+   *
+   * Cannot be combined with `getterSetter` or `proxies`.
+   */
+  patch        = 0b0100,
+  /**
+   * Configures any repeaters "below" this component to operate in keyed mode.
+   * To only put a single repeater in that mode, use `& keyed` (this will change to track-by etc soon)
+   *
+   * Can be combined with either `getterSetter`, `proxies` or `patch`.
+   */
+  keyed        = 0b1000
+}
+
+const mandatoryStrategy = BindingStrategy.getterSetter | BindingStrategy.proxies | BindingStrategy.patch;
+
+export function ensureValidStrategy(strategy: BindingStrategy | null | undefined): BindingStrategy {
+  if ((strategy & mandatoryStrategy) === 0 || strategy === BindingStrategy.keyed) {
+    // TODO: probably want to validate that user isn't trying to mix proxy/patch, getterSetter/patch, getterSetter/proxy
+    // TODO: also need to make sure that strategy can be changed away from patch/proxies inside the component tree (not here though, but just making a note)
+    return strategy | BindingStrategy.getterSetter;
+  }
+  return strategy;
+}
+
 export const enum State {
   none                  = 0b000000000000,
   isBinding             = 0b000000000001,
@@ -44,43 +97,45 @@ export const enum Hooks {
 }
 
 export enum LifecycleFlags {
-  none                      = 0b0000_0000_00000000000000_000_00,
-  mustEvaluate              = 0b0000_0001_00000000000000_000_00,
-  mutation                  = 0b0000_0000_00000000000000_000_11,
-  isCollectionMutation      = 0b0000_0000_00000000000000_000_01,
-  isInstanceMutation        = 0b0000_0000_00000000000000_000_10,
-  update                    = 0b0000_0000_00000000000000_111_00,
-  updateTargetObserver      = 0b0000_0000_00000000000000_001_00,
-  updateTargetInstance      = 0b0000_0000_00000000000000_010_00,
-  updateSourceExpression    = 0b0000_0000_00000000000000_100_00,
-  from                      = 0b0000_0000_11111111111111_000_00,
-  fromFlush                 = 0b0000_0000_00000000000111_000_00,
-  fromAsyncFlush            = 0b0000_0000_00000000000001_000_00,
-  fromSyncFlush             = 0b0000_0000_00000000000010_000_00,
-  fromTick                  = 0b0000_0000_00000000000100_000_00,
-  fromStartTask             = 0b0000_0000_00000000001000_000_00,
-  fromStopTask              = 0b0000_0000_00000000010000_000_00,
-  fromBind                  = 0b0000_0000_00000000100000_000_00,
-  fromUnbind                = 0b0000_0000_00000001000000_000_00,
-  fromAttach                = 0b0000_0000_00000010000000_000_00,
-  fromDetach                = 0b0000_0000_00000100000000_000_00,
-  fromCache                 = 0b0000_0000_00001000000000_000_00,
-  fromDOMEvent              = 0b0000_0000_00010000000000_000_00,
-  fromObserverSetter        = 0b0000_0000_00100000000000_000_00,
-  fromBindableHandler       = 0b0000_0000_01000000000000_000_00,
-  fromLifecycleTask         = 0b0000_0000_10000000000000_000_00,
-  parentUnmountQueued       = 0b0000_0010_00000000000000_000_00,
+  none                      = 0b0_0000_00000000000000_000_00_0000,
+  mustEvaluate              = 0b0_0001_00000000000000_000_00_0000,
+  bindingStrategy           = 0b0_0000_00000000000000_000_00_1111,
+  getterSetterStrategy      = 0b0_0000_00000000000000_000_00_0001,
+  proxyStrategy             = 0b0_0000_00000000000000_000_00_0010,
+  patchStrategy             = 0b0_0000_00000000000000_000_00_0100,
+  keyedStrategy             = 0b0_0000_00000000000000_000_00_1000,
+  mutation                  = 0b0_0000_00000000000000_000_11_0000,
+  isCollectionMutation      = 0b0_0000_00000000000000_000_01_0000,
+  isInstanceMutation        = 0b0_0000_00000000000000_000_10_0000,
+  update                    = 0b0_0000_00000000000000_111_00_0000,
+  updateTargetObserver      = 0b0_0000_00000000000000_001_00_0000,
+  updateTargetInstance      = 0b0_0000_00000000000000_010_00_0000,
+  updateSourceExpression    = 0b0_0000_00000000000000_100_00_0000,
+  from                      = 0b0_0000_11111111111111_000_00_0000,
+  fromFlush                 = 0b0_0000_00000000000111_000_00_0000,
+  fromAsyncFlush            = 0b0_0000_00000000000001_000_00_0000,
+  fromSyncFlush             = 0b0_0000_00000000000010_000_00_0000,
+  fromTick                  = 0b0_0000_00000000000100_000_00_0000,
+  fromStartTask             = 0b0_0000_00000000001000_000_00_0000,
+  fromStopTask              = 0b0_0000_00000000010000_000_00_0000,
+  fromBind                  = 0b0_0000_00000000100000_000_00_0000,
+  fromUnbind                = 0b0_0000_00000001000000_000_00_0000,
+  fromAttach                = 0b0_0000_00000010000000_000_00_0000,
+  fromDetach                = 0b0_0000_00000100000000_000_00_0000,
+  fromCache                 = 0b0_0000_00001000000000_000_00_0000,
+  fromDOMEvent              = 0b0_0000_00010000000000_000_00_0000,
+  fromObserverSetter        = 0b0_0000_00100000000000_000_00_0000,
+  fromBindableHandler       = 0b0_0000_01000000000000_000_00_0000,
+  fromLifecycleTask         = 0b0_0000_10000000000000_000_00_0000,
+  parentUnmountQueued       = 0b0_0010_00000000000000_000_00_0000,
   // this flag is for the synchronous flush before detach (no point in updating the
   // DOM if it's about to be detached)
-  doNotUpdateDOM            = 0b0000_0100_00000000000000_000_00,
-  isTraversingParentScope   = 0b0000_1000_00000000000000_000_00,
+  doNotUpdateDOM            = 0b0_0100_00000000000000_000_00_0000,
+  isTraversingParentScope   = 0b0_1000_00000000000000_000_00_0000,
   // Bitmask for flags that need to be stored on a binding during $bind for mutation
   // callbacks outside of $bind
-  persistentBindingFlags    = 0b1111_0000_00000000000000_000_00,
-  allowParentScopeTraversal = 0b0001_0000_00000000000000_000_00,
-  useProxies                = 0b0010_0000_00000000000000_000_00,
-  keyedMode                 = 0b0100_0000_00000000000000_000_00,
-  patchMode                 = 0b1000_0000_00000000000000_000_00,
+  persistentBindingFlags    = 0b1_0000_00000000000000_000_00_1111,
+  allowParentScopeTraversal = 0b1_0000_00000000000000_000_00_0000,
 }
 
 export const enum ExpressionKind {

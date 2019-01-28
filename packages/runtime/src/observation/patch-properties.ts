@@ -18,11 +18,11 @@ export function patchProperties(value: unknown, flags: LifecycleFlags): void {
       for (key in observers) {
         observer = observers[key];
         if (observer.$patch !== undefined) {
-          observer.$patch(flags | LifecycleFlags.patchMode | LifecycleFlags.updateTargetInstance);
+          observer.$patch(flags | LifecycleFlags.patchStrategy | LifecycleFlags.updateTargetInstance);
         }
       }
     } else if (value.$observer !== undefined && value.$observer.$patch !== undefined) {
-      value.$observer.$patch(flags | LifecycleFlags.patchMode | LifecycleFlags.updateTargetInstance);
+      value.$observer.$patch(flags | LifecycleFlags.patchStrategy | LifecycleFlags.updateTargetInstance);
     }
   }
 }
@@ -31,7 +31,7 @@ export function patchProperty(value: unknown, key: string, flags: LifecycleFlags
   if (mayHaveObservers(value) && value.$observers !== undefined) {
     const observer = value.$observers[key];
     if (observer && observer.$patch !== undefined) {
-      observer.$patch(flags | LifecycleFlags.patchMode | LifecycleFlags.updateTargetInstance);
+      observer.$patch(flags | LifecycleFlags.patchStrategy | LifecycleFlags.updateTargetInstance);
     }
   }
 }

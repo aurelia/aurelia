@@ -73,7 +73,7 @@ export interface ICustomElementStaticProperties {
   containerless?: TemplateDefinition['containerless'];
   shadowOptions?: TemplateDefinition['shadowOptions'];
   bindables?: TemplateDefinition['bindables'];
-  useProxies?: TemplateDefinition['useProxies'];
+  strategy?: TemplateDefinition['strategy'];
 }
 
 export interface ICustomElement<T extends INode = INode> extends

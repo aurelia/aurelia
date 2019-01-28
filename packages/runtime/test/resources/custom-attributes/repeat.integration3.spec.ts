@@ -61,7 +61,7 @@ describe(`Repeat`, () => {
     keyed: boolean;
   }
   interface UseProxiesSpec extends Spec {
-    useProxies: boolean;
+    proxyStrategy: boolean;
   }
   interface DuplicateOperationSpec extends Spec {
     bindTwice: boolean;
@@ -180,8 +180,8 @@ describe(`Repeat`, () => {
   ];
 
   const useProxiesSpecs: UseProxiesSpec[] = [
-    { t: '1', useProxies: false },
-    { t: '2', useProxies: true  }
+    { t: '1', proxyStrategy: false },
+    { t: '2', proxyStrategy: true  }
   ];
 
   const duplicateOperationSpecs: DuplicateOperationSpec[] = [
@@ -504,14 +504,14 @@ describe(`Repeat`, () => {
   eachCartesianJoin([keyedSpecs, useProxiesSpecs, duplicateOperationSpecs, bindSpecs, flagsSpecs], (keyedSpec, useProxiesSpec, duplicateOperationSpec, bindSpec, flagsSpec) => {
     it(`verify repeat behavior - keyedSpec ${keyedSpec.t}, useProxiesSpec ${useProxiesSpec.t}, duplicateOperationSpec ${duplicateOperationSpec.t}, bindSpec ${bindSpec.t}, flagsSpec ${flagsSpec.t}, `, async () => {
       const { keyed } = keyedSpec;
-      const { useProxies } = useProxiesSpec;
+      const { proxyStrategy } = useProxiesSpec;
       const { bindTwice, attachTwice, detachTwice, unbindTwice, newScopeForDuplicateBind } = duplicateOperationSpec;
       const { items: $items, flush, mutations } = bindSpec;
       const { bindFlags1, attachFlags1, detachFlags1, unbindFlags1, bindFlags2, attachFlags2, detachFlags2, unbindFlags2 } = flagsSpec;
 
       const items = $items.slice();
       // common stuff
-      const baseFlags = useProxies ? LifecycleFlags.useProxies : LifecycleFlags.none;
+      const baseFlags = proxyStrategy ? LifecycleFlags.proxyStrategy : LifecycleFlags.none;
       const container = AuDOMConfiguration.createContainer();
       const dom = container.get<AuDOM>(IDOM);
       const observerLocator = container.get(IObserverLocator);
@@ -547,7 +547,7 @@ describe(`Repeat`, () => {
         $bindingHead: binding
       } as any;
       let sut: Repeat<IObservedArray, AuNode>;
-      if (useProxies) {
+      if (proxyStrategy) {
         sut = new ProxyObserver(new Repeat<IObservedArray, AuNode>(location, renderable, itemFactory)).proxy;
       } else {
         sut = new Repeat<IObservedArray, AuNode>(location, renderable, itemFactory);

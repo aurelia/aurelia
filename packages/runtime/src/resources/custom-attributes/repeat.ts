@@ -63,7 +63,7 @@ export class Repeat<C extends ObservedCollection = IObservedArray, T extends INo
     }
     this.local = this.forOf.declaration.evaluate(flags, this.$scope, null) as string;
 
-    if (this.keyed || (flags & LifecycleFlags.keyedMode) > 0) {
+    if (this.keyed || (flags & LifecycleFlags.keyedStrategy) > 0) {
       this.processViewsKeyed(null, flags);
     } else {
       this.processViewsNonKeyed(null, flags);
@@ -105,7 +105,7 @@ export class Repeat<C extends ObservedCollection = IObservedArray, T extends INo
   public itemsChanged(newValue: C, oldValue: C, flags: LifecycleFlags): void {
     this.checkCollectionObserver(flags);
     flags |= LifecycleFlags.updateTargetInstance;
-    if (this.keyed || (flags & LifecycleFlags.keyedMode) > 0) {
+    if (this.keyed || (flags & LifecycleFlags.keyedStrategy) > 0) {
       this.processViewsKeyed(null, flags);
     } else {
       this.processViewsNonKeyed(null, flags);
@@ -115,7 +115,7 @@ export class Repeat<C extends ObservedCollection = IObservedArray, T extends INo
   // called by a CollectionObserver (async)
   public handleBatchedChange(indexMap: number[] | null, flags: LifecycleFlags): void {
     flags |= (LifecycleFlags.fromFlush | LifecycleFlags.updateTargetInstance);
-    if (this.keyed || (flags & LifecycleFlags.keyedMode) > 0) {
+    if (this.keyed || (flags & LifecycleFlags.keyedStrategy) > 0) {
       this.processViewsKeyed(indexMap, flags);
     } else {
       this.processViewsNonKeyed(indexMap, flags);
@@ -126,7 +126,7 @@ export class Repeat<C extends ObservedCollection = IObservedArray, T extends INo
   // TODO: Reduce complexity (currently at 46)
   private processViewsNonKeyed(indexMap: number[] | null, flags: LifecycleFlags): void {
     if (ProxyObserver.isProxy(this)) {
-      flags |= LifecycleFlags.useProxies;
+      flags |= LifecycleFlags.proxyStrategy;
     }
     const { views, $lifecycle } = this;
     let view: IView;
@@ -208,7 +208,7 @@ export class Repeat<C extends ObservedCollection = IObservedArray, T extends INo
 
   private processViewsKeyed(indexMap: IndexMap | null, flags: LifecycleFlags): void {
     if (ProxyObserver.isProxy(this)) {
-      flags |= LifecycleFlags.useProxies;
+      flags |= LifecycleFlags.proxyStrategy;
     }
     const { $lifecycle, local, $scope, factory, forOf, items } = this;
     let views = this.views;

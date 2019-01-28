@@ -58,7 +58,7 @@ export class Binding implements IPartialConnectableBinding {
   public updateTarget(value: unknown, flags: LifecycleFlags): void {
     flags |= this.persistentFlags;
     this.targetObserver.setValue(value, flags | LifecycleFlags.updateTargetInstance);
-    if (flags & LifecycleFlags.patchMode) {
+    if (flags & LifecycleFlags.patchStrategy) {
       this.targetObserver.$patch(flags);
     }
   }

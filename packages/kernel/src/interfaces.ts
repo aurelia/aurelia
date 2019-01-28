@@ -26,9 +26,22 @@ declare namespace NodeJS {
   }
 }
 
+export interface IStorage {
+  readonly length: number;
+  clear(): void;
+  getItem(key: string): string | null;
+  key(index: number): string | null;
+  removeItem(key: string): void;
+  setItem(key: string, value: string): void;
+  // tslint:disable-next-line:no-any
+  [name: string]: any;
+}
+
 export interface IWindowOrWorkerGlobalScope {
   process?: NodeJS.Process;
   readonly performance: IPerformance;
+  readonly localStorage?: IStorage;
+
   clearInterval(handle?: number): void;
   clearTimeout(handle?: number): void;
   // tslint:disable-next-line:no-any

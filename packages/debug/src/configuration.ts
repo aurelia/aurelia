@@ -4,7 +4,7 @@ import { Reporter } from './reporter';
 import { Tracer } from './tracer';
 
 export const DebugConfiguration = {
-  register(container: IContainer): void {
+  register(container?: IContainer): void {
     Reporter.write(2);
     Object.assign(RuntimeReporter, Reporter);
     enableImprovedExpressionDebugging();
@@ -12,7 +12,7 @@ export const DebugConfiguration = {
 };
 
 export const TraceConfiguration = {
-  register(container: IContainer): void {
+  register(container?: IContainer): void {
     Object.assign(RuntimeTracer, Tracer);
   }
 };

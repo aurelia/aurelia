@@ -9,7 +9,6 @@ startFPSMonitor();
 startMemMonitor();
 
 import template from './app.html';
-import { Tracer, ITraceInfo } from '@aurelia/kernel';
 
 function createItem() {
   return {
@@ -37,12 +36,6 @@ export class App {
 
 
   public created(): void {
-    // Tracer.enabled = true;
-    // Tracer.enableLiveLogging({
-    //   write(info: ITraceInfo): void {
-    //     console.log(`${' '.repeat(info.depth)}${info.objName}.${info.methodName}`);
-    //   }
-    // });
     this.$host.textContent = '';
     this.createSubject();
   }

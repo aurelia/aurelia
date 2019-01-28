@@ -10,6 +10,16 @@ export interface ITraceInfo {
 export interface ITraceWriter {
   write(info: ITraceInfo): void;
 }
+export interface ILiveLoggingOptions {
+  rendering?: boolean;
+  binding?: boolean;
+  observation?: boolean;
+  attaching?: boolean;
+  mounting?: boolean;
+  di?: boolean;
+  lifecycle?: boolean;
+  jit?: boolean;
+}
 export const Reporter = {
   write(code: number, ...params: unknown[]): void { return; },
   error(code: number, ...params: unknown[]): Error { return new Error(`Code ${code}`); }
@@ -47,13 +57,22 @@ export const Tracer = {
    * @param writer An object to write the output to. Can be null to simply reset the tracer state.
    */
   flushAll(writer: ITraceWriter | null): void { return; },
-  /**
-   * Writes out each trace info item as they are traced.
-   * @param writer An object to write the output to.
-   */
-  enableLiveLogging(writer: ITraceWriter): void { return; },
+  enableLiveLogging,
   /**
    * Stops writing out each trace info item as they are traced.
    */
   disableLiveLogging(): void { return; }
 };
+
+/**
+ * Writes out each trace info item as they are traced.
+ * @param writer An object to write the output to.
+ */
+function enableLiveLogging(writer: ITraceWriter): void;
+/**
+ * Writes out each trace info item as they are traced.
+ * @param options Optional. Specify which logging categories to output. If omitted, all will be logged.
+ */
+function enableLiveLogging(options?: ILiveLoggingOptions): void;
+// tslint:disable-next-line:no-redundant-jump
+function enableLiveLogging(optionsOrWriter?: ILiveLoggingOptions | ITraceWriter): void { return; }

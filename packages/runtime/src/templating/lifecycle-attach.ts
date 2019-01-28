@@ -250,7 +250,7 @@ export function $cacheView(this: Writable<IAttachable>, flags: LifecycleFlags): 
 
 /** @internal */
 export function $mountElement(this: Writable<ICustomElement & IAttachable>, flags: LifecycleFlags): void {
-  if (Tracer.enabled) { Tracer.enter(this.constructor.description && this.constructor.description.name || this.constructor.name, '$mountElement', slice.call(arguments)); }
+  if (Tracer.enabled) { Tracer.enter(this.constructor.description && this.constructor.description.name || this.constructor.name, '$mount', slice.call(arguments)); }
   if (!(this.$state & State.isMounted)) {
     this.$state |= State.isMounted;
     this.$projector.project(this.$nodes);
@@ -260,7 +260,7 @@ export function $mountElement(this: Writable<ICustomElement & IAttachable>, flag
 
 /** @internal */
 export function $unmountElement(this: Writable<ICustomElement & IAttachable>, flags: LifecycleFlags): void {
-  if (Tracer.enabled) { Tracer.enter(this.constructor.description && this.constructor.description.name || this.constructor.name, '$unmountElement', slice.call(arguments)); }
+  if (Tracer.enabled) { Tracer.enter(this.constructor.description && this.constructor.description.name || this.constructor.name, '$unmount', slice.call(arguments)); }
   if (this.$state & State.isMounted) {
     this.$state &= ~State.isMounted;
     this.$projector.take(this.$nodes);

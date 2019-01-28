@@ -11,7 +11,7 @@ export class PropertyAccessor implements PropertyAccessor {
   public propertyKey: string;
 
   constructor(obj: Record<string, unknown>, propertyKey: string) {
-    if (Tracer.enabled) { Tracer.enter('ArrayObserver', 'constructor', slice.call(arguments)); }
+    if (Tracer.enabled) { Tracer.enter('PropertyAccessor', 'constructor', slice.call(arguments)); }
     this.obj = obj;
     this.propertyKey = propertyKey;
     if (Tracer.enabled) { Tracer.leave(); }

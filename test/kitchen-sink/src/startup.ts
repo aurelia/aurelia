@@ -1,6 +1,6 @@
 import * as faker from 'faker';
 
-import { TraceConfiguration } from '@aurelia/debug';
+import { TraceConfiguration, DebugConfiguration } from '@aurelia/debug';
 import {
   Aurelia,
   IObserverLocatorRegistration,
@@ -54,9 +54,23 @@ import {
   Router
 } from '@aurelia/router';
 import { App } from './app';
-import { DI, PLATFORM } from '@aurelia/kernel';
+import { DI, PLATFORM, Tracer } from '@aurelia/kernel';
 
 window['faker'] = faker;
+
+DebugConfiguration.register();
+TraceConfiguration.register();
+Tracer.enabled = true;
+Tracer.enableLiveLogging({
+  di: false,
+  jit: false,
+  rendering: false,
+  lifecycle: true,
+  binding: true,
+  attaching: true,
+  mounting: true,
+  observation: true
+});
 
 // manually compose the app from individual registrations, leaving out some stuff that we're not going
 // to use (yet)
@@ -121,9 +135,6 @@ const container = DI.createContainer().register(
 
   // jit-html binding commands
   TriggerBindingCommandRegistration,
-
-  // debug config
-  TraceConfiguration,
 
   // router registrations
   ViewportCustomElement as any,

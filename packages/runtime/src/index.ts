@@ -363,8 +363,7 @@ export {
   ExpressionKind,
   Hooks,
   LifecycleFlags,
-  State,
-  stringifyLifecycleFlags
+  State
 } from './flags';
 export {
   CallBindingInstruction,

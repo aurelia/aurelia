@@ -23,7 +23,7 @@ import {
   verifyEqual
 } from '../../../scripts/test-lib';
 import {
-  Tracer as DebugTracer
+  stringifyLifecycleFlags, Tracer as DebugTracer
 } from '../../debug/src/tracer';
 import {
   CustomElementResource,
@@ -34,8 +34,7 @@ import {
   ITemplateDefinition,
   LifecycleFlags as LF,
   OverrideContext,
-  Scope,
-  stringifyLifecycleFlags
+  Scope
 } from '../src/index';
 import { Lifecycle } from '../src/lifecycle';
 import { ObserverLocator } from '../src/observation/observer-locator';

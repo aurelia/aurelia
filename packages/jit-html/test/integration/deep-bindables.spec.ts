@@ -139,9 +139,9 @@ describe(spec, function () {
           }
 
           if (useProxies) {
-            expect(calls['SetterObserver.constructor'].length).to.equal(0, 'calls[\'SetterObserver.constructor\'].length');
+            expect(calls['SetterObserver'].length).to.equal(0, 'calls[\'SetterObserver\'].length');
           } else {
-            expect(calls['ProxyObserver.constructor'].length).to.equal(0, 'calls[\'ProxyObserver.constructor\'].length');
+            expect(calls['ProxyObserver'].length).to.equal(0, 'calls[\'ProxyObserver\'].length');
           }
           const names = ['ProxyObserver', 'ProxySubscriberCollection', 'SelfObserver', 'SetterObserver'];
           for (const {} of names) {

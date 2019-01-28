@@ -1,5 +1,6 @@
 import {
   Aurelia,
+  BindingStrategy,
   CustomElementResource,
   ILifecycle,
   LifecycleFlags
@@ -16,6 +17,9 @@ describe(spec, function() {
 
   interface Spec {
     t: string;
+  }
+  interface StrategySpec extends Spec {
+    strategy: BindingStrategy;
   }
   interface BehaviorsSpec extends Spec {
     behaviors: string;

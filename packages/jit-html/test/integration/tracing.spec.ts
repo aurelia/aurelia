@@ -2,13 +2,13 @@ import { Tracer } from '@aurelia/kernel';
 import { Aurelia, CustomElementResource } from '@aurelia/runtime';
 import { expect } from 'chai';
 import { stringifyTemplateDefinition } from '../../src/index';
-import { disableTracing, enableTracing, SymbolTraceWriter } from '../unit/util';
+import { disableTracing, enableTracing } from '../unit/util';
 import { getVisibleText, TestContext } from '../util';
 
 describe('tracing', function () {
   function setup() {
       enableTracing();
-      Tracer.enableLiveLogging(SymbolTraceWriter);
+      Tracer.enableLiveLogging();
       const ctx = TestContext.createHTMLTestContext();
       const au = new Aurelia(ctx.container);
       const host = ctx.createElement('div');

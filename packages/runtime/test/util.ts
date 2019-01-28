@@ -51,42 +51,6 @@ export interface IRepeaterFixture {
   propName?: string;
 }
 
-export const BindingTraceWriter = {
-  write(info: ITraceInfo): void {
-    let output: string = '(';
-    const params = info.params;
-    for (let i = 0, ii = params.length; i < ii; ++i) {
-      const p = info.params[i];
-      switch (typeof p) {
-        case 'string':
-        case 'boolean':
-          output += p.toString();
-          break;
-        case 'number':
-          output += p > 0 ? `flags=${stringifyLifecycleFlags(p)}` : '0';
-          break;
-        case 'object':
-          if (p === null) {
-            output += 'null';
-          } else {
-            output += '[object Object]';
-          }
-          break;
-        case 'undefined':
-          output += 'undefined';
-          break;
-        default:
-          output += '?';
-      }
-      if (i + 1 < ii) {
-        output += ', ';
-      }
-    }
-    output += ')';
-    console.debug(`${'  '.repeat(info.depth)}${info.objName}.${info.methodName} - ${output}`);
-  }
-};
-
 const RuntimeTracer = { ...Tracer };
 export function enableTracing() {
   Object.assign(Tracer, DebugTracer);

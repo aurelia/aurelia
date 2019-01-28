@@ -12,7 +12,7 @@ import {
   RuntimeBasicConfiguration
 } from '../../src/index';
 import { ComputedOverrides, createComputedObserver } from '../../src/observation/computed-observer';
-import { BindingTraceWriter, disableTracing, enableTracing } from '../util';
+import { disableTracing, enableTracing } from '../util';
 
 // tslint:disable:no-statements-same-line
 
@@ -360,7 +360,7 @@ describe('ComputedObserver', function() {
         }
       };
       enableTracing();
-      Tracer.enableLiveLogging(BindingTraceWriter);
+      Tracer.enableLiveLogging();
 
       const sut = createComputedObserver(LF.none, locator, dirtyChecker, lifecycle, parent, 'getter', pd);
       sut.subscribe(subscriber1);

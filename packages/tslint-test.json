@@ -10,6 +10,7 @@
     "mocha-no-side-effect-code": false,
     "no-any": false,
     "no-big-function": false,
+    "no-http-string": false,
     "no-implicit-dependencies": false,
     "no-invalid-template-strings": false,
     "no-unused-expression": false,

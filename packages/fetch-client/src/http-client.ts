@@ -1,9 +1,9 @@
+import { InterfaceSymbol, PLATFORM } from '@aurelia/kernel';
 import { DOM, IDOM } from '@aurelia/runtime';
 import { HTMLDOM } from '@aurelia/runtime-html';
 import { HttpClientConfiguration } from './http-client-configuration';
 import { Interceptor, ValidInterceptorMethodName } from './interfaces';
 import { RetryInterceptor } from './retry-interceptor';
-import { InterfaceSymbol, PLATFORM } from '@aurelia/kernel';
 
 const absoluteUrlRegexp = /^([a-z][a-z0-9+\-.]*:)?\/\//i;
 
@@ -70,12 +70,13 @@ export class HttpClient {
    * @returns The chainable instance of this HttpClient.
    * @chainable
    */
-  public configure(config: RequestInit | ((config: HttpClientConfiguration) => void) | HttpClientConfiguration): HttpClient {
+  public configure(config: RequestInit | ((config: HttpClientConfiguration) => HttpClientConfiguration) | HttpClientConfiguration): HttpClient {
 
     let normalizedConfig: HttpClientConfiguration;
 
     if (typeof config === 'object') {
-      normalizedConfig = { defaults: config as RequestInit } as HttpClientConfiguration;
+      const requestInitConfiguration = { defaults: config as RequestInit };
+      normalizedConfig = requestInitConfiguration as HttpClientConfiguration;
     } else if (typeof config === 'function') {
       normalizedConfig = new HttpClientConfiguration();
       normalizedConfig.baseUrl = this.baseUrl;
@@ -83,10 +84,8 @@ export class HttpClient {
       normalizedConfig.interceptors = this.interceptors;
 
       const c = config(normalizedConfig);
-      //tslint:disable-next-line no-any
-      if (HttpClientConfiguration.prototype.isPrototypeOf(c as any)) {
-        //tslint:disable-next-line no-any
-        normalizedConfig = c as any;
+      if (HttpClientConfiguration.prototype.isPrototypeOf(c)) {
+        normalizedConfig = c;
       }
     } else {
       throw new Error('invalid config');
@@ -141,15 +140,14 @@ export class HttpClient {
 
     let request = this.buildRequest(input, init);
     return this.processRequest(request, this.interceptors).then(result => {
-      let response = null;
+      let response: Promise<Response>;
 
       if (Response.prototype.isPrototypeOf(result)) {
-        response = Promise.resolve(result);
+        response = Promise.resolve(result as Response);
       } else if (Request.prototype.isPrototypeOf(result)) {
-        request = result;
-        response = fetch(result);
+        request = result as Request;
+        response = fetch(request);
       } else {
-        // tslint:disable-next-line:max-line-length
         throw new Error(`An invalid result was returned by the interceptor chain. Expected a Request or Response instance, but got [${result}]`);
       }
 
@@ -157,9 +155,9 @@ export class HttpClient {
     })
       .then(result => {
         if (Request.prototype.isPrototypeOf(result)) {
-          return this.fetch(result);
+          return this.fetch(result as Request);
         }
-        return result;
+        return result as Response;
       })
       .then(
         result => {
@@ -176,8 +174,7 @@ export class HttpClient {
   public buildRequest(input: string | Request, init: RequestInit): Request {
     const defaults = this.defaults || {};
     let request: Request;
-    //tslint:disable-next-line no-any
-    let body: any;
+    let body: unknown;
     let requestContentType: string;
 
     const parsedDefaultHeaders = parseHeaderValues(defaults.headers) as HeadersInit;
@@ -186,11 +183,11 @@ export class HttpClient {
       requestContentType = new Headers(request.headers).get('Content-Type');
     } else {
       if (!init) {
-        init = {} as RequestInit;
+        init = {};
       }
       body = init.body;
-      const bodyObj = body ? { body } : null;
-      const requestInit = { ...defaults, headers: {}, ...init, ...bodyObj } as RequestInit;
+      const bodyObj = body ? { body: body as BodyInit } : null;
+      const requestInit: RequestInit = { ...defaults, headers: {}, ...init, ...bodyObj };
       requestContentType = new Headers(requestInit.headers as Headers).get('Content-Type');
       request = new Request(getRequestUrl(this.baseUrl, input as string), requestInit);
     }
@@ -202,10 +199,10 @@ export class HttpClient {
       }
     }
     setDefaultHeaders(request.headers, parsedDefaultHeaders);
-    if (body && Blob.prototype.isPrototypeOf(body) && body.type) {
+    if (body && Blob.prototype.isPrototypeOf(body as Blob) && (body as Blob).type) {
       // work around bug in IE & Edge where the Blob type is ignored in the request
       // https://connect.microsoft.com/IE/feedback/details/2136163
-      request.headers.set('Content-Type', body.type);
+      request.headers.set('Content-Type', (body as Blob).type);
     }
     return request;
   }
@@ -233,8 +230,7 @@ export class HttpClient {
    * the Request.
    * @returns A Promise for the Response from the fetch request.
    */
-  //tslint:disable-next-line no-any
-  public post(input: Request | string, body?: any, init?: RequestInit): Promise<Response> {
+  public post(input: Request | string, body?: BodyInit, init?: RequestInit): Promise<Response> {
     return this.callFetch(input, body, init, 'POST');
   }
 
@@ -248,8 +244,7 @@ export class HttpClient {
    * the Request.
    * @returns A Promise for the Response from the fetch request.
    */
-  //tslint:disable-next-line no-any
-  public put(input: Request | string, body?: any, init?: RequestInit): Promise<Response> {
+  public put(input: Request | string, body?: BodyInit, init?: RequestInit): Promise<Response> {
     return this.callFetch(input, body, init, 'PUT');
   }
 
@@ -263,8 +258,7 @@ export class HttpClient {
    * the Request.
    * @returns A Promise for the Response from the fetch request.
    */
-  //tslint:disable-next-line no-any
-  public patch(input: Request | string, body?: any, init?: RequestInit): Promise<Response> {
+  public patch(input: Request | string, body?: BodyInit, init?: RequestInit): Promise<Response> {
     return this.callFetch(input, body, init, 'PATCH');
   }
 
@@ -278,8 +272,7 @@ export class HttpClient {
    * the Request.
    * @returns A Promise for the Response from the fetch request.
    */
-  //tslint:disable-next-line no-any
-  public delete(input: Request | string, body?: any, init?: RequestInit): Promise<Response> {
+  public delete(input: Request | string, body?: BodyInit, init?: RequestInit): Promise<Response> {
     return this.callFetch(input, body, init, 'DELETE');
   }
 
@@ -287,7 +280,7 @@ export class HttpClient {
     this.isRequesting = !!(++this.activeRequestCount);
     if (this.isRequesting) {
       const evt = DOM.createCustomEvent('aurelia-fetch-client-request-started', { bubbles: true, cancelable: true });
-      PLATFORM.setTimeout(() => DOM.dispatchEvent(evt), 1);
+      PLATFORM.setTimeout(() => { DOM.dispatchEvent(evt); }, 1);
     }
   }
 
@@ -295,32 +288,34 @@ export class HttpClient {
     this.isRequesting = !!(--this.activeRequestCount);
     if (!this.isRequesting) {
       const evt = DOM.createCustomEvent('aurelia-fetch-client-requests-drained', { bubbles: true, cancelable: true });
-      PLATFORM.setTimeout(() => DOM.dispatchEvent(evt), 1);
+      PLATFORM.setTimeout(() => { DOM.dispatchEvent(evt); }, 1);
     }
   }
 
-  private processRequest(request: Request, interceptors: Interceptor[]) {
+  private processRequest(request: Request, interceptors: Interceptor[]): Promise<Request | Response> {
     return this.applyInterceptors(request, interceptors, 'request', 'requestError', this);
   }
 
-  private processResponse(response: Promise<Response>, interceptors: Interceptor[], request: Request) {
+  private processResponse(response: Promise<Response>, interceptors: Interceptor[], request: Request): Promise<Request | Response> {
     return this.applyInterceptors(response, interceptors, 'response', 'responseError', request, this);
   }
 
-  // tslint:disable-next-line:max-line-length
-  private applyInterceptors(input: Request | Promise<Response | Request>, interceptors: Interceptor[], successName: ValidInterceptorMethodName, errorName: ValidInterceptorMethodName, ...interceptorArgs: any[]) {
+  private applyInterceptors(input: Request | Promise<Response | Request>, interceptors: Interceptor[], successName: ValidInterceptorMethodName, errorName: ValidInterceptorMethodName, ...interceptorArgs: unknown[]): Promise<Request | Response> {
     return (interceptors || [])
-      .reduce((chain, interceptor) => {
-        const successHandler = interceptor[successName];
-        const errorHandler = interceptor[errorName];
+      .reduce(
+        (chain, interceptor) => {
+          const successHandler = interceptor[successName];
+          const errorHandler = interceptor[errorName];
 
-        return chain.then(
-          successHandler && (value => successHandler.call(interceptor, value, ...interceptorArgs)) || identity,
-          errorHandler && (reason => errorHandler.call(interceptor, reason, ...interceptorArgs)) || thrower);
-      }, Promise.resolve(input));
+          return chain.then(
+            successHandler && (value => successHandler.call(interceptor, value, ...interceptorArgs)) || identity,
+            errorHandler && (reason => errorHandler.call(interceptor, reason, ...interceptorArgs)) || thrower);
+        },
+        Promise.resolve(input)
+      );
   }
 
-  private callFetch(input: string | Request, body: any, init: RequestInit, method: string) {
+  private callFetch(input: string | Request, body: BodyInit, init: RequestInit, method: string): Promise<Response> {
     if (!init) {
       init = {};
     }
@@ -331,7 +326,6 @@ export class HttpClient {
     return this.fetch(input, init);
   }
 }
-
 
 function parseHeaderValues(headers: object): object {
   const parsedHeaders = {};
@@ -348,7 +342,7 @@ function getRequestUrl(baseUrl: string, url: string): string {
     return url;
   }
 
-  return (baseUrl || '') + url;
+  return (baseUrl !== undefined ? baseUrl : '') + url;
 }
 
 function setDefaultHeaders(headers: Headers, defaultHeaders: object): void {
@@ -359,9 +353,9 @@ function setDefaultHeaders(headers: Headers, defaultHeaders: object): void {
   }
 }
 
-function isJSON(str) {
+function isJSON(str: unknown): boolean {
   try {
-    JSON.parse(str);
+    JSON.parse(str as string);
   } catch (err) {
     return false;
   }
@@ -369,10 +363,10 @@ function isJSON(str) {
   return true;
 }
 
-function identity(x: any): any {
+function identity(x: unknown): unknown {
   return x;
 }
 
-function thrower(x: any): never {
+function thrower(x: unknown): unknown {
   throw x;
 }

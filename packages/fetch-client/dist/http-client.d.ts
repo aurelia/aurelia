@@ -1,7 +1,7 @@
+import { InterfaceSymbol } from '@aurelia/kernel';
 import { HTMLDOM } from '@aurelia/runtime-html';
 import { HttpClientConfiguration } from './http-client-configuration';
 import { Interceptor } from './interfaces';
-import { InterfaceSymbol } from '@aurelia/kernel';
 /**
  * An HTTP client based on the Fetch API.
  */
@@ -45,7 +45,7 @@ export declare class HttpClient {
      * @returns The chainable instance of this HttpClient.
      * @chainable
      */
-    configure(config: RequestInit | ((config: HttpClientConfiguration) => void) | HttpClientConfiguration): HttpClient;
+    configure(config: RequestInit | ((config: HttpClientConfiguration) => HttpClientConfiguration) | HttpClientConfiguration): HttpClient;
     /**
      * Starts the process of fetching a resource. Default configuration parameters
      * will be applied to the Request. The constructed Request will be passed to
@@ -82,7 +82,7 @@ export declare class HttpClient {
      * the Request.
      * @returns A Promise for the Response from the fetch request.
      */
-    post(input: Request | string, body?: any, init?: RequestInit): Promise<Response>;
+    post(input: Request | string, body?: BodyInit, init?: RequestInit): Promise<Response>;
     /**
      * Calls fetch with request method set to PUT.
      *
@@ -93,7 +93,7 @@ export declare class HttpClient {
      * the Request.
      * @returns A Promise for the Response from the fetch request.
      */
-    put(input: Request | string, body?: any, init?: RequestInit): Promise<Response>;
+    put(input: Request | string, body?: BodyInit, init?: RequestInit): Promise<Response>;
     /**
      * Calls fetch with request method set to PATCH.
      *
@@ -104,7 +104,7 @@ export declare class HttpClient {
      * the Request.
      * @returns A Promise for the Response from the fetch request.
      */
-    patch(input: Request | string, body?: any, init?: RequestInit): Promise<Response>;
+    patch(input: Request | string, body?: BodyInit, init?: RequestInit): Promise<Response>;
     /**
      * Calls fetch with request method set to DELETE.
      *
@@ -115,7 +115,7 @@ export declare class HttpClient {
      * the Request.
      * @returns A Promise for the Response from the fetch request.
      */
-    delete(input: Request | string, body?: any, init?: RequestInit): Promise<Response>;
+    delete(input: Request | string, body?: BodyInit, init?: RequestInit): Promise<Response>;
     private trackRequestStart;
     private trackRequestEnd;
     private processRequest;

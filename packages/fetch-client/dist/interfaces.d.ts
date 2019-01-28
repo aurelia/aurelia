@@ -21,7 +21,7 @@ export interface Interceptor {
      * @param error The rejection value from the previous interceptor.
      * @returns The existing request, a new request or a response; or a Promise for any of these.
      */
-    requestError?(error: any): Request | Response | Promise<Request | Response>;
+    requestError?(error: unknown): Request | Response | Promise<Request | Response>;
     /**
      * Called with the response after it is received. Response interceptors can modify
      * and return the Response, or create a new one to be returned to the caller.
@@ -39,9 +39,12 @@ export interface Interceptor {
      * previous interceptor.
      * @returns The response; or a Promise for one.
      */
-    responseError?(error: any, request?: Request, httpClient?: HttpClient): Response | Promise<Response>;
+    responseError?(error: unknown, request?: Request, httpClient?: HttpClient): Response | Promise<Response>;
 }
 export declare type ValidInterceptorMethodName = keyof Interceptor;
+export declare type RetryableRequest = Request & {
+    retryConfig?: RetryConfiguration;
+};
 export interface RetryConfiguration {
     maxRetries: number;
     interval?: number;

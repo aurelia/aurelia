@@ -21,9 +21,19 @@ declare namespace NodeJS {
         hrtime(): [number, number];
     }
 }
+export interface IStorage {
+    readonly length: number;
+    clear(): void;
+    getItem(key: string): string | null;
+    key(index: number): string | null;
+    removeItem(key: string): void;
+    setItem(key: string, value: string): void;
+    [name: string]: any;
+}
 export interface IWindowOrWorkerGlobalScope {
     process?: NodeJS.Process;
     readonly performance: IPerformance;
+    readonly localStorage?: IStorage;
     clearInterval(handle?: number): void;
     clearTimeout(handle?: number): void;
     setInterval(handler: ITimerHandler, timeout?: number, ...args: any[]): number;

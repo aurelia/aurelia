@@ -1,6 +1,6 @@
 import { PLATFORM } from '@aurelia/kernel';
 import { expect } from 'chai';
-import { match, SinonSpy, SinonStub, spy, stub } from 'sinon';
+import { match, SinonStub, stub } from 'sinon';
 import { HTMLTestContext, TestContext } from '../../../runtime-html/test/util';
 import { HttpClient } from '../../src/http-client';
 import { HttpClientConfiguration } from '../../src/http-client-configuration';
@@ -10,8 +10,8 @@ import { json } from '../../src/util';
 
 describe('HttpClient', function() {
   let ctx: HTMLTestContext;
-  let originalFetch;
-  let client;
+  let originalFetch: (input: string | Request, init?: RequestInit) => Promise<Response>;
+  let client: HttpClient;
   let fetch: SinonStub;
 
   beforeEach(function() {
@@ -22,7 +22,7 @@ describe('HttpClient', function() {
   });
 
   afterEach(function() {
-    fetch = ctx.dom.window.fetch = originalFetch as any;
+    fetch = ctx.dom.window.fetch = originalFetch as SinonStub;
   });
 
   it('errors on missing fetch implementation', function() {
@@ -48,13 +48,13 @@ describe('HttpClient', function() {
         expect(config).to.be.instanceof(HttpClientConfiguration);
 
         return config
-          .withDefaults(defaults)
+          .withDefaults(defaults as RequestInit)
           .withBaseUrl(baseUrl)
           .withInterceptor(interceptor);
       });
 
       expect(client.isConfigured).to.equal(true);
-      expect(client.defaults.foo).to.equal(true);
+      expect((client.defaults as {foo: boolean}).foo).to.equal(true);
       expect(client.baseUrl).to.equal(baseUrl);
       expect(client.interceptors.indexOf(interceptor)).to.equal(0);
     });
@@ -62,15 +62,17 @@ describe('HttpClient', function() {
     it('accepts configuration override', function() {
       const defaults = { foo: true };
 
-      client.configure(config => config.withDefaults(defaults));
+      client.configure(config => config.withDefaults(defaults as RequestInit));
 
       client.configure(config => {
-        expect(config.defaults.foo).to.equal(true);
+        expect((config.defaults as {foo: boolean}).foo).to.equal(true);
+
+        return config;
       });
     });
 
     it('rejects invalid configs', function() {
-      expect(() => client.configure(1)).to.throw();
+      expect(() => client.configure(1 as RequestInit)).to.throw();
     });
 
     it('applies standard configuration', function() {
@@ -102,7 +104,7 @@ describe('HttpClient', function() {
         .then(() => {
           expect(fetch).to.have.callCount(1);
           done();
-        });
+        }).catch(() => { done('Unexpected catch'); });
     });
 
     it('makes proper requests with json() inputs', function(done) {
@@ -125,7 +127,7 @@ describe('HttpClient', function() {
           expect(request.headers.has('content-type')).to.equal(true);
           expect(request.headers.get('content-type')).to.match(/application\/json/);
           done();
-        });
+        }).catch(() => { done('Unexpected catch'); });
     });
 
     it('makes proper requests with JSON.stringify inputs', function(done) {
@@ -148,7 +150,7 @@ describe('HttpClient', function() {
           expect(request.headers.has('content-type')).to.equal(true);
           expect(request.headers.get('content-type')).to.match(/application\/json/);
           done();
-        });
+        }).catch(() => { done('Unexpected catch'); });
     });
 
     it('makes requests with null RequestInit', function(done) {
@@ -165,7 +167,7 @@ describe('HttpClient', function() {
         .then(() => {
           expect(fetch).to.have.callCount(1);
           done();
-        });
+        }).catch(() => { done('Unexpected catch'); });
     });
 
     it('makes requests with Request inputs', function(done) {
@@ -182,7 +184,7 @@ describe('HttpClient', function() {
         .then(() => {
           expect(fetch).to.have.callCount(1);
           done();
-        });
+        }).catch(() => { done('Unexpected catch'); });
     });
 
     it('makes requests with Request inputs when configured', function(done) {
@@ -201,7 +203,7 @@ describe('HttpClient', function() {
         .then(() => {
           expect(fetch).to.have.callCount(1);
           done();
-        });
+        }).catch(() => { done('Unexpected catch'); });
     });
 
     it('makes request and aborts with an AbortController signal', function(done) {
@@ -220,7 +222,7 @@ describe('HttpClient', function() {
         })
         .then(() => {
           done();
-        });
+        }).catch(() => { done('Unexpected catch'); });
 
       controller.abort();
     });
@@ -241,7 +243,7 @@ describe('HttpClient', function() {
         .then(() => {
           expect(fetch).to.have.callCount(1);
           done();
-        });
+        }).catch(() => { done('Unexpected catch'); });
     });
   });
 
@@ -260,7 +262,7 @@ describe('HttpClient', function() {
         .then(() => {
           expect(fetch).to.have.callCount(1);
           done();
-        });
+        }).catch(() => { done('Unexpected catch'); });
     });
   });
 
@@ -279,7 +281,7 @@ describe('HttpClient', function() {
         .then(() => {
           expect(fetch).to.have.callCount(1);
           done();
-        });
+        }).catch(() => { done('Unexpected catch'); });
     });
   });
 
@@ -298,7 +300,7 @@ describe('HttpClient', function() {
         .then(() => {
           expect(fetch).to.have.callCount(1);
           done();
-        });
+        }).catch(() => { done('Unexpected catch'); });
     });
   });
 
@@ -317,7 +319,7 @@ describe('HttpClient', function() {
         .then(() => {
           expect(fetch).to.have.callCount(1);
           done();
-        });
+        }).catch(() => { done('Unexpected catch'); });
     });
   });
 
@@ -325,7 +327,11 @@ describe('HttpClient', function() {
 
     it('run on request', function(done) {
       fetch.returns(emptyResponse(200));
-      const interceptor = { request(r) { return r; }, requestError(r) { throw r; } };
+      const interceptor = { request(r) {
+        return r;
+      }, requestError(r) {
+        throw r;
+      } };
       stub(interceptor, 'request').callThrough();
       stub(interceptor, 'requestError').callThrough();
 
@@ -336,19 +342,25 @@ describe('HttpClient', function() {
           expect(interceptor.request).to.have.been.calledWith(match.instanceOf(Request), client);
           expect(interceptor.requestError).not.to.have.callCount(1);
           done();
-        });
+        }).catch(() => { done('Unexpected catch'); });
     });
 
     it('run on request error', function(done) {
       fetch.returns(emptyResponse(200));
-      const interceptor = { request(r) { return r; }, requestError(r) { throw r; } };
+      const interceptor = { request(r) {
+        return r;
+      }, requestError(r) {
+        throw r;
+      } };
       stub(interceptor, 'request').callThrough();
       stub(interceptor, 'requestError').callThrough();
 
-      client.interceptors.push({ request() { return Promise.reject(new Error('test')); } });
+      client.interceptors.push({ request() {
+        return Promise.reject(new Error('test'));
+      } });
       client.interceptors.push(interceptor);
 
-      client.fetch()
+      client.fetch(undefined)
         .catch(() => {
           expect(interceptor.request).not.to.have.callCount(1);
           expect(interceptor.requestError).to.have.been.calledWith(match.instanceOf(Error), client);
@@ -358,7 +370,11 @@ describe('HttpClient', function() {
 
     it('run on response', function(done) {
       fetch.returns(emptyResponse(200));
-      const interceptor = { response(r) { return r; }, responseError(r) { throw r; } };
+      const interceptor = { response(r) {
+        return r;
+      }, responseError(r) {
+        throw r;
+      } };
       stub(interceptor, 'response').callThrough();
       stub(interceptor, 'responseError').callThrough();
 
@@ -369,12 +385,16 @@ describe('HttpClient', function() {
           expect(interceptor.response).to.have.been.calledWith(match.instanceOf(Response), match.instanceOf(Request), client);
           expect(interceptor.responseError).not.to.have.callCount(1);
           done();
-        });
+        }).catch(() => { done('Unexpected catch'); });
     });
 
     it('run on response error', function(done) {
       fetch.returns(Promise.reject(new Response(null, { status: 500 })));
-      const interceptor = { response(r) { return r; }, responseError(r) { throw r; } };
+      const interceptor = { response(r) {
+        return r;
+      }, responseError(r) {
+        throw r;
+      } };
       stub(interceptor, 'response').callThrough();
       stub(interceptor, 'responseError').callThrough();
 
@@ -396,8 +416,7 @@ describe('HttpClient', function() {
         response(r) { return r; },
         responseError(r) {
           if (retry--) {
-            const request = client.buildRequest(path);
-            return request;
+            return client.fetch(client.buildRequest(path, {}));
           } else {
             throw r;
           }
@@ -420,20 +439,27 @@ describe('HttpClient', function() {
     it('normalizes input for interceptors', function(done) {
       fetch.returns(emptyResponse(200));
       let request;
-      client.interceptors.push({ request(r) { request = r; return r; } });
+      client.interceptors.push({ request(r) {
+        request = r;
+        return r;
+      } });
 
       client
         .fetch('http://example.com/some/cool/path')
         .then(() => {
           expect(request instanceof Request).to.equal(true);
           done();
-        });
+        }).catch(() => { done('Unexpected catch'); });
     });
 
     it('runs multiple interceptors', function(done) {
       fetch.returns(emptyResponse(200));
-      const first = { request(r) { return r; } };
-      const second = { request(r) { return r; } };
+      const first = { request(r) {
+        return r;
+      } };
+      const second = { request(r) {
+        return r;
+      } };
       stub(first, 'request').callThrough();
       stub(second, 'request').callThrough();
 
@@ -445,12 +471,14 @@ describe('HttpClient', function() {
           expect(first.request).to.have.been.calledWith(match.instanceOf(Request), client);
           expect(second.request).to.have.been.calledWith(match.instanceOf(Request), client);
           done();
-        });
+        }).catch(() => { done('Unexpected catch'); });
     });
 
     it('request interceptors can modify request', function(done) {
       fetch.returns(emptyResponse(200));
-      const interceptor = { request() { return new Request('http://aurelia.io/'); } };
+      const interceptor = { request() {
+        return new Request('http://aurelia.io/');
+      } };
 
       client.interceptors.push(interceptor);
 
@@ -458,12 +486,14 @@ describe('HttpClient', function() {
         .then(() => {
           expect(fetch.lastCall.args[0].url).to.equal('http://aurelia.io/');
           done();
-        });
+        }).catch(() => { done('Unexpected catch'); });
     });
 
     it('request interceptors can short circuit request', function(done) {
       const response = new Response();
-      const interceptor = { request() { return response; } };
+      const interceptor = { request() {
+        return response;
+      } };
 
       client.interceptors.push(interceptor);
 
@@ -472,7 +502,7 @@ describe('HttpClient', function() {
           expect(r).to.equal(response);
           expect(fetch).not.to.have.callCount(1);
           done();
-        });
+        }).catch(() => { done('Unexpected catch'); });
     });
 
     it('doesn\'t reject unsuccessful responses', function(done) {
@@ -484,9 +514,9 @@ describe('HttpClient', function() {
           expect(r).not.to.equal(response);
         })
         .then((r) => {
-          expect(r.ok).to.equal(false);
+          expect((r as Response).ok).to.equal(false);
           done();
-        });
+        }).catch(() => { done('Unexpected catch'); });
     });
 
     describe('rejectErrorResponses', function() {
@@ -514,9 +544,9 @@ describe('HttpClient', function() {
             expect(r).not.to.equal(r);
           })
           .then((r) => {
-            expect(r.ok).to.equal(true);
+            expect((r as Response).ok).to.equal(true);
             done();
-          });
+          }).catch(() => { done('Unexpected catch'); });
       });
     });
   });
@@ -532,7 +562,7 @@ describe('HttpClient', function() {
           const [request] = fetch.getCall(0).args;
           expect(request.url).to.equal('http://aurelia.io/path');
           done();
-        });
+        }).catch(() => { done('Unexpected catch'); });
     });
 
     it('doesn\'t apply baseUrl to absolute URLs', function(done) {
@@ -544,7 +574,7 @@ describe('HttpClient', function() {
           const [request] = fetch.getCall(0).args;
           expect(request.url).to.equal('https://example.com/test');
           done();
-        });
+        }).catch(() => { done('Unexpected catch'); });
     });
 
     it('applies default headers to requests with no headers', function(done) {
@@ -557,7 +587,7 @@ describe('HttpClient', function() {
           expect(request.headers.has('x-foo')).to.equal(true);
           expect(request.headers.get('x-foo')).to.equal('bar');
           done();
-        });
+        }).catch(() => { done('Unexpected catch'); });
     });
 
     it('applies default headers to requests with other headers', function(done) {
@@ -572,7 +602,7 @@ describe('HttpClient', function() {
           expect(request.headers.get('x-foo')).to.equal('bar');
           expect(request.headers.get('x-baz')).to.equal('bat');
           done();
-        });
+        }).catch(() => { done('Unexpected catch'); });
     });
 
     it('applies default headers to requests using Headers instance', function(done) {
@@ -587,7 +617,7 @@ describe('HttpClient', function() {
           expect(request.headers.get('x-foo')).to.equal('bar');
           expect(request.headers.get('x-baz')).to.equal('bat');
           done();
-        });
+        }).catch(() => { done('Unexpected catch'); });
     });
 
     it('does not overwrite request headers with default headers', function(done) {
@@ -600,12 +630,13 @@ describe('HttpClient', function() {
           expect(request.headers.has('x-foo')).to.equal(true);
           expect(request.headers.get('x-foo')).to.equal('baz');
           done();
-        });
+        }).catch(() => { done('Unexpected catch'); });
     });
 
     it('evaluates default header function values with no headers', function(done) {
+      const headers: Partial<HeadersInit> & {[key: string]: () => string} = { 'x-foo': () => 'bar' };
       fetch.returns(emptyResponse(200));
-      client.defaults = { headers: { 'x-foo': () => 'bar' } };
+      client.defaults = { headers: headers as HeadersInit };
 
       client.fetch('path')
         .then(() => {
@@ -613,12 +644,13 @@ describe('HttpClient', function() {
           expect(request.headers.has('x-foo')).to.equal(true);
           expect(request.headers.get('x-foo')).to.equal('bar');
           done();
-        });
+        }).catch(() => { done('Unexpected catch'); });
     });
 
     it('evaluates default header function values with other headers', function(done) {
+      const headers: Partial<HeadersInit> & {[key: string]: () => string} = { 'x-foo': () => 'bar' };
       fetch.returns(emptyResponse(200));
-      client.defaults = { headers: { 'x-foo': () => 'bar' } };
+      client.defaults = { headers: headers as HeadersInit };
 
       client.fetch('path', { headers: { 'x-baz': 'bat' } })
         .then(() => {
@@ -628,19 +660,18 @@ describe('HttpClient', function() {
           expect(request.headers.get('x-foo')).to.equal('bar');
           expect(request.headers.get('x-baz')).to.equal('bat');
           done();
-        });
+        }).catch(() => { done('Unexpected catch'); });
     });
 
     it('evaluates default header function values on each request', function(done) {
+      const headers: Partial<HeadersInit> & {[key: string]: () => number} = { 'x-foo': () => {
+        value++;
+        return value;
+      } };
       fetch.returns(emptyResponse(200));
       let value = 0;
       client.defaults = {
-        headers: {
-          'x-foo': () => {
-            value++;
-            return value;
-          }
-        }
+        headers: headers as HeadersInit
       };
 
       const promises = [];
@@ -656,7 +687,7 @@ describe('HttpClient', function() {
           expect(request2.headers.has('x-foo')).to.equal(true);
           expect(request2.headers.get('x-foo')).to.equal('2');
           done();
-        });
+        }).catch(() => { done('Unexpected catch'); });
     });
 
     it('uses default content-type header', function(done) {
@@ -670,7 +701,7 @@ describe('HttpClient', function() {
           expect(request.headers.has('content-type')).to.equal(true);
           expect(request.headers.get('content-type')).to.equal(contentType);
           done();
-        });
+        }).catch(() => { done('Unexpected catch'); });
     });
   });
 
@@ -696,7 +727,7 @@ describe('HttpClient', function() {
     // it('retries the specified number of times', function(done) {
     //   const response = new Response(null, { status: 500 });
     //   fetch.returns(Promise.resolve(response));
-
+    //
     //   client.configure(config => config.rejectErrorResponses().withRetry({
     //     maxRetries: 3,
     //     interval: 10
@@ -711,13 +742,13 @@ describe('HttpClient', function() {
     //       done();
     //     });
     // });
-
+    //
     // it('continues with retry when doRetry returns true', function(done) {
     //   const response = new Response(null, { status: 500 });
     //   fetch.returns(Promise.resolve(response));
-
+    //
     //   const doRetryCallback = stub().returns(true);
-
+    //
     //   client.configure(config => config.rejectErrorResponses().withRetry({
     //     maxRetries: 2,
     //     interval: 10,
@@ -763,9 +794,9 @@ describe('HttpClient', function() {
     // it('calls beforeRetry callback when specified', function(done) {
     //   const response = new Response(null, { status: 500 });
     //   fetch.returns(Promise.resolve(response));
-
+    //
     //   const beforeRetryCallback = stub().returns(new Request('path'));
-
+    //
     //   client.configure(config => config.rejectErrorResponses().withRetry({
     //     maxRetries: 2,
     //     interval: 10,
@@ -781,15 +812,15 @@ describe('HttpClient', function() {
     //         // only called on retries
     //         expect(beforeRetryCallback).to.have.callCount(2);
     //         done();
-    //       });
+    //       }).catch(() => { done('Unexpected catch'); });
     // });
-
+    //
     // it('calls custom retry strategy callback when specified', function(done) {
     //   const response = new Response(null, { status: 500 });
     //   fetch.returns(Promise.resolve(response));
-
+    //
     //   const strategyRetryCallback = stub().returns(10);
-
+    //
     //   client.configure(config => config.rejectErrorResponses().withRetry({
     //     maxRetries: 2,
     //     strategy: strategyRetryCallback
@@ -803,15 +834,15 @@ describe('HttpClient', function() {
     //         // only called on retries
     //         expect(strategyRetryCallback).to.have.callCount(2);
     //         done();
-    //       });
+    //       }).catch(() => { done('Unexpected catch'); });
     // });
-
+    //
     // it('waits correct number amount of time with fixed retry strategy', function(done) {
     //   const response = new Response(null, { status: 500 });
     //   fetch.returns(Promise.resolve(response));
-
+    //
     //   const stubSettimeout = stub(PLATFORM, 'setTimeout').callThrough();
-
+    //
     //   client.configure(config => config.rejectErrorResponses().withRetry({
     //     maxRetries: 2,
     //     interval: 250,
@@ -831,15 +862,15 @@ describe('HttpClient', function() {
     //         expect(callArgs[0]).to.equal([match.instanceOf(Function), 250]);
     //         expect(callArgs[1]).to.equal([match.instanceOf(Function), 250]);
     //         done();
-    //       });
+    //       }).catch(() => { done('Unexpected catch'); });
     // });
-
+    //
     // it('waits correct number amount of time with incremental retry strategy', function(done) {
     //   const response = new Response(null, { status: 500 });
     //   fetch.returns(Promise.resolve(response));
-
+    //
     //   const stubSettimeout = stub(PLATFORM, 'setTimeout').callThrough();
-
+    //
     //   client.configure(config => config.rejectErrorResponses().withRetry({
     //     maxRetries: 2,
     //     interval: 250,
@@ -861,15 +892,15 @@ describe('HttpClient', function() {
     //         expect(callArgs[0]).to.equal([match.instanceOf(Function), 250]);
     //         expect(callArgs[1]).to.equal([match.instanceOf(Function), 500]);
     //         done();
-    //       });
+    //       }).catch(() => { done('Unexpected catch'); });
     // });
-
+    //
     // it('waits correct number amount of time with exponential retry strategy', function(done) {
     //   const response = new Response(null, { status: 500 });
     //   fetch.returns(Promise.resolve(response));
-
+    //
     //   const stubSettimeout = stub(PLATFORM, 'setTimeout').callThrough();
-
+    //
     //   client.configure(config => config.rejectErrorResponses().withRetry({
     //     maxRetries: 2,
     //     interval: 2000,
@@ -891,20 +922,20 @@ describe('HttpClient', function() {
     //         expect(callArgs[0]).to.equal([match.instanceOf(Function), 2000]);
     //         expect(callArgs[1]).to.equal([match.instanceOf(Function), 4000]);
     //         done();
-    //       });
+    //       }).catch(() => { done('Unexpected catch'); });
     // });
-
+    //
     // it('waits correct number amount of time with random retry strategy', function(done) {
     //   const response = new Response(null, { status: 500 });
     //   const firstRandom = 0.1;
     //   const secondRandom = 0.4;
-
+    //
     //   fetch.returns(Promise.resolve(response));
-
+    //
     //   const stubSettimeout = stub(PLATFORM, 'setTimeout').callThrough();
     //   stub(Math, 'random').onCall(0).returns(firstRandom);
     //   stub(Math, 'random').onCall(1).returns(secondRandom);
-
+    //
     //   client.configure(config => config.rejectErrorResponses().withRetry({
     //     maxRetries: 2,
     //     interval: 2000,
@@ -912,10 +943,10 @@ describe('HttpClient', function() {
     //     minRandomInterval: 1000,
     //     maxRandomInterval: 3000
     //   }));
-
+    //
     //   const firstInterval = firstRandom * (3000 - 1000) + 1000;
     //   const secondInterval = secondRandom * (3000 - 1000) + 1000;
-
+    //
     //   return client
     //     .fetch('path')
     //     .then(
@@ -932,22 +963,22 @@ describe('HttpClient', function() {
     //         expect(callArgs[1]).to.equal([match.instanceOf(Function), secondInterval]);
     //         done();
     //       }
-    //     );
+    //     ).catch(() => { done('Unexpected catch'); });
     // });
-
+    //
     // it('successfully returns without error if a retry succeeds', function(done) {
     //   const firstResponse = new Response(null, { status: 500 });
     //   const secondResponse = new Response(null, { status: 200 });
-
+    //
     //   fetch.onCall(0).returns(Promise.resolve(firstResponse));
     //   fetch.onCall(1).returns(Promise.resolve(secondResponse));
-
+    //
     //   client.configure(config => config.rejectErrorResponses().withRetry({
     //     maxRetries: 3,
     //     interval: 1,
     //     strategy: retryStrategy.fixed
     //   }));
-
+    //
     //   return client.fetch('path')
     //     .then(
     //       (r) => {
@@ -956,7 +987,8 @@ describe('HttpClient', function() {
     //         expect(r).to.equal(secondResponse);
     //         done();
     //       },
-    //       () => done('retry was unsuccessful'));
+    //       () => done('retry was unsuccessful')
+    //      ).catch(() => { done('Unexpected catch'); });
     // });
   });
 
@@ -970,7 +1002,7 @@ describe('HttpClient', function() {
       request.then(() => {
         expect(fetch).to.have.callCount(1);
         done();
-      });
+      }).catch(() => { done('Unexpected catch'); });
     });
     it('is set to false when request is finished', function(done) {
       fetch.returns(emptyResponse(200));
@@ -983,14 +1015,12 @@ describe('HttpClient', function() {
       }).then(() => {
         expect(fetch).to.have.callCount(1);
         done();
-      });
+      }).catch(() => { done('Unexpected catch'); });
     });
     it('is still true when a request is still in progress', function(done) {
       const firstResponse = emptyResponse(200);
       const secondResponse = new Promise((resolve) => {
-        PLATFORM.setTimeout(() => {
-          resolve(emptyResponse(200));
-        },         200);
+        PLATFORM.setTimeout(() => { resolve(emptyResponse(200)); }, 200);
       });
 
       fetch.onCall(0).returns(firstResponse);
@@ -1002,16 +1032,14 @@ describe('HttpClient', function() {
       expect(client.isRequesting, 'When started').to.equal(true);
       request1.then(() => {
         expect(client.isRequesting, 'When request 1 is completed').to.equal(true);
-      });
-      PLATFORM.setTimeout(() => {
-        expect(client.isRequesting, 'After 100ms').to.equal(true);
-      },         100);
+      }).catch(() => { done('Unexpected catch'); });
+      PLATFORM.setTimeout(() => { expect(client.isRequesting, 'After 100ms').to.equal(true); }, 100);
       request2.then(() => {
         expect(client.isRequesting, 'When all requests are finished').to.equal(false);
       }).then(() => {
         expect(fetch).to.have.callCount(2);
         done();
-      });
+      }).catch(() => { done('Unexpected catch'); });
     });
     it('is set to false when request is rejected', function(done) {
       fetch.returns(Promise.reject(new Error('Failed to fetch')));
@@ -1027,27 +1055,23 @@ describe('HttpClient', function() {
       }).then(() => {
         expect(fetch).to.have.callCount(1);
         done();
-      });
+      }).catch(() => { done('Unexpected catch'); });
     });
 
     // it('stays true during a series of retries', function(done) {
     //   const response = new Response(null, { status: 500 });
     //   fetch.returns(Promise.resolve(response));
-
+    //
     //   client.configure(config => config.rejectErrorResponses().withRetry({
     //     maxRetries: 3,
     //     interval: 100
     //   }));
-
+    //
     //   expect(client.isRequesting, 'Before start').to.equal(false);
     //   const request = client.fetch('path');
     //   expect(client.isRequesting, 'When started').to.equal(true);
-    //   PLATFORM.setTimeout(() => {
-    //     expect(client.isRequesting, 'After 100ms').to.equal(true);
-    //   },         100);
-    //   PLATFORM.setTimeout(() => {
-    //     expect(client.isRequesting, 'After 200ms').to.equal(true);
-    //   },         200);
+    //   PLATFORM.setTimeout(() => { expect(client.isRequesting, 'After 100ms').to.equal(true); }, 100);
+    //   PLATFORM.setTimeout(() => { expect(client.isRequesting, 'After 200ms').to.equal(true); }, 200);
     //   request.then((result) => {
     //     done('fetch did not error');
     //   }).catch((r) => {
@@ -1059,12 +1083,12 @@ describe('HttpClient', function() {
     // it('is set to false after a series of retry that fail', function(done) {
     //   const response = new Response(null, { status: 500 });
     //   fetch.returns(Promise.resolve(response));
-
+    //
     //   client.configure(config => config.rejectErrorResponses().withRetry({
     //     maxRetries: 3,
     //     interval: 100
     //   }));
-
+    //
     //   expect(client.isRequesting, 'Before start').to.equal(false);
     //   const request = client.fetch('path');
     //   expect(client.isRequesting, 'When started').to.equal(true);
@@ -1110,8 +1134,7 @@ describe('HttpClient', function() {
         response(r) { return r; },
         responseError(r) {
           if (retry--) {
-            const request = client.buildRequest(path);
-            return request;
+            return client.fetch(client.buildRequest(path, {}));
           } else {
             throw r;
           }

@@ -233,6 +233,16 @@ function keyText(info: ITraceInfo, i: number = 0): string {
   }
   return 'undefined';
 }
+function primitive(info: ITraceInfo, i: number = 0): string {
+  if (info.params.length > i) {
+    const $key = info.params[i] as string | symbol | number;
+    if (typeof $key === 'string') {
+      return `'${$key}'`;
+    }
+    return $key.toString();
+  }
+  return 'undefined';
+}
 
 const RenderingArgsProcessor = {
   $hydrate(info: ITraceInfo): string {
@@ -268,15 +278,15 @@ const BindingArgsProcessor = {
         return flagsText(info);
       case 'SetterObserver':
       case 'SelfObserver':
-        return `${flagsText(info)},${ctorName(info, 1)},'${info.params[2]}'`;
+        return `${flagsText(info)},${ctorName(info, 1)},${primitive(info, 2)}`;
       case 'ProxyObserver':
         return ctorName(info);
       case 'ProxySubscriberCollection':
       case 'DirtyCheckProperty':
-        return `${ctorName(info, 1)},'${info.params[2]}'`;
+        return `${ctorName(info, 1)},${primitive(info, 2)}`;
       case 'PrimitiveObserver':
       case 'PropertyAccessor':
-        return `${ctorName(info)},'${info.params[1]}'`;
+        return `${ctorName(info)},${primitive(info, 1)}`;
       default:
         return '';
     }
@@ -288,12 +298,12 @@ const BindingArgsProcessor = {
     return flagsText(info);
   },
   InternalObserversLookup(info: ITraceInfo): string {
-    return `${flagsText(info)},${ctorName(info, 1)},'${info.params[2]}'`;
+    return `${flagsText(info)},${ctorName(info, 1)},${primitive(info, 2)}`;
   },
   BindingContext(info: ITraceInfo): string {
     switch (info.methodName) {
       case 'get':
-        return `${scopeText(info)},'${info.params[1]}',${info.params[2]},${flagsText(info, 3)}`;
+        return `${scopeText(info)},${primitive(info, 1)},${primitive(info, 2)},${flagsText(info, 3)}`;
       case 'getObservers':
         return flagsText(info);
     }
@@ -363,7 +373,7 @@ const ObservationArgsProcessor = {
     return flagsText(info);
   },
   handleChange(info: ITraceInfo): string {
-    return `${info.params[0]},${info.params[1]},${flagsText(info, 2)}`;
+    return `${primitive(info)},${primitive(info, 1)},${flagsText(info, 2)}`;
   },
   lockScope(info: ITraceInfo): string {
     return scopeText(info);
@@ -452,7 +462,7 @@ const LifecycleArgsProcessor = {
       case 'removeTask':
         return ctorName(info);
       case 'complete':
-        return `${info.params[0]}`;
+        return `${primitive(info, 2)}`;
     }
   }
 };

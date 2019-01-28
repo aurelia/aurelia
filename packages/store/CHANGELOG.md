@@ -6,5 +6,5 @@ See [Conventional Commits](https://conventionalcommits.org) for commit guideline
 <a name="0.3.0"></a>
 # 0.3.0 (2018-10-12)
 
-**Note:** Version bump only for package @aurelia/validation
+**Note:** Version bump only for package @aurelia/store
 

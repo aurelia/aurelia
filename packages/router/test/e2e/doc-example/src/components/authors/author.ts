@@ -4,6 +4,7 @@ import { Router } from '../../../../../../src';
 import { AuthorsRepository } from '../../repositories/authors';
 import { Information } from './information';
 import { wait } from '../../utils';
+import { State } from '../../state';
 
 @customElement({
   name: 'author', template: `<template>
@@ -19,13 +20,13 @@ import { wait } from '../../utils';
 </template>`,
   dependencies: [Information as any]
 })
-@inject(Router, AuthorsRepository)
+@inject(Router, AuthorsRepository, State)
 export class Author {
   public static parameters = ['id'];
 
   public author: { id: number };
 
-  constructor(private readonly router: Router, private readonly authorsRepository: AuthorsRepository) { }
+  constructor(private readonly router: Router, private readonly authorsRepository: AuthorsRepository, private state: State) { }
 
   public enter(parameters) {
     if (parameters.id) {
@@ -45,6 +46,6 @@ export class Author {
         components: 'information'
       },
     ]);
-    return wait(2000);
+    return wait(this.state.noDelay ? 0 : 2000);
   }
 }

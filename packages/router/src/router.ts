@@ -268,7 +268,11 @@ export class Router {
             return false;
           }
         }
-        // TODO: Deal with redirects
+        for (const cvp of canEnter) {
+          // TODO: Abort content change in the viewports
+          this.addProcessingViewport(cvp.component, cvp.viewport);
+        }
+        value.abortContentChange();
         return true;
       }));
       if (results.some(result => result === false)) {
@@ -284,13 +288,18 @@ export class Router {
       //   return this.historyBrowser.cancel();
       // }
 
-      updatedViewports.push(...changedViewports);
+      for (const viewport of changedViewports) {
+        if (!updatedViewports.find((value) => value === viewport)) {
+          updatedViewports.push(viewport);
+        }
+      }
 
       // TODO: Fix multi level recursiveness!
       const remaining = this.rootScope.findViewports();
       componentViewports = [];
       let addedViewport: IComponentViewport;
       while (addedViewport = this.addedViewports.shift()) {
+        // TODO: Should this overwrite instead? I think so.
         if (!remaining.componentViewports.find((value) => value.viewport === addedViewport.viewport)) {
           componentViewports.push(addedViewport);
         }
@@ -315,9 +324,13 @@ export class Router {
     this.processNavigations().catch(error => { throw error; });
   }
 
-  public addProcessingViewport(viewport: Viewport, component: string): void {
+  public addProcessingViewport(component: string | ICustomElementType, viewport: Viewport | string): void {
     if (this.processingNavigation) {
-      this.addedViewports.push({ viewport: viewport, component: component });
+      if (typeof viewport === 'string') {
+        // TODO: Deal with not yet existing viewports
+        viewport = this.allViewports().find((vp) => vp.name === viewport);
+      }
+      this.addedViewports.push({ viewport: viewport as Viewport, component: component });
     }
   }
 

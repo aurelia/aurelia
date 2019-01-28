@@ -19,6 +19,7 @@ import { Books } from './components/books/books';
 import { Chat } from './components/chat/chat';
 import { ChatUser } from './components/chat/chat-user';
 import { ChatUsers } from './components/chat/chat-users';
+import { State } from './state';
 
 const container = BasicConfiguration.createContainer();
 
@@ -26,6 +27,7 @@ container.register(
   ViewportCustomElement as any,
   NavCustomElement as any,
   App as any,
+  State as any,
 );
 registerComponent(
   container,

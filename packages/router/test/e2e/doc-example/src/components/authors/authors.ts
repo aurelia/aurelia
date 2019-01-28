@@ -1,6 +1,7 @@
 import { inject } from '@aurelia//kernel';
 import { customElement, ICustomElement } from '@aurelia/runtime';
 import { AuthorsRepository } from '../../repositories/authors';
+import { State } from '../../state';
 import { wait } from '../../utils';
 
 @customElement({
@@ -13,14 +14,14 @@ import { wait } from '../../utils';
   </li>
 </ul>
 </template>` })
-@inject(AuthorsRepository)
+@inject(AuthorsRepository, State)
 export class Authors {
-  constructor(private readonly authorsRepository: AuthorsRepository) { }
+  constructor(private readonly authorsRepository: AuthorsRepository, private state: State) { }
 
   get authors() { return this.authorsRepository.authors(); }
 
   public enter() {
-    return wait(2000);
+    return wait(this.state.noDelay ? 0 : 2000);
   }
 }
 export interface Authors extends ICustomElement<HTMLElement> { }

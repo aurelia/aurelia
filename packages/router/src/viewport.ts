@@ -2,7 +2,7 @@ import { IContainer } from '@aurelia/kernel';
 import { CustomElementResource, ICustomElement, ICustomElementType, INode, IRenderContext, LifecycleFlags } from '@aurelia/runtime';
 import { INavigationInstruction } from './history-browser';
 import { mergeParameters } from './parser';
-import { Router } from './router';
+import { IComponentViewportParameters, Router } from './router';
 import { Scope } from './scope';
 import { IRouteableCustomElement, IViewportOptions } from './viewport';
 
@@ -11,7 +11,7 @@ export interface IRouteableCustomElementType extends ICustomElementType {
 }
 
 export interface IRouteableCustomElement extends ICustomElement {
-  canEnter?(nextInstruction?: INavigationInstruction, instruction?: INavigationInstruction): boolean | Promise<boolean>;
+  canEnter?(nextInstruction?: INavigationInstruction, instruction?: INavigationInstruction): boolean | string | IComponentViewportParameters[] | Promise<boolean | string | IComponentViewportParameters[]>;
   enter?(parameters?: string[] | Record<string, string>, nextInstruction?: INavigationInstruction, instruction?: INavigationInstruction): void | Promise<void>;
   canLeave?(nextInstruction?: INavigationInstruction, instruction?: INavigationInstruction): boolean | Promise<boolean>;
   leave?(nextInstruction?: INavigationInstruction, instruction?: INavigationInstruction): void | Promise<void>;
@@ -154,7 +154,7 @@ export class Viewport {
     }
 
     if (!this.component && !this.nextComponent && this.options.default) {
-      this.router.addProcessingViewport(this, this.options.default);
+      this.router.addProcessingViewport(this.options.default, this);
     }
   }
 
@@ -182,7 +182,7 @@ export class Viewport {
     return result;
   }
 
-  public async canEnter(): Promise<boolean> {
+  public async canEnter(): Promise<boolean | IComponentViewportParameters[]> {
     if (this.clear) {
       return true;
     }
@@ -207,7 +207,10 @@ export class Viewport {
     if (typeof result === 'boolean') {
       return result;
     }
-    return result;
+    if (typeof result === 'string') {
+      return [{ component: result, viewport: this }];
+    }
+    return result as Promise<IComponentViewportParameters[]>;
   }
 
   public async enter(): Promise<boolean> {

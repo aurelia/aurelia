@@ -5,8 +5,9 @@ import { About } from './components/about';
 import { Authors } from './components/authors/authors';
 import { Books } from './components/books/books';
 import { AuthorsRepository } from './repositories/authors';
+import { State } from './state';
 
-@inject(Router, AuthorsRepository)
+@inject(Router, AuthorsRepository, State)
 @customElement({
   name: 'app', template:
     `<template>
@@ -21,6 +22,9 @@ import { AuthorsRepository } from './repositories/authors';
       in <pre>canEnter</pre>. (Meaning that <i>Author</i> can't be opened since it has <i>Author details</i> as default
       and the navigation is rolled back after 2 seconds.)
     </div>
+    <div class="info">
+      <label><input type="checkbox" checked.two-way="state.noDelay">Disable loading delays for components</label>
+    </div>
     <au-viewport name="lists" used-by="authors,books" default="authors"></au-viewport>
     <au-viewport name="content" default="about"></au-viewport>
     <au-viewport name="chat" used-by="chat" no-link no-history></au-viewport>
@@ -28,7 +32,7 @@ import { AuthorsRepository } from './repositories/authors';
 </template>
 ` })
 export class App {
-  constructor(private readonly router: Router, authorsRepository: AuthorsRepository) {
+  constructor(private readonly router: Router, authorsRepository: AuthorsRepository, private state: State) {
     authorsRepository.authors(); // Only here to initialize repositories
     this.router.activate({
       // transformFromUrl: (path, router) => {

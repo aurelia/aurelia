@@ -40,7 +40,6 @@ export interface IBindableDescription {
   callback?: string;
   attribute?: string;
   property?: string;
-  proxyStrategy?: boolean;
 }
 
 /**

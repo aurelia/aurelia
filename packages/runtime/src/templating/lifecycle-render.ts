@@ -53,10 +53,17 @@ export function $hydrateAttribute(this: Writable<ICustomAttribute>, flags: Lifec
   flags |= description.strategy;
   const renderingEngine = parentContext.get(IRenderingEngine);
 
+  let bindingContext: typeof this;
+  if (flags & LifecycleFlags.proxyStrategy) {
+    bindingContext = ProxyObserver.getOrCreate(this).proxy;
+  } else {
+    bindingContext = this;
+  }
+
   renderingEngine.applyRuntimeBehavior(flags, Type, this);
 
   if (this.$hooks & Hooks.hasCreated) {
-    this.created(flags);
+    bindingContext.created(flags);
   }
   if (Profiler.enabled) { leave(); }
   if (Tracer.enabled) { Tracer.leave(); }
@@ -100,7 +107,7 @@ export function $hydrateElement(this: Writable<ICustomElement>, flags: Lifecycle
   }
 
   if (this.$hooks & Hooks.hasCreated) {
-    this.created(flags);
+    bindingContext.created(flags);
   }
   if (Profiler.enabled) { leave(); }
   if (Tracer.enabled) { Tracer.leave(); }

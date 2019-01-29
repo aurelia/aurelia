@@ -3,7 +3,10 @@
   "compilerOptions": {
     "rootDir": "src",
     "declarationDir": "dist",
-    "outDir": "dist/build"
+    "outDir": "dist/build",
+    "lib": ["dom", "esnext"]
   },
-  "include": ["src"]
+  "include": [
+    "src"
+  ]
 }

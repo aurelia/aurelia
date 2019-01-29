@@ -97,7 +97,7 @@ export const Reporter: typeof RuntimeReporter = {
   error(code: number, ...params: unknown[]): Error {
     const info = getMessageInfoForCode(code);
     const error = new Error(info.message);
-    (error as Error & {data: unknown}).data = params;
+    (error as Error & { data: unknown }).data = params;
     return error;
   }
 };
@@ -342,5 +342,50 @@ const codeLookup: Record<string, IMessageInfo> = {
   151: {
     type: MessageType.error,
     message: 'Unexpected keyword "of"'
-  }
+  },
+  // packages/store messages
+  500: {
+    type: MessageType.info,
+    message: 'Total duration %i of dispatched action %s:'
+  },
+  501: {
+    type: MessageType.info,
+    message: 'Total duration %i of dispatched action %s:'
+  },
+  502: {
+    type: MessageType.debug,
+    message: 'DevTools are available'
+  },
+  503: {
+    type: MessageType.debug,
+    message: 'DevTools sent change %s'
+  },
+  504: {
+    type: MessageType.info,
+    message: 'Dispatching: %s'
+  },
+  505: {
+    type: MessageType.error,
+    message: 'Tried to dispatch an unregistered action %s'
+  },
+  506: {
+    type: MessageType.error,
+    message: 'initialState must be provided via options'
+  },
+  507: {
+    type: MessageType.error,
+    message: 'You need a polyfill for Object.entries for browsers like Internet Explorer. Example: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/entries#Polyfill'
+  },
+  508: {
+    type: MessageType.error,
+    message: 'The reducer is expected to have one or more parameters, where the first will be the present state'
+  },
+  509: {
+    type: MessageType.error,
+    message: 'The reducer has to return a new state'
+  },
+  510: {
+    type: MessageType.error,
+    message: 'Provided onChanged handler does not exist on target VM'
+  },
 };

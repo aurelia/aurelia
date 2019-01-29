@@ -1,7 +1,7 @@
 import { IContainer, Registration, Reporter } from '@aurelia/kernel';
 import { isStateHistory } from './history';
 import { StorePluginOptions } from './index';
-import { Store, StoreOptions, STORE } from './store';
+import { Store, STORE, StoreOptions } from './store';
 
 export interface StorePluginOptions<T> extends StoreOptions {
   initialState: T;
@@ -49,6 +49,7 @@ export const Configure: IConfigure = {
 export * from './store';
 export * from './test-helpers';
 export * from './history';
+export * from './logging';
 export * from './middleware';
 export * from './decorator';
 export * from './devtools';

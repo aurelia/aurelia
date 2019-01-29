@@ -5,7 +5,8 @@ export interface CallingAction {
   params?: unknown[];
 }
 
-export type Middleware<T> = (state: T, originalState?: T, settings?: unknown, action?: CallingAction) => T | Promise<T | undefined | false> | void | false;
+// tslint:disable-next-line
+export type Middleware<T> = (state: T, originalState?: T, settings?: any, action?: CallingAction) => T | Promise<T | undefined | false> | void | false;
 
 export enum MiddlewarePlacement {
   Before = 'before',
@@ -42,7 +43,8 @@ export function localStorageMiddleware<T>(state: T, _: T, settings?: IMiddleware
   }
 }
 
-export function rehydrateFromLocalStorage<T>(state: T, key?: string): unknown {
+// tslint:disable-next-line
+export function rehydrateFromLocalStorage<T>(state: T, key?: string): any {
   if (!PLATFORM.global.localStorage) {
     return state;
   }

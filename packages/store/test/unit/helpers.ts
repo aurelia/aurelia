@@ -1,26 +1,27 @@
 import {
   Store,
   StoreOptions
-} from "../../src/store";
+} from '../../src/store';
 
-import { StateHistory } from "../../src/history";
 import { SinonStub } from 'sinon';
+import { StateHistory } from '../../src/history';
 
 export type testState = {
-  foo: string
+  foo: string;
 };
 
 export function createTestStore() {
-  const initialState = { foo: "bar" };
+  const initialState = { foo: 'bar' };
   const store: Store<testState> = new Store(initialState);
 
   return { initialState, store };
 }
 
 export function createUndoableTestStore() {
+  // tslint:disable-next-line:no-object-literal-type-assertion
   const initialState = {
     past: [],
-    present: { foo: "bar" },
+    present: { foo: 'bar' },
     future: []
   } as StateHistory<testState>;
   const options = { history: { undoable: true } };

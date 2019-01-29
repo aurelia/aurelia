@@ -1,5 +1,6 @@
 import { IContainer, IWindowOrWorkerGlobalScope, PLATFORM, Reporter } from '@aurelia/kernel';
 import { BehaviorSubject, Observable } from 'rxjs';
+import { LogDefinitions } from './index';
 
 import { Action, DevToolsOptions } from './devtools';
 import { applyLimits, HistoryOptions, isStateHistory, jump } from './history';
@@ -37,6 +38,7 @@ export interface StoreOptions {
   logDispatchedActions?: boolean;
   measurePerformance?: PerformanceMeasurement;
   propagateError?: boolean;
+  logDefinitions?: LogDefinitions;
   devToolsOptions?: DevToolsOptions;
 }
 
@@ -319,7 +321,8 @@ export class Store<T> {
   }
 }
 
-export function dispatchify<T, P extends unknown[]>(action: Reducer<T, P> | string): (...params: P) => Promise<void> {
+// tslint:disable-next-line
+export function dispatchify<T, P extends any[]>(action: Reducer<T, P> | string): (...params: P) => Promise<void> {
   const store = STORE.container.get(Store);
 
   return function (...params: P): Promise<void> {

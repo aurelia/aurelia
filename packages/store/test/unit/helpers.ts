@@ -1,6 +1,3 @@
-import { Registration } from '@aurelia/kernel';
-import { CustomElementResource } from './../../../runtime/src/resources/custom-element';
-
 import {
   Store,
   StoreOptions
@@ -45,11 +42,3 @@ export function createStoreWithStateAndOptions<T>(state: T, options: Partial<Sto
 export type Spied<T> = {
   [Method in keyof T]: T[Method] & SinonStub;
 };
-
-export function registerComponent(container, ...components) {
-  for (const component of components) {
-    const name = component.description ? component.description.name : component.name;
-    container.register(component);
-    Registration.alias(CustomElementResource.keyFrom(name), component).register(container);
-  }
-}

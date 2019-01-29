@@ -63,7 +63,7 @@ describe('middlewares', () => {
       }
     };
 
-    expect(() => store.registerMiddleware(settingsMiddleware, MiddlewarePlacement.Before, fakeSettings)).not.toThrowError();
+    expect(() => store.registerMiddleware(settingsMiddleware, MiddlewarePlacement.Before, fakeSettings)).not.to.throw;
 
     store.registerAction('IncrementAction', incrementAction);
 
@@ -164,7 +164,7 @@ describe('middlewares', () => {
       store.registerAction('IncrementAction', incrementAction);
       store.dispatch(incrementAction);
 
-      store.state.subscribe((state) => {
+      store.state.subscribe((state: any) => {
         expect(state.counter).to.equal(1);
         done();
       });
@@ -184,7 +184,7 @@ describe('middlewares', () => {
       store.registerAction('IncrementAction', incrementAction);
       store.dispatch(incrementAction);
 
-      store.state.subscribe((state) => {
+      store.state.subscribe((state: any) => {
         expect(state.counter).to.equal(1);
         done();
       });
@@ -213,7 +213,7 @@ describe('middlewares', () => {
       store.state.pipe(
         skip(1),
         take(1)
-      ).subscribe((state) => {
+      ).subscribe((state: any) => {
         expect(state.counter).to.equal(2);
         done();
       });
@@ -238,7 +238,7 @@ describe('middlewares', () => {
       store.state.pipe(
         skip(1),
         take(1)
-      ).subscribe((state) => {
+      ).subscribe((state: any) => {
         expect(state.counter).to.equal(1000);
         done();
       });
@@ -261,7 +261,7 @@ describe('middlewares', () => {
       store.state.pipe(
         skip(1),
         take(1)
-      ).subscribe((state) => {
+      ).subscribe((state: any) => {
         expect(state.counter).to.equal(1000);
         done();
       });
@@ -284,7 +284,7 @@ describe('middlewares', () => {
       store.state.pipe(
         skip(1),
         take(1)
-      ).subscribe((state) => {
+      ).subscribe((state: any) => {
         expect(state.counter).to.equal(1);
         done();
       });
@@ -414,7 +414,7 @@ describe('middlewares', () => {
     store.state.pipe(
       skip(1),
       take(1)
-    ).subscribe((state) => {
+    ).subscribe((state: any) => {
       expect(state.counter).to.equal(14);
       done();
     });
@@ -458,8 +458,8 @@ describe('middlewares', () => {
     store.state.pipe(
       skip(1),
       take(1)
-    ).subscribe((state) => {
-      expect(state.values).to.equal(['Demo', ...new Array(26).fill('').map((_, idx) => String.fromCharCode(65 + idx))]);
+    ).subscribe((state: any) => {
+      expect(state.values).to.eql(['Demo', ...new Array(26).fill('').map((_, idx) => String.fromCharCode(65 + idx))]);
       done();
     });
   });
@@ -480,9 +480,6 @@ describe('middlewares', () => {
       skip(1)
     ).subscribe(() => {
       expect(global.console.log).to.have.callCount(1);
-      (global.console.log as any).mockReset();
-      (global.console.log as any).mockRestore();
-
       done();
     });
   });
@@ -499,18 +496,15 @@ describe('middlewares', () => {
 
       store.state.pipe(
         skip(1)
-      ).subscribe((state) => {
+      ).subscribe((state: any) => {
         expect(state.counter).to.equal(2);
         expect(global.console.log).to.have.callCount(1);
-
-        (global.console.log as any).mockReset();
-        (global.console.log as any).mockRestore();
 
         done();
       });
     });
 
-    it('should accept settinsg to override the log behavior for the log middleware', done => {
+    it('should accept settings to override the log behavior for the log middleware', done => {
       const store = createStoreWithState(initialState);
 
       global.console.warn = stub();
@@ -521,12 +515,9 @@ describe('middlewares', () => {
 
       store.state.pipe(
         skip(1)
-      ).subscribe((state) => {
+      ).subscribe((state: any) => {
         expect(state.counter).to.equal(2);
         expect(global.console.warn).to.have.callCount(1);
-
-        (global.console.warn as any).mockReset();
-        (global.console.warn as any).mockRestore();
 
         done();
       });
@@ -535,15 +526,17 @@ describe('middlewares', () => {
     it('should provide a localStorage middleware', done => {
       const store = createStoreWithState(initialState);
 
-      PLATFORM.global.localStorage = {
-        store: { foo: 'bar' },
-        getItem(key: string) {
-          return this.store[key] || null;
-        },
-        setItem(key: string, value: string) {
-          this.store[key] = value;
-        }
-      };
+      const temporaryStoreValues = { foo: 'bar' };
+
+      // tslint:disable-next-line:no-shadowed-variable
+      stub(PLATFORM.global.localStorage, 'getItem').callsFake((key: string) => {
+        return temporaryStoreValues[key] || null;
+      });
+
+      // tslint:disable-next-line:no-shadowed-variable
+      stub(PLATFORM.global.localStorage, 'setItem').callsFake((key: string, value: string) => {
+        return temporaryStoreValues[key] = value;
+      });
 
       store.registerMiddleware(localStorageMiddleware, MiddlewarePlacement.After);
 
@@ -552,27 +545,32 @@ describe('middlewares', () => {
 
       store.state.pipe(
         skip(1)
-      ).subscribe((state) => {
+      ).subscribe((state: any) => {
         expect(state.counter).to.equal(2);
-        expect(PLATFORM.global.localStorage.getItem('aurelia-store-state')).to.equal(JSON.stringify(state));
+        expect((PLATFORM.global as any).localStorage.getItem('aurelia-store-state')).to.equal(JSON.stringify(state));
         done();
+
+        (PLATFORM.global.localStorage.getItem as any).reset();
+        (PLATFORM.global.localStorage.getItem as any).restore();
+        (PLATFORM.global.localStorage.setItem as any).reset();
+        (PLATFORM.global.localStorage.setItem as any).restore();
       });
     });
 
     it('should provide a localStorage middleware supporting a custom key', done => {
       const store = createStoreWithState(initialState);
       const key = 'foobar';
-      PLATFORM.global.localStorage = {
-        store: { foo: 'bar' },
-        // tslint:disable-next-line:no-shadowed-variable
-        getItem(key: string) {
-          return this.store[key] || null;
-        },
-        // tslint:disable-next-line:no-shadowed-variable
-        setItem(key: string, value: string) {
-          this.store[key] = value;
-        }
-      };
+
+      const temporaryStoreValues = { foo: 'bar' };
+
+      stub(PLATFORM.global.localStorage, 'getItem').callsFake(() => {
+        return temporaryStoreValues[key] || null;
+      });
+
+      // tslint:disable-next-line:no-shadowed-variable
+      stub(PLATFORM.global.localStorage, 'setItem').callsFake((key: string, value: string) => {
+        return temporaryStoreValues[key] = value;
+      });
 
       store.registerMiddleware(localStorageMiddleware, MiddlewarePlacement.After, { key });
 
@@ -581,24 +579,27 @@ describe('middlewares', () => {
 
       store.state.pipe(
         skip(1)
-      ).subscribe((state) => {
+      ).subscribe((state: any) => {
         expect(state.counter).to.equal(2);
-        expect(PLATFORM.global.localStorage.getItem(key)).to.equal(JSON.stringify(state));
+        expect((PLATFORM.global as any).localStorage.getItem(key)).to.equal(JSON.stringify(state));
         done();
+
+        (PLATFORM.global.localStorage.getItem as any).reset();
+        (PLATFORM.global.localStorage.getItem as any).restore();
+        (PLATFORM.global.localStorage.setItem as any).reset();
+        (PLATFORM.global.localStorage.setItem as any).restore();
       });
     });
 
     it('should rehydrate state from localStorage', done => {
       const store = createStoreWithState(initialState);
 
-      PLATFORM.global.localStorage = {
-        getItem() {
-          const storedState = {...initialState};
-          storedState.counter = 1000;
+      stub(PLATFORM.global.localStorage, 'getItem').callsFake(() => {
+        const storedState = {...initialState};
+        storedState.counter = 1000;
 
-          return JSON.stringify(storedState);
-        }
-      };
+        return JSON.stringify(storedState);
+      });
 
       store.registerMiddleware(localStorageMiddleware, MiddlewarePlacement.After);
       store.registerAction('Rehydrate', rehydrateFromLocalStorage);
@@ -606,9 +607,14 @@ describe('middlewares', () => {
 
       store.state.pipe(
         skip(1)
-      ).subscribe((state) => {
+      ).subscribe((state: any) => {
         expect(state.counter).to.equal(1000);
         done();
+
+        (PLATFORM.global.localStorage.getItem as any).reset();
+        (PLATFORM.global.localStorage.getItem as any).restore();
+        (PLATFORM.global.localStorage.setItem as any).reset();
+        (PLATFORM.global.localStorage.setItem as any).restore();
       });
     });
 
@@ -616,14 +622,12 @@ describe('middlewares', () => {
       const store = createStoreWithState(initialState);
       const key = 'foobar';
 
-      PLATFORM.global.localStorage = {
-        getItem() {
-          const storedState = {...initialState};
-          storedState.counter = 1000;
+      stub(PLATFORM.global.localStorage, 'getItem').callsFake(() => {
+        const storedState = {...initialState};
+        storedState.counter = 1000;
 
-          return JSON.stringify(storedState);
-        }
-      };
+        return JSON.stringify(storedState);
+      });
 
       store.registerMiddleware(localStorageMiddleware, MiddlewarePlacement.After, { key });
       store.registerAction('Rehydrate', rehydrateFromLocalStorage);
@@ -631,16 +635,21 @@ describe('middlewares', () => {
 
       store.state.pipe(
         skip(1)
-      ).subscribe((state) => {
+      ).subscribe((state: any) => {
         expect(state.counter).to.equal(1000);
         done();
+
+        (PLATFORM.global.localStorage.getItem as any).reset();
+        (PLATFORM.global.localStorage.getItem as any).restore();
+        (PLATFORM.global.localStorage.setItem as any).reset();
+        (PLATFORM.global.localStorage.setItem as any).restore();
       });
     });
 
     it('should rehydrate from previous state if localStorage is not available', done => {
       const store = createStoreWithState(initialState);
 
-      PLATFORM.global.localStorage = undefined;
+      stub(PLATFORM.global.localStorage).callsFake(undefined);
 
       store.registerMiddleware(localStorageMiddleware, MiddlewarePlacement.After);
       store.registerAction('Rehydrate', rehydrateFromLocalStorage);
@@ -648,20 +657,23 @@ describe('middlewares', () => {
 
       store.state.pipe(
         skip(1)
-      ).subscribe((state) => {
+      ).subscribe((state: any) => {
         expect(state.counter).to.equal(1);
         done();
+
+        (PLATFORM.global.localStorage.getItem as any).reset();
+        (PLATFORM.global.localStorage.getItem as any).restore();
+        (PLATFORM.global.localStorage.setItem as any).reset();
+        (PLATFORM.global.localStorage.setItem as any).restore();
       });
     });
 
     it('should rehydrate from previous state if localStorage is empty', done => {
       const store = createStoreWithState(initialState);
 
-      PLATFORM.global.localStorage = {
-        getItem() {
-          return null;
-        }
-      };
+      stub(PLATFORM.global.localStorage, 'getItem').callsFake(() => {
+        return null;
+      });
 
       store.registerMiddleware(localStorageMiddleware, MiddlewarePlacement.After);
       store.registerAction('Rehydrate', rehydrateFromLocalStorage);
@@ -669,23 +681,26 @@ describe('middlewares', () => {
 
       store.state.pipe(
         skip(1)
-      ).subscribe((state) => {
+      ).subscribe((state: any) => {
         expect(state.counter).to.equal(1);
         done();
+
+        (PLATFORM.global.localStorage.getItem as any).reset();
+        (PLATFORM.global.localStorage.getItem as any).restore();
+        (PLATFORM.global.localStorage.setItem as any).reset();
+        (PLATFORM.global.localStorage.setItem as any).restore();
       });
     });
 
     it('should rehydrate from history state', done => {
       const store = createStoreWithState(initialHistoryState, true);
 
-      PLATFORM.global.localStorage = {
-        getItem() {
-          const storedState = {...initialState};
-          storedState.counter = 1000;
+      stub(PLATFORM.global.localStorage, 'getItem').callsFake(() => {
+        const storedState = {...initialState};
+        storedState.counter = 1000;
 
-          return JSON.stringify({ past: [], present: storedState, future: [] });
-        }
-      };
+        return JSON.stringify({ past: [], present: storedState, future: [] });
+      });
 
       store.registerMiddleware(localStorageMiddleware, MiddlewarePlacement.After);
       store.registerAction('Rehydrate', rehydrateFromLocalStorage);
@@ -693,20 +708,23 @@ describe('middlewares', () => {
 
       store.state.pipe(
         skip(1)
-      ).subscribe((state) => {
+      ).subscribe((state: any) => {
         expect(state.present.counter).to.equal(1000);
         done();
+
+        (PLATFORM.global.localStorage.getItem as any).reset();
+        (PLATFORM.global.localStorage.getItem as any).restore();
+        (PLATFORM.global.localStorage.setItem as any).reset();
+        (PLATFORM.global.localStorage.setItem as any).restore();
       });
     });
 
     it('should return the previous state if localStorage state cannot be parsed', done => {
       const store = createStoreWithState(initialState);
 
-      PLATFORM.global.localStorage = {
-        getItem() {
-          return global;
-        }
-      };
+      stub(PLATFORM.global.localStorage, 'getItem').callsFake((key: string) => {
+        return global as any;
+      });
 
       store.registerMiddleware(localStorageMiddleware, MiddlewarePlacement.After);
       store.registerAction('Rehydrate', rehydrateFromLocalStorage);
@@ -714,9 +732,14 @@ describe('middlewares', () => {
 
       store.state.pipe(
         skip(1)
-      ).subscribe((state) => {
+      ).subscribe((state: any) => {
         expect(state.counter).to.equal(1);
         done();
+
+        (PLATFORM.global.localStorage.getItem as any).reset();
+        (PLATFORM.global.localStorage.getItem as any).restore();
+        (PLATFORM.global.localStorage.setItem as any).reset();
+        (PLATFORM.global.localStorage.setItem as any).restore();
       });
     });
   });

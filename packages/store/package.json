@@ -60,7 +60,6 @@
     "@types/sinon-chai": "^3.2.2",
     "chai": "^4.2.0",
     "chai-as-promised": "^7.1.1",
-    "chai-counter": "^1.0.0",
     "cross-env": "^5.2.0",
     "istanbul-instrumenter-loader": "^3.0.1",
     "karma": "^3.1.4",

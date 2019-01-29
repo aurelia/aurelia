@@ -151,7 +151,7 @@ describe('an undoable store', () => {
       }),
       (res) => {
         expect(res.past.length).to.equal(limit);
-        expect(res.past.map(i => i.foo)).to.equal(Array.from(new Array(limit)).map((_, idx) => (limit + idx).toString()));
+        expect(res.past.map(i => i.foo)).to.have.all.members(Array.from(new Array(limit)).map((_, idx) => (limit + idx).toString()));
       }
     );
   });
@@ -187,7 +187,7 @@ describe('an undoable store', () => {
         expect(res.future.length).to.equal(limit);
         expect(res.present).to.equal(stateAfterInitial.past[0]);
         expect(res.past.length).to.eq(0);
-        expect(res.future).to.equal([ ...stateAfterInitial.past.slice(1), stateAfterInitial.present]);
+        expect(res.future).to.have.all.members([ ...stateAfterInitial.past.slice(1), stateAfterInitial.present]);
       }
     );
   });

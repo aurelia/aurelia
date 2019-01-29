@@ -1,4 +1,5 @@
-import { DI } from '@aurelia/kernel';
+import { STORE } from './../../src/store';
+import { DI, Registration } from '@aurelia/kernel';
 import { expect } from 'chai';
 import { skip } from 'rxjs/operators';
 
@@ -7,35 +8,37 @@ import { createTestStore, testState } from './helpers';
 
 describe('dispatchify', () => {
   it('should help create dispatchifyable functions', done => {
-    const cont = DI.createContainer();
+    const container = DI.createContainer();
     const { store } = createTestStore();
 
     const fakeAction = (currentState: testState, param1: number, param2: number) => {
       return {...currentState,  foo: param1 + param2};
     };
 
+    STORE.container = container;
+
     store.registerAction('FakeAction', fakeAction as any);
-    cont.registerInstance(Store, store);
+    container.register(Registration.instance(Store, store));
 
     dispatchify((fakeAction as any))(1, 2);
 
     store.state.pipe(
       skip(1)
-    ).subscribe((state) => {
+    ).subscribe((state: any) => {
       expect(state.foo).to.equal(3);
       done();
     });
   });
 
   it('should return the promise from dispatched calls', async () => {
-    const cont = DI.createContainer();
+    const container = DI.createContainer();
     const { store } = createTestStore();
     const fakeAction = (currentState: testState, param1: number, param2: number) => {
       return {...currentState,  foo: param1 + param2};
     };
 
     store.registerAction('FakeAction', fakeAction as any);
-    cont.registerInstance(Store, store);
+    container.register(Registration.instance(Store, store));
 
     const result = dispatchify((fakeAction as any))(1, 2);
     expect(result.then).not.to.equal(undefined);
@@ -44,7 +47,7 @@ describe('dispatchify', () => {
   });
 
   it('should accept the reducers registered name', done => {
-    const cont = DI.createContainer();
+    const container = DI.createContainer();
     const { store } = createTestStore();
     const fakeAction = (currentState: testState, param1: number, param2: number) => {
       return {...currentState,  foo: param1 + param2};
@@ -52,20 +55,20 @@ describe('dispatchify', () => {
     const fakeActionRegisteredName = 'FakeAction';
 
     store.registerAction(fakeActionRegisteredName, fakeAction as any);
-    cont.registerInstance(Store, store);
+    container.register(Registration.instance(Store, store));
 
     dispatchify(fakeActionRegisteredName)('A', 'B');
 
     store.state.pipe(
       skip(1)
-    ).subscribe((state) => {
+    ).subscribe((state: any) => {
       expect(state.foo).to.equal('AB');
       done();
     });
   });
 
   it('should throw if any string given that doesn\'t reflect a registered action name', async () => {
-    const cont = DI.createContainer();
+    const container = DI.createContainer();
     const { store } = createTestStore();
     const fakeAction = (currentState: testState, param1: number, param2: number) => {
       return {...currentState,  foo: param1 + param2};
@@ -73,7 +76,7 @@ describe('dispatchify', () => {
     const fakeActionRegisteredName = 'FakeAction';
 
     store.registerAction(fakeActionRegisteredName, fakeAction as any);
-    cont.registerInstance(Store, store);
+    container.register(Registration.instance(Store, store));
 
     // tslint:disable-next-line
     expect(dispatchify('ABC')('A', 'B')).to.eventually.be.rejectedWith(Error);

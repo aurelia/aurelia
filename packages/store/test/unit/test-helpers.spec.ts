@@ -1,7 +1,7 @@
 import { expect } from 'chai';
-import chaiCounter from 'chai-counter';
 import { stub } from 'sinon';
 import { executeSteps } from '../../src/test-helpers';
+import { Reporter } from './../../../kernel/src/reporter';
 import {
   createTestStore,
   testState
@@ -34,7 +34,6 @@ describe('test helpers', () => {
   });
 
   it('should reject with error if step fails', async () => {
-    chaiCounter.expect(4);
     const { store } = createTestStore();
 
     const actionA = (_: testState) => Promise.resolve({ foo: 'A' });
@@ -62,13 +61,10 @@ describe('test helpers', () => {
     });
   });
 
-  it('should provide console information during executeSteps', async () => {
-    chaiCounter.expect(6);
+  it('should set values during executeSteps', async () => {
     const { store } = createTestStore();
 
-    ['log', 'group', 'groupEnd'].forEach((fct) => {
-      (global.console as any)[fct] = stub();
-    });
+    stub(Reporter, 'write');
 
     const actionA = (_: testState) => Promise.resolve({ foo: 'A' });
     const actionB = (_: testState) => Promise.resolve({ foo: 'B' });
@@ -91,12 +87,5 @@ describe('test helpers', () => {
       },
       (res) => expect(res.foo).to.equal('C')
     );
-
-    ['log', 'group', 'groupEnd'].forEach((fct) => {
-      expect((global.console as any)[fct]).to.have.been.called;
-
-      ((global.console as any)[fct] as any).reset();
-      ((global.console as any)[fct] as any).restore();
-    });
   });
 });

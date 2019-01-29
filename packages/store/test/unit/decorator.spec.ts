@@ -1,6 +1,8 @@
-import { DI } from '@aurelia/kernel';
+import { DI, Registration } from '@aurelia/kernel';
 import { Subscription } from 'rxjs';
 import { distinctUntilChanged, pluck } from 'rxjs/operators';
+import { StoreConfiguration } from './../../src/index';
+import { STORE } from './../../src/store';
 
 import { expect } from 'chai';
 import { stub } from 'sinon';
@@ -17,7 +19,9 @@ function arrange() {
   const initialState = { foo: 'Lorem', bar: 'Ipsum' };
   const store: Store<DemoState> = new Store(initialState);
   const container = DI.createContainer();
-  container.registerInstance(Store, store);
+  container.register(Registration.instance(Store, store));
+
+  STORE.container = container;
 
   return { initialState, store };
 }

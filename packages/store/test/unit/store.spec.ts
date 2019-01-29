@@ -1,11 +1,8 @@
 import { expect } from 'chai';
 import { skip } from 'rxjs/operators';
-import { LogLevel } from './../../src/index';
 
 import { stub } from 'sinon';
-import { PerformanceMeasurement } from '../../src/store';
 import {
-  createStoreWithStateAndOptions,
   createTestStore,
   testState
 } from './helpers';
@@ -42,7 +39,7 @@ describe('store', () => {
 
     expect(() => {
       store.registerAction('FakeAction', fakeAction as any);
-    }).to.throw();
+    }).to.throw;
   });
 
   it('should force reducers to return a new state', async () => {
@@ -81,7 +78,7 @@ describe('store', () => {
     const fakeAction = (currentState: testState) => currentState;
 
     store.registerAction('FakeAction', fakeAction);
-    expect(store.dispatch(fakeAction)).should.eventually.not.be.rejected;
+    store.dispatch(fakeAction).should.eventually.not.be.rejectedWith(Error);
 
     store.unregisterAction(fakeAction);
     expect(store.dispatch(fakeAction)).should.eventually.be.rejectedWith(Error);
@@ -121,7 +118,7 @@ describe('store', () => {
 
     store.state.pipe(
       skip(1)
-    ).subscribe((state) => {
+    ).subscribe((state: any) => {
       expect(state.foo).to.equal('AB');
       done();
     });
@@ -140,7 +137,7 @@ describe('store', () => {
     store.state.pipe(
       skip(1)
     ).subscribe((state) => {
-      expect(state).to.equal(modifiedState);
+      expect(state).to.eql(modifiedState);
       done();
     });
   });
@@ -193,7 +190,7 @@ describe('store', () => {
 
     store.state.pipe(
       skip(2)
-    ).subscribe((state) => {
+    ).subscribe((state: any) => {
       expect(state.foo).to.equal('barAB');
       done();
     });
@@ -212,110 +209,6 @@ describe('store', () => {
     expect(handleQueueSpy).not.to.have.callCount(1);
   });
 
-  it('should log info about dispatched action if turned on via options', () => {
-    const initialState: testState = {
-      foo: 'bar'
-    };
-
-    const store = createStoreWithStateAndOptions<testState>(initialState, { logDispatchedActions: true });
-    const loggerSpy = stub((store as any).logger, 'info');
-
-    const actionA = (_: testState) => Promise.resolve({ foo: 'A' });
-
-    store.registerAction('Action A', actionA);
-    store.dispatch(actionA);
-
-    expect(loggerSpy).to.have.callCount(1);
-  });
-
-  it('should log info about dispatched action if turned on via options via custom loglevel', () => {
-    const initialState: testState = {
-      foo: 'bar'
-    };
-
-    const store = createStoreWithStateAndOptions<testState>(initialState, {
-      logDispatchedActions: true,
-      logDefinitions: {
-        dispatchedActions: LogLevel.debug
-      }
-    });
-    const loggerSpy = stub((store as any).logger, LogLevel.debug);
-
-    const actionA = (_: testState) => Promise.resolve({ foo: 'A' });
-
-    store.registerAction('Action A', actionA);
-    store.dispatch(actionA);
-
-    expect(loggerSpy).to.have.callCount(1);
-  });
-
-  it('should log info about dispatched action and return to default log level if wrong one provided', () => {
-    const initialState: testState = {
-      foo: 'bar'
-    };
-
-    const store = createStoreWithStateAndOptions<testState>(initialState, {
-      logDispatchedActions: true,
-      logDefinitions: {
-        dispatchedActions: 'foo' as any
-      }
-    });
-    const loggerSpy = stub((store as any).logger, 'info');
-
-    const actionA = (_: testState) => Promise.resolve({ foo: 'A' });
-
-    store.registerAction('Action A', actionA);
-    store.dispatch(actionA);
-
-    expect(loggerSpy).to.have.callCount(1);
-  });
-
-  it('should log start-end dispatch duration if turned on via options', async () => {
-    const initialState: testState = {
-      foo: 'bar'
-    };
-
-    const store = createStoreWithStateAndOptions<testState>(
-      initialState,
-      { measurePerformance: PerformanceMeasurement.StartEnd }
-    );
-    const loggerSpy = stub((store as any).logger, 'info');
-
-    const actionA = (_: testState) => {
-      return new Promise<testState>((resolve) => {
-        setTimeout(() => resolve({ foo: 'A' }), 1);
-      });
-    };
-
-    store.registerAction('Action A', actionA);
-    await store.dispatch(actionA);
-
-    expect(loggerSpy).to.be.calledWith(typeof String, typeof Array);
-  });
-
-  it('should log all dispatch durations if turned on via options', async () => {
-    const initialState: testState = {
-      foo: 'bar'
-    };
-
-    const store = createStoreWithStateAndOptions<testState>(
-      initialState,
-      { measurePerformance: PerformanceMeasurement.All }
-    );
-    const loggerSpy = stub((store as any).logger, 'info');
-
-    const actionA = (_: testState) => {
-      return new Promise<testState>((resolve) => {
-        setTimeout(() => resolve({ foo: 'A' }), 1);
-      });
-    };
-
-    store.registerAction('Action A', actionA);
-    await store.dispatch(actionA);
-
-    expect(loggerSpy).to.be.calledWith(typeof String, typeof Array);
-  });
-
   it('should reset the state without going through the internal dispatch queue', async (done) => {
     const { initialState, store } = createTestStore();
     const internalDispatchSpy = stub((store as any), 'internalDispatch');
@@ -332,8 +225,6 @@ describe('store', () => {
     store.state.subscribe((state) => {
       expect(internalDispatchSpy).not.to.have.callCount(1);
       expect(state.foo).to.equal(initialState.foo);
-
-      done();
     });
   });
 });

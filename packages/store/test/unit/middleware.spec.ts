@@ -1,7 +1,7 @@
-import { LogLevel } from './../../src/logging';
-import { stub } from 'sinon';
 import { PLATFORM } from '@aurelia/kernel';
 import { skip, take } from 'rxjs/operators';
+import { stub } from 'sinon';
+import { LogLevel } from './../../src/logging';
 
 import {
   localStorageMiddleware,

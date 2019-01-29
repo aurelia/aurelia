@@ -1,14 +1,9 @@
 import { DI } from '@aurelia/kernel';
+import { expect } from 'chai';
 import { skip } from 'rxjs/operators';
 
-import chai from 'chai';
-import chaiAsPromised from 'chai-as-promised';
 import { dispatchify, Store } from '../../src/store';
 import { createTestStore, testState } from './helpers';
-
-chai.use(chaiAsPromised);
-
-const expect = chai.expect;
 
 describe('dispatchify', () => {
   it('should help create dispatchifyable functions', done => {

@@ -186,7 +186,7 @@ describe('an undoable store', () => {
       (res) => {
         expect(res.future.length).to.equal(limit);
         expect(res.present).to.equal(stateAfterInitial.past[0]);
-        expect(res.past).to.equal([]);
+        expect(res.past.length).to.eq(0);
         expect(res.future).to.equal([ ...stateAfterInitial.past.slice(1), stateAfterInitial.present]);
       }
     );

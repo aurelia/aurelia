@@ -1,8 +1,6 @@
+import { expect } from 'chai';
 import { skip } from 'rxjs/operators';
 import { LogLevel } from './../../src/index';
-
-import chai from 'chai';
-import chaiAsPromised from 'chai-as-promised';
 
 import { stub } from 'sinon';
 import { PerformanceMeasurement } from '../../src/store';
@@ -11,10 +9,6 @@ import {
   createTestStore,
   testState
 } from './helpers';
-
-chai.use(chaiAsPromised);
-
-const expect = chai.expect;
 
 describe('store', () => {
   it('should accept an initial state', done => {
@@ -319,7 +313,7 @@ describe('store', () => {
     store.registerAction('Action A', actionA);
     await store.dispatch(actionA);
 
-    expect(loggerSpy)..to.be.calledWith(typeof String, typeof Array);
+    expect(loggerSpy).to.be.calledWith(typeof String, typeof Array);
   });
 
   it('should reset the state without going through the internal dispatch queue', async (done) => {

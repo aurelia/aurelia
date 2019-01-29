@@ -13,7 +13,7 @@ export interface IConfigure {
   register(container: IContainer): IContainer;
 }
 
-export const Configure: IConfigure = {
+export const StoreConfiguration: IConfigure = {
   initialState(state: unknown): IConfigure {
     Reflect.set(this, 'state', state);
     return this;

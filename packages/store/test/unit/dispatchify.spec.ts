@@ -3,6 +3,7 @@ import { skip } from "rxjs/operators";
 
 import { dispatchify, Store } from "../../src/store";
 import { createTestStore, testState } from "./helpers";
+import { expect } from 'chai';
 
 describe("dispatchify", () => {
   it("should help create dispatchifyable functions", done => {
@@ -20,7 +21,7 @@ describe("dispatchify", () => {
     store.state.pipe(
       skip(1)
     ).subscribe((state) => {
-      expect(state.foo).toEqual(3);
+      expect(state.foo).to.equal(3);
       done();
     });
   });
@@ -36,7 +37,7 @@ describe("dispatchify", () => {
     cont.registerInstance(Store, store);
 
     const result = dispatchify(fakeAction)(1, 2);
-    expect(result.then).toBeDefined();
+    expect(result.then).not.to.equal(undefined);
 
     await result;
   });
@@ -57,7 +58,7 @@ describe("dispatchify", () => {
     store.state.pipe(
       skip(1)
     ).subscribe((state) => {
-      expect(state.foo).toEqual("AB");
+      expect(state.foo).to.equal("AB");
       done();
     });
   });

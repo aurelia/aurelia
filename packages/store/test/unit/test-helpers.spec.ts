@@ -3,6 +3,7 @@ import {
   testState
 } from "./helpers";
 import { executeSteps } from "../../src/test-helpers";
+import { expect } from 'chai';
 
 
 describe("test helpers", () => {
@@ -21,9 +22,9 @@ describe("test helpers", () => {
       store,
       false,
       () => store.dispatch(actionA),
-      (res) => { expect(res.foo).toBe("A"); store.dispatch(actionB); },
-      (res) => { expect(res.foo).toBe("B"); store.dispatch(actionC); },
-      (res) => expect(res.foo).toBe("C")
+      (res) => { expect(res.foo).to.equal("A"); store.dispatch(actionB); },
+      (res) => { expect(res.foo).to.equal("B"); store.dispatch(actionC); },
+      (res) => expect(res.foo).to.equal("C")
     );
   });
 
@@ -42,11 +43,11 @@ describe("test helpers", () => {
       store,
       false,
       () => store.dispatch(actionA),
-      (res) => { expect(res.foo).toBe("A"); store.dispatch(actionB); },
-      (res) => { expect(res.foo).toBe("B"); store.dispatch(actionC); throw Error("on purpose"); },
-      (res) => expect(res.foo).toBe("C")
+      (res) => { expect(res.foo).to.equal("A"); store.dispatch(actionB); },
+      (res) => { expect(res.foo).to.equal("B"); store.dispatch(actionC); throw Error("on purpose"); },
+      (res) => expect(res.foo).to.equal("C")
     ).catch((e: Error) => {
-      expect(e.message).toBe("on purpose");
+      expect(e.message).to.equal("on purpose");
     });
   });
 
@@ -69,9 +70,9 @@ describe("test helpers", () => {
       store,
       true,
       () => store.dispatch(actionA),
-      (res) => { expect(res.foo).toBe("A"); store.dispatch(actionB); },
-      (res) => { expect(res.foo).toBe("B"); store.dispatch(actionC); },
-      (res) => expect(res.foo).toBe("C")
+      (res) => { expect(res.foo).to.equal("A"); store.dispatch(actionB); },
+      (res) => { expect(res.foo).to.equal("B"); store.dispatch(actionC); },
+      (res) => expect(res.foo).to.equal("C")
     );
 
     ["log", "group", "groupEnd"].forEach((fct) => {

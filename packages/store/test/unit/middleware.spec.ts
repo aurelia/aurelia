@@ -16,6 +16,7 @@ import {
 import { executeSteps } from "../../src/test-helpers";
 import { StateHistory } from "../../src/history";
 import { LogLevel } from "../../src/logging";
+import { expect } from 'chai';
 
 describe("middlewares", () => {
   interface TestState {
@@ -51,8 +52,8 @@ describe("middlewares", () => {
     const fakeSettings = { foo: "bar" };
     const settingsMiddleware: Middleware<TestState> = (_, __, settings) => {
       try {
-        expect(settings.foo).toBeDefined();
-        expect(settings.foo).toEqual(fakeSettings.foo);
+        expect(settings.foo).not.to.equal(undefined);
+        expect(settings.foo).to.equal(fakeSettings.foo);
       } catch {
         fail("No settings were passed");
       }
@@ -82,11 +83,11 @@ describe("middlewares", () => {
       false,
       () => store.dispatch(incrementAction),
       (res: TestState) => {
-        expect(res.counter).toEqual(1002);
+        expect(res.counter).to.equal(1002);
         store.unregisterMiddleware(decreaseBefore);
         store.dispatch(incrementAction);
       },
-      (res: TestState) => expect(res.counter).toEqual(1003)
+      (res: TestState) => expect(res.counter).to.equal(1003)
     );
   });
 
@@ -105,7 +106,7 @@ describe("middlewares", () => {
     store.registerAction("IncrementAction", incrementAction);
     store.unregisterMiddleware(decreaseBefore);
 
-    expect((store as any).middlewares.delete).not.toHaveBeenCalled();
+    expect((store as any).middlewares.delete).not.to.have.callCount(1);
   });
 
   it("should allow checking for registered middlewares", () => {
@@ -115,7 +116,7 @@ describe("middlewares", () => {
     }
 
     store.registerMiddleware(testMiddleware, MiddlewarePlacement.Before);
-    expect(store.isMiddlewareRegistered(testMiddleware)).toBe(true);
+    expect(store.isMiddlewareRegistered(testMiddleware)).to.equal(true);
   });
 
   it("should have a reference to the calling action name and its parameters", async () => {
@@ -127,10 +128,10 @@ describe("middlewares", () => {
     }
 
     const actionAwareMiddleware: Middleware<TestState> = (_, __, ___, action) => {
-      expect(action).toBeDefined();
-      expect(action!.name).toBe(expectedActionName);
-      expect(action!.params).toBeDefined();
-      expect(action!.params).toEqual(["A", "B"]);
+      expect(action).not.to.equal(undefined);
+      expect(action!.name).to.equal(expectedActionName);
+      expect(action!.params).not.to.equal(undefined);
+      expect(action!.params).to.equal(["A", "B"]);
     }
 
     store.registerAction(expectedActionName, actionObservedByMiddleware);
@@ -140,7 +141,7 @@ describe("middlewares", () => {
       store,
       false,
       () => store.dispatch(actionObservedByMiddleware, "A", "B"),
-      (res: TestState) => { expect(res.counter).toBe(2); }
+      (res: TestState) => { expect(res.counter).to.equal(2); }
     );
   });
 
@@ -160,7 +161,7 @@ describe("middlewares", () => {
       store.dispatch(incrementAction);
 
       store.state.subscribe((state) => {
-        expect(state.counter).toEqual(1);
+        expect(state.counter).to.equal(1);
         done();
       });
     });
@@ -180,7 +181,7 @@ describe("middlewares", () => {
       store.dispatch(incrementAction);
 
       store.state.subscribe((state) => {
-        expect(state.counter).toEqual(1);
+        expect(state.counter).to.equal(1);
         done();
       });
     });
@@ -197,7 +198,7 @@ describe("middlewares", () => {
       store.registerMiddleware(decreaseBefore, MiddlewarePlacement.Before);
 
       const resetBefore = (currentState: TestState, originalState?: TestState) => {
-        expect(currentState.counter).toBe(0);
+        expect(currentState.counter).to.equal(0);
         return originalState;
       }
       store.registerMiddleware(resetBefore, MiddlewarePlacement.Before);
@@ -209,7 +210,7 @@ describe("middlewares", () => {
         skip(1),
         take(1)
       ).subscribe((state) => {
-        expect(state.counter).toEqual(2);
+        expect(state.counter).to.equal(2);
         done();
       });
     });
@@ -234,7 +235,7 @@ describe("middlewares", () => {
         skip(1),
         take(1)
       ).subscribe((state) => {
-        expect(state.counter).toEqual(1000);
+        expect(state.counter).to.equal(1000);
         done();
       });
     });
@@ -257,7 +258,7 @@ describe("middlewares", () => {
         skip(1),
         take(1)
       ).subscribe((state) => {
-        expect(state.counter).toEqual(1000);
+        expect(state.counter).to.equal(1000);
         done();
       });
     });
@@ -280,7 +281,7 @@ describe("middlewares", () => {
         skip(1),
         take(1)
       ).subscribe((state) => {
-        expect(state.counter).toEqual(1);
+        expect(state.counter).to.equal(1);
         done();
       });
     });
@@ -299,7 +300,7 @@ describe("middlewares", () => {
     store.state.pipe(
       skip(1)
     ).subscribe((state: TestState) => {
-      expect(state.counter).toEqual(2);
+      expect(state.counter).to.equal(2);
       done();
     });
   });
@@ -317,7 +318,7 @@ describe("middlewares", () => {
     try {
       await store.dispatch(incrementAction);
     } catch (e) {
-      expect(e.message).toBe(errorMsg);
+      expect(e.message).to.equal(errorMsg);
     }
   });
 
@@ -332,7 +333,7 @@ describe("middlewares", () => {
 
     await store.dispatch(incrementAction);
 
-    expect(nextSpy).toHaveBeenCalledTimes(0);
+    expect(nextSpy).to.have.callCount(0);
   });
 
   it("should interrupt queue action if after placed middleware returns sync false", async () => {
@@ -346,7 +347,7 @@ describe("middlewares", () => {
 
     await store.dispatch(incrementAction);
 
-    expect(nextSpy).toHaveBeenCalledTimes(0);
+    expect(nextSpy).to.have.callCount(0);
   });
 
   it("should interrupt queue action if middleware returns async false", async () => {
@@ -360,7 +361,7 @@ describe("middlewares", () => {
 
     await store.dispatch(incrementAction);
 
-    expect(nextSpy).toHaveBeenCalledTimes(0);
+    expect(nextSpy).to.have.callCount(0);
   });
 
   it("should not continue with next middleware if error propagation is turned on", async () => {
@@ -381,10 +382,10 @@ describe("middlewares", () => {
     try {
       await store.dispatch(incrementAction);
     } catch (e) {
-      expect(e.message).toBe(errorMsg);
+      expect(e.message).to.equal(errorMsg);
     }
 
-    expect(secondMiddlewareIsCalled).toBe(false);
+    expect(secondMiddlewareIsCalled).to.equal(false);
   });
 
   it("should handle multiple middlewares", done => {
@@ -410,7 +411,7 @@ describe("middlewares", () => {
       skip(1),
       take(1)
     ).subscribe((state) => {
-      expect(state.counter).toEqual(14);
+      expect(state.counter).to.equal(14);
       done();
     });
   });
@@ -451,7 +452,7 @@ describe("middlewares", () => {
       skip(1),
       take(1)
     ).subscribe((state) => {
-      expect(state.values).toEqual(["Demo", ...new Array(26).fill("").map((_, idx) => String.fromCharCode(65 + idx))]);
+      expect(state.values).to.equal(["Demo", ...new Array(26).fill("").map((_, idx) => String.fromCharCode(65 + idx))]);
       done();
     });
   });
@@ -470,7 +471,7 @@ describe("middlewares", () => {
     store.state.pipe(
       skip(1)
     ).subscribe(() => {
-      expect(global.console.log).toHaveBeenCalled();
+      expect(global.console.log).to.have.callCount(1);
       (global.console.log as any).mockReset();
       (global.console.log as any).mockRestore();
 
@@ -491,8 +492,8 @@ describe("middlewares", () => {
       store.state.pipe(
         skip(1)
       ).subscribe((state) => {
-        expect(state.counter).toEqual(2);
-        expect(global.console.log).toHaveBeenCalled();
+        expect(state.counter).to.equal(2);
+        expect(global.console.log).to.have.callCount(1);
 
         (global.console.log as any).mockReset();
         (global.console.log as any).mockRestore();
@@ -513,8 +514,8 @@ describe("middlewares", () => {
       store.state.pipe(
         skip(1)
       ).subscribe((state) => {
-        expect(state.counter).toEqual(2);
-        expect(global.console.warn).toHaveBeenCalled();
+        expect(state.counter).to.equal(2);
+        expect(global.console.warn).to.have.callCount(1);
 
         (global.console.warn as any).mockReset();
         (global.console.warn as any).mockRestore();
@@ -544,8 +545,8 @@ describe("middlewares", () => {
       store.state.pipe(
         skip(1)
       ).subscribe((state) => {
-        expect(state.counter).toEqual(2);
-        expect(PLATFORM.global.localStorage.getItem("aurelia-store-state")).toBe(JSON.stringify(state));
+        expect(state.counter).to.equal(2);
+        expect(PLATFORM.global.localStorage.getItem("aurelia-store-state")).to.equal(JSON.stringify(state));
         done();
       });
     });
@@ -571,8 +572,8 @@ describe("middlewares", () => {
       store.state.pipe(
         skip(1)
       ).subscribe((state) => {
-        expect(state.counter).toEqual(2);
-        expect(PLATFORM.global.localStorage.getItem(key)).toBe(JSON.stringify(state));
+        expect(state.counter).to.equal(2);
+        expect(PLATFORM.global.localStorage.getItem(key)).to.equal(JSON.stringify(state));
         done();
       });
     });
@@ -596,7 +597,7 @@ describe("middlewares", () => {
       store.state.pipe(
         skip(1)
       ).subscribe((state) => {
-        expect(state.counter).toEqual(1000);
+        expect(state.counter).to.equal(1000);
         done();
       });
     });
@@ -621,7 +622,7 @@ describe("middlewares", () => {
       store.state.pipe(
         skip(1)
       ).subscribe((state) => {
-        expect(state.counter).toEqual(1000);
+        expect(state.counter).to.equal(1000);
         done();
       });
     });
@@ -638,7 +639,7 @@ describe("middlewares", () => {
       store.state.pipe(
         skip(1)
       ).subscribe((state) => {
-        expect(state.counter).toEqual(1);
+        expect(state.counter).to.equal(1);
         done();
       });
     });
@@ -659,7 +660,7 @@ describe("middlewares", () => {
       store.state.pipe(
         skip(1)
       ).subscribe((state) => {
-        expect(state.counter).toEqual(1);
+        expect(state.counter).to.equal(1);
         done();
       });
     });
@@ -683,7 +684,7 @@ describe("middlewares", () => {
       store.state.pipe(
         skip(1)
       ).subscribe((state) => {
-        expect(state.present.counter).toEqual(1000);
+        expect(state.present.counter).to.equal(1000);
         done();
       });
     });
@@ -704,7 +705,7 @@ describe("middlewares", () => {
       store.state.pipe(
         skip(1)
       ).subscribe((state) => {
-        expect(state.counter).toEqual(1);
+        expect(state.counter).to.equal(1);
         done();
       });
     });

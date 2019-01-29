@@ -7,13 +7,15 @@ import {
   testState,
   createStoreWithStateAndOptions
 } from "./helpers";
+import { expect } from 'chai';
+import { stub } from 'sinon';
 
 describe("store", () => {
   it("should accept an initial state", done => {
     const { initialState, store } = createTestStore();
 
     store.state.subscribe((state) => {
-      expect(state).toEqual(initialState);
+      expect(state).to.equal(initialState);
       done();
     });
   });
@@ -47,29 +49,29 @@ describe("store", () => {
     const fakeAction = (_: testState) => { };
 
     store.registerAction("FakeAction", fakeAction as any);
-    expect(store.dispatch(fakeAction as any)).rejects.toBeDefined();
+    expect(store.dispatch(fakeAction as any)).rejects.to.equalDefined();
   });
 
   it("should also accept false and stop queue", async () => {
     const { store } = createTestStore();
-    const nextSpy = spyOn((store as any)._state, "next").and.callThrough();
+    const nextSpy = stub((store as any)._state, "next").and.callThrough();
     const fakeAction = (_: testState): false => false;
 
     store.registerAction("FakeAction", fakeAction);
     store.dispatch(fakeAction);
 
-    expect(nextSpy).toHaveBeenCalledTimes(0);
+    expect(nextSpy).to.have.callCount(0);
   });
 
   it("should also accept async false and stop queue", async () => {
     const { store } = createTestStore();
-    const nextSpy = spyOn((store as any)._state, "next").and.callThrough();
+    const nextSpy = stub((store as any)._state, "next").and.callThrough();
     const fakeAction = (_: testState): Promise<false> => Promise.resolve<false>(false);
 
     store.registerAction("FakeAction", fakeAction);
     store.dispatch(fakeAction);
 
-    expect(nextSpy).toHaveBeenCalledTimes(0);
+    expect(nextSpy).to.have.callCount(0);
   });
 
   it("should unregister previously registered actions", async () => {
@@ -95,7 +97,7 @@ describe("store", () => {
     const fakeAction = (currentState: testState) => currentState;
 
     store.registerAction("FakeAction", fakeAction);
-    expect(store.isActionRegistered(fakeAction)).toBe(true);
+    expect(store.isActionRegistered(fakeAction)).to.equal(true);
   });
 
   it("should allow checking for already registered functions via previously registered name", () => {
@@ -103,7 +105,7 @@ describe("store", () => {
     const fakeAction = (currentState: testState) => currentState;
 
     store.registerAction("FakeAction", fakeAction);
-    expect(store.isActionRegistered("FakeAction")).toBe(true);
+    expect(store.isActionRegistered("FakeAction")).to.equal(true);
   });
 
   it("should accept reducers taking multiple parameters", done => {
@@ -118,7 +120,7 @@ describe("store", () => {
     store.state.pipe(
       skip(1)
     ).subscribe((state) => {
-      expect(state.foo).toEqual("AB");
+      expect(state.foo).to.equal("AB");
       done();
     });
   });
@@ -136,7 +138,7 @@ describe("store", () => {
     store.state.pipe(
       skip(1)
     ).subscribe((state) => {
-      expect(state).toEqual(modifiedState);
+      expect(state).to.equal(modifiedState);
       done();
     });
   });
@@ -154,7 +156,7 @@ describe("store", () => {
     store.state.pipe(
       skip(1)
     ).subscribe((state) => {
-      expect(state).toEqual(modifiedState);
+      expect(state).to.equal(modifiedState);
       done();
     });
   });
@@ -171,7 +173,7 @@ describe("store", () => {
     store.state.pipe(
       skip(1)
     ).subscribe((state) => {
-      expect(state).toEqual(modifiedState);
+      expect(state).to.equal(modifiedState);
       done();
     });
   });
@@ -190,22 +192,22 @@ describe("store", () => {
     store.state.pipe(
       skip(2)
     ).subscribe((state) => {
-      expect(state.foo).toEqual("barAB");
+      expect(state.foo).to.equal("barAB");
       done();
     });
   });
 
   it("should maintain queue of execution in concurrency constraints", () => {
     const { store } = createTestStore();
-    spyOn((store as any).dispatchQueue, "push");
-    const handleQueueSpy = spyOn(store, "handleQueue");
+    stub((store as any).dispatchQueue, "push");
+    const handleQueueSpy = stub(store, "handleQueue");
 
     const actionA = (_: testState) => Promise.resolve({ foo: "A" });
 
     store.registerAction("Action A", actionA);
     store.dispatch(actionA);
 
-    expect(handleQueueSpy).not.toHaveBeenCalled();
+    expect(handleQueueSpy).not.to.have.callCount(1);
   });
 
   it("should log info about dispatched action if turned on via options", () => {
@@ -214,14 +216,14 @@ describe("store", () => {
     };
 
     const store = createStoreWithStateAndOptions<testState>(initialState, { logDispatchedActions: true });
-    const loggerSpy = spyOn((store as any).logger, "info");
+    const loggerSpy = stub((store as any).logger, "info");
 
     const actionA = (_: testState) => Promise.resolve({ foo: "A" });
 
     store.registerAction("Action A", actionA);
     store.dispatch(actionA);
 
-    expect(loggerSpy).toHaveBeenCalled();
+    expect(loggerSpy).to.have.callCount(1);
   });
 
   it("should log info about dispatched action if turned on via options via custom loglevel", () => {
@@ -235,14 +237,14 @@ describe("store", () => {
         dispatchedActions: LogLevel.debug
       }
     });
-    const loggerSpy = spyOn((store as any).logger, LogLevel.debug);
+    const loggerSpy = stub((store as any).logger, LogLevel.debug);
 
     const actionA = (_: testState) => Promise.resolve({ foo: "A" });
 
     store.registerAction("Action A", actionA);
     store.dispatch(actionA);
 
-    expect(loggerSpy).toHaveBeenCalled();
+    expect(loggerSpy).to.have.callCount(1);
   });
 
   it("should log info about dispatched action and return to default log level if wrong one provided", () => {
@@ -256,14 +258,14 @@ describe("store", () => {
         dispatchedActions: "foo" as any
       }
     });
-    const loggerSpy = spyOn((store as any).logger, "info");
+    const loggerSpy = stub((store as any).logger, "info");
 
     const actionA = (_: testState) => Promise.resolve({ foo: "A" });
 
     store.registerAction("Action A", actionA);
     store.dispatch(actionA);
 
-    expect(loggerSpy).toHaveBeenCalled();
+    expect(loggerSpy).to.have.callCount(1);
   });
 
   it("should log start-end dispatch duration if turned on via options", async () => {
@@ -275,7 +277,7 @@ describe("store", () => {
       initialState,
       { measurePerformance: PerformanceMeasurement.StartEnd }
     );
-    const loggerSpy = spyOn((store as any).logger, "info");
+    const loggerSpy = stub((store as any).logger, "info");
 
     const actionA = (_: testState) => {
       return new Promise<testState>((resolve) => {
@@ -298,7 +300,7 @@ describe("store", () => {
       initialState,
       { measurePerformance: PerformanceMeasurement.All }
     );
-    const loggerSpy = spyOn((store as any).logger, "info");
+    const loggerSpy = stub((store as any).logger, "info");
 
     const actionA = (_: testState) => {
       return new Promise<testState>((resolve) => {
@@ -314,7 +316,7 @@ describe("store", () => {
 
   it("should reset the state without going through the internal dispatch queue", async (done) => {
     const { initialState, store } = createTestStore();
-    const internalDispatchSpy = jest.spyOn((store as any), "internalDispatch");
+    const internalDispatchSpy = stub((store as any), "internalDispatch");
     const demoAction = (currentState: testState) => {
       return Object.assign({}, currentState, { foo: "demo" })
     };
@@ -326,8 +328,8 @@ describe("store", () => {
     store.resetToState(initialState);
 
     store.state.subscribe((state) => {
-      expect(internalDispatchSpy).not.toHaveBeenCalled();
-      expect(state.foo).toBe(initialState.foo);
+      expect(internalDispatchSpy).not.to.have.callCount(1);
+      expect(state.foo).to.equal(initialState.foo);
 
       done();
     });

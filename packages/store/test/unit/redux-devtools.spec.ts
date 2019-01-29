@@ -7,6 +7,7 @@ import {
 } from "./helpers";
 import { Store } from "../../src/store";
 import { DevToolsOptions } from "../../src/devtools";
+import { expect } from 'chai';
 
 class DevToolsMock {
   public subscriptions = [] as Function[];
@@ -34,7 +35,7 @@ describe("redux devtools", () => {
     const spy = jest.spyOn(Store.prototype as any, "setupDevTools");
     new Store<testState>({ foo: "bar " });
 
-    expect(spy).toHaveBeenCalled();
+    expect(spy).to.have.callCount(1);
     spy.mockReset();
     spy.mockRestore();
   });
@@ -43,8 +44,8 @@ describe("redux devtools", () => {
     const spy = jest.spyOn(Store.prototype as any, "setupDevTools");
     const theStore = new Store<testState>({ foo: "bar "}, { devToolsOptions: { disable: true } });
 
-    expect(spy).not.toHaveBeenCalled();
-    expect((theStore as any).devToolsAvailable).toBe(false);
+    expect(spy).not.to.have.callCount(1);
+    expect((theStore as any).devToolsAvailable).to.equal(false);
     spy.mockReset();
     spy.mockRestore();
   });
@@ -53,15 +54,15 @@ describe("redux devtools", () => {
     createDevToolsMock();
     const store = new Store<testState>({ foo: "bar " });
 
-    expect((store as any).devToolsAvailable).toBe(true);
-    expect((store as any).devTools.init).toHaveBeenCalled();
+    expect((store as any).devToolsAvailable).to.equal(true);
+    expect((store as any).devTools.init).to.have.callCount(1);
   });
 
   it("should use DevToolsOptions if available", () => {
     createDevToolsMock();
     const store = new Store<testState>({ foo: "bar " }, { devToolsOptions: { serialize: false } });
 
-    expect((store as any).devTools.devToolsOptions).toBeDefined();
+    expect((store as any).devTools.devToolsOptions).to.equalDefined();
   });
 
   it("should receive time-travel notification from devtools", () => {
@@ -71,11 +72,11 @@ describe("redux devtools", () => {
     const devtools = ((store as any).devTools as DevToolsMock);
     const expectedStateChange = "from-redux-devtools";
 
-    expect(devtools.subscriptions.length).toBe(1);
+    expect(devtools.subscriptions.length).to.equal(1);
 
     devtools.subscriptions[0]({ state: JSON.stringify({ foo: expectedStateChange }) });
 
-    expect(devtools.subscribe).toHaveBeenCalled();
+    expect(devtools.subscribe).to.have.callCount(1);
   });
 
   it("should update state when receiving DISPATCH message", (done) => {
@@ -85,12 +86,12 @@ describe("redux devtools", () => {
     const devtools = ((store as any).devTools as DevToolsMock);
     const expectedStateChange = "from-redux-devtools";
 
-    expect(devtools.subscriptions.length).toBe(1);
+    expect(devtools.subscriptions.length).to.equal(1);
 
     devtools.subscriptions[0]({ type: "DISPATCH", state: JSON.stringify({ foo: expectedStateChange }) });
 
     store.state.subscribe((timeTravelledState) => {
-      expect(timeTravelledState.foo).toBe(expectedStateChange);
+      expect(timeTravelledState.foo).to.equal(expectedStateChange);
       done();
     });
   });
@@ -112,7 +113,7 @@ describe("redux devtools", () => {
       skip(1),
       delay(1)
     ).subscribe(() => {
-      expect(devtools.send).toHaveBeenCalled();
+      expect(devtools.send).to.have.callCount(1);
       expect(devtools.send).toHaveBeenCalledWith({
         params: ["bert"], type: "FakeAction"},  { foo: "bert" });
 
@@ -138,7 +139,7 @@ describe("redux devtools", () => {
       skip(1),
       delay(1)
     ).subscribe(() => {
-      expect(spy).toHaveBeenCalled();
+      expect(spy).to.have.callCount(1);
 
       spy.mockReset();
       done();

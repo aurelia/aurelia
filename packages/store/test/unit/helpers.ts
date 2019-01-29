@@ -4,6 +4,7 @@ import {
 } from "../../src/store";
 
 import { StateHistory } from "../../src/history";
+import { SinonStub } from 'sinon';
 
 export type testState = {
   foo: string
@@ -38,5 +39,5 @@ export function createStoreWithStateAndOptions<T>(state: T, options: Partial<Sto
 }
 
 export type Spied<T> = {
-  [Method in keyof T]: T[Method] & jasmine.Spy;
+  [Method in keyof T]: T[Method] & SinonStub;
 };

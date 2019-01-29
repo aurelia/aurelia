@@ -11,6 +11,7 @@ import {
 
 import { executeSteps } from "../../src/test-helpers";
 import { StateHistory } from "../../src/aurelia-store";
+import { expect } from 'chai';
 
 describe("an undoable store", () => {
   it("should return state as is if not matching type of StateHistory", () => {
@@ -18,7 +19,7 @@ describe("an undoable store", () => {
       foo: "Bar"
     };
 
-    expect(jump(simpleState, 0)).toBe(simpleState);
+    expect(jump(simpleState, 0)).to.equal(simpleState);
   });
 
   it("should return state as is from applyLimits if not matching type of StateHistory", () => {
@@ -26,7 +27,7 @@ describe("an undoable store", () => {
       foo: "Bar"
     };
 
-    expect(applyLimits(simpleState, 0)).toBe(simpleState);
+    expect(applyLimits(simpleState, 0)).to.equal(simpleState);
   });
 
   it("should jump back and forth in time", async () => {
@@ -43,11 +44,11 @@ describe("an undoable store", () => {
       store,
       false,
       () => store.dispatch(actionA),
-      (res) => { expect(res.present.foo).toBe("A"); store.dispatch(actionB); },
-      (res) => { expect(res.present.foo).toBe("B"); store.dispatch(actionC); },
-      (res) => { expect(res.present.foo).toBe("C"); store.dispatch(jump, -1); },
-      (res) => { expect(res.present.foo).toBe("B"); store.dispatch(jump, 1); },
-      (res) => expect(res.present.foo).toBe("C")
+      (res) => { expect(res.present.foo).to.equal("A"); store.dispatch(actionB); },
+      (res) => { expect(res.present.foo).to.equal("B"); store.dispatch(actionC); },
+      (res) => { expect(res.present.foo).to.equal("C"); store.dispatch(jump, -1); },
+      (res) => { expect(res.present.foo).to.equal("B"); store.dispatch(jump, 1); },
+      (res) => expect(res.present.foo).to.equal("C")
     );
   });
 
@@ -63,9 +64,9 @@ describe("an undoable store", () => {
       store,
       false,
       () => store.dispatch(actionA),
-      (res) => { expect(res.present.foo).toBe("A"); store.dispatch(actionB); },
-      (res) => { expect(res.present.foo).toBe("B"); store.dispatch(jump, 0); },
-      (res) => expect(res.present.foo).toBe("B")
+      (res) => { expect(res.present.foo).to.equal("A"); store.dispatch(actionB); },
+      (res) => { expect(res.present.foo).to.equal("B"); store.dispatch(jump, 0); },
+      (res) => expect(res.present.foo).to.equal("B")
     );
   });
 
@@ -81,9 +82,9 @@ describe("an undoable store", () => {
       store,
       false,
       () => store.dispatch(actionA),
-      (res) => { expect(res.present.foo).toBe("A"); store.dispatch(actionB); },
-      (res) => { expect(res.present.foo).toBe("B"); store.dispatch(jump, 3); },
-      (res) => expect(res.present.foo).toBe("B")
+      (res) => { expect(res.present.foo).to.equal("A"); store.dispatch(actionB); },
+      (res) => { expect(res.present.foo).to.equal("B"); store.dispatch(jump, 3); },
+      (res) => expect(res.present.foo).to.equal("B")
     );
   });
 
@@ -99,9 +100,9 @@ describe("an undoable store", () => {
       store,
       false,
       () => store.dispatch(actionA),
-      (res) => { expect(res.present.foo).toBe("A"); store.dispatch(actionB); },
-      (res) => { expect(res.present.foo).toBe("B"); store.dispatch(jump, -3); },
-      (res) => expect(res.present.foo).toBe("B")
+      (res) => { expect(res.present.foo).to.equal("A"); store.dispatch(actionB); },
+      (res) => { expect(res.present.foo).to.equal("B"); store.dispatch(jump, -3); },
+      (res) => expect(res.present.foo).to.equal("B")
     );
   });
 
@@ -124,12 +125,12 @@ describe("an undoable store", () => {
         return (res: StateHistory<testState>) => {
           store.dispatch(fakeAction, idx + 1);
 
-          expect(res.past.length).toBe(idx >= limit ? limit : idx);
+          expect(res.past.length).to.equal(idx >= limit ? limit : idx);
         };
       }),
       (res) => {
-        expect(res.past.length).toBe(limit)
-        expect(res.past.map(i => i.foo)).toEqual(Array.from(new Array(limit)).map((_, idx) => (limit + idx).toString()));
+        expect(res.past.length).to.equal(limit)
+        expect(res.past.map(i => i.foo)).to.equal(Array.from(new Array(limit)).map((_, idx) => (limit + idx).toString()));
       }
     );
   });
@@ -158,12 +159,12 @@ describe("an undoable store", () => {
       store,
       false,
       () => store.dispatch(fakeAction),
-      (res) => { expect(res).toEqual(stateAfterInitial); store.dispatch(jump, - limit); },
+      (res) => { expect(res).to.equal(stateAfterInitial); store.dispatch(jump, - limit); },
       (res) => {
-        expect(res.future.length).toBe(limit);
-        expect(res.present).toEqual(stateAfterInitial.past[0]);
-        expect(res.past).toEqual([]);
-        expect(res.future).toEqual([ ...stateAfterInitial.past.slice(1), stateAfterInitial.present]);
+        expect(res.future.length).to.equal(limit);
+        expect(res.present).to.equal(stateAfterInitial.past[0]);
+        expect(res.past).to.equal([]);
+        expect(res.future).to.equal([ ...stateAfterInitial.past.slice(1), stateAfterInitial.present]);
       }
     );
   });

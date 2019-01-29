@@ -1,10 +1,12 @@
-mport { Container } from "aurelia-framework";
 import { Subscription } from "rxjs";
+import { DI } from "@aurelia/kernel";
 import { pluck, distinctUntilChanged } from "rxjs/operators";
 
 import { Store } from "../../src/store";
 import { connectTo } from "../../src/decorator";
 import { Spied } from "./helpers";
+import { expect } from 'chai';
+import { stub } from 'sinon';
 
 interface DemoState {
   foo: string;
@@ -14,7 +16,7 @@ interface DemoState {
 function arrange() {
   const initialState = { foo: "Lorem", bar: "Ipsum" };
   const store: Store<DemoState> = new Store(initialState);
-  const container = new Container().makeGlobal();
+  const container = DI.createContainer();
   container.registerInstance(Store, store);
 
   return { initialState, store };
@@ -28,7 +30,7 @@ describe("using decorators", () => {
 
     expect(() => {
       connectTo();
-    }).toThrowError(/Object.entries/);
+    }).to.throw(/Object.entries/);
 
     (Object as any).entries = originalEntries;
   });
@@ -42,12 +44,12 @@ describe("using decorators", () => {
     }
 
     const sut = new DemoStoreConsumer();
-    expect(sut.state).toEqual(undefined);
+    expect(sut.state).to.equal(undefined);
 
     (sut as any).bind();
 
-    expect(sut.state).toEqual(initialState);
-    expect((sut as any)._stateSubscriptions).toBeDefined();
+    expect(sut.state).to.equal(initialState);
+    expect((sut as any)._stateSubscriptions).not.to.equal(undefined);
   });
 
   it("should be possible to provide a state selector", () => {
@@ -59,11 +61,11 @@ describe("using decorators", () => {
     }
 
     const sut = new DemoStoreConsumer();
-    expect(sut.state).toEqual(undefined);
+    expect(sut.state).to.equal(undefined);
 
     (sut as any).bind();
 
-    expect(sut.state).toEqual(initialState.bar);
+    expect(sut.state).to.equal(initialState.bar);
   });
 
   describe("with a complex settings object", () => {
@@ -78,11 +80,11 @@ describe("using decorators", () => {
       }
 
       const sut = new DemoStoreConsumer();
-      expect(sut.state).toEqual(undefined);
+      expect(sut.state).to.equal(undefined);
 
       (sut as any).bind();
 
-      expect(sut.state).toEqual(initialState.bar);
+      expect(sut.state).to.equal(initialState.bar);
     });
 
     it("should be possible to provide an undefined selector and still get the state property", () => {
@@ -96,11 +98,11 @@ describe("using decorators", () => {
       }
 
       const sut = new DemoStoreConsumer();
-      expect(sut.state).toEqual(undefined);
+      expect(sut.state).to.equal(undefined);
 
       (sut as any).bind();
 
-      expect(sut.state).toEqual(initialState);
+      expect(sut.state).to.equal(initialState);
     });
 
     it("should be possible to provide an object with multiple selectors", () => {
@@ -122,9 +124,9 @@ describe("using decorators", () => {
 
       (sut as any).bind();
 
-      expect(sut.state).not.toBeDefined();
-      expect(sut.barTarget).toBe(initialState.bar);
-      expect(sut.fooTarget).toBe(initialState.foo);
+      expect(sut.state).not.not.to.equal(undefined);
+      expect(sut.barTarget).to.equal(initialState.bar);
+      expect(sut.fooTarget).to.equal(initialState.foo);
     });
 
     it("should use the default state observable if selector does not return an observable", () => {
@@ -138,11 +140,11 @@ describe("using decorators", () => {
       }
 
       const sut = new DemoStoreConsumer();
-      expect(sut.state).toEqual(undefined);
+      expect(sut.state).to.equal(undefined);
 
       (sut as any).bind();
 
-      expect(sut.state).toEqual(initialState);
+      expect(sut.state).to.equal(initialState);
     });
 
     it("should be possible to override the target property", () => {
@@ -157,12 +159,12 @@ describe("using decorators", () => {
       }
 
       const sut = new DemoStoreConsumer();
-      expect(sut.foo).toEqual(undefined);
+      expect(sut.foo).to.equal(undefined);
 
       (sut as any).bind();
 
-      expect((sut as any).state).not.toBeDefined();
-      expect(sut.foo).toEqual(initialState.bar);
+      expect((sut as any).state).not.not.to.equal(undefined);
+      expect(sut.foo).to.equal(initialState.bar);
     });
 
     it("should be possible to use the target as the parent object for the multiple selector targets", () => {
@@ -180,16 +182,16 @@ describe("using decorators", () => {
       }
 
       const sut = new DemoStoreConsumer();
-      expect(sut.foo).toEqual(undefined);
+      expect(sut.foo).to.equal(undefined);
 
       (sut as any).bind();
 
-      expect((sut as any).state).not.toBeDefined();
-      expect(sut.foo).toBeDefined();
-      expect((sut.foo as any).barTarget).toBeDefined();
-      expect((sut.foo as any).fooTarget).toBeDefined();
-      expect((sut.foo as any).barTarget).toBe(initialState.bar);
-      expect((sut.foo as any).fooTarget).toBe(initialState.foo);
+      expect((sut as any).state).not.not.to.equal(undefined);
+      expect(sut.foo).not.to.equal(undefined);
+      expect((sut.foo as any).barTarget).not.to.equal(undefined);
+      expect((sut.foo as any).fooTarget).not.to.equal(undefined);
+      expect((sut.foo as any).barTarget).to.equal(initialState.bar);
+      expect((sut.foo as any).fooTarget).to.equal(initialState.foo);
     });
   })
 
@@ -210,8 +212,8 @@ describe("using decorators", () => {
 
     (sut as any).bind();
 
-    expect(sut.state).toEqual(initialState);
-    expect(sut.test).toEqual("foobar");
+    expect(sut.state).to.equal(initialState);
+    expect(sut.test).to.equal("foobar");
   });
 
   describe("the unbind lifecycle-method", () => {
@@ -232,11 +234,11 @@ describe("using decorators", () => {
 
       (sut as any).bind();
 
-      expect(sut.state).toEqual(initialState);
+      expect(sut.state).to.equal(initialState);
 
       (sut as any).unbind();
 
-      expect(sut.test).toEqual("foobar");
+      expect(sut.test).to.equal("foobar");
     });
 
     it("should automatically unsubscribe when unbind is called", () => {
@@ -248,22 +250,22 @@ describe("using decorators", () => {
       }
 
       const sut = new DemoStoreConsumer();
-      expect(sut.state).toEqual(undefined);
+      expect(sut.state).to.equal(undefined);
 
       (sut as any).bind();
       const subscriptions = ((sut as any)._stateSubscriptions as Array<Subscription>);
-      expect(subscriptions.length).toEqual(1);
+      expect(subscriptions.length).to.equal(1);
       const subscription = subscriptions[0];
-      spyOn(subscription, "unsubscribe").and.callThrough();
+      stub(subscription, "unsubscribe").callThrough();
 
-      expect(sut.state).toEqual(initialState);
-      expect(subscription.closed).toBe(false);
+      expect(sut.state).to.equal(initialState);
+      expect(subscription.closed).to.equal(false);
 
       (sut as any).unbind();
 
-      expect(subscription).toBeDefined();
-      expect(subscription.closed).toBe(true);
-      expect(subscription.unsubscribe).toHaveBeenCalled();
+      expect(subscription).not.to.equal(undefined);
+      expect(subscription.closed).to.equal(true);
+      expect(subscription.unsubscribe).to.have.been.called;
     });
 
     it("should automatically unsubscribe from all sources when unbind is called", () => {
@@ -280,25 +282,25 @@ describe("using decorators", () => {
       }
 
       const sut = new DemoStoreConsumer();
-      expect(sut.state).toEqual(undefined);
+      expect(sut.state).to.equal(undefined);
 
       (sut as any).bind();
       const subscriptions = ((sut as any)._stateSubscriptions as Array<Subscription>);
-      expect(subscriptions.length).toEqual(2);
-      spyOn(subscriptions[0], "unsubscribe").and.callThrough();
-      spyOn(subscriptions[1], "unsubscribe").and.callThrough();
+      expect(subscriptions.length).to.equal(2);
+      stub(subscriptions[0], "unsubscribe").callThrough();
+      stub(subscriptions[1], "unsubscribe").callThrough();
 
-      expect(subscriptions[0].closed).toBe(false);
-      expect(subscriptions[1].closed).toBe(false);
+      expect(subscriptions[0].closed).to.equal(false);
+      expect(subscriptions[1].closed).to.equal(false);
 
       (sut as any).unbind();
 
-      expect(subscriptions[0]).toBeDefined();
-      expect(subscriptions[1]).toBeDefined();
-      expect(subscriptions[0].closed).toBe(true);
-      expect(subscriptions[1].closed).toBe(true);
-      expect(subscriptions[0].unsubscribe).toHaveBeenCalled();
-      expect(subscriptions[1].unsubscribe).toHaveBeenCalled();
+      expect(subscriptions[0]).not.to.equal(undefined);
+      expect(subscriptions[1]).not.to.equal(undefined);
+      expect(subscriptions[0].closed).to.equal(true);
+      expect(subscriptions[1].closed).to.equal(true);
+      expect(subscriptions[0].unsubscribe).to.have.been.called;
+      expect(subscriptions[1].unsubscribe).to.have.been.called;
     });
 
     it("should not unsubscribe if subscription is already closed", () => {
@@ -310,23 +312,23 @@ describe("using decorators", () => {
       }
 
       const sut = new DemoStoreConsumer();
-      expect(sut.state).toEqual(undefined);
+      expect(sut.state).to.equal(undefined);
 
       (sut as any).bind();
       const subscriptions = ((sut as any)._stateSubscriptions as Array<Subscription>);
-      expect(subscriptions.length).toEqual(1);
+      expect(subscriptions.length).to.equal(1);
       const subscription = subscriptions[0];
       subscription.unsubscribe();
 
-      expect(sut.state).toEqual(initialState);
-      expect(subscription.closed).toBe(true);
+      expect(sut.state).to.equal(initialState);
+      expect(subscription.closed).to.equal(true);
 
-      spyOn(subscription, "unsubscribe");
+      stub(subscription, "unsubscribe");
 
       (sut as any).unbind();
 
-      expect(subscription).toBeDefined();
-      expect(subscription.unsubscribe).not.toHaveBeenCalled();
+      expect(subscription).not.to.equal(undefined);
+      expect(subscription.unsubscribe).not.to.have.been.called;
     });
 
     [null, {}].forEach((stateSubscription: any) => {
@@ -339,18 +341,18 @@ describe("using decorators", () => {
         }
 
         const sut = new DemoStoreConsumer();
-        expect(sut.state).toEqual(undefined);
+        expect(sut.state).to.equal(undefined);
 
         (sut as any).bind();
         const subscriptions = ((sut as any)._stateSubscriptions as Array<Subscription>);
         (sut as any)._stateSubscriptions = stateSubscription;
         const subscription = subscriptions[0];
-        spyOn(subscription, "unsubscribe");
+        stub(subscription, "unsubscribe");
 
         (sut as any).unbind();
 
-        expect(subscription).toBeDefined();
-        expect(subscription.unsubscribe).not.toHaveBeenCalled();
+        expect(subscription).not.to.equal(undefined);
+        expect(subscription.unsubscribe).not.to.have.been.called;
       });
     });
   });
@@ -379,8 +381,8 @@ describe("using decorators", () => {
 
       const sut = new DemoStoreConsumer();
 
-      expect(sut.bind()).toBe(expectedBindResult);
-      expect(sut.unbind()).toBe(expectedUnbindResult);
+      expect(sut.bind()).to.equal(expectedBindResult);
+      expect(sut.unbind()).to.equal(expectedUnbindResult);
     });
 
     it("should allow to specify a lifecycle hook for the subscription", () => {
@@ -396,11 +398,11 @@ describe("using decorators", () => {
 
       const sut = new DemoStoreConsumer();
 
-      expect((sut as any).created).toBeDefined();
+      expect((sut as any).created).not.to.equal(undefined);
       (sut as any).created();
 
-      expect(sut.state).toEqual(initialState);
-      expect((sut as any)._stateSubscriptions).toBeDefined();
+      expect(sut.state).to.equal(initialState);
+      expect((sut as any)._stateSubscriptions).not.to.equal(undefined);
     });
 
     it("should allow to specify a lifecycle hook for the unsubscription", () => {
@@ -419,18 +421,18 @@ describe("using decorators", () => {
       (sut as any).bind();
 
       const subscriptions = ((sut as any)._stateSubscriptions as Array<Subscription>);
-      expect(subscriptions.length).toEqual(1);
+      expect(subscriptions.length).to.equal(1);
       const subscription = subscriptions[0];
-      spyOn(subscription, "unsubscribe").and.callThrough();
+      stub(subscription, "unsubscribe").callThrough();
 
-      expect(sut.state).toEqual(initialState);
-      expect(subscription.closed).toBe(false);
-      expect((sut as any).detached).toBeDefined();
+      expect(sut.state).to.equal(initialState);
+      expect(subscription.closed).to.equal(false);
+      expect((sut as any).detached).not.to.equal(undefined);
       (sut as any).detached();
 
-      expect(subscription).toBeDefined();
-      expect(subscription.closed).toBe(true);
-      expect(subscription.unsubscribe).toHaveBeenCalled();
+      expect(subscription).not.to.equal(undefined);
+      expect(subscription.closed).to.equal(true);
+      expect(subscription.unsubscribe).to.have.been.called;
     });
   });
 
@@ -449,13 +451,13 @@ describe("using decorators", () => {
       }
 
       const sut = new DemoStoreConsumer() as Spied<DemoStoreConsumer>;
-      spyOn(sut, "stateChanged");
+      stub(sut, "stateChanged");
       (sut as any).bind();
 
-      expect(sut.state).toEqual(initialState);
-      expect(sut.stateChanged.calls.count()).toEqual(1);
-      expect(sut.stateChanged.calls.argsFor(0)[0]).toBe(initialState);
-      expect(sut.stateChanged.calls.argsFor(0)[1]).toBe(oldState);
+      expect(sut.state).to.equal(initialState);
+      expect(sut.stateChanged.calls.count()).to.equal(1);
+      expect(sut.stateChanged.calls.argsFor(0)[0]).to.equal(initialState);
+      expect(sut.stateChanged.calls.argsFor(0)[1]).to.equal(oldState);
     });
 
     it("should accept a string for onChanged and call the respective handler passing the new state", () => {
@@ -472,12 +474,12 @@ describe("using decorators", () => {
       }
 
       const sut = new DemoStoreConsumer() as Spied<DemoStoreConsumer>;
-      spyOn(sut, "stateChanged");
+      stub(sut, "stateChanged");
       (sut as any).bind();
 
-      expect(sut.state).toEqual(initialState);
-      expect(sut.stateChanged.calls.count()).toEqual(1);
-      expect(sut.stateChanged).toHaveBeenCalledWith(initialState, undefined);
+      expect(sut.state).to.equal(initialState);
+      expect(sut.stateChanged.calls.count()).to.equal(1);
+      expect(sut.stateChanged).to.have.been.calledWith(initialState, undefined);
     });
 
     it("should be called before assigning the new state, so there is still access to the previous state", () => {
@@ -491,8 +493,8 @@ describe("using decorators", () => {
         state: DemoState;
 
         stateChanged(state: DemoState) {
-          expect(sut.state).toEqual(undefined);
-          expect(state).toEqual(initialState);
+          expect(sut.state).to.equal(undefined);
+          expect(state).to.equal(initialState);
         }
       }
 
@@ -519,14 +521,14 @@ describe("using decorators", () => {
       }
 
       const sut = new DemoStoreConsumer() as Spied<DemoStoreConsumer>;
-      spyOn(sut, "targetPropChanged").and.callThrough();
+      stub(sut, "targetPropChanged").callThrough();
       (sut as any).bind();
 
-      expect(targetValOnChange).toEqual("foobar");
-      expect(sut.targetProp).toEqual(initialState);
-      expect(sut.targetPropChanged.calls.count()).toEqual(1);
-      expect(sut.targetPropChanged).toHaveBeenCalledWith(initialState, "foobar");
-      expect(sut.targetPropChanged.calls.argsFor(0)[0]).toBe(initialState);
+      expect(targetValOnChange).to.equal("foobar");
+      expect(sut.targetProp).to.equal(initialState);
+      expect(sut.targetPropChanged.calls.count()).to.equal(1);
+      expect(sut.targetPropChanged).to.have.been.calledWith(initialState, "foobar");
+      expect(sut.targetPropChanged.calls.argsFor(0)[0]).to.equal(initialState);
     });
 
     it("should call the propertyChanged handler on the VM, if existing, with the new and old state", () => {
@@ -548,12 +550,12 @@ describe("using decorators", () => {
       }
 
       const sut = new DemoStoreConsumer();
-      spyOn(sut, "propertyChanged").and.callThrough();
+      stub(sut, "propertyChanged").callThrough();
       (sut as any).bind();
 
-      expect(targetValOnChange).toEqual("foobar");
-      expect(sut.targetProp).toEqual(initialState);
-      expect(sut.propertyChanged).toHaveBeenCalledWith("targetProp", initialState, "foobar");
+      expect(targetValOnChange).to.equal("foobar");
+      expect(sut.targetProp).to.equal(initialState);
+      expect(sut.propertyChanged).to.have.been.calledWith("targetProp", initialState, "foobar");
     });
 
     it("should call all change handlers on the VM, if existing, in order and with the correct args", () => {
@@ -576,19 +578,19 @@ describe("using decorators", () => {
       }
 
       const sut = new DemoStoreConsumer() as Spied<DemoStoreConsumer>;
-      spyOn(sut, "customHandler").and.callFake(() => calledHandlersInOrder.push("customHandler"));
-      spyOn(sut, "targetPropChanged").and.callFake(() => calledHandlersInOrder.push("targetPropChanged"));
-      spyOn(sut, "propertyChanged").and.callFake(() => calledHandlersInOrder.push("propertyChanged"));
+      stub(sut, "customHandler").callsFake(() => calledHandlersInOrder.push("customHandler"));
+      stub(sut, "targetPropChanged").callsFake(() => calledHandlersInOrder.push("targetPropChanged"));
+      stub(sut, "propertyChanged").callsFake(() => calledHandlersInOrder.push("propertyChanged"));
       (sut as any).bind();
 
-      expect(sut.targetProp).toEqual(initialState);
-      expect(sut.propertyChanged.calls.count()).toEqual(1);
-      expect(sut.propertyChanged).toHaveBeenCalledWith("targetProp", initialState, "foobar");
-      expect(sut.targetPropChanged.calls.count()).toEqual(1);
-      expect(sut.targetPropChanged).toHaveBeenCalledWith(initialState, "foobar");
-      expect(sut.customHandler.calls.count()).toEqual(1);
-      expect(sut.customHandler).toHaveBeenCalledWith(initialState, "foobar");
-      expect(calledHandlersInOrder).toEqual(["customHandler", "targetPropChanged", "propertyChanged"])
+      expect(sut.targetProp).to.equal(initialState);
+      expect(sut.propertyChanged.calls.count()).to.equal(1);
+      expect(sut.propertyChanged).to.have.been.calledWith("targetProp", initialState, "foobar");
+      expect(sut.targetPropChanged.calls.count()).to.equal(1);
+      expect(sut.targetPropChanged).to.have.been.calledWith(initialState, "foobar");
+      expect(sut.customHandler.calls.count()).to.equal(1);
+      expect(sut.customHandler).to.have.been.calledWith(initialState, "foobar");
+      expect(calledHandlersInOrder).to.equal(["customHandler", "targetPropChanged", "propertyChanged"])
     });
 
     it("should call the targetOnChanged handler and not each multiple selector, if existing, with the 3 args", () => {
@@ -616,15 +618,15 @@ describe("using decorators", () => {
       }
 
       const sut = new DemoStoreConsumer() as Spied<DemoStoreConsumer>;
-      spyOn(sut, "fooChanged").and.callThrough();
-      spyOn(sut, "targetPropChanged");
+      stub(sut, "fooChanged").callThrough();
+      stub(sut, "targetPropChanged");
       (sut as any).bind();
 
-      expect(targetValOnChange).toEqual("foobar");
-      expect(sut.foo.targetProp).toEqual(initialState);
-      expect(sut.targetPropChanged.calls.count()).toEqual(0);
-      expect(sut.fooChanged.calls.count()).toEqual(1);
-      expect(sut.fooChanged).toHaveBeenCalledWith("targetProp", initialState, "foobar");
+      expect(targetValOnChange).to.equal("foobar");
+      expect(sut.foo.targetProp).to.equal(initialState);
+      expect(sut.targetPropChanged.calls.count()).to.equal(0);
+      expect(sut.fooChanged.calls.count()).to.equal(1);
+      expect(sut.fooChanged).to.have.been.calledWith("targetProp", initialState, "foobar");
     });
 
     it("should call changed handler for multiple selectors only when their state slice is affected", async () => {
@@ -645,8 +647,8 @@ describe("using decorators", () => {
       }
 
       const sut = new DemoStoreConsumer() as Spied<DemoStoreConsumer>;
-      const spyFoo = jest.spyOn(sut, "fooChanged");
-      const spyBar = jest.spyOn(sut, "barChanged");
+      const spyFoo = jest.stub(sut, "fooChanged");
+      const spyBar = jest.stub(sut, "barChanged");
       (sut as any).bind();
 
       await store.dispatch(changeOnlyBar);
@@ -668,7 +670,7 @@ describe("using decorators", () => {
 
       const sut = new DemoStoreConsumer();
 
-      expect(() => (sut as any).bind()).toThrowError("Provided onChanged handler does not exist on target VM");
+      expect(() => (sut as any).bind()).to.throw("Provided onChanged handler does not exist on target VM");
     });
   });
 });

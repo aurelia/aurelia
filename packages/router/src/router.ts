@@ -204,8 +204,8 @@ export class Router {
       await this.historyBrowser.setEntryTitle(title);
     }
 
-    const usedViewports = (clearViewports ? this.allViewports().filter((value) => value.component !== null) : []);
-    const defaultViewports = this.allViewports().filter((value) => value.options.default && value.component === null);
+    const usedViewports = (clearViewports ? this.allViewports().filter((value) => value.content.component !== null) : []);
+    const defaultViewports = this.allViewports().filter((value) => value.options.default && value.content.component === null);
 
     const updatedViewports: Viewport[] = [];
 

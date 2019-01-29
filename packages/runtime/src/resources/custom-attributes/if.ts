@@ -24,6 +24,7 @@ export class If<T extends INode = INode> implements If<T> {
   public ifView: IView<T> | null;
   public location: IRenderLocation<T>;
   public coordinator: CompositionCoordinator;
+  private persistentFlags: LifecycleFlags;
 
   constructor(
     ifFactory: IViewFactory<T>,
@@ -38,9 +39,11 @@ export class If<T extends INode = INode> implements If<T> {
     this.ifFactory = ifFactory;
     this.ifView = null;
     this.location = location;
+    this.persistentFlags = LifecycleFlags.none;
   }
 
   public binding(flags: LifecycleFlags): void {
+    this.persistentFlags = flags & LifecycleFlags.persistentBindingFlags;
     const view = this.updateView(flags);
     this.coordinator.compose(view, flags);
     this.coordinator.binding(flags, this.$scope);
@@ -72,24 +75,22 @@ export class If<T extends INode = INode> implements If<T> {
 
   public valueChanged(newValue: boolean, oldValue: boolean, flags: LifecycleFlags): void {
     if (this.$state & (State.isBound | State.isBinding)) {
-      if (ProxyObserver.isProxy(this)) {
-        flags |= LifecycleFlags.proxyStrategy;
-      }
+      flags |= this.persistentFlags;
+      const $this = ProxyObserver.getRawIfProxy(this);
       if (flags & LifecycleFlags.fromFlush) {
-        const view = this.updateView(flags);
-        this.coordinator.compose(view, flags);
+        const view = $this.updateView(flags);
+        $this.coordinator.compose(view, flags);
       } else {
-        this.$lifecycle.enqueueFlush(this).catch(error => { throw error; });
+        $this.$lifecycle.enqueueFlush($this).catch(error => { throw error; });
       }
     }
   }
 
   public flush(flags: LifecycleFlags): void {
-    if (ProxyObserver.isProxy(this)) {
-      flags |= LifecycleFlags.proxyStrategy;
-    }
-    const view = this.updateView(flags);
-    this.coordinator.compose(view, flags);
+    flags |= this.persistentFlags;
+    const $this = ProxyObserver.getRawIfProxy(this);
+    const view = $this.updateView(flags);
+    $this.coordinator.compose(view, flags);
   }
 
   /** @internal */

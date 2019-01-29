@@ -26,6 +26,9 @@ export class ProxySubscriberCollection<TObj extends object = object> implements 
     this.proxy = proxy;
     this.subscribe = this.addSubscriber;
     this.unsubscribe = this.removeSubscriber;
+    if (raw[key] instanceof Object) { // Ensure we observe array indices and newly created object properties
+      raw[key] = ProxyObserver.getOrCreate(raw[key]).proxy;
+    }
     if (Tracer.enabled) { Tracer.leave(); }
   }
 

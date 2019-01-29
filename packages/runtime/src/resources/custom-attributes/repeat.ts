@@ -35,6 +35,7 @@ export class Repeat<C extends ObservedCollection = IObservedArray, T extends INo
   public views: IView<T>[];
   public key: string | null;
   public keyed: boolean;
+  private persistentFlags: LifecycleFlags;
 
   constructor(
     location: IRenderLocation<T>,
@@ -52,6 +53,7 @@ export class Repeat<C extends ObservedCollection = IObservedArray, T extends INo
   }
 
   public binding(flags: LifecycleFlags): void {
+    this.persistentFlags = flags & LifecycleFlags.persistentBindingFlags;
     this.checkCollectionObserver(flags);
     let current = this.renderable.$bindingHead as Binding;
     while (current !== null) {
@@ -103,37 +105,38 @@ export class Repeat<C extends ObservedCollection = IObservedArray, T extends INo
 
   // called by SetterObserver (sync)
   public itemsChanged(newValue: C, oldValue: C, flags: LifecycleFlags): void {
-    this.checkCollectionObserver(flags);
+    flags |= this.persistentFlags;
+    const $this = ProxyObserver.getRawIfProxy(this);
+    $this.checkCollectionObserver(flags);
     flags |= LifecycleFlags.updateTargetInstance;
-    if (this.keyed || (flags & LifecycleFlags.keyedStrategy) > 0) {
-      this.processViewsKeyed(null, flags);
+    if ($this.keyed || (flags & LifecycleFlags.keyedStrategy) > 0) {
+      $this.processViewsKeyed(null, flags);
     } else {
-      this.processViewsNonKeyed(null, flags);
+      $this.processViewsNonKeyed(null, flags);
     }
   }
 
   // called by a CollectionObserver (async)
   public handleBatchedChange(indexMap: number[] | null, flags: LifecycleFlags): void {
+    flags |= this.persistentFlags;
+    const $this = ProxyObserver.getRawIfProxy(this);
     flags |= (LifecycleFlags.fromFlush | LifecycleFlags.updateTargetInstance);
-    if (this.keyed || (flags & LifecycleFlags.keyedStrategy) > 0) {
-      this.processViewsKeyed(indexMap, flags);
+    if ($this.keyed || (flags & LifecycleFlags.keyedStrategy) > 0) {
+      $this.processViewsKeyed(indexMap, flags);
     } else {
-      this.processViewsNonKeyed(indexMap, flags);
+      $this.processViewsNonKeyed(indexMap, flags);
     }
   }
 
   // if the indexMap === null, it is an instance mutation, otherwise it's an items mutation
   // TODO: Reduce complexity (currently at 46)
   private processViewsNonKeyed(indexMap: number[] | null, flags: LifecycleFlags): void {
-    if (ProxyObserver.isProxy(this)) {
-      flags |= LifecycleFlags.proxyStrategy;
-    }
     const { views, $lifecycle } = this;
     let view: IView;
     if (this.$state & (State.isBound | State.isBinding)) {
       const { local, $scope, factory, forOf, items } = this;
       const oldLength = views.length;
-      const newLength = forOf.count(items);
+      const newLength = forOf.count(flags, items);
       if (oldLength < newLength) {
         views.length = newLength;
         for (let i = oldLength; i < newLength; ++i) {
@@ -163,7 +166,7 @@ export class Repeat<C extends ObservedCollection = IObservedArray, T extends INo
 
       $lifecycle.beginBind();
       if (indexMap === null) {
-        forOf.iterate(items, (arr, i, item: (string | number | boolean | ObservedCollection | IIndexable)) => {
+        forOf.iterate(flags, items, (arr, i, item: (string | number | boolean | ObservedCollection | IIndexable)) => {
           view = views[i];
           if (!!view.$scope && view.$scope.bindingContext[local] === item) {
             view.$bind(flags, Scope.fromParent(flags, $scope, view.$scope.bindingContext));
@@ -172,7 +175,7 @@ export class Repeat<C extends ObservedCollection = IObservedArray, T extends INo
           }
         });
       } else {
-        forOf.iterate(items, (arr, i, item: (string | number | boolean | ObservedCollection | IIndexable)) => {
+        forOf.iterate(flags, items, (arr, i, item: (string | number | boolean | ObservedCollection | IIndexable)) => {
           view = views[i];
           if (!!view.$scope && (indexMap[i] === i || view.$scope.bindingContext[local] === item)) {
             view.$bind(flags, Scope.fromParent(flags, $scope, view.$scope.bindingContext));
@@ -207,9 +210,6 @@ export class Repeat<C extends ObservedCollection = IObservedArray, T extends INo
   }
 
   private processViewsKeyed(indexMap: IndexMap | null, flags: LifecycleFlags): void {
-    if (ProxyObserver.isProxy(this)) {
-      flags |= LifecycleFlags.proxyStrategy;
-    }
     const { $lifecycle, local, $scope, factory, forOf, items } = this;
     let views = this.views;
     if (indexMap === null) {
@@ -230,11 +230,11 @@ export class Repeat<C extends ObservedCollection = IObservedArray, T extends INo
         }
         $lifecycle.endUnbind(flags);
 
-        const newLen = forOf.count(items);
+        const newLen = forOf.count(flags, items);
         views = this.views = Array(newLen);
 
         $lifecycle.beginBind();
-        forOf.iterate(items, (arr, i, item: (string | number | boolean | ObservedCollection | IIndexable)) => {
+        forOf.iterate(flags, items, (arr, i, item: (string | number | boolean | ObservedCollection | IIndexable)) => {
           view = views[i] = factory.create(flags);
           view.$bind(flags, Scope.fromParent(flags, $scope, BindingContext.create(flags, local, item)));
         });

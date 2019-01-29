@@ -118,6 +118,12 @@ export class BlurCustomAttribute {
   public linkingContext: string | Element | null;
 
   constructor(private element: Element) {
+    /**
+     * By default, the behavior should be least surprise possible, that:
+     * 
+     * it searches for anything from root context,
+     * and root context is document body
+     */
     this.linkedMultiple = true;
     this.searchSubTree = true;
     this.linkingContext = null;

@@ -1,4 +1,4 @@
-import { Constructable, PLATFORM } from '@aurelia/kernel';
+import { Constructable, PLATFORM, Reporter } from '@aurelia/kernel';
 import { BindableSource, IBindableDescription } from '../definitions';
 import { BindingMode } from '../flags';
 
@@ -22,20 +22,6 @@ export function bindable<T extends InstanceType<Constructable & Partial<WithBind
   let config: IBindableDescription;
 
   const decorator = function decorate($target: T, $prop: string): void {
-    const Type = $target.constructor as Constructable & Partial<WithBindables>;
-    let bindables = Type.bindables;
-    if (bindables === undefined) {
-      bindables = Type.bindables = {};
-    }
-    if (!config.attribute) {
-      config.attribute = PLATFORM.kebabCase($prop);
-    }
-    if (!config.callback) {
-      config.callback = `${$prop}Changed`;
-    }
-    if (config.mode === undefined) {
-      config.mode = BindingMode.toView;
-    }
     if (arguments.length > 1) {
       // Non invocation:
       // - @bindable
@@ -44,7 +30,7 @@ export function bindable<T extends InstanceType<Constructable & Partial<WithBind
       // - @bindable({...opts})
       config.property = $prop;
     }
-    bindables[config.property] = config;
+    Bindable.for($target.constructor).add(config);
   };
   if (arguments.length > 1) {
     // Non invocation:
@@ -68,6 +54,55 @@ export function bindable<T extends InstanceType<Constructable & Partial<WithBind
   return decorator as BindableDecorator;
 }
 
-export type WithBindables = { bindables: Record<string, IBindableDescription> };
+interface IFluentBindableBuilder {
+  add(config: IBindableDescription): IFluentBindableBuilder;
+  add(propertyName: string): IFluentBindableBuilder;
+  get(): Record<string, IBindableDescription>;
+}
+
+export const Bindable = {
+  for<T extends Partial<WithBindables>>(obj: T): IFluentBindableBuilder {
+    const builder: IFluentBindableBuilder = {
+      add(nameOrConfig: string | IBindableDescription): typeof builder {
+        let description: IBindableDescription;
+        if (nameOrConfig !== null && typeof nameOrConfig === 'object') {
+          description = nameOrConfig;
+        } else if (typeof nameOrConfig === 'string') {
+          description = {
+            property: nameOrConfig
+          };
+        }
+        const prop = description.property;
+        if (!prop) {
+          throw Reporter.error(0); // TODO: create error code (must provide a property name)
+        }
+        if (!description.attribute) {
+          description.attribute = PLATFORM.kebabCase(prop);
+        }
+        if (!description.callback) {
+          description.callback = `${prop}Changed`;
+        }
+        if (description.mode === undefined) {
+          description.mode = BindingMode.toView;
+        }
+        obj.bindables[prop] = description;
+        return this;
+      },
+      get(): Record<string, IBindableDescription> {
+        return obj.bindables as Record<string, IBindableDescription>;
+      }
+    };
+    if (obj.bindables === undefined) {
+      obj.bindables = {};
+    } else if (Array.isArray(obj.bindables)) {
+      const props = obj.bindables;
+      obj.bindables = {};
+      props.forEach(builder.add);
+    }
+    return builder;
+  }
+};
+
+export type WithBindables = { bindables: Record<string, IBindableDescription> | string[] };
 export type BindableDecorator = <T extends InstanceType<Constructable & Partial<WithBindables>>>
   (target: T, prop: string) => void;

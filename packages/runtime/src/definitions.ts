@@ -7,11 +7,13 @@ import {
   Omit,
   PLATFORM,
   ResourceDescription,
-  ResourcePartDescription
+  ResourcePartDescription,
+  Writable
 } from '@aurelia/kernel';
 import { IForOfStatement, IInterpolationExpression, IsBindingBehavior } from './ast';
 import { BindingMode, BindingStrategy, ensureValidStrategy } from './flags';
 import { CustomElementHost, ICustomElement } from './resources/custom-element';
+import { Bindable } from './templating/bindable';
 
 /** @internal */
 export const customElementName = 'custom-element';
@@ -77,7 +79,7 @@ export interface ITemplateDefinition extends IResourceDefinition {
   dependencies?: IRegistry[];
   build?: IBuildInstruction;
   surrogates?: ITargetedInstruction[];
-  bindables?: Record<string, IBindableDescription>;
+  bindables?: Record<string, IBindableDescription> | string[];
   containerless?: boolean;
   shadowOptions?: { mode: 'open' | 'closed' };
   hasSlots?: boolean;
@@ -94,7 +96,7 @@ export interface IAttributeDefinition extends IResourceDefinition {
   aliases?: string[];
   isTemplateController?: boolean;
   hasDynamicOptions?: boolean;
-  bindables?: Record<string, IBindableDescription>;
+  bindables?: Record<string, IBindableDescription> | string[];
   strategy?: BindingStrategy;
 }
 
@@ -327,7 +329,7 @@ export function buildTemplateDefinition(
     case 2:
       if (ctor !== null) {
         if (ctor['bindables']) {
-          def.bindables = { ...ctor.bindables };
+          def.bindables = Bindable.for(ctor as unknown as {}).get();
         }
         if (ctor['containerless']) {
           def.containerless = ctor.containerless;
@@ -354,7 +356,7 @@ export function buildTemplateDefinition(
         });
         if (nameOrDef['bindables']) {
           if (def.bindables === PLATFORM.emptyObject) {
-            def.bindables = { ...nameOrDef.bindables };
+            def.bindables = Bindable.for(nameOrDef as unknown as {}).get();
           } else {
             Object.assign(def.bindables, nameOrDef.bindables);
           }

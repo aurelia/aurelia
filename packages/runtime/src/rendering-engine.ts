@@ -20,6 +20,7 @@ import {
   BindableDefinitions,
   buildTemplateDefinition,
   customElementBehavior,
+  IBindableDescription,
   InstructionTypeName,
   ITargetedInstruction,
   ITemplateDefinition,
@@ -484,7 +485,7 @@ export class RuntimeBehavior {
   public static create(Component: ICustomElementType | ICustomAttributeType): RuntimeBehavior {
     const behavior = new RuntimeBehavior();
 
-    behavior.bindables = Component.description.bindables;
+    behavior.bindables = Component.description.bindables as Record<string, IBindableDescription>;
 
     return behavior;
   }

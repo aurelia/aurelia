@@ -36,6 +36,7 @@ import {
   $unbindAttribute
 } from '../templating/lifecycle-bind';
 import { $hydrateAttribute } from '../templating/lifecycle-render';
+import { Bindable } from '../templating/bindable';
 
 type CustomAttributeStaticProperties = Pick<Immutable<Required<IAttributeDefinition>>, 'bindables'>;
 
@@ -199,7 +200,7 @@ export function createCustomAttributeDescription(def: IAttributeDefinition, Type
     defaultBindingMode: defaultBindingMode === undefined || defaultBindingMode === null ? BindingMode.toView : defaultBindingMode,
     hasDynamicOptions: def.hasDynamicOptions === undefined ? false : def.hasDynamicOptions,
     isTemplateController: def.isTemplateController === undefined ? false : def.isTemplateController,
-    bindables: {...Type.bindables, ...def.bindables},
+    bindables: { ...Bindable.for(Type as unknown as {}).get(), ...Bindable.for(def).get() },
     strategy: ensureValidStrategy(def.strategy)
   };
 }

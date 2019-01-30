@@ -239,10 +239,12 @@ export class ObserverLocator implements IObserverLocator {
   }
 }
 
-export function getCollectionObserver(flags: LifecycleFlags, lifecycle: ILifecycle, collection: IObservedMap | IObservedSet | IObservedArray): CollectionObserver {
+type RepeatableCollection = IObservedMap | IObservedSet | IObservedArray | null | undefined | number;
+
+export function getCollectionObserver(flags: LifecycleFlags, lifecycle: ILifecycle, collection: RepeatableCollection): CollectionObserver {
   // If the collection is wrapped by a proxy then `$observer` will return the proxy observer instead of the collection observer, which is not what we want
   // when we ask for getCollectionObserver
-  const rawCollection = ProxyObserver.getRawIfProxy(collection);
+  const rawCollection = collection instanceof Object ? ProxyObserver.getRawIfProxy(collection) : collection;
   switch (toStringTag.call(collection)) {
     case '[object Array]':
       return getArrayObserver(flags, lifecycle, rawCollection as IObservedArray);

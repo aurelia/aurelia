@@ -21,7 +21,8 @@ import {
   LifecycleFlags,
   ProxyObserver,
   Repeat,
-  Scope
+  Scope,
+  BindingStrategy
 } from '../../../src/index';
 import { RuntimeBehavior } from '../../../src/rendering-engine';
 import { ViewFactory } from '../../../src/templating/view';
@@ -57,11 +58,8 @@ describe(`Repeat`, () => {
   interface Spec {
     t: string;
   }
-  interface KeyedSpec extends Spec {
-    keyed: boolean;
-  }
-  interface UseProxiesSpec extends Spec {
-    proxyStrategy: boolean;
+  interface StrategySpec extends Spec {
+    strategy: BindingStrategy;
   }
   interface DuplicateOperationSpec extends Spec {
     bindTwice: boolean;
@@ -174,14 +172,13 @@ describe(`Repeat`, () => {
     }
   }
 
-  const keyedSpecs: KeyedSpec[] = [
-    { t: '1', keyed: false },
-    { t: '2', keyed: true  }
-  ];
-
-  const useProxiesSpecs: UseProxiesSpec[] = [
-    { t: '1', proxyStrategy: false },
-    { t: '2', proxyStrategy: true  }
+  const strategySpecs: StrategySpec[] = [
+    { t: '1', strategy: BindingStrategy.getterSetter },
+    { t: '2', strategy: BindingStrategy.proxies },
+    { t: '3', strategy: BindingStrategy.patch },
+    { t: '4', strategy: BindingStrategy.keyed | BindingStrategy.getterSetter },
+    { t: '5', strategy: BindingStrategy.keyed | BindingStrategy.proxies },
+    { t: '6', strategy: BindingStrategy.keyed | BindingStrategy.patch },
   ];
 
   const duplicateOperationSpecs: DuplicateOperationSpec[] = [
@@ -574,17 +571,19 @@ describe(`Repeat`, () => {
     { t: '5', bindFlags1: startBind,  attachFlags1: startAttach, detachFlags1: stopDetach,  unbindFlags1: stopUnbind,  bindFlags2: startBind,  attachFlags2: startAttach, detachFlags2: stopDetach,  unbindFlags2: stopUnbind  }
   ];
 
-  eachCartesianJoin([keyedSpecs, useProxiesSpecs, duplicateOperationSpecs, bindSpecs, flagsSpecs], (keyedSpec, useProxiesSpec, duplicateOperationSpec, bindSpec, flagsSpec) => {
-    it(`verify repeat behavior - keyedSpec ${keyedSpec.t}, useProxiesSpec ${useProxiesSpec.t}, duplicateOperationSpec ${duplicateOperationSpec.t}, bindSpec ${bindSpec.t}, flagsSpec ${flagsSpec.t}, `, async () => {
-      const { keyed } = keyedSpec;
-      const { proxyStrategy } = useProxiesSpec;
+  eachCartesianJoin([strategySpecs, duplicateOperationSpecs, bindSpecs, flagsSpecs], (strategySpec, duplicateOperationSpec, bindSpec, flagsSpec) => {
+    it(`verify repeat behavior - strategySpec ${strategySpec.t}, duplicateOperationSpec ${duplicateOperationSpec.t}, bindSpec ${bindSpec.t}, flagsSpec ${flagsSpec.t}, `, async () => {
+      const { strategy } = strategySpec;
       const { bindTwice, attachTwice, detachTwice, unbindTwice, newScopeForDuplicateBind } = duplicateOperationSpec;
       const { items: $items, flush, mutations } = bindSpec;
       const { bindFlags1, attachFlags1, detachFlags1, unbindFlags1, bindFlags2, attachFlags2, detachFlags2, unbindFlags2 } = flagsSpec;
 
       const items = $items.slice();
       // common stuff
-      const baseFlags = proxyStrategy ? LifecycleFlags.proxyStrategy : LifecycleFlags.none;
+      const baseFlags: LifecycleFlags = strategy as unknown as LifecycleFlags;
+      const keyed = (strategy & BindingStrategy.keyed) > 0;
+      const proxies = (strategy & BindingStrategy.proxies) > 0;
+      const patch = (strategy & BindingStrategy.patch) > 0;
       const container = AuDOMConfiguration.createContainer();
       const dom = container.get<AuDOM>(IDOM);
       const observerLocator = container.get(IObserverLocator);
@@ -602,7 +601,7 @@ describe(`Repeat`, () => {
 
           const nodes = new AuNodeSequence(dom, wrapper);
           const itemBinding = new Binding(new AccessScope('item'), text, 'textContent', BindingMode.toView, observerLocator, container);
-          binding.persistentFlags |= baseFlags;
+          binding.persistentFlags |= strategy;
 
           (itemRenderable as Writable<typeof itemRenderable>).$nodes = nodes;
           addBinding(itemRenderable, itemBinding);
@@ -620,7 +619,7 @@ describe(`Repeat`, () => {
         $bindingHead: binding
       } as any;
       let sut: Repeat<IObservedArray, AuNode>;
-      if (proxyStrategy) {
+      if (proxies) {
         sut = new ProxyObserver(new Repeat<IObservedArray, AuNode>(location, renderable, itemFactory)).proxy;
       } else {
         sut = new Repeat<IObservedArray, AuNode>(location, renderable, itemFactory);
@@ -631,6 +630,7 @@ describe(`Repeat`, () => {
       (sut as Writable<Repeat>).$scope = null;
 
       const repeatBehavior = RuntimeBehavior.create(Repeat);
+      sut.keyed = keyed;
       repeatBehavior.applyTo(baseFlags, sut, lifecycle);
 
       // -- Round 1 --
@@ -649,9 +649,15 @@ describe(`Repeat`, () => {
       }
 
       runAttachLifecycle(lifecycle, sut, baseFlags | attachFlags1);
+      if (patch) {
+        sut.$patch(baseFlags);
+      }
       expect(host.textContent).to.equal(expectedText1, 'host.textContent #1');
       if (attachTwice) {
         runAttachLifecycle(lifecycle, sut, baseFlags | attachFlags1);
+        if (patch) {
+          sut.$patch(baseFlags);
+        }
         expect(host.textContent).to.equal(expectedText1, 'host.textContent #2');
       }
 
@@ -660,9 +666,15 @@ describe(`Repeat`, () => {
 
       if (flush) {
         lifecycle.processFlushQueue(baseFlags);
+        if (patch) {
+          sut.$patch(baseFlags);
+        }
         expect(host.textContent).to.equal(expectedText2, 'host.textContent #3');
       } else {
         const assign = mutations.find(m => m.op === 'assign') as AssignSpec;
+        if (patch) {
+          sut.$patch(baseFlags);
+        }
         if (assign) {
           expect(host.textContent).to.equal(assign.newItems.join(''), 'host.textContent #4');
         } else {
@@ -675,6 +687,9 @@ describe(`Repeat`, () => {
         runDetachLifecycle(lifecycle, sut, baseFlags | detachFlags1);
       }
 
+      if (patch) {
+        sut.$patch(baseFlags);
+      }
       expect(host.textContent).to.equal('', 'host.textContent #6');
 
       runUnbindLifecycle(lifecycle, sut, baseFlags | unbindFlags1);
@@ -696,9 +711,15 @@ describe(`Repeat`, () => {
       }
 
       runAttachLifecycle(lifecycle, sut, baseFlags | attachFlags2);
+      if (patch) {
+        sut.$patch(baseFlags);
+      }
       expect(host.textContent).to.equal(expectedText3, 'host.textContent #7');
       if (attachTwice) {
         runAttachLifecycle(lifecycle, sut, baseFlags | attachFlags2);
+        if (patch) {
+          sut.$patch(baseFlags);
+        }
         expect(host.textContent).to.equal(expectedText3, 'host.textContent #8');
       }
 
@@ -707,9 +728,15 @@ describe(`Repeat`, () => {
 
       if (flush) {
         lifecycle.processFlushQueue(baseFlags);
+        if (patch) {
+          sut.$patch(baseFlags);
+        }
         expect(host.textContent).to.equal(expectedText4, 'host.textContent #9');
       } else {
         const assign = mutations.find(m => m.op === 'assign') as AssignSpec;
+        if (patch) {
+          sut.$patch(baseFlags);
+        }
         if (assign) {
           expect(host.textContent).to.equal(assign.newItems.join(''), 'host.textContent #10');
         } else {
@@ -722,6 +749,9 @@ describe(`Repeat`, () => {
         runDetachLifecycle(lifecycle, sut, baseFlags | detachFlags2);
       }
 
+      if (patch) {
+        sut.$patch(baseFlags);
+      }
       expect(host.textContent).to.equal('', 'host.textContent #12');
 
       runUnbindLifecycle(lifecycle, sut, baseFlags | unbindFlags2);

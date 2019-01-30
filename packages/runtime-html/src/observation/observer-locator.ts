@@ -118,10 +118,7 @@ export class TargetObserverLocator implements ITargetObserverLocator {
           const nsProps = nsAttributes[propertyName];
           return new AttributeNSAccessor(lifecycle, obj as HTMLElement, propertyName, nsProps[0], nsProps[1]);
         }
-        const prefix = propertyName.slice(0, 5);
-        // https://html.spec.whatwg.org/multipage/dom.html#wai-aria
-        // https://html.spec.whatwg.org/multipage/dom.html#custom-data-attribute
-        if (prefix === 'aria-' || prefix === 'data-' || this.svgAnalyzer.isStandardSvgAttribute(obj, propertyName)) {
+        if (isDataAttribute(obj, propertyName, this.svgAnalyzer)) {
           return new DataAttributeAccessor(lifecycle, obj as HTMLElement, propertyName);
         }
     }
@@ -174,13 +171,9 @@ export class TargetAccessorLocator implements ITargetAccessorLocator {
           const nsProps = nsAttributes[propertyName];
           return new AttributeNSAccessor(lifecycle, obj as HTMLElement, propertyName, nsProps[0], nsProps[1]);
         }
-        const prefix = propertyName.slice(0, 5);
-        // https://html.spec.whatwg.org/multipage/dom.html#wai-aria
-        // https://html.spec.whatwg.org/multipage/dom.html#custom-data-attribute
-        if (prefix === 'aria-' || prefix === 'data-' || this.svgAnalyzer.isStandardSvgAttribute(obj, propertyName)) {
+        if (isDataAttribute(obj, propertyName, this.svgAnalyzer)) {
           return new DataAttributeAccessor(lifecycle, obj as HTMLElement, propertyName);
         }
-
         return new ElementPropertyAccessor(lifecycle, obj, propertyName);
     }
   }
@@ -188,4 +181,19 @@ export class TargetAccessorLocator implements ITargetAccessorLocator {
   public handles(flags: LifecycleFlags, obj: Node): boolean {
     return this.dom.isNodeInstance(obj);
   }
+}
+
+const IsDataAttribute: Record<string, boolean> = {};
+
+function isDataAttribute(obj: Node, propertyName: string, svgAnalyzer: ISVGAnalyzer): boolean {
+  if (IsDataAttribute[propertyName] === true) {
+    return true;
+  }
+  const prefix = propertyName.slice(0, 5);
+  // https://html.spec.whatwg.org/multipage/dom.html#wai-aria
+  // https://html.spec.whatwg.org/multipage/dom.html#custom-data-attribute
+  return IsDataAttribute[propertyName] =
+    prefix === 'aria-' ||
+    prefix === 'data-' ||
+    svgAnalyzer.isStandardSvgAttribute(obj, propertyName);
 }

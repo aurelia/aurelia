@@ -279,6 +279,7 @@ export class Repeat<C extends ObservedCollection = IObservedArray, T extends INo
           i = 0;
           let j = 0;
           let k = 0;
+          // tslint:disable-next-line:no-alphabetical-sort // alphabetical (numeric) sort is intentional
           deleted.sort();
           for (; i < deletedLen; ++i) {
             j = deleted[i] - i;
@@ -412,7 +413,7 @@ let maxLen = 0;
 /** @internal */
 export function longestIncreasingSubsequence(indexMap: IndexMap): Uint8Array | Uint16Array | Uint32Array {
   const len = indexMap.length;
-  const origLen = len + (indexMap.deletedItems && indexMap.deletedItems.length || 0);
+  const origLen = len + indexMap.deletedItems.length;
   const TArr = origLen < 0xFF ? Uint8Array : origLen < 0xFFFF ? Uint16Array : Uint32Array;
 
   if (len > maxLen) {

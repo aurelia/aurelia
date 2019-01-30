@@ -65,8 +65,8 @@ export function $bindElement(this: Writable<IBindable>, flags: LifecycleFlags, p
     if (Tracer.enabled) { Tracer.leave(); }
     return;
   }
-  const scope = this.$scope;
-  (scope as Writable<IScope>).parentScope = parentScope;
+  const scope: Writable<IScope> = this.$scope;
+  scope.parentScope = parentScope;
 
   const lifecycle = this.$lifecycle;
   lifecycle.beginBind();
@@ -233,6 +233,7 @@ export function $unbindElement(this: Writable<IBindable>, flags: LifecycleFlags)
       binding = binding.$prevBinding;
     }
 
+    // tslind:disable-next-line:no-unnecessary-type-assertion // this is a false positive
     (this.$scope as Writable<IScope>).parentScope = null;
 
     // remove isBound and isUnbinding flags

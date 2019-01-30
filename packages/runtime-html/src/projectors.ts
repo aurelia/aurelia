@@ -62,6 +62,7 @@ export class ShadowDOMProjector implements IElementProjector<Node> {
     }
     this.shadowRoot = host.attachShadow(shadowOptions);
     this.host.$customElement = $customElement;
+    // tslint:disable-next-line:no-unnecessary-type-assertion // this is a false positive
     this.shadowRoot.$customElement = $customElement as ICustomElement<ShadowRoot>;
   }
 
@@ -104,6 +105,7 @@ export class ContainerlessProjector implements IElementProjector<Node> {
       this.childNodes = PLATFORM.emptyArray;
     }
 
+    // tslint:disable-next-line:no-unnecessary-type-assertion // this is a false positive
     this.host = dom.convertToRenderLocation(host) as CustomElementHost<Node>;
     this.host.$customElement = $customElement;
   }

@@ -44,6 +44,7 @@ export interface ILifecycleRender {
 }
 
 /** @internal */
+// tslint:disable-next-line:no-ignored-initial-value
 export function $hydrateAttribute(this: Writable<ICustomAttribute>, flags: LifecycleFlags, parentContext: IServiceLocator): void {
   if (Profiler.enabled) { enter(); }
   const Type = this.constructor as ICustomAttributeType;
@@ -70,6 +71,7 @@ export function $hydrateAttribute(this: Writable<ICustomAttribute>, flags: Lifec
 }
 
 /** @internal */
+// tslint:disable-next-line:no-ignored-initial-value
 export function $hydrateElement(this: Writable<ICustomElement>, flags: LifecycleFlags, parentContext: IServiceLocator, host: INode, options: IElementHydrationOptions = PLATFORM.emptyObject): void {
   if (Profiler.enabled) { enter(); }
   const Type = this.constructor as ICustomElementType;

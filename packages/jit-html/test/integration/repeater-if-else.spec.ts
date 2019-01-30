@@ -15,6 +15,7 @@ const spec = 'repeater-if-else';
 
 describe(spec, function() {
 
+  type Comp = { items: any[]; display: boolean; $patch(flags: LifecycleFlags): void };
   interface Spec {
     t: string;
   }
@@ -392,8 +393,6 @@ describe(spec, function() {
       count: 3
     }
   ];
-
-  type Comp = { items: any[]; display: boolean; $patch(flags: LifecycleFlags): void };
 
   const mutationSpecs: MutationSpec[] = [
     {

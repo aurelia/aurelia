@@ -385,17 +385,18 @@ export class Repeat<C extends ObservedCollection = IObservedArray, T extends INo
   }
 
   private checkCollectionObserver(flags: LifecycleFlags): void {
-    const oldObserver = this.observer;
-    if (this.$state & (State.isBound | State.isBinding)) {
-      const newObserver = this.observer = getCollectionObserver(flags, this.$lifecycle, this.items);
+    const $this = ProxyObserver.getRawIfProxy(this);
+    const oldObserver = $this.observer;
+    if ($this.$state & (State.isBound | State.isBinding)) {
+      const newObserver = $this.observer = getCollectionObserver(flags, $this.$lifecycle, $this.items);
       if (oldObserver !== newObserver && oldObserver) {
-        oldObserver.unsubscribeBatched(this);
+        oldObserver.unsubscribeBatched($this);
       }
       if (newObserver) {
-        newObserver.subscribeBatched(this);
+        newObserver.subscribeBatched($this);
       }
     } else if (oldObserver) {
-      oldObserver.unsubscribeBatched(this);
+      oldObserver.unsubscribeBatched($this);
     }
   }
 }

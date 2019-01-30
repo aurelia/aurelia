@@ -473,6 +473,79 @@ describe(`Repeat`, () => {
       { op: 'shift', count: 3 },
       { op: 'pop', count: 3 },
       { op: 'push', items: ['d', 'e', 'f'] }
+    ] },
+    { t: '77', items: ['a', 'b', 'c'], flush: true, mutations: [
+      { op: 'unshift', items: ['d', 'e', 'f'] },
+      { op: 'assign', newItems: [] },
+      { op: 'unshift', items: ['g', 'h', 'i'] }
+    ] },
+    { t: '78', items: ['a', 'b', 'c'], flush: true, mutations: [
+      { op: 'pop', count: 1 },
+      { op: 'assign', newItems: ['d', 'e', 'f'] },
+      { op: 'pop', count: 1 }
+    ] },
+    { t: '79', items: ['a', 'b', 'c', 'd', 'e', 'f'], flush: true, mutations: [
+      { op: 'pop', count: 3 },
+      { op: 'assign', newItems: ['d', 'e', 'f', 'g', 'h', 'i'] },
+      { op: 'pop', count: 3 }
+    ] },
+    { t: '80', items: ['a', 'b', 'c'], flush: true, mutations: [
+      { op: 'shift', count: 1 },
+      { op: 'assign', newItems: ['d', 'e', 'f'] },
+      { op: 'shift', count: 1 }
+    ] },
+    { t: '81', items: ['a', 'b', 'c'], flush: true, mutations: [
+      { op: 'shift', count: 3 },
+      { op: 'assign', newItems: ['d', 'e', 'f', 'g', 'h', 'i'] },
+      { op: 'shift', count: 3 },
+    ] },
+    { t: '82', items: ['a', 'b', 'c'], flush: true, mutations: [
+      { op: 'pop', count: 1 },
+      { op: 'shift', count: 1 },
+      { op: 'assign', newItems: ['d', 'e', 'f', 'g', 'h', 'i'] },
+      { op: 'pop', count: 1 },
+      { op: 'shift', count: 1 }
+    ] },
+    { t: '83', items: ['a', 'b', 'c', 'd', 'e', 'f'], flush: true, mutations: [
+      { op: 'assign', newItems: [] },
+      { op: 'push', items: ['g', 'h', 'i', 'j', 'k', 'l'] },
+      { op: 'push', items: ['m', 'n', 'o', 'p', 'q', 'r'] }
+    ] },
+    { t: '84', items: ['a', 'b', 'c', 'd', 'e', 'f'], flush: true, mutations: [
+      { op: 'push', items: ['g', 'h', 'i', 'j', 'k', 'l'] },
+      { op: 'assign', newItems: [] },
+      { op: 'push', items: ['m', 'n', 'o', 'p', 'q', 'r'] }
+    ] },
+    { t: '85', items: ['a', 'b', 'c', 'd', 'e', 'f'], flush: true, mutations: [
+      { op: 'push', items: ['g', 'h', 'i', 'j', 'k', 'l'] },
+      { op: 'push', items: ['m', 'n', 'o', 'p', 'q', 'r'] },
+      { op: 'assign', newItems: [] },
+    ] },
+    { t: '86', items: ['a', 'b', 'c', 'd', 'e', 'f'], flush: true, mutations: [
+      { op: 'push', items: ['g', 'h', 'i', 'j', 'k', 'l'] },
+      { op: 'push', items: ['m', 'n', 'o', 'p', 'q', 'r'] },
+      { op: 'assign', newItems: ['c', 'd', 'e'] },
+    ] },
+    { t: '87', items: ['a', 'b', 'c', 'd', 'e', 'f'], flush: true, mutations: [
+      { op: 'splice', start: 1, deleteCount: 1, items: [] },
+      { op: 'splice', start: 3, deleteCount: 1, items: [] },
+      { op: 'splice', start: 5, deleteCount: 1, items: [] },
+      { op: 'assign', newItems: [] },
+      { op: 'push', items: ['g', 'h', 'i', 'j', 'k', 'l'] },
+      { op: 'splice', start: 1, deleteCount: 1, items: [] },
+      { op: 'splice', start: 3, deleteCount: 1, items: [] },
+      { op: 'splice', start: 5, deleteCount: 1, items: [] },
+      { op: 'push', items: ['m', 'n', 'o', 'p', 'q', 'r'] }
+    ] },
+    { t: '88', items: ['a', 'b', 'c', 'd', 'e', 'f'], flush: true, mutations: [
+      { op: 'splice', start: 1, deleteCount: 1, items: [] },
+      { op: 'splice', start: 3, deleteCount: 1, items: [] },
+      { op: 'splice', start: 5, deleteCount: 1, items: [] },
+      { op: 'assign', newItems: ['g', 'h', 'i', 'j', 'k', 'l'] },
+      { op: 'splice', start: 1, deleteCount: 1, items: [] },
+      { op: 'splice', start: 3, deleteCount: 1, items: [] },
+      { op: 'splice', start: 5, deleteCount: 1, items: [] },
+      { op: 'push', items: ['m', 'n', 'o', 'p', 'q', 'r'] }
     ] }
   ];
 

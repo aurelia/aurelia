@@ -11,6 +11,7 @@ import {
   Binding,
   BindingContext,
   BindingMode,
+  BindingStrategy,
   CompositionCoordinator,
   Else,
   IDOM,
@@ -57,8 +58,8 @@ describe(`If/Else`, () => {
   interface Spec {
     t: string;
   }
-  interface UseProxiesSpec extends Spec {
-    proxyStrategy: boolean;
+  interface StrategySpec extends Spec {
+    strategy: BindingStrategy;
   }
   interface DuplicateOperationSpec extends Spec {
     bindTwice: boolean;
@@ -96,9 +97,10 @@ describe(`If/Else`, () => {
     unbindFlags2: LifecycleFlags;
   }
 
-  const useProxiesSpecs: UseProxiesSpec[] = [
-    { t: '1', proxyStrategy: false },
-    { t: '2', proxyStrategy: true  }
+  const strategySpecs: StrategySpec[] = [
+    { t: '1', strategy: BindingStrategy.getterSetter },
+    { t: '2', strategy: BindingStrategy.proxies },
+    { t: '3', strategy: BindingStrategy.patch }
   ];
 
   const duplicateOperationSpecs: DuplicateOperationSpec[] = [
@@ -162,16 +164,20 @@ describe(`If/Else`, () => {
     { t: '5', bindFlags1: startBind,  attachFlags1: startAttach, detachFlags1: stopDetach,  unbindFlags1: stopUnbind,  bindFlags2: startBind,  attachFlags2: startAttach, detachFlags2: stopDetach,  unbindFlags2: stopUnbind  }
   ];
 
-  eachCartesianJoin([useProxiesSpecs, duplicateOperationSpecs, bindSpecs, mutationSpecs, flagsSpecs], (useProxiesSpec, duplicateOperationSpec, bindSpec, mutationSpec, flagsSpec) => {
-    it(`verify if/else behavior - useProxiesSpec ${useProxiesSpec.t}, duplicateOperationSpec ${duplicateOperationSpec.t}, bindSpec ${bindSpec.t}, mutationSpec ${mutationSpec.t}, flagsSpec ${flagsSpec.t}, `, async () => {
-      const { proxyStrategy } = useProxiesSpec;
+  eachCartesianJoin(
+    [strategySpecs, duplicateOperationSpecs, bindSpecs, mutationSpecs, flagsSpecs],
+    (strategySpec, duplicateOperationSpec, bindSpec, mutationSpec, flagsSpec) => {
+    it(`verify if/else behavior - strategySpec ${strategySpec.t}, duplicateOperationSpec ${duplicateOperationSpec.t}, bindSpec ${bindSpec.t}, mutationSpec ${mutationSpec.t}, flagsSpec ${flagsSpec.t}, `, async () => {
+      const { strategy } = strategySpec;
       const { bindTwice, attachTwice, detachTwice, unbindTwice, newScopeForDuplicateBind, newValueForDuplicateBind } = duplicateOperationSpec;
       const { ifPropName, elsePropName, ifText, elseText, value1, value2 } = bindSpec;
       const { newValue1, flush1, newValue2, flush2 } = mutationSpec;
       const { bindFlags1, attachFlags1, detachFlags1, unbindFlags1, bindFlags2, attachFlags2, detachFlags2, unbindFlags2 } = flagsSpec;
 
       // common stuff
-      const baseFlags = proxyStrategy ? LifecycleFlags.proxyStrategy : LifecycleFlags.none;
+      const baseFlags: LifecycleFlags = strategy as unknown as LifecycleFlags;
+      const proxies = (strategy & BindingStrategy.proxies) > 0;
+      const patch = (strategy & BindingStrategy.patch) > 0;
       const container = AuDOMConfiguration.createContainer();
       const dom = container.get<AuDOM>(IDOM);
       const observerLocator = container.get(IObserverLocator);
@@ -217,7 +223,7 @@ describe(`If/Else`, () => {
       const elseFactory = new ViewFactory<AuNode>('else-view', elseTemplate, lifecycle);
       let sut: If<AuNode>;
       let elseSut: Else<AuNode>;
-      if (proxyStrategy) {
+      if (proxies) {
         sut = new ProxyObserver(new If<AuNode>(ifFactory, location, new CompositionCoordinator(lifecycle))).proxy;
         elseSut = new ProxyObserver(new Else<AuNode>(elseFactory)).proxy;
       } else {
@@ -247,7 +253,7 @@ describe(`If/Else`, () => {
       firstBindInitialNodesText = value1 ? ifText : elseText;
       if (bindTwice) {
         firstAttachInitialHostText = newValueForDuplicateBind ? ifText : elseText;
-        if ((newScopeForDuplicateBind || (bindFlags1 & LifecycleFlags.fromStartTask))) {
+        if ((newScopeForDuplicateBind || (bindFlags1 & LifecycleFlags.fromStartTask)) || patch) {
           firstBindFinalNodesText = newValueForDuplicateBind ? ifText : elseText;
         } else {
           firstBindFinalNodesText = firstBindInitialNodesText;
@@ -256,7 +262,7 @@ describe(`If/Else`, () => {
         firstBindFinalNodesText = firstBindInitialNodesText;
         firstAttachInitialHostText = value1 ? ifText : elseText;
       }
-      if (flush1) {
+      if (flush1 || patch) {
         firstAttachFinalHostText = newValue1 ? ifText : elseText;
       } else {
         firstAttachFinalHostText = firstAttachInitialHostText;
@@ -265,7 +271,7 @@ describe(`If/Else`, () => {
       secondBindInitialNodesText = value2 ? ifText : elseText;
       if (bindTwice) {
         secondAttachInitialHostText = newValueForDuplicateBind ? ifText : elseText;
-        if ((newScopeForDuplicateBind || (bindFlags2 & LifecycleFlags.fromStartTask))) {
+        if ((newScopeForDuplicateBind || (bindFlags2 & LifecycleFlags.fromStartTask)) || patch) {
           secondBindFinalNodesText = newValueForDuplicateBind ? ifText : elseText;
         } else {
           secondBindFinalNodesText = secondBindInitialNodesText;
@@ -274,7 +280,7 @@ describe(`If/Else`, () => {
         secondBindFinalNodesText = secondBindInitialNodesText;
         secondAttachInitialHostText = value2 ? ifText : elseText;
       }
-      if (flush2) {
+      if (flush2 || patch) {
         secondAttachFinalHostText = newValue2 ? ifText : elseText;
       } else {
         secondAttachFinalHostText = secondAttachInitialHostText;
@@ -291,6 +297,7 @@ describe(`If/Else`, () => {
       sut.value = value1;
 
       runBindLifecycle(lifecycle, sut, baseFlags | bindFlags1, scope);
+      if (patch) { sut.$patch(baseFlags); }
       expect(sut.coordinator['currentView'].$nodes.firstChild['textContent']).to.equal(firstBindInitialNodesText, '$nodes.textContent #1');
 
       // after binding the nodes should be present and already updated with the correct values
@@ -299,20 +306,24 @@ describe(`If/Else`, () => {
           scope = Scope.create(baseFlags, ctx);
         }
         sut.value = newValueForDuplicateBind;
+        if (patch) { sut.$patch(baseFlags); }
         runBindLifecycle(lifecycle, sut, baseFlags | bindFlags1, scope);
       }
       expect(sut.coordinator['currentView'].$nodes.firstChild['textContent']).to.equal(firstBindFinalNodesText, '$nodes.textContent #2');
 
       runAttachLifecycle(lifecycle, sut, baseFlags | attachFlags1);
+      if (patch) { sut.$patch(baseFlags); }
       expect(host.textContent).to.equal(firstAttachInitialHostText, 'host.textContent #1');
       if (attachTwice) {
         runAttachLifecycle(lifecycle, sut, baseFlags | attachFlags1);
+        if (patch) { sut.$patch(baseFlags); }
         expect(host.textContent).to.equal(firstAttachInitialHostText, 'host.textContent #2');
       }
 
       sut.value = newValue1;
       // swapping is batched so shouldn't update yet
 
+      if (patch) { sut.$patch(baseFlags); }
       if (flush1) {
         lifecycle.processFlushQueue(baseFlags);
         // flushing always forces pending swaps
@@ -325,6 +336,7 @@ describe(`If/Else`, () => {
       }
       // host should be empty but nodes below should still be intact and up-to-date
 
+      if (patch) { sut.$patch(baseFlags); }
       expect(host.textContent).to.equal('', 'host.textContent #3');
 
       runUnbindLifecycle(lifecycle, sut, baseFlags | unbindFlags1);
@@ -338,6 +350,7 @@ describe(`If/Else`, () => {
       sut.value = value2;
 
       runBindLifecycle(lifecycle, sut, baseFlags | bindFlags2, scope);
+      if (patch) { sut.$patch(baseFlags); }
       expect(sut.coordinator['currentView'].$nodes.firstChild['textContent']).to.equal(secondBindInitialNodesText, '$nodes.textContent #3');
       if (bindTwice) {
         if (newScopeForDuplicateBind) {
@@ -346,17 +359,21 @@ describe(`If/Else`, () => {
         sut.value = newValueForDuplicateBind;
         runBindLifecycle(lifecycle, sut, baseFlags | bindFlags2, scope);
       }
+      if (patch) { sut.$patch(baseFlags); }
       expect(sut.coordinator['currentView'].$nodes.firstChild['textContent']).to.equal(secondBindFinalNodesText, '$nodes.textContent #4');
 
       runAttachLifecycle(lifecycle, sut, baseFlags | attachFlags2);
+      if (patch) { sut.$patch(baseFlags); }
       expect(host.textContent).to.equal(secondAttachInitialHostText, 'host.textContent #4');
       if (attachTwice) {
         runAttachLifecycle(lifecycle, sut, baseFlags | attachFlags2);
+        if (patch) { sut.$patch(baseFlags); }
         expect(host.textContent).to.equal(secondAttachInitialHostText, 'host.textContent #5');
       }
 
       sut.value = newValue2;
 
+      if (patch) { sut.$patch(baseFlags); }
       if (flush2) {
         lifecycle.processFlushQueue(baseFlags);
       }
@@ -367,6 +384,7 @@ describe(`If/Else`, () => {
         runDetachLifecycle(lifecycle, sut, baseFlags | detachFlags2);
       }
 
+      if (patch) { sut.$patch(baseFlags); }
       expect(host.textContent).to.equal('', 'host.textContent #6');
 
       runUnbindLifecycle(lifecycle, sut, baseFlags | unbindFlags2);

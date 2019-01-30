@@ -13,6 +13,7 @@ export class ViewportCustomElement {
   @bindable public default: string;
   @bindable public noLink: boolean;
   @bindable public noHistory: boolean;
+  @bindable public stateful: boolean;
 
   public viewport: Viewport;
 
@@ -31,6 +32,7 @@ export class ViewportCustomElement {
     this.default = null;
     this.noLink = null;
     this.noHistory = null;
+    this.stateful = null;
     this.viewport = null;
   }
 
@@ -84,6 +86,9 @@ export class ViewportCustomElement {
     }
     if (this.element.hasAttribute('no-history')) {
       options.noHistory = true;
+    }
+    if (this.element.hasAttribute('stateful')) {
+      options.stateful = true;
     }
     this.viewport = this.router.addViewport(this.name, this.element, this.$context, options);
   }

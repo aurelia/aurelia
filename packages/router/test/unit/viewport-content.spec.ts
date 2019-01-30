@@ -1,11 +1,10 @@
-import { Registration } from '@aurelia/kernel';
+import { IRenderContext } from '@aurelia/runtime';
 import { expect } from 'chai';
 import { BasicConfiguration } from '../../../jit-html-browser/src/index';
 import { CustomElementResource } from '../../../runtime/src/index';
-import { Router, Viewport } from '../../src/index';
+import { Router } from '../../src/index';
 import { ViewportContent } from '../../src/viewport-content';
 import { registerComponent } from './utils';
-import { IRenderContext } from '@aurelia/runtime';
 
 const define = (CustomElementResource as any).define;
 

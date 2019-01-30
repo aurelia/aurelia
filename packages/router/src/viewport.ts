@@ -23,6 +23,7 @@ export interface IViewportOptions {
   default?: string;
   noLink?: boolean;
   noHistory?: boolean;
+  stateful?: boolean;
   forceDescription?: boolean;
 }
 
@@ -53,6 +54,9 @@ export class Viewport {
   private previousViewportState?: Viewport;
   private navigationStatus: NavigationStatuses;
 
+  private cache: ViewportContent[];
+  private fromCache: boolean;
+
   constructor(router: Router, name: string, element: Element, context: IRenderContext, owningScope: Scope, scope: Scope, options?: IViewportOptions) {
     this.router = router;
     this.name = name;
@@ -69,6 +73,8 @@ export class Viewport {
     this.elementResolve = null;
     this.previousViewportState = null;
     this.navigationStatus = NavigationStatuses.none;
+    this.cache = [];
+    this.fromCache = false;
   }
 
   public setNextContent(content: ICustomElementType | string, instruction: INavigationInstruction): boolean {
@@ -87,6 +93,17 @@ export class Viewport {
 
     // Can have a (resolved) type or a string (to be resolved later)
     this.nextContent = new ViewportContent(content, parameters, instruction, this.context);
+    this.fromCache = false;
+    if (this.options.stateful) {
+      // TODO: Add a parameter here to decide required equality
+      const cached = this.cache.find((item) => this.nextContent.isCacheEqual(item));
+      if (cached) {
+        this.nextContent = cached;
+        this.fromCache = true;
+      } else {
+        this.cache.push(this.nextContent);
+      }
+    }
     this.navigationStatus = NavigationStatuses.none;
 
     return this.content.isChange(this.nextContent) || instruction.isRefresh;
@@ -116,6 +133,9 @@ export class Viewport {
       }
       if (options && options.noHistory) {
         this.options.noHistory = options.noHistory;
+      }
+      if (options && options.stateful) {
+        this.options.stateful = options.stateful;
       }
       if (this.elementResolve) {
         this.elementResolve();
@@ -159,6 +179,10 @@ export class Viewport {
       return false;
     }
 
+    if (this.fromCache) {
+      return true;
+    }
+
     await this.loadComponent(this.nextContent.content);
     if (!this.nextContent.component) {
       return false;
@@ -191,6 +215,10 @@ export class Viewport {
 
     if (!this.nextContent.component) {
       return false;
+    }
+
+    if (this.fromCache) {
+      return true;
     }
 
     if (this.nextContent.component.enter) {
@@ -345,34 +373,62 @@ export class Viewport {
   }
 
   private async loadComponent(component: ICustomElementType | string): Promise<void> {
-    await this.waitForElement();
+    // Don't load cached content
+    if (!this.fromCache) {
+      await this.waitForElement();
 
-    this.nextContent.component = this.nextContent.componentInstance(this.context);
+      this.nextContent.component = this.nextContent.componentInstance(this.context);
 
-    const host: INode = this.element as INode;
-    const container = this.context || this.router.container;
+      const host: INode = this.element as INode;
+      const container = this.context || this.router.container;
 
-    // TODO: get useProxies settings from the template definition
-    this.nextContent.component.$hydrate(LifecycleFlags.none, container, host);
+      // TODO: get useProxies settings from the template definition
+      this.nextContent.component.$hydrate(LifecycleFlags.none, container, host);
+    }
     this.navigationStatus = NavigationStatuses.loaded;
   }
   private unloadComponent(): void {
     // TODO: We might want to do something here eventually, who knows?
+    // Don't unload components when stateful
   }
 
   private initializeComponent(component: ICustomElement): void {
-    component.$bind(LifecycleFlags.fromStartTask | LifecycleFlags.fromBind, null);
+    // Don't initialize cached content
+    if (!this.fromCache) {
+      component.$bind(LifecycleFlags.fromStartTask | LifecycleFlags.fromBind, null);
+    }
     this.navigationStatus = NavigationStatuses.initialized;
   }
   private terminateComponent(component: ICustomElement): void {
-    component.$unbind(LifecycleFlags.fromStopTask | LifecycleFlags.fromUnbind);
+    // Don't terminate cached content
+    if (!this.options.stateful) {
+      component.$unbind(LifecycleFlags.fromStopTask | LifecycleFlags.fromUnbind);
+    }
   }
 
   private addComponent(component: ICustomElement): void {
     component.$attach(LifecycleFlags.fromStartTask);
+    if (this.fromCache) {
+      const elements = Array.from(this.element.getElementsByTagName('*'));
+      for (let element of elements) {
+        if (element.hasAttribute('au-element-scroll')) {
+          const [top, left] = element.getAttribute('au-element-scroll').split(',');
+          element.removeAttribute('au-element-scroll');
+          element.scrollTo(+left, +top);
+        }
+      }
+    }
     this.navigationStatus = NavigationStatuses.added;
   }
   private removeComponent(component: ICustomElement): void {
+    if (this.options.stateful) {
+      const elements = Array.from(this.element.getElementsByTagName('*'));
+      for (const element of elements) {
+        if (element.scrollTop > 0 || element.scrollLeft) {
+          element.setAttribute('au-element-scroll', `${element.scrollTop},${element.scrollLeft}`);
+        }
+      }
+    }
     component.$detach(LifecycleFlags.fromStopTask);
   }
 

@@ -26,7 +26,7 @@ import { State } from './state';
       <label><input type="checkbox" checked.two-way="state.noDelay">Disable loading delays for components</label>
     </div>
     <au-viewport name="lists" used-by="authors,books" default="authors"></au-viewport>
-    <au-viewport name="content" default="about"></au-viewport>
+    <au-viewport name="content" default="about" stateful></au-viewport>
     <au-viewport name="chat" used-by="chat" no-link no-history></au-viewport>
   </div>
 </template>

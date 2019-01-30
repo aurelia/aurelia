@@ -41,6 +41,12 @@ export class ViewportContent {
       !this.instruction || this.instruction.query !== content.instruction.query);
   }
 
+  public isCacheEqual(content: ViewportContent): boolean {
+    return ((typeof content.content === 'string' && this.componentName() === content.content) ||
+      (typeof content.content !== 'string' && this.content === content.content)) &&
+      this.parameters === content.parameters;
+  }
+
   public componentName(): string {
     if (this.content === null) {
       return null;

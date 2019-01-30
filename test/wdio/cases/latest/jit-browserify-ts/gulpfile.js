@@ -25,12 +25,12 @@ function bundle() {
     .pipe(gulp.dest('dist'));
 }
 
-gulp.task('default', [],  () => {
+gulp.task('default', () => {
   browserSync.init({ watch: true, server: '.', port: 9000 });
   b.on('update', bundle);
   b.on('change', browserSync.reload);
   return bundle(watchify(b))
 });
 
-gulp.task('build', [], () => bundle(b));
+gulp.task('build', () => bundle(b));
 b.on('log', log);

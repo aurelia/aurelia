@@ -1,5 +1,5 @@
 {
-  "name": "@aurelia/fetch-client",
+  "name": "@aurelia/store",
   "version": "0.3.0",
   "main": "dist/build/index.js",
   "module": "dist/build/index.js",
@@ -18,7 +18,7 @@
   },
   "keywords": [
     "aurelia",
-    "fetch-client"
+    "store"
   ],
   "files": [
     "dist",
@@ -31,14 +31,15 @@
     "lint": "npm run lint:src && npm run lint:test",
     "lint:src": "tslint --project tsconfig.json -t stylish",
     "lint:test": "tslint --project tsconfig-test.json --config ../tslint-test.json -e \"src/**/*.ts\" -t stylish",
-    "test": "cross-env TS_NODE_PROJECT=\"../../scripts/tsconfig.json\" karma start ../../scripts/karma.conf.ts --package=fetch-client --browsers=ChromeHeadlessOpt --single-run --coverage",
-    "test-firefox": "cross-env TS_NODE_PROJECT=\"../../scripts/tsconfig.json\" karma start ../../scripts/karma.conf.ts --package=fetch-client --browsers=FirefoxHeadless --single-run --coverage",
-    "test:watch": "cross-env TS_NODE_PROJECT=\"../../scripts/tsconfig.json\" karma start ../../scripts/karma.conf.ts --package=fetch-client --browsers=ChromeHeadlessOpt --coverage",
-    "test:watch:verbose": "cross-env TS_NODE_PROJECT=\"../../scripts/tsconfig.json\" karma start ../../scripts/karma.conf.ts --package=fetch-client --browsers=ChromeHeadlessOpt --coverage --reporter=mocha",
-    "test:debugger": "cross-env TS_NODE_PROJECT=\"../../scripts/tsconfig.json\" karma start ../../scripts/karma.conf.ts --package=fetch-client --browsers=ChromeDebugging",
-    "test:debugger:verbose": "cross-env TS_NODE_PROJECT=\"../../scripts/tsconfig.json\" karma start ../../scripts/karma.conf.ts --package=fetch-client --browsers=ChromeDebugging --reporter=mocha",
+    "~test": "cross-env TS_NODE_PROJECT=\"../../scripts/tsconfig.json\" karma start ../../scripts/karma.conf.ts --package=store",
+    "test": "npm run ~test -- --browsers=ChromeHeadlessOpt --single-run --coverage",
+    "test-firefox": "npm run ~test -- --browsers=FirefoxHeadless --single-run --coverage",
+    "test:watch": "npm run ~test -- --browsers=ChromeHeadlessOpt --coverage",
+    "test:watch:verbose": "npm run ~test -- --browsers=ChromeHeadlessOpt --coverage --reporter=mocha",
+    "test:debugger": "npm run ~test -- --browsers=ChromeDebugging",
+    "test:debugger:verbose": "npm run ~test -- --browsers=ChromeDebugging --reporter=mocha",
     "build": "tsc -b",
-    "bundle": "ts-node -P ../../scripts/tsconfig.json ../../scripts/bundle.ts umd,esm,system fetch-client",
+    "bundle": "ts-node -P ../../scripts/tsconfig.json ../../scripts/bundle.ts umd,esm,system store",
     "dev": "tsc -b -w",
     "publish:local": "npm pack"
   },
@@ -47,8 +48,7 @@
   },
   "dependencies": {
     "@aurelia/kernel": "0.3.0",
-    "@aurelia/runtime": "0.3.0",
-    "@aurelia/runtime-html": "0.3.0"
+    "rxjs": "^6.3.3"
   },
   "devDependencies": {
     "@types/chai": "^4.1.7",

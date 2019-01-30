@@ -1,5 +1,5 @@
 {
-  "lerna": "3.10.5",
+  "lerna": "3.10.7",
   "packages": [
     "packages/aot",
     "packages/debug",
@@ -20,6 +20,7 @@
     "packages/runtime-html-browser",
     "packages/runtime-html-jsdom",
     "packages/runtime-pixi",
+    "packages/store",
     "packages/testing",
     "packages/validation"
   ],

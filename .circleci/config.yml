@@ -182,8 +182,13 @@ jobs:
     parameters:
       channel:
         type: string
+      branch:
+        type: string
     steps:
-      - checkout_install
+      - checkout
+      - run: git checkout << parameters.branch >>
+      - run: git pull
+      - run: npm ci --ignore-scripts
       - run:
           name: "Authenticate with registry"
           command: echo "//registry.npmjs.org/:_authToken=$NPM_TOKEN" >> ~/.npmrc
@@ -371,6 +376,7 @@ workflows:
           requires:
             - request_publish_latest
           channel: latest
+          branch: release
       # verify the latest packages after publishing them
       - e2e_wdio:
           <<: *filter_only_release
@@ -414,12 +420,19 @@ workflows:
   build_test_push_dev:
     triggers:
       - schedule:
-          <<: *filter_only_develop
+          <<: *filter_only_master
           cron: "0 5 * * *"
     jobs:
-      # artifacts are already prepared and committed by the build_test workflow, so only publish remains
+      # this merge_and_dist is only to ensure the correct version in develop branch
+      - merge_and_dist:
+          from: master
+          to: develop
+          channel: dev
       - publish_npm:
           channel: dev
+          branch: develop
+          requires:
+            - merge_and_dist
       # verify the dev packages after publishing them
       - e2e_wdio:
           name: jit-aurelia-cli-ts

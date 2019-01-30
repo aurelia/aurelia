@@ -1,6 +1,7 @@
 .idea
 .DS_STORE
 .rpt2_cache
+TEST-*.xml
 
 **/node_modules
 **/coverage

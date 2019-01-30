@@ -1,13 +1,5 @@
-import { ILiveLoggingOptions, ITraceInfo, ITraceWriter, PLATFORM, Tracer as RuntimeTracer } from '@aurelia/kernel';
+import { ILiveLoggingOptions, ITraceInfo, ITraceWriter, PLATFORM, Reporter, Tracer as RuntimeTracer } from '@aurelia/kernel';
 import { IScope, LifecycleFlags } from '@aurelia/runtime';
-
-declare var console: {
-  log(...args: unknown[]): void;
-  debug(...args: unknown[]): void;
-  info(...args: unknown[]): void;
-  warn(...args: unknown[]): void;
-  error(...args: unknown[]): void;
-};
 
 const marker: ITraceInfo = {
   objName: 'marker',
@@ -510,8 +502,7 @@ function createLiveTraceWriter(options: ILiveLoggingOptions): ITraceWriter {
       } else {
         return;
       }
-      // tslint:disable-next-line:no-console
-      console.debug(`${'-'.repeat(info.depth)}${info.objName}.${info.methodName}(${output})`);
+      Reporter.write(10000, `${'-'.repeat(info.depth)}${info.objName}.${info.methodName}(${output})`);
     }
   };
 }

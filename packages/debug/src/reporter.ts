@@ -212,5 +212,9 @@ const codeLookup: Record<string, IMessageInfo> = {
   151: {
     type: MessageType.error,
     message: 'Unexpected keyword "of"'
+  },
+  10000: {
+    type: MessageType.debug,
+    message: '%s'
   }
 };

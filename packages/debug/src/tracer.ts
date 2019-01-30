@@ -178,20 +178,23 @@ function flagsText(info: ITraceInfo, i: number = 0): string {
   return 'none';
 }
 function _ctorName(obj: Instance): string {
-  if (obj && obj.constructor) {
-    if (obj.constructor.description) {
-      return `Resource{'${obj.constructor.description.name}'}`;
-    }
-    return obj.constructor.name;
-  }
+  let name: string;
   if (obj === undefined) {
-    return 'undefined';
+    name = 'undefined';
   } else if (obj === null) {
-    return 'null';
+    name = 'null';
+  } else if (obj.constructor !== undefined) {
+    if (obj.constructor.description) {
+      name = `Resource{'${obj.constructor.description.name}'}`;
+    } else {
+      name = obj.constructor.name;
+    }
   } else if (typeof obj === 'string') {
-    return `'${obj}'`;
+    name = `'${obj}'`;
+  } else {
+    name = toString.call(obj);
   }
-  return toString.call(obj);
+  return name;
 }
 function ctorName(info: ITraceInfo, i: number = 0): string {
   if (info.params.length > i) {

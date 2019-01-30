@@ -4,7 +4,6 @@ import {
   Aurelia,
   CustomElementResource,
   IExpressionParser,
-  ILifecycle,
   INodeSequence,
   ISignaler,
   LifecycleFlags } from '@aurelia/runtime';
@@ -30,7 +29,6 @@ describe(spec, () => {
     au.stop();
     expect(host.textContent).to.equal('');
   });
-
 
   it('signaler', async () => {
 
@@ -211,7 +209,6 @@ describe('dependency injection', () => {
     expect(host.textContent).to.equal('bar');
   });
 });
-
 
 // commented out code left here intentionally, serves as a staring point for template controller tests
 

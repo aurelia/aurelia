@@ -25,6 +25,7 @@ import {
   IRenderable
 } from '../lifecycle';
 import { IChangeTracker } from '../observation';
+import { Bindable } from '../templating/bindable';
 import {
   $attachAttribute,
   $cacheAttribute,
@@ -36,7 +37,6 @@ import {
   $unbindAttribute
 } from '../templating/lifecycle-bind';
 import { $hydrateAttribute } from '../templating/lifecycle-render';
-import { Bindable } from '../templating/bindable';
 
 type CustomAttributeStaticProperties = Pick<Immutable<Required<IAttributeDefinition>>, 'bindables'>;
 

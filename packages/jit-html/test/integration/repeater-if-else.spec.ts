@@ -620,7 +620,7 @@ describe(spec, function() {
           public items: any[];
           public display: boolean;
           public count: number;
-          created() {
+          public created() {
             this.items = initialItems;
             this.display = false;
             this.count = count;

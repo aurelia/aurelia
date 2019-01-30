@@ -145,13 +145,14 @@ describe(spec, function () {
       } else {
         expect(calls['ProxyObserver'].length).to.equal(0, 'calls[\'ProxyObserver\'].length');
       }
-      const names = ['ProxyObserver', 'ProxySubscriberCollection', 'SelfObserver', 'SetterObserver'];
-      for (const {} of names) {
-        // calls[`${name}.constructor`].sort((a, b) => a.depth < b.depth ? -1 : b.depth < a.depth ? 1 : 0);
-        // for (const call of calls[`${name}.constructor`]) {
-        //   console.log(`${call.depth}`.padEnd(2, ' ') + ' '.repeat(call.depth) + call.name)
-        // }
-      }
+      // TODO: deeply verify observer call counts
+      // const names = ['ProxyObserver', 'ProxySubscriberCollection', 'SelfObserver', 'SetterObserver'];
+      // for (const {} of names) {
+      //   calls[`${name}.constructor`].sort((a, b) => a.depth < b.depth ? -1 : b.depth < a.depth ? 1 : 0);
+      //   for (const call of calls[`${name}.constructor`]) {
+      //     console.log(`${call.depth}`.padEnd(2, ' ') + ' '.repeat(call.depth) + call.name)
+      //   }
+      // }
     });
   }
 

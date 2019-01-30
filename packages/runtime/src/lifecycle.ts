@@ -553,7 +553,7 @@ export class Lifecycle implements ILifecycle {
   /** @internal */public $nextFlush: IChangeTracker;
   /** @internal */public flush: IChangeTracker['flush'];
   /** @internal */public $nextConnect: IConnectableBinding;
-  /** @internal */public connect: IConnectableBinding['connect'];;
+  /** @internal */public connect: IConnectableBinding['connect'];
   /** @internal */public $nextBound: ILifecycleHooks;
   /** @internal */public bound: ILifecycleHooks['bound'];
   /** @internal */public $nextMount: IMountableComponent;

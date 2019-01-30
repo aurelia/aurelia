@@ -1,6 +1,7 @@
 import { LifecycleFlags } from '../flags';
 import { AccessorOrObserver, CollectionKind, ICollectionObserver, IObserversLookup } from '../observation';
 
+/** @internal */
 export function mayHaveObservers(value: unknown): value is { $observers: IObserversLookup; $observer: ICollectionObserver<CollectionKind.indexed | CollectionKind.keyed> } {
   return value !== null && typeof value === 'object';
 }
@@ -8,6 +9,7 @@ export function mayHaveObservers(value: unknown): value is { $observers: IObserv
 /**
  * Checks if the provided value is an object and whether it has any observers declared on it.
  * If so, then patch all of its properties recursively. This is essentially a dirty check.
+ * @internal
  */
 export function patchProperties(value: unknown, flags: LifecycleFlags): void {
   if (mayHaveObservers(value)) {
@@ -27,6 +29,7 @@ export function patchProperties(value: unknown, flags: LifecycleFlags): void {
   }
 }
 
+/** @internal */
 export function patchProperty(value: unknown, key: string, flags: LifecycleFlags): void {
   if (mayHaveObservers(value) && value.$observers !== undefined) {
     const observer = value.$observers[key];

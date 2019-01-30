@@ -1,5 +1,6 @@
 import {
   Aurelia,
+  BindingStrategy,
   CustomElementResource,
   ILifecycle,
   LifecycleFlags
@@ -10,12 +11,16 @@ import { TestContext } from '../util';
 import { TestConfiguration } from './resources';
 import { trimFull } from './util';
 
-const spec = 'template-compiler.repeater-if-else';
+const spec = 'repeater-if-else';
 
 describe(spec, function() {
 
+  type Comp = { items: any[]; display: boolean; $patch(flags: LifecycleFlags): void };
   interface Spec {
     t: string;
+  }
+  interface StrategySpec extends Spec {
+    strategy: BindingStrategy;
   }
   interface BehaviorsSpec extends Spec {
     behaviors: string;
@@ -35,8 +40,22 @@ describe(spec, function() {
     count: number;
   }
   interface MutationSpec extends Spec {
-    execute(component: { items: any[]; display: boolean }, lifecycle: ILifecycle, host: Element, count: number, ifText: string, elseText: string): void;
+    execute(component: Comp, lifecycle: ILifecycle, host: Element, count: number, ifText: string, elseText: string, patch: boolean): void;
   }
+  const strategySpecs: StrategySpec[] = [
+    {
+      t: '01',
+      strategy: BindingStrategy.getterSetter
+    },
+    {
+      t: '02',
+      strategy: BindingStrategy.proxies
+    },
+    {
+      t: '03',
+      strategy: BindingStrategy.patch
+    }
+  ];
 
   const behaviorsSpecs: BehaviorsSpec[] = [
     {
@@ -378,136 +397,181 @@ describe(spec, function() {
   const mutationSpecs: MutationSpec[] = [
     {
       t: '01',
-      execute(component: { items: any[]; display: boolean }, lifecycle: ILifecycle, host: Element, count: number, ifText: string, elseText: string): void {
+      execute(component: Comp, lifecycle: ILifecycle, host: Element, count: number, ifText: string, elseText: string, patch: boolean): void {
         component.display = true;
         lifecycle.processFlushQueue(LifecycleFlags.none);
+        if (patch) {
+          component.$patch(LifecycleFlags.none);
+        }
 
         expect(trimFull(host.textContent)).to.equal(ifText.repeat(count));
       }
     },
     {
-      t: '01',
-      execute(component: { items: any[]; display: boolean }, lifecycle: ILifecycle, host: Element, count: number, ifText: string, elseText: string): void {
+      t: '02',
+      execute(component: Comp, lifecycle: ILifecycle, host: Element, count: number, ifText: string, elseText: string, patch: boolean): void {
         component.display = true;
         lifecycle.processFlushQueue(LifecycleFlags.none);
+        if (patch) {
+          component.$patch(LifecycleFlags.none);
+        }
         component.display = false;
         lifecycle.processFlushQueue(LifecycleFlags.none);
+        if (patch) {
+          component.$patch(LifecycleFlags.none);
+        }
 
         expect(trimFull(host.textContent)).to.equal(elseText.repeat(count));
       }
     },
     {
-      t: '01',
-      execute(component: { items: any[]; display: boolean }, lifecycle: ILifecycle, host: Element, count: number, ifText: string, elseText: string): void {
+      t: '03',
+      execute(component: Comp, lifecycle: ILifecycle, host: Element, count: number, ifText: string, elseText: string, patch: boolean): void {
         component.items = [{if: 2, else: 1}, {if: 4, else: 3}];
         lifecycle.processFlushQueue(LifecycleFlags.none);
+        if (patch) {
+          component.$patch(LifecycleFlags.none);
+        }
 
         expect(trimFull(host.textContent)).to.equal('13'.repeat(count));
       }
     },
     {
-      t: '01',
-      execute(component: { items: any[]; display: boolean }, lifecycle: ILifecycle, host: Element, count: number, ifText: string, elseText: string): void {
+      t: '04',
+      execute(component: Comp, lifecycle: ILifecycle, host: Element, count: number, ifText: string, elseText: string, patch: boolean): void {
         component.items[0].if = 5;
         component.items[0].else = 6;
         component.items[1].if = 7;
         component.items[1].else = 8;
         lifecycle.processFlushQueue(LifecycleFlags.none);
+        if (patch) {
+          component.$patch(LifecycleFlags.none);
+        }
 
         expect(trimFull(host.textContent)).to.equal((`68${elseText.slice(2)}`).repeat(count));
       }
     },
     {
-      t: '01',
-      execute(component: { items: any[]; display: boolean }, lifecycle: ILifecycle, host: Element, count: number, ifText: string, elseText: string): void {
+      t: '05',
+      execute(component: Comp, lifecycle: ILifecycle, host: Element, count: number, ifText: string, elseText: string, patch: boolean): void {
         component.items.reverse();
         lifecycle.processFlushQueue(LifecycleFlags.none);
+        if (patch) {
+          component.$patch(LifecycleFlags.none);
+        }
 
         expect(trimFull(host.textContent)).to.equal((elseText.split('').reverse().join('')).repeat(count));
       }
     },
     {
-      t: '01',
-      execute(component: { items: any[]; display: boolean }, lifecycle: ILifecycle, host: Element, count: number, ifText: string, elseText: string): void {
+      t: '06',
+      execute(component: Comp, lifecycle: ILifecycle, host: Element, count: number, ifText: string, elseText: string, patch: boolean): void {
         component.items.reverse();
         component.display = true;
         lifecycle.processFlushQueue(LifecycleFlags.none);
+        if (patch) {
+          component.$patch(LifecycleFlags.none);
+        }
 
         expect(trimFull(host.textContent)).to.equal((ifText.split('').reverse().join('')).repeat(count));
       }
     },
     {
-      t: '01',
-      execute(component: { items: any[]; display: boolean }, lifecycle: ILifecycle, host: Element, count: number, ifText: string, elseText: string): void {
+      t: '07',
+      execute(component: Comp, lifecycle: ILifecycle, host: Element, count: number, ifText: string, elseText: string, patch: boolean): void {
         component.items = [{if: 'a', else: 'b'}];
         lifecycle.processFlushQueue(LifecycleFlags.none);
+        if (patch) {
+          component.$patch(LifecycleFlags.none);
+        }
 
         expect(trimFull(host.textContent)).to.equal('b'.repeat(count));
       }
     },
     {
-      t: '01',
-      execute(component: { items: any[]; display: boolean }, lifecycle: ILifecycle, host: Element, count: number, ifText: string, elseText: string): void {
+      t: '08',
+      execute(component: Comp, lifecycle: ILifecycle, host: Element, count: number, ifText: string, elseText: string, patch: boolean): void {
         component.items = [{if: 'a', else: 'b'}];
         component.display = true;
         lifecycle.processFlushQueue(LifecycleFlags.none);
+        if (patch) {
+          component.$patch(LifecycleFlags.none);
+        }
 
         expect(trimFull(host.textContent)).to.equal('a'.repeat(count));
       }
     },
     {
-      t: '01',
-      execute(component: { items: any[]; display: boolean }, lifecycle: ILifecycle, host: Element, count: number, ifText: string, elseText: string): void {
+      t: '09',
+      execute(component: Comp, lifecycle: ILifecycle, host: Element, count: number, ifText: string, elseText: string, patch: boolean): void {
         component.items.pop();
         lifecycle.processFlushQueue(LifecycleFlags.none);
+        if (patch) {
+          component.$patch(LifecycleFlags.none);
+        }
 
         expect(trimFull(host.textContent)).to.equal(elseText.slice(0, -1).repeat(count));
       }
     },
     {
-      t: '01',
-      execute(component: { items: any[]; display: boolean }, lifecycle: ILifecycle, host: Element, count: number, ifText: string, elseText: string): void {
+      t: '10',
+      execute(component: Comp, lifecycle: ILifecycle, host: Element, count: number, ifText: string, elseText: string, patch: boolean): void {
         component.items.pop();
         component.display = true;
         lifecycle.processFlushQueue(LifecycleFlags.none);
+        if (patch) {
+          component.$patch(LifecycleFlags.none);
+        }
 
         expect(trimFull(host.textContent)).to.equal(ifText.slice(0, -1).repeat(count));
       }
     },
     {
-      t: '01',
-      execute(component: { items: any[]; display: boolean }, lifecycle: ILifecycle, host: Element, count: number, ifText: string, elseText: string): void {
+      t: '11',
+      execute(component: Comp, lifecycle: ILifecycle, host: Element, count: number, ifText: string, elseText: string, patch: boolean): void {
         component.items = component.items.slice().concat({if: 'x', else: 'y'});
         lifecycle.processFlushQueue(LifecycleFlags.none);
+        if (patch) {
+          component.$patch(LifecycleFlags.none);
+        }
 
         expect(trimFull(host.textContent)).to.equal(`${elseText}y`.repeat(count));
       }
     },
     {
-      t: '01',
-      execute(component: { items: any[]; display: boolean }, lifecycle: ILifecycle, host: Element, count: number, ifText: string, elseText: string): void {
+      t: '12',
+      execute(component: Comp, lifecycle: ILifecycle, host: Element, count: number, ifText: string, elseText: string, patch: boolean): void {
         component.items = [{if: 'a', else: 'b'}, {if: 'c', else: 'd'}, {if: 'e', else: 'f'}];
         component.display = true;
         lifecycle.processFlushQueue(LifecycleFlags.none);
+        if (patch) {
+          component.$patch(LifecycleFlags.none);
+        }
 
         expect(trimFull(host.textContent)).to.equal('ace'.repeat(count));
       }
     },
     {
-      t: '01',
-      execute(component: { items: any[]; display: boolean }, lifecycle: ILifecycle, host: Element, count: number, ifText: string, elseText: string): void {
+      t: '13',
+      execute(component: Comp, lifecycle: ILifecycle, host: Element, count: number, ifText: string, elseText: string, patch: boolean): void {
         component.items.push({if: 5, else: 6});
         lifecycle.processFlushQueue(LifecycleFlags.none);
+        if (patch) {
+          component.$patch(LifecycleFlags.none);
+        }
 
         expect(trimFull(host.textContent)).to.equal(`${elseText}6`.repeat(count));
       }
     },
     {
-      t: '01',
-      execute(component: { items: any[]; display: boolean }, lifecycle: ILifecycle, host: Element, count: number, ifText: string, elseText: string): void {
+      t: '14',
+      execute(component: Comp, lifecycle: ILifecycle, host: Element, count: number, ifText: string, elseText: string, patch: boolean): void {
         component.items.push({if: 5, else: 6});
         component.display = true;
         lifecycle.processFlushQueue(LifecycleFlags.none);
+        if (patch) {
+          component.$patch(LifecycleFlags.none);
+        }
 
         expect(trimFull(host.textContent)).to.equal(`${ifText}5`.repeat(count));
       }
@@ -515,10 +579,11 @@ describe(spec, function() {
   ];
 
   eachCartesianJoin(
-    [behaviorsSpecs, ceTemplateSpecs, appTemplateSpecs, itemsSpecs, countSpecs, mutationSpecs],
-    (behaviorsSpec, ceTemplateSpec, appTemplateSpec, itemsSpec, countSpec, mutationSpec) => {
+    [strategySpecs, behaviorsSpecs, ceTemplateSpecs, appTemplateSpecs, itemsSpecs, countSpecs, mutationSpecs],
+    (strategySpec, behaviorsSpec, ceTemplateSpec, appTemplateSpec, itemsSpec, countSpec, mutationSpec) => {
 
-    it(`behaviorsSpec ${behaviorsSpec.t}, ceTemplateSpec ${ceTemplateSpec.t}, appTemplateSpec ${appTemplateSpec.t}, itemsSpec ${itemsSpec.t}, countSpec ${countSpec.t}, mutationSpec ${mutationSpec.t}`, function() {
+    it(`strategySpec ${strategySpec.t}, behaviorsSpec ${behaviorsSpec.t}, ceTemplateSpec ${ceTemplateSpec.t}, appTemplateSpec ${appTemplateSpec.t}, itemsSpec ${itemsSpec.t}, countSpec ${countSpec.t}, mutationSpec ${mutationSpec.t}`, function() {
+      const { strategy } = strategySpec;
       const { behaviors } = behaviorsSpec;
       const { createCETemplate } = ceTemplateSpec;
       const { createAppTemplate } = appTemplateSpec;
@@ -528,37 +593,52 @@ describe(spec, function() {
 
       const ctx = TestContext.createHTMLTestContext();
       const { container } = ctx;
-      container.register(TestConfiguration);
 
       const initialItems = createItems();
 
-      class $Foo {
-        public static bindables = {
-          items: { property: 'items', attribute: 'items' },
-          display: { property: 'display', attribute: 'display' }
-        };
-        public items: any[];
-        public display: boolean;
-      }
-      const Foo = CustomElementResource.define({ name: 'foo', template: createCETemplate(behaviors) }, $Foo);
-      container.register(Foo);
-      class $App {
-        public items: any[] = initialItems;
-        public display: boolean = false;
-        public count: number = count;
-      }
-      const App = CustomElementResource.define({ name: 'app', template: createAppTemplate(behaviors) }, $App);
+      const Component = CustomElementResource.define(
+        {
+          name: 'app',
+          template: createAppTemplate(behaviors),
+          strategy,
+          dependencies: [
+            CustomElementResource.define(
+              {
+                name: 'foo',
+                template: createCETemplate(behaviors),
+                strategy
+              },
+              class Foo {
+                public static bindables = ['items', 'display'];
+                public items: any[];
+                public display: boolean;
+              }
+            )
+          ]
+        },
+        class App {
+          public items: any[];
+          public display: boolean;
+          public count: number;
+          public created() {
+            this.items = initialItems;
+            this.display = false;
+            this.count = count;
+          }
+        }
+      );
 
       const host = ctx.createElement('div');
-      const component = new App();
 
-      const au = new Aurelia(container);
-      au.app({ host, component });
-      au.start();
+      const au = new Aurelia(container)
+        .register(TestConfiguration)
+        .app({ host, component: Component, strategy })
+        .start();
+      const component = au.root();
 
       expect(trimFull(host.textContent)).to.equal(elseText.repeat(count));
 
-      execute(component as any, ctx.lifecycle, host, count, ifText, elseText);
+      execute(component as any, ctx.lifecycle, host, count, ifText, elseText, strategy === BindingStrategy.patch);
 
       au.stop();
       expect(trimFull(host.textContent)).to.equal('');

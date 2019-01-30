@@ -1,6 +1,6 @@
-import { DI, IContainer, IRegistry, PLATFORM, Profiler, Registration } from '@aurelia/kernel';
+import { DI, IContainer, IRegistry, PLATFORM, Profiler, Registration, Reporter } from '@aurelia/kernel';
 import { IDOM, INode } from './dom';
-import { LifecycleFlags } from './flags';
+import { BindingStrategy, LifecycleFlags } from './flags';
 import { ProxyObserver } from './observation/proxy-observer';
 import { ExposedContext } from './rendering-engine';
 import { CustomElementResource, ICustomElement, ICustomElementType } from './resources/custom-element';
@@ -9,7 +9,7 @@ const { enter: enterStart, leave: leaveStart } = Profiler.createTimer('Aurelia.s
 const { enter: enterStop, leave: leaveStop } = Profiler.createTimer('Aurelia.stop');
 
 export interface ISinglePageApp<THost extends INode = INode> {
-  useProxies?: boolean;
+  strategy?: BindingStrategy;
   dom?: IDOM;
   host: THost;
   component: unknown;
@@ -47,12 +47,9 @@ export class Aurelia {
     const domInitializer = this.container.get(IDOMInitializer);
     domInitializer.initialize(config);
 
-    let startFlags = LifecycleFlags.fromStartTask;
-    let stopFlags = LifecycleFlags.fromStopTask;
-    if (config.useProxies) {
-      startFlags |= LifecycleFlags.useProxies;
-      stopFlags |= LifecycleFlags.useProxies;
-    }
+    const startFlags = LifecycleFlags.fromStartTask | config.strategy;
+    const stopFlags = LifecycleFlags.fromStopTask | config.strategy;
+
     let component: ICustomElement;
     const componentOrType = config.component as ICustomElement | ICustomElementType;
     if (CustomElementResource.isType(componentOrType as ICustomElementType)) {

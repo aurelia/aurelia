@@ -10,6 +10,7 @@ import {
   BindingContext,
   BindingIdentifier,
   BindingMode,
+  BindingStrategy,
   ForOfStatement,
   IDOM,
   ILifecycle,
@@ -57,11 +58,8 @@ describe(`Repeat`, () => {
   interface Spec {
     t: string;
   }
-  interface KeyedSpec extends Spec {
-    keyed: boolean;
-  }
-  interface UseProxiesSpec extends Spec {
-    useProxies: boolean;
+  interface StrategySpec extends Spec {
+    strategy: BindingStrategy;
   }
   interface DuplicateOperationSpec extends Spec {
     bindTwice: boolean;
@@ -174,14 +172,13 @@ describe(`Repeat`, () => {
     }
   }
 
-  const keyedSpecs: KeyedSpec[] = [
-    { t: '1', keyed: false },
-    { t: '2', keyed: true  }
-  ];
-
-  const useProxiesSpecs: UseProxiesSpec[] = [
-    { t: '1', useProxies: false },
-    { t: '2', useProxies: true  }
+  const strategySpecs: StrategySpec[] = [
+    { t: '1', strategy: BindingStrategy.getterSetter },
+    { t: '2', strategy: BindingStrategy.proxies },
+    { t: '3', strategy: BindingStrategy.patch },
+    { t: '4', strategy: BindingStrategy.keyed | BindingStrategy.getterSetter },
+    { t: '5', strategy: BindingStrategy.keyed | BindingStrategy.proxies },
+    { t: '6', strategy: BindingStrategy.keyed | BindingStrategy.patch },
   ];
 
   const duplicateOperationSpecs: DuplicateOperationSpec[] = [
@@ -473,6 +470,79 @@ describe(`Repeat`, () => {
       { op: 'shift', count: 3 },
       { op: 'pop', count: 3 },
       { op: 'push', items: ['d', 'e', 'f'] }
+    ] },
+    { t: '77', items: ['a', 'b', 'c'], flush: true, mutations: [
+      { op: 'unshift', items: ['d', 'e', 'f'] },
+      { op: 'assign', newItems: [] },
+      { op: 'unshift', items: ['g', 'h', 'i'] }
+    ] },
+    { t: '78', items: ['a', 'b', 'c'], flush: true, mutations: [
+      { op: 'pop', count: 1 },
+      { op: 'assign', newItems: ['d', 'e', 'f'] },
+      { op: 'pop', count: 1 }
+    ] },
+    { t: '79', items: ['a', 'b', 'c', 'd', 'e', 'f'], flush: true, mutations: [
+      { op: 'pop', count: 3 },
+      { op: 'assign', newItems: ['d', 'e', 'f', 'g', 'h', 'i'] },
+      { op: 'pop', count: 3 }
+    ] },
+    { t: '80', items: ['a', 'b', 'c'], flush: true, mutations: [
+      { op: 'shift', count: 1 },
+      { op: 'assign', newItems: ['d', 'e', 'f'] },
+      { op: 'shift', count: 1 }
+    ] },
+    { t: '81', items: ['a', 'b', 'c'], flush: true, mutations: [
+      { op: 'shift', count: 3 },
+      { op: 'assign', newItems: ['d', 'e', 'f', 'g', 'h', 'i'] },
+      { op: 'shift', count: 3 },
+    ] },
+    { t: '82', items: ['a', 'b', 'c'], flush: true, mutations: [
+      { op: 'pop', count: 1 },
+      { op: 'shift', count: 1 },
+      { op: 'assign', newItems: ['d', 'e', 'f', 'g', 'h', 'i'] },
+      { op: 'pop', count: 1 },
+      { op: 'shift', count: 1 }
+    ] },
+    { t: '83', items: ['a', 'b', 'c', 'd', 'e', 'f'], flush: true, mutations: [
+      { op: 'assign', newItems: [] },
+      { op: 'push', items: ['g', 'h', 'i', 'j', 'k', 'l'] },
+      { op: 'push', items: ['m', 'n', 'o', 'p', 'q', 'r'] }
+    ] },
+    { t: '84', items: ['a', 'b', 'c', 'd', 'e', 'f'], flush: true, mutations: [
+      { op: 'push', items: ['g', 'h', 'i', 'j', 'k', 'l'] },
+      { op: 'assign', newItems: [] },
+      { op: 'push', items: ['m', 'n', 'o', 'p', 'q', 'r'] }
+    ] },
+    { t: '85', items: ['a', 'b', 'c', 'd', 'e', 'f'], flush: true, mutations: [
+      { op: 'push', items: ['g', 'h', 'i', 'j', 'k', 'l'] },
+      { op: 'push', items: ['m', 'n', 'o', 'p', 'q', 'r'] },
+      { op: 'assign', newItems: [] },
+    ] },
+    { t: '86', items: ['a', 'b', 'c', 'd', 'e', 'f'], flush: true, mutations: [
+      { op: 'push', items: ['g', 'h', 'i', 'j', 'k', 'l'] },
+      { op: 'push', items: ['m', 'n', 'o', 'p', 'q', 'r'] },
+      { op: 'assign', newItems: ['c', 'd', 'e'] },
+    ] },
+    { t: '87', items: ['a', 'b', 'c', 'd', 'e', 'f'], flush: true, mutations: [
+      { op: 'splice', start: 1, deleteCount: 1, items: [] },
+      { op: 'splice', start: 3, deleteCount: 1, items: [] },
+      { op: 'splice', start: 5, deleteCount: 1, items: [] },
+      { op: 'assign', newItems: [] },
+      { op: 'push', items: ['g', 'h', 'i', 'j', 'k', 'l'] },
+      { op: 'splice', start: 1, deleteCount: 1, items: [] },
+      { op: 'splice', start: 3, deleteCount: 1, items: [] },
+      { op: 'splice', start: 5, deleteCount: 1, items: [] },
+      { op: 'push', items: ['m', 'n', 'o', 'p', 'q', 'r'] }
+    ] },
+    { t: '88', items: ['a', 'b', 'c', 'd', 'e', 'f'], flush: true, mutations: [
+      { op: 'splice', start: 1, deleteCount: 1, items: [] },
+      { op: 'splice', start: 3, deleteCount: 1, items: [] },
+      { op: 'splice', start: 5, deleteCount: 1, items: [] },
+      { op: 'assign', newItems: ['g', 'h', 'i', 'j', 'k', 'l'] },
+      { op: 'splice', start: 1, deleteCount: 1, items: [] },
+      { op: 'splice', start: 3, deleteCount: 1, items: [] },
+      { op: 'splice', start: 5, deleteCount: 1, items: [] },
+      { op: 'push', items: ['m', 'n', 'o', 'p', 'q', 'r'] }
     ] }
   ];
 
@@ -501,17 +571,21 @@ describe(`Repeat`, () => {
     { t: '5', bindFlags1: startBind,  attachFlags1: startAttach, detachFlags1: stopDetach,  unbindFlags1: stopUnbind,  bindFlags2: startBind,  attachFlags2: startAttach, detachFlags2: stopDetach,  unbindFlags2: stopUnbind  }
   ];
 
-  eachCartesianJoin([keyedSpecs, useProxiesSpecs, duplicateOperationSpecs, bindSpecs, flagsSpecs], (keyedSpec, useProxiesSpec, duplicateOperationSpec, bindSpec, flagsSpec) => {
-    it(`verify repeat behavior - keyedSpec ${keyedSpec.t}, useProxiesSpec ${useProxiesSpec.t}, duplicateOperationSpec ${duplicateOperationSpec.t}, bindSpec ${bindSpec.t}, flagsSpec ${flagsSpec.t}, `, async () => {
-      const { keyed } = keyedSpec;
-      const { useProxies } = useProxiesSpec;
+  eachCartesianJoin(
+    [strategySpecs, duplicateOperationSpecs, bindSpecs, flagsSpecs],
+    (strategySpec, duplicateOperationSpec, bindSpec, flagsSpec) => {
+    it(`verify repeat behavior - strategySpec ${strategySpec.t}, duplicateOperationSpec ${duplicateOperationSpec.t}, bindSpec ${bindSpec.t}, flagsSpec ${flagsSpec.t}, `, async () => {
+      const { strategy } = strategySpec;
       const { bindTwice, attachTwice, detachTwice, unbindTwice, newScopeForDuplicateBind } = duplicateOperationSpec;
       const { items: $items, flush, mutations } = bindSpec;
       const { bindFlags1, attachFlags1, detachFlags1, unbindFlags1, bindFlags2, attachFlags2, detachFlags2, unbindFlags2 } = flagsSpec;
 
       const items = $items.slice();
       // common stuff
-      const baseFlags = useProxies ? LifecycleFlags.useProxies : LifecycleFlags.none;
+      const baseFlags: LifecycleFlags = strategy as unknown as LifecycleFlags;
+      const keyed = (strategy & BindingStrategy.keyed) > 0;
+      const proxies = (strategy & BindingStrategy.proxies) > 0;
+      const patch = (strategy & BindingStrategy.patch) > 0;
       const container = AuDOMConfiguration.createContainer();
       const dom = container.get<AuDOM>(IDOM);
       const observerLocator = container.get(IObserverLocator);
@@ -529,7 +603,7 @@ describe(`Repeat`, () => {
 
           const nodes = new AuNodeSequence(dom, wrapper);
           const itemBinding = new Binding(new AccessScope('item'), text, 'textContent', BindingMode.toView, observerLocator, container);
-          binding.persistentFlags |= baseFlags;
+          binding.persistentFlags |= strategy;
 
           (itemRenderable as Writable<typeof itemRenderable>).$nodes = nodes;
           addBinding(itemRenderable, itemBinding);
@@ -547,7 +621,7 @@ describe(`Repeat`, () => {
         $bindingHead: binding
       } as any;
       let sut: Repeat<IObservedArray, AuNode>;
-      if (useProxies) {
+      if (proxies) {
         sut = new ProxyObserver(new Repeat<IObservedArray, AuNode>(location, renderable, itemFactory)).proxy;
       } else {
         sut = new Repeat<IObservedArray, AuNode>(location, renderable, itemFactory);
@@ -558,6 +632,7 @@ describe(`Repeat`, () => {
       (sut as Writable<Repeat>).$scope = null;
 
       const repeatBehavior = RuntimeBehavior.create(Repeat);
+      sut.keyed = keyed;
       repeatBehavior.applyTo(baseFlags, sut, lifecycle);
 
       // -- Round 1 --
@@ -576,9 +651,11 @@ describe(`Repeat`, () => {
       }
 
       runAttachLifecycle(lifecycle, sut, baseFlags | attachFlags1);
+      if (patch) { sut.$patch(baseFlags); }
       expect(host.textContent).to.equal(expectedText1, 'host.textContent #1');
       if (attachTwice) {
         runAttachLifecycle(lifecycle, sut, baseFlags | attachFlags1);
+        if (patch) { sut.$patch(baseFlags); }
         expect(host.textContent).to.equal(expectedText1, 'host.textContent #2');
       }
 
@@ -587,9 +664,11 @@ describe(`Repeat`, () => {
 
       if (flush) {
         lifecycle.processFlushQueue(baseFlags);
+        if (patch) { sut.$patch(baseFlags); }
         expect(host.textContent).to.equal(expectedText2, 'host.textContent #3');
       } else {
         const assign = mutations.find(m => m.op === 'assign') as AssignSpec;
+        if (patch) { sut.$patch(baseFlags); }
         if (assign) {
           expect(host.textContent).to.equal(assign.newItems.join(''), 'host.textContent #4');
         } else {
@@ -602,6 +681,7 @@ describe(`Repeat`, () => {
         runDetachLifecycle(lifecycle, sut, baseFlags | detachFlags1);
       }
 
+      if (patch) { sut.$patch(baseFlags); }
       expect(host.textContent).to.equal('', 'host.textContent #6');
 
       runUnbindLifecycle(lifecycle, sut, baseFlags | unbindFlags1);
@@ -623,9 +703,11 @@ describe(`Repeat`, () => {
       }
 
       runAttachLifecycle(lifecycle, sut, baseFlags | attachFlags2);
+      if (patch) { sut.$patch(baseFlags); }
       expect(host.textContent).to.equal(expectedText3, 'host.textContent #7');
       if (attachTwice) {
         runAttachLifecycle(lifecycle, sut, baseFlags | attachFlags2);
+        if (patch) { sut.$patch(baseFlags); }
         expect(host.textContent).to.equal(expectedText3, 'host.textContent #8');
       }
 
@@ -634,9 +716,11 @@ describe(`Repeat`, () => {
 
       if (flush) {
         lifecycle.processFlushQueue(baseFlags);
+        if (patch) { sut.$patch(baseFlags); }
         expect(host.textContent).to.equal(expectedText4, 'host.textContent #9');
       } else {
         const assign = mutations.find(m => m.op === 'assign') as AssignSpec;
+        if (patch) { sut.$patch(baseFlags); }
         if (assign) {
           expect(host.textContent).to.equal(assign.newItems.join(''), 'host.textContent #10');
         } else {
@@ -649,6 +733,7 @@ describe(`Repeat`, () => {
         runDetachLifecycle(lifecycle, sut, baseFlags | detachFlags2);
       }
 
+      if (patch) { sut.$patch(baseFlags); }
       expect(host.textContent).to.equal('', 'host.textContent #12');
 
       runUnbindLifecycle(lifecycle, sut, baseFlags | unbindFlags2);

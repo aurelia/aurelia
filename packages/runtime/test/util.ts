@@ -23,8 +23,8 @@ import {
   verifyEqual
 } from '../../../scripts/test-lib';
 import {
-  Tracer as DebugTracer
-} from '../../debug/src/reporter';
+  stringifyLifecycleFlags, Tracer as DebugTracer
+} from '../../debug/src/tracer';
 import {
   CustomElementResource,
   ICustomElement,
@@ -34,8 +34,7 @@ import {
   ITemplateDefinition,
   LifecycleFlags as LF,
   OverrideContext,
-  Scope,
-  stringifyLifecycleFlags
+  Scope
 } from '../src/index';
 import { Lifecycle } from '../src/lifecycle';
 import { ObserverLocator } from '../src/observation/observer-locator';
@@ -51,42 +50,6 @@ export interface IRepeaterFixture {
   itemName: string;
   propName?: string;
 }
-
-export const BindingTraceWriter = {
-  write(info: ITraceInfo): void {
-    let output: string = '(';
-    const params = info.params;
-    for (let i = 0, ii = params.length; i < ii; ++i) {
-      const p = info.params[i];
-      switch (typeof p) {
-        case 'string':
-        case 'boolean':
-          output += p.toString();
-          break;
-        case 'number':
-          output += p > 0 ? `flags=${stringifyLifecycleFlags(p)}` : '0';
-          break;
-        case 'object':
-          if (p === null) {
-            output += 'null';
-          } else {
-            output += '[object Object]';
-          }
-          break;
-        case 'undefined':
-          output += 'undefined';
-          break;
-        default:
-          output += '?';
-      }
-      if (i + 1 < ii) {
-        output += ', ';
-      }
-    }
-    output += ')';
-    console.debug(`${'  '.repeat(info.depth)}${info.name} - ${output}`);
-  }
-};
 
 const RuntimeTracer = { ...Tracer };
 export function enableTracing() {

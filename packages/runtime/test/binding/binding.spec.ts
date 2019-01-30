@@ -7,7 +7,6 @@ import {
 import {
   AccessMember,
   AccessScope,
-  BasicConfiguration,
   Binary,
   Binding,
   BindingMode,
@@ -22,6 +21,7 @@ import {
   ObjectLiteral,
   PrimitiveLiteral,
   PropertyAccessor,
+  RuntimeBasicConfiguration,
   Scope,
   SetterObserver,
   State
@@ -62,7 +62,7 @@ describe('Binding', () => {
   let dummyMode: BindingMode;
 
   function setup(sourceExpression: any = dummySourceExpression, target: any = dummyTarget, targetProperty: string = dummyTargetProperty, mode: BindingMode = dummyMode) {
-    const container = BasicConfiguration.createContainer();
+    const container = RuntimeBasicConfiguration.createContainer();
     const observerLocator = createObserverLocator(container);
     const lifecycle = container.get(ILifecycle) as Lifecycle;
     const sut = new Binding(sourceExpression, target, targetProperty, mode, observerLocator, container);
@@ -115,7 +115,7 @@ describe('Binding', () => {
         expr = new Binary('+', expr, new AccessScope(prop, 0));
       }
     }
-    const container = BasicConfiguration.createContainer();
+    const container = RuntimeBasicConfiguration.createContainer();
     const observerLocator = createObserverLocator(container);
     const lifecycle = container.get(ILifecycle) as Lifecycle;
     const target = {val: 0};
@@ -1000,4 +1000,5 @@ class MockObserver implements IBindingTargetObserver {
   public setValue = spy();
   public subscribe = spy();
   public unsubscribe = spy();
+  public $patch = spy();
 }

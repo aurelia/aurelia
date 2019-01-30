@@ -2,6 +2,7 @@ import { Tracer } from '@aurelia/kernel';
 import { LifecycleFlags } from '../flags';
 import { ILifecycle } from '../lifecycle';
 import { IBindingTargetAccessor, MutationKind } from '../observation';
+import { patchProperties } from './patch-properties';
 import { subscriberCollection } from './subscriber-collection';
 
 const slice = Array.prototype.slice;
@@ -17,7 +18,7 @@ type BindingTargetAccessor = IBindingTargetAccessor & {
 };
 
 function setValue(this: BindingTargetAccessor, newValue: unknown, flags: LifecycleFlags): Promise<void> {
-  if (Tracer.enabled) { Tracer.enter(`${this['constructor'].name}.setValue`, slice.call(arguments)); }
+  if (Tracer.enabled) { Tracer.enter(this['constructor'].name, 'setValue', slice.call(arguments)); }
   const currentValue = this.currentValue;
   newValue = newValue === null || newValue === undefined ? this.defaultValue : newValue;
   if (currentValue !== newValue) {
@@ -36,7 +37,7 @@ function setValue(this: BindingTargetAccessor, newValue: unknown, flags: Lifecyc
 }
 
 function flush(this: BindingTargetAccessor, flags: LifecycleFlags): void {
-  if (Tracer.enabled) { Tracer.enter(`${this['constructor'].name}.flush`, slice.call(arguments)); }
+  if (Tracer.enabled) { Tracer.enter(this['constructor'].name, 'flush', slice.call(arguments)); }
   if (this.isDOMObserver && (flags & LifecycleFlags.doNotUpdateDOM)) {
     // re-queue the change so it will still propagate on flush when it's attached again
     this.lifecycle.enqueueFlush(this).catch(error => { throw error; });
@@ -50,6 +51,19 @@ function flush(this: BindingTargetAccessor, flags: LifecycleFlags): void {
     this.setValueCore(currentValue, this.currentFlags | flags | LifecycleFlags.updateTargetInstance);
     this.oldValue = this.currentValue;
   }
+  if (Tracer.enabled) { Tracer.leave(); }
+}
+
+function patch(this: BindingTargetAccessor, flags: LifecycleFlags): void {
+  if (Tracer.enabled) { Tracer.enter(this['constructor'].name, '$patch', slice.call(arguments)); }
+
+  const newValue = this.getValue();
+  if (this.currentValue !== newValue) {
+    this.setValueCore(newValue, this.currentFlags | flags | LifecycleFlags.updateTargetInstance);
+    this.currentValue = newValue;
+  }
+  patchProperties(newValue, flags);
+
   if (Tracer.enabled) { Tracer.leave(); }
 }
 
@@ -77,6 +91,7 @@ export function targetObserver(defaultValue: unknown = null): ClassDecorator {
     proto.obj = null;
     proto.propertyKey = '';
 
+    proto.$patch = proto.$patch || patch;
     proto.setValue = proto.setValue || setValue;
     proto.flush = proto.flush || flush;
     proto.dispose = proto.dispose || dispose;

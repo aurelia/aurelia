@@ -1,16 +1,17 @@
 import { ITraceInfo, Profiler, Tracer } from '@aurelia/kernel';
 import {
   Aurelia,
+  BindingStrategy,
   CustomElementResource,
   ICustomElement,
-  LifecycleFlags,
-  ProxyObserver
+  LifecycleFlags
 } from '@aurelia/runtime';
 import { expect } from 'chai';
+import { stringifyLifecycleFlags } from '../../../debug/src/tracer';
 import { disableTracing, enableTracing } from '../unit/util';
 import { TestContext, writeProfilerReport } from '../util';
 
-const spec = 'template-compiler.deep-bindables';
+const spec = 'deep-bindables';
 
 describe(spec, function () {
   function setup() {
@@ -23,189 +24,204 @@ describe(spec, function () {
     return { ctx, container, lifecycle, au, host };
   }
 
-  for (const useProxies of [true, false]) {
-    for (const keyed of [true, false]) {
-      it(`useProxies=${useProxies}, keyed=${keyed}`, function() {
-        const bb = keyed ? ' & keyed' : '';
-        this.timeout(30000);
-        const { lifecycle, au, host } = setup();
+  for (const strategy of [
+    BindingStrategy.getterSetter,
+    BindingStrategy.patch,
+    BindingStrategy.proxies,
+    BindingStrategy.keyed | BindingStrategy.getterSetter,
+    BindingStrategy.keyed | BindingStrategy.patch,
+    BindingStrategy.keyed | BindingStrategy.proxies
+  ]) {
+    it(`strategy=${stringifyLifecycleFlags(strategy)}`, function() {
+      const bb = (strategy & BindingStrategy.keyed) > 0 ? ' & keyed' : '';
+      this.timeout(30000);
+      let num = 0;
+      const { lifecycle, au, host } = setup();
 
-        const bindables = {
-          max: { property: 'max', attribute: 'max' },
-          depth: { property: 'depth', attribute: 'depth' },
-          items: { property: 'items', attribute: 'items' },
-          item: { property: 'item', attribute: 'item' }
-        };
-        const FooA = CustomElementResource.define(
-          {
-            name: 'foo-a',
-            template: `a\${depth}.\${item} <foo-a if.bind="depth<=max" repeat.for="i of items${bb}" max.bind="max" depth.bind="depth+1" items.bind="items" item.bind="i"></foo-a>`,
-            useProxies
-          },
-          class { public static bindables = bindables; }
-        );
+      const bindables = {
+        max: { property: 'max', attribute: 'max' },
+        depth: { property: 'depth', attribute: 'depth' },
+        items: { property: 'items', attribute: 'items' },
+        item: { property: 'item', attribute: 'item' }
+      };
+      const FooA = CustomElementResource.define(
+        {
+          name: 'foo-a',
+          template: `a\${depth}.\${item} <foo-a if.bind="depth<=max" repeat.for="i of items${bb}" max.bind="max" depth.bind="depth+1" items.bind="items" item.bind="i"></foo-a>`,
+          strategy
+        },
+        class { public static bindables = bindables; }
+      );
 
-        const FooB = CustomElementResource.define(
-          {
-            name: 'foo-b',
-            template: `b\${depth}.\${item} <foo-b if.bind="depth<=max" repeat.for="i of items${bb}" max.bind="max" depth.bind="depth+1" items.bind="items" item.bind="i"></foo-b>`,
-            useProxies
-          },
-          class { public static bindables = bindables; }
-        );
+      const FooB = CustomElementResource.define(
+        {
+          name: 'foo-b',
+          template: `b\${depth}.\${item} <foo-b if.bind="depth<=max" repeat.for="i of items${bb}" max.bind="max" depth.bind="depth+1" items.bind="items" item.bind="i"></foo-b>`,
+          strategy
+        },
+        class { public static bindables = bindables; }
+      );
 
-        class $App {
-          public a: boolean = true;
-          public max: number = 3;
-          public depth: number = 0;
-          public items: number[] = [1, 2, 3];
+      class $App {
+        public a: boolean = true;
+        public max: number = 3;
+        public depth: number = 0;
+        public items: number[] = [1, 2, 3];
+      }
+      const App = CustomElementResource.define(
+        {
+          name: 'app',
+          template: `<foo-a if.bind="a" max.bind="max" depth.bind="depth+1" items.bind="items" item.bind="0"></foo-a><foo-b else max.bind="max" depth.bind="depth+1" items.bind="items" item.bind="0"></foo-b>`,
+          strategy,
+          dependencies: [FooA, FooB]
+        },
+        $App
+      );
+
+      function verify(c: ICustomElement & $App) {
+        if ((strategy & BindingStrategy.patch) > 0) {
+          c.$patch(LifecycleFlags.none);
         }
-        const App = CustomElementResource.define(
-          {
-            name: 'app',
-            template: `<foo-a if.bind="a" max.bind="max" depth.bind="depth+1" items.bind="items" item.bind="0"></foo-a><foo-b else max.bind="max" depth.bind="depth+1" items.bind="items" item.bind="0"></foo-b>`,
-            useProxies,
-            dependencies: [FooA, FooB]
-          },
-          $App
-        );
-
-        function verify(c: ICustomElement & $App) {
-          lifecycle.processFlushQueue(LifecycleFlags.none);
-          const { a, max, items } = c;
-          expect(host.textContent).to.equal(getExpectedText(a ? 'a' : 'b', max, items, 0, 1));
+        lifecycle.processFlushQueue(strategy);
+        const { a, max, items } = c;
+        expect(host.textContent, `#${++num}`).to.equal(getExpectedText(a ? 'a' : 'b', max, items, 0, 1));
+      }
+      function getExpectedText(prefix: string, max: number, items: unknown[], item: unknown, depth: number): string {
+        let text = `${prefix}${depth}.${item} `;
+        if (depth <= max) {
+          const len = items.length;
+          let i = 0;
+          for (i = 0; i < len; ++i) {
+            text += getExpectedText(prefix, max, items, items[i], depth + 1);
+          }
         }
-        function getExpectedText(prefix: string, max: number, items: unknown[], item: unknown, depth: number): string {
-          let text = `${prefix}${depth}.${item} `;
-          if (depth <= max) {
-            const len = items.length;
-            let i = 0;
-            for (i = 0; i < len; ++i) {
-              text += getExpectedText(prefix, max, items, items[i], depth + 1);
+        return text;
+      }
+
+      const trace = true;
+
+      const calls = {
+        'ProxyObserver': [] as ITraceInfo[],
+        'ProxySubscriberCollection': [] as ITraceInfo[],
+        'SelfObserver': [] as ITraceInfo[],
+        'SetterObserver': [] as ITraceInfo[]
+      };
+      if (trace) {
+        enableTracing();
+        Tracer.enableLiveLogging({
+          write(info) {
+            if (calls[info.objName] === undefined) {
+              calls[info.objName] = 0;
+            }
+            if (typeof calls[info.objName] === 'object') {
+              calls[info.objName].push(info);
+            } else {
+              ++calls[info.objName];
             }
           }
-          return text;
-        }
+        });
+      }
 
-        const trace = true;
+      au.app({ host, component: App, strategy });
+      au.start();
+      const component = au.root() as ICustomElement & $App;
 
-        const calls = {
-          'ProxyObserver.constructor': [] as ITraceInfo[],
-          'ProxySubscriberCollection.constructor': [] as ITraceInfo[],
-          'SelfObserver.constructor': [] as ITraceInfo[],
-          'SetterObserver.constructor': [] as ITraceInfo[]
-        };
-        if (trace) {
-          enableTracing();
-          Tracer.enableLiveLogging({
-            write(info) {
-              if (calls[info.name] === undefined) {
-                calls[info.name] = 0;
-              }
-              if (typeof calls[info.name] === 'object') {
-                calls[info.name].push(info);
-              } else {
-                ++calls[info.name];
-              }
-            }
-          });
-        }
+      verify(component);
+      component.max = 2;
+      component.items = [1, 2, 3];
 
-        au.app({ host, component: App, useProxies });
-        au.start();
-        const component = au.root() as ICustomElement & $App;
+      verify(component);
 
-        verify(component);
-        component.max = 2;
-        component.items = [1, 2, 3];
+      component.a = false;
 
-        verify(component);
+      verify(component);
 
-        component.a = false;
+      if (trace) {
+        disableTracing();
+      }
 
-        verify(component);
-
-        if (trace) {
-          disableTracing();
-        }
-
-        if (useProxies) {
-          expect(calls['SetterObserver.constructor'].length).to.equal(0, 'calls[\'SetterObserver.constructor\'].length');
-        } else {
-          expect(calls['ProxyObserver.constructor'].length).to.equal(0, 'calls[\'ProxyObserver.constructor\'].length');
-        }
-        const names = ['ProxyObserver', 'ProxySubscriberCollection', 'SelfObserver', 'SetterObserver'];
-        for (const name of names) {
-          // calls[`${name}.constructor`].sort((a, b) => a.depth < b.depth ? -1 : b.depth < a.depth ? 1 : 0);
-          // for (const call of calls[`${name}.constructor`]) {
-          //   console.log(`${call.depth}`.padEnd(2, ' ') + ' '.repeat(call.depth) + call.name)
-          // }
-        }
-      });
-    }
+      if ((strategy & BindingStrategy.proxies) > 0) {
+        expect(calls['SetterObserver'].length).to.equal(0, 'calls[\'SetterObserver\'].length');
+      } else {
+        expect(calls['ProxyObserver'].length).to.equal(0, 'calls[\'ProxyObserver\'].length');
+      }
+      // TODO: deeply verify observer call counts
+      // const names = ['ProxyObserver', 'ProxySubscriberCollection', 'SelfObserver', 'SetterObserver'];
+      // for (const {} of names) {
+      //   calls[`${name}.constructor`].sort((a, b) => a.depth < b.depth ? -1 : b.depth < a.depth ? 1 : 0);
+      //   for (const call of calls[`${name}.constructor`]) {
+      //     console.log(`${call.depth}`.padEnd(2, ' ') + ' '.repeat(call.depth) + call.name)
+      //   }
+      // }
+    });
   }
 
-  for (const useProxies of [true, false]) {
-    for (const keyed of [true, false]) {
-      it(`profile, useProxies=${useProxies}, keyed=${keyed}`, function() {
-        const bb = keyed ? ' & keyed' : '';
-        this.timeout(30000);
-        const { au, host } = setup();
+  for (const strategy of [
+    BindingStrategy.getterSetter,
+    BindingStrategy.patch,
+    BindingStrategy.proxies,
+    BindingStrategy.keyed | BindingStrategy.getterSetter,
+    BindingStrategy.keyed | BindingStrategy.patch,
+    BindingStrategy.keyed | BindingStrategy.proxies
+  ]) {
+    it(`profile, strategy=${stringifyLifecycleFlags(strategy)}`, function() {
+      const bb = (strategy & BindingStrategy.keyed) > 0 ? ' & keyed' : '';
+      this.timeout(30000);
+      const { au, host } = setup();
 
-        const bindingCount = 3;
-        const elementCount = 5000;
+      const bindingCount = 3;
+      const elementCount = 5000;
 
-        const arr = Array(bindingCount).fill(0);
+      const arr = Array(bindingCount).fill(0);
 
-        const bindables = {
-          ...arr
-            .map((v, i) => ({[`item${i + 1}`]: { property: `item${i + 1}`, attribute: `item${i + 1}` }}))
-            .reduce(
-              (acc, cur) => {
-                Object.assign(acc, cur);
-                return acc;
-              },
-              {}
-            )
-        };
+      const bindables = {
+        ...arr
+          .map((v, i) => ({[`item${i + 1}`]: { property: `item${i + 1}`, attribute: `item${i + 1}` }}))
+          .reduce(
+            (acc, cur) => {
+              Object.assign(acc, cur);
+              return acc;
+            },
+            {}
+          )
+      };
 
-        const interpolations = arr.map((v, i) => `\${item${i + 1}}`).join('');
-        const bindings = arr.map((v, i) => `item${i + 1}.bind="item${i + 1}"`).join(' ');
-        const Foo = CustomElementResource.define(
-          {
-            name: 'foo',
-            template: `${interpolations}`,
-            useProxies
-          },
-          class { public static bindables = bindables; }
-        );
+      const interpolations = arr.map((v, i) => `\${item${i + 1}}`).join('');
+      const bindings = arr.map((v, i) => `item${i + 1}.bind="item${i + 1}"`).join(' ');
+      const Foo = CustomElementResource.define(
+        {
+          name: 'foo',
+          template: `${interpolations}`,
+          strategy
+        },
+        class { public static bindables = bindables; }
+      );
 
-        class $App {
-          public item1: string = '$1';
-          public item2: string = '$2';
-          public item3: string = '$3';
-        }
-        const App = CustomElementResource.define(
-          {
-            name: 'app',
-            template: `<foo repeat.for="i of ${elementCount}${bb}" ${bindings}></foo>`,
-            useProxies,
-            dependencies: [Foo]
-          },
-          $App
-        );
+      class $App {
+        public item1: string = '$1';
+        public item2: string = '$2';
+        public item3: string = '$3';
+      }
+      const App = CustomElementResource.define(
+        {
+          name: 'app',
+          template: `<foo repeat.for="i of ${elementCount}${bb}" ${bindings}></foo>`,
+          strategy,
+          dependencies: [Foo]
+        },
+        $App
+      );
 
-        Profiler.enable();
+      Profiler.enable();
 
-        au.app({ host, component: App, useProxies });
-        au.start();
-        au.stop();
+      au.app({ host, component: App, strategy });
+      au.start();
+      au.stop();
 
-        Profiler.disable();
+      Profiler.disable();
 
-        writeProfilerReport(`deep-bindables useProxies:${useProxies}`);
-      });
-    }
+      writeProfilerReport(`deep-bindables strategy:${stringifyLifecycleFlags(strategy)}`);
+    });
   }
 
 // TODO: replace these tests with cartesian loop and remove these comments
@@ -214,13 +230,13 @@ describe(spec, function () {
   //   this.timeout(30000);
   //   let count = 100000;
   //   const { ctx, container, lifecycle, au, host } = setup();
-  //   let useProxies = true;
+  //   let proxyStrategy = true;
 
   //   const Foo = CustomElementResource.define(
   //     {
   //       name: 'foo',
   //       template: `\${a}\${b}\${c}\${d}\${e}\${f}\${g}\${h}\${i}\${j}`,
-  //       useProxies
+  //       proxyStrategy
   //     },
   //     class {
   //       public a = 'a';
@@ -239,7 +255,7 @@ describe(spec, function () {
   //     {
   //       name: 'app',
   //       template: `<foo repeat.for="i of ${count}"></foo>`,
-  //       useProxies,
+  //       proxyStrategy,
   //       dependencies: [Foo]
   //     },
   //     class {}
@@ -260,7 +276,7 @@ describe(spec, function () {
   //     });
   //   }
 
-  //   au.app({ host, component, useProxies });
+  //   au.app({ host, component, proxyStrategy });
   //   au.start();
 
   //   let expectedText = '';

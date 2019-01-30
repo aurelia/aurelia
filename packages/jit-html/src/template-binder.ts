@@ -79,7 +79,7 @@ export class TemplateBinder {
   }
 
   public bind(node: HTMLTemplateElement): PlainElementSymbol {
-    if (Tracer.enabled) { Tracer.enter('TemplateBinder.bind', slice.call(arguments)); }
+    if (Tracer.enabled) { Tracer.enter('TemplateBinder', 'bind', slice.call(arguments)); }
     if (Profiler.enabled) { enter(); }
 
     const surrogateSave = this.surrogate;
@@ -126,7 +126,7 @@ export class TemplateBinder {
   }
 
   private bindManifest(parentManifest: IElementSymbol, node: HTMLTemplateElement | HTMLElement): void {
-    if (Tracer.enabled) { Tracer.enter('TemplateBinder.bindManifest', slice.call(arguments)); }
+    if (Tracer.enabled) { Tracer.enter('TemplateBinder', 'bindManifest', slice.call(arguments)); }
 
     switch (node.nodeName) {
       case 'LET':
@@ -213,7 +213,7 @@ export class TemplateBinder {
   }
 
   private bindAttributes(node: HTMLTemplateElement | HTMLElement, parentManifest: IElementSymbol): void {
-    if (Tracer.enabled) { Tracer.enter('TemplateBinder.bindAttributes', slice.call(arguments)); }
+    if (Tracer.enabled) { Tracer.enter('TemplateBinder', 'bindAttributes', slice.call(arguments)); }
 
     const { parentManifestRoot, manifestRoot, manifest } = this;
     // This is the top-level symbol for the current depth.
@@ -285,7 +285,7 @@ export class TemplateBinder {
   }
 
   private bindChildNodes(node: HTMLTemplateElement | HTMLElement): void {
-    if (Tracer.enabled) { Tracer.enter('TemplateBinder.bindChildNodes', slice.call(arguments)); }
+    if (Tracer.enabled) { Tracer.enter('TemplateBinder', 'bindChildNodes', slice.call(arguments)); }
 
     let childNode: ChildNode;
     if (node.nodeName === 'TEMPLATE') {
@@ -321,7 +321,7 @@ export class TemplateBinder {
   }
 
   private bindText(node: Text): ChildNode {
-    if (Tracer.enabled) { Tracer.enter('TemplateBinder.bindText', slice.call(arguments)); }
+    if (Tracer.enabled) { Tracer.enter('TemplateBinder', 'bindText', slice.call(arguments)); }
     const interpolation = this.exprParser.parse(node.wholeText, BindingType.Interpolation);
     if (interpolation !== null) {
       const symbol = new TextSymbol(this.dom, node, interpolation);
@@ -336,7 +336,7 @@ export class TemplateBinder {
   }
 
   private declareTemplateController(attrSyntax: AttrSyntax, attrInfo: AttrInfo): TemplateControllerSymbol {
-    if (Tracer.enabled) { Tracer.enter('TemplateBinder.declareTemplateController', slice.call(arguments)); }
+    if (Tracer.enabled) { Tracer.enter('TemplateBinder', 'declareTemplateController', slice.call(arguments)); }
 
     let symbol: TemplateControllerSymbol;
     // dynamicOptions logic here is similar to (and explained in) bindCustomAttribute
@@ -358,7 +358,7 @@ export class TemplateBinder {
   }
 
   private bindCustomAttribute(attrSyntax: AttrSyntax, attrInfo: AttrInfo): void {
-    if (Tracer.enabled) { Tracer.enter('TemplateBinder.bindCustomAttribute', slice.call(arguments)); }
+    if (Tracer.enabled) { Tracer.enter('TemplateBinder', 'bindCustomAttribute', slice.call(arguments)); }
 
     const command = this.resources.getBindingCommand(attrSyntax);
     let symbol: CustomAttributeSymbol;
@@ -382,7 +382,7 @@ export class TemplateBinder {
   }
 
   private bindMultiAttribute(symbol: IResourceAttributeSymbol, attrInfo: AttrInfo, value: string): void {
-    if (Tracer.enabled) { Tracer.enter('TemplateBinder.bindMultiAttribute', slice.call(arguments)); }
+    if (Tracer.enabled) { Tracer.enter('TemplateBinder', 'bindMultiAttribute', slice.call(arguments)); }
 
     const attributes = parseMultiAttributeBinding(value);
     let attr: IAttrLike;
@@ -405,7 +405,7 @@ export class TemplateBinder {
   }
 
   private bindPlainAttribute(attrSyntax: AttrSyntax): void {
-    if (Tracer.enabled) { Tracer.enter('TemplateBinder.bindPlainAttribute', slice.call(arguments)); }
+    if (Tracer.enabled) { Tracer.enter('TemplateBinder', 'bindPlainAttribute', slice.call(arguments)); }
 
     if (attrSyntax.rawValue.length === 0) {
       if (Tracer.enabled) { Tracer.leave(); }
@@ -443,7 +443,7 @@ export class TemplateBinder {
   }
 
   private declareReplacePart(node: HTMLTemplateElement | HTMLElement): ReplacePartSymbol {
-    if (Tracer.enabled) { Tracer.enter('TemplateBinder.declareReplacePart', slice.call(arguments)); }
+    if (Tracer.enabled) { Tracer.enter('TemplateBinder', 'declareReplacePart', slice.call(arguments)); }
 
     const name = node.getAttribute('replace-part');
     if (name === null) {

@@ -61,7 +61,7 @@ export class Listener implements IBinding {
   }
 
   public callSource(event: Event): ReturnType<IsBindingBehavior['evaluate']> {
-    if (Tracer.enabled) { Tracer.enter('Listener.callSource', slice.call(arguments)); }
+    if (Tracer.enabled) { Tracer.enter('Listener', 'callSource', slice.call(arguments)); }
     const overrideContext = this.$scope.overrideContext;
     overrideContext.$event = event;
 
@@ -82,7 +82,7 @@ export class Listener implements IBinding {
   }
 
   public $bind(flags: LifecycleFlags, scope: IScope): void {
-    if (Tracer.enabled) { Tracer.enter('Listener.$bind', slice.call(arguments)); }
+    if (Tracer.enabled) { Tracer.enter('Listener', '$bind', slice.call(arguments)); }
     if (this.$state & State.isBound) {
       if (this.$scope === scope) {
         if (Tracer.enabled) { Tracer.leave(); }
@@ -116,7 +116,7 @@ export class Listener implements IBinding {
   }
 
   public $unbind(flags: LifecycleFlags): void {
-    if (Tracer.enabled) { Tracer.enter('Listener.$unbind', slice.call(arguments)); }
+    if (Tracer.enabled) { Tracer.enter('Listener', '$unbind', slice.call(arguments)); }
     if (!(this.$state & State.isBound)) {
       if (Tracer.enabled) { Tracer.leave(); }
       return;

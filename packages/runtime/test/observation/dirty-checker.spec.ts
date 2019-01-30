@@ -1,10 +1,10 @@
 import { PLATFORM, Reporter } from '@aurelia/kernel';
 import { expect } from 'chai';
 import {
-  BasicConfiguration,
   DirtyCheckSettings,
   IDirtyChecker,
-  LifecycleFlags
+  LifecycleFlags,
+  RuntimeBasicConfiguration
 } from '../../src/index';
 
 describe('DirtyChecker', function() {
@@ -13,7 +13,7 @@ describe('DirtyChecker', function() {
   });
 
   function setup() {
-    const container = BasicConfiguration.createContainer();
+    const container = RuntimeBasicConfiguration.createContainer();
     const dirtyChecker = container.get(IDirtyChecker);
 
     return { dirtyChecker };

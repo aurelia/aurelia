@@ -18,13 +18,14 @@ import {
   IAttributeDefinition
 } from '../definitions';
 import { INode } from '../dom';
-import { BindingMode, Hooks, LifecycleFlags } from '../flags';
+import { BindingMode, ensureValidStrategy, Hooks, LifecycleFlags } from '../flags';
 import {
   IComponent,
   ILifecycleHooks,
   IRenderable
 } from '../lifecycle';
 import { IChangeTracker } from '../observation';
+import { Bindable } from '../templating/bindable';
 import {
   $attachAttribute,
   $cacheAttribute,
@@ -32,6 +33,7 @@ import {
 } from '../templating/lifecycle-attach';
 import {
   $bindAttribute,
+  $patch,
   $unbindAttribute
 } from '../templating/lifecycle-bind';
 import { $hydrateAttribute } from '../templating/lifecycle-render';
@@ -133,6 +135,7 @@ function define<T extends Constructable>(this: ICustomAttributeResource, nameOrD
 
   proto.$hydrate = $hydrateAttribute;
   proto.$bind = $bindAttribute;
+  proto.$patch = $patch;
   proto.$attach = $attachAttribute;
   proto.$detach = $detachAttribute;
   proto.$unbind = $unbindAttribute;
@@ -140,6 +143,7 @@ function define<T extends Constructable>(this: ICustomAttributeResource, nameOrD
 
   proto.$prevComponent = null;
   proto.$nextComponent = null;
+  proto.$nextPatch = null;
 
   proto.$nextUnbindAfterDetach = null;
 
@@ -196,8 +200,8 @@ export function createCustomAttributeDescription(def: IAttributeDefinition, Type
     defaultBindingMode: defaultBindingMode === undefined || defaultBindingMode === null ? BindingMode.toView : defaultBindingMode,
     hasDynamicOptions: def.hasDynamicOptions === undefined ? false : def.hasDynamicOptions,
     isTemplateController: def.isTemplateController === undefined ? false : def.isTemplateController,
-    bindables: {...Type.bindables, ...def.bindables},
-    useProxies: def.useProxies === undefined ? false : def.useProxies
+    bindables: { ...Bindable.for(Type as unknown as {}).get(), ...Bindable.for(def).get() },
+    strategy: ensureValidStrategy(def.strategy)
   };
 }
 

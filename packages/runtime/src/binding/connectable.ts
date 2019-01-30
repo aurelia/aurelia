@@ -2,7 +2,7 @@ import { Class, IIndexable, Tracer } from '@aurelia/kernel';
 import { IConnectable } from '../ast';
 import { LifecycleFlags } from '../flags';
 import { IBinding } from '../lifecycle';
-import { IBindingTargetObserver, IPropertySubscriber, ISubscribable, MutationKind } from '../observation';
+import { IBindingTargetObserver, IPatchable, IPropertySubscriber, ISubscribable, MutationKind } from '../observation';
 import { IObserverLocator } from '../observation/observer-locator';
 
 // TODO: add connect-queue (or something similar) back in when everything else is working, to improve startup time
@@ -28,15 +28,13 @@ export interface IPartialConnectableBinding extends IBinding, IPropertySubscribe
   observerLocator: IObserverLocator;
 }
 
-export interface IConnectableBinding extends IPartialConnectableBinding, IConnectable {
+export interface IConnectableBinding extends IPartialConnectableBinding, IConnectable, IPatchable {
   $nextConnect?: IConnectableBinding;
-  $nextPatch?: IConnectableBinding;
   observerSlots: number;
   version: number;
   addObserver(observer: ISubscribable<MutationKind.instance | MutationKind.proxy>): void;
   unobserve(all?: boolean): void;
   connect(flags: LifecycleFlags): void;
-  patch(flags: LifecycleFlags): void;
 }
 
 /** @internal */
@@ -70,7 +68,7 @@ export function addObserver(this: IConnectableBinding, observer: ISubscribable<M
 
 /** @internal */
 export function observeProperty(this: IConnectableBinding, flags: LifecycleFlags, obj: IIndexable, propertyName: string): void {
-  if (Tracer.enabled) { Tracer.enter(`${this['constructor'].name}.observeProperty`, slice.call(arguments)); }
+  if (Tracer.enabled) { Tracer.enter(this['constructor'].name, 'observeProperty', slice.call(arguments)); }
   const observer = this.observerLocator.getObserver(flags, obj, propertyName) as IBindingTargetObserver;
   /* Note: we need to cast here because we can indeed get an accessor instead of an observer,
    *  in which case the call to observer.subscribe will throw. It's not very clean and we can solve this in 2 ways:
@@ -120,6 +118,7 @@ function connectableDecorator<TProto, TClass>(target: DecoratableConnectable<TPr
   if (!proto.hasOwnProperty('observeProperty')) proto.observeProperty = observeProperty;
   if (!proto.hasOwnProperty('unobserve')) proto.unobserve = unobserve;
   if (!proto.hasOwnProperty('addObserver')) proto.addObserver = addObserver;
+  // tslint:disable-next-line:no-unnecessary-type-assertion // this is a false positive
   return target as DecoratedConnectable<TProto, TClass>;
 }
 

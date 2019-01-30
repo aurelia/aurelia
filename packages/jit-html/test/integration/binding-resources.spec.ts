@@ -3,7 +3,7 @@ import { HTMLTestContext, TestContext } from '../util';
 import { setupAndStart, tearDown } from './util';
 
 // TemplateCompiler - Binding Resources integration
-describe('template-compiler.binding-resources', () => {
+describe('binding-resources', () => {
   let ctx: HTMLTestContext;
 
   beforeEach(() => {

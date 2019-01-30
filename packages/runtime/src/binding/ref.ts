@@ -30,7 +30,7 @@ export class Ref implements IBinding {
   }
 
   public $bind(flags: LifecycleFlags, scope: IScope): void {
-    if (Tracer.enabled) { Tracer.enter('Ref.$bind', slice.call(arguments)); }
+    if (Tracer.enabled) { Tracer.enter('Ref', '$bind', slice.call(arguments)); }
     if (this.$state & State.isBound) {
       if (this.$scope === scope) {
         if (Tracer.enabled) { Tracer.leave(); }
@@ -57,7 +57,7 @@ export class Ref implements IBinding {
   }
 
   public $unbind(flags: LifecycleFlags): void {
-    if (Tracer.enabled) { Tracer.enter('Ref.$unbind', slice.call(arguments)); }
+    if (Tracer.enabled) { Tracer.enter('Ref', '$unbind', slice.call(arguments)); }
     if (!(this.$state & State.isBound)) {
       if (Tracer.enabled) { Tracer.leave(); }
       return;

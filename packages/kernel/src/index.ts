@@ -60,6 +60,7 @@ export { PLATFORM } from './platform';
 export {
   ITraceInfo,
   ITraceWriter,
+  ILiveLoggingOptions,
   Reporter,
   Tracer
 } from './reporter';

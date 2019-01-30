@@ -483,7 +483,7 @@ export class Factory implements IFactory {
   }
 
   public construct(container: IContainer, dynamicDependencies?: Key<unknown>[]): Constructable {
-    if (Tracer.enabled) { Tracer.enter(`Factory.construct`, slice.call(arguments).concat(this.Type)); }
+    if (Tracer.enabled) { Tracer.enter('Factory', 'construct', [this.Type, ...slice.call(arguments)]); }
     const transformers = this.transformers;
     let instance = dynamicDependencies !== undefined
       ? this.invoker.invokeWithDynamicDependencies(container, this.Type, this.dependencies, dynamicDependencies)
@@ -558,6 +558,7 @@ export class Container implements IContainer {
   public register(registry: IRegistry): this;
   public register(registry: IRegistry | Record<string, Partial<IRegistry>>): this;
   public register(...params: (IRegistry | Record<string, Partial<IRegistry>>)[]): this {
+    if (Tracer.enabled) { Tracer.enter('Container', 'register', slice.call(arguments)); }
     if (++this.registerDepth === 100) {
       throw new Error('Unable to autoregister dependency');
       // TODO: change to reporter.error and add various possible causes in description.
@@ -592,6 +593,7 @@ export class Container implements IContainer {
       }
     }
     --this.registerDepth;
+    if (Tracer.enabled) { Tracer.leave(); }
     return this;
   }
 
@@ -671,7 +673,7 @@ export class Container implements IContainer {
   }
 
   public get(key: Key<IContainer>|IResolver): any {
-    if (Tracer.enabled) { Tracer.enter(`Container.get`, slice.call(arguments)); }
+    if (Tracer.enabled) { Tracer.enter('Container', 'get', slice.call(arguments)); }
     validateKey(key);
 
     if ((key as IResolver).resolve) {
@@ -701,6 +703,7 @@ export class Container implements IContainer {
   }
 
   public getAll(key: Key<IContainer>): any {
+    if (Tracer.enabled) { Tracer.enter('Container', 'getAll', slice.call(arguments)); }
     validateKey(key);
 
     let current: Container | null = this;
@@ -711,15 +714,18 @@ export class Container implements IContainer {
 
       if (resolver === undefined) {
         if (this.parent === null) {
+          if (Tracer.enabled) { Tracer.leave(); }
           return PLATFORM.emptyArray;
         }
 
         current = current.parent;
       } else {
+        if (Tracer.enabled) { Tracer.leave(); }
         return buildAllResponse(resolver, current, this);
       }
     }
 
+    if (Tracer.enabled) { Tracer.leave(); }
     return PLATFORM.emptyArray;
   }
 
@@ -735,10 +741,12 @@ export class Container implements IContainer {
   }
 
   public createChild(): IContainer {
+    if (Tracer.enabled) { Tracer.enter('Container', 'createChild', slice.call(arguments)); }
     const config = this.configuration;
     const childConfig = { factories: config.factories, resourceLookup: { ...config.resourceLookup } };
     const child = new Container(childConfig);
     child.parent = this;
+    if (Tracer.enabled) { Tracer.leave(); }
     return child;
   }
 

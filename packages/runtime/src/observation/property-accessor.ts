@@ -1,5 +1,7 @@
 import { Tracer } from '@aurelia/kernel';
+import { LifecycleFlags } from '../flags';
 import { IBindingTargetAccessor } from '../observation';
+import { patchProperties, patchProperty } from './patch-properties';
 
 export interface PropertyAccessor extends IBindingTargetAccessor<Record<string, unknown>, string> {}
 const slice = Array.prototype.slice;
@@ -9,7 +11,7 @@ export class PropertyAccessor implements PropertyAccessor {
   public propertyKey: string;
 
   constructor(obj: Record<string, unknown>, propertyKey: string) {
-    if (Tracer.enabled) { Tracer.enter('ArrayObserver.constructor', slice.call(arguments)); }
+    if (Tracer.enabled) { Tracer.enter('PropertyAccessor', 'constructor', slice.call(arguments)); }
     this.obj = obj;
     this.propertyKey = propertyKey;
     if (Tracer.enabled) { Tracer.leave(); }
@@ -21,5 +23,9 @@ export class PropertyAccessor implements PropertyAccessor {
 
   public setValue(value: unknown): void {
     this.obj[this.propertyKey] = value;
+  }
+
+  public $patch(flags: LifecycleFlags): void {
+    patchProperty(this.obj, this.propertyKey, flags);
   }
 }

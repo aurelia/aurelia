@@ -62,6 +62,7 @@ export class ShadowDOMProjector implements IElementProjector<Node> {
     }
     this.shadowRoot = host.attachShadow(shadowOptions);
     this.host.$customElement = $customElement;
+    // tslint:disable-next-line:no-unnecessary-type-assertion // this is a false positive
     this.shadowRoot.$customElement = $customElement as ICustomElement<ShadowRoot>;
   }
 
@@ -79,13 +80,13 @@ export class ShadowDOMProjector implements IElementProjector<Node> {
   }
 
   public project(nodes: INodeSequence<Node>): void {
-    if (Tracer.enabled) { Tracer.enter('ShadowDOMProjector.project', slice.call(arguments)); }
+    if (Tracer.enabled) { Tracer.enter('ShadowDOMProjector', 'project', slice.call(arguments)); }
     nodes.appendTo(this.shadowRoot);
     if (Tracer.enabled) { Tracer.leave(); }
   }
 
   public take(nodes: INodeSequence<Node>): void {
-    if (Tracer.enabled) { Tracer.enter('ShadowDOMProjector.take', slice.call(arguments)); }
+    if (Tracer.enabled) { Tracer.enter('ShadowDOMProjector', 'take', slice.call(arguments)); }
     nodes.remove();
     if (Tracer.enabled) { Tracer.leave(); }
   }
@@ -104,6 +105,7 @@ export class ContainerlessProjector implements IElementProjector<Node> {
       this.childNodes = PLATFORM.emptyArray;
     }
 
+    // tslint:disable-next-line:no-unnecessary-type-assertion // this is a false positive
     this.host = dom.convertToRenderLocation(host) as CustomElementHost<Node>;
     this.host.$customElement = $customElement;
   }
@@ -123,13 +125,13 @@ export class ContainerlessProjector implements IElementProjector<Node> {
   }
 
   public project(nodes: INodeSequence<Node>): void {
-    if (Tracer.enabled) { Tracer.enter('ContainerlessProjector.project', slice.call(arguments)); }
+    if (Tracer.enabled) { Tracer.enter('ContainerlessProjector', 'project', slice.call(arguments)); }
     nodes.insertBefore(this.host);
     if (Tracer.enabled) { Tracer.leave(); }
   }
 
   public take(nodes: INodeSequence<Node>): void {
-    if (Tracer.enabled) { Tracer.enter('ContainerlessProjector.take', slice.call(arguments)); }
+    if (Tracer.enabled) { Tracer.enter('ContainerlessProjector', 'take', slice.call(arguments)); }
     nodes.remove();
     if (Tracer.enabled) { Tracer.leave(); }
   }
@@ -157,13 +159,13 @@ export class HostProjector implements IElementProjector<Node> {
   }
 
   public project(nodes: INodeSequence<Node>): void {
-    if (Tracer.enabled) { Tracer.enter('HostProjector.project', slice.call(arguments)); }
+    if (Tracer.enabled) { Tracer.enter('HostProjector', 'project', slice.call(arguments)); }
     nodes.appendTo(this.host);
     if (Tracer.enabled) { Tracer.leave(); }
   }
 
   public take(nodes: INodeSequence<Node>): void {
-    if (Tracer.enabled) { Tracer.enter('HostProjector.take', slice.call(arguments)); }
+    if (Tracer.enabled) { Tracer.enter('HostProjector', 'take', slice.call(arguments)); }
     nodes.remove();
     if (Tracer.enabled) { Tracer.leave(); }
   }

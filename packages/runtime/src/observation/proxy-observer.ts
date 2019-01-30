@@ -20,12 +20,15 @@ export class ProxySubscriberCollection<TObj extends object = object> implements 
   public readonly raw: TObj;
   public readonly key: PropertyKey;
   constructor(proxy: IProxy<TObj>, raw: TObj, key: PropertyKey) {
-    if (Tracer.enabled) { Tracer.enter('ProxySubscriberCollection.constructor', slice.call(arguments)); }
+    if (Tracer.enabled) { Tracer.enter('ProxySubscriberCollection', 'constructor', slice.call(arguments)); }
     this.raw = raw;
     this.key = key;
     this.proxy = proxy;
     this.subscribe = this.addSubscriber;
     this.unsubscribe = this.removeSubscriber;
+    if (raw[key] instanceof Object) { // Ensure we observe array indices and newly created object properties
+      raw[key] = ProxyObserver.getOrCreate(raw[key]).proxy;
+    }
     if (Tracer.enabled) { Tracer.leave(); }
   }
 
@@ -33,7 +36,7 @@ export class ProxySubscriberCollection<TObj extends object = object> implements 
     const oldValue = this.raw[this.key];
     if (oldValue !== value) {
       this.raw[this.key] = value;
-      this.callSubscribers(value, oldValue, flags | LifecycleFlags.useProxies | LifecycleFlags.updateTargetInstance);
+      this.callSubscribers(value, oldValue, flags | LifecycleFlags.proxyStrategy | LifecycleFlags.updateTargetInstance);
     }
   }
   public getValue(): unknown {
@@ -50,7 +53,7 @@ export class ProxyObserver<TObj extends object = object> implements ProxyObserve
   private readonly subscribers: Record<PropertyKey, ProxySubscriberCollection<TObj>>;
 
   constructor(obj: TObj) {
-    if (Tracer.enabled) { Tracer.enter('ProxyObserver.constructor', slice.call(arguments)); }
+    if (Tracer.enabled) { Tracer.enter('ProxyObserver', 'constructor', slice.call(arguments)); }
     this.raw = obj;
     this.proxy = new Proxy<TObj>(obj, this) as IProxy<TObj>;
     lookup.set(obj, this.proxy);
@@ -121,7 +124,7 @@ export class ProxyObserver<TObj extends object = object> implements ProxyObserve
     if (oldValue !== value) {
       Reflect.set(target, p, value, target);
       this.callPropertySubscribers(value, oldValue, p);
-      this.callSubscribers(p, value, oldValue, LifecycleFlags.useProxies | LifecycleFlags.updateTargetInstance);
+      this.callSubscribers(p, value, oldValue, LifecycleFlags.proxyStrategy | LifecycleFlags.updateTargetInstance);
     }
     return true;
   }
@@ -131,7 +134,7 @@ export class ProxyObserver<TObj extends object = object> implements ProxyObserve
     if (Reflect.deleteProperty(target, p)) {
       if (oldValue !== undefined) {
         this.callPropertySubscribers(undefined, oldValue, p);
-        this.callSubscribers(p, undefined, oldValue, LifecycleFlags.useProxies | LifecycleFlags.updateTargetInstance);
+        this.callSubscribers(p, undefined, oldValue, LifecycleFlags.proxyStrategy | LifecycleFlags.updateTargetInstance);
       }
       return true;
     }
@@ -143,7 +146,7 @@ export class ProxyObserver<TObj extends object = object> implements ProxyObserve
     if (Reflect.defineProperty(target, p, attributes)) {
       if (attributes.value !== oldValue) {
         this.callPropertySubscribers(attributes.value, oldValue, p);
-        this.callSubscribers(p, attributes.value, oldValue, LifecycleFlags.useProxies | LifecycleFlags.updateTargetInstance);
+        this.callSubscribers(p, attributes.value, oldValue, LifecycleFlags.proxyStrategy | LifecycleFlags.updateTargetInstance);
       }
       return true;
     }
@@ -185,7 +188,7 @@ export class ProxyObserver<TObj extends object = object> implements ProxyObserve
   private callPropertySubscribers(newValue: unknown, oldValue: unknown, key: PropertyKey): void {
     const subscribers = this.subscribers[key as string | number];
     if (subscribers !== undefined) {
-      subscribers.callSubscribers(newValue, oldValue, LifecycleFlags.useProxies | LifecycleFlags.updateTargetInstance);
+      subscribers.callSubscribers(newValue, oldValue, LifecycleFlags.proxyStrategy | LifecycleFlags.updateTargetInstance);
     }
   }
 }

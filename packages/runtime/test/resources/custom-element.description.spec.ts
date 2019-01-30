@@ -1,6 +1,6 @@
 import { PLATFORM } from '@aurelia/kernel';
 import { expect } from 'chai';
-import { customElement } from '../../src/index';
+import { BindingStrategy, customElement } from '../../src/index';
 import { eachCartesianJoin } from '../util';
 import { createCustomElement } from './custom-element._builder';
 
@@ -28,7 +28,7 @@ describe('@customElement', () => {
     'containerless',
     'shadowOptions',
     'hasSlots',
-    'useProxies'
+    'strategy'
   ];
 
   it('creates the default template description', () => {
@@ -45,7 +45,7 @@ describe('@customElement', () => {
     expect(Type.description.containerless).to.equal(false, 'containerless');
     expect(Type.description.shadowOptions).to.equal(null, 'shadowOptions');
     expect(Type.description.hasSlots).to.equal(false, 'hasSlots');
-    expect(Type.description.useProxies).to.equal(false, 'useProxies');
+    expect(Type.description.strategy).to.equal(BindingStrategy.getterSetter, 'strategy');
     expect(Object.keys(Type.description)).to.deep.equal(descriptionKeys);
   });
 
@@ -91,7 +91,7 @@ describe('@customElement', () => {
       expect(Type.description.containerless).to.equal(false, 'containerless');
       expect(Type.description.shadowOptions).to.equal(null, 'shadowOptions');
       expect(Type.description.hasSlots).to.equal(false, 'hasSlots');
-      expect(Type.description.useProxies).to.equal(false, 'useProxies');
+      expect(Type.description.strategy).to.equal(BindingStrategy.getterSetter, 'strategy');
       expect(Object.keys(Type.description)).to.deep.equal(descriptionKeys);
     });
   });
@@ -138,7 +138,7 @@ describe('@customElement', () => {
       expect(Type.description.containerless).to.equal(false, 'containerless');
       expect(Type.description.shadowOptions).to.equal(null, 'shadowOptions');
       expect(Type.description.hasSlots).to.equal(false, 'hasSlots');
-      expect(Type.description.useProxies).to.equal(false, 'useProxies');
+      expect(Type.description.strategy).to.equal(BindingStrategy.getterSetter, 'strategy');
       expect(Object.keys(Type.description)).to.deep.equal(descriptionKeys);
     });
   });
@@ -197,7 +197,7 @@ describe('@customElement', () => {
       expect(Type.description.containerless).to.equal(false, 'containerless');
       expect(Type.description.shadowOptions).to.equal(null, 'shadowOptions');
       expect(Type.description.hasSlots).to.equal(false, 'hasSlots');
-      expect(Type.description.useProxies).to.equal(false, 'useProxies');
+      expect(Type.description.strategy).to.equal(BindingStrategy.getterSetter, 'strategy');
       expect(Object.keys(Type.description)).to.deep.equal(descriptionKeys);
     });
   });
@@ -243,7 +243,7 @@ describe('@customElement', () => {
       expect(Type.description.containerless).to.equal(false, 'containerless');
       expect(Type.description.shadowOptions).to.equal(null, 'shadowOptions');
       expect(Type.description.hasSlots).to.equal(false, 'hasSlots');
-      expect(Type.description.useProxies).to.equal(false, 'useProxies');
+      expect(Type.description.strategy).to.equal(BindingStrategy.getterSetter, 'strategy');
       expect(Object.keys(Type.description)).to.deep.equal(descriptionKeys);
     });
   });
@@ -321,7 +321,7 @@ describe('@customElement', () => {
       expect(Type.description.containerless).to.equal(false, 'containerless');
       expect(Type.description.shadowOptions).to.equal(null, 'shadowOptions');
       expect(Type.description.hasSlots).to.equal(false, 'hasSlots');
-      expect(Type.description.useProxies).to.equal(false, 'useProxies');
+      expect(Type.description.strategy).to.equal(BindingStrategy.getterSetter, 'strategy');
       expect(Object.keys(Type.description)).to.deep.equal(descriptionKeys);
     });
   });
@@ -377,7 +377,7 @@ describe('@customElement', () => {
       expect(Type.description.containerless).to.equal(false, 'containerless');
       expect(Type.description.shadowOptions).to.equal(null, 'shadowOptions');
       expect(Type.description.hasSlots).to.equal(false, 'hasSlots');
-      expect(Type.description.useProxies).to.equal(false, 'useProxies');
+      expect(Type.description.strategy).to.equal(BindingStrategy.getterSetter, 'strategy');
       expect(Object.keys(Type.description)).to.deep.equal(descriptionKeys);
     });
   });
@@ -433,7 +433,7 @@ describe('@customElement', () => {
       expect(Type.description.containerless).to.equal(false, 'containerless');
       expect(Type.description.shadowOptions).to.equal(null, 'shadowOptions');
       expect(Type.description.hasSlots).to.equal(false, 'hasSlots');
-      expect(Type.description.useProxies).to.equal(false, 'useProxies');
+      expect(Type.description.strategy).to.equal(BindingStrategy.getterSetter, 'strategy');
       expect(Object.keys(Type.description)).to.deep.equal(descriptionKeys);
     });
   });
@@ -489,7 +489,7 @@ describe('@customElement', () => {
       expect(Type.description.containerless).to.equal(false, 'containerless');
       expect(Type.description.shadowOptions).to.equal(null, 'shadowOptions');
       expect(Type.description.hasSlots).to.equal(false, 'hasSlots');
-      expect(Type.description.useProxies).to.equal(false, 'useProxies');
+      expect(Type.description.strategy).to.equal(BindingStrategy.getterSetter, 'strategy');
       expect(Object.keys(Type.description)).to.deep.equal(descriptionKeys);
     });
   });
@@ -560,7 +560,7 @@ describe('@customElement', () => {
       expect(Type.description.containerless).to.equal(containerlessSpec.getExpectedContainerless(), 'containerless');
       expect(Type.description.shadowOptions).to.equal(null, 'shadowOptions');
       expect(Type.description.hasSlots).to.equal(false, 'hasSlots');
-      expect(Type.description.useProxies).to.equal(false, 'useProxies');
+      expect(Type.description.strategy).to.equal(BindingStrategy.getterSetter, 'strategy');
       expect(Object.keys(Type.description)).to.deep.equal(descriptionKeys);
     });
   });
@@ -624,7 +624,7 @@ describe('@customElement', () => {
       expect(Type.description.containerless).to.equal(false, 'containerless');
       expect(Type.description.shadowOptions).to.deep.equal(shadowOptionsSpec.getExpectedShadowOptions(), 'shadowOptions');
       expect(Type.description.hasSlots).to.equal(false, 'hasSlots');
-      expect(Type.description.useProxies).to.equal(false, 'useProxies');
+      expect(Type.description.strategy).to.equal(BindingStrategy.getterSetter, 'strategy');
       expect(Object.keys(Type.description)).to.deep.equal(descriptionKeys);
     });
   });
@@ -671,7 +671,84 @@ describe('@customElement', () => {
       expect(Type.description.containerless).to.equal(false, 'containerless');
       expect(Type.description.shadowOptions).to.equal(null, 'shadowOptions');
       expect(Type.description.hasSlots).to.equal(hasSlotsSpec.getExpectedHasSlots(), 'hasSlots');
-      expect(Type.description.useProxies).to.equal(false, 'useProxies');
+      expect(Type.description.strategy).to.equal(BindingStrategy.getterSetter, 'strategy');
+      expect(Object.keys(Type.description)).to.deep.equal(descriptionKeys);
+    });
+  });
+
+  const strategySpecs = [
+    {
+      description: 'strategy is undefined',
+      expectation: 'uses getterSetter',
+      getStrategy() { return undefined; },
+      getExpectedStrategy() { return BindingStrategy.getterSetter; }
+    },
+    {
+      description: 'strategy is null',
+      expectation: 'uses getterSetter',
+      getStrategy() { return null; },
+      getExpectedStrategy() { return BindingStrategy.getterSetter; }
+    },
+    {
+      description: 'strategy is getterSetter',
+      expectation: 'uses getterSetter',
+      getStrategy() { return BindingStrategy.getterSetter; },
+      getExpectedStrategy() { return BindingStrategy.getterSetter; }
+    },
+    {
+      description: 'strategy is proxies',
+      expectation: 'uses proxies',
+      getStrategy() { return BindingStrategy.proxies; },
+      getExpectedStrategy() { return BindingStrategy.proxies; }
+    },
+    {
+      description: 'strategy is patch',
+      expectation: 'uses patch',
+      getStrategy() { return BindingStrategy.patch; },
+      getExpectedStrategy() { return BindingStrategy.patch; }
+    },
+    {
+      description: 'strategy is keyed',
+      expectation: 'uses keyed|getterSetter',
+      getStrategy() { return BindingStrategy.keyed; },
+      getExpectedStrategy() { return BindingStrategy.keyed | BindingStrategy.getterSetter; }
+    },
+    {
+      description: 'strategy is keyed|getterSetter',
+      expectation: 'uses keyed|getterSetter',
+      getStrategy() { return BindingStrategy.keyed | BindingStrategy.getterSetter; },
+      getExpectedStrategy() { return BindingStrategy.keyed | BindingStrategy.getterSetter; }
+    },
+    {
+      description: 'strategy is keyed|proxies',
+      expectation: 'uses keyed|proxies',
+      getStrategy() { return BindingStrategy.keyed | BindingStrategy.proxies; },
+      getExpectedStrategy() { return BindingStrategy.keyed | BindingStrategy.proxies; }
+    },
+    {
+      description: 'strategy is keyed|patch',
+      expectation: 'uses keyed|patch',
+      getStrategy() { return BindingStrategy.keyed | BindingStrategy.patch; },
+      getExpectedStrategy() { return BindingStrategy.keyed | BindingStrategy.patch; }
+    }
+  ];
+
+  eachCartesianJoin([strategySpecs], (strategySpec) => {
+    it(`${strategySpec.expectation} if ${strategySpec.description}`, () => {
+      const { Type } = createCustomElement({ strategy: strategySpec.getStrategy() } as any);
+      expect(Type.description).to.be.a('object', 'description');
+      expect(Type.description.name).to.equal('unnamed', 'name');
+      expect(Type.description.template).to.equal(null, 'template');
+      expect(Type.description.cache).to.equal(0, 'cache');
+      expect(Type.description.build).to.deep.equal({ required: true, compiler: 'default' }, 'build');
+      expect(Type.description.bindables).to.deep.equal({}, 'bindables');
+      expect(Type.description.instructions).to.equal(PLATFORM.emptyArray, 'instructions');
+      expect(Type.description.dependencies).to.equal(PLATFORM.emptyArray, 'dependencies');
+      expect(Type.description.surrogates).to.equal(PLATFORM.emptyArray, 'surrogates');
+      expect(Type.description.containerless).to.equal(false, 'containerless');
+      expect(Type.description.shadowOptions).to.equal(null, 'shadowOptions');
+      expect(Type.description.hasSlots).to.equal(false, 'hasSlots');
+      expect(Type.description.strategy).to.equal(strategySpec.getExpectedStrategy(), 'strategy');
       expect(Object.keys(Type.description)).to.deep.equal(descriptionKeys);
     });
   });

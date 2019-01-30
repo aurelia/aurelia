@@ -19,6 +19,7 @@ import { ElementPropertyAccessor } from './element-property-accessor';
 import { EventSubscriber } from './event-manager';
 import { ISelectElement, SelectValueObserver } from './select-value-observer';
 import { StyleAttributeAccessor } from './style-attribute-accessor';
+import { ISVGAnalyzer } from './svg-analyzer';
 import { ValueAttributeObserver } from './value-attribute-observer';
 
 // https://infra.spec.whatwg.org/#namespaces
@@ -72,12 +73,14 @@ const overrideProps = (function (o: Record<string, boolean>): typeof o {
 })(Object.create(null));
 
 export class TargetObserverLocator implements ITargetObserverLocator {
-  public static readonly inject: ReadonlyArray<InterfaceSymbol> = [IDOM];
+  public static readonly inject: ReadonlyArray<InterfaceSymbol> = [IDOM, ISVGAnalyzer];
 
   private readonly dom: IDOM;
+  private readonly svgAnalyzer: ISVGAnalyzer;
 
-  constructor(dom: IDOM) {
+  constructor(dom: IDOM, svgAnalyzer: ISVGAnalyzer) {
     this.dom = dom;
+    this.svgAnalyzer = svgAnalyzer;
   }
 
   public static register(container: IContainer): IResolver<ITargetObserverLocator> {
@@ -115,10 +118,7 @@ export class TargetObserverLocator implements ITargetObserverLocator {
           const nsProps = nsAttributes[propertyName];
           return new AttributeNSAccessor(lifecycle, obj as HTMLElement, propertyName, nsProps[0], nsProps[1]);
         }
-        const prefix = propertyName.slice(0, 5);
-        // https://html.spec.whatwg.org/multipage/dom.html#wai-aria
-        // https://html.spec.whatwg.org/multipage/dom.html#custom-data-attribute
-        if (prefix === 'aria-' || prefix === 'data-') {
+        if (isDataAttribute(obj, propertyName, this.svgAnalyzer)) {
           return new DataAttributeAccessor(lifecycle, obj as HTMLElement, propertyName);
         }
     }
@@ -135,12 +135,14 @@ export class TargetObserverLocator implements ITargetObserverLocator {
 }
 
 export class TargetAccessorLocator implements ITargetAccessorLocator {
-  public static readonly inject: ReadonlyArray<InterfaceSymbol> = [IDOM];
+  public static readonly inject: ReadonlyArray<InterfaceSymbol> = [IDOM, ISVGAnalyzer];
 
   private readonly dom: IDOM;
+  private readonly svgAnalyzer: ISVGAnalyzer;
 
-  constructor(dom: IDOM) {
+  constructor(dom: IDOM, svgAnalyzer: ISVGAnalyzer) {
     this.dom = dom;
+    this.svgAnalyzer = svgAnalyzer;
   }
 
   public static register(container: IContainer): IResolver<ITargetAccessorLocator> {
@@ -169,10 +171,7 @@ export class TargetAccessorLocator implements ITargetAccessorLocator {
           const nsProps = nsAttributes[propertyName];
           return new AttributeNSAccessor(lifecycle, obj as HTMLElement, propertyName, nsProps[0], nsProps[1]);
         }
-        const prefix = propertyName.slice(0, 5);
-        // https://html.spec.whatwg.org/multipage/dom.html#wai-aria
-        // https://html.spec.whatwg.org/multipage/dom.html#custom-data-attribute
-        if (prefix === 'aria-' || prefix === 'data-') {
+        if (isDataAttribute(obj, propertyName, this.svgAnalyzer)) {
           return new DataAttributeAccessor(lifecycle, obj as HTMLElement, propertyName);
         }
         return new ElementPropertyAccessor(lifecycle, obj, propertyName);
@@ -182,4 +181,19 @@ export class TargetAccessorLocator implements ITargetAccessorLocator {
   public handles(flags: LifecycleFlags, obj: Node): boolean {
     return this.dom.isNodeInstance(obj);
   }
+}
+
+const IsDataAttribute: Record<string, boolean> = {};
+
+function isDataAttribute(obj: Node, propertyName: string, svgAnalyzer: ISVGAnalyzer): boolean {
+  if (IsDataAttribute[propertyName] === true) {
+    return true;
+  }
+  const prefix = propertyName.slice(0, 5);
+  // https://html.spec.whatwg.org/multipage/dom.html#wai-aria
+  // https://html.spec.whatwg.org/multipage/dom.html#custom-data-attribute
+  return IsDataAttribute[propertyName] =
+    prefix === 'aria-' ||
+    prefix === 'data-' ||
+    svgAnalyzer.isStandardSvgAttribute(obj, propertyName);
 }

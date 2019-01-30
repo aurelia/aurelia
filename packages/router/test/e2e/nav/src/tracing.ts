@@ -1,9 +1,9 @@
 import { ITraceInfo, PLATFORM, Tracer } from '@aurelia/kernel';
-import { Tracer as DebugTracer } from '../../../../../debug/src/reporter';
+import { Tracer as DebugTracer } from '../../../../../debug/src/tracer';
 
 export const TraceWriter = {
   write(info: ITraceInfo): void {
-    console.debug(`${'  '.repeat(info.depth)}${info.name}`);
+    console.debug(`${'  '.repeat(info.depth)}${info.objName}.${info.methodName}`);
   }
 };
 

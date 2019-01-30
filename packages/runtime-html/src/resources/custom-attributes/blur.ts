@@ -127,6 +127,7 @@ export class BlurCustomAttribute {
     this.linkedMultiple = true;
     this.searchSubTree = true;
     this.linkingContext = null;
+    this.value = false;
   }
 
   public attached() {
@@ -206,6 +207,7 @@ export class BlurCustomAttribute {
   }
 
   public triggerBlur(): void {
+    (this as any).$observers.value.currentValue = true;
     this.value = false;
     if (typeof this.onBlur === 'function') {
       this.onBlur.call(null);

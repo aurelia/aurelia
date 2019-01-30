@@ -1,59 +1,48 @@
-import { Primitive } from '@aurelia/kernel';
-import { LifecycleFlags as LF } from '@aurelia/runtime';
-import { SelectValueObserver, BasicConfiguration, BlurCustomAttribute } from '@aurelia/runtime-html';
+import { Aurelia, CustomElementResource } from '@aurelia/runtime';
+import { BlurCustomAttribute } from '@aurelia/runtime-html';
 import { expect } from 'chai';
-import { HTMLTestContext, TestContext } from '../util';
-import {
-  h,
-  setup,
-  setupAndStart,
-  tearDown,
-  massSpy
-} from '../integration/util';
+import { spy } from 'sinon';
+import { TestContext } from '../util';
 
-// TemplateCompiler - <select/> Integration
-describe.only('built-in-resources.blur', () => {
-  let ctx: HTMLTestContext;
+describe.only('built-in-resources.blur', function() {
+  function setup() {
+    const ctx = TestContext.createHTMLTestContext();
+    const { container, lifecycle, dom } = ctx;
+    const au = new Aurelia(container);
+    const host = dom.createElement('div');
 
-  beforeEach(() => {
-    ctx = TestContext.createHTMLTestContext();
+    return { dom, au, host, lifecycle };
+  }
+
+  it('01.', function() {
+    const { dom, au, host, lifecycle } = setup();
+
+    const useSpy = spy(BlurCustomAttribute, 'use');
+
+    const App = CustomElementResource.define(
+      {
+        name: 'app',
+        template: `
+          <template>
+            <div blur.from-view="isBlur"></div>
+          </template>`,
+        dependencies: [BlurCustomAttribute]
+      },
+      class {
+        public isBlur = true;
+        public selectedValue = '2';
+      }
+    );
+    const component = new App();
+
+    au.app({ host, component });
+    au.start();
+
+    dom.dispatchEvent(dom.createCustomEvent('mousedown', { bubbles: true }));
+
+    expect(useSpy).to.have.callCount(1);
+    expect(component['isBlur']).to.equal(false, 'component.isBlur');
+
+    useSpy.restore();
   });
-
-  //<select/> - single
-  describe('01.', () => {
-
-    //works with multiple toView bindings
-    it('01.', (done) => {
-      const originalUse = BlurCustomAttribute.use;
-      let called = false;
-      BlurCustomAttribute.use = function() {
-        called = true;
-        return originalUse.apply(BlurCustomAttribute, arguments);
-      };
-      const { au, lifecycle, host, observerLocator, component } = setup(
-        ctx,
-        `<template>
-          <div blur.bind="isBlur"></div>
-        </template>`,
-        class App {
-          public selectedValue: string = '2';
-          public isBlur = true;
-        },
-        BlurCustomAttribute
-      );
-      au.app({ host, component }).start();
-
-      ctx.doc.body.dispatchEvent(new CustomEvent('mousedown', { bubbles: true }));
-      expect(called).to.be.true;
-
-      setTimeout(() => {
-        expect(au.root()['isBlur']).to.be.false;
-        BlurCustomAttribute.use = originalUse;
-
-        tearDown(au, lifecycle, host);
-      }, 50);
-    });
-
-  });
-
 });

@@ -1,12 +1,9 @@
 <?xml version="1.0"?>
-<testsuite name="Chrome 71.0.3578 (Windows 10.0.0)" package="" timestamp="2019-01-29T20:46:23" id="0" hostname="GadgetTablet" tests="16768" errors="1" failures="1" time="0">
+<testsuite name="Chrome 71.0.3578 (Windows 10.0.0)" package="" timestamp="2019-01-30T02:30:01" id="0" hostname="GadgetTablet" tests="1" errors="0" failures="0" time="0.024">
   <properties>
     <property name="browser.fullName" value="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/71.0.3578.98 Safari/537.36"/>
   </properties>
-  <testcase name="built-in-resources.blur 01. 01." time="0" classname="Chrome_71_0_3578_(Windows_10_0_0).built-in-resources.blur">
-    <failure type="">Error: Uncaught AssertionError: expected true to be false (webpack-internal:///../../node_modules/chai/lib/chai/assertion.js:141)
-</failure>
-  </testcase>
+  <testcase name="built-in-resources.blur 01." time="0.024" classname="Chrome_71_0_3578_(Windows_10_0_0).built-in-resources.blur"/>
   <system-out>
     <![CDATA[
 ]]>

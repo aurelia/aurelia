@@ -1,6 +1,6 @@
 System.register('jit', ['@aurelia/kernel', '@aurelia/runtime'], function (exports, module) {
   'use strict';
-  var PLATFORM, DI, Registration, Reporter, Profiler, all, OneTimeBindingInstruction, ToViewBindingInstruction, FromViewBindingInstruction, TwoWayBindingInstruction, BindingMode, CallBindingInstruction, IteratorBindingInstruction, PrimitiveLiteral, AccessThis, Unary, BindingIdentifier, AccessScope, Template, AccessMember, AccessKeyed, CallScope, CallMember, CallFunction, TaggedTemplate, Binary, Conditional, Assign, ValueConverter, BindingBehavior, ArrayBindingPattern, ArrayLiteral, ForOfStatement, ObjectBindingPattern, ObjectLiteral, Interpolation, IExpressionParser, BasicConfiguration, CustomElementResource, CustomAttributeResource;
+  var PLATFORM, DI, Registration, Reporter, Profiler, all, OneTimeBindingInstruction, ToViewBindingInstruction, FromViewBindingInstruction, TwoWayBindingInstruction, BindingMode, CallBindingInstruction, IteratorBindingInstruction, PrimitiveLiteral, AccessThis, Unary, BindingIdentifier, AccessScope, Template, AccessMember, AccessKeyed, CallScope, CallMember, CallFunction, TaggedTemplate, Binary, Conditional, Assign, ValueConverter, BindingBehavior, ArrayBindingPattern, ArrayLiteral, ForOfStatement, ObjectBindingPattern, ObjectLiteral, Interpolation, IExpressionParser, RuntimeBasicConfiguration, CustomElementResource, CustomAttributeResource;
   return {
     setters: [function (module) {
       PLATFORM = module.PLATFORM;
@@ -41,7 +41,7 @@ System.register('jit', ['@aurelia/kernel', '@aurelia/runtime'], function (export
       ObjectLiteral = module.ObjectLiteral;
       Interpolation = module.Interpolation;
       IExpressionParser = module.IExpressionParser;
-      BasicConfiguration = module.BasicConfiguration;
+      RuntimeBasicConfiguration = module.RuntimeBasicConfiguration;
       CustomElementResource = module.CustomElementResource;
       CustomAttributeResource = module.CustomAttributeResource;
     }],
@@ -1863,12 +1863,12 @@ System.register('jit', ['@aurelia/kernel', '@aurelia/runtime'], function (export
        * - `DefaultBindingSyntax`
        * - `DefaultBindingLanguage`
        */
-      const BasicConfiguration$1 = exports('BasicConfiguration', {
+      const BasicConfiguration = exports('BasicConfiguration', {
           /**
            * Apply this configuration to the provided container.
            */
           register(container) {
-              return BasicConfiguration
+              return RuntimeBasicConfiguration
                   .register(container)
                   .register(...DefaultComponents, ...DefaultBindingSyntax, ...DefaultBindingLanguage);
           },

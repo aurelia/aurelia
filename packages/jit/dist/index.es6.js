@@ -1,5 +1,5 @@
 import { PLATFORM, DI, Registration, Reporter, Profiler, all } from '@aurelia/kernel';
-import { OneTimeBindingInstruction, ToViewBindingInstruction, FromViewBindingInstruction, TwoWayBindingInstruction, BindingMode, CallBindingInstruction, IteratorBindingInstruction, PrimitiveLiteral, AccessThis, Unary, BindingIdentifier, AccessScope, Template, AccessMember, AccessKeyed, CallScope, CallMember, CallFunction, TaggedTemplate, Binary, Conditional, Assign, ValueConverter, BindingBehavior, ArrayBindingPattern, ArrayLiteral, ForOfStatement, ObjectBindingPattern, ObjectLiteral, Interpolation, IExpressionParser, BasicConfiguration, CustomElementResource, CustomAttributeResource } from '@aurelia/runtime';
+import { OneTimeBindingInstruction, ToViewBindingInstruction, FromViewBindingInstruction, TwoWayBindingInstruction, BindingMode, CallBindingInstruction, IteratorBindingInstruction, PrimitiveLiteral, AccessThis, Unary, BindingIdentifier, AccessScope, Template, AccessMember, AccessKeyed, CallScope, CallMember, CallFunction, TaggedTemplate, Binary, Conditional, Assign, ValueConverter, BindingBehavior, ArrayBindingPattern, ArrayLiteral, ForOfStatement, ObjectBindingPattern, ObjectLiteral, Interpolation, IExpressionParser, RuntimeBasicConfiguration, CustomElementResource, CustomAttributeResource } from '@aurelia/runtime';
 
 class AttrSyntax {
     constructor(rawName, rawValue, target, command) {
@@ -1808,12 +1808,12 @@ const DefaultBindingLanguage = [
  * - `DefaultBindingSyntax`
  * - `DefaultBindingLanguage`
  */
-const BasicConfiguration$1 = {
+const BasicConfiguration = {
     /**
      * Apply this configuration to the provided container.
      */
     register(container) {
-        return BasicConfiguration
+        return RuntimeBasicConfiguration
             .register(container)
             .register(...DefaultComponents, ...DefaultBindingSyntax, ...DefaultBindingLanguage);
     },
@@ -2231,5 +2231,5 @@ class TextSymbol {
     }
 }
 
-export { AttrSyntax, IAttributeParser, AtPrefixedTriggerAttributePattern, attributePattern, ColonPrefixedBindAttributePattern, DotSeparatedAttributePattern, IAttributePattern, Interpretation, ISyntaxInterpreter, RefAttributePattern, bindingCommand, BindingCommandResource, CallBindingCommand, DefaultBindingCommand, ForBindingCommand, FromViewBindingCommand, getMode, getTarget, OneTimeBindingCommand, ToViewBindingCommand, TwoWayBindingCommand, IExpressionParserRegistration, DefaultComponents, RefAttributePatternRegistration, DotSeparatedAttributePatternRegistration, DefaultBindingSyntax, AtPrefixedTriggerAttributePatternRegistration, ColonPrefixedBindAttributePatternRegistration, ShortHandBindingSyntax, CallBindingCommandRegistration, DefaultBindingCommandRegistration, ForBindingCommandRegistration, FromViewBindingCommandRegistration, OneTimeBindingCommandRegistration, ToViewBindingCommandRegistration, TwoWayBindingCommandRegistration, DefaultBindingLanguage, BasicConfiguration$1 as BasicConfiguration, parseExpression, ResourceModel, BindableInfo, ElementInfo, AttrInfo, BindingSymbol, CustomAttributeSymbol, CustomElementSymbol, LetElementSymbol, PlainAttributeSymbol, PlainElementSymbol, ReplacePartSymbol, SymbolFlags, TemplateControllerSymbol, TextSymbol };
+export { AttrSyntax, IAttributeParser, AtPrefixedTriggerAttributePattern, attributePattern, ColonPrefixedBindAttributePattern, DotSeparatedAttributePattern, IAttributePattern, Interpretation, ISyntaxInterpreter, RefAttributePattern, bindingCommand, BindingCommandResource, CallBindingCommand, DefaultBindingCommand, ForBindingCommand, FromViewBindingCommand, getMode, getTarget, OneTimeBindingCommand, ToViewBindingCommand, TwoWayBindingCommand, IExpressionParserRegistration, DefaultComponents, RefAttributePatternRegistration, DotSeparatedAttributePatternRegistration, DefaultBindingSyntax, AtPrefixedTriggerAttributePatternRegistration, ColonPrefixedBindAttributePatternRegistration, ShortHandBindingSyntax, CallBindingCommandRegistration, DefaultBindingCommandRegistration, ForBindingCommandRegistration, FromViewBindingCommandRegistration, OneTimeBindingCommandRegistration, ToViewBindingCommandRegistration, TwoWayBindingCommandRegistration, DefaultBindingLanguage, BasicConfiguration, parseExpression, ResourceModel, BindableInfo, ElementInfo, AttrInfo, BindingSymbol, CustomAttributeSymbol, CustomElementSymbol, LetElementSymbol, PlainAttributeSymbol, PlainElementSymbol, ReplacePartSymbol, SymbolFlags, TemplateControllerSymbol, TextSymbol };
 //# sourceMappingURL=index.es6.js.map

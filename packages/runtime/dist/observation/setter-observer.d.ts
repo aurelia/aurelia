@@ -11,6 +11,8 @@ export declare class SetterObserver implements SetterObserver {
     propertyKey: string;
     constructor(flags: LifecycleFlags, obj: IIndexable, propertyKey: string);
     getValue(): unknown;
+    getValueDirect(): unknown;
     setValue(newValue: unknown, flags: LifecycleFlags): void;
+    $patch(flags: LifecycleFlags): void;
 }
 //# sourceMappingURL=setter-observer.d.ts.map

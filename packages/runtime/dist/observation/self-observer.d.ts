@@ -12,6 +12,8 @@ export declare class SelfObserver implements SelfObserver {
     constructor(flags: LifecycleFlags, instance: object, propertyName: string, callbackName: string);
     handleChange(newValue: unknown, oldValue: unknown, flags: LifecycleFlags): void;
     getValue(): unknown;
+    getValueDirect(): unknown;
     setValue(newValue: unknown, flags: LifecycleFlags): void;
+    $patch(flags: LifecycleFlags): void;
 }
 //# sourceMappingURL=self-observer.d.ts.map

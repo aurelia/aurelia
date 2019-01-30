@@ -5,7 +5,6 @@ import { INode, IRenderLocation } from '../../dom';
 import { LifecycleFlags } from '../../flags';
 import { IRenderable, IView, IViewFactory } from '../../lifecycle';
 import { CollectionObserver, IBatchedCollectionSubscriber, IObservedArray, IScope, ObservedCollection } from '../../observation';
-import { SetterObserver } from '../../observation/setter-observer';
 import { ICustomAttribute, ICustomAttributeResource } from '../custom-attribute';
 export interface Repeat<C extends ObservedCollection, T extends INode = INode> extends ICustomAttribute<T>, IBatchedCollectionSubscriber {
 }
@@ -17,9 +16,6 @@ export declare class Repeat<C extends ObservedCollection = IObservedArray, T ext
     static readonly description: AttributeDefinition;
     items: C;
     $scope: IScope;
-    $observers: {
-        items: SetterObserver;
-    };
     forOf: ForOfStatement;
     hasPendingInstanceMutation: boolean;
     local: string;
@@ -30,6 +26,7 @@ export declare class Repeat<C extends ObservedCollection = IObservedArray, T ext
     views: IView<T>[];
     key: string | null;
     keyed: boolean;
+    private persistentFlags;
     constructor(location: IRenderLocation<T>, renderable: IRenderable<T>, factory: IViewFactory<T>);
     binding(flags: LifecycleFlags): void;
     attaching(flags: LifecycleFlags): void;

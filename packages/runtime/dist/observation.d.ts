@@ -57,10 +57,13 @@ export declare enum MutationKind {
     collection = 2,
     proxy = 4
 }
+export interface IPatchable {
+    $patch(flags: LifecycleFlags): void;
+}
 /**
  * Describes a type that specifically tracks changes in an object property, or simply something that can have a getter and/or setter
  */
-export interface IPropertyChangeTracker<TObj extends Record<string, unknown>, TProp = keyof TObj, TValue = unknown> {
+export interface IPropertyChangeTracker<TObj extends Record<string, unknown>, TProp = keyof TObj, TValue = unknown> extends IPatchable {
     obj: TObj;
     propertyKey?: TProp;
     currentValue?: TValue;
@@ -190,6 +193,7 @@ export interface IBatchedSubscribable<T extends MutationKind> {
  */
 export interface IPropertyObserver<TObj extends Record<string, unknown>, TProp extends keyof TObj> extends IDisposable, IAccessor<TObj[TProp]>, IPropertyChangeTracker<TObj, TProp>, ISubscriberCollection<MutationKind.instance> {
     observing: boolean;
+    persistentFlags: LifecycleFlags;
 }
 /**
  * An any-typed property observer
@@ -233,18 +237,15 @@ export declare type LengthPropertyName<T> = T extends unknown[] ? 'length' : T e
 export declare type CollectionTypeToKind<T> = T extends unknown[] ? CollectionKind.array | CollectionKind.indexed : T extends Set<unknown> ? CollectionKind.set | CollectionKind.keyed : T extends Map<unknown, unknown> ? CollectionKind.map | CollectionKind.keyed : never;
 export declare type CollectionKindToType<T> = T extends CollectionKind.array ? unknown[] : T extends CollectionKind.indexed ? unknown[] : T extends CollectionKind.map ? Map<unknown, unknown> : T extends CollectionKind.set ? Set<unknown> : T extends CollectionKind.keyed ? Set<unknown> | Map<unknown, unknown> : never;
 export declare type ObservedCollectionKindToType<T> = T extends CollectionKind.array ? IObservedArray : T extends CollectionKind.indexed ? IObservedArray : T extends CollectionKind.map ? IObservedMap : T extends CollectionKind.set ? IObservedSet : T extends CollectionKind.keyed ? IObservedSet | IObservedMap : never;
-export interface IPatch {
-    patch(flags: LifecycleFlags): void;
-}
 /**
  * An observer that tracks collection mutations and notifies subscribers (either directly or in batches)
  */
-export interface ICollectionObserver<T extends CollectionKind> extends IDisposable, ICollectionChangeTracker<CollectionKindToType<T>>, ISubscriberCollection<MutationKind.collection>, IBatchedSubscriberCollection<MutationKind.collection> {
+export interface ICollectionObserver<T extends CollectionKind> extends IDisposable, IPatchable, ICollectionChangeTracker<CollectionKindToType<T>>, ISubscriberCollection<MutationKind.collection>, IBatchedSubscriberCollection<MutationKind.collection> {
     persistentFlags: LifecycleFlags;
     collection: ObservedCollectionKindToType<T>;
     lengthPropertyName: LengthPropertyName<CollectionKindToType<T>>;
     collectionKind: T;
-    lengthObserver: IBindingTargetObserver & IPatch;
+    lengthObserver: IBindingTargetObserver & IPatchable;
     getLengthObserver(flags: LifecycleFlags): IBindingTargetObserver;
 }
 export declare type CollectionObserver = ICollectionObserver<CollectionKind>;

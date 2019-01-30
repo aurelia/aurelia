@@ -6,6 +6,7 @@ export declare class PrimitiveObserver implements IAccessor, ISubscribable<Mutat
     subscribe: () => void;
     unsubscribe: () => void;
     dispose: () => void;
+    $patch: () => void;
     doNotCache: boolean;
     obj: Primitive;
     constructor(obj: Primitive, propertyKey: PropertyKey);

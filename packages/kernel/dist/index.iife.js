@@ -502,10 +502,11 @@ this.au.kernel = (function (exports) {
       /**
        * Call this at the start of a method/function.
        * Each call to `enter` **must** have an accompanying call to `leave` for the tracer to work properly.
-       * @param name Any human-friendly name to identify the traced method with.
+       * @param objName Any human-friendly name to identify the traced object with.
+       * @param methodName Any human-friendly name to identify the traced method with.
        * @param args Pass in `Array.prototype.slice.call(arguments)` to also trace the parameters, or `null` if this is not needed (to save memory/cpu)
        */
-      enter(name, args) { return; },
+      enter(objName, methodName, args) { return; },
       /**
        * Call this at the end of a method/function. Pops one trace item off the stack.
        */
@@ -520,16 +521,14 @@ this.au.kernel = (function (exports) {
        * @param writer An object to write the output to. Can be null to simply reset the tracer state.
        */
       flushAll(writer) { return; },
-      /**
-       * Writes out each trace info item as they are traced.
-       * @param writer An object to write the output to.
-       */
-      enableLiveLogging(writer) { return; },
+      enableLiveLogging,
       /**
        * Stops writing out each trace info item as they are traced.
        */
       disableLiveLogging() { return; }
   };
+  // tslint:disable-next-line:no-redundant-jump
+  function enableLiveLogging(optionsOrWriter) { return; }
 
   // Shims to augment the Reflect object with methods used from the Reflect Metadata API proposal:
   // https://www.typescriptlang.org/docs/handbook/decorators.html#metadata

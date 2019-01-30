@@ -10,6 +10,7 @@ export declare class SetObserver implements SetObserver {
     collection: IObservedSet;
     readonly flags: LifecycleFlags;
     constructor(flags: LifecycleFlags, lifecycle: ILifecycle, observedSet: IObservedSet);
+    $patch(flags: LifecycleFlags): void;
 }
 export declare function getSetObserver(flags: LifecycleFlags, lifecycle: ILifecycle, observedSet: IObservedSet): SetObserver;
 //# sourceMappingURL=set-observer.d.ts.map

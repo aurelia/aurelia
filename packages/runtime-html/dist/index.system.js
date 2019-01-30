@@ -1,6 +1,6 @@
 System.register('runtimeHtml', ['@aurelia/kernel', '@aurelia/runtime'], function (exports, module) {
   'use strict';
-  var DI, Registration, Reporter, PLATFORM, LifecycleFlags, hasBind, hasUnbind, targetObserver, DelegationStrategy, ITargetObserverLocator, SetterObserver, IDOM, ITargetAccessorLocator, ILifecycle, BindingBehaviorResource, BindingMode, IObserverLocator, buildTemplateDefinition, HydrateElementInstruction, IRenderable, ITargetedInstruction, IRenderingEngine, CompositionCoordinator, bindable, CustomElementResource, DOM, INode, ITemplateFactory, CompiledTemplate, NodeSequence, IExpressionParser, instructionRenderer, ensureExpression, MultiInterpolationBinding, InterpolationBinding, addBinding, Binding, IProjectorLocator, BasicConfiguration;
+  var DI, Registration, Reporter, PLATFORM, LifecycleFlags, hasBind, hasUnbind, targetObserver, DelegationStrategy, ITargetObserverLocator, SetterObserver, IDOM, ITargetAccessorLocator, ILifecycle, BindingBehaviorResource, BindingMode, IObserverLocator, buildTemplateDefinition, HydrateElementInstruction, IRenderable, ITargetedInstruction, IRenderingEngine, CompositionCoordinator, bindable, CustomElementResource, DOM, INode, ITemplateFactory, CompiledTemplate, NodeSequence, IExpressionParser, instructionRenderer, ensureExpression, MultiInterpolationBinding, InterpolationBinding, addBinding, Binding, IProjectorLocator, RuntimeBasicConfiguration;
   return {
     setters: [function (module) {
       DI = module.DI;
@@ -42,7 +42,7 @@ System.register('runtimeHtml', ['@aurelia/kernel', '@aurelia/runtime'], function
       addBinding = module.addBinding;
       Binding = module.Binding;
       IProjectorLocator = module.IProjectorLocator;
-      BasicConfiguration = module.BasicConfiguration;
+      RuntimeBasicConfiguration = module.RuntimeBasicConfiguration;
     }],
     execute: function () {
 
@@ -851,6 +851,12 @@ System.register('runtimeHtml', ['@aurelia/kernel', '@aurelia/runtime'], function
           targetObserver()
       ], StyleAttributeAccessor));
 
+      const ISVGAnalyzer = exports('ISVGAnalyzer', DI.createInterface('ISVGAnalyzer').withDefault(x => x.singleton(class {
+          isStandardSvgAttribute(node, attributeName) {
+              return false;
+          }
+      })));
+
       const inputValueDefaults = {
           ['button']: '',
           ['checkbox']: 'on',
@@ -983,8 +989,9 @@ System.register('runtimeHtml', ['@aurelia/kernel', '@aurelia/runtime'], function
           return o;
       })(Object.create(null));
       class TargetObserverLocator {
-          constructor(dom) {
+          constructor(dom, svgAnalyzer) {
               this.dom = dom;
+              this.svgAnalyzer = svgAnalyzer;
           }
           static register(container) {
               return Registration.singleton(ITargetObserverLocator, this).register(container);
@@ -1020,10 +1027,7 @@ System.register('runtimeHtml', ['@aurelia/kernel', '@aurelia/runtime'], function
                           const nsProps = nsAttributes[propertyName];
                           return new AttributeNSAccessor(lifecycle, obj, propertyName, nsProps[0], nsProps[1]);
                       }
-                      const prefix = propertyName.slice(0, 5);
-                      // https://html.spec.whatwg.org/multipage/dom.html#wai-aria
-                      // https://html.spec.whatwg.org/multipage/dom.html#custom-data-attribute
-                      if (prefix === 'aria-' || prefix === 'data-') {
+                      if (isDataAttribute(obj, propertyName, this.svgAnalyzer)) {
                           return new DataAttributeAccessor(lifecycle, obj, propertyName);
                       }
               }
@@ -1036,10 +1040,11 @@ System.register('runtimeHtml', ['@aurelia/kernel', '@aurelia/runtime'], function
               return this.dom.isNodeInstance(obj);
           }
       } exports('TargetObserverLocator', TargetObserverLocator);
-      TargetObserverLocator.inject = [IDOM];
+      TargetObserverLocator.inject = [IDOM, ISVGAnalyzer];
       class TargetAccessorLocator {
-          constructor(dom) {
+          constructor(dom, svgAnalyzer) {
               this.dom = dom;
+              this.svgAnalyzer = svgAnalyzer;
           }
           static register(container) {
               return Registration.singleton(ITargetAccessorLocator, this).register(container);
@@ -1066,10 +1071,7 @@ System.register('runtimeHtml', ['@aurelia/kernel', '@aurelia/runtime'], function
                           const nsProps = nsAttributes[propertyName];
                           return new AttributeNSAccessor(lifecycle, obj, propertyName, nsProps[0], nsProps[1]);
                       }
-                      const prefix = propertyName.slice(0, 5);
-                      // https://html.spec.whatwg.org/multipage/dom.html#wai-aria
-                      // https://html.spec.whatwg.org/multipage/dom.html#custom-data-attribute
-                      if (prefix === 'aria-' || prefix === 'data-') {
+                      if (isDataAttribute(obj, propertyName, this.svgAnalyzer)) {
                           return new DataAttributeAccessor(lifecycle, obj, propertyName);
                       }
                       return new ElementPropertyAccessor(lifecycle, obj, propertyName);
@@ -1079,13 +1081,20 @@ System.register('runtimeHtml', ['@aurelia/kernel', '@aurelia/runtime'], function
               return this.dom.isNodeInstance(obj);
           }
       } exports('TargetAccessorLocator', TargetAccessorLocator);
-      TargetAccessorLocator.inject = [IDOM];
-
-      const ISVGAnalyzer = exports('ISVGAnalyzer', DI.createInterface('ISVGAnalyzer').withDefault(x => x.singleton(class {
-          isStandardSvgAttribute(node, attributeName) {
-              return false;
+      TargetAccessorLocator.inject = [IDOM, ISVGAnalyzer];
+      const IsDataAttribute = {};
+      function isDataAttribute(obj, propertyName, svgAnalyzer) {
+          if (IsDataAttribute[propertyName] === true) {
+              return true;
           }
-      })));
+          const prefix = propertyName.slice(0, 5);
+          // https://html.spec.whatwg.org/multipage/dom.html#wai-aria
+          // https://html.spec.whatwg.org/multipage/dom.html#custom-data-attribute
+          return IsDataAttribute[propertyName] =
+              prefix === 'aria-' ||
+                  prefix === 'data-' ||
+                  svgAnalyzer.isStandardSvgAttribute(obj, propertyName);
+      }
 
       class AttrBindingBehavior {
           bind(flags, scope, binding) {
@@ -1899,6 +1908,7 @@ System.register('runtimeHtml', ['@aurelia/kernel', '@aurelia/runtime'], function
               }
               this.shadowRoot = host.attachShadow(shadowOptions);
               this.host.$customElement = $customElement;
+              // tslint:disable-next-line:no-unnecessary-type-assertion // this is a false positive
               this.shadowRoot.$customElement = $customElement;
           }
           get children() {
@@ -1927,6 +1937,7 @@ System.register('runtimeHtml', ['@aurelia/kernel', '@aurelia/runtime'], function
               else {
                   this.childNodes = PLATFORM.emptyArray;
               }
+              // tslint:disable-next-line:no-unnecessary-type-assertion // this is a false positive
               this.host = dom.convertToRenderLocation(host);
               this.host.$customElement = $customElement;
           }
@@ -2027,12 +2038,12 @@ System.register('runtimeHtml', ['@aurelia/kernel', '@aurelia/runtime'], function
        * - `DefaultResources`
        * - `DefaultRenderers`
        */
-      const BasicConfiguration$1 = exports('BasicConfiguration', {
+      const BasicConfiguration = exports('BasicConfiguration', {
           /**
            * Apply this configuration to the provided container.
            */
           register(container) {
-              return BasicConfiguration
+              return RuntimeBasicConfiguration
                   .register(container)
                   .register(...DefaultComponents, ...DefaultResources, ...DefaultRenderers);
           },

@@ -1816,7 +1816,7 @@
        * Apply this configuration to the provided container.
        */
       register(container) {
-          return runtime.BasicConfiguration
+          return runtime.RuntimeBasicConfiguration
               .register(container)
               .register(...DefaultComponents, ...DefaultBindingSyntax, ...DefaultBindingLanguage);
       },

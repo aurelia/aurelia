@@ -11,6 +11,7 @@ export declare class MapObserver implements MapObserver {
     collection: IObservedMap;
     readonly flags: LifecycleFlags;
     constructor(flags: LifecycleFlags, lifecycle: ILifecycle, map: IObservedMap);
+    $patch(flags: LifecycleFlags): void;
 }
 export declare function getMapObserver(flags: LifecycleFlags, lifecycle: ILifecycle, map: IObservedMap): MapObserver;
 //# sourceMappingURL=map-observer.d.ts.map

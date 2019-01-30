@@ -802,6 +802,12 @@
       runtime.targetObserver()
   ], exports.StyleAttributeAccessor);
 
+  const ISVGAnalyzer = kernel.DI.createInterface('ISVGAnalyzer').withDefault(x => x.singleton(class {
+      isStandardSvgAttribute(node, attributeName) {
+          return false;
+      }
+  }));
+
   const inputValueDefaults = {
       ['button']: '',
       ['checkbox']: 'on',
@@ -934,8 +940,9 @@
       return o;
   })(Object.create(null));
   class TargetObserverLocator {
-      constructor(dom) {
+      constructor(dom, svgAnalyzer) {
           this.dom = dom;
+          this.svgAnalyzer = svgAnalyzer;
       }
       static register(container) {
           return kernel.Registration.singleton(runtime.ITargetObserverLocator, this).register(container);
@@ -971,10 +978,7 @@
                       const nsProps = nsAttributes[propertyName];
                       return new exports.AttributeNSAccessor(lifecycle, obj, propertyName, nsProps[0], nsProps[1]);
                   }
-                  const prefix = propertyName.slice(0, 5);
-                  // https://html.spec.whatwg.org/multipage/dom.html#wai-aria
-                  // https://html.spec.whatwg.org/multipage/dom.html#custom-data-attribute
-                  if (prefix === 'aria-' || prefix === 'data-') {
+                  if (isDataAttribute(obj, propertyName, this.svgAnalyzer)) {
                       return new exports.DataAttributeAccessor(lifecycle, obj, propertyName);
                   }
           }
@@ -987,10 +991,11 @@
           return this.dom.isNodeInstance(obj);
       }
   }
-  TargetObserverLocator.inject = [runtime.IDOM];
+  TargetObserverLocator.inject = [runtime.IDOM, ISVGAnalyzer];
   class TargetAccessorLocator {
-      constructor(dom) {
+      constructor(dom, svgAnalyzer) {
           this.dom = dom;
+          this.svgAnalyzer = svgAnalyzer;
       }
       static register(container) {
           return kernel.Registration.singleton(runtime.ITargetAccessorLocator, this).register(container);
@@ -1017,10 +1022,7 @@
                       const nsProps = nsAttributes[propertyName];
                       return new exports.AttributeNSAccessor(lifecycle, obj, propertyName, nsProps[0], nsProps[1]);
                   }
-                  const prefix = propertyName.slice(0, 5);
-                  // https://html.spec.whatwg.org/multipage/dom.html#wai-aria
-                  // https://html.spec.whatwg.org/multipage/dom.html#custom-data-attribute
-                  if (prefix === 'aria-' || prefix === 'data-') {
+                  if (isDataAttribute(obj, propertyName, this.svgAnalyzer)) {
                       return new exports.DataAttributeAccessor(lifecycle, obj, propertyName);
                   }
                   return new exports.ElementPropertyAccessor(lifecycle, obj, propertyName);
@@ -1030,13 +1032,20 @@
           return this.dom.isNodeInstance(obj);
       }
   }
-  TargetAccessorLocator.inject = [runtime.IDOM];
-
-  const ISVGAnalyzer = kernel.DI.createInterface('ISVGAnalyzer').withDefault(x => x.singleton(class {
-      isStandardSvgAttribute(node, attributeName) {
-          return false;
+  TargetAccessorLocator.inject = [runtime.IDOM, ISVGAnalyzer];
+  const IsDataAttribute = {};
+  function isDataAttribute(obj, propertyName, svgAnalyzer) {
+      if (IsDataAttribute[propertyName] === true) {
+          return true;
       }
-  }));
+      const prefix = propertyName.slice(0, 5);
+      // https://html.spec.whatwg.org/multipage/dom.html#wai-aria
+      // https://html.spec.whatwg.org/multipage/dom.html#custom-data-attribute
+      return IsDataAttribute[propertyName] =
+          prefix === 'aria-' ||
+              prefix === 'data-' ||
+              svgAnalyzer.isStandardSvgAttribute(obj, propertyName);
+  }
 
   class AttrBindingBehavior {
       bind(flags, scope, binding) {
@@ -1848,6 +1857,7 @@
           }
           this.shadowRoot = host.attachShadow(shadowOptions);
           this.host.$customElement = $customElement;
+          // tslint:disable-next-line:no-unnecessary-type-assertion // this is a false positive
           this.shadowRoot.$customElement = $customElement;
       }
       get children() {
@@ -1876,6 +1886,7 @@
           else {
               this.childNodes = kernel.PLATFORM.emptyArray;
           }
+          // tslint:disable-next-line:no-unnecessary-type-assertion // this is a false positive
           this.host = dom.convertToRenderLocation(host);
           this.host.$customElement = $customElement;
       }
@@ -1981,7 +1992,7 @@
        * Apply this configuration to the provided container.
        */
       register(container) {
-          return runtime.BasicConfiguration
+          return runtime.RuntimeBasicConfiguration
               .register(container)
               .register(...DefaultComponents, ...DefaultResources, ...DefaultRenderers);
       },

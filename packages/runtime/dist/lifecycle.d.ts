@@ -3,7 +3,7 @@ import { IConnectableBinding } from './binding/connectable';
 import { ITargetedInstruction, TemplateDefinition, TemplatePartDefinitions } from './definitions';
 import { INode, INodeSequence, IRenderLocation } from './dom';
 import { Hooks, LifecycleFlags, State } from './flags';
-import { IChangeTracker, IScope } from './observation';
+import { IChangeTracker, IPatchable, IScope } from './observation';
 export interface IState {
     $state?: State;
     $lifecycle?: ILifecycle;
@@ -202,7 +202,7 @@ export interface ILifecycleHooks extends IState {
      */
     caching?(flags: LifecycleFlags): void;
 }
-export interface IComponent {
+export interface IComponent extends IPatchable {
     readonly $nextComponent: IComponent | null;
     readonly $prevComponent: IComponent | null;
     $nextUnbindAfterDetach: IComponent | null;
@@ -239,7 +239,6 @@ export interface ILifecycle {
      */
     enqueueFlush(requestor: IChangeTracker): Promise<void>;
     processConnectQueue(flags: LifecycleFlags): void;
-    processPatchQueue(flags: LifecycleFlags): void;
     processBindQueue(flags: LifecycleFlags): void;
     processUnbindQueue(flags: LifecycleFlags): void;
     /**

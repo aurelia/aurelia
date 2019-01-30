@@ -860,7 +860,7 @@ class Viewport {
         this.nextComponent = this.componentInstance(component);
         const host = this.element;
         const container = this.context || this.router.container;
-        // TODO: get useProxies settings from the template definition
+        // TODO: get proxyStrategy settings from the template definition
         this.nextComponent.$hydrate(LifecycleFlags.none, container, host);
     }
     unloadComponent(component) {

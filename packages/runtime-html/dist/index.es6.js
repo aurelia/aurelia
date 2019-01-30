@@ -1,5 +1,5 @@
 import { DI, Registration, Reporter, PLATFORM } from '@aurelia/kernel';
-import { LifecycleFlags, hasBind, hasUnbind, targetObserver, DelegationStrategy, ITargetObserverLocator, SetterObserver, IDOM, ITargetAccessorLocator, ILifecycle, BindingBehaviorResource, BindingMode, IObserverLocator, buildTemplateDefinition, HydrateElementInstruction, IRenderable, ITargetedInstruction, IRenderingEngine, CompositionCoordinator, bindable, CustomElementResource, DOM, INode, ITemplateFactory, CompiledTemplate, NodeSequence, IExpressionParser, instructionRenderer, ensureExpression, MultiInterpolationBinding, InterpolationBinding, addBinding, Binding, IProjectorLocator, BasicConfiguration } from '@aurelia/runtime';
+import { LifecycleFlags, hasBind, hasUnbind, targetObserver, DelegationStrategy, ITargetObserverLocator, SetterObserver, IDOM, ITargetAccessorLocator, ILifecycle, BindingBehaviorResource, BindingMode, IObserverLocator, buildTemplateDefinition, HydrateElementInstruction, IRenderable, ITargetedInstruction, IRenderingEngine, CompositionCoordinator, bindable, CustomElementResource, DOM, INode, ITemplateFactory, CompiledTemplate, NodeSequence, IExpressionParser, instructionRenderer, ensureExpression, MultiInterpolationBinding, InterpolationBinding, addBinding, Binding, IProjectorLocator, RuntimeBasicConfiguration } from '@aurelia/runtime';
 
 class Listener {
     // tslint:disable-next-line:parameters-max-number
@@ -799,6 +799,12 @@ StyleAttributeAccessor = __decorate([
     targetObserver()
 ], StyleAttributeAccessor);
 
+const ISVGAnalyzer = DI.createInterface('ISVGAnalyzer').withDefault(x => x.singleton(class {
+    isStandardSvgAttribute(node, attributeName) {
+        return false;
+    }
+}));
+
 const inputValueDefaults = {
     ['button']: '',
     ['checkbox']: 'on',
@@ -931,8 +937,9 @@ const overrideProps = (function (o) {
     return o;
 })(Object.create(null));
 class TargetObserverLocator {
-    constructor(dom) {
+    constructor(dom, svgAnalyzer) {
         this.dom = dom;
+        this.svgAnalyzer = svgAnalyzer;
     }
     static register(container) {
         return Registration.singleton(ITargetObserverLocator, this).register(container);
@@ -968,10 +975,7 @@ class TargetObserverLocator {
                     const nsProps = nsAttributes[propertyName];
                     return new AttributeNSAccessor(lifecycle, obj, propertyName, nsProps[0], nsProps[1]);
                 }
-                const prefix = propertyName.slice(0, 5);
-                // https://html.spec.whatwg.org/multipage/dom.html#wai-aria
-                // https://html.spec.whatwg.org/multipage/dom.html#custom-data-attribute
-                if (prefix === 'aria-' || prefix === 'data-') {
+                if (isDataAttribute(obj, propertyName, this.svgAnalyzer)) {
                     return new DataAttributeAccessor(lifecycle, obj, propertyName);
                 }
         }
@@ -984,10 +988,11 @@ class TargetObserverLocator {
         return this.dom.isNodeInstance(obj);
     }
 }
-TargetObserverLocator.inject = [IDOM];
+TargetObserverLocator.inject = [IDOM, ISVGAnalyzer];
 class TargetAccessorLocator {
-    constructor(dom) {
+    constructor(dom, svgAnalyzer) {
         this.dom = dom;
+        this.svgAnalyzer = svgAnalyzer;
     }
     static register(container) {
         return Registration.singleton(ITargetAccessorLocator, this).register(container);
@@ -1014,10 +1019,7 @@ class TargetAccessorLocator {
                     const nsProps = nsAttributes[propertyName];
                     return new AttributeNSAccessor(lifecycle, obj, propertyName, nsProps[0], nsProps[1]);
                 }
-                const prefix = propertyName.slice(0, 5);
-                // https://html.spec.whatwg.org/multipage/dom.html#wai-aria
-                // https://html.spec.whatwg.org/multipage/dom.html#custom-data-attribute
-                if (prefix === 'aria-' || prefix === 'data-') {
+                if (isDataAttribute(obj, propertyName, this.svgAnalyzer)) {
                     return new DataAttributeAccessor(lifecycle, obj, propertyName);
                 }
                 return new ElementPropertyAccessor(lifecycle, obj, propertyName);
@@ -1027,13 +1029,20 @@ class TargetAccessorLocator {
         return this.dom.isNodeInstance(obj);
     }
 }
-TargetAccessorLocator.inject = [IDOM];
-
-const ISVGAnalyzer = DI.createInterface('ISVGAnalyzer').withDefault(x => x.singleton(class {
-    isStandardSvgAttribute(node, attributeName) {
-        return false;
+TargetAccessorLocator.inject = [IDOM, ISVGAnalyzer];
+const IsDataAttribute = {};
+function isDataAttribute(obj, propertyName, svgAnalyzer) {
+    if (IsDataAttribute[propertyName] === true) {
+        return true;
     }
-}));
+    const prefix = propertyName.slice(0, 5);
+    // https://html.spec.whatwg.org/multipage/dom.html#wai-aria
+    // https://html.spec.whatwg.org/multipage/dom.html#custom-data-attribute
+    return IsDataAttribute[propertyName] =
+        prefix === 'aria-' ||
+            prefix === 'data-' ||
+            svgAnalyzer.isStandardSvgAttribute(obj, propertyName);
+}
 
 class AttrBindingBehavior {
     bind(flags, scope, binding) {
@@ -1847,6 +1856,7 @@ class ShadowDOMProjector {
         }
         this.shadowRoot = host.attachShadow(shadowOptions);
         this.host.$customElement = $customElement;
+        // tslint:disable-next-line:no-unnecessary-type-assertion // this is a false positive
         this.shadowRoot.$customElement = $customElement;
     }
     get children() {
@@ -1875,6 +1885,7 @@ class ContainerlessProjector {
         else {
             this.childNodes = PLATFORM.emptyArray;
         }
+        // tslint:disable-next-line:no-unnecessary-type-assertion // this is a false positive
         this.host = dom.convertToRenderLocation(host);
         this.host.$customElement = $customElement;
     }
@@ -1975,12 +1986,12 @@ const DefaultRenderers = [
  * - `DefaultResources`
  * - `DefaultRenderers`
  */
-const BasicConfiguration$1 = {
+const BasicConfiguration = {
     /**
      * Apply this configuration to the provided container.
      */
     register(container) {
-        return BasicConfiguration
+        return RuntimeBasicConfiguration
             .register(container)
             .register(...DefaultComponents, ...DefaultResources, ...DefaultRenderers);
     },
@@ -1992,5 +2003,5 @@ const BasicConfiguration$1 = {
     }
 };
 
-export { Listener, AttributeNSAccessor, CheckedObserver, ClassAttributeAccessor, DataAttributeAccessor, ElementPropertyAccessor, ListenerTracker, DelegateOrCaptureSubscription, TriggerSubscription, IEventManager, EventSubscriber, TargetAccessorLocator, TargetObserverLocator, SelectValueObserver, StyleAttributeAccessor, ISVGAnalyzer, ValueAttributeObserver, AttrBindingBehavior, SelfBindingBehavior, UpdateTriggerBindingBehavior, Compose, IProjectorLocatorRegistration, ITargetAccessorLocatorRegistration, ITargetObserverLocatorRegistration, ITemplateFactoryRegistration, DefaultComponents, AttrBindingBehaviorRegistration, SelfBindingBehaviorRegistration, UpdateTriggerBindingBehaviorRegistration, ComposeRegistration, DefaultResources, ListenerBindingRendererRegistration, SetAttributeRendererRegistration, StylePropertyBindingRendererRegistration, TextBindingRendererRegistration, DefaultRenderers, BasicConfiguration$1 as BasicConfiguration, createElement, RenderPlan, HTMLTargetedInstructionType, isHTMLTargetedInstruction, NodeType, HTMLDOM, $DOM as DOM, CaptureBindingInstruction, DelegateBindingInstruction, SetAttributeInstruction, StylePropertyBindingInstruction, TextBindingInstruction, TriggerBindingInstruction };
+export { Listener, AttributeNSAccessor, CheckedObserver, ClassAttributeAccessor, DataAttributeAccessor, ElementPropertyAccessor, ListenerTracker, DelegateOrCaptureSubscription, TriggerSubscription, IEventManager, EventSubscriber, TargetAccessorLocator, TargetObserverLocator, SelectValueObserver, StyleAttributeAccessor, ISVGAnalyzer, ValueAttributeObserver, AttrBindingBehavior, SelfBindingBehavior, UpdateTriggerBindingBehavior, Compose, IProjectorLocatorRegistration, ITargetAccessorLocatorRegistration, ITargetObserverLocatorRegistration, ITemplateFactoryRegistration, DefaultComponents, AttrBindingBehaviorRegistration, SelfBindingBehaviorRegistration, UpdateTriggerBindingBehaviorRegistration, ComposeRegistration, DefaultResources, ListenerBindingRendererRegistration, SetAttributeRendererRegistration, StylePropertyBindingRendererRegistration, TextBindingRendererRegistration, DefaultRenderers, BasicConfiguration, createElement, RenderPlan, HTMLTargetedInstructionType, isHTMLTargetedInstruction, NodeType, HTMLDOM, $DOM as DOM, CaptureBindingInstruction, DelegateBindingInstruction, SetAttributeInstruction, StylePropertyBindingInstruction, TextBindingInstruction, TriggerBindingInstruction };
 //# sourceMappingURL=index.es6.js.map

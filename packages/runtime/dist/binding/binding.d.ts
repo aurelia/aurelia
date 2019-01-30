@@ -13,7 +13,6 @@ export declare class Binding implements IPartialConnectableBinding {
     $state: State;
     $lifecycle: ILifecycle;
     $nextConnect: IConnectableBinding;
-    $nextPatch: IConnectableBinding;
     $scope: IScope;
     locator: IServiceLocator;
     mode: BindingMode;
@@ -30,6 +29,6 @@ export declare class Binding implements IPartialConnectableBinding {
     $bind(flags: LifecycleFlags, scope: IScope): void;
     $unbind(flags: LifecycleFlags): void;
     connect(flags: LifecycleFlags): void;
-    patch(flags: LifecycleFlags): void;
+    $patch(flags: LifecycleFlags): void;
 }
 //# sourceMappingURL=binding.d.ts.map

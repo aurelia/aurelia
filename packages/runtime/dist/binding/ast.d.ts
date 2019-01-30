@@ -285,8 +285,8 @@ export declare class ForOfStatement implements IForOfStatement {
     readonly iterable: IsBindingBehavior;
     constructor(declaration: BindingIdentifierOrPattern, iterable: IsBindingBehavior);
     evaluate(flags: LifecycleFlags, scope: IScope, locator: IServiceLocator): unknown;
-    count(result: ObservedCollection | number | null | undefined): number;
-    iterate(result: ObservedCollection | number | null | undefined, func: (arr: Collection, index: number, item: unknown) => void): void;
+    count(flags: LifecycleFlags, result: ObservedCollection | number | null | undefined): number;
+    iterate(flags: LifecycleFlags, result: ObservedCollection | number | null | undefined, func: (arr: Collection, index: number, item: unknown) => void): void;
     connect(flags: LifecycleFlags, scope: IScope, binding: IConnectableBinding): void;
     bind(flags: LifecycleFlags, scope: IScope, binding: IConnectableBinding): void;
     unbind(flags: LifecycleFlags, scope: IScope, binding: IConnectableBinding): void;

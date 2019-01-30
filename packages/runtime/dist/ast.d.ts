@@ -191,8 +191,8 @@ export interface IForOfStatement extends IExpression {
     readonly $kind: ExpressionKind.ForOfStatement;
     readonly declaration: BindingIdentifierOrPattern;
     readonly iterable: IsBindingBehavior;
-    count(result: ObservedCollection | number | null | undefined): number;
-    iterate(result: ObservedCollection | number | null | undefined, func: (arr: Collection, index: number, item: unknown) => void): void;
+    count(flags: LifecycleFlags, result: ObservedCollection | number | null | undefined): number;
+    iterate(flags: LifecycleFlags, result: ObservedCollection | number | null | undefined, func: (arr: Collection, index: number, item: unknown) => void): void;
     bind(flags: LifecycleFlags, scope: IScope, binding: IConnectable): void;
     unbind(flags: LifecycleFlags, scope: IScope, binding: IConnectable): void;
 }

@@ -19,6 +19,7 @@ export declare class If<T extends INode = INode> implements If<T> {
     ifView: IView<T> | null;
     location: IRenderLocation<T>;
     coordinator: CompositionCoordinator;
+    private persistentFlags;
     constructor(ifFactory: IViewFactory<T>, location: IRenderLocation<T>, coordinator: CompositionCoordinator);
     binding(flags: LifecycleFlags): void;
     attaching(flags: LifecycleFlags): void;

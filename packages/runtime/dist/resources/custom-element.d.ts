@@ -27,11 +27,11 @@ export interface ICustomElementStaticProperties {
     containerless?: TemplateDefinition['containerless'];
     shadowOptions?: TemplateDefinition['shadowOptions'];
     bindables?: TemplateDefinition['bindables'];
-    useProxies?: TemplateDefinition['useProxies'];
+    strategy?: TemplateDefinition['strategy'];
 }
 export interface ICustomElement<T extends INode = INode> extends Partial<IChangeTracker>, ILifecycleHooks, ILifecycleRender, IMountableComponent, IRenderable<T> {
-    readonly $projector: IElementProjector;
-    readonly $host: CustomElementHost;
+    readonly $projector: IElementProjector<T>;
+    readonly $host: CustomElementHost<T>;
     $hydrate(flags: LifecycleFlags, parentContext: IServiceLocator, host: INode, options?: IElementHydrationOptions): void;
 }
 export interface ICustomElementResource<T extends INode = INode> extends IResourceKind<ITemplateDefinition, ICustomElement<T>, Class<ICustomElement<T>> & ICustomElementStaticProperties> {

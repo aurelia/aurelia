@@ -1,8 +1,9 @@
 import { IContainer, IRegistry } from '@aurelia/kernel';
 import { IDOM, INode } from './dom';
+import { BindingStrategy } from './flags';
 import { ICustomElement } from './resources/custom-element';
 export interface ISinglePageApp<THost extends INode = INode> {
-    useProxies?: boolean;
+    strategy?: BindingStrategy;
     dom?: IDOM;
     host: THost;
     component: unknown;

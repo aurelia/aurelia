@@ -25,5 +25,7 @@ export interface ITargetAccessorLocator {
     handles(flags: LifecycleFlags, obj: unknown): boolean;
 }
 export declare const ITargetAccessorLocator: InterfaceSymbol<ITargetAccessorLocator>;
-export declare function getCollectionObserver(flags: LifecycleFlags, lifecycle: ILifecycle, collection: IObservedMap | IObservedSet | IObservedArray): CollectionObserver;
+declare type RepeatableCollection = IObservedMap | IObservedSet | IObservedArray | null | undefined | number;
+export declare function getCollectionObserver(flags: LifecycleFlags, lifecycle: ILifecycle, collection: RepeatableCollection): CollectionObserver;
+export {};
 //# sourceMappingURL=observer-locator.d.ts.map

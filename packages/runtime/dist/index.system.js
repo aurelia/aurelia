@@ -56,11 +56,11 @@ System.register('runtime', ['@aurelia/kernel'], function (exports, module) {
         isTargetedInstruction: isTargetedInstruction,
         TargetedInstructionType: void 0,
         BindingMode: void 0,
+        BindingStrategy: void 0,
         ExpressionKind: void 0,
         Hooks: void 0,
         LifecycleFlags: void 0,
         State: void 0,
-        stringifyLifecycleFlags: stringifyLifecycleFlags,
         CollectionKind: void 0,
         DelegationStrategy: void 0,
         MutationKind: void 0,
@@ -88,6 +88,57 @@ System.register('runtime', ['@aurelia/kernel'], function (exports, module) {
           BindingMode[BindingMode["twoWay"] = 6] = "twoWay";
           BindingMode[BindingMode["default"] = 8] = "default";
       })(BindingMode || (BindingMode = exports('BindingMode', {})));
+      var BindingStrategy;
+      (function (BindingStrategy) {
+          /**
+           * Configures all components "below" this one to operate in getterSetter binding mode.
+           * This is the default; if no strategy is specified, this one is implied.
+           *
+           * This strategy is the most compatible, convenient and has the best performance on frequently updated bindings on components that are infrequently replaced.
+           * However, it also consumes the most resources on initialization.
+           *
+           * Cannot be combined with `proxies` or `patch`.
+           */
+          BindingStrategy[BindingStrategy["getterSetter"] = 1] = "getterSetter";
+          /**
+           * Configures all components "below" this one to operate in proxy binding mode.
+           * No getters/setters are created.
+           *
+           * This strategy consumes significantly fewer resources than `getterSetter` on initialization and has the best performance on infrequently updated bindings on
+           * components that are frequently replaced.
+           * However, it consumes more resources on updates.
+           *
+           * Cannot be combined with `getterSetter` or `patch`.
+           */
+          BindingStrategy[BindingStrategy["proxies"] = 2] = "proxies";
+          /**
+           * Configures all components "below" this one to operate in patched binding mode.
+           * Nothing is observed; to propagate changes, you manually need to call `$patch` on the component.
+           *
+           * This strategy consumes the least amount of resources and has the fastest initialization.
+           * Performance on updates will depend heavily on how it's used, but tends to be worse on a large number of
+           * nested bindings/components due to a larger number of reads on all properties.
+           *
+           * Cannot be combined with `getterSetter` or `proxies`.
+           */
+          BindingStrategy[BindingStrategy["patch"] = 4] = "patch";
+          /**
+           * Configures any repeaters "below" this component to operate in keyed mode.
+           * To only put a single repeater in that mode, use `& keyed` (this will change to track-by etc soon)
+           *
+           * Can be combined with either `getterSetter`, `proxies` or `patch`.
+           */
+          BindingStrategy[BindingStrategy["keyed"] = 8] = "keyed";
+      })(BindingStrategy || (BindingStrategy = exports('BindingStrategy', {})));
+      const mandatoryStrategy = 1 /* getterSetter */ | 2 /* proxies */ | 4 /* patch */;
+      function ensureValidStrategy(strategy) {
+          if ((strategy & mandatoryStrategy) === 0 || strategy === 8 /* keyed */) {
+              // TODO: probably want to validate that user isn't trying to mix proxy/patch, getterSetter/patch, getterSetter/proxy
+              // TODO: also need to make sure that strategy can be changed away from patch/proxies inside the component tree (not here though, but just making a note)
+              return strategy | 1 /* getterSetter */;
+          }
+          return strategy;
+      }
       var State;
       (function (State) {
           State[State["none"] = 0] = "none";
@@ -100,6 +151,7 @@ System.register('runtime', ['@aurelia/kernel'], function (exports, module) {
           State[State["isUnbinding"] = 64] = "isUnbinding";
           State[State["isCached"] = 128] = "isCached";
           State[State["isContainerless"] = 256] = "isContainerless";
+          State[State["isPatching"] = 512] = "isPatching";
       })(State || (State = exports('State', {})));
       var Hooks;
       (function (Hooks) {
@@ -119,118 +171,46 @@ System.register('runtime', ['@aurelia/kernel'], function (exports, module) {
       var LifecycleFlags;
       (function (LifecycleFlags) {
           LifecycleFlags[LifecycleFlags["none"] = 0] = "none";
-          LifecycleFlags[LifecycleFlags["mustEvaluate"] = 524288] = "mustEvaluate";
-          LifecycleFlags[LifecycleFlags["mutation"] = 3] = "mutation";
-          LifecycleFlags[LifecycleFlags["isCollectionMutation"] = 1] = "isCollectionMutation";
-          LifecycleFlags[LifecycleFlags["isInstanceMutation"] = 2] = "isInstanceMutation";
-          LifecycleFlags[LifecycleFlags["update"] = 28] = "update";
-          LifecycleFlags[LifecycleFlags["updateTargetObserver"] = 4] = "updateTargetObserver";
-          LifecycleFlags[LifecycleFlags["updateTargetInstance"] = 8] = "updateTargetInstance";
-          LifecycleFlags[LifecycleFlags["updateSourceExpression"] = 16] = "updateSourceExpression";
-          LifecycleFlags[LifecycleFlags["from"] = 524256] = "from";
-          LifecycleFlags[LifecycleFlags["fromFlush"] = 224] = "fromFlush";
-          LifecycleFlags[LifecycleFlags["fromAsyncFlush"] = 32] = "fromAsyncFlush";
-          LifecycleFlags[LifecycleFlags["fromSyncFlush"] = 64] = "fromSyncFlush";
-          LifecycleFlags[LifecycleFlags["fromTick"] = 128] = "fromTick";
-          LifecycleFlags[LifecycleFlags["fromStartTask"] = 256] = "fromStartTask";
-          LifecycleFlags[LifecycleFlags["fromStopTask"] = 512] = "fromStopTask";
-          LifecycleFlags[LifecycleFlags["fromBind"] = 1024] = "fromBind";
-          LifecycleFlags[LifecycleFlags["fromUnbind"] = 2048] = "fromUnbind";
-          LifecycleFlags[LifecycleFlags["fromAttach"] = 4096] = "fromAttach";
-          LifecycleFlags[LifecycleFlags["fromDetach"] = 8192] = "fromDetach";
-          LifecycleFlags[LifecycleFlags["fromCache"] = 16384] = "fromCache";
-          LifecycleFlags[LifecycleFlags["fromDOMEvent"] = 32768] = "fromDOMEvent";
-          LifecycleFlags[LifecycleFlags["fromObserverSetter"] = 65536] = "fromObserverSetter";
-          LifecycleFlags[LifecycleFlags["fromBindableHandler"] = 131072] = "fromBindableHandler";
-          LifecycleFlags[LifecycleFlags["fromLifecycleTask"] = 262144] = "fromLifecycleTask";
-          LifecycleFlags[LifecycleFlags["parentUnmountQueued"] = 1048576] = "parentUnmountQueued";
+          LifecycleFlags[LifecycleFlags["mustEvaluate"] = 8388608] = "mustEvaluate";
+          LifecycleFlags[LifecycleFlags["bindingStrategy"] = 15] = "bindingStrategy";
+          LifecycleFlags[LifecycleFlags["getterSetterStrategy"] = 1] = "getterSetterStrategy";
+          LifecycleFlags[LifecycleFlags["proxyStrategy"] = 2] = "proxyStrategy";
+          LifecycleFlags[LifecycleFlags["patchStrategy"] = 4] = "patchStrategy";
+          LifecycleFlags[LifecycleFlags["keyedStrategy"] = 8] = "keyedStrategy";
+          LifecycleFlags[LifecycleFlags["mutation"] = 48] = "mutation";
+          LifecycleFlags[LifecycleFlags["isCollectionMutation"] = 16] = "isCollectionMutation";
+          LifecycleFlags[LifecycleFlags["isInstanceMutation"] = 32] = "isInstanceMutation";
+          LifecycleFlags[LifecycleFlags["update"] = 448] = "update";
+          LifecycleFlags[LifecycleFlags["updateTargetObserver"] = 64] = "updateTargetObserver";
+          LifecycleFlags[LifecycleFlags["updateTargetInstance"] = 128] = "updateTargetInstance";
+          LifecycleFlags[LifecycleFlags["updateSourceExpression"] = 256] = "updateSourceExpression";
+          LifecycleFlags[LifecycleFlags["from"] = 8388096] = "from";
+          LifecycleFlags[LifecycleFlags["fromFlush"] = 3584] = "fromFlush";
+          LifecycleFlags[LifecycleFlags["fromAsyncFlush"] = 512] = "fromAsyncFlush";
+          LifecycleFlags[LifecycleFlags["fromSyncFlush"] = 1024] = "fromSyncFlush";
+          LifecycleFlags[LifecycleFlags["fromTick"] = 2048] = "fromTick";
+          LifecycleFlags[LifecycleFlags["fromStartTask"] = 4096] = "fromStartTask";
+          LifecycleFlags[LifecycleFlags["fromStopTask"] = 8192] = "fromStopTask";
+          LifecycleFlags[LifecycleFlags["fromBind"] = 16384] = "fromBind";
+          LifecycleFlags[LifecycleFlags["fromUnbind"] = 32768] = "fromUnbind";
+          LifecycleFlags[LifecycleFlags["fromAttach"] = 65536] = "fromAttach";
+          LifecycleFlags[LifecycleFlags["fromDetach"] = 131072] = "fromDetach";
+          LifecycleFlags[LifecycleFlags["fromCache"] = 262144] = "fromCache";
+          LifecycleFlags[LifecycleFlags["fromDOMEvent"] = 524288] = "fromDOMEvent";
+          LifecycleFlags[LifecycleFlags["fromObserverSetter"] = 1048576] = "fromObserverSetter";
+          LifecycleFlags[LifecycleFlags["fromBindableHandler"] = 2097152] = "fromBindableHandler";
+          LifecycleFlags[LifecycleFlags["fromLifecycleTask"] = 4194304] = "fromLifecycleTask";
+          LifecycleFlags[LifecycleFlags["parentUnmountQueued"] = 16777216] = "parentUnmountQueued";
           // this flag is for the synchronous flush before detach (no point in updating the
           // DOM if it's about to be detached)
-          LifecycleFlags[LifecycleFlags["doNotUpdateDOM"] = 2097152] = "doNotUpdateDOM";
-          LifecycleFlags[LifecycleFlags["isTraversingParentScope"] = 4194304] = "isTraversingParentScope";
+          LifecycleFlags[LifecycleFlags["doNotUpdateDOM"] = 33554432] = "doNotUpdateDOM";
+          LifecycleFlags[LifecycleFlags["isTraversingParentScope"] = 67108864] = "isTraversingParentScope";
+          LifecycleFlags[LifecycleFlags["isOriginalArray"] = 134217728] = "isOriginalArray";
           // Bitmask for flags that need to be stored on a binding during $bind for mutation
           // callbacks outside of $bind
-          LifecycleFlags[LifecycleFlags["persistentBindingFlags"] = 58720256] = "persistentBindingFlags";
-          LifecycleFlags[LifecycleFlags["allowParentScopeTraversal"] = 8388608] = "allowParentScopeTraversal";
-          LifecycleFlags[LifecycleFlags["useProxies"] = 16777216] = "useProxies";
-          LifecycleFlags[LifecycleFlags["keyedMode"] = 33554432] = "keyedMode";
+          LifecycleFlags[LifecycleFlags["persistentBindingFlags"] = 268435471] = "persistentBindingFlags";
+          LifecycleFlags[LifecycleFlags["allowParentScopeTraversal"] = 268435456] = "allowParentScopeTraversal";
       })(LifecycleFlags || (LifecycleFlags = exports('LifecycleFlags', {})));
-      function stringifyLifecycleFlags(flags) {
-          const flagNames = [];
-          if (flags & LifecycleFlags.mustEvaluate) {
-              flagNames.push('mustEvaluate');
-          }
-          if (flags & LifecycleFlags.isCollectionMutation) {
-              flagNames.push('isCollectionMutation');
-          }
-          if (flags & LifecycleFlags.isInstanceMutation) {
-              flagNames.push('isInstanceMutation');
-          }
-          if (flags & LifecycleFlags.updateTargetObserver) {
-              flagNames.push('updateTargetObserver');
-          }
-          if (flags & LifecycleFlags.updateTargetInstance) {
-              flagNames.push('updateTargetInstance');
-          }
-          if (flags & LifecycleFlags.updateSourceExpression) {
-              flagNames.push('updateSourceExpression');
-          }
-          if (flags & LifecycleFlags.fromAsyncFlush) {
-              flagNames.push('fromAsyncFlush');
-          }
-          if (flags & LifecycleFlags.fromSyncFlush) {
-              flagNames.push('fromSyncFlush');
-          }
-          if (flags & LifecycleFlags.fromStartTask) {
-              flagNames.push('fromStartTask');
-          }
-          if (flags & LifecycleFlags.fromStopTask) {
-              flagNames.push('fromStopTask');
-          }
-          if (flags & LifecycleFlags.fromBind) {
-              flagNames.push('fromBind');
-          }
-          if (flags & LifecycleFlags.fromUnbind) {
-              flagNames.push('fromUnbind');
-          }
-          if (flags & LifecycleFlags.fromAttach) {
-              flagNames.push('fromAttach');
-          }
-          if (flags & LifecycleFlags.fromDetach) {
-              flagNames.push('fromDetach');
-          }
-          if (flags & LifecycleFlags.fromCache) {
-              flagNames.push('fromCache');
-          }
-          if (flags & LifecycleFlags.fromDOMEvent) {
-              flagNames.push('fromDOMEvent');
-          }
-          if (flags & LifecycleFlags.fromObserverSetter) {
-              flagNames.push('fromObserverSetter');
-          }
-          if (flags & LifecycleFlags.fromBindableHandler) {
-              flagNames.push('fromBindableHandler');
-          }
-          if (flags & LifecycleFlags.fromLifecycleTask) {
-              flagNames.push('fromLifecycleTask');
-          }
-          if (flags & LifecycleFlags.parentUnmountQueued) {
-              flagNames.push('parentUnmountQueued');
-          }
-          if (flags & LifecycleFlags.doNotUpdateDOM) {
-              flagNames.push('doNotUpdateDOM');
-          }
-          if (flags & LifecycleFlags.isTraversingParentScope) {
-              flagNames.push('isTraversingParentScope');
-          }
-          if (flags & LifecycleFlags.allowParentScopeTraversal) {
-              flagNames.push('allowParentScopeTraversal');
-          }
-          if (flags & LifecycleFlags.useProxies) {
-              flagNames.push('useProxies');
-          }
-          return flagNames.join('|');
-      }
       var ExpressionKind;
       (function (ExpressionKind) {
           ExpressionKind[ExpressionKind["Connects"] = 32] = "Connects";
@@ -670,12 +650,15 @@ System.register('runtime', ['@aurelia/kernel'], function (exports, module) {
               this.proxy = proxy;
               this.subscribe = this.addSubscriber;
               this.unsubscribe = this.removeSubscriber;
+              if (raw[key] instanceof Object) { // Ensure we observe array indices and newly created object properties
+                  raw[key] = ProxyObserver.getOrCreate(raw[key]).proxy;
+              }
           }
           setValue(value, flags) {
               const oldValue = this.raw[this.key];
               if (oldValue !== value) {
                   this.raw[this.key] = value;
-                  this.callSubscribers(value, oldValue, flags | LifecycleFlags.useProxies | LifecycleFlags.updateTargetInstance);
+                  this.callSubscribers(value, oldValue, flags | LifecycleFlags.proxyStrategy | LifecycleFlags.updateTargetInstance);
               }
           }
           getValue() {
@@ -751,7 +734,7 @@ System.register('runtime', ['@aurelia/kernel'], function (exports, module) {
               if (oldValue !== value) {
                   Reflect.set(target, p, value, target);
                   this.callPropertySubscribers(value, oldValue, p);
-                  this.callSubscribers(p, value, oldValue, LifecycleFlags.useProxies | LifecycleFlags.updateTargetInstance);
+                  this.callSubscribers(p, value, oldValue, LifecycleFlags.proxyStrategy | LifecycleFlags.updateTargetInstance);
               }
               return true;
           }
@@ -760,7 +743,7 @@ System.register('runtime', ['@aurelia/kernel'], function (exports, module) {
               if (Reflect.deleteProperty(target, p)) {
                   if (oldValue !== undefined) {
                       this.callPropertySubscribers(undefined, oldValue, p);
-                      this.callSubscribers(p, undefined, oldValue, LifecycleFlags.useProxies | LifecycleFlags.updateTargetInstance);
+                      this.callSubscribers(p, undefined, oldValue, LifecycleFlags.proxyStrategy | LifecycleFlags.updateTargetInstance);
                   }
                   return true;
               }
@@ -771,7 +754,7 @@ System.register('runtime', ['@aurelia/kernel'], function (exports, module) {
               if (Reflect.defineProperty(target, p, attributes)) {
                   if (attributes.value !== oldValue) {
                       this.callPropertySubscribers(attributes.value, oldValue, p);
-                      this.callSubscribers(p, attributes.value, oldValue, LifecycleFlags.useProxies | LifecycleFlags.updateTargetInstance);
+                      this.callSubscribers(p, attributes.value, oldValue, LifecycleFlags.proxyStrategy | LifecycleFlags.updateTargetInstance);
                   }
                   return true;
               }
@@ -807,13 +790,50 @@ System.register('runtime', ['@aurelia/kernel'], function (exports, module) {
           callPropertySubscribers(newValue, oldValue, key) {
               const subscribers = this.subscribers[key];
               if (subscribers !== undefined) {
-                  subscribers.callSubscribers(newValue, oldValue, LifecycleFlags.useProxies | LifecycleFlags.updateTargetInstance);
+                  subscribers.callSubscribers(newValue, oldValue, LifecycleFlags.proxyStrategy | LifecycleFlags.updateTargetInstance);
               }
           }
       });
       ProxyObserver = exports('ProxyObserver', ProxyObserver_1 = __decorate([
           subscriberCollection(MutationKind.proxy)
       ], ProxyObserver));
+
+      /** @internal */
+      function mayHaveObservers(value) {
+          return value !== null && typeof value === 'object';
+      }
+      /**
+       * Checks if the provided value is an object and whether it has any observers declared on it.
+       * If so, then patch all of its properties recursively. This is essentially a dirty check.
+       * @internal
+       */
+      function patchProperties(value, flags) {
+          if (mayHaveObservers(value)) {
+              if (value.$observers !== undefined) {
+                  const observers = value.$observers;
+                  let key;
+                  let observer;
+                  for (key in observers) {
+                      observer = observers[key];
+                      if (observer.$patch !== undefined) {
+                          observer.$patch(flags | LifecycleFlags.patchStrategy | LifecycleFlags.updateTargetInstance | LifecycleFlags.fromFlush);
+                      }
+                  }
+              }
+              else if (value.$observer !== undefined && value.$observer.$patch !== undefined) {
+                  value.$observer.$patch(flags | LifecycleFlags.patchStrategy | LifecycleFlags.updateTargetInstance | LifecycleFlags.fromFlush);
+              }
+          }
+      }
+      /** @internal */
+      function patchProperty(value, key, flags) {
+          if (mayHaveObservers(value) && value.$observers !== undefined) {
+              const observer = value.$observers[key];
+              if (observer && observer.$patch !== undefined) {
+                  observer.$patch(flags | LifecycleFlags.patchStrategy | LifecycleFlags.updateTargetInstance | LifecycleFlags.fromFlush);
+              }
+          }
+      }
 
       const defineProperty = Reflect.defineProperty;
       // note: we're reusing the same object for setting all descriptors, just changing some properties as needed
@@ -828,12 +848,13 @@ System.register('runtime', ['@aurelia/kernel'], function (exports, module) {
       function subscribe(subscriber) {
           if (this.observing === false) {
               this.observing = true;
-              const { obj, propertyKey } = this;
-              this.currentValue = obj[propertyKey];
-              observedPropertyDescriptor.get = () => this.getValue();
-              observedPropertyDescriptor.set = value => { this.setValue(value, LifecycleFlags.updateTargetInstance); };
-              if (!defineProperty(obj, propertyKey, observedPropertyDescriptor)) {
-                  Reporter.write(1, propertyKey, obj);
+              this.currentValue = this.obj[this.propertyKey];
+              if ((this.persistentFlags & LifecycleFlags.patchStrategy) === 0) {
+                  observedPropertyDescriptor.get = () => this.getValue();
+                  observedPropertyDescriptor.set = value => { this.setValue(value, LifecycleFlags.updateTargetInstance); };
+                  if (!defineProperty(this.obj, this.propertyKey, observedPropertyDescriptor)) {
+                      Reporter.write(1, this.propertyKey, this.obj);
+                  }
               }
           }
           this.addSubscriber(subscriber);
@@ -869,13 +890,19 @@ System.register('runtime', ['@aurelia/kernel'], function (exports, module) {
               this.persistentFlags = flags & LifecycleFlags.persistentBindingFlags;
               this.obj = obj;
               this.propertyKey = propertyKey;
+              if (flags & LifecycleFlags.patchStrategy) {
+                  this.getValue = this.getValueDirect;
+              }
           }
           getValue() {
               return this.currentValue;
           }
+          getValueDirect() {
+              return this.obj[this.propertyKey];
+          }
           setValue(newValue, flags) {
               const currentValue = this.currentValue;
-              if (currentValue !== newValue) {
+              if (currentValue !== newValue || (flags & LifecycleFlags.patchStrategy)) {
                   this.currentValue = newValue;
                   if (!(flags & LifecycleFlags.fromBind)) {
                       this.callSubscribers(newValue, currentValue, this.persistentFlags | flags);
@@ -890,6 +917,10 @@ System.register('runtime', ['@aurelia/kernel'], function (exports, module) {
                       this.obj[this.propertyKey] = newValue;
                   }
               }
+          }
+          $patch(flags) {
+              this.callSubscribers(this.obj[this.propertyKey], this.currentValue, this.persistentFlags | flags);
+              patchProperties(this.obj[this.propertyKey], flags);
           }
       });
       SetterObserver = exports('SetterObserver', __decorate([
@@ -932,7 +963,7 @@ System.register('runtime', ['@aurelia/kernel'], function (exports, module) {
           }
           static create(flags, keyOrObj, value) {
               const bc = new BindingContext(keyOrObj, value);
-              if (flags & LifecycleFlags.useProxies) {
+              if (flags & LifecycleFlags.proxyStrategy) {
                   return ProxyObserver.getOrCreate(bc).proxy;
               }
               return bc;
@@ -1501,9 +1532,15 @@ System.register('runtime', ['@aurelia/kernel'], function (exports, module) {
               if (typeof obj === 'object' && obj !== null) {
                   this.key.connect(flags, scope, binding);
                   const key = this.key.evaluate(flags, scope, null);
-                  // observe the property represented by the key as long as it's not an array indexer
-                  // (note: string indexers behave the same way as numeric indexers as long as they represent numbers)
-                  if (!(Array.isArray(obj) && isNumeric(key))) {
+                  if (Array.isArray(obj) && isNumeric(key)) {
+                      // Only observe array indexers in proxy mode
+                      if (flags & LifecycleFlags.proxyStrategy) {
+                          binding.observeProperty(flags, obj, key);
+                      }
+                  }
+                  else {
+                      // observe the property represented by the key as long as it's not an array indexer
+                      // (note: string indexers behave the same way as numeric indexers as long as they represent numbers)
                       binding.observeProperty(flags, obj, key);
                   }
               }
@@ -1962,11 +1999,11 @@ System.register('runtime', ['@aurelia/kernel'], function (exports, module) {
           evaluate(flags, scope, locator) {
               return this.iterable.evaluate(flags, scope, locator);
           }
-          count(result) {
+          count(flags, result) {
               return CountForOfStatement[toStringTag.call(result)](result);
           }
-          iterate(result, func) {
-              IterateForOfStatement[toStringTag.call(result)](result, func);
+          iterate(flags, result, func) {
+              IterateForOfStatement[toStringTag.call(result)](flags | LifecycleFlags.isOriginalArray, result, func);
           }
           connect(flags, scope, binding) {
               this.declaration.connect(flags, scope, binding);
@@ -2060,40 +2097,59 @@ System.register('runtime', ['@aurelia/kernel'], function (exports, module) {
           }
           return true;
       }
+      const proxyAndOriginalArray = LifecycleFlags.proxyStrategy | LifecycleFlags.isOriginalArray;
       /** @internal */
       const IterateForOfStatement = {
-          ['[object Array]'](result, func) {
-              for (let i = 0, ii = result.length; i < ii; ++i) {
-                  func(result, i, result[i]);
+          ['[object Array]'](flags, result, func) {
+              if ((flags & proxyAndOriginalArray) === proxyAndOriginalArray) {
+                  // If we're in proxy mode, and the array is the original "items" (and not an array we created here to iterate over e.g. a set)
+                  // then replace all items (which are Objects) with proxies so their properties are observed in the source view model even if no
+                  // observers are explicitly created
+                  const rawArray = ProxyObserver.getRawIfProxy(result);
+                  const len = rawArray.length;
+                  let item;
+                  let i = 0;
+                  for (; i < len; ++i) {
+                      item = rawArray[i];
+                      if (item instanceof Object) {
+                          item = rawArray[i] = ProxyObserver.getOrCreate(item).proxy;
+                      }
+                      func(rawArray, i, item);
+                  }
+              }
+              else {
+                  for (let i = 0, ii = result.length; i < ii; ++i) {
+                      func(result, i, result[i]);
+                  }
               }
           },
-          ['[object Map]'](result, func) {
+          ['[object Map]'](flags, result, func) {
               const arr = Array(result.size);
               let i = -1;
               for (const entry of result.entries()) {
                   arr[++i] = entry;
               }
-              IterateForOfStatement['[object Array]'](arr, func);
+              IterateForOfStatement['[object Array]'](flags & ~LifecycleFlags.isOriginalArray, arr, func);
           },
-          ['[object Set]'](result, func) {
+          ['[object Set]'](flags, result, func) {
               const arr = Array(result.size);
               let i = -1;
               for (const key of result.keys()) {
                   arr[++i] = key;
               }
-              IterateForOfStatement['[object Array]'](arr, func);
+              IterateForOfStatement['[object Array]'](flags & ~LifecycleFlags.isOriginalArray, arr, func);
           },
-          ['[object Number]'](result, func) {
+          ['[object Number]'](flags, result, func) {
               const arr = Array(result);
               for (let i = 0; i < result; ++i) {
                   arr[i] = i;
               }
-              IterateForOfStatement['[object Array]'](arr, func);
+              IterateForOfStatement['[object Array]'](flags & ~LifecycleFlags.isOriginalArray, arr, func);
           },
-          ['[object Null]'](result, func) {
+          ['[object Null]'](flags, result, func) {
               return;
           },
-          ['[object Undefined]'](result, func) {
+          ['[object Undefined]'](flags, result, func) {
               return;
           }
       };
@@ -2115,6 +2171,7 @@ System.register('runtime', ['@aurelia/kernel'], function (exports, module) {
       class Lifecycle {
           constructor() {
               this.bindDepth = 0;
+              this.patchDepth = 0;
               this.attachDepth = 0;
               this.detachDepth = 0;
               this.unbindDepth = 0;
@@ -2122,8 +2179,6 @@ System.register('runtime', ['@aurelia/kernel'], function (exports, module) {
               this.flushTail = this;
               this.connectHead = this; // this cast is safe because we know exactly which properties we'll use
               this.connectTail = this;
-              this.patchHead = this;
-              this.patchTail = this;
               this.boundHead = this;
               this.boundTail = this;
               this.mountHead = this;
@@ -2154,8 +2209,6 @@ System.register('runtime', ['@aurelia/kernel'], function (exports, module) {
               this.flush = PLATFORM.noop;
               this.$nextConnect = marker;
               this.connect = PLATFORM.noop;
-              this.$nextPatch = marker;
-              this.patch = PLATFORM.noop;
               this.$nextBound = marker;
               this.bound = PLATFORM.noop;
               this.$nextMount = marker;
@@ -2255,13 +2308,6 @@ System.register('runtime', ['@aurelia/kernel'], function (exports, module) {
                   this.connectTail = requestor;
                   ++this.connectCount;
               }
-              // build a standard singly linked list for patch callbacks
-              if (requestor.$nextPatch === null) {
-                  requestor.$nextPatch = marker;
-                  this.patchTail.$nextPatch = requestor;
-                  this.patchTail = requestor;
-                  ++this.patchCount;
-              }
           }
           processConnectQueue(flags) {
               // connects cannot lead to additional connects, so we don't need to loop here
@@ -2274,27 +2320,6 @@ System.register('runtime', ['@aurelia/kernel'], function (exports, module) {
                       current.connect(flags);
                       next = current.$nextConnect;
                       current.$nextConnect = null;
-                      current = next;
-                  } while (current !== marker);
-              }
-          }
-          processPatchQueue(flags) {
-              // flush before patching, but only if this is the initial bind;
-              // no DOM is attached yet so we can safely let everything propagate
-              if (flags & LifecycleFlags.fromStartTask) {
-                  this.processFlushQueue(flags | LifecycleFlags.fromSyncFlush);
-              }
-              // patch callbacks may lead to additional bind operations, so keep looping until
-              // the patch head is back to `this` (though this will typically happen in the first iteration)
-              while (this.patchCount > 0) {
-                  this.patchCount = 0;
-                  let current = this.patchHead.$nextPatch;
-                  this.patchHead = this.patchTail = this;
-                  let next;
-                  do {
-                      current.patch(flags);
-                      next = current.$nextPatch;
-                      current.$nextPatch = null;
                       current = next;
                   } while (current !== marker);
               }
@@ -2971,6 +2996,7 @@ System.register('runtime', ['@aurelia/kernel'], function (exports, module) {
               proto.unobserve = unobserve;
           if (!proto.hasOwnProperty('addObserver'))
               proto.addObserver = addObserver;
+          // tslint:disable-next-line:no-unnecessary-type-assertion // this is a false positive
           return target;
       }
       function connectable(target) {
@@ -2988,7 +3014,6 @@ System.register('runtime', ['@aurelia/kernel'], function (exports, module) {
               this.$state = 0 /* none */;
               this.$lifecycle = locator.get(ILifecycle);
               this.$nextConnect = null;
-              this.$nextPatch = null;
               this.$scope = null;
               this.locator = locator;
               this.mode = mode;
@@ -3001,6 +3026,9 @@ System.register('runtime', ['@aurelia/kernel'], function (exports, module) {
           updateTarget(value, flags) {
               flags |= this.persistentFlags;
               this.targetObserver.setValue(value, flags | LifecycleFlags.updateTargetInstance);
+              if (flags & LifecycleFlags.patchStrategy) {
+                  this.targetObserver.$patch(flags);
+              }
           }
           updateSource(value, flags) {
               flags |= this.persistentFlags;
@@ -3111,10 +3139,9 @@ System.register('runtime', ['@aurelia/kernel'], function (exports, module) {
                   this.sourceExpression.connect(flags | LifecycleFlags.mustEvaluate, this.$scope, this);
               }
           }
-          patch(flags) {
+          $patch(flags) {
               if (this.$state & 2 /* isBound */) {
-                  flags |= this.persistentFlags;
-                  this.updateTarget(this.sourceExpression.evaluate(flags | LifecycleFlags.mustEvaluate, this.$scope, this.locator), flags);
+                  this.targetObserver.$patch(flags | this.persistentFlags);
               }
           }
       });
@@ -3565,6 +3592,14 @@ System.register('runtime', ['@aurelia/kernel'], function (exports, module) {
               this.oldValue = this.currentValue;
           }
       }
+      function patch(flags) {
+          const newValue = this.getValue();
+          if (this.currentValue !== newValue) {
+              this.setValueCore(newValue, this.currentFlags | flags | LifecycleFlags.updateTargetInstance);
+              this.currentValue = newValue;
+          }
+          patchProperties(newValue, flags);
+      }
       function dispose$1() {
           this.currentValue = null;
           this.oldValue = null;
@@ -3583,6 +3618,7 @@ System.register('runtime', ['@aurelia/kernel'], function (exports, module) {
               proto.defaultValue = defaultValue;
               proto.obj = null;
               proto.propertyKey = '';
+              proto.$patch = proto.$patch || patch;
               proto.setValue = proto.setValue || setValue;
               proto.flush = proto.flush || flush;
               proto.dispose = proto.dispose || dispose$1;
@@ -3592,7 +3628,7 @@ System.register('runtime', ['@aurelia/kernel'], function (exports, module) {
       function flush$1(flags) {
           this.callBatchedSubscribers(this.indexMap, flags | this.persistentFlags);
           if (!!this.lengthObserver) {
-              this.lengthObserver.patch(LifecycleFlags.fromFlush | LifecycleFlags.updateTargetInstance | this.persistentFlags);
+              this.lengthObserver.$patch(LifecycleFlags.fromFlush | LifecycleFlags.updateTargetInstance | this.persistentFlags);
           }
           this.resetIndexMap();
       }
@@ -3656,9 +3692,14 @@ System.register('runtime', ['@aurelia/kernel'], function (exports, module) {
           setValueCore(newValue) {
               this.obj[this.propertyKey] = newValue;
           }
-          patch(flags) {
-              this.callSubscribers(this.obj[this.propertyKey], this.currentValue, flags);
-              this.currentValue = this.obj[this.propertyKey];
+          $patch(flags) {
+              const newValue = this.obj[this.propertyKey];
+              const oldValue = this.currentValue;
+              if (oldValue !== newValue) {
+                  this.obj[this.propertyKey] = newValue;
+                  this.currentValue = newValue;
+                  this.callSubscribers(newValue, oldValue, flags | LifecycleFlags.updateTargetInstance);
+              }
           }
           subscribe(subscriber) {
               this.addSubscriber(subscriber);
@@ -4060,6 +4101,14 @@ System.register('runtime', ['@aurelia/kernel'], function (exports, module) {
               this.flags = flags & LifecycleFlags.persistentBindingFlags;
               this.resetIndexMap();
           }
+          $patch(flags) {
+              const items = this.collection;
+              const len = items.length;
+              let i = 0;
+              for (; i < len; ++i) {
+                  patchProperties(items[i], flags);
+              }
+          }
       });
       ArrayObserver = exports('ArrayObserver', __decorate([
           collectionObserver(9 /* array */)
@@ -4196,6 +4245,12 @@ System.register('runtime', ['@aurelia/kernel'], function (exports, module) {
               this.flags = flags & LifecycleFlags.persistentBindingFlags;
               this.resetIndexMap();
           }
+          $patch(flags) {
+              this.collection.forEach((value, key) => {
+                  patchProperties(value, flags);
+                  patchProperties(key, flags);
+              });
+          }
       });
       MapObserver = exports('MapObserver', __decorate([
           collectionObserver(6 /* map */)
@@ -4321,6 +4376,11 @@ System.register('runtime', ['@aurelia/kernel'], function (exports, module) {
               this.collection = observedSet;
               this.flags = flags & LifecycleFlags.persistentBindingFlags;
               this.resetIndexMap();
+          }
+          $patch(flags) {
+              this.collection.forEach((value, key) => {
+                  patchProperties(key, flags);
+              });
           }
       });
       SetObserver = exports('SetObserver', __decorate([
@@ -4670,6 +4730,7 @@ System.register('runtime', ['@aurelia/kernel'], function (exports, module) {
       PrimitiveObserver.prototype.subscribe = noop;
       PrimitiveObserver.prototype.unsubscribe = noop;
       PrimitiveObserver.prototype.dispose = noop;
+      PrimitiveObserver.prototype.$patch = noop;
 
       class PropertyAccessor {
           constructor(obj, propertyKey) {
@@ -4681,6 +4742,9 @@ System.register('runtime', ['@aurelia/kernel'], function (exports, module) {
           }
           setValue(value) {
               this.obj[this.propertyKey] = value;
+          }
+          $patch(flags) {
+              patchProperty(this.obj, this.propertyKey, flags);
           }
       } exports('PropertyAccessor', PropertyAccessor);
 
@@ -4710,7 +4774,7 @@ System.register('runtime', ['@aurelia/kernel'], function (exports, module) {
               return Registration.singleton(IObserverLocator, this).register(container);
           }
           getObserver(flags, obj, propertyName) {
-              if (flags & LifecycleFlags.useProxies && typeof obj === 'object') {
+              if (flags & LifecycleFlags.proxyStrategy && typeof obj === 'object') {
                   return ProxyObserver.getOrCreate(obj, propertyName); // TODO: fix typings (and ensure proper contracts ofc)
               }
               if (isBindingContext(obj)) {
@@ -4740,7 +4804,7 @@ System.register('runtime', ['@aurelia/kernel'], function (exports, module) {
                   }
                   return this.targetAccessorLocator.getAccessor(flags, this.lifecycle, obj, propertyName);
               }
-              if (flags & LifecycleFlags.useProxies) {
+              if (flags & LifecycleFlags.proxyStrategy) {
                   return ProxyObserver.getOrCreate(obj, propertyName);
               }
               return new PropertyAccessor(obj, propertyName);
@@ -4833,13 +4897,16 @@ System.register('runtime', ['@aurelia/kernel'], function (exports, module) {
       }
       ObserverLocator.inject = [ILifecycle, IDirtyChecker, ITargetObserverLocator, ITargetAccessorLocator];
       function getCollectionObserver(flags, lifecycle, collection) {
+          // If the collection is wrapped by a proxy then `$observer` will return the proxy observer instead of the collection observer, which is not what we want
+          // when we ask for getCollectionObserver
+          const rawCollection = collection instanceof Object ? ProxyObserver.getRawIfProxy(collection) : collection;
           switch (toStringTag$2.call(collection)) {
               case '[object Array]':
-                  return getArrayObserver(flags, lifecycle, collection);
+                  return getArrayObserver(flags, lifecycle, rawCollection);
               case '[object Map]':
-                  return getMapObserver(flags, lifecycle, collection);
+                  return getMapObserver(flags, lifecycle, rawCollection);
               case '[object Set]':
-                  return getSetObserver(flags, lifecycle, collection);
+                  return getSetObserver(flags, lifecycle, rawCollection);
           }
           return null;
       }
@@ -4868,6 +4935,9 @@ System.register('runtime', ['@aurelia/kernel'], function (exports, module) {
                       ? instance[callbackName].bind(instance)
                       : noop$1;
               }
+              if (flags & LifecycleFlags.patchStrategy) {
+                  this.getValue = this.getValueDirect;
+              }
           }
           handleChange(newValue, oldValue, flags) {
               this.setValue(newValue, flags);
@@ -4875,9 +4945,12 @@ System.register('runtime', ['@aurelia/kernel'], function (exports, module) {
           getValue() {
               return this.currentValue;
           }
+          getValueDirect() {
+              return this.obj[this.propertyKey];
+          }
           setValue(newValue, flags) {
               const currentValue = this.currentValue;
-              if (currentValue !== newValue) {
+              if (currentValue !== newValue || (flags & LifecycleFlags.patchStrategy)) {
                   this.currentValue = newValue;
                   if (!(flags & LifecycleFlags.fromBind)) {
                       const coercedValue = this.callback(newValue, currentValue, flags);
@@ -4887,6 +4960,10 @@ System.register('runtime', ['@aurelia/kernel'], function (exports, module) {
                       this.callSubscribers(newValue, currentValue, flags);
                   }
               }
+          }
+          $patch(flags) {
+              this.callback(this.obj[this.propertyKey], this.currentValue, this.persistentFlags | flags);
+              this.callSubscribers(this.obj[this.propertyKey], this.currentValue, this.persistentFlags | flags);
           }
       });
       SelfObserver = exports('SelfObserver', __decorate([
@@ -5104,6 +5181,85 @@ System.register('runtime', ['@aurelia/kernel'], function (exports, module) {
       } exports('ThrottleBindingBehavior', ThrottleBindingBehavior);
       BindingBehaviorResource.define('throttle', ThrottleBindingBehavior);
 
+      function bindable(configOrTarget, prop) {
+          let config;
+          const decorator = function decorate($target, $prop) {
+              if (arguments.length > 1) {
+                  // Non invocation:
+                  // - @bindable
+                  // Invocation with or w/o opts:
+                  // - @bindable()
+                  // - @bindable({...opts})
+                  config.property = $prop;
+              }
+              Bindable.for($target.constructor).add(config);
+          };
+          if (arguments.length > 1) {
+              // Non invocation:
+              // - @bindable
+              config = {};
+              decorator(configOrTarget, prop);
+              return;
+          }
+          else if (typeof configOrTarget === 'string') {
+              // ClassDecorator
+              // - @bindable('bar')
+              // Direct call:
+              // - @bindable('bar')(Foo)
+              config = {};
+              return decorator;
+          }
+          // Invocation with or w/o opts:
+          // - @bindable()
+          // - @bindable({...opts})
+          config = (configOrTarget || {});
+          return decorator;
+      }
+      const Bindable = {
+          for(obj) {
+              const builder = {
+                  add(nameOrConfig) {
+                      let description;
+                      if (nameOrConfig !== null && typeof nameOrConfig === 'object') {
+                          description = nameOrConfig;
+                      }
+                      else if (typeof nameOrConfig === 'string') {
+                          description = {
+                              property: nameOrConfig
+                          };
+                      }
+                      const prop = description.property;
+                      if (!prop) {
+                          throw Reporter.error(0); // TODO: create error code (must provide a property name)
+                      }
+                      if (!description.attribute) {
+                          description.attribute = PLATFORM.kebabCase(prop);
+                      }
+                      if (!description.callback) {
+                          description.callback = `${prop}Changed`;
+                      }
+                      if (description.mode === undefined) {
+                          description.mode = BindingMode.toView;
+                      }
+                      obj.bindables[prop] = description;
+                      return this;
+                  },
+                  get() {
+                      return obj.bindables;
+                  }
+              };
+              if (obj.bindables === undefined) {
+                  obj.bindables = {};
+              }
+              else if (Array.isArray(obj.bindables)) {
+                  const props = obj.bindables;
+                  obj.bindables = {};
+                  props.forEach(builder.add);
+              }
+              return builder;
+          }
+      };
+
       /** @internal */
       const customElementName = 'custom-element';
       /** @internal */
@@ -5173,7 +5329,7 @@ System.register('runtime', ['@aurelia/kernel'], function (exports, module) {
               this.containerless = false;
               this.shadowOptions = null;
               this.hasSlots = false;
-              this.useProxies = false;
+              this.strategy = 1 /* getterSetter */;
           }
       }
       const templateDefinitionAssignables = [
@@ -5183,8 +5339,7 @@ System.register('runtime', ['@aurelia/kernel'], function (exports, module) {
           'build',
           'containerless',
           'shadowOptions',
-          'hasSlots',
-          'useProxies'
+          'hasSlots'
       ];
       const templateDefinitionArrays = [
           'instructions',
@@ -5192,13 +5347,13 @@ System.register('runtime', ['@aurelia/kernel'], function (exports, module) {
           'surrogates'
       ];
       // tslint:disable-next-line:parameters-max-number // TODO: Reduce complexity (currently at 64)
-      function buildTemplateDefinition(ctor, nameOrDef, template, cache, build, bindables, instructions, dependencies, surrogates, containerless, shadowOptions, hasSlots, useProxies) {
+      function buildTemplateDefinition(ctor, nameOrDef, template, cache, build, bindables, instructions, dependencies, surrogates, containerless, shadowOptions, hasSlots, strategy) {
           const def = new DefaultTemplateDefinition();
           // all cases fall through intentionally
           const argLen = arguments.length;
           switch (argLen) {
-              case 13: if (useProxies !== null)
-                  def.useProxies = useProxies;
+              case 13: if (strategy !== null)
+                  def.strategy = ensureValidStrategy(strategy);
               case 12: if (hasSlots !== null)
                   def.hasSlots = hasSlots;
               case 11: if (shadowOptions !== null)
@@ -5222,7 +5377,7 @@ System.register('runtime', ['@aurelia/kernel'], function (exports, module) {
               case 2:
                   if (ctor !== null) {
                       if (ctor['bindables']) {
-                          def.bindables = Object.assign({}, ctor.bindables);
+                          def.bindables = Bindable.for(ctor).get();
                       }
                       if (ctor['containerless']) {
                           def.containerless = ctor.containerless;
@@ -5237,6 +5392,7 @@ System.register('runtime', ['@aurelia/kernel'], function (exports, module) {
                       }
                   }
                   else if (nameOrDef !== null) {
+                      def.strategy = ensureValidStrategy(nameOrDef.strategy);
                       templateDefinitionAssignables.forEach(prop => {
                           if (nameOrDef[prop]) {
                               def[prop] = nameOrDef[prop];
@@ -5249,7 +5405,7 @@ System.register('runtime', ['@aurelia/kernel'], function (exports, module) {
                       });
                       if (nameOrDef['bindables']) {
                           if (def.bindables === PLATFORM.emptyObject) {
-                              def.bindables = Object.assign({}, nameOrDef.bindables);
+                              def.bindables = Bindable.for(nameOrDef).get();
                           }
                           else {
                               Object.assign(def.bindables, nameOrDef.bindables);
@@ -5632,6 +5788,7 @@ System.register('runtime', ['@aurelia/kernel'], function (exports, module) {
                   binding.$unbind(flags);
                   binding = binding.$prevBinding;
               }
+              // tslind:disable-next-line:no-unnecessary-type-assertion // this is a false positive
               this.$scope.parentScope = null;
               // remove isBound and isUnbinding flags
               this.$state &= ~(2 /* isBound */ | 64 /* isUnbinding */);
@@ -5677,6 +5834,21 @@ System.register('runtime', ['@aurelia/kernel'], function (exports, module) {
               }
               // remove isBound and isUnbinding flags
               this.$state &= ~(2 /* isBound */ | 64 /* isUnbinding */);
+          }
+      }
+      function $patch(flags) {
+          patchProperties(this, flags);
+          let component = this.$componentHead;
+          while (component) {
+              component.$patch(flags);
+              component = component.$nextComponent;
+          }
+          let binding = this.$bindingHead;
+          while (binding) {
+              if (binding.$patch !== undefined) {
+                  binding.$patch(flags);
+              }
+              binding = binding.$nextBinding;
           }
       }
 
@@ -5778,6 +5950,7 @@ System.register('runtime', ['@aurelia/kernel'], function (exports, module) {
               this.$componentTail = null;
               this.$nextComponent = null;
               this.$prevComponent = null;
+              this.$nextPatch = null;
               this.$nextMount = null;
               this.$nextUnmount = null;
               this.$nextUnbindAfterDetach = null;
@@ -5881,6 +6054,7 @@ System.register('runtime', ['@aurelia/kernel'], function (exports, module) {
       ViewFactory.maxCacheSize = 0xFFFF;
       ((proto) => {
           proto.$bind = $bindView;
+          proto.$patch = $patch;
           proto.$unbind = $unbindView;
           proto.$attach = $attachView;
           proto.$detach = $detachView;
@@ -5913,9 +6087,7 @@ System.register('runtime', ['@aurelia/kernel'], function (exports, module) {
           render(renderable, host, parts, flags = LifecycleFlags.none) {
               const nodes = renderable.$nodes = this.factory.createNodeSequence();
               renderable.$context = this.renderContext;
-              if (this.definition.useProxies) {
-                  flags |= LifecycleFlags.useProxies;
-              }
+              flags |= this.definition.strategy;
               this.renderContext.render(flags, renderable, nodes.findTargets(), this.definition, host, parts);
           }
       } exports('CompiledTemplate', CompiledTemplate);
@@ -6172,7 +6344,7 @@ System.register('runtime', ['@aurelia/kernel'], function (exports, module) {
               const observers = {};
               const bindables = this.bindables;
               const observableNames = Object.getOwnPropertyNames(bindables);
-              if (flags & LifecycleFlags.useProxies) {
+              if (flags & LifecycleFlags.proxyStrategy) {
                   for (let i = 0, ii = observableNames.length; i < ii; ++i) {
                       const name = observableNames[i];
                       observers[name] = new SelfObserver(flags, ProxyObserver.getOrCreate(instance).proxy, name, bindables[name].callback);
@@ -6182,7 +6354,9 @@ System.register('runtime', ['@aurelia/kernel'], function (exports, module) {
                   for (let i = 0, ii = observableNames.length; i < ii; ++i) {
                       const name = observableNames[i];
                       observers[name] = new SelfObserver(flags, instance, name, bindables[name].callback);
-                      createGetterSetter(flags, instance, name);
+                      if (!(flags & LifecycleFlags.patchStrategy)) {
+                          createGetterSetter(flags, instance, name);
+                      }
                   }
                   Reflect.defineProperty(instance, '$observers', {
                       enumerable: false,
@@ -6225,12 +6399,14 @@ System.register('runtime', ['@aurelia/kernel'], function (exports, module) {
           Type.register = registerElement;
           proto.$hydrate = $hydrateElement;
           proto.$bind = $bindElement;
+          proto.$patch = $patch;
           proto.$attach = $attachElement;
           proto.$detach = $detachElement;
           proto.$unbind = $unbindElement;
           proto.$cache = $cacheElement;
           proto.$prevComponent = null;
           proto.$nextComponent = null;
+          proto.$nextPatch = null;
           proto.$nextUnbindAfterDetach = null;
           proto.$scope = null;
           proto.$hooks = 0;
@@ -6308,23 +6484,35 @@ System.register('runtime', ['@aurelia/kernel'], function (exports, module) {
 
       const { enter: enter$2, leave: leave$2 } = Profiler.createTimer('RenderLifecycle');
       /** @internal */
+      // tslint:disable-next-line:no-ignored-initial-value
       function $hydrateAttribute(flags, parentContext) {
           const Type = this.constructor;
+          const description = Type.description;
+          flags |= description.strategy;
           const renderingEngine = parentContext.get(IRenderingEngine);
+          let bindingContext;
+          if (flags & LifecycleFlags.proxyStrategy) {
+              bindingContext = ProxyObserver.getOrCreate(this).proxy;
+          }
+          else {
+              bindingContext = this;
+          }
           renderingEngine.applyRuntimeBehavior(flags, Type, this);
           if (this.$hooks & 2 /* hasCreated */) {
-              this.created(flags);
+              bindingContext.created(flags);
           }
       }
       /** @internal */
+      // tslint:disable-next-line:no-ignored-initial-value
       function $hydrateElement(flags, parentContext, host, options = PLATFORM.emptyObject) {
           const Type = this.constructor;
           const description = Type.description;
+          flags |= description.strategy;
           const projectorLocator = parentContext.get(IProjectorLocator);
           const renderingEngine = parentContext.get(IRenderingEngine);
           const dom = parentContext.get(IDOM);
           let bindingContext;
-          if (flags & LifecycleFlags.useProxies) {
+          if (flags & LifecycleFlags.proxyStrategy) {
               bindingContext = ProxyObserver.getOrCreate(this).proxy;
           }
           else {
@@ -6346,7 +6534,7 @@ System.register('runtime', ['@aurelia/kernel'], function (exports, module) {
               template.render(this, host, options.parts);
           }
           if (this.$hooks & 2 /* hasCreated */) {
-              this.created(flags);
+              bindingContext.created(flags);
           }
       }
 
@@ -6388,12 +6576,14 @@ System.register('runtime', ['@aurelia/kernel'], function (exports, module) {
           Type.register = registerAttribute;
           proto.$hydrate = $hydrateAttribute;
           proto.$bind = $bindAttribute;
+          proto.$patch = $patch;
           proto.$attach = $attachAttribute;
           proto.$detach = $detachAttribute;
           proto.$unbind = $unbindAttribute;
           proto.$cache = $cacheAttribute;
           proto.$prevComponent = null;
           proto.$nextComponent = null;
+          proto.$nextPatch = null;
           proto.$nextUnbindAfterDetach = null;
           proto.$scope = null;
           proto.$hooks = 0;
@@ -6447,61 +6637,9 @@ System.register('runtime', ['@aurelia/kernel'], function (exports, module) {
               defaultBindingMode: defaultBindingMode === undefined || defaultBindingMode === null ? BindingMode.toView : defaultBindingMode,
               hasDynamicOptions: def.hasDynamicOptions === undefined ? false : def.hasDynamicOptions,
               isTemplateController: def.isTemplateController === undefined ? false : def.isTemplateController,
-              bindables: Object.assign({}, Type.bindables, def.bindables),
-              useProxies: def.useProxies === undefined ? false : def.useProxies
+              bindables: Object.assign({}, Bindable.for(Type).get(), Bindable.for(def).get()),
+              strategy: ensureValidStrategy(def.strategy)
           };
-      }
-
-      function bindable(configOrTarget, prop) {
-          let config;
-          const decorator = function decorate($target, $prop) {
-              const Type = $target.constructor;
-              let bindables = Type.bindables;
-              if (bindables === undefined) {
-                  bindables = Type.bindables = {};
-              }
-              if (!config.attribute) {
-                  config.attribute = PLATFORM.kebabCase($prop);
-              }
-              if (!config.callback) {
-                  config.callback = `${$prop}Changed`;
-              }
-              if (config.mode === undefined) {
-                  config.mode = BindingMode.toView;
-              }
-              if (config.useProxies === undefined) {
-                  config.useProxies = false;
-              }
-              if (arguments.length > 1) {
-                  // Non invocation:
-                  // - @bindable
-                  // Invocation with or w/o opts:
-                  // - @bindable()
-                  // - @bindable({...opts})
-                  config.property = $prop;
-              }
-              bindables[config.property] = config;
-          };
-          if (arguments.length > 1) {
-              // Non invocation:
-              // - @bindable
-              config = {};
-              decorator(configOrTarget, prop);
-              return;
-          }
-          else if (typeof configOrTarget === 'string') {
-              // ClassDecorator
-              // - @bindable('bar')
-              // Direct call:
-              // - @bindable('bar')(Foo)
-              config = {};
-              return decorator;
-          }
-          // Invocation with or w/o opts:
-          // - @bindable()
-          // - @bindable({...opts})
-          config = (configOrTarget || {});
-          return decorator;
       }
 
       class If {
@@ -6513,8 +6651,10 @@ System.register('runtime', ['@aurelia/kernel'], function (exports, module) {
               this.ifFactory = ifFactory;
               this.ifView = null;
               this.location = location;
+              this.persistentFlags = LifecycleFlags.none;
           }
           binding(flags) {
+              this.persistentFlags = flags & LifecycleFlags.persistentBindingFlags;
               const view = this.updateView(flags);
               this.coordinator.compose(view, flags);
               this.coordinator.binding(flags, this.$scope);
@@ -6539,24 +6679,22 @@ System.register('runtime', ['@aurelia/kernel'], function (exports, module) {
           }
           valueChanged(newValue, oldValue, flags) {
               if (this.$state & (2 /* isBound */ | 1 /* isBinding */)) {
-                  if (ProxyObserver.isProxy(this)) {
-                      flags |= LifecycleFlags.useProxies;
-                  }
+                  flags |= this.persistentFlags;
+                  const $this = ProxyObserver.getRawIfProxy(this);
                   if (flags & LifecycleFlags.fromFlush) {
-                      const view = this.updateView(flags);
-                      this.coordinator.compose(view, flags);
+                      const view = $this.updateView(flags);
+                      $this.coordinator.compose(view, flags);
                   }
                   else {
-                      this.$lifecycle.enqueueFlush(this).catch(error => { throw error; });
+                      $this.$lifecycle.enqueueFlush($this).catch(error => { throw error; });
                   }
               }
           }
           flush(flags) {
-              if (ProxyObserver.isProxy(this)) {
-                  flags |= LifecycleFlags.useProxies;
-              }
-              const view = this.updateView(flags);
-              this.coordinator.compose(view, flags);
+              flags |= this.persistentFlags;
+              const $this = ProxyObserver.getRawIfProxy(this);
+              const view = $this.updateView(flags);
+              $this.coordinator.compose(view, flags);
           }
           /** @internal */
           updateView(flags) {
@@ -6609,6 +6747,7 @@ System.register('runtime', ['@aurelia/kernel'], function (exports, module) {
               this.keyed = false;
           }
           binding(flags) {
+              this.persistentFlags = flags & LifecycleFlags.persistentBindingFlags;
               this.checkCollectionObserver(flags);
               let current = this.renderable.$bindingHead;
               while (current !== null) {
@@ -6619,7 +6758,7 @@ System.register('runtime', ['@aurelia/kernel'], function (exports, module) {
                   current = current.$nextBinding;
               }
               this.local = this.forOf.declaration.evaluate(flags, this.$scope, null);
-              if (this.keyed || (flags & LifecycleFlags.keyedMode) > 0) {
+              if (this.keyed || (flags & LifecycleFlags.keyedStrategy) > 0) {
                   this.processViewsKeyed(null, flags);
               }
               else {
@@ -6655,37 +6794,38 @@ System.register('runtime', ['@aurelia/kernel'], function (exports, module) {
           }
           // called by SetterObserver (sync)
           itemsChanged(newValue, oldValue, flags) {
-              this.checkCollectionObserver(flags);
+              flags |= this.persistentFlags;
+              const $this = ProxyObserver.getRawIfProxy(this);
+              $this.checkCollectionObserver(flags);
               flags |= LifecycleFlags.updateTargetInstance;
-              if (this.keyed || (flags & LifecycleFlags.keyedMode) > 0) {
-                  this.processViewsKeyed(null, flags);
+              if ($this.keyed || (flags & LifecycleFlags.keyedStrategy) > 0) {
+                  $this.processViewsKeyed(null, flags);
               }
               else {
-                  this.processViewsNonKeyed(null, flags);
+                  $this.processViewsNonKeyed(null, flags);
               }
           }
           // called by a CollectionObserver (async)
           handleBatchedChange(indexMap, flags) {
+              flags |= this.persistentFlags;
+              const $this = ProxyObserver.getRawIfProxy(this);
               flags |= (LifecycleFlags.fromFlush | LifecycleFlags.updateTargetInstance);
-              if (this.keyed || (flags & LifecycleFlags.keyedMode) > 0) {
-                  this.processViewsKeyed(indexMap, flags);
+              if ($this.keyed || (flags & LifecycleFlags.keyedStrategy) > 0) {
+                  $this.processViewsKeyed(indexMap, flags);
               }
               else {
-                  this.processViewsNonKeyed(indexMap, flags);
+                  $this.processViewsNonKeyed(indexMap, flags);
               }
           }
           // if the indexMap === null, it is an instance mutation, otherwise it's an items mutation
           // TODO: Reduce complexity (currently at 46)
           processViewsNonKeyed(indexMap, flags) {
-              if (ProxyObserver.isProxy(this)) {
-                  flags |= LifecycleFlags.useProxies;
-              }
               const { views, $lifecycle } = this;
               let view;
               if (this.$state & (2 /* isBound */ | 1 /* isBinding */)) {
                   const { local, $scope, factory, forOf, items } = this;
                   const oldLength = views.length;
-                  const newLength = forOf.count(items);
+                  const newLength = forOf.count(flags, items);
                   if (oldLength < newLength) {
                       views.length = newLength;
                       for (let i = oldLength; i < newLength; ++i) {
@@ -6716,7 +6856,7 @@ System.register('runtime', ['@aurelia/kernel'], function (exports, module) {
                   }
                   $lifecycle.beginBind();
                   if (indexMap === null) {
-                      forOf.iterate(items, (arr, i, item) => {
+                      forOf.iterate(flags, items, (arr, i, item) => {
                           view = views[i];
                           if (!!view.$scope && view.$scope.bindingContext[local] === item) {
                               view.$bind(flags, Scope.fromParent(flags, $scope, view.$scope.bindingContext));
@@ -6727,7 +6867,7 @@ System.register('runtime', ['@aurelia/kernel'], function (exports, module) {
                       });
                   }
                   else {
-                      forOf.iterate(items, (arr, i, item) => {
+                      forOf.iterate(flags, items, (arr, i, item) => {
                           view = views[i];
                           if (!!view.$scope && (indexMap[i] === i || view.$scope.bindingContext[local] === item)) {
                               view.$bind(flags, Scope.fromParent(flags, $scope, view.$scope.bindingContext));
@@ -6762,9 +6902,6 @@ System.register('runtime', ['@aurelia/kernel'], function (exports, module) {
               }
           }
           processViewsKeyed(indexMap, flags) {
-              if (ProxyObserver.isProxy(this)) {
-                  flags |= LifecycleFlags.useProxies;
-              }
               const { $lifecycle, local, $scope, factory, forOf, items } = this;
               let views = this.views;
               if (indexMap === null) {
@@ -6784,10 +6921,10 @@ System.register('runtime', ['@aurelia/kernel'], function (exports, module) {
                           view.$unbind(flags);
                       }
                       $lifecycle.endUnbind(flags);
-                      const newLen = forOf.count(items);
+                      const newLen = forOf.count(flags, items);
                       views = this.views = Array(newLen);
                       $lifecycle.beginBind();
-                      forOf.iterate(items, (arr, i, item) => {
+                      forOf.iterate(flags, items, (arr, i, item) => {
                           view = views[i] = factory.create(flags);
                           view.$bind(flags, Scope.fromParent(flags, $scope, BindingContext.create(flags, local, item)));
                       });
@@ -6832,6 +6969,7 @@ System.register('runtime', ['@aurelia/kernel'], function (exports, module) {
                           i = 0;
                           let j = 0;
                           let k = 0;
+                          // tslint:disable-next-line:no-alphabetical-sort // alphabetical (numeric) sort is intentional
                           deleted.sort();
                           for (; i < deletedLen; ++i) {
                               j = deleted[i] - i;
@@ -6924,18 +7062,19 @@ System.register('runtime', ['@aurelia/kernel'], function (exports, module) {
               }
           }
           checkCollectionObserver(flags) {
-              const oldObserver = this.observer;
-              if (this.$state & (2 /* isBound */ | 1 /* isBinding */)) {
-                  const newObserver = this.observer = getCollectionObserver(flags, this.$lifecycle, this.items);
+              const $this = ProxyObserver.getRawIfProxy(this);
+              const oldObserver = $this.observer;
+              if ($this.$state & (2 /* isBound */ | 1 /* isBinding */)) {
+                  const newObserver = $this.observer = getCollectionObserver(flags, $this.$lifecycle, $this.items);
                   if (oldObserver !== newObserver && oldObserver) {
-                      oldObserver.unsubscribeBatched(this);
+                      oldObserver.unsubscribeBatched($this);
                   }
                   if (newObserver) {
-                      newObserver.subscribeBatched(this);
+                      newObserver.subscribeBatched($this);
                   }
               }
               else if (oldObserver) {
-                  oldObserver.unsubscribeBatched(this);
+                  oldObserver.unsubscribeBatched($this);
               }
           }
       } exports('Repeat', Repeat);
@@ -6952,7 +7091,7 @@ System.register('runtime', ['@aurelia/kernel'], function (exports, module) {
       /** @internal */
       function longestIncreasingSubsequence(indexMap) {
           const len = indexMap.length;
-          const origLen = len + (indexMap.deletedItems && indexMap.deletedItems.length || 0);
+          const origLen = len + indexMap.deletedItems.length;
           const TArr = origLen < 0xFF ? Uint8Array : origLen < 0xFFFF ? Uint16Array : Uint32Array;
           if (len > maxLen) {
               maxLen = len;
@@ -7116,12 +7255,8 @@ System.register('runtime', ['@aurelia/kernel'], function (exports, module) {
               const host = config.host;
               const domInitializer = this.container.get(IDOMInitializer);
               domInitializer.initialize(config);
-              let startFlags = LifecycleFlags.fromStartTask;
-              let stopFlags = LifecycleFlags.fromStopTask;
-              if (config.useProxies) {
-                  startFlags |= LifecycleFlags.useProxies;
-                  stopFlags |= LifecycleFlags.useProxies;
-              }
+              const startFlags = LifecycleFlags.fromStartTask | config.strategy;
+              const stopFlags = LifecycleFlags.fromStopTask | config.strategy;
               let component;
               const componentOrType = config.component;
               if (CustomElementResource.isType(componentOrType)) {
@@ -7490,9 +7625,9 @@ System.register('runtime', ['@aurelia/kernel'], function (exports, module) {
       }
       BindingBehaviorResource.define('keyed', KeyedBindingBehavior);
 
-      const IObserverLocatorRegistration = exports('ObserverLocatorRegistration', ObserverLocator);
-      const ILifecycleRegistration = exports('LifecycleRegistration', Lifecycle);
-      const IRendererRegistration = exports('RendererRegistration', Renderer);
+      const IObserverLocatorRegistration = exports('IObserverLocatorRegistration', ObserverLocator);
+      const ILifecycleRegistration = exports('ILifecycleRegistration', Lifecycle);
+      const IRendererRegistration = exports('IRendererRegistration', Renderer);
       /**
        * Default implementations for the following interfaces:
        * - `IObserverLocator`
@@ -7511,7 +7646,7 @@ System.register('runtime', ['@aurelia/kernel'], function (exports, module) {
       const WithRegistration = exports('WithRegistration', With);
       const SanitizeValueConverterRegistration = exports('SanitizeValueConverterRegistration', SanitizeValueConverter);
       const DebounceBindingBehaviorRegistration = exports('DebounceBindingBehaviorRegistration', DebounceBindingBehavior);
-      const KeyedBindingBehaviorRegistration = KeyedBindingBehavior;
+      const KeyedBindingBehaviorRegistration = exports('KeyedBindingBehaviorRegistration', KeyedBindingBehavior);
       const OneTimeBindingBehaviorRegistration = exports('OneTimeBindingBehaviorRegistration', OneTimeBindingBehavior);
       const ToViewBindingBehaviorRegistration = exports('ToViewBindingBehaviorRegistration', ToViewBindingBehavior);
       const FromViewBindingBehaviorRegistration = exports('FromViewBindingBehaviorRegistration', FromViewBindingBehavior);
@@ -7524,7 +7659,7 @@ System.register('runtime', ['@aurelia/kernel'], function (exports, module) {
        * - Value Converters (`sanitize`)
        * - Binding Behaviors (`oneTime`, `toView`, `fromView`, `twoWay`, `signal`, `debounce`, `throttle`)
        */
-      const DefaultResources = exports('BasicResources', [
+      const DefaultResources = exports('DefaultResources', [
           IfRegistration,
           ElseRegistration,
           RepeatRegistration,
@@ -7540,16 +7675,16 @@ System.register('runtime', ['@aurelia/kernel'], function (exports, module) {
           ThrottleBindingBehaviorRegistration,
           TwoWayBindingBehaviorRegistration
       ]);
-      const CallBindingRendererRegistration = CallBindingRenderer;
-      const CustomAttributeRendererRegistration = CustomAttributeRenderer;
-      const CustomElementRendererRegistration = CustomElementRenderer;
-      const InterpolationBindingRendererRegistration = InterpolationBindingRenderer;
-      const IteratorBindingRendererRegistration = IteratorBindingRenderer;
-      const LetElementRendererRegistration = LetElementRenderer;
-      const PropertyBindingRendererRegistration = PropertyBindingRenderer;
-      const RefBindingRendererRegistration = RefBindingRenderer;
-      const SetPropertyRendererRegistration = SetPropertyRenderer;
-      const TemplateControllerRendererRegistration = TemplateControllerRenderer;
+      const CallBindingRendererRegistration = exports('CallBindingRendererRegistration', CallBindingRenderer);
+      const CustomAttributeRendererRegistration = exports('CustomAttributeRendererRegistration', CustomAttributeRenderer);
+      const CustomElementRendererRegistration = exports('CustomElementRendererRegistration', CustomElementRenderer);
+      const InterpolationBindingRendererRegistration = exports('InterpolationBindingRendererRegistration', InterpolationBindingRenderer);
+      const IteratorBindingRendererRegistration = exports('IteratorBindingRendererRegistration', IteratorBindingRenderer);
+      const LetElementRendererRegistration = exports('LetElementRendererRegistration', LetElementRenderer);
+      const PropertyBindingRendererRegistration = exports('PropertyBindingRendererRegistration', PropertyBindingRenderer);
+      const RefBindingRendererRegistration = exports('RefBindingRendererRegistration', RefBindingRenderer);
+      const SetPropertyRendererRegistration = exports('SetPropertyRendererRegistration', SetPropertyRenderer);
+      const TemplateControllerRendererRegistration = exports('TemplateControllerRendererRegistration', TemplateControllerRenderer);
       /**
        * Default renderers for:
        * - PropertyBinding: `bind`, `one-time`, `to-view`, `from-view`, `two-way`
@@ -7581,7 +7716,7 @@ System.register('runtime', ['@aurelia/kernel'], function (exports, module) {
        * - `DefaultResources`
        * - `DefaultRenderers`
        */
-      const RuntimeBasicConfiguration = exports('BasicConfiguration', {
+      const RuntimeBasicConfiguration = exports('RuntimeBasicConfiguration', {
           /**
            * Apply this configuration to the provided container.
            */

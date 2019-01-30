@@ -43,7 +43,7 @@ export class LetBinding implements IPartialConnectableBinding {
   }
 
   public handleChange(_newValue: unknown, _previousValue: unknown, flags: LifecycleFlags): void {
-    if (Tracer.enabled) { Tracer.enter('LetBinding.handleChange', slice.call(arguments)); }
+    if (Tracer.enabled) { Tracer.enter('LetBinding', 'handleChange', slice.call(arguments)); }
     if (!(this.$state & State.isBound)) {
       if (Tracer.enabled) { Tracer.leave(); }
       return;
@@ -64,7 +64,7 @@ export class LetBinding implements IPartialConnectableBinding {
   }
 
   public $bind(flags: LifecycleFlags, scope: IScope): void {
-    if (Tracer.enabled) { Tracer.enter('LetBinding.$bind', slice.call(arguments)); }
+    if (Tracer.enabled) { Tracer.enter('LetBinding', '$bind', slice.call(arguments)); }
     if (this.$state & State.isBound) {
       if (this.$scope === scope) {
         if (Tracer.enabled) { Tracer.leave(); }
@@ -93,7 +93,7 @@ export class LetBinding implements IPartialConnectableBinding {
   }
 
   public $unbind(flags: LifecycleFlags): void {
-    if (Tracer.enabled) { Tracer.enter('LetBinding.$unbind', slice.call(arguments)); }
+    if (Tracer.enabled) { Tracer.enter('LetBinding', '$unbind', slice.call(arguments)); }
     if (!(this.$state & State.isBound)) {
       if (Tracer.enabled) { Tracer.leave(); }
       return;

@@ -120,4 +120,8 @@ export class FakeView implements IView<AuNode> {
     this.$state &= ~State.isMounted;
     this.$nodes.remove();
   }
+
+  public $patch(flags: LifecycleFlags): void {
+
+  }
 }

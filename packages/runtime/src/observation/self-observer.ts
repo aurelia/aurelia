@@ -1,6 +1,7 @@
 import { IIndexable, PLATFORM, Tracer } from '@aurelia/kernel';
 import { LifecycleFlags } from '../flags';
 import { IPropertyObserver } from '../observation';
+import { patchProperties } from './patch-properties';
 import { propertyObserver } from './property-observer';
 import { ProxyObserver } from './proxy-observer';
 
@@ -24,7 +25,7 @@ export class SelfObserver implements SelfObserver {
     propertyName: string,
     callbackName: string
   ) {
-    if (Tracer.enabled) { Tracer.enter('SelfObserver.constructor', slice.call(arguments)); }
+    if (Tracer.enabled) { Tracer.enter('SelfObserver', 'constructor', slice.call(arguments)); }
     this.persistentFlags = flags & LifecycleFlags.persistentBindingFlags;
     if (ProxyObserver.isProxy(instance)) {
       instance.$observer.subscribe(this, propertyName);
@@ -42,6 +43,9 @@ export class SelfObserver implements SelfObserver {
         ? instance[callbackName].bind(instance)
         : noop;
     }
+    if (flags & LifecycleFlags.patchStrategy) {
+      this.getValue = this.getValueDirect;
+    }
     if (Tracer.enabled) { Tracer.leave(); }
   }
 
@@ -52,11 +56,14 @@ export class SelfObserver implements SelfObserver {
   public getValue(): unknown {
     return this.currentValue;
   }
+  public getValueDirect(): unknown {
+    return this.obj[this.propertyKey];
+  }
 
   public setValue(newValue: unknown, flags: LifecycleFlags): void {
     const currentValue = this.currentValue;
 
-    if (currentValue !== newValue) {
+    if (currentValue !== newValue || (flags & LifecycleFlags.patchStrategy)) {
       this.currentValue = newValue;
 
       if (!(flags & LifecycleFlags.fromBind)) {
@@ -69,5 +76,9 @@ export class SelfObserver implements SelfObserver {
         this.callSubscribers(newValue, currentValue, flags);
       }
     }
+  }
+  public $patch(flags: LifecycleFlags): void {
+    this.callback(this.obj[this.propertyKey], this.currentValue, this.persistentFlags | flags);
+    this.callSubscribers(this.obj[this.propertyKey], this.currentValue, this.persistentFlags | flags);
   }
 }

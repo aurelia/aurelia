@@ -83,7 +83,7 @@ export class CustomSetterObserver implements CustomSetterObserver {
   }
 
   public setValue(newValue: unknown): void {
-    if (Tracer.enabled) { Tracer.enter('CustomSetterObserver.setValue', slice.call(arguments)); }
+    if (Tracer.enabled) { Tracer.enter('CustomSetterObserver', 'setValue', slice.call(arguments)); }
     this.descriptor.set.call(this.obj, newValue);
     if (this.currentValue !== newValue) {
       this.oldValue = this.currentValue;
@@ -105,7 +105,7 @@ export class CustomSetterObserver implements CustomSetterObserver {
   }
 
   public convertProperty(): void {
-    if (Tracer.enabled) { Tracer.enter('CustomSetterObserver.convertProperty', slice.call(arguments)); }
+    if (Tracer.enabled) { Tracer.enter('CustomSetterObserver', 'convertProperty', slice.call(arguments)); }
     this.observing = true;
     this.currentValue = this.obj[this.propertyKey];
 
@@ -165,7 +165,7 @@ export class GetterObserver implements GetterObserver {
   }
 
   public getValue(): unknown {
-    if (Tracer.enabled) { Tracer.enter('GetterObserver.getValue', slice.call(arguments)); }
+    if (Tracer.enabled) { Tracer.enter('GetterObserver', 'getValue', slice.call(arguments)); }
     if (this.subscriberCount === 0 || this.isCollecting) {
       this.currentValue = Reflect.apply(this.descriptor.get, this.proxy, PLATFORM.emptyArray);
     } else {
@@ -206,7 +206,7 @@ export class GetterObserver implements GetterObserver {
   }
 
   public getValueAndCollectDependencies(requireCollect: boolean): unknown {
-    if (Tracer.enabled) { Tracer.enter('GetterObserver.getValueAndCollectDependencies', slice.call(arguments)); }
+    if (Tracer.enabled) { Tracer.enter('GetterObserver', 'getValueAndCollectDependencies', slice.call(arguments)); }
     const dynamicDependencies = !this.overrides.static || requireCollect;
 
     if (dynamicDependencies) {
@@ -241,10 +241,10 @@ export class GetterObserver implements GetterObserver {
 const toStringTag = Object.prototype.toString;
 
 function createGetterTraps(flags: LifecycleFlags, observerLocator: IObserverLocator, observer: GetterObserver): ProxyHandler<object> {
-  if (Tracer.enabled) { Tracer.enter('computed.createGetterTraps', slice.call(arguments)); }
+  if (Tracer.enabled) { Tracer.enter('computed', 'createGetterTraps', slice.call(arguments)); }
   const traps = {
     get: function(target: object, key: PropertyKey, receiver?: unknown): unknown {
-      if (Tracer.enabled) { Tracer.enter('computed.get', slice.call(arguments)); }
+      if (Tracer.enabled) { Tracer.enter('computed', 'get', slice.call(arguments)); }
       if (observer.doNotCollect(key)) {
         if (Tracer.enabled) { Tracer.leave(); }
         return Reflect.get(target, key, receiver);

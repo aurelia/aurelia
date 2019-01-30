@@ -1,6 +1,7 @@
 import { IIndexable, Tracer } from '@aurelia/kernel';
 import { LifecycleFlags } from '../flags';
 import { IPropertyObserver, IPropertySubscriber } from '../observation';
+import { patchProperties } from './patch-properties';
 import { propertyObserver } from './property-observer';
 
 const slice = Array.prototype.slice;
@@ -16,19 +17,25 @@ export class SetterObserver implements SetterObserver {
   public propertyKey: string;
 
   constructor(flags: LifecycleFlags, obj: IIndexable, propertyKey: string) {
-    if (Tracer.enabled) { Tracer.enter('SetterObserver.constructor', slice.call(arguments)); }
+    if (Tracer.enabled) { Tracer.enter('SetterObserver', 'constructor', slice.call(arguments)); }
     this.persistentFlags = flags & LifecycleFlags.persistentBindingFlags;
     this.obj = obj;
     this.propertyKey = propertyKey;
+    if (flags & LifecycleFlags.patchStrategy) {
+      this.getValue = this.getValueDirect;
+    }
     if (Tracer.enabled) { Tracer.leave(); }
   }
 
   public getValue(): unknown {
     return this.currentValue;
   }
+  public getValueDirect(): unknown {
+    return this.obj[this.propertyKey];
+  }
   public setValue(newValue: unknown, flags: LifecycleFlags): void {
     const currentValue = this.currentValue;
-    if (currentValue !== newValue) {
+    if (currentValue !== newValue || (flags & LifecycleFlags.patchStrategy)) {
       this.currentValue = newValue;
       if (!(flags & LifecycleFlags.fromBind)) {
         this.callSubscribers(newValue, currentValue, this.persistentFlags | flags);
@@ -43,5 +50,9 @@ export class SetterObserver implements SetterObserver {
         this.obj[this.propertyKey] = newValue;
       }
     }
+  }
+  public $patch(flags: LifecycleFlags): void {
+    this.callSubscribers(this.obj[this.propertyKey], this.currentValue, this.persistentFlags | flags);
+    patchProperties(this.obj[this.propertyKey], flags);
   }
 }

@@ -5,7 +5,6 @@ import {
 } from 'sinon';
 import {
   AccessScope,
-  BasicConfiguration,
   BindingBehavior,
   Call,
   CallScope,
@@ -14,6 +13,7 @@ import {
   ILifecycle,
   IScope,
   LifecycleFlags as LF,
+  RuntimeBasicConfiguration,
   SetterObserver
 } from '../../src/index';
 import { Lifecycle } from '../../src/lifecycle';
@@ -29,7 +29,7 @@ import {
 
 describe('Call', () => {
   function setup(sourceExpression: IExpression, target: any, targetProperty: string) {
-    const container = BasicConfiguration.createContainer();
+    const container = RuntimeBasicConfiguration.createContainer();
     const lifecycle = container.get(ILifecycle) as Lifecycle;
     const observerLocator = createObserverLocator(container);
     const sut = new Call(sourceExpression as any, target, targetProperty, observerLocator, container);

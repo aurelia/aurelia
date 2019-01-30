@@ -1,6 +1,7 @@
 
 export interface ITraceInfo {
-  readonly name: string;
+  readonly objName: string;
+  readonly methodName: string;
   readonly depth: number;
   params: ReadonlyArray<unknown> | null;
   next: ITraceInfo | null;
@@ -8,6 +9,16 @@ export interface ITraceInfo {
 }
 export interface ITraceWriter {
   write(info: ITraceInfo): void;
+}
+export interface ILiveLoggingOptions {
+  rendering?: boolean;
+  binding?: boolean;
+  observation?: boolean;
+  attaching?: boolean;
+  mounting?: boolean;
+  di?: boolean;
+  lifecycle?: boolean;
+  jit?: boolean;
 }
 export const Reporter = {
   write(code: number, ...params: unknown[]): void { return; },
@@ -27,10 +38,11 @@ export const Tracer = {
   /**
    * Call this at the start of a method/function.
    * Each call to `enter` **must** have an accompanying call to `leave` for the tracer to work properly.
-   * @param name Any human-friendly name to identify the traced method with.
+   * @param objName Any human-friendly name to identify the traced object with.
+   * @param methodName Any human-friendly name to identify the traced method with.
    * @param args Pass in `Array.prototype.slice.call(arguments)` to also trace the parameters, or `null` if this is not needed (to save memory/cpu)
    */
-  enter(name: string, args: unknown[] | null): void { return; },
+  enter(objName: string, methodName: string, args: unknown[] | null): void { return; },
   /**
    * Call this at the end of a method/function. Pops one trace item off the stack.
    */
@@ -45,13 +57,22 @@ export const Tracer = {
    * @param writer An object to write the output to. Can be null to simply reset the tracer state.
    */
   flushAll(writer: ITraceWriter | null): void { return; },
-  /**
-   * Writes out each trace info item as they are traced.
-   * @param writer An object to write the output to.
-   */
-  enableLiveLogging(writer: ITraceWriter): void { return; },
+  enableLiveLogging,
   /**
    * Stops writing out each trace info item as they are traced.
    */
   disableLiveLogging(): void { return; }
 };
+
+/**
+ * Writes out each trace info item as they are traced.
+ * @param writer An object to write the output to.
+ */
+function enableLiveLogging(writer: ITraceWriter): void;
+/**
+ * Writes out each trace info item as they are traced.
+ * @param options Optional. Specify which logging categories to output. If omitted, all will be logged.
+ */
+function enableLiveLogging(options?: ILiveLoggingOptions): void;
+// tslint:disable-next-line:no-redundant-jump
+function enableLiveLogging(optionsOrWriter?: ILiveLoggingOptions | ITraceWriter): void { return; }

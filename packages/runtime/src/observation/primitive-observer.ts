@@ -17,12 +17,13 @@ export class PrimitiveObserver implements IAccessor, ISubscribable<MutationKind.
   public subscribe: () => void;
   public unsubscribe: () => void;
   public dispose: () => void;
+  public $patch: () => void;
 
   public doNotCache: boolean = true;
   public obj: Primitive;
 
   constructor(obj: Primitive, propertyKey: PropertyKey) {
-    if (Tracer.enabled) { Tracer.enter('PrimitiveObserver.constructor', slice.call(arguments)); }
+    if (Tracer.enabled) { Tracer.enter('PrimitiveObserver', 'constructor', slice.call(arguments)); }
     // we don't need to store propertyName because only 'length' can return a useful value
     if (propertyKey === 'length') {
       // deliberately not checking for typeof string as users probably still want to know via an error that their string is undefined
@@ -45,3 +46,4 @@ PrimitiveObserver.prototype.setValue = noop;
 PrimitiveObserver.prototype.subscribe = noop;
 PrimitiveObserver.prototype.unsubscribe = noop;
 PrimitiveObserver.prototype.dispose = noop;
+PrimitiveObserver.prototype.$patch = noop;

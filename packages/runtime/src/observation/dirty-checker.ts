@@ -121,7 +121,7 @@ export class DirtyCheckProperty implements DirtyCheckProperty {
   private readonly dirtyChecker: IDirtyChecker;
 
   constructor(dirtyChecker: IDirtyChecker, obj: IObservable, propertyKey: string) {
-    if (Tracer.enabled) { Tracer.enter('DirtyCheckProperty.constructor', slice.call(arguments)); }
+    if (Tracer.enabled) { Tracer.enter('DirtyCheckProperty', 'constructor', slice.call(arguments)); }
     this.obj = obj;
     this.propertyKey = propertyKey;
 

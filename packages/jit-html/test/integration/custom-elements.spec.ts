@@ -17,7 +17,7 @@ import { TestConfiguration } from './resources';
 import { setupAndStart, tearDown } from './util';
 
 // TemplateCompiler - custom element integration
-describe('template-compiler.custom-elements', () => {
+describe('custom-elements', () => {
   let ctx: HTMLTestContext;
 
   beforeEach(() => {

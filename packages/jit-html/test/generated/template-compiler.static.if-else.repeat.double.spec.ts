@@ -3457,7 +3457,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$03 text$03 if$01 repeat$11 variant$01$double _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             msg = "";
             not = "";
             item = "";
@@ -3474,7 +3474,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$03 text$03 if$01 repeat$11 variant$02$double _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             msg = "";
             not = "";
             item = "";
@@ -3491,7 +3491,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$03 text$03 if$01 repeat$11 variant$03$double$01 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             msg = "";
             not = "";
             item = "";
@@ -3508,7 +3508,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$03 text$03 if$01 repeat$11 variant$03$double$02 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             msg = "";
             not = "";
             item = "";
@@ -3525,7 +3525,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$03 text$03 if$01 repeat$11 variant$09$double$01 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             msg = "";
             not = "";
             item = "";
@@ -3542,7 +3542,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$03 text$03 if$01 repeat$11 variant$09$double$02 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             msg = "";
             not = "";
             item = "";
@@ -3559,7 +3559,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$03 text$03 if$01 repeat$12 variant$01$double _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             msg = "";
             not = "";
             item = "";
@@ -3576,7 +3576,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$03 text$03 if$01 repeat$12 variant$02$double _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             msg = "";
             not = "";
             item = "";
@@ -3593,7 +3593,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$03 text$03 if$01 repeat$12 variant$03$double$01 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             msg = "";
             not = "";
             item = "";
@@ -3610,7 +3610,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$03 text$03 if$01 repeat$12 variant$03$double$02 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             msg = "";
             not = "";
             item = "";
@@ -3627,7 +3627,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$03 text$03 if$01 repeat$12 variant$09$double$01 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             msg = "";
             not = "";
             item = "";
@@ -3644,7 +3644,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$03 text$03 if$01 repeat$12 variant$09$double$02 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             msg = "";
             not = "";
             item = "";
@@ -3661,7 +3661,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$03 text$03 if$01 repeat$13 variant$01$double _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             msg = "";
             not = "";
             item = "";
@@ -3678,7 +3678,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$03 text$03 if$01 repeat$13 variant$02$double _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             msg = "";
             not = "";
             item = "";
@@ -3695,7 +3695,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$03 text$03 if$01 repeat$13 variant$03$double$01 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             msg = "";
             not = "";
             item = "";
@@ -3712,7 +3712,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$03 text$03 if$01 repeat$13 variant$03$double$02 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             msg = "";
             not = "";
             item = "";
@@ -3729,7 +3729,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$03 text$03 if$01 repeat$13 variant$09$double$01 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             msg = "";
             not = "";
             item = "";
@@ -3746,7 +3746,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$03 text$03 if$01 repeat$13 variant$09$double$02 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             msg = "";
             not = "";
             item = "";
@@ -3763,7 +3763,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$03 text$03 if$01 repeat$14 variant$01$double _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             msg = "";
             not = "";
             item = "";
@@ -3780,7 +3780,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$03 text$03 if$01 repeat$14 variant$02$double _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             msg = "";
             not = "";
             item = "";
@@ -3797,7 +3797,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$03 text$03 if$01 repeat$14 variant$03$double$01 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             msg = "";
             not = "";
             item = "";
@@ -3814,7 +3814,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$03 text$03 if$01 repeat$14 variant$03$double$02 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             msg = "";
             not = "";
             item = "";
@@ -3831,7 +3831,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$03 text$03 if$01 repeat$14 variant$09$double$01 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             msg = "";
             not = "";
             item = "";
@@ -3848,7 +3848,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$03 text$03 if$01 repeat$14 variant$09$double$02 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             msg = "";
             not = "";
             item = "";
@@ -3865,7 +3865,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$03 text$03 if$02 repeat$11 variant$01$double _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             msg = "";
             not = "";
             item = "";
@@ -3882,7 +3882,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$03 text$03 if$02 repeat$11 variant$02$double _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             msg = "";
             not = "";
             item = "";
@@ -3899,7 +3899,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$03 text$03 if$02 repeat$11 variant$03$double$01 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             msg = "";
             not = "";
             item = "";
@@ -3916,7 +3916,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$03 text$03 if$02 repeat$11 variant$03$double$02 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             msg = "";
             not = "";
             item = "";
@@ -3933,7 +3933,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$03 text$03 if$02 repeat$11 variant$11$double$01 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             msg = "";
             not = "";
             item = "";
@@ -3950,7 +3950,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$03 text$03 if$02 repeat$11 variant$11$double$02 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             msg = "";
             not = "";
             item = "";
@@ -3967,7 +3967,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$03 text$03 if$02 repeat$11 variant$11$double$03 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             msg = "";
             not = "";
             item = "";
@@ -3984,7 +3984,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$03 text$03 if$02 repeat$11 variant$12$double$01 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             msg = "";
             not = "";
             item = "";
@@ -4001,7 +4001,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$03 text$03 if$02 repeat$11 variant$12$double$02 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             msg = "";
             not = "";
             item = "";
@@ -4018,7 +4018,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$03 text$03 if$02 repeat$12 variant$01$double _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             msg = "";
             not = "";
             item = "";
@@ -4035,7 +4035,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$03 text$03 if$02 repeat$12 variant$02$double _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             msg = "";
             not = "";
             item = "";
@@ -4052,7 +4052,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$03 text$03 if$02 repeat$12 variant$03$double$01 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             msg = "";
             not = "";
             item = "";
@@ -4069,7 +4069,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$03 text$03 if$02 repeat$12 variant$03$double$02 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             msg = "";
             not = "";
             item = "";
@@ -4086,7 +4086,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$03 text$03 if$02 repeat$12 variant$11$double$01 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             msg = "";
             not = "";
             item = "";
@@ -4103,7 +4103,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$03 text$03 if$02 repeat$12 variant$11$double$02 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             msg = "";
             not = "";
             item = "";
@@ -4120,7 +4120,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$03 text$03 if$02 repeat$12 variant$11$double$03 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             msg = "";
             not = "";
             item = "";
@@ -4137,7 +4137,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$03 text$03 if$02 repeat$12 variant$12$double$01 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             msg = "";
             not = "";
             item = "";
@@ -4154,7 +4154,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$03 text$03 if$02 repeat$12 variant$12$double$02 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             msg = "";
             not = "";
             item = "";
@@ -4171,7 +4171,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$03 text$03 if$02 repeat$13 variant$01$double _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             msg = "";
             not = "";
             item = "";
@@ -4188,7 +4188,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$03 text$03 if$02 repeat$13 variant$02$double _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             msg = "";
             not = "";
             item = "";
@@ -4205,7 +4205,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$03 text$03 if$02 repeat$13 variant$03$double$01 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             msg = "";
             not = "";
             item = "";
@@ -4222,7 +4222,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$03 text$03 if$02 repeat$13 variant$03$double$02 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             msg = "";
             not = "";
             item = "";
@@ -4239,7 +4239,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$03 text$03 if$02 repeat$13 variant$11$double$01 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             msg = "";
             not = "";
             item = "";
@@ -4256,7 +4256,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$03 text$03 if$02 repeat$13 variant$11$double$02 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             msg = "";
             not = "";
             item = "";
@@ -4273,7 +4273,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$03 text$03 if$02 repeat$13 variant$11$double$03 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             msg = "";
             not = "";
             item = "";
@@ -4290,7 +4290,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$03 text$03 if$02 repeat$13 variant$12$double$01 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             msg = "";
             not = "";
             item = "";
@@ -4307,7 +4307,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$03 text$03 if$02 repeat$13 variant$12$double$02 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             msg = "";
             not = "";
             item = "";
@@ -4324,7 +4324,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$03 text$03 if$02 repeat$14 variant$01$double _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             msg = "";
             not = "";
             item = "";
@@ -4341,7 +4341,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$03 text$03 if$02 repeat$14 variant$02$double _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             msg = "";
             not = "";
             item = "";
@@ -4358,7 +4358,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$03 text$03 if$02 repeat$14 variant$03$double$01 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             msg = "";
             not = "";
             item = "";
@@ -4375,7 +4375,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$03 text$03 if$02 repeat$14 variant$03$double$02 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             msg = "";
             not = "";
             item = "";
@@ -4392,7 +4392,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$03 text$03 if$02 repeat$14 variant$11$double$01 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             msg = "";
             not = "";
             item = "";
@@ -4409,7 +4409,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$03 text$03 if$02 repeat$14 variant$11$double$02 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             msg = "";
             not = "";
             item = "";
@@ -4426,7 +4426,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$03 text$03 if$02 repeat$14 variant$11$double$03 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             msg = "";
             not = "";
             item = "";
@@ -4443,7 +4443,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$03 text$03 if$02 repeat$14 variant$12$double$01 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             msg = "";
             not = "";
             item = "";
@@ -4460,7 +4460,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$03 text$03 if$02 repeat$14 variant$12$double$02 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             msg = "";
             not = "";
             item = "";
@@ -4477,7 +4477,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$03 text$04 if$01 repeat$11 variant$01$double _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             msg = "";
             not = "";
             item = "";
@@ -4494,7 +4494,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$03 text$04 if$01 repeat$11 variant$02$double _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             msg = "";
             not = "";
             item = "";
@@ -4511,7 +4511,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$03 text$04 if$01 repeat$11 variant$03$double$01 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             msg = "";
             not = "";
             item = "";
@@ -4528,7 +4528,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$03 text$04 if$01 repeat$11 variant$03$double$02 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             msg = "";
             not = "";
             item = "";
@@ -4545,7 +4545,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$03 text$04 if$01 repeat$11 variant$09$double$01 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             msg = "";
             not = "";
             item = "";
@@ -4562,7 +4562,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$03 text$04 if$01 repeat$11 variant$09$double$02 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             msg = "";
             not = "";
             item = "";
@@ -4579,7 +4579,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$03 text$04 if$01 repeat$12 variant$01$double _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             msg = "";
             not = "";
             item = "";
@@ -4596,7 +4596,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$03 text$04 if$01 repeat$12 variant$02$double _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             msg = "";
             not = "";
             item = "";
@@ -4613,7 +4613,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$03 text$04 if$01 repeat$12 variant$03$double$01 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             msg = "";
             not = "";
             item = "";
@@ -4630,7 +4630,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$03 text$04 if$01 repeat$12 variant$03$double$02 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             msg = "";
             not = "";
             item = "";
@@ -4647,7 +4647,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$03 text$04 if$01 repeat$12 variant$09$double$01 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             msg = "";
             not = "";
             item = "";
@@ -4664,7 +4664,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$03 text$04 if$01 repeat$12 variant$09$double$02 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             msg = "";
             not = "";
             item = "";
@@ -4681,7 +4681,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$03 text$04 if$01 repeat$13 variant$01$double _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             msg = "";
             not = "";
             item = "";
@@ -4698,7 +4698,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$03 text$04 if$01 repeat$13 variant$02$double _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             msg = "";
             not = "";
             item = "";
@@ -4715,7 +4715,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$03 text$04 if$01 repeat$13 variant$03$double$01 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             msg = "";
             not = "";
             item = "";
@@ -4732,7 +4732,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$03 text$04 if$01 repeat$13 variant$03$double$02 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             msg = "";
             not = "";
             item = "";
@@ -4749,7 +4749,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$03 text$04 if$01 repeat$13 variant$09$double$01 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             msg = "";
             not = "";
             item = "";
@@ -4766,7 +4766,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$03 text$04 if$01 repeat$13 variant$09$double$02 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             msg = "";
             not = "";
             item = "";
@@ -4783,7 +4783,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$03 text$04 if$01 repeat$14 variant$01$double _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             msg = "";
             not = "";
             item = "";
@@ -4800,7 +4800,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$03 text$04 if$01 repeat$14 variant$02$double _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             msg = "";
             not = "";
             item = "";
@@ -4817,7 +4817,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$03 text$04 if$01 repeat$14 variant$03$double$01 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             msg = "";
             not = "";
             item = "";
@@ -4834,7 +4834,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$03 text$04 if$01 repeat$14 variant$03$double$02 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             msg = "";
             not = "";
             item = "";
@@ -4851,7 +4851,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$03 text$04 if$01 repeat$14 variant$09$double$01 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             msg = "";
             not = "";
             item = "";
@@ -4868,7 +4868,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$03 text$04 if$01 repeat$14 variant$09$double$02 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             msg = "";
             not = "";
             item = "";
@@ -4885,7 +4885,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$03 text$04 if$02 repeat$11 variant$01$double _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             msg = "";
             not = "";
             item = "";
@@ -4902,7 +4902,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$03 text$04 if$02 repeat$11 variant$02$double _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             msg = "";
             not = "";
             item = "";
@@ -4919,7 +4919,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$03 text$04 if$02 repeat$11 variant$03$double$01 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             msg = "";
             not = "";
             item = "";
@@ -4936,7 +4936,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$03 text$04 if$02 repeat$11 variant$03$double$02 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             msg = "";
             not = "";
             item = "";
@@ -4953,7 +4953,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$03 text$04 if$02 repeat$11 variant$11$double$01 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             msg = "";
             not = "";
             item = "";
@@ -4970,7 +4970,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$03 text$04 if$02 repeat$11 variant$11$double$02 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             msg = "";
             not = "";
             item = "";
@@ -4987,7 +4987,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$03 text$04 if$02 repeat$11 variant$11$double$03 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             msg = "";
             not = "";
             item = "";
@@ -5004,7 +5004,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$03 text$04 if$02 repeat$11 variant$12$double$01 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             msg = "";
             not = "";
             item = "";
@@ -5021,7 +5021,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$03 text$04 if$02 repeat$11 variant$12$double$02 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             msg = "";
             not = "";
             item = "";
@@ -5038,7 +5038,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$03 text$04 if$02 repeat$12 variant$01$double _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             msg = "";
             not = "";
             item = "";
@@ -5055,7 +5055,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$03 text$04 if$02 repeat$12 variant$02$double _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             msg = "";
             not = "";
             item = "";
@@ -5072,7 +5072,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$03 text$04 if$02 repeat$12 variant$03$double$01 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             msg = "";
             not = "";
             item = "";
@@ -5089,7 +5089,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$03 text$04 if$02 repeat$12 variant$03$double$02 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             msg = "";
             not = "";
             item = "";
@@ -5106,7 +5106,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$03 text$04 if$02 repeat$12 variant$11$double$01 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             msg = "";
             not = "";
             item = "";
@@ -5123,7 +5123,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$03 text$04 if$02 repeat$12 variant$11$double$02 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             msg = "";
             not = "";
             item = "";
@@ -5140,7 +5140,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$03 text$04 if$02 repeat$12 variant$11$double$03 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             msg = "";
             not = "";
             item = "";
@@ -5157,7 +5157,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$03 text$04 if$02 repeat$12 variant$12$double$01 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             msg = "";
             not = "";
             item = "";
@@ -5174,7 +5174,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$03 text$04 if$02 repeat$12 variant$12$double$02 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             msg = "";
             not = "";
             item = "";
@@ -5191,7 +5191,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$03 text$04 if$02 repeat$13 variant$01$double _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             msg = "";
             not = "";
             item = "";
@@ -5208,7 +5208,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$03 text$04 if$02 repeat$13 variant$02$double _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             msg = "";
             not = "";
             item = "";
@@ -5225,7 +5225,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$03 text$04 if$02 repeat$13 variant$03$double$01 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             msg = "";
             not = "";
             item = "";
@@ -5242,7 +5242,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$03 text$04 if$02 repeat$13 variant$03$double$02 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             msg = "";
             not = "";
             item = "";
@@ -5259,7 +5259,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$03 text$04 if$02 repeat$13 variant$11$double$01 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             msg = "";
             not = "";
             item = "";
@@ -5276,7 +5276,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$03 text$04 if$02 repeat$13 variant$11$double$02 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             msg = "";
             not = "";
             item = "";
@@ -5293,7 +5293,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$03 text$04 if$02 repeat$13 variant$11$double$03 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             msg = "";
             not = "";
             item = "";
@@ -5310,7 +5310,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$03 text$04 if$02 repeat$13 variant$12$double$01 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             msg = "";
             not = "";
             item = "";
@@ -5327,7 +5327,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$03 text$04 if$02 repeat$13 variant$12$double$02 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             msg = "";
             not = "";
             item = "";
@@ -5344,7 +5344,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$03 text$04 if$02 repeat$14 variant$01$double _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             msg = "";
             not = "";
             item = "";
@@ -5361,7 +5361,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$03 text$04 if$02 repeat$14 variant$02$double _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             msg = "";
             not = "";
             item = "";
@@ -5378,7 +5378,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$03 text$04 if$02 repeat$14 variant$03$double$01 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             msg = "";
             not = "";
             item = "";
@@ -5395,7 +5395,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$03 text$04 if$02 repeat$14 variant$03$double$02 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             msg = "";
             not = "";
             item = "";
@@ -5412,7 +5412,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$03 text$04 if$02 repeat$14 variant$11$double$01 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             msg = "";
             not = "";
             item = "";
@@ -5429,7 +5429,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$03 text$04 if$02 repeat$14 variant$11$double$02 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             msg = "";
             not = "";
             item = "";
@@ -5446,7 +5446,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$03 text$04 if$02 repeat$14 variant$11$double$03 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             msg = "";
             not = "";
             item = "";
@@ -5463,7 +5463,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$03 text$04 if$02 repeat$14 variant$12$double$01 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             msg = "";
             not = "";
             item = "";
@@ -5480,7 +5480,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$03 text$04 if$02 repeat$14 variant$12$double$02 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             msg = "";
             not = "";
             item = "";
@@ -5497,7 +5497,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$04 text$03 if$01 repeat$11 variant$01$double _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"part1\"></template><template replaceable part=\"part2\"></template></template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             msg = "";
             not = "";
             item = "";
@@ -5514,7 +5514,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$04 text$03 if$01 repeat$11 variant$02$double _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"part1\"></template><template replaceable part=\"part2\"></template></template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             msg = "";
             not = "";
             item = "";
@@ -5531,7 +5531,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$04 text$03 if$01 repeat$11 variant$03$double$01 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"part1\"></template><template replaceable part=\"part2\"></template></template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             msg = "";
             not = "";
             item = "";
@@ -5548,7 +5548,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$04 text$03 if$01 repeat$11 variant$03$double$02 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"part1\"></template><template replaceable part=\"part2\"></template></template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             msg = "";
             not = "";
             item = "";
@@ -5565,7 +5565,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$04 text$03 if$01 repeat$11 variant$09$double$01 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"part1\"></template><template replaceable part=\"part2\"></template></template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             msg = "";
             not = "";
             item = "";
@@ -5582,7 +5582,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$04 text$03 if$01 repeat$11 variant$09$double$02 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"part1\"></template><template replaceable part=\"part2\"></template></template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             msg = "";
             not = "";
             item = "";
@@ -5599,7 +5599,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$04 text$03 if$01 repeat$13 variant$01$double _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"part1\"></template><template replaceable part=\"part2\"></template></template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             msg = "";
             not = "";
             item = "";
@@ -5616,7 +5616,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$04 text$03 if$01 repeat$13 variant$02$double _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"part1\"></template><template replaceable part=\"part2\"></template></template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             msg = "";
             not = "";
             item = "";
@@ -5633,7 +5633,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$04 text$03 if$01 repeat$13 variant$03$double$01 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"part1\"></template><template replaceable part=\"part2\"></template></template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             msg = "";
             not = "";
             item = "";
@@ -5650,7 +5650,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$04 text$03 if$01 repeat$13 variant$03$double$02 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"part1\"></template><template replaceable part=\"part2\"></template></template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             msg = "";
             not = "";
             item = "";
@@ -5667,7 +5667,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$04 text$03 if$01 repeat$13 variant$09$double$01 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"part1\"></template><template replaceable part=\"part2\"></template></template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             msg = "";
             not = "";
             item = "";
@@ -5684,7 +5684,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$04 text$03 if$01 repeat$13 variant$09$double$02 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"part1\"></template><template replaceable part=\"part2\"></template></template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             msg = "";
             not = "";
             item = "";
@@ -5701,7 +5701,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$04 text$03 if$01 repeat$14 variant$01$double _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"part1\"></template><template replaceable part=\"part2\"></template></template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             msg = "";
             not = "";
             item = "";
@@ -5718,7 +5718,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$04 text$03 if$01 repeat$14 variant$02$double _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"part1\"></template><template replaceable part=\"part2\"></template></template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             msg = "";
             not = "";
             item = "";
@@ -5735,7 +5735,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$04 text$03 if$01 repeat$14 variant$03$double$01 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"part1\"></template><template replaceable part=\"part2\"></template></template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             msg = "";
             not = "";
             item = "";
@@ -5752,7 +5752,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$04 text$03 if$01 repeat$14 variant$03$double$02 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"part1\"></template><template replaceable part=\"part2\"></template></template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             msg = "";
             not = "";
             item = "";
@@ -5769,7 +5769,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$04 text$03 if$01 repeat$14 variant$09$double$01 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"part1\"></template><template replaceable part=\"part2\"></template></template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             msg = "";
             not = "";
             item = "";
@@ -5786,7 +5786,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$04 text$03 if$01 repeat$14 variant$09$double$02 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"part1\"></template><template replaceable part=\"part2\"></template></template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             msg = "";
             not = "";
             item = "";
@@ -5803,7 +5803,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$04 text$03 if$02 repeat$11 variant$01$double _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"part1\"></template><template replaceable part=\"part2\"></template></template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             msg = "";
             not = "";
             item = "";
@@ -5820,7 +5820,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$04 text$03 if$02 repeat$11 variant$02$double _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"part1\"></template><template replaceable part=\"part2\"></template></template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             msg = "";
             not = "";
             item = "";
@@ -5837,7 +5837,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$04 text$03 if$02 repeat$11 variant$03$double$01 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"part1\"></template><template replaceable part=\"part2\"></template></template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             msg = "";
             not = "";
             item = "";
@@ -5854,7 +5854,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$04 text$03 if$02 repeat$11 variant$03$double$02 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"part1\"></template><template replaceable part=\"part2\"></template></template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             msg = "";
             not = "";
             item = "";
@@ -5871,7 +5871,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$04 text$03 if$02 repeat$11 variant$11$double$01 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"part1\"></template><template replaceable part=\"part2\"></template></template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             msg = "";
             not = "";
             item = "";
@@ -5888,7 +5888,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$04 text$03 if$02 repeat$11 variant$11$double$02 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"part1\"></template><template replaceable part=\"part2\"></template></template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             msg = "";
             not = "";
             item = "";
@@ -5905,7 +5905,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$04 text$03 if$02 repeat$11 variant$11$double$03 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"part1\"></template><template replaceable part=\"part2\"></template></template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             msg = "";
             not = "";
             item = "";
@@ -5922,7 +5922,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$04 text$03 if$02 repeat$11 variant$12$double$01 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"part1\"></template><template replaceable part=\"part2\"></template></template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             msg = "";
             not = "";
             item = "";
@@ -5939,7 +5939,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$04 text$03 if$02 repeat$11 variant$12$double$02 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"part1\"></template><template replaceable part=\"part2\"></template></template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             msg = "";
             not = "";
             item = "";
@@ -5956,7 +5956,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$04 text$03 if$02 repeat$13 variant$01$double _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"part1\"></template><template replaceable part=\"part2\"></template></template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             msg = "";
             not = "";
             item = "";
@@ -5973,7 +5973,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$04 text$03 if$02 repeat$13 variant$02$double _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"part1\"></template><template replaceable part=\"part2\"></template></template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             msg = "";
             not = "";
             item = "";
@@ -5990,7 +5990,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$04 text$03 if$02 repeat$13 variant$03$double$01 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"part1\"></template><template replaceable part=\"part2\"></template></template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             msg = "";
             not = "";
             item = "";
@@ -6007,7 +6007,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$04 text$03 if$02 repeat$13 variant$03$double$02 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"part1\"></template><template replaceable part=\"part2\"></template></template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             msg = "";
             not = "";
             item = "";
@@ -6024,7 +6024,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$04 text$03 if$02 repeat$13 variant$11$double$01 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"part1\"></template><template replaceable part=\"part2\"></template></template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             msg = "";
             not = "";
             item = "";
@@ -6041,7 +6041,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$04 text$03 if$02 repeat$13 variant$11$double$02 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"part1\"></template><template replaceable part=\"part2\"></template></template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             msg = "";
             not = "";
             item = "";
@@ -6058,7 +6058,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$04 text$03 if$02 repeat$13 variant$11$double$03 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"part1\"></template><template replaceable part=\"part2\"></template></template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             msg = "";
             not = "";
             item = "";
@@ -6075,7 +6075,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$04 text$03 if$02 repeat$13 variant$12$double$01 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"part1\"></template><template replaceable part=\"part2\"></template></template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             msg = "";
             not = "";
             item = "";
@@ -6092,7 +6092,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$04 text$03 if$02 repeat$13 variant$12$double$02 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"part1\"></template><template replaceable part=\"part2\"></template></template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             msg = "";
             not = "";
             item = "";
@@ -6109,7 +6109,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$04 text$03 if$02 repeat$14 variant$01$double _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"part1\"></template><template replaceable part=\"part2\"></template></template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             msg = "";
             not = "";
             item = "";
@@ -6126,7 +6126,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$04 text$03 if$02 repeat$14 variant$02$double _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"part1\"></template><template replaceable part=\"part2\"></template></template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             msg = "";
             not = "";
             item = "";
@@ -6143,7 +6143,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$04 text$03 if$02 repeat$14 variant$03$double$01 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"part1\"></template><template replaceable part=\"part2\"></template></template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             msg = "";
             not = "";
             item = "";
@@ -6160,7 +6160,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$04 text$03 if$02 repeat$14 variant$03$double$02 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"part1\"></template><template replaceable part=\"part2\"></template></template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             msg = "";
             not = "";
             item = "";
@@ -6177,7 +6177,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$04 text$03 if$02 repeat$14 variant$11$double$01 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"part1\"></template><template replaceable part=\"part2\"></template></template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             msg = "";
             not = "";
             item = "";
@@ -6194,7 +6194,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$04 text$03 if$02 repeat$14 variant$11$double$02 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"part1\"></template><template replaceable part=\"part2\"></template></template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             msg = "";
             not = "";
             item = "";
@@ -6211,7 +6211,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$04 text$03 if$02 repeat$14 variant$11$double$03 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"part1\"></template><template replaceable part=\"part2\"></template></template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             msg = "";
             not = "";
             item = "";
@@ -6228,7 +6228,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$04 text$03 if$02 repeat$14 variant$12$double$01 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"part1\"></template><template replaceable part=\"part2\"></template></template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             msg = "";
             not = "";
             item = "";
@@ -6245,7 +6245,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$04 text$03 if$02 repeat$14 variant$12$double$02 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"part1\"></template><template replaceable part=\"part2\"></template></template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             msg = "";
             not = "";
             item = "";
@@ -6262,7 +6262,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$04 text$04 if$01 repeat$11 variant$01$double _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"part1\"></template><template replaceable part=\"part2\"></template></template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             msg = "";
             not = "";
             item = "";
@@ -6279,7 +6279,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$04 text$04 if$01 repeat$11 variant$02$double _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"part1\"></template><template replaceable part=\"part2\"></template></template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             msg = "";
             not = "";
             item = "";
@@ -6296,7 +6296,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$04 text$04 if$01 repeat$11 variant$03$double$01 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"part1\"></template><template replaceable part=\"part2\"></template></template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             msg = "";
             not = "";
             item = "";
@@ -6313,7 +6313,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$04 text$04 if$01 repeat$11 variant$03$double$02 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"part1\"></template><template replaceable part=\"part2\"></template></template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             msg = "";
             not = "";
             item = "";
@@ -6330,7 +6330,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$04 text$04 if$01 repeat$11 variant$09$double$01 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"part1\"></template><template replaceable part=\"part2\"></template></template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             msg = "";
             not = "";
             item = "";
@@ -6347,7 +6347,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$04 text$04 if$01 repeat$11 variant$09$double$02 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"part1\"></template><template replaceable part=\"part2\"></template></template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             msg = "";
             not = "";
             item = "";
@@ -6364,7 +6364,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$04 text$04 if$01 repeat$13 variant$01$double _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"part1\"></template><template replaceable part=\"part2\"></template></template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             msg = "";
             not = "";
             item = "";
@@ -6381,7 +6381,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$04 text$04 if$01 repeat$13 variant$02$double _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"part1\"></template><template replaceable part=\"part2\"></template></template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             msg = "";
             not = "";
             item = "";
@@ -6398,7 +6398,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$04 text$04 if$01 repeat$13 variant$03$double$01 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"part1\"></template><template replaceable part=\"part2\"></template></template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             msg = "";
             not = "";
             item = "";
@@ -6415,7 +6415,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$04 text$04 if$01 repeat$13 variant$03$double$02 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"part1\"></template><template replaceable part=\"part2\"></template></template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             msg = "";
             not = "";
             item = "";
@@ -6432,7 +6432,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$04 text$04 if$01 repeat$13 variant$09$double$01 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"part1\"></template><template replaceable part=\"part2\"></template></template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             msg = "";
             not = "";
             item = "";
@@ -6449,7 +6449,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$04 text$04 if$01 repeat$13 variant$09$double$02 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"part1\"></template><template replaceable part=\"part2\"></template></template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             msg = "";
             not = "";
             item = "";
@@ -6466,7 +6466,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$04 text$04 if$01 repeat$14 variant$01$double _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"part1\"></template><template replaceable part=\"part2\"></template></template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             msg = "";
             not = "";
             item = "";
@@ -6483,7 +6483,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$04 text$04 if$01 repeat$14 variant$02$double _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"part1\"></template><template replaceable part=\"part2\"></template></template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             msg = "";
             not = "";
             item = "";
@@ -6500,7 +6500,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$04 text$04 if$01 repeat$14 variant$03$double$01 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"part1\"></template><template replaceable part=\"part2\"></template></template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             msg = "";
             not = "";
             item = "";
@@ -6517,7 +6517,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$04 text$04 if$01 repeat$14 variant$03$double$02 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"part1\"></template><template replaceable part=\"part2\"></template></template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             msg = "";
             not = "";
             item = "";
@@ -6534,7 +6534,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$04 text$04 if$01 repeat$14 variant$09$double$01 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"part1\"></template><template replaceable part=\"part2\"></template></template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             msg = "";
             not = "";
             item = "";
@@ -6551,7 +6551,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$04 text$04 if$01 repeat$14 variant$09$double$02 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"part1\"></template><template replaceable part=\"part2\"></template></template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             msg = "";
             not = "";
             item = "";
@@ -6568,7 +6568,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$04 text$04 if$02 repeat$11 variant$01$double _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"part1\"></template><template replaceable part=\"part2\"></template></template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             msg = "";
             not = "";
             item = "";
@@ -6585,7 +6585,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$04 text$04 if$02 repeat$11 variant$02$double _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"part1\"></template><template replaceable part=\"part2\"></template></template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             msg = "";
             not = "";
             item = "";
@@ -6602,7 +6602,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$04 text$04 if$02 repeat$11 variant$03$double$01 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"part1\"></template><template replaceable part=\"part2\"></template></template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             msg = "";
             not = "";
             item = "";
@@ -6619,7 +6619,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$04 text$04 if$02 repeat$11 variant$03$double$02 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"part1\"></template><template replaceable part=\"part2\"></template></template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             msg = "";
             not = "";
             item = "";
@@ -6636,7 +6636,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$04 text$04 if$02 repeat$11 variant$11$double$01 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"part1\"></template><template replaceable part=\"part2\"></template></template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             msg = "";
             not = "";
             item = "";
@@ -6653,7 +6653,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$04 text$04 if$02 repeat$11 variant$11$double$02 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"part1\"></template><template replaceable part=\"part2\"></template></template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             msg = "";
             not = "";
             item = "";
@@ -6670,7 +6670,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$04 text$04 if$02 repeat$11 variant$11$double$03 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"part1\"></template><template replaceable part=\"part2\"></template></template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             msg = "";
             not = "";
             item = "";
@@ -6687,7 +6687,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$04 text$04 if$02 repeat$11 variant$12$double$01 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"part1\"></template><template replaceable part=\"part2\"></template></template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             msg = "";
             not = "";
             item = "";
@@ -6704,7 +6704,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$04 text$04 if$02 repeat$11 variant$12$double$02 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"part1\"></template><template replaceable part=\"part2\"></template></template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             msg = "";
             not = "";
             item = "";
@@ -6721,7 +6721,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$04 text$04 if$02 repeat$13 variant$01$double _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"part1\"></template><template replaceable part=\"part2\"></template></template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             msg = "";
             not = "";
             item = "";
@@ -6738,7 +6738,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$04 text$04 if$02 repeat$13 variant$02$double _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"part1\"></template><template replaceable part=\"part2\"></template></template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             msg = "";
             not = "";
             item = "";
@@ -6755,7 +6755,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$04 text$04 if$02 repeat$13 variant$03$double$01 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"part1\"></template><template replaceable part=\"part2\"></template></template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             msg = "";
             not = "";
             item = "";
@@ -6772,7 +6772,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$04 text$04 if$02 repeat$13 variant$03$double$02 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"part1\"></template><template replaceable part=\"part2\"></template></template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             msg = "";
             not = "";
             item = "";
@@ -6789,7 +6789,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$04 text$04 if$02 repeat$13 variant$11$double$01 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"part1\"></template><template replaceable part=\"part2\"></template></template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             msg = "";
             not = "";
             item = "";
@@ -6806,7 +6806,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$04 text$04 if$02 repeat$13 variant$11$double$02 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"part1\"></template><template replaceable part=\"part2\"></template></template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             msg = "";
             not = "";
             item = "";
@@ -6823,7 +6823,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$04 text$04 if$02 repeat$13 variant$11$double$03 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"part1\"></template><template replaceable part=\"part2\"></template></template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             msg = "";
             not = "";
             item = "";
@@ -6840,7 +6840,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$04 text$04 if$02 repeat$13 variant$12$double$01 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"part1\"></template><template replaceable part=\"part2\"></template></template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             msg = "";
             not = "";
             item = "";
@@ -6857,7 +6857,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$04 text$04 if$02 repeat$13 variant$12$double$02 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"part1\"></template><template replaceable part=\"part2\"></template></template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             msg = "";
             not = "";
             item = "";
@@ -6874,7 +6874,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$04 text$04 if$02 repeat$14 variant$01$double _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"part1\"></template><template replaceable part=\"part2\"></template></template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             msg = "";
             not = "";
             item = "";
@@ -6891,7 +6891,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$04 text$04 if$02 repeat$14 variant$02$double _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"part1\"></template><template replaceable part=\"part2\"></template></template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             msg = "";
             not = "";
             item = "";
@@ -6908,7 +6908,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$04 text$04 if$02 repeat$14 variant$03$double$01 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"part1\"></template><template replaceable part=\"part2\"></template></template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             msg = "";
             not = "";
             item = "";
@@ -6925,7 +6925,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$04 text$04 if$02 repeat$14 variant$03$double$02 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"part1\"></template><template replaceable part=\"part2\"></template></template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             msg = "";
             not = "";
             item = "";
@@ -6942,7 +6942,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$04 text$04 if$02 repeat$14 variant$11$double$01 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"part1\"></template><template replaceable part=\"part2\"></template></template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             msg = "";
             not = "";
             item = "";
@@ -6959,7 +6959,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$04 text$04 if$02 repeat$14 variant$11$double$02 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"part1\"></template><template replaceable part=\"part2\"></template></template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             msg = "";
             not = "";
             item = "";
@@ -6976,7 +6976,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$04 text$04 if$02 repeat$14 variant$11$double$03 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"part1\"></template><template replaceable part=\"part2\"></template></template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             msg = "";
             not = "";
             item = "";
@@ -6993,7 +6993,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$04 text$04 if$02 repeat$14 variant$12$double$01 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"part1\"></template><template replaceable part=\"part2\"></template></template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             msg = "";
             not = "";
             item = "";
@@ -7010,7 +7010,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$04 text$04 if$02 repeat$14 variant$12$double$02 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"part1\"></template><template replaceable part=\"part2\"></template></template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             msg = "";
             not = "";
             item = "";
@@ -7027,7 +7027,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$05 text$03 if$01 repeat$11 variant$01$double _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static containerless = true;
             msg = "";
             not = "";
@@ -7045,7 +7045,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$05 text$03 if$01 repeat$11 variant$02$double _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static containerless = true;
             msg = "";
             not = "";
@@ -7063,7 +7063,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$05 text$03 if$01 repeat$11 variant$03$double$01 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static containerless = true;
             msg = "";
             not = "";
@@ -7081,7 +7081,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$05 text$03 if$01 repeat$11 variant$03$double$02 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static containerless = true;
             msg = "";
             not = "";
@@ -7099,7 +7099,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$05 text$03 if$01 repeat$11 variant$09$double$01 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static containerless = true;
             msg = "";
             not = "";
@@ -7117,7 +7117,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$05 text$03 if$01 repeat$11 variant$09$double$02 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static containerless = true;
             msg = "";
             not = "";
@@ -7135,7 +7135,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$05 text$03 if$01 repeat$12 variant$01$double _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static containerless = true;
             msg = "";
             not = "";
@@ -7153,7 +7153,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$05 text$03 if$01 repeat$12 variant$02$double _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static containerless = true;
             msg = "";
             not = "";
@@ -7171,7 +7171,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$05 text$03 if$01 repeat$12 variant$03$double$01 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static containerless = true;
             msg = "";
             not = "";
@@ -7189,7 +7189,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$05 text$03 if$01 repeat$12 variant$03$double$02 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static containerless = true;
             msg = "";
             not = "";
@@ -7207,7 +7207,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$05 text$03 if$01 repeat$12 variant$09$double$01 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static containerless = true;
             msg = "";
             not = "";
@@ -7225,7 +7225,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$05 text$03 if$01 repeat$12 variant$09$double$02 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static containerless = true;
             msg = "";
             not = "";
@@ -7243,7 +7243,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$05 text$03 if$01 repeat$13 variant$01$double _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static containerless = true;
             msg = "";
             not = "";
@@ -7261,7 +7261,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$05 text$03 if$01 repeat$13 variant$02$double _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static containerless = true;
             msg = "";
             not = "";
@@ -7279,7 +7279,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$05 text$03 if$01 repeat$13 variant$03$double$01 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static containerless = true;
             msg = "";
             not = "";
@@ -7297,7 +7297,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$05 text$03 if$01 repeat$13 variant$03$double$02 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static containerless = true;
             msg = "";
             not = "";
@@ -7315,7 +7315,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$05 text$03 if$01 repeat$13 variant$09$double$01 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static containerless = true;
             msg = "";
             not = "";
@@ -7333,7 +7333,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$05 text$03 if$01 repeat$13 variant$09$double$02 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static containerless = true;
             msg = "";
             not = "";
@@ -7351,7 +7351,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$05 text$03 if$01 repeat$14 variant$01$double _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static containerless = true;
             msg = "";
             not = "";
@@ -7369,7 +7369,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$05 text$03 if$01 repeat$14 variant$02$double _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static containerless = true;
             msg = "";
             not = "";
@@ -7387,7 +7387,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$05 text$03 if$01 repeat$14 variant$03$double$01 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static containerless = true;
             msg = "";
             not = "";
@@ -7405,7 +7405,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$05 text$03 if$01 repeat$14 variant$03$double$02 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static containerless = true;
             msg = "";
             not = "";
@@ -7423,7 +7423,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$05 text$03 if$01 repeat$14 variant$09$double$01 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static containerless = true;
             msg = "";
             not = "";
@@ -7441,7 +7441,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$05 text$03 if$01 repeat$14 variant$09$double$02 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static containerless = true;
             msg = "";
             not = "";
@@ -7459,7 +7459,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$05 text$03 if$02 repeat$11 variant$01$double _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static containerless = true;
             msg = "";
             not = "";
@@ -7477,7 +7477,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$05 text$03 if$02 repeat$11 variant$02$double _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static containerless = true;
             msg = "";
             not = "";
@@ -7495,7 +7495,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$05 text$03 if$02 repeat$11 variant$03$double$01 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static containerless = true;
             msg = "";
             not = "";
@@ -7513,7 +7513,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$05 text$03 if$02 repeat$11 variant$03$double$02 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static containerless = true;
             msg = "";
             not = "";
@@ -7531,7 +7531,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$05 text$03 if$02 repeat$11 variant$11$double$01 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static containerless = true;
             msg = "";
             not = "";
@@ -7549,7 +7549,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$05 text$03 if$02 repeat$11 variant$11$double$02 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static containerless = true;
             msg = "";
             not = "";
@@ -7567,7 +7567,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$05 text$03 if$02 repeat$11 variant$11$double$03 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static containerless = true;
             msg = "";
             not = "";
@@ -7585,7 +7585,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$05 text$03 if$02 repeat$11 variant$12$double$01 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static containerless = true;
             msg = "";
             not = "";
@@ -7603,7 +7603,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$05 text$03 if$02 repeat$11 variant$12$double$02 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static containerless = true;
             msg = "";
             not = "";
@@ -7621,7 +7621,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$05 text$03 if$02 repeat$12 variant$01$double _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static containerless = true;
             msg = "";
             not = "";
@@ -7639,7 +7639,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$05 text$03 if$02 repeat$12 variant$02$double _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static containerless = true;
             msg = "";
             not = "";
@@ -7657,7 +7657,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$05 text$03 if$02 repeat$12 variant$03$double$01 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static containerless = true;
             msg = "";
             not = "";
@@ -7675,7 +7675,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$05 text$03 if$02 repeat$12 variant$03$double$02 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static containerless = true;
             msg = "";
             not = "";
@@ -7693,7 +7693,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$05 text$03 if$02 repeat$12 variant$11$double$01 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static containerless = true;
             msg = "";
             not = "";
@@ -7711,7 +7711,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$05 text$03 if$02 repeat$12 variant$11$double$02 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static containerless = true;
             msg = "";
             not = "";
@@ -7729,7 +7729,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$05 text$03 if$02 repeat$12 variant$11$double$03 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static containerless = true;
             msg = "";
             not = "";
@@ -7747,7 +7747,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$05 text$03 if$02 repeat$12 variant$12$double$01 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static containerless = true;
             msg = "";
             not = "";
@@ -7765,7 +7765,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$05 text$03 if$02 repeat$12 variant$12$double$02 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static containerless = true;
             msg = "";
             not = "";
@@ -7783,7 +7783,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$05 text$03 if$02 repeat$13 variant$01$double _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static containerless = true;
             msg = "";
             not = "";
@@ -7801,7 +7801,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$05 text$03 if$02 repeat$13 variant$02$double _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static containerless = true;
             msg = "";
             not = "";
@@ -7819,7 +7819,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$05 text$03 if$02 repeat$13 variant$03$double$01 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static containerless = true;
             msg = "";
             not = "";
@@ -7837,7 +7837,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$05 text$03 if$02 repeat$13 variant$03$double$02 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static containerless = true;
             msg = "";
             not = "";
@@ -7855,7 +7855,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$05 text$03 if$02 repeat$13 variant$11$double$01 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static containerless = true;
             msg = "";
             not = "";
@@ -7873,7 +7873,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$05 text$03 if$02 repeat$13 variant$11$double$02 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static containerless = true;
             msg = "";
             not = "";
@@ -7891,7 +7891,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$05 text$03 if$02 repeat$13 variant$11$double$03 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static containerless = true;
             msg = "";
             not = "";
@@ -7909,7 +7909,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$05 text$03 if$02 repeat$13 variant$12$double$01 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static containerless = true;
             msg = "";
             not = "";
@@ -7927,7 +7927,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$05 text$03 if$02 repeat$13 variant$12$double$02 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static containerless = true;
             msg = "";
             not = "";
@@ -7945,7 +7945,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$05 text$03 if$02 repeat$14 variant$01$double _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static containerless = true;
             msg = "";
             not = "";
@@ -7963,7 +7963,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$05 text$03 if$02 repeat$14 variant$02$double _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static containerless = true;
             msg = "";
             not = "";
@@ -7981,7 +7981,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$05 text$03 if$02 repeat$14 variant$03$double$01 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static containerless = true;
             msg = "";
             not = "";
@@ -7999,7 +7999,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$05 text$03 if$02 repeat$14 variant$03$double$02 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static containerless = true;
             msg = "";
             not = "";
@@ -8017,7 +8017,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$05 text$03 if$02 repeat$14 variant$11$double$01 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static containerless = true;
             msg = "";
             not = "";
@@ -8035,7 +8035,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$05 text$03 if$02 repeat$14 variant$11$double$02 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static containerless = true;
             msg = "";
             not = "";
@@ -8053,7 +8053,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$05 text$03 if$02 repeat$14 variant$11$double$03 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static containerless = true;
             msg = "";
             not = "";
@@ -8071,7 +8071,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$05 text$03 if$02 repeat$14 variant$12$double$01 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static containerless = true;
             msg = "";
             not = "";
@@ -8089,7 +8089,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$05 text$03 if$02 repeat$14 variant$12$double$02 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static containerless = true;
             msg = "";
             not = "";
@@ -8107,7 +8107,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$05 text$04 if$01 repeat$11 variant$01$double _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static containerless = true;
             msg = "";
             not = "";
@@ -8125,7 +8125,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$05 text$04 if$01 repeat$11 variant$02$double _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static containerless = true;
             msg = "";
             not = "";
@@ -8143,7 +8143,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$05 text$04 if$01 repeat$11 variant$03$double$01 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static containerless = true;
             msg = "";
             not = "";
@@ -8161,7 +8161,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$05 text$04 if$01 repeat$11 variant$03$double$02 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static containerless = true;
             msg = "";
             not = "";
@@ -8179,7 +8179,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$05 text$04 if$01 repeat$11 variant$09$double$01 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static containerless = true;
             msg = "";
             not = "";
@@ -8197,7 +8197,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$05 text$04 if$01 repeat$11 variant$09$double$02 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static containerless = true;
             msg = "";
             not = "";
@@ -8215,7 +8215,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$05 text$04 if$01 repeat$12 variant$01$double _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static containerless = true;
             msg = "";
             not = "";
@@ -8233,7 +8233,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$05 text$04 if$01 repeat$12 variant$02$double _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static containerless = true;
             msg = "";
             not = "";
@@ -8251,7 +8251,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$05 text$04 if$01 repeat$12 variant$03$double$01 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static containerless = true;
             msg = "";
             not = "";
@@ -8269,7 +8269,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$05 text$04 if$01 repeat$12 variant$03$double$02 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static containerless = true;
             msg = "";
             not = "";
@@ -8287,7 +8287,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$05 text$04 if$01 repeat$12 variant$09$double$01 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static containerless = true;
             msg = "";
             not = "";
@@ -8305,7 +8305,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$05 text$04 if$01 repeat$12 variant$09$double$02 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static containerless = true;
             msg = "";
             not = "";
@@ -8323,7 +8323,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$05 text$04 if$01 repeat$13 variant$01$double _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static containerless = true;
             msg = "";
             not = "";
@@ -8341,7 +8341,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$05 text$04 if$01 repeat$13 variant$02$double _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static containerless = true;
             msg = "";
             not = "";
@@ -8359,7 +8359,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$05 text$04 if$01 repeat$13 variant$03$double$01 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static containerless = true;
             msg = "";
             not = "";
@@ -8377,7 +8377,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$05 text$04 if$01 repeat$13 variant$03$double$02 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static containerless = true;
             msg = "";
             not = "";
@@ -8395,7 +8395,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$05 text$04 if$01 repeat$13 variant$09$double$01 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static containerless = true;
             msg = "";
             not = "";
@@ -8413,7 +8413,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$05 text$04 if$01 repeat$13 variant$09$double$02 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static containerless = true;
             msg = "";
             not = "";
@@ -8431,7 +8431,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$05 text$04 if$01 repeat$14 variant$01$double _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static containerless = true;
             msg = "";
             not = "";
@@ -8449,7 +8449,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$05 text$04 if$01 repeat$14 variant$02$double _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static containerless = true;
             msg = "";
             not = "";
@@ -8467,7 +8467,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$05 text$04 if$01 repeat$14 variant$03$double$01 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static containerless = true;
             msg = "";
             not = "";
@@ -8485,7 +8485,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$05 text$04 if$01 repeat$14 variant$03$double$02 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static containerless = true;
             msg = "";
             not = "";
@@ -8503,7 +8503,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$05 text$04 if$01 repeat$14 variant$09$double$01 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static containerless = true;
             msg = "";
             not = "";
@@ -8521,7 +8521,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$05 text$04 if$01 repeat$14 variant$09$double$02 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static containerless = true;
             msg = "";
             not = "";
@@ -8539,7 +8539,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$05 text$04 if$02 repeat$11 variant$01$double _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static containerless = true;
             msg = "";
             not = "";
@@ -8557,7 +8557,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$05 text$04 if$02 repeat$11 variant$02$double _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static containerless = true;
             msg = "";
             not = "";
@@ -8575,7 +8575,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$05 text$04 if$02 repeat$11 variant$03$double$01 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static containerless = true;
             msg = "";
             not = "";
@@ -8593,7 +8593,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$05 text$04 if$02 repeat$11 variant$03$double$02 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static containerless = true;
             msg = "";
             not = "";
@@ -8611,7 +8611,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$05 text$04 if$02 repeat$11 variant$11$double$01 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static containerless = true;
             msg = "";
             not = "";
@@ -8629,7 +8629,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$05 text$04 if$02 repeat$11 variant$11$double$02 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static containerless = true;
             msg = "";
             not = "";
@@ -8647,7 +8647,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$05 text$04 if$02 repeat$11 variant$11$double$03 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static containerless = true;
             msg = "";
             not = "";
@@ -8665,7 +8665,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$05 text$04 if$02 repeat$11 variant$12$double$01 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static containerless = true;
             msg = "";
             not = "";
@@ -8683,7 +8683,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$05 text$04 if$02 repeat$11 variant$12$double$02 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static containerless = true;
             msg = "";
             not = "";
@@ -8701,7 +8701,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$05 text$04 if$02 repeat$12 variant$01$double _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static containerless = true;
             msg = "";
             not = "";
@@ -8719,7 +8719,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$05 text$04 if$02 repeat$12 variant$02$double _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static containerless = true;
             msg = "";
             not = "";
@@ -8737,7 +8737,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$05 text$04 if$02 repeat$12 variant$03$double$01 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static containerless = true;
             msg = "";
             not = "";
@@ -8755,7 +8755,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$05 text$04 if$02 repeat$12 variant$03$double$02 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static containerless = true;
             msg = "";
             not = "";
@@ -8773,7 +8773,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$05 text$04 if$02 repeat$12 variant$11$double$01 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static containerless = true;
             msg = "";
             not = "";
@@ -8791,7 +8791,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$05 text$04 if$02 repeat$12 variant$11$double$02 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static containerless = true;
             msg = "";
             not = "";
@@ -8809,7 +8809,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$05 text$04 if$02 repeat$12 variant$11$double$03 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static containerless = true;
             msg = "";
             not = "";
@@ -8827,7 +8827,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$05 text$04 if$02 repeat$12 variant$12$double$01 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static containerless = true;
             msg = "";
             not = "";
@@ -8845,7 +8845,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$05 text$04 if$02 repeat$12 variant$12$double$02 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static containerless = true;
             msg = "";
             not = "";
@@ -8863,7 +8863,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$05 text$04 if$02 repeat$13 variant$01$double _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static containerless = true;
             msg = "";
             not = "";
@@ -8881,7 +8881,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$05 text$04 if$02 repeat$13 variant$02$double _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static containerless = true;
             msg = "";
             not = "";
@@ -8899,7 +8899,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$05 text$04 if$02 repeat$13 variant$03$double$01 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static containerless = true;
             msg = "";
             not = "";
@@ -8917,7 +8917,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$05 text$04 if$02 repeat$13 variant$03$double$02 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static containerless = true;
             msg = "";
             not = "";
@@ -8935,7 +8935,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$05 text$04 if$02 repeat$13 variant$11$double$01 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static containerless = true;
             msg = "";
             not = "";
@@ -8953,7 +8953,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$05 text$04 if$02 repeat$13 variant$11$double$02 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static containerless = true;
             msg = "";
             not = "";
@@ -8971,7 +8971,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$05 text$04 if$02 repeat$13 variant$11$double$03 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static containerless = true;
             msg = "";
             not = "";
@@ -8989,7 +8989,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$05 text$04 if$02 repeat$13 variant$12$double$01 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static containerless = true;
             msg = "";
             not = "";
@@ -9007,7 +9007,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$05 text$04 if$02 repeat$13 variant$12$double$02 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static containerless = true;
             msg = "";
             not = "";
@@ -9025,7 +9025,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$05 text$04 if$02 repeat$14 variant$01$double _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static containerless = true;
             msg = "";
             not = "";
@@ -9043,7 +9043,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$05 text$04 if$02 repeat$14 variant$02$double _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static containerless = true;
             msg = "";
             not = "";
@@ -9061,7 +9061,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$05 text$04 if$02 repeat$14 variant$03$double$01 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static containerless = true;
             msg = "";
             not = "";
@@ -9079,7 +9079,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$05 text$04 if$02 repeat$14 variant$03$double$02 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static containerless = true;
             msg = "";
             not = "";
@@ -9097,7 +9097,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$05 text$04 if$02 repeat$14 variant$11$double$01 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static containerless = true;
             msg = "";
             not = "";
@@ -9115,7 +9115,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$05 text$04 if$02 repeat$14 variant$11$double$02 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static containerless = true;
             msg = "";
             not = "";
@@ -9133,7 +9133,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$05 text$04 if$02 repeat$14 variant$11$double$03 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static containerless = true;
             msg = "";
             not = "";
@@ -9151,7 +9151,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$05 text$04 if$02 repeat$14 variant$12$double$01 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static containerless = true;
             msg = "";
             not = "";
@@ -9169,7 +9169,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$05 text$04 if$02 repeat$14 variant$12$double$02 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static containerless = true;
             msg = "";
             not = "";
@@ -9187,7 +9187,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$06 text$03 if$01 repeat$11 variant$01$double _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"part1\"></template><template replaceable part=\"part2\"></template></template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static containerless = true;
             msg = "";
             not = "";
@@ -9205,7 +9205,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$06 text$03 if$01 repeat$11 variant$02$double _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"part1\"></template><template replaceable part=\"part2\"></template></template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static containerless = true;
             msg = "";
             not = "";
@@ -9223,7 +9223,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$06 text$03 if$01 repeat$11 variant$03$double$01 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"part1\"></template><template replaceable part=\"part2\"></template></template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static containerless = true;
             msg = "";
             not = "";
@@ -9241,7 +9241,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$06 text$03 if$01 repeat$11 variant$03$double$02 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"part1\"></template><template replaceable part=\"part2\"></template></template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static containerless = true;
             msg = "";
             not = "";
@@ -9259,7 +9259,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$06 text$03 if$01 repeat$11 variant$09$double$01 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"part1\"></template><template replaceable part=\"part2\"></template></template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static containerless = true;
             msg = "";
             not = "";
@@ -9277,7 +9277,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$06 text$03 if$01 repeat$11 variant$09$double$02 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"part1\"></template><template replaceable part=\"part2\"></template></template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static containerless = true;
             msg = "";
             not = "";
@@ -9295,7 +9295,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$06 text$03 if$01 repeat$13 variant$01$double _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"part1\"></template><template replaceable part=\"part2\"></template></template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static containerless = true;
             msg = "";
             not = "";
@@ -9313,7 +9313,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$06 text$03 if$01 repeat$13 variant$02$double _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"part1\"></template><template replaceable part=\"part2\"></template></template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static containerless = true;
             msg = "";
             not = "";
@@ -9331,7 +9331,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$06 text$03 if$01 repeat$13 variant$03$double$01 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"part1\"></template><template replaceable part=\"part2\"></template></template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static containerless = true;
             msg = "";
             not = "";
@@ -9349,7 +9349,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$06 text$03 if$01 repeat$13 variant$03$double$02 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"part1\"></template><template replaceable part=\"part2\"></template></template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static containerless = true;
             msg = "";
             not = "";
@@ -9367,7 +9367,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$06 text$03 if$01 repeat$13 variant$09$double$01 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"part1\"></template><template replaceable part=\"part2\"></template></template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static containerless = true;
             msg = "";
             not = "";
@@ -9385,7 +9385,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$06 text$03 if$01 repeat$13 variant$09$double$02 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"part1\"></template><template replaceable part=\"part2\"></template></template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static containerless = true;
             msg = "";
             not = "";
@@ -9403,7 +9403,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$06 text$03 if$01 repeat$14 variant$01$double _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"part1\"></template><template replaceable part=\"part2\"></template></template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static containerless = true;
             msg = "";
             not = "";
@@ -9421,7 +9421,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$06 text$03 if$01 repeat$14 variant$02$double _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"part1\"></template><template replaceable part=\"part2\"></template></template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static containerless = true;
             msg = "";
             not = "";
@@ -9439,7 +9439,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$06 text$03 if$01 repeat$14 variant$03$double$01 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"part1\"></template><template replaceable part=\"part2\"></template></template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static containerless = true;
             msg = "";
             not = "";
@@ -9457,7 +9457,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$06 text$03 if$01 repeat$14 variant$03$double$02 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"part1\"></template><template replaceable part=\"part2\"></template></template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static containerless = true;
             msg = "";
             not = "";
@@ -9475,7 +9475,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$06 text$03 if$01 repeat$14 variant$09$double$01 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"part1\"></template><template replaceable part=\"part2\"></template></template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static containerless = true;
             msg = "";
             not = "";
@@ -9493,7 +9493,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$06 text$03 if$01 repeat$14 variant$09$double$02 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"part1\"></template><template replaceable part=\"part2\"></template></template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static containerless = true;
             msg = "";
             not = "";
@@ -9511,7 +9511,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$06 text$03 if$02 repeat$11 variant$01$double _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"part1\"></template><template replaceable part=\"part2\"></template></template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static containerless = true;
             msg = "";
             not = "";
@@ -9529,7 +9529,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$06 text$03 if$02 repeat$11 variant$02$double _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"part1\"></template><template replaceable part=\"part2\"></template></template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static containerless = true;
             msg = "";
             not = "";
@@ -9547,7 +9547,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$06 text$03 if$02 repeat$11 variant$03$double$01 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"part1\"></template><template replaceable part=\"part2\"></template></template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static containerless = true;
             msg = "";
             not = "";
@@ -9565,7 +9565,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$06 text$03 if$02 repeat$11 variant$03$double$02 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"part1\"></template><template replaceable part=\"part2\"></template></template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static containerless = true;
             msg = "";
             not = "";
@@ -9583,7 +9583,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$06 text$03 if$02 repeat$11 variant$11$double$01 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"part1\"></template><template replaceable part=\"part2\"></template></template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static containerless = true;
             msg = "";
             not = "";
@@ -9601,7 +9601,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$06 text$03 if$02 repeat$11 variant$11$double$02 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"part1\"></template><template replaceable part=\"part2\"></template></template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static containerless = true;
             msg = "";
             not = "";
@@ -9619,7 +9619,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$06 text$03 if$02 repeat$11 variant$11$double$03 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"part1\"></template><template replaceable part=\"part2\"></template></template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static containerless = true;
             msg = "";
             not = "";
@@ -9637,7 +9637,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$06 text$03 if$02 repeat$11 variant$12$double$01 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"part1\"></template><template replaceable part=\"part2\"></template></template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static containerless = true;
             msg = "";
             not = "";
@@ -9655,7 +9655,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$06 text$03 if$02 repeat$11 variant$12$double$02 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"part1\"></template><template replaceable part=\"part2\"></template></template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static containerless = true;
             msg = "";
             not = "";
@@ -9673,7 +9673,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$06 text$03 if$02 repeat$13 variant$01$double _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"part1\"></template><template replaceable part=\"part2\"></template></template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static containerless = true;
             msg = "";
             not = "";
@@ -9691,7 +9691,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$06 text$03 if$02 repeat$13 variant$02$double _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"part1\"></template><template replaceable part=\"part2\"></template></template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static containerless = true;
             msg = "";
             not = "";
@@ -9709,7 +9709,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$06 text$03 if$02 repeat$13 variant$03$double$01 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"part1\"></template><template replaceable part=\"part2\"></template></template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static containerless = true;
             msg = "";
             not = "";
@@ -9727,7 +9727,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$06 text$03 if$02 repeat$13 variant$03$double$02 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"part1\"></template><template replaceable part=\"part2\"></template></template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static containerless = true;
             msg = "";
             not = "";
@@ -9745,7 +9745,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$06 text$03 if$02 repeat$13 variant$11$double$01 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"part1\"></template><template replaceable part=\"part2\"></template></template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static containerless = true;
             msg = "";
             not = "";
@@ -9763,7 +9763,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$06 text$03 if$02 repeat$13 variant$11$double$02 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"part1\"></template><template replaceable part=\"part2\"></template></template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static containerless = true;
             msg = "";
             not = "";
@@ -9781,7 +9781,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$06 text$03 if$02 repeat$13 variant$11$double$03 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"part1\"></template><template replaceable part=\"part2\"></template></template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static containerless = true;
             msg = "";
             not = "";
@@ -9799,7 +9799,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$06 text$03 if$02 repeat$13 variant$12$double$01 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"part1\"></template><template replaceable part=\"part2\"></template></template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static containerless = true;
             msg = "";
             not = "";
@@ -9817,7 +9817,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$06 text$03 if$02 repeat$13 variant$12$double$02 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"part1\"></template><template replaceable part=\"part2\"></template></template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static containerless = true;
             msg = "";
             not = "";
@@ -9835,7 +9835,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$06 text$03 if$02 repeat$14 variant$01$double _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"part1\"></template><template replaceable part=\"part2\"></template></template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static containerless = true;
             msg = "";
             not = "";
@@ -9853,7 +9853,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$06 text$03 if$02 repeat$14 variant$02$double _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"part1\"></template><template replaceable part=\"part2\"></template></template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static containerless = true;
             msg = "";
             not = "";
@@ -9871,7 +9871,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$06 text$03 if$02 repeat$14 variant$03$double$01 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"part1\"></template><template replaceable part=\"part2\"></template></template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static containerless = true;
             msg = "";
             not = "";
@@ -9889,7 +9889,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$06 text$03 if$02 repeat$14 variant$03$double$02 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"part1\"></template><template replaceable part=\"part2\"></template></template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static containerless = true;
             msg = "";
             not = "";
@@ -9907,7 +9907,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$06 text$03 if$02 repeat$14 variant$11$double$01 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"part1\"></template><template replaceable part=\"part2\"></template></template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static containerless = true;
             msg = "";
             not = "";
@@ -9925,7 +9925,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$06 text$03 if$02 repeat$14 variant$11$double$02 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"part1\"></template><template replaceable part=\"part2\"></template></template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static containerless = true;
             msg = "";
             not = "";
@@ -9943,7 +9943,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$06 text$03 if$02 repeat$14 variant$11$double$03 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"part1\"></template><template replaceable part=\"part2\"></template></template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static containerless = true;
             msg = "";
             not = "";
@@ -9961,7 +9961,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$06 text$03 if$02 repeat$14 variant$12$double$01 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"part1\"></template><template replaceable part=\"part2\"></template></template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static containerless = true;
             msg = "";
             not = "";
@@ -9979,7 +9979,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$06 text$03 if$02 repeat$14 variant$12$double$02 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"part1\"></template><template replaceable part=\"part2\"></template></template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static containerless = true;
             msg = "";
             not = "";
@@ -9997,7 +9997,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$06 text$04 if$01 repeat$11 variant$01$double _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"part1\"></template><template replaceable part=\"part2\"></template></template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static containerless = true;
             msg = "";
             not = "";
@@ -10015,7 +10015,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$06 text$04 if$01 repeat$11 variant$02$double _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"part1\"></template><template replaceable part=\"part2\"></template></template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static containerless = true;
             msg = "";
             not = "";
@@ -10033,7 +10033,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$06 text$04 if$01 repeat$11 variant$03$double$01 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"part1\"></template><template replaceable part=\"part2\"></template></template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static containerless = true;
             msg = "";
             not = "";
@@ -10051,7 +10051,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$06 text$04 if$01 repeat$11 variant$03$double$02 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"part1\"></template><template replaceable part=\"part2\"></template></template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static containerless = true;
             msg = "";
             not = "";
@@ -10069,7 +10069,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$06 text$04 if$01 repeat$11 variant$09$double$01 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"part1\"></template><template replaceable part=\"part2\"></template></template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static containerless = true;
             msg = "";
             not = "";
@@ -10087,7 +10087,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$06 text$04 if$01 repeat$11 variant$09$double$02 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"part1\"></template><template replaceable part=\"part2\"></template></template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static containerless = true;
             msg = "";
             not = "";
@@ -10105,7 +10105,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$06 text$04 if$01 repeat$13 variant$01$double _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"part1\"></template><template replaceable part=\"part2\"></template></template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static containerless = true;
             msg = "";
             not = "";
@@ -10123,7 +10123,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$06 text$04 if$01 repeat$13 variant$02$double _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"part1\"></template><template replaceable part=\"part2\"></template></template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static containerless = true;
             msg = "";
             not = "";
@@ -10141,7 +10141,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$06 text$04 if$01 repeat$13 variant$03$double$01 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"part1\"></template><template replaceable part=\"part2\"></template></template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static containerless = true;
             msg = "";
             not = "";
@@ -10159,7 +10159,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$06 text$04 if$01 repeat$13 variant$03$double$02 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"part1\"></template><template replaceable part=\"part2\"></template></template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static containerless = true;
             msg = "";
             not = "";
@@ -10177,7 +10177,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$06 text$04 if$01 repeat$13 variant$09$double$01 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"part1\"></template><template replaceable part=\"part2\"></template></template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static containerless = true;
             msg = "";
             not = "";
@@ -10195,7 +10195,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$06 text$04 if$01 repeat$13 variant$09$double$02 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"part1\"></template><template replaceable part=\"part2\"></template></template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static containerless = true;
             msg = "";
             not = "";
@@ -10213,7 +10213,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$06 text$04 if$01 repeat$14 variant$01$double _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"part1\"></template><template replaceable part=\"part2\"></template></template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static containerless = true;
             msg = "";
             not = "";
@@ -10231,7 +10231,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$06 text$04 if$01 repeat$14 variant$02$double _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"part1\"></template><template replaceable part=\"part2\"></template></template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static containerless = true;
             msg = "";
             not = "";
@@ -10249,7 +10249,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$06 text$04 if$01 repeat$14 variant$03$double$01 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"part1\"></template><template replaceable part=\"part2\"></template></template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static containerless = true;
             msg = "";
             not = "";
@@ -10267,7 +10267,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$06 text$04 if$01 repeat$14 variant$03$double$02 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"part1\"></template><template replaceable part=\"part2\"></template></template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static containerless = true;
             msg = "";
             not = "";
@@ -10285,7 +10285,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$06 text$04 if$01 repeat$14 variant$09$double$01 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"part1\"></template><template replaceable part=\"part2\"></template></template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static containerless = true;
             msg = "";
             not = "";
@@ -10303,7 +10303,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$06 text$04 if$01 repeat$14 variant$09$double$02 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"part1\"></template><template replaceable part=\"part2\"></template></template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static containerless = true;
             msg = "";
             not = "";
@@ -10321,7 +10321,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$06 text$04 if$02 repeat$11 variant$01$double _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"part1\"></template><template replaceable part=\"part2\"></template></template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static containerless = true;
             msg = "";
             not = "";
@@ -10339,7 +10339,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$06 text$04 if$02 repeat$11 variant$02$double _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"part1\"></template><template replaceable part=\"part2\"></template></template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static containerless = true;
             msg = "";
             not = "";
@@ -10357,7 +10357,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$06 text$04 if$02 repeat$11 variant$03$double$01 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"part1\"></template><template replaceable part=\"part2\"></template></template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static containerless = true;
             msg = "";
             not = "";
@@ -10375,7 +10375,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$06 text$04 if$02 repeat$11 variant$03$double$02 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"part1\"></template><template replaceable part=\"part2\"></template></template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static containerless = true;
             msg = "";
             not = "";
@@ -10393,7 +10393,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$06 text$04 if$02 repeat$11 variant$11$double$01 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"part1\"></template><template replaceable part=\"part2\"></template></template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static containerless = true;
             msg = "";
             not = "";
@@ -10411,7 +10411,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$06 text$04 if$02 repeat$11 variant$11$double$02 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"part1\"></template><template replaceable part=\"part2\"></template></template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static containerless = true;
             msg = "";
             not = "";
@@ -10429,7 +10429,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$06 text$04 if$02 repeat$11 variant$11$double$03 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"part1\"></template><template replaceable part=\"part2\"></template></template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static containerless = true;
             msg = "";
             not = "";
@@ -10447,7 +10447,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$06 text$04 if$02 repeat$11 variant$12$double$01 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"part1\"></template><template replaceable part=\"part2\"></template></template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static containerless = true;
             msg = "";
             not = "";
@@ -10465,7 +10465,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$06 text$04 if$02 repeat$11 variant$12$double$02 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"part1\"></template><template replaceable part=\"part2\"></template></template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static containerless = true;
             msg = "";
             not = "";
@@ -10483,7 +10483,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$06 text$04 if$02 repeat$13 variant$01$double _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"part1\"></template><template replaceable part=\"part2\"></template></template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static containerless = true;
             msg = "";
             not = "";
@@ -10501,7 +10501,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$06 text$04 if$02 repeat$13 variant$02$double _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"part1\"></template><template replaceable part=\"part2\"></template></template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static containerless = true;
             msg = "";
             not = "";
@@ -10519,7 +10519,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$06 text$04 if$02 repeat$13 variant$03$double$01 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"part1\"></template><template replaceable part=\"part2\"></template></template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static containerless = true;
             msg = "";
             not = "";
@@ -10537,7 +10537,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$06 text$04 if$02 repeat$13 variant$03$double$02 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"part1\"></template><template replaceable part=\"part2\"></template></template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static containerless = true;
             msg = "";
             not = "";
@@ -10555,7 +10555,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$06 text$04 if$02 repeat$13 variant$11$double$01 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"part1\"></template><template replaceable part=\"part2\"></template></template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static containerless = true;
             msg = "";
             not = "";
@@ -10573,7 +10573,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$06 text$04 if$02 repeat$13 variant$11$double$02 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"part1\"></template><template replaceable part=\"part2\"></template></template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static containerless = true;
             msg = "";
             not = "";
@@ -10591,7 +10591,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$06 text$04 if$02 repeat$13 variant$11$double$03 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"part1\"></template><template replaceable part=\"part2\"></template></template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static containerless = true;
             msg = "";
             not = "";
@@ -10609,7 +10609,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$06 text$04 if$02 repeat$13 variant$12$double$01 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"part1\"></template><template replaceable part=\"part2\"></template></template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static containerless = true;
             msg = "";
             not = "";
@@ -10627,7 +10627,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$06 text$04 if$02 repeat$13 variant$12$double$02 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"part1\"></template><template replaceable part=\"part2\"></template></template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static containerless = true;
             msg = "";
             not = "";
@@ -10645,7 +10645,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$06 text$04 if$02 repeat$14 variant$01$double _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"part1\"></template><template replaceable part=\"part2\"></template></template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static containerless = true;
             msg = "";
             not = "";
@@ -10663,7 +10663,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$06 text$04 if$02 repeat$14 variant$02$double _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"part1\"></template><template replaceable part=\"part2\"></template></template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static containerless = true;
             msg = "";
             not = "";
@@ -10681,7 +10681,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$06 text$04 if$02 repeat$14 variant$03$double$01 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"part1\"></template><template replaceable part=\"part2\"></template></template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static containerless = true;
             msg = "";
             not = "";
@@ -10699,7 +10699,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$06 text$04 if$02 repeat$14 variant$03$double$02 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"part1\"></template><template replaceable part=\"part2\"></template></template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static containerless = true;
             msg = "";
             not = "";
@@ -10717,7 +10717,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$06 text$04 if$02 repeat$14 variant$11$double$01 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"part1\"></template><template replaceable part=\"part2\"></template></template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static containerless = true;
             msg = "";
             not = "";
@@ -10735,7 +10735,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$06 text$04 if$02 repeat$14 variant$11$double$02 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"part1\"></template><template replaceable part=\"part2\"></template></template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static containerless = true;
             msg = "";
             not = "";
@@ -10753,7 +10753,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$06 text$04 if$02 repeat$14 variant$11$double$03 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"part1\"></template><template replaceable part=\"part2\"></template></template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static containerless = true;
             msg = "";
             not = "";
@@ -10771,7 +10771,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$06 text$04 if$02 repeat$14 variant$12$double$01 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"part1\"></template><template replaceable part=\"part2\"></template></template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static containerless = true;
             msg = "";
             not = "";
@@ -10789,7 +10789,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$06 text$04 if$02 repeat$14 variant$12$double$02 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"part1\"></template><template replaceable part=\"part2\"></template></template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static containerless = true;
             msg = "";
             not = "";
@@ -10807,7 +10807,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$07 text$03 if$01 repeat$11 variant$01$double _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
@@ -10825,7 +10825,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$07 text$03 if$01 repeat$11 variant$02$double _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
@@ -10843,7 +10843,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$07 text$03 if$01 repeat$11 variant$03$double$01 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
@@ -10861,7 +10861,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$07 text$03 if$01 repeat$11 variant$03$double$02 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
@@ -10879,7 +10879,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$07 text$03 if$01 repeat$11 variant$09$double$01 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
@@ -10897,7 +10897,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$07 text$03 if$01 repeat$11 variant$09$double$02 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
@@ -10915,7 +10915,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$07 text$03 if$01 repeat$12 variant$01$double _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
@@ -10933,7 +10933,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$07 text$03 if$01 repeat$12 variant$02$double _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
@@ -10951,7 +10951,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$07 text$03 if$01 repeat$12 variant$03$double$01 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
@@ -10969,7 +10969,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$07 text$03 if$01 repeat$12 variant$03$double$02 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
@@ -10987,7 +10987,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$07 text$03 if$01 repeat$12 variant$09$double$01 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
@@ -11005,7 +11005,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$07 text$03 if$01 repeat$12 variant$09$double$02 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
@@ -11023,7 +11023,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$07 text$03 if$01 repeat$13 variant$01$double _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
@@ -11041,7 +11041,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$07 text$03 if$01 repeat$13 variant$02$double _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
@@ -11059,7 +11059,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$07 text$03 if$01 repeat$13 variant$03$double$01 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
@@ -11077,7 +11077,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$07 text$03 if$01 repeat$13 variant$03$double$02 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
@@ -11095,7 +11095,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$07 text$03 if$01 repeat$13 variant$09$double$01 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
@@ -11113,7 +11113,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$07 text$03 if$01 repeat$13 variant$09$double$02 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
@@ -11131,7 +11131,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$07 text$03 if$01 repeat$14 variant$01$double _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
@@ -11149,7 +11149,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$07 text$03 if$01 repeat$14 variant$02$double _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
@@ -11167,7 +11167,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$07 text$03 if$01 repeat$14 variant$03$double$01 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
@@ -11185,7 +11185,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$07 text$03 if$01 repeat$14 variant$03$double$02 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
@@ -11203,7 +11203,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$07 text$03 if$01 repeat$14 variant$09$double$01 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
@@ -11221,7 +11221,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$07 text$03 if$01 repeat$14 variant$09$double$02 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
@@ -11239,7 +11239,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$07 text$03 if$02 repeat$11 variant$01$double _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
@@ -11257,7 +11257,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$07 text$03 if$02 repeat$11 variant$02$double _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
@@ -11275,7 +11275,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$07 text$03 if$02 repeat$11 variant$03$double$01 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
@@ -11293,7 +11293,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$07 text$03 if$02 repeat$11 variant$03$double$02 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
@@ -11311,7 +11311,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$07 text$03 if$02 repeat$11 variant$11$double$01 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
@@ -11329,7 +11329,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$07 text$03 if$02 repeat$11 variant$11$double$02 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
@@ -11347,7 +11347,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$07 text$03 if$02 repeat$11 variant$11$double$03 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
@@ -11365,7 +11365,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$07 text$03 if$02 repeat$11 variant$12$double$01 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
@@ -11383,7 +11383,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$07 text$03 if$02 repeat$11 variant$12$double$02 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
@@ -11401,7 +11401,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$07 text$03 if$02 repeat$12 variant$01$double _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
@@ -11419,7 +11419,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$07 text$03 if$02 repeat$12 variant$02$double _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
@@ -11437,7 +11437,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$07 text$03 if$02 repeat$12 variant$03$double$01 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
@@ -11455,7 +11455,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$07 text$03 if$02 repeat$12 variant$03$double$02 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
@@ -11473,7 +11473,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$07 text$03 if$02 repeat$12 variant$11$double$01 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
@@ -11491,7 +11491,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$07 text$03 if$02 repeat$12 variant$11$double$02 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
@@ -11509,7 +11509,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$07 text$03 if$02 repeat$12 variant$11$double$03 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
@@ -11527,7 +11527,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$07 text$03 if$02 repeat$12 variant$12$double$01 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
@@ -11545,7 +11545,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$07 text$03 if$02 repeat$12 variant$12$double$02 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
@@ -11563,7 +11563,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$07 text$03 if$02 repeat$13 variant$01$double _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
@@ -11581,7 +11581,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$07 text$03 if$02 repeat$13 variant$02$double _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
@@ -11599,7 +11599,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$07 text$03 if$02 repeat$13 variant$03$double$01 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
@@ -11617,7 +11617,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$07 text$03 if$02 repeat$13 variant$03$double$02 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
@@ -11635,7 +11635,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$07 text$03 if$02 repeat$13 variant$11$double$01 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
@@ -11653,7 +11653,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$07 text$03 if$02 repeat$13 variant$11$double$02 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
@@ -11671,7 +11671,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$07 text$03 if$02 repeat$13 variant$11$double$03 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
@@ -11689,7 +11689,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$07 text$03 if$02 repeat$13 variant$12$double$01 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
@@ -11707,7 +11707,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$07 text$03 if$02 repeat$13 variant$12$double$02 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
@@ -11725,7 +11725,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$07 text$03 if$02 repeat$14 variant$01$double _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
@@ -11743,7 +11743,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$07 text$03 if$02 repeat$14 variant$02$double _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
@@ -11761,7 +11761,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$07 text$03 if$02 repeat$14 variant$03$double$01 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
@@ -11779,7 +11779,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$07 text$03 if$02 repeat$14 variant$03$double$02 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
@@ -11797,7 +11797,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$07 text$03 if$02 repeat$14 variant$11$double$01 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
@@ -11815,7 +11815,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$07 text$03 if$02 repeat$14 variant$11$double$02 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
@@ -11833,7 +11833,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$07 text$03 if$02 repeat$14 variant$11$double$03 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
@@ -11851,7 +11851,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$07 text$03 if$02 repeat$14 variant$12$double$01 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
@@ -11869,7 +11869,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$07 text$03 if$02 repeat$14 variant$12$double$02 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
@@ -11887,7 +11887,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$07 text$04 if$01 repeat$11 variant$01$double _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
@@ -11905,7 +11905,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$07 text$04 if$01 repeat$11 variant$02$double _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
@@ -11923,7 +11923,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$07 text$04 if$01 repeat$11 variant$03$double$01 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
@@ -11941,7 +11941,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$07 text$04 if$01 repeat$11 variant$03$double$02 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
@@ -11959,7 +11959,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$07 text$04 if$01 repeat$11 variant$09$double$01 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
@@ -11977,7 +11977,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$07 text$04 if$01 repeat$11 variant$09$double$02 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
@@ -11995,7 +11995,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$07 text$04 if$01 repeat$12 variant$01$double _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
@@ -12013,7 +12013,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$07 text$04 if$01 repeat$12 variant$02$double _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
@@ -12031,7 +12031,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$07 text$04 if$01 repeat$12 variant$03$double$01 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
@@ -12049,7 +12049,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$07 text$04 if$01 repeat$12 variant$03$double$02 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
@@ -12067,7 +12067,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$07 text$04 if$01 repeat$12 variant$09$double$01 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
@@ -12085,7 +12085,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$07 text$04 if$01 repeat$12 variant$09$double$02 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
@@ -12103,7 +12103,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$07 text$04 if$01 repeat$13 variant$01$double _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
@@ -12121,7 +12121,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$07 text$04 if$01 repeat$13 variant$02$double _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
@@ -12139,7 +12139,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$07 text$04 if$01 repeat$13 variant$03$double$01 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
@@ -12157,7 +12157,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$07 text$04 if$01 repeat$13 variant$03$double$02 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
@@ -12175,7 +12175,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$07 text$04 if$01 repeat$13 variant$09$double$01 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
@@ -12193,7 +12193,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$07 text$04 if$01 repeat$13 variant$09$double$02 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
@@ -12211,7 +12211,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$07 text$04 if$01 repeat$14 variant$01$double _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
@@ -12229,7 +12229,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$07 text$04 if$01 repeat$14 variant$02$double _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
@@ -12247,7 +12247,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$07 text$04 if$01 repeat$14 variant$03$double$01 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
@@ -12265,7 +12265,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$07 text$04 if$01 repeat$14 variant$03$double$02 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
@@ -12283,7 +12283,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$07 text$04 if$01 repeat$14 variant$09$double$01 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
@@ -12301,7 +12301,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$07 text$04 if$01 repeat$14 variant$09$double$02 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
@@ -12319,7 +12319,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$07 text$04 if$02 repeat$11 variant$01$double _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
@@ -12337,7 +12337,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$07 text$04 if$02 repeat$11 variant$02$double _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
@@ -12355,7 +12355,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$07 text$04 if$02 repeat$11 variant$03$double$01 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
@@ -12373,7 +12373,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$07 text$04 if$02 repeat$11 variant$03$double$02 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
@@ -12391,7 +12391,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$07 text$04 if$02 repeat$11 variant$11$double$01 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
@@ -12409,7 +12409,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$07 text$04 if$02 repeat$11 variant$11$double$02 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
@@ -12427,7 +12427,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$07 text$04 if$02 repeat$11 variant$11$double$03 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
@@ -12445,7 +12445,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$07 text$04 if$02 repeat$11 variant$12$double$01 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
@@ -12463,7 +12463,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$07 text$04 if$02 repeat$11 variant$12$double$02 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
@@ -12481,7 +12481,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$07 text$04 if$02 repeat$12 variant$01$double _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
@@ -12499,7 +12499,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$07 text$04 if$02 repeat$12 variant$02$double _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
@@ -12517,7 +12517,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$07 text$04 if$02 repeat$12 variant$03$double$01 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
@@ -12535,7 +12535,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$07 text$04 if$02 repeat$12 variant$03$double$02 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
@@ -12553,7 +12553,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$07 text$04 if$02 repeat$12 variant$11$double$01 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
@@ -12571,7 +12571,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$07 text$04 if$02 repeat$12 variant$11$double$02 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
@@ -12589,7 +12589,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$07 text$04 if$02 repeat$12 variant$11$double$03 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
@@ -12607,7 +12607,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$07 text$04 if$02 repeat$12 variant$12$double$01 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
@@ -12625,7 +12625,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$07 text$04 if$02 repeat$12 variant$12$double$02 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
@@ -12643,7 +12643,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$07 text$04 if$02 repeat$13 variant$01$double _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
@@ -12661,7 +12661,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$07 text$04 if$02 repeat$13 variant$02$double _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
@@ -12679,7 +12679,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$07 text$04 if$02 repeat$13 variant$03$double$01 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
@@ -12697,7 +12697,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$07 text$04 if$02 repeat$13 variant$03$double$02 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
@@ -12715,7 +12715,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$07 text$04 if$02 repeat$13 variant$11$double$01 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
@@ -12733,7 +12733,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$07 text$04 if$02 repeat$13 variant$11$double$02 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
@@ -12751,7 +12751,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$07 text$04 if$02 repeat$13 variant$11$double$03 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
@@ -12769,7 +12769,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$07 text$04 if$02 repeat$13 variant$12$double$01 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
@@ -12787,7 +12787,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$07 text$04 if$02 repeat$13 variant$12$double$02 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
@@ -12805,7 +12805,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$07 text$04 if$02 repeat$14 variant$01$double _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
@@ -12823,7 +12823,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$07 text$04 if$02 repeat$14 variant$02$double _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
@@ -12841,7 +12841,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$07 text$04 if$02 repeat$14 variant$03$double$01 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
@@ -12859,7 +12859,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$07 text$04 if$02 repeat$14 variant$03$double$02 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
@@ -12877,7 +12877,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$07 text$04 if$02 repeat$14 variant$11$double$01 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
@@ -12895,7 +12895,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$07 text$04 if$02 repeat$14 variant$11$double$02 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
@@ -12913,7 +12913,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$07 text$04 if$02 repeat$14 variant$11$double$03 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
@@ -12931,7 +12931,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$07 text$04 if$02 repeat$14 variant$12$double$01 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
@@ -12949,7 +12949,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$07 text$04 if$02 repeat$14 variant$12$double$02 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
@@ -12967,7 +12967,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$08 text$03 if$01 repeat$11 variant$01$double _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"part1\"></template><template replaceable part=\"part2\"></template></template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
@@ -12985,7 +12985,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$08 text$03 if$01 repeat$11 variant$02$double _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"part1\"></template><template replaceable part=\"part2\"></template></template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
@@ -13003,7 +13003,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$08 text$03 if$01 repeat$11 variant$03$double$01 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"part1\"></template><template replaceable part=\"part2\"></template></template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
@@ -13021,7 +13021,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$08 text$03 if$01 repeat$11 variant$03$double$02 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"part1\"></template><template replaceable part=\"part2\"></template></template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
@@ -13039,7 +13039,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$08 text$03 if$01 repeat$11 variant$09$double$01 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"part1\"></template><template replaceable part=\"part2\"></template></template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
@@ -13057,7 +13057,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$08 text$03 if$01 repeat$11 variant$09$double$02 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"part1\"></template><template replaceable part=\"part2\"></template></template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
@@ -13075,7 +13075,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$08 text$03 if$01 repeat$13 variant$01$double _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"part1\"></template><template replaceable part=\"part2\"></template></template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
@@ -13093,7 +13093,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$08 text$03 if$01 repeat$13 variant$02$double _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"part1\"></template><template replaceable part=\"part2\"></template></template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
@@ -13111,7 +13111,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$08 text$03 if$01 repeat$13 variant$03$double$01 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"part1\"></template><template replaceable part=\"part2\"></template></template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
@@ -13129,7 +13129,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$08 text$03 if$01 repeat$13 variant$03$double$02 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"part1\"></template><template replaceable part=\"part2\"></template></template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
@@ -13147,7 +13147,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$08 text$03 if$01 repeat$13 variant$09$double$01 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"part1\"></template><template replaceable part=\"part2\"></template></template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
@@ -13165,7 +13165,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$08 text$03 if$01 repeat$13 variant$09$double$02 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"part1\"></template><template replaceable part=\"part2\"></template></template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
@@ -13183,7 +13183,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$08 text$03 if$01 repeat$14 variant$01$double _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"part1\"></template><template replaceable part=\"part2\"></template></template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
@@ -13201,7 +13201,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$08 text$03 if$01 repeat$14 variant$02$double _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"part1\"></template><template replaceable part=\"part2\"></template></template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
@@ -13219,7 +13219,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$08 text$03 if$01 repeat$14 variant$03$double$01 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"part1\"></template><template replaceable part=\"part2\"></template></template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
@@ -13237,7 +13237,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$08 text$03 if$01 repeat$14 variant$03$double$02 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"part1\"></template><template replaceable part=\"part2\"></template></template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
@@ -13255,7 +13255,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$08 text$03 if$01 repeat$14 variant$09$double$01 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"part1\"></template><template replaceable part=\"part2\"></template></template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
@@ -13273,7 +13273,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$08 text$03 if$01 repeat$14 variant$09$double$02 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"part1\"></template><template replaceable part=\"part2\"></template></template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
@@ -13291,7 +13291,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$08 text$03 if$02 repeat$11 variant$01$double _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"part1\"></template><template replaceable part=\"part2\"></template></template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
@@ -13309,7 +13309,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$08 text$03 if$02 repeat$11 variant$02$double _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"part1\"></template><template replaceable part=\"part2\"></template></template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
@@ -13327,7 +13327,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$08 text$03 if$02 repeat$11 variant$03$double$01 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"part1\"></template><template replaceable part=\"part2\"></template></template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
@@ -13345,7 +13345,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$08 text$03 if$02 repeat$11 variant$03$double$02 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"part1\"></template><template replaceable part=\"part2\"></template></template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
@@ -13363,7 +13363,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$08 text$03 if$02 repeat$11 variant$11$double$01 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"part1\"></template><template replaceable part=\"part2\"></template></template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
@@ -13381,7 +13381,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$08 text$03 if$02 repeat$11 variant$11$double$02 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"part1\"></template><template replaceable part=\"part2\"></template></template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
@@ -13399,7 +13399,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$08 text$03 if$02 repeat$11 variant$11$double$03 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"part1\"></template><template replaceable part=\"part2\"></template></template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
@@ -13417,7 +13417,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$08 text$03 if$02 repeat$11 variant$12$double$01 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"part1\"></template><template replaceable part=\"part2\"></template></template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
@@ -13435,7 +13435,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$08 text$03 if$02 repeat$11 variant$12$double$02 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"part1\"></template><template replaceable part=\"part2\"></template></template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
@@ -13453,7 +13453,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$08 text$03 if$02 repeat$13 variant$01$double _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"part1\"></template><template replaceable part=\"part2\"></template></template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
@@ -13471,7 +13471,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$08 text$03 if$02 repeat$13 variant$02$double _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"part1\"></template><template replaceable part=\"part2\"></template></template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
@@ -13489,7 +13489,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$08 text$03 if$02 repeat$13 variant$03$double$01 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"part1\"></template><template replaceable part=\"part2\"></template></template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
@@ -13507,7 +13507,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$08 text$03 if$02 repeat$13 variant$03$double$02 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"part1\"></template><template replaceable part=\"part2\"></template></template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
@@ -13525,7 +13525,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$08 text$03 if$02 repeat$13 variant$11$double$01 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"part1\"></template><template replaceable part=\"part2\"></template></template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
@@ -13543,7 +13543,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$08 text$03 if$02 repeat$13 variant$11$double$02 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"part1\"></template><template replaceable part=\"part2\"></template></template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
@@ -13561,7 +13561,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$08 text$03 if$02 repeat$13 variant$11$double$03 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"part1\"></template><template replaceable part=\"part2\"></template></template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
@@ -13579,7 +13579,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$08 text$03 if$02 repeat$13 variant$12$double$01 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"part1\"></template><template replaceable part=\"part2\"></template></template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
@@ -13597,7 +13597,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$08 text$03 if$02 repeat$13 variant$12$double$02 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"part1\"></template><template replaceable part=\"part2\"></template></template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
@@ -13615,7 +13615,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$08 text$03 if$02 repeat$14 variant$01$double _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"part1\"></template><template replaceable part=\"part2\"></template></template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
@@ -13633,7 +13633,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$08 text$03 if$02 repeat$14 variant$02$double _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"part1\"></template><template replaceable part=\"part2\"></template></template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
@@ -13651,7 +13651,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$08 text$03 if$02 repeat$14 variant$03$double$01 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"part1\"></template><template replaceable part=\"part2\"></template></template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
@@ -13669,7 +13669,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$08 text$03 if$02 repeat$14 variant$03$double$02 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"part1\"></template><template replaceable part=\"part2\"></template></template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
@@ -13687,7 +13687,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$08 text$03 if$02 repeat$14 variant$11$double$01 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"part1\"></template><template replaceable part=\"part2\"></template></template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
@@ -13705,7 +13705,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$08 text$03 if$02 repeat$14 variant$11$double$02 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"part1\"></template><template replaceable part=\"part2\"></template></template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
@@ -13723,7 +13723,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$08 text$03 if$02 repeat$14 variant$11$double$03 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"part1\"></template><template replaceable part=\"part2\"></template></template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
@@ -13741,7 +13741,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$08 text$03 if$02 repeat$14 variant$12$double$01 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"part1\"></template><template replaceable part=\"part2\"></template></template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
@@ -13759,7 +13759,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$08 text$03 if$02 repeat$14 variant$12$double$02 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"part1\"></template><template replaceable part=\"part2\"></template></template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
@@ -13777,7 +13777,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$08 text$04 if$01 repeat$11 variant$01$double _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"part1\"></template><template replaceable part=\"part2\"></template></template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
@@ -13795,7 +13795,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$08 text$04 if$01 repeat$11 variant$02$double _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"part1\"></template><template replaceable part=\"part2\"></template></template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
@@ -13813,7 +13813,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$08 text$04 if$01 repeat$11 variant$03$double$01 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"part1\"></template><template replaceable part=\"part2\"></template></template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
@@ -13831,7 +13831,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$08 text$04 if$01 repeat$11 variant$03$double$02 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"part1\"></template><template replaceable part=\"part2\"></template></template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
@@ -13849,7 +13849,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$08 text$04 if$01 repeat$11 variant$09$double$01 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"part1\"></template><template replaceable part=\"part2\"></template></template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
@@ -13867,7 +13867,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$08 text$04 if$01 repeat$11 variant$09$double$02 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"part1\"></template><template replaceable part=\"part2\"></template></template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
@@ -13885,7 +13885,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$08 text$04 if$01 repeat$13 variant$01$double _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"part1\"></template><template replaceable part=\"part2\"></template></template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
@@ -13903,7 +13903,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$08 text$04 if$01 repeat$13 variant$02$double _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"part1\"></template><template replaceable part=\"part2\"></template></template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
@@ -13921,7 +13921,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$08 text$04 if$01 repeat$13 variant$03$double$01 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"part1\"></template><template replaceable part=\"part2\"></template></template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
@@ -13939,7 +13939,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$08 text$04 if$01 repeat$13 variant$03$double$02 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"part1\"></template><template replaceable part=\"part2\"></template></template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
@@ -13957,7 +13957,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$08 text$04 if$01 repeat$13 variant$09$double$01 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"part1\"></template><template replaceable part=\"part2\"></template></template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
@@ -13975,7 +13975,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$08 text$04 if$01 repeat$13 variant$09$double$02 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"part1\"></template><template replaceable part=\"part2\"></template></template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
@@ -13993,7 +13993,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$08 text$04 if$01 repeat$14 variant$01$double _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"part1\"></template><template replaceable part=\"part2\"></template></template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
@@ -14011,7 +14011,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$08 text$04 if$01 repeat$14 variant$02$double _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"part1\"></template><template replaceable part=\"part2\"></template></template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
@@ -14029,7 +14029,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$08 text$04 if$01 repeat$14 variant$03$double$01 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"part1\"></template><template replaceable part=\"part2\"></template></template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
@@ -14047,7 +14047,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$08 text$04 if$01 repeat$14 variant$03$double$02 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"part1\"></template><template replaceable part=\"part2\"></template></template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
@@ -14065,7 +14065,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$08 text$04 if$01 repeat$14 variant$09$double$01 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"part1\"></template><template replaceable part=\"part2\"></template></template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
@@ -14083,7 +14083,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$08 text$04 if$01 repeat$14 variant$09$double$02 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"part1\"></template><template replaceable part=\"part2\"></template></template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
@@ -14101,7 +14101,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$08 text$04 if$02 repeat$11 variant$01$double _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"part1\"></template><template replaceable part=\"part2\"></template></template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
@@ -14119,7 +14119,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$08 text$04 if$02 repeat$11 variant$02$double _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"part1\"></template><template replaceable part=\"part2\"></template></template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
@@ -14137,7 +14137,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$08 text$04 if$02 repeat$11 variant$03$double$01 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"part1\"></template><template replaceable part=\"part2\"></template></template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
@@ -14155,7 +14155,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$08 text$04 if$02 repeat$11 variant$03$double$02 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"part1\"></template><template replaceable part=\"part2\"></template></template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
@@ -14173,7 +14173,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$08 text$04 if$02 repeat$11 variant$11$double$01 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"part1\"></template><template replaceable part=\"part2\"></template></template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
@@ -14191,7 +14191,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$08 text$04 if$02 repeat$11 variant$11$double$02 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"part1\"></template><template replaceable part=\"part2\"></template></template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
@@ -14209,7 +14209,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$08 text$04 if$02 repeat$11 variant$11$double$03 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"part1\"></template><template replaceable part=\"part2\"></template></template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
@@ -14227,7 +14227,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$08 text$04 if$02 repeat$11 variant$12$double$01 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"part1\"></template><template replaceable part=\"part2\"></template></template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
@@ -14245,7 +14245,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$08 text$04 if$02 repeat$11 variant$12$double$02 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"part1\"></template><template replaceable part=\"part2\"></template></template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
@@ -14263,7 +14263,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$08 text$04 if$02 repeat$13 variant$01$double _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"part1\"></template><template replaceable part=\"part2\"></template></template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
@@ -14281,7 +14281,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$08 text$04 if$02 repeat$13 variant$02$double _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"part1\"></template><template replaceable part=\"part2\"></template></template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
@@ -14299,7 +14299,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$08 text$04 if$02 repeat$13 variant$03$double$01 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"part1\"></template><template replaceable part=\"part2\"></template></template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
@@ -14317,7 +14317,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$08 text$04 if$02 repeat$13 variant$03$double$02 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"part1\"></template><template replaceable part=\"part2\"></template></template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
@@ -14335,7 +14335,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$08 text$04 if$02 repeat$13 variant$11$double$01 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"part1\"></template><template replaceable part=\"part2\"></template></template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
@@ -14353,7 +14353,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$08 text$04 if$02 repeat$13 variant$11$double$02 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"part1\"></template><template replaceable part=\"part2\"></template></template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
@@ -14371,7 +14371,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$08 text$04 if$02 repeat$13 variant$11$double$03 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"part1\"></template><template replaceable part=\"part2\"></template></template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
@@ -14389,7 +14389,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$08 text$04 if$02 repeat$13 variant$12$double$01 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"part1\"></template><template replaceable part=\"part2\"></template></template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
@@ -14407,7 +14407,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$08 text$04 if$02 repeat$13 variant$12$double$02 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"part1\"></template><template replaceable part=\"part2\"></template></template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
@@ -14425,7 +14425,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$08 text$04 if$02 repeat$14 variant$01$double _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"part1\"></template><template replaceable part=\"part2\"></template></template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
@@ -14443,7 +14443,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$08 text$04 if$02 repeat$14 variant$02$double _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"part1\"></template><template replaceable part=\"part2\"></template></template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
@@ -14461,7 +14461,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$08 text$04 if$02 repeat$14 variant$03$double$01 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"part1\"></template><template replaceable part=\"part2\"></template></template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
@@ -14479,7 +14479,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$08 text$04 if$02 repeat$14 variant$03$double$02 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"part1\"></template><template replaceable part=\"part2\"></template></template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
@@ -14497,7 +14497,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$08 text$04 if$02 repeat$14 variant$11$double$01 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"part1\"></template><template replaceable part=\"part2\"></template></template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
@@ -14515,7 +14515,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$08 text$04 if$02 repeat$14 variant$11$double$02 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"part1\"></template><template replaceable part=\"part2\"></template></template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
@@ -14533,7 +14533,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$08 text$04 if$02 repeat$14 variant$11$double$03 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"part1\"></template><template replaceable part=\"part2\"></template></template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
@@ -14551,7 +14551,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$08 text$04 if$02 repeat$14 variant$12$double$01 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"part1\"></template><template replaceable part=\"part2\"></template></template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
@@ -14569,7 +14569,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$08 text$04 if$02 repeat$14 variant$12$double$02 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"part1\"></template><template replaceable part=\"part2\"></template></template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
@@ -14587,7 +14587,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$09 text$03 if$01 repeat$11 variant$01$double _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "closed" };
             msg = "";
             not = "";
@@ -14605,7 +14605,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$09 text$03 if$01 repeat$11 variant$02$double _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "closed" };
             msg = "";
             not = "";
@@ -14623,7 +14623,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$09 text$03 if$01 repeat$11 variant$03$double$01 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "closed" };
             msg = "";
             not = "";
@@ -14641,7 +14641,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$09 text$03 if$01 repeat$11 variant$03$double$02 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "closed" };
             msg = "";
             not = "";
@@ -14659,7 +14659,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$09 text$03 if$01 repeat$11 variant$09$double$01 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "closed" };
             msg = "";
             not = "";
@@ -14677,7 +14677,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$09 text$03 if$01 repeat$11 variant$09$double$02 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "closed" };
             msg = "";
             not = "";
@@ -14695,7 +14695,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$09 text$03 if$01 repeat$12 variant$01$double _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "closed" };
             msg = "";
             not = "";
@@ -14713,7 +14713,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$09 text$03 if$01 repeat$12 variant$02$double _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "closed" };
             msg = "";
             not = "";
@@ -14731,7 +14731,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$09 text$03 if$01 repeat$12 variant$03$double$01 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "closed" };
             msg = "";
             not = "";
@@ -14749,7 +14749,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$09 text$03 if$01 repeat$12 variant$03$double$02 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "closed" };
             msg = "";
             not = "";
@@ -14767,7 +14767,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$09 text$03 if$01 repeat$12 variant$09$double$01 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "closed" };
             msg = "";
             not = "";
@@ -14785,7 +14785,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$09 text$03 if$01 repeat$12 variant$09$double$02 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "closed" };
             msg = "";
             not = "";
@@ -14803,7 +14803,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$09 text$03 if$01 repeat$13 variant$01$double _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "closed" };
             msg = "";
             not = "";
@@ -14821,7 +14821,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$09 text$03 if$01 repeat$13 variant$02$double _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "closed" };
             msg = "";
             not = "";
@@ -14839,7 +14839,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$09 text$03 if$01 repeat$13 variant$03$double$01 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "closed" };
             msg = "";
             not = "";
@@ -14857,7 +14857,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$09 text$03 if$01 repeat$13 variant$03$double$02 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "closed" };
             msg = "";
             not = "";
@@ -14875,7 +14875,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$09 text$03 if$01 repeat$13 variant$09$double$01 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "closed" };
             msg = "";
             not = "";
@@ -14893,7 +14893,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$09 text$03 if$01 repeat$13 variant$09$double$02 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "closed" };
             msg = "";
             not = "";
@@ -14911,7 +14911,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$09 text$03 if$01 repeat$14 variant$01$double _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "closed" };
             msg = "";
             not = "";
@@ -14929,7 +14929,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$09 text$03 if$01 repeat$14 variant$02$double _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "closed" };
             msg = "";
             not = "";
@@ -14947,7 +14947,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$09 text$03 if$01 repeat$14 variant$03$double$01 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "closed" };
             msg = "";
             not = "";
@@ -14965,7 +14965,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$09 text$03 if$01 repeat$14 variant$03$double$02 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "closed" };
             msg = "";
             not = "";
@@ -14983,7 +14983,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$09 text$03 if$01 repeat$14 variant$09$double$01 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "closed" };
             msg = "";
             not = "";
@@ -15001,7 +15001,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$09 text$03 if$01 repeat$14 variant$09$double$02 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "closed" };
             msg = "";
             not = "";
@@ -15019,7 +15019,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$09 text$03 if$02 repeat$11 variant$01$double _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "closed" };
             msg = "";
             not = "";
@@ -15037,7 +15037,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$09 text$03 if$02 repeat$11 variant$02$double _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "closed" };
             msg = "";
             not = "";
@@ -15055,7 +15055,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$09 text$03 if$02 repeat$11 variant$03$double$01 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "closed" };
             msg = "";
             not = "";
@@ -15073,7 +15073,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$09 text$03 if$02 repeat$11 variant$03$double$02 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "closed" };
             msg = "";
             not = "";
@@ -15091,7 +15091,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$09 text$03 if$02 repeat$11 variant$11$double$01 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "closed" };
             msg = "";
             not = "";
@@ -15109,7 +15109,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$09 text$03 if$02 repeat$11 variant$11$double$02 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "closed" };
             msg = "";
             not = "";
@@ -15127,7 +15127,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$09 text$03 if$02 repeat$11 variant$11$double$03 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "closed" };
             msg = "";
             not = "";
@@ -15145,7 +15145,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$09 text$03 if$02 repeat$11 variant$12$double$01 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "closed" };
             msg = "";
             not = "";
@@ -15163,7 +15163,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$09 text$03 if$02 repeat$11 variant$12$double$02 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "closed" };
             msg = "";
             not = "";
@@ -15181,7 +15181,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$09 text$03 if$02 repeat$12 variant$01$double _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "closed" };
             msg = "";
             not = "";
@@ -15199,7 +15199,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$09 text$03 if$02 repeat$12 variant$02$double _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "closed" };
             msg = "";
             not = "";
@@ -15217,7 +15217,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$09 text$03 if$02 repeat$12 variant$03$double$01 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "closed" };
             msg = "";
             not = "";
@@ -15235,7 +15235,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$09 text$03 if$02 repeat$12 variant$03$double$02 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "closed" };
             msg = "";
             not = "";
@@ -15253,7 +15253,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$09 text$03 if$02 repeat$12 variant$11$double$01 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "closed" };
             msg = "";
             not = "";
@@ -15271,7 +15271,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$09 text$03 if$02 repeat$12 variant$11$double$02 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "closed" };
             msg = "";
             not = "";
@@ -15289,7 +15289,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$09 text$03 if$02 repeat$12 variant$11$double$03 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "closed" };
             msg = "";
             not = "";
@@ -15307,7 +15307,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$09 text$03 if$02 repeat$12 variant$12$double$01 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "closed" };
             msg = "";
             not = "";
@@ -15325,7 +15325,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$09 text$03 if$02 repeat$12 variant$12$double$02 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "closed" };
             msg = "";
             not = "";
@@ -15343,7 +15343,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$09 text$03 if$02 repeat$13 variant$01$double _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "closed" };
             msg = "";
             not = "";
@@ -15361,7 +15361,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$09 text$03 if$02 repeat$13 variant$02$double _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "closed" };
             msg = "";
             not = "";
@@ -15379,7 +15379,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$09 text$03 if$02 repeat$13 variant$03$double$01 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "closed" };
             msg = "";
             not = "";
@@ -15397,7 +15397,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$09 text$03 if$02 repeat$13 variant$03$double$02 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "closed" };
             msg = "";
             not = "";
@@ -15415,7 +15415,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$09 text$03 if$02 repeat$13 variant$11$double$01 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "closed" };
             msg = "";
             not = "";
@@ -15433,7 +15433,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$09 text$03 if$02 repeat$13 variant$11$double$02 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "closed" };
             msg = "";
             not = "";
@@ -15451,7 +15451,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$09 text$03 if$02 repeat$13 variant$11$double$03 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "closed" };
             msg = "";
             not = "";
@@ -15469,7 +15469,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$09 text$03 if$02 repeat$13 variant$12$double$01 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "closed" };
             msg = "";
             not = "";
@@ -15487,7 +15487,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$09 text$03 if$02 repeat$13 variant$12$double$02 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "closed" };
             msg = "";
             not = "";
@@ -15505,7 +15505,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$09 text$03 if$02 repeat$14 variant$01$double _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "closed" };
             msg = "";
             not = "";
@@ -15523,7 +15523,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$09 text$03 if$02 repeat$14 variant$02$double _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "closed" };
             msg = "";
             not = "";
@@ -15541,7 +15541,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$09 text$03 if$02 repeat$14 variant$03$double$01 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "closed" };
             msg = "";
             not = "";
@@ -15559,7 +15559,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$09 text$03 if$02 repeat$14 variant$03$double$02 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "closed" };
             msg = "";
             not = "";
@@ -15577,7 +15577,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$09 text$03 if$02 repeat$14 variant$11$double$01 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "closed" };
             msg = "";
             not = "";
@@ -15595,7 +15595,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$09 text$03 if$02 repeat$14 variant$11$double$02 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "closed" };
             msg = "";
             not = "";
@@ -15613,7 +15613,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$09 text$03 if$02 repeat$14 variant$11$double$03 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "closed" };
             msg = "";
             not = "";
@@ -15631,7 +15631,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$09 text$03 if$02 repeat$14 variant$12$double$01 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "closed" };
             msg = "";
             not = "";
@@ -15649,7 +15649,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$09 text$03 if$02 repeat$14 variant$12$double$02 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "closed" };
             msg = "";
             not = "";
@@ -15667,7 +15667,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$09 text$04 if$01 repeat$11 variant$01$double _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "closed" };
             msg = "";
             not = "";
@@ -15685,7 +15685,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$09 text$04 if$01 repeat$11 variant$02$double _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "closed" };
             msg = "";
             not = "";
@@ -15703,7 +15703,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$09 text$04 if$01 repeat$11 variant$03$double$01 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "closed" };
             msg = "";
             not = "";
@@ -15721,7 +15721,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$09 text$04 if$01 repeat$11 variant$03$double$02 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "closed" };
             msg = "";
             not = "";
@@ -15739,7 +15739,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$09 text$04 if$01 repeat$11 variant$09$double$01 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "closed" };
             msg = "";
             not = "";
@@ -15757,7 +15757,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$09 text$04 if$01 repeat$11 variant$09$double$02 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "closed" };
             msg = "";
             not = "";
@@ -15775,7 +15775,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$09 text$04 if$01 repeat$12 variant$01$double _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "closed" };
             msg = "";
             not = "";
@@ -15793,7 +15793,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$09 text$04 if$01 repeat$12 variant$02$double _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "closed" };
             msg = "";
             not = "";
@@ -15811,7 +15811,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$09 text$04 if$01 repeat$12 variant$03$double$01 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "closed" };
             msg = "";
             not = "";
@@ -15829,7 +15829,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$09 text$04 if$01 repeat$12 variant$03$double$02 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "closed" };
             msg = "";
             not = "";
@@ -15847,7 +15847,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$09 text$04 if$01 repeat$12 variant$09$double$01 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "closed" };
             msg = "";
             not = "";
@@ -15865,7 +15865,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$09 text$04 if$01 repeat$12 variant$09$double$02 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "closed" };
             msg = "";
             not = "";
@@ -15883,7 +15883,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$09 text$04 if$01 repeat$13 variant$01$double _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "closed" };
             msg = "";
             not = "";
@@ -15901,7 +15901,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$09 text$04 if$01 repeat$13 variant$02$double _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "closed" };
             msg = "";
             not = "";
@@ -15919,7 +15919,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$09 text$04 if$01 repeat$13 variant$03$double$01 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "closed" };
             msg = "";
             not = "";
@@ -15937,7 +15937,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$09 text$04 if$01 repeat$13 variant$03$double$02 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "closed" };
             msg = "";
             not = "";
@@ -15955,7 +15955,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$09 text$04 if$01 repeat$13 variant$09$double$01 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "closed" };
             msg = "";
             not = "";
@@ -15973,7 +15973,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$09 text$04 if$01 repeat$13 variant$09$double$02 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "closed" };
             msg = "";
             not = "";
@@ -15991,7 +15991,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$09 text$04 if$01 repeat$14 variant$01$double _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "closed" };
             msg = "";
             not = "";
@@ -16009,7 +16009,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$09 text$04 if$01 repeat$14 variant$02$double _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "closed" };
             msg = "";
             not = "";
@@ -16027,7 +16027,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$09 text$04 if$01 repeat$14 variant$03$double$01 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "closed" };
             msg = "";
             not = "";
@@ -16045,7 +16045,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$09 text$04 if$01 repeat$14 variant$03$double$02 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "closed" };
             msg = "";
             not = "";
@@ -16063,7 +16063,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$09 text$04 if$01 repeat$14 variant$09$double$01 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "closed" };
             msg = "";
             not = "";
@@ -16081,7 +16081,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$09 text$04 if$01 repeat$14 variant$09$double$02 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "closed" };
             msg = "";
             not = "";
@@ -16099,7 +16099,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$09 text$04 if$02 repeat$11 variant$01$double _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "closed" };
             msg = "";
             not = "";
@@ -16117,7 +16117,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$09 text$04 if$02 repeat$11 variant$02$double _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "closed" };
             msg = "";
             not = "";
@@ -16135,7 +16135,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$09 text$04 if$02 repeat$11 variant$03$double$01 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "closed" };
             msg = "";
             not = "";
@@ -16153,7 +16153,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$09 text$04 if$02 repeat$11 variant$03$double$02 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "closed" };
             msg = "";
             not = "";
@@ -16171,7 +16171,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$09 text$04 if$02 repeat$11 variant$11$double$01 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "closed" };
             msg = "";
             not = "";
@@ -16189,7 +16189,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$09 text$04 if$02 repeat$11 variant$11$double$02 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "closed" };
             msg = "";
             not = "";
@@ -16207,7 +16207,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$09 text$04 if$02 repeat$11 variant$11$double$03 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "closed" };
             msg = "";
             not = "";
@@ -16225,7 +16225,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$09 text$04 if$02 repeat$11 variant$12$double$01 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "closed" };
             msg = "";
             not = "";
@@ -16243,7 +16243,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$09 text$04 if$02 repeat$11 variant$12$double$02 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "closed" };
             msg = "";
             not = "";
@@ -16261,7 +16261,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$09 text$04 if$02 repeat$12 variant$01$double _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "closed" };
             msg = "";
             not = "";
@@ -16279,7 +16279,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$09 text$04 if$02 repeat$12 variant$02$double _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "closed" };
             msg = "";
             not = "";
@@ -16297,7 +16297,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$09 text$04 if$02 repeat$12 variant$03$double$01 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "closed" };
             msg = "";
             not = "";
@@ -16315,7 +16315,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$09 text$04 if$02 repeat$12 variant$03$double$02 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "closed" };
             msg = "";
             not = "";
@@ -16333,7 +16333,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$09 text$04 if$02 repeat$12 variant$11$double$01 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "closed" };
             msg = "";
             not = "";
@@ -16351,7 +16351,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$09 text$04 if$02 repeat$12 variant$11$double$02 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "closed" };
             msg = "";
             not = "";
@@ -16369,7 +16369,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$09 text$04 if$02 repeat$12 variant$11$double$03 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "closed" };
             msg = "";
             not = "";
@@ -16387,7 +16387,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$09 text$04 if$02 repeat$12 variant$12$double$01 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "closed" };
             msg = "";
             not = "";
@@ -16405,7 +16405,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$09 text$04 if$02 repeat$12 variant$12$double$02 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "closed" };
             msg = "";
             not = "";
@@ -16423,7 +16423,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$09 text$04 if$02 repeat$13 variant$01$double _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "closed" };
             msg = "";
             not = "";
@@ -16441,7 +16441,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$09 text$04 if$02 repeat$13 variant$02$double _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "closed" };
             msg = "";
             not = "";
@@ -16459,7 +16459,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$09 text$04 if$02 repeat$13 variant$03$double$01 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "closed" };
             msg = "";
             not = "";
@@ -16477,7 +16477,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$09 text$04 if$02 repeat$13 variant$03$double$02 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "closed" };
             msg = "";
             not = "";
@@ -16495,7 +16495,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$09 text$04 if$02 repeat$13 variant$11$double$01 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "closed" };
             msg = "";
             not = "";
@@ -16513,7 +16513,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$09 text$04 if$02 repeat$13 variant$11$double$02 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "closed" };
             msg = "";
             not = "";
@@ -16531,7 +16531,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$09 text$04 if$02 repeat$13 variant$11$double$03 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "closed" };
             msg = "";
             not = "";
@@ -16549,7 +16549,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$09 text$04 if$02 repeat$13 variant$12$double$01 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "closed" };
             msg = "";
             not = "";
@@ -16567,7 +16567,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$09 text$04 if$02 repeat$13 variant$12$double$02 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "closed" };
             msg = "";
             not = "";
@@ -16585,7 +16585,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$09 text$04 if$02 repeat$14 variant$01$double _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "closed" };
             msg = "";
             not = "";
@@ -16603,7 +16603,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$09 text$04 if$02 repeat$14 variant$02$double _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "closed" };
             msg = "";
             not = "";
@@ -16621,7 +16621,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$09 text$04 if$02 repeat$14 variant$03$double$01 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "closed" };
             msg = "";
             not = "";
@@ -16639,7 +16639,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$09 text$04 if$02 repeat$14 variant$03$double$02 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "closed" };
             msg = "";
             not = "";
@@ -16657,7 +16657,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$09 text$04 if$02 repeat$14 variant$11$double$01 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "closed" };
             msg = "";
             not = "";
@@ -16675,7 +16675,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$09 text$04 if$02 repeat$14 variant$11$double$02 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "closed" };
             msg = "";
             not = "";
@@ -16693,7 +16693,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$09 text$04 if$02 repeat$14 variant$11$double$03 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "closed" };
             msg = "";
             not = "";
@@ -16711,7 +16711,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$09 text$04 if$02 repeat$14 variant$12$double$01 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "closed" };
             msg = "";
             not = "";
@@ -16729,7 +16729,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$09 text$04 if$02 repeat$14 variant$12$double$02 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "closed" };
             msg = "";
             not = "";
@@ -16747,7 +16747,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$10 text$03 if$01 repeat$11 variant$01$double _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"part1\"></template><template replaceable part=\"part2\"></template></template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "closed" };
             msg = "";
             not = "";
@@ -16765,7 +16765,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$10 text$03 if$01 repeat$11 variant$02$double _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"part1\"></template><template replaceable part=\"part2\"></template></template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "closed" };
             msg = "";
             not = "";
@@ -16783,7 +16783,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$10 text$03 if$01 repeat$11 variant$03$double$01 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"part1\"></template><template replaceable part=\"part2\"></template></template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "closed" };
             msg = "";
             not = "";
@@ -16801,7 +16801,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$10 text$03 if$01 repeat$11 variant$03$double$02 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"part1\"></template><template replaceable part=\"part2\"></template></template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "closed" };
             msg = "";
             not = "";
@@ -16819,7 +16819,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$10 text$03 if$01 repeat$11 variant$09$double$01 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"part1\"></template><template replaceable part=\"part2\"></template></template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "closed" };
             msg = "";
             not = "";
@@ -16837,7 +16837,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$10 text$03 if$01 repeat$11 variant$09$double$02 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"part1\"></template><template replaceable part=\"part2\"></template></template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "closed" };
             msg = "";
             not = "";
@@ -16855,7 +16855,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$10 text$03 if$01 repeat$13 variant$01$double _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"part1\"></template><template replaceable part=\"part2\"></template></template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "closed" };
             msg = "";
             not = "";
@@ -16873,7 +16873,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$10 text$03 if$01 repeat$13 variant$02$double _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"part1\"></template><template replaceable part=\"part2\"></template></template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "closed" };
             msg = "";
             not = "";
@@ -16891,7 +16891,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$10 text$03 if$01 repeat$13 variant$03$double$01 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"part1\"></template><template replaceable part=\"part2\"></template></template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "closed" };
             msg = "";
             not = "";
@@ -16909,7 +16909,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$10 text$03 if$01 repeat$13 variant$03$double$02 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"part1\"></template><template replaceable part=\"part2\"></template></template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "closed" };
             msg = "";
             not = "";
@@ -16927,7 +16927,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$10 text$03 if$01 repeat$13 variant$09$double$01 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"part1\"></template><template replaceable part=\"part2\"></template></template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "closed" };
             msg = "";
             not = "";
@@ -16945,7 +16945,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$10 text$03 if$01 repeat$13 variant$09$double$02 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"part1\"></template><template replaceable part=\"part2\"></template></template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "closed" };
             msg = "";
             not = "";
@@ -16963,7 +16963,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$10 text$03 if$01 repeat$14 variant$01$double _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"part1\"></template><template replaceable part=\"part2\"></template></template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "closed" };
             msg = "";
             not = "";
@@ -16981,7 +16981,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$10 text$03 if$01 repeat$14 variant$02$double _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"part1\"></template><template replaceable part=\"part2\"></template></template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "closed" };
             msg = "";
             not = "";
@@ -16999,7 +16999,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$10 text$03 if$01 repeat$14 variant$03$double$01 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"part1\"></template><template replaceable part=\"part2\"></template></template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "closed" };
             msg = "";
             not = "";
@@ -17017,7 +17017,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$10 text$03 if$01 repeat$14 variant$03$double$02 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"part1\"></template><template replaceable part=\"part2\"></template></template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "closed" };
             msg = "";
             not = "";
@@ -17035,7 +17035,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$10 text$03 if$01 repeat$14 variant$09$double$01 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"part1\"></template><template replaceable part=\"part2\"></template></template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "closed" };
             msg = "";
             not = "";
@@ -17053,7 +17053,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$10 text$03 if$01 repeat$14 variant$09$double$02 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"part1\"></template><template replaceable part=\"part2\"></template></template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "closed" };
             msg = "";
             not = "";
@@ -17071,7 +17071,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$10 text$03 if$02 repeat$11 variant$01$double _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"part1\"></template><template replaceable part=\"part2\"></template></template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "closed" };
             msg = "";
             not = "";
@@ -17089,7 +17089,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$10 text$03 if$02 repeat$11 variant$02$double _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"part1\"></template><template replaceable part=\"part2\"></template></template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "closed" };
             msg = "";
             not = "";
@@ -17107,7 +17107,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$10 text$03 if$02 repeat$11 variant$03$double$01 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"part1\"></template><template replaceable part=\"part2\"></template></template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "closed" };
             msg = "";
             not = "";
@@ -17125,7 +17125,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$10 text$03 if$02 repeat$11 variant$03$double$02 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"part1\"></template><template replaceable part=\"part2\"></template></template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "closed" };
             msg = "";
             not = "";
@@ -17143,7 +17143,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$10 text$03 if$02 repeat$11 variant$11$double$01 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"part1\"></template><template replaceable part=\"part2\"></template></template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "closed" };
             msg = "";
             not = "";
@@ -17161,7 +17161,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$10 text$03 if$02 repeat$11 variant$11$double$02 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"part1\"></template><template replaceable part=\"part2\"></template></template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "closed" };
             msg = "";
             not = "";
@@ -17179,7 +17179,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$10 text$03 if$02 repeat$11 variant$11$double$03 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"part1\"></template><template replaceable part=\"part2\"></template></template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "closed" };
             msg = "";
             not = "";
@@ -17197,7 +17197,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$10 text$03 if$02 repeat$11 variant$12$double$01 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"part1\"></template><template replaceable part=\"part2\"></template></template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "closed" };
             msg = "";
             not = "";
@@ -17215,7 +17215,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$10 text$03 if$02 repeat$11 variant$12$double$02 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"part1\"></template><template replaceable part=\"part2\"></template></template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "closed" };
             msg = "";
             not = "";
@@ -17233,7 +17233,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$10 text$03 if$02 repeat$13 variant$01$double _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"part1\"></template><template replaceable part=\"part2\"></template></template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "closed" };
             msg = "";
             not = "";
@@ -17251,7 +17251,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$10 text$03 if$02 repeat$13 variant$02$double _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"part1\"></template><template replaceable part=\"part2\"></template></template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "closed" };
             msg = "";
             not = "";
@@ -17269,7 +17269,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$10 text$03 if$02 repeat$13 variant$03$double$01 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"part1\"></template><template replaceable part=\"part2\"></template></template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "closed" };
             msg = "";
             not = "";
@@ -17287,7 +17287,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$10 text$03 if$02 repeat$13 variant$03$double$02 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"part1\"></template><template replaceable part=\"part2\"></template></template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "closed" };
             msg = "";
             not = "";
@@ -17305,7 +17305,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$10 text$03 if$02 repeat$13 variant$11$double$01 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"part1\"></template><template replaceable part=\"part2\"></template></template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "closed" };
             msg = "";
             not = "";
@@ -17323,7 +17323,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$10 text$03 if$02 repeat$13 variant$11$double$02 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"part1\"></template><template replaceable part=\"part2\"></template></template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "closed" };
             msg = "";
             not = "";
@@ -17341,7 +17341,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$10 text$03 if$02 repeat$13 variant$11$double$03 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"part1\"></template><template replaceable part=\"part2\"></template></template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "closed" };
             msg = "";
             not = "";
@@ -17359,7 +17359,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$10 text$03 if$02 repeat$13 variant$12$double$01 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"part1\"></template><template replaceable part=\"part2\"></template></template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "closed" };
             msg = "";
             not = "";
@@ -17377,7 +17377,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$10 text$03 if$02 repeat$13 variant$12$double$02 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"part1\"></template><template replaceable part=\"part2\"></template></template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "closed" };
             msg = "";
             not = "";
@@ -17395,7 +17395,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$10 text$03 if$02 repeat$14 variant$01$double _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"part1\"></template><template replaceable part=\"part2\"></template></template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "closed" };
             msg = "";
             not = "";
@@ -17413,7 +17413,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$10 text$03 if$02 repeat$14 variant$02$double _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"part1\"></template><template replaceable part=\"part2\"></template></template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "closed" };
             msg = "";
             not = "";
@@ -17431,7 +17431,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$10 text$03 if$02 repeat$14 variant$03$double$01 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"part1\"></template><template replaceable part=\"part2\"></template></template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "closed" };
             msg = "";
             not = "";
@@ -17449,7 +17449,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$10 text$03 if$02 repeat$14 variant$03$double$02 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"part1\"></template><template replaceable part=\"part2\"></template></template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "closed" };
             msg = "";
             not = "";
@@ -17467,7 +17467,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$10 text$03 if$02 repeat$14 variant$11$double$01 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"part1\"></template><template replaceable part=\"part2\"></template></template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "closed" };
             msg = "";
             not = "";
@@ -17485,7 +17485,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$10 text$03 if$02 repeat$14 variant$11$double$02 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"part1\"></template><template replaceable part=\"part2\"></template></template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "closed" };
             msg = "";
             not = "";
@@ -17503,7 +17503,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$10 text$03 if$02 repeat$14 variant$11$double$03 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"part1\"></template><template replaceable part=\"part2\"></template></template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "closed" };
             msg = "";
             not = "";
@@ -17521,7 +17521,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$10 text$03 if$02 repeat$14 variant$12$double$01 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"part1\"></template><template replaceable part=\"part2\"></template></template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "closed" };
             msg = "";
             not = "";
@@ -17539,7 +17539,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$10 text$03 if$02 repeat$14 variant$12$double$02 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"part1\"></template><template replaceable part=\"part2\"></template></template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "closed" };
             msg = "";
             not = "";
@@ -17557,7 +17557,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$10 text$04 if$01 repeat$11 variant$01$double _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"part1\"></template><template replaceable part=\"part2\"></template></template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "closed" };
             msg = "";
             not = "";
@@ -17575,7 +17575,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$10 text$04 if$01 repeat$11 variant$02$double _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"part1\"></template><template replaceable part=\"part2\"></template></template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "closed" };
             msg = "";
             not = "";
@@ -17593,7 +17593,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$10 text$04 if$01 repeat$11 variant$03$double$01 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"part1\"></template><template replaceable part=\"part2\"></template></template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "closed" };
             msg = "";
             not = "";
@@ -17611,7 +17611,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$10 text$04 if$01 repeat$11 variant$03$double$02 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"part1\"></template><template replaceable part=\"part2\"></template></template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "closed" };
             msg = "";
             not = "";
@@ -17629,7 +17629,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$10 text$04 if$01 repeat$11 variant$09$double$01 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"part1\"></template><template replaceable part=\"part2\"></template></template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "closed" };
             msg = "";
             not = "";
@@ -17647,7 +17647,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$10 text$04 if$01 repeat$11 variant$09$double$02 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"part1\"></template><template replaceable part=\"part2\"></template></template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "closed" };
             msg = "";
             not = "";
@@ -17665,7 +17665,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$10 text$04 if$01 repeat$13 variant$01$double _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"part1\"></template><template replaceable part=\"part2\"></template></template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "closed" };
             msg = "";
             not = "";
@@ -17683,7 +17683,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$10 text$04 if$01 repeat$13 variant$02$double _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"part1\"></template><template replaceable part=\"part2\"></template></template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "closed" };
             msg = "";
             not = "";
@@ -17701,7 +17701,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$10 text$04 if$01 repeat$13 variant$03$double$01 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"part1\"></template><template replaceable part=\"part2\"></template></template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "closed" };
             msg = "";
             not = "";
@@ -17719,7 +17719,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$10 text$04 if$01 repeat$13 variant$03$double$02 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"part1\"></template><template replaceable part=\"part2\"></template></template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "closed" };
             msg = "";
             not = "";
@@ -17737,7 +17737,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$10 text$04 if$01 repeat$13 variant$09$double$01 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"part1\"></template><template replaceable part=\"part2\"></template></template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "closed" };
             msg = "";
             not = "";
@@ -17755,7 +17755,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$10 text$04 if$01 repeat$13 variant$09$double$02 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"part1\"></template><template replaceable part=\"part2\"></template></template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "closed" };
             msg = "";
             not = "";
@@ -17773,7 +17773,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$10 text$04 if$01 repeat$14 variant$01$double _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"part1\"></template><template replaceable part=\"part2\"></template></template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "closed" };
             msg = "";
             not = "";
@@ -17791,7 +17791,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$10 text$04 if$01 repeat$14 variant$02$double _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"part1\"></template><template replaceable part=\"part2\"></template></template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "closed" };
             msg = "";
             not = "";
@@ -17809,7 +17809,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$10 text$04 if$01 repeat$14 variant$03$double$01 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"part1\"></template><template replaceable part=\"part2\"></template></template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "closed" };
             msg = "";
             not = "";
@@ -17827,7 +17827,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$10 text$04 if$01 repeat$14 variant$03$double$02 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"part1\"></template><template replaceable part=\"part2\"></template></template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "closed" };
             msg = "";
             not = "";
@@ -17845,7 +17845,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$10 text$04 if$01 repeat$14 variant$09$double$01 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"part1\"></template><template replaceable part=\"part2\"></template></template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "closed" };
             msg = "";
             not = "";
@@ -17863,7 +17863,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$10 text$04 if$01 repeat$14 variant$09$double$02 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"part1\"></template><template replaceable part=\"part2\"></template></template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "closed" };
             msg = "";
             not = "";
@@ -17881,7 +17881,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$10 text$04 if$02 repeat$11 variant$01$double _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"part1\"></template><template replaceable part=\"part2\"></template></template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "closed" };
             msg = "";
             not = "";
@@ -17899,7 +17899,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$10 text$04 if$02 repeat$11 variant$02$double _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"part1\"></template><template replaceable part=\"part2\"></template></template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "closed" };
             msg = "";
             not = "";
@@ -17917,7 +17917,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$10 text$04 if$02 repeat$11 variant$03$double$01 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"part1\"></template><template replaceable part=\"part2\"></template></template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "closed" };
             msg = "";
             not = "";
@@ -17935,7 +17935,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$10 text$04 if$02 repeat$11 variant$03$double$02 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"part1\"></template><template replaceable part=\"part2\"></template></template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "closed" };
             msg = "";
             not = "";
@@ -17953,7 +17953,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$10 text$04 if$02 repeat$11 variant$11$double$01 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"part1\"></template><template replaceable part=\"part2\"></template></template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "closed" };
             msg = "";
             not = "";
@@ -17971,7 +17971,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$10 text$04 if$02 repeat$11 variant$11$double$02 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"part1\"></template><template replaceable part=\"part2\"></template></template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "closed" };
             msg = "";
             not = "";
@@ -17989,7 +17989,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$10 text$04 if$02 repeat$11 variant$11$double$03 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"part1\"></template><template replaceable part=\"part2\"></template></template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "closed" };
             msg = "";
             not = "";
@@ -18007,7 +18007,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$10 text$04 if$02 repeat$11 variant$12$double$01 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"part1\"></template><template replaceable part=\"part2\"></template></template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "closed" };
             msg = "";
             not = "";
@@ -18025,7 +18025,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$10 text$04 if$02 repeat$11 variant$12$double$02 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"part1\"></template><template replaceable part=\"part2\"></template></template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "closed" };
             msg = "";
             not = "";
@@ -18043,7 +18043,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$10 text$04 if$02 repeat$13 variant$01$double _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"part1\"></template><template replaceable part=\"part2\"></template></template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "closed" };
             msg = "";
             not = "";
@@ -18061,7 +18061,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$10 text$04 if$02 repeat$13 variant$02$double _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"part1\"></template><template replaceable part=\"part2\"></template></template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "closed" };
             msg = "";
             not = "";
@@ -18079,7 +18079,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$10 text$04 if$02 repeat$13 variant$03$double$01 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"part1\"></template><template replaceable part=\"part2\"></template></template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "closed" };
             msg = "";
             not = "";
@@ -18097,7 +18097,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$10 text$04 if$02 repeat$13 variant$03$double$02 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"part1\"></template><template replaceable part=\"part2\"></template></template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "closed" };
             msg = "";
             not = "";
@@ -18115,7 +18115,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$10 text$04 if$02 repeat$13 variant$11$double$01 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"part1\"></template><template replaceable part=\"part2\"></template></template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "closed" };
             msg = "";
             not = "";
@@ -18133,7 +18133,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$10 text$04 if$02 repeat$13 variant$11$double$02 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"part1\"></template><template replaceable part=\"part2\"></template></template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "closed" };
             msg = "";
             not = "";
@@ -18151,7 +18151,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$10 text$04 if$02 repeat$13 variant$11$double$03 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"part1\"></template><template replaceable part=\"part2\"></template></template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "closed" };
             msg = "";
             not = "";
@@ -18169,7 +18169,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$10 text$04 if$02 repeat$13 variant$12$double$01 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"part1\"></template><template replaceable part=\"part2\"></template></template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "closed" };
             msg = "";
             not = "";
@@ -18187,7 +18187,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$10 text$04 if$02 repeat$13 variant$12$double$02 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"part1\"></template><template replaceable part=\"part2\"></template></template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "closed" };
             msg = "";
             not = "";
@@ -18205,7 +18205,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$10 text$04 if$02 repeat$14 variant$01$double _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"part1\"></template><template replaceable part=\"part2\"></template></template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "closed" };
             msg = "";
             not = "";
@@ -18223,7 +18223,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$10 text$04 if$02 repeat$14 variant$02$double _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"part1\"></template><template replaceable part=\"part2\"></template></template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "closed" };
             msg = "";
             not = "";
@@ -18241,7 +18241,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$10 text$04 if$02 repeat$14 variant$03$double$01 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"part1\"></template><template replaceable part=\"part2\"></template></template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "closed" };
             msg = "";
             not = "";
@@ -18259,7 +18259,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$10 text$04 if$02 repeat$14 variant$03$double$02 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"part1\"></template><template replaceable part=\"part2\"></template></template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "closed" };
             msg = "";
             not = "";
@@ -18277,7 +18277,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$10 text$04 if$02 repeat$14 variant$11$double$01 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"part1\"></template><template replaceable part=\"part2\"></template></template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "closed" };
             msg = "";
             not = "";
@@ -18295,7 +18295,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$10 text$04 if$02 repeat$14 variant$11$double$02 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"part1\"></template><template replaceable part=\"part2\"></template></template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "closed" };
             msg = "";
             not = "";
@@ -18313,7 +18313,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$10 text$04 if$02 repeat$14 variant$11$double$03 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"part1\"></template><template replaceable part=\"part2\"></template></template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "closed" };
             msg = "";
             not = "";
@@ -18331,7 +18331,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$10 text$04 if$02 repeat$14 variant$12$double$01 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"part1\"></template><template replaceable part=\"part2\"></template></template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "closed" };
             msg = "";
             not = "";
@@ -18349,7 +18349,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     it("tag$10 text$04 if$02 repeat$14 variant$12$double$02 _", function () {
         const { au, host } = setup();
         const MyFoo = CustomElementResource.define({ name: "my-foo", template: "<template><template replaceable part=\"part1\"></template><template replaceable part=\"part2\"></template></template>" }, class {
-            static bindables = { msg: { property: "msg", attribute: "msg" }, not: { property: "not", attribute: "not" }, item: { property: "item", attribute: "item" } };
+            static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "closed" };
             msg = "";
             not = "";

@@ -78,7 +78,7 @@ export class RenderPlan<T extends INode = Node> {
 }
 
 function createElementForTag<T extends INode>(dom: IDOM<T>, tagName: string, props?: Record<string, string | HTMLTargetedInstruction>, children?: ArrayLike<unknown>): RenderPlan<T> {
-  if (Tracer.enabled) { Tracer.enter('createElementForTag', slice.call(arguments)); }
+  if (Tracer.enabled) { Tracer.enter('createElement', 'createElementForTag', slice.call(arguments)); }
   const instructions: HTMLTargetedInstruction[] = [];
   const allInstructions: HTMLTargetedInstruction[][] = [];
   const dependencies: IRegistry[] = [];
@@ -113,7 +113,7 @@ function createElementForTag<T extends INode>(dom: IDOM<T>, tagName: string, pro
 }
 
 function createElementForType<T extends INode>(dom: IDOM<T>, Type: ICustomElementType<T>, props?: object, children?: ArrayLike<unknown>): RenderPlan<T> {
-  if (Tracer.enabled) { Tracer.enter('createElementForType', slice.call(arguments)); }
+  if (Tracer.enabled) { Tracer.enter('createElement', 'createElementForType', slice.call(arguments)); }
   const tagName = Type.description.name;
   const instructions: HTMLTargetedInstruction[] = [];
   const allInstructions = [instructions];

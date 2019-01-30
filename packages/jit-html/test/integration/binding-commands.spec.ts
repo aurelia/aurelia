@@ -7,7 +7,7 @@ import { TestConfiguration } from './resources';
 import { setupAndStart, setupWithDocumentAndStart, tearDown } from './util';
 
 // TemplateCompiler - Binding Commands integration
-describe('template-compiler.binding-commands', () => {
+describe('binding-commands', () => {
   let ctx: HTMLTestContext;
 
   beforeEach(() => {

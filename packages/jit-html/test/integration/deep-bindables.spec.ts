@@ -1,15 +1,15 @@
 import { ITraceInfo, Profiler, Tracer } from '@aurelia/kernel';
 import {
   Aurelia,
+  BindingStrategy,
   CustomElementResource,
   ICustomElement,
-  LifecycleFlags,
-  BindingStrategy
+  LifecycleFlags
 } from '@aurelia/runtime';
 import { expect } from 'chai';
+import { stringifyLifecycleFlags } from '../../../debug/src/tracer';
 import { disableTracing, enableTracing } from '../unit/util';
 import { TestContext, writeProfilerReport } from '../util';
-import { stringifyLifecycleFlags } from '../../../debug/src/tracer';
 
 const spec = 'deep-bindables';
 

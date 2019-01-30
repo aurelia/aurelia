@@ -483,7 +483,6 @@ export class Factory implements IFactory {
   }
 
   public construct(container: IContainer, dynamicDependencies?: Key<unknown>[]): Constructable {
-    // tslint:disable-next-line:no-statements-same-line
     if (Tracer.enabled) { Tracer.enter('Factory', 'construct', [this.Type, ...slice.call(arguments)]); }
     const transformers = this.transformers;
     let instance = dynamicDependencies !== undefined

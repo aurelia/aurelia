@@ -6,14 +6,14 @@
   "devDependencies": {
     "@types/chai": "^4.1.7",
     "@types/mocha": "^5.2.5",
-    "@types/node": "^10.12.18",
-    "@types/selenium-webdriver": "^3.0.13",
+    "@types/node": "^10.12.19",
+    "@types/selenium-webdriver": "^3.0.14",
     "chai": "^4.2.0",
-    "chromedriver": "^2.44.0",
-    "esm": "^3.1.1",
+    "chromedriver": "^2.45.0",
+    "esm": "^3.2.0",
     "mocha": "^5.2.0",
     "path": "^0.12.7",
     "selenium-webdriver": "^4.0.0-alpha.1",
-    "ts-node": "^7.0.1"
+    "ts-node": "^8.0.2"
   }
 }

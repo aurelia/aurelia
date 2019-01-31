@@ -42,33 +42,33 @@
     "access": "public"
   },
   "dependencies": {
-    "@aurelia/kernel": "0.3.0-dev.20190130",
-    "@aurelia/runtime": "0.3.0-dev.20190130",
-    "@aurelia/runtime-html": "0.3.0-dev.20190130",
-    "@aurelia/runtime-html-jsdom": "0.3.0-dev.20190130",
-    "@aurelia/jit": "0.3.0-dev.20190130",
-    "@aurelia/jit-html": "0.3.0-dev.20190130",
-    "jsdom": "^13.1.0"
+    "@aurelia/kernel": "0.3.0",
+    "@aurelia/runtime": "0.3.0",
+    "@aurelia/runtime-html": "0.3.0",
+    "@aurelia/runtime-html-jsdom": "0.3.0",
+    "@aurelia/jit": "0.3.0",
+    "@aurelia/jit-html": "0.3.0",
+    "jsdom": "^13.2.0"
   },
   "devDependencies": {
     "@types/chai": "^4.1.7",
     "@types/jsdom": "^12.2.1",
     "@types/mocha": "^5.2.5",
-    "@types/node": "^10.12.18",
-    "@types/sinon": "^7.0.3",
+    "@types/node": "^10.12.19",
+    "@types/sinon": "^7.0.5",
     "@types/sinon-chai": "^3.2.2",
     "chai": "^4.2.0",
     "cross-env": "^5.2.0",
     "mocha": "^5.2.0",
     "path": "^0.12.7",
-    "sinon": "^7.2.2",
+    "sinon": "^7.2.3",
     "sinon-chai": "^3.3.0",
-    "ts-node": "^7.0.1",
+    "ts-node": "^8.0.2",
     "tsconfig-paths": "^3.7.0",
     "tslib": "^1.9.3",
-    "tslint": "^5.12.0",
+    "tslint": "^5.12.1",
     "tslint-microsoft-contrib": "^6.0.0",
     "tslint-sonarts": "^1.9.0",
-    "typescript": "^3.2.2"
+    "typescript": "^3.2.4"
   }
 }

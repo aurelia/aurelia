@@ -1,12 +1,11 @@
 import { DI, Registration } from '@aurelia/kernel';
 import { Subscription } from 'rxjs';
 import { distinctUntilChanged, pluck } from 'rxjs/operators';
-import { STORE } from '../../src/store';
+import { STORE, Store } from '../../src/store';
 
 import { expect } from 'chai';
 import { stub } from 'sinon';
 import { connectTo } from '../../src/decorator';
-import { Store } from '../../src/store';
 import { Spied } from './helpers';
 
 interface DemoState {
@@ -26,16 +25,23 @@ function arrange() {
 }
 
 describe('using decorators', () => {
-  it('should throw an descriptive error if Object.entries is not available', () => {
-    const originalEntries = (Object as any).entries;
 
+  let originalEntries;
+
+  before(() => {
+    originalEntries = Object.entries;
+  });
+
+  afterEach(() => {
+    Object.entries = originalEntries ;
+  });
+
+  it('should throw an descriptive error if Object.entries is not available', () => {
     (Object as any).entries = undefined;
 
     expect(() => {
       connectTo();
     }).to.throw(/Object.entries/);
-
-    (Object as any).entries = originalEntries;
   });
 
   it('should be possible to decorate a class and assign the subscribed result to the state property', () => {
@@ -108,7 +114,7 @@ describe('using decorators', () => {
       expect(sut.state).to.equal(initialState);
     });
 
-    it('should be possible to provide an object with multiple selectors', () => {
+    it('should be possible to provide an object with multiple selectors', async () => {
       const { initialState } = arrange();
 
       @connectTo<DemoState>({
@@ -127,7 +133,9 @@ describe('using decorators', () => {
 
       (sut as any).bind();
 
-      expect(sut.state).not.not.to.equal(undefined);
+      await Promise.resolve();
+
+      expect(sut.state).not.to.equal(undefined);
       expect(sut.barTarget).to.equal(initialState.bar);
       expect(sut.fooTarget).to.equal(initialState.foo);
     });
@@ -166,8 +174,10 @@ describe('using decorators', () => {
 
       (sut as any).bind();
 
-      expect((sut as any).state).not.not.to.equal(undefined);
-      expect(sut.foo).to.equal(initialState.bar);
+      setTimeout(() => {
+        expect((sut as any).state).not.to.equal(undefined);
+        expect(sut.foo).to.equal(initialState.bar);
+      },         250);
     });
 
     it('should be possible to use the target as the parent object for the multiple selector targets', () => {
@@ -189,12 +199,14 @@ describe('using decorators', () => {
 
       (sut as any).bind();
 
-      expect((sut as any).state).not.not.to.equal(undefined);
-      expect(sut.foo).not.to.equal(undefined);
-      expect((sut.foo as any).barTarget).not.to.equal(undefined);
-      expect((sut.foo as any).fooTarget).not.to.equal(undefined);
-      expect((sut.foo as any).barTarget).to.equal(initialState.bar);
-      expect((sut.foo as any).fooTarget).to.equal(initialState.foo);
+      setTimeout(() => {
+        expect((sut as any).state).not.to.equal(undefined);
+        expect(sut.foo).not.to.equal(undefined);
+        expect((sut.foo as any).barTarget).not.to.equal(undefined);
+        expect((sut.foo as any).fooTarget).not.to.equal(undefined);
+        expect((sut.foo as any).barTarget).to.equal(initialState.bar);
+        expect((sut.foo as any).fooTarget).to.equal(initialState.foo);
+      },         250);
     });
   });
 
@@ -599,7 +611,7 @@ describe('using decorators', () => {
       expect(sut.targetPropChanged).to.have.been.calledWith(initialState, 'foobar');
       expect(sut.customHandler).to.have.callCount(1);
       expect(sut.customHandler).to.have.been.calledWith(initialState, 'foobar');
-      expect(calledHandlersInOrder).to.equal(['customHandler', 'targetPropChanged', 'propertyChanged']);
+      expect(calledHandlersInOrder).to.include.members(['customHandler', 'targetPropChanged', 'propertyChanged']);
     });
 
     it('should call the targetOnChanged handler and not each multiple selector, if existing, with the 3 args', () => {

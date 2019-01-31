@@ -1,11 +1,42 @@
 <?xml version="1.0"?>
-<testsuite name="Chrome 71.0.3578 (Windows 10.0.0)" package="" timestamp="2019-01-31T10:51:19" id="0" hostname="GadgetTablet" tests="10" errors="0" failures="0" time="0.043">
+<testsuite name="Chrome 71.0.3578 (Windows 10.0.0)" package="" timestamp="2019-01-31T12:26:21" id="0" hostname="GadgetTablet" tests="41" errors="0" failures="0" time="0.159">
   <properties>
     <property name="browser.fullName" value="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/71.0.3578.98 Safari/537.36"/>
   </properties>
-  <testcase name="built-in-resources.focus invokes focus div when there is **NO** tabindex attribute" time="0.029" classname="Chrome_71_0_3578_(Windows_10_0_0).built-in-resources.focus"/>
-  <testcase name="built-in-resources.focus with &lt;div/> focuses div when there is tabindex attribute" time="0.008" classname="Chrome_71_0_3578_(Windows_10_0_0).built-in-resources.focus"/>
-  <testcase name="built-in-resources.focus with mouse Works in basic scenario" time="0.006" classname="Chrome_71_0_3578_(Windows_10_0_0).built-in-resources.focus"/>
+  <testcase name="built-in-resources.focus basic scenario invokes focus when there is **NO** tabindex attribute" time="0.035" classname="Chrome_71_0_3578_(Windows_10_0_0).built-in-resources.focus"/>
+  <testcase name="built-in-resources.focus basic scenario with non-focusable element focuses when there is tabindex attribute" time="0.008" classname="Chrome_71_0_3578_(Windows_10_0_0).built-in-resources.focus"/>
+  <testcase name="built-in-resources.focus basic scenario with &lt;div/> Works in basic scenario" time="0.009" classname="Chrome_71_0_3578_(Windows_10_0_0).built-in-resources.focus"/>
+  <testcase name="built-in-resources.focus basic scenario with &lt;input/> Works in basic scenario" time="0.004" classname="Chrome_71_0_3578_(Windows_10_0_0).built-in-resources.focus"/>
+  <testcase name="built-in-resources.focus basic scenario with &lt;select/> Works in basic scenario" time="0.005" classname="Chrome_71_0_3578_(Windows_10_0_0).built-in-resources.focus"/>
+  <testcase name="built-in-resources.focus basic scenario with &lt;select/> + &lt;option/> Works in basic scenario" time="0.003" classname="Chrome_71_0_3578_(Windows_10_0_0).built-in-resources.focus"/>
+  <testcase name="built-in-resources.focus basic scenario with &lt;textarea/> Works in basic scenario" time="0.003" classname="Chrome_71_0_3578_(Windows_10_0_0).built-in-resources.focus"/>
+  <testcase name="built-in-resources.focus basic scenario CustomElements -- Initialization only works with focusable custom element ce-029019" time="0.003" classname="Chrome_71_0_3578_(Windows_10_0_0).built-in-resources.focus"/>
+  <testcase name="built-in-resources.focus basic scenario CustomElements -- Initialization only works with focusable custom element ce-698056" time="0.002" classname="Chrome_71_0_3578_(Windows_10_0_0).built-in-resources.focus"/>
+  <testcase name="built-in-resources.focus basic scenario CustomElements -- Initialization only works with focusable custom element ce-503232" time="0.002" classname="Chrome_71_0_3578_(Windows_10_0_0).built-in-resources.focus"/>
+  <testcase name="built-in-resources.focus basic scenario CustomElements -- Initialization only works with focusable custom element ce-836144" time="0.004" classname="Chrome_71_0_3578_(Windows_10_0_0).built-in-resources.focus"/>
+  <testcase name="built-in-resources.focus basic scenario CustomElements -- Initialization only works with focusable custom element ce-464303" time="0.004" classname="Chrome_71_0_3578_(Windows_10_0_0).built-in-resources.focus"/>
+  <testcase name="built-in-resources.focus basic scenario CustomElements -- Initialization only works with focusable custom element ce-020639" time="0.002" classname="Chrome_71_0_3578_(Windows_10_0_0).built-in-resources.focus"/>
+  <testcase name="built-in-resources.focus basic scenario CustomElements -- Initialization only works with focusable custom element ce-779228" time="0.003" classname="Chrome_71_0_3578_(Windows_10_0_0).built-in-resources.focus"/>
+  <testcase name="built-in-resources.focus basic scenario CustomElements -- Initialization only works with focusable custom element ce-455963" time="0.003" classname="Chrome_71_0_3578_(Windows_10_0_0).built-in-resources.focus"/>
+  <testcase name="built-in-resources.focus basic scenario CustomElements -- Initialization only works with focusable custom element ce-794568" time="0.005" classname="Chrome_71_0_3578_(Windows_10_0_0).built-in-resources.focus"/>
+  <testcase name="built-in-resources.focus basic scenario CustomElements -- Initialization only works with focusable custom element ce-823333" time="0.004" classname="Chrome_71_0_3578_(Windows_10_0_0).built-in-resources.focus"/>
+  <testcase name="built-in-resources.focus basic scenario CustomElements -- Initialization only works with focusable custom element ce-231136" time="0.003" classname="Chrome_71_0_3578_(Windows_10_0_0).built-in-resources.focus"/>
+  <testcase name="built-in-resources.focus basic scenario CustomElements -- Initialization only works with focusable custom element ce-890841" time="0.003" classname="Chrome_71_0_3578_(Windows_10_0_0).built-in-resources.focus"/>
+  <testcase name="built-in-resources.focus basic scenario CustomElements -- Initialization only works with focusable custom element ce-066279" time="0.007" classname="Chrome_71_0_3578_(Windows_10_0_0).built-in-resources.focus"/>
+  <testcase name="built-in-resources.focus basic scenario CustomElements -- Initialization only works with focusable custom element ce-914546" time="0.004" classname="Chrome_71_0_3578_(Windows_10_0_0).built-in-resources.focus"/>
+  <testcase name="built-in-resources.focus basic scenario CustomElements -- Initialization only works with focusable custom element ce-225412" time="0.002" classname="Chrome_71_0_3578_(Windows_10_0_0).built-in-resources.focus"/>
+  <testcase name="built-in-resources.focus basic scenario CustomElements -- Initialization only works with focusable custom element ce-953646" time="0.003" classname="Chrome_71_0_3578_(Windows_10_0_0).built-in-resources.focus"/>
+  <testcase name="built-in-resources.focus basic scenario CustomElements -- Initialization only works with focusable custom element ce-237586" time="0.003" classname="Chrome_71_0_3578_(Windows_10_0_0).built-in-resources.focus"/>
+  <testcase name="built-in-resources.focus basic scenario CustomElements -- Initialization only works with focusable custom element ce-908501" time="0.004" classname="Chrome_71_0_3578_(Windows_10_0_0).built-in-resources.focus"/>
+  <testcase name="built-in-resources.focus basic scenario CustomElements -- Initialization only works with focusable custom element ce-700443" time="0.003" classname="Chrome_71_0_3578_(Windows_10_0_0).built-in-resources.focus"/>
+  <testcase name="built-in-resources.focus basic scenario CustomElements -- Initialization only works with focusable custom element ce-457405" time="0.003" classname="Chrome_71_0_3578_(Windows_10_0_0).built-in-resources.focus"/>
+  <testcase name="built-in-resources.focus basic scenario CustomElements -- Initialization only works with focusable custom element ce-401524" time="0.003" classname="Chrome_71_0_3578_(Windows_10_0_0).built-in-resources.focus"/>
+  <testcase name="built-in-resources.focus basic scenario CustomElements -- Initialization only works with focusable custom element ce-333252" time="0.006" classname="Chrome_71_0_3578_(Windows_10_0_0).built-in-resources.focus"/>
+  <testcase name="built-in-resources.focus basic scenario CustomElements -- Initialization only works with focusable custom element ce-098297" time="0.003" classname="Chrome_71_0_3578_(Windows_10_0_0).built-in-resources.focus"/>
+  <testcase name="built-in-resources.focus basic scenario CustomElements -- Initialization only works with focusable custom element ce-541506" time="0.005" classname="Chrome_71_0_3578_(Windows_10_0_0).built-in-resources.focus"/>
+  <testcase name="built-in-resources.focus basic scenario CustomElements -- Initialization only works with focusable custom element ce-829911" time="0.003" classname="Chrome_71_0_3578_(Windows_10_0_0).built-in-resources.focus"/>
+  <testcase name="built-in-resources.focus basic scenario CustomElements -- Initialization only works with focusable custom element ce-303915" time="0.002" classname="Chrome_71_0_3578_(Windows_10_0_0).built-in-resources.focus"/>
+  <testcase name="built-in-resources.focus basic scenario CustomElements -- Initialization only works with focusable custom element ce-309612" time="0.003" classname="Chrome_71_0_3578_(Windows_10_0_0).built-in-resources.focus"/>
   <system-out>
     <![CDATA[
 ]]>

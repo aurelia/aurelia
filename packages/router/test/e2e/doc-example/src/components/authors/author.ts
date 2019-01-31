@@ -2,9 +2,9 @@ import { inject } from '@aurelia//kernel';
 import { customElement } from '@aurelia/runtime';
 import { Router } from '../../../../../../src';
 import { AuthorsRepository } from '../../repositories/authors';
-import { Information } from './information';
-import { wait } from '../../utils';
 import { State } from '../../state';
+import { wait } from '../../utils';
+import { Information } from './information';
 
 @customElement({
   name: 'author', template: `<template>
@@ -16,7 +16,7 @@ import { State } from '../../state';
   </ul>
 </div>
 <au-nav name="author-menu"></au-nav>
-<au-viewport name="author-tabs" default="author-details=\${author.id}" used-by="about-authors,author-details,information" no-history></au-viewport>
+<au-viewport name="author-tabs" stateful default="author-details=\${author.id}" used-by="about-authors,author-details,information" no-history></au-viewport>
 </template>`,
   dependencies: [Information as any]
 })

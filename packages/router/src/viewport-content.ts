@@ -15,11 +15,20 @@ export interface IRouteableCustomElement extends ICustomElement {
   leave?(nextInstruction?: INavigationInstruction, instruction?: INavigationInstruction): void | Promise<void>;
 }
 
+export const enum ContentStatuses {
+  none = 0,
+  loaded = 1,
+  initialized = 2,
+  entered = 3,
+  added = 4,
+}
+
 export class ViewportContent {
   public content: IRouteableCustomElementType | string;
   public parameters: string;
   public instruction: INavigationInstruction;
   public component: IRouteableCustomElement;
+  public contentStatus: ContentStatuses;
 
   constructor(content: ICustomElementType | string = null, parameters: string = null, instruction: INavigationInstruction = null, context: IRenderContext = null) {
     // Can be a (resolved) type or a string (to be resolved later)
@@ -27,6 +36,7 @@ export class ViewportContent {
     this.parameters = parameters;
     this.instruction = instruction;
     this.component = null;
+    this.contentStatus = ContentStatuses.none;
 
     // If we've got a container, we're good to resolve type
     if (this.content !== null && typeof this.content === 'string' && context !== null) {

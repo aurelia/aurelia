@@ -4,7 +4,7 @@ import { mergeParameters } from './parser';
 import { IComponentViewportParameters, Router } from './router';
 import { Scope } from './scope';
 import { IRouteableCustomElement, IViewportOptions } from './viewport';
-import { ViewportContent } from './viewport-content';
+import { ContentStatuses, ViewportContent } from './viewport-content';
 
 export interface IRouteableCustomElementType extends ICustomElementType {
   parameters?: string[];
@@ -27,14 +27,6 @@ export interface IViewportOptions {
   forceDescription?: boolean;
 }
 
-const enum NavigationStatuses {
-  none = 0,
-  loaded = 1,
-  initialized = 2,
-  entered = 3,
-  added = 4,
-}
-
 export class Viewport {
   public name: string;
   public element: Element;
@@ -52,7 +44,6 @@ export class Viewport {
   private elementResolve?: ((value?: void | PromiseLike<void>) => void) | null;
 
   private previousViewportState?: Viewport;
-  private navigationStatus: NavigationStatuses;
 
   private cache: ViewportContent[];
   private fromCache: boolean;
@@ -72,7 +63,6 @@ export class Viewport {
     this.nextContent = null;
     this.elementResolve = null;
     this.previousViewportState = null;
-    this.navigationStatus = NavigationStatuses.none;
     this.cache = [];
     this.fromCache = false;
   }
@@ -104,7 +94,6 @@ export class Viewport {
         this.cache.push(this.nextContent);
       }
     }
-    this.navigationStatus = NavigationStatuses.none;
 
     return this.content.isChange(this.nextContent) || instruction.isRefresh;
   }
@@ -226,7 +215,7 @@ export class Viewport {
       this.nextContent.instruction.parameters = merged.namedParameters;
       this.nextContent.instruction.parameterList = merged.parameterList;
       await this.nextContent.component.enter(merged.merged, this.nextContent.instruction, this.content.instruction);
-      this.navigationStatus = NavigationStatuses.entered;
+      this.nextContent.contentStatus = ContentStatuses.entered;
     }
     this.initializeComponent(this.nextContent.component);
     return true;
@@ -271,23 +260,22 @@ export class Viewport {
 
   public finalizeContentChange(): void {
     this.previousViewportState = null;
-    this.navigationStatus = NavigationStatuses.none;
   }
   public async abortContentChange(): Promise<void> {
-    switch (this.navigationStatus) {
-      case NavigationStatuses.added:
+    switch (this.nextContent.contentStatus) {
+      case ContentStatuses.added:
         this.removeComponent(this.nextContent.component);
-      case NavigationStatuses.entered:
+      case ContentStatuses.entered:
         await this.nextContent.component.leave();
-      case NavigationStatuses.initialized:
+      case ContentStatuses.initialized:
         this.terminateComponent(this.nextContent.component);
-      case NavigationStatuses.loaded:
+      case ContentStatuses.loaded:
         this.unloadComponent();
     }
     if (this.previousViewportState) {
       Object.assign(this, this.previousViewportState);
     }
-    this.navigationStatus = NavigationStatuses.none;
+    this.nextContent.contentStatus = ContentStatuses.none;
   }
 
   public description(full: boolean = false): string {
@@ -386,7 +374,7 @@ export class Viewport {
       // TODO: get useProxies settings from the template definition
       this.nextContent.component.$hydrate(LifecycleFlags.none, container, host);
     }
-    this.navigationStatus = NavigationStatuses.loaded;
+    this.nextContent.contentStatus = ContentStatuses.loaded;
   }
   private unloadComponent(): void {
     // TODO: We might want to do something here eventually, who knows?
@@ -398,7 +386,7 @@ export class Viewport {
     if (!this.fromCache) {
       component.$bind(LifecycleFlags.fromStartTask | LifecycleFlags.fromBind, null);
     }
-    this.navigationStatus = NavigationStatuses.initialized;
+    this.nextContent.contentStatus = ContentStatuses.initialized;
   }
   private terminateComponent(component: ICustomElement): void {
     // Don't terminate cached content
@@ -419,7 +407,7 @@ export class Viewport {
         }
       }
     }
-    this.navigationStatus = NavigationStatuses.added;
+    this.nextContent.contentStatus = ContentStatuses.added;
   }
   private removeComponent(component: ICustomElement): void {
     if (this.options.stateful) {

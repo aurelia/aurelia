@@ -98,7 +98,7 @@ export class QueuedBrowserHistory implements QueuedBrowserHistory {
       parameters: parameters,
       resolve: _resolve,
     });
-    // this.dequeue().catch(error => { throw error; });
+    this.dequeue().catch(error => { throw error; });
     return promise;
   }
 

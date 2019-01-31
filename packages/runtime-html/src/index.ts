@@ -73,6 +73,10 @@ export {
 } from './resources/custom-attributes/blur';
 
 export {
+  FocusCustomAttribute
+} from './resources/custom-attributes/focus';
+
+export {
   IProjectorLocatorRegistration,
   ITargetAccessorLocatorRegistration,
   ITargetObserverLocatorRegistration,

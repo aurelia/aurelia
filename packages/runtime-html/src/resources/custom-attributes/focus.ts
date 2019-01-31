@@ -9,7 +9,9 @@ export class FocusCustomAttribute implements FocusCustomAttribute  {
   public static readonly inject: ReadonlyArray<Function> = [INode];
 
   public static readonly register: IRegistry['register'];
-  public static readonly bindables: IAttributeDefinition['bindables'];
+  public static readonly bindables: IAttributeDefinition['bindables'] = {
+    value: { property: 'value', attribute: 'value', mode: BindingMode.twoWay }
+  };
   public static readonly kind: ICustomAttributeResource;
   public static readonly description: AttributeDefinition;
 
@@ -27,6 +29,10 @@ export class FocusCustomAttribute implements FocusCustomAttribute  {
   ) {
     this.element = element;
     this.needsApply = false;
+  }
+
+  public binding(): void {
+    this.valueChanged();
   }
 
   /**
@@ -86,6 +92,5 @@ export class FocusCustomAttribute implements FocusCustomAttribute  {
     }
   }
 }
-CustomAttributeResource.define({ name: 'focus' }, FocusCustomAttribute);
 
-bindable({ mode: BindingMode.twoWay })(FocusCustomAttribute, 'value');
+CustomAttributeResource.define({ name: 'focus' }, FocusCustomAttribute);

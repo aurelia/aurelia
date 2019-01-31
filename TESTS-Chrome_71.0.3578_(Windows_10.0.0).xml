@@ -1,9 +1,11 @@
 <?xml version="1.0"?>
-<testsuite name="Chrome 71.0.3578 (Windows 10.0.0)" package="" timestamp="2019-01-30T02:30:01" id="0" hostname="GadgetTablet" tests="1" errors="0" failures="0" time="0.024">
+<testsuite name="Chrome 71.0.3578 (Windows 10.0.0)" package="" timestamp="2019-01-31T10:51:19" id="0" hostname="GadgetTablet" tests="10" errors="0" failures="0" time="0.043">
   <properties>
     <property name="browser.fullName" value="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/71.0.3578.98 Safari/537.36"/>
   </properties>
-  <testcase name="built-in-resources.blur 01." time="0.024" classname="Chrome_71_0_3578_(Windows_10_0_0).built-in-resources.blur"/>
+  <testcase name="built-in-resources.focus invokes focus div when there is **NO** tabindex attribute" time="0.029" classname="Chrome_71_0_3578_(Windows_10_0_0).built-in-resources.focus"/>
+  <testcase name="built-in-resources.focus with &lt;div/> focuses div when there is tabindex attribute" time="0.008" classname="Chrome_71_0_3578_(Windows_10_0_0).built-in-resources.focus"/>
+  <testcase name="built-in-resources.focus with mouse Works in basic scenario" time="0.006" classname="Chrome_71_0_3578_(Windows_10_0_0).built-in-resources.focus"/>
   <system-out>
     <![CDATA[
 ]]>

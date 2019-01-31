@@ -127,7 +127,7 @@ export class BlurCustomAttribute {
     this.linkedMultiple = true;
     this.searchSubTree = true;
     this.linkingContext = null;
-    this.value = false;
+    // this.value = false;
   }
 
   public attached() {
@@ -231,7 +231,7 @@ BlurCustomAttribute.bindables = ['onBlur', 'linkedWith', 'linkMultiple', 'search
   bindables[prop] = { property: prop, attribute: PLATFORM.kebabCase(prop) };
   return bindables;
 }, {
-  value: { property: 'value', attribute: 'value', mode: BindingMode.twoWay }
+  value: { property: 'value', attribute: 'value', mode: BindingMode.fromView }
 } as Record<string, IBindableDescription>);
 
 /*******************************

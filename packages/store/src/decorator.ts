@@ -1,5 +1,6 @@
 import { Reporter } from '@aurelia/kernel';
 import { Observable, Subscription } from 'rxjs';
+import { View } from './../../runtime/src/templating/view';
 
 import { Store, STORE } from './store';
 
@@ -17,27 +18,27 @@ export interface MultipleSelector<T, R = T | unknown> {
 
 const defaultSelector = <T>(store: Store<T>) => store.state;
 
-interface ITarget {
-  prototype?: {
-    _stateSubscriptions?: unknown;
-    bind(...args: unknown[]): unknown;
-    unbind(): unknown;
-  };
-}
-
 // tslint:disable-next-line:cognitive-complexity
 export function connectTo<T, R = unknown>(settings?: ((store: Store<T>) => Observable<R>) | ConnectToSettings<T, R>): (target: unknown) => void {
   if (!Object.entries) {
-    Reporter.error(507);
+    throw Reporter.error(507);
   }
 
-  const store = STORE.container.get(Store) as Store<T>;
-  const _settings: ConnectToSettings<T, unknown> = {
+  let $store: Store<T>;
+
+  //tslint:disable-next-line
+  const _settings: ConnectToSettings<T, any> = {
     selector: typeof settings === 'function' ? settings : defaultSelector,
     ...settings
   };
 
   function getSource(selector: (((store: Store<T>) => Observable<R>))): Observable<unknown> {
+    // if for some reason getSource is invoked before setup (bind lifecycle, typically)
+    // then we have no choice but to get the store instance from global container instance
+    // otherwise, assume that $store variable in the closure would be already assigned the right
+    // value from created callback
+    // Could also be in situation where it doesn't come from custom element, or some exotic setups/scenarios
+    const store = $store || ($store = STORE.container.get(Store) as Store<T>);
     const source = selector(store);
 
     if (source instanceof Observable) {
@@ -69,7 +70,9 @@ export function connectTo<T, R = unknown>(settings?: ((store: Store<T>) => Obser
     }));
   }
 
-  return function (target: ITarget): void {
+  // tslint:disable-next-line
+  return function (target: any) {
+    const originalCreated = target.prototype.created;
     const originalSetup = typeof settings === 'object' && settings.setup
       ? target.prototype[settings.setup]
       : target.prototype.bind;
@@ -77,20 +80,35 @@ export function connectTo<T, R = unknown>(settings?: ((store: Store<T>) => Obser
       ? target.prototype[settings.teardown]
       : target.prototype.unbind;
 
-    target.prototype[typeof settings === 'object' && settings.setup ? settings.setup : 'bind'] = function (): void {
-      if (typeof settings === 'object' &&
-        typeof settings.onChanged === 'string' &&
-        !(settings.onChanged in this)) {
-          Reporter.error(510);
-      }
+    // only override if prototype callback is a function
+    if (typeof originalCreated === 'function' || originalCreated === undefined) {
+      target.prototype.created = function created(_: View, view: View): void {
+        // here we relies on the fact that the class Store
+        // has not been registered somewhere in one of child containers, instead of root container
+        // if there is any issue with this approach, needs to walk all the way up to resolve from root
+        // typically like invoking from global Container.instance
+        $store = this.$context.get(Store);
+        if (originalCreated !== undefined) {
+          return originalCreated.call(this, _, view);
+        }
+      };
+    }
 
-      this._stateSubscriptions = createSelectors().map(s => getSource(s.selector).subscribe((state: unknown) => {
+    //tslint:disable-next-line
+    target.prototype[typeof settings === 'object' && settings.setup ? settings.setup : 'bind'] = function (): any {
+      if (typeof settings === 'object' &&
+        typeof settings.onChanged === 'string' && !(settings.onChanged in this)) {
+          throw Reporter.error(510);
+        }
+
+      //tslint:disable-next-line
+      this._stateSubscriptions = createSelectors().map(s => getSource(s.selector).subscribe((state: any) => {
         const lastTargetIdx = s.targets.length - 1;
         const oldState = s.targets.reduce((accu = {}, curr) => accu[curr], this);
 
         Object.entries(s.changeHandlers).forEach(([handlerName, args]) => {
           if (handlerName in this) {
-            this[handlerName](...[s.targets[lastTargetIdx], state, oldState].slice(args as number, 3));
+            this[handlerName](...[ s.targets[lastTargetIdx], state, oldState ].slice(args as number, 3));
           }
         });
 
@@ -105,7 +123,7 @@ export function connectTo<T, R = unknown>(settings?: ((store: Store<T>) => Obser
       }
     };
 
-    target.prototype[typeof settings === 'object' && settings.teardown ? settings.teardown : 'unbind'] = function (): void {
+    target.prototype[typeof settings === 'object' && settings.teardown ? settings.teardown : 'unbind'] = function () {
       if (this._stateSubscriptions && Array.isArray(this._stateSubscriptions)) {
         this._stateSubscriptions.forEach((sub: Subscription) => {
           if (sub instanceof Subscription && sub.closed === false) {

@@ -1,7 +1,7 @@
-import { STORE } from './../../src/store';
 import { DI, Registration } from '@aurelia/kernel';
 import { expect } from 'chai';
 import { skip } from 'rxjs/operators';
+import { STORE } from './../../src/store';
 
 import { dispatchify, Store } from '../../src/store';
 import { createTestStore, testState } from './helpers';
@@ -33,9 +33,12 @@ describe('dispatchify', () => {
   it('should return the promise from dispatched calls', async () => {
     const container = DI.createContainer();
     const { store } = createTestStore();
+
     const fakeAction = (currentState: testState, param1: number, param2: number) => {
       return {...currentState,  foo: param1 + param2};
     };
+
+    STORE.container = container;
 
     store.registerAction('FakeAction', fakeAction as any);
     container.register(Registration.instance(Store, store));
@@ -49,9 +52,13 @@ describe('dispatchify', () => {
   it('should accept the reducers registered name', done => {
     const container = DI.createContainer();
     const { store } = createTestStore();
+
     const fakeAction = (currentState: testState, param1: number, param2: number) => {
       return {...currentState,  foo: param1 + param2};
     };
+
+    STORE.container = container;
+
     const fakeActionRegisteredName = 'FakeAction';
 
     store.registerAction(fakeActionRegisteredName, fakeAction as any);
@@ -70,6 +77,9 @@ describe('dispatchify', () => {
   it('should throw if any string given that doesn\'t reflect a registered action name', async () => {
     const container = DI.createContainer();
     const { store } = createTestStore();
+
+    STORE.container = container;
+
     const fakeAction = (currentState: testState, param1: number, param2: number) => {
       return {...currentState,  foo: param1 + param2};
     };

@@ -1,8 +1,7 @@
 import { DI, Registration } from '@aurelia/kernel';
 import { Subscription } from 'rxjs';
 import { distinctUntilChanged, pluck } from 'rxjs/operators';
-import { StoreConfiguration } from './../../src/index';
-import { STORE } from './../../src/store';
+import { STORE } from '../../src/store';
 
 import { expect } from 'chai';
 import { stub } from 'sinon';

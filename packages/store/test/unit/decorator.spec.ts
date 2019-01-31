@@ -39,9 +39,7 @@ describe('using decorators', () => {
   it('should throw an descriptive error if Object.entries is not available', () => {
     (Object as any).entries = undefined;
 
-    expect(() => {
-      connectTo();
-    }).to.throw(/Object.entries/);
+    expect(() => { connectTo(); }).to.throw();
   });
 
   it('should be possible to decorate a class and assign the subscribed result to the state property', () => {
@@ -114,7 +112,7 @@ describe('using decorators', () => {
       expect(sut.state).to.equal(initialState);
     });
 
-    it('should be possible to provide an object with multiple selectors', async () => {
+    it('should be possible to provide an object with multiple selectors', () => {
       const { initialState } = arrange();
 
       @connectTo<DemoState>({
@@ -133,11 +131,13 @@ describe('using decorators', () => {
 
       (sut as any).bind();
 
-      await Promise.resolve();
-
-      expect(sut.state).not.to.equal(undefined);
-      expect(sut.barTarget).to.equal(initialState.bar);
-      expect(sut.fooTarget).to.equal(initialState.foo);
+      setTimeout(
+        () => {
+          expect(sut.state).not.to.equal(undefined);
+          expect(sut.barTarget).to.equal(initialState.bar);
+          expect(sut.fooTarget).to.equal(initialState.foo);
+        }
+      );
     });
 
     it('should use the default state observable if selector does not return an observable', () => {
@@ -174,10 +174,12 @@ describe('using decorators', () => {
 
       (sut as any).bind();
 
-      setTimeout(() => {
-        expect((sut as any).state).not.to.equal(undefined);
-        expect(sut.foo).to.equal(initialState.bar);
-      },         250);
+      setTimeout(
+        () => {
+          expect((sut as any).state).not.to.equal(undefined);
+          expect(sut.foo).to.equal(initialState.bar);
+        }
+      );
     });
 
     it('should be possible to use the target as the parent object for the multiple selector targets', () => {
@@ -199,14 +201,16 @@ describe('using decorators', () => {
 
       (sut as any).bind();
 
-      setTimeout(() => {
-        expect((sut as any).state).not.to.equal(undefined);
-        expect(sut.foo).not.to.equal(undefined);
-        expect((sut.foo as any).barTarget).not.to.equal(undefined);
-        expect((sut.foo as any).fooTarget).not.to.equal(undefined);
-        expect((sut.foo as any).barTarget).to.equal(initialState.bar);
-        expect((sut.foo as any).fooTarget).to.equal(initialState.foo);
-      },         250);
+      setTimeout(
+        () => {
+          expect((sut as any).state).not.to.equal(undefined);
+          expect(sut.foo).not.to.equal(undefined);
+          expect((sut.foo as any).barTarget).not.to.equal(undefined);
+          expect((sut.foo as any).fooTarget).not.to.equal(undefined);
+          expect((sut.foo as any).barTarget).to.equal(initialState.bar);
+          expect((sut.foo as any).fooTarget).to.equal(initialState.foo);
+        }
+      );
     });
   });
 

@@ -271,11 +271,7 @@ function generateTests(testTags: Tag[], textBindings: TextBinding[], ifElsePairs
             }),
             $class([
               $property(
-                'bindables', {
-                  [ifText.variable]: { property: ifText.variable, attribute: ifText.variable },
-                  [elseText.variable]: { property: elseText.variable, attribute: elseText.variable },
-                  item: { property: 'item', attribute: 'item' }
-                },
+                'bindables', [ifText.variable, elseText.variable, 'item'],
                 true
               ),
               ...containerless !== null ? [$property('containerless', true, true)] : [],

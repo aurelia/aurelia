@@ -9,7 +9,6 @@ import {
   Tracer
 } from '@aurelia/kernel';
 import {
-  stringifyLifecycleFlags,
   TargetedInstructionType
 } from '@aurelia/runtime';
 import { HTMLTargetedInstructionType } from '@aurelia/runtime-html';
@@ -29,8 +28,9 @@ import {
   verifyEqual
 } from '../../../../scripts/test-lib';
 import {
+  stringifyLifecycleFlags,
   Tracer as DebugTracer
-} from '../../../debug/src/reporter';
+} from '../../../debug/src/tracer';
 
 export const SymbolTraceWriter = {
   write(info: ITraceInfo): void {
@@ -83,7 +83,7 @@ export const SymbolTraceWriter = {
       }
     }
     output += ')';
-    console.debug(`${'  '.repeat(info.depth)}${info.name} - ${output}`);
+    console.debug(`${'  '.repeat(info.depth)}${info.objName}.${info.methodName} - ${output}`);
   }
 };
 

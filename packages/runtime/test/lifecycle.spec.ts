@@ -1,7 +1,7 @@
 import { DI } from '@aurelia/kernel';
 import { expect } from 'chai';
-import { Hooks, ILifecycle, ILifecycleBound, LifecycleFlags, PromiseTask, State } from '../src/index';
-import { Lifecycle } from '../src/lifecycle';
+import { Hooks, ILifecycle, LifecycleFlags, PromiseTask, State } from '../src/index';
+import { IComponent, ILifecycleHooks, Lifecycle } from '../src/lifecycle';
 
 describe('Lifecycle', () => {
 
@@ -11,7 +11,6 @@ describe('Lifecycle', () => {
     const linkedListProps = [
       'flush',
       'connect',
-      'patch',
       'bound',
       'mount',
       'attached',
@@ -44,7 +43,6 @@ describe('Lifecycle', () => {
     const functionProps = [
       'flush',
       'connect',
-      'patch',
       'bound',
       '$mount',
       'attached',
@@ -61,7 +59,6 @@ describe('Lifecycle', () => {
     const objectProps = [
       '$nextFlush',
       '$nextConnect',
-      '$nextPatch',
       '$nextBound',
       '$nextMount',
       '$nextAttached',
@@ -101,7 +98,7 @@ describe('Lifecycle', () => {
       });
 
       let boundCalled = false;
-      const subject1: ILifecycleBound = {
+      const subject1: ILifecycleHooks = {
         $nextBound: null,
         bound(_flags: LifecycleFlags): void {
           expect(callbackCalled).to.equal(true, 'callbackCalled');

@@ -8,7 +8,7 @@ import {
   tearDown
 } from './util';
 
-const spec = 'template-compiler.if-else';
+const spec = 'if-else';
 
 // TemplateCompiler - if/else integration
 describe(spec, () => {

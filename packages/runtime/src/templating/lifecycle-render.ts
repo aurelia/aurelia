@@ -44,37 +44,52 @@ export interface ILifecycleRender {
 }
 
 /** @internal */
+// tslint:disable-next-line:no-ignored-initial-value
 export function $hydrateAttribute(this: Writable<ICustomAttribute>, flags: LifecycleFlags, parentContext: IServiceLocator): void {
-  if (Tracer.enabled) { Tracer.enter(`${this['constructor'].name}.$hydrateAttribute`, slice.call(arguments)); }
   if (Profiler.enabled) { enter(); }
   const Type = this.constructor as ICustomAttributeType;
+  if (Tracer.enabled) { Tracer.enter(Type.description.name, '$hydrate', slice.call(arguments)); }
+  const description = Type.description;
+
+  flags |= description.strategy;
   const renderingEngine = parentContext.get(IRenderingEngine);
+
+  let bindingContext: typeof this;
+  if (flags & LifecycleFlags.proxyStrategy) {
+    bindingContext = ProxyObserver.getOrCreate(this).proxy;
+  } else {
+    bindingContext = this;
+  }
 
   renderingEngine.applyRuntimeBehavior(flags, Type, this);
 
   if (this.$hooks & Hooks.hasCreated) {
-    this.created(flags);
+    bindingContext.created(flags);
   }
   if (Profiler.enabled) { leave(); }
   if (Tracer.enabled) { Tracer.leave(); }
 }
 
 /** @internal */
+// tslint:disable-next-line:no-ignored-initial-value
 export function $hydrateElement(this: Writable<ICustomElement>, flags: LifecycleFlags, parentContext: IServiceLocator, host: INode, options: IElementHydrationOptions = PLATFORM.emptyObject): void {
-  if (Tracer.enabled) { Tracer.enter(`${this['constructor'].name}.$hydrateElement`, slice.call(arguments)); }
   if (Profiler.enabled) { enter(); }
   const Type = this.constructor as ICustomElementType;
+  if (Tracer.enabled) { Tracer.enter(Type.description.name, '$hydrate', slice.call(arguments)); }
   const description = Type.description;
+
+  flags |= description.strategy;
   const projectorLocator = parentContext.get(IProjectorLocator);
   const renderingEngine = parentContext.get(IRenderingEngine);
   const dom = parentContext.get(IDOM);
 
   let bindingContext: typeof this;
-  if (flags & LifecycleFlags.useProxies) {
+  if (flags & LifecycleFlags.proxyStrategy) {
     bindingContext = ProxyObserver.getOrCreate(this).proxy;
   } else {
     bindingContext = this;
   }
+
   this.$scope = Scope.create(flags, bindingContext, null);
   this.$host = host;
   this.$projector = projectorLocator.getElementProjector(dom, this, host, description);
@@ -94,7 +109,7 @@ export function $hydrateElement(this: Writable<ICustomElement>, flags: Lifecycle
   }
 
   if (this.$hooks & Hooks.hasCreated) {
-    this.created(flags);
+    bindingContext.created(flags);
   }
   if (Profiler.enabled) { leave(); }
   if (Tracer.enabled) { Tracer.leave(); }

@@ -36,6 +36,7 @@ import {
 } from '../templating/lifecycle-attach';
 import {
   $bindElement,
+  $patch,
   $unbindElement
 } from '../templating/lifecycle-bind';
 import {
@@ -72,7 +73,7 @@ export interface ICustomElementStaticProperties {
   containerless?: TemplateDefinition['containerless'];
   shadowOptions?: TemplateDefinition['shadowOptions'];
   bindables?: TemplateDefinition['bindables'];
-  useProxies?: TemplateDefinition['useProxies'];
+  strategy?: TemplateDefinition['strategy'];
 }
 
 export interface ICustomElement<T extends INode = INode> extends
@@ -82,8 +83,8 @@ export interface ICustomElement<T extends INode = INode> extends
   IMountableComponent,
   IRenderable<T> {
 
-  readonly $projector: IElementProjector;
-  readonly $host: CustomElementHost;
+  readonly $projector: IElementProjector<T>;
+  readonly $host: CustomElementHost<T>;
 
   $hydrate(flags: LifecycleFlags, parentContext: IServiceLocator, host: INode, options?: IElementHydrationOptions): void;
 }
@@ -129,6 +130,7 @@ function define<T extends Constructable>(this: ICustomElementResource, nameOrDef
 
   proto.$hydrate = $hydrateElement;
   proto.$bind = $bindElement;
+  proto.$patch = $patch;
   proto.$attach = $attachElement;
   proto.$detach = $detachElement;
   proto.$unbind = $unbindElement;
@@ -136,6 +138,7 @@ function define<T extends Constructable>(this: ICustomElementResource, nameOrDef
 
   proto.$prevComponent = null;
   proto.$nextComponent = null;
+  proto.$nextPatch = null;
 
   proto.$nextUnbindAfterDetach = null;
 

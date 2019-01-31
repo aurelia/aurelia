@@ -94,7 +94,7 @@ export class ObserverLocator implements IObserverLocator {
   }
 
   public getObserver(flags: LifecycleFlags, obj: IObservable|IBindingContext, propertyName: string): AccessorOrObserver {
-    if (flags & LifecycleFlags.useProxies && typeof obj === 'object') {
+    if (flags & LifecycleFlags.proxyStrategy && typeof obj === 'object') {
       return ProxyObserver.getOrCreate(obj, propertyName) as unknown as AccessorOrObserver; // TODO: fix typings (and ensure proper contracts ofc)
     }
     if (isBindingContext(obj)) {
@@ -132,7 +132,7 @@ export class ObserverLocator implements IObserverLocator {
       return this.targetAccessorLocator.getAccessor(flags, this.lifecycle, obj, propertyName);
     }
 
-    if (flags & LifecycleFlags.useProxies) {
+    if (flags & LifecycleFlags.proxyStrategy) {
       return ProxyObserver.getOrCreate(obj, propertyName) as unknown as AccessorOrObserver;
     }
     return new PropertyAccessor(obj, propertyName);
@@ -239,14 +239,19 @@ export class ObserverLocator implements IObserverLocator {
   }
 }
 
-export function getCollectionObserver(flags: LifecycleFlags, lifecycle: ILifecycle, collection: IObservedMap | IObservedSet | IObservedArray): CollectionObserver {
+type RepeatableCollection = IObservedMap | IObservedSet | IObservedArray | null | undefined | number;
+
+export function getCollectionObserver(flags: LifecycleFlags, lifecycle: ILifecycle, collection: RepeatableCollection): CollectionObserver {
+  // If the collection is wrapped by a proxy then `$observer` will return the proxy observer instead of the collection observer, which is not what we want
+  // when we ask for getCollectionObserver
+  const rawCollection = collection instanceof Object ? ProxyObserver.getRawIfProxy(collection) : collection;
   switch (toStringTag.call(collection)) {
     case '[object Array]':
-      return getArrayObserver(flags, lifecycle, collection as IObservedArray);
+      return getArrayObserver(flags, lifecycle, rawCollection as IObservedArray);
     case '[object Map]':
-      return getMapObserver(flags, lifecycle, collection as IObservedMap);
+      return getMapObserver(flags, lifecycle, rawCollection as IObservedMap);
     case '[object Set]':
-      return getSetObserver(flags, lifecycle, collection as IObservedSet);
+      return getSetObserver(flags, lifecycle, rawCollection as IObservedSet);
   }
   return null;
 }

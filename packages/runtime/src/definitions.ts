@@ -7,11 +7,13 @@ import {
   Omit,
   PLATFORM,
   ResourceDescription,
-  ResourcePartDescription
+  ResourcePartDescription,
+  Writable
 } from '@aurelia/kernel';
 import { IForOfStatement, IInterpolationExpression, IsBindingBehavior } from './ast';
-import { BindingMode } from './flags';
+import { BindingMode, BindingStrategy, ensureValidStrategy } from './flags';
 import { CustomElementHost, ICustomElement } from './resources/custom-element';
+import { Bindable } from './templating/bindable';
 
 /** @internal */
 export const customElementName = 'custom-element';
@@ -40,7 +42,6 @@ export interface IBindableDescription {
   callback?: string;
   attribute?: string;
   property?: string;
-  useProxies?: boolean;
 }
 
 /**
@@ -78,11 +79,11 @@ export interface ITemplateDefinition extends IResourceDefinition {
   dependencies?: IRegistry[];
   build?: IBuildInstruction;
   surrogates?: ITargetedInstruction[];
-  bindables?: Record<string, IBindableDescription>;
+  bindables?: Record<string, IBindableDescription> | string[];
   containerless?: boolean;
   shadowOptions?: { mode: 'open' | 'closed' };
   hasSlots?: boolean;
-  useProxies?: boolean;
+  strategy?: BindingStrategy;
 }
 
 export type TemplateDefinition = ResourceDescription<ITemplateDefinition>;
@@ -95,8 +96,8 @@ export interface IAttributeDefinition extends IResourceDefinition {
   aliases?: string[];
   isTemplateController?: boolean;
   hasDynamicOptions?: boolean;
-  bindables?: Record<string, IBindableDescription>;
-  useProxies?: boolean;
+  bindables?: Record<string, IBindableDescription> | string[];
+  strategy?: BindingStrategy;
 }
 
 export type AttributeDefinition = Immutable<Required<IAttributeDefinition>> | null;
@@ -229,7 +230,7 @@ class DefaultTemplateDefinition implements Required<ITemplateDefinition> {
   public containerless: ITemplateDefinition['containerless'];
   public shadowOptions: ITemplateDefinition['shadowOptions'];
   public hasSlots: ITemplateDefinition['hasSlots'];
-  public useProxies: ITemplateDefinition['useProxies'];
+  public strategy: ITemplateDefinition['strategy'];
 
   constructor() {
     this.name = 'unnamed';
@@ -243,7 +244,7 @@ class DefaultTemplateDefinition implements Required<ITemplateDefinition> {
     this.containerless = false;
     this.shadowOptions = null;
     this.hasSlots = false;
-    this.useProxies = false;
+    this.strategy = BindingStrategy.getterSetter;
   }
 }
 
@@ -254,8 +255,7 @@ const templateDefinitionAssignables = [
   'build',
   'containerless',
   'shadowOptions',
-  'hasSlots',
-  'useProxies'
+  'hasSlots'
 ];
 
 const templateDefinitionArrays = [
@@ -293,7 +293,7 @@ export function buildTemplateDefinition(
   containerless?: boolean | null,
   shadowOptions?: { mode: 'open' | 'closed' } | null,
   hasSlots?: boolean | null,
-  useProxies?: boolean | null): TemplateDefinition;
+  strategy?: BindingStrategy | null): TemplateDefinition;
 // tslint:disable-next-line:parameters-max-number // TODO: Reduce complexity (currently at 64)
 export function buildTemplateDefinition(
   ctor: CustomElementConstructor | null,
@@ -308,14 +308,14 @@ export function buildTemplateDefinition(
   containerless?: boolean | null,
   shadowOptions?: { mode: 'open' | 'closed' } | null,
   hasSlots?: boolean | null,
-  useProxies?: boolean | null): TemplateDefinition {
+  strategy?: BindingStrategy | null): TemplateDefinition {
 
   const def = new DefaultTemplateDefinition();
 
   // all cases fall through intentionally
   const argLen = arguments.length;
   switch (argLen) {
-    case 13: if (useProxies !== null) def.useProxies = useProxies;
+    case 13: if (strategy !== null) def.strategy = ensureValidStrategy(strategy);
     case 12: if (hasSlots !== null) def.hasSlots = hasSlots;
     case 11: if (shadowOptions !== null) def.shadowOptions = shadowOptions;
     case 10: if (containerless !== null) def.containerless = containerless;
@@ -329,7 +329,7 @@ export function buildTemplateDefinition(
     case 2:
       if (ctor !== null) {
         if (ctor['bindables']) {
-          def.bindables = { ...ctor.bindables };
+          def.bindables = Bindable.for(ctor as unknown as {}).get();
         }
         if (ctor['containerless']) {
           def.containerless = ctor.containerless;
@@ -343,6 +343,7 @@ export function buildTemplateDefinition(
           def.name = nameOrDef;
         }
       } else if (nameOrDef !== null) {
+        def.strategy = ensureValidStrategy(nameOrDef.strategy);
         templateDefinitionAssignables.forEach(prop => {
           if (nameOrDef[prop]) {
             def[prop] = nameOrDef[prop];
@@ -355,7 +356,7 @@ export function buildTemplateDefinition(
         });
         if (nameOrDef['bindables']) {
           if (def.bindables === PLATFORM.emptyObject) {
-            def.bindables = { ...nameOrDef.bindables };
+            def.bindables = Bindable.for(nameOrDef as unknown as {}).get();
           } else {
             Object.assign(def.bindables, nameOrDef.bindables);
           }

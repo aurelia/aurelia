@@ -29,7 +29,7 @@
     "browser-sync": "latest",
     "connect-history-api-fallback": "latest",
     "debounce": "latest",
-    "event-stream": "3.3.4",
+    "event-stream": "4.0.1",
     "gulp-changed-in-place": "latest",
     "gulp-notify": "latest",
     "gulp-plumber": "latest",

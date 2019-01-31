@@ -1,5 +1,5 @@
 import { DI, IContainer, IRegistry } from '@aurelia/kernel';
-import { BasicConfiguration as RuntimeBasicConfiguration } from '@aurelia/runtime';
+import { RuntimeBasicConfiguration } from '@aurelia/runtime';
 import { HTMLTemplateFactory } from './dom';
 import {
   ListenerBindingRenderer,

@@ -287,7 +287,9 @@ export {
   RepeatRegistration,
   ReplaceableRegistration,
   WithRegistration,
+
   SanitizeValueConverterRegistration,
+
   DebounceBindingBehaviorRegistration,
   OneTimeBindingBehaviorRegistration,
   ToViewBindingBehaviorRegistration,
@@ -295,11 +297,24 @@ export {
   SignalBindingBehaviorRegistration,
   ThrottleBindingBehaviorRegistration,
   TwoWayBindingBehaviorRegistration,
-  DefaultResources as BasicResources,
-  IObserverLocatorRegistration as ObserverLocatorRegistration,
-  ILifecycleRegistration as LifecycleRegistration,
-  IRendererRegistration as RendererRegistration,
-  RuntimeBasicConfiguration as BasicConfiguration
+  KeyedBindingBehaviorRegistration,
+
+  RefBindingRendererRegistration,
+  CallBindingRendererRegistration,
+  CustomAttributeRendererRegistration,
+  CustomElementRendererRegistration,
+  InterpolationBindingRendererRegistration,
+  IteratorBindingRendererRegistration,
+  LetElementRendererRegistration,
+  PropertyBindingRendererRegistration,
+  SetPropertyRendererRegistration,
+  TemplateControllerRendererRegistration,
+
+  DefaultResources,
+  IObserverLocatorRegistration,
+  ILifecycleRegistration,
+  IRendererRegistration,
+  RuntimeBasicConfiguration
 } from './configuration';
 export {
   AttributeDefinition,
@@ -345,11 +360,11 @@ export {
 } from './dom';
 export {
   BindingMode,
+  BindingStrategy,
   ExpressionKind,
   Hooks,
   LifecycleFlags,
-  State,
-  stringifyLifecycleFlags
+  State
 } from './flags';
 export {
   CallBindingInstruction,
@@ -413,7 +428,7 @@ export {
   IObservedSet,
   IObserversLookup,
   IOverrideContext,
-  IPatch,
+  IPatchable,
   IPropertyChangeHandler,
   IPropertyChangeNotifier,
   IPropertyChangeTracker,

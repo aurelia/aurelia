@@ -4,7 +4,7 @@ import { eachCartesianJoin } from '../unit/util';
 import { TestContext } from '../util';
 import { TestConfiguration } from './resources';
 
-const spec = 'template-compiler.repeater';
+const spec = 'repeater';
 
 describe(spec, function() {
     interface Spec {

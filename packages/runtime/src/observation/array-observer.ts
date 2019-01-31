@@ -3,6 +3,7 @@ import { LifecycleFlags } from '../flags';
 import { ILifecycle } from '../lifecycle';
 import { CollectionKind, ICollectionObserver, IndexMap, IObservedArray } from '../observation';
 import { collectionObserver } from './collection-observer';
+import { patchProperties } from './patch-properties';
 
 // https://tc39.github.io/ecma262/#sec-sortcompare
 function sortCompare(x: unknown, y: unknown): number {
@@ -378,13 +379,22 @@ export class ArrayObserver implements ArrayObserver {
   public readonly flags: LifecycleFlags;
 
   constructor(flags: LifecycleFlags, lifecycle: ILifecycle, array: IObservedArray) {
-    if (Tracer.enabled) { Tracer.enter('ArrayObserver.constructor', slice.call(arguments)); }
+    if (Tracer.enabled) { Tracer.enter('ArrayObserver', 'constructor', slice.call(arguments)); }
     this.lifecycle = lifecycle;
     array.$observer = this;
     this.collection = array;
     this.flags = flags & LifecycleFlags.persistentBindingFlags;
     this.resetIndexMap();
     if (Tracer.enabled) { Tracer.leave(); }
+  }
+
+  public $patch(flags: LifecycleFlags): void {
+    const items = this.collection;
+    const len = items.length;
+    let i = 0;
+    for (; i < len; ++i) {
+      patchProperties(items[i], flags);
+    }
   }
 }
 

@@ -14,7 +14,7 @@ import {
 import { IScope } from '../observation';
 import { ITemplate } from '../rendering-engine';
 import { $attachView, $cacheView, $detachView, $mountView, $unmountView } from './lifecycle-attach';
-import { $bindView, $lockedBind, $lockedUnbind, $unbindView } from './lifecycle-bind';
+import { $bindView, $lockedBind, $lockedUnbind, $patch, $unbindView } from './lifecycle-bind';
 
 const slice = Array.prototype.slice;
 
@@ -31,6 +31,7 @@ export class View<T extends INode = INode> implements IView<T> {
 
   public $nextComponent: IComponent;
   public $prevComponent: IComponent;
+  public $nextPatch: IComponent;
 
   public $nextMount: IMountableComponent;
   public $nextUnmount: IMountableComponent;
@@ -59,6 +60,7 @@ export class View<T extends INode = INode> implements IView<T> {
 
     this.$nextComponent = null;
     this.$prevComponent = null;
+    this.$nextPatch = null;
 
     this.$nextMount = null;
     this.$nextUnmount = null;
@@ -81,7 +83,7 @@ export class View<T extends INode = INode> implements IView<T> {
    * @param location The RenderLocation before which the view will be appended to the DOM.
    */
   public hold(location: IRenderLocation<T>): void {
-    if (Tracer.enabled) { Tracer.enter('View.hold', slice.call(arguments)); }
+    if (Tracer.enabled) { Tracer.enter('View', 'hold', slice.call(arguments)); }
     this.isFree = false;
     this.location = location;
     if (Tracer.enabled) { Tracer.leave(); }
@@ -98,7 +100,7 @@ export class View<T extends INode = INode> implements IView<T> {
    * @returns Whether this `View` can/will be returned to cache
    */
   public release(flags: LifecycleFlags): boolean {
-    if (Tracer.enabled) { Tracer.enter('View.release', slice.call(arguments)); }
+    if (Tracer.enabled) { Tracer.enter('View', 'release', slice.call(arguments)); }
     this.isFree = true;
     if (this.$state & State.isAttached) {
       if (Tracer.enabled) { Tracer.leave(); }
@@ -110,7 +112,7 @@ export class View<T extends INode = INode> implements IView<T> {
   }
 
   public lockScope(scope: IScope): void {
-    if (Tracer.enabled) { Tracer.enter('View.lockScope', slice.call(arguments)); }
+    if (Tracer.enabled) { Tracer.enter('View', 'lockScope', slice.call(arguments)); }
     this.$scope = scope;
     this.$bind = $lockedBind;
     this.$unbind = $lockedUnbind;
@@ -198,6 +200,7 @@ export class ViewFactory<T extends INode = INode> implements IViewFactory<T> {
 
 ((proto: IView): void => {
   proto.$bind = $bindView;
+  proto.$patch = $patch;
   proto.$unbind = $unbindView;
   proto.$attach = $attachView;
   proto.$detach = $detachView;

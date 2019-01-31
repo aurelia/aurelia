@@ -9,7 +9,6 @@ import { CollectionObserver, IBatchedCollectionSubscriber, IndexMap, IObservedAr
 import { BindingContext, Scope } from '../../observation/binding-context';
 import { getCollectionObserver } from '../../observation/observer-locator';
 import { ProxyObserver } from '../../observation/proxy-observer';
-import { SetterObserver } from '../../observation/setter-observer';
 import { bindable } from '../../templating/bindable';
 import { CustomAttributeResource, ICustomAttribute, ICustomAttributeResource } from '../custom-attribute';
 
@@ -25,7 +24,6 @@ export class Repeat<C extends ObservedCollection = IObservedArray, T extends INo
   @bindable public items: C;
 
   public $scope: IScope;
-  public $observers: { items: SetterObserver };
 
   public forOf: ForOfStatement;
   public hasPendingInstanceMutation: boolean;
@@ -37,6 +35,7 @@ export class Repeat<C extends ObservedCollection = IObservedArray, T extends INo
   public views: IView<T>[];
   public key: string | null;
   public keyed: boolean;
+  private persistentFlags: LifecycleFlags;
 
   constructor(
     location: IRenderLocation<T>,
@@ -54,6 +53,7 @@ export class Repeat<C extends ObservedCollection = IObservedArray, T extends INo
   }
 
   public binding(flags: LifecycleFlags): void {
+    this.persistentFlags = flags & LifecycleFlags.persistentBindingFlags;
     this.checkCollectionObserver(flags);
     let current = this.renderable.$bindingHead as Binding;
     while (current !== null) {
@@ -65,7 +65,7 @@ export class Repeat<C extends ObservedCollection = IObservedArray, T extends INo
     }
     this.local = this.forOf.declaration.evaluate(flags, this.$scope, null) as string;
 
-    if (this.keyed || (flags & LifecycleFlags.keyedMode) > 0) {
+    if (this.keyed || (flags & LifecycleFlags.keyedStrategy) > 0) {
       this.processViewsKeyed(null, flags);
     } else {
       this.processViewsNonKeyed(null, flags);
@@ -105,37 +105,38 @@ export class Repeat<C extends ObservedCollection = IObservedArray, T extends INo
 
   // called by SetterObserver (sync)
   public itemsChanged(newValue: C, oldValue: C, flags: LifecycleFlags): void {
-    this.checkCollectionObserver(flags);
+    flags |= this.persistentFlags;
+    const $this = ProxyObserver.getRawIfProxy(this);
+    $this.checkCollectionObserver(flags);
     flags |= LifecycleFlags.updateTargetInstance;
-    if (this.keyed || (flags & LifecycleFlags.keyedMode) > 0) {
-      this.processViewsKeyed(null, flags);
+    if ($this.keyed || (flags & LifecycleFlags.keyedStrategy) > 0) {
+      $this.processViewsKeyed(null, flags);
     } else {
-      this.processViewsNonKeyed(null, flags);
+      $this.processViewsNonKeyed(null, flags);
     }
   }
 
   // called by a CollectionObserver (async)
   public handleBatchedChange(indexMap: number[] | null, flags: LifecycleFlags): void {
+    flags |= this.persistentFlags;
+    const $this = ProxyObserver.getRawIfProxy(this);
     flags |= (LifecycleFlags.fromFlush | LifecycleFlags.updateTargetInstance);
-    if (this.keyed || (flags & LifecycleFlags.keyedMode) > 0) {
-      this.processViewsKeyed(indexMap, flags);
+    if ($this.keyed || (flags & LifecycleFlags.keyedStrategy) > 0) {
+      $this.processViewsKeyed(indexMap, flags);
     } else {
-      this.processViewsNonKeyed(indexMap, flags);
+      $this.processViewsNonKeyed(indexMap, flags);
     }
   }
 
   // if the indexMap === null, it is an instance mutation, otherwise it's an items mutation
   // TODO: Reduce complexity (currently at 46)
   private processViewsNonKeyed(indexMap: number[] | null, flags: LifecycleFlags): void {
-    if (ProxyObserver.isProxy(this)) {
-      flags |= LifecycleFlags.useProxies;
-    }
     const { views, $lifecycle } = this;
     let view: IView;
     if (this.$state & (State.isBound | State.isBinding)) {
       const { local, $scope, factory, forOf, items } = this;
       const oldLength = views.length;
-      const newLength = forOf.count(items);
+      const newLength = forOf.count(flags, items);
       if (oldLength < newLength) {
         views.length = newLength;
         for (let i = oldLength; i < newLength; ++i) {
@@ -165,7 +166,7 @@ export class Repeat<C extends ObservedCollection = IObservedArray, T extends INo
 
       $lifecycle.beginBind();
       if (indexMap === null) {
-        forOf.iterate(items, (arr, i, item: (string | number | boolean | ObservedCollection | IIndexable)) => {
+        forOf.iterate(flags, items, (arr, i, item: (string | number | boolean | ObservedCollection | IIndexable)) => {
           view = views[i];
           if (!!view.$scope && view.$scope.bindingContext[local] === item) {
             view.$bind(flags, Scope.fromParent(flags, $scope, view.$scope.bindingContext));
@@ -174,7 +175,7 @@ export class Repeat<C extends ObservedCollection = IObservedArray, T extends INo
           }
         });
       } else {
-        forOf.iterate(items, (arr, i, item: (string | number | boolean | ObservedCollection | IIndexable)) => {
+        forOf.iterate(flags, items, (arr, i, item: (string | number | boolean | ObservedCollection | IIndexable)) => {
           view = views[i];
           if (!!view.$scope && (indexMap[i] === i || view.$scope.bindingContext[local] === item)) {
             view.$bind(flags, Scope.fromParent(flags, $scope, view.$scope.bindingContext));
@@ -209,9 +210,6 @@ export class Repeat<C extends ObservedCollection = IObservedArray, T extends INo
   }
 
   private processViewsKeyed(indexMap: IndexMap | null, flags: LifecycleFlags): void {
-    if (ProxyObserver.isProxy(this)) {
-      flags |= LifecycleFlags.useProxies;
-    }
     const { $lifecycle, local, $scope, factory, forOf, items } = this;
     let views = this.views;
     if (indexMap === null) {
@@ -232,11 +230,11 @@ export class Repeat<C extends ObservedCollection = IObservedArray, T extends INo
         }
         $lifecycle.endUnbind(flags);
 
-        const newLen = forOf.count(items);
+        const newLen = forOf.count(flags, items);
         views = this.views = Array(newLen);
 
         $lifecycle.beginBind();
-        forOf.iterate(items, (arr, i, item: (string | number | boolean | ObservedCollection | IIndexable)) => {
+        forOf.iterate(flags, items, (arr, i, item: (string | number | boolean | ObservedCollection | IIndexable)) => {
           view = views[i] = factory.create(flags);
           view.$bind(flags, Scope.fromParent(flags, $scope, BindingContext.create(flags, local, item)));
         });
@@ -281,6 +279,7 @@ export class Repeat<C extends ObservedCollection = IObservedArray, T extends INo
           i = 0;
           let j = 0;
           let k = 0;
+          // tslint:disable-next-line:no-alphabetical-sort // alphabetical (numeric) sort is intentional
           deleted.sort();
           for (; i < deletedLen; ++i) {
             j = deleted[i] - i;
@@ -387,17 +386,18 @@ export class Repeat<C extends ObservedCollection = IObservedArray, T extends INo
   }
 
   private checkCollectionObserver(flags: LifecycleFlags): void {
-    const oldObserver = this.observer;
-    if (this.$state & (State.isBound | State.isBinding)) {
-      const newObserver = this.observer = getCollectionObserver(flags, this.$lifecycle, this.items);
+    const $this = ProxyObserver.getRawIfProxy(this);
+    const oldObserver = $this.observer;
+    if ($this.$state & (State.isBound | State.isBinding)) {
+      const newObserver = $this.observer = getCollectionObserver(flags, $this.$lifecycle, $this.items);
       if (oldObserver !== newObserver && oldObserver) {
-        oldObserver.unsubscribeBatched(this);
+        oldObserver.unsubscribeBatched($this);
       }
       if (newObserver) {
-        newObserver.subscribeBatched(this);
+        newObserver.subscribeBatched($this);
       }
     } else if (oldObserver) {
-      oldObserver.unsubscribeBatched(this);
+      oldObserver.unsubscribeBatched($this);
     }
   }
 }
@@ -413,7 +413,7 @@ let maxLen = 0;
 /** @internal */
 export function longestIncreasingSubsequence(indexMap: IndexMap): Uint8Array | Uint16Array | Uint32Array {
   const len = indexMap.length;
-  const origLen = len + (indexMap.deletedItems && indexMap.deletedItems.length || 0);
+  const origLen = len + indexMap.deletedItems.length;
   const TArr = origLen < 0xFF ? Uint8Array : origLen < 0xFFFF ? Uint16Array : Uint32Array;
 
   if (len > maxLen) {

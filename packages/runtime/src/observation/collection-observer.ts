@@ -7,7 +7,7 @@ import {
   IBindingTargetObserver,
   ICollectionObserver,
   IndexMap,
-  IPatch,
+  IPatchable,
   IPropertySubscriber,
   MutationKind
 } from '../observation';
@@ -17,10 +17,10 @@ import { targetObserver } from './target-observer';
 const slice = Array.prototype.slice;
 
 function flush(this: CollectionObserver, flags: LifecycleFlags): void {
-  if (Tracer.enabled) { Tracer.enter(`${this['constructor'].name}.flush`, slice.call(arguments)); }
+  if (Tracer.enabled) { Tracer.enter(this['constructor'].name, 'flush', slice.call(arguments)); }
   this.callBatchedSubscribers(this.indexMap, flags | this.persistentFlags);
   if (!!this.lengthObserver) {
-    this.lengthObserver.patch(LifecycleFlags.fromFlush | LifecycleFlags.updateTargetInstance | this.persistentFlags);
+    this.lengthObserver.$patch(LifecycleFlags.fromFlush | LifecycleFlags.updateTargetInstance | this.persistentFlags);
   }
   this.resetIndexMap();
   if (Tracer.enabled) { Tracer.leave(); }
@@ -86,7 +86,7 @@ export function collectionObserver(kind: CollectionKind.array | CollectionKind.s
 export interface CollectionLengthObserver extends IBindingTargetObserver<Collection, string> {}
 
 @targetObserver()
-export class CollectionLengthObserver implements CollectionLengthObserver, IPatch {
+export class CollectionLengthObserver implements CollectionLengthObserver, IPatchable {
   public currentValue: number;
 
   public obj: Collection;
@@ -107,9 +107,14 @@ export class CollectionLengthObserver implements CollectionLengthObserver, IPatc
     this.obj[this.propertyKey] = newValue;
   }
 
-  public patch(flags: LifecycleFlags): void {
-    this.callSubscribers(this.obj[this.propertyKey], this.currentValue, flags);
-    this.currentValue = this.obj[this.propertyKey];
+  public $patch(flags: LifecycleFlags): void {
+    const newValue = this.obj[this.propertyKey];
+    const oldValue = this.currentValue;
+    if (oldValue !== newValue) {
+      this.obj[this.propertyKey] = newValue;
+      this.currentValue = newValue;
+      this.callSubscribers(newValue, oldValue, flags | LifecycleFlags.updateTargetInstance);
+    }
   }
 
   public subscribe(subscriber: IPropertySubscriber): void {

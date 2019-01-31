@@ -50,6 +50,7 @@ import { ExpressionKind, LifecycleFlags } from '../flags';
 import { IBinding } from '../lifecycle';
 import { Collection, IBindingContext, IOverrideContext, IScope, ObservedCollection } from '../observation';
 import { BindingContext } from '../observation/binding-context';
+import { ProxyObserver } from '../observation/proxy-observer';
 import { ISignaler } from '../observation/signaler';
 import { BindingBehaviorResource, IBindingBehavior } from '../resources/binding-behavior';
 import { IValueConverter, ValueConverterResource } from '../resources/value-converter';
@@ -509,9 +510,15 @@ export class AccessKeyed implements IAccessKeyedExpression {
     if (typeof obj === 'object' && obj !== null) {
       this.key.connect(flags, scope, binding);
       const key = this.key.evaluate(flags, scope, null);
-      // observe the property represented by the key as long as it's not an array indexer
-      // (note: string indexers behave the same way as numeric indexers as long as they represent numbers)
-      if (!(Array.isArray(obj) && isNumeric(key))) {
+
+      if (Array.isArray(obj) && isNumeric(key)) {
+        // Only observe array indexers in proxy mode
+        if (flags & LifecycleFlags.proxyStrategy) {
+          binding.observeProperty(flags, obj, key as unknown as string);
+        }
+      } else {
+        // observe the property represented by the key as long as it's not an array indexer
+        // (note: string indexers behave the same way as numeric indexers as long as they represent numbers)
         binding.observeProperty(flags, obj, key as string);
       }
     }
@@ -1106,12 +1113,12 @@ export class ForOfStatement implements IForOfStatement {
     return this.iterable.evaluate(flags, scope, locator);
   }
 
-  public count(result: ObservedCollection | number | null | undefined): number {
+  public count(flags: LifecycleFlags, result: ObservedCollection | number | null | undefined): number {
     return CountForOfStatement[toStringTag.call(result)](result);
   }
 
-  public iterate(result: ObservedCollection | number | null | undefined, func: (arr: Collection, index: number, item: unknown) => void): void {
-    IterateForOfStatement[toStringTag.call(result)](result, func);
+  public iterate(flags: LifecycleFlags, result: ObservedCollection | number | null | undefined, func: (arr: Collection, index: number, item: unknown) => void): void {
+    IterateForOfStatement[toStringTag.call(result)](flags | LifecycleFlags.isOriginalArray, result, func);
   }
 
   public connect(flags: LifecycleFlags, scope: IScope, binding: IConnectableBinding): void {
@@ -1218,40 +1225,59 @@ function isNumeric(value: unknown): value is number {
   return true;
 }
 
+const proxyAndOriginalArray = LifecycleFlags.proxyStrategy | LifecycleFlags.isOriginalArray;
+
 /** @internal */
 export const IterateForOfStatement = {
-  ['[object Array]'](result: unknown[], func: (arr: Collection, index: number, item: unknown) => void): void {
-    for (let i = 0, ii = result.length; i < ii; ++i) {
-      func(result, i, result[i]);
+  ['[object Array]'](flags: LifecycleFlags, result: unknown[], func: (arr: Collection, index: number, item: unknown) => void): void {
+    if ((flags & proxyAndOriginalArray) === proxyAndOriginalArray) {
+      // If we're in proxy mode, and the array is the original "items" (and not an array we created here to iterate over e.g. a set)
+      // then replace all items (which are Objects) with proxies so their properties are observed in the source view model even if no
+      // observers are explicitly created
+      const rawArray = ProxyObserver.getRawIfProxy(result);
+      const len = rawArray.length;
+      let item: unknown;
+      let i = 0;
+      for (; i < len; ++i) {
+        item = rawArray[i];
+        if (item instanceof Object) {
+          item = rawArray[i] = ProxyObserver.getOrCreate(item).proxy;
+        }
+        func(rawArray, i, item);
+      }
+    } else {
+      for (let i = 0, ii = result.length; i < ii; ++i) {
+        func(result, i, result[i]);
+      }
     }
   },
-  ['[object Map]'](result: Map<unknown, unknown>, func: (arr: Collection, index: number, item: unknown) => void): void {
+  ['[object Map]'](flags: LifecycleFlags, result: Map<unknown, unknown>, func: (arr: Collection, index: number, item: unknown) => void): void {
     const arr = Array(result.size);
     let i = -1;
     for (const entry of result.entries()) {
       arr[++i] = entry;
     }
-    IterateForOfStatement['[object Array]'](arr, func);
+    IterateForOfStatement['[object Array]'](flags & ~LifecycleFlags.isOriginalArray, arr, func);
   },
-  ['[object Set]'](result: Set<unknown>, func: (arr: Collection, index: number, item: unknown) => void): void {
+  ['[object Set]'](flags: LifecycleFlags, result: Set<unknown>, func: (arr: Collection, index: number, item: unknown) => void): void {
     const arr = Array(result.size);
     let i = -1;
     for (const key of result.keys()) {
       arr[++i] = key;
     }
-    IterateForOfStatement['[object Array]'](arr, func);
+    IterateForOfStatement['[object Array]'](flags & ~LifecycleFlags.isOriginalArray, arr, func);
   },
-  ['[object Number]'](result: number, func: (arr: Collection, index: number, item: unknown) => void): void {
+  ['[object Number]'](flags: LifecycleFlags, result: number, func: (arr: Collection, index: number, item: unknown) => void): void {
     const arr = Array(result);
     for (let i = 0; i < result; ++i) {
       arr[i] = i;
     }
-    IterateForOfStatement['[object Array]'](arr, func);
+    IterateForOfStatement['[object Array]'](flags & ~LifecycleFlags.isOriginalArray, arr, func);
   },
-  ['[object Null]'](result: null, func: (arr: Collection, index: number, item: unknown) => void): void {
+  ['[object Null]'](flags: LifecycleFlags, result: null, func: (arr: Collection, index: number, item: unknown) => void): void {
     return;
   },
-  ['[object Undefined]'](result: null, func: (arr: Collection, index: number, item: unknown) => void): void {
+  ['[object Undefined]'](flags: LifecycleFlags, result: null, func: (arr: Collection, index: number, item: unknown) => void): void {
     return;
   }
 };

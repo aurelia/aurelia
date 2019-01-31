@@ -3,19 +3,8 @@ import { INavigationInstruction } from './history-browser';
 import { mergeParameters } from './parser';
 import { IComponentViewportParameters, Router } from './router';
 import { Scope } from './scope';
-import { IRouteableCustomElement, IViewportOptions } from './viewport';
-import { ContentStatuses, ViewportContent } from './viewport-content';
-
-export interface IRouteableCustomElementType extends ICustomElementType {
-  parameters?: string[];
-}
-
-export interface IRouteableCustomElement extends ICustomElement {
-  canEnter?(nextInstruction?: INavigationInstruction, instruction?: INavigationInstruction): boolean | string | IComponentViewportParameters[] | Promise<boolean | string | IComponentViewportParameters[]>;
-  enter?(parameters?: string[] | Record<string, string>, nextInstruction?: INavigationInstruction, instruction?: INavigationInstruction): void | Promise<void>;
-  canLeave?(nextInstruction?: INavigationInstruction, instruction?: INavigationInstruction): boolean | Promise<boolean>;
-  leave?(nextInstruction?: INavigationInstruction, instruction?: INavigationInstruction): void | Promise<void>;
-}
+import { IViewportOptions } from './viewport';
+import { ContentStatuses, IRouteableCustomElement, IRouteableCustomElementType, ViewportContent } from './viewport-content';
 
 export interface IViewportOptions {
   scope?: boolean;
@@ -169,7 +158,9 @@ export class Viewport {
       return true;
     }
 
-    await this.loadComponent(this.nextContent.content);
+    await this.waitForElement();
+
+    await this.nextContent.loadComponent(this.context, this.element);
     if (!this.nextContent.component) {
       return false;
     }
@@ -214,7 +205,7 @@ export class Viewport {
       await this.nextContent.component.enter(merged.merged, this.nextContent.instruction, this.content.instruction);
       this.nextContent.contentStatus = ContentStatuses.entered;
     }
-    this.initializeComponent(this.nextContent.component);
+    this.nextContent.initializeComponent();
     return true;
   }
 
@@ -228,20 +219,20 @@ export class Viewport {
       }
       // No need to wait for next component activation
       if (!this.nextContent.component) {
-        this.removeComponent(this.content.component);
-        this.terminateComponent(this.content.component);
-        this.unloadComponent();
+        this.content.removeComponent(this.element, this.options.stateful);
+        this.content.terminateComponent(this.options.stateful);
+        this.content.unloadComponent();
       }
     }
 
     if (this.nextContent.component) {
       // Only when next component activation is done
       if (this.content.component) {
-        this.removeComponent(this.content.component);
-        this.terminateComponent(this.content.component);
-        this.unloadComponent();
+        this.content.removeComponent(this.element, this.options.stateful);
+        this.content.terminateComponent(this.options.stateful);
+        this.content.unloadComponent();
       }
-      this.addComponent(this.nextContent.component);
+      this.nextContent.addComponent(this.element);
 
       this.content = this.nextContent;
     }
@@ -259,20 +250,10 @@ export class Viewport {
     this.previousViewportState = null;
   }
   public async abortContentChange(): Promise<void> {
-    switch (this.nextContent.contentStatus) {
-      case ContentStatuses.added:
-        this.removeComponent(this.nextContent.component);
-      case ContentStatuses.entered:
-        await this.nextContent.component.leave();
-      case ContentStatuses.initialized:
-        this.terminateComponent(this.nextContent.component);
-      case ContentStatuses.loaded:
-        this.unloadComponent();
-    }
+    this.nextContent.freeContent(this.element, this.options.stateful);
     if (this.previousViewportState) {
       Object.assign(this, this.previousViewportState);
     }
-    this.nextContent.contentStatus = ContentStatuses.none;
   }
 
   public description(full: boolean = false): string {
@@ -334,12 +315,14 @@ export class Viewport {
   }
 
   public attaching(flags: LifecycleFlags): void {
+    console.log('ATTACHING viewport', this.name);
     if (this.content.component) {
       this.content.component.$attach(flags);
     }
   }
 
   public detaching(flags: LifecycleFlags): void {
+    console.log('DETACHING viewport', this.name);
     if (this.content.component) {
       this.content.component.$detach(flags);
     }
@@ -356,66 +339,6 @@ export class Viewport {
 
     this.content = new ViewportContent();
     this.cache = [];
-  }
-
-  private async loadComponent(component: ICustomElementType | string): Promise<void> {
-    // Don't load cached content
-    if (!this.nextContent.fromCache) {
-      await this.waitForElement();
-
-      this.nextContent.component = this.nextContent.componentInstance(this.context);
-
-      const host: INode = this.element as INode;
-      const container = this.context || this.router.container;
-
-      // TODO: get useProxies settings from the template definition
-      this.nextContent.component.$hydrate(LifecycleFlags.none, container, host);
-    }
-    this.nextContent.contentStatus = ContentStatuses.loaded;
-  }
-  private unloadComponent(): void {
-    // TODO: We might want to do something here eventually, who knows?
-    // Don't unload components when stateful
-  }
-
-  private initializeComponent(component: ICustomElement): void {
-    // Don't initialize cached content
-    if (!this.nextContent.fromCache) {
-      component.$bind(LifecycleFlags.fromStartTask | LifecycleFlags.fromBind, null);
-    }
-    this.nextContent.contentStatus = ContentStatuses.initialized;
-  }
-  private terminateComponent(component: ICustomElement): void {
-    // Don't terminate cached content
-    if (!this.options.stateful) {
-      component.$unbind(LifecycleFlags.fromStopTask | LifecycleFlags.fromUnbind);
-    }
-  }
-
-  private addComponent(component: ICustomElement): void {
-    component.$attach(LifecycleFlags.fromStartTask);
-    if (this.nextContent.fromCache) {
-      const elements = Array.from(this.element.getElementsByTagName('*'));
-      for (let element of elements) {
-        if (element.hasAttribute('au-element-scroll')) {
-          const [top, left] = element.getAttribute('au-element-scroll').split(',');
-          element.removeAttribute('au-element-scroll');
-          element.scrollTo(+left, +top);
-        }
-      }
-    }
-    this.nextContent.contentStatus = ContentStatuses.added;
-  }
-  private removeComponent(component: ICustomElement): void {
-    if (this.options.stateful) {
-      const elements = Array.from(this.element.getElementsByTagName('*'));
-      for (const element of elements) {
-        if (element.scrollTop > 0 || element.scrollLeft) {
-          element.setAttribute('au-element-scroll', `${element.scrollTop},${element.scrollLeft}`);
-        }
-      }
-    }
-    component.$detach(LifecycleFlags.fromStopTask);
   }
 
   private async waitForElement(): Promise<void> {

@@ -1,8 +1,7 @@
 import { IContainer } from '@aurelia/kernel';
-import { CustomElementResource, ICustomElement, ICustomElementType, IRenderContext } from '@aurelia/runtime';
+import { CustomElementResource, ICustomElement, ICustomElementType, IRenderContext, LifecycleFlags, INode } from '@aurelia/runtime';
 import { INavigationInstruction } from './history-browser';
 import { IComponentViewportParameters } from './router';
-import { IRouteableCustomElement } from './viewport';
 
 export interface IRouteableCustomElementType extends ICustomElementType {
   parameters?: string[];
@@ -57,6 +56,78 @@ export class ViewportContent {
     return ((typeof content.content === 'string' && this.componentName() === content.content) ||
       (typeof content.content !== 'string' && this.content === content.content)) &&
       this.parameters === content.parameters;
+  }
+
+  public async loadComponent(context: IRenderContext, element: Element): Promise<void> {
+    // Don't load cached content
+    if (!this.fromCache) {
+      this.component = this.componentInstance(context);
+
+      const host: INode = element as INode;
+      const container = context;
+
+      // TODO: get useProxies settings from the template definition
+      this.component.$hydrate(LifecycleFlags.none, container, host);
+    }
+    this.contentStatus = ContentStatuses.loaded;
+  }
+  public unloadComponent(): void {
+    // TODO: We might want to do something here eventually, who knows?
+    // Don't unload components when stateful
+  }
+
+  public initializeComponent(): void {
+    // Don't initialize cached content
+    if (!this.fromCache) {
+      this.component.$bind(LifecycleFlags.fromStartTask | LifecycleFlags.fromBind, null);
+    }
+    this.contentStatus = ContentStatuses.initialized;
+  }
+  public terminateComponent(stateful: boolean = false): void {
+    // Don't terminate cached content
+    if (!stateful) {
+      this.component.$unbind(LifecycleFlags.fromStopTask | LifecycleFlags.fromUnbind);
+    }
+  }
+
+  public addComponent(element: Element): void {
+    this.component.$attach(LifecycleFlags.fromStartTask);
+    if (this.fromCache) {
+      const elements = Array.from(element.getElementsByTagName('*'));
+      for (let el of elements) {
+        if (el.hasAttribute('au-element-scroll')) {
+          const [top, left] = el.getAttribute('au-element-scroll').split(',');
+          el.removeAttribute('au-element-scroll');
+          el.scrollTo(+left, +top);
+        }
+      }
+    }
+    this.contentStatus = ContentStatuses.added;
+  }
+  public removeComponent(element: Element, stateful: boolean = false): void {
+    if (stateful) {
+      const elements = Array.from(element.getElementsByTagName('*'));
+      for (const el of elements) {
+        if (el.scrollTop > 0 || el.scrollLeft) {
+          el.setAttribute('au-element-scroll', `${el.scrollTop},${el.scrollLeft}`);
+        }
+      }
+    }
+    this.component.$detach(LifecycleFlags.fromStopTask);
+  }
+
+  public async freeContent(element: Element, stateful: boolean = false): Promise<void> {
+    switch (this.contentStatus) {
+      case ContentStatuses.added:
+        this.removeComponent(element, stateful);
+      case ContentStatuses.entered:
+        await this.component.leave();
+      case ContentStatuses.initialized:
+        this.terminateComponent(stateful);
+      case ContentStatuses.loaded:
+        this.unloadComponent();
+    }
+    this.contentStatus = ContentStatuses.none;
   }
 
   public componentName(): string {

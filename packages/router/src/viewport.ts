@@ -46,7 +46,6 @@ export class Viewport {
   private previousViewportState?: Viewport;
 
   private cache: ViewportContent[];
-  private fromCache: boolean;
 
   constructor(router: Router, name: string, element: Element, context: IRenderContext, owningScope: Scope, scope: Scope, options?: IViewportOptions) {
     this.router = router;
@@ -64,7 +63,6 @@ export class Viewport {
     this.elementResolve = null;
     this.previousViewportState = null;
     this.cache = [];
-    this.fromCache = false;
   }
 
   public setNextContent(content: ICustomElementType | string, instruction: INavigationInstruction): boolean {
@@ -83,13 +81,12 @@ export class Viewport {
 
     // Can have a (resolved) type or a string (to be resolved later)
     this.nextContent = new ViewportContent(content, parameters, instruction, this.context);
-    this.fromCache = false;
     if (this.options.stateful) {
       // TODO: Add a parameter here to decide required equality
       const cached = this.cache.find((item) => this.nextContent.isCacheEqual(item));
       if (cached) {
         this.nextContent = cached;
-        this.fromCache = true;
+        this.nextContent.fromCache = true;
       } else {
         this.cache.push(this.nextContent);
       }
@@ -168,7 +165,7 @@ export class Viewport {
       return false;
     }
 
-    if (this.fromCache) {
+    if (this.nextContent.fromCache) {
       return true;
     }
 
@@ -206,7 +203,7 @@ export class Viewport {
       return false;
     }
 
-    if (this.fromCache) {
+    if (this.nextContent.fromCache) {
       return true;
     }
 
@@ -363,7 +360,7 @@ export class Viewport {
 
   private async loadComponent(component: ICustomElementType | string): Promise<void> {
     // Don't load cached content
-    if (!this.fromCache) {
+    if (!this.nextContent.fromCache) {
       await this.waitForElement();
 
       this.nextContent.component = this.nextContent.componentInstance(this.context);
@@ -383,7 +380,7 @@ export class Viewport {
 
   private initializeComponent(component: ICustomElement): void {
     // Don't initialize cached content
-    if (!this.fromCache) {
+    if (!this.nextContent.fromCache) {
       component.$bind(LifecycleFlags.fromStartTask | LifecycleFlags.fromBind, null);
     }
     this.nextContent.contentStatus = ContentStatuses.initialized;
@@ -397,7 +394,7 @@ export class Viewport {
 
   private addComponent(component: ICustomElement): void {
     component.$attach(LifecycleFlags.fromStartTask);
-    if (this.fromCache) {
+    if (this.nextContent.fromCache) {
       const elements = Array.from(this.element.getElementsByTagName('*'));
       for (let element of elements) {
         if (element.hasAttribute('au-element-scroll')) {

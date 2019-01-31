@@ -29,6 +29,7 @@ export class ViewportContent {
   public instruction: INavigationInstruction;
   public component: IRouteableCustomElement;
   public contentStatus: ContentStatuses;
+  public fromCache: boolean;
 
   constructor(content: ICustomElementType | string = null, parameters: string = null, instruction: INavigationInstruction = null, context: IRenderContext = null) {
     // Can be a (resolved) type or a string (to be resolved later)
@@ -37,6 +38,7 @@ export class ViewportContent {
     this.instruction = instruction;
     this.component = null;
     this.contentStatus = ContentStatuses.none;
+    this.fromCache = false;
 
     // If we've got a container, we're good to resolve type
     if (this.content !== null && typeof this.content === 'string' && context !== null) {

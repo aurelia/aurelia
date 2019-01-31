@@ -98,7 +98,7 @@ export class QueuedBrowserHistory implements QueuedBrowserHistory {
       parameters: parameters,
       resolve: _resolve,
     });
-    this.dequeue().catch(error => { throw error; });
+    // this.dequeue().catch(error => { throw error; });
     return promise;
   }
 
@@ -108,6 +108,7 @@ export class QueuedBrowserHistory implements QueuedBrowserHistory {
     }
     this.processingItem = this.queue.shift();
     const method = this.processingItem.object[this.processingItem.method];
+    console.log('DEQUEUE', this.processingItem.method, this.processingItem.parameters);
     method.apply(this.processingItem.object, this.processingItem.parameters);
     const resolve = this.processingItem.resolve;
     this.processingItem = null;

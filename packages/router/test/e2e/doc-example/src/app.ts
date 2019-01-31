@@ -23,10 +23,11 @@ import { State } from './state';
       and the navigation is rolled back after 2 seconds.)
     </div>
     <div class="info">
-      <label><input type="checkbox" checked.two-way="state.noDelay">Disable loading delays for components</label>
+    <label><input type="checkbox" checked.two-way="state.noDelay">Disable loading delays for components</label><br>
+    <label><input type="checkbox" checked.two-way="state.allowEnterAuthorDetails">Allow entering <i>Author details</i></label><br>
     </div>
     <au-viewport name="lists" used-by="authors,books" default="authors"></au-viewport>
-    <au-viewport name="content" default="about" stateful></au-viewport>
+    <au-viewport name="content" default="about"></au-viewport>
     <au-viewport name="chat" used-by="chat" no-link no-history></au-viewport>
   </div>
 </template>

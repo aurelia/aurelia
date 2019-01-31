@@ -5,8 +5,11 @@ import { State } from '../../state';
 import { wait } from '../../utils';
 
 @customElement({ name: 'author-details', template: `<template>
+<div>
 <h3>Details about the author</h3>
-<p>Here's details about <strong>\${author.name}</strong>...</p>
+<p>Here's details about <strong>\${author.name}</strong>... <input></p>
+<div class="scrollbox">All about the space, about the space, no truncate...</div>
+</div>
 </template>` })
 @inject(AuthorsRepository, State)
 export class AuthorDetails {
@@ -16,7 +19,7 @@ export class AuthorDetails {
   constructor(private readonly authorsRepository: AuthorsRepository, private state: State) { }
 
   public canEnter() {
-    return false;
+    return this.state.allowEnterAuthorDetails;
   }
 
   public enter(parameters) {

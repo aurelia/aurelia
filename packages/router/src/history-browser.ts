@@ -148,6 +148,10 @@ export class HistoryBrowser {
 
   public async pop(): Promise<void> {
     let state;
+    // let newHash = `#/${Date.now()}`;
+    // let { pathname, search, hash } = this.location;
+    // state = this.history.state;
+    // await this.history.replaceState(state, null, `${pathname}${search}${newHash}`);
     // tslint:disable-next-line:promise-must-complete
     let wait = new Promise((resolve, reject): void => {
       this.ignorePathChange = resolve;
@@ -158,6 +162,9 @@ export class HistoryBrowser {
     state = this.history.state;
     // TODO: Fix browser forward bug after pop on first entry
     if (!state.HistoryEntry.firstEntry) {
+      // let newHash = `#/${Date.now()}`;
+      // let { pathname, search, hash } = this.location;
+      // await this.history.replaceState(state, null, `${pathname}${search}${newHash}`);
       // tslint:disable-next-line:promise-must-complete
       wait = new Promise((resolve, reject): void => {
         this.ignorePathChange = resolve;

@@ -1,3 +1,4 @@
 export class State {
-  public noDelay: boolean = false;
+  public noDelay: boolean = true;
+  public allowEnterAuthorDetails: boolean = true;
 }

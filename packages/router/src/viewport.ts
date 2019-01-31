@@ -370,6 +370,7 @@ export class Viewport {
     this.options = {};
 
     this.content = new ViewportContent();
+    this.cache = [];
   }
 
   private async loadComponent(component: ICustomElementType | string): Promise<void> {

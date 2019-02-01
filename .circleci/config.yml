@@ -274,7 +274,7 @@ workflows:
       - lint_packages:
           <<: *filter_ignore_develop_release
       - e2e_browserstack:
-          <<: *filter_only_master
+          <<: *filter_ignore_develop_release
       - e2e_wdio:
           <<: *filter_ignore_develop_release
           name: jit-aurelia-cli-ts

@@ -13,12 +13,12 @@ export class AppPage {
   }
 
   public static getSelectedText() {
-    return (this.select.getText('option:checked')).trim();
+    return ((this.select as any).getText('option:checked')).trim();
   }
 
   public static setSelectByValue(value: string) {
     logAction(`setSelectByValue: ${value}`);
-    this.select.selectByValue(value);
+    (this.select as any).selectByValue(value);
   }
 
   public static setSelectByVisibleText(text: string) {

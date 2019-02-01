@@ -1,9 +1,8 @@
 //http://webdriver.io/guide/testrunner/configurationfile.html
 
-import * as os from 'os';
 import * as browserstack from 'browserstack-local';
 import { CIEnv } from '../../scripts/ci-env';
-
+declare var browser: any;
 
 function combine(browsers, oses) {
   const capabilities = [];
@@ -32,7 +31,7 @@ exports.config = {
 
   updateJob: false,
   specs: [
-    'dist/test/e2e/**/*.spec.js'
+    'dist/specs/**/*.spec.js'
   ],
   exclude: [],
 

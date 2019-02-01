@@ -6,8 +6,14 @@
     "module": "esnext",
     "moduleResolution": "node",
     "outDir": "dist",
-    "rootDir": "src",
-    "target": "es2018"
+    "rootDir": ".",
+    "target": "es2018",
+    "types": [
+      "mocha",
+      "chai",
+      "node",
+      "webdriverio"
+    ]
   },
-  "include": ["src"]
+  "include": ["src", "specs"]
 }

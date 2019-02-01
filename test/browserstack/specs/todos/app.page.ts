@@ -10,7 +10,7 @@ export class AppPage {
 
   public static setDescriptionInputValue(value: string) {
     logAction(`set description input value to ${value}`);
-    this.descriptionInput.clearElement();
+    (this.descriptionInput as any).clearElement();
     this.descriptionInput.setValue(value);
   }
 
@@ -24,7 +24,7 @@ export class AppPage {
 
   public static setCountInputValue(value: number) {
     logAction(`set count value to ${value}`);
-    this.countInput.clearElement();
+    (this.countInput as any).clearElement();
     this.countInput.setValue(value);
   }
 
@@ -91,16 +91,16 @@ export class AppPage {
 
   public static getTodoElement(id: number, timeout: number = 100) {
     const el = $(`#todo-${id}`);
-    el.waitForVisible(timeout);
+    (el as any).waitForVisible(timeout);
     return el;
   }
 
   public static clickTodoDoneCheckbox(id: number, timeout: number = 100) {
     logAction(`click Todo done checkbox`);
     const el = $(`#todo-${id}-done`);
-    el.waitForVisible(timeout);
+    (el as any).waitForVisible(timeout);
     el.click();
-    if (browser.desiredCapabilities.browserName === 'Edge') {
+    if ((browser as any).desiredCapabilities.browserName === 'Edge') {
       // because Edge is slow :)
       browser.pause(1000);
     }

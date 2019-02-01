@@ -1,44 +1,254 @@
 <?xml version="1.0"?>
-<testsuite name="Chrome 71.0.3578 (Windows 10.0.0)" package="" timestamp="2019-01-31T12:26:21" id="0" hostname="GadgetTablet" tests="41" errors="0" failures="0" time="0.159">
+<testsuite name="Chrome 71.0.3578 (Windows 10.0.0)" package="" timestamp="2019-02-01T10:49:13" id="0" hostname="GadgetTablet" tests="78" errors="1" failures="21" time="0">
   <properties>
     <property name="browser.fullName" value="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/71.0.3578.98 Safari/537.36"/>
   </properties>
-  <testcase name="built-in-resources.focus basic scenario invokes focus when there is **NO** tabindex attribute" time="0.035" classname="Chrome_71_0_3578_(Windows_10_0_0).built-in-resources.focus"/>
-  <testcase name="built-in-resources.focus basic scenario with non-focusable element focuses when there is tabindex attribute" time="0.008" classname="Chrome_71_0_3578_(Windows_10_0_0).built-in-resources.focus"/>
-  <testcase name="built-in-resources.focus basic scenario with &lt;div/> Works in basic scenario" time="0.009" classname="Chrome_71_0_3578_(Windows_10_0_0).built-in-resources.focus"/>
-  <testcase name="built-in-resources.focus basic scenario with &lt;input/> Works in basic scenario" time="0.004" classname="Chrome_71_0_3578_(Windows_10_0_0).built-in-resources.focus"/>
-  <testcase name="built-in-resources.focus basic scenario with &lt;select/> Works in basic scenario" time="0.005" classname="Chrome_71_0_3578_(Windows_10_0_0).built-in-resources.focus"/>
-  <testcase name="built-in-resources.focus basic scenario with &lt;select/> + &lt;option/> Works in basic scenario" time="0.003" classname="Chrome_71_0_3578_(Windows_10_0_0).built-in-resources.focus"/>
-  <testcase name="built-in-resources.focus basic scenario with &lt;textarea/> Works in basic scenario" time="0.003" classname="Chrome_71_0_3578_(Windows_10_0_0).built-in-resources.focus"/>
-  <testcase name="built-in-resources.focus basic scenario CustomElements -- Initialization only works with focusable custom element ce-029019" time="0.003" classname="Chrome_71_0_3578_(Windows_10_0_0).built-in-resources.focus"/>
-  <testcase name="built-in-resources.focus basic scenario CustomElements -- Initialization only works with focusable custom element ce-698056" time="0.002" classname="Chrome_71_0_3578_(Windows_10_0_0).built-in-resources.focus"/>
-  <testcase name="built-in-resources.focus basic scenario CustomElements -- Initialization only works with focusable custom element ce-503232" time="0.002" classname="Chrome_71_0_3578_(Windows_10_0_0).built-in-resources.focus"/>
-  <testcase name="built-in-resources.focus basic scenario CustomElements -- Initialization only works with focusable custom element ce-836144" time="0.004" classname="Chrome_71_0_3578_(Windows_10_0_0).built-in-resources.focus"/>
-  <testcase name="built-in-resources.focus basic scenario CustomElements -- Initialization only works with focusable custom element ce-464303" time="0.004" classname="Chrome_71_0_3578_(Windows_10_0_0).built-in-resources.focus"/>
-  <testcase name="built-in-resources.focus basic scenario CustomElements -- Initialization only works with focusable custom element ce-020639" time="0.002" classname="Chrome_71_0_3578_(Windows_10_0_0).built-in-resources.focus"/>
-  <testcase name="built-in-resources.focus basic scenario CustomElements -- Initialization only works with focusable custom element ce-779228" time="0.003" classname="Chrome_71_0_3578_(Windows_10_0_0).built-in-resources.focus"/>
-  <testcase name="built-in-resources.focus basic scenario CustomElements -- Initialization only works with focusable custom element ce-455963" time="0.003" classname="Chrome_71_0_3578_(Windows_10_0_0).built-in-resources.focus"/>
-  <testcase name="built-in-resources.focus basic scenario CustomElements -- Initialization only works with focusable custom element ce-794568" time="0.005" classname="Chrome_71_0_3578_(Windows_10_0_0).built-in-resources.focus"/>
-  <testcase name="built-in-resources.focus basic scenario CustomElements -- Initialization only works with focusable custom element ce-823333" time="0.004" classname="Chrome_71_0_3578_(Windows_10_0_0).built-in-resources.focus"/>
-  <testcase name="built-in-resources.focus basic scenario CustomElements -- Initialization only works with focusable custom element ce-231136" time="0.003" classname="Chrome_71_0_3578_(Windows_10_0_0).built-in-resources.focus"/>
-  <testcase name="built-in-resources.focus basic scenario CustomElements -- Initialization only works with focusable custom element ce-890841" time="0.003" classname="Chrome_71_0_3578_(Windows_10_0_0).built-in-resources.focus"/>
-  <testcase name="built-in-resources.focus basic scenario CustomElements -- Initialization only works with focusable custom element ce-066279" time="0.007" classname="Chrome_71_0_3578_(Windows_10_0_0).built-in-resources.focus"/>
-  <testcase name="built-in-resources.focus basic scenario CustomElements -- Initialization only works with focusable custom element ce-914546" time="0.004" classname="Chrome_71_0_3578_(Windows_10_0_0).built-in-resources.focus"/>
-  <testcase name="built-in-resources.focus basic scenario CustomElements -- Initialization only works with focusable custom element ce-225412" time="0.002" classname="Chrome_71_0_3578_(Windows_10_0_0).built-in-resources.focus"/>
-  <testcase name="built-in-resources.focus basic scenario CustomElements -- Initialization only works with focusable custom element ce-953646" time="0.003" classname="Chrome_71_0_3578_(Windows_10_0_0).built-in-resources.focus"/>
-  <testcase name="built-in-resources.focus basic scenario CustomElements -- Initialization only works with focusable custom element ce-237586" time="0.003" classname="Chrome_71_0_3578_(Windows_10_0_0).built-in-resources.focus"/>
-  <testcase name="built-in-resources.focus basic scenario CustomElements -- Initialization only works with focusable custom element ce-908501" time="0.004" classname="Chrome_71_0_3578_(Windows_10_0_0).built-in-resources.focus"/>
-  <testcase name="built-in-resources.focus basic scenario CustomElements -- Initialization only works with focusable custom element ce-700443" time="0.003" classname="Chrome_71_0_3578_(Windows_10_0_0).built-in-resources.focus"/>
-  <testcase name="built-in-resources.focus basic scenario CustomElements -- Initialization only works with focusable custom element ce-457405" time="0.003" classname="Chrome_71_0_3578_(Windows_10_0_0).built-in-resources.focus"/>
-  <testcase name="built-in-resources.focus basic scenario CustomElements -- Initialization only works with focusable custom element ce-401524" time="0.003" classname="Chrome_71_0_3578_(Windows_10_0_0).built-in-resources.focus"/>
-  <testcase name="built-in-resources.focus basic scenario CustomElements -- Initialization only works with focusable custom element ce-333252" time="0.006" classname="Chrome_71_0_3578_(Windows_10_0_0).built-in-resources.focus"/>
-  <testcase name="built-in-resources.focus basic scenario CustomElements -- Initialization only works with focusable custom element ce-098297" time="0.003" classname="Chrome_71_0_3578_(Windows_10_0_0).built-in-resources.focus"/>
-  <testcase name="built-in-resources.focus basic scenario CustomElements -- Initialization only works with focusable custom element ce-541506" time="0.005" classname="Chrome_71_0_3578_(Windows_10_0_0).built-in-resources.focus"/>
-  <testcase name="built-in-resources.focus basic scenario CustomElements -- Initialization only works with focusable custom element ce-829911" time="0.003" classname="Chrome_71_0_3578_(Windows_10_0_0).built-in-resources.focus"/>
-  <testcase name="built-in-resources.focus basic scenario CustomElements -- Initialization only works with focusable custom element ce-303915" time="0.002" classname="Chrome_71_0_3578_(Windows_10_0_0).built-in-resources.focus"/>
-  <testcase name="built-in-resources.focus basic scenario CustomElements -- Initialization only works with focusable custom element ce-309612" time="0.003" classname="Chrome_71_0_3578_(Windows_10_0_0).built-in-resources.focus"/>
+  <testcase name="built-in-resources.focus &quot;after each&quot; hook for &quot;Works when shifting focus away from &lt;input/>&quot;" time="0" classname="Chrome_71_0_3578_(Windows_10_0_0).built-in-resources.focus">
+    <failure type="">Error: Failed to execute 'removeChild' on 'Node': The node to be removed is not a child of this node.
+    at au.stopTasks.push (webpack-internal:///../jit-html/test/built-in-resources/resources-integration.focus.spec.ts:280:49)
+    at Aurelia.stop (webpack-internal:///../runtime/src/aurelia.ts:88:13)
+    at Context.afterEach (webpack-internal:///../jit-html/test/built-in-resources/resources-integration.focus.spec.ts:16:22)
+</failure>
+  </testcase>
+  <testcase name="built-in-resources.focus &quot;after each&quot; hook for &quot;Works when shifting focus away from &lt;input/>&quot;" time="0" classname="Chrome_71_0_3578_(Windows_10_0_0).built-in-resources.focus">
+    <failure type="">Error: Failed to execute 'removeChild' on 'Node': The node to be removed is not a child of this node.
+    at au.stopTasks.push (webpack-internal:///../jit-html/test/built-in-resources/resources-integration.focus.spec.ts:280:49)
+    at Aurelia.stop (webpack-internal:///../runtime/src/aurelia.ts:88:13)
+    at Context.afterEach (webpack-internal:///../jit-html/test/built-in-resources/resources-integration.focus.spec.ts:16:22)
+</failure>
+  </testcase>
+  <testcase name="built-in-resources.blur with mouse Basic scenarios Works in basic scenario" time="0" classname="Chrome_71_0_3578_(Windows_10_0_0).built-in-resources.blur">
+    <failure type="">Error: Uncaught TypeError: Cannot set property 'currentValue' of undefined (webpack-internal:///../runtime-html/src/resources/custom-attributes/blur.ts:108)
+    at createEventOn (webpack-internal:///../jit-html/test/built-in-resources/resources-integration.blur.spec.ts:260:16)
+    at assert (webpack-internal:///../jit-html/test/built-in-resources/resources-integration.blur.spec.ts:95:25)
+    at Context.it (webpack-internal:///../jit-html/test/built-in-resources/resources-integration.blur.spec.ts:156:28)
+</failure>
+  </testcase>
+  <testcase name="built-in-resources.blur with mouse Basic scenarios Works in basic scenario" time="0" classname="Chrome_71_0_3578_(Windows_10_0_0).built-in-resources.blur">
+    <failure type="">Error: Uncaught TypeError: Cannot set property 'currentValue' of undefined (webpack-internal:///../runtime-html/src/resources/custom-attributes/blur.ts:108)
+    at createEventOn (webpack-internal:///../jit-html/test/built-in-resources/resources-integration.blur.spec.ts:260:16)
+    at assert (webpack-internal:///../jit-html/test/built-in-resources/resources-integration.blur.spec.ts:122:25)
+    at Context.it (webpack-internal:///../jit-html/test/built-in-resources/resources-integration.blur.spec.ts:156:28)
+</failure>
+  </testcase>
+  <testcase name="built-in-resources.blur with mouse Basic scenarios Works in basic scenario" time="0" classname="Chrome_71_0_3578_(Windows_10_0_0).built-in-resources.blur">
+    <failure type="">AssertionError: expected true to equal false
+    at assert (webpack-internal:///../jit-html/test/built-in-resources/resources-integration.blur.spec.ts:96:62)
+    at Context.it (webpack-internal:///../jit-html/test/built-in-resources/resources-integration.blur.spec.ts:156:28)
+</failure>
+  </testcase>
+  <testcase name="built-in-resources.blur with mouse Basic scenarios Works in basic scenario" time="0" classname="Chrome_71_0_3578_(Windows_10_0_0).built-in-resources.blur">
+    <failure type="">AssertionError: expected true to equal false
+    at assert (webpack-internal:///../jit-html/test/built-in-resources/resources-integration.blur.spec.ts:96:62)
+    at Context.it (webpack-internal:///../jit-html/test/built-in-resources/resources-integration.blur.spec.ts:156:28)
+</failure>
+    <failure type="">AssertionError: expected true to equal false
+    at assert (webpack-internal:///../jit-html/test/built-in-resources/resources-integration.blur.spec.ts:123:62)
+    at Context.it (webpack-internal:///../jit-html/test/built-in-resources/resources-integration.blur.spec.ts:156:28)
+</failure>
+  </testcase>
+  <testcase name="built-in-resources.blur with mouse Basic scenarios Works in basic scenario" time="0.005" classname="Chrome_71_0_3578_(Windows_10_0_0).built-in-resources.blur">
+    <failure type="">AssertionError: expected true to equal false
+    at assert (webpack-internal:///../jit-html/test/built-in-resources/resources-integration.blur.spec.ts:96:62)
+    at Context.it (webpack-internal:///../jit-html/test/built-in-resources/resources-integration.blur.spec.ts:156:28)
+</failure>
+    <failure type="">AssertionError: expected true to equal false
+    at assert (webpack-internal:///../jit-html/test/built-in-resources/resources-integration.blur.spec.ts:123:62)
+    at Context.it (webpack-internal:///../jit-html/test/built-in-resources/resources-integration.blur.spec.ts:156:28)
+</failure>
+    <failure type="">AssertionError: expected true to equal false
+    at assert (webpack-internal:///../jit-html/test/built-in-resources/resources-integration.blur.spec.ts:96:62)
+    at Context.it (webpack-internal:///../jit-html/test/built-in-resources/resources-integration.blur.spec.ts:156:28)
+</failure>
+  </testcase>
+  <testcase name="built-in-resources.blur with mouse Basic scenarios Works in basic scenario" time="0.014" classname="Chrome_71_0_3578_(Windows_10_0_0).built-in-resources.blur">
+    <failure type="">AssertionError: expected true to equal false
+    at assert (webpack-internal:///../jit-html/test/built-in-resources/resources-integration.blur.spec.ts:123:62)
+    at Context.it (webpack-internal:///../jit-html/test/built-in-resources/resources-integration.blur.spec.ts:156:28)
+</failure>
+  </testcase>
+  <testcase name="built-in-resources.blur with mouse Basic scenarios Works in basic scenario" time="0.01" classname="Chrome_71_0_3578_(Windows_10_0_0).built-in-resources.blur">
+    <failure type="">AssertionError: expected true to equal false
+    at assert (webpack-internal:///../jit-html/test/built-in-resources/resources-integration.blur.spec.ts:123:62)
+    at Context.it (webpack-internal:///../jit-html/test/built-in-resources/resources-integration.blur.spec.ts:156:28)
+</failure>
+    <failure type="">AssertionError: expected true to equal false
+    at assert (webpack-internal:///../jit-html/test/built-in-resources/resources-integration.blur.spec.ts:126:62)
+    at Context.it (webpack-internal:///../jit-html/test/built-in-resources/resources-integration.blur.spec.ts:156:28)
+</failure>
+  </testcase>
+  <testcase name="built-in-resources.blur with mouse Basic scenarios Works in basic scenario" time="0.002" classname="Chrome_71_0_3578_(Windows_10_0_0).built-in-resources.blur">
+    <failure type="">AssertionError: expected true to equal false
+    at assert (webpack-internal:///../jit-html/test/built-in-resources/resources-integration.blur.spec.ts:123:62)
+    at Context.it (webpack-internal:///../jit-html/test/built-in-resources/resources-integration.blur.spec.ts:156:28)
+</failure>
+    <failure type="">AssertionError: expected true to equal false
+    at assert (webpack-internal:///../jit-html/test/built-in-resources/resources-integration.blur.spec.ts:126:62)
+    at Context.it (webpack-internal:///../jit-html/test/built-in-resources/resources-integration.blur.spec.ts:156:28)
+</failure>
+    <failure type="">AssertionError: expected true to equal false
+    at assert (webpack-internal:///../jit-html/test/built-in-resources/resources-integration.blur.spec.ts:123:62)
+    at Context.it (webpack-internal:///../jit-html/test/built-in-resources/resources-integration.blur.spec.ts:156:28)
+</failure>
+  </testcase>
+  <testcase name="built-in-resources.blur with mouse Basic scenarios Works in basic scenario" time="0" classname="Chrome_71_0_3578_(Windows_10_0_0).built-in-resources.blur">
+    <failure type="">Error: Uncaught TypeError: Cannot set property 'currentValue' of undefined (webpack-internal:///../runtime-html/src/resources/custom-attributes/blur.ts:108)
+    at createEventOn (webpack-internal:///../jit-html/test/built-in-resources/resources-integration.blur.spec.ts:260:16)
+    at assert (webpack-internal:///../jit-html/test/built-in-resources/resources-integration.blur.spec.ts:95:25)
+    at Context.it (webpack-internal:///../jit-html/test/built-in-resources/resources-integration.blur.spec.ts:156:28)
+</failure>
+  </testcase>
+  <testcase name="built-in-resources.blur with mouse Basic scenarios Works in basic scenario" time="0" classname="Chrome_71_0_3578_(Windows_10_0_0).built-in-resources.blur">
+    <failure type="">Error: Uncaught TypeError: Cannot set property 'currentValue' of undefined (webpack-internal:///../runtime-html/src/resources/custom-attributes/blur.ts:108)
+    at createEventOn (webpack-internal:///../jit-html/test/built-in-resources/resources-integration.blur.spec.ts:260:16)
+    at assert (webpack-internal:///../jit-html/test/built-in-resources/resources-integration.blur.spec.ts:122:25)
+    at Context.it (webpack-internal:///../jit-html/test/built-in-resources/resources-integration.blur.spec.ts:156:28)
+</failure>
+  </testcase>
+  <testcase name="built-in-resources.blur with mouse Basic scenarios Works in basic scenario" time="0" classname="Chrome_71_0_3578_(Windows_10_0_0).built-in-resources.blur">
+    <failure type="">Error: Uncaught TypeError: Cannot set property 'currentValue' of undefined (webpack-internal:///../runtime-html/src/resources/custom-attributes/blur.ts:108)
+    at createEventOn (webpack-internal:///../jit-html/test/built-in-resources/resources-integration.blur.spec.ts:260:16)
+    at assert (webpack-internal:///../jit-html/test/built-in-resources/resources-integration.blur.spec.ts:95:25)
+    at Context.it (webpack-internal:///../jit-html/test/built-in-resources/resources-integration.blur.spec.ts:156:28)
+</failure>
+  </testcase>
+  <testcase name="built-in-resources.blur with mouse Basic scenarios Works in basic scenario" time="0" classname="Chrome_71_0_3578_(Windows_10_0_0).built-in-resources.blur">
+    <failure type="">Error: Uncaught TypeError: Cannot set property 'currentValue' of undefined (webpack-internal:///../runtime-html/src/resources/custom-attributes/blur.ts:108)
+    at createEventOn (webpack-internal:///../jit-html/test/built-in-resources/resources-integration.blur.spec.ts:260:16)
+    at assert (webpack-internal:///../jit-html/test/built-in-resources/resources-integration.blur.spec.ts:122:25)
+    at Context.it (webpack-internal:///../jit-html/test/built-in-resources/resources-integration.blur.spec.ts:156:28)
+</failure>
+  </testcase>
+  <testcase name="built-in-resources.focus Interactive scenarios Works when shifting focus away from &lt;input/>" time="0.006" classname="Chrome_71_0_3578_(Windows_10_0_0).built-in-resources.focus">
+    <failure type="">AssertionError: component.isBlur should have been false: expected true to equal false
+    at assert (webpack-internal:///../jit-html/test/built-in-resources/resources-integration.focus.spec.ts:188:56)
+    at Context.it (webpack-internal:///../jit-html/test/built-in-resources/resources-integration.focus.spec.ts:268:24)
+</failure>
+  </testcase>
+  <testcase name="built-in-resources.focus Interactive scenarios Works when shifting focus away from &lt;input/>" time="0.006" classname="Chrome_71_0_3578_(Windows_10_0_0).built-in-resources.focus">
+    <failure type="">AssertionError: component.isBlur should have been false: expected true to equal false
+    at assert (webpack-internal:///../jit-html/test/built-in-resources/resources-integration.focus.spec.ts:188:56)
+    at Context.it (webpack-internal:///../jit-html/test/built-in-resources/resources-integration.focus.spec.ts:268:24)
+</failure>
+    <failure type="">AssertionError: expected true to equal false
+    at assert (webpack-internal:///../jit-html/test/built-in-resources/resources-integration.blur.spec.ts:96:62)
+    at Context.it (webpack-internal:///../jit-html/test/built-in-resources/resources-integration.blur.spec.ts:156:28)
+</failure>
+  </testcase>
+  <testcase name="built-in-resources.focus Interactive scenarios Works when shifting focus away from &lt;input/>" time="0.006" classname="Chrome_71_0_3578_(Windows_10_0_0).built-in-resources.focus">
+    <failure type="">AssertionError: component.isBlur should have been false: expected true to equal false
+    at assert (webpack-internal:///../jit-html/test/built-in-resources/resources-integration.focus.spec.ts:188:56)
+    at Context.it (webpack-internal:///../jit-html/test/built-in-resources/resources-integration.focus.spec.ts:268:24)
+</failure>
+    <failure type="">AssertionError: expected true to equal false
+    at assert (webpack-internal:///../jit-html/test/built-in-resources/resources-integration.blur.spec.ts:96:62)
+    at Context.it (webpack-internal:///../jit-html/test/built-in-resources/resources-integration.blur.spec.ts:156:28)
+</failure>
+    <failure type="">AssertionError: expected true to equal false
+    at assert (webpack-internal:///../jit-html/test/built-in-resources/resources-integration.blur.spec.ts:96:62)
+    at Context.it (webpack-internal:///../jit-html/test/built-in-resources/resources-integration.blur.spec.ts:156:28)
+</failure>
+  </testcase>
+  <testcase name="built-in-resources.focus Interactive scenarios Works when shifting focus away from &lt;input/>" time="0.006" classname="Chrome_71_0_3578_(Windows_10_0_0).built-in-resources.focus">
+    <failure type="">AssertionError: component.isBlur should have been false: expected true to equal false
+    at assert (webpack-internal:///../jit-html/test/built-in-resources/resources-integration.focus.spec.ts:188:56)
+    at Context.it (webpack-internal:///../jit-html/test/built-in-resources/resources-integration.focus.spec.ts:268:24)
+</failure>
+    <failure type="">AssertionError: expected true to equal false
+    at assert (webpack-internal:///../jit-html/test/built-in-resources/resources-integration.blur.spec.ts:96:62)
+    at Context.it (webpack-internal:///../jit-html/test/built-in-resources/resources-integration.blur.spec.ts:156:28)
+</failure>
+    <failure type="">AssertionError: expected true to equal false
+    at assert (webpack-internal:///../jit-html/test/built-in-resources/resources-integration.blur.spec.ts:96:62)
+    at Context.it (webpack-internal:///../jit-html/test/built-in-resources/resources-integration.blur.spec.ts:156:28)
+</failure>
+    <failure type="">AssertionError: expected true to equal false
+    at assert (webpack-internal:///../jit-html/test/built-in-resources/resources-integration.blur.spec.ts:96:62)
+    at Context.it (webpack-internal:///../jit-html/test/built-in-resources/resources-integration.blur.spec.ts:156:28)
+</failure>
+  </testcase>
+  <testcase name="built-in-resources.focus Interactive scenarios Works when shifting focus away from &lt;input/>" time="0.006" classname="Chrome_71_0_3578_(Windows_10_0_0).built-in-resources.focus">
+    <failure type="">AssertionError: component.isBlur should have been false: expected true to equal false
+    at assert (webpack-internal:///../jit-html/test/built-in-resources/resources-integration.focus.spec.ts:188:56)
+    at Context.it (webpack-internal:///../jit-html/test/built-in-resources/resources-integration.focus.spec.ts:268:24)
+</failure>
+    <failure type="">AssertionError: expected true to equal false
+    at assert (webpack-internal:///../jit-html/test/built-in-resources/resources-integration.blur.spec.ts:96:62)
+    at Context.it (webpack-internal:///../jit-html/test/built-in-resources/resources-integration.blur.spec.ts:156:28)
+</failure>
+    <failure type="">AssertionError: expected true to equal false
+    at assert (webpack-internal:///../jit-html/test/built-in-resources/resources-integration.blur.spec.ts:96:62)
+    at Context.it (webpack-internal:///../jit-html/test/built-in-resources/resources-integration.blur.spec.ts:156:28)
+</failure>
+    <failure type="">AssertionError: expected true to equal false
+    at assert (webpack-internal:///../jit-html/test/built-in-resources/resources-integration.blur.spec.ts:96:62)
+    at Context.it (webpack-internal:///../jit-html/test/built-in-resources/resources-integration.blur.spec.ts:156:28)
+</failure>
+    <failure type="">AssertionError: expected true to equal false
+    at assert (webpack-internal:///../jit-html/test/built-in-resources/resources-integration.blur.spec.ts:123:62)
+    at Context.it (webpack-internal:///../jit-html/test/built-in-resources/resources-integration.blur.spec.ts:156:28)
+</failure>
+  </testcase>
+  <testcase name="built-in-resources.focus Interactive scenarios Works when shifting focus away from &lt;input/>" time="0.006" classname="Chrome_71_0_3578_(Windows_10_0_0).built-in-resources.focus">
+    <failure type="">AssertionError: component.isBlur should have been false: expected true to equal false
+    at assert (webpack-internal:///../jit-html/test/built-in-resources/resources-integration.focus.spec.ts:188:56)
+    at Context.it (webpack-internal:///../jit-html/test/built-in-resources/resources-integration.focus.spec.ts:268:24)
+</failure>
+    <failure type="">AssertionError: expected true to equal false
+    at assert (webpack-internal:///../jit-html/test/built-in-resources/resources-integration.blur.spec.ts:96:62)
+    at Context.it (webpack-internal:///../jit-html/test/built-in-resources/resources-integration.blur.spec.ts:156:28)
+</failure>
+    <failure type="">AssertionError: expected true to equal false
+    at assert (webpack-internal:///../jit-html/test/built-in-resources/resources-integration.blur.spec.ts:96:62)
+    at Context.it (webpack-internal:///../jit-html/test/built-in-resources/resources-integration.blur.spec.ts:156:28)
+</failure>
+    <failure type="">AssertionError: expected true to equal false
+    at assert (webpack-internal:///../jit-html/test/built-in-resources/resources-integration.blur.spec.ts:96:62)
+    at Context.it (webpack-internal:///../jit-html/test/built-in-resources/resources-integration.blur.spec.ts:156:28)
+</failure>
+    <failure type="">AssertionError: expected true to equal false
+    at assert (webpack-internal:///../jit-html/test/built-in-resources/resources-integration.blur.spec.ts:123:62)
+    at Context.it (webpack-internal:///../jit-html/test/built-in-resources/resources-integration.blur.spec.ts:156:28)
+</failure>
+    <failure type="">AssertionError: expected true to equal false
+    at assert (webpack-internal:///../jit-html/test/built-in-resources/resources-integration.blur.spec.ts:96:62)
+    at Context.it (webpack-internal:///../jit-html/test/built-in-resources/resources-integration.blur.spec.ts:156:28)
+</failure>
+  </testcase>
+  <testcase name="built-in-resources.focus Interactive scenarios Works when shifting focus away from &lt;input/>" time="0.006" classname="Chrome_71_0_3578_(Windows_10_0_0).built-in-resources.focus">
+    <failure type="">AssertionError: component.isBlur should have been false: expected true to equal false
+    at assert (webpack-internal:///../jit-html/test/built-in-resources/resources-integration.focus.spec.ts:188:56)
+    at Context.it (webpack-internal:///../jit-html/test/built-in-resources/resources-integration.focus.spec.ts:268:24)
+</failure>
+    <failure type="">AssertionError: expected true to equal false
+    at assert (webpack-internal:///../jit-html/test/built-in-resources/resources-integration.blur.spec.ts:96:62)
+    at Context.it (webpack-internal:///../jit-html/test/built-in-resources/resources-integration.blur.spec.ts:156:28)
+</failure>
+    <failure type="">AssertionError: expected true to equal false
+    at assert (webpack-internal:///../jit-html/test/built-in-resources/resources-integration.blur.spec.ts:96:62)
+    at Context.it (webpack-internal:///../jit-html/test/built-in-resources/resources-integration.blur.spec.ts:156:28)
+</failure>
+    <failure type="">AssertionError: expected true to equal false
+    at assert (webpack-internal:///../jit-html/test/built-in-resources/resources-integration.blur.spec.ts:96:62)
+    at Context.it (webpack-internal:///../jit-html/test/built-in-resources/resources-integration.blur.spec.ts:156:28)
+</failure>
+    <failure type="">AssertionError: expected true to equal false
+    at assert (webpack-internal:///../jit-html/test/built-in-resources/resources-integration.blur.spec.ts:123:62)
+    at Context.it (webpack-internal:///../jit-html/test/built-in-resources/resources-integration.blur.spec.ts:156:28)
+</failure>
+    <failure type="">AssertionError: expected true to equal false
+    at assert (webpack-internal:///../jit-html/test/built-in-resources/resources-integration.blur.spec.ts:96:62)
+    at Context.it (webpack-internal:///../jit-html/test/built-in-resources/resources-integration.blur.spec.ts:156:28)
+</failure>
+    <failure type="">AssertionError: expected true to equal false
+    at assert (webpack-internal:///../jit-html/test/built-in-resources/resources-integration.blur.spec.ts:123:62)
+    at Context.it (webpack-internal:///../jit-html/test/built-in-resources/resources-integration.blur.spec.ts:156:28)
+</failure>
+  </testcase>
   <system-out>
-    <![CDATA[
+    <![CDATA[Chrome 71.0.3578 (Windows 10.0.0) ERROR
+  Disconnected, because no message in 30000 ms.
+
 ]]>
   </system-out>
   <system-err/>

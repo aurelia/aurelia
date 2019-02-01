@@ -8,10 +8,12 @@ import { setup } from '../integration/util';
 import { HTMLTestContext, TestContext } from '../util';
 import { eachCartesianJoin } from './util';
 
-describe.only('built-in-resources.focus', () => {
+describe('built-in-resources.focus', () => {
 
   interface IApp {
     isBlur: boolean;
+    isFocused2: boolean;
+    selectedOption: string;
   }
 
   let $aurelia: Aurelia;
@@ -26,7 +28,7 @@ describe.only('built-in-resources.focus', () => {
     }
   });
 
-  describe('basic scenario', () => {
+  describe('basic scenarios', () => {
 
     describe('with non-focusable element', () => {
       it('focuses when there is tabindex attribute', () => {
@@ -38,7 +40,6 @@ describe.only('built-in-resources.focus', () => {
             public isBlur = true;
           }
         );
-        $aurelia = au;
 
         const activeElement = dom.document.activeElement;
         const div = dom.document.querySelector('app div');
@@ -64,7 +65,6 @@ describe.only('built-in-resources.focus', () => {
           public isBlur = true;
         }
       );
-      $aurelia = au;
 
       const activeElement = dom.document.activeElement;
       const div = dom.document.querySelector('app div');
@@ -82,6 +82,8 @@ describe.only('built-in-resources.focus', () => {
       ['<div/>', '<div contenteditable focus.bind=isBlur id=blurred></div>'],
       ['<input/>', `<input focus.bind=isBlur id=blurred>`],
       ['<select/>', `<select focus.bind=isBlur id=blurred></select>`],
+      ['<button/>', '<button focus.bind=isBlur id=blurred></button>'],
+      ['<video/>', '<video tabindex=1 focus.bind=isBlur id=blurred></video>'],
       ['<select/> + <option/>', `<select focus.bind=isBlur id=blurred><option tabindex=1>Hello</option></select>`],
       ['<textarea/>', `<textarea focus.bind=isBlur id=blurred></textarea>`]
     ]) {
@@ -95,7 +97,6 @@ describe.only('built-in-resources.focus', () => {
               public isBlur = true;
             }
           );
-          $aurelia = au;
 
           const elName = desc.replace(/^<|\/>.*$/g, '');
           const activeElement = dom.document.activeElement;
@@ -108,7 +109,7 @@ describe.only('built-in-resources.focus', () => {
       });
     }
 
-    // For custom element, there needs to be tests based on several combinations
+    // For combination with native custom element, there needs to be tests based on several combinations
     // Factors that need to be considered are: shadow root, shadow root with a focusable element,
     //                  no shadow root, no shadow root with a focusable element
     //                  tab-index/ content-editable attribute on custom element itself
@@ -118,12 +119,21 @@ describe.only('built-in-resources.focus', () => {
     //                  Focus method on custom element has been invoked
     describe('CustomElements -- Initialization only', () => {
 
+      // when shadowModes is null, custom element sets its innerHTML directly on it own
+      // instead of its shadow root
       const shadowModes: ShadowRootMode[] = ['open', 'closed', null];
-      const ceTemplates = ['<input />', '<div contenteditable="true"></div>', '<div tabindex="1"></div>'];
+      const ceTemplates = [
+        '<input />',
+        '<textarea></textarea>',
+        '<select><option></option><option></option></select>',
+        '<div contenteditable="true"></div>',
+        '<div tabindex="1"></div>'
+      ];
+      // controls tests of focusability of the native custom element
       const ceProps: Record<string, any>[] = [
         { tabIndex: 1 },
-        // ce itself is not focusable
         { contentEditable: true },
+        // Test case: CE itself is not focusable
         {}
       ];
 
@@ -136,7 +146,7 @@ describe.only('built-in-resources.focus', () => {
           const ceName = `ce-${Math.random().toString().slice(-6)}`;
           const CustomEl = defineCustomElement(ceName, ceTemplate, { tabIndex: 1 }, shadowMode);
 
-          it(`works with ${isFocusable ? 'focusable' : ''} custom element ${ceName}`, () => {
+          it(`works with ${isFocusable ? 'focusable' : ''} custom element ${ceName}, #shadowRoot: ${shadowMode}`, () => {
             let callCount = 0;
             // only track call, virtually no different without this layer
             CustomEl.prototype['focus'] = function focus(options?: FocusOptions): void {
@@ -145,6 +155,8 @@ describe.only('built-in-resources.focus', () => {
                 return HTMLElement.prototype.focus.call(this, options);
               } else {
                 const focusableEl = this.querySelector('input')
+                  || this.querySelector('textarea')
+                  || this.querySelector('select')
                   || this.querySelector('[contenteditable]')
                   || this.querySelector('[tabindex]');
                 if (focusableEl) {
@@ -160,7 +172,6 @@ describe.only('built-in-resources.focus', () => {
                 public isBlur = true;
               }
             );
-            $aurelia = au;
 
             const activeElement = dom.document.activeElement;
             const ceEl = dom.document.querySelector(`app ${ceName}`);
@@ -184,16 +195,144 @@ describe.only('built-in-resources.focus', () => {
     });
   });
 
+  describe.only('Interactive scenarios', () => {
+    const focusAttrs = [
+      'focus.two-way=isBlur',
+      'focus.bind=isBlur',
+      'focus="value.two-way: isBlur"',
+      'focus="value.bind: isBlur"'
+    ];
+    const templates: ITestCase[] = [
+      {
+        title: 'Works when shifting focus away from <input/>',
+        template: (focusAttr) => `<template>
+          <input ${focusAttr} />
+          <div></div>
+          <button>Click me</button>
+        </template>`,
+        getFocusable: 'input',
+        app: class App {
+          public isBlur = true;
+        },
+        async assert({ window, document }: HTMLDOM, component, focusable) {
+          const button = document.querySelector('button');
+          button.focus();
+          expect(document.activeElement).to.equal(button);
+          expect(component.isBlur).to.equal(false, 'component.isBlur should have been false');
+
+          focusable.focus();
+          expect(document.activeElement).to.equal(focusable);
+          expect(component.isBlur).to.equal(true, 'component.isBlur should have been true after input has gotten back the focus');
+
+          window.dispatchEvent(new CustomEvent('blur'));
+          expect(document.activeElement).to.equal(focusable);
+          expect(component.isBlur).to.equal(true, 'component.isBlur should have been true when window got blur, as no other elements stole the focus');
+        }
+      },
+      {
+        title: 'Works when shifting focus away from <select/>',
+        template: (focusAttr) => `<template>
+          <select ${focusAttr} value.bind=selectedOption>
+            <option>1</option>
+            <option>2</option>
+          </select>
+          <button>Click me</button>
+        </template>`,
+        getFocusable: 'select',
+        app: class App {
+          public isBlur = true;
+          public selectedOption: '1' | '2' = '1';
+        },
+        async assert({ window, document }: HTMLDOM, component, focusable) {
+
+          const button = document.querySelector('button');
+          button.focus();
+          expect(document.activeElement).to.equal(button);
+          expect(component.isBlur).to.equal(false, 'component.isBlur should have been false');
+
+          focusable.focus();
+          expect(document.activeElement).to.equal(focusable);
+          expect(component.isBlur).to.equal(true, 'component.isBlur should have been true after input has gotten back the focus');
+
+          window.dispatchEvent(new CustomEvent('blur'));
+          expect(document.activeElement).to.equal(focusable);
+          expect(component.isBlur).to.equal(true, 'component.isBlur should have been true when window got blur, as no other elements stole the focus');
+
+          component.selectedOption = '2';
+          await waitForDelay();
+          expect(document.activeElement).to.equal(focusable);
+          expect(component.isBlur).to.equal(true, 'component.isBlur should have been true when select value change');
+        }
+      },
+      {
+        title: 'Multiple focus bindings and focus stealing between <input/>',
+        template: (focusAttr) => `<template>
+          <input ${focusAttr} id=input1>
+          <input focus.bind="isFocused2" id=input2>
+          <button>Click me</button>
+        </template>`,
+        getFocusable: 'input',
+        app: class App {
+          public isFocus = true;
+          public isFocused2 = false;
+        },
+        async assert(dom, component, focusable) {
+          const input2 = dom.document.querySelector('#input2') as HTMLInputElement;
+          expect(focusable).not.to.eq(input2);
+          input2.focus();
+          expect(document.activeElement).to.equal(input2);
+          expect(component.isFocused2).to.equal(true);
+          expect(component.isBlur).to.equal(false);
+        }
+      }
+    ];
+
+    eachCartesianJoin(
+      [focusAttrs, templates],
+      (command, { title, template, getFocusable, app, assert }: ITestCase) => {
+        it(title, () => {
+          const { au, component, dom } = setupAndStartNormal<IApp>(
+            template(command),
+            app
+          );
+          const activeElement = document.activeElement;
+          const focusable = typeof getFocusable === 'string'
+            ? document.querySelector(getFocusable) as HTMLElement
+            : getFocusable(document);
+          expect(focusable).not.to.be.null;
+          if (typeof getFocusable === 'string') {
+            const parts = getFocusable.split(' ');
+            expect(activeElement.tagName).to.equal(parts[parts.length - 1].toUpperCase());
+          }
+          expect(activeElement).to.equal(focusable);
+          expect(component.isBlur).to.equal(true, 'It should not have affected component.isBlur');
+          return assert(dom, component, focusable);
+        });
+      }
+    );
+
+    interface ITestCase<T extends IApp = IApp> {
+      title: string;
+      template: TemplateFn;
+      app: Constructable<T>;
+      assert: AssertionFn;
+      getFocusable: string | ((doc: Document) => HTMLElement);
+    }
+  });
+
   function setupAndStartNormal<T>(template: string | Node, $class: Constructable | null, ...registrations: any[]) {
     const ctx = TestContext.createHTMLTestContext();
     registrations = Array.from(new Set([...registrations, FocusCustomAttribute]));
     const { container, lifecycle, host, au, component, observerLocator } = setup(ctx, template, $class, ...registrations);
 
+    ctx.doc.body.innerHTML = '';
     ctx.doc.body.appendChild(host);
 
     au.app({ host, component });
     au.start();
     au['stopTasks'].push(() => ctx.doc.body.removeChild(host));
+
+    $aurelia = au;
 
     return { dom: ctx.dom, container, lifecycle, host, au, component: component as T, observerLocator };
   }
@@ -227,5 +366,12 @@ describe.only('built-in-resources.focus', () => {
 
   function waitForDelay(time = 0): Promise<void> {
     return new Promise(r => setTimeout(r, time));
+  }
+
+  type TemplateFn = (focusAttrBindingCommand: string) => string;
+
+  interface AssertionFn<T extends IApp = IApp> {
+    // tslint:disable-next-line:callable-types
+    (dom: HTMLDOM, component: T, focusable: HTMLElement): void | Promise<void>;
   }
 });

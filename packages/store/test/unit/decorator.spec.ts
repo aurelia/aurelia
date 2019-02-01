@@ -136,7 +136,8 @@ describe('using decorators', () => {
           expect(sut.state).not.to.equal(undefined);
           expect(sut.barTarget).to.equal(initialState.bar);
           expect(sut.fooTarget).to.equal(initialState.foo);
-        }
+        },
+        120
       );
     });
 
@@ -178,7 +179,8 @@ describe('using decorators', () => {
         () => {
           expect((sut as any).state).not.to.equal(undefined);
           expect(sut.foo).to.equal(initialState.bar);
-        }
+        },
+        120
       );
     });
 

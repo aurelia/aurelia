@@ -1,6 +1,6 @@
 import { Reporter } from '@aurelia/kernel';
+import { IView } from '@aurelia/runtime';
 import { Observable, Subscription } from 'rxjs';
-import { View } from './../../runtime/src/templating/view';
 
 import { Store, STORE } from './store';
 
@@ -82,7 +82,7 @@ export function connectTo<T, R = unknown>(settings?: ((store: Store<T>) => Obser
 
     // only override if prototype callback is a function
     if (typeof originalCreated === 'function' || originalCreated === undefined) {
-      target.prototype.created = function created(_: View, view: View): void {
+      target.prototype.created = function created(_: IView, view: IView): void {
         // here we relies on the fact that the class Store
         // has not been registered somewhere in one of child containers, instead of root container
         // if there is any issue with this approach, needs to walk all the way up to resolve from root
@@ -123,7 +123,7 @@ export function connectTo<T, R = unknown>(settings?: ((store: Store<T>) => Obser
       }
     };
 
-    target.prototype[typeof settings === 'object' && settings.teardown ? settings.teardown : 'unbind'] = function () {
+    target.prototype[typeof settings === 'object' && settings.teardown ? settings.teardown : 'unbind'] = function (): unknown {
       if (this._stateSubscriptions && Array.isArray(this._stateSubscriptions)) {
         this._stateSubscriptions.forEach((sub: Subscription) => {
           if (sub instanceof Subscription && sub.closed === false) {

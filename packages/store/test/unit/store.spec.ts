@@ -23,13 +23,13 @@ describe('store', () => {
       return {...currentState,  foo: param1 + param2};
     };
 
-    expect((store.dispatch as any)(unregisteredAction)).to.eventually.be.rejectedWith(Error);
+    expect((store.dispatch as any)(unregisteredAction)).to.be.rejected;
   });
 
   it('should fail when dispatching non actions', async () => {
     const { store } = createTestStore();
 
-    expect(store.dispatch(undefined as any)).to.eventually.be.rejectedWith(Error);
+    expect(store.dispatch(undefined as any)).to.be.rejected;
   });
 
   it('should only accept reducers taking at least one parameter', () => {
@@ -48,7 +48,7 @@ describe('store', () => {
     const fakeAction = (_: testState) => { };
 
     store.registerAction('FakeAction', fakeAction as any);
-    expect(store.dispatch(fakeAction as any)).to.eventually.be.rejected;
+    expect(store.dispatch(fakeAction as any)).to.be.rejected;
   });
 
   it('should also accept false and stop queue', async () => {
@@ -78,10 +78,10 @@ describe('store', () => {
     const fakeAction = (currentState: testState) => currentState;
 
     store.registerAction('FakeAction', fakeAction);
-    store.dispatch(fakeAction).should.eventually.not.be.rejectedWith(Error);
+    store.dispatch(fakeAction).should.not.be.rejected;
 
     store.unregisterAction(fakeAction);
-    expect(store.dispatch(fakeAction)).should.eventually.be.rejectedWith(Error);
+    expect(store.dispatch(fakeAction)).should.throw;
   });
 
   it('should not try to unregister previously unregistered actions', async () => {

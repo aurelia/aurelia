@@ -89,6 +89,6 @@ describe('dispatchify', () => {
     container.register(Registration.instance(Store, store));
 
     // tslint:disable-next-line
-    expect(dispatchify('ABC')('A', 'B')).to.eventually.be.rejectedWith(Error);
+    expect(dispatchify('ABC')('A', 'B')).to.be.rejected;
   });
 });

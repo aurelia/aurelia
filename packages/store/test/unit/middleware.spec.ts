@@ -1,6 +1,6 @@
 import { PLATFORM } from '@aurelia/kernel';
 import { skip, take } from 'rxjs/operators';
-import { stub } from 'sinon';
+import { sandbox, stub } from 'sinon';
 import { LogLevel } from './../../src/logging';
 
 import {
@@ -42,6 +42,12 @@ describe('middlewares', () => {
 
     return newState;
   };
+
+  const sinonSandbox = sandbox.create();
+
+  afterEach(() => {
+    sinonSandbox.restore();
+  });
 
   it('should allow registering middlewares without parameters', () => {
     const store = createStoreWithState(initialState);
@@ -98,7 +104,7 @@ describe('middlewares', () => {
   it('should not try to delete previously unregistered middlewares', async () => {
     const store = createStoreWithState(initialState);
 
-    stub((store as any).middlewares, 'delete');
+    const spy = sinonSandbox.stub((store as any).middlewares, 'delete');
 
     const decreaseBefore = (currentState: TestState) => {
       const newState = {...currentState};
@@ -111,6 +117,9 @@ describe('middlewares', () => {
     store.unregisterMiddleware(decreaseBefore);
 
     expect((store as any).middlewares.delete).not.to.have.callCount(1);
+
+    spy.reset();
+    spy.restore();
   });
 
   it('should allow checking for registered middlewares', () => {
@@ -135,7 +144,7 @@ describe('middlewares', () => {
       expect(action).not.to.equal(undefined);
       expect(action.name).to.equal(expectedActionName);
       expect(action.params).not.to.equal(undefined);
-      expect(action.params).to.equal(['A', 'B']);
+      expect(action.params).to.include.members(['A', 'B']);
     };
 
     store.registerAction(expectedActionName, actionObservedByMiddleware);
@@ -328,7 +337,7 @@ describe('middlewares', () => {
 
   it('should interrupt queue action if middleware returns sync false', async () => {
     const store = createStoreWithStateAndOptions(initialState, {});
-    const nextSpy = stub((store as any)._state, 'next').callThrough();
+    const nextSpy = sinonSandbox.stub((store as any)._state, 'next').callThrough();
     const syncFalseMiddleware = (): false => {
       return false;
     };
@@ -338,11 +347,14 @@ describe('middlewares', () => {
     await store.dispatch(incrementAction);
 
     expect(nextSpy).to.have.callCount(0);
+
+    nextSpy.reset();
+    nextSpy.restore();
   });
 
   it('should interrupt queue action if after placed middleware returns sync false', async () => {
     const store = createStoreWithStateAndOptions(initialState, {});
-    const nextSpy = stub((store as any)._state, 'next').callThrough();
+    const nextSpy = sinonSandbox.stub((store as any)._state, 'next').callThrough();
     const syncFalseMiddleware = (): false => {
       return false;
     };
@@ -352,11 +364,14 @@ describe('middlewares', () => {
     await store.dispatch(incrementAction);
 
     expect(nextSpy).to.have.callCount(0);
+
+    nextSpy.reset();
+    nextSpy.restore();
   });
 
   it('should interrupt queue action if middleware returns async false', async () => {
     const store = createStoreWithStateAndOptions(initialState, {});
-    const nextSpy = stub((store as any)._state, 'next').callThrough();
+    const nextSpy = sinonSandbox.stub((store as any)._state, 'next').callThrough();
     const syncFalseMiddleware = (): Promise<false> => {
       return Promise.resolve<false>(false);
     };
@@ -366,6 +381,9 @@ describe('middlewares', () => {
     await store.dispatch(incrementAction);
 
     expect(nextSpy).to.have.callCount(0);
+
+    nextSpy.reset();
+    nextSpy.restore();
   });
 
   it('should not continue with next middleware if error propagation is turned on', async () => {
@@ -467,7 +485,7 @@ describe('middlewares', () => {
   it('should handle middlewares not returning a state', done => {
     const store = createStoreWithState(initialState);
 
-    global.console.log = stub();
+    const spy1 = sinonSandbox.stub(global.console, 'log');
 
     // tslint:disable-next-line:no-console
     const customLogMiddleware = (currentState: TestState) => console.log(currentState);
@@ -479,16 +497,19 @@ describe('middlewares', () => {
     store.state.pipe(
       skip(1)
     ).subscribe(() => {
-      expect(global.console.log).to.have.callCount(1);
+      expect(spy1).to.have.callCount(1);
       done();
     });
+
+    spy1.reset();
+    spy1.restore();
   });
 
   describe('default implementation', () => {
     it('should provide a default log middleware', done => {
       const store = createStoreWithState(initialState);
 
-      global.console.log = stub();
+      const spy1 = sinonSandbox.stub(global.console, 'log');
       store.registerMiddleware(logMiddleware, MiddlewarePlacement.After);
 
       store.registerAction('IncrementAction', incrementAction);
@@ -498,16 +519,19 @@ describe('middlewares', () => {
         skip(1)
       ).subscribe((state: any) => {
         expect(state.counter).to.equal(2);
-        expect(global.console.log).to.have.callCount(1);
+        expect(spy1).to.have.callCount(1);
 
         done();
       });
+
+      spy1.reset();
+      spy1.restore();
     });
 
     it('should accept settings to override the log behavior for the log middleware', done => {
       const store = createStoreWithState(initialState);
 
-      global.console.warn = stub();
+      const spy1 = sinonSandbox.stub(global.console, 'warn');
       store.registerMiddleware(logMiddleware, MiddlewarePlacement.After, { logType: LogLevel.warn });
 
       store.registerAction('IncrementAction', incrementAction);
@@ -517,10 +541,13 @@ describe('middlewares', () => {
         skip(1)
       ).subscribe((state: any) => {
         expect(state.counter).to.equal(2);
-        expect(global.console.warn).to.have.callCount(1);
+        expect(spy1).to.have.callCount(1);
 
         done();
       });
+
+      spy1.reset();
+      spy1.restore();
     });
 
     it('should provide a localStorage middleware', done => {
@@ -529,12 +556,12 @@ describe('middlewares', () => {
       const temporaryStoreValues = { foo: 'bar' };
 
       // tslint:disable-next-line:no-shadowed-variable
-      stub(PLATFORM.global.localStorage, 'getItem').callsFake((key: string) => {
+      const spy1 = sinonSandbox.stub(PLATFORM.global.localStorage, 'getItem').callsFake((key: string) => {
         return temporaryStoreValues[key] || null;
       });
 
       // tslint:disable-next-line:no-shadowed-variable
-      stub(PLATFORM.global.localStorage, 'setItem').callsFake((key: string, value: string) => {
+      const spy2 = sinonSandbox.stub(PLATFORM.global.localStorage, 'setItem').callsFake((key: string, value: string) => {
         return temporaryStoreValues[key] = value;
       });
 
@@ -549,12 +576,12 @@ describe('middlewares', () => {
         expect(state.counter).to.equal(2);
         expect((PLATFORM.global as any).localStorage.getItem('aurelia-store-state')).to.equal(JSON.stringify(state));
         done();
-
-        (PLATFORM.global.localStorage.getItem as any).reset();
-        (PLATFORM.global.localStorage.getItem as any).restore();
-        (PLATFORM.global.localStorage.setItem as any).reset();
-        (PLATFORM.global.localStorage.setItem as any).restore();
       });
+
+      spy1.reset();
+      spy1.restore();
+      spy2.reset();
+      spy2.restore();
     });
 
     it('should provide a localStorage middleware supporting a custom key', done => {
@@ -563,12 +590,12 @@ describe('middlewares', () => {
 
       const temporaryStoreValues = { foo: 'bar' };
 
-      stub(PLATFORM.global.localStorage, 'getItem').callsFake(() => {
+      const spy1 = sinonSandbox.stub(PLATFORM.global.localStorage, 'getItem').callsFake(() => {
         return temporaryStoreValues[key] || null;
       });
 
       // tslint:disable-next-line:no-shadowed-variable
-      stub(PLATFORM.global.localStorage, 'setItem').callsFake((key: string, value: string) => {
+      const spy2 = sinonSandbox.stub(PLATFORM.global.localStorage, 'setItem').callsFake((key: string, value: string) => {
         return temporaryStoreValues[key] = value;
       });
 
@@ -583,18 +610,18 @@ describe('middlewares', () => {
         expect(state.counter).to.equal(2);
         expect((PLATFORM.global as any).localStorage.getItem(key)).to.equal(JSON.stringify(state));
         done();
-
-        (PLATFORM.global.localStorage.getItem as any).reset();
-        (PLATFORM.global.localStorage.getItem as any).restore();
-        (PLATFORM.global.localStorage.setItem as any).reset();
-        (PLATFORM.global.localStorage.setItem as any).restore();
       });
+
+      spy1.reset();
+      spy1.restore();
+      spy2.reset();
+      spy2.restore();
     });
 
     it('should rehydrate state from localStorage', done => {
       const store = createStoreWithState(initialState);
 
-      stub(PLATFORM.global.localStorage, 'getItem').callsFake(() => {
+      const spy1 = sinonSandbox.stub(PLATFORM.global.localStorage, 'getItem').callsFake(() => {
         const storedState = {...initialState};
         storedState.counter = 1000;
 
@@ -610,19 +637,17 @@ describe('middlewares', () => {
       ).subscribe((state: any) => {
         expect(state.counter).to.equal(1000);
         done();
-
-        (PLATFORM.global.localStorage.getItem as any).reset();
-        (PLATFORM.global.localStorage.getItem as any).restore();
-        (PLATFORM.global.localStorage.setItem as any).reset();
-        (PLATFORM.global.localStorage.setItem as any).restore();
       });
+
+      spy1.reset();
+      spy1.restore();
     });
 
     it('should rehydrate state from localStorage using a custom key', done => {
       const store = createStoreWithState(initialState);
       const key = 'foobar';
 
-      stub(PLATFORM.global.localStorage, 'getItem').callsFake(() => {
+      const spy1 = sinonSandbox.stub(PLATFORM.global.localStorage, 'getItem').callsFake(() => {
         const storedState = {...initialState};
         storedState.counter = 1000;
 
@@ -639,17 +664,16 @@ describe('middlewares', () => {
         expect(state.counter).to.equal(1000);
         done();
 
-        (PLATFORM.global.localStorage.getItem as any).reset();
-        (PLATFORM.global.localStorage.getItem as any).restore();
-        (PLATFORM.global.localStorage.setItem as any).reset();
-        (PLATFORM.global.localStorage.setItem as any).restore();
+        spy1.reset();
+        spy1.restore();
       });
     });
 
     it('should rehydrate from previous state if localStorage is not available', done => {
       const store = createStoreWithState(initialState);
 
-      stub(PLATFORM.global.localStorage).callsFake(undefined);
+      sinonSandbox.stub(PLATFORM.global.localStorage, 'getItem').callsFake(undefined);
+      sinonSandbox.stub(PLATFORM.global.localStorage, '').callsFake(undefined);
 
       store.registerMiddleware(localStorageMiddleware, MiddlewarePlacement.After);
       store.registerAction('Rehydrate', rehydrateFromLocalStorage);
@@ -660,18 +684,13 @@ describe('middlewares', () => {
       ).subscribe((state: any) => {
         expect(state.counter).to.equal(1);
         done();
-
-        (PLATFORM.global.localStorage.getItem as any).reset();
-        (PLATFORM.global.localStorage.getItem as any).restore();
-        (PLATFORM.global.localStorage.setItem as any).reset();
-        (PLATFORM.global.localStorage.setItem as any).restore();
       });
     });
 
     it('should rehydrate from previous state if localStorage is empty', done => {
       const store = createStoreWithState(initialState);
 
-      stub(PLATFORM.global.localStorage, 'getItem').callsFake(() => {
+      const spy1 = sinonSandbox.stub(PLATFORM.global.localStorage, 'getItem').callsFake(() => {
         return null;
       });
 
@@ -685,17 +704,15 @@ describe('middlewares', () => {
         expect(state.counter).to.equal(1);
         done();
 
-        (PLATFORM.global.localStorage.getItem as any).reset();
-        (PLATFORM.global.localStorage.getItem as any).restore();
-        (PLATFORM.global.localStorage.setItem as any).reset();
-        (PLATFORM.global.localStorage.setItem as any).restore();
+        spy1.reset();
+        spy1.restore();
       });
     });
 
     it('should rehydrate from history state', done => {
       const store = createStoreWithState(initialHistoryState, true);
 
-      stub(PLATFORM.global.localStorage, 'getItem').callsFake(() => {
+      sinonSandbox.stub(PLATFORM.global.localStorage, 'getItem').callsFake(() => {
         const storedState = {...initialState};
         storedState.counter = 1000;
 
@@ -711,18 +728,13 @@ describe('middlewares', () => {
       ).subscribe((state: any) => {
         expect(state.present.counter).to.equal(1000);
         done();
-
-        (PLATFORM.global.localStorage.getItem as any).reset();
-        (PLATFORM.global.localStorage.getItem as any).restore();
-        (PLATFORM.global.localStorage.setItem as any).reset();
-        (PLATFORM.global.localStorage.setItem as any).restore();
       });
     });
 
     it('should return the previous state if localStorage state cannot be parsed', done => {
       const store = createStoreWithState(initialState);
 
-      stub(PLATFORM.global.localStorage, 'getItem').callsFake((key: string) => {
+      const spy1 = sinonSandbox.stub(PLATFORM.global.localStorage, 'getItem').callsFake((key: string) => {
         return global as any;
       });
 
@@ -736,10 +748,8 @@ describe('middlewares', () => {
         expect(state.counter).to.equal(1);
         done();
 
-        (PLATFORM.global.localStorage.getItem as any).reset();
-        (PLATFORM.global.localStorage.getItem as any).restore();
-        (PLATFORM.global.localStorage.setItem as any).reset();
-        (PLATFORM.global.localStorage.setItem as any).restore();
+        spy1.reset();
+        spy1.restore();
       });
     });
   });

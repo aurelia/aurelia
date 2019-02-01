@@ -700,7 +700,7 @@ describe('using decorators', () => {
 
       const sut = new DemoStoreConsumer();
 
-      expect(() => (sut as any).bind()).to.throw('Provided onChanged handler does not exist on target VM');
+      expect(() => (sut as any).bind()).to.throw();
     });
   });
 });

@@ -99,7 +99,7 @@ describe.only('built-in-resources.blur', () => {
         'blur="value.bind: hasFocus"',
         'blur="value.from-view: hasFocus"'
       ];
-      const testCases: ITestCase[] = [
+      const normalUsageTestCases: ITestCase[] = [
         {
           title: 'Works in basic scenario',
           template: (blurrAttr) => `<template>
@@ -164,7 +164,7 @@ describe.only('built-in-resources.blur', () => {
       };
 
       eachCartesianJoin(
-        [blurAttrs, testCases],
+        [blurAttrs, normalUsageTestCases],
         (command, { title, template, getFocusable, app, assert, cfg = defaultBlurConfig}: ITestCase) => {
           it(title, async () => {
             const originalUse = BlurCustomAttribute.use;

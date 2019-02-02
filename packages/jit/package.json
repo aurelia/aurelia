@@ -1,6 +1,6 @@
 {
   "name": "@aurelia/jit",
-  "version": "0.3.0-dev.20190201",
+  "version": "0.3.0-dev.20190202",
   "main": "dist/index.umd.js",
   "module": "dist/index.es6.js",
   "jsnext:main": "dist/index.es6.js",
@@ -49,8 +49,8 @@
     "access": "public"
   },
   "dependencies": {
-    "@aurelia/kernel": "0.3.0-dev.20190201",
-    "@aurelia/runtime": "0.3.0-dev.20190201"
+    "@aurelia/kernel": "0.3.0-dev.20190202",
+    "@aurelia/runtime": "0.3.0-dev.20190202"
   },
   "devDependencies": {
     "@types/chai": "^4.1.7",

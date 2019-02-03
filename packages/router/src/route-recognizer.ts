@@ -242,7 +242,6 @@ export class EpsilonSegment {
 }
 export type Segment = StaticSegment | DynamicSegment | StarSegment | EpsilonSegment;
 
-
 /**
  * Class that parses route patterns and matches path strings.
  */
@@ -309,7 +308,7 @@ export class RouteRecognizer {
           names.push(match[1]);
           types.stars++;
         } else if (part === '') {
-          segments.push(segment = new EpsilonSegment());
+          segments.push(new EpsilonSegment());
           continue;
         } else {
           segments.push(segment = new StaticSegment(part, route.caseSensitive));

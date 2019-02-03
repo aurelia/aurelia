@@ -202,7 +202,7 @@ describe('route sut', () => {
     });
 
     it(`should generate - ${routeSpec.t}`, () => {
-      const { route, path, isDynamic, params } = routeSpec;
+      const { route, path, params } = routeSpec;
       const sut = new RouteRecognizer();
       sut.add([route]);
 

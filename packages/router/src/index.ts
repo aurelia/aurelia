@@ -1,6 +1,7 @@
 export * from './history-browser';
 export * from './link-handler';
 export * from './nav';
+export * from './route-recognizer';
 export * from './router';
 export * from './scope';
 export * from './viewport';

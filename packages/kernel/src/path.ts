@@ -124,7 +124,7 @@ type SimpleQueryParams = string | IQueryParams | (string | IQueryParams)[];
  * @return Array with serialized parameter(s)
  */
 function buildParam(key: string, value: ComplexQueryParams, traditional?: boolean): string[] {
-  let result = [];
+  let result: string[] = [];
   if (value === null || value === undefined) {
     return result;
   }
@@ -155,7 +155,7 @@ function buildParam(key: string, value: ComplexQueryParams, traditional?: boolea
  * @returns The generated query string, excluding leading '?'.
  */
 export function buildQueryString(params?: IQueryParams, traditional?: boolean): string {
-  let pairs = [];
+  let pairs: string[] = [];
   const keys = Object.keys(params || {}).sort();
   for (let i = 0, len = keys.length; i < len; i++) {
     const key = keys[i];

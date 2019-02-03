@@ -10,17 +10,17 @@ describe('relativeToFile', () => {
   });
 
   it('can make a dot path relative to an absolute file', () => {
-    const file = 'http://durandal.io/some/file.html';
+    const file = 'http://aurelia.io/some/file.html';
     const path = './other/module';
 
-    expect(relativeToFile(path, file)).to.equal('http://durandal.io/some/other/module');
+    expect(relativeToFile(path, file)).to.equal('http://aurelia.io/some/other/module');
   });
 
   it('can make a double dot path relative to an absolute file', () => {
-    const file = 'http://durandal.io/some/file.html';
+    const file = 'http://aurelia.io/some/file.html';
     const path = '../other/module';
 
-    expect(relativeToFile(path, file)).to.equal('http://durandal.io/other/module');
+    expect(relativeToFile(path, file)).to.equal('http://aurelia.io/other/module');
   });
 
   it('returns path if null file provided', () => {
@@ -75,24 +75,24 @@ describe('join', () => {
   });
 
   it('can combine an absolute path with protocol and a simple path', () => {
-    const path1 = 'http://durandal.io';
+    const path1 = 'http://aurelia.io';
     const path2 = 'two';
 
-    expect(join(path1, path2)).to.equal('http://durandal.io/two');
+    expect(join(path1, path2)).to.equal('http://aurelia.io/two');
   });
 
   it('can combine an absolute path with protocol and a simple path with slash', () => {
-    const path1 = 'http://durandal.io';
+    const path1 = 'http://aurelia.io';
     const path2 = '/two';
 
-    expect(join(path1, path2)).to.equal('http://durandal.io/two');
+    expect(join(path1, path2)).to.equal('http://aurelia.io/two');
   });
 
   it('can combine an absolute path and a simple path with a dot', () => {
-    const path1 = 'http://durandal.io';
+    const path1 = 'http://aurelia.io';
     const path2 = './two';
 
-    expect(join(path1, path2)).to.equal('http://durandal.io/two');
+    expect(join(path1, path2)).to.equal('http://aurelia.io/two');
   });
 
   it('can combine a simple path and a relative path', () => {
@@ -103,38 +103,38 @@ describe('join', () => {
   });
 
   it('can combine an absolute path and a relative path', () => {
-    const path1 = 'http://durandal.io/somewhere';
+    const path1 = 'http://aurelia.io/somewhere';
     const path2 = '../two';
 
-    expect(join(path1, path2)).to.equal('http://durandal.io/two');
+    expect(join(path1, path2)).to.equal('http://aurelia.io/two');
   });
 
   it('can combine a protocol independent path and a simple path', () => {
-    const path1 = '//durandal.io';
+    const path1 = '//aurelia.io';
     const path2 = 'two';
 
-    expect(join(path1, path2)).to.equal('//durandal.io/two');
+    expect(join(path1, path2)).to.equal('//aurelia.io/two');
   });
 
   it('can combine a protocol independent path and a simple path with slash', () => {
-    const path1 = '//durandal.io';
+    const path1 = '//aurelia.io';
     const path2 = '/two';
 
-    expect(join(path1, path2)).to.equal('//durandal.io/two');
+    expect(join(path1, path2)).to.equal('//aurelia.io/two');
   });
 
   it('can combine a protocol independent path and a simple path with a dot', () => {
-    const path1 = '//durandal.io';
+    const path1 = '//aurelia.io';
     const path2 = './two';
 
-    expect(join(path1, path2)).to.equal('//durandal.io/two');
+    expect(join(path1, path2)).to.equal('//aurelia.io/two');
   });
 
   it('can combine a protocol independent path and a relative path', () => {
-    const path1 = '//durandal.io/somewhere';
+    const path1 = '//aurelia.io/somewhere';
     const path2 = '../two';
 
-    expect(join(path1, path2)).to.equal('//durandal.io/two');
+    expect(join(path1, path2)).to.equal('//aurelia.io/two');
   });
 
   it('can combine a complex path and a relative path', () => {

@@ -1,11 +1,11 @@
 import { Constructable, InterfaceSymbol, Writable } from '@aurelia/kernel';
-import { bindable, createRenderContext, CustomElementResource, ICustomElement, ICustomElementType, IDOM, IElementTemplateProvider, INode, IRenderContext, IRenderingEngine, ITemplate, LifecycleFlags, TemplateDefinition, connectable } from '@aurelia/runtime';
+import { bindable, createRenderContext, CustomElementResource, ICustomElement, ICustomElementType, IDOM, IElementTemplateProvider, INode, IRenderContext, IRenderingEngine, ITemplate, LifecycleFlags, TemplateDefinition } from '@aurelia/runtime';
 import { Router } from '../router';
 import { IViewportOptions, Viewport } from '../viewport';
 
 export interface ViewportCustomElement extends ICustomElement<Element> { }
 export class ViewportCustomElement {
-  public static readonly inject: ReadonlyArray<InterfaceSymbol|Constructable> = [Router, INode, IRenderingEngine];
+  public static readonly inject: ReadonlyArray<InterfaceSymbol | Constructable> = [Router, INode, IRenderingEngine];
 
   @bindable public name: string;
   @bindable public scope: boolean;
@@ -98,7 +98,7 @@ export class ViewportCustomElement {
     }
     this.viewport = this.router.addViewport(this.name, this.element, this.$context, this, options);
   }
-  public disconnect():void {
+  public disconnect(): void {
     this.router.removeViewport(this.viewport, this.element, this.$context);
   }
 

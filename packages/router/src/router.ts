@@ -1,4 +1,3 @@
-import { ViewportCustomElement } from './../dist/router/src/resources/viewport.d';
 import { IContainer, InterfaceSymbol } from '@aurelia/kernel';
 import { Aurelia, ICustomElementType, IRenderContext } from '@aurelia/runtime';
 import { HistoryBrowser, IHistoryOptions, INavigationInstruction } from './history-browser';
@@ -272,7 +271,7 @@ export class Router {
           // TODO: Abort content change in the viewports
           this.addProcessingViewport(cvp.component, cvp.viewport);
         }
-        value.abortContentChange();
+        value.abortContentChange().catch(error => { throw error; });
         return true;
       }));
       if (results.some(result => result === false)) {
@@ -334,7 +333,7 @@ export class Router {
         // TODO: Deal with not yet existing viewports
         viewport = this.allViewports().find((vp) => vp.name === viewport);
       }
-      this.addedViewports.push({ viewport: viewport as Viewport, component: component });
+      this.addedViewports.push({ viewport: viewport, component: component });
     } else if (this.lastNavigation) {
       this.pendingNavigations.unshift({ path: '', fullStatePath: '', isRepeat: true });
       this.processNavigations().catch(error => { throw error; });

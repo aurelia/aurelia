@@ -121,7 +121,7 @@ export class Scope {
         name = name.substring(0, name.length - 1);
       }
       if (!this.viewports()[name]) {
-        this.addViewport(name, null, null, null, { scope: newScope, forceDescription: true });
+        this.addViewport(name, null, null, { scope: newScope, forceDescription: true });
         this.availableViewports[name] = this.viewports()[name];
       }
       const viewport = this.availableViewports[name];
@@ -198,7 +198,7 @@ export class Scope {
     };
   }
 
-  public addViewport(name: string, element: Element, context: IRenderContext, elementVM: any, options?: IViewportOptions): Viewport {
+  public addViewport(name: string, element: Element, context: IRenderContext, options?: IViewportOptions): Viewport {
     let viewport = this.viewports()[name];
     // Each au-viewport element has its own Viewport
     if (element && viewport && viewport.element !== null && viewport.element !== element) {
@@ -215,12 +215,12 @@ export class Scope {
         this.router.scopes.push(scope);
       }
 
-      viewport = new Viewport(this.router, name, null, null, null, this, scope, options);
+      viewport = new Viewport(this.router, name, null, null, this, scope, options);
       this._viewports.push(viewport);
     }
     // TODO: Either explain why || instead of && here (might only need one) or change it to && if that should turn out to not be relevant
     if (element || context) {
-      viewport.setElement(element, context, elementVM, options);
+      viewport.setElement(element, context, options);
     }
     return viewport;
   }

@@ -96,7 +96,7 @@ export class ViewportCustomElement {
     if (this.element.hasAttribute('stateful')) {
       options.stateful = true;
     }
-    this.viewport = this.router.addViewport(this.name, this.element, this.$context, this, options);
+    this.viewport = this.router.addViewport(this.name, this.element, this.$context, options);
   }
   public disconnect(): void {
     this.router.removeViewport(this.viewport, this.element, this.$context);

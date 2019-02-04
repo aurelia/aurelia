@@ -80,14 +80,14 @@ export class ViewportContent {
     this.contentStatus = ContentStatuses.none;
   }
 
-  public initializeComponent(elementVM: any): void {
+  public initializeComponent(): void {
     // Don't initialize cached content
     if (!this.fromCache) {
       this.component.$bind(LifecycleFlags.fromStartTask | LifecycleFlags.fromBind, null);
     }
     this.contentStatus = ContentStatuses.initialized;
   }
-  public terminateComponent(elementVM: any, stateful: boolean = false): void {
+  public terminateComponent(stateful: boolean = false): void {
     if (this.contentStatus !== ContentStatuses.initialized) {
       return;
     }
@@ -98,7 +98,7 @@ export class ViewportContent {
     this.contentStatus = ContentStatuses.loaded;
   }
 
-  public addComponent(element: Element, elementVM: any): void {
+  public addComponent(element: Element): void {
     this.component.$attach(LifecycleFlags.fromStartTask);
     if (this.fromCache) {
       const elements = Array.from(element.getElementsByTagName('*'));
@@ -128,7 +128,7 @@ export class ViewportContent {
     this.contentStatus = ContentStatuses.added;
   }
 
-  public async freeContent(element: Element, elementVM: any, stateful: boolean = false): Promise<void> {
+  public async freeContent(element: Element, stateful: boolean = false): Promise<void> {
     switch (this.contentStatus) {
       case ContentStatuses.added:
         this.removeComponent(element, stateful);
@@ -138,7 +138,7 @@ export class ViewportContent {
         }
         this.contentStatus = ContentStatuses.initialized;
       case ContentStatuses.initialized:
-        this.terminateComponent(elementVM, stateful);
+        this.terminateComponent(stateful);
       case ContentStatuses.loaded:
         this.unloadComponent();
     }

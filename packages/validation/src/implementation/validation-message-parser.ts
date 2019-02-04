@@ -1,87 +1,63 @@
+import { InterfaceSymbol, Reporter } from '@aurelia/kernel';
 import {
-  Expression,
   AccessScope,
-  LiteralString,
-  Binary,
-  Conditional,
-  LiteralPrimitive,
-  CallMember
-} from 'aurelia-binding';
-import { BindingLanguage } from 'aurelia-templating';
-import * as LogManager from 'aurelia-logging';
+  BindingType,
+  IExpression,
+  IExpressionParser,
+  PrimitiveLiteral
+} from '@aurelia/runtime';
 import { ExpressionVisitor } from './expression-visitor';
 
 export class ValidationMessageParser {
-  public static inject = [BindingLanguage];
+  public static readonly inject: InterfaceSymbol[] = [IExpressionParser];
 
-  private emptyStringExpression = new LiteralString('');
-  private nullExpression = new LiteralPrimitive(null);
-  private undefinedExpression = new LiteralPrimitive(undefined);
-  private cache: { [message: string]: Expression } = {};
+  private readonly cache: { [message: string]: IExpression };
+  private readonly parser: IExpressionParser;
 
-  constructor(private bindinqLanguage: BindingLanguage) { }
+  constructor(parser: IExpressionParser) {
+    this.cache = {};
+    this.parser = parser;
+  }
 
-  public parse(message: string): Expression {
+  public parse(message: string): IExpression {
     if (this.cache[message] !== undefined) {
       return this.cache[message];
     }
 
-    const parts: (Expression | string)[] | null = (this.bindinqLanguage as any).parseInterpolation(null, message);
-    if (parts === null) {
-      return new LiteralString(message);
+    const interpolation = this.parser.parse(message, BindingType.Interpolation);
+    if (interpolation === null) {
+      return new PrimitiveLiteral(message);
     }
-    let expression: Expression = new LiteralString(parts[0] as string);
-    for (let i = 1; i < parts.length; i += 2) {
-      expression = new Binary(
-        '+',
-        expression,
-        new Binary(
-          '+',
-          this.coalesce(parts[i] as Expression),
-          new LiteralString(parts[i + 1] as string)
-        )
-      );
-    }
+    MessageExpressionValidator.validate(interpolation, message);
 
-    MessageExpressionValidator.validate(expression, message);
+    this.cache[message] = interpolation;
 
-    this.cache[message] = expression;
-
-    return expression;
-  }
-
-  private coalesce(part: Expression): Expression {
-    // part === null || part === undefined ? '' : part
-    return new Conditional(
-      new Binary(
-        '||',
-        new Binary('===', part, this.nullExpression),
-        new Binary('===', part, this.undefinedExpression)
-      ),
-      this.emptyStringExpression,
-      new CallMember(part, 'toString', [])
-    );
+    return interpolation;
   }
 }
 
 export class MessageExpressionValidator extends ExpressionVisitor {
-  public static validate(expression: Expression, originalMessage: string) {
+  private readonly originalMessage: string;
+
+  constructor(originalMessage: string) {
+    super();
+    this.originalMessage = originalMessage;
+  }
+
+  public static validate(expression: IExpression, originalMessage: string): void {
     const visitor = new MessageExpressionValidator(originalMessage);
     expression.accept(visitor);
   }
 
-  constructor(private originalMessage: string) {
-    super();
-  }
-
-  public visitAccessScope(access: AccessScope) {
+  public visitAccessScope(access: AccessScope): void {
     if (access.ancestor !== 0) {
       throw new Error('$parent is not permitted in validation message expressions.');
     }
     if (['displayName', 'propertyName', 'value', 'object', 'config', 'getDisplayName'].indexOf(access.name) !== -1) {
-      LogManager.getLogger('aurelia-validation')
-        // tslint:disable-next-line:max-line-length
-        .warn(`Did you mean to use "$${access.name}" instead of "${access.name}" in this validation message template: "${this.originalMessage}"?`);
+      Reporter.write(1200); // TODO: create error code
+      // LogManager.getLogger('aurelia-validation')
+      //   // tslint:disable-next-line:max-line-length
+      //   .warn(`Did you mean to use "$${access.name}" instead of "${access.name}" in this validation message template: "${this.originalMessage}"?`);
     }
   }
 }

@@ -1,122 +1,174 @@
 import {
-  Expression,
-  // Chain,
-  ValueConverter,
-  // Assign,
-  Conditional,
-  // AccessThis,
-  // AccessScope,
-  AccessMember,
   AccessKeyed,
-  // CallScope,
-  // CallFunction,
-  CallMember,
-  // PrefixNot,
-  BindingBehavior,
+  AccessMember,
+  AccessScope,
+  AccessThis,
+  ArrayBindingPattern,
+  ArrayLiteral,
+  Assign,
   Binary,
-  // LiteralPrimitive,
-  // LiteralArray,
-  // LiteralObject,
-  // LiteralString
-} from 'aurelia-binding';
+  BindingBehavior,
+  BindingIdentifier,
+  CallFunction,
+  CallMember,
+  CallScope,
+  Conditional,
+  ForOfStatement,
+  HtmlLiteral,
+  IExpression,
+  Interpolation,
+  IVisitor,
+  ObjectBindingPattern,
+  ObjectLiteral,
+  PrimitiveLiteral,
+  TaggedTemplate,
+  Template,
+  Unary,
+  ValueConverter
+} from '@aurelia/runtime';
 
-export type Chain = any;
-export type Assign = any;
-export type AccessThis = any;
-export type AccessScope = any;
-export type CallScope = any;
-export type CallFunction = any;
-export type PrefixNot = any;
-export type LiteralPrimitive = any;
-export type LiteralArray = any;
-export type LiteralObject = any;
-export type LiteralString = any;
-
-// tslint:disable:no-empty
-export class ExpressionVisitor {
-  public visitChain(chain: Chain) {
-    this.visitArgs(chain.expressions);
+export class ExpressionVisitor implements IVisitor<void> {
+  public visitAccessMember(expr: AccessMember): void {
+    expr.object.accept(this);
   }
 
-  public visitBindingBehavior(behavior: BindingBehavior) {
-    behavior.expression.accept(this);
-    this.visitArgs(behavior.args);
+  public visitAccessKeyed(expr: AccessKeyed): void {
+    expr.object.accept(this);
+    expr.key.accept(this);
   }
 
-  public visitValueConverter(converter: ValueConverter) {
-    converter.expression.accept(this);
-    this.visitArgs(converter.args);
+  public visitAccessThis(expr: AccessThis): void {
+    return;
   }
 
-  public visitAssign(assign: Assign) {
-    assign.target.accept(this);
-    assign.value.accept(this);
+  public visitAccessScope(expr: AccessScope): void {
+    return;
   }
 
-  public visitConditional(conditional: Conditional) {
-    conditional.condition.accept(this);
-    conditional.yes.accept(this);
-    conditional.no.accept(this);
+  public visitArrayLiteral(expr: ArrayLiteral): void {
+    const elements = expr.elements;
+    for (let i = 0, length = elements.length; i < length; ++i) {
+      elements[i].accept(this);
+    }
   }
 
-  public visitAccessThis(access: AccessThis) {
-    access.ancestor = access.ancestor;
+  public visitObjectLiteral(expr: ObjectLiteral): void {
+    const keys = expr.keys;
+    const values = expr.values;
+    for (let i = 0, length = keys.length; i < length; ++i) {
+      values[i].accept(this);
+    }
   }
 
-  public visitAccessScope(access: AccessScope) {
-    access.name = access.name;
+  public visitPrimitiveLiteral(expr: PrimitiveLiteral): void {
+    return;
   }
 
-  public visitAccessMember(access: AccessMember) {
-    access.object.accept(this);
+  public visitCallFunction(expr: CallFunction): void {
+    expr.func.accept(this);
+    this.visitArgs(expr.args);
   }
 
-  public visitAccessKeyed(access: AccessKeyed) {
-    access.object.accept(this);
-    access.key.accept(this);
+  public visitCallMember(expr: CallMember): void {
+    expr.object.accept(this);
+    this.visitArgs(expr.args);
   }
 
-  public visitCallScope(call: CallScope) {
-    this.visitArgs(call.args);
+  public visitCallScope(expr: CallScope): void {
+    this.visitArgs(expr.args);
   }
 
-  public visitCallFunction(call: CallFunction) {
-    call.func.accept(this);
-    this.visitArgs(call.args);
+  public visitTemplate(expr: Template): void {
+    const { expressions } = expr;
+    const length = expressions.length;
+    for (let i = 0; i < length; i++) {
+      expressions[i].accept(this);
+    }
   }
 
-  public visitCallMember(call: CallMember) {
-    call.object.accept(this);
-    this.visitArgs(call.args);
+  public visitTaggedTemplate(expr: TaggedTemplate): void {
+    const { expressions } = expr;
+    const length = expressions.length;
+    expr.func.accept(this);
+    for (let i = 0; i < length; i++) {
+      expressions[i].accept(this);
+    }
   }
 
-  public visitPrefix(prefix: PrefixNot) {
-    prefix.expression.accept(this);
+  public visitUnary(expr: Unary): void {
+    expr.expression.accept(this);
   }
 
-  public visitBinary(binary: Binary) {
-    binary.left.accept(this);
-    binary.right.accept(this);
+  public visitBinary(expr: Binary): void {
+    expr.left.accept(this);
+    expr.right.accept(this);
   }
 
-  public visitLiteralPrimitive(literal: LiteralPrimitive) {
-    literal.value = literal.value;
+  public visitConditional(expr: Conditional): void {
+    expr.condition.accept(this);
+    expr.yes.accept(this);
+    expr.no.accept(this);
   }
 
-  public visitLiteralArray(literal: LiteralArray) {
-    this.visitArgs(literal.elements);
+  public visitAssign(expr: Assign): void {
+    expr.target.accept(this);
+    expr.value.accept(this);
   }
 
-  public visitLiteralObject(literal: LiteralObject) {
-    this.visitArgs(literal.values);
+  public visitValueConverter(expr: ValueConverter): void {
+    const args = expr.args;
+    expr.expression.accept(this);
+    for (let i = 0, length = args.length; i < length; ++i) {
+      args[i].accept(this);
+    }
   }
 
-  public visitLiteralString(literal: LiteralString) {
-    literal.value = literal.value;
+  public visitBindingBehavior(expr: BindingBehavior): void {
+    const args = expr.args;
+    expr.expression.accept(this);
+    for (let i = 0, length = args.length; i < length; ++i) {
+      args[i].accept(this);
+    }
   }
 
-  private visitArgs(args: Expression[]) {
-    for (let i = 0; i < args.length; i++) {
+  public visitArrayBindingPattern(expr: ArrayBindingPattern): void {
+    const elements = expr.elements;
+    for (let i = 0, length = elements.length; i < length; ++i) {
+      elements[i].accept(this);
+    }
+  }
+
+  public visitObjectBindingPattern(expr: ObjectBindingPattern): void {
+    const keys = expr.keys;
+    const values = expr.values;
+    for (let i = 0, length = keys.length; i < length; ++i) {
+      values[i].accept(this);
+    }
+  }
+
+  public visitBindingIdentifier(expr: BindingIdentifier): void {
+    return;
+  }
+
+  public visitHtmlLiteral(expr: HtmlLiteral): void {
+    return;
+  }
+
+  public visitForOfStatement(expr: ForOfStatement): void {
+    expr.declaration.accept(this);
+    expr.iterable.accept(this);
+  }
+
+  public visitInterpolation(expr: Interpolation): void {
+    const { expressions } = expr;
+    const length = expressions.length;
+    for (let i = 0; i < length; i++) {
+      expressions[i].accept(this);
+    }
+  }
+
+  private visitArgs(args: ReadonlyArray<IExpression>): void {
+    for (let i = 0, length = args.length; i < length; ++i) {
       args[i].accept(this);
     }
   }

@@ -1,13 +1,14 @@
-import { Binding, Expression } from 'aurelia-binding';
-import { Validator } from './validator';
-import { validateTrigger } from './validate-trigger';
-import { getPropertyInfo } from './property-info';
-import { ValidationRenderer, RenderInstruction } from './validation-renderer';
-import { ValidateResult } from './validate-result';
-import { ValidateInstruction } from './validate-instruction';
+import { IExpression, State, INode, LifecycleFlags } from '@aurelia/runtime';
 import { ControllerValidateResult } from './controller-validate-result';
-import { PropertyAccessorParser, PropertyAccessor } from './property-accessor-parser';
+import { PropertyAccessor, PropertyAccessorParser } from './property-accessor-parser';
+import { getPropertyInfo } from './property-info';
 import { ValidateEvent } from './validate-event';
+import { ValidateInstruction } from './validate-instruction';
+import { ValidateResult } from './validate-result';
+import { validateTrigger } from './validate-trigger';
+import { RenderInstruction, ValidationRenderer } from './validation-renderer';
+import { Validator } from './validator';
+import { IValidatedBinding } from './validate-binding-behavior-base';
 
 /**
  * Orchestrates validation.
@@ -18,7 +19,7 @@ export class ValidationController {
   public static inject = [Validator, PropertyAccessorParser];
 
   // Registered bindings (via the validate binding behavior)
-  private bindings = new Map<Binding, BindingInfo>();
+  private bindings: Map<IValidatedBinding, BindingInfo> = new Map<IValidatedBinding, BindingInfo>();
 
   // Renderers that have been added to the controller instance.
   private renderers: ValidationRenderer[] = [];
@@ -39,7 +40,7 @@ export class ValidationController {
   public validating: boolean = false;
 
   // Elements related to validation results that have been rendered.
-  private elements = new Map<ValidateResult, Element[]>();
+  private elements = new Map<ValidateResult, INode[]>();
 
   // Objects that have been added to the controller instance (entity-style validation).
   private objects = new Map<any, any>();
@@ -105,7 +106,7 @@ export class ValidationController {
   ): ValidateResult {
     let resolvedPropertyName: string | number | null;
     if (propertyName === null) {
-      resolvedPropertyName = propertyName;
+      resolvedPropertyName = propertyName as null;
     } else {
       resolvedPropertyName = this.propertyParser.parse(propertyName);
     }
@@ -131,7 +132,7 @@ export class ValidationController {
     this.renderers.push(renderer);
     renderer.render({
       kind: 'validate',
-      render: this.results.map(result => ({ result, elements: this.elements.get(result) as Element[] })),
+      render: this.results.map(result => ({ result, elements: this.elements.get(result) })),
       unrender: []
     });
   }
@@ -145,7 +146,7 @@ export class ValidationController {
     renderer.render({
       kind: 'reset',
       render: [],
-      unrender: this.results.map(result => ({ result, elements: this.elements.get(result) as Element[] }))
+      unrender: this.results.map(result => ({ result, elements: this.elements.get(result) }))
     });
   }
 
@@ -155,7 +156,7 @@ export class ValidationController {
    * @param target The DOM element.
    * @param rules (optional) rules associated with the binding. Validator implementation specific.
    */
-  public registerBinding(binding: Binding, target: Element, rules?: any) {
+  public registerBinding(binding: IValidatedBinding, target: INode, rules?: any) {
     this.bindings.set(binding, { target, rules, propertyInfo: null });
   }
 
@@ -163,31 +164,9 @@ export class ValidationController {
    * Unregisters a binding with the controller.
    * @param binding The binding instance.
    */
-  public unregisterBinding(binding: Binding) {
+  public unregisterBinding(binding: IValidatedBinding) {
     this.resetBinding(binding);
     this.bindings.delete(binding);
-  }
-
-  /**
-   * Interprets the instruction and returns a predicate that will identify
-   * relevant results in the list of rendered validation results.
-   */
-  private getInstructionPredicate(instruction?: ValidateInstruction): (result: ValidateResult) => boolean {
-    if (instruction) {
-      const { object, propertyName, rules } = instruction;
-      let predicate: (result: ValidateResult) => boolean;
-      if (instruction.propertyName) {
-        predicate = x => x.object === object && x.propertyName === propertyName;
-      } else {
-        predicate = x => x.object === object;
-      }
-      if (rules) {
-        return x => predicate(x) && this.validator.ruleExists(rules, x.rule);
-      }
-      return predicate;
-    } else {
-      return () => true;
-    }
   }
 
   /**
@@ -219,7 +198,7 @@ export class ValidationController {
           promises.push(this.validator.validateObject(object, rules));
         }
         for (const [binding, { rules }] of Array.from(this.bindings)) {
-          const propertyInfo = getPropertyInfo(binding.sourceExpression as Expression, binding.source);
+          const propertyInfo = getPropertyInfo(binding.sourceExpression, binding.$scope);
           if (!propertyInfo || this.objects.has(propertyInfo.object)) {
             continue;
           }
@@ -274,12 +253,94 @@ export class ValidationController {
   }
 
   /**
+   * Validates the property associated with a binding.
+   */
+  public validateBinding(binding: IValidatedBinding) {
+    if (!(binding.$state & State.isBound)) {
+      return;
+    }
+    const propertyInfo = getPropertyInfo(binding.sourceExpression, binding.$scope);
+    let rules;
+    const registeredBinding = this.bindings.get(binding);
+    if (registeredBinding) {
+      rules = registeredBinding.rules;
+      registeredBinding.propertyInfo = propertyInfo;
+    }
+    if (!propertyInfo) {
+      return;
+    }
+    const { object, propertyName } = propertyInfo;
+    this.validate({ object, propertyName, rules });
+  }
+
+  /**
+   * Resets the results for a property associated with a binding.
+   */
+  public resetBinding(binding: IValidatedBinding) {
+    const registeredBinding = this.bindings.get(binding);
+    let propertyInfo = getPropertyInfo(binding.sourceExpression, binding.$scope);
+    if (!propertyInfo && registeredBinding) {
+      propertyInfo = registeredBinding.propertyInfo;
+    }
+    if (registeredBinding) {
+      registeredBinding.propertyInfo = null;
+    }
+    if (!propertyInfo) {
+      return;
+    }
+    const { object, propertyName } = propertyInfo;
+    this.reset({ object, propertyName });
+  }
+
+  /**
+   * Changes the controller's validateTrigger.
+   * @param newTrigger The new validateTrigger
+   */
+  public changeTrigger(newTrigger: validateTrigger) {
+    this.validateTrigger = newTrigger;
+    const bindings = Array.from(this.bindings.keys());
+    for (const binding of bindings) {
+      const scope = binding.$scope;
+      binding.$unbind(LifecycleFlags.fromDOMEvent);
+      binding.$bind(LifecycleFlags.fromDOMEvent, scope);
+    }
+  }
+
+  /**
+   * Revalidates the controller's current set of errors.
+   */
+  public revalidateErrors() {
+    for (const { object, propertyName, rule } of this.errors) {
+      if (rule.__manuallyAdded__) {
+        continue;
+      }
+      const rules = [[rule]];
+      this.validate({ object, propertyName, rules });
+    }
+  }
+
+  private invokeCallbacks(instruction: ValidateInstruction | undefined, result: ControllerValidateResult | null) {
+    if (this.eventCallbacks.length === 0) {
+      return;
+    }
+    const event = new ValidateEvent(
+      result ? 'validate' : 'reset',
+      this.errors,
+      this.results,
+      instruction || null,
+      result);
+    for (let i = 0; i < this.eventCallbacks.length; i++) {
+      this.eventCallbacks[i](event);
+    }
+  }
+
+  /**
    * Gets the elements associated with an object and propertyName (if any).
    */
-  private getAssociatedElements({ object, propertyName }: ValidateResult): Element[] {
-    const elements: Element[] = [];
+  private getAssociatedElements({ object, propertyName }: ValidateResult): INode[] {
+    const elements: INode[] = [];
     for (const [binding, { target }] of Array.from(this.bindings)) {
-      const propertyInfo = getPropertyInfo(binding.sourceExpression as Expression, binding.source);
+      const propertyInfo = getPropertyInfo(binding.sourceExpression, binding.$scope);
       if (propertyInfo && propertyInfo.object === object && propertyInfo.propertyName === propertyName) {
         elements.push(target);
       }
@@ -304,7 +365,7 @@ export class ValidationController {
     // create unrender instructions from the old results.
     for (const oldResult of oldResults) {
       // get the elements associated with the old result.
-      const elements = this.elements.get(oldResult) as Element[];
+      const elements = this.elements.get(oldResult);
 
       // remove the old result from the element map.
       this.elements.delete(oldResult);
@@ -363,84 +424,24 @@ export class ValidationController {
   }
 
   /**
-   * Validates the property associated with a binding.
+   * Interprets the instruction and returns a predicate that will identify
+   * relevant results in the list of rendered validation results.
    */
-  public validateBinding(binding: Binding) {
-    if (!binding.isBound) {
-      return;
-    }
-    const propertyInfo = getPropertyInfo(binding.sourceExpression as Expression, binding.source);
-    let rules;
-    const registeredBinding = this.bindings.get(binding);
-    if (registeredBinding) {
-      rules = registeredBinding.rules;
-      registeredBinding.propertyInfo = propertyInfo;
-    }
-    if (!propertyInfo) {
-      return;
-    }
-    const { object, propertyName } = propertyInfo;
-    this.validate({ object, propertyName, rules });
-  }
-
-  /**
-   * Resets the results for a property associated with a binding.
-   */
-  public resetBinding(binding: Binding) {
-    const registeredBinding = this.bindings.get(binding);
-    let propertyInfo = getPropertyInfo(binding.sourceExpression as Expression, binding.source);
-    if (!propertyInfo && registeredBinding) {
-      propertyInfo = registeredBinding.propertyInfo;
-    }
-    if (registeredBinding) {
-      registeredBinding.propertyInfo = null;
-    }
-    if (!propertyInfo) {
-      return;
-    }
-    const { object, propertyName } = propertyInfo;
-    this.reset({ object, propertyName });
-  }
-
-  /**
-   * Changes the controller's validateTrigger.
-   * @param newTrigger The new validateTrigger
-   */
-  public changeTrigger(newTrigger: validateTrigger) {
-    this.validateTrigger = newTrigger;
-    const bindings = Array.from(this.bindings.keys());
-    for (const binding of bindings) {
-      const source = binding.source;
-      binding.unbind();
-      binding.bind(source);
-    }
-  }
-
-  /**
-   * Revalidates the controller's current set of errors.
-   */
-  public revalidateErrors() {
-    for (const { object, propertyName, rule } of this.errors) {
-      if (rule.__manuallyAdded__) {
-        continue;
+  private getInstructionPredicate(instruction?: ValidateInstruction): (result: ValidateResult) => boolean {
+    if (instruction) {
+      const { object, propertyName, rules } = instruction;
+      let predicate: (result: ValidateResult) => boolean;
+      if (instruction.propertyName) {
+        predicate = x => x.object === object && x.propertyName === propertyName;
+      } else {
+        predicate = x => x.object === object;
       }
-      const rules = [[rule]];
-      this.validate({ object, propertyName, rules });
-    }
-  }
-
-  private invokeCallbacks(instruction: ValidateInstruction | undefined, result: ControllerValidateResult | null) {
-    if (this.eventCallbacks.length === 0) {
-      return;
-    }
-    const event = new ValidateEvent(
-      result ? 'validate' : 'reset',
-      this.errors,
-      this.results,
-      instruction || null,
-      result);
-    for (let i = 0; i < this.eventCallbacks.length; i++) {
-      this.eventCallbacks[i](event);
+      if (rules) {
+        return x => predicate(x) && this.validator.ruleExists(rules, x.rule);
+      }
+      return predicate;
+    } else {
+      return () => true;
     }
   }
 }
@@ -452,7 +453,7 @@ interface BindingInfo {
   /**
    * The DOM element associated with the binding.
    */
-  target: Element;
+  target: INode;
 
   /**
    * The rules associated with the binding via the validate binding behavior's rules parameter.

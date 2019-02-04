@@ -1,3 +1,4 @@
+import { INode } from '@aurelia/runtime';
 import { ValidateResult } from './validate-result';
 
 /**
@@ -12,7 +13,7 @@ export interface ResultInstruction {
   /**
    * The associated elements (if any).
    */
-  elements: Element[];
+  elements: INode[];
 }
 
 /**

@@ -1,43 +1,55 @@
-import { Optional } from 'aurelia-dependency-injection';
-import { TaskQueue } from 'aurelia-task-queue';
-import { ValidationController } from './validation-controller';
-import { validateTrigger } from './validate-trigger';
+import { IIndexable, InterfaceSymbol, Reporter } from '@aurelia/kernel';
+import { IConnectableBinding, IDOM, IExpression, IScope, LifecycleFlags, LifecycleFlags as LF } from '@aurelia/runtime';
 import { getTargetDOMElement } from './get-target-dom-element';
+import { validateTrigger } from './validate-trigger';
+import { ValidationController } from './validation-controller';
+
+export interface IValidatedBinding extends IConnectableBinding {
+  sourceExpression: IExpression;
+  validateTarget: IIndexable;
+  validationController: ValidationController;
+  updateTarget(value: unknown, flags: LF): void;
+  updateSource(value: unknown, flags: LF): void;
+  vbbUpdateSource(value: unknown, flags: LF): void;
+  standardUpdateTarget(value: unknown, flags: LF): void;
+  validateBlurHandler(event: unknown): void;
+}
 
 /**
  * Binding behavior. Indicates the bound property should be validated.
  */
 export abstract class ValidateBindingBehaviorBase {
-  constructor(private taskQueue: TaskQueue) { }
+  public static readonly inject: ReadonlyArray<InterfaceSymbol> = [IDOM];
 
-  protected abstract getValidateTrigger(controller: ValidationController): validateTrigger;
+  private readonly dom: IDOM;
 
-  public bind(binding: any, source: any, rulesOrController?: ValidationController | any, rules?: any) {
+  constructor(dom: IDOM) {
+    this.dom = dom;
+  }
+
+  public bind(flags: LifecycleFlags, scope: IScope, binding: IValidatedBinding, rulesOrController?: ValidationController | any, rules?: any) {
     // identify the target element.
-    const target = getTargetDOMElement(binding, source);
+    const target = getTargetDOMElement(binding, scope);
 
     // locate the controller.
     let controller: ValidationController;
     if (rulesOrController instanceof ValidationController) {
       controller = rulesOrController;
     } else {
-      controller = source.container.get(Optional.of(ValidationController));
+      if (!binding.locator.has(ValidationController, true)) {
+        throw Reporter.error(1202); // TODO: create error code // throw new Error(`A ValidationController has not been registered.`);
+      }
+      controller = binding.locator.get(ValidationController);
       rules = rulesOrController;
-    }
-    if (controller === null) {
-      throw new Error(`A ValidationController has not been registered.`);
     }
 
     controller.registerBinding(binding, target, rules);
     binding.validationController = controller;
     const trigger = this.getValidateTrigger(controller);
-    // tslint:disable-next-line:no-bitwise
     if (trigger & validateTrigger.change) {
       binding.vbbUpdateSource = binding.updateSource;
-      // tslint:disable-next-line:only-arrow-functions
-      // tslint:disable-next-line:space-before-function-paren
-      binding.updateSource = function (value: any) {
-        this.vbbUpdateSource(value);
+      binding.updateSource = function (value: unknown, flags: LF): void {
+        this.vbbUpdateSource(value, flags);
         this.validationController.validateBinding(this);
       };
     }
@@ -45,24 +57,22 @@ export abstract class ValidateBindingBehaviorBase {
     // tslint:disable-next-line:no-bitwise
     if (trigger & validateTrigger.blur) {
       binding.validateBlurHandler = () => {
-        this.taskQueue.queueMicroTask(() => controller.validateBinding(binding));
+        controller.validateBinding(binding);
       };
       binding.validateTarget = target;
-      target.addEventListener('blur', binding.validateBlurHandler);
+      this.dom.addEventListener('blur', binding.validateBlurHandler, target);
     }
 
     if (trigger !== validateTrigger.manual) {
       binding.standardUpdateTarget = binding.updateTarget;
-      // tslint:disable-next-line:only-arrow-functions
-      // tslint:disable-next-line:space-before-function-paren
-      binding.updateTarget = function (value: any) {
-        this.standardUpdateTarget(value);
+      binding.updateTarget = function (value: unknown, flags: LF): void {
+        this.standardUpdateTarget(value, flags);
         this.validationController.resetBinding(this);
       };
     }
   }
 
-  public unbind(binding: any) {
+  public unbind(flags: LifecycleFlags, scope: IScope, binding: IValidatedBinding) {
     // reset the binding to it's original state.
     if (binding.vbbUpdateSource) {
       binding.updateSource = binding.vbbUpdateSource;
@@ -80,4 +90,6 @@ export abstract class ValidateBindingBehaviorBase {
     binding.validationController.unregisterBinding(binding);
     binding.validationController = null;
   }
+
+  protected abstract getValidateTrigger(controller: ValidationController): validateTrigger;
 }

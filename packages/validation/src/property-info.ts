@@ -1,18 +1,19 @@
 import {
+  AccessKeyed,
   AccessMember,
   AccessScope,
-  AccessKeyed,
   BindingBehavior,
-  Expression,
-  ValueConverter,
+  BindingContext,
+  IExpression,
+  LifecycleFlags as LF,
   Scope,
-  getContextFor
-} from 'aurelia-binding';
+  ValueConverter
+} from '@aurelia/runtime';
 
-function getObject(expression: Expression, objectExpression: Expression, source: any): null | undefined | object {
-  const value = objectExpression.evaluate(source, null as any);
+function getObject(expression: IExpression, objectExpression: IExpression, scope: Scope): null | undefined | object {
+  const value = objectExpression.evaluate(LF.none, scope, null);
   if (value === null || value === undefined || value instanceof Object) {
-    return value;
+    return value as null | undefined | object;
   }
   // tslint:disable-next-line:max-line-length
   throw new Error(`The '${objectExpression}' part of '${expression}' evaluates to ${value} instead of an object, null or undefined.`);
@@ -21,12 +22,9 @@ function getObject(expression: Expression, objectExpression: Expression, source:
 /**
  * Retrieves the object and property name for the specified expression.
  * @param expression The expression
- * @param source The scope
+ * @param scope The scope
  */
-export function getPropertyInfo(
-  expression: Expression,
-  source: Scope
-): { object: object; propertyName: string; } | null {
+export function getPropertyInfo(expression: IExpression, scope: Scope): { object: object; propertyName: string } | null {
   const originalExpression = expression;
   while (expression instanceof BindingBehavior || expression instanceof ValueConverter) {
     expression = expression.expression;
@@ -35,14 +33,14 @@ export function getPropertyInfo(
   let object: null | undefined | object;
   let propertyName: string;
   if (expression instanceof AccessScope) {
-    object = getContextFor(expression.name, source, expression.ancestor);
+    object = BindingContext.get(scope, expression.name, expression.ancestor, LF.none);
     propertyName = expression.name;
   } else if (expression instanceof AccessMember) {
-    object = getObject(originalExpression, expression.object, source);
+    object = getObject(originalExpression, expression.object, scope);
     propertyName = expression.name;
   } else if (expression instanceof AccessKeyed) {
-    object = getObject(originalExpression, expression.object, source);
-    propertyName = expression.key.evaluate(source);
+    object = getObject(originalExpression, expression.object, scope);
+    propertyName = expression.key.evaluate(LF.none, scope, null) as string;
   } else {
     throw new Error(`Expression '${originalExpression}' is not compatible with the validate binding-behavior.`);
   }

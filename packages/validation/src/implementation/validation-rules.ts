@@ -1,9 +1,9 @@
-import { Rule, RuleProperty, ValidationDisplayNameAccessor } from './rule';
-import { ValidationMessageParser } from './validation-message-parser';
-import { Rules } from './rules';
-import { validationMessages } from './validation-messages';
-import { PropertyAccessorParser, PropertyAccessor } from '../property-accessor-parser';
+import { PropertyAccessor, PropertyAccessorParser } from '../property-accessor-parser';
 import { isString } from '../util';
+import { Rule, RuleProperty, ValidationDisplayNameAccessor } from './rule';
+import { Rules } from './rules';
+import { ValidationMessageParser } from './validation-message-parser';
+import { validationMessages } from './validation-messages';
 
 /**
  * Part of the fluent rule API. Enables customizing property rules.
@@ -36,7 +36,7 @@ export class FluentRuleCustomizer<TObject, TValue> {
    * been validated successfully. Use to postpone validation of costly
    * rules until less expensive rules pass validation.
    */
-  public then() {
+  public then(): this {
     this.fluentRules.sequence++;
     return this;
   }
@@ -44,7 +44,7 @@ export class FluentRuleCustomizer<TObject, TValue> {
   /**
    * Specifies the key to use when looking up the rule's validation message.
    */
-  public withMessageKey(key: string) {
+  public withMessageKey(key: string): this {
     this.rule.messageKey = key;
     this.rule.message = null;
     return this;
@@ -53,7 +53,7 @@ export class FluentRuleCustomizer<TObject, TValue> {
   /**
    * Specifies rule's validation message.
    */
-  public withMessage(message: string) {
+  public withMessage(message: string): this {
     this.rule.messageKey = 'custom';
     this.rule.message = this.parsers.message.parse(message);
     return this;
@@ -64,7 +64,7 @@ export class FluentRuleCustomizer<TObject, TValue> {
    * @param condition A function that accepts the object as a parameter and returns true
    * or false whether the rule should be evaluated.
    */
-  public when(condition: (object: TObject) => boolean) {
+  public when(condition: (object: TObject) => boolean): this {
     this.rule.when = condition;
     return this;
   }
@@ -73,7 +73,7 @@ export class FluentRuleCustomizer<TObject, TValue> {
    * Tags the rule instance, enabling the rule to be found easily
    * using ValidationRules.taggedRules(rules, tag)
    */
-  public tag(tag: string) {
+  public tag(tag: string): this {
     this.rule.tag = tag;
     return this;
   }
@@ -84,21 +84,21 @@ export class FluentRuleCustomizer<TObject, TValue> {
    * Target a property with validation rules.
    * @param property The property to target. Can be the property name or a property accessor function.
    */
-  public ensure<TValue2>(subject: string | ((model: TObject) => TValue2)) {
+  public ensure<TValue2, TValue3 = any>(subject: string | ((model: TObject) => TValue2)): FluentRules<TObject, TValue3> {
     return this.fluentEnsure.ensure<TValue2>(subject);
   }
 
   /**
    * Targets an object with validation rules.
    */
-  public ensureObject() {
+  public ensureObject<TValue3 = any>(): FluentRules<TObject, TValue3> {
     return this.fluentEnsure.ensureObject();
   }
 
   /**
    * Rules that have been defined using the fluent API.
    */
-  public get rules() {
+  public get rules(): Rule<TObject, any>[][] {
     return this.fluentEnsure.rules;
   }
 
@@ -106,7 +106,7 @@ export class FluentRuleCustomizer<TObject, TValue> {
    * Applies the rules to a class or object, making them discoverable by the StandardValidator.
    * @param target A class or object.
    */
-  public on(target: any) {
+  public on(target: any): FluentEnsure<TObject> {
     return this.fluentEnsure.on(target);
   }
 

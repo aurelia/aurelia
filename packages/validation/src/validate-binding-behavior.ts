@@ -1,8 +1,7 @@
-import { TaskQueue } from 'aurelia-task-queue';
 import { ValidationController } from './validation-controller';
 import { validateTrigger } from './validate-trigger';
 import { ValidateBindingBehaviorBase } from './validate-binding-behavior-base';
-import { bindingBehavior } from 'aurelia-binding';
+import { bindingBehavior } from '@aurelia/runtime';
 
 /**
  * Binding behavior. Indicates the bound property should be validated
@@ -11,8 +10,6 @@ import { bindingBehavior } from 'aurelia-binding';
  */
 @bindingBehavior('validate')
 export class ValidateBindingBehavior extends ValidateBindingBehaviorBase {
-  public static inject = [TaskQueue];
-
   public getValidateTrigger(controller: ValidationController) {
     return controller.validateTrigger;
   }
@@ -25,8 +22,6 @@ export class ValidateBindingBehavior extends ValidateBindingBehaviorBase {
  */
 @bindingBehavior('validateManually')
 export class ValidateManuallyBindingBehavior extends ValidateBindingBehaviorBase {
-  public static inject = [TaskQueue];
-
   public getValidateTrigger() {
     return validateTrigger.manual;
   }
@@ -38,8 +33,6 @@ export class ValidateManuallyBindingBehavior extends ValidateBindingBehaviorBase
  */
 @bindingBehavior('validateOnBlur')
 export class ValidateOnBlurBindingBehavior extends ValidateBindingBehaviorBase {
-  public static inject = [TaskQueue];
-
   public getValidateTrigger() {
     return validateTrigger.blur;
   }
@@ -52,8 +45,6 @@ export class ValidateOnBlurBindingBehavior extends ValidateBindingBehaviorBase {
  */
 @bindingBehavior('validateOnChange')
 export class ValidateOnChangeBindingBehavior extends ValidateBindingBehaviorBase {
-  public static inject = [TaskQueue];
-
   public getValidateTrigger() {
     return validateTrigger.change;
   }
@@ -66,8 +57,6 @@ export class ValidateOnChangeBindingBehavior extends ValidateBindingBehaviorBase
  */
 @bindingBehavior('validateOnChangeOrBlur')
 export class ValidateOnChangeOrBlurBindingBehavior extends ValidateBindingBehaviorBase {
-  public static inject = [TaskQueue];
-
   public getValidateTrigger() {
     return validateTrigger.changeOrBlur;
   }

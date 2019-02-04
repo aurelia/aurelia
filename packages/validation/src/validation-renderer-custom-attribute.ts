@@ -1,22 +1,18 @@
+import { customAttribute, ICustomAttribute } from '@aurelia/runtime';
 import { ValidationController } from './validation-controller';
 import { ValidationRenderer } from './validation-renderer';
-import { customAttribute } from 'aurelia-templating';
+
+export interface ValidationRendererCustomAttribute extends ICustomAttribute {}
 
 @customAttribute('validation-renderer')
 export class ValidationRendererCustomAttribute {
-
-  private container: any;
   private controller: ValidationController;
   private value: string;
   private renderer: ValidationRenderer;
 
-  public created(view: any) {
-    this.container = view.container;
-  }
-
-  public bind() {
-    this.controller = this.container.get(ValidationController);
-    this.renderer = this.container.get(this.value);
+  public binding() {
+    this.controller = this.$context.get(ValidationController);
+    this.renderer = this.$context.get<ValidationRenderer>(this.value);
     this.controller.addRenderer(this.renderer);
   }
 

@@ -1,32 +1,29 @@
-import { bindingMode } from 'aurelia-binding';
-import { Lazy } from 'aurelia-dependency-injection';
-import { customAttribute, bindable } from 'aurelia-templating';
+import { BindingMode,customAttribute, bindable, INode } from '@aurelia/runtime';
 import { ValidationController } from './validation-controller';
 import { ValidateResult } from './validate-result';
 import { ValidationRenderer, RenderInstruction } from './validation-renderer';
-import { DOM } from 'aurelia-pal';
 
 export interface RenderedError {
   error: ValidateResult;
-  targets: Element[];
+  targets: INode[];
 }
 
 @customAttribute('validation-errors')
 export class ValidationErrorsCustomAttribute implements ValidationRenderer {
 
   public static inject() {
-    return [DOM.Element, Lazy.of(ValidationController)];
+    return [INode, Lazy.of(ValidationController)];
   }
 
-  @bindable({ defaultBindingMode: bindingMode.oneWay })
-  public controller: ValidationController | null = null;
-
-  @bindable({ primaryProperty: true, defaultBindingMode: bindingMode.twoWay })
+  @bindable({ primaryProperty: true, mode: BindingMode.twoWay })
   public errors: RenderedError[] = [];
+
+  @bindable({ mode: BindingMode.toView })
+  public controller: ValidationController | null = null;
 
   private errorsInternal: RenderedError[] = [];
 
-  constructor(private boundaryElement: Element, private controllerAccessor: () => ValidationController) {
+  constructor(private boundaryElement: INode, private controllerAccessor: () => ValidationController) {
   }
 
   public sort() {
@@ -39,7 +36,7 @@ export class ValidationErrorsCustomAttribute implements ValidationRenderer {
     });
   }
 
-  public interestingElements(elements: Element[]): Element[] {
+  public interestingElements(elements: INode[]): INode[] {
     return elements.filter(e => this.boundaryElement.contains(e));
   }
 

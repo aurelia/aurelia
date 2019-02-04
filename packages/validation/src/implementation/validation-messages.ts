@@ -1,4 +1,5 @@
-import { Expression } from 'aurelia-binding';
+import { Constructable } from '@aurelia/kernel';
+import { IExpression } from '@aurelia/runtime';
 import { ValidationMessageParser } from './validation-message-parser';
 
 export interface ValidationMessages {
@@ -27,15 +28,18 @@ export const validationMessages: ValidationMessages = {
  * Retrieves validation messages and property display names.
  */
 export class ValidationMessageProvider {
-  public static inject = [ValidationMessageParser];
+  public static readonly inject: Constructable[] = [ValidationMessageParser];
+  public readonly parser: ValidationMessageParser;
 
-  constructor(public parser: ValidationMessageParser) { }
+  constructor(parser: ValidationMessageParser) {
+    this.parser = parser;
+  }
 
   /**
    * Returns a message binding expression that corresponds to the key.
    * @param key The message key.
    */
-  public getMessage(key: string): Expression {
+  public getMessage(key: string): IExpression {
     let message: string;
     if (key in validationMessages) {
       message = validationMessages[key];

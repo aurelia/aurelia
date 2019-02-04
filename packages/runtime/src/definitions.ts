@@ -38,6 +38,7 @@ export type IElementHydrationOptions = { parts?: Record<string, TemplateDefiniti
 export type BindableSource = Omit<IBindableDescription, 'property'>;
 
 export interface IBindableDescription {
+  primaryProperty?: boolean;
   mode?: BindingMode;
   callback?: string;
   attribute?: string;

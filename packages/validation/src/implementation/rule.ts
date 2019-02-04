@@ -1,4 +1,4 @@
-import { Expression } from 'aurelia-binding';
+import { IExpression } from '@aurelia/runtime';
 
 export type ValidationDisplayNameAccessor = () => string;
 
@@ -26,7 +26,7 @@ export interface Rule<TObject, TValue> {
   config: object;
   when: ((object: TObject) => boolean) | null;
   messageKey: string;
-  message: Expression | null;
+  message: IExpression | null;
   sequence: number;
   tag?: string;
 }

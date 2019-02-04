@@ -25,7 +25,7 @@ export * from './implementation/validation-rules';
 
 // Configuration
 
-import { Container } from 'aurelia-dependency-injection';
+import { DI, IContainer } from '@aurelia/kernel';
 import { Validator } from './validator';
 import { StandardValidator } from './implementation/standard-validator';
 import { ValidationMessageParser } from './implementation/validation-message-parser';

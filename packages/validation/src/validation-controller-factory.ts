@@ -1,26 +1,30 @@
-import { Container } from 'aurelia-dependency-injection';
+import { IContainer, IFactory, IResolver, Registration } from '@aurelia/kernel';
+import { PropertyAccessorParser } from './property-accessor-parser';
 import { ValidationController } from './validation-controller';
 import { Validator } from './validator';
-import { PropertyAccessorParser } from './property-accessor-parser';
 
 /**
  * Creates ValidationController instances.
  */
-export class ValidationControllerFactory {
-  public static get(container: Container) {
-    return new ValidationControllerFactory(container);
+export class ValidationControllerFactory implements IResolver<ValidationController> {
+  private readonly container: IContainer;
+
+  constructor(container: IContainer) {
+    this.container = container;
   }
 
-  constructor(private container: Container) { }
+  public static get(container: IContainer): ValidationControllerFactory {
+    return new ValidationControllerFactory(container);
+  }
 
   /**
    * Creates a new controller instance.
    */
-  public create(validator?: Validator) {
+  public create(validator?: Validator): ValidationController {
     if (!validator) {
-      validator = this.container.get(Validator) as Validator;
+      validator = this.container.get<Validator>(Validator);
     }
-    const propertyParser = this.container.get(PropertyAccessorParser) as PropertyAccessorParser;
+    const propertyParser = this.container.get(PropertyAccessorParser);
     return new ValidationController(validator, propertyParser);
   }
 
@@ -28,11 +32,20 @@ export class ValidationControllerFactory {
    * Creates a new controller and registers it in the current element's container so that it's
    * available to the validate binding behavior and renderers.
    */
-  public createForCurrentScope(validator?: Validator) {
+  public createForCurrentScope(validator?: Validator): ValidationController {
     const controller = this.create(validator);
-    this.container.registerInstance(ValidationController, controller);
+    Registration.instance(ValidationController, controller).register(this.container);
     return controller;
+  }
+
+  public resolve(handler: IContainer, requestor: IContainer): ValidationController {
+    const validator = handler.get<Validator>(Validator);
+    const propertyParser = handler.get(PropertyAccessorParser);
+    return new ValidationController(validator, propertyParser);
+  }
+
+  public getFactory(container: IContainer): IFactory<ValidationController> {
+    throw new Error('Method not implemented.');
   }
 }
 
-(ValidationControllerFactory as any)['protocol:aurelia:resolver'] = true;

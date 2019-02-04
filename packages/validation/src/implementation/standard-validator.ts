@@ -1,26 +1,26 @@
-import { Expression, LookupFunctions } from 'aurelia-binding';
-import { ViewResources } from 'aurelia-templating';
 import { Validator } from '../validator';
 import { ValidateResult } from '../validate-result';
 import { Rule } from './rule';
 import { Rules } from './rules';
 import { ValidationMessageProvider } from './validation-messages';
+import { IServiceLocator } from '@aurelia/kernel';
+import { IExpression, LifecycleFlags as LF, Scope, OverrideContext, IOverrideContext } from '@aurelia/runtime';
 
 /**
  * Validates.
  * Responsible for validating objects and properties.
  */
 export class StandardValidator extends Validator {
-  public static inject = [ValidationMessageProvider, ViewResources];
+  public static inject = [ValidationMessageProvider, IServiceLocator];
 
   private messageProvider: ValidationMessageProvider;
-  private lookupFunctions: LookupFunctions;
+  private locator: IServiceLocator;
   private getDisplayName: (propertyName: string) => string;
 
-  constructor(messageProvider: ValidationMessageProvider, resources: ViewResources) {
+  constructor(messageProvider: ValidationMessageProvider, locator: IServiceLocator) {
     super();
     this.messageProvider = messageProvider;
-    this.lookupFunctions = (resources as any).lookupFunctions;
+    this.locator = locator;
     this.getDisplayName = messageProvider.getDisplayName.bind(messageProvider);
   }
 
@@ -61,13 +61,14 @@ export class StandardValidator extends Validator {
   }
 
   private getMessage(rule: Rule<any, any>, object: any, value: any): string {
-    const expression: Expression = rule.message || this.messageProvider.getMessage(rule.messageKey);
+    const expression: IExpression = rule.message || this.messageProvider.getMessage(rule.messageKey);
     // tslint:disable-next-line:prefer-const
     let { name: propertyName, displayName } = rule.property;
     if (propertyName !== null) {
       displayName = this.messageProvider.getDisplayName(propertyName, displayName);
     }
-    const overrideContext: any = {
+    const overrideContext = {
+      ...OverrideContext.create(LF.none, object, null),
       $displayName: displayName,
       $propertyName: propertyName,
       $value: value,
@@ -78,8 +79,11 @@ export class StandardValidator extends Validator {
       $getDisplayName: this.getDisplayName
     };
     return expression.evaluate(
-      { bindingContext: object, overrideContext },
-      this.lookupFunctions);
+      LF.none,
+      // TODO: fix these types in the runtime so this silly cast is not needed
+      Scope.create(LF.none, object, overrideContext as unknown as IOverrideContext),
+      this.locator
+    ) as string;
   }
 
   private validateRuleSequence(

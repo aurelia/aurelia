@@ -192,7 +192,7 @@ export class HistoryBrowser {
     return state[key];
   }
 
-  public async setEntryTitle(title: string): Promise<void> {
+  public setEntryTitle(title: string): Promise<void> {
     this.currentEntry.title = title;
     this.historyEntries[this.currentEntry.index] = this.currentEntry;
     return this.setState({
@@ -201,7 +201,7 @@ export class HistoryBrowser {
     });
   }
 
-  public async replacePath(path: string, fullStatePath: string, entry: INavigationInstruction): Promise<void> {
+  public replacePath(path: string, fullStatePath: string, entry: INavigationInstruction): Promise<void> {
     if (entry.index !== this.currentEntry.index) {
       // TODO: Store unresolved in localStorage to set if we should ever navigate back to it
       // tslint:disable-next-line:no-console

@@ -58,7 +58,7 @@ export class ViewportContent {
       this.parameters === content.parameters;
   }
 
-  public async loadComponent(context: IRenderContext, element: Element): Promise<void> {
+  public loadComponent(context: IRenderContext, element: Element): Promise<void> {
     // Don't load cached content
     if (!this.fromCache) {
       this.component = this.componentInstance(context);
@@ -70,6 +70,7 @@ export class ViewportContent {
       this.component.$hydrate(LifecycleFlags.none, container, host);
     }
     this.contentStatus = ContentStatuses.loaded;
+    return Promise.resolve();
   }
   public unloadComponent(): void {
     // TODO: We might want to do something here eventually, who knows?

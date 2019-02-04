@@ -15,8 +15,13 @@ import { Information } from './information';
     <li repeat.for="book of author.books"><a href="book=\${book.id}">\${book.title}</a></li>
   </ul>
 </div>
-<au-nav name="author-menu"></au-nav>
-<au-viewport name="author-tabs" stateful default="author-details=\${author.id}" used-by="about-authors,author-details,information" no-history></au-viewport>
+<div class="info">
+  <label><input type="checkbox" checked.two-way="hideTabs">Hide author tabs</label><br>
+</div>
+<div if.bind="!hideTabs">
+  <au-nav name="author-menu"></au-nav>
+  <au-viewport name="author-tabs" stateful default="author-details=\${author.id}" used-by="about-authors,author-details,information" no-history></au-viewport>
+</div>
 </template>`,
   dependencies: [Information as any]
 })
@@ -25,6 +30,8 @@ export class Author {
   public static parameters = ['id'];
 
   public author: { id: number };
+
+  public hideTabs: boolean = true;
 
   constructor(private readonly router: Router, private readonly authorsRepository: AuthorsRepository, private state: State) { }
 

@@ -1,4 +1,4 @@
-import { ICustomElement, ICustomElementType, INode, IRenderContext, LifecycleFlags } from '@aurelia/runtime';
+import { ICustomElementType, IRenderContext, LifecycleFlags } from '@aurelia/runtime';
 import { INavigationInstruction } from './history-browser';
 import { mergeParameters } from './parser';
 import { IComponentViewportParameters, Router } from './router';
@@ -19,6 +19,7 @@ export interface IViewportOptions {
 export class Viewport {
   public name: string;
   public element: Element;
+  public elementVM: any;
   public context: IRenderContext;
   public owningScope: Scope;
   public scope: Scope;
@@ -26,6 +27,8 @@ export class Viewport {
 
   public content: ViewportContent;
   public nextContent: ViewportContent;
+
+  public deactivated: boolean;
 
   private readonly router: Router;
 
@@ -36,10 +39,11 @@ export class Viewport {
 
   private cache: ViewportContent[];
 
-  constructor(router: Router, name: string, element: Element, context: IRenderContext, owningScope: Scope, scope: Scope, options?: IViewportOptions) {
+  constructor(router: Router, name: string, element: Element, context: IRenderContext, elementVM: any, owningScope: Scope, scope: Scope, options?: IViewportOptions) {
     this.router = router;
     this.name = name;
     this.element = element;
+    this.elementVM = elementVM;
     this.context = context;
     this.owningScope = owningScope;
     this.scope = scope;
@@ -52,6 +56,7 @@ export class Viewport {
     this.elementResolve = null;
     this.previousViewportState = null;
     this.cache = [];
+    this.deactivated = false;
   }
 
   public setNextContent(content: ICustomElementType | string, instruction: INavigationInstruction): boolean {
@@ -84,7 +89,7 @@ export class Viewport {
     return this.content.isChange(this.nextContent) || instruction.isRefresh;
   }
 
-  public setElement(element: Element, context: IRenderContext, options: IViewportOptions): void {
+  public setElement(element: Element, context: IRenderContext, elementVM: any, options: IViewportOptions): void {
     // First added viewport with element is always scope viewport (except for root scope)
     if (this.scope && this.scope.parent && !this.scope.viewport) {
       this.scope.viewport = this;
@@ -97,6 +102,7 @@ export class Viewport {
       this.previousViewportState = { ...this };
       this.clearState();
       this.element = element;
+      this.elementVM = elementVM;
       if (options && options.usedBy) {
         this.options.usedBy = options.usedBy;
       }
@@ -125,9 +131,14 @@ export class Viewport {
     }
   }
 
-  // TODO: Will probably end up changing stuff due to the remove (hence the name)
   public remove(element: Element, context: IRenderContext): boolean {
-    return this.element === element && this.context === context;
+    if (this.element === element && this.context === context) {
+      if (this.content.component) {
+        this.content.freeContent(this.element, this.elementVM, this.options.stateful);
+      }
+      return true;
+    }
+    return false;
   }
 
   public async canLeave(): Promise<boolean> {
@@ -205,7 +216,7 @@ export class Viewport {
       await this.nextContent.component.enter(merged.merged, this.nextContent.instruction, this.content.instruction);
       this.nextContent.contentStatus = ContentStatuses.entered;
     }
-    this.nextContent.initializeComponent();
+    this.nextContent.initializeComponent(this.elementVM);
     return true;
   }
 
@@ -220,7 +231,7 @@ export class Viewport {
       // No need to wait for next component activation
       if (!this.nextContent.component) {
         this.content.removeComponent(this.element, this.options.stateful);
-        this.content.terminateComponent(this.options.stateful);
+        this.content.terminateComponent(this.elementVM, this.options.stateful);
         this.content.unloadComponent();
       }
     }
@@ -229,10 +240,10 @@ export class Viewport {
       // Only when next component activation is done
       if (this.content.component) {
         this.content.removeComponent(this.element, this.options.stateful);
-        this.content.terminateComponent(this.options.stateful);
+        this.content.terminateComponent(this.elementVM, this.options.stateful);
         this.content.unloadComponent();
       }
-      this.nextContent.addComponent(this.element);
+      this.nextContent.addComponent(this.element, this.elementVM);
 
       this.content = this.nextContent;
     }
@@ -250,7 +261,7 @@ export class Viewport {
     this.previousViewportState = null;
   }
   public async abortContentChange(): Promise<void> {
-    this.nextContent.freeContent(this.element, this.options.stateful);
+    this.nextContent.freeContent(this.element, this.elementVM, this.options.stateful);
     if (this.previousViewportState) {
       Object.assign(this, this.previousViewportState);
     }
@@ -315,7 +326,8 @@ export class Viewport {
   }
 
   public attaching(flags: LifecycleFlags): void {
-    console.log('ATTACHING viewport', this.name);
+    console.log('ATTACHING viewport', this.name, this.content, this.nextContent);
+    this.deactivated = false;
     if (this.content.component) {
       this.content.component.$attach(flags);
     }
@@ -326,6 +338,7 @@ export class Viewport {
     if (this.content.component) {
       this.content.component.$detach(flags);
     }
+    // this.deactivated = true;
   }
 
   public unbinding(flags: LifecycleFlags): void {

@@ -1,3 +1,4 @@
+import { ViewportCustomElement } from './../dist/router/src/resources/viewport.d';
 import { IContainer, InterfaceSymbol } from '@aurelia/kernel';
 import { Aurelia, ICustomElementType, IRenderContext } from '@aurelia/runtime';
 import { HistoryBrowser, IHistoryOptions, INavigationInstruction } from './history-browser';
@@ -49,8 +50,6 @@ export interface IRouteSeparators {
 export class Router {
   public static readonly inject: ReadonlyArray<InterfaceSymbol> = [IContainer];
 
-  public viewports: Record<string, Viewport> = {};
-
   public rootScope: Scope;
   public scopes: Scope[] = [];
 
@@ -70,6 +69,7 @@ export class Router {
 
   private readonly pendingNavigations: INavigationInstruction[] = [];
   private processingNavigation: INavigationInstruction = null;
+  private lastNavigation: INavigationInstruction = null;
 
   constructor(public container: IContainer) {
     this.historyBrowser = new HistoryBrowser();
@@ -312,13 +312,17 @@ export class Router {
     await this.replacePaths(instruction);
 
     // Remove history entry if no history viewports updated
-    if (!instruction.isFirst && updatedViewports.every(viewport => viewport.options.noHistory)) {
+    if (!instruction.isFirst && !instruction.isRepeat && updatedViewports.every(viewport => viewport.options.noHistory)) {
       await this.historyBrowser.pop().catch(error => { throw error; });
     }
 
     updatedViewports.forEach((viewport) => {
       viewport.finalizeContentChange();
     });
+    this.lastNavigation = this.processingNavigation;
+    if (this.lastNavigation.isRepeat) {
+      this.lastNavigation.isRepeat = false;
+    }
     this.processingNavigation = null;
 
     this.processNavigations().catch(error => { throw error; });
@@ -331,6 +335,13 @@ export class Router {
         viewport = this.allViewports().find((vp) => vp.name === viewport);
       }
       this.addedViewports.push({ viewport: viewport as Viewport, component: component });
+    } else if (this.lastNavigation) {
+      // const path = (typeof component === 'string' ? component : component.name)
+      //   + this.separators.viewport
+      //   + (typeof viewport === 'string' ? viewport : viewport.name);
+      this.pendingNavigations.unshift(this.lastNavigation);
+      this.lastNavigation.isRepeat = true;
+      this.processNavigations().catch(error => { throw error; });
     }
   }
 
@@ -381,11 +392,11 @@ export class Router {
   }
 
   // Called from the viewport custom element in attached()
-  public addViewport(name: string, element: Element, context: IRenderContext, options?: IViewportOptions): Viewport {
+  public addViewport(name: string, element: Element, context: IRenderContext, elementVM: any, options?: IViewportOptions): Viewport {
     // tslint:disable-next-line:no-console
-    console.log('Viewport added', name, element);
+    console.log('Viewport added', name, element, elementVM);
     const parentScope = this.findScope(element);
-    return parentScope.addViewport(name, element, context, options);
+    return parentScope.addViewport(name, element, context, elementVM, options);
   }
   // Called from the viewport custom element
   public removeViewport(viewport: Viewport, element: Element, context: IRenderContext): void {

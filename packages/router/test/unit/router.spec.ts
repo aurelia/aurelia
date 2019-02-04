@@ -422,6 +422,36 @@ describe('Router', () => {
     await teardown(host, router, 1);
   });
 
+  it('loads default when added by if condition becoming true', async function () {
+    this.timeout(30000);
+    const { host, router } = await setup();
+
+    await goto('/grault@left', router);
+    expect(host.textContent).to.contain('toggle');
+    expect(host.textContent).to.not.contain('Viewport: graul');
+    expect(host.textContent).to.not.contain('Viewport: corge');
+
+    (host as any).getElementsByTagName('INPUT')[0].click();
+    await Promise.resolve();
+    await waitForNavigation(router);
+    expect(host.textContent).to.contain('Viewport: graul');
+    expect(host.textContent).to.contain('Viewport: corge');
+
+    (host as any).getElementsByTagName('INPUT')[0].click();
+    await Promise.resolve();
+    await waitForNavigation(router);
+    expect(host.textContent).to.not.contain('Viewport: graul');
+    expect(host.textContent).to.not.contain('Viewport: corge');
+
+    (host as any).getElementsByTagName('INPUT')[0].click();
+    await Promise.resolve();
+    await waitForNavigation(router);
+    expect(host.textContent).to.contain('Viewport: graul');
+    expect(host.textContent).to.contain('Viewport: corge');
+
+    await teardown(host, router, 1);
+  });
+
   // TODO: Fix scoped viewports!
   xit('loads scoped viewport', async function () {
     this.timeout(30000);
@@ -750,9 +780,14 @@ const setup = async (): Promise<{ au; container; host; router }> => {
     }
   });
 
+  const Grault = (CustomElementResource as any).define({
+    name: 'grault', template: '<template><input type="checkbox" checked.two-way="toggle">toggle<div if.bind="toggle">Viewport: grault<au-viewport name="grault" used-by="corge" default="corge"></au-viewport></div></template>' }, class {
+      public toggle = false;
+    });
+
   container.register(Router as any);
   container.register(ViewportCustomElement as any);
-  registerComponent(container, Foo, Bar, Baz, Qux, Quux, Corge, Uier);
+  registerComponent(container, Foo, Bar, Baz, Qux, Quux, Corge, Uier, Grault);
 
   const router = container.get(Router);
   const mockBrowserHistoryLocation = new MockBrowserHistoryLocation();

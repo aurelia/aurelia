@@ -23,6 +23,7 @@ export interface INavigationFlags {
   isBack?: boolean;
   isReplace?: boolean;
   isCancel?: boolean;
+  isRepeat?: boolean;
 }
 
 export interface INavigationInstruction extends IHistoryEntry, INavigationFlags {

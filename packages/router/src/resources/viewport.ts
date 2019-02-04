@@ -1,5 +1,5 @@
 import { Constructable, InterfaceSymbol, Writable } from '@aurelia/kernel';
-import { bindable, createRenderContext, CustomElementResource, ICustomElement, ICustomElementType, IDOM, IElementTemplateProvider, INode, IRenderContext, IRenderingEngine, ITemplate, LifecycleFlags, TemplateDefinition } from '@aurelia/runtime';
+import { bindable, createRenderContext, CustomElementResource, ICustomElement, ICustomElementType, IDOM, IElementTemplateProvider, INode, IRenderContext, IRenderingEngine, ITemplate, LifecycleFlags, TemplateDefinition, connectable } from '@aurelia/runtime';
 import { Router } from '../router';
 import { IViewportOptions, Viewport } from '../viewport';
 
@@ -72,8 +72,14 @@ export class ViewportCustomElement {
   //   }
   //   this.viewport = this.router.addViewport(name, this.element, (this as any).$context.get(IContainer), options);
   // }
-
   public bound(): void {
+    this.connect();
+  }
+  public unbound(): void {
+    this.disconnect();
+  }
+
+  public connect(): void {
     const options: IViewportOptions = { scope: this.element.hasAttribute('scope') };
     if (this.usedBy && this.usedBy.length) {
       options.usedBy = this.usedBy;
@@ -90,35 +96,35 @@ export class ViewportCustomElement {
     if (this.element.hasAttribute('stateful')) {
       options.stateful = true;
     }
-    this.viewport = this.router.addViewport(this.name, this.element, this.$context, options);
+    this.viewport = this.router.addViewport(this.name, this.element, this.$context, this, options);
   }
-  public unbound(): void {
+  public disconnect():void {
     this.router.removeViewport(this.viewport, this.element, this.$context);
   }
 
-  public binding(flags: LifecycleFlags): void {
-    if (this.viewport) {
-      this.viewport.binding(flags);
-    }
-  }
+  // public binding(flags: LifecycleFlags): void {
+  //   if (this.viewport) {
+  //     this.viewport.binding(flags);
+  //   }
+  // }
 
-  public attaching(flags: LifecycleFlags): void {
-    if (this.viewport) {
-      this.viewport.attaching(flags);
-    }
-  }
+  // public attaching(flags: LifecycleFlags): void {
+  //   if (this.viewport) {
+  //     this.viewport.attaching(flags);
+  //   }
+  // }
 
-  public detaching(flags: LifecycleFlags): void {
-    if (this.viewport) {
-      this.viewport.detaching(flags);
-    }
-  }
+  // public detaching(flags: LifecycleFlags): void {
+  //   if (this.viewport) {
+  //     this.viewport.detaching(flags);
+  //   }
+  // }
 
-  public unbinding(flags: LifecycleFlags): void {
-    if (this.viewport) {
-      this.viewport.unbinding(flags);
-    }
-  }
+  // public unbinding(flags: LifecycleFlags): void {
+  //   if (this.viewport) {
+  //     this.viewport.unbinding(flags);
+  //   }
+  // }
 }
 // tslint:disable-next-line:no-invalid-template-strings
 CustomElementResource.define({ name: 'au-viewport', template: '<template><div class="viewport-header"> Viewport: <b>${name}</b> </div></template>' }, ViewportCustomElement);

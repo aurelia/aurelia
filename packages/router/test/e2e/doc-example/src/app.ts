@@ -27,7 +27,7 @@ import { State } from './state';
     <label><input type="checkbox" checked.two-way="state.allowEnterAuthorDetails">Allow entering <i>Author details</i></label><br>
     </div>
     <au-viewport name="lists" used-by="authors,books" default="authors"></au-viewport>
-    <au-viewport name="content" default="about"></au-viewport>
+    <au-viewport name="content" stateful default="about"></au-viewport>
     <au-viewport name="chat" used-by="chat" no-link no-history></au-viewport>
   </div>
 </template>
@@ -44,7 +44,7 @@ export class App {
       //     path = path.slice(1);
       //   }
       //   // Fetch components for the "lists" viewport
-      //   const listsComponents = router.rootScope.viewports.lists.options.usedBy.split(',');
+      //   const listsComponents = router.rootScope.viewports().lists.options.usedBy.split(',');
       //   const states = [];
       //   const parts = path.split('/');
       //   while (parts.length) {

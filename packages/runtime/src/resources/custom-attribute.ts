@@ -42,8 +42,8 @@ type CustomAttributeStaticProperties = Pick<Immutable<Required<IAttributeDefinit
 
 export type CustomAttributeConstructor = Constructable & CustomAttributeStaticProperties;
 
-export interface ICustomAttributeType<T extends INode = INode> extends
-  IResourceType<IAttributeDefinition, ICustomAttribute<T>>,
+export interface ICustomAttributeType<T extends INode = INode, C extends Constructable = Constructable> extends
+  IResourceType<IAttributeDefinition, InstanceType<C> & ICustomAttribute<T>>,
   CustomAttributeStaticProperties { }
 
 export interface ICustomAttribute<T extends INode = INode> extends
@@ -76,8 +76,8 @@ export function registerAttribute(this: ICustomAttributeType, container: IContai
 /**
  * Decorator: Indicates that the decorated class is a custom attribute.
  */
-export function customAttribute(name: string): CustomAttributeDecorator;
 export function customAttribute(definition: IAttributeDefinition): CustomAttributeDecorator;
+export function customAttribute(name: string): CustomAttributeDecorator;
 export function customAttribute(nameOrDefinition: string | IAttributeDefinition): CustomAttributeDecorator;
 export function customAttribute(nameOrDefinition: string | IAttributeDefinition): CustomAttributeDecorator {
   return target => CustomAttributeResource.define(nameOrDefinition, target);
@@ -88,8 +88,8 @@ export function customAttribute(nameOrDefinition: string | IAttributeDefinition)
  * attribute is placed on should be converted into a template and that this
  * attribute controls the instantiation of the template.
  */
-export function templateController(name: string): CustomAttributeDecorator;
 export function templateController(definition: IAttributeDefinition): CustomAttributeDecorator;
+export function templateController(name: string): CustomAttributeDecorator;
 export function templateController(nameOrDefinition: string | Omit<IAttributeDefinition, 'isTemplateController'>): CustomAttributeDecorator;
 export function templateController(nameOrDefinition: string | Omit<IAttributeDefinition, 'isTemplateController'>): CustomAttributeDecorator {
   return target => CustomAttributeResource.define(
@@ -122,11 +122,12 @@ function isType<T>(this: ICustomAttributeResource, Type: T & Partial<ICustomAttr
   return Type.kind === this;
 }
 
-function define<T extends Constructable>(this: ICustomAttributeResource, name: string, ctor: T): T & ICustomAttributeType;
-function define<T extends Constructable>(this: ICustomAttributeResource, definition: IAttributeDefinition, ctor: T): T & ICustomAttributeType;
-function define<T extends Constructable>(this: ICustomAttributeResource, nameOrDefinition: string | IAttributeDefinition, ctor: T): T & ICustomAttributeType {
+function define<N extends INode = INode, T extends Constructable = Constructable>(this: ICustomAttributeResource, definition: IAttributeDefinition, ctor: T): T & ICustomAttributeType<N, T>;
+function define<N extends INode = INode, T extends Constructable = Constructable>(this: ICustomAttributeResource, name: string, ctor: T): T & ICustomAttributeType<N, T>;
+function define<N extends INode = INode, T extends Constructable = Constructable>(this: ICustomAttributeResource, nameOrDefinition: string | IAttributeDefinition, ctor: T): T & ICustomAttributeType<N, T>;
+function define<N extends INode = INode, T extends Constructable = Constructable>(this: ICustomAttributeResource, nameOrDefinition: string | IAttributeDefinition, ctor: T): T & ICustomAttributeType<N, T> {
   const Type = ctor as T & Writable<ICustomAttributeType>;
-  const description = createCustomAttributeDescription(typeof nameOrDefinition === 'string' ? { name: nameOrDefinition } : nameOrDefinition, Type as T & ICustomAttributeType);
+  const description = createCustomAttributeDescription(typeof nameOrDefinition === 'string' ? { name: nameOrDefinition } : nameOrDefinition, Type);
   const proto: Writable<ICustomAttribute> = Type.prototype;
 
   Type.kind = CustomAttributeResource;
@@ -183,7 +184,7 @@ function define<T extends Constructable>(this: ICustomAttributeResource, nameOrD
   return Type as ICustomAttributeType & T;
 }
 
-export const CustomAttributeResource: ICustomAttributeResource = {
+export const CustomAttributeResource = {
   name: customAttributeName,
   keyFrom: customAttributeKey,
   isType,
@@ -205,4 +206,4 @@ export function createCustomAttributeDescription(def: IAttributeDefinition, Type
   };
 }
 
-export type CustomAttributeDecorator = <T extends Constructable>(target: T) => T & ICustomAttributeType;
+export type CustomAttributeDecorator = <T extends Constructable>(target: T) => T & ICustomAttributeType<T>;

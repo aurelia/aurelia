@@ -21,6 +21,7 @@ export {
 export {
   Class,
   Constructable,
+  ConstructableClass,
   Diff,
   ICallable,
   IDisposable,

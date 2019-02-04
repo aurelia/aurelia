@@ -131,7 +131,7 @@ export class Viewport {
   public remove(element: Element, context: IRenderContext): boolean {
     if (this.element === element && this.context === context) {
       if (this.content.component) {
-        this.content.freeContent(this.element, this.options.stateful);
+        this.content.freeContent(this.element, this.options.stateful).catch(error => { throw error; });
       }
       return true;
     }
@@ -250,7 +250,7 @@ export class Viewport {
     this.previousViewportState = null;
   }
   public async abortContentChange(): Promise<void> {
-    this.nextContent.freeContent(this.element, this.options.stateful);
+    this.nextContent.freeContent(this.element, this.options.stateful).catch(error => { throw error; });
     if (this.previousViewportState) {
       Object.assign(this, this.previousViewportState);
     }
@@ -315,6 +315,7 @@ export class Viewport {
   }
 
   public attaching(flags: LifecycleFlags): void {
+    // tslint:disable-next-line:no-console
     console.log('ATTACHING viewport', this.name, this.content, this.nextContent);
     this.deactivated = false;
     if (this.content.component) {
@@ -323,6 +324,7 @@ export class Viewport {
   }
 
   public detaching(flags: LifecycleFlags): void {
+    // tslint:disable-next-line:no-console
     console.log('DETACHING viewport', this.name);
     if (this.content.component) {
       this.content.removeComponent(this.element, this.options.stateful);

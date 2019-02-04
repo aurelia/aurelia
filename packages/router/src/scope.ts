@@ -3,7 +3,6 @@ import { ICustomElementType, IRenderContext } from '@aurelia/runtime';
 import { Router } from './router';
 import { IFindViewportsResult } from './scope';
 import { IViewportOptions, Viewport } from './viewport';
-import { ViewportCustomElement } from './resources/viewport';
 
 export interface IViewportCustomElementType extends ICustomElementType {
   viewport?: string;
@@ -273,9 +272,6 @@ export class Scope {
 
   public allViewports(): Viewport[] {
     const viewports = this._viewports.filter((viewport) => !viewport.deactivated);
-    // for (const viewport in this.viewports()) {
-    //   viewports.push(this.viewports()[viewport]);
-    // }
     for (const scope of this.children) {
       viewports.push(...scope.allViewports());
     }

@@ -151,7 +151,7 @@ export class ViewportContent {
     } else if (typeof this.content === 'string') {
       return this.content;
     } else {
-      return (this.content as ICustomElementType).description.name;
+      return (this.content).description.name;
     }
   }
   public componentType(context: IRenderContext): IRouteableCustomElementType {

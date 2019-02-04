@@ -108,6 +108,7 @@ export class QueuedBrowserHistory implements QueuedBrowserHistory {
     }
     this.processingItem = this.queue.shift();
     const method = this.processingItem.object[this.processingItem.method];
+    // tslint:disable-next-line:no-console
     console.log('DEQUEUE', this.processingItem.method, this.processingItem.parameters);
     method.apply(this.processingItem.object, this.processingItem.parameters);
     const resolve = this.processingItem.resolve;

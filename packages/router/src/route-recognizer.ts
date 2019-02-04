@@ -270,10 +270,10 @@ export class RouteRecognizer {
     }
 
     let currentState = this.rootState;
-    const skippableStates = [];
+    const skippableStates: State[] = [];
     let regex = '^';
     const types = new TypesRecord();
-    const names = [];
+    const names: string[] = [];
     const routeName = route.handler.name;
     let isEmpty = true;
 
@@ -507,7 +507,7 @@ export class RouteRecognizer {
     }
 
     for (let i = 0; i < pathLen; ++i) {
-      const nextStates = [];
+      const nextStates: State[] = [];
       const ch = normalizedPath.charAt(i);
 
       states.forEach(state => {

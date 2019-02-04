@@ -336,11 +336,7 @@ export class Router {
       }
       this.addedViewports.push({ viewport: viewport as Viewport, component: component });
     } else if (this.lastNavigation) {
-      // const path = (typeof component === 'string' ? component : component.name)
-      //   + this.separators.viewport
-      //   + (typeof viewport === 'string' ? viewport : viewport.name);
-      this.pendingNavigations.unshift(this.lastNavigation);
-      this.lastNavigation.isRepeat = true;
+      this.pendingNavigations.unshift({ path: '', fullStatePath: '', isRepeat: true });
       this.processNavigations().catch(error => { throw error; });
     }
   }

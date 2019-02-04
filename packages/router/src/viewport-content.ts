@@ -73,7 +73,11 @@ export class ViewportContent {
   }
   public unloadComponent(): void {
     // TODO: We might want to do something here eventually, who knows?
+    if (this.contentStatus !== ContentStatuses.loaded) {
+      return;
+    }
     // Don't unload components when stateful
+    this.contentStatus = ContentStatuses.none;
   }
 
   public initializeComponent(elementVM: any): void {
@@ -81,21 +85,20 @@ export class ViewportContent {
     if (!this.fromCache) {
       this.component.$bind(LifecycleFlags.fromStartTask | LifecycleFlags.fromBind, null);
     }
-    // elementVM.connect();
     this.contentStatus = ContentStatuses.initialized;
   }
   public terminateComponent(elementVM: any, stateful: boolean = false): void {
+    if (this.contentStatus !== ContentStatuses.initialized) {
+      return;
+    }
     // Don't terminate cached content
     if (!stateful) {
       this.component.$unbind(LifecycleFlags.fromStopTask | LifecycleFlags.fromUnbind);
-      // elementVM.disconnect();
     }
+    this.contentStatus = ContentStatuses.loaded;
   }
 
   public addComponent(element: Element, elementVM: any): void {
-    // if (this.fromCache) {
-    //   elementVM.connect();
-    // }
     this.component.$attach(LifecycleFlags.fromStartTask);
     if (this.fromCache) {
       const elements = Array.from(element.getElementsByTagName('*'));
@@ -110,6 +113,9 @@ export class ViewportContent {
     this.contentStatus = ContentStatuses.added;
   }
   public removeComponent(element: Element, stateful: boolean = false): void {
+    if (this.contentStatus !== ContentStatuses.added) {
+      return;
+    }
     if (stateful) {
       const elements = Array.from(element.getElementsByTagName('*'));
       for (const el of elements) {
@@ -119,6 +125,7 @@ export class ViewportContent {
       }
     }
     this.component.$detach(LifecycleFlags.fromStopTask);
+    this.contentStatus = ContentStatuses.added;
   }
 
   public async freeContent(element: Element, elementVM: any, stateful: boolean = false): Promise<void> {
@@ -129,6 +136,7 @@ export class ViewportContent {
         if (this.component.leave) {
           await this.component.leave();
         }
+        this.contentStatus = ContentStatuses.initialized;
       case ContentStatuses.initialized:
         this.terminateComponent(elementVM, stateful);
       case ContentStatuses.loaded:

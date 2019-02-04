@@ -428,25 +428,25 @@ describe('Router', () => {
 
     await goto('/grault@left', router);
     expect(host.textContent).to.contain('toggle');
-    expect(host.textContent).to.not.contain('Viewport: graul');
+    expect(host.textContent).to.not.contain('Viewport: grault');
     expect(host.textContent).to.not.contain('garply');
 
     (host as any).getElementsByTagName('INPUT')[0].click();
     await Promise.resolve();
     await waitForNavigation(router);
-    expect(host.textContent).to.contain('Viewport: graul');
+    expect(host.textContent).to.contain('Viewport: grault');
     expect(host.textContent).to.contain('garply');
 
     (host as any).getElementsByTagName('INPUT')[0].click();
     await Promise.resolve();
     await waitForNavigation(router);
-    expect(host.textContent).to.not.contain('Viewport: graul');
+    expect(host.textContent).to.not.contain('Viewport: grault');
     expect(host.textContent).to.not.contain('garply');
 
     (host as any).getElementsByTagName('INPUT')[0].click();
     await Promise.resolve();
     await waitForNavigation(router);
-    expect(host.textContent).to.contain('Viewport: graul');
+    expect(host.textContent).to.contain('Viewport: grault');
     expect(host.textContent).to.contain('garply');
 
     await teardown(host, router, 1);
@@ -458,25 +458,59 @@ describe('Router', () => {
 
     await goto('/grault@left', router);
     expect(host.textContent).to.contain('toggle');
-    expect(host.textContent).to.not.contain('Viewport: graul');
+    expect(host.textContent).to.not.contain('Viewport: grault');
     expect(host.textContent).to.not.contain('garply');
 
     (host as any).getElementsByTagName('INPUT')[0].click();
     await Promise.resolve();
     await waitForNavigation(router);
-    expect(host.textContent).to.contain('Viewport: graul');
+    expect(host.textContent).to.contain('Viewport: grault');
     expect(host.textContent).to.contain('garply');
 
     (host as any).getElementsByTagName('INPUT')[1].value = 'asdf';
 
-    await goto('/corge@graul', router);
+    await goto('/corge@grault', router);
 
     expect(host.textContent).to.not.contain('garply');
     expect(host.textContent).to.contain('Viewport: corge');
 
-    await goto('/garply@graul', router);
+    await goto('/garply@grault', router);
 
     expect(host.textContent).to.not.contain('Viewport: corge');
+    expect(host.textContent).to.contain('garply');
+
+    expect((host as any).getElementsByTagName('INPUT')[1].value).to.equal('asdf');
+
+    await teardown(host, router, 1);
+  });
+
+  it('keeps input when grandparent stateful', async function () {
+    this.timeout(30000);
+    const { host, router } = await setup();
+
+    await goto('/waldo@left', router);
+    expect(host.textContent).to.contain('Viewport: waldo');
+    expect(host.textContent).to.contain('toggle');
+    expect(host.textContent).to.not.contain('Viewport: grault');
+    expect(host.textContent).to.not.contain('garply');
+
+    (host as any).getElementsByTagName('INPUT')[0].click();
+    await Promise.resolve();
+    await waitForNavigation(router);
+    expect(host.textContent).to.contain('Viewport: grault');
+    expect(host.textContent).to.contain('garply');
+
+    (host as any).getElementsByTagName('INPUT')[1].value = 'asdf';
+
+    await goto('/foo@waldo', router);
+
+    expect(host.textContent).to.not.contain('Viewport: grault');
+    expect(host.textContent).to.contain('Viewport: foo');
+
+    await goto('/grault@waldo', router);
+
+    expect(host.textContent).to.not.contain('Viewport: corge');
+    expect(host.textContent).to.contain('Viewport: grault');
     expect(host.textContent).to.contain('garply');
 
     expect((host as any).getElementsByTagName('INPUT')[1].value).to.equal('asdf');
@@ -826,11 +860,15 @@ const setup = async (): Promise<{ au; container; host; router }> => {
     class {
       public text;
     });
-
+  const Waldo = (CustomElementResource as any).define(
+    {
+      name: 'waldo', template: '<template>Viewport: waldo<au-viewport name="waldo" stateful used-by="grault,foo" default="grault"></au-viewport></div></template>'
+    },
+    class { });
 
   container.register(Router as any);
   container.register(ViewportCustomElement as any);
-  registerComponent(container, Foo, Bar, Baz, Qux, Quux, Corge, Uier, Grault, Garply);
+  registerComponent(container, Foo, Bar, Baz, Qux, Quux, Corge, Uier, Grault, Garply, Waldo);
 
   const router = container.get(Router);
   const mockBrowserHistoryLocation = new MockBrowserHistoryLocation();

@@ -200,6 +200,14 @@ export class Scope {
 
   public addViewport(name: string, element: Element, context: IRenderContext, elementVM: any, options?: IViewportOptions): Viewport {
     let viewport = this.viewports()[name];
+    // Each au-viewport element has its own Viewport
+    if (element && viewport && viewport.element !== null && viewport.element !== element) {
+      viewport.deactivated = true;
+      viewport = this._viewports.find(vp => vp.name === name && vp.element === element);
+      if (viewport) {
+        viewport.deactivated = false;
+      }
+    }
     if (!viewport) {
       let scope: Scope;
       if (options.scope) {
@@ -207,7 +215,7 @@ export class Scope {
         this.router.scopes.push(scope);
       }
 
-      viewport = new Viewport(this.router, name, element, context, elementVM, this, scope, options);
+      viewport = new Viewport(this.router, name, null, null, null, this, scope, options);
       this._viewports.push(viewport);
     }
     // TODO: Either explain why || instead of && here (might only need one) or change it to && if that should turn out to not be relevant

@@ -102,29 +102,29 @@ export class ViewportCustomElement {
     this.router.removeViewport(this.viewport, this.element, this.$context);
   }
 
-  // public binding(flags: LifecycleFlags): void {
-  //   if (this.viewport) {
-  //     this.viewport.binding(flags);
-  //   }
-  // }
+  public binding(flags: LifecycleFlags): void {
+    if (this.viewport) {
+      this.viewport.binding(flags);
+    }
+  }
 
-  // public attaching(flags: LifecycleFlags): void {
-  //   if (this.viewport) {
-  //     this.viewport.attaching(flags);
-  //   }
-  // }
+  public attaching(flags: LifecycleFlags): void {
+    if (this.viewport) {
+      this.viewport.attaching(flags);
+    }
+  }
 
-  // public detaching(flags: LifecycleFlags): void {
-  //   if (this.viewport) {
-  //     this.viewport.detaching(flags);
-  //   }
-  // }
+  public detaching(flags: LifecycleFlags): void {
+    if (this.viewport) {
+      this.viewport.detaching(flags);
+    }
+  }
 
-  // public unbinding(flags: LifecycleFlags): void {
-  //   if (this.viewport) {
-  //     this.viewport.unbinding(flags);
-  //   }
-  // }
+  public unbinding(flags: LifecycleFlags): void {
+    if (this.viewport) {
+      this.viewport.unbinding(flags);
+    }
+  }
 }
 // tslint:disable-next-line:no-invalid-template-strings
 CustomElementResource.define({ name: 'au-viewport', template: '<template><div class="viewport-header"> Viewport: <b>${name}</b> </div></template>' }, ViewportCustomElement);

@@ -16,7 +16,7 @@ import { Information } from './information';
   </ul>
 </div>
 <div class="info">
-  <label><input type="checkbox" checked.two-way="hideTabs">Hide author tabs</label><br>
+  <label><input type="checkbox" checked.two-way="hideTabs">Hide author tabs (adds/removes with an <strong>if</strong>)</label><br>
 </div>
 <div if.bind="!hideTabs">
   <au-nav name="author-menu"></au-nav>
@@ -31,7 +31,7 @@ export class Author {
 
   public author: { id: number };
 
-  public hideTabs: boolean = true;
+  public hideTabs: boolean = false;
 
   constructor(private readonly router: Router, private readonly authorsRepository: AuthorsRepository, private state: State) { }
 

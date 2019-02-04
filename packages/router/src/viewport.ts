@@ -19,6 +19,7 @@ export interface IViewportOptions {
 export class Viewport {
   public name: string;
   public element: Element;
+  // TODO: Verify that we don't need elementVM and the remove it
   public elementVM: any;
   public context: IRenderContext;
   public owningScope: Scope;
@@ -165,10 +166,6 @@ export class Viewport {
       return false;
     }
 
-    if (this.nextContent.fromCache) {
-      return true;
-    }
-
     await this.waitForElement();
 
     await this.nextContent.loadComponent(this.context, this.element);
@@ -203,10 +200,6 @@ export class Viewport {
 
     if (!this.nextContent.component) {
       return false;
-    }
-
-    if (this.nextContent.fromCache) {
-      return true;
     }
 
     if (this.nextContent.component.enter) {
@@ -321,7 +314,7 @@ export class Viewport {
 
   public binding(flags: LifecycleFlags): void {
     if (this.content.component) {
-      this.content.component.$bind(flags);
+      this.content.initializeComponent(this.elementVM);
     }
   }
 
@@ -329,21 +322,21 @@ export class Viewport {
     console.log('ATTACHING viewport', this.name, this.content, this.nextContent);
     this.deactivated = false;
     if (this.content.component) {
-      this.content.component.$attach(flags);
+      this.content.addComponent(this.element, this.elementVM);
     }
   }
 
   public detaching(flags: LifecycleFlags): void {
     console.log('DETACHING viewport', this.name);
     if (this.content.component) {
-      this.content.component.$detach(flags);
+      this.content.removeComponent(this.element, this.options.stateful);
     }
-    // this.deactivated = true;
+    this.deactivated = true;
   }
 
   public unbinding(flags: LifecycleFlags): void {
     if (this.content.component) {
-      this.content.component.$unbind(flags);
+      this.content.terminateComponent(this.elementVM, this.options.stateful);
     }
   }
 

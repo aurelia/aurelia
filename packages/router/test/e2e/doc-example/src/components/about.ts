@@ -8,7 +8,8 @@ import { wait } from '../utils';
 <h3>Basic routing example: authors and books</h3>
 <p>This application lists authors and books and shows their details.</p>
 <p>This About component is displayed at application start and when navigating to Authors or Books lists in the navbar above.</p>
-<p style="color: blue;"><span style="text-decoration: line-through;">Scroll the text below and type something in the input. Then navigate to Books, select a book and after that navigate to About.</span>Select an <i>author</i> and type into and scroll the contents of the tabs. Also: write different things in the different chat inputs and switch between them.</p>
+<p style="color: blue;">Scroll the text below and type something in the input. Then select an <i>author</i> and after that navigate to About. Select an <i>author</i> again and type into and scroll the contents of the tabs. Also: Write different things in the different chat inputs and switch between them.</p>
+<p style="color: blue;">The viewports <strong>content</strong>, <strong>author-tabs</strong> and <strong>chat-details</strong> are all <strong>stateful</strong>.</p>
 <div style="height: 200px; overflow: auto;" id="scrolled"><pre>
 Scroll me to the moon
 Let me play among the stars

@@ -558,7 +558,7 @@ function createGetterSetter(flags: LifecycleFlags, instance: ICustomAttribute | 
   Reflect.defineProperty(instance, name, {
     enumerable: true,
     get: function(): unknown { return this['$observers'][name].getValue(); },
-    set: function(value: unknown): void { this['$observers'][name].setValue(value, (flags & LifecycleFlags.persistentBindingFlags) | LifecycleFlags.fromGetterSetter); }
+    set: function(value: unknown): void { this['$observers'][name].setValue(value, flags & LifecycleFlags.persistentBindingFlags); }
   });
 }
 

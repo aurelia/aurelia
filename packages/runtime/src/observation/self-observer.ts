@@ -67,7 +67,6 @@ export class SelfObserver implements SelfObserver {
       this.currentValue = newValue;
 
       if (!(flags & LifecycleFlags.fromBind)) {
-        flags |= LifecycleFlags.fromBindableHandler;
         const coercedValue = this.callback(newValue, currentValue, flags);
 
         if (coercedValue !== undefined) {

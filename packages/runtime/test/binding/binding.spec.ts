@@ -123,7 +123,6 @@ describe('Binding', () => {
     const scope = Scope.create(LF.none, ctx, null);
 
     sut.$bind(LF.fromBind, scope);
-    lifecycle.processConnectQueue(LF.none);
 
     expect(target.val).to.equal(count);
 
@@ -197,7 +196,6 @@ describe('Binding', () => {
 
           // - Act -
           sut.$bind(flags, scope);
-          lifecycle.processConnectQueue(flags);
 
           // - Assert -
           // double check we have the correct target observer
@@ -272,7 +270,6 @@ describe('Binding', () => {
 
           // - Act - Part 1
           sut.$bind(flags, scope);
-          lifecycle.processConnectQueue(flags);
 
           // - Assert - Part 1
           // verify the behavior inside $bind
@@ -484,7 +481,6 @@ describe('Binding', () => {
 
           // - Act - Part 1
           sut.$bind(flags, scope);
-          lifecycle.processConnectQueue(flags);
 
           // - Assert - Part 1
           expect(lifecycle.flushCount).to.equal(0);
@@ -605,7 +601,6 @@ describe('Binding', () => {
 
           // - Act - Part 1
           sut.$bind(flags, scope);
-          lifecycle.processConnectQueue(flags);
 
           // - Assert - Part 1
           // verify the behavior inside $bind

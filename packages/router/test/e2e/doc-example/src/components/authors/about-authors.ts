@@ -12,7 +12,7 @@ import { State } from '../../state';
 </template>` })
 @inject(State)
 export class AboutAuthors {
-  constructor(private state: State) { }
+  constructor(private readonly state: State) { }
 
   public canEnter() {
     return this.state.allowEnterAuthorDetails;

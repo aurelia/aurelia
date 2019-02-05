@@ -1,9 +1,10 @@
+import { Reporter } from '@aurelia/kernel';
 import { QueuedBrowserHistory } from './queued-browser-history';
 export interface IHistoryEntry {
   path: string;
   fullStatePath: string;
   index?: number;
-  firstEntry?: boolean;
+  firstEntry?: boolean; // Index might change to not require first === 0, firstEntry should be reliable
   title?: string;
   query?: string;
   parameters?: Record<string, string>;
@@ -77,7 +78,7 @@ export class HistoryBrowser {
 
   public activate(options?: IHistoryOptions): Promise<void> {
     if (this.isActive) {
-      throw new Error('History has already been activated.');
+      throw Reporter.error(0); // TODO: create error code for 'History has already been activated.'
     }
 
     this.isActive = true;
@@ -154,11 +155,11 @@ export class HistoryBrowser {
     // state = this.history.state;
     // await this.history.replaceState(state, null, `${pathname}${search}${newHash}`);
     // tslint:disable-next-line:promise-must-complete
-    let wait = new Promise((resolve, reject): void => {
+    let goPathChangeTriggered = new Promise((resolve, reject): void => {
       this.ignorePathChange = resolve;
     });
     await this.history.go(-1);
-    await wait;
+    await goPathChangeTriggered;
     const path = this.location.toString();
     state = this.history.state;
     // TODO: Fix browser forward bug after pop on first entry
@@ -167,11 +168,11 @@ export class HistoryBrowser {
       // let { pathname, search, hash } = this.location;
       // await this.history.replaceState(state, null, `${pathname}${search}${newHash}`);
       // tslint:disable-next-line:promise-must-complete
-      wait = new Promise((resolve, reject): void => {
+      goPathChangeTriggered = new Promise((resolve, reject): void => {
         this.ignorePathChange = resolve;
       });
       await this.history.go(-1);
-      await wait;
+      await goPathChangeTriggered;
       return this.history.pushState(state, null, path);
     }
   }
@@ -240,8 +241,7 @@ export class HistoryBrowser {
 
   public pathChanged = async (): Promise<void> => {
     if (this.ignorePathChange !== null) {
-      // tslint:disable-next-line:no-console
-      console.log('=== ignore path change', this.getPath());
+      Reporter.write(10000, '=== ignore path change', this.getPath());
       const resolve = this.ignorePathChange;
       this.ignorePathChange = null;
       resolve();
@@ -250,8 +250,7 @@ export class HistoryBrowser {
 
     const path: string = this.getPath();
     const search: string = this.getSearch();
-    // tslint:disable-next-line:no-console
-    console.log('path changed to', path, this.activeEntry, this.currentEntry);
+    Reporter.write(10000, 'path changed to', path, this.activeEntry, this.currentEntry);
 
     const navigationFlags: INavigationFlags = {};
 
@@ -340,8 +339,7 @@ export class HistoryBrowser {
       this.cancelRedirectHistoryMovement--;
     }
 
-    // tslint:disable-next-line:no-console
-    console.log('navigated', this.getState('HistoryEntry'), this.historyEntries, this.getState('HistoryOffset'));
+    Reporter.write(10000, 'navigated', this.getState('HistoryEntry'), this.historyEntries, this.getState('HistoryOffset'));
     this.callback(this.currentEntry, navigationFlags, previousEntry);
   }
 
@@ -378,8 +376,7 @@ export class HistoryBrowser {
   private callback(currentEntry: IHistoryEntry, navigationFlags: INavigationFlags, previousEntry: IHistoryEntry): void {
     const instruction: INavigationInstruction = { ...currentEntry, ...navigationFlags };
     instruction.previous = previousEntry;
-    // tslint:disable-next-line:no-console
-    console.log('callback', currentEntry, navigationFlags);
+    Reporter.write(10000, 'callback', currentEntry, navigationFlags);
     if (this.options.callback) {
       this.options.callback(instruction);
     }

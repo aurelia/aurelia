@@ -14,7 +14,7 @@ export interface IRouteableCustomElement extends ICustomElement {
   leave?(nextInstruction?: INavigationInstruction, instruction?: INavigationInstruction): void | Promise<void>;
 }
 
-export const enum ContentStatuses {
+export const enum ContentStatus {
   none = 0,
   loaded = 1,
   initialized = 2,
@@ -27,7 +27,7 @@ export class ViewportContent {
   public parameters: string;
   public instruction: INavigationInstruction;
   public component: IRouteableCustomElement;
-  public contentStatus: ContentStatuses;
+  public contentStatus: ContentStatus;
   public fromCache: boolean;
 
   constructor(content: ICustomElementType | string = null, parameters: string = null, instruction: INavigationInstruction = null, context: IRenderContext = null) {
@@ -36,7 +36,7 @@ export class ViewportContent {
     this.parameters = parameters;
     this.instruction = instruction;
     this.component = null;
-    this.contentStatus = ContentStatuses.none;
+    this.contentStatus = ContentStatus.none;
     this.fromCache = false;
 
     // If we've got a container, we're good to resolve type
@@ -45,40 +45,37 @@ export class ViewportContent {
     }
   }
 
-  public isChange(content: ViewportContent): boolean {
-    return ((typeof content.content === 'string' && this.componentName() !== content.content) ||
-      (typeof content.content !== 'string' && this.content !== content.content) ||
-      this.parameters !== content.parameters ||
-      !this.instruction || this.instruction.query !== content.instruction.query);
+  public isChange(other: ViewportContent): boolean {
+    return ((typeof other.content === 'string' && this.componentName() !== other.content) ||
+      (typeof other.content !== 'string' && this.content !== other.content) ||
+      this.parameters !== other.parameters ||
+      !this.instruction || this.instruction.query !== other.instruction.query);
   }
 
-  public isCacheEqual(content: ViewportContent): boolean {
-    return ((typeof content.content === 'string' && this.componentName() === content.content) ||
-      (typeof content.content !== 'string' && this.content === content.content)) &&
-      this.parameters === content.parameters;
+  public isCacheEqual(other: ViewportContent): boolean {
+    return ((typeof other.content === 'string' && this.componentName() === other.content) ||
+      (typeof other.content !== 'string' && this.content === other.content)) &&
+      this.parameters === other.parameters;
   }
 
   public loadComponent(context: IRenderContext, element: Element): Promise<void> {
     // Don't load cached content
     if (!this.fromCache) {
       this.component = this.componentInstance(context);
-
       const host: INode = element as INode;
       const container = context;
-
-      // TODO: get useProxies settings from the template definition
       this.component.$hydrate(LifecycleFlags.none, container, host);
     }
-    this.contentStatus = ContentStatuses.loaded;
+    this.contentStatus = ContentStatus.loaded;
     return Promise.resolve();
   }
   public unloadComponent(): void {
     // TODO: We might want to do something here eventually, who knows?
-    if (this.contentStatus !== ContentStatuses.loaded) {
+    if (this.contentStatus !== ContentStatus.loaded) {
       return;
     }
     // Don't unload components when stateful
-    this.contentStatus = ContentStatuses.none;
+    this.contentStatus = ContentStatus.none;
   }
 
   public initializeComponent(): void {
@@ -86,17 +83,17 @@ export class ViewportContent {
     if (!this.fromCache) {
       this.component.$bind(LifecycleFlags.fromStartTask | LifecycleFlags.fromBind, null);
     }
-    this.contentStatus = ContentStatuses.initialized;
+    this.contentStatus = ContentStatus.initialized;
   }
   public terminateComponent(stateful: boolean = false): void {
-    if (this.contentStatus !== ContentStatuses.initialized) {
+    if (this.contentStatus !== ContentStatus.initialized) {
       return;
     }
     // Don't terminate cached content
     if (!stateful) {
       this.component.$unbind(LifecycleFlags.fromStopTask | LifecycleFlags.fromUnbind);
     }
-    this.contentStatus = ContentStatuses.loaded;
+    this.contentStatus = ContentStatus.loaded;
   }
 
   public addComponent(element: Element): void {
@@ -111,10 +108,10 @@ export class ViewportContent {
         }
       }
     }
-    this.contentStatus = ContentStatuses.added;
+    this.contentStatus = ContentStatus.added;
   }
   public removeComponent(element: Element, stateful: boolean = false): void {
-    if (this.contentStatus !== ContentStatuses.added) {
+    if (this.contentStatus !== ContentStatus.added) {
       return;
     }
     if (stateful) {
@@ -126,24 +123,24 @@ export class ViewportContent {
       }
     }
     this.component.$detach(LifecycleFlags.fromStopTask);
-    this.contentStatus = ContentStatuses.added;
+    this.contentStatus = ContentStatus.added;
   }
 
   public async freeContent(element: Element, stateful: boolean = false): Promise<void> {
     switch (this.contentStatus) {
-      case ContentStatuses.added:
+      case ContentStatus.added:
         this.removeComponent(element, stateful);
-      case ContentStatuses.entered:
+      case ContentStatus.entered:
         if (this.component.leave) {
           await this.component.leave();
         }
-        this.contentStatus = ContentStatuses.initialized;
-      case ContentStatuses.initialized:
+        this.contentStatus = ContentStatus.initialized;
+      case ContentStatus.initialized:
         this.terminateComponent(stateful);
-      case ContentStatuses.loaded:
+      case ContentStatus.loaded:
         this.unloadComponent();
     }
-    this.contentStatus = ContentStatuses.none;
+    this.contentStatus = ContentStatus.none;
   }
 
   public componentName(): string {

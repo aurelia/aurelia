@@ -33,7 +33,7 @@ export class Author {
 
   public hideTabs: boolean = false;
 
-  constructor(private readonly router: Router, private readonly authorsRepository: AuthorsRepository, private state: State) { }
+  constructor(private readonly router: Router, private readonly authorsRepository: AuthorsRepository, private readonly state: State) { }
 
   public enter(parameters) {
     if (parameters.id) {

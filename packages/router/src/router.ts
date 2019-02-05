@@ -1,4 +1,4 @@
-import { IContainer, InterfaceSymbol } from '@aurelia/kernel';
+import { IContainer, InterfaceSymbol, Reporter } from '@aurelia/kernel';
 import { Aurelia, ICustomElementType, IRenderContext } from '@aurelia/runtime';
 import { HistoryBrowser, IHistoryOptions, INavigationInstruction } from './history-browser';
 import { AnchorEventInfo, LinkHandler } from './link-handler';
@@ -81,7 +81,7 @@ export class Router {
 
   public activate(options?: IRouterOptions): Promise<void> {
     if (this.isActive) {
-      throw new Error('Router has already been activated.');
+      throw Reporter.error(2001);
     }
 
     this.isActive = true;
@@ -112,7 +112,7 @@ export class Router {
 
   public deactivate(): void {
     if (!this.isActive) {
-      throw new Error('Router has not been activated.');
+      throw Reporter.error(2000);
     }
     this.linkHandler.deactivate();
     this.historyBrowser.deactivate();
@@ -153,8 +153,7 @@ export class Router {
 
     if (instruction.isCancel) {
       this.processingNavigation = null;
-      this.processNavigations().catch(error => { throw error; });
-      return Promise.resolve();
+      return this.processNavigations();
     }
 
     let clearViewports: boolean = false;
@@ -195,8 +194,7 @@ export class Router {
 
     if (!views && !Object.keys(views).length && !clearViewports) {
       this.processingNavigation = null;
-      this.processNavigations().catch(error => { throw error; });
-      return Promise.resolve();
+      return this.processNavigations();
     }
 
     if (title) {
@@ -214,7 +212,7 @@ export class Router {
     while (componentViewports.length || viewportsRemaining || defaultViewports.length) {
       // Guard against endless loop
       if (!guard--) {
-        throw new Error('Failed to resolve all viewports');
+        throw Reporter.error(2002);
       }
       const changedViewports: Viewport[] = [];
       for (const componentViewport of componentViewports) {
@@ -250,7 +248,7 @@ export class Router {
       if (!changedViewports.length && this.isRedirecting) {
         const result = this.cancelNavigation([...changedViewports, ...updatedViewports], instruction);
         this.isRedirecting = false;
-        this.processNavigations().catch(error => { throw error; });
+        await this.processNavigations();
         return result;
       }
 
@@ -312,7 +310,7 @@ export class Router {
 
     // Remove history entry if no history viewports updated
     if (!instruction.isFirst && !instruction.isRepeat && updatedViewports.every(viewport => viewport.options.noHistory)) {
-      await this.historyBrowser.pop().catch(error => { throw error; });
+      await this.historyBrowser.pop();
     }
 
     updatedViewports.forEach((viewport) => {
@@ -336,6 +334,7 @@ export class Router {
       this.addedViewports.push({ viewport: viewport, component: component });
     } else if (this.lastNavigation) {
       this.pendingNavigations.unshift({ path: '', fullStatePath: '', isRepeat: true });
+      // Don't wait for the (possibly slow) navigation
       this.processNavigations().catch(error => { throw error; });
     }
   }
@@ -388,8 +387,7 @@ export class Router {
 
   // Called from the viewport custom element in attached()
   public addViewport(name: string, element: Element, context: IRenderContext, options?: IViewportOptions): Viewport {
-    // tslint:disable-next-line:no-console
-    console.log('Viewport added', name, element);
+    Reporter.write(10000, 'Viewport added', name, element);
     const parentScope = this.findScope(element);
     return parentScope.addViewport(name, element, context, options);
   }

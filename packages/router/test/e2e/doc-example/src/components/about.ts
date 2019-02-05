@@ -36,7 +36,7 @@ In other words, I scroll you
 </template>` })
 @inject(State)
 export class About {
-  constructor(private state: State) { }
+  constructor(private readonly state: State) { }
 
   public enter() {
     return wait(this.state.noDelay ? 0 : 4000);

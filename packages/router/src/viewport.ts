@@ -1,10 +1,11 @@
+import { Reporter } from '@aurelia/kernel';
 import { ICustomElementType, IRenderContext, LifecycleFlags } from '@aurelia/runtime';
 import { INavigationInstruction } from './history-browser';
 import { mergeParameters } from './parser';
 import { IComponentViewportParameters, Router } from './router';
 import { Scope } from './scope';
 import { IViewportOptions } from './viewport';
-import { ContentStatuses, IRouteableCustomElement, IRouteableCustomElementType, ViewportContent } from './viewport-content';
+import { ContentStatus, IRouteableCustomElement, IRouteableCustomElementType, ViewportContent } from './viewport-content';
 
 export interface IViewportOptions {
   scope?: boolean;
@@ -147,8 +148,7 @@ export class Viewport {
     if (!component.canLeave) {
       return true;
     }
-    // tslint:disable-next-line:no-console
-    console.log('viewport canLeave', component.canLeave(this.content.instruction, this.nextContent.instruction));
+    Reporter.write(10000, 'viewport canLeave', component.canLeave(this.content.instruction, this.nextContent.instruction));
 
     return component.canLeave(this.content.instruction, this.nextContent.instruction);
   }
@@ -175,8 +175,7 @@ export class Viewport {
     }
 
     const result = component.canEnter(this.nextContent.instruction, this.content.instruction);
-    // tslint:disable-next-line:no-console
-    console.log('viewport canEnter', result);
+    Reporter.write(10000, 'viewport canEnter', result);
     if (typeof result === 'boolean') {
       return result;
     }
@@ -187,8 +186,7 @@ export class Viewport {
   }
 
   public async enter(): Promise<boolean> {
-    // tslint:disable-next-line:no-console
-    console.log('Viewport enter', this.name);
+    Reporter.write(10000, 'Viewport enter', this.name);
 
     if (this.clear) {
       return true;
@@ -203,15 +201,14 @@ export class Viewport {
       this.nextContent.instruction.parameters = merged.namedParameters;
       this.nextContent.instruction.parameterList = merged.parameterList;
       await this.nextContent.component.enter(merged.merged, this.nextContent.instruction, this.content.instruction);
-      this.nextContent.contentStatus = ContentStatuses.entered;
+      this.nextContent.contentStatus = ContentStatus.entered;
     }
     this.nextContent.initializeComponent();
     return true;
   }
 
   public async loadContent(): Promise<boolean> {
-    // tslint:disable-next-line:no-console
-    console.log('Viewport loadContent', this.name);
+    Reporter.write(10000, 'Viewport loadContent', this.name);
 
     if (this.content.component) {
       if (this.content.component.leave) {
@@ -250,7 +247,7 @@ export class Viewport {
     this.previousViewportState = null;
   }
   public async abortContentChange(): Promise<void> {
-    this.nextContent.freeContent(this.element, this.options.stateful).catch(error => { throw error; });
+    await this.nextContent.freeContent(this.element, this.options.stateful);
     if (this.previousViewportState) {
       Object.assign(this, this.previousViewportState);
     }
@@ -315,8 +312,7 @@ export class Viewport {
   }
 
   public attaching(flags: LifecycleFlags): void {
-    // tslint:disable-next-line:no-console
-    console.log('ATTACHING viewport', this.name, this.content, this.nextContent);
+    Reporter.write(10000, 'ATTACHING viewport', this.name, this.content, this.nextContent);
     this.deactivated = false;
     if (this.content.component) {
       this.content.addComponent(this.element);
@@ -324,8 +320,7 @@ export class Viewport {
   }
 
   public detaching(flags: LifecycleFlags): void {
-    // tslint:disable-next-line:no-console
-    console.log('DETACHING viewport', this.name);
+    Reporter.write(10000, 'DETACHING viewport', this.name);
     if (this.content.component) {
       this.content.removeComponent(this.element, this.options.stateful);
     }

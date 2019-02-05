@@ -60,8 +60,8 @@ describe('QueuedBrowserHistory', () => {
     qbh.replaceState("test", null, '#two');
     qbh.back();
     qbh.forward();
-    expect(callbackSpy.callCount).to.equal(4);
-    expect(qbh.length).to.equal(length + 1);
-    expect(qbh.state).to.equal('test');
+    expect(callbackSpy.callCount).to.equal(0);
+    expect(qbh.length).to.equal(length);
+    expect(qbh.queue.length).to.equal(4);
   });
 });

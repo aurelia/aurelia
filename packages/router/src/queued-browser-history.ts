@@ -1,4 +1,4 @@
-import { PLATFORM } from '@aurelia/kernel';
+import { PLATFORM, Reporter } from '@aurelia/kernel';
 
 export interface QueuedBrowserHistory extends History {
   activate(callback: (ev?: PopStateEvent) => void): void;
@@ -33,7 +33,7 @@ export class QueuedBrowserHistory implements QueuedBrowserHistory {
 
   public activate(callback: (ev?: PopStateEvent) => void): void {
     if (this.isActive) {
-      throw new Error('Queued browser history has already been activated.');
+      throw Reporter.error(2003);
     }
     this.isActive = true;
     this.callback = callback;
@@ -88,7 +88,7 @@ export class QueuedBrowserHistory implements QueuedBrowserHistory {
 
   private enqueue(object: object, method: string, parameters: unknown[]): Promise<void> {
     let _resolve;
-    // TODO: Is it okay to suppress this lint or is there a prefered solution?
+    // tslint:disable-next-line:promise-must-complete
     const promise: Promise<void> = new Promise((resolve) => {
       _resolve = resolve;
     });
@@ -98,7 +98,6 @@ export class QueuedBrowserHistory implements QueuedBrowserHistory {
       parameters: parameters,
       resolve: _resolve,
     });
-    this.dequeue().catch(error => { throw error; });
     return promise;
   }
 
@@ -108,8 +107,7 @@ export class QueuedBrowserHistory implements QueuedBrowserHistory {
     }
     this.processingItem = this.queue.shift();
     const method = this.processingItem.object[this.processingItem.method];
-    // tslint:disable-next-line:no-console
-    console.log('DEQUEUE', this.processingItem.method, this.processingItem.parameters);
+    Reporter.write(10000, 'DEQUEUE', this.processingItem.method, this.processingItem.parameters);
     method.apply(this.processingItem.object, this.processingItem.parameters);
     const resolve = this.processingItem.resolve;
     this.processingItem = null;

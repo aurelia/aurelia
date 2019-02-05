@@ -33,7 +33,7 @@ import { State } from './state';
 </template>
 ` })
 export class App {
-  constructor(private readonly router: Router, authorsRepository: AuthorsRepository, private state: State) {
+  constructor(private readonly router: Router, authorsRepository: AuthorsRepository, private readonly state: State) {
     authorsRepository.authors(); // Only here to initialize repositories
     this.router.activate({
       // transformFromUrl: (path, router) => {

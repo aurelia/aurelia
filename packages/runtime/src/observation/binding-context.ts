@@ -33,7 +33,7 @@ export class InternalObserversLookup {
   }
 }
 
-type BindingContextValue = ObservedCollection | StrictPrimitive | IIndexable;
+export type BindingContextValue = ObservedCollection | StrictPrimitive | IIndexable;
 
 export class BindingContext implements IBindingContext {
   [key: string]: BindingContextValue;

@@ -1,4 +1,4 @@
-import { IIndexable, InterfaceSymbol, IRegistry } from '@aurelia/kernel';
+import { InterfaceSymbol, IRegistry } from '@aurelia/kernel';
 import { ForOfStatement } from '../../binding/ast';
 import { Binding } from '../../binding/binding';
 import { AttributeDefinition, IAttributeDefinition } from '../../definitions';
@@ -6,7 +6,7 @@ import { INode, IRenderLocation } from '../../dom';
 import { LifecycleFlags, State } from '../../flags';
 import { IMountableComponent, IRenderable, IView, IViewFactory } from '../../lifecycle';
 import { CollectionObserver, IBatchedCollectionSubscriber, IndexMap, IObservedArray, IScope, ObservedCollection } from '../../observation';
-import { BindingContext, Scope } from '../../observation/binding-context';
+import { BindingContext, BindingContextValue, Scope } from '../../observation/binding-context';
 import { getCollectionObserver } from '../../observation/observer-locator';
 import { ProxyObserver } from '../../observation/proxy-observer';
 import { bindable } from '../../templating/bindable';
@@ -166,7 +166,7 @@ export class Repeat<C extends ObservedCollection = IObservedArray, T extends INo
 
       $lifecycle.beginBind();
       if (indexMap === null) {
-        forOf.iterate(flags, items, (arr, i, item: (string | number | boolean | ObservedCollection | IIndexable)) => {
+        forOf.iterate(flags, items, (arr, i, item: BindingContextValue) => {
           view = views[i];
           if (!!view.$scope && view.$scope.bindingContext[local] === item) {
             view.$bind(flags, Scope.fromParent(flags, $scope, view.$scope.bindingContext));
@@ -175,7 +175,7 @@ export class Repeat<C extends ObservedCollection = IObservedArray, T extends INo
           }
         });
       } else {
-        forOf.iterate(flags, items, (arr, i, item: (string | number | boolean | ObservedCollection | IIndexable)) => {
+        forOf.iterate(flags, items, (arr, i, item: BindingContextValue) => {
           view = views[i];
           if (!!view.$scope && (indexMap[i] === i || view.$scope.bindingContext[local] === item)) {
             view.$bind(flags, Scope.fromParent(flags, $scope, view.$scope.bindingContext));
@@ -234,7 +234,7 @@ export class Repeat<C extends ObservedCollection = IObservedArray, T extends INo
         views = this.views = Array(newLen);
 
         $lifecycle.beginBind();
-        forOf.iterate(flags, items, (arr, i, item: (string | number | boolean | ObservedCollection | IIndexable)) => {
+        forOf.iterate(flags, items, (arr, i, item: BindingContextValue) => {
           view = views[i] = factory.create(flags);
           view.$bind(flags, Scope.fromParent(flags, $scope, BindingContext.create(flags, local, item)));
         });

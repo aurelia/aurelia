@@ -295,6 +295,7 @@
     "max-union-size": [true, 5],
     "no-extra-semicolon": false,
     "no-identical-functions": false,
-    "no-duplicate-string": false
+    "no-duplicate-string": false,
+    "no-useless-cast": false
   }
 }

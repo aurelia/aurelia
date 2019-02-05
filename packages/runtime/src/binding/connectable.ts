@@ -29,6 +29,7 @@ export interface IPartialConnectableBinding extends IBinding, IPropertySubscribe
 }
 
 export interface IConnectableBinding extends IPartialConnectableBinding, IConnectable, IPatchable {
+  id: string;
   $nextConnect?: IConnectableBinding;
   observerSlots: number;
   version: number;
@@ -53,6 +54,7 @@ export function addObserver(this: IConnectableBinding, observer: ISubscribable<M
     }
     this[slotNames[i]] = observer;
     observer.subscribe(this);
+    observer[this.id] |= LifecycleFlags.updateTargetInstance;
     // increment the slot count.
     if (i === observerSlots) {
       this.observerSlots = i + 1;
@@ -93,6 +95,7 @@ export function unobserve(this: IConnectableBinding, all?: boolean): void {
       if (observer !== null && observer !== undefined) {
         this[slotName] = null;
         observer.unsubscribe(this);
+        observer[this.id] &= ~LifecycleFlags.updateTargetInstance;
       }
     }
   } else {
@@ -104,6 +107,7 @@ export function unobserve(this: IConnectableBinding, all?: boolean): void {
         if (observer !== null && observer !== undefined) {
           this[slotName] = null;
           observer.unsubscribe(this);
+          observer[this.id] &= ~LifecycleFlags.updateTargetInstance;
         }
       }
     }
@@ -127,3 +131,14 @@ export function connectable<TProto, TClass>(target: DecoratableConnectable<TProt
 export function connectable<TProto, TClass>(target?: DecoratableConnectable<TProto, TClass>): DecoratedConnectable<TProto, TClass> | typeof connectableDecorator {
   return target === undefined ? connectableDecorator : connectableDecorator(target);
 }
+
+const idAttributes: PropertyDescriptor = {
+  configurable: false,
+  enumerable: false,
+  writable: false,
+  value: 0
+};
+connectable.assignIdTo = (instance: IConnectableBinding): void => {
+  ++idAttributes.value;
+  Reflect.defineProperty(instance, 'id', idAttributes);
+};

@@ -20,7 +20,7 @@ function subscribe(this: PropertyObserver, subscriber: IPropertySubscriber): voi
     this.currentValue = this.obj[this.propertyKey];
     if ((this.persistentFlags & LifecycleFlags.patchStrategy) === 0) {
       observedPropertyDescriptor.get = () => this.getValue();
-      observedPropertyDescriptor.set = value => { this.setValue(value, LifecycleFlags.updateTargetInstance); };
+      observedPropertyDescriptor.set = value => { this.setValue(value, LifecycleFlags.fromGetterSetter); };
       if (!defineProperty(this.obj, this.propertyKey, observedPropertyDescriptor)) {
         Reporter.write(1, this.propertyKey, this.obj);
       }

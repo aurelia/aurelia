@@ -26,8 +26,6 @@ const inputValueDefaults = {
   ['week']: ''
 };
 
-const handleEventFlags = LifecycleFlags.fromDOMEvent | LifecycleFlags.updateSourceExpression;
-
 export interface ValueAttributeObserver extends IBindingTargetObserver<Node, string> { }
 
 @targetObserver('')
@@ -82,7 +80,7 @@ export class ValueAttributeObserver implements ValueAttributeObserver {
     const oldValue = this.oldValue = this.currentValue;
     const newValue = this.currentValue = this.getValue();
     if (oldValue !== newValue) {
-      this.callSubscribers(newValue, oldValue, handleEventFlags);
+      this.callSubscribers(newValue, oldValue, LifecycleFlags.fromDOMEvent);
       this.oldValue = newValue;
     }
   }

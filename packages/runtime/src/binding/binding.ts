@@ -193,15 +193,6 @@ export class Binding implements IPartialConnectableBinding {
     if (Tracer.enabled) { Tracer.leave(); }
   }
 
-  public connect(flags: LifecycleFlags): void {
-    if (Tracer.enabled) { Tracer.enter('Binding', 'connect', slice.call(arguments)); }
-    if (this.$state & State.isBound) {
-      flags |= this.persistentFlags;
-      this.sourceExpression.connect(flags | LifecycleFlags.mustEvaluate, this.$scope, this);
-    }
-    if (Tracer.enabled) { Tracer.leave(); }
-  }
-
   public $patch(flags: LifecycleFlags): void {
     if (Tracer.enabled) { Tracer.enter('Binding', '$patch', slice.call(arguments)); }
     if (this.$state & State.isBound) {

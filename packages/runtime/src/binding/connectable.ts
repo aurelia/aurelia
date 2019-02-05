@@ -35,7 +35,6 @@ export interface IConnectableBinding extends IPartialConnectableBinding, IConnec
   version: number;
   addObserver(observer: ISubscribable<MutationKind.instance | MutationKind.proxy>): void;
   unobserve(all?: boolean): void;
-  connect(flags: LifecycleFlags): void;
 }
 
 /** @internal */

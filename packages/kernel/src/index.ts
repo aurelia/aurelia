@@ -57,6 +57,13 @@ export {
   ValuesOf,
   Writable
 } from './interfaces';
+export {
+  relativeToFile,
+  join,
+  buildQueryString,
+  parseQueryString,
+  IQueryParams
+} from './path';
 export { PLATFORM } from './platform';
 export {
   ITraceInfo,

@@ -11,7 +11,7 @@
       "**/examples/**"
     ]
   },
-  "defaultSeverity": "warning",
+  "defaultSeverity": "error",
   "rules": {
   /**
     * Security Rules. The following rules should be turned on because they find security issues

@@ -175,7 +175,7 @@
     "no-unnecessary-field-initialization": true,
     "no-unnecessary-local-variable": true,
     "no-unnecessary-qualifier": true,
-    "no-unnecessary-type-assertion": true,
+    "no-unnecessary-type-assertion": { "severity": "warning" }, // Gives false positives on CircleCI, so keep them as warning for now
     "no-unsupported-browser-code": true,
     "no-useless-files": true,
     "no-var-keyword": true,

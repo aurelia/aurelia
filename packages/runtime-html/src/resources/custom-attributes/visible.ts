@@ -40,7 +40,8 @@ export class VisibleCustomAttribute {
   }
 
   public attached(): void {
-    this.observer = new VisibleCustomAttribute.IntersectionObserver((entries) => {
+    const Ctor = VisibleCustomAttribute.IntersectionObserver || IntersectionObserver;
+    this.observer = new Ctor((entries) => {
       this.value = entries[0].isIntersecting;
       this.visibility = entries[0].intersectionRatio;
     });

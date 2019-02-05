@@ -8,7 +8,7 @@ import { setup } from '../integration/util';
 import { HTMLTestContext, TestContext } from '../util';
 import { eachCartesianJoin } from './util';
 
-describe.only('built-in-resources.blur', () => {
+describe('built-in-resources.blur', () => {
 
   interface IApp {
     hasFocus: boolean;

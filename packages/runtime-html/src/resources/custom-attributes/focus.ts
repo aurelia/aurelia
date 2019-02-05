@@ -40,9 +40,18 @@ export class FocusCustomAttribute implements FocusCustomAttribute  {
    * @param newValue The new value.
    */
   public valueChanged(): void {
+    // In theory, we can react immediately
+    // but focus state of an element cannot be achieved
+    // while it's disconnected from the document
+    // thus, there neesd to be a check if it's currently connected or not
+    // before applying the value to the element
     if (this.$state & State.isAttached) {
       this.apply();
-    } else {
+    }
+    // If the element is not currently connect
+    // toggle the flag to add pending work for later
+    // in attached lifecycle
+    else {
       this.needsApply = true;
     }
   }
@@ -55,6 +64,9 @@ export class FocusCustomAttribute implements FocusCustomAttribute  {
       this.needsApply = false;
       this.apply();
     }
+    // the following block is to help minification
+    // as addEventListener method name, together with element property
+    // adds quite a bit of munification unfriendly code
     const el = this.element;
     addListener(el, 'focus', this);
     addListener(el, 'blur', this);
@@ -64,6 +76,9 @@ export class FocusCustomAttribute implements FocusCustomAttribute  {
    * Invoked when the attribute is detached from the DOM.
    */
   public detached(): void {
+    // the following block is to help minification
+    // as addEventListener method name, together with element property
+    // adds quite a bit of munification unfriendly code
     const el = this.element;
     removeListener(el, 'focus', this);
     removeListener(el, 'blur', this);
@@ -73,9 +88,20 @@ export class FocusCustomAttribute implements FocusCustomAttribute  {
    * EventTarget interface handler for better memory usage
    */
   public handleEvent(e: FocusEvent): void {
+    // there are only two event listened to
+    // if the even is focus, it menans the element is focused
+    // only need to switch the value to true
     if (e.type === 'focus') {
       this.value = true;
-    } else if (document.activeElement !== this.element) {
+    }
+    // else, it's blur event
+    // when a blur event happens, there are two situations
+    // 1. the element itself lost the focus
+    // 2. window lost the focus
+    // To handle both (1) and (2), only need to check if
+    // current active element is still the same element of this focus custom attribute
+    // If it's not, it's a blur event happened on Window because the browser tab lost focus
+    else if (document.activeElement !== this.element) {
       this.value = false;
     }
   }

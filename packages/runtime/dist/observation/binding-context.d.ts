@@ -2,7 +2,7 @@ import { IIndexable, StrictPrimitive } from '@aurelia/kernel';
 import { LifecycleFlags } from '../flags';
 import { IBinding } from '../lifecycle';
 import { IBindingContext, IOverrideContext, IScope, ObservedCollection, ObserversLookup } from '../observation';
-declare type BindingContextValue = ObservedCollection | StrictPrimitive | IIndexable;
+export declare type BindingContextValue = ObservedCollection | StrictPrimitive | IIndexable;
 export declare class BindingContext implements IBindingContext {
     [key: string]: BindingContextValue;
     readonly $synthetic: true;
@@ -73,5 +73,4 @@ export declare class OverrideContext implements IOverrideContext {
     static create(flags: LifecycleFlags, bc: IBindingContext | IBinding, poc: IOverrideContext | null): OverrideContext;
     getObservers(): ObserversLookup<IOverrideContext>;
 }
-export {};
 //# sourceMappingURL=binding-context.d.ts.map

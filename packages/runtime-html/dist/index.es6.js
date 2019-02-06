@@ -1612,7 +1612,6 @@ class FragmentNodeSequence {
         return this.targets;
     }
     insertBefore(refNode) {
-        // tslint:disable-next-line:no-any
         refNode.parentNode.insertBefore(this.fragment, refNode);
         // internally we could generally assume that this is an IRenderLocation,
         // but since this is also public API we still need to double check

@@ -5695,7 +5695,7 @@ this.au.runtime = (function (exports, kernel) {
               binding.$unbind(flags);
               binding = binding.$prevBinding;
           }
-          // tslind:disable-next-line:no-unnecessary-type-assertion // this is a false positive
+          // tslint:disable-next-line:no-unnecessary-type-assertion // this is a false positive
           this.$scope.parentScope = null;
           // remove isBound and isUnbinding flags
           this.$state &= ~(2 /* isBound */ | 64 /* isUnbinding */);

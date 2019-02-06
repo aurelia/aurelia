@@ -83,6 +83,7 @@ this.au.fetchClient = (function (exports, kernel, runtime) {
                       if (doRetry) {
                           retryConfig.counter++;
                           const delay = calculateDelay(retryConfig);
+                          // tslint:disable-next-line:no-string-based-set-timeout
                           return new Promise(resolve => kernel.PLATFORM.global.setTimeout(resolve, !isNaN(delay) ? delay : 0))
                               .then(() => {
                               const newRequest = requestClone.clone();

@@ -45,24 +45,6 @@ const app = new Aurelia()
   
 ## Router Configuration
 
-- [x] `IRouteConfig` interface
-- [x] Basic routes
-- [x] Canonical urls
-- [x] Aliased routes
-- [x] Custom viewports
-- [x] Child routes
-- [x] Absolute paths
-- [ ] Case sensitive routes
-- [x] Parameterized routes
-- [x] Custom parameterizers
-- [ ] Navigation model
-- [x] Route metadata
-- [ ] Up-front route definition
-
-Please let me know if there are any *use cases* that are missing from this specification.
-
-# The Route Configuration API
-
 *Spec: https://github.com/aurelia/aurelia/issues/164* <br />
 *Status: 0/Discussion*
 

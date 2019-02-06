@@ -8,7 +8,7 @@ import { setup } from '../integration/util';
 import { HTMLTestContext, TestContext } from '../util';
 import { eachCartesianJoin } from './util';
 
-describe.only('built-in-resources.visible', () => {
+describe('built-in-resources.visible', () => {
 
   interface IApp {
     isBlur: boolean;

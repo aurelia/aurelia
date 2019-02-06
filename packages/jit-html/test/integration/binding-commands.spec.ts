@@ -2,6 +2,7 @@ import { Aurelia, CustomElementResource as CE, ICustomElement, LifecycleFlags as
 import { IEventManager } from '@aurelia/runtime-html';
 import { expect } from 'chai';
 import { spy } from 'sinon';
+import { BasicConfiguration } from '../../src/index';
 import { HTMLTestContext, TestContext } from '../util';
 import { TestConfiguration } from './resources';
 import { setupAndStart, setupWithDocumentAndStart, tearDown } from './util';

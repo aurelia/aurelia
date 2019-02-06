@@ -17,6 +17,7 @@ import {
   MultiInterpolationBinding
 } from '@aurelia/runtime';
 import { Listener } from './binding/listener';
+import { StyleBinding } from './binding/style-binding';
 import {
   HTMLTargetedInstructionType,
   IListenerBindingInstruction,
@@ -113,6 +114,29 @@ export class StylePropertyBindingRenderer implements IInstructionRenderer {
     if (Tracer.enabled) { Tracer.enter('StylePropertyBindingRenderer', 'render', slice.call(arguments)); }
     const expr = ensureExpression(this.parser, instruction.from, BindingType.IsPropertyCommand | BindingMode.toView);
     const binding = new Binding(expr, target.style, instruction.to, BindingMode.toView, this.observerLocator, context);
+    addBinding(renderable, binding);
+    if (Tracer.enabled) { Tracer.leave(); }
+  }
+}
+
+@instructionRenderer(HTMLTargetedInstructionType.cssRuleBinding)
+/** @internal */
+export class CssRuleBindingRenderer implements IInstructionRenderer {
+  public static readonly inject: ReadonlyArray<InterfaceSymbol> = [IExpressionParser, IObserverLocator];
+  public static readonly register: IRegistry['register'];
+
+  private readonly parser: IExpressionParser;
+  private readonly observerLocator: IObserverLocator;
+
+  constructor(parser: IExpressionParser, observerLocator: IObserverLocator) {
+    this.parser = parser;
+    this.observerLocator = observerLocator;
+  }
+
+  public render(flags: LifecycleFlags, dom: IDOM, context: IRenderContext, renderable: IRenderable, target: HTMLElement, instruction: IStylePropertyBindingInstruction): void {
+    if (Tracer.enabled) { Tracer.enter('StylePropertyBindingRenderer.render', slice.call(arguments)); }
+    const expr = ensureExpression(this.parser, instruction.from, BindingType.IsPropertyCommand | BindingMode.toView);
+    const binding = new StyleBinding(expr, target, instruction.to, BindingMode.toView, this.observerLocator, context);
     addBinding(renderable, binding);
     if (Tracer.enabled) { Tracer.leave(); }
   }

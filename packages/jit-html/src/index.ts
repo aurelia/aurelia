@@ -1,4 +1,7 @@
 export {
+  StyleAttributePattern
+} from './attribute-pattern';
+export {
   TriggerBindingCommand,
   DelegateBindingCommand,
   CaptureBindingCommand

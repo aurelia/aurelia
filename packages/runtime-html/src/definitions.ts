@@ -11,7 +11,8 @@ export const enum HTMLTargetedInstructionType {
   textBinding = 'ha',
   listenerBinding = 'hb',
   stylePropertyBinding = 'hc',
-  setAttribute = 'hd'
+  cssRuleBinding = 'hd',
+  setAttribute = 'hf'
 }
 
 export type HTMLNodeInstruction =
@@ -22,6 +23,7 @@ export type HTMLAttributeInstruction =
   AttributeInstruction |
   IListenerBindingInstruction |
   IStylePropertyBindingInstruction |
+  ICssRuleBindingInstruction |
   ISetAttributeInstruction;
 
 export type HTMLTargetedInstruction = HTMLNodeInstruction | HTMLAttributeInstruction;
@@ -48,6 +50,12 @@ export interface IListenerBindingInstruction extends ITargetedInstruction {
 
 export interface IStylePropertyBindingInstruction extends ITargetedInstruction {
   type: HTMLTargetedInstructionType.stylePropertyBinding;
+  from: string | IsBindingBehavior;
+  to: string;
+}
+
+export interface ICssRuleBindingInstruction extends ITargetedInstruction {
+  type: HTMLTargetedInstructionType.cssRuleBinding;
   from: string | IsBindingBehavior;
   to: string;
 }

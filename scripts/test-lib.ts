@@ -446,39 +446,39 @@ function updateElementByIndicesFactory<T extends any>(arrays: ((...args: T[]) =>
 
 export function eachCartesianJoin<T1,U>(
   arrays: [T1[]],
-  callback: (arg1: T1) => U): void;
+  callback: (arg1: T1, callIndex: number) => U): void;
 
 export function eachCartesianJoin<T1,T2,U>(
   arrays: [T1[],T2[]],
-  callback: (arg1: T1, arg2: T2) => U): void;
+  callback: (arg1: T1, arg2: T2, callIndex: number) => U): void;
 
 export function eachCartesianJoin<T1,T2,T3,U>(
   arrays: [T1[],T2[],T3[]],
-  callback: (arg1: T1, arg2: T2, arg3: T3) => U): void;
+  callback: (arg1: T1, arg2: T2, arg3: T3, callIndex: number) => U): void;
 
 export function eachCartesianJoin<T1,T2,T3,T4,U>(
   arrays: [T1[],T2[],T3[],T4[]],
-  callback: (arg1: T1, arg2: T2, arg3: T3, arg4: T4) => U): void;
+  callback: (arg1: T1, arg2: T2, arg3: T3, arg4: T4, callIndex: number) => U): void;
 
 export function eachCartesianJoin<T1,T2,T3,T4,T5,U>(
   arrays: [T1[],T2[],T3[],T4[],T5[]],
-  callback: (arg1: T1, arg2: T2, arg3: T3, arg4: T4, arg5: T5) => U): void;
+  callback: (arg1: T1, arg2: T2, arg3: T3, arg4: T4, arg5: T5, callIndex: number) => U): void;
 
 export function eachCartesianJoin<T1,T2,T3,T4,T5,T6,U>(
   arrays: [T1[],T2[],T3[],T4[],T5[],T6[]],
-  callback: (arg1: T1, arg2: T2, arg3: T3, arg4: T4, arg5: T5, arg6: T6) => U): void;
+  callback: (arg1: T1, arg2: T2, arg3: T3, arg4: T4, arg5: T5, arg6: T6, callIndex: number) => U): void;
 
 export function eachCartesianJoin<T1,T2,T3,T4,T5,T6,T7,U>(
   arrays: [T1[],T2[],T3[],T4[],T5[],T6[],T7[]],
-  callback: (arg1: T1, arg2: T2, arg3: T3, arg4: T4, arg5: T5, arg6: T6, arg7: T7) => U): void;
+  callback: (arg1: T1, arg2: T2, arg3: T3, arg4: T4, arg5: T5, arg6: T6, arg7: T7, callIndex: number) => U): void;
 
 export function eachCartesianJoin<T1,T2,T3,T4,T5,T6,T7,T8,U>(
   arrays: [T1[],T2[],T3[],T4[],T5[],T6[],T7[],T8[]],
-  callback: (arg1: T1, arg2: T2, arg3: T3, arg4: T4, arg5: T5, arg6: T6, arg7: T7, arg8: T8) => U): void;
+  callback: (arg1: T1, arg2: T2, arg3: T3, arg4: T4, arg5: T5, arg6: T6, arg7: T7, arg8: T8, callIndex: number) => U): void;
 
 export function eachCartesianJoin<T1,T2,T3,T4,T5,T6,T7,T8,T9,U>(
   arrays: [T1[],T2[],T3[],T4[],T5[],T6[],T7[],T8[],T9[]],
-  callback: (arg1: T1, arg2: T2, arg3: T3, arg4: T4, arg5: T5, arg6: T6, arg7: T7, arg8: T8, arg9: T9) => U): void;
+  callback: (arg1: T1, arg2: T2, arg3: T3, arg4: T4, arg5: T5, arg6: T6, arg7: T7, arg8: T8, arg9: T9, callIndex: number) => U): void;
 
 export function eachCartesianJoin<T extends any,U>(
   arrays: T[][],
@@ -494,7 +494,7 @@ export function eachCartesianJoin<T extends any,U>(
   const totalCallCount: number = arrays.reduce((count: number, arr: T[]) => count *= arr.length, 1);
   const argsIndices = Array(arrays.length).fill(0);
   const args: T[] = updateElementByIndices(arrays, Array(arrays.length), argsIndices);
-  callback(...args);
+  callback(...args, 0);
   let callCount = 1;
   if (totalCallCount === callCount) {
     return;
@@ -503,7 +503,7 @@ export function eachCartesianJoin<T extends any,U>(
   while (!stop) {
     const hasUpdate = updateIndices(arrays, argsIndices);
     if (hasUpdate) {
-      callback(...updateElementByIndices(arrays, args, argsIndices));
+      callback(...updateElementByIndices(arrays, args, argsIndices), callCount);
       callCount++;
       if (totalCallCount < callCount) {
         throw new Error('Invalid loop implementation.');

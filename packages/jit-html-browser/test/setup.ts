@@ -26,5 +26,7 @@ chai.use(sinonChai);
 
 // const testContext = require.context('../../jit-html/test', true, /\.spec\.ts$/);
 // testContext.keys().forEach(testContext);
-const testContext = require.context('../../jit-html/test/built-in-resources', true, /\.spec\.ts$/);
+// const testContext = require.context('../../jit-html/test/built-in-resources', true, /\.spec\.ts$/);
+// testContext.keys().forEach(testContext);
+const testContext = require.context('../../jit-html/test/integration', true, /\.spec\.ts$/);
 testContext.keys().forEach(testContext);

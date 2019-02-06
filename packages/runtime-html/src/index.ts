@@ -1,6 +1,9 @@
 export {
   Listener
 } from './binding/listener';
+export {
+  StyleBinding
+} from './binding/style-binding';
 
 export {
   AttributeNSAccessor
@@ -126,6 +129,7 @@ export {
   DelegateBindingInstruction,
   SetAttributeInstruction,
   StylePropertyBindingInstruction,
+  CssRuleBindingInstruction,
   TextBindingInstruction,
   TriggerBindingInstruction
 } from './instructions';

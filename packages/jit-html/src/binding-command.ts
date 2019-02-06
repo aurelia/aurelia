@@ -9,9 +9,10 @@ import { IRegistry } from '@aurelia/kernel';
 import { BindingType, IsBindingBehavior } from '@aurelia/runtime';
 import {
   CaptureBindingInstruction,
+  CssRuleBindingInstruction,
   DelegateBindingInstruction,
   HTMLAttributeInstruction,
-  TriggerBindingInstruction
+  TriggerBindingInstruction,
 } from '@aurelia/runtime-html';
 
 export interface TriggerBindingCommand extends IBindingCommand {}
@@ -58,3 +59,18 @@ export class CaptureBindingCommand implements IBindingCommand {
   }
 }
 BindingCommandResource.define('capture', CaptureBindingCommand);
+
+export interface StyleBindingCommand extends IBindingCommand {}
+export class StyleBindingCommand implements IBindingCommand {
+  public static readonly register: IRegistry['register'];
+  public readonly bindingType: BindingType.IsProperty;
+
+  constructor() {
+    this.bindingType = BindingType.IsProperty;
+  }
+
+  public compile(binding: PlainAttributeSymbol | BindingSymbol): HTMLAttributeInstruction {
+    return new CssRuleBindingInstruction(binding.expression as IsBindingBehavior, getTarget(binding, true));
+  }
+}
+BindingCommandResource.define('style', StyleBindingCommand);

@@ -2,6 +2,7 @@ import { DI, IContainer, IRegistry } from '@aurelia/kernel';
 import { RuntimeBasicConfiguration } from '@aurelia/runtime';
 import { HTMLTemplateFactory } from './dom';
 import {
+  CssRuleBindingRenderer,
   ListenerBindingRenderer,
   SetAttributeRenderer,
   StylePropertyBindingRenderer,
@@ -53,6 +54,7 @@ export const DefaultResources = [
 export const ListenerBindingRendererRegistration = ListenerBindingRenderer as IRegistry;
 export const SetAttributeRendererRegistration = SetAttributeRenderer as IRegistry;
 export const StylePropertyBindingRendererRegistration = StylePropertyBindingRenderer as IRegistry;
+export const CssRuleBindingRendererRegistration = CssRuleBindingRenderer as IRegistry;
 export const TextBindingRendererRegistration = TextBindingRenderer as IRegistry;
 
 /**
@@ -63,6 +65,7 @@ export const TextBindingRendererRegistration = TextBindingRenderer as IRegistry;
  * - TextBinding: `${}`
  */
 export const DefaultRenderers = [
+  CssRuleBindingRendererRegistration,
   ListenerBindingRendererRegistration,
   SetAttributeRendererRegistration,
   StylePropertyBindingRendererRegistration,

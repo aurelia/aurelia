@@ -122,14 +122,14 @@ describe('CheckedObserver', () => {
             el.checked = checkedBefore;
             el.dispatchEvent(new ctx.Event(event, eventDefaults));
             expect(sut.getValue()).to.equal(checkedBefore, 'sut.getValue() 1');
-            expect(subscriber.handleChange).to.have.been.calledWith(checkedBefore, null, LF.updateSourceExpression | LF.fromDOMEvent);
+            expect(subscriber.handleChange).to.have.been.calledWith(checkedBefore, null, LF.fromDOMEvent | LF.allowPublishRoundtrip);
 
             el.checked = checkedAfter;
             el.dispatchEvent(new ctx.Event(event, eventDefaults));
             expect(sut.getValue()).to.equal(checkedAfter, 'sut.getValue() 2');
 
             if (checkedBefore !== checkedAfter) {
-              expect(subscriber.handleChange).to.have.been.calledWith(checkedAfter, checkedBefore, LF.updateSourceExpression | LF.fromDOMEvent);
+              expect(subscriber.handleChange).to.have.been.calledWith(checkedAfter, checkedBefore, LF.fromDOMEvent | LF.allowPublishRoundtrip);
               expect(subscriber.handleChange).to.have.been.calledTwice;
             } else {
               expect(subscriber.handleChange).to.have.been.calledOnce;

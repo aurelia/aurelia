@@ -38,36 +38,6 @@ export class InlineStyleObserver implements InlineStyleObserver, ElementMutation
     this.hyphenatedCssRule = PLATFORM.kebabCase(cssRule);
   }
 
-  public static startObservation(element: IHtmlElement, subscription: ElementMutationSubscription): void {
-    if (element.$eMObservers === undefined) {
-      element.$eMObservers = new Set();
-    }
-    if (element.$mObserver === undefined) {
-      element.$mObserver = DOM.createNodeObserver(
-        element,
-        this.handleMutation,
-        { attributes: true }
-      ) as MutationObserver;
-    }
-    element.$eMObservers.add(subscription);
-  }
-
-  public static stopObservation(element: IHtmlElement, subscription: ElementMutationSubscription): boolean {
-    const $eMObservers = element.$eMObservers;
-    if ($eMObservers.delete(subscription)) {
-      if ($eMObservers.size === 0) {
-        element.$mObserver.disconnect();
-        element.$mObserver = undefined;
-      }
-      return true;
-    }
-    return false;
-  }
-
-  private static handleMutation(mutationRecords: MutationRecord[]): void {
-    (mutationRecords[0].target as IHtmlElement).$eMObservers.forEach(invokeHandleMutation, mutationRecords);
-  }
-
   public getValue(): string {
     return this.obj.style.getPropertyValue(this.hyphenatedCssRule);
   }
@@ -98,17 +68,47 @@ export class InlineStyleObserver implements InlineStyleObserver, ElementMutation
 
   public subscribe(subscriber: IPropertySubscriber): void {
     if (!this.hasSubscribers()) {
-      InlineStyleObserver.startObservation(this.obj, this);
+      startObservation(this.obj, this);
     }
     this.addSubscriber(subscriber);
   }
 
   public unsubscribe(subscriber: IPropertySubscriber): void {
     if (this.removeSubscriber(subscriber) && !this.hasSubscribers()) {
-      InlineStyleObserver.stopObservation(this.obj, this);
+      stopObservation(this.obj, this);
     }
   }
 }
+
+const startObservation = (element: IHtmlElement, subscription: ElementMutationSubscription): void => {
+  if (element.$eMObservers === undefined) {
+    element.$eMObservers = new Set();
+  }
+  if (element.$mObserver === undefined) {
+    element.$mObserver = DOM.createNodeObserver(
+      element,
+      handleMutation,
+      { attributes: true }
+    ) as MutationObserver;
+  }
+  element.$eMObservers.add(subscription);
+};
+
+const stopObservation = (element: IHtmlElement, subscription: ElementMutationSubscription): boolean => {
+  const $eMObservers = element.$eMObservers;
+  if ($eMObservers.delete(subscription)) {
+    if ($eMObservers.size === 0) {
+      element.$mObserver.disconnect();
+      element.$mObserver = undefined;
+    }
+    return true;
+  }
+  return false;
+};
+
+const handleMutation = (mutationRecords: MutationRecord[]): void => {
+  (mutationRecords[0].target as IHtmlElement).$eMObservers.forEach(invokeHandleMutation, mutationRecords);
+};
 
 function invokeHandleMutation(this: MutationRecord[], s: ElementMutationSubscription): void {
   s.handleMutation(this);

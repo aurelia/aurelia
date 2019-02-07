@@ -14,10 +14,6 @@ import {
 import { IEventSubscriber } from './event-manager';
 import { ValueAttributeObserver } from './value-attribute-observer';
 
-const handleEventFlags = LifecycleFlags.fromDOMEvent | LifecycleFlags.updateSourceExpression;
-
-const defaultHandleBatchedChangeFlags = LifecycleFlags.fromFlush | LifecycleFlags.updateTargetInstance;
-
 export interface IInputElement extends HTMLInputElement {
   model?: unknown;
   $observers?: ObserversLookup & {
@@ -93,7 +89,7 @@ export class CheckedObserver implements CheckedObserver {
   // handleBatchedCollectionChange (todo: rename to make this explicit?)
   public handleBatchedChange(): void {
     this.synchronizeElement();
-    this.notify(defaultHandleBatchedChangeFlags);
+    this.notify(LifecycleFlags.fromFlush);
   }
 
   // handlePropertyChange (todo: rename normal subscribe methods in target observers to batched, since that's what they really are)
@@ -158,7 +154,7 @@ export class CheckedObserver implements CheckedObserver {
     }
     this.oldValue = this.currentValue;
     this.currentValue = value;
-    this.notify(handleEventFlags);
+    this.notify(LifecycleFlags.fromDOMEvent | LifecycleFlags.allowPublishRoundtrip);
   }
 
   public subscribe(subscriber: IPropertySubscriber): void {

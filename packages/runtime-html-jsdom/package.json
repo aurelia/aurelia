@@ -34,6 +34,7 @@
     "test-node": "cross-env TS_NODE_PROJECT=\"test/tsconfig.json\" mocha test/setup-node.ts ../runtime-html/test/**/*.spec.ts -c -R progress -r source-map-support/register -r ts-node/register -r esm --recursive --globals expect",
     "test-node:watch": "npm run test-node -- --watch --watch-extensions ts",
     "build": "tsc -b",
+    "build:test": "tsc -p test/tsconfig.json --outDir dist/test",
     "bundle": "ts-node -P ../../scripts/tsconfig.json ../../scripts/bundle.ts umd,esm,system runtime-html-jsdom",
     "dev": "tsc -b -w",
     "publish:local": "npm pack"

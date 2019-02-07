@@ -4,7 +4,6 @@ import { BindingMode, ExpressionKind, LifecycleFlags, State } from '../flags';
 import { IBinding, ILifecycle } from '../lifecycle';
 import { AccessorOrObserver, IBindingTargetObserver, IObservable, IScope } from '../observation';
 import { IObserverLocator } from '../observation/observer-locator';
-import { patchProperty } from '../observation/patch-properties';
 import { hasBind, hasUnbind } from './ast';
 import { connectable, IConnectableBinding, IPartialConnectableBinding } from './connectable';
 
@@ -20,6 +19,7 @@ export interface Binding extends IConnectableBinding {}
 
 @connectable()
 export class Binding implements IPartialConnectableBinding {
+  public id: string;
   public $nextBinding: IBinding;
   public $prevBinding: IBinding;
   public $state: State;
@@ -39,6 +39,7 @@ export class Binding implements IPartialConnectableBinding {
   public persistentFlags: LifecycleFlags;
 
   constructor(sourceExpression: IsBindingBehavior | IForOfStatement, target: IObservable, targetProperty: string, mode: BindingMode, observerLocator: IObserverLocator, locator: IServiceLocator) {
+    connectable.assignIdTo(this);
     this.$nextBinding = null;
     this.$prevBinding = null;
     this.$state = State.none;
@@ -57,7 +58,7 @@ export class Binding implements IPartialConnectableBinding {
 
   public updateTarget(value: unknown, flags: LifecycleFlags): void {
     flags |= this.persistentFlags;
-    this.targetObserver.setValue(value, flags | LifecycleFlags.updateTargetInstance);
+    this.targetObserver.setValue(value, flags);
     if (flags & LifecycleFlags.patchStrategy) {
       this.targetObserver.$patch(flags);
     }
@@ -65,24 +66,19 @@ export class Binding implements IPartialConnectableBinding {
 
   public updateSource(value: unknown, flags: LifecycleFlags): void {
     flags |= this.persistentFlags;
-    this.sourceExpression.assign(flags | LifecycleFlags.updateSourceExpression, this.$scope, this.locator, value);
+    this.sourceExpression.assign(flags, this.$scope, this.locator, value);
   }
 
   public handleChange(newValue: unknown, _previousValue: unknown, flags: LifecycleFlags): void {
     if (Tracer.enabled) { Tracer.enter('Binding', 'handleChange', slice.call(arguments)); }
-    if (!(this.$state & State.isBound)) {
+    if ((this.$state & State.isBound) === 0) {
       if (Tracer.enabled) { Tracer.leave(); }
       return;
     }
 
     flags |= this.persistentFlags;
 
-    if (this.mode === BindingMode.fromView) {
-      flags &= ~LifecycleFlags.updateTargetInstance;
-      flags |= LifecycleFlags.updateSourceExpression;
-    }
-
-    if (flags & LifecycleFlags.updateTargetInstance) {
+    if ((flags & LifecycleFlags.updateTargetInstance) > 0) {
       const previousValue = this.targetObserver.getValue();
       // if the only observable is an AccessScope then we can assume the passed-in newValue is the correct and latest value
       if (this.sourceExpression.$kind !== ExpressionKind.AccessScope || this.observerSlots > 1) {
@@ -100,7 +96,7 @@ export class Binding implements IPartialConnectableBinding {
       return;
     }
 
-    if (flags & LifecycleFlags.updateSourceExpression) {
+    if ((flags & LifecycleFlags.updateSourceExpression) > 0) {
       if (newValue !== this.sourceExpression.evaluate(flags, this.$scope, this.locator)) {
         this.updateSource(newValue, flags);
       }
@@ -108,7 +104,8 @@ export class Binding implements IPartialConnectableBinding {
       return;
     }
 
-    throw Reporter.error(15, LifecycleFlags[flags]);
+    if (Tracer.enabled) { Tracer.leave(); }
+    throw Reporter.error(15, flags);
   }
 
   public $bind(flags: LifecycleFlags, scope: IScope): void {
@@ -156,6 +153,7 @@ export class Binding implements IPartialConnectableBinding {
     }
     if (this.mode & fromView) {
       targetObserver.subscribe(this);
+      targetObserver[this.id] |= LifecycleFlags.updateSourceExpression;
     }
 
     // add isBound flag and remove isBinding flag
@@ -186,20 +184,12 @@ export class Binding implements IPartialConnectableBinding {
     }
     if ((this.targetObserver as IBindingTargetObserver).unsubscribe) {
       (this.targetObserver as IBindingTargetObserver).unsubscribe(this);
+      this.targetObserver[this.id] &= ~LifecycleFlags.updateSourceExpression;
     }
     this.unobserve(true);
 
     // remove isBound and isUnbinding flags
     this.$state &= ~(State.isBound | State.isUnbinding);
-    if (Tracer.enabled) { Tracer.leave(); }
-  }
-
-  public connect(flags: LifecycleFlags): void {
-    if (Tracer.enabled) { Tracer.enter('Binding', 'connect', slice.call(arguments)); }
-    if (this.$state & State.isBound) {
-      flags |= this.persistentFlags;
-      this.sourceExpression.connect(flags | LifecycleFlags.mustEvaluate, this.$scope, this);
-    }
     if (Tracer.enabled) { Tracer.leave(); }
   }
 

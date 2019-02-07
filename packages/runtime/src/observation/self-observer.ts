@@ -73,7 +73,7 @@ export class SelfObserver implements SelfObserver {
           this.currentValue = newValue = coercedValue;
         }
 
-        this.callSubscribers(newValue, currentValue, flags);
+        this.callSubscribers(newValue, currentValue, flags | LifecycleFlags.allowPublishRoundtrip);
       }
     }
   }

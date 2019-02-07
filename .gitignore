@@ -8,6 +8,7 @@ TESTS-*.xml
 **/dist
 **/*.tgz
 /test/**/coverage
+/build
 
 **/debug.log
 **/npm-debug.log

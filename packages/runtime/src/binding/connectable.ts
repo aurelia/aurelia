@@ -121,7 +121,6 @@ function connectableDecorator<TProto, TClass>(target: DecoratableConnectable<TPr
   if (!proto.hasOwnProperty('observeProperty')) proto.observeProperty = observeProperty;
   if (!proto.hasOwnProperty('unobserve')) proto.unobserve = unobserve;
   if (!proto.hasOwnProperty('addObserver')) proto.addObserver = addObserver;
-  // tslint:disable-next-line:no-unnecessary-type-assertion // this is a false positive
   return target as DecoratedConnectable<TProto, TClass>;
 }
 

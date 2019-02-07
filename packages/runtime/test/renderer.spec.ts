@@ -177,7 +177,7 @@ describe('Renderer', function () {
       for (const instructions of [[], [new SetPropertyInstruction('bar', 'foo')]] as any[]) {
         const instruction = new HydrateAttributeInstruction(res, instructions) as any;
         it(_`instruction=${instruction}`, function () {
-          const { sut, dom, renderable, target, renderContext, renderingEngine } = setup();
+          const { sut, dom, renderable, target, renderContext } = setup();
 
           sut.instructionRenderers[instruction.type].render(LF.none, dom, renderContext, renderable, target, instruction);
 

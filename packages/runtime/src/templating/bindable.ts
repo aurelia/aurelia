@@ -30,7 +30,7 @@ export function bindable<T extends InstanceType<Constructable & Partial<WithBind
       // - @bindable({...opts})
       config.property = $prop;
     }
-    Bindable.for($target.constructor).add(config);
+    Bindable.for($target.constructor as Partial<WithBindables>).add(config);
   };
   if (arguments.length > 1) {
     // Non invocation:

@@ -1058,10 +1058,10 @@ describe('AccessMember', () => {
         }
         const binding = { observeProperty: spy() };
         sut.connect(LF.none, scope, binding as any);
-        if (isFalsey) {
-          expect(binding.observeProperty.callCount).to.equal(1);
-        } else {
+        if (canHaveProperty) {
           expect(binding.observeProperty.callCount).to.equal(2);
+        } else {
+          expect(binding.observeProperty.callCount).to.equal(1);
         }
 
         if (!(obj instanceof Object)) {
@@ -1131,7 +1131,7 @@ describe('AccessMember', () => {
     );
   });
 
-  describe('observes even if object does not / cannot have the property', () => {
+  describe('does not observe if object does not / cannot have the property', () => {
     const objects3: [string, any][] = [
       [`        1`, 1],
       [`     true`, true],
@@ -1151,7 +1151,7 @@ describe('AccessMember', () => {
           const expression2 = new AccessMember(new AccessScope('foo', 0), prop);
           const binding = { observeProperty: spy() };
           expression2.connect(LF.none, scope, binding as any);
-          expect(binding.observeProperty.callCount).to.equal(2);
+          expect(binding.observeProperty.callCount).to.equal(1);
         });
       })
     );

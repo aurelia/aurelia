@@ -1,3 +1,4 @@
+import { Reporter } from '@aurelia/kernel';
 import { LifecycleFlags as LF } from '../flags';
 import {
   IBatchedCollectionSubscriber,
@@ -10,7 +11,6 @@ import {
   MutationKindToSubscriber,
   SubscriberFlags as SF
 } from '../observation';
-import { Reporter } from '@aurelia/kernel';
 
 export function subscriberCollection<T extends MutationKind>(mutationKind: T): ClassDecorator {
   // tslint:disable-next-line:ban-types // ClassDecorator expects it to be derived from Function

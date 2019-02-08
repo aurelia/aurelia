@@ -7,7 +7,7 @@ export interface QueuedBrowserHistory extends History {
 
 interface QueueItem {
   target: object;
-  method: string;
+  methodName: string;
   parameters: unknown[];
   // TODO: Could someone verify this? It's the resolve from a Promise<void>
   resolve: ((value?: void | PromiseLike<void>) => void);
@@ -86,7 +86,7 @@ export class QueuedBrowserHistory implements QueuedBrowserHistory {
     this.callback(ev);
   }
 
-  private enqueue(target: object, method: string, parameters: unknown[]): Promise<void> {
+  private enqueue(target: object, methodName: string, parameters: unknown[]): Promise<void> {
     let _resolve;
     // tslint:disable-next-line:promise-must-complete
     const promise: Promise<void> = new Promise((resolve) => {
@@ -94,7 +94,7 @@ export class QueuedBrowserHistory implements QueuedBrowserHistory {
     });
     this.queue.push({
       target: target,
-      method: method,
+      methodName: methodName,
       parameters: parameters,
       resolve: _resolve,
     });
@@ -106,8 +106,8 @@ export class QueuedBrowserHistory implements QueuedBrowserHistory {
       return;
     }
     this.currentHistoryActivity = this.queue.shift();
-    const method = this.currentHistoryActivity.target[this.currentHistoryActivity.method];
-    Reporter.write(10000, 'DEQUEUE', this.currentHistoryActivity.method, this.currentHistoryActivity.parameters);
+    const method = this.currentHistoryActivity.target[this.currentHistoryActivity.methodName];
+    Reporter.write(10000, 'DEQUEUE', this.currentHistoryActivity.methodName, this.currentHistoryActivity.parameters);
     method.apply(this.currentHistoryActivity.target, this.currentHistoryActivity.parameters);
     const resolve = this.currentHistoryActivity.resolve;
     this.currentHistoryActivity = null;

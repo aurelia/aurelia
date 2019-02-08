@@ -45,10 +45,10 @@ export class NavRoute {
   }
 
   public _active(): string {
-    const components: string[] = this.linkActive.split(this.nav.router.separators.add);
+    const components: string[] = this.linkActive.split(this.nav.router.instructionResolver.separators.add);
     const activeComponents: string[] = this.nav.router.activeComponents;
     for (const component of components) {
-      if (component.indexOf(this.nav.router.separators.viewport) >= 0) {
+      if (component.indexOf(this.nav.router.instructionResolver.separators.viewport) >= 0) {
         if (activeComponents.indexOf(component) < 0) {
           return '';
         }
@@ -67,7 +67,7 @@ export class NavRoute {
 
   public _link(components: NavComponent | NavComponent[]): string {
     if (Array.isArray(components)) {
-      return components.map((value) => this.linkName(value)).join(this.nav.router.separators.sibling);
+      return components.map((value) => this.linkName(value)).join(this.nav.router.instructionResolver.separators.sibling);
     } else {
       return this.linkName(components);
     }

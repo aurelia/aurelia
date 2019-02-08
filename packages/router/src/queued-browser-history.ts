@@ -6,7 +6,7 @@ export interface QueuedBrowserHistory extends History {
 }
 
 interface QueueItem {
-  object: object;
+  target: object;
   method: string;
   parameters: unknown[];
   // TODO: Could someone verify this? It's the resolve from a Promise<void>
@@ -19,7 +19,7 @@ export class QueuedBrowserHistory implements QueuedBrowserHistory {
 
   private readonly queue: QueueItem[];
   private isActive: boolean;
-  private processingItem: QueueItem;
+  private currentHistoryActivity: QueueItem;
   private callback: (ev?: PopStateEvent) => void;
 
   constructor() {
@@ -27,7 +27,7 @@ export class QueuedBrowserHistory implements QueuedBrowserHistory {
     this.history = window.history;
     this.queue = [];
     this.isActive = false;
-    this.processingItem = null;
+    this.currentHistoryActivity = null;
     this.callback = null;
   }
 
@@ -86,14 +86,14 @@ export class QueuedBrowserHistory implements QueuedBrowserHistory {
     this.callback(ev);
   }
 
-  private enqueue(object: object, method: string, parameters: unknown[]): Promise<void> {
+  private enqueue(target: object, method: string, parameters: unknown[]): Promise<void> {
     let _resolve;
     // tslint:disable-next-line:promise-must-complete
     const promise: Promise<void> = new Promise((resolve) => {
       _resolve = resolve;
     });
     this.queue.push({
-      object: object,
+      target: target,
       method: method,
       parameters: parameters,
       resolve: _resolve,
@@ -102,15 +102,15 @@ export class QueuedBrowserHistory implements QueuedBrowserHistory {
   }
 
   private async dequeue(delta?: number): Promise<void> {
-    if (!this.queue.length || this.processingItem !== null) {
+    if (!this.queue.length || this.currentHistoryActivity !== null) {
       return;
     }
-    this.processingItem = this.queue.shift();
-    const method = this.processingItem.object[this.processingItem.method];
-    Reporter.write(10000, 'DEQUEUE', this.processingItem.method, this.processingItem.parameters);
-    method.apply(this.processingItem.object, this.processingItem.parameters);
-    const resolve = this.processingItem.resolve;
-    this.processingItem = null;
+    this.currentHistoryActivity = this.queue.shift();
+    const method = this.currentHistoryActivity.target[this.currentHistoryActivity.method];
+    Reporter.write(10000, 'DEQUEUE', this.currentHistoryActivity.method, this.currentHistoryActivity.parameters);
+    method.apply(this.currentHistoryActivity.target, this.currentHistoryActivity.parameters);
+    const resolve = this.currentHistoryActivity.resolve;
+    this.currentHistoryActivity = null;
     resolve();
   }
 }

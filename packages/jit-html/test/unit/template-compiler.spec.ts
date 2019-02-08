@@ -519,7 +519,7 @@ function createCustomElement(ctx: HTMLTestContext, tagName: string, finalize: bo
     instructions: childInstructions,
     parts: PLATFORM.emptyObject
   };
-  const attributeMarkup = attributes.map(a => `${a[0]}="${a[1]}"`).join(' ');
+  const attributeMarkup = attributes.map(a => `${a[0]}="${a[1].replace(/\$\{.*\}/, '')}"`).join(' ');
   const rawMarkup = `<${tagName} ${attributeMarkup}>${(childInput && childInput.template) || ''}</${tagName}>`;
   const input = {
     template: finalize ? `<div>${rawMarkup}</div>` : rawMarkup,

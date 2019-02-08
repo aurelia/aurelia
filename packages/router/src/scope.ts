@@ -237,8 +237,9 @@ export class Scope {
     for (const child of this.children) {
       child.removeScope();
     }
-    for (const viewport in this.getEnabledViewports()) {
-      this.router.removeViewport(this.getEnabledViewports()[viewport], null, null);
+    const viewports = this.getEnabledViewports();
+    for (const name in viewports) {
+      this.router.removeViewport(viewports[name], null, null);
     }
   }
 

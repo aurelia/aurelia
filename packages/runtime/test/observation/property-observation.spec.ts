@@ -169,7 +169,7 @@ describe('Observer', () => {
     const values = createObjectArr();
     values.forEach(value => {
       const observer = new SelfObserver(LF.none, {}, 'a', 'aChanged');
-      expect(observer['aChanged']).to.equal(null);
+      expect(observer['callback']).to.equal(null);
     });
   });
 });

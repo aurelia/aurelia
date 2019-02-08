@@ -8,7 +8,7 @@ import { setup } from '../integration/util';
 import { HTMLTestContext, TestContext } from '../util';
 import { eachCartesianJoin } from './util';
 
-describe('built-in-resources.blur', () => {
+describe.only('built-in-resources.blur', () => {
 
   interface IApp {
     hasFocus: boolean;
@@ -92,16 +92,16 @@ describe('built-in-resources.blur', () => {
 
     describe('Basic scenarios', () => {
       const blurAttrs = [
-        'blur.bind=hasFocus',
-        'blur.two-way=hasFocus',
-        'blur.from-view=hasFocus',
+        // 'blur.bind=hasFocus',
+        // 'blur.two-way=hasFocus',
+        // 'blur.from-view=hasFocus',
         'blur="value.two-way: hasFocus"',
-        'blur="value.bind: hasFocus"',
-        'blur="value.from-view: hasFocus"'
+        // 'blur="value.bind: hasFocus"',
+        // 'blur="value.from-view: hasFocus"'
       ];
       const normalUsageTestCases: ITestCase[] = [
         {
-          title: 'Works in basic scenario',
+          title: 'Works in basic scenario with <div/>',
           template: (blurrAttr) => `<template>
             <div ${blurrAttr}></div>
             <button>Click me to focus</button>
@@ -111,23 +111,25 @@ describe('built-in-resources.blur', () => {
             public hasFocus = true;
           },
           async assert(dom, component) {
-            createEventOn(dom.document, 'mousedown');
-            expect(component.hasFocus).to.equal(false);
+            createEventOn(dom.document, EVENTS.MouseDown);
+            expect(component.hasFocus).to.equal(false, 'Shoulda been false initially');
+
             component.hasFocus = true;
-            createEventOn(dom.window, 'mousedown');
-            expect(component.hasFocus).to.equal(false);
+            createEventOn(dom.window, EVENTS.MouseDown);
+            expect(component.hasFocus).to.equal(true, 'Shoulda leave "hasFocus" alone as window is not listened to.');
+
             component.hasFocus = true;
-            createEventOn(dom.document.body, 'mousedown');
-            expect(component.hasFocus).to.equal(false);
+            createEventOn(dom.document.body, EVENTS.MouseDown);
+            expect(component.hasFocus).to.equal(false, 'Shoulda set "hasFocus" to false when mousedown on doc body.');
 
             const button = dom.document.querySelector('button');
             component.hasFocus = true;
-            createEventOn(button, 'mousedown');
-            expect(component.hasFocus).to.equal(false);
+            createEventOn(button, EVENTS.MouseDown);
+            expect(component.hasFocus).to.equal(false, 'Shoulda set "hasFocus" to false when clicking element outside.');
           }
         },
         {
-          title: 'Works in basic scenario',
+          title: 'Works in basic scenario with <input/>',
           template: (blurrAttr) => `<template>
             <input ${blurrAttr}>
             <button>Click me to focus</button>
@@ -137,19 +139,19 @@ describe('built-in-resources.blur', () => {
             public hasFocus = true;
           },
           async assert(dom, component) {
-            createEventOn(dom.document, 'mousedown');
-            expect(component.hasFocus).to.equal(false);
-            component.hasFocus = true;
-            createEventOn(dom.window, 'mousedown');
-            expect(component.hasFocus).to.equal(false);
-            component.hasFocus = true;
-            createEventOn(dom.document.body, 'mousedown');
-            expect(component.hasFocus).to.equal(false);
+            createEventOn(dom.document, EVENTS.MouseDown);
+            expect(component.hasFocus).to.equal(false, 'Shoulda set "hasFocus" to false when mousedown on document.');
+            // component.hasFocus = true;
+            // createEventOn(dom.window, 'mousedown');
+            // expect(component.hasFocus).to.equal(false);
+            // component.hasFocus = true;
+            // createEventOn(dom.document.body, 'mousedown');
+            // expect(component.hasFocus).to.equal(false);
 
-            const button = dom.document.querySelector('button');
-            component.hasFocus = true;
-            createEventOn(button, 'mousedown');
-            expect(component.hasFocus).to.equal(false);
+            // const button = dom.document.querySelector('button');
+            // component.hasFocus = true;
+            // createEventOn(button, 'mousedown');
+            // expect(component.hasFocus).to.equal(false);
           }
         }
       ];
@@ -248,6 +250,14 @@ describe('built-in-resources.blur', () => {
     //   });
     // }
   });
+
+  const enum EVENTS {
+    MouseDown = 'mousedown',
+    TouchStart = 'touchstart',
+    PointerDown = 'pointerdown',
+    Focus = 'focus',
+    Blur = 'blur'
+  }
 
   interface ITestCase<T extends IApp = IApp> {
     title: string;

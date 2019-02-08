@@ -1,5 +1,5 @@
 import { PLATFORM } from '@aurelia/kernel';
-import { IBatchedCollectionSubscriber, IBindingTargetObserver, IPropertySubscriber, LifecycleFlags, MutationKind, subscriberCollection, targetObserver, DOM } from '@aurelia/runtime';
+import { DOM, IBatchedCollectionSubscriber, IBindingTargetObserver, IPropertySubscriber, LifecycleFlags, targetObserver } from '@aurelia/runtime';
 
 export interface IHtmlElement extends HTMLElement {
   $mObserver: MutationObserver;

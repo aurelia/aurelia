@@ -1,5 +1,5 @@
 import { IContainer, IRegistry, PLATFORM, Registration } from '@aurelia/kernel';
-import { AttributeDefinition, bindable, BindingMode, CustomAttributeResource, IAttributeDefinition, IBindableDescription, ICustomAttributeResource, INode } from '@aurelia/runtime';
+import { AttributeDefinition, bindable, BindingMode, CustomAttributeResource, IAttributeDefinition, IBindableDescription, ICustomAttributeResource, INode, IObservable } from '@aurelia/runtime';
 import { addListener, removeListener } from './utils';
 
 // tslint:disable
@@ -7,6 +7,19 @@ import { addListener, removeListener } from './utils';
 let useMouse = false;
 // let usePointer = false;
 // let useFocus = false;
+const enum Listeners {
+  touch = 1,
+  mouse = 2,
+  pointer = 4,
+  blur = 8,
+  focus = 16,
+  wheel = 32
+}
+
+let usage: Listeners = 0;
+
+const checkTargets: BlurCustomAttribute[] = [];
+const unset = Symbol();
 
 export interface BlurListenerConfig {
   touch?: boolean;
@@ -22,7 +35,7 @@ export interface IBlurCustomAttributeListeners {
   mouse(on: boolean): IBlurCustomAttributeListeners;
   pointer(on: boolean): IBlurCustomAttributeListeners;
   focus(on: boolean): IBlurCustomAttributeListeners;
-  windowBlur(on: boolean): IBlurCustomAttributeListeners;
+  blur(on: boolean): IBlurCustomAttributeListeners;
   wheel(on: boolean): IBlurCustomAttributeListeners;
 }
 
@@ -45,32 +58,37 @@ export class BlurCustomAttribute {
 
   public static readonly listen: IBlurCustomAttributeListeners = {
     touch(on: boolean): IBlurCustomAttributeListeners {
+      usage |= Listeners.touch;
       const fn = on ? addListener : removeListener;
       fn(document, 'touchstart', handleTouchStart, defaultCaptureEventInit);
       return BlurCustomAttribute.listen;
     },
     mouse(on: boolean): IBlurCustomAttributeListeners {
-      useMouse = !!on;
+      usage |= Listeners.mouse;
       const fn = on ? addListener : removeListener;
       fn(document, 'mousedown', handleMousedown, defaultCaptureEventInit);
       return BlurCustomAttribute.listen;
     },
     pointer(on: boolean): IBlurCustomAttributeListeners {
+      usage |= Listeners.pointer;
       const fn = on ? addListener : removeListener;
       fn(document, 'pointerdown', handlePointerDown, defaultCaptureEventInit);
       return BlurCustomAttribute.listen;
     },
     focus(on: boolean): IBlurCustomAttributeListeners {
+      usage |= Listeners.focus;
       const fn = on ? addListener : removeListener;
       fn(window, 'focus', handleWindowFocus, defaultCaptureEventInit);
       return BlurCustomAttribute.listen;
     },
-    windowBlur(on: boolean): IBlurCustomAttributeListeners {
+    blur(on: boolean): IBlurCustomAttributeListeners {
+      usage |= Listeners.blur;
       const fn = on ? addListener : removeListener;
       fn(window, 'blur', handleWindowBlur);
       return BlurCustomAttribute.listen;
     },
     wheel(on: boolean): IBlurCustomAttributeListeners {
+      usage |= Listeners.wheel;
       const fn = on ? addListener : removeListener;
       fn(window, 'wheel', handleMouseWheel, defaultBubbleEventInit);
       return BlurCustomAttribute.listen;
@@ -86,7 +104,7 @@ export class BlurCustomAttribute {
     }
   }
 
-  public value: boolean;
+  public value: boolean | typeof unset;
 
   public onBlur: () => void;
 
@@ -127,7 +145,7 @@ export class BlurCustomAttribute {
     this.linkedMultiple = true;
     this.searchSubTree = true;
     this.linkingContext = null;
-    // this.value = false;
+    this.value = unset;
   }
 
   public attached() {
@@ -135,7 +153,20 @@ export class BlurCustomAttribute {
   }
 
   public detached() {
-    unregister(this);
+    const idx = checkTargets.indexOf(this);
+    if (idx !== -1) {
+      checkTargets.splice(idx, 1);
+    }
+  }
+
+  public handleEventTarget(target: EventTarget): void {
+    const value = this.value;
+    if (!value && value !== unset) {
+      return;
+    }
+    if (target === (PLATFORM.global as unknown) || !this.contains(target as Element)) {
+      this.triggerBlur();
+    }
   }
 
   public contains(target: Element): boolean {
@@ -207,7 +238,7 @@ export class BlurCustomAttribute {
   }
 
   public triggerBlur(): void {
-    (this as any).$observers.value.currentValue = true;
+    // (this as IObservable).$observers.value.currentValue = true;
     this.value = false;
     if (typeof this.onBlur === 'function') {
       this.onBlur.call(null);
@@ -231,7 +262,7 @@ BlurCustomAttribute.bindables = ['onBlur', 'linkedWith', 'linkMultiple', 'search
   bindables[prop] = { property: prop, attribute: PLATFORM.kebabCase(prop) };
   return bindables;
 }, {
-  value: { property: 'value', attribute: 'value', mode: BindingMode.fromView }
+  value: { property: 'value', attribute: 'value', mode: BindingMode.twoWay }
 } as Record<string, IBindableDescription>);
 
 /*******************************
@@ -255,14 +286,10 @@ BlurCustomAttribute.bindables = ['onBlur', 'linkedWith', 'linkMultiple', 'search
  * So it needs to capture both mouse / focus movement
  */
 
-let checkTargets: BlurCustomAttribute[] = [];
-function unregister(attr: BlurCustomAttribute): void {
-  let idx = checkTargets.indexOf(attr);
-  if (idx !== -1) {
-    checkTargets.splice(idx, 1);
-  }
-}
 
+let checkage = 0;
+
+const SAFE_TIMEOUT = 1;
 let alreadyChecked = false;
 let cleanCheckTimeout: number = 0;
 function revertAlreadyChecked() {
@@ -270,89 +297,78 @@ function revertAlreadyChecked() {
   cleanCheckTimeout = 0;
 }
 
-function handlePointerDown(e: PointerEvent): void {
-  let target = getTargetFromEvent(e);
-  for (let i = 0, ii = checkTargets.length; i < ii; ++i) {
-    let attr = checkTargets[i];
-    if (window === target || !attr.contains(target as Element)) {
-      attr.triggerBlur();
+const handlePointerDown = (e: PointerEvent): void => {
+  if ((checkage & Listeners.pointer) > 0) {
+    if (usage & Listeners.touch) {
+      checkage |= Listeners.touch;
     }
-  }
-  alreadyChecked = true;
-  cleanCheckTimeout = PLATFORM.setTimeout(revertAlreadyChecked, 50);
-}
-
-function handleTouchStart(e: TouchEvent): void {
-  if (alreadyChecked) {
-    // If user listen to mouse even, dont revert, let mousedownHandler do the job
-    if (!useMouse) {
-      PLATFORM.clearTimeout(cleanCheckTimeout);
-      revertAlreadyChecked();
+    if (usage & Listeners.mouse) {
+      checkage |= Listeners.mouse;
     }
+    checkage &= ~Listeners.pointer;
     return;
   }
-  let target = getTargetFromEvent(e);
-  for (let i = 0, ii = checkTargets.length; i < ii; ++i) {
-    let attr = checkTargets[i];
-    if (target === window || !attr.contains(target as Element)) {
-      attr.triggerBlur();
-    }
-  }
-  alreadyChecked = true;
-  cleanCheckTimeout = PLATFORM.setTimeout(revertAlreadyChecked, 50);
+  handleEvent(e);
+  checkage &= ~Listeners.pointer;
 }
 
-function handleMousedown(e: MouseEvent): void {
-  if (alreadyChecked) {
-    PLATFORM.clearTimeout(cleanCheckTimeout);
-    revertAlreadyChecked();
+const handleTouchStart = (e: TouchEvent): void => {
+  if ((checkage & Listeners.touch) > 0) {
+    if (usage & Listeners.mouse) {
+      checkage |= Listeners.mouse;
+    }
+    checkage &= ~Listeners.touch;
     return;
   }
-  let target = getTargetFromEvent(e);
-  for (let i = 0, ii = checkTargets.length; i < ii; ++i) {
-    let attr = checkTargets[i];
-    if (window === target || !attr.contains(target as Element)) {
-      attr.triggerBlur();
-    }
-  }
-  alreadyChecked = true;
-  cleanCheckTimeout = PLATFORM.setTimeout(revertAlreadyChecked, 50);
+  handleEvent(e);
+  checkage &= ~Listeners.touch;
 }
 
-function handleWindowFocus(e: FocusEvent): void {
-  if (alreadyChecked) {
-    PLATFORM.clearTimeout(cleanCheckTimeout);
-    revertAlreadyChecked();
+const handleMousedown = (e: MouseEvent): void => {
+  if ((checkage & Listeners.mouse) > 0) {
+    checkage &= ~Listeners.mouse;
     return;
   }
-  let target = getTargetFromEvent(e);
-  let shouldBlur = target === window;
-  for (let i = 0, ii = checkTargets.length; i < ii; ++i) {
-    let attr = checkTargets[i];
-    if (shouldBlur || !attr.contains(target as Element)) {
-      attr.triggerBlur();
-    }
-  }
+  handleEvent(e);
+  checkage &= ~Listeners.mouse;
 }
 
-function handleWindowBlur(): void {
+/**
+ * Handle globally captured focus event
+ */
+const handleWindowFocus = (e: FocusEvent): void => {
+  // there are two way a focus gets captured on window
+  // when the windows itself got focus
+  // and when an element in the document gets focus
+  // when the window itself got focus, reacting to it is quite unnecessary
+  // as it doesn't really affect element inside the document
+  // Do a simple check and bail immediately
+  if (e.target === PLATFORM.global as unknown) {
+    checkage = 0;
+    return;
+  }
+  if ((checkage & Listeners.focus) > 0) {
+    checkage &= ~Listeners.focus;
+    return;
+  }
+  handleEvent(e);
+  checkage &= ~Listeners.focus;
+}
+
+const handleWindowBlur = (): void => {
+  checkage = 0;
   for (let i = 0, ii = checkTargets.length; i < ii; ++i) {
     checkTargets[i].triggerBlur();
   }
 }
 
-function handleMouseWheel(e: WheelEvent): void {
-  let target = getTargetFromEvent(e);
-  let shouldBlur = target === window;
-  
-  for (let i = 0, ii = checkTargets.length; ii > i; ++i) {
-    let attr = checkTargets[i];
-    if (shouldBlur || !attr.contains(target as Element)) {
-      attr.triggerBlur();
-    }
-  }
+const handleMouseWheel = (e: WheelEvent): void => {
+  handleEvent(e);
 }
 
-function getTargetFromEvent(e: Event): EventTarget {
-  return e.target;
+const handleEvent = (e: Event): void => {
+  const target = e.target;
+  for (let i = 0, ii = checkTargets.length; i < ii; ++i) {
+    checkTargets[i].handleEventTarget(target);
+  }
 }

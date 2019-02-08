@@ -134,7 +134,7 @@ export class CssRuleBindingRenderer implements IInstructionRenderer {
   }
 
   public render(flags: LifecycleFlags, dom: IDOM, context: IRenderContext, renderable: IRenderable, target: HTMLElement, instruction: IStylePropertyBindingInstruction): void {
-    if (Tracer.enabled) { Tracer.enter('StylePropertyBindingRenderer.render', slice.call(arguments)); }
+    if (Tracer.enabled) { Tracer.enter('StylePropertyBindingRenderer', 'render', slice.call(arguments)); }
     const expr = ensureExpression(this.parser, instruction.from, BindingType.IsPropertyCommand | BindingMode.toView);
     const binding = new StyleBinding(expr, target, instruction.to, BindingMode.toView, this.observerLocator, context);
     addBinding(renderable, binding);

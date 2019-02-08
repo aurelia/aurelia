@@ -195,7 +195,7 @@ describe('built-in-resources.focus', () => {
     });
   });
 
-  describe.only('Interactive scenarios', () => {
+  describe('Interactive scenarios', () => {
     const focusAttrs = [
       'focus.two-way=isBlur',
       'focus.bind=isBlur',

@@ -22,6 +22,7 @@ function setValue(this: BindingTargetAccessor, newValue: unknown, flags: Lifecyc
   const currentValue = this.currentValue;
   newValue = newValue === null || newValue === undefined ? this.defaultValue : newValue;
   if (currentValue !== newValue) {
+    this.oldValue = this.currentValue;
     this.currentValue = newValue;
     if ((flags & (LifecycleFlags.fromFlush | LifecycleFlags.fromBind)) &&
       !(this.isDOMObserver && (flags & LifecycleFlags.doNotUpdateDOM))) {

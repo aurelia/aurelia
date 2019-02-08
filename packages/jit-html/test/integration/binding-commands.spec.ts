@@ -64,7 +64,7 @@ describe('binding-commands', () => {
     const { au, lifecycle, host, component } = setupAndStart(ctx, `<template><div class="\${foo}"></div></template>`, null);
     component.foo = 'foo bar';
     lifecycle.processFlushQueue(LF.none);
-    expect((host.firstElementChild as HTMLElement).classList.toString()).to.equal('\${foo} au foo bar'); // TODO: fix this
+    expect((host.firstElementChild as HTMLElement).classList.toString()).to.equal('au foo bar');
     tearDown(au, lifecycle, host);
   });
 

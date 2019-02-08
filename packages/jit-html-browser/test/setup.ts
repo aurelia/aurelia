@@ -24,5 +24,5 @@ TestContext.createHTMLTestContext = createHTMLTestContext;
 
 chai.use(sinonChai);
 
-const testContext = require.context('../../jit-html/test', true, /\.spec\.ts$/);
+const testContext = require.context('../../jit-html/test', true, /binding-commands\.spec\.ts$/);
 testContext.keys().forEach(testContext);

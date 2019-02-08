@@ -12,6 +12,7 @@ export interface LetBinding extends IConnectableBinding {}
 
 @connectable()
 export class LetBinding implements IPartialConnectableBinding {
+  public id: string;
   public $nextBinding: IBinding;
   public $prevBinding: IBinding;
   public $state: State;
@@ -27,6 +28,7 @@ export class LetBinding implements IPartialConnectableBinding {
   private readonly toViewModel: boolean;
 
   constructor(sourceExpression: IExpression, targetProperty: string, observerLocator: IObserverLocator, locator: IServiceLocator, toViewModel: boolean = false) {
+    connectable.assignIdTo(this);
     this.$nextBinding = null;
     this.$prevBinding = null;
     this.$state = State.none;

@@ -423,8 +423,16 @@ export class AccessScope implements IAccessScopeExpression {
   }
 
   public assign(flags: LifecycleFlags, scope: IScope, locator: IServiceLocator, value: unknown): unknown {
-    const context = BindingContext.get(scope, this.name, this.ancestor, flags);
-    return context ? (context[this.name] = value) : undefined;
+    const obj = BindingContext.get(scope, this.name, this.ancestor, flags) as IBindingContext;
+    if (obj instanceof Object) {
+      if (obj.$observers !== undefined && obj.$observers[this.name] !== undefined) {
+        obj.$observers[this.name].setValue(value, flags);
+        return value;
+      } else {
+        return obj[this.name] = value;
+      }
+    }
+    return undefined;
   }
 
   public connect(flags: LifecycleFlags, scope: IScope, binding: IConnectableBinding): void {
@@ -454,19 +462,23 @@ export class AccessMember implements IAccessMemberExpression {
   }
 
   public assign(flags: LifecycleFlags, scope: IScope, locator: IServiceLocator, value: unknown): unknown {
-    let instance = this.object.evaluate(flags, scope, locator) as IIndexable;
-    if (instance === null || typeof instance !== 'object') {
-      instance = {};
-      this.object.assign(flags, scope, locator, instance);
+    const obj = this.object.evaluate(flags, scope, locator) as IBindingContext;
+    if (obj instanceof Object) {
+      if (obj.$observers !== undefined && obj.$observers[this.name] !== undefined) {
+        obj.$observers[this.name].setValue(value, flags);
+      } else {
+        obj[this.name] = value;
+      }
+    } else {
+      this.object.assign(flags, scope, locator, { [this.name]: value });
     }
-    instance[this.name] = value;
     return value;
   }
 
   public connect(flags: LifecycleFlags, scope: IScope, binding: IConnectableBinding): void {
     const obj = this.object.evaluate(flags, scope, null) as IIndexable;
     this.object.connect(flags, scope, binding);
-    if (obj) {
+    if (obj instanceof Object) {
       binding.observeProperty(flags, obj, this.name);
     }
   }
@@ -489,13 +501,11 @@ export class AccessKeyed implements IAccessKeyedExpression {
 
   public evaluate(flags: LifecycleFlags, scope: IScope, locator: IServiceLocator): unknown {
     const instance = this.object.evaluate(flags, scope, locator) as IIndexable;
-    if (instance === null || instance === undefined) {
-      return undefined;
+    if (instance instanceof Object) {
+      const key = this.key.evaluate(flags, scope, locator) as string;
+      return instance[key];
     }
-    const key = this.key.evaluate(flags, scope, locator) as string;
-    // note: getKeyed and setKeyed are removed because they are identical to the default spec behavior
-    // and the runtime does this this faster
-    return instance[key];
+    return undefined;
   }
 
   public assign(flags: LifecycleFlags, scope: IScope, locator: IServiceLocator, value: unknown): unknown {

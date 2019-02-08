@@ -79,6 +79,7 @@ export interface InterpolationBinding extends IConnectableBinding {}
 
 @connectable()
 export class InterpolationBinding implements IPartialConnectableBinding {
+  public id: string;
   public $scope: IScope;
   public $state: State;
 
@@ -95,6 +96,7 @@ export class InterpolationBinding implements IPartialConnectableBinding {
 
   // tslint:disable-next-line:parameters-max-number
   constructor(sourceExpression: IExpression, interpolation: IInterpolationExpression, target: IObservable, targetProperty: string, mode: BindingMode, observerLocator: IObserverLocator, locator: IServiceLocator, isFirst: boolean) {
+    connectable.assignIdTo(this);
     this.$state = State.none;
 
     this.interpolation = interpolation;

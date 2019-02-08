@@ -39,6 +39,7 @@
     "test:debugger": "npm run ~test -- --browsers=ChromeDebugging",
     "test:debugger:verbose": "npm run ~test -- --browsers=ChromeDebugging --reporter=mocha",
     "build": "tsc -b",
+    "build:test": "tsc -p test/tsconfig.json --outDir dist/test",
     "bundle": "ts-node -P ../../scripts/tsconfig.json ../../scripts/bundle.ts umd,esm,system plugin-webpack",
     "dev": "tsc -b -w",
     "publish:local": "npm pack"

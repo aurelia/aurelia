@@ -32,6 +32,7 @@
     "lint:src": "tslint --project tsconfig.json -t stylish",
     "lint:test": "tslint --project tsconfig-test.json --config ../tslint-test.json -e \"src/**/*.ts\" -t stylish",
     "build": "tsc -b",
+    "build:test": "tsc -p test/tsconfig.json --outDir dist/test",
     "bundle": "ts-node -P ../../scripts/tsconfig.json ../../scripts/bundle.ts umd,esm,system jit-html",
     "dev": "tsc -b -w",
     "publish:local": "npm pack"

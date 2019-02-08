@@ -11,6 +11,7 @@
     "bootstrap": "lerna bootstrap --ci --hoist",
     "postinstall": "lerna bootstrap --ci --hoist",
     "build": "lerna run build",
+    "build:test": "lerna run build:test",
     "dev": "lerna run dev --parallel",
     "clean": "rimraf packages/*/dist dist",
     "bundle:dist": "ts-node -P scripts/tsconfig.json scripts/bundle.ts umd,esm,system",

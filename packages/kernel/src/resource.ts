@@ -1,11 +1,11 @@
 import { IContainer, IRegistry, IResolver } from './di';
-import { Class, Constructable, Immutable } from './interfaces';
+import { Constructable, ConstructableClass, Immutable } from './interfaces';
 
 export interface IResourceDefinition extends Object {
   name: string;
 }
 
-export interface IResourceKind<TDef, TProto, TClass extends Class<TProto, unknown> = Class<TProto>> {
+export interface IResourceKind<TDef, TProto, TClass extends ConstructableClass<TProto, unknown> = ConstructableClass<TProto>> {
   readonly name: string;
   keyFrom(name: string): string;
   isType<T>(Type: T & Partial<IResourceType<TDef, TProto>>): Type is T & TClass & IResourceType<TDef, TProto>;
@@ -19,7 +19,7 @@ export type ResourceDescription<TDef> = Immutable<Required<TDef>>;
 
 export type ResourcePartDescription<TDef> = Immutable<TDef>;
 
-export interface IResourceType<TDef, TProto, TClass extends Class<TProto, unknown> = Class<TProto>> extends Class<TProto, unknown>, IRegistry {
+export interface IResourceType<TDef, TProto, TClass extends ConstructableClass<TProto, unknown> = ConstructableClass<TProto>> extends ConstructableClass<TProto, unknown>, IRegistry {
   readonly kind: IResourceKind<TDef, TProto, TClass>;
   readonly description: ResourceDescription<TDef>;
 }

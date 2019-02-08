@@ -13,8 +13,6 @@ import {
 } from '@aurelia/runtime';
 import { IEventSubscriber } from './event-manager';
 
-const handleEventFlags = LifecycleFlags.fromDOMEvent | LifecycleFlags.updateSourceExpression;
-
 const childObserverOptions = {
   childList: true,
   subtree: true,
@@ -123,7 +121,7 @@ export class SelectValueObserver implements SelectValueObserver {
     // "from-view" changes are always synchronous now, so immediately sync the value and notify subscribers
     const shouldNotify = this.synchronizeValue();
     if (shouldNotify) {
-      this.notify(handleEventFlags);
+      this.notify(LifecycleFlags.fromDOMEvent | LifecycleFlags.allowPublishRoundtrip);
     }
   }
 
@@ -266,7 +264,7 @@ export class SelectValueObserver implements SelectValueObserver {
     this.synchronizeOptions();
     const shouldNotify = this.synchronizeValue();
     if (shouldNotify) {
-      this.notify(handleEventFlags);
+      this.notify(LifecycleFlags.fromDOMEvent);
     }
   }
 }

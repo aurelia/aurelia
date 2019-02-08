@@ -41,6 +41,7 @@
     "test:debugger": "npm run ~test -- --browsers=ChromeDebugging",
     "test:debugger:verbose": "npm run ~test -- --browsers=ChromeDebugging --reporter=mocha",
     "build": "tsc -b",
+    "build:test": "tsc -p test/tsconfig.json --outDir dist/test",
     "bundle": "ts-node -P ../../scripts/tsconfig.json ../../scripts/bundle.ts umd,esm,system jit",
     "dev": "tsc -b -w",
     "publish:local": "npm pack"
@@ -59,6 +60,7 @@
     "@types/node": "^10.12.19",
     "@types/sinon": "^7.0.5",
     "@types/sinon-chai": "^3.2.2",
+    "@types/webpack-env": "^1.13.7",
     "chai": "^4.2.0",
     "cross-env": "^5.2.0",
     "istanbul-instrumenter-loader": "^3.0.1",

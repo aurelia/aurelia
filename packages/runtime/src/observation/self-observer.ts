@@ -1,48 +1,39 @@
-import { IIndexable, PLATFORM, Tracer } from '@aurelia/kernel';
+import { IIndexable, Tracer } from '@aurelia/kernel';
 import { LifecycleFlags } from '../flags';
 import { IPropertyObserver } from '../observation';
-import { patchProperties } from './patch-properties';
 import { propertyObserver } from './property-observer';
 import { ProxyObserver } from './proxy-observer';
 
 const slice = Array.prototype.slice;
-const noop = PLATFORM.noop;
 
 export interface SelfObserver extends IPropertyObserver<IIndexable, string> {}
 
 @propertyObserver()
 export class SelfObserver implements SelfObserver {
   public readonly persistentFlags: LifecycleFlags;
-  public obj: IIndexable;
+  public obj: object;
   public propertyKey: string;
   public currentValue: unknown;
 
-  private readonly callback: (newValue: unknown, oldValue: unknown, flags?: LifecycleFlags) => unknown;
+  private readonly callback: ((newValue: unknown, oldValue: unknown, flags: LifecycleFlags) => void) | null;
 
   constructor(
     flags: LifecycleFlags,
     instance: object,
     propertyName: string,
-    callbackName: string
+    cbName: string
   ) {
-    if (Tracer.enabled) { Tracer.enter('SelfObserver', 'constructor', slice.call(arguments)); }
+    if (Tracer.enabled) { Tracer.enter('cbName', 'constructor', slice.call(arguments)); }
     this.persistentFlags = flags & LifecycleFlags.persistentBindingFlags;
     if (ProxyObserver.isProxy(instance)) {
       instance.$observer.subscribe(this, propertyName);
       this.obj = instance.$raw;
-      this.propertyKey = propertyName;
-      this.currentValue = instance.$raw[propertyName];
-      this.callback = callbackName in instance.$raw
-        ? instance[callbackName].bind(instance)
-        : noop;
     } else {
       this.obj = instance;
-      this.propertyKey = propertyName;
-      this.currentValue = instance[propertyName];
-      this.callback = callbackName in instance
-        ? instance[callbackName].bind(instance)
-        : noop;
     }
+    this.propertyKey = propertyName;
+    this.currentValue = this.obj[propertyName];
+    this.callback = this.obj[cbName] || null;
     if (flags & LifecycleFlags.patchStrategy) {
       this.getValue = this.getValueDirect;
     }
@@ -61,24 +52,28 @@ export class SelfObserver implements SelfObserver {
   }
 
   public setValue(newValue: unknown, flags: LifecycleFlags): void {
-    const currentValue = this.currentValue;
-
-    if (currentValue !== newValue || (flags & LifecycleFlags.patchStrategy)) {
-      this.currentValue = newValue;
-
-      if (!(flags & LifecycleFlags.fromBind)) {
-        const coercedValue = this.callback(newValue, currentValue, flags);
-
-        if (coercedValue !== undefined) {
-          this.currentValue = newValue = coercedValue;
+    if (newValue !== this.currentValue || (flags & LifecycleFlags.patchStrategy) > 0) {
+      if ((flags & LifecycleFlags.fromBind) === 0) {
+        const oldValue = this.currentValue;
+        flags |= this.persistentFlags;
+        this.currentValue = newValue;
+        this.callSubscribers(newValue, oldValue, flags);
+        if (this.callback !== null) {
+          this.callback.call(this.obj, newValue, oldValue, flags);
         }
-
-        this.callSubscribers(newValue, currentValue, flags | LifecycleFlags.allowPublishRoundtrip);
+      } else {
+        this.currentValue = newValue;
       }
     }
   }
   public $patch(flags: LifecycleFlags): void {
-    this.callback(this.obj[this.propertyKey], this.currentValue, this.persistentFlags | flags);
-    this.callSubscribers(this.obj[this.propertyKey], this.currentValue, this.persistentFlags | flags);
+    const oldValue = this.currentValue;
+    const newValue = this.obj[this.propertyKey];
+    flags |= this.persistentFlags;
+    this.currentValue = newValue;
+    this.callSubscribers(newValue, oldValue, flags);
+    if (this.callback !== null) {
+      this.callback.call(this.obj, newValue, oldValue, flags);
+    }
   }
 }

@@ -1,6 +1,7 @@
 import { IContainer, InterfaceSymbol, Reporter } from '@aurelia/kernel';
 import { Aurelia, ICustomElementType, IRenderContext } from '@aurelia/runtime';
 import { HistoryBrowser, IHistoryOptions, INavigationInstruction } from './history-browser';
+import { InstructionResolver } from './instruction-resolver';
 import { AnchorEventInfo, LinkHandler } from './link-handler';
 import { INavRoute, Nav } from './nav';
 import { IParsedQuery, parseQuery } from './parser';
@@ -56,6 +57,7 @@ export class Router {
 
   public historyBrowser: HistoryBrowser;
   public linkHandler: LinkHandler;
+  public instructionResolver: InstructionResolver;
 
   public navs: Record<string, Nav> = {};
   public activeComponents: string[] = [];
@@ -73,6 +75,7 @@ export class Router {
   constructor(public container: IContainer) {
     this.historyBrowser = new HistoryBrowser();
     this.linkHandler = new LinkHandler();
+    this.instructionResolver = new InstructionResolver();
   }
 
   public get isNavigating(): boolean {
@@ -106,6 +109,7 @@ export class Router {
       }, ...this.options.separators
     };
 
+    this.instructionResolver.activate({ separators: this.options.separators });
     this.linkHandler.activate({ callback: this.linkCallback });
     return this.historyBrowser.activate(this.options).catch(error => { throw error; });
   }

@@ -33,6 +33,9 @@ describe('html attribute', function() {
         expression: string;
         getExpectedClassNames(thing: IThing): string[];
       }
+      interface ElementSpec extends Spec {
+        name: string;
+      }
 
       const thingSpecs: ThingSpec[] = [
         { t: '1', createThing() { return { enabled: false }; } },
@@ -97,16 +100,31 @@ describe('html attribute', function() {
           }
         },
       ];
+      const elementSpecs: ElementSpec[] = [
+        {
+          t: '1',
+          name: 'template'
+        },
+        {
+          t: '2',
+          name: 'div'
+        },
+        {
+          t: '3',
+          name: 'bar'
+        }
+      ];
 
       eachCartesianJoin(
-        [thingSpecs, thingSpecs, thingSpecs, thingSpecs, expressionSpecs],
-        function (thingSpec1, thingSpec2, thingSpec3, thingSpec4, expressionSpec) {
-          it(`${thingSpec1.t} ${thingSpec2.t} ${thingSpec3.t} ${thingSpec4.t} ${expressionSpec.t}`, function() {
+        [thingSpecs, thingSpecs, thingSpecs, thingSpecs, expressionSpecs, elementSpecs],
+        function (thingSpec1, thingSpec2, thingSpec3, thingSpec4, expressionSpec, elementSpec) {
+          it(`thingSpec1 ${thingSpec1.t}, thingSpec2 ${thingSpec2.t}, thingSpec3 ${thingSpec3.t}, thingSpec4 ${thingSpec4.t}, expressionSpec ${expressionSpec.t}, elementSpec ${elementSpec.t}`, function() {
             const { createThing: createThing1 } = thingSpec1;
             const { createThing: createThing2 } = thingSpec2;
             const { createThing: createThing3 } = thingSpec3;
             const { createThing: createThing4 } = thingSpec4;
             const { expression, getExpectedClassNames } = expressionSpec;
+            const { name } = elementSpec;
 
             const thing1 = createThing1();
             const thing2 = createThing2();
@@ -125,8 +143,16 @@ describe('html attribute', function() {
                   CE.define(
                     {
                       name: 'foo',
-                      template: `<template class="${expression}"></template>`,
-                      bindables: ['thing', 'parent']
+                      template: `<${name} class="${expression}"></${name}>`,
+                      bindables: ['thing', 'parent'],
+                      dependencies: [
+                        CE.define(
+                          {
+                            name: 'bar',
+                            template: ''
+                          }
+                        )
+                      ]
                     },
                     class {
                       public static readonly inject: InjectArray = [INode];
@@ -136,6 +162,9 @@ describe('html attribute', function() {
                       }
 
                       public attached(): void {
+                        if (name !== 'template') {
+                          this.el = this.el.firstElementChild;
+                        }
                         this.thing = thing2;
                         this.thing = thing3;
                         this.thing = thing4;
@@ -151,7 +180,7 @@ describe('html attribute', function() {
                         const actualClassNames: string[] = [];
                         this.el.classList.forEach(c => { actualClassNames.push(c); });
                         const expectedClassNames = getExpectedClassNames(thing);
-                        expect(actualClassNames.length, `actualClassNames.length #${++assertionCount}`).to.equal(expectedClassNames.length);
+                        expect(actualClassNames.length, `actualClassNames.length #${++assertionCount}, actual=${actualClassNames.join(' ')}, expected=${expectedClassNames.join(' ')}`).to.equal(expectedClassNames.length);
                         for (const expectedClassName of expectedClassNames) {
                           expect(actualClassNames, `actualClassNames #${++assertionCount}`).to.include(expectedClassName);
                         }

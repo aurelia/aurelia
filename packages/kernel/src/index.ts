@@ -30,6 +30,7 @@ export {
   Immutable,
   ImmutableArray,
   ImmutableObject,
+  InjectArray,
   Injectable,
   InterfaceSymbol,
   IPerformance,

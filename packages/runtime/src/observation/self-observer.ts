@@ -33,7 +33,7 @@ export class SelfObserver implements SelfObserver {
     }
     this.propertyKey = propertyName;
     this.currentValue = this.obj[propertyName];
-    this.callback = this.obj[cbName] || null;
+    this.callback = this.obj[cbName] === undefined ? null : this.obj[cbName];
     if (flags & LifecycleFlags.patchStrategy) {
       this.getValue = this.getValueDirect;
     }

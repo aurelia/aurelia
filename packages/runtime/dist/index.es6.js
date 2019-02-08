@@ -1,186 +1,5 @@
 import { Reporter, DI, Registration, PLATFORM, Profiler, RuntimeCompilationResources, IContainer, all } from '@aurelia/kernel';
 
-/*
-* Note: the oneTime binding now has a non-zero value for 2 reasons:
-*  - plays nicer with bitwise operations (more consistent code, more explicit settings)
-*  - allows for potentially having something like BindingMode.oneTime | BindingMode.fromView, where an initial value is set once to the view but updates from the view also propagate back to the view model
-*
-* Furthermore, the "default" mode would be for simple ".bind" expressions to make it explicit for our logic that the default is being used.
-* This essentially adds extra information which binding could use to do smarter things and allows bindingBehaviors that add a mode instead of simply overwriting it
-*/
-var BindingMode;
-(function (BindingMode) {
-    BindingMode[BindingMode["oneTime"] = 1] = "oneTime";
-    BindingMode[BindingMode["toView"] = 2] = "toView";
-    BindingMode[BindingMode["fromView"] = 4] = "fromView";
-    BindingMode[BindingMode["twoWay"] = 6] = "twoWay";
-    BindingMode[BindingMode["default"] = 8] = "default";
-})(BindingMode || (BindingMode = {}));
-var BindingStrategy;
-(function (BindingStrategy) {
-    /**
-     * Configures all components "below" this one to operate in getterSetter binding mode.
-     * This is the default; if no strategy is specified, this one is implied.
-     *
-     * This strategy is the most compatible, convenient and has the best performance on frequently updated bindings on components that are infrequently replaced.
-     * However, it also consumes the most resources on initialization.
-     *
-     * Cannot be combined with `proxies` or `patch`.
-     */
-    BindingStrategy[BindingStrategy["getterSetter"] = 1] = "getterSetter";
-    /**
-     * Configures all components "below" this one to operate in proxy binding mode.
-     * No getters/setters are created.
-     *
-     * This strategy consumes significantly fewer resources than `getterSetter` on initialization and has the best performance on infrequently updated bindings on
-     * components that are frequently replaced.
-     * However, it consumes more resources on updates.
-     *
-     * Cannot be combined with `getterSetter` or `patch`.
-     */
-    BindingStrategy[BindingStrategy["proxies"] = 2] = "proxies";
-    /**
-     * Configures all components "below" this one to operate in patched binding mode.
-     * Nothing is observed; to propagate changes, you manually need to call `$patch` on the component.
-     *
-     * This strategy consumes the least amount of resources and has the fastest initialization.
-     * Performance on updates will depend heavily on how it's used, but tends to be worse on a large number of
-     * nested bindings/components due to a larger number of reads on all properties.
-     *
-     * Cannot be combined with `getterSetter` or `proxies`.
-     */
-    BindingStrategy[BindingStrategy["patch"] = 4] = "patch";
-    /**
-     * Configures any repeaters "below" this component to operate in keyed mode.
-     * To only put a single repeater in that mode, use `& keyed` (this will change to track-by etc soon)
-     *
-     * Can be combined with either `getterSetter`, `proxies` or `patch`.
-     */
-    BindingStrategy[BindingStrategy["keyed"] = 8] = "keyed";
-})(BindingStrategy || (BindingStrategy = {}));
-const mandatoryStrategy = 1 /* getterSetter */ | 2 /* proxies */ | 4 /* patch */;
-function ensureValidStrategy(strategy) {
-    if ((strategy & mandatoryStrategy) === 0 || strategy === 8 /* keyed */) {
-        // TODO: probably want to validate that user isn't trying to mix proxy/patch, getterSetter/patch, getterSetter/proxy
-        // TODO: also need to make sure that strategy can be changed away from patch/proxies inside the component tree (not here though, but just making a note)
-        return strategy | 1 /* getterSetter */;
-    }
-    return strategy;
-}
-var State;
-(function (State) {
-    State[State["none"] = 0] = "none";
-    State[State["isBinding"] = 1] = "isBinding";
-    State[State["isBound"] = 2] = "isBound";
-    State[State["isAttaching"] = 4] = "isAttaching";
-    State[State["isAttached"] = 8] = "isAttached";
-    State[State["isMounted"] = 16] = "isMounted";
-    State[State["isDetaching"] = 32] = "isDetaching";
-    State[State["isUnbinding"] = 64] = "isUnbinding";
-    State[State["isCached"] = 128] = "isCached";
-    State[State["isContainerless"] = 256] = "isContainerless";
-    State[State["isPatching"] = 512] = "isPatching";
-})(State || (State = {}));
-var Hooks;
-(function (Hooks) {
-    Hooks[Hooks["none"] = 1] = "none";
-    Hooks[Hooks["hasCreated"] = 2] = "hasCreated";
-    Hooks[Hooks["hasBinding"] = 4] = "hasBinding";
-    Hooks[Hooks["hasBound"] = 8] = "hasBound";
-    Hooks[Hooks["hasAttaching"] = 16] = "hasAttaching";
-    Hooks[Hooks["hasAttached"] = 32] = "hasAttached";
-    Hooks[Hooks["hasDetaching"] = 64] = "hasDetaching";
-    Hooks[Hooks["hasDetached"] = 128] = "hasDetached";
-    Hooks[Hooks["hasUnbinding"] = 256] = "hasUnbinding";
-    Hooks[Hooks["hasUnbound"] = 512] = "hasUnbound";
-    Hooks[Hooks["hasRender"] = 1024] = "hasRender";
-    Hooks[Hooks["hasCaching"] = 2048] = "hasCaching";
-})(Hooks || (Hooks = {}));
-var LifecycleFlags;
-(function (LifecycleFlags) {
-    LifecycleFlags[LifecycleFlags["none"] = 0] = "none";
-    LifecycleFlags[LifecycleFlags["mustEvaluate"] = 8388608] = "mustEvaluate";
-    LifecycleFlags[LifecycleFlags["bindingStrategy"] = 15] = "bindingStrategy";
-    LifecycleFlags[LifecycleFlags["getterSetterStrategy"] = 1] = "getterSetterStrategy";
-    LifecycleFlags[LifecycleFlags["proxyStrategy"] = 2] = "proxyStrategy";
-    LifecycleFlags[LifecycleFlags["patchStrategy"] = 4] = "patchStrategy";
-    LifecycleFlags[LifecycleFlags["keyedStrategy"] = 8] = "keyedStrategy";
-    LifecycleFlags[LifecycleFlags["mutation"] = 48] = "mutation";
-    LifecycleFlags[LifecycleFlags["isCollectionMutation"] = 16] = "isCollectionMutation";
-    LifecycleFlags[LifecycleFlags["isInstanceMutation"] = 32] = "isInstanceMutation";
-    LifecycleFlags[LifecycleFlags["update"] = 448] = "update";
-    LifecycleFlags[LifecycleFlags["updateTargetObserver"] = 64] = "updateTargetObserver";
-    LifecycleFlags[LifecycleFlags["updateTargetInstance"] = 128] = "updateTargetInstance";
-    LifecycleFlags[LifecycleFlags["updateSourceExpression"] = 256] = "updateSourceExpression";
-    LifecycleFlags[LifecycleFlags["from"] = 8388096] = "from";
-    LifecycleFlags[LifecycleFlags["fromFlush"] = 3584] = "fromFlush";
-    LifecycleFlags[LifecycleFlags["fromAsyncFlush"] = 512] = "fromAsyncFlush";
-    LifecycleFlags[LifecycleFlags["fromSyncFlush"] = 1024] = "fromSyncFlush";
-    LifecycleFlags[LifecycleFlags["fromTick"] = 2048] = "fromTick";
-    LifecycleFlags[LifecycleFlags["fromStartTask"] = 4096] = "fromStartTask";
-    LifecycleFlags[LifecycleFlags["fromStopTask"] = 8192] = "fromStopTask";
-    LifecycleFlags[LifecycleFlags["fromBind"] = 16384] = "fromBind";
-    LifecycleFlags[LifecycleFlags["fromUnbind"] = 32768] = "fromUnbind";
-    LifecycleFlags[LifecycleFlags["fromAttach"] = 65536] = "fromAttach";
-    LifecycleFlags[LifecycleFlags["fromDetach"] = 131072] = "fromDetach";
-    LifecycleFlags[LifecycleFlags["fromCache"] = 262144] = "fromCache";
-    LifecycleFlags[LifecycleFlags["fromDOMEvent"] = 524288] = "fromDOMEvent";
-    LifecycleFlags[LifecycleFlags["fromObserverSetter"] = 1048576] = "fromObserverSetter";
-    LifecycleFlags[LifecycleFlags["fromBindableHandler"] = 2097152] = "fromBindableHandler";
-    LifecycleFlags[LifecycleFlags["fromLifecycleTask"] = 4194304] = "fromLifecycleTask";
-    LifecycleFlags[LifecycleFlags["parentUnmountQueued"] = 16777216] = "parentUnmountQueued";
-    // this flag is for the synchronous flush before detach (no point in updating the
-    // DOM if it's about to be detached)
-    LifecycleFlags[LifecycleFlags["doNotUpdateDOM"] = 33554432] = "doNotUpdateDOM";
-    LifecycleFlags[LifecycleFlags["isTraversingParentScope"] = 67108864] = "isTraversingParentScope";
-    LifecycleFlags[LifecycleFlags["isOriginalArray"] = 134217728] = "isOriginalArray";
-    // Bitmask for flags that need to be stored on a binding during $bind for mutation
-    // callbacks outside of $bind
-    LifecycleFlags[LifecycleFlags["persistentBindingFlags"] = 268435471] = "persistentBindingFlags";
-    LifecycleFlags[LifecycleFlags["allowParentScopeTraversal"] = 268435456] = "allowParentScopeTraversal";
-})(LifecycleFlags || (LifecycleFlags = {}));
-var ExpressionKind;
-(function (ExpressionKind) {
-    ExpressionKind[ExpressionKind["Connects"] = 32] = "Connects";
-    ExpressionKind[ExpressionKind["Observes"] = 64] = "Observes";
-    ExpressionKind[ExpressionKind["CallsFunction"] = 128] = "CallsFunction";
-    ExpressionKind[ExpressionKind["HasAncestor"] = 256] = "HasAncestor";
-    ExpressionKind[ExpressionKind["IsPrimary"] = 512] = "IsPrimary";
-    ExpressionKind[ExpressionKind["IsLeftHandSide"] = 1024] = "IsLeftHandSide";
-    ExpressionKind[ExpressionKind["HasBind"] = 2048] = "HasBind";
-    ExpressionKind[ExpressionKind["HasUnbind"] = 4096] = "HasUnbind";
-    ExpressionKind[ExpressionKind["IsAssignable"] = 8192] = "IsAssignable";
-    ExpressionKind[ExpressionKind["IsLiteral"] = 16384] = "IsLiteral";
-    ExpressionKind[ExpressionKind["IsResource"] = 32768] = "IsResource";
-    ExpressionKind[ExpressionKind["IsForDeclaration"] = 65536] = "IsForDeclaration";
-    ExpressionKind[ExpressionKind["Type"] = 31] = "Type";
-    // ---------------------------------------------------------------------------------------------------------------------------
-    ExpressionKind[ExpressionKind["AccessThis"] = 1793] = "AccessThis";
-    ExpressionKind[ExpressionKind["AccessScope"] = 10082] = "AccessScope";
-    ExpressionKind[ExpressionKind["ArrayLiteral"] = 17955] = "ArrayLiteral";
-    ExpressionKind[ExpressionKind["ObjectLiteral"] = 17956] = "ObjectLiteral";
-    ExpressionKind[ExpressionKind["PrimitiveLiteral"] = 17925] = "PrimitiveLiteral";
-    ExpressionKind[ExpressionKind["Template"] = 17958] = "Template";
-    ExpressionKind[ExpressionKind["Unary"] = 39] = "Unary";
-    ExpressionKind[ExpressionKind["CallScope"] = 1448] = "CallScope";
-    ExpressionKind[ExpressionKind["CallMember"] = 1161] = "CallMember";
-    ExpressionKind[ExpressionKind["CallFunction"] = 1162] = "CallFunction";
-    ExpressionKind[ExpressionKind["AccessMember"] = 9323] = "AccessMember";
-    ExpressionKind[ExpressionKind["AccessKeyed"] = 9324] = "AccessKeyed";
-    ExpressionKind[ExpressionKind["TaggedTemplate"] = 1197] = "TaggedTemplate";
-    ExpressionKind[ExpressionKind["Binary"] = 46] = "Binary";
-    ExpressionKind[ExpressionKind["Conditional"] = 63] = "Conditional";
-    ExpressionKind[ExpressionKind["Assign"] = 8208] = "Assign";
-    ExpressionKind[ExpressionKind["ValueConverter"] = 36913] = "ValueConverter";
-    ExpressionKind[ExpressionKind["BindingBehavior"] = 38962] = "BindingBehavior";
-    ExpressionKind[ExpressionKind["HtmlLiteral"] = 51] = "HtmlLiteral";
-    ExpressionKind[ExpressionKind["ArrayBindingPattern"] = 65556] = "ArrayBindingPattern";
-    ExpressionKind[ExpressionKind["ObjectBindingPattern"] = 65557] = "ObjectBindingPattern";
-    ExpressionKind[ExpressionKind["BindingIdentifier"] = 65558] = "BindingIdentifier";
-    ExpressionKind[ExpressionKind["ForOfStatement"] = 6199] = "ForOfStatement";
-    ExpressionKind[ExpressionKind["Interpolation"] = 24] = "Interpolation"; //
-})(ExpressionKind || (ExpressionKind = {}));
-
 /*! *****************************************************************************
 Copyright (c) Microsoft Corporation. All rights reserved.
 Licensed under the Apache License, Version 2.0 (the "License"); you may not use
@@ -337,22 +156,66 @@ function callPropertySubscribers(newValue, previousValue, flags) {
         subscribers = subscribers.slice();
     }
     if (subscriber0 !== null) {
-        subscriber0.handleChange(newValue, previousValue, flags);
+        callSubscriber(this, subscriber0, newValue, previousValue, flags, this[subscriber0.id]);
     }
     if (subscriber1 !== null) {
-        subscriber1.handleChange(newValue, previousValue, flags);
+        callSubscriber(this, subscriber1, newValue, previousValue, flags, this[subscriber1.id]);
     }
     if (subscriber2 !== null) {
-        subscriber2.handleChange(newValue, previousValue, flags);
+        callSubscriber(this, subscriber2, newValue, previousValue, flags, this[subscriber2.id]);
     }
     const length = subscribers && subscribers.length;
     if (length !== undefined && length > 0) {
+        let subscriber = null;
         for (let i = 0; i < length; ++i) {
-            const subscriber = subscribers[i];
+            subscriber = subscribers[i];
             if (subscriber !== null) {
-                subscriber.handleChange(newValue, previousValue, flags);
+                callSubscriber(this, subscriber, newValue, previousValue, flags, this[subscriber.id]);
             }
         }
+    }
+}
+function callSubscriber(publisher, subscriber, newValue, previousValue, flags, ownFlags) {
+    if (ownFlags === undefined) {
+        // If ownFlags is undefined then the subscriber is not a connectable binding and we don't
+        // have any business trying to restrict the data flow, so just call it with whatever we received.
+        subscriber.handleChange(newValue, previousValue, flags);
+    }
+    else if ((ownFlags & 524288 /* isPublishing */) === 0) {
+        publisher[subscriber.id] = ownFlags | 524288 /* isPublishing */;
+        // Note: if the update flags for both directions are set, that means an observer's callSubscribers caused the update direction to switch
+        // back to the origin of the change.
+        // With this heuristic we stop this roundtrip a little earlier than vCurrent does (where the target or source is evaluated
+        // and compared again) and effectively make this a "purer" one-way update flow that prevents observable side-effects from
+        // flowing back the opposite direction.
+        if (((flags | ownFlags) & 48 /* update */) === 48 /* update */) {
+            // Observers should explicitly pass this flag if they want a roundtrip to happen anyway.
+            // SelfObserver does this in order to propagate from-view changes from a child component back to the bindings
+            // on its own component.
+            // Some target observers (e.g. select) do this as well, but the other way around.
+            if ((flags & 262144 /* allowPublishRoundtrip */) > 0) {
+                // Unset the directional flag that came in from the origin and allowPublishRoundtrip since we don't
+                // want these to flow into the next subscriberCollection
+                subscriber.handleChange(newValue, previousValue, (flags & ~(48 /* update */ | 262144 /* allowPublishRoundtrip */)) | ownFlags);
+            }
+        }
+        else {
+            // If this is not a roundtrip, simply proceed in the same direction.
+            subscriber.handleChange(newValue, previousValue, flags | ownFlags);
+        }
+        publisher[subscriber.id] = ownFlags;
+    }
+    else {
+        // We will only get here if a subscriber somehow causes handleChange to be called on itself from
+        // within its own handleChange.
+        // We're not really expecting this to ever happen with the existing guards
+        // in place, but if for whatever reason a binding or observer manages to cause a
+        // (potential) infinite update loop, throwing is certainly preferable over a hanging app.
+        // Of course, false positives are possible and throwing this error also helps
+        // us weed those out and detect+handle them appropriately.
+        throw Reporter.error(650);
+        // TODO: create error code
+        // TODO: remove the isPublishing flag assigment and check from the bundled output, since it adds significant overhead
     }
 }
 function callCollectionSubscribers(origin, args, flags) {
@@ -586,7 +449,7 @@ let ProxySubscriberCollection = class ProxySubscriberCollection {
         const oldValue = this.raw[this.key];
         if (oldValue !== value) {
             this.raw[this.key] = value;
-            this.callSubscribers(value, oldValue, flags | LifecycleFlags.proxyStrategy | LifecycleFlags.updateTargetInstance);
+            this.callSubscribers(value, oldValue, flags | 2 /* proxyStrategy */ | 16 /* updateTargetInstance */);
         }
     }
     getValue() {
@@ -662,7 +525,7 @@ let ProxyObserver = ProxyObserver_1 = class ProxyObserver {
         if (oldValue !== value) {
             Reflect.set(target, p, value, target);
             this.callPropertySubscribers(value, oldValue, p);
-            this.callSubscribers(p, value, oldValue, LifecycleFlags.proxyStrategy | LifecycleFlags.updateTargetInstance);
+            this.callSubscribers(p, value, oldValue, 2 /* proxyStrategy */ | 16 /* updateTargetInstance */);
         }
         return true;
     }
@@ -671,7 +534,7 @@ let ProxyObserver = ProxyObserver_1 = class ProxyObserver {
         if (Reflect.deleteProperty(target, p)) {
             if (oldValue !== undefined) {
                 this.callPropertySubscribers(undefined, oldValue, p);
-                this.callSubscribers(p, undefined, oldValue, LifecycleFlags.proxyStrategy | LifecycleFlags.updateTargetInstance);
+                this.callSubscribers(p, undefined, oldValue, 2 /* proxyStrategy */ | 16 /* updateTargetInstance */);
             }
             return true;
         }
@@ -682,7 +545,7 @@ let ProxyObserver = ProxyObserver_1 = class ProxyObserver {
         if (Reflect.defineProperty(target, p, attributes)) {
             if (attributes.value !== oldValue) {
                 this.callPropertySubscribers(attributes.value, oldValue, p);
-                this.callSubscribers(p, attributes.value, oldValue, LifecycleFlags.proxyStrategy | LifecycleFlags.updateTargetInstance);
+                this.callSubscribers(p, attributes.value, oldValue, 2 /* proxyStrategy */ | 16 /* updateTargetInstance */);
             }
             return true;
         }
@@ -718,7 +581,7 @@ let ProxyObserver = ProxyObserver_1 = class ProxyObserver {
     callPropertySubscribers(newValue, oldValue, key) {
         const subscribers = this.subscribers[key];
         if (subscribers !== undefined) {
-            subscribers.callSubscribers(newValue, oldValue, LifecycleFlags.proxyStrategy | LifecycleFlags.updateTargetInstance);
+            subscribers.callSubscribers(newValue, oldValue, 2 /* proxyStrategy */ | 16 /* updateTargetInstance */);
         }
     }
 };
@@ -744,12 +607,12 @@ function patchProperties(value, flags) {
             for (key in observers) {
                 observer = observers[key];
                 if (observer.$patch !== undefined) {
-                    observer.$patch(flags | LifecycleFlags.patchStrategy | LifecycleFlags.updateTargetInstance | LifecycleFlags.fromFlush);
+                    observer.$patch(flags | 4 /* patchStrategy */ | 16 /* updateTargetInstance */ | 448 /* fromFlush */);
                 }
             }
         }
         else if (value.$observer !== undefined && value.$observer.$patch !== undefined) {
-            value.$observer.$patch(flags | LifecycleFlags.patchStrategy | LifecycleFlags.updateTargetInstance | LifecycleFlags.fromFlush);
+            value.$observer.$patch(flags | 4 /* patchStrategy */ | 16 /* updateTargetInstance */ | 448 /* fromFlush */);
         }
     }
 }
@@ -758,7 +621,7 @@ function patchProperty(value, key, flags) {
     if (mayHaveObservers(value) && value.$observers !== undefined) {
         const observer = value.$observers[key];
         if (observer && observer.$patch !== undefined) {
-            observer.$patch(flags | LifecycleFlags.patchStrategy | LifecycleFlags.updateTargetInstance | LifecycleFlags.fromFlush);
+            observer.$patch(flags | 4 /* patchStrategy */ | 16 /* updateTargetInstance */ | 448 /* fromFlush */);
         }
     }
 }
@@ -777,9 +640,9 @@ function subscribe(subscriber) {
     if (this.observing === false) {
         this.observing = true;
         this.currentValue = this.obj[this.propertyKey];
-        if ((this.persistentFlags & LifecycleFlags.patchStrategy) === 0) {
+        if ((this.persistentFlags & 4 /* patchStrategy */) === 0) {
             observedPropertyDescriptor.get = () => this.getValue();
-            observedPropertyDescriptor.set = value => { this.setValue(value, LifecycleFlags.updateTargetInstance); };
+            observedPropertyDescriptor.set = value => { this.setValue(value, 0 /* none */); };
             if (!defineProperty(this.obj, this.propertyKey, observedPropertyDescriptor)) {
                 Reporter.write(1, this.propertyKey, this.obj);
             }
@@ -815,10 +678,10 @@ function propertyObserver() {
 
 let SetterObserver = class SetterObserver {
     constructor(flags, obj, propertyKey) {
-        this.persistentFlags = flags & LifecycleFlags.persistentBindingFlags;
+        this.persistentFlags = flags & 67108879 /* persistentBindingFlags */;
         this.obj = obj;
         this.propertyKey = propertyKey;
-        if (flags & LifecycleFlags.patchStrategy) {
+        if (flags & 4 /* patchStrategy */) {
             this.getValue = this.getValueDirect;
         }
     }
@@ -830,9 +693,9 @@ let SetterObserver = class SetterObserver {
     }
     setValue(newValue, flags) {
         const currentValue = this.currentValue;
-        if (currentValue !== newValue || (flags & LifecycleFlags.patchStrategy)) {
+        if (currentValue !== newValue || (flags & 4 /* patchStrategy */)) {
             this.currentValue = newValue;
-            if (!(flags & LifecycleFlags.fromBind)) {
+            if (!(flags & 2048 /* fromBind */)) {
                 this.callSubscribers(newValue, currentValue, this.persistentFlags | flags);
             }
             // If subscribe() has been called, the target property descriptor is replaced by these getter/setter methods,
@@ -891,7 +754,7 @@ class BindingContext {
     }
     static create(flags, keyOrObj, value) {
         const bc = new BindingContext(keyOrObj, value);
-        if (flags & LifecycleFlags.proxyStrategy) {
+        if (flags & 2 /* proxyStrategy */) {
             return ProxyObserver.getOrCreate(bc).proxy;
         }
         return bc;
@@ -924,12 +787,12 @@ class BindingContext {
             return name in overrideContext ? overrideContext : overrideContext.bindingContext;
         }
         // the name wasn't found. see if parent scope traversal is allowed and if so, try that
-        if ((flags & LifecycleFlags.allowParentScopeTraversal) && scope.parentScope !== null) {
+        if ((flags & 67108864 /* allowParentScopeTraversal */) && scope.parentScope !== null) {
             const result = this.get(scope.parentScope, name, ancestor, flags
                 // unset the flag; only allow one level of scope boundary traversal
-                & ~LifecycleFlags.allowParentScopeTraversal
+                & ~67108864 /* allowParentScopeTraversal */
                 // tell the scope to return null if the name could not be found
-                | LifecycleFlags.isTraversingParentScope);
+                | 8388608 /* isTraversingParentScope */);
             if (result !== null) {
                 return result;
             }
@@ -937,7 +800,7 @@ class BindingContext {
         // still nothing found. return the root binding context (or null
         // if this is a parent scope traversal, to ensure we fall back to the
         // correct level)
-        if (flags & LifecycleFlags.isTraversingParentScope) {
+        if (flags & 8388608 /* isTraversingParentScope */) {
             return null;
         }
         return scope.bindingContext || scope.overrideContext;
@@ -1000,7 +863,7 @@ class Signaler {
             return;
         }
         for (const listener of listeners.keys()) {
-            listener.handleChange(undefined, undefined, flags | LifecycleFlags.updateTargetInstance);
+            listener.handleChange(undefined, undefined, flags | 16 /* updateTargetInstance */);
         }
     }
     addSignalListener(name, listener) {
@@ -1392,8 +1255,17 @@ class AccessScope {
         return BindingContext.get(scope, this.name, this.ancestor, flags)[this.name];
     }
     assign(flags, scope, locator, value) {
-        const context = BindingContext.get(scope, this.name, this.ancestor, flags);
-        return context ? (context[this.name] = value) : undefined;
+        const obj = BindingContext.get(scope, this.name, this.ancestor, flags);
+        if (obj instanceof Object) {
+            if (obj.$observers !== undefined && obj.$observers[this.name] !== undefined) {
+                obj.$observers[this.name].setValue(value, flags);
+                return value;
+            }
+            else {
+                return obj[this.name] = value;
+            }
+        }
+        return undefined;
     }
     connect(flags, scope, binding) {
         const context = BindingContext.get(scope, this.name, this.ancestor, flags);
@@ -1414,18 +1286,24 @@ class AccessMember {
         return instance === null || instance === undefined ? instance : instance[this.name];
     }
     assign(flags, scope, locator, value) {
-        let instance = this.object.evaluate(flags, scope, locator);
-        if (instance === null || typeof instance !== 'object') {
-            instance = {};
-            this.object.assign(flags, scope, locator, instance);
+        const obj = this.object.evaluate(flags, scope, locator);
+        if (obj instanceof Object) {
+            if (obj.$observers !== undefined && obj.$observers[this.name] !== undefined) {
+                obj.$observers[this.name].setValue(value, flags);
+            }
+            else {
+                obj[this.name] = value;
+            }
         }
-        instance[this.name] = value;
+        else {
+            this.object.assign(flags, scope, locator, { [this.name]: value });
+        }
         return value;
     }
     connect(flags, scope, binding) {
         const obj = this.object.evaluate(flags, scope, null);
         this.object.connect(flags, scope, binding);
-        if (obj) {
+        if (obj instanceof Object) {
             binding.observeProperty(flags, obj, this.name);
         }
     }
@@ -1441,13 +1319,11 @@ class AccessKeyed {
     }
     evaluate(flags, scope, locator) {
         const instance = this.object.evaluate(flags, scope, locator);
-        if (instance === null || instance === undefined) {
-            return undefined;
+        if (instance instanceof Object) {
+            const key = this.key.evaluate(flags, scope, locator);
+            return instance[key];
         }
-        const key = this.key.evaluate(flags, scope, locator);
-        // note: getKeyed and setKeyed are removed because they are identical to the default spec behavior
-        // and the runtime does this this faster
-        return instance[key];
+        return undefined;
     }
     assign(flags, scope, locator, value) {
         const instance = this.object.evaluate(flags, scope, locator);
@@ -1462,7 +1338,7 @@ class AccessKeyed {
             const key = this.key.evaluate(flags, scope, null);
             if (Array.isArray(obj) && isNumeric(key)) {
                 // Only observe array indexers in proxy mode
-                if (flags & LifecycleFlags.proxyStrategy) {
+                if (flags & 2 /* proxyStrategy */) {
                     binding.observeProperty(flags, obj, key);
                 }
             }
@@ -1524,7 +1400,7 @@ class CallMember {
     connect(flags, scope, binding) {
         const obj = this.object.evaluate(flags, scope, null);
         this.object.connect(flags, scope, binding);
-        if (getFunction(flags & ~LifecycleFlags.mustEvaluate, obj, this.name)) {
+        if (getFunction(flags & ~1048576 /* mustEvaluate */, obj, this.name)) {
             const args = this.args;
             for (let i = 0, ii = args.length; i < ii; ++i) {
                 args[i].connect(flags, scope, binding);
@@ -1547,7 +1423,7 @@ class CallFunction {
         if (typeof func === 'function') {
             return func.apply(null, evalList(flags, scope, locator, this.args));
         }
-        if (!(flags & LifecycleFlags.mustEvaluate) && (func === null || func === undefined)) {
+        if (!(flags & 1048576 /* mustEvaluate */) && (func === null || func === undefined)) {
             return undefined;
         }
         throw Reporter.error(207 /* NotAFunction */, this);
@@ -1931,7 +1807,7 @@ class ForOfStatement {
         return CountForOfStatement[toStringTag.call(result)](result);
     }
     iterate(flags, result, func) {
-        IterateForOfStatement[toStringTag.call(result)](flags | LifecycleFlags.isOriginalArray, result, func);
+        IterateForOfStatement[toStringTag.call(result)](flags | 16777216 /* isOriginalArray */, result, func);
     }
     connect(flags, scope, binding) {
         this.declaration.connect(flags, scope, binding);
@@ -2002,7 +1878,7 @@ function getFunction(flags, obj, name) {
     if (typeof func === 'function') {
         return func;
     }
-    if (!(flags & LifecycleFlags.mustEvaluate) && (func === null || func === undefined)) {
+    if (!(flags & 1048576 /* mustEvaluate */) && (func === null || func === undefined)) {
         return null;
     }
     throw Reporter.error(207 /* NotAFunction */, obj, name, func);
@@ -2025,7 +1901,7 @@ function isNumeric(value) {
     }
     return true;
 }
-const proxyAndOriginalArray = LifecycleFlags.proxyStrategy | LifecycleFlags.isOriginalArray;
+const proxyAndOriginalArray = 2 /* proxyStrategy */ | 16777216 /* isOriginalArray */;
 /** @internal */
 const IterateForOfStatement = {
     ['[object Array]'](flags, result, func) {
@@ -2057,7 +1933,7 @@ const IterateForOfStatement = {
         for (const entry of result.entries()) {
             arr[++i] = entry;
         }
-        IterateForOfStatement['[object Array]'](flags & ~LifecycleFlags.isOriginalArray, arr, func);
+        IterateForOfStatement['[object Array]'](flags & ~16777216 /* isOriginalArray */, arr, func);
     },
     ['[object Set]'](flags, result, func) {
         const arr = Array(result.size);
@@ -2065,14 +1941,14 @@ const IterateForOfStatement = {
         for (const key of result.keys()) {
             arr[++i] = key;
         }
-        IterateForOfStatement['[object Array]'](flags & ~LifecycleFlags.isOriginalArray, arr, func);
+        IterateForOfStatement['[object Array]'](flags & ~16777216 /* isOriginalArray */, arr, func);
     },
     ['[object Number]'](flags, result, func) {
         const arr = Array(result);
         for (let i = 0; i < result; ++i) {
             arr[i] = i;
         }
-        IterateForOfStatement['[object Array]'](flags & ~LifecycleFlags.isOriginalArray, arr, func);
+        IterateForOfStatement['[object Array]'](flags & ~16777216 /* isOriginalArray */, arr, func);
     },
     ['[object Null]'](flags, result, func) {
         return;
@@ -2091,6 +1967,184 @@ const CountForOfStatement = {
     ['[object Undefined]'](result) { return 0; }
 };
 
+/*
+* Note: the oneTime binding now has a non-zero value for 2 reasons:
+*  - plays nicer with bitwise operations (more consistent code, more explicit settings)
+*  - allows for potentially having something like BindingMode.oneTime | BindingMode.fromView, where an initial value is set once to the view but updates from the view also propagate back to the view model
+*
+* Furthermore, the "default" mode would be for simple ".bind" expressions to make it explicit for our logic that the default is being used.
+* This essentially adds extra information which binding could use to do smarter things and allows bindingBehaviors that add a mode instead of simply overwriting it
+*/
+var BindingMode;
+(function (BindingMode) {
+    BindingMode[BindingMode["oneTime"] = 1] = "oneTime";
+    BindingMode[BindingMode["toView"] = 2] = "toView";
+    BindingMode[BindingMode["fromView"] = 4] = "fromView";
+    BindingMode[BindingMode["twoWay"] = 6] = "twoWay";
+    BindingMode[BindingMode["default"] = 8] = "default";
+})(BindingMode || (BindingMode = {}));
+var BindingStrategy;
+(function (BindingStrategy) {
+    /**
+     * Configures all components "below" this one to operate in getterSetter binding mode.
+     * This is the default; if no strategy is specified, this one is implied.
+     *
+     * This strategy is the most compatible, convenient and has the best performance on frequently updated bindings on components that are infrequently replaced.
+     * However, it also consumes the most resources on initialization.
+     *
+     * Cannot be combined with `proxies` or `patch`.
+     */
+    BindingStrategy[BindingStrategy["getterSetter"] = 1] = "getterSetter";
+    /**
+     * Configures all components "below" this one to operate in proxy binding mode.
+     * No getters/setters are created.
+     *
+     * This strategy consumes significantly fewer resources than `getterSetter` on initialization and has the best performance on infrequently updated bindings on
+     * components that are frequently replaced.
+     * However, it consumes more resources on updates.
+     *
+     * Cannot be combined with `getterSetter` or `patch`.
+     */
+    BindingStrategy[BindingStrategy["proxies"] = 2] = "proxies";
+    /**
+     * Configures all components "below" this one to operate in patched binding mode.
+     * Nothing is observed; to propagate changes, you manually need to call `$patch` on the component.
+     *
+     * This strategy consumes the least amount of resources and has the fastest initialization.
+     * Performance on updates will depend heavily on how it's used, but tends to be worse on a large number of
+     * nested bindings/components due to a larger number of reads on all properties.
+     *
+     * Cannot be combined with `getterSetter` or `proxies`.
+     */
+    BindingStrategy[BindingStrategy["patch"] = 4] = "patch";
+    /**
+     * Configures any repeaters "below" this component to operate in keyed mode.
+     * To only put a single repeater in that mode, use `& keyed` (this will change to track-by etc soon)
+     *
+     * Can be combined with either `getterSetter`, `proxies` or `patch`.
+     */
+    BindingStrategy[BindingStrategy["keyed"] = 8] = "keyed";
+})(BindingStrategy || (BindingStrategy = {}));
+const mandatoryStrategy = 1 /* getterSetter */ | 2 /* proxies */ | 4 /* patch */;
+function ensureValidStrategy(strategy) {
+    if ((strategy & mandatoryStrategy) === 0 || strategy === 8 /* keyed */) {
+        // TODO: probably want to validate that user isn't trying to mix proxy/patch, getterSetter/patch, getterSetter/proxy
+        // TODO: also need to make sure that strategy can be changed away from patch/proxies inside the component tree (not here though, but just making a note)
+        return strategy | 1 /* getterSetter */;
+    }
+    return strategy;
+}
+var State;
+(function (State) {
+    State[State["none"] = 0] = "none";
+    State[State["isBinding"] = 1] = "isBinding";
+    State[State["isBound"] = 2] = "isBound";
+    State[State["isAttaching"] = 4] = "isAttaching";
+    State[State["isAttached"] = 8] = "isAttached";
+    State[State["isMounted"] = 16] = "isMounted";
+    State[State["isDetaching"] = 32] = "isDetaching";
+    State[State["isUnbinding"] = 64] = "isUnbinding";
+    State[State["isCached"] = 128] = "isCached";
+    State[State["isContainerless"] = 256] = "isContainerless";
+    State[State["isPatching"] = 512] = "isPatching";
+})(State || (State = {}));
+var Hooks;
+(function (Hooks) {
+    Hooks[Hooks["none"] = 1] = "none";
+    Hooks[Hooks["hasCreated"] = 2] = "hasCreated";
+    Hooks[Hooks["hasBinding"] = 4] = "hasBinding";
+    Hooks[Hooks["hasBound"] = 8] = "hasBound";
+    Hooks[Hooks["hasAttaching"] = 16] = "hasAttaching";
+    Hooks[Hooks["hasAttached"] = 32] = "hasAttached";
+    Hooks[Hooks["hasDetaching"] = 64] = "hasDetaching";
+    Hooks[Hooks["hasDetached"] = 128] = "hasDetached";
+    Hooks[Hooks["hasUnbinding"] = 256] = "hasUnbinding";
+    Hooks[Hooks["hasUnbound"] = 512] = "hasUnbound";
+    Hooks[Hooks["hasRender"] = 1024] = "hasRender";
+    Hooks[Hooks["hasCaching"] = 2048] = "hasCaching";
+})(Hooks || (Hooks = {}));
+var LifecycleFlags;
+(function (LifecycleFlags) {
+    LifecycleFlags[LifecycleFlags["none"] = 0] = "none";
+    // Bitmask for flags that need to be stored on a binding during $bind for mutation
+    // callbacks outside of $bind
+    LifecycleFlags[LifecycleFlags["persistentBindingFlags"] = 67108879] = "persistentBindingFlags";
+    LifecycleFlags[LifecycleFlags["allowParentScopeTraversal"] = 67108864] = "allowParentScopeTraversal";
+    LifecycleFlags[LifecycleFlags["bindingStrategy"] = 15] = "bindingStrategy";
+    LifecycleFlags[LifecycleFlags["getterSetterStrategy"] = 1] = "getterSetterStrategy";
+    LifecycleFlags[LifecycleFlags["proxyStrategy"] = 2] = "proxyStrategy";
+    LifecycleFlags[LifecycleFlags["patchStrategy"] = 4] = "patchStrategy";
+    LifecycleFlags[LifecycleFlags["keyedStrategy"] = 8] = "keyedStrategy";
+    LifecycleFlags[LifecycleFlags["update"] = 48] = "update";
+    LifecycleFlags[LifecycleFlags["updateTargetInstance"] = 16] = "updateTargetInstance";
+    LifecycleFlags[LifecycleFlags["updateSourceExpression"] = 32] = "updateSourceExpression";
+    LifecycleFlags[LifecycleFlags["from"] = 262080] = "from";
+    LifecycleFlags[LifecycleFlags["fromFlush"] = 448] = "fromFlush";
+    LifecycleFlags[LifecycleFlags["fromAsyncFlush"] = 64] = "fromAsyncFlush";
+    LifecycleFlags[LifecycleFlags["fromSyncFlush"] = 128] = "fromSyncFlush";
+    LifecycleFlags[LifecycleFlags["fromTick"] = 256] = "fromTick";
+    LifecycleFlags[LifecycleFlags["fromStartTask"] = 512] = "fromStartTask";
+    LifecycleFlags[LifecycleFlags["fromStopTask"] = 1024] = "fromStopTask";
+    LifecycleFlags[LifecycleFlags["fromBind"] = 2048] = "fromBind";
+    LifecycleFlags[LifecycleFlags["fromUnbind"] = 4096] = "fromUnbind";
+    LifecycleFlags[LifecycleFlags["fromAttach"] = 8192] = "fromAttach";
+    LifecycleFlags[LifecycleFlags["fromDetach"] = 16384] = "fromDetach";
+    LifecycleFlags[LifecycleFlags["fromCache"] = 32768] = "fromCache";
+    LifecycleFlags[LifecycleFlags["fromDOMEvent"] = 65536] = "fromDOMEvent";
+    LifecycleFlags[LifecycleFlags["fromLifecycleTask"] = 131072] = "fromLifecycleTask";
+    LifecycleFlags[LifecycleFlags["allowPublishRoundtrip"] = 262144] = "allowPublishRoundtrip";
+    LifecycleFlags[LifecycleFlags["isPublishing"] = 524288] = "isPublishing";
+    LifecycleFlags[LifecycleFlags["mustEvaluate"] = 1048576] = "mustEvaluate";
+    LifecycleFlags[LifecycleFlags["parentUnmountQueued"] = 2097152] = "parentUnmountQueued";
+    // this flag is for the synchronous flush before detach (no point in updating the
+    // DOM if it's about to be detached)
+    LifecycleFlags[LifecycleFlags["doNotUpdateDOM"] = 4194304] = "doNotUpdateDOM";
+    LifecycleFlags[LifecycleFlags["isTraversingParentScope"] = 8388608] = "isTraversingParentScope";
+    LifecycleFlags[LifecycleFlags["isOriginalArray"] = 16777216] = "isOriginalArray";
+    LifecycleFlags[LifecycleFlags["isCollectionMutation"] = 33554432] = "isCollectionMutation";
+})(LifecycleFlags || (LifecycleFlags = {}));
+var ExpressionKind;
+(function (ExpressionKind) {
+    ExpressionKind[ExpressionKind["Connects"] = 32] = "Connects";
+    ExpressionKind[ExpressionKind["Observes"] = 64] = "Observes";
+    ExpressionKind[ExpressionKind["CallsFunction"] = 128] = "CallsFunction";
+    ExpressionKind[ExpressionKind["HasAncestor"] = 256] = "HasAncestor";
+    ExpressionKind[ExpressionKind["IsPrimary"] = 512] = "IsPrimary";
+    ExpressionKind[ExpressionKind["IsLeftHandSide"] = 1024] = "IsLeftHandSide";
+    ExpressionKind[ExpressionKind["HasBind"] = 2048] = "HasBind";
+    ExpressionKind[ExpressionKind["HasUnbind"] = 4096] = "HasUnbind";
+    ExpressionKind[ExpressionKind["IsAssignable"] = 8192] = "IsAssignable";
+    ExpressionKind[ExpressionKind["IsLiteral"] = 16384] = "IsLiteral";
+    ExpressionKind[ExpressionKind["IsResource"] = 32768] = "IsResource";
+    ExpressionKind[ExpressionKind["IsForDeclaration"] = 65536] = "IsForDeclaration";
+    ExpressionKind[ExpressionKind["Type"] = 31] = "Type";
+    // ---------------------------------------------------------------------------------------------------------------------------
+    ExpressionKind[ExpressionKind["AccessThis"] = 1793] = "AccessThis";
+    ExpressionKind[ExpressionKind["AccessScope"] = 10082] = "AccessScope";
+    ExpressionKind[ExpressionKind["ArrayLiteral"] = 17955] = "ArrayLiteral";
+    ExpressionKind[ExpressionKind["ObjectLiteral"] = 17956] = "ObjectLiteral";
+    ExpressionKind[ExpressionKind["PrimitiveLiteral"] = 17925] = "PrimitiveLiteral";
+    ExpressionKind[ExpressionKind["Template"] = 17958] = "Template";
+    ExpressionKind[ExpressionKind["Unary"] = 39] = "Unary";
+    ExpressionKind[ExpressionKind["CallScope"] = 1448] = "CallScope";
+    ExpressionKind[ExpressionKind["CallMember"] = 1161] = "CallMember";
+    ExpressionKind[ExpressionKind["CallFunction"] = 1162] = "CallFunction";
+    ExpressionKind[ExpressionKind["AccessMember"] = 9323] = "AccessMember";
+    ExpressionKind[ExpressionKind["AccessKeyed"] = 9324] = "AccessKeyed";
+    ExpressionKind[ExpressionKind["TaggedTemplate"] = 1197] = "TaggedTemplate";
+    ExpressionKind[ExpressionKind["Binary"] = 46] = "Binary";
+    ExpressionKind[ExpressionKind["Conditional"] = 63] = "Conditional";
+    ExpressionKind[ExpressionKind["Assign"] = 8208] = "Assign";
+    ExpressionKind[ExpressionKind["ValueConverter"] = 36913] = "ValueConverter";
+    ExpressionKind[ExpressionKind["BindingBehavior"] = 38962] = "BindingBehavior";
+    ExpressionKind[ExpressionKind["HtmlLiteral"] = 51] = "HtmlLiteral";
+    ExpressionKind[ExpressionKind["ArrayBindingPattern"] = 65556] = "ArrayBindingPattern";
+    ExpressionKind[ExpressionKind["ObjectBindingPattern"] = 65557] = "ObjectBindingPattern";
+    ExpressionKind[ExpressionKind["BindingIdentifier"] = 65558] = "BindingIdentifier";
+    ExpressionKind[ExpressionKind["ForOfStatement"] = 6199] = "ForOfStatement";
+    ExpressionKind[ExpressionKind["Interpolation"] = 24] = "Interpolation"; //
+})(ExpressionKind || (ExpressionKind = {}));
+
 const IRenderable = DI.createInterface('IRenderable').noDefault();
 const IViewFactory = DI.createInterface('IViewFactory').noDefault();
 const marker = Object.freeze(Object.create(null));
@@ -2105,8 +2159,6 @@ class Lifecycle {
         this.unbindDepth = 0;
         this.flushHead = this;
         this.flushTail = this;
-        this.connectHead = this; // this cast is safe because we know exactly which properties we'll use
-        this.connectTail = this;
         this.boundHead = this;
         this.boundTail = this;
         this.mountHead = this;
@@ -2124,7 +2176,6 @@ class Lifecycle {
         this.flushed = null;
         this.promise = Promise.resolve();
         this.flushCount = 0;
-        this.connectCount = 0;
         this.patchCount = 0;
         this.boundCount = 0;
         this.mountCount = 0;
@@ -2135,8 +2186,6 @@ class Lifecycle {
         this.unboundCount = 0;
         this.$nextFlush = marker;
         this.flush = PLATFORM.noop;
-        this.$nextConnect = marker;
-        this.connect = PLATFORM.noop;
         this.$nextBound = marker;
         this.bound = PLATFORM.noop;
         this.$nextMount = marker;
@@ -2177,7 +2226,7 @@ class Lifecycle {
         // no effect on execution. flush() will automatically be invoked when the promise resolves,
         // or it can be manually invoked synchronously.
         if (this.flushHead === this) {
-            this.flushed = this.promise.then(() => { this.processFlushQueue(LifecycleFlags.fromAsyncFlush); });
+            this.flushed = this.promise.then(() => { this.processFlushQueue(64 /* fromAsyncFlush */); });
         }
         if (requestor.$nextFlush === null) {
             requestor.$nextFlush = marker;
@@ -2188,7 +2237,7 @@ class Lifecycle {
         return this.flushed;
     }
     processFlushQueue(flags) {
-        flags |= LifecycleFlags.fromSyncFlush;
+        flags |= 128 /* fromSyncFlush */;
         // flush callbacks may lead to additional flush operations, so keep looping until
         // the flush head is back to `this` (though this will typically happen in the first iteration)
         while (this.flushCount > 0) {
@@ -2207,7 +2256,7 @@ class Lifecycle {
             // Note that breaking on this flag is still not the ideal solution; future improvement would
             // be something like a separate DOM queue and a non-DOM queue, but for now this fixes the infinite
             // loop without breaking anything (apart from the edgiest of edge cases which are not yet tested)
-            if (flags & LifecycleFlags.doNotUpdateDOM) {
+            if (flags & 4194304 /* doNotUpdateDOM */) {
                 break;
             }
         }
@@ -2224,34 +2273,6 @@ class Lifecycle {
             ++this.boundCount;
         }
     }
-    enqueueConnect(requestor) {
-        // enqueue connect and patch calls in separate lists so that they can be invoked
-        // independently from eachother
-        // TODO: see if we can eliminate/optimize some of this, because this is a relatively hot path
-        // (first get all the necessary integration tests working, then look for optimizations)
-        // build a standard singly linked list for connect callbacks
-        if (requestor.$nextConnect === null) {
-            requestor.$nextConnect = marker;
-            this.connectTail.$nextConnect = requestor;
-            this.connectTail = requestor;
-            ++this.connectCount;
-        }
-    }
-    processConnectQueue(flags) {
-        // connects cannot lead to additional connects, so we don't need to loop here
-        if (this.connectCount > 0) {
-            this.connectCount = 0;
-            let current = this.connectHead.$nextConnect;
-            this.connectHead = this.connectTail = this;
-            let next;
-            do {
-                current.connect(flags);
-                next = current.$nextConnect;
-                current.$nextConnect = null;
-                current = next;
-            } while (current !== marker);
-        }
-    }
     endBind(flags) {
         // close / shrink a bind batch
         if (--this.bindDepth === 0) {
@@ -2266,8 +2287,8 @@ class Lifecycle {
     processBindQueue(flags) {
         // flush before processing bound callbacks, but only if this is the initial bind;
         // no DOM is attached yet so we can safely let everything propagate
-        if (flags & LifecycleFlags.fromStartTask) {
-            this.processFlushQueue(flags | LifecycleFlags.fromSyncFlush);
+        if (flags & 512 /* fromStartTask */) {
+            this.processFlushQueue(flags | 128 /* fromSyncFlush */);
         }
         // bound callbacks may lead to additional bind operations, so keep looping until
         // the bound head is back to `this` (though this will typically happen in the first iteration)
@@ -2366,7 +2387,7 @@ class Lifecycle {
     processAttachQueue(flags) {
         // flush and patch before starting the attach lifecycle to ensure batched collection changes are propagated to repeaters
         // and the DOM is updated
-        this.processFlushQueue(flags | LifecycleFlags.fromSyncFlush);
+        this.processFlushQueue(flags | 128 /* fromSyncFlush */);
         // TODO: prevent duplicate updates coming from the patch queue (or perhaps it's just not needed in its entirety?)
         //this.processPatchQueue(flags | LifecycleFlags.fromSyncFlush);
         if (this.mountCount > 0) {
@@ -2381,13 +2402,6 @@ class Lifecycle {
                 currentMount = nextMount;
             } while (currentMount !== marker);
         }
-        // Connect all connect-queued bindings AFTER mounting is done, so that the DOM is visible asap,
-        // but connect BEFORE running the attached callbacks to ensure any changes made during those callbacks
-        // are still accounted for.
-        // TODO: add a flag/option to further delay connect with a RAF callback (the tradeoff would be that we'd need
-        // to run an additional patch cycle before that connect, which can be expensive and unnecessary in most real
-        // world scenarios, but can significantly speed things up with nested, highly volatile data like in dbmonster)
-        this.processConnectQueue(LifecycleFlags.mustEvaluate);
         if (this.attachedCount > 0) {
             this.attachedCount = 0;
             let currentAttached = this.attachedHead.$nextAttached;
@@ -2470,7 +2484,7 @@ class Lifecycle {
     processDetachQueue(flags) {
         // flush before unmounting to ensure batched collection changes propagate to the repeaters,
         // which may lead to additional unmount operations
-        this.processFlushQueue(flags | LifecycleFlags.fromFlush | LifecycleFlags.doNotUpdateDOM);
+        this.processFlushQueue(flags | 448 /* fromFlush */ | 4194304 /* doNotUpdateDOM */);
         if (this.unmountCount > 0) {
             this.unmountCount = 0;
             let currentUnmount = this.unmountHead.$nextUnmount;
@@ -2638,7 +2652,7 @@ class CompositionCoordinator {
                 this.swapTask = next.start();
             }
             else {
-                this.swap(next, LifecycleFlags.fromLifecycleTask);
+                this.swap(next, 131072 /* fromLifecycleTask */);
             }
         }
         else {
@@ -2717,10 +2731,10 @@ class AggregateLifecycleTask {
     complete(notCancelled) {
         this.done = true;
         if (notCancelled && this.owner !== null) {
-            this.owner.processDetachQueue(LifecycleFlags.fromLifecycleTask);
-            this.owner.processUnbindQueue(LifecycleFlags.fromLifecycleTask);
-            this.owner.processBindQueue(LifecycleFlags.fromLifecycleTask);
-            this.owner.processAttachQueue(LifecycleFlags.fromLifecycleTask);
+            this.owner.processDetachQueue(131072 /* fromLifecycleTask */);
+            this.owner.processUnbindQueue(131072 /* fromLifecycleTask */);
+            this.owner.processBindQueue(131072 /* fromLifecycleTask */);
+            this.owner.processAttachQueue(131072 /* fromLifecycleTask */);
         }
         this.owner.finishTask(this);
         if (this.resolve !== null) {
@@ -2765,7 +2779,7 @@ class PromiseSwap {
             return;
         }
         this.done = true;
-        this.coordinator.compose(value, LifecycleFlags.fromLifecycleTask);
+        this.coordinator.compose(value, 131072 /* fromLifecycleTask */);
     }
 }
 // tslint:disable:jsdoc-format
@@ -2863,6 +2877,7 @@ function addObserver(observer) {
         }
         this[slotNames[i]] = observer;
         observer.subscribe(this);
+        observer[this.id] |= 16 /* updateTargetInstance */;
         // increment the slot count.
         if (i === observerSlots) {
             this.observerSlots = i + 1;
@@ -2899,6 +2914,7 @@ function unobserve(all$$1) {
             if (observer !== null && observer !== undefined) {
                 this[slotName] = null;
                 observer.unsubscribe(this);
+                observer[this.id] &= ~16 /* updateTargetInstance */;
             }
         }
     }
@@ -2911,6 +2927,7 @@ function unobserve(all$$1) {
                 if (observer !== null && observer !== undefined) {
                     this[slotName] = null;
                     observer.unsubscribe(this);
+                    observer[this.id] &= ~16 /* updateTargetInstance */;
                 }
             }
         }
@@ -2930,6 +2947,16 @@ function connectableDecorator(target) {
 function connectable(target) {
     return target === undefined ? connectableDecorator : connectableDecorator(target);
 }
+const idAttributes = {
+    configurable: false,
+    enumerable: false,
+    writable: false,
+    value: 0
+};
+connectable.assignIdTo = (instance) => {
+    ++idAttributes.value;
+    Reflect.defineProperty(instance, 'id', idAttributes);
+};
 
 // BindingMode is not a const enum (and therefore not inlined), so assigning them to a variable to save a member accessor is a minor perf tweak
 const { oneTime, toView, fromView } = BindingMode;
@@ -2937,6 +2964,7 @@ const { oneTime, toView, fromView } = BindingMode;
 const toViewOrOneTime = toView | oneTime;
 let Binding = class Binding {
     constructor(sourceExpression, target, targetProperty, mode, observerLocator, locator) {
+        connectable.assignIdTo(this);
         this.$nextBinding = null;
         this.$prevBinding = null;
         this.$state = 0 /* none */;
@@ -2949,29 +2977,25 @@ let Binding = class Binding {
         this.sourceExpression = sourceExpression;
         this.target = target;
         this.targetProperty = targetProperty;
-        this.persistentFlags = LifecycleFlags.none;
+        this.persistentFlags = 0 /* none */;
     }
     updateTarget(value, flags) {
         flags |= this.persistentFlags;
-        this.targetObserver.setValue(value, flags | LifecycleFlags.updateTargetInstance);
-        if (flags & LifecycleFlags.patchStrategy) {
+        this.targetObserver.setValue(value, flags);
+        if (flags & 4 /* patchStrategy */) {
             this.targetObserver.$patch(flags);
         }
     }
     updateSource(value, flags) {
         flags |= this.persistentFlags;
-        this.sourceExpression.assign(flags | LifecycleFlags.updateSourceExpression, this.$scope, this.locator, value);
+        this.sourceExpression.assign(flags, this.$scope, this.locator, value);
     }
     handleChange(newValue, _previousValue, flags) {
-        if (!(this.$state & 2 /* isBound */)) {
+        if ((this.$state & 2 /* isBound */) === 0) {
             return;
         }
         flags |= this.persistentFlags;
-        if (this.mode === BindingMode.fromView) {
-            flags &= ~LifecycleFlags.updateTargetInstance;
-            flags |= LifecycleFlags.updateSourceExpression;
-        }
-        if (flags & LifecycleFlags.updateTargetInstance) {
+        if ((flags & 16 /* updateTargetInstance */) > 0) {
             const previousValue = this.targetObserver.getValue();
             // if the only observable is an AccessScope then we can assume the passed-in newValue is the correct and latest value
             if (this.sourceExpression.$kind !== 10082 /* AccessScope */ || this.observerSlots > 1) {
@@ -2987,26 +3011,26 @@ let Binding = class Binding {
             }
             return;
         }
-        if (flags & LifecycleFlags.updateSourceExpression) {
+        if ((flags & 32 /* updateSourceExpression */) > 0) {
             if (newValue !== this.sourceExpression.evaluate(flags, this.$scope, this.locator)) {
                 this.updateSource(newValue, flags);
             }
             return;
         }
-        throw Reporter.error(15, LifecycleFlags[flags]);
+        throw Reporter.error(15, flags);
     }
     $bind(flags, scope) {
         if (this.$state & 2 /* isBound */) {
             if (this.$scope === scope) {
                 return;
             }
-            this.$unbind(flags | LifecycleFlags.fromBind);
+            this.$unbind(flags | 2048 /* fromBind */);
         }
         // add isBinding flag
         this.$state |= 1 /* isBinding */;
         // Store flags which we can only receive during $bind and need to pass on
         // to the AST during evaluate/connect/assign
-        this.persistentFlags = flags & LifecycleFlags.persistentBindingFlags;
+        this.persistentFlags = flags & 67108879 /* persistentBindingFlags */;
         this.$scope = scope;
         let sourceExpression = this.sourceExpression;
         if (hasBind(sourceExpression)) {
@@ -3034,6 +3058,7 @@ let Binding = class Binding {
         }
         if (this.mode & fromView) {
             targetObserver.subscribe(this);
+            targetObserver[this.id] |= 32 /* updateSourceExpression */;
         }
         // add isBound flag and remove isBinding flag
         this.$state |= 2 /* isBound */;
@@ -3046,7 +3071,7 @@ let Binding = class Binding {
         // add isUnbinding flag
         this.$state |= 64 /* isUnbinding */;
         // clear persistent flags
-        this.persistentFlags = LifecycleFlags.none;
+        this.persistentFlags = 0 /* none */;
         if (hasUnbind(this.sourceExpression)) {
             this.sourceExpression.unbind(flags, this.$scope, this);
         }
@@ -3056,16 +3081,11 @@ let Binding = class Binding {
         }
         if (this.targetObserver.unsubscribe) {
             this.targetObserver.unsubscribe(this);
+            this.targetObserver[this.id] &= ~32 /* updateSourceExpression */;
         }
         this.unobserve(true);
         // remove isBound and isUnbinding flags
         this.$state &= ~(2 /* isBound */ | 64 /* isUnbinding */);
-    }
-    connect(flags) {
-        if (this.$state & 2 /* isBound */) {
-            flags |= this.persistentFlags;
-            this.sourceExpression.connect(flags | LifecycleFlags.mustEvaluate, this.$scope, this);
-        }
     }
     $patch(flags) {
         if (this.$state & 2 /* isBound */) {
@@ -3084,12 +3104,12 @@ class Call {
         this.$state = 0 /* none */;
         this.locator = locator;
         this.sourceExpression = sourceExpression;
-        this.targetObserver = observerLocator.getObserver(LifecycleFlags.none, target, targetProperty);
+        this.targetObserver = observerLocator.getObserver(0 /* none */, target, targetProperty);
     }
     callSource(args) {
         const overrideContext = this.$scope.overrideContext;
         Object.assign(overrideContext, args);
-        const result = this.sourceExpression.evaluate(LifecycleFlags.mustEvaluate, this.$scope, this.locator);
+        const result = this.sourceExpression.evaluate(1048576 /* mustEvaluate */, this.$scope, this.locator);
         for (const prop in args) {
             Reflect.deleteProperty(overrideContext, prop);
         }
@@ -3100,7 +3120,7 @@ class Call {
             if (this.$scope === scope) {
                 return;
             }
-            this.$unbind(flags | LifecycleFlags.fromBind);
+            this.$unbind(flags | 2048 /* fromBind */);
         }
         // add isBinding flag
         this.$state |= 1 /* isBinding */;
@@ -3299,6 +3319,7 @@ class MultiInterpolationBinding {
 let InterpolationBinding = class InterpolationBinding {
     // tslint:disable-next-line:parameters-max-number
     constructor(sourceExpression, interpolation, target, targetProperty, mode, observerLocator, locator, isFirst) {
+        connectable.assignIdTo(this);
         this.$state = 0 /* none */;
         this.interpolation = interpolation;
         this.isFirst = isFirst;
@@ -3308,10 +3329,10 @@ let InterpolationBinding = class InterpolationBinding {
         this.sourceExpression = sourceExpression;
         this.target = target;
         this.targetProperty = targetProperty;
-        this.targetObserver = observerLocator.getAccessor(LifecycleFlags.none, target, targetProperty);
+        this.targetObserver = observerLocator.getAccessor(0 /* none */, target, targetProperty);
     }
     updateTarget(value, flags) {
-        this.targetObserver.setValue(value, flags | LifecycleFlags.updateTargetInstance);
+        this.targetObserver.setValue(value, flags | 16 /* updateTargetInstance */);
     }
     handleChange(_newValue, _previousValue, flags) {
         if (!(this.$state & 2 /* isBound */)) {
@@ -3369,6 +3390,7 @@ InterpolationBinding = __decorate([
 
 let LetBinding = class LetBinding {
     constructor(sourceExpression, targetProperty, observerLocator, locator, toViewModel = false) {
+        connectable.assignIdTo(this);
         this.$nextBinding = null;
         this.$prevBinding = null;
         this.$state = 0 /* none */;
@@ -3385,7 +3407,7 @@ let LetBinding = class LetBinding {
         if (!(this.$state & 2 /* isBound */)) {
             return;
         }
-        if (flags & LifecycleFlags.updateTargetInstance) {
+        if (flags & 16 /* updateTargetInstance */) {
             const { target, targetProperty } = this;
             const previousValue = target[targetProperty];
             const newValue = this.sourceExpression.evaluate(flags, this.$scope, this.locator);
@@ -3401,7 +3423,7 @@ let LetBinding = class LetBinding {
             if (this.$scope === scope) {
                 return;
             }
-            this.$unbind(flags | LifecycleFlags.fromBind);
+            this.$unbind(flags | 2048 /* fromBind */);
         }
         // add isBinding flag
         this.$state |= 1 /* isBinding */;
@@ -3412,7 +3434,7 @@ let LetBinding = class LetBinding {
             sourceExpression.bind(flags, scope, this);
         }
         // sourceExpression might have been changed during bind
-        this.target[this.targetProperty] = this.sourceExpression.evaluate(LifecycleFlags.fromBind, scope, this.locator);
+        this.target[this.targetProperty] = this.sourceExpression.evaluate(2048 /* fromBind */, scope, this.locator);
         this.sourceExpression.connect(flags, scope, this);
         // add isBound flag and remove isBinding flag
         this.$state |= 2 /* isBound */;
@@ -3452,7 +3474,7 @@ class Ref {
             if (this.$scope === scope) {
                 return;
             }
-            this.$unbind(flags | LifecycleFlags.fromBind);
+            this.$unbind(flags | 2048 /* fromBind */);
         }
         // add isBinding flag
         this.$state |= 1 /* isBinding */;
@@ -3495,8 +3517,8 @@ function setValue(newValue, flags) {
     newValue = newValue === null || newValue === undefined ? this.defaultValue : newValue;
     if (currentValue !== newValue) {
         this.currentValue = newValue;
-        if ((flags & (LifecycleFlags.fromFlush | LifecycleFlags.fromBind)) &&
-            !(this.isDOMObserver && (flags & LifecycleFlags.doNotUpdateDOM))) {
+        if ((flags & (448 /* fromFlush */ | 2048 /* fromBind */)) &&
+            !(this.isDOMObserver && (flags & 4194304 /* doNotUpdateDOM */))) {
             this.setValueCore(newValue, flags);
         }
         else {
@@ -3507,7 +3529,7 @@ function setValue(newValue, flags) {
     return Promise.resolve();
 }
 function flush(flags) {
-    if (this.isDOMObserver && (flags & LifecycleFlags.doNotUpdateDOM)) {
+    if (this.isDOMObserver && (flags & 4194304 /* doNotUpdateDOM */)) {
         // re-queue the change so it will still propagate on flush when it's attached again
         this.lifecycle.enqueueFlush(this).catch(error => { throw error; });
         return;
@@ -3516,14 +3538,14 @@ function flush(flags) {
     // we're doing this check because a value could be set multiple times before a flush, and the final value could be the same as the original value
     // in which case the target doesn't need to be updated
     if (this.oldValue !== currentValue) {
-        this.setValueCore(currentValue, this.currentFlags | flags | LifecycleFlags.updateTargetInstance);
+        this.setValueCore(currentValue, this.currentFlags | flags | 16 /* updateTargetInstance */);
         this.oldValue = this.currentValue;
     }
 }
 function patch(flags) {
     const newValue = this.getValue();
     if (this.currentValue !== newValue) {
-        this.setValueCore(newValue, this.currentFlags | flags | LifecycleFlags.updateTargetInstance);
+        this.setValueCore(newValue, this.currentFlags | flags | 16 /* updateTargetInstance */);
         this.currentValue = newValue;
     }
     patchProperties(newValue, flags);
@@ -3556,7 +3578,7 @@ function targetObserver(defaultValue = null) {
 function flush$1(flags) {
     this.callBatchedSubscribers(this.indexMap, flags | this.persistentFlags);
     if (!!this.lengthObserver) {
-        this.lengthObserver.$patch(LifecycleFlags.fromFlush | LifecycleFlags.updateTargetInstance | this.persistentFlags);
+        this.lengthObserver.$patch(448 /* fromFlush */ | 16 /* updateTargetInstance */ | this.persistentFlags);
     }
     this.resetIndexMap();
 }
@@ -3626,7 +3648,7 @@ let CollectionLengthObserver = class CollectionLengthObserver {
         if (oldValue !== newValue) {
             this.obj[this.propertyKey] = newValue;
             this.currentValue = newValue;
-            this.callSubscribers(newValue, oldValue, flags | LifecycleFlags.updateTargetInstance);
+            this.callSubscribers(newValue, oldValue, flags | 16 /* updateTargetInstance */);
         }
     }
     subscribe(subscriber) {
@@ -3831,7 +3853,7 @@ const observe = {
             o.indexMap[i] = -2;
             i++;
         }
-        o.callSubscribers('push', arguments, o.persistentFlags | LifecycleFlags.isCollectionMutation);
+        o.callSubscribers('push', arguments, o.persistentFlags | 33554432 /* isCollectionMutation */);
         return $this.length;
     },
     // https://tc39.github.io/ecma262/#sec-array.prototype.unshift
@@ -3852,7 +3874,7 @@ const observe = {
         }
         $unshift.apply(o.indexMap, inserts);
         const len = $unshift.apply($this, arguments);
-        o.callSubscribers('unshift', arguments, o.persistentFlags | LifecycleFlags.isCollectionMutation);
+        o.callSubscribers('unshift', arguments, o.persistentFlags | 33554432 /* isCollectionMutation */);
         return len;
     },
     // https://tc39.github.io/ecma262/#sec-array.prototype.pop
@@ -3873,7 +3895,7 @@ const observe = {
             indexMap.deletedItems.push(indexMap[index]);
         }
         $pop.call(indexMap);
-        o.callSubscribers('pop', arguments, o.persistentFlags | LifecycleFlags.isCollectionMutation);
+        o.callSubscribers('pop', arguments, o.persistentFlags | 33554432 /* isCollectionMutation */);
         return element;
     },
     // https://tc39.github.io/ecma262/#sec-array.prototype.shift
@@ -3893,7 +3915,7 @@ const observe = {
             indexMap.deletedItems.push(indexMap[0]);
         }
         $shift.call(indexMap);
-        o.callSubscribers('shift', arguments, o.persistentFlags | LifecycleFlags.isCollectionMutation);
+        o.callSubscribers('shift', arguments, o.persistentFlags | 33554432 /* isCollectionMutation */);
         return element;
     },
     // https://tc39.github.io/ecma262/#sec-array.prototype.splice
@@ -3931,7 +3953,7 @@ const observe = {
             $splice.call(indexMap, start, deleteCount);
         }
         const deleted = $splice.apply($this, arguments);
-        o.callSubscribers('splice', arguments, o.persistentFlags | LifecycleFlags.isCollectionMutation);
+        o.callSubscribers('splice', arguments, o.persistentFlags | 33554432 /* isCollectionMutation */);
         return deleted;
     },
     // https://tc39.github.io/ecma262/#sec-array.prototype.reverse
@@ -3962,7 +3984,7 @@ const observe = {
             lower++;
         }
         // tslint:enable:no-statements-same-line
-        o.callSubscribers('reverse', arguments, o.persistentFlags | LifecycleFlags.isCollectionMutation);
+        o.callSubscribers('reverse', arguments, o.persistentFlags | 33554432 /* isCollectionMutation */);
         return this;
     },
     // https://tc39.github.io/ecma262/#sec-array.prototype.sort
@@ -3993,7 +4015,7 @@ const observe = {
             compareFn = sortCompare;
         }
         quickSort($this, o.indexMap, 0, i, compareFn);
-        o.callSubscribers('sort', arguments, o.persistentFlags | LifecycleFlags.isCollectionMutation);
+        o.callSubscribers('sort', arguments, o.persistentFlags | 33554432 /* isCollectionMutation */);
         return this;
     }
 };
@@ -4026,7 +4048,7 @@ let ArrayObserver = class ArrayObserver {
         this.lifecycle = lifecycle;
         array.$observer = this;
         this.collection = array;
-        this.flags = flags & LifecycleFlags.persistentBindingFlags;
+        this.flags = flags & 67108879 /* persistentBindingFlags */;
         this.resetIndexMap();
     }
     $patch(flags) {
@@ -4082,7 +4104,7 @@ const observe$1 = {
             return this;
         }
         o.indexMap[oldSize] = -2;
-        o.callSubscribers('set', arguments, o.persistentFlags | LifecycleFlags.isCollectionMutation);
+        o.callSubscribers('set', arguments, o.persistentFlags | 33554432 /* isCollectionMutation */);
         return this;
     },
     // https://tc39.github.io/ecma262/#sec-map.prototype.clear
@@ -4107,7 +4129,7 @@ const observe$1 = {
             }
             $clear.call($this);
             indexMap.length = 0;
-            o.callSubscribers('clear', arguments, o.persistentFlags | LifecycleFlags.isCollectionMutation);
+            o.callSubscribers('clear', arguments, o.persistentFlags | 33554432 /* isCollectionMutation */);
         }
         return undefined;
     },
@@ -4137,7 +4159,7 @@ const observe$1 = {
             }
             i++;
         }
-        o.callSubscribers('delete', arguments, o.persistentFlags | LifecycleFlags.isCollectionMutation);
+        o.callSubscribers('delete', arguments, o.persistentFlags | 33554432 /* isCollectionMutation */);
         return false;
     }
 };
@@ -4170,7 +4192,7 @@ let MapObserver = class MapObserver {
         this.lifecycle = lifecycle;
         map.$observer = this;
         this.collection = map;
-        this.flags = flags & LifecycleFlags.persistentBindingFlags;
+        this.flags = flags & 67108879 /* persistentBindingFlags */;
         this.resetIndexMap();
     }
     $patch(flags) {
@@ -4214,7 +4236,7 @@ const observe$2 = {
             return this;
         }
         o.indexMap[oldSize] = -2;
-        o.callSubscribers('add', arguments, o.persistentFlags | LifecycleFlags.isCollectionMutation);
+        o.callSubscribers('add', arguments, o.persistentFlags | 33554432 /* isCollectionMutation */);
         return this;
     },
     // https://tc39.github.io/ecma262/#sec-set.prototype.clear
@@ -4239,7 +4261,7 @@ const observe$2 = {
             }
             $clear$1.call($this);
             indexMap.length = 0;
-            o.callSubscribers('clear', arguments, o.persistentFlags | LifecycleFlags.isCollectionMutation);
+            o.callSubscribers('clear', arguments, o.persistentFlags | 33554432 /* isCollectionMutation */);
         }
         return undefined;
     },
@@ -4269,7 +4291,7 @@ const observe$2 = {
             }
             i++;
         }
-        o.callSubscribers('delete', arguments, o.persistentFlags | LifecycleFlags.isCollectionMutation);
+        o.callSubscribers('delete', arguments, o.persistentFlags | 33554432 /* isCollectionMutation */);
         return false;
     }
 };
@@ -4302,7 +4324,7 @@ let SetObserver = class SetObserver {
         this.lifecycle = lifecycle;
         observedSet.$observer = this;
         this.collection = observedSet;
-        this.flags = flags & LifecycleFlags.persistentBindingFlags;
+        this.flags = flags & 67108879 /* persistentBindingFlags */;
         this.resetIndexMap();
     }
     $patch(flags) {
@@ -4355,7 +4377,7 @@ let CustomSetterObserver = class CustomSetterObserver {
         if (this.currentValue !== newValue) {
             this.oldValue = this.currentValue;
             this.currentValue = newValue;
-            this.callSubscribers(newValue, this.oldValue, LifecycleFlags.updateTargetInstance);
+            this.callSubscribers(newValue, this.oldValue, 16 /* updateTargetInstance */);
         }
     }
     subscribe(subscriber) {
@@ -4430,14 +4452,14 @@ let GetterObserver = class GetterObserver {
         const oldValue = this.currentValue;
         const newValue = this.getValueAndCollectDependencies(false);
         if (oldValue !== newValue) {
-            this.callSubscribers(newValue, oldValue, LifecycleFlags.updateTargetInstance);
+            this.callSubscribers(newValue, oldValue, 16 /* updateTargetInstance */);
         }
     }
     handleBatchedChange() {
         const oldValue = this.currentValue;
         const newValue = this.getValueAndCollectDependencies(false);
         if (oldValue !== newValue) {
-            this.callSubscribers(newValue, oldValue, LifecycleFlags.fromFlush | LifecycleFlags.updateTargetInstance);
+            this.callSubscribers(newValue, oldValue, 448 /* fromFlush */ | 16 /* updateTargetInstance */);
         }
     }
     getValueAndCollectDependencies(requireCollect) {
@@ -4593,7 +4615,7 @@ class DirtyChecker {
         for (; i < len; ++i) {
             current = tracked[i];
             if (current.isDirty()) {
-                current.flush(LifecycleFlags.fromTick);
+                current.flush(256 /* fromTick */);
             }
         }
     }
@@ -4610,7 +4632,7 @@ let DirtyCheckProperty = class DirtyCheckProperty {
     flush(flags) {
         const oldValue = this.oldValue;
         const newValue = this.obj[this.propertyKey];
-        this.callSubscribers(newValue, oldValue, flags | LifecycleFlags.updateTargetInstance);
+        this.callSubscribers(newValue, oldValue, flags | 16 /* updateTargetInstance */);
         this.oldValue = newValue;
     }
     subscribe(subscriber) {
@@ -4702,7 +4724,7 @@ class ObserverLocator {
         return Registration.singleton(IObserverLocator, this).register(container);
     }
     getObserver(flags, obj, propertyName) {
-        if (flags & LifecycleFlags.proxyStrategy && typeof obj === 'object') {
+        if (flags & 2 /* proxyStrategy */ && typeof obj === 'object') {
             return ProxyObserver.getOrCreate(obj, propertyName); // TODO: fix typings (and ensure proper contracts ofc)
         }
         if (isBindingContext(obj)) {
@@ -4732,7 +4754,7 @@ class ObserverLocator {
             }
             return this.targetAccessorLocator.getAccessor(flags, this.lifecycle, obj, propertyName);
         }
-        if (flags & LifecycleFlags.proxyStrategy) {
+        if (flags & 2 /* proxyStrategy */) {
             return ProxyObserver.getOrCreate(obj, propertyName);
         }
         return new PropertyAccessor(obj, propertyName);
@@ -4845,7 +4867,7 @@ function isBindingContext(obj) {
 const noop$1 = PLATFORM.noop;
 let SelfObserver = class SelfObserver {
     constructor(flags, instance, propertyName, callbackName) {
-        this.persistentFlags = flags & LifecycleFlags.persistentBindingFlags;
+        this.persistentFlags = flags & 67108879 /* persistentBindingFlags */;
         if (ProxyObserver.isProxy(instance)) {
             instance.$observer.subscribe(this, propertyName);
             this.obj = instance.$raw;
@@ -4863,7 +4885,7 @@ let SelfObserver = class SelfObserver {
                 ? instance[callbackName].bind(instance)
                 : noop$1;
         }
-        if (flags & LifecycleFlags.patchStrategy) {
+        if (flags & 4 /* patchStrategy */) {
             this.getValue = this.getValueDirect;
         }
     }
@@ -4878,14 +4900,14 @@ let SelfObserver = class SelfObserver {
     }
     setValue(newValue, flags) {
         const currentValue = this.currentValue;
-        if (currentValue !== newValue || (flags & LifecycleFlags.patchStrategy)) {
+        if (currentValue !== newValue || (flags & 4 /* patchStrategy */)) {
             this.currentValue = newValue;
-            if (!(flags & LifecycleFlags.fromBind)) {
+            if (!(flags & 2048 /* fromBind */)) {
                 const coercedValue = this.callback(newValue, currentValue, flags);
                 if (coercedValue !== undefined) {
                     this.currentValue = newValue = coercedValue;
                 }
-                this.callSubscribers(newValue, currentValue, flags);
+                this.callSubscribers(newValue, currentValue, flags | 262144 /* allowPublishRoundtrip */);
             }
         }
     }
@@ -4972,12 +4994,12 @@ class DebounceBindingBehavior {
         if (binding instanceof Binding) {
             methodToDebounce = 'handleChange';
             debouncer = debounceCall;
-            callContextToDebounce = binding.mode & fromView$2 ? LifecycleFlags.updateSourceExpression : LifecycleFlags.updateTargetInstance;
+            callContextToDebounce = binding.mode & fromView$2 ? 32 /* updateSourceExpression */ : 16 /* updateTargetInstance */;
         }
         else {
             methodToDebounce = 'callSource';
             debouncer = debounceCallSource;
-            callContextToDebounce = LifecycleFlags.updateTargetInstance;
+            callContextToDebounce = 16 /* updateTargetInstance */;
         }
         // stash the original method and it's name.
         // note: a generic name like "originalMethod" is not used to avoid collisions
@@ -5359,7 +5381,7 @@ function $attachAttribute(flags) {
     lifecycle.beginAttach();
     // add isAttaching flag
     this.$state |= 4 /* isAttaching */;
-    flags |= LifecycleFlags.fromAttach;
+    flags |= 8192 /* fromAttach */;
     const hooks = this.$hooks;
     if (hooks & 16 /* hasAttaching */) {
         this.attaching(flags);
@@ -5382,7 +5404,7 @@ function $attachElement(flags) {
     lifecycle.beginAttach();
     // add isAttaching flag
     this.$state |= 4 /* isAttaching */;
-    flags |= LifecycleFlags.fromAttach;
+    flags |= 8192 /* fromAttach */;
     const hooks = this.$hooks;
     if (hooks & 16 /* hasAttaching */) {
         this.attaching(flags);
@@ -5408,7 +5430,7 @@ function $attachView(flags) {
     }
     // add isAttaching flag
     this.$state |= 4 /* isAttaching */;
-    flags |= LifecycleFlags.fromAttach;
+    flags |= 8192 /* fromAttach */;
     let current = this.$componentHead;
     while (current !== null) {
         current.$attach(flags);
@@ -5427,7 +5449,7 @@ function $detachAttribute(flags) {
         lifecycle.beginDetach();
         // add isDetaching flag
         this.$state |= 32 /* isDetaching */;
-        flags |= LifecycleFlags.fromDetach;
+        flags |= 16384 /* fromDetach */;
         const hooks = this.$hooks;
         if (hooks & 64 /* hasDetaching */) {
             this.detaching(flags);
@@ -5448,13 +5470,13 @@ function $detachElement(flags) {
         lifecycle.beginDetach();
         // add isDetaching flag
         this.$state |= 32 /* isDetaching */;
-        flags |= LifecycleFlags.fromDetach;
+        flags |= 16384 /* fromDetach */;
         // Only unmount if either:
         // - No parent view/element is queued for unmount yet, or
         // - Aurelia is stopping (in which case all nodes need to return to their fragments for a clean mount on next start)
-        if (((flags & LifecycleFlags.parentUnmountQueued) ^ LifecycleFlags.parentUnmountQueued) | (flags & LifecycleFlags.fromStopTask)) {
+        if (((flags & 2097152 /* parentUnmountQueued */) ^ 2097152 /* parentUnmountQueued */) | (flags & 1024 /* fromStopTask */)) {
             lifecycle.enqueueUnmount(this);
-            flags |= LifecycleFlags.parentUnmountQueued;
+            flags |= 2097152 /* parentUnmountQueued */;
         }
         const hooks = this.$hooks;
         if (hooks & 64 /* hasDetaching */) {
@@ -5478,13 +5500,13 @@ function $detachView(flags) {
     if (this.$state & 8 /* isAttached */) {
         // add isDetaching flag
         this.$state |= 32 /* isDetaching */;
-        flags |= LifecycleFlags.fromDetach;
+        flags |= 16384 /* fromDetach */;
         // Only unmount if either:
         // - No parent view/element is queued for unmount yet, or
         // - Aurelia is stopping (in which case all nodes need to return to their fragments for a clean mount on next start)
-        if (((flags & LifecycleFlags.parentUnmountQueued) ^ LifecycleFlags.parentUnmountQueued) | (flags & LifecycleFlags.fromStopTask)) {
+        if (((flags & 2097152 /* parentUnmountQueued */) ^ 2097152 /* parentUnmountQueued */) | (flags & 1024 /* fromStopTask */)) {
             this.$lifecycle.enqueueUnmount(this);
-            flags |= LifecycleFlags.parentUnmountQueued;
+            flags |= 2097152 /* parentUnmountQueued */;
         }
         let current = this.$componentTail;
         while (current !== null) {
@@ -5497,14 +5519,14 @@ function $detachView(flags) {
 }
 /** @internal */
 function $cacheAttribute(flags) {
-    flags |= LifecycleFlags.fromCache;
+    flags |= 32768 /* fromCache */;
     if (this.$hooks & 2048 /* hasCaching */) {
         this.caching(flags);
     }
 }
 /** @internal */
 function $cacheElement(flags) {
-    flags |= LifecycleFlags.fromCache;
+    flags |= 32768 /* fromCache */;
     if (this.$hooks & 2048 /* hasCaching */) {
         this.caching(flags);
     }
@@ -5516,7 +5538,7 @@ function $cacheElement(flags) {
 }
 /** @internal */
 function $cacheView(flags) {
-    flags |= LifecycleFlags.fromCache;
+    flags |= 32768 /* fromCache */;
     let current = this.$componentTail;
     while (current !== null) {
         current.$cache(flags);
@@ -5564,7 +5586,7 @@ function $unmountView(flags) {
 const { enter: enter$1, leave: leave$1 } = Profiler.createTimer('BindLifecycle');
 /** @internal */
 function $bindAttribute(flags, scope) {
-    flags |= LifecycleFlags.fromBind;
+    flags |= 2048 /* fromBind */;
     if (this.$state & 2 /* isBound */) {
         if (this.$scope === scope) {
             return;
@@ -5600,7 +5622,7 @@ function $bindElement(flags, parentScope) {
     // add isBinding flag
     this.$state |= 1 /* isBinding */;
     const hooks = this.$hooks;
-    flags |= LifecycleFlags.fromBind;
+    flags |= 2048 /* fromBind */;
     if (hooks & 8 /* hasBound */) {
         lifecycle.enqueueBound(this);
     }
@@ -5624,7 +5646,7 @@ function $bindElement(flags, parentScope) {
 }
 /** @internal */
 function $bindView(flags, scope) {
-    flags |= LifecycleFlags.fromBind;
+    flags |= 2048 /* fromBind */;
     if (this.$state & 2 /* isBound */) {
         if (this.$scope === scope) {
             return;
@@ -5650,7 +5672,7 @@ function $bindView(flags, scope) {
 }
 /** @internal */
 function $lockedBind(flags) {
-    flags |= LifecycleFlags.fromBind;
+    flags |= 2048 /* fromBind */;
     if (this.$state & 2 /* isBound */) {
         return;
     }
@@ -5679,7 +5701,7 @@ function $unbindAttribute(flags) {
         // add isUnbinding flag
         this.$state |= 64 /* isUnbinding */;
         const hooks = this.$hooks;
-        flags |= LifecycleFlags.fromUnbind;
+        flags |= 4096 /* fromUnbind */;
         if (hooks & 512 /* hasUnbound */) {
             lifecycle.enqueueUnbound(this);
         }
@@ -5699,7 +5721,7 @@ function $unbindElement(flags) {
         // add isUnbinding flag
         this.$state |= 64 /* isUnbinding */;
         const hooks = this.$hooks;
-        flags |= LifecycleFlags.fromUnbind;
+        flags |= 4096 /* fromUnbind */;
         if (hooks & 512 /* hasUnbound */) {
             lifecycle.enqueueUnbound(this);
         }
@@ -5728,7 +5750,7 @@ function $unbindView(flags) {
     if (this.$state & 2 /* isBound */) {
         // add isUnbinding flag
         this.$state |= 64 /* isUnbinding */;
-        flags |= LifecycleFlags.fromUnbind;
+        flags |= 4096 /* fromUnbind */;
         let component = this.$componentTail;
         while (component !== null) {
             component.$unbind(flags);
@@ -5749,7 +5771,7 @@ function $lockedUnbind(flags) {
     if (this.$state & 2 /* isBound */) {
         // add isUnbinding flag
         this.$state |= 64 /* isUnbinding */;
-        flags |= LifecycleFlags.fromUnbind;
+        flags |= 4096 /* fromUnbind */;
         let component = this.$componentTail;
         while (component !== null) {
             component.$unbind(flags);
@@ -5957,7 +5979,7 @@ class ViewFactory {
     }
     tryReturnToCache(view) {
         if (this.canReturnToCache(view)) {
-            view.$cache(LifecycleFlags.none);
+            view.$cache(0 /* none */);
             this.cache.push(view);
             return true;
         }
@@ -6012,7 +6034,7 @@ class CompiledTemplate {
         this.factory = factory;
         this.renderContext = renderContext;
     }
-    render(renderable, host, parts, flags = LifecycleFlags.none) {
+    render(renderable, host, parts, flags = 0 /* none */) {
         const nodes = renderable.$nodes = this.factory.createNodeSequence();
         renderable.$context = this.renderContext;
         flags |= this.definition.strategy;
@@ -6208,7 +6230,7 @@ let ChildrenObserver = class ChildrenObserver {
     }
     setValue(newValue) { }
     flush(flags) {
-        this.callSubscribers(this.children, undefined, flags | LifecycleFlags.updateTargetInstance);
+        this.callSubscribers(this.children, undefined, flags | 16 /* updateTargetInstance */);
         this.hasChanges = false;
     }
     subscribe(subscriber) {
@@ -6272,7 +6294,7 @@ class RuntimeBehavior {
         const observers = {};
         const bindables = this.bindables;
         const observableNames = Object.getOwnPropertyNames(bindables);
-        if (flags & LifecycleFlags.proxyStrategy) {
+        if (flags & 2 /* proxyStrategy */) {
             for (let i = 0, ii = observableNames.length; i < ii; ++i) {
                 const name = observableNames[i];
                 observers[name] = new SelfObserver(flags, ProxyObserver.getOrCreate(instance).proxy, name, bindables[name].callback);
@@ -6282,7 +6304,7 @@ class RuntimeBehavior {
             for (let i = 0, ii = observableNames.length; i < ii; ++i) {
                 const name = observableNames[i];
                 observers[name] = new SelfObserver(flags, instance, name, bindables[name].callback);
-                if (!(flags & LifecycleFlags.patchStrategy)) {
+                if (!(flags & 4 /* patchStrategy */)) {
                     createGetterSetter(flags, instance, name);
                 }
             }
@@ -6298,7 +6320,7 @@ function createGetterSetter(flags, instance, name) {
     Reflect.defineProperty(instance, name, {
         enumerable: true,
         get: function () { return this['$observers'][name].getValue(); },
-        set: function (value) { this['$observers'][name].setValue(value, (flags & LifecycleFlags.persistentBindingFlags) | LifecycleFlags.updateTargetInstance); }
+        set: function (value) { this['$observers'][name].setValue(value, flags & 67108879 /* persistentBindingFlags */); }
     });
 }
 
@@ -6419,7 +6441,7 @@ function $hydrateAttribute(flags, parentContext) {
     flags |= description.strategy;
     const renderingEngine = parentContext.get(IRenderingEngine);
     let bindingContext;
-    if (flags & LifecycleFlags.proxyStrategy) {
+    if (flags & 2 /* proxyStrategy */) {
         bindingContext = ProxyObserver.getOrCreate(this).proxy;
     }
     else {
@@ -6440,7 +6462,7 @@ function $hydrateElement(flags, parentContext, host, options = PLATFORM.emptyObj
     const renderingEngine = parentContext.get(IRenderingEngine);
     const dom = parentContext.get(IDOM);
     let bindingContext;
-    if (flags & LifecycleFlags.proxyStrategy) {
+    if (flags & 2 /* proxyStrategy */) {
         bindingContext = ProxyObserver.getOrCreate(this).proxy;
     }
     else {
@@ -6579,10 +6601,10 @@ class If {
         this.ifFactory = ifFactory;
         this.ifView = null;
         this.location = location;
-        this.persistentFlags = LifecycleFlags.none;
+        this.persistentFlags = 0 /* none */;
     }
     binding(flags) {
-        this.persistentFlags = flags & LifecycleFlags.persistentBindingFlags;
+        this.persistentFlags = flags & 67108879 /* persistentBindingFlags */;
         const view = this.updateView(flags);
         this.coordinator.compose(view, flags);
         this.coordinator.binding(flags, this.$scope);
@@ -6609,7 +6631,7 @@ class If {
         if (this.$state & (2 /* isBound */ | 1 /* isBinding */)) {
             flags |= this.persistentFlags;
             const $this = ProxyObserver.getRawIfProxy(this);
-            if (flags & LifecycleFlags.fromFlush) {
+            if (flags & 448 /* fromFlush */) {
                 const view = $this.updateView(flags);
                 $this.coordinator.compose(view, flags);
             }
@@ -6675,7 +6697,7 @@ class Repeat {
         this.keyed = false;
     }
     binding(flags) {
-        this.persistentFlags = flags & LifecycleFlags.persistentBindingFlags;
+        this.persistentFlags = flags & 67108879 /* persistentBindingFlags */;
         this.checkCollectionObserver(flags);
         let current = this.renderable.$bindingHead;
         while (current !== null) {
@@ -6686,7 +6708,7 @@ class Repeat {
             current = current.$nextBinding;
         }
         this.local = this.forOf.declaration.evaluate(flags, this.$scope, null);
-        if (this.keyed || (flags & LifecycleFlags.keyedStrategy) > 0) {
+        if (this.keyed || (flags & 8 /* keyedStrategy */) > 0) {
             this.processViewsKeyed(null, flags);
         }
         else {
@@ -6725,8 +6747,8 @@ class Repeat {
         flags |= this.persistentFlags;
         const $this = ProxyObserver.getRawIfProxy(this);
         $this.checkCollectionObserver(flags);
-        flags |= LifecycleFlags.updateTargetInstance;
-        if ($this.keyed || (flags & LifecycleFlags.keyedStrategy) > 0) {
+        flags |= 16 /* updateTargetInstance */;
+        if ($this.keyed || (flags & 8 /* keyedStrategy */) > 0) {
             $this.processViewsKeyed(null, flags);
         }
         else {
@@ -6737,8 +6759,8 @@ class Repeat {
     handleBatchedChange(indexMap, flags) {
         flags |= this.persistentFlags;
         const $this = ProxyObserver.getRawIfProxy(this);
-        flags |= (LifecycleFlags.fromFlush | LifecycleFlags.updateTargetInstance);
-        if ($this.keyed || (flags & LifecycleFlags.keyedStrategy) > 0) {
+        flags |= (448 /* fromFlush */ | 16 /* updateTargetInstance */);
+        if ($this.keyed || (flags & 8 /* keyedStrategy */) > 0) {
             $this.processViewsKeyed(indexMap, flags);
         }
         else {
@@ -6945,7 +6967,7 @@ class Repeat {
                                 view.$state |= 4 /* isAttaching */;
                                 let current = view.$componentHead;
                                 while (current !== null) {
-                                    current.$attach(flags | LifecycleFlags.fromAttach);
+                                    current.$attach(flags | 8192 /* fromAttach */);
                                     current = current.$nextComponent;
                                 }
                                 view.$nodes.insertBefore(next);
@@ -6958,7 +6980,7 @@ class Repeat {
                                 view.$state |= 32 /* isDetaching */;
                                 let current = view.$componentTail;
                                 while (current !== null) {
-                                    current.$detach(flags | LifecycleFlags.fromDetach);
+                                    current.$detach(flags | 16384 /* fromDetach */);
                                     current = current.$prevComponent;
                                 }
                                 view.$nodes.remove();
@@ -6966,7 +6988,7 @@ class Repeat {
                                 view.$state |= 4 /* isAttaching */;
                                 current = view.$componentHead;
                                 while (current !== null) {
-                                    current.$attach(flags | LifecycleFlags.fromAttach);
+                                    current.$attach(flags | 8192 /* fromAttach */);
                                     current = current.$nextComponent;
                                 }
                                 view.$nodes.insertBefore(next);
@@ -7084,7 +7106,7 @@ class Replaceable {
         this.currentView.hold(location);
     }
     binding(flags) {
-        this.currentView.$bind(flags | LifecycleFlags.allowParentScopeTraversal, this.$scope);
+        this.currentView.$bind(flags | 67108864 /* allowParentScopeTraversal */, this.$scope);
     }
     attaching(flags) {
         this.currentView.$attach(flags);
@@ -7108,7 +7130,7 @@ class With {
     }
     valueChanged() {
         if (this.$state & (2 /* isBound */ | 1 /* isBinding */)) {
-            this.bindChild(LifecycleFlags.fromBindableHandler);
+            this.bindChild(2048 /* fromBind */);
         }
     }
     binding(flags) {
@@ -7183,8 +7205,8 @@ class Aurelia {
         const host = config.host;
         const domInitializer = this.container.get(IDOMInitializer);
         domInitializer.initialize(config);
-        const startFlags = LifecycleFlags.fromStartTask | config.strategy;
-        const stopFlags = LifecycleFlags.fromStopTask | config.strategy;
+        const startFlags = 512 /* fromStartTask */ | config.strategy;
+        const stopFlags = 1024 /* fromStopTask */ | config.strategy;
         let component;
         const componentOrType = config.component;
         if (CustomElementResource.isType(componentOrType)) {
@@ -7202,13 +7224,13 @@ class Aurelia {
                 this.components.push(component);
                 component.$hydrate(startFlags, this.container, host);
             }
-            component.$bind(startFlags | LifecycleFlags.fromBind, null);
-            component.$attach(startFlags | LifecycleFlags.fromAttach);
+            component.$bind(startFlags | 2048 /* fromBind */, null);
+            component.$attach(startFlags | 8192 /* fromAttach */);
         };
         this.startTasks.push(startTask);
         this.stopTasks.push(() => {
-            component.$detach(stopFlags | LifecycleFlags.fromDetach);
-            component.$unbind(stopFlags | LifecycleFlags.fromUnbind);
+            component.$detach(stopFlags | 16384 /* fromDetach */);
+            component.$unbind(stopFlags | 4096 /* fromUnbind */);
             host.$au = null;
         });
         if (this.isStarted) {

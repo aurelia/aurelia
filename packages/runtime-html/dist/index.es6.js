@@ -1,5 +1,5 @@
 import { DI, Registration, Reporter, PLATFORM } from '@aurelia/kernel';
-import { LifecycleFlags, hasBind, hasUnbind, targetObserver, DelegationStrategy, ITargetObserverLocator, SetterObserver, IDOM, ITargetAccessorLocator, ILifecycle, BindingBehaviorResource, BindingMode, IObserverLocator, buildTemplateDefinition, HydrateElementInstruction, IRenderable, ITargetedInstruction, IRenderingEngine, CompositionCoordinator, bindable, CustomElementResource, DOM, INode, ITemplateFactory, CompiledTemplate, NodeSequence, IExpressionParser, instructionRenderer, ensureExpression, MultiInterpolationBinding, InterpolationBinding, addBinding, Binding, IProjectorLocator, RuntimeBasicConfiguration } from '@aurelia/runtime';
+import { hasBind, hasUnbind, targetObserver, DelegationStrategy, ITargetObserverLocator, SetterObserver, IDOM, ITargetAccessorLocator, ILifecycle, BindingBehaviorResource, BindingMode, IObserverLocator, buildTemplateDefinition, HydrateElementInstruction, IRenderable, ITargetedInstruction, IRenderingEngine, CompositionCoordinator, bindable, CustomElementResource, DOM, INode, ITemplateFactory, CompiledTemplate, NodeSequence, IExpressionParser, instructionRenderer, ensureExpression, MultiInterpolationBinding, InterpolationBinding, addBinding, Binding, IProjectorLocator, RuntimeBasicConfiguration } from '@aurelia/runtime';
 
 class Listener {
     // tslint:disable-next-line:parameters-max-number
@@ -19,7 +19,7 @@ class Listener {
     callSource(event) {
         const overrideContext = this.$scope.overrideContext;
         overrideContext.$event = event;
-        const result = this.sourceExpression.evaluate(LifecycleFlags.mustEvaluate, this.$scope, this.locator);
+        const result = this.sourceExpression.evaluate(1048576 /* mustEvaluate */, this.$scope, this.locator);
         Reflect.deleteProperty(overrideContext, '$event');
         if (result !== true && this.preventDefault) {
             event.preventDefault();
@@ -34,7 +34,7 @@ class Listener {
             if (this.$scope === scope) {
                 return;
             }
-            this.$unbind(flags | LifecycleFlags.fromBind);
+            this.$unbind(flags | 2048 /* fromBind */);
         }
         // add isBinding flag
         this.$state |= 1 /* isBinding */;
@@ -115,14 +115,12 @@ AttributeNSAccessor = __decorate([
     targetObserver('')
 ], AttributeNSAccessor);
 
-const handleEventFlags = LifecycleFlags.fromDOMEvent | LifecycleFlags.updateSourceExpression;
-const defaultHandleBatchedChangeFlags = LifecycleFlags.fromFlush | LifecycleFlags.updateTargetInstance;
 const defaultMatcher = (a, b) => {
     return a === b;
 };
 let CheckedObserver = class CheckedObserver {
     constructor(flags, lifecycle, obj, handler, observerLocator) {
-        this.persistentFlags = flags & LifecycleFlags.persistentBindingFlags;
+        this.persistentFlags = flags & 67108879 /* persistentBindingFlags */;
         this.isDOMObserver = true;
         this.handler = handler;
         this.lifecycle = lifecycle;
@@ -152,7 +150,7 @@ let CheckedObserver = class CheckedObserver {
     // handleBatchedCollectionChange (todo: rename to make this explicit?)
     handleBatchedChange() {
         this.synchronizeElement();
-        this.notify(defaultHandleBatchedChangeFlags);
+        this.notify(448 /* fromFlush */);
     }
     // handlePropertyChange (todo: rename normal subscribe methods in target observers to batched, since that's what they really are)
     handleChange(newValue, previousValue, flags) {
@@ -179,7 +177,7 @@ let CheckedObserver = class CheckedObserver {
         }
     }
     notify(flags) {
-        if (flags & LifecycleFlags.fromBind) {
+        if (flags & 2048 /* fromBind */) {
             return;
         }
         const oldValue = this.oldValue;
@@ -217,7 +215,7 @@ let CheckedObserver = class CheckedObserver {
         }
         this.oldValue = this.currentValue;
         this.currentValue = value;
-        this.notify(handleEventFlags);
+        this.notify(65536 /* fromDOMEvent */ | 262144 /* allowPublishRoundtrip */);
     }
     subscribe(subscriber) {
         if (!this.hasSubscribers()) {
@@ -528,7 +526,6 @@ class EventManager {
     }
 }
 
-const handleEventFlags$1 = LifecycleFlags.fromDOMEvent | LifecycleFlags.updateSourceExpression;
 const childObserverOptions = {
     childList: true,
     subtree: true,
@@ -539,7 +536,7 @@ function defaultMatcher$1(a, b) {
 }
 let SelectValueObserver = class SelectValueObserver {
     constructor(flags, lifecycle, obj, handler, observerLocator, dom) {
-        this.persistentFlags = flags & LifecycleFlags.persistentBindingFlags;
+        this.persistentFlags = flags & 67108879 /* persistentBindingFlags */;
         this.isDOMObserver = true;
         this.lifecycle = lifecycle;
         this.obj = obj;
@@ -577,7 +574,7 @@ let SelectValueObserver = class SelectValueObserver {
         this.setValue(newValue, this.persistentFlags | flags);
     }
     notify(flags) {
-        if (flags & LifecycleFlags.fromBind) {
+        if (flags & 2048 /* fromBind */) {
             return;
         }
         const oldValue = this.oldValue;
@@ -591,7 +588,7 @@ let SelectValueObserver = class SelectValueObserver {
         // "from-view" changes are always synchronous now, so immediately sync the value and notify subscribers
         const shouldNotify = this.synchronizeValue();
         if (shouldNotify) {
-            this.notify(handleEventFlags$1);
+            this.notify(65536 /* fromDOMEvent */ | 262144 /* allowPublishRoundtrip */);
         }
     }
     synchronizeOptions(indexMap) {
@@ -724,7 +721,7 @@ let SelectValueObserver = class SelectValueObserver {
         this.synchronizeOptions();
         const shouldNotify = this.synchronizeValue();
         if (shouldNotify) {
-            this.notify(handleEventFlags$1);
+            this.notify(65536 /* fromDOMEvent */);
         }
     }
 };
@@ -829,7 +826,6 @@ const inputValueDefaults = {
     ['url']: '',
     ['week']: ''
 };
-const handleEventFlags$2 = LifecycleFlags.fromDOMEvent | LifecycleFlags.updateSourceExpression;
 let ValueAttributeObserver = class ValueAttributeObserver {
     constructor(lifecycle, obj, propertyKey, handler) {
         this.isDOMObserver = true;
@@ -857,7 +853,7 @@ let ValueAttributeObserver = class ValueAttributeObserver {
     }
     setValueCore(newValue, flags) {
         this.obj[this.propertyKey] = newValue;
-        if (flags & LifecycleFlags.fromBind) {
+        if (flags & 2048 /* fromBind */) {
             return;
         }
         this.callSubscribers(this.currentValue, this.oldValue, flags);
@@ -866,7 +862,7 @@ let ValueAttributeObserver = class ValueAttributeObserver {
         const oldValue = this.oldValue = this.currentValue;
         const newValue = this.currentValue = this.getValue();
         if (oldValue !== newValue) {
-            this.callSubscribers(newValue, oldValue, handleEventFlags$2);
+            this.callSubscribers(newValue, oldValue, 65536 /* fromDOMEvent */);
             this.oldValue = newValue;
         }
     }
@@ -1088,7 +1084,7 @@ class UpdateTriggerBindingBehavior {
         if (binding.mode !== BindingMode.twoWay && binding.mode !== BindingMode.fromView) {
             throw Reporter.error(10);
         }
-        this.persistentFlags = flags & LifecycleFlags.persistentBindingFlags;
+        this.persistentFlags = flags & 67108879 /* persistentBindingFlags */;
         // ensure the binding's target observer has been set.
         const targetObserver$$1 = this.observerLocator.getObserver(this.persistentFlags | flags, binding.target, binding.targetProperty);
         if (!targetObserver$$1.handler) {

@@ -8,6 +8,7 @@ import { IConnectableBinding, IPartialConnectableBinding } from './connectable';
 export interface Binding extends IConnectableBinding {
 }
 export declare class Binding implements IPartialConnectableBinding {
+    id: string;
     $nextBinding: IBinding;
     $prevBinding: IBinding;
     $state: State;
@@ -28,7 +29,6 @@ export declare class Binding implements IPartialConnectableBinding {
     handleChange(newValue: unknown, _previousValue: unknown, flags: LifecycleFlags): void;
     $bind(flags: LifecycleFlags, scope: IScope): void;
     $unbind(flags: LifecycleFlags): void;
-    connect(flags: LifecycleFlags): void;
     $patch(flags: LifecycleFlags): void;
 }
 //# sourceMappingURL=binding.d.ts.map

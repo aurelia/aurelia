@@ -24,6 +24,7 @@ export declare class MultiInterpolationBinding implements IBinding {
 export interface InterpolationBinding extends IConnectableBinding {
 }
 export declare class InterpolationBinding implements IPartialConnectableBinding {
+    id: string;
     $scope: IScope;
     $state: State;
     interpolation: IInterpolationExpression;

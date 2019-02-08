@@ -20,7 +20,7 @@ this.au.runtimeHtml = (function (exports, kernel, runtime) {
       callSource(event) {
           const overrideContext = this.$scope.overrideContext;
           overrideContext.$event = event;
-          const result = this.sourceExpression.evaluate(runtime.LifecycleFlags.mustEvaluate, this.$scope, this.locator);
+          const result = this.sourceExpression.evaluate(1048576 /* mustEvaluate */, this.$scope, this.locator);
           Reflect.deleteProperty(overrideContext, '$event');
           if (result !== true && this.preventDefault) {
               event.preventDefault();
@@ -35,7 +35,7 @@ this.au.runtimeHtml = (function (exports, kernel, runtime) {
               if (this.$scope === scope) {
                   return;
               }
-              this.$unbind(flags | runtime.LifecycleFlags.fromBind);
+              this.$unbind(flags | 2048 /* fromBind */);
           }
           // add isBinding flag
           this.$state |= 1 /* isBinding */;
@@ -116,14 +116,12 @@ this.au.runtimeHtml = (function (exports, kernel, runtime) {
       runtime.targetObserver('')
   ], exports.AttributeNSAccessor);
 
-  const handleEventFlags = runtime.LifecycleFlags.fromDOMEvent | runtime.LifecycleFlags.updateSourceExpression;
-  const defaultHandleBatchedChangeFlags = runtime.LifecycleFlags.fromFlush | runtime.LifecycleFlags.updateTargetInstance;
   const defaultMatcher = (a, b) => {
       return a === b;
   };
   exports.CheckedObserver = class CheckedObserver {
       constructor(flags, lifecycle, obj, handler, observerLocator) {
-          this.persistentFlags = flags & runtime.LifecycleFlags.persistentBindingFlags;
+          this.persistentFlags = flags & 67108879 /* persistentBindingFlags */;
           this.isDOMObserver = true;
           this.handler = handler;
           this.lifecycle = lifecycle;
@@ -153,7 +151,7 @@ this.au.runtimeHtml = (function (exports, kernel, runtime) {
       // handleBatchedCollectionChange (todo: rename to make this explicit?)
       handleBatchedChange() {
           this.synchronizeElement();
-          this.notify(defaultHandleBatchedChangeFlags);
+          this.notify(448 /* fromFlush */);
       }
       // handlePropertyChange (todo: rename normal subscribe methods in target observers to batched, since that's what they really are)
       handleChange(newValue, previousValue, flags) {
@@ -180,7 +178,7 @@ this.au.runtimeHtml = (function (exports, kernel, runtime) {
           }
       }
       notify(flags) {
-          if (flags & runtime.LifecycleFlags.fromBind) {
+          if (flags & 2048 /* fromBind */) {
               return;
           }
           const oldValue = this.oldValue;
@@ -218,7 +216,7 @@ this.au.runtimeHtml = (function (exports, kernel, runtime) {
           }
           this.oldValue = this.currentValue;
           this.currentValue = value;
-          this.notify(handleEventFlags);
+          this.notify(65536 /* fromDOMEvent */ | 262144 /* allowPublishRoundtrip */);
       }
       subscribe(subscriber) {
           if (!this.hasSubscribers()) {
@@ -529,7 +527,6 @@ this.au.runtimeHtml = (function (exports, kernel, runtime) {
       }
   }
 
-  const handleEventFlags$1 = runtime.LifecycleFlags.fromDOMEvent | runtime.LifecycleFlags.updateSourceExpression;
   const childObserverOptions = {
       childList: true,
       subtree: true,
@@ -540,7 +537,7 @@ this.au.runtimeHtml = (function (exports, kernel, runtime) {
   }
   exports.SelectValueObserver = class SelectValueObserver {
       constructor(flags, lifecycle, obj, handler, observerLocator, dom) {
-          this.persistentFlags = flags & runtime.LifecycleFlags.persistentBindingFlags;
+          this.persistentFlags = flags & 67108879 /* persistentBindingFlags */;
           this.isDOMObserver = true;
           this.lifecycle = lifecycle;
           this.obj = obj;
@@ -578,7 +575,7 @@ this.au.runtimeHtml = (function (exports, kernel, runtime) {
           this.setValue(newValue, this.persistentFlags | flags);
       }
       notify(flags) {
-          if (flags & runtime.LifecycleFlags.fromBind) {
+          if (flags & 2048 /* fromBind */) {
               return;
           }
           const oldValue = this.oldValue;
@@ -592,7 +589,7 @@ this.au.runtimeHtml = (function (exports, kernel, runtime) {
           // "from-view" changes are always synchronous now, so immediately sync the value and notify subscribers
           const shouldNotify = this.synchronizeValue();
           if (shouldNotify) {
-              this.notify(handleEventFlags$1);
+              this.notify(65536 /* fromDOMEvent */ | 262144 /* allowPublishRoundtrip */);
           }
       }
       synchronizeOptions(indexMap) {
@@ -725,7 +722,7 @@ this.au.runtimeHtml = (function (exports, kernel, runtime) {
           this.synchronizeOptions();
           const shouldNotify = this.synchronizeValue();
           if (shouldNotify) {
-              this.notify(handleEventFlags$1);
+              this.notify(65536 /* fromDOMEvent */);
           }
       }
   };
@@ -830,7 +827,6 @@ this.au.runtimeHtml = (function (exports, kernel, runtime) {
       ['url']: '',
       ['week']: ''
   };
-  const handleEventFlags$2 = runtime.LifecycleFlags.fromDOMEvent | runtime.LifecycleFlags.updateSourceExpression;
   exports.ValueAttributeObserver = class ValueAttributeObserver {
       constructor(lifecycle, obj, propertyKey, handler) {
           this.isDOMObserver = true;
@@ -858,7 +854,7 @@ this.au.runtimeHtml = (function (exports, kernel, runtime) {
       }
       setValueCore(newValue, flags) {
           this.obj[this.propertyKey] = newValue;
-          if (flags & runtime.LifecycleFlags.fromBind) {
+          if (flags & 2048 /* fromBind */) {
               return;
           }
           this.callSubscribers(this.currentValue, this.oldValue, flags);
@@ -867,7 +863,7 @@ this.au.runtimeHtml = (function (exports, kernel, runtime) {
           const oldValue = this.oldValue = this.currentValue;
           const newValue = this.currentValue = this.getValue();
           if (oldValue !== newValue) {
-              this.callSubscribers(newValue, oldValue, handleEventFlags$2);
+              this.callSubscribers(newValue, oldValue, 65536 /* fromDOMEvent */);
               this.oldValue = newValue;
           }
       }
@@ -1089,7 +1085,7 @@ this.au.runtimeHtml = (function (exports, kernel, runtime) {
           if (binding.mode !== runtime.BindingMode.twoWay && binding.mode !== runtime.BindingMode.fromView) {
               throw kernel.Reporter.error(10);
           }
-          this.persistentFlags = flags & runtime.LifecycleFlags.persistentBindingFlags;
+          this.persistentFlags = flags & 67108879 /* persistentBindingFlags */;
           // ensure the binding's target observer has been set.
           const targetObserver = this.observerLocator.getObserver(this.persistentFlags | flags, binding.target, binding.targetProperty);
           if (!targetObserver.handler) {

@@ -937,85 +937,73 @@
   }
   function stringifyLifecycleFlags(flags) {
       const flagNames = [];
-      if (flags & AST.LifecycleFlags.mustEvaluate) {
+      if (flags & 1048576 /* mustEvaluate */) {
           flagNames.push('mustEvaluate');
       }
-      if (flags & AST.LifecycleFlags.isCollectionMutation) {
+      if (flags & 33554432 /* isCollectionMutation */) {
           flagNames.push('isCollectionMutation');
       }
-      if (flags & AST.LifecycleFlags.isInstanceMutation) {
-          flagNames.push('isInstanceMutation');
-      }
-      if (flags & AST.LifecycleFlags.updateTargetObserver) {
-          flagNames.push('updateTargetObserver');
-      }
-      if (flags & AST.LifecycleFlags.updateTargetInstance) {
+      if (flags & 16 /* updateTargetInstance */) {
           flagNames.push('updateTargetInstance');
       }
-      if (flags & AST.LifecycleFlags.updateSourceExpression) {
+      if (flags & 32 /* updateSourceExpression */) {
           flagNames.push('updateSourceExpression');
       }
-      if (flags & AST.LifecycleFlags.fromAsyncFlush) {
+      if (flags & 64 /* fromAsyncFlush */) {
           flagNames.push('fromAsyncFlush');
       }
-      if (flags & AST.LifecycleFlags.fromSyncFlush) {
+      if (flags & 128 /* fromSyncFlush */) {
           flagNames.push('fromSyncFlush');
       }
-      if (flags & AST.LifecycleFlags.fromStartTask) {
+      if (flags & 512 /* fromStartTask */) {
           flagNames.push('fromStartTask');
       }
-      if (flags & AST.LifecycleFlags.fromStopTask) {
+      if (flags & 1024 /* fromStopTask */) {
           flagNames.push('fromStopTask');
       }
-      if (flags & AST.LifecycleFlags.fromBind) {
+      if (flags & 2048 /* fromBind */) {
           flagNames.push('fromBind');
       }
-      if (flags & AST.LifecycleFlags.fromUnbind) {
+      if (flags & 4096 /* fromUnbind */) {
           flagNames.push('fromUnbind');
       }
-      if (flags & AST.LifecycleFlags.fromAttach) {
+      if (flags & 8192 /* fromAttach */) {
           flagNames.push('fromAttach');
       }
-      if (flags & AST.LifecycleFlags.fromDetach) {
+      if (flags & 16384 /* fromDetach */) {
           flagNames.push('fromDetach');
       }
-      if (flags & AST.LifecycleFlags.fromCache) {
+      if (flags & 32768 /* fromCache */) {
           flagNames.push('fromCache');
       }
-      if (flags & AST.LifecycleFlags.fromDOMEvent) {
+      if (flags & 65536 /* fromDOMEvent */) {
           flagNames.push('fromDOMEvent');
       }
-      if (flags & AST.LifecycleFlags.fromObserverSetter) {
-          flagNames.push('fromObserverSetter');
-      }
-      if (flags & AST.LifecycleFlags.fromBindableHandler) {
-          flagNames.push('fromBindableHandler');
-      }
-      if (flags & AST.LifecycleFlags.fromLifecycleTask) {
+      if (flags & 131072 /* fromLifecycleTask */) {
           flagNames.push('fromLifecycleTask');
       }
-      if (flags & AST.LifecycleFlags.parentUnmountQueued) {
+      if (flags & 2097152 /* parentUnmountQueued */) {
           flagNames.push('parentUnmountQueued');
       }
-      if (flags & AST.LifecycleFlags.doNotUpdateDOM) {
+      if (flags & 4194304 /* doNotUpdateDOM */) {
           flagNames.push('doNotUpdateDOM');
       }
-      if (flags & AST.LifecycleFlags.isTraversingParentScope) {
+      if (flags & 8388608 /* isTraversingParentScope */) {
           flagNames.push('isTraversingParentScope');
       }
-      if (flags & AST.LifecycleFlags.allowParentScopeTraversal) {
+      if (flags & 67108864 /* allowParentScopeTraversal */) {
           flagNames.push('allowParentScopeTraversal');
       }
-      if (flags & AST.LifecycleFlags.getterSetterStrategy) {
+      if (flags & 1 /* getterSetterStrategy */) {
           flagNames.push('getterSetterStrategy');
       }
-      if (flags & AST.LifecycleFlags.proxyStrategy) {
+      if (flags & 2 /* proxyStrategy */) {
           flagNames.push('proxyStrategy');
       }
-      if (flags & AST.LifecycleFlags.keyedStrategy) {
+      if (flags & 8 /* keyedStrategy */) {
           flagNames.push('keyedStrategy');
       }
-      if (flags & AST.LifecycleFlags.patchStrategy) {
+      if (flags & 4 /* patchStrategy */) {
           flagNames.push('patchStrategy');
       }
       if (flagNames.length === 0) {

@@ -1,11 +1,11 @@
 import { Class, Constructable, IResourceKind, IResourceType, IServiceLocator } from '@aurelia/kernel';
-import { IElementHydrationOptions, ITemplateDefinition, TemplateDefinition } from '../definitions';
+import { customElementKey, IElementHydrationOptions, ITemplateDefinition, TemplateDefinition } from '../definitions';
 import { IDOM, INode, INodeSequence, IRenderLocation } from '../dom';
 import { LifecycleFlags } from '../flags';
 import { ILifecycleHooks, IMountableComponent, IRenderable } from '../lifecycle';
 import { IChangeTracker } from '../observation';
 import { ILifecycleRender } from '../templating/lifecycle-render';
-export interface ICustomElementType<T extends INode = INode> extends IResourceType<ITemplateDefinition, ICustomElement<T>>, ICustomElementStaticProperties {
+export interface ICustomElementType<T extends INode = INode, C extends Constructable = Constructable> extends IResourceType<ITemplateDefinition, InstanceType<C> & ICustomElement<T>>, ICustomElementStaticProperties {
     description: TemplateDefinition;
 }
 export declare type CustomElementHost<T extends INode = INode> = IRenderLocation<T> & T & {
@@ -40,12 +40,22 @@ export interface ICustomElementResource<T extends INode = INode> extends IResour
 /**
  * Decorator: Indicates that the decorated class is a custom element.
  */
-export declare function customElement(name: string): ICustomElementDecorator;
 export declare function customElement(definition: ITemplateDefinition): ICustomElementDecorator;
+export declare function customElement(name: string): ICustomElementDecorator;
 export declare function customElement(nameOrDefinition: string | ITemplateDefinition): ICustomElementDecorator;
-export declare const CustomElementResource: ICustomElementResource;
+declare function isType<T>(this: ICustomElementResource, Type: T & Partial<ICustomElementType>): Type is T & ICustomElementType;
+declare function define<N extends INode = INode, T extends Constructable = Constructable>(this: ICustomElementResource, definition: ITemplateDefinition, ctor?: T | null): T & ICustomElementType<N, T>;
+declare function define<N extends INode = INode, T extends Constructable = Constructable>(this: ICustomElementResource, name: string, ctor?: T | null): T & ICustomElementType<N, T>;
+declare function define<N extends INode = INode, T extends Constructable = Constructable>(this: ICustomElementResource, nameOrDefinition: string | ITemplateDefinition, ctor: T | null): T & ICustomElementType<N, T>;
+export declare const CustomElementResource: {
+    name: string;
+    keyFrom: typeof customElementKey;
+    isType: typeof isType;
+    behaviorFor: (node: INode) => ICustomElement<INode>;
+    define: typeof define;
+};
 export interface ICustomElementDecorator {
-    <T extends Constructable>(target: T): T & ICustomElementType;
+    <T extends Constructable>(target: T): T & ICustomElementType<T>;
 }
 declare type HasShadowOptions = Pick<ITemplateDefinition, 'shadowOptions'>;
 /**

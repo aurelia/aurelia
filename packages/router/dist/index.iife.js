@@ -402,7 +402,7 @@ this.au.router = (function (exports, runtime, kernel) {
           this.link = this._link(this.components);
           this.linkActive = route.consideredActive ? this._link(route.consideredActive) : this.link;
           this.observerLocator = this.nav.router.container.get(runtime.IObserverLocator);
-          this.observer = this.observerLocator.getObserver(runtime.LifecycleFlags.none, this.nav.router, 'activeComponents');
+          this.observer = this.observerLocator.getObserver(0 /* none */, this.nav.router, 'activeComponents');
           this.observer.subscribe(this);
       }
       get hasChildren() {
@@ -1323,22 +1323,22 @@ this.au.router = (function (exports, runtime, kernel) {
           const host = this.element;
           const container = this.context || this.router.container;
           // TODO: get proxyStrategy settings from the template definition
-          this.nextComponent.$hydrate(runtime.LifecycleFlags.none, container, host);
+          this.nextComponent.$hydrate(0 /* none */, container, host);
       }
       unloadComponent(component) {
           // TODO: We might want to do something here eventually, who knows?
       }
       initializeComponent(component) {
-          component.$bind(runtime.LifecycleFlags.fromStartTask | runtime.LifecycleFlags.fromBind, null);
+          component.$bind(512 /* fromStartTask */ | 2048 /* fromBind */, null);
       }
       terminateComponent(component) {
-          component.$unbind(runtime.LifecycleFlags.fromStopTask | runtime.LifecycleFlags.fromUnbind);
+          component.$unbind(1024 /* fromStopTask */ | 4096 /* fromUnbind */);
       }
       addComponent(component) {
-          component.$attach(runtime.LifecycleFlags.fromStartTask);
+          component.$attach(512 /* fromStartTask */);
       }
       removeComponent(component) {
-          component.$detach(runtime.LifecycleFlags.fromStopTask);
+          component.$detach(1024 /* fromStopTask */);
       }
       async waitForElement() {
           if (this.element) {

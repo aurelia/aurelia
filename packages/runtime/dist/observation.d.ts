@@ -89,6 +89,7 @@ export interface IPropertyChangeNotifier extends IPropertyChangeHandler {
  * Describes a (subscriber) type that has a function conforming to the IPropertyChangeHandler interface
  */
 export interface IPropertySubscriber<TValue = unknown> {
+    id?: string;
     handleChange(newValue: TValue, previousValue: TValue, flags: LifecycleFlags): void;
 }
 /**

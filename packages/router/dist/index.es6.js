@@ -1,4 +1,4 @@
-import { IObserverLocator, LifecycleFlags, CustomElementResource, Aurelia, IDOM, createRenderContext, INode, IRenderingEngine, bindable, customElement } from '@aurelia/runtime';
+import { IObserverLocator, CustomElementResource, Aurelia, IDOM, createRenderContext, INode, IRenderingEngine, bindable, customElement } from '@aurelia/runtime';
 import { buildQueryString, parseQueryString, IContainer, inject } from '@aurelia/kernel';
 
 class HistoryBrowser {
@@ -401,7 +401,7 @@ class NavRoute {
         this.link = this._link(this.components);
         this.linkActive = route.consideredActive ? this._link(route.consideredActive) : this.link;
         this.observerLocator = this.nav.router.container.get(IObserverLocator);
-        this.observer = this.observerLocator.getObserver(LifecycleFlags.none, this.nav.router, 'activeComponents');
+        this.observer = this.observerLocator.getObserver(0 /* none */, this.nav.router, 'activeComponents');
         this.observer.subscribe(this);
     }
     get hasChildren() {
@@ -1322,22 +1322,22 @@ class Viewport {
         const host = this.element;
         const container = this.context || this.router.container;
         // TODO: get proxyStrategy settings from the template definition
-        this.nextComponent.$hydrate(LifecycleFlags.none, container, host);
+        this.nextComponent.$hydrate(0 /* none */, container, host);
     }
     unloadComponent(component) {
         // TODO: We might want to do something here eventually, who knows?
     }
     initializeComponent(component) {
-        component.$bind(LifecycleFlags.fromStartTask | LifecycleFlags.fromBind, null);
+        component.$bind(512 /* fromStartTask */ | 2048 /* fromBind */, null);
     }
     terminateComponent(component) {
-        component.$unbind(LifecycleFlags.fromStopTask | LifecycleFlags.fromUnbind);
+        component.$unbind(1024 /* fromStopTask */ | 4096 /* fromUnbind */);
     }
     addComponent(component) {
-        component.$attach(LifecycleFlags.fromStartTask);
+        component.$attach(512 /* fromStartTask */);
     }
     removeComponent(component) {
-        component.$detach(LifecycleFlags.fromStopTask);
+        component.$detach(1024 /* fromStopTask */);
     }
     async waitForElement() {
         if (this.element) {

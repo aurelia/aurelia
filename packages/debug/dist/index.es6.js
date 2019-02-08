@@ -1,5 +1,5 @@
 import { Reporter, PLATFORM, Tracer } from '@aurelia/kernel';
-import { AccessKeyed, AccessMember, AccessScope, AccessThis, ArrayBindingPattern, ArrayLiteral, Assign, Binary, BindingBehavior, BindingIdentifier, CallFunction, CallMember, CallScope, Conditional, ForOfStatement, HtmlLiteral, Interpolation, ObjectBindingPattern, ObjectLiteral, PrimitiveLiteral, TaggedTemplate, Template, Unary, ValueConverter, LifecycleFlags } from '@aurelia/runtime';
+import { AccessKeyed, AccessMember, AccessScope, AccessThis, ArrayBindingPattern, ArrayLiteral, Assign, Binary, BindingBehavior, BindingIdentifier, CallFunction, CallMember, CallScope, Conditional, ForOfStatement, HtmlLiteral, Interpolation, ObjectBindingPattern, ObjectLiteral, PrimitiveLiteral, TaggedTemplate, Template, Unary, ValueConverter } from '@aurelia/runtime';
 
 const astTypeMap = [
     { type: AccessKeyed, name: 'AccessKeyed' },
@@ -934,85 +934,73 @@ function createLiveTraceWriter(options) {
 }
 function stringifyLifecycleFlags(flags) {
     const flagNames = [];
-    if (flags & LifecycleFlags.mustEvaluate) {
+    if (flags & 1048576 /* mustEvaluate */) {
         flagNames.push('mustEvaluate');
     }
-    if (flags & LifecycleFlags.isCollectionMutation) {
+    if (flags & 33554432 /* isCollectionMutation */) {
         flagNames.push('isCollectionMutation');
     }
-    if (flags & LifecycleFlags.isInstanceMutation) {
-        flagNames.push('isInstanceMutation');
-    }
-    if (flags & LifecycleFlags.updateTargetObserver) {
-        flagNames.push('updateTargetObserver');
-    }
-    if (flags & LifecycleFlags.updateTargetInstance) {
+    if (flags & 16 /* updateTargetInstance */) {
         flagNames.push('updateTargetInstance');
     }
-    if (flags & LifecycleFlags.updateSourceExpression) {
+    if (flags & 32 /* updateSourceExpression */) {
         flagNames.push('updateSourceExpression');
     }
-    if (flags & LifecycleFlags.fromAsyncFlush) {
+    if (flags & 64 /* fromAsyncFlush */) {
         flagNames.push('fromAsyncFlush');
     }
-    if (flags & LifecycleFlags.fromSyncFlush) {
+    if (flags & 128 /* fromSyncFlush */) {
         flagNames.push('fromSyncFlush');
     }
-    if (flags & LifecycleFlags.fromStartTask) {
+    if (flags & 512 /* fromStartTask */) {
         flagNames.push('fromStartTask');
     }
-    if (flags & LifecycleFlags.fromStopTask) {
+    if (flags & 1024 /* fromStopTask */) {
         flagNames.push('fromStopTask');
     }
-    if (flags & LifecycleFlags.fromBind) {
+    if (flags & 2048 /* fromBind */) {
         flagNames.push('fromBind');
     }
-    if (flags & LifecycleFlags.fromUnbind) {
+    if (flags & 4096 /* fromUnbind */) {
         flagNames.push('fromUnbind');
     }
-    if (flags & LifecycleFlags.fromAttach) {
+    if (flags & 8192 /* fromAttach */) {
         flagNames.push('fromAttach');
     }
-    if (flags & LifecycleFlags.fromDetach) {
+    if (flags & 16384 /* fromDetach */) {
         flagNames.push('fromDetach');
     }
-    if (flags & LifecycleFlags.fromCache) {
+    if (flags & 32768 /* fromCache */) {
         flagNames.push('fromCache');
     }
-    if (flags & LifecycleFlags.fromDOMEvent) {
+    if (flags & 65536 /* fromDOMEvent */) {
         flagNames.push('fromDOMEvent');
     }
-    if (flags & LifecycleFlags.fromObserverSetter) {
-        flagNames.push('fromObserverSetter');
-    }
-    if (flags & LifecycleFlags.fromBindableHandler) {
-        flagNames.push('fromBindableHandler');
-    }
-    if (flags & LifecycleFlags.fromLifecycleTask) {
+    if (flags & 131072 /* fromLifecycleTask */) {
         flagNames.push('fromLifecycleTask');
     }
-    if (flags & LifecycleFlags.parentUnmountQueued) {
+    if (flags & 2097152 /* parentUnmountQueued */) {
         flagNames.push('parentUnmountQueued');
     }
-    if (flags & LifecycleFlags.doNotUpdateDOM) {
+    if (flags & 4194304 /* doNotUpdateDOM */) {
         flagNames.push('doNotUpdateDOM');
     }
-    if (flags & LifecycleFlags.isTraversingParentScope) {
+    if (flags & 8388608 /* isTraversingParentScope */) {
         flagNames.push('isTraversingParentScope');
     }
-    if (flags & LifecycleFlags.allowParentScopeTraversal) {
+    if (flags & 67108864 /* allowParentScopeTraversal */) {
         flagNames.push('allowParentScopeTraversal');
     }
-    if (flags & LifecycleFlags.getterSetterStrategy) {
+    if (flags & 1 /* getterSetterStrategy */) {
         flagNames.push('getterSetterStrategy');
     }
-    if (flags & LifecycleFlags.proxyStrategy) {
+    if (flags & 2 /* proxyStrategy */) {
         flagNames.push('proxyStrategy');
     }
-    if (flags & LifecycleFlags.keyedStrategy) {
+    if (flags & 8 /* keyedStrategy */) {
         flagNames.push('keyedStrategy');
     }
-    if (flags & LifecycleFlags.patchStrategy) {
+    if (flags & 4 /* patchStrategy */) {
         flagNames.push('patchStrategy');
     }
     if (flagNames.length === 0) {

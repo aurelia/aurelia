@@ -1,6 +1,6 @@
 System.register('runtimeHtml', ['@aurelia/kernel', '@aurelia/runtime'], function (exports, module) {
   'use strict';
-  var DI, Registration, Reporter, PLATFORM, LifecycleFlags, hasBind, hasUnbind, targetObserver, DelegationStrategy, ITargetObserverLocator, SetterObserver, IDOM, ITargetAccessorLocator, ILifecycle, BindingBehaviorResource, BindingMode, IObserverLocator, buildTemplateDefinition, HydrateElementInstruction, IRenderable, ITargetedInstruction, IRenderingEngine, CompositionCoordinator, bindable, CustomElementResource, DOM, INode, ITemplateFactory, CompiledTemplate, NodeSequence, IExpressionParser, instructionRenderer, ensureExpression, MultiInterpolationBinding, InterpolationBinding, addBinding, Binding, IProjectorLocator, RuntimeBasicConfiguration;
+  var DI, Registration, Reporter, PLATFORM, hasBind, hasUnbind, targetObserver, DelegationStrategy, ITargetObserverLocator, SetterObserver, IDOM, ITargetAccessorLocator, ILifecycle, BindingBehaviorResource, BindingMode, IObserverLocator, buildTemplateDefinition, HydrateElementInstruction, IRenderable, ITargetedInstruction, IRenderingEngine, CompositionCoordinator, bindable, CustomElementResource, DOM, INode, ITemplateFactory, CompiledTemplate, NodeSequence, IExpressionParser, instructionRenderer, ensureExpression, MultiInterpolationBinding, InterpolationBinding, addBinding, Binding, IProjectorLocator, RuntimeBasicConfiguration;
   return {
     setters: [function (module) {
       DI = module.DI;
@@ -8,7 +8,6 @@ System.register('runtimeHtml', ['@aurelia/kernel', '@aurelia/runtime'], function
       Reporter = module.Reporter;
       PLATFORM = module.PLATFORM;
     }, function (module) {
-      LifecycleFlags = module.LifecycleFlags;
       hasBind = module.hasBind;
       hasUnbind = module.hasUnbind;
       targetObserver = module.targetObserver;
@@ -71,7 +70,7 @@ System.register('runtimeHtml', ['@aurelia/kernel', '@aurelia/runtime'], function
           callSource(event) {
               const overrideContext = this.$scope.overrideContext;
               overrideContext.$event = event;
-              const result = this.sourceExpression.evaluate(LifecycleFlags.mustEvaluate, this.$scope, this.locator);
+              const result = this.sourceExpression.evaluate(1048576 /* mustEvaluate */, this.$scope, this.locator);
               Reflect.deleteProperty(overrideContext, '$event');
               if (result !== true && this.preventDefault) {
                   event.preventDefault();
@@ -86,7 +85,7 @@ System.register('runtimeHtml', ['@aurelia/kernel', '@aurelia/runtime'], function
                   if (this.$scope === scope) {
                       return;
                   }
-                  this.$unbind(flags | LifecycleFlags.fromBind);
+                  this.$unbind(flags | 2048 /* fromBind */);
               }
               // add isBinding flag
               this.$state |= 1 /* isBinding */;
@@ -167,14 +166,12 @@ System.register('runtimeHtml', ['@aurelia/kernel', '@aurelia/runtime'], function
           targetObserver('')
       ], AttributeNSAccessor));
 
-      const handleEventFlags = LifecycleFlags.fromDOMEvent | LifecycleFlags.updateSourceExpression;
-      const defaultHandleBatchedChangeFlags = LifecycleFlags.fromFlush | LifecycleFlags.updateTargetInstance;
       const defaultMatcher = (a, b) => {
           return a === b;
       };
       let CheckedObserver = exports('CheckedObserver', class CheckedObserver {
           constructor(flags, lifecycle, obj, handler, observerLocator) {
-              this.persistentFlags = flags & LifecycleFlags.persistentBindingFlags;
+              this.persistentFlags = flags & 67108879 /* persistentBindingFlags */;
               this.isDOMObserver = true;
               this.handler = handler;
               this.lifecycle = lifecycle;
@@ -204,7 +201,7 @@ System.register('runtimeHtml', ['@aurelia/kernel', '@aurelia/runtime'], function
           // handleBatchedCollectionChange (todo: rename to make this explicit?)
           handleBatchedChange() {
               this.synchronizeElement();
-              this.notify(defaultHandleBatchedChangeFlags);
+              this.notify(448 /* fromFlush */);
           }
           // handlePropertyChange (todo: rename normal subscribe methods in target observers to batched, since that's what they really are)
           handleChange(newValue, previousValue, flags) {
@@ -231,7 +228,7 @@ System.register('runtimeHtml', ['@aurelia/kernel', '@aurelia/runtime'], function
               }
           }
           notify(flags) {
-              if (flags & LifecycleFlags.fromBind) {
+              if (flags & 2048 /* fromBind */) {
                   return;
               }
               const oldValue = this.oldValue;
@@ -269,7 +266,7 @@ System.register('runtimeHtml', ['@aurelia/kernel', '@aurelia/runtime'], function
               }
               this.oldValue = this.currentValue;
               this.currentValue = value;
-              this.notify(handleEventFlags);
+              this.notify(65536 /* fromDOMEvent */ | 262144 /* allowPublishRoundtrip */);
           }
           subscribe(subscriber) {
               if (!this.hasSubscribers()) {
@@ -580,7 +577,6 @@ System.register('runtimeHtml', ['@aurelia/kernel', '@aurelia/runtime'], function
           }
       }
 
-      const handleEventFlags$1 = LifecycleFlags.fromDOMEvent | LifecycleFlags.updateSourceExpression;
       const childObserverOptions = {
           childList: true,
           subtree: true,
@@ -591,7 +587,7 @@ System.register('runtimeHtml', ['@aurelia/kernel', '@aurelia/runtime'], function
       }
       let SelectValueObserver = exports('SelectValueObserver', class SelectValueObserver {
           constructor(flags, lifecycle, obj, handler, observerLocator, dom) {
-              this.persistentFlags = flags & LifecycleFlags.persistentBindingFlags;
+              this.persistentFlags = flags & 67108879 /* persistentBindingFlags */;
               this.isDOMObserver = true;
               this.lifecycle = lifecycle;
               this.obj = obj;
@@ -629,7 +625,7 @@ System.register('runtimeHtml', ['@aurelia/kernel', '@aurelia/runtime'], function
               this.setValue(newValue, this.persistentFlags | flags);
           }
           notify(flags) {
-              if (flags & LifecycleFlags.fromBind) {
+              if (flags & 2048 /* fromBind */) {
                   return;
               }
               const oldValue = this.oldValue;
@@ -643,7 +639,7 @@ System.register('runtimeHtml', ['@aurelia/kernel', '@aurelia/runtime'], function
               // "from-view" changes are always synchronous now, so immediately sync the value and notify subscribers
               const shouldNotify = this.synchronizeValue();
               if (shouldNotify) {
-                  this.notify(handleEventFlags$1);
+                  this.notify(65536 /* fromDOMEvent */ | 262144 /* allowPublishRoundtrip */);
               }
           }
           synchronizeOptions(indexMap) {
@@ -776,7 +772,7 @@ System.register('runtimeHtml', ['@aurelia/kernel', '@aurelia/runtime'], function
               this.synchronizeOptions();
               const shouldNotify = this.synchronizeValue();
               if (shouldNotify) {
-                  this.notify(handleEventFlags$1);
+                  this.notify(65536 /* fromDOMEvent */);
               }
           }
       });
@@ -881,7 +877,6 @@ System.register('runtimeHtml', ['@aurelia/kernel', '@aurelia/runtime'], function
           ['url']: '',
           ['week']: ''
       };
-      const handleEventFlags$2 = LifecycleFlags.fromDOMEvent | LifecycleFlags.updateSourceExpression;
       let ValueAttributeObserver = exports('ValueAttributeObserver', class ValueAttributeObserver {
           constructor(lifecycle, obj, propertyKey, handler) {
               this.isDOMObserver = true;
@@ -909,7 +904,7 @@ System.register('runtimeHtml', ['@aurelia/kernel', '@aurelia/runtime'], function
           }
           setValueCore(newValue, flags) {
               this.obj[this.propertyKey] = newValue;
-              if (flags & LifecycleFlags.fromBind) {
+              if (flags & 2048 /* fromBind */) {
                   return;
               }
               this.callSubscribers(this.currentValue, this.oldValue, flags);
@@ -918,7 +913,7 @@ System.register('runtimeHtml', ['@aurelia/kernel', '@aurelia/runtime'], function
               const oldValue = this.oldValue = this.currentValue;
               const newValue = this.currentValue = this.getValue();
               if (oldValue !== newValue) {
-                  this.callSubscribers(newValue, oldValue, handleEventFlags$2);
+                  this.callSubscribers(newValue, oldValue, 65536 /* fromDOMEvent */);
                   this.oldValue = newValue;
               }
           }
@@ -1140,7 +1135,7 @@ System.register('runtimeHtml', ['@aurelia/kernel', '@aurelia/runtime'], function
               if (binding.mode !== BindingMode.twoWay && binding.mode !== BindingMode.fromView) {
                   throw Reporter.error(10);
               }
-              this.persistentFlags = flags & LifecycleFlags.persistentBindingFlags;
+              this.persistentFlags = flags & 67108879 /* persistentBindingFlags */;
               // ensure the binding's target observer has been set.
               const targetObserver$$1 = this.observerLocator.getObserver(this.persistentFlags | flags, binding.target, binding.targetProperty);
               if (!targetObserver$$1.handler) {

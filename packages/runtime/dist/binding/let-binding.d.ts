@@ -8,6 +8,7 @@ import { IConnectableBinding, IPartialConnectableBinding } from './connectable';
 export interface LetBinding extends IConnectableBinding {
 }
 export declare class LetBinding implements IPartialConnectableBinding {
+    id: string;
     $nextBinding: IBinding;
     $prevBinding: IBinding;
     $state: State;

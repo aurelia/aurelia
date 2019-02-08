@@ -1,5 +1,4 @@
 import { IContainer, IDisposable, Immutable, InterfaceSymbol, IResolver, IServiceLocator } from '@aurelia/kernel';
-import { IConnectableBinding } from './binding/connectable';
 import { ITargetedInstruction, TemplateDefinition, TemplatePartDefinitions } from './definitions';
 import { INode, INodeSequence, IRenderLocation } from './dom';
 import { Hooks, LifecycleFlags, State } from './flags';
@@ -238,7 +237,6 @@ export interface ILifecycle {
      * This queue is primarily used by DOM target observers and collection observers.
      */
     enqueueFlush(requestor: IChangeTracker): Promise<void>;
-    processConnectQueue(flags: LifecycleFlags): void;
     processBindQueue(flags: LifecycleFlags): void;
     processUnbindQueue(flags: LifecycleFlags): void;
     /**
@@ -257,14 +255,6 @@ export interface ILifecycle {
      * adding it once.
      */
     enqueueBound(requestor: ILifecycleHooks): void;
-    /**
-     * Add a `connect` callback to the queue, to be invoked *after* mounting and *before*
-     * `detached` callbacks.
-     *
-     * This method is idempotent; adding the same item more than once has the same effect as
-     * adding it once.
-     */
-    enqueueConnect(requestor: IConnectableBinding): void;
     /**
      * Close / shrink a bind batch for invoking queued `bound` callbacks.
      * @param flags The flags that will be passed into the `bound` callbacks.

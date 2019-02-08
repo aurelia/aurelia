@@ -28,7 +28,7 @@ export class Scope {
   public viewport: Viewport;
 
   public children: Scope[];
-  public _viewports: Viewport[];
+  public viewports: Viewport[];
 
   private readonly router: Router;
 
@@ -43,7 +43,7 @@ export class Scope {
 
     this.viewport = null;
     this.children = [];
-    this._viewports = [];
+    this.viewports = [];
     this.scopeViewportParts = {};
     this.availableViewports = null;
 
@@ -52,8 +52,8 @@ export class Scope {
     }
   }
 
-  public viewports(): Record<string, Viewport> {
-    return this._viewports.filter((viewport) => !viewport.deactivated).reduce(
+  public getEnabledViewports(): Record<string, Viewport> {
+    return this.viewports.filter((viewport) => viewport.enabled).reduce(
       (viewports, viewport) => {
         viewports[viewport.name] = viewport;
         return viewports;
@@ -71,7 +71,7 @@ export class Scope {
       this.availableViewports = {};
       this.scopeViewportParts = {};
     }
-    this.availableViewports = { ...this.viewports(), ...this.availableViewports };
+    this.availableViewports = { ...this.getEnabledViewports(), ...this.availableViewports };
 
     // Get the parts for this scope (pointing to the rest)
     for (const viewport in viewports) {
@@ -119,9 +119,9 @@ export class Scope {
         newScope = true;
         name = name.substring(0, name.length - 1);
       }
-      if (!this.viewports()[name]) {
+      if (!this.getEnabledViewports()[name]) {
         this.addViewport(name, null, null, { scope: newScope, forceDescription: true });
-        this.availableViewports[name] = this.viewports()[name];
+        this.availableViewports[name] = this.getEnabledViewports()[name];
       }
       const viewport = this.availableViewports[name];
       if (viewport && viewport.acceptComponent(component)) {
@@ -198,13 +198,13 @@ export class Scope {
   }
 
   public addViewport(name: string, element: Element, context: IRenderContext, options?: IViewportOptions): Viewport {
-    let viewport = this.viewports()[name];
+    let viewport = this.getEnabledViewports()[name];
     // Each au-viewport element has its own Viewport
     if (element && viewport && viewport.element !== null && viewport.element !== element) {
-      viewport.deactivated = true;
-      viewport = this._viewports.find(vp => vp.name === name && vp.element === element);
+      viewport.enabled = false;
+      viewport = this.viewports.find(vp => vp.name === name && vp.element === element);
       if (viewport) {
-        viewport.deactivated = false;
+        viewport.enabled = true;
       }
     }
     if (!viewport) {
@@ -215,7 +215,7 @@ export class Scope {
       }
 
       viewport = new Viewport(this.router, name, null, null, this, scope, options);
-      this._viewports.push(viewport);
+      this.viewports.push(viewport);
     }
     // TODO: Either explain why || instead of && here (might only need one) or change it to && if that should turn out to not be relevant
     if (element || context) {
@@ -228,17 +228,17 @@ export class Scope {
       if (viewport.scope) {
         this.router.removeScope(viewport.scope);
       }
-      this._viewports.splice(this._viewports.indexOf(viewport), 1);
+      this.viewports.splice(this.viewports.indexOf(viewport), 1);
     }
-    return Object.keys(this._viewports).length;
+    return Object.keys(this.viewports).length;
   }
 
   public removeScope(): void {
     for (const child of this.children) {
       child.removeScope();
     }
-    for (const viewport in this.viewports()) {
-      this.router.removeViewport(this.viewports()[viewport], null, null);
+    for (const viewport in this.getEnabledViewports()) {
+      this.router.removeViewport(this.getEnabledViewports()[viewport], null, null);
     }
   }
 
@@ -257,8 +257,8 @@ export class Scope {
 
   public viewportStates(full: boolean = false, active: boolean = false): string[] {
     const states: string[] = [];
-    for (const vp in this.viewports()) {
-      const viewport: Viewport = this.viewports()[vp];
+    for (const vp in this.getEnabledViewports()) {
+      const viewport: Viewport = this.getEnabledViewports()[vp];
       if ((viewport.options.noHistory || (viewport.options.noLink && !full)) && !active) {
         continue;
       }
@@ -271,7 +271,7 @@ export class Scope {
   }
 
   public allViewports(): Viewport[] {
-    const viewports = this._viewports.filter((viewport) => !viewport.deactivated);
+    const viewports = this.viewports.filter((viewport) => viewport.enabled);
     for (const scope of this.children) {
       viewports.push(...scope.allViewports());
     }
@@ -297,7 +297,7 @@ export class Scope {
   }
 
   private closestViewport(container: ChildContainer): Viewport {
-    const viewports = Object.values(this.viewports());
+    const viewports = Object.values(this.getEnabledViewports());
     while (container) {
       const viewport = viewports.find((item) => item.context.get(IContainer) === container);
       if (viewport) {

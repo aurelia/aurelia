@@ -28,7 +28,7 @@ export class Viewport {
   public content: ViewportContent;
   public nextContent: ViewportContent;
 
-  public deactivated: boolean;
+  public enabled: boolean;
 
   private readonly router: Router;
 
@@ -55,7 +55,7 @@ export class Viewport {
     this.elementResolve = null;
     this.previousViewportState = null;
     this.cache = [];
-    this.deactivated = false;
+    this.enabled = true;
   }
 
   public setNextContent(content: ICustomElementType | string, instruction: INavigationInstruction): boolean {
@@ -313,7 +313,7 @@ export class Viewport {
 
   public attaching(flags: LifecycleFlags): void {
     Reporter.write(10000, 'ATTACHING viewport', this.name, this.content, this.nextContent);
-    this.deactivated = false;
+    this.enabled = true;
     if (this.content.component) {
       this.content.addComponent(this.element);
     }
@@ -324,7 +324,7 @@ export class Viewport {
     if (this.content.component) {
       this.content.removeComponent(this.element, this.options.stateful);
     }
-    this.deactivated = true;
+    this.enabled = false;
   }
 
   public unbinding(flags: LifecycleFlags): void {

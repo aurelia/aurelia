@@ -519,13 +519,13 @@ function createCustomElement(ctx: HTMLTestContext, tagName: string, finalize: bo
     instructions: childInstructions,
     parts: PLATFORM.emptyObject
   };
-  const attributeMarkup = attributes.map(a => `${a[0]}="${a[1].replace(/\$\{.*\}/, '')}"`).join(' ');
+  const attributeMarkup = attributes.map(a => `${a[0]}="${a[1]}"`).join(' ');
   const rawMarkup = `<${tagName} ${attributeMarkup}>${(childInput && childInput.template) || ''}</${tagName}>`;
   const input = {
     template: finalize ? `<div>${rawMarkup}</div>` : rawMarkup,
     instructions: []
   };
-  const outputMarkup = ctx.createElementFromMarkup(`<${tagName} ${attributeMarkup}>${(childOutput && childOutput.template.outerHTML) || ''}</${tagName}>`);
+  const outputMarkup = ctx.createElementFromMarkup(`<${tagName} ${attributeMarkup.replace(/\$\{.*\}/, '')}>${(childOutput && childOutput.template.outerHTML) || ''}</${tagName}>`);
   outputMarkup.classList.add('au');
   const output = {
     template: finalize ? ctx.createElementFromMarkup(`<template><div>${outputMarkup.outerHTML}</div></template>`) : outputMarkup,

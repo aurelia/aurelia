@@ -58,8 +58,7 @@ describe('Router', () => {
     this.timeout(30000);
     const { host, router } = await setup();
 
-    router.goto('foo@left');
-    await waitForNavigation(router);
+    await goto('foo@left', router);
     expect(host.textContent).to.contain('foo');
 
     await teardown(host, router, 1);
@@ -69,11 +68,9 @@ describe('Router', () => {
     this.timeout(30000);
     const { host, router } = await setup();
 
-    router.goto('foo@left');
-    await waitForNavigation(router);
+    await goto('foo@left', router);
     expect(host.textContent).to.contain('foo');
-    router.goto('-@left');
-    await waitForNavigation(router);
+    await goto('-@left', router);
     expect(host.textContent).to.not.contain('foo');
 
     await teardown(host, router, 1);
@@ -83,14 +80,11 @@ describe('Router', () => {
     this.timeout(30000);
     const { host, router } = await setup();
 
-    router.goto('foo@left');
-    await waitForNavigation(router);
+    await goto('foo@left', router);
     expect(host.textContent).to.contain('Viewport: foo');
-    router.goto('bar@right');
-    await waitForNavigation(router);
+    await goto('bar@right', router);
     expect(host.textContent).to.contain('Viewport: bar');
-    router.goto('-');
-    await waitForNavigation(router);
+    await goto('-', router);
     expect(host.textContent).to.not.contain('Viewport foo');
     expect(host.textContent).to.not.contain('Viewport bar');
 
@@ -101,8 +95,9 @@ describe('Router', () => {
     this.timeout(40000);
     const { host, router } = await setup();
 
-    router.goto('/foo@left');
-    router.goto('/bar@left');
+    await router.goto('/uier@left');
+    await wait(100);
+    await router.goto('/bar@left');
     expect(router.pendingNavigations.length).to.equal(1);
     await waitForNavigation(router);
     expect(host.textContent).to.contain('Viewport: bar');
@@ -115,12 +110,11 @@ describe('Router', () => {
     const { host, router } = await setup();
 
     const historyLength = router.historyBrowser.history.length;
-    router.goto('foo@left');
-    await waitForNavigation(router);
+    await goto('foo@left', router);
     expect(host.textContent).to.contain('foo');
     expect(router.historyBrowser.history.length).to.equal(historyLength + 1);
 
-    router.replace('bar@left');
+    await router.replace('bar@left');
     await waitForNavigation(router);
     expect(host.textContent).to.contain('bar');
     expect(router.historyBrowser.history.length).to.equal(historyLength + 1);
@@ -132,8 +126,7 @@ describe('Router', () => {
     this.timeout(30000);
     const { host, router } = await setup();
 
-    router.goto('/bar@right');
-    await waitForNavigation(router);
+    await goto('/bar@right', router);
     expect(host.textContent).to.contain('bar');
 
     await teardown(host, router, 1);
@@ -143,13 +136,11 @@ describe('Router', () => {
     this.timeout(30000);
     const { host, router } = await setup();
 
-    router.goto('/foo@left');
-    await waitForNavigation(router);
+    await goto('/foo@left', router);
     expect(host.textContent).to.contain('Viewport: foo');
     expect(host.textContent).to.not.contain('Viewport: bar');
 
-    router.goto('/bar@right');
-    await waitForNavigation(router);
+    await goto('/bar@right', router);
     expect(host.textContent).to.contain('Viewport: foo');
     expect(host.textContent).to.contain('Viewport: bar');
 
@@ -160,22 +151,20 @@ describe('Router', () => {
     this.timeout(40000);
     const { host, router } = await setup();
 
-    router.goto('/foo@left');
-    await waitForNavigation(router);
+    await goto('/foo@left', router);
     expect(host.textContent).to.contain('Viewport: foo');
     expect(host.textContent).to.not.contain('Viewport: bar');
 
-    router.goto('/bar@left');
-    await waitForNavigation(router);
+    await goto('/bar@left', router);
     expect(host.textContent).to.not.contain('Viewport: foo');
     expect(host.textContent).to.contain('Viewport: bar');
 
-    router.back();
+    await router.back();
     await waitForNavigation(router);
     expect(host.textContent).to.contain('Viewport: foo');
     expect(host.textContent).to.not.contain('Viewport: bar');
 
-    router.forward();
+    await router.forward();
     await waitForNavigation(router);
     expect(host.textContent).to.not.contain('Viewport: foo');
     expect(host.textContent).to.contain('Viewport: bar');
@@ -187,22 +176,20 @@ describe('Router', () => {
     this.timeout(30000);
     const { host, router } = await setup();
 
-    router.goto('/foo@left');
-    await waitForNavigation(router);
+    await goto('/foo@left', router);
     expect(host.textContent).to.contain('Viewport: foo');
     expect(host.textContent).to.not.contain('Viewport: bar');
 
-    router.goto('/bar@right');
-    await waitForNavigation(router);
+    await goto('/bar@right', router);
     expect(host.textContent).to.contain('Viewport: foo');
     expect(host.textContent).to.contain('Viewport: bar');
 
-    router.back();
+    await router.back();
     await waitForNavigation(router);
     expect(host.textContent).to.contain('Viewport: foo');
     expect(host.textContent).to.not.contain('Viewport: bar');
 
-    router.forward();
+    await router.forward();
     await waitForNavigation(router);
     expect(host.textContent).to.contain('Viewport: foo');
     expect(host.textContent).to.contain('Viewport: bar');
@@ -214,8 +201,7 @@ describe('Router', () => {
     this.timeout(30000);
     const { host, router } = await setup();
 
-    router.goto('/foo@left+bar@right');
-    await waitForNavigation(router);
+    await goto('/foo@left+bar@right', router);
     expect(host.textContent).to.contain('foo');
     expect(host.textContent).to.contain('bar');
 
@@ -226,13 +212,11 @@ describe('Router', () => {
     this.timeout(30000);
     const { host, router } = await setup();
 
-    router.goto('/baz@left+qux@right');
-    await waitForNavigation(router);
+    await goto('/baz@left+qux@right', router);
     expect(host.textContent).to.contain('Viewport: baz');
     expect(host.textContent).to.contain('Viewport: qux');
 
-    router.goto('/foo@left+bar@right');
-    await waitForNavigation(router);
+    await goto('/foo@left+bar@right', router);
     expect(host.textContent).to.contain('Viewport: baz');
     expect(host.textContent).to.contain('Viewport: qux');
     expect(host.textContent).to.not.contain('Viewport: foo');
@@ -245,8 +229,7 @@ describe('Router', () => {
     this.timeout(30000);
     const { host, router } = await setup();
 
-    router.goto('/foo@left+bar@right+baz@foo+qux@bar');
-    await waitForNavigation(router);
+    await goto('/foo@left+bar@right+baz@foo+qux@bar', router);
     expect(host.textContent).to.contain('Viewport: foo');
     expect(host.textContent).to.contain('Viewport: bar');
     expect(host.textContent).to.contain('Viewport: baz');
@@ -259,11 +242,11 @@ describe('Router', () => {
     this.timeout(30000);
     const { host, router } = await setup();
 
-    router.goto('/foo@left');
-    await waitForNavigation(router);
+    await goto('/foo@left', router);
     expect(host.textContent).to.contain('foo');
 
     host.getElementsByTagName('SPAN')[0].click();
+    await wait(100);
     await waitForNavigation(router);
     expect(host.textContent).to.contain('Viewport: baz');
 
@@ -274,12 +257,10 @@ describe('Router', () => {
     this.timeout(30000);
     const { host, router } = await setup();
 
-    router.goto('/corge@left');
-    await waitForNavigation(router);
+    await goto('/corge@left', router);
     expect(host.textContent).to.contain('Viewport: corge');
 
-    router.goto('/baz');
-    await waitForNavigation(router);
+    await goto('/baz', router);
     expect(host.textContent).to.contain('Viewport: baz');
 
     await teardown(host, router, 1);
@@ -289,9 +270,9 @@ describe('Router', () => {
     this.timeout(40000);
     const { host, router } = await setup();
 
-    router.goto('/foo@left');
-    router.goto('/bar@left');
-    router.goto('/baz@left');
+    await goto('/foo@left', router);
+    await goto('/bar@left', router);
+    await goto('/baz@left', router);
 
     await teardown(host, router, 4);
   });
@@ -300,13 +281,11 @@ describe('Router', () => {
     this.timeout(30000);
     const { host, router } = await setup();
 
-    router.goto('/bar@left=123');
-    await waitForNavigation(router);
+    await goto('/bar@left=123', router);
     expect(host.textContent).to.contain('Viewport: bar');
     expect(host.textContent).to.contain('Parameter id: [123]');
 
-    router.goto('/bar@left=456');
-    await waitForNavigation(router);
+    await goto('/bar@left=456', router);
     expect(host.textContent).to.contain('Viewport: bar');
     expect(host.textContent).to.contain('Parameter id: [456]');
 
@@ -317,13 +296,11 @@ describe('Router', () => {
     this.timeout(30000);
     const { host, router } = await setup();
 
-    router.goto('/bar@left=id=123');
-    await waitForNavigation(router);
+    await goto('/bar@left=id=123', router);
     expect(host.textContent).to.contain('Viewport: bar');
     expect(host.textContent).to.contain('Parameter id: [123]');
 
-    router.goto('/bar@left=id=456');
-    await waitForNavigation(router);
+    await goto('/bar@left=id=456', router);
     expect(host.textContent).to.contain('Viewport: bar');
     expect(host.textContent).to.contain('Parameter id: [456]');
 
@@ -334,13 +311,11 @@ describe('Router', () => {
     this.timeout(30000);
     const { host, router } = await setup();
 
-    router.goto('/bar@left=123');
-    await waitForNavigation(router);
+    await goto('/bar@left=123', router);
     expect(host.textContent).to.contain('Viewport: bar');
     expect(host.textContent).to.contain('Parameter id: [123]');
 
-    router.goto('/bar@right=456');
-    await waitForNavigation(router);
+    await goto('/bar@right=456', router);
     expect(host.textContent).to.contain('Viewport: bar');
     expect(host.textContent).to.contain('Parameter id: [123]');
     expect(host.textContent).to.contain('Parameter id: [456]');
@@ -352,12 +327,10 @@ describe('Router', () => {
     this.timeout(30000);
     const { host, router } = await setup();
 
-    router.goto('/corge@left');
-    await waitForNavigation(router);
+    await goto('/corge@left', router);
     expect(host.textContent).to.contain('Viewport: corge');
 
-    router.goto('/baz=123');
-    await waitForNavigation(router);
+    await goto('/baz=123', router);
     expect(host.textContent).to.contain('Viewport: baz');
     expect(host.textContent).to.contain('Parameter id: [123]');
 
@@ -368,12 +341,10 @@ describe('Router', () => {
     this.timeout(30000);
     const { host, router } = await setup();
 
-    router.goto('/corge@left');
-    await waitForNavigation(router);
+    await goto('/corge@left', router);
     expect(host.textContent).to.contain('Viewport: corge');
 
-    router.goto('/baz=id=123');
-    await waitForNavigation(router);
+    await goto('/baz=id=123', router);
     expect(host.textContent).to.contain('Viewport: baz');
     expect(host.textContent).to.contain('Parameter id: [123]');
 
@@ -384,14 +355,12 @@ describe('Router', () => {
     this.timeout(30000);
     const { host, router } = await setup();
 
-    router.goto('/bar@left=123&OneTwoThree');
-    await waitForNavigation(router);
+    await goto('/bar@left=123&OneTwoThree', router);
     expect(host.textContent).to.contain('Viewport: bar');
     expect(host.textContent).to.contain('Parameter id: [123]');
     expect(host.textContent).to.contain('Parameter name: [OneTwoThree]');
 
-    router.goto('/bar@left=456&FourFiveSix');
-    await waitForNavigation(router);
+    await goto('/bar@left=456&FourFiveSix', router);
     expect(host.textContent).to.contain('Viewport: bar');
     expect(host.textContent).to.contain('Parameter id: [456]');
     expect(host.textContent).to.contain('Parameter name: [FourFiveSix]');
@@ -403,14 +372,12 @@ describe('Router', () => {
     this.timeout(30000);
     const { host, router } = await setup();
 
-    router.goto('/bar@left=id=123&name=OneTwoThree');
-    await waitForNavigation(router);
+    await goto('/bar@left=id=123&name=OneTwoThree', router);
     expect(host.textContent).to.contain('Viewport: bar');
     expect(host.textContent).to.contain('Parameter id: [123]');
     expect(host.textContent).to.contain('Parameter name: [OneTwoThree]');
 
-    router.goto('/bar@left=name=FourFiveSix&id=456');
-    await waitForNavigation(router);
+    await goto('/bar@left=name=FourFiveSix&id=456', router);
     expect(host.textContent).to.contain('Viewport: bar');
     expect(host.textContent).to.contain('Parameter id: [456]');
     expect(host.textContent).to.contain('Parameter name: [FourFiveSix]');
@@ -422,13 +389,11 @@ describe('Router', () => {
     this.timeout(30000);
     const { host, router } = await setup();
 
-    router.goto('/bar@left?id=123');
-    await waitForNavigation(router);
+    await goto('/bar@left?id=123', router);
     expect(host.textContent).to.contain('Viewport: bar');
     expect(host.textContent).to.contain('Parameter id: [123]');
 
-    router.goto('/bar@left?id=456&name=FourFiveSix');
-    await waitForNavigation(router);
+    await goto('/bar@left?id=456&name=FourFiveSix', router);
     expect(host.textContent).to.contain('Viewport: bar');
     expect(host.textContent).to.contain('Parameter id: [456]');
     expect(host.textContent).to.contain('Parameter name: [FourFiveSix]');
@@ -440,22 +405,115 @@ describe('Router', () => {
     this.timeout(30000);
     const { host, router } = await setup();
 
-    router.goto('/bar@left=456?id=123');
-    await waitForNavigation(router);
+    await goto('/bar@left=456?id=123', router);
     expect(host.textContent).to.contain('Viewport: bar');
     expect(host.textContent).to.contain('Parameter id: [456]');
 
-    router.goto('/bar@left=456&FourFiveSix?id=123&name=OneTwoThree');
-    await waitForNavigation(router);
+    await goto('/bar@left=456&FourFiveSix?id=123&name=OneTwoThree', router);
     expect(host.textContent).to.contain('Viewport: bar');
     expect(host.textContent).to.contain('Parameter id: [456]');
     expect(host.textContent).to.contain('Parameter name: [FourFiveSix]');
 
-    router.goto('/bar@left=name=SevenEightNine&id=789?id=123&name=OneTwoThree');
-    await waitForNavigation(router);
+    await goto('/bar@left=name=SevenEightNine&id=789?id=123&name=OneTwoThree', router);
     expect(host.textContent).to.contain('Viewport: bar');
     expect(host.textContent).to.contain('Parameter id: [789]');
     expect(host.textContent).to.contain('Parameter name: [SevenEightNine]');
+
+    await teardown(host, router, 1);
+  });
+
+  it('loads default when added by if condition becoming true', async function () {
+    this.timeout(30000);
+    const { host, router } = await setup();
+
+    await goto('/grault@left', router);
+    expect(host.textContent).to.contain('toggle');
+    expect(host.textContent).to.not.contain('Viewport: grault');
+    expect(host.textContent).to.not.contain('garply');
+
+    (host as any).getElementsByTagName('INPUT')[0].click();
+    await Promise.resolve();
+    await waitForNavigation(router);
+    expect(host.textContent).to.contain('Viewport: grault');
+    expect(host.textContent).to.contain('garply');
+
+    (host as any).getElementsByTagName('INPUT')[0].click();
+    await Promise.resolve();
+    await waitForNavigation(router);
+    expect(host.textContent).to.not.contain('Viewport: grault');
+    expect(host.textContent).to.not.contain('garply');
+
+    (host as any).getElementsByTagName('INPUT')[0].click();
+    await Promise.resolve();
+    await waitForNavigation(router);
+    expect(host.textContent).to.contain('Viewport: grault');
+    expect(host.textContent).to.contain('garply');
+
+    await teardown(host, router, 1);
+  });
+
+  it('keeps input when stateful', async function () {
+    this.timeout(30000);
+    const { host, router } = await setup();
+
+    await goto('/grault@left', router);
+    expect(host.textContent).to.contain('toggle');
+    expect(host.textContent).to.not.contain('Viewport: grault');
+    expect(host.textContent).to.not.contain('garply');
+
+    (host as any).getElementsByTagName('INPUT')[0].click();
+    await Promise.resolve();
+    await waitForNavigation(router);
+    expect(host.textContent).to.contain('Viewport: grault');
+    expect(host.textContent).to.contain('garply');
+
+    (host as any).getElementsByTagName('INPUT')[1].value = 'asdf';
+
+    await goto('/corge@grault', router);
+
+    expect(host.textContent).to.not.contain('garply');
+    expect(host.textContent).to.contain('Viewport: corge');
+
+    await goto('/garply@grault', router);
+
+    expect(host.textContent).to.not.contain('Viewport: corge');
+    expect(host.textContent).to.contain('garply');
+
+    expect((host as any).getElementsByTagName('INPUT')[1].value).to.equal('asdf');
+
+    await teardown(host, router, 1);
+  });
+
+  it('keeps input when grandparent stateful', async function () {
+    this.timeout(30000);
+    const { host, router } = await setup();
+
+    await goto('/waldo@left', router);
+    expect(host.textContent).to.contain('Viewport: waldo');
+    expect(host.textContent).to.contain('toggle');
+    expect(host.textContent).to.not.contain('Viewport: grault');
+    expect(host.textContent).to.not.contain('garply');
+
+    (host as any).getElementsByTagName('INPUT')[0].click();
+    await Promise.resolve();
+    await waitForNavigation(router);
+    expect(host.textContent).to.contain('Viewport: grault');
+    expect(host.textContent).to.contain('garply');
+
+    (host as any).getElementsByTagName('INPUT')[1].value = 'asdf';
+
+    await goto('/foo@waldo', router);
+
+    expect(host.textContent).to.not.contain('Viewport: grault');
+    expect(host.textContent).to.contain('Viewport: foo');
+
+    await goto('/grault@waldo', router);
+
+    expect(host.textContent).to.not.contain('Viewport: corge');
+    expect(host.textContent).to.contain('Viewport: grault');
+    expect(host.textContent).to.contain('garply');
+
+    expect((host as any).getElementsByTagName('INPUT')[1].value).to.equal('asdf');
 
     await teardown(host, router, 1);
   });
@@ -465,24 +523,20 @@ describe('Router', () => {
     this.timeout(30000);
     const { host, router } = await setup();
 
-    router.goto('/quux@left');
-    await waitForNavigation(router);
+    await goto('/quux@left', router);
     expect(host.textContent).to.contain('Viewport: quux');
 
-    router.goto('/quux@quux!');
-    await waitForNavigation(router);
+    await goto('/quux@quux!', router);
     expect(host.textContent).to.contain('Viewport: quux');
 
-    router.goto('/quux@left/foo@quux!');
-    await waitForNavigation(router);
+    await goto('/quux@left/foo@quux!', router);
     expect(host.textContent).to.contain('Viewport: foo');
 
     host.getElementsByTagName('SPAN')[0].click();
     await waitForNavigation(router);
     expect(host.textContent).to.contain('Viewport: baz');
 
-    router.goto('/bar@left');
-    await waitForNavigation(router);
+    await goto('/bar@left', router);
     expect(host.textContent).to.contain('Viewport: bar');
     expect(host.textContent).to.not.contain('Viewport: quux');
 
@@ -525,7 +579,7 @@ describe('Router', () => {
     }
 
     async function $goto(router: Router, path: string) {
-      router.goto(`/${path}`);
+      await goto(`/${path}`, router);
 
       await waitForNavigation(router);
     }
@@ -746,7 +800,6 @@ describe('Router', () => {
     });
   });
   /////////
-
 });
 
 let quxCantLeave = 2;
@@ -786,9 +839,36 @@ const setup = async (): Promise<{ au; container; host; router }> => {
   const Quux = (CustomElementResource as any).define({ name: 'quux', template: '<template>Viewport: quux<au-viewport name="quux" scope></au-viewport></template>' });
   const Corge = (CustomElementResource as any).define({ name: 'corge', template: '<template>Viewport: corge<au-viewport name="corge" used-by="baz"></au-viewport></template>' });
 
+  const Uier = CustomElementResource.define({ name: 'uier', template: '<template>Viewport: uier</template>' }, class {
+    public async canEnter() {
+      await wait(500);
+      return true;
+    }
+  });
+
+  const Grault = (CustomElementResource as any).define(
+    {
+      name: 'grault', template: '<template><input type="checkbox" checked.two-way="toggle">toggle<div if.bind="toggle">Viewport: grault<au-viewport name="grault" stateful used-by="garply,corge" default="garply"></au-viewport></div></template>'
+    },
+    class {
+      public toggle = false;
+    });
+  const Garply = (CustomElementResource as any).define(
+    {
+      name: 'garply', template: '<template>garply<input checked.two-way="text">text</template>'
+    },
+    class {
+      public text;
+    });
+  const Waldo = (CustomElementResource as any).define(
+    {
+      name: 'waldo', template: '<template>Viewport: waldo<au-viewport name="waldo" stateful used-by="grault,foo" default="grault"></au-viewport></div></template>'
+    },
+    class { });
+
   container.register(Router as any);
   container.register(ViewportCustomElement as any);
-  registerComponent(container, Foo, Bar, Baz, Qux, Quux, Corge);
+  registerComponent(container, Foo, Bar, Baz, Qux, Quux, Corge, Uier, Grault, Garply, Waldo);
 
   const router = container.get(Router);
   const mockBrowserHistoryLocation = new MockBrowserHistoryLocation();
@@ -813,6 +893,11 @@ const teardown = async (host, router, count) => {
   router.deactivate();
 };
 
+const goto = async (path: string, router: Router) => {
+  await router.goto(path);
+  await waitForNavigation(router);
+}
+
 const wait = async (time = 500) => {
   await new Promise((resolve) => {
     setTimeout(resolve, time);
@@ -825,3 +910,4 @@ const waitForNavigation = async (router) => {
     await wait(100);
   }
 };
+

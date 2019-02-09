@@ -21,6 +21,7 @@ export {
 export {
   Class,
   Constructable,
+  ConstructableClass,
   Diff,
   ICallable,
   IDisposable,
@@ -29,6 +30,7 @@ export {
   Immutable,
   ImmutableArray,
   ImmutableObject,
+  InjectArray,
   Injectable,
   InterfaceSymbol,
   IPerformance,
@@ -56,6 +58,13 @@ export {
   ValuesOf,
   Writable
 } from './interfaces';
+export {
+  relativeToFile,
+  join,
+  buildQueryString,
+  parseQueryString,
+  IQueryParams
+} from './path';
 export { PLATFORM } from './platform';
 export {
   ITraceInfo,

@@ -24,25 +24,15 @@ const commonChromeFlags = [
   '--no-default-browser-check',
   '--no-first-run',
   '--no-managed-user-acknowledgment-check',
-  '--no-pings',
-  '--no-sandbox',
-  '--no-wifi',
-  '--no-zygote',
-  '--disable-background-networking',
   '--disable-background-timer-throttling',
   '--disable-backing-store-limit',
   '--disable-boot-animation',
-  '--disable-breakpad',
-  '--disable-cache',
-  '--disable-clear-browsing-data-counters',
   '--disable-cloud-import',
-  '--disable-component-extensions-with-background-pages',
   '--disable-contextual-search',
   '--disable-default-apps',
   '--disable-extensions',
   '--disable-infobars',
-  '--disable-translate',
-  '--disable-sync'
+  '--disable-translate'
 ];
 
 export default function(config: IKarmaConfig): void {
@@ -112,7 +102,7 @@ export default function(config: IKarmaConfig): void {
     mime: {
       'text/x-typescript': ['ts']
     },
-    reporters: ['junit', config.reporter || 'progress'],
+    reporters: ['junit', config.reporter || 'min'],
     webpackMiddleware: {
       stats: {
         colors: true,

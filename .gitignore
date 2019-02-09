@@ -8,7 +8,10 @@ TESTS-*.xml
 **/dist
 **/*.tgz
 /test/**/coverage
+/build
 
 **/debug.log
 **/npm-debug.log
 **/lerna-debug.log
+
+test/cypress/integration/examples

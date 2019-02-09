@@ -10,7 +10,6 @@ describe('Lifecycle', () => {
 
     const linkedListProps = [
       'flush',
-      'connect',
       'bound',
       'mount',
       'attached',
@@ -42,7 +41,6 @@ describe('Lifecycle', () => {
 
     const functionProps = [
       'flush',
-      'connect',
       'bound',
       '$mount',
       'attached',
@@ -58,7 +56,6 @@ describe('Lifecycle', () => {
 
     const objectProps = [
       '$nextFlush',
-      '$nextConnect',
       '$nextBound',
       '$nextMount',
       '$nextAttached',

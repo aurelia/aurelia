@@ -10,12 +10,10 @@ import {
   Registration,
   Tracer
 } from '@aurelia/kernel';
-import { IConnectableBinding } from './binding/connectable';
 import { ITargetedInstruction, TemplateDefinition, TemplatePartDefinitions } from './definitions';
 import { INode, INodeSequence, IRenderLocation } from './dom';
 import { Hooks, LifecycleFlags, State } from './flags';
 import { IChangeTracker, IOverrideContext, IPatchable, IScope, ObserversLookup } from './observation';
-import { patchProperties } from './observation/patch-properties';
 
 const slice = Array.prototype.slice;
 export interface IState {
@@ -331,7 +329,6 @@ export interface ILifecycle {
    */
   enqueueFlush(requestor: IChangeTracker): Promise<void>;
 
-  processConnectQueue(flags: LifecycleFlags): void;
   processBindQueue(flags: LifecycleFlags): void;
   processUnbindQueue(flags: LifecycleFlags): void;
 
@@ -352,15 +349,6 @@ export interface ILifecycle {
    * adding it once.
    */
   enqueueBound(requestor: ILifecycleHooks): void;
-
-  /**
-   * Add a `connect` callback to the queue, to be invoked *after* mounting and *before*
-   * `detached` callbacks.
-   *
-   * This method is idempotent; adding the same item more than once has the same effect as
-   * adding it once.
-   */
-  enqueueConnect(requestor: IConnectableBinding): void;
 
   /**
    * Close / shrink a bind batch for invoking queued `bound` callbacks.
@@ -509,9 +497,6 @@ export class Lifecycle implements ILifecycle {
   /** @internal */public flushHead: IChangeTracker;
   /** @internal */public flushTail: IChangeTracker;
 
-  /** @internal */public connectHead: IConnectableBinding;
-  /** @internal */public connectTail: IConnectableBinding;
-
   /** @internal */public boundHead: ILifecycleHooks;
   /** @internal */public boundTail: ILifecycleHooks;
 
@@ -537,7 +522,6 @@ export class Lifecycle implements ILifecycle {
   /** @internal */public promise: Promise<void>;
 
   /** @internal */public flushCount: number;
-  /** @internal */public connectCount: number;
   /** @internal */public patchCount: number;
   /** @internal */public boundCount: number;
   /** @internal */public mountCount: number;
@@ -552,8 +536,6 @@ export class Lifecycle implements ILifecycle {
   // in the chain and removes the need for an additional null check on each addition.
   /** @internal */public $nextFlush: IChangeTracker;
   /** @internal */public flush: IChangeTracker['flush'];
-  /** @internal */public $nextConnect: IConnectableBinding;
-  /** @internal */public connect: IConnectableBinding['connect'];
   /** @internal */public $nextBound: ILifecycleHooks;
   /** @internal */public bound: ILifecycleHooks['bound'];
   /** @internal */public $nextMount: IMountableComponent;
@@ -581,9 +563,6 @@ export class Lifecycle implements ILifecycle {
     this.flushHead = this;
     this.flushTail = this;
 
-    this.connectHead = this as unknown as IConnectableBinding; // this cast is safe because we know exactly which properties we'll use
-    this.connectTail = this as unknown as IConnectableBinding;
-
     this.boundHead = this;
     this.boundTail = this;
 
@@ -609,7 +588,6 @@ export class Lifecycle implements ILifecycle {
     this.promise = Promise.resolve();
 
     this.flushCount = 0;
-    this.connectCount = 0;
     this.patchCount = 0;
     this.boundCount = 0;
     this.mountCount = 0;
@@ -621,8 +599,6 @@ export class Lifecycle implements ILifecycle {
 
     this.$nextFlush = marker;
     this.flush = PLATFORM.noop;
-    this.$nextConnect = marker;
-    this.connect = PLATFORM.noop;
     this.$nextBound = marker;
     this.bound = PLATFORM.noop;
     this.$nextMount = marker;
@@ -722,41 +698,6 @@ export class Lifecycle implements ILifecycle {
       this.boundTail.$nextBound = requestor;
       this.boundTail = requestor;
       ++this.boundCount;
-    }
-    if (Tracer.enabled) { Tracer.leave(); }
-  }
-
-  public enqueueConnect(requestor: IConnectableBinding): void {
-    if (Tracer.enabled) { Tracer.enter('Lifecycle', 'enqueueConnect', slice.call(arguments)); }
-    // enqueue connect and patch calls in separate lists so that they can be invoked
-    // independently from eachother
-    // TODO: see if we can eliminate/optimize some of this, because this is a relatively hot path
-    // (first get all the necessary integration tests working, then look for optimizations)
-
-    // build a standard singly linked list for connect callbacks
-    if (requestor.$nextConnect === null) {
-      requestor.$nextConnect = marker;
-      this.connectTail.$nextConnect = requestor;
-      this.connectTail = requestor;
-      ++this.connectCount;
-    }
-    if (Tracer.enabled) { Tracer.leave(); }
-  }
-
-  public processConnectQueue(flags: LifecycleFlags): void {
-    if (Tracer.enabled) { Tracer.enter('Lifecycle', 'processConnectQueue', slice.call(arguments)); }
-    // connects cannot lead to additional connects, so we don't need to loop here
-    if (this.connectCount > 0) {
-      this.connectCount = 0;
-      let current = this.connectHead.$nextConnect;
-      this.connectHead = this.connectTail = this as unknown as IConnectableBinding;
-      let next: typeof current;
-      do {
-        current.connect(flags);
-        next = current.$nextConnect;
-        current.$nextConnect = null;
-        current = next;
-      } while (current !== marker);
     }
     if (Tracer.enabled) { Tracer.leave(); }
   }
@@ -935,13 +876,6 @@ export class Lifecycle implements ILifecycle {
         currentMount = nextMount;
       } while (currentMount !== marker);
     }
-    // Connect all connect-queued bindings AFTER mounting is done, so that the DOM is visible asap,
-    // but connect BEFORE running the attached callbacks to ensure any changes made during those callbacks
-    // are still accounted for.
-    // TODO: add a flag/option to further delay connect with a RAF callback (the tradeoff would be that we'd need
-    // to run an additional patch cycle before that connect, which can be expensive and unnecessary in most real
-    // world scenarios, but can significantly speed things up with nested, highly volatile data like in dbmonster)
-    this.processConnectQueue(LifecycleFlags.mustEvaluate);
 
     if (this.attachedCount > 0) {
       this.attachedCount = 0;

@@ -8,7 +8,8 @@
       "mocha",
       "chai",
       "sinon",
-      "sinon-chai"
+      "sinon-chai",
+      "webpack-env"
     ]
   }
 }

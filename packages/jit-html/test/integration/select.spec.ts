@@ -48,25 +48,25 @@ describe('select', () => {
       const select2: HTMLSelectElement = host.querySelector('#select2');
       const select3: HTMLSelectElement = host.querySelector('#select3');
       // Inititally, <select/>s are not affected by view model values
-      // expect(select1.value).to.equal('1');
-      // expect(select2.value).to.equal('1');
-      // expect(select3.value).to.equal('3');
+      // expect(select1.value, `select1.value`).to.equal('1');
+      // expect(select2.value, `select2.value`).to.equal('1');
+      // expect(select3.value, `select3.value`).to.equal('3');
       // lifecycle.flush(LF.none);
       // after flush changes, view model value should propagate to <select/>s
-      expect(select1.value).to.equal('2');
-      expect(select2.value).to.equal('2');
+      expect(select1.value, `select1.value`).to.equal('2');
+      expect(select2.value, `select2.value`).to.equal('2');
       // vCurrent does not attempt to correct <select/> value
       // vNext shouldn't for compat
-      expect(select3.value).to.equal('3');
+      expect(select3.value, `select3.value`).to.equal('3');
       const observer3 = observerLocator.getObserver(LF.none, select3, 'value') as SelectValueObserver;
-      expect(observer3.currentValue).to.equal('2');
+      expect(observer3.currentValue, `observer3.currentValue`).to.equal('2');
 
       // expect no state changes after flushing
       lifecycle.processFlushQueue(LF.none);
-      expect(select1.value).to.equal('2');
-      expect(select2.value).to.equal('2');
-      expect(select3.value).to.equal('3');
-      expect(observer3.currentValue).to.equal('2');
+      expect(select1.value, `select1.value`).to.equal('2');
+      expect(select2.value, `select2.value`).to.equal('2');
+      expect(select3.value, `select3.value`).to.equal('3');
+      expect(observer3.currentValue, `observer3.currentValue`).to.equal('2');
 
       tearDown(au, lifecycle, host);
     });
@@ -97,33 +97,33 @@ describe('select', () => {
       const select1: HTMLSelectElement = host.querySelector('#select1');
       const select2: HTMLSelectElement = host.querySelector('#select2');
       const select3: HTMLSelectElement = host.querySelector('#select3');
-      //expect(component.selectedValue).to.equal('2');
+      //expect(component.selectedValue, `component.selectedValue`).to.equal('2');
       // Inititally, <select/>s are not affected by view model values
-      // expect(select1.value).to.equal('1');
-      // expect(select2.value).to.equal('1');
-      // expect(select3.value).to.equal('3');
+      // expect(select1.value, `select1.value`).to.equal('1');
+      // expect(select2.value, `select2.value`).to.equal('1');
+      // expect(select3.value, `select3.value`).to.equal('3');
       // lifecycle.flush(LF.none);
-      expect(component.selectedValue).to.equal('2');
+      expect(component.selectedValue, `component.selectedValue #1`).to.equal('2');
 
       // Verify observer 3 will take the view model value, regardless valid value from view model
       const observer3 = observerLocator.getObserver(LF.none, select3, 'value') as SelectValueObserver;
-      expect(observer3.currentValue).to.equal('2');
+      expect(observer3.currentValue, `observer3.currentValue #2`).to.equal('2');
 
       // simulate change from under input
       select2.value = '1';
       select2.dispatchEvent(new ctx.CustomEvent('change', { bubbles: true }));
 
-      expect(component.selectedValue).to.equal('1');
+      expect(component.selectedValue, `component.selectedValue #3`).to.equal('1');
       const observer1 = observerLocator.getObserver(LF.none, select1, 'value') as SelectValueObserver;
-      expect(observer1.currentValue).to.equal('1');
+      expect(observer1.currentValue, `observer1.currentValue #4`).to.equal('1');
       // verify observer 3 will take the view model value from changes, regardless valid value from view model
-      expect(observer3.currentValue).to.equal('1');
+      expect(observer3.currentValue, `observer3.currentValue #5`).to.equal('1');
 
       // expect no state changes after flushing
       lifecycle.processFlushQueue(LF.none);
-      expect(component.selectedValue).to.equal('1');
-      expect(observer1.currentValue).to.equal('1');
-      expect(observer3.currentValue).to.equal('1');
+      expect(component.selectedValue, `component.selectedValue #6`).to.equal('1');
+      expect(observer1.currentValue, `observer1.currentValue #7`).to.equal('1');
+      expect(observer3.currentValue, `observer3.currentValue #8`).to.equal('1');
 
       tearDown(au, lifecycle, host);
     });
@@ -167,24 +167,24 @@ describe('select', () => {
       const observer1 = observerLocator.getObserver(LF.none, select1, 'value') as SelectValueObserver;
       const observer2 = observerLocator.getObserver(LF.none, select2, 'value') as SelectValueObserver;
       const observer3 = observerLocator.getObserver(LF.none, select3, 'value') as SelectValueObserver;
-      expect(observer1.currentValue).to.equal(component.selectedValues);
-      expect(observer2.currentValue).to.equal(component.selectedValues);
-      expect(observer3.currentValue).to.equal(component.selectedValues);
+      expect(observer1.currentValue, `observer1.currentValue`).to.equal(component.selectedValues);
+      expect(observer2.currentValue, `observer2.currentValue`).to.equal(component.selectedValues);
+      expect(observer3.currentValue, `observer3.currentValue`).to.equal(component.selectedValues);
       lifecycle.processFlushQueue(LF.none);
       const options = host.querySelectorAll('option');
       options.forEach(optionA => {
-        expect(optionA.selected).to.be[component.selectedValues.includes(optionA.value) ? 'true' : 'false'];
+        expect(optionA.selected, `optionA.selected`).to.be[component.selectedValues.includes(optionA.value) ? 'true' : 'false'];
       });
       component.selectedValues = [];
       lifecycle.processFlushQueue(LF.none);
       options.forEach(optionB => {
-        expect(optionB.selected).to.equal(false);
+        expect(optionB.selected, `optionB.selected`).to.equal(false);
       });
 
       // expect no state changes after flushing
       lifecycle.processFlushQueue(LF.none);
       options.forEach(optionC => {
-        expect(optionC.selected).to.equal(false);
+        expect(optionC.selected, `optionC.selected`).to.equal(false);
       });
 
       tearDown(au, lifecycle, host);
@@ -225,32 +225,32 @@ describe('select', () => {
       const observer1 = observerLocator.getObserver(LF.none, select1, 'value') as SelectValueObserver;
       const observer2 = observerLocator.getObserver(LF.none, select2, 'value') as SelectValueObserver;
       const observer3 = observerLocator.getObserver(LF.none, select3, 'value') as SelectValueObserver;
-      expect(observer1.currentValue).to.equal(component.selectedValues);
-      expect(observer2.currentValue).to.equal(component.selectedValues);
-      expect(observer3.currentValue).to.equal(component.selectedValues);
+      expect(observer1.currentValue, `observer1.currentValue`).to.equal(component.selectedValues);
+      expect(observer2.currentValue, `observer2.currentValue`).to.equal(component.selectedValues);
+      expect(observer3.currentValue, `observer3.currentValue`).to.equal(component.selectedValues);
       lifecycle.processFlushQueue(LF.none);
       const options = host.querySelectorAll('option');
       options.forEach(option1 => {
-        expect(option1.selected).to.be[component.selectedValues.includes(option1.value) ? 'true' : 'false'];
+        expect(option1.selected, `option1.selected`).to.be[component.selectedValues.includes(option1.value) ? 'true' : 'false'];
       });
       component.selectedValues = [];
       lifecycle.processFlushQueue(LF.none);
       options.forEach(option2 => {
-        expect(option2.selected).to.equal(false);
+        expect(option2.selected, `option2.selected`).to.equal(false);
       });
 
       [].forEach.call(select3.options, (option3: HTMLOptionElement) => {
         option3.selected = true;
       });
       select3.dispatchEvent(new ctx.CustomEvent('change', { bubbles: true }));
-      expect(component.selectedValues.toString()).to.equal(['8', '9', '10', '11', '12'].toString());
+      expect(component.selectedValues.toString(), `component.selectedValues.toString()`).to.equal(['8', '9', '10', '11', '12'].toString());
       [].forEach.call(select2.options, (option4: HTMLOptionElement) => {
         option4.selected = true;
       });
 
       // expect no state changes after flushing
       lifecycle.processFlushQueue(LF.none);
-      expect(component.selectedValues.toString()).to.equal(['8', '9', '10', '11', '12'].toString());
+      expect(component.selectedValues.toString(), `component.selectedValues.toString()`).to.equal(['8', '9', '10', '11', '12'].toString());
       [].forEach.call(select2.options, (option5: HTMLOptionElement) => {
         option5.selected = true;
       });
@@ -271,12 +271,12 @@ describe('select', () => {
       ),
       null
     );
-    expect(host.firstElementChild['value']).to.equal('1');
+    expect(host.firstElementChild['value'], `host.firstElementChild['value']`).to.equal('1');
     component.selectedValue = '2';
-    expect(host.firstElementChild['value']).to.equal('1');
+    expect(host.firstElementChild['value'], `host.firstElementChild['value']`).to.equal('1');
     lifecycle.processFlushQueue(LF.none);
-    expect(host.firstElementChild['value']).to.equal('2');
-    expect(host.firstElementChild.childNodes.item(1)['selected']).to.equal(true);
+    expect(host.firstElementChild['value'], `host.firstElementChild['value']`).to.equal('2');
+    expect(host.firstElementChild.childNodes.item(1)['selected'], `host.firstElementChild.childNodes.item(1)['selected']`).to.equal(true);
     tearDown(au, lifecycle, host);
   });
 
@@ -293,11 +293,11 @@ describe('select', () => {
       ),
       null
     );
-    expect(component.selectedValue).to.equal(undefined);
+    expect(component.selectedValue, `component.selectedValue`).to.equal(undefined);
     host.firstChild.childNodes.item(1)['selected'] = true;
-    expect(component.selectedValue).to.equal(undefined);
+    expect(component.selectedValue, `component.selectedValue`).to.equal(undefined);
     host.firstChild.dispatchEvent(new ctx.CustomEvent('change'));
-    expect(component.selectedValue).to.equal('2');
+    expect(component.selectedValue, `component.selectedValue`).to.equal('2');
     tearDown(au, lifecycle, host);
   });
 

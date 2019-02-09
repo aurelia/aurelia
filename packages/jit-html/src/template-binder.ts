@@ -102,7 +102,7 @@ export class TemplateBinder {
       }
       const attrInfo = this.resources.getAttributeInfo(attrSyntax);
       if (attrInfo === null) {
-        this.bindPlainAttribute(attrSyntax);
+        this.bindPlainAttribute(attrSyntax, attr);
       } else if (attrInfo.isTemplateController) {
         if (Profiler.enabled) { leave(); }
         throw new Error('Cannot have template controller on surrogate element.');
@@ -239,7 +239,7 @@ export class TemplateBinder {
 
       if (attrInfo === null) {
         // it's not a custom attribute but might be a regular bound attribute or interpolation (it might also be nothing)
-        this.bindPlainAttribute(attrSyntax);
+        this.bindPlainAttribute(attrSyntax, attr);
       } else if (attrInfo.isTemplateController) {
         // the manifest is wrapped by the inner-most template controller (if there are multiple on the same element)
         // so keep setting manifest.templateController to the latest template controller we find
@@ -404,7 +404,7 @@ export class TemplateBinder {
     if (Tracer.enabled) { Tracer.leave(); }
   }
 
-  private bindPlainAttribute(attrSyntax: AttrSyntax): void {
+  private bindPlainAttribute(attrSyntax: AttrSyntax, attr: Attr): void {
     if (Tracer.enabled) { Tracer.enter('TemplateBinder', 'bindPlainAttribute', slice.call(arguments)); }
 
     if (attrSyntax.rawValue.length === 0) {
@@ -437,6 +437,11 @@ export class TemplateBinder {
       // any attributes, even if they are plain (no command/interpolation etc), should be added if they
       // are on the surrogate element
       manifest.attributes.push(new PlainAttributeSymbol(attrSyntax, command, expr));
+    }
+
+    if (command === null && expr !== null) {
+      // if it's an interpolation, clear the attribute value
+      attr.value = '';
     }
 
     if (Tracer.enabled) { Tracer.leave(); }

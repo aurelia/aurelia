@@ -128,7 +128,7 @@ describe('ValueAttributeObserver', () => {
               expect(sut.getValue()).to.equal(expectedValueBefore, 'sut.getValue() 1');
               if (expectedValueBefore !== '') {
                 callCount++;
-                expect(subscriber.handleChange).to.have.been.calledWith(expectedValueBefore, sut.defaultValue, LF.updateSourceExpression | LF.fromDOMEvent);
+                expect(subscriber.handleChange).to.have.been.calledWith(expectedValueBefore, sut.defaultValue, LF.fromDOMEvent);
               }
 
               el.value = valueAfter;
@@ -137,7 +137,7 @@ describe('ValueAttributeObserver', () => {
               expect(sut.getValue()).to.equal(expectedValueAfter, 'sut.getValue() 2');
               if (expectedValueBefore !== expectedValueAfter) {
                 callCount++;
-                expect(subscriber.handleChange).to.have.been.calledWith(expectedValueAfter, expectedValueBefore, LF.updateSourceExpression | LF.fromDOMEvent);
+                expect(subscriber.handleChange).to.have.been.calledWith(expectedValueAfter, expectedValueBefore, LF.fromDOMEvent);
               }
               expect((subscriber.handleChange as SinonSpy).getCalls().length).to.equal(callCount);
 

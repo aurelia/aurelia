@@ -525,7 +525,7 @@ function createCustomElement(ctx: HTMLTestContext, tagName: string, finalize: bo
     template: finalize ? `<div>${rawMarkup}</div>` : rawMarkup,
     instructions: []
   };
-  const outputMarkup = ctx.createElementFromMarkup(`<${tagName} ${attributeMarkup}>${(childOutput && childOutput.template.outerHTML) || ''}</${tagName}>`);
+  const outputMarkup = ctx.createElementFromMarkup(`<${tagName} ${attributeMarkup.replace(/\$\{.*\}/, '')}>${(childOutput && childOutput.template.outerHTML) || ''}</${tagName}>`);
   outputMarkup.classList.add('au');
   const output = {
     template: finalize ? ctx.createElementFromMarkup(`<template><div>${outputMarkup.outerHTML}</div></template>`) : outputMarkup,

@@ -75,7 +75,18 @@ export type Class<T, C = IIndexable> = C & {
   new(...args: unknown[]): T;
 };
 
+// For resources, we want the 'constructor' property to remain on the instance type but we need to do that
+// with a separate type from Class, since that one is used for other things where this constructor property
+// would break the typings.
+// So, in lack of a better name.. we probably need to clean this up, but this is how it works for now.
+export type ConstructableClass<T, C = IIndexable> = C & {
+  readonly prototype: T & { constructor: C };
+  new(...args: unknown[]): T & { constructor: C };
+};
+
 export type InterfaceSymbol<T = unknown> = (target: Injectable<T>, property: string, index: number) => any;
+
+export type InjectArray = ReadonlyArray<InterfaceSymbol | Constructable | string>;
 
 export type Injectable<T = {}> = Constructable<T> & { inject?: (InterfaceSymbol|Constructable)[] };
 

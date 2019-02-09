@@ -1,24 +1,40 @@
 import { inject } from '@aurelia/kernel';
-import { customElement, ICustomElementType } from '@aurelia/runtime';
+import { customElement } from '@aurelia/runtime';
 import { Router } from '../../../../../router/src/index';
 import { About } from './components/about';
 import { Authors } from './components/authors/authors';
 import { Books } from './components/books/books';
+import { AuthorsRepository } from './repositories/authors';
+import { State } from './state';
 
-@inject(Router)
+@inject(Router, AuthorsRepository, State)
 @customElement({
   name: 'app', template:
     `<template>
-  <div style="padding: 20px;">
-    <au-nav name="app-menu"></au-nav>
+  <div class="\${router.isNavigating ? 'routing' : ''}">
+    <div>
+      <au-nav name="app-menu"></au-nav>
+      <span class="loader \${router.isNavigating ? 'routing' : ''}">&nbsp;</span>
+    </div>
+    <div class="info">
+      In this test, the <i>Authors</i> list and <i>Author</i> component have a 2 second wait/delay on <pre>enter</pre>,
+      the <i>About</i> component has a 4 second delay on <pre>enter</pre> and <i>Author details</i> stops navigation
+      in <pre>canEnter</pre>. (Meaning that <i>Author</i> can't be opened since it has <i>Author details</i> as default
+      and the navigation is rolled back after 2 seconds.)
+    </div>
+    <div class="info">
+    <label><input type="checkbox" checked.two-way="state.noDelay">Disable loading delays for components</label><br>
+    <label><input type="checkbox" checked.two-way="state.allowEnterAuthorDetails">Allow entering <i>Author details</i></label><br>
+    </div>
     <au-viewport name="lists" used-by="authors,books" default="authors"></au-viewport>
-    <au-viewport name="content" default="about"></au-viewport>
+    <au-viewport name="content" stateful default="about"></au-viewport>
     <au-viewport name="chat" used-by="chat" no-link no-history></au-viewport>
   </div>
 </template>
 ` })
 export class App {
-  constructor(private readonly router: Router) {
+  constructor(private readonly router: Router, authorsRepository: AuthorsRepository, private readonly state: State) {
+    authorsRepository.authors(); // Only here to initialize repositories
     this.router.activate({
       // transformFromUrl: (path, router) => {
       //   if (!path.length) {
@@ -28,7 +44,7 @@ export class App {
       //     path = path.slice(1);
       //   }
       //   // Fetch components for the "lists" viewport
-      //   const listsComponents = router.rootScope.viewports.lists.options.usedBy.split(',');
+      //   const listsComponents = router.rootScope.viewports().lists.options.usedBy.split(',');
       //   const states = [];
       //   const parts = path.split('/');
       //   while (parts.length) {

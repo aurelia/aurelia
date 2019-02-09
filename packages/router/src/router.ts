@@ -1,4 +1,4 @@
-import { IContainer, InterfaceSymbol } from '@aurelia/kernel';
+import { IContainer, InterfaceSymbol, Reporter } from '@aurelia/kernel';
 import { Aurelia, ICustomElementType, IRenderContext } from '@aurelia/runtime';
 import { HistoryBrowser, IHistoryOptions, INavigationInstruction } from './history-browser';
 import { AnchorEventInfo, LinkHandler } from './link-handler';
@@ -49,8 +49,6 @@ export interface IRouteSeparators {
 export class Router {
   public static readonly inject: ReadonlyArray<InterfaceSymbol> = [IContainer];
 
-  public viewports: Record<string, Viewport> = {};
-
   public rootScope: Scope;
   public scopes: Scope[] = [];
 
@@ -70,15 +68,20 @@ export class Router {
 
   private readonly pendingNavigations: INavigationInstruction[] = [];
   private processingNavigation: INavigationInstruction = null;
+  private lastNavigation: INavigationInstruction = null;
 
   constructor(public container: IContainer) {
     this.historyBrowser = new HistoryBrowser();
     this.linkHandler = new LinkHandler();
   }
 
+  public get isNavigating(): boolean {
+    return this.processingNavigation !== null;
+  }
+
   public activate(options?: IRouterOptions): Promise<void> {
     if (this.isActive) {
-      throw new Error('Router has already been activated.');
+      throw Reporter.error(2001);
     }
 
     this.isActive = true;
@@ -109,11 +112,10 @@ export class Router {
 
   public deactivate(): void {
     if (!this.isActive) {
-      throw new Error('Router has not been activated.');
+      throw Reporter.error(2000);
     }
     this.linkHandler.deactivate();
     this.historyBrowser.deactivate();
-    return;
   }
 
   public linkCallback = (info: AnchorEventInfo): void => {
@@ -151,7 +153,7 @@ export class Router {
 
     if (instruction.isCancel) {
       this.processingNavigation = null;
-      return Promise.resolve();
+      return this.processNavigations();
     }
 
     let clearViewports: boolean = false;
@@ -192,16 +194,15 @@ export class Router {
 
     if (!views && !Object.keys(views).length && !clearViewports) {
       this.processingNavigation = null;
-      return Promise.resolve();
+      return this.processNavigations();
     }
 
     if (title) {
-      this.historyBrowser.setEntryTitle(title);
+      await this.historyBrowser.setEntryTitle(title);
     }
 
-    this.ensureRootScope();
-    const usedViewports = (clearViewports ? this.rootScope.allViewports().filter((value) => value.component !== null) : []);
-    const defaultViewports = this.rootScope.allViewports().filter((value) => value.options.default && value.component === null);
+    const usedViewports = (clearViewports ? this.allViewports().filter((value) => value.content.component !== null) : []);
+    const defaultViewports = this.allViewports().filter((value) => value.options.default && value.content.component === null);
 
     const updatedViewports: Viewport[] = [];
 
@@ -211,7 +212,7 @@ export class Router {
     while (componentViewports.length || viewportsRemaining || defaultViewports.length) {
       // Guard against endless loop
       if (!guard--) {
-        throw new Error('Failed to resolve all viewports');
+        throw Reporter.error(2002);
       }
       const changedViewports: Viewport[] = [];
       for (const componentViewport of componentViewports) {
@@ -245,15 +246,15 @@ export class Router {
       // we need to remove the added history entry for the redirect
       // TODO: Take care of empty subsets/iterations where previous has length
       if (!changedViewports.length && this.isRedirecting) {
-        this.historyBrowser.cancel();
+        const result = this.cancelNavigation([...changedViewports, ...updatedViewports], instruction);
         this.isRedirecting = false;
+        await this.processNavigations();
+        return result;
       }
 
       let results = await Promise.all(changedViewports.map((value) => value.canLeave()));
       if (results.findIndex((value) => value === false) >= 0) {
-        this.historyBrowser.cancel();
-        this.processingNavigation = null;
-        return Promise.resolve();
+        return this.cancelNavigation([...changedViewports, ...updatedViewports], instruction);
       }
       results = await Promise.all(changedViewports.map(async (value) => {
         const canEnter = await value.canEnter();
@@ -264,29 +265,38 @@ export class Router {
             return false;
           }
         }
-        // TODO: Deal with redirects
+        for (const cvp of canEnter) {
+          // TODO: Abort content change in the viewports
+          this.addProcessingViewport(cvp.component, cvp.viewport);
+        }
+        value.abortContentChange().catch(error => { throw error; });
         return true;
       }));
       if (results.some(result => result === false)) {
-        this.historyBrowser.cancel();
-        this.processingNavigation = null;
-        return Promise.resolve();
+        return this.cancelNavigation([...changedViewports, ...updatedViewports], instruction);
       }
-      await Promise.all(changedViewports.map((value) => value.loadContent()));
+
+      // TODO: Should it be kept here?
+      // await Promise.all(changedViewports.map((value) => value.loadContent()));
+
       // TODO: Remove this once multi level recursiveness has been fixed
       // results = await Promise.all(changedViewports.map((value) => value.loadContent()));
       // if (results.findIndex((value) => value === false) >= 0) {
-      //   this.historyBrowser.cancel();
-      //   return Promise.resolve();
+      //   return this.historyBrowser.cancel();
       // }
 
-      updatedViewports.push(...changedViewports);
+      for (const viewport of changedViewports) {
+        if (!updatedViewports.find((value) => value === viewport)) {
+          updatedViewports.push(viewport);
+        }
+      }
 
       // TODO: Fix multi level recursiveness!
       const remaining = this.rootScope.findViewports();
       componentViewports = [];
       let addedViewport: IComponentViewport;
       while (addedViewport = this.addedViewports.shift()) {
+        // TODO: Should this overwrite instead? I think so.
         if (!remaining.componentViewports.find((value) => value.viewport === addedViewport.viewport)) {
           componentViewports.push(addedViewport);
         }
@@ -295,81 +305,39 @@ export class Router {
       viewportsRemaining = remaining.viewportsRemaining;
     }
 
-    this.replacePaths(instruction);
+    await Promise.all(updatedViewports.map((value) => value.loadContent()));
+    await this.replacePaths(instruction);
 
     // Remove history entry if no history viewports updated
-    if (!instruction.isFirst && updatedViewports.every(viewport => viewport.options.noHistory)) {
-      this.historyBrowser.pop().catch(error => { throw error; });
+    if (!instruction.isFirst && !instruction.isRepeat && updatedViewports.every(viewport => viewport.options.noHistory)) {
+      await this.historyBrowser.pop();
     }
 
     updatedViewports.forEach((viewport) => {
       viewport.finalizeContentChange();
     });
+    this.lastNavigation = this.processingNavigation;
+    if (this.lastNavigation.isRepeat) {
+      this.lastNavigation.isRepeat = false;
+    }
     this.processingNavigation = null;
 
-    if (this.pendingNavigations.length) {
+    this.processNavigations().catch(error => { throw error; });
+  }
+
+  public addProcessingViewport(component: string | ICustomElementType, viewport: Viewport | string): void {
+    if (this.processingNavigation) {
+      if (typeof viewport === 'string') {
+        // TODO: Deal with not yet existing viewports
+        viewport = this.allViewports().find((vp) => vp.name === viewport);
+      }
+      this.addedViewports.push({ viewport: viewport, component: component });
+    } else if (this.lastNavigation) {
+      this.pendingNavigations.unshift({ path: '', fullStatePath: '', isRepeat: true });
+      // Don't wait for the (possibly slow) navigation
       this.processNavigations().catch(error => { throw error; });
     }
   }
-
-  public addProcessingViewport(viewport: Viewport, component: string): void {
-    if (this.processingNavigation) {
-      this.addedViewports.push({ viewport: viewport, component: component });
-    }
-  }
-
-  // public view(views: string | Record<string, Viewport>, title?: string, data?: Record<string, unknown>): Promise<void> {
-  //   console.log('Router.view:', views, title, data);
-
-  // tslint:disable-next-line:no-commented-code
-  //   if (title) {
-  //     this.historyBrowser.setEntryTitle(title);
-  //   }
-
-  // tslint:disable-next-line:no-commented-code
-  //   const viewports: Viewport[] = [];
-  //   for (const v in views) {
-  //     const component: ICustomElementType = views[v];
-  //     const viewport = this.findViewport(`${v}:${component}`);
-  //     if (viewport.setNextContent(component, { path: '' })) {
-  //       viewports.push(viewport);
-  //     }
-  //   }
-
-  // tslint:disable-next-line:no-commented-code
-  //   // We've gone via a redirected route back to same viewport status so
-  //   // we need to remove the added history entry for the redirect
-  //   if (!viewports.length && this.isRedirecting) {
-  //     this.historyBrowser.cancel();
-  //     this.isRedirecting = false;
-  //   }
-
-  // tslint:disable-next-line:no-commented-code
-  //   let cancel: boolean = false;
-  //   return Promise.all(viewports.map((value) => value.canLeave()))
-  //     .then((promises: boolean[]) => {
-  //       if (cancel || promises.findIndex((value) => value === false) >= 0) {
-  //         cancel = true;
-  //         return Promise.resolve([]);
-  //       } else {
-  //         return Promise.all(viewports.map((value) => value.canEnter()));
-  //       }
-  //     }).then((promises: boolean[]) => {
-  //       if (cancel || promises.findIndex((value) => value === false) >= 0) {
-  //         cancel = true;
-  //         return Promise.resolve([]);
-  //       } else {
-  //         return Promise.all(viewports.map((value) => value.loadContent()));
-  //       }
-  //     }).then(() => {
-  //       if (cancel) {
-  //         this.historyBrowser.cancel();
-  //       }
-  //     }).then(() => {
-  //       const viewports = Object.values(this.viewports).map((value) => value.description()).filter((value) => value && value.length);
-  //       this.historyBrowser.history.replaceState({}, null, '#/' + viewports.join('/'));
-  //     });
-  // }
 
   public findViews(path: string): Record<string, string> {
     const views: Record<string, string> = {};
@@ -419,8 +387,7 @@ export class Router {
 
   // Called from the viewport custom element in attached()
   public addViewport(name: string, element: Element, context: IRenderContext, options?: IViewportOptions): Viewport {
-    // tslint:disable-next-line:no-console
-    console.log('Viewport added', name, element);
+    Reporter.write(10000, 'Viewport added', name, element);
     const parentScope = this.findScope(element);
     return parentScope.addViewport(name, element, context, options);
   }
@@ -431,6 +398,10 @@ export class Router {
     if (!scope.removeViewport(viewport, element, context)) {
       this.removeScope(scope);
     }
+  }
+  public allViewports(): Viewport[] {
+    this.ensureRootScope();
+    return this.rootScope.allViewports();
   }
 
   public removeScope(scope: Scope): void {
@@ -443,31 +414,31 @@ export class Router {
     }
   }
 
-  public goto(pathOrViewports: string | Record<string, Viewport>, title?: string, data?: Record<string, unknown>): void {
+  public goto(pathOrViewports: string | Record<string, Viewport>, title?: string, data?: Record<string, unknown>): Promise<void> {
     if (typeof pathOrViewports === 'string') {
-      this.historyBrowser.goto(pathOrViewports, title, data);
+      return this.historyBrowser.goto(pathOrViewports, title, data);
     }
     // else {
     //   this.view(pathOrViewports, title, data);
     // }
   }
 
-  public replace(pathOrViewports: string | Record<string, Viewport>, title?: string, data?: Record<string, unknown>): void {
+  public replace(pathOrViewports: string | Record<string, Viewport>, title?: string, data?: Record<string, unknown>): Promise<void> {
     if (typeof pathOrViewports === 'string') {
-      this.historyBrowser.replace(pathOrViewports, title, data);
+      return this.historyBrowser.replace(pathOrViewports, title, data);
     }
   }
 
-  public refresh(): void {
-    this.historyBrowser.refresh();
+  public refresh(): Promise<void> {
+    return this.historyBrowser.refresh();
   }
 
-  public back(): void {
-    this.historyBrowser.back();
+  public back(): Promise<void> {
+    return this.historyBrowser.back();
   }
 
-  public forward(): void {
-    this.historyBrowser.forward();
+  public forward(): Promise<void> {
+    return this.historyBrowser.forward();
   }
 
   public statesToString(states: IComponentViewportParameters[]): string {
@@ -531,6 +502,19 @@ export class Router {
     return this.navs[name];
   }
 
+  private async cancelNavigation(updatedViewports: Viewport[], instruction: INavigationInstruction): Promise<void> {
+    updatedViewports.forEach((viewport) => {
+      viewport.abortContentChange().catch(error => { throw error; });
+    });
+    if (instruction.isNew) {
+      await this.historyBrowser.pop();
+    } else {
+      await this.historyBrowser.cancel();
+    }
+    this.processingNavigation = null;
+    this.processNavigations().catch(error => { throw error; });
+  }
+
   private ensureRootScope(): void {
     if (!this.rootScope) {
       const root = this.container.get(Aurelia).root();
@@ -573,7 +557,7 @@ export class Router {
     return unique;
   }
 
-  private replacePaths(instruction: INavigationInstruction): void {
+  private replacePaths(instruction: INavigationInstruction): Promise<void> {
     this.activeComponents = this.rootScope.viewportStates(true, true);
     this.activeComponents = this.removeStateDuplicates(this.activeComponents);
 
@@ -588,7 +572,7 @@ export class Router {
     fullViewportStates = this.removeStateDuplicates(fullViewportStates);
     fullViewportStates.unshift(this.separators.clear);
     const query = (instruction.query && instruction.query.length ? `?${instruction.query}` : '');
-    this.historyBrowser.replacePath(
+    return this.historyBrowser.replacePath(
       state + query,
       fullViewportStates.join(this.separators.sibling) + query,
       instruction);

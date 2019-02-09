@@ -1,5 +1,5 @@
 import { IContainer } from '@aurelia/kernel';
-import { CustomElementResource, ICustomElementType, IRenderContext } from '@aurelia/runtime';
+import { ICustomElementType, IRenderContext } from '@aurelia/runtime';
 import { Router } from './router';
 import { IFindViewportsResult } from './scope';
 import { IViewportOptions, Viewport } from './viewport';
@@ -28,7 +28,7 @@ export class Scope {
   public viewport: Viewport;
 
   public children: Scope[];
-  public viewports: Record<string, Viewport>;
+  public viewports: Viewport[];
 
   private readonly router: Router;
 
@@ -43,13 +43,22 @@ export class Scope {
 
     this.viewport = null;
     this.children = [];
-    this.viewports = {};
+    this.viewports = [];
     this.scopeViewportParts = {};
     this.availableViewports = null;
 
     if (this.parent) {
       this.parent.addChild(this);
     }
+  }
+
+  public getEnabledViewports(): Record<string, Viewport> {
+    return this.viewports.filter((viewport) => viewport.enabled).reduce(
+      (viewports, viewport) => {
+        viewports[viewport.name] = viewport;
+        return viewports;
+      },
+      {});
   }
 
   // TODO: Reduce complexity (currently at 45)
@@ -62,7 +71,7 @@ export class Scope {
       this.availableViewports = {};
       this.scopeViewportParts = {};
     }
-    this.availableViewports = { ...this.viewports, ...this.availableViewports };
+    this.availableViewports = { ...this.getEnabledViewports(), ...this.availableViewports };
 
     // Get the parts for this scope (pointing to the rest)
     for (const viewport in viewports) {
@@ -110,9 +119,9 @@ export class Scope {
         newScope = true;
         name = name.substring(0, name.length - 1);
       }
-      if (!this.viewports[name]) {
+      if (!this.getEnabledViewports()[name]) {
         this.addViewport(name, null, null, { scope: newScope, forceDescription: true });
-        this.availableViewports[name] = this.viewports[name];
+        this.availableViewports[name] = this.getEnabledViewports()[name];
       }
       const viewport = this.availableViewports[name];
       if (viewport && viewport.acceptComponent(component)) {
@@ -189,7 +198,15 @@ export class Scope {
   }
 
   public addViewport(name: string, element: Element, context: IRenderContext, options?: IViewportOptions): Viewport {
-    let viewport = this.viewports[name];
+    let viewport = this.getEnabledViewports()[name];
+    // Each au-viewport element has its own Viewport
+    if (element && viewport && viewport.element !== null && viewport.element !== element) {
+      viewport.enabled = false;
+      viewport = this.viewports.find(vp => vp.name === name && vp.element === element);
+      if (viewport) {
+        viewport.enabled = true;
+      }
+    }
     if (!viewport) {
       let scope: Scope;
       if (options.scope) {
@@ -197,7 +214,8 @@ export class Scope {
         this.router.scopes.push(scope);
       }
 
-      viewport = this.viewports[name] = new Viewport(this.router, name, element, context, this, scope, options);
+      viewport = new Viewport(this.router, name, null, null, this, scope, options);
+      this.viewports.push(viewport);
     }
     // TODO: Either explain why || instead of && here (might only need one) or change it to && if that should turn out to not be relevant
     if (element || context) {
@@ -210,7 +228,7 @@ export class Scope {
       if (viewport.scope) {
         this.router.removeScope(viewport.scope);
       }
-      Reflect.deleteProperty(this.viewports, viewport.name);
+      this.viewports.splice(this.viewports.indexOf(viewport), 1);
     }
     return Object.keys(this.viewports).length;
   }
@@ -219,8 +237,9 @@ export class Scope {
     for (const child of this.children) {
       child.removeScope();
     }
-    for (const viewport in this.viewports) {
-      this.router.removeViewport(this.viewports[viewport], null, null);
+    const viewports = this.getEnabledViewports();
+    for (const name in viewports) {
+      this.router.removeViewport(viewports[name], null, null);
     }
   }
 
@@ -239,8 +258,8 @@ export class Scope {
 
   public viewportStates(full: boolean = false, active: boolean = false): string[] {
     const states: string[] = [];
-    for (const vp in this.viewports) {
-      const viewport: Viewport = this.viewports[vp];
+    for (const vp in this.getEnabledViewports()) {
+      const viewport: Viewport = this.getEnabledViewports()[vp];
       if ((viewport.options.noHistory || (viewport.options.noLink && !full)) && !active) {
         continue;
       }
@@ -253,10 +272,7 @@ export class Scope {
   }
 
   public allViewports(): Viewport[] {
-    const viewports: Viewport[] = [];
-    for (const viewport in this.viewports) {
-      viewports.push(this.viewports[viewport]);
-    }
+    const viewports = this.viewports.filter((viewport) => viewport.enabled);
     for (const scope of this.children) {
       viewports.push(...scope.allViewports());
     }
@@ -282,7 +298,7 @@ export class Scope {
   }
 
   private closestViewport(container: ChildContainer): Viewport {
-    const viewports = Object.values(this.viewports);
+    const viewports = Object.values(this.getEnabledViewports());
     while (container) {
       const viewport = viewports.find((item) => item.context.get(IContainer) === container);
       if (viewport) {

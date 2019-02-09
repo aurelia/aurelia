@@ -44,7 +44,9 @@ import {
   ILifecycleRender
 } from '../templating/lifecycle-render';
 
-export interface ICustomElementType<T extends INode = INode> extends IResourceType<ITemplateDefinition, ICustomElement<T>>, ICustomElementStaticProperties {
+export interface ICustomElementType<T extends INode = INode, C extends Constructable = Constructable> extends
+  IResourceType<ITemplateDefinition, InstanceType<C> & ICustomElement<T>>,
+  ICustomElementStaticProperties {
   description: TemplateDefinition;
 }
 
@@ -103,8 +105,8 @@ export function registerElement(this: ICustomElementType, container: IContainer)
 /**
  * Decorator: Indicates that the decorated class is a custom element.
  */
-export function customElement(name: string): ICustomElementDecorator;
 export function customElement(definition: ITemplateDefinition): ICustomElementDecorator;
+export function customElement(name: string): ICustomElementDecorator;
 export function customElement(nameOrDefinition: string | ITemplateDefinition): ICustomElementDecorator;
 export function customElement(nameOrDefinition: string | ITemplateDefinition): ICustomElementDecorator {
   return (target => CustomElementResource.define(nameOrDefinition, target)) as ICustomElementDecorator;
@@ -114,14 +116,15 @@ function isType<T>(this: ICustomElementResource, Type: T & Partial<ICustomElemen
   return Type.kind === this;
 }
 
-function define<T extends Constructable>(this: ICustomElementResource, name: string, ctor: T | null): T & ICustomElementType;
-function define<T extends Constructable>(this: ICustomElementResource, definition: ITemplateDefinition, ctor: T | null): T & ICustomElementType;
-function define<T extends Constructable>(this: ICustomElementResource, nameOrDefinition: string | ITemplateDefinition, ctor: T | null = null): T & ICustomElementType {
+function define<N extends INode = INode, T extends Constructable = Constructable>(this: ICustomElementResource, definition: ITemplateDefinition, ctor?: T | null): T & ICustomElementType<N, T>;
+function define<N extends INode = INode, T extends Constructable = Constructable>(this: ICustomElementResource, name: string, ctor?: T | null): T & ICustomElementType<N, T>;
+function define<N extends INode = INode, T extends Constructable = Constructable>(this: ICustomElementResource, nameOrDefinition: string | ITemplateDefinition, ctor: T | null): T & ICustomElementType<N, T>;
+function define<N extends INode = INode, T extends Constructable = Constructable>(this: ICustomElementResource, nameOrDefinition: string | ITemplateDefinition, ctor: T | null = null): T & ICustomElementType<N, T> {
   if (!nameOrDefinition) {
     throw Reporter.error(70);
   }
   const Type = (ctor === null ? class HTMLOnlyElement { /* HTML Only */ } : ctor) as T & Writable<ICustomElementType>;
-  const description = buildTemplateDefinition(Type as unknown as ICustomElementType, nameOrDefinition);
+  const description = buildTemplateDefinition(Type, nameOrDefinition);
   const proto: Writable<ICustomElement> = Type.prototype;
 
   Type.kind = CustomElementResource;
@@ -191,7 +194,7 @@ function define<T extends Constructable>(this: ICustomElementResource, nameOrDef
   return Type as ICustomElementType & T;
 }
 
-export const CustomElementResource: ICustomElementResource = {
+export const CustomElementResource = {
   name: customElementName,
   keyFrom: customElementKey,
   isType,
@@ -227,7 +230,7 @@ export const CustomElementResource: ICustomElementResource = {
 export interface ICustomElementDecorator {
   // Using a type breaks syntax highlighting: https://github.com/Microsoft/TypeScript-TmLanguage/issues/481
   // tslint:disable-next-line:callable-types
-  <T extends Constructable>(target: T): T & ICustomElementType;
+  <T extends Constructable>(target: T): T & ICustomElementType<T>;
 }
 
 type HasShadowOptions = Pick<ITemplateDefinition, 'shadowOptions'>;

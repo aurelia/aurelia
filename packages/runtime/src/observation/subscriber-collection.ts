@@ -1,4 +1,5 @@
-import { LifecycleFlags } from '../flags';
+import { Reporter } from '@aurelia/kernel';
+import { LifecycleFlags as LF } from '../flags';
 import {
   IBatchedCollectionSubscriber,
   IBatchedSubscriberCollection,
@@ -8,7 +9,7 @@ import {
   MutationKind,
   MutationKindToBatchedSubscriber,
   MutationKindToSubscriber,
-  SubscriberFlags
+  SubscriberFlags as SF
 } from '../observation';
 
 export function subscriberCollection<T extends MutationKind>(mutationKind: T): ClassDecorator {
@@ -16,7 +17,7 @@ export function subscriberCollection<T extends MutationKind>(mutationKind: T): C
   return function(target: Function): void {
     const proto = target.prototype as ISubscriberCollection<MutationKind.instance | MutationKind.collection | MutationKind.proxy>;
 
-    proto._subscriberFlags = SubscriberFlags.None;
+    proto._subscriberFlags = SF.None;
     proto._subscriber0 = null;
     proto._subscriber1 = null;
     proto._subscriber2 = null;
@@ -44,24 +45,24 @@ function addSubscriber<T extends MutationKind>(this: ISubscriberCollection<T>, s
     return false;
   }
   const subscriberFlags = this._subscriberFlags;
-  if (!(subscriberFlags & SubscriberFlags.Subscriber0)) {
+  if (!(subscriberFlags & SF.Subscriber0)) {
     this._subscriber0 = subscriber;
-    this._subscriberFlags |= SubscriberFlags.Subscriber0;
+    this._subscriberFlags |= SF.Subscriber0;
     return true;
   }
-  if (!(subscriberFlags & SubscriberFlags.Subscriber1)) {
+  if (!(subscriberFlags & SF.Subscriber1)) {
     this._subscriber1 = subscriber;
-    this._subscriberFlags |= SubscriberFlags.Subscriber1;
+    this._subscriberFlags |= SF.Subscriber1;
     return true;
   }
-  if (!(subscriberFlags & SubscriberFlags.Subscriber2)) {
+  if (!(subscriberFlags & SF.Subscriber2)) {
     this._subscriber2 = subscriber;
-    this._subscriberFlags |= SubscriberFlags.Subscriber2;
+    this._subscriberFlags |= SF.Subscriber2;
     return true;
   }
-  if (!(subscriberFlags & SubscriberFlags.SubscribersRest)) {
+  if (!(subscriberFlags & SF.SubscribersRest)) {
     this._subscribersRest = [subscriber];
-    this._subscriberFlags |= SubscriberFlags.SubscribersRest;
+    this._subscriberFlags |= SF.SubscribersRest;
     return true;
   }
   this._subscribersRest.push(subscriber);
@@ -70,28 +71,28 @@ function addSubscriber<T extends MutationKind>(this: ISubscriberCollection<T>, s
 
 function removeSubscriber<T extends MutationKind>(this: ISubscriberCollection<T>, subscriber: IPropertySubscriber): boolean {
   const subscriberFlags = this._subscriberFlags;
-  if ((subscriberFlags & SubscriberFlags.Subscriber0) && this._subscriber0 === subscriber) {
+  if ((subscriberFlags & SF.Subscriber0) && this._subscriber0 === subscriber) {
     this._subscriber0 = null;
-    this._subscriberFlags &= ~SubscriberFlags.Subscriber0;
+    this._subscriberFlags &= ~SF.Subscriber0;
     return true;
   }
-  if ((subscriberFlags & SubscriberFlags.Subscriber1) && this._subscriber1 === subscriber) {
+  if ((subscriberFlags & SF.Subscriber1) && this._subscriber1 === subscriber) {
     this._subscriber1 = null;
-    this._subscriberFlags &= ~SubscriberFlags.Subscriber1;
+    this._subscriberFlags &= ~SF.Subscriber1;
     return true;
   }
-  if ((subscriberFlags & SubscriberFlags.Subscriber2) && this._subscriber2 === subscriber) {
+  if ((subscriberFlags & SF.Subscriber2) && this._subscriber2 === subscriber) {
     this._subscriber2 = null;
-    this._subscriberFlags &= ~SubscriberFlags.Subscriber2;
+    this._subscriberFlags &= ~SF.Subscriber2;
     return true;
   }
-  if (subscriberFlags & SubscriberFlags.SubscribersRest) {
+  if (subscriberFlags & SF.SubscribersRest) {
     const subscribers = this._subscribersRest;
     for (let i = 0, ii = subscribers.length; i < ii; ++i) {
       if (subscribers[i] === subscriber) {
         subscribers.splice(i, 1);
         if (ii === 1) {
-          this._subscriberFlags &= ~SubscriberFlags.SubscribersRest;
+          this._subscriberFlags &= ~SF.SubscribersRest;
         }
         return true;
       }
@@ -100,7 +101,7 @@ function removeSubscriber<T extends MutationKind>(this: ISubscriberCollection<T>
   return false;
 }
 
-function callPropertySubscribers(this: ISubscriberCollection<MutationKind.instance>, newValue: unknown, previousValue: unknown, flags: LifecycleFlags): void {
+function callPropertySubscribers(this: ISubscriberCollection<MutationKind.instance>, newValue: unknown, previousValue: unknown, flags: LF): void {
   /**
    * Note: change handlers may have the side-effect of adding/removing subscribers to this collection during this
    * callSubscribers invocation, so we're caching them all before invoking any.
@@ -116,26 +117,80 @@ function callPropertySubscribers(this: ISubscriberCollection<MutationKind.instan
     subscribers = subscribers.slice();
   }
   if (subscriber0 !== null) {
-    subscriber0.handleChange(newValue, previousValue, flags);
+    callSubscriber(this, subscriber0, newValue, previousValue, flags, this[subscriber0.id]);
   }
   if (subscriber1 !== null) {
-    subscriber1.handleChange(newValue, previousValue, flags);
+    callSubscriber(this, subscriber1, newValue, previousValue, flags, this[subscriber1.id]);
   }
   if (subscriber2 !== null) {
-    subscriber2.handleChange(newValue, previousValue, flags);
+    callSubscriber(this, subscriber2, newValue, previousValue, flags, this[subscriber2.id]);
   }
   const length = subscribers && subscribers.length;
   if (length !== undefined && length > 0) {
+    let subscriber = null;
     for (let i = 0; i < length; ++i) {
-      const subscriber = subscribers[i];
+      subscriber = subscribers[i];
       if (subscriber !== null) {
-        subscriber.handleChange(newValue, previousValue, flags);
+        callSubscriber(this, subscriber, newValue, previousValue, flags, this[subscriber.id]);
       }
     }
   }
 }
 
-function callCollectionSubscribers(this: ISubscriberCollection<MutationKind.collection> & Required<IBatchedSubscriberCollection<MutationKind.collection>>, origin: string, args: IArguments | null, flags: LifecycleFlags): void {
+function callSubscriber(
+  publisher: ISubscriberCollection<MutationKind.instance>,
+  subscriber: IPropertySubscriber,
+  newValue: unknown,
+  previousValue: unknown,
+  flags: LF,
+  ownFlags: LF,
+): void {
+  if (ownFlags === undefined) {
+    // If ownFlags is undefined then the subscriber is not a connectable binding and we don't
+    // have any business trying to restrict the data flow, so just call it with whatever we received.
+    subscriber.handleChange(newValue, previousValue, flags);
+  } else if ((ownFlags & LF.isPublishing) === 0) {
+    publisher[subscriber.id] = ownFlags | LF.isPublishing;
+
+    // Note: if the update flags for both directions are set, that means an observer's callSubscribers caused the update direction to switch
+    // back to the origin of the change.
+    // With this heuristic we stop this roundtrip a little earlier than vCurrent does (where the target or source is evaluated
+    // and compared again) and effectively make this a "purer" one-way update flow that prevents observable side-effects from
+    // flowing back the opposite direction.
+    if (((flags | ownFlags) & LF.update) === LF.update) {
+      // Observers should explicitly pass this flag if they want a roundtrip to happen anyway.
+      // SelfObserver does this in order to propagate from-view changes from a child component back to the bindings
+      // on its own component.
+      // Some target observers (e.g. select) do this as well, but the other way around.
+      if ((flags & LF.allowPublishRoundtrip) > 0) {
+        // Unset the directional flag that came in from the origin and allowPublishRoundtrip since we don't
+        // want these to flow into the next subscriberCollection
+        subscriber.handleChange(newValue, previousValue, (flags & ~(LF.update | LF.allowPublishRoundtrip)) | ownFlags);
+      }
+    } else {
+      // If this is not a roundtrip, simply proceed in the same direction.
+      subscriber.handleChange(newValue, previousValue, flags | ownFlags);
+    }
+
+    publisher[subscriber.id] = ownFlags;
+  } else {
+    // We will only get here if a subscriber somehow causes handleChange to be called on itself from
+    // within its own handleChange.
+
+    // We're not really expecting this to ever happen with the existing guards
+    // in place, but if for whatever reason a binding or observer manages to cause a
+    // (potential) infinite update loop, throwing is certainly preferable over a hanging app.
+
+    // Of course, false positives are possible and throwing this error also helps
+    // us weed those out and detect+handle them appropriately.
+    throw Reporter.error(650);
+    // TODO: create error code
+
+    // TODO: remove the isPublishing flag assigment and check from the bundled output, since it adds significant overhead
+  }
+}
+
+function callCollectionSubscribers(this: ISubscriberCollection<MutationKind.collection> & Required<IBatchedSubscriberCollection<MutationKind.collection>>, origin: string, args: IArguments | null, flags: LF): void {
   const subscriber0 = this._subscriber0;
   const subscriber1 = this._subscriber1;
   const subscriber2 = this._subscriber2;
@@ -164,7 +219,7 @@ function callCollectionSubscribers(this: ISubscriberCollection<MutationKind.coll
   this.lifecycle.enqueueFlush(this).catch(error => { throw error; });
 }
 
-function callProxySubscribers(this: ISubscriberCollection<MutationKind.proxy>, key: PropertyKey, newValue: unknown, previousValue: unknown, flags: LifecycleFlags): void {
+function callProxySubscribers(this: ISubscriberCollection<MutationKind.proxy>, key: PropertyKey, newValue: unknown, previousValue: unknown, flags: LF): void {
   const subscriber0 = this._subscriber0;
   const subscriber1 = this._subscriber1;
   const subscriber2 = this._subscriber2;
@@ -192,7 +247,7 @@ function callProxySubscribers(this: ISubscriberCollection<MutationKind.proxy>, k
   }
 }
 function hasSubscribers<T extends MutationKind>(this: ISubscriberCollection<T>): boolean {
-  return this._subscriberFlags !== SubscriberFlags.None;
+  return this._subscriberFlags !== SF.None;
 }
 
 function hasSubscriber<T extends MutationKind>(this: ISubscriberCollection<T>, subscriber: IPropertySubscriber): boolean {
@@ -200,16 +255,16 @@ function hasSubscriber<T extends MutationKind>(this: ISubscriberCollection<T>, s
   // Compared to not using flags, it's a moderate speed-up when this collection does not have the subscriber;
   // and minor slow-down when it does, and the former is more common than the latter.
   const subscriberFlags = this._subscriberFlags;
-  if ((subscriberFlags & SubscriberFlags.Subscriber0) && this._subscriber0 === subscriber) {
+  if ((subscriberFlags & SF.Subscriber0) && this._subscriber0 === subscriber) {
     return true;
   }
-  if ((subscriberFlags & SubscriberFlags.Subscriber1) && this._subscriber1 === subscriber) {
+  if ((subscriberFlags & SF.Subscriber1) && this._subscriber1 === subscriber) {
     return true;
   }
-  if ((subscriberFlags & SubscriberFlags.Subscriber2) && this._subscriber2 === subscriber) {
+  if ((subscriberFlags & SF.Subscriber2) && this._subscriber2 === subscriber) {
     return true;
   }
-  if (subscriberFlags & SubscriberFlags.SubscribersRest) {
+  if (subscriberFlags & SF.SubscribersRest) {
     // no need to check length; if the flag is set, there's always at least one
     const subscribers = this._subscribersRest;
     for (let i = 0, ii = subscribers.length; i < ii; ++i) {
@@ -226,7 +281,7 @@ export function batchedSubscriberCollection(): ClassDecorator {
   return function(target: Function): void {
     const proto = target.prototype as IBatchedSubscriberCollection<MutationKind.collection>;
 
-    proto._batchedSubscriberFlags = SubscriberFlags.None;
+    proto._batchedSubscriberFlags = SF.None;
     proto._batchedSubscriber0 = null;
     proto._batchedSubscriber1 = null;
     proto._batchedSubscriber2 = null;
@@ -245,24 +300,24 @@ function addBatchedSubscriber(this: IBatchedSubscriberCollection<MutationKind.co
     return false;
   }
   const subscriberFlags = this._batchedSubscriberFlags;
-  if (!(subscriberFlags & SubscriberFlags.Subscriber0)) {
+  if (!(subscriberFlags & SF.Subscriber0)) {
     this._batchedSubscriber0 = subscriber;
-    this._batchedSubscriberFlags |= SubscriberFlags.Subscriber0;
+    this._batchedSubscriberFlags |= SF.Subscriber0;
     return true;
   }
-  if (!(subscriberFlags & SubscriberFlags.Subscriber1)) {
+  if (!(subscriberFlags & SF.Subscriber1)) {
     this._batchedSubscriber1 = subscriber;
-    this._batchedSubscriberFlags |= SubscriberFlags.Subscriber1;
+    this._batchedSubscriberFlags |= SF.Subscriber1;
     return true;
   }
-  if (!(subscriberFlags & SubscriberFlags.Subscriber2)) {
+  if (!(subscriberFlags & SF.Subscriber2)) {
     this._batchedSubscriber2 = subscriber;
-    this._batchedSubscriberFlags |= SubscriberFlags.Subscriber2;
+    this._batchedSubscriberFlags |= SF.Subscriber2;
     return true;
   }
-  if (!(subscriberFlags & SubscriberFlags.SubscribersRest)) {
+  if (!(subscriberFlags & SF.SubscribersRest)) {
     this._batchedSubscribersRest = [subscriber];
-    this._batchedSubscriberFlags |= SubscriberFlags.SubscribersRest;
+    this._batchedSubscriberFlags |= SF.SubscribersRest;
     return true;
   }
   this._batchedSubscribersRest.push(subscriber);
@@ -271,28 +326,28 @@ function addBatchedSubscriber(this: IBatchedSubscriberCollection<MutationKind.co
 
 function removeBatchedSubscriber(this: IBatchedSubscriberCollection<MutationKind.collection>, subscriber: IBatchedCollectionSubscriber): boolean {
   const subscriberFlags = this._batchedSubscriberFlags;
-  if ((subscriberFlags & SubscriberFlags.Subscriber0) && this._batchedSubscriber0 === subscriber) {
+  if ((subscriberFlags & SF.Subscriber0) && this._batchedSubscriber0 === subscriber) {
     this._batchedSubscriber0 = null;
-    this._batchedSubscriberFlags &= ~SubscriberFlags.Subscriber0;
+    this._batchedSubscriberFlags &= ~SF.Subscriber0;
     return true;
   }
-  if ((subscriberFlags & SubscriberFlags.Subscriber1) && this._batchedSubscriber1 === subscriber) {
+  if ((subscriberFlags & SF.Subscriber1) && this._batchedSubscriber1 === subscriber) {
     this._batchedSubscriber1 = null;
-    this._batchedSubscriberFlags &= ~SubscriberFlags.Subscriber1;
+    this._batchedSubscriberFlags &= ~SF.Subscriber1;
     return true;
   }
-  if ((subscriberFlags & SubscriberFlags.Subscriber2) && this._batchedSubscriber2 === subscriber) {
+  if ((subscriberFlags & SF.Subscriber2) && this._batchedSubscriber2 === subscriber) {
     this._batchedSubscriber2 = null;
-    this._batchedSubscriberFlags &= ~SubscriberFlags.Subscriber2;
+    this._batchedSubscriberFlags &= ~SF.Subscriber2;
     return true;
   }
-  if (subscriberFlags & SubscriberFlags.SubscribersRest) {
+  if (subscriberFlags & SF.SubscribersRest) {
     const subscribers = this._batchedSubscribersRest;
     for (let i = 0, ii = subscribers.length; i < ii; ++i) {
       if (subscribers[i] === subscriber) {
         subscribers.splice(i, 1);
         if (ii === 1) {
-          this._batchedSubscriberFlags &= ~SubscriberFlags.SubscribersRest;
+          this._batchedSubscriberFlags &= ~SF.SubscribersRest;
         }
         return true;
       }
@@ -301,7 +356,7 @@ function removeBatchedSubscriber(this: IBatchedSubscriberCollection<MutationKind
   return false;
 }
 
-function callBatchedCollectionSubscribers(this: IBatchedSubscriberCollection<MutationKind.collection>, indexMap: IndexMap, flags: LifecycleFlags): void {
+function callBatchedCollectionSubscribers(this: IBatchedSubscriberCollection<MutationKind.collection>, indexMap: IndexMap, flags: LF): void {
   const subscriber0 = this._batchedSubscriber0;
   const subscriber1 = this._batchedSubscriber1;
   const subscriber2 = this._batchedSubscriber2;
@@ -330,7 +385,7 @@ function callBatchedCollectionSubscribers(this: IBatchedSubscriberCollection<Mut
 }
 
 function hasBatchedSubscribers(this: IBatchedSubscriberCollection<MutationKind.collection>): boolean {
-  return this._batchedSubscriberFlags !== SubscriberFlags.None;
+  return this._batchedSubscriberFlags !== SF.None;
 }
 
 function hasBatchedSubscriber(this: IBatchedSubscriberCollection<MutationKind.collection>, subscriber: IBatchedCollectionSubscriber): boolean {
@@ -338,16 +393,16 @@ function hasBatchedSubscriber(this: IBatchedSubscriberCollection<MutationKind.co
   // Compared to not using flags, it's a moderate speed-up when this collection does not have the subscriber;
   // and minor slow-down when it does, and the former is more common than the latter.
   const subscriberFlags = this._batchedSubscriberFlags;
-  if ((subscriberFlags & SubscriberFlags.Subscriber0) && this._batchedSubscriber0 === subscriber) {
+  if ((subscriberFlags & SF.Subscriber0) && this._batchedSubscriber0 === subscriber) {
     return true;
   }
-  if ((subscriberFlags & SubscriberFlags.Subscriber1) && this._batchedSubscriber1 === subscriber) {
+  if ((subscriberFlags & SF.Subscriber1) && this._batchedSubscriber1 === subscriber) {
     return true;
   }
-  if ((subscriberFlags & SubscriberFlags.Subscriber2) && this._batchedSubscriber2 === subscriber) {
+  if ((subscriberFlags & SF.Subscriber2) && this._batchedSubscriber2 === subscriber) {
     return true;
   }
-  if (subscriberFlags & SubscriberFlags.SubscribersRest) {
+  if (subscriberFlags & SF.SubscribersRest) {
     // no need to check length; if the flag is set, there's always at least one
     const subscribers = this._batchedSubscribersRest;
     for (let i = 0, ii = subscribers.length; i < ii; ++i) {

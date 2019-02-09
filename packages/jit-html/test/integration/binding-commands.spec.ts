@@ -1,4 +1,4 @@
-import { LifecycleFlags } from '@aurelia/runtime';
+import { Aurelia, CustomElementResource as CE, ICustomElement, LifecycleFlags as LF } from '@aurelia/runtime';
 import { IEventManager } from '@aurelia/runtime-html';
 import { expect } from 'chai';
 import { spy } from 'sinon';
@@ -18,7 +18,7 @@ describe('binding-commands', () => {
   it('01.', () => {
     const { au, lifecycle, host, component } = setupAndStart(ctx, `<template>\${message}</template>`, null);
     component.message = 'hello!';
-    lifecycle.processFlushQueue(LifecycleFlags.none);
+    lifecycle.processFlushQueue(LF.none);
     expect(host.textContent).to.equal('hello!');
     tearDown(au, lifecycle, host);
   });
@@ -27,7 +27,7 @@ describe('binding-commands', () => {
   it('02.', () => {
     const { au, lifecycle, host, component } = setupAndStart(ctx, `<template>\${\`\${message}\`}</template>`, null);
     component.message = 'hello!';
-    lifecycle.processFlushQueue(LifecycleFlags.none);
+    lifecycle.processFlushQueue(LF.none);
     expect(host.textContent).to.equal('hello!');
     tearDown(au, lifecycle, host);
   });
@@ -36,7 +36,7 @@ describe('binding-commands', () => {
   it('03.', () => {
     const { au, lifecycle, host, component } = setupAndStart(ctx, `<template><div style.bind="foo"></div></template>`, null);
     component.foo = 'color: green;';
-    lifecycle.processFlushQueue(LifecycleFlags.none);
+    lifecycle.processFlushQueue(LF.none);
     expect((host.firstElementChild as HTMLElement).style.cssText).to.equal('color: green;');
     tearDown(au, lifecycle, host);
   });
@@ -45,7 +45,7 @@ describe('binding-commands', () => {
   it('04.', () => {
     const { au, lifecycle, host, component } = setupAndStart(ctx, `<template><div style="\${foo}"></div></template>`, null);
     component.foo = 'color: green;';
-    lifecycle.processFlushQueue(LifecycleFlags.none);
+    lifecycle.processFlushQueue(LF.none);
     expect((host.firstElementChild as HTMLElement).style.cssText).to.equal('color: green;');
     tearDown(au, lifecycle, host);
   });
@@ -54,7 +54,7 @@ describe('binding-commands', () => {
   it('05.', () => {
     const { au, lifecycle, host, component } = setupAndStart(ctx, `<template><div class.bind="foo"></div></template>`, null);
     component.foo = 'foo bar';
-    lifecycle.processFlushQueue(LifecycleFlags.none);
+    lifecycle.processFlushQueue(LF.none);
     expect((host.firstElementChild as HTMLElement).classList.toString()).to.equal('au foo bar');
     tearDown(au, lifecycle, host);
   });
@@ -63,8 +63,8 @@ describe('binding-commands', () => {
   it('06.', () => {
     const { au, lifecycle, host, component } = setupAndStart(ctx, `<template><div class="\${foo}"></div></template>`, null);
     component.foo = 'foo bar';
-    lifecycle.processFlushQueue(LifecycleFlags.none);
-    expect((host.firstElementChild as HTMLElement).classList.toString()).to.equal('\${foo} au foo bar'); // TODO: fix this
+    lifecycle.processFlushQueue(LF.none);
+    expect((host.firstElementChild as HTMLElement).classList.toString()).to.equal('au foo bar');
     tearDown(au, lifecycle, host);
   });
 
@@ -72,7 +72,7 @@ describe('binding-commands', () => {
   it('07.', () => {
     const { au, lifecycle, host, component } = setupAndStart(ctx, `<template><input value.one-time="message"></template>`, null);
     component.message = 'hello!';
-    lifecycle.processFlushQueue(LifecycleFlags.none);
+    lifecycle.processFlushQueue(LF.none);
     expect(host.firstChild['value']).to.equal('');
     tearDown(au, lifecycle, host);
   });
@@ -81,7 +81,7 @@ describe('binding-commands', () => {
   it('08.', () => {
     const { au, lifecycle, host, component } = setupAndStart(ctx, `<template><input value.to-view="message"></template>`, null);
     component.message = 'hello!';
-    lifecycle.processFlushQueue(LifecycleFlags.none);
+    lifecycle.processFlushQueue(LF.none);
     expect(host.firstChild['value']).to.equal('hello!');
     tearDown(au, lifecycle, host);
   });
@@ -90,7 +90,7 @@ describe('binding-commands', () => {
   it('09.', () => {
     const { au, lifecycle, host, component } = setupAndStart(ctx, `<template><input value.from-view="message"></template>`, null);
     component.message = 'hello!';
-    lifecycle.processFlushQueue(LifecycleFlags.none);
+    lifecycle.processFlushQueue(LF.none);
     expect(host.firstChild['value']).to.equal('');
     host.firstChild['value'] = 'hello!';
     host.firstChild.dispatchEvent(new ctx.CustomEvent('change'));
@@ -119,7 +119,7 @@ describe('binding-commands', () => {
     expect(component.message).to.deep.equal({ foo: 'bar' });
     component.message = { bar: 'baz' };
     expect(host.firstChild['value']).to.equal('{"foo":"bar"}');
-    lifecycle.processFlushQueue(LifecycleFlags.none);
+    lifecycle.processFlushQueue(LF.none);
     expect(host.firstChild['value']).to.equal('{"bar":"baz"}');
     tearDown(au, lifecycle, host);
   });
@@ -128,7 +128,7 @@ describe('binding-commands', () => {
   it('12.', () => {
     const { au, lifecycle, host, component } = setupAndStart(ctx, `<template><input value.to-view="message & oneTime"></template>`, null);
     component.message = 'hello!';
-    lifecycle.processFlushQueue(LifecycleFlags.none);
+    lifecycle.processFlushQueue(LF.none);
     expect(host.firstChild['value']).to.equal('');
     tearDown(au, lifecycle, host);
   });
@@ -137,7 +137,7 @@ describe('binding-commands', () => {
   it('13.', () => {
     const { au, lifecycle, host, component } = setupAndStart(ctx, `<template><input value.one-time="message & toView"></template>`, null);
     component.message = 'hello!';
-    lifecycle.processFlushQueue(LifecycleFlags.none);
+    lifecycle.processFlushQueue(LF.none);
     expect(host.firstChild['value']).to.equal('hello!');
     tearDown(au, lifecycle, host);
   });
@@ -146,7 +146,7 @@ describe('binding-commands', () => {
   it('14.', () => {
     const { au, lifecycle, host, component } = setupAndStart(ctx, `<template><input value.one-time="message & fromView"></template>`, null);
     component.message = 'hello!';
-    lifecycle.processFlushQueue(LifecycleFlags.none);
+    lifecycle.processFlushQueue(LF.none);
     expect(host.firstChild['value']).to.equal('');
     host.firstChild['value'] = 'hello!';
     host.firstChild.dispatchEvent(new ctx.CustomEvent('change'));
@@ -171,7 +171,7 @@ describe('binding-commands', () => {
     expect(host.firstChild['checked']).to.equal(false);
     component.checked = true;
     expect(host.firstChild['checked']).to.equal(false);
-    lifecycle.processFlushQueue(LifecycleFlags.none);
+    lifecycle.processFlushQueue(LF.none);
     expect(host.firstChild['checked']).to.equal(true);
     tearDown(au, lifecycle, host);
   });
@@ -222,5 +222,61 @@ describe('binding-commands', () => {
       em.dispose();
       tearDown(au, lifecycle, host);
     }
+  });
+
+  // two-way bindings between multiple custom elements
+  it('100', function () {
+    const App = CE.define(
+      {
+        name: 'app',
+        template: '${a}<foo b.two-way="a"></foo>',
+        dependencies: [
+          CE.define(
+            {
+              name: 'foo',
+              template: '${b}',
+              bindables: ['b']
+            },
+            class {
+              public b: string;
+
+              public attached(this: this & ICustomElement<Node>): void {
+                expect(this.b).to.equal('x');
+                expect(this.$host.textContent).to.equal('x');
+                this.b = 'y';
+              }
+            }
+          )
+        ]
+      },
+      class {
+        public a: string;
+
+        public bound(this: this & ICustomElement<Node>): void {
+          expect(this.a).to.equal('x');
+        }
+
+        public attached(this: this & ICustomElement<Node>): void {
+          expect(this.a).to.equal('y');
+          expect(this.$host.textContent).to.equal('xx');
+        }
+      }
+    );
+
+    const host = ctx.createElement('div');
+    const component = new App();
+
+    component.a = 'x';
+
+    const au = new Aurelia(ctx.container);
+    au.app({ host, component });
+    au.start();
+
+    expect(host.textContent).to.equal('xx');
+
+    ctx.lifecycle.processFlushQueue(LF.none);
+
+    expect(component.a).to.equal('y');
+    expect(host.textContent).to.equal('yy');
   });
 });

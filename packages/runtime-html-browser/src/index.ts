@@ -1,9 +1,9 @@
-import { DI, IContainer, IRegistry, IResolver, Registration } from '@aurelia/kernel';
+import { DI, IContainer, InjectArray, IRegistry, IResolver, Registration } from '@aurelia/kernel';
 import { IDOM, IDOMInitializer, ISinglePageApp } from '@aurelia/runtime';
 import { BasicConfiguration as RuntimeHtmlConfiguration, HTMLDOM } from '@aurelia/runtime-html';
 
 class BrowserDOMInitializer implements IDOMInitializer {
-  public static inject: unknown[] = [IContainer];
+  public static readonly inject: InjectArray = [IContainer];
 
   private readonly container: IContainer;
 

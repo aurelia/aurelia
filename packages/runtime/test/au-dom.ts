@@ -2,6 +2,7 @@ import {
   DI,
   IContainer,
   inject,
+  InjectArray,
   IRegistry,
   IResolver,
   PLATFORM,
@@ -532,7 +533,7 @@ export class AuNodeSequenceFactory implements INodeSequenceFactory<AuNode> {
 }
 
 export class AuDOMInitializer implements IDOMInitializer {
-  public static inject: unknown[] = [IContainer];
+  public static readonly inject: InjectArray = [IContainer];
 
   private readonly container: IContainer;
 
@@ -551,7 +552,7 @@ export class AuDOMInitializer implements IDOMInitializer {
 }
 
 export class AuTemplateFactory implements ITemplateFactory<AuNode> {
-  public static inject: unknown[] = [IDOM];
+  public static readonly inject: InjectArray = [IDOM];
 
   private readonly dom: AuDOM;
 

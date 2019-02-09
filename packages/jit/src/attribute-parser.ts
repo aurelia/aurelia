@@ -1,4 +1,4 @@
-import { all, DI, InterfaceSymbol, Profiler } from '@aurelia/kernel';
+import { all, DI, InjectArray, Profiler } from '@aurelia/kernel';
 import { AttrSyntax } from './ast';
 import { IAttributePattern, IAttributePatternHandler, Interpretation, ISyntaxInterpreter } from './attribute-pattern';
 
@@ -12,7 +12,7 @@ const { enter, leave } = Profiler.createTimer('AttributeParser');
 
 /** @internal */
 export class AttributeParser implements IAttributeParser {
-  public static readonly inject: ReadonlyArray<InterfaceSymbol> = [ISyntaxInterpreter, all(IAttributePattern)];
+  public static readonly inject: InjectArray = [ISyntaxInterpreter, all(IAttributePattern)];
 
   private readonly interpreter: ISyntaxInterpreter;
   private readonly cache: Record<string, Interpretation>;

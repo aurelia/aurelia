@@ -1,4 +1,5 @@
 import { IComponentViewportParameters } from './router';
+import { ViewportInstruction } from './viewport-instruction';
 
 export interface IInstructionResolverOptions {
   separators?: IRouteSeparators;
@@ -36,6 +37,18 @@ export class InstructionResolver {
 
   public get clearViewportInstruction(): string {
     return this.separators.clear;
+  }
+
+  public parseViewportInstruction(instruction: string): ViewportInstruction {
+    let component, viewport, parameters;
+    const [componentPart, rest] = instruction.split(this.separators.viewport);
+    if (rest === undefined) {
+      [component, parameters] = componentPart.split(this.separators.parameters);
+    } else {
+      component = componentPart;
+      [viewport, parameters] = rest.split(this.separators.parameters);
+    }
+    return new ViewportInstruction(component, viewport, parameters);
   }
 
   public buildScopedLink(scopeContext: string, href: string): string {
@@ -111,22 +124,13 @@ export class InstructionResolver {
     const states = [];
     const stateStrings = statesString.split(this.separators.sibling);
     for (const stateString of stateStrings) {
-      let component, viewport, parameters;
-      const [componentPart, rest] = stateString.split(this.separators.viewport);
-      if (rest === undefined) {
-        [component, parameters] = componentPart.split(this.separators.parameters);
-      } else {
-        component = componentPart;
-        [viewport, parameters] = rest.split(this.separators.parameters);
-      }
+      const viewportInstruction = this.parseViewportInstruction(stateString);
       // TODO: Support more than one parameter
-      const state: IComponentViewportParameters = { component: component };
-      if (viewport) {
-        state.viewport = viewport;
-      }
-      if (parameters) {
-        state.parameters = { id: parameters };
-      }
+      const state: IComponentViewportParameters = {
+        component: viewportInstruction.componentName,
+        viewport: viewportInstruction.viewportName,
+        parameters: viewportInstruction.parameters,
+      };
       states.push(state);
     }
     return states;

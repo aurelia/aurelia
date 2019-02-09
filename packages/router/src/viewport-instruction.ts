@@ -9,13 +9,15 @@ export class ViewportInstruction {
   public componentName?: string;
   public viewport?: Viewport;
   public viewportName?: string;
+  public parametersString?: string;
   public parameters?: Record<string, unknown>;
+  public parametersList?: string[];
 
   constructor(component: ICustomElementType | string, viewport?: Viewport | string, parameters?: Record<string, unknown>) {
     this.initialize(component, viewport, parameters);
   }
 
-  public initialize(component: ICustomElementType | string, viewport?: Viewport | string, parameters?: Record<string, unknown>): void {
+  public initialize(component: ICustomElementType | string, viewport?: Viewport | string, parameters?: Record<string, unknown> | string): void {
     if (typeof component === 'string') {
       this.componentName = component;
       this.component = null;
@@ -32,7 +34,15 @@ export class ViewportInstruction {
         this.viewportName = viewport.name;
       }
     }
-    this.parameters = parameters;
+    if (typeof parameters === 'string') {
+      this.parametersString = parameters;
+      // TODO: Initialize parameters better and more of them and just fix this
+      this.parameters = { id: parameters };
+    } else {
+      this.parameters = parameters;
+      // TODO: Create parametersString
+    }
+    // TODO: Deal with parametersList
   }
 
   public componentType(context: IRenderContext): IRouteableCustomElementType {

@@ -4,7 +4,7 @@ import * as c from 'chalk';
 const chalk = <import('chalk').Chalk>(c.default || c);
 
 export function logAction(msg: string) {
-  const cap = (browser as any).desiredCapabilities;
-  msg = `${chalk.yellow(`${cap['os']} ${cap['os_version']} - ${cap.browserName} ${cap['browser_version']}`)}: * ${msg}`;
+  const cap = browser.capabilities;
+  msg = `${chalk.yellow(`${cap.platformName} ${cap.platformVersion} - ${cap.browserName} ${cap.browserVersion}`)}: * ${msg}`;
   log(msg);
 }

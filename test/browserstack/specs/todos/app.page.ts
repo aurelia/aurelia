@@ -1,51 +1,59 @@
 import { logAction } from "../logger";
 
-// tslint:disable:typedef
-// tslint:disable:function-name
-
 export class AppPage {
+  public static waitForElement(selector: string, timeout: number = 1000) {
+    const el = $(selector);
+    el.waitForDisplayed(timeout);
+    return el;
+  }
+  public static waitForElements(selector: string, timeout: number = 1000) {
+    const el = $$(selector);
+    el.forEach(el => el.waitForDisplayed(timeout));
+    return el;
+  }
+
   public static get descriptionInput() {
-    return $('#description');
+    return this.waitForElement('#description');
   }
 
   public static setDescriptionInputValue(value: string) {
     logAction(`set description input value to ${value}`);
-    (this.descriptionInput as any).clearElement();
-    this.descriptionInput.setValue(value);
+    this.descriptionInput.clearValue();
+    this.descriptionInput.setValue(value.toString());
   }
 
   public static getDescriptionInputValue() {
-    return (this.descriptionInput.getValue()).trim();
+    return this.descriptionInput.getAttribute('value').trim();
   }
 
   public static get countInput() {
-    return $('#count');
+    return this.waitForElement('#count');
   }
 
   public static setCountInputValue(value: number) {
     logAction(`set count value to ${value}`);
-    (this.countInput as any).clearElement();
-    this.countInput.setValue(value);
+    this.countInput.clearValue();
+    this.countInput.setValue(value.toString());
   }
 
-  public static getCountInputValue() {
-    return parseInt((this.countInput.getAttribute('value')), 10);
+  public static get getCountInputValue() {
+    return parseInt(this.countInput.getAttribute('value'), 10);
   }
 
   public static get logInput() {
-    return $('#log');
+    return this.waitForElement('#log');
   }
 
   public static setLogInputValue(value: boolean) {
     this.logInput.click();
   }
 
-  public static getLogInputValue() {
-    return (this.descriptionInput.getAttribute('checked')) === 'true';
+  public static get logInputValue() {
+    return this.descriptionInput.getAttribute('checked') === 'true';
   }
 
   public static get addTodoButton() {
-    return $('#addTodo');
+    return this.waitForElement('#addTodo');
   }
 
   public static addTodo() {
@@ -54,7 +62,7 @@ export class AppPage {
   }
 
   public static get clearTodosButton() {
-    return $('#clearTodos');
+    return this.waitForElement('#clearTodos');
   }
 
   public static clearTodos() {
@@ -64,7 +72,7 @@ export class AppPage {
 
   public static get toggleTodosButton() {
     logAction(`click Toggle todos`);
-    return $('#toggleTodos');
+    return this.waitForElement('#toggleTodos');
   }
 
   public static toggleTodos() {
@@ -73,34 +81,31 @@ export class AppPage {
   }
 
   public static get descriptionInterpolation() {
-    return $('#descriptionText');
+    return this.waitForElement('#descriptionText');
   }
 
   public static getDescriptionInterpolationText() {
     // the replace + trim is a workaround for safari which renders lots of spaces and newlines
-    return (this.descriptionInterpolation.getText()).replace(/\n/g, '').replace(/ +/g, ' ').trim();
+    return this.descriptionInterpolation.getText().replace(/\n/g, '').replace(/ +/g, ' ').trim();
   }
   public static getTodosCount() {
-    const results = $$('.todo');
+    const results = this.waitForElements('.todo');
     return results.length;
   }
 
-  public static getTodos() {
-    return $$('.todo');
+  public static get todos() {
+    return this.waitForElements('.todo');
   }
 
-  public static getTodoElement(id: number, timeout: number = 100) {
-    const el = $(`#todo-${id}`);
-    (el as any).waitForVisible(timeout);
-    return el;
+  public static todoElement(id: number) {
+    return this.waitForElement(`#todo-${id}`);
   }
 
-  public static clickTodoDoneCheckbox(id: number, timeout: number = 100) {
+  public static clickTodoDoneCheckbox(id: number) {
     logAction(`click Todo done checkbox`);
-    const el = $(`#todo-${id}-done`);
-    (el as any).waitForVisible(timeout);
+    const el = this.waitForElement(`#todo-${id}-done`);
     el.click();
-    if ((browser as any).desiredCapabilities.browserName === 'Edge') {
+    if (browser.capabilities.browserName === 'Edge') {
       // because Edge is slow :)
       browser.pause(1000);
     }

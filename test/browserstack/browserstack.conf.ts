@@ -4,6 +4,8 @@ import * as browserstack from 'browserstack-local';
 import { CIEnv } from '../../scripts/ci-env';
 declare var browser: any;
 
+const build = `e2e_${Date.now()}`
+
 function combine(browsers, oses) {
   const capabilities = [];
   for (const { versions: browser_versions, name: browserName } of browsers) {
@@ -14,7 +16,20 @@ function combine(browsers, oses) {
             browserName,
             browser_version,
             os,
-            os_version
+            os_version,
+            'resolution' : '1920x1080',
+            'project': 'Aurelia vNext',
+            'name': `${CIEnv.CIRCLE_PROJECT_REPONAME}_${CIEnv.CIRCLE_BRANCH}`,
+            'build': `${CIEnv.CIRCLE_JOB}_${CIEnv.CIRCLE_BUILD_NUM}`,
+            'browserstack.local': 'true',
+            'browserstack.opts':  {
+              localIdentifier: build,
+            },
+            'browserstack.debug': 'true',
+            'browserstack.console': 'info',
+            'browserstack.networkLogs': 'true',
+            'browserstack.video': 'false',
+            'browserstack.timezone': 'UTC',
           });
         }
       }
@@ -22,8 +37,6 @@ function combine(browsers, oses) {
   }
   return capabilities;
 }
-
-const build = `e2e_${Date.now()}`
 
 exports.config = {
   user: CIEnv.BS_USER,
@@ -35,88 +48,28 @@ exports.config = {
   ],
   exclude: [],
 
-  maxInstances: 5,
-  commonCapabilities: {
-    'name': `${CIEnv.CIRCLE_PROJECT_REPONAME}_${CIEnv.CIRCLE_BRANCH}`,
-    'build': `${CIEnv.CIRCLE_JOB}_${CIEnv.CIRCLE_BUILD_NUM}`,
-    'browserstack.local': true,
-    'browserstack.opts':  {
-      localIdentifier: build,
-    },
-    'browserstack.debug': true,
-    'browserstack.console': 'verbose',
-    'browserstack.networkLogs': true,
-    'browserstack.timezone': 'UTC',
-  },
+  maxInstances: 1,
 
-  capabilities: CIEnv.BS_COMPAT_CHECK ? [
-    ...combine([
-      { versions: ['68', '67', '66'], name: 'Chrome' },
-      { versions: ['61', '60', '59'], name: 'Firefox' }
-    ], [
-      { versions: ['10', '8.1', '8', '7'], name: 'Windows' },
-      { versions: ['High Sierra', 'Sierra', 'El Capitan', 'Yosemite'], name: 'OS X' }
-    ]),
-    // ...combine([
-    //   { versions: ['12.15', '12.16'], name: 'Opera' },
-    // ], [
-    //   { versions: ['8.1', '8', '7'], name: 'Windows' }
-    // ]),
-    // ...combine([
-    //   { versions: ['11'], name: 'IE' },
-    // ], [
-    //   { versions: ['10', '8.1', '7'], name: 'Windows' }
-    // ]),
-    // ...combine([
-    //   { versions: ['10'], name: 'IE' },
-    // ], [
-    //   { versions: ['8', '7'], name: 'Windows' }
-    // ]),
-    ...combine([
-      { versions: ['17', '16'/*, '15'*/], name: 'Edge' },
-    ], [
-      { versions: ['10'], name: 'Windows' }
-    ]),
-    // ...combine([
-    //   { versions: ['11.1'], name: 'Safari' },
-    // ], [
-    //   { versions: ['High Sierra'], name: 'OS X' }
-    // ]),
-    ...combine([
-      { versions: ['10.1'], name: 'Safari' },
-    ], [
-      { versions: ['Sierra'], name: 'OS X' }
-    ]),
-    // ...combine([
-    //   { versions: ['9.1'], name: 'Safari' },
-    // ], [
-    //   { versions: ['El Capitan'], name: 'OS X' }
-    // ]),
-    // ...combine([
-    //   { versions: ['8'], name: 'Safari' },
-    // ], [
-    //   { versions: ['Yosemite'], name: 'OS X' }
-    // ])
-  ] : [
+  capabilities: [
     ...combine([
       { versions: ['68'], name: 'Chrome' },
       { versions: ['61'], name: 'Firefox' }
     ], [
       { versions: ['10'], name: 'Windows' },
-      //{ versions: ['High Sierra'], name: 'OS X' }
+      { versions: ['High Sierra'], name: 'OS X' }
     ]),
-    ...combine([
-      { versions: ['17'], name: 'Edge' },
-    ], [
-      { versions: ['10'], name: 'Windows' }
-    ]),
-    ...combine([
-      //{ versions: ['11.1'], name: 'Safari' }
-      { versions: ['10.1'], name: 'Safari' }
-    ], [
-      //{ versions: ['High Sierra'], name: 'OS X' }
-      { versions: ['Sierra'], name: 'OS X' }
-    ])
+    // ...combine([
+    //   { versions: ['17'], name: 'Edge' },
+    // ], [
+    //   { versions: ['10'], name: 'Windows' }
+    // ]),
+    // ...combine([
+    //   //{ versions: ['11.1'], name: 'Safari' }
+    //   { versions: ['10.1'], name: 'Safari' }
+    // ], [
+    //   //{ versions: ['High Sierra'], name: 'OS X' }
+    //   { versions: ['Sierra'], name: 'OS X' }
+    // ])
   ],
 
   logLevel: 'silent',
@@ -128,7 +81,7 @@ exports.config = {
   connectionRetryCount: 3,
   host: 'hub.browserstack.com',
 
-  reporters: ['dot', 'allure'],
+  reporters: ['spec', 'allure'],
   reporterOptions: {
       allure: {
           outputDir: 'allure-results'
@@ -139,7 +92,7 @@ exports.config = {
   mochaOpts: {
       timeout: 60000,
       ui: 'bdd',
-      useColors: true,
+      colors: true,
       recursive: true
   },
 
@@ -277,8 +230,3 @@ exports.config = {
       CIEnv.browserstackPut(`sessions/${browser.sessionId}.json`, { status: 'failed', reason: message });
     }
 }
-
-// Code to support common capabilities
-exports.config.capabilities.forEach(function(caps){
-  for(var i in exports.config.commonCapabilities) caps[i] = caps[i] || exports.config.commonCapabilities[i];
-});

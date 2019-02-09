@@ -1,19 +1,13 @@
 
 export function isChrome(): boolean {
-  return /chrome/i.test((browser as any).desiredCapabilities.browserName);
+  return /chrome/i.test(browser.capabilities.browserName);
 }
 export function isFirefox(): boolean {
-  return /firefox/i.test((browser as any).desiredCapabilities.browserName);
+  return /firefox/i.test(browser.capabilities.browserName);
 }
 export function isEdge(): boolean {
-  return /edge/i.test((browser as any).desiredCapabilities.browserName);
+  return /edge/i.test(browser.capabilities.browserName);
 }
 export function isSafari(): boolean {
-  return /safari/i.test((browser as any).desiredCapabilities.browserName);
-}
-export function isMac(): boolean {
-  return /os x/i.test((browser as any).desiredCapabilities['os']);
-}
-export function isWindows(): boolean {
-  return /windows/i.test((browser as any).desiredCapabilities['os']);
+  return /safari/i.test(browser.capabilities.browserName);
 }

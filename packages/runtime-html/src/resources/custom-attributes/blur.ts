@@ -58,37 +58,37 @@ export class BlurCustomAttribute {
 
   public static readonly listen: IBlurCustomAttributeListeners = {
     touch(on: boolean): IBlurCustomAttributeListeners {
-      usage |= Listeners.touch;
+      usage = on ? (usage | Listeners.touch) : (usage & ~Listeners.touch);
       const fn = on ? addListener : removeListener;
       fn(document, 'touchstart', handleTouchStart, defaultCaptureEventInit);
       return BlurCustomAttribute.listen;
     },
     mouse(on: boolean): IBlurCustomAttributeListeners {
-      usage |= Listeners.mouse;
+      usage = on ? (usage | Listeners.mouse) : (usage & ~Listeners.mouse);
       const fn = on ? addListener : removeListener;
       fn(document, 'mousedown', handleMousedown, defaultCaptureEventInit);
       return BlurCustomAttribute.listen;
     },
     pointer(on: boolean): IBlurCustomAttributeListeners {
-      usage |= Listeners.pointer;
+      usage = on ? (usage | Listeners.pointer) : (usage & ~Listeners.pointer);
       const fn = on ? addListener : removeListener;
       fn(document, 'pointerdown', handlePointerDown, defaultCaptureEventInit);
       return BlurCustomAttribute.listen;
     },
     focus(on: boolean): IBlurCustomAttributeListeners {
-      usage |= Listeners.focus;
+      usage = on ? (usage | Listeners.focus) : (usage & ~Listeners.focus);
       const fn = on ? addListener : removeListener;
       fn(window, 'focus', handleWindowFocus, defaultCaptureEventInit);
       return BlurCustomAttribute.listen;
     },
     blur(on: boolean): IBlurCustomAttributeListeners {
-      usage |= Listeners.blur;
+      usage = on ? (usage | Listeners.blur) : (usage & ~Listeners.blur);
       const fn = on ? addListener : removeListener;
       fn(window, 'blur', handleWindowBlur);
       return BlurCustomAttribute.listen;
     },
     wheel(on: boolean): IBlurCustomAttributeListeners {
-      usage |= Listeners.wheel;
+      usage = on ? (usage | Listeners.wheel) : (usage & ~Listeners.wheel);
       const fn = on ? addListener : removeListener;
       fn(window, 'wheel', handleMouseWheel, defaultBubbleEventInit);
       return BlurCustomAttribute.listen;
@@ -148,11 +148,11 @@ export class BlurCustomAttribute {
     this.value = unset;
   }
 
-  public attached() {
+  public binding() {
     checkTargets.push(this);
   }
 
-  public detached() {
+  public unbinding() {
     const idx = checkTargets.indexOf(this);
     if (idx !== -1) {
       checkTargets.splice(idx, 1);
@@ -160,8 +160,7 @@ export class BlurCustomAttribute {
   }
 
   public handleEventTarget(target: EventTarget): void {
-    const value = this.value;
-    if (!value && value !== unset) {
+    if (this.value === false) {
       return;
     }
     if (target === (PLATFORM.global as unknown) || !this.contains(target as Element)) {
@@ -238,7 +237,6 @@ export class BlurCustomAttribute {
   }
 
   public triggerBlur(): void {
-    // (this as IObservable).$observers.value.currentValue = true;
     this.value = false;
     if (typeof this.onBlur === 'function') {
       this.onBlur.call(null);
@@ -246,7 +244,10 @@ export class BlurCustomAttribute {
   }
 }
 
-CustomAttributeResource.define('blur', BlurCustomAttribute);
+CustomAttributeResource.define({
+  name: 'blur',
+  hasDynamicOptions: true
+}, BlurCustomAttribute);
 
 BlurCustomAttribute.register = function(container: IContainer): void {
   BlurCustomAttribute.use({
@@ -256,7 +257,7 @@ BlurCustomAttribute.register = function(container: IContainer): void {
     windowBlur: true,
   });
   container.register(Registration.transient(CustomAttributeResource.keyFrom('blur'), this));
-}
+};
 
 BlurCustomAttribute.bindables = ['onBlur', 'linkedWith', 'linkMultiple', 'searchSubTree'].reduce((bindables, prop) => {
   bindables[prop] = { property: prop, attribute: PLATFORM.kebabCase(prop) };
@@ -289,23 +290,10 @@ BlurCustomAttribute.bindables = ['onBlur', 'linkedWith', 'linkMultiple', 'search
 
 let checkage = 0;
 
-const SAFE_TIMEOUT = 1;
-let alreadyChecked = false;
-let cleanCheckTimeout: number = 0;
-function revertAlreadyChecked() {
-  alreadyChecked = false;
-  cleanCheckTimeout = 0;
-}
-
 const handlePointerDown = (e: PointerEvent): void => {
   if ((checkage & Listeners.pointer) > 0) {
-    if (usage & Listeners.touch) {
-      checkage |= Listeners.touch;
-    }
-    if (usage & Listeners.mouse) {
-      checkage |= Listeners.mouse;
-    }
-    checkage &= ~Listeners.pointer;
+    // add touch and mouse flags to the checkage only if they are present on usage, and always remove the pointer flag
+    checkage = checkage | (usage & (Listeners.touch | Listeners.mouse)) & ~Listeners.pointer;
     return;
   }
   handleEvent(e);
@@ -314,10 +302,8 @@ const handlePointerDown = (e: PointerEvent): void => {
 
 const handleTouchStart = (e: TouchEvent): void => {
   if ((checkage & Listeners.touch) > 0) {
-    if (usage & Listeners.mouse) {
-      checkage |= Listeners.mouse;
-    }
-    checkage &= ~Listeners.touch;
+    // add mouse flag to checkage only if they are present on usage, and always remove touch flag
+    checkage |= usage & Listeners.mouse & ~Listeners.touch;
     return;
   }
   handleEvent(e);

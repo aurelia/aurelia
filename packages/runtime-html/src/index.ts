@@ -4,6 +4,9 @@ export {
 export {
   StyleBinding
 } from './binding/style-binding';
+export {
+  ClassListBinding
+} from './binding/class-binding';
 
 export {
   AttributeNSAccessor
@@ -129,6 +132,7 @@ export {
   DelegateBindingInstruction,
   SetAttributeInstruction,
   StylePropertyBindingInstruction,
+  ClassListBindingInstruction,
   CssRuleBindingInstruction,
   TextBindingInstruction,
   TriggerBindingInstruction

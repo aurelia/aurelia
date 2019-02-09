@@ -6,10 +6,12 @@ import {
 import { DI, IContainer, IRegistry } from '@aurelia/kernel';
 import { BasicConfiguration as RuntimeHtmlBasicConfiguration } from '@aurelia/runtime-html';
 import {
+  ClassAttributePattern,
   StyleAttributePattern
 } from './attribute-pattern';
 import {
   CaptureBindingCommand,
+  ClassBindingCommand,
   DelegateBindingCommand,
   StyleBindingCommand,
   TriggerBindingCommand
@@ -34,12 +36,14 @@ export const DefaultComponents = [
  * Default HTML-specific (but environment-agnostic) implementations for style binding
  */
 export const JitStyleBindingSyntax = [
-  StyleAttributePattern
+  StyleAttributePattern,
+  ClassAttributePattern
 ];
 
 export const TriggerBindingCommandRegistration = TriggerBindingCommand as IRegistry;
 export const DelegateBindingCommandRegistration = DelegateBindingCommand as IRegistry;
 export const CaptureBindingCommandRegistration = CaptureBindingCommand as IRegistry;
+export const ClassBindingCommandRegistration = ClassBindingCommand as IRegistry;
 export const StyleBindingCommandRegistration = StyleBindingCommand as IRegistry;
 
 /**
@@ -50,6 +54,7 @@ export const DefaultBindingLanguage = [
   TriggerBindingCommandRegistration,
   DelegateBindingCommandRegistration,
   CaptureBindingCommandRegistration,
+  ClassBindingCommandRegistration,
   StyleBindingCommandRegistration
 ];
 

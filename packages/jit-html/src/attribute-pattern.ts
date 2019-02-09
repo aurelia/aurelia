@@ -34,3 +34,21 @@ attributePattern(
   { pattern: 'style.PART', symbols: '.' },
   { pattern: 'PART.style', symbols: '.' }
 )(StyleAttributePattern);
+
+export interface ClassAttributePattern extends IAttributePattern {}
+export class ClassAttributePattern implements ClassAttributePattern {
+  public static register: IRegistry['register'];
+
+  public ['class.PART'](rawName: string, rawValue: string, parts: string[]): AttrSyntax {
+    return new AttrSyntax(rawName, rawValue, parts[1], 'class');
+  }
+
+  public ['PART.class'](rawName: string, rawValue: string, parts: string[]): AttrSyntax {
+    return new AttrSyntax(rawName, rawValue, parts[0], 'class');
+  }
+}
+
+attributePattern(
+  { pattern: 'class.PART', symbols: '.' },
+  { pattern: 'PART.class', symbols: '.' }
+)(ClassAttributePattern);

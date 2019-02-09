@@ -6,6 +6,7 @@ import {
 } from '@aurelia/runtime';
 import {
   HTMLTargetedInstructionType,
+  IClassListBindingInstruction,
   ICssRuleBindingInstruction,
   IListenerBindingInstruction,
   IStylePropertyBindingInstruction,
@@ -86,6 +87,20 @@ export class StylePropertyBindingInstruction implements IStylePropertyBindingIns
 
   constructor(from: string | IsBindingBehavior, to: string) {
     this.type = HTMLTargetedInstructionType.stylePropertyBinding;
+
+    this.from = from;
+    this.to = to;
+  }
+}
+
+export class ClassListBindingInstruction implements IClassListBindingInstruction {
+  public type: HTMLTargetedInstructionType.classListBinding;
+
+  public from: string | IsBindingBehavior;
+  public to: string;
+
+  constructor(from: string | IsBindingBehavior, to: string) {
+    this.type = HTMLTargetedInstructionType.classListBinding;
 
     this.from = from;
     this.to = to;

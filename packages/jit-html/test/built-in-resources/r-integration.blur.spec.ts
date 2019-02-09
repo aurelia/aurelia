@@ -93,7 +93,7 @@ describe.only('built-in-resources.blur', () => {
     describe('Basic scenarios', () => {
       const blurAttrs = [
         // 'blur.bind=hasFocus',
-        // 'blur.two-way=hasFocus',
+        'blur.two-way=hasFocus',
         // 'blur.from-view=hasFocus',
         'blur="value.two-way: hasFocus"',
         // 'blur="value.bind: hasFocus"',
@@ -101,7 +101,7 @@ describe.only('built-in-resources.blur', () => {
       ];
       const normalUsageTestCases: ITestCase[] = [
         {
-          title: 'Works in basic scenario with <div/>',
+          title: (blurAttr: string) => `Works in basic scenario with <div ${blurAttr}/>`,
           template: (blurrAttr) => `<template>
             <div ${blurrAttr}></div>
             <button>Click me to focus</button>
@@ -111,6 +111,8 @@ describe.only('built-in-resources.blur', () => {
             public hasFocus = true;
           },
           async assert(dom, component) {
+            expect(component.hasFocus, 'initial component.hasFocus').to.equal(true);
+
             createEventOn(dom.document, EVENTS.MouseDown);
             expect(component.hasFocus).to.equal(false, 'Shoulda been false initially');
 
@@ -129,7 +131,7 @@ describe.only('built-in-resources.blur', () => {
           }
         },
         {
-          title: 'Works in basic scenario with <input/>',
+          title: (blurAttr) => `Works in basic scenario with <input ${blurAttr}/>`,
           template: (blurrAttr) => `<template>
             <input ${blurrAttr}>
             <button>Click me to focus</button>
@@ -139,6 +141,8 @@ describe.only('built-in-resources.blur', () => {
             public hasFocus = true;
           },
           async assert(dom, component) {
+            expect(component.hasFocus, 'initial component.hasFocus').to.equal(true);
+
             createEventOn(dom.document, EVENTS.MouseDown);
             expect(component.hasFocus).to.equal(false, 'Shoulda set "hasFocus" to false when mousedown on document.');
             // component.hasFocus = true;
@@ -168,7 +172,7 @@ describe.only('built-in-resources.blur', () => {
       eachCartesianJoin(
         [blurAttrs, normalUsageTestCases],
         (command, { title, template, getFocusable, app, assert, cfg = defaultBlurConfig}: ITestCase) => {
-          it(title, async () => {
+          it(title(command), async () => {
             const originalUse = BlurCustomAttribute.use;
             let callCount = 0;
             BlurCustomAttribute.use = function() {
@@ -260,7 +264,7 @@ describe.only('built-in-resources.blur', () => {
   }
 
   interface ITestCase<T extends IApp = IApp> {
-    title: string;
+    title(...args: unknown[]): string;
     template: TemplateFn;
     app: Constructable<T>;
     assert: AssertionFn;

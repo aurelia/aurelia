@@ -163,7 +163,7 @@ jobs:
           name: "Install e2e tests"
           command: |
             cd test/browserstack
-            npm ci
+            npm install
             npm run build
       - run:
           name: "Serve e2e app in the background"

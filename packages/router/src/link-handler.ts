@@ -1,3 +1,5 @@
+import { Reporter } from '@aurelia/kernel';
+
 /**
  * Provides information about how to handle an anchor event.
  */
@@ -112,7 +114,7 @@ export class LinkHandler {
    */
   public activate(options: ILinkHandlerOptions): void {
     if (this.isActive) {
-      throw new Error('LinkHandler has already been activated.');
+      throw Reporter.error(2004);
     }
 
     this.isActive = true;

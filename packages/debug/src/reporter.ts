@@ -213,6 +213,26 @@ const codeLookup: Record<string, IMessageInfo> = {
     type: MessageType.error,
     message: 'Unexpected keyword "of"'
   },
+  2000: {
+    type: MessageType.error,
+    message: 'Router has not been activated.'
+  },
+  2001: {
+    type: MessageType.error,
+    message: 'Router has already been activated.'
+  },
+  2002: {
+    type: MessageType.error,
+    message: 'Failed to resolve all viewports.'
+  },
+  2003: {
+    type: MessageType.error,
+    message: 'Queued browser history has already been activated.'
+  },
+  2004: {
+    type: MessageType.error,
+    message: 'LinkHandler has already been activated.'
+  },
   10000: {
     type: MessageType.debug,
     message: '%s'

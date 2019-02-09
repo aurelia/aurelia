@@ -52,24 +52,25 @@ exports.config = {
 
   capabilities: [
     ...combine([
-      { versions: ['68'], name: 'Chrome' },
-      { versions: ['61'], name: 'Firefox' }
+      { versions: ['17'], name: 'Edge' },
+      { versions: ['71'], name: 'Chrome' },
+      { versions: ['65'], name: 'Firefox' }
     ], [
       { versions: ['10'], name: 'Windows' },
-      { versions: ['High Sierra'], name: 'OS X' }
+   // { versions: ['High Sierra'], name: 'OS X' }
     ]),
     // ...combine([
     //   { versions: ['17'], name: 'Edge' },
     // ], [
     //   { versions: ['10'], name: 'Windows' }
     // ]),
-    // ...combine([
-    //   //{ versions: ['11.1'], name: 'Safari' }
-    //   { versions: ['10.1'], name: 'Safari' }
-    // ], [
-    //   //{ versions: ['High Sierra'], name: 'OS X' }
-    //   { versions: ['Sierra'], name: 'OS X' }
-    // ])
+    ...combine([
+      { versions: ['11.1'], name: 'Safari' }
+      //{ versions: ['10.1'], name: 'Safari' }
+    ], [
+      { versions: ['High Sierra'], name: 'OS X' }
+      //{ versions: ['Sierra'], name: 'OS X' }
+    ])
   ],
 
   logLevel: 'silent',
@@ -81,12 +82,7 @@ exports.config = {
   connectionRetryCount: 3,
   host: 'hub.browserstack.com',
 
-  reporters: ['spec', 'allure'],
-  reporterOptions: {
-      allure: {
-          outputDir: 'allure-results'
-      }
-  },
+  reporters: ['spec'],
 
   framework: 'mocha',
   mochaOpts: {

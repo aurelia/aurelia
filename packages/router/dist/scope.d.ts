@@ -23,11 +23,12 @@ export declare class Scope {
     parent: Scope;
     viewport: Viewport;
     children: Scope[];
-    viewports: Record<string, Viewport>;
+    viewports: Viewport[];
     private readonly router;
     private scopeViewportParts;
     private availableViewports;
     constructor(router: Router, element: Element, context: IRenderContext, parent: Scope);
+    getEnabledViewports(): Record<string, Viewport>;
     findViewports(viewports?: Record<string, string | Viewport>): IFindViewportsResult;
     foundViewport(viewports: Record<string, string | Viewport>, scopeViewportParts: Record<string, string[][]>, viewportPart: string, component: ICustomElementType | string, viewport: Viewport): IFindViewportsResult;
     addViewport(name: string, element: Element, context: IRenderContext, options?: IViewportOptions): Viewport;

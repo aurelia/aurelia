@@ -1,23 +1,16 @@
-import { ICustomElement, ICustomElementType, IRenderContext, LifecycleFlags } from '@aurelia/runtime';
+import { ICustomElementType, IRenderContext, LifecycleFlags } from '@aurelia/runtime';
 import { INavigationInstruction } from './history-browser';
-import { Router } from './router';
+import { IComponentViewportParameters, Router } from './router';
 import { Scope } from './scope';
-import { IRouteableCustomElement, IViewportOptions } from './viewport';
-export interface IRouteableCustomElementType extends ICustomElementType {
-    parameters?: string[];
-}
-export interface IRouteableCustomElement extends ICustomElement {
-    canEnter?(nextInstruction?: INavigationInstruction, instruction?: INavigationInstruction): boolean | Promise<boolean>;
-    enter?(parameters?: string[] | Record<string, string>, nextInstruction?: INavigationInstruction, instruction?: INavigationInstruction): void | Promise<void>;
-    canLeave?(nextInstruction?: INavigationInstruction, instruction?: INavigationInstruction): boolean | Promise<boolean>;
-    leave?(nextInstruction?: INavigationInstruction, instruction?: INavigationInstruction): void | Promise<void>;
-}
+import { IViewportOptions } from './viewport';
+import { ViewportContent } from './viewport-content';
 export interface IViewportOptions {
     scope?: boolean;
     usedBy?: string | string[];
     default?: string;
     noLink?: boolean;
     noHistory?: boolean;
+    stateful?: boolean;
     forceDescription?: boolean;
 }
 export declare class Viewport {
@@ -27,29 +20,24 @@ export declare class Viewport {
     owningScope: Scope;
     scope: Scope;
     options?: IViewportOptions;
-    content: IRouteableCustomElementType;
-    nextContent: IRouteableCustomElementType | string;
-    parameters: string;
-    nextParameters: string;
-    instruction: INavigationInstruction;
-    nextInstruction: INavigationInstruction;
-    component: IRouteableCustomElement;
-    nextComponent: IRouteableCustomElement;
+    content: ViewportContent;
+    nextContent: ViewportContent;
+    enabled: boolean;
     private readonly router;
     private clear;
     private elementResolve?;
     private previousViewportState?;
-    private entered;
+    private cache;
     constructor(router: Router, name: string, element: Element, context: IRenderContext, owningScope: Scope, scope: Scope, options?: IViewportOptions);
     setNextContent(content: ICustomElementType | string, instruction: INavigationInstruction): boolean;
     setElement(element: Element, context: IRenderContext, options: IViewportOptions): void;
     remove(element: Element, context: IRenderContext): boolean;
     canLeave(): Promise<boolean>;
-    canEnter(): Promise<boolean>;
+    canEnter(): Promise<boolean | IComponentViewportParameters[]>;
     enter(): Promise<boolean>;
     loadContent(): Promise<boolean>;
     finalizeContentChange(): void;
-    restorePreviousContent(): Promise<void>;
+    abortContentChange(): Promise<void>;
     description(full?: boolean): string;
     scopedDescription(full?: boolean): string;
     wantComponent(component: ICustomElementType | string): boolean;
@@ -58,16 +46,7 @@ export declare class Viewport {
     attaching(flags: LifecycleFlags): void;
     detaching(flags: LifecycleFlags): void;
     unbinding(flags: LifecycleFlags): void;
-    componentName(component: IRouteableCustomElementType | string): string;
-    componentType(component: IRouteableCustomElementType | string): IRouteableCustomElementType;
-    componentInstance(component: IRouteableCustomElementType | string): IRouteableCustomElement;
     private clearState;
-    private loadComponent;
-    private unloadComponent;
-    private initializeComponent;
-    private terminateComponent;
-    private addComponent;
-    private removeComponent;
     private waitForElement;
 }
 //# sourceMappingURL=viewport.d.ts.map

@@ -3588,6 +3588,7 @@ System.register('runtime', ['@aurelia/kernel'], function (exports, module) {
                 const currentValue = this.currentValue;
                 newValue = newValue === null || newValue === undefined ? this.defaultValue : newValue;
                 if (currentValue !== newValue) {
+                    this.oldValue = this.currentValue;
                     this.currentValue = newValue;
                     if ((flags & (448 /* fromFlush */ | 2048 /* fromBind */)) &&
                         !(this.isDOMObserver && (flags & 4194304 /* doNotUpdateDOM */))) {
@@ -4936,27 +4937,19 @@ System.register('runtime', ['@aurelia/kernel'], function (exports, module) {
                 return obj.$synthetic === true;
             }
 
-            const noop$1 = PLATFORM.noop;
             let SelfObserver = exports('SelfObserver', class SelfObserver {
-                constructor(flags, instance, propertyName, callbackName) {
+                constructor(flags, instance, propertyName, cbName) {
                     this.persistentFlags = flags & 67108879 /* persistentBindingFlags */;
                     if (ProxyObserver.isProxy(instance)) {
                         instance.$observer.subscribe(this, propertyName);
                         this.obj = instance.$raw;
-                        this.propertyKey = propertyName;
-                        this.currentValue = instance.$raw[propertyName];
-                        this.callback = callbackName in instance.$raw
-                            ? instance[callbackName].bind(instance)
-                            : noop$1;
                     }
                     else {
                         this.obj = instance;
-                        this.propertyKey = propertyName;
-                        this.currentValue = instance[propertyName];
-                        this.callback = callbackName in instance
-                            ? instance[callbackName].bind(instance)
-                            : noop$1;
                     }
+                    this.propertyKey = propertyName;
+                    this.currentValue = this.obj[propertyName];
+                    this.callback = this.obj[cbName] === undefined ? null : this.obj[cbName];
                     if (flags & 4 /* patchStrategy */) {
                         this.getValue = this.getValueDirect;
                     }
@@ -4971,21 +4964,30 @@ System.register('runtime', ['@aurelia/kernel'], function (exports, module) {
                     return this.obj[this.propertyKey];
                 }
                 setValue(newValue, flags) {
-                    const currentValue = this.currentValue;
-                    if (currentValue !== newValue || (flags & 4 /* patchStrategy */)) {
-                        this.currentValue = newValue;
-                        if (!(flags & 2048 /* fromBind */)) {
-                            const coercedValue = this.callback(newValue, currentValue, flags);
-                            if (coercedValue !== undefined) {
-                                this.currentValue = newValue = coercedValue;
+                    if (newValue !== this.currentValue || (flags & 4 /* patchStrategy */) > 0) {
+                        if ((flags & 2048 /* fromBind */) === 0) {
+                            const oldValue = this.currentValue;
+                            flags |= this.persistentFlags;
+                            this.currentValue = newValue;
+                            this.callSubscribers(newValue, oldValue, flags | 262144 /* allowPublishRoundtrip */);
+                            if (this.callback !== null) {
+                                this.callback.call(this.obj, newValue, oldValue, flags);
                             }
-                            this.callSubscribers(newValue, currentValue, flags | 262144 /* allowPublishRoundtrip */);
+                        }
+                        else {
+                            this.currentValue = newValue;
                         }
                     }
                 }
                 $patch(flags) {
-                    this.callback(this.obj[this.propertyKey], this.currentValue, this.persistentFlags | flags);
-                    this.callSubscribers(this.obj[this.propertyKey], this.currentValue, this.persistentFlags | flags);
+                    const oldValue = this.currentValue;
+                    const newValue = this.obj[this.propertyKey];
+                    flags |= this.persistentFlags;
+                    this.currentValue = newValue;
+                    this.callSubscribers(newValue, oldValue, flags);
+                    if (this.callback !== null) {
+                        this.callback.call(this.obj, newValue, oldValue, flags);
+                    }
                 }
             });
             SelfObserver = exports('SelfObserver', __decorate([
@@ -7277,6 +7279,7 @@ System.register('runtime', ['@aurelia/kernel'], function (exports, module) {
                     const host = config.host;
                     const domInitializer = this.container.get(IDOMInitializer);
                     domInitializer.initialize(config);
+                    Registration.instance(INode, host).register(this.container);
                     const startFlags = 512 /* fromStartTask */ | config.strategy;
                     const stopFlags = 1024 /* fromStopTask */ | config.strategy;
                     let component;

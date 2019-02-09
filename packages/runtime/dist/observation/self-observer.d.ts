@@ -5,11 +5,11 @@ export interface SelfObserver extends IPropertyObserver<IIndexable, string> {
 }
 export declare class SelfObserver implements SelfObserver {
     readonly persistentFlags: LifecycleFlags;
-    obj: IIndexable;
+    obj: object;
     propertyKey: string;
     currentValue: unknown;
     private readonly callback;
-    constructor(flags: LifecycleFlags, instance: object, propertyName: string, callbackName: string);
+    constructor(flags: LifecycleFlags, instance: object, propertyName: string, cbName: string);
     handleChange(newValue: unknown, oldValue: unknown, flags: LifecycleFlags): void;
     getValue(): unknown;
     getValueDirect(): unknown;

@@ -1,13 +1,97 @@
 this.au = this.au || {};
-this.au.router = (function (exports, runtime, kernel) {
+this.au.router = (function (exports, kernel, runtime) {
   'use strict';
+
+  class QueuedBrowserHistory {
+      constructor() {
+          this.handlePopstate = async (ev) => {
+              await this.enqueue(this, 'popstate', [ev]);
+          };
+          this.window = window;
+          this.history = window.history;
+          this.queue = [];
+          this.isActive = false;
+          this.currentHistoryActivity = null;
+          this.callback = null;
+      }
+      activate(callback) {
+          if (this.isActive) {
+              throw kernel.Reporter.error(2003);
+          }
+          this.isActive = true;
+          this.callback = callback;
+          kernel.PLATFORM.ticker.add(this.dequeue, this);
+          this.window.addEventListener('popstate', this.handlePopstate);
+      }
+      deactivate() {
+          this.window.removeEventListener('popstate', this.handlePopstate);
+          kernel.PLATFORM.ticker.remove(this.dequeue, this);
+          this.callback = null;
+          this.isActive = false;
+      }
+      get length() {
+          return this.history.length;
+      }
+      // tslint:disable-next-line:no-any - typed according to DOM
+      get state() {
+          return this.history.state;
+      }
+      get scrollRestoration() {
+          return this.history.scrollRestoration;
+      }
+      async go(delta) {
+          await this.enqueue(this.history, 'go', [delta]);
+      }
+      back() {
+          return this.go(-1);
+      }
+      forward() {
+          return this.go(1);
+      }
+      // tslint:disable-next-line:no-any - typed according to DOM
+      async pushState(data, title, url) {
+          await this.enqueue(this.history, 'pushState', [data, title, url]);
+      }
+      // tslint:disable-next-line:no-any - typed according to DOM
+      async replaceState(data, title, url) {
+          await this.enqueue(this.history, 'replaceState', [data, title, url]);
+      }
+      popstate(ev) {
+          this.callback(ev);
+      }
+      enqueue(target, methodName, parameters) {
+          let _resolve;
+          // tslint:disable-next-line:promise-must-complete
+          const promise = new Promise((resolve) => {
+              _resolve = resolve;
+          });
+          this.queue.push({
+              target: target,
+              methodName: methodName,
+              parameters: parameters,
+              resolve: _resolve,
+          });
+          return promise;
+      }
+      async dequeue(delta) {
+          if (!this.queue.length || this.currentHistoryActivity !== null) {
+              return;
+          }
+          this.currentHistoryActivity = this.queue.shift();
+          const method = this.currentHistoryActivity.target[this.currentHistoryActivity.methodName];
+          kernel.Reporter.write(10000, 'DEQUEUE', this.currentHistoryActivity.methodName, this.currentHistoryActivity.parameters);
+          method.apply(this.currentHistoryActivity.target, this.currentHistoryActivity.parameters);
+          const resolve = this.currentHistoryActivity.resolve;
+          this.currentHistoryActivity = null;
+          resolve();
+      }
+  }
 
   class HistoryBrowser {
       constructor() {
-          this.pathChanged = () => {
+          this.pathChanged = async () => {
               if (this.ignorePathChange !== null) {
-                  // tslint:disable-next-line:no-console
-                  console.log('=== ignore path change', this.getPath());
+                  kernel.Reporter.write(10000, '=== ignore path change', this.getPath());
                   const resolve = this.ignorePathChange;
                   this.ignorePathChange = null;
                   resolve();
@@ -15,8 +99,7 @@ this.au.router = (function (exports, runtime, kernel) {
               }
               const path = this.getPath();
               const search = this.getSearch();
-              // tslint:disable-next-line:no-console
-              console.log('path changed to', path, this.activeEntry, this.currentEntry);
+              kernel.Reporter.write(10000, 'path changed to', path, this.activeEntry, this.currentEntry);
               const navigationFlags = {};
               let previousEntry;
               let historyEntry = this.getState('HistoryEntry');
@@ -48,7 +131,7 @@ this.au.router = (function (exports, runtime, kernel) {
                       this.historyEntries = this.historyEntries.slice(0, this.currentEntry.index);
                       this.historyEntries.push(this.currentEntry);
                   }
-                  this.setState({
+                  await this.setState({
                       'HistoryEntries': this.historyEntries,
                       'HistoryOffset': this.historyOffset,
                       'HistoryEntry': this.currentEntry
@@ -83,9 +166,12 @@ this.au.router = (function (exports, runtime, kernel) {
                           index: this.history.length - this.historyOffset,
                           query: search,
                       };
+                      if (navigationFlags.isFirst) {
+                          historyEntry.firstEntry = true;
+                      }
                       this.historyEntries = this.historyEntries.slice(0, historyEntry.index);
                       this.historyEntries.push(historyEntry);
-                      this.setState({
+                      await this.setState({
                           'HistoryEntries': this.historyEntries,
                           'HistoryOffset': this.historyOffset,
                           'HistoryEntry': historyEntry
@@ -104,12 +190,11 @@ this.au.router = (function (exports, runtime, kernel) {
               if (this.cancelRedirectHistoryMovement) {
                   this.cancelRedirectHistoryMovement--;
               }
-              // tslint:disable-next-line:no-console
-              console.log('navigated', this.getState('HistoryEntry'), this.historyEntries, this.getState('HistoryOffset'));
+              kernel.Reporter.write(10000, 'navigated', this.getState('HistoryEntry'), this.historyEntries, this.getState('HistoryOffset'));
               this.callback(this.currentEntry, navigationFlags, previousEntry);
           };
           this.location = window.location;
-          this.history = window.history;
+          this.history = new QueuedBrowserHistory();
           this.currentEntry = null;
           this.historyEntries = null;
           this.historyOffset = null;
@@ -126,17 +211,17 @@ this.au.router = (function (exports, runtime, kernel) {
       }
       activate(options) {
           if (this.isActive) {
-              throw new Error('History has already been activated.');
+              throw kernel.Reporter.error(0); // TODO: create error code for 'History has already been activated.'
           }
           this.isActive = true;
           this.options = Object.assign({}, options);
-          window.addEventListener('popstate', this.pathChanged);
+          this.history.activate(this.pathChanged);
           return Promise.resolve().then(() => {
-              this.setPath(this.getPath(), true);
+              this.setPath(this.getPath(), true).catch(error => { throw error; });
           });
       }
       deactivate() {
-          window.removeEventListener('popstate', this.pathChanged);
+          this.history.deactivate();
           this.isActive = false;
       }
       goto(path, title, data) {
@@ -146,7 +231,7 @@ this.au.router = (function (exports, runtime, kernel) {
               title: title,
               data: data,
           };
-          this.setPath(path);
+          return this.setPath(path);
       }
       replace(path, title, data) {
           this.isReplacing = true;
@@ -156,56 +241,65 @@ this.au.router = (function (exports, runtime, kernel) {
               title: title,
               data: data,
           };
-          this.setPath(path, true);
+          return this.setPath(path, true);
       }
       redirect(path, title, data) {
           // This makes sure we can cancel redirects from both pushes and replaces
           this.cancelRedirectHistoryMovement = this.lastHistoryMovement + 1;
-          this.replace(path, title, data);
+          return this.replace(path, title, data);
       }
-      refresh() {
+      async refresh() {
           if (!this.currentEntry) {
               return;
           }
           this.isRefreshing = true;
-          this.replace(this.currentEntry.path, this.currentEntry.title, this.currentEntry.data);
+          return this.replace(this.currentEntry.path, this.currentEntry.title, this.currentEntry.data);
       }
       back() {
-          this.history.go(-1);
+          return this.history.go(-1);
       }
       forward() {
-          this.history.go(1);
+          return this.history.go(1);
       }
       cancel() {
           this.isCancelling = true;
           const movement = this.lastHistoryMovement || this.cancelRedirectHistoryMovement;
           if (movement) {
-              this.history.go(-movement);
+              return this.history.go(-movement);
           }
           else {
-              this.replace(this.replacedEntry.path, this.replacedEntry.title, this.replacedEntry.data);
+              return this.replace(this.replacedEntry.path, this.replacedEntry.title, this.replacedEntry.data);
           }
       }
       async pop() {
-          // TODO: Make sure we don't back out of application
           let state;
+          // let newHash = `#/${Date.now()}`;
+          // let { pathname, search, hash } = this.location;
+          // state = this.history.state;
+          // await this.history.replaceState(state, null, `${pathname}${search}${newHash}`);
           // tslint:disable-next-line:promise-must-complete
-          let wait = new Promise((resolve, reject) => {
+          let goPathChangeTriggered = new Promise((resolve, reject) => {
               this.ignorePathChange = resolve;
           });
-          this.history.go(-1);
-          await wait;
+          await this.history.go(-1);
+          await goPathChangeTriggered;
           const path = this.location.toString();
           state = this.history.state;
-          // tslint:disable-next-line:promise-must-complete
-          wait = new Promise((resolve, reject) => {
-              this.ignorePathChange = resolve;
-          });
-          this.history.go(-1);
-          await wait;
-          this.history.pushState(state, null, path);
+          // TODO: Fix browser forward bug after pop on first entry
+          if (!state.HistoryEntry.firstEntry) {
+              // let newHash = `#/${Date.now()}`;
+              // let { pathname, search, hash } = this.location;
+              // await this.history.replaceState(state, null, `${pathname}${search}${newHash}`);
+              // tslint:disable-next-line:promise-must-complete
+              goPathChangeTriggered = new Promise((resolve, reject) => {
+                  this.ignorePathChange = resolve;
+              });
+              await this.history.go(-1);
+              await goPathChangeTriggered;
+              return this.history.pushState(state, null, path);
+          }
       }
-      setState(key, value) {
+      async setState(key, value) {
           const { pathname, search, hash } = this.location;
           let state = Object.assign({}, this.history.state);
           if (typeof key === 'string') {
@@ -214,7 +308,7 @@ this.au.router = (function (exports, runtime, kernel) {
           else {
               state = Object.assign({}, state, JSON.parse(JSON.stringify(key)));
           }
-          this.history.replaceState(state, null, `${pathname}${search}${hash}`);
+          return this.history.replaceState(state, null, `${pathname}${search}${hash}`);
       }
       getState(key) {
           const state = Object.assign({}, this.history.state);
@@ -223,7 +317,7 @@ this.au.router = (function (exports, runtime, kernel) {
       setEntryTitle(title) {
           this.currentEntry.title = title;
           this.historyEntries[this.currentEntry.index] = this.currentEntry;
-          this.setState({
+          return this.setState({
               'HistoryEntries': this.historyEntries,
               'HistoryEntry': this.currentEntry,
           });
@@ -247,7 +341,7 @@ this.au.router = (function (exports, runtime, kernel) {
               'HistoryEntry': this.currentEntry,
               'HistoryEntries': this.historyEntries,
           });
-          this.history.replaceState(state, null, `${pathname}${search}${newHash}`);
+          return this.history.replaceState(state, null, `${pathname}${search}${newHash}`);
       }
       setHash(hash) {
           if (!hash.startsWith('#')) {
@@ -262,7 +356,7 @@ this.au.router = (function (exports, runtime, kernel) {
           const hash = this.location.hash.substring(1);
           return hash.split('?')[0];
       }
-      setPath(path, replace = false) {
+      async setPath(path, replace = false) {
           // More checks, such as parameters, needed
           if (this.currentEntry && this.currentEntry.path === path && !this.isRefreshing) {
               return;
@@ -271,14 +365,14 @@ this.au.router = (function (exports, runtime, kernel) {
           const hash = `#${path}`;
           if (replace) {
               this.replacedEntry = this.currentEntry;
-              this.history.replaceState({}, null, `${pathname}${search}${hash}`);
+              await this.history.replaceState({}, null, `${pathname}${search}${hash}`);
           }
           else {
               // tslint:disable-next-line:no-commented-code
               // this.location.hash = hash;
-              this.history.pushState({}, null, `${pathname}${search}${hash}`);
+              await this.history.pushState({}, null, `${pathname}${search}${hash}`);
           }
-          this.pathChanged();
+          return this.pathChanged();
       }
       getSearch() {
           const hash = this.location.hash.substring(1);
@@ -289,8 +383,7 @@ this.au.router = (function (exports, runtime, kernel) {
       callback(currentEntry, navigationFlags, previousEntry) {
           const instruction = Object.assign({}, currentEntry, navigationFlags);
           instruction.previous = previousEntry;
-          // tslint:disable-next-line:no-console
-          console.log('callback', currentEntry, navigationFlags);
+          kernel.Reporter.write(10000, 'callback', currentEntry, navigationFlags);
           if (this.options.callback) {
               this.options.callback(instruction);
           }
@@ -373,7 +466,7 @@ this.au.router = (function (exports, runtime, kernel) {
        */
       activate(options) {
           if (this.isActive) {
-              throw new Error('LinkHandler has already been activated.');
+              throw kernel.Reporter.error(2004);
           }
           this.isActive = true;
           this.options = Object.assign({}, options);
@@ -1002,6 +1095,163 @@ this.au.router = (function (exports, runtime, kernel) {
       };
   }
 
+  var ContentStatus;
+  (function (ContentStatus) {
+      ContentStatus[ContentStatus["none"] = 0] = "none";
+      ContentStatus[ContentStatus["loaded"] = 1] = "loaded";
+      ContentStatus[ContentStatus["initialized"] = 2] = "initialized";
+      ContentStatus[ContentStatus["entered"] = 3] = "entered";
+      ContentStatus[ContentStatus["added"] = 4] = "added";
+  })(ContentStatus || (ContentStatus = {}));
+  class ViewportContent {
+      constructor(content = null, parameters = null, instruction = null, context = null) {
+          // Can be a (resolved) type or a string (to be resolved later)
+          this.content = content;
+          this.parameters = parameters;
+          this.instruction = instruction;
+          this.component = null;
+          this.contentStatus = 0 /* none */;
+          this.fromCache = false;
+          // If we've got a container, we're good to resolve type
+          if (this.content !== null && typeof this.content === 'string' && context !== null) {
+              this.content = this.componentType(context);
+          }
+      }
+      isChange(other) {
+          return ((typeof other.content === 'string' && this.componentName() !== other.content) ||
+              (typeof other.content !== 'string' && this.content !== other.content) ||
+              this.parameters !== other.parameters ||
+              !this.instruction || this.instruction.query !== other.instruction.query);
+      }
+      isCacheEqual(other) {
+          return ((typeof other.content === 'string' && this.componentName() === other.content) ||
+              (typeof other.content !== 'string' && this.content === other.content)) &&
+              this.parameters === other.parameters;
+      }
+      loadComponent(context, element) {
+          // Don't load cached content
+          if (!this.fromCache) {
+              this.component = this.componentInstance(context);
+              const host = element;
+              const container = context;
+              this.component.$hydrate(0 /* none */, container, host);
+          }
+          this.contentStatus = 1 /* loaded */;
+          return Promise.resolve();
+      }
+      unloadComponent() {
+          // TODO: We might want to do something here eventually, who knows?
+          if (this.contentStatus !== 1 /* loaded */) {
+              return;
+          }
+          // Don't unload components when stateful
+          this.contentStatus = 0 /* none */;
+      }
+      initializeComponent() {
+          // Don't initialize cached content
+          if (!this.fromCache) {
+              this.component.$bind(512 /* fromStartTask */ | 2048 /* fromBind */, null);
+          }
+          this.contentStatus = 2 /* initialized */;
+      }
+      terminateComponent(stateful = false) {
+          if (this.contentStatus !== 2 /* initialized */) {
+              return;
+          }
+          // Don't terminate cached content
+          if (!stateful) {
+              this.component.$unbind(1024 /* fromStopTask */ | 4096 /* fromUnbind */);
+          }
+          this.contentStatus = 1 /* loaded */;
+      }
+      addComponent(element) {
+          this.component.$attach(512 /* fromStartTask */);
+          if (this.fromCache) {
+              const elements = Array.from(element.getElementsByTagName('*'));
+              for (const el of elements) {
+                  if (el.hasAttribute('au-element-scroll')) {
+                      const [top, left] = el.getAttribute('au-element-scroll').split(',');
+                      el.removeAttribute('au-element-scroll');
+                      el.scrollTo(+left, +top);
+                  }
+              }
+          }
+          this.contentStatus = 4 /* added */;
+      }
+      removeComponent(element, stateful = false) {
+          if (this.contentStatus !== 4 /* added */) {
+              return;
+          }
+          if (stateful) {
+              const elements = Array.from(element.getElementsByTagName('*'));
+              for (const el of elements) {
+                  if (el.scrollTop > 0 || el.scrollLeft) {
+                      el.setAttribute('au-element-scroll', `${el.scrollTop},${el.scrollLeft}`);
+                  }
+              }
+          }
+          this.component.$detach(1024 /* fromStopTask */);
+          this.contentStatus = 4 /* added */;
+      }
+      async freeContent(element, stateful = false) {
+          switch (this.contentStatus) {
+              case 4 /* added */:
+                  this.removeComponent(element, stateful);
+              case 3 /* entered */:
+                  if (this.component.leave) {
+                      await this.component.leave();
+                  }
+                  this.contentStatus = 2 /* initialized */;
+              case 2 /* initialized */:
+                  this.terminateComponent(stateful);
+              case 1 /* loaded */:
+                  this.unloadComponent();
+          }
+          this.contentStatus = 0 /* none */;
+      }
+      componentName() {
+          if (this.content === null) {
+              return null;
+          }
+          else if (typeof this.content === 'string') {
+              return this.content;
+          }
+          else {
+              return (this.content).description.name;
+          }
+      }
+      componentType(context) {
+          if (this.content === null) {
+              return null;
+          }
+          else if (typeof this.content !== 'string') {
+              return this.content;
+          }
+          else {
+              const container = context.get(kernel.IContainer);
+              const resolver = container.getResolver(runtime.CustomElementResource.keyFrom(this.content));
+              if (resolver !== null) {
+                  return resolver.getFactory(container).Type;
+              }
+              return null;
+          }
+      }
+      componentInstance(context) {
+          if (this.content === null) {
+              return null;
+          }
+          // TODO: Remove once "local registration is fixed"
+          const component = this.componentName();
+          const container = context.get(kernel.IContainer);
+          if (typeof component !== 'string') {
+              return container.get(component);
+          }
+          else {
+              return container.get(runtime.CustomElementResource.keyFrom(component));
+          }
+      }
+  }
+
   class Viewport {
       constructor(router, name, element, context, owningScope, scope, options) {
           this.router = router;
@@ -1012,17 +1262,12 @@ this.au.router = (function (exports, runtime, kernel) {
           this.scope = scope;
           this.options = options;
           this.clear = false;
-          this.content = null;
+          this.content = new ViewportContent();
           this.nextContent = null;
-          this.parameters = null;
-          this.nextParameters = null;
-          this.instruction = null;
-          this.nextInstruction = null;
-          this.component = null;
-          this.nextComponent = null;
           this.elementResolve = null;
           this.previousViewportState = null;
-          this.entered = false;
+          this.cache = [];
+          this.enabled = true;
       }
       setNextContent(content, instruction) {
           let parameters;
@@ -1036,25 +1281,22 @@ this.au.router = (function (exports, runtime, kernel) {
                   const cp = content.split(this.router.separators.parameters);
                   content = cp.shift();
                   parameters = cp.length ? cp.join(this.router.separators.parameters) : null;
-                  // If we've got a container, we're good to resolve type
-                  if (this.context) {
-                      content = this.componentType(content);
-                  }
               }
           }
-          // Can be a (resolved) type or a string (to be resolved later)
-          this.nextContent = content;
-          this.nextInstruction = instruction;
-          this.nextParameters = parameters;
-          this.entered = false;
-          if ((typeof content === 'string' && this.componentName(this.content) !== content) ||
-              (typeof content !== 'string' && this.content !== content) ||
-              this.parameters !== parameters ||
-              !this.instruction || this.instruction.query !== instruction.query ||
-              instruction.isRefresh) {
-              return true;
+          // Can have a (resolved) type or a string (to be resolved later)
+          this.nextContent = new ViewportContent(content, parameters, instruction, this.context);
+          if (this.options.stateful) {
+              // TODO: Add a parameter here to decide required equality
+              const cached = this.cache.find((item) => this.nextContent.isCacheEqual(item));
+              if (cached) {
+                  this.nextContent = cached;
+                  this.nextContent.fromCache = true;
+              }
+              else {
+                  this.cache.push(this.nextContent);
+              }
           }
-          return false;
+          return this.content.isChange(this.nextContent) || instruction.isRefresh;
       }
       setElement(element, context, options) {
           // First added viewport with element is always scope viewport (except for root scope)
@@ -1081,6 +1323,9 @@ this.au.router = (function (exports, runtime, kernel) {
               if (options && options.noHistory) {
                   this.options.noHistory = options.noHistory;
               }
+              if (options && options.stateful) {
+                  this.options.stateful = options.stateful;
+              }
               if (this.elementResolve) {
                   this.elementResolve();
               }
@@ -1088,123 +1333,117 @@ this.au.router = (function (exports, runtime, kernel) {
           if (this.context !== context) {
               this.context = context;
           }
-          if (!this.component && !this.nextComponent && this.options.default) {
-              this.router.addProcessingViewport(this, this.options.default);
+          if (!this.content.component && (!this.nextContent || !this.nextContent.component) && this.options.default) {
+              this.router.addProcessingViewport(this.options.default, this);
           }
       }
-      // TODO: Will probably end up changing stuff due to the remove (hence the name)
       remove(element, context) {
-          return this.element === element && this.context === context;
-      }
-      async canLeave() {
-          if (!this.component) {
+          if (this.element === element && this.context === context) {
+              if (this.content.component) {
+                  this.content.freeContent(this.element, this.options.stateful).catch(error => { throw error; });
+              }
               return true;
           }
-          const component = this.component;
+          return false;
+      }
+      async canLeave() {
+          if (!this.content.component) {
+              return true;
+          }
+          const component = this.content.component;
           if (!component.canLeave) {
               return true;
           }
-          // tslint:disable-next-line:no-console
-          console.log('viewport canLeave', component.canLeave(this.instruction, this.nextInstruction));
-          const result = component.canLeave(this.instruction, this.nextInstruction);
-          if (typeof result === 'boolean') {
-              return result;
-          }
-          return result;
+          kernel.Reporter.write(10000, 'viewport canLeave', component.canLeave(this.content.instruction, this.nextContent.instruction));
+          return component.canLeave(this.content.instruction, this.nextContent.instruction);
       }
       async canEnter() {
           if (this.clear) {
               return true;
           }
-          if (!this.nextContent) {
+          if (!this.nextContent.content) {
               return false;
           }
-          await this.loadComponent(this.nextContent);
-          if (!this.nextComponent) {
+          await this.waitForElement();
+          await this.nextContent.loadComponent(this.context, this.element);
+          if (!this.nextContent.component) {
               return false;
           }
-          const component = this.nextComponent;
+          const component = this.nextContent.component;
           if (!component.canEnter) {
               return true;
           }
-          const result = component.canEnter(this.nextInstruction, this.instruction);
-          // tslint:disable-next-line:no-console
-          console.log('viewport canEnter', result);
+          const result = component.canEnter(this.nextContent.instruction, this.content.instruction);
+          kernel.Reporter.write(10000, 'viewport canEnter', result);
           if (typeof result === 'boolean') {
               return result;
+          }
+          if (typeof result === 'string') {
+              return [{ component: result, viewport: this }];
           }
           return result;
       }
       async enter() {
-          // tslint:disable-next-line:no-console
-          console.log('Viewport enter', this.name);
+          kernel.Reporter.write(10000, 'Viewport enter', this.name);
           if (this.clear) {
               return true;
           }
-          if (!this.nextComponent) {
+          if (!this.nextContent.component) {
               return false;
           }
-          if (this.nextComponent.enter) {
-              const merged = mergeParameters(this.nextParameters, this.nextInstruction.query, this.nextContent.parameters);
-              this.nextInstruction.parameters = merged.namedParameters;
-              this.nextInstruction.parameterList = merged.parameterList;
-              await this.nextComponent.enter(merged.merged, this.nextInstruction, this.instruction);
-              this.entered = false;
+          if (this.nextContent.component.enter) {
+              const merged = mergeParameters(this.nextContent.parameters, this.nextContent.instruction.query, this.nextContent.content.parameters);
+              this.nextContent.instruction.parameters = merged.namedParameters;
+              this.nextContent.instruction.parameterList = merged.parameterList;
+              await this.nextContent.component.enter(merged.merged, this.nextContent.instruction, this.content.instruction);
+              this.nextContent.contentStatus = 3 /* entered */;
           }
-          this.initializeComponent(this.nextComponent);
+          this.nextContent.initializeComponent();
           return true;
       }
       async loadContent() {
-          // tslint:disable-next-line:no-console
-          console.log('Viewport loadContent', this.name);
-          if (this.component) {
-              if (this.component.leave) {
-                  await this.component.leave(this.instruction, this.nextInstruction);
+          kernel.Reporter.write(10000, 'Viewport loadContent', this.name);
+          if (this.content.component) {
+              if (this.content.component.leave) {
+                  await this.content.component.leave(this.content.instruction, this.nextContent.instruction);
               }
               // No need to wait for next component activation
-              if (!this.nextComponent) {
-                  this.removeComponent(this.component);
-                  this.terminateComponent(this.component);
-                  this.unloadComponent(this.component);
+              if (!this.nextContent.component) {
+                  this.content.removeComponent(this.element, this.options.stateful);
+                  this.content.terminateComponent(this.options.stateful);
+                  this.content.unloadComponent();
               }
           }
-          if (this.nextComponent) {
+          if (this.nextContent.component) {
               // Only when next component activation is done
-              if (this.component) {
-                  this.removeComponent(this.component);
-                  this.terminateComponent(this.component);
-                  this.unloadComponent(this.component);
+              if (this.content.component) {
+                  this.content.removeComponent(this.element, this.options.stateful);
+                  this.content.terminateComponent(this.options.stateful);
+                  this.content.unloadComponent();
               }
-              this.addComponent(this.nextComponent);
+              this.nextContent.addComponent(this.element);
               this.content = this.nextContent;
-              this.parameters = this.nextParameters;
-              this.instruction = this.nextInstruction;
-              this.component = this.nextComponent;
           }
           if (this.clear) {
-              this.content = this.parameters = this.component = null;
-              this.instruction = this.nextInstruction;
+              this.content = new ViewportContent(null, null, this.nextContent.instruction);
           }
-          this.nextContent = this.nextParameters = this.nextInstruction = this.nextComponent = null;
+          this.nextContent = null;
           return true;
       }
       finalizeContentChange() {
           this.previousViewportState = null;
       }
-      // TODO: Call this on cancel
-      async restorePreviousContent() {
-          if (this.entered) {
-              await this.nextComponent.leave();
-          }
+      async abortContentChange() {
+          await this.nextContent.freeContent(this.element, this.options.stateful);
           if (this.previousViewportState) {
               Object.assign(this, this.previousViewportState);
           }
       }
       description(full = false) {
-          if (this.content) {
-              const component = this.componentName(this.content);
+          if (this.content.content) {
+              const component = this.content.componentName();
               const newScope = this.scope ? this.router.separators.ownsScope : '';
-              const parameters = this.parameters ? this.router.separators.parameters + this.parameters : '';
+              const parameters = this.content.parameters ? this.router.separators.parameters + this.content.parameters : '';
               if (full || newScope.length || this.options.forceDescription) {
                   return `${component}${this.router.separators.viewport}${this.name}${newScope}${parameters}`;
               }
@@ -1250,95 +1489,33 @@ this.au.router = (function (exports, runtime, kernel) {
           return false;
       }
       binding(flags) {
-          if (this.component) {
-              this.component.$bind(flags);
+          if (this.content.component) {
+              this.content.initializeComponent();
           }
       }
       attaching(flags) {
-          if (this.component) {
-              this.component.$attach(flags);
+          kernel.Reporter.write(10000, 'ATTACHING viewport', this.name, this.content, this.nextContent);
+          this.enabled = true;
+          if (this.content.component) {
+              this.content.addComponent(this.element);
           }
       }
       detaching(flags) {
-          if (this.component) {
-              this.component.$detach(flags);
+          kernel.Reporter.write(10000, 'DETACHING viewport', this.name);
+          if (this.content.component) {
+              this.content.removeComponent(this.element, this.options.stateful);
           }
+          this.enabled = false;
       }
       unbinding(flags) {
-          if (this.component) {
-              this.component.$unbind(flags);
-          }
-      }
-      componentName(component) {
-          if (component === null) {
-              return null;
-          }
-          else if (typeof component === 'string') {
-              return component;
-          }
-          else {
-              return component.description.name;
-          }
-      }
-      componentType(component) {
-          if (component === null) {
-              return null;
-          }
-          else if (typeof component !== 'string') {
-              return component;
-          }
-          else {
-              const container = this.context || this.router.container;
-              const resolver = container.get(kernel.IContainer).getResolver(runtime.CustomElementResource.keyFrom(component));
-              if (resolver !== null) {
-                  return resolver.getFactory(container.get(kernel.IContainer)).Type;
-              }
-              return null;
-          }
-      }
-      componentInstance(component) {
-          if (component === null) {
-              return null;
-          }
-          // TODO: Remove once "local registration is fixed"
-          component = this.componentName(component);
-          const container = this.context || this.router.container;
-          if (typeof component !== 'string') {
-              return container.get(kernel.IContainer).get(component);
-          }
-          else {
-              return container.get(kernel.IContainer).get(runtime.CustomElementResource.keyFrom(component));
+          if (this.content.component) {
+              this.content.terminateComponent(this.options.stateful);
           }
       }
       clearState() {
           this.options = {};
-          this.content = null;
-          this.parameters = null;
-          this.instruction = null;
-          this.component = null;
-      }
-      async loadComponent(component) {
-          await this.waitForElement();
-          this.nextComponent = this.componentInstance(component);
-          const host = this.element;
-          const container = this.context || this.router.container;
-          // TODO: get proxyStrategy settings from the template definition
-          this.nextComponent.$hydrate(0 /* none */, container, host);
-      }
-      unloadComponent(component) {
-          // TODO: We might want to do something here eventually, who knows?
-      }
-      initializeComponent(component) {
-          component.$bind(512 /* fromStartTask */ | 2048 /* fromBind */, null);
-      }
-      terminateComponent(component) {
-          component.$unbind(1024 /* fromStopTask */ | 4096 /* fromUnbind */);
-      }
-      addComponent(component) {
-          component.$attach(512 /* fromStartTask */);
-      }
-      removeComponent(component) {
-          component.$detach(1024 /* fromStopTask */);
+          this.content = new ViewportContent();
+          this.cache = [];
       }
       async waitForElement() {
           if (this.element) {
@@ -1359,12 +1536,18 @@ this.au.router = (function (exports, runtime, kernel) {
           this.parent = parent;
           this.viewport = null;
           this.children = [];
-          this.viewports = {};
+          this.viewports = [];
           this.scopeViewportParts = {};
           this.availableViewports = null;
           if (this.parent) {
               this.parent.addChild(this);
           }
+      }
+      getEnabledViewports() {
+          return this.viewports.filter((viewport) => viewport.enabled).reduce((viewports, viewport) => {
+              viewports[viewport.name] = viewport;
+              return viewports;
+          }, {});
       }
       // TODO: Reduce complexity (currently at 45)
       findViewports(viewports) {
@@ -1375,7 +1558,7 @@ this.au.router = (function (exports, runtime, kernel) {
               this.availableViewports = {};
               this.scopeViewportParts = {};
           }
-          this.availableViewports = Object.assign({}, this.viewports, this.availableViewports);
+          this.availableViewports = Object.assign({}, this.getEnabledViewports(), this.availableViewports);
           // Get the parts for this scope (pointing to the rest)
           for (const viewport in viewports) {
               const parts = viewport.split(this.router.separators.scope);
@@ -1420,9 +1603,9 @@ this.au.router = (function (exports, runtime, kernel) {
                   newScope = true;
                   name = name.substring(0, name.length - 1);
               }
-              if (!this.viewports[name]) {
+              if (!this.getEnabledViewports()[name]) {
                   this.addViewport(name, null, null, { scope: newScope, forceDescription: true });
-                  this.availableViewports[name] = this.viewports[name];
+                  this.availableViewports[name] = this.getEnabledViewports()[name];
               }
               const viewport = this.availableViewports[name];
               if (viewport && viewport.acceptComponent(component)) {
@@ -1492,14 +1675,23 @@ this.au.router = (function (exports, runtime, kernel) {
           };
       }
       addViewport(name, element, context, options) {
-          let viewport = this.viewports[name];
+          let viewport = this.getEnabledViewports()[name];
+          // Each au-viewport element has its own Viewport
+          if (element && viewport && viewport.element !== null && viewport.element !== element) {
+              viewport.enabled = false;
+              viewport = this.viewports.find(vp => vp.name === name && vp.element === element);
+              if (viewport) {
+                  viewport.enabled = true;
+              }
+          }
           if (!viewport) {
               let scope;
               if (options.scope) {
                   scope = new Scope(this.router, element, context, this);
                   this.router.scopes.push(scope);
               }
-              viewport = this.viewports[name] = new Viewport(this.router, name, element, context, this, scope, options);
+              viewport = new Viewport(this.router, name, null, null, this, scope, options);
+              this.viewports.push(viewport);
           }
           // TODO: Either explain why || instead of && here (might only need one) or change it to && if that should turn out to not be relevant
           if (element || context) {
@@ -1512,7 +1704,7 @@ this.au.router = (function (exports, runtime, kernel) {
               if (viewport.scope) {
                   this.router.removeScope(viewport.scope);
               }
-              Reflect.deleteProperty(this.viewports, viewport.name);
+              this.viewports.splice(this.viewports.indexOf(viewport), 1);
           }
           return Object.keys(this.viewports).length;
       }
@@ -1520,8 +1712,9 @@ this.au.router = (function (exports, runtime, kernel) {
           for (const child of this.children) {
               child.removeScope();
           }
-          for (const viewport in this.viewports) {
-              this.router.removeViewport(this.viewports[viewport], null, null);
+          const viewports = this.getEnabledViewports();
+          for (const name in viewports) {
+              this.router.removeViewport(viewports[name], null, null);
           }
       }
       renderViewport(viewport) {
@@ -1537,8 +1730,8 @@ this.au.router = (function (exports, runtime, kernel) {
       }
       viewportStates(full = false, active = false) {
           const states = [];
-          for (const vp in this.viewports) {
-              const viewport = this.viewports[vp];
+          for (const vp in this.getEnabledViewports()) {
+              const viewport = this.getEnabledViewports()[vp];
               if ((viewport.options.noHistory || (viewport.options.noLink && !full)) && !active) {
                   continue;
               }
@@ -1550,10 +1743,7 @@ this.au.router = (function (exports, runtime, kernel) {
           return states.filter((value) => value && value.length);
       }
       allViewports() {
-          const viewports = [];
-          for (const viewport in this.viewports) {
-              viewports.push(this.viewports[viewport]);
-          }
+          const viewports = this.viewports.filter((viewport) => viewport.enabled);
           for (const scope of this.children) {
               viewports.push(...scope.allViewports());
           }
@@ -1576,7 +1766,7 @@ this.au.router = (function (exports, runtime, kernel) {
           return parents.filter((value) => value && value.length).join(this.router.separators.scope);
       }
       closestViewport(container) {
-          const viewports = Object.values(this.viewports);
+          const viewports = Object.values(this.getEnabledViewports());
           while (container) {
               const viewport = viewports.find((item) => item.context.get(kernel.IContainer) === container);
               if (viewport) {
@@ -1601,7 +1791,6 @@ this.au.router = (function (exports, runtime, kernel) {
   class Router {
       constructor(container) {
           this.container = container;
-          this.viewports = {};
           this.scopes = [];
           this.navs = {};
           this.activeComponents = [];
@@ -1610,6 +1799,7 @@ this.au.router = (function (exports, runtime, kernel) {
           this.isRedirecting = false;
           this.pendingNavigations = [];
           this.processingNavigation = null;
+          this.lastNavigation = null;
           this.linkCallback = (info) => {
               let href = info.href;
               if (href.startsWith('#')) {
@@ -1627,9 +1817,12 @@ this.au.router = (function (exports, runtime, kernel) {
           this.historyBrowser = new HistoryBrowser();
           this.linkHandler = new LinkHandler();
       }
+      get isNavigating() {
+          return this.processingNavigation !== null;
+      }
       activate(options) {
           if (this.isActive) {
-              throw new Error('Router has already been activated.');
+              throw kernel.Reporter.error(2001);
           }
           this.isActive = true;
           this.options = Object.assign({
@@ -1652,11 +1845,10 @@ this.au.router = (function (exports, runtime, kernel) {
       }
       deactivate() {
           if (!this.isActive) {
-              throw new Error('Router has not been activated.');
+              throw kernel.Reporter.error(2000);
           }
           this.linkHandler.deactivate();
           this.historyBrowser.deactivate();
-          return;
       }
       historyCallback(instruction) {
           this.pendingNavigations.push(instruction);
@@ -1674,7 +1866,7 @@ this.au.router = (function (exports, runtime, kernel) {
           }
           if (instruction.isCancel) {
               this.processingNavigation = null;
-              return Promise.resolve();
+              return this.processNavigations();
           }
           let clearViewports = false;
           let fullStateInstruction = false;
@@ -1707,11 +1899,10 @@ this.au.router = (function (exports, runtime, kernel) {
           const views = this.findViews(path);
           if (!views && !Object.keys(views).length && !clearViewports) {
               this.processingNavigation = null;
-              return Promise.resolve();
+              return this.processNavigations();
           }
-          this.ensureRootScope();
-          const usedViewports = (clearViewports ? this.rootScope.allViewports().filter((value) => value.component !== null) : []);
-          const defaultViewports = this.rootScope.allViewports().filter((value) => value.options.default && value.component === null);
+          const usedViewports = (clearViewports ? this.allViewports().filter((value) => value.content.component !== null) : []);
+          const defaultViewports = this.allViewports().filter((value) => value.options.default && value.content.component === null);
           const updatedViewports = [];
           // TODO: Take care of cancellations down in subsets/iterations
           let { componentViewports, viewportsRemaining } = this.rootScope.findViewports(views);
@@ -1719,7 +1910,7 @@ this.au.router = (function (exports, runtime, kernel) {
           while (componentViewports.length || viewportsRemaining || defaultViewports.length) {
               // Guard against endless loop
               if (!guard--) {
-                  throw new Error('Failed to resolve all viewports');
+                  throw kernel.Reporter.error(2002);
               }
               const changedViewports = [];
               for (const componentViewport of componentViewports) {
@@ -1752,14 +1943,14 @@ this.au.router = (function (exports, runtime, kernel) {
               // we need to remove the added history entry for the redirect
               // TODO: Take care of empty subsets/iterations where previous has length
               if (!changedViewports.length && this.isRedirecting) {
-                  this.historyBrowser.cancel();
+                  const result = this.cancelNavigation([...changedViewports, ...updatedViewports], instruction);
                   this.isRedirecting = false;
+                  await this.processNavigations();
+                  return result;
               }
               let results = await Promise.all(changedViewports.map((value) => value.canLeave()));
               if (results.findIndex((value) => value === false) >= 0) {
-                  this.historyBrowser.cancel();
-                  this.processingNavigation = null;
-                  return Promise.resolve();
+                  return this.cancelNavigation([...changedViewports, ...updatedViewports], instruction);
               }
               results = await Promise.all(changedViewports.map(async (value) => {
                   const canEnter = await value.canEnter();
@@ -1771,27 +1962,34 @@ this.au.router = (function (exports, runtime, kernel) {
                           return false;
                       }
                   }
-                  // TODO: Deal with redirects
+                  for (const cvp of canEnter) {
+                      // TODO: Abort content change in the viewports
+                      this.addProcessingViewport(cvp.component, cvp.viewport);
+                  }
+                  value.abortContentChange().catch(error => { throw error; });
                   return true;
               }));
               if (results.some(result => result === false)) {
-                  this.historyBrowser.cancel();
-                  this.processingNavigation = null;
-                  return Promise.resolve();
+                  return this.cancelNavigation([...changedViewports, ...updatedViewports], instruction);
               }
-              await Promise.all(changedViewports.map((value) => value.loadContent()));
+              // TODO: Should it be kept here?
+              // await Promise.all(changedViewports.map((value) => value.loadContent()));
               // TODO: Remove this once multi level recursiveness has been fixed
               // results = await Promise.all(changedViewports.map((value) => value.loadContent()));
               // if (results.findIndex((value) => value === false) >= 0) {
-              //   this.historyBrowser.cancel();
-              //   return Promise.resolve();
+              //   return this.historyBrowser.cancel();
               // }
-              updatedViewports.push(...changedViewports);
+              for (const viewport of changedViewports) {
+                  if (!updatedViewports.find((value) => value === viewport)) {
+                      updatedViewports.push(viewport);
+                  }
+              }
               // TODO: Fix multi level recursiveness!
               const remaining = this.rootScope.findViewports();
               componentViewports = [];
               let addedViewport;
               while (addedViewport = this.addedViewports.shift()) {
+                  // TODO: Should this overwrite instead? I think so.
                   if (!remaining.componentViewports.find((value) => value.viewport === addedViewport.viewport)) {
                       componentViewports.push(addedViewport);
                   }
@@ -1799,72 +1997,36 @@ this.au.router = (function (exports, runtime, kernel) {
               componentViewports = [...componentViewports, ...remaining.componentViewports];
               viewportsRemaining = remaining.viewportsRemaining;
           }
-          this.replacePaths(instruction);
+          await Promise.all(updatedViewports.map((value) => value.loadContent()));
+          await this.replacePaths(instruction);
           // Remove history entry if no history viewports updated
-          if (!instruction.isFirst && updatedViewports.every(viewport => viewport.options.noHistory)) {
-              this.historyBrowser.pop().catch(error => { throw error; });
+          if (!instruction.isFirst && !instruction.isRepeat && updatedViewports.every(viewport => viewport.options.noHistory)) {
+              await this.historyBrowser.pop();
           }
           updatedViewports.forEach((viewport) => {
               viewport.finalizeContentChange();
           });
+          this.lastNavigation = this.processingNavigation;
+          if (this.lastNavigation.isRepeat) {
+              this.lastNavigation.isRepeat = false;
+          }
           this.processingNavigation = null;
-          if (this.pendingNavigations.length) {
+          this.processNavigations().catch(error => { throw error; });
+      }
+      addProcessingViewport(component, viewport) {
+          if (this.processingNavigation) {
+              if (typeof viewport === 'string') {
+                  // TODO: Deal with not yet existing viewports
+                  viewport = this.allViewports().find((vp) => vp.name === viewport);
+              }
+              this.addedViewports.push({ viewport: viewport, component: component });
+          }
+          else if (this.lastNavigation) {
+              this.pendingNavigations.unshift({ path: '', fullStatePath: '', isRepeat: true });
+              // Don't wait for the (possibly slow) navigation
               this.processNavigations().catch(error => { throw error; });
           }
       }
-      addProcessingViewport(viewport, component) {
-          if (this.processingNavigation) {
-              this.addedViewports.push({ viewport: viewport, component: component });
-          }
-      }
-      // public view(views: string | Record<string, Viewport>, title?: string, data?: Record<string, unknown>): Promise<void> {
-      //   console.log('Router.view:', views, title, data);
-      // tslint:disable-next-line:no-commented-code
-      //   if (title) {
-      //     this.historyBrowser.setEntryTitle(title);
-      //   }
-      // tslint:disable-next-line:no-commented-code
-      //   const viewports: Viewport[] = [];
-      //   for (const v in views) {
-      //     const component: ICustomElementType = views[v];
-      //     const viewport = this.findViewport(`${v}:${component}`);
-      //     if (viewport.setNextContent(component, { path: '' })) {
-      //       viewports.push(viewport);
-      //     }
-      //   }
-      // tslint:disable-next-line:no-commented-code
-      //   // We've gone via a redirected route back to same viewport status so
-      //   // we need to remove the added history entry for the redirect
-      //   if (!viewports.length && this.isRedirecting) {
-      //     this.historyBrowser.cancel();
-      //     this.isRedirecting = false;
-      //   }
-      // tslint:disable-next-line:no-commented-code
-      //   let cancel: boolean = false;
-      //   return Promise.all(viewports.map((value) => value.canLeave()))
-      //     .then((promises: boolean[]) => {
-      //       if (cancel || promises.findIndex((value) => value === false) >= 0) {
-      //         cancel = true;
-      //         return Promise.resolve([]);
-      //       } else {
-      //         return Promise.all(viewports.map((value) => value.canEnter()));
-      //       }
-      //     }).then((promises: boolean[]) => {
-      //       if (cancel || promises.findIndex((value) => value === false) >= 0) {
-      //         cancel = true;
-      //         return Promise.resolve([]);
-      //       } else {
-      //         return Promise.all(viewports.map((value) => value.loadContent()));
-      //       }
-      //     }).then(() => {
-      //       if (cancel) {
-      //         this.historyBrowser.cancel();
-      //       }
-      //     }).then(() => {
-      //       const viewports = Object.values(this.viewports).map((value) => value.description()).filter((value) => value && value.length);
-      //       this.historyBrowser.history.replaceState({}, null, '#/' + viewports.join('/'));
-      //     });
-      // }
       findViews(path) {
           const views = {};
           // TODO: Let this govern start of scope
@@ -1908,8 +2070,7 @@ this.au.router = (function (exports, runtime, kernel) {
       }
       // Called from the viewport custom element in attached()
       addViewport(name, element, context, options) {
-          // tslint:disable-next-line:no-console
-          console.log('Viewport added', name, element);
+          kernel.Reporter.write(10000, 'Viewport added', name, element);
           const parentScope = this.findScope(element);
           return parentScope.addViewport(name, element, context, options);
       }
@@ -1920,6 +2081,10 @@ this.au.router = (function (exports, runtime, kernel) {
           if (!scope.removeViewport(viewport, element, context)) {
               this.removeScope(scope);
           }
+      }
+      allViewports() {
+          this.ensureRootScope();
+          return this.rootScope.allViewports();
       }
       removeScope(scope) {
           if (scope !== this.rootScope) {
@@ -1932,7 +2097,7 @@ this.au.router = (function (exports, runtime, kernel) {
       }
       goto(pathOrViewports, title, data) {
           if (typeof pathOrViewports === 'string') {
-              this.historyBrowser.goto(pathOrViewports, title, data);
+              return this.historyBrowser.goto(pathOrViewports, title, data);
           }
           // else {
           //   this.view(pathOrViewports, title, data);
@@ -1940,17 +2105,17 @@ this.au.router = (function (exports, runtime, kernel) {
       }
       replace(pathOrViewports, title, data) {
           if (typeof pathOrViewports === 'string') {
-              this.historyBrowser.replace(pathOrViewports, title, data);
+              return this.historyBrowser.replace(pathOrViewports, title, data);
           }
       }
       refresh() {
-          this.historyBrowser.refresh();
+          return this.historyBrowser.refresh();
       }
       back() {
-          this.historyBrowser.back();
+          return this.historyBrowser.back();
       }
       forward() {
-          this.historyBrowser.forward();
+          return this.historyBrowser.forward();
       }
       statesToString(states) {
           const stringStates = [];
@@ -2012,6 +2177,19 @@ this.au.router = (function (exports, runtime, kernel) {
       findNav(name) {
           return this.navs[name];
       }
+      async cancelNavigation(updatedViewports, instruction) {
+          updatedViewports.forEach((viewport) => {
+              viewport.abortContentChange().catch(error => { throw error; });
+          });
+          if (instruction.isNew) {
+              await this.historyBrowser.pop();
+          }
+          else {
+              await this.historyBrowser.cancel();
+          }
+          this.processingNavigation = null;
+          this.processNavigations().catch(error => { throw error; });
+      }
       ensureRootScope() {
           if (!this.rootScope) {
               const root = this.container.get(runtime.Aurelia).root();
@@ -2062,7 +2240,7 @@ this.au.router = (function (exports, runtime, kernel) {
           fullViewportStates = this.removeStateDuplicates(fullViewportStates);
           fullViewportStates.unshift(this.separators.clear);
           const query = (instruction.query && instruction.query.length ? `?${instruction.query}` : '');
-          this.historyBrowser.replacePath(state + query, fullViewportStates.join(this.separators.sibling) + query, instruction);
+          return this.historyBrowser.replacePath(state + query, fullViewportStates.join(this.separators.sibling) + query, instruction);
       }
   }
   Router.inject = [kernel.IContainer];
@@ -2100,6 +2278,7 @@ this.au.router = (function (exports, runtime, kernel) {
           this.default = null;
           this.noLink = null;
           this.noHistory = null;
+          this.stateful = null;
           this.viewport = null;
       }
       render(flags, host, parts, parentContext) {
@@ -2138,6 +2317,12 @@ this.au.router = (function (exports, runtime, kernel) {
       //   this.viewport = this.router.addViewport(name, this.element, (this as any).$context.get(IContainer), options);
       // }
       bound() {
+          this.connect();
+      }
+      unbound() {
+          this.disconnect();
+      }
+      connect() {
           const options = { scope: this.element.hasAttribute('scope') };
           if (this.usedBy && this.usedBy.length) {
               options.usedBy = this.usedBy;
@@ -2151,9 +2336,12 @@ this.au.router = (function (exports, runtime, kernel) {
           if (this.element.hasAttribute('no-history')) {
               options.noHistory = true;
           }
+          if (this.element.hasAttribute('stateful')) {
+              options.stateful = true;
+          }
           this.viewport = this.router.addViewport(this.name, this.element, this.$context, options);
       }
-      unbound() {
+      disconnect() {
           this.router.removeViewport(this.viewport, this.element, this.$context);
       }
       binding(flags) {
@@ -2196,6 +2384,9 @@ this.au.router = (function (exports, runtime, kernel) {
   __decorate([
       runtime.bindable
   ], ViewportCustomElement.prototype, "noHistory", void 0);
+  __decorate([
+      runtime.bindable
+  ], ViewportCustomElement.prototype, "stateful", void 0);
   // tslint:disable-next-line:no-invalid-template-strings
   runtime.CustomElementResource.define({ name: 'au-viewport', template: '<template><div class="viewport-header"> Viewport: <b>${name}</b> </div></template>' }, ViewportCustomElement);
 
@@ -2245,6 +2436,7 @@ this.au.router = (function (exports, runtime, kernel) {
   exports.HistoryBrowser = HistoryBrowser;
   exports.LinkHandler = LinkHandler;
   exports.Nav = Nav;
+  exports.QueuedBrowserHistory = QueuedBrowserHistory;
   exports.HandlerEntry = HandlerEntry;
   exports.RouteGenerator = RouteGenerator;
   exports.TypesRecord = TypesRecord;
@@ -2263,5 +2455,5 @@ this.au.router = (function (exports, runtime, kernel) {
 
   return exports;
 
-}({}, runtime, kernel));
+}({}, kernel, runtime));
 //# sourceMappingURL=index.iife.js.map

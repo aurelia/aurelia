@@ -5576,6 +5576,7 @@ var au = (function (exports) {
         const currentValue = this.currentValue;
         newValue = newValue === null || newValue === undefined ? this.defaultValue : newValue;
         if (currentValue !== newValue) {
+            this.oldValue = this.currentValue;
             this.currentValue = newValue;
             if ((flags & (448 /* fromFlush */ | 2048 /* fromBind */)) &&
                 !(this.isDOMObserver && (flags & 4194304 /* doNotUpdateDOM */))) {
@@ -6924,27 +6925,19 @@ var au = (function (exports) {
         return obj.$synthetic === true;
     }
 
-    const noop$1 = PLATFORM.noop;
     let SelfObserver = class SelfObserver {
-        constructor(flags, instance, propertyName, callbackName) {
+        constructor(flags, instance, propertyName, cbName) {
             this.persistentFlags = flags & 67108879 /* persistentBindingFlags */;
             if (ProxyObserver.isProxy(instance)) {
                 instance.$observer.subscribe(this, propertyName);
                 this.obj = instance.$raw;
-                this.propertyKey = propertyName;
-                this.currentValue = instance.$raw[propertyName];
-                this.callback = callbackName in instance.$raw
-                    ? instance[callbackName].bind(instance)
-                    : noop$1;
             }
             else {
                 this.obj = instance;
-                this.propertyKey = propertyName;
-                this.currentValue = instance[propertyName];
-                this.callback = callbackName in instance
-                    ? instance[callbackName].bind(instance)
-                    : noop$1;
             }
+            this.propertyKey = propertyName;
+            this.currentValue = this.obj[propertyName];
+            this.callback = this.obj[cbName] === undefined ? null : this.obj[cbName];
             if (flags & 4 /* patchStrategy */) {
                 this.getValue = this.getValueDirect;
             }
@@ -6959,21 +6952,30 @@ var au = (function (exports) {
             return this.obj[this.propertyKey];
         }
         setValue(newValue, flags) {
-            const currentValue = this.currentValue;
-            if (currentValue !== newValue || (flags & 4 /* patchStrategy */)) {
-                this.currentValue = newValue;
-                if (!(flags & 2048 /* fromBind */)) {
-                    const coercedValue = this.callback(newValue, currentValue, flags);
-                    if (coercedValue !== undefined) {
-                        this.currentValue = newValue = coercedValue;
+            if (newValue !== this.currentValue || (flags & 4 /* patchStrategy */) > 0) {
+                if ((flags & 2048 /* fromBind */) === 0) {
+                    const oldValue = this.currentValue;
+                    flags |= this.persistentFlags;
+                    this.currentValue = newValue;
+                    this.callSubscribers(newValue, oldValue, flags | 262144 /* allowPublishRoundtrip */);
+                    if (this.callback !== null) {
+                        this.callback.call(this.obj, newValue, oldValue, flags);
                     }
-                    this.callSubscribers(newValue, currentValue, flags | 262144 /* allowPublishRoundtrip */);
+                }
+                else {
+                    this.currentValue = newValue;
                 }
             }
         }
         $patch(flags) {
-            this.callback(this.obj[this.propertyKey], this.currentValue, this.persistentFlags | flags);
-            this.callSubscribers(this.obj[this.propertyKey], this.currentValue, this.persistentFlags | flags);
+            const oldValue = this.currentValue;
+            const newValue = this.obj[this.propertyKey];
+            flags |= this.persistentFlags;
+            this.currentValue = newValue;
+            this.callSubscribers(newValue, oldValue, flags);
+            if (this.callback !== null) {
+                this.callback.call(this.obj, newValue, oldValue, flags);
+            }
         }
     };
     SelfObserver = __decorate([
@@ -9265,6 +9267,7 @@ var au = (function (exports) {
             const host = config.host;
             const domInitializer = this.container.get(IDOMInitializer);
             domInitializer.initialize(config);
+            Registration.instance(INode, host).register(this.container);
             const startFlags = 512 /* fromStartTask */ | config.strategy;
             const stopFlags = 1024 /* fromStopTask */ | config.strategy;
             let component;
@@ -13987,7 +13990,7 @@ var au = (function (exports) {
                 }
                 const attrInfo = this.resources.getAttributeInfo(attrSyntax);
                 if (attrInfo === null) {
-                    this.bindPlainAttribute(attrSyntax);
+                    this.bindPlainAttribute(attrSyntax, attr);
                 }
                 else if (attrInfo.isTemplateController) {
                     throw new Error('Cannot have template controller on surrogate element.');
@@ -14098,7 +14101,7 @@ var au = (function (exports) {
                 const attrInfo = this.resources.getAttributeInfo(attrSyntax);
                 if (attrInfo === null) {
                     // it's not a custom attribute but might be a regular bound attribute or interpolation (it might also be nothing)
-                    this.bindPlainAttribute(attrSyntax);
+                    this.bindPlainAttribute(attrSyntax, attr);
                 }
                 else if (attrInfo.isTemplateController) {
                     // the manifest is wrapped by the inner-most template controller (if there are multiple on the same element)
@@ -14237,7 +14240,7 @@ var au = (function (exports) {
                 symbol.bindings.push(new BindingSymbol(command, bindable$$1, expr, attrSyntax.rawValue, attrSyntax.target));
             }
         }
-        bindPlainAttribute(attrSyntax) {
+        bindPlainAttribute(attrSyntax, attr) {
             if (attrSyntax.rawValue.length === 0) {
                 return;
             }
@@ -14268,6 +14271,10 @@ var au = (function (exports) {
                 // any attributes, even if they are plain (no command/interpolation etc), should be added if they
                 // are on the surrogate element
                 manifest.attributes.push(new PlainAttributeSymbol(attrSyntax, command, expr));
+            }
+            if (command === null && expr !== null) {
+                // if it's an interpolation, clear the attribute value
+                attr.value = '';
             }
         }
         declareReplacePart(node) {

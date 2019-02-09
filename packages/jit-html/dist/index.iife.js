@@ -70,7 +70,7 @@ this.au.jitHtml = (function (exports, jit, runtimeHtml, kernel, runtime) {
               }
               const attrInfo = this.resources.getAttributeInfo(attrSyntax);
               if (attrInfo === null) {
-                  this.bindPlainAttribute(attrSyntax);
+                  this.bindPlainAttribute(attrSyntax, attr);
               }
               else if (attrInfo.isTemplateController) {
                   throw new Error('Cannot have template controller on surrogate element.');
@@ -181,7 +181,7 @@ this.au.jitHtml = (function (exports, jit, runtimeHtml, kernel, runtime) {
               const attrInfo = this.resources.getAttributeInfo(attrSyntax);
               if (attrInfo === null) {
                   // it's not a custom attribute but might be a regular bound attribute or interpolation (it might also be nothing)
-                  this.bindPlainAttribute(attrSyntax);
+                  this.bindPlainAttribute(attrSyntax, attr);
               }
               else if (attrInfo.isTemplateController) {
                   // the manifest is wrapped by the inner-most template controller (if there are multiple on the same element)
@@ -320,7 +320,7 @@ this.au.jitHtml = (function (exports, jit, runtimeHtml, kernel, runtime) {
               symbol.bindings.push(new jit.BindingSymbol(command, bindable, expr, attrSyntax.rawValue, attrSyntax.target));
           }
       }
-      bindPlainAttribute(attrSyntax) {
+      bindPlainAttribute(attrSyntax, attr) {
           if (attrSyntax.rawValue.length === 0) {
               return;
           }
@@ -351,6 +351,10 @@ this.au.jitHtml = (function (exports, jit, runtimeHtml, kernel, runtime) {
               // any attributes, even if they are plain (no command/interpolation etc), should be added if they
               // are on the surrogate element
               manifest.attributes.push(new jit.PlainAttributeSymbol(attrSyntax, command, expr));
+          }
+          if (command === null && expr !== null) {
+              // if it's an interpolation, clear the attribute value
+              attr.value = '';
           }
       }
       declareReplacePart(node) {

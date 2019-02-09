@@ -457,6 +457,26 @@ const codeLookup = {
         type: 0 /* error */,
         message: 'Unexpected keyword "of"'
     },
+    2000: {
+        type: 0 /* error */,
+        message: 'Router has not been activated.'
+    },
+    2001: {
+        type: 0 /* error */,
+        message: 'Router has already been activated.'
+    },
+    2002: {
+        type: 0 /* error */,
+        message: 'Failed to resolve all viewports.'
+    },
+    2003: {
+        type: 0 /* error */,
+        message: 'Queued browser history has already been activated.'
+    },
+    2004: {
+        type: 0 /* error */,
+        message: 'LinkHandler has already been activated.'
+    },
     10000: {
         type: 3 /* debug */,
         message: '%s'

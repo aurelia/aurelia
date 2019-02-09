@@ -56,8 +56,8 @@ export class MockBrowserHistoryLocation {
     // } else {
     const part = parts.shift();
     if (part !== undefined) {
-        path += `?${part}`;
-      }
+      path += `?${part}`;
+    }
     parts.shift();
     path += `#${value}`;
     // }
@@ -65,6 +65,9 @@ export class MockBrowserHistoryLocation {
     this.pushState({}, null, path);
     this.notifyChange();
   }
+
+  public activate(callback: Function): void { }
+  public deactivate(): void { }
 
   // TODO: Fix a better split
   private get parts(): string[] {

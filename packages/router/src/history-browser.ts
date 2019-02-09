@@ -1,7 +1,10 @@
+import { Reporter } from '@aurelia/kernel';
+import { QueuedBrowserHistory } from './queued-browser-history';
 export interface IHistoryEntry {
   path: string;
   fullStatePath: string;
   index?: number;
+  firstEntry?: boolean; // Index might change to not require first === 0, firstEntry should be reliable
   title?: string;
   query?: string;
   parameters?: Record<string, string>;
@@ -21,6 +24,7 @@ export interface INavigationFlags {
   isBack?: boolean;
   isReplace?: boolean;
   isCancel?: boolean;
+  isRepeat?: boolean;
 }
 
 export interface INavigationInstruction extends IHistoryEntry, INavigationFlags {
@@ -33,7 +37,7 @@ export class HistoryBrowser {
   public historyOffset: number;
   public replacedEntry: IHistoryEntry;
 
-  public history: History;
+  public history: QueuedBrowserHistory;
   public location: Location;
 
   private activeEntry: IHistoryEntry;
@@ -51,7 +55,7 @@ export class HistoryBrowser {
 
   constructor() {
     this.location = window.location;
-    this.history = window.history;
+    this.history = new QueuedBrowserHistory();
 
     this.currentEntry = null;
     this.historyEntries = null;
@@ -74,35 +78,35 @@ export class HistoryBrowser {
 
   public activate(options?: IHistoryOptions): Promise<void> {
     if (this.isActive) {
-      throw new Error('History has already been activated.');
+      throw Reporter.error(0); // TODO: create error code for 'History has already been activated.'
     }
 
     this.isActive = true;
     this.options = { ...options };
 
-    window.addEventListener('popstate', this.pathChanged);
+    this.history.activate(this.pathChanged);
 
     return Promise.resolve().then(() => {
-      this.setPath(this.getPath(), true);
+      this.setPath(this.getPath(), true).catch(error => { throw error; });
     });
   }
 
   public deactivate(): void {
-    window.removeEventListener('popstate', this.pathChanged);
+    this.history.deactivate();
     this.isActive = false;
   }
 
-  public goto(path: string, title?: string, data?: Record<string, unknown>): void {
+  public goto(path: string, title?: string, data?: Record<string, unknown>): Promise<void> {
     this.activeEntry = {
       path: path,
       fullStatePath: null,
       title: title,
       data: data,
     };
-    this.setPath(path);
+    return this.setPath(path);
   }
 
-  public replace(path: string, title?: string, data?: Record<string, unknown>): void {
+  public replace(path: string, title?: string, data?: Record<string, unknown>): Promise<void> {
     this.isReplacing = true;
     this.activeEntry = {
       path: path,
@@ -110,61 +114,70 @@ export class HistoryBrowser {
       title: title,
       data: data,
     };
-    this.setPath(path, true);
+    return this.setPath(path, true);
   }
-  public redirect(path: string, title?: string, data?: Record<string, unknown>): void {
+  public redirect(path: string, title?: string, data?: Record<string, unknown>): Promise<void> {
     // This makes sure we can cancel redirects from both pushes and replaces
     this.cancelRedirectHistoryMovement = this.lastHistoryMovement + 1;
-    this.replace(path, title, data);
+    return this.replace(path, title, data);
   }
 
-  public refresh(): void {
+  public async refresh(): Promise<void> {
     if (!this.currentEntry) {
       return;
     }
     this.isRefreshing = true;
-    this.replace(this.currentEntry.path, this.currentEntry.title, this.currentEntry.data);
+    return this.replace(this.currentEntry.path, this.currentEntry.title, this.currentEntry.data);
   }
 
-  public back(): void {
-    this.history.go(-1);
+  public back(): Promise<void> {
+    return this.history.go(-1);
   }
 
-  public forward(): void {
-    this.history.go(1);
+  public forward(): Promise<void> {
+    return this.history.go(1);
   }
 
-  public cancel(): void {
+  public cancel(): Promise<void> {
     this.isCancelling = true;
     const movement = this.lastHistoryMovement || this.cancelRedirectHistoryMovement;
     if (movement) {
-      this.history.go(-movement);
+      return this.history.go(-movement);
     } else {
-      this.replace(this.replacedEntry.path, this.replacedEntry.title, this.replacedEntry.data);
+      return this.replace(this.replacedEntry.path, this.replacedEntry.title, this.replacedEntry.data);
     }
   }
 
   public async pop(): Promise<void> {
-    // TODO: Make sure we don't back out of application
     let state;
+    // let newHash = `#/${Date.now()}`;
+    // let { pathname, search, hash } = this.location;
+    // state = this.history.state;
+    // await this.history.replaceState(state, null, `${pathname}${search}${newHash}`);
     // tslint:disable-next-line:promise-must-complete
-    let wait = new Promise((resolve, reject): void => {
+    let goPathChangeTriggered = new Promise((resolve, reject): void => {
       this.ignorePathChange = resolve;
     });
-    this.history.go(-1);
-    await wait;
+    await this.history.go(-1);
+    await goPathChangeTriggered;
     const path = this.location.toString();
     state = this.history.state;
-    // tslint:disable-next-line:promise-must-complete
-    wait = new Promise((resolve, reject): void => {
-      this.ignorePathChange = resolve;
-    });
-    this.history.go(-1);
-    await wait;
-    this.history.pushState(state, null, path);
+    // TODO: Fix browser forward bug after pop on first entry
+    if (!state.HistoryEntry.firstEntry) {
+      // let newHash = `#/${Date.now()}`;
+      // let { pathname, search, hash } = this.location;
+      // await this.history.replaceState(state, null, `${pathname}${search}${newHash}`);
+      // tslint:disable-next-line:promise-must-complete
+      goPathChangeTriggered = new Promise((resolve, reject): void => {
+        this.ignorePathChange = resolve;
+      });
+      await this.history.go(-1);
+      await goPathChangeTriggered;
+      return this.history.pushState(state, null, path);
+    }
   }
 
-  public setState(key: string | Record<string, unknown>, value?: Record<string, unknown>): void {
+  public async setState(key: string | Record<string, unknown>, value?: Record<string, unknown>): Promise<void> {
     const { pathname, search, hash } = this.location;
     let state = { ...this.history.state };
     if (typeof key === 'string') {
@@ -172,7 +185,7 @@ export class HistoryBrowser {
     } else {
       state = { ...state, ...JSON.parse(JSON.stringify(key)) };
     }
-    this.history.replaceState(state, null, `${pathname}${search}${hash}`);
+    return this.history.replaceState(state, null, `${pathname}${search}${hash}`);
   }
 
   public getState(key: string): Record<string, unknown> {
@@ -180,16 +193,16 @@ export class HistoryBrowser {
     return state[key];
   }
 
-  public setEntryTitle(title: string): void {
+  public setEntryTitle(title: string): Promise<void> {
     this.currentEntry.title = title;
     this.historyEntries[this.currentEntry.index] = this.currentEntry;
-    this.setState({
+    return this.setState({
       'HistoryEntries': this.historyEntries,
       'HistoryEntry': this.currentEntry,
     });
   }
 
-  public replacePath(path: string, fullStatePath: string, entry: INavigationInstruction): void {
+  public replacePath(path: string, fullStatePath: string, entry: INavigationInstruction): Promise<void> {
     if (entry.index !== this.currentEntry.index) {
       // TODO: Store unresolved in localStorage to set if we should ever navigate back to it
       // tslint:disable-next-line:no-console
@@ -212,7 +225,7 @@ export class HistoryBrowser {
         'HistoryEntries': this.historyEntries,
       }
     };
-    this.history.replaceState(state, null, `${pathname}${search}${newHash}`);
+    return this.history.replaceState(state, null, `${pathname}${search}${newHash}`);
   }
 
   public setHash(hash: string): void {
@@ -226,10 +239,9 @@ export class HistoryBrowser {
     return (this.historyEntries ? this.historyEntries.slice(0, this.currentEntry.index + 1).map((value) => value.title) : []);
   }
 
-  public pathChanged = (): void => {
+  public pathChanged = async (): Promise<void> => {
     if (this.ignorePathChange !== null) {
-      // tslint:disable-next-line:no-console
-      console.log('=== ignore path change', this.getPath());
+      Reporter.write(10000, '=== ignore path change', this.getPath());
       const resolve = this.ignorePathChange;
       this.ignorePathChange = null;
       resolve();
@@ -238,8 +250,7 @@ export class HistoryBrowser {
 
     const path: string = this.getPath();
     const search: string = this.getSearch();
-    // tslint:disable-next-line:no-console
-    console.log('path changed to', path, this.activeEntry, this.currentEntry);
+    Reporter.write(10000, 'path changed to', path, this.activeEntry, this.currentEntry);
 
     const navigationFlags: INavigationFlags = {};
 
@@ -270,7 +281,7 @@ export class HistoryBrowser {
         this.historyEntries = this.historyEntries.slice(0, this.currentEntry.index);
         this.historyEntries.push(this.currentEntry);
       }
-      this.setState({
+      await this.setState({
         'HistoryEntries': this.historyEntries,
         'HistoryOffset': this.historyOffset,
         'HistoryEntry': this.currentEntry
@@ -301,9 +312,12 @@ export class HistoryBrowser {
           index: this.history.length - this.historyOffset,
           query: search,
         };
+        if (navigationFlags.isFirst) {
+          historyEntry.firstEntry = true;
+        }
         this.historyEntries = this.historyEntries.slice(0, historyEntry.index);
         this.historyEntries.push(historyEntry);
-        this.setState({
+        await this.setState({
           'HistoryEntries': this.historyEntries,
           'HistoryOffset': this.historyOffset,
           'HistoryEntry': historyEntry
@@ -325,8 +339,7 @@ export class HistoryBrowser {
       this.cancelRedirectHistoryMovement--;
     }
 
-    // tslint:disable-next-line:no-console
-    console.log('navigated', this.getState('HistoryEntry'), this.historyEntries, this.getState('HistoryOffset'));
+    Reporter.write(10000, 'navigated', this.getState('HistoryEntry'), this.historyEntries, this.getState('HistoryOffset'));
     this.callback(this.currentEntry, navigationFlags, previousEntry);
   }
 
@@ -334,7 +347,7 @@ export class HistoryBrowser {
     const hash = this.location.hash.substring(1);
     return hash.split('?')[0];
   }
-  private setPath(path: string, replace: boolean = false): void {
+  private async setPath(path: string, replace: boolean = false): Promise<void> {
     // More checks, such as parameters, needed
     if (this.currentEntry && this.currentEntry.path === path && !this.isRefreshing) {
       return;
@@ -344,13 +357,13 @@ export class HistoryBrowser {
     const hash = `#${path}`;
     if (replace) {
       this.replacedEntry = this.currentEntry;
-      this.history.replaceState({}, null, `${pathname}${search}${hash}`);
+      await this.history.replaceState({}, null, `${pathname}${search}${hash}`);
     } else {
       // tslint:disable-next-line:no-commented-code
       // this.location.hash = hash;
-      this.history.pushState({}, null, `${pathname}${search}${hash}`);
+      await this.history.pushState({}, null, `${pathname}${search}${hash}`);
     }
-    this.pathChanged();
+    return this.pathChanged();
   }
 
   private getSearch(): string {
@@ -363,8 +376,7 @@ export class HistoryBrowser {
   private callback(currentEntry: IHistoryEntry, navigationFlags: INavigationFlags, previousEntry: IHistoryEntry): void {
     const instruction: INavigationInstruction = { ...currentEntry, ...navigationFlags };
     instruction.previous = previousEntry;
-    // tslint:disable-next-line:no-console
-    console.log('callback', currentEntry, navigationFlags);
+    Reporter.write(10000, 'callback', currentEntry, navigationFlags);
     if (this.options.callback) {
       this.options.callback(instruction);
     }

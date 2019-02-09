@@ -1,11 +1,11 @@
-import { Constructable, IContainer, InterfaceSymbol, Writable } from '@aurelia/kernel';
-import { bindable, createRenderContext, CustomElementResource, ICustomElement, IDOM, IElementTemplateProvider, INode, IRenderContext, IRenderingEngine, ITemplate, LifecycleFlags, TemplateDefinition } from '@aurelia/runtime';
+import { Constructable, InterfaceSymbol, Writable } from '@aurelia/kernel';
+import { bindable, createRenderContext, CustomElementResource, ICustomElement, ICustomElementType, IDOM, IElementTemplateProvider, INode, IRenderContext, IRenderingEngine, ITemplate, LifecycleFlags, TemplateDefinition } from '@aurelia/runtime';
 import { Router } from '../router';
 import { IViewportOptions, Viewport } from '../viewport';
 
 export interface ViewportCustomElement extends ICustomElement<Element> { }
 export class ViewportCustomElement {
-  public static readonly inject: ReadonlyArray<InterfaceSymbol|Constructable> = [Router, INode, IRenderingEngine];
+  public static readonly inject: ReadonlyArray<InterfaceSymbol | Constructable> = [Router, INode, IRenderingEngine];
 
   @bindable public name: string;
   @bindable public scope: boolean;
@@ -13,6 +13,7 @@ export class ViewportCustomElement {
   @bindable public default: string;
   @bindable public noLink: boolean;
   @bindable public noHistory: boolean;
+  @bindable public stateful: boolean;
 
   public viewport: Viewport;
 
@@ -31,11 +32,12 @@ export class ViewportCustomElement {
     this.default = null;
     this.noLink = null;
     this.noHistory = null;
+    this.stateful = null;
     this.viewport = null;
   }
 
   public render(flags: LifecycleFlags, host: INode, parts: Record<string, TemplateDefinition>, parentContext: IRenderContext | null): IElementTemplateProvider | void {
-    const Type = this.constructor as any;
+    const Type = this.constructor as ICustomElementType;
     const dom = parentContext.get(IDOM);
     const template = this.renderingEngine.getElementTemplate(dom, Type.description, parentContext, Type);
     (template as Writable<ITemplate>).renderContext = createRenderContext(dom, parentContext, Type.description.dependencies, Type);
@@ -70,8 +72,14 @@ export class ViewportCustomElement {
   //   }
   //   this.viewport = this.router.addViewport(name, this.element, (this as any).$context.get(IContainer), options);
   // }
-
   public bound(): void {
+    this.connect();
+  }
+  public unbound(): void {
+    this.disconnect();
+  }
+
+  public connect(): void {
     const options: IViewportOptions = { scope: this.element.hasAttribute('scope') };
     if (this.usedBy && this.usedBy.length) {
       options.usedBy = this.usedBy;
@@ -85,9 +93,12 @@ export class ViewportCustomElement {
     if (this.element.hasAttribute('no-history')) {
       options.noHistory = true;
     }
+    if (this.element.hasAttribute('stateful')) {
+      options.stateful = true;
+    }
     this.viewport = this.router.addViewport(this.name, this.element, this.$context, options);
   }
-  public unbound(): void {
+  public disconnect(): void {
     this.router.removeViewport(this.viewport, this.element, this.$context);
   }
 

@@ -46,6 +46,7 @@ export class Aurelia {
 
     const domInitializer = this.container.get(IDOMInitializer);
     domInitializer.initialize(config);
+    Registration.instance(INode, host).register(this.container);
 
     const startFlags = LifecycleFlags.fromStartTask | config.strategy;
     const stopFlags = LifecycleFlags.fromStopTask | config.strategy;

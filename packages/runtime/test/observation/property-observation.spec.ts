@@ -165,11 +165,11 @@ describe('SetterObserver', () => {
 
 describe('Observer', () => {
 
-  it('use noop function as default callback', () => {
+  it('initializes the default callback to null', () => {
     const values = createObjectArr();
     values.forEach(value => {
       const observer = new SelfObserver(LF.none, {}, 'a', 'aChanged');
-      expect(observer['callback'](value, undefined)).to.equal(undefined);
+      expect(observer['callback']).to.equal(null);
     });
   });
 });

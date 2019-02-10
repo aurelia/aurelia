@@ -10,7 +10,7 @@
 //   return items;
 // }
 
-// describe.only('longestIncreasingSubsequence', function() {
+// describe.only('longestIncreasingSubsequence', function () {
 
 //   interface Spec {
 //     indexMap: IndexMap;
@@ -500,7 +500,7 @@
 //   ];
 
 //   for (const spec of specs) {
-//     it.only(`${JSON.stringify(spec)}`, function() {
+//     it.only(`${JSON.stringify(spec)}`, function () {
 //       const { indexMap, expected } = spec;
 //       const actual = longestIncreasingSubsequence(indexMap);
 //       assertArrayEqual([...actual], expected);

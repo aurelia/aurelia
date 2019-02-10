@@ -55,7 +55,7 @@ export function padRight(str: any, len: number): string {
 const $nil: any = undefined;
 const getName = (o: any) => Object.prototype.toString.call(o).slice(8, -1);
 
-describe('Binding', () => {
+describe('Binding', function () {
   let dummySourceExpression: IExpression;
   let dummyTarget: Record<string, unknown>;
   let dummyTargetProperty: string;
@@ -70,36 +70,36 @@ describe('Binding', () => {
     return { sut, lifecycle, container, observerLocator };
   }
 
-  beforeEach(() => {
+  beforeEach(function () {
     dummySourceExpression = {} as any;
     dummyTarget = {foo: 'bar'};
     dummyTargetProperty = 'foo';
     dummyMode = BindingMode.twoWay;
   });
 
-  describe('constructor', () => {
+  describe('constructor', function () {
     const invalidInputs: any[] = [null, undefined, {}];
 
     for (const ii of invalidInputs) {
-      it(`throws on invalid input parameters of type ${getName(ii)}`, () => {
+      it(`throws on invalid input parameters of type ${getName(ii)}`, function () {
         expect(() => new Binding(ii, ii, ii, ii, ii, ii), `() => new Binding(ii, ii, ii, ii, ii, ii)`).to.throw;
       });
     }
   });
 
-  describe('updateTarget()', () => {
+  describe('updateTarget()', function () {
 
   });
 
-  describe('updateSource()', () => {
+  describe('updateSource()', function () {
 
   });
 
-  describe('handleChange()', () => {
+  describe('handleChange()', function () {
 
   });
 
-  it(`$bind() [to-view] works with 200 observers`, () => {
+  it(`$bind() [to-view] works with 200 observers`, function () {
     let expr: AccessScope | Binary;
 
     const count = 200;
@@ -143,7 +143,7 @@ describe('Binding', () => {
     expect(target.val, `target.val`).to.equal(count * 3);
   }).timeout(20000);
 
-  describe('$bind() [one-time] assigns the target value', () => {
+  describe('$bind() [one-time] assigns the target value', function () {
     const targetVariations: (() => [{foo?: string}, string])[] = [
       () => [({ foo: 'bar' }), `{foo:'bar'} `],
       () => [({}),             `{}          `]
@@ -180,7 +180,7 @@ describe('Binding', () => {
        = [targetVariations, propVariations, exprVariations, flagsVariations, scopeVariations];
 
     eachCartesianJoinFactory(inputs, ([target, $1], [prop, $2], [expr, $3], [flags, $4], [scope, $5]) => {
-        it(`$bind() [one-time]  target=${$1} prop=${$2} expr=${$3} flags=${$4} scope=${$5}`, () => {
+        it(`$bind() [one-time]  target=${$1} prop=${$2} expr=${$3} flags=${$4} scope=${$5}`, function () {
           // - Arrange -
           const { sut, lifecycle, container, observerLocator } = setup(expr, target, prop, BindingMode.oneTime);
           const srcVal = expr.evaluate(LF.none, scope, container);
@@ -214,7 +214,7 @@ describe('Binding', () => {
     );
   });
 
-  describe('$bind() [to-view] assigns the target value and listens for changes', () => {
+  describe('$bind() [to-view] assigns the target value and listens for changes', function () {
 
     const targetVariations: (() => [{foo?: string}, string])[] = [
       () => [({ foo: 'bar' }), `{foo:'bar'} `],
@@ -253,7 +253,7 @@ describe('Binding', () => {
        = [targetVariations, propVariations, exprVariations, flagsVariations, scopeVariations];
 
     eachCartesianJoinFactory(inputs, ([target, $1], [prop, $2], [expr, $3], [flags, $4], [scope, $5]) => {
-        it(`$bind() [to-view]  target=${$1} prop=${$2} expr=${$3} flags=${$4} scope=${$5}`, () => {
+        it(`$bind() [to-view]  target=${$1} prop=${$2} expr=${$3} flags=${$4} scope=${$5}`, function () {
           // - Arrange - Part 1
           const { sut, lifecycle, container, observerLocator } = setup(expr, target, prop, BindingMode.toView);
           const srcVal = expr.evaluate(LF.none, scope, container);
@@ -441,7 +441,7 @@ describe('Binding', () => {
     );
   });
 
-  describe('$bind() [from-view] does not assign the target, and listens for changes', () => {
+  describe('$bind() [from-view] does not assign the target, and listens for changes', function () {
 
     const targetVariations: (() => [{foo?: string}, string])[] = [
       () => [({ foo: 'bar' }), `{foo:'bar'} `],
@@ -479,7 +479,7 @@ describe('Binding', () => {
        = [targetVariations, propVariations, newValueVariations, exprVariations, flagsVariations, scopeVariations];
 
     eachCartesianJoinFactory(inputs, ([target, $1], [prop, $2], [newValue, $3], [expr, $4], [flags, $5], [scope, $6]) => {
-        it(`$bind() [from-view]  target=${$1} prop=${$2} newValue=${$3} expr=${$4} flags=${$5} scope=${$6}`, () => {
+        it(`$bind() [from-view]  target=${$1} prop=${$2} newValue=${$3} expr=${$4} flags=${$5} scope=${$6}`, function () {
           // - Arrange - Part 1
           const { sut, lifecycle, container, observerLocator } = setup(expr, target, prop, BindingMode.fromView);
           const targetObserver = observerLocator.getObserver(LF.none, target, prop) as IBindingTargetObserver;
@@ -555,7 +555,7 @@ describe('Binding', () => {
     );
   });
 
-  describe('$bind() [two-way] assign the targets, and listens for changes', () => {
+  describe('$bind() [two-way] assign the targets, and listens for changes', function () {
 
     const targetVariations: (() => [{foo?: string}, string])[] = [
       () => [{ foo: 'bar' },       `{foo:'bar'}     `],
@@ -600,7 +600,7 @@ describe('Binding', () => {
        = [targetVariations, propVariations, newValueVariations, exprVariations, flagsVariations, scopeVariations];
 
     eachCartesianJoinFactory(inputs, ([target, $1], [prop, $2], [[newValue1, newValue2], $3], [expr, $4], [flags, $5], [scope, $6]) => {
-        it(`$bind() [two-way]  target=${$1} prop=${$2} newValue1,newValue2=${$3} expr=${$4} flags=${$5} scope=${$6}`, () => {
+        it(`$bind() [two-way]  target=${$1} prop=${$2} newValue1,newValue2=${$3} expr=${$4} flags=${$5} scope=${$6}`, function () {
           const originalScope = JSON.parse(JSON.stringify(scope));
           // - Arrange - Part 1
           const { sut, lifecycle, container, observerLocator } = setup(expr, target, prop, BindingMode.twoWay);
@@ -868,8 +868,8 @@ describe('Binding', () => {
     );
   });
 
-  describe('$unbind()', () => {
-    it('should not unbind if it is not already bound', () => {
+  describe('$unbind()', function () {
+    it('should not unbind if it is not already bound', function () {
       const { sut } = setup();
       const scope: any = {};
       sut['$scope'] = scope;
@@ -877,7 +877,7 @@ describe('Binding', () => {
       expect(sut['$scope'] === scope, `sut['$scope'] === scope`).to.equal(true);
     });
 
-    it('should unbind if it is bound', () => {
+    it('should unbind if it is bound', function () {
       const { sut } = setup();
       const scope: any = {};
       sut['$scope'] = scope;
@@ -894,11 +894,11 @@ describe('Binding', () => {
     });
   });
 
-  describe('addObserver()', () => {
+  describe('addObserver()', function () {
     const countArr = [1, 5, 100];
 
     for (const count of countArr) {
-      it(`adds ${count} observers`, () => {
+      it(`adds ${count} observers`, function () {
         const { sut } = setup();
         let i = 0;
         while (i < count) {
@@ -910,7 +910,7 @@ describe('Binding', () => {
         }
       });
 
-      it(`calls subscribe() on ${count} observers`, () => {
+      it(`calls subscribe() on ${count} observers`, function () {
         const { sut } = setup();
         let i = 0;
         while (i < count) {
@@ -921,7 +921,7 @@ describe('Binding', () => {
         }
       });
 
-      it(`does nothing when ${count} observers already exist`, () => {
+      it(`does nothing when ${count} observers already exist`, function () {
         const { sut } = setup();
         let i = 0;
         while (i < count) {
@@ -939,7 +939,7 @@ describe('Binding', () => {
         }
       });
 
-      it(`updates the version for ${count} observers`, () => {
+      it(`updates the version for ${count} observers`, function () {
         const { sut } = setup();
         let i = 0;
         while (i < count) {
@@ -957,7 +957,7 @@ describe('Binding', () => {
         }
       });
 
-      it(`only updates the version for for added observers`, () => {
+      it(`only updates the version for for added observers`, function () {
         const { sut } = setup();
         let i = 0;
         while (i < count) {
@@ -982,11 +982,11 @@ describe('Binding', () => {
     }
   });
 
-  describe('observeProperty()', () => {
+  describe('observeProperty()', function () {
 
   });
 
-  describe('unobserve()', () => {
+  describe('unobserve()', function () {
 
   });
 

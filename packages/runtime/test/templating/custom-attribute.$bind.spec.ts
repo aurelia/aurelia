@@ -3,9 +3,9 @@ import { Hooks, LifecycleFlags as LF, Scope, State } from '../../src/index';
 import { createCustomAttribute, CustomAttribute } from '../resources/custom-attribute._builder';
 import { eachCartesianJoin } from '../util';
 
-describe('@customAttribute', () => {
+describe('@customAttribute', function () {
 
-  describe('$bind', () => {
+  describe('$bind', function () {
 
     const propsAndScopeSpecs = [
       // $isBound: true, with 4 variants
@@ -179,7 +179,7 @@ describe('@customAttribute', () => {
     eachCartesianJoin([propsAndScopeSpecs, flagsSpecs, hooksSpecs],
                       (psSpec, flagsSpec, hooksSpec) => {
 
-      it(`${psSpec.expectation} if ${psSpec.description} AND ${hooksSpec.expectation} if ${hooksSpec.description} AND ${flagsSpec.expectation} if ${flagsSpec.description}`, () => {
+      it(`${psSpec.expectation} if ${psSpec.description} AND ${hooksSpec.expectation} if ${hooksSpec.description} AND ${flagsSpec.expectation} if ${flagsSpec.description}`, function () {
         // Arrange
         const { sut } = createCustomAttribute();
         psSpec.setProps(sut);
@@ -212,7 +212,7 @@ describe('@customAttribute', () => {
     });
   });
 
-  describe('$unbind', () => {
+  describe('$unbind', function () {
 
     const propsAndScopeSpecs = [
       {
@@ -308,7 +308,7 @@ describe('@customAttribute', () => {
     eachCartesianJoin([propsAndScopeSpecs, flagsSpec, hooksSpecs],
                       (psSpec, flagsSpec2, hooksSpec) => {
 
-      it(`${psSpec.expectation} if ${psSpec.description} AND ${hooksSpec.expectation} if ${hooksSpec.description} AND ${flagsSpec2.expectation} if ${flagsSpec2.description}`, () => {
+      it(`${psSpec.expectation} if ${psSpec.description} AND ${hooksSpec.expectation} if ${hooksSpec.description} AND ${flagsSpec2.expectation} if ${flagsSpec2.description}`, function () {
         // Arrange
         const { sut } = createCustomAttribute();
         psSpec.setProps(sut);

@@ -8,8 +8,8 @@ import { registerComponent } from './utils';
 
 const define = (CustomElementResource as any).define;
 
-describe('ViewportContent', () => {
-  it('can be created', () => {
+describe('ViewportContent', function () {
+  it('can be created', function () {
     const sut = new ViewportContent();
   });
 

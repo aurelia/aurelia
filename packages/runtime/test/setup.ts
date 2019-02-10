@@ -53,7 +53,7 @@ chai.use(function(_chai, utils) {
           `${msg}expected $state to have flags [${getStateFlagName(currentFlag)}], but got [${getStateFlagName(state)}]`,
           `${msg}expected $state to NOT have flags [${getStateFlagName(currentFlag)}], but got [${getStateFlagName(state)}]`);
       },
-      function() {
+      function () {
         utils.flag(this, flagName, true);
       }
     );

@@ -18,7 +18,7 @@ import { disableTracing, enableTracing } from '../util';
 
 declare var document;
 
-describe('ComputedObserver', function() {
+describe('ComputedObserver', function () {
   function setup() {
     const container = RuntimeBasicConfiguration.createContainer();
     const innerLocator = {
@@ -89,7 +89,7 @@ describe('ComputedObserver', function() {
   ];
 
   eachCartesianJoin([computedSpecs, propSpecs, depSpecs], (computedSpec, propSpec, depSpec) => {
-    it(`computedSpec ${computedSpec.t}, propSpec ${propSpec.t}, depSpec ${depSpec.t}`, function() {
+    it(`computedSpec ${computedSpec.t}, propSpec ${propSpec.t}, depSpec ${depSpec.t}`, function () {
       const { locator, dirtyChecker, lifecycle } = setup();
       const { isVolatile, isStatic, exists } = computedSpec;
       const { initialValue: propInitialValue, newValue: propNewValue, descriptor: propDescriptor } = propSpec;
@@ -261,7 +261,7 @@ describe('ComputedObserver', function() {
   // only run this test in browser for now as it hangs in node due to subtleties with prototype stuff
   // TODO: fix this in node
   if (typeof document !== 'undefined') {
-    it(`complex nested dependencies`, function() {
+    it(`complex nested dependencies`, function () {
       this.timeout(30000);
       const { locator, dirtyChecker, lifecycle } = setup();
 
@@ -430,7 +430,7 @@ describe('ComputedObserver', function() {
     });
   }
 
-  it('resorts to dirty checking for non configurable props', function() {
+  it('resorts to dirty checking for non configurable props', function () {
     const { locator, dirtyChecker, lifecycle } = setup();
     class Foo {}
     Reflect.defineProperty(Foo.prototype, 'bar', {
@@ -447,7 +447,7 @@ describe('ComputedObserver', function() {
     expect(sut).to.be.instanceof(DirtyCheckProperty);
   });
 
-  it('throws in case of no getter', function() {
+  it('throws in case of no getter', function () {
     const { locator, dirtyChecker, lifecycle } = setup();
     class Foo {}
     Reflect.defineProperty(Foo.prototype, 'bar', {

@@ -22,7 +22,7 @@ export function load(name: string, req: Require, onLoad: RequireOnLoad, config: 
       const depsToLoad = processImports(description.imports, name);
       const templateImport = parseImport(name);
 
-      req(depsToLoad, function(): void {
+      req(depsToLoad, function (): void {
         const templateSource = {
           name: kebabCase(templateImport.basename),
           template: description.template,
@@ -47,7 +47,7 @@ export function write(pluginName: string, moduleName: string, writer: (content: 
     const depsToLoadMapped = depsToLoad.map(x => `"${x}"`).join(',');
     const templateImport = parseImport(moduleName);
 
-    writer(`define("${pluginName}!${moduleName}", [${depsToLoadMapped}], function() {
+    writer(`define("${pluginName}!${moduleName}", [${depsToLoadMapped}], function () {
       var templateSource = {
         name: '${kebabCase(templateImport.basename)}',
         template: '${escape(description.template)}',

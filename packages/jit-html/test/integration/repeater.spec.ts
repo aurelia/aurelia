@@ -6,7 +6,7 @@ import { TestConfiguration } from './resources';
 
 const spec = 'repeater';
 
-describe(spec, function() {
+describe(spec, function () {
     interface Spec {
       t: string;
     }
@@ -254,7 +254,7 @@ describe(spec, function() {
     ];
 
     eachCartesianJoin([bindSpecs, templateSpecs], (bindSpec, templateSpec) => {
-      it(`bindSpec ${bindSpec.t}, templateSpec ${templateSpec.t}`, function() {
+      it(`bindSpec ${bindSpec.t}, templateSpec ${templateSpec.t}`, function () {
         const { forof, item, expected, initialize } = bindSpec;
         const { createTemplate } = templateSpec;
 

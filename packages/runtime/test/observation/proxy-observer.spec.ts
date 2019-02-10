@@ -4,7 +4,7 @@ import { LifecycleFlags, ProxyObserver } from '../../src/index';
 
 class Foo {}
 
-describe('ProxyObserver', function() {
+describe('ProxyObserver', function () {
   interface Spec {
     t: string;
   }
@@ -56,14 +56,14 @@ describe('ProxyObserver', function() {
     { t: '      new WeakSet()', createObj() { return       new WeakSet(); } },
     { t: '   JSON.parse("{}")', createObj() { return    JSON.parse("{}"); } },
     { t: '             /asdf/', createObj() { return              /asdf/; } },
-    { t: '       function(){}', createObj() { return        function(){}; } },
+    { t: '       function (){}', createObj() { return        function (){}; } },
     { t: '  Promise.resolve()', createObj() { return   Promise.resolve(); } },
     { t: '  new Proxy({}, {})', createObj() { return   new Proxy({}, {}); } }
   ];
   // tslint:enable
 
   eachCartesianJoin([valueSpecs, propertySpecs, objSpecs], function(valueSpec, propertySpec, objSpec) {
-    it(`valueSpec ${valueSpec.t}, propertySpec ${propertySpec.t} objSpec ${objSpec.t}`, function() {
+    it(`valueSpec ${valueSpec.t}, propertySpec ${propertySpec.t} objSpec ${objSpec.t}`, function () {
       const { createValue } = valueSpec;
       const { name } = propertySpec;
       const { createObj } = objSpec;
@@ -182,7 +182,7 @@ describe('ProxyObserver', function() {
     });
   });
 
-  it('works with array', function() {
+  it('works with array', function () {
     const obj = [];
 
     const observer = ProxyObserver.getOrCreate(obj);
@@ -223,7 +223,7 @@ describe('ProxyObserver', function() {
     expect(callCount).to.equal(2);
   });
 
-  it('works with set', function() {
+  it('works with set', function () {
     const obj = new Set();
 
     const observer = ProxyObserver.getOrCreate(obj);
@@ -252,7 +252,7 @@ describe('ProxyObserver', function() {
     expect(callCount).to.equal(0);
   });
 
-  it('works with map', function() {
+  it('works with map', function () {
     const obj = new Map();
 
     const observer = ProxyObserver.getOrCreate(obj);

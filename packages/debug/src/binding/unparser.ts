@@ -34,7 +34,7 @@ export function enableImprovedExpressionDebugging(): void {
 
 /** @internal */
 export function adoptDebugMethods($type: Unwrap<typeof astTypeMap>['type'], name: string): void {
-  $type.prototype.toString = function(): string { return Unparser.unparse(this); };
+  $type.prototype.toString = function (): string { return Unparser.unparse(this); };
 }
 
 /** @internal */

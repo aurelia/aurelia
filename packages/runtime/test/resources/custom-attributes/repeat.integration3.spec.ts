@@ -33,7 +33,7 @@ import {
   AuNodeSequence
 } from '../../au-dom';
 
-describe(`Repeat`, () => {
+describe(`Repeat`, function () {
   function runBindLifecycle(lifecycle: ILifecycle, sut: Repeat<IObservedArray, AuNode>, flags: LifecycleFlags, scope: IScope): void {
     lifecycle.beginBind();
     sut.$bind(flags, scope);
@@ -574,7 +574,7 @@ describe(`Repeat`, () => {
   eachCartesianJoin(
     [strategySpecs, duplicateOperationSpecs, bindSpecs, flagsSpecs],
     (strategySpec, duplicateOperationSpec, bindSpec, flagsSpec) => {
-    it(`verify repeat behavior - strategySpec ${strategySpec.t}, duplicateOperationSpec ${duplicateOperationSpec.t}, bindSpec ${bindSpec.t}, flagsSpec ${flagsSpec.t}, `, async () => {
+    it(`verify repeat behavior - strategySpec ${strategySpec.t}, duplicateOperationSpec ${duplicateOperationSpec.t}, bindSpec ${bindSpec.t}, flagsSpec ${flagsSpec.t}, `, async function () {
       const { strategy } = strategySpec;
       const { bindTwice, attachTwice, detachTwice, unbindTwice, newScopeForDuplicateBind } = duplicateOperationSpec;
       const { items: $items, flush, mutations } = bindSpec;

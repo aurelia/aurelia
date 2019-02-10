@@ -32,7 +32,7 @@ describe(spec, function () {
     BindingStrategy.keyed | BindingStrategy.patch,
     BindingStrategy.keyed | BindingStrategy.proxies
   ]) {
-    it(`strategy=${stringifyLifecycleFlags(strategy)}`, function() {
+    it(`strategy=${stringifyLifecycleFlags(strategy)}`, function () {
       const bb = (strategy & BindingStrategy.keyed) > 0 ? ' & keyed' : '';
       this.timeout(30000);
       let num = 0;
@@ -164,7 +164,7 @@ describe(spec, function () {
     BindingStrategy.keyed | BindingStrategy.patch,
     BindingStrategy.keyed | BindingStrategy.proxies
   ]) {
-    it(`profile, strategy=${stringifyLifecycleFlags(strategy)}`, function() {
+    it(`profile, strategy=${stringifyLifecycleFlags(strategy)}`, function () {
       const bb = (strategy & BindingStrategy.keyed) > 0 ? ' & keyed' : '';
       this.timeout(30000);
       const { au, host } = setup();
@@ -226,7 +226,7 @@ describe(spec, function () {
 
 // TODO: replace these tests with cartesian loop and remove these comments
 
-  // it('works 2', function() {
+  // it('works 2', function () {
   //   this.timeout(30000);
   //   let count = 100000;
   //   const { ctx, container, lifecycle, au, host } = setup();

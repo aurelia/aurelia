@@ -4,7 +4,7 @@ import { SinonSpy, spy } from 'sinon';
 import { ValueAttributeObserver } from '../../src/index';
 import { _, TestContext } from '../util';
 
-describe('ValueAttributeObserver', () => {
+describe('ValueAttributeObserver', function () {
   const eventDefaults = { bubbles: true };
 
   for (const { inputType, nullValues, validValues } of [
@@ -20,7 +20,7 @@ describe('ValueAttributeObserver', () => {
       { inputType: 'text',     nullValues: [null, undefined], validValues: ['', 'foo'] },
       { inputType: 'url',      nullValues: [null, undefined], validValues: ['', 'foo'] }
     ]) {
-    describe(`setValue() - type="${inputType}"`, () => {
+    describe(`setValue() - type="${inputType}"`, function () {
       function setup(hasSubscriber: boolean) {
         const ctx = TestContext.createHTMLTestContext();
         const { container, lifecycle, observerLocator } = ctx;
@@ -47,7 +47,7 @@ describe('ValueAttributeObserver', () => {
         for (const valueBefore of [...nullValues, ...validValues]) {
           for (const valueAfter of [...nullValues, ...validValues]) {
 
-            it(_`hasSubscriber=${hasSubscriber}, valueBefore=${valueBefore}, valueAfter=${valueAfter}`, () => {
+            it(_`hasSubscriber=${hasSubscriber}, valueBefore=${valueBefore}, valueAfter=${valueAfter}`, function () {
 
               const { ctx, sut, lifecycle, el, subscriber } = setup(hasSubscriber);
 
@@ -88,7 +88,7 @@ describe('ValueAttributeObserver', () => {
       }
     });
 
-    describe(`handleEvent() - type="${inputType}"`, () => {
+    describe(`handleEvent() - type="${inputType}"`, function () {
       function setup() {
         const ctx = TestContext.createHTMLTestContext();
         const { container, observerLocator } = ctx;
@@ -113,7 +113,7 @@ describe('ValueAttributeObserver', () => {
         for (const valueAfter of [...nullValues, ...validValues]) {
           for (const event of ['change', 'input']) {
 
-            it(_`valueBefore=${valueBefore}, valueAfter=${valueAfter}`, () => {
+            it(_`valueBefore=${valueBefore}, valueAfter=${valueAfter}`, function () {
 
               const { ctx, sut, el, subscriber } = setup();
 

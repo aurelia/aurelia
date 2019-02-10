@@ -8,30 +8,30 @@ import { Interceptor } from '../../src/interfaces';
 import { retryStrategy } from '../../src/retry-interceptor';
 import { json } from '../../src/util';
 
-describe('HttpClient', function() {
+describe('HttpClient', function () {
   let ctx: HTMLTestContext;
   let originalFetch: (input: string | Request, init?: RequestInit) => Promise<Response>;
   let client: HttpClient;
   let fetch: SinonStub;
 
-  beforeEach(function() {
+  beforeEach(function () {
     ctx = TestContext.createHTMLTestContext();
     originalFetch = ctx.dom.window.fetch;
     client = ctx.container.get(HttpClient);
     fetch = ctx.dom.window.fetch = stub();
   });
 
-  afterEach(function() {
+  afterEach(function () {
     fetch = ctx.dom.window.fetch = originalFetch as SinonStub;
   });
 
-  it('errors on missing fetch implementation', function() {
+  it('errors on missing fetch implementation', function () {
     ctx.dom.window.fetch = undefined;
     expect(() => new HttpClient(ctx.dom)).to.throw();
   });
 
-  describe('configure', function() {
-    it('accepts plain objects', function() {
+  describe('configure', function () {
+    it('accepts plain objects', function () {
       const defaults = {};
       client.configure(defaults);
 
@@ -39,7 +39,7 @@ describe('HttpClient', function() {
       expect(client.defaults).to.equal(defaults);
     });
 
-    it('accepts configuration callbacks', function() {
+    it('accepts configuration callbacks', function () {
       const defaults = { foo: true };
       const baseUrl = '/test';
       const interceptor = {};
@@ -59,7 +59,7 @@ describe('HttpClient', function() {
       expect(client.interceptors.indexOf(interceptor)).to.equal(0);
     });
 
-    it('accepts configuration override', function() {
+    it('accepts configuration override', function () {
       const defaults = { foo: true };
 
       client.configure(config => config.withDefaults(defaults as RequestInit));
@@ -71,25 +71,25 @@ describe('HttpClient', function() {
       });
     });
 
-    it('rejects invalid configs', function() {
+    it('rejects invalid configs', function () {
       expect(() => client.configure(1 as RequestInit)).to.throw();
     });
 
-    it('applies standard configuration', function() {
+    it('applies standard configuration', function () {
       client.configure(config => config.useStandardConfiguration());
 
       expect(client.defaults.credentials).to.equal('same-origin');
       expect(client.interceptors.length).to.equal(1);
     });
 
-    it('rejects error responses', function() {
+    it('rejects error responses', function () {
       client.configure(config => config.rejectErrorResponses());
 
       expect(client.interceptors.length).to.equal(1);
     });
   });
 
-  describe('fetch', function() {
+  describe('fetch', function () {
     it('makes requests with string inputs', function(done) {
       fetch.returns(emptyResponse(200));
 
@@ -228,7 +228,7 @@ describe('HttpClient', function() {
     });
   });
 
-  describe('get', function() {
+  describe('get', function () {
     it('passes-through to fetch', function(done) {
       fetch.returns(emptyResponse(200));
 
@@ -247,7 +247,7 @@ describe('HttpClient', function() {
     });
   });
 
-  describe('post', function() {
+  describe('post', function () {
     it('sets method to POST and body of request and calls fetch', function(done) {
       fetch.returns(emptyResponse(200));
 
@@ -266,7 +266,7 @@ describe('HttpClient', function() {
     });
   });
 
-  describe('put', function() {
+  describe('put', function () {
     it('sets method to PUT and body of request and calls fetch', function(done) {
       fetch.returns(emptyResponse(200));
 
@@ -285,7 +285,7 @@ describe('HttpClient', function() {
     });
   });
 
-  describe('patch', function() {
+  describe('patch', function () {
     it('sets method to PATCH and body of request and calls fetch', function(done) {
       fetch.returns(emptyResponse(200));
 
@@ -304,7 +304,7 @@ describe('HttpClient', function() {
     });
   });
 
-  describe('delete', function() {
+  describe('delete', function () {
     it('sets method to DELETE and body of request and calls fetch', function(done) {
       fetch.returns(emptyResponse(200));
 
@@ -323,7 +323,7 @@ describe('HttpClient', function() {
     });
   });
 
-  describe('interceptors', function() {
+  describe('interceptors', function () {
 
     it('run on request', function(done) {
       fetch.returns(emptyResponse(200));
@@ -519,7 +519,7 @@ describe('HttpClient', function() {
         }).catch(() => { done('Unexpected catch'); });
     });
 
-    describe('rejectErrorResponses', function() {
+    describe('rejectErrorResponses', function () {
       it('can reject error responses', function(done) {
         const response = new Response(null, { status: 500 });
         fetch.returns(Promise.resolve(response));
@@ -551,7 +551,7 @@ describe('HttpClient', function() {
     });
   });
 
-  describe('default request parameters', function() {
+  describe('default request parameters', function () {
 
     it('applies baseUrl to requests', function(done) {
       fetch.returns(emptyResponse(200));
@@ -705,10 +705,10 @@ describe('HttpClient', function() {
     });
   });
 
-  describe('retry', function() {
+  describe('retry', function () {
     this.timeout(10000);
 
-    it('fails if multiple RetryInterceptors are defined', function() {
+    it('fails if multiple RetryInterceptors are defined', function () {
       const configure = () => {
         client.configure(config => config.withRetry().withRetry());
       };
@@ -716,7 +716,7 @@ describe('HttpClient', function() {
       expect(configure).to.throw('Only one RetryInterceptor is allowed.');
     });
 
-    it('fails if RetryInterceptor is not last interceptor defined', function() {
+    it('fails if RetryInterceptor is not last interceptor defined', function () {
       const configure = () => {
         client.configure(config => config.withRetry().rejectErrorResponses());
       };
@@ -992,7 +992,7 @@ describe('HttpClient', function() {
     // });
   });
 
-  describe('isRequesting', function() {
+  describe('isRequesting', function () {
     it('is set to true when starting a request', function(done) {
       fetch.returns(emptyResponse(200));
 

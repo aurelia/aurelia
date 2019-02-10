@@ -3,7 +3,7 @@ import { expect } from 'chai';
 import { TestContext } from '../util';
 
 describe('hooks', function () {
-  it('test', () => {
+  it('test', function () {
     const rows: any[] = [
       {
         show: true,
@@ -268,7 +268,7 @@ describe('hooks', function () {
 
   });
 
-  it('attached task awaited indirectly', async () => {
+  it('attached task awaited indirectly', async function () {
 
     const Foo = CustomElementResource.define({
       name: 'foo',
@@ -327,7 +327,7 @@ describe('hooks', function () {
     expect(host.textContent).to.equal('');
   });
 
-  it('attached task awaited directly', async () => {
+  it('attached task awaited directly', async function () {
 
     const Foo = CustomElementResource.define({
       name: 'foo',
@@ -391,7 +391,7 @@ describe('hooks', function () {
     expect(host.textContent).to.equal('');
   });
 
-  it('attached task (triple then) awaited indirectly', async () => {
+  it('attached task (triple then) awaited indirectly', async function () {
 
     const Foo = CustomElementResource.define({
       name: 'foo',
@@ -458,7 +458,7 @@ describe('hooks', function () {
     expect(host.textContent).to.equal('');
   });
 
-  it('attached task (triple then) awaited directly', async () => {
+  it('attached task (triple then) awaited directly', async function () {
 
     const Foo = CustomElementResource.define({
       name: 'foo',
@@ -522,7 +522,7 @@ describe('hooks', function () {
     expect(host.textContent).to.equal('');
   });
 
-  it('detached task awaited indirectly', async () => {
+  it('detached task awaited indirectly', async function () {
 
     const Foo = CustomElementResource.define({
       name: 'foo',
@@ -583,7 +583,7 @@ describe('hooks', function () {
 
   });
 
-  it('detached task awaited directly', async () => {
+  it('detached task awaited directly', async function () {
 
     const Foo = CustomElementResource.define({
       name: 'foo',
@@ -644,7 +644,7 @@ describe('hooks', function () {
 
   });
 
-  it('detached task (triple then) awaited indirectly', async () => {
+  it('detached task (triple then) awaited indirectly', async function () {
 
     const Foo = CustomElementResource.define({
       name: 'foo',
@@ -708,7 +708,7 @@ describe('hooks', function () {
     expect(host.textContent).to.equal('');
   });
 
-  it('detached task (triple then) awaited directly', async () => {
+  it('detached task (triple then) awaited directly', async function () {
 
     const Foo = CustomElementResource.define({
       name: 'foo',

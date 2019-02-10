@@ -330,7 +330,7 @@ export function createRenderContext(
     return context;
   };
 
-  context.dispose = function(): void {
+  context.dispose = function (): void {
     factoryProvider.dispose();
     renderableProvider.dispose();
     instructionProvider.dispose();
@@ -506,7 +506,7 @@ export class RuntimeBehavior {
 
     Reflect.defineProperty(instance, '$children', {
       enumerable: false,
-      get: function(): unknown {
+      get: function (): unknown {
         return this['$observers'].$children.getValue();
       }
     });
@@ -557,7 +557,7 @@ export class RuntimeBehavior {
 function createGetterSetter(flags: LifecycleFlags, instance: ICustomAttribute | ICustomElement, name: string): void {
   Reflect.defineProperty(instance, name, {
     enumerable: true,
-    get: function(): unknown { return this['$observers'][name].getValue(); },
+    get: function (): unknown { return this['$observers'][name].getValue(); },
     set: function(value: unknown): void { this['$observers'][name].setValue(value, flags & LifecycleFlags.persistentBindingFlags); }
   });
 }

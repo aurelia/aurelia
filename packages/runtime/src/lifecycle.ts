@@ -1450,6 +1450,13 @@ export class PromiseTask<T = void> implements ILifecycleTask<T> {
   }
 }
 
+export function allowUnmount(flags: LifecycleFlags): boolean {
+  // Only unmount if either:
+  // - No parent view/element is queued for unmount yet, or
+  // - Aurelia is stopping (in which case all nodes need to return to their fragments for a clean mount on next start)
+  return (((flags & LifecycleFlags.parentUnmountQueued) ^ LifecycleFlags.parentUnmountQueued) | (flags & LifecycleFlags.fromStopTask)) > 0;
+}
+
 export function isBinding(obj: IState): boolean {
   return (obj.$state & State.isBinding) === State.isBinding;
 }

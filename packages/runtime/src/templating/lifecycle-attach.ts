@@ -1,6 +1,7 @@
 import { Profiler, Tracer, Writable } from '@aurelia/kernel';
 import { LifecycleFlags } from '../flags';
 import {
+  allowUnmount,
   hasAttachedHook,
   hasAttachingHook,
   hasCachingHook,
@@ -158,10 +159,7 @@ export function $detachElement(this: Writable<IAttachable & IMountableComponent>
     this.$lifecycle.beginDetach();
     setDetachingState(this);
 
-    // Only unmount if either:
-    // - No parent view/element is queued for unmount yet, or
-    // - Aurelia is stopping (in which case all nodes need to return to their fragments for a clean mount on next start)
-    if ((((flags & LifecycleFlags.parentUnmountQueued) ^ LifecycleFlags.parentUnmountQueued) | (flags & LifecycleFlags.fromStopTask)) > 0) {
+    if (allowUnmount(flags)) {
       this.$lifecycle.enqueueUnmount(this);
       flags |= LifecycleFlags.parentUnmountQueued;
     }
@@ -194,10 +192,7 @@ export function $detachView(this: Writable<IAttachable & IMountableComponent>, f
     this.$lifecycle.beginDetach();
     setDetachingState(this);
 
-    // Only unmount if either:
-    // - No parent view/element is queued for unmount yet, or
-    // - Aurelia is stopping (in which case all nodes need to return to their fragments for a clean mount on next start)
-    if ((((flags & LifecycleFlags.parentUnmountQueued) ^ LifecycleFlags.parentUnmountQueued) | (flags & LifecycleFlags.fromStopTask)) > 0) {
+    if (allowUnmount(flags)) {
       this.$lifecycle.enqueueUnmount(this);
       flags |= LifecycleFlags.parentUnmountQueued;
     }

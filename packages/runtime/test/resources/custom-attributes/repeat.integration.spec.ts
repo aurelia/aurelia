@@ -83,7 +83,7 @@
 //   return { sut, host, lifecycle };
 // }
 
-// describe(`Repeat`, () => {
+// describe(`Repeat`, function() {
 
 //   eachCartesianJoinFactory([
 //     // initial input items
@@ -227,7 +227,7 @@
 //     [exec1, exec1Text],
 //     [exec2, exec2Text],
 //     [exec3, exec3Text]) => {
-//     it(`assign=${text1} -> ${exec1Text} -> ${exec2Text} -> ${exec3Text}`, () => {
+//     it(`assign=${text1} -> ${exec1Text} -> ${exec2Text} -> ${exec3Text}`, function() {
 //       const { sut, host, lifecycle } = setup<IObservedArray>();
 //       sut.items = items1;
 
@@ -238,7 +238,7 @@
 //   });
 // });
 
-// describe('ArrayRepeater - render html', () => {
+// describe('ArrayRepeater - render html', function() {
 //   let container: IContainer;
 //   let lifecycle: ILifecycle;
 //   let au: Aurelia;
@@ -247,7 +247,7 @@
 //   let aureliaConfig: any;
 //   let component: ICustomElement;
 
-//   beforeEach(() => {
+//   beforeEach(function() {
 //     container = DI.createContainer();
 //     container.register(domRegistration);
 //     lifecycle = container.get(ILifecycle);
@@ -256,7 +256,7 @@
 //     dom.appendChild(document.body, host);
 //   });
 
-//   it('triple nested repeater should render correctly', () => {
+//   it('triple nested repeater should render correctly', function() {
 //     const initItems = [
 //       {
 //         id: 1,

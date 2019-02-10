@@ -31,22 +31,22 @@ export function assertArrayEqual(actual: ReadonlyArray<any>, expected: ReadonlyA
   expect(len).to.equal(expected.length, `expected.length=${expected.length}, actual.length=${actual.length}`);
 }
 
-describe(`ArrayObserver`, () => {
+describe(`ArrayObserver`, function() {
   let sut: ArrayObserver;
 
-  before(() => {
+  before(function() {
     disableArrayObservation();
     enableArrayObservation();
   });
 
-  afterEach(() => {
+  afterEach(function() {
     if (sut) {
       sut.dispose();
     }
   });
 
-  describe('should allow subscribing for immediate notification', () => {
-    it('push', () => {
+  describe('should allow subscribing for immediate notification', function() {
+    it('push', function() {
       const s = new SpySubscriber();
       const arr = [];
       sut = new ArrayObserver(LF.none, new Lifecycle(), arr);
@@ -55,7 +55,7 @@ describe(`ArrayObserver`, () => {
       expect(s.handleChange).to.have.been.calledWith('push', match(x => x[0] === 1));
     });
 
-    it('push', () => {
+    it('push', function() {
       const s = new SpySubscriber();
       const arr = [];
       sut = new ArrayObserver(LF.none, new Lifecycle(), arr);
@@ -65,8 +65,8 @@ describe(`ArrayObserver`, () => {
     });
   });
 
-  describe('should allow unsubscribing for immediate notification', () => {
-    it('push', () => {
+  describe('should allow unsubscribing for immediate notification', function() {
+    it('push', function() {
       const s = new SpySubscriber();
       const arr = [];
       sut = new ArrayObserver(LF.none, new Lifecycle(), arr);
@@ -77,8 +77,8 @@ describe(`ArrayObserver`, () => {
     });
   });
 
-  describe('should allow subscribing for batched notification', () => {
-    it('push', () => {
+  describe('should allow subscribing for batched notification', function() {
+    it('push', function() {
       const s = new SpySubscriber();
       const arr = [];
       sut = new ArrayObserver(LF.none, new Lifecycle(), arr);
@@ -90,7 +90,7 @@ describe(`ArrayObserver`, () => {
       expect(s.handleBatchedChange).to.have.been.calledWith(indexMap);
     });
 
-    it('push', () => {
+    it('push', function() {
       const s = new SpySubscriber();
       const arr = [];
       sut = new ArrayObserver(LF.none, new Lifecycle(), arr);
@@ -103,8 +103,8 @@ describe(`ArrayObserver`, () => {
     });
   });
 
-  describe('should allow unsubscribing for batched notification', () => {
-    it('push', () => {
+  describe('should allow unsubscribing for batched notification', function() {
+    it('push', function() {
       const s = new SpySubscriber();
       const arr = [];
       sut = new ArrayObserver(LF.none, new Lifecycle(), arr);
@@ -118,8 +118,8 @@ describe(`ArrayObserver`, () => {
 
   // the reason for this is because only a change will cause it to queue itself, so it would never normally be called without changes anyway,
   // but for the occasion that it needs to be forced (such as via patch lifecycle), we do want all subscribers to be invoked regardless
-  describe('should notify batched subscribers even if there are no changes', () => {
-    it('push', () => {
+  describe('should notify batched subscribers even if there are no changes', function() {
+    it('push', function() {
       const s = new SpySubscriber();
       const arr = [];
       sut = new ArrayObserver(LF.none, new Lifecycle(), arr);
@@ -129,14 +129,14 @@ describe(`ArrayObserver`, () => {
     });
   });
 
-  describe(`observePush`, () => {
+  describe(`observePush`, function() {
     const initArr = [[], [1], [1, 2]];
     const itemsArr = [undefined, [], [1], [1, 2]];
     const repeatArr = [1, 2];
     for (const init of initArr) {
       for (const items of itemsArr) {
         for (const repeat of repeatArr) {
-          it(`size=${padRight(init.length, 2)} itemCount=${padRight(items && items.length, 9)} repeat=${repeat} - behaves as native`, () => {
+          it(`size=${padRight(init.length, 2)} itemCount=${padRight(items && items.length, 9)} repeat=${repeat} - behaves as native`, function() {
             const arr = init.slice();
             const expectedArr = init.slice();
             const newItems = items && items.slice();
@@ -159,7 +159,7 @@ describe(`ArrayObserver`, () => {
             }
           });
 
-          it(`size=${padRight(init.length, 2)} itemCount=${padRight(items && items.length, 9)} repeat=${repeat} - tracks changes`, () => {
+          it(`size=${padRight(init.length, 2)} itemCount=${padRight(items && items.length, 9)} repeat=${repeat} - tracks changes`, function() {
             const arr = init.slice();
             const copy = init.slice();
             const newItems = items && items.slice();
@@ -183,14 +183,14 @@ describe(`ArrayObserver`, () => {
     }
   });
 
-  describe(`observeUnshift`, () => {
+  describe(`observeUnshift`, function() {
     const initArr = [[], [1], [1, 2]];
     const itemsArr = [undefined, [], [1], [1, 2]];
     const repeatArr = [1, 2];
     for (const init of initArr) {
       for (const items of itemsArr) {
         for (const repeat of repeatArr) {
-          it(`size=${padRight(init.length, 2)} itemCount=${padRight(items && items.length, 9)} repeat=${repeat} - behaves as native`, () => {
+          it(`size=${padRight(init.length, 2)} itemCount=${padRight(items && items.length, 9)} repeat=${repeat} - behaves as native`, function() {
             const arr = init.slice();
             const expectedArr = init.slice();
             const newItems = items && items.slice();
@@ -213,7 +213,7 @@ describe(`ArrayObserver`, () => {
             }
           });
 
-          it(`size=${padRight(init.length, 2)} itemCount=${padRight(items && items.length, 9)} repeat=${repeat} - tracks changes`, () => {
+          it(`size=${padRight(init.length, 2)} itemCount=${padRight(items && items.length, 9)} repeat=${repeat} - tracks changes`, function() {
             const arr = init.slice();
             const copy = init.slice();
             const newItems = items && items.slice();
@@ -237,12 +237,12 @@ describe(`ArrayObserver`, () => {
     }
   });
 
-  describe(`observePop`, () => {
+  describe(`observePop`, function() {
     const initArr = [[], [1], [1, 2]];
     const repeatArr = [1, 2, 3, 4];
     for (const init of initArr) {
       for (const repeat of repeatArr.filter(r => r <= (init.length + 1))) {
-        it(`size=${padRight(init.length, 2)} repeat=${repeat} - behaves as native`, () => {
+        it(`size=${padRight(init.length, 2)} repeat=${repeat} - behaves as native`, function() {
           const arr = init.slice();
           const expectedArr = init.slice();
           sut = new ArrayObserver(LF.none, new Lifecycle(), arr);
@@ -258,7 +258,7 @@ describe(`ArrayObserver`, () => {
           }
         });
 
-        it(`size=${padRight(init.length, 2)} repeat=${repeat} - tracks changes`, () => {
+        it(`size=${padRight(init.length, 2)} repeat=${repeat} - tracks changes`, function() {
           const arr = init.slice();
           const copy = init.slice();
           sut = new ArrayObserver(LF.none, new Lifecycle(), arr);
@@ -275,14 +275,14 @@ describe(`ArrayObserver`, () => {
     }
   });
 
-  describe(`observeShift`, () => {
+  describe(`observeShift`, function() {
     const initArr = [[], [1], [1, 2]];
     const repeatArr = [1, 2, 3, 4];
     for (const init of initArr) {
       for (const repeat of repeatArr.filter(r => r <= (init.length + 1))) {
         const arr = init.slice();
         const expectedArr = init.slice();
-        it(`size=${padRight(init.length, 2)} repeat=${repeat} - behaves as native`, () => {
+        it(`size=${padRight(init.length, 2)} repeat=${repeat} - behaves as native`, function() {
           sut = new ArrayObserver(LF.none, new Lifecycle(), arr);
           let expectedResult;
           let actualResult;
@@ -296,7 +296,7 @@ describe(`ArrayObserver`, () => {
           }
         });
 
-        it(`size=${padRight(init.length, 2)} repeat=${repeat} - tracks changes`, () => {
+        it(`size=${padRight(init.length, 2)} repeat=${repeat} - tracks changes`, function() {
           const arr2 = init.slice();
           const copy = init.slice();
           sut = new ArrayObserver(LF.none, new Lifecycle(), arr2);
@@ -313,7 +313,7 @@ describe(`ArrayObserver`, () => {
     }
   });
 
-  describe(`observeSplice`, () => {
+  describe(`observeSplice`, function() {
     const initArr = [[], [1], [1, 2]];
     const startArr = [undefined, -1, 0, 1, 2];
     const deleteCountArr = [undefined, -1, 0, 1, 2, 3];
@@ -324,7 +324,7 @@ describe(`ArrayObserver`, () => {
         for (const deleteCount of deleteCountArr.filter(d => d === undefined || d <= (init.length + 1))) {
           for (const items of itemsArr) {
             for (const repeat of repeatArr) {
-              it(`size=${padRight(init.length, 2)} start=${padRight(start, 9)} deleteCount=${padRight(deleteCount, 9)} itemCount=${padRight(items && items.length, 9)} repeat=${repeat} - behaves as native`, () => {
+              it(`size=${padRight(init.length, 2)} start=${padRight(start, 9)} deleteCount=${padRight(deleteCount, 9)} itemCount=${padRight(items && items.length, 9)} repeat=${repeat} - behaves as native`, function() {
                 const arr = init.slice();
                 const expectedArr = init.slice();
                 const newItems = items && items.slice();
@@ -357,7 +357,7 @@ describe(`ArrayObserver`, () => {
                 }
               });
 
-              it(`size=${padRight(init.length, 2)} start=${padRight(start, 9)} deleteCount=${padRight(deleteCount, 9)} itemCount=${padRight(items && items.length, 9)} repeat=${repeat} - tracks changes`, () => {
+              it(`size=${padRight(init.length, 2)} start=${padRight(start, 9)} deleteCount=${padRight(deleteCount, 9)} itemCount=${padRight(items && items.length, 9)} repeat=${repeat} - tracks changes`, function() {
                 const arr = init.slice();
                 const copy = init.slice();
                 const newItems = items && items.slice();
@@ -387,12 +387,12 @@ describe(`ArrayObserver`, () => {
     }
   });
 
-  describe(`observeReverse`, () => {
+  describe(`observeReverse`, function() {
     const initArr = [[], [1], [1, 2], [1, 2, 3], [1, 2, 3, 4]];
     const repeatArr = [1, 2];
     for (const init of initArr) {
       for (const repeat of repeatArr) {
-        it(`size=${padRight(init.length, 2)} repeat=${repeat} - behaves as native`, () => {
+        it(`size=${padRight(init.length, 2)} repeat=${repeat} - behaves as native`, function() {
           const arr = init.slice();
           const expectedArr = init.slice();
           sut = new ArrayObserver(LF.none, new Lifecycle(), arr);
@@ -408,7 +408,7 @@ describe(`ArrayObserver`, () => {
           }
         });
 
-        it(`size=${padRight(init.length, 2)} repeat=${repeat} - tracks changes`, () => {
+        it(`size=${padRight(init.length, 2)} repeat=${repeat} - tracks changes`, function() {
           const arr = init.slice();
           const copy = init.slice();
           sut = new ArrayObserver(LF.none, new Lifecycle(), arr);
@@ -425,7 +425,7 @@ describe(`ArrayObserver`, () => {
     }
   });
 
-  describe(`observeSort`, () => {
+  describe(`observeSort`, function() {
     const arraySizes = [0, 1, 2, 3, 5, 10, 500, 2500];
     const types = ['undefined', 'null', 'boolean', 'string', 'number', 'object', 'mixed'];
     const compareFns = [
@@ -452,7 +452,7 @@ describe(`ArrayObserver`, () => {
             init.reverse();
           }
           for (const compareFn of compareFns) {
-            it(`size=${padRight(init.length, 4)} type=${padRight(type, 9)} reverse=${padRight(reverse, 5)} sortFunc=${compareFn} - behaves as native`, () => {
+            it(`size=${padRight(init.length, 4)} type=${padRight(type, 9)} reverse=${padRight(reverse, 5)} sortFunc=${compareFn} - behaves as native`, function() {
               const arr = init.slice();
               const expectedArr = init.slice();
               sut = new ArrayObserver(LF.none, new Lifecycle(), arr);
@@ -481,7 +481,7 @@ describe(`ArrayObserver`, () => {
               }
             });
 
-            it(`size=${padRight(init.length, 4)} type=${padRight(type, 9)} reverse=${padRight(reverse, 5)} sortFunc=${compareFn} - tracks changes`, () => {
+            it(`size=${padRight(init.length, 4)} type=${padRight(type, 9)} reverse=${padRight(reverse, 5)} sortFunc=${compareFn} - tracks changes`, function() {
               const arr = init.slice();
               const copy = init.slice();
               sut = new ArrayObserver(LF.none, new Lifecycle(), arr);

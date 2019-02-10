@@ -46,8 +46,8 @@ class StubTemplate {
   }
 }
 
-describe(`ViewFactory`, () => {
-  describe(`tryReturnToCache`, () => {
+describe(`ViewFactory`, function() {
+  describe(`tryReturnToCache`, function() {
     const doNotOverrideVariations: [string, boolean][] = [
       [' true', true],
       ['false', false]
@@ -86,7 +86,7 @@ describe(`ViewFactory`, () => {
       = [doNotOverrideVariations, sizeVariations, doNotOverrideVariations2, sizeVariations2];
 
     eachCartesianJoin(inputs, ([text1, doNotOverride1], [text2, size2, isPositive2], [text3, doNotOverride3], [text4, size4, isPositive4]) => {
-        it(`setCacheSize(${text2},${text1}) -> tryReturnToCache -> create x2 -> setCacheSize(${text4},${text3}) -> tryReturnToCache -> create x2`, () => {
+        it(`setCacheSize(${text2},${text1}) -> tryReturnToCache -> create x2 -> setCacheSize(${text4},${text3}) -> tryReturnToCache -> create x2`, function() {
           const template = new StubTemplate();
           const sut = new ViewFactory(null, template as any, new Lifecycle());
           const view1 = new StubView();
@@ -147,7 +147,7 @@ describe(`ViewFactory`, () => {
 //   const nodes = (<Writable<IRenderable>>renderable).$nodes = new MockTextNodeSequence();
 //   addBinding(renderable, new Binding(this.sourceExpression, nodes.firstChild, 'textContent', BindingMode.toView, this.observerLocator, this.container));
 // }
-describe('View', () => {
+describe('View', function() {
   function runBindLifecycle(lifecycle: ILifecycle, view: IView<AuNode>, flags: LF, scope: IScope): void {
     lifecycle.beginBind();
     view.$bind(flags, scope);
@@ -283,7 +283,7 @@ describe('View', () => {
     = [cacheSpecs, duplicateOperationSpecs, bindSpecs, relSpecs, flagsSpecs];
 
   eachCartesianJoin(inputs, (cacheSpec, duplicateOpSpec, bindSpec, relSpec, flagsSpec) => {
-    it(`verify view behavior - cacheSpec ${cacheSpec.t}, duplicateOpSpec ${duplicateOpSpec.t}, bindSpec ${bindSpec.t}, relSpec ${relSpec.t}, flagsSpec ${flagsSpec.t}`, () => {
+    it(`verify view behavior - cacheSpec ${cacheSpec.t}, duplicateOpSpec ${duplicateOpSpec.t}, bindSpec ${bindSpec.t}, relSpec ${relSpec.t}, flagsSpec ${flagsSpec.t}`, function() {
       const { childCount, cacheSize } = cacheSpec;
       const { bindTwice, duplicateBindValue, attachTwice, detachTwice, unbindTwice } = duplicateOpSpec;
       const { propName, propValue1, lockScope1, newScopeForSecondBind, propValue2, lockScope2 } = bindSpec;

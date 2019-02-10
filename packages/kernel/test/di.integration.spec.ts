@@ -8,7 +8,7 @@ import {
   Registration
 } from '../src/index';
 
-describe('DI.createInterface() -> container.get()', () => {
+describe('DI.createInterface() -> container.get()', function() {
   let container: IContainer;
 
   interface ITransient {}
@@ -31,7 +31,7 @@ describe('DI.createInterface() -> container.get()', () => {
 
   let get: ReturnType<typeof spy>;
 
-  beforeEach(() => {
+  beforeEach(function() {
     container = DI.createContainer();
     ITransient = DI.createInterface<ITransient>().withDefault(x => x.transient(Transient));
     ISingleton = DI.createInterface<ISingleton>().withDefault(x => x.singleton(Singleton));
@@ -42,12 +42,12 @@ describe('DI.createInterface() -> container.get()', () => {
     get = spy(container, 'get');
   });
 
-  afterEach(() => {
+  afterEach(function() {
     get.restore();
   });
 
-  describe('leaf', () => {
-    it(`transient registration returns a new instance each time`, () => {
+  describe('leaf', function() {
+    it(`transient registration returns a new instance each time`, function() {
       const actual1 = container.get(ITransient);
       expect(actual1).to.be.instanceof(Transient);
 
@@ -59,7 +59,7 @@ describe('DI.createInterface() -> container.get()', () => {
       expect(get.getCalls().length).to.equal(2);
     });
 
-    it(`singleton registration returns the same instance each time`, () => {
+    it(`singleton registration returns the same instance each time`, function() {
       const actual1 = container.get(ISingleton);
       expect(actual1).to.be.instanceof(Singleton);
 
@@ -71,7 +71,7 @@ describe('DI.createInterface() -> container.get()', () => {
       expect(get.getCalls().length).to.equal(2);
     });
 
-    it(`instance registration returns the same instance each time`, () => {
+    it(`instance registration returns the same instance each time`, function() {
       const actual1 = container.get(IInstance);
       expect(actual1).to.be.instanceof(Instance);
 
@@ -84,7 +84,7 @@ describe('DI.createInterface() -> container.get()', () => {
       expect(get.getCalls().length).to.equal(2);
     });
 
-    it(`callback registration is invoked each time`, () => {
+    it(`callback registration is invoked each time`, function() {
       const actual1 = container.get(ICallback);
       expect(actual1).to.be.instanceof(Callback);
 
@@ -98,7 +98,7 @@ describe('DI.createInterface() -> container.get()', () => {
       expect(get.getCalls().length).to.equal(2);
     });
 
-    it(`InterfaceSymbol alias to transient registration returns a new instance each time`, () => {
+    it(`InterfaceSymbol alias to transient registration returns a new instance each time`, function() {
       interface IAlias {}
       const IAlias = DI.createInterface<IAlias>().withDefault(x => x.aliasTo(ITransient));
 
@@ -111,7 +111,7 @@ describe('DI.createInterface() -> container.get()', () => {
       expect(actual1).not.to.equal(actual2);
     });
 
-    it(`InterfaceSymbol alias to singleton registration returns the same instance each time`, () => {
+    it(`InterfaceSymbol alias to singleton registration returns the same instance each time`, function() {
       interface IAlias {}
       const IAlias = DI.createInterface<IAlias>().withDefault(x => x.aliasTo(ISingleton));
 
@@ -124,7 +124,7 @@ describe('DI.createInterface() -> container.get()', () => {
       expect(actual1).to.equal(actual2);
     });
 
-    it(`InterfaceSymbol alias to instance registration returns the same instance each time`, () => {
+    it(`InterfaceSymbol alias to instance registration returns the same instance each time`, function() {
       interface IAlias {}
       const IAlias = DI.createInterface<IAlias>().withDefault(x => x.aliasTo(IInstance));
 
@@ -139,7 +139,7 @@ describe('DI.createInterface() -> container.get()', () => {
     });
 
     // TODO: make test work
-    it(`InterfaceSymbol alias to callback registration is invoked each time`, () => {
+    it(`InterfaceSymbol alias to callback registration is invoked each time`, function() {
       interface IAlias {}
       const IAlias = DI.createInterface<IAlias>().withDefault(x => x.aliasTo(ICallback));
 
@@ -154,7 +154,7 @@ describe('DI.createInterface() -> container.get()', () => {
       expect(actual1).not.to.equal(actual2);
     });
 
-    it(`string alias to transient registration returns a new instance each time`, () => {
+    it(`string alias to transient registration returns a new instance each time`, function() {
       container.register(Registration.alias(ITransient, 'alias'));
 
       const actual1 = container.get('alias');
@@ -166,7 +166,7 @@ describe('DI.createInterface() -> container.get()', () => {
       expect(actual1).not.to.equal(actual2);
     });
 
-    it(`string alias to singleton registration returns the same instance each time`, () => {
+    it(`string alias to singleton registration returns the same instance each time`, function() {
       container.register(Registration.alias(ISingleton, 'alias'));
 
       const actual1 = container.get('alias');
@@ -178,7 +178,7 @@ describe('DI.createInterface() -> container.get()', () => {
       expect(actual1).to.equal(actual2);
     });
 
-    it(`string alias to instance registration returns the same instance each time`, () => {
+    it(`string alias to instance registration returns the same instance each time`, function() {
       container.register(Registration.alias(IInstance, 'alias'));
 
       const actual1 = container.get('alias');
@@ -191,7 +191,7 @@ describe('DI.createInterface() -> container.get()', () => {
       expect(actual2).to.equal(instance);
     });
 
-    it(`string alias to callback registration is invoked each time`, () => {
+    it(`string alias to callback registration is invoked each time`, function() {
       container.register(Registration.alias(ICallback, 'alias'));
 
       const actual1 = container.get('alias');
@@ -206,7 +206,7 @@ describe('DI.createInterface() -> container.get()', () => {
     });
   });
 
-  describe('parent without inject decorator', () => {
+  describe('parent without inject decorator', function() {
     function decorator(): ClassDecorator { return (target: any) => target; }
     interface IParent { dep: any; }
     let IParent: InterfaceSymbol<IParent>;
@@ -215,7 +215,7 @@ describe('DI.createInterface() -> container.get()', () => {
       IParent = DI.createInterface<IParent>().withDefault(x => x.transient(cls));
     }
 
-    it(`transient child registration throws`, () => {
+    it(`transient child registration throws`, function() {
       @decorator()
       class Parent implements IParent { constructor(public dep: ITransient) {} }
       register(Parent);
@@ -223,7 +223,7 @@ describe('DI.createInterface() -> container.get()', () => {
       expect(() => container.get(IParent)).to.throw(/5/);
     });
 
-    it(`singleton child registration throws`, () => {
+    it(`singleton child registration throws`, function() {
       @decorator()
       class Parent implements IParent { constructor(public dep: ISingleton) {} }
       register(Parent);
@@ -231,7 +231,7 @@ describe('DI.createInterface() -> container.get()', () => {
       expect(() => container.get(IParent)).to.throw(/5/);
     });
 
-    it(`instance child registration throws`, () => {
+    it(`instance child registration throws`, function() {
       @decorator()
       class Parent implements IParent { constructor(public dep: IInstance) {} }
       register(Parent);
@@ -239,7 +239,7 @@ describe('DI.createInterface() -> container.get()', () => {
       expect(() => container.get(IParent)).to.throw(/5/);
     });
 
-    it(`callback child registration throws`, () => {
+    it(`callback child registration throws`, function() {
       @decorator()
       class Parent implements IParent { constructor(public dep: ICallback) {} }
       register(Parent);
@@ -248,7 +248,7 @@ describe('DI.createInterface() -> container.get()', () => {
     });
   });
 
-  describe('transient parent', () => {
+  describe('transient parent', function() {
     interface ITransientParent { dep: any; }
     let ITransientParent: InterfaceSymbol<ITransientParent>;
 
@@ -256,7 +256,7 @@ describe('DI.createInterface() -> container.get()', () => {
       ITransientParent = DI.createInterface<ITransientParent>().withDefault(x => x.transient(cls));
     }
 
-    it(`transient child registration returns a new instance each time`, () => {
+    it(`transient child registration returns a new instance each time`, function() {
       @inject(ITransient)
       class TransientParent implements ITransientParent { constructor(public dep: ITransient) {} }
       register(TransientParent);
@@ -276,7 +276,7 @@ describe('DI.createInterface() -> container.get()', () => {
       expect(get.getCalls().length).to.equal(4);
     });
 
-    it(`singleton child registration returns the same instance each time`, () => {
+    it(`singleton child registration returns the same instance each time`, function() {
       @inject(ISingleton)
       class TransientParent implements ITransientParent { constructor(public dep: ISingleton) {} }
       register(TransientParent);
@@ -296,7 +296,7 @@ describe('DI.createInterface() -> container.get()', () => {
       expect(get.getCalls().length).to.equal(4);
     });
 
-    it(`instance child registration returns the same instance each time`, () => {
+    it(`instance child registration returns the same instance each time`, function() {
       @inject(IInstance)
       class TransientParent implements ITransientParent { constructor(public dep: IInstance) {} }
       register(TransientParent);
@@ -316,7 +316,7 @@ describe('DI.createInterface() -> container.get()', () => {
       expect(get.getCalls().length).to.equal(4);
     });
 
-    it(`callback child registration is invoked each time`, () => {
+    it(`callback child registration is invoked each time`, function() {
       @inject(ICallback)
       class TransientParent implements ITransientParent { constructor(public dep: ICallback) {} }
       register(TransientParent);
@@ -338,7 +338,7 @@ describe('DI.createInterface() -> container.get()', () => {
     });
   });
 
-  describe('singleton parent', () => {
+  describe('singleton parent', function() {
     interface ISingletonParent { dep: any; }
     let ISingletonParent: InterfaceSymbol<ISingletonParent>;
 
@@ -346,7 +346,7 @@ describe('DI.createInterface() -> container.get()', () => {
       ISingletonParent = DI.createInterface<ISingletonParent>().withDefault(x => x.singleton(cls));
     }
 
-    it(`transient child registration is reused by the singleton parent`, () => {
+    it(`transient child registration is reused by the singleton parent`, function() {
       @inject(ITransient)
       class SingletonParent implements ISingletonParent { constructor(public dep: ITransient) {} }
       register(SingletonParent);
@@ -366,7 +366,7 @@ describe('DI.createInterface() -> container.get()', () => {
       expect(get.getCalls().length).to.equal(3);
     });
 
-    it(`singleton registration is reused by the singleton parent`, () => {
+    it(`singleton registration is reused by the singleton parent`, function() {
       @inject(ISingleton)
       class SingletonParent implements ISingletonParent { constructor(public dep: ISingleton) {} }
       register(SingletonParent);
@@ -386,7 +386,7 @@ describe('DI.createInterface() -> container.get()', () => {
       expect(get.getCalls().length).to.equal(3);
     });
 
-    it(`instance registration is reused by the singleton parent`, () => {
+    it(`instance registration is reused by the singleton parent`, function() {
       @inject(IInstance)
       class SingletonParent implements ISingletonParent { constructor(public dep: IInstance) {} }
       register(SingletonParent);
@@ -406,7 +406,7 @@ describe('DI.createInterface() -> container.get()', () => {
       expect(get.getCalls().length).to.equal(3);
     });
 
-    it(`callback registration is reused by the singleton parent`, () => {
+    it(`callback registration is reused by the singleton parent`, function() {
       @inject(ICallback)
       class SingletonParent implements ISingletonParent { constructor(public dep: ICallback) {} }
       register(SingletonParent);
@@ -428,7 +428,7 @@ describe('DI.createInterface() -> container.get()', () => {
     });
   });
 
-  describe('instance parent', () => {
+  describe('instance parent', function() {
     interface IInstanceParent { dep: any; }
     let IInstanceParent: InterfaceSymbol<IInstanceParent>;
     let instanceParent: IInstanceParent;
@@ -439,7 +439,7 @@ describe('DI.createInterface() -> container.get()', () => {
       IInstanceParent = DI.createInterface<IInstanceParent>().withDefault(x => x.instance(instanceParent));
     }
 
-    it(`transient registration is reused by the instance parent`, () => {
+    it(`transient registration is reused by the instance parent`, function() {
       @inject(ITransient)
       class InstanceParent implements IInstanceParent { constructor(public dep: ITransient) {} }
       register(InstanceParent);
@@ -459,7 +459,7 @@ describe('DI.createInterface() -> container.get()', () => {
       expect(get.getCalls().length).to.equal(2);
     });
 
-    it(`singleton registration is reused by the instance parent`, () => {
+    it(`singleton registration is reused by the instance parent`, function() {
       @inject(ISingleton)
       class InstanceParent implements IInstanceParent { constructor(public dep: ISingleton) {} }
       register(InstanceParent);
@@ -479,7 +479,7 @@ describe('DI.createInterface() -> container.get()', () => {
       expect(get.getCalls().length).to.equal(2);
     });
 
-    it(`instance registration is reused by the instance parent`, () => {
+    it(`instance registration is reused by the instance parent`, function() {
       @inject(IInstance)
       class InstanceParent implements IInstanceParent { constructor(public dep: IInstance) {} }
       register(InstanceParent);
@@ -499,7 +499,7 @@ describe('DI.createInterface() -> container.get()', () => {
       expect(get.getCalls().length).to.equal(2);
     });
 
-    it(`callback registration is reused by the instance parent`, () => {
+    it(`callback registration is reused by the instance parent`, function() {
       @inject(ICallback)
       class InstanceParent implements IInstanceParent { constructor(public dep: ICallback) {} }
       register(InstanceParent);

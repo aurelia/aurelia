@@ -33,22 +33,22 @@ function assetMapEqual(actual: Map<any, any>, expected: Map<any, any>): void {
   }
 }
 
-describe(`MapObserver`, () => {
+describe(`MapObserver`, function() {
   let sut: MapObserver;
 
-  before(() => {
+  before(function() {
     disableMapObservation();
     enableMapObservation();
   });
 
-  afterEach(() => {
+  afterEach(function() {
     if (sut) {
       sut.dispose();
     }
   });
 
-  describe('should allow subscribing for immediate notification', () => {
-    it('set', () => {
+  describe('should allow subscribing for immediate notification', function() {
+    it('set', function() {
       const s = new SpySubscriber();
       const map = new Map();
       sut = new MapObserver(LF.none, new Lifecycle(), map);
@@ -58,8 +58,8 @@ describe(`MapObserver`, () => {
     });
   });
 
-  describe('should allow unsubscribing for immediate notification', () => {
-    it('set', () => {
+  describe('should allow unsubscribing for immediate notification', function() {
+    it('set', function() {
       const s = new SpySubscriber();
       const map = new Map();
       sut = new MapObserver(LF.none, new Lifecycle(), map);
@@ -70,8 +70,8 @@ describe(`MapObserver`, () => {
     });
   });
 
-  describe('should allow subscribing for batched notification', () => {
-    it('set', () => {
+  describe('should allow subscribing for batched notification', function() {
+    it('set', function() {
       const s = new SpySubscriber();
       const map = new Map();
       sut = new MapObserver(LF.none, new Lifecycle(), map);
@@ -84,8 +84,8 @@ describe(`MapObserver`, () => {
     });
   });
 
-  describe('should allow unsubscribing for batched notification', () => {
-    it('set', () => {
+  describe('should allow unsubscribing for batched notification', function() {
+    it('set', function() {
       const s = new SpySubscriber();
       const map = new Map();
       sut = new MapObserver(LF.none, new Lifecycle(), map);
@@ -99,8 +99,8 @@ describe(`MapObserver`, () => {
 
   // the reason for this is because only a change will cause it to queue itself, so it would never normally be called without changes anyway,
   // but for the occasion that it needs to be forced (such as via patch lifecycle), we do want all subscribers to be invoked regardless
-  describe('should notify batched subscribers even if there are no changes', () => {
-    it('set', () => {
+  describe('should notify batched subscribers even if there are no changes', function() {
+    it('set', function() {
       const s = new SpySubscriber();
       const map = new Map();
       sut = new MapObserver(LF.none, new Lifecycle(), map);
@@ -110,14 +110,14 @@ describe(`MapObserver`, () => {
     });
   });
 
-  describe(`observeSet`, () => {
+  describe(`observeSet`, function() {
     const initArr = [new Map(), new Map([[1, 1]]), new Map([[1, 1], [2, 2]])];
     const itemsArr = [undefined, [], [1], [1, 2]];
     const repeatArr = [1, 2];
     for (const init of initArr) {
       for (const items of itemsArr) {
         for (const repeat of repeatArr) {
-          it(`size=${padRight(init.size, 2)} itemCount=${padRight(items && items.length, 9)} repeat=${repeat} - behaves as native`, () => {
+          it(`size=${padRight(init.size, 2)} itemCount=${padRight(items && items.length, 9)} repeat=${repeat} - behaves as native`, function() {
             const map = new Map(Array.from(init));
             const expectedMap = new Map(Array.from(init));
             const newItems = items && items.slice();
@@ -145,7 +145,7 @@ describe(`MapObserver`, () => {
             }
           });
 
-          it(`size=${padRight(init.size, 2)} itemCount=${padRight(items && items.length, 9)} repeat=${repeat} - tracks changes`, () => {
+          it(`size=${padRight(init.size, 2)} itemCount=${padRight(items && items.length, 9)} repeat=${repeat} - tracks changes`, function() {
             const map = new Map(Array.from(init));
             const copy = new Map(Array.from(init));
             const newItems = items && items.slice();
@@ -171,14 +171,14 @@ describe(`MapObserver`, () => {
     }
   });
 
-  describe(`observeDelete`, () => {
+  describe(`observeDelete`, function() {
     const initArr = [new Map(), new Map([[1, 1]]), new Map([[1, 1], [2, 2]])];
     const itemsArr = [undefined, [], [1], [1, 2]];
     const repeatArr = [1, 2];
     for (const init of initArr) {
       for (const items of itemsArr) {
         for (const repeat of repeatArr) {
-          it(`size=${padRight(init.size, 2)} itemCount=${padRight(items && items.length, 9)} repeat=${repeat} - behaves as native`, () => {
+          it(`size=${padRight(init.size, 2)} itemCount=${padRight(items && items.length, 9)} repeat=${repeat} - behaves as native`, function() {
             const map = new Map(Array.from(init));
             const expectedMap = new Map(Array.from(init));
             const newItems = items && items.slice();
@@ -206,7 +206,7 @@ describe(`MapObserver`, () => {
             }
           });
 
-          it(`size=${padRight(init.size, 2)} itemCount=${padRight(items && items.length, 9)} repeat=${repeat} - tracks changes`, () => {
+          it(`size=${padRight(init.size, 2)} itemCount=${padRight(items && items.length, 9)} repeat=${repeat} - tracks changes`, function() {
             const map = new Map(Array.from(init));
             const copy = new Map(Array.from(init));
             const newItems = items && items.slice();
@@ -232,12 +232,12 @@ describe(`MapObserver`, () => {
     }
   });
 
-  describe(`observeClear`, () => {
+  describe(`observeClear`, function() {
     const initArr = [new Map(), new Map([[1, 1]]), new Map([[1, 1], [2, 2]])];
     const repeatArr = [1, 2];
     for (const init of initArr) {
       for (const repeat of repeatArr) {
-        it(`size=${padRight(init.size, 2)} repeat=${repeat} - behaves as native`, () => {
+        it(`size=${padRight(init.size, 2)} repeat=${repeat} - behaves as native`, function() {
           const map = new Map(Array.from(init));
           const expectedMap = new Map(Array.from(init));
           sut = new MapObserver(LF.none, new Lifecycle(), map);
@@ -250,7 +250,7 @@ describe(`MapObserver`, () => {
           }
         });
 
-        it(`size=${padRight(init.size, 2)} repeat=${repeat} - tracks changes`, () => {
+        it(`size=${padRight(init.size, 2)} repeat=${repeat} - tracks changes`, function() {
           const map = new Map(Array.from(init));
           const copy = new Map(Array.from(init));
           sut = new MapObserver(LF.none, new Lifecycle(), map);

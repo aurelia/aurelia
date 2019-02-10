@@ -1,8 +1,8 @@
 import { expect } from 'chai';
 import { HistoryBrowser } from '../../src/index';
 
-describe('HistoryBrowser', () => {
-  it('can be created', () => {
+describe('HistoryBrowser', function() {
+  it('can be created', function() {
     new HistoryBrowser();
   });
 });

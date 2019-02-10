@@ -94,7 +94,7 @@ function throwsOn<TExpr extends IsBindingBehavior>(expr: TExpr, method: keyof TE
 const $num1 = new PrimitiveLiteral(1);
 const $str1 = new PrimitiveLiteral('1');
 
-describe('AST', () => {
+describe('AST', function() {
 
   const AccessThisList: [string, AccessThis][] = [
     [`$this`,             $this],
@@ -301,35 +301,35 @@ describe('AST', () => {
     [`a&b:c:d`, new BindingBehavior(new AccessScope('a'), 'b', [new AccessScope('c'), new AccessScope('d')])]
   ];
 
-  describe('Literals', () => {
-    describe('evaluate() works without any input', () => {
+  describe('Literals', function() {
+    describe('evaluate() works without any input', function() {
       for (const [text, expr] of [
         ...StringLiteralList,
         ...NumberLiteralList,
         ...KeywordLiteralList
       ]) {
-        it(text, () => {
+        it(text, function() {
           expect(expr.evaluate(undefined, undefined, undefined)).to.equal(expr.value);
         });
       }
       for (const [text, expr] of TemplateLiteralList) {
-        it(text, () => {
+        it(text, function() {
           expect(expr.evaluate(undefined, undefined, undefined)).to.equal('');
         });
       }
       for (const [text, expr] of ArrayLiteralList) {
-        it(text, () => {
+        it(text, function() {
           expect(expr.evaluate(undefined, undefined, undefined)).to.be.instanceof(Array);
         });
       }
       for (const [text, expr] of ObjectLiteralList) {
-        it(text, () => {
+        it(text, function() {
           expect(expr.evaluate(undefined, undefined, undefined)).to.be.instanceof(Object);
         });
       }
     });
 
-    describe('connect() does not throw / is a no-op', () => {
+    describe('connect() does not throw / is a no-op', function() {
       for (const [text, expr] of [
         ...StringLiteralList,
         ...NumberLiteralList,
@@ -338,16 +338,16 @@ describe('AST', () => {
         ...ArrayLiteralList,
         ...ObjectLiteralList
       ]) {
-        it(`${text}, undefined`, () => {
+        it(`${text}, undefined`, function() {
           expect(expr.connect(null, undefined, null)).to.equal(undefined);
         });
-        it(`${text}, null`, () => {
+        it(`${text}, null`, function() {
           expect(expr.connect(null, null, null)).to.equal(undefined);
         });
       }
     });
 
-    describe('assign() does not throw / is a no-op', () => {
+    describe('assign() does not throw / is a no-op', function() {
       for (const [text, expr] of [
         ...StringLiteralList,
         ...NumberLiteralList,
@@ -356,53 +356,53 @@ describe('AST', () => {
         ...ArrayLiteralList,
         ...ObjectLiteralList
       ]) {
-        it(`${text}, undefined`, () => {
+        it(`${text}, undefined`, function() {
           expect(expr.assign(null, undefined, null, undefined)).to.equal(undefined);
         });
-        it(`${text}, null`, () => {
+        it(`${text}, null`, function() {
           expect(expr.assign(null, null, null, undefined)).to.equal(undefined);
         });
       }
     });
   });
 
-  describe('Context Accessors', () => {
-    describe('evaluate() throws when scope is nil', () => {
+  describe('Context Accessors', function() {
+    describe('evaluate() throws when scope is nil', function() {
       for (const [text, expr] of AccessThisList) {
-        it(`${text}, undefined`, () => {
+        it(`${text}, undefined`, function() {
           throwsOn(expr, 'evaluate', 'Code 250', null, undefined);
         });
-        it(`${text}, null`, () => {
+        it(`${text}, null`, function() {
           throwsOn(expr, 'evaluate', 'Code 251', null, null);
         });
       }
     });
 
-    describe('assign() does not throw / is a no-op', () => {
+    describe('assign() does not throw / is a no-op', function() {
       for (const [text, expr] of AccessThisList) {
-        it(`${text}, undefined`, () => {
+        it(`${text}, undefined`, function() {
           expect(expr.assign(null, undefined, null, undefined)).to.equal(undefined);
         });
-        it(`${text}, null`, () => {
+        it(`${text}, null`, function() {
           expect(expr.assign(null, null, null, undefined)).to.equal(undefined);
         });
       }
     });
 
-    describe('connect() does not throw / is a no-op', () => {
+    describe('connect() does not throw / is a no-op', function() {
       for (const [text, expr] of AccessThisList) {
-        it(`${text}, undefined`, () => {
+        it(`${text}, undefined`, function() {
           expect(expr.connect(null, undefined, null)).to.equal(undefined);
         });
-        it(`${text}, null`, () => {
+        it(`${text}, null`, function() {
           expect(expr.connect(null, null, null)).to.equal(undefined);
         });
       }
     });
   });
 
-  describe('Scope Accessors', () => {
-    describe('evaluate() throws when scope is nil', () => {
+  describe('Scope Accessors', function() {
+    describe('evaluate() throws when scope is nil', function() {
       for (const [text, expr] of [
         ...AccessScopeList,
         ...SimpleAccessKeyedList,
@@ -410,45 +410,45 @@ describe('AST', () => {
         ...TemplateInterpolationList,
         ...SimpleTaggedTemplateList
       ]) {
-        it(`${text}, undefined`, () => {
+        it(`${text}, undefined`, function() {
           throwsOn(expr, 'evaluate', 'Code 250', null, undefined);
         });
-        it(`${text}, null`, () => {
+        it(`${text}, null`, function() {
           throwsOn(expr, 'evaluate', 'Code 251', null, null);
         });
       }
     });
 
-    describe('assign() throws when scope is nil', () => {
+    describe('assign() throws when scope is nil', function() {
       for (const [text, expr] of [
         ...AccessScopeList,
         ...SimpleAccessKeyedList,
         ...SimpleAccessMemberList
       ]) {
-        it(`${text}, undefined`, () => {
+        it(`${text}, undefined`, function() {
           throwsOn(expr, 'assign', 'Code 250', null, undefined);
         });
-        it(`${text}, null`, () => {
+        it(`${text}, null`, function() {
           throwsOn(expr, 'assign', 'Code 251', null, null);
         });
       }
     });
 
-    describe('assign() does not throw / is a no-op', () => {
+    describe('assign() does not throw / is a no-op', function() {
       for (const [text, expr] of [
         ...TemplateInterpolationList,
         ...SimpleTaggedTemplateList
       ]) {
-        it(`${text}, undefined`, () => {
+        it(`${text}, undefined`, function() {
           expect(expr.assign(null, undefined, null, undefined)).to.equal(undefined);
         });
-        it(`${text}, null`, () => {
+        it(`${text}, null`, function() {
           expect(expr.assign(null, null, null, undefined)).to.equal(undefined);
         });
       }
     });
 
-    describe('connect() throws when scope is nil', () => {
+    describe('connect() throws when scope is nil', function() {
       for (const [text, expr] of [
         ...AccessScopeList,
         ...SimpleAccessKeyedList,
@@ -456,112 +456,112 @@ describe('AST', () => {
         ...TemplateInterpolationList,
         ...SimpleTaggedTemplateList
       ]) {
-        it(`${text}, undefined`, () => {
+        it(`${text}, undefined`, function() {
           throwsOn(expr, 'connect', 'Code 250', null, undefined);
         });
-        it(`${text}, null`, () => {
+        it(`${text}, null`, function() {
           throwsOn(expr, 'connect', 'Code 251', null, null);
         });
       }
     });
   });
 
-  describe('CallExpression', () => {
-    describe('evaluate() throws when scope is nil', () => {
+  describe('CallExpression', function() {
+    describe('evaluate() throws when scope is nil', function() {
       for (const [text, expr] of [
         ...SimpleCallFunctionList,
         ...SimpleCallScopeList,
         ...SimpleCallMemberList
       ]) {
-        it(`${text}, undefined`, () => {
+        it(`${text}, undefined`, function() {
           throwsOn(expr, 'evaluate', 'Code 250', null, undefined);
         });
-        it(`${text}, null`, () => {
+        it(`${text}, null`, function() {
           throwsOn(expr, 'evaluate', 'Code 251', null, null);
         });
       }
     });
 
-    describe('assign() does not throw / is a no-op', () => {
+    describe('assign() does not throw / is a no-op', function() {
       for (const [text, expr] of [
         ...SimpleCallFunctionList,
         ...SimpleCallScopeList,
         ...SimpleCallMemberList
       ]) {
-          it(`${text}, undefined`, () => {
+          it(`${text}, undefined`, function() {
             expect(expr.assign(null, undefined, null, undefined)).to.equal(undefined);
           });
-          it(`${text}, null`, () => {
+          it(`${text}, null`, function() {
             expect(expr.assign(null, null, null, undefined)).to.equal(undefined);
           });
       }
     });
 
-    describe('connect() throws when scope is nil', () => {
+    describe('connect() throws when scope is nil', function() {
       for (const [text, expr] of [
         ...SimpleCallMemberList,
         ...SimpleCallFunctionList
       ]) {
-        it(`${text}, undefined`, () => {
+        it(`${text}, undefined`, function() {
           throwsOn(expr, 'connect', 'Code 250', null, undefined);
         });
-        it(`${text}, null`, () => {
+        it(`${text}, null`, function() {
           throwsOn(expr, 'connect', 'Code 251', null, null);
         });
       }
     });
 
-    describe('connect() does not throw / is a no-op', () => {
+    describe('connect() does not throw / is a no-op', function() {
       for (const [text, expr] of [
         ...SimpleCallScopeList
       ]) {
-        it(`${text}, undefined`, () => {
+        it(`${text}, undefined`, function() {
           expect(expr.connect(null, undefined, null)).to.equal(undefined);
         });
-        it(`${text}, null`, () => {
+        it(`${text}, null`, function() {
           expect(expr.connect(null, null, null)).to.equal(undefined);
         });
       }
     });
   });
 
-  describe('Unary', () => {
-    describe('evaluate() throws when scope is nil', () => {
+  describe('Unary', function() {
+    describe('evaluate() throws when scope is nil', function() {
       for (const [text, expr] of SimpleUnaryList) {
-        it(`${text}, undefined`, () => {
+        it(`${text}, undefined`, function() {
           throwsOn(expr, 'evaluate', 'Code 250', null, undefined);
         });
-        it(`${text}, null`, () => {
+        it(`${text}, null`, function() {
           throwsOn(expr, 'evaluate', 'Code 251', null, null);
         });
       }
     });
 
-    describe('assign() does not throw / is a no-op', () => {
+    describe('assign() does not throw / is a no-op', function() {
       for (const [text, expr] of SimpleUnaryList) {
-          it(`${text}, undefined`, () => {
+          it(`${text}, undefined`, function() {
             expect(expr.assign(null, undefined, null, undefined)).to.equal(undefined);
           });
-          it(`${text}, null`, () => {
+          it(`${text}, null`, function() {
             expect(expr.assign(null, null, null, undefined)).to.equal(undefined);
           });
       }
     });
 
-    describe('connect() throws when scope is nil', () => {
+    describe('connect() throws when scope is nil', function() {
       for (const [text, expr] of SimpleUnaryList) {
-        it(`${text}, undefined`, () => {
+        it(`${text}, undefined`, function() {
           throwsOn(expr, 'connect', 'Code 250', null, undefined);
         });
-        it(`${text}, null`, () => {
+        it(`${text}, null`, function() {
           throwsOn(expr, 'connect', 'Code 251', null, null);
         });
       }
     });
   });
 
-  describe('Binary', () => {
-    describe('evaluate() throws when scope is nil', () => {
+  describe('Binary', function() {
+    describe('evaluate() throws when scope is nil', function() {
       for (const [text, expr] of [
         ...SimpleMultiplicativeList,
         ...SimpleAdditiveList,
@@ -570,16 +570,16 @@ describe('AST', () => {
         ...SimpleLogicalANDList,
         ...SimpleLogicalORList
       ]) {
-        it(`${text}, undefined`, () => {
+        it(`${text}, undefined`, function() {
           throwsOn(expr, 'evaluate', 'Code 250', null, undefined);
         });
-        it(`${text}, null`, () => {
+        it(`${text}, null`, function() {
           throwsOn(expr, 'evaluate', 'Code 251', null, null);
         });
       }
     });
 
-    describe('assign() does not throw / is a no-op', () => {
+    describe('assign() does not throw / is a no-op', function() {
       for (const [text, expr] of [
         ...SimpleMultiplicativeList,
         ...SimpleAdditiveList,
@@ -588,16 +588,16 @@ describe('AST', () => {
         ...SimpleLogicalANDList,
         ...SimpleLogicalORList
       ]) {
-          it(`${text}, undefined`, () => {
+          it(`${text}, undefined`, function() {
             expect(expr.assign(null, undefined, null, undefined)).to.equal(undefined);
           });
-          it(`${text}, null`, () => {
+          it(`${text}, null`, function() {
             expect(expr.assign(null, null, null, undefined)).to.equal(undefined);
           });
       }
     });
 
-    describe('connect() throws when scope is nil', () => {
+    describe('connect() throws when scope is nil', function() {
       for (const [text, expr] of [
         ...SimpleMultiplicativeList,
         ...SimpleAdditiveList,
@@ -606,235 +606,235 @@ describe('AST', () => {
         ...SimpleLogicalANDList,
         ...SimpleLogicalORList
       ]) {
-        it(`${text}, undefined`, () => {
+        it(`${text}, undefined`, function() {
           throwsOn(expr, 'connect', 'Code 250', null, undefined);
         });
-        it(`${text}, null`, () => {
+        it(`${text}, null`, function() {
           throwsOn(expr, 'connect', 'Code 251', null, null);
         });
       }
     });
   });
 
-  describe('Conditional', () => {
-    describe('evaluate() throws when scope is nil', () => {
+  describe('Conditional', function() {
+    describe('evaluate() throws when scope is nil', function() {
       for (const [text, expr] of SimpleConditionalList) {
-        it(`${text}, undefined`, () => {
+        it(`${text}, undefined`, function() {
           throwsOn(expr, 'evaluate', 'Code 250', null, undefined);
         });
-        it(`${text}, null`, () => {
+        it(`${text}, null`, function() {
           throwsOn(expr, 'evaluate', 'Code 251', null, null);
         });
       }
     });
 
-    describe('assign() does not throw / is a no-op', () => {
+    describe('assign() does not throw / is a no-op', function() {
       for (const [text, expr] of SimpleConditionalList) {
-          it(`${text}, undefined`, () => {
+          it(`${text}, undefined`, function() {
             expect(expr.assign(null, undefined, null, undefined)).to.equal(undefined);
           });
-          it(`${text}, null`, () => {
+          it(`${text}, null`, function() {
             expect(expr.assign(null, null, null, undefined)).to.equal(undefined);
           });
       }
     });
 
-    describe('connect() throws when scope is nil', () => {
+    describe('connect() throws when scope is nil', function() {
       for (const [text, expr] of SimpleConditionalList) {
-        it(`${text}, undefined`, () => {
+        it(`${text}, undefined`, function() {
           throwsOn(expr, 'connect', 'Code 250', null, undefined);
         });
-        it(`${text}, null`, () => {
+        it(`${text}, null`, function() {
           throwsOn(expr, 'connect', 'Code 251', null, null);
         });
       }
     });
   });
 
-  describe('Assign', () => {
-    describe('evaluate() throws when scope is nil', () => {
+  describe('Assign', function() {
+    describe('evaluate() throws when scope is nil', function() {
       for (const [text, expr] of SimpleAssignList) {
-        it(`${text}, undefined`, () => {
+        it(`${text}, undefined`, function() {
           throwsOn(expr, 'evaluate', 'Code 250', null, undefined);
         });
-        it(`${text}, null`, () => {
+        it(`${text}, null`, function() {
           throwsOn(expr, 'evaluate', 'Code 251', null, null);
         });
       }
     });
 
-    describe('assign() throws when scope is nil', () => {
+    describe('assign() throws when scope is nil', function() {
       for (const [text, expr] of SimpleAssignList) {
-        it(`${text}, undefined`, () => {
+        it(`${text}, undefined`, function() {
           throwsOn(expr, 'assign', 'Code 250', null, undefined);
         });
-        it(`${text}, null`, () => {
+        it(`${text}, null`, function() {
           throwsOn(expr, 'assign', 'Code 251', null, null);
         });
       }
     });
 
-    describe('connect() does not throw / is a no-op', () => {
+    describe('connect() does not throw / is a no-op', function() {
       for (const [text, expr] of SimpleAssignList) {
-        it(`${text}, undefined`, () => {
+        it(`${text}, undefined`, function() {
           expect(expr.connect(null, undefined, null)).to.equal(undefined);
         });
-        it(`${text}, null`, () => {
+        it(`${text}, null`, function() {
           expect(expr.connect(null, null, null)).to.equal(undefined);
         });
       }
     });
   });
 
-  describe('ValueConverter', () => {
-    describe('evaluate() throws when locator is nil', () => {
+  describe('ValueConverter', function() {
+    describe('evaluate() throws when locator is nil', function() {
       for (const [text, expr] of SimpleValueConverterList) {
-        it(`${text}, undefined`, () => {
+        it(`${text}, undefined`, function() {
           throwsOn(expr, 'evaluate', 'Code 202', null, undefined);
         });
-        it(`${text}, null`, () => {
+        it(`${text}, null`, function() {
           throwsOn(expr, 'evaluate', 'Code 202', null, null);
         });
       }
     });
-    describe('evaluate() throws when returned converter is nil', () => {
+    describe('evaluate() throws when returned converter is nil', function() {
       const locator = { get() {
         return null;
       } };
       for (const [text, expr] of SimpleValueConverterList) {
-        it(`${text}, undefined`, () => {
+        it(`${text}, undefined`, function() {
           throwsOn(expr, 'evaluate', 'Code 205', null, null, locator);
         });
       }
     });
 
-    describe('assign() throws when locator is nil', () => {
+    describe('assign() throws when locator is nil', function() {
       for (const [text, expr] of SimpleValueConverterList) {
-        it(`${text}, undefined`, () => {
+        it(`${text}, undefined`, function() {
           throwsOn(expr, 'assign', 'Code 202', null, null, undefined);
         });
-        it(`${text}, null`, () => {
+        it(`${text}, null`, function() {
           throwsOn(expr, 'assign', 'Code 202', null, null, null);
         });
       }
     });
-    describe('assign() throws when returned converter is null', () => {
+    describe('assign() throws when returned converter is null', function() {
       const locator = { get() {
         return null;
       } };
       for (const [text, expr] of SimpleValueConverterList) {
-        it(`${text}, null`, () => {
+        it(`${text}, null`, function() {
           throwsOn(expr, 'assign', 'Code 205', null, null, locator);
         });
       }
     });
 
-    describe('connect() throws when scope is nil', () => {
+    describe('connect() throws when scope is nil', function() {
       for (const [text, expr] of SimpleValueConverterList) {
-        it(`${text}, undefined`, () => {
+        it(`${text}, undefined`, function() {
           throwsOn(expr, 'connect', 'Code 250', null, undefined);
         });
-        it(`${text}, null`, () => {
+        it(`${text}, null`, function() {
           throwsOn(expr, 'connect', 'Code 251', null, null);
         });
       }
     });
 
-    describe('connect() throws when binding is null', () => {
+    describe('connect() throws when binding is null', function() {
       for (const [text, expr] of SimpleValueConverterList) {
-        it(`${text}, undefined`, () => {
+        it(`${text}, undefined`, function() {
           throwsOn(expr, 'connect', 'Code 206', null, {}, null);
         });
       }
     });
 
-    describe('connect() throws when locator is null', () => {
+    describe('connect() throws when locator is null', function() {
       for (const [text, expr] of SimpleValueConverterList) {
-        it(`${text}, undefined`, () => {
+        it(`${text}, undefined`, function() {
           throwsOn(expr, 'connect', 'Code 202', null, {}, {});
         });
       }
     });
 
-    describe('connect() throws when returned converter is null', () => {
+    describe('connect() throws when returned converter is null', function() {
       const locator = { get() {
         return null;
       } };
       for (const [text, expr] of SimpleValueConverterList) {
-        it(`${text}, undefined`, () => {
+        it(`${text}, undefined`, function() {
           throwsOn(expr, 'connect', 'Code 205', null, {}, { locator, observeProperty: () => { return; } });
         });
       }
     });
   });
 
-  describe('BindingBehavior', () => {
-    describe('evaluate() throws when locator is nil', () => {
+  describe('BindingBehavior', function() {
+    describe('evaluate() throws when locator is nil', function() {
       for (const [text, expr] of SimpleBindingBehaviorList) {
-        it(`${text}, undefined`, () => {
+        it(`${text}, undefined`, function() {
           throwsOn(expr, 'evaluate', 'Code 250', null, undefined);
         });
-        it(`${text}, null`, () => {
+        it(`${text}, null`, function() {
           throwsOn(expr, 'evaluate', 'Code 251', null, null);
         });
       }
     });
 
-    describe('assign() throws when locator is nil', () => {
+    describe('assign() throws when locator is nil', function() {
       for (const [text, expr] of SimpleBindingBehaviorList) {
-        it(`${text}, undefined`, () => {
+        it(`${text}, undefined`, function() {
           throwsOn(expr, 'assign', 'Code 250', null, undefined);
         });
-        it(`${text}, null`, () => {
+        it(`${text}, null`, function() {
           throwsOn(expr, 'assign', 'Code 251', null, null);
         });
       }
     });
 
-    describe('connect() throws when scope is nil', () => {
+    describe('connect() throws when scope is nil', function() {
       for (const [text, expr] of SimpleBindingBehaviorList) {
-        it(`${text}, undefined`, () => {
+        it(`${text}, undefined`, function() {
           throwsOn(expr, 'connect', 'Code 250', null, undefined);
         });
-        it(`${text}, null`, () => {
+        it(`${text}, null`, function() {
           throwsOn(expr, 'connect', 'Code 251', null, null);
         });
       }
     });
 
-    describe('bind() throws when scope is nil', () => {
+    describe('bind() throws when scope is nil', function() {
       for (const [text, expr] of SimpleBindingBehaviorList) {
-        it(`${text}, undefined`, () => {
+        it(`${text}, undefined`, function() {
           throwsOn(expr, 'bind', 'Code 250', null, undefined);
         });
-        it(`${text}, null`, () => {
+        it(`${text}, null`, function() {
           throwsOn(expr, 'bind', 'Code 251', null, null);
         });
       }
     });
 
-    describe('bind() throws when binding is null', () => {
+    describe('bind() throws when binding is null', function() {
       for (const [text, expr] of SimpleBindingBehaviorList) {
-        it(`${text}, undefined`, () => {
+        it(`${text}, undefined`, function() {
           throwsOn(expr, 'bind', 'Code 206', null, {}, null);
         });
       }
     });
 
-    describe('bind() throws when locator is null', () => {
+    describe('bind() throws when locator is null', function() {
       for (const [text, expr] of SimpleBindingBehaviorList) {
-        it(`${text}, undefined`, () => {
+        it(`${text}, undefined`, function() {
           throwsOn(expr, 'bind', 'Code 202', null, {}, {});
         });
       }
     });
 
-    describe('bind() throws when returned behavior is null', () => {
+    describe('bind() throws when returned behavior is null', function() {
       const locator = { get() {
         return null;
       } };
       for (const [text, expr] of SimpleBindingBehaviorList) {
-        it(`${text}, undefined`, () => {
+        it(`${text}, undefined`, function() {
           throwsOn(expr, 'bind', 'Code 203', null, {}, { locator, observeProperty: () => { return; } });
         });
       }
@@ -842,13 +842,13 @@ describe('AST', () => {
 
       // TODO: this should throw (or at least verify warning), but leave it be for now due to friction with generated
       // tests (which need to be fixed of course)
-    // describe('bind() throws when returned behavior is already present', () => {
+    // describe('bind() throws when returned behavior is already present', function() {
     //   const behavior = {};
     //   const locator = { get() {
     //     return behavior;
     //   } };
     //   for (const [text, expr] of SimpleBindingBehaviorList) {
-    //     it(`${text}, undefined`, () => {
+    //     it(`${text}, undefined`, function() {
     //       throwsOn(expr, 'bind', 'Code 204', null, {}, { [expr.behaviorKey]: behavior, locator, observeProperty: () => { return; } });
     //     });
     //   }
@@ -856,32 +856,32 @@ describe('AST', () => {
   });
 });
 
-describe('AccessKeyed', () => {
+describe('AccessKeyed', function() {
   let expression: AccessKeyed;
 
-  before(() => {
+  before(function() {
     expression = new AccessKeyed(new AccessScope('foo', 0), new PrimitiveLiteral('bar'));
   });
 
-  it('evaluates member on bindingContext', () => {
+  it('evaluates member on bindingContext', function() {
     const scope = createScopeForTest({ foo: { bar: 'baz' } });
     expect(expression.evaluate(LF.none, scope, null)).to.equal('baz');
   });
 
-  it('evaluates member on overrideContext', () => {
+  it('evaluates member on overrideContext', function() {
     const scope = createScopeForTest({});
     scope.overrideContext.foo = { bar: 'baz' };
     expect(expression.evaluate(LF.none, scope, null)).to.equal('baz');
   });
 
-  it('assigns member on bindingContext', () => {
+  it('assigns member on bindingContext', function() {
     const scope = createScopeForTest({ foo: { bar: 'baz' } });
     expression.assign(LF.none, scope, null, 'bang');
     // @ts-ignore
     expect(scope.bindingContext.foo.bar).to.equal('bang');
   });
 
-  it('assigns member on overrideContext', () => {
+  it('assigns member on overrideContext', function() {
     const scope = createScopeForTest({});
     scope.overrideContext.foo = { bar: 'baz' };
     expression.assign(LF.none, scope, null, 'bang');
@@ -889,7 +889,7 @@ describe('AccessKeyed', () => {
     expect(scope.overrideContext.foo.bar).to.equal('bang');
   });
 
-  it('evaluates null/undefined object', () => {
+  it('evaluates null/undefined object', function() {
     let scope = createScopeForTest({ foo: null });
     expect(expression.evaluate(LF.none, scope, null)).to.equal(undefined);
     scope = createScopeForTest({ foo: undefined });
@@ -898,7 +898,7 @@ describe('AccessKeyed', () => {
     expect(expression.evaluate(LF.none, scope, null)).to.equal(undefined);
   });
 
-  it('does not observes property in keyed object access when key is number', () => {
+  it('does not observes property in keyed object access when key is number', function() {
     const scope = createScopeForTest({ foo: { '0': 'hello world' } });
     const expression2 = new AccessKeyed(new AccessScope('foo', 0), new PrimitiveLiteral(0));
     expect(expression2.evaluate(LF.none, scope, null)).to.equal('hello world');
@@ -909,7 +909,7 @@ describe('AccessKeyed', () => {
     expect(binding.observeProperty.callCount).to.equal(2);
   });
 
-  it('does not observe property in keyed array access when key is number', () => {
+  it('does not observe property in keyed array access when key is number', function() {
     const scope = createScopeForTest({ foo: ['hello world'] });
     const expression3 = new AccessKeyed(new AccessScope('foo', 0), new PrimitiveLiteral(0));
     expect(expression3.evaluate(LF.none, scope, null)).to.equal('hello world');
@@ -920,7 +920,7 @@ describe('AccessKeyed', () => {
     expect(binding.observeProperty.callCount).to.equal(1);
   });
 
-  describe('does not attempt to observe property when object is primitive', () => {
+  describe('does not attempt to observe property when object is primitive', function() {
     const objects: [string, any][] = [
       [`     null`, null],
       [`undefined`, undefined],
@@ -937,7 +937,7 @@ describe('AccessKeyed', () => {
     const inputs: [typeof objects, typeof keys] = [objects, keys];
 
     eachCartesianJoin(inputs, (([t1, obj], [t2, key]) => {
-        it(`${t1}${t2}`, () => {
+        it(`${t1}${t2}`, function() {
           const scope = createScopeForTest({ foo: obj });
           const sut = new AccessKeyed(new AccessScope('foo', 0), key);
           const binding = { observeProperty: spy() };
@@ -949,7 +949,7 @@ describe('AccessKeyed', () => {
   });
 });
 
-describe('AccessMember', () => {
+describe('AccessMember', function() {
 
   const objects: (() => [string, any, boolean, boolean])[] = [
     () => [`     null`, null,      true,     false],
@@ -1043,7 +1043,7 @@ describe('AccessMember', () => {
   const expression: AccessMember = new AccessMember(new AccessScope('foo', 0), 'bar');
 
   eachCartesianJoinFactory(inputs, (([t1, obj, isFalsey, canHaveProperty], [t2, prop, value]) => {
-      it(`${t1}.${t2}.evaluate() -> connect -> assign`, () => {
+      it(`${t1}.${t2}.evaluate() -> connect -> assign`, function() {
         const scope = createScopeForTest({ foo: obj });
         const sut = new AccessMember(new AccessScope('foo', 0), prop);
         const actual = sut.evaluate(LF.none, scope, null);
@@ -1075,25 +1075,25 @@ describe('AccessMember', () => {
     })
   );
 
-  it('evaluates member on bindingContext', () => {
+  it('evaluates member on bindingContext', function() {
     const scope = createScopeForTest({ foo: { bar: 'baz' } });
     expect(expression.evaluate(LF.none, scope, null)).to.equal('baz');
   });
 
-  it('evaluates member on overrideContext', () => {
+  it('evaluates member on overrideContext', function() {
     const scope = createScopeForTest({});
     scope.overrideContext.foo = { bar: 'baz' };
     expect(expression.evaluate(LF.none, scope, null)).to.equal('baz');
   });
 
-  it('assigns member on bindingContext', () => {
+  it('assigns member on bindingContext', function() {
     const scope = createScopeForTest({ foo: { bar: 'baz' } });
     expression.assign(LF.none, scope, null, 'bang');
     // @ts-ignore
     expect(scope.bindingContext.foo.bar).to.equal('bang');
   });
 
-  it('assigns member on overrideContext', () => {
+  it('assigns member on overrideContext', function() {
     const scope = createScopeForTest({});
     scope.overrideContext.foo = { bar: 'baz' };
     expression.assign(LF.none, scope, null, 'bang');
@@ -1101,12 +1101,12 @@ describe('AccessMember', () => {
     expect(scope.overrideContext.foo.bar).to.equal('bang');
   });
 
-  it('returns the assigned value', () => {
+  it('returns the assigned value', function() {
     const scope = createScopeForTest({ foo: { bar: 'baz' } });
     expect(expression.assign(LF.none, scope, null, 'bang')).to.equal('bang');
   });
 
-  describe('does not attempt to observe property when object is falsey', () => {
+  describe('does not attempt to observe property when object is falsey', function() {
     const objects2: [string, any][] = [
         [`     null`, null],
         [`undefined`, undefined],
@@ -1120,7 +1120,7 @@ describe('AccessMember', () => {
     const inputs2: [typeof objects2, typeof props2] = [objects2, props2];
 
     eachCartesianJoin(inputs2, (([t1, obj], [t2, prop]) => {
-        it(`${t1}${t2}`, () => {
+        it(`${t1}${t2}`, function() {
           const scope = createScopeForTest({ foo: obj });
           const sut = new AccessMember(new AccessScope('foo', 0), prop);
           const binding = { observeProperty: spy() };
@@ -1131,7 +1131,7 @@ describe('AccessMember', () => {
     );
   });
 
-  describe('does not observe if object does not / cannot have the property', () => {
+  describe('does not observe if object does not / cannot have the property', function() {
     const objects3: [string, any][] = [
       [`        1`, 1],
       [`     true`, true],
@@ -1146,7 +1146,7 @@ describe('AccessMember', () => {
     const inputs3: [typeof objects3, typeof props3] = [objects3, props3];
 
     eachCartesianJoin(inputs3, (([t1, obj], [t2, prop]) => {
-        it(`${t1}${t2}`, () => {
+        it(`${t1}${t2}`, function() {
           const scope = createScopeForTest({ foo: obj });
           const expression2 = new AccessMember(new AccessScope('foo', 0), prop);
           const binding = { observeProperty: spy() };
@@ -1158,85 +1158,85 @@ describe('AccessMember', () => {
   });
 });
 
-describe('AccessScope', () => {
+describe('AccessScope', function() {
   const foo: AccessScope = new AccessScope('foo', 0);
   const $parentfoo: AccessScope = new AccessScope('foo', 1);
   const binding = { observeProperty: spy() };
 
-  it('evaluates undefined bindingContext', () => {
+  it('evaluates undefined bindingContext', function() {
     const scope = Scope.create(LF.none, undefined, null);
     expect(foo.evaluate(LF.none, scope, null)).to.equal(undefined);
   });
 
-  it('assigns undefined bindingContext', () => {
+  it('assigns undefined bindingContext', function() {
     const scope = Scope.create(LF.none, undefined, null);
     foo.assign(LF.none, scope, null, 'baz');
     expect(scope.overrideContext.foo).to.equal('baz');
   });
 
-  it('connects undefined bindingContext', () => {
+  it('connects undefined bindingContext', function() {
     const scope = Scope.create(LF.none, undefined, null);
     (binding.observeProperty as any).resetHistory();
     foo.connect(LF.none, scope, binding as any);
     expect(binding.observeProperty).to.have.been.calledWith(LF.none, scope.overrideContext, 'foo');
   });
 
-  it('evaluates null bindingContext', () => {
+  it('evaluates null bindingContext', function() {
     const scope = Scope.create(LF.none, null, null);
     expect(foo.evaluate(LF.none, scope, null)).to.equal(undefined);
   });
 
-  it('assigns null bindingContext', () => {
+  it('assigns null bindingContext', function() {
     const scope = Scope.create(LF.none, null, null);
     foo.assign(LF.none, scope, null, 'baz');
     expect(scope.overrideContext.foo).to.equal('baz');
   });
 
-  it('connects null bindingContext', () => {
+  it('connects null bindingContext', function() {
     const scope = Scope.create(LF.none, null, null);
     (binding.observeProperty as any).resetHistory();
     foo.connect(LF.none, scope, binding as any);
     expect(binding.observeProperty).to.have.been.calledWith(LF.none, scope.overrideContext, 'foo');
   });
 
-  it('evaluates defined property on bindingContext', () => {
+  it('evaluates defined property on bindingContext', function() {
     const scope = createScopeForTest({ foo: 'bar' });
     expect(foo.evaluate(LF.none, scope, null)).to.equal('bar');
   });
 
-  it('evaluates defined property on overrideContext', () => {
+  it('evaluates defined property on overrideContext', function() {
     const scope = createScopeForTest({ abc: 'xyz' });
     scope.overrideContext.foo = 'bar';
     expect(foo.evaluate(LF.none, scope, null)).to.equal('bar');
   });
 
-  it('assigns defined property on bindingContext', () => {
+  it('assigns defined property on bindingContext', function() {
     const scope = createScopeForTest({ foo: 'bar' });
     foo.assign(LF.none, scope, null, 'baz');
     expect(scope.bindingContext.foo).to.equal('baz');
   });
 
-  it('assigns undefined property to bindingContext', () => {
+  it('assigns undefined property to bindingContext', function() {
     const scope = createScopeForTest({ abc: 'xyz' });
     foo.assign(LF.none, scope, null, 'baz');
     expect(scope.bindingContext.foo).to.equal('baz');
   });
 
-  it('assigns defined property on overrideContext', () => {
+  it('assigns defined property on overrideContext', function() {
     const scope = createScopeForTest({ abc: 'xyz' });
     scope.overrideContext.foo = 'bar';
     foo.assign(LF.none, scope, null, 'baz');
     expect(scope.overrideContext.foo).to.equal('baz');
   });
 
-  it('connects defined property on bindingContext', () => {
+  it('connects defined property on bindingContext', function() {
     const scope = createScopeForTest({ foo: 'bar' });
     (binding.observeProperty as any).resetHistory();
     foo.connect(LF.none, scope, binding as any);
     expect(binding.observeProperty).to.have.been.calledWith(LF.none, scope.bindingContext, 'foo');
   });
 
-  it('connects defined property on overrideContext', () => {
+  it('connects defined property on overrideContext', function() {
     const scope = createScopeForTest({ abc: 'xyz' });
     scope.overrideContext.foo = 'bar';
     (binding.observeProperty as any).resetHistory();
@@ -1244,27 +1244,27 @@ describe('AccessScope', () => {
     expect(binding.observeProperty).to.have.been.calledWith(LF.none, scope.overrideContext, 'foo');
   });
 
-  it('connects undefined property on bindingContext', () => {
+  it('connects undefined property on bindingContext', function() {
     const scope = createScopeForTest({ abc: 'xyz' });
     (binding.observeProperty as any).resetHistory();
     foo.connect(LF.none, scope, binding as any);
     expect(binding.observeProperty).to.have.been.calledWith(LF.none, scope.bindingContext, 'foo');
   });
 
-  it('evaluates defined property on first ancestor bindingContext', () => {
+  it('evaluates defined property on first ancestor bindingContext', function() {
     const scope = createScopeForTest({ abc: 'xyz' }, { foo: 'bar' });
     expect(foo.evaluate(LF.none, scope, null)).to.equal('bar');
     expect($parentfoo.evaluate(LF.none, scope, null)).to.equal('bar');
   });
 
-  it('evaluates defined property on first ancestor overrideContext', () => {
+  it('evaluates defined property on first ancestor overrideContext', function() {
     const scope = createScopeForTest({ abc: 'xyz' }, { def: 'rsw' });
     scope.overrideContext.parentOverrideContext.foo = 'bar';
     expect(foo.evaluate(LF.none, scope, null)).to.equal('bar');
     expect($parentfoo.evaluate(LF.none, scope, null)).to.equal('bar');
   });
 
-  it('assigns defined property on first ancestor bindingContext', () => {
+  it('assigns defined property on first ancestor bindingContext', function() {
     const scope = createScopeForTest({ abc: 'xyz' }, { foo: 'bar' });
     foo.assign(LF.none, scope, null, 'baz');
     expect(scope.overrideContext.parentOverrideContext.bindingContext.foo).to.equal('baz');
@@ -1272,7 +1272,7 @@ describe('AccessScope', () => {
     expect(scope.overrideContext.parentOverrideContext.bindingContext.foo).to.equal('beep');
   });
 
-  it('assigns defined property on first ancestor overrideContext', () => {
+  it('assigns defined property on first ancestor overrideContext', function() {
     const scope = createScopeForTest({ abc: 'xyz' }, { def: 'rsw' });
     scope.overrideContext.parentOverrideContext.foo = 'bar';
     foo.assign(LF.none, scope, null, 'baz');
@@ -1281,7 +1281,7 @@ describe('AccessScope', () => {
     expect(scope.overrideContext.parentOverrideContext.foo).to.equal('beep');
   });
 
-  it('connects defined property on first ancestor bindingContext', () => {
+  it('connects defined property on first ancestor bindingContext', function() {
     const scope = createScopeForTest({ abc: 'xyz' }, { foo: 'bar' });
     (binding.observeProperty as any).resetHistory();
     foo.connect(LF.none, scope, binding as any);
@@ -1291,7 +1291,7 @@ describe('AccessScope', () => {
     expect(binding.observeProperty).to.have.been.calledWith(LF.none, scope.overrideContext.parentOverrideContext.bindingContext, 'foo');
   });
 
-  it('connects defined property on first ancestor overrideContext', () => {
+  it('connects defined property on first ancestor overrideContext', function() {
     const scope = createScopeForTest({ abc: 'xyz' }, { def: 'rsw' });
     scope.overrideContext.parentOverrideContext.foo = 'bar';
     (binding.observeProperty as any).resetHistory();
@@ -1302,7 +1302,7 @@ describe('AccessScope', () => {
     expect(binding.observeProperty).to.have.been.calledWith(LF.none, scope.overrideContext.parentOverrideContext, 'foo');
   });
 
-  it('connects undefined property on first ancestor bindingContext', () => {
+  it('connects undefined property on first ancestor bindingContext', function() {
     const scope = createScopeForTest({ abc: 'xyz' }, {});
     // @ts-ignore
     scope.overrideContext.parentOverrideContext.parentOverrideContext = OverrideContext.create({ foo: 'bar' }, null);
@@ -1312,12 +1312,12 @@ describe('AccessScope', () => {
   });
 });
 
-describe('AccessThis', () => {
+describe('AccessThis', function() {
   const $parent2 = new AccessThis(1);
   const $parent$parent = new AccessThis(2);
   const $parent$parent$parent = new AccessThis(3);
 
-  it('evaluates undefined bindingContext', () => {
+  it('evaluates undefined bindingContext', function() {
     const coc = OverrideContext.create;
 
     let scope = { overrideContext: coc(LF.none, undefined, null) };
@@ -1341,7 +1341,7 @@ describe('AccessThis', () => {
     expect($parent$parent$parent.evaluate(LF.none, scope as any, null)).to.equal(undefined);
   });
 
-  it('evaluates null bindingContext', () => {
+  it('evaluates null bindingContext', function() {
     const coc = OverrideContext.create;
 
     let scope = { overrideContext: coc(LF.none, null, null) };
@@ -1365,7 +1365,7 @@ describe('AccessThis', () => {
     expect($parent$parent$parent.evaluate(LF.none, scope as any, null)).to.equal(null);
   });
 
-  it('evaluates defined bindingContext', () => {
+  it('evaluates defined bindingContext', function() {
     const coc = OverrideContext.create;
     const a = { a: 'a' };
     const b = { b: 'b' };
@@ -1393,8 +1393,8 @@ describe('AccessThis', () => {
   });
 });
 
-describe('Assign', () => {
-  it('can chain assignments', () => {
+describe('Assign', function() {
+  it('can chain assignments', function() {
     const foo = new Assign(new AccessScope('foo', 0), new AccessScope('bar', 0));
     const scope = Scope.create(LF.none, undefined, null);
     foo.assign(LF.none, scope, null as any, 1 as any);
@@ -1403,8 +1403,8 @@ describe('Assign', () => {
   });
 });
 
-describe('Conditional', () => {
-  it('evaluates the "yes" branch', () => {
+describe('Conditional', function() {
+  it('evaluates the "yes" branch', function() {
     const condition = $true;
     const yes = new MockTracingExpression($obj);
     const no = new MockTracingExpression($obj);
@@ -1415,7 +1415,7 @@ describe('Conditional', () => {
     expect(no.calls.length).to.equal(0);
   });
 
-  it('evaluates the "no" branch', () => {
+  it('evaluates the "no" branch', function() {
     const condition = $false;
     const yes = new MockTracingExpression($obj);
     const no = new MockTracingExpression($obj);
@@ -1426,7 +1426,7 @@ describe('Conditional', () => {
     expect(no.calls.length).to.equal(1);
   });
 
-  it('connects the "yes" branch', () => {
+  it('connects the "yes" branch', function() {
     const condition = $true;
     const yes = new MockTracingExpression($obj);
     const no = new MockTracingExpression($obj);
@@ -1437,7 +1437,7 @@ describe('Conditional', () => {
     expect(no.calls.length).to.equal(0);
   });
 
-  it('connects the "no" branch', () => {
+  it('connects the "no" branch', function() {
     const condition = $false;
     const yes = new MockTracingExpression($obj);
     const no = new MockTracingExpression($obj);
@@ -1449,8 +1449,8 @@ describe('Conditional', () => {
   });
 });
 
-describe('Binary', () => {
-  it('concats strings', () => {
+describe('Binary', function() {
+  it('concats strings', function() {
     let expression = new Binary('+', new PrimitiveLiteral('a'), new PrimitiveLiteral('b'));
     let scope = createScopeForTest({});
     expect(expression.evaluate(LF.none, scope, null)).to.equal('ab');
@@ -1472,7 +1472,7 @@ describe('Binary', () => {
     expect(expression.evaluate(LF.none, scope, null)).to.equal('undefinedb');
   });
 
-  it('adds numbers', () => {
+  it('adds numbers', function() {
     let expression = new Binary('+', new PrimitiveLiteral(1), new PrimitiveLiteral(2));
     let scope = createScopeForTest({});
     expect(expression.evaluate(LF.none, scope, null)).to.equal(3);
@@ -1494,7 +1494,7 @@ describe('Binary', () => {
     expect(expression.evaluate(LF.none, scope, null)).to.be.NaN;
   });
 
-  describe('performs \'in\'', () => {
+  describe('performs \'in\'', function() {
     const tests: { expr: Binary; expected: boolean }[] = [
       { expr: new Binary('in', new PrimitiveLiteral('foo'), new ObjectLiteral(['foo'], [$null])), expected: true },
       { expr: new Binary('in', new PrimitiveLiteral('foo'), new ObjectLiteral(['bar'], [$null])), expected: false },
@@ -1514,13 +1514,13 @@ describe('Binary', () => {
     const scope = createScopeForTest({ foo: { bar: null }, bar: null });
 
     for (const { expr, expected } of tests) {
-      it(expr.toString(), () => {
+      it(expr.toString(), function() {
         expect(expr.evaluate(LF.none, scope, null)).to.equal(expected);
       });
     }
   });
 
-  describe('performs \'instanceof\'', () => {
+  describe('performs \'instanceof\'', function() {
     class Foo {}
     class Bar extends Foo {}
     const tests: { expr: Binary; expected: boolean }[] = [
@@ -1573,15 +1573,15 @@ describe('Binary', () => {
     const scope: IScope = createScopeForTest({ foo: new Foo(), bar: new Bar() });
 
     for (const { expr, expected } of tests) {
-      it(expr.toString(), () => {
+      it(expr.toString(), function() {
         expect(expr.evaluate(LF.none, scope, null)).to.equal(expected);
       });
     }
   });
 });
 
-describe('CallMember', () => {
-  it('evaluates', () => {
+describe('CallMember', function() {
+  it('evaluates', function() {
     const expression = new CallMember(new AccessScope('foo', 0), 'bar', []);
     const bindingContext = { foo: { bar: () => 'baz' } };
     const scope = createScopeForTest(bindingContext);
@@ -1590,14 +1590,14 @@ describe('CallMember', () => {
     expect((bindingContext.foo.bar as any).callCount).to.equal(1);
   });
 
-  it('evaluate handles null/undefined member', () => {
+  it('evaluate handles null/undefined member', function() {
     const expression = new CallMember(new AccessScope('foo', 0), 'bar', []);
     expect(expression.evaluate(LF.none, createScopeForTest({ foo: {} }), null)).to.equal(undefined);
     expect(expression.evaluate(LF.none, createScopeForTest({ foo: { bar: undefined } }), null)).to.equal(undefined);
     expect(expression.evaluate(LF.none, createScopeForTest({ foo: { bar: null } }), null)).to.equal(undefined);
   });
 
-  it('evaluate throws when mustEvaluate and member is null or undefined', () => {
+  it('evaluate throws when mustEvaluate and member is null or undefined', function() {
     const expression = new CallMember(new AccessScope('foo', 0), 'bar', []);
     const mustEvaluate = true;
     expect(() => expression.evaluate(LF.mustEvaluate, createScopeForTest({}), null)).to.throw();
@@ -1607,25 +1607,25 @@ describe('CallMember', () => {
   });
 });
 
-describe('CallScope', () => {
+describe('CallScope', function() {
   const foo: CallScope = new CallScope('foo', [], 0);
   const hello: CallScope = new CallScope('hello', [new AccessScope('arg', 0)], 0);
   const binding: { observeProperty: SinonSpy } = { observeProperty: spy() };
 
-  it('evaluates undefined bindingContext', () => {
+  it('evaluates undefined bindingContext', function() {
     const scope = Scope.create(LF.none, undefined, null);
     expect(foo.evaluate(LF.none, scope, null)).to.equal(undefined);
     expect(hello.evaluate(LF.none, scope, null)).to.equal(undefined);
   });
 
-  it('throws when mustEvaluate and evaluating undefined bindingContext', () => {
+  it('throws when mustEvaluate and evaluating undefined bindingContext', function() {
     const scope = Scope.create(LF.none, undefined, null);
     const mustEvaluate = true;
     expect(() => foo.evaluate(LF.mustEvaluate, scope, null)).to.throw();
     expect(() => hello.evaluate(LF.mustEvaluate, scope, null)).to.throw();
   });
 
-  it('connects undefined bindingContext', () => {
+  it('connects undefined bindingContext', function() {
     const scope = Scope.create(LF.none, undefined, null);
     (binding.observeProperty as any).resetHistory();
     foo.connect(LF.none, scope, binding as any);
@@ -1634,20 +1634,20 @@ describe('CallScope', () => {
     expect(binding.observeProperty).to.have.been.calledWith(LF.none, scope.overrideContext, 'arg');
   });
 
-  it('evaluates null bindingContext', () => {
+  it('evaluates null bindingContext', function() {
     const scope = Scope.create(LF.none, null, null);
     expect(foo.evaluate(LF.none, scope, null)).to.equal(undefined);
     expect(hello.evaluate(LF.none, scope, null)).to.equal(undefined);
   });
 
-  it('throws when mustEvaluate and evaluating null bindingContext', () => {
+  it('throws when mustEvaluate and evaluating null bindingContext', function() {
     const scope = Scope.create(LF.none, null, null);
     const mustEvaluate = true;
     expect(() => foo.evaluate(LF.mustEvaluate, scope, null)).to.throw();
     expect(() => hello.evaluate(LF.mustEvaluate, scope, null)).to.throw();
   });
 
-  it('connects null bindingContext', () => {
+  it('connects null bindingContext', function() {
     const scope = Scope.create(LF.none, null, null);
     (binding.observeProperty as any).resetHistory();
     foo.connect(LF.none, scope, binding as any);
@@ -1656,13 +1656,13 @@ describe('CallScope', () => {
     expect(binding.observeProperty).to.have.been.calledWith(LF.none, scope.overrideContext, 'arg');
   });
 
-  it('evaluates defined property on bindingContext', () => {
+  it('evaluates defined property on bindingContext', function() {
     const scope = createScopeForTest({ foo: () => 'bar', hello: arg => arg, arg: 'world' });
     expect(foo.evaluate(LF.none, scope, null)).to.equal('bar');
     expect(hello.evaluate(LF.none, scope, null)).to.equal('world');
   });
 
-  it('evaluates defined property on overrideContext', () => {
+  it('evaluates defined property on overrideContext', function() {
     const scope = createScopeForTest({ abc: () => 'xyz' });
     scope.overrideContext.foo = () => 'bar';
     scope.overrideContext.hello = arg => arg;
@@ -1671,7 +1671,7 @@ describe('CallScope', () => {
     expect(hello.evaluate(LF.none, scope, null)).to.equal('world');
   });
 
-  it('connects defined property on bindingContext', () => {
+  it('connects defined property on bindingContext', function() {
     const scope = createScopeForTest({ foo: 'bar' });
     (binding.observeProperty as any).resetHistory();
     foo.connect(LF.none, scope, binding as any);
@@ -1680,7 +1680,7 @@ describe('CallScope', () => {
     expect(binding.observeProperty).to.have.been.calledWith(LF.none, scope.bindingContext, 'arg');
   });
 
-  it('connects defined property on overrideContext', () => {
+  it('connects defined property on overrideContext', function() {
     const scope = createScopeForTest({ abc: 'xyz' });
     scope.overrideContext.foo = () => 'bar';
     scope.overrideContext.hello = arg => arg;
@@ -1692,7 +1692,7 @@ describe('CallScope', () => {
     expect(binding.observeProperty).to.have.been.calledWith(LF.none, scope.overrideContext, 'arg');
   });
 
-  it('connects undefined property on bindingContext', () => {
+  it('connects undefined property on bindingContext', function() {
     const scope = createScopeForTest({ abc: 'xyz' });
     (binding.observeProperty as any).resetHistory();
     foo.connect(LF.none, scope, binding as any);
@@ -1701,13 +1701,13 @@ describe('CallScope', () => {
     expect(binding.observeProperty).to.have.been.calledWith(LF.none, scope.bindingContext, 'arg');
   });
 
-  it('evaluates defined property on first ancestor bindingContext', () => {
+  it('evaluates defined property on first ancestor bindingContext', function() {
     const scope = createScopeForTest({ abc: 'xyz' }, { foo: () => 'bar', hello: arg => arg, arg: 'world' });
     expect(foo.evaluate(LF.none, scope, null)).to.equal('bar');
     expect(hello.evaluate(LF.none, scope, null)).to.equal('world');
   });
 
-  it('evaluates defined property on first ancestor overrideContext', () => {
+  it('evaluates defined property on first ancestor overrideContext', function() {
     const scope = createScopeForTest({ abc: 'xyz' }, { def: 'rsw' });
     scope.overrideContext.parentOverrideContext.foo = () => 'bar';
     scope.overrideContext.parentOverrideContext.hello = arg => arg;
@@ -1716,7 +1716,7 @@ describe('CallScope', () => {
     expect(hello.evaluate(LF.none, scope, null)).to.equal('world');
   });
 
-  it('connects defined property on first ancestor bindingContext', () => {
+  it('connects defined property on first ancestor bindingContext', function() {
     const scope = createScopeForTest({ abc: 'xyz' }, { foo: () => 'bar', hello: arg => arg, arg: 'world' });
     (binding.observeProperty as any).resetHistory();
     foo.connect(LF.none, scope, binding as any);
@@ -1725,7 +1725,7 @@ describe('CallScope', () => {
     expect(binding.observeProperty).to.have.been.calledWith(LF.none, scope.overrideContext.parentOverrideContext.bindingContext, 'arg');
   });
 
-  it('connects defined property on first ancestor overrideContext', () => {
+  it('connects defined property on first ancestor overrideContext', function() {
     const scope = createScopeForTest({ abc: 'xyz' }, { def: 'rsw' });
     scope.overrideContext.parentOverrideContext.foo = () => 'bar';
     scope.overrideContext.parentOverrideContext.hello = arg => arg;
@@ -1749,7 +1749,7 @@ class Test {
   }
 }
 
-describe('LiteralTemplate', () => {
+describe('LiteralTemplate', function() {
   const tests: { expr: Template | TaggedTemplate; expected: string; ctx: any }[] = [
     { expr: $tpl, expected: '', ctx: {} },
     { expr: new Template(['foo']), expected: 'foo', ctx: {} },
@@ -1825,15 +1825,15 @@ describe('LiteralTemplate', () => {
   ];
 
   for (const { expr, expected, ctx } of tests) {
-    it(`evaluates ${expected}`, () => {
+    it(`evaluates ${expected}`, function() {
       const scope = createScopeForTest(ctx);
       expect(expr.evaluate(LF.none, scope, null)).to.equal(expected);
     });
   }
 });
 
-describe('Unary', () => {
-  describe('performs \'typeof\'', () => {
+describe('Unary', function() {
+  describe('performs \'typeof\'', function() {
     const tests: { expr: Unary; expected: string }[] = [
       { expr: new Unary('typeof', new PrimitiveLiteral('foo')), expected: 'string' },
       { expr: new Unary('typeof', new PrimitiveLiteral(1)), expected: 'number' },
@@ -1850,13 +1850,13 @@ describe('Unary', () => {
     const scope: IScope = createScopeForTest({});
 
     for (const { expr, expected } of tests) {
-      it(expr.toString(), () => {
+      it(expr.toString(), function() {
         expect(expr.evaluate(LF.none, scope, null)).to.equal(expected);
       });
     }
   });
 
-  describe('performs \'void\'', () => {
+  describe('performs \'void\'', function() {
     const tests: { expr: Unary }[] = [
       { expr: new Unary('void', new PrimitiveLiteral('foo')) },
       { expr: new Unary('void', new PrimitiveLiteral(1)) },
@@ -1873,12 +1873,12 @@ describe('Unary', () => {
     let scope: IScope = createScopeForTest({});
 
     for (const { expr } of tests) {
-      it(expr.toString(), () => {
+      it(expr.toString(), function() {
         expect(expr.evaluate(LF.none, scope, null)).to.equal(undefined);
       });
     }
 
-    it('void foo()', () => {
+    it('void foo()', function() {
       let fooCalled = false;
       const foo = () => (fooCalled = true);
       scope = createScopeForTest({ foo });
@@ -1889,7 +1889,7 @@ describe('Unary', () => {
   });
 });
 
-describe('BindingBehavior', () => {
+describe('BindingBehavior', function() {
   type $1 = [/*title*/string, /*flags*/LF];
   type $2 = [/*title*/string, /*$kind*/ExpressionKind];
   type $3 = [/*title*/string, /*scope*/IScope, /*sut*/BindingBehavior, /*mock*/MockBindingBehavior, /*locator*/IServiceLocator, /*binding*/IConnectableBinding, /*value*/any, /*argValues*/any[]];
@@ -2143,7 +2143,7 @@ describe('BindingBehavior', () => {
     = [flagVariations, kindVariations, inputVariations, bindVariations, evaluateVariations, connectVariations, assignVariations, $2ndEvaluateVariations, unbindVariations];
 
   eachCartesianJoinFactory(inputs, ([t1], [t2], [t3], bind, evaluate1, connect, assign, evaluate2, unbind) => {
-      it(`flags=${t1}, kind=${t2}, expr=${t3} -> bind() -> evaluate() -> connect() -> assign() -> evaluate() -> unbind()`, () => {
+      it(`flags=${t1}, kind=${t2}, expr=${t3} -> bind() -> evaluate() -> connect() -> assign() -> evaluate() -> unbind()`, function() {
         bind();
         evaluate1();
         connect();
@@ -2155,7 +2155,7 @@ describe('BindingBehavior', () => {
   );
 });
 
-describe('ValueConverter', () => {
+describe('ValueConverter', function() {
   type $1 = [/*title*/string, /*flags*/LF];
   type $2 = [/*title*/string, /*signals*/string[], /*signaler*/MockSignaler];
   type $3 = [/*title*/string, /*scope*/IScope, /*sut*/ValueConverter, /*mock*/MockValueConverter, /*locator*/IServiceLocator, /*binding*/IConnectableBinding, /*value*/any, /*argValues*/any[], /*methods*/string[]];
@@ -2505,7 +2505,7 @@ describe('ValueConverter', () => {
     = [flagVariations, kindVariations, inputVariations, evaluateVariations, connectVariations, assignVariations, $2ndEvaluateVariations, unbindVariations];
 
   eachCartesianJoinFactory(inputs, ([t1], [t2], [t3], evaluate1, connect, assign, evaluate2, unbind) => {
-      it(`flags=${t1}, signalr=${t2} expr=${t3} -> evaluate() -> connect() -> assign() -> evaluate() -> unbind()`, () => {
+      it(`flags=${t1}, signalr=${t2} expr=${t3} -> evaluate() -> connect() -> assign() -> evaluate() -> unbind()`, function() {
         evaluate1();
         connect();
         const newValue = assign();
@@ -2518,8 +2518,8 @@ describe('ValueConverter', () => {
 
 const e = new PrimitiveLiteral('') as any;
 // tslint:disable:space-within-parens
-describe('helper functions', () => {
-  it('connects', () => {
+describe('helper functions', function() {
+  it('connects', function() {
     expect(connects(new AccessThis()                )).to.equal(false);
     expect(connects(new AccessScope('')             )).to.equal(true);
     expect(connects(new ArrayLiteral([])            )).to.equal(true);
@@ -2546,7 +2546,7 @@ describe('helper functions', () => {
     expect(connects(new Interpolation([])           )).to.equal(false);
   });
 
-  it('observes', () => {
+  it('observes', function() {
     expect(observes(new AccessThis()                )).to.equal(false);
     expect(observes(new AccessScope('')             )).to.equal(true);
     expect(observes(new ArrayLiteral([])            )).to.equal(false);
@@ -2573,7 +2573,7 @@ describe('helper functions', () => {
     expect(observes(new Interpolation([])           )).to.equal(false);
   });
 
-  it('callsFunction', () => {
+  it('callsFunction', function() {
     expect(callsFunction(new AccessThis()                )).to.equal(false);
     expect(callsFunction(new AccessScope('')             )).to.equal(false);
     expect(callsFunction(new ArrayLiteral([])            )).to.equal(false);
@@ -2600,7 +2600,7 @@ describe('helper functions', () => {
     expect(callsFunction(new Interpolation([])           )).to.equal(false);
   });
 
-  it('hasAncestor', () => {
+  it('hasAncestor', function() {
     expect(hasAncestor(new AccessThis()                )).to.equal(true);
     expect(hasAncestor(new AccessScope('')             )).to.equal(true);
     expect(hasAncestor(new ArrayLiteral([])            )).to.equal(false);
@@ -2627,7 +2627,7 @@ describe('helper functions', () => {
     expect(hasAncestor(new Interpolation([])           )).to.equal(false);
   });
 
-  it('isAssignable', () => {
+  it('isAssignable', function() {
     expect(isAssignable(new AccessThis()                )).to.equal(false);
     expect(isAssignable(new AccessScope('')             )).to.equal(true);
     expect(isAssignable(new ArrayLiteral([])            )).to.equal(false);
@@ -2654,7 +2654,7 @@ describe('helper functions', () => {
     expect(isAssignable(new Interpolation([])           )).to.equal(false);
   });
 
-  it('isLeftHandSide', () => {
+  it('isLeftHandSide', function() {
     expect(isLeftHandSide(new AccessThis()                )).to.equal(true);
     expect(isLeftHandSide(new AccessScope('')             )).to.equal(true);
     expect(isLeftHandSide(new ArrayLiteral([])            )).to.equal(true);
@@ -2681,7 +2681,7 @@ describe('helper functions', () => {
     expect(isLeftHandSide(new Interpolation([])           )).to.equal(false);
   });
 
-  it('isPrimary', () => {
+  it('isPrimary', function() {
     expect(isPrimary(new AccessThis()                )).to.equal(true);
     expect(isPrimary(new AccessScope('')             )).to.equal(true);
     expect(isPrimary(new ArrayLiteral([])            )).to.equal(true);
@@ -2708,7 +2708,7 @@ describe('helper functions', () => {
     expect(isPrimary(new Interpolation([])           )).to.equal(false);
   });
 
-  it('isResource', () => {
+  it('isResource', function() {
     expect(isResource(new AccessThis()                )).to.equal(false);
     expect(isResource(new AccessScope('')             )).to.equal(false);
     expect(isResource(new ArrayLiteral([])            )).to.equal(false);
@@ -2735,7 +2735,7 @@ describe('helper functions', () => {
     expect(isResource(new Interpolation([])           )).to.equal(false);
   });
 
-  it('hasBind', () => {
+  it('hasBind', function() {
     expect(hasBind(new AccessThis()                )).to.equal(false);
     expect(hasBind(new AccessScope('')             )).to.equal(false);
     expect(hasBind(new ArrayLiteral([])            )).to.equal(false);
@@ -2762,7 +2762,7 @@ describe('helper functions', () => {
     expect(hasBind(new Interpolation([])           )).to.equal(false);
   });
 
-  it('hasUnbind', () => {
+  it('hasUnbind', function() {
     expect(hasUnbind(new AccessThis()                )).to.equal(false);
     expect(hasUnbind(new AccessScope('')             )).to.equal(false);
     expect(hasUnbind(new ArrayLiteral([])            )).to.equal(false);
@@ -2789,7 +2789,7 @@ describe('helper functions', () => {
     expect(hasUnbind(new Interpolation([])           )).to.equal(false);
   });
 
-  it('isLiteral', () => {
+  it('isLiteral', function() {
     expect(isLiteral(new AccessThis()                )).to.equal(false);
     expect(isLiteral(new AccessScope('')             )).to.equal(false);
     expect(isLiteral(new ArrayLiteral([])            )).to.equal(true);
@@ -2816,7 +2816,7 @@ describe('helper functions', () => {
     expect(isLiteral(new Interpolation([])           )).to.equal(false);
   });
 
-  it('isPureLiteral', () => {
+  it('isPureLiteral', function() {
     expect(isPureLiteral(new AccessThis()                )).to.equal(false);
     expect(isPureLiteral(new AccessScope('')             )).to.equal(false);
     expect(isPureLiteral(new ArrayLiteral([])            )).to.equal(true);

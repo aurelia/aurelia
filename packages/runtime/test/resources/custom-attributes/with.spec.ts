@@ -3,10 +3,10 @@ import { LifecycleFlags, With } from '../../../src/index';
 import { createScopeForTest } from '../../util';
 import { ensureSingleChildTemplateControllerBehaviors, hydrateCustomAttribute } from './template-controller-tests';
 
-describe('The "with" template controller', () => {
+describe('The "with" template controller', function() {
   ensureSingleChildTemplateControllerBehaviors(With, w => w['currentView']);
 
-  it('updates its child\'s binding context when its value changes', () => {
+  it('updates its child\'s binding context when its value changes', function() {
     const { attribute } = hydrateCustomAttribute(With);
     const child = attribute['currentView'];
 

@@ -64,7 +64,7 @@
 //   return { sut, host, lifecycle };
 // }
 
-// describe(`Repeat`, () => {
+// describe(`Repeat`, function() {
 
 //   eachCartesianJoinFactory([
 //     // initial input items
@@ -492,7 +492,7 @@
 //     [exec3, exec3Text],
 //     [exec4, exec4Text],
 //     [exec5, exec5Text]) => {
-//     it(`assign=${text1} -> ${exec1Text} -> ${exec2Text} -> assign=${text2} -> ${exec3Text} -> ${exec4Text} -> ${exec5Text}`, () => {
+//     it(`assign=${text1} -> ${exec1Text} -> ${exec2Text} -> assign=${text2} -> ${exec3Text} -> ${exec4Text} -> ${exec5Text}`, function() {
 //       const { sut, host, lifecycle } = setup<IObservedArray>();
 //       sut.items = items1;
 

@@ -15,14 +15,14 @@ import {
   SignalBindingBehavior
 } from '../../src/index';
 
-describe('SignalBindingBehavior', () => {
+describe('SignalBindingBehavior', function() {
   const container: IContainer = DI.createContainer();
   let sut: SignalBindingBehavior;
   let binding: Binding;
   let signaler: ISignaler;
   let name: string;
 
-  beforeEach(() => {
+  beforeEach(function() {
     name = 'foo';
     signaler = new MockSignaler() as any;
     sut = new SignalBindingBehavior(signaler);
@@ -31,11 +31,11 @@ describe('SignalBindingBehavior', () => {
   });
 
   // TODO: test properly (multiple names etc)
-  it('bind()   should apply the correct behavior', () => {
+  it('bind()   should apply the correct behavior', function() {
     expect(signaler.addSignalListener).to.have.been.calledWith(name, binding);
   });
 
-  it('unbind() should revert the original behavior', () => {
+  it('unbind() should revert the original behavior', function() {
     sut.unbind(undefined, undefined, binding as any);
     expect(signaler.removeSignalListener).to.have.been.calledWith(name, binding);
   });

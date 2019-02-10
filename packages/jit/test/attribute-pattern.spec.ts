@@ -7,7 +7,7 @@ import {
   ISyntaxInterpreter
 } from '../src/index';
 
-describe('@attributePattern', () => {
+describe('@attributePattern', function() {
   for (const [defs, tests] of [
     [
       [
@@ -138,9 +138,9 @@ describe('@attributePattern', () => {
       ]
     ]
   ] as [AttributePatternDefinition[], [string, string, string[]][]][]) {
-    describe(`parse [${defs.map(d => d.pattern)}]`, () => {
+    describe(`parse [${defs.map(d => d.pattern)}]`, function() {
       for (const [value, match, values] of tests) {
-        it(`parse [${defs.map(d => d.pattern)}] -> interpret [${value}] -> match=[${match}]`, () => {
+        it(`parse [${defs.map(d => d.pattern)}] -> interpret [${value}] -> match=[${match}]`, function() {
           let receivedRawName: string;
           let receivedRawValue: string;
           let receivedParts: string[];

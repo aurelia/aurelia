@@ -29,7 +29,7 @@
 // import { spy } from 'sinon';
 // import { Reporter } from '@aurelia/kernel';
 
-// describe('ObserverLocator', () => {
+// describe('ObserverLocator', function() {
 //   function setup() {
 //     const container = DI.createContainer();
 //     const lifecycle = container.get(ILifecycle);
@@ -55,7 +55,7 @@
 //     const attr = el.attributes[0];
 //     const { sut } = setup();
 //     const expected = sut.getObserver(el, attr.name);
-//     it(_`getAccessor() - ${markup} - returns ${expected.constructor.name}`, () => {
+//     it(_`getAccessor() - ${markup} - returns ${expected.constructor.name}`, function() {
 //       const actual = sut.getAccessor(el, attr.name);
 //       expect(actual).to.be.instanceof(expected['constructor']);
 //     });
@@ -75,7 +75,7 @@
 //     `<div aria-=""></div>`,
 //     `<div aria-a=""></div>`,
 //   ]) {
-//     it(_`getAccessor() - ${markup} - returns DataAttributeAccessor`, () => {
+//     it(_`getAccessor() - ${markup} - returns DataAttributeAccessor`, function() {
 //       const el = <Element>createElement(markup);
 //       const attr = el.attributes[0];
 //       const { sut } = setup();
@@ -99,7 +99,7 @@
 //     `<div aria=""></div>`,
 //     `<div ariaa=""></div>`,
 //   ]) {
-//     it(_`getAccessor() - ${markup} - returns ElementPropertyAccessor`, () => {
+//     it(_`getAccessor() - ${markup} - returns ElementPropertyAccessor`, function() {
 //       const el = <Element>createElement(markup);
 //       const attr = el.attributes[0];
 //       const { sut } = setup();
@@ -109,7 +109,7 @@
 //     });
 //   }
 
-//   it(_`getAccessor() - {} - returns PropertyAccessor`, () => {
+//   it(_`getAccessor() - {} - returns PropertyAccessor`, function() {
 //     const { sut } = setup();
 //     const obj = {};
 //     const actual = sut.getAccessor(obj, 'foo');
@@ -121,7 +121,7 @@
 //     undefined, null, true, false, '', 'foo',
 //     Number.MAX_VALUE, Number.MAX_SAFE_INTEGER, Number.MIN_VALUE, Number.MIN_SAFE_INTEGER, 0, +Infinity, -Infinity, NaN
 //   ]) {
-//     it(_`getObserver() - ${obj} - returns PrimitiveObserver`, () => {
+//     it(_`getObserver() - ${obj} - returns PrimitiveObserver`, function() {
 //       const { sut } = setup();
 //       if (obj === null || obj === undefined) {
 //         expect(() => sut.getObserver(obj, 'foo')).to.throw;
@@ -133,7 +133,7 @@
 //     });
 //   }
 
-//   it(_`getObserver() - {} - twice in a row - reuses existing observer`, () => {
+//   it(_`getObserver() - {} - twice in a row - reuses existing observer`, function() {
 //     const { sut } = setup();
 //     const obj = {};
 //     const expected = sut.getObserver(obj, 'foo');
@@ -141,7 +141,7 @@
 //     expect(actual).to.equal(expected);
 //   });
 
-//   it(_`getObserver() - {} - twice in a row different property - returns different observer`, () => {
+//   it(_`getObserver() - {} - twice in a row different property - returns different observer`, function() {
 //     const { sut } = setup();
 //     const obj = {};
 //     const expected = sut.getObserver(obj, 'foo');
@@ -165,7 +165,7 @@
 //     { markup: `<div aria-=""></div>`, ctor: DataAttributeAccessor },
 //     { markup: `<div aria-a=""></div>`, ctor: DataAttributeAccessor }
 //   ]) {
-//     it(_`getObserver() - ${markup} - returns ${ctor.name}`, () => {
+//     it(_`getObserver() - ${markup} - returns ${ctor.name}`, function() {
 //       const el = <Element>createElement(markup);
 //       const attr = el.attributes[0];
 //       const { sut } = setup();
@@ -209,7 +209,7 @@
 //                     if (hasOverrides) {
 //                       obj.constructor['computed'] = { isVolatile };
 //                     }
-//                     it(_`getObserver() - descriptor=${descriptor}, hasGetter=${hasGetter}, hasSetter=${hasSetter}, hasOverrides=${hasOverrides}, isVolatile=${isVolatile}, hasAdapterObserver=${hasAdapterObserver}, adapterIsDefined=${adapterIsDefined}`, () => {
+//                     it(_`getObserver() - descriptor=${descriptor}, hasGetter=${hasGetter}, hasSetter=${hasSetter}, hasOverrides=${hasOverrides}, isVolatile=${isVolatile}, hasAdapterObserver=${hasAdapterObserver}, adapterIsDefined=${adapterIsDefined}`, function() {
 //                       Reflect.defineProperty(obj, 'foo', descriptor);
 //                       if (hasSetter && configurable && !hasGetter && !(hasAdapterObserver && adapterIsDefined)) {
 //                         expect(() => sut.getObserver(obj, 'foo')).to.throw(/18/);
@@ -268,7 +268,7 @@
 //               sut.addAdapter({getObserver() { return null }});
 //             }
 //           }
-//           it(_`getObserver() - obj=<div></div>, property=${property}, hasAdapterObserver=${hasAdapterObserver}, adapterIsDefined=${adapterIsDefined}`, () => {
+//           it(_`getObserver() - obj=<div></div>, property=${property}, hasAdapterObserver=${hasAdapterObserver}, adapterIsDefined=${adapterIsDefined}`, function() {
 //             const actual = sut.getObserver(obj, property);
 //             if (property === 'textContent' || property === 'innerHTML' || property === 'scrollTop' || property === 'scrollLeft') {
 //               expect(actual.constructor.name).to.equal(ValueAttributeObserver.name);
@@ -291,7 +291,7 @@
 //     }
 //   }
 
-//   it(_`getObserver() - throws if $observers is undefined`, () => {
+//   it(_`getObserver() - throws if $observers is undefined`, function() {
 //     const { sut } = setup();
 //     const obj = {};
 //     const write = Reporter.write;
@@ -302,7 +302,7 @@
 //     Reporter.write = write;
 //   });
 
-//   it(_`getObserver() - Array.foo - returns ArrayObserver`, () => {
+//   it(_`getObserver() - Array.foo - returns ArrayObserver`, function() {
 //     const { sut } = setup();
 //     const obj = [];
 //     const actual = sut.getObserver(obj, 'foo');
@@ -310,7 +310,7 @@
 //     expect(actual).to.be.instanceof(DirtyCheckProperty);
 //   });
 
-//   it(_`getObserver() - Array.length - returns ArrayObserver`, () => {
+//   it(_`getObserver() - Array.length - returns ArrayObserver`, function() {
 //     const { sut } = setup();
 //     const obj = [];
 //     const actual = sut.getObserver(obj, 'length');
@@ -318,7 +318,7 @@
 //     expect(actual).to.be.instanceof(CollectionLengthObserver);
 //   });
 
-//   it(_`getObserver() - Set.foo - returns SetObserver`, () => {
+//   it(_`getObserver() - Set.foo - returns SetObserver`, function() {
 //     const { sut } = setup();
 //     const obj = new Set();
 //     const actual = sut.getObserver(obj, 'foo');
@@ -326,7 +326,7 @@
 //     expect(actual).to.be.instanceof(DirtyCheckProperty);
 //   });
 
-//   it(_`getObserver() - Set.size - returns SetObserver`, () => {
+//   it(_`getObserver() - Set.size - returns SetObserver`, function() {
 //     const { sut } = setup();
 //     const obj = new Set();
 //     const actual = sut.getObserver(obj, 'size');
@@ -334,7 +334,7 @@
 //     expect(actual).to.be.instanceof(CollectionLengthObserver);
 //   });
 
-//   it(_`getObserver() - Map.foo - returns MapObserver`, () => {
+//   it(_`getObserver() - Map.foo - returns MapObserver`, function() {
 //     const { sut } = setup();
 //     const obj = new Map();
 //     const actual = sut.getObserver(obj, 'foo');
@@ -342,7 +342,7 @@
 //     expect(actual).to.be.instanceof(DirtyCheckProperty);
 //   });
 
-//   it(_`getObserver() - Map.size - returns MapObserver`, () => {
+//   it(_`getObserver() - Map.size - returns MapObserver`, function() {
 //     const { sut } = setup();
 //     const obj = new Map();
 //     const actual = sut.getObserver(obj, 'size');

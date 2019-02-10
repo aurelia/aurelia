@@ -33,7 +33,7 @@ import {
   AuNodeSequence
 } from '../../au-dom';
 
-describe(`If/Else`, () => {
+describe(`If/Else`, function() {
   function runBindLifecycle(lifecycle: ILifecycle, sut: If<AuNode>, flags: LifecycleFlags, scope: IScope): void {
     lifecycle.beginBind();
     sut.$bind(flags, scope);
@@ -167,7 +167,7 @@ describe(`If/Else`, () => {
   eachCartesianJoin(
     [strategySpecs, duplicateOperationSpecs, bindSpecs, mutationSpecs, flagsSpecs],
     (strategySpec, duplicateOperationSpec, bindSpec, mutationSpec, flagsSpec) => {
-    it(`verify if/else behavior - strategySpec ${strategySpec.t}, duplicateOperationSpec ${duplicateOperationSpec.t}, bindSpec ${bindSpec.t}, mutationSpec ${mutationSpec.t}, flagsSpec ${flagsSpec.t}, `, async () => {
+    it(`verify if/else behavior - strategySpec ${strategySpec.t}, duplicateOperationSpec ${duplicateOperationSpec.t}, bindSpec ${bindSpec.t}, mutationSpec ${mutationSpec.t}, flagsSpec ${flagsSpec.t}, `, async function() {
       const { strategy } = strategySpec;
       const { bindTwice, attachTwice, detachTwice, unbindTwice, newScopeForDuplicateBind, newValueForDuplicateBind } = duplicateOperationSpec;
       const { ifPropName, elsePropName, ifText, elseText, value1, value2 } = bindSpec;

@@ -9,8 +9,8 @@ import {
 @subscriberCollection(MutationKind.instance)
 class Test {}
 
-describe('subscriberCollection', () => {
-  it('calls subscribers', () => {
+describe('subscriberCollection', function() {
+  it('calls subscribers', function() {
     const flags = LifecycleFlags.updateSourceExpression;
     const observer = new Test();
     const observer2 = new Test();
@@ -53,7 +53,7 @@ describe('subscriberCollection', () => {
     expect(callable10.handleChange).to.have.been.calledWith('new value2', 'old value2', flags);
   });
 
-  it('removes subscribers', () => {
+  it('removes subscribers', function() {
     const observer = new Test();
 
     const subscribers = [];

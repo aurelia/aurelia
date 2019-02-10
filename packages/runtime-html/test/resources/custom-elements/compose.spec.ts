@@ -5,7 +5,7 @@ import { FakeViewFactory } from '../../_doubles/fake-view-factory';
 import { hydrateCustomElement } from '../../behavior-assistance';
 import { HTMLTestContext, TestContext } from '../../util';
 
-describe('The "compose" custom element', () => {
+describe('The "compose" custom element', function() {
   // this is not ideal (same instance will be reused for multiple loops) but probably fine
   // need to revisit this later to give this extra dep a clean atomic entry point for the tests
   const subjectPossibilities = [

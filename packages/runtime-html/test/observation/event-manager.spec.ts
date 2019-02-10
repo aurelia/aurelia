@@ -62,7 +62,7 @@ function eventPropertiesShallowClone<T extends IManagedEvent>(e: T): T & { insta
   } as any;
 }
 
-describe('ListenerTracker', () => {
+describe('ListenerTracker', function() {
   function setup(eventName: string, listener: EventListenerOrEventListenerObject, capture: boolean, bubbles: boolean) {
     const ctx = TestContext.createHTMLTestContext();
     const handlerPath: ReturnType<typeof eventPropertiesShallowClone>[] = [];
@@ -97,8 +97,8 @@ describe('ListenerTracker', () => {
       for (const capture of [true, false, undefined]) {
         for (const bubbles of [true, false]) {
           for (const listener of [null, { handleEvent: null }]) {
-            describe('increment()', () => {
-              it(_`adds the event listener (increment=${increment}, eventName=${eventName}, capture=${capture}, bubbles=${bubbles}, listener=${listener})`, () => {
+            describe('increment()', function() {
+              it(_`adds the event listener (increment=${increment}, eventName=${eventName}, capture=${capture}, bubbles=${bubbles}, listener=${listener})`, function() {
                 const { ctx, sut, el, event, handlerPath } = setup(eventName, listener, capture, bubbles);
                 for (let i = 0; i < increment; ++i) {
                   sut.increment();
@@ -132,8 +132,8 @@ describe('ListenerTracker', () => {
               });
             });
 
-            describe('decrement()', () => {
-              it(_`removes the event listener (increment=${increment}, eventName=${eventName}, capture=${capture}, bubbles=${bubbles}, listener=${listener})`, () => {
+            describe('decrement()', function() {
+              it(_`removes the event listener (increment=${increment}, eventName=${eventName}, capture=${capture}, bubbles=${bubbles}, listener=${listener})`, function() {
                 const { ctx, sut, el, event, handlerPath } = setup(eventName, listener, capture, bubbles);
                 for (let i = 0; i < increment; ++i) {
                   sut.increment();
@@ -176,7 +176,7 @@ describe('ListenerTracker', () => {
   }
 });
 
-describe('DelegateOrCaptureSubscription', () => {
+describe('DelegateOrCaptureSubscription', function() {
   function setup(eventName: string) {
     const entry = { decrement: spy() } as any as ListenerTracker;
     const lookup = {};
@@ -187,7 +187,7 @@ describe('DelegateOrCaptureSubscription', () => {
   }
 
   for (const eventName of ['foo', 'bar']) {
-    it(_`dispose() decrements and removes the callback (eventName=${eventName})`, () => {
+    it(_`dispose() decrements and removes the callback (eventName=${eventName})`, function() {
       const { sut, lookup, callback, entry } = setup(eventName);
       expect(lookup[eventName]).to.equal(callback, 'lookup[eventName]');
       sut.dispose();
@@ -197,7 +197,7 @@ describe('DelegateOrCaptureSubscription', () => {
   }
 });
 
-describe('TriggerSubscription', () => {
+describe('TriggerSubscription', function() {
   function setup(listener: EventListenerOrEventListenerObject | null, eventName: string, bubbles: boolean) {
     const ctx = TestContext.createHTMLTestContext();
     const handler = spy();
@@ -229,7 +229,7 @@ describe('TriggerSubscription', () => {
   for (const bubbles of [true, false]) {
     for (const eventName of ['foo', 'bar']) {
       for (const listener of [null, { handleEvent: null }]) {
-        it(_`dispose() removes the event listener (eventName=${eventName}, bubbles=${bubbles}, listener=${listener})`, () => {
+        it(_`dispose() removes the event listener (eventName=${eventName}, bubbles=${bubbles}, listener=${listener})`, function() {
           const { ctx, sut, callback, event, el } = setup(listener, eventName, bubbles);
 
           el.dispatchEvent(event);
@@ -255,7 +255,7 @@ describe('TriggerSubscription', () => {
   }
 });
 
-describe('EventSubscriber', () => {
+describe('EventSubscriber', function() {
   function setup(listener: EventListenerOrEventListenerObject, eventNames: string[], bubbles: boolean) {
     const ctx = TestContext.createHTMLTestContext();
     const handler = spy();
@@ -288,7 +288,7 @@ describe('EventSubscriber', () => {
   for (const bubbles of [true, false]) {
     for (const eventNames of [['foo', 'bar', 'baz'], ['click', 'change', 'input']]) {
       for (const listenerObj of [null, { handleEvent: null }]) {
-        it(_`subscribe() adds the event listener (eventNames=${eventNames}, bubbles=${bubbles}, listenerObj=${listenerObj})`, () => {
+        it(_`subscribe() adds the event listener (eventNames=${eventNames}, bubbles=${bubbles}, listenerObj=${listenerObj})`, function() {
           const { ctx, sut, handler, listener, events, el } = setup(listenerObj, eventNames, bubbles);
 
           sut.subscribe(el, listener);
@@ -323,9 +323,9 @@ describe('EventSubscriber', () => {
   }
 });
 
-describe('EventManager', () => {
+describe('EventManager', function() {
 
-  // it(`initializes with correct default element configurations`, () => {
+  // it(`initializes with correct default element configurations`, function() {
   //   const sut = new EventManager();
   //   const lookup = sut.elementHandlerLookup;
 
@@ -361,7 +361,7 @@ describe('EventManager', () => {
   //   expect(lookup['scrollable element']['scrollLeft']).to.include('scroll');
   // });
 
-  // it(`registerElementConfiguration() registers the configuration`, () => {
+  // it(`registerElementConfiguration() registers the configuration`, function() {
   //   const sut = new EventManager();
   //   sut.registerElementConfiguration({
   //     tagName: 'FOO',
@@ -375,7 +375,7 @@ describe('EventManager', () => {
   //   expect(lookup['FOO']['bar']).to.include('baz');
   // });
 
-  // it(`registerElementConfiguration() does not register configuration from higher up the prototype chain`, () => {
+  // it(`registerElementConfiguration() does not register configuration from higher up the prototype chain`, function() {
   //   const sut = new EventManager();
   //   class ElementProperties {
   //     public bar: string[];
@@ -394,7 +394,7 @@ describe('EventManager', () => {
   //   expect(lookup['FOO']['bar']).to.include('baz');
   // });
 
-  // describe(`getElementHandler()`, () => {
+  // describe(`getElementHandler()`, function() {
   //   const sut = new EventManager();
   //   const lookup = sut.elementHandlerLookup;
 
@@ -419,20 +419,20 @@ describe('EventManager', () => {
   //       if (expectedEventNames === undefined) {
   //         expectedEventNames = lookup[tagName][propertyName];
   //       }
-  //       it(_`tagName=${tagName}, propertyName=${propertyName} returns handler with eventNames=${expectedEventNames}`, () => {
+  //       it(_`tagName=${tagName}, propertyName=${propertyName} returns handler with eventNames=${expectedEventNames}`, function() {
   //         const handler = sut.getElementHandler(ctx.dom, ctx.createElement(`<${tagName}></${tagName}>`), propertyName);
   //         expect(handler['events']).to.deep.equal(expectedEventNames);
   //       });
   //     }
   //   }
 
-  //   it(`returns null if the target does not have a tagName`, () => {
+  //   it(`returns null if the target does not have a tagName`, function() {
   //     const text = ctx.doc.createTextNode('asdf');
   //     const handler = sut.getElementHandler(ctx.dom, text, 'textContent');
   //     expect(handler).to.equal(null);
   //   });
 
-  //   it(`returns null if the property does not exist in the configuration`, () => {
+  //   it(`returns null if the property does not exist in the configuration`, function() {
   //     const el = ctx.createElement('<input></input>');
   //     let handler = sut.getElementHandler(ctx.dom, el, 'value');
   //     expect(handler).not.to.equal(null);
@@ -441,7 +441,7 @@ describe('EventManager', () => {
   //   });
   // });
 
-  describe('addEventListener()', () => {
+  describe('addEventListener()', function() {
     function setup(
       eventName: string,
       listener: EventListenerOrEventListenerObject,
@@ -517,7 +517,7 @@ describe('EventManager', () => {
               // TODO: for firefox this won't work because ShadowDOM is not implemented yet. The webcomponents polyfill won't make it work either. Need to investigate what we can or cannot support.
               for (const shadow of hasShadow ? [null, 'open', 'closed'] : [null]) { // TODO: 'open' should probably work in some way, so we need to try and fix this
                 for (const listenerObj of [null, { handleEvent: null }]) {
-                  it(_`strategy=${DelegationStrategy[strategy]}, eventName=${eventName}, bubbles=${bubbles}, stopPropagation=${stopPropagation}, returnValue=${returnValue}, shadow=${shadow}, listener=${listenerObj}`, () => {
+                  it(_`strategy=${DelegationStrategy[strategy]}, eventName=${eventName}, bubbles=${bubbles}, stopPropagation=${stopPropagation}, returnValue=${returnValue}, shadow=${shadow}, listener=${listenerObj}`, function() {
                     const {
                       ctx,
                       wrapper,

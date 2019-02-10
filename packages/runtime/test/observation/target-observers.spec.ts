@@ -31,7 +31,7 @@
 // </svg>`).lastElementChild;
 // }
 
-// describe('XLinkAttributeAccessor', () => {
+// describe('XLinkAttributeAccessor', function() {
 //   let sut: XLinkAttributeAccessor;
 //   let el: Element;
 //   let lifecycle: Lifecycle;
@@ -45,9 +45,9 @@
 //     { name: 'show', value: 'false' }
 //   ];
 
-//   describe('getValue()', () => {
+//   describe('getValue()', function() {
 //     for (const { name, value } of tests) {
-//       it(`returns ${value} for xlink:${name}`, () => {
+//       it(`returns ${value} for xlink:${name}`, function() {
 //         el = createSvgUseElement(name, value);
 //         lifecycle = new Lifecycle();
 //         sut = new XLinkAttributeAccessor(dom, lifecycle, el, `xlink:${name}`, name);
@@ -57,9 +57,9 @@
 //     }
 //   });
 
-//   describe('setValue()', () => {
+//   describe('setValue()', function() {
 //     for (const { name, value } of tests) {
-//       it(`sets xlink:${name} to foo`, () => {
+//       it(`sets xlink:${name} to foo`, function() {
 //         el = createSvgUseElement(name, value);
 //         lifecycle = new Lifecycle();
 //         sut = new XLinkAttributeAccessor(dom, lifecycle, el, `xlink:${name}`, name);
@@ -73,16 +73,16 @@
 
 // });
 
-// describe('DataAttributeAccessor', () => {
+// describe('DataAttributeAccessor', function() {
 //   let sut: DataAttributeAccessor;
 //   let el: Element;
 //   let lifecycle: Lifecycle;
 
 //   const valueArr = [undefined, null, '', 'foo'];
-//   describe('getValue()', () => {
+//   describe('getValue()', function() {
 //     for (const name of globalAttributeNames) {
 //       for (const value of valueArr.filter(v => v !== null && v !== undefined)) {
-//         it(`returns "${value}" for attribute "${name}"`, () => {
+//         it(`returns "${value}" for attribute "${name}"`, function() {
 //           el = createElement(`<div ${name}="${value}"></div>`);
 //           lifecycle = new Lifecycle();
 //           sut = new DataAttributeAccessor(dom, lifecycle, el, name);
@@ -93,10 +93,10 @@
 //     }
 //   });
 
-//   describe('setValue()', () => {
+//   describe('setValue()', function() {
 //     for (const name of globalAttributeNames) {
 //       for (const value of valueArr) {
-//         it(`sets attribute "${name}" to "${value}"`, () => {
+//         it(`sets attribute "${name}" to "${value}"`, function() {
 //           el = createElement(`<div></div>`);
 //           lifecycle = new Lifecycle();
 //           const expected = value !== null && value !== undefined ? `<div ${name}="${value}"></div>` : '<div></div>';
@@ -113,7 +113,7 @@
 //   });
 // });
 
-// describe('StyleAccessor', () => {
+// describe('StyleAccessor', function() {
 //   const propNames = Object.getOwnPropertyNames(CSS_PROPERTIES);
 
 //   let sut: StyleAttributeAccessor;
@@ -125,7 +125,7 @@
 //     const values = CSS_PROPERTIES[propName]['values'];
 //     const value = values[0];
 //     const rule = `${propName}:${value}`;
-//     it(`setValue - style="${rule}"`, () => {
+//     it(`setValue - style="${rule}"`, function() {
 //       el = <HTMLElement>createElement('<div></div>');
 //       lifecycle = new Lifecycle();
 //       sut = new StyleAttributeAccessor(dom, lifecycle, el);
@@ -139,7 +139,7 @@
 //     });
 //   }
 
-//   it(`getValue - style="display: block;"`, () => {
+//   it(`getValue - style="display: block;"`, function() {
 //     el = <HTMLElement>createElement(`<div style="display: block;"></div>`);
 //     lifecycle = new Lifecycle();
 //     sut = new StyleAttributeAccessor(dom, lifecycle, el);
@@ -149,7 +149,7 @@
 //   });
 // });
 
-// describe('ClassAccessor', () => {
+// describe('ClassAccessor', function() {
 //   let sut: ClassAttributeAccessor;
 //   let el: Element;
 //   let lifecycle: Lifecycle;
@@ -165,14 +165,14 @@
 //   const secondClassListArr = ['', 'fooo'];
 //   for (const markup of markupArr) {
 //     for (const classList of classListArr) {
-//       beforeEach(() => {
+//       beforeEach(function() {
 //         el = createElement(markup);
 //         initialClassList = el.classList.toString();
 //         lifecycle = new Lifecycle();
 //         sut = new ClassAttributeAccessor(dom, lifecycle, el);
 //       });
 
-//       it(`setValue("${classList}") updates ${markup}`, () => {
+//       it(`setValue("${classList}") updates ${markup}`, function() {
 //         sut.setValue(classList);
 //         expect(el.classList.toString()).to.equal(initialClassList);
 //         lifecycle.processFlushQueue(LifecycleFlags.none);
@@ -186,7 +186,7 @@
 //       });
 
 //       for (const secondClassList of secondClassListArr) {
-//         it(`setValue("${secondClassList}") updates already-updated ${markup}`, () => {
+//         it(`setValue("${secondClassList}") updates already-updated ${markup}`, function() {
 //           sut.setValue(classList, LifecycleFlags.none);
 //           lifecycle.processFlushQueue(LifecycleFlags.none);
 //           const updatedClassList = el.classList.toString();

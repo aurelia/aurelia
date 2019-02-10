@@ -2,10 +2,10 @@ import { DI, IContainer } from '@aurelia/kernel';
 import { expect } from 'chai';
 import { bindingBehavior, BindingBehaviorResource } from '../../src/index';
 
-describe(`@bindingBehavior('foo')`, () => {
+describe(`@bindingBehavior('foo')`, function() {
   let container: IContainer;
 
-  beforeEach(() => {
+  beforeEach(function() {
     container = DI.createContainer();
   });
 
@@ -13,7 +13,7 @@ describe(`@bindingBehavior('foo')`, () => {
   @bindingBehavior('foo')
   class FooBindingBehavior { }
 
-  it(`should define the binding behavior`, () => {
+  it(`should define the binding behavior`, function() {
     expect(FooBindingBehavior['kind']).to.equal(BindingBehaviorResource);
     expect(FooBindingBehavior['description'].name).to.equal('foo');
     FooBindingBehavior['register'](container);

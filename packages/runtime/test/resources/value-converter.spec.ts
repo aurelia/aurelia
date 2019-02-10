@@ -2,10 +2,10 @@ import { DI, IContainer } from '@aurelia/kernel';
 import { expect } from 'chai';
 import { valueConverter, ValueConverterResource } from '../../src/index';
 
-describe(`@valueConverter('foo')`, () => {
+describe(`@valueConverter('foo')`, function() {
   let container: IContainer;
 
-  beforeEach(() => {
+  beforeEach(function() {
     container = DI.createContainer();
   });
 
@@ -13,7 +13,7 @@ describe(`@valueConverter('foo')`, () => {
   @valueConverter('foo')
   class FooValueConverter { }
 
-  it(`should define the value converter`, () => {
+  it(`should define the value converter`, function() {
     expect(FooValueConverter['kind']).to.equal(ValueConverterResource);
     expect(FooValueConverter['description'].name).to.equal('foo');
     FooValueConverter['register'](container);

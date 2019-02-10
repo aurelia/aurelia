@@ -24,14 +24,14 @@ export function ensureSingleChildTemplateControllerBehaviors<T extends ICustomAt
   Type: T,
   getChildView: (attribute: ICustomAttribute<AuNode>) => IView<AuNode>
 ) {
-  it('creates a child instance from its template', () => {
+  it('creates a child instance from its template', function() {
     const { attribute } = hydrateCustomAttribute(Type);
     const child = getChildView(attribute);
 
     expect(child).to.be.instanceof(FakeView);
   });
 
-  it('enforces the attach lifecycle of its child instance', () => {
+  it('enforces the attach lifecycle of its child instance', function() {
     const lifecycle = new Lifecycle();
     const { attribute } = hydrateCustomAttribute(Type, { lifecycle });
     const child = getChildView(attribute);
@@ -44,7 +44,7 @@ export function ensureSingleChildTemplateControllerBehaviors<T extends ICustomAt
     expect(attachCalled).to.equal(true);
   });
 
-  it('adds a child instance at the render location when attaching', () => {
+  it('adds a child instance at the render location when attaching', function() {
     const lifecycle = new Lifecycle();
     const { attribute, location } = hydrateCustomAttribute(Type, { lifecycle });
     const child = getChildView(attribute);
@@ -54,7 +54,7 @@ export function ensureSingleChildTemplateControllerBehaviors<T extends ICustomAt
     expect(location.previousSibling).to.equal(child.$nodes['lastChild']);
   });
 
-  it('enforces the bind lifecycle of its child instance', () => {
+  it('enforces the bind lifecycle of its child instance', function() {
     const { attribute } = hydrateCustomAttribute(Type);
     const child = getChildView(attribute);
 
@@ -66,7 +66,7 @@ export function ensureSingleChildTemplateControllerBehaviors<T extends ICustomAt
     expect(bindCalled).to.equal(true);
   });
 
-  it('enforces the detach lifecycle of its child instance', () => {
+  it('enforces the detach lifecycle of its child instance', function() {
     const lifecycle = new Lifecycle();
     const { attribute } = hydrateCustomAttribute(Type, { lifecycle });
     const child = getChildView(attribute);
@@ -80,7 +80,7 @@ export function ensureSingleChildTemplateControllerBehaviors<T extends ICustomAt
     expect(detachCalled).to.equal(true);
   });
 
-  it('enforces the unbind lifecycle of its child instance', () => {
+  it('enforces the unbind lifecycle of its child instance', function() {
     const { attribute } = hydrateCustomAttribute(Type);
     const child = getChildView(attribute);
 

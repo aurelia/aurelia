@@ -16,7 +16,7 @@ import { trimFull } from './util';
 const build = { required: true, compiler: 'default' };
 const spec = 'compose';
 
-describe(spec, () => {
+describe(spec, function() {
   function setup(): SpecContext {
     const ctx = TestContext.createHTMLTestContext();
     const { container, dom, lifecycle, observerLocator, renderingEngine: re } = ctx;
@@ -148,7 +148,7 @@ describe(spec, () => {
     const { createSubject, expectedText } = subjectSpec;
     const { template } = templateSpec;
 
-    it(`verify au-compose behavior - subjectSpec ${subjectSpec.t}, templateSpec ${templateSpec.t}`, async () => {
+    it(`verify au-compose behavior - subjectSpec ${subjectSpec.t}, templateSpec ${templateSpec.t}`, async function() {
       const ctx = setup();
       const subject = createSubject(ctx);
       const { au, host, lifecycle } = ctx;

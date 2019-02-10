@@ -3,16 +3,16 @@ import { expect } from 'chai';
 import { HTMLTemplateElementFactory, ITemplateElementFactory } from '../../src/template-element-factory';
 import { HTMLTestContext, TestContext } from '../util';
 
-describe('HTMLTemplateElementFactory', () => {
+describe('HTMLTemplateElementFactory', function() {
   let sut: HTMLTemplateElementFactory;
   let ctx: HTMLTestContext;
 
-  beforeEach(() => {
+  beforeEach(function() {
     ctx = TestContext.createHTMLTestContext();
     sut = new HTMLTemplateElementFactory(ctx.dom);
   });
 
-  it('template-wrapped markup string', () => {
+  it('template-wrapped markup string', function() {
     const markup = `<template><div class="au">foo</div></template>`;
 
     const expectedHTML = markup;
@@ -21,7 +21,7 @@ describe('HTMLTemplateElementFactory', () => {
     expect(actualHTML).to.equal(expectedHTML);
   });
 
-  it('non-template-wrapped markup string', () => {
+  it('non-template-wrapped markup string', function() {
     const markup = `<div class="au">foo</div>`;
 
     const expectedHTML = `<template>${markup}</template>`;
@@ -30,7 +30,7 @@ describe('HTMLTemplateElementFactory', () => {
     expect(actualHTML).to.equal(expectedHTML);
   });
 
-  it('double template-wrapped markup string', () => {
+  it('double template-wrapped markup string', function() {
     const markup = `<template><div class="au">foo</div></template>`.repeat(2);
 
     const expectedHTML = `<template>${markup}</template>`;
@@ -39,7 +39,7 @@ describe('HTMLTemplateElementFactory', () => {
     expect(actualHTML).to.equal(expectedHTML);
   });
 
-  it('double non-template-wrapped markup string', () => {
+  it('double non-template-wrapped markup string', function() {
     const markup = `<div class="au">foo</div>`.repeat(2);
 
     const expectedHTML = `<template>${markup}</template>`;
@@ -48,7 +48,7 @@ describe('HTMLTemplateElementFactory', () => {
     expect(actualHTML).to.equal(expectedHTML);
   });
 
-  it('template node', () => {
+  it('template node', function() {
     const markup = `<div class="au">foo</div>`;
     const template = ctx.createElement('template');
     template.innerHTML = markup;
@@ -60,7 +60,7 @@ describe('HTMLTemplateElementFactory', () => {
     expect(actualHTML).to.equal(expectedHTML);
   });
 
-  it('non-template node', () => {
+  it('non-template node', function() {
     const markup = `<div class="au">foo</div>`;
     const template = ctx.createElement('template') as HTMLTemplateElement;
     template.innerHTML = markup;
@@ -72,7 +72,7 @@ describe('HTMLTemplateElementFactory', () => {
     expect(actualHTML).to.equal(expectedHTML);
   });
 
-  it('template node with parent', () => {
+  it('template node with parent', function() {
     const markup = `<template><div class="au">foo</div></template>`;
     const template = ctx.createElement('template') as HTMLTemplateElement;
     template.innerHTML = markup;

@@ -2,7 +2,7 @@ import { expect } from 'chai';
 import { spy } from 'sinon';
 import { LinkHandler } from './../../src/index';
 
-describe('LinkHandler', () => {
+describe('LinkHandler', function() {
   let linkHandler;
   const callback = ((info) => { return; });
   class MockDocument {
@@ -10,16 +10,16 @@ describe('LinkHandler', () => {
     public removeEventListener(handler) { return; }
   }
 
-  beforeEach(() => {
+  beforeEach(function() {
     linkHandler = new LinkHandler();
     linkHandler.document = new MockDocument();
   });
 
-  it('can be created', () => {
+  it('can be created', function() {
     expect(linkHandler).not.to.equal(null);
   });
 
-  it('can be activated', () => {
+  it('can be activated', function() {
     const callbackSpy = spy(linkHandler.document, 'addEventListener');
     linkHandler.activate({ callback: callback});
 
@@ -27,7 +27,7 @@ describe('LinkHandler', () => {
     expect(callbackSpy.calledOnce).to.equal(true);
   });
 
-  it('can be deactivated', () => {
+  it('can be deactivated', function() {
     const callbackSpy = spy(linkHandler.document, 'removeEventListener');
     linkHandler.deactivate();
 
@@ -35,7 +35,7 @@ describe('LinkHandler', () => {
     expect(callbackSpy.calledOnce).to.equal(true);
   });
 
-  it('throws when activated while active', () => {
+  it('throws when activated while active', function() {
     const callbackSpy = spy(linkHandler.document, 'addEventListener');
     linkHandler.activate({ callback: callback});
 

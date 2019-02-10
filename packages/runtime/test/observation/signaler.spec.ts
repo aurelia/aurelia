@@ -7,7 +7,7 @@ import {
 import { Signaler } from '../../src/observation/signaler';
 import { MockPropertySubscriber } from '../_doubles/mock-subscriber';
 
-describe('ISignaler', () => {
+describe('ISignaler', function() {
   type $1 = [string, ISignaler, MockPropertySubscriber[]];
   type $2 = [string, string[]];
   type $3 = [string, LifecycleFlags];
@@ -189,7 +189,7 @@ describe('ISignaler', () => {
     = [sutVariations, signalsVariations, flagsVariations, addSignalVariations, dispatchSignalVariations, removeSignalVariations];
 
   eachCartesianJoinFactory(inputs, ([t1, sut, mocks], [t2, signals], [t3, flags], [t4, addSignalListener], [t5, dispatchSignal], [t6, removeSignalListener]) => {
-      it(`${t1}, signals=${t2}, flags=${t3} -> ${t4} -> ${t5} -> ${t6}`, () => {
+      it(`${t1}, signals=${t2}, flags=${t3} -> ${t4} -> ${t5} -> ${t6}`, function() {
         addSignalListener(sut);
         dispatchSignal(sut);
         removeSignalListener(sut);

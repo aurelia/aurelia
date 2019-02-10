@@ -26,7 +26,7 @@ import {
 } from '../src/index';
 import { _, TestContext } from './util';
 
-describe('Renderer', () => {
+describe('Renderer', function() {
   function setup() {
     const ctx = TestContext.createHTMLTestContext();
     const { dom, container } = ctx;
@@ -65,10 +65,10 @@ describe('Renderer', () => {
     ctx.doc.body.removeChild(wrapper);
   }
 
-  describe('handles ITextBindingInstruction', () => {
+  describe('handles ITextBindingInstruction', function() {
     for (const from of ['${foo}', new Interpolation(['', ''], [new AccessScope('foo')])] as any[]) {
       const instruction = new TextBindingInstruction(from) as any;
-      it(_`instruction=${instruction}`, () => {
+      it(_`instruction=${instruction}`, function() {
         const { ctx, sut, dom, renderable, target, placeholder, wrapper, renderContext } = setup();
 
         sut.instructionRenderers[instruction.type].render(LF.none, dom, renderContext, renderable, target, instruction);
@@ -90,12 +90,12 @@ describe('Renderer', () => {
     }
   });
 
-  describe('handles IListenerBindingInstruction', () => {
+  describe('handles IListenerBindingInstruction', function() {
     for (const Instruction of [TriggerBindingInstruction, DelegateBindingInstruction, CaptureBindingInstruction] as any[]) {
       for (const to of ['foo', 'bar']) {
         for (const from of ['foo', new AccessScope('foo')]) {
           const instruction = new (Instruction)(from, to) as IListenerBindingInstruction;
-          it(_`instruction=${instruction}`, () => {
+          it(_`instruction=${instruction}`, function() {
             const { ctx, sut, dom, renderable, target, wrapper, renderContext } = setup();
 
             sut.instructionRenderers[instruction.type].render(LF.none, dom, renderContext, renderable, target, instruction);
@@ -118,11 +118,11 @@ describe('Renderer', () => {
     }
   });
 
-  describe('handles IStyleBindingInstruction', () => {
+  describe('handles IStyleBindingInstruction', function() {
     for (const to of ['foo', 'bar']) {
       for (const from of ['foo', new AccessScope('foo')] as any[]) {
         const instruction = new StylePropertyBindingInstruction(from, to) as any;
-        it(_`instruction=${instruction}`, () => {
+        it(_`instruction=${instruction}`, function() {
           const { ctx, sut, dom, renderable, target, wrapper, renderContext } = setup();
 
           sut.instructionRenderers[instruction.type].render(LF.none, dom, renderContext, renderable, target, instruction);
@@ -143,11 +143,11 @@ describe('Renderer', () => {
     }
   });
 
-  describe('handles ISetAttributeInstruction', () => {
+  describe('handles ISetAttributeInstruction', function() {
     for (const to of ['id', 'accesskey', 'slot', 'tabindex']) {
       for (const value of ['foo', 42, null] as any[]) {
         const instruction = new SetAttributeInstruction(value, to) as any;
-        it(_`instruction=${instruction}`, () => {
+        it(_`instruction=${instruction}`, function() {
           const { ctx, sut, dom, renderable, target, wrapper, renderContext } = setup();
 
           sut.instructionRenderers[instruction.type].render(LF.none, dom, renderContext, renderable, target, instruction);

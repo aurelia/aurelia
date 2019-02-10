@@ -9,13 +9,13 @@ import {
   ThrottleBindingBehavior
 } from '../../../src/index';
 
-describe('ThrottleBindingBehavior', () => {
+describe('ThrottleBindingBehavior', function() {
   const container: IContainer = DI.createContainer();
   let sut: ThrottleBindingBehavior;
   let binding: Binding;
   let originalFn: (value: unknown, flags: LifecycleFlags) => void;
 
-  beforeEach(() => {
+  beforeEach(function() {
     sut = new ThrottleBindingBehavior();
     binding = new Binding(undefined, undefined, undefined, undefined, undefined, container);
     originalFn = binding.updateTarget;
@@ -23,7 +23,7 @@ describe('ThrottleBindingBehavior', () => {
   });
 
   // TODO: test properly (whether throttling works etc)
-  it('bind()   should apply the correct behavior', () => {
+  it('bind()   should apply the correct behavior', function() {
     expect(binding['throttledMethod'] === originalFn).to.equal(true);
     expect(binding['throttledMethod'].originalName).to.equal('updateTarget');
     expect(binding.updateTarget === originalFn).to.equal(false);
@@ -32,7 +32,7 @@ describe('ThrottleBindingBehavior', () => {
     expect(typeof binding['throttleState']).to.equal('object');
   });
 
-  it('unbind() should revert the original behavior', () => {
+  it('unbind() should revert the original behavior', function() {
     sut.unbind(undefined, undefined, binding as any);
     expect(binding['throttledMethod']).to.equal(null);
     expect(binding.updateTarget === originalFn).to.equal(true);

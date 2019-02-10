@@ -130,7 +130,13 @@ export class ClassListBinding implements IPartialConnectableBinding {
 
     let targetObserver = this.targetObserver as IBindingTargetObserver;
     if (!targetObserver) {
-      targetObserver = this.targetObserver = new ClassListObserver(this.target, this.targetProperty);
+      targetObserver = this.targetObserver = new ClassListObserver(
+        LifecycleFlags.fromBind,
+        this.$lifecycle,
+        this.observerLocator,
+        this.target,
+        this.targetProperty
+      );
     }
     if (targetObserver.bind) {
       targetObserver.bind(flags);

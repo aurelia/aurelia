@@ -12,6 +12,7 @@ import { expect } from 'chai';
 import {
   _,
   eachCartesianJoin,
+  eachCartesianJoinAsync,
   eachCartesianJoinFactory,
   ensureNotCalled,
   htmlStringify,
@@ -86,4 +87,4 @@ export function trimFull(text: string) {
   return text.replace(reg, '');
 }
 
-export { _, h, stringify, jsonStringify, htmlStringify, verifyEqual, padLeft, padRight, massSpy, massStub, massReset, massRestore, ensureNotCalled, eachCartesianJoin, eachCartesianJoinFactory };
+export { _, h, stringify, jsonStringify, htmlStringify, verifyEqual, padLeft, padRight, massSpy, massStub, massReset, massRestore, ensureNotCalled, eachCartesianJoin, eachCartesianJoinAsync, eachCartesianJoinFactory };

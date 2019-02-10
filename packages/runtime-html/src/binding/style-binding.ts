@@ -130,7 +130,13 @@ export class StyleBinding implements IPartialConnectableBinding {
 
     let targetObserver = this.targetObserver as IBindingTargetObserver;
     if (!targetObserver) {
-      targetObserver = this.targetObserver = new InlineStyleObserver(this.target, this.targetProperty);
+      targetObserver = this.targetObserver = new InlineStyleObserver(
+        LifecycleFlags.fromBind,
+        this.$lifecycle,
+        this.observerLocator,
+        this.target,
+        this.targetProperty
+      );
     }
     if (targetObserver.bind) {
       targetObserver.bind(flags);

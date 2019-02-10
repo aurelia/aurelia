@@ -1,5 +1,14 @@
 import { PLATFORM } from '@aurelia/kernel';
-import { DOM, IBatchedCollectionSubscriber, IBindingTargetObserver, IPropertySubscriber, LifecycleFlags, targetObserver } from '@aurelia/runtime';
+import {
+  DOM,
+  IBatchedCollectionSubscriber,
+  IBindingTargetObserver,
+  ILifecycle,
+  IObserverLocator,
+  IPropertySubscriber,
+  LifecycleFlags,
+  targetObserver
+} from '@aurelia/runtime';
 
 export interface IHtmlElement extends HTMLElement {
   $mObserver: MutationObserver;
@@ -19,6 +28,10 @@ export interface InlineStyleObserver extends
 export class InlineStyleObserver implements InlineStyleObserver, ElementMutationSubscription {
 
   // observation related properties
+  public readonly isDOMObserver: true;
+  public readonly persistentFlags: LifecycleFlags;
+  public observerLocator: IObserverLocator;
+  public lifecycle: ILifecycle;
   public currentValue: unknown;
   public currentFlags: LifecycleFlags;
   public oldValue: unknown;
@@ -30,9 +43,16 @@ export class InlineStyleObserver implements InlineStyleObserver, ElementMutation
   private hyphenatedCssRule: string;
 
   constructor(
+    flags: LifecycleFlags,
+    lifecycle: ILifecycle,
+    observerLocator: IObserverLocator,
     element: Element,
     cssRule: string
   ) {
+    this.isDOMObserver = true;
+    this.persistentFlags = flags & LifecycleFlags.persistentBindingFlags;
+    this.observerLocator = observerLocator;
+    this.lifecycle = lifecycle;
     this.obj = element as IHtmlElement;
     this.cssRule = cssRule;
     this.hyphenatedCssRule = PLATFORM.kebabCase(cssRule);
@@ -89,6 +109,10 @@ export interface ClassListObserver extends
 export class ClassListObserver implements ClassListObserver, ElementMutationSubscription {
 
   // observation related properties
+  public readonly isDOMObserver: true;
+  public readonly persistentFlags: LifecycleFlags;
+  public observerLocator: IObserverLocator;
+  public lifecycle: ILifecycle;
   public currentValue: unknown;
   public currentFlags: LifecycleFlags;
   public oldValue: unknown;
@@ -99,9 +123,16 @@ export class ClassListObserver implements ClassListObserver, ElementMutationSubs
   private className: string;
 
   constructor(
+    flags: LifecycleFlags,
+    lifecycle: ILifecycle,
+    observerLocator: IObserverLocator,
     element: Element,
     className: string
   ) {
+    this.isDOMObserver = true;
+    this.persistentFlags = flags & LifecycleFlags.persistentBindingFlags;
+    this.observerLocator = observerLocator;
+    this.lifecycle = lifecycle;
     this.obj = element as IHtmlElement;
     this.className = className;
   }

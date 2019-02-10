@@ -13,11 +13,16 @@ function combine(browsers, oses) {
       for (const { versions: os_versions, name: os } of oses) {
         for (const os_version of os_versions) {
           capabilities.push({
+            browser: browserName,
             browserName,
             browser_version,
+            browserVersion: browser_version,
+            version: browser_version,
             os,
+            platform: os,
+            platformName: os,
+            platformVersion: os_version,
             os_version,
-            'resolution' : '1920x1080',
             'project': 'Aurelia vNext',
             'name': `${CIEnv.CIRCLE_PROJECT_REPONAME}_${CIEnv.CIRCLE_BRANCH}`,
             'build': `${CIEnv.CIRCLE_JOB}_${CIEnv.CIRCLE_BUILD_NUM}`,
@@ -42,21 +47,23 @@ exports.config = {
   user: CIEnv.BS_USER,
   key: CIEnv.BS_KEY,
 
-  updateJob: false,
+  restart: false,
+
+  updateJob: true,
   specs: [
     'dist/specs/**/*.spec.js'
   ],
   exclude: [],
 
-  maxInstances: 1,
+  maxInstances: 5,
 
   capabilities: [
     ...combine([
       //{ versions: ['17'], name: 'Edge' },
       { versions: ['71'], name: 'Chrome' },
-      { versions: ['65'], name: 'Firefox' }
+      // { versions: ['65'], name: 'Firefox' }
     ], [
-      { versions: ['10'], name: 'Windows' },
+      { versions: ['10'], name: 'WINDOWS' },
    // { versions: ['High Sierra'], name: 'OS X' }
     ]),
     // ...combine([
@@ -88,8 +95,7 @@ exports.config = {
   mochaOpts: {
       timeout: 60000,
       ui: 'bdd',
-      colors: true,
-      recursive: true
+      colors: true
   },
 
 

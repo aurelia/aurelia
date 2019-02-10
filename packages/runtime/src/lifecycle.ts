@@ -1463,14 +1463,23 @@ export function isBinding(obj: IState): boolean {
 export function isBound(obj: IState): boolean {
   return (obj.$state & State.isBound) === State.isBound;
 }
+export function isNotBound(obj: IState): boolean {
+  return (obj.$state & State.isBound) === 0;
+}
 export function isAttaching(obj: IState): boolean {
   return (obj.$state & State.isAttaching) === State.isAttaching;
 }
 export function isAttached(obj: IState): boolean {
   return (obj.$state & State.isAttached) === State.isAttached;
 }
+export function isNotAttached(obj: IState): boolean {
+  return (obj.$state & State.isAttached) === 0;
+}
 export function isMounted(obj: IState): boolean {
   return (obj.$state & State.isMounted) === State.isMounted;
+}
+export function isNotMounted(obj: IState): boolean {
+  return (obj.$state & State.isMounted) === 0;
 }
 export function isDetaching(obj: IState): boolean {
   return (obj.$state & State.isDetaching) === State.isDetaching;

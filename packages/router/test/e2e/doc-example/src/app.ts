@@ -77,20 +77,20 @@ export class App {
     this.router.addNav('app-menu', [
       {
         title: 'Authors',
-        components: [Authors, About],
+        route: [Authors, About],
         consideredActive: [Authors],
       },
       {
         title: 'Books',
-        components: [Books, About],
+        route: [Books, About],
         consideredActive: Books,
       },
       {
-        components: About,
+        route: About,
         title: 'About',
       },
       {
-        components: 'chat',
+        route: 'chat',
         title: 'Chat',
       },
     ]);

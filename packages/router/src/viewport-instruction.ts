@@ -5,7 +5,7 @@ import { Viewport } from './viewport';
 import { IRouteableCustomElementType } from './viewport-content';
 
 export class ViewportInstruction {
-  public component?: ICustomElementType;
+  public component?: Partial<ICustomElementType>;
   public componentName?: string;
   public viewport?: Viewport;
   public viewportName?: string;
@@ -13,11 +13,11 @@ export class ViewportInstruction {
   public parameters?: Record<string, unknown>;
   public parametersList?: string[];
 
-  constructor(component: ICustomElementType | string, viewport?: Viewport | string, parameters?: Record<string, unknown> | string) {
+  constructor(component: Partial<ICustomElementType> | string, viewport?: Viewport | string, parameters?: Record<string, unknown> | string) {
     this.initialize(component, viewport, parameters);
   }
 
-  public initialize(component: ICustomElementType | string, viewport?: Viewport | string, parameters?: Record<string, unknown> | string): void {
+  public initialize(component: Partial<ICustomElementType> | string, viewport?: Viewport | string, parameters?: Record<string, unknown> | string): void {
     if (typeof component === 'string') {
       this.componentName = component;
       this.component = null;

@@ -59,7 +59,7 @@ export class Viewport {
     this.enabled = true;
   }
 
-  public setNextContent(content: ICustomElementType | string, instruction: INavigationInstruction): boolean {
+  public setNextContent(content: Partial<ICustomElementType> | string, instruction: INavigationInstruction): boolean {
     let parameters;
     this.clear = false;
     if (typeof content === 'string') {

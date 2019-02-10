@@ -19,7 +19,7 @@ export interface IRouterOptions extends IHistoryOptions {
 
 export interface IRouteViewport {
   name: string;
-  component: ICustomElementType | string;
+  component: Partial<ICustomElementType> | string;
 }
 
 export class Router {
@@ -284,7 +284,7 @@ export class Router {
     this.processNavigations().catch(error => { throw error; });
   }
 
-  public addProcessingViewport(component: string | ICustomElementType, viewport: Viewport | string): void {
+  public addProcessingViewport(component: string | Partial<ICustomElementType>, viewport: Viewport | string): void {
     if (this.processingNavigation) {
       if (typeof viewport === 'string') {
         // TODO: Deal with not yet existing viewports

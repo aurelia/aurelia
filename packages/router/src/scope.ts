@@ -9,7 +9,7 @@ export interface IViewportCustomElementType extends ICustomElementType {
 }
 
 export interface IComponentViewport {
-  component: ICustomElementType | string;
+  component: Partial<ICustomElementType> | string;
   viewport: Viewport;
 }
 

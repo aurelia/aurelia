@@ -3,7 +3,7 @@ import { CustomElementResource, ICustomElement, ICustomElementType, INode, IRend
 import { INavigationInstruction } from './history-browser';
 import { ViewportInstruction } from './viewport-instruction';
 
-export interface IRouteableCustomElementType extends ICustomElementType {
+export interface IRouteableCustomElementType extends Partial<ICustomElementType> {
   parameters?: string[];
 }
 
@@ -30,7 +30,7 @@ export class ViewportContent {
   public contentStatus: ContentStatus;
   public fromCache: boolean;
 
-  constructor(content: ICustomElementType | string = null, parameters: string = null, instruction: INavigationInstruction = null, context: IRenderContext = null) {
+  constructor(content: Partial<ICustomElementType> | string = null, parameters: string = null, instruction: INavigationInstruction = null, context: IRenderContext = null) {
     // Can be a (resolved) type or a string (to be resolved later)
     this.content = content;
     this.parameters = parameters;

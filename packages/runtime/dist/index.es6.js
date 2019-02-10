@@ -156,13 +156,13 @@ function callPropertySubscribers(newValue, previousValue, flags) {
         subscribers = subscribers.slice();
     }
     if (subscriber0 !== null) {
-        callSubscriber(this, subscriber0, newValue, previousValue, flags, this[subscriber0.id]);
+        callSubscriber(subscriber0, newValue, previousValue, flags, this[subscriber0.id]);
     }
     if (subscriber1 !== null) {
-        callSubscriber(this, subscriber1, newValue, previousValue, flags, this[subscriber1.id]);
+        callSubscriber(subscriber1, newValue, previousValue, flags, this[subscriber1.id]);
     }
     if (subscriber2 !== null) {
-        callSubscriber(this, subscriber2, newValue, previousValue, flags, this[subscriber2.id]);
+        callSubscriber(subscriber2, newValue, previousValue, flags, this[subscriber2.id]);
     }
     const length = subscribers && subscribers.length;
     if (length !== undefined && length > 0) {
@@ -170,52 +170,36 @@ function callPropertySubscribers(newValue, previousValue, flags) {
         for (let i = 0; i < length; ++i) {
             subscriber = subscribers[i];
             if (subscriber !== null) {
-                callSubscriber(this, subscriber, newValue, previousValue, flags, this[subscriber.id]);
+                callSubscriber(subscriber, newValue, previousValue, flags, this[subscriber.id]);
             }
         }
     }
 }
-function callSubscriber(publisher, subscriber, newValue, previousValue, flags, ownFlags) {
+function callSubscriber(subscriber, newValue, previousValue, flags, ownFlags) {
     if (ownFlags === undefined) {
         // If ownFlags is undefined then the subscriber is not a connectable binding and we don't
         // have any business trying to restrict the data flow, so just call it with whatever we received.
         subscriber.handleChange(newValue, previousValue, flags);
-    }
-    else if ((ownFlags & 524288 /* isPublishing */) === 0) {
-        publisher[subscriber.id] = ownFlags | 524288 /* isPublishing */;
         // Note: if the update flags for both directions are set, that means an observer's callSubscribers caused the update direction to switch
         // back to the origin of the change.
         // With this heuristic we stop this roundtrip a little earlier than vCurrent does (where the target or source is evaluated
         // and compared again) and effectively make this a "purer" one-way update flow that prevents observable side-effects from
         // flowing back the opposite direction.
-        if (((flags | ownFlags) & 48 /* update */) === 48 /* update */) {
-            // Observers should explicitly pass this flag if they want a roundtrip to happen anyway.
-            // SelfObserver does this in order to propagate from-view changes from a child component back to the bindings
-            // on its own component.
-            // Some target observers (e.g. select) do this as well, but the other way around.
-            if ((flags & 262144 /* allowPublishRoundtrip */) > 0) {
-                // Unset the directional flag that came in from the origin and allowPublishRoundtrip since we don't
-                // want these to flow into the next subscriberCollection
-                subscriber.handleChange(newValue, previousValue, (flags & ~(48 /* update */ | 262144 /* allowPublishRoundtrip */)) | ownFlags);
-            }
+    }
+    else if (((flags | ownFlags) & 48 /* update */) === 48 /* update */) {
+        // Observers should explicitly pass this flag if they want a roundtrip to happen anyway.
+        // SelfObserver does this in order to propagate from-view changes from a child component back to the bindings
+        // on its own component.
+        // Some target observers (e.g. select) do this as well, but the other way around.
+        if ((flags & 262144 /* allowPublishRoundtrip */) > 0) {
+            // Unset the directional flag that came in from the origin and allowPublishRoundtrip since we don't
+            // want these to flow into the next subscriberCollection
+            subscriber.handleChange(newValue, previousValue, (flags & ~(48 /* update */ | 262144 /* allowPublishRoundtrip */)) | ownFlags);
         }
-        else {
-            // If this is not a roundtrip, simply proceed in the same direction.
-            subscriber.handleChange(newValue, previousValue, flags | ownFlags);
-        }
-        publisher[subscriber.id] = ownFlags;
     }
     else {
-        // We will only get here if a subscriber somehow causes handleChange to be called on itself from
-        // within its own handleChange.
-        // We're not really expecting this to ever happen with the existing guards
-        // in place, but if for whatever reason a binding or observer manages to cause a
-        // (potential) infinite update loop, throwing is certainly preferable over a hanging app.
-        // Of course, false positives are possible and throwing this error also helps
-        // us weed those out and detect+handle them appropriately.
-        throw Reporter.error(650);
-        // TODO: create error code
-        // TODO: remove the isPublishing flag assigment and check from the bundled output, since it adds significant overhead
+        // If this is not a roundtrip, simply proceed in the same direction.
+        subscriber.handleChange(newValue, previousValue, flags | ownFlags);
     }
 }
 function callCollectionSubscribers(origin, args, flags) {

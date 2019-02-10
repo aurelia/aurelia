@@ -913,7 +913,7 @@ System.register('runtimeHtml', ['@aurelia/kernel', '@aurelia/runtime'], function
               const oldValue = this.oldValue = this.currentValue;
               const newValue = this.currentValue = this.getValue();
               if (oldValue !== newValue) {
-                  this.callSubscribers(newValue, oldValue, 65536 /* fromDOMEvent */);
+                  this.callSubscribers(newValue, oldValue, 65536 /* fromDOMEvent */ | 262144 /* allowPublishRoundtrip */);
                   this.oldValue = newValue;
               }
           }

@@ -1,6 +1,6 @@
 {
   "name": "@aurelia/plugin-webpack",
-  "version": "0.3.0-dev.20190209",
+  "version": "0.3.0-dev.20190210",
   "main": "dist/index.umd.js",
   "module": "dist/index.es6.js",
   "jsnext:main": "dist/index.es6.js",
@@ -48,8 +48,8 @@
     "access": "public"
   },
   "dependencies": {
-    "@aurelia/kernel": "0.3.0-dev.20190209",
-    "@aurelia/runtime": "0.3.0-dev.20190209"
+    "@aurelia/kernel": "0.3.0-dev.20190210",
+    "@aurelia/runtime": "0.3.0-dev.20190210"
   },
   "devDependencies": {
     "@types/chai": "^4.1.7",

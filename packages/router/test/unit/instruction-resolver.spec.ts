@@ -54,13 +54,14 @@ describe('InstructionResolver', () => {
   }
   interface InstructionTest {
     instruction: string;
-    viewportInstruction: ViewportInstructionTest;
+    viewportInstruction: ViewportInstruction;
   }
+
   const instructions: InstructionTest[] = [
-    { instruction: 'foo', viewportInstruction: { componentName: 'foo', viewportName: undefined, parametersString: undefined, parameters: undefined } },
-    { instruction: 'foo@left', viewportInstruction: { componentName: 'foo', viewportName: 'left', parametersString: undefined, parameters: undefined } },
-    { instruction: 'foo@left=123', viewportInstruction: { componentName: 'foo', viewportName: 'left', parametersString: '123', parameters: { id: '123' } } },
-    { instruction: 'foo=123', viewportInstruction: { componentName: 'foo', viewportName: undefined, parametersString: '123', parameters: { id: '123' } } },
+    { instruction: 'foo', viewportInstruction: new ViewportInstruction('foo') },
+    { instruction: 'foo@left', viewportInstruction: new ViewportInstruction('foo', 'left') },
+    { instruction: 'foo@left=123', viewportInstruction: new ViewportInstruction('foo', 'left', '123') },
+    { instruction: 'foo=123', viewportInstruction: new ViewportInstruction('foo', undefined, '123') },
   ];
 
   for (const instructionTest of instructions) {
@@ -71,8 +72,7 @@ describe('InstructionResolver', () => {
       await waitForNavigation(router);
 
       const parsed = router.instructionResolver.parseViewportInstruction(instruction);
-      const compare = (({ componentName, viewportName, parametersString, parameters }) => ({ componentName, viewportName, parametersString, parameters }))(parsed);
-      expect(compare).to.deep.equal(viewportInstruction);
+      expect(parsed).to.deep.equal(viewportInstruction);
 
       await teardown(host, router, 1);
     });

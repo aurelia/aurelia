@@ -13,7 +13,7 @@ export class ViewportInstruction {
   public parameters?: Record<string, unknown>;
   public parametersList?: string[];
 
-  constructor(component: ICustomElementType | string, viewport?: Viewport | string, parameters?: Record<string, unknown>) {
+  constructor(component: ICustomElementType | string, viewport?: Viewport | string, parameters?: Record<string, unknown> | string) {
     this.initialize(component, viewport, parameters);
   }
 

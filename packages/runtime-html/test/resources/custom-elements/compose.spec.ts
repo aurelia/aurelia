@@ -5,7 +5,7 @@ import { FakeViewFactory } from '../../_doubles/fake-view-factory';
 import { hydrateCustomElement } from '../../behavior-assistance';
 import { HTMLTestContext, TestContext } from '../../util';
 
-describe('The "compose" custom element', () => {
+describe('The "compose" custom element', function () {
   // this is not ideal (same instance will be reused for multiple loops) but probably fine
   // need to revisit this later to give this extra dep a clean atomic entry point for the tests
   const subjectPossibilities = [
@@ -76,7 +76,7 @@ describe('The "compose" custom element', () => {
           () => {
             const child = getCurrentView(element);
             let attachCalled = false;
-            child.$attach = function() { attachCalled = true; };
+            child.$attach = function () { attachCalled = true; };
 
             runAttachLifecycle(ctx, element);
 
@@ -120,7 +120,7 @@ describe('The "compose" custom element', () => {
             const child = getCurrentView(element);
 
             let bindCalled = false;
-            child.$bind = function() { bindCalled = true; };
+            child.$bind = function () { bindCalled = true; };
 
             element.$bind(LifecycleFlags.fromBind);
 
@@ -142,7 +142,7 @@ describe('The "compose" custom element', () => {
           () => {
             const child = getCurrentView(element);
             let detachCalled = false;
-            child.$detach = function() { detachCalled = true; };
+            child.$detach = function () { detachCalled = true; };
 
             runAttachLifecycle(ctx, element);
             runDetachLifecycle(ctx, element);
@@ -165,7 +165,7 @@ describe('The "compose" custom element', () => {
           () => {
             const child = getCurrentView(element);
             let unbindCalled = false;
-            child.$unbind = function() { unbindCalled = true; };
+            child.$unbind = function () { unbindCalled = true; };
 
             element.$bind(LifecycleFlags.fromBind);
             element.$unbind(LifecycleFlags.fromUnbind);
@@ -240,13 +240,13 @@ describe('The "compose" custom element', () => {
 
           let detachCalled = false;
           const detach = view1.$detach;
-          view1.$detach = function() {
+          view1.$detach = function () {
             detachCalled = true;
             detach.apply(view1, [LifecycleFlags.none]);
           };
 
           let unbindCalled = false;
-          view1.$unbind = function() { unbindCalled = true; };
+          view1.$unbind = function () { unbindCalled = true; };
 
           waitForCompositionEnd(
             element,

@@ -15,8 +15,8 @@ import { TestContext } from '../util';
 const spec = 'kitchen-sink';
 
 // TemplateCompiler - integration with various different parts
-describe(spec, () => {
-  it('startup with App type', () => {
+describe(spec, function () {
+  it('startup with App type', function () {
     const ctx = TestContext.createHTMLTestContext();
     const component = CustomElementResource.define({ name: 'app', template: `<template>\${message}</template>` }, class { public message = 'Hello!'; });
     const host = ctx.createElement('div');
@@ -30,7 +30,7 @@ describe(spec, () => {
     expect(host.textContent).to.equal('');
   });
 
-  it('signaler', async () => {
+  it('signaler', async function () {
 
     const items = [0, 1, 2];
     const App = CustomElementResource.define({
@@ -66,7 +66,7 @@ describe(spec, () => {
 
   });
 
-  it('signaler + oneTime', async () => {
+  it('signaler + oneTime', async function () {
 
     const items = [0, 1, 2];
     const App = CustomElementResource.define({
@@ -102,7 +102,7 @@ describe(spec, () => {
 
   });
 
-  it('render hook', async () => {
+  it('render hook', async function () {
 
     const ctx = TestContext.createHTMLTestContext();
     const App = CustomElementResource.define({
@@ -129,7 +129,7 @@ describe(spec, () => {
   });
 });
 
-describe('xml node compiler tests', () => {
+describe('xml node compiler tests', function () {
   // TODO: add some content assertions and verify different kinds of xml compilation
   // (for now these tests are just to ensure the binder doesn't hang or crash when given "unusual" node types)
   const markups = [
@@ -157,7 +157,7 @@ describe('xml node compiler tests', () => {
 
   for (const markup of markups) {
     const escaped = markup.replace(/\b/g, '\\b').replace(/\t/g, '\\t').replace(/\n/g, '\\n').replace(/\v/g, '\\v').replace(/\f/g, '\\f').replace(/\r/g, '\\r');
-    it(escaped, () => {
+    it(escaped, function () {
       const ctx = TestContext.createHTMLTestContext();
       const parser = new ctx.DOMParser();
       const doc = parser.parseFromString(markup, 'application/xml');
@@ -176,9 +176,9 @@ describe('xml node compiler tests', () => {
   }
 });
 
-describe('dependency injection', () => {
+describe('dependency injection', function () {
 
-  it('register local dependencies ', () => {
+  it('register local dependencies ', function () {
     const Foo = CustomElementResource.define(
       {
         name: 'foo',

@@ -12,9 +12,9 @@ import {
 import { eachCartesianJoin } from '../util';
 
 //TODO: verify mount callbacks
-describe('@customElement', () => {
+describe('@customElement', function () {
 
-  describe('$attach', () => {
+  describe('$attach', function () {
 
     const propsSpecs = [
       {
@@ -59,7 +59,7 @@ describe('@customElement', () => {
     eachCartesianJoin([propsSpecs, hooksSpecs],
                       (propsSpec, hooksSpec) => {
 
-      it(`${propsSpec.expectation} if ${propsSpec.description} AND ${hooksSpec.expectation} if ${hooksSpec.description}`, () => {
+      it(`${propsSpec.expectation} if ${propsSpec.description} AND ${hooksSpec.expectation} if ${hooksSpec.description}`, function () {
         // Arrange
         const { sut } = createCustomElement('foo');
         const initState = sut.$state;
@@ -107,7 +107,7 @@ describe('@customElement', () => {
     });
   });
 
-  describe('$detach', () => {
+  describe('$detach', function () {
 
     const propsSpecs = [
       {
@@ -152,7 +152,7 @@ describe('@customElement', () => {
     eachCartesianJoin([propsSpecs, hooksSpecs],
                       (propsSpec, hooksSpec) => {
 
-      it(`${propsSpec.expectation} if ${propsSpec.description} AND ${hooksSpec.expectation} if ${hooksSpec.description}`, () => {
+      it(`${propsSpec.expectation} if ${propsSpec.description} AND ${hooksSpec.expectation} if ${hooksSpec.description}`, function () {
         // Arrange
         const { sut } = createCustomElement('foo');
         sut.$state |= State.isBound;
@@ -190,7 +190,7 @@ describe('@customElement', () => {
     });
   });
 
-  describe('$cache', () => {
+  describe('$cache', function () {
 
     const hooksSpecs = [
       {
@@ -208,7 +208,7 @@ describe('@customElement', () => {
     eachCartesianJoin([hooksSpecs],
                       (hooksSpec) => {
 
-      it(`${hooksSpec.expectation} if ${hooksSpec.description}`, () => {
+      it(`${hooksSpec.expectation} if ${hooksSpec.description}`, function () {
         // Arrange
         const { sut } = createCustomElement('foo');
         sut.$state |= State.isBound;
@@ -231,8 +231,8 @@ describe('@customElement', () => {
     });
   });
 
-  describe('$mount', () => {
-    it('calls $projector.project()', () => {
+  describe('$mount', function () {
+    it('calls $projector.project()', function () {
       const { sut } = createCustomElement('foo');
 
       const nodes = sut.$nodes = {} as any;
@@ -252,8 +252,8 @@ describe('@customElement', () => {
     });
   });
 
-  describe('$unmount', () => {
-    it('calls $projector.take()', () => {
+  describe('$unmount', function () {
+    it('calls $projector.take()', function () {
       const { sut } = createCustomElement('foo');
 
       const nodes = sut.$nodes = {} as any;

@@ -14,7 +14,7 @@ import {
 import { expect } from 'chai';
 import { TestContext } from '../util';
 
-describe('DI', function() {
+describe('DI', function () {
   function setup() {
     const ctx = TestContext.createHTMLTestContext();
     const container = ctx.container;
@@ -24,9 +24,9 @@ describe('DI', function() {
     return { ctx, container, au, host };
   }
 
-  describe('can render locally registered types', function() {
+  describe('can render locally registered types', function () {
 
-    it('from within the type in which it was registered', function() {
+    it('from within the type in which it was registered', function () {
       const { au, host } = setup();
 
       const Foo = CustomElementResource.define(
@@ -53,7 +53,7 @@ describe('DI', function() {
       expect(host.textContent).to.equal('foo');
     });
 
-    it('from within a child type of the type in which is was registered', function() {
+    it('from within a child type of the type in which is was registered', function () {
       const { au, host } = setup();
 
       const Bar = CustomElementResource.define(
@@ -88,7 +88,7 @@ describe('DI', function() {
       expect(host.textContent).to.equal('foobar');
     });
 
-    it('from within a grandchild type of the type in which is was registered', function() {
+    it('from within a grandchild type of the type in which is was registered', function () {
       const { au, host } = setup();
 
       const Baz = CustomElementResource.define(
@@ -131,7 +131,7 @@ describe('DI', function() {
       expect(host.textContent).to.equal('foobarbaz');
     });
 
-    it('from within a type whose child has registered it, which is a parent via recursion', function() {
+    it('from within a type whose child has registered it, which is a parent via recursion', function () {
       const { au, host } = setup();
 
       const Bar = CustomElementResource.define(
@@ -178,9 +178,9 @@ describe('DI', function() {
     });
   });
 
-  describe('can resolve locally registered types', function() {
+  describe('can resolve locally registered types', function () {
 
-    it('from within the type in which it was registered', function() {
+    it('from within the type in which it was registered', function () {
       const { au, host } = setup();
 
       const Foo = CustomElementResource.define(
@@ -223,7 +223,7 @@ describe('DI', function() {
       expect(host.textContent).to.equal('fooapp');
     });
 
-    it('from within a child type of the type in which is was registered', function() {
+    it('from within a child type of the type in which is was registered', function () {
       const { au, host } = setup();
 
       const Bar = CustomElementResource.define(
@@ -275,7 +275,7 @@ describe('DI', function() {
       expect(host.textContent).to.equal('appbarfoo');
     });
 
-    it('from within a grandchild type of the type in which is was registered', function() {
+    it('from within a grandchild type of the type in which is was registered', function () {
       const { au, host } = setup();
 
       const Baz = CustomElementResource.define(

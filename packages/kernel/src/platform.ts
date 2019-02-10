@@ -8,7 +8,7 @@ declare var self: IWindowOrWorkerGlobalScope;
 declare var window: IWindowOrWorkerGlobalScope;
 declare function setTimeout(handler: (...args: unknown[]) => void, timeout: number): unknown;
 
-const $global: IWindowOrWorkerGlobalScope = (function(): IWindowOrWorkerGlobalScope {
+const $global: IWindowOrWorkerGlobalScope = (function (): IWindowOrWorkerGlobalScope {
   // https://github.com/Microsoft/tslint-microsoft-contrib/issues/415
   // tslint:disable:no-typeof-undefined
   if (typeof global !== 'undefined') {
@@ -33,7 +33,7 @@ const $global: IWindowOrWorkerGlobalScope = (function(): IWindowOrWorkerGlobalSc
 })();
 
 // performance.now polyfill for non-browser envs based on https://github.com/myrne/performance-now
-const $now = (function(): () => number {
+const $now = (function (): () => number {
   let getNanoSeconds: () => number;
   let hrtime: (time?: [number, number]) => [number, number];
   let moduleLoadTime: number;
@@ -42,15 +42,15 @@ const $now = (function(): () => number {
 
   if (($global.performance !== undefined && $global.performance !== null) && $global.performance.now) {
     const $performance = $global.performance;
-    return function(): number {
+    return function (): number {
       return $performance.now();
     };
   } else if (($global.process !== undefined && $global.process !== null) && $global.process.hrtime) {
-    const now = function(): number {
+    const now = function (): number {
       return (getNanoSeconds() - nodeLoadTime) / 1e6;
     };
     hrtime = $global.process.hrtime;
-    getNanoSeconds = function(): number {
+    getNanoSeconds = function (): number {
       let hr: [number, number];
       hr = hrtime();
       return hr[0] * 1e9 + hr[1];
@@ -73,7 +73,7 @@ const {
   $getEntriesByType,
   $clearMarks,
   $clearMeasures
-} = (function(): {
+} = (function (): {
   $mark: IWindowOrWorkerGlobalScope['performance']['mark'];
   $measure: IWindowOrWorkerGlobalScope['performance']['measure'];
   $getEntriesByName: IWindowOrWorkerGlobalScope['performance']['getEntriesByName'];
@@ -195,7 +195,7 @@ const {
 })();
 
 // RAF polyfill for non-browser envs from https://github.com/chrisdickinson/raf/blob/master/index.js
-const { $raf, $caf } = (function(): { $raf(callback: (time: number) => void): number; $caf(handle: number): void } {
+const { $raf, $caf } = (function (): { $raf(callback: (time: number) => void): number; $caf(handle: number): void } {
   const vendors = ['moz', 'webkit'];
   const suffix = 'AnimationFrame';
   let raf: (callback: (time: number) => void) => number = $global[`request${suffix}`];
@@ -221,7 +221,7 @@ const { $raf, $caf } = (function(): { $raf(callback: (time: number) => void): nu
         next = Math.max(0, frameDuration - (_now - last));
         last = next + _now;
         setTimeout(
-          function(): void {
+          function (): void {
             const cp = queue.slice(0);
             // Clear queue here to prevent callbacks from appending listeners to the current frame's queue
             queue.length = 0;
@@ -230,7 +230,7 @@ const { $raf, $caf } = (function(): { $raf(callback: (time: number) => void): nu
                 try {
                   cp[i].callback(last);
                 } catch (e) {
-                  setTimeout(function(): void { throw e; }, 0);
+                  setTimeout(function (): void { throw e; }, 0);
                 }
               }
             }
@@ -258,7 +258,7 @@ const { $raf, $caf } = (function(): { $raf(callback: (time: number) => void): nu
   const $$raf = function(callback: (time: number) => void): number {
     return raf.call($global, callback);
   };
-  $$raf.cancel = function(): void {
+  $$raf.cancel = function (): void {
     caf.apply($global, arguments);
   };
   $global.requestAnimationFrame = raf;

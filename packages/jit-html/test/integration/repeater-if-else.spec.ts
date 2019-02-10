@@ -13,7 +13,7 @@ import { trimFull } from './util';
 
 const spec = 'repeater-if-else';
 
-describe(spec, function() {
+describe(spec, function () {
 
   type Comp = { items: any[]; display: boolean; $patch(flags: LifecycleFlags): void };
   interface Spec {
@@ -582,7 +582,7 @@ describe(spec, function() {
     [strategySpecs, behaviorsSpecs, ceTemplateSpecs, appTemplateSpecs, itemsSpecs, countSpecs, mutationSpecs],
     (strategySpec, behaviorsSpec, ceTemplateSpec, appTemplateSpec, itemsSpec, countSpec, mutationSpec) => {
 
-    it(`strategySpec ${strategySpec.t}, behaviorsSpec ${behaviorsSpec.t}, ceTemplateSpec ${ceTemplateSpec.t}, appTemplateSpec ${appTemplateSpec.t}, itemsSpec ${itemsSpec.t}, countSpec ${countSpec.t}, mutationSpec ${mutationSpec.t}`, function() {
+    it(`strategySpec ${strategySpec.t}, behaviorsSpec ${behaviorsSpec.t}, ceTemplateSpec ${ceTemplateSpec.t}, appTemplateSpec ${appTemplateSpec.t}, itemsSpec ${itemsSpec.t}, countSpec ${countSpec.t}, mutationSpec ${mutationSpec.t}`, function () {
       const { strategy } = strategySpec;
       const { behaviors } = behaviorsSpec;
       const { createCETemplate } = ceTemplateSpec;

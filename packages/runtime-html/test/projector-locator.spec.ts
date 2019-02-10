@@ -3,12 +3,12 @@ import { expect } from 'chai';
 import { ContainerlessProjector, HostProjector, HTMLProjectorLocator, ShadowDOMProjector } from '../src/projectors';
 import { TestContext } from './util';
 
-describe(`determineProjector`, () => {
+describe(`determineProjector`, function () {
   const ctx = TestContext.createHTMLTestContext();
   const dom = ctx.dom;
   const locator = new HTMLProjectorLocator();
 
-  it(`@useShadowDOM yields ShadowDOMProjector`, () => {
+  it(`@useShadowDOM yields ShadowDOMProjector`, function () {
     const host = ctx.createElement('div');
     const Foo = CustomElementResource.define(
       {
@@ -31,7 +31,7 @@ describe(`determineProjector`, () => {
     expect(projector.provideEncapsulationSource()).to.equal(projector['shadowRoot']);
   });
 
-  it(`hasSlots=true yields ShadowDOMProjector`, () => {
+  it(`hasSlots=true yields ShadowDOMProjector`, function () {
     const host = ctx.createElement('div');
     const Foo = CustomElementResource.define(
       {
@@ -54,7 +54,7 @@ describe(`determineProjector`, () => {
     expect(projector.provideEncapsulationSource()).to.equal(projector['shadowRoot']);
   });
 
-  it(`@containerless yields ContainerlessProjector`, () => {
+  it(`@containerless yields ContainerlessProjector`, function () {
     const host = ctx.createElement('div');
     const parent = ctx.createElement('div');
     parent.appendChild(host);
@@ -84,7 +84,7 @@ describe(`determineProjector`, () => {
     expect(projector.provideEncapsulationSource()).to.equal(parent);
   });
 
-  it(`@containerless yields ContainerlessProjector (with child)`, () => {
+  it(`@containerless yields ContainerlessProjector (with child)`, function () {
     const parent = ctx.createElement('div');
     const host = ctx.createElement('div');
     const child = ctx.createElement('div');
@@ -112,7 +112,7 @@ describe(`determineProjector`, () => {
     expect(projector.provideEncapsulationSource()).to.equal(parent);
   });
 
-  it(`no shadowDOM, slots or containerless yields HostProjector`, () => {
+  it(`no shadowDOM, slots or containerless yields HostProjector`, function () {
     const host = ctx.createElement('div');
     const Foo = CustomElementResource.define(
       {
@@ -129,7 +129,7 @@ describe(`determineProjector`, () => {
     expect(projector.provideEncapsulationSource()).to.equal(host);
   });
 
-  it(`@containerless + @useShadowDOM throws`, () => {
+  it(`@containerless + @useShadowDOM throws`, function () {
     const host = ctx.createElement('div');
     const Foo = CustomElementResource.define(
       {
@@ -144,7 +144,7 @@ describe(`determineProjector`, () => {
     expect(() => locator.getElementProjector(dom, component, host, Foo.description)).to.throw(/21/);
   });
 
-  it(`@containerless + hasSlots throws`, () => {
+  it(`@containerless + hasSlots throws`, function () {
     const host = ctx.createElement('div');
     const Foo = CustomElementResource.define(
       {

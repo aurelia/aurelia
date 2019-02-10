@@ -8,10 +8,10 @@ import { createCustomAttribute } from './custom-attribute._builder';
 // We're intentionally using the less declarative to.equal() syntax for true/false/null equality comparison
 // because this allows us to add a message to the assertion describing which property was checked, making it
 // easier to pin down the source of the error when a test fail.
-describe('@customAttribute', () => {
+describe('@customAttribute', function () {
   const descriptionKeys = ['name', 'aliases', 'defaultBindingMode', 'hasDynamicOptions', 'isTemplateController', 'bindables', 'strategy'];
 
-  it('creates the default attribute description', () => {
+  it('creates the default attribute description', function () {
     const { Type } = createCustomAttribute('foo');
     expect(Type.description).to.be.a('object', 'description');
     expect(Type.description.name).to.equal('foo', 'name');
@@ -68,7 +68,7 @@ describe('@customAttribute', () => {
   ];
 
   eachCartesianJoin([aliasesSpecs], (aliasesSpec) => {
-    it(`${aliasesSpec.expectation} if ${aliasesSpec.description}`, () => {
+    it(`${aliasesSpec.expectation} if ${aliasesSpec.description}`, function () {
       // Arrange
       const def = {
         name: 'foo',
@@ -152,7 +152,7 @@ describe('@customAttribute', () => {
   ];
 
   eachCartesianJoin([bindingModeSpecs], (bindingModeSpec) => {
-    it(`${bindingModeSpec.expectation} if ${bindingModeSpec.description}`, () => {
+    it(`${bindingModeSpec.expectation} if ${bindingModeSpec.description}`, function () {
       // Arrange
       const def = {
         name: 'foo',
@@ -229,7 +229,7 @@ describe('@customAttribute', () => {
   ];
 
   eachCartesianJoin([bindablesSpecs], (bindablesSpec) => {
-    it(`${bindablesSpec.expectation} if ${bindablesSpec.description}`, () => {
+    it(`${bindablesSpec.expectation} if ${bindablesSpec.description}`, function () {
       // Arrange
       const def = {
         name: 'foo',

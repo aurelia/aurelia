@@ -7,7 +7,7 @@ import {
   RuntimeBasicConfiguration
 } from '../../src/index';
 
-describe('DirtyChecker', function() {
+describe('DirtyChecker', function () {
   afterEach(function () {
     DirtyCheckSettings.resetToDefault();
   });
@@ -292,7 +292,7 @@ describe('DirtyChecker', function() {
     });
   });
 
-  it('throws on property creation if configured', function() {
+  it('throws on property creation if configured', function () {
     DirtyCheckSettings.throw = true;
     const { dirtyChecker } = setup();
 
@@ -306,7 +306,7 @@ describe('DirtyChecker', function() {
     expect(err.message).to.match(/800/);
   });
 
-  it('warns by default', function() {
+  it('warns by default', function () {
     let warnCalled = false;
     const writeBackup = Reporter.write;
     Reporter.write = function(code) {
@@ -322,7 +322,7 @@ describe('DirtyChecker', function() {
     Reporter.write = writeBackup;
   });
 
-  it('does not warn if warn is off', function() {
+  it('does not warn if warn is off', function () {
     let warnCalled = false;
     DirtyCheckSettings.warn = false;
     const writeBackup = Reporter.write;

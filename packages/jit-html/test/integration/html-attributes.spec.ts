@@ -15,7 +15,7 @@ interface Spec {
   t: string;
 }
 
-describe('html attribute', function() {
+describe('html attribute', function () {
   function setup() {
     const ctx = TestContext.createHTMLTestContext();
 
@@ -118,7 +118,7 @@ describe('html attribute', function() {
       eachCartesianJoin(
         [thingSpecs, thingSpecs, thingSpecs, thingSpecs, expressionSpecs, elementSpecs],
         function (thingSpec1, thingSpec2, thingSpec3, thingSpec4, expressionSpec, elementSpec) {
-          it(`thingSpec1 ${thingSpec1.t}, thingSpec2 ${thingSpec2.t}, thingSpec3 ${thingSpec3.t}, thingSpec4 ${thingSpec4.t}, expressionSpec ${expressionSpec.t}, elementSpec ${elementSpec.t}`, function() {
+          it(`thingSpec1 ${thingSpec1.t}, thingSpec2 ${thingSpec2.t}, thingSpec3 ${thingSpec3.t}, thingSpec4 ${thingSpec4.t}, expressionSpec ${expressionSpec.t}, elementSpec ${elementSpec.t}`, function () {
             const { createThing: createThing1 } = thingSpec1;
             const { createThing: createThing2 } = thingSpec2;
             const { createThing: createThing3 } = thingSpec3;

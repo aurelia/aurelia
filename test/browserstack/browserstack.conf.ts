@@ -221,7 +221,7 @@ exports.config = {
      */
     onComplete: function (exitCode, config, capabilities) {
       console.log(`onComplete, exitCode: ${exitCode}`);
-      exports.bs_local.stop(function() {});
+      exports.bs_local.stop(function () {});
     },
     /**
     * Gets executed when an error happens, good place to take a screenshot

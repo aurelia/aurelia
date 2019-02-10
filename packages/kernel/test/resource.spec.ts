@@ -2,9 +2,9 @@ import { expect } from 'chai';
 import { Container } from '../src/di';
 import { RuntimeCompilationResources } from '../src/index';
 
-describe('RuntimeCompilationResources', () => {
+describe('RuntimeCompilationResources', function () {
 
-  it('does not register while finding resource', () => {
+  it('does not register while finding resource', function () {
     const container = new Container();
     const resources = new RuntimeCompilationResources(container as any);
 

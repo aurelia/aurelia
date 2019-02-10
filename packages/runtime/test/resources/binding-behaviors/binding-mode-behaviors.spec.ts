@@ -19,7 +19,7 @@ const tests = [
   { Behavior: TwoWayBindingBehavior, mode: BindingMode.twoWay }
 ];
 
-describe('BindingModeBehavior', () => {
+describe('BindingModeBehavior', function () {
   const container: IContainer = DI.createContainer();
   let sut: OneTimeBindingBehavior;
   let binding: Binding;
@@ -28,18 +28,18 @@ describe('BindingModeBehavior', () => {
     const initModeArr = [BindingMode.oneTime, BindingMode.toView, BindingMode.fromView, BindingMode.twoWay, BindingMode.default];
 
     for (const initMode of initModeArr) {
-      describe(Behavior.name, () => {
-        beforeEach(() => {
+      describe(Behavior.name, function () {
+        beforeEach(function () {
           sut = new Behavior();
           binding = new Binding(undefined, undefined, undefined, initMode, undefined, container as any);
           sut.bind(undefined, undefined, binding);
         });
 
-        it(`bind()   should apply  bindingMode ${mode}`, () => {
+        it(`bind()   should apply  bindingMode ${mode}`, function () {
           expect(binding.mode).to.equal(mode);
         });
 
-        it(`unbind() should revert bindingMode ${initMode}`, () => {
+        it(`unbind() should revert bindingMode ${initMode}`, function () {
           sut.unbind(undefined, undefined, binding);
           expect(binding.mode).to.equal(initMode);
         });

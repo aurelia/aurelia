@@ -11,18 +11,18 @@ import {
 } from './util';
 
 // TemplateCompiler - <select/> Integration
-describe('select', () => {
+describe('select', function () {
   let ctx: HTMLTestContext;
 
-  beforeEach(() => {
+  beforeEach(function () {
     ctx = TestContext.createHTMLTestContext();
   });
 
   //<select/> - single
-  describe('01.', () => {
+  describe('01.', function () {
 
     //works with multiple toView bindings
-    it('01.', () => {
+    it('01.', function () {
       const { au, lifecycle, host, observerLocator, component } = setup(
         ctx,
         `<template>
@@ -72,7 +72,7 @@ describe('select', () => {
     });
 
     //works with mixed of multiple binding: twoWay + toView
-    it('02.', () => {
+    it('02.', function () {
       const { au, lifecycle, host, observerLocator, component } = setup(
         ctx,
         `<template>
@@ -130,10 +130,10 @@ describe('select', () => {
   });
 
   //<select/> - multiple
-  describe('02.', () => {
+  describe('02.', function () {
 
     //works with multiple toView bindings without pre-selection
-    it('01.', () => {
+    it('01.', function () {
       const { au, lifecycle, host, observerLocator, component } = setupAndStart(
         ctx,
         `<template>
@@ -191,7 +191,7 @@ describe('select', () => {
     });
 
     //works with mixed of two-way + to-view bindings with pre-selection
-    it('02.', () => {
+    it('02.', function () {
       const { au, lifecycle, host, observerLocator, component } = setupAndStart(
         ctx,
         `<template>
@@ -260,7 +260,7 @@ describe('select', () => {
   });
 
   //toViewBinding - select single
-  it('03.', () => {
+  it('03.', function () {
     const { au, lifecycle, host, component } = setupAndStart(
       ctx,
       template(ctx.doc, null,
@@ -281,7 +281,7 @@ describe('select', () => {
   });
 
   //twoWayBinding - select single
-  it('04.', () => {
+  it('04.', function () {
     const { au, lifecycle, host, component } = setupAndStart(
       ctx,
       h(ctx.doc, 'template',

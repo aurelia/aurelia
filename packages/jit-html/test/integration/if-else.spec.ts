@@ -11,15 +11,15 @@ import {
 const spec = 'if-else';
 
 // TemplateCompiler - if/else integration
-describe(spec, () => {
+describe(spec, function () {
   let ctx: HTMLTestContext;
 
-  beforeEach(() => {
+  beforeEach(function () {
     ctx = TestContext.createHTMLTestContext();
   });
 
   //if - shows and hides
-  it('01.', () => {
+  it('01.', function () {
     const { au, lifecycle, host, component } = setupAndStart(ctx, `<template><div if.bind="foo">bar</div></template>`, null);
     component.foo = true;
     lifecycle.processFlushQueue(LifecycleFlags.none);
@@ -31,7 +31,7 @@ describe(spec, () => {
   });
 
   //if - shows and hides - toggles else
-  it('02.', () => {
+  it('02.', function () {
     const { au, lifecycle, host, component } = setupAndStart(ctx, `<template><div if.bind="foo">bar</div><div else>baz</div></template>`, null);
     component.foo = true;
     lifecycle.processFlushQueue(LifecycleFlags.none);

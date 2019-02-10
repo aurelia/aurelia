@@ -1,6 +1,26 @@
 import { Profiler, Tracer, Writable } from '@aurelia/kernel';
-import { Hooks, LifecycleFlags, State } from '../flags';
-import { IComponent, ILifecycleHooks, IMountableComponent, IRenderable, IView } from '../lifecycle';
+import { LifecycleFlags } from '../flags';
+import {
+  hasAttachedHook,
+  hasAttachingHook,
+  hasCachingHook,
+  hasDetachedHook,
+  hasDetachingHook,
+  IComponent,
+  ILifecycleHooks,
+  IMountableComponent,
+  IRenderable,
+  isAttached,
+  isMounted,
+  IView,
+  setAttachedState,
+  setAttachingState,
+  setCachedState,
+  setDetachingState,
+  setMountedState,
+  setNotAttachedState,
+  setNotMountedState
+} from '../lifecycle';
 import { ICustomElement } from '../resources/custom-element';
 
 interface IAttachable extends IRenderable, ILifecycleHooks, IComponent {
@@ -19,31 +39,27 @@ const { enter, leave } = Profiler.createTimer('AttachLifecycle');
 export function $attachAttribute(this: Writable<IAttachable>, flags: LifecycleFlags): void {
   if (Profiler.enabled) { enter(); }
   if (Tracer.enabled) { Tracer.enter(this.constructor.description && this.constructor.description.name || this.constructor.name, '$attach', slice.call(arguments)); }
-  if (this.$state & State.isAttached) {
+  if (isAttached(this)) {
     if (Profiler.enabled) { leave(); }
     if (Tracer.enabled) { Tracer.leave(); }
     return;
   }
-  const lifecycle = this.$lifecycle;
-  lifecycle.beginAttach();
-  // add isAttaching flag
-  this.$state |= State.isAttaching;
+
   flags |= LifecycleFlags.fromAttach;
+  this.$lifecycle.beginAttach();
+  setAttachingState(this);
 
-  const hooks = this.$hooks;
-
-  if (hooks & Hooks.hasAttaching) {
+  if (hasAttachingHook(this)) {
     this.attaching(flags);
   }
 
-  // add isAttached flag, remove isAttaching flag
-  this.$state |= State.isAttached;
-  this.$state &= ~State.isAttaching;
-
-  if (hooks & Hooks.hasAttached) {
-    lifecycle.enqueueAttached(this as Required<typeof this>);
+  if (hasAttachedHook(this)) {
+    this.$lifecycle.enqueueAttached(this as Required<typeof this>);
   }
-  lifecycle.endAttach(flags);
+
+  setAttachedState(this);
+  this.$lifecycle.endAttach(flags);
+
   if (Profiler.enabled) { leave(); }
   if (Tracer.enabled) { Tracer.leave(); }
 }
@@ -53,20 +69,17 @@ export function $attachAttribute(this: Writable<IAttachable>, flags: LifecycleFl
 export function $attachElement(this: Writable<IAttachable & IMountableComponent>, flags: LifecycleFlags): void {
   if (Profiler.enabled) { enter(); }
   if (Tracer.enabled) { Tracer.enter(this.constructor.description && this.constructor.description.name || this.constructor.name, '$attach', slice.call(arguments)); }
-  if (this.$state & State.isAttached) {
+  if (isAttached(this)) {
     if (Profiler.enabled) { leave(); }
     if (Tracer.enabled) { Tracer.leave(); }
     return;
   }
-  const lifecycle = this.$lifecycle;
-  lifecycle.beginAttach();
-  // add isAttaching flag
-  this.$state |= State.isAttaching;
+
   flags |= LifecycleFlags.fromAttach;
+  this.$lifecycle.beginAttach();
+  setAttachingState(this);
 
-  const hooks = this.$hooks;
-
-  if (hooks & Hooks.hasAttaching) {
+  if (hasAttachingHook(this)) {
     this.attaching(flags);
   }
 
@@ -76,16 +89,14 @@ export function $attachElement(this: Writable<IAttachable & IMountableComponent>
     current = current.$nextComponent;
   }
 
-  lifecycle.enqueueMount(this);
-
-  // add isAttached flag, remove isAttaching flag
-  this.$state |= State.isAttached;
-  this.$state &= ~State.isAttaching;
-
-  if (hooks & Hooks.hasAttached) {
-    lifecycle.enqueueAttached(this as Required<typeof this>);
+  this.$lifecycle.enqueueMount(this);
+  if (hasAttachedHook(this)) {
+    this.$lifecycle.enqueueAttached(this as Required<typeof this>);
   }
-  lifecycle.endAttach(flags);
+
+  setAttachedState(this);
+  this.$lifecycle.endAttach(flags);
+
   if (Profiler.enabled) { leave(); }
   if (Tracer.enabled) { Tracer.leave(); }
 }
@@ -93,13 +104,14 @@ export function $attachElement(this: Writable<IAttachable & IMountableComponent>
 /** @internal */
 export function $attachView(this: Writable<IAttachable & IMountableComponent>, flags: LifecycleFlags): void {
   if (Tracer.enabled) { Tracer.enter('IView', '$attach', slice.call(arguments)); }
-  if (this.$state & State.isAttached) {
+  if (isAttached(this)) {
     if (Tracer.enabled) { Tracer.leave(); }
     return;
   }
-  // add isAttaching flag
-  this.$state |= State.isAttaching;
+
   flags |= LifecycleFlags.fromAttach;
+  this.$lifecycle.beginAttach();
+  setAttachingState(this);
 
   let current = this.$componentHead;
   while (current !== null) {
@@ -108,10 +120,9 @@ export function $attachView(this: Writable<IAttachable & IMountableComponent>, f
   }
 
   this.$lifecycle.enqueueMount(this);
+  setAttachedState(this);
+  this.$lifecycle.endAttach(flags);
 
-  // add isAttached flag, remove isAttaching flag
-  this.$state |= State.isAttached;
-  this.$state &= ~State.isAttaching;
   if (Tracer.enabled) { Tracer.leave(); }
 }
 
@@ -119,25 +130,21 @@ export function $attachView(this: Writable<IAttachable & IMountableComponent>, f
 // tslint:disable-next-line:no-ignored-initial-value
 export function $detachAttribute(this: Writable<IAttachable>, flags: LifecycleFlags): void {
   if (Tracer.enabled) { Tracer.enter(this.constructor.description && this.constructor.description.name || this.constructor.name, '$detach', slice.call(arguments)); }
-  if (this.$state & State.isAttached) {
-    const lifecycle = this.$lifecycle;
-    lifecycle.beginDetach();
-    // add isDetaching flag
-    this.$state |= State.isDetaching;
+  if (isAttached(this)) {
     flags |= LifecycleFlags.fromDetach;
+    this.$lifecycle.beginDetach();
+    setDetachingState(this);
 
-    const hooks = this.$hooks;
-    if (hooks & Hooks.hasDetaching) {
+    if (hasDetachingHook(this)) {
       this.detaching(flags);
     }
 
-    // remove isAttached and isDetaching flags
-    this.$state &= ~(State.isAttached | State.isDetaching);
-
-    if (hooks & Hooks.hasDetached) {
-      lifecycle.enqueueDetached(this as Required<typeof this>);
+    if (hasDetachedHook(this)) {
+      this.$lifecycle.enqueueDetached(this as Required<typeof this>);
     }
-    lifecycle.endDetach(flags);
+
+    setNotAttachedState(this);
+    this.$lifecycle.endDetach(flags);
   }
   if (Tracer.enabled) { Tracer.leave(); }
 }
@@ -146,23 +153,20 @@ export function $detachAttribute(this: Writable<IAttachable>, flags: LifecycleFl
 // tslint:disable-next-line:no-ignored-initial-value
 export function $detachElement(this: Writable<IAttachable & IMountableComponent>, flags: LifecycleFlags): void {
   if (Tracer.enabled) { Tracer.enter(this.constructor.description && this.constructor.description.name || this.constructor.name, '$detach', slice.call(arguments)); }
-  if (this.$state & State.isAttached) {
-    const lifecycle = this.$lifecycle;
-    lifecycle.beginDetach();
-    // add isDetaching flag
-    this.$state |= State.isDetaching;
+  if (isAttached(this)) {
     flags |= LifecycleFlags.fromDetach;
+    this.$lifecycle.beginDetach();
+    setDetachingState(this);
 
     // Only unmount if either:
     // - No parent view/element is queued for unmount yet, or
     // - Aurelia is stopping (in which case all nodes need to return to their fragments for a clean mount on next start)
-    if (((flags & LifecycleFlags.parentUnmountQueued) ^ LifecycleFlags.parentUnmountQueued) | (flags & LifecycleFlags.fromStopTask)) {
-      lifecycle.enqueueUnmount(this);
+    if ((((flags & LifecycleFlags.parentUnmountQueued) ^ LifecycleFlags.parentUnmountQueued) | (flags & LifecycleFlags.fromStopTask)) > 0) {
+      this.$lifecycle.enqueueUnmount(this);
       flags |= LifecycleFlags.parentUnmountQueued;
     }
 
-    const hooks = this.$hooks;
-    if (hooks & Hooks.hasDetaching) {
+    if (hasDetachingHook(this)) {
       this.detaching(flags);
     }
 
@@ -172,13 +176,12 @@ export function $detachElement(this: Writable<IAttachable & IMountableComponent>
       current = current.$prevComponent;
     }
 
-    // remove isAttached and isDetaching flags
-    this.$state &= ~(State.isAttached | State.isDetaching);
-
-    if (hooks & Hooks.hasDetached) {
-      lifecycle.enqueueDetached(this as Required<typeof this>);
+    if (hasDetachedHook(this)) {
+      this.$lifecycle.enqueueDetached(this as Required<typeof this>);
     }
-    lifecycle.endDetach(flags);
+
+    setNotAttachedState(this);
+    this.$lifecycle.endDetach(flags);
   }
   if (Tracer.enabled) { Tracer.leave(); }
 }
@@ -186,15 +189,15 @@ export function $detachElement(this: Writable<IAttachable & IMountableComponent>
 /** @internal */
 export function $detachView(this: Writable<IAttachable & IMountableComponent>, flags: LifecycleFlags): void {
   if (Tracer.enabled) { Tracer.enter('IView', '$detach', slice.call(arguments)); }
-  if (this.$state & State.isAttached) {
-    // add isDetaching flag
-    this.$state |= State.isDetaching;
+  if (isAttached(this)) {
     flags |= LifecycleFlags.fromDetach;
+    this.$lifecycle.beginDetach();
+    setDetachingState(this);
 
     // Only unmount if either:
     // - No parent view/element is queued for unmount yet, or
     // - Aurelia is stopping (in which case all nodes need to return to their fragments for a clean mount on next start)
-    if (((flags & LifecycleFlags.parentUnmountQueued) ^ LifecycleFlags.parentUnmountQueued) | (flags & LifecycleFlags.fromStopTask)) {
+    if ((((flags & LifecycleFlags.parentUnmountQueued) ^ LifecycleFlags.parentUnmountQueued) | (flags & LifecycleFlags.fromStopTask)) > 0) {
       this.$lifecycle.enqueueUnmount(this);
       flags |= LifecycleFlags.parentUnmountQueued;
     }
@@ -205,8 +208,8 @@ export function $detachView(this: Writable<IAttachable & IMountableComponent>, f
       current = current.$prevComponent;
     }
 
-    // remove isAttached and isDetaching flags
-    this.$state &= ~(State.isAttached | State.isDetaching);
+    setNotAttachedState(this);
+    this.$lifecycle.endDetach(flags);
   }
   if (Tracer.enabled) { Tracer.leave(); }
 }
@@ -215,9 +218,10 @@ export function $detachView(this: Writable<IAttachable & IMountableComponent>, f
 export function $cacheAttribute(this: Writable<IAttachable>, flags: LifecycleFlags): void {
   if (Tracer.enabled) { Tracer.enter(this.constructor.description && this.constructor.description.name || this.constructor.name, '$cache', slice.call(arguments)); }
   flags |= LifecycleFlags.fromCache;
-  if (this.$hooks & Hooks.hasCaching) {
+  if (hasCachingHook(this)) {
     this.caching(flags);
   }
+
   if (Tracer.enabled) { Tracer.leave(); }
 }
 
@@ -225,7 +229,7 @@ export function $cacheAttribute(this: Writable<IAttachable>, flags: LifecycleFla
 export function $cacheElement(this: Writable<IAttachable>, flags: LifecycleFlags): void {
   if (Tracer.enabled) { Tracer.enter(this.constructor.description && this.constructor.description.name || this.constructor.name, '$cache', slice.call(arguments)); }
   flags |= LifecycleFlags.fromCache;
-  if (this.$hooks & Hooks.hasCaching) {
+  if (hasCachingHook(this)) {
     this.caching(flags);
   }
 
@@ -234,6 +238,7 @@ export function $cacheElement(this: Writable<IAttachable>, flags: LifecycleFlags
     current.$cache(flags);
     current = current.$prevComponent;
   }
+
   if (Tracer.enabled) { Tracer.leave(); }
 }
 
@@ -251,51 +256,60 @@ export function $cacheView(this: Writable<IAttachable>, flags: LifecycleFlags): 
 /** @internal */
 export function $mountElement(this: Writable<ICustomElement & IAttachable>, flags: LifecycleFlags): void {
   if (Tracer.enabled) { Tracer.enter(this.constructor.description && this.constructor.description.name || this.constructor.name, '$mount', slice.call(arguments)); }
-  if (!(this.$state & State.isMounted)) {
-    this.$state |= State.isMounted;
-    this.$projector.project(this.$nodes);
+  if (isMounted(this)) {
+    if (Tracer.enabled) { Tracer.leave(); }
+    return;
   }
+
+  setMountedState(this);
+  this.$projector.project(this.$nodes);
   if (Tracer.enabled) { Tracer.leave(); }
 }
 
 /** @internal */
 export function $unmountElement(this: Writable<ICustomElement & IAttachable>, flags: LifecycleFlags): void {
   if (Tracer.enabled) { Tracer.enter(this.constructor.description && this.constructor.description.name || this.constructor.name, '$unmount', slice.call(arguments)); }
-  if (this.$state & State.isMounted) {
-    this.$state &= ~State.isMounted;
+  if (isMounted(this)) {
+    setNotMountedState(this);
     this.$projector.take(this.$nodes);
   }
+
   if (Tracer.enabled) { Tracer.leave(); }
 }
 
 /** @internal */
 export function $mountView(this: Writable<IView>, flags: LifecycleFlags): void {
   if (Tracer.enabled) { Tracer.enter('IView', '$mount', slice.call(arguments)); }
-  if (!(this.$state & State.isMounted)) {
-    this.$state |= State.isMounted;
-    this.$nodes.insertBefore(this.location);
+  if (isMounted(this)) {
+    if (Tracer.enabled) { Tracer.leave(); }
+    return;
   }
+
+  setMountedState(this);
+  this.$nodes.insertBefore(this.location);
   if (Tracer.enabled) { Tracer.leave(); }
 }
 
 /** @internal */
 export function $unmountView(this: Writable<IView>, flags: LifecycleFlags): boolean {
   if (Tracer.enabled) { Tracer.enter('IView', '$unmount', slice.call(arguments)); }
-  if (this.$state & State.isMounted) {
-    this.$state &= ~State.isMounted;
+  if (isMounted(this)) {
+    setNotMountedState(this);
     this.$nodes.remove();
 
     if (this.isFree) {
       this.isFree = false;
       if (this.cache.tryReturnToCache(this)) {
-        this.$state |= State.isCached;
+        setCachedState(this);
         if (Tracer.enabled) { Tracer.leave(); }
         return true;
       }
     }
+
     if (Tracer.enabled) { Tracer.leave(); }
     return false;
   }
+
   if (Tracer.enabled) { Tracer.leave(); }
   return false;
 }

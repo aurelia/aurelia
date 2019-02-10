@@ -1,7 +1,8 @@
 import { IServiceLocator, PLATFORM, Profiler, Tracer, Writable } from '@aurelia/kernel';
 import { IElementHydrationOptions, TemplateDefinition } from '../definitions';
 import { IDOM, INode } from '../dom';
-import { Hooks, LifecycleFlags } from '../flags';
+import { LifecycleFlags } from '../flags';
+import { hasCreatedHook, hasRenderHook } from '../lifecycle';
 import { Scope } from '../observation/binding-context';
 import { ProxyObserver } from '../observation/proxy-observer';
 import { IRenderingEngine, ITemplate } from '../rendering-engine';
@@ -53,19 +54,16 @@ export function $hydrateAttribute(this: Writable<ICustomAttribute>, flags: Lifec
 
   flags |= description.strategy;
   const renderingEngine = parentContext.get(IRenderingEngine);
-
-  let bindingContext: typeof this;
-  if (flags & LifecycleFlags.proxyStrategy) {
-    bindingContext = ProxyObserver.getOrCreate(this).proxy;
-  } else {
-    bindingContext = this;
-  }
-
   renderingEngine.applyRuntimeBehavior(flags, Type, this);
 
-  if (this.$hooks & Hooks.hasCreated) {
-    bindingContext.created(flags);
+  if (hasCreatedHook(this)) {
+    if ((flags & LifecycleFlags.proxyStrategy) > 0) {
+      ProxyObserver.getOrCreate(this).proxy.created(flags);
+    } else {
+      this.created(flags);
+    }
   }
+
   if (Profiler.enabled) { leave(); }
   if (Tracer.enabled) { Tracer.leave(); }
 }
@@ -84,7 +82,7 @@ export function $hydrateElement(this: Writable<ICustomElement>, flags: Lifecycle
   const dom = parentContext.get(IDOM);
 
   let bindingContext: typeof this;
-  if (flags & LifecycleFlags.proxyStrategy) {
+  if ((flags & LifecycleFlags.proxyStrategy) > 0) {
     bindingContext = ProxyObserver.getOrCreate(this).proxy;
   } else {
     bindingContext = this;
@@ -96,7 +94,7 @@ export function $hydrateElement(this: Writable<ICustomElement>, flags: Lifecycle
 
   renderingEngine.applyRuntimeBehavior(flags, Type, this);
 
-  if (this.$hooks & Hooks.hasRender) {
+  if (hasRenderHook(this)) {
     const result = this.render(flags, host, options.parts, parentContext);
 
     if (result && 'getElementTemplate' in result) {
@@ -108,9 +106,10 @@ export function $hydrateElement(this: Writable<ICustomElement>, flags: Lifecycle
     template.render(this, host, options.parts);
   }
 
-  if (this.$hooks & Hooks.hasCreated) {
+  if (hasCreatedHook(this)) {
     bindingContext.created(flags);
   }
+
   if (Profiler.enabled) { leave(); }
   if (Tracer.enabled) { Tracer.leave(); }
 }

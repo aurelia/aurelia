@@ -1449,3 +1449,114 @@ export class PromiseTask<T = void> implements ILifecycleTask<T> {
     return this.promise;
   }
 }
+
+export function isBinding(obj: IState): boolean {
+  return (obj.$state & State.isBinding) === State.isBinding;
+}
+export function isBound(obj: IState): boolean {
+  return (obj.$state & State.isBound) === State.isBound;
+}
+export function isAttaching(obj: IState): boolean {
+  return (obj.$state & State.isAttaching) === State.isAttaching;
+}
+export function isAttached(obj: IState): boolean {
+  return (obj.$state & State.isAttached) === State.isAttached;
+}
+export function isMounted(obj: IState): boolean {
+  return (obj.$state & State.isMounted) === State.isMounted;
+}
+export function isDetaching(obj: IState): boolean {
+  return (obj.$state & State.isDetaching) === State.isDetaching;
+}
+export function isUnbinding(obj: IState): boolean {
+  return (obj.$state & State.isUnbinding) === State.isUnbinding;
+}
+export function isCached(obj: IState): boolean {
+  return (obj.$state & State.isCached) === State.isCached;
+}
+export function isContainerless(obj: IState): boolean {
+  return (obj.$state & State.isContainerless) === State.isContainerless;
+}
+export function isPatching(obj: IState): boolean {
+  return (obj.$state & State.isPatching) === State.isPatching;
+}
+
+export function setBindingState(obj: IState): void {
+  obj.$state = obj.$state | State.isBinding;
+}
+export function setBoundState(obj: IState): void {
+  obj.$state = (obj.$state & ~State.isBinding) | State.isBound;
+}
+export function setAttachingState(obj: IState): void {
+  obj.$state = obj.$state | State.isAttaching;
+}
+export function setAttachedState(obj: IState): void {
+  obj.$state = (obj.$state & ~State.isAttaching) | State.isAttached;
+}
+export function setNotAttachedState(obj: IState): void {
+  obj.$state = obj.$state & ~(State.isAttached | State.isAttaching);
+}
+export function setMountedState(obj: IState): void {
+  obj.$state = obj.$state | State.isMounted;
+}
+export function setNotMountedState(obj: IState): void {
+  obj.$state = obj.$state & ~State.isMounted;
+}
+export function setDetachingState(obj: IState): void {
+  obj.$state = obj.$state | State.isDetaching;
+}
+export function setUnbindingState(obj: IState): void {
+  obj.$state = obj.$state | State.isUnbinding;
+}
+export function setNotBoundState(obj: IState): void {
+  obj.$state = obj.$state & ~(State.isBound | State.isUnbinding);
+}
+export function setCachedState(obj: IState): void {
+  obj.$state = obj.$state | State.isCached;
+}
+export function setNotCachedState(obj: IState): void {
+  obj.$state = obj.$state & ~State.isCached;
+}
+export function setContainerlessState(obj: IState): void {
+  obj.$state = obj.$state | State.isContainerless;
+}
+export function setPatchingState(obj: IState): void {
+  obj.$state = obj.$state | State.isPatching;
+}
+export function setNotPatchingState(obj: IState): void {
+  obj.$state = obj.$state & ~State.isPatching;
+}
+
+export function hasRenderHook<T extends ILifecycleHooks & { render?(...args: unknown[]): unknown }>(obj: T): obj is T & Required<Pick<T, 'render'>> {
+  return (obj.$hooks & Hooks.hasRender) === Hooks.hasRender;
+}
+export function hasCreatedHook<T extends ILifecycleHooks>(obj: T): obj is T & Required<Pick<ILifecycleHooks, 'created'>> {
+  return (obj.$hooks & Hooks.hasCreated) === Hooks.hasCreated;
+}
+export function hasBindingHook<T extends ILifecycleHooks>(obj: T): obj is T & Required<Pick<ILifecycleHooks, 'binding'>> {
+  return (obj.$hooks & Hooks.hasBinding) === Hooks.hasBinding;
+}
+export function hasBoundHook<T extends ILifecycleHooks>(obj: T): obj is T & Required<Pick<ILifecycleHooks, 'bound'>> {
+  return (obj.$hooks & Hooks.hasBound) === Hooks.hasBound;
+}
+export function hasUnbindingHook<T extends ILifecycleHooks>(obj: T): obj is T & Required<Pick<ILifecycleHooks, 'unbinding'>> {
+  return (obj.$hooks & Hooks.hasUnbinding) === Hooks.hasUnbinding;
+}
+export function hasUnboundHook<T extends ILifecycleHooks>(obj: T): obj is T & Required<Pick<ILifecycleHooks, 'unbound'>> {
+  return (obj.$hooks & Hooks.hasUnbound) === Hooks.hasUnbound;
+}
+export function hasAttachingHook<T extends ILifecycleHooks>(obj: T): obj is T & Required<Pick<ILifecycleHooks, 'attaching'>> {
+  return (obj.$hooks & Hooks.hasAttaching) === Hooks.hasAttaching;
+}
+export function hasAttachedHook<T extends ILifecycleHooks>(obj: T): obj is T & Required<Pick<ILifecycleHooks, 'attached'>> {
+  return (obj.$hooks & Hooks.hasAttached) === Hooks.hasAttached;
+}
+export function hasDetachingHook<T extends ILifecycleHooks>(obj: T): obj is T & Required<Pick<ILifecycleHooks, 'detaching'>> {
+  return (obj.$hooks & Hooks.hasDetaching) === Hooks.hasDetaching;
+}
+export function hasDetachedHook<T extends ILifecycleHooks>(obj: T): obj is T & Required<Pick<ILifecycleHooks, 'detached'>> {
+  return (obj.$hooks & Hooks.hasDetached) === Hooks.hasDetached;
+}
+export function hasCachingHook<T extends ILifecycleHooks>(obj: T): obj is T & Required<Pick<ILifecycleHooks, 'caching'>> {
+  return (obj.$hooks & Hooks.hasCaching) === Hooks.hasCaching;
+}

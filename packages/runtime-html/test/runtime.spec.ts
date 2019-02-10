@@ -1,7 +1,7 @@
 // import { TestBuilder as Test, DefinitionBuilder as D, InstructionBuilder as I } from './test-builder';
 
-// describe('runtime', function() {
-//   it('1', function() {
+// describe('runtime', function () {
+//   it('1', function () {
 //     const appState = { show: true };
 //     const definition =
 //     D.if(
@@ -25,7 +25,7 @@
 //     test.dispose();
 //   });
 
-//   it('2', function() {
+//   it('2', function () {
 //     const appState = { items: [{ childItems: ['a', 'b', 'c'] }] };
 //     const definition =
 //     D.if(

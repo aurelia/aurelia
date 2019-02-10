@@ -2,9 +2,9 @@ import { expect } from 'chai';
 import { CustomElementResource } from '../../src/index';
 import { AuDOMTest } from '../au-dom';
 
-describe('CustomElementResource', function() {
-  describe(`define`, function() {
-    it(`registers local dependencies`, function() {
+describe('CustomElementResource', function () {
+  describe(`define`, function () {
+    it(`registers local dependencies`, function () {
       const { au, host } = AuDOMTest.setup();
 
       const fooDef = AuDOMTest.createTextDefinition('msg', 'foo');

@@ -32,7 +32,7 @@ function setup() {
   return { ctx, container, lifecycle, observerLocator };
 }
 
-describe('AttributeNSAccessor', function() {
+describe('AttributeNSAccessor', function () {
   let sut: AttributeNSAccessor;
   let el: HTMLElement;
   let lifecycle: ILifecycle;
@@ -46,9 +46,9 @@ describe('AttributeNSAccessor', function() {
     { name: 'show', value: 'false' }
   ];
 
-  describe('getValue()', function() {
+  describe('getValue()', function () {
     for (const { name, value } of tests) {
-      it(`returns ${value} for xlink:${name}`, function() {
+      it(`returns ${value} for xlink:${name}`, function () {
         const { ctx, lifecycle: $lifecycle } = setup();
         lifecycle = $lifecycle;
         el = createSvgUseElement(ctx, name, value) as HTMLElement;
@@ -59,9 +59,9 @@ describe('AttributeNSAccessor', function() {
     }
   });
 
-  describe('setValue()', function() {
+  describe('setValue()', function () {
     for (const { name, value } of tests) {
-      it(`sets xlink:${name} to foo`, function() {
+      it(`sets xlink:${name} to foo`, function () {
         const ctx = TestContext.createHTMLTestContext();
         el = createSvgUseElement(ctx, name, value) as HTMLElement;
         const { lifecycle: $lifecycle } = setup();
@@ -77,16 +77,16 @@ describe('AttributeNSAccessor', function() {
 
 });
 
-describe('DataAttributeAccessor', function() {
+describe('DataAttributeAccessor', function () {
   let sut: DataAttributeAccessor;
   let el: HTMLElement;
   let lifecycle: ILifecycle;
 
   const valueArr = [undefined, null, '', 'foo'];
-  describe('getValue()', function() {
+  describe('getValue()', function () {
     for (const name of globalAttributeNames) {
       for (const value of valueArr.filter(v => v !== null && v !== undefined)) {
-        it(`returns "${value}" for attribute "${name}"`, function() {
+        it(`returns "${value}" for attribute "${name}"`, function () {
           const ctx = TestContext.createHTMLTestContext();
           el = ctx.createElementFromMarkup(`<div ${name}="${value}"></div>`);
           const { lifecycle: $lifecycle } = setup();
@@ -99,10 +99,10 @@ describe('DataAttributeAccessor', function() {
     }
   });
 
-  describe('setValue()', function() {
+  describe('setValue()', function () {
     for (const name of globalAttributeNames) {
       for (const value of valueArr) {
-        it(`sets attribute "${name}" to "${value}"`, function() {
+        it(`sets attribute "${name}" to "${value}"`, function () {
           const ctx = TestContext.createHTMLTestContext();
           el = ctx.createElementFromMarkup(`<div></div>`);
           const { lifecycle: $lifecycle } = setup();
@@ -121,7 +121,7 @@ describe('DataAttributeAccessor', function() {
   });
 });
 
-describe('StyleAccessor', function() {
+describe('StyleAccessor', function () {
   const propNames = Object.getOwnPropertyNames(CSS_PROPERTIES);
 
   let sut: StyleAttributeAccessor;
@@ -133,7 +133,7 @@ describe('StyleAccessor', function() {
     const values = CSS_PROPERTIES[propName]['values'];
     const value = values[0];
     const rule = `${propName}:${value}`;
-    it(`setValue - style="${rule}"`, function() {
+    it(`setValue - style="${rule}"`, function () {
       const ctx = TestContext.createHTMLTestContext();
       el = ctx.createElementFromMarkup('<div></div>');
       const { lifecycle: $lifecycle } = setup();
@@ -149,7 +149,7 @@ describe('StyleAccessor', function() {
     });
   }
 
-  it(`getValue - style="display: block;"`, function() {
+  it(`getValue - style="display: block;"`, function () {
     const ctx = TestContext.createHTMLTestContext();
     el = ctx.createElementFromMarkup(`<div style="display: block;"></div>`);
     const { lifecycle: $lifecycle } = setup();
@@ -161,7 +161,7 @@ describe('StyleAccessor', function() {
   });
 });
 
-describe('ClassAccessor', function() {
+describe('ClassAccessor', function () {
   let sut: ClassAttributeAccessor;
   let el: HTMLElement;
   let lifecycle: ILifecycle;
@@ -177,7 +177,7 @@ describe('ClassAccessor', function() {
   const secondClassListArr = ['', 'fooo'];
   for (const markup of markupArr) {
     for (const classList of classListArr) {
-      beforeEach(function() {
+      beforeEach(function () {
         const ctx = TestContext.createHTMLTestContext();
         el = ctx.createElementFromMarkup(markup);
         initialClassList = el.classList.toString();
@@ -186,7 +186,7 @@ describe('ClassAccessor', function() {
         sut = new ClassAttributeAccessor(lifecycle, el);
       });
 
-      it(`setValue("${classList}") updates ${markup}`, function() {
+      it(`setValue("${classList}") updates ${markup}`, function () {
         sut.setValue(classList, LifecycleFlags.none);
         expect(el.classList.toString()).to.equal(initialClassList);
         lifecycle.processFlushQueue(LifecycleFlags.none);
@@ -200,7 +200,7 @@ describe('ClassAccessor', function() {
       });
 
       for (const secondClassList of secondClassListArr) {
-        it(`setValue("${secondClassList}") updates already-updated ${markup}`, function() {
+        it(`setValue("${secondClassList}") updates already-updated ${markup}`, function () {
           sut.setValue(classList, LifecycleFlags.none);
           lifecycle.processFlushQueue(LifecycleFlags.none);
           const updatedClassList = el.classList.toString();

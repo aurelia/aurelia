@@ -29,7 +29,7 @@ import {
 import { AuDOMConfiguration, AuNode } from './au-dom';
 import { _ } from './util';
 
-describe('Renderer', function() {
+describe('Renderer', function () {
   function setup() {
     const container = AuDOMConfiguration.createContainer();
     IExpressionParserRegistration.register(container as any);
@@ -69,12 +69,12 @@ describe('Renderer', function() {
     return { sut, renderable, dom, target, renderContext, renderingEngine };
   }
 
-  describe('handles IPropertyBindingInstruction', function() {
+  describe('handles IPropertyBindingInstruction', function () {
     for (const Instruction of [OneTimeBindingInstruction, ToViewBindingInstruction, FromViewBindingInstruction, TwoWayBindingInstruction] as any[]) {
       for (const to of ['foo', 'bar']) {
         for (const from of ['foo', new AccessScope('foo')]) {
           const instruction = new Instruction(from, to) as IPropertyBindingInstruction;
-          it(_`instruction=${instruction}`, function() {
+          it(_`instruction=${instruction}`, function () {
             const { sut, dom, renderable, target, renderContext } = setup();
 
             sut.instructionRenderers[instruction.type].render(LF.none, dom, renderContext, renderable, target, instruction);
@@ -94,11 +94,11 @@ describe('Renderer', function() {
     }
   });
 
-  describe('handles ICallBindingInstruction', function() {
+  describe('handles ICallBindingInstruction', function () {
     for (const to of ['foo', 'bar']) {
       for (const from of ['foo()', new CallScope('foo', [])] as any[]) {
         const instruction = new CallBindingInstruction(from, to) as any;
-        it(_`instruction=${instruction}`, function() {
+        it(_`instruction=${instruction}`, function () {
           const { sut, dom, renderable, target, renderContext } = setup();
 
           sut.instructionRenderers[instruction.type].render(LF.none, dom, renderContext, renderable, target, instruction);
@@ -116,10 +116,10 @@ describe('Renderer', function() {
     }
   });
 
-  describe('handles IRefBindingInstruction', function() {
+  describe('handles IRefBindingInstruction', function () {
     for (const from of ['foo', new AccessScope('foo')] as any[]) {
       const instruction = new RefBindingInstruction(from) as any;
-      it(_`instruction=${instruction}`, function() {
+      it(_`instruction=${instruction}`, function () {
         const { sut, dom, renderable, target, renderContext } = setup();
 
         sut.instructionRenderers[instruction.type].render(LF.none, dom, renderContext, renderable, target, instruction);
@@ -135,11 +135,11 @@ describe('Renderer', function() {
     }
   });
 
-  describe('handles ISetPropertyInstruction', function() {
+  describe('handles ISetPropertyInstruction', function () {
     for (const to of ['foo', 'bar']) {
       for (const value of ['foo', 42, {}] as any[]) {
         const instruction = new SetPropertyInstruction(value, to) as any;
-        it(_`instruction=${instruction}`, function() {
+        it(_`instruction=${instruction}`, function () {
           const { sut, dom, renderable, target, renderContext } = setup();
 
           sut.instructionRenderers[instruction.type].render(LF.none, dom, renderContext, renderable, target, instruction);
@@ -154,11 +154,11 @@ describe('Renderer', function() {
     }
   });
 
-  describe('handles IHydrateElementInstruction', function() {
+  describe('handles IHydrateElementInstruction', function () {
     for (const res of ['foo', 'bar']) {
       for (const instructions of [[], [{type: TargetedInstructionType.setProperty}, {type: TargetedInstructionType.setProperty}]] as any[]) {
         const instruction = new HydrateElementInstruction(res, instructions) as any;
-        it(_`instruction=${instruction}`, function() {
+        it(_`instruction=${instruction}`, function () {
           const { sut, dom, renderable, target, renderContext } = setup();
 
           sut.instructionRenderers[instruction.type].render(LF.none, dom, renderContext, renderable, target, instruction);
@@ -172,11 +172,11 @@ describe('Renderer', function() {
     }
   });
 
-  describe('handles IHydrateAttributeInstruction', function() {
+  describe('handles IHydrateAttributeInstruction', function () {
     for (const res of ['if', 'else', 'repeat']) {
       for (const instructions of [[], [new SetPropertyInstruction('bar', 'foo')]] as any[]) {
         const instruction = new HydrateAttributeInstruction(res, instructions) as any;
-        it(_`instruction=${instruction}`, function() {
+        it(_`instruction=${instruction}`, function () {
           const { sut, dom, renderable, target, renderContext, renderingEngine } = setup();
 
           sut.instructionRenderers[instruction.type].render(LF.none, dom, renderContext, renderable, target, instruction);
@@ -199,9 +199,9 @@ describe('Renderer', function() {
     }
   });
 
-  describe('<let/>', function() {
+  describe('<let/>', function () {
 
-    describe('ILetElementInstruction', function() {
+    describe('ILetElementInstruction', function () {
       for (const to of ['processedFoo', 'processedPoo']) {
         for (const value of ['foo', new AccessScope('foo')] as any[]) {
           const instruction = new LetElementInstruction(
@@ -209,7 +209,7 @@ describe('Renderer', function() {
             // tslint:disable-next-line:insecure-random
             Math.random() > 0.4
           ) as any;
-          it(_`instruction=${instruction}`, function() {
+          it(_`instruction=${instruction}`, function () {
             const { sut, dom, renderable, target, renderContext } = setup();
 
             sut.instructionRenderers[instruction.type].render(LF.none, dom, renderContext, renderable, target, instruction);

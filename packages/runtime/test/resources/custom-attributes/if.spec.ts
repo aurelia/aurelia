@@ -12,8 +12,8 @@ import { AuDOMConfiguration, AuNode } from '../../au-dom';
 import { createScopeForTest } from '../../util';
 import { hydrateCustomAttribute } from './template-controller-tests';
 
-describe('The "if" template controller', function() {
-  it('renders its view when the value is true', function() {
+describe('The "if" template controller', function () {
+  it('renders its view when the value is true', function () {
     const { attribute: ifAttr, location, lifecycle } = hydrateCustomAttribute(If);
 
     ifAttr.value = true;
@@ -34,7 +34,7 @@ describe('The "if" template controller', function() {
     expect(location.previousSibling).to.equal(ifView.$nodes.lastChild);
   });
 
-  it('queues the view removal via the lifecycle when the value is false', function() {
+  it('queues the view removal via the lifecycle when the value is false', function () {
     const { attribute: ifAttr, location, lifecycle } = hydrateCustomAttribute(If);
 
     ifAttr.value = true;
@@ -66,7 +66,7 @@ describe('The "if" template controller', function() {
     expect(ifView).to.not.have.$state.isBound();
   });
 
-  it('queues the rendering of an else view when one is linked and its value is false', function() {
+  it('queues the rendering of an else view when one is linked and its value is false', function () {
     const container = AuDOMConfiguration.createContainer();
     const { attribute: ifAttr, location } = hydrateCustomAttribute(If, { container });
     const { attribute: elseAttr, lifecycle } = hydrateCustomAttribute(Else, { container });
@@ -99,7 +99,7 @@ describe('The "if" template controller', function() {
     expect(location.previousSibling).to.equal(elseView.$nodes.lastChild);
   });
 
-  it('detaches its child view when it is detached', function() {
+  it('detaches its child view when it is detached', function () {
     const { attribute: ifAttr, lifecycle } = hydrateCustomAttribute(If);
 
     ifAttr.value = true;
@@ -114,7 +114,7 @@ describe('The "if" template controller', function() {
     expect(ifAttr).to.not.have.$state.isAttached();
   });
 
-  it('unbinds its child view when it is unbound', function() {
+  it('unbinds its child view when it is unbound', function () {
     const { attribute: ifAttr } = hydrateCustomAttribute(If);
 
     ifAttr.value = true;

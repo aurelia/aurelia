@@ -22,8 +22,8 @@ import {
   AuNodeSequenceFactory
 } from './au-dom';
 
-describe('createRenderContext', function() {
-  it('properly initializes a renderContext', function() {
+describe('createRenderContext', function () {
+  it('properly initializes a renderContext', function () {
     const parent = AuDOMConfiguration.createContainer();
 
     class Foo {}
@@ -68,9 +68,9 @@ describe('createRenderContext', function() {
   });
 });
 
-describe(`CompiledTemplate`, function() {
-  describe(`constructor`, function() {
-    it(`creates a new createNodeSequence function`, function() {
+describe(`CompiledTemplate`, function () {
+  describe(`constructor`, function () {
+    it(`creates a new createNodeSequence function`, function () {
       class Foo {}
       class Bar {public static register(container2: IContainer) { container2.register(Registration.singleton(Bar, Bar)); }}
       const container = AuDOMConfiguration.createContainer();

@@ -7,7 +7,7 @@ const dynamicRoute = {'path': 'dynamic/:id', 'handler': {'name': 'dynamic'}};
 const optionalRoute = {'path': 'optional/:id?', 'handler': {'name': 'optional'}};
 const multiNameRoute = {'path': 'static', 'handler': {'name': ['static-multiple', 'static-multiple-alias']}};
 
-describe('route sut', function() {
+describe('route sut', function () {
   interface Spec {
     t: string;
   }
@@ -146,7 +146,7 @@ describe('route sut', function() {
     }
   ];
 
-  it('should reject unknown routes', function() {
+  it('should reject unknown routes', function () {
     const sut = new RouteRecognizer();
 
     expect(sut.hasRoute('static')).to.equal(false);
@@ -155,13 +155,13 @@ describe('route sut', function() {
     expect(sut.recognize('/notfound')).to.equal(undefined);
   });
 
-  it('should reject default parameter values', function() {
+  it('should reject default parameter values', function () {
     const sut = new RouteRecognizer();
 
     expect(() => sut.add([{'path': 'user/:id=1', 'handler': {}}])).to.throw();
   });
 
-  it('should register unnamed routes', function() {
+  it('should register unnamed routes', function () {
     const sut = new RouteRecognizer();
     sut.add([{'path': 'b', 'handler': {}}]);
 
@@ -170,7 +170,7 @@ describe('route sut', function() {
   });
 
   eachCartesianJoin([routeSpecs], function(routeSpec) {
-    it(`should recognize - ${routeSpec.t}`, function() {
+    it(`should recognize - ${routeSpec.t}`, function () {
       const { route, path, isDynamic, params } = routeSpec;
       const sut = new RouteRecognizer();
       sut.add([route]);
@@ -183,7 +183,7 @@ describe('route sut', function() {
       expect(result[0].params).to.deep.equal(params);
     });
 
-    it(`is case insensitive by default - ${routeSpec.t}`, function() {
+    it(`is case insensitive by default - ${routeSpec.t}`, function () {
       const { route, path, isDynamic, params } = routeSpec;
       const sut = new RouteRecognizer();
       sut.add([route]);
@@ -201,7 +201,7 @@ describe('route sut', function() {
       });
     });
 
-    it(`should generate - ${routeSpec.t}`, function() {
+    it(`should generate - ${routeSpec.t}`, function () {
       const { route, path, params } = routeSpec;
       const sut = new RouteRecognizer();
       sut.add([route]);
@@ -210,7 +210,7 @@ describe('route sut', function() {
     });
   });
 
-  it('should require dynamic segment parameters when generating', function() {
+  it('should require dynamic segment parameters when generating', function () {
     const sut = new RouteRecognizer();
     sut.add([dynamicRoute]);
 
@@ -219,7 +219,7 @@ describe('route sut', function() {
     expect(() => sut.generate('dynamic', { id: null })).to.throw();
   });
 
-  it('should generate URIs with extra parameters added to the query string', function() {
+  it('should generate URIs with extra parameters added to the query string', function () {
     const sut = new RouteRecognizer();
     sut.add([staticRoute]);
     sut.add([dynamicRoute]);
@@ -232,7 +232,7 @@ describe('route sut', function() {
     expect(sut.generate('dynamic', { id: 1, test: 2 })).to.equal('/dynamic/1?test=2');
   });
 
-  it('should find handlers by route name', function() {
+  it('should find handlers by route name', function () {
     const sut = new RouteRecognizer();
     sut.add([staticRoute]);
 
@@ -240,7 +240,7 @@ describe('route sut', function() {
     expect(sut.handlersFor('static')[0].handler).to.equal(staticRoute.handler);
   });
 
-  it('should find a handler by multiple names', function() {
+  it('should find a handler by multiple names', function () {
     const sut = new RouteRecognizer();
     sut.add([multiNameRoute]);
 
@@ -248,7 +248,7 @@ describe('route sut', function() {
       .to.equal(sut.handlersFor('static-multiple-alias')[0].handler);
   });
 
-  it('should distinguish between dynamic and static parts', function() {
+  it('should distinguish between dynamic and static parts', function () {
     const sut = new RouteRecognizer();
     const similarRoute = { 'path': 'optionalToo/:id?', 'handler': { 'name': 'similar' }};
     sut.add([optionalRoute, similarRoute]);
@@ -258,7 +258,7 @@ describe('route sut', function() {
     expect(result[0].handler.name).to.equal('similar');
   });
 
-  it('can set case sensitive route and fails', function() {
+  it('can set case sensitive route and fails', function () {
     const sut = new RouteRecognizer();
     const routeTest = {
       t: 'case sensitive route',

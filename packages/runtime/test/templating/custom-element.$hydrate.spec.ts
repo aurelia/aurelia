@@ -4,9 +4,9 @@ import { Hooks, ICustomElementType,  IDOM, INode, IProjectorLocator, IRenderingE
 import { createCustomElement, CustomElement } from '../resources/custom-element._builder';
 import { eachCartesianJoin } from '../util';
 
-describe('@customElement', function() {
+describe('@customElement', function () {
 
-  describe('$hydrate', function() {
+  describe('$hydrate', function () {
 
     const hooksSpecs = [
       {
@@ -31,7 +31,7 @@ describe('@customElement', function() {
     eachCartesianJoin([hooksSpecs],
                       (hooksSpec) => {
 
-      it(`sets properties, applies runtime behavior and ${hooksSpec.expectation} if ${hooksSpec.description}`, function() {
+      it(`sets properties, applies runtime behavior and ${hooksSpec.expectation} if ${hooksSpec.description}`, function () {
         // Arrange
         const { Type, sut } = createCustomElement('foo');
 

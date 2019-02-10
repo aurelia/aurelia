@@ -41,14 +41,14 @@ export function createAttribute(name: string, value: string): Attr {
   return attr;
 }
 
-describe('TemplateCompiler', function() {
+describe('TemplateCompiler', function () {
   let ctx: HTMLTestContext;
   let sut: ITemplateCompiler;
   let resources: IResourceDescriptions;
   let container: IContainer;
   let dom: IDOM;
 
-  beforeEach(function() {
+  beforeEach(function () {
     ctx = TestContext.createHTMLTestContext();
     container = ctx.container;
     sut = ctx.templateCompiler;
@@ -57,20 +57,20 @@ describe('TemplateCompiler', function() {
     dom = ctx.dom;
   });
 
-  describe('compileElement()', function() {
+  describe('compileElement()', function () {
 
-    it('set hasSlots to true <slot/>', function() {
+    it('set hasSlots to true <slot/>', function () {
       const definition = compileWith('<template><slot></slot></template>', []);
       expect(definition.hasSlots).to.equal(true);
 
       // test this with nested slot inside template controller
     });
 
-    describe('with custom element', function() {
+    describe('with custom element', function () {
 
-      describe('compiles surrogate', function() {
+      describe('compiles surrogate', function () {
 
-        it('compiles surrogate', function() {
+        it('compiles surrogate', function () {
           const { instructions, surrogates } = compileWith(
             `<template class="h-100"></template>`,
             []
@@ -81,7 +81,7 @@ describe('TemplateCompiler', function() {
           ]);
         });
 
-        it('compiles surrogate with binding expression', function() {
+        it('compiles surrogate with binding expression', function () {
           const { instructions, surrogates } = compileWith(
             `<template class.bind="base"></template>`,
             []
@@ -92,7 +92,7 @@ describe('TemplateCompiler', function() {
           ],                 'surrogate');
         });
 
-        it('compiles surrogate with interpolation expression', function() {
+        it('compiles surrogate with interpolation expression', function () {
           const { instructions, surrogates } = compileWith(
             `<template class="h-100 \${base}"></template>`,
             []
@@ -103,7 +103,7 @@ describe('TemplateCompiler', function() {
           ],                 'surrogate');
         });
 
-        it('throws on attributes that require to be unique', function() {
+        it('throws on attributes that require to be unique', function () {
           const attrs = ['id', 'part', 'replace-part'];
           attrs.forEach(attr => {
             expect(() => compileWith(
@@ -114,7 +114,7 @@ describe('TemplateCompiler', function() {
         });
       });
 
-      it('understands attr precendence: custom attr > element prop', function() {
+      it('understands attr precendence: custom attr > element prop', function () {
         @customElement('el')
         class El {
           @bindable() public prop1: string;
@@ -147,7 +147,7 @@ describe('TemplateCompiler', function() {
         verifyInstructions(rootInstructions, expectedRootInstructions);
       });
 
-      it('distinguishs element properties / normal attributes', function() {
+      it('distinguishs element properties / normal attributes', function () {
         @customElement('el')
         class El {
 
@@ -173,7 +173,7 @@ describe('TemplateCompiler', function() {
         verifyInstructions(rootInstructions[0].instructions, expectedElInstructions);
       });
 
-      it('understands element property casing', function() {
+      it('understands element property casing', function () {
         @customElement('el')
         class El {
 
@@ -195,7 +195,7 @@ describe('TemplateCompiler', function() {
         verifyInstructions(rootInstructions[0].instructions, expectedElInstructions);
       });
 
-      it('understands binding commands', function() {
+      it('understands binding commands', function () {
         @customElement('el')
         class El {
           @bindable({ mode: BindingMode.twoWay }) public propProp1: string;
@@ -231,8 +231,8 @@ describe('TemplateCompiler', function() {
         verifyInstructions(rootInstructions[0].instructions, expectedElInstructions);
       });
 
-      describe('with template controller', function() {
-        it('compiles', function() {
+      describe('with template controller', function () {
+        it('compiles', function () {
           @customAttribute({
             name: 'prop',
             isTemplateController: true
@@ -249,7 +249,7 @@ describe('TemplateCompiler', function() {
           expect((hydratePropAttrInstruction.def.template as HTMLTemplateElement).outerHTML).to.equal('<template><el></el></template>');
         });
 
-        it('moves attrbiutes instructions before the template controller into it', function() {
+        it('moves attrbiutes instructions before the template controller into it', function () {
           @customAttribute({
             name: 'prop',
             isTemplateController: true
@@ -275,8 +275,8 @@ describe('TemplateCompiler', function() {
           ]);
         });
 
-        describe('[as-element]', function() {
-          it('understands [as-element]', function() {
+        describe('[as-element]', function () {
+          it('understands [as-element]', function () {
             @customElement('not-div')
             class NotDiv {}
             const { instructions } = compileWith('<template><div as-element="not-div"></div></template>', [NotDiv]);
@@ -286,13 +286,13 @@ describe('TemplateCompiler', function() {
             ]);
           });
 
-          it('does not throw when element is not found', function() {
+          it('does not throw when element is not found', function () {
             const { instructions } = compileWith('<template><div as-element="not-div"></div></template>');
             expect(instructions.length).to.equal(0);
           });
 
-          describe('with template controller', function() {
-            it('compiles', function() {
+          describe('with template controller', function () {
+            it('compiles', function () {
               @customElement('not-div')
               class NotDiv {}
               const { instructions } = compileWith(
@@ -320,19 +320,19 @@ describe('TemplateCompiler', function() {
         });
       });
 
-      describe('<let/> element', function() {
+      describe('<let/> element', function () {
 
-        it('compiles', function() {
+        it('compiles', function () {
           const { instructions } = compileWith(`<template><let></let></template>`);
           expect(instructions.length).to.equal(1);
         });
 
-        it('does not generate instructions when there is no bindings', function() {
+        it('does not generate instructions when there is no bindings', function () {
           const { instructions } = compileWith(`<template><let></let></template>`);
           expect((instructions[0][0]).instructions.length).to.equal(0);
         });
 
-        it('ignores custom element resource', function() {
+        it('ignores custom element resource', function () {
           @customElement('let')
           class Let {}
 
@@ -345,7 +345,7 @@ describe('TemplateCompiler', function() {
           ]);
         });
 
-        it('compiles with attributes', function() {
+        it('compiles with attributes', function () {
           const { instructions } = compileWith(`<let a.bind="b" c="\${d}"></let>`);
           verifyInstructions((instructions[0][0]).instructions, [
             { toVerify: ['type', 'to', 'srcOrExp'],
@@ -355,13 +355,13 @@ describe('TemplateCompiler', function() {
           ]);
         });
 
-        describe('[to-view-model]', function() {
-          it('understands [to-view-model]', function() {
+        describe('[to-view-model]', function () {
+          it('understands [to-view-model]', function () {
             const { instructions } = compileWith(`<template><let to-view-model></let></template>`);
             expect((instructions[0][0]).toViewModel).to.equal(true);
           });
 
-          it('ignores [to-view-model] order', function() {
+          it('ignores [to-view-model] order', function () {
             let instructions = compileWith(`<template><let a.bind="a" to-view-model></let></template>`).instructions[0];
             verifyInstructions(instructions, [
               { toVerify: ['type', 'toViewModel'], type: TT.hydrateLetElement, toViewModel: true }
@@ -618,7 +618,7 @@ type CTCResult = [ITemplateDefinition, ITemplateDefinition];
 
 type Bindables = { [pdName: string]: IBindableDescription };
 
-describe(`TemplateCompiler - combinations`, function() {
+describe(`TemplateCompiler - combinations`, function () {
   function setup(ctx: HTMLTestContext, ...globals: IRegistry[]) {
     const container = ctx.container;
     container.register(...globals);
@@ -628,7 +628,7 @@ describe(`TemplateCompiler - combinations`, function() {
     return { container, dom, sut, resources };
   }
 
-  describe('plain attributes', function() {
+  describe('plain attributes', function () {
     eachCartesianJoinFactory([
       [
         TestContext.createHTMLTestContext
@@ -657,7 +657,7 @@ describe(`TemplateCompiler - combinations`, function() {
     ],                       (ctx, [el], $2, [n1, v1, i1]) => {
       const markup = `<${el} ${n1}="${v1}"></${el}>`;
 
-      it(markup, function() {
+      it(markup, function () {
         const input = { template: markup, instructions: [], surrogates: [] };
         const expected = { template: ctx.createElementFromMarkup(`<template><${el} ${n1}="${v1}" class="au"></${el}></template>`), instructions: [[i1]], surrogates: [] };
 
@@ -671,7 +671,7 @@ describe(`TemplateCompiler - combinations`, function() {
     });
   });
 
-  describe('custom attributes', function() {
+  describe('custom attributes', function () {
     eachCartesianJoinFactory([
       [
         TestContext.createHTMLTestContext
@@ -714,7 +714,7 @@ describe(`TemplateCompiler - combinations`, function() {
       const def = { name: PLATFORM.camelCase(attr), defaultBindingMode, bindables };
       const markup = `<div ${name}="${value}"></div>`;
 
-      it(`${markup}  CustomAttribute=${JSON.stringify(def)}`, function() {
+      it(`${markup}  CustomAttribute=${JSON.stringify(def)}`, function () {
         const input = { template: markup, instructions: [], surrogates: [] };
         const instruction = { type: TT.hydrateAttribute, res: def.name, instructions: [childInstruction] };
         const expected = { template: ctx.createElementFromMarkup(`<template><div ${name}="${value}" class="au"></div></template>`), instructions: [[instruction]], surrogates: [] };
@@ -730,7 +730,7 @@ describe(`TemplateCompiler - combinations`, function() {
     });
   });
 
-  describe('custom attributes with multiple bindings', function() {
+  describe('custom attributes with multiple bindings', function () {
 
     eachCartesianJoinFactory([
       [
@@ -767,7 +767,7 @@ describe(`TemplateCompiler - combinations`, function() {
         // TODO: test fallback to attribute name when no matching binding exists (or throw if we don't want to support this)
       ] as ((ctx: HTMLTestContext, $1: string, $2: string, $3: Bindables, $4: [string, string]) => [IBindableDescription, string])[]
     ],                       (ctx, pdName, pdProp, bindables, [cmd, attrValue], [bindableDescription, attrName]) => {
-      it(`div - pdName=${pdName}  pdProp=${pdProp}  cmd=${cmd}  attrName=${attrName}  attrValue="${attrValue}"`, function() {
+      it(`div - pdName=${pdName}  pdProp=${pdProp}  cmd=${cmd}  attrName=${attrName}  attrValue="${attrValue}"`, function () {
 
         const { sut, resources, dom  } = setup(
           ctx,
@@ -808,7 +808,7 @@ describe(`TemplateCompiler - combinations`, function() {
     });
   });
 
-  describe('nested template controllers (one per element)', function() {
+  describe('nested template controllers (one per element)', function () {
 
     eachCartesianJoinFactory([
       [
@@ -848,7 +848,7 @@ describe(`TemplateCompiler - combinations`, function() {
       ] as ((ctx: HTMLTestContext, $1: CTCResult, $2: CTCResult, $3: CTCResult) => CTCResult)[]
     ],                       (ctx, $1, $2, $3, [input, output]) => {
 
-      it(`${input.template}`, function() {
+      it(`${input.template}`, function () {
 
         const { sut, resources, dom } = setup(
           ctx,
@@ -870,7 +870,7 @@ describe(`TemplateCompiler - combinations`, function() {
     });
   });
 
-  describe('nested template controllers (multiple per element)', function() {
+  describe('nested template controllers (multiple per element)', function () {
 
     eachCartesianJoinFactory([
       [
@@ -909,7 +909,7 @@ describe(`TemplateCompiler - combinations`, function() {
       ] as ((ctx: HTMLTestContext, $1: CTCResult, $2: CTCResult, $3: CTCResult, $4: CTCResult) => CTCResult)[]
     ],                       (ctx, $1, $2, $3, $4, [input, output]) => {
 
-      it(`${input.template}`, function() {
+      it(`${input.template}`, function () {
 
         const { sut, resources, dom } = setup(
           ctx,
@@ -932,7 +932,7 @@ describe(`TemplateCompiler - combinations`, function() {
     });
   });
 
-  describe('sibling template controllers', function() {
+  describe('sibling template controllers', function () {
 
     eachCartesianJoinFactory([
       [
@@ -970,7 +970,7 @@ describe(`TemplateCompiler - combinations`, function() {
         instructions: []
       };
 
-      it(`${input.template}`, function() {
+      it(`${input.template}`, function () {
 
         const { sut, resources, dom } = setup(
           ctx,
@@ -1001,7 +1001,7 @@ describe(`TemplateCompiler - combinations`, function() {
     });
   });
 
-  describe('attributes on custom elements', function() {
+  describe('attributes on custom elements', function () {
     eachCartesianJoinFactory([
       [
         TestContext.createHTMLTestContext
@@ -1043,7 +1043,7 @@ describe(`TemplateCompiler - combinations`, function() {
         (ctx) => `''`
       ] as ((ctx: HTMLTestContext) => string)[]
     ],                       (ctx, pdName, pdProp, pdAttr, bindables, [cmd, attrValue], [bindableDescription, attrName]) => {
-      it(`customElement - pdName=${pdName}  pdProp=${pdProp}  pdAttr=${pdAttr}  cmd=${cmd}  attrName=${attrName}  attrValue="${attrValue}"`, function() {
+      it(`customElement - pdName=${pdName}  pdProp=${pdProp}  pdAttr=${pdAttr}  cmd=${cmd}  attrName=${attrName}  attrValue="${attrValue}"`, function () {
 
         const { sut, resources, dom } = setup(
           ctx,
@@ -1087,7 +1087,7 @@ describe(`TemplateCompiler - combinations`, function() {
     });
   });
 
-  describe('custom elements', function() {
+  describe('custom elements', function () {
     eachCartesianJoinFactory([
       [
         TestContext.createHTMLTestContext
@@ -1109,7 +1109,7 @@ describe(`TemplateCompiler - combinations`, function() {
       // ]
     //], ($1, $2, [input, output]) => {
     ],                       (ctx, [input, output]) => {
-      it(`${input.template}`, function() {
+      it(`${input.template}`, function () {
 
         const { sut, resources, dom } = setup(
           ctx,

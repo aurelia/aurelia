@@ -27,7 +27,7 @@ import {
   massSpy
 } from '../util';
 
-describe('Call', function() {
+describe('Call', function () {
   function setup(sourceExpression: IExpression, target: any, targetProperty: string) {
     const container = RuntimeBasicConfiguration.createContainer();
     const lifecycle = container.get(ILifecycle) as Lifecycle;
@@ -37,7 +37,7 @@ describe('Call', function() {
     return { sut, lifecycle, container, observerLocator };
   }
 
-  describe('$bind -> $bind', function() {
+  describe('$bind -> $bind', function () {
 
     const targetVariations: (() => [{foo?: string}, string])[] = [
       () => [({}), `{}`],
@@ -67,7 +67,7 @@ describe('Call', function() {
        = [targetVariations, propVariations, exprVariations, scopeVariations, renewScopeVariations];
 
     eachCartesianJoinFactory(inputs, ([target, $1], [prop, $2], [expr, $3], [scope, $4], [renewScope, $5]) => {
-        it(`$bind() target=${$1} prop=${$2} expr=${$3} scope=${$4} renewScope=${$5}`, function() {
+        it(`$bind() target=${$1} prop=${$2} expr=${$3} scope=${$4} renewScope=${$5}`, function () {
           // - Arrange -
           const { sut, lifecycle, observerLocator } = setup(expr, target, prop);
           const flags = LF.none;
@@ -126,7 +126,7 @@ describe('Call', function() {
     );
   });
 
-  describe('$bind -> $unbind -> $unbind', function() {
+  describe('$bind -> $unbind -> $unbind', function () {
 
     const targetVariations: (() => [{foo?: string}, string])[] = [
       () => [({}), `{}`],
@@ -151,7 +151,7 @@ describe('Call', function() {
        = [targetVariations, propVariations, exprVariations, scopeVariations];
 
     eachCartesianJoinFactory(inputs, ([target, $1], [prop, $2], [expr, $3], [scope, $4]) => {
-        it(`$bind() target=${$1} prop=${$2} expr=${$3} scope=${$4}`, function() {
+        it(`$bind() target=${$1} prop=${$2} expr=${$3} scope=${$4}`, function () {
           // - Arrange -
           const { sut, lifecycle, observerLocator } = setup(expr, target, prop);
           const flags = LF.none;
@@ -217,7 +217,7 @@ describe('Call', function() {
     );
   });
 
-  describe('$bind -> call -> $unbind', function() {
+  describe('$bind -> call -> $unbind', function () {
 
     const targetVariations: (() => [{foo?: string}, string])[] = [
       () => [({}), `{}`],
@@ -249,7 +249,7 @@ describe('Call', function() {
        = [targetVariations, propVariations, argsVariations, exprVariations, scopeVariations];
 
     eachCartesianJoinFactory(inputs, ([target, $1], [prop, $2], [args, $3], [expr, $4], [scope, $5]) => {
-        it(`$bind() target=${$1} prop=${$2} args=${$3} expr=${$4} scope=${$5}`, function() {
+        it(`$bind() target=${$1} prop=${$2} args=${$3} expr=${$4} scope=${$5}`, function () {
           // - Arrange -
           const { sut, lifecycle, observerLocator } = setup(expr, target, prop);
           const flags = LF.none;

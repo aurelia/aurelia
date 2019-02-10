@@ -15,15 +15,15 @@ import {
 
 const spec = 'repeater-custom-element';
 
-describe(spec, function() {
+describe(spec, function () {
   let ctx: HTMLTestContext;
 
-  beforeEach(function() {
+  beforeEach(function () {
     ctx = TestContext.createHTMLTestContext();
   });
 
   // repeater with custom element
-  it('103.', function() {
+  it('103.', function () {
     @customElement({ name: 'foo', template: '<template>a</template>', instructions: [], build: { required: true, compiler: 'default' } })
     class Foo { }
     const { au, lifecycle, host, component } = setupAndStart(ctx, `<template><foo repeat.for="i of count"></foo></template>`, null, Foo);
@@ -37,7 +37,7 @@ describe(spec, function() {
   });
 
   // repeater with custom element + inner bindable with different name than outer property
-  it('104.', function() {
+  it('104.', function () {
     @customElement({ name: 'foo', template: '<template><div>${text}</div></template>', instructions: [], build: { required: true, compiler: 'default' } })
     class Foo { @bindable public text: string; }
     const { au, lifecycle, host, component } = setupAndStart(ctx, `<template><foo text.bind="theText" repeat.for="i of count"></foo></template>`, class {
@@ -54,7 +54,7 @@ describe(spec, function() {
   });
 
   // repeater with custom element + inner bindable with same name as outer property
-  it('105.', function() {
+  it('105.', function () {
     @customElement({ name: 'foo', template: '<template><div>${text}</div></template>', instructions: [], build: { required: true, compiler: 'default' } })
     class Foo { @bindable public text: string; }
     const { au, lifecycle, host, component } = setupAndStart(ctx, `<template><foo text.bind="text" repeat.for="i of count"></foo></template>`, class {
@@ -71,7 +71,7 @@ describe(spec, function() {
   });
 
   // repeater with custom element + inner bindable with different name than outer property, reversed, undefined property
-  it('106.', function() {
+  it('106.', function () {
     @customElement({ name: 'foo', template: '<template><div>${text}</div></template>', instructions: [], build: { required: true, compiler: 'default' } })
     class Foo { @bindable public text: string; }
     const { au, lifecycle, host, component } = setupAndStart(ctx, `<template><foo repeat.for="i of count" text.bind="theText"></foo></template>`, null, Foo);
@@ -87,7 +87,7 @@ describe(spec, function() {
   });
 
   // repeater with custom element + inner bindable with same name as outer property, reversed, undefined property
-  it('107.', function() {
+  it('107.', function () {
     @customElement({ name: 'foo', template: '<template><div>${text}</div></template>', instructions: [], build: { required: true, compiler: 'default' } })
     class Foo { @bindable public text: string; }
     const { au, lifecycle, host, component } = setupAndStart(ctx, `<template><foo repeat.for="i of count" text.bind="text"></foo></template>`, null, Foo);
@@ -102,7 +102,7 @@ describe(spec, function() {
   });
 
   // repeater with custom element + inner bindable with different name than outer property, reversed
-  it('108.', function() {
+  it('108.', function () {
     @customElement({ name: 'foo', template: '<template><div>${text}</div></template>', instructions: [], build: { required: true, compiler: 'default' } })
     class Foo { @bindable public text; }
     const { au, lifecycle, host, component } = setup(ctx, `<template><foo repeat.for="i of count" text.bind="theText"></foo></template>`, null, Foo);
@@ -118,7 +118,7 @@ describe(spec, function() {
   });
 
   // repeater with custom element + inner bindable with same name as outer property, reversed
-  it('109.', function() {
+  it('109.', function () {
     @customElement({ name: 'foo', template: '<template><div>${text}</div></template>', instructions: [], build: { required: true, compiler: 'default' } })
     class Foo { @bindable public text; }
     const { au, lifecycle, host, component } = setup(ctx, `<template><foo repeat.for="i of count" text.bind="theText"></foo></template>`, null, Foo);
@@ -134,7 +134,7 @@ describe(spec, function() {
   });
 
   // repeater with custom element with repeater
-  it('110.', function() {
+  it('110.', function () {
     @customElement({ name: 'foo', template: '<template><div repeat.for="item of todos">${item}</div></template>', instructions: [], build: { required: true, compiler: 'default' } })
     class Foo { @bindable public todos: any[]; }
     const { au, lifecycle, host, component } = setup(ctx, `<template><foo repeat.for="i of count" todos.bind="todos"></foo></template>`, null, Foo);
@@ -157,7 +157,7 @@ describe(spec, function() {
   });
 
   // repeater with custom element with repeater, nested arrays
-  it('111.', function() {
+  it('111.', function () {
     @customElement({ name: 'foo', template: '<template><div repeat.for="innerTodos of todos"><div repeat.for="item of innerTodos">${item}</div></div></template>', instructions: [], build: { required: true, compiler: 'default' } })
     class Foo { @bindable public todos: any[]; }
     const { au, lifecycle, host, component } = setup(ctx, `<template><foo repeat.for="i of count" todos.bind="todos"></foo></template>`, null, Foo);
@@ -180,7 +180,7 @@ describe(spec, function() {
   });
 
   // repeater with custom element and children observer
-  it('112.', async function() {
+  it('112.', async function () {
     this.timeout(10000);
     let childrenCount = 0;
     let childrenChangedCount = 0;
@@ -246,7 +246,7 @@ describe(spec, function() {
   });
 
   // repeater with custom element
-  it('203.', function() {
+  it('203.', function () {
     @customElement({ name: 'foo', template: '<template>a</template>', instructions: [], build: { required: true, compiler: 'default' } })
     class Foo { }
     const { au, lifecycle, host, component } = setupAndStart(ctx, `<template><foo repeat.for="i of count & keyed"></foo></template>`, null, Foo);
@@ -260,7 +260,7 @@ describe(spec, function() {
   });
 
   // repeater with custom element + inner bindable with different name than outer property
-  it('204.', function() {
+  it('204.', function () {
     @customElement({ name: 'foo', template: '<template><div>${text}</div></template>', instructions: [], build: { required: true, compiler: 'default' } })
     class Foo { @bindable public text: string; }
     const { au, lifecycle, host, component } = setupAndStart(ctx, `<template><foo text.bind="theText" repeat.for="i of count & keyed"></foo></template>`, class {
@@ -277,7 +277,7 @@ describe(spec, function() {
   });
 
   // repeater with custom element + inner bindable with same name as outer property
-  it('205.', function() {
+  it('205.', function () {
     @customElement({ name: 'foo', template: '<template><div>${text}</div></template>', instructions: [], build: { required: true, compiler: 'default' } })
     class Foo { @bindable public text: string; }
     const { au, lifecycle, host, component } = setupAndStart(ctx, `<template><foo text.bind="text" repeat.for="i of count & keyed"></foo></template>`, class {
@@ -294,7 +294,7 @@ describe(spec, function() {
   });
 
   // repeater with custom element + inner bindable with different name than outer property, reversed, undefined property
-  it('206.', function() {
+  it('206.', function () {
     @customElement({ name: 'foo', template: '<template><div>${text}</div></template>', instructions: [], build: { required: true, compiler: 'default' } })
     class Foo { @bindable public text: string; }
     const { au, lifecycle, host, component } = setupAndStart(ctx, `<template><foo repeat.for="i of count & keyed" text.bind="theText"></foo></template>`, null, Foo);
@@ -310,7 +310,7 @@ describe(spec, function() {
   });
 
   // repeater with custom element + inner bindable with same name as outer property, reversed, undefined property
-  it('207.', function() {
+  it('207.', function () {
     @customElement({ name: 'foo', template: '<template><div>${text}</div></template>', instructions: [], build: { required: true, compiler: 'default' } })
     class Foo { @bindable public text: string; }
     const { au, lifecycle, host, component } = setupAndStart(ctx, `<template><foo repeat.for="i of count & keyed" text.bind="text"></foo></template>`, null, Foo);
@@ -325,7 +325,7 @@ describe(spec, function() {
   });
 
   // repeater with custom element + inner bindable with different name than outer property, reversed
-  it('208.', function() {
+  it('208.', function () {
     @customElement({ name: 'foo', template: '<template><div>${text}</div></template>', instructions: [], build: { required: true, compiler: 'default' } })
     class Foo { @bindable public text; }
     const { au, lifecycle, host, component } = setup(ctx, `<template><foo repeat.for="i of count & keyed" text.bind="theText"></foo></template>`, null, Foo);
@@ -341,7 +341,7 @@ describe(spec, function() {
   });
 
   // repeater with custom element + inner bindable with same name as outer property, reversed
-  it('209.', function() {
+  it('209.', function () {
     @customElement({ name: 'foo', template: '<template><div>${text}</div></template>', instructions: [], build: { required: true, compiler: 'default' } })
     class Foo { @bindable public text; }
     const { au, lifecycle, host, component } = setup(ctx, `<template><foo repeat.for="i of count & keyed" text.bind="theText"></foo></template>`, null, Foo);
@@ -357,7 +357,7 @@ describe(spec, function() {
   });
 
   // repeater with custom element with repeater
-  it('210.', function() {
+  it('210.', function () {
     @customElement({ name: 'foo', template: '<template><div repeat.for="item of todos & keyed">${item}</div></template>', instructions: [], build: { required: true, compiler: 'default' } })
     class Foo { @bindable public todos: any[]; }
     const { au, lifecycle, host, component } = setup(ctx, `<template><foo repeat.for="i of count & keyed" todos.bind="todos"></foo></template>`, null, Foo);
@@ -380,7 +380,7 @@ describe(spec, function() {
   });
 
   // repeater with custom element with repeater, nested arrays
-  it('211.', function() {
+  it('211.', function () {
     @customElement({ name: 'foo', template: '<template><div repeat.for="innerTodos of todos & keyed"><div repeat.for="item of innerTodos & keyed">${item}</div></div></template>', instructions: [], build: { required: true, compiler: 'default' } })
     class Foo { @bindable public todos: any[]; }
     const { au, lifecycle, host, component } = setup(ctx, `<template><foo repeat.for="i of count & keyed" todos.bind="todos"></foo></template>`, null, Foo);
@@ -404,7 +404,7 @@ describe(spec, function() {
 
   // TODO: figure out why repeater in keyed mode gives different numbers
   // // repeater with custom element and children observer
-  // it('212.', async function() {
+  // it('212.', async function () {
   //   this.timeout(10000);
   //   let childrenCount = 0;
   //   let childrenChangedCount = 0;

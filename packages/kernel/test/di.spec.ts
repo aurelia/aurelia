@@ -39,45 +39,45 @@ function assertIsMutableArray(arr: any[], length: number): void {
 
 function decorator(): ClassDecorator { return (target: any) => target; }
 
-describe(`The DI object`, function() {
-  describe(`createContainer()`, function() {
-    it(`returns an instance of Container`, function() {
+describe(`The DI object`, function () {
+  describe(`createContainer()`, function () {
+    it(`returns an instance of Container`, function () {
       const actual = DI.createContainer();
       expect(actual).to.be.instanceof(Container);
     });
 
-    it(`returns a new container every time`, function() {
+    it(`returns a new container every time`, function () {
       expect(DI.createContainer()).not.to.equal(DI.createContainer());
     });
   });
 
-  describe(`getDesignParamTypes()`, function() {
-    it(`returns PLATFORM.emptyArray if the class has no constructor or decorators`, function() {
+  describe(`getDesignParamTypes()`, function () {
+    it(`returns PLATFORM.emptyArray if the class has no constructor or decorators`, function () {
       class Foo {}
       const actual = DI.getDesignParamTypes(Foo);
       expect(actual).to.equal(PLATFORM.emptyArray);
     });
-    it(`returns PLATFORM.emptyArray if the class has a decorator but no constructor`, function() {
+    it(`returns PLATFORM.emptyArray if the class has a decorator but no constructor`, function () {
       @decorator()
       class Foo {}
       const actual = DI.getDesignParamTypes(Foo);
       expect(actual).to.equal(PLATFORM.emptyArray);
     });
 
-    it(`returns PLATFORM.emptyArray if the class has no constructor args or decorators`, function() {
+    it(`returns PLATFORM.emptyArray if the class has no constructor args or decorators`, function () {
       class Foo { constructor() { return; } }
       const actual = DI.getDesignParamTypes(Foo);
       expect(actual).to.equal(PLATFORM.emptyArray);
     });
 
-    it(`returns PLATFORM.emptyArray if the class has constructor args but no decorators`, function() {
+    it(`returns PLATFORM.emptyArray if the class has constructor args but no decorators`, function () {
       class Bar {}
       class Foo { constructor(public bar: Bar) {} }
       const actual = DI.getDesignParamTypes(Foo);
       expect(actual).to.equal(PLATFORM.emptyArray);
     });
 
-    it(`returns PLATFORM.emptyArray if the class has constructor args and the decorator is applied via a function call`, function() {
+    it(`returns PLATFORM.emptyArray if the class has constructor args and the decorator is applied via a function call`, function () {
       class Bar {}
       class Foo { constructor(public bar: Bar) {} }
       decorator()(Foo);
@@ -85,7 +85,7 @@ describe(`The DI object`, function() {
       expect(actual).to.equal(PLATFORM.emptyArray);
     });
 
-    it(`returns PLATFORM.emptyArray if the class is declared as an anonymous variable, even if it has ctor args and decorator is applied properly`, function() {
+    it(`returns PLATFORM.emptyArray if the class is declared as an anonymous variable, even if it has ctor args and decorator is applied properly`, function () {
       class Bar {}
       // @ts-ignore
       @decorator()
@@ -94,7 +94,7 @@ describe(`The DI object`, function() {
       expect(actual).to.equal(PLATFORM.emptyArray);
     });
 
-    it(`returns PLATFORM.emptyArray if the class is declared as a named variable, even if it has ctor args and decorator is applied properly`, function() {
+    it(`returns PLATFORM.emptyArray if the class is declared as a named variable, even if it has ctor args and decorator is applied properly`, function () {
       class Bar {}
       // @ts-ignore
       @decorator()
@@ -103,16 +103,16 @@ describe(`The DI object`, function() {
       expect(actual).to.equal(PLATFORM.emptyArray);
     });
 
-    describe(`returns an empty array if the class has a decorator but no constructor args`, function() {
+    describe(`returns an empty array if the class has a decorator but no constructor args`, function () {
       @decorator()
       class Foo { constructor() { return; } }
 
-      it(_`${Foo}`, function() {
+      it(_`${Foo}`, function () {
         const actual = DI.getDesignParamTypes(Foo);
         assertIsMutableArray(actual, 0);
       });
 
-      it(_`${class {}}`, function() {
+      it(_`${class {}}`, function () {
         let cls;
         function anonDecorator(): ClassDecorator { return (target: any) => cls = target; }
         // @ts-ignore
@@ -123,11 +123,11 @@ describe(`The DI object`, function() {
       });
     });
 
-    describe(`falls back to Object for declarations that cannot be statically analyzed`, function() {
+    describe(`falls back to Object for declarations that cannot be statically analyzed`, function () {
       interface ArgCtor {}
       for (const argCtor of [
         class Bar {},
-        function() { return; },
+        function () { return; },
         () => { return; },
         class {},
         {},
@@ -139,7 +139,7 @@ describe(`The DI object`, function() {
         @decorator()
         class FooDecoratorInvocation { constructor(public arg: ArgCtor) {} }
 
-        it(_`${FooDecoratorInvocation} { constructor(${argCtor}) }`, function() {
+        it(_`${FooDecoratorInvocation} { constructor(${argCtor}) }`, function () {
           const actual = DI.getDesignParamTypes(FooDecoratorInvocation);
           assertIsMutableArray(actual, 1);
           expect(actual[0]).to.equal(Object);
@@ -148,7 +148,7 @@ describe(`The DI object`, function() {
         @(decorator as any)
         class FooDecoratorNonInvocation { constructor(public arg: ArgCtor) {} }
 
-        it(_`${FooDecoratorNonInvocation} { constructor(${argCtor}) }`, function() {
+        it(_`${FooDecoratorNonInvocation} { constructor(${argCtor}) }`, function () {
           const actual = DI.getDesignParamTypes(FooDecoratorInvocation);
           assertIsMutableArray(actual, 1);
           expect(actual[0]).to.equal(Object);
@@ -156,7 +156,7 @@ describe(`The DI object`, function() {
       }
     });
 
-    describe(`falls back to Object for mismatched declarations`, function() {
+    describe(`falls back to Object for mismatched declarations`, function () {
 
       // Technically we're testing TypeScript here, but it's still useful to have an in-place fixture to validate our assumptions
       // And also to have an alert mechanism for when the functionality in TypeScript changes, without having to read the changelogs
@@ -180,10 +180,10 @@ describe(`The DI object`, function() {
       const AnonClassInterface: AnonClassInterface = class {};
 
       interface VarFunc {}
-      const VarFunc = function() { return; };
+      const VarFunc = function () { return; };
 
       interface VarFuncInterface {}
-      const VarFuncInterface: VarFuncInterface = function() { return; };
+      const VarFuncInterface: VarFuncInterface = function () { return; };
 
       interface Func {}
       // tslint:disable-next-line:no-empty
@@ -195,12 +195,12 @@ describe(`The DI object`, function() {
       interface ArrowInterface {}
       const ArrowInterface: ArrowInterface = () => { return; };
 
-      describe(`decorator invocation`, function() {
+      describe(`decorator invocation`, function () {
         @decorator()
         class FooBar { constructor(public arg: Bar) {} }
 
         // Note: this is a negative assertion meant to make it easier to compare this describe with the one below
-        it(_`NOT ${FooBar} { constructor(public ${Bar}) }`, function() {
+        it(_`NOT ${FooBar} { constructor(public ${Bar}) }`, function () {
           const actual = DI.getDesignParamTypes(FooBar);
           assertIsMutableArray(actual, 1);
           expect(actual[0]).to.equal(Bar);
@@ -210,7 +210,7 @@ describe(`The DI object`, function() {
         class FooAnonClass { constructor(public arg: AnonClass) {} }
 
         // Note: this is a negative assertion meant to make it easier to compare this describe with the one below
-        it(_`NOT ${FooAnonClass} { constructor(public ${AnonClass}) }`, function() {
+        it(_`NOT ${FooAnonClass} { constructor(public ${AnonClass}) }`, function () {
           const actual = DI.getDesignParamTypes(FooAnonClass);
           assertIsMutableArray(actual, 1);
           expect(actual[0]).to.equal(AnonClass);
@@ -220,7 +220,7 @@ describe(`The DI object`, function() {
         class FooAnonClassInterface { constructor(public arg: AnonClassInterface) {} }
 
         // this one is particularly interesting..
-        it(_`${FooAnonClassInterface} { constructor(public ${AnonClassInterface}) }`, function() {
+        it(_`${FooAnonClassInterface} { constructor(public ${AnonClassInterface}) }`, function () {
           const actual = DI.getDesignParamTypes(FooAnonClassInterface);
           assertIsMutableArray(actual, 1);
           expect(actual[0]).to.equal(Object);
@@ -229,7 +229,7 @@ describe(`The DI object`, function() {
         @decorator()
         class FooVarFunc { constructor(public arg: VarFunc) {} }
 
-        it(_`${FooVarFunc} { constructor(public ${VarFunc}) }`, function() {
+        it(_`${FooVarFunc} { constructor(public ${VarFunc}) }`, function () {
           const actual = DI.getDesignParamTypes(FooVarFunc);
           assertIsMutableArray(actual, 1);
           expect(actual[0]).to.equal(Object);
@@ -238,7 +238,7 @@ describe(`The DI object`, function() {
         @decorator()
         class FooVarFuncInterface { constructor(public arg: VarFuncInterface) {} }
 
-        it(_`${FooVarFuncInterface} { constructor(public ${VarFuncInterface}) }`, function() {
+        it(_`${FooVarFuncInterface} { constructor(public ${VarFuncInterface}) }`, function () {
           const actual = DI.getDesignParamTypes(FooVarFuncInterface);
           assertIsMutableArray(actual, 1);
           expect(actual[0]).to.equal(Object);
@@ -247,7 +247,7 @@ describe(`The DI object`, function() {
         @decorator()
         class FooFunc { constructor(public arg: Func) {} }
 
-        it(_`${FooFunc} { constructor(public ${Func}) }`, function() {
+        it(_`${FooFunc} { constructor(public ${Func}) }`, function () {
           const actual = DI.getDesignParamTypes(FooFunc);
           assertIsMutableArray(actual, 1);
           expect(actual[0]).to.equal(Object);
@@ -256,7 +256,7 @@ describe(`The DI object`, function() {
         @decorator()
         class FooArrow { constructor(public arg: Arrow) {} }
 
-        it(_`${FooArrow} { constructor(public ${Arrow}) }`, function() {
+        it(_`${FooArrow} { constructor(public ${Arrow}) }`, function () {
           const actual = DI.getDesignParamTypes(FooArrow);
           assertIsMutableArray(actual, 1);
           expect(actual[0]).to.equal(Object);
@@ -265,7 +265,7 @@ describe(`The DI object`, function() {
         @decorator()
         class FooArrowInterface { constructor(public arg: ArrowInterface) {} }
 
-        it(_`${FooArrowInterface} { constructor(public ${ArrowInterface}) }`, function() {
+        it(_`${FooArrowInterface} { constructor(public ${ArrowInterface}) }`, function () {
           const actual = DI.getDesignParamTypes(FooArrowInterface);
           assertIsMutableArray(actual, 1);
           expect(actual[0]).to.equal(Object);
@@ -273,23 +273,23 @@ describe(`The DI object`, function() {
       });
     });
 
-    describe(`returns the correct types for valid declarations`, function() {
+    describe(`returns the correct types for valid declarations`, function () {
       class Bar {}
 
       const AnonClass = class {};
 
-      const VarFunc = function() { return; };
+      const VarFunc = function () { return; };
 
       // tslint:disable-next-line:no-empty
       function Func() {}
 
       const Arrow = () => { return; };
 
-      describe(`decorator invocation`, function() {
+      describe(`decorator invocation`, function () {
         @decorator()
         class FooBar { constructor(public arg: Bar) {} }
 
-        it(_`${FooBar} { constructor(public ${Bar}) }`, function() {
+        it(_`${FooBar} { constructor(public ${Bar}) }`, function () {
           const actual = DI.getDesignParamTypes(FooBar);
           assertIsMutableArray(actual, 1);
           expect(actual[0]).to.equal(Bar);
@@ -299,7 +299,7 @@ describe(`The DI object`, function() {
         // @ts-ignore
         class FooAnonClass { constructor(public arg: AnonClass) {} }
 
-        it(_`${FooAnonClass} { constructor(public ${AnonClass}) }`, function() {
+        it(_`${FooAnonClass} { constructor(public ${AnonClass}) }`, function () {
           const actual = DI.getDesignParamTypes(FooAnonClass);
           assertIsMutableArray(actual, 1);
           expect(actual[0]).to.equal(AnonClass);
@@ -309,7 +309,7 @@ describe(`The DI object`, function() {
         // @ts-ignore
         class FooVarFunc { constructor(public arg: VarFunc) {} }
 
-        it(_`${FooVarFunc} { constructor(public ${VarFunc}) }`, function() {
+        it(_`${FooVarFunc} { constructor(public ${VarFunc}) }`, function () {
           const actual = DI.getDesignParamTypes(FooVarFunc);
           assertIsMutableArray(actual, 1);
           expect(actual[0]).to.equal(VarFunc);
@@ -319,7 +319,7 @@ describe(`The DI object`, function() {
         // @ts-ignore
         class FooFunc { constructor(public arg: Func) {} }
 
-        it(_`${FooFunc} { constructor(public ${Func}) }`, function() {
+        it(_`${FooFunc} { constructor(public ${Func}) }`, function () {
           const actual = DI.getDesignParamTypes(FooFunc);
           assertIsMutableArray(actual, 1);
           expect(actual[0]).to.equal(Func);
@@ -329,7 +329,7 @@ describe(`The DI object`, function() {
         // @ts-ignore
         class FooArrow { constructor(public arg: Arrow) {} }
 
-        it(_`${FooArrow} { constructor(public ${Arrow}) }`, function() {
+        it(_`${FooArrow} { constructor(public ${Arrow}) }`, function () {
           const actual = DI.getDesignParamTypes(FooArrow);
           assertIsMutableArray(actual, 1);
           expect(actual[0]).to.equal(Arrow);
@@ -338,17 +338,17 @@ describe(`The DI object`, function() {
     });
   });
 
-  describe(`getDependencies()`, function() {
+  describe(`getDependencies()`, function () {
     let getDesignParamTypes: ReturnType<typeof spy>;
 
-    beforeEach(function() {
+    beforeEach(function () {
       getDesignParamTypes = spy(DI, 'getDesignParamTypes');
     });
-    afterEach(function() {
+    afterEach(function () {
       getDesignParamTypes.restore();
     });
 
-    it(`uses getDesignParamTypes() if the static inject property does not exist`, function() {
+    it(`uses getDesignParamTypes() if the static inject property does not exist`, function () {
       class Bar {}
       @decorator()
       class Foo { constructor(bar: Bar) { return; } }
@@ -357,7 +357,7 @@ describe(`The DI object`, function() {
       expect(actual).to.deep.equal([Bar]);
     });
 
-    it(`uses getDesignParamTypes() if the static inject property is undefined`, function() {
+    it(`uses getDesignParamTypes() if the static inject property is undefined`, function () {
       class Bar {}
       @decorator()
       class Foo { public static inject; constructor(bar: Bar) { return; } }
@@ -366,7 +366,7 @@ describe(`The DI object`, function() {
       expect(actual).to.deep.equal([Bar]);
     });
 
-    it(`throws when inject is not an array`, function() {
+    it(`throws when inject is not an array`, function () {
       class Bar {}
       class Foo { public static inject = Bar; }
       expect(() => DI.getDependencies(Foo)).to.throw();
@@ -380,7 +380,7 @@ describe(`The DI object`, function() {
       [null],
       [42]
     ]) {
-      it(_`returns a copy of the inject array ${deps}`, function() {
+      it(_`returns a copy of the inject array ${deps}`, function () {
         class Foo { public static inject = deps.slice(); }
         const actual = DI.getDependencies(Foo);
         expect(getDesignParamTypes).not.to.have.been.called;
@@ -396,7 +396,7 @@ describe(`The DI object`, function() {
       [null],
       [42]
     ]) {
-      it(_`traverses the 2-layer prototype chain for inject array ${deps}`, function() {
+      it(_`traverses the 2-layer prototype chain for inject array ${deps}`, function () {
         class Foo { public static inject = deps.slice(); }
         class Bar extends Foo { public static inject = deps.slice(); }
         const actual = DI.getDependencies(Bar);
@@ -406,7 +406,7 @@ describe(`The DI object`, function() {
         expect(actual).not.to.equal(Bar.inject);
       });
 
-      it(_`traverses the 3-layer prototype chain for inject array ${deps}`, function() {
+      it(_`traverses the 3-layer prototype chain for inject array ${deps}`, function () {
         class Foo { public static inject = deps.slice(); }
         class Bar extends Foo { public static inject = deps.slice(); }
         class Baz extends Bar { public static inject = deps.slice(); }
@@ -418,7 +418,7 @@ describe(`The DI object`, function() {
         expect(actual).not.to.equal(Baz.inject);
       });
 
-      it(_`traverses the 1-layer + 2-layer prototype chain (with gap) for inject array ${deps}`, function() {
+      it(_`traverses the 1-layer + 2-layer prototype chain (with gap) for inject array ${deps}`, function () {
         class Foo { public static inject = deps.slice(); }
         class Bar extends Foo { }
         class Baz extends Bar { public static inject = deps.slice(); }
@@ -434,39 +434,39 @@ describe(`The DI object`, function() {
 
   });
 
-  describe(`createInterface()`, function() {
-    it(`returns a function that has withDefault and noDefault functions`, function() {
+  describe(`createInterface()`, function () {
+    it(`returns a function that has withDefault and noDefault functions`, function () {
       const sut = DI.createInterface();
       expect(typeof sut).to.equal('function');
       expect(typeof sut.withDefault).to.equal('function');
       expect(typeof sut.noDefault).to.equal('function');
     });
 
-    it(`noDefault returns self`, function() {
+    it(`noDefault returns self`, function () {
       const sut = DI.createInterface();
       expect(sut.noDefault()).to.equal(sut);
     });
 
-    it(`withDefault returns self with modified withDefault that throws`, function() {
+    it(`withDefault returns self with modified withDefault that throws`, function () {
       const sut = DI.createInterface();
       const sut2 = sut.withDefault(null as any);
       expect(sut).to.equal(sut2);
       expect(() => sut.withDefault(null as any)).to.throw;
     });
 
-    describe(`withDefault returns self with register function that registers the appropriate resolver`, function() {
+    describe(`withDefault returns self with register function that registers the appropriate resolver`, function () {
       let sut: IDefaultableInterfaceSymbol<any>;
       let container: IContainer;
 
       let registerResolver: ReturnType<typeof spy>;
 
-      beforeEach(function() {
+      beforeEach(function () {
         sut = DI.createInterface();
         container = new Container();
         registerResolver = spy(container, 'registerResolver');
       });
 
-      afterEach(function() {
+      afterEach(function () {
         registerResolver.restore();
       });
 
@@ -474,69 +474,69 @@ describe(`The DI object`, function() {
         return match(val => val.key === key && val.strategy === strategy && val.state === state);
       }
 
-      it(`instance without key`, function() {
+      it(`instance without key`, function () {
         const value = {};
         sut.withDefault(builder => builder.instance(value));
         (sut as any).register(container);
         expect(registerResolver).to.have.been.calledWith(sut, matchResolver(sut, ResolverStrategy.instance, value));
       });
 
-      it(`instance with key`, function() {
+      it(`instance with key`, function () {
         const value = {};
         sut.withDefault(builder => builder.instance(value));
         (sut as any).register(container, 'key');
         expect(registerResolver).to.have.been.calledWith('key', matchResolver('key', ResolverStrategy.instance, value));
       });
 
-      it(`singleton without key`, function() {
+      it(`singleton without key`, function () {
         class Foo {}
         sut.withDefault(builder => builder.singleton(Foo));
         (sut as any).register(container);
         expect(registerResolver).to.have.been.calledWith(sut, matchResolver(sut, ResolverStrategy.singleton, Foo));
       });
 
-      it(`singleton with key`, function() {
+      it(`singleton with key`, function () {
         class Foo {}
         sut.withDefault(builder => builder.singleton(Foo));
         (sut as any).register(container, 'key');
         expect(registerResolver).to.have.been.calledWith('key', matchResolver('key', ResolverStrategy.singleton, Foo));
       });
 
-      it(`transient without key`, function() {
+      it(`transient without key`, function () {
         class Foo {}
         sut.withDefault(builder => builder.transient(Foo));
         (sut as any).register(container);
         expect(registerResolver).to.have.been.calledWith(sut, matchResolver(sut, ResolverStrategy.transient, Foo));
       });
 
-      it(`transient with key`, function() {
+      it(`transient with key`, function () {
         class Foo {}
         sut.withDefault(builder => builder.transient(Foo));
         (sut as any).register(container, 'key');
         expect(registerResolver).to.have.been.calledWith('key', matchResolver('key', ResolverStrategy.transient, Foo));
       });
 
-      it(`callback without key`, function() {
+      it(`callback without key`, function () {
         const callback = () => { return; };
         sut.withDefault(builder => builder.callback(callback));
         (sut as any).register(container);
         expect(registerResolver).to.have.been.calledWith(sut, matchResolver(sut, ResolverStrategy.callback, callback));
       });
 
-      it(`callback with key`, function() {
+      it(`callback with key`, function () {
         const callback = () => { return; };
         sut.withDefault(builder => builder.callback(callback));
         (sut as any).register(container, 'key');
         expect(registerResolver).to.have.been.calledWith('key', matchResolver('key', ResolverStrategy.callback, callback));
       });
 
-      it(`aliasTo without key`, function() {
+      it(`aliasTo without key`, function () {
         sut.withDefault(builder => builder.aliasTo('key2'));
         (sut as any).register(container);
         expect(registerResolver).to.have.been.calledWith(sut, matchResolver(sut, ResolverStrategy.alias, 'key2'));
       });
 
-      it(`aliasTo with key`, function() {
+      it(`aliasTo with key`, function () {
         sut.withDefault(builder => builder.aliasTo('key2'));
         (sut as any).register(container, 'key1');
         expect(registerResolver).to.have.been.calledWith('key1', matchResolver('key1', ResolverStrategy.alias, 'key2'));
@@ -545,38 +545,38 @@ describe(`The DI object`, function() {
   });
 });
 
-describe(`The inject decorator`, function() {
+describe(`The inject decorator`, function () {
   class Dep1 {}
   class Dep2 {}
   class Dep3 {}
 
-  it(`can decorate classes with explicit dependencies`, function() {
+  it(`can decorate classes with explicit dependencies`, function () {
     @inject(Dep1, Dep2, Dep3)
     class Foo {}
 
     expect(Foo['inject']).to.deep.equal([Dep1, Dep2, Dep3]);
   });
 
-  it(`can decorate classes with implicit dependencies`, function() {
+  it(`can decorate classes with implicit dependencies`, function () {
     @inject()
     class Foo { constructor(dep1: Dep1, dep2: Dep2, dep3: Dep3) { return; } }
 
     expect(Foo['inject']).to.deep.equal([Dep1, Dep2, Dep3]);
   });
 
-  it(`can decorate constructor parameters explicitly`, function() {
+  it(`can decorate constructor parameters explicitly`, function () {
     class Foo { constructor(@inject(Dep1)dep1, @inject(Dep2)dep2, @inject(Dep3)dep3) { return; } }
 
     expect(Foo['inject']).to.deep.equal([Dep1, Dep2, Dep3]);
   });
 
-  it(`can decorate constructor parameters implicitly`, function() {
+  it(`can decorate constructor parameters implicitly`, function () {
     class Foo { constructor(@inject() dep1: Dep1, @inject() dep2: Dep2, @inject() dep3: Dep3) { return; } }
 
     expect(Foo['inject']).to.deep.equal([Dep1, Dep2, Dep3]);
   });
 
-  it(`can decorate properties explicitly`, function() {
+  it(`can decorate properties explicitly`, function () {
     // @ts-ignore
     class Foo { @inject(Dep1)public dep1; @inject(Dep2)public dep2; @inject(Dep3)public dep3; }
 
@@ -585,7 +585,7 @@ describe(`The inject decorator`, function() {
     expect(Foo['inject'].dep3).to.equal(Dep3);
   });
 
-  it(`cannot decorate properties implicitly`, function() {
+  it(`cannot decorate properties implicitly`, function () {
     // @ts-ignore
     class Foo { @inject()public dep1: Dep1; @inject()public dep2: Dep2; @inject()public dep3: Dep3; }
 
@@ -595,8 +595,8 @@ describe(`The inject decorator`, function() {
   });
 });
 
-describe(`The transient decorator`, function() {
-  it(`works as a plain decorator`, function() {
+describe(`The transient decorator`, function () {
+  it(`works as a plain decorator`, function () {
     @transient
     class Foo {}
 
@@ -610,7 +610,7 @@ describe(`The transient decorator`, function() {
     expect(foo1).not.to.equal(foo2);
   });
 
-  it(`works as an invocation`, function() {
+  it(`works as an invocation`, function () {
     @transient()
     class Foo {}
 
@@ -625,8 +625,8 @@ describe(`The transient decorator`, function() {
   });
 });
 
-describe(`The singleton decorator`, function() {
-  it(`works as a plain decorator`, function() {
+describe(`The singleton decorator`, function () {
+  it(`works as a plain decorator`, function () {
     @singleton
     class Foo {}
 
@@ -640,7 +640,7 @@ describe(`The singleton decorator`, function() {
     expect(foo1).to.equal(foo2);
   });
 
-  it(`works as an invocation`, function() {
+  it(`works as an invocation`, function () {
     @singleton()
     class Foo {}
 
@@ -655,42 +655,42 @@ describe(`The singleton decorator`, function() {
   });
 });
 
-describe(`The Resolver class`, function() {
+describe(`The Resolver class`, function () {
   let container: IContainer;
   let registerResolver: ReturnType<typeof spy>;
 
-  beforeEach(function() {
+  beforeEach(function () {
     container = new Container();
     registerResolver = spy(container, 'registerResolver');
   });
 
-  afterEach(function() {
+  afterEach(function () {
     registerResolver.restore();
   });
 
-  describe(`register()`, function() {
-    it(`registers the resolver to the container with the provided key`, function() {
+  describe(`register()`, function () {
+    it(`registers the resolver to the container with the provided key`, function () {
       const sut = new Resolver('foo', 0, null);
       sut.register(container, 'bar');
       expect(registerResolver).to.have.been.calledWith('bar', sut);
     });
 
-    it(`registers the resolver to the container with its own`, function() {
+    it(`registers the resolver to the container with its own`, function () {
       const sut = new Resolver('foo', 0, null);
       sut.register(container);
       expect(registerResolver).to.have.been.calledWith('foo', sut);
     });
   });
 
-  describe(`resolve()`, function() {
-    it(`instance - returns state`, function() {
+  describe(`resolve()`, function () {
+    it(`instance - returns state`, function () {
       const state = {};
       const sut = new Resolver('foo', ResolverStrategy.instance, state);
       const actual = sut.resolve(container, container);
       expect(actual).to.equal(state);
     });
 
-    it(`singleton - returns an instance of the type and sets strategy to instance`, function() {
+    it(`singleton - returns an instance of the type and sets strategy to instance`, function () {
       class Foo {}
       const sut = new Resolver('foo', ResolverStrategy.singleton, Foo);
       const actual = sut.resolve(container, container);
@@ -700,7 +700,7 @@ describe(`The Resolver class`, function() {
       expect(actual2).to.equal(actual);
     });
 
-    it(`transient - always returns a new instance of the type`, function() {
+    it(`transient - always returns a new instance of the type`, function () {
       class Foo {}
       const sut = new Resolver('foo', ResolverStrategy.transient, Foo);
       const actual1 = sut.resolve(container, container);
@@ -711,21 +711,21 @@ describe(`The Resolver class`, function() {
       expect(actual2).not.to.equal(actual1);
     });
 
-    it(`array - calls resolve() on the first item in the state array`, function() {
+    it(`array - calls resolve() on the first item in the state array`, function () {
       const resolver = { resolve: spy() };
       const sut = new Resolver('foo', ResolverStrategy.array, [resolver]);
       sut.resolve(container, container);
       expect(resolver.resolve).to.have.been.calledWith(container, container);
     });
 
-    it(`throws for unknown strategy`, function() {
+    it(`throws for unknown strategy`, function () {
       const sut = new Resolver('foo', -1, null);
       expect(() => sut.resolve(container, container)).to.throw(/6/);
     });
   });
 
-  describe(`getFactory()`, function() {
-    it(`returns a new singleton Factory if it does not exist`, function() {
+  describe(`getFactory()`, function () {
+    it(`returns a new singleton Factory if it does not exist`, function () {
       class Foo {}
       const sut = new Resolver(Foo, ResolverStrategy.singleton, Foo);
       const actual = sut.getFactory(container);
@@ -733,7 +733,7 @@ describe(`The Resolver class`, function() {
       expect(actual.Type).to.equal(Foo);
     });
 
-    it(`returns a new transient Factory if it does not exist`, function() {
+    it(`returns a new transient Factory if it does not exist`, function () {
       class Foo {}
       const sut = new Resolver(Foo, ResolverStrategy.transient, Foo);
       const actual = sut.getFactory(container);
@@ -741,28 +741,28 @@ describe(`The Resolver class`, function() {
       expect(actual.Type).to.equal(Foo);
     });
 
-    it(`returns a null for instance strategy`, function() {
+    it(`returns a null for instance strategy`, function () {
       class Foo {}
       const sut = new Resolver(Foo, ResolverStrategy.instance, Foo);
       const actual = sut.getFactory(container);
       expect(actual).to.equal(null);
     });
 
-    it(`returns a null for array strategy`, function() {
+    it(`returns a null for array strategy`, function () {
       class Foo {}
       const sut = new Resolver(Foo, ResolverStrategy.array, Foo);
       const actual = sut.getFactory(container);
       expect(actual).to.equal(null);
     });
 
-    it(`returns a null for alias strategy`, function() {
+    it(`returns a null for alias strategy`, function () {
       class Foo {}
       const sut = new Resolver(Foo, ResolverStrategy.alias, Foo);
       const actual = sut.getFactory(container);
       expect(actual).to.equal(null);
     });
 
-    it(`returns a null for callback strategy`, function() {
+    it(`returns a null for callback strategy`, function () {
       class Foo {}
       const sut = new Resolver(Foo, ResolverStrategy.callback, Foo);
       const actual = sut.getFactory(container);
@@ -771,11 +771,11 @@ describe(`The Resolver class`, function() {
   });
 });
 
-describe(`The Factory class`, function() {
+describe(`The Factory class`, function () {
 
-  describe(`create()`, function() {
+  describe(`create()`, function () {
     for (const count of [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]) {
-      it(`returns a new Factory with ${count} deps`, function() {
+      it(`returns a new Factory with ${count} deps`, function () {
         class Bar {}
         class Foo {public static inject = Array(count).map(c => Bar); }
         const actual = Factory.create(Foo);
@@ -792,11 +792,11 @@ describe(`The Factory class`, function() {
     }
   });
 
-  describe(`construct()`, function() {
+  describe(`construct()`, function () {
     for (const staticCount of [0, 1, 2, 3, 4, 5, 6, 7]) {
       for (const dynamicCount of [0, 1, 2]) {
         const container = new Container();
-        it(`instantiates a type with ${staticCount} static deps and ${dynamicCount} dynamic deps`, function() {
+        it(`instantiates a type with ${staticCount} static deps and ${dynamicCount} dynamic deps`, function () {
           class Bar {}
           class Foo {public static inject = Array(staticCount).fill(Bar); public args: any[]; constructor(...args: any[]) {this.args = args; }}
           const sut = Factory.create(Foo);
@@ -815,8 +815,8 @@ describe(`The Factory class`, function() {
     }
   });
 
-  describe(`registerTransformer()`, function() {
-    it(`registers the transformer`, function() {
+  describe(`registerTransformer()`, function () {
+    it(`registers the transformer`, function () {
       const container = new Container();
       class Foo {public bar; public baz; }
       const sut = Factory.create(Foo);
@@ -833,95 +833,95 @@ describe(`The Factory class`, function() {
 
 });
 
-describe(`The Container class`, function() {
+describe(`The Container class`, function () {
   let sut: IContainer;
 
-  beforeEach(function() {
+  beforeEach(function () {
     sut = new Container();
   });
 
-  describe(`register()`, function() {
+  describe(`register()`, function () {
     let register: ReturnType<typeof spy>;
 
-    beforeEach(function() {
+    beforeEach(function () {
       register = spy();
     });
 
-    it(_`calls register() on {register}`, function() {
+    it(_`calls register() on {register}`, function () {
       sut.register({register});
       expect(register).to.have.been.calledWith(sut);
     });
 
-    it(_`calls register() on {register},{register}`, function() {
+    it(_`calls register() on {register},{register}`, function () {
       sut.register({register}, {register});
       expect(register).to.have.been.calledWith(sut);
       expect(register.getCalls().length).to.equal(2);
     });
 
-    it(_`calls register() on [{register},{register}]`, function() {
+    it(_`calls register() on [{register},{register}]`, function () {
       sut.register([{register}, {register}] as any);
       expect(register).to.have.been.calledWith(sut);
       expect(register.getCalls().length).to.equal(2);
     });
 
-    it(_`calls register() on {foo:{register}}`, function() {
+    it(_`calls register() on {foo:{register}}`, function () {
       sut.register({foo: {register}});
       expect(register).to.have.been.calledWith(sut);
     });
 
-    it(_`calls register() on {foo:{register}},{foo:{register}}`, function() {
+    it(_`calls register() on {foo:{register}},{foo:{register}}`, function () {
       sut.register({foo: {register}}, {foo: {register}});
       expect(register).to.have.been.calledWith(sut);
       expect(register.getCalls().length).to.equal(2);
     });
 
-    it(_`calls register() on [{foo:{register}},{foo:{register}}]`, function() {
+    it(_`calls register() on [{foo:{register}},{foo:{register}}]`, function () {
       sut.register([{foo: {register}}, {foo: {register}}] as any);
       expect(register).to.have.been.calledWith(sut);
       expect(register.getCalls().length).to.equal(2);
     });
 
-    it(_`calls register() on {register},{foo:{register}}`, function() {
+    it(_`calls register() on {register},{foo:{register}}`, function () {
       sut.register({register}, {foo: {register}});
       expect(register).to.have.been.calledWith(sut);
       expect(register.getCalls().length).to.equal(2);
     });
 
-    it(_`calls register() on [{register},{foo:{register}}]`, function() {
+    it(_`calls register() on [{register},{foo:{register}}]`, function () {
       sut.register([{register}, {foo: {register}}] as any);
       expect(register).to.have.been.calledWith(sut);
       expect(register.getCalls().length).to.equal(2);
     });
 
-    it(_`calls register() on [{register},{}]`, function() {
+    it(_`calls register() on [{register},{}]`, function () {
       sut.register([{register}, {}] as any);
       expect(register).to.have.been.calledWith(sut);
     });
 
-    it(_`calls register() on [{},{register}]`, function() {
+    it(_`calls register() on [{},{register}]`, function () {
       sut.register([{}, {register}] as any);
       expect(register).to.have.been.calledWith(sut);
     });
 
-    it(_`calls register() on [{foo:{register}},{foo:{}}]`, function() {
+    it(_`calls register() on [{foo:{register}},{foo:{}}]`, function () {
       sut.register([{foo: {register}}, {foo: {}}] as any);
       expect(register).to.have.been.calledWith(sut);
     });
 
-    it(_`calls register() on [{foo:{}},{foo:{register}}]`, function() {
+    it(_`calls register() on [{foo:{}},{foo:{register}}]`, function () {
       sut.register([{foo: {}}, {foo: {register}}] as any);
       expect(register).to.have.been.calledWith(sut);
     });
   });
 
-  describe(`registerResolver()`, function() {
+  describe(`registerResolver()`, function () {
     for (const key of [null, undefined, Object]) {
-      it(_`throws on invalid key ${key}`, function() {
+      it(_`throws on invalid key ${key}`, function () {
         expect(() => sut.registerResolver(key, null as any)).to.throw(/5/);
       });
     }
 
-    it(`registers the resolver if it does not exist yet`, function() {
+    it(`registers the resolver if it does not exist yet`, function () {
       const key = {};
       const resolver = new Resolver(key, ResolverStrategy.instance, {});
       sut.registerResolver(key, resolver);
@@ -929,7 +929,7 @@ describe(`The Container class`, function() {
       expect(actual).to.equal(resolver);
     });
 
-    it(`changes to array resolver if the key already exists`, function() {
+    it(`changes to array resolver if the key already exists`, function () {
       const key = {};
       const resolver1 = new Resolver(key, ResolverStrategy.instance, {});
       const resolver2 = new Resolver(key, ResolverStrategy.instance, {});
@@ -946,7 +946,7 @@ describe(`The Container class`, function() {
       expect(actual2['state'][1]).to.equal(resolver2);
     });
 
-    it(`appends to the array resolver if the key already exists more than once`, function() {
+    it(`appends to the array resolver if the key already exists more than once`, function () {
       const key = {};
       const resolver1 = new Resolver(key, ResolverStrategy.instance, {});
       const resolver2 = new Resolver(key, ResolverStrategy.instance, {});
@@ -962,67 +962,67 @@ describe(`The Container class`, function() {
     });
   });
 
-  describe(`registerTransformer()`, function() {
+  describe(`registerTransformer()`, function () {
     for (const key of [null, undefined, Object]) {
-      it(_`throws on invalid key ${key}`, function() {
+      it(_`throws on invalid key ${key}`, function () {
         expect(() => sut.registerTransformer(key, null as any)).to.throw(/5/);
       });
     }
 
-    it(`registers the transformer if it does not exist yet`, function() {
+    it(`registers the transformer if it does not exist yet`, function () {
 
     });
 
-    it(`reuses the existing transformer if it exists`, function() {
+    it(`reuses the existing transformer if it exists`, function () {
 
     });
   });
 
-  describe(`getResolver()`, function() {
+  describe(`getResolver()`, function () {
     for (const key of [null, undefined, Object]) {
-      it(_`throws on invalid key ${key}`, function() {
+      it(_`throws on invalid key ${key}`, function () {
         expect(() => sut.getResolver(key, null as any)).to.throw(/5/);
       });
     }
 
   });
 
-  describe(`has()`, function() {
+  describe(`has()`, function () {
     for (const key of [null, undefined, Object]) {
-      it(_`returns false for non-existing key ${key}`, function() {
+      it(_`returns false for non-existing key ${key}`, function () {
         expect(sut.has(key as any, false)).to.equal(false);
       });
     }
-    it(`returns true for existing key`, function() {
+    it(`returns true for existing key`, function () {
       const key = {};
       sut.registerResolver(key, new Resolver(key, ResolverStrategy.instance, {}));
       expect(sut.has(key as any, false)).to.equal(true);
     });
   });
 
-  describe(`get()`, function() {
+  describe(`get()`, function () {
     for (const key of [null, undefined, Object]) {
-      it(_`throws on invalid key ${key}`, function() {
+      it(_`throws on invalid key ${key}`, function () {
         expect(() => sut.get(key)).to.throw(/5/);
       });
     }
 
   });
 
-  describe(`getAll()`, function() {
+  describe(`getAll()`, function () {
     for (const key of [null, undefined, Object]) {
-      it(_`throws on invalid key ${key}`, function() {
+      it(_`throws on invalid key ${key}`, function () {
         expect(() => sut.getAll(key)).to.throw(/5/);
       });
     }
 
   });
 
-  describe(`getFactory()`, function() {
+  describe(`getFactory()`, function () {
     for (const count of [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]) {
       sut = new Container(); // ensure the state is reset (beforeEach doesn't know about loops)
 
-      it(`returns a new Factory with ${count} deps if it does not exist`, function() {
+      it(`returns a new Factory with ${count} deps if it does not exist`, function () {
         class Bar {}
         class Foo {public static inject = Array(count).map(c => Bar); }
         const actual = sut.getFactory(Foo);
@@ -1038,7 +1038,7 @@ describe(`The Container class`, function() {
       });
     }
 
-    it(`reuses the existing factory if it already exists`, function() {
+    it(`reuses the existing factory if it already exists`, function () {
       const create = spy(Factory, 'create');
       class Foo {}
       const actual = sut.getFactory(Foo);
@@ -1050,8 +1050,8 @@ describe(`The Container class`, function() {
     });
   });
 
-  describe(`createChild()`, function() {
-    it(`creates a child with same config and sut as parent, and copies over the resourceLookup`, function() {
+  describe(`createChild()`, function () {
+    it(`creates a child with same config and sut as parent, and copies over the resourceLookup`, function () {
       const obj = {};
       Registration.instance('foo', obj).register(sut, 'foo');
       expect(sut['resourceLookup'].foo.state).to.equal(obj);
@@ -1068,15 +1068,15 @@ describe(`The Container class`, function() {
 
   });
 
-  describe(`jitRegister()`, function() {
+  describe(`jitRegister()`, function () {
 
   });
 
 });
 
-describe(`The Registration object`, function() {
+describe(`The Registration object`, function () {
 
-  it(`instance() returns the correct resolver`, function() {
+  it(`instance() returns the correct resolver`, function () {
     const value = {};
     const actual = Registration.instance('key', value);
     expect(actual['key']).to.equal('key');
@@ -1084,7 +1084,7 @@ describe(`The Registration object`, function() {
     expect(actual['state']).to.equal(value);
   });
 
-  it(`singleton() returns the correct resolver`, function() {
+  it(`singleton() returns the correct resolver`, function () {
     class Foo {}
     const actual = Registration.singleton('key', Foo);
     expect(actual['key']).to.equal('key');
@@ -1092,7 +1092,7 @@ describe(`The Registration object`, function() {
     expect(actual['state']).to.equal(Foo);
   });
 
-  it(`transient() returns the correct resolver`, function() {
+  it(`transient() returns the correct resolver`, function () {
     class Foo {}
     const actual = Registration.transient('key', Foo);
     expect(actual['key']).to.equal('key');
@@ -1100,7 +1100,7 @@ describe(`The Registration object`, function() {
     expect(actual['state']).to.equal(Foo);
   });
 
-  it(`callback() returns the correct resolver`, function() {
+  it(`callback() returns the correct resolver`, function () {
     const callback = () => { return; };
     const actual = Registration.callback('key', callback);
     expect(actual['key']).to.equal('key');
@@ -1108,7 +1108,7 @@ describe(`The Registration object`, function() {
     expect(actual['state']).to.equal(callback);
   });
 
-  it(`alias() returns the correct resolver`, function() {
+  it(`alias() returns the correct resolver`, function () {
     const actual = Registration.alias('key', 'key2');
     expect(actual['key']).to.equal('key2');
     expect(actual['strategy']).to.equal(ResolverStrategy.alias);
@@ -1116,7 +1116,7 @@ describe(`The Registration object`, function() {
   });
 });
 
-describe(`The classInvokers object`, function() {
+describe(`The classInvokers object`, function () {
   const container = { get(t) {
     return new t();
   } } as any as IContainer;
@@ -1129,25 +1129,25 @@ describe(`The classInvokers object`, function() {
   class Dep5 {}
   class Dep6 {}
 
-  it(`invoke() handles 0 deps`, function() {
+  it(`invoke() handles 0 deps`, function () {
     const actual: InstanceType<Constructable<Foo>> = classInvokers[0].invoke(container, Foo, []);
     expect(actual.args.length).to.equal(0);
   });
 
-  it(`invoke() handles 1 dep`, function() {
+  it(`invoke() handles 1 dep`, function () {
     const actual: InstanceType<Constructable<Foo>> = classInvokers[1].invoke(container, Foo, [Dep1]);
     expect(actual.args.length).to.equal(1);
     expect(actual.args[0]).to.be.instanceof(Dep1);
   });
 
-  it(`invoke() handles 2 deps`, function() {
+  it(`invoke() handles 2 deps`, function () {
     const actual: InstanceType<Constructable<Foo>> = classInvokers[2].invoke(container, Foo, [Dep1, Dep2]);
     expect(actual.args.length).to.equal(2);
     expect(actual.args[0]).to.be.instanceof(Dep1);
     expect(actual.args[1]).to.be.instanceof(Dep2);
   });
 
-  it(`invoke() handles 3 deps`, function() {
+  it(`invoke() handles 3 deps`, function () {
     const actual: InstanceType<Constructable<Foo>> = classInvokers[3].invoke(container, Foo, [Dep1, Dep2, Dep3]);
     expect(actual.args.length).to.equal(3);
     expect(actual.args[0]).to.be.instanceof(Dep1);
@@ -1155,7 +1155,7 @@ describe(`The classInvokers object`, function() {
     expect(actual.args[2]).to.be.instanceof(Dep3);
   });
 
-  it(`invoke() handles 4 deps`, function() {
+  it(`invoke() handles 4 deps`, function () {
     const actual: InstanceType<Constructable<Foo>> = classInvokers[4].invoke(container, Foo, [Dep1, Dep2, Dep3, Dep4]);
     expect(actual.args.length).to.equal(4);
     expect(actual.args[0]).to.be.instanceof(Dep1);
@@ -1164,7 +1164,7 @@ describe(`The classInvokers object`, function() {
     expect(actual.args[3]).to.be.instanceof(Dep4);
   });
 
-  it(`invoke() handles 5 deps`, function() {
+  it(`invoke() handles 5 deps`, function () {
     const actual: InstanceType<Constructable<Foo>> = classInvokers[5].invoke(container, Foo, [Dep1, Dep2, Dep3, Dep4, Dep5]);
     expect(actual.args.length).to.equal(5);
     expect(actual.args[0]).to.be.instanceof(Dep1);
@@ -1174,13 +1174,13 @@ describe(`The classInvokers object`, function() {
     expect(actual.args[4]).to.be.instanceof(Dep5);
   });
 
-  it(`invoke() does not handle 6 deps`, function() {
+  it(`invoke() does not handle 6 deps`, function () {
     expect(() => classInvokers[6].invoke(container, Foo, [Dep1, Dep2, Dep3, Dep4, Dep5, Dep6])).to.throw(/undefined/);
   });
 
 });
 
-describe(`The invokeWithDynamicDependencies function`, function() {
+describe(`The invokeWithDynamicDependencies function`, function () {
   const container = { get(t) {
     return `static${t}`;
   } } as any as IContainer;
@@ -1188,44 +1188,44 @@ describe(`The invokeWithDynamicDependencies function`, function() {
 
   const deps = [class Dep1 {}, class Dep2 {}, class Dep3 {}];
 
-  it(_`throws when staticDeps is null`, function() {
+  it(_`throws when staticDeps is null`, function () {
     expect(() => invokeWithDynamicDependencies(container, Foo, null, [])).to.throw();
   });
 
-  it(_`throws when any of the staticDeps is null`, function() {
+  it(_`throws when any of the staticDeps is null`, function () {
     expect(() => invokeWithDynamicDependencies(container, Foo, [null], [])).to.throw(/7/);
   });
 
-  it(_`throws when any of the staticDeps is undefined`, function() {
+  it(_`throws when any of the staticDeps is undefined`, function () {
     expect(() => invokeWithDynamicDependencies(container, Foo, [undefined], [])).to.throw(/7/);
   });
 
-  it(_`throws when staticDeps is undefined`, function() {
+  it(_`throws when staticDeps is undefined`, function () {
     expect(() => invokeWithDynamicDependencies(container, Foo, undefined, [])).to.throw();
   });
 
-  it(_`handles staticDeps is ${deps}`, function() {
+  it(_`handles staticDeps is ${deps}`, function () {
     const actual = invokeWithDynamicDependencies(container, Foo, deps, []) as Foo;
     expect(actual.args).to.deep.equal(deps.map(d => `static${d}`));
   });
 
-  it(`handles dynamicDeps is null`, function() {
+  it(`handles dynamicDeps is null`, function () {
     const actual = invokeWithDynamicDependencies(container, Foo, [], null) as Foo;
     expect(actual.args.length).to.equal(1);
     expect(actual.args[0]).to.equal(null);
   });
 
-  it(`handles dynamicDeps is undefined`, function() {
+  it(`handles dynamicDeps is undefined`, function () {
     const actual = invokeWithDynamicDependencies(container, Foo, [], undefined) as Foo;
     expect(actual.args.length).to.equal(0);
   });
 
-  it(_`handles dynamicDeps is ${deps}`, function() {
+  it(_`handles dynamicDeps is ${deps}`, function () {
     const actual = invokeWithDynamicDependencies(container, Foo, [], deps) as Foo;
     expect(actual.args).to.deep.equal(deps);
   });
 
-  it(_`handles staticDeps is ${deps} and dynamicDeps is ${deps}`, function() {
+  it(_`handles staticDeps is ${deps} and dynamicDeps is ${deps}`, function () {
     const actual = invokeWithDynamicDependencies(container, Foo, deps, deps) as Foo;
     expect(actual.args[0]).to.equal(`static${deps[0]}`);
     expect(actual.args[1]).to.equal(`static${deps[1]}`);

@@ -33,21 +33,21 @@ function assetSetEqual(actual: Set<any>, expected: Set<any>): void {
   }
 }
 
-describe(`SetObserver`, function() {
+describe(`SetObserver`, function () {
   let sut: SetObserver;
 
-  before(function() {
+  before(function () {
     disableSetObservation();
     enableSetObservation();
   });
-  afterEach(function() {
+  afterEach(function () {
     if (sut) {
       sut.dispose();
     }
   });
 
-  describe('should allow subscribing for immediate notification', function() {
-    it('add', function() {
+  describe('should allow subscribing for immediate notification', function () {
+    it('add', function () {
       const s = new SpySubscriber();
       const set = new Set();
       sut = new SetObserver(LF.none, new Lifecycle(), set);
@@ -57,8 +57,8 @@ describe(`SetObserver`, function() {
     });
   });
 
-  describe('should allow unsubscribing for immediate notification', function() {
-    it('add', function() {
+  describe('should allow unsubscribing for immediate notification', function () {
+    it('add', function () {
       const s = new SpySubscriber();
       const set = new Set();
       sut = new SetObserver(LF.none, new Lifecycle(), set);
@@ -69,8 +69,8 @@ describe(`SetObserver`, function() {
     });
   });
 
-  describe('should allow subscribing for batched notification', function() {
-    it('add', function() {
+  describe('should allow subscribing for batched notification', function () {
+    it('add', function () {
       const s = new SpySubscriber();
       const set = new Set();
       sut = new SetObserver(LF.none, new Lifecycle(), set);
@@ -83,8 +83,8 @@ describe(`SetObserver`, function() {
     });
   });
 
-  describe('should allow unsubscribing for batched notification', function() {
-    it('add', function() {
+  describe('should allow unsubscribing for batched notification', function () {
+    it('add', function () {
       const s = new SpySubscriber();
       const set = new Set();
       sut = new SetObserver(LF.none, new Lifecycle(), set);
@@ -98,8 +98,8 @@ describe(`SetObserver`, function() {
 
   // the reason for this is because only a change will cause it to queue itself, so it would never normally be called without changes anyway,
   // but for the occasion that it needs to be forced (such as via patch lifecycle), we do want all subscribers to be invoked regardless
-  describe('should notify batched subscribers even if there are no changes', function() {
-    it('add', function() {
+  describe('should notify batched subscribers even if there are no changes', function () {
+    it('add', function () {
       const s = new SpySubscriber();
       const set = new Set();
       sut = new SetObserver(LF.none, new Lifecycle(), set);
@@ -109,14 +109,14 @@ describe(`SetObserver`, function() {
     });
   });
 
-  describe(`observeAdd`, function() {
+  describe(`observeAdd`, function () {
     const initArr = [new Set(), new Set([1]), new Set([1, 2])];
     const itemsArr = [undefined, [], [1], [1, 2]];
     const repeatArr = [1, 2];
     for (const init of initArr) {
       for (const items of itemsArr) {
         for (const repeat of repeatArr) {
-          it(`size=${padRight(init.size, 2)} itemCount=${padRight(items && items.length, 9)} repeat=${repeat} - behaves as native`, function() {
+          it(`size=${padRight(init.size, 2)} itemCount=${padRight(items && items.length, 9)} repeat=${repeat} - behaves as native`, function () {
             const set = new Set(Array.from(init));
             const expectedSet = new Set(Array.from(init));
             const newItems = items && items.slice();
@@ -144,7 +144,7 @@ describe(`SetObserver`, function() {
             }
           });
 
-          it(`size=${padRight(init.size, 2)} itemCount=${padRight(items && items.length, 9)} repeat=${repeat} - tracks changes`, function() {
+          it(`size=${padRight(init.size, 2)} itemCount=${padRight(items && items.length, 9)} repeat=${repeat} - tracks changes`, function () {
             const set = new Set(Array.from(init));
             const copy = new Set(Array.from(init));
             const newItems = items && items.slice();
@@ -170,14 +170,14 @@ describe(`SetObserver`, function() {
     }
   });
 
-  describe(`observeDelete`, function() {
+  describe(`observeDelete`, function () {
     const initArr = [new Set(), new Set([1]), new Set([1, 2])];
     const itemsArr = [undefined, [], [1], [1, 2]];
     const repeatArr = [1, 2];
     for (const init of initArr) {
       for (const items of itemsArr) {
         for (const repeat of repeatArr) {
-          it(`size=${padRight(init.size, 2)} itemCount=${padRight(items && items.length, 9)} repeat=${repeat} - behaves as native`, function() {
+          it(`size=${padRight(init.size, 2)} itemCount=${padRight(items && items.length, 9)} repeat=${repeat} - behaves as native`, function () {
             const set = new Set(Array.from(init));
             const expectedSet = new Set(Array.from(init));
             const newItems = items && items.slice();
@@ -205,7 +205,7 @@ describe(`SetObserver`, function() {
             }
           });
 
-          it(`size=${padRight(init.size, 2)} itemCount=${padRight(items && items.length, 9)} repeat=${repeat} - tracks changes`, function() {
+          it(`size=${padRight(init.size, 2)} itemCount=${padRight(items && items.length, 9)} repeat=${repeat} - tracks changes`, function () {
             const set = new Set(Array.from(init));
             const copy = new Set(Array.from(init));
             const newItems = items && items.slice();
@@ -231,12 +231,12 @@ describe(`SetObserver`, function() {
     }
   });
 
-  describe(`observeClear`, function() {
+  describe(`observeClear`, function () {
     const initArr = [new Set(), new Set([1]), new Set([1, 2])];
     const repeatArr = [1, 2];
     for (const init of initArr) {
       for (const repeat of repeatArr) {
-        it(`size=${padRight(init.size, 2)} repeat=${repeat} - behaves as native`, function() {
+        it(`size=${padRight(init.size, 2)} repeat=${repeat} - behaves as native`, function () {
           const set = new Set(Array.from(init));
           const expectedSet = new Set(Array.from(init));
           sut = new SetObserver(LF.none, new Lifecycle(), set);
@@ -249,7 +249,7 @@ describe(`SetObserver`, function() {
           }
         });
 
-        it(`size=${padRight(init.size, 2)} repeat=${repeat} - tracks changes`, function() {
+        it(`size=${padRight(init.size, 2)} repeat=${repeat} - tracks changes`, function () {
           const set = new Set(Array.from(init));
           const copy = new Set(Array.from(init));
           sut = new SetObserver(LF.none, new Lifecycle(), set);

@@ -6,7 +6,7 @@
 
 // const getName = (o: any) => Object.prototype.toString.call(o).slice(8, -1);
 
-// describe('LetBinding', function() {
+// describe('LetBinding', function () {
 //   let container: IContainer;
 //   let observerLocator: IObserverLocator;
 //   let sut: LetBinding;
@@ -15,7 +15,7 @@
 //   let dummyTargetProperty: string;
 //   let dummyMode: BindingMode;
 
-//   beforeEach(function() {
+//   beforeEach(function () {
 //     container = DI.createContainer();
 //     observerLocator = container.get(IObserverLocator);
 //     dummySourceExpression = <any>{};
@@ -25,18 +25,18 @@
 //     sut = new LetBinding(dummySourceExpression, dummyTargetProperty, observerLocator, container);
 //   });
 
-//   describe('constructor', function() {
+//   describe('constructor', function () {
 //     const invalidInputs: any[] = [null, undefined, {}];
 
 //     for (const ii of invalidInputs) {
-//       it(`does not throw on invalid input parameters of type ${getName(ii)}`, function() {
+//       it(`does not throw on invalid input parameters of type ${getName(ii)}`, function () {
 //         sut = new LetBinding(ii, ii, ii, ii, ii);
 //       });
 //     }
 //   });
 
-//   describe('$bind()', function() {
-//     it('does not change target if scope was not changed', function() {
+//   describe('$bind()', function () {
+//     it('does not change target if scope was not changed', function () {
 //       const vm = {};
 //       const sourceExpression = new MockExpression();
 //       const scope = Scope.create(vm, null);
@@ -47,7 +47,7 @@
 //       expect(sut.target).to.equal(target, 'It should have not recreated target');
 //     });
 
-//     it('creates right target with toViewModel === true', function() {
+//     it('creates right target with toViewModel === true', function () {
 //       const vm = { vm: 5 };
 //       const sourceExpression = new MockExpression();
 //       sut = new LetBinding(<any>sourceExpression, 'foo', observerLocator, container, true);
@@ -55,7 +55,7 @@
 //       expect(sut.target).to.equal(vm, 'It should have used bindingContext to create target.');
 //     });
 
-//     it('creates right target with toViewModel === false', function() {
+//     it('creates right target with toViewModel === false', function () {
 //       const vm = { vm: 5 };
 //       const view = { view: 6 };
 //       const sourceExpression = new MockExpression();
@@ -65,8 +65,8 @@
 //     });
 //   });
 
-//   describe('handleChange()', function() {
-//     it('handles changes', function() {
+//   describe('handleChange()', function () {
+//     it('handles changes', function () {
 //       const vm = { vm: 5, foo: false };
 //       const sourceExpression = new MockExpression();
 //       sut = new LetBinding(<any>sourceExpression, 'foo', observerLocator, container, true);
@@ -76,8 +76,8 @@
 //     });
 //   });
 
-//   describe('$unbind()', function() {
-//     it('should not unbind if it is not already bound', function() {
+//   describe('$unbind()', function () {
+//     it('should not unbind if it is not already bound', function () {
 //       const sourceExpression = new MockExpression();
 //       const scope: any = {};
 //       sut = new LetBinding(<any>sourceExpression, 'foo', observerLocator, container, true);
@@ -86,7 +86,7 @@
 //       expect(sut['$scope'] === scope).to.equal(true);
 //     });
 
-//     it('should unbind if it is bound', function() {
+//     it('should unbind if it is bound', function () {
 //       const sourceExpression = new MockExpression();
 //       const scope: any = {};
 //       sut = new LetBinding(<any>sourceExpression, 'foo', observerLocator, container, true);

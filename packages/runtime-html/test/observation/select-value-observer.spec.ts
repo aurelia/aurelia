@@ -7,7 +7,7 @@ import { _, h, HTMLTestContext, TestContext, verifyEqual } from '../util';
 type Anything = any;
 
 // TODO: need many more tests here, this is just preliminary
-describe('SelectValueObserver', function() {
+describe('SelectValueObserver', function () {
   function createFixture(initialValue: Anything = '', options = [], multiple = false) {
     const ctx = TestContext.createHTMLTestContext();
     const { dom, lifecycle, observerLocator } = ctx;
@@ -22,14 +22,14 @@ describe('SelectValueObserver', function() {
     return { ctx, lifecycle, el, sut, dom };
   }
 
-  describe('setValue()', function() {
+  describe('setValue()', function () {
     const valuesArr = [['', 'foo', 'bar']];
     const initialArr = ['', 'foo', 'bar'];
     const nextArr = ['', 'foo', 'bar'];
     for (const values of valuesArr) {
       for (const initial of initialArr) {
         for (const next of nextArr) {
-          it(`sets 'value' from "${initial}" to "${next}"`, function() {
+          it(`sets 'value' from "${initial}" to "${next}"`, function () {
             const { lifecycle, el } = createFixture(initial, values);
 
             lifecycle.processFlushQueue(LF.none);
@@ -45,10 +45,10 @@ describe('SelectValueObserver', function() {
     }
   });
 
-  describe('bind()', function() {
+  describe('bind()', function () {
 
     if (typeof MutationObserver !== 'undefined') {
-      it('uses private method handleNodeChange as callback', async function() {
+      it('uses private method handleNodeChange as callback', async function () {
         for (const isMultiple of [true, false]) {
           const { ctx, el, sut } = createFixture([], [], isMultiple);
           const callbackSpy = spy(sut, 'handleNodeChange');
@@ -62,8 +62,8 @@ describe('SelectValueObserver', function() {
     }
   });
 
-  describe('unbind()', function() {
-    it('disconnect node observer', function() {
+  describe('unbind()', function () {
+    it('disconnect node observer', function () {
       for (const isMultiple of [true, false]) {
         const { sut } = createFixture([], [], isMultiple);
         let count = 0;
@@ -76,7 +76,7 @@ describe('SelectValueObserver', function() {
         expect(sut['nodeObserver']).to.equal(null);
       }
     });
-    it('unsubscribes array observer', function() {
+    it('unsubscribes array observer', function () {
       for (const isMultiple of [true, false]) {
         const { sut } = createFixture([], [], isMultiple);
         let count = 0;
@@ -98,12 +98,12 @@ describe('SelectValueObserver', function() {
     });
   });
 
-  describe('synchronizeOptions', function() {
+  describe('synchronizeOptions', function () {
 
   });
 
-  describe('synchronizeValue()', function() {
-    describe('<select />', function() {
+  describe('synchronizeValue()', function () {
+    describe('<select />', function () {
 
     });
     // There is subtle difference in behavior of synchronization for SelectObserver
@@ -111,8 +111,8 @@ describe('SelectValueObserver', function() {
     // the behavior is different, as such, if currentValue is an array
     //    1. With synchronizeOptions: source => target => source. Or selected <option/> are based on value array
     //    2. Without synchronizeOptions: target => source. Or selected values are based on selected <option/>
-    describe('<select multiple="true" />', function() {
-      it('synchronizes with array', function() {
+    describe('<select multiple="true" />', function () {
+      it('synchronizes with array', function () {
         const { sut } = createMutiSelectSut([], [
           option({ text: 'A', selected: true }),
           option({ text: 'B', selected: true }),
@@ -126,7 +126,7 @@ describe('SelectValueObserver', function() {
         expect(currentValue['length']).to.equal(2);
       });
 
-      it('synchronizes with null', function() {
+      it('synchronizes with null', function () {
         const { sut } = createMutiSelectSut(null, [
           option({ text: 'A', selected: true }),
           option({ text: 'B', selected: true }),
@@ -138,7 +138,7 @@ describe('SelectValueObserver', function() {
         expect(currentValue).to.equal(sut.currentValue);
       });
 
-      it('synchronizes with undefined', function() {
+      it('synchronizes with undefined', function () {
         const { sut } = createMutiSelectSut(undefined, [
           option({ text: 'A', selected: true }),
           option({ text: 'B', selected: true }),
@@ -150,7 +150,7 @@ describe('SelectValueObserver', function() {
         expect(currentValue).to.equal(sut.currentValue);
       });
 
-      it('synchronizes with array (2)', function() {
+      it('synchronizes with array (2)', function () {
         const { sut } = createMutiSelectSut([], [
           option({ text: 'A', _model: { id: 1, name: 'select 1' }, selected: true }),
           option({ text: 'B', _model: { id: 2, name: 'select 2' }, selected: true }),
@@ -169,7 +169,7 @@ describe('SelectValueObserver', function() {
         );
       });
 
-      it('synchronizes with array (3): disregard "value" when there is model', function() {
+      it('synchronizes with array (3): disregard "value" when there is model', function () {
         const { sut } = createMutiSelectSut([], [
           option({ text: 'A', value: 'AA', _model: { id: 1, name: 'select 1' }, selected: true }),
           option({ text: 'B', value: 'BB', _model: { id: 2, name: 'select 2' }, selected: true }),
@@ -188,7 +188,7 @@ describe('SelectValueObserver', function() {
         );
       });
 
-      it('synchronize regardless disabled state of <option/>', function() {
+      it('synchronize regardless disabled state of <option/>', function () {
         const { sut } = createMutiSelectSut([], [
           option({ text: 'A', value: 'AA', _model: { id: 1, name: 'select 1' }, selected: true }),
           option({ text: 'B', value: 'BB', disabled: true, _model: { id: 2, name: 'select 2' }, selected: true }),
@@ -207,8 +207,8 @@ describe('SelectValueObserver', function() {
         );
       });
 
-      describe('with <optgroup>', function() {
-        it('synchronizes with array', function() {
+      describe('with <optgroup>', function () {
+        it('synchronizes with array', function () {
           const { sut } = createMutiSelectSut([], [
             optgroup({},
                      option({ text: 'A', _model: { id: 1, name: 'select 1' }, selected: true }),

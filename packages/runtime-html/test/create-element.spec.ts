@@ -20,10 +20,10 @@ import {
   TestContext
 } from './util';
 
-describe(`createElement() creates element based on tag`, function() {
+describe(`createElement() creates element based on tag`, function () {
   eachCartesianJoin([['div', 'template']], (tag: string) => {
-    describe(`tag=${tag}`, function() {
-      it(`translates raw object properties to attributes`, function() {
+    describe(`tag=${tag}`, function () {
+      it(`translates raw object properties to attributes`, function () {
         const ctx = TestContext.createHTMLTestContext();
         const actual = sut(ctx.dom, tag, { title: 'asdf', foo: 'bar' });
 
@@ -37,7 +37,7 @@ describe(`createElement() creates element based on tag`, function() {
       });
 
       eachCartesianJoin([[[null, 'null'], [undefined, 'undefined']]], ([props, str]) => {
-        it(`can handle ${str} props`, function() {
+        it(`can handle ${str} props`, function () {
           const ctx = TestContext.createHTMLTestContext();
           //@ts-ignore
           const actual = sut(ctx.dom, tag, props);
@@ -70,7 +70,7 @@ describe(`createElement() creates element based on tag`, function() {
           ]
         ],
         t => {
-        it(`understands targeted instruction type=${t}`, function() {
+        it(`understands targeted instruction type=${t}`, function () {
           const ctx = TestContext.createHTMLTestContext();
           //@ts-ignore
           const actual = sut(ctx.dom, tag, { prop: { type: t }});
@@ -100,7 +100,7 @@ describe(`createElement() creates element based on tag`, function() {
           (ctx, [children, expected]) => [[sut(ctx.dom, 'div', null, [ctx.createElementFromMarkup('<div>baz</div>')]), ...children], `baz${expected}`]
         ] as ((ctx: HTMLTestContext, $1: [(RenderPlan | string | INode)[], string]) => [(RenderPlan | string | INode)[], string])[]
       ],                       (ctx, $1, [children, expected]) => {
-        it(_`adds children (${children})`, function() {
+        it(_`adds children (${children})`, function () {
           const actual = sut(ctx.dom, tag, null, children);
 
           const node = actual['node'] as Element;
@@ -115,7 +115,7 @@ describe(`createElement() creates element based on tag`, function() {
   });
 });
 
-describe(`createElement() creates element based on type`, function() {
+describe(`createElement() creates element based on type`, function () {
   eachCartesianJoin([
     [
       () => CustomElementResource.define({ name: 'foo' }, class Foo {}),
@@ -123,8 +123,8 @@ describe(`createElement() creates element based on type`, function() {
     ] as (() => ICustomElementType)[]
   ],
                     (createType: () => ICustomElementType) => {
-    describe(_`type=${createType()}`, function() {
-      it(`translates raw object properties to attributes`, function() {
+    describe(_`type=${createType()}`, function () {
+      it(`translates raw object properties to attributes`, function () {
         const ctx = TestContext.createHTMLTestContext();
         const type = createType();
         const actual = sut(ctx.dom, type, { title: 'asdf', foo: 'bar' });
@@ -154,7 +154,7 @@ describe(`createElement() creates element based on type`, function() {
       });
 
       eachCartesianJoin([[[null, 'null'], [undefined, 'undefined']]], ([props, str]) => {
-        it(`can handle ${str} props`, function() {
+        it(`can handle ${str} props`, function () {
           const type = createType();
           const ctx = TestContext.createHTMLTestContext();
           //@ts-ignore
@@ -191,7 +191,7 @@ describe(`createElement() creates element based on type`, function() {
           ]
         ],
         t => {
-        it(`understands targeted instruction type=${t}`, function() {
+        it(`understands targeted instruction type=${t}`, function () {
           const type = createType();
           const ctx = TestContext.createHTMLTestContext();
           //@ts-ignore
@@ -225,7 +225,7 @@ describe(`createElement() creates element based on type`, function() {
           (ctx, [children, expected]) => [[sut(ctx.dom, 'div', null, [ctx.createElementFromMarkup('<div>baz</div>')]), ...children], `baz${expected}`]
         ] as ((ctx: HTMLTestContext, $1: [(RenderPlan | string | INode)[], string]) => [(RenderPlan | string | INode)[], string])[]
       ],                       (ctx, $1, [children, expected]) => {
-        it(_`adds children (${children})`, function() {
+        it(_`adds children (${children})`, function () {
           const type = createType();
           const actual = sut(ctx.dom, type, null, children);
 

@@ -2,8 +2,8 @@ import { expect } from 'chai';
 import { CustomElementResource, LifecycleFlags } from '../src/index';
 import { AuDOMTest as AU } from './au-dom';
 
-describe('AuDOM', function() {
-  it('works', function() {
+describe('AuDOM', function () {
+  it('works', function () {
     const { au, host, lifecycle } = AU.setup();
 
     const definition = AU.createTemplateControllerDefinition(

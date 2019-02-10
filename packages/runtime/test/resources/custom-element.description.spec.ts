@@ -4,15 +4,15 @@ import { BindingStrategy, customElement } from '../../src/index';
 import { eachCartesianJoin } from '../util';
 import { createCustomElement } from './custom-element._builder';
 
-describe('@customElement', function() {
+describe('@customElement', function () {
 
-  it('throws if input is undefined', function() {
+  it('throws if input is undefined', function () {
     expect(() => createCustomElement(undefined)).to.throw('Code 70');
   });
-  it('throws if input is null', function() {
+  it('throws if input is null', function () {
     expect(() => createCustomElement(null)).to.throw('Code 70');
   });
-  it('throws if input is empty', function() {
+  it('throws if input is empty', function () {
     expect(() => createCustomElement('')).to.throw('Code 70');
   });
 
@@ -31,7 +31,7 @@ describe('@customElement', function() {
     'strategy'
   ];
 
-  it('creates the default template description', function() {
+  it('creates the default template description', function () {
     const { Type } = createCustomElement({} as any);
     expect(Type.description).to.be.a('object', 'description');
     expect(Type.description.name).to.equal('unnamed', 'name');
@@ -77,7 +77,7 @@ describe('@customElement', function() {
   ];
 
   eachCartesianJoin([nameSpecs], (nameSpec) => {
-    it(`${nameSpec.expectation} if ${nameSpec.description}`, function() {
+    it(`${nameSpec.expectation} if ${nameSpec.description}`, function () {
       const { Type } = createCustomElement({ name: nameSpec.getName() });
       expect(Type.description).to.be.a('object', 'description');
       expect(Type.description.name).to.equal(nameSpec.getExpectedname(), 'name');
@@ -124,7 +124,7 @@ describe('@customElement', function() {
   ];
 
   eachCartesianJoin([templateSpecs], (templateSpec) => {
-    it(`${templateSpec.expectation} if ${templateSpec.description}`, function() {
+    it(`${templateSpec.expectation} if ${templateSpec.description}`, function () {
       const { Type } = createCustomElement({ template: templateSpec.getTemplate() } as any);
       expect(Type.description).to.be.a('object', 'description');
       expect(Type.description.name).to.equal('unnamed', 'name');
@@ -183,7 +183,7 @@ describe('@customElement', function() {
   ];
 
   eachCartesianJoin([cacheSpecs], (cacheSpec) => {
-    it(`${cacheSpec.expectation} if ${cacheSpec.description}`, function() {
+    it(`${cacheSpec.expectation} if ${cacheSpec.description}`, function () {
       const { Type } = createCustomElement({ cache: cacheSpec.getCache() } as any);
       expect(Type.description).to.be.a('object', 'description');
       expect(Type.description.name).to.equal('unnamed', 'name');
@@ -229,7 +229,7 @@ describe('@customElement', function() {
   ];
 
   eachCartesianJoin([buildSpecs], (buildSpec) => {
-    it(`${buildSpec.expectation} if ${buildSpec.description}`, function() {
+    it(`${buildSpec.expectation} if ${buildSpec.description}`, function () {
       const { Type } = createCustomElement(buildSpec.getBuild ? { build: buildSpec.getBuild() } : {} as any);
       expect(Type.description).to.be.a('object', 'description');
       expect(Type.description.name).to.equal('unnamed', 'name');
@@ -301,7 +301,7 @@ describe('@customElement', function() {
   ];
 
   eachCartesianJoin([bindablesSpecs], (bindablesSpec) => {
-    it(`${bindablesSpec.expectation} if ${bindablesSpec.description}`, function() {
+    it(`${bindablesSpec.expectation} if ${bindablesSpec.description}`, function () {
       const def = {
         bindables: bindablesSpec.getDefBindables(),
       };
@@ -358,7 +358,7 @@ describe('@customElement', function() {
   ];
 
   eachCartesianJoin([instructionsSpecs], (instructionsSpec) => {
-    it(`${instructionsSpec.expectation} if ${instructionsSpec.description}`, function() {
+    it(`${instructionsSpec.expectation} if ${instructionsSpec.description}`, function () {
       const { Type } = createCustomElement({ instructions: instructionsSpec.getInstructions() } as any);
       expect(Type.description).to.be.a('object', 'description');
       expect(Type.description.name).to.equal('unnamed', 'name');
@@ -414,7 +414,7 @@ describe('@customElement', function() {
   ];
 
   eachCartesianJoin([dependenciesSpecs], (dependenciesSpec) => {
-    it(`${dependenciesSpec.expectation} if ${dependenciesSpec.description}`, function() {
+    it(`${dependenciesSpec.expectation} if ${dependenciesSpec.description}`, function () {
       const { Type } = createCustomElement({ dependencies: dependenciesSpec.getDependencies() } as any);
       expect(Type.description).to.be.a('object', 'description');
       expect(Type.description.name).to.equal('unnamed', 'name');
@@ -470,7 +470,7 @@ describe('@customElement', function() {
   ];
 
   eachCartesianJoin([surrogatesSpecs], (surrogatesSpec) => {
-    it(`${surrogatesSpec.expectation} if ${surrogatesSpec.description}`, function() {
+    it(`${surrogatesSpec.expectation} if ${surrogatesSpec.description}`, function () {
       const { Type } = createCustomElement({ surrogates: surrogatesSpec.getSurrogates() } as any);
       expect(Type.description).to.be.a('object', 'description');
       expect(Type.description.name).to.equal('unnamed', 'name');
@@ -540,7 +540,7 @@ describe('@customElement', function() {
   ];
 
   eachCartesianJoin([containerlessSpecs], (containerlessSpec) => {
-    it(`${containerlessSpec.expectation} if ${containerlessSpec.description}`, function() {
+    it(`${containerlessSpec.expectation} if ${containerlessSpec.description}`, function () {
       const def = {
         containerless: containerlessSpec.getDefContainerless(),
       };
@@ -604,7 +604,7 @@ describe('@customElement', function() {
   ];
 
   eachCartesianJoin([shadowOptionsSpecs], (shadowOptionsSpec) => {
-    it(`${shadowOptionsSpec.expectation} if ${shadowOptionsSpec.description}`, function() {
+    it(`${shadowOptionsSpec.expectation} if ${shadowOptionsSpec.description}`, function () {
       const def = {
         shadowOptions: shadowOptionsSpec.getDefShadowOptions(),
       };
@@ -657,7 +657,7 @@ describe('@customElement', function() {
   ];
 
   eachCartesianJoin([hasSlotsSpecs], (hasSlotsSpec) => {
-    it(`${hasSlotsSpec.expectation} if ${hasSlotsSpec.description}`, function() {
+    it(`${hasSlotsSpec.expectation} if ${hasSlotsSpec.description}`, function () {
       const { Type } = createCustomElement({ hasSlots: hasSlotsSpec.getHasSlots() } as any);
       expect(Type.description).to.be.a('object', 'description');
       expect(Type.description.name).to.equal('unnamed', 'name');
@@ -734,7 +734,7 @@ describe('@customElement', function() {
   ];
 
   eachCartesianJoin([strategySpecs], (strategySpec) => {
-    it(`${strategySpec.expectation} if ${strategySpec.description}`, function() {
+    it(`${strategySpec.expectation} if ${strategySpec.description}`, function () {
       const { Type } = createCustomElement({ strategy: strategySpec.getStrategy() } as any);
       expect(Type.description).to.be.a('object', 'description');
       expect(Type.description.name).to.equal('unnamed', 'name');

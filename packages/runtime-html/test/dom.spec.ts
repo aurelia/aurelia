@@ -31,10 +31,10 @@ function verifyDoesNotThrow(call: () => void): void {
   expect(err).to.equal(undefined);
 }
 
-describe('NodeSequenceFactory', function() {
+describe('NodeSequenceFactory', function () {
   const ctx = TestContext.createHTMLTestContext();
 
-  describe('createNodeSequenceFactory', function() {
+  describe('createNodeSequenceFactory', function () {
     const textArr = ['', 'text', '#text'];
     const elementsArr = [[''], ['div'], ['div', 'p']];
     const wrapperArr = ['', 'div', 'template'];
@@ -47,7 +47,7 @@ describe('NodeSequenceFactory', function() {
         for (const wrapper of wrapperArr) {
           const markup = wrap(elementsMarkup, wrapper);
 
-          it(`should create a factory that returns the correct markup for "${markup}"`, function() {
+          it(`should create a factory that returns the correct markup for "${markup}"`, function () {
             const factory = new NodeSequenceFactory(ctx.dom, markup);
             const view = factory.createNodeSequence();
             if (markup.length === 0) {
@@ -70,7 +70,7 @@ describe('NodeSequenceFactory', function() {
             }
           });
 
-          it(`should create a factory that always returns a view with a different fragment instance for "${markup}"`, function() {
+          it(`should create a factory that always returns a view with a different fragment instance for "${markup}"`, function () {
             const factory = new NodeSequenceFactory(ctx.dom, markup);
             const fragment1 = factory.createNodeSequence()['fragment'];
             const fragment2 = factory.createNodeSequence()['fragment'];
@@ -92,21 +92,21 @@ describe('NodeSequenceFactory', function() {
 
     const validInputArr: any[] = ['', 'asdf', 'div', 1, true, false, {}, new Error(), undefined, null, Symbol()];
     for (const validInput of validInputArr) {
-      it(`should not throw for valid input type "${typeof validInput}"`, function() {
+      it(`should not throw for valid input type "${typeof validInput}"`, function () {
         verifyDoesNotThrow(() => new NodeSequenceFactory(ctx.dom, validInput));
       });
     }
 
     const invalidInputArr: any[] = [];
     for (const invalidInput of invalidInputArr) {
-      it(`should throw for invalid input type "${typeof invalidInput}"`, function() {
+      it(`should throw for invalid input type "${typeof invalidInput}"`, function () {
         verifyThrows(() => new NodeSequenceFactory(ctx.dom, invalidInput));
       });
     }
   });
 });
 
-describe('dom', function() {
+describe('dom', function () {
   const ctx = TestContext.createHTMLTestContext();
   // reset dom after each test to make sure self-optimizations do not affect test outcomes
   const DOMBackup = Object.create(null);
@@ -118,7 +118,7 @@ describe('dom', function() {
     Object.assign(ctx.doc, DocumentBackup);
   }
 
-  before(function() {
+  before(function () {
     Object.assign(DOMBackup, ctx.dom);
     for (const propName in ctx.doc) {
       const prop = ctx.doc[propName];
@@ -128,41 +128,41 @@ describe('dom', function() {
     }
   });
 
-  afterEach(function() {
+  afterEach(function () {
     restoreBackups();
   });
 
-  describe('createElement', function() {
-    it('should call document.createElement', function() {
+  describe('createElement', function () {
+    it('should call document.createElement', function () {
       const spyCreateElement = ctx.doc.createElement = spy();
       ctx.dom.createElement('div');
       expect(spyCreateElement).to.have.been.calledWith('div');
     });
 
-    it('should create an element', function() {
+    it('should create an element', function () {
       const el = ctx.dom.createElement('div');
       expect(el['outerHTML']).to.equal('<div></div>');
     });
 
     const validInputArr: any[] = ['asdf', 'div', new Error(), true, false, undefined, null];
     for (const validInput of validInputArr) {
-      it(`should not throw for valid input type "${typeof validInput}"`, function() {
+      it(`should not throw for valid input type "${typeof validInput}"`, function () {
         verifyDoesNotThrow(ctx.dom.createElement.bind(ctx.dom, validInput));
       });
     }
 
     const invalidInputArr: any[] = ['', 1, {}, Object.create(null), Symbol()];
     for (const invalidInput of invalidInputArr) {
-      it(`should throw for invalid input type "${typeof invalidInput}"`, function() {
+      it(`should throw for invalid input type "${typeof invalidInput}"`, function () {
         verifyThrows(ctx.dom.createElement.bind(ctx.dom, invalidInput));
       });
     }
   });
 
-  describe('cloneNode', function() {
+  describe('cloneNode', function () {
     const trueValueArr: any[] = [undefined, null, {}, '', true];
     for (const trueValue of trueValueArr) {
-      it(`should call node.cloneNode(true) when given ${trueValue}`, function() {
+      it(`should call node.cloneNode(true) when given ${trueValue}`, function () {
         const node = ctx.dom.createElement('div');
         node.cloneNode = spy();
         ctx.dom.cloneNode(node, trueValue);
@@ -170,14 +170,14 @@ describe('dom', function() {
       });
     }
 
-    it('should call node.cloneNode(true) by default', function() {
+    it('should call node.cloneNode(true) by default', function () {
       const node = ctx.dom.createElement('div');
       node.cloneNode = spy();
       ctx.dom.cloneNode(node);
       expect(node.cloneNode).to.have.been.calledWith(true);
     });
 
-    it('should call node.cloneNode(false) if given false', function() {
+    it('should call node.cloneNode(false) if given false', function () {
       const node = ctx.dom.createElement('div');
       node.cloneNode = spy();
       ctx.dom.cloneNode(node, false);
@@ -185,7 +185,7 @@ describe('dom', function() {
     });
   });
 
-  describe('isNodeInstance', function() {
+  describe('isNodeInstance', function () {
     const nodes = [
       [ctx.dom.createElement('div'), '<div></div>'],
       [ctx.dom.createElement('asdf'), '<asdf></asdf>'],
@@ -196,7 +196,7 @@ describe('dom', function() {
       [ctx.doc.doctype, '#doctype'],
     ];
     for (const [node, text] of nodes) {
-      it(`should return true if the value is of type ${Object.prototype.toString.call(node)} (${text})`, function() {
+      it(`should return true if the value is of type ${Object.prototype.toString.call(node)} (${text})`, function () {
         const actual = ctx.dom.isNodeInstance(node);
         expect(actual).to.equal(true);
       });
@@ -207,15 +207,15 @@ describe('dom', function() {
       {}
     ];
     for (const nonNode of nonNodes) {
-      it(`should return false if the value is of type ${Object.prototype.toString.call(nonNode)}`, function() {
+      it(`should return false if the value is of type ${Object.prototype.toString.call(nonNode)}`, function () {
         const actual = ctx.dom.isNodeInstance(nonNode);
         expect(actual).to.equal(false);
       });
     }
   });
 
-  describe('remove', function() {
-    it('should remove the childNode from its parent (non-polyfilled)', function() {
+  describe('remove', function () {
+    it('should remove the childNode from its parent (non-polyfilled)', function () {
       const node = ctx.dom.createElement('div');
       const childNode = ctx.dom.createElement('div');
       node.appendChild(childNode);
@@ -223,7 +223,7 @@ describe('dom', function() {
       expect(node.childNodes.length).to.equal(0);
     });
 
-    it('should remove the childNode from its parent (polyfilled)', function() {
+    it('should remove the childNode from its parent (polyfilled)', function () {
       const remove = ctx.Element.prototype.remove;
       ctx.Element.prototype.remove = undefined;
       const node = ctx.dom.createElement('div');
@@ -235,8 +235,8 @@ describe('dom', function() {
     });
   });
 
-  describe('appendChild', function() {
-    it('should append the childNode to the given parent', function() {
+  describe('appendChild', function () {
+    it('should append the childNode to the given parent', function () {
       const node = ctx.dom.createElement('div');
       const childNode = ctx.dom.createElement('div');
       ctx.dom.appendChild(node, childNode);
@@ -244,8 +244,8 @@ describe('dom', function() {
     });
   });
 
-  describe('insertBefore', function() {
-    it('should insert the childNode before the referenceNode below the parent of the referenceNode', function() {
+  describe('insertBefore', function () {
+    it('should insert the childNode before the referenceNode below the parent of the referenceNode', function () {
       const node = ctx.dom.createElement('div');
       const childNode = ctx.dom.createElement('div');
       const refNode1 = ctx.dom.createElement('div');
@@ -259,7 +259,7 @@ describe('dom', function() {
     });
   });
 
-  describe('addEventListener', function() {
+  describe('addEventListener', function () {
     it('should add the specified eventListener to the node if the node is specified', done => {
       const node = ctx.dom.createElement('div');
       const eventListener = spy();
@@ -282,7 +282,7 @@ describe('dom', function() {
     });
   });
 
-  describe('removeEventListener', function() {
+  describe('removeEventListener', function () {
     it('should remove the specified eventListener from the node if the node is specified', done => {
       const node = ctx.dom.createElement('div');
       const eventListener = spy();
@@ -307,7 +307,7 @@ describe('dom', function() {
     });
   });
 
-  describe('convertToRenderLocation', function() {
+  describe('convertToRenderLocation', function () {
     function createTestNodes() {
       const node = ctx.dom.createElement('div');
       const childNode = ctx.dom.createElement('div');
@@ -315,7 +315,7 @@ describe('dom', function() {
       return {node, childNode};
     }
 
-    it('should replace the provided node with two comment nodes', function() {
+    it('should replace the provided node with two comment nodes', function () {
       const {node, childNode} = createTestNodes();
       const location = ctx.dom.convertToRenderLocation(childNode);
       expect(location['nodeName']).to.equal('#comment');
@@ -328,7 +328,7 @@ describe('dom', function() {
     });
   });
 
-  describe('registerElementResolver', function() {
+  describe('registerElementResolver', function () {
     const keys = [INode, ctx.Node, ctx.Element, ctx.HTMLElement];
     if (typeof Node !== 'undefined') {
       keys.push(Node);
@@ -340,7 +340,7 @@ describe('dom', function() {
       keys.push(HTMLElement);
     }
     for (const key of keys) {
-      it(`should register the resolver for type ${Object.prototype.toString.call(key)}`, function() {
+      it(`should register the resolver for type ${Object.prototype.toString.call(key)}`, function () {
         const mockContainer: any = { registerResolver: spy() };
         const resolver: any = {};
         ctx.dom.registerElementResolver(mockContainer, resolver);
@@ -350,14 +350,14 @@ describe('dom', function() {
   });
 });
 
-describe('FragmentNodeSequence', function() {
+describe('FragmentNodeSequence', function () {
   const ctx = TestContext.createHTMLTestContext();
   let sut: FragmentNodeSequence;
 
   const widthArr = [1, 2, 3];
-  describe('constructor', function() {
+  describe('constructor', function () {
     for (const width of widthArr) {
-      it(`should correctly assign children (depth=1,width=${width})`, function() {
+      it(`should correctly assign children (depth=1,width=${width})`, function () {
         const node = ctx.dom.createElement('div');
         const fragment = createFragment(ctx, node, 0, 1, width);
         sut = new FragmentNodeSequence(ctx.dom, fragment);
@@ -368,11 +368,11 @@ describe('FragmentNodeSequence', function() {
     }
   });
   const depthArr = [0, 1, 2, 3];
-  describe('findTargets', function() {
+  describe('findTargets', function () {
     for (const width of widthArr) {
       for (const depth of depthArr) {
         // note: these findTargets tests are quite redundant, but the basic setup might come in handy later
-        it(`should return empty array when there are no targets (depth=${depth},width=${width})`, function() {
+        it(`should return empty array when there are no targets (depth=${depth},width=${width})`, function () {
           const node = ctx.dom.createElement('div');
           const fragment = createFragment(ctx, node, 0, depth, width);
           sut = new FragmentNodeSequence(ctx.dom, fragment);
@@ -380,7 +380,7 @@ describe('FragmentNodeSequence', function() {
           expect(actual.length).to.equal(0);
         });
 
-        it(`should return all elements when all are targets targets (depth=${depth},width=${width})`, function() {
+        it(`should return all elements when all are targets targets (depth=${depth},width=${width})`, function () {
           const node = ctx.dom.createElement('div');
           node.classList.add('au');
           const fragment = createFragment(ctx, node, 0, depth, width);
@@ -392,10 +392,10 @@ describe('FragmentNodeSequence', function() {
     }
   });
 
-  describe('insertBefore', function() {
+  describe('insertBefore', function () {
     for (const width of widthArr) {
       for (const depth of depthArr.filter(d => d > 0)) {
-        it(`should insert the view before the refNode under the parent of the refNode (depth=${depth},width=${width})`, function() {
+        it(`should insert the view before the refNode under the parent of the refNode (depth=${depth},width=${width})`, function () {
           const node = ctx.dom.createElement('div');
           const fragment = createFragment(ctx, node, 0, depth, width);
           sut = new FragmentNodeSequence(ctx.dom, fragment);
@@ -421,10 +421,10 @@ describe('FragmentNodeSequence', function() {
     }
   });
 
-  describe('appendTo', function() {
+  describe('appendTo', function () {
     for (const width of widthArr) {
       for (const depth of depthArr.filter(d => d > 0)) {
-        it(`should append the view to the parent (depth=${depth},width=${width})`, function() {
+        it(`should append the view to the parent (depth=${depth},width=${width})`, function () {
           const node = ctx.dom.createElement('div');
           const fragment = createFragment(ctx, node, 0, depth, width);
           sut = new FragmentNodeSequence(ctx.dom, fragment);
@@ -442,10 +442,10 @@ describe('FragmentNodeSequence', function() {
     }
   });
 
-  describe('remove', function() {
+  describe('remove', function () {
     for (const width of widthArr) {
       for (const depth of depthArr.filter(d => d > 0)) {
-        it(`should put the view back into the fragment (depth=${depth},width=${width})`, function() {
+        it(`should put the view back into the fragment (depth=${depth},width=${width})`, function () {
           const node = ctx.dom.createElement('div');
           const fragment = createFragment(ctx, node, 0, depth, width);
           sut = new FragmentNodeSequence(ctx.dom, fragment);

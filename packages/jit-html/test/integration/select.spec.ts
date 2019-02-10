@@ -11,18 +11,18 @@ import {
 } from './util';
 
 // TemplateCompiler - <select/> Integration
-describe('select', function() {
+describe('select', function () {
   let ctx: HTMLTestContext;
 
-  beforeEach(function() {
+  beforeEach(function () {
     ctx = TestContext.createHTMLTestContext();
   });
 
   //<select/> - single
-  describe('01.', function() {
+  describe('01.', function () {
 
     //works with multiple toView bindings
-    it('01.', function() {
+    it('01.', function () {
       const { au, lifecycle, host, observerLocator, component } = setup(
         ctx,
         `<template>
@@ -72,7 +72,7 @@ describe('select', function() {
     });
 
     //works with mixed of multiple binding: twoWay + toView
-    it('02.', function() {
+    it('02.', function () {
       const { au, lifecycle, host, observerLocator, component } = setup(
         ctx,
         `<template>
@@ -130,10 +130,10 @@ describe('select', function() {
   });
 
   //<select/> - multiple
-  describe('02.', function() {
+  describe('02.', function () {
 
     //works with multiple toView bindings without pre-selection
-    it('01.', function() {
+    it('01.', function () {
       const { au, lifecycle, host, observerLocator, component } = setupAndStart(
         ctx,
         `<template>
@@ -191,7 +191,7 @@ describe('select', function() {
     });
 
     //works with mixed of two-way + to-view bindings with pre-selection
-    it('02.', function() {
+    it('02.', function () {
       const { au, lifecycle, host, observerLocator, component } = setupAndStart(
         ctx,
         `<template>
@@ -260,7 +260,7 @@ describe('select', function() {
   });
 
   //toViewBinding - select single
-  it('03.', function() {
+  it('03.', function () {
     const { au, lifecycle, host, component } = setupAndStart(
       ctx,
       template(ctx.doc, null,
@@ -281,7 +281,7 @@ describe('select', function() {
   });
 
   //twoWayBinding - select single
-  it('04.', function() {
+  it('04.', function () {
     const { au, lifecycle, host, component } = setupAndStart(
       ctx,
       h(ctx.doc, 'template',

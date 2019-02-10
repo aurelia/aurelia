@@ -10,10 +10,10 @@ import { SpySubscriber } from '../util';
 
 const getName = (o: any) => Object.prototype.toString.call(o).slice(8, -1);
 
-describe('PrimitiveObserver', function() {
+describe('PrimitiveObserver', function () {
   let sut: PrimitiveObserver;
 
-  describe('getValue()', function() {
+  describe('getValue()', function () {
     const primitiveArr = [
       undefined, null, true, false, '', 'foo',
       Number.MAX_VALUE, Number.MAX_SAFE_INTEGER, Number.MIN_VALUE, Number.MIN_SAFE_INTEGER, 0, +Infinity, -Infinity, NaN,
@@ -23,7 +23,7 @@ describe('PrimitiveObserver', function() {
     for (const primitive of primitiveArr) {
       for (const propertyName of propertyNameArr) {
         const propName = typeof propertyName === 'string' ? `'${propertyName}'` : typeof propertyName;
-        it(`should correctly handle ${typeof primitive}[${propName}]`, function() {
+        it(`should correctly handle ${typeof primitive}[${propName}]`, function () {
           sut = new PrimitiveObserver(primitive, propertyName);
           if (propertyName === 'length') {
             if (typeof primitive === 'string') {
@@ -41,26 +41,26 @@ describe('PrimitiveObserver', function() {
     }
   });
 
-  describe('setValue()', function() {
-    it('is a no-op', function() {
+  describe('setValue()', function () {
+    it('is a no-op', function () {
       expect(new PrimitiveObserver(null, 0).setValue === PLATFORM.noop).to.equal(true);
     });
   });
 
-  describe('subscribe()', function() {
-    it('is a no-op', function() {
+  describe('subscribe()', function () {
+    it('is a no-op', function () {
       expect(new PrimitiveObserver(null, 0).subscribe === PLATFORM.noop).to.equal(true);
     });
   });
 
-  describe('unsubscribe()', function() {
-    it('is a no-op', function() {
+  describe('unsubscribe()', function () {
+    it('is a no-op', function () {
       expect(new PrimitiveObserver(null, 0).unsubscribe === PLATFORM.noop).to.equal(true);
     });
   });
 
-  describe('doNotCache', function() {
-    it('is true', function() {
+  describe('doNotCache', function () {
+    it('is true', function () {
       expect(new PrimitiveObserver(null, 0).doNotCache).to.equal(true);
     });
   });
@@ -68,15 +68,15 @@ describe('PrimitiveObserver', function() {
 
 class Foo {}
 
-describe('SetterObserver', function() {
+describe('SetterObserver', function () {
   let sut: SetterObserver;
 
-  describe('getValue()', function() {
+  describe('getValue()', function () {
     const objectArr = createObjectArr();
     const propertyNameArr = [undefined, null, Symbol(), '', 'foo', 'length', '__proto__'];
     for (const object of objectArr) {
       for (const propertyName of propertyNameArr) {
-        it(`should correctly handle ${getName(object)}[${typeof propertyName}]`, function() {
+        it(`should correctly handle ${getName(object)}[${typeof propertyName}]`, function () {
           sut = new SetterObserver(LF.none, object, propertyName as any);
           sut.subscribe(new SpySubscriber());
           const actual = sut.getValue();
@@ -89,7 +89,7 @@ describe('SetterObserver', function() {
     }
   });
 
-  describe('setValue()', function() {
+  describe('setValue()', function () {
     const valueArr = [undefined, null, 0, '', {}];
     const objectArr = createObjectArr();
     const propertyNameArr = [undefined, null, Symbol(), '', 'foo'];
@@ -97,7 +97,7 @@ describe('SetterObserver', function() {
     for (const object of objectArr) {
       for (const propertyName of propertyNameArr) {
         for (const value of valueArr) {
-          it(`should correctly handle ${getName(object)}[${typeof propertyName}]=${getName(value)}`, function() {
+          it(`should correctly handle ${getName(object)}[${typeof propertyName}]=${getName(value)}`, function () {
             sut = new SetterObserver(LF.none, object, propertyName as any);
             sut.subscribe(new SpySubscriber());
             sut.setValue(value, flags);
@@ -108,13 +108,13 @@ describe('SetterObserver', function() {
     }
   });
 
-  describe('subscribe()', function() {
+  describe('subscribe()', function () {
     const propertyNameArr = [undefined, null, Symbol(), '', 'foo', 1];
     const objectArr = createObjectArr();
     const flags = LF.updateTargetInstance;
     for (const object of objectArr) {
       for (const propertyName of propertyNameArr) {
-        it(`can handle ${getName(object)}[${typeof propertyName}]`, function() {
+        it(`can handle ${getName(object)}[${typeof propertyName}]`, function () {
           sut = new SetterObserver(LF.none, object, propertyName as any);
           sut.subscribe(new SpySubscriber());
         });
@@ -133,7 +133,7 @@ describe('SetterObserver', function() {
           ];
           for (const subscribers of subscribersArr) {
             const object = {};
-            it(`should notify ${subscribers.length} subscriber(s) for ${getName(object)}[${typeof propertyName}]=${getName(value)}`, function() {
+            it(`should notify ${subscribers.length} subscriber(s) for ${getName(object)}[${typeof propertyName}]=${getName(value)}`, function () {
               sut = new SetterObserver(LF.none, object, propertyName as any);
               for (const subscriber of subscribers) {
                 sut.subscribe(subscriber);
@@ -163,9 +163,9 @@ describe('SetterObserver', function() {
   });
 });
 
-describe('Observer', function() {
+describe('Observer', function () {
 
-  it('initializes the default callback to null', function() {
+  it('initializes the default callback to null', function () {
     const values = createObjectArr();
     values.forEach(value => {
       const observer = new SelfObserver(LF.none, {}, 'a', 'aChanged');
@@ -179,6 +179,6 @@ function createObjectArr(): any[] {
     // tslint:disable-next-line:use-primitive-type no-construct
     {}, Object.create(null), new Number(), new Boolean(), new String(),
     new Error(), new Foo(), new Uint8Array(), new WeakMap(), new WeakSet(), JSON.parse('{}'),
-    /asdf/, function() { return; }, Promise.resolve(), new Proxy({}, {})
+    /asdf/, function () { return; }, Promise.resolve(), new Proxy({}, {})
   ];
 }

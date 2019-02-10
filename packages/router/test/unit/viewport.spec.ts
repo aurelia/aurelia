@@ -7,8 +7,8 @@ import { registerComponent } from './utils';
 
 const define = (CustomElementResource as any).define;
 
-describe('Viewport', function() {
-  it('can be created', function() {
+describe('Viewport', function () {
+  it('can be created', function () {
     const sut = new Viewport(null, null, null, null, null, null);
   });
 });

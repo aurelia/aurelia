@@ -21,7 +21,7 @@ export function load(name: string, req: Require, onLoad: RequireOnLoad, config: 
       const description = createTemplateDescription(text);
       const depsToLoad = processImports(description.imports, name);
 
-      req(depsToLoad, function(): void {
+      req(depsToLoad, function (): void {
         const templateImport = parseImport(name);
         const templateSource = {
           name: kebabCase(templateImport.basename),
@@ -49,7 +49,7 @@ export function write(pluginName: string, moduleName: string, writer: (content: 
 
     depsToLoad.unshift('@aurelia/runtime');
 
-    writer(`define("${pluginName}!${moduleName}", [${depsToLoadMapped}], function() {
+    writer(`define("${pluginName}!${moduleName}", [${depsToLoadMapped}], function () {
       var Component = arguments[0].Component;
       var templateSource = {
         name: '${kebabCase(templateImport.basename)}',

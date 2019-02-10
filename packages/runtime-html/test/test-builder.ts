@@ -325,7 +325,7 @@ export class TestBuilder<T extends Constructable> {
     } else {
       definition = defCbOrBuilder(DefinitionBuilder.app()).build();
     }
-    const Type = obj['prototype'] ? obj : function() {
+    const Type = obj['prototype'] ? obj : function () {
       Object.assign(this, obj);
     };
     const App = CustomElementResource.define(definition, Type as any);
@@ -334,7 +334,7 @@ export class TestBuilder<T extends Constructable> {
 
   public element(obj: Record<string, unknown>, def: DefinitionCb): TestBuilder<T> {
     const definition = def(DefinitionBuilder.element()).build();
-    const Type = obj['prototype'] ? obj : function() {
+    const Type = obj['prototype'] ? obj : function () {
       Object.assign(this, obj);
     };
     const Resource = CustomElementResource.define(definition, Type as any);

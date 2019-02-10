@@ -5,9 +5,9 @@ import {
   Scope
 } from '../../src/index';
 
-describe('Scope', function() {
-  describe('create', function() {
-    it('undefined, undefined', function() {
+describe('Scope', function () {
+  describe('create', function () {
+    it('undefined, undefined', function () {
       const actual = Scope.create(LF.none, undefined, undefined);
       expect(actual.bindingContext).to.equal(undefined);
       expect(actual.overrideContext).to.be.instanceof(Object);
@@ -15,7 +15,7 @@ describe('Scope', function() {
       expect(actual.overrideContext.parentOverrideContext).to.equal(null);
     });
 
-    it('undefined, null', function() {
+    it('undefined, null', function () {
       const actual = Scope.create(LF.none, undefined, null);
       expect(actual.bindingContext).to.equal(undefined);
       expect(actual.overrideContext).to.be.instanceof(Object);
@@ -23,7 +23,7 @@ describe('Scope', function() {
       expect(actual.overrideContext.parentOverrideContext).to.equal(null);
     });
 
-    it('undefined, {}', function() {
+    it('undefined, {}', function () {
       const overrideContext = {} as any;
       const actual = Scope.create(LF.none, undefined, overrideContext);
       expect(actual.bindingContext).to.equal(undefined);
@@ -32,7 +32,7 @@ describe('Scope', function() {
       expect(actual.overrideContext.parentOverrideContext).to.equal(undefined);
     });
 
-    it('undefined, { bindingContext }', function() {
+    it('undefined, { bindingContext }', function () {
       const bindingContext = {} as any;
       const overrideContext = { bindingContext } as any;
       const actual = Scope.create(LF.none, null, overrideContext);
@@ -42,7 +42,7 @@ describe('Scope', function() {
       expect(actual.overrideContext.parentOverrideContext).to.equal(undefined);
     });
 
-    it('null, undefined', function() {
+    it('null, undefined', function () {
       const actual = Scope.create(LF.none, null, undefined);
       expect(actual.bindingContext).to.equal(null);
       expect(actual.overrideContext).to.be.instanceof(Object);
@@ -50,7 +50,7 @@ describe('Scope', function() {
       expect(actual.overrideContext.parentOverrideContext).to.equal(null);
     });
 
-    it('null, null', function() {
+    it('null, null', function () {
       const actual = Scope.create(LF.none, null, null);
       expect(actual.bindingContext).to.equal(null);
       expect(actual.overrideContext).to.be.instanceof(Object);
@@ -58,7 +58,7 @@ describe('Scope', function() {
       expect(actual.overrideContext.parentOverrideContext).to.equal(null);
     });
 
-    it('null, {}', function() {
+    it('null, {}', function () {
       const overrideContext = {} as any;
       const actual = Scope.create(LF.none, null, overrideContext);
       expect(actual.bindingContext).to.equal(null);
@@ -67,7 +67,7 @@ describe('Scope', function() {
       expect(actual.overrideContext.parentOverrideContext).to.equal(undefined);
     });
 
-    it('null, { bindingContext }', function() {
+    it('null, { bindingContext }', function () {
       const bindingContext = {} as any;
       const overrideContext = { bindingContext } as any;
       const actual = Scope.create(LF.none, null, overrideContext);
@@ -77,7 +77,7 @@ describe('Scope', function() {
       expect(actual.overrideContext.parentOverrideContext).to.equal(undefined);
     });
 
-    it('{}, undefined', function() {
+    it('{}, undefined', function () {
       const bindingContext = {} as any;
       const actual = Scope.create(LF.none, bindingContext, undefined);
       expect(actual.bindingContext).to.equal(bindingContext);
@@ -86,7 +86,7 @@ describe('Scope', function() {
       expect(actual.overrideContext.parentOverrideContext).to.equal(null);
     });
 
-    it('{}, null', function() {
+    it('{}, null', function () {
       const bindingContext = {} as any;
       const actual = Scope.create(LF.none, bindingContext, null);
       expect(actual.bindingContext).to.equal(bindingContext);
@@ -95,7 +95,7 @@ describe('Scope', function() {
       expect(actual.overrideContext.parentOverrideContext).to.equal(null);
     });
 
-    it('{}, {}', function() {
+    it('{}, {}', function () {
       const bindingContext = {} as any;
       const overrideContext = {} as any;
       const actual = Scope.create(LF.none, bindingContext, overrideContext);
@@ -105,7 +105,7 @@ describe('Scope', function() {
       expect(actual.overrideContext.parentOverrideContext).to.equal(undefined);
     });
 
-    it('{}, { bindingContext }', function() {
+    it('{}, { bindingContext }', function () {
       const bindingContext = {} as any;
       const overrideContext = { bindingContext } as any;
       const actual = Scope.create(LF.none, bindingContext, overrideContext);
@@ -115,7 +115,7 @@ describe('Scope', function() {
       expect(actual.overrideContext.parentOverrideContext).to.equal(undefined);
     });
 
-    it('{}, { bindingContext2 }', function() {
+    it('{}, { bindingContext2 }', function () {
       const bindingContext = {} as any;
       const bindingContext2 = {} as any;
       const overrideContext = { bindingContext: bindingContext2 } as any;
@@ -127,16 +127,16 @@ describe('Scope', function() {
     });
   });
 
-  describe('fromOverride', function() {
-    it('undefined', function() {
+  describe('fromOverride', function () {
+    it('undefined', function () {
       expect(() => Scope.fromOverride(LF.none, undefined)).to.throw('Code 252');
     });
 
-    it('null', function() {
+    it('null', function () {
       expect(() => Scope.fromOverride(LF.none, null)).to.throw('Code 252');
     });
 
-    it('{}', function() {
+    it('{}', function () {
       const overrideContext = {} as any;
       const actual = Scope.fromOverride(LF.none, overrideContext);
       expect(actual.bindingContext).to.equal(undefined);
@@ -145,7 +145,7 @@ describe('Scope', function() {
       expect(actual.overrideContext.parentOverrideContext).to.equal(undefined);
     });
 
-    it('{ bindingContext }', function() {
+    it('{ bindingContext }', function () {
       const bindingContext = {} as any;
       const overrideContext = { bindingContext } as any;
       const actual = Scope.fromOverride(LF.none, overrideContext);
@@ -156,16 +156,16 @@ describe('Scope', function() {
     });
   });
 
-  describe('fromParent', function() {
-    it('undefined', function() {
+  describe('fromParent', function () {
+    it('undefined', function () {
       expect(() => Scope.fromParent(LF.none, undefined, {})).to.throw('Code 253');
     });
 
-    it('null', function() {
+    it('null', function () {
       expect(() => Scope.fromParent(LF.none, null, {})).to.throw('Code 253');
     });
 
-    it('{}, undefined', function() {
+    it('{}, undefined', function () {
       const parentScope = {} as any;
       const actual = Scope.fromParent(LF.none, parentScope, undefined);
       expect(actual.bindingContext).to.equal(undefined);
@@ -174,7 +174,7 @@ describe('Scope', function() {
       expect(actual.overrideContext.parentOverrideContext).to.equal(null);
     });
 
-    it('{}, null', function() {
+    it('{}, null', function () {
       const parentScope = {} as any;
       const actual = Scope.fromParent(LF.none, parentScope, null);
       expect(actual.bindingContext).to.equal(null);
@@ -183,7 +183,7 @@ describe('Scope', function() {
       expect(actual.overrideContext.parentOverrideContext).to.equal(null);
     });
 
-    it('{}, {}', function() {
+    it('{}, {}', function () {
       const parentScope = {} as any;
       const bindingContext = {} as any;
       const actual = Scope.fromParent(LF.none, parentScope, bindingContext);
@@ -193,7 +193,7 @@ describe('Scope', function() {
       expect(actual.overrideContext.parentOverrideContext).to.equal(null);
     });
 
-    it('{}, { overrideContext }', function() {
+    it('{}, { overrideContext }', function () {
       const overrideContext = {} as any;
       const parentScope = { overrideContext } as any;
       const bindingContext = {} as any;
@@ -206,69 +206,69 @@ describe('Scope', function() {
   });
 });
 
-describe('BindingContext', function() {
-  describe('get', function() {
-    it('undefined', function() {
+describe('BindingContext', function () {
+  describe('get', function () {
+    it('undefined', function () {
       expect(() => BindingContext.get(undefined, undefined, undefined, LF.none)).to.throw('Code 250');
     });
 
-    it('null', function() {
+    it('null', function () {
       expect(() => BindingContext.get(null, undefined, undefined, LF.none)).to.throw('Code 251');
     });
 
-    it('{ bindingContext: undefined, overrideContext: undefined }', function() {
+    it('{ bindingContext: undefined, overrideContext: undefined }', function () {
       const scope = { } as any;
       const actual = BindingContext.get(scope, null, null, LF.none);
       expect(actual).to.equal(undefined);
     });
 
-    it('{ bindingContext: undefined, overrideContext: null }', function() {
+    it('{ bindingContext: undefined, overrideContext: null }', function () {
       const scope = { overrideContext: null} as any;
       const actual = BindingContext.get(scope, null, null, LF.none);
       expect(actual).to.equal(null);
     });
 
-    it('{ bindingContext: undefined, overrideContext: {} }', function() {
+    it('{ bindingContext: undefined, overrideContext: {} }', function () {
       const overrideContext = {} as any;
       const scope = { overrideContext } as any;
       const actual = BindingContext.get(scope, null, null, LF.none);
       expect(actual).to.equal(overrideContext);
     });
 
-    it('{ bindingContext: null, overrideContext: undefined }', function() {
+    it('{ bindingContext: null, overrideContext: undefined }', function () {
       const scope = { } as any;
       const actual = BindingContext.get(scope, null, null, LF.none);
       expect(actual).to.equal(undefined);
     });
 
-    it('{ bindingContext: null, overrideContext: null }', function() {
+    it('{ bindingContext: null, overrideContext: null }', function () {
       const scope = { overrideContext: null} as any;
       const actual = BindingContext.get(scope, null, null, LF.none);
       expect(actual).to.equal(null);
     });
 
-    it('{ bindingContext: null, overrideContext: {} }', function() {
+    it('{ bindingContext: null, overrideContext: {} }', function () {
       const overrideContext = {} as any;
       const scope = { overrideContext } as any;
       const actual = BindingContext.get(scope, null, null, LF.none);
       expect(actual).to.equal(overrideContext);
     });
 
-    it('{ bindingContext: {}, overrideContext: undefined }', function() {
+    it('{ bindingContext: {}, overrideContext: undefined }', function () {
       const bindingContext = {} as any;
       const scope = { bindingContext } as any;
       const actual = BindingContext.get(scope, null, null, LF.none);
       expect(actual).to.equal(bindingContext);
     });
 
-    it('{ bindingContext: {}, overrideContext: null }', function() {
+    it('{ bindingContext: {}, overrideContext: null }', function () {
       const bindingContext = {} as any;
       const scope = { bindingContext, overrideContext: null} as any;
       const actual = BindingContext.get(scope, null, null, LF.none);
       expect(actual).to.equal(bindingContext);
     });
 
-    it('{ bindingContext: {}, overrideContext: {} }', function() {
+    it('{ bindingContext: {}, overrideContext: {} }', function () {
       const overrideContext = {} as any;
       const bindingContext = {} as any;
       const scope = { bindingContext, overrideContext } as any;
@@ -276,7 +276,7 @@ describe('BindingContext', function() {
       expect(actual).to.equal(bindingContext);
     });
 
-    it('1 ancestor, null, null', function() {
+    it('1 ancestor, null, null', function () {
       const bindingContext1 = {} as any;
       const bindingContext2 = {} as any;
       const scope1 = Scope.create(LF.none, bindingContext1, null);
@@ -285,7 +285,7 @@ describe('BindingContext', function() {
       expect(actual).to.equal(bindingContext2);
     });
 
-    it('2 ancestors, null, null', function() {
+    it('2 ancestors, null, null', function () {
       const bindingContext1 = {} as any;
       const bindingContext2 = {} as any;
       const bindingContext3 = {} as any;
@@ -296,7 +296,7 @@ describe('BindingContext', function() {
       expect(actual).to.equal(bindingContext3);
     });
 
-    it('3 ancestors, null, null', function() {
+    it('3 ancestors, null, null', function () {
       const bindingContext1 = {} as any;
       const bindingContext2 = {} as any;
       const bindingContext3 = {} as any;
@@ -309,7 +309,7 @@ describe('BindingContext', function() {
       expect(actual).to.equal(bindingContext4);
     });
 
-    it('1 ancestor, \'foo\', null', function() {
+    it('1 ancestor, \'foo\', null', function () {
       const bindingContext1 = {} as any;
       const bindingContext2 = {} as any;
       const scope1 = Scope.create(LF.none, bindingContext1, null);
@@ -318,7 +318,7 @@ describe('BindingContext', function() {
       expect(actual).to.equal(bindingContext2);
     });
 
-    it('2 ancestors, \'foo\', null', function() {
+    it('2 ancestors, \'foo\', null', function () {
       const bindingContext1 = {} as any;
       const bindingContext2 = {} as any;
       const bindingContext3 = {} as any;
@@ -329,7 +329,7 @@ describe('BindingContext', function() {
       expect(actual).to.equal(bindingContext3);
     });
 
-    it('3 ancestors, \'foo\', null', function() {
+    it('3 ancestors, \'foo\', null', function () {
       const bindingContext1 = {} as any;
       const bindingContext2 = {} as any;
       const bindingContext3 = {} as any;
@@ -342,7 +342,7 @@ describe('BindingContext', function() {
       expect(actual).to.equal(bindingContext4);
     });
 
-    it('3 ancestors, \'foo\' (exist on bc #1), null', function() {
+    it('3 ancestors, \'foo\' (exist on bc #1), null', function () {
       const bindingContext1 = { foo: 'bar' } as any;
       const bindingContext2 = {} as any;
       const bindingContext3 = {} as any;
@@ -355,7 +355,7 @@ describe('BindingContext', function() {
       expect(actual).to.equal(bindingContext1);
     });
 
-    it('3 ancestors, \'foo\' (exist on bc #2), null', function() {
+    it('3 ancestors, \'foo\' (exist on bc #2), null', function () {
       const bindingContext1 = {} as any;
       const bindingContext2 = { foo: 'bar' } as any;
       const bindingContext3 = {} as any;
@@ -368,7 +368,7 @@ describe('BindingContext', function() {
       expect(actual).to.equal(bindingContext2);
     });
 
-    it('3 ancestors, \'foo\' (exist on bc #3), null', function() {
+    it('3 ancestors, \'foo\' (exist on bc #3), null', function () {
       const bindingContext1 = {} as any;
       const bindingContext2 = {} as any;
       const bindingContext3 = { foo: 'bar' } as any;
@@ -381,7 +381,7 @@ describe('BindingContext', function() {
       expect(actual).to.equal(bindingContext3);
     });
 
-    it('3 ancestors, \'foo\' (exist on bc #4), null', function() {
+    it('3 ancestors, \'foo\' (exist on bc #4), null', function () {
       const bindingContext1 = {} as any;
       const bindingContext2 = {} as any;
       const bindingContext3 = {} as any;
@@ -394,7 +394,7 @@ describe('BindingContext', function() {
       expect(actual).to.equal(bindingContext4);
     });
 
-    it('3 ancestors, \'foo\' (exist on oc #1), null', function() {
+    it('3 ancestors, \'foo\' (exist on oc #1), null', function () {
       const bindingContext1 = {} as any;
       const bindingContext2 = {} as any;
       const bindingContext3 = {} as any;
@@ -408,7 +408,7 @@ describe('BindingContext', function() {
       expect(actual).to.equal(scope1.overrideContext);
     });
 
-    it('3 ancestors, \'foo\' (exist on oc #2), null', function() {
+    it('3 ancestors, \'foo\' (exist on oc #2), null', function () {
       const bindingContext1 = {} as any;
       const bindingContext2 = {} as any;
       const bindingContext3 = {} as any;
@@ -422,7 +422,7 @@ describe('BindingContext', function() {
       expect(actual).to.equal(scope2.overrideContext);
     });
 
-    it('3 ancestors, \'foo\' (exist on oc #3), null', function() {
+    it('3 ancestors, \'foo\' (exist on oc #3), null', function () {
       const bindingContext1 = {} as any;
       const bindingContext2 = {} as any;
       const bindingContext3 = {} as any;
@@ -436,7 +436,7 @@ describe('BindingContext', function() {
       expect(actual).to.equal(scope3.overrideContext);
     });
 
-    it('3 ancestors, \'foo\' (exist on oc #4), null', function() {
+    it('3 ancestors, \'foo\' (exist on oc #4), null', function () {
       const bindingContext1 = {} as any;
       const bindingContext2 = {} as any;
       const bindingContext3 = {} as any;
@@ -450,7 +450,7 @@ describe('BindingContext', function() {
       expect(actual).to.equal(scope4.overrideContext);
     });
 
-    it('3 ancestors, \'foo\' (exist on oc #1 and bc #1), null', function() {
+    it('3 ancestors, \'foo\' (exist on oc #1 and bc #1), null', function () {
       const bindingContext1 = { foo: 'bar' } as any;
       const bindingContext2 = {} as any;
       const bindingContext3 = {} as any;
@@ -464,7 +464,7 @@ describe('BindingContext', function() {
       expect(actual).to.equal(scope1.overrideContext);
     });
 
-    it('3 ancestors, \'foo\' (exist on oc #2 and bc #2), null', function() {
+    it('3 ancestors, \'foo\' (exist on oc #2 and bc #2), null', function () {
       const bindingContext1 = {} as any;
       const bindingContext2 = { foo: 'bar' } as any;
       const bindingContext3 = {} as any;
@@ -478,7 +478,7 @@ describe('BindingContext', function() {
       expect(actual).to.equal(scope2.overrideContext);
     });
 
-    it('3 ancestors, \'foo\' (exist on oc #3 and bc #3), null', function() {
+    it('3 ancestors, \'foo\' (exist on oc #3 and bc #3), null', function () {
       const bindingContext1 = {} as any;
       const bindingContext2 = {} as any;
       const bindingContext3 = { foo: 'bar' } as any;
@@ -492,7 +492,7 @@ describe('BindingContext', function() {
       expect(actual).to.equal(scope3.overrideContext);
     });
 
-    it('3 ancestors, \'foo\' (exist on oc #4 and bc #4), null', function() {
+    it('3 ancestors, \'foo\' (exist on oc #4 and bc #4), null', function () {
       const bindingContext1 = {} as any;
       const bindingContext2 = {} as any;
       const bindingContext3 = {} as any;
@@ -506,7 +506,7 @@ describe('BindingContext', function() {
       expect(actual).to.equal(scope4.overrideContext);
     });
 
-    it('3 ancestors, \'foo\' (exist on oc #1 and bc #2), null', function() {
+    it('3 ancestors, \'foo\' (exist on oc #1 and bc #2), null', function () {
       const bindingContext1 = {} as any;
       const bindingContext2 = { foo: 'bar' } as any;
       const bindingContext3 = {} as any;
@@ -520,7 +520,7 @@ describe('BindingContext', function() {
       expect(actual).to.equal(bindingContext2);
     });
 
-    it('3 ancestors, \'foo\' (exist on oc #2 and bc #3), null', function() {
+    it('3 ancestors, \'foo\' (exist on oc #2 and bc #3), null', function () {
       const bindingContext1 = {} as any;
       const bindingContext2 = {} as any;
       const bindingContext3 = { foo: 'bar' } as any;
@@ -534,7 +534,7 @@ describe('BindingContext', function() {
       expect(actual).to.equal(bindingContext3);
     });
 
-    it('3 ancestors, \'foo\' (exist on oc #3 and bc #4), null', function() {
+    it('3 ancestors, \'foo\' (exist on oc #3 and bc #4), null', function () {
       const bindingContext1 = {} as any;
       const bindingContext2 = {} as any;
       const bindingContext3 = {} as any;
@@ -548,7 +548,7 @@ describe('BindingContext', function() {
       expect(actual).to.equal(bindingContext4);
     });
 
-    it('3 ancestors, \'foo\' (exist on oc #1 and bc #2), 1', function() {
+    it('3 ancestors, \'foo\' (exist on oc #1 and bc #2), 1', function () {
       const bindingContext1 = {} as any;
       const bindingContext2 = { foo: 'bar' } as any;
       const bindingContext3 = {} as any;
@@ -562,7 +562,7 @@ describe('BindingContext', function() {
       expect(actual).to.equal(scope3.bindingContext);
     });
 
-    it('3 ancestors, \'foo\' (exist on oc #2 and bc #3), 1', function() {
+    it('3 ancestors, \'foo\' (exist on oc #2 and bc #3), 1', function () {
       const bindingContext1 = {} as any;
       const bindingContext2 = {} as any;
       const bindingContext3 = { foo: 'bar' } as any;
@@ -576,7 +576,7 @@ describe('BindingContext', function() {
       expect(actual).to.equal(bindingContext3);
     });
 
-    it('3 ancestors, \'foo\' (exist on oc #3 and bc #4), 1', function() {
+    it('3 ancestors, \'foo\' (exist on oc #3 and bc #4), 1', function () {
       const bindingContext1 = {} as any;
       const bindingContext2 = {} as any;
       const bindingContext3 = {} as any;
@@ -590,7 +590,7 @@ describe('BindingContext', function() {
       expect(actual).to.equal(scope3.overrideContext);
     });
 
-    it('3 ancestors, \'foo\' (exist on oc #1 and bc #2), 2', function() {
+    it('3 ancestors, \'foo\' (exist on oc #1 and bc #2), 2', function () {
       const bindingContext1 = {} as any;
       const bindingContext2 = { foo: 'bar' } as any;
       const bindingContext3 = {} as any;
@@ -604,7 +604,7 @@ describe('BindingContext', function() {
       expect(actual).to.equal(bindingContext2);
     });
 
-    it('3 ancestors, \'foo\' (exist on oc #2 and bc #3), 2', function() {
+    it('3 ancestors, \'foo\' (exist on oc #2 and bc #3), 2', function () {
       const bindingContext1 = {} as any;
       const bindingContext2 = {} as any;
       const bindingContext3 = { foo: 'bar' } as any;
@@ -618,7 +618,7 @@ describe('BindingContext', function() {
       expect(actual).to.equal(scope2.overrideContext);
     });
 
-    it('3 ancestors, \'foo\' (exist on oc #3 and bc #4), 2', function() {
+    it('3 ancestors, \'foo\' (exist on oc #3 and bc #4), 2', function () {
       const bindingContext1 = {} as any;
       const bindingContext2 = {} as any;
       const bindingContext3 = {} as any;
@@ -632,7 +632,7 @@ describe('BindingContext', function() {
       expect(actual).to.equal(bindingContext2);
     });
 
-    it('3 ancestors, \'foo\' (exist on oc #1 and bc #2), 3', function() {
+    it('3 ancestors, \'foo\' (exist on oc #1 and bc #2), 3', function () {
       const bindingContext1 = {} as any;
       const bindingContext2 = { foo: 'bar' } as any;
       const bindingContext3 = {} as any;
@@ -646,7 +646,7 @@ describe('BindingContext', function() {
       expect(actual).to.equal(scope1.overrideContext);
     });
 
-    it('3 ancestors, \'foo\' (exist on oc #2 and bc #3), 3', function() {
+    it('3 ancestors, \'foo\' (exist on oc #2 and bc #3), 3', function () {
       const bindingContext1 = {} as any;
       const bindingContext2 = {} as any;
       const bindingContext3 = { foo: 'bar' } as any;
@@ -660,7 +660,7 @@ describe('BindingContext', function() {
       expect(actual).to.equal(bindingContext1);
     });
 
-    it('3 ancestors, \'foo\' (exist on oc #3 and bc #4), 3', function() {
+    it('3 ancestors, \'foo\' (exist on oc #3 and bc #4), 3', function () {
       const bindingContext1 = {} as any;
       const bindingContext2 = {} as any;
       const bindingContext3 = {} as any;
@@ -674,7 +674,7 @@ describe('BindingContext', function() {
       expect(actual).to.equal(bindingContext1);
     });
 
-    it('3 ancestors, null, 4', function() {
+    it('3 ancestors, null, 4', function () {
       const bindingContext1 = {} as any;
       const bindingContext2 = {} as any;
       const bindingContext3 = {} as any;

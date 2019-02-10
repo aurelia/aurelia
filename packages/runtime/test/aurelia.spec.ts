@@ -3,18 +3,18 @@ import { spy } from 'sinon';
 import { Aurelia, State } from '../src/index';
 import { AuDOMConfiguration } from './au-dom';
 
-describe('Aurelia', function() {
+describe('Aurelia', function () {
   let sut: Aurelia;
 
-  beforeEach(function() {
+  beforeEach(function () {
     sut = new Aurelia(AuDOMConfiguration.createContainer());
   });
 
-  it('should initialize container directly', function() {
+  it('should initialize container directly', function () {
     expect(sut['container'].get(Aurelia)).to.equal(sut);
   });
 
-  it('should initialize correctly', function() {
+  it('should initialize correctly', function () {
     expect(sut['components'].length).to.equal(0);
     expect(sut['startTasks'].length).to.equal(0);
     expect(sut['stopTasks'].length).to.equal(0);
@@ -22,7 +22,7 @@ describe('Aurelia', function() {
     expect(sut['container']).not.to.equal(undefined);
   });
 
-  it('should register dependencies', function() {
+  it('should register dependencies', function () {
     spy(sut['container'], 'register');
     class Foo {}
     class Bar {}
@@ -31,7 +31,7 @@ describe('Aurelia', function() {
     expect(sut['container'].register).to.have.been.calledWith(Foo, Bar);
   });
 
-  it('should register dependencies as array', function() {
+  it('should register dependencies as array', function () {
     spy(sut['container'], 'register');
     class Foo {}
     class Bar {}
@@ -40,14 +40,14 @@ describe('Aurelia', function() {
     expect(sut['container'].register).to.have.been.calledWith([Foo, Bar]);
   });
 
-  it('should register start and stop task', function() {
+  it('should register start and stop task', function () {
     sut.app({component: {}, host: {}});
 
     expect(sut['startTasks'].length).to.equal(1);
     expect(sut['stopTasks'].length).to.equal(1);
   });
 
-  it('should start', function() {
+  it('should start', function () {
     let hydrated = false;
     let bound = false;
     let attached = false;
@@ -65,7 +65,7 @@ describe('Aurelia', function() {
     expect(attached).to.equal(true);
   });
 
-  it('should stop', function() {
+  it('should stop', function () {
     let unbound = false;
     let detached = false;
 

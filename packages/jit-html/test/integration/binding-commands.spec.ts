@@ -7,15 +7,15 @@ import { TestConfiguration } from './resources';
 import { setupAndStart, setupWithDocumentAndStart, tearDown } from './util';
 
 // TemplateCompiler - Binding Commands integration
-describe('binding-commands', function() {
+describe('binding-commands', function () {
   let ctx: HTMLTestContext;
 
-  beforeEach(function() {
+  beforeEach(function () {
     ctx = TestContext.createHTMLTestContext();
   });
 
   // textBinding - interpolation
-  it('01.', function() {
+  it('01.', function () {
     const { au, lifecycle, host, component } = setupAndStart(ctx, `<template>\${message}</template>`, null);
     component.message = 'hello!';
     lifecycle.processFlushQueue(LF.none);
@@ -24,7 +24,7 @@ describe('binding-commands', function() {
   });
 
   // textBinding - interpolation with template
-  it('02.', function() {
+  it('02.', function () {
     const { au, lifecycle, host, component } = setupAndStart(ctx, `<template>\${\`\${message}\`}</template>`, null);
     component.message = 'hello!';
     lifecycle.processFlushQueue(LF.none);
@@ -33,7 +33,7 @@ describe('binding-commands', function() {
   });
 
   // styleBinding - bind
-  it('03.', function() {
+  it('03.', function () {
     const { au, lifecycle, host, component } = setupAndStart(ctx, `<template><div style.bind="foo"></div></template>`, null);
     component.foo = 'color: green;';
     lifecycle.processFlushQueue(LF.none);
@@ -42,7 +42,7 @@ describe('binding-commands', function() {
   });
 
   // styleBinding - interpolation
-  it('04.', function() {
+  it('04.', function () {
     const { au, lifecycle, host, component } = setupAndStart(ctx, `<template><div style="\${foo}"></div></template>`, null);
     component.foo = 'color: green;';
     lifecycle.processFlushQueue(LF.none);
@@ -51,7 +51,7 @@ describe('binding-commands', function() {
   });
 
   // classBinding - bind
-  it('05.', function() {
+  it('05.', function () {
     const { au, lifecycle, host, component } = setupAndStart(ctx, `<template><div class.bind="foo"></div></template>`, null);
     component.foo = 'foo bar';
     lifecycle.processFlushQueue(LF.none);
@@ -60,7 +60,7 @@ describe('binding-commands', function() {
   });
 
   // classBinding - interpolation
-  it('06.', function() {
+  it('06.', function () {
     const { au, lifecycle, host, component } = setupAndStart(ctx, `<template><div class="\${foo}"></div></template>`, null);
     component.foo = 'foo bar';
     lifecycle.processFlushQueue(LF.none);
@@ -69,7 +69,7 @@ describe('binding-commands', function() {
   });
 
   // oneTimeBinding - input.value
-  it('07.', function() {
+  it('07.', function () {
     const { au, lifecycle, host, component } = setupAndStart(ctx, `<template><input value.one-time="message"></template>`, null);
     component.message = 'hello!';
     lifecycle.processFlushQueue(LF.none);
@@ -78,7 +78,7 @@ describe('binding-commands', function() {
   });
 
   // toViewBinding - input.value
-  it('08.', function() {
+  it('08.', function () {
     const { au, lifecycle, host, component } = setupAndStart(ctx, `<template><input value.to-view="message"></template>`, null);
     component.message = 'hello!';
     lifecycle.processFlushQueue(LF.none);
@@ -87,7 +87,7 @@ describe('binding-commands', function() {
   });
 
   // fromViewBinding - input.value
-  it('09.', function() {
+  it('09.', function () {
     const { au, lifecycle, host, component } = setupAndStart(ctx, `<template><input value.from-view="message"></template>`, null);
     component.message = 'hello!';
     lifecycle.processFlushQueue(LF.none);
@@ -99,7 +99,7 @@ describe('binding-commands', function() {
   });
 
   // twoWayBinding - input.value
-  it('10.', function() {
+  it('10.', function () {
     const { au, lifecycle, host, component } = setupAndStart(ctx, `<template><input value.two-way="message"></template>`, null);
     host.firstChild['value'] = 'hello!';
     expect(component.message).to.equal(undefined);
@@ -109,7 +109,7 @@ describe('binding-commands', function() {
   });
 
   // twoWayBinding - input.value - jsonValueConverter
-  it('11.', function() {
+  it('11.', function () {
     ctx.container.register(TestConfiguration);
     const { au, lifecycle, host, component } = setupAndStart(ctx, `<template><input value.two-way="message | json"></template>`, null);
     expect(component.message).to.equal(undefined);
@@ -125,7 +125,7 @@ describe('binding-commands', function() {
   });
 
   // oneTimeBindingBehavior - input.value
-  it('12.', function() {
+  it('12.', function () {
     const { au, lifecycle, host, component } = setupAndStart(ctx, `<template><input value.to-view="message & oneTime"></template>`, null);
     component.message = 'hello!';
     lifecycle.processFlushQueue(LF.none);
@@ -134,7 +134,7 @@ describe('binding-commands', function() {
   });
 
   // toViewBindingBehavior - input.value
-  it('13.', function() {
+  it('13.', function () {
     const { au, lifecycle, host, component } = setupAndStart(ctx, `<template><input value.one-time="message & toView"></template>`, null);
     component.message = 'hello!';
     lifecycle.processFlushQueue(LF.none);
@@ -143,7 +143,7 @@ describe('binding-commands', function() {
   });
 
   // fromViewBindingBehavior - input.value
-  it('14.', function() {
+  it('14.', function () {
     const { au, lifecycle, host, component } = setupAndStart(ctx, `<template><input value.one-time="message & fromView"></template>`, null);
     component.message = 'hello!';
     lifecycle.processFlushQueue(LF.none);
@@ -155,7 +155,7 @@ describe('binding-commands', function() {
   });
 
   // twoWayBindingBehavior - input.value
-  it('15.', function() {
+  it('15.', function () {
     const { au, lifecycle, host, component } = setupAndStart(ctx, `<template><input value.one-time="message & twoWay"></template>`, null);
     expect(component.message).to.equal(undefined);
     host.firstChild['value'] = 'hello!';
@@ -166,7 +166,7 @@ describe('binding-commands', function() {
   });
 
   // toViewBinding - input checkbox
-  it('16.', function() {
+  it('16.', function () {
     const { au, lifecycle, host, component } = setupAndStart(ctx, `<template><input checked.to-view="checked" type="checkbox"></template>`, null);
     expect(host.firstChild['checked']).to.equal(false);
     component.checked = true;
@@ -177,7 +177,7 @@ describe('binding-commands', function() {
   });
 
   // twoWayBinding - input checkbox
-  it('17.', function() {
+  it('17.', function () {
     const { au, lifecycle, host, component } = setupAndStart(ctx, `<template><input checked.two-way="checked" type="checkbox"></template>`, null);
     expect(component.checked).to.equal(undefined);
     host.firstChild['checked'] = true;
@@ -188,7 +188,7 @@ describe('binding-commands', function() {
   });
 
   // trigger - button
-  it('18.', function() {
+  it('18.', function () {
     const { au, lifecycle, host, component } = setupAndStart(ctx, `<template><button click.trigger="doStuff()"></button></template>`, null);
     component.doStuff = spy();
     host.firstChild.dispatchEvent(new ctx.CustomEvent('click'));
@@ -197,7 +197,7 @@ describe('binding-commands', function() {
   });
 
   // delegate - button
-  it('19.', function() {
+  it('19.', function () {
     const { au, lifecycle, host, component } = setupWithDocumentAndStart(ctx, `<template><button click.delegate="doStuff()"></button></template>`, null);
     try {
       component.doStuff = spy();
@@ -211,7 +211,7 @@ describe('binding-commands', function() {
   });
 
   // capture - button
-  it('20.', function() {
+  it('20.', function () {
     const { au, lifecycle, host, component } = setupWithDocumentAndStart(ctx, `<template><button click.capture="doStuff()"></button></template>`, null);
     try {
       component.doStuff = spy();

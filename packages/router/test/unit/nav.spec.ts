@@ -6,7 +6,7 @@ import { NavCustomElement, Router, ViewportCustomElement } from '../../src/index
 import { MockBrowserHistoryLocation } from '../mock/browser-history-location.mock';
 import { registerComponent } from './utils';
 
-describe('Nav', function() {
+describe('Nav', function () {
   it('generates nav with a link', async function () {
     this.timeout(30000);
     const { host, router } = await setup('foo');

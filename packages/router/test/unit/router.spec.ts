@@ -8,7 +8,7 @@ import { registerComponent } from './utils';
 
 const define = (CustomElementResource as any).define;
 
-describe('Router', function() {
+describe('Router', function () {
   it('can be created', async function () {
     this.timeout(30000);
     const { host, router } = await setup();

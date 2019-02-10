@@ -2,9 +2,9 @@ import { Hooks, LifecycleFlags, State } from '../../src/index';
 import { createCustomAttribute, CustomAttribute } from '../resources/custom-attribute._builder';
 import { eachCartesianJoin } from '../util';
 
-describe('@customAttribute', function() {
+describe('@customAttribute', function () {
 
-  describe('$attach', function() {
+  describe('$attach', function () {
 
     const propsSpecs = [
       {
@@ -51,7 +51,7 @@ describe('@customAttribute', function() {
     eachCartesianJoin([propsSpecs, hooksSpecs],
                       (propsSpec, hooksSpec) => {
 
-      it(`${propsSpec.expectation} if ${propsSpec.description} AND ${hooksSpec.expectation} if ${hooksSpec.description}`, function() {
+      it(`${propsSpec.expectation} if ${propsSpec.description} AND ${hooksSpec.expectation} if ${hooksSpec.description}`, function () {
         // Arrange
         const { sut } = createCustomAttribute();
         propsSpec.setProps(sut);
@@ -75,7 +75,7 @@ describe('@customAttribute', function() {
     });
   });
 
-  describe('$detach', function() {
+  describe('$detach', function () {
 
     const propsSpecs = [
       {
@@ -122,7 +122,7 @@ describe('@customAttribute', function() {
     eachCartesianJoin([propsSpecs, hooksSpecs],
                       (propsSpec, hooksSpec) => {
 
-      it(`${propsSpec.expectation} if ${propsSpec.description} AND ${hooksSpec.expectation} if ${hooksSpec.description}`, function() {
+      it(`${propsSpec.expectation} if ${propsSpec.description} AND ${hooksSpec.expectation} if ${hooksSpec.description}`, function () {
         // Arrange
         const { sut } = createCustomAttribute();
         propsSpec.setProps(sut);
@@ -146,7 +146,7 @@ describe('@customAttribute', function() {
     });
   });
 
-  describe('$cache', function() {
+  describe('$cache', function () {
 
     const hooksSpecs = [
       {
@@ -164,7 +164,7 @@ describe('@customAttribute', function() {
     eachCartesianJoin([hooksSpecs],
                       (hooksSpec) => {
 
-      it(`${hooksSpec.expectation} if ${hooksSpec.description}`, function() {
+      it(`${hooksSpec.expectation} if ${hooksSpec.description}`, function () {
         // Arrange
         const { sut } = createCustomAttribute();
         const hooks = hooksSpec.getHooks();

@@ -17,15 +17,15 @@ import { TestConfiguration } from './resources';
 import { setupAndStart, tearDown } from './util';
 
 // TemplateCompiler - custom element integration
-describe('custom-elements', function() {
+describe('custom-elements', function () {
   let ctx: HTMLTestContext;
 
-  beforeEach(function() {
+  beforeEach(function () {
     ctx = TestContext.createHTMLTestContext();
   });
 
   // custom elements
-  it('01.', function() {
+  it('01.', function () {
     ctx.container.register(TestConfiguration);
     const { au, lifecycle, host } = setupAndStart(ctx, `<template><name-tag name="bigopon"></name-tag></template>`, null);
 
@@ -35,10 +35,10 @@ describe('custom-elements', function() {
   });
 
   //[as-element]
-  describe('02.', function() {
+  describe('02.', function () {
 
     //works with custom element with [as-element]
-    it('01.', function() {
+    it('01.', function () {
       ctx.container.register(TestConfiguration);
       const { au, lifecycle, host } = setupAndStart(ctx, `<template><div as-element="name-tag" name="bigopon"></div></template>`, null);
 
@@ -48,7 +48,7 @@ describe('custom-elements', function() {
     });
 
     //ignores tag name
-    it('02.', function() {
+    it('02.', function () {
       ctx.container.register(TestConfiguration);
       const { au, lifecycle, host } = setupAndStart(ctx, `<template><name-tag as-element="div" name="bigopon">Fred</name-tag></template>`, null);
 
@@ -59,7 +59,7 @@ describe('custom-elements', function() {
   });
 
   //<let/>
-  it('03.', function() {
+  it('03.', function () {
     const { au, lifecycle, host, component } = setupAndStart(ctx, '<template><let full-name.bind="firstName + ` ` + lastName"></let><div>\${fullName}</div></template>', null);
     expect(host.textContent).to.equal('undefined undefined');
 
@@ -76,7 +76,7 @@ describe('custom-elements', function() {
   });
 
   //<let [to-view-model] />
-  it('04.', function() {
+  it('04.', function () {
     const { au, lifecycle, host, component } = setupAndStart(ctx, '<template><let to-view-model full-name.bind="firstName + ` ` + lastName"></let><div>\${fullName}</div></template>', null);
     component.firstName = 'bi';
     expect(component.fullName).to.equal('bi undefined');
@@ -88,7 +88,7 @@ describe('custom-elements', function() {
   });
 
   //initial values propagate through multiple nested custom elements connected via bindables
-  it('05.', function() {
+  it('05.', function () {
     let boundCalls = 0;
 
     @customElement({ name: 'foo1', template: `<template><foo2 value.bind="value" value2.bind="value1"></foo2>\${value}</template>` })

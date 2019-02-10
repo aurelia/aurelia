@@ -158,12 +158,12 @@ export const DI = {
     };
     Interface.friendlyName = friendlyName || 'Interface';
 
-    Interface.noDefault = function(): InterfaceSymbol<T> {
+    Interface.noDefault = function (): InterfaceSymbol<T> {
       return Interface;
     };
 
     Interface.withDefault = function(configure: (builder: IResolverBuilder<T>) => IResolver): InterfaceSymbol<T> {
-      Interface.withDefault = function(): InterfaceSymbol<T> {
+      Interface.withDefault = function (): InterfaceSymbol<T> {
         throw Reporter.error(17, Interface);
       };
 

@@ -18,13 +18,13 @@ type ObservedInputElement = HTMLInputElement & {
 
 const eventDefaults = { bubbles: true };
 
-describe('CheckedObserver', function() {
+describe('CheckedObserver', function () {
 
-  before(function() {
+  before(function () {
     enableArrayObservation();
   });
 
-  describe('setValue() - primitive - type="checkbox"', function() {
+  describe('setValue() - primitive - type="checkbox"', function () {
     function setup(hasSubscriber: boolean) {
       const ctx = TestContext.createHTMLTestContext();
       const { container, lifecycle, observerLocator } = ctx;
@@ -57,7 +57,7 @@ describe('CheckedObserver', function() {
               const propValue = checkedBefore ? checkedValue : uncheckedValue;
               const newValue = checkedAfter ? checkedValue : uncheckedValue;
 
-              it(_`hasSubscriber=${hasSubscriber}, checkedBefore=${checkedBefore}, checkedAfter=${checkedAfter}, propValue=${propValue}, newValue=${newValue}`, function() {
+              it(_`hasSubscriber=${hasSubscriber}, checkedBefore=${checkedBefore}, checkedAfter=${checkedAfter}, propValue=${propValue}, newValue=${newValue}`, function () {
 
                 const expectedPropValue = propValue === undefined ? null : propValue;
                 const expectedNewValue = newValue === undefined ? null : newValue;
@@ -91,7 +91,7 @@ describe('CheckedObserver', function() {
     }
   });
 
-  describe('handleEvent() - primitive - type="checkbox"', function() {
+  describe('handleEvent() - primitive - type="checkbox"', function () {
     function setup() {
       const ctx = TestContext.createHTMLTestContext();
       const { container, lifecycle, observerLocator } = ctx;
@@ -115,7 +115,7 @@ describe('CheckedObserver', function() {
     for (const checkedBefore of [true, false]) {
       for (const checkedAfter of [true, false]) {
         for (const event of ['change', 'input']) {
-          it(_`checkedBefore=${checkedBefore}, checkedAfter=${checkedAfter}, event=${event}`, function() {
+          it(_`checkedBefore=${checkedBefore}, checkedAfter=${checkedAfter}, event=${event}`, function () {
 
             const { ctx, sut, el, subscriber } = setup();
 
@@ -142,7 +142,7 @@ describe('CheckedObserver', function() {
     }
   });
 
-  describe('setValue() - primitive - type="radio"', function() {
+  describe('setValue() - primitive - type="radio"', function () {
     function setup(hasSubscriber: boolean) {
       const ctx = TestContext.createHTMLTestContext();
       const { container, lifecycle, observerLocator } = ctx;
@@ -188,7 +188,7 @@ describe('CheckedObserver', function() {
       for (const checkedBefore of ['A', 'B', 'C', null, undefined]) {
         for (const checkedAfter of ['A', 'B', 'C', null, undefined]) {
 
-          it(_`hasSubscriber=${hasSubscriber}, checkedBefore=${checkedBefore}, checkedAfter=${checkedAfter}`, function() {
+          it(_`hasSubscriber=${hasSubscriber}, checkedBefore=${checkedBefore}, checkedAfter=${checkedAfter}`, function () {
 
             const expectedPropValue = checkedBefore === undefined ? null : checkedBefore;
             const expectedNewValue = checkedAfter === undefined ? null : checkedAfter;
@@ -237,7 +237,7 @@ describe('CheckedObserver', function() {
     }
   });
 
-  describe('handleEvent() - primitive - type="radio"', function() {
+  describe('handleEvent() - primitive - type="radio"', function () {
     function setup() {
       const ctx = TestContext.createHTMLTestContext();
       const { container, lifecycle, observerLocator } = ctx;
@@ -277,7 +277,7 @@ describe('CheckedObserver', function() {
       for (const checkedAfter of ['A', 'B', 'C']) {
         for (const event of ['change', 'input']) {
 
-          it(_`checkedBefore=${checkedBefore}, checkedAfter=${checkedAfter}, event=${event}`, function() {
+          it(_`checkedBefore=${checkedBefore}, checkedAfter=${checkedAfter}, event=${event}`, function () {
 
             const { ctx, sutA, sutB, sutC, elA, elB, elC } = setup();
 
@@ -314,7 +314,7 @@ describe('CheckedObserver', function() {
     }
   });
 
-  describe('setValue() - array - type="checkbox"', function() {
+  describe('setValue() - array - type="checkbox"', function () {
     function setup(hasSubscriber: boolean, value: any, prop: string) {
       const ctx = TestContext.createHTMLTestContext();
       const { container, lifecycle, observerLocator } = ctx;
@@ -354,7 +354,7 @@ describe('CheckedObserver', function() {
                   const propValue = checkedBefore ? checkedValue : uncheckedValue;
                   const newValue = checkedAfter ? checkedValue : uncheckedValue;
 
-                  it(_`hasSubscriber=${hasSubscriber}, ${prop}=${value}, checkedBefore=${checkedBefore}, checkedAfter=${checkedAfter}, propValue=${propValue}, newValue=${newValue}`, function() {
+                  it(_`hasSubscriber=${hasSubscriber}, ${prop}=${value}, checkedBefore=${checkedBefore}, checkedAfter=${checkedAfter}, propValue=${propValue}, newValue=${newValue}`, function () {
 
                     const changeCountBefore = 1;
                     const changeCountAfter = checkedBefore !== checkedAfter ? 1 : 0;
@@ -387,7 +387,7 @@ describe('CheckedObserver', function() {
     }
   });
 
-  describe('mutate collection - array - type="checkbox"', function() {
+  describe('mutate collection - array - type="checkbox"', function () {
     function setup(hasSubscriber: boolean, value: any, prop: string) {
       const ctx = TestContext.createHTMLTestContext();
       const { container, lifecycle, observerLocator } = ctx;
@@ -419,7 +419,7 @@ describe('CheckedObserver', function() {
 
           const valueCanBeChecked = prop === 'model' || (typeof value !== 'number' && value !== undefined && value !== null);
 
-          it(_`hasSubscriber=${hasSubscriber}, ${prop}=${value}`, function() {
+          it(_`hasSubscriber=${hasSubscriber}, ${prop}=${value}`, function () {
 
             const array = [];
 
@@ -451,7 +451,7 @@ describe('CheckedObserver', function() {
     }
   });
 
-  describe('handleEvent() - array - type="checkbox"', function() {
+  describe('handleEvent() - array - type="checkbox"', function () {
     function setup(value: any, prop: string) {
       const ctx = TestContext.createHTMLTestContext();
       const { container, observerLocator } = ctx;
@@ -481,7 +481,7 @@ describe('CheckedObserver', function() {
           for (const checkedAfter of [true, false]) {
             for (const event of ['change', 'input']) {
 
-              it(_`${prop}=${value}, checkedBefore=${checkedBefore}, checkedAfter=${checkedAfter}, event=${event}`, async function() {
+              it(_`${prop}=${value}, checkedBefore=${checkedBefore}, checkedAfter=${checkedAfter}, event=${event}`, async function () {
 
                 const { ctx, sut, el, subscriber } = setup(value, prop);
 
@@ -515,7 +515,7 @@ describe('CheckedObserver', function() {
     }
   });
 
-  describe('SelectValueObserver.setValue() - array - type="checkbox"', function() {
+  describe('SelectValueObserver.setValue() - array - type="checkbox"', function () {
     function setup(hasSubscriber: boolean, value: any, prop: string) {
       const ctx = TestContext.createHTMLTestContext();
       const { container, lifecycle, observerLocator } = ctx;
@@ -554,7 +554,7 @@ describe('CheckedObserver', function() {
                   const propValue = checkedBefore ? checkedValue : uncheckedValue;
                   const newValue = checkedAfter ? checkedValue : uncheckedValue;
 
-                  it(_`hasSubscriber=${hasSubscriber}, ${prop}=${value}, checkedBefore=${checkedBefore}, checkedAfter=${checkedAfter}, propValue=${propValue}, newValue=${newValue}`, function() {
+                  it(_`hasSubscriber=${hasSubscriber}, ${prop}=${value}, checkedBefore=${checkedBefore}, checkedAfter=${checkedAfter}, propValue=${propValue}, newValue=${newValue}`, function () {
 
                     const { ctx, sut, el, subscriber, valueOrModelObserver, lifecycle } = setup(hasSubscriber, value, prop);
 

@@ -6,28 +6,28 @@ import { _ } from './util';
 
 const toString = Object.prototype.toString;
 
-describe(`The PLATFORM object`, function() {
+describe(`The PLATFORM object`, function () {
   if (typeof global !== 'undefined') {
-    it(`global references global`, function() {
+    it(`global references global`, function () {
       expect(PLATFORM.global).to.equal(global);
     });
   }
   // @ts-ignore
   if (typeof self !== 'undefined') {
-    it(`global references self`, function() {
+    it(`global references self`, function () {
       // @ts-ignore
       expect(PLATFORM.global).to.equal(self);
     });
   }
   // @ts-ignore
   if (typeof window !== 'undefined') {
-    it(`global references window`, function() {
+    it(`global references window`, function () {
       // @ts-ignore
       expect(PLATFORM.global).to.equal(window);
     });
   }
 
-  it(`now() returns a timestamp`, async function() {
+  it(`now() returns a timestamp`, async function () {
     const $1 = PLATFORM.now();
 
     await Promise.resolve();
@@ -65,7 +65,7 @@ describe(`The PLATFORM object`, function() {
     }).catch(error => { throw error; });
   });
 
-  describe(`camelCase()`, function() {
+  describe(`camelCase()`, function () {
     for (const sep of ['.', '_', '-']) {
       for (const count of [1, 2]) {
         for (const prepend of [true, false]) {
@@ -82,7 +82,7 @@ describe(`The PLATFORM object`, function() {
               let input = [foo, bar, baz].join(actualSep);
               if (prepend) input = actualSep + input;
               if (append) input += actualSep;
-              it(`${input} -> ${expected}`, function() {
+              it(`${input} -> ${expected}`, function () {
                 const actual = PLATFORM.camelCase(input);
                 expect(actual).to.equal(expected);
                 expect(PLATFORM.camelCase(input)).to.equal(actual); // verify via code coverage report that cache is being hit
@@ -94,7 +94,7 @@ describe(`The PLATFORM object`, function() {
     }
   });
 
-  describe(`kebabCase()`, function() {
+  describe(`kebabCase()`, function () {
     for (const [input, expected] of [
       ['FooBarBaz', 'foo-bar-baz'],
       ['fooBarBaz', 'foo-bar-baz'],
@@ -102,7 +102,7 @@ describe(`The PLATFORM object`, function() {
       ['FOOBARBAZ', 'f-o-o-b-a-r-b-a-z'],
       ['fOObARbAZ', 'f-o-ob-a-rb-a-z']
     ]) {
-      it(`${input} -> ${expected}`, function() {
+      it(`${input} -> ${expected}`, function () {
         const actual = PLATFORM.kebabCase(input);
         expect(actual).to.equal(expected);
         expect(PLATFORM.kebabCase(input)).to.equal(actual); // verify via code coverage report that cache is being hit
@@ -110,12 +110,12 @@ describe(`The PLATFORM object`, function() {
     }
   });
 
-  describe(`toArray()`, function() {
+  describe(`toArray()`, function () {
     for (const input of [
       [1, 2, 3, 4, 5],
       { length: 5, [1]: 1, [2]: 2, [3]: 3, [4]: 4, [5]: 5 }
     ] as ArrayLike<any>[]) {
-      it(_`converts ${input} to array`, function() {
+      it(_`converts ${input} to array`, function () {
         const expected = Array.from(input);
         const actual = PLATFORM.toArray(input);
         expect(typeof expected).to.equal(typeof actual);

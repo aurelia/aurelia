@@ -13,13 +13,13 @@ import {
   LifecycleFlags
 } from '../../src/index';
 
-describe('DebounceBindingBehavior', function() {
+describe('DebounceBindingBehavior', function () {
   const container: IContainer = DI.createContainer();
   let sut: DebounceBindingBehavior;
   let binding: Binding;
   let originalFn: (newValue: unknown, previousValue: unknown, flags: LifecycleFlags) => void;
 
-  beforeEach(function() {
+  beforeEach(function () {
     sut = new DebounceBindingBehavior();
     binding = new Binding(undefined, undefined, undefined, undefined, undefined, container);
     originalFn = binding.handleChange;
@@ -27,7 +27,7 @@ describe('DebounceBindingBehavior', function() {
   });
 
   // TODO: test properly (whether debouncing works etc)
-  it('bind()   should apply the correct behavior', function() {
+  it('bind()   should apply the correct behavior', function () {
     expect(binding['debouncedMethod'] === originalFn).to.equal(true);
     expect(binding['debouncedMethod'].originalName).to.equal('handleChange');
     expect(binding.handleChange === originalFn).to.equal(false);
@@ -36,7 +36,7 @@ describe('DebounceBindingBehavior', function() {
     expect(typeof binding['debounceState']).to.equal('object');
   });
 
-  it('unbind() should revert the original behavior', function() {
+  it('unbind() should revert the original behavior', function () {
     sut.unbind(undefined, undefined, binding as any);
     expect(binding['debouncedMethod']).to.equal(null);
     expect(binding.handleChange === originalFn).to.equal(true);

@@ -145,7 +145,7 @@
 //   expect(i).to.equal(count);
 // }
 
-// describe(`LifecycleController `, function() {
+// describe(`LifecycleController `, function () {
 
 //   eachCartesianJoinFactory<
 //     [string, LifecycleFlags],
@@ -298,14 +298,14 @@
 //         ]
 //       ]
 //     ], ([t1, flags], [t2, sut], [count, mock], [t3, exec3]) => {
-//       it(`${t1} ctrl=${t2} mockCount=${count<10?' ':''}${count} -> ${t2}`, async function() {
+//       it(`${t1} ctrl=${t2} mockCount=${count<10?' ':''}${count} -> ${t2}`, async function () {
 //         await exec3(count, sut, mock);
 //       });
 //     }
 //   );
 // });
 
-// describe(`LifecycleController `, function() {
+// describe(`LifecycleController `, function () {
 
 //   eachCartesianJoinFactory<
 //     [string, LifecycleFlags],
@@ -511,7 +511,7 @@
 //         ]
 //       ]
 //     ], ([t1, flags], [t2, sut], [count, mock], [t3, exec3], [t4, exec4]) => {
-//       it(`${t1} ctrl=${t2} mockCount=${count<10?' ':''}${count} -> ${t3} -> ${t4}`, async function() {
+//       it(`${t1} ctrl=${t2} mockCount=${count<10?' ':''}${count} -> ${t3} -> ${t4}`, async function () {
 //         exec3(count, sut, mock);
 //         await exec4(count, sut, mock);
 //       });

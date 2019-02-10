@@ -2,7 +2,7 @@ import { expect } from 'chai';
 import { spy } from 'sinon';
 import { QueuedBrowserHistory } from './../../src/index';
 
-describe('QueuedBrowserHistory', function() {
+describe('QueuedBrowserHistory', function () {
   let qbh;
   const callback = ((info) => { return; });
   class MockWindow {
@@ -10,16 +10,16 @@ describe('QueuedBrowserHistory', function() {
     public removeEventListener(handler) { return; }
   }
 
-  beforeEach(function() {
+  beforeEach(function () {
     qbh = new QueuedBrowserHistory();
     qbh.window = new MockWindow();
   });
 
-  it('can be created', function() {
+  it('can be created', function () {
     expect(qbh).not.to.equal(null);
   });
 
-  it('can be activated', function() {
+  it('can be activated', function () {
     const callbackSpy = spy(qbh.window, 'addEventListener');
     qbh.activate({ callback: callback});
 
@@ -27,7 +27,7 @@ describe('QueuedBrowserHistory', function() {
     expect(callbackSpy.calledOnce).to.equal(true);
   });
 
-  it('can be deactivated', function() {
+  it('can be deactivated', function () {
     const callbackSpy = spy(qbh.window, 'removeEventListener');
     qbh.deactivate();
 
@@ -35,7 +35,7 @@ describe('QueuedBrowserHistory', function() {
     expect(callbackSpy.calledOnce).to.equal(true);
   });
 
-  it('throws when activated while active', function() {
+  it('throws when activated while active', function () {
     const callbackSpy = spy(qbh.window, 'addEventListener');
     qbh.activate({ callback: callback});
 
@@ -51,7 +51,7 @@ describe('QueuedBrowserHistory', function() {
     expect(err.message).to.contain('Queued browser history has already been activated');
   });
 
-  it('queues consecutive calls', async function() {
+  it('queues consecutive calls', async function () {
     const callbackSpy = spy(qbh, 'dequeue');
     qbh.activate({ callback: callback});
 

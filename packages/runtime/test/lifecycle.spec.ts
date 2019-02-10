@@ -3,9 +3,9 @@ import { expect } from 'chai';
 import { Hooks, ILifecycle, LifecycleFlags, PromiseTask, State } from '../src/index';
 import { IComponent, ILifecycleHooks, Lifecycle } from '../src/lifecycle';
 
-describe('Lifecycle', function() {
+describe('Lifecycle', function () {
 
-  it('initializes properties', function() {
+  it('initializes properties', function () {
     const sut = new Lifecycle();
 
     const linkedListProps = [
@@ -80,8 +80,8 @@ describe('Lifecycle', function() {
   });
 
   // TODO: more tests needed
-  describe('endBind()', function() {
-    it('handles task first', async function() {
+  describe('endBind()', function () {
+    it('handles task first', async function () {
       const sut = new Lifecycle();
       const flags = LifecycleFlags.none;
 

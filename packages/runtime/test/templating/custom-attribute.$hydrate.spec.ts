@@ -4,9 +4,9 @@ import { Hooks, ICustomAttributeType, LifecycleFlags as LF, State } from '../../
 import { createCustomAttribute, CustomAttribute } from '../resources/custom-attribute._builder';
 import { eachCartesianJoin } from '../util';
 
-describe('@customAttribute', function() {
+describe('@customAttribute', function () {
 
-  describe('$hydrate', function() {
+  describe('$hydrate', function () {
 
     const hooksSpecs = [
       {
@@ -31,7 +31,7 @@ describe('@customAttribute', function() {
     eachCartesianJoin([hooksSpecs],
                       (hooksSpec) => {
 
-      it(`sets properties, applies runtime behavior and ${hooksSpec.expectation} if ${hooksSpec.description}`, function() {
+      it(`sets properties, applies runtime behavior and ${hooksSpec.expectation} if ${hooksSpec.description}`, function () {
         // Arrange
         const { Type, sut } = createCustomAttribute();
 

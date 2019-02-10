@@ -74,8 +74,7 @@ export {
 } from './resources/custom-elements/compose';
 
 export {
-  BlurCustomAttribute,
-  BlurListenerConfig
+  BlurCustomAttribute
 } from './resources/custom-attributes/blur';
 
 export {

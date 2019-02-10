@@ -1,9 +1,9 @@
 import { expect } from 'chai';
-import { spy, SinonSpy } from 'sinon';
+import { spy } from 'sinon';
 import { BlurCustomAttribute } from '../../../src/index';
 import { HTMLTestContext, TestContext } from '../../util';
 
-describe.only('BlurBindingBehavior', () => {
+describe('BlurBindingBehavior', () => {
   let target: HTMLElement;
   let sut: BlurCustomAttribute;
   let ctx: HTMLTestContext;

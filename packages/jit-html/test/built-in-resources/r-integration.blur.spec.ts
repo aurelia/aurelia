@@ -1,11 +1,8 @@
 import { Constructable } from '@aurelia/kernel';
-import { Aurelia, CustomElementResource, ICustomElement, INode } from '@aurelia/runtime';
-import { BlurCustomAttribute, BlurListenerConfig } from '@aurelia/runtime-html';
+import { Aurelia, CustomElementResource } from '@aurelia/runtime';
+import { BlurCustomAttribute, FocusCustomAttribute } from '@aurelia/runtime-html';
 import { expect } from 'chai';
-import { spy } from 'sinon';
-import { HTMLDOM } from '../../../runtime-html/src/dom';
-import { setup } from '../integration/util';
-import { HTMLTestContext, TestContext } from '../util';
+import { TestContext, HTMLTestContext } from '../util';
 import { eachCartesianJoin } from './util';
 
 describe.only('built-in-resources.blur', () => {
@@ -29,67 +26,6 @@ describe.only('built-in-resources.blur', () => {
   });
 
   describe('with mouse', () => {
-
-    // it('Works in basic scenario', function () {
-    //   const { dom, au, host, lifecycle } = setup();
-
-    //   const useSpy = spy(BlurCustomAttribute, 'use');
-
-    //   const App = CustomElementResource.define(
-    //     {
-    //       name: 'app',
-    //       template: `
-    //         <template>
-    //           <div blur.from-view="isBlur"></div>
-    //         </template>`,
-    //       dependencies: [BlurCustomAttribute]
-    //     },
-    //     class {
-    //       public isBlur = true;
-    //       public selectedValue = '2';
-    //     }
-    //   );
-    //   const component = new App();
-
-    //   au.app({ host, component });
-    //   au.start();
-
-    //   dom.dispatchEvent(dom.createCustomEvent('mousedown', { bubbles: true }));
-
-    //   expect(useSpy).to.have.callCount(1);
-    //   expect(component['isBlur']).to.equal(false, 'component.isBlur');
-
-    //   useSpy.restore();
-    // });
-
-    // for (const cmd of ['from-view', 'two-way']) {
-    //   it(`Works with ".${cmd}" command`, function () {
-    //     const { dom, au, host, lifecycle } = setup();
-
-    //     const App = CustomElementResource.define(
-    //       {
-    //         name: 'app',
-    //         template: `
-    //           <template>
-    //             <div blur.${cmd}="isBlur"></div>
-    //           </template>`,
-    //         dependencies: [BlurCustomAttribute]
-    //       },
-    //       class {
-    //         public isBlur = true;
-    //         public selectedValue = '2';
-    //       }
-    //     );
-    //     const component = new App();
-
-    //     au.app({ host, component });
-    //     au.start();
-
-    //     dom.dispatchEvent(dom.createCustomEvent('mousedown', { bubbles: true }));
-    //     expect(component['isBlur']).to.equal(false, 'component.isBlur');
-    //   });
-    // }
-
     describe('Basic scenarios', () => {
       const blurAttrs = [
         // 'blur.bind=hasFocus',
@@ -110,23 +46,24 @@ describe.only('built-in-resources.blur', () => {
           app: class App {
             public hasFocus = true;
           },
-          async assert(dom, component) {
+          async assert(ctx, component) {
             expect(component.hasFocus, 'initial component.hasFocus').to.equal(true);
 
-            createEventOn(dom.document, EVENTS.MouseDown);
-            expect(component.hasFocus).to.equal(false, 'Shoulda been false initially');
+            debugger;
+            createEventOn(ctx, ctx.doc, EVENTS.MouseDown);
+            expect(component.hasFocus, 'component.hasFocus').to.equal(false);
 
             component.hasFocus = true;
-            createEventOn(dom.window, EVENTS.MouseDown);
+            createEventOn(ctx, ctx.wnd, EVENTS.MouseDown);
             expect(component.hasFocus).to.equal(true, 'Shoulda leave "hasFocus" alone as window is not listened to.');
 
             component.hasFocus = true;
-            createEventOn(dom.document.body, EVENTS.MouseDown);
+            createEventOn(ctx, ctx.doc.body, EVENTS.MouseDown);
             expect(component.hasFocus).to.equal(false, 'Shoulda set "hasFocus" to false when mousedown on doc body.');
 
-            const button = dom.document.querySelector('button');
+            const button = ctx.doc.querySelector('button');
             component.hasFocus = true;
-            createEventOn(button, EVENTS.MouseDown);
+            createEventOn(ctx, button, EVENTS.MouseDown);
             expect(component.hasFocus).to.equal(false, 'Shoulda set "hasFocus" to false when clicking element outside.');
           }
         },
@@ -140,119 +77,111 @@ describe.only('built-in-resources.blur', () => {
           app: class App {
             public hasFocus = true;
           },
-          async assert(dom, component) {
+          async assert(ctx, component) {
             expect(component.hasFocus, 'initial component.hasFocus').to.equal(true);
 
-            createEventOn(dom.document, EVENTS.MouseDown);
+            createEventOn(ctx, ctx.doc, EVENTS.MouseDown);
             expect(component.hasFocus).to.equal(false, 'Shoulda set "hasFocus" to false when mousedown on document.');
-            // component.hasFocus = true;
-            // createEventOn(dom.window, 'mousedown');
-            // expect(component.hasFocus).to.equal(false);
-            // component.hasFocus = true;
-            // createEventOn(dom.document.body, 'mousedown');
-            // expect(component.hasFocus).to.equal(false);
 
-            // const button = dom.document.querySelector('button');
-            // component.hasFocus = true;
-            // createEventOn(button, 'mousedown');
-            // expect(component.hasFocus).to.equal(false);
+            component.hasFocus = true;
+            createEventOn(ctx, ctx.doc, EVENTS.MouseDown);
+            expect(component.hasFocus, 'window@mousedown').to.equal(true, 'It should have been true. No interaction can be made out of document.');
+
+            component.hasFocus = true;
+            createEventOn(ctx, ctx.doc.body, EVENTS.MouseDown);
+            expect(component.hasFocus, 'document.body@mousedown').to.equal(false, 'Shoulda been false. Interacted inside doc, outside element.');
+
+            const button = ctx.doc.querySelector('button');
+            component.hasFocus = true;
+            createEventOn(ctx, button, EVENTS.MouseDown);
+            expect(component.hasFocus, '+ button@mousedown').to.equal(false, 'Shoulda been false. Interacted outside element.');
           }
         }
       ];
 
-      const defaultBlurConfig: BlurListenerConfig = {
-        focus: true,
-        mouse: true,
-        touch: true,
-        pointer: true,
-        wheel: true,
-        windowBlur: true
-      };
-
       eachCartesianJoin(
         [blurAttrs, normalUsageTestCases],
-        (command, { title, template, getFocusable, app, assert, cfg = defaultBlurConfig}: ITestCase) => {
+        (command, { title, template, getFocusable, app, assert }: ITestCase) => {
           it(title(command), async () => {
-            const originalUse = BlurCustomAttribute.use;
-            let callCount = 0;
-            BlurCustomAttribute.use = function() {
-              callCount++;
-              return originalUse.call(BlurCustomAttribute, cfg);
-            };
-            const { au, component, dom } = setupAndStartNormal<IApp>(
+            const { ctx, au, component } = setup<IApp>(
               template(command),
               app
             );
-            BlurCustomAttribute.use = originalUse;
-            expect(callCount).to.equal(1, 'It should have registered listeners.');
-            return assert(dom, component, null);
+            return assert(ctx, component, null);
           });
         }
       );
     });
 
+    describe('Abnormal scenarios', () => {
+      const blurAttrs = [
+        // 'blur.bind=hasFocus',
+        'blur.two-way=hasFocus',
+        // 'blur.from-view=hasFocus',
+        'blur="value.two-way: hasFocus"',
+        // 'blur="value.bind: hasFocus"',
+        // 'blur="value.from-view: hasFocus"'
+      ];
+      const abnormalCases: ITestCase[] = [
+        {
+          title: (callIndex: number, blurAttr: string) => `${callIndex}. Works in basic scenario with <div ${blurAttr}/>`,
+          template: (blurrAttr) => `<template>
+            <div ${blurrAttr}></div>
+            <button>Click me to focus</button>
+            <child value.two-way="hasFocus"></child>
+          </template>`,
+          getFocusable: 'div',
+          app: class App {
+            public hasFocus = true;
+          },
+          async assert(ctx, component) {
+            expect(component.hasFocus, 'initial component.hasFocus').to.equal(true);
 
-    // it('Works in basic scenario', () => {
-    //   const useSpy = spy(BlurCustomAttribute, 'use');
-    //   const { component, dom } = setupAndStartNormal<IApp>(
-    //     `<template>
-    //       <div blur.bind="isBlur"></div>
-    //     </template>`,
-    //     class {
-    //       public isBlur = true;
-    //     }
-    //   );
+            // debugger;
+            createEventOn(ctx, ctx.doc, EVENTS.MouseDown);
+            expect(component.hasFocus, 'document@mousedown').to.equal(false);
 
-    //   dom.dispatchEvent(dom.createCustomEvent('mousedown', { bubbles: true }));
+            component.hasFocus = true;
+            createEventOn(ctx, ctx.wnd, EVENTS.MouseDown);
+            expect(component.hasFocus, 'window@mousedown').to.equal(true);
 
-    //   expect(useSpy).to.have.callCount(1);
-    //   expect(component.hasFocus).to.equal(false, 'component.isBlur');
+            component.hasFocus = true;
+            createEventOn(ctx, ctx.doc.body, EVENTS.MouseDown);
+            expect(component.hasFocus, 'document.body@mousedown').to.equal(false);
 
-    //   useSpy.restore();
-    // });
+            const button = ctx.doc.querySelector('button');
+            component.hasFocus = true;
+            createEventOn(ctx, button, EVENTS.MouseDown);
+            expect(component.hasFocus, '+ button@mousedown').to.equal(false);
+          }
+        },
+      ];
 
-    // for (const cmd of ['from-view', 'two-way']) {
-    //   it(`Works with ".${cmd}" command`, () => {
-    //     const { component, dom } = setupAndStartNormal<IApp>(
-    //       `<template>
-    //         <div blur.${cmd}="isBlur"></div>
-    //       </template>`,
-    //       class {
-    //         public isBlur = true;
-    //       }
-    //     );
-
-    //     dom.dispatchEvent(dom.createCustomEvent('mousedown', { bubbles: true }));
-
-    //     expect(component.hasFocus).to.equal(false, 'component.isBlur');
-    //   });
-    // }
-
-    // for (const cmd of ['one-time', 'one-way', 'to-view']) {
-    //   it(`Does nothing in "${cmd}" command scenario`, () => {
-    //     const { component, dom } = setupAndStartNormal<IApp>(
-    //       `<template>
-    //         <div blur.${cmd}="isBlur"></div>
-    //       </template>`,
-    //       class {
-    //         public isBlur = true;
-    //       }
-    //     );
-
-    //     const originalTriggerBlur = BlurCustomAttribute.prototype.triggerBlur;
-
-    //     let count = 0;
-    //     BlurCustomAttribute.prototype.triggerBlur = () => {
-    //       count++;
-    //       return originalTriggerBlur.call(this);
-    //     };
-    //     dom.dispatchEvent(dom.createCustomEvent('mousedown', { bubbles: true }));
-
-    //     expect(count).to.equal(1, 'It should have called "triggerBlur"');
-    //     expect(component.hasFocus).to.equal(true, 'component.isBlur');
-    //     BlurCustomAttribute.prototype.triggerBlur = originalTriggerBlur;
-    //   });
-    // }
+      eachCartesianJoin(
+        [blurAttrs, abnormalCases],
+        (command, abnormalCase, callIndex) => {
+          const { title, template, app, assert } = abnormalCase;
+          it(title(callIndex, command), async () => {
+            const { au, component, ctx } = setup<IApp>(
+              template(command),
+              app,
+              // CustomElementResource.define(
+              //   {
+              //     name: 'child',
+              //     template: '<template><input focus.bind="value" /></template>'
+              //   },
+              //   class Child {
+              //     public static bindables = {
+              //       value: { property: 'value', attribute: 'value' }
+              //     };
+              //   }
+              // )
+            );
+            return assert(ctx, component, null);
+          });
+        }
+      );
+    });
   });
 
   const enum EVENTS {
@@ -264,48 +193,31 @@ describe.only('built-in-resources.blur', () => {
   }
 
   interface ITestCase<T extends IApp = IApp> {
-    title(...args: unknown[]): string;
     template: TemplateFn;
     app: Constructable<T>;
     assert: AssertionFn;
-    cfg?: BlurListenerConfig,
     getFocusable: string | ((doc: Document) => HTMLElement);
+    title(...args: unknown[]): string;
   }
 
-  function setupAndStartNormal<T>(template: string | Node, $class: Constructable | null, ...registrations: any[]) {
+  function setup<T>(template: string | Node, $class: Constructable | null, ...registrations: any[]) {
     const ctx = TestContext.createHTMLTestContext();
-    registrations = Array.from(new Set([...registrations, BlurCustomAttribute]));
-    const { container, lifecycle, host, au, component, observerLocator } = setup(ctx, template, $class, ...registrations);
-
+    const { container, lifecycle, observerLocator } = ctx;
+    registrations = Array.from(new Set([...registrations, BlurCustomAttribute, FocusCustomAttribute]));
+    container.register(...registrations);
     const bodyEl = ctx.doc.body;
     bodyEl.innerHTML = '';
-    bodyEl.appendChild(host);
+    const host = ctx.doc.body.appendChild(ctx.createElement('app'));
+    const au = new Aurelia(container);
+    const App = CustomElementResource.define({ name: 'app', template }, $class);
+    const component = new App();
 
     au.app({ host, component });
     au.start();
-    au['stopTasks'].push(() => {
-      BlurCustomAttribute.use({
-        focus: false,
-        mouse: false,
-        pointer: false,
-        touch: false,
-        wheel: false,
-        windowBlur: false
-      });
-    });
 
     $aurelia = au;
 
-    return { dom: ctx.dom, container, lifecycle, host, au, component: component as T, observerLocator };
-  }
-
-  function $setup() {
-    const ctx = TestContext.createHTMLTestContext();
-    const { container, lifecycle, dom } = ctx;
-    const au = new Aurelia(container);
-    const host = dom.createElement('app');
-
-    return { dom, au, host, lifecycle };
+    return { ctx: ctx, container, lifecycle, host, au, component: component as T, observerLocator };
   }
 
   function defineCustomElement(name: string, template: string, props: Record<string, any> = null, mode: 'open' | 'closed' | null = 'open') {
@@ -326,8 +238,8 @@ describe.only('built-in-resources.blur', () => {
     return CustomEl;
   }
 
-  function createEventOn(target: EventTarget, name: string) {
-    target.dispatchEvent(new CustomEvent(name, { bubbles: true }));
+  function createEventOn(ctx: HTMLTestContext, target: EventTarget, name: string) {
+    target.dispatchEvent(new ctx.CustomEvent(name, { bubbles: true }));
   }
 
   function waitForDelay(time = 0): Promise<void> {
@@ -338,6 +250,6 @@ describe.only('built-in-resources.blur', () => {
 
   interface AssertionFn<T extends IApp = IApp> {
     // tslint:disable-next-line:callable-types
-    (dom: HTMLDOM, component: T, focusable: HTMLElement): void | Promise<void>;
+    (ctx: HTMLTestContext, component: T, focusable: HTMLElement): void | Promise<void>;
   }
 });

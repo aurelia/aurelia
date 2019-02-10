@@ -23,6 +23,7 @@
   },
   "devDependencies": {
     "@types/node": "latest",
+    "ajv": "6.8.1",
     "html-loader": "latest",
     "html-webpack-plugin": "latest",
     "http-server": "latest",

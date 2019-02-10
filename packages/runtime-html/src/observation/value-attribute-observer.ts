@@ -80,7 +80,7 @@ export class ValueAttributeObserver implements ValueAttributeObserver {
     const oldValue = this.oldValue = this.currentValue;
     const newValue = this.currentValue = this.getValue();
     if (oldValue !== newValue) {
-      this.callSubscribers(newValue, oldValue, LifecycleFlags.fromDOMEvent);
+      this.callSubscribers(newValue, oldValue, LifecycleFlags.fromDOMEvent | LifecycleFlags.allowPublishRoundtrip);
       this.oldValue = newValue;
     }
   }

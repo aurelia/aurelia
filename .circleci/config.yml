@@ -163,7 +163,7 @@ jobs:
           name: "Install e2e tests"
           command: |
             cd test/browserstack
-            npm ci
+            npm install
             npm run build
       - run:
           name: "Serve e2e app in the background"
@@ -274,28 +274,28 @@ workflows:
       - lint_packages:
           <<: *filter_ignore_develop_release
       - e2e_browserstack:
-          <<: *filter_only_master
+          <<: *filter_ignore_develop_release
       - e2e_wdio:
           <<: *filter_ignore_develop_release
           name: jit-aurelia-cli-ts
           path: "local/jit-aurelia-cli-ts"
           build: true
           requires:
-            - jit-iife-inline # not a real requirement but forces long-running jobs to go first
+            - lint_packages # not a real requirement but forces long-running jobs to go first
       - e2e_wdio:
           <<: *filter_ignore_develop_release
           name: jit-fuse-box-ts
           path: "local/jit-fuse-box-ts"
           build: true
           requires:
-            - jit-iife-inline # not a real requirement but forces long-running jobs to go first
+            - lint_packages # not a real requirement but forces long-running jobs to go first
       - e2e_wdio:
           <<: *filter_ignore_develop_release
           name: jit-webpack-ts
           path: "local/jit-webpack-ts"
           build: true
           requires:
-            - jit-iife-inline # not a real requirement but forces long-running jobs to go first
+            - lint_packages # not a real requirement but forces long-running jobs to go first
       - e2e_wdio:
           <<: *filter_ignore_develop_release
           name: jit-parcel-ts
@@ -303,13 +303,15 @@ workflows:
           build: true
           publish_local: true
           requires:
-            - jit-iife-inline # not a real requirement but forces long-running jobs to go first
+            - lint_packages # not a real requirement but forces long-running jobs to go first
       - e2e_wdio:
           <<: *filter_ignore_develop_release
           name: jit-iife-inline
           path: "local/jit-iife-inline"
           build: true
           iife: true
+          requires:
+            - lint_packages # not a real requirement but forces long-running jobs to go first
       - merge_and_dist:
           <<: *filter_only_master
           requires:

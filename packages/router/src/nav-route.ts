@@ -1,6 +1,7 @@
 import { ICustomElementType, IObserverLocator, IPropertyObserver, LifecycleFlags } from '@aurelia/runtime';
 import { INavRoute, IViewportComponent, Nav, NavComponent } from './nav';
 import { Router } from './router';
+import { ViewportInstruction } from './viewport-instruction';
 
 export class NavRoute {
   public nav: Nav;
@@ -45,17 +46,11 @@ export class NavRoute {
   }
 
   public _active(): string {
-    const components: string[] = this.linkActive.split(this.nav.router.instructionResolver.separators.add);
-    const activeComponents: string[] = this.nav.router.activeComponents;
+    const components = this.nav.router.instructionResolver.statesFromString(this.linkActive);
+    const activeComponents = this.nav.router.activeComponents.map((state) => this.nav.router.instructionResolver.parseViewportInstruction(state));
     for (const component of components) {
-      if (component.indexOf(this.nav.router.instructionResolver.separators.viewport) >= 0) {
-        if (activeComponents.indexOf(component) < 0) {
-          return '';
-        }
-      } else {
-        if (activeComponents.findIndex((value) => value.replace(/\@[^=]*/, '') === component) < 0) {
-          return '';
-        }
+      if (!activeComponents.find((active) => active.sameComponent(new ViewportInstruction(component.component)))) {
+        return '';
       }
     }
     return 'nav-active';

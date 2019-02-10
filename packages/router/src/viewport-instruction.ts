@@ -63,4 +63,11 @@ export class ViewportInstruction {
     }
     return router.allViewports()[this.viewportName];
   }
+
+  public sameComponent(other: ViewportInstruction, compareParameters: boolean = false, compareType: boolean = false): boolean {
+    if (compareParameters && this.parametersString !== other.parametersString) {
+      return false;
+    }
+    return compareType ? this.component === other.component : this.componentName === other.componentName;
+  }
 }

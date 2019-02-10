@@ -1,4 +1,3 @@
-import { IComponentViewportParameters } from './router';
 import { ViewportInstruction } from './viewport-instruction';
 
 export interface IInstructionResolverOptions {
@@ -51,6 +50,18 @@ export class InstructionResolver {
     return new ViewportInstruction(component, viewport, parameters);
   }
 
+  public stringifyViewportInstruction(instruction: ViewportInstruction): string {
+    let instructionString = instruction.componentName;
+    if (instruction.viewportName) {
+      instructionString += this.separators.viewport + instruction.viewportName;
+    }
+    if (instruction.parametersString) {
+      // TODO: Review parameters in ViewportInstruction
+      instructionString += this.separators.parameters + instruction.parametersString;
+    }
+    return instructionString;
+  }
+
   public buildScopedLink(scopeContext: string, href: string): string {
     if (scopeContext) {
       href = `/${scopeContext}${this.separators.scope}${href}`;
@@ -101,39 +112,21 @@ export class InstructionResolver {
     return views;
   }
 
-  public statesToString(states: IComponentViewportParameters[]): string {
-    const stringStates: string[] = [];
-    for (const state of states) {
-      // TODO: Support non-string components
-      let stateString: string = state.component as string;
-      if (state.viewport) {
-        stateString += this.separators.viewport + state.viewport;
-      }
-      if (state.parameters) {
-        // TODO: Support more than one parameter
-        for (const key in state.parameters) {
-          stateString += this.separators.parameters + state.parameters[key];
-        }
-      }
-      stringStates.push(stateString);
+  public viewportInstructionsToString(instructions: ViewportInstruction[]): string {
+    const stringInstructions: string[] = [];
+    for (const instruction of instructions) {
+      stringInstructions.push(this.stringifyViewportInstruction(instruction));
     }
-    return stringStates.join(this.separators.sibling);
+    return stringInstructions.join(this.separators.sibling);
   }
 
-  public statesFromString(statesString: string): IComponentViewportParameters[] {
-    const states = [];
-    const stateStrings = statesString.split(this.separators.sibling);
-    for (const stateString of stateStrings) {
-      const viewportInstruction = this.parseViewportInstruction(stateString);
-      // TODO: Support more than one parameter
-      const state: IComponentViewportParameters = {
-        component: viewportInstruction.componentName,
-        viewport: viewportInstruction.viewportName,
-        parameters: viewportInstruction.parameters,
-      };
-      states.push(state);
+  public viewportInstructionsFromString(instructionsString: string): ViewportInstruction[] {
+    const instructions = [];
+    const instructionStrings = instructionsString.split(this.separators.sibling);
+    for (const instructionString of instructionStrings) {
+      instructions.push(this.parseViewportInstruction(instructionString));
     }
-    return states;
+    return instructions;
   }
 
   public removeStateDuplicates(states: string[]): string[] {

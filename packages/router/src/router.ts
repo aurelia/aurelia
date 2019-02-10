@@ -8,18 +8,13 @@ import { IParsedQuery, parseQuery } from './parser';
 import { ChildContainer, IComponentViewport, Scope } from './scope';
 import { closestCustomElement } from './utils';
 import { IViewportOptions, Viewport } from './viewport';
+import { ViewportInstruction } from './viewport-instruction';
 
 export interface IRouterOptions extends IHistoryOptions {
   separators?: IRouteSeparators;
   reportCallback?(instruction: INavigationInstruction): void;
   transformFromUrl?(path: string, router: Router): string;
-  transformToUrl?(states: IComponentViewportParameters[], router: Router): string;
-}
-
-export interface IComponentViewportParameters {
-  component: ICustomElementType | string;
-  viewport?: Viewport | string;
-  parameters?: Record<string, unknown>;
+  transformToUrl?(instructions: ViewportInstruction[], router: Router): string;
 }
 
 export interface IRouteViewport {
@@ -139,7 +134,7 @@ export class Router {
     if (this.options.transformFromUrl && !fullStateInstruction) {
       path = this.options.transformFromUrl(path, this);
       if (Array.isArray(path)) {
-        path = this.instructionResolver.statesToString(path);
+        path = this.instructionResolver.viewportInstructionsToString(path);
       }
     }
 
@@ -427,7 +422,7 @@ export class Router {
     viewportStates = this.instructionResolver.removeStateDuplicates(viewportStates);
     let state = this.instructionResolver.stateStringsToString(viewportStates);
     if (this.options.transformToUrl) {
-      state = this.options.transformToUrl(this.instructionResolver.statesFromString(state), this);
+      state = this.options.transformToUrl(this.instructionResolver.viewportInstructionsFromString(state), this);
     }
 
     let fullViewportStates = this.rootScope.viewportStates(true);

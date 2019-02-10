@@ -2,10 +2,11 @@ import { Reporter } from '@aurelia/kernel';
 import { ICustomElementType, IRenderContext, LifecycleFlags } from '@aurelia/runtime';
 import { INavigationInstruction } from './history-browser';
 import { mergeParameters } from './parser';
-import { IComponentViewportParameters, Router } from './router';
+import { Router } from './router';
 import { Scope } from './scope';
 import { IViewportOptions } from './viewport';
 import { ContentStatus, IRouteableCustomElement, IRouteableCustomElementType, ViewportContent } from './viewport-content';
+import { ViewportInstruction } from './viewport-instruction';
 
 export interface IViewportOptions {
   scope?: boolean;
@@ -153,7 +154,7 @@ export class Viewport {
     return component.canLeave(this.content.instruction, this.nextContent.instruction);
   }
 
-  public async canEnter(): Promise<boolean | IComponentViewportParameters[]> {
+  public async canEnter(): Promise<boolean | ViewportInstruction[]> {
     if (this.clear) {
       return true;
     }
@@ -180,9 +181,9 @@ export class Viewport {
       return result;
     }
     if (typeof result === 'string') {
-      return [{ component: result, viewport: this }];
+      return [new ViewportInstruction(result, this)];
     }
-    return result as Promise<IComponentViewportParameters[]>;
+    return result as Promise<ViewportInstruction[]>;
   }
 
   public async enter(): Promise<boolean> {

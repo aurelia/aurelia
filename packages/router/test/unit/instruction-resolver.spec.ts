@@ -1,13 +1,10 @@
-import { ViewportInstruction } from './../../src/viewport-instruction';
 import { expect } from 'chai';
 import { DebugConfiguration } from '../../../debug/src/index';
 import { BasicConfiguration } from '../../../jit-html-browser/src/index';
-import { Aurelia, CustomElementResource, IDOM } from '../../../runtime/src/index';
-import { IComponentViewportParameters, Router, ViewportCustomElement } from '../../src/index';
+import { Aurelia, CustomElementResource } from '../../../runtime/src/index';
+import { Router, ViewportCustomElement } from '../../src/index';
 import { MockBrowserHistoryLocation } from '../mock/browser-history-location.mock';
-import { registerComponent } from './utils';
-
-const define = (CustomElementResource as any).define;
+import { ViewportInstruction } from './../../src/viewport-instruction';
 
 describe('InstructionResolver', () => {
   it('can be created', async function () {
@@ -15,7 +12,7 @@ describe('InstructionResolver', () => {
     const { host, router } = await setup();
     await waitForNavigation(router);
 
-    await teardown(host, router, 1);
+    await teardown(host, router);
   });
 
   it('handles state strings', async function () {
@@ -23,35 +20,28 @@ describe('InstructionResolver', () => {
     const { host, router } = await setup();
     await waitForNavigation(router);
 
-    let states: IComponentViewportParameters[] = [
-      { component: 'foo', viewport: 'left', parameters: { id: '123' } },
-      { component: 'bar', viewport: 'right', parameters: { id: '456' } },
+    let instructions: ViewportInstruction[] = [
+      new ViewportInstruction('foo', 'left', '123'),
+      new ViewportInstruction('bar', 'right', '456'),
     ];
-    let stateString = router.instructionResolver.statesToString(states);
-    expect(stateString).to.equal('foo@left=123+bar@right=456');
-    let stringStates = router.instructionResolver.statesFromString(stateString);
-    expect(stringStates).to.deep.equal(states);
+    let instructionsString = router.instructionResolver.viewportInstructionsToString(instructions);
+    expect(instructionsString).to.equal('foo@left=123+bar@right=456');
+    let newInstructions = router.instructionResolver.viewportInstructionsFromString(instructionsString);
+    expect(newInstructions).to.deep.equal(instructions);
 
-    states = [
-      { component: 'foo', viewport: undefined, parameters: { id: '123' } },
-      { component: 'bar', viewport: 'right', parameters: undefined },
-      { component: 'baz', viewport: undefined, parameters: undefined },
+    instructions = [
+      new ViewportInstruction('foo', undefined, '123'),
+      new ViewportInstruction('bar', 'right'),
+      new ViewportInstruction('baz'),
     ];
+    instructionsString = router.instructionResolver.viewportInstructionsToString(instructions);
+    expect(instructionsString).to.equal('foo=123+bar@right+baz');
+    newInstructions = router.instructionResolver.viewportInstructionsFromString(instructionsString);
+    expect(newInstructions).to.deep.equal(instructions);
 
-    stateString = router.instructionResolver.statesToString(states);
-    expect(stateString).to.equal('foo=123+bar@right+baz');
-    stringStates = router.instructionResolver.statesFromString(stateString);
-    expect(stringStates).to.deep.equal(states);
-
-    await teardown(host, router, 1);
+    await teardown(host, router);
   });
 
-  interface ViewportInstructionTest {
-    componentName: string;
-    viewportName?: string;
-    parametersString?: string;
-    parameters?: Record<string, unknown>;
-  }
   interface InstructionTest {
     instruction: string;
     viewportInstruction: ViewportInstruction;
@@ -74,7 +64,7 @@ describe('InstructionResolver', () => {
       const parsed = router.instructionResolver.parseViewportInstruction(instruction);
       expect(parsed).to.deep.equal(viewportInstruction);
 
-      await teardown(host, router, 1);
+      await teardown(host, router);
     });
   }
 });
@@ -104,7 +94,7 @@ const setup = async (): Promise<{ au; container; host; router }> => {
   return { au, container, host, router };
 };
 
-const teardown = async (host, router, count) => {
+const teardown = async (host, router) => {
   document.body.removeChild(host);
   router.deactivate();
 };

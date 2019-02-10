@@ -49,7 +49,7 @@ export class App {
       //   const parts = path.split('/');
       //   while (parts.length) {
       //     const component = parts.shift();
-      //     const state: IComponentViewportParameters = { component: component };
+      //     const state: ViewportInstruction = { component: component };
       //     // Components in "lists" viewport can't have parameters so continue
       //     if (listsComponents.indexOf(component) >= 0) {
       //       states.push(state);
@@ -63,7 +63,7 @@ export class App {
       //   }
       //   return states;
       // },
-      // transformToUrl: (states: IComponentViewportParameters[], router) => {
+      // transformToUrl: (states: ViewportInstruction[], router) => {
       //   const parts = [];
       //   for (const state of states) {
       //     parts.push(state.component);

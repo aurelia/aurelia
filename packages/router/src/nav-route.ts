@@ -46,10 +46,10 @@ export class NavRoute {
   }
 
   public _active(): string {
-    const components = this.nav.router.instructionResolver.statesFromString(this.linkActive);
+    const components = this.nav.router.instructionResolver.viewportInstructionsFromString(this.linkActive);
     const activeComponents = this.nav.router.activeComponents.map((state) => this.nav.router.instructionResolver.parseViewportInstruction(state));
     for (const component of components) {
-      if (!activeComponents.find((active) => active.sameComponent(new ViewportInstruction(component.component)))) {
+      if (!activeComponents.find((active) => active.sameComponent(component))) {
         return '';
       }
     }

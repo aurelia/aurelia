@@ -166,7 +166,7 @@ this.au.pluginRequirejs = (function (exports, runtime) {
           const depsToLoad = processImports(description.imports, moduleName);
           const depsToLoadMapped = depsToLoad.map(x => `"${x}"`).join(',');
           depsToLoad.unshift('@aurelia/runtime');
-          writer(`define("${pluginName}!${moduleName}", [${depsToLoadMapped}], function() {
+          writer(`define("${pluginName}!${moduleName}", [${depsToLoadMapped}], function () {
       var Component = arguments[0].Component;
       var templateSource = {
         name: '${kebabCase(templateImport.basename)}',
@@ -227,7 +227,7 @@ this.au.pluginRequirejs = (function (exports, runtime) {
           const depsToLoad = processImports(description.imports, moduleName);
           const depsToLoadMapped = depsToLoad.map(x => `"${x}"`).join(',');
           const templateImport = parseImport(moduleName);
-          writer(`define("${pluginName}!${moduleName}", [${depsToLoadMapped}], function() {
+          writer(`define("${pluginName}!${moduleName}", [${depsToLoadMapped}], function () {
       var templateSource = {
         name: '${kebabCase(templateImport.basename)}',
         template: '${escape(description.template)}',

@@ -1,18 +1,9 @@
-// tslint:disable:mocha-no-side-effect-code
-// tslint:disable:typedef
 import { expect } from 'chai';
 import { AppPage } from './app.page';
-import * as a from 'wdio-allure-reporter';
-const allure = <import('wdio-allure-reporter').allure>(a.default || a);
 
 describe(`Todos App - `, () => {
   beforeEach(() => {
     browser.url('index.todos.html');
-    allure.addEnvironment('browserName', browser.desiredCapabilities['browserName']);
-    allure.addEnvironment('browser_version', browser.desiredCapabilities['browser_version']);
-    allure.addEnvironment('os', browser.desiredCapabilities['os']);
-    allure.addEnvironment('os_version', browser.desiredCapabilities['os_version']);
-    allure.feature('Todo App');
   });
 
   describe(`Loads with correct initial values`, () => {
@@ -20,15 +11,18 @@ describe(`Todos App - `, () => {
     const countValue = 1;
 
     it(`description interpolation text: "${descriptionText}"`, () => {
-      expect(AppPage.getDescriptionInterpolationText()).to.equal(descriptionText);
+      const actual = AppPage.getDescriptionInterpolationText();
+      expect(actual).to.equal(descriptionText);
     });
 
     it(`count input value: ${countValue}`, () => {
-      expect(AppPage.getCountInputValue()).to.equal(countValue);
+      const actual = AppPage.getCountInputValue();
+      expect(actual).to.equal(countValue);
     });
 
     it(`description input value: "${descriptionText}"`, () => {
-      expect(AppPage.getDescriptionInputValue()).to.equal(descriptionText);
+      const actual = AppPage.getDescriptionInputValue();
+      expect(actual).to.equal(descriptionText);
     });
   });
 

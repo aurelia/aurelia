@@ -1,3 +1,5 @@
+// NOTE: file intentionally named app_spec instead of app.spec so it doesn't get picked up by the test runner (as the tests are commented out and there are no tests to run,
+// avoid the unnecessary overhead of starting up browserstack for it)
 // import { expect } from 'chai';
 // import { AppPage } from './app.page';
 // import { isSafari, isEdge } from '../common';

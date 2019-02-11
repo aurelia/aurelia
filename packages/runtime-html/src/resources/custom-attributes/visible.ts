@@ -1,5 +1,12 @@
-import { IContainer, IRegistry, Registration } from '@aurelia/kernel';
-import { AttributeDefinition, BindingMode, CustomAttributeResource, IAttributeDefinition, ICustomAttributeResource, INode } from '@aurelia/runtime';
+import { IRegistry, Reporter } from '@aurelia/kernel';
+import {
+  AttributeDefinition,
+  BindingMode,
+  CustomAttributeResource,
+  IAttributeDefinition,
+  ICustomAttributeResource,
+  INode
+} from '@aurelia/runtime';
 
 export type IIntersectionObserverConstructor = new(cb: IntersectionObserverCallback) => IntersectionObserver;
 
@@ -13,7 +20,6 @@ export class VisibleCustomAttribute {
    * Intersection observer implementation that will be used to observe visiblity of elements
    * Assigning new implementation will have no effect on existing bound visible attributes
    */
-  // tslint:disable-next-line:variable-name
   public static IntersectionObserver: IIntersectionObserverConstructor;
 
   /**
@@ -27,20 +33,23 @@ export class VisibleCustomAttribute {
   /**
    * @internal
    */
-  private element: HTMLElement;
+  private element: Element;
   /**
    * @internal
    */
   private observer?: IntersectionObserver;
 
   constructor(
-    element: HTMLElement
+    element: Element
   ) {
     this.element = element;
   }
 
   public attached(): void {
     const Ctor = VisibleCustomAttribute.IntersectionObserver || IntersectionObserver;
+    if (typeof Ctor !== 'function') {
+      throw Reporter.error(404, 'IntersectionObserver not supported.'); // todo: proper error code
+    }
     this.observer = new Ctor((entries) => {
       this.value = entries[0].isIntersecting;
       this.visibility = entries[0].intersectionRatio;
@@ -48,20 +57,13 @@ export class VisibleCustomAttribute {
     this.observer.observe(this.element);
   }
 
-  public detached(): void {
+  public detaching(): void {
     (this.observer as IntersectionObserver).disconnect();
     this.observer = undefined;
   }
 }
 
 CustomAttributeResource.define('visible', VisibleCustomAttribute);
-VisibleCustomAttribute.register = function(container: IContainer): void {
-  const description = this.description;
-  const resourceKey = this.kind.keyFrom(description.name);
-  const aliases = description.aliases;
-
-  container.register(Registration.transient(resourceKey, this));
-}
 VisibleCustomAttribute.bindables = {
   value: { property: 'value', attribute: 'value', mode: BindingMode.fromView },
   visibility: { property: 'visibility', attribute: 'visibility', mode: BindingMode.fromView }

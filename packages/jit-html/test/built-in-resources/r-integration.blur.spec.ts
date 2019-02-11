@@ -1,8 +1,8 @@
 import { Constructable } from '@aurelia/kernel';
-import { Aurelia, CustomElementResource } from '@aurelia/runtime';
-import { BlurCustomAttribute, FocusCustomAttribute } from '@aurelia/runtime-html';
+import { Aurelia, CustomElementResource, BindingMode } from '@aurelia/runtime';
+import { BlurCustomAttribute, FocusCustomAttribute, IEventManager } from '@aurelia/runtime-html';
 import { expect } from 'chai';
-import { TestContext, HTMLTestContext } from '../util';
+import { HTMLTestContext, TestContext } from '../util';
 import { eachCartesianJoin } from './util';
 
 describe.only('built-in-resources.blur', () => {
@@ -13,11 +13,11 @@ describe.only('built-in-resources.blur', () => {
 
   let $aurelia: Aurelia;
 
-  beforeEach(() => {
+  beforeEach(function() {
     $aurelia = undefined;
   });
 
-  afterEach(() => {
+  afterEach(function() {
     if ($aurelia) {
       try {
         $aurelia.stop();
@@ -25,10 +25,14 @@ describe.only('built-in-resources.blur', () => {
     }
   });
 
-  describe('with mouse', () => {
-    describe('Basic scenarios', () => {
+  describe('with mouse', function() {
+    describe('Basic scenarios', function() {
+      // Note that from-view binding are not working at the moment
+      // as blur has a guard to prevent unnecessary work,
+      // it checks if value is already false and short circuit all checks
       const blurAttrs = [
         // 'blur.bind=hasFocus',
+        'blur.two-way="hasFocus"',
         'blur.two-way=hasFocus',
         // 'blur.from-view=hasFocus',
         'blur="value.two-way: hasFocus"',
@@ -49,22 +53,21 @@ describe.only('built-in-resources.blur', () => {
           async assert(ctx, component) {
             expect(component.hasFocus, 'initial component.hasFocus').to.equal(true);
 
-            debugger;
             createEventOn(ctx, ctx.doc, EVENTS.MouseDown);
             expect(component.hasFocus, 'component.hasFocus').to.equal(false);
 
             component.hasFocus = true;
             createEventOn(ctx, ctx.wnd, EVENTS.MouseDown);
-            expect(component.hasFocus).to.equal(true, 'Shoulda leave "hasFocus" alone as window is not listened to.');
+            expect(component.hasFocus, 'window@mousedown').to.equal(true, 'Shoulda leave "hasFocus" alone as window is not listened to.');
 
             component.hasFocus = true;
             createEventOn(ctx, ctx.doc.body, EVENTS.MouseDown);
-            expect(component.hasFocus).to.equal(false, 'Shoulda set "hasFocus" to false when mousedown on doc body.');
+            expect(component.hasFocus, 'document.body@mousedown').to.equal(false, 'Shoulda set "hasFocus" to false when mousedown on doc body.');
 
             const button = ctx.doc.querySelector('button');
             component.hasFocus = true;
             createEventOn(ctx, button, EVENTS.MouseDown);
-            expect(component.hasFocus).to.equal(false, 'Shoulda set "hasFocus" to false when clicking element outside.');
+            expect(component.hasFocus, '+ button@mousedown').to.equal(false, 'Shoulda set "hasFocus" to false when clicking element outside.');
           }
         },
         {
@@ -81,11 +84,11 @@ describe.only('built-in-resources.blur', () => {
             expect(component.hasFocus, 'initial component.hasFocus').to.equal(true);
 
             createEventOn(ctx, ctx.doc, EVENTS.MouseDown);
-            expect(component.hasFocus).to.equal(false, 'Shoulda set "hasFocus" to false when mousedown on document.');
+            expect(component.hasFocus, 'document@mousedown').to.equal(false, 'Shoulda set "hasFocus" to false when mousedown on document.');
 
             component.hasFocus = true;
-            createEventOn(ctx, ctx.doc, EVENTS.MouseDown);
-            expect(component.hasFocus, 'window@mousedown').to.equal(true, 'It should have been true. No interaction can be made out of document.');
+            createEventOn(ctx, ctx.wnd, EVENTS.MouseDown);
+            expect(component.hasFocus, 'window@mousedown').to.equal(true, 'It should have been true. Ignore interaction out of document.');
 
             component.hasFocus = true;
             createEventOn(ctx, ctx.doc.body, EVENTS.MouseDown);
@@ -102,7 +105,7 @@ describe.only('built-in-resources.blur', () => {
       eachCartesianJoin(
         [blurAttrs, normalUsageTestCases],
         (command, { title, template, getFocusable, app, assert }: ITestCase) => {
-          it(title(command), async () => {
+          it(title(command), async function() {
             const { ctx, au, component } = setup<IApp>(
               template(command),
               app
@@ -113,7 +116,7 @@ describe.only('built-in-resources.blur', () => {
       );
     });
 
-    describe('Abnormal scenarios', () => {
+    describe('Abnormal scenarios', function() {
       const blurAttrs = [
         // 'blur.bind=hasFocus',
         'blur.two-way=hasFocus',
@@ -124,7 +127,7 @@ describe.only('built-in-resources.blur', () => {
       ];
       const abnormalCases: ITestCase[] = [
         {
-          title: (callIndex: number, blurAttr: string) => `${callIndex}. Works in basic scenario with <div ${blurAttr}/>`,
+          title: (callIndex: number, blurAttr: string) => `${callIndex}. Works in abnormal scenario with <div ${blurAttr}/> binding to "child > input" focus.two-way`,
           template: (blurrAttr) => `<template>
             <div ${blurrAttr}></div>
             <button>Click me to focus</button>
@@ -135,9 +138,16 @@ describe.only('built-in-resources.blur', () => {
             public hasFocus = true;
           },
           async assert(ctx, component) {
+            const input = ctx.doc.querySelector('input');
+            expect(input.isConnected).to.equal(true);
+            expect(input, 'child > input === doc.activeElement').to.equal(ctx.doc.activeElement);
             expect(component.hasFocus, 'initial component.hasFocus').to.equal(true);
 
-            // debugger;
+            input.blur();
+            createEventOn(ctx, input, 'blur', false);
+            expect(input, 'child > input !== doc.activeElement').not.to.equal(ctx.doc.activeElement);
+            expect(component.hasFocus, 'child > input@blur').to.equal(false);
+
             createEventOn(ctx, ctx.doc, EVENTS.MouseDown);
             expect(component.hasFocus, 'document@mousedown').to.equal(false);
 
@@ -153,6 +163,13 @@ describe.only('built-in-resources.blur', () => {
             component.hasFocus = true;
             createEventOn(ctx, button, EVENTS.MouseDown);
             expect(component.hasFocus, '+ button@mousedown').to.equal(false);
+
+            // this is quite convoluted
+            component.hasFocus = true;
+            input.focus();
+            createEventOn(ctx, input, 'focus');
+            expect(input, 'child > input === doc.activeElement').to.equal(ctx.doc.activeElement);
+            expect(component.hasFocus, 'child > input@focus').to.equal(false);
           }
         },
       ];
@@ -161,21 +178,21 @@ describe.only('built-in-resources.blur', () => {
         [blurAttrs, abnormalCases],
         (command, abnormalCase, callIndex) => {
           const { title, template, app, assert } = abnormalCase;
-          it(title(callIndex, command), async () => {
+          it(title(callIndex, command), async function() {
             const { au, component, ctx } = setup<IApp>(
               template(command),
               app,
-              // CustomElementResource.define(
-              //   {
-              //     name: 'child',
-              //     template: '<template><input focus.bind="value" /></template>'
-              //   },
-              //   class Child {
-              //     public static bindables = {
-              //       value: { property: 'value', attribute: 'value' }
-              //     };
-              //   }
-              // )
+              CustomElementResource.define(
+                {
+                  name: 'child',
+                  template: '<template><input focus.two-way="value" /></template>'
+                },
+                class Child {
+                  public static bindables = {
+                    value: { property: 'value', attribute: 'value' }
+                  };
+                }
+              ) 
             );
             return assert(ctx, component, null);
           });
@@ -206,7 +223,6 @@ describe.only('built-in-resources.blur', () => {
     registrations = Array.from(new Set([...registrations, BlurCustomAttribute, FocusCustomAttribute]));
     container.register(...registrations);
     const bodyEl = ctx.doc.body;
-    bodyEl.innerHTML = '';
     const host = ctx.doc.body.appendChild(ctx.createElement('app'));
     const au = new Aurelia(container);
     const App = CustomElementResource.define({ name: 'app', template }, $class);
@@ -214,6 +230,12 @@ describe.only('built-in-resources.blur', () => {
 
     au.app({ host, component });
     au.start();
+    au['stopTasks'].push(() => {
+      au.stop();
+      expect(lifecycle['flushCount']).to.equal(0);
+      ctx.container.get(IEventManager).dispose();
+      host.remove();
+    });
 
     $aurelia = au;
 
@@ -238,8 +260,8 @@ describe.only('built-in-resources.blur', () => {
     return CustomEl;
   }
 
-  function createEventOn(ctx: HTMLTestContext, target: EventTarget, name: string) {
-    target.dispatchEvent(new ctx.CustomEvent(name, { bubbles: true }));
+  function createEventOn(ctx: HTMLTestContext, target: EventTarget, name: string, bubbles = true) {
+    target.dispatchEvent(new ctx.CustomEvent(name, { bubbles }));
   }
 
   function waitForDelay(time = 0): Promise<void> {

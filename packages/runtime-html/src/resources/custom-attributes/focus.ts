@@ -1,12 +1,23 @@
 import { IRegistry } from '@aurelia/kernel';
-import { AttributeDefinition, bindable, BindingMode, CustomAttributeResource, IAttributeDefinition, ICustomAttribute, ICustomAttributeResource, INode, State } from '@aurelia/runtime';
+import {
+  AttributeDefinition,
+  BindingMode,
+  CustomAttributeResource,
+  IAttributeDefinition,
+  ICustomAttribute,
+  ICustomAttributeResource,
+  IDOM,
+  INode,
+  State
+} from '@aurelia/runtime';
+import { HTMLDOM } from '../../dom';
 import { addListener, removeListener } from './utils';
 
 export interface FocusCustomAttribute extends ICustomAttribute {}
 export class FocusCustomAttribute implements FocusCustomAttribute  {
 
   // tslint:disable-next-line:ban-types
-  public static readonly inject: ReadonlyArray<Function> = [INode];
+  public static readonly inject: ReadonlyArray<Function> = [INode, IDOM];
 
   public static readonly register: IRegistry['register'];
   public static readonly bindables: IAttributeDefinition['bindables'] = {
@@ -18,6 +29,7 @@ export class FocusCustomAttribute implements FocusCustomAttribute  {
   public value: unknown;
 
   private element: HTMLElement;
+  private dom: HTMLDOM;
 
   /**
    * Indicates whether `apply` should be called when `attached` callback is invoked
@@ -26,8 +38,10 @@ export class FocusCustomAttribute implements FocusCustomAttribute  {
 
   constructor(
     element: HTMLElement,
+    dom: HTMLDOM
   ) {
     this.element = element;
+    this.dom = dom;
     this.needsApply = false;
   }
 
@@ -101,7 +115,7 @@ export class FocusCustomAttribute implements FocusCustomAttribute  {
     // To handle both (1) and (2), only need to check if
     // current active element is still the same element of this focus custom attribute
     // If it's not, it's a blur event happened on Window because the browser tab lost focus
-    else if (document.activeElement !== this.element) {
+    else if (this.dom.document.activeElement !== this.element) {
       this.value = false;
     }
   }

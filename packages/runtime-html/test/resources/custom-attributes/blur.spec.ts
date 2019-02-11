@@ -1,24 +1,24 @@
 import { expect } from 'chai';
 import { spy } from 'sinon';
-import { BlurCustomAttribute } from '../../../src/index';
+import { BlurCustomAttribute, HTMLDOM } from '../../../src/index';
 import { HTMLTestContext, TestContext } from '../../util';
 
-describe('BlurBindingBehavior', () => {
+describe('BlurBindingBehavior', function() {
   let target: HTMLElement;
   let sut: BlurCustomAttribute;
   let ctx: HTMLTestContext;
 
   const falsyPansyValues = [false, 0, '', undefined, null];
 
-  beforeEach(() => {
+  beforeEach(function() {
     ctx = TestContext.createHTMLTestContext();
-    target = ctx.createElement('div');
-    sut = new BlurCustomAttribute(target);
+    target = ctx.doc.body.appendChild(ctx.createElement('div'));
+    sut = new BlurCustomAttribute(target, ctx.container.get(HTMLDOM));
   });
 
-  describe('contains()', () => {
+  describe('contains()', function() {
     for (const value of falsyPansyValues) {
-      it(`bails when value is already falsy: "${value}"`, () => {
+      it(`bails when value is already falsy: "${value}"`, function() {
         const accessed: Record<string, number> = {};
         sut.value = value as unknown as boolean;
         sut.contains = (originalFn => {
@@ -40,19 +40,19 @@ describe('BlurBindingBehavior', () => {
       });
     }
 
-    it('returns true when invoked on child element', () => {
+    it('returns true when invoked on child element', function() {
       const child = target.appendChild(ctx.createElement('div'));
       sut.value = true;
       const result = sut.contains(child);
       expect(result).to.be.true;
     });
 
-    it('returns true when invoked on the its own element', () => {
+    it('returns true when invoked on the its own element', function() {
       sut.value = true;
       expect(sut.contains(target)).to.be.true;
     });
 
-    it('bails when there is no thing linked and the hosting element does not contain the target', () => {
+    it('bails when there is no thing linked and the hosting element does not contain the target', function() {
       let accessed: Record<string, number> = {};
       sut.value = true;
       sut.contains = (originalFn => {
@@ -94,7 +94,7 @@ describe('BlurBindingBehavior', () => {
       }
     });
 
-    it('throws when given anything not a Node but also not null/undefined', () => {
+    it('throws when given anything not a Node but also not null/undefined', function() {
       sut.value = true;
       for (const imcompatValue of [true, false, 'a', 5, Symbol(), Number, new Date(), {}, [], new Proxy({}, {})]) {
         expect(() => sut.contains(imcompatValue as unknown as Element)).to.throw();
@@ -102,8 +102,8 @@ describe('BlurBindingBehavior', () => {
     });
   });
 
-  describe('.triggerBlur()', () => {
-    it('sets value to false', () => {
+  describe('.triggerBlur()', function() {
+    it('sets value to false', function() {
       for (const value of [true, 'a', 5, Symbol(), Number, new Date(), null, undefined, {}, [], new Proxy({}, {})]) {
         sut.value = value as unknown as boolean;
         sut.triggerBlur();
@@ -111,7 +111,7 @@ describe('BlurBindingBehavior', () => {
       }
     });
 
-    it('calls onBlur() if present', () => {
+    it('calls onBlur() if present', function() {
       let count = 0;
       const onBlurSpy = spy(function() {
         count++;
@@ -129,7 +129,7 @@ describe('BlurBindingBehavior', () => {
       expect(count).to.eq(testValues.length);
     });
 
-    it('does not call onBlur if value is not a function', () => {
+    it('does not call onBlur if value is not a function', function() {
       const testValues = [true, 'a', 5, Symbol(), new Date(), null, undefined, {}, [], new Proxy({}, {})];
       let onBlurValue: any;
       let accessCount = 0;
@@ -148,4 +148,95 @@ describe('BlurBindingBehavior', () => {
       expect(accessCount).to.eq(testValues.length);
     });
   });
+
+  describe('contains with [linkedWith]', function() {
+    describe('object/object[] scenarios', function() {
+      const doc = document;
+      const fakeEl = doc.body.appendChild(doc.createElement('fake'));
+      const linkedWithValues: (HasContains | HasContains[])[] = [
+        doc,
+        doc.documentElement,
+        doc.body,
+        {
+          name: 'some-view-model with contains method',
+          contains(el: Element) {
+            return el === fakeEl;
+          }
+        },
+        [
+          {
+            name: 'some-other-vm',
+            contains(el: Element) {
+              return el === fakeEl;
+            }
+          },
+          {
+            handle(el: Element) {
+              return el === fakeEl;
+            },
+            contains(el: Element) {
+              return this.handle(el);
+            }
+          }
+        ]
+      ];
+      for (const linkedWith of linkedWithValues) {
+        it('invokes contains on linkedWith object', function() {
+          sut.linkedWith = linkedWith;
+          expect(sut.contains(fakeEl), `contains + linkedWith + ${linkedWith['name'] || typeof linkedWith}`).to.equal(true);
+        });
+      }
+    });
+
+    describe('string/string[] scenarios', function() {
+      const doc = document;
+      doc.body.insertAdjacentHTML('beforeend', `
+        <some-el><div data-query="some-el"></div></some-el>,
+        <div class="some-css-class">
+          <div data-query=".some-css-class"></div>
+        </div>
+        <div id="some-id">
+          <div data-query="#some-id"></div>
+        </div>
+        <div id="some-complex-selector">
+          <div class="some-nested-complex-selector">
+          </div>
+          <button data-query="#some-complex-selector > .some-nested-complex-selector + button">Click me</button>
+        </div>
+      `);
+      const linkedWithValues = [
+        'some-el',
+        '.some-css-class',
+        '#some-id',
+        '#some-complex-selector > .some-nested-complex-selector + button'
+      ];
+      for (const linkWith of linkedWithValues) {
+        it(`works when linkedWith is a string: ${linkWith}`, function() {
+          sut.linkedWith = linkWith;
+          const interactWith = doc.querySelector(`[data-query="${linkWith}"]`);
+          expect(interactWith, `querySelector[data-query=${linkWith}]`).not.to.equal(null);
+          expect(sut.contains(interactWith)).to.equal(true);
+        });
+      }
+
+      it('works when linkedWith is an array of string', function() {
+        sut.linkedWith = linkedWithValues;
+        for (const linkWith of linkedWithValues) {
+          const interactWith = doc.querySelector(`[data-query="${linkWith}"]`);
+          expect(interactWith, `querySelector[data-query=${linkWith}]`).not.to.equal(null);
+          expect(sut.contains(interactWith)).to.equal(true);
+        }
+      });
+    });
+  });
+
+  describe('with [linkedWith] + [onBlur] + ...', function todo() {/**/});
+  describe('with [linkedWith] + [linkingContext]', function todo() {/**/});
+  describe('with [linkedWith] + [linkingContext] + [searchSubTree]', function todo() {/**/});
+  describe('with [linkedWith] + [linkingContext] + [searchSubTree] + [linkMultiple]', function todo() {/**/});
+
+  interface HasContains {
+    contains(el: Element): boolean;
+    [x: string]: any;
+  }
 });

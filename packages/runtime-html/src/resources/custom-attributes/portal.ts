@@ -1,8 +1,22 @@
-import { bindable, CustomAttributeResource, ICustomAttribute, IView, LifecycleFlags, IViewFactory, IRenderLocation, IDOM, State } from '@aurelia/runtime';
-// import { OverrideContext } from 'aurelia-binding';
-// import { BoundViewFactory, ViewSlot } from 'aurelia-templating';
+import {
+  AttributeDefinition,
+  CustomAttributeResource,
+  IAttributeDefinition,
+  IBindableDescription,
+  ICustomAttribute,
+  ICustomAttributeResource,
+  IDOM,
+  IRenderLocation,
+  IView,
+  IViewFactory,
+  LifecycleFlags,
+  State
+} from '@aurelia/runtime';
 
-// const document: Document = PLATFORM.global.document;
+import {
+  IRegistry,
+  PLATFORM
+} from '@aurelia/kernel';
 
 class ViewSlot {
   constructor(...args: unknown[]) {}
@@ -24,10 +38,13 @@ type PortalTarget = string | Element | null | undefined;
 // tslint:disable-next-line:no-any
 export type PortalLifecycleCallback = (target: Element, view: IView) => Promise<any> | any;
 
-
-
 export interface PortalCustomAttribute extends ICustomAttribute {}
 export class PortalCustomAttribute {
+
+  public static register: IRegistry['register'];
+  public static bindables: IAttributeDefinition['bindables'];
+  public static readonly kind: ICustomAttributeResource;
+  public static readonly description: AttributeDefinition;
 
   /**
    * Only needs the BoundViewFactory as a custom viewslot will be used
@@ -214,29 +231,26 @@ export class PortalCustomAttribute {
       return;
     }
 
-    const addAction: () => Promise<void> = () => {
+    const addAction: () => Promise<void> = async () => {
       if (this.isAttached) {
-        return Promise.resolve(
+        await Promise.resolve(
           typeof this.activating === 'function'
             ? this.activating.call(this.callbackContext, target, view)
             : null
-        ).then(() => {
-          if (target === this.currentTarget || oldTarget === unset) {
-            this.location = this.prepareLocation(target);
-            // const viewSlot = this.viewSlot = new ViewSlot(target!, true);
-            view.$mount(LifecycleFlags.none);
-            view.$attach(LifecycleFlags.none);
-            view.$bind(LifecycleFlags.none);
-            // viewSlot.attached();
-            // viewSlot.add(view);
-            this.removed = false;
-          }
-          return Promise.resolve().then(() => {
-            if (typeof this.activated === 'function') {
-              return this.activated.call(this.callbackContext, target, view);
-            }
-          });
-        });
+        );
+        if (target === this.currentTarget || oldTarget === unset) {
+          this.location = this.prepareLocation(target);
+          // const viewSlot = this.viewSlot = new ViewSlot(target!, true);
+          view.$mount(LifecycleFlags.none);
+          view.$bind(LifecycleFlags.none);
+          view.$attach(LifecycleFlags.none);
+          // viewSlot.attached();
+          // viewSlot.add(view);
+          this.removed = false;
+        }
+        if (typeof this.activated === 'function') {
+          return this.activated.call(this.callbackContext, target, view);
+        }
       }
       return Promise.resolve();
     };
@@ -275,8 +289,21 @@ export class PortalCustomAttribute {
 const unset = {};
 
 (klass => {
-  ['value', 'renderContext'].forEach(prop => bindable({ callback: 'targetChanged' })(klass, prop));
-  ['strict', 'initialHandler', 'deactivating', 'activating', 'activated', 'deactivated', 'callbackContext'].forEach(prop => bindable(prop)(klass));
+  const bindables: Record<string, IBindableDescription> = klass.bindables = {};
+  ['value', 'renderContext'].forEach(prop => {
+    bindables[prop] = { property: prop, attribute: PLATFORM.kebabCase(prop), callback: 'targetChanged' };
+  });
+  [
+    'strict',
+    'initialHandler',
+    'deactivating',
+    'activating',
+    'activated',
+    'deactivated',
+    'callbackContext'
+  ].forEach(prop => {
+    bindables[prop] = { property: prop, attribute: PLATFORM.kebabCase(prop) };
+  });
 
   CustomAttributeResource.define({ name: 'portal', isTemplateController: true }, klass);
 })(PortalCustomAttribute);

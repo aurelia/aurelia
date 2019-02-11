@@ -6,8 +6,11 @@ import {
   IAttributeDefinition,
   IBindableDescription,
   ICustomAttributeResource,
-  INode
+  IDOM,
+  INode,
+  IObservable
 } from '@aurelia/runtime';
+import { HTMLDOM } from '../../dom';
 import { addListener, removeListener } from './utils';
 
 const enum Listeners {
@@ -36,31 +39,20 @@ const defaultBubbleEventInit: AddEventListenerOptions = {
 const blurDocMap = new WeakMap<Document, BlurManager>();
 
 export class BlurManager {
-
-  public readonly window: Window;
-  public readonly doc: Document;
+  public readonly dom: HTMLDOM;
 
   private blurs: BlurCustomAttribute[];
+  private handler: EventListenerObject;
 
-  private handleMouseWheel: (e: WheelEvent) => void;
-  private handleMousedown: (e: MouseEvent) => void;
-  private handlePointerDown: (e: PointerEvent) => void;
-  private handleTouchStart: (e: TouchEvent) => void;
-  private handleWindowBlur: (e: FocusEvent) => void;
-  private handleFocus: (e: FocusEvent) => void;
-
-  private constructor(win: Window, doc: Document) {
-    blurDocMap.set(doc, this);
-    this.window = win;
-    this.doc = doc;
+  private constructor(dom: HTMLDOM) {
+    blurDocMap.set(dom.document, this);
+    this.dom = dom;
     this.blurs = [];
-    Object.assign(this, createHandlers(this, this.blurs));
+    this.handler = createHandler(this, this.blurs);
   }
 
-  public static init(element: Element): BlurManager {
-    const doc = element.ownerDocument;
-    const win = doc.defaultView;
-    return blurDocMap.get(doc) || new BlurManager(win, doc);
+  public static init(dom: HTMLDOM): BlurManager {
+    return blurDocMap.get(dom.document) || new BlurManager(dom);
   }
 
   public register(blur: BlurCustomAttribute): void {
@@ -82,34 +74,47 @@ export class BlurManager {
   }
 
   private addListeners(): void {
-    const doc = this.doc;
-    const win = this.window;
+    const me = this;
+    const dom = me.dom;
+    const doc = dom.document;
+    const win = dom.window;
+    const handler = me.handler;
     const fn = addListener;
-    fn(doc, 'touchstart', this.handleTouchStart, defaultCaptureEventInit);
-    fn(doc, 'mousedown', this.handleMousedown, defaultCaptureEventInit);
-    fn(doc, 'pointerdown', this.handlePointerDown, defaultCaptureEventInit);
-    fn(doc, 'wheel', this.handleMouseWheel, defaultBubbleEventInit);
-    fn(doc, 'focus', this.handleFocus, defaultCaptureEventInit);
-    // there is situation where defaultView of document is null???
-    if (win !== null) {
-      fn(win, 'blur', this.handleWindowBlur, defaultBubbleEventInit);
+    if (win.navigator.pointerEnabled) {
+      fn(doc, 'pointerdown', handler, defaultCaptureEventInit);
+    } else {
+      fn(doc, 'touchstart', handler, defaultCaptureEventInit);
+      fn(doc, 'mousedown', handler, defaultCaptureEventInit);
     }
+    fn(doc, 'wheel', handler, defaultBubbleEventInit);
+    fn(doc, 'focus', handler, defaultCaptureEventInit);
+    fn(win, 'blur', handler, defaultBubbleEventInit);
   }
 
   private removeListeners(): void {
-    const doc = this.doc;
-    const win = this.window;
+    const me = this;
+    const dom = me.dom;
+    const doc = dom.document;
+    const win = dom.window;
+    const handler = me.handler;
     const fn = removeListener;
-    fn(doc, 'touchstart', this.handleTouchStart, defaultCaptureEventInit);
-    fn(doc, 'mousedown', this.handleMousedown, defaultCaptureEventInit);
-    fn(doc, 'pointerdown', this.handlePointerDown, defaultCaptureEventInit);
-    fn(doc, 'wheel', this.handleMouseWheel, defaultBubbleEventInit);
-    fn(doc, 'focus', this.handleFocus, defaultCaptureEventInit);
+    if (win.navigator.pointerEnabled) {
+      fn(doc, 'pointerdown', handler, defaultCaptureEventInit);
+    } else {
+      fn(doc, 'touchstart', handler, defaultCaptureEventInit);
+      fn(doc, 'mousedown', handler, defaultCaptureEventInit);
+    }
+    fn(doc, 'wheel', handler, defaultBubbleEventInit);
+    fn(doc, 'focus', handler, defaultCaptureEventInit);
     // there is situation where defaultView of document is null???
     if (win !== null) {
-      fn(win, 'blur', this.handleWindowBlur, defaultBubbleEventInit);
+      fn(win, 'blur', handler, defaultBubbleEventInit);
     }
   }
+}
+
+export interface HasContains {
+  contains(el: Element): boolean;
 }
 
 export class BlurCustomAttribute {
@@ -119,7 +124,7 @@ export class BlurCustomAttribute {
   public static readonly kind: ICustomAttributeResource;
   public static readonly description: AttributeDefinition;
 
-  public static inject: unknown[] = [INode];
+  public static inject: unknown[] = [INode, IDOM];
 
   public value: boolean | typeof unset;
 
@@ -129,7 +134,7 @@ export class BlurCustomAttribute {
    * Used to determine which elemens this attribute will be linked with
    * Interacting with a linked element will not trigger blur for this attribute
    */
-  public linkedWith: string | Element | (string | Element)[];
+  public linkedWith: string | HasContains | (string | HasContains)[];
 
   /**
    * Only used when linkedWith is a string.
@@ -159,9 +164,11 @@ export class BlurCustomAttribute {
   private manager: BlurManager;
 
   private element: Element;
+  private dom: HTMLDOM;
 
-  constructor(element: Element) {
+  constructor(element: Element, dom: HTMLDOM) {
     this.element = element;
+    this.dom = dom;
     /**
      * By default, the behavior should be least surprise possible, that:
      *
@@ -172,7 +179,7 @@ export class BlurCustomAttribute {
     this.searchSubTree = true;
     this.linkingContext = null;
     this.value = unset;
-    this.manager = BlurManager.init(element);
+    this.manager = BlurManager.init(dom);
   }
 
   public attached(): void {
@@ -187,7 +194,7 @@ export class BlurCustomAttribute {
     if (this.value === false) {
       return;
     }
-    if (target === this.manager.window || !this.contains(target as Element)) {
+    if (target === this.manager.dom.window || !this.contains(target as Element)) {
       this.triggerBlur();
     }
   }
@@ -201,7 +208,7 @@ export class BlurCustomAttribute {
     let el: string | Element | { contains(el: Element): boolean };
     let i: number, ii: number;
     let j: number, jj: number;
-    let links: string | Element | (string | Element)[];
+    let links: string | HasContains | (string | HasContains)[];
     let contextNode: Element | null;
 
     if (this.element.contains(target)) {
@@ -212,16 +219,17 @@ export class BlurCustomAttribute {
       return false;
     }
 
-    const doc = document;
+    const doc = this.dom.document;
     const linkedWith = this.linkedWith;
     const linkingContext = this.linkingContext;
 
     links = Array.isArray(linkedWith) ? linkedWith : [linkedWith];
-    contextNode = (typeof linkingContext === 'string'
-      ? doc.querySelector(linkingContext)
-      : linkingContext
-    )
-      || document.body;
+    contextNode =
+      (typeof linkingContext === 'string'
+        ? doc.querySelector(linkingContext)
+        : linkingContext
+      )
+      || doc.body;
 
     ii = links.length;
     for (i = 0; ii > i; ++i) {
@@ -246,7 +254,7 @@ export class BlurCustomAttribute {
           els = contextNode.children;
           jj = els.length;
           for (j = 0; jj > j; ++j) {
-            if ((els as Element[])[j].matches(el)) {
+            if (els[j].matches(el)) {
               return true;
             }
           }
@@ -284,7 +292,10 @@ BlurCustomAttribute.bindables = ['onBlur', 'linkedWith', 'linkMultiple', 'search
   } as Record<string, IBindableDescription>
 );
 
-const createHandlers = (manager: BlurManager, checkTargets: BlurCustomAttribute[]) => {
+const createHandler = (
+  manager: BlurManager,
+  checkTargets: BlurCustomAttribute[]
+): EventListenerObject & { [key: string]: (e: Event) => void } => {
   /*******************************
    * EVENTS ORDER
    * -----------------------------
@@ -314,7 +325,7 @@ const createHandlers = (manager: BlurManager, checkTargets: BlurCustomAttribute[
       checkage = checkage | (usage & (Listeners.touch | Listeners.mouse)) & ~Listeners.pointer;
       return;
     }
-    handleEvent(e);
+    handleEventOnBlurs(e);
     checkage &= ~Listeners.pointer;
   };
 
@@ -324,7 +335,7 @@ const createHandlers = (manager: BlurManager, checkTargets: BlurCustomAttribute[
       checkage |= (usage & Listeners.mouse) & ~Listeners.touch;
       return;
     }
-    handleEvent(e);
+    handleEventOnBlurs(e);
     checkage &= ~Listeners.touch;
   };
 
@@ -333,7 +344,7 @@ const createHandlers = (manager: BlurManager, checkTargets: BlurCustomAttribute[
       checkage &= ~Listeners.mouse;
       return;
     }
-    handleEvent(e);
+    handleEventOnBlurs(e);
     checkage &= ~Listeners.mouse;
   };
 
@@ -347,7 +358,7 @@ const createHandlers = (manager: BlurManager, checkTargets: BlurCustomAttribute[
     // when the window itself got focus, reacting to it is quite unnecessary
     // as it doesn't really affect element inside the document
     // Do a simple check and bail immediately
-    if (manager.window !== null && e.target === manager.window) {
+    if (e.target === manager.dom.window) {
       checkage = 0;
       return;
     }
@@ -355,7 +366,7 @@ const createHandlers = (manager: BlurManager, checkTargets: BlurCustomAttribute[
       checkage &= ~Listeners.focus;
       return;
     }
-    handleEvent(e);
+    handleEventOnBlurs(e);
     checkage &= ~Listeners.focus;
   };
 
@@ -367,21 +378,24 @@ const createHandlers = (manager: BlurManager, checkTargets: BlurCustomAttribute[
   };
 
   const handleMouseWheel = (e: WheelEvent): void => {
-    handleEvent(e);
+    handleEventOnBlurs(e);
   };
 
-  const handleEvent = (e: Event): void => {
+  const handleEventOnBlurs = (e: Event): void => {
     const target = e.target;
     for (let i = 0, ii = checkTargets.length; i < ii; ++i) {
       checkTargets[i].handleEventTarget(target);
     }
   };
   return {
-    handlePointerDown,
-    handleTouchStart,
-    handleMousedown,
-    handleMouseWheel,
-    handleFocus,
-    handleWindowBlur
+    onpointerdown: handlePointerDown,
+    ontouchstart: handleTouchStart,
+    onmousedown: handleMousedown,
+    onfocus: handleFocus,
+    onblur: handleWindowBlur,
+    onwheel: handleMouseWheel,
+    handleEvent(e: Event): void {
+      this[`on${e.type}`](e);
+    }
   };
 };

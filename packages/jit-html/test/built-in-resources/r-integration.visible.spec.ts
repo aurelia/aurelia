@@ -1,14 +1,13 @@
 import { Constructable } from '@aurelia/kernel';
-import { Aurelia, CustomElementResource, ICustomElement, INode, INodeSequence } from '@aurelia/runtime';
-import { BlurCustomAttribute, FocusCustomAttribute } from '@aurelia/runtime-html';
+import { Aurelia, ICustomElement, INodeSequence } from '@aurelia/runtime';
+import { FocusCustomAttribute } from '@aurelia/runtime-html';
 import { expect } from 'chai';
-import { spy } from 'sinon';
 import { HTMLDOM } from '../../../runtime-html/src/dom';
 import { setup } from '../integration/util';
-import { HTMLTestContext, TestContext } from '../util';
+import { TestContext } from '../util';
 import { eachCartesianJoin } from './util';
 
-describe('built-in-resources.visible', () => {
+describe.skip('built-in-resources.visible', function() {
 
   interface IApp {
     isBlur: boolean;
@@ -21,22 +20,22 @@ describe('built-in-resources.visible', () => {
       bound: number;
       attaching: number;
       attached: number;
-    }
+    };
   }
 
   let $aurelia: Aurelia;
 
-  beforeEach(() => {
+  beforeEach(function() {
     $aurelia = undefined;
   });
 
-  afterEach(() => {
+  afterEach(function() {
     if ($aurelia) {
       $aurelia.stop();
     }
   });
 
-  describe('basic scenarios', () => {
+  describe('basic scenarios', function() {
 
     const visibleAttrs = [
       'visible.bind="isVisible"',
@@ -64,22 +63,22 @@ describe('built-in-resources.visible', () => {
             this.lifecycleCount.bound++;
             const $el = this as unknown as ICustomElement;
             const input = findInNodeSequence($el.$nodes, 'input');
-            expect(input.classList.contains('visible')).to.equal(false, 'It should have been visible when not connected.');
+            expect(input.classList.contains('visible'), 'LifeCycles > Bound').to.equal(false, 'It should have been visible when not connected.');
           }
 
           public attaching() {
             this.lifecycleCount.attaching++;
             const $el = this as unknown as ICustomElement;
             const input = findInNodeSequence($el.$nodes, 'input');
-            expect(input.classList.contains('visible')).to.equal(false, 'It should have been visible when not connected.');
+            expect(input.classList.contains('visible'), 'LifeCycles > Attaching').to.equal(false, 'It should have been visible when not connected.');
           }
         },
         async assert({ window, document }: HTMLDOM, component, focusable) {
           expect(component.lifecycleCount.bound).to.equal(1, 'It should have invoked bound');
           expect(component.lifecycleCount.attaching).to.equal(1, 'It should have invoked attaching');
           const input = document.querySelector('input');
-          expect(input.classList.contains('visible')).to.equal(true, 'It should have been visible when attached.');
           expect(component.isVisible).to.equal(true, 'component.isVisible should have been true as element is visible.');
+          expect(input.classList.contains('visible')).to.equal(true, 'It should have been visible when attached.');
         }
       },
       {
@@ -183,7 +182,7 @@ describe('built-in-resources.visible', () => {
     eachCartesianJoin(
       [visibleAttrs, testCases],
       (command, { title, template, app, assert }: ITestCase) => {
-        it(title, () => {
+        it(title, function() {
           const { au, component, dom } = setupAndStartNormal<IApp>(
             template(command),
             app
@@ -194,7 +193,7 @@ describe('built-in-resources.visible', () => {
     );
   });
 
-  describe('styling changes scenarios', () => {
+  describe('styling changes scenarios', function() {
 
     const visibleAttrs = [
       'visible.bind="isVisible"',
@@ -280,7 +279,7 @@ describe('built-in-resources.visible', () => {
     eachCartesianJoin(
       [visibleAttrs, testCases],
       (command, { title, template, app, assert }: ITestCase) => {
-        it(title, () => {
+        it(title, function() {
           const { au, component, dom } = setupAndStartNormal<IApp>(
             template(command),
             app
@@ -291,7 +290,7 @@ describe('built-in-resources.visible', () => {
     );
   });
 
-  describe('scrolling involved scenarios', () => {
+  xdescribe('scrolling involved scenarios', function() {
 
     const visibleAttrs = [
       'visible.bind="isVisible"',
@@ -427,7 +426,7 @@ describe('built-in-resources.visible', () => {
     eachCartesianJoin(
       [visibleAttrs, testCases],
       (command, { title, template, app, assert }: ITestCase) => {
-        it(title, () => {
+        it(title, function() {
           const { au, component, dom } = setupAndStartNormal<IApp>(
             template(command),
             app

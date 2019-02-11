@@ -20,12 +20,12 @@ export class NavRoute {
   constructor(nav: Nav, route?: INavRoute) {
     this.nav = nav;
     Object.assign(this, {
-      instructions: this.parseRoute(route.route),
       title: route.title,
       children: null,
       meta: route.meta,
       active: '',
     });
+    this.instructions = this.parseRoute(route.route);
     this.link = this._link(this.instructions);
     this.linkActive = route.consideredActive ? this._link(this.parseRoute(route.consideredActive)) : this.link;
     this.observerLocator = this.nav.router.container.get(IObserverLocator);

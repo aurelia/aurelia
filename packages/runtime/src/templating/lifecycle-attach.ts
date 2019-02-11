@@ -47,7 +47,6 @@ export function $attachAttribute(this: Writable<IAttachable>, flags: LifecycleFl
   flags |= LifecycleFlags.fromAttach;
   this.$lifecycle.beginAttach();
   setAttachingState(this);
-
   if (hasAttachingHook(this)) {
     this.attaching(flags);
   }
@@ -73,17 +72,11 @@ export function $attachElement(this: Writable<IAttachable & IMountableComponent>
   flags |= LifecycleFlags.fromAttach;
   this.$lifecycle.beginAttach();
   setAttachingState(this);
-
   if (hasAttachingHook(this)) {
     this.attaching(flags);
   }
 
-  let current = this.$componentHead;
-  while (current !== null) {
-    current.$attach(flags);
-    current = current.$nextComponent;
-  }
-
+  attachComponents(this.$componentHead, flags);
   this.$lifecycle.enqueueMount(this);
   if (hasAttachedHook(this)) {
     this.$lifecycle.enqueueAttached(this as Required<typeof this>);
@@ -104,13 +97,7 @@ export function $attachView(this: Writable<IAttachable & IMountableComponent>, f
   flags |= LifecycleFlags.fromAttach;
   this.$lifecycle.beginAttach();
   setAttachingState(this);
-
-  let current = this.$componentHead;
-  while (current !== null) {
-    current.$attach(flags);
-    current = current.$nextComponent;
-  }
-
+  attachComponents(this.$componentHead, flags);
   this.$lifecycle.enqueueMount(this);
   setAttachedState(this);
   this.$lifecycle.endAttach(flags);
@@ -127,7 +114,6 @@ export function $detachAttribute(this: Writable<IAttachable>, flags: LifecycleFl
   flags |= LifecycleFlags.fromDetach;
   this.$lifecycle.beginDetach();
   setDetachingState(this);
-
   if (hasDetachingHook(this)) {
     this.detaching(flags);
   }
@@ -161,12 +147,7 @@ export function $detachElement(this: Writable<IAttachable & IMountableComponent>
     this.detaching(flags);
   }
 
-  let current = this.$componentTail;
-  while (current !== null) {
-    current.$detach(flags);
-    current = current.$prevComponent;
-  }
-
+  detachComponents(this.$componentTail, flags);
   if (hasDetachedHook(this)) {
     this.$lifecycle.enqueueDetached(this as Required<typeof this>);
   }
@@ -191,12 +172,7 @@ export function $detachView(this: Writable<IAttachable & IMountableComponent>, f
     flags |= LifecycleFlags.parentUnmountQueued;
   }
 
-  let current = this.$componentTail;
-  while (current !== null) {
-    current.$detach(flags);
-    current = current.$prevComponent;
-  }
-
+  detachComponents(this.$componentTail, flags);
   setNotAttachedState(this);
   this.$lifecycle.endDetach(flags);
 
@@ -297,4 +273,18 @@ export function $unmountView(this: Writable<IView>, flags: LifecycleFlags): bool
 
   if (Tracer.enabled) { Tracer.leave(); }
   return false;
+}
+
+function attachComponents(component: IComponent, flags: LifecycleFlags): void {
+  while (component !== null) {
+    component.$attach(flags);
+    component = component.$nextComponent;
+  }
+}
+
+function detachComponents(component: IComponent, flags: LifecycleFlags): void {
+  while (component !== null) {
+    component.$detach(flags);
+    component = component.$prevComponent;
+  }
 }

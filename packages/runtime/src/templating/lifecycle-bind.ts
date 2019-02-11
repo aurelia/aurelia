@@ -5,6 +5,7 @@ import {
   hasBoundHook,
   hasUnbindingHook,
   hasUnboundHook,
+  IBinding,
   IComponent,
   ILifecycleHooks,
   IRenderable,
@@ -43,7 +44,6 @@ export function $bindAttribute(this: Writable<IBindable>, flags: LifecycleFlags,
   this.$scope = scope;
   this.$lifecycle.beginBind();
   setBindingState(this);
-
   if (hasBindingHook(this)) {
     this.binding(flags);
   }
@@ -70,23 +70,12 @@ export function $bindElement(this: Writable<IBindable>, flags: LifecycleFlags, p
   scope.parentScope = parentScope;
   this.$lifecycle.beginBind();
   setBindingState(this);
-
-  let binding = this.$bindingHead;
-  while (binding !== null) {
-    binding.$bind(flags, scope);
-    binding = binding.$nextBinding;
-  }
-
+  bindBindings(this.$bindingHead, flags, scope);
   if (hasBindingHook(this)) {
     this.binding(flags);
   }
 
-  let component = this.$componentHead;
-  while (component !== null) {
-    component.$bind(flags, scope);
-    component = component.$nextComponent;
-  }
-
+  bindComponents(this.$componentHead, flags, scope);
   if (hasBoundHook(this)) {
     this.$lifecycle.enqueueBound(this);
   }
@@ -111,19 +100,8 @@ export function $bindView(this: Writable<IBindable>, flags: LifecycleFlags, scop
   this.$scope = scope;
   this.$lifecycle.beginBind();
   setBindingState(this);
-
-  let binding = this.$bindingHead;
-  while (binding !== null) {
-    binding.$bind(flags, scope);
-    binding = binding.$nextBinding;
-  }
-
-  let component = this.$componentHead;
-  while (component !== null) {
-    component.$bind(flags, scope);
-    component = component.$nextComponent;
-  }
-
+  bindBindings(this.$bindingHead, flags, scope);
+  bindComponents(this.$componentHead, flags, scope);
   setBoundState(this);
   this.$lifecycle.endBind(flags);
 
@@ -139,19 +117,8 @@ export function $lockedBind(this: IBindable, flags: LifecycleFlags): void {
   const scope = this.$scope;
   this.$lifecycle.beginBind();
   setBindingState(this);
-
-  let binding = this.$bindingHead;
-  while (binding !== null) {
-    binding.$bind(flags, scope);
-    binding = binding.$nextBinding;
-  }
-
-  let component = this.$componentHead;
-  while (component !== null) {
-    component.$bind(flags, scope);
-    component = component.$nextComponent;
-  }
-
+  bindBindings(this.$bindingHead, flags, scope);
+  bindComponents(this.$componentHead, flags, scope);
   setBoundState(this);
   this.$lifecycle.endBind(flags);
 
@@ -166,7 +133,6 @@ export function $unbindAttribute(this: Writable<IBindable>, flags: LifecycleFlag
   flags |= LifecycleFlags.fromUnbind;
   this.$lifecycle.beginUnbind();
   setUnbindingState(this);
-
   if (hasUnbindingHook(this)) {
     this.unbinding(flags);
   }
@@ -189,27 +155,16 @@ export function $unbindElement(this: Writable<IBindable>, flags: LifecycleFlags)
   flags |= LifecycleFlags.fromUnbind;
   this.$lifecycle.beginUnbind();
   setUnbindingState(this);
-
   if (hasUnbindingHook(this)) {
     this.unbinding(flags);
   }
 
-  let component = this.$componentTail;
-  while (component !== null) {
-    component.$unbind(flags);
-    component = component.$prevComponent;
-  }
-
+  unbindComponents(this.$componentTail, flags);
   if (hasUnboundHook(this)) {
     this.$lifecycle.enqueueUnbound(this);
   }
 
-  let binding = this.$bindingTail;
-  while (binding !== null) {
-    binding.$unbind(flags);
-    binding = binding.$prevBinding;
-  }
-
+  unbindBindings(this.$bindingTail, flags);
   // tslint:disable-next-line:no-unnecessary-type-assertion // this is a false positive
   (this.$scope as Writable<IScope>).parentScope = null;
   setNotBoundState(this);
@@ -226,19 +181,8 @@ export function $unbindView(this: Writable<IBindable>, flags: LifecycleFlags): v
   flags |= LifecycleFlags.fromUnbind;
   this.$lifecycle.beginUnbind();
   setUnbindingState(this);
-
-  let component = this.$componentTail;
-  while (component !== null) {
-    component.$unbind(flags);
-    component = component.$prevComponent;
-  }
-
-  let binding = this.$bindingTail;
-  while (binding !== null) {
-    binding.$unbind(flags);
-    binding = binding.$prevBinding;
-  }
-
+  unbindComponents(this.$componentTail, flags);
+  unbindBindings(this.$bindingTail, flags);
   setNotBoundState(this);
   this.$scope = null;
   this.$lifecycle.endUnbind(flags);
@@ -254,19 +198,8 @@ export function $lockedUnbind(this: IBindable, flags: LifecycleFlags): void {
   flags |= LifecycleFlags.fromUnbind;
   this.$lifecycle.beginUnbind();
   setUnbindingState(this);
-
-  let component = this.$componentTail;
-  while (component !== null) {
-    component.$unbind(flags);
-    component = component.$prevComponent;
-  }
-
-  let binding = this.$bindingTail;
-  while (binding !== null) {
-    binding.$unbind(flags);
-    binding = binding.$prevBinding;
-  }
-
+  unbindComponents(this.$componentTail, flags);
+  unbindBindings(this.$bindingTail, flags);
   setNotBoundState(this);
   this.$lifecycle.endUnbind(flags);
 
@@ -295,4 +228,32 @@ export function $patch(this: IBindable, flags: LifecycleFlags): void {
 
   if (Profiler.enabled) { leave(); }
   if (Tracer.enabled) { Tracer.leave(); }
+}
+
+function bindBindings(binding: IBinding, flags: LifecycleFlags, scope: IScope): void {
+  while (binding !== null) {
+    binding.$bind(flags, scope);
+    binding = binding.$nextBinding;
+  }
+}
+
+function bindComponents(component: IComponent, flags: LifecycleFlags, scope: IScope): void {
+  while (component !== null) {
+    component.$bind(flags, scope);
+    component = component.$nextComponent;
+  }
+}
+
+function unbindBindings(binding: IBinding, flags: LifecycleFlags): void {
+  while (binding !== null) {
+    binding.$unbind(flags);
+    binding = binding.$prevBinding;
+  }
+}
+
+function unbindComponents(component: IComponent, flags: LifecycleFlags): void {
+  while (component !== null) {
+    component.$unbind(flags);
+    component = component.$prevComponent;
+  }
 }

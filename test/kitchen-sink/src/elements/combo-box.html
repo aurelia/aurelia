@@ -1,0 +1,44 @@
+<template class="combobox" blur='value.two-way: expanded; linked-with.bind: listGroup'>
+  <!-- <require from='./combobox.css'></require> -->
+  <!-- <div ref='computed' style='display: none;' is-filtering.bind='expanded && filterText' ></div> -->
+  <let is-filterring.bind='expanded && filterText'></let>
+
+  <div class="display-ct">
+    <div css='
+        opacity: ${expanded ? 0 : 1};
+        width: calc(100% - ${computed.isFiltering ? 60 : 30}px)'>
+      <span show.bind='selection' style='display: inline-block;'>
+        <span replaceable part='selection'>${selection}</span>
+      </span>
+    </div>
+
+    <span class='input-ct' css='right: ${computed.isFiltering ? 60 : 30}px;'>
+      <input ref='input'
+        value.two-way='filterText'
+        focus.to-view='expanded'
+        focus.trigger='expanded = true'
+        css='opacity: ${expanded ? 1 : 0}' />
+    </span>
+    <button
+      show.bind='expanded && filterText'
+      click.delegate='filterText = null'><i class='fa fa-times'></i></button>
+    <button click.delegate='expandList()'>▼</button>
+  </div>
+
+  <div ref='listCt'
+    class='list-ct'>
+    <ul show.bind="expanded"
+      blur='value.two-way: expanded; linked-with.bind: element'
+      ref='listGroup'
+      class="list-group combobox-item-list"
+      replaceable part='list-group'>
+
+      <li repeat.for="item of items | filter: filterText"
+          click.trigger='select(item)'
+          class="list-group-item">
+          <span replaceable part='list-item'>${item}</span>
+      </li>
+    </ul>
+  </div>  
+</template>
+    

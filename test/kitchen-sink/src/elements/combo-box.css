@@ -1,0 +1,75 @@
+.combobox {
+  display: inline-block;
+  height: 30px;
+  padding: 2px 10px;
+  background-color: #e0e0e0;
+}
+
+.combobox .display-ct {
+  position: relative;
+  min-width: 80px;
+  height: 100%
+}
+
+.combobox .display-ct > div {
+  display: inline-block;
+  height: 26px;
+  line-height: 26px;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.combobox .display-ct .input-ct {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 30px;
+  display: block;
+  height: 26px;
+}
+
+.combobox .display-ct input {
+  display: block;
+  width: 100%;
+  height: 26px;
+  line-height: normal;
+  outline: 0;
+}
+
+.combobox .display-ct button {
+  vertical-align: top;
+  height: 26px;
+  width: 30px;
+  cursor: pointer;
+}
+
+.combobox .list-ct {
+  position: relative;
+  width: auto;
+  height: 0;
+}
+
+.combobox-item-list {
+  position: absolute;
+  width: 100%;
+  max-height: 400px;
+  padding: 4px 6px;
+  background-color: #f2f2f2;
+  border: 1px solid grey;
+  overflow-x: hidden;
+  overflow-y: auto;
+  z-index: 5;
+}
+
+.combobox-item-list li {
+  cursor: pointer;
+}
+
+.combobox-item-list li:hover {
+  background-color: #e0e0e0;
+}
+
+.combobox-item-list li:not(:last-child) {
+  border-bottom: 1px dashed #252525;
+}

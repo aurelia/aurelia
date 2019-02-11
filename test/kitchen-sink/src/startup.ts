@@ -7,7 +7,9 @@ import {
   ILifecycleRegistration,
   IRendererRegistration,
   IfRegistration,
+  LetElementRendererRegistration,
   ElseRegistration,
+  RefBindingRendererRegistration,
   RepeatRegistration,
   ReplaceableRegistration,
   KeyedBindingBehaviorRegistration,
@@ -29,7 +31,7 @@ import {
   ListenerBindingRendererRegistration,
   SetAttributeRendererRegistration,
   TextBindingRendererRegistration,
-  ITargetObserverLocatorRegistration
+  ITargetObserverLocatorRegistration,
 } from '@aurelia/runtime-html';
 import {
   IDOMInitializerRegistration
@@ -42,12 +44,14 @@ import {
   ForBindingCommandRegistration,
   IExpressionParserRegistration,
   OneTimeBindingCommandRegistration,
+  ToViewBindingCommandRegistration,
   TwoWayBindingCommandRegistration
 } from '@aurelia/jit';
 import {
   ITemplateCompilerRegistration,
   ITemplateElementFactoryRegistration,
-  TriggerBindingCommandRegistration
+  TriggerBindingCommandRegistration,
+  DelegateBindingCommandRegistration,
 } from '@aurelia/jit-html';
 import {
   ViewportCustomElement,
@@ -94,7 +98,9 @@ const container = DI.createContainer().register(
   CustomElementRendererRegistration,
   InterpolationBindingRendererRegistration,
   IteratorBindingRendererRegistration,
+  LetElementRendererRegistration,
   PropertyBindingRendererRegistration,
+  RefBindingRendererRegistration,
   SetPropertyRendererRegistration,
   TemplateControllerRendererRegistration,
 
@@ -127,6 +133,7 @@ const container = DI.createContainer().register(
   DefaultBindingCommandRegistration,
   ForBindingCommandRegistration,
   OneTimeBindingCommandRegistration,
+  ToViewBindingCommandRegistration,
   TwoWayBindingCommandRegistration,
 
   // jit-html components
@@ -135,6 +142,7 @@ const container = DI.createContainer().register(
 
   // jit-html binding commands
   TriggerBindingCommandRegistration,
+  DelegateBindingCommandRegistration,
 
   // router registrations
   ViewportCustomElement as any,

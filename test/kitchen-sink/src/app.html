@@ -1,35 +1,80 @@
 <div class="container">
-  <div class="level">
+  <div class="level scroller-x">
     <div class="level-left">
-      <div class="level-item">
-        <div class="buttons">
-          <a class="button is-primary" @click="create(1)">Create 1</a>
-          <a class="button is-primary" @click="create(10)">Create 10</a>
-          <a class="button is-primary" @click="create(100)">Create 100</a>
-          <a class="button is-primary" @click="create(1000)">Create 1000</a>
-          <a class="button is-primary" @click="clear()">Clear</a>
-        </div>
-      </div>
-      <div class="level-item">
-        <label class="checkbox">
-          <input type="checkbox" checked.two-way="keyedStrategy">
-          Keyed mode
-        </label>
-      </div>
-      <div class="level-item">
-        <label class="checkbox">
-          <input type="checkbox" checked.two-way="patchStrategy" :disabled="proxyStrategy">
-          Patch mode
-        </label>
-      </div>
-      <div class="level-item">
-        <label class="checkbox">
-          <input type="checkbox" checked.two-way="proxyStrategy" :disabled="patchStrategy">
-          Proxy mode
-        </label>
-      </div>
+      <button class="button is-small" @click="route = 1">Binding Strategies Tests</button>
+      <button class="button is-small" @click="route = 2">Resources Test</button>
     </div>
   </div>
+  <main style="min-width: 800px;">
+    <div if.bind="route === 1">
+      <div class="level">
+        <div class="level-left">
+          <div class="level-item">
+            <div class="buttons">
+              <a class="button is-primary is-small" @click="create(1)">Create 1</a>
+              <a class="button is-primary is-small" @click="create(10)">Create 10</a>
+              <a class="button is-primary is-small" @click="create(100)">Create 100</a>
+              <a class="button is-primary is-small" @click="create(1000)">Create 1000</a>
+              <a class="button is-primary is-small" @click="clear()">Clear</a>
+            </div>
+          </div>
+          <div class="level-item">
+            <label class="checkbox">
+              <input type="checkbox" checked.two-way="keyedStrategy">
+              Keyed mode
+            </label>
+          </div>
+          <div class="level-item">
+            <label class="checkbox">
+              <input type="checkbox" checked.two-way="patchStrategy" :disabled="proxyStrategy">
+              Patch mode
+            </label>
+          </div>
+          <div class="level-item">
+            <label class="checkbox">
+              <input type="checkbox" checked.two-way="proxyStrategy" :disabled="patchStrategy">
+              Proxy mode
+            </label>
+          </div>
+        </div>
+      </div>
 
-  <au-compose :subject="subject"></au-compose>
+      <au-compose :subject="subject"></au-compose>
+    </div>
+    <div if.bind="route === 2">
+      <combo-box
+        items.bind="generateMembers()"
+        selection.two-way="character"
+        style='width: 350px; max-width: 100%;'>
+
+        <template replace-part='selection'>
+          <img src='/static/faces/${selection.url}'
+            style='display: inline-block; vertical-align: middle;
+              width: 26px;
+              height: 26px;
+              line-height: 26px;
+              margin-right: 4px;' />&nbsp;
+          <c b style='color: coral'>${selection.name}</c> - Level: <c b>${selection.level}</c>
+        </template>
+
+        <template replace-part='list-group'>
+          <ul show.bind="expanded"
+            blur='value.two-way: expanded; linked-with.bind: element'
+            ref='listGroup'
+            class='list-group combobox-item-list'>
+      
+            <li repeat.for="item of items | filter: { field: 'name', value: filterText }"
+                click.trigger='select(item)'
+                class="list-group-item">
+              <img width='26' height='26' src='/static/faces/${item.url}'
+                style='display: inline-block; vertical-align: middle;
+                  line-height: 26px;
+                  margin: 2px 4px 2px 0;' />
+              <span>${item.name} - Level: <c b>${item.level}</c></span>
+            </li>
+          </ul>
+        </template>
+      </combo-box>
+    </div>
+  </main>
 </div>

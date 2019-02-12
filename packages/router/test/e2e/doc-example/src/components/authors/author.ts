@@ -42,15 +42,15 @@ export class Author {
     this.router.setNav('author-menu', [
       {
         title: 'Details',
-        components: `author-details=${this.author.id}`
+        route: `author-details=${this.author.id}`
       },
       {
         title: 'About authors',
-        components: 'about-authors'
+        route: 'about-authors'
       },
       {
         title: 'Author information',
-        components: 'information'
+        route: 'information'
       },
     ]);
     return wait(this.state.noDelay ? 0 : 2000);

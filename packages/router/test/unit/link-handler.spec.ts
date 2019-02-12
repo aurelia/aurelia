@@ -48,7 +48,7 @@ describe('LinkHandler', function () {
     } catch (e) {
       err = e;
     }
-    expect(err.message).to.contain('Code 2004');
+    expect(err.message).to.contain('LinkHandler has already been activated.');
   });
 
 });

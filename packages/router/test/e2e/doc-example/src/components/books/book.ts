@@ -35,23 +35,23 @@ export class Book {
     this.router.setNav('book-menu', [
       {
         title: 'Details',
-        components: `book-details=${this.book.id}`
+        route: `book-details=${this.book.id}`
       },
       {
         title: 'About books',
-        components: 'about-books'
+        route: 'about-books'
       },
       {
         title: 'Book information',
-        components: 'information'
+        route: 'information'
       },
       {
         title: 'Redirect information',
-        components: 'redirect-information'
+        route: 'redirect-information'
       },
       {
         title: 'Redirect about',
-        components: 'redirect-about'
+        route: 'redirect-about'
       },
     ]);
   }

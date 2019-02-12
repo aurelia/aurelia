@@ -7,7 +7,7 @@ export interface IViewportCustomElementType extends ICustomElementType {
     viewport?: string;
 }
 export interface IComponentViewport {
-    component: ICustomElementType | string;
+    component: Partial<ICustomElementType> | string;
     viewport: Viewport;
 }
 export interface IFindViewportsResult {

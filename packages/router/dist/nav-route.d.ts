@@ -1,7 +1,8 @@
-import { INavRoute, Nav, NavComponent } from './nav';
+import { INavRoute, Nav } from './nav';
+import { ViewportInstruction } from './viewport-instruction';
 export declare class NavRoute {
     nav: Nav;
-    components: NavComponent | NavComponent[];
+    instructions: ViewportInstruction[];
     title: string;
     link?: string;
     linkActive?: string;
@@ -15,8 +16,8 @@ export declare class NavRoute {
     handleChange(): void;
     _active(): string;
     toggleActive(): void;
-    _link(components: NavComponent | NavComponent[]): string;
+    _link(instructions: ViewportInstruction[]): string;
+    private parseRoute;
     private activeChild;
-    private linkName;
 }
 //# sourceMappingURL=nav-route.d.ts.map

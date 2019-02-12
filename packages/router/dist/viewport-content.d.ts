@@ -1,11 +1,11 @@
 import { ICustomElement, ICustomElementType, IRenderContext } from '@aurelia/runtime';
 import { INavigationInstruction } from './history-browser';
-import { IComponentViewportParameters } from './router';
-export interface IRouteableCustomElementType extends ICustomElementType {
+import { ViewportInstruction } from './viewport-instruction';
+export interface IRouteableCustomElementType extends Partial<ICustomElementType> {
     parameters?: string[];
 }
 export interface IRouteableCustomElement extends ICustomElement {
-    canEnter?(nextInstruction?: INavigationInstruction, instruction?: INavigationInstruction): boolean | string | IComponentViewportParameters[] | Promise<boolean | string | IComponentViewportParameters[]>;
+    canEnter?(nextInstruction?: INavigationInstruction, instruction?: INavigationInstruction): boolean | string | ViewportInstruction[] | Promise<boolean | string | ViewportInstruction[]>;
     enter?(parameters?: string[] | Record<string, string>, nextInstruction?: INavigationInstruction, instruction?: INavigationInstruction): void | Promise<void>;
     canLeave?(nextInstruction?: INavigationInstruction, instruction?: INavigationInstruction): boolean | Promise<boolean>;
     leave?(nextInstruction?: INavigationInstruction, instruction?: INavigationInstruction): void | Promise<void>;
@@ -24,7 +24,7 @@ export declare class ViewportContent {
     component: IRouteableCustomElement;
     contentStatus: ContentStatus;
     fromCache: boolean;
-    constructor(content?: ICustomElementType | string, parameters?: string, instruction?: INavigationInstruction, context?: IRenderContext);
+    constructor(content?: Partial<ICustomElementType> | string, parameters?: string, instruction?: INavigationInstruction, context?: IRenderContext);
     isChange(other: ViewportContent): boolean;
     isCacheEqual(other: ViewportContent): boolean;
     loadComponent(context: IRenderContext, element: Element): Promise<void>;

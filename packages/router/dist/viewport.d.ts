@@ -1,9 +1,10 @@
 import { ICustomElementType, IRenderContext, LifecycleFlags } from '@aurelia/runtime';
 import { INavigationInstruction } from './history-browser';
-import { IComponentViewportParameters, Router } from './router';
+import { Router } from './router';
 import { Scope } from './scope';
 import { IViewportOptions } from './viewport';
 import { ViewportContent } from './viewport-content';
+import { ViewportInstruction } from './viewport-instruction';
 export interface IViewportOptions {
     scope?: boolean;
     usedBy?: string | string[];
@@ -29,11 +30,11 @@ export declare class Viewport {
     private previousViewportState?;
     private cache;
     constructor(router: Router, name: string, element: Element, context: IRenderContext, owningScope: Scope, scope: Scope, options?: IViewportOptions);
-    setNextContent(content: ICustomElementType | string, instruction: INavigationInstruction): boolean;
+    setNextContent(content: Partial<ICustomElementType> | string, instruction: INavigationInstruction): boolean;
     setElement(element: Element, context: IRenderContext, options: IViewportOptions): void;
     remove(element: Element, context: IRenderContext): boolean;
     canLeave(): Promise<boolean>;
-    canEnter(): Promise<boolean | IComponentViewportParameters[]>;
+    canEnter(): Promise<boolean | ViewportInstruction[]>;
     enter(): Promise<boolean>;
     loadContent(): Promise<boolean>;
     finalizeContentChange(): void;

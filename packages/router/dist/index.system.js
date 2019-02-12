@@ -1,17 +1,17 @@
 System.register('router', ['@aurelia/kernel', '@aurelia/runtime'], function (exports, module) {
   'use strict';
-  var Reporter, PLATFORM, buildQueryString, parseQueryString, IContainer, inject, IObserverLocator, CustomElementResource, Aurelia, IDOM, createRenderContext, INode, IRenderingEngine, bindable, customElement;
+  var Reporter, PLATFORM, IContainer, buildQueryString, parseQueryString, inject, CustomElementResource, IObserverLocator, Aurelia, IDOM, createRenderContext, INode, IRenderingEngine, bindable, customElement;
   return {
     setters: [function (module) {
       Reporter = module.Reporter;
       PLATFORM = module.PLATFORM;
+      IContainer = module.IContainer;
       buildQueryString = module.buildQueryString;
       parseQueryString = module.parseQueryString;
-      IContainer = module.IContainer;
       inject = module.inject;
     }, function (module) {
-      IObserverLocator = module.IObserverLocator;
       CustomElementResource = module.CustomElementResource;
+      IObserverLocator = module.IObserverLocator;
       Aurelia = module.Aurelia;
       IDOM = module.IDOM;
       createRenderContext = module.createRenderContext;
@@ -501,19 +501,78 @@ System.register('router', ['@aurelia/kernel', '@aurelia/runtime'], function (exp
           }
       } exports('LinkHandler', LinkHandler);
 
+      class ViewportInstruction {
+          constructor(component, viewport, parameters) {
+              this.initialize(component, viewport, parameters);
+          }
+          initialize(component, viewport, parameters) {
+              if (typeof component === 'string') {
+                  this.componentName = component;
+                  this.component = null;
+              }
+              else {
+                  this.component = component;
+                  this.componentName = component.description.name;
+              }
+              if (typeof viewport === 'string') {
+                  this.viewportName = viewport;
+                  this.viewport = null;
+              }
+              else {
+                  this.viewport = viewport;
+                  if (viewport) {
+                      this.viewportName = viewport.name;
+                  }
+              }
+              if (typeof parameters === 'string') {
+                  this.parametersString = parameters;
+                  // TODO: Initialize parameters better and more of them and just fix this
+                  this.parameters = { id: parameters };
+              }
+              else {
+                  this.parameters = parameters;
+                  // TODO: Create parametersString
+              }
+              // TODO: Deal with parametersList
+          }
+          componentType(context) {
+              if (this.component !== null) {
+                  return this.component;
+              }
+              const container = context.get(IContainer);
+              const resolver = container.getResolver(CustomElementResource.keyFrom(this.componentName));
+              if (resolver !== null) {
+                  return resolver.getFactory(container).Type;
+              }
+              return null;
+          }
+          viewportInstance(router) {
+              if (this.viewport !== null) {
+                  return this.viewport;
+              }
+              return router.allViewports()[this.viewportName];
+          }
+          sameComponent(other, compareParameters = false, compareType = false) {
+              if (compareParameters && this.parametersString !== other.parametersString) {
+                  return false;
+              }
+              return compareType ? this.component === other.component : this.componentName === other.componentName;
+          }
+      }
+
       class NavRoute {
           constructor(nav, route) {
               this.active = '';
               this.nav = nav;
               Object.assign(this, {
-                  components: route.components,
                   title: route.title,
                   children: null,
                   meta: route.meta,
                   active: '',
               });
-              this.link = this._link(this.components);
-              this.linkActive = route.consideredActive ? this._link(route.consideredActive) : this.link;
+              this.instructions = this.parseRoute(route.route);
+              this.link = this._link(this.instructions);
+              this.linkActive = route.consideredActive ? this._link(this.parseRoute(route.consideredActive)) : this.link;
               this.observerLocator = this.nav.router.container.get(IObserverLocator);
               this.observer = this.observerLocator.getObserver(0 /* none */, this.nav.router, 'activeComponents');
               this.observer.subscribe(this);
@@ -530,18 +589,11 @@ System.register('router', ['@aurelia/kernel', '@aurelia/runtime'], function (exp
               }
           }
           _active() {
-              const components = this.linkActive.split(this.nav.router.separators.add);
-              const activeComponents = this.nav.router.activeComponents;
+              const components = this.nav.router.instructionResolver.viewportInstructionsFromString(this.linkActive);
+              const activeComponents = this.nav.router.activeComponents.map((state) => this.nav.router.instructionResolver.parseViewportInstruction(state));
               for (const component of components) {
-                  if (component.indexOf(this.nav.router.separators.viewport) >= 0) {
-                      if (activeComponents.indexOf(component) < 0) {
-                          return '';
-                      }
-                  }
-                  else {
-                      if (activeComponents.findIndex((value) => value.replace(/\@[^=]*/, '') === component) < 0) {
-                          return '';
-                      }
+                  if (!activeComponents.find((active) => active.sameComponent(component))) {
+                      return '';
                   }
               }
               return 'nav-active';
@@ -549,13 +601,30 @@ System.register('router', ['@aurelia/kernel', '@aurelia/runtime'], function (exp
           toggleActive() {
               this.active = (this.active.startsWith('nav-active') ? '' : 'nav-active');
           }
-          _link(components) {
-              if (Array.isArray(components)) {
-                  return components.map((value) => this.linkName(value)).join(this.nav.router.separators.sibling);
+          _link(instructions) {
+              return this.nav.router.instructionResolver.viewportInstructionsToString(instructions);
+          }
+          parseRoute(routes) {
+              if (!Array.isArray(routes)) {
+                  return this.parseRoute([routes]);
               }
-              else {
-                  return this.linkName(components);
+              const instructions = [];
+              for (const route of routes) {
+                  if (typeof route === 'string') {
+                      instructions.push(this.nav.router.instructionResolver.parseViewportInstruction(route));
+                  }
+                  else if (route instanceof ViewportInstruction) {
+                      instructions.push(route);
+                  }
+                  else if (route['component']) {
+                      const viewportComponent = route;
+                      instructions.push(new ViewportInstruction(viewportComponent.component, viewportComponent.viewport, viewportComponent.parameters));
+                  }
+                  else {
+                      instructions.push(new ViewportInstruction(route));
+                  }
               }
+              return instructions;
           }
           activeChild() {
               if (this.children) {
@@ -566,20 +635,6 @@ System.register('router', ['@aurelia/kernel', '@aurelia/runtime'], function (exp
                   }
               }
               return false;
-          }
-          linkName(component) {
-              if (!component) {
-                  return '';
-              }
-              else if (typeof component === 'string') {
-                  return component;
-              }
-              else if (component.description) {
-                  return component.description.name;
-              }
-              else if (component.component) {
-                  return this.linkName(component.component) + (component.viewport ? `@${component.viewport}` : '');
-              }
           }
       }
 
@@ -1067,6 +1122,133 @@ System.register('router', ['@aurelia/kernel', '@aurelia/runtime'], function (exp
           }
       } exports('RouteRecognizer', RouteRecognizer);
 
+      class InstructionResolver {
+          activate(options) {
+              this.separators = Object.assign({
+                  viewport: '@',
+                  sibling: '+',
+                  scope: '/',
+                  ownsScope: '!',
+                  parameters: '=',
+                  add: '+',
+                  clear: '-',
+                  action: '.',
+              }, options.separators);
+          }
+          get clearViewportInstruction() {
+              return this.separators.clear;
+          }
+          parseViewportInstruction(instruction) {
+              let component, viewport, parameters;
+              const [componentPart, rest] = instruction.split(this.separators.viewport);
+              if (rest === undefined) {
+                  [component, parameters] = componentPart.split(this.separators.parameters);
+              }
+              else {
+                  component = componentPart;
+                  [viewport, parameters] = rest.split(this.separators.parameters);
+              }
+              return new ViewportInstruction(component, viewport, parameters);
+          }
+          stringifyViewportInstruction(instruction) {
+              let instructionString = instruction.componentName;
+              if (instruction.viewportName) {
+                  instructionString += this.separators.viewport + instruction.viewportName;
+              }
+              if (instruction.parametersString) {
+                  // TODO: Review parameters in ViewportInstruction
+                  instructionString += this.separators.parameters + instruction.parametersString;
+              }
+              return instructionString;
+          }
+          buildScopedLink(scopeContext, href) {
+              if (scopeContext) {
+                  href = `/${scopeContext}${this.separators.scope}${href}`;
+              }
+              return href;
+          }
+          shouldClearViewports(path) {
+              const clearViewports = (path === this.separators.clear || path.startsWith(this.separators.clear + this.separators.add));
+              const newPath = path.startsWith(this.separators.clear) ? path.substring(1) : path;
+              return { clearViewports, newPath };
+          }
+          findViews(path) {
+              const views = {};
+              // TODO: Let this govern start of scope
+              if (path.startsWith('/')) {
+                  path = path.substring(1);
+              }
+              const sections = path.split(this.separators.sibling);
+              // TODO: Remove this once multi level recursiveness is fixed
+              // Expand with instances for all containing views
+              // const expandedSections: string[] = [];
+              // while (sections.length) {
+              //   const part = sections.shift();
+              //   const parts = part.split(this.separators.scope);
+              //   for (let i = 1; i <= parts.length; i++) {
+              //     expandedSections.push(parts.slice(0, i).join(this.separators.scope));
+              //   }
+              // }
+              // sections = expandedSections;
+              let index = 0;
+              while (sections.length) {
+                  const view = sections.shift();
+                  const scopes = view.split(this.separators.scope);
+                  const leaf = scopes.pop();
+                  const parts = leaf.split(this.separators.viewport);
+                  // Noooooo?
+                  const component = parts[0];
+                  scopes.push(parts.length ? parts.join(this.separators.viewport) : `?${index++}`);
+                  const name = scopes.join(this.separators.scope);
+                  if (component) {
+                      views[name] = component;
+                  }
+              }
+              return views;
+          }
+          viewportInstructionsToString(instructions) {
+              const stringInstructions = [];
+              for (const instruction of instructions) {
+                  stringInstructions.push(this.stringifyViewportInstruction(instruction));
+              }
+              return stringInstructions.join(this.separators.sibling);
+          }
+          viewportInstructionsFromString(instructionsString) {
+              const instructions = [];
+              const instructionStrings = instructionsString.split(this.separators.sibling);
+              for (const instructionString of instructionStrings) {
+                  instructions.push(this.parseViewportInstruction(instructionString));
+              }
+              return instructions;
+          }
+          removeStateDuplicates(states) {
+              let sorted = states.slice().sort((a, b) => b.split(this.separators.scope).length - a.split(this.separators.scope).length);
+              sorted = sorted.map((value) => `${this.separators.scope}${value}${this.separators.scope}`);
+              let unique = [];
+              if (sorted.length) {
+                  unique.push(sorted.shift());
+                  while (sorted.length) {
+                      const state = sorted.shift();
+                      if (unique.find((value) => {
+                          return value.indexOf(state) === -1;
+                      })) {
+                          unique.push(state);
+                      }
+                  }
+              }
+              unique = unique.map((value) => value.substring(1, value.length - 1));
+              unique.sort((a, b) => a.split(this.separators.scope).length - b.split(this.separators.scope).length);
+              return unique;
+          }
+          stateStringsToString(stateStrings, clear = false) {
+              const strings = stateStrings.slice();
+              if (clear) {
+                  strings.unshift(this.clearViewportInstruction);
+              }
+              return strings.join(this.separators.sibling);
+          }
+      }
+
       function parseQuery(query) {
           const parameters = {};
           const list = [];
@@ -1293,14 +1475,14 @@ System.register('router', ['@aurelia/kernel', '@aurelia/runtime'], function (exp
               let parameters;
               this.clear = false;
               if (typeof content === 'string') {
-                  if (content === this.router.separators.clear) {
+                  if (content === this.router.instructionResolver.clearViewportInstruction) {
                       this.clear = true;
                       content = null;
                   }
                   else {
-                      const cp = content.split(this.router.separators.parameters);
+                      const cp = content.split(this.router.instructionResolver.separators.parameters);
                       content = cp.shift();
-                      parameters = cp.length ? cp.join(this.router.separators.parameters) : null;
+                      parameters = cp.length ? cp.join(this.router.instructionResolver.separators.parameters) : null;
                   }
               }
               // Can have a (resolved) type or a string (to be resolved later)
@@ -1399,7 +1581,7 @@ System.register('router', ['@aurelia/kernel', '@aurelia/runtime'], function (exp
                   return result;
               }
               if (typeof result === 'string') {
-                  return [{ component: result, viewport: this }];
+                  return [new ViewportInstruction(result, this)];
               }
               return result;
           }
@@ -1462,23 +1644,23 @@ System.register('router', ['@aurelia/kernel', '@aurelia/runtime'], function (exp
           description(full = false) {
               if (this.content.content) {
                   const component = this.content.componentName();
-                  const newScope = this.scope ? this.router.separators.ownsScope : '';
-                  const parameters = this.content.parameters ? this.router.separators.parameters + this.content.parameters : '';
+                  const newScope = this.scope ? this.router.instructionResolver.separators.ownsScope : '';
+                  const parameters = this.content.parameters ? this.router.instructionResolver.separators.parameters + this.content.parameters : '';
                   if (full || newScope.length || this.options.forceDescription) {
-                      return `${component}${this.router.separators.viewport}${this.name}${newScope}${parameters}`;
+                      return `${component}${this.router.instructionResolver.separators.viewport}${this.name}${newScope}${parameters}`;
                   }
                   const viewports = {};
                   viewports[component] = component;
                   const found = this.owningScope.findViewports(viewports);
                   if (!found) {
-                      return `${component}${this.router.separators.viewport}${this.name}${newScope}${parameters}`;
+                      return `${component}${this.router.instructionResolver.separators.viewport}${this.name}${newScope}${parameters}`;
                   }
                   return `${component}${parameters}`;
               }
           }
           scopedDescription(full = false) {
               const descriptions = [this.owningScope.scopeContext(full), this.description(full)];
-              return descriptions.filter((value) => value && value.length).join(this.router.separators.scope);
+              return descriptions.filter((value) => value && value.length).join(this.router.instructionResolver.separators.scope);
           }
           // TODO: Deal with non-string components
           wantComponent(component) {
@@ -1581,7 +1763,7 @@ System.register('router', ['@aurelia/kernel', '@aurelia/runtime'], function (exp
               this.availableViewports = Object.assign({}, this.getEnabledViewports(), this.availableViewports);
               // Get the parts for this scope (pointing to the rest)
               for (const viewport in viewports) {
-                  const parts = viewport.split(this.router.separators.scope);
+                  const parts = viewport.split(this.router.instructionResolver.separators.scope);
                   const vp = parts.shift();
                   if (!this.scopeViewportParts[vp]) {
                       this.scopeViewportParts[vp] = [];
@@ -1590,10 +1772,10 @@ System.register('router', ['@aurelia/kernel', '@aurelia/runtime'], function (exp
               }
               // Configured viewport is ruling
               for (const viewportPart in this.scopeViewportParts) {
-                  const parameters = viewportPart.split(this.router.separators.parameters);
+                  const parameters = viewportPart.split(this.router.instructionResolver.separators.parameters);
                   const componentViewportPart = parameters.shift();
-                  const component = componentViewportPart.split(this.router.separators.viewport).shift();
-                  const componentParameters = component + (parameters.length ? this.router.separators.parameters + parameters.join(this.router.separators.parameters) : '');
+                  const component = componentViewportPart.split(this.router.instructionResolver.separators.viewport).shift();
+                  const componentParameters = component + (parameters.length ? this.router.instructionResolver.separators.parameters + parameters.join(this.router.instructionResolver.separators.parameters) : '');
                   for (const name in this.availableViewports) {
                       const viewport = this.availableViewports[name];
                       // TODO: Also check if (resolved) component wants a specific viewport
@@ -1609,17 +1791,17 @@ System.register('router', ['@aurelia/kernel', '@aurelia/runtime'], function (exp
               }
               // Next in line is specified viewport
               for (const viewportPart in this.scopeViewportParts) {
-                  const parameters = viewportPart.split(this.router.separators.parameters);
+                  const parameters = viewportPart.split(this.router.instructionResolver.separators.parameters);
                   const componentViewportPart = parameters.shift();
-                  const parts = componentViewportPart.split(this.router.separators.viewport);
+                  const parts = componentViewportPart.split(this.router.instructionResolver.separators.viewport);
                   const component = parts.shift();
-                  const componentParameters = component + (parameters.length ? this.router.separators.parameters + parameters.join(this.router.separators.parameters) : '');
+                  const componentParameters = component + (parameters.length ? this.router.instructionResolver.separators.parameters + parameters.join(this.router.instructionResolver.separators.parameters) : '');
                   let name = parts.shift();
                   if (!name || !name.length || name.startsWith('?')) {
                       continue;
                   }
                   let newScope = false;
-                  if (name.endsWith(this.router.separators.ownsScope)) {
+                  if (name.endsWith(this.router.instructionResolver.separators.ownsScope)) {
                       newScope = true;
                       name = name.substring(0, name.length - 1);
                   }
@@ -1638,10 +1820,10 @@ System.register('router', ['@aurelia/kernel', '@aurelia/runtime'], function (exp
               }
               // Finally, only one accepting viewport left?
               for (const viewportPart in this.scopeViewportParts) {
-                  const parameters = viewportPart.split(this.router.separators.parameters);
+                  const parameters = viewportPart.split(this.router.instructionResolver.separators.parameters);
                   const componentViewportPart = parameters.shift();
-                  const component = componentViewportPart.split(this.router.separators.viewport).shift();
-                  const componentParameters = component + (parameters.length ? this.router.separators.parameters + parameters.join(this.router.separators.parameters) : '');
+                  const component = componentViewportPart.split(this.router.instructionResolver.separators.viewport).shift();
+                  const componentParameters = component + (parameters.length ? this.router.instructionResolver.separators.parameters + parameters.join(this.router.instructionResolver.separators.parameters) : '');
                   const remainingViewports = [];
                   for (const name in this.availableViewports) {
                       const viewport = this.availableViewports[name];
@@ -1680,9 +1862,9 @@ System.register('router', ['@aurelia/kernel', '@aurelia/runtime'], function (exp
                   const scope = viewport.scope || viewport.owningScope;
                   for (const remainingParts of scopeViewportParts[viewportPart]) {
                       if (remainingParts.length) {
-                          const remaining = remainingParts.join(this.router.separators.scope);
+                          const remaining = remainingParts.join(this.router.instructionResolver.separators.scope);
                           const vps = {};
-                          vps[remaining] = viewports[viewportPart + this.router.separators.scope + remaining];
+                          vps[remaining] = viewports[viewportPart + this.router.instructionResolver.separators.scope + remaining];
                           const scoped = scope.findViewports(vps);
                           componentViewports.push(...scoped.componentViewports);
                           viewportsRemaining = viewportsRemaining || scoped.viewportsRemaining;
@@ -1783,7 +1965,7 @@ System.register('router', ['@aurelia/kernel', '@aurelia/runtime'], function (exp
                   viewport = this.closestViewport(viewport.context.get(IContainer).parent);
               }
               parents.unshift(this.parent.scopeContext(full));
-              return parents.filter((value) => value && value.length).join(this.router.separators.scope);
+              return parents.filter((value) => value && value.length).join(this.router.instructionResolver.separators.scope);
           }
           closestViewport(container) {
               const viewports = Object.values(this.getEnabledViewports());
@@ -1828,14 +2010,13 @@ System.register('router', ['@aurelia/kernel', '@aurelia/runtime'], function (exp
                   if (!href.startsWith('/')) {
                       const scope = this.closestScope(info.anchor);
                       const context = scope.scopeContext();
-                      if (context) {
-                          href = `/${context}${this.separators.scope}${href}`;
-                      }
+                      href = this.instructionResolver.buildScopedLink(context, href);
                   }
                   this.historyBrowser.setHash(href);
               };
               this.historyBrowser = new HistoryBrowser();
               this.linkHandler = new LinkHandler();
+              this.instructionResolver = new InstructionResolver();
           }
           get isNavigating() {
               return this.processingNavigation !== null;
@@ -1850,16 +2031,7 @@ System.register('router', ['@aurelia/kernel', '@aurelia/runtime'], function (exp
                       this.historyCallback(navigationInstruction);
                   }
               }, options);
-              this.separators = Object.assign({
-                  viewport: '@',
-                  sibling: '+',
-                  scope: '/',
-                  ownsScope: '!',
-                  parameters: '=',
-                  add: '+',
-                  clear: '-',
-                  action: '.',
-              }, this.options.separators);
+              this.instructionResolver.activate({ separators: this.options.separators });
               this.linkHandler.activate({ callback: this.linkCallback });
               return this.historyBrowser.activate(this.options).catch(error => { throw error; });
           }
@@ -1888,7 +2060,6 @@ System.register('router', ['@aurelia/kernel', '@aurelia/runtime'], function (exp
                   this.processingNavigation = null;
                   return this.processNavigations();
               }
-              let clearViewports = false;
               let fullStateInstruction = false;
               if ((instruction.isBack || instruction.isForward) && instruction.fullStatePath) {
                   instruction.path = instruction.fullStatePath;
@@ -1904,19 +2075,17 @@ System.register('router', ['@aurelia/kernel', '@aurelia/runtime'], function (exp
               if (this.options.transformFromUrl && !fullStateInstruction) {
                   path = this.options.transformFromUrl(path, this);
                   if (Array.isArray(path)) {
-                      path = this.statesToString(path);
+                      path = this.instructionResolver.viewportInstructionsToString(path);
                   }
               }
-              if (path === this.separators.clear || path.startsWith(this.separators.clear + this.separators.add)) {
-                  clearViewports = true;
-                  if (path.startsWith(this.separators.clear)) {
-                      path = path.substring(1);
-                  }
+              const { clearViewports, newPath } = this.instructionResolver.shouldClearViewports(path);
+              if (clearViewports) {
+                  path = newPath;
               }
               const parsedQuery = parseQuery(instruction.query);
               instruction.parameters = parsedQuery.parameters;
               instruction.parameterList = parsedQuery.list;
-              const views = this.findViews(path);
+              const views = this.instructionResolver.findViews(path);
               if (!views && !Object.keys(views).length && !clearViewports) {
                   this.processingNavigation = null;
                   return this.processNavigations();
@@ -1948,7 +2117,7 @@ System.register('router', ['@aurelia/kernel', '@aurelia/runtime'], function (exp
                       }
                   }
                   for (const viewport of usedViewports) {
-                      if (viewport.setNextContent(this.separators.clear, instruction)) {
+                      if (viewport.setNextContent(this.instructionResolver.clearViewportInstruction, instruction)) {
                           changedViewports.push(viewport);
                       }
                   }
@@ -2047,40 +2216,6 @@ System.register('router', ['@aurelia/kernel', '@aurelia/runtime'], function (exp
                   this.processNavigations().catch(error => { throw error; });
               }
           }
-          findViews(path) {
-              const views = {};
-              // TODO: Let this govern start of scope
-              if (path.startsWith('/')) {
-                  path = path.substring(1);
-              }
-              const sections = path.split(this.separators.sibling);
-              // TODO: Remove this once multi level recursiveness is fixed
-              // Expand with instances for all containing views
-              // const expandedSections: string[] = [];
-              // while (sections.length) {
-              //   const part = sections.shift();
-              //   const parts = part.split(this.separators.scope);
-              //   for (let i = 1; i <= parts.length; i++) {
-              //     expandedSections.push(parts.slice(0, i).join(this.separators.scope));
-              //   }
-              // }
-              // sections = expandedSections;
-              let index = 0;
-              while (sections.length) {
-                  const view = sections.shift();
-                  const scopes = view.split(this.separators.scope);
-                  const leaf = scopes.pop();
-                  const parts = leaf.split(this.separators.viewport);
-                  // Noooooo?
-                  const component = parts[0];
-                  scopes.push(parts.length ? parts.join(this.separators.viewport) : `?${index++}`);
-                  const name = scopes.join(this.separators.scope);
-                  if (component) {
-                      views[name] = component;
-                  }
-              }
-              return views;
-          }
           // public findViewport(name: string): Viewport {
           //   return this.rootScope.findViewport(name);
           // }
@@ -2137,49 +2272,6 @@ System.register('router', ['@aurelia/kernel', '@aurelia/runtime'], function (exp
           forward() {
               return this.historyBrowser.forward();
           }
-          statesToString(states) {
-              const stringStates = [];
-              for (const state of states) {
-                  // TODO: Support non-string components
-                  let stateString = state.component;
-                  if (state.viewport) {
-                      stateString += this.separators.viewport + state.viewport;
-                  }
-                  if (state.parameters) {
-                      // TODO: Support more than one parameter
-                      for (const key in state.parameters) {
-                          stateString += this.separators.parameters + state.parameters[key];
-                      }
-                  }
-                  stringStates.push(stateString);
-              }
-              return stringStates.join(this.separators.sibling);
-          }
-          statesFromString(statesString) {
-              const states = [];
-              const stateStrings = statesString.split(this.separators.sibling);
-              for (const stateString of stateStrings) {
-                  let component, viewport, parameters;
-                  const [componentPart, rest] = stateString.split(this.separators.viewport);
-                  if (rest === undefined) {
-                      [component, parameters] = componentPart.split(this.separators.parameters);
-                  }
-                  else {
-                      component = componentPart;
-                      [viewport, parameters] = rest.split(this.separators.parameters);
-                  }
-                  // TODO: Support more than one parameter
-                  const state = { component: component };
-                  if (viewport) {
-                      state.viewport = viewport;
-                  }
-                  if (parameters) {
-                      state.parameters = { id: parameters };
-                  }
-                  states.push(state);
-              }
-              return states;
-          }
           setNav(name, routes) {
               const nav = this.findNav(name);
               if (nav) {
@@ -2228,39 +2320,19 @@ System.register('router', ['@aurelia/kernel', '@aurelia/runtime'], function (exp
                   container = container.parent;
               }
           }
-          removeStateDuplicates(states) {
-              let sorted = states.slice().sort((a, b) => b.split(this.separators.scope).length - a.split(this.separators.scope).length);
-              sorted = sorted.map((value) => `${this.separators.scope}${value}${this.separators.scope}`);
-              let unique = [];
-              if (sorted.length) {
-                  unique.push(sorted.shift());
-                  while (sorted.length) {
-                      const state = sorted.shift();
-                      if (unique.find((value) => {
-                          return value.indexOf(state) === -1;
-                      })) {
-                          unique.push(state);
-                      }
-                  }
-              }
-              unique = unique.map((value) => value.substring(1, value.length - 1));
-              unique.sort((a, b) => a.split(this.separators.scope).length - b.split(this.separators.scope).length);
-              return unique;
-          }
           replacePaths(instruction) {
               this.activeComponents = this.rootScope.viewportStates(true, true);
-              this.activeComponents = this.removeStateDuplicates(this.activeComponents);
+              this.activeComponents = this.instructionResolver.removeStateDuplicates(this.activeComponents);
               let viewportStates = this.rootScope.viewportStates();
-              viewportStates = this.removeStateDuplicates(viewportStates);
-              let state = viewportStates.join(this.separators.sibling);
+              viewportStates = this.instructionResolver.removeStateDuplicates(viewportStates);
+              let state = this.instructionResolver.stateStringsToString(viewportStates);
               if (this.options.transformToUrl) {
-                  state = this.options.transformToUrl(this.statesFromString(state), this);
+                  state = this.options.transformToUrl(this.instructionResolver.viewportInstructionsFromString(state), this);
               }
               let fullViewportStates = this.rootScope.viewportStates(true);
-              fullViewportStates = this.removeStateDuplicates(fullViewportStates);
-              fullViewportStates.unshift(this.separators.clear);
+              fullViewportStates = this.instructionResolver.removeStateDuplicates(fullViewportStates);
               const query = (instruction.query && instruction.query.length ? `?${instruction.query}` : '');
-              return this.historyBrowser.replacePath(state + query, fullViewportStates.join(this.separators.sibling) + query, instruction);
+              return this.historyBrowser.replacePath(state + query, this.instructionResolver.stateStringsToString(fullViewportStates, true) + query, instruction);
           }
       } exports('Router', Router);
       Router.inject = [IContainer];

@@ -1,7 +1,14 @@
-import { customElement } from '@aurelia/runtime';
+import { customElement, inject } from '@aurelia/runtime';
+import { Router } from '@aurelia/router';
+
 import template from './app.html';
 
 @customElement({ name: 'app', template })
+@inject(Router)
 export class App {
-  message = 'Hello World!';
+  constructor(private router: Router) { }
+
+  public attached() {
+    this.router.activate();
+  }
 }

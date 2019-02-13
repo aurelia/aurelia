@@ -7,7 +7,7 @@
   class QueuedBrowserHistory {
       constructor() {
           this.handlePopstate = async (ev) => {
-              await this.enqueue(this, 'popstate', [ev]);
+              return this.enqueue(this, 'popstate', [ev]);
           };
           this.window = window;
           this.history = window.history;
@@ -15,6 +15,8 @@
           this.isActive = false;
           this.currentHistoryActivity = null;
           this.callback = null;
+          this.goResolve = null;
+          this.suppressPopstateResolve = null;
       }
       activate(callback) {
           if (this.isActive) {
@@ -41,8 +43,13 @@
       get scrollRestoration() {
           return this.history.scrollRestoration;
       }
-      async go(delta) {
-          await this.enqueue(this.history, 'go', [delta]);
+      async go(delta, suppressPopstate = false) {
+          if (!suppressPopstate) {
+              return this.enqueue(this, '_go', [delta], true);
+          }
+          const promise = this.enqueue(this, 'suppressPopstate', [], true);
+          this.enqueue(this.history, 'go', [delta]).catch(error => { throw error; });
+          return promise;
       }
       back() {
           return this.go(-1);
@@ -52,21 +59,45 @@
       }
       // tslint:disable-next-line:no-any - typed according to DOM
       async pushState(data, title, url) {
-          await this.enqueue(this.history, 'pushState', [data, title, url]);
+          return this.enqueue(this.history, 'pushState', [data, title, url]);
       }
       // tslint:disable-next-line:no-any - typed according to DOM
       async replaceState(data, title, url) {
-          await this.enqueue(this.history, 'replaceState', [data, title, url]);
+          return this.enqueue(this.history, 'replaceState', [data, title, url]);
       }
-      popstate(ev) {
-          this.callback(ev);
+      async popstate(ev) {
+          if (!this.suppressPopstateResolve) {
+              if (this.goResolve) {
+                  const resolve = this.goResolve;
+                  this.goResolve = null;
+                  resolve();
+                  await Promise.resolve();
+              }
+              this.callback(ev);
+          }
+          else {
+              const resolve = this.suppressPopstateResolve;
+              this.suppressPopstateResolve = null;
+              resolve();
+          }
       }
-      enqueue(target, methodName, parameters) {
+      _go(delta, resolve) {
+          this.goResolve = resolve;
+          this.history.go(delta);
+      }
+      suppressPopstate(resolve) {
+          this.suppressPopstateResolve = resolve;
+      }
+      enqueue(target, methodName, parameters, resolveInParameters = false) {
           let _resolve;
           // tslint:disable-next-line:promise-must-complete
           const promise = new Promise((resolve) => {
               _resolve = resolve;
           });
+          if (resolveInParameters) {
+              parameters.push(_resolve);
+              _resolve = null;
+          }
           this.queue.push({
               target: target,
               methodName: methodName,
@@ -85,7 +116,9 @@
           method.apply(this.currentHistoryActivity.target, this.currentHistoryActivity.parameters);
           const resolve = this.currentHistoryActivity.resolve;
           this.currentHistoryActivity = null;
-          resolve();
+          if (resolve) {
+              resolve();
+          }
       }
   }
 

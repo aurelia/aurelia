@@ -1,0 +1,11 @@
+{
+  "name": "cypress-e2e",
+  "version": "1.0.0",
+  "description": "The Cypress integration tests.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Dwayne Charrington <dwaynecharrington@gmail.com>",
+  "license": "MIT"
+}

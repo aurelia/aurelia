@@ -1,10 +1,11 @@
-import { customElement, inject } from '@aurelia/runtime';
+import { inject } from '@aurelia/kernel';
+import { customElement } from '@aurelia/runtime';
 import { Router } from '@aurelia/router';
 
 import template from './app.html';
 
-@customElement({ name: 'app', template })
 @inject(Router)
+@customElement({ name: 'app', template })
 export class App {
   constructor(private router: Router) { }
 

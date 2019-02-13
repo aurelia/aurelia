@@ -6,7 +6,7 @@ import { Aurelia } from '@aurelia/runtime';
 
 import { App } from './app';
 
-import { HomeRoute } from './components/router/home';
+import { RouterHome } from './components/router/home';
 import { registerComponent } from './utils';
 
 const container = BasicConfiguration.createContainer();
@@ -19,7 +19,7 @@ container.register(
 
 registerComponent(
   container,
-  HomeRoute as any
+  RouterHome as any
 );
 
 window['au'] = new Aurelia()

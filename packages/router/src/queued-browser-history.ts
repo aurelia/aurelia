@@ -103,7 +103,7 @@ export class QueuedBrowserHistory implements QueuedBrowserHistory {
       this.callback(ev);
     } else {
       const resolve = this.suppressPopstateResolve;
-      this.suppressPopstate = null;
+      this.suppressPopstateResolve = null;
       resolve();
     }
   }

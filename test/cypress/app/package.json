@@ -9,7 +9,7 @@
   "scripts": {
     "watch": "webpack-dev-server --no-inline",
     "build": "rimraf dist && webpack --config webpack.config.js",
-    "serve": "http-server -c-1 -p 9000 dist"
+    "serve": "http-server -c-1 -p 9001 dist"
   },
   "dependencies": {
     "@aurelia/debug": "dev",

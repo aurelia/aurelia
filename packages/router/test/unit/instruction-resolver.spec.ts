@@ -7,8 +7,8 @@ import { MockBrowserHistoryLocation } from '../mock/browser-history-location.moc
 import { ViewportInstruction } from './../../src/viewport-instruction';
 
 describe('InstructionResolver', () => {
+  this.timeout(30000);
   it('can be created', async function () {
-    this.timeout(30000);
     const { host, router } = await setup();
     await waitForNavigation(router);
 
@@ -16,7 +16,6 @@ describe('InstructionResolver', () => {
   });
 
   it('handles state strings', async function () {
-    this.timeout(30000);
     const { host, router } = await setup();
     await waitForNavigation(router);
 

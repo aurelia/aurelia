@@ -1,5 +1,6 @@
 import { inject } from '@aurelia/kernel';
 import { customElement, ICustomElement } from '@aurelia/runtime';
+import { Router } from '../../../../../src';
 import { State } from '../state';
 import { wait } from '../utils';
 
@@ -33,13 +34,26 @@ In other words, I scroll you
 </pre></div>
 <br>
 <input>
+<span style="display: inline-block; width: 150px; border: 1px solid green" click.trigger="goClick(false)">Go</span>
+<span style="display: inline-block; width: 150px; border: 1px solid green" click.trigger="goClick(true)">Go with suppress</span>
 </template>` })
-@inject(State)
+@inject(State, Router)
 export class About {
-  constructor(private readonly state: State) { }
+  constructor(private readonly state: State, private readonly router: Router) { }
 
   public enter() {
     return wait(this.state.noDelay ? 0 : 4000);
+  }
+  async goClick(suppress) {
+    await this.router.historyBrowser.history.pushState('books', null, '#books');
+    // tslint:disable-next-line:no-console
+    console.log('books', this.router.historyBrowser.history.history.state);
+    await this.router.historyBrowser.history.pushState('two', null, '#two');
+    // tslint:disable-next-line:no-console
+    console.log('two', this.router.historyBrowser.history.history.state);
+    await this.router.historyBrowser.history.go(-1, suppress);
+    // tslint:disable-next-line:no-console
+    console.log('books', this.router.historyBrowser.history.history.state);
   }
 }
 export interface About extends ICustomElement<HTMLElement> { }

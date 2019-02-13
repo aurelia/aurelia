@@ -68,7 +68,7 @@ export class QueuedBrowserHistory implements QueuedBrowserHistory {
       return this.enqueue(this, '_go', [delta], true);
     }
     const promise = this.enqueue(this, 'suppressPopstate', [], true);
-    this.enqueue(this.history, 'go', [delta]);
+    this.enqueue(this.history, 'go', [delta]).catch(error => { throw error; });
     return promise;
   }
   public back(): Promise<void> {
@@ -108,7 +108,7 @@ export class QueuedBrowserHistory implements QueuedBrowserHistory {
     }
   }
 
-  private _go(delta: number, resolve: ((value?: void | PromiseLike<void>) => void)): void{
+  private _go(delta: number, resolve: ((value?: void | PromiseLike<void>) => void)): void {
     this.goResolve = resolve;
     this.history.go(delta);
   }

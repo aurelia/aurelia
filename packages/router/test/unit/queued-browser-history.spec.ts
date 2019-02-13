@@ -90,6 +90,7 @@ describe('QueuedBrowserHistory', function () {
     await qbh.pushState('two', null, '#two');
     expect(qbh.history.state).to.equal('two');
     await qbh.go(-1);
+    await Promise.resolve();
     expect(qbh.history.state).to.equal('one');
 
     expect(counter).to.equal(1);
@@ -108,6 +109,7 @@ describe('QueuedBrowserHistory', function () {
     await qbh.pushState('two', null, '#two');
     expect(qbh.history.state).to.equal('two');
     await qbh.go(-1, true);
+    await Promise.resolve();
     expect(qbh.history.state).to.equal('one');
 
     expect(counter).to.equal(0);

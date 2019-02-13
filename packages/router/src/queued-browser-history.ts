@@ -32,6 +32,7 @@ export class QueuedBrowserHistory implements QueuedBrowserHistory {
     this.isActive = false;
     this.currentHistoryActivity = null;
     this.callback = null;
+    this.goResolve = null;
     this.suppressPopstateResolve = null;
   }
 

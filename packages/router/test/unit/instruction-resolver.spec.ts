@@ -6,7 +6,7 @@ import { Router, ViewportCustomElement } from '../../src/index';
 import { MockBrowserHistoryLocation } from '../mock/browser-history-location.mock';
 import { ViewportInstruction } from './../../src/viewport-instruction';
 
-describe('InstructionResolver', () => {
+describe('InstructionResolver', function () {
   this.timeout(30000);
   it('can be created', async function () {
     const { host, router } = await setup();

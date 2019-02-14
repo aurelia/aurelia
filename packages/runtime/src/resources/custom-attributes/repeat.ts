@@ -582,8 +582,7 @@ export class Repeat<C extends ObservedCollection = IObservedArray, T extends INo
 
             view.$nodes.insertBefore(next);
 
-            view.$state |= (State.isMounted | State.isAttached);
-            view.$state &= ~State.isAttaching;
+            view.$state = (view.$state & ~State.isAttaching) | State.isMounted | State.isAttached;
             next = view.$nodes.firstChild;
           } else if (j < 0 || seqLen === 1 || i !== seq[j]) {
             view = views[indexMap[i]];
@@ -596,9 +595,7 @@ export class Repeat<C extends ObservedCollection = IObservedArray, T extends INo
             }
             view.$nodes.remove();
 
-            view.$state &= ~(State.isAttached | State.isDetaching | State.isMounted);
-
-            view.$state |= State.isAttaching;
+            view.$state = (view.$state & ~(State.isAttached | State.isDetaching | State.isMounted)) | State.isAttaching;
 
             current = view.$componentHead;
             while (current !== null) {
@@ -608,8 +605,7 @@ export class Repeat<C extends ObservedCollection = IObservedArray, T extends INo
 
             view.$nodes.insertBefore(next);
 
-            view.$state |= (State.isMounted | State.isAttached);
-            view.$state &= ~State.isAttaching;
+            view.$state = (view.$state & ~State.isAttaching) | State.isMounted | State.isAttached;
 
             next = view.$nodes.firstChild;
           } else {

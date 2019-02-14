@@ -3,10 +3,12 @@ import { DebugConfiguration } from '@aurelia/debug';
 import { BasicConfiguration } from '@aurelia/jit-html-browser';
 import { Aurelia } from '@aurelia/runtime';
 
+import { registerComponent } from './utils';
+
 import { App } from './app';
 
 import { RouterHome } from './components/router/home';
-import { registerComponent } from './utils';
+import { RouterWithNav } from './components/router/with-nav';
 
 const container = BasicConfiguration.createContainer();
 
@@ -17,7 +19,8 @@ container.register(
 
 registerComponent(
   container,
-  RouterHome as any
+  RouterHome as any,
+  RouterWithNav as any
 );
 
 window['au'] = new Aurelia(container)

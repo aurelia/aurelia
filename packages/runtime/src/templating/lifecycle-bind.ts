@@ -3,6 +3,7 @@ import { LifecycleFlags } from '../flags';
 import {
   AggregateContinuationTask,
   ContinuationTask,
+  hasAsyncWork,
   hasBindingHook,
   hasUnbindingHook,
   IBinding,
@@ -12,8 +13,7 @@ import {
   IRenderable,
   isBound,
   isNotBound,
-  LifecycleTask,
-  PromiseOrTask
+  LifecycleTask
 } from '../lifecycle';
 import { IPatchable, IScope } from '../observation';
 import { patchProperties } from '../observation/patch-properties';
@@ -50,9 +50,9 @@ export function $bindAttribute(this: Writable<IBindable>, flags: LifecycleFlags,
 
   if (hasBindingHook(this)) {
     const ret = this.binding(flags);
-    if (ret !== void 0) {
+    if (hasAsyncWork(ret)) {
       this.$lifecycle.enqueueBound(this);
-      return new ContinuationTask(ret as PromiseOrTask, this.$lifecycle.endBind, this.$lifecycle, flags, this);
+      return new ContinuationTask(ret, this.$lifecycle.endBind, this.$lifecycle, flags, this);
     }
   }
 
@@ -74,9 +74,9 @@ export function $unbindAttribute(this: Writable<IBindable>, flags: LifecycleFlag
   this.$lifecycle.beginUnbind(this);
   if (hasUnbindingHook(this)) {
     const ret = this.unbinding(flags);
-    if (ret !== void 0) {
+    if (hasAsyncWork(ret)) {
       this.$lifecycle.enqueueUnbound(this);
-      return new ContinuationTask(ret as PromiseOrTask, this.$lifecycle.endUnbind, this.$lifecycle, flags, this);
+      return new ContinuationTask(ret, this.$lifecycle.endUnbind, this.$lifecycle, flags, this);
     }
   }
 
@@ -101,8 +101,8 @@ export function $bindElement(this: Writable<IBindable>, flags: LifecycleFlags, p
   bindBindings(this.$bindingHead, flags, scope);
   if (hasBindingHook(this)) {
     const ret = this.binding(flags);
-    if (ret !== void 0) {
-      return new ContinuationTask(ret as PromiseOrTask, bindElementContinuation, undefined, this, flags, scope);
+    if (hasAsyncWork(ret)) {
+      return new ContinuationTask(ret, bindElementContinuation, undefined, this, flags, scope);
     }
   }
 
@@ -135,8 +135,8 @@ export function $unbindElement(this: Writable<IBindable>, flags: LifecycleFlags)
   this.$lifecycle.beginUnbind(this);
   if (hasUnbindingHook(this)) {
     const ret = this.unbinding(flags);
-    if (ret !== void 0) {
-      return new ContinuationTask(ret as PromiseOrTask, unbindElementContinuation, undefined, this, flags);
+    if (hasAsyncWork(ret)) {
+      return new ContinuationTask(ret, unbindElementContinuation, undefined, this, flags);
     }
   }
 

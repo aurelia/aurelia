@@ -1551,3 +1551,7 @@ export function hasDetachedHook<T extends ILifecycleHooks>(obj: T): obj is T & R
 export function hasCachingHook<T extends ILifecycleHooks>(obj: T): obj is T & Required<Pick<ILifecycleHooks, 'caching'>> {
   return (obj.$hooks & Hooks.hasCaching) === Hooks.hasCaching;
 }
+
+export function hasAsyncWork(value: MaybePromiseOrTask): value is PromiseOrTask {
+  return !(value === void 0 || (value as ILifecycleTask).done === true);
+}

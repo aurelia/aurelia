@@ -4,6 +4,7 @@ import {
   AggregateContinuationTask,
   allowUnmount,
   ContinuationTask,
+  hasAsyncWork,
   hasAttachingHook,
   hasCachingHook,
   hasDetachingHook,
@@ -18,7 +19,6 @@ import {
   isNotMounted,
   IView,
   LifecycleTask,
-  PromiseOrTask,
   setCached,
   setMounted,
   setNotMounted
@@ -48,13 +48,13 @@ export function $attachAttribute(this: Writable<IAttachable>, flags: LifecycleFl
   this.$lifecycle.beginAttach(this);
   if (hasAttachingHook(this)) {
     const ret = this.attaching(flags);
-    if (ret !== void 0) {
-      this.$lifecycle.enqueueAttached(this as Required<typeof this>);
-      return new ContinuationTask(ret as PromiseOrTask, this.$lifecycle.endAttach, this.$lifecycle, flags, this);
+    if (hasAsyncWork(ret)) {
+      this.$lifecycle.enqueueAttached(this);
+      return new ContinuationTask(ret, this.$lifecycle.endAttach, this.$lifecycle, flags, this);
     }
   }
 
-  this.$lifecycle.enqueueAttached(this as Required<typeof this>);
+  this.$lifecycle.enqueueAttached(this);
   this.$lifecycle.endAttach(flags, this);
 
   if (Profiler.enabled) { leave(); }
@@ -74,13 +74,13 @@ export function $detachAttribute(this: Writable<IAttachable>, flags: LifecycleFl
   this.$lifecycle.beginDetach(this);
   if (hasDetachingHook(this)) {
     const ret = this.detaching(flags);
-    if (ret !== void 0) {
-      this.$lifecycle.enqueueDetached(this as Required<typeof this>);
-      return new ContinuationTask(ret as PromiseOrTask, this.$lifecycle.endDetach, this.$lifecycle, flags, this);
+    if (hasAsyncWork(ret)) {
+      this.$lifecycle.enqueueDetached(this);
+      return new ContinuationTask(ret, this.$lifecycle.endDetach, this.$lifecycle, flags, this);
     }
   }
 
-  this.$lifecycle.enqueueDetached(this as Required<typeof this>);
+  this.$lifecycle.enqueueDetached(this);
   this.$lifecycle.endDetach(flags, this);
 
   if (Tracer.enabled) { Tracer.leave(); }
@@ -100,8 +100,8 @@ export function $attachElement(this: Writable<IAttachable & IMountableComponent>
   this.$lifecycle.beginAttach(this);
   if (hasAttachingHook(this)) {
     const ret = this.attaching(flags);
-    if (ret !== void 0) {
-      return new ContinuationTask(ret as PromiseOrTask, attachElementContinuation, undefined, this, flags);
+    if (hasAsyncWork(ret)) {
+      return new ContinuationTask(ret, attachElementContinuation, undefined, this, flags);
     }
   }
 
@@ -142,8 +142,8 @@ export function $detachElement(this: Writable<IAttachable & IMountableComponent>
 
   if (hasDetachingHook(this)) {
     const ret = this.detaching(flags);
-    if (ret !== void 0) {
-      return new ContinuationTask(ret as PromiseOrTask, detachElementContinuation, undefined, this, flags);
+    if (hasAsyncWork(ret)) {
+      return new ContinuationTask(ret, detachElementContinuation, undefined, this, flags);
     }
   }
 

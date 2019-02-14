@@ -13,6 +13,15 @@ describe('Router Default', function() {
       .and('have.attr', 'name', 'app');
   });
 
+  it('contains an empty au-nav tag', function() {
+    cy.visit('http://localhost:9001/');
+
+    cy.get('au-nav')
+      .should('exist')
+      .find('li')
+      .should('not.exist');
+  });
+
   it('default route displays', function() {
     cy.visit('http://localhost:9001/');
 

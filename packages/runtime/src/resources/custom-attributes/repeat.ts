@@ -86,9 +86,9 @@ export class Repeat<C extends ObservedCollection = IObservedArray, T extends INo
 
   public detaching(flags: LifecycleFlags): ILifecycleTask {
     if (this.task.done) {
-      this.task = this.detachViewsByRange(0, this.views.length - 1, flags);
+      this.task = this.detachViewsByRange(0, this.views.length, flags);
     } else {
-      this.task = new ContinuationTask(this.task, this.detachViewsByRange, this, 0, this.views.length - 1, flags);
+      this.task = new ContinuationTask(this.task, this.detachViewsByRange, this, 0, this.views.length, flags);
     }
     return this.task;
   }
@@ -97,9 +97,9 @@ export class Repeat<C extends ObservedCollection = IObservedArray, T extends INo
     this.checkCollectionObserver(flags);
 
     if (this.task.done) {
-      this.task = this.unbindAndRemoveViewsByRange(0, this.views.length - 1, flags, false);
+      this.task = this.unbindAndRemoveViewsByRange(0, this.views.length, flags, false);
     } else {
-      this.task = new ContinuationTask(this.task, this.unbindAndRemoveViewsByRange, this, 0, this.views.length - 1, flags, false);
+      this.task = new ContinuationTask(this.task, this.unbindAndRemoveViewsByRange, this, 0, this.views.length, flags, false);
     }
     return this.task;
   }

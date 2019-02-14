@@ -14,7 +14,11 @@ describe('replaceable', function () {
       describe('+ [repeat]', function() {
         const testCases: [string, HTMLElement, HTMLElement, ITestItem[], string][] = [
           [
-            `It works with: 1 level of [replaceable] + access member {item} of [repeat] BC`,
+            [
+              '\n----',
+              '[repeat]',
+              '  [replaceable] <-- replace this'
+            ].join('\n'),
             <div repeat$for="item of items">
               <div replaceable part="p0">{'${item.name}'}</div>
             </div>,
@@ -25,7 +29,12 @@ describe('replaceable', function () {
             `replacement of 0-item-0replacement of 1-item-1`
           ],
           [
-            `It works with 2 levels of [replaceable] + access memeber {item} of [repeat] BC in 1st [replaceable]`,
+            [
+              '\n----',
+              '[repeat]',
+              '  [replaceable] <-- replace this',
+              '    [replaceable]'
+            ].join('\n'),
             <div repeat$for="item of items">
               <div replaceable part="p0">
                 {'${item.name}'}
@@ -39,7 +48,12 @@ describe('replaceable', function () {
             createExpectedReplacementText(2)
           ],
           [
-            `It works with 2 levels of [replaceable] + access member {item} of [repeat] BC in 2nd [replaceable]`,
+            [
+              '\n----',
+              '[repeat]',
+              '  [replaceable]',
+              '    [replaceable] <-- replace this'
+            ].join('\n'),
             <div repeat$for="item of items">
               <div replaceable part="p0">
                 {'${item.name}'}
@@ -54,7 +68,8 @@ describe('replaceable', function () {
           ],
           [
             [
-              '\n----\n[replaceable]',
+              '\n----',
+              '[replaceable]',
               '  [repeat]',
               '    [replaceable] <-- replace this'
             ].join('\n'),

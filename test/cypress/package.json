@@ -4,7 +4,6 @@
   "description": "The Cypress integration tests.",
   "main": "index.js",
   "scripts": {
-    "pretest": "cd app && npm install && npm run build && npm run serve",
     "test": "npm install && cypress open"
   },
   "author": "Dwayne Charrington <dwaynecharrington@gmail.com>",

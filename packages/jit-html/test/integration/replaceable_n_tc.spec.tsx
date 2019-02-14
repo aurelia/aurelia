@@ -15,25 +15,23 @@ describe('replaceable', function () {
         const testCases: [string, HTMLElement, HTMLElement, ITestItem[], string][] = [
           [
             [
-              '\n----',
               '[repeat]',
-              '  [replaceable] <-- replace this'
+              '  [replaceable #0] << replace this'
             ].join('\n'),
             <div repeat$for="item of items">
               <div replaceable part="p0">{'${item.name}'}</div>
             </div>,
             <foo>
-              <template replace-part="p0">replacement of {'${item.idx}-${item.name}'}</template>
+              <template replace-part="p0">replacement of {'${item.idx}-${item.name}.'}</template>
             </foo>,
             createItems(2),
-            `replacement of 0-item-0replacement of 1-item-1`
+            `replacement of 0-item-0.replacement of 1-item-1`
           ],
           [
             [
-              '\n----',
               '[repeat]',
-              '  [replaceable] <-- replace this',
-              '    [replaceable]'
+              '  [replaceable #0] << replace this',
+              '    [replaceable #1]'
             ].join('\n'),
             <div repeat$for="item of items">
               <div replaceable part="p0">
@@ -42,17 +40,16 @@ describe('replaceable', function () {
               </div>
             </div>,
             <foo>
-              <template replace-part="p0">replacement of {'${item.idx}-${item.name}'}</template>
+              <template replace-part="p0">replacement of {'${item.idx}-${item.name}.'}</template>
             </foo>,
             createItems(2),
             createExpectedReplacementText(2)
           ],
           [
             [
-              '\n----',
               '[repeat]',
-              '  [replaceable]',
-              '    [replaceable] <-- replace this'
+              '  [replaceable #0]',
+              '    [replaceable #1] << replace this'
             ].join('\n'),
             <div repeat$for="item of items">
               <div replaceable part="p0">
@@ -61,17 +58,16 @@ describe('replaceable', function () {
               </div>
             </div>,
             <foo>
-              <template replace-part="p1">replacement of {'${item.idx}-${item.name}</>'}</template>
+              <template replace-part="p1">replacement of {'${item.idx}-${item.name}.'}</template>
             </foo>,
             createItems(2),
-            'item-0replacement of 0-item-0</>item-1replacement of 1-item-1</>'
+            'item-0replacement of 0-item-0.item-1replacement of 1-item-1.'
           ],
           [
             [
-              '\n----',
-              '[replaceable]',
+              '[replaceable #0]',
               '  [repeat]',
-              '    [replaceable] <-- replace this'
+              '    [replaceable #1] << replace this'
             ].join('\n'),
             <div replaceable part="p0">
               item-0
@@ -80,10 +76,55 @@ describe('replaceable', function () {
               </div>
             </div>,
             <foo>
-              <template replace-part="p1">{'${item.idx}-${item.name}'}</template>
+              <template replace-part="p1">{'${item.idx}-${item.name}.'}</template>
             </foo>,
             createItems(2),
-            'item-0replacement of 0-item-0replacement of 1-item-1'
+            'item-0replacement of 0-item-0.replacement of 1-item-1.'
+          ],
+          [
+            [
+              '[repeat]',
+              '  [replaceable #0] << replace this',
+              '[repeat]',
+              '  [replaceable #0] << replace this'
+            ].join('\n'),
+            <div>
+              <div repeat$for="item of items">
+                <div replaceable part="p0">{'${item.name}'}</div>
+              </div>
+              <div repeat$for="item of items">
+                <div replaceable part="p0">{'${item.name}'}</div>
+              </div>
+            </div>,
+            <foo>
+              <template replace-part="p0">replacement of {'${item.idx}-${item.name}.'}</template>
+            </foo>,
+            createItems(2),
+            'replacement of 0-item0.replacement of 1-item-1.replacement of 0-item-0.replacement of 1-item-1'
+          ],
+          [
+            [
+              '[repeat]',
+              '  [replaceable #0]',
+              '    [replaceable #1] << replace this',
+              '  [replaceable #0]',
+              '    [replaceable #1] << replace this'
+            ].join('\n'),
+            <div repeat$for="item of items">
+              <div replaceable part="p0">
+                {'${item.name}.'}
+                <div replaceable part="p1">{'${item.name}.'}</div>
+              </div>
+              <div replaceable part="p0">
+                {'${item.name}.'}
+                <div replaceable part="p1">{'${item.name}.'}</div>
+              </div>
+            </div>,
+            <foo>
+              <template replace-part="p1">replacement of {'${item.idx}-${item.name}.'}</template>
+            </foo>,
+            createItems(2),
+            'item-0.replacement of 0-item-0.item-0.replacement of 0-item-0.item-1.replacement of 1-item-1.item-1.replacement of 1-item-1.'
           ]
         ];
         for (
@@ -95,7 +136,7 @@ describe('replaceable', function () {
             expectedTextContent
           ] of testCases
         ) {
-          it(testTitle, function() {
+          it(`\n----\n${testTitle}`, function() {
             const Foo = CustomElementResource.define(
               { name: 'foo', template: <template>{fooContentTemplate}</template> },
               class Foo { items = fooItems }
@@ -104,6 +145,7 @@ describe('replaceable', function () {
               { name: 'app', template: <template>{appContentTemplate}</template> },
               class App { }
             );
+            debugger;
 
             const ctx = TestContext.createHTMLTestContext();
             ctx.container.register(Foo);
@@ -123,7 +165,7 @@ describe('replaceable', function () {
         function createExpectedReplacementText(count: number, itemBaseName: string = 'item') {
           let text = '';
           for (let i = 0; count > i; ++i) {
-            text += `replacement of ${i}-${itemBaseName}-${i}`
+            text += `replacement of ${i}-${itemBaseName}-${i}.`
           }
           return text;
         }

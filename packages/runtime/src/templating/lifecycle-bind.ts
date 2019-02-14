@@ -33,7 +33,7 @@ interface IBindable extends IRenderable, ILifecycleHooks, IComponent {
 export function $bindAttribute(this: Writable<IBindable>, flags: LifecycleFlags, scope: IScope): ILifecycleTask {
   flags |= LifecycleFlags.fromBind;
   if (isBound(this.$state)) {
-    if (this.$scope === scope) { return; }
+    if (this.$scope === scope) { return LifecycleTask.done; }
     const task = this.$unbind(flags);
     if (!task.done) {
       // Short-circuit here and call bind again after the task is done.
@@ -67,7 +67,7 @@ export function $bindAttribute(this: Writable<IBindable>, flags: LifecycleFlags,
 
 /** @internal */
 export function $unbindAttribute(this: Writable<IBindable>, flags: LifecycleFlags): ILifecycleTask {
-  if (isNotBound(this.$state)) { return; }
+  if (isNotBound(this.$state)) { return LifecycleTask.done; }
   if (Tracer.enabled) { Tracer.enter(this.constructor.description && this.constructor.description.name || this.constructor.name, '$bind', slice.call(arguments)); }
 
   flags |= LifecycleFlags.fromUnbind;
@@ -90,7 +90,7 @@ export function $unbindAttribute(this: Writable<IBindable>, flags: LifecycleFlag
 
 /** @internal */
 export function $bindElement(this: Writable<IBindable>, flags: LifecycleFlags, parentScope: IScope | null): ILifecycleTask {
-  if (isBound(this.$state)) { return; }
+  if (isBound(this.$state)) { return LifecycleTask.done; }
   if (Profiler.enabled) { enter(); }
   if (Tracer.enabled) { Tracer.enter(this.constructor.description && this.constructor.description.name || this.constructor.name, '$bind', slice.call(arguments)); }
 
@@ -128,7 +128,7 @@ function bindElementContinuation(target: Writable<IBindable>, flags: LifecycleFl
 
 /** @internal */
 export function $unbindElement(this: Writable<IBindable>, flags: LifecycleFlags): ILifecycleTask {
-  if (isNotBound(this.$state)) { return; }
+  if (isNotBound(this.$state)) { return LifecycleTask.done; }
   if (Tracer.enabled) { Tracer.enter(this.constructor.description && this.constructor.description.name || this.constructor.name, '$bind', slice.call(arguments)); }
 
   flags |= LifecycleFlags.fromUnbind;
@@ -166,7 +166,7 @@ function unbindElementContinuation$2(target: Writable<IBindable>, flags: Lifecyc
 export function $bindView(this: Writable<IBindable>, flags: LifecycleFlags, scope: IScope): ILifecycleTask {
   flags |= LifecycleFlags.fromBind;
   if (isBound(this.$state)) {
-    if (this.$scope === scope) { return; }
+    if (this.$scope === scope) { return LifecycleTask.done; }
     const unbindTask = this.$unbind(flags);
     if (!unbindTask.done) {
       // Same as $bindAttribute
@@ -195,7 +195,7 @@ export function $bindView(this: Writable<IBindable>, flags: LifecycleFlags, scop
 
 /** @internal */
 export function $lockedBind(this: IBindable, flags: LifecycleFlags): ILifecycleTask {
-  if (isBound(this.$state)) { return; }
+  if (isBound(this.$state)) { return LifecycleTask.done; }
   if (Tracer.enabled) { Tracer.enter('IView', 'lockedBind', slice.call(arguments)); }
 
   flags |= LifecycleFlags.fromBind;
@@ -218,7 +218,7 @@ export function $lockedBind(this: IBindable, flags: LifecycleFlags): ILifecycleT
 
 /** @internal */
 export function $unbindView(this: Writable<IBindable>, flags: LifecycleFlags): ILifecycleTask {
-  if (isNotBound(this.$state)) { return; }
+  if (isNotBound(this.$state)) { return LifecycleTask.done; }
   if (Tracer.enabled) { Tracer.enter('IView', '$unbind', slice.call(arguments)); }
 
   flags |= LifecycleFlags.fromUnbind;
@@ -249,7 +249,7 @@ function unbindViewContinuation(target: Writable<IBindable>, flags: LifecycleFla
 
 /** @internal */
 export function $lockedUnbind(this: IBindable, flags: LifecycleFlags): ILifecycleTask {
-  if (isNotBound(this.$state)) { return; }
+  if (isNotBound(this.$state)) { return LifecycleTask.done; }
   if (Tracer.enabled) { Tracer.enter('IView', 'lockedUnbind', slice.call(arguments)); }
 
   flags |= LifecycleFlags.fromUnbind;

@@ -1,4 +1,4 @@
-import { Aurelia, CustomElementResource } from '@aurelia/runtime';
+import { Aurelia, CustomElementResource, ICustomElement } from '@aurelia/runtime';
 import { expect } from 'chai';
 import { TestContext } from '../util';
 import { h } from './util';
@@ -12,7 +12,7 @@ describe('replaceable', function () {
   describe.only('Difficult cases', function() {
     describe.only('+ scope altering template controllers', function() {
       describe('+ [repeat]', function() {
-        const testCases: [string, HTMLElement, HTMLElement, ITestItem[], string][] = [
+        const testCases: [string, HTMLElement, HTMLElement, ITestItem[], string, ICustomAssertion?][] = [
           [
             [
               '[repeat]',
@@ -125,6 +125,50 @@ describe('replaceable', function () {
             </foo>,
             createItems(2),
             'item-0.replacement of 0-item-0.item-0.replacement of 0-item-0.item-1.replacement of 1-item-1.item-1.replacement of 1-item-1.'
+          ],
+          [
+            [
+              '[repeat]',
+              '  [replaceable #0] << replace this',
+              '🔻',
+              '[foo]',
+              '  [${}] <-- by interpolation binding from consumer'
+            ].join('\n'),
+            <div repeat$for="item of items">
+              <div replaceable part="p0">{'${item.name}'}</div>
+            </div>,
+            <foo>
+              <template replace-part="p0">{'${item.idx}-${item.name}. Message: ${message}.'}</template>
+            </foo>,
+            createItems(2),
+            `0-item-0. Message: Aurelia.1-item-1 Message: Aurelia`,
+            async (host, app, foo) => {
+              app.message = 'Hello world from Aurelia';
+              await Promise.resolve();
+              expect(host.textContent, 'host.textContent@changed')
+                .to
+                .equal('0-item-0. Message: Hello world from Aurelia.1-item-1. Message: Hello world from Aurelia');
+            }
+          ],
+          [
+            [
+              '[repeat]',
+              '  [replaceable #0] << replace this',
+              '🔻',
+              '[foo]',
+              '  [template r#0]',
+              '    [repeat] <-- by a repeat'
+            ].join('\n'),
+            <div repeat$for="item of items">
+              <div replaceable part="p0">{'${item.name}'}</div>
+            </div>,
+            <foo>
+              <template replace-part="p0">
+                <template repeat$for="item of items">{'${item.idx}-${item.name}.'}</template>
+              </template>
+            </foo>,
+            createItems(2),
+            `0-item-0.1-item-1.0-item-0.1-item-1.`
           ]
         ];
         for (
@@ -133,19 +177,19 @@ describe('replaceable', function () {
             fooContentTemplate,
             appContentTemplate,
             fooItems,
-            expectedTextContent
+            expectedTextContent,
+            customAssertion
           ] of testCases
         ) {
-          it(`\n----\n${testTitle}`, function() {
+          it(`\n----\n${testTitle}`, async function() {
             const Foo = CustomElementResource.define(
               { name: 'foo', template: <template>{fooContentTemplate}</template> },
               class Foo { items = fooItems }
             );
             const App = CustomElementResource.define(
               { name: 'app', template: <template>{appContentTemplate}</template> },
-              class App { }
+              class App { message = 'Aurelia' }
             );
-            debugger;
 
             const ctx = TestContext.createHTMLTestContext();
             ctx.container.register(Foo);
@@ -156,11 +200,22 @@ describe('replaceable', function () {
 
             au.app({ host, component });
             au.start();
-
+            
             expect(host.textContent, `host.textContent`).to.equal(expectedTextContent);
+            if (customAssertion) {
+              await customAssertion(host, component, component.$componentHead as any as IFoo);
+            }
             tearDown(au);
           });
         }
+
+        interface IFoo {
+          items: ITestItem[];
+        }
+        interface IApp {
+          message: string;
+        }
+        type ICustomAssertion = (host: HTMLElement, app: IApp, foo: IFoo) => void;
 
         function createExpectedReplacementText(count: number, itemBaseName: string = 'item') {
           let text = '';

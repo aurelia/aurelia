@@ -4,8 +4,12 @@
   "description": "The Cypress integration tests.",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "pretest": "cd app && npm install && npm run build && npm run serve",
+    "test": "npm install && cypress open"
   },
   "author": "Dwayne Charrington <dwaynecharrington@gmail.com>",
-  "license": "MIT"
+  "license": "MIT",
+  "devDependencies": {
+    "cypress": "^3.1.5"
+  }
 }

@@ -31,8 +31,6 @@ export class FakeView implements IView {
   public $nextMount: IMountableComponent;
   public $nextUnmount: IMountableComponent;
 
-  public $nextUnbindAfterDetach: IComponent;
-
   public $state: State;
   public $scope: IScope;
   public $nodes: INodeSequence;
@@ -61,8 +59,6 @@ export class FakeView implements IView {
 
     this.$nextMount = null;
     this.$nextUnmount = null;
-
-    this.$nextUnbindAfterDetach = null;
 
     this.$state = State.none;
     this.$scope = null;

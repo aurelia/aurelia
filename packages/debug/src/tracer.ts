@@ -435,6 +435,7 @@ const LifecycleArgsProcessor = {
       case 'beg':
         return '';
       case 'enq':
+      case 'deq':
         return ctorName(info);
       case 'end':
       case 'pro':

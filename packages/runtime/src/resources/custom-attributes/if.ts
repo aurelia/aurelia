@@ -2,7 +2,7 @@ import { Constructable, InterfaceSymbol, IRegistry } from '@aurelia/kernel';
 import { AttributeDefinition, IAttributeDefinition } from '../../definitions';
 import { INode, IRenderLocation } from '../../dom';
 import { LifecycleFlags, State } from '../../flags';
-import { CompositionCoordinator, IView, IViewFactory } from '../../lifecycle';
+import { CompositionCoordinator, ContinuationTask, ILifecycleTask, IView, IViewFactory } from '../../lifecycle';
 import { ProxyObserver } from '../../observation/proxy-observer';
 import { bindable } from '../../templating/bindable';
 import { CustomAttributeResource, ICustomAttribute, ICustomAttributeResource } from '../custom-attribute';
@@ -42,23 +42,27 @@ export class If<T extends INode = INode> implements If<T> {
     this.persistentFlags = LifecycleFlags.none;
   }
 
-  public binding(flags: LifecycleFlags): void {
+  public binding(flags: LifecycleFlags): ILifecycleTask {
     this.persistentFlags = flags & LifecycleFlags.persistentBindingFlags;
     const view = this.updateView(flags);
-    this.coordinator.compose(view, flags);
-    this.coordinator.binding(flags, this.$scope);
+    const task = this.coordinator.compose(view, flags);
+    if (task.done) {
+      return this.coordinator.binding(flags, this.$scope);
+    } else {
+      return new ContinuationTask(task, this.coordinator.binding, this.coordinator, flags, this.$scope);
+    }
   }
 
-  public attaching(flags: LifecycleFlags): void {
-    this.coordinator.attaching(flags);
+  public attaching(flags: LifecycleFlags): ILifecycleTask {
+    return this.coordinator.attaching(flags);
   }
 
-  public detaching(flags: LifecycleFlags): void {
-    this.coordinator.detaching(flags);
+  public detaching(flags: LifecycleFlags): ILifecycleTask {
+    return this.coordinator.detaching(flags);
   }
 
-  public unbinding(flags: LifecycleFlags): void {
-    this.coordinator.unbinding(flags);
+  public unbinding(flags: LifecycleFlags): ILifecycleTask {
+    return this.coordinator.unbinding(flags);
   }
 
   public caching(flags: LifecycleFlags): void {

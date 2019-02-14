@@ -398,7 +398,9 @@ export {
   IViewCache,
   IViewFactory,
   LifecycleTask,
-  PromiseTask
+  PromiseTask,
+  ContinuationTask,
+  AggregateContinuationTask
 } from './lifecycle';
 export {
   AccessorOrObserver,

@@ -1,20 +1,19 @@
-import { Profiler, Tracer, Writable } from '@aurelia/kernel';
+import { PLATFORM, Profiler, Tracer, Writable } from '@aurelia/kernel';
 import { LifecycleFlags } from '../flags';
 import {
+  AggregateContinuationTask,
+  ContinuationTask,
   hasBindingHook,
-  hasBoundHook,
   hasUnbindingHook,
-  hasUnboundHook,
   IBinding,
   IComponent,
   ILifecycleHooks,
+  ILifecycleTask,
   IRenderable,
   isBound,
   isNotBound,
-  setBindingState,
-  setBoundState,
-  setNotBoundState,
-  setUnbindingState
+  LifecycleTask,
+  PromiseOrTask
 } from '../lifecycle';
 import { IPatchable, IScope } from '../observation';
 import { patchProperties } from '../observation/patch-properties';
@@ -31,177 +30,248 @@ interface IBindable extends IRenderable, ILifecycleHooks, IComponent {
 }
 
 /** @internal */
-export function $bindAttribute(this: Writable<IBindable>, flags: LifecycleFlags, scope: IScope): void {
+export function $bindAttribute(this: Writable<IBindable>, flags: LifecycleFlags, scope: IScope): ILifecycleTask {
   flags |= LifecycleFlags.fromBind;
-  if (isBound(this)) {
+  if (isBound(this.$state)) {
     if (this.$scope === scope) { return; }
-    this.$unbind(flags);
+    const task = this.$unbind(flags);
+    if (!task.done) {
+      // Short-circuit here and call bind again after the task is done.
+      // Since we are now unbound, the normal path will be executed in that invocation.
+      return new ContinuationTask(task, $bindAttribute, this, flags, scope);
+    }
   }
 
   if (Profiler.enabled) { enter(); }
   if (Tracer.enabled) { Tracer.enter(this.constructor.description && this.constructor.description.name || this.constructor.name, '$bind', slice.call(arguments)); }
 
   this.$scope = scope;
-  this.$lifecycle.beginBind();
-  setBindingState(this);
+  this.$lifecycle.beginBind(this);
+
   if (hasBindingHook(this)) {
-    this.binding(flags);
+    const ret = this.binding(flags);
+    if (ret !== void 0) {
+      this.$lifecycle.enqueueBound(this);
+      return new ContinuationTask(ret as PromiseOrTask, this.$lifecycle.endBind, this.$lifecycle, flags, this);
+    }
   }
 
-  if (hasBoundHook(this)) {
-    this.$lifecycle.enqueueBound(this);
-  }
-
-  setBoundState(this);
-  this.$lifecycle.endBind(flags);
+  this.$lifecycle.enqueueBound(this);
+  this.$lifecycle.endBind(flags, this);
 
   if (Profiler.enabled) { leave(); }
   if (Tracer.enabled) { Tracer.leave(); }
+
+  return LifecycleTask.done;
 }
 
 /** @internal */
-export function $bindElement(this: Writable<IBindable>, flags: LifecycleFlags, parentScope: IScope | null): void {
-  if (isBound(this)) { return; }
+export function $unbindAttribute(this: Writable<IBindable>, flags: LifecycleFlags): ILifecycleTask {
+  if (isNotBound(this.$state)) { return; }
+  if (Tracer.enabled) { Tracer.enter(this.constructor.description && this.constructor.description.name || this.constructor.name, '$bind', slice.call(arguments)); }
+
+  flags |= LifecycleFlags.fromUnbind;
+  this.$lifecycle.beginUnbind(this);
+  if (hasUnbindingHook(this)) {
+    const ret = this.unbinding(flags);
+    if (ret !== void 0) {
+      this.$lifecycle.enqueueUnbound(this);
+      return new ContinuationTask(ret as PromiseOrTask, this.$lifecycle.endUnbind, this.$lifecycle, flags, this);
+    }
+  }
+
+  this.$lifecycle.enqueueUnbound(this);
+  this.$lifecycle.endUnbind(flags, this);
+
+  if (Tracer.enabled) { Tracer.leave(); }
+
+  return LifecycleTask.done;
+}
+
+/** @internal */
+export function $bindElement(this: Writable<IBindable>, flags: LifecycleFlags, parentScope: IScope | null): ILifecycleTask {
+  if (isBound(this.$state)) { return; }
   if (Profiler.enabled) { enter(); }
   if (Tracer.enabled) { Tracer.enter(this.constructor.description && this.constructor.description.name || this.constructor.name, '$bind', slice.call(arguments)); }
 
   flags |= LifecycleFlags.fromBind;
   const scope = this.$scope as Writable<IScope>;
   scope.parentScope = parentScope;
-  this.$lifecycle.beginBind();
-  setBindingState(this);
+  this.$lifecycle.beginBind(this);
   bindBindings(this.$bindingHead, flags, scope);
   if (hasBindingHook(this)) {
-    this.binding(flags);
+    const ret = this.binding(flags);
+    if (ret !== void 0) {
+      return new ContinuationTask(ret as PromiseOrTask, bindElementContinuation, undefined, this, flags, scope);
+    }
   }
 
-  bindComponents(this.$componentHead, flags, scope);
-  if (hasBoundHook(this)) {
-    this.$lifecycle.enqueueBound(this);
-  }
+  return bindElementContinuation(this, flags, scope);
+}
 
-  setBoundState(this);
-  this.$lifecycle.endBind(flags);
+function bindElementContinuation(target: Writable<IBindable>, flags: LifecycleFlags, scope: IScope | null): ILifecycleTask {
+  const tasks = bindComponents(target.$componentHead, flags, scope);
+  target.$lifecycle.enqueueBound(target);
+  let task = LifecycleTask.done;
+
+  if (tasks === PLATFORM.emptyArray) {
+    target.$lifecycle.endBind(flags, target);
+  } else {
+    task = new AggregateContinuationTask(tasks, target.$lifecycle.endBind, target.$lifecycle, flags, target);
+  }
 
   if (Profiler.enabled) { leave(); }
   if (Tracer.enabled) { Tracer.leave(); }
+
+  return task;
 }
 
 /** @internal */
-export function $bindView(this: Writable<IBindable>, flags: LifecycleFlags, scope: IScope): void {
+export function $unbindElement(this: Writable<IBindable>, flags: LifecycleFlags): ILifecycleTask {
+  if (isNotBound(this.$state)) { return; }
+  if (Tracer.enabled) { Tracer.enter(this.constructor.description && this.constructor.description.name || this.constructor.name, '$bind', slice.call(arguments)); }
+
+  flags |= LifecycleFlags.fromUnbind;
+  this.$lifecycle.beginUnbind(this);
+  if (hasUnbindingHook(this)) {
+    const ret = this.unbinding(flags);
+    if (ret !== void 0) {
+      return new ContinuationTask(ret as PromiseOrTask, unbindElementContinuation, undefined, this, flags);
+    }
+  }
+
+  return unbindElementContinuation(this, flags);
+}
+
+function unbindElementContinuation(target: Writable<IBindable>, flags: LifecycleFlags): ILifecycleTask {
+  const tasks = unbindComponents(target.$componentTail, flags);
+  target.$lifecycle.enqueueUnbound(target);
+  if (tasks === PLATFORM.emptyArray) {
+    return unbindElementContinuation$2(target, flags);
+  }
+
+  return new AggregateContinuationTask(tasks, unbindElementContinuation$2, undefined, target, flags);
+}
+
+function unbindElementContinuation$2(target: Writable<IBindable>, flags: LifecycleFlags): ILifecycleTask {
+  unbindBindings(target.$bindingTail, flags);
+  target.$lifecycle.endUnbind(flags, target);
+
+  if (Tracer.enabled) { Tracer.leave(); }
+
+  return LifecycleTask.done;
+}
+
+/** @internal */
+export function $bindView(this: Writable<IBindable>, flags: LifecycleFlags, scope: IScope): ILifecycleTask {
   flags |= LifecycleFlags.fromBind;
-  if (isBound(this)) {
+  if (isBound(this.$state)) {
     if (this.$scope === scope) { return; }
-    this.$unbind(flags);
+    const unbindTask = this.$unbind(flags);
+    if (!unbindTask.done) {
+      // Same as $bindAttribute
+      return new ContinuationTask(unbindTask, $bindView, this, flags, scope);
+    }
   }
 
   if (Tracer.enabled) { Tracer.enter('IView', '$bind', slice.call(arguments)); }
 
   this.$scope = scope;
-  this.$lifecycle.beginBind();
-  setBindingState(this);
+  this.$lifecycle.beginBind(this);
   bindBindings(this.$bindingHead, flags, scope);
-  bindComponents(this.$componentHead, flags, scope);
-  setBoundState(this);
-  this.$lifecycle.endBind(flags);
+  const tasks = bindComponents(this.$componentHead, flags, scope);
+  let task = LifecycleTask.done;
+
+  if (tasks === PLATFORM.emptyArray) {
+    this.$lifecycle.endBind(flags, this);
+  } else {
+    task = new AggregateContinuationTask(tasks, this.$lifecycle.endBind, this.$lifecycle, flags, this);
+  }
 
   if (Tracer.enabled) { Tracer.leave(); }
+
+  return task;
 }
 
 /** @internal */
-export function $lockedBind(this: IBindable, flags: LifecycleFlags): void {
-  if (isBound(this)) { return; }
+export function $lockedBind(this: IBindable, flags: LifecycleFlags): ILifecycleTask {
+  if (isBound(this.$state)) { return; }
   if (Tracer.enabled) { Tracer.enter('IView', 'lockedBind', slice.call(arguments)); }
 
   flags |= LifecycleFlags.fromBind;
   const scope = this.$scope;
-  this.$lifecycle.beginBind();
-  setBindingState(this);
+  this.$lifecycle.beginBind(this);
   bindBindings(this.$bindingHead, flags, scope);
-  bindComponents(this.$componentHead, flags, scope);
-  setBoundState(this);
-  this.$lifecycle.endBind(flags);
+  const tasks = bindComponents(this.$componentHead, flags, scope);
+  let task = LifecycleTask.done;
+
+  if (tasks === PLATFORM.emptyArray) {
+    this.$lifecycle.endBind(flags, this);
+  } else {
+    task = new AggregateContinuationTask(tasks, this.$lifecycle.endBind, this.$lifecycle, flags, this);
+  }
 
   if (Tracer.enabled) { Tracer.leave(); }
+
+  return task;
 }
 
 /** @internal */
-export function $unbindAttribute(this: Writable<IBindable>, flags: LifecycleFlags): void {
-  if (isNotBound(this)) { return; }
-  if (Tracer.enabled) { Tracer.enter(this.constructor.description && this.constructor.description.name || this.constructor.name, '$bind', slice.call(arguments)); }
-
-  flags |= LifecycleFlags.fromUnbind;
-  this.$lifecycle.beginUnbind();
-  setUnbindingState(this);
-  if (hasUnbindingHook(this)) {
-    this.unbinding(flags);
-  }
-
-  if (hasUnboundHook(this)) {
-    this.$lifecycle.enqueueUnbound(this);
-  }
-
-  setNotBoundState(this);
-  this.$lifecycle.endUnbind(flags);
-
-  if (Tracer.enabled) { Tracer.leave(); }
-}
-
-/** @internal */
-export function $unbindElement(this: Writable<IBindable>, flags: LifecycleFlags): void {
-  if (isNotBound(this)) { return; }
-  if (Tracer.enabled) { Tracer.enter(this.constructor.description && this.constructor.description.name || this.constructor.name, '$bind', slice.call(arguments)); }
-
-  flags |= LifecycleFlags.fromUnbind;
-  this.$lifecycle.beginUnbind();
-  setUnbindingState(this);
-  if (hasUnbindingHook(this)) {
-    this.unbinding(flags);
-  }
-
-  unbindComponents(this.$componentTail, flags);
-  if (hasUnboundHook(this)) {
-    this.$lifecycle.enqueueUnbound(this);
-  }
-
-  unbindBindings(this.$bindingTail, flags);
-  // tslint:disable-next-line:no-unnecessary-type-assertion // this is a false positive
-  (this.$scope as Writable<IScope>).parentScope = null;
-  setNotBoundState(this);
-  this.$lifecycle.endUnbind(flags);
-
-  if (Tracer.enabled) { Tracer.leave(); }
-}
-
-/** @internal */
-export function $unbindView(this: Writable<IBindable>, flags: LifecycleFlags): void {
-  if (isNotBound(this)) { return; }
+export function $unbindView(this: Writable<IBindable>, flags: LifecycleFlags): ILifecycleTask {
+  if (isNotBound(this.$state)) { return; }
   if (Tracer.enabled) { Tracer.enter('IView', '$unbind', slice.call(arguments)); }
 
   flags |= LifecycleFlags.fromUnbind;
-  this.$lifecycle.beginUnbind();
-  setUnbindingState(this);
-  unbindComponents(this.$componentTail, flags);
-  unbindBindings(this.$bindingTail, flags);
-  setNotBoundState(this);
-  this.$scope = null;
-  this.$lifecycle.endUnbind(flags);
+  this.$lifecycle.beginUnbind(this);
+  const tasks = unbindComponents(this.$componentTail, flags);
+  let task = LifecycleTask.done;
+
+  if (tasks === PLATFORM.emptyArray) {
+    unbindBindings(this.$bindingTail, flags);
+    this.$scope = null;
+    this.$lifecycle.endUnbind(flags, this);
+  } else {
+    task = new AggregateContinuationTask(tasks, unbindViewContinuation, undefined, this, flags);
+  }
+
+  if (Tracer.enabled) { Tracer.leave(); }
+
+  return task;
+}
+
+function unbindViewContinuation(target: Writable<IBindable>, flags: LifecycleFlags): void {
+  unbindBindings(target.$bindingTail, flags);
+  target.$scope = null;
+  target.$lifecycle.endUnbind(flags, target);
 
   if (Tracer.enabled) { Tracer.leave(); }
 }
 
 /** @internal */
-export function $lockedUnbind(this: IBindable, flags: LifecycleFlags): void {
-  if (isNotBound(this)) { return; }
+export function $lockedUnbind(this: IBindable, flags: LifecycleFlags): ILifecycleTask {
+  if (isNotBound(this.$state)) { return; }
   if (Tracer.enabled) { Tracer.enter('IView', 'lockedUnbind', slice.call(arguments)); }
 
   flags |= LifecycleFlags.fromUnbind;
-  this.$lifecycle.beginUnbind();
-  setUnbindingState(this);
-  unbindComponents(this.$componentTail, flags);
-  unbindBindings(this.$bindingTail, flags);
-  setNotBoundState(this);
-  this.$lifecycle.endUnbind(flags);
+  this.$lifecycle.beginUnbind(this);
+  const tasks = unbindComponents(this.$componentTail, flags);
+  let task = LifecycleTask.done;
+
+  if (tasks === PLATFORM.emptyArray) {
+    unbindBindings(this.$bindingTail, flags);
+    this.$lifecycle.endUnbind(flags, this);
+  } else {
+    task = new AggregateContinuationTask(tasks, lockedUnbindContinuation, undefined, this, flags);
+  }
+
+  if (Tracer.enabled) { Tracer.leave(); }
+
+  return task;
+}
+
+function lockedUnbindContinuation(target: Writable<IBindable>, flags: LifecycleFlags): void {
+  unbindBindings(target.$bindingTail, flags);
+  target.$lifecycle.endUnbind(flags, target);
 
   if (Tracer.enabled) { Tracer.leave(); }
 }
@@ -237,11 +307,23 @@ function bindBindings(binding: IBinding, flags: LifecycleFlags, scope: IScope): 
   }
 }
 
-function bindComponents(component: IComponent, flags: LifecycleFlags, scope: IScope): void {
+function bindComponents(component: IComponent, flags: LifecycleFlags, scope: IScope): ILifecycleTask[] {
+  let tasks: ILifecycleTask[];
+  let task: ILifecycleTask;
   while (component !== null) {
-    component.$bind(flags, scope);
+    task = component.$bind(flags, scope);
+    if (!task.done) {
+      if (tasks === undefined) {
+        tasks = [];
+      }
+      tasks.push(task);
+    }
     component = component.$nextComponent;
   }
+  if (tasks === undefined) {
+    return PLATFORM.emptyArray as ILifecycleTask[];
+  }
+  return tasks;
 }
 
 function unbindBindings(binding: IBinding, flags: LifecycleFlags): void {
@@ -251,9 +333,21 @@ function unbindBindings(binding: IBinding, flags: LifecycleFlags): void {
   }
 }
 
-function unbindComponents(component: IComponent, flags: LifecycleFlags): void {
+function unbindComponents(component: IComponent, flags: LifecycleFlags): ILifecycleTask[] {
+  let tasks: ILifecycleTask[];
+  let task: ILifecycleTask;
   while (component !== null) {
-    component.$unbind(flags);
+    task = component.$unbind(flags);
+    if (!task.done) {
+      if (tasks === undefined) {
+        tasks = [];
+      }
+      tasks.push(task);
+    }
     component = component.$prevComponent;
   }
+  if (tasks === undefined) {
+    return PLATFORM.emptyArray as ILifecycleTask[];
+  }
+  return tasks;
 }

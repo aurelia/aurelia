@@ -2,7 +2,7 @@ import { InterfaceSymbol, IRegistry } from '@aurelia/kernel';
 import { AttributeDefinition, IAttributeDefinition } from '../../definitions';
 import { INode, IRenderLocation } from '../../dom';
 import { LifecycleFlags, State } from '../../flags';
-import { IBinding, IView, IViewFactory } from '../../lifecycle';
+import { IBinding, ILifecycleTask, IView, IViewFactory } from '../../lifecycle';
 import { IBindingContext } from '../../observation';
 import { Scope } from '../../observation/binding-context';
 import { bindable } from '../../templating/bindable';
@@ -40,25 +40,25 @@ export class With<T extends INode = INode> implements With<T>  {
     }
   }
 
-  public binding(flags: LifecycleFlags): void {
-    this.bindChild(flags);
+  public binding(flags: LifecycleFlags): ILifecycleTask {
+    return this.bindChild(flags);
   }
 
-  public attaching(flags: LifecycleFlags): void {
-    this.currentView.$attach(flags);
+  public attaching(flags: LifecycleFlags): ILifecycleTask {
+    return this.currentView.$attach(flags);
   }
 
-  public detaching(flags: LifecycleFlags): void {
-    this.currentView.$detach(flags);
+  public detaching(flags: LifecycleFlags): ILifecycleTask {
+    return this.currentView.$detach(flags);
   }
 
-  public unbinding(flags: LifecycleFlags): void {
-    this.currentView.$unbind(flags);
+  public unbinding(flags: LifecycleFlags): ILifecycleTask {
+    return this.currentView.$unbind(flags);
   }
 
-  private bindChild(flags: LifecycleFlags): void {
+  private bindChild(flags: LifecycleFlags): ILifecycleTask {
     const scope = Scope.fromParent(flags, this.$scope, this.value);
-    this.currentView.$bind(flags, scope);
+    return this.currentView.$bind(flags, scope);
   }
 }
 CustomAttributeResource.define({ name: 'with', isTemplateController: true }, With);

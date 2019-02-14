@@ -2,7 +2,7 @@ import { InterfaceSymbol, IRegistry } from '@aurelia/kernel';
 import { AttributeDefinition, IAttributeDefinition } from '../../definitions';
 import { INode, IRenderLocation } from '../../dom';
 import { LifecycleFlags } from '../../flags';
-import { IView, IViewFactory } from '../../lifecycle';
+import { ILifecycleTask, IView, IViewFactory } from '../../lifecycle';
 import { CustomAttributeResource, ICustomAttribute, ICustomAttributeResource } from '../custom-attribute';
 
 export interface Replaceable<T extends INode = INode> extends ICustomAttribute<T> {}
@@ -27,20 +27,20 @@ export class Replaceable<T extends INode = INode> implements Replaceable<T> {
     this.currentView.hold(location);
   }
 
-  public binding(flags: LifecycleFlags): void {
-    this.currentView.$bind(flags | LifecycleFlags.allowParentScopeTraversal, this.$scope);
+  public binding(flags: LifecycleFlags): ILifecycleTask {
+    return this.currentView.$bind(flags | LifecycleFlags.allowParentScopeTraversal, this.$scope);
   }
 
-  public attaching(flags: LifecycleFlags): void {
-    this.currentView.$attach(flags);
+  public attaching(flags: LifecycleFlags): ILifecycleTask {
+    return this.currentView.$attach(flags);
   }
 
-  public detaching(flags: LifecycleFlags): void {
-    this.currentView.$detach(flags);
+  public detaching(flags: LifecycleFlags): ILifecycleTask {
+    return this.currentView.$detach(flags);
   }
 
-  public unbinding(flags: LifecycleFlags): void {
-    this.currentView.$unbind(flags);
+  public unbinding(flags: LifecycleFlags): ILifecycleTask {
+    return this.currentView.$unbind(flags);
   }
 }
 CustomAttributeResource.define({ name: 'replaceable', isTemplateController: true }, Replaceable);

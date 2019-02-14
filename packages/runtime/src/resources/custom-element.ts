@@ -143,8 +143,6 @@ function define<N extends INode = INode, T extends Constructable = Constructable
   proto.$nextComponent = null;
   proto.$nextPatch = null;
 
-  proto.$nextUnbindAfterDetach = null;
-
   proto.$scope = null;
   proto.$hooks = 0;
 

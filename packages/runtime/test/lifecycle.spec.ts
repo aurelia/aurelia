@@ -15,7 +15,6 @@ describe('Lifecycle', function () {
       'attached',
       'unmount',
       'detached',
-      'unbindAfterDetach',
       'unbound',
     ];
 
@@ -61,7 +60,6 @@ describe('Lifecycle', function () {
       '$nextAttached',
       '$nextUnmount',
       '$nextDetached',
-      '$nextUnbindAfterDetach',
       '$nextUnbound',
     ];
 

@@ -7,10 +7,10 @@ import { h } from './util';
 //      JSX is used to eliminate space between tags so test result can be easier to manually constructed
 //      if template string can be used to achieve the same effect, it could be converted back
 
-describe('replaceable', function () {
+describe.skip('replaceable', function () {
 
-  describe.only('Difficult cases', function() {
-    describe.only('+ scope altering template controllers', function() {
+  describe('Difficult cases', function() {
+    describe('+ scope altering template controllers', function() {
       describe('+ [repeat]', function() {
         const testCases: [string, HTMLElement, HTMLElement, ITestItem[], string, ICustomAssertion?][] = [
           [
@@ -25,7 +25,7 @@ describe('replaceable', function () {
               <template replace-part="p0">replacement of {'${item.idx}-${item.name}.'}</template>
             </foo>,
             createItems(2),
-            `replacement of 0-item-0.replacement of 1-item-1`
+            `replacement of 0-item-0.replacement of 1-item-1.`
           ],
           // Same with previous, though [repeat] + [replaceable] are on same element
           [
@@ -37,7 +37,7 @@ describe('replaceable', function () {
               <template replace-part="p0">replacement of {'${item.idx}-${item.name}.'}</template>
             </foo>,
             createItems(2),
-            `replacement of 0-item-0.replacement of 1-item-1`
+            `replacement of 0-item-0.replacement of 1-item-1.`
           ],
           [
             [
@@ -55,7 +55,7 @@ describe('replaceable', function () {
               <template replace-part="p0">replacement of {'${item.idx}-${item.name}.'}</template>
             </foo>,
             createItems(2),
-            `replacement of 0-item-0. replacement of 1-item-1.`
+            `replacement of 0-item-0.replacement of 1-item-1.`
           ],
           // Same with previous, though [repeat] + [replaceable] are on same element
           [
@@ -201,13 +201,13 @@ describe('replaceable', function () {
               <template replace-part="p0">{'${item.idx}-${item.name}. Message: ${message}.'}</template>
             </foo>,
             createItems(2),
-            `0-item-0. Message: Aurelia.1-item-1 Message: Aurelia`,
+            `0-item-0. Message: Aurelia.1-item-1 Message: Aurelia.`,
             async (host, app, foo) => {
               app.message = 'Hello world from Aurelia';
               await Promise.resolve();
               expect(host.textContent, 'host.textContent@changed')
                 .to
-                .equal('0-item-0. Message: Hello world from Aurelia.1-item-1. Message: Hello world from Aurelia');
+                .equal('0-item-0. Message: Hello world from Aurelia.1-item-1. Message: Hello world from Aurelia.');
             }
           ],
           // Same with previous. Though [repeat] + [replaceable] are on same element
@@ -223,13 +223,13 @@ describe('replaceable', function () {
               <template replace-part="p0">{'${item.idx}-${item.name}. Message: ${message}.'}</template>
             </foo>,
             createItems(2),
-            `0-item-0. Message: Aurelia.1-item-1 Message: Aurelia`,
+            `0-item-0. Message: Aurelia.1-item-1 Message: Aurelia.`,
             async (host, app, foo) => {
               app.message = 'Hello world from Aurelia';
               await Promise.resolve();
               expect(host.textContent, 'host.textContent@changed')
                 .to
-                .equal('0-item-0. Message: Hello world from Aurelia.1-item-1. Message: Hello world from Aurelia');
+                .equal('0-item-0. Message: Hello world from Aurelia.1-item-1. Message: Hello world from Aurelia.');
             }
           ],
           [
@@ -288,9 +288,7 @@ describe('replaceable', function () {
               '  [template r#0]',
               '    [repeat] <-- by a repeat'
             ].join('\n'),
-            <div repeat$for="item of items">
-              <div replaceable part="p0">{'${item.name}'}</div>
-            </div>,
+            <div repeat$for="item of items" replaceable part="p0">{'${item.name}'}</div>,
             <foo>
               <template replace-part="p0">
                 <template repeat$for="item of items">{'${item.idx}-${item.name}.'}</template>
@@ -376,10 +374,6 @@ describe('replaceable', function () {
           }
           return text;
         }
-      });
-
-      describe('+ [with]', function() {
-
       });
     });
   });

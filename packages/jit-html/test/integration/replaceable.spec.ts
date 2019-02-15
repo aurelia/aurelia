@@ -249,7 +249,7 @@ describe('replaceable', function () {
 
   });
 
-  describe('Difficult cases', function() {
+  describe.skip('Difficult cases', function() {
     describe('with multiple nested replaceable from 1 -> 10 levels', function() {
       const createReplaceableDiv = (level: number) => {
         let currentLevel = 0;

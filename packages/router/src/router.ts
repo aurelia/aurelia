@@ -113,11 +113,6 @@ export class Router {
       this.options.reportCallback(instruction);
     }
 
-    if (instruction.isCancel) {
-      this.processingNavigation = null;
-      return this.processNavigations();
-    }
-
     let fullStateInstruction: boolean = false;
     if ((instruction.isBack || instruction.isForward) && instruction.fullStatePath) {
       instruction.path = instruction.fullStatePath;
@@ -382,6 +377,7 @@ export class Router {
   }
 
   private async cancelNavigation(updatedViewports: Viewport[], instruction: INavigationInstruction): Promise<void> {
+    // TODO: Take care of disabling viewports when cancelling and stateful!
     updatedViewports.forEach((viewport) => {
       viewport.abortContentChange().catch(error => { throw error; });
     });

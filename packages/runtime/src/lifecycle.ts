@@ -1471,6 +1471,9 @@ export function isContainerless(state: State): boolean {
 export function isPatching(state: State): boolean {
   return (state & State.isPatching) === State.isPatching;
 }
+export function isHydrated(state: State): boolean {
+  return (state & State.isHydrated) === State.isHydrated;
+}
 
 export function setBinding(state: State): State {
   return state | State.isBinding;
@@ -1516,6 +1519,9 @@ export function setPatching(state: State): State {
 }
 export function setNotPatching(state: State): State {
   return state & ~State.isPatching;
+}
+export function setHydrated(state: State): State {
+  return state | State.isHydrated;
 }
 
 export function hasRenderHook<T extends ILifecycleHooks & { render?(...args: unknown[]): unknown }>(obj: T): obj is T & Required<Pick<T, 'render'>> {

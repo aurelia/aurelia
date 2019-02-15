@@ -78,7 +78,8 @@ export const enum State {
   isUnbinding           = 0b000001000000,
   isCached              = 0b000010000000,
   isContainerless       = 0b000100000000,
-  isPatching            = 0b001000000000
+  isPatching            = 0b001000000000,
+  isHydrated            = 0b010000000000
 }
 
 export const enum Hooks {

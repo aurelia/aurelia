@@ -2,7 +2,7 @@ import { IServiceLocator, PLATFORM, Profiler, Tracer, Writable } from '@aurelia/
 import { IElementHydrationOptions, TemplateDefinition } from '../definitions';
 import { IDOM, INode } from '../dom';
 import { LifecycleFlags } from '../flags';
-import { hasCreatedHook, hasRenderHook } from '../lifecycle';
+import { hasCreatedHook, hasRenderHook, setHydrated } from '../lifecycle';
 import { Scope } from '../observation/binding-context';
 import { ProxyObserver } from '../observation/proxy-observer';
 import { IRenderingEngine, ITemplate } from '../rendering-engine';
@@ -56,6 +56,8 @@ export function $hydrateAttribute(this: Writable<ICustomAttribute>, flags: Lifec
   const renderingEngine = parentContext.get(IRenderingEngine);
   renderingEngine.applyRuntimeBehavior(flags, Type, this);
 
+  this.$state = setHydrated(this.$state);
+
   if (hasCreatedHook(this)) {
     if ((flags & LifecycleFlags.proxyStrategy) > 0) {
       ProxyObserver.getOrCreate(this).proxy.created(flags);
@@ -105,6 +107,8 @@ export function $hydrateElement(this: Writable<ICustomElement>, flags: Lifecycle
     const template = renderingEngine.getElementTemplate(dom, description, parentContext, Type);
     template.render(this, host, options.parts);
   }
+
+  bindingContext.$state = setHydrated(bindingContext.$state);
 
   if (hasCreatedHook(this)) {
     bindingContext.created(flags);

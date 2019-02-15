@@ -1,4 +1,5 @@
 import { DI, IContainer, IRegistry } from '@aurelia/kernel';
+import { Activator } from './activator';
 import { Lifecycle } from './lifecycle';
 import { ObserverLocator } from './observation/observer-locator';
 import {
@@ -25,6 +26,7 @@ import { Replaceable } from './resources/custom-attributes/replaceable';
 import { With } from './resources/custom-attributes/with';
 import { SanitizeValueConverter } from './resources/value-converters/sanitize';
 
+export const IActivatorRegistration = Activator as IRegistry;
 export const IObserverLocatorRegistration = ObserverLocator as IRegistry;
 export const ILifecycleRegistration = Lifecycle as IRegistry;
 export const IRendererRegistration = Renderer as IRegistry;
@@ -36,6 +38,7 @@ export const IRendererRegistration = Renderer as IRegistry;
  * - `IRenderer`
  */
 export const DefaultComponents = [
+  IActivatorRegistration,
   IObserverLocatorRegistration,
   ILifecycleRegistration,
   IRendererRegistration

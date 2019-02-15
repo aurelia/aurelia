@@ -24,6 +24,9 @@ import {
   stringify,
   verifyEqual
 } from '../../../../scripts/test-lib';
+import {
+  h
+} from '../../../../scripts/test-lib-dom';
 import { HTMLTestContext, TestContext } from '../util';
 
 export function cleanup(ctx: HTMLTestContext): void {
@@ -84,14 +87,14 @@ export function trimFull(text: string) {
   return text.replace(reg, '');
 }
 
-export { _, stringify, jsonStringify, htmlStringify, verifyEqual, padRight, massSpy, massStub, massReset, massRestore, ensureNotCalled, eachCartesianJoin, eachCartesianJoinFactory };
+export { _, h, stringify, jsonStringify, htmlStringify, verifyEqual, padRight, massSpy, massStub, massReset, massRestore, ensureNotCalled, eachCartesianJoin, eachCartesianJoinFactory };
 
 const eventCmds = { delegate: 1, capture: 1, call: 1 };
 
 /**
  * jsx with aurelia binding command friendly version of h
  */
-export const h = (name: string, attrs: Record<string, string> | null, ...children: (Node | string)[]) => {
+export const hJsx = function(name: string, attrs: Record<string, string> | null, ...children: (Node | string)[]) {
   const el = document.createElement(name === 'let$' ? 'let' : name);
   if (attrs !== null) {
     let value: string | string[];

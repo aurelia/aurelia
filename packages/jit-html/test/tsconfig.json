@@ -2,6 +2,6 @@
   "extends": "../tsconfig-test.json",
   "compilerOptions": {
     "jsx": "react",
-    "jsxFactory": "h"
+    "jsxFactory": "hJsx"
   }
 }

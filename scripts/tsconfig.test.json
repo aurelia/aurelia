@@ -13,7 +13,7 @@
     "sourceMap": true,
     "target": "es2018",
     "jsx": "react",
-    "jsxFactory": "h"
+    "jsxFactory": "hJsx"
   },
   "include": [
     "../packages/*/src",

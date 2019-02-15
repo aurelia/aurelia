@@ -1,7 +1,7 @@
 import { Aurelia, CustomElementResource, ICustomElement } from '@aurelia/runtime';
 import { expect } from 'chai';
-import { TestContext } from '../util';
-import { h } from './util';
+import { TestContext, HTMLTestContext } from '../util';
+import { hJsx } from './util';
 
 // IMPORTANT:
 //      JSX is used to eliminate space between tags so test result can be easier to manually constructed

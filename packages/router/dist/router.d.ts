@@ -30,7 +30,6 @@ export declare class Router {
     addedViewports: IComponentViewport[];
     private options;
     private isActive;
-    private isRedirecting;
     private readonly pendingNavigations;
     private processingNavigation;
     private lastNavigation;

@@ -36,7 +36,6 @@ export declare class HistoryBrowser {
     private options;
     private isActive;
     private lastHistoryMovement;
-    private cancelRedirectHistoryMovement;
     private isReplacing;
     private isRefreshing;
     constructor();
@@ -44,7 +43,6 @@ export declare class HistoryBrowser {
     deactivate(): void;
     goto(path: string, title?: string, data?: Record<string, unknown>): Promise<void>;
     replace(path: string, title?: string, data?: Record<string, unknown>): Promise<void>;
-    redirect(path: string, title?: string, data?: Record<string, unknown>): Promise<void>;
     refresh(): Promise<void>;
     back(): Promise<void>;
     forward(): Promise<void>;

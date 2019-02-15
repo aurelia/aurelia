@@ -203,9 +203,6 @@ this.au.router = (function (exports, kernel, runtime) {
                   this.currentEntry = historyEntry;
               }
               this.activeEntry = null;
-              if (this.cancelRedirectHistoryMovement) {
-                  this.cancelRedirectHistoryMovement--;
-              }
               kernel.Reporter.write(10000, 'navigated', this.getState('HistoryEntry'), this.historyEntries, this.getState('HistoryOffset'));
               this.callback(this.currentEntry, navigationFlags, previousEntry);
           };
@@ -219,7 +216,6 @@ this.au.router = (function (exports, kernel, runtime) {
           this.options = null;
           this.isActive = false;
           this.lastHistoryMovement = null;
-          this.cancelRedirectHistoryMovement = null;
           this.isReplacing = false;
           this.isRefreshing = false;
       }
@@ -257,11 +253,6 @@ this.au.router = (function (exports, kernel, runtime) {
           };
           return this.setPath(path, true);
       }
-      redirect(path, title, data) {
-          // This makes sure we can cancel redirects from both pushes and replaces
-          this.cancelRedirectHistoryMovement = this.lastHistoryMovement + 1;
-          return this.replace(path, title, data);
-      }
       async refresh() {
           if (!this.currentEntry) {
               return;
@@ -276,7 +267,7 @@ this.au.router = (function (exports, kernel, runtime) {
           return this.history.go(1);
       }
       cancel() {
-          const movement = this.lastHistoryMovement || this.cancelRedirectHistoryMovement;
+          const movement = this.lastHistoryMovement;
           if (movement) {
               this.lastHistoryMovement = 0;
               return this.history.go(-movement, true);
@@ -1974,7 +1965,6 @@ this.au.router = (function (exports, kernel, runtime) {
           this.activeComponents = [];
           this.addedViewports = [];
           this.isActive = false;
-          this.isRedirecting = false;
           this.pendingNavigations = [];
           this.processingNavigation = null;
           this.lastNavigation = null;
@@ -2099,15 +2089,6 @@ this.au.router = (function (exports, kernel, runtime) {
                   if (vp.setNextContent(vp.options.default, instruction)) {
                       changedViewports.push(vp);
                   }
-              }
-              // We've gone via a redirected route back to same viewport status so
-              // we need to remove the added history entry for the redirect
-              // TODO: Take care of empty subsets/iterations where previous has length
-              if (!changedViewports.length && this.isRedirecting) {
-                  const result = this.cancelNavigation([...changedViewports, ...updatedViewports], instruction);
-                  this.isRedirecting = false;
-                  await this.processNavigations();
-                  return result;
               }
               let results = await Promise.all(changedViewports.map((value) => value.canLeave()));
               if (results.findIndex((value) => value === false) >= 0) {

@@ -92,8 +92,8 @@ export class ViewportContent {
     // Don't terminate cached content
     if (!stateful) {
       this.component.$unbind(LifecycleFlags.fromStopTask | LifecycleFlags.fromUnbind);
+      this.contentStatus = ContentStatus.loaded;
     }
-    this.contentStatus = ContentStatus.loaded;
   }
 
   public addComponent(element: Element): void {

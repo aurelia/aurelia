@@ -42,24 +42,36 @@ export class InstructionResolver {
     let component, viewport, parameters;
     const [componentPart, rest] = instruction.split(this.separators.viewport);
     if (rest === undefined) {
-      [component, parameters] = componentPart.split(this.separators.parameters);
+      [component, ...parameters] = componentPart.split(this.separators.parameters);
     } else {
       component = componentPart;
-      [viewport, parameters] = rest.split(this.separators.parameters);
+      [viewport, ...parameters] = rest.split(this.separators.parameters);
     }
+    parameters = parameters.length ? parameters.join(this.separators.parameters) : undefined;
     return new ViewportInstruction(component, viewport, parameters);
   }
 
-  public stringifyViewportInstruction(instruction: ViewportInstruction): string {
-    let instructionString = instruction.componentName;
-    if (instruction.viewportName) {
-      instructionString += this.separators.viewport + instruction.viewportName;
+  public stringifyViewportInstruction(instructions: ViewportInstruction | string | (ViewportInstruction | string)[]): string {
+    if (!Array.isArray(instructions)) {
+      return this.stringifyViewportInstruction([instructions]);
     }
-    if (instruction.parametersString) {
-      // TODO: Review parameters in ViewportInstruction
-      instructionString += this.separators.parameters + instruction.parametersString;
+    const instructionStrings: string[] = [];
+    for (const instruction of instructions) {
+      if (typeof instruction === 'string') {
+        instructionStrings.push(instruction);
+      } else {
+        let instructionString = instruction.componentName;
+        if (instruction.viewportName) {
+          instructionString += this.separators.viewport + instruction.viewportName;
+        }
+        if (instruction.parametersString) {
+          // TODO: Review parameters in ViewportInstruction
+          instructionString += this.separators.parameters + instruction.parametersString;
+        }
+        instructionStrings.push(instructionString);
+      }
     }
-    return instructionString;
+    return instructionStrings.join(this.separators.scope);
   }
 
   public buildScopedLink(scopeContext: string, href: string): string {

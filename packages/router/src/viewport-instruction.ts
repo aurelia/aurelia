@@ -12,12 +12,13 @@ export class ViewportInstruction {
   public parametersString?: string;
   public parameters?: Record<string, unknown>;
   public parametersList?: string[];
+  public scope?: boolean;
 
-  constructor(component: Partial<ICustomElementType> | string, viewport?: Viewport | string, parameters?: Record<string, unknown> | string) {
-    this.initialize(component, viewport, parameters);
+  constructor(component: Partial<ICustomElementType> | string, viewport?: Viewport | string, parameters?: Record<string, unknown> | string, scope?: boolean) {
+    this.initialize(component, viewport, parameters, scope);
   }
 
-  public initialize(component: Partial<ICustomElementType> | string, viewport?: Viewport | string, parameters?: Record<string, unknown> | string): void {
+  public initialize(component: Partial<ICustomElementType> | string, viewport?: Viewport | string, parameters?: Record<string, unknown> | string, scope?: boolean): void {
     if (typeof component === 'string') {
       this.componentName = component;
       this.component = null;
@@ -43,6 +44,8 @@ export class ViewportInstruction {
       // TODO: Create parametersString
     }
     // TODO: Deal with parametersList
+
+    this.scope = !!scope;
   }
 
   public componentType(context: IRenderContext): IRouteableCustomElementType {

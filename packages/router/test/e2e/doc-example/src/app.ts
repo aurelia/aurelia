@@ -11,7 +11,7 @@ import { State } from './state';
 @customElement({
   name: 'app', template:
     `<template>
-  <div class="\${router.isNavigating ? 'routing' : ''}">
+  <div class="\${router.isNavigating ? 'routing' : ''}" style="--primary-color: \${color}">
     <div>
       <au-nav name="app-menu"></au-nav>
       <span class="loader \${router.isNavigating ? 'routing' : ''}">&nbsp;</span>
@@ -28,13 +28,11 @@ import { State } from './state';
     </div>
     <div class="info">
       <select value.two-way="color">
-        <option value="yellow">Yellow</option>
-        <option value="green">Green</option>
+        <option value="lightblue">Light blue</option>
+        <option value="lightgreen">Light green</option>
       <select>
-      <div style="--primary-color: \${color}">
-        <div style="background-color: var(--primary-color)">
-          The background is in the --primary-color: \${color}.
-        </div>
+      <div style="background-color: var(--primary-color)">
+        The background is in the --primary-color: \${color}.
       </div>
     </div>
     <au-viewport name="lists" used-by="authors,books" default="authors"></au-viewport>
@@ -44,7 +42,7 @@ import { State } from './state';
 </template>
 ` })
 export class App {
-  public color: string = 'green';
+  public color: string = 'lightgreen';
   constructor(private readonly router: Router, authorsRepository: AuthorsRepository, private readonly state: State) {
     authorsRepository.authors(); // Only here to initialize repositories
     this.router.activate({

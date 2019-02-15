@@ -2,11 +2,13 @@ import { Constructable, Immutable, InterfaceSymbol, IRegistry } from '@aurelia/k
 import {
   bindable,
   CompositionCoordinator,
+  ContinuationTask,
   CustomElementResource,
   ICustomElement,
   ICustomElementResource,
   IDOM,
   IHydrateElementInstruction,
+  ILifecycleTask,
   INode,
   IRenderable,
   IRenderingEngine,
@@ -15,6 +17,7 @@ import {
   IView,
   IViewFactory,
   LifecycleFlags,
+  LifecycleTask,
   TargetedInstruction,
   TemplateDefinition
 } from '@aurelia/runtime';
@@ -50,6 +53,7 @@ export class Compose<T extends INode = Node> implements Compose<T> {
   private readonly renderable: IRenderable<T>;
   private readonly renderingEngine: IRenderingEngine;
   private lastSubject: MaybeSubjectPromise<T>;
+  private task: ILifecycleTask;
 
   constructor(
     dom: IDOM<T>,
@@ -64,6 +68,7 @@ export class Compose<T extends INode = Node> implements Compose<T> {
 
     this.coordinator = coordinator;
     this.lastSubject = null;
+    this.task = LifecycleTask.done;
     this.renderable = renderable;
     this.renderingEngine = renderingEngine;
 
@@ -85,22 +90,26 @@ export class Compose<T extends INode = Node> implements Compose<T> {
       );
   }
 
-  public binding(flags: LifecycleFlags): void {
-    this.startComposition(this.subject, null, flags);
-    this.coordinator.binding(flags, this.$scope);
+  public binding(flags: LifecycleFlags): ILifecycleTask {
+    const task = this.startComposition(this.subject, null, flags);
+    if (task.done) {
+      return this.coordinator.binding(flags, this.$scope);
+    } else {
+      return new ContinuationTask(task, this.coordinator.binding, this.coordinator, flags, this.$scope);
+    }
   }
 
-  public attaching(flags: LifecycleFlags): void {
-    this.coordinator.attaching(flags);
+  public attaching(flags: LifecycleFlags): ILifecycleTask {
+    return this.coordinator.attaching(flags);
   }
 
-  public detaching(flags: LifecycleFlags): void {
-    this.coordinator.detaching(flags);
+  public detaching(flags: LifecycleFlags): ILifecycleTask {
+    return this.coordinator.detaching(flags);
   }
 
-  public unbinding(flags: LifecycleFlags): void {
+  public unbinding(flags: LifecycleFlags): ILifecycleTask {
     this.lastSubject = null;
-    this.coordinator.unbinding(flags);
+    return this.coordinator.unbinding(flags);
   }
 
   public caching(flags: LifecycleFlags): void {
@@ -108,24 +117,31 @@ export class Compose<T extends INode = Node> implements Compose<T> {
   }
 
   public subjectChanged(newValue: Subject<T> | Promise<Subject<T>>, previousValue: Subject<T> | Promise<Subject<T>>, flags: LifecycleFlags): void {
-    this.startComposition(newValue, previousValue, flags);
+    if (this.task.done) {
+      this.task = this.startComposition(newValue, previousValue, flags);
+    } else {
+      this.task = new ContinuationTask(this.task, this.startComposition, this, newValue, previousValue, flags);
+    }
   }
 
-  private startComposition(subject: MaybeSubjectPromise<T>, _previousSubject: MaybeSubjectPromise<T>, flags: LifecycleFlags): void {
+  private startComposition(subject: MaybeSubjectPromise<T>, _previousSubject: MaybeSubjectPromise<T>, flags: LifecycleFlags): ILifecycleTask {
     if (this.lastSubject === subject) {
-      return;
+      return this.task;
     }
 
     this.lastSubject = subject;
 
     if (subject instanceof Promise) {
       subject = subject.then(x => this.resolveView(x, flags));
+      this.composing = true;
+      this.task = new ContinuationTask(subject, this.coordinator.compose, this.coordinator, subject as IView<T> | Promise<IView<T>>, flags);
     } else {
       subject = this.resolveView(subject, flags);
+      this.composing = true;
+      this.task = this.coordinator.compose(subject as IView<T> | Promise<IView<T>>, flags);
     }
 
-    this.composing = true;
-    this.coordinator.compose(subject as IView<T> | Promise<IView<T>>, flags);
+    return this.task;
   }
 
   private resolveView(subject: Subject<T> | null, flags: LifecycleFlags): IView<T> | null {

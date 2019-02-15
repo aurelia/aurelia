@@ -23,8 +23,19 @@ import { State } from './state';
       and the navigation is rolled back after 2 seconds.)
     </div>
     <div class="info">
-    <label><input type="checkbox" checked.two-way="state.noDelay">Disable loading delays for components</label><br>
-    <label><input type="checkbox" checked.two-way="state.allowEnterAuthorDetails">Allow entering <i>Author details</i></label><br>
+      <label><input type="checkbox" checked.two-way="state.noDelay">Disable loading delays for components</label><br>
+      <label><input type="checkbox" checked.two-way="state.allowEnterAuthorDetails">Allow entering <i>Author details</i></label><br>
+    </div>
+    <div class="info">
+      <select value.two-way="color">
+        <option value="yellow">Yellow</option>
+        <option value="green">Green</option>
+      <select>
+      <div style="--primary-color: \${color}">
+        <div style="background-color: var(--primary-color)">
+          The background is in the --primary-color: \${color}.
+        </div>
+      </div>
     </div>
     <au-viewport name="lists" used-by="authors,books" default="authors"></au-viewport>
     <au-viewport name="content" stateful default="about"></au-viewport>
@@ -33,6 +44,7 @@ import { State } from './state';
 </template>
 ` })
 export class App {
+  public color: string = 'green';
   constructor(private readonly router: Router, authorsRepository: AuthorsRepository, private readonly state: State) {
     authorsRepository.authors(); // Only here to initialize repositories
     this.router.activate({

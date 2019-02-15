@@ -51,8 +51,6 @@ export class HistoryBrowser {
   private isReplacing: boolean;
   private isRefreshing: boolean;
 
-  private ignorePathChange?: ((value?: {} | PromiseLike<{}>) => void) | null;
-
   constructor() {
     this.location = window.location;
     this.history = new QueuedBrowserHistory();
@@ -72,8 +70,6 @@ export class HistoryBrowser {
     this.isCancelling = false;
     this.isReplacing = false;
     this.isRefreshing = false;
-
-    this.ignorePathChange = null;
   }
 
   public activate(options?: IHistoryOptions): Promise<void> {
@@ -149,30 +145,12 @@ export class HistoryBrowser {
   }
 
   public async pop(): Promise<void> {
-    let state;
-    // let newHash = `#/${Date.now()}`;
-    // let { pathname, search, hash } = this.location;
-    // state = this.history.state;
-    // await this.history.replaceState(state, null, `${pathname}${search}${newHash}`);
-    // tslint:disable-next-line:promise-must-complete
-    let goPathChangeTriggered = new Promise((resolve, reject): void => {
-      this.ignorePathChange = resolve;
-    });
-    await this.history.go(-1);
-    await goPathChangeTriggered;
+    await this.history.go(-1, true);
     const path = this.location.toString();
-    state = this.history.state;
+    const state = this.history.state;
     // TODO: Fix browser forward bug after pop on first entry
     if (!state.HistoryEntry.firstEntry) {
-      // let newHash = `#/${Date.now()}`;
-      // let { pathname, search, hash } = this.location;
-      // await this.history.replaceState(state, null, `${pathname}${search}${newHash}`);
-      // tslint:disable-next-line:promise-must-complete
-      goPathChangeTriggered = new Promise((resolve, reject): void => {
-        this.ignorePathChange = resolve;
-      });
-      await this.history.go(-1);
-      await goPathChangeTriggered;
+      await this.history.go(-1, true);
       return this.history.pushState(state, null, path);
     }
   }
@@ -240,14 +218,6 @@ export class HistoryBrowser {
   }
 
   public pathChanged = async (): Promise<void> => {
-    if (this.ignorePathChange !== null) {
-      Reporter.write(10000, '=== ignore path change', this.getPath());
-      const resolve = this.ignorePathChange;
-      this.ignorePathChange = null;
-      resolve();
-      return;
-    }
-
     const path: string = this.getPath();
     const search: string = this.getSearch();
     Reporter.write(10000, 'path changed to', path, this.activeEntry, this.currentEntry);

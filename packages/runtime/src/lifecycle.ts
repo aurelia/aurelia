@@ -3,7 +3,7 @@ import {
   IContainer,
   IDisposable,
   Immutable,
-  InterfaceSymbol,
+  InjectArray,
   IResolver,
   IServiceLocator,
   PLATFORM,
@@ -1031,7 +1031,7 @@ export class Lifecycle implements ILifecycle {
 }
 
 export class CompositionCoordinator {
-  public static readonly inject: ReadonlyArray<InterfaceSymbol> = [ILifecycle];
+  public static readonly inject: InjectArray = [ILifecycle];
 
   public readonly $lifecycle: ILifecycle;
 

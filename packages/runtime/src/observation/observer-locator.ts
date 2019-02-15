@@ -1,4 +1,4 @@
-import { DI, IContainer, InterfaceSymbol, IResolver, Primitive, Registration, Reporter } from '@aurelia/kernel';
+import { DI, IContainer, InjectArray, IResolver, Primitive, Registration, Reporter } from '@aurelia/kernel';
 import { LifecycleFlags } from '../flags';
 import { ILifecycle } from '../lifecycle';
 import {
@@ -68,7 +68,7 @@ function getPropertyDescriptor(subject: object, name: string): PropertyDescripto
 
 /** @internal */
 export class ObserverLocator implements IObserverLocator {
-  public static readonly inject: ReadonlyArray<InterfaceSymbol> = [ILifecycle, IDirtyChecker, ITargetObserverLocator, ITargetAccessorLocator];
+  public static readonly inject: InjectArray = [ILifecycle, IDirtyChecker, ITargetObserverLocator, ITargetAccessorLocator];
 
   private readonly adapters: IObjectObservationAdapter[];
   private readonly dirtyChecker: IDirtyChecker;

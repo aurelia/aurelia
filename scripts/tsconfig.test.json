@@ -11,7 +11,9 @@
     "preserveConstEnums": true,
     "skipLibCheck": true,
     "sourceMap": true,
-    "target": "es2018"
+    "target": "es2018",
+    "jsx": "react",
+    "jsxFactory": "hJsx"
   },
   "include": [
     "../packages/*/src",

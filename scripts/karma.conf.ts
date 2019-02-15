@@ -84,7 +84,7 @@ export default function(config: IKarmaConfig): void {
       devtool: browsers.indexOf('ChromeDebugging') > -1 ? 'eval-source-map' : 'inline-source-map',
       module: {
         rules: [{
-          test: /\.ts$/,
+          test: /\.tsx?$/,
           loader: 'ts-loader',
           exclude: /node_modules/,
           options: {

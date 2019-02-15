@@ -157,13 +157,14 @@ describe(spec, function () {
       CustomElementResource.define({ name: 'app', template }, App);
       const component = new App();
       component.sub = subject;
-      au.app({ host, component }).start();
+      au.app({ host, component });
+      const task = au.start();
       lifecycle.processFlushQueue(LifecycleFlags.none);
-      if (subject instanceof Promise) {
-        expect(trimFull(host.textContent)).to.equal('');
-        await subject;
+      if (task.done) {
         expect(trimFull(host.textContent)).to.equal(expectedText);
       } else {
+        expect(trimFull(host.textContent)).to.equal('');
+        await task.wait();
         expect(trimFull(host.textContent)).to.equal(expectedText);
       }
     });

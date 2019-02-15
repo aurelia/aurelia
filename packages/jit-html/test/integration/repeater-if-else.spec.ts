@@ -632,8 +632,8 @@ describe(spec, function () {
 
       const au = new Aurelia(container)
         .register(TestConfiguration)
-        .app({ host, component: Component, strategy })
-        .start();
+        .app({ host, component: Component, strategy });
+      au.start();
       const component = au.root();
 
       expect(trimFull(host.textContent)).to.equal(elseText.repeat(count));

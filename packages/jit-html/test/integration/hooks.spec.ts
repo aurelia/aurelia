@@ -270,23 +270,18 @@ describe('hooks', function () {
 
   it('attached task awaited indirectly', async function () {
 
-    const Foo = CustomElementResource.define({
-      name: 'foo',
-      template: `<template><div ref="div">bar</div></template>`
-    },                                       class {
-      public $lifecycle: ILifecycle;
-      public attaching() {
-        this.$lifecycle.registerTask({
-          done: false,
-          canCancel() { return false; },
-          cancel() { return; },
-          wait() {
-            this.done = true;
-            return Promise.resolve();
-          }
-        });
+    const Foo = CustomElementResource.define(
+      {
+        name: 'foo',
+        template: `<template><div ref="div">bar</div></template>`
+      },
+      class {
+        public $lifecycle: ILifecycle;
+        public async attaching() {
+          await Promise.resolve();
+        }
       }
-    });
+    );
 
     const App = CustomElementResource.define({
       name: 'app',
@@ -329,23 +324,18 @@ describe('hooks', function () {
 
   it('attached task awaited directly', async function () {
 
-    const Foo = CustomElementResource.define({
-      name: 'foo',
-      template: `<template><div ref="div">bar</div></template>`
-    },                                       class {
-      public $lifecycle: ILifecycle;
-      public attaching() {
-        this.$lifecycle.registerTask({
-          done: false,
-          canCancel() { return false; },
-          cancel() { return; },
-          wait() {
-            this.done = true;
-            return Promise.resolve();
-          }
-        });
+    const Foo = CustomElementResource.define(
+      {
+        name: 'foo',
+        template: `<template><div ref="div">bar</div></template>`
+      },
+      class {
+        public $lifecycle: ILifecycle;
+        public async attaching() {
+          await Promise.resolve();
+        }
       }
-    });
+    );
 
     const App = CustomElementResource.define({
       name: 'app',
@@ -354,7 +344,6 @@ describe('hooks', function () {
 
     const ctx = TestContext.createHTMLTestContext();
     ctx.container.register(Foo);
-    const lifecycle = ctx.lifecycle;
     const au = new Aurelia(ctx.container);
 
     const host = ctx.createElement('div');
@@ -362,9 +351,7 @@ describe('hooks', function () {
 
     au.app({ host, component });
 
-    lifecycle.beginAttach();
-    au.start();
-    let task = lifecycle.endAttach(LifecycleFlags.fromStartTask);
+    let task = au.start();
 
     expect(host.textContent).to.equal('');
 
@@ -376,9 +363,7 @@ describe('hooks', function () {
 
     expect(host.textContent).to.equal('');
 
-    lifecycle.beginAttach();
-    au.start();
-    task = lifecycle.endAttach(LifecycleFlags.fromStartTask);
+    task = au.start();
 
     expect(host.textContent).to.equal('');
 
@@ -393,23 +378,20 @@ describe('hooks', function () {
 
   it('attached task (triple then) awaited indirectly', async function () {
 
-    const Foo = CustomElementResource.define({
-      name: 'foo',
-      template: `<template><div ref="div">bar</div></template>`
-    },                                       class {
-      public $lifecycle: ILifecycle;
-      public attaching() {
-        this.$lifecycle.registerTask({
-          done: false,
-          canCancel() { return false; },
-          cancel() { return; },
-          wait() {
-            this.done = true;
-            return Promise.resolve().then(() => { return; }).then(() => { return; }).then(() => { return; });
-          }
-        });
+    const Foo = CustomElementResource.define(
+      {
+        name: 'foo',
+        template: `<template><div ref="div">bar</div></template>`
+      },
+      class {
+        public $lifecycle: ILifecycle;
+        public async attaching() {
+          await Promise.resolve();
+          await Promise.resolve();
+          await Promise.resolve();
+        }
       }
-    });
+    );
 
     const App = CustomElementResource.define({
       name: 'app',
@@ -460,23 +442,20 @@ describe('hooks', function () {
 
   it('attached task (triple then) awaited directly', async function () {
 
-    const Foo = CustomElementResource.define({
-      name: 'foo',
-      template: `<template><div ref="div">bar</div></template>`
-    },                                       class {
-      public $lifecycle: ILifecycle;
-      public attaching() {
-        this.$lifecycle.registerTask({
-          done: false,
-          canCancel() { return false; },
-          cancel() { return; },
-          wait() {
-            this.done = true;
-            return Promise.resolve().then(() => { return; }).then(() => {return; }).then(() => { return; });
-          }
-        });
+    const Foo = CustomElementResource.define(
+      {
+        name: 'foo',
+        template: `<template><div ref="div">bar</div></template>`
+      },
+      class {
+        public $lifecycle: ILifecycle;
+        public async attaching() {
+          await Promise.resolve();
+          await Promise.resolve();
+          await Promise.resolve();
+        }
       }
-    });
+    );
 
     const App = CustomElementResource.define({
       name: 'app',
@@ -485,7 +464,6 @@ describe('hooks', function () {
 
     const ctx = TestContext.createHTMLTestContext();
     ctx.container.register(Foo);
-    const lifecycle = ctx.lifecycle;
     const au = new Aurelia(ctx.container);
 
     const host = ctx.createElement('div');
@@ -493,9 +471,7 @@ describe('hooks', function () {
 
     au.app({ host, component });
 
-    lifecycle.beginAttach();
-    au.start();
-    let task = lifecycle.endAttach(LifecycleFlags.fromStartTask);
+    let task = au.start();
 
     expect(host.textContent).to.equal('');
 
@@ -507,9 +483,7 @@ describe('hooks', function () {
 
     expect(host.textContent).to.equal('');
 
-    lifecycle.beginAttach();
-    au.start();
-    task = lifecycle.endAttach(LifecycleFlags.fromStartTask);
+    task = au.start();
 
     expect(host.textContent).to.equal('');
 
@@ -524,23 +498,18 @@ describe('hooks', function () {
 
   it('detached task awaited indirectly', async function () {
 
-    const Foo = CustomElementResource.define({
-      name: 'foo',
-      template: `<template><div ref="div">bar</div></template>`
-    },                                       class {
-      public $lifecycle: ILifecycle;
-      public detaching() {
-        this.$lifecycle.registerTask({
-          done: false,
-          canCancel() { return false; },
-          cancel() { return; },
-          wait() {
-            this.done = true;
-            return Promise.resolve();
-          }
-        });
+    const Foo = CustomElementResource.define(
+      {
+        name: 'foo',
+        template: `<template><div ref="div">bar</div></template>`
+      },
+      class {
+        public $lifecycle: ILifecycle;
+        public async detaching() {
+          await Promise.resolve();
+        }
       }
-    });
+    );
 
     const App = CustomElementResource.define({
       name: 'app',
@@ -549,7 +518,6 @@ describe('hooks', function () {
 
     const ctx = TestContext.createHTMLTestContext();
     ctx.container.register(Foo);
-    const lifecycle = ctx.lifecycle;
     const au = new Aurelia(ctx.container);
 
     const host = ctx.createElement('div');
@@ -561,9 +529,7 @@ describe('hooks', function () {
 
     expect(host.textContent).to.equal('bar');
 
-    lifecycle.beginDetach();
     au.stop();
-    lifecycle.endDetach(LifecycleFlags.fromStopTask);
 
     expect(host.textContent).to.equal('bar');
     await Promise.resolve();
@@ -573,9 +539,7 @@ describe('hooks', function () {
 
     expect(host.textContent).to.equal('bar');
 
-    lifecycle.beginDetach();
     au.stop();
-    lifecycle.endDetach(LifecycleFlags.fromStopTask);
 
     expect(host.textContent).to.equal('bar');
     await Promise.resolve();
@@ -585,23 +549,18 @@ describe('hooks', function () {
 
   it('detached task awaited directly', async function () {
 
-    const Foo = CustomElementResource.define({
-      name: 'foo',
-      template: `<template><div ref="div">bar</div></template>`
-    },                                       class {
-      public $lifecycle: ILifecycle;
-      public detaching() {
-        this.$lifecycle.registerTask({
-          done: false,
-          canCancel() { return false; },
-          cancel() { return; },
-          wait() {
-            this.done = true;
-            return Promise.resolve();
-          }
-        });
+    const Foo = CustomElementResource.define(
+      {
+        name: 'foo',
+        template: `<template><div ref="div">bar</div></template>`
+      },
+      class {
+        public $lifecycle: ILifecycle;
+        public async detaching() {
+          await Promise.resolve();
+        }
       }
-    });
+    );
 
     const App = CustomElementResource.define({
       name: 'app',
@@ -610,7 +569,6 @@ describe('hooks', function () {
 
     const ctx = TestContext.createHTMLTestContext();
     ctx.container.register(Foo);
-    const lifecycle = ctx.lifecycle;
     const au = new Aurelia(ctx.container);
 
     const host = ctx.createElement('div');
@@ -618,25 +576,19 @@ describe('hooks', function () {
 
     au.app({ host, component });
 
-    au.start();
+    let task = au.start();
 
     expect(host.textContent).to.equal('bar');
 
-    lifecycle.beginDetach();
     au.stop();
-    let task = lifecycle.endDetach(LifecycleFlags.fromStopTask);
 
-    expect(host.textContent).to.equal('bar');
     await task.wait();
-    expect(host.textContent).to.equal('');
 
-    au.start();
+    task = au.start();
 
     expect(host.textContent).to.equal('bar');
 
-    lifecycle.beginDetach();
     au.stop();
-    task = lifecycle.endDetach(LifecycleFlags.fromStopTask);
 
     expect(host.textContent).to.equal('bar');
     await task.wait();
@@ -646,23 +598,20 @@ describe('hooks', function () {
 
   it('detached task (triple then) awaited indirectly', async function () {
 
-    const Foo = CustomElementResource.define({
-      name: 'foo',
-      template: `<template><div ref="div">bar</div></template>`
-    },                                       class {
-      public $lifecycle: ILifecycle;
-      public detaching() {
-        this.$lifecycle.registerTask({
-          done: false,
-          canCancel() { return false; },
-          cancel() { return; },
-          wait() {
-            this.done = true;
-            return Promise.resolve().then(() => { return; }).then(() => { return; }).then(() => { return; });
-          }
-        });
+    const Foo = CustomElementResource.define(
+      {
+        name: 'foo',
+        template: `<template><div ref="div">bar</div></template>`
+      },
+      class {
+        public $lifecycle: ILifecycle;
+        public async detaching() {
+          await Promise.resolve();
+          await Promise.resolve();
+          await Promise.resolve();
+        }
       }
-    });
+    );
 
     const App = CustomElementResource.define({
       name: 'app',
@@ -710,23 +659,20 @@ describe('hooks', function () {
 
   it('detached task (triple then) awaited directly', async function () {
 
-    const Foo = CustomElementResource.define({
-      name: 'foo',
-      template: `<template><div ref="div">bar</div></template>`
-    },                                       class {
-      public $lifecycle: ILifecycle;
-      public detaching() {
-        this.$lifecycle.registerTask({
-          done: false,
-          canCancel() { return false; },
-          cancel() { return; },
-          wait() {
-            this.done = true;
-            return Promise.resolve().then(() => { return; }).then(() => { return; }).then(() => {return; });
-          }
-        });
+    const Foo = CustomElementResource.define(
+      {
+        name: 'foo',
+        template: `<template><div ref="div">bar</div></template>`
+      },
+      class {
+        public $lifecycle: ILifecycle;
+        public async detaching() {
+          await Promise.resolve();
+          await Promise.resolve();
+          await Promise.resolve();
+        }
       }
-    });
+    );
 
     const App = CustomElementResource.define({
       name: 'app',
@@ -735,7 +681,6 @@ describe('hooks', function () {
 
     const ctx = TestContext.createHTMLTestContext();
     ctx.container.register(Foo);
-    const lifecycle = ctx.lifecycle;
     const au = new Aurelia(ctx.container);
 
     const host = ctx.createElement('div');
@@ -743,13 +688,11 @@ describe('hooks', function () {
 
     au.app({ host, component });
 
-    au.start();
+    let task = au.start();
 
     expect(host.textContent).to.equal('bar');
 
-    lifecycle.beginDetach();
     au.stop();
-    let task = lifecycle.endDetach(LifecycleFlags.fromStopTask);
 
     expect(host.textContent).to.equal('bar');
     await task.wait();
@@ -759,9 +702,7 @@ describe('hooks', function () {
 
     expect(host.textContent).to.equal('bar');
 
-    lifecycle.beginDetach();
-    au.stop();
-    task = lifecycle.endDetach(LifecycleFlags.fromStopTask);
+    task = au.stop();
 
     expect(host.textContent).to.equal('bar');
     await task.wait();

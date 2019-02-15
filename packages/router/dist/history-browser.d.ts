@@ -20,7 +20,6 @@ export interface INavigationFlags {
     isForward?: boolean;
     isBack?: boolean;
     isReplace?: boolean;
-    isCancel?: boolean;
     isRepeat?: boolean;
 }
 export interface INavigationInstruction extends IHistoryEntry, INavigationFlags {
@@ -38,7 +37,6 @@ export declare class HistoryBrowser {
     private isActive;
     private lastHistoryMovement;
     private cancelRedirectHistoryMovement;
-    private isCancelling;
     private isReplacing;
     private isRefreshing;
     constructor();

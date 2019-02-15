@@ -138,12 +138,7 @@ this.au.router = (function (exports, kernel, runtime) {
                   if (this.isReplacing) {
                       this.lastHistoryMovement = 0;
                       this.historyEntries[this.currentEntry.index] = this.currentEntry;
-                      if (this.isCancelling) {
-                          navigationFlags.isCancel = true;
-                          this.isCancelling = false;
-                          // Prevent another cancel by clearing lastHistoryMovement?
-                      }
-                      else if (this.isRefreshing) {
+                      if (this.isRefreshing) {
                           navigationFlags.isRefresh = true;
                           this.isRefreshing = false;
                       }
@@ -206,11 +201,6 @@ this.au.router = (function (exports, kernel, runtime) {
                   this.lastHistoryMovement = (this.currentEntry ? historyEntry.index - this.currentEntry.index : 0);
                   previousEntry = this.currentEntry;
                   this.currentEntry = historyEntry;
-                  if (this.isCancelling) {
-                      navigationFlags.isCancel = true;
-                      this.isCancelling = false;
-                      // Prevent another cancel by clearing lastHistoryMovement?
-                  }
               }
               this.activeEntry = null;
               if (this.cancelRedirectHistoryMovement) {
@@ -230,7 +220,6 @@ this.au.router = (function (exports, kernel, runtime) {
           this.isActive = false;
           this.lastHistoryMovement = null;
           this.cancelRedirectHistoryMovement = null;
-          this.isCancelling = false;
           this.isReplacing = false;
           this.isRefreshing = false;
       }
@@ -287,10 +276,10 @@ this.au.router = (function (exports, kernel, runtime) {
           return this.history.go(1);
       }
       cancel() {
-          this.isCancelling = true;
           const movement = this.lastHistoryMovement || this.cancelRedirectHistoryMovement;
           if (movement) {
-              return this.history.go(-movement);
+              this.lastHistoryMovement = 0;
+              return this.history.go(-movement, true);
           }
           else {
               return this.replace(this.replacedEntry.path, this.replacedEntry.title, this.replacedEntry.data);
@@ -2043,10 +2032,6 @@ this.au.router = (function (exports, kernel, runtime) {
           if (this.options.reportCallback) {
               this.options.reportCallback(instruction);
           }
-          if (instruction.isCancel) {
-              this.processingNavigation = null;
-              return this.processNavigations();
-          }
           let fullStateInstruction = false;
           if ((instruction.isBack || instruction.isForward) && instruction.fullStatePath) {
               instruction.path = instruction.fullStatePath;
@@ -2277,6 +2262,7 @@ this.au.router = (function (exports, kernel, runtime) {
           return this.navs[name];
       }
       async cancelNavigation(updatedViewports, instruction) {
+          // TODO: Take care of disabling viewports when cancelling and stateful!
           updatedViewports.forEach((viewport) => {
               viewport.abortContentChange().catch(error => { throw error; });
           });

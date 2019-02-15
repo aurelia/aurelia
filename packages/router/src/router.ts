@@ -39,7 +39,6 @@ export class Router {
 
   private options: IRouterOptions;
   private isActive: boolean = false;
-  private isRedirecting: boolean = false;
 
   private readonly pendingNavigations: INavigationInstruction[] = [];
   private processingNavigation: INavigationInstruction = null;
@@ -194,16 +193,6 @@ export class Router {
         if (vp.setNextContent(vp.options.default, instruction)) {
           changedViewports.push(vp);
         }
-      }
-
-      // We've gone via a redirected route back to same viewport status so
-      // we need to remove the added history entry for the redirect
-      // TODO: Take care of empty subsets/iterations where previous has length
-      if (!changedViewports.length && this.isRedirecting) {
-        const result = this.cancelNavigation([...changedViewports, ...updatedViewports], instruction);
-        this.isRedirecting = false;
-        await this.processNavigations();
-        return result;
       }
 
       let results = await Promise.all(changedViewports.map((value) => value.canLeave()));

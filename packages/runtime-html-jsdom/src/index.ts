@@ -1,10 +1,10 @@
-import { DI, IContainer, IRegistry, IResolver, Registration } from '@aurelia/kernel';
+import { DI, IContainer, InjectArray, IRegistry, IResolver, Registration } from '@aurelia/kernel';
 import { IDOM, IDOMInitializer, ISinglePageApp } from '@aurelia/runtime';
 import { BasicConfiguration as RuntimeHtmlConfiguration, HTMLDOM } from '@aurelia/runtime-html';
 import { JSDOM } from 'jsdom';
 
 class JSDOMInitializer implements IDOMInitializer {
-  public static inject: unknown[] = [IContainer];
+  public static readonly inject: InjectArray = [IContainer];
 
   private readonly container: IContainer;
   private readonly jsdom: JSDOM;

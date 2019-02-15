@@ -41,7 +41,6 @@ export declare class HistoryBrowser {
     private isCancelling;
     private isReplacing;
     private isRefreshing;
-    private ignorePathChange?;
     constructor();
     activate(options?: IHistoryOptions): Promise<void>;
     deactivate(): void;

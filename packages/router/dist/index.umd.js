@@ -125,13 +125,6 @@
   class HistoryBrowser {
       constructor() {
           this.pathChanged = async () => {
-              if (this.ignorePathChange !== null) {
-                  kernel.Reporter.write(10000, '=== ignore path change', this.getPath());
-                  const resolve = this.ignorePathChange;
-                  this.ignorePathChange = null;
-                  resolve();
-                  return;
-              }
               const path = this.getPath();
               const search = this.getSearch();
               kernel.Reporter.write(10000, 'path changed to', path, this.activeEntry, this.currentEntry);
@@ -242,7 +235,6 @@
           this.isCancelling = false;
           this.isReplacing = false;
           this.isRefreshing = false;
-          this.ignorePathChange = null;
       }
       activate(options) {
           if (this.isActive) {
@@ -307,30 +299,12 @@
           }
       }
       async pop() {
-          let state;
-          // let newHash = `#/${Date.now()}`;
-          // let { pathname, search, hash } = this.location;
-          // state = this.history.state;
-          // await this.history.replaceState(state, null, `${pathname}${search}${newHash}`);
-          // tslint:disable-next-line:promise-must-complete
-          let goPathChangeTriggered = new Promise((resolve, reject) => {
-              this.ignorePathChange = resolve;
-          });
-          await this.history.go(-1);
-          await goPathChangeTriggered;
+          await this.history.go(-1, true);
           const path = this.location.toString();
-          state = this.history.state;
+          const state = this.history.state;
           // TODO: Fix browser forward bug after pop on first entry
           if (!state.HistoryEntry.firstEntry) {
-              // let newHash = `#/${Date.now()}`;
-              // let { pathname, search, hash } = this.location;
-              // await this.history.replaceState(state, null, `${pathname}${search}${newHash}`);
-              // tslint:disable-next-line:promise-must-complete
-              goPathChangeTriggered = new Promise((resolve, reject) => {
-                  this.ignorePathChange = resolve;
-              });
-              await this.history.go(-1);
-              await goPathChangeTriggered;
+              await this.history.go(-1, true);
               return this.history.pushState(state, null, path);
           }
       }
@@ -1378,8 +1352,8 @@
           // Don't terminate cached content
           if (!stateful) {
               this.component.$unbind(1024 /* fromStopTask */ | 4096 /* fromUnbind */);
+              this.contentStatus = 1 /* loaded */;
           }
-          this.contentStatus = 1 /* loaded */;
       }
       addComponent(element) {
           this.component.$attach(512 /* fromStartTask */);

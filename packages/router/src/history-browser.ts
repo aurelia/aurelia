@@ -23,7 +23,6 @@ export interface INavigationFlags {
   isForward?: boolean;
   isBack?: boolean;
   isReplace?: boolean;
-  isCancel?: boolean;
   isRepeat?: boolean;
 }
 
@@ -47,7 +46,6 @@ export class HistoryBrowser {
 
   private lastHistoryMovement: number;
   private cancelRedirectHistoryMovement: number;
-  private isCancelling: boolean;
   private isReplacing: boolean;
   private isRefreshing: boolean;
 
@@ -67,7 +65,6 @@ export class HistoryBrowser {
 
     this.lastHistoryMovement = null;
     this.cancelRedirectHistoryMovement = null;
-    this.isCancelling = false;
     this.isReplacing = false;
     this.isRefreshing = false;
   }
@@ -135,10 +132,10 @@ export class HistoryBrowser {
   }
 
   public cancel(): Promise<void> {
-    this.isCancelling = true;
     const movement = this.lastHistoryMovement || this.cancelRedirectHistoryMovement;
     if (movement) {
-      return this.history.go(-movement);
+      this.lastHistoryMovement = 0;
+      return this.history.go(-movement, true);
     } else {
       return this.replace(this.replacedEntry.path, this.replacedEntry.title, this.replacedEntry.data);
     }
@@ -235,11 +232,7 @@ export class HistoryBrowser {
       if (this.isReplacing) {
         this.lastHistoryMovement = 0;
         this.historyEntries[this.currentEntry.index] = this.currentEntry;
-        if (this.isCancelling) {
-          navigationFlags.isCancel = true;
-          this.isCancelling = false;
-          // Prevent another cancel by clearing lastHistoryMovement?
-        } else if (this.isRefreshing) {
+        if (this.isRefreshing) {
           navigationFlags.isRefresh = true;
           this.isRefreshing = false;
         } else {
@@ -296,12 +289,6 @@ export class HistoryBrowser {
       this.lastHistoryMovement = (this.currentEntry ? historyEntry.index - this.currentEntry.index : 0);
       previousEntry = this.currentEntry;
       this.currentEntry = historyEntry;
-
-      if (this.isCancelling) {
-        navigationFlags.isCancel = true;
-        this.isCancelling = false;
-        // Prevent another cancel by clearing lastHistoryMovement?
-      }
     }
     this.activeEntry = null;
 

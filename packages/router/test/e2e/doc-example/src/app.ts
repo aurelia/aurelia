@@ -23,8 +23,19 @@ import { State } from './state';
       and the navigation is rolled back after 2 seconds.)
     </div>
     <div class="info">
-    <label><input type="checkbox" checked.two-way="state.noDelay">Disable loading delays for components</label><br>
-    <label><input type="checkbox" checked.two-way="state.allowEnterAuthorDetails">Allow entering <i>Author details</i></label><br>
+      <label><input type="checkbox" checked.two-way="state.noDelay">Disable loading delays for components</label><br>
+      <label><input type="checkbox" checked.two-way="state.allowEnterAuthorDetails">Allow entering <i>Author details</i></label><br>
+    </div>
+    <div class="info">
+      <select value.two-way="color">
+        <option value="yellow">Yellow</option>
+        <option value="green">Green</option>
+      <select>
+      <div style="--primary-color: \${color}">
+        <div style="background-color: var(--primary-color)">
+          The background is in the --primary-color: \${color}.
+        </div>
+      </div>
     </div>
     <au-viewport name="lists" used-by="authors,books" default="authors"></au-viewport>
     <au-viewport name="content" stateful default="about"></au-viewport>
@@ -33,6 +44,7 @@ import { State } from './state';
 </template>
 ` })
 export class App {
+  public color: string = 'green';
   constructor(private readonly router: Router, authorsRepository: AuthorsRepository, private readonly state: State) {
     authorsRepository.authors(); // Only here to initialize repositories
     this.router.activate({
@@ -49,7 +61,7 @@ export class App {
       //   const parts = path.split('/');
       //   while (parts.length) {
       //     const component = parts.shift();
-      //     const state: IComponentViewportParameters = { component: component };
+      //     const state: ViewportInstruction = { component: component };
       //     // Components in "lists" viewport can't have parameters so continue
       //     if (listsComponents.indexOf(component) >= 0) {
       //       states.push(state);
@@ -63,7 +75,7 @@ export class App {
       //   }
       //   return states;
       // },
-      // transformToUrl: (states: IComponentViewportParameters[], router) => {
+      // transformToUrl: (states: ViewportInstruction[], router) => {
       //   const parts = [];
       //   for (const state of states) {
       //     parts.push(state.component);
@@ -77,20 +89,20 @@ export class App {
     this.router.addNav('app-menu', [
       {
         title: 'Authors',
-        components: [Authors, About],
+        route: [Authors, About],
         consideredActive: [Authors],
       },
       {
         title: 'Books',
-        components: [Books, About],
+        route: [Books, About],
         consideredActive: Books,
       },
       {
-        components: About,
+        route: About,
         title: 'About',
       },
       {
-        components: 'chat',
+        route: 'chat',
         title: 'Chat',
       },
     ]);

@@ -25,7 +25,6 @@
     "test-firefox": "cross-env TS_NODE_PROJECT=\"scripts/tsconfig.json\" karma start scripts/karma.conf.ts --browsers=FirefoxHeadless --single-run",
     "test:watch": "cross-env TS_NODE_PROJECT=\"scripts/tsconfig.json\" karma start scripts/karma.conf.ts --browsers=ChromeHeadlessOpt --coverage",
     "test:debugger": "cross-env TS_NODE_PROJECT=\"scripts/tsconfig.json\" karma start scripts/karma.conf.ts --browsers=ChromeDebugging",
-    "test:e2e": "cypress open",
     "lint": "lerna run lint",
     "lint:src": "lerna run lint:src",
     "lint:test": "lerna run lint:test",

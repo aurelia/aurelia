@@ -22,6 +22,9 @@ export class QueuedBrowserHistory implements QueuedBrowserHistory {
   private currentHistoryActivity: QueueItem;
   private callback: (ev?: PopStateEvent) => void;
 
+  private goResolve: ((value?: void | PromiseLike<void>) => void);
+  private suppressPopstateResolve: ((value?: void | PromiseLike<void>) => void);
+
   constructor() {
     this.window = window;
     this.history = window.history;
@@ -29,6 +32,8 @@ export class QueuedBrowserHistory implements QueuedBrowserHistory {
     this.isActive = false;
     this.currentHistoryActivity = null;
     this.callback = null;
+    this.goResolve = null;
+    this.suppressPopstateResolve = null;
   }
 
   public activate(callback: (ev?: PopStateEvent) => void): void {
@@ -58,8 +63,13 @@ export class QueuedBrowserHistory implements QueuedBrowserHistory {
     return this.history.scrollRestoration;
   }
 
-  public async go(delta?: number): Promise<void> {
-    await this.enqueue(this.history, 'go', [delta]);
+  public async go(delta?: number, suppressPopstate: boolean = false): Promise<void> {
+    if (!suppressPopstate) {
+      return this.enqueue(this, '_go', [delta], true);
+    }
+    const promise = this.enqueue(this, 'suppressPopstate', [], true);
+    this.enqueue(this.history, 'go', [delta]).catch(error => { throw error; });
+    return promise;
   }
   public back(): Promise<void> {
     return this.go(-1);
@@ -70,28 +80,53 @@ export class QueuedBrowserHistory implements QueuedBrowserHistory {
 
   // tslint:disable-next-line:no-any - typed according to DOM
   public async pushState(data: any, title: string, url?: string | null): Promise<void> {
-    await this.enqueue(this.history, 'pushState', [data, title, url]);
+    return this.enqueue(this.history, 'pushState', [data, title, url]);
   }
 
   // tslint:disable-next-line:no-any - typed according to DOM
   public async replaceState(data: any, title: string, url?: string | null): Promise<void> {
-    await this.enqueue(this.history, 'replaceState', [data, title, url]);
+    return this.enqueue(this.history, 'replaceState', [data, title, url]);
   }
 
   private readonly handlePopstate = async (ev: PopStateEvent): Promise<void> => {
-    await this.enqueue(this, 'popstate', [ev]);
+    return this.enqueue(this, 'popstate', [ev]);
   }
 
-  private popstate(ev: PopStateEvent): void {
-    this.callback(ev);
+  private async popstate(ev: PopStateEvent): Promise<void> {
+    if (!this.suppressPopstateResolve) {
+      if (this.goResolve) {
+        const resolve = this.goResolve;
+        this.goResolve = null;
+        resolve();
+        await Promise.resolve();
+      }
+      this.callback(ev);
+    } else {
+      const resolve = this.suppressPopstateResolve;
+      this.suppressPopstateResolve = null;
+      resolve();
+    }
   }
 
-  private enqueue(target: object, methodName: string, parameters: unknown[]): Promise<void> {
+  private _go(delta: number, resolve: ((value?: void | PromiseLike<void>) => void)): void {
+    this.goResolve = resolve;
+    this.history.go(delta);
+  }
+
+  private suppressPopstate(resolve: ((value?: void | PromiseLike<void>) => void)): void {
+    this.suppressPopstateResolve = resolve;
+  }
+
+  private enqueue(target: object, methodName: string, parameters: unknown[], resolveInParameters: boolean = false): Promise<void> {
     let _resolve;
     // tslint:disable-next-line:promise-must-complete
     const promise: Promise<void> = new Promise((resolve) => {
       _resolve = resolve;
     });
+    if (resolveInParameters) {
+      parameters.push(_resolve);
+      _resolve = null;
+    }
     this.queue.push({
       target: target,
       methodName: methodName,
@@ -111,6 +146,8 @@ export class QueuedBrowserHistory implements QueuedBrowserHistory {
     method.apply(this.currentHistoryActivity.target, this.currentHistoryActivity.parameters);
     const resolve = this.currentHistoryActivity.resolve;
     this.currentHistoryActivity = null;
-    resolve();
+    if (resolve) {
+      resolve();
+    }
   }
 }

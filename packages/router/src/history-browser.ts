@@ -45,7 +45,6 @@ export class HistoryBrowser {
   private isActive: boolean;
 
   private lastHistoryMovement: number;
-  private cancelRedirectHistoryMovement: number;
   private isReplacing: boolean;
   private isRefreshing: boolean;
 
@@ -64,7 +63,6 @@ export class HistoryBrowser {
     this.isActive = false;
 
     this.lastHistoryMovement = null;
-    this.cancelRedirectHistoryMovement = null;
     this.isReplacing = false;
     this.isRefreshing = false;
   }
@@ -109,11 +107,6 @@ export class HistoryBrowser {
     };
     return this.setPath(path, true);
   }
-  public redirect(path: string, title?: string, data?: Record<string, unknown>): Promise<void> {
-    // This makes sure we can cancel redirects from both pushes and replaces
-    this.cancelRedirectHistoryMovement = this.lastHistoryMovement + 1;
-    return this.replace(path, title, data);
-  }
 
   public async refresh(): Promise<void> {
     if (!this.currentEntry) {
@@ -132,7 +125,7 @@ export class HistoryBrowser {
   }
 
   public cancel(): Promise<void> {
-    const movement = this.lastHistoryMovement || this.cancelRedirectHistoryMovement;
+    const movement = this.lastHistoryMovement;
     if (movement) {
       this.lastHistoryMovement = 0;
       return this.history.go(-movement, true);
@@ -291,10 +284,6 @@ export class HistoryBrowser {
       this.currentEntry = historyEntry;
     }
     this.activeEntry = null;
-
-    if (this.cancelRedirectHistoryMovement) {
-      this.cancelRedirectHistoryMovement--;
-    }
 
     Reporter.write(10000, 'navigated', this.getState('HistoryEntry'), this.historyEntries, this.getState('HistoryOffset'));
     this.callback(this.currentEntry, navigationFlags, previousEntry);

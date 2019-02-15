@@ -1,5 +1,5 @@
 import { expect } from 'chai';
-import { Hooks, LifecycleFlags as LF, Scope, State } from '../../src/index';
+import { Hooks, LifecycleFlags as LF, LifecycleTask, Scope, State } from '../../src/index';
 import { createCustomAttribute, CustomAttribute } from '../resources/custom-attribute._builder';
 import { eachCartesianJoin } from '../util';
 
@@ -193,6 +193,7 @@ describe('@customAttribute', function () {
         sut.$unbind = flags2 => {
           unbindCalled = true;
           unbindFlags = flags2;
+          return LifecycleTask.done;
         };
 
         // Act

@@ -20,7 +20,8 @@ describe(spec, function () {
     const ctx = TestContext.createHTMLTestContext();
     const component = CustomElementResource.define({ name: 'app', template: `<template>\${message}</template>` }, class { public message = 'Hello!'; });
     const host = ctx.createElement('div');
-    const au = new Aurelia(ctx.container).register().app({ host, component }).start();
+    const au = new Aurelia(ctx.container).register().app({ host, component });
+    au.start();
     expect(host.textContent).to.equal('Hello!');
     au.stop();
     expect(host.textContent).to.equal('');

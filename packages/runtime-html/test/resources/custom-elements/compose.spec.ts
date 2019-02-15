@@ -1,4 +1,4 @@
-import { CustomElementResource, IComponent, ITemplateDefinition, IViewFactory, LifecycleFlags } from '@aurelia/runtime';
+import { CustomElementResource, IComponent, ITemplateDefinition, IViewFactory, LifecycleFlags, LifecycleTask } from '@aurelia/runtime';
 import { expect } from 'chai';
 import { Compose, RenderPlan } from '../../../src/index';
 import { FakeViewFactory } from '../../_doubles/fake-view-factory';
@@ -243,10 +243,14 @@ describe('The "compose" custom element', function () {
           view1.$detach = function () {
             detachCalled = true;
             detach.apply(view1, [LifecycleFlags.none]);
+            return LifecycleTask.done;
           };
 
           let unbindCalled = false;
-          view1.$unbind = function () { unbindCalled = true; };
+          view1.$unbind = function () {
+            unbindCalled = true;
+            return LifecycleTask.done;
+          };
 
           waitForCompositionEnd(
             element,

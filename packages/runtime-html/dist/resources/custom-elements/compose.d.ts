@@ -1,4 +1,4 @@
-import { Constructable, Immutable, InterfaceSymbol, IRegistry } from '@aurelia/kernel';
+import { Constructable, Immutable, InjectArray, IRegistry } from '@aurelia/kernel';
 import { CompositionCoordinator, ICustomElement, ICustomElementResource, IDOM, IHydrateElementInstruction, INode, IRenderable, IRenderingEngine, IView, IViewFactory, LifecycleFlags, TemplateDefinition } from '@aurelia/runtime';
 import { RenderPlan } from '../../create-element';
 export declare type Subject<T extends INode = Node> = IViewFactory<T> | IView<T> | RenderPlan<T> | Constructable | TemplateDefinition;
@@ -6,7 +6,7 @@ export declare type MaybeSubjectPromise<T> = Subject<T> | Promise<Subject<T>> | 
 export interface Compose<T extends INode = Node> extends ICustomElement<T> {
 }
 export declare class Compose<T extends INode = Node> implements Compose<T> {
-    static readonly inject: ReadonlyArray<InterfaceSymbol | Constructable>;
+    static readonly inject: InjectArray;
     static readonly register: IRegistry['register'];
     static readonly kind: ICustomElementResource<Node>;
     static readonly description: TemplateDefinition;

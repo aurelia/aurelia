@@ -1,4 +1,4 @@
-import { IContainer, InterfaceSymbol } from '@aurelia/kernel';
+import { IContainer, InjectArray } from '@aurelia/kernel';
 import { ICustomElementType, IRenderContext } from '@aurelia/runtime';
 import { HistoryBrowser, IHistoryOptions, INavigationInstruction } from './history-browser';
 import { InstructionResolver, IRouteSeparators } from './instruction-resolver';
@@ -19,7 +19,7 @@ export interface IRouteViewport {
 }
 export declare class Router {
     container: IContainer;
-    static readonly inject: ReadonlyArray<InterfaceSymbol>;
+    static readonly inject: InjectArray;
     rootScope: Scope;
     scopes: Scope[];
     historyBrowser: HistoryBrowser;

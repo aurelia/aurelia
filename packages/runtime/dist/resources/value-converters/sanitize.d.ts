@@ -1,4 +1,4 @@
-import { InterfaceSymbol, IRegistry } from '@aurelia/kernel';
+import { InjectArray, IRegistry } from '@aurelia/kernel';
 export interface ISanitizer {
     /**
      * Sanitizes the provided input.
@@ -6,12 +6,12 @@ export interface ISanitizer {
      */
     sanitize(input: string): string;
 }
-export declare const ISanitizer: InterfaceSymbol<ISanitizer>;
+export declare const ISanitizer: import("@aurelia/kernel").InterfaceSymbol<ISanitizer>;
 /**
  * Simple html sanitization converter to preserve whitelisted elements and attributes on a bound property containing html.
  */
 export declare class SanitizeValueConverter {
-    static readonly inject: ReadonlyArray<InterfaceSymbol>;
+    static readonly inject: InjectArray;
     static register: IRegistry['register'];
     private readonly sanitizer;
     constructor(sanitizer: ISanitizer);

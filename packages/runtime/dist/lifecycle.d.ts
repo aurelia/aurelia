@@ -1,4 +1,4 @@
-import { IContainer, IDisposable, Immutable, InterfaceSymbol, IResolver, IServiceLocator } from '@aurelia/kernel';
+import { IContainer, IDisposable, Immutable, InjectArray, IResolver, IServiceLocator } from '@aurelia/kernel';
 import { ITargetedInstruction, TemplateDefinition, TemplatePartDefinitions } from './definitions';
 import { INode, INodeSequence, IRenderLocation } from './dom';
 import { Hooks, LifecycleFlags, State } from './flags';
@@ -49,7 +49,7 @@ export interface IRenderable<T extends INode = INode> extends IState {
      */
     readonly $scope: IScope;
 }
-export declare const IRenderable: InterfaceSymbol<IRenderable<INode>>;
+export declare const IRenderable: import("@aurelia/kernel").InterfaceSymbol<IRenderable<INode>>;
 export interface IRenderContext<T extends INode = INode> extends IServiceLocator {
     createChild(): IRenderContext<T>;
     render(flags: LifecycleFlags, renderable: IRenderable<T>, targets: ArrayLike<object>, templateDefinition: TemplateDefinition, host?: T, parts?: TemplatePartDefinitions): void;
@@ -90,7 +90,7 @@ export interface IViewFactory<T extends INode = INode> extends IViewCache<T> {
     readonly name: string;
     create(flags?: LifecycleFlags): IView<T>;
 }
-export declare const IViewFactory: InterfaceSymbol<IViewFactory<INode>>;
+export declare const IViewFactory: import("@aurelia/kernel").InterfaceSymbol<IViewFactory<INode>>;
 /**
  * Defines optional lifecycle hooks that will be called only when they are implemented.
  */
@@ -374,9 +374,9 @@ export interface ILifecycle {
     registerTask(task: ILifecycleTask): void;
     finishTask(task: ILifecycleTask): void;
 }
-export declare const ILifecycle: InterfaceSymbol<ILifecycle>;
+export declare const ILifecycle: import("@aurelia/kernel").InterfaceSymbol<ILifecycle>;
 export declare class CompositionCoordinator {
-    static readonly inject: ReadonlyArray<InterfaceSymbol>;
+    static readonly inject: InjectArray;
     readonly $lifecycle: ILifecycle;
     onSwapComplete: () => void;
     private currentView;

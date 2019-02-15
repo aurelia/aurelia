@@ -1,11 +1,11 @@
-import { Constructable, InterfaceSymbol } from '@aurelia/kernel';
+import { InjectArray } from '@aurelia/kernel';
 import { ICustomElement, IElementTemplateProvider, INode, IRenderContext, IRenderingEngine, LifecycleFlags, TemplateDefinition } from '@aurelia/runtime';
 import { Router } from '../router';
 import { Viewport } from '../viewport';
 export interface ViewportCustomElement extends ICustomElement<Element> {
 }
 export declare class ViewportCustomElement {
-    static readonly inject: ReadonlyArray<InterfaceSymbol | Constructable>;
+    static readonly inject: InjectArray;
     name: string;
     scope: boolean;
     usedBy: string;

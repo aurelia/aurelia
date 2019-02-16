@@ -1,4 +1,4 @@
-import { InterfaceSymbol, PLATFORM } from '@aurelia/kernel';
+import { InjectArray, PLATFORM } from '@aurelia/kernel';
 import { DOM, IDOM } from '@aurelia/runtime';
 import { HTMLDOM } from '@aurelia/runtime-html';
 import { HttpClientConfiguration } from './http-client-configuration';
@@ -11,7 +11,7 @@ const absoluteUrlRegexp = /^([a-z][a-z0-9+\-.]*:)?\/\//i;
  * An HTTP client based on the Fetch API.
  */
 export class HttpClient {
-  public static readonly inject: InterfaceSymbol[] = [IDOM];
+  public static readonly inject: InjectArray = [IDOM];
 
   /**
    * The current number of active requests.

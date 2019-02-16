@@ -1,4 +1,4 @@
-import { InterfaceSymbol, IRegistry } from '@aurelia/kernel';
+import { InjectArray, IRegistry } from '@aurelia/kernel';
 import { ForOfStatement } from '../../binding/ast';
 import { Binding } from '../../binding/binding';
 import { AttributeDefinition, IAttributeDefinition } from '../../definitions';
@@ -14,7 +14,7 @@ import { CustomAttributeResource, ICustomAttribute, ICustomAttributeResource } f
 
 export interface Repeat<C extends ObservedCollection, T extends INode = INode> extends ICustomAttribute<T>, IBatchedCollectionSubscriber {}
 export class Repeat<C extends ObservedCollection = IObservedArray, T extends INode = INode> implements Repeat<C, T> {
-  public static readonly inject: ReadonlyArray<InterfaceSymbol> = [IRenderLocation, IRenderable, IViewFactory];
+  public static readonly inject: InjectArray = [IRenderLocation, IRenderable, IViewFactory];
 
   public static readonly register: IRegistry['register'];
   public static readonly bindables: IAttributeDefinition['bindables'];

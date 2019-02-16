@@ -1,6 +1,7 @@
 import {
   Constructable,
   IContainer,
+  InjectArray,
   IResolver,
   PLATFORM,
   Registration,
@@ -472,7 +473,7 @@ export class AuMarker implements INode {
 
 /** @internal */
 export class HTMLTemplateFactory implements ITemplateFactory {
-  public static inject: unknown[] = [IDOM];
+  public static readonly inject: InjectArray = [IDOM];
 
   private readonly dom: IDOM;
 

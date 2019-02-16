@@ -1,4 +1,4 @@
-import { IContainer, InterfaceSymbol, Reporter } from '@aurelia/kernel';
+import { IContainer, InjectArray, Reporter } from '@aurelia/kernel';
 import { Aurelia, ICustomElementType, IRenderContext } from '@aurelia/runtime';
 import { HistoryBrowser, IHistoryOptions, INavigationInstruction } from './history-browser';
 import { InstructionResolver, IRouteSeparators } from './instruction-resolver';
@@ -23,7 +23,7 @@ export interface IRouteViewport {
 }
 
 export class Router {
-  public static readonly inject: ReadonlyArray<InterfaceSymbol> = [IContainer];
+  public static readonly inject: InjectArray = [IContainer];
 
   public rootScope: Scope;
   public scopes: Scope[] = [];
@@ -39,7 +39,6 @@ export class Router {
 
   private options: IRouterOptions;
   private isActive: boolean = false;
-  private isRedirecting: boolean = false;
 
   private readonly pendingNavigations: INavigationInstruction[] = [];
   private processingNavigation: INavigationInstruction = null;
@@ -111,11 +110,6 @@ export class Router {
 
     if (this.options.reportCallback) {
       this.options.reportCallback(instruction);
-    }
-
-    if (instruction.isCancel) {
-      this.processingNavigation = null;
-      return this.processNavigations();
     }
 
     let fullStateInstruction: boolean = false;
@@ -199,16 +193,6 @@ export class Router {
         if (vp.setNextContent(vp.options.default, instruction)) {
           changedViewports.push(vp);
         }
-      }
-
-      // We've gone via a redirected route back to same viewport status so
-      // we need to remove the added history entry for the redirect
-      // TODO: Take care of empty subsets/iterations where previous has length
-      if (!changedViewports.length && this.isRedirecting) {
-        const result = this.cancelNavigation([...changedViewports, ...updatedViewports], instruction);
-        this.isRedirecting = false;
-        await this.processNavigations();
-        return result;
       }
 
       let results = await Promise.all(changedViewports.map((value) => value.canLeave()));
@@ -382,6 +366,7 @@ export class Router {
   }
 
   private async cancelNavigation(updatedViewports: Viewport[], instruction: INavigationInstruction): Promise<void> {
+    // TODO: Take care of disabling viewports when cancelling and stateful!
     updatedViewports.forEach((viewport) => {
       viewport.abortContentChange().catch(error => { throw error; });
     });

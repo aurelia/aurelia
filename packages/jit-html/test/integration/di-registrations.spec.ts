@@ -1,13 +1,10 @@
-import { InterfaceSymbol } from '@aurelia/kernel';
+import { InjectArray } from '@aurelia/kernel';
 import {
   Aurelia,
   BindingContext,
   CustomElementResource,
   ICustomElement,
-  IDOM,
   INode,
-  IProjectorLocator,
-  IRenderingEngine,
   LifecycleFlags as LF,
   Scope
 } from '@aurelia/runtime';
@@ -240,7 +237,7 @@ describe('DI', function () {
           template: 'foo'
         },
         class {
-          public static inject: InterfaceSymbol[] = [INode];
+          public static readonly inject: InjectArray = [INode];
           public node: INode;
           public child: ICustomElement;
           constructor(node: INode) {
@@ -292,7 +289,7 @@ describe('DI', function () {
           template: 'bar'
         },
         class {
-          public static inject: InterfaceSymbol[] = [INode];
+          public static readonly inject: InjectArray = [INode];
           public node: INode;
           public child: ICustomElement;
           constructor(node: INode) {

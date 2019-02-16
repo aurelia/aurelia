@@ -1,5 +1,5 @@
 {
-  "name": "sierpinski-triangle",
+  "name": "fractals-tree",
   "license": "MIT",
   "engines": {
     "node": ">=8.11.4 <11.0.0",

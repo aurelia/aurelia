@@ -14,7 +14,7 @@
     "@aurelia/runtime": "dev"
   },
   "devDependencies": {
-    "@types/node": "^10.12.19",
+    "@types/node": "^10.12.26",
     "html-loader": "latest",
     "html-webpack-plugin": "latest",
     "http-server": "latest",

@@ -1,4 +1,5 @@
 {
+  "name": "aurelia",
   "private": true,
   "license": "MIT",
   "engines": {

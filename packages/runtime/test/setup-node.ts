@@ -2,6 +2,16 @@ import * as chai from 'chai';
 import * as sinonChai from 'sinon-chai';
 import { State } from '../src/index';
 
+let count = 0;
+afterEach(function () {
+  if (++count % 1000 ===  0) {
+    console.log(`runtime - done #${count}`);
+  }
+  if (this.currentTest.isFailed) {
+    console.log(`runtime - failed: ${this.currentTest.title}`);
+  }
+});
+
 chai.use(sinonChai);
 chai.use(function(_chai, utils) {
   const Assertion = _chai['Assertion'];

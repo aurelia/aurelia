@@ -3,6 +3,16 @@ import { JSDOM } from 'jsdom';
 import * as sinonChai from 'sinon-chai';
 import { addChaiAsserts_$state, HTMLTestContext, TestContext } from '../../runtime-html/test/util';
 
+let count = 0;
+afterEach(function () {
+  if (++count % 1000 ===  0) {
+    console.log(`runtime-html-jsdom - done #${count}`);
+  }
+  if (this.currentTest.isFailed) {
+    console.log(`runtime-html-jsdom - failed: ${this.currentTest.title}`);
+  }
+});
+
 const jsdom = new JSDOM(`<!DOCTYPE html><html><head></head><body></body></html>`);
 
 export function createHTMLTestContext(): HTMLTestContext {

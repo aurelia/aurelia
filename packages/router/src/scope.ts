@@ -278,7 +278,7 @@ export class Scope {
     }
     parents.unshift(this.parent.scopeContext(full));
 
-    return parents.filter((value) => value && value.length).join(this.router.instructionResolver.separators.scope);
+    return this.router.instructionResolver.stringifyScopedViewportInstruction(parents.filter((value) => value && value.length));
   }
 
   private closestViewport(container: ChildContainer): Viewport {

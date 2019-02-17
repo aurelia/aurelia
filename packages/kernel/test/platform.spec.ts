@@ -47,7 +47,7 @@ describe(`The PLATFORM object`, function () {
     expect($5).to.be.gte($4);
   });
 
-  it(`requestAnimationFrame() resolves after microtasks`, done => {
+  it(`requestAnimationFrame() resolves after microtasks`, function (done) {
     let rafResolved = false;
     let promiseResolved = false;
     PLATFORM.requestAnimationFrame(() => {

@@ -48,7 +48,7 @@ describe('The "compose" custom element', function () {
 
   for (const subjectPossibility of subjectPossibilities) {
     for (const producerPossibility of producerPossibilities) {
-      it(`can compose a ${subjectPossibility.description} ${producerPossibility.description}`, done => {
+      it(`can compose a ${subjectPossibility.description} ${producerPossibility.description}`, function (done) {
         const ctx = TestContext.createHTMLTestContext();
         const { element } = hydrateCustomElement(Compose, ctx);
         const value = producerPossibility.create(subjectPossibility.create(ctx));
@@ -66,7 +66,7 @@ describe('The "compose" custom element', function () {
         element.subject = value;
       });
 
-      it(`enforces the attach lifecycle of its composed ${subjectPossibility.description} ${producerPossibility.description}`, done => {
+      it(`enforces the attach lifecycle of its composed ${subjectPossibility.description} ${producerPossibility.description}`, function (done) {
         const ctx = TestContext.createHTMLTestContext();
         const { element } = hydrateCustomElement(Compose, ctx);
         const value = producerPossibility.create(subjectPossibility.create(ctx));
@@ -88,7 +88,7 @@ describe('The "compose" custom element', function () {
         element.subject = value;
       });
 
-      it(`adds a view at the render location when attaching a ${subjectPossibility.description} ${producerPossibility.description}`, done => {
+      it(`adds a view at the render location when attaching a ${subjectPossibility.description} ${producerPossibility.description}`, function (done) {
         const ctx = TestContext.createHTMLTestContext();
         const { element } = hydrateCustomElement(Compose, ctx);
         const value = producerPossibility.create(subjectPossibility.create(ctx));
@@ -109,7 +109,7 @@ describe('The "compose" custom element', function () {
         element.subject = value;
       });
 
-      it(`enforces the bind lifecycle of its composed ${subjectPossibility.description} ${producerPossibility.description}`, done => {
+      it(`enforces the bind lifecycle of its composed ${subjectPossibility.description} ${producerPossibility.description}`, function (done) {
         const ctx = TestContext.createHTMLTestContext();
         const { element } = hydrateCustomElement(Compose, ctx);
         const value = producerPossibility.create(subjectPossibility.create(ctx));
@@ -132,7 +132,7 @@ describe('The "compose" custom element', function () {
         element.subject = value;
       });
 
-      it(`enforces the detach lifecycle of its composed ${subjectPossibility.description} ${producerPossibility.description}`, done => {
+      it(`enforces the detach lifecycle of its composed ${subjectPossibility.description} ${producerPossibility.description}`, function (done) {
         const ctx = TestContext.createHTMLTestContext();
         const { element } = hydrateCustomElement(Compose, ctx);
         const value = producerPossibility.create(subjectPossibility.create(ctx));
@@ -155,7 +155,7 @@ describe('The "compose" custom element', function () {
         element.subject = value;
       });
 
-      it(`enforces the unbind lifecycle of its composed ${subjectPossibility.description} ${producerPossibility.description}`, done => {
+      it(`enforces the unbind lifecycle of its composed ${subjectPossibility.description} ${producerPossibility.description}`, function (done) {
         const ctx = TestContext.createHTMLTestContext();
         const { element } = hydrateCustomElement(Compose, ctx);
         const value = producerPossibility.create(subjectPossibility.create(ctx));
@@ -181,7 +181,7 @@ describe('The "compose" custom element', function () {
   }
 
   for (const producer of producerPossibilities) {
-    it(`can swap between views ${producer.description}`, done => {
+    it(`can swap between views ${producer.description}`, function (done) {
       const ctx = TestContext.createHTMLTestContext();
       const { element } = hydrateCustomElement(Compose, ctx);
       const view1 = createViewFactory(ctx).create();
@@ -219,7 +219,7 @@ describe('The "compose" custom element', function () {
 
   for (const value of noSubjectValues) {
     for (const producer of producerPossibilities) {
-      it(`clears out the view when the subject is ${value} ${producer.description}`, done => {
+      it(`clears out the view when the subject is ${value} ${producer.description}`, function (done) {
         const ctx = TestContext.createHTMLTestContext();
         const { element } = hydrateCustomElement(Compose, ctx);
 

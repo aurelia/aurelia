@@ -11,7 +11,7 @@ describe('binding-resources', function () {
   });
 
   // debounceBindingBehavior - input.value
-  it('01.', done => {
+  it('01.', function (done) {
     const { au, lifecycle, host, component } = setupAndStart(ctx, `<template><input value.to-view="message & debounce:50"></template>`, null);
     expect(host.firstChild['value']).to.equal('');
     component.message = 'hello!';
@@ -34,7 +34,7 @@ describe('binding-resources', function () {
   });
 
   // TODO: fix throttle
-  // it(`throttleBindingBehavior - input.value`, done => {
+  // it(`throttleBindingBehavior - input.value`, function (done) {
   //   const { au, lifecycle, host, component } = setup(`<template><input value.to-view="message & throttle:50"></template>`);
   //   au.app({ host, component }).start();
   //   expect(host.firstChild['value']).to.equal('');

@@ -12,29 +12,45 @@ const { enter: enterStop, leave: leaveStop } = Profiler.createTimer('Aurelia.sto
 export interface ISinglePageApp<THost extends INode = INode> {
   strategy?: BindingStrategy;
   dom?: IDOM;
-  host: THost;
-  component: unknown;
+  host?: THost;
+  component?: unknown;
 }
 
-export class Aurelia {
-  private readonly container: IContainer;
-  private isStarted: boolean;
+export class Aurelia<TNode extends INode = INode> {
+  public readonly container: IContainer;
+  public get isRunning(): boolean {
+    return this._isRunning;
+  }
+  public get isStarting(): boolean {
+    return this._isStarting;
+  }
+  public get isStopping(): boolean {
+    return this._isStopping;
+  }
+  public get host(): TNode & {$au?: Aurelia<TNode> | null} | null {
+    return this._host;
+  }
   private startFlags: LifecycleFlags;
   private stopFlags: LifecycleFlags;
-  private host: INode & {$au?: Aurelia | null} | null;
-  private next: ICustomElement | null;
+  private next: ICustomElement<TNode> | null;
   private task: ILifecycleTask;
-  private _root: ICustomElement | null;
+  private _host: TNode & {$au?: Aurelia<TNode> | null} | null;
+  private _root: ICustomElement<TNode> | null;
+  private _isRunning: boolean;
+  private _isStarting: boolean;
+  private _isStopping: boolean;
 
   constructor(container: IContainer = DI.createContainer()) {
     this.container = container;
-    this.isStarted = false;
     this.startFlags = LifecycleFlags.none;
     this.stopFlags = LifecycleFlags.none;
-    this.host = null;
     this.next = null;
     this.task = LifecycleTask.done;
     this._root = null;
+    this._isRunning = false;
+    this._isStarting = false;
+    this._isStopping = false;
+    this._host = null;
 
     Registration.instance(Aurelia, this).register(container);
   }
@@ -44,34 +60,47 @@ export class Aurelia {
     return this;
   }
 
-  public app(config: ISinglePageApp): this {
-    this.host = config.host as INode & {$au?: Aurelia | null};
+  public app(config: ISinglePageApp<TNode>): this {
+    // if no host provided but we already have one, we might just be switching component/strategy/dom
+    // TODO: only switching host is not working yet (need to re-hydrate for that)
+    this._host = (config.host as TNode & {$au?: Aurelia<TNode> | null}) || this._host;
 
     const domInitializer = this.container.get(IDOMInitializer);
     domInitializer.initialize(config);
-    Registration.instance(INode, this.host).register(this.container);
+
+    this.container.unregister(INode);
+    Registration.instance(INode, this._host).register(this.container);
 
     this.startFlags = LifecycleFlags.fromStartTask | config.strategy;
     this.stopFlags = LifecycleFlags.fromStopTask | config.strategy;
 
-    let component: ICustomElement;
-    const componentOrType = config.component as ICustomElement | ICustomElementType;
-    if (CustomElementResource.isType(componentOrType as ICustomElementType)) {
-      this.container.register(componentOrType as ICustomElementType);
-      component = this.container.get<ICustomElement>(CustomElementResource.keyFrom((componentOrType as ICustomElementType).description.name));
+    let component: ICustomElement<TNode>;
+    const componentOrType = config.component as ICustomElement<TNode> | ICustomElementType<TNode>;
+    if (!componentOrType) {
+      // if no component provided but we already have one, we might just be switching host/strategy/dom
+      if (this.next === null) {
+        throw new Error(`A valid component must be provided, but received: ${componentOrType}`);
+      } else {
+        component = this.next;
+      }
+    } else if (CustomElementResource.isType(componentOrType as ICustomElementType<TNode>)) {
+      this.container.register(componentOrType as ICustomElementType<TNode>);
+      component = this.container.get<ICustomElement<TNode>>(CustomElementResource.keyFrom((componentOrType as ICustomElementType).description.name));
+    } else if (CustomElementResource.isInstance(componentOrType)) {
+      component = componentOrType;
     } else {
-      component = componentOrType as ICustomElement;
+      throw new Error(`Invalid component. Must be a registered CustomElement class constructor or instance, but received: ${componentOrType.name || componentOrType.constructor.name}`);
     }
     this.next = ProxyObserver.getRawIfProxy(component);
 
-    if (this.isStarted) {
+    if (this.isRunning) {
       this.start();
     }
 
     return this;
   }
 
-  public root(): ICustomElement | null {
+  public root(): ICustomElement<TNode> | null {
     if (this._root === null) {
       if (this.next === null) {
         return null;
@@ -83,8 +112,6 @@ export class Aurelia {
   }
 
   public start(): ILifecycleTask {
-    if (Profiler.enabled) { enterStart(); }
-
     this.stop();
 
     if (this.task.done) {
@@ -106,15 +133,11 @@ export class Aurelia {
       this.task = new ContinuationTask(this.task, this.onAfterStart, this);
     }
 
-    if (Profiler.enabled) { leaveStart(); }
-
     return this.task;
   }
 
   public stop(): ILifecycleTask {
-    if (this.isStarted && this._root !== null) {
-      if (Profiler.enabled) { enterStop(); }
-
+    if ((this.isRunning && this._root !== null) || !this.task.done) {
       if (this.task.done) {
         this.onBeforeStop();
       } else {
@@ -133,29 +156,41 @@ export class Aurelia {
       } else {
         this.task = new ContinuationTask(this.task, this.onAfterStop, this);
       }
-
-      if (Profiler.enabled) { leaveStop(); }
     }
 
     return this.task;
   }
 
+  public wait(): Promise<void> {
+    return this.task.wait() as Promise<void>;
+  }
+
   private onBeforeStart(): void {
     Reflect.set(this.host, '$au', this);
     this._root = this.next;
+    this._isStarting = true;
+    if (Profiler.enabled) { enterStart(); }
   }
 
   private onAfterStart(): void {
-    this.isStarted = true;
+    this._isRunning = true;
+    this._isStarting = false;
+    if (Profiler.enabled) { leaveStart(); }
   }
 
   private onBeforeStop(): void {
-    this.isStarted = false;
+    this._isRunning = false;
+    this._isStopping = true;
+    if (Profiler.enabled) { enterStop(); }
   }
 
   private onAfterStop(): void {
-    Reflect.deleteProperty(this._root.$host, '$au');
+    if (this._root !== null) {
+      Reflect.deleteProperty(this._root.$host, '$au');
+    }
     this._root = null;
+    this._isStopping = false;
+    if (Profiler.enabled) { leaveStop(); }
   }
 }
 (PLATFORM.global as typeof PLATFORM.global & {Aurelia: unknown}).Aurelia = Aurelia;

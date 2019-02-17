@@ -51,27 +51,31 @@ export class InstructionResolver {
     return new ViewportInstruction(component, viewport, parameters);
   }
 
-  public stringifyViewportInstruction(instructions: ViewportInstruction | string | (ViewportInstruction | string)[]): string {
-    if (!Array.isArray(instructions)) {
-      return this.stringifyViewportInstruction([instructions]);
-    }
-    const instructionStrings: string[] = [];
-    for (const instruction of instructions) {
-      if (typeof instruction === 'string') {
-        instructionStrings.push(instruction);
-      } else {
-        let instructionString = instruction.componentName;
-        if (instruction.viewportName) {
-          instructionString += this.separators.viewport + instruction.viewportName;
-        }
-        if (instruction.parametersString) {
-          // TODO: Review parameters in ViewportInstruction
-          instructionString += this.separators.parameters + instruction.parametersString;
-        }
-        instructionStrings.push(instructionString);
+  public stringifyViewportInstruction(instruction: ViewportInstruction | string): string {
+    if (typeof instruction === 'string') {
+      return instruction;
+    } else {
+      let instructionString = instruction.componentName;
+      if (instruction.viewportName) {
+        instructionString += this.separators.viewport + instruction.viewportName;
       }
+      if (instruction.parametersString) {
+        // TODO: Review parameters in ViewportInstruction
+        instructionString += this.separators.parameters + instruction.parametersString;
+      }
+      return instructionString;
     }
-    return instructionStrings.join(this.separators.scope);
+  }
+
+  public parseScopedViewportInstruction(instruction: string): ViewportInstruction[] {
+    return instruction.split(this.separators.scope).map((scopeInstruction) => this.parseViewportInstruction(scopeInstruction));
+  }
+
+  public stringifyScopedViewportInstruction(instructions: ViewportInstruction | string | (ViewportInstruction | string)[]): string {
+    if (!Array.isArray(instructions)) {
+      return this.stringifyScopedViewportInstruction([instructions]);
+    }
+    return instructions.map((instruction) => this.stringifyViewportInstruction(instruction)).join(this.separators.scope);
   }
 
   public buildScopedLink(scopeContext: string, href: string): string {

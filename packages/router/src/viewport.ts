@@ -275,7 +275,7 @@ export class Viewport {
 
   public scopedDescription(full: boolean = false): string {
     const descriptions = [this.owningScope.scopeContext(full), this.description(full)];
-    return this.router.instructionResolver.stringifyViewportInstruction(descriptions.filter((value) => value && value.length));
+    return this.router.instructionResolver.stringifyScopedViewportInstruction(descriptions.filter((value) => value && value.length));
   }
 
   // TODO: Deal with non-string components

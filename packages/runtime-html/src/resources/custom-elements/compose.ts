@@ -55,7 +55,7 @@ export class Compose<T extends INode = Node> implements Compose<T> {
   private lastSubject: MaybeSubjectPromise<T>;
   private task: ILifecycleTask;
   private currentView: IView<T> | null;
-  private persistentFlags: LifecycleFlags; // TODO
+  private persistentFlags: LifecycleFlags;
 
   constructor(
     dom: IDOM<T>,
@@ -72,6 +72,7 @@ export class Compose<T extends INode = Node> implements Compose<T> {
     this.currentView = null;
     this.renderable = renderable;
     this.renderingEngine = renderingEngine;
+    this.persistentFlags = LifecycleFlags.none;
 
     this.properties = instruction.instructions
       .filter((x: ITargetedInstruction & {to?: string}) => !composeProps.includes(x.to))
@@ -88,6 +89,8 @@ export class Compose<T extends INode = Node> implements Compose<T> {
   }
 
   public binding(flags: LifecycleFlags): ILifecycleTask {
+    this.persistentFlags = flags & LifecycleFlags.persistentBindingFlags;
+
     if (this.task.done) {
       this.task = this.compose(this.subject, flags);
     } else {
@@ -143,6 +146,7 @@ export class Compose<T extends INode = Node> implements Compose<T> {
   }
 
   public subjectChanged(newValue: Subject<T> | Promise<Subject<T>>, previousValue: Subject<T> | Promise<Subject<T>>, flags: LifecycleFlags): void {
+    flags |= this.persistentFlags;
     if (this.task.done) {
       this.task = this.compose(newValue, flags);
     } else {

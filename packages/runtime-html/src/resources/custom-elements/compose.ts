@@ -215,14 +215,14 @@ export class Compose<T extends INode = Node> implements Compose<T> {
   }
 
   private bindView(flags: LifecycleFlags): ILifecycleTask {
-    if ((this.$state & (State.isBound | State.isBinding)) > 0) {
+    if (this.currentView !== null && (this.$state & (State.isBound | State.isBinding)) > 0) {
       return this.currentView.$bind(flags, this.renderable.$scope);
     }
     return LifecycleTask.done;
   }
 
   private attachView(flags: LifecycleFlags): ILifecycleTask {
-    if ((this.$state & (State.isAttached | State.isAttaching)) > 0) {
+    if (this.currentView !== null && (this.$state & (State.isAttached | State.isAttaching)) > 0) {
       return this.currentView.$attach(flags);
     }
     return LifecycleTask.done;

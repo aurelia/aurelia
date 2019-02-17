@@ -701,4 +701,3 @@ export function longestIncreasingSubsequence(indexMap: IndexMap): Uint8Array | U
   while (i-- > 0) prevIndices[i] = 0;
   return result;
 }
-

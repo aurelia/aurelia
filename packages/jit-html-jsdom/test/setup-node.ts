@@ -4,16 +4,6 @@ import * as sinonChai from 'sinon-chai';
 import { HTMLTestContext, TestContext } from '../../jit-html/test/util';
 import { BasicConfiguration } from '../src/index';
 
-let count = 0;
-afterEach(function () {
-  if (++count % 1000 ===  0) {
-    console.log(`jit-html-jsdom - done #${count}`);
-  }
-  if (this.currentTest.isFailed) {
-    console.log(`jit-html-jsdom - failed: ${this.currentTest.title}`);
-  }
-});
-
 const jsdom = new JSDOM(`<!DOCTYPE html><html><head></head><body></body></html>`);
 
 export function createHTMLTestContext(): HTMLTestContext {

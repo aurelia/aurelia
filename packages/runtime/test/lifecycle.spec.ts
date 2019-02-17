@@ -75,29 +75,4 @@ describe('Lifecycle', function () {
       expect(sut[prop]).to.not.equal(undefined, `sut.${prop}`);
     }
   });
-
-  // TODO: more tests needed
-  describe('endBind()', function () {
-    it('called bound()', async function () {
-      const sut = new Lifecycle();
-      const flags = LifecycleFlags.none;
-
-      let boundCalled = false;
-      const subject1: ILifecycleHooks = {
-        $nextBound: null,
-        bound(_flags: LifecycleFlags): void {
-          boundCalled = true;
-        }
-      };
-
-      sut.beginBind();
-      sut.enqueueBound(subject1);
-
-      sut.endBind(flags);
-
-      expect(boundCalled).to.equal(true, 'boundCalled');
-
-    });
-  });
-
 });

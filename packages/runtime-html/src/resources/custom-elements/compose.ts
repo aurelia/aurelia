@@ -1,7 +1,6 @@
 import { Constructable, Immutable, InjectArray, IRegistry } from '@aurelia/kernel';
 import {
   bindable,
-  CompositionCoordinator,
   ContinuationTask,
   CustomElementResource,
   ICustomElement,
@@ -56,6 +55,7 @@ export class Compose<T extends INode = Node> implements Compose<T> {
   private lastSubject: MaybeSubjectPromise<T>;
   private task: ILifecycleTask;
   private view: IView<T> | null;
+  private persistentFlags: LifecycleFlags; // TODO
 
   constructor(
     dom: IDOM<T>,
@@ -158,7 +158,7 @@ export class Compose<T extends INode = Node> implements Compose<T> {
     this.lastSubject = subject;
     this.composing = true;
 
-    let task = this.deactivate(flags)
+    let task = this.deactivate(flags);
 
     if (subject instanceof Promise) {
       let viewPromise: Promise<IView<T>>;

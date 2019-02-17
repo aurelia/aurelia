@@ -441,25 +441,6 @@ const LifecycleArgsProcessor = {
       case 'pro':
         return flagsText(info);
     }
-  },
-  CompositionCoordinator(info: ITraceInfo): string {
-    switch (info.methodName) {
-      case 'enqueue':
-        return 'IView';
-      case 'swap':
-        return `IView,${flagsText(info, 1)}`;
-      case 'processNext':
-        return '';
-    }
-  },
-  AggregateLifecycleTask(info: ITraceInfo): string {
-    switch (info.methodName) {
-      case 'addTask':
-      case 'removeTask':
-        return ctorName(info);
-      case 'complete':
-        return `${primitive(info, 2)}`;
-    }
   }
 };
 

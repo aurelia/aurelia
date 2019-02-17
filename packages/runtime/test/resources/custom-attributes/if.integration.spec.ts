@@ -12,7 +12,6 @@ import {
   BindingContext,
   BindingMode,
   BindingStrategy,
-  CompositionCoordinator,
   Else,
   IDOM,
   If,
@@ -224,10 +223,10 @@ describe(`If/Else`, function () {
       let sut: If<AuNode>;
       let elseSut: Else<AuNode>;
       if (proxies) {
-        sut = new ProxyObserver(new If<AuNode>(ifFactory, location, new CompositionCoordinator(lifecycle))).proxy;
+        sut = new ProxyObserver(new If<AuNode>(ifFactory, location)).proxy;
         elseSut = new ProxyObserver(new Else<AuNode>(elseFactory)).proxy;
       } else {
-        sut = new If<AuNode>(ifFactory, location, new CompositionCoordinator(lifecycle));
+        sut = new If<AuNode>(ifFactory, location);
         elseSut = new Else<AuNode>(elseFactory);
       }
       elseSut.link(sut);

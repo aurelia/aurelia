@@ -13,7 +13,6 @@ import {
   addComponent,
   Binding,
   BindingMode,
-  CompositionCoordinator,
   Else,
   ExpressionKind,
   IAttributeDefinition,
@@ -193,7 +192,7 @@ export class MockIfTextNodeTemplate {
     const factory = new ViewFactory(null, new MockTextNodeTemplate(expressions.if, observerLocator, this.container) as any, this.lifecycle);
 
     //@ts-ignore
-    const sut = new If(factory, nodes.firstChild, new CompositionCoordinator(this.lifecycle));
+    const sut = new If(factory, nodes.firstChild);
 
     (sut as any)['$isAttached'] = false;
     (sut as any)['$scope'] = null;
@@ -222,7 +221,7 @@ export class MockIfElseTextNodeTemplate {
     const ifFactory = new ViewFactory(null, new MockTextNodeTemplate(expressions.if, observerLocator, this.container) as any, this.lifecycle);
 
     //@ts-ignore
-    const ifSut = new If(ifFactory, ifNodes.firstChild, new CompositionCoordinator(this.lifecycle));
+    const ifSut = new If(ifFactory, ifNodes.firstChild);
 
     (ifSut as any)['$isAttached'] = false;
     (ifSut as any)['$state'] = State.none;

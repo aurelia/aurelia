@@ -383,8 +383,6 @@ export {
   TwoWayBindingInstruction
 } from './instructions';
 export {
-  AggregateLifecycleTask,
-  CompositionCoordinator,
   IComponent,
   IBinding,
   ILifecycle,

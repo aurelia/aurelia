@@ -39,27 +39,51 @@ export class InstructionResolver {
   }
 
   public parseViewportInstruction(instruction: string): ViewportInstruction {
-    let component, viewport, parameters;
+    let component, viewport, parameters, scope;
     const [componentPart, rest] = instruction.split(this.separators.viewport);
     if (rest === undefined) {
-      [component, parameters] = componentPart.split(this.separators.parameters);
+      [component, ...parameters] = componentPart.split(this.separators.parameters);
+      if (component.endsWith(this.separators.ownsScope)) {
+        scope = true;
+        component = component.slice(0, component.length - 1);
+      }
     } else {
       component = componentPart;
-      [viewport, parameters] = rest.split(this.separators.parameters);
+      [viewport, ...parameters] = rest.split(this.separators.parameters);
+      if (viewport.endsWith(this.separators.ownsScope)) {
+        scope = true;
+        viewport = viewport.slice(0, viewport.length - 1);
+      }
     }
-    return new ViewportInstruction(component, viewport, parameters);
+    parameters = parameters.length ? parameters.join(this.separators.parameters) : undefined;
+    return new ViewportInstruction(component, viewport, parameters, scope);
   }
 
-  public stringifyViewportInstruction(instruction: ViewportInstruction): string {
-    let instructionString = instruction.componentName;
-    if (instruction.viewportName) {
-      instructionString += this.separators.viewport + instruction.viewportName;
+  public stringifyViewportInstruction(instruction: ViewportInstruction | string, excludeViewport: boolean = false): string {
+    if (typeof instruction === 'string') {
+      return this.stringifyViewportInstruction(this.parseViewportInstruction(instruction), excludeViewport);
+    } else {
+      let instructionString = instruction.componentName;
+      if (instruction.viewportName && !excludeViewport) {
+        instructionString += this.separators.viewport + instruction.viewportName;
+      }
+      if (instruction.parametersString) {
+        // TODO: Review parameters in ViewportInstruction
+        instructionString += this.separators.parameters + instruction.parametersString;
+      }
+      return instructionString;
     }
-    if (instruction.parametersString) {
-      // TODO: Review parameters in ViewportInstruction
-      instructionString += this.separators.parameters + instruction.parametersString;
+  }
+
+  public parseScopedViewportInstruction(instruction: string): ViewportInstruction[] {
+    return instruction.split(this.separators.scope).map((scopeInstruction) => this.parseViewportInstruction(scopeInstruction));
+  }
+
+  public stringifyScopedViewportInstruction(instructions: ViewportInstruction | string | (ViewportInstruction | string)[]): string {
+    if (!Array.isArray(instructions)) {
+      return this.stringifyScopedViewportInstruction([instructions]);
     }
-    return instructionString;
+    return instructions.map((instruction) => this.stringifyViewportInstruction(instruction)).join(this.separators.scope);
   }
 
   public buildScopedLink(scopeContext: string, href: string): string {

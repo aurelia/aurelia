@@ -67,9 +67,9 @@ export class Viewport {
         this.clear = true;
         content = null;
       } else {
-        const cp = content.split(this.router.instructionResolver.separators.parameters);
-        content = cp.shift();
-        parameters = cp.length ? cp.join(this.router.instructionResolver.separators.parameters) : null;
+        const viewportInstruction = this.router.instructionResolver.parseViewportInstruction(content);
+        content = viewportInstruction.componentName;
+        parameters = viewportInstruction.parametersString;
       }
     }
 
@@ -257,24 +257,25 @@ export class Viewport {
   public description(full: boolean = false): string {
     if (this.content.content) {
       const component = this.content.componentName();
-      const newScope: string = this.scope ? this.router.instructionResolver.separators.ownsScope : '';
-      const parameters = this.content.parameters ? this.router.instructionResolver.separators.parameters + this.content.parameters : '';
-      if (full || newScope.length || this.options.forceDescription) {
-        return `${component}${this.router.instructionResolver.separators.viewport}${this.name}${newScope}${parameters}`;
+      if (full || this.scope || this.options.forceDescription) {
+        return this.router.instructionResolver.stringifyViewportInstruction(
+          new ViewportInstruction(component, this, this.content.parameters, this.scope !== null
+          ));
       }
       const viewports = {};
       viewports[component] = component;
       const found = this.owningScope.findViewports(viewports);
       if (!found) {
-        return `${component}${this.router.instructionResolver.separators.viewport}${this.name}${newScope}${parameters}`;
+        return this.router.instructionResolver.stringifyViewportInstruction(
+          new ViewportInstruction(component, this, this.content.parameters));
       }
-      return `${component}${parameters}`;
+      return this.router.instructionResolver.stringifyViewportInstruction(new ViewportInstruction(component, null, this.content.parameters));
     }
   }
 
   public scopedDescription(full: boolean = false): string {
     const descriptions = [this.owningScope.scopeContext(full), this.description(full)];
-    return descriptions.filter((value) => value && value.length).join(this.router.instructionResolver.separators.scope);
+    return this.router.instructionResolver.stringifyScopedViewportInstruction(descriptions.filter((value) => value && value.length));
   }
 
   // TODO: Deal with non-string components

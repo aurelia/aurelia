@@ -26,12 +26,12 @@ import { State } from './state';
       <label><input type="checkbox" checked.two-way="state.noDelay">Disable loading delays for components</label><br>
       <label><input type="checkbox" checked.two-way="state.allowEnterAuthorDetails">Allow entering <i>Author details</i></label><br>
     </div>
-    <div class="info">
+    <div class="info" style="background-color: var(--primary-color)">
       <select value.two-way="color">
         <option value="lightblue">Light blue</option>
         <option value="lightgreen">Light green</option>
       <select>
-      <div style="background-color: var(--primary-color)">
+      <div style="display: inline-block;">
         The background is in the --primary-color: \${color}.
       </div>
     </div>

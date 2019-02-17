@@ -57,7 +57,7 @@ describe('The "compose" custom element', function () {
 
         await element['task'].wait();
 
-        const child = element['view'];
+        const child = element['currentView'];
         expect(child).not.to.equal(undefined);
         expect(child).not.to.equal(null);
       });
@@ -71,7 +71,7 @@ describe('The "compose" custom element', function () {
 
         await element['task'].wait();
 
-        const child = element['view'];
+        const child = element['currentView'];
         let attachCalled = false;
         child.$attach = function () {
           attachCalled = true;
@@ -96,7 +96,7 @@ describe('The "compose" custom element', function () {
 
         element.$attach(LifecycleFlags.none);
 
-        expect(location.previousSibling, `location.previousSibling`).to.equal(element['view'].$nodes.lastChild);
+        expect(location.previousSibling, `location.previousSibling`).to.equal(element['currentView'].$nodes.lastChild);
       });
 
       it(`enforces the bind lifecycle of its composed ${subjectPossibility.description} ${producerPossibility.description}`, async function () {
@@ -108,7 +108,7 @@ describe('The "compose" custom element', function () {
 
         await element['task'].wait();
 
-        const child = element['view'];
+        const child = element['currentView'];
 
         let bindCalled = false;
         child.$bind = function () {
@@ -130,7 +130,7 @@ describe('The "compose" custom element', function () {
 
         await element['task'].wait();
 
-        const child = element['view'];
+        const child = element['currentView'];
         let detachCalled = false;
         child.$detach = function () {
           detachCalled = true;
@@ -152,7 +152,7 @@ describe('The "compose" custom element', function () {
 
         await element['task'].wait();
 
-        const child = element['view'];
+        const child = element['currentView'];
         let unbindCalled = false;
         child.$unbind = function () {
           unbindCalled = true;
@@ -177,19 +177,19 @@ describe('The "compose" custom element', function () {
 
       await element['task'].wait();
 
-      expect(element['view'], `element['view']`).to.equal(view1);
+      expect(element['currentView'], `element['currentView']`).to.equal(view1);
 
       element.subject = producer.create(view2);
 
       await element['task'].wait();
 
-      expect(element['view'], `element['view']`).to.equal(view2);
+      expect(element['currentView'], `element['currentView']`).to.equal(view2);
 
       element.subject = producer.create(view1);
 
       await element['task'].wait();
 
-      expect(element['view'], `element['view']`).to.equal(view1);
+      expect(element['currentView'], `element['currentView']`).to.equal(view1);
     });
   }
 
@@ -210,7 +210,7 @@ describe('The "compose" custom element', function () {
 
         element.$attach(LifecycleFlags.none);
 
-        const currentView = element['view'];
+        const currentView = element['currentView'];
         if (location.previousSibling !== currentView.$nodes.lastChild) {
           throw new Error(`[ASSERTION ERROR]: expected location.previousSibling (with textContent "${
             location.previousSibling && location.previousSibling.textContent || 'NULL'

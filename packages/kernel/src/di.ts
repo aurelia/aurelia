@@ -62,6 +62,8 @@ export interface IContainer extends IServiceLocator {
   register(registry: IRegistry): IContainer;
   register(registry: IRegistry | Record<string, Partial<IRegistry>>): IContainer;
 
+  unregister(key: unknown): boolean;
+
   registerResolver<T>(key: Key<T>, resolver: IResolver<T>): IResolver<T>;
   registerResolver<T extends Constructable>(key: T, resolver: IResolver<InstanceType<T>>): IResolver<InstanceType<T>>;
 
@@ -595,6 +597,19 @@ export class Container implements IContainer {
     --this.registerDepth;
     if (Tracer.enabled) { Tracer.leave(); }
     return this;
+  }
+
+  public unregister(key: unknown): boolean {
+    // TODO: this InterfaceSymbol<IContainer> doesn't seem quite right..
+    const resolver = this.resolvers.get(key as InterfaceSymbol<IContainer>);
+    if (resolver !== undefined) {
+      const factory = this.factories.get(resolver['state']);
+      if (factory !== undefined) {
+        this.factories.delete(resolver['state']);
+      }
+      this.resolvers.delete(key as InterfaceSymbol<IContainer>);
+    }
+    return false;
   }
 
   public registerResolver(key: Key<IContainer>, resolver: IResolver): IResolver {

@@ -11,10 +11,12 @@ const { enter: enterStop, leave: leaveStop } = Profiler.createTimer('Aurelia.sto
 
 export interface ISinglePageApp<THost extends INode = INode> {
   strategy?: BindingStrategy;
-  dom?: IDOM;
+  dom?: IDOM<THost>;
   host?: THost;
   component?: unknown;
 }
+
+type Publisher = { dispatchEvent(evt: unknown, options?: unknown): void };
 
 export class Aurelia<TNode extends INode = INode> {
   public readonly container: IContainer;
@@ -30,6 +32,9 @@ export class Aurelia<TNode extends INode = INode> {
   public get host(): TNode & {$au?: Aurelia<TNode> | null} | null {
     return this._host;
   }
+  public get dom(): IDOM<TNode> {
+    return this._dom;
+  }
   private startFlags: LifecycleFlags;
   private stopFlags: LifecycleFlags;
   private next: ICustomElement<TNode> | null;
@@ -39,6 +44,7 @@ export class Aurelia<TNode extends INode = INode> {
   private _isRunning: boolean;
   private _isStarting: boolean;
   private _isStopping: boolean;
+  private _dom: IDOM<TNode>;
 
   constructor(container: IContainer = DI.createContainer()) {
     this.container = container;
@@ -51,6 +57,7 @@ export class Aurelia<TNode extends INode = INode> {
     this._isStarting = false;
     this._isStopping = false;
     this._host = null;
+    this._dom = null;
 
     Registration.instance(Aurelia, this).register(container);
   }
@@ -66,7 +73,7 @@ export class Aurelia<TNode extends INode = INode> {
     this._host = (config.host as TNode & {$au?: Aurelia<TNode> | null}) || this._host;
 
     const domInitializer = this.container.get(IDOMInitializer);
-    domInitializer.initialize(config);
+    this._dom = domInitializer.initialize(config) as IDOM<TNode>;
 
     this.container.unregister(INode);
     Registration.instance(INode, this._host).register(this.container);
@@ -175,6 +182,8 @@ export class Aurelia<TNode extends INode = INode> {
   private onAfterStart(): void {
     this._isRunning = true;
     this._isStarting = false;
+    this.dispatchEvent('aurelia-composed', this._dom);
+    this.dispatchEvent('au-started', this.host as unknown as Publisher);
     if (Profiler.enabled) { leaveStart(); }
   }
 
@@ -190,7 +199,13 @@ export class Aurelia<TNode extends INode = INode> {
     }
     this._root = null;
     this._isStopping = false;
+    this.dispatchEvent('au-stopped', this.host as unknown as Publisher);
     if (Profiler.enabled) { leaveStop(); }
+  }
+
+  private dispatchEvent(name: string, target: Publisher): void {
+    target = 'dispatchEvent' in target ? target : this._dom;
+    target.dispatchEvent(this._dom.createCustomEvent(name, { detail: this, bubbles: true, cancelable: true }));
   }
 }
 (PLATFORM.global as typeof PLATFORM.global & {Aurelia: unknown}).Aurelia = Aurelia;

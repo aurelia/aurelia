@@ -2,6 +2,7 @@ import { expect } from 'chai';
 import { spy } from 'sinon';
 import { Aurelia, CustomElementResource, LifecycleFlags as LF, LifecycleTask, ProxyObserver, IDOM } from '../src/index';
 import { AuDOM, AuDOMConfiguration, AuNode, AuDOMTest } from './au-dom';
+import { IIndexable } from '@aurelia/kernel';
 
 describe('Aurelia', function () {
   let sut: Aurelia<AuNode>;
@@ -623,6 +624,42 @@ describe('Aurelia', function () {
 
       expect(detachingCount, `detachingCount`).to.equal(3);
       expect(unbindingCount, `unbindingCount`).to.equal(3);
+    });
+
+    it('should dispatch events', function () {
+      sut.app(
+        {
+          component: new (CustomElementResource.define(
+            AuDOMTest.createTextDefinition('msg'),
+            class { public msg: string = 'hi'; }
+          ))(),
+          host: dom.createElement('app')
+        }
+      );
+      let auStartedCalled = false;
+      let auStoppedCalled = false;
+      let composedCalled = false;
+      sut.dom.addEventListener('au-started', (e) => {
+        expect((e as IIndexable).detail).to.equal(sut);
+        auStartedCalled = true;
+      });
+      sut.dom.addEventListener('au-stopped', (e) => {
+        expect((e as IIndexable).detail).to.equal(sut);
+        auStoppedCalled = true;
+      });
+      sut.dom.addEventListener('aurelia-composed', (e) => {
+        expect((e as IIndexable).detail).to.equal(sut);
+        composedCalled = true;
+      });
+
+      sut.start();
+
+      expect(auStartedCalled).to.equal(true);
+      expect(composedCalled).to.equal(true);
+
+      sut.stop();
+
+      expect(auStoppedCalled).to.equal(true);
     });
   });
 

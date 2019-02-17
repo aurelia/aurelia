@@ -291,9 +291,25 @@ export class AuNode implements INode {
   }
 }
 
+export class AuEvent {
+  public readonly type: string;
+  public readonly detail: unknown;
+  constructor(type: string, options: Record<string, unknown>) {
+    this.type = type;
+    Object.assign(this, options || {});
+  }
+}
+
 export class AuDOM implements IDOM<AuNode> {
-  public addEventListener(eventName: string, subscriber: unknown, publisher?: unknown, options?: unknown): void {
-    return;
+  private readonly listeners: symbol;
+  constructor() {
+    this.listeners = Symbol.for('listeners');
+  }
+  public addEventListener(eventName: string, subscriber: (e: AuEvent) => void, publisher?: object, options?: unknown): void {
+    const listeners = this.getListeners(publisher || this, eventName);
+    if (!listeners.includes(subscriber)) {
+      listeners.push(subscriber);
+    }
   }
   public appendChild(parent: AuNode, child: AuNode): void {
     parent.appendChild(child);
@@ -361,20 +377,37 @@ export class AuDOM implements IDOM<AuNode> {
   public remove(node: AuNode): void {
     node.remove();
   }
-  public removeEventListener(eventName: string, subscriber: unknown, publisher?: unknown, options?: unknown): void {
-    return;
+  public removeEventListener(eventName: string, subscriber: (e: AuEvent) => void, publisher?: object, options?: unknown): void {
+    const listeners = this.getListeners(publisher || this, eventName);
+    if (listeners.includes(subscriber)) {
+      listeners.splice(listeners.indexOf(subscriber), 1);
+    }
   }
   public setAttribute(node: AuNode, name: string, value: unknown): void {
     (node as Record<string, unknown>)[name] = value;
   }
-  public createCustomEvent(eventType: string, options?: unknown): unknown {
-    throw new Error('Method not implemented.');
+  public createCustomEvent(eventType: string, options?: Record<string, unknown>): unknown {
+    return new AuEvent(eventType, options);
   }
-  public dispatchEvent(evt: unknown): void {
-    throw new Error('Method not implemented.');
+  public dispatchEvent(evt: AuEvent, target?: object): void {
+    const listeners = this.getListeners(target || this, evt.type);
+    listeners.forEach(listener => {
+      listener(evt);
+    });
   }
   public createNodeObserver?(node: AuNode, cb: (...args: unknown[]) => void, init: unknown): unknown {
     throw new Error('Method not implemented.');
+  }
+  private getListeners(target: object, event: string): ((e: AuEvent) => void)[] {
+    if (!Reflect.has(target, this.listeners)) {
+      Reflect.defineProperty(target, this.listeners, {
+        writable: false,
+        configurable: false,
+        enumerable: false,
+        value: []
+      });
+    }
+    return Reflect.get(target, this.listeners);
   }
 }
 
@@ -541,7 +574,7 @@ export class AuDOMInitializer implements IDOMInitializer {
     this.container = container;
   }
 
-  public initialize(config?: ISinglePageApp<AuNode>): AuDOM {
+  public initialize(config?: ISinglePageApp): AuDOM {
     if (this.container.has(IDOM, false)) {
       return this.container.get(IDOM) as AuDOM;
     }

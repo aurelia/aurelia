@@ -82,13 +82,6 @@ export class Scope {
     // Configured viewport is ruling
     for (const viewportPart in this.scopeViewportParts) {
       const instruction = this.router.instructionResolver.parseViewportInstruction(viewportPart);
-
-      // tslint:disable-next-line:no-commented-code
-      // const parameters = viewportPart.split(this.router.instructionResolver.separators.parameters);
-      // const componentViewportPart = parameters.shift();
-      // const component = componentViewportPart.split(this.router.instructionResolver.separators.viewport).shift();
-      // const componentParameters = component + (parameters.length ? this.router.instructionResolver.separators.parameters + parameters.join(this.router.instructionResolver.separators.parameters) : '');
-
       for (const name in this.availableViewports) {
         const viewport: Viewport = this.availableViewports[name];
         // TODO: Also check if (resolved) component wants a specific viewport
@@ -106,24 +99,11 @@ export class Scope {
     // Next in line is specified viewport
     for (const viewportPart in this.scopeViewportParts) {
       const instruction = this.router.instructionResolver.parseViewportInstruction(viewportPart);
-
-      // tslint:disable-next-line:no-commented-code
-      // const parameters = viewportPart.split(this.router.instructionResolver.separators.parameters);
-      // const componentViewportPart = parameters.shift();
-      // const parts = componentViewportPart.split(this.router.instructionResolver.separators.viewport);
-      // const component = parts.shift();
-      // const componentParameters = component + (parameters.length ? this.router.instructionResolver.separators.parameters + parameters.join(this.router.instructionResolver.separators.parameters) : '');
-      // let name = parts.shift();
       const name = instruction.viewportName;
       if (!name || !name.length || name.startsWith('?')) {
         continue;
       }
       const newScope = instruction.scope;
-      // TODO: Make sure instruction resolver deals with ownsScope for viewport!
-      // if (name.endsWith(this.router.instructionResolver.separators.ownsScope)) {
-      //   newScope = true;
-      //   name = name.substring(0, name.length - 1);
-      // }
       if (!this.getEnabledViewports()[name]) {
         this.addViewport(name, null, null, { scope: newScope, forceDescription: true });
         this.availableViewports[name] = this.getEnabledViewports()[name];
@@ -141,12 +121,6 @@ export class Scope {
     // Finally, only one accepting viewport left?
     for (const viewportPart in this.scopeViewportParts) {
       const instruction = this.router.instructionResolver.parseViewportInstruction(viewportPart);
-
-      // tslint:disable-next-line:no-commented-code
-      // const parameters = viewportPart.split(this.router.instructionResolver.separators.parameters);
-      // const componentViewportPart = parameters.shift();
-      // const component = componentViewportPart.split(this.router.instructionResolver.separators.viewport).shift();
-      // const componentParameters = component + (parameters.length ? this.router.instructionResolver.separators.parameters + parameters.join(this.router.instructionResolver.separators.parameters) : '');
       const remainingViewports: Viewport[] = [];
       for (const name in this.availableViewports) {
         const viewport: Viewport = this.availableViewports[name];
@@ -195,8 +169,6 @@ export class Scope {
           const remaining = this.router.instructionResolver.stringifyScopedViewportInstruction(remainingParts);
           const vps: Record<string, string | Viewport> = {};
           vps[remaining] = viewports[this.router.instructionResolver.stringifyScopedViewportInstruction([viewportPart, ...remainingParts])];
-          // tslint:disable-next-line:no-commented-code
-          // vps[remaining] = viewports[viewportPart + this.router.instructionResolver.separators.scope + remaining];
           const scoped = scope.findViewports(vps);
           instructions.push(...scoped.viewportInstructions);
           viewportsRemaining = viewportsRemaining || scoped.viewportsRemaining;

@@ -116,6 +116,10 @@ function isType<T>(this: ICustomElementResource, Type: T & Partial<ICustomElemen
   return Type.kind === this;
 }
 
+function isInstance<TProto>(this: ICustomElementResource, instance: TProto & Partial<ICustomElement>): instance is InstanceType<Class<ICustomElement & TProto, ICustomElementType & typeof instance.constructor>> {
+  return instance && Reflect.get(instance, 'constructor').kind === this;
+}
+
 function define<N extends INode = INode, T extends Constructable = Constructable>(this: ICustomElementResource, definition: ITemplateDefinition, ctor?: T | null): T & ICustomElementType<N, T>;
 function define<N extends INode = INode, T extends Constructable = Constructable>(this: ICustomElementResource, name: string, ctor?: T | null): T & ICustomElementType<N, T>;
 function define<N extends INode = INode, T extends Constructable = Constructable>(this: ICustomElementResource, nameOrDefinition: string | ITemplateDefinition, ctor: T | null): T & ICustomElementType<N, T>;
@@ -196,6 +200,7 @@ export const CustomElementResource = {
   name: customElementName,
   keyFrom: customElementKey,
   isType,
+  isInstance,
   behaviorFor: customElementBehavior as ICustomElementResource['behaviorFor'],
   define
 };

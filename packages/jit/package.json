@@ -55,10 +55,10 @@
   },
   "devDependencies": {
     "@types/chai": "^4.1.7",
-    "@types/karma": "^3.0.1",
-    "@types/mocha": "^5.2.5",
-    "@types/node": "^10.12.19",
-    "@types/sinon": "^7.0.5",
+    "@types/karma": "^3.0.2",
+    "@types/mocha": "^5.2.6",
+    "@types/node": "^10.12.26",
+    "@types/sinon": "^7.0.6",
     "@types/sinon-chai": "^3.2.2",
     "@types/webpack-env": "^1.13.7",
     "chai": "^4.2.0",
@@ -81,12 +81,12 @@
     "sinon-chai": "^3.3.0",
     "ts-loader": "^5.3.3",
     "ts-node": "^8.0.2",
-    "tsconfig-paths": "^3.7.0",
+    "tsconfig-paths": "^3.8.0",
     "tslib": "^1.9.3",
     "tslint": "^5.12.1",
     "tslint-microsoft-contrib": "^6.0.0",
     "tslint-sonarts": "^1.9.0",
-    "typescript": "^3.2.4",
-    "webpack": "^4.29.0"
+    "typescript": "^3.3.3",
+    "webpack": "^4.29.4"
   }
 }

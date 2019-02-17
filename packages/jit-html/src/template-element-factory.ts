@@ -1,4 +1,4 @@
-import { DI, IContainer, InterfaceSymbol, IResolver, Profiler, Registration } from '@aurelia/kernel';
+import { DI, IContainer, InjectArray, InterfaceSymbol, IResolver, Profiler, Registration } from '@aurelia/kernel';
 import { IDOM, INode } from '@aurelia/runtime';
 
 /**
@@ -43,7 +43,7 @@ const { enter, leave } = Profiler.createTimer('TemplateElementFactory');
  * @internal
  */
 export class HTMLTemplateElementFactory implements ITemplateElementFactory {
-  public static readonly inject: ReadonlyArray<InterfaceSymbol> = [IDOM];
+  public static readonly inject: InjectArray = [IDOM];
 
   private readonly dom: IDOM;
   private template: HTMLTemplateElement;

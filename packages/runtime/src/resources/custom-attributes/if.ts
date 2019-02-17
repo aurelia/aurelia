@@ -1,4 +1,4 @@
-import { Constructable, InterfaceSymbol, IRegistry } from '@aurelia/kernel';
+import { InjectArray, InterfaceSymbol, IRegistry } from '@aurelia/kernel';
 import { AttributeDefinition, IAttributeDefinition } from '../../definitions';
 import { INode, IRenderLocation } from '../../dom';
 import { LifecycleFlags, State } from '../../flags';
@@ -9,7 +9,7 @@ import { CustomAttributeResource, ICustomAttribute, ICustomAttributeResource } f
 
 export interface If<T extends INode = INode> extends ICustomAttribute<T> {}
 export class If<T extends INode = INode> implements If<T> {
-  public static readonly inject: ReadonlyArray<InterfaceSymbol|Constructable> = [IViewFactory, IRenderLocation, CompositionCoordinator];
+  public static readonly inject: InjectArray = [IViewFactory, IRenderLocation, CompositionCoordinator];
 
   public static readonly register: IRegistry['register'];
   public static readonly bindables: IAttributeDefinition['bindables'];
@@ -123,7 +123,7 @@ CustomAttributeResource.define({ name: 'if', isTemplateController: true }, If);
 
 export interface Else<T extends INode = INode> extends ICustomAttribute<T> {}
 export class Else<T extends INode = INode> implements Else<T> {
-  public static readonly inject: ReadonlyArray<InterfaceSymbol> = [IViewFactory];
+  public static readonly inject: InjectArray = [IViewFactory];
 
   public static readonly register: IRegistry['register'];
   public static readonly bindables: IAttributeDefinition['bindables'];

@@ -68,7 +68,6 @@ describe('Lifecycle', function () {
     }
 
     expect(sut.flushed).to.equal(null, 'sut.flushed');
-    expect(sut.task).to.equal(null, 'sut.task');
     expect(sut.promise).to.be.instanceof(Promise, 'sut.promise');
 
     // ensure no undefined properties on initialization
@@ -79,44 +78,22 @@ describe('Lifecycle', function () {
 
   // TODO: more tests needed
   describe('endBind()', function () {
-    it('handles task first', async function () {
+    it('called bound()', async function () {
       const sut = new Lifecycle();
       const flags = LifecycleFlags.none;
-
-      let callbackCalled = false;
-      let callbackValue;
-      const value = {};
-      const promise = new Promise(resolve => {
-        setTimeout(() => {
-          resolve(value);
-        },         50);
-      });
 
       let boundCalled = false;
       const subject1: ILifecycleHooks = {
         $nextBound: null,
         bound(_flags: LifecycleFlags): void {
-          expect(callbackCalled).to.equal(true, 'callbackCalled');
-          expect(callbackValue).to.equal(callbackValue, 'callbackValue');
           boundCalled = true;
         }
       };
 
-      const task = new PromiseTask(promise, cbValue => {
-        callbackCalled = true;
-        callbackValue = cbValue;
-      });
-
       sut.beginBind();
       sut.enqueueBound(subject1);
-      sut.registerTask(task);
 
-      const lifecycleTask = sut.endBind(flags);
-
-      expect(callbackCalled).to.equal(false, 'callbackCalled');
-      expect(boundCalled).to.equal(false, 'boundCalled');
-
-      await lifecycleTask.wait();
+      sut.endBind(flags);
 
       expect(boundCalled).to.equal(true, 'boundCalled');
 

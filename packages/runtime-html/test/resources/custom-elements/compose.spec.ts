@@ -78,7 +78,7 @@ describe('The "compose" custom element', function () {
             let attachCalled = false;
             child.$attach = function () { attachCalled = true; };
 
-            runAttachLifecycle(ctx, element);
+            element.$attach(LifecycleFlags.none);
 
             expect(attachCalled).to.equal(true);
           },
@@ -98,7 +98,7 @@ describe('The "compose" custom element', function () {
           () => {
             const location = element.$projector.host;
 
-            runAttachLifecycle(ctx, element);
+            element.$attach(LifecycleFlags.none);
 
             expect(location.previousSibling)
               .to.be.equal(getCurrentView(element).$nodes.lastChild);
@@ -144,8 +144,8 @@ describe('The "compose" custom element', function () {
             let detachCalled = false;
             child.$detach = function () { detachCalled = true; };
 
-            runAttachLifecycle(ctx, element);
-            runDetachLifecycle(ctx, element);
+            element.$attach(LifecycleFlags.none);
+            element.$detach(LifecycleFlags.none);
 
             expect(detachCalled).to.equal(true);
           },
@@ -227,7 +227,7 @@ describe('The "compose" custom element', function () {
         const location = element.$projector.host;
 
         waitForCompositionEnd(element, () => {
-          runAttachLifecycle(ctx, element);
+          element.$attach(LifecycleFlags.none);
 
           const currentView = getCurrentView(element);
           if (location.previousSibling !== currentView.$nodes.lastChild) {
@@ -278,18 +278,6 @@ describe('The "compose" custom element', function () {
 
   function getCurrentView(compose: Compose) {
     return compose['coordinator']['currentView'];
-  }
-
-  function runAttachLifecycle(ctx: HTMLTestContext, item: IComponent) {
-    ctx.lifecycle.beginAttach();
-    item.$attach(LifecycleFlags.none);
-    ctx.lifecycle.endAttach(LifecycleFlags.none);
-  }
-
-  function runDetachLifecycle(ctx: HTMLTestContext, item: IComponent) {
-    ctx.lifecycle.beginDetach();
-    item.$detach(LifecycleFlags.none);
-    ctx.lifecycle.endDetach(LifecycleFlags.none);
   }
 
   function waitForCompositionEnd(element: Compose, callback: () => void, done?: () => void) {

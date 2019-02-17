@@ -102,7 +102,7 @@ export default function(config: IKarmaConfig): void {
     mime: {
       'text/x-typescript': ['ts']
     },
-    reporters: ['junit', config.reporter || 'min'],
+    reporters: ['junit', config.reporter || (process.env.CI ? 'min' : 'progress')],
     webpackMiddleware: {
       stats: {
         colors: true,

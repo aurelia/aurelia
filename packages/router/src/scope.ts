@@ -9,11 +9,6 @@ export interface IViewportCustomElementType extends ICustomElementType {
   viewport?: string;
 }
 
-export interface IComponentViewport {
-  component: Partial<ICustomElementType> | string;
-  viewport: Viewport;
-}
-
 export interface IFindViewportsResult {
   viewportInstructions?: ViewportInstruction[];
   viewportsRemaining?: boolean;

@@ -5,7 +5,7 @@ import { InstructionResolver, IRouteSeparators } from './instruction-resolver';
 import { AnchorEventInfo, LinkHandler } from './link-handler';
 import { INavRoute, Nav } from './nav';
 import { IParsedQuery, parseQuery } from './parser';
-import { ChildContainer, IComponentViewport, Scope } from './scope';
+import { ChildContainer, Scope } from './scope';
 import { closestCustomElement } from './utils';
 import { IViewportOptions, Viewport } from './viewport';
 import { ViewportInstruction } from './viewport-instruction';

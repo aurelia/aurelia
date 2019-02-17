@@ -713,7 +713,9 @@ export class Lifecycle implements ILifecycle {
     // flush before processing bound callbacks, but only if this is the initial bind;
     // no DOM is attached yet so we can safely let everything propagate
     if (flags & LifecycleFlags.fromStartTask) {
+      ++this.bindDepth; // make sure any nested bound callbacks happen AFTER the ones already queued
       this.processFlushQueue(flags | LifecycleFlags.fromSyncFlush);
+      --this.bindDepth;
     }
     while (this.boundCount > 0) {
       if (Tracer.enabled) { Tracer.enter('Lifecycle', 'processBindQueue', slice.call(arguments)); }
@@ -752,7 +754,9 @@ export class Lifecycle implements ILifecycle {
     if (Tracer.enabled) { Tracer.enter('Lifecycle', 'processAttachQueue', slice.call(arguments)); }
     // flush and patch before starting the attach lifecycle to ensure batched collection changes are propagated to repeaters
     // and the DOM is updated
+    ++this.attachDepth; // make sure any nested mount/attached callbacks happen AFTER the ones already queued
     this.processFlushQueue(flags | LifecycleFlags.fromSyncFlush);
+    --this.attachDepth;
     // TODO: prevent duplicate updates coming from the patch queue (or perhaps it's just not needed in its entirety?)
     //this.processPatchQueue(flags | LifecycleFlags.fromSyncFlush);
 
@@ -790,7 +794,9 @@ export class Lifecycle implements ILifecycle {
     if (Tracer.enabled) { Tracer.enter('Lifecycle', 'processDetachQueue', slice.call(arguments)); }
     // flush before unmounting to ensure batched collection changes propagate to the repeaters,
     // which may lead to additional unmount operations
+    ++this.detachDepth; // make sure any nested unmount/detached callbacks happen AFTER the ones already queued
     this.processFlushQueue(flags | LifecycleFlags.fromFlush | LifecycleFlags.doNotUpdateDOM);
+    --this.detachDepth;
 
     if (this.unmountCount > 0) {
       if (Tracer.enabled) { Tracer.enter('Lifecycle', 'processUnmountQueue', slice.call(arguments)); }

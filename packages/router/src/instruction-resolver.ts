@@ -39,24 +39,32 @@ export class InstructionResolver {
   }
 
   public parseViewportInstruction(instruction: string): ViewportInstruction {
-    let component, viewport, parameters;
+    let component, viewport, parameters, scope;
     const [componentPart, rest] = instruction.split(this.separators.viewport);
     if (rest === undefined) {
       [component, ...parameters] = componentPart.split(this.separators.parameters);
+      if (component.endsWith(this.separators.ownsScope)) {
+        scope = true;
+        component = component.slice(0, component.length - 1);
+      }
     } else {
       component = componentPart;
       [viewport, ...parameters] = rest.split(this.separators.parameters);
+      if (viewport.endsWith(this.separators.ownsScope)) {
+        scope = true;
+        viewport = viewport.slice(0, viewport.length - 1);
+      }
     }
     parameters = parameters.length ? parameters.join(this.separators.parameters) : undefined;
-    return new ViewportInstruction(component, viewport, parameters);
+    return new ViewportInstruction(component, viewport, parameters, scope);
   }
 
-  public stringifyViewportInstruction(instruction: ViewportInstruction | string): string {
+  public stringifyViewportInstruction(instruction: ViewportInstruction | string, excludeViewport: boolean = false): string {
     if (typeof instruction === 'string') {
-      return instruction;
+      return this.stringifyViewportInstruction(this.parseViewportInstruction(instruction), excludeViewport);
     } else {
       let instructionString = instruction.componentName;
-      if (instruction.viewportName) {
+      if (instruction.viewportName && !excludeViewport) {
         instructionString += this.separators.viewport + instruction.viewportName;
       }
       if (instruction.parametersString) {

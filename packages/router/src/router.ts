@@ -35,7 +35,7 @@ export class Router {
   public navs: Record<string, Nav> = {};
   public activeComponents: string[] = [];
 
-  public addedViewports: IComponentViewport[] = [];
+  public addedViewports: ViewportInstruction[] = [];
 
   private options: IRouterOptions;
   private isActive: boolean = false;
@@ -160,17 +160,18 @@ export class Router {
     const updatedViewports: Viewport[] = [];
 
     // TODO: Take care of cancellations down in subsets/iterations
-    let { componentViewports, viewportsRemaining } = this.rootScope.findViewports(views);
+    let { viewportInstructions, viewportsRemaining } = this.rootScope.findViewports(views);
     let guard = 100;
-    while (componentViewports.length || viewportsRemaining || defaultViewports.length) {
+    while (viewportInstructions.length || viewportsRemaining || defaultViewports.length) {
       // Guard against endless loop
       if (!guard--) {
         throw Reporter.error(2002);
       }
       const changedViewports: Viewport[] = [];
-      for (const componentViewport of componentViewports) {
-        const { component, viewport } = componentViewport;
-        if (viewport.setNextContent(component, instruction)) {
+      for (const viewportInstruction of viewportInstructions) {
+        const viewport = viewportInstruction.viewport;
+        const componentWithParameters = this.instructionResolver.stringifyViewportInstruction(viewportInstruction, true);
+        if (viewport.setNextContent(componentWithParameters, instruction)) {
           changedViewports.push(viewport);
         }
         const usedIndex = usedViewports.findIndex((value) => value === viewport);
@@ -236,15 +237,15 @@ export class Router {
 
       // TODO: Fix multi level recursiveness!
       const remaining = this.rootScope.findViewports();
-      componentViewports = [];
-      let addedViewport: IComponentViewport;
+      viewportInstructions = [];
+      let addedViewport: ViewportInstruction;
       while (addedViewport = this.addedViewports.shift()) {
         // TODO: Should this overwrite instead? I think so.
-        if (!remaining.componentViewports.find((value) => value.viewport === addedViewport.viewport)) {
-          componentViewports.push(addedViewport);
+        if (!remaining.viewportInstructions.find((value) => value.viewport === addedViewport.viewport)) {
+          viewportInstructions.push(addedViewport);
         }
       }
-      componentViewports = [...componentViewports, ...remaining.componentViewports];
+      viewportInstructions = [...viewportInstructions, ...remaining.viewportInstructions];
       viewportsRemaining = remaining.viewportsRemaining;
     }
 
@@ -274,7 +275,7 @@ export class Router {
         // TODO: Deal with not yet existing viewports
         viewport = this.allViewports().find((vp) => vp.name === viewport);
       }
-      this.addedViewports.push({ viewport: viewport, component: component });
+      this.addedViewports.push(new ViewportInstruction(component, viewport));
     } else if (this.lastNavigation) {
       this.pendingNavigations.unshift({ path: '', fullStatePath: '', isRepeat: true });
       // Don't wait for the (possibly slow) navigation

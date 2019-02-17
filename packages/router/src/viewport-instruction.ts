@@ -15,10 +15,18 @@ export class ViewportInstruction {
   public scope?: boolean;
 
   constructor(component: Partial<ICustomElementType> | string, viewport?: Viewport | string, parameters?: Record<string, unknown> | string, scope?: boolean) {
-    this.initialize(component, viewport, parameters, scope);
+    this.setComponent(component);
+    if (viewport) {
+      this.setViewport(viewport);
+    }
+    if (parameters) {
+      this.setParameters(parameters);
+    }
+
+    this.scope = !!scope;
   }
 
-  public initialize(component: Partial<ICustomElementType> | string, viewport?: Viewport | string, parameters?: Record<string, unknown> | string, scope?: boolean): void {
+  public setComponent(component: Partial<ICustomElementType> | string): void {
     if (typeof component === 'string') {
       this.componentName = component;
       this.component = null;
@@ -26,6 +34,9 @@ export class ViewportInstruction {
       this.component = component;
       this.componentName = component.description.name;
     }
+  }
+
+  public setViewport(viewport: Viewport | string): void {
     if (typeof viewport === 'string') {
       this.viewportName = viewport;
       this.viewport = null;
@@ -35,6 +46,9 @@ export class ViewportInstruction {
         this.viewportName = viewport.name;
       }
     }
+  }
+
+  public setParameters(parameters: Record<string, unknown> | string): void {
     if (typeof parameters === 'string') {
       this.parametersString = parameters;
       // TODO: Initialize parameters better and more of them and just fix this
@@ -44,8 +58,6 @@ export class ViewportInstruction {
       // TODO: Create parametersString
     }
     // TODO: Deal with parametersList
-
-    this.scope = !!scope;
   }
 
   public componentType(context: IRenderContext): IRouteableCustomElementType {

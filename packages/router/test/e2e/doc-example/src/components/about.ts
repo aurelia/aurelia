@@ -34,8 +34,6 @@ In other words, I scroll you
 </pre></div>
 <br>
 <input>
-<span style="display: inline-block; width: 150px; border: 1px solid green" click.trigger="goClick(false)">Go</span>
-<span style="display: inline-block; width: 150px; border: 1px solid green" click.trigger="goClick(true)">Go with suppress</span>
 </template>` })
 @inject(State, Router)
 export class About {

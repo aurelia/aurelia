@@ -1,15 +1,15 @@
-import { InjectArray, InterfaceSymbol, IRegistry } from '@aurelia/kernel';
+import { InjectArray, IRegistry } from '@aurelia/kernel';
 import { AttributeDefinition, IAttributeDefinition } from '../../definitions';
 import { INode, IRenderLocation } from '../../dom';
 import { LifecycleFlags, State } from '../../flags';
-import { CompositionCoordinator, ContinuationTask, ILifecycleTask, IView, IViewFactory } from '../../lifecycle';
+import { ContinuationTask, ILifecycleTask, IView, IViewFactory, LifecycleTask, PromiseTask } from '../../lifecycle';
 import { ProxyObserver } from '../../observation/proxy-observer';
 import { bindable } from '../../templating/bindable';
 import { CustomAttributeResource, ICustomAttribute, ICustomAttributeResource } from '../custom-attribute';
 
 export interface If<T extends INode = INode> extends ICustomAttribute<T> {}
 export class If<T extends INode = INode> implements If<T> {
-  public static readonly inject: InjectArray = [IViewFactory, IRenderLocation, CompositionCoordinator];
+  public static readonly inject: InjectArray = [IViewFactory, IRenderLocation];
 
   public static readonly register: IRegistry['register'];
   public static readonly bindables: IAttributeDefinition['bindables'];
@@ -23,46 +23,75 @@ export class If<T extends INode = INode> implements If<T> {
   public ifFactory: IViewFactory<T>;
   public ifView: IView<T> | null;
   public location: IRenderLocation<T>;
-  public coordinator: CompositionCoordinator;
   private persistentFlags: LifecycleFlags;
+  private task: ILifecycleTask;
+  private view: IView<T> | null;
 
   constructor(
     ifFactory: IViewFactory<T>,
-    location: IRenderLocation<T>,
-    coordinator: CompositionCoordinator
+    location: IRenderLocation<T>
   ) {
     this.value = false;
 
-    this.coordinator = coordinator;
     this.elseFactory = null;
     this.elseView = null;
     this.ifFactory = ifFactory;
     this.ifView = null;
     this.location = location;
     this.persistentFlags = LifecycleFlags.none;
+    this.task = LifecycleTask.done;
+    this.view = null;
   }
 
   public binding(flags: LifecycleFlags): ILifecycleTask {
     this.persistentFlags = flags & LifecycleFlags.persistentBindingFlags;
-    const view = this.updateView(flags);
-    const task = this.coordinator.compose(view, flags);
-    if (task.done) {
-      return this.coordinator.binding(flags, this.$scope);
+    if (this.task.done) {
+      this.task = this.swap(this.value, flags);
     } else {
-      return new ContinuationTask(task, this.coordinator.binding, this.coordinator, flags, this.$scope);
+      this.task = new ContinuationTask(this.task, this.swap, this, this.value, flags);
     }
+
+    if (this.task.done) {
+      this.task = this.bindView(flags);
+    } else {
+      this.task = new ContinuationTask(this.task, this.bindView, this, flags);
+    }
+
+    return this.task;
   }
 
   public attaching(flags: LifecycleFlags): ILifecycleTask {
-    return this.coordinator.attaching(flags);
+    if (this.task.done) {
+      this.task = this.attachView(flags);
+    } else {
+      this.task = new ContinuationTask(this.task, this.attachView, this, flags);
+    }
+
+    return this.task;
   }
 
   public detaching(flags: LifecycleFlags): ILifecycleTask {
-    return this.coordinator.detaching(flags);
+    if (this.view !== null) {
+      if (this.task.done) {
+        this.task = this.view.$detach(flags);
+      } else {
+        this.task = new ContinuationTask(this.task, this.view.$detach, this.view, flags);
+      }
+    }
+
+    return this.task;
   }
 
   public unbinding(flags: LifecycleFlags): ILifecycleTask {
-    return this.coordinator.unbinding(flags);
+    if (this.view !== null) {
+      if (this.task.done) {
+        this.task = this.view.$unbind(flags);
+      } else {
+        this.task = new ContinuationTask(this.task, this.view.$unbind, this.view, flags);
+      }
+    }
+
+    return this.task;
   }
 
   public caching(flags: LifecycleFlags): void {
@@ -74,16 +103,19 @@ export class If<T extends INode = INode> implements If<T> {
       this.elseView = null;
     }
 
-    this.coordinator.caching(flags);
+    this.view = null;
   }
 
   public valueChanged(newValue: boolean, oldValue: boolean, flags: LifecycleFlags): void {
-    if (this.$state & (State.isBound | State.isBinding)) {
+    if ((this.$state & (State.isBound | State.isBinding)) > 0) {
       flags |= this.persistentFlags;
       const $this = ProxyObserver.getRawIfProxy(this);
       if (flags & LifecycleFlags.fromFlush) {
-        const view = $this.updateView(flags);
-        $this.coordinator.compose(view, flags);
+        if ($this.task.done) {
+          this.task = this.swap(newValue, flags);
+        } else {
+          this.task = new ContinuationTask(this.task, this.swap, this, newValue, flags);
+        }
       } else {
         $this.$lifecycle.enqueueFlush($this).catch(error => { throw error; });
       }
@@ -93,22 +125,23 @@ export class If<T extends INode = INode> implements If<T> {
   public flush(flags: LifecycleFlags): void {
     flags |= this.persistentFlags;
     const $this = ProxyObserver.getRawIfProxy(this);
-    const view = $this.updateView(flags);
-    $this.coordinator.compose(view, flags);
+    if ($this.task.done) {
+      this.task = this.swap(this.value, flags);
+    } else {
+      this.task = new ContinuationTask(this.task, this.swap, this, this.value, flags);
+    }
   }
 
   /** @internal */
-  public updateView(flags: LifecycleFlags): IView<T> | null {
+  public updateView(value: boolean, flags: LifecycleFlags): IView<T> | null {
     let view: IView<T> | null;
-
-    if (this.value) {
+    if (value) {
       view = this.ifView = this.ensureView(this.ifView, this.ifFactory, flags);
     } else if (this.elseFactory !== null) {
       view = this.elseView  = this.ensureView(this.elseView, this.elseFactory, flags);
     } else {
       view = null;
     }
-
     return view;
   }
 
@@ -121,6 +154,59 @@ export class If<T extends INode = INode> implements If<T> {
     view.hold(this.location);
 
     return view;
+  }
+
+  private swap(value: boolean, flags: LifecycleFlags): ILifecycleTask {
+    let task = this.deactivate(flags);
+    if (task.done) {
+      const view = this.updateView(value, flags);
+      task = this.activate(view, flags);
+    } else {
+      task = new PromiseTask(task.wait().then(() => this.updateView(value, flags)), this.activate, this, flags);
+    }
+    return task;
+  }
+
+  private deactivate(flags: LifecycleFlags): ILifecycleTask {
+    const view = this.view;
+    if (view === null) {
+      return LifecycleTask.done;
+    }
+    let task = view.$detach(flags);
+    if (task.done) {
+      task = view.$unbind(flags);
+    } else {
+      task = new ContinuationTask(task, view.$unbind, view, flags);
+    }
+    return task;
+  }
+
+  private activate(view: IView<T>, flags: LifecycleFlags): ILifecycleTask {
+    this.view = view;
+    if (view === null) {
+      return LifecycleTask.done;
+    }
+    let task = this.bindView(flags);
+    if (task.done) {
+      task = this.attachView(flags);
+    } else {
+      task = new ContinuationTask(task, this.attachView, this, flags);
+    }
+    return task;
+  }
+
+  private bindView(flags: LifecycleFlags): ILifecycleTask {
+    if ((this.$state & (State.isBound | State.isBinding)) > 0) {
+      return this.view.$bind(flags, this.$scope);
+    }
+    return LifecycleTask.done;
+  }
+
+  private attachView(flags: LifecycleFlags): ILifecycleTask {
+    if ((this.$state & (State.isAttached | State.isAttaching)) > 0) {
+      return this.view.$attach(flags);
+    }
+    return LifecycleTask.done;
   }
 }
 CustomAttributeResource.define({ name: 'if', isTemplateController: true }, If);

@@ -2,7 +2,7 @@ import { Router } from './router';
 import { ViewportInstruction } from './viewport-instruction';
 
 /**
- * Class that handles routes configured into a route table
+ * Class that handles routes configured in a route table
  */
 export class RouteTable {
 
@@ -32,11 +32,11 @@ export class RouteTable {
     if (this.matchViewportInstructions(instructions, components)) {
       return 'welcome';
     }
-
     return instructions;
   }
 
-  // Check if instruction sets matches
+  // Check if instruction sets match. NOT COMPLETE CODE: it should also check viewport
+  // and, possibly, parameters (or their configuration)
   private matchViewportInstructions(instructionsA: ViewportInstruction[], instructionsB: ViewportInstruction[]): boolean {
     for (const instruction of instructionsA) {
       if (!instructionsB.find((i) => i.sameComponent(instruction))) {

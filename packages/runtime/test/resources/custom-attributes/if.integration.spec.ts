@@ -297,7 +297,7 @@ describe(`If/Else`, function () {
 
       runBindLifecycle(lifecycle, sut, baseFlags | bindFlags1, scope);
       if (patch) { sut.$patch(baseFlags); }
-      expect(sut.coordinator['currentView'].$nodes.firstChild['textContent']).to.equal(firstBindInitialNodesText, '$nodes.textContent #1');
+      expect(sut['currentView'].$nodes.firstChild['textContent']).to.equal(firstBindInitialNodesText, '$nodes.textContent #1');
 
       // after binding the nodes should be present and already updated with the correct values
       if (bindTwice) {
@@ -308,7 +308,7 @@ describe(`If/Else`, function () {
         if (patch) { sut.$patch(baseFlags); }
         runBindLifecycle(lifecycle, sut, baseFlags | bindFlags1, scope);
       }
-      expect(sut.coordinator['currentView'].$nodes.firstChild['textContent']).to.equal(firstBindFinalNodesText, '$nodes.textContent #2');
+      expect(sut['currentView'].$nodes.firstChild['textContent']).to.equal(firstBindFinalNodesText, '$nodes.textContent #2');
 
       runAttachLifecycle(lifecycle, sut, baseFlags | attachFlags1);
       if (patch) { sut.$patch(baseFlags); }
@@ -350,7 +350,7 @@ describe(`If/Else`, function () {
 
       runBindLifecycle(lifecycle, sut, baseFlags | bindFlags2, scope);
       if (patch) { sut.$patch(baseFlags); }
-      expect(sut.coordinator['currentView'].$nodes.firstChild['textContent']).to.equal(secondBindInitialNodesText, '$nodes.textContent #3');
+      expect(sut['currentView'].$nodes.firstChild['textContent']).to.equal(secondBindInitialNodesText, '$nodes.textContent #3');
       if (bindTwice) {
         if (newScopeForDuplicateBind) {
           scope = Scope.create(baseFlags, ctx);
@@ -359,7 +359,7 @@ describe(`If/Else`, function () {
         runBindLifecycle(lifecycle, sut, baseFlags | bindFlags2, scope);
       }
       if (patch) { sut.$patch(baseFlags); }
-      expect(sut.coordinator['currentView'].$nodes.firstChild['textContent']).to.equal(secondBindFinalNodesText, '$nodes.textContent #4');
+      expect(sut['currentView'].$nodes.firstChild['textContent']).to.equal(secondBindFinalNodesText, '$nodes.textContent #4');
 
       runAttachLifecycle(lifecycle, sut, baseFlags | attachFlags2);
       if (patch) { sut.$patch(baseFlags); }

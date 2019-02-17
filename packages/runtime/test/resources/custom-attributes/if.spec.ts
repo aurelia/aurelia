@@ -129,7 +129,7 @@ describe('The "if" template controller', function () {
   });
 
   function getCurrentView(ifAttr: If<AuNode>): IView<AuNode> {
-    return ifAttr['coordinator']['currentView'] as IView<AuNode>;
+    return ifAttr['currentView'] as IView<AuNode>;
   }
 
   function runAttachLifecycle(lifecycle: Lifecycle, item: IComponent) {

@@ -30,10 +30,8 @@ function $getVisibleText(root, context) {
     if (current.$projector && current.$projector.shadowRoot) {
       context.text += current.$projector.shadowRoot.textContent;
       $getVisibleText(current, context);
-    } else if (current.currentView) { // replaceable, with
+    } else if (current.currentView) { // replaceable, with, if, else, au-compose
       $getVisibleText(current.currentView, context);
-    } else if (current.coordinator && current.coordinator.currentView) { // if, else, au-compose
-      $getVisibleText(current.coordinator.currentView, context);
     } else if (current.views) { // repeat
       for (const view of current.views) {
         $getVisibleText(view, context);

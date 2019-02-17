@@ -54,7 +54,7 @@ export class Compose<T extends INode = Node> implements Compose<T> {
   private readonly renderingEngine: IRenderingEngine;
   private lastSubject: MaybeSubjectPromise<T>;
   private task: ILifecycleTask;
-  private view: IView<T> | null;
+  private currentView: IView<T> | null;
   private persistentFlags: LifecycleFlags; // TODO
 
   constructor(
@@ -69,7 +69,7 @@ export class Compose<T extends INode = Node> implements Compose<T> {
 
     this.lastSubject = null;
     this.task = LifecycleTask.done;
-    this.view = null;
+    this.currentView = null;
     this.renderable = renderable;
     this.renderingEngine = renderingEngine;
 
@@ -114,11 +114,11 @@ export class Compose<T extends INode = Node> implements Compose<T> {
   }
 
   public detaching(flags: LifecycleFlags): ILifecycleTask {
-    if (this.view !== null) {
+    if (this.currentView !== null) {
       if (this.task.done) {
-        this.task = this.view.$detach(flags);
+        this.task = this.currentView.$detach(flags);
       } else {
-        this.task = new ContinuationTask(this.task, this.view.$detach, this.view, flags);
+        this.task = new ContinuationTask(this.task, this.currentView.$detach, this.currentView, flags);
       }
     }
 
@@ -127,11 +127,11 @@ export class Compose<T extends INode = Node> implements Compose<T> {
 
   public unbinding(flags: LifecycleFlags): ILifecycleTask {
     this.lastSubject = null;
-    if (this.view !== null) {
+    if (this.currentView !== null) {
       if (this.task.done) {
-        this.task = this.view.$unbind(flags);
+        this.task = this.currentView.$unbind(flags);
       } else {
-        this.task = new ContinuationTask(this.task, this.view.$unbind, this.view, flags);
+        this.task = new ContinuationTask(this.task, this.currentView.$unbind, this.currentView, flags);
       }
     }
 
@@ -139,7 +139,7 @@ export class Compose<T extends INode = Node> implements Compose<T> {
   }
 
   public caching(flags: LifecycleFlags): void {
-    this.view = null;
+    this.currentView = null;
   }
 
   public subjectChanged(newValue: Subject<T> | Promise<Subject<T>>, previousValue: Subject<T> | Promise<Subject<T>>, flags: LifecycleFlags): void {
@@ -187,7 +187,7 @@ export class Compose<T extends INode = Node> implements Compose<T> {
   }
 
   private deactivate(flags: LifecycleFlags): ILifecycleTask {
-    const view = this.view;
+    const view = this.currentView;
     if (view === null) {
       return LifecycleTask.done;
     }
@@ -201,7 +201,7 @@ export class Compose<T extends INode = Node> implements Compose<T> {
   }
 
   private activate(view: IView<T>, flags: LifecycleFlags): ILifecycleTask {
-    this.view = view;
+    this.currentView = view;
     if (view === null) {
       return LifecycleTask.done;
     }
@@ -216,14 +216,14 @@ export class Compose<T extends INode = Node> implements Compose<T> {
 
   private bindView(flags: LifecycleFlags): ILifecycleTask {
     if ((this.$state & (State.isBound | State.isBinding)) > 0) {
-      return this.view.$bind(flags, this.renderable.$scope);
+      return this.currentView.$bind(flags, this.renderable.$scope);
     }
     return LifecycleTask.done;
   }
 
   private attachView(flags: LifecycleFlags): ILifecycleTask {
     if ((this.$state & (State.isAttached | State.isAttaching)) > 0) {
-      return this.view.$attach(flags);
+      return this.currentView.$attach(flags);
     }
     return LifecycleTask.done;
   }

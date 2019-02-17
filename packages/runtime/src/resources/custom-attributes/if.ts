@@ -25,7 +25,7 @@ export class If<T extends INode = INode> implements If<T> {
   public location: IRenderLocation<T>;
   private persistentFlags: LifecycleFlags;
   private task: ILifecycleTask;
-  private view: IView<T> | null;
+  private currentView: IView<T> | null;
 
   constructor(
     ifFactory: IViewFactory<T>,
@@ -40,7 +40,7 @@ export class If<T extends INode = INode> implements If<T> {
     this.location = location;
     this.persistentFlags = LifecycleFlags.none;
     this.task = LifecycleTask.done;
-    this.view = null;
+    this.currentView = null;
   }
 
   public binding(flags: LifecycleFlags): ILifecycleTask {
@@ -71,11 +71,11 @@ export class If<T extends INode = INode> implements If<T> {
   }
 
   public detaching(flags: LifecycleFlags): ILifecycleTask {
-    if (this.view !== null) {
+    if (this.currentView !== null) {
       if (this.task.done) {
-        this.task = this.view.$detach(flags);
+        this.task = this.currentView.$detach(flags);
       } else {
-        this.task = new ContinuationTask(this.task, this.view.$detach, this.view, flags);
+        this.task = new ContinuationTask(this.task, this.currentView.$detach, this.currentView, flags);
       }
     }
 
@@ -83,11 +83,11 @@ export class If<T extends INode = INode> implements If<T> {
   }
 
   public unbinding(flags: LifecycleFlags): ILifecycleTask {
-    if (this.view !== null) {
+    if (this.currentView !== null) {
       if (this.task.done) {
-        this.task = this.view.$unbind(flags);
+        this.task = this.currentView.$unbind(flags);
       } else {
-        this.task = new ContinuationTask(this.task, this.view.$unbind, this.view, flags);
+        this.task = new ContinuationTask(this.task, this.currentView.$unbind, this.currentView, flags);
       }
     }
 
@@ -103,7 +103,7 @@ export class If<T extends INode = INode> implements If<T> {
       this.elseView = null;
     }
 
-    this.view = null;
+    this.currentView = null;
   }
 
   public valueChanged(newValue: boolean, oldValue: boolean, flags: LifecycleFlags): void {
@@ -168,7 +168,7 @@ export class If<T extends INode = INode> implements If<T> {
   }
 
   private deactivate(flags: LifecycleFlags): ILifecycleTask {
-    const view = this.view;
+    const view = this.currentView;
     if (view === null) {
       return LifecycleTask.done;
     }
@@ -182,7 +182,7 @@ export class If<T extends INode = INode> implements If<T> {
   }
 
   private activate(view: IView<T>, flags: LifecycleFlags): ILifecycleTask {
-    this.view = view;
+    this.currentView = view;
     if (view === null) {
       return LifecycleTask.done;
     }
@@ -197,14 +197,14 @@ export class If<T extends INode = INode> implements If<T> {
 
   private bindView(flags: LifecycleFlags): ILifecycleTask {
     if ((this.$state & (State.isBound | State.isBinding)) > 0) {
-      return this.view.$bind(flags, this.$scope);
+      return this.currentView.$bind(flags, this.$scope);
     }
     return LifecycleTask.done;
   }
 
   private attachView(flags: LifecycleFlags): ILifecycleTask {
     if ((this.$state & (State.isAttached | State.isAttaching)) > 0) {
-      return this.view.$attach(flags);
+      return this.currentView.$attach(flags);
     }
     return LifecycleTask.done;
   }

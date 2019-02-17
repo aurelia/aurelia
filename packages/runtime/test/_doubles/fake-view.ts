@@ -11,6 +11,8 @@ import {
   IViewCache,
   LifecycleFlags,
   State,
+  ILifecycleTask,
+  LifecycleTask,
 } from '../../src/index';
 import { AuDOM, AuNode, AuNodeSequence } from '../au-dom';
 
@@ -80,29 +82,37 @@ export class FakeView implements IView<AuNode> {
     this.$scope = scope;
     this.$bind = () => {
       this.$state |= State.isBound;
+      return LifecycleTask.done;
     };
     this.$unbind = () => {
       this.$state &= ~State.isBound;
+      return LifecycleTask.done;
     };
   }
 
-  public $bind(flags: LifecycleFlags, scope: IScope): void {
+  public $bind(flags: LifecycleFlags, scope: IScope): ILifecycleTask {
     this.$scope = scope;
     this.$state |= State.isBound;
+    return LifecycleTask.done;
   }
 
-  public $unbind(): void {
+  public $unbind(): ILifecycleTask {
     this.$state &= ~State.isBound;
+    return LifecycleTask.done;
   }
 
-  public $attach(): void {
+  public $attach(flags: LifecycleFlags): ILifecycleTask {
+    this.$lifecycle.beginAttach(this);
     this.$lifecycle.enqueueMount(this);
-    this.$state |= State.isAttached;
+    this.$lifecycle.endAttach(flags, this);
+    return LifecycleTask.done;
   }
 
-  public $detach(): void {
+  public $detach(flags: LifecycleFlags): ILifecycleTask {
+    this.$lifecycle.beginDetach(this);
     this.$lifecycle.enqueueUnmount(this);
-    this.$state &= ~State.isAttached;
+    this.$lifecycle.endDetach(flags, this);
+    return LifecycleTask.done;
   }
 
   public $cache() { /* do nothing */ }

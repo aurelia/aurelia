@@ -5,6 +5,7 @@ import { InstructionResolver, IRouteSeparators } from './instruction-resolver';
 import { AnchorEventInfo, LinkHandler } from './link-handler';
 import { INavRoute, Nav } from './nav';
 import { IParsedQuery, parseQuery } from './parser';
+import { RouteTable } from './route-table';
 import { ChildContainer, Scope } from './scope';
 import { closestCustomElement } from './utils';
 import { IViewportOptions, Viewport } from './viewport';
@@ -13,8 +14,8 @@ import { ViewportInstruction } from './viewport-instruction';
 export interface IRouterOptions extends IHistoryOptions {
   separators?: IRouteSeparators;
   reportCallback?(instruction: INavigationInstruction): void;
-  transformFromUrl?(path: string, router: Router): string;
-  transformToUrl?(instructions: ViewportInstruction[], router: Router): string;
+  transformFromUrl?(route: string, router: Router): string | ViewportInstruction[];
+  transformToUrl?(instructions: ViewportInstruction[], router: Router): string | ViewportInstruction[];
 }
 
 export interface IRouteViewport {
@@ -23,7 +24,7 @@ export interface IRouteViewport {
 }
 
 export class Router {
-  public static readonly inject: InjectArray = [IContainer];
+  public static readonly inject: InjectArray = [IContainer, RouteTable];
 
   public rootScope: Scope;
   public scopes: Scope[] = [];
@@ -44,10 +45,14 @@ export class Router {
   private processingNavigation: INavigationInstruction = null;
   private lastNavigation: INavigationInstruction = null;
 
-  constructor(public container: IContainer) {
+  private routeTable: RouteTable;
+
+  constructor(public container: IContainer, routeTable: RouteTable) {
     this.historyBrowser = new HistoryBrowser();
     this.linkHandler = new LinkHandler();
     this.instructionResolver = new InstructionResolver();
+
+    this.routeTable = routeTable;
   }
 
   public get isNavigating(): boolean {
@@ -64,7 +69,9 @@ export class Router {
       ...{
         callback: (navigationInstruction) => {
           this.historyCallback(navigationInstruction);
-        }
+        },
+        transformFromUrl: this.routeTable.transformFromUrl,
+        transformToUrl: this.routeTable.transformToUrl,
       }, ...options
     };
 
@@ -126,13 +133,12 @@ export class Router {
 
     let path = instruction.path;
     if (this.options.transformFromUrl && !fullStateInstruction) {
-      path = this.options.transformFromUrl(path, this);
-      if (Array.isArray(path)) {
-        path = this.instructionResolver.viewportInstructionsToString(path);
-      }
+      const routeOrInstructions = this.options.transformFromUrl(path, this);
+      // TODO: Don't go via string here, use instructions as they are
+      path = Array.isArray(routeOrInstructions) ? this.instructionResolver.viewportInstructionsToString(routeOrInstructions) : routeOrInstructions;
     }
 
-    const { clearViewports, newPath} = this.instructionResolver.shouldClearViewports(path);
+    const { clearViewports, newPath } = this.instructionResolver.shouldClearViewports(path);
     if (clearViewports) {
       path = newPath;
     }
@@ -408,7 +414,8 @@ export class Router {
     viewportStates = this.instructionResolver.removeStateDuplicates(viewportStates);
     let state = this.instructionResolver.stateStringsToString(viewportStates);
     if (this.options.transformToUrl) {
-      state = this.options.transformToUrl(this.instructionResolver.viewportInstructionsFromString(state), this);
+      const routeOrInstructions = this.options.transformToUrl(this.instructionResolver.viewportInstructionsFromString(state), this);
+      state = Array.isArray(routeOrInstructions) ? this.instructionResolver.viewportInstructionsToString(routeOrInstructions) : routeOrInstructions;
     }
 
     let fullViewportStates = this.rootScope.viewportStates(true);

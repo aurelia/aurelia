@@ -48,170 +48,148 @@ describe('The "compose" custom element', function () {
 
   for (const subjectPossibility of subjectPossibilities) {
     for (const producerPossibility of producerPossibilities) {
-      it(`can compose a ${subjectPossibility.description} ${producerPossibility.description}`, function (done) {
+      it(`can compose a ${subjectPossibility.description} ${producerPossibility.description}`, async function () {
         const ctx = TestContext.createHTMLTestContext();
         const { element } = hydrateCustomElement(Compose, ctx);
         const value = producerPossibility.create(subjectPossibility.create(ctx));
 
-        waitForCompositionEnd(
-          element,
-          () => {
-            const child = getCurrentView(element);
-            expect(child).not.to.equal(undefined);
-            expect(child).not.to.equal(null);
-          },
-          done
-        );
-
         element.subject = value;
+
+        await element['task'].wait();
+
+        const child = element['view'];
+        expect(child).not.to.equal(undefined);
+        expect(child).not.to.equal(null);
       });
 
-      it(`enforces the attach lifecycle of its composed ${subjectPossibility.description} ${producerPossibility.description}`, function (done) {
+      it(`enforces the attach lifecycle of its composed ${subjectPossibility.description} ${producerPossibility.description}`, async function () {
         const ctx = TestContext.createHTMLTestContext();
         const { element } = hydrateCustomElement(Compose, ctx);
         const value = producerPossibility.create(subjectPossibility.create(ctx));
 
-        waitForCompositionEnd(
-          element,
-          () => {
-            const child = getCurrentView(element);
-            let attachCalled = false;
-            child.$attach = function () { attachCalled = true; };
-
-            element.$attach(LifecycleFlags.none);
-
-            expect(attachCalled).to.equal(true);
-          },
-          done
-        );
-
         element.subject = value;
+
+        await element['task'].wait();
+
+        const child = element['view'];
+        let attachCalled = false;
+        child.$attach = function () {
+          attachCalled = true;
+          return LifecycleTask.done;
+        };
+
+        element.$attach(LifecycleFlags.none);
+
+        expect(attachCalled, `attachCalled`).to.equal(true);
       });
 
-      it(`adds a view at the render location when attaching a ${subjectPossibility.description} ${producerPossibility.description}`, function (done) {
+      it(`adds a view at the render location when attaching a ${subjectPossibility.description} ${producerPossibility.description}`, async function () {
         const ctx = TestContext.createHTMLTestContext();
         const { element } = hydrateCustomElement(Compose, ctx);
         const value = producerPossibility.create(subjectPossibility.create(ctx));
 
-        waitForCompositionEnd(
-          element,
-          () => {
-            const location = element.$projector.host;
-
-            element.$attach(LifecycleFlags.none);
-
-            expect(location.previousSibling)
-              .to.be.equal(getCurrentView(element).$nodes.lastChild);
-          },
-          done
-        );
-
         element.subject = value;
+
+        await element['task'].wait();
+
+        const location = element.$projector.host;
+
+        element.$attach(LifecycleFlags.none);
+
+        expect(location.previousSibling, `location.previousSibling`).to.equal(element['view'].$nodes.lastChild);
       });
 
-      it(`enforces the bind lifecycle of its composed ${subjectPossibility.description} ${producerPossibility.description}`, function (done) {
+      it(`enforces the bind lifecycle of its composed ${subjectPossibility.description} ${producerPossibility.description}`, async function () {
         const ctx = TestContext.createHTMLTestContext();
         const { element } = hydrateCustomElement(Compose, ctx);
         const value = producerPossibility.create(subjectPossibility.create(ctx));
 
-        waitForCompositionEnd(
-          element,
-          () => {
-            const child = getCurrentView(element);
-
-            let bindCalled = false;
-            child.$bind = function () { bindCalled = true; };
-
-            element.$bind(LifecycleFlags.fromBind);
-
-            expect(bindCalled).to.equal(true);
-          },
-          done
-        );
-
         element.subject = value;
+
+        await element['task'].wait();
+
+        const child = element['view'];
+
+        let bindCalled = false;
+        child.$bind = function () {
+          bindCalled = true;
+          return LifecycleTask.done;
+        };
+
+        element.$bind(LifecycleFlags.fromBind);
+
+        expect(bindCalled, `bindCalled`).to.equal(true);
       });
 
-      it(`enforces the detach lifecycle of its composed ${subjectPossibility.description} ${producerPossibility.description}`, function (done) {
+      it(`enforces the detach lifecycle of its composed ${subjectPossibility.description} ${producerPossibility.description}`, async function () {
         const ctx = TestContext.createHTMLTestContext();
         const { element } = hydrateCustomElement(Compose, ctx);
         const value = producerPossibility.create(subjectPossibility.create(ctx));
 
-        waitForCompositionEnd(
-          element,
-          () => {
-            const child = getCurrentView(element);
-            let detachCalled = false;
-            child.$detach = function () { detachCalled = true; };
-
-            element.$attach(LifecycleFlags.none);
-            element.$detach(LifecycleFlags.none);
-
-            expect(detachCalled).to.equal(true);
-          },
-          done
-        );
-
         element.subject = value;
+
+        await element['task'].wait();
+
+        const child = element['view'];
+        let detachCalled = false;
+        child.$detach = function () {
+          detachCalled = true;
+          return LifecycleTask.done;
+        };
+
+        element.$attach(LifecycleFlags.none);
+        element.$detach(LifecycleFlags.none);
+
+        expect(detachCalled, `detachCalled`).to.equal(true);
       });
 
-      it(`enforces the unbind lifecycle of its composed ${subjectPossibility.description} ${producerPossibility.description}`, function (done) {
+      it(`enforces the unbind lifecycle of its composed ${subjectPossibility.description} ${producerPossibility.description}`, async function () {
         const ctx = TestContext.createHTMLTestContext();
         const { element } = hydrateCustomElement(Compose, ctx);
         const value = producerPossibility.create(subjectPossibility.create(ctx));
 
-        waitForCompositionEnd(
-          element,
-          () => {
-            const child = getCurrentView(element);
-            let unbindCalled = false;
-            child.$unbind = function () { unbindCalled = true; };
-
-            element.$bind(LifecycleFlags.fromBind);
-            element.$unbind(LifecycleFlags.fromUnbind);
-
-            expect(unbindCalled).to.equal(true);
-          },
-          done
-        );
-
         element.subject = value;
+
+        await element['task'].wait();
+
+        const child = element['view'];
+        let unbindCalled = false;
+        child.$unbind = function () {
+          unbindCalled = true;
+          return LifecycleTask.done;
+        };
+
+        element.$bind(LifecycleFlags.fromBind);
+        element.$unbind(LifecycleFlags.fromUnbind);
+        expect(unbindCalled, `unbindCalled`).to.equal(true);
       });
     }
   }
 
   for (const producer of producerPossibilities) {
-    it(`can swap between views ${producer.description}`, function (done) {
+    it(`can swap between views ${producer.description}`, async function () {
       const ctx = TestContext.createHTMLTestContext();
       const { element } = hydrateCustomElement(Compose, ctx);
       const view1 = createViewFactory(ctx).create();
       const view2 = createViewFactory(ctx).create();
 
-      waitForCompositionEnd(
-        element,
-        () => {
-          expect(getCurrentView(element)).to.equal(view1);
+      element.subject = producer.create(view1);
 
-          waitForCompositionEnd(
-            element,
-            () => {
-              expect(getCurrentView(element)).to.equal(view2);
+      await element['task'].wait();
 
-              waitForCompositionEnd(
-                element,
-                () => {
-                  expect(getCurrentView(element)).to.equal(view1);
-                },
-                done
-              );
+      expect(element['view'], `element['view']`).to.equal(view1);
 
-              element.subject = producer.create(view1);
-          });
+      element.subject = producer.create(view2);
 
-          element.subject = producer.create(view2);
-      });
+      await element['task'].wait();
+
+      expect(element['view'], `element['view']`).to.equal(view2);
 
       element.subject = producer.create(view1);
+
+      await element['task'].wait();
+
+      expect(element['view'], `element['view']`).to.equal(view1);
     });
   }
 
@@ -219,81 +197,56 @@ describe('The "compose" custom element', function () {
 
   for (const value of noSubjectValues) {
     for (const producer of producerPossibilities) {
-      it(`clears out the view when the subject is ${value} ${producer.description}`, function (done) {
+      it(`clears out the view when the subject is ${value} ${producer.description}`, async function () {
         const ctx = TestContext.createHTMLTestContext();
         const { element } = hydrateCustomElement(Compose, ctx);
 
         const view1 = createViewFactory(ctx).create();
         const location = element.$projector.host;
 
-        waitForCompositionEnd(element, () => {
-          element.$attach(LifecycleFlags.none);
-
-          const currentView = getCurrentView(element);
-          if (location.previousSibling !== currentView.$nodes.lastChild) {
-            throw new Error(`[ASSERTION ERROR]: expected location.previousSibling (with textContent "${
-              location.previousSibling && location.previousSibling.textContent || 'NULL'
-            }") to equal currentView.$nodes.lastChild (with textContent "${
-              currentView.$nodes.lastChild && currentView.$nodes.lastChild.textContent || 'NULL'
-            }")`);
-          }
-
-          let detachCalled = false;
-          const detach = view1.$detach;
-          view1.$detach = function () {
-            detachCalled = true;
-            detach.apply(view1, [LifecycleFlags.none]);
-            return LifecycleTask.done;
-          };
-
-          let unbindCalled = false;
-          view1.$unbind = function () {
-            unbindCalled = true;
-            return LifecycleTask.done;
-          };
-
-          waitForCompositionEnd(
-            element,
-            () => {
-              expect(unbindCalled).to.equal(true);
-              expect(detachCalled).to.equal(true);
-              if (location.previousSibling !== location.$start) {
-                throw new Error(`[ASSERTION ERROR]: expected location.previousSibling (with textContent "${
-                  location.previousSibling && location.previousSibling.textContent || 'NULL'
-                }") to equal location.$start (with textContent "${
-                  location.$start && location.$start.textContent || 'NULL'
-                }")`);
-              }
-            },
-            done
-          );
-
-          element.subject = producer.create(value);
-        });
-
         element.subject = view1;
+
+        await element['task'].wait();
+
+        element.$attach(LifecycleFlags.none);
+
+        const currentView = element['view'];
+        if (location.previousSibling !== currentView.$nodes.lastChild) {
+          throw new Error(`[ASSERTION ERROR]: expected location.previousSibling (with textContent "${
+            location.previousSibling && location.previousSibling.textContent || 'NULL'
+          }") to equal currentView.$nodes.lastChild (with textContent "${
+            currentView.$nodes.lastChild && currentView.$nodes.lastChild.textContent || 'NULL'
+          }")`);
+        }
+
+        let detachCalled = false;
+        const detach = view1.$detach;
+        view1.$detach = function () {
+          detachCalled = true;
+          return detach.apply(view1, [LifecycleFlags.none]);
+        };
+
+        let unbindCalled = false;
+        view1.$unbind = function () {
+          unbindCalled = true;
+          return LifecycleTask.done;
+        };
+
+        element.subject = producer.create(value);
+
+        await element['task'].wait();
+
+        expect(unbindCalled, `unbindCalled`).to.equal(true);
+        expect(detachCalled, `detachCalled`).to.equal(true);
+        if (location.previousSibling !== location.$start) {
+          throw new Error(`[ASSERTION ERROR]: expected location.previousSibling (with textContent "${
+            location.previousSibling && location.previousSibling.textContent || 'NULL'
+          }") to equal location.$start (with textContent "${
+            location.$start && location.$start.textContent || 'NULL'
+          }")`);
+        }
       });
     }
-  }
-
-  function getCurrentView(compose: Compose) {
-    return compose['coordinator']['currentView'];
-  }
-
-  function waitForCompositionEnd(element: Compose, callback: () => void, done?: () => void) {
-    const coordinator = element['coordinator'];
-    const originalSwapComplete = coordinator.onSwapComplete;
-
-    coordinator.onSwapComplete = () => {
-      originalSwapComplete.call(coordinator);
-      coordinator.onSwapComplete = originalSwapComplete;
-
-      callback();
-
-      if (done) {
-        done();
-      }
-    };
   }
 
   function createViewFactory(ctx: HTMLTestContext): IViewFactory {

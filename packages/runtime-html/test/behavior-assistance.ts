@@ -1,5 +1,5 @@
 
-import { Constructable } from '@aurelia/kernel';
+import { Class } from '@aurelia/kernel';
 import {
   CustomElementResource,
   ICustomElement,
@@ -14,7 +14,7 @@ import { InstanceProvider } from '../../runtime/src/rendering-engine';
 import { FakeView } from './_doubles/fake-view';
 import { HTMLTestContext } from './util';
 
-export function hydrateCustomElement<T>(Type: Constructable<T>, ctx: HTMLTestContext) {
+export function hydrateCustomElement<T>(Type: Class<T>, ctx: HTMLTestContext) {
   const { container, dom } = ctx;
   const ElementType: ICustomElementType = Type as any;
   const parent = ctx.createElement('div');

@@ -951,7 +951,7 @@ export class CompositionCoordinator {
   public compose(value: IView | Promise<IView>, flags: LifecycleFlags): ILifecycleTask {
     if (this.swapTask.done) {
       if (value instanceof Promise) {
-        this.enqueue(new PromiseSwap(this, value));
+        this.swapTask = new PromiseSwap(this, value);
         this.processNext();
       } else {
         this.swap(value, flags);
@@ -1284,31 +1284,45 @@ export class PromiseSwap implements ILifecycleTask<IView> {
   }
 }
 
-export class PromiseTask<T = void> implements ILifecycleTask<T> {
+export class PromiseTask<TArgs extends unknown[], T = void> implements ILifecycleTask {
   public done: boolean;
 
+  private hasStarted: boolean;
   private isCancelled: boolean;
-  private readonly promise: Promise<T>;
-  private readonly callback: (result?: T) => void;
+  private readonly promise: Promise<unknown>;
 
-  constructor(promise: Promise<T>, callback: ((result?: T) => void) = null) {
+  constructor(
+    promise: Promise<T>,
+    next: ((result?: T, ...args: TArgs) => MaybePromiseOrTask) | null,
+    context: unknown,
+    ...args: TArgs
+  ) {
     this.done = false;
     this.isCancelled = false;
-    this.callback = callback;
+    this.hasStarted = false;
     this.promise = promise.then(value => {
       if (this.isCancelled === true) {
         return;
       }
-      this.done = true;
-      if (this.callback !== null) {
-        this.callback(value);
+      this.hasStarted = true;
+      if (next !== null) {
+        const nextResult = next.call(context, value, ...args);
+        if (nextResult === void 0) {
+          this.done = true;
+        } else {
+          const nextPromise = (nextResult as Promise<unknown>).then instanceof Function
+            ? nextResult as Promise<unknown>
+            : (nextResult as ILifecycleTask).wait();
+          return nextPromise.then(() => {
+            this.done = true;
+          });
+        }
       }
-      return value;
     });
   }
 
   public canCancel(): boolean {
-    return !this.done;
+    return !this.hasStarted;
   }
 
   public cancel(): void {
@@ -1317,7 +1331,7 @@ export class PromiseTask<T = void> implements ILifecycleTask<T> {
     }
   }
 
-  public wait(): Promise<T> {
+  public wait(): Promise<unknown> {
     return this.promise;
   }
 }

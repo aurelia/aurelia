@@ -18,6 +18,8 @@ import {
   IViewFactory,
   LifecycleFlags,
   LifecycleTask,
+  PromiseTask,
+  State,
   TargetedInstruction,
   TemplateDefinition
 } from '@aurelia/runtime';
@@ -35,7 +37,7 @@ export type MaybeSubjectPromise<T> = Subject<T> | Promise<Subject<T>> | null;
 
 export interface Compose<T extends INode = Node> extends ICustomElement<T> {}
 export class Compose<T extends INode = Node> implements Compose<T> {
-  public static readonly inject: InjectArray = [IDOM, IRenderable, ITargetedInstruction, IRenderingEngine, CompositionCoordinator];
+  public static readonly inject: InjectArray = [IDOM, IRenderable, ITargetedInstruction, IRenderingEngine];
 
   public static readonly register: IRegistry['register'];
   public static readonly kind: ICustomElementResource<Node>;
@@ -48,33 +50,28 @@ export class Compose<T extends INode = Node> implements Compose<T> {
   @bindable public composing: boolean;
 
   private readonly dom: IDOM;
-  private readonly coordinator: CompositionCoordinator;
   private readonly properties: Record<string, TargetedInstruction>;
   private readonly renderable: IRenderable<T>;
   private readonly renderingEngine: IRenderingEngine;
   private lastSubject: MaybeSubjectPromise<T>;
   private task: ILifecycleTask;
+  private view: IView<T> | null;
 
   constructor(
     dom: IDOM<T>,
     renderable: IRenderable<T>,
     instruction: Immutable<IHydrateElementInstruction>,
-    renderingEngine: IRenderingEngine,
-    coordinator: CompositionCoordinator
+    renderingEngine: IRenderingEngine
   ) {
     this.dom = dom;
     this.subject = null;
     this.composing = false;
 
-    this.coordinator = coordinator;
     this.lastSubject = null;
     this.task = LifecycleTask.done;
+    this.view = null;
     this.renderable = renderable;
     this.renderingEngine = renderingEngine;
-
-    this.coordinator.onSwapComplete = () => {
-      this.composing = false;
-    };
 
     this.properties = instruction.instructions
       .filter((x: ITargetedInstruction & {to?: string}) => !composeProps.includes(x.to))
@@ -91,57 +88,148 @@ export class Compose<T extends INode = Node> implements Compose<T> {
   }
 
   public binding(flags: LifecycleFlags): ILifecycleTask {
-    const task = this.startComposition(this.subject, null, flags);
-    if (task.done) {
-      return this.coordinator.binding(flags, this.$scope);
+    if (this.task.done) {
+      this.task = this.compose(this.subject, flags);
     } else {
-      return new ContinuationTask(task, this.coordinator.binding, this.coordinator, flags, this.$scope);
+      this.task = new ContinuationTask(this.task, this.compose, this, this.subject, flags);
     }
+
+    if (this.task.done) {
+      this.task = this.bindView(flags);
+    } else {
+      this.task = new ContinuationTask(this.task, this.bindView, this, flags);
+    }
+
+    return this.task;
   }
 
   public attaching(flags: LifecycleFlags): ILifecycleTask {
-    return this.coordinator.attaching(flags);
+    if (this.task.done) {
+      this.task = this.attachView(flags);
+    } else {
+      this.task = new ContinuationTask(this.task, this.attachView, this, flags);
+    }
+
+    return this.task;
   }
 
   public detaching(flags: LifecycleFlags): ILifecycleTask {
-    return this.coordinator.detaching(flags);
+    if (this.view !== null) {
+      if (this.task.done) {
+        this.task = this.view.$detach(flags);
+      } else {
+        this.task = new ContinuationTask(this.task, this.view.$detach, this.view, flags);
+      }
+    }
+
+    return this.task;
   }
 
   public unbinding(flags: LifecycleFlags): ILifecycleTask {
     this.lastSubject = null;
-    return this.coordinator.unbinding(flags);
+    if (this.view !== null) {
+      if (this.task.done) {
+        this.task = this.view.$unbind(flags);
+      } else {
+        this.task = new ContinuationTask(this.task, this.view.$unbind, this.view, flags);
+      }
+    }
+
+    return this.task;
   }
 
   public caching(flags: LifecycleFlags): void {
-    this.coordinator.caching(flags);
+    this.view = null;
   }
 
   public subjectChanged(newValue: Subject<T> | Promise<Subject<T>>, previousValue: Subject<T> | Promise<Subject<T>>, flags: LifecycleFlags): void {
     if (this.task.done) {
-      this.task = this.startComposition(newValue, previousValue, flags);
+      this.task = this.compose(newValue, flags);
     } else {
-      this.task = new ContinuationTask(this.task, this.startComposition, this, newValue, previousValue, flags);
+      this.task = new ContinuationTask(this.task, this.compose, this, newValue, flags);
     }
   }
 
-  private startComposition(subject: MaybeSubjectPromise<T>, _previousSubject: MaybeSubjectPromise<T>, flags: LifecycleFlags): ILifecycleTask {
+  private compose(subject: MaybeSubjectPromise<T>, flags: LifecycleFlags): ILifecycleTask {
     if (this.lastSubject === subject) {
-      return this.task;
+      return LifecycleTask.done;
     }
 
     this.lastSubject = subject;
+    this.composing = true;
+
+    let task = this.deactivate(flags)
 
     if (subject instanceof Promise) {
-      subject = subject.then(x => this.resolveView(x, flags));
-      this.composing = true;
-      this.task = new ContinuationTask(subject, this.coordinator.compose, this.coordinator, subject as IView<T> | Promise<IView<T>>, flags);
+      let viewPromise: Promise<IView<T>>;
+      if (task.done) {
+        viewPromise = subject.then(s => this.resolveView(s, flags));
+      } else {
+        viewPromise = task.wait().then(() => subject.then(s => this.resolveView(s, flags)));
+      }
+      task = new PromiseTask(viewPromise, this.activate, this, flags);
     } else {
-      subject = this.resolveView(subject, flags);
-      this.composing = true;
-      this.task = this.coordinator.compose(subject as IView<T> | Promise<IView<T>>, flags);
+      const view = this.resolveView(subject, flags);
+      if (task.done) {
+        task = this.activate(view, flags);
+      } else {
+        task = new ContinuationTask(task, this.activate, this, view, flags);
+      }
     }
 
-    return this.task;
+    if (task.done) {
+      this.onComposed();
+    } else {
+      task = new ContinuationTask(task, this.onComposed, this);
+    }
+
+    return task;
+  }
+
+  private deactivate(flags: LifecycleFlags): ILifecycleTask {
+    const view = this.view;
+    if (view === null) {
+      return LifecycleTask.done;
+    }
+    let task = view.$detach(flags);
+    if (task.done) {
+      task = view.$unbind(flags);
+    } else {
+      task = new ContinuationTask(task, view.$unbind, view, flags);
+    }
+    return task;
+  }
+
+  private activate(view: IView<T>, flags: LifecycleFlags): ILifecycleTask {
+    this.view = view;
+    if (view === null) {
+      return LifecycleTask.done;
+    }
+    let task = this.bindView(flags);
+    if (task.done) {
+      task = this.attachView(flags);
+    } else {
+      task = new ContinuationTask(task, this.attachView, this, flags);
+    }
+    return task;
+  }
+
+  private bindView(flags: LifecycleFlags): ILifecycleTask {
+    if ((this.$state & (State.isBound | State.isBinding)) > 0) {
+      return this.view.$bind(flags, this.renderable.$scope);
+    }
+    return LifecycleTask.done;
+  }
+
+  private attachView(flags: LifecycleFlags): ILifecycleTask {
+    if ((this.$state & (State.isAttached | State.isAttaching)) > 0) {
+      return this.view.$attach(flags);
+    }
+    return LifecycleTask.done;
+  }
+
+  private onComposed(): void {
+    this.composing = false;
   }
 
   private resolveView(subject: Subject<T> | null, flags: LifecycleFlags): IView<T> | null {

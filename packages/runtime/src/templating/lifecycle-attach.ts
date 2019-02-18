@@ -2,7 +2,6 @@ import { PLATFORM, Profiler, Tracer, Writable } from '@aurelia/kernel';
 import { LifecycleFlags } from '../flags';
 import {
   AggregateContinuationTask,
-  allowUnmount,
   ContinuationTask,
   hasAsyncWork,
   hasAttachingHook,
@@ -135,10 +134,12 @@ export function $detachElement(this: Writable<IAttachable & IMountableComponent>
 
   flags |= LifecycleFlags.fromDetach;
   this.$lifecycle.beginDetach(this);
-  if (allowUnmount(flags)) {
-    this.$lifecycle.enqueueUnmount(this);
-    flags |= LifecycleFlags.parentUnmountQueued;
-  }
+  // TODO: try to work this optimization back in once everything is working and tested
+  // if (allowUnmount(flags)) {
+  //   this.$lifecycle.enqueueUnmount(this);
+  //   flags |= LifecycleFlags.parentUnmountQueued;
+  // }
+  this.$lifecycle.enqueueUnmount(this);
 
   if (hasDetachingHook(this)) {
     const ret = this.detaching(flags);
@@ -192,10 +193,12 @@ export function $detachView(this: Writable<IAttachable & IMountableComponent>, f
 
   flags |= LifecycleFlags.fromDetach;
   this.$lifecycle.beginDetach(this);
-  if (allowUnmount(flags)) {
-    this.$lifecycle.enqueueUnmount(this);
-    flags |= LifecycleFlags.parentUnmountQueued;
-  }
+  // TODO: try to work this optimization back in once everything is working and tested
+  // if (allowUnmount(flags)) {
+  //   this.$lifecycle.enqueueUnmount(this);
+  //   flags |= LifecycleFlags.parentUnmountQueued;
+  // }
+  this.$lifecycle.enqueueUnmount(this);
 
   const tasks = detachComponents(this.$componentTail, flags);
   let task = LifecycleTask.done;

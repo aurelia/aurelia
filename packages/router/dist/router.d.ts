@@ -4,7 +4,7 @@ import { HistoryBrowser, IHistoryOptions, INavigationInstruction } from './histo
 import { InstructionResolver, IRouteSeparators } from './instruction-resolver';
 import { AnchorEventInfo, LinkHandler } from './link-handler';
 import { INavRoute, Nav } from './nav';
-import { IComponentViewport, Scope } from './scope';
+import { Scope } from './scope';
 import { IViewportOptions, Viewport } from './viewport';
 import { ViewportInstruction } from './viewport-instruction';
 export interface IRouterOptions extends IHistoryOptions {
@@ -27,7 +27,7 @@ export declare class Router {
     instructionResolver: InstructionResolver;
     navs: Record<string, Nav>;
     activeComponents: string[];
-    addedViewports: IComponentViewport[];
+    addedViewports: ViewportInstruction[];
     private options;
     private isActive;
     private readonly pendingNavigations;

@@ -489,10 +489,17 @@ System.register('router', ['@aurelia/kernel', '@aurelia/runtime'], function (exp
       } exports('LinkHandler', LinkHandler);
 
       class ViewportInstruction {
-          constructor(component, viewport, parameters) {
-              this.initialize(component, viewport, parameters);
+          constructor(component, viewport, parameters, scope) {
+              this.setComponent(component);
+              if (viewport) {
+                  this.setViewport(viewport);
+              }
+              if (parameters) {
+                  this.setParameters(parameters);
+              }
+              this.scope = !!scope;
           }
-          initialize(component, viewport, parameters) {
+          setComponent(component) {
               if (typeof component === 'string') {
                   this.componentName = component;
                   this.component = null;
@@ -501,6 +508,8 @@ System.register('router', ['@aurelia/kernel', '@aurelia/runtime'], function (exp
                   this.component = component;
                   this.componentName = component.description.name;
               }
+          }
+          setViewport(viewport) {
               if (typeof viewport === 'string') {
                   this.viewportName = viewport;
                   this.viewport = null;
@@ -511,6 +520,8 @@ System.register('router', ['@aurelia/kernel', '@aurelia/runtime'], function (exp
                       this.viewportName = viewport.name;
                   }
               }
+          }
+          setParameters(parameters) {
               if (typeof parameters === 'string') {
                   this.parametersString = parameters;
                   // TODO: Initialize parameters better and more of them and just fix this
@@ -1126,27 +1137,50 @@ System.register('router', ['@aurelia/kernel', '@aurelia/runtime'], function (exp
               return this.separators.clear;
           }
           parseViewportInstruction(instruction) {
-              let component, viewport, parameters;
+              let component, viewport, parameters, scope;
               const [componentPart, rest] = instruction.split(this.separators.viewport);
               if (rest === undefined) {
-                  [component, parameters] = componentPart.split(this.separators.parameters);
+                  [component, ...parameters] = componentPart.split(this.separators.parameters);
+                  if (component.endsWith(this.separators.ownsScope)) {
+                      scope = true;
+                      component = component.slice(0, component.length - 1);
+                  }
               }
               else {
                   component = componentPart;
-                  [viewport, parameters] = rest.split(this.separators.parameters);
+                  [viewport, ...parameters] = rest.split(this.separators.parameters);
+                  if (viewport.endsWith(this.separators.ownsScope)) {
+                      scope = true;
+                      viewport = viewport.slice(0, viewport.length - 1);
+                  }
               }
-              return new ViewportInstruction(component, viewport, parameters);
+              parameters = parameters.length ? parameters.join(this.separators.parameters) : undefined;
+              return new ViewportInstruction(component, viewport, parameters, scope);
           }
-          stringifyViewportInstruction(instruction) {
-              let instructionString = instruction.componentName;
-              if (instruction.viewportName) {
-                  instructionString += this.separators.viewport + instruction.viewportName;
+          stringifyViewportInstruction(instruction, excludeViewport = false) {
+              if (typeof instruction === 'string') {
+                  return this.stringifyViewportInstruction(this.parseViewportInstruction(instruction), excludeViewport);
               }
-              if (instruction.parametersString) {
-                  // TODO: Review parameters in ViewportInstruction
-                  instructionString += this.separators.parameters + instruction.parametersString;
+              else {
+                  let instructionString = instruction.componentName;
+                  if (instruction.viewportName && !excludeViewport) {
+                      instructionString += this.separators.viewport + instruction.viewportName;
+                  }
+                  if (instruction.parametersString) {
+                      // TODO: Review parameters in ViewportInstruction
+                      instructionString += this.separators.parameters + instruction.parametersString;
+                  }
+                  return instructionString;
               }
-              return instructionString;
+          }
+          parseScopedViewportInstruction(instruction) {
+              return instruction.split(this.separators.scope).map((scopeInstruction) => this.parseViewportInstruction(scopeInstruction));
+          }
+          stringifyScopedViewportInstruction(instructions) {
+              if (!Array.isArray(instructions)) {
+                  return this.stringifyScopedViewportInstruction([instructions]);
+              }
+              return instructions.map((instruction) => this.stringifyViewportInstruction(instruction)).join(this.separators.scope);
           }
           buildScopedLink(scopeContext, href) {
               if (scopeContext) {
@@ -1467,9 +1501,9 @@ System.register('router', ['@aurelia/kernel', '@aurelia/runtime'], function (exp
                       content = null;
                   }
                   else {
-                      const cp = content.split(this.router.instructionResolver.separators.parameters);
-                      content = cp.shift();
-                      parameters = cp.length ? cp.join(this.router.instructionResolver.separators.parameters) : null;
+                      const viewportInstruction = this.router.instructionResolver.parseViewportInstruction(content);
+                      content = viewportInstruction.componentName;
+                      parameters = viewportInstruction.parametersString;
                   }
               }
               // Can have a (resolved) type or a string (to be resolved later)
@@ -1631,23 +1665,21 @@ System.register('router', ['@aurelia/kernel', '@aurelia/runtime'], function (exp
           description(full = false) {
               if (this.content.content) {
                   const component = this.content.componentName();
-                  const newScope = this.scope ? this.router.instructionResolver.separators.ownsScope : '';
-                  const parameters = this.content.parameters ? this.router.instructionResolver.separators.parameters + this.content.parameters : '';
-                  if (full || newScope.length || this.options.forceDescription) {
-                      return `${component}${this.router.instructionResolver.separators.viewport}${this.name}${newScope}${parameters}`;
+                  if (full || this.scope || this.options.forceDescription) {
+                      return this.router.instructionResolver.stringifyViewportInstruction(new ViewportInstruction(component, this, this.content.parameters, this.scope !== null));
                   }
                   const viewports = {};
                   viewports[component] = component;
                   const found = this.owningScope.findViewports(viewports);
                   if (!found) {
-                      return `${component}${this.router.instructionResolver.separators.viewport}${this.name}${newScope}${parameters}`;
+                      return this.router.instructionResolver.stringifyViewportInstruction(new ViewportInstruction(component, this, this.content.parameters));
                   }
-                  return `${component}${parameters}`;
+                  return this.router.instructionResolver.stringifyViewportInstruction(new ViewportInstruction(component, null, this.content.parameters));
               }
           }
           scopedDescription(full = false) {
               const descriptions = [this.owningScope.scopeContext(full), this.description(full)];
-              return descriptions.filter((value) => value && value.length).join(this.router.instructionResolver.separators.scope);
+              return this.router.instructionResolver.stringifyScopedViewportInstruction(descriptions.filter((value) => value && value.length));
           }
           // TODO: Deal with non-string components
           wantComponent(component) {
@@ -1740,7 +1772,7 @@ System.register('router', ['@aurelia/kernel', '@aurelia/runtime'], function (exp
           }
           // TODO: Reduce complexity (currently at 45)
           findViewports(viewports) {
-              const componentViewports = [];
+              const instructions = [];
               let viewportsRemaining = false;
               // Get a shallow copy of all available viewports (clean if it's the first find)
               if (viewports) {
@@ -1750,8 +1782,8 @@ System.register('router', ['@aurelia/kernel', '@aurelia/runtime'], function (exp
               this.availableViewports = Object.assign({}, this.getEnabledViewports(), this.availableViewports);
               // Get the parts for this scope (pointing to the rest)
               for (const viewport in viewports) {
-                  const parts = viewport.split(this.router.instructionResolver.separators.scope);
-                  const vp = parts.shift();
+                  const parts = this.router.instructionResolver.parseScopedViewportInstruction(viewport);
+                  const vp = this.router.instructionResolver.stringifyViewportInstruction(parts.shift());
                   if (!this.scopeViewportParts[vp]) {
                       this.scopeViewportParts[vp] = [];
                   }
@@ -1759,16 +1791,13 @@ System.register('router', ['@aurelia/kernel', '@aurelia/runtime'], function (exp
               }
               // Configured viewport is ruling
               for (const viewportPart in this.scopeViewportParts) {
-                  const parameters = viewportPart.split(this.router.instructionResolver.separators.parameters);
-                  const componentViewportPart = parameters.shift();
-                  const component = componentViewportPart.split(this.router.instructionResolver.separators.viewport).shift();
-                  const componentParameters = component + (parameters.length ? this.router.instructionResolver.separators.parameters + parameters.join(this.router.instructionResolver.separators.parameters) : '');
+                  const instruction = this.router.instructionResolver.parseViewportInstruction(viewportPart);
                   for (const name in this.availableViewports) {
                       const viewport = this.availableViewports[name];
                       // TODO: Also check if (resolved) component wants a specific viewport
-                      if (viewport && viewport.wantComponent(component)) {
-                          const found = this.foundViewport(viewports, this.scopeViewportParts, viewportPart, componentParameters, viewport);
-                          componentViewports.push(...found.componentViewports);
+                      if (viewport && viewport.wantComponent(instruction.componentName)) {
+                          const found = this.foundViewport(viewports, this.scopeViewportParts, instruction, viewport);
+                          instructions.push(...found.viewportInstructions);
                           viewportsRemaining = viewportsRemaining || found.viewportsRemaining;
                           this.availableViewports[name] = null;
                           Reflect.deleteProperty(this.scopeViewportParts, viewportPart);
@@ -1778,28 +1807,20 @@ System.register('router', ['@aurelia/kernel', '@aurelia/runtime'], function (exp
               }
               // Next in line is specified viewport
               for (const viewportPart in this.scopeViewportParts) {
-                  const parameters = viewportPart.split(this.router.instructionResolver.separators.parameters);
-                  const componentViewportPart = parameters.shift();
-                  const parts = componentViewportPart.split(this.router.instructionResolver.separators.viewport);
-                  const component = parts.shift();
-                  const componentParameters = component + (parameters.length ? this.router.instructionResolver.separators.parameters + parameters.join(this.router.instructionResolver.separators.parameters) : '');
-                  let name = parts.shift();
+                  const instruction = this.router.instructionResolver.parseViewportInstruction(viewportPart);
+                  const name = instruction.viewportName;
                   if (!name || !name.length || name.startsWith('?')) {
                       continue;
                   }
-                  let newScope = false;
-                  if (name.endsWith(this.router.instructionResolver.separators.ownsScope)) {
-                      newScope = true;
-                      name = name.substring(0, name.length - 1);
-                  }
+                  const newScope = instruction.scope;
                   if (!this.getEnabledViewports()[name]) {
                       this.addViewport(name, null, null, { scope: newScope, forceDescription: true });
                       this.availableViewports[name] = this.getEnabledViewports()[name];
                   }
                   const viewport = this.availableViewports[name];
-                  if (viewport && viewport.acceptComponent(component)) {
-                      const found = this.foundViewport(viewports, this.scopeViewportParts, viewportPart, componentParameters, viewport);
-                      componentViewports.push(...found.componentViewports);
+                  if (viewport && viewport.acceptComponent(instruction.componentName)) {
+                      const found = this.foundViewport(viewports, this.scopeViewportParts, instruction, viewport);
+                      instructions.push(...found.viewportInstructions);
                       viewportsRemaining = viewportsRemaining || found.viewportsRemaining;
                       this.availableViewports[name] = null;
                       Reflect.deleteProperty(this.scopeViewportParts, viewportPart);
@@ -1807,21 +1828,18 @@ System.register('router', ['@aurelia/kernel', '@aurelia/runtime'], function (exp
               }
               // Finally, only one accepting viewport left?
               for (const viewportPart in this.scopeViewportParts) {
-                  const parameters = viewportPart.split(this.router.instructionResolver.separators.parameters);
-                  const componentViewportPart = parameters.shift();
-                  const component = componentViewportPart.split(this.router.instructionResolver.separators.viewport).shift();
-                  const componentParameters = component + (parameters.length ? this.router.instructionResolver.separators.parameters + parameters.join(this.router.instructionResolver.separators.parameters) : '');
+                  const instruction = this.router.instructionResolver.parseViewportInstruction(viewportPart);
                   const remainingViewports = [];
                   for (const name in this.availableViewports) {
                       const viewport = this.availableViewports[name];
-                      if (viewport && viewport.acceptComponent(component)) {
+                      if (viewport && viewport.acceptComponent(instruction.componentName)) {
                           remainingViewports.push(viewport);
                       }
                   }
                   if (remainingViewports.length === 1) {
                       const viewport = remainingViewports.shift();
-                      const found = this.foundViewport(viewports, this.scopeViewportParts, viewportPart, componentParameters, viewport);
-                      componentViewports.push(...found.componentViewports);
+                      const found = this.foundViewport(viewports, this.scopeViewportParts, instruction, viewport);
+                      instructions.push(...found.viewportInstructions);
                       viewportsRemaining = viewportsRemaining || found.viewportsRemaining;
                       this.availableViewports[viewport.name] = null;
                       Reflect.deleteProperty(this.scopeViewportParts, viewportPart);
@@ -1833,33 +1851,35 @@ System.register('router', ['@aurelia/kernel', '@aurelia/runtime'], function (exp
               if (!viewports) {
                   for (const child of this.children) {
                       const found = child.findViewports();
-                      componentViewports.push(...found.componentViewports);
+                      instructions.push(...found.viewportInstructions);
                       viewportsRemaining = viewportsRemaining || found.viewportsRemaining;
                   }
               }
               return {
-                  componentViewports: componentViewports,
+                  viewportInstructions: instructions,
                   viewportsRemaining: viewportsRemaining,
               };
           }
-          foundViewport(viewports, scopeViewportParts, viewportPart, component, viewport) {
-              const componentViewports = [{ component: component, viewport: viewport }];
+          foundViewport(viewports, scopeViewportParts, instruction, viewport) {
+              const viewportPart = this.router.instructionResolver.stringifyViewportInstruction(instruction);
+              instruction.setViewport(viewport);
+              const instructions = [instruction];
               let viewportsRemaining = false;
               if (scopeViewportParts[viewportPart].length) {
                   const scope = viewport.scope || viewport.owningScope;
                   for (const remainingParts of scopeViewportParts[viewportPart]) {
                       if (remainingParts.length) {
-                          const remaining = remainingParts.join(this.router.instructionResolver.separators.scope);
+                          const remaining = this.router.instructionResolver.stringifyScopedViewportInstruction(remainingParts);
                           const vps = {};
-                          vps[remaining] = viewports[viewportPart + this.router.instructionResolver.separators.scope + remaining];
+                          vps[remaining] = viewports[this.router.instructionResolver.stringifyScopedViewportInstruction([viewportPart, ...remainingParts])];
                           const scoped = scope.findViewports(vps);
-                          componentViewports.push(...scoped.componentViewports);
+                          instructions.push(...scoped.viewportInstructions);
                           viewportsRemaining = viewportsRemaining || scoped.viewportsRemaining;
                       }
                   }
               }
               return {
-                  componentViewports: componentViewports,
+                  viewportInstructions: instructions,
                   viewportsRemaining: viewportsRemaining,
               };
           }
@@ -1952,7 +1972,7 @@ System.register('router', ['@aurelia/kernel', '@aurelia/runtime'], function (exp
                   viewport = this.closestViewport(viewport.context.get(IContainer).parent);
               }
               parents.unshift(this.parent.scopeContext(full));
-              return parents.filter((value) => value && value.length).join(this.router.instructionResolver.separators.scope);
+              return this.router.instructionResolver.stringifyScopedViewportInstruction(parents.filter((value) => value && value.length));
           }
           closestViewport(container) {
               const viewports = Object.values(this.getEnabledViewports());
@@ -2076,17 +2096,18 @@ System.register('router', ['@aurelia/kernel', '@aurelia/runtime'], function (exp
               const defaultViewports = this.allViewports().filter((value) => value.options.default && value.content.component === null);
               const updatedViewports = [];
               // TODO: Take care of cancellations down in subsets/iterations
-              let { componentViewports, viewportsRemaining } = this.rootScope.findViewports(views);
+              let { viewportInstructions, viewportsRemaining } = this.rootScope.findViewports(views);
               let guard = 100;
-              while (componentViewports.length || viewportsRemaining || defaultViewports.length) {
+              while (viewportInstructions.length || viewportsRemaining || defaultViewports.length) {
                   // Guard against endless loop
                   if (!guard--) {
                       throw Reporter.error(2002);
                   }
                   const changedViewports = [];
-                  for (const componentViewport of componentViewports) {
-                      const { component, viewport } = componentViewport;
-                      if (viewport.setNextContent(component, instruction)) {
+                  for (const viewportInstruction of viewportInstructions) {
+                      const viewport = viewportInstruction.viewport;
+                      const componentWithParameters = this.instructionResolver.stringifyViewportInstruction(viewportInstruction, true);
+                      if (viewport.setNextContent(componentWithParameters, instruction)) {
                           changedViewports.push(viewport);
                       }
                       const usedIndex = usedViewports.findIndex((value) => value === viewport);
@@ -2148,15 +2169,15 @@ System.register('router', ['@aurelia/kernel', '@aurelia/runtime'], function (exp
                   }
                   // TODO: Fix multi level recursiveness!
                   const remaining = this.rootScope.findViewports();
-                  componentViewports = [];
+                  viewportInstructions = [];
                   let addedViewport;
                   while (addedViewport = this.addedViewports.shift()) {
                       // TODO: Should this overwrite instead? I think so.
-                      if (!remaining.componentViewports.find((value) => value.viewport === addedViewport.viewport)) {
-                          componentViewports.push(addedViewport);
+                      if (!remaining.viewportInstructions.find((value) => value.viewport === addedViewport.viewport)) {
+                          viewportInstructions.push(addedViewport);
                       }
                   }
-                  componentViewports = [...componentViewports, ...remaining.componentViewports];
+                  viewportInstructions = [...viewportInstructions, ...remaining.viewportInstructions];
                   viewportsRemaining = remaining.viewportsRemaining;
               }
               await Promise.all(updatedViewports.map((value) => value.loadContent()));
@@ -2181,7 +2202,7 @@ System.register('router', ['@aurelia/kernel', '@aurelia/runtime'], function (exp
                       // TODO: Deal with not yet existing viewports
                       viewport = this.allViewports().find((vp) => vp.name === viewport);
                   }
-                  this.addedViewports.push({ viewport: viewport, component: component });
+                  this.addedViewports.push(new ViewportInstruction(component, viewport));
               }
               else if (this.lastNavigation) {
                   this.pendingNavigations.unshift({ path: '', fullStatePath: '', isRepeat: true });

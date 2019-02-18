@@ -10,8 +10,11 @@ export declare class ViewportInstruction {
     parametersString?: string;
     parameters?: Record<string, unknown>;
     parametersList?: string[];
-    constructor(component: Partial<ICustomElementType> | string, viewport?: Viewport | string, parameters?: Record<string, unknown> | string);
-    initialize(component: Partial<ICustomElementType> | string, viewport?: Viewport | string, parameters?: Record<string, unknown> | string): void;
+    scope?: boolean;
+    constructor(component: Partial<ICustomElementType> | string, viewport?: Viewport | string, parameters?: Record<string, unknown> | string, scope?: boolean);
+    setComponent(component: Partial<ICustomElementType> | string): void;
+    setViewport(viewport: Viewport | string): void;
+    setParameters(parameters: Record<string, unknown> | string): void;
     componentType(context: IRenderContext): IRouteableCustomElementType;
     viewportInstance(router: Router): Viewport;
     sameComponent(other: ViewportInstruction, compareParameters?: boolean, compareType?: boolean): boolean;

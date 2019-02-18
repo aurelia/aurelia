@@ -17,7 +17,9 @@ export declare class InstructionResolver {
     activate(options?: IInstructionResolverOptions): void;
     readonly clearViewportInstruction: string;
     parseViewportInstruction(instruction: string): ViewportInstruction;
-    stringifyViewportInstruction(instruction: ViewportInstruction): string;
+    stringifyViewportInstruction(instruction: ViewportInstruction | string, excludeViewport?: boolean): string;
+    parseScopedViewportInstruction(instruction: string): ViewportInstruction[];
+    stringifyScopedViewportInstruction(instructions: ViewportInstruction | string | (ViewportInstruction | string)[]): string;
     buildScopedLink(scopeContext: string, href: string): string;
     shouldClearViewports(path: string): {
         clearViewports: boolean;

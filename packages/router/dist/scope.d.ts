@@ -3,15 +3,12 @@ import { ICustomElementType, IRenderContext } from '@aurelia/runtime';
 import { Router } from './router';
 import { IFindViewportsResult } from './scope';
 import { IViewportOptions, Viewport } from './viewport';
+import { ViewportInstruction } from './viewport-instruction';
 export interface IViewportCustomElementType extends ICustomElementType {
     viewport?: string;
 }
-export interface IComponentViewport {
-    component: Partial<ICustomElementType> | string;
-    viewport: Viewport;
-}
 export interface IFindViewportsResult {
-    componentViewports?: IComponentViewport[];
+    viewportInstructions?: ViewportInstruction[];
     viewportsRemaining?: boolean;
 }
 export declare type ChildContainer = IContainer & {
@@ -30,7 +27,7 @@ export declare class Scope {
     constructor(router: Router, element: Element, context: IRenderContext, parent: Scope);
     getEnabledViewports(): Record<string, Viewport>;
     findViewports(viewports?: Record<string, string | Viewport>): IFindViewportsResult;
-    foundViewport(viewports: Record<string, string | Viewport>, scopeViewportParts: Record<string, string[][]>, viewportPart: string, component: ICustomElementType | string, viewport: Viewport): IFindViewportsResult;
+    foundViewport(viewports: Record<string, string | Viewport>, scopeViewportParts: Record<string, ViewportInstruction[][]>, instruction: ViewportInstruction, viewport: Viewport): IFindViewportsResult;
     addViewport(name: string, element: Element, context: IRenderContext, options?: IViewportOptions): Viewport;
     removeViewport(viewport: Viewport, element: Element, context: IRenderContext): number;
     removeScope(): void;

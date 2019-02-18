@@ -13,8 +13,9 @@ export class ViewportInstruction {
   public parameters?: Record<string, unknown>;
   public parametersList?: string[];
   public ownsScope?: boolean;
+  public nextScopeInstruction?: ViewportInstruction;
 
-  constructor(component: Partial<ICustomElementType> | string, viewport?: Viewport | string, parameters?: Record<string, unknown> | string, ownsScope?: boolean) {
+  constructor(component: Partial<ICustomElementType> | string, viewport?: Viewport | string, parameters?: Record<string, unknown> | string, ownsScope: boolean = false, nextScopeInstruction: ViewportInstruction = null) {
     this.setComponent(component);
     if (viewport) {
       this.setViewport(viewport);
@@ -23,7 +24,8 @@ export class ViewportInstruction {
       this.setParameters(parameters);
     }
 
-    this.ownsScope = !!ownsScope;
+    this.ownsScope = ownsScope;
+    this.nextScopeInstruction = nextScopeInstruction;
   }
 
   public setComponent(component: Partial<ICustomElementType> | string): void {

@@ -46,7 +46,7 @@ export class NavRoute {
   }
 
   public _active(): string {
-    const components = this.nav.router.instructionResolver.viewportInstructionsFromString(this.linkActive);
+    const components = this.nav.router.instructionResolver.parseViewportInstructions(this.linkActive);
     const activeComponents = this.nav.router.activeComponents.map((state) => this.nav.router.instructionResolver.parseViewportInstruction(state));
     for (const component of components) {
       if (!activeComponents.find((active) => active.sameComponent(component))) {
@@ -61,7 +61,7 @@ export class NavRoute {
   }
 
   public _link(instructions: ViewportInstruction[]): string {
-    return this.nav.router.instructionResolver.viewportInstructionsToString(instructions);
+    return this.nav.router.instructionResolver.stringifyViewportInstructions(instructions);
   }
 
   private parseRoute(routes: NavInstruction | NavInstruction[]): ViewportInstruction[] {

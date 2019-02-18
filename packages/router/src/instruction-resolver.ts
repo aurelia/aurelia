@@ -38,12 +38,20 @@ export class InstructionResolver {
     return this.separators.clear;
   }
 
+  public parseViewportInstructions(instructions: string): ViewportInstruction[] {
+    return instructions.split(this.separators.sibling).map((instruction) => this.parseViewportInstruction(instruction));
+  }
+
   public parseViewportInstruction(instruction: string): ViewportInstruction {
     const instructions = instruction.split(this.separators.scope).map((scopeInstruction) => this._parseViewportInstruction(scopeInstruction));
     for (let i = 0; i < instructions.length - 1; i++) {
       instructions[i].nextScopeInstruction = instructions[i + 1];
     }
     return instructions[0];
+  }
+
+  public stringifyViewportInstructions(instructions: ViewportInstruction[]): string {
+    return instructions.map((instruction) => this.stringifyViewportInstruction(instruction)).join(this.separators.sibling);
   }
 
   public stringifyViewportInstruction(instruction: ViewportInstruction | string, excludeViewport: boolean = false): string {
@@ -117,23 +125,6 @@ export class InstructionResolver {
       }
     }
     return views;
-  }
-
-  public viewportInstructionsToString(instructions: ViewportInstruction[]): string {
-    const stringInstructions: string[] = [];
-    for (const instruction of instructions) {
-      stringInstructions.push(this.stringifyViewportInstruction(instruction));
-    }
-    return stringInstructions.join(this.separators.sibling);
-  }
-
-  public viewportInstructionsFromString(instructionsString: string): ViewportInstruction[] {
-    const instructions = [];
-    const instructionStrings = instructionsString.split(this.separators.sibling);
-    for (const instructionString of instructionStrings) {
-      instructions.push(this.parseViewportInstruction(instructionString));
-    }
-    return instructions;
   }
 
   public removeStateDuplicates(states: string[]): string[] {

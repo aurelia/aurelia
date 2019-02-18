@@ -140,7 +140,7 @@ export class Router {
     if (this.options.transformFromUrl && !fullStateInstruction) {
       const routeOrInstructions = this.options.transformFromUrl(path, this);
       // TODO: Don't go via string here, use instructions as they are
-      path = Array.isArray(routeOrInstructions) ? this.instructionResolver.viewportInstructionsToString(routeOrInstructions) : routeOrInstructions;
+      path = Array.isArray(routeOrInstructions) ? this.instructionResolver.stringifyViewportInstructions(routeOrInstructions) : routeOrInstructions;
     }
 
     const { clearViewports, newPath } = this.instructionResolver.shouldClearViewports(path);
@@ -419,8 +419,8 @@ export class Router {
     viewportStates = this.instructionResolver.removeStateDuplicates(viewportStates);
     let state = this.instructionResolver.stateStringsToString(viewportStates);
     if (this.options.transformToUrl) {
-      const routeOrInstructions = this.options.transformToUrl(this.instructionResolver.viewportInstructionsFromString(state), this);
-      state = Array.isArray(routeOrInstructions) ? this.instructionResolver.viewportInstructionsToString(routeOrInstructions) : routeOrInstructions;
+      const routeOrInstructions = this.options.transformToUrl(this.instructionResolver.parseViewportInstructions(state), this);
+      state = Array.isArray(routeOrInstructions) ? this.instructionResolver.stringifyViewportInstructions(routeOrInstructions) : routeOrInstructions;
     }
 
     let fullViewportStates = this.rootScope.viewportStates(true);

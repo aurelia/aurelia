@@ -103,7 +103,7 @@ export class Scope {
       if (!name || !name.length || name.startsWith('?')) {
         continue;
       }
-      const newScope = instruction.scope;
+      const newScope = instruction.ownsScope;
       if (!this.getEnabledViewports()[name]) {
         this.addViewport(name, null, null, { scope: newScope, forceDescription: true });
         this.availableViewports[name] = this.getEnabledViewports()[name];

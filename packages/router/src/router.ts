@@ -45,7 +45,7 @@ export class Router {
   private processingNavigation: INavigationInstruction = null;
   private lastNavigation: INavigationInstruction = null;
 
-  private routeTable: RouteTable;
+  private readonly routeTable: RouteTable;
 
   constructor(public container: IContainer, routeTable: RouteTable) {
     this.historyBrowser = new HistoryBrowser();

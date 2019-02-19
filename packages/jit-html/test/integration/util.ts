@@ -94,7 +94,7 @@ const eventCmds = { delegate: 1, capture: 1, call: 1 };
 /**
  * jsx with aurelia binding command friendly version of h
  */
-export const hJsx = function(name: string, attrs: Record<string, string> | null, ...children: (Node | string)[]) {
+export const hJsx = function(name: string, attrs: Record<string, string> | null, ...children: (Node | string | (Node | string)[])[]) {
   const el = document.createElement(name === 'let$' ? 'let' : name);
   if (attrs !== null) {
     let value: string | string[];
@@ -153,7 +153,13 @@ export const hJsx = function(name: string, attrs: Record<string, string> | null,
     if (child === null || child === undefined) {
       continue;
     }
-    appender.appendChild(child instanceof Node ? child : document.createTextNode('' + child));
+    if (Array.isArray(child)) {
+      for (const child_child of child) {
+        appender.appendChild(child_child instanceof Node ? child_child : document.createTextNode('' + child_child));
+      }
+    } else {
+      appender.appendChild(child instanceof Node ? child : document.createTextNode('' + child));
+    }
   }
   return el;
 }

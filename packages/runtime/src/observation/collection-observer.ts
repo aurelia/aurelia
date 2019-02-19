@@ -4,21 +4,20 @@ import {
   Collection,
   CollectionKind,
   CollectionObserver,
+  createIndexMap,
   IBindingTargetObserver,
   ICollectionObserver,
-  IndexMap,
   IPatchable,
-  IPropertySubscriber,
-  MutationKind
+  ISubscriber
 } from '../observation';
-import { batchedSubscriberCollection, subscriberCollection } from './subscriber-collection';
+import { collectionSubscriberCollection } from './subscriber-collection';
 import { targetObserver } from './target-observer';
 
 const slice = Array.prototype.slice;
 
 function flush(this: CollectionObserver, flags: LifecycleFlags): void {
   if (Tracer.enabled) { Tracer.enter(this['constructor'].name, 'flush', slice.call(arguments)); }
-  this.callBatchedSubscribers(this.indexMap, flags | this.persistentFlags);
+  this.callCollectionSubscribers(this.indexMap, flags | this.persistentFlags);
   if (!!this.lengthObserver) {
     this.lengthObserver.$patch(LifecycleFlags.fromFlush | LifecycleFlags.updateTargetInstance | this.persistentFlags);
   }
@@ -33,34 +32,25 @@ function dispose(this: CollectionObserver): void {
 }
 
 function resetIndexMapIndexed(this: ICollectionObserver<CollectionKind.indexed>): void {
-  const len = this.collection.length;
-  const indexMap: IndexMap = (this.indexMap = Array(len));
-  let i = 0;
-  while (i < len) {
-    indexMap[i] = i++;
-  }
-  indexMap.deletedItems = [];
+  this.indexMap = createIndexMap(this.collection.length);
 }
 
 function resetIndexMapKeyed(this: ICollectionObserver<CollectionKind.keyed>): void {
-  const len = this.collection.size;
-  const indexMap: IndexMap = (this.indexMap = Array(len));
-  let i = 0;
-  while (i < len) {
-    indexMap[i] = i++;
-  }
-  indexMap.deletedItems = [];
+  this.indexMap = createIndexMap(this.collection.size);
 }
 
 function getLengthObserver(this: CollectionObserver): CollectionLengthObserver {
   return this.lengthObserver === undefined ? (this.lengthObserver = new CollectionLengthObserver(this as Collection&ICollectionObserver<CollectionKind>, this.lengthPropertyName)) : this.lengthObserver as CollectionLengthObserver;
 }
 
+function notify(this: CollectionObserver): void {
+  this.lifecycle.enqueueFlush(this);
+}
+
 export function collectionObserver(kind: CollectionKind.array | CollectionKind.set | CollectionKind.map): ClassDecorator {
   // tslint:disable-next-line:ban-types // ClassDecorator expects it to be derived from Function
   return function(target: Function): void {
-    subscriberCollection(MutationKind.collection)(target);
-    batchedSubscriberCollection()(target);
+    collectionSubscriberCollection()(target);
     const proto = target.prototype as CollectionObserver;
 
     proto.$nextFlush = null;
@@ -75,11 +65,10 @@ export function collectionObserver(kind: CollectionKind.array | CollectionKind.s
     proto.dispose = dispose;
     proto.getLengthObserver = getLengthObserver;
 
-    proto.subscribe = proto.subscribe || proto.addSubscriber;
-    proto.unsubscribe = proto.unsubscribe || proto.removeSubscriber;
+    proto.notify = notify;
 
-    proto.subscribeBatched = proto.subscribeBatched || proto.addBatchedSubscriber;
-    proto.unsubscribeBatched = proto.unsubscribeBatched || proto.removeBatchedSubscriber;
+    proto.subscribeToCollection = proto.subscribeToCollection || proto.addCollectionSubscriber;
+    proto.unsubscribeFromCollection = proto.unsubscribeFromCollection || proto.removeCollectionSubscriber;
   };
 }
 
@@ -117,11 +106,11 @@ export class CollectionLengthObserver implements CollectionLengthObserver, IPatc
     }
   }
 
-  public subscribe(subscriber: IPropertySubscriber): void {
+  public subscribe(subscriber: ISubscriber): void {
     this.addSubscriber(subscriber);
   }
 
-  public unsubscribe(subscriber: IPropertySubscriber): void {
+  public unsubscribe(subscriber: ISubscriber): void {
     this.removeSubscriber(subscriber);
   }
 }

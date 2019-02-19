@@ -3,16 +3,16 @@ import { ForOfStatement } from '../../binding/ast';
 import { Binding } from '../../binding/binding';
 import { AttributeDefinition, IAttributeDefinition } from '../../definitions';
 import { INode, IRenderLocation } from '../../dom';
-import { LifecycleFlags, State } from '../../flags';
+import { LifecycleFlags as LF, State } from '../../flags';
 import { AggregateContinuationTask, ContinuationTask, ILifecycleTask, IMountableComponent, IRenderable, IView, IViewFactory, LifecycleTask } from '../../lifecycle';
-import { CollectionObserver, IBatchedCollectionSubscriber, IndexMap, IObservedArray, IScope, ObservedCollection } from '../../observation';
+import { CollectionObserver, ICollectionSubscriber, IndexMap, IObservedArray, IScope, ObservedCollection } from '../../observation';
 import { BindingContext, BindingContextValue, Scope } from '../../observation/binding-context';
 import { getCollectionObserver } from '../../observation/observer-locator';
 import { ProxyObserver } from '../../observation/proxy-observer';
 import { bindable } from '../../templating/bindable';
 import { CustomAttributeResource, ICustomAttribute, ICustomAttributeResource } from '../custom-attribute';
 
-export interface Repeat<C extends ObservedCollection, T extends INode = INode> extends ICustomAttribute<T>, IBatchedCollectionSubscriber {}
+export interface Repeat<C extends ObservedCollection, T extends INode = INode> extends ICustomAttribute<T>, ICollectionSubscriber {}
 export class Repeat<C extends ObservedCollection = IObservedArray, T extends INode = INode> implements Repeat<C, T> {
   public static readonly inject: InjectArray = [IRenderLocation, IRenderable, IViewFactory];
 
@@ -35,7 +35,7 @@ export class Repeat<C extends ObservedCollection = IObservedArray, T extends INo
   public views: IView<T>[];
   public key: string | null;
   public keyed: boolean;
-  private persistentFlags: LifecycleFlags;
+  private persistentFlags: LF;
   private task: ILifecycleTask;
 
   constructor(
@@ -54,8 +54,8 @@ export class Repeat<C extends ObservedCollection = IObservedArray, T extends INo
     this.task = LifecycleTask.done;
   }
 
-  public binding(flags: LifecycleFlags): ILifecycleTask {
-    this.persistentFlags = flags & LifecycleFlags.persistentBindingFlags;
+  public binding(flags: LF): ILifecycleTask {
+    this.persistentFlags = flags & LF.persistentBindingFlags;
     this.checkCollectionObserver(flags);
     let current = this.renderable.$bindingHead as Binding;
     while (current !== null) {
@@ -67,7 +67,7 @@ export class Repeat<C extends ObservedCollection = IObservedArray, T extends INo
     }
     this.local = this.forOf.declaration.evaluate(flags, this.$scope, null) as string;
 
-    if (this.keyed || (flags & LifecycleFlags.keyedStrategy) > 0) {
+    if (this.keyed || (flags & LF.keyedStrategy) > 0) {
       this.processViewsKeyed(null, flags);
     } else {
       this.processViewsNonKeyed(null, flags);
@@ -75,7 +75,7 @@ export class Repeat<C extends ObservedCollection = IObservedArray, T extends INo
     return this.task;
   }
 
-  public attaching(flags: LifecycleFlags): ILifecycleTask {
+  public attaching(flags: LF): ILifecycleTask {
     if (this.task.done) {
       this.task = this.attachViews(null, flags);
     } else {
@@ -84,7 +84,7 @@ export class Repeat<C extends ObservedCollection = IObservedArray, T extends INo
     return this.task;
   }
 
-  public detaching(flags: LifecycleFlags): ILifecycleTask {
+  public detaching(flags: LF): ILifecycleTask {
     if (this.task.done) {
       this.task = this.detachViewsByRange(0, this.views.length, flags);
     } else {
@@ -93,7 +93,7 @@ export class Repeat<C extends ObservedCollection = IObservedArray, T extends INo
     return this.task;
   }
 
-  public unbinding(flags: LifecycleFlags): ILifecycleTask {
+  public unbinding(flags: LF): ILifecycleTask {
     this.checkCollectionObserver(flags);
 
     if (this.task.done) {
@@ -104,25 +104,25 @@ export class Repeat<C extends ObservedCollection = IObservedArray, T extends INo
     return this.task;
   }
 
-  // called by SetterObserver (sync)
-  public itemsChanged(newValue: C, oldValue: C, flags: LifecycleFlags): void {
+  // called by SetterObserver
+  public itemsChanged(newValue: C, oldValue: C, flags: LF): void {
     flags |= this.persistentFlags;
     const $this = ProxyObserver.getRawIfProxy(this);
     $this.checkCollectionObserver(flags);
-    flags |= LifecycleFlags.updateTargetInstance;
-    if ($this.keyed || (flags & LifecycleFlags.keyedStrategy) > 0) {
+    flags |= LF.updateTargetInstance;
+    if ($this.keyed || (flags & LF.keyedStrategy) > 0) {
       $this.processViewsKeyed(null, flags);
     } else {
       $this.processViewsNonKeyed(null, flags);
     }
   }
 
-  // called by a CollectionObserver (async)
-  public handleBatchedChange(indexMap: number[] | null, flags: LifecycleFlags): void {
+  // called by a CollectionObserver
+  public handleCollectionChange(indexMap: IndexMap | null, flags: LF): void {
     flags |= this.persistentFlags;
     const $this = ProxyObserver.getRawIfProxy(this);
-    flags |= (LifecycleFlags.fromFlush | LifecycleFlags.updateTargetInstance);
-    if ($this.keyed || (flags & LifecycleFlags.keyedStrategy) > 0) {
+    flags |= (LF.fromFlush | LF.updateTargetInstance);
+    if ($this.keyed || (flags & LF.keyedStrategy) > 0) {
       $this.processViewsKeyed(indexMap, flags);
     } else {
       $this.processViewsNonKeyed(indexMap, flags);
@@ -130,7 +130,7 @@ export class Repeat<C extends ObservedCollection = IObservedArray, T extends INo
   }
 
   // if the indexMap === null, it is an instance mutation, otherwise it's an items mutation
-  private processViewsNonKeyed(indexMap: number[] | null, flags: LifecycleFlags): void {
+  private processViewsNonKeyed(indexMap: IndexMap | null, flags: LF): void {
     if ((this.$state & (State.isBound | State.isBinding)) > 0) {
       const oldLength = this.views.length;
       const newLength = this.forOf.count(flags, this.items);
@@ -170,7 +170,7 @@ export class Repeat<C extends ObservedCollection = IObservedArray, T extends INo
     }
   }
 
-  private processViewsKeyed(indexMap: IndexMap | null, flags: LifecycleFlags): void {
+  private processViewsKeyed(indexMap: IndexMap | null, flags: LF): void {
     if (indexMap === null) {
       if ((this.$state & (State.isBound | State.isBinding)) > 0) {
         const oldLength = this.views.length;
@@ -232,23 +232,23 @@ export class Repeat<C extends ObservedCollection = IObservedArray, T extends INo
     }
   }
 
-  private checkCollectionObserver(flags: LifecycleFlags): void {
+  private checkCollectionObserver(flags: LF): void {
     const $this = ProxyObserver.getRawIfProxy(this);
     const oldObserver = $this.observer;
     if ($this.$state & (State.isBound | State.isBinding)) {
       const newObserver = $this.observer = getCollectionObserver(flags, $this.$lifecycle, $this.items);
       if (oldObserver !== newObserver && oldObserver) {
-        oldObserver.unsubscribeBatched($this);
+        oldObserver.unsubscribeFromCollection($this);
       }
       if (newObserver) {
-        newObserver.subscribeBatched($this);
+        newObserver.subscribeToCollection($this);
       }
     } else if (oldObserver) {
-      oldObserver.unsubscribeBatched($this);
+      oldObserver.unsubscribeFromCollection($this);
     }
   }
 
-  private detachViewsByRange(iStart: number, iEnd: number, flags: LifecycleFlags): ILifecycleTask {
+  private detachViewsByRange(iStart: number, iEnd: number, flags: LF): ILifecycleTask {
     let tasks: ILifecycleTask[];
     let task: ILifecycleTask;
     this.$lifecycle.beginDetach();
@@ -273,7 +273,7 @@ export class Repeat<C extends ObservedCollection = IObservedArray, T extends INo
     return new AggregateContinuationTask(tasks, this.$lifecycle.endDetach, this.$lifecycle, flags);
   }
 
-  private unbindAndRemoveViewsByRange(iStart: number, iEnd: number, flags: LifecycleFlags, adjustLength: boolean): ILifecycleTask {
+  private unbindAndRemoveViewsByRange(iStart: number, iEnd: number, flags: LF, adjustLength: boolean): ILifecycleTask {
     let tasks: ILifecycleTask[];
     let task: ILifecycleTask;
     this.$lifecycle.beginUnbind();
@@ -301,7 +301,7 @@ export class Repeat<C extends ObservedCollection = IObservedArray, T extends INo
     return new AggregateContinuationTask(tasks, this.$lifecycle.endUnbind, this.$lifecycle, flags);
   }
 
-  private detachViewsByKey(indexMap: IndexMap, flags: LifecycleFlags): ILifecycleTask {
+  private detachViewsByKey(indexMap: IndexMap, flags: LF): ILifecycleTask {
     let tasks: ILifecycleTask[];
     let task: ILifecycleTask;
     this.$lifecycle.beginDetach();
@@ -328,7 +328,7 @@ export class Repeat<C extends ObservedCollection = IObservedArray, T extends INo
     return new AggregateContinuationTask(tasks, this.$lifecycle.endDetach, this.$lifecycle, flags);
   }
 
-  private unbindAndRemoveViewsByKey(indexMap: IndexMap, flags: LifecycleFlags): ILifecycleTask {
+  private unbindAndRemoveViewsByKey(indexMap: IndexMap, flags: LF): ILifecycleTask {
     let tasks: ILifecycleTask[];
     let task: ILifecycleTask;
     this.$lifecycle.beginUnbind();
@@ -371,7 +371,7 @@ export class Repeat<C extends ObservedCollection = IObservedArray, T extends INo
     return new AggregateContinuationTask(tasks, this.$lifecycle.endUnbind, this.$lifecycle, flags);
   }
 
-  private bindViewsByIndexOrReference(indexMap: IndexMap, flags: LifecycleFlags): ILifecycleTask {
+  private bindViewsByIndexOrReference(indexMap: IndexMap, flags: LF): ILifecycleTask {
     let tasks: ILifecycleTask[];
     let task: ILifecycleTask;
     let view: IView<T>;
@@ -419,7 +419,7 @@ export class Repeat<C extends ObservedCollection = IObservedArray, T extends INo
     return new AggregateContinuationTask(tasks, this.$lifecycle.endBind, this.$lifecycle, flags);
   }
 
-  private createAndBindAllViews(flags: LifecycleFlags): ILifecycleTask {
+  private createAndBindAllViews(flags: LF): ILifecycleTask {
     let tasks: ILifecycleTask[];
     let task: ILifecycleTask;
     let view: IView<T>;
@@ -447,7 +447,7 @@ export class Repeat<C extends ObservedCollection = IObservedArray, T extends INo
     return new AggregateContinuationTask(tasks, this.$lifecycle.endBind, this.$lifecycle, flags);
   }
 
-  private createAndBindNewViewsByKey(indexMap: IndexMap, flags: LifecycleFlags): ILifecycleTask {
+  private createAndBindNewViewsByKey(indexMap: IndexMap, flags: LF): ILifecycleTask {
     let tasks: ILifecycleTask[];
     let task: ILifecycleTask;
     let view: IView<T>;
@@ -482,7 +482,7 @@ export class Repeat<C extends ObservedCollection = IObservedArray, T extends INo
     return new AggregateContinuationTask(tasks, this.$lifecycle.endBind, this.$lifecycle, flags);
   }
 
-  private attachViews(indexMap: IndexMap, flags: LifecycleFlags): ILifecycleTask {
+  private attachViews(indexMap: IndexMap, flags: LF): ILifecycleTask {
     let tasks: ILifecycleTask[];
     let task: ILifecycleTask;
     let view: IView<T>;
@@ -526,7 +526,7 @@ export class Repeat<C extends ObservedCollection = IObservedArray, T extends INo
     return new AggregateContinuationTask(tasks, this.$lifecycle.endAttach, this.$lifecycle, flags);
   }
 
-  private attachViewsKeyed(flags: LifecycleFlags): ILifecycleTask {
+  private attachViewsKeyed(flags: LF): ILifecycleTask {
     let tasks: ILifecycleTask[];
     let task: ILifecycleTask;
     let view: IView<T>;
@@ -553,7 +553,7 @@ export class Repeat<C extends ObservedCollection = IObservedArray, T extends INo
     return new AggregateContinuationTask(tasks, this.$lifecycle.endAttach, this.$lifecycle, flags);
   }
 
-  private sortViewsByKey(indexMap: IndexMap, flags: LifecycleFlags): ILifecycleTask {
+  private sortViewsByKey(indexMap: IndexMap, flags: LF): ILifecycleTask {
     // TODO: integrate with tasks
     const { location, views } = this;
     // this algorithm retrieves the indices of the longest increasing subsequence of items in the repeater
@@ -576,7 +576,7 @@ export class Repeat<C extends ObservedCollection = IObservedArray, T extends INo
 
             let current = view.$componentHead;
             while (current !== null) {
-              current.$attach(flags | LifecycleFlags.fromAttach);
+              current.$attach(flags | LF.fromAttach);
               current = current.$nextComponent;
             }
 
@@ -590,7 +590,7 @@ export class Repeat<C extends ObservedCollection = IObservedArray, T extends INo
 
             let current = view.$componentTail;
             while (current !== null) {
-              current.$detach(flags | LifecycleFlags.fromDetach);
+              current.$detach(flags | LF.fromDetach);
               current = current.$prevComponent;
             }
             view.$nodes.remove();
@@ -599,7 +599,7 @@ export class Repeat<C extends ObservedCollection = IObservedArray, T extends INo
 
             current = view.$componentHead;
             while (current !== null) {
-              current.$attach(flags | LifecycleFlags.fromAttach);
+              current.$attach(flags | LF.fromAttach);
               current = current.$nextComponent;
             }
 

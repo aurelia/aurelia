@@ -175,7 +175,7 @@ const observe = {
       o.indexMap[i] = - 2;
       i++;
     }
-    o.callSubscribers('push', arguments, o.persistentFlags | LifecycleFlags.isCollectionMutation);
+    o.notify();
     return $this.length;
   },
   // https://tc39.github.io/ecma262/#sec-array.prototype.unshift
@@ -196,7 +196,7 @@ const observe = {
     }
     $unshift.apply(o.indexMap, inserts);
     const len = $unshift.apply($this, arguments);
-    o.callSubscribers('unshift', arguments, o.persistentFlags | LifecycleFlags.isCollectionMutation);
+    o.notify();
     return len;
   },
   // https://tc39.github.io/ecma262/#sec-array.prototype.pop
@@ -217,7 +217,7 @@ const observe = {
       indexMap.deletedItems.push(indexMap[index]);
     }
     $pop.call(indexMap);
-    o.callSubscribers('pop', arguments, o.persistentFlags | LifecycleFlags.isCollectionMutation);
+    o.notify();
     return element;
   },
   // https://tc39.github.io/ecma262/#sec-array.prototype.shift
@@ -237,7 +237,7 @@ const observe = {
       indexMap.deletedItems.push(indexMap[0]);
     }
     $shift.call(indexMap);
-    o.callSubscribers('shift', arguments, o.persistentFlags | LifecycleFlags.isCollectionMutation);
+    o.notify();
     return element;
   },
   // https://tc39.github.io/ecma262/#sec-array.prototype.splice
@@ -274,7 +274,7 @@ const observe = {
       $splice.call(indexMap, start, deleteCount);
     }
     const deleted = $splice.apply($this, arguments);
-    o.callSubscribers('splice', arguments, o.persistentFlags | LifecycleFlags.isCollectionMutation);
+    o.notify();
     return deleted;
   },
   // https://tc39.github.io/ecma262/#sec-array.prototype.reverse
@@ -301,7 +301,7 @@ const observe = {
       lower++;
     }
     // tslint:enable:no-statements-same-line
-    o.callSubscribers('reverse', arguments, o.persistentFlags | LifecycleFlags.isCollectionMutation);
+    o.notify();
     return this;
   },
   // https://tc39.github.io/ecma262/#sec-array.prototype.sort
@@ -332,7 +332,7 @@ const observe = {
       compareFn = sortCompare;
     }
     quickSort($this, o.indexMap, 0, i, compareFn);
-    o.callSubscribers('sort', arguments, o.persistentFlags | LifecycleFlags.isCollectionMutation);
+    o.notify();
     return this;
   }
 };

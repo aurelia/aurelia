@@ -2,11 +2,10 @@ import { expect } from 'chai';
 import { spy } from 'sinon';
 import {
   LifecycleFlags,
-  MutationKind,
   subscriberCollection
 } from '../../src/index';
 
-@subscriberCollection(MutationKind.instance)
+@subscriberCollection()
 class Test {}
 
 describe('subscriberCollection', function () {

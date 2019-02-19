@@ -50,7 +50,7 @@ describe(`ArrayObserver`, function () {
       const s = new SpySubscriber();
       const arr = [];
       sut = new ArrayObserver(LF.none, new Lifecycle(), arr);
-      sut.subscribe(s);
+      sut.subscribeToCollection(s);
       arr.push(1);
       expect(s.handleChange).to.have.been.calledWith('push', match(x => x[0] === 1));
     });
@@ -59,7 +59,7 @@ describe(`ArrayObserver`, function () {
       const s = new SpySubscriber();
       const arr = [];
       sut = new ArrayObserver(LF.none, new Lifecycle(), arr);
-      sut.subscribe(s);
+      sut.subscribeToCollection(s);
       arr.push(1, 2);
       expect(s.handleChange).to.have.been.calledWith('push', match(x => x[0] === 1 && x[1] === 2));
     });
@@ -70,8 +70,8 @@ describe(`ArrayObserver`, function () {
       const s = new SpySubscriber();
       const arr = [];
       sut = new ArrayObserver(LF.none, new Lifecycle(), arr);
-      sut.subscribe(s);
-      sut.unsubscribe(s);
+      sut.subscribeToCollection(s);
+      sut.unsubscribeFromCollection(s);
       arr.push(1);
       expect(s.handleChange).not.to.have.been.called;
     });
@@ -82,24 +82,24 @@ describe(`ArrayObserver`, function () {
       const s = new SpySubscriber();
       const arr = [];
       sut = new ArrayObserver(LF.none, new Lifecycle(), arr);
-      sut.subscribeBatched(s);
+      sut.subscribeToCollection(s);
       arr.push(1);
-      const indexMap: IndexMap = sut.indexMap.slice();
+      const indexMap: IndexMap = sut.indexMap.slice() as IndexMap;
       indexMap.deletedItems = sut.indexMap.deletedItems;
       sut.flush(LF.none);
-      expect(s.handleBatchedChange).to.have.been.calledWith(indexMap);
+      expect(s.handleCollectionChange).to.have.been.calledWith(indexMap);
     });
 
     it('push', function () {
       const s = new SpySubscriber();
       const arr = [];
       sut = new ArrayObserver(LF.none, new Lifecycle(), arr);
-      sut.subscribeBatched(s);
+      sut.subscribeToCollection(s);
       arr.push(1, 2);
-      const indexMap: IndexMap = sut.indexMap.slice();
+      const indexMap: IndexMap = sut.indexMap.slice() as IndexMap;
       indexMap.deletedItems = sut.indexMap.deletedItems;
       sut.flush(LF.none);
-      expect(s.handleBatchedChange).to.have.been.calledWith(indexMap);
+      expect(s.handleCollectionChange).to.have.been.calledWith(indexMap);
     });
   });
 
@@ -108,11 +108,11 @@ describe(`ArrayObserver`, function () {
       const s = new SpySubscriber();
       const arr = [];
       sut = new ArrayObserver(LF.none, new Lifecycle(), arr);
-      sut.subscribeBatched(s);
-      sut.unsubscribeBatched(s);
+      sut.subscribeToCollection(s);
+      sut.unsubscribeFromCollection(s);
       arr.push(1);
       sut.flush(LF.none);
-      expect(s.handleBatchedChange).not.to.have.been.called;
+      expect(s.handleCollectionChange).not.to.have.been.called;
     });
   });
 
@@ -123,9 +123,9 @@ describe(`ArrayObserver`, function () {
       const s = new SpySubscriber();
       const arr = [];
       sut = new ArrayObserver(LF.none, new Lifecycle(), arr);
-      sut.subscribeBatched(s);
+      sut.subscribeToCollection(s);
       sut.flush(LF.none);
-      expect(s.handleBatchedChange).to.have.been.called;
+      expect(s.handleCollectionChange).to.have.been.called;
     });
   });
 

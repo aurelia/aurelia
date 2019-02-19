@@ -1,7 +1,7 @@
 import { Tracer } from '@aurelia/kernel';
 import { LifecycleFlags } from '../flags';
 import { ILifecycle } from '../lifecycle';
-import { IBindingTargetAccessor, MutationKind } from '../observation';
+import { IBindingTargetAccessor } from '../observation';
 import { patchProperties } from './patch-properties';
 import { subscriberCollection } from './subscriber-collection';
 
@@ -17,7 +17,7 @@ type BindingTargetAccessor = IBindingTargetAccessor & {
   setValueCore(value: unknown, flags: LifecycleFlags): void;
 };
 
-function setValue(this: BindingTargetAccessor, newValue: unknown, flags: LifecycleFlags): Promise<void> {
+function setValue(this: BindingTargetAccessor, newValue: unknown, flags: LifecycleFlags): void {
   if (Tracer.enabled) { Tracer.enter(this['constructor'].name, 'setValue', slice.call(arguments)); }
   const currentValue = this.currentValue;
   newValue = newValue === null || newValue === undefined ? this.defaultValue : newValue;
@@ -30,21 +30,14 @@ function setValue(this: BindingTargetAccessor, newValue: unknown, flags: Lifecyc
     } else {
       this.currentFlags = flags;
       if (Tracer.enabled) { Tracer.leave(); }
-      return this.lifecycle.enqueueFlush(this);
+      this.lifecycle.enqueueFlush(this);
     }
   }
   if (Tracer.enabled) { Tracer.leave(); }
-  return Promise.resolve();
 }
 
 function flush(this: BindingTargetAccessor, flags: LifecycleFlags): void {
   if (Tracer.enabled) { Tracer.enter(this['constructor'].name, 'flush', slice.call(arguments)); }
-  if (this.isDOMObserver && (flags & LifecycleFlags.doNotUpdateDOM)) {
-    // re-queue the change so it will still propagate on flush when it's attached again
-    this.lifecycle.enqueueFlush(this).catch(error => { throw error; });
-    if (Tracer.enabled) { Tracer.leave(); }
-    return;
-  }
   const currentValue = this.currentValue;
   // we're doing this check because a value could be set multiple times before a flush, and the final value could be the same as the original value
   // in which case the target doesn't need to be updated
@@ -80,7 +73,7 @@ function dispose(this: BindingTargetAccessor): void {
 export function targetObserver(defaultValue: unknown = null): ClassDecorator {
   // tslint:disable-next-line:ban-types // ClassDecorator expects it to be derived from Function
   return function(target: Function): void {
-    subscriberCollection(MutationKind.instance)(target);
+    subscriberCollection()(target);
     const proto = target.prototype as BindingTargetAccessor;
 
     proto.$nextFlush = null;

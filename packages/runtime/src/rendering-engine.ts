@@ -37,10 +37,9 @@ import {
 } from './lifecycle';
 import {
   IAccessor,
-  IPropertySubscriber,
+  ISubscriber,
   ISubscribable,
-  ISubscriberCollection,
-  MutationKind
+  ISubscriberCollection
 } from './observation';
 import { ProxyObserver } from './observation/proxy-observer';
 import { SelfObserver } from './observation/self-observer';
@@ -401,11 +400,11 @@ export class ViewFactoryProvider implements IResolver {
 
 export interface IChildrenObserver extends
   IAccessor,
-  ISubscribable<MutationKind.instance>,
-  ISubscriberCollection<MutationKind.instance> { }
+  ISubscribable,
+  ISubscriberCollection { }
 
 /** @internal */
-@subscriberCollection(MutationKind.instance)
+@subscriberCollection()
 export class ChildrenObserver implements Partial<IChildrenObserver> {
   public hasChanges: boolean;
 
@@ -440,11 +439,11 @@ export class ChildrenObserver implements Partial<IChildrenObserver> {
     this.hasChanges = false;
   }
 
-  public subscribe(this: ChildrenObserver & IChildrenObserver, subscriber: IPropertySubscriber): void {
+  public subscribe(this: ChildrenObserver & IChildrenObserver, subscriber: ISubscriber): void {
     this.addSubscriber(subscriber);
   }
 
-  public unsubscribe(this: ChildrenObserver & IChildrenObserver, subscriber: IPropertySubscriber): void {
+  public unsubscribe(this: ChildrenObserver & IChildrenObserver, subscriber: ISubscriber): void {
     this.removeSubscriber(subscriber);
   }
 
@@ -455,7 +454,7 @@ export class ChildrenObserver implements Partial<IChildrenObserver> {
       this.customElement.$childrenChanged();
     }
 
-    this.lifecycle.enqueueFlush(this).catch(error => { throw error; });
+    this.lifecycle.enqueueFlush(this);
     this.hasChanges = true;
   }
 }

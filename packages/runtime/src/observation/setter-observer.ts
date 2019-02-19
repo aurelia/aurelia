@@ -1,6 +1,6 @@
 import { IIndexable, Tracer } from '@aurelia/kernel';
 import { LifecycleFlags } from '../flags';
-import { IPropertyObserver, IPropertySubscriber } from '../observation';
+import { IPropertyObserver, ISubscriber } from '../observation';
 import { patchProperties } from './patch-properties';
 import { propertyObserver } from './property-observer';
 
@@ -10,8 +10,8 @@ export interface SetterObserver extends IPropertyObserver<IIndexable, string> {}
 
 @propertyObserver()
 export class SetterObserver implements SetterObserver {
-  public subscribe: (subscriber: IPropertySubscriber) => void;
-  public unsubscribe: (subscriber: IPropertySubscriber) => void;
+  public subscribe: (subscriber: ISubscriber) => void;
+  public unsubscribe: (subscriber: ISubscriber) => void;
   public readonly persistentFlags: LifecycleFlags;
   public obj: IIndexable;
   public propertyKey: string;

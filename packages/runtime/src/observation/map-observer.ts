@@ -46,7 +46,7 @@ const observe = {
       return this;
     }
     o.indexMap[oldSize] = -2;
-    o.callSubscribers('set', arguments, o.persistentFlags | LifecycleFlags.isCollectionMutation);
+    o.notify();
     return this;
   },
   // https://tc39.github.io/ecma262/#sec-map.prototype.clear
@@ -71,7 +71,7 @@ const observe = {
       }
       $clear.call($this);
       indexMap.length = 0;
-      o.callSubscribers('clear', arguments, o.persistentFlags | LifecycleFlags.isCollectionMutation);
+      o.notify();
     }
     return undefined;
   },
@@ -101,7 +101,7 @@ const observe = {
       }
       i++;
     }
-    o.callSubscribers('delete', arguments, o.persistentFlags | LifecycleFlags.isCollectionMutation);
+    o.notify();
     return false;
   }
 };

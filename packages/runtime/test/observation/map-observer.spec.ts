@@ -52,7 +52,7 @@ describe(`MapObserver`, function () {
       const s = new SpySubscriber();
       const map = new Map();
       sut = new MapObserver(LF.none, new Lifecycle(), map);
-      sut.subscribe(s);
+      sut.subscribeToCollection(s);
       map.set(1, 1);
       expect(s.handleChange).to.have.been.calledWith('set', match(x => x[0] === 1));
     });
@@ -63,8 +63,8 @@ describe(`MapObserver`, function () {
       const s = new SpySubscriber();
       const map = new Map();
       sut = new MapObserver(LF.none, new Lifecycle(), map);
-      sut.subscribe(s);
-      sut.unsubscribe(s);
+      sut.subscribeToCollection(s);
+      sut.unsubscribeFromCollection(s);
       map.set(1, 1);
       expect(s.handleChange).not.to.have.been.called;
     });
@@ -75,12 +75,12 @@ describe(`MapObserver`, function () {
       const s = new SpySubscriber();
       const map = new Map();
       sut = new MapObserver(LF.none, new Lifecycle(), map);
-      sut.subscribeBatched(s);
+      sut.subscribeToCollection(s);
       map.set(1, 1);
-      const indexMap: IndexMap = sut.indexMap.slice();
+      const indexMap: IndexMap = sut.indexMap.slice() as IndexMap;
       indexMap.deletedItems = sut.indexMap.deletedItems;
       sut.flush(LF.none);
-      expect(s.handleBatchedChange).to.have.been.calledWith(indexMap);
+      expect(s.handleCollectionChange).to.have.been.calledWith(indexMap);
     });
   });
 
@@ -89,11 +89,11 @@ describe(`MapObserver`, function () {
       const s = new SpySubscriber();
       const map = new Map();
       sut = new MapObserver(LF.none, new Lifecycle(), map);
-      sut.subscribeBatched(s);
-      sut.unsubscribeBatched(s);
+      sut.subscribeToCollection(s);
+      sut.unsubscribeFromCollection(s);
       map.set(1, 1);
       sut.flush(LF.none);
-      expect(s.handleBatchedChange).not.to.have.been.called;
+      expect(s.handleCollectionChange).not.to.have.been.called;
     });
   });
 
@@ -104,9 +104,9 @@ describe(`MapObserver`, function () {
       const s = new SpySubscriber();
       const map = new Map();
       sut = new MapObserver(LF.none, new Lifecycle(), map);
-      sut.subscribeBatched(s);
+      sut.subscribeToCollection(s);
       sut.flush(LF.none);
-      expect(s.handleBatchedChange).to.have.been.called;
+      expect(s.handleCollectionChange).to.have.been.called;
     });
   });
 

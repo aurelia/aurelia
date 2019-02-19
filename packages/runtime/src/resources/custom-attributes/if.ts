@@ -117,7 +117,7 @@ export class If<T extends INode = INode> implements If<T> {
           this.task = new ContinuationTask(this.task, this.swap, this, newValue, flags);
         }
       } else {
-        $this.$lifecycle.enqueueFlush($this).catch(error => { throw error; });
+        $this.$lifecycle.enqueueFlush($this);
       }
     }
   }

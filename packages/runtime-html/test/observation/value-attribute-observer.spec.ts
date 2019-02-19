@@ -1,4 +1,4 @@
-import { IPropertySubscriber, LifecycleFlags as LF } from '@aurelia/runtime';
+import { ISubscriber, LifecycleFlags as LF } from '@aurelia/runtime';
 import { expect } from 'chai';
 import { SinonSpy, spy } from 'sinon';
 import { ValueAttributeObserver } from '../../src/index';
@@ -30,7 +30,7 @@ describe('ValueAttributeObserver', function () {
 
         const sut = observerLocator.getObserver(LF.none, el, 'value') as ValueAttributeObserver;
 
-        const subscriber: IPropertySubscriber = { handleChange: spy() };
+        const subscriber: ISubscriber = { handleChange: spy() };
         if (hasSubscriber) {
           sut.subscribe(subscriber);
         }
@@ -98,7 +98,7 @@ describe('ValueAttributeObserver', function () {
 
         const sut = observerLocator.getObserver(LF.none, el, 'value') as ValueAttributeObserver;
 
-        const subscriber: IPropertySubscriber = { handleChange: spy() };
+        const subscriber: ISubscriber = { handleChange: spy() };
         sut.subscribe(subscriber);
 
         return { ctx, container, observerLocator, el, sut, subscriber };

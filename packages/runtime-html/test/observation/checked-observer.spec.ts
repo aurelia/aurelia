@@ -1,7 +1,7 @@
 import {
   enableArrayObservation,
   IBindingTargetObserver,
-  IPropertySubscriber,
+  ISubscriber,
   LifecycleFlags as LF
 } from '@aurelia/runtime';
 import { expect } from 'chai';
@@ -34,7 +34,7 @@ describe('CheckedObserver', function () {
       const sut = ctx.observerLocator.getObserver(LF.none, el, 'checked') as CheckedObserver;
       ctx.observerLocator.getObserver(LF.none, el, 'value');
 
-      const subscriber: IPropertySubscriber = { handleChange: spy() };
+      const subscriber: ISubscriber = { handleChange: spy() };
       if (hasSubscriber) {
         sut.subscribe(subscriber);
       }
@@ -100,7 +100,7 @@ describe('CheckedObserver', function () {
 
       const sut = ctx.observerLocator.getObserver(LF.none, el, 'checked') as CheckedObserver;
 
-      const subscriber: IPropertySubscriber = { handleChange: spy() };
+      const subscriber: ISubscriber = { handleChange: spy() };
       sut.subscribe(subscriber);
 
       return { ctx, container, lifecycle, observerLocator, el, sut, subscriber };
@@ -160,9 +160,9 @@ describe('CheckedObserver', function () {
       observerLocator.getObserver(LF.none, elB, 'value');
       observerLocator.getObserver(LF.none, elC, 'value');
 
-      const subscriberA: IPropertySubscriber = { handleChange: spy() };
-      const subscriberB: IPropertySubscriber = { handleChange: spy() };
-      const subscriberC: IPropertySubscriber = { handleChange: spy() };
+      const subscriberA: ISubscriber = { handleChange: spy() };
+      const subscriberB: ISubscriber = { handleChange: spy() };
+      const subscriberC: ISubscriber = { handleChange: spy() };
       if (hasSubscriber) {
         sutA.subscribe(subscriberA);
         sutB.subscribe(subscriberB);
@@ -251,9 +251,9 @@ describe('CheckedObserver', function () {
       const sutA = observerLocator.getObserver(LF.none, elA, 'checked') as CheckedObserver;
       const sutB = observerLocator.getObserver(LF.none, elB, 'checked') as CheckedObserver;
       const sutC = observerLocator.getObserver(LF.none, elC, 'checked') as CheckedObserver;
-      const subscriberA: IPropertySubscriber = { handleChange: spy() };
-      const subscriberB: IPropertySubscriber = { handleChange: spy() };
-      const subscriberC: IPropertySubscriber = { handleChange: spy() };
+      const subscriberA: ISubscriber = { handleChange: spy() };
+      const subscriberB: ISubscriber = { handleChange: spy() };
+      const subscriberC: ISubscriber = { handleChange: spy() };
       sutA.subscribe(subscriberA);
       sutB.subscribe(subscriberB);
       sutC.subscribe(subscriberC);
@@ -326,7 +326,7 @@ describe('CheckedObserver', function () {
       const sut = observerLocator.getObserver(LF.none, el, 'checked') as CheckedObserver;
       observerLocator.getObserver(LF.none, el, prop);
 
-      const subscriber: IPropertySubscriber = { handleChange: spy() };
+      const subscriber: ISubscriber = { handleChange: spy() };
       if (hasSubscriber) {
         sut.subscribe(subscriber);
       }
@@ -399,7 +399,7 @@ describe('CheckedObserver', function () {
       const sut = observerLocator.getObserver(LF.none, el, 'checked') as CheckedObserver;
       observerLocator.getObserver(LF.none, el, prop);
 
-      const subscriber: IPropertySubscriber = { handleChange: spy() };
+      const subscriber: ISubscriber = { handleChange: spy() };
       if (hasSubscriber) {
         sut.subscribe(subscriber);
       }
@@ -462,7 +462,7 @@ describe('CheckedObserver', function () {
 
       const sut = observerLocator.getObserver(LF.none, el, 'checked') as CheckedObserver;
 
-      const subscriber: IPropertySubscriber = { handleChange: spy() };
+      const subscriber: ISubscriber = { handleChange: spy() };
       sut.subscribe(subscriber);
 
       return { ctx, value, container, observerLocator, el, sut, subscriber };
@@ -526,7 +526,7 @@ describe('CheckedObserver', function () {
       const sut = observerLocator.getObserver(LF.none, el, 'checked') as CheckedObserver;
       const valueOrModelObserver = observerLocator.getObserver(LF.none, el, prop) as IBindingTargetObserver;
 
-      const subscriber: IPropertySubscriber = { handleChange: spy() };
+      const subscriber: ISubscriber = { handleChange: spy() };
       if (hasSubscriber) {
         sut.subscribe(subscriber);
       }

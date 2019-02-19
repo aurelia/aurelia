@@ -14,9 +14,8 @@ import {
   IBindingTargetObserver,
   IExpression,
   ILifecycle,
-  IPropertyChangeNotifier,
-  IPropertySubscriber,
   IScope,
+  ISubscriber,
   LifecycleFlags as LF,
   ObjectLiteral,
   PrimitiveLiteral,
@@ -620,8 +619,8 @@ describe('Binding', function () {
           const observer01: SetterObserver = sut['_observer1'];
           const observer02: SetterObserver = sut['_observer2'];
 
-          const subscriber00: IPropertySubscriber = targetObserver['_subscriber0'];
-          const subscriber01: IPropertySubscriber = targetObserver['_subscriber1'];
+          const subscriber00: ISubscriber = targetObserver['_subscriber0'];
+          const subscriber01: ISubscriber = targetObserver['_subscriber1'];
           if (expr instanceof AccessScope) {
             expect(observer00, `observer00 #01`).to.be.instanceof(SetterObserver);
             expect(observer01, `observer01 #02`).to.equal(undefined);
@@ -718,8 +717,8 @@ describe('Binding', function () {
           const observer11: SetterObserver = sut['_observer1'];
           const observer12: SetterObserver = sut['_observer2'];
 
-          const subscriber10: IPropertySubscriber = targetObserver['_subscriber0'];
-          const subscriber11: IPropertySubscriber = targetObserver['_subscriber1'];
+          const subscriber10: ISubscriber = targetObserver['_subscriber0'];
+          const subscriber11: ISubscriber = targetObserver['_subscriber1'];
           if (expr instanceof AccessScope) {
             expect(observer10, `observer10 #38`).to.be.instanceof(SetterObserver);
             expect(observer10, `observer10 #39`).to.equal(observer00);
@@ -1004,11 +1003,11 @@ describe('Binding', function () {
 
 class MockObserver implements IBindingTargetObserver {
   public _subscriberFlags?: SubscriberFlags;
-  public _subscriber0?: IPropertySubscriber;
-  public _subscriber1?: IPropertySubscriber;
-  public _subscriber2?: IPropertySubscriber;
-  public _subscribersRest?: IPropertySubscriber[];
-  public callSubscribers: IPropertyChangeNotifier;
+  public _subscriber0?: ISubscriber;
+  public _subscriber1?: ISubscriber;
+  public _subscriber2?: ISubscriber;
+  public _subscribersRest?: ISubscriber[];
+  public callSubscribers: (newValue: unknown, oldValue: unknown, flags: LF) => void;
   public hasSubscribers: IBindingTargetObserver['hasSubscribers'];
   public hasSubscriber: IBindingTargetObserver['hasSubscriber'];
   public removeSubscriber: IBindingTargetObserver['removeSubscriber'];

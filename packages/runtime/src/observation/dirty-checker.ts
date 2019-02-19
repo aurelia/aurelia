@@ -1,6 +1,6 @@
 import { DI, PLATFORM, Reporter, Tracer } from '@aurelia/kernel';
 import { LifecycleFlags } from '../flags';
-import { IBindingTargetObserver, IObservable, IPropertySubscriber } from '../observation';
+import { IBindingTargetObserver, IObservable, ISubscriber } from '../observation';
 import { propertyObserver } from './property-observer';
 
 export interface IDirtyChecker {
@@ -142,7 +142,7 @@ export class DirtyCheckProperty implements DirtyCheckProperty {
     this.oldValue = newValue;
   }
 
-  public subscribe(subscriber: IPropertySubscriber): void {
+  public subscribe(subscriber: ISubscriber): void {
     if (!this.hasSubscribers()) {
       this.oldValue = this.obj[this.propertyKey];
       this.dirtyChecker.addProperty(this);
@@ -150,7 +150,7 @@ export class DirtyCheckProperty implements DirtyCheckProperty {
     this.addSubscriber(subscriber);
   }
 
-  public unsubscribe(subscriber: IPropertySubscriber): void {
+  public unsubscribe(subscriber: ISubscriber): void {
     if (this.removeSubscriber(subscriber) && !this.hasSubscribers()) {
       this.dirtyChecker.removeProperty(this);
     }

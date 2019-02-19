@@ -1,4 +1,4 @@
-import { IBindingTargetObserver, ILifecycle, IPropertySubscriber, LifecycleFlags, targetObserver } from '@aurelia/runtime';
+import { IBindingTargetObserver, ILifecycle, ISubscriber, LifecycleFlags, targetObserver } from '@aurelia/runtime';
 import { IEventSubscriber } from './event-manager';
 
 const inputValueDefaults = {
@@ -85,7 +85,7 @@ export class ValueAttributeObserver implements ValueAttributeObserver {
     }
   }
 
-  public subscribe(subscriber: IPropertySubscriber): void {
+  public subscribe(subscriber: ISubscriber): void {
     if (!this.hasSubscribers()) {
       this.oldValue = this.getValue();
       this.handler.subscribe(this.obj, this);
@@ -93,7 +93,7 @@ export class ValueAttributeObserver implements ValueAttributeObserver {
     this.addSubscriber(subscriber);
   }
 
-  public unsubscribe(subscriber: IPropertySubscriber): void {
+  public unsubscribe(subscriber: ISubscriber): void {
     if (this.removeSubscriber(subscriber) && !this.hasSubscribers()) {
       this.handler.dispose();
     }

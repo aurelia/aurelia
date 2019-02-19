@@ -256,14 +256,17 @@ export function createRepeater(fixture: IRepeaterFixture, initialItems: any[], d
 
 export class SpySubscriber {
   public handleChange: ReturnType<typeof spy>;
-  public handleBatchedChange: ReturnType<typeof spy>;
+  public handleCollectionChange: ReturnType<typeof spy>;
+  public handleProxyChange: ReturnType<typeof spy>;
   constructor() {
     this.handleChange = spy();
-    this.handleBatchedChange = spy();
+    this.handleCollectionChange = spy();
+    this.handleProxyChange = spy();
   }
   public resetHistory() {
     this.handleChange.resetHistory();
-    this.handleBatchedChange.resetHistory();
+    this.handleCollectionChange.resetHistory();
+    this.handleProxyChange.resetHistory();
   }
 }
 

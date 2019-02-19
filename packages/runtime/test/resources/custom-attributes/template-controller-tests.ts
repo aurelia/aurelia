@@ -13,7 +13,7 @@ import {
   IViewFactory,
   LifecycleFlags as LF
 } from '../../../src/index';
-import { Lifecycle } from '../../../src/lifecycle';
+import { Lifecycle, LifecycleTask } from '../../../src/lifecycle';
 import { InstanceProvider } from '../../../src/rendering-engine';
 import { FakeView } from '../../_doubles/fake-view';
 import { FakeViewFactory } from '../../_doubles/fake-view-factory';
@@ -37,7 +37,10 @@ export function ensureSingleChildTemplateControllerBehaviors<T extends ICustomAt
     const child = getChildView(attribute);
 
     let attachCalled = false;
-    child.$attach = function () { attachCalled = true; };
+    child.$attach = function () {
+      attachCalled = true;
+      return LifecycleTask.done;
+    };
 
     runAttachLifecycle(lifecycle, attribute);
 
@@ -59,7 +62,10 @@ export function ensureSingleChildTemplateControllerBehaviors<T extends ICustomAt
     const child = getChildView(attribute);
 
     let bindCalled = false;
-    child.$bind = function () { bindCalled = true; };
+    child.$bind = function () {
+      bindCalled = true;
+      return LifecycleTask.done;
+    };
 
     attribute.$bind(LF.fromBind, createScopeForTest());
 
@@ -72,7 +78,10 @@ export function ensureSingleChildTemplateControllerBehaviors<T extends ICustomAt
     const child = getChildView(attribute);
 
     let detachCalled = false;
-    child.$detach = function () { detachCalled = true; };
+    child.$detach = function () {
+      detachCalled = true;
+      return LifecycleTask.done;
+    };
 
     runAttachLifecycle(lifecycle, attribute);
     runDetachLifecycle(lifecycle, attribute);
@@ -85,7 +94,10 @@ export function ensureSingleChildTemplateControllerBehaviors<T extends ICustomAt
     const child = getChildView(attribute);
 
     let unbindCalled = false;
-    child.$unbind = function () { unbindCalled = true; };
+    child.$unbind = function () {
+      unbindCalled = true;
+      return LifecycleTask.done;
+    };
 
     attribute.$bind(LF.fromBind, createScopeForTest());
     attribute.$unbind(LF.fromUnbind);

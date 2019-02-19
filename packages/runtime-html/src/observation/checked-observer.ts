@@ -1,11 +1,11 @@
 import {
   CollectionKind,
-  IBatchedCollectionSubscriber,
   IBindingTargetObserver,
   ICollectionObserver,
+  ICollectionSubscriber,
   ILifecycle,
   IObserverLocator,
-  IPropertySubscriber,
+  ISubscriber,
   LifecycleFlags,
   ObserversLookup,
   SetterObserver,
@@ -29,8 +29,8 @@ const defaultMatcher = (a: unknown, b: unknown): boolean => {
 
 export interface CheckedObserver extends
   IBindingTargetObserver<IInputElement, string>,
-  IBatchedCollectionSubscriber,
-  IPropertySubscriber { }
+  ICollectionSubscriber,
+  ISubscriber { }
 
 @targetObserver()
 export class CheckedObserver implements CheckedObserver {
@@ -76,23 +76,20 @@ export class CheckedObserver implements CheckedObserver {
       }
     }
     if (this.arrayObserver) {
-      this.arrayObserver.unsubscribeBatched(this);
+      this.arrayObserver.unsubscribeFromCollection(this);
       this.arrayObserver = null;
     }
     if (this.obj.type === 'checkbox' && Array.isArray(newValue)) {
       this.arrayObserver = this.observerLocator.getArrayObserver(this.persistentFlags | flags, newValue);
-      this.arrayObserver.subscribeBatched(this);
+      this.arrayObserver.subscribeToCollection(this);
     }
     this.synchronizeElement();
   }
 
-  // handleBatchedCollectionChange (todo: rename to make this explicit?)
-  public handleBatchedChange(): void {
+  public handleCollectionChange(): void {
     this.synchronizeElement();
     this.notify(LifecycleFlags.fromFlush);
   }
-
-  // handlePropertyChange (todo: rename normal subscribe methods in target observers to batched, since that's what they really are)
   public handleChange(newValue: unknown, previousValue: unknown, flags: LifecycleFlags): void {
     this.synchronizeElement();
     this.notify(flags);
@@ -157,14 +154,14 @@ export class CheckedObserver implements CheckedObserver {
     this.notify(LifecycleFlags.fromDOMEvent | LifecycleFlags.allowPublishRoundtrip);
   }
 
-  public subscribe(subscriber: IPropertySubscriber): void {
+  public subscribe(subscriber: ISubscriber): void {
     if (!this.hasSubscribers()) {
       this.handler.subscribe(this.obj, this);
     }
     this.addSubscriber(subscriber);
   }
 
-  public unsubscribe(subscriber: IPropertySubscriber): void {
+  public unsubscribe(subscriber: ISubscriber): void {
     if (this.removeSubscriber(subscriber) && !this.hasSubscribers()) {
       this.handler.dispose();
     }
@@ -172,7 +169,7 @@ export class CheckedObserver implements CheckedObserver {
 
   public unbind(): void {
     if (this.arrayObserver) {
-      this.arrayObserver.unsubscribeBatched(this);
+      this.arrayObserver.unsubscribeFromCollection(this);
       this.arrayObserver = null;
     }
     if (this.valueObserver) {

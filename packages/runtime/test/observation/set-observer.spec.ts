@@ -51,7 +51,7 @@ describe(`SetObserver`, function () {
       const s = new SpySubscriber();
       const set = new Set();
       sut = new SetObserver(LF.none, new Lifecycle(), set);
-      sut.subscribe(s);
+      sut.subscribeToCollection(s);
       set.add(1);
       expect(s.handleChange).to.have.been.calledWith('add', match(x => x[0] === 1));
     });
@@ -62,8 +62,8 @@ describe(`SetObserver`, function () {
       const s = new SpySubscriber();
       const set = new Set();
       sut = new SetObserver(LF.none, new Lifecycle(), set);
-      sut.subscribe(s);
-      sut.unsubscribe(s);
+      sut.subscribeToCollection(s);
+      sut.unsubscribeFromCollection(s);
       set.add(1);
       expect(s.handleChange).not.to.have.been.called;
     });
@@ -74,12 +74,12 @@ describe(`SetObserver`, function () {
       const s = new SpySubscriber();
       const set = new Set();
       sut = new SetObserver(LF.none, new Lifecycle(), set);
-      sut.subscribeBatched(s);
+      sut.subscribeToCollection(s);
       set.add(1);
-      const indexMap: IndexMap = sut.indexMap.slice();
+      const indexMap: IndexMap = sut.indexMap.slice() as IndexMap;
       indexMap.deletedItems = sut.indexMap.deletedItems;
       sut.flush(LF.none);
-      expect(s.handleBatchedChange).to.have.been.calledWith(indexMap);
+      expect(s.handleCollectionChange).to.have.been.calledWith(indexMap);
     });
   });
 
@@ -88,11 +88,11 @@ describe(`SetObserver`, function () {
       const s = new SpySubscriber();
       const set = new Set();
       sut = new SetObserver(LF.none, new Lifecycle(), set);
-      sut.subscribeBatched(s);
-      sut.unsubscribeBatched(s);
+      sut.subscribeToCollection(s);
+      sut.unsubscribeFromCollection(s);
       set.add(1);
       sut.flush(LF.none);
-      expect(s.handleBatchedChange).not.to.have.been.called;
+      expect(s.handleCollectionChange).not.to.have.been.called;
     });
   });
 
@@ -103,9 +103,9 @@ describe(`SetObserver`, function () {
       const s = new SpySubscriber();
       const set = new Set();
       sut = new SetObserver(LF.none, new Lifecycle(), set);
-      sut.subscribeBatched(s);
+      sut.subscribeToCollection(s);
       sut.flush(LF.none);
-      expect(s.handleBatchedChange).to.have.been.called;
+      expect(s.handleCollectionChange).to.have.been.called;
     });
   });
 

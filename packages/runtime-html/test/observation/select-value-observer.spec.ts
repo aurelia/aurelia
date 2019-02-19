@@ -84,7 +84,7 @@ describe('SelectValueObserver', function () {
           return;
         } };
         const arrayObserver: any = {
-          unsubscribeBatched(observer: Anything) {
+          unsubscribeCollection(observer: Anything) {
             expect(observer).to.equal(sut, 'It should have unsubscribe with right observer.');
             count++;
           }

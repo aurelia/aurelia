@@ -180,7 +180,8 @@ export {
 } from './observation/signaler';
 export {
   subscriberCollection,
-  batchedSubscriberCollection
+  proxySubscriberCollection,
+  collectionSubscriberCollection
 } from './observation/subscriber-collection';
 export {
   targetObserver
@@ -444,22 +445,14 @@ export {
 } from './lifecycle';
 export {
   AccessorOrObserver,
-  BatchedSubscriber,
   Collection,
   CollectionKind,
   DelegationStrategy,
   IAccessor,
-  IBatchedCollectionChangeHandler,
-  IBatchedCollectionChangeNotifier,
-  IBatchedCollectionSubscriber,
-  IBatchedSubscribable,
-  IBatchedSubscriberCollection,
   IBindingContext,
   IBindingTargetAccessor,
   IBindingTargetObserver,
   IChangeTracker,
-  ICollectionChangeHandler,
-  ICollectionChangeNotifier,
   ICollectionChangeTracker,
   ICollectionObserver,
   ICollectionSubscriber,
@@ -471,19 +464,14 @@ export {
   IObserversLookup,
   IOverrideContext,
   IPatchable,
-  IPropertyChangeHandler,
-  IPropertyChangeNotifier,
   IPropertyChangeTracker,
   IPropertyObserver,
-  IPropertySubscriber,
+  ISubscriber,
   IScope,
   ISubscribable,
-  ISubscriberCollection,
-  MutationKind,
   ObservedCollection,
   ObserversLookup,
-  PropertyObserver,
-  Subscriber
+  PropertyObserver
 } from './observation';
 export {
   instructionRenderer,

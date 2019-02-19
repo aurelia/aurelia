@@ -353,6 +353,8 @@ export interface ILifecycle {
    */
   beginDetach(requestor?: IState): void;
 
+  beginBatch(): void;
+
   /**
    * Close / shrink a bind batch for invoking queued `bound` callbacks.
    * @param flags The flags that will be passed into the `bound` callbacks.
@@ -395,6 +397,8 @@ export interface ILifecycle {
    * This default will work, but is generally less efficient.
    */
   endDetach(flags: LifecycleFlags, requestor?: IState): void;
+
+  endBatch(flags: LifecycleFlags): void;
 
   /**
    * Add a `bound` callback to the queue, to be invoked when the current bind batch
@@ -465,7 +469,7 @@ export interface ILifecycle {
    *
    * This queue is primarily used by DOM target observers and collection observers.
    */
-  enqueueFlush(requestor: IChangeTracker): Promise<void>;
+  enqueueFlush(requestor: IChangeTracker): void;
 
   processFlushQueue(flags: LifecycleFlags): void;
 }
@@ -478,6 +482,7 @@ function noopHook(): ILifecycleTask {
 
 /** @internal */
 export class Lifecycle implements ILifecycle {
+  /** @internal */public batchDepth: number;
   /** @internal */public bindDepth: number;
   /** @internal */public patchDepth: number;
   /** @internal */public attachDepth: number;
@@ -539,6 +544,7 @@ export class Lifecycle implements ILifecycle {
   /** @internal */public $state: State;
 
   constructor() {
+    this.batchDepth = 0;
     this.bindDepth = 0;
     this.patchDepth = 0;
     this.attachDepth = 0;
@@ -601,6 +607,12 @@ export class Lifecycle implements ILifecycle {
     return Registration.singleton(ILifecycle, this).register(container);
   }
 
+  public beginBatch(): void {
+    if (Tracer.enabled) { Tracer.enter('Lifecycle', 'beginBatch', slice.call(arguments)); }
+    ++this.batchDepth;
+    if (Tracer.enabled) { Tracer.leave(); }
+  }
+
   public beginBind(requestor: IState = this): void {
     if (Tracer.enabled) { Tracer.enter('Lifecycle', 'beginBind', slice.call(arguments)); }
     requestor.$state = setBinding(requestor.$state);
@@ -626,6 +638,14 @@ export class Lifecycle implements ILifecycle {
     if (Tracer.enabled) { Tracer.enter('Lifecycle', 'beginDetach', slice.call(arguments)); }
     requestor.$state = setDetaching(requestor.$state);
     ++this.detachDepth;
+    if (Tracer.enabled) { Tracer.leave(); }
+  }
+
+  public endBatch(flags: LifecycleFlags): void {
+    if (Tracer.enabled) { Tracer.enter('Lifecycle', 'endBatch', slice.call(arguments)); }
+    if (--this.batchDepth === 0) {
+      this.processFlushQueue(flags);
+    }
     if (Tracer.enabled) { Tracer.leave(); }
   }
 
@@ -874,14 +894,13 @@ export class Lifecycle implements ILifecycle {
     }
   }
 
-  public enqueueFlush(requestor: IChangeTracker): Promise<void> {
+  public enqueueFlush(requestor: IChangeTracker): void {
     // Queue a flush() callback; the depth is just for debugging / testing purposes and has
     // no effect on execution. flush() will automatically be invoked when the promise resolves,
     // or it can be manually invoked synchronously.
-    if (this.flushHead === this) {
-      this.flushed = this.promise.then(() => { this.processFlushQueue(LifecycleFlags.fromAsyncFlush); });
-    }
-    if (requestor.$nextFlush === null) {
+    if (this.batchDepth === 0) {
+      requestor.flush(LifecycleFlags.fromSyncFlush);
+    } else if (requestor.$nextFlush === null) {
       if (Tracer.enabled) { Tracer.enter('Lifecycle', 'enqueueFlush', slice.call(arguments)); }
       requestor.$nextFlush = marker;
       this.flushTail.$nextFlush = requestor;
@@ -889,7 +908,6 @@ export class Lifecycle implements ILifecycle {
       ++this.flushCount;
       if (Tracer.enabled) { Tracer.leave(); }
     }
-    return this.flushed;
   }
 
   public processFlushQueue(flags: LifecycleFlags): void {

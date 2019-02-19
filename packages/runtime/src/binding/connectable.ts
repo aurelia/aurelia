@@ -2,7 +2,7 @@ import { Class, IIndexable, Tracer } from '@aurelia/kernel';
 import { IConnectable } from '../ast';
 import { LifecycleFlags } from '../flags';
 import { IBinding } from '../lifecycle';
-import { IBindingTargetObserver, IPatchable, IPropertySubscriber, ISubscribable, MutationKind } from '../observation';
+import { IBindingTargetObserver, IPatchable, ISubscriber, ISubscribable } from '../observation';
 import { IObserverLocator } from '../observation/observer-locator';
 
 // TODO: add connect-queue (or something similar) back in when everything else is working, to improve startup time
@@ -24,7 +24,7 @@ function ensureEnoughSlotNames(currentSlot: number): void {
 }
 ensureEnoughSlotNames(-1);
 
-export interface IPartialConnectableBinding extends IBinding, IPropertySubscriber {
+export interface IPartialConnectableBinding extends IBinding, ISubscriber {
   observerLocator: IObserverLocator;
 }
 
@@ -33,12 +33,12 @@ export interface IConnectableBinding extends IPartialConnectableBinding, IConnec
   $nextConnect?: IConnectableBinding;
   observerSlots: number;
   version: number;
-  addObserver(observer: ISubscribable<MutationKind.instance | MutationKind.proxy>): void;
+  addObserver(observer: ISubscribable): void;
   unobserve(all?: boolean): void;
 }
 
 /** @internal */
-export function addObserver(this: IConnectableBinding, observer: ISubscribable<MutationKind.instance | MutationKind.proxy>): void {
+export function addObserver(this: IConnectableBinding, observer: ISubscribable): void {
   // find the observer.
   const observerSlots = this.observerSlots === undefined ? 0 : this.observerSlots;
   let i = observerSlots;

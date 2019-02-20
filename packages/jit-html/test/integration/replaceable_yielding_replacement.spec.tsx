@@ -138,7 +138,64 @@ describe.only('replaceable', function () {
           </foo>,
           createItems(2),
           'replacement p0.replacement p1.Replacement yielded replaceable p1'
-        ]
+        ],
+        [
+          [
+            '[repeat]',
+            '  [replaceable #0] <<<',
+            '---',
+            '[foo]',
+            '  [replace #0]',
+            '    [replaceable #1]',
+            '  [replace #1]',
+            '    [replace #1]'
+          ].join('\n'),
+          <div repeat$for="item of items">
+            <div replaceable part="p0">{'$item.name'}</div>
+          </div>,
+          <foo>
+            <template replace-part="p0">
+              replacement p0.
+              <div replaceable part="p1">Replacement yielded replaceable p1</div>
+            </template>
+            <template replace-part="p1">
+              replacement p1.
+              <template replace-part="p1">replacement p11.</template>
+            </template>
+          </foo>,
+          createItems(2),
+          'replacement p0.replacement p1.replacement p0.replacement p1.'
+        ],
+        [
+          [
+            '[repeat]',
+            '  [repeat]',
+            '    [replaceable #0] <<<',
+            '---',
+            '[foo]',
+            '  [replace #0]',
+            '    [replaceable #1]',
+            '  [replace #1]',
+            '    [replace #1]'
+          ].join('\n'),
+          <div repeat$for="item of items">
+            <div repeat$for="item of items">
+              <div replaceable part="p0">{'${item.name}'}</div>
+            </div>
+          </div>,
+          <foo>
+            <template replace-part="p0">
+              replacement p0.
+              <div replaceable part="p1">Replacement yielded replaceable p1</div>
+            </template>
+            <template replace-part="p1">
+              replacement p1.
+              <template replace-part="p1">replacement p11.</template>
+            </template>
+          </foo>,
+          createItems(2),
+          'replacement p0.replacement p1.'.repeat(4)
+        ],
       ];
       for (
         const [

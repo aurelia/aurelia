@@ -136,14 +136,23 @@ export const hJsx = function(name: string, attrs: Record<string, string> | null,
           }
         } else {
           const len = attr.length;
-          const lastIdx = attr.lastIndexOf('$');
-          if (lastIdx === -1) {
+          const parts = attr.split('$');
+          if (parts.length === 1) {
             el.setAttribute(PLATFORM.kebabCase(attr), value);
           } else {
-            let cmd = attr.slice(lastIdx + 1);
-            cmd = cmd ? PLATFORM.kebabCase(cmd) : 'bind';
-            el.setAttribute(`${PLATFORM.kebabCase(attr.slice(0, lastIdx))}.${cmd}`, value);
+            if (parts[parts.length - 1] === '') {
+              parts[parts.length - 1] = 'bind';
+            }
+            el.setAttribute(parts.map(PLATFORM.kebabCase).join('.'), value);
           }
+          // const lastIdx = attr.lastIndexOf('$');
+          // if (lastIdx === -1) {
+          //   el.setAttribute(PLATFORM.kebabCase(attr), value);
+          // } else {
+          //   let cmd = attr.slice(lastIdx + 1);
+          //   cmd = cmd ? PLATFORM.kebabCase(cmd) : 'bind';
+          //   el.setAttribute(`${PLATFORM.kebabCase(attr.slice(0, lastIdx))}.${cmd}`, value);
+          // }
         }
       }
     }

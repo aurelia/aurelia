@@ -7,7 +7,7 @@ import { hJsx } from './util';
 //      JSX is used to eliminate space between tags so test result can be easier to manually constructed
 //      if template string can be used to achieve the same effect, it could be converted back
 
-describe.only('[repeat] -- funny cases', function () {
+describe.skip('[repeat] -- funny cases', function () {
 
   const testCases: [string, HTMLElement, HTMLElement, ITestItem[], string, ICustomAssertion?][] = [
     [

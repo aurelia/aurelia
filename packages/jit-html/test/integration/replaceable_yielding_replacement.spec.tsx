@@ -7,7 +7,7 @@ import { hJsx } from './util';
 //      JSX is used to eliminate space between tags so test result can be easier to manually constructed
 //      if template string can be used to achieve the same effect, it could be converted back
 
-describe.only('replaceable', function () {
+describe.skip('replaceable', function () {
 
   describe('Difficult cases', function() {
     describe('+ replacement yielded replaceable', function() {

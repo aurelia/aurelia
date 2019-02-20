@@ -115,6 +115,30 @@ describe.only('replaceable', function () {
           createItems(2),
           `replacement [0-item-0].replaceable 0 from replacement item-0.replacement [0-item-0].replaceable 0 from replacement item-0.`
         ],
+        [
+          [
+            '[replaceable #0] <<<',
+            '---',
+            '[foo]',
+            '  [replace #0]',
+            '    [replaceable #1]',
+            '  [replace #1]',
+            '    [replaceable #1]'
+          ].join('\n'),
+          <div replaceable part="p0">{'$item.name'}</div>,
+          <foo>
+            <template replace-part="p0">
+              replacement p0.
+              <div replaceable part="p1">Replacement yielded replaceable p1</div>
+            </template>
+            <template replace-part="p1">
+              replacement p1.
+              <div replaceable part="p1">Replacement yielded replaceable p1</div>
+            </template>
+          </foo>,
+          createItems(2),
+          'replacement p0.replacement p1.Replacement yielded replaceable p1'
+        ]
       ];
       for (
         const [

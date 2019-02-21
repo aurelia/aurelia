@@ -98,43 +98,6 @@ export class InstructionResolver {
     return { clearViewports, newPath };
   }
 
-  public findViews(path: string): Record<string, string> {
-    const views: Record<string, string> = {};
-    // TODO: Let this govern start of scope
-    if (path.startsWith('/')) {
-      path = path.substring(1);
-    }
-    const sections: string[] = path.split(this.separators.sibling);
-
-    // TODO: Remove this once multi level recursiveness is fixed
-    // Expand with instances for all containing views
-    // const expandedSections: string[] = [];
-    // while (sections.length) {
-    //   const part = sections.shift();
-    //   const parts = part.split(this.separators.scope);
-    //   for (let i = 1; i <= parts.length; i++) {
-    //     expandedSections.push(parts.slice(0, i).join(this.separators.scope));
-    //   }
-    // }
-    // sections = expandedSections;
-
-    let index = 0;
-    while (sections.length) {
-      const view = sections.shift();
-      const scopes = view.split(this.separators.scope);
-      const leaf = scopes.pop();
-      const parts = leaf.split(this.separators.viewport);
-      // Noooooo?
-      const component = parts[0];
-      scopes.push(parts.length ? parts.join(this.separators.viewport) : `?${index++}`);
-      const name = scopes.join(this.separators.scope);
-      if (component) {
-        views[name] = component;
-      }
-    }
-    return views;
-  }
-
   public removeStateDuplicates(states: string[]): string[] {
     let sorted: string[] = states.slice().sort((a, b) => b.split(this.separators.scope).length - a.split(this.separators.scope).length);
     sorted = sorted.map((value) => `${this.separators.scope}${value}${this.separators.scope}`);

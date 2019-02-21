@@ -157,7 +157,6 @@ export class Viewport {
 
     await this.waitForElement();
 
-    // await this.nextContent.loadComponent(this.context, this.element);
     this.nextContent.createComponent(this.context);
 
     return this.nextContent.canEnter(this, this.content.instruction);

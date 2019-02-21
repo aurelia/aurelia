@@ -6,8 +6,7 @@ import { AnchorEventInfo, LinkHandler } from './link-handler';
 import { INavRoute, Nav } from './nav';
 import { IParsedQuery, parseQuery } from './parser';
 import { RouteTable } from './route-table';
-import { ChildContainer, Scope } from './scope';
-import { closestCustomElement } from './utils';
+import { Scope } from './scope';
 import { IViewportOptions, Viewport } from './viewport';
 import { ViewportInstruction } from './viewport-instruction';
 
@@ -111,7 +110,6 @@ export class Router {
     this.processNavigations().catch(error => { throw error; });
   }
 
-  // TODO: Reduce complexity (currently at 46)
   public async processNavigations(): Promise<void> {
     if (this.processingNavigation !== null || !this.pendingNavigations.length) {
       return Promise.resolve();
@@ -154,10 +152,8 @@ export class Router {
 
     // TODO: Fetch title (probably when done)
     const title = null;
-    // const views: Record<string, string> = this.instructionResolver.findViews(path);
     const views = this.instructionResolver.parseViewportInstructions(path);
 
-    // if (!views && !Object.keys(views).length && !clearViewports) {
     if (!views && !views.length && !clearViewports) {
       this.processingNavigation = null;
       return this.processNavigations();
@@ -233,15 +229,6 @@ export class Router {
         return this.cancelNavigation([...changedViewports, ...updatedViewports], instruction);
       }
 
-      // TODO: Should it be kept here?
-      // await Promise.all(changedViewports.map((value) => value.loadContent()));
-
-      // TODO: Remove this once multi level recursiveness has been fixed
-      // results = await Promise.all(changedViewports.map((value) => value.loadContent()));
-      // if (results.findIndex((value) => value === false) >= 0) {
-      //   return this.historyBrowser.cancel();
-      // }
-
       for (const viewport of changedViewports) {
         if (!updatedViewports.find((value) => value === viewport)) {
           updatedViewports.push(viewport);
@@ -303,10 +290,6 @@ export class Router {
       this.processNavigations().catch(error => { throw error; });
     }
   }
-
-  // public findViewport(name: string): Viewport {
-  //   return this.rootScope.findViewport(name);
-  // }
 
   public findScope(element: Element): Scope {
     this.ensureRootScope();

@@ -10,6 +10,7 @@ export interface IRouteSeparators {
   scope: string;
   ownsScope: string;
   parameters: string;
+  parameter: string;
   add: string;
   clear: string;
   action: string;
@@ -27,6 +28,7 @@ export class InstructionResolver {
         scope: '/', // '+',
         ownsScope: '!',
         parameters: '=',
+        parameter: '&',
         add: '+',
         clear: '-',
         action: '.',
@@ -170,14 +172,14 @@ export class InstructionResolver {
       [component, ...parameters] = componentPart.split(this.separators.parameters);
       if (component.endsWith(this.separators.ownsScope)) {
         scope = true;
-        component = component.slice(0, component.length - 1);
+        component = component.slice(0, -1);
       }
     } else {
       component = componentPart;
       [viewport, ...parameters] = rest.split(this.separators.parameters);
       if (viewport.endsWith(this.separators.ownsScope)) {
         scope = true;
-        viewport = viewport.slice(0, viewport.length - 1);
+        viewport = viewport.slice(0, -1);
       }
     }
     parameters = parameters.length ? parameters.join(this.separators.parameters) : undefined;

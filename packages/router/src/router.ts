@@ -154,9 +154,11 @@ export class Router {
 
     // TODO: Fetch title (probably when done)
     const title = null;
-    const views: Record<string, string> = this.instructionResolver.findViews(path);
+    // const views: Record<string, string> = this.instructionResolver.findViews(path);
+    const views = this.instructionResolver.parseViewportInstructions(path);
 
-    if (!views && !Object.keys(views).length && !clearViewports) {
+    // if (!views && !Object.keys(views).length && !clearViewports) {
+    if (!views && !views.length && !clearViewports) {
       this.processingNavigation = null;
       return this.processNavigations();
     }
@@ -220,9 +222,9 @@ export class Router {
             return false;
           }
         }
-        for (const cvp of canEnter) {
+        for (const viewportInstruction of canEnter) {
           // TODO: Abort content change in the viewports
-          this.addProcessingViewport(cvp.component, cvp.viewport);
+          this.addProcessingViewport(viewportInstruction);
         }
         value.abortContentChange().catch(error => { throw error; });
         return true;
@@ -280,13 +282,21 @@ export class Router {
     this.processNavigations().catch(error => { throw error; });
   }
 
-  public addProcessingViewport(component: string | Partial<ICustomElementType>, viewport: Viewport | string): void {
+  public addProcessingViewport(componentOrInstruction: string | Partial<ICustomElementType> | ViewportInstruction, viewport?: Viewport | string): void {
     if (this.processingNavigation) {
-      if (typeof viewport === 'string') {
-        // TODO: Deal with not yet existing viewports
-        viewport = this.allViewports().find((vp) => vp.name === viewport);
+      if (componentOrInstruction instanceof ViewportInstruction) {
+        if (!componentOrInstruction.viewport) {
+          // TODO: Deal with not yet existing viewports
+          componentOrInstruction.viewport = this.allViewports().find((vp) => vp.name === componentOrInstruction.viewportName);
+        }
+        this.addedViewports.push(componentOrInstruction);
+      } else {
+        if (typeof viewport === 'string') {
+          // TODO: Deal with not yet existing viewports
+          viewport = this.allViewports().find((vp) => vp.name === viewport);
+        }
+        this.addedViewports.push(new ViewportInstruction(componentOrInstruction, viewport));
       }
-      this.addedViewports.push(new ViewportInstruction(component, viewport));
     } else if (this.lastNavigation) {
       this.pendingNavigations.unshift({ path: '', fullStatePath: '', isRepeat: true });
       // Don't wait for the (possibly slow) navigation
@@ -372,6 +382,8 @@ export class Router {
       nav = this.navs[name] = new Nav(this, name);
     }
     nav.addRoutes(routes);
+    // tslint:disable-next-line:prefer-object-spread
+    nav = Object.assign({}, nav);
   }
   public findNav(name: string): Nav {
     return this.navs[name];
@@ -400,15 +412,29 @@ export class Router {
   }
 
   private closestScope(element: Element): Scope {
-    const el = closestCustomElement(element);
-    let container: ChildContainer = el.$customElement.$context.get(IContainer);
-    while (container) {
-      const scope = this.scopes.find((item) => item.context.get(IContainer) === container);
-      if (scope) {
-        return scope;
+    let el = element;
+    while (el.parentElement) {
+      const viewport = this.allViewports().find((item) => item.element === el);
+      if (viewport && viewport.owningScope) {
+        return viewport.owningScope;
       }
-      container = container.parent;
+      el = el.parentElement;
     }
+    return this.rootScope;
+    // TODO: It would be better if it was something like this
+    // const el = closestCustomElement(element);
+    // let container: ChildContainer = el.$customElement.$context.get(IContainer);
+    // while (container) {
+    //   const scope = this.scopes.find((item) => item.context.get(IContainer) === container);
+    //   if (scope) {
+    //     return scope;
+    //   }
+    //   const viewport = this.allViewports().find((item) => item.context && item.context.get(IContainer) === container);
+    //   if (viewport && viewport.owningScope) {
+    //     return viewport.owningScope;
+    //   }
+    //   container = container.parent;
+    // }
   }
 
   private replacePaths(instruction: INavigationInstruction): Promise<void> {

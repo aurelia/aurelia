@@ -39,6 +39,12 @@ export class InstructionResolver {
   }
 
   public parseViewportInstructions(instructions: string): ViewportInstruction[] {
+    if (instructions === null || instructions === '') {
+      return [];
+    }
+    if (instructions.startsWith('/')) {
+      instructions = instructions.slice(1);
+    }
     return instructions.split(this.separators.sibling).map((instruction) => this.parseViewportInstruction(instruction));
   }
 
@@ -86,7 +92,7 @@ export class InstructionResolver {
 
   public shouldClearViewports(path: string): { clearViewports: boolean; newPath: string } {
     const clearViewports = (path === this.separators.clear || path.startsWith(this.separators.clear + this.separators.add));
-    const newPath = path.startsWith(this.separators.clear) ? path.substring(1) : path;
+    const newPath = path.startsWith(this.separators.clear) ? path.slice(2) : path;
     return { clearViewports, newPath };
   }
 

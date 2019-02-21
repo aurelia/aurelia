@@ -1,11 +1,10 @@
 import { Reporter } from '@aurelia/kernel';
 import { ICustomElementType, IRenderContext, LifecycleFlags } from '@aurelia/runtime';
 import { INavigationInstruction } from './history-browser';
-import { mergeParameters } from './parser';
 import { Router } from './router';
 import { Scope } from './scope';
 import { IViewportOptions } from './viewport';
-import { ContentStatus, IRouteableCustomElement, IRouteableCustomElementType, ViewportContent } from './viewport-content';
+import { ViewportContent } from './viewport-content';
 import { ViewportInstruction } from './viewport-instruction';
 
 export interface IViewportOptions {
@@ -121,6 +120,9 @@ export class Viewport {
         this.elementResolve();
       }
     }
+    if (context) {
+      context['viewportName'] = this.name;
+    }
     if (this.context !== context) {
       this.context = context;
     }
@@ -133,7 +135,7 @@ export class Viewport {
   public remove(element: Element, context: IRenderContext): boolean {
     if (this.element === element && this.context === context) {
       if (this.content.component) {
-        this.content.freeContent(this.element, this.options.stateful).catch(error => { throw error; });
+        this.content.freeContent(this.element, (this.nextContent ? this.nextContent.instruction : null), this.options.stateful).catch(error => { throw error; });
       }
       return true;
     }
@@ -141,17 +143,7 @@ export class Viewport {
   }
 
   public async canLeave(): Promise<boolean> {
-    if (!this.content.component) {
-      return true;
-    }
-
-    const component: IRouteableCustomElement = this.content.component;
-    if (!component.canLeave) {
-      return true;
-    }
-    Reporter.write(10000, 'viewport canLeave', component.canLeave(this.content.instruction, this.nextContent.instruction));
-
-    return component.canLeave(this.content.instruction, this.nextContent.instruction);
+    return this.content.canLeave(this.nextContent.instruction);
   }
 
   public async canEnter(): Promise<boolean | ViewportInstruction[]> {
@@ -165,25 +157,10 @@ export class Viewport {
 
     await this.waitForElement();
 
-    await this.nextContent.loadComponent(this.context, this.element);
-    if (!this.nextContent.component) {
-      return false;
-    }
+    // await this.nextContent.loadComponent(this.context, this.element);
+    this.nextContent.createComponent(this.context);
 
-    const component: IRouteableCustomElement = this.nextContent.component;
-    if (!component.canEnter) {
-      return true;
-    }
-
-    const result = component.canEnter(this.nextContent.instruction, this.content.instruction);
-    Reporter.write(10000, 'viewport canEnter', result);
-    if (typeof result === 'boolean') {
-      return result;
-    }
-    if (typeof result === 'string') {
-      return [new ViewportInstruction(result, this)];
-    }
-    return result as Promise<ViewportInstruction[]>;
+    return this.nextContent.canEnter(this, this.content.instruction);
   }
 
   public async enter(): Promise<boolean> {
@@ -193,44 +170,39 @@ export class Viewport {
       return true;
     }
 
-    if (!this.nextContent.component) {
+    if (!this.nextContent || !this.nextContent.component) {
       return false;
     }
 
-    if (this.nextContent.component.enter) {
-      const merged = mergeParameters(this.nextContent.parameters, this.nextContent.instruction.query, (this.nextContent.content as IRouteableCustomElementType).parameters);
-      this.nextContent.instruction.parameters = merged.namedParameters;
-      this.nextContent.instruction.parameterList = merged.parameterList;
-      await this.nextContent.component.enter(merged.merged, this.nextContent.instruction, this.content.instruction);
-      this.nextContent.contentStatus = ContentStatus.entered;
-    }
-    this.nextContent.initializeComponent();
+    await this.nextContent.enter(this.content.instruction);
+    await this.nextContent.loadComponent(this.context, this.element);
+    await this.nextContent.initializeComponent();
     return true;
   }
 
   public async loadContent(): Promise<boolean> {
     Reporter.write(10000, 'Viewport loadContent', this.name);
 
-    if (this.content.component) {
-      if (this.content.component.leave) {
-        await this.content.component.leave(this.content.instruction, this.nextContent.instruction);
-      }
-      // No need to wait for next component activation
-      if (!this.nextContent.component) {
-        this.content.removeComponent(this.element, this.options.stateful);
-        this.content.terminateComponent(this.options.stateful);
-        this.content.unloadComponent();
-      }
+    // No need to wait for next component activation
+    if (this.content.component && !this.nextContent.component) {
+      await this.content.leave(this.nextContent.instruction);
+      this.content.removeComponent(this.element, this.options.stateful);
+      this.content.terminateComponent(this.options.stateful);
+      this.content.unloadComponent();
+      this.content.destroyComponent();
     }
 
     if (this.nextContent.component) {
+      this.nextContent.addComponent(this.element);
+
       // Only when next component activation is done
       if (this.content.component) {
+        await this.content.leave(this.nextContent.instruction);
         this.content.removeComponent(this.element, this.options.stateful);
         this.content.terminateComponent(this.options.stateful);
         this.content.unloadComponent();
+        this.content.destroyComponent();
       }
-      this.nextContent.addComponent(this.element);
 
       this.content = this.nextContent;
     }
@@ -248,7 +220,7 @@ export class Viewport {
     this.previousViewportState = null;
   }
   public async abortContentChange(): Promise<void> {
-    await this.nextContent.freeContent(this.element, this.options.stateful);
+    await this.nextContent.freeContent(this.element, (this.nextContent ? this.nextContent.instruction : null), this.options.stateful);
     if (this.previousViewportState) {
       Object.assign(this, this.previousViewportState);
     }
@@ -262,10 +234,8 @@ export class Viewport {
           new ViewportInstruction(component, this, this.content.parameters, this.scope !== null
           ));
       }
-      const viewports = {};
-      viewports[component] = component;
-      const found = this.owningScope.findViewports(viewports);
-      if (!found) {
+      const found = this.owningScope.findViewports([new ViewportInstruction(component)]);
+      if (!found || !found.viewportInstructions || !found.viewportInstructions.length) {
         return this.router.instructionResolver.stringifyViewportInstruction(
           new ViewportInstruction(component, this, this.content.parameters));
       }

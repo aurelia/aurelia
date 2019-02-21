@@ -29,6 +29,7 @@ export class Scope {
   private readonly router: Router;
 
   private scopeViewportParts: Record<string, ViewportInstruction[][]>;
+  private viewportInstructions: ViewportInstruction[];
   private availableViewports: Record<string, Viewport>;
 
   constructor(router: Router, element: Element, context: IRenderContext, parent: Scope) {
@@ -58,7 +59,115 @@ export class Scope {
   }
 
   // TODO: Reduce complexity (currently at 45)
-  public findViewports(viewports?: Record<string, string | Viewport>): IFindViewportsResult {
+  public findViewports(viewportInstructions?: ViewportInstruction[]): IFindViewportsResult {
+    const instructions: ViewportInstruction[] = [];
+    let viewportsRemaining: boolean = false;
+
+    // Get a shallow copy of all available viewports (clean if it's the first find)
+    if (viewportInstructions) {
+      this.availableViewports = {};
+      this.viewportInstructions = viewportInstructions.slice();
+    } else if (!this.viewportInstructions) {
+      this.viewportInstructions = [];
+    }
+    this.availableViewports = { ...this.getEnabledViewports(), ...this.availableViewports };
+
+    // Configured viewport is ruling
+    for (let i = 0; i < this.viewportInstructions.length; i++) {
+      const instruction = this.viewportInstructions[i];
+      for (const name in this.availableViewports) {
+        const viewport: Viewport = this.availableViewports[name];
+        // TODO: Also check if (resolved) component wants a specific viewport
+        if (viewport && viewport.wantComponent(instruction.componentName)) {
+          const found = this.foundViewport(instruction, viewport);
+          instructions.push(...found.viewportInstructions);
+          viewportsRemaining = viewportsRemaining || found.viewportsRemaining;
+          this.availableViewports[name] = null;
+          this.viewportInstructions.splice(i--, 1);
+          break;
+        }
+      }
+    }
+
+    // Next in line is specified viewport
+    for (let i = 0; i < this.viewportInstructions.length; i++) {
+      const instruction = this.viewportInstructions[i];
+      const name = instruction.viewportName;
+      if (!name || !name.length || name.startsWith('?')) {
+        continue;
+      }
+      const newScope = instruction.ownsScope;
+      if (!this.getEnabledViewports()[name]) {
+        this.addViewport(name, null, null, { scope: newScope, forceDescription: true });
+        this.availableViewports[name] = this.getEnabledViewports()[name];
+      }
+      const viewport = this.availableViewports[name];
+      if (viewport && viewport.acceptComponent(instruction.componentName)) {
+        const found = this.foundViewport(instruction, viewport);
+        instructions.push(...found.viewportInstructions);
+        viewportsRemaining = viewportsRemaining || found.viewportsRemaining;
+        this.availableViewports[name] = null;
+        this.viewportInstructions.splice(i--, 1);
+      }
+    }
+
+    // Finally, only one accepting viewport left?
+    for (let i = 0; i < this.viewportInstructions.length; i++) {
+      const instruction = this.viewportInstructions[i];
+      const remainingViewports: Viewport[] = [];
+      for (const name in this.availableViewports) {
+        const viewport: Viewport = this.availableViewports[name];
+        if (viewport && viewport.acceptComponent(instruction.componentName)) {
+          remainingViewports.push(viewport);
+        }
+      }
+      if (remainingViewports.length === 1) {
+        const viewport = remainingViewports.shift();
+        const found = this.foundViewport(instruction, viewport);
+        instructions.push(...found.viewportInstructions);
+        viewportsRemaining = viewportsRemaining || found.viewportsRemaining;
+        this.availableViewports[viewport.name] = null;
+        this.viewportInstructions.splice(i--, 1);
+        break;
+      }
+    }
+
+    viewportsRemaining = viewportsRemaining || Object.keys(this.scopeViewportParts).length > 0;
+
+    // If it's a repeat there might be remaining viewports in scope children
+    if (!viewportInstructions) {
+      for (const child of this.children) {
+        const found = child.findViewports();
+        instructions.push(...found.viewportInstructions);
+        viewportsRemaining = viewportsRemaining || found.viewportsRemaining;
+      }
+    }
+
+    return {
+      viewportInstructions: instructions,
+      viewportsRemaining: viewportsRemaining,
+    };
+  }
+
+  public foundViewport(instruction: ViewportInstruction, viewport: Viewport): IFindViewportsResult {
+    instruction.setViewport(viewport);
+    const instructions: ViewportInstruction[] = [instruction];
+    let viewportsRemaining: boolean = false;
+
+    if (instruction.nextScopeInstruction) {
+      const scope = viewport.scope || viewport.owningScope;
+      const scoped = scope.findViewports([instruction.nextScopeInstruction]);
+      instructions.push(...scoped.viewportInstructions);
+      viewportsRemaining = viewportsRemaining || scoped.viewportsRemaining;
+    }
+    return {
+      viewportInstructions: instructions,
+      viewportsRemaining: viewportsRemaining,
+    };
+  }
+
+  // TODO: Reduce complexity (currently at 45)
+  public findViewportsBackup(viewports?: Record<string, string | Viewport>): IFindViewportsResult {
     const instructions: ViewportInstruction[] = [];
     let viewportsRemaining: boolean = false;
 
@@ -86,7 +195,7 @@ export class Scope {
         const viewport: Viewport = this.availableViewports[name];
         // TODO: Also check if (resolved) component wants a specific viewport
         if (viewport && viewport.wantComponent(instruction.componentName)) {
-          const found = this.foundViewport(viewports, this.scopeViewportParts, instruction, viewport);
+          const found = this.foundViewportBackup(viewports, this.scopeViewportParts, instruction, viewport);
           instructions.push(...found.viewportInstructions);
           viewportsRemaining = viewportsRemaining || found.viewportsRemaining;
           this.availableViewports[name] = null;
@@ -110,7 +219,7 @@ export class Scope {
       }
       const viewport = this.availableViewports[name];
       if (viewport && viewport.acceptComponent(instruction.componentName)) {
-        const found = this.foundViewport(viewports, this.scopeViewportParts, instruction, viewport);
+        const found = this.foundViewportBackup(viewports, this.scopeViewportParts, instruction, viewport);
         instructions.push(...found.viewportInstructions);
         viewportsRemaining = viewportsRemaining || found.viewportsRemaining;
         this.availableViewports[name] = null;
@@ -130,7 +239,7 @@ export class Scope {
       }
       if (remainingViewports.length === 1) {
         const viewport = remainingViewports.shift();
-        const found = this.foundViewport(viewports, this.scopeViewportParts, instruction, viewport);
+        const found = this.foundViewportBackup(viewports, this.scopeViewportParts, instruction, viewport);
         instructions.push(...found.viewportInstructions);
         viewportsRemaining = viewportsRemaining || found.viewportsRemaining;
         this.availableViewports[viewport.name] = null;
@@ -156,7 +265,7 @@ export class Scope {
     };
   }
 
-  public foundViewport(viewports: Record<string, string | Viewport>, scopeViewportParts: Record<string, ViewportInstruction[][]>, instruction: ViewportInstruction, viewport: Viewport): IFindViewportsResult {
+  public foundViewportBackup(viewports: Record<string, string | Viewport>, scopeViewportParts: Record<string, ViewportInstruction[][]>, instruction: ViewportInstruction, viewport: Viewport): IFindViewportsResult {
     const viewportPart = this.router.instructionResolver.stringifyViewportInstruction(instruction);
     instruction.setViewport(viewport);
     const instructions: ViewportInstruction[] = [instruction];
@@ -169,7 +278,7 @@ export class Scope {
           const remaining = this.router.instructionResolver.stringifyScopedViewportInstruction(remainingParts);
           const vps: Record<string, string | Viewport> = {};
           vps[remaining] = viewports[this.router.instructionResolver.stringifyScopedViewportInstruction([viewportPart, ...remainingParts])];
-          const scoped = scope.findViewports(vps);
+          const scoped = scope.findViewportsBackup(vps);
           instructions.push(...scoped.viewportInstructions);
           viewportsRemaining = viewportsRemaining || scoped.viewportsRemaining;
         }

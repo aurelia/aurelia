@@ -28,7 +28,6 @@ export class Scope {
 
   private readonly router: Router;
 
-  private scopeViewportParts: Record<string, ViewportInstruction[][]>;
   private viewportInstructions: ViewportInstruction[];
   private availableViewports: Record<string, Viewport>;
 
@@ -41,7 +40,6 @@ export class Scope {
     this.viewport = null;
     this.children = [];
     this.viewports = [];
-    this.scopeViewportParts = {};
     this.availableViewports = null;
 
     if (this.parent) {
@@ -131,7 +129,7 @@ export class Scope {
       }
     }
 
-    viewportsRemaining = viewportsRemaining || Object.keys(this.scopeViewportParts).length > 0;
+    viewportsRemaining = viewportsRemaining || this.viewportInstructions.length > 0;
 
     // If it's a repeat there might be remaining viewports in scope children
     if (!viewportInstructions) {

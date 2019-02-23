@@ -1,7 +1,7 @@
 import { createTemplateDescription, escape, kebabCase, loadFromFile, parseImport, processImports } from './processing';
 import { Require, RequireConfig, RequireOnLoad } from './types';
 
-const buildMap = {};
+const buildMap: Record<string, string> = {};
 
 /** @internal */
 export function finishLoad(name: string, content: string, onLoad: (content: string) => void): void {

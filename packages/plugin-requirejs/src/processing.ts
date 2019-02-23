@@ -87,11 +87,11 @@ export function parseImport(value: string): ITemplateImport {
   return result as ITemplateImport;
 }
 
-export function relativeToFile(name: string, file: string): string {
-  const fileParts = file && file.split('/');
+export function relativeToFile(name: string, file?: string): string {
+  const fileParts = file ? file.split('/') : undefined;
   const nameParts = name.trim().split('/');
 
-  if (nameParts[0].charAt(0) === '.' && fileParts) {
+  if (nameParts[0].charAt(0) === '.' && fileParts !== undefined) {
     //Convert file to array, and lop off the last part,
     //so that . matches that 'directory' and not name of the file's
     //module. For instance, file of 'one/two/three', maps to
@@ -112,7 +112,7 @@ interface Require {
 
 declare const require: Require;
 
-export function loadFromFile(url: string, callback: (content: string) => void, errback: (error: Error) => void): void {
+export function loadFromFile(url: string, callback: (content: string) => void, errback?: (error: Error) => void): void {
   const fs = require.nodeRequire('fs') as {readFileSync(path: string, options?: { encoding?: string } | string): string};
 
   try {
@@ -126,7 +126,7 @@ export function loadFromFile(url: string, callback: (content: string) => void, e
 
     callback(file);
   } catch (e) {
-    if (errback) {
+    if (errback !== undefined) {
       errback(e);
     }
   }

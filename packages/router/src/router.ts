@@ -1,4 +1,4 @@
-import { IContainer, InjectArray, Reporter } from '@aurelia/kernel';
+import { DI, IContainer, InjectArray, Reporter } from '@aurelia/kernel';
 import { Aurelia, ICustomElementType, IRenderContext } from '@aurelia/runtime';
 import { HistoryBrowser, IHistoryOptions, INavigationInstruction } from './history-browser';
 import { InstructionResolver, IRouteSeparators } from './instruction-resolver';
@@ -11,11 +11,16 @@ import { closestCustomElement } from './utils';
 import { IViewportOptions, Viewport } from './viewport';
 import { ViewportInstruction } from './viewport-instruction';
 
-export interface IRouterOptions extends IHistoryOptions {
-  separators?: IRouteSeparators;
-  reportCallback?(instruction: INavigationInstruction): void;
+export interface IRouteTransformer {
   transformFromUrl?(route: string, router: Router): string | ViewportInstruction[];
   transformToUrl?(instructions: ViewportInstruction[], router: Router): string | ViewportInstruction[];
+}
+
+export const IRouteTransformer = DI.createInterface<IRouteTransformer>('IRouteTransformer').withDefault(x => x.singleton(RouteTable));
+
+export interface IRouterOptions extends IHistoryOptions, IRouteTransformer {
+  separators?: IRouteSeparators;
+  reportCallback?(instruction: INavigationInstruction): void;
 }
 
 export interface IRouteViewport {
@@ -24,7 +29,7 @@ export interface IRouteViewport {
 }
 
 export class Router {
-  public static readonly inject: InjectArray = [IContainer, RouteTable];
+  public static readonly inject: InjectArray = [IContainer, IRouteTransformer];
 
   public rootScope: Scope;
   public scopes: Scope[] = [];
@@ -45,14 +50,14 @@ export class Router {
   private processingNavigation: INavigationInstruction = null;
   private lastNavigation: INavigationInstruction = null;
 
-  private readonly routeTable: RouteTable;
+  private readonly routeTransformer: IRouteTransformer;
 
-  constructor(public container: IContainer, routeTable: RouteTable) {
+  constructor(public container: IContainer, routeTransformer: IRouteTransformer) {
     this.historyBrowser = new HistoryBrowser();
     this.linkHandler = new LinkHandler();
     this.instructionResolver = new InstructionResolver();
 
-    this.routeTable = routeTable;
+    this.routeTransformer = routeTransformer;
   }
 
   public get isNavigating(): boolean {
@@ -70,8 +75,8 @@ export class Router {
         callback: (navigationInstruction) => {
           this.historyCallback(navigationInstruction);
         },
-        transformFromUrl: this.routeTable.transformFromUrl,
-        transformToUrl: this.routeTable.transformToUrl,
+        transformFromUrl: this.routeTransformer.transformFromUrl,
+        transformToUrl: this.routeTransformer.transformToUrl,
       }, ...options
     };
 

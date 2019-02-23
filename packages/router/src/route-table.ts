@@ -1,10 +1,10 @@
-import { Router } from './router';
+import { IRouteTransformer, Router } from './router';
 import { ViewportInstruction } from './viewport-instruction';
 
 /**
  * Class that handles routes configured in a route table
  */
-export class RouteTable {
+export class RouteTable implements IRouteTransformer {
 
   /**
    * Check a route against the route table and return the appropriate viewport instructions.

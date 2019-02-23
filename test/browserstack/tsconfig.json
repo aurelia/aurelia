@@ -13,7 +13,7 @@
       "mocha",
       "chai",
       "node",
-      "webdriverio"
+      "@wdio/sync"
     ]
   },
   "include": ["src", "specs"]

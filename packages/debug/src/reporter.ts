@@ -50,7 +50,8 @@ export const Reporter: typeof RuntimeReporter = {
 };
 
 function getMessageInfoForCode(code: number): IMessageInfo {
-  return codeLookup[code] || createInvalidCodeMessageInfo(code);
+  const info = codeLookup[code];
+  return info !== undefined ? info : createInvalidCodeMessageInfo(code);
 }
 
 function createInvalidCodeMessageInfo(code: number): IMessageInfo {

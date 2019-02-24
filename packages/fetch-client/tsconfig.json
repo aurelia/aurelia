@@ -8,7 +8,7 @@
       "esnext",
       "dom"
     ],
-    "strict": false
+    "strictBindCallApply": false
   },
   "include": [
     "src"

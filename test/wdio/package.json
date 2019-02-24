@@ -3,8 +3,8 @@
   "version": "0.3.0",
   "devDependencies": {
     "chromedriver": "~2.45.0",
-    "mocha": "^5.2.0",
-    "wdio": "^3.0.0",
+    "mocha": "^6.0.1",
+    "wdio": "^3.0.3",
     "wdio-mocha-framework": "^0.6.4"
   },
   "scripts": {

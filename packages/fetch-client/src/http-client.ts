@@ -333,7 +333,9 @@ function parseHeaderValues(headers: Record<string, unknown> | undefined): Record
   const $headers = headers !== undefined ? headers : {};
   for (const name in $headers) {
     if ($headers.hasOwnProperty(name)) {
-      parsedHeaders[name] = (typeof $headers[name] === 'function') ? ($headers[name] as () => string)() : $headers[name] as string;
+      parsedHeaders[name] = (typeof $headers[name] === 'function')
+        ? ($headers[name] as () => string)()
+        : $headers[name] as string;
     }
   }
   return parsedHeaders;

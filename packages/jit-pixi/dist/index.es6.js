@@ -1,7 +1,7 @@
 import { DefaultBindingLanguage, DefaultBindingSyntax, DefaultComponents } from '@aurelia/jit';
 import { DefaultBindingLanguage as DefaultBindingLanguage$1, DefaultComponents as DefaultComponents$1 } from '@aurelia/jit-html';
 import { DI } from '@aurelia/kernel';
-import { BasicConfiguration } from '@aurelia/runtime-pixi';
+import { BasicConfiguration as BasicConfiguration$1 } from '@aurelia/runtime-pixi';
 
 /**
  * A DI configuration object containing html-, pixi- and browser-specific registrations:
@@ -12,12 +12,12 @@ import { BasicConfiguration } from '@aurelia/runtime-pixi';
  * - `DefaultComponents` from `@aurelia/jit-html`
  * - `DefaultBindingLanguage` from `@aurelia/jit-html`
  */
-const BasicConfiguration$1 = {
+const BasicConfiguration = {
     /**
      * Apply this configuration to the provided container.
      */
     register(container) {
-        return BasicConfiguration
+        return BasicConfiguration$1
             .register(container)
             .register(...DefaultBindingLanguage, ...DefaultBindingSyntax, ...DefaultComponents, ...DefaultBindingLanguage$1, ...DefaultComponents$1);
     },
@@ -29,5 +29,5 @@ const BasicConfiguration$1 = {
     }
 };
 
-export { BasicConfiguration$1 as BasicConfiguration };
+export { BasicConfiguration };
 //# sourceMappingURL=index.es6.js.map

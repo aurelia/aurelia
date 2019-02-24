@@ -1,6 +1,6 @@
 System.register('runtimeHtmlJsdom', ['@aurelia/kernel', '@aurelia/runtime', '@aurelia/runtime-html', 'jsdom'], function (exports, module) {
   'use strict';
-  var DI, Registration, IContainer, IDOMInitializer, IDOM, BasicConfiguration, HTMLDOM, JSDOM;
+  var DI, Registration, IContainer, IDOMInitializer, IDOM, BasicConfiguration$1, HTMLDOM, JSDOM;
   return {
     setters: [function (module) {
       DI = module.DI;
@@ -10,7 +10,7 @@ System.register('runtimeHtmlJsdom', ['@aurelia/kernel', '@aurelia/runtime', '@au
       IDOMInitializer = module.IDOMInitializer;
       IDOM = module.IDOM;
     }, function (module) {
-      BasicConfiguration = module.BasicConfiguration;
+      BasicConfiguration$1 = module.BasicConfiguration;
       HTMLDOM = module.HTMLDOM;
     }, function (module) {
       JSDOM = module.JSDOM;
@@ -65,12 +65,12 @@ System.register('runtimeHtmlJsdom', ['@aurelia/kernel', '@aurelia/runtime', '@au
        * - `BasicConfiguration` from `@aurelia/runtime-html`
        * - `DefaultComponents`
        */
-      const BasicConfiguration$1 = exports('BasicConfiguration', {
+      const BasicConfiguration = exports('BasicConfiguration', {
           /**
            * Apply this configuration to the provided container.
            */
           register(container) {
-              return BasicConfiguration
+              return BasicConfiguration$1
                   .register(container)
                   .register(...DefaultComponents);
           },

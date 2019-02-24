@@ -1137,15 +1137,15 @@ System.register('runtimeHtml', ['@aurelia/kernel', '@aurelia/runtime'], function
               }
               this.persistentFlags = flags & 67108879 /* persistentBindingFlags */;
               // ensure the binding's target observer has been set.
-              const targetObserver$$1 = this.observerLocator.getObserver(this.persistentFlags | flags, binding.target, binding.targetProperty);
-              if (!targetObserver$$1.handler) {
+              const targetObserver = this.observerLocator.getObserver(this.persistentFlags | flags, binding.target, binding.targetProperty);
+              if (!targetObserver.handler) {
                   throw Reporter.error(10);
               }
-              binding.targetObserver = targetObserver$$1;
+              binding.targetObserver = targetObserver;
               // stash the original element subscribe function.
-              targetObserver$$1.originalHandler = binding.targetObserver.handler;
+              targetObserver.originalHandler = binding.targetObserver.handler;
               // replace the element subscribe function with one that uses the correct events.
-              targetObserver$$1.handler = new EventSubscriber(binding.locator.get(IDOM), events);
+              targetObserver.handler = new EventSubscriber(binding.locator.get(IDOM), events);
           }
           unbind(flags, scope, binding) {
               // restore the state of the binding.
@@ -1301,8 +1301,8 @@ System.register('runtimeHtml', ['@aurelia/kernel', '@aurelia/runtime'], function
                       childInstructions.push(value);
                   }
                   else {
-                      const bindable$$1 = bindables[to];
-                      if (bindable$$1) {
+                      const bindable = bindables[to];
+                      if (bindable) {
                           childInstructions.push({
                               type: "re" /* setProperty */,
                               to,

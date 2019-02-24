@@ -1,6 +1,6 @@
 System.register('jitHtmlJsdom', ['@aurelia/jit', '@aurelia/jit-html', '@aurelia/kernel', '@aurelia/runtime-html-jsdom'], function (exports, module) {
   'use strict';
-  var DefaultBindingLanguage, DefaultBindingSyntax, DefaultComponents, DefaultBindingLanguage$1, DefaultComponents$1, Profiler, DI, BasicConfiguration;
+  var DefaultBindingLanguage, DefaultBindingSyntax, DefaultComponents, DefaultBindingLanguage$1, DefaultComponents$1, Profiler, DI, BasicConfiguration$1;
   return {
     setters: [function (module) {
       DefaultBindingLanguage = module.DefaultBindingLanguage;
@@ -13,7 +13,7 @@ System.register('jitHtmlJsdom', ['@aurelia/jit', '@aurelia/jit-html', '@aurelia/
       Profiler = module.Profiler;
       DI = module.DI;
     }, function (module) {
-      BasicConfiguration = module.BasicConfiguration;
+      BasicConfiguration$1 = module.BasicConfiguration;
     }],
     execute: function () {
 
@@ -27,12 +27,12 @@ System.register('jitHtmlJsdom', ['@aurelia/jit', '@aurelia/jit-html', '@aurelia/
        * - `DefaultComponents` from `@aurelia/jit-html`
        * - `DefaultBindingLanguage` from `@aurelia/jit-html`
        */
-      const BasicConfiguration$1 = exports('BasicConfiguration', {
+      const BasicConfiguration = exports('BasicConfiguration', {
           /**
            * Apply this configuration to the provided container.
            */
           register(container) {
-              BasicConfiguration
+              BasicConfiguration$1
                   .register(container)
                   .register(...DefaultBindingLanguage, ...DefaultBindingSyntax, ...DefaultComponents, ...DefaultBindingLanguage$1, ...DefaultComponents$1);
               return container;

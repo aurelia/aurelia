@@ -1,6 +1,6 @@
 System.register('jitPixi', ['@aurelia/jit', '@aurelia/jit-html', '@aurelia/kernel', '@aurelia/runtime-pixi'], function (exports, module) {
   'use strict';
-  var DefaultBindingLanguage, DefaultBindingSyntax, DefaultComponents, DefaultBindingLanguage$1, DefaultComponents$1, DI, BasicConfiguration;
+  var DefaultBindingLanguage, DefaultBindingSyntax, DefaultComponents, DefaultBindingLanguage$1, DefaultComponents$1, DI, BasicConfiguration$1;
   return {
     setters: [function (module) {
       DefaultBindingLanguage = module.DefaultBindingLanguage;
@@ -12,7 +12,7 @@ System.register('jitPixi', ['@aurelia/jit', '@aurelia/jit-html', '@aurelia/kerne
     }, function (module) {
       DI = module.DI;
     }, function (module) {
-      BasicConfiguration = module.BasicConfiguration;
+      BasicConfiguration$1 = module.BasicConfiguration;
     }],
     execute: function () {
 
@@ -25,12 +25,12 @@ System.register('jitPixi', ['@aurelia/jit', '@aurelia/jit-html', '@aurelia/kerne
        * - `DefaultComponents` from `@aurelia/jit-html`
        * - `DefaultBindingLanguage` from `@aurelia/jit-html`
        */
-      const BasicConfiguration$1 = exports('BasicConfiguration', {
+      const BasicConfiguration = exports('BasicConfiguration', {
           /**
            * Apply this configuration to the provided container.
            */
           register(container) {
-              return BasicConfiguration
+              return BasicConfiguration$1
                   .register(container)
                   .register(...DefaultBindingLanguage, ...DefaultBindingSyntax, ...DefaultComponents, ...DefaultBindingLanguage$1, ...DefaultComponents$1);
           },

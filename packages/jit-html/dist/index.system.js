@@ -1,6 +1,6 @@
 System.register('jitHtml', ['@aurelia/jit', '@aurelia/runtime-html', '@aurelia/kernel', '@aurelia/runtime'], function (exports, module) {
   'use strict';
-  var getTarget, BindingCommandResource, PlainElementSymbol, CustomElementSymbol, LetElementSymbol, BindableInfo, BindingSymbol, TextSymbol, TemplateControllerSymbol, CustomAttributeSymbol, PlainAttributeSymbol, ReplacePartSymbol, ResourceModel, IAttributeParser, DefaultComponents, DefaultBindingSyntax, DefaultBindingLanguage, TriggerBindingInstruction, DelegateBindingInstruction, CaptureBindingInstruction, TextBindingInstruction, SetAttributeInstruction, BasicConfiguration, Profiler, PLATFORM, DI, Registration, BindingMode, IDOM, ITemplateCompiler, LetBindingInstruction, LetElementInstruction, HydrateElementInstruction, HydrateTemplateController, SetPropertyInstruction, InterpolationInstruction, HydrateAttributeInstruction, RefBindingInstruction, IExpressionParser;
+  var getTarget, BindingCommandResource, PlainElementSymbol, CustomElementSymbol, LetElementSymbol, BindableInfo, BindingSymbol, TextSymbol, TemplateControllerSymbol, CustomAttributeSymbol, PlainAttributeSymbol, ReplacePartSymbol, ResourceModel, IAttributeParser, DefaultComponents$1, DefaultBindingSyntax, DefaultBindingLanguage$1, TriggerBindingInstruction, DelegateBindingInstruction, CaptureBindingInstruction, TextBindingInstruction, SetAttributeInstruction, BasicConfiguration$1, Profiler, PLATFORM, DI, Registration, BindingMode, IDOM, ITemplateCompiler, LetBindingInstruction, LetElementInstruction, HydrateElementInstruction, HydrateTemplateController, SetPropertyInstruction, InterpolationInstruction, HydrateAttributeInstruction, RefBindingInstruction, IExpressionParser;
   return {
     setters: [function (module) {
       getTarget = module.getTarget;
@@ -17,16 +17,16 @@ System.register('jitHtml', ['@aurelia/jit', '@aurelia/runtime-html', '@aurelia/k
       ReplacePartSymbol = module.ReplacePartSymbol;
       ResourceModel = module.ResourceModel;
       IAttributeParser = module.IAttributeParser;
-      DefaultComponents = module.DefaultComponents;
+      DefaultComponents$1 = module.DefaultComponents;
       DefaultBindingSyntax = module.DefaultBindingSyntax;
-      DefaultBindingLanguage = module.DefaultBindingLanguage;
+      DefaultBindingLanguage$1 = module.DefaultBindingLanguage;
     }, function (module) {
       TriggerBindingInstruction = module.TriggerBindingInstruction;
       DelegateBindingInstruction = module.DelegateBindingInstruction;
       CaptureBindingInstruction = module.CaptureBindingInstruction;
       TextBindingInstruction = module.TextBindingInstruction;
       SetAttributeInstruction = module.SetAttributeInstruction;
-      BasicConfiguration = module.BasicConfiguration;
+      BasicConfiguration$1 = module.BasicConfiguration;
     }, function (module) {
       Profiler = module.Profiler;
       PLATFORM = module.PLATFORM;
@@ -838,7 +838,7 @@ System.register('jitHtml', ['@aurelia/jit', '@aurelia/runtime-html', '@aurelia/k
        * - `ITemplateCompiler`
        * - `ITemplateElementFactory`
        */
-      const DefaultComponents$1 = exports('DefaultComponents', [
+      const DefaultComponents = exports('DefaultComponents', [
           ITemplateCompilerRegistration,
           ITemplateElementFactoryRegistration
       ]);
@@ -849,7 +849,7 @@ System.register('jitHtml', ['@aurelia/jit', '@aurelia/runtime-html', '@aurelia/k
        * Default HTML-specific (but environment-agnostic) binding commands:
        * - Event listeners: `.trigger`, `.delegate`, `.capture`
        */
-      const DefaultBindingLanguage$1 = exports('DefaultBindingLanguage', [
+      const DefaultBindingLanguage = exports('DefaultBindingLanguage', [
           TriggerBindingCommandRegistration,
           DelegateBindingCommandRegistration,
           CaptureBindingCommandRegistration
@@ -863,14 +863,14 @@ System.register('jitHtml', ['@aurelia/jit', '@aurelia/runtime-html', '@aurelia/k
        * - `DefaultComponents`
        * - `DefaultBindingLanguage`
        */
-      const BasicConfiguration$1 = exports('BasicConfiguration', {
+      const BasicConfiguration = exports('BasicConfiguration', {
           /**
            * Apply this configuration to the provided container.
            */
           register(container) {
-              return BasicConfiguration
+              return BasicConfiguration$1
                   .register(container)
-                  .register(...DefaultComponents, ...DefaultBindingSyntax, ...DefaultBindingLanguage, ...DefaultComponents$1, ...DefaultBindingLanguage$1);
+                  .register(...DefaultComponents$1, ...DefaultBindingSyntax, ...DefaultBindingLanguage$1, ...DefaultComponents, ...DefaultBindingLanguage);
           },
           /**
            * Create a new container with this configuration applied to it.

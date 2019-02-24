@@ -4947,11 +4947,11 @@ var au = (function (exports) {
         this.addObserver(observer);
     }
     /** @internal */
-    function unobserve(all$$1) {
+    function unobserve(all) {
         const slots = this.observerSlots;
         let slotName;
         let observer;
-        if (all$$1 === true) {
+        if (all === true) {
             for (let i = 0; i < slots; ++i) {
                 slotName = slotNames[i];
                 observer = this[slotName];
@@ -11494,26 +11494,26 @@ var au = (function (exports) {
         const info = new ElementInfo(def.name, def.containerless);
         const bindables = def.bindables;
         const defaultBindingMode = BindingMode.toView;
-        let bindable$$1;
+        let bindable;
         let prop;
         let attr;
         let mode;
         for (prop in bindables) {
-            bindable$$1 = bindables[prop];
+            bindable = bindables[prop];
             // explicitly provided property name has priority over the implicit property name
-            if (bindable$$1.property !== undefined) {
-                prop = bindable$$1.property;
+            if (bindable.property !== undefined) {
+                prop = bindable.property;
             }
             // explicitly provided attribute name has priority over the derived implicit attribute name
-            if (bindable$$1.attribute !== undefined) {
-                attr = bindable$$1.attribute;
+            if (bindable.attribute !== undefined) {
+                attr = bindable.attribute;
             }
             else {
                 // derive the attribute name from the resolved property name
                 attr = PLATFORM.kebabCase(prop);
             }
-            if (bindable$$1.mode !== undefined && bindable$$1.mode !== BindingMode.default) {
-                mode = bindable$$1.mode;
+            if (bindable.mode !== undefined && bindable.mode !== BindingMode.default) {
+                mode = bindable.mode;
             }
             else {
                 mode = defaultBindingMode;
@@ -11528,19 +11528,19 @@ var au = (function (exports) {
         const defaultBindingMode = def.defaultBindingMode !== undefined && def.defaultBindingMode !== BindingMode.default
             ? def.defaultBindingMode
             : BindingMode.toView;
-        let bindable$$1;
+        let bindable;
         let prop;
         let mode;
         let bindableCount = 0;
         for (prop in bindables) {
             ++bindableCount;
-            bindable$$1 = bindables[prop];
+            bindable = bindables[prop];
             // explicitly provided property name has priority over the implicit property name
-            if (bindable$$1.property !== undefined) {
-                prop = bindable$$1.property;
+            if (bindable.property !== undefined) {
+                prop = bindable.property;
             }
-            if (bindable$$1.mode !== undefined && bindable$$1.mode !== BindingMode.default) {
-                mode = bindable$$1.mode;
+            if (bindable.mode !== undefined && bindable.mode !== BindingMode.default) {
+                mode = bindable.mode;
             }
             else {
                 mode = defaultBindingMode;
@@ -11575,9 +11575,9 @@ var au = (function (exports) {
      * for consumption by the template compiler.
      */
     class ElementInfo {
-        constructor(name, containerless$$1) {
+        constructor(name, containerless) {
             this.name = name;
-            this.containerless = containerless$$1;
+            this.containerless = containerless;
             this.bindables = {};
         }
     }
@@ -12939,15 +12939,15 @@ var au = (function (exports) {
             }
             this.persistentFlags = flags & 67108879 /* persistentBindingFlags */;
             // ensure the binding's target observer has been set.
-            const targetObserver$$1 = this.observerLocator.getObserver(this.persistentFlags | flags, binding.target, binding.targetProperty);
-            if (!targetObserver$$1.handler) {
+            const targetObserver = this.observerLocator.getObserver(this.persistentFlags | flags, binding.target, binding.targetProperty);
+            if (!targetObserver.handler) {
                 throw Reporter.error(10);
             }
-            binding.targetObserver = targetObserver$$1;
+            binding.targetObserver = targetObserver;
             // stash the original element subscribe function.
-            targetObserver$$1.originalHandler = binding.targetObserver.handler;
+            targetObserver.originalHandler = binding.targetObserver.handler;
             // replace the element subscribe function with one that uses the correct events.
-            targetObserver$$1.handler = new EventSubscriber(binding.locator.get(IDOM), events);
+            targetObserver.handler = new EventSubscriber(binding.locator.get(IDOM), events);
         }
         unbind(flags, scope, binding) {
             // restore the state of the binding.
@@ -13103,8 +13103,8 @@ var au = (function (exports) {
                     childInstructions.push(value);
                 }
                 else {
-                    const bindable$$1 = bindables[to];
-                    if (bindable$$1) {
+                    const bindable = bindables[to];
+                    if (bindable) {
                         childInstructions.push({
                             type: "re" /* setProperty */,
                             to,
@@ -14216,12 +14216,12 @@ var au = (function (exports) {
                 const command = this.resources.getBindingCommand(attrSyntax);
                 const bindingType = command === null ? 2048 /* Interpolation */ : command.bindingType;
                 const expr = this.exprParser.parse(attrSyntax.rawValue, bindingType);
-                let bindable$$1 = attrInfo.bindables[attrSyntax.target];
-                if (bindable$$1 === undefined) {
+                let bindable = attrInfo.bindables[attrSyntax.target];
+                if (bindable === undefined) {
                     // everything in a dynamicOptions expression must be used, so if it's not a bindable then we create one on the spot
-                    bindable$$1 = attrInfo.bindables[attrSyntax.target] = new BindableInfo(attrSyntax.target, BindingMode.toView);
+                    bindable = attrInfo.bindables[attrSyntax.target] = new BindableInfo(attrSyntax.target, BindingMode.toView);
                 }
-                symbol.bindings.push(new BindingSymbol(command, bindable$$1, expr, attrSyntax.rawValue, attrSyntax.target));
+                symbol.bindings.push(new BindingSymbol(command, bindable, expr, attrSyntax.rawValue, attrSyntax.target));
             }
         }
         bindPlainAttribute(attrSyntax, attr) {
@@ -14233,11 +14233,11 @@ var au = (function (exports) {
             const manifest = this.manifest;
             const expr = this.exprParser.parse(attrSyntax.rawValue, bindingType);
             if (manifest.flags & 16 /* isCustomElement */) {
-                const bindable$$1 = manifest.bindables[attrSyntax.target];
-                if (bindable$$1 !== undefined) {
+                const bindable = manifest.bindables[attrSyntax.target];
+                if (bindable !== undefined) {
                     // if the attribute name matches a bindable property name, add it regardless of whether it's a command, interpolation, or just a plain string;
                     // the template compiler will translate it to the correct instruction
-                    manifest.bindings.push(new BindingSymbol(command, bindable$$1, expr, attrSyntax.rawValue, attrSyntax.target));
+                    manifest.bindings.push(new BindingSymbol(command, bindable, expr, attrSyntax.rawValue, attrSyntax.target));
                     manifest.isTarget = true;
                 }
                 else if (expr !== null || attrSyntax.target === 'ref') {

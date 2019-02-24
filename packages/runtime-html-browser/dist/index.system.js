@@ -1,6 +1,6 @@
 System.register('runtimeHtmlBrowser', ['@aurelia/kernel', '@aurelia/runtime', '@aurelia/runtime-html'], function (exports, module) {
   'use strict';
-  var DI, Registration, IContainer, IDOMInitializer, IDOM, BasicConfiguration, HTMLDOM;
+  var DI, Registration, IContainer, IDOMInitializer, IDOM, BasicConfiguration$1, HTMLDOM;
   return {
     setters: [function (module) {
       DI = module.DI;
@@ -10,7 +10,7 @@ System.register('runtimeHtmlBrowser', ['@aurelia/kernel', '@aurelia/runtime', '@
       IDOMInitializer = module.IDOMInitializer;
       IDOM = module.IDOM;
     }, function (module) {
-      BasicConfiguration = module.BasicConfiguration;
+      BasicConfiguration$1 = module.BasicConfiguration;
       HTMLDOM = module.HTMLDOM;
     }],
     execute: function () {
@@ -59,12 +59,12 @@ System.register('runtimeHtmlBrowser', ['@aurelia/kernel', '@aurelia/runtime', '@
        * - `BasicConfiguration` from `@aurelia/runtime-html`
        * - `DefaultComponents`
        */
-      const BasicConfiguration$1 = exports('BasicConfiguration', {
+      const BasicConfiguration = exports('BasicConfiguration', {
           /**
            * Apply this configuration to the provided container.
            */
           register(container) {
-              return BasicConfiguration
+              return BasicConfiguration$1
                   .register(container)
                   .register(...DefaultComponents);
           },

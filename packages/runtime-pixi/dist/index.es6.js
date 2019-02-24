@@ -1,5 +1,5 @@
 import { DI } from '@aurelia/kernel';
-import { BasicConfiguration } from '@aurelia/runtime-html-browser';
+import { BasicConfiguration as BasicConfiguration$1 } from '@aurelia/runtime-html-browser';
 import { bindable, customElement } from '@aurelia/runtime';
 import { Application, Sprite, loader } from 'pixi.js';
 
@@ -388,12 +388,12 @@ const DefaultResources = [
  * - `BasicConfiguration` from `@aurelia/runtime-html-browser`
  * - `DefaultResources`
  */
-const BasicConfiguration$1 = {
+const BasicConfiguration = {
     /**
      * Apply this configuration to the provided container.
      */
     register(container) {
-        return BasicConfiguration
+        return BasicConfiguration$1
             .register(container)
             .register(...DefaultResources);
     },
@@ -405,5 +405,5 @@ const BasicConfiguration$1 = {
     }
 };
 
-export { PixiApp, PixiSprite, PixiAppRegistration, PixiSpriteRegistration, DefaultResources, BasicConfiguration$1 as BasicConfiguration };
+export { PixiApp, PixiSprite, PixiAppRegistration, PixiSpriteRegistration, DefaultResources, BasicConfiguration };
 //# sourceMappingURL=index.es6.js.map

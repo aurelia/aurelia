@@ -1,11 +1,11 @@
 System.register('runtimePixi', ['@aurelia/kernel', '@aurelia/runtime-html-browser', '@aurelia/runtime', 'pixi.js'], function (exports, module) {
     'use strict';
-    var DI, BasicConfiguration, bindable, customElement, Application, Sprite, loader;
+    var DI, BasicConfiguration$1, bindable, customElement, Application, Sprite, loader;
     return {
         setters: [function (module) {
             DI = module.DI;
         }, function (module) {
-            BasicConfiguration = module.BasicConfiguration;
+            BasicConfiguration$1 = module.BasicConfiguration;
         }, function (module) {
             bindable = module.bindable;
             customElement = module.customElement;
@@ -401,12 +401,12 @@ System.register('runtimePixi', ['@aurelia/kernel', '@aurelia/runtime-html-browse
              * - `BasicConfiguration` from `@aurelia/runtime-html-browser`
              * - `DefaultResources`
              */
-            const BasicConfiguration$1 = exports('BasicConfiguration', {
+            const BasicConfiguration = exports('BasicConfiguration', {
                 /**
                  * Apply this configuration to the provided container.
                  */
                 register(container) {
-                    return BasicConfiguration
+                    return BasicConfiguration$1
                         .register(container)
                         .register(...DefaultResources);
                 },

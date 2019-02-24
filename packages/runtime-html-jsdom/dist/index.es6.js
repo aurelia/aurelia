@@ -1,6 +1,6 @@
 import { DI, Registration, IContainer } from '@aurelia/kernel';
 import { IDOMInitializer, IDOM } from '@aurelia/runtime';
-import { BasicConfiguration, HTMLDOM } from '@aurelia/runtime-html';
+import { BasicConfiguration as BasicConfiguration$1, HTMLDOM } from '@aurelia/runtime-html';
 import { JSDOM } from 'jsdom';
 
 class JSDOMInitializer {
@@ -51,12 +51,12 @@ const DefaultComponents = [
  * - `BasicConfiguration` from `@aurelia/runtime-html`
  * - `DefaultComponents`
  */
-const BasicConfiguration$1 = {
+const BasicConfiguration = {
     /**
      * Apply this configuration to the provided container.
      */
     register(container) {
-        return BasicConfiguration
+        return BasicConfiguration$1
             .register(container)
             .register(...DefaultComponents);
     },
@@ -68,5 +68,5 @@ const BasicConfiguration$1 = {
     }
 };
 
-export { IDOMInitializerRegistration, DefaultComponents, BasicConfiguration$1 as BasicConfiguration };
+export { IDOMInitializerRegistration, DefaultComponents, BasicConfiguration };
 //# sourceMappingURL=index.es6.js.map

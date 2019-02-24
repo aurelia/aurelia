@@ -1,4 +1,4 @@
-import { Reporter, PLATFORM, Tracer } from '@aurelia/kernel';
+import { Reporter as Reporter$1, PLATFORM, Tracer as Tracer$1 } from '@aurelia/kernel';
 import { AccessKeyed, AccessMember, AccessScope, AccessThis, ArrayBindingPattern, ArrayLiteral, Assign, Binary, BindingBehavior, BindingIdentifier, CallFunction, CallMember, CallScope, Conditional, ForOfStatement, HtmlLiteral, Interpolation, ObjectBindingPattern, ObjectLiteral, PrimitiveLiteral, TaggedTemplate, Template, Unary, ValueConverter } from '@aurelia/runtime';
 
 const astTypeMap = [
@@ -271,7 +271,7 @@ var MessageType;
     MessageType[MessageType["info"] = 2] = "info";
     MessageType[MessageType["debug"] = 3] = "debug";
 })(MessageType || (MessageType = {}));
-const Reporter$1 = Object.assign({}, Reporter, { write(code, ...params) {
+const Reporter = Object.assign({}, Reporter$1, { write(code, ...params) {
         const info = getMessageInfoForCode(code);
         // tslint:disable:no-console
         switch (info.type) {
@@ -527,7 +527,7 @@ class TraceInfo {
 TraceInfo.head = marker;
 TraceInfo.tail = marker;
 TraceInfo.stack = [];
-const Tracer$1 = Object.assign({}, Tracer, { 
+const Tracer = Object.assign({}, Tracer$1, { 
     /**
      * A convenience property for the user to conditionally call the tracer.
      * This saves unnecessary `noop` and `slice` calls in non-AOT scenarios even if debugging is disabled.
@@ -948,7 +948,7 @@ function createLiveTraceWriter(options) {
             else {
                 return;
             }
-            Reporter.write(10000, `${'-'.repeat(info.depth)}${info.objName}.${info.methodName}(${output})`);
+            Reporter$1.write(10000, `${'-'.repeat(info.depth)}${info.objName}.${info.methodName}(${output})`);
         }
     };
 }
@@ -1031,14 +1031,14 @@ function stringifyLifecycleFlags(flags) {
 
 const DebugConfiguration = {
     register(container) {
-        Reporter$1.write(2);
-        Object.assign(Reporter, Reporter$1);
+        Reporter.write(2);
+        Object.assign(Reporter$1, Reporter);
         enableImprovedExpressionDebugging();
     }
 };
 const TraceConfiguration = {
     register(container) {
-        Object.assign(Tracer, Tracer$1);
+        Object.assign(Tracer$1, Tracer);
     }
 };
 

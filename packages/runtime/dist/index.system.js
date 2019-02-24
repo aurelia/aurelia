@@ -2959,11 +2959,11 @@ System.register('runtime', ['@aurelia/kernel'], function (exports, module) {
                 this.addObserver(observer);
             }
             /** @internal */
-            function unobserve(all$$1) {
+            function unobserve(all) {
                 const slots = this.observerSlots;
                 let slotName;
                 let observer;
-                if (all$$1 === true) {
+                if (all === true) {
                     for (let i = 0; i < slots; ++i) {
                         slotName = slotNames[i];
                         observer = this[slotName];

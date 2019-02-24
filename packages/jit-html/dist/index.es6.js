@@ -1,5 +1,5 @@
-import { getTarget, BindingCommandResource, PlainElementSymbol, CustomElementSymbol, LetElementSymbol, BindableInfo, BindingSymbol, TextSymbol, TemplateControllerSymbol, CustomAttributeSymbol, PlainAttributeSymbol, ReplacePartSymbol, ResourceModel, IAttributeParser, DefaultComponents, DefaultBindingSyntax, DefaultBindingLanguage } from '@aurelia/jit';
-import { TriggerBindingInstruction, DelegateBindingInstruction, CaptureBindingInstruction, TextBindingInstruction, SetAttributeInstruction, BasicConfiguration } from '@aurelia/runtime-html';
+import { getTarget, BindingCommandResource, PlainElementSymbol, CustomElementSymbol, LetElementSymbol, BindableInfo, BindingSymbol, TextSymbol, TemplateControllerSymbol, CustomAttributeSymbol, PlainAttributeSymbol, ReplacePartSymbol, ResourceModel, IAttributeParser, DefaultComponents as DefaultComponents$1, DefaultBindingSyntax, DefaultBindingLanguage as DefaultBindingLanguage$1 } from '@aurelia/jit';
+import { TriggerBindingInstruction, DelegateBindingInstruction, CaptureBindingInstruction, TextBindingInstruction, SetAttributeInstruction, BasicConfiguration as BasicConfiguration$1 } from '@aurelia/runtime-html';
 import { Profiler, PLATFORM, DI, Registration } from '@aurelia/kernel';
 import { BindingMode, IDOM, ITemplateCompiler, LetBindingInstruction, LetElementInstruction, HydrateElementInstruction, HydrateTemplateController, SetPropertyInstruction, InterpolationInstruction, HydrateAttributeInstruction, RefBindingInstruction, IExpressionParser } from '@aurelia/runtime';
 
@@ -787,7 +787,7 @@ const ITemplateElementFactoryRegistration = HTMLTemplateElementFactory;
  * - `ITemplateCompiler`
  * - `ITemplateElementFactory`
  */
-const DefaultComponents$1 = [
+const DefaultComponents = [
     ITemplateCompilerRegistration,
     ITemplateElementFactoryRegistration
 ];
@@ -798,7 +798,7 @@ const CaptureBindingCommandRegistration = CaptureBindingCommand;
  * Default HTML-specific (but environment-agnostic) binding commands:
  * - Event listeners: `.trigger`, `.delegate`, `.capture`
  */
-const DefaultBindingLanguage$1 = [
+const DefaultBindingLanguage = [
     TriggerBindingCommandRegistration,
     DelegateBindingCommandRegistration,
     CaptureBindingCommandRegistration
@@ -812,14 +812,14 @@ const DefaultBindingLanguage$1 = [
  * - `DefaultComponents`
  * - `DefaultBindingLanguage`
  */
-const BasicConfiguration$1 = {
+const BasicConfiguration = {
     /**
      * Apply this configuration to the provided container.
      */
     register(container) {
-        return BasicConfiguration
+        return BasicConfiguration$1
             .register(container)
-            .register(...DefaultComponents, ...DefaultBindingSyntax, ...DefaultBindingLanguage, ...DefaultComponents$1, ...DefaultBindingLanguage$1);
+            .register(...DefaultComponents$1, ...DefaultBindingSyntax, ...DefaultBindingLanguage$1, ...DefaultComponents, ...DefaultBindingLanguage);
     },
     /**
      * Create a new container with this configuration applied to it.
@@ -941,5 +941,5 @@ function stringifyTemplateDefinition(def, depth) {
     return output;
 }
 
-export { TriggerBindingCommand, DelegateBindingCommand, CaptureBindingCommand, ITemplateCompilerRegistration, ITemplateElementFactoryRegistration, DefaultComponents$1 as DefaultComponents, TriggerBindingCommandRegistration, DelegateBindingCommandRegistration, CaptureBindingCommandRegistration, DefaultBindingLanguage$1 as DefaultBindingLanguage, BasicConfiguration$1 as BasicConfiguration, stringifyDOM, stringifyInstructions, stringifyTemplateDefinition, TemplateBinder, ITemplateElementFactory };
+export { TriggerBindingCommand, DelegateBindingCommand, CaptureBindingCommand, ITemplateCompilerRegistration, ITemplateElementFactoryRegistration, DefaultComponents, TriggerBindingCommandRegistration, DelegateBindingCommandRegistration, CaptureBindingCommandRegistration, DefaultBindingLanguage, BasicConfiguration, stringifyDOM, stringifyInstructions, stringifyTemplateDefinition, TemplateBinder, ITemplateElementFactory };
 //# sourceMappingURL=index.es6.js.map

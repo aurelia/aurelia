@@ -175,7 +175,7 @@ export class Viewport {
 
     await this.nextContent.enter(this.content.instruction);
     await this.nextContent.loadComponent(this.context, this.element);
-    await this.nextContent.initializeComponent();
+    this.nextContent.initializeComponent();
     return true;
   }
 

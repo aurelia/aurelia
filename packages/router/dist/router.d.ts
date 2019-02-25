@@ -7,11 +7,14 @@ import { INavRoute, Nav } from './nav';
 import { Scope } from './scope';
 import { IViewportOptions, Viewport } from './viewport';
 import { ViewportInstruction } from './viewport-instruction';
-export interface IRouterOptions extends IHistoryOptions {
+export interface IRouteTransformer {
+    transformFromUrl?(route: string, router: Router): string | ViewportInstruction[];
+    transformToUrl?(instructions: ViewportInstruction[], router: Router): string | ViewportInstruction[];
+}
+export declare const IRouteTransformer: import("@aurelia/kernel/dist/interfaces").InterfaceSymbol<IRouteTransformer>;
+export interface IRouterOptions extends IHistoryOptions, IRouteTransformer {
     separators?: IRouteSeparators;
     reportCallback?(instruction: INavigationInstruction): void;
-    transformFromUrl?(path: string, router: Router): string;
-    transformToUrl?(instructions: ViewportInstruction[], router: Router): string;
 }
 export interface IRouteViewport {
     name: string;
@@ -33,7 +36,8 @@ export declare class Router {
     private readonly pendingNavigations;
     private processingNavigation;
     private lastNavigation;
-    constructor(container: IContainer);
+    private readonly routeTransformer;
+    constructor(container: IContainer, routeTransformer: IRouteTransformer);
     readonly isNavigating: boolean;
     activate(options?: IRouterOptions): Promise<void>;
     deactivate(): void;

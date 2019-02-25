@@ -1298,6 +1298,36 @@ this.au.router = (function (exports, kernel, runtime) {
       };
   }
 
+  /**
+   * Class that handles routes configured in a route table
+   */
+  class RouteTable {
+      constructor() {
+          /**
+           * Check a route against the route table and return the appropriate viewport instructions.
+           *
+           * @param route The route to match.
+           * @param router The application router.
+           * @returns The viewport instructions for a found route or the route if not found.
+           */
+          this.transformFromUrl = (route, router) => {
+              // TODO: Implement route recognizing to transform a configured route to a set of viewport instructions
+              return route;
+          };
+          /**
+           * Find the route in the route table for a set of viewport instructions.
+           *
+           * @param instructions The set of viewport instructions to match.
+           * @param router The application router.
+           * @returns The route for a found set of viewport instructions or the viewport instructions if not found.
+           */
+          this.transformToUrl = (instructions, router) => {
+              // TODO: Implement mapping from set of viewport instructions to a configured route
+              return instructions;
+          };
+      }
+  }
+
   var ContentStatus;
   (function (ContentStatus) {
       ContentStatus[ContentStatus["none"] = 0] = "none";
@@ -1977,8 +2007,9 @@ this.au.router = (function (exports, kernel, runtime) {
       return element;
   }
 
+  const IRouteTransformer = kernel.DI.createInterface('IRouteTransformer').withDefault(x => x.singleton(RouteTable));
   class Router {
-      constructor(container) {
+      constructor(container, routeTransformer) {
           this.container = container;
           this.scopes = [];
           this.navs = {};
@@ -2003,6 +2034,7 @@ this.au.router = (function (exports, kernel, runtime) {
           this.historyBrowser = new HistoryBrowser();
           this.linkHandler = new LinkHandler();
           this.instructionResolver = new InstructionResolver();
+          this.routeTransformer = routeTransformer;
       }
       get isNavigating() {
           return this.processingNavigation !== null;
@@ -2015,7 +2047,9 @@ this.au.router = (function (exports, kernel, runtime) {
           this.options = Object.assign({
               callback: (navigationInstruction) => {
                   this.historyCallback(navigationInstruction);
-              }
+              },
+              transformFromUrl: this.routeTransformer.transformFromUrl,
+              transformToUrl: this.routeTransformer.transformToUrl,
           }, options);
           this.instructionResolver.activate({ separators: this.options.separators });
           this.linkHandler.activate({ callback: this.linkCallback });
@@ -2055,10 +2089,9 @@ this.au.router = (function (exports, kernel, runtime) {
           }
           let path = instruction.path;
           if (this.options.transformFromUrl && !fullStateInstruction) {
-              path = this.options.transformFromUrl(path, this);
-              if (Array.isArray(path)) {
-                  path = this.instructionResolver.viewportInstructionsToString(path);
-              }
+              const routeOrInstructions = this.options.transformFromUrl(path, this);
+              // TODO: Don't go via string here, use instructions as they are
+              path = Array.isArray(routeOrInstructions) ? this.instructionResolver.viewportInstructionsToString(routeOrInstructions) : routeOrInstructions;
           }
           const { clearViewports, newPath } = this.instructionResolver.shouldClearViewports(path);
           if (clearViewports) {
@@ -2302,7 +2335,8 @@ this.au.router = (function (exports, kernel, runtime) {
           viewportStates = this.instructionResolver.removeStateDuplicates(viewportStates);
           let state = this.instructionResolver.stateStringsToString(viewportStates);
           if (this.options.transformToUrl) {
-              state = this.options.transformToUrl(this.instructionResolver.viewportInstructionsFromString(state), this);
+              const routeOrInstructions = this.options.transformToUrl(this.instructionResolver.viewportInstructionsFromString(state), this);
+              state = Array.isArray(routeOrInstructions) ? this.instructionResolver.viewportInstructionsToString(routeOrInstructions) : routeOrInstructions;
           }
           let fullViewportStates = this.rootScope.viewportStates(true);
           fullViewportStates = this.instructionResolver.removeStateDuplicates(fullViewportStates);
@@ -2310,7 +2344,7 @@ this.au.router = (function (exports, kernel, runtime) {
           return this.historyBrowser.replacePath(state + query, this.instructionResolver.stateStringsToString(fullViewportStates, true) + query, instruction);
       }
   }
-  Router.inject = [kernel.IContainer];
+  Router.inject = [kernel.IContainer, IRouteTransformer];
 
   /*! *****************************************************************************
   Copyright (c) Microsoft Corporation. All rights reserved.
@@ -2515,6 +2549,7 @@ this.au.router = (function (exports, kernel, runtime) {
   exports.StarSegment = StarSegment;
   exports.EpsilonSegment = EpsilonSegment;
   exports.RouteRecognizer = RouteRecognizer;
+  exports.IRouteTransformer = IRouteTransformer;
   exports.Router = Router;
   exports.Scope = Scope;
   exports.Viewport = Viewport;

@@ -124,7 +124,7 @@ export class Scope {
         instructions.push(...found.viewportInstructions);
         viewportsRemaining = viewportsRemaining || found.viewportsRemaining;
         this.availableViewports[viewport.name] = null;
-        this.viewportInstructions.splice(i--, 1);
+        this.viewportInstructions.splice(i, 1);
         break;
       }
     }

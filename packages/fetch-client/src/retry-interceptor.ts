@@ -1,4 +1,4 @@
-import { PLATFORM } from '@aurelia/kernel';
+import { ITimerHandler, PLATFORM } from '@aurelia/kernel';
 import { HttpClient } from './http-client';
 import { Interceptor, RetryableRequest, RetryConfiguration } from './interfaces';
 
@@ -30,10 +30,10 @@ export class RetryInterceptor implements Interceptor {
    * Creates an instance of RetryInterceptor.
    */
   constructor(retryConfig?: RetryConfiguration) {
-    this.retryConfig = {...defaultRetryConfig, ...(retryConfig || {})};
+    this.retryConfig = {...defaultRetryConfig, ...(retryConfig !== undefined ? retryConfig : {})};
 
     if (this.retryConfig.strategy === retryStrategy.exponential &&
-      this.retryConfig.interval <= 1000) {
+      (this.retryConfig.interval as number) <= 1000) {
       throw new Error('An interval less than or equal to 1 second is not allowed when using the exponential retry strategy');
     }
   }
@@ -79,18 +79,18 @@ export class RetryInterceptor implements Interceptor {
    */
 
   public responseError(error: Response, request: RetryableRequest, httpClient: HttpClient): Response | Promise<Response> {
-    const { retryConfig } = request;
+    const { retryConfig } = request as { retryConfig: Required<RetryConfiguration> };
     const { requestClone } = retryConfig;
     return Promise.resolve().then(() => {
       if (retryConfig.counter < retryConfig.maxRetries) {
-        const result = retryConfig.doRetry ? retryConfig.doRetry(error, request) : true;
+        const result = retryConfig.doRetry !== undefined ? retryConfig.doRetry(error, request) : true;
 
         return Promise.resolve(result).then(doRetry => {
           if (doRetry) {
             retryConfig.counter++;
             const delay = calculateDelay(retryConfig);
             // tslint:disable-next-line:no-string-based-set-timeout
-            return new Promise(resolve => PLATFORM.global.setTimeout(resolve, !isNaN(delay) ? delay : 0))
+            return new Promise((resolve: ITimerHandler) => PLATFORM.global.setTimeout(resolve, !isNaN(delay) ? delay : 0))
               .then(() => {
                 const newRequest = requestClone.clone();
                 if (typeof (retryConfig.beforeRetry) === 'function') {
@@ -117,7 +117,7 @@ export class RetryInterceptor implements Interceptor {
 }
 
 function calculateDelay(retryConfig: RetryConfiguration): number {
-  const { interval, strategy, minRandomInterval, maxRandomInterval, counter } = retryConfig;
+  const { interval, strategy, minRandomInterval, maxRandomInterval, counter } = retryConfig as Required<RetryConfiguration>;
 
   if (typeof (strategy) === 'function') {
     return (retryConfig.strategy as (retryCount: number) => number)(counter);

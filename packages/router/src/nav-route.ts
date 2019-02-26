@@ -78,7 +78,7 @@ export class NavRoute {
         const viewportComponent = route as IViewportComponent;
         instructions.push(new ViewportInstruction(viewportComponent.component, viewportComponent.viewport, viewportComponent.parameters));
       } else {
-        instructions.push(new ViewportInstruction(route as Partial<ICustomElementType<INode>>));
+        instructions.push(new ViewportInstruction(route as Partial<ICustomElementType>));
       }
     }
     return instructions;

@@ -2,7 +2,7 @@ import { CustomElementResource } from '@aurelia/runtime';
 import { createTemplateDescription, escape, kebabCase, loadFromFile, parseImport, processImports } from './processing';
 import { Require, RequireConfig, RequireOnLoad } from './types';
 
-const buildMap = {};
+const buildMap: Record<string, string> = {};
 
 function finishLoad(name: string, content: string, onLoad: (content: string) => void): void {
   buildMap[name] = content;

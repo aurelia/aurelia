@@ -94,7 +94,7 @@ const eventCmds = { delegate: 1, capture: 1, call: 1 };
 /**
  * jsx with aurelia binding command friendly version of h
  */
-export const hJsx = function(name: string, attrs: Record<string, string> | null, ...children: (Node | string)[]) {
+export const hJsx = function(name: string, attrs: Record<string, string> | null, ...children: (Node | string | (Node | string)[])[]) {
   const el = document.createElement(name === 'let$' ? 'let' : name);
   if (attrs !== null) {
     let value: string | string[];
@@ -136,14 +136,23 @@ export const hJsx = function(name: string, attrs: Record<string, string> | null,
           }
         } else {
           const len = attr.length;
-          const lastIdx = attr.lastIndexOf('$');
-          if (lastIdx === -1) {
+          const parts = attr.split('$');
+          if (parts.length === 1) {
             el.setAttribute(PLATFORM.kebabCase(attr), value);
           } else {
-            let cmd = attr.slice(lastIdx + 1);
-            cmd = cmd ? PLATFORM.kebabCase(cmd) : 'bind';
-            el.setAttribute(`${PLATFORM.kebabCase(attr.slice(0, lastIdx))}.${cmd}`, value);
+            if (parts[parts.length - 1] === '') {
+              parts[parts.length - 1] = 'bind';
+            }
+            el.setAttribute(parts.map(PLATFORM.kebabCase).join('.'), value);
           }
+          // const lastIdx = attr.lastIndexOf('$');
+          // if (lastIdx === -1) {
+          //   el.setAttribute(PLATFORM.kebabCase(attr), value);
+          // } else {
+          //   let cmd = attr.slice(lastIdx + 1);
+          //   cmd = cmd ? PLATFORM.kebabCase(cmd) : 'bind';
+          //   el.setAttribute(`${PLATFORM.kebabCase(attr.slice(0, lastIdx))}.${cmd}`, value);
+          // }
         }
       }
     }
@@ -153,7 +162,13 @@ export const hJsx = function(name: string, attrs: Record<string, string> | null,
     if (child === null || child === undefined) {
       continue;
     }
-    appender.appendChild(child instanceof Node ? child : document.createTextNode('' + child));
+    if (Array.isArray(child)) {
+      for (const child_child of child) {
+        appender.appendChild(child_child instanceof Node ? child_child : document.createTextNode('' + child_child));
+      }
+    } else {
+      appender.appendChild(child instanceof Node ? child : document.createTextNode('' + child));
+    }
   }
   return el;
 }

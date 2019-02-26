@@ -1,0 +1,37 @@
+{
+  "extends": [
+    ":separateMajorReleases",
+    ":combinePatchMinorReleases",
+    ":ignoreUnstable",
+    ":renovatePrefix",
+    ":semanticPrefixFixDepsChoreOthers",
+    ":updateNotScheduled",
+    ":automergeDisabled",
+    ":disableRateLimiting",
+    ":maintainLockFilesMonthly",
+    ":prNotPending",
+    "helpers:disableTypesNodeMajor",
+    "schedule:weekly",
+    "group:all"
+  ],
+  "ignorePaths": [
+    "**/node_modules/**"
+  ],
+  "node": {
+    "supportPolicy": ["lts"]
+  },
+  "packageRules": [
+    {
+      "depTypeList": ["devDependencies"],
+      "rangeStrategy": "bump"
+    },
+    {
+      "depTypeList": ["dependencies", "engines", "peerDependencies"],
+      "rangeStrategy": "widen"
+    },
+    {
+      "packageNames": ["chromedriver"],
+      "allowedVersions": "~2.45.0"
+    }
+  ]
+}

@@ -233,7 +233,6 @@ export function $unbindElement(this: Writable<IBindable>, flags: LifecycleFlags)
       binding = binding.$prevBinding;
     }
 
-    // tslint:disable-next-line:no-unnecessary-type-assertion // this is a false positive
     (this.$scope as Writable<IScope>).parentScope = null;
 
     // remove isBound and isUnbinding flags

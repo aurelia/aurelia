@@ -117,7 +117,6 @@ describe('Binding', function () {
     }
     const container = RuntimeBasicConfiguration.createContainer();
     const observerLocator = createObserverLocator(container);
-    const lifecycle = container.get(ILifecycle) as Lifecycle;
     const target = {val: 0};
     const sut = new Binding(expr as any, target, 'val', BindingMode.toView, observerLocator, container);
     const scope = Scope.create(LF.none, ctx, null);

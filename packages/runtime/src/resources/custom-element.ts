@@ -123,11 +123,12 @@ function define<N extends INode = INode, T extends Constructable = Constructable
   if (!nameOrDefinition) {
     throw Reporter.error(70);
   }
-  const Type = (ctor === null ? class HTMLOnlyElement { /* HTML Only */ } : ctor) as T & Writable<ICustomElementType>;
+  const Type = (ctor === null ? class HTMLOnlyElement { /* HTML Only */ } : ctor) as T & ICustomElementType<N, T>;
+  const WritableType = Type as Writable<ICustomElementType<N, T>>;
   const description = buildTemplateDefinition(Type, nameOrDefinition);
   const proto: Writable<ICustomElement> = Type.prototype;
 
-  Type.kind = CustomElementResource;
+  WritableType.kind = CustomElementResource as ICustomElementResource;
   Type.description = description;
   Type.register = registerElement;
 
@@ -191,7 +192,7 @@ function define<N extends INode = INode, T extends Constructable = Constructable
     proto.$nextDetached = null;
   }
 
-  return Type as ICustomElementType & T;
+  return Type;
 }
 
 export const CustomElementResource = {

@@ -268,10 +268,6 @@ describe('AST', function () {
   const SimpleLogicalANDList: [string, Binary][] = [
     [`$36&&$37`, new Binary('&&', new AccessScope('$36'), new AccessScope('$37'))]
   ];
-  const SimpleIsLogicalANDList: [string, IsBinary][] = [
-    ...SimpleIsEqualityList,
-    ...SimpleLogicalANDList
-  ];
 
   // This forms the group Precedence.LogicalOR
   const SimpleLogicalORList: [string, Binary][] = [

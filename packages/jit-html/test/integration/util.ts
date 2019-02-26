@@ -47,7 +47,7 @@ export function setup(ctx: HTMLTestContext, template: string | Node, $class: Con
   const host = ctx.createElement('app');
   const au = new Aurelia(container);
   const App = CustomElementResource.define({ name: 'app', template }, $class);
-  const component = new App();
+  const component = new App() as any;
 
   return { container, lifecycle, host, au, component, observerLocator };
 }

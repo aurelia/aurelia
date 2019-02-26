@@ -49,13 +49,14 @@ function define<T extends Constructable = Constructable>(this: IBindingBehaviorR
 function define<T extends Constructable = Constructable>(this: IBindingBehaviorResource, name: string, ctor: T): T & IBindingBehaviorType<T>;
 function define<T extends Constructable = Constructable>(this: IBindingBehaviorResource, nameOrDefinition: string | IBindingBehaviorDefinition, ctor: T): T & IBindingBehaviorType<T>;
 function define<T extends Constructable = Constructable>(this: IBindingBehaviorResource, nameOrDefinition: string | IBindingBehaviorDefinition, ctor: T): T & IBindingBehaviorType<T> {
-  const Type = ctor as T & Writable<IBindingBehaviorType>;
+  const Type = ctor as T & IBindingBehaviorType<T>;
+  const WritableType = Type as T & Writable<IBindingBehaviorType<T>>;
   const description = typeof nameOrDefinition === 'string'
     ? { name: nameOrDefinition }
     : nameOrDefinition;
 
-  Type.kind = BindingBehaviorResource;
-  Type.description = description;
+  WritableType.kind = BindingBehaviorResource as IBindingBehaviorResource;
+  WritableType.description = description;
   Type.register = register;
 
   return Type;

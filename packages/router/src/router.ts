@@ -365,8 +365,7 @@ export class Router {
       nav = this.navs[name] = new Nav(this, name);
     }
     nav.addRoutes(routes);
-    // tslint:disable-next-line:prefer-object-spread
-    this.navs[name] = Object.assign({}, nav);
+    this.navs[name] = new Nav(nav.router, nav.name, nav.routes);
   }
   public findNav(name: string): Nav {
     return this.navs[name];

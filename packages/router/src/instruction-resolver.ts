@@ -51,7 +51,7 @@ export class InstructionResolver {
   }
 
   public parseViewportInstruction(instruction: string): ViewportInstruction {
-    const instructions = instruction.split(this.separators.scope).map((scopeInstruction) => this._parseViewportInstruction(scopeInstruction));
+    const instructions = instruction.split(this.separators.scope).map((scopeInstruction) => this.parseAViewportInstruction(scopeInstruction));
     for (let i = 0; i < instructions.length - 1; i++) {
       instructions[i].nextScopeInstruction = instructions[i + 1];
     }
@@ -64,13 +64,13 @@ export class InstructionResolver {
 
   public stringifyViewportInstruction(instruction: ViewportInstruction | string, excludeViewport: boolean = false): string {
     if (typeof instruction === 'string') {
-      return this._stringifyViewportInstruction(instruction, excludeViewport);
+      return this.stringifyAViewportInstruction(instruction, excludeViewport);
     } else {
       const instructions = [instruction];
       while (instruction = instruction.nextScopeInstruction) {
         instructions.push(instruction);
       }
-      return instructions.map((scopeInstruction) => this._stringifyViewportInstruction(scopeInstruction, excludeViewport)).join(this.separators.scope);
+      return instructions.map((scopeInstruction) => this.stringifyAViewportInstruction(scopeInstruction, excludeViewport)).join(this.separators.scope);
     }
   }
 
@@ -128,33 +128,36 @@ export class InstructionResolver {
     return strings.join(this.separators.sibling);
   }
 
-  private _parseViewportInstruction(instruction: string): ViewportInstruction {
-    let component, viewport, parameters, scope;
+  private parseAViewportInstruction(instruction: string): ViewportInstruction {
+    let component: string;
+    let viewport: string;
+    let parameters: string[];
+    let scope: boolean;
     const [componentPart, rest] = instruction.split(this.separators.viewport);
     if (rest === undefined) {
       [component, ...parameters] = componentPart.split(this.separators.parameters);
       if (component.endsWith(this.separators.ownsScope)) {
         scope = true;
-        component = component.slice(0, -1);
+        component = component.slice(0, -this.separators.ownsScope.length);
       }
     } else {
       component = componentPart;
       [viewport, ...parameters] = rest.split(this.separators.parameters);
       if (viewport.endsWith(this.separators.ownsScope)) {
         scope = true;
-        viewport = viewport.slice(0, -1);
+        viewport = viewport.slice(0, -this.separators.ownsScope.length);
       }
     }
-    parameters = parameters.length ? parameters.join(this.separators.parameters) : undefined;
-    return new ViewportInstruction(component, viewport, parameters, scope);
+    const parametersString = parameters.length ? parameters.join(this.separators.parameters) : undefined;
+    return new ViewportInstruction(component, viewport, parametersString, scope);
   }
 
-  private _stringifyViewportInstruction(instruction: ViewportInstruction | string, excludeViewport: boolean = false): string {
+  private stringifyAViewportInstruction(instruction: ViewportInstruction | string, excludeViewport: boolean = false): string {
     if (typeof instruction === 'string') {
       return this.stringifyViewportInstruction(this.parseViewportInstruction(instruction), excludeViewport);
     } else {
       let instructionString = instruction.componentName;
-      if (instruction.viewportName && !excludeViewport) {
+      if (instruction.viewportName !== null && !excludeViewport) {
         instructionString += this.separators.viewport + instruction.viewportName;
       }
       if (instruction.parametersString) {

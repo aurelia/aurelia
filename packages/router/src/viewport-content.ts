@@ -103,7 +103,7 @@ export class ViewportContent {
     }
     return result as Promise<ViewportInstruction[]>;
   }
-  public canLeave(nextInstruction: INavigationInstruction): boolean | Promise<boolean> {
+  public canLeave(nextInstruction: INavigationInstruction): Promise<boolean> {
     if (!this.component || !this.component.canLeave) {
       return Promise.resolve(true);
     }

@@ -16,13 +16,17 @@ export class ViewportInstruction {
   public nextScopeInstruction?: ViewportInstruction;
 
   constructor(component: Partial<ICustomElementType> | string, viewport?: Viewport | string, parameters?: Record<string, unknown> | string, ownsScope: boolean = false, nextScopeInstruction: ViewportInstruction = null) {
+    this.component = null;
+    this.componentName = null;
+    this.viewport = null;
+    this.viewportName = null;
+    this.parametersString = null;
+    this.parameters = null;
+    this.parametersList = null;
+
     this.setComponent(component);
-    if (viewport) {
-      this.setViewport(viewport);
-    }
-    if (parameters) {
-      this.setParameters(parameters);
-    }
+    this.setViewport(viewport);
+    this.setParameters(parameters);
 
     this.ownsScope = ownsScope;
     this.nextScopeInstruction = nextScopeInstruction;
@@ -39,18 +43,24 @@ export class ViewportInstruction {
   }
 
   public setViewport(viewport: Viewport | string): void {
+    if (viewport === undefined || viewport === '') {
+      viewport = null;
+    }
     if (typeof viewport === 'string') {
       this.viewportName = viewport;
       this.viewport = null;
     } else {
       this.viewport = viewport;
-      if (viewport) {
+      if (viewport !== null) {
         this.viewportName = viewport.name;
       }
     }
   }
 
   public setParameters(parameters: Record<string, unknown> | string): void {
+    if (parameters === undefined || parameters === '') {
+      parameters = null;
+    }
     if (typeof parameters === 'string') {
       this.parametersString = parameters;
       // TODO: Initialize parameters better and more of them and just fix this

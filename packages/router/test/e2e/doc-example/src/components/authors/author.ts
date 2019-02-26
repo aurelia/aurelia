@@ -35,7 +35,15 @@ export class Author {
 
   constructor(private readonly router: Router, private readonly authorsRepository: AuthorsRepository, private readonly state: State) { }
 
+  public created() {
+    console.log('### created', this);
+  }
+  public canEnter(parameters) {
+    console.log('### canEnter', this, parameters);
+    return true;
+  }
   public enter(parameters) {
+    console.log('### enter', this, parameters);
     if (parameters.id) {
       this.author = this.authorsRepository.author(+parameters.id);
     }
@@ -54,5 +62,38 @@ export class Author {
       },
     ]);
     return wait(this.state.noDelay ? 0 : 2000);
+  }
+  public binding() {
+    console.log('### binding', this);
+  }
+  public bound() {
+    console.log('### bound', this);
+  }
+  public attaching() {
+    console.log('### attaching', this);
+  }
+  public attached() {
+    console.log('### attached', this);
+  }
+
+  public canLeave(parameters) {
+    console.log('### canLeave', this, parameters);
+    return true;
+  }
+  public leave(parameters) {
+    console.log('### leave', this, parameters);
+    return true;
+  }
+  public detaching() {
+    console.log('### detaching', this);
+  }
+  public detached() {
+    console.log('### detached', this);
+  }
+  public unbinding() {
+    console.log('### unbinding', this);
+  }
+  public unbound() {
+    console.log('### unbound', this);
   }
 }

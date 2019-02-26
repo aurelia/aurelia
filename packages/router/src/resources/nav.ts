@@ -36,7 +36,7 @@ export class NavCustomElement {
   }
 
   get navRoutes(): NavRoute[] {
-    const nav = this.router.findNav(this.name);
+    const nav = this.router.navs[this.name];
     return (nav ? nav.routes : []);
   }
 

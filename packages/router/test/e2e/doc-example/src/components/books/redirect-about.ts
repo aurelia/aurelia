@@ -1,4 +1,5 @@
 import { customElement } from '@aurelia/runtime';
+import { ViewportInstruction } from './../../../../../../src/viewport-instruction';
 
 @customElement({
   name: 'redirect-about', template: `<template>
@@ -6,6 +7,6 @@ import { customElement } from '@aurelia/runtime';
 </template>` })
 export class RedirectAbout {
   public canEnter() {
-    return [{ component: 'about', viewport: 'content' }, { component: 'authors', viewport: 'lists' }];
+    return [new ViewportInstruction('about', 'content'), new ViewportInstruction('authors', 'lists')];
   }
 }

@@ -1,4 +1,9 @@
 {
+  "command": {
+    "bootstrap": {
+      "hoist": "**"
+    }
+  },
   "lerna": "3.13.0",
   "packages": [
     "packages/aot",

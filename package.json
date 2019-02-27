@@ -9,8 +9,8 @@
   "scripts": {
     "commit": "git-cz",
     "init": "npm ci && npm run bootstrap && npm run build",
-    "bootstrap": "lerna bootstrap --ci --hoist",
-    "postinstall": "lerna bootstrap --ci --hoist",
+    "bootstrap": "lerna bootstrap --ci",
+    "postinstall": "lerna bootstrap --ci",
     "build": "lerna run build",
     "build:test": "lerna run build:test",
     "dev": "lerna run dev --parallel",

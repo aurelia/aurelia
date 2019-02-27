@@ -15,10 +15,10 @@ export class PixiApp {
 
   public static readonly inject: InjectArray = [Element];
 
-  public get app(): Application {
+  public get app(): Application | null {
     return this._app;
   }
-  public stage: Container;
+  public stage: Container | null;
 
   @bindable public options?: ApplicationOptions;
 
@@ -43,10 +43,10 @@ export class PixiApp {
 
   private readonly callTick: (delta: number) => void;
   private readonly element: Element;
-  private _app: Application;
+  private _app: Application | null;
 
-  constructor(element: Element) {
-    this.element = element;
+  constructor(...args: unknown[]) {
+    this.element = args[0] as Element;
     this._app = null;
     this.stage = null;
     this.callTick = (delta: number): void => {
@@ -84,17 +84,23 @@ export class PixiApp {
   }
 
   public attached(): void {
-    this.element.appendChild(this.app.view);
-    this._app.ticker.add(this.callTick);
-  }
+    if (this._app !== null) {
+      this.element.appendChild(this._app.view);
+      this._app.ticker.add(this.callTick);
+      }
+    }
 
   public detached(): void {
-    this.element.removeChild(this.app.view);
-    this._app.ticker.remove(this.callTick);
+    if (this._app !== null) {
+      this.element.removeChild(this._app.view);
+      this._app.ticker.remove(this.callTick);
+    }
   }
 
   public unbound(): void {
-    this.app.destroy();
+    if (this.app !== null) {
+      this.app.destroy();
+    }
     this._app = null;
     this.stage = null;
   }

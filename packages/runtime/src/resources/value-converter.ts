@@ -54,7 +54,7 @@ function define<T extends Constructable = Constructable>(this: IValueConverterRe
   Type.description = description;
   Type.register = register;
 
-  return Type;
+  return Type as T & IValueConverterType<T>;
 }
 
 export const ValueConverterResource = {

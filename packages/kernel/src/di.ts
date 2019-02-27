@@ -102,6 +102,9 @@ if (!('getOwnMetadata' in Reflect)) {
     return function(target: Function): void {
       (target as IIndexable)[metadataKey] = metadataValue;
     };
+  } as (metadataKey: any, metadataValue: any) => {
+    (target: Function): void;
+    (target: Object, propertyKey: string | symbol): void;
   };
 }
 // tslint:enable:no-any ban-types
@@ -452,14 +455,14 @@ export class Resolver implements IResolver, IRegistration {
 }
 
 /** @internal */
-export interface IInvoker {
-  invoke(container: IContainer, fn: Constructable, dependencies: Key<unknown>[]): Constructable;
+export interface IInvoker<T = {}> {
+  invoke(container: IContainer, fn: Constructable<T>, dependencies: Key<unknown>[]): T;
   invokeWithDynamicDependencies(
     container: IContainer,
-    fn: Constructable,
+    fn: Constructable<T>,
     staticDependencies: Key<unknown>[],
     dynamicDependencies: Key<unknown>[]
-  ): Constructable;
+  ): T;
 }
 
 /** @internal */
@@ -482,7 +485,7 @@ export class Factory implements IFactory {
     return new Factory(Type, invoker, dependencies);
   }
 
-  public construct(container: IContainer, dynamicDependencies?: Key<unknown>[]): Constructable {
+  public construct(container: IContainer, dynamicDependencies?: Key<unknown>[]): {} {
     if (Tracer.enabled) { Tracer.enter('Factory', 'construct', [this.Type, ...slice.call(arguments)]); }
     const transformers = this.transformers;
     let instance = dynamicDependencies !== undefined
@@ -575,7 +578,7 @@ export class Container implements IContainer {
       if (isRegistry(current)) {
         current.register(this);
       } else if (isClass(current)) {
-        Registration.singleton(current, current).register(this);
+        Registration.singleton(current, current as Constructable).register(this);
       } else {
         keys = Object.keys(current);
         j = 0;
@@ -841,31 +844,31 @@ function buildAllResponse(resolver: IResolver, handler: IContainer, requestor: I
 /** @internal */
 export const classInvokers: IInvoker[] = [
   {
-    invoke<T extends Constructable, K>(container: IContainer, Type: T): K {
+    invoke<T>(container: IContainer, Type: Constructable<T>): T {
       return new Type();
     },
     invokeWithDynamicDependencies
   },
   {
-    invoke<T extends Constructable, K>(container: IContainer, Type: T, deps: Key<unknown>[]): K {
+    invoke<T>(container: IContainer, Type: Constructable<T>, deps: Key<unknown>[]): T {
       return new Type(container.get(deps[0]));
     },
     invokeWithDynamicDependencies
   },
   {
-    invoke<T extends Constructable, K>(container: IContainer, Type: T, deps: Key<unknown>[]): K {
+    invoke<T>(container: IContainer, Type: Constructable<T>, deps: Key<unknown>[]): T {
       return new Type(container.get(deps[0]), container.get(deps[1]));
     },
     invokeWithDynamicDependencies
   },
   {
-    invoke<T extends Constructable, K>(container: IContainer, Type: T, deps: Key<unknown>[]): K {
+    invoke<T>(container: IContainer, Type: Constructable<T>, deps: Key<unknown>[]): T {
       return new Type(container.get(deps[0]), container.get(deps[1]), container.get(deps[2]));
     },
     invokeWithDynamicDependencies
   },
   {
-    invoke<T extends Constructable, K>(container: IContainer, Type: T, deps: Key<unknown>[]): K {
+    invoke<T>(container: IContainer, Type: Constructable<T>, deps: Key<unknown>[]): T {
       return new Type(
         container.get(deps[0]),
         container.get(deps[1]),
@@ -876,7 +879,7 @@ export const classInvokers: IInvoker[] = [
     invokeWithDynamicDependencies
   },
   {
-    invoke<T extends Constructable, K>(container: IContainer, Type: T, deps: Key<unknown>[]): K {
+    invoke<T>(container: IContainer, Type: Constructable<T>, deps: Key<unknown>[]): T {
       return new Type(
         container.get(deps[0]),
         container.get(deps[1]),
@@ -896,12 +899,12 @@ export const fallbackInvoker: IInvoker = {
 };
 
 /** @internal */
-export function invokeWithDynamicDependencies<T extends Constructable, K>(
+export function invokeWithDynamicDependencies<T>(
   container: IContainer,
-  Type: T,
+  Type: Constructable<T>,
   staticDependencies: Key<unknown>[],
   dynamicDependencies: Key<unknown>[]
-): K {
+): T {
   let i = staticDependencies.length;
   let args: Key<unknown>[] = new Array(i);
   let lookup: Key<unknown>;

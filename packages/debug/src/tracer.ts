@@ -34,7 +34,7 @@ class TraceInfo implements ITraceInfo {
   }
 
   public static reset(): void {
-    let current = TraceInfo.head;
+    let current: ITraceInfo | null = TraceInfo.head;
     let next = null;
     while (current !== null) {
       next = current.next;
@@ -53,7 +53,7 @@ class TraceInfo implements ITraceInfo {
   }
 
   public static leave(): ITraceInfo {
-    return TraceInfo.stack.pop();
+    return TraceInfo.stack.pop() as ITraceInfo;
   }
 }
 
@@ -68,7 +68,7 @@ export const Tracer: typeof RuntimeTracer = {
    */
   enabled: false,
   liveLoggingEnabled: false,
-  liveWriter: null as ITraceWriter,
+  liveWriter: null,
   /**
    * Call this at the start of a method/function.
    * Each call to `enter` **must** have an accompanying call to `leave` for the tracer to work properly.
@@ -155,7 +155,7 @@ function enableLiveLogging(this: typeof Tracer, optionsOrWriter?: ILiveLoggingOp
   if (optionsOrWriter && 'write' in optionsOrWriter) {
     this.liveWriter = optionsOrWriter;
   } else {
-    const options = (optionsOrWriter as ILiveLoggingOptions) || defaultOptions;
+    const options = optionsOrWriter !== undefined ? (optionsOrWriter as ILiveLoggingOptions) : defaultOptions;
     this.liveWriter = createLiveTraceWriter(options);
   }
 }
@@ -172,12 +172,12 @@ type Instance = {
 
 const toString = Object.prototype.toString;
 function flagsText(info: ITraceInfo, i: number = 0): string {
-  if (info.params.length > i) {
+  if (info.params !== null && info.params.length > i) {
     return stringifyLifecycleFlags(info.params[i] as LifecycleFlags);
   }
   return 'none';
 }
-function _ctorName(obj: Instance): string {
+function _ctorName(obj: Instance | undefined): string {
   let name: string;
   if (obj === undefined) {
     name = 'undefined';
@@ -197,16 +197,16 @@ function _ctorName(obj: Instance): string {
   return name;
 }
 function ctorName(info: ITraceInfo, i: number = 0): string {
-  if (info.params.length > i) {
+  if (info.params !== null && info.params.length > i) {
     return _ctorName(info.params[i] as Instance);
   }
   return 'undefined';
 }
 function scopeText(info: ITraceInfo, i: number = 0): string {
   let $ctorName: string;
-  if (info.params.length > i) {
-    const $scope = info.params[i] as IScope;
-    if ($scope && $scope.bindingContext) {
+  if (info.params !== null && info.params.length > i) {
+    const $scope = info.params[i] as IScope | undefined;
+    if ($scope !== undefined && $scope.bindingContext !== undefined) {
       $ctorName = _ctorName($scope.bindingContext as Instance);
     } else {
       $ctorName = 'undefined';
@@ -216,20 +216,20 @@ function scopeText(info: ITraceInfo, i: number = 0): string {
   return 'undefined';
 }
 function keyText(info: ITraceInfo, i: number = 0): string {
-  if (info.params.length > i) {
-    const $key = info.params[i] as object;
+  if (info.params !== null && info.params.length > i) {
+    const $key = info.params[i] as object | undefined;
     if (typeof $key === 'string') {
       return `'${$key}'`;
     }
-    if ($key && Reflect.has($key, 'friendlyName')) {
-      return $key['friendlyName'];
+    if ($key !== undefined && Reflect.has($key, 'friendlyName')) {
+      return ($key as Record<string, string>)['friendlyName'];
     }
     return _ctorName($key);
   }
   return 'undefined';
 }
 function primitive(info: ITraceInfo, i: number = 0): string {
-  if (info.params.length > i) {
+  if (info.params !== null && info.params.length > i) {
     const $key = info.params[i] as string | symbol | number;
     if (typeof $key === 'string') {
       return `'${$key}'`;
@@ -301,6 +301,8 @@ const BindingArgsProcessor = {
         return `${scopeText(info)},${primitive(info, 1)},${primitive(info, 2)},${flagsText(info, 3)}`;
       case 'getObservers':
         return flagsText(info);
+      default:
+        return 'unknown';
     }
   },
   Scope(info: ITraceInfo): string {
@@ -311,6 +313,8 @@ const BindingArgsProcessor = {
         return `${flagsText(info)},${ctorName(info, 1)}`;
       case 'fromParent':
         return `${flagsText(info)},${scopeText(info, 1)},${ctorName(info, 2)}`;
+      default:
+        return 'unknown';
     }
   },
   OverrideContext(info: ITraceInfo): string {
@@ -319,6 +323,8 @@ const BindingArgsProcessor = {
         return `${flagsText(info)},${ctorName(info, 1)},${ctorName(info, 2)}`;
       case 'getObservers':
         return '';
+      default:
+        return 'unknown';
     }
   }
 };
@@ -330,18 +336,22 @@ const ObservationArgsProcessor = {
   callSource(info: ITraceInfo): string {
     switch (info.objName) {
       case 'Listener':
-        return (info.params[0] as { type: string }).type;
+        return ((info.params as ReadonlyArray<{ type: string }>)[0]).type;
       case 'Call':
         const names: string[] = [];
-        for (let i = 0, ii = info.params.length; i < ii; ++i) {
-          names.push(ctorName(info, i));
+        if (info.params !== null) {
+          for (let i = 0, ii = info.params.length; i < ii; ++i) {
+            names.push(ctorName(info, i));
+          }
         }
         return names.join(',');
+      default:
+        return 'unknown';
     }
   },
   setValue(info: ITraceInfo): string {
     let valueText: string;
-    const value = info.params[0];
+    const value = (info.params as ReadonlyArray<unknown>)[0];
     switch (typeof value) {
       case 'undefined':
         valueText = 'undefined';
@@ -386,7 +396,7 @@ const AttachingArgsProcessor = {
     return flagsText(info);
   },
   hold(info: ITraceInfo): string {
-    return `Node{'${(info.params[0] as { textContent: string }).textContent}'}`;
+    return `Node{'${((info.params as ReadonlyArray<{ textContent: string }>)[0]).textContent}'}`;
   },
   release(info: ITraceInfo): string {
     return flagsText(info);
@@ -419,12 +429,16 @@ const DIArgsProcessor = {
         return keyText(info);
       case 'register':
         const names: string[] = [];
-        for (let i = 0, ii = info.params.length; i < ii; ++i) {
-          names.push(keyText(info, i));
+        if (info.params !== null) {
+          for (let i = 0, ii = info.params.length; i < ii; ++i) {
+            names.push(keyText(info, i));
+          }
         }
         return names.join(',');
       case 'createChild':
         return '';
+      default:
+        return 'unknown';
     }
   }
 };
@@ -439,6 +453,8 @@ const LifecycleArgsProcessor = {
       case 'end':
       case 'pro':
         return flagsText(info);
+      default:
+        return 'unknown';
     }
   },
   CompositionCoordinator(info: ITraceInfo): string {
@@ -449,6 +465,8 @@ const LifecycleArgsProcessor = {
         return `IView,${flagsText(info, 1)}`;
       case 'processNext':
         return '';
+      default:
+        return 'unknown';
     }
   },
   AggregateLifecycleTask(info: ITraceInfo): string {
@@ -458,6 +476,8 @@ const LifecycleArgsProcessor = {
         return ctorName(info);
       case 'complete':
         return `${primitive(info, 2)}`;
+      default:
+        return 'unknown';
     }
   }
 };

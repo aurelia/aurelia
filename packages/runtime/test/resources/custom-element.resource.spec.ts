@@ -39,7 +39,7 @@ describe('CustomElementResource', function () {
 
     it(`returns false when given a resource with the wrong kind`, function () {
       const type = CustomAttributeResource.define('foo', class Foo {});
-      expect(CustomElementResource.isType(type)).to.equal(false);
+      expect(CustomElementResource.isType(type as any)).to.equal(false);
     });
   });
 

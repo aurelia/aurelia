@@ -1130,25 +1130,25 @@ describe(`The classInvokers object`, function () {
   class Dep6 {}
 
   it(`invoke() handles 0 deps`, function () {
-    const actual: InstanceType<Constructable<Foo>> = classInvokers[0].invoke(container, Foo, []);
+    const actual = classInvokers[0].invoke(container, Foo, []) as Foo;
     expect(actual.args.length).to.equal(0);
   });
 
   it(`invoke() handles 1 dep`, function () {
-    const actual: InstanceType<Constructable<Foo>> = classInvokers[1].invoke(container, Foo, [Dep1]);
+    const actual = classInvokers[1].invoke(container, Foo, [Dep1]) as Foo;
     expect(actual.args.length).to.equal(1);
     expect(actual.args[0]).to.be.instanceof(Dep1);
   });
 
   it(`invoke() handles 2 deps`, function () {
-    const actual: InstanceType<Constructable<Foo>> = classInvokers[2].invoke(container, Foo, [Dep1, Dep2]);
+    const actual = classInvokers[2].invoke(container, Foo, [Dep1, Dep2]) as Foo;
     expect(actual.args.length).to.equal(2);
     expect(actual.args[0]).to.be.instanceof(Dep1);
     expect(actual.args[1]).to.be.instanceof(Dep2);
   });
 
   it(`invoke() handles 3 deps`, function () {
-    const actual: InstanceType<Constructable<Foo>> = classInvokers[3].invoke(container, Foo, [Dep1, Dep2, Dep3]);
+    const actual = classInvokers[3].invoke(container, Foo, [Dep1, Dep2, Dep3]) as Foo;
     expect(actual.args.length).to.equal(3);
     expect(actual.args[0]).to.be.instanceof(Dep1);
     expect(actual.args[1]).to.be.instanceof(Dep2);
@@ -1156,7 +1156,7 @@ describe(`The classInvokers object`, function () {
   });
 
   it(`invoke() handles 4 deps`, function () {
-    const actual: InstanceType<Constructable<Foo>> = classInvokers[4].invoke(container, Foo, [Dep1, Dep2, Dep3, Dep4]);
+    const actual = classInvokers[4].invoke(container, Foo, [Dep1, Dep2, Dep3, Dep4]) as Foo;
     expect(actual.args.length).to.equal(4);
     expect(actual.args[0]).to.be.instanceof(Dep1);
     expect(actual.args[1]).to.be.instanceof(Dep2);
@@ -1165,7 +1165,7 @@ describe(`The classInvokers object`, function () {
   });
 
   it(`invoke() handles 5 deps`, function () {
-    const actual: InstanceType<Constructable<Foo>> = classInvokers[5].invoke(container, Foo, [Dep1, Dep2, Dep3, Dep4, Dep5]);
+    const actual = classInvokers[5].invoke(container, Foo, [Dep1, Dep2, Dep3, Dep4, Dep5]) as Foo;
     expect(actual.args.length).to.equal(5);
     expect(actual.args[0]).to.be.instanceof(Dep1);
     expect(actual.args[1]).to.be.instanceof(Dep2);
@@ -1205,28 +1205,28 @@ describe(`The invokeWithDynamicDependencies function`, function () {
   });
 
   it(_`handles staticDeps is ${deps}`, function () {
-    const actual = invokeWithDynamicDependencies(container, Foo, deps, []) as Foo;
+    const actual = invokeWithDynamicDependencies(container, Foo, deps, []);
     expect(actual.args).to.deep.equal(deps.map(d => `static${d}`));
   });
 
   it(`handles dynamicDeps is null`, function () {
-    const actual = invokeWithDynamicDependencies(container, Foo, [], null) as Foo;
+    const actual = invokeWithDynamicDependencies(container, Foo, [], null);
     expect(actual.args.length).to.equal(1);
     expect(actual.args[0]).to.equal(null);
   });
 
   it(`handles dynamicDeps is undefined`, function () {
-    const actual = invokeWithDynamicDependencies(container, Foo, [], undefined) as Foo;
+    const actual = invokeWithDynamicDependencies(container, Foo, [], undefined);
     expect(actual.args.length).to.equal(0);
   });
 
   it(_`handles dynamicDeps is ${deps}`, function () {
-    const actual = invokeWithDynamicDependencies(container, Foo, [], deps) as Foo;
+    const actual = invokeWithDynamicDependencies(container, Foo, [], deps);
     expect(actual.args).to.deep.equal(deps);
   });
 
   it(_`handles staticDeps is ${deps} and dynamicDeps is ${deps}`, function () {
-    const actual = invokeWithDynamicDependencies(container, Foo, deps, deps) as Foo;
+    const actual = invokeWithDynamicDependencies(container, Foo, deps, deps);
     expect(actual.args[0]).to.equal(`static${deps[0]}`);
     expect(actual.args[1]).to.equal(`static${deps[1]}`);
     expect(actual.args[2]).to.equal(`static${deps[2]}`);

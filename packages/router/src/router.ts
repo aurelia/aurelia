@@ -6,8 +6,7 @@ import { AnchorEventInfo, LinkHandler } from './link-handler';
 import { INavRoute, Nav } from './nav';
 import { IParsedQuery, parseQuery } from './parser';
 import { RouteTable } from './route-table';
-import { ChildContainer, Scope } from './scope';
-import { closestCustomElement } from './utils';
+import { Scope } from './scope';
 import { IViewportOptions, Viewport } from './viewport';
 import { ViewportInstruction } from './viewport-instruction';
 
@@ -111,7 +110,6 @@ export class Router {
     this.processNavigations().catch(error => { throw error; });
   }
 
-  // TODO: Reduce complexity (currently at 46)
   public async processNavigations(): Promise<void> {
     if (this.processingNavigation !== null || !this.pendingNavigations.length) {
       return Promise.resolve();
@@ -140,7 +138,7 @@ export class Router {
     if (this.options.transformFromUrl && !fullStateInstruction) {
       const routeOrInstructions = this.options.transformFromUrl(path, this);
       // TODO: Don't go via string here, use instructions as they are
-      path = Array.isArray(routeOrInstructions) ? this.instructionResolver.viewportInstructionsToString(routeOrInstructions) : routeOrInstructions;
+      path = Array.isArray(routeOrInstructions) ? this.instructionResolver.stringifyViewportInstructions(routeOrInstructions) : routeOrInstructions;
     }
 
     const { clearViewports, newPath } = this.instructionResolver.shouldClearViewports(path);
@@ -154,9 +152,9 @@ export class Router {
 
     // TODO: Fetch title (probably when done)
     const title = null;
-    const views: Record<string, string> = this.instructionResolver.findViews(path);
+    const views = this.instructionResolver.parseViewportInstructions(path);
 
-    if (!views && !Object.keys(views).length && !clearViewports) {
+    if (!views && !views.length && !clearViewports) {
       this.processingNavigation = null;
       return this.processNavigations();
     }
@@ -220,9 +218,9 @@ export class Router {
             return false;
           }
         }
-        for (const cvp of canEnter) {
+        for (const viewportInstruction of canEnter) {
           // TODO: Abort content change in the viewports
-          this.addProcessingViewport(cvp.component, cvp.viewport);
+          this.addProcessingViewport(viewportInstruction);
         }
         value.abortContentChange().catch(error => { throw error; });
         return true;
@@ -230,15 +228,6 @@ export class Router {
       if (results.some(result => result === false)) {
         return this.cancelNavigation([...changedViewports, ...updatedViewports], instruction);
       }
-
-      // TODO: Should it be kept here?
-      // await Promise.all(changedViewports.map((value) => value.loadContent()));
-
-      // TODO: Remove this once multi level recursiveness has been fixed
-      // results = await Promise.all(changedViewports.map((value) => value.loadContent()));
-      // if (results.findIndex((value) => value === false) >= 0) {
-      //   return this.historyBrowser.cancel();
-      // }
 
       for (const viewport of changedViewports) {
         if (!updatedViewports.find((value) => value === viewport)) {
@@ -280,23 +269,27 @@ export class Router {
     this.processNavigations().catch(error => { throw error; });
   }
 
-  public addProcessingViewport(component: string | Partial<ICustomElementType>, viewport: Viewport | string): void {
+  public addProcessingViewport(componentOrInstruction: string | Partial<ICustomElementType> | ViewportInstruction, viewport?: Viewport | string): void {
     if (this.processingNavigation) {
-      if (typeof viewport === 'string') {
-        // TODO: Deal with not yet existing viewports
-        viewport = this.allViewports().find((vp) => vp.name === viewport);
+      if (componentOrInstruction instanceof ViewportInstruction) {
+        if (!componentOrInstruction.viewport) {
+          // TODO: Deal with not yet existing viewports
+          componentOrInstruction.viewport = this.allViewports().find((vp) => vp.name === componentOrInstruction.viewportName);
+        }
+        this.addedViewports.push(componentOrInstruction);
+      } else {
+        if (typeof viewport === 'string') {
+          // TODO: Deal with not yet existing viewports
+          viewport = this.allViewports().find((vp) => vp.name === viewport);
+        }
+        this.addedViewports.push(new ViewportInstruction(componentOrInstruction, viewport));
       }
-      this.addedViewports.push(new ViewportInstruction(component, viewport));
     } else if (this.lastNavigation) {
       this.pendingNavigations.unshift({ path: '', fullStatePath: '', isRepeat: true });
       // Don't wait for the (possibly slow) navigation
       this.processNavigations().catch(error => { throw error; });
     }
   }
-
-  // public findViewport(name: string): Viewport {
-  //   return this.rootScope.findViewport(name);
-  // }
 
   public findScope(element: Element): Scope {
     this.ensureRootScope();
@@ -372,6 +365,7 @@ export class Router {
       nav = this.navs[name] = new Nav(this, name);
     }
     nav.addRoutes(routes);
+    this.navs[name] = new Nav(nav.router, nav.name, nav.routes);
   }
   public findNav(name: string): Nav {
     return this.navs[name];
@@ -400,15 +394,29 @@ export class Router {
   }
 
   private closestScope(element: Element): Scope {
-    const el = closestCustomElement(element);
-    let container: ChildContainer = el.$customElement.$context.get(IContainer);
-    while (container) {
-      const scope = this.scopes.find((item) => item.context.get(IContainer) === container);
-      if (scope) {
-        return scope;
+    let el = element;
+    while (el.parentElement) {
+      const viewport = this.allViewports().find((item) => item.element === el);
+      if (viewport && viewport.owningScope) {
+        return viewport.owningScope;
       }
-      container = container.parent;
+      el = el.parentElement;
     }
+    return this.rootScope;
+    // TODO: It would be better if it was something like this
+    // const el = closestCustomElement(element);
+    // let container: ChildContainer = el.$customElement.$context.get(IContainer);
+    // while (container) {
+    //   const scope = this.scopes.find((item) => item.context.get(IContainer) === container);
+    //   if (scope) {
+    //     return scope;
+    //   }
+    //   const viewport = this.allViewports().find((item) => item.context && item.context.get(IContainer) === container);
+    //   if (viewport && viewport.owningScope) {
+    //     return viewport.owningScope;
+    //   }
+    //   container = container.parent;
+    // }
   }
 
   private replacePaths(instruction: INavigationInstruction): Promise<void> {
@@ -419,8 +427,8 @@ export class Router {
     viewportStates = this.instructionResolver.removeStateDuplicates(viewportStates);
     let state = this.instructionResolver.stateStringsToString(viewportStates);
     if (this.options.transformToUrl) {
-      const routeOrInstructions = this.options.transformToUrl(this.instructionResolver.viewportInstructionsFromString(state), this);
-      state = Array.isArray(routeOrInstructions) ? this.instructionResolver.viewportInstructionsToString(routeOrInstructions) : routeOrInstructions;
+      const routeOrInstructions = this.options.transformToUrl(this.instructionResolver.parseViewportInstructions(state), this);
+      state = Array.isArray(routeOrInstructions) ? this.instructionResolver.stringifyViewportInstructions(routeOrInstructions) : routeOrInstructions;
     }
 
     let fullViewportStates = this.rootScope.viewportStates(true);

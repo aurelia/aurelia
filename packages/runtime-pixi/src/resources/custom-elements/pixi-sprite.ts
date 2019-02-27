@@ -68,8 +68,8 @@ export interface PixiSprite extends ICustomElement<Node> {}
 export class PixiSprite {
   public static readonly register: IRegistry['register'];
 
-  public get sprite(): Sprite {
-    return this._sprite;
+  public get sprite(): Sprite & { [key: string]: unknown } {
+    return this._sprite as Sprite;
   }
 
   @bindable public container?: Container;
@@ -87,12 +87,12 @@ export class PixiSprite {
   @bindable public hitArea?: Rectangle | Circle | Ellipse | Polygon | RoundedRectangle;
   @bindable public interactive?: boolean;
   public get localTransform(): Matrix {
-    return this._sprite.localTransform;
+    return this.sprite.localTransform;
   }
   @bindable public mask?: Graphics;
   @bindable public name?: string;
   public get parent(): Container {
-    return this._sprite.parent;
+    return this.sprite.parent;
   }
   @bindable public pivotX?: number;
   @bindable public pivotY?: number;
@@ -107,13 +107,13 @@ export class PixiSprite {
   @bindable public transform?: TransformBase;
   @bindable public visible?: boolean;
   public get worldAlpha(): number {
-    return this._sprite.worldAlpha;
+    return this.sprite.worldAlpha;
   }
   public get worldTransform(): Matrix {
-    return this._sprite.worldTransform;
+    return this.sprite.worldTransform;
   }
   public get worldVisible(): boolean {
-    return this._sprite.worldVisible;
+    return this.sprite.worldVisible;
   }
   @bindable public x?: number;
   @bindable public y?: number;
@@ -122,7 +122,7 @@ export class PixiSprite {
   // Container properties
   // http://pixijs.download/dev/docs/PIXI.Container.html
   public get children(): DisplayObject[] {
-    return this._sprite.children;
+    return this.sprite.children;
   }
   @bindable public height?: number;
   @bindable public interactiveChildren?: boolean;
@@ -135,7 +135,7 @@ export class PixiSprite {
   @bindable public anchor?: ObservablePoint;
   @bindable public blendMode?: number;
   public get isSprite(): boolean {
-    return this._sprite['isSprite'];
+    return this.sprite['isSprite'] as boolean;
   }
   @bindable public pluginName?: string;
   @bindable public roundPixels?: boolean;
@@ -144,7 +144,7 @@ export class PixiSprite {
   @bindable public texture?: Texture;
   @bindable public tint?: number;
 
-  private _sprite: Sprite;
+  private _sprite: Sprite & { [key: string]: unknown } | null;
 
   constructor() {
     this._sprite = null;
@@ -152,18 +152,19 @@ export class PixiSprite {
 
   public attached(): void {
     if (this.container) {
-      this._sprite = new Sprite(loader.resources[this.src].texture);
+      const $this = this as PixiSprite & { [key: string]: unknown };
+      this._sprite = new Sprite(loader.resources[this.src as string].texture);
       for (const prop of directProps) {
-        if (this[prop] !== undefined) {
-          this._sprite[prop] = this[prop];
+        if ($this[prop] !== undefined) {
+          this._sprite[prop] = $this[prop];
         }
       }
       for (const prop of pointProps) {
-        if (this[`${prop}X`] !== undefined) {
-          this._sprite[prop].x = this[`${prop}X`];
+        if ($this[`${prop}X`] !== undefined) {
+          (this._sprite[prop] as { x: unknown }).x = $this[`${prop}X`];
         }
-        if (this[`${prop}Y`] !== undefined) {
-          this._sprite[prop].y = this[`${prop}Y`];
+        if ($this[`${prop}Y`] !== undefined) {
+          (this._sprite[prop] as { y: unknown }).y = $this[`${prop}Y`];
         }
       }
       this.width = this._sprite.width;
@@ -181,21 +182,21 @@ export class PixiSprite {
 }
 
 for (const prop of directProps) {
-  PixiSprite.prototype[`${prop}Changed`] = function(this: PixiSprite, newValue: unknown): void {
-    if (this.$state & State.isBound && this.sprite !== null && newValue) {
+  (PixiSprite.prototype as { [key: string]: unknown })[`${prop}Changed`] = function(this: PixiSprite, newValue: unknown): void {
+    if (this.$state !== undefined && (this.$state & State.isBound) && this.sprite !== null && newValue !== undefined) {
       this.sprite[prop] = newValue;
     }
   };
 }
 for (const prop of pointProps) {
-  PixiSprite.prototype[`${prop}XChanged`] = function(this: PixiSprite, newValue: unknown): void {
-    if (this.$state & State.isBound && this.sprite !== null && newValue) {
-      this.sprite[prop].x = newValue;
+  (PixiSprite.prototype as { [key: string]: unknown })[`${prop}XChanged`] = function(this: PixiSprite, newValue: unknown): void {
+    if (this.$state !== undefined && (this.$state & State.isBound) && this.sprite !== null && newValue !== undefined) {
+      (this.sprite[prop] as { x: unknown }).x = newValue;
     }
   };
-  PixiSprite.prototype[`${prop}YChanged`] = function(this: PixiSprite, newValue: unknown): void {
-    if (this.$state & State.isBound && this.sprite !== null && newValue) {
-      this.sprite[prop].y = newValue;
+  (PixiSprite.prototype as { [key: string]: unknown })[`${prop}YChanged`] = function(this: PixiSprite, newValue: unknown): void {
+    if (this.$state !== undefined && (this.$state & State.isBound) && this.sprite !== null && newValue !== undefined) {
+      (this.sprite[prop] as { y: unknown }).y = newValue;
     }
   };
 }

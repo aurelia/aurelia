@@ -344,7 +344,7 @@ export class Serializer implements AST.IVisitor<string> {
   }
 
   public visitTaggedTemplate(expr: AST.TaggedTemplate): string {
-    return `{"type":"TaggedTemplate","cooked":${serializePrimitives(expr.cooked)},"raw":${serializePrimitives(expr.cooked.raw)},"expressions":${this.serializeExpressions(expr.expressions)}}`;
+    return `{"type":"TaggedTemplate","cooked":${serializePrimitives(expr.cooked)},"raw":${serializePrimitives(expr.cooked.raw as ReadonlyArray<unknown>)},"expressions":${this.serializeExpressions(expr.expressions)}}`;
   }
 
   public visitUnary(expr: AST.Unary): string {

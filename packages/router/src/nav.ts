@@ -26,11 +26,10 @@ export class Nav {
 
   public router: Router;
 
-  constructor(router: Router, name: string) {
+  constructor(router: Router, name: string, routes: NavRoute[] = []) {
     this.router = router;
     this.name = name;
-
-    this.routes = [];
+    this.routes = routes;
   }
 
   public addRoutes(routes: INavRoute[]): void {

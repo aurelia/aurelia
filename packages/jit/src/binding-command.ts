@@ -62,11 +62,12 @@ function isType<T>(this: IBindingCommandResource, Type: T & Partial<IBindingComm
 function define<T extends Constructable>(this: IBindingCommandResource, name: string, ctor: T): T & IBindingCommandType;
 function define<T extends Constructable>(this: IBindingCommandResource, definition: IBindingCommandDefinition, ctor: T): T & IBindingCommandType;
 function define<T extends Constructable>(this: IBindingCommandResource, nameOrDefinition: string | IBindingCommandDefinition, ctor: T): T & IBindingCommandType {
-  const Type = ctor as T & Writable<IBindingCommandType>;
+  const Type = ctor as T & IBindingCommandType;
+  const WritableType = Type as T & Writable<IBindingCommandType>;
   const description = typeof nameOrDefinition === 'string' ? { name: nameOrDefinition, target: null } : nameOrDefinition;
 
-  Type.kind = BindingCommandResource;
-  Type.description = description;
+  WritableType.kind = BindingCommandResource as IBindingCommandResource;
+  WritableType.description = description;
   Type.register = register;
 
   return Type;

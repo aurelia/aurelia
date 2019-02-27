@@ -1,6 +1,8 @@
-import { IContainer } from '@aurelia/kernel';
+import { IContainer, Reporter } from '@aurelia/kernel';
 import { CustomElementResource, ICustomElement, ICustomElementType, INode, IRenderContext, LifecycleFlags } from '@aurelia/runtime';
 import { INavigationInstruction } from './history-browser';
+import { mergeParameters } from './parser';
+import { Viewport } from './viewport';
 import { ViewportInstruction } from './viewport-instruction';
 
 export interface IRouteableCustomElementType extends Partial<ICustomElementType> {
@@ -8,7 +10,7 @@ export interface IRouteableCustomElementType extends Partial<ICustomElementType>
 }
 
 export interface IRouteableCustomElement extends ICustomElement {
-  canEnter?(nextInstruction?: INavigationInstruction, instruction?: INavigationInstruction): boolean | string | ViewportInstruction[] | Promise<boolean | string | ViewportInstruction[]>;
+  canEnter?(parameters?: string[] | Record<string, string>, nextInstruction?: INavigationInstruction, instruction?: INavigationInstruction): boolean | string | ViewportInstruction[] | Promise<boolean | string | ViewportInstruction[]>;
   enter?(parameters?: string[] | Record<string, string>, nextInstruction?: INavigationInstruction, instruction?: INavigationInstruction): void | Promise<void>;
   canLeave?(nextInstruction?: INavigationInstruction, instruction?: INavigationInstruction): boolean | Promise<boolean>;
   leave?(nextInstruction?: INavigationInstruction, instruction?: INavigationInstruction): void | Promise<void>;
@@ -16,9 +18,9 @@ export interface IRouteableCustomElement extends ICustomElement {
 
 export const enum ContentStatus {
   none = 0,
-  loaded = 1,
-  initialized = 2,
-  entered = 3,
+  created = 1,
+  loaded = 2,
+  initialized = 3,
   added = 4,
 }
 
@@ -28,6 +30,7 @@ export class ViewportContent {
   public instruction: INavigationInstruction;
   public component: IRouteableCustomElement;
   public contentStatus: ContentStatus;
+  public entered: boolean;
   public fromCache: boolean;
 
   constructor(content: Partial<ICustomElementType> | string = null, parameters: string = null, instruction: INavigationInstruction = null, context: IRenderContext = null) {
@@ -37,6 +40,7 @@ export class ViewportContent {
     this.instruction = instruction;
     this.component = null;
     this.contentStatus = ContentStatus.none;
+    this.entered = false;
     this.fromCache = false;
 
     // If we've got a container, we're good to resolve type
@@ -58,10 +62,89 @@ export class ViewportContent {
       this.parameters === other.parameters;
   }
 
-  public loadComponent(context: IRenderContext, element: Element): Promise<void> {
+  public createComponent(context: IRenderContext): void {
+    if (this.contentStatus !== ContentStatus.none) {
+      return;
+    }
     // Don't load cached content
     if (!this.fromCache) {
       this.component = this.componentInstance(context);
+    }
+    this.contentStatus = ContentStatus.created;
+  }
+  public destroyComponent(): void {
+    // TODO: We might want to do something here eventually, who knows?
+    if (this.contentStatus !== ContentStatus.created) {
+      return;
+    }
+    // Don't destroy components when stateful
+    this.contentStatus = ContentStatus.none;
+  }
+
+  public canEnter(viewport: Viewport, previousInstruction: INavigationInstruction): Promise<boolean | ViewportInstruction[]> {
+    if (!this.component) {
+      return Promise.resolve(false);
+    }
+
+    if (!this.component.canEnter) {
+      return Promise.resolve(true);
+    }
+
+    const merged = mergeParameters(this.parameters, this.instruction.query, (this.content as IRouteableCustomElementType).parameters);
+    this.instruction.parameters = merged.namedParameters;
+    this.instruction.parameterList = merged.parameterList;
+    const result = this.component.canEnter(merged.merged, this.instruction, previousInstruction);
+    Reporter.write(10000, 'viewport canEnter', result);
+    if (typeof result === 'boolean') {
+      return Promise.resolve(result);
+    }
+    if (typeof result === 'string') {
+      return Promise.resolve([new ViewportInstruction(result, viewport)]);
+    }
+    return result as Promise<ViewportInstruction[]>;
+  }
+  public canLeave(nextInstruction: INavigationInstruction): Promise<boolean> {
+    if (!this.component || !this.component.canLeave) {
+      return Promise.resolve(true);
+    }
+
+    const result = this.component.canLeave(this.instruction, nextInstruction);
+    Reporter.write(10000, 'viewport canLeave', result);
+
+    if (typeof result === 'boolean') {
+      return Promise.resolve(result);
+    }
+    return result;
+  }
+
+  public async enter(previousInstruction: INavigationInstruction): Promise<void> {
+    if (this.contentStatus !== ContentStatus.created || this.entered) {
+      return;
+    }
+    if (this.component.enter) {
+      const merged = mergeParameters(this.parameters, this.instruction.query, (this.content as IRouteableCustomElementType).parameters);
+      this.instruction.parameters = merged.namedParameters;
+      this.instruction.parameterList = merged.parameterList;
+      await this.component.enter(merged.merged, this.instruction, previousInstruction);
+    }
+    this.entered = true;
+  }
+  public async leave(nextInstruction: INavigationInstruction): Promise<void> {
+    if (this.contentStatus !== ContentStatus.added || !this.entered) {
+      return;
+    }
+    if (this.component.leave) {
+      await this.component.leave(this.instruction, nextInstruction);
+    }
+    this.entered = false;
+  }
+
+  public loadComponent(context: IRenderContext, element: Element): Promise<void> {
+    if (this.contentStatus !== ContentStatus.created || !this.entered) {
+      return;
+    }
+    // Don't load cached content
+    if (!this.fromCache) {
       const host: INode = element as INode;
       const container = context;
       this.component.$hydrate(LifecycleFlags.none, container, host);
@@ -75,10 +158,13 @@ export class ViewportContent {
       return;
     }
     // Don't unload components when stateful
-    this.contentStatus = ContentStatus.none;
+    this.contentStatus = ContentStatus.created;
   }
 
   public initializeComponent(): void {
+    if (this.contentStatus !== ContentStatus.loaded) {
+      return;
+    }
     // Don't initialize cached content
     if (!this.fromCache) {
       this.component.$bind(LifecycleFlags.fromStartTask | LifecycleFlags.fromBind, null);
@@ -97,6 +183,9 @@ export class ViewportContent {
   }
 
   public addComponent(element: Element): void {
+    if (this.contentStatus !== ContentStatus.initialized) {
+      return;
+    }
     this.component.$attach(LifecycleFlags.fromStartTask);
     if (this.fromCache) {
       const elements = Array.from(element.getElementsByTagName('*'));
@@ -111,7 +200,7 @@ export class ViewportContent {
     this.contentStatus = ContentStatus.added;
   }
   public removeComponent(element: Element, stateful: boolean = false): void {
-    if (this.contentStatus !== ContentStatus.added) {
+    if (this.contentStatus !== ContentStatus.added || this.entered) {
       return;
     }
     if (stateful) {
@@ -123,24 +212,21 @@ export class ViewportContent {
       }
     }
     this.component.$detach(LifecycleFlags.fromStopTask);
-    this.contentStatus = ContentStatus.added;
+    this.contentStatus = ContentStatus.initialized;
   }
 
-  public async freeContent(element: Element, stateful: boolean = false): Promise<void> {
+  public async freeContent(element: Element, nextInstruction: INavigationInstruction, stateful: boolean = false): Promise<void> {
     switch (this.contentStatus) {
       case ContentStatus.added:
+        await this.leave(nextInstruction);
         this.removeComponent(element, stateful);
-      case ContentStatus.entered:
-        if (this.component.leave) {
-          await this.component.leave();
-        }
-        this.contentStatus = ContentStatus.initialized;
       case ContentStatus.initialized:
         this.terminateComponent(stateful);
       case ContentStatus.loaded:
         this.unloadComponent();
+      case ContentStatus.created:
+        this.destroyComponent();
     }
-    this.contentStatus = ContentStatus.none;
   }
 
   public componentName(): string {

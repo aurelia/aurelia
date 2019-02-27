@@ -66,8 +66,8 @@ export interface IDisposable {
 }
 
 export type Constructable<T = {}> = {
-  // tslint:disable-next-line:no-any no-useless-intersection callable-types
-  new(...args: unknown[]): T & any; // this is a "hack" to stop typescript from nagging about the type parameter T being unused (the parameter may be used for type inference)
+  // tslint:disable-next-line:callable-types
+  new(...args: unknown[]): T;
 };
 
 export type Class<T, C = IIndexable> = C & {
@@ -84,11 +84,11 @@ export type ConstructableClass<T, C = IIndexable> = C & {
   new(...args: unknown[]): T & { constructor: C };
 };
 
-export type InterfaceSymbol<T = unknown> = (target: Injectable<T>, property: string, index: number) => any;
+export type InterfaceSymbol<T = unknown> = (target: Injectable<T>, property: string, index: number) => unknown;
 
-export type InjectArray = ReadonlyArray<InterfaceSymbol | Constructable | string>;
+export type InjectArray = ReadonlyArray<InterfaceSymbol<any> | Constructable | string>;
 
-export type Injectable<T = {}> = Constructable<T> & { inject?: (InterfaceSymbol|Constructable)[] };
+export type Injectable<T = {}> = Constructable<T> & { inject?: (InterfaceSymbol | Constructable)[] };
 
 export type IIndexable<T extends object = object> = T & { [key: string]: unknown };
 
@@ -120,8 +120,7 @@ export type Writable<T> = {
 
 export type Diff<T extends string, U extends string> = ({[P in T]: P } & {[P in U]: never } & { [x: string]: never })[T];
 
-// tslint:disable-next-line:no-any
-export type Omit<T, K extends keyof T> = T extends any ? Pick<T, Exclude<keyof T, K>> : never;
+export type Omit<T, K extends keyof T> = T extends {} ? Pick<T, Exclude<keyof T, K>> : never;
 
 export type Overwrite<T1, T2> = Pick<T1, Exclude<keyof T1, keyof T2>> & T2;
 

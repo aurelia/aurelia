@@ -23,9 +23,9 @@ describe('InstructionResolver', function () {
       new ViewportInstruction('foo', 'left', '123'),
       new ViewportInstruction('bar', 'right', '456'),
     ];
-    let instructionsString = router.instructionResolver.viewportInstructionsToString(instructions);
+    let instructionsString = router.instructionResolver.stringifyViewportInstructions(instructions);
     expect(instructionsString).to.equal('foo@left=123+bar@right=456');
-    let newInstructions = router.instructionResolver.viewportInstructionsFromString(instructionsString);
+    let newInstructions = router.instructionResolver.parseViewportInstructions(instructionsString);
     expect(newInstructions).to.deep.equal(instructions);
 
     instructions = [
@@ -33,9 +33,9 @@ describe('InstructionResolver', function () {
       new ViewportInstruction('bar', 'right'),
       new ViewportInstruction('baz'),
     ];
-    instructionsString = router.instructionResolver.viewportInstructionsToString(instructions);
+    instructionsString = router.instructionResolver.stringifyViewportInstructions(instructions);
     expect(instructionsString).to.equal('foo=123+bar@right+baz');
-    newInstructions = router.instructionResolver.viewportInstructionsFromString(instructionsString);
+    newInstructions = router.instructionResolver.parseViewportInstructions(instructionsString);
     expect(newInstructions).to.deep.equal(instructions);
 
     await teardown(host, router);
@@ -51,6 +51,8 @@ describe('InstructionResolver', function () {
     { instruction: 'foo@left', viewportInstruction: new ViewportInstruction('foo', 'left') },
     { instruction: 'foo@left=123', viewportInstruction: new ViewportInstruction('foo', 'left', '123') },
     { instruction: 'foo=123', viewportInstruction: new ViewportInstruction('foo', undefined, '123') },
+    { instruction: 'foo/bar', viewportInstruction: new ViewportInstruction('foo', undefined, undefined, false, new ViewportInstruction('bar')) },
+    { instruction: 'foo=123/bar@left/baz', viewportInstruction: new ViewportInstruction('foo', undefined, '123', false, new ViewportInstruction('bar', 'left', undefined, false, new ViewportInstruction('baz'))) },
   ];
 
   for (const instructionTest of instructions) {
@@ -62,6 +64,8 @@ describe('InstructionResolver', function () {
 
       const parsed = router.instructionResolver.parseViewportInstruction(instruction);
       expect(parsed).to.deep.equal(viewportInstruction);
+      const newInstruction = router.instructionResolver.stringifyViewportInstruction(parsed);
+      expect(newInstruction).to.equal(instruction);
 
       await teardown(host, router);
     });

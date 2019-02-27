@@ -1,6 +1,6 @@
 import { inject } from '@aurelia/kernel';
 import { customElement, ICustomElement } from '@aurelia/runtime';
-import { Router } from '../../../../../src';
+import { Router } from '../../../../../../src';
 import { State } from '../state';
 import { wait } from '../utils';
 

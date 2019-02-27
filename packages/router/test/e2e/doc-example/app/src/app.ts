@@ -1,6 +1,6 @@
 import { inject } from '@aurelia/kernel';
 import { customElement } from '@aurelia/runtime';
-import { Router } from '../../../../../router/src/index';
+import { Router } from '../../../../../../router/src/index';
 import { About } from './components/about';
 import { Authors } from './components/authors/authors';
 import { Books } from './components/books/books';

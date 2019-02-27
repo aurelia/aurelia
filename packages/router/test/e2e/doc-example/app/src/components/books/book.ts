@@ -1,6 +1,6 @@
 import { inject } from '@aurelia//kernel';
 import { customElement } from '@aurelia/runtime';
-import { Router } from '../../../../../../src';
+import { Router } from '../../../../../../../src';
 import { BooksRepository } from '../../repositories/books';
 import { Information } from './information';
 import { RedirectAbout } from './redirect-about';

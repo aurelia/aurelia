@@ -25,8 +25,8 @@ this.au.runtimePixi = (function (exports, kernel, runtimeHtmlBrowser, runtime, p
     }
 
     exports.PixiApp = class PixiApp {
-        constructor(element) {
-            this.element = element;
+        constructor(...args) {
+            this.element = args[0];
             this._app = null;
             this.stage = null;
             this.callTick = (delta) => {
@@ -66,15 +66,21 @@ this.au.runtimePixi = (function (exports, kernel, runtimeHtmlBrowser, runtime, p
             this.stage = this._app.stage;
         }
         attached() {
-            this.element.appendChild(this.app.view);
-            this._app.ticker.add(this.callTick);
+            if (this._app !== null) {
+                this.element.appendChild(this._app.view);
+                this._app.ticker.add(this.callTick);
+            }
         }
         detached() {
-            this.element.removeChild(this.app.view);
-            this._app.ticker.remove(this.callTick);
+            if (this._app !== null) {
+                this.element.removeChild(this._app.view);
+                this._app.ticker.remove(this.callTick);
+            }
         }
         unbound() {
-            this.app.destroy();
+            if (this.app !== null) {
+                this.app.destroy();
+            }
             this._app = null;
             this.stage = null;
         }
@@ -182,42 +188,43 @@ this.au.runtimePixi = (function (exports, kernel, runtimeHtmlBrowser, runtime, p
             return this._sprite;
         }
         get localTransform() {
-            return this._sprite.localTransform;
+            return this.sprite.localTransform;
         }
         get parent() {
-            return this._sprite.parent;
+            return this.sprite.parent;
         }
         get worldAlpha() {
-            return this._sprite.worldAlpha;
+            return this.sprite.worldAlpha;
         }
         get worldTransform() {
-            return this._sprite.worldTransform;
+            return this.sprite.worldTransform;
         }
         get worldVisible() {
-            return this._sprite.worldVisible;
+            return this.sprite.worldVisible;
         }
         // Container properties
         // http://pixijs.download/dev/docs/PIXI.Container.html
         get children() {
-            return this._sprite.children;
+            return this.sprite.children;
         }
         get isSprite() {
-            return this._sprite['isSprite'];
+            return this.sprite['isSprite'];
         }
         attached() {
             if (this.container) {
+                const $this = this;
                 this._sprite = new pixi_js.Sprite(pixi_js.loader.resources[this.src].texture);
                 for (const prop of directProps) {
-                    if (this[prop] !== undefined) {
-                        this._sprite[prop] = this[prop];
+                    if ($this[prop] !== undefined) {
+                        this._sprite[prop] = $this[prop];
                     }
                 }
                 for (const prop of pointProps) {
-                    if (this[`${prop}X`] !== undefined) {
-                        this._sprite[prop].x = this[`${prop}X`];
+                    if ($this[`${prop}X`] !== undefined) {
+                        this._sprite[prop].x = $this[`${prop}X`];
                     }
-                    if (this[`${prop}Y`] !== undefined) {
-                        this._sprite[prop].y = this[`${prop}Y`];
+                    if ($this[`${prop}Y`] !== undefined) {
+                        this._sprite[prop].y = $this[`${prop}Y`];
                     }
                 }
                 this.width = this._sprite.width;
@@ -354,19 +361,19 @@ this.au.runtimePixi = (function (exports, kernel, runtimeHtmlBrowser, runtime, p
     ], exports.PixiSprite);
     for (const prop of directProps) {
         exports.PixiSprite.prototype[`${prop}Changed`] = function (newValue) {
-            if (this.$state & 2 /* isBound */ && this.sprite !== null && newValue) {
+            if (this.$state !== undefined && (this.$state & 2 /* isBound */) && this.sprite !== null && newValue !== undefined) {
                 this.sprite[prop] = newValue;
             }
         };
     }
     for (const prop of pointProps) {
         exports.PixiSprite.prototype[`${prop}XChanged`] = function (newValue) {
-            if (this.$state & 2 /* isBound */ && this.sprite !== null && newValue) {
+            if (this.$state !== undefined && (this.$state & 2 /* isBound */) && this.sprite !== null && newValue !== undefined) {
                 this.sprite[prop].x = newValue;
             }
         };
         exports.PixiSprite.prototype[`${prop}YChanged`] = function (newValue) {
-            if (this.$state & 2 /* isBound */ && this.sprite !== null && newValue) {
+            if (this.$state !== undefined && (this.$state & 2 /* isBound */) && this.sprite !== null && newValue !== undefined) {
                 this.sprite[prop].y = newValue;
             }
         };

@@ -27,7 +27,7 @@ export declare class HttpClient {
     /**
      * The default request init to merge with values specified at request time.
      */
-    defaults: RequestInit;
+    defaults: RequestInit | null;
     /**
      * The interceptors to be run during requests.
      */
@@ -61,7 +61,7 @@ export declare class HttpClient {
      * @returns A Promise for the Response from the fetch request.
      */
     fetch(input: Request | string, init?: RequestInit): Promise<Response>;
-    buildRequest(input: string | Request, init: RequestInit): Request;
+    buildRequest(input: string | Request, init: RequestInit | undefined): Request;
     /**
      * Calls fetch as a GET request.
      *

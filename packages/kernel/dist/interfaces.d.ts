@@ -51,7 +51,7 @@ export interface IDisposable {
     dispose(): void;
 }
 export declare type Constructable<T = {}> = {
-    new (...args: unknown[]): T & any;
+    new (...args: unknown[]): T;
 };
 export declare type Class<T, C = IIndexable> = C & {
     readonly prototype: T;
@@ -65,8 +65,8 @@ export declare type ConstructableClass<T, C = IIndexable> = C & {
         constructor: C;
     };
 };
-export declare type InterfaceSymbol<T = unknown> = (target: Injectable<T>, property: string, index: number) => any;
-export declare type InjectArray = ReadonlyArray<InterfaceSymbol | Constructable | string>;
+export declare type InterfaceSymbol<T = unknown> = (target: Injectable<T>, property: string, index: number) => unknown;
+export declare type InjectArray = ReadonlyArray<InterfaceSymbol<any> | Constructable | string>;
 export declare type Injectable<T = {}> = Constructable<T> & {
     inject?: (InterfaceSymbol | Constructable)[];
 };
@@ -89,7 +89,7 @@ export declare type Diff<T extends string, U extends string> = ({
 } & {
     [x: string]: never;
 })[T];
-export declare type Omit<T, K extends keyof T> = T extends any ? Pick<T, Exclude<keyof T, K>> : never;
+export declare type Omit<T, K extends keyof T> = T extends {} ? Pick<T, Exclude<keyof T, K>> : never;
 export declare type Overwrite<T1, T2> = Pick<T1, Exclude<keyof T1, keyof T2>> & T2;
 export declare type KnownKeys<T> = {
     [K in keyof T]: string extends K ? never : number extends K ? never : K;

@@ -20,7 +20,7 @@ export declare class Nav {
     name: string;
     routes: NavRoute[];
     router: Router;
-    constructor(router: Router, name: string);
+    constructor(router: Router, name: string, routes?: NavRoute[]);
     addRoutes(routes: INavRoute[]): void;
     addRoute(routes: NavRoute[], route: INavRoute): void;
 }

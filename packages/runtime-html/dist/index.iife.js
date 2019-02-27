@@ -1850,7 +1850,6 @@ this.au.runtimeHtml = (function (exports, kernel, runtime) {
           }
           this.shadowRoot = host.attachShadow(shadowOptions);
           this.host.$customElement = $customElement;
-          // tslint:disable-next-line:no-unnecessary-type-assertion // this is a false positive
           this.shadowRoot.$customElement = $customElement;
       }
       get children() {
@@ -1879,7 +1878,6 @@ this.au.runtimeHtml = (function (exports, kernel, runtime) {
           else {
               this.childNodes = kernel.PLATFORM.emptyArray;
           }
-          // tslint:disable-next-line:no-unnecessary-type-assertion // this is a false positive
           this.host = dom.convertToRenderLocation(host);
           this.host.$customElement = $customElement;
       }

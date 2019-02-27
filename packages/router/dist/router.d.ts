@@ -44,7 +44,7 @@ export declare class Router {
     linkCallback: (info: AnchorEventInfo) => void;
     historyCallback(instruction: INavigationInstruction): void;
     processNavigations(): Promise<void>;
-    addProcessingViewport(component: string | Partial<ICustomElementType>, viewport: Viewport | string): void;
+    addProcessingViewport(componentOrInstruction: string | Partial<ICustomElementType> | ViewportInstruction, viewport?: Viewport | string): void;
     findScope(element: Element): Scope;
     addViewport(name: string, element: Element, context: IRenderContext, options?: IViewportOptions): Viewport;
     removeViewport(viewport: Viewport, element: Element, context: IRenderContext): void;

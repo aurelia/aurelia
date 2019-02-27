@@ -25,7 +25,7 @@
                   dom = new runtimeHtml.HTMLDOM(this.jsdom.window, config.host.ownerDocument, this.jsdom.window.Node, this.jsdom.window.Element, this.jsdom.window.HTMLElement, this.jsdom.window.CustomEvent);
               }
               else {
-                  if (config.host) {
+                  if (config.host !== undefined) {
                       this.jsdom.window.document.body.appendChild(config.host);
                   }
                   dom = new runtimeHtml.HTMLDOM(this.jsdom.window, this.jsdom.window.document, this.jsdom.window.Node, this.jsdom.window.Element, this.jsdom.window.HTMLElement, this.jsdom.window.CustomEvent);

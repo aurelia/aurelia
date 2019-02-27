@@ -214,7 +214,7 @@ System.register('pluginSvg', ['@aurelia/runtime-html'], function (exports, modul
           div.innerHTML = html;
           return div.firstElementChild;
       }
-      if (createElement('<svg><altGlyph /></svg>').firstElementChild.nodeName === 'altglyph' && svgElements.altGlyph) {
+      if (createElement('<svg><altGlyph /></svg>').firstElementChild.nodeName === 'altglyph' && svgElements.altGlyph !== undefined) {
           // handle chrome casing inconsistencies.
           svgElements.altglyph = svgElements.altGlyph;
           Reflect.deleteProperty(svgElements, 'altGlyph');
@@ -235,8 +235,8 @@ System.register('pluginSvg', ['@aurelia/runtime-html'], function (exports, modul
                           return false;
                       }
                       const nodeName = node.nodeName;
-                      return svgPresentationElements[nodeName] && svgPresentationAttributes[attributeName]
-                          || svgElements[nodeName] && svgElements[nodeName].indexOf(attributeName) !== -1;
+                      return svgPresentationElements[nodeName] !== undefined && svgPresentationAttributes[attributeName] !== undefined
+                          || svgElements[nodeName] !== undefined && svgElements[nodeName].indexOf(attributeName) !== -1;
                   } });
           });
       }

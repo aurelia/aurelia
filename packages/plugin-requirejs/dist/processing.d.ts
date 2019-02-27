@@ -13,6 +13,6 @@ export declare function kebabCase(name: string): string;
 export declare function escape(content: string): string;
 export declare function createTemplateDescription(template: string): ITemplateDescription;
 export declare function parseImport(value: string): ITemplateImport;
-export declare function relativeToFile(name: string, file: string): string;
-export declare function loadFromFile(url: string, callback: (content: string) => void, errback: (error: Error) => void): void;
+export declare function relativeToFile(name: string, file?: string): string;
+export declare function loadFromFile(url: string, callback: (content: string) => void, errback?: (error: Error) => void): void;
 //# sourceMappingURL=processing.d.ts.map

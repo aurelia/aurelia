@@ -883,11 +883,12 @@ function isType(Type) {
 }
 function define(nameOrDefinition, ctor) {
     const Type = ctor;
+    const WritableType = Type;
     const description = typeof nameOrDefinition === 'string'
         ? { name: nameOrDefinition }
         : nameOrDefinition;
-    Type.kind = BindingBehaviorResource;
-    Type.description = description;
+    WritableType.kind = BindingBehaviorResource;
+    WritableType.description = description;
     Type.register = register;
     return Type;
 }
@@ -2925,7 +2926,6 @@ function connectableDecorator(target) {
         proto.unobserve = unobserve;
     if (!proto.hasOwnProperty('addObserver'))
         proto.addObserver = addObserver;
-    // tslint:disable-next-line:no-unnecessary-type-assertion // this is a false positive
     return target;
 }
 function connectable(target) {
@@ -5724,7 +5724,6 @@ function $unbindElement(flags) {
             binding.$unbind(flags);
             binding = binding.$prevBinding;
         }
-        // tslint:disable-next-line:no-unnecessary-type-assertion // this is a false positive
         this.$scope.parentScope = null;
         // remove isBound and isUnbinding flags
         this.$state &= ~(2 /* isBound */ | 64 /* isUnbinding */);
@@ -6328,9 +6327,10 @@ function define$2(nameOrDefinition, ctor = null) {
     }
     const Type = (ctor === null ? class HTMLOnlyElement {
     } : ctor);
+    const WritableType = Type;
     const description = buildTemplateDefinition(Type, nameOrDefinition);
     const proto = Type.prototype;
-    Type.kind = CustomElementResource;
+    WritableType.kind = CustomElementResource;
     Type.description = description;
     Type.register = registerElement;
     proto.$hydrate = $hydrateElement;
@@ -6505,10 +6505,11 @@ function isType$3(Type) {
 }
 function define$3(nameOrDefinition, ctor) {
     const Type = ctor;
+    const WritableType = Type;
     const description = createCustomAttributeDescription(typeof nameOrDefinition === 'string' ? { name: nameOrDefinition } : nameOrDefinition, Type);
     const proto = Type.prototype;
-    Type.kind = CustomAttributeResource;
-    Type.description = description;
+    WritableType.kind = CustomAttributeResource;
+    WritableType.description = description;
     Type.register = registerAttribute;
     proto.$hydrate = $hydrateAttribute;
     proto.$bind = $bindAttribute;

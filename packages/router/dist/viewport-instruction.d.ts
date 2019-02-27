@@ -10,8 +10,9 @@ export declare class ViewportInstruction {
     parametersString?: string;
     parameters?: Record<string, unknown>;
     parametersList?: string[];
-    scope?: boolean;
-    constructor(component: Partial<ICustomElementType> | string, viewport?: Viewport | string, parameters?: Record<string, unknown> | string, scope?: boolean);
+    ownsScope?: boolean;
+    nextScopeInstruction?: ViewportInstruction;
+    constructor(component: Partial<ICustomElementType> | string, viewport?: Viewport | string, parameters?: Record<string, unknown> | string, ownsScope?: boolean, nextScopeInstruction?: ViewportInstruction);
     setComponent(component: Partial<ICustomElementType> | string): void;
     setViewport(viewport: Viewport | string): void;
     setParameters(parameters: Record<string, unknown> | string): void;

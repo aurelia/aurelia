@@ -8,6 +8,7 @@ export interface IRouteSeparators {
     scope: string;
     ownsScope: string;
     parameters: string;
+    parameter: string;
     add: string;
     clear: string;
     action: string;
@@ -16,7 +17,9 @@ export declare class InstructionResolver {
     separators: IRouteSeparators;
     activate(options?: IInstructionResolverOptions): void;
     readonly clearViewportInstruction: string;
+    parseViewportInstructions(instructions: string): ViewportInstruction[];
     parseViewportInstruction(instruction: string): ViewportInstruction;
+    stringifyViewportInstructions(instructions: ViewportInstruction[]): string;
     stringifyViewportInstruction(instruction: ViewportInstruction | string, excludeViewport?: boolean): string;
     parseScopedViewportInstruction(instruction: string): ViewportInstruction[];
     stringifyScopedViewportInstruction(instructions: ViewportInstruction | string | (ViewportInstruction | string)[]): string;
@@ -25,10 +28,9 @@ export declare class InstructionResolver {
         clearViewports: boolean;
         newPath: string;
     };
-    findViews(path: string): Record<string, string>;
-    viewportInstructionsToString(instructions: ViewportInstruction[]): string;
-    viewportInstructionsFromString(instructionsString: string): ViewportInstruction[];
     removeStateDuplicates(states: string[]): string[];
     stateStringsToString(stateStrings: string[], clear?: boolean): string;
+    private parseAViewportInstruction;
+    private stringifyAViewportInstruction;
 }
 //# sourceMappingURL=instruction-resolver.d.ts.map

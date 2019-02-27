@@ -2943,11 +2943,12 @@ var au = (function (exports) {
     }
     function define(nameOrDefinition, ctor) {
         const Type = ctor;
+        const WritableType = Type;
         const description = typeof nameOrDefinition === 'string'
             ? { name: nameOrDefinition }
             : nameOrDefinition;
-        Type.kind = BindingBehaviorResource;
-        Type.description = description;
+        WritableType.kind = BindingBehaviorResource;
+        WritableType.description = description;
         Type.register = register;
         return Type;
     }
@@ -4985,7 +4986,6 @@ var au = (function (exports) {
             proto.unobserve = unobserve;
         if (!proto.hasOwnProperty('addObserver'))
             proto.addObserver = addObserver;
-        // tslint:disable-next-line:no-unnecessary-type-assertion // this is a false positive
         return target;
     }
     function connectable(target) {
@@ -7784,7 +7784,6 @@ var au = (function (exports) {
                 binding.$unbind(flags);
                 binding = binding.$prevBinding;
             }
-            // tslint:disable-next-line:no-unnecessary-type-assertion // this is a false positive
             this.$scope.parentScope = null;
             // remove isBound and isUnbinding flags
             this.$state &= ~(2 /* isBound */ | 64 /* isUnbinding */);
@@ -8388,9 +8387,10 @@ var au = (function (exports) {
         }
         const Type = (ctor === null ? class HTMLOnlyElement {
         } : ctor);
+        const WritableType = Type;
         const description = buildTemplateDefinition(Type, nameOrDefinition);
         const proto = Type.prototype;
-        Type.kind = CustomElementResource;
+        WritableType.kind = CustomElementResource;
         Type.description = description;
         Type.register = registerElement;
         proto.$hydrate = $hydrateElement;
@@ -8565,10 +8565,11 @@ var au = (function (exports) {
     }
     function define$3(nameOrDefinition, ctor) {
         const Type = ctor;
+        const WritableType = Type;
         const description = createCustomAttributeDescription(typeof nameOrDefinition === 'string' ? { name: nameOrDefinition } : nameOrDefinition, Type);
         const proto = Type.prototype;
-        Type.kind = CustomAttributeResource;
-        Type.description = description;
+        WritableType.kind = CustomAttributeResource;
+        WritableType.description = description;
         Type.register = registerAttribute;
         proto.$hydrate = $hydrateAttribute;
         proto.$bind = $bindAttribute;
@@ -10049,9 +10050,10 @@ var au = (function (exports) {
     }
     function define$4(nameOrDefinition, ctor) {
         const Type = ctor;
+        const WritableType = Type;
         const description = typeof nameOrDefinition === 'string' ? { name: nameOrDefinition, target: null } : nameOrDefinition;
-        Type.kind = BindingCommandResource;
-        Type.description = description;
+        WritableType.kind = BindingCommandResource;
+        WritableType.description = description;
         Type.register = register$2;
         return Type;
     }
@@ -13704,7 +13706,6 @@ var au = (function (exports) {
             }
             this.shadowRoot = host.attachShadow(shadowOptions);
             this.host.$customElement = $customElement;
-            // tslint:disable-next-line:no-unnecessary-type-assertion // this is a false positive
             this.shadowRoot.$customElement = $customElement;
         }
         get children() {
@@ -13733,7 +13734,6 @@ var au = (function (exports) {
             else {
                 this.childNodes = PLATFORM.emptyArray;
             }
-            // tslint:disable-next-line:no-unnecessary-type-assertion // this is a false positive
             this.host = dom.convertToRenderLocation(host);
             this.host.$customElement = $customElement;
         }

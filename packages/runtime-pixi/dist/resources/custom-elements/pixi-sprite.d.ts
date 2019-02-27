@@ -5,7 +5,9 @@ export interface PixiSprite extends ICustomElement<Node> {
 }
 export declare class PixiSprite {
     static readonly register: IRegistry['register'];
-    readonly sprite: Sprite;
+    readonly sprite: Sprite & {
+        [key: string]: unknown;
+    };
     container?: Container;
     src?: string;
     alpha?: number;

@@ -517,9 +517,10 @@ System.register('jit', ['@aurelia/kernel', '@aurelia/runtime'], function (export
       }
       function define(nameOrDefinition, ctor) {
           const Type = ctor;
+          const WritableType = Type;
           const description = typeof nameOrDefinition === 'string' ? { name: nameOrDefinition, target: null } : nameOrDefinition;
-          Type.kind = BindingCommandResource;
-          Type.description = description;
+          WritableType.kind = BindingCommandResource;
+          WritableType.description = description;
           Type.register = register;
           return Type;
       }

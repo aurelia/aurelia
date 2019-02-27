@@ -490,15 +490,19 @@ System.register('router', ['@aurelia/kernel', '@aurelia/runtime'], function (exp
       } exports('LinkHandler', LinkHandler);
 
       class ViewportInstruction {
-          constructor(component, viewport, parameters, scope) {
+          constructor(component, viewport, parameters, ownsScope = false, nextScopeInstruction = null) {
+              this.component = null;
+              this.componentName = null;
+              this.viewport = null;
+              this.viewportName = null;
+              this.parametersString = null;
+              this.parameters = null;
+              this.parametersList = null;
               this.setComponent(component);
-              if (viewport) {
-                  this.setViewport(viewport);
-              }
-              if (parameters) {
-                  this.setParameters(parameters);
-              }
-              this.scope = !!scope;
+              this.setViewport(viewport);
+              this.setParameters(parameters);
+              this.ownsScope = ownsScope;
+              this.nextScopeInstruction = nextScopeInstruction;
           }
           setComponent(component) {
               if (typeof component === 'string') {
@@ -511,18 +515,24 @@ System.register('router', ['@aurelia/kernel', '@aurelia/runtime'], function (exp
               }
           }
           setViewport(viewport) {
+              if (viewport === undefined || viewport === '') {
+                  viewport = null;
+              }
               if (typeof viewport === 'string') {
                   this.viewportName = viewport;
                   this.viewport = null;
               }
               else {
                   this.viewport = viewport;
-                  if (viewport) {
+                  if (viewport !== null) {
                       this.viewportName = viewport.name;
                   }
               }
           }
           setParameters(parameters) {
+              if (parameters === undefined || parameters === '') {
+                  parameters = null;
+              }
               if (typeof parameters === 'string') {
                   this.parametersString = parameters;
                   // TODO: Initialize parameters better and more of them and just fix this
@@ -588,7 +598,7 @@ System.register('router', ['@aurelia/kernel', '@aurelia/runtime'], function (exp
               }
           }
           _active() {
-              const components = this.nav.router.instructionResolver.viewportInstructionsFromString(this.linkActive);
+              const components = this.nav.router.instructionResolver.parseViewportInstructions(this.linkActive);
               const activeComponents = this.nav.router.activeComponents.map((state) => this.nav.router.instructionResolver.parseViewportInstruction(state));
               for (const component of components) {
                   if (!activeComponents.find((active) => active.sameComponent(component))) {
@@ -601,7 +611,7 @@ System.register('router', ['@aurelia/kernel', '@aurelia/runtime'], function (exp
               this.active = (this.active.startsWith('nav-active') ? '' : 'nav-active');
           }
           _link(instructions) {
-              return this.nav.router.instructionResolver.viewportInstructionsToString(instructions);
+              return this.nav.router.instructionResolver.stringifyViewportInstructions(instructions);
           }
           parseRoute(routes) {
               if (!Array.isArray(routes)) {
@@ -638,10 +648,10 @@ System.register('router', ['@aurelia/kernel', '@aurelia/runtime'], function (exp
       }
 
       class Nav {
-          constructor(router, name) {
+          constructor(router, name, routes = []) {
               this.router = router;
               this.name = name;
-              this.routes = [];
+              this.routes = routes;
           }
           addRoutes(routes) {
               for (const route of routes) {
@@ -1129,6 +1139,7 @@ System.register('router', ['@aurelia/kernel', '@aurelia/runtime'], function (exp
                   scope: '/',
                   ownsScope: '!',
                   parameters: '=',
+                  parameter: '&',
                   add: '+',
                   clear: '-',
                   action: '.',
@@ -1137,41 +1148,35 @@ System.register('router', ['@aurelia/kernel', '@aurelia/runtime'], function (exp
           get clearViewportInstruction() {
               return this.separators.clear;
           }
+          parseViewportInstructions(instructions) {
+              if (instructions === null || instructions === '') {
+                  return [];
+              }
+              if (instructions.startsWith('/')) {
+                  instructions = instructions.slice(1);
+              }
+              return instructions.split(this.separators.sibling).map((instruction) => this.parseViewportInstruction(instruction));
+          }
           parseViewportInstruction(instruction) {
-              let component, viewport, parameters, scope;
-              const [componentPart, rest] = instruction.split(this.separators.viewport);
-              if (rest === undefined) {
-                  [component, ...parameters] = componentPart.split(this.separators.parameters);
-                  if (component.endsWith(this.separators.ownsScope)) {
-                      scope = true;
-                      component = component.slice(0, component.length - 1);
-                  }
+              const instructions = instruction.split(this.separators.scope).map((scopeInstruction) => this.parseAViewportInstruction(scopeInstruction));
+              for (let i = 0; i < instructions.length - 1; i++) {
+                  instructions[i].nextScopeInstruction = instructions[i + 1];
               }
-              else {
-                  component = componentPart;
-                  [viewport, ...parameters] = rest.split(this.separators.parameters);
-                  if (viewport.endsWith(this.separators.ownsScope)) {
-                      scope = true;
-                      viewport = viewport.slice(0, viewport.length - 1);
-                  }
-              }
-              parameters = parameters.length ? parameters.join(this.separators.parameters) : undefined;
-              return new ViewportInstruction(component, viewport, parameters, scope);
+              return instructions[0];
+          }
+          stringifyViewportInstructions(instructions) {
+              return instructions.map((instruction) => this.stringifyViewportInstruction(instruction)).join(this.separators.sibling);
           }
           stringifyViewportInstruction(instruction, excludeViewport = false) {
               if (typeof instruction === 'string') {
-                  return this.stringifyViewportInstruction(this.parseViewportInstruction(instruction), excludeViewport);
+                  return this.stringifyAViewportInstruction(instruction, excludeViewport);
               }
               else {
-                  let instructionString = instruction.componentName;
-                  if (instruction.viewportName && !excludeViewport) {
-                      instructionString += this.separators.viewport + instruction.viewportName;
+                  const instructions = [instruction];
+                  while (instruction = instruction.nextScopeInstruction) {
+                      instructions.push(instruction);
                   }
-                  if (instruction.parametersString) {
-                      // TODO: Review parameters in ViewportInstruction
-                      instructionString += this.separators.parameters + instruction.parametersString;
-                  }
-                  return instructionString;
+                  return instructions.map((scopeInstruction) => this.stringifyAViewportInstruction(scopeInstruction, excludeViewport)).join(this.separators.scope);
               }
           }
           parseScopedViewportInstruction(instruction) {
@@ -1191,57 +1196,8 @@ System.register('router', ['@aurelia/kernel', '@aurelia/runtime'], function (exp
           }
           shouldClearViewports(path) {
               const clearViewports = (path === this.separators.clear || path.startsWith(this.separators.clear + this.separators.add));
-              const newPath = path.startsWith(this.separators.clear) ? path.substring(1) : path;
+              const newPath = path.startsWith(this.separators.clear) ? path.slice(2) : path;
               return { clearViewports, newPath };
-          }
-          findViews(path) {
-              const views = {};
-              // TODO: Let this govern start of scope
-              if (path.startsWith('/')) {
-                  path = path.substring(1);
-              }
-              const sections = path.split(this.separators.sibling);
-              // TODO: Remove this once multi level recursiveness is fixed
-              // Expand with instances for all containing views
-              // const expandedSections: string[] = [];
-              // while (sections.length) {
-              //   const part = sections.shift();
-              //   const parts = part.split(this.separators.scope);
-              //   for (let i = 1; i <= parts.length; i++) {
-              //     expandedSections.push(parts.slice(0, i).join(this.separators.scope));
-              //   }
-              // }
-              // sections = expandedSections;
-              let index = 0;
-              while (sections.length) {
-                  const view = sections.shift();
-                  const scopes = view.split(this.separators.scope);
-                  const leaf = scopes.pop();
-                  const parts = leaf.split(this.separators.viewport);
-                  // Noooooo?
-                  const component = parts[0];
-                  scopes.push(parts.length ? parts.join(this.separators.viewport) : `?${index++}`);
-                  const name = scopes.join(this.separators.scope);
-                  if (component) {
-                      views[name] = component;
-                  }
-              }
-              return views;
-          }
-          viewportInstructionsToString(instructions) {
-              const stringInstructions = [];
-              for (const instruction of instructions) {
-                  stringInstructions.push(this.stringifyViewportInstruction(instruction));
-              }
-              return stringInstructions.join(this.separators.sibling);
-          }
-          viewportInstructionsFromString(instructionsString) {
-              const instructions = [];
-              const instructionStrings = instructionsString.split(this.separators.sibling);
-              for (const instructionString of instructionStrings) {
-                  instructions.push(this.parseViewportInstruction(instructionString));
-              }
-              return instructions;
           }
           removeStateDuplicates(states) {
               let sorted = states.slice().sort((a, b) => b.split(this.separators.scope).length - a.split(this.separators.scope).length);
@@ -1268,6 +1224,46 @@ System.register('router', ['@aurelia/kernel', '@aurelia/runtime'], function (exp
                   strings.unshift(this.clearViewportInstruction);
               }
               return strings.join(this.separators.sibling);
+          }
+          parseAViewportInstruction(instruction) {
+              let component;
+              let viewport;
+              let parameters;
+              let scope;
+              const [componentPart, rest] = instruction.split(this.separators.viewport);
+              if (rest === undefined) {
+                  [component, ...parameters] = componentPart.split(this.separators.parameters);
+                  if (component.endsWith(this.separators.ownsScope)) {
+                      scope = true;
+                      component = component.slice(0, -this.separators.ownsScope.length);
+                  }
+              }
+              else {
+                  component = componentPart;
+                  [viewport, ...parameters] = rest.split(this.separators.parameters);
+                  if (viewport.endsWith(this.separators.ownsScope)) {
+                      scope = true;
+                      viewport = viewport.slice(0, -this.separators.ownsScope.length);
+                  }
+              }
+              const parametersString = parameters.length ? parameters.join(this.separators.parameters) : undefined;
+              return new ViewportInstruction(component, viewport, parametersString, scope);
+          }
+          stringifyAViewportInstruction(instruction, excludeViewport = false) {
+              if (typeof instruction === 'string') {
+                  return this.stringifyViewportInstruction(this.parseViewportInstruction(instruction), excludeViewport);
+              }
+              else {
+                  let instructionString = instruction.componentName;
+                  if (instruction.viewportName !== null && !excludeViewport) {
+                      instructionString += this.separators.viewport + instruction.viewportName;
+                  }
+                  if (instruction.parametersString) {
+                      // TODO: Review parameters in ViewportInstruction
+                      instructionString += this.separators.parameters + instruction.parametersString;
+                  }
+                  return instructionString;
+              }
           }
       }
 
@@ -1352,9 +1348,9 @@ System.register('router', ['@aurelia/kernel', '@aurelia/runtime'], function (exp
       var ContentStatus;
       (function (ContentStatus) {
           ContentStatus[ContentStatus["none"] = 0] = "none";
-          ContentStatus[ContentStatus["loaded"] = 1] = "loaded";
-          ContentStatus[ContentStatus["initialized"] = 2] = "initialized";
-          ContentStatus[ContentStatus["entered"] = 3] = "entered";
+          ContentStatus[ContentStatus["created"] = 1] = "created";
+          ContentStatus[ContentStatus["loaded"] = 2] = "loaded";
+          ContentStatus[ContentStatus["initialized"] = 3] = "initialized";
           ContentStatus[ContentStatus["added"] = 4] = "added";
       })(ContentStatus || (ContentStatus = {}));
       class ViewportContent {
@@ -1365,6 +1361,7 @@ System.register('router', ['@aurelia/kernel', '@aurelia/runtime'], function (exp
               this.instruction = instruction;
               this.component = null;
               this.contentStatus = 0 /* none */;
+              this.entered = false;
               this.fromCache = false;
               // If we've got a container, we're good to resolve type
               if (this.content !== null && typeof this.content === 'string' && context !== null) {
@@ -1382,43 +1379,121 @@ System.register('router', ['@aurelia/kernel', '@aurelia/runtime'], function (exp
                   (typeof other.content !== 'string' && this.content === other.content)) &&
                   this.parameters === other.parameters;
           }
-          loadComponent(context, element) {
+          createComponent(context) {
+              if (this.contentStatus !== 0 /* none */) {
+                  return;
+              }
               // Don't load cached content
               if (!this.fromCache) {
                   this.component = this.componentInstance(context);
+              }
+              this.contentStatus = 1 /* created */;
+          }
+          destroyComponent() {
+              // TODO: We might want to do something here eventually, who knows?
+              if (this.contentStatus !== 1 /* created */) {
+                  return;
+              }
+              // Don't destroy components when stateful
+              this.contentStatus = 0 /* none */;
+          }
+          canEnter(viewport, previousInstruction) {
+              if (!this.component) {
+                  return Promise.resolve(false);
+              }
+              if (!this.component.canEnter) {
+                  return Promise.resolve(true);
+              }
+              const merged = mergeParameters(this.parameters, this.instruction.query, this.content.parameters);
+              this.instruction.parameters = merged.namedParameters;
+              this.instruction.parameterList = merged.parameterList;
+              const result = this.component.canEnter(merged.merged, this.instruction, previousInstruction);
+              Reporter.write(10000, 'viewport canEnter', result);
+              if (typeof result === 'boolean') {
+                  return Promise.resolve(result);
+              }
+              if (typeof result === 'string') {
+                  return Promise.resolve([new ViewportInstruction(result, viewport)]);
+              }
+              return result;
+          }
+          canLeave(nextInstruction) {
+              if (!this.component || !this.component.canLeave) {
+                  return Promise.resolve(true);
+              }
+              const result = this.component.canLeave(this.instruction, nextInstruction);
+              Reporter.write(10000, 'viewport canLeave', result);
+              if (typeof result === 'boolean') {
+                  return Promise.resolve(result);
+              }
+              return result;
+          }
+          async enter(previousInstruction) {
+              if (this.contentStatus !== 1 /* created */ || this.entered) {
+                  return;
+              }
+              if (this.component.enter) {
+                  const merged = mergeParameters(this.parameters, this.instruction.query, this.content.parameters);
+                  this.instruction.parameters = merged.namedParameters;
+                  this.instruction.parameterList = merged.parameterList;
+                  await this.component.enter(merged.merged, this.instruction, previousInstruction);
+              }
+              this.entered = true;
+          }
+          async leave(nextInstruction) {
+              if (this.contentStatus !== 4 /* added */ || !this.entered) {
+                  return;
+              }
+              if (this.component.leave) {
+                  await this.component.leave(this.instruction, nextInstruction);
+              }
+              this.entered = false;
+          }
+          loadComponent(context, element) {
+              if (this.contentStatus !== 1 /* created */ || !this.entered) {
+                  return;
+              }
+              // Don't load cached content
+              if (!this.fromCache) {
                   const host = element;
                   const container = context;
                   this.component.$hydrate(0 /* none */, container, host);
               }
-              this.contentStatus = 1 /* loaded */;
+              this.contentStatus = 2 /* loaded */;
               return Promise.resolve();
           }
           unloadComponent() {
               // TODO: We might want to do something here eventually, who knows?
-              if (this.contentStatus !== 1 /* loaded */) {
+              if (this.contentStatus !== 2 /* loaded */) {
                   return;
               }
               // Don't unload components when stateful
-              this.contentStatus = 0 /* none */;
+              this.contentStatus = 1 /* created */;
           }
           initializeComponent() {
+              if (this.contentStatus !== 2 /* loaded */) {
+                  return;
+              }
               // Don't initialize cached content
               if (!this.fromCache) {
                   this.component.$bind(512 /* fromStartTask */ | 2048 /* fromBind */, null);
               }
-              this.contentStatus = 2 /* initialized */;
+              this.contentStatus = 3 /* initialized */;
           }
           terminateComponent(stateful = false) {
-              if (this.contentStatus !== 2 /* initialized */) {
+              if (this.contentStatus !== 3 /* initialized */) {
                   return;
               }
               // Don't terminate cached content
               if (!stateful) {
                   this.component.$unbind(1024 /* fromStopTask */ | 4096 /* fromUnbind */);
-                  this.contentStatus = 1 /* loaded */;
+                  this.contentStatus = 2 /* loaded */;
               }
           }
           addComponent(element) {
+              if (this.contentStatus !== 3 /* initialized */) {
+                  return;
+              }
               this.component.$attach(512 /* fromStartTask */);
               if (this.fromCache) {
                   const elements = Array.from(element.getElementsByTagName('*'));
@@ -1433,7 +1508,7 @@ System.register('router', ['@aurelia/kernel', '@aurelia/runtime'], function (exp
               this.contentStatus = 4 /* added */;
           }
           removeComponent(element, stateful = false) {
-              if (this.contentStatus !== 4 /* added */) {
+              if (this.contentStatus !== 4 /* added */ || this.entered) {
                   return;
               }
               if (stateful) {
@@ -1445,23 +1520,20 @@ System.register('router', ['@aurelia/kernel', '@aurelia/runtime'], function (exp
                   }
               }
               this.component.$detach(1024 /* fromStopTask */);
-              this.contentStatus = 4 /* added */;
+              this.contentStatus = 3 /* initialized */;
           }
-          async freeContent(element, stateful = false) {
+          async freeContent(element, nextInstruction, stateful = false) {
               switch (this.contentStatus) {
                   case 4 /* added */:
+                      await this.leave(nextInstruction);
                       this.removeComponent(element, stateful);
-                  case 3 /* entered */:
-                      if (this.component.leave) {
-                          await this.component.leave();
-                      }
-                      this.contentStatus = 2 /* initialized */;
-                  case 2 /* initialized */:
+                  case 3 /* initialized */:
                       this.terminateComponent(stateful);
-                  case 1 /* loaded */:
+                  case 2 /* loaded */:
                       this.unloadComponent();
+                  case 1 /* created */:
+                      this.destroyComponent();
               }
-              this.contentStatus = 0 /* none */;
           }
           componentName() {
               if (this.content === null) {
@@ -1584,6 +1656,9 @@ System.register('router', ['@aurelia/kernel', '@aurelia/runtime'], function (exp
                       this.elementResolve();
                   }
               }
+              if (context) {
+                  context['viewportName'] = this.name;
+              }
               if (this.context !== context) {
                   this.context = context;
               }
@@ -1594,22 +1669,14 @@ System.register('router', ['@aurelia/kernel', '@aurelia/runtime'], function (exp
           remove(element, context) {
               if (this.element === element && this.context === context) {
                   if (this.content.component) {
-                      this.content.freeContent(this.element, this.options.stateful).catch(error => { throw error; });
+                      this.content.freeContent(this.element, (this.nextContent ? this.nextContent.instruction : null), this.options.stateful).catch(error => { throw error; });
                   }
                   return true;
               }
               return false;
           }
           async canLeave() {
-              if (!this.content.component) {
-                  return true;
-              }
-              const component = this.content.component;
-              if (!component.canLeave) {
-                  return true;
-              }
-              Reporter.write(10000, 'viewport canLeave', component.canLeave(this.content.instruction, this.nextContent.instruction));
-              return component.canLeave(this.content.instruction, this.nextContent.instruction);
+              return this.content.canLeave(this.nextContent.instruction);
           }
           async canEnter() {
               if (this.clear) {
@@ -1619,63 +1686,42 @@ System.register('router', ['@aurelia/kernel', '@aurelia/runtime'], function (exp
                   return false;
               }
               await this.waitForElement();
-              await this.nextContent.loadComponent(this.context, this.element);
-              if (!this.nextContent.component) {
-                  return false;
-              }
-              const component = this.nextContent.component;
-              if (!component.canEnter) {
-                  return true;
-              }
-              const result = component.canEnter(this.nextContent.instruction, this.content.instruction);
-              Reporter.write(10000, 'viewport canEnter', result);
-              if (typeof result === 'boolean') {
-                  return result;
-              }
-              if (typeof result === 'string') {
-                  return [new ViewportInstruction(result, this)];
-              }
-              return result;
+              this.nextContent.createComponent(this.context);
+              return this.nextContent.canEnter(this, this.content.instruction);
           }
           async enter() {
               Reporter.write(10000, 'Viewport enter', this.name);
               if (this.clear) {
                   return true;
               }
-              if (!this.nextContent.component) {
+              if (!this.nextContent || !this.nextContent.component) {
                   return false;
               }
-              if (this.nextContent.component.enter) {
-                  const merged = mergeParameters(this.nextContent.parameters, this.nextContent.instruction.query, this.nextContent.content.parameters);
-                  this.nextContent.instruction.parameters = merged.namedParameters;
-                  this.nextContent.instruction.parameterList = merged.parameterList;
-                  await this.nextContent.component.enter(merged.merged, this.nextContent.instruction, this.content.instruction);
-                  this.nextContent.contentStatus = 3 /* entered */;
-              }
+              await this.nextContent.enter(this.content.instruction);
+              await this.nextContent.loadComponent(this.context, this.element);
               this.nextContent.initializeComponent();
               return true;
           }
           async loadContent() {
               Reporter.write(10000, 'Viewport loadContent', this.name);
-              if (this.content.component) {
-                  if (this.content.component.leave) {
-                      await this.content.component.leave(this.content.instruction, this.nextContent.instruction);
-                  }
-                  // No need to wait for next component activation
-                  if (!this.nextContent.component) {
-                      this.content.removeComponent(this.element, this.options.stateful);
-                      this.content.terminateComponent(this.options.stateful);
-                      this.content.unloadComponent();
-                  }
+              // No need to wait for next component activation
+              if (this.content.component && !this.nextContent.component) {
+                  await this.content.leave(this.nextContent.instruction);
+                  this.content.removeComponent(this.element, this.options.stateful);
+                  this.content.terminateComponent(this.options.stateful);
+                  this.content.unloadComponent();
+                  this.content.destroyComponent();
               }
               if (this.nextContent.component) {
+                  this.nextContent.addComponent(this.element);
                   // Only when next component activation is done
                   if (this.content.component) {
+                      await this.content.leave(this.nextContent.instruction);
                       this.content.removeComponent(this.element, this.options.stateful);
                       this.content.terminateComponent(this.options.stateful);
                       this.content.unloadComponent();
+                      this.content.destroyComponent();
                   }
-                  this.nextContent.addComponent(this.element);
                   this.content = this.nextContent;
               }
               if (this.clear) {
@@ -1688,7 +1734,7 @@ System.register('router', ['@aurelia/kernel', '@aurelia/runtime'], function (exp
               this.previousViewportState = null;
           }
           async abortContentChange() {
-              await this.nextContent.freeContent(this.element, this.options.stateful);
+              await this.nextContent.freeContent(this.element, (this.nextContent ? this.nextContent.instruction : null), this.options.stateful);
               if (this.previousViewportState) {
                   Object.assign(this, this.previousViewportState);
               }
@@ -1699,10 +1745,8 @@ System.register('router', ['@aurelia/kernel', '@aurelia/runtime'], function (exp
                   if (full || this.scope || this.options.forceDescription) {
                       return this.router.instructionResolver.stringifyViewportInstruction(new ViewportInstruction(component, this, this.content.parameters, this.scope !== null));
                   }
-                  const viewports = {};
-                  viewports[component] = component;
-                  const found = this.owningScope.findViewports(viewports);
-                  if (!found) {
+                  const found = this.owningScope.findViewports([new ViewportInstruction(component)]);
+                  if (!found || !found.viewportInstructions || !found.viewportInstructions.length) {
                       return this.router.instructionResolver.stringifyViewportInstruction(new ViewportInstruction(component, this, this.content.parameters));
                   }
                   return this.router.instructionResolver.stringifyViewportInstruction(new ViewportInstruction(component, null, this.content.parameters));
@@ -1789,7 +1833,6 @@ System.register('router', ['@aurelia/kernel', '@aurelia/runtime'], function (exp
               this.viewport = null;
               this.children = [];
               this.viewports = [];
-              this.scopeViewportParts = {};
               this.availableViewports = null;
               if (this.parent) {
                   this.parent.addChild(this);
@@ -1801,65 +1844,58 @@ System.register('router', ['@aurelia/kernel', '@aurelia/runtime'], function (exp
                   return viewports;
               }, {});
           }
-          // TODO: Reduce complexity (currently at 45)
-          findViewports(viewports) {
+          findViewports(viewportInstructions) {
               const instructions = [];
               let viewportsRemaining = false;
               // Get a shallow copy of all available viewports (clean if it's the first find)
-              if (viewports) {
+              if (viewportInstructions) {
                   this.availableViewports = {};
-                  this.scopeViewportParts = {};
+                  this.viewportInstructions = viewportInstructions.slice();
+              }
+              else if (!this.viewportInstructions) {
+                  this.viewportInstructions = [];
               }
               this.availableViewports = Object.assign({}, this.getEnabledViewports(), this.availableViewports);
-              // Get the parts for this scope (pointing to the rest)
-              for (const viewport in viewports) {
-                  const parts = this.router.instructionResolver.parseScopedViewportInstruction(viewport);
-                  const vp = this.router.instructionResolver.stringifyViewportInstruction(parts.shift());
-                  if (!this.scopeViewportParts[vp]) {
-                      this.scopeViewportParts[vp] = [];
-                  }
-                  this.scopeViewportParts[vp].push(parts);
-              }
               // Configured viewport is ruling
-              for (const viewportPart in this.scopeViewportParts) {
-                  const instruction = this.router.instructionResolver.parseViewportInstruction(viewportPart);
+              for (let i = 0; i < this.viewportInstructions.length; i++) {
+                  const instruction = this.viewportInstructions[i];
                   for (const name in this.availableViewports) {
                       const viewport = this.availableViewports[name];
                       // TODO: Also check if (resolved) component wants a specific viewport
                       if (viewport && viewport.wantComponent(instruction.componentName)) {
-                          const found = this.foundViewport(viewports, this.scopeViewportParts, instruction, viewport);
+                          const found = this.foundViewport(instruction, viewport);
                           instructions.push(...found.viewportInstructions);
                           viewportsRemaining = viewportsRemaining || found.viewportsRemaining;
                           this.availableViewports[name] = null;
-                          Reflect.deleteProperty(this.scopeViewportParts, viewportPart);
+                          this.viewportInstructions.splice(i--, 1);
                           break;
                       }
                   }
               }
               // Next in line is specified viewport
-              for (const viewportPart in this.scopeViewportParts) {
-                  const instruction = this.router.instructionResolver.parseViewportInstruction(viewportPart);
+              for (let i = 0; i < this.viewportInstructions.length; i++) {
+                  const instruction = this.viewportInstructions[i];
                   const name = instruction.viewportName;
-                  if (!name || !name.length || name.startsWith('?')) {
+                  if (!name || !name.length) {
                       continue;
                   }
-                  const newScope = instruction.scope;
+                  const newScope = instruction.ownsScope;
                   if (!this.getEnabledViewports()[name]) {
                       this.addViewport(name, null, null, { scope: newScope, forceDescription: true });
                       this.availableViewports[name] = this.getEnabledViewports()[name];
                   }
                   const viewport = this.availableViewports[name];
                   if (viewport && viewport.acceptComponent(instruction.componentName)) {
-                      const found = this.foundViewport(viewports, this.scopeViewportParts, instruction, viewport);
+                      const found = this.foundViewport(instruction, viewport);
                       instructions.push(...found.viewportInstructions);
                       viewportsRemaining = viewportsRemaining || found.viewportsRemaining;
                       this.availableViewports[name] = null;
-                      Reflect.deleteProperty(this.scopeViewportParts, viewportPart);
+                      this.viewportInstructions.splice(i--, 1);
                   }
               }
               // Finally, only one accepting viewport left?
-              for (const viewportPart in this.scopeViewportParts) {
-                  const instruction = this.router.instructionResolver.parseViewportInstruction(viewportPart);
+              for (let i = 0; i < this.viewportInstructions.length; i++) {
+                  const instruction = this.viewportInstructions[i];
                   const remainingViewports = [];
                   for (const name in this.availableViewports) {
                       const viewport = this.availableViewports[name];
@@ -1869,17 +1905,17 @@ System.register('router', ['@aurelia/kernel', '@aurelia/runtime'], function (exp
                   }
                   if (remainingViewports.length === 1) {
                       const viewport = remainingViewports.shift();
-                      const found = this.foundViewport(viewports, this.scopeViewportParts, instruction, viewport);
+                      const found = this.foundViewport(instruction, viewport);
                       instructions.push(...found.viewportInstructions);
                       viewportsRemaining = viewportsRemaining || found.viewportsRemaining;
                       this.availableViewports[viewport.name] = null;
-                      Reflect.deleteProperty(this.scopeViewportParts, viewportPart);
+                      this.viewportInstructions.splice(i, 1);
                       break;
                   }
               }
-              viewportsRemaining = viewportsRemaining || Object.keys(this.scopeViewportParts).length > 0;
+              viewportsRemaining = viewportsRemaining || this.viewportInstructions.length > 0;
               // If it's a repeat there might be remaining viewports in scope children
-              if (!viewports) {
+              if (!viewportInstructions) {
                   for (const child of this.children) {
                       const found = child.findViewports();
                       instructions.push(...found.viewportInstructions);
@@ -1891,23 +1927,15 @@ System.register('router', ['@aurelia/kernel', '@aurelia/runtime'], function (exp
                   viewportsRemaining: viewportsRemaining,
               };
           }
-          foundViewport(viewports, scopeViewportParts, instruction, viewport) {
-              const viewportPart = this.router.instructionResolver.stringifyViewportInstruction(instruction);
+          foundViewport(instruction, viewport) {
               instruction.setViewport(viewport);
               const instructions = [instruction];
               let viewportsRemaining = false;
-              if (scopeViewportParts[viewportPart].length) {
+              if (instruction.nextScopeInstruction) {
                   const scope = viewport.scope || viewport.owningScope;
-                  for (const remainingParts of scopeViewportParts[viewportPart]) {
-                      if (remainingParts.length) {
-                          const remaining = this.router.instructionResolver.stringifyScopedViewportInstruction(remainingParts);
-                          const vps = {};
-                          vps[remaining] = viewports[this.router.instructionResolver.stringifyScopedViewportInstruction([viewportPart, ...remainingParts])];
-                          const scoped = scope.findViewports(vps);
-                          instructions.push(...scoped.viewportInstructions);
-                          viewportsRemaining = viewportsRemaining || scoped.viewportsRemaining;
-                      }
-                  }
+                  const scoped = scope.findViewports([instruction.nextScopeInstruction]);
+                  instructions.push(...scoped.viewportInstructions);
+                  viewportsRemaining = viewportsRemaining || scoped.viewportsRemaining;
               }
               return {
                   viewportInstructions: instructions,
@@ -1956,9 +1984,6 @@ System.register('router', ['@aurelia/kernel', '@aurelia/runtime'], function (exp
               for (const name in viewports) {
                   this.router.removeViewport(viewports[name], null, null);
               }
-          }
-          renderViewport(viewport) {
-              return viewport.canEnter().then(() => viewport.loadContent());
           }
           addChild(child) {
               if (this.children.indexOf(child) < 0) {
@@ -2017,16 +2042,6 @@ System.register('router', ['@aurelia/kernel', '@aurelia/runtime'], function (exp
               return null;
           }
       } exports('Scope', Scope);
-
-      function closestCustomElement(element) {
-          while (element) {
-              if ((element).$customElement) {
-                  break;
-              }
-              element = element.parentElement;
-          }
-          return element;
-      }
 
       const IRouteTransformer = exports('IRouteTransformer', DI.createInterface('IRouteTransformer').withDefault(x => x.singleton(RouteTable)));
       class Router {
@@ -2087,7 +2102,6 @@ System.register('router', ['@aurelia/kernel', '@aurelia/runtime'], function (exp
               this.pendingNavigations.push(instruction);
               this.processNavigations().catch(error => { throw error; });
           }
-          // TODO: Reduce complexity (currently at 46)
           async processNavigations() {
               if (this.processingNavigation !== null || !this.pendingNavigations.length) {
                   return Promise.resolve();
@@ -2112,7 +2126,7 @@ System.register('router', ['@aurelia/kernel', '@aurelia/runtime'], function (exp
               if (this.options.transformFromUrl && !fullStateInstruction) {
                   const routeOrInstructions = this.options.transformFromUrl(path, this);
                   // TODO: Don't go via string here, use instructions as they are
-                  path = Array.isArray(routeOrInstructions) ? this.instructionResolver.viewportInstructionsToString(routeOrInstructions) : routeOrInstructions;
+                  path = Array.isArray(routeOrInstructions) ? this.instructionResolver.stringifyViewportInstructions(routeOrInstructions) : routeOrInstructions;
               }
               const { clearViewports, newPath } = this.instructionResolver.shouldClearViewports(path);
               if (clearViewports) {
@@ -2121,8 +2135,8 @@ System.register('router', ['@aurelia/kernel', '@aurelia/runtime'], function (exp
               const parsedQuery = parseQuery(instruction.query);
               instruction.parameters = parsedQuery.parameters;
               instruction.parameterList = parsedQuery.list;
-              const views = this.instructionResolver.findViews(path);
-              if (!views && !Object.keys(views).length && !clearViewports) {
+              const views = this.instructionResolver.parseViewportInstructions(path);
+              if (!views && !views.length && !clearViewports) {
                   this.processingNavigation = null;
                   return this.processNavigations();
               }
@@ -2179,9 +2193,9 @@ System.register('router', ['@aurelia/kernel', '@aurelia/runtime'], function (exp
                               return false;
                           }
                       }
-                      for (const cvp of canEnter) {
+                      for (const viewportInstruction of canEnter) {
                           // TODO: Abort content change in the viewports
-                          this.addProcessingViewport(cvp.component, cvp.viewport);
+                          this.addProcessingViewport(viewportInstruction);
                       }
                       value.abortContentChange().catch(error => { throw error; });
                       return true;
@@ -2189,13 +2203,6 @@ System.register('router', ['@aurelia/kernel', '@aurelia/runtime'], function (exp
                   if (results.some(result => result === false)) {
                       return this.cancelNavigation([...changedViewports, ...updatedViewports], instruction);
                   }
-                  // TODO: Should it be kept here?
-                  // await Promise.all(changedViewports.map((value) => value.loadContent()));
-                  // TODO: Remove this once multi level recursiveness has been fixed
-                  // results = await Promise.all(changedViewports.map((value) => value.loadContent()));
-                  // if (results.findIndex((value) => value === false) >= 0) {
-                  //   return this.historyBrowser.cancel();
-                  // }
                   for (const viewport of changedViewports) {
                       if (!updatedViewports.find((value) => value === viewport)) {
                           updatedViewports.push(viewport);
@@ -2230,13 +2237,22 @@ System.register('router', ['@aurelia/kernel', '@aurelia/runtime'], function (exp
               this.processingNavigation = null;
               this.processNavigations().catch(error => { throw error; });
           }
-          addProcessingViewport(component, viewport) {
+          addProcessingViewport(componentOrInstruction, viewport) {
               if (this.processingNavigation) {
-                  if (typeof viewport === 'string') {
-                      // TODO: Deal with not yet existing viewports
-                      viewport = this.allViewports().find((vp) => vp.name === viewport);
+                  if (componentOrInstruction instanceof ViewportInstruction) {
+                      if (!componentOrInstruction.viewport) {
+                          // TODO: Deal with not yet existing viewports
+                          componentOrInstruction.viewport = this.allViewports().find((vp) => vp.name === componentOrInstruction.viewportName);
+                      }
+                      this.addedViewports.push(componentOrInstruction);
                   }
-                  this.addedViewports.push(new ViewportInstruction(component, viewport));
+                  else {
+                      if (typeof viewport === 'string') {
+                          // TODO: Deal with not yet existing viewports
+                          viewport = this.allViewports().find((vp) => vp.name === viewport);
+                      }
+                      this.addedViewports.push(new ViewportInstruction(componentOrInstruction, viewport));
+                  }
               }
               else if (this.lastNavigation) {
                   this.pendingNavigations.unshift({ path: '', fullStatePath: '', isRepeat: true });
@@ -2244,9 +2260,6 @@ System.register('router', ['@aurelia/kernel', '@aurelia/runtime'], function (exp
                   this.processNavigations().catch(error => { throw error; });
               }
           }
-          // public findViewport(name: string): Viewport {
-          //   return this.rootScope.findViewport(name);
-          // }
           findScope(element) {
               this.ensureRootScope();
               return this.closestScope(element);
@@ -2313,6 +2326,7 @@ System.register('router', ['@aurelia/kernel', '@aurelia/runtime'], function (exp
                   nav = this.navs[name] = new Nav(this, name);
               }
               nav.addRoutes(routes);
+              this.navs[name] = new Nav(nav.router, nav.name, nav.routes);
           }
           findNav(name) {
               return this.navs[name];
@@ -2339,15 +2353,29 @@ System.register('router', ['@aurelia/kernel', '@aurelia/runtime'], function (exp
               }
           }
           closestScope(element) {
-              const el = closestCustomElement(element);
-              let container = el.$customElement.$context.get(IContainer);
-              while (container) {
-                  const scope = this.scopes.find((item) => item.context.get(IContainer) === container);
-                  if (scope) {
-                      return scope;
+              let el = element;
+              while (el.parentElement) {
+                  const viewport = this.allViewports().find((item) => item.element === el);
+                  if (viewport && viewport.owningScope) {
+                      return viewport.owningScope;
                   }
-                  container = container.parent;
+                  el = el.parentElement;
               }
+              return this.rootScope;
+              // TODO: It would be better if it was something like this
+              // const el = closestCustomElement(element);
+              // let container: ChildContainer = el.$customElement.$context.get(IContainer);
+              // while (container) {
+              //   const scope = this.scopes.find((item) => item.context.get(IContainer) === container);
+              //   if (scope) {
+              //     return scope;
+              //   }
+              //   const viewport = this.allViewports().find((item) => item.context && item.context.get(IContainer) === container);
+              //   if (viewport && viewport.owningScope) {
+              //     return viewport.owningScope;
+              //   }
+              //   container = container.parent;
+              // }
           }
           replacePaths(instruction) {
               this.activeComponents = this.rootScope.viewportStates(true, true);
@@ -2356,8 +2384,8 @@ System.register('router', ['@aurelia/kernel', '@aurelia/runtime'], function (exp
               viewportStates = this.instructionResolver.removeStateDuplicates(viewportStates);
               let state = this.instructionResolver.stateStringsToString(viewportStates);
               if (this.options.transformToUrl) {
-                  const routeOrInstructions = this.options.transformToUrl(this.instructionResolver.viewportInstructionsFromString(state), this);
-                  state = Array.isArray(routeOrInstructions) ? this.instructionResolver.viewportInstructionsToString(routeOrInstructions) : routeOrInstructions;
+                  const routeOrInstructions = this.options.transformToUrl(this.instructionResolver.parseViewportInstructions(state), this);
+                  state = Array.isArray(routeOrInstructions) ? this.instructionResolver.stringifyViewportInstructions(routeOrInstructions) : routeOrInstructions;
               }
               let fullViewportStates = this.rootScope.viewportStates(true);
               fullViewportStates = this.instructionResolver.removeStateDuplicates(fullViewportStates);
@@ -2510,7 +2538,7 @@ System.register('router', ['@aurelia/kernel', '@aurelia/runtime'], function (exp
           bindable
       ], ViewportCustomElement.prototype, "stateful", void 0);
       // tslint:disable-next-line:no-invalid-template-strings
-      CustomElementResource.define({ name: 'au-viewport', template: '<template><div class="viewport-header"> Viewport: <b>${name}</b> </div></template>' }, ViewportCustomElement);
+      CustomElementResource.define({ name: 'au-viewport', template: '<template><div class="viewport-header"> Viewport: <b>${name}</b> ${scope ? "[new scope]" : ""} : <b>${viewport.content && viewport.content.componentName()}</b></div></template>' }, ViewportCustomElement);
 
       // NOTE: this file is currently not in use
       let NavCustomElement = exports('NavCustomElement', class NavCustomElement {
@@ -2521,7 +2549,7 @@ System.register('router', ['@aurelia/kernel', '@aurelia/runtime'], function (exp
               this.level = 0;
           }
           get navRoutes() {
-              const nav = this.router.findNav(this.name);
+              const nav = this.router.navs[this.name];
               return (nav ? nav.routes : []);
           }
           active(route) {

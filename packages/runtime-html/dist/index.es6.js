@@ -1851,7 +1851,6 @@ class ShadowDOMProjector {
         }
         this.shadowRoot = host.attachShadow(shadowOptions);
         this.host.$customElement = $customElement;
-        // tslint:disable-next-line:no-unnecessary-type-assertion // this is a false positive
         this.shadowRoot.$customElement = $customElement;
     }
     get children() {
@@ -1880,7 +1879,6 @@ class ContainerlessProjector {
         else {
             this.childNodes = PLATFORM.emptyArray;
         }
-        // tslint:disable-next-line:no-unnecessary-type-assertion // this is a false positive
         this.host = dom.convertToRenderLocation(host);
         this.host.$customElement = $customElement;
     }

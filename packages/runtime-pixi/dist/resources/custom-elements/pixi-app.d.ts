@@ -3,8 +3,8 @@ import { Application, ApplicationOptions, Container } from 'pixi.js';
 export declare class PixiApp {
     static readonly register: IRegistry['register'];
     static readonly inject: InjectArray;
-    readonly app: Application;
-    stage: Container;
+    readonly app: Application | null;
+    stage: Container | null;
     options?: ApplicationOptions;
     width?: number;
     height?: number;
@@ -28,7 +28,7 @@ export declare class PixiApp {
     private readonly callTick;
     private readonly element;
     private _app;
-    constructor(element: Element);
+    constructor(...args: unknown[]);
     bound(): void;
     attached(): void;
     detached(): void;

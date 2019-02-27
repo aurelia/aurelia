@@ -296,7 +296,8 @@ const Reporter = Object.assign({}, Reporter$1, { write(code, ...params) {
         return error;
     } });
 function getMessageInfoForCode(code) {
-    return codeLookup[code] || createInvalidCodeMessageInfo(code);
+    const info = codeLookup[code];
+    return info !== undefined ? info : createInvalidCodeMessageInfo(code);
 }
 function createInvalidCodeMessageInfo(code) {
     return {
@@ -610,13 +611,13 @@ function enableLiveLogging(optionsOrWriter) {
         this.liveWriter = optionsOrWriter;
     }
     else {
-        const options = optionsOrWriter || defaultOptions;
+        const options = optionsOrWriter !== undefined ? optionsOrWriter : defaultOptions;
         this.liveWriter = createLiveTraceWriter(options);
     }
 }
 const toString = Object.prototype.toString;
 function flagsText(info, i = 0) {
-    if (info.params.length > i) {
+    if (info.params !== null && info.params.length > i) {
         return stringifyLifecycleFlags(info.params[i]);
     }
     return 'none';
@@ -646,16 +647,16 @@ function _ctorName(obj) {
     return name;
 }
 function ctorName(info, i = 0) {
-    if (info.params.length > i) {
+    if (info.params !== null && info.params.length > i) {
         return _ctorName(info.params[i]);
     }
     return 'undefined';
 }
 function scopeText(info, i = 0) {
     let $ctorName;
-    if (info.params.length > i) {
+    if (info.params !== null && info.params.length > i) {
         const $scope = info.params[i];
-        if ($scope && $scope.bindingContext) {
+        if ($scope !== undefined && $scope.bindingContext !== undefined) {
             $ctorName = _ctorName($scope.bindingContext);
         }
         else {
@@ -666,12 +667,12 @@ function scopeText(info, i = 0) {
     return 'undefined';
 }
 function keyText(info, i = 0) {
-    if (info.params.length > i) {
+    if (info.params !== null && info.params.length > i) {
         const $key = info.params[i];
         if (typeof $key === 'string') {
             return `'${$key}'`;
         }
-        if ($key && Reflect.has($key, 'friendlyName')) {
+        if ($key !== undefined && Reflect.has($key, 'friendlyName')) {
             return $key['friendlyName'];
         }
         return _ctorName($key);
@@ -679,7 +680,7 @@ function keyText(info, i = 0) {
     return 'undefined';
 }
 function primitive(info, i = 0) {
-    if (info.params.length > i) {
+    if (info.params !== null && info.params.length > i) {
         const $key = info.params[i];
         if (typeof $key === 'string') {
             return `'${$key}'`;
@@ -749,6 +750,8 @@ const BindingArgsProcessor = {
                 return `${scopeText(info)},${primitive(info, 1)},${primitive(info, 2)},${flagsText(info, 3)}`;
             case 'getObservers':
                 return flagsText(info);
+            default:
+                return 'unknown';
         }
     },
     Scope(info) {
@@ -759,6 +762,8 @@ const BindingArgsProcessor = {
                 return `${flagsText(info)},${ctorName(info, 1)}`;
             case 'fromParent':
                 return `${flagsText(info)},${scopeText(info, 1)},${ctorName(info, 2)}`;
+            default:
+                return 'unknown';
         }
     },
     OverrideContext(info) {
@@ -767,6 +772,8 @@ const BindingArgsProcessor = {
                 return `${flagsText(info)},${ctorName(info, 1)},${ctorName(info, 2)}`;
             case 'getObservers':
                 return '';
+            default:
+                return 'unknown';
         }
     }
 };
@@ -777,13 +784,17 @@ const ObservationArgsProcessor = {
     callSource(info) {
         switch (info.objName) {
             case 'Listener':
-                return info.params[0].type;
+                return (info.params[0]).type;
             case 'Call':
                 const names = [];
-                for (let i = 0, ii = info.params.length; i < ii; ++i) {
-                    names.push(ctorName(info, i));
+                if (info.params !== null) {
+                    for (let i = 0, ii = info.params.length; i < ii; ++i) {
+                        names.push(ctorName(info, i));
+                    }
                 }
                 return names.join(',');
+            default:
+                return 'unknown';
         }
     },
     setValue(info) {
@@ -833,7 +844,7 @@ const AttachingArgsProcessor = {
         return flagsText(info);
     },
     hold(info) {
-        return `Node{'${info.params[0].textContent}'}`;
+        return `Node{'${(info.params[0]).textContent}'}`;
     },
     release(info) {
         return flagsText(info);
@@ -864,12 +875,16 @@ const DIArgsProcessor = {
                 return keyText(info);
             case 'register':
                 const names = [];
-                for (let i = 0, ii = info.params.length; i < ii; ++i) {
-                    names.push(keyText(info, i));
+                if (info.params !== null) {
+                    for (let i = 0, ii = info.params.length; i < ii; ++i) {
+                        names.push(keyText(info, i));
+                    }
                 }
                 return names.join(',');
             case 'createChild':
                 return '';
+            default:
+                return 'unknown';
         }
     }
 };
@@ -883,6 +898,8 @@ const LifecycleArgsProcessor = {
             case 'end':
             case 'pro':
                 return flagsText(info);
+            default:
+                return 'unknown';
         }
     },
     CompositionCoordinator(info) {
@@ -893,6 +910,8 @@ const LifecycleArgsProcessor = {
                 return `IView,${flagsText(info, 1)}`;
             case 'processNext':
                 return '';
+            default:
+                return 'unknown';
         }
     },
     AggregateLifecycleTask(info) {
@@ -902,6 +921,8 @@ const LifecycleArgsProcessor = {
                 return ctorName(info);
             case 'complete':
                 return `${primitive(info, 2)}`;
+            default:
+                return 'unknown';
         }
     }
 };

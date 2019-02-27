@@ -42,7 +42,7 @@ System.register('fetchClient', ['@aurelia/kernel', '@aurelia/runtime'], function
            * Creates an instance of RetryInterceptor.
            */
           constructor(retryConfig) {
-              this.retryConfig = Object.assign({}, defaultRetryConfig, (retryConfig || {}));
+              this.retryConfig = Object.assign({}, defaultRetryConfig, (retryConfig !== undefined ? retryConfig : {}));
               if (this.retryConfig.strategy === retryStrategy.exponential &&
                   this.retryConfig.interval <= 1000) {
                   throw new Error('An interval less than or equal to 1 second is not allowed when using the exponential retry strategy');
@@ -88,13 +88,13 @@ System.register('fetchClient', ['@aurelia/kernel', '@aurelia/runtime'], function
               const { requestClone } = retryConfig;
               return Promise.resolve().then(() => {
                   if (retryConfig.counter < retryConfig.maxRetries) {
-                      const result = retryConfig.doRetry ? retryConfig.doRetry(error, request) : true;
+                      const result = retryConfig.doRetry !== undefined ? retryConfig.doRetry(error, request) : true;
                       return Promise.resolve(result).then(doRetry => {
                           if (doRetry) {
                               retryConfig.counter++;
                               const delay = calculateDelay(retryConfig);
                               // tslint:disable-next-line:no-string-based-set-timeout
-                              return new Promise(resolve => PLATFORM.global.setTimeout(resolve, !isNaN(delay) ? delay : 0))
+                              return new Promise((resolve) => PLATFORM.global.setTimeout(resolve, !isNaN(delay) ? delay : 0))
                                   .then(() => {
                                   const newRequest = requestClone.clone();
                                   if (typeof (retryConfig.beforeRetry) === 'function') {
@@ -293,13 +293,13 @@ System.register('fetchClient', ['@aurelia/kernel', '@aurelia/runtime'], function
                   throw new Error('invalid config');
               }
               const defaults = normalizedConfig.defaults;
-              if (defaults && Headers.prototype.isPrototypeOf(defaults.headers)) {
+              if (defaults !== undefined && Headers.prototype.isPrototypeOf(defaults.headers)) {
                   // Headers instances are not iterable in all browsers. Require a plain
                   // object here to allow default headers to be merged into request headers.
                   throw new Error('Default headers must be a plain object.');
               }
               const interceptors = normalizedConfig.interceptors;
-              if (interceptors && interceptors.length) {
+              if (interceptors !== undefined && interceptors.length) {
                   // find if there is a RetryInterceptor
                   if (interceptors.filter(x => RetryInterceptor.prototype.isPrototypeOf(x)).length > 1) {
                       throw new Error('Only one RetryInterceptor is allowed.');
@@ -311,7 +311,7 @@ System.register('fetchClient', ['@aurelia/kernel', '@aurelia/runtime'], function
               }
               this.baseUrl = normalizedConfig.baseUrl;
               this.defaults = defaults;
-              this.interceptors = normalizedConfig.interceptors || [];
+              this.interceptors = normalizedConfig.interceptors !== undefined ? normalizedConfig.interceptors : [];
               this.isConfigured = true;
               return this;
           }
@@ -361,7 +361,7 @@ System.register('fetchClient', ['@aurelia/kernel', '@aurelia/runtime'], function
               });
           }
           buildRequest(input, init) {
-              const defaults = this.defaults || {};
+              const defaults = this.defaults !== null ? this.defaults : {};
               let request;
               let body;
               let requestContentType;
@@ -375,7 +375,7 @@ System.register('fetchClient', ['@aurelia/kernel', '@aurelia/runtime'], function
                       init = {};
                   }
                   body = init.body;
-                  const bodyObj = body ? { body: body } : null;
+                  const bodyObj = body !== undefined ? { body: body } : null;
                   const requestInit = Object.assign({}, defaults, { headers: {} }, init, bodyObj);
                   requestContentType = new Headers(requestInit.headers).get('Content-Type');
                   request = new Request(getRequestUrl(this.baseUrl, input), requestInit);
@@ -384,12 +384,12 @@ System.register('fetchClient', ['@aurelia/kernel', '@aurelia/runtime'], function
                   if (new Headers(parsedDefaultHeaders).has('content-type')) {
                       request.headers.set('Content-Type', new Headers(parsedDefaultHeaders).get('content-type'));
                   }
-                  else if (body && isJSON(body)) {
+                  else if (body !== undefined && isJSON(body)) {
                       request.headers.set('Content-Type', 'application/json');
                   }
               }
               setDefaultHeaders(request.headers, parsedDefaultHeaders);
-              if (body && Blob.prototype.isPrototypeOf(body) && body.type) {
+              if (body !== undefined && Blob.prototype.isPrototypeOf(body) && body.type) {
                   // work around bug in IE & Edge where the Blob type is ignored in the request
                   // https://connect.microsoft.com/IE/feedback/details/2136163
                   request.headers.set('Content-Type', body.type);
@@ -481,11 +481,12 @@ System.register('fetchClient', ['@aurelia/kernel', '@aurelia/runtime'], function
               return this.applyInterceptors(response, interceptors, 'response', 'responseError', request, this);
           }
           applyInterceptors(input, interceptors, successName, errorName, ...interceptorArgs) {
-              return (interceptors || [])
+              return (interceptors !== undefined ? interceptors : [])
                   .reduce((chain, interceptor) => {
                   const successHandler = interceptor[successName];
                   const errorHandler = interceptor[errorName];
-                  return chain.then(successHandler && (value => successHandler.call(interceptor, value, ...interceptorArgs)) || identity, errorHandler && (reason => errorHandler.call(interceptor, reason, ...interceptorArgs)) || thrower);
+                  // TODO: Fix this, as it violates `strictBindCallApply`.
+                  return chain.then(successHandler ? (value => successHandler.call(interceptor, value, ...interceptorArgs)) : identity, errorHandler ? (reason => errorHandler.call(interceptor, reason, ...interceptorArgs)) : thrower);
               }, Promise.resolve(input));
           }
           callFetch(input, body, init, method) {
@@ -502,9 +503,12 @@ System.register('fetchClient', ['@aurelia/kernel', '@aurelia/runtime'], function
       HttpClient.inject = [IDOM];
       function parseHeaderValues(headers) {
           const parsedHeaders = {};
-          for (const name in headers || {}) {
-              if (headers.hasOwnProperty(name)) {
-                  parsedHeaders[name] = (typeof headers[name] === 'function') ? headers[name]() : headers[name];
+          const $headers = headers !== undefined ? headers : {};
+          for (const name in $headers) {
+              if ($headers.hasOwnProperty(name)) {
+                  parsedHeaders[name] = (typeof $headers[name] === 'function')
+                      ? $headers[name]()
+                      : $headers[name];
               }
           }
           return parsedHeaders;
@@ -516,9 +520,10 @@ System.register('fetchClient', ['@aurelia/kernel', '@aurelia/runtime'], function
           return (baseUrl !== undefined ? baseUrl : '') + url;
       }
       function setDefaultHeaders(headers, defaultHeaders) {
-          for (const name in defaultHeaders || {}) {
-              if (defaultHeaders.hasOwnProperty(name) && !headers.has(name)) {
-                  headers.set(name, defaultHeaders[name]);
+          const $defaultHeaders = defaultHeaders !== undefined ? defaultHeaders : {};
+          for (const name in $defaultHeaders) {
+              if ($defaultHeaders.hasOwnProperty(name) && !headers.has(name)) {
+                  headers.set(name, $defaultHeaders[name]);
               }
           }
       }

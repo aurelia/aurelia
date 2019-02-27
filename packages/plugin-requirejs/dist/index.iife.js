@@ -70,9 +70,9 @@ this.au.pluginRequirejs = (function (exports, runtime) {
       return result;
   }
   function relativeToFile(name, file) {
-      const fileParts = file && file.split('/');
+      const fileParts = file ? file.split('/') : undefined;
       const nameParts = name.trim().split('/');
-      if (nameParts[0].charAt(0) === '.' && fileParts) {
+      if (nameParts[0].charAt(0) === '.' && fileParts !== undefined) {
           //Convert file to array, and lop off the last part,
           //so that . matches that 'directory' and not name of the file's
           //module. For instance, file of 'one/two/three', maps to
@@ -96,7 +96,7 @@ this.au.pluginRequirejs = (function (exports, runtime) {
           callback(file);
       }
       catch (e) {
-          if (errback) {
+          if (errback !== undefined) {
               errback(e);
           }
       }

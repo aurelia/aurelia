@@ -10,6 +10,7 @@ export interface IRouteSeparators {
   scope: string;
   ownsScope: string;
   parameters: string;
+  parametersEnd: string;
   parameter: string;
   add: string;
   clear: string;
@@ -27,7 +28,8 @@ export class InstructionResolver {
         sibling: '+', // '/',
         scope: '/', // '+',
         ownsScope: '!',
-        parameters: '=',
+        parameters: '(', // '='
+        parametersEnd: ')', // ''
         parameter: '&',
         add: '+',
         clear: '-',
@@ -148,7 +150,10 @@ export class InstructionResolver {
         viewport = viewport.slice(0, -this.separators.ownsScope.length);
       }
     }
-    const parametersString = parameters.length ? parameters.join(this.separators.parameters) : undefined;
+    let parametersString = parameters.length ? parameters.join(this.separators.parameters) : undefined;
+    if (this.separators.parametersEnd.length && parametersString && parametersString.endsWith(this.separators.parametersEnd)) {
+      parametersString = parametersString.slice(0, -this.separators.parametersEnd.length);
+    }
     return new ViewportInstruction(component, viewport, parametersString, scope);
   }
 
@@ -162,7 +167,7 @@ export class InstructionResolver {
       }
       if (instruction.parametersString) {
         // TODO: Review parameters in ViewportInstruction
-        instructionString += this.separators.parameters + instruction.parametersString;
+        instructionString += this.separators.parameters + instruction.parametersString + this.separators.parametersEnd;
       }
       return instructionString;
     }

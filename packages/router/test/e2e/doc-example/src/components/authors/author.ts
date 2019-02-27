@@ -12,7 +12,7 @@ import { Information } from './information';
 <div>Born: \${author.born}</div>
 <div>Books:
   <ul>
-    <li repeat.for="book of author.books"><a href="book=\${book.id}">\${book.title}</a></li>
+    <li repeat.for="book of author.books"><a href="book(\${book.id})">\${book.title}</a></li>
   </ul>
 </div>
 <div class="info">
@@ -20,7 +20,7 @@ import { Information } from './information';
 </div>
 <div if.bind="!hideTabs">
   <au-nav name="author-menu"></au-nav>
-  <au-viewport name="author-tabs" stateful default="author-details=\${author.id}" used-by="about-authors,author-details,information" no-history></au-viewport>
+  <au-viewport name="author-tabs" stateful default="author-details(\${author.id})" used-by="about-authors,author-details,information" no-history></au-viewport>
 </div>
 </template>`,
   dependencies: [Information as any]
@@ -50,7 +50,7 @@ export class Author {
     this.router.setNav('author-menu', [
       {
         title: 'Details',
-        route: `author-details=${this.author.id}`
+        route: `author-details(${this.author.id})`
       },
       {
         title: 'About authors',

@@ -1,12 +1,22 @@
 {
   "compilerOptions": {
-    "emitDecoratorMetadata": true,
-    "experimentalDecorators": true,
-    "lib": ["esnext", "dom"],
-    "module": "esnext",
-    "moduleResolution": "node",
-    "outDir": "dist",
-    "target": "es2018"
+      "strict": true,
+      "baseUrl": "node_modules",
+      "target": "es5",
+      "lib": [
+          "es5",
+          "dom"
+      ],
+      "types": [
+          "cypress"
+      ],
   },
-  "include": ["src"]
+  "include": [
+      "**/*.ts",
+      "node_modules/cypress",
+      "integration/*"
+  ],
+  "exclude": [
+    "app"
+  ]
 }

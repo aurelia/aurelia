@@ -2,29 +2,15 @@
   "name": "jit-webpack-ts",
   "version": "0.1.1",
   "scripts": {
-    "watch": "webpack-dev-server --no-inline",
-    "build": "rimraf dist && webpack --config webpack.config.js",
-    "serve": "http-server -c-1 -p 9000 dist"
+    "e2e": "cypress open"
   },
-  "dependencies": {
-    "@aurelia/debug": "file:../../../../debug",
-    "@aurelia/jit-html": "file:../../../../jit-html",
-    "@aurelia/jit-html-browser": "file:../../../../jit-html-browser",
-    "@aurelia/jit": "file:../../../../jit",
-    "@aurelia/kernel": "file:../../../../kernel",
-    "@aurelia/runtime-html": "file:../../../../runtime-html",
-    "@aurelia/runtime": "file:../../../../runtime"
-  },
+  "dependencies": {},
   "devDependencies": {
+    "@cypress/webpack-preprocessor": "^4.0.3",
     "@types/node": "latest",
-    "html-loader": "latest",
-    "html-webpack-plugin": "latest",
-    "http-server": "latest",
-    "rimraf": "latest",
+    "cypress": "^3.1.5",
     "ts-loader": "latest",
     "typescript": "latest",
-    "webpack-cli": "latest",
-    "webpack-dev-server": "latest",
     "webpack": "latest"
   }
 }

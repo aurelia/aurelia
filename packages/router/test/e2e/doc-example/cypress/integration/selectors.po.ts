@@ -13,6 +13,7 @@ export const Shared = {
 };
 
 export const AuthorsComponent = {
+  items: '[data-test=authors-element-item]',
   authorLinks: '[data-test=authors-element-author-link]',
   bookTitles: '[data-test=authors-element-book-name]'
 };
@@ -28,4 +29,10 @@ export const AuthorComponent = {
 
 export const AboutComponent = {
   aboutInput: '[data-test=about-inputbox]'
+};
+
+export const BooksComponent = {
+  items: '[data-test=books-element-item]',
+  bookLinks: '[data-test=books-element-book-link]',
+  authorNames: '[data-test=books-element-author-name]'
 };

@@ -1,8 +1,9 @@
 {
-  "name": "jit-webpack-ts",
+  "name": "router-doc-example",
   "version": "0.1.1",
   "scripts": {
-    "e2e": "cypress open"
+    "e2e": "cypress open",
+    "test": "cypress run"
   },
   "dependencies": {},
   "devDependencies": {

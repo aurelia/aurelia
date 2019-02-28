@@ -1,4 +1,6 @@
-describe('router / doc-example', () => {
+import { AboutComponent, AuthorsComponent, Shared } from './selectors.po';
+
+describe('doc-example', () => {
   it('navigates to default route', () => {
     cy.visit('/')
       .url()
@@ -18,10 +20,10 @@ describe('router / doc-example', () => {
     it('sets the correct nav items as active', () => {
 
       // retrieve all active elements and 'save' into a variable within Cypress
-      cy.get('au-nav li.nav-active')
+      cy.get(Shared.appMenuNavItemsActive)
         .as('activeNavigation');
 
-      // retreive the elements from the variable and check for length
+      // retrieve the elements from the variable and check for length
       cy.get('@activeNavigation')
         .should('have.length', 2);
 
@@ -30,7 +32,7 @@ describe('router / doc-example', () => {
         'About'
       ];
 
-      // this chekcs for both order and value
+      // this checks for both order and value
       labels.forEach((l, i) => {
         // access the element via the index
         cy.get('@activeNavigation')
@@ -40,40 +42,69 @@ describe('router / doc-example', () => {
     });
 
     it('displays the correct viewports', () => {
-      cy.get('au-viewport[name=lists] .viewport-header')
+      cy.get(Shared.listsViewportHeader)
         .should('contain', 'Viewport: lists  : authors');
 
-      cy.get('au-viewport[name=content] .viewport-header')
+      cy.get(Shared.contentViewportHeader)
         .should('contain', 'Viewport: content  : about');
 
-      cy.get('au-viewport[name=chat] .viewport-header')
+      cy.get(Shared.chatViewportHeader)
         .should('contain', 'Viewport: chat  : null');
+    });
+
+    it('sets the default checkboxes values', () => {
+      cy.get(Shared.noDelayCheckbox)
+        .should('be.checked');
+
+      cy.get(Shared.allowEnterAuthorDetailsCheckbox)
+        .should('be.checked');
+    });
+
+    it('sets the default info background color', () => {
+      cy.get(Shared.infoBackgroundColor)
+        .should('have.text', 'lightgreen');
     });
 
     describe('authors component', () => {
       it('displays the correct author names', () => {
-        cy.get('[data-test=authors-element-author-link]')
+        cy.get(AuthorsComponent.authorLinks)
           .as('authorLinks');
 
         cy.get('@authorLinks')
           .should('have.length', 4);
 
         const authors = [
-          'Terry Pratchett',
-          'Stephen King',
-          'Patrick Rothfus',
-          'Neil Gaiman'
+          {
+            name: 'Terry Pratchett',
+            href: 'author=1'
+          },
+          {
+            name: 'Stephen King',
+            href: 'author=2'
+          },
+          {
+            name: 'Patrick Rothfus',
+            href: 'author=3'
+          },
+          {
+            name: 'Neil Gaiman',
+            href: 'author=4'
+          }
         ];
+
+        cy.get(AuthorsComponent.authorLinks)
+          .as('authorLinks');
 
         authors.forEach((a, i) => {
           cy.get('@authorLinks')
             .eq(i)
-            .should('contain', a);
+            .should('contain', a.name)
+            .and('have.attr', 'href', a.href);
         });
       });
 
       it('displays the correct book titles', () => {
-        cy.get('[data-test=authors-element-book-name]')
+        cy.get(AuthorsComponent.bookTitles)
           .as('bookTitles');
 
         cy.get('@bookTitles')
@@ -96,6 +127,17 @@ describe('router / doc-example', () => {
             .eq(i)
             .should('contain', b);
         });
+      });
+    });
+
+    describe('about component', () => {
+      it('allows entry to the input box', () => {
+        cy.get(AboutComponent.aboutInput)
+          .should('be.enabled')
+          .and('be.empty')
+          .type('sample text')
+          .should('have.value', 'sample text')
+          .clear();
       });
     });
   });

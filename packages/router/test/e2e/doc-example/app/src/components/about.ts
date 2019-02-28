@@ -33,7 +33,7 @@ In other words
 In other words, I scroll you
 </pre></div>
 <br>
-<input>
+<input data-test="about-inputbox">
 </template>` })
 @inject(State, Router)
 export class About {

@@ -9,7 +9,7 @@ import { wait } from '../../utils';
 <h3>Authors</h3>
 <ul>
   <li repeat.for="author of authors">
-    <a href="author=\${author.id}">\${author.name}</a>
+    <a href="author(\${author.id})">\${author.name}</a>
     <ul><li repeat.for="book of author.books">\${book.title}</li></ul>
   </li>
 </ul>

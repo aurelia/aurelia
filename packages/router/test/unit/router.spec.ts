@@ -253,11 +253,11 @@ describe('Router', function () {
     this.timeout(30000);
     const { host, router } = await setup();
 
-    await goto('/bar@left=123', router);
+    await goto('/bar@left(123)', router);
     expect(host.textContent).to.contain('Viewport: bar');
     expect(host.textContent).to.contain('Parameter id: [123]');
 
-    await goto('/bar@left=456', router);
+    await goto('/bar@left(456)', router);
     expect(host.textContent).to.contain('Viewport: bar');
     expect(host.textContent).to.contain('Parameter id: [456]');
 
@@ -268,11 +268,11 @@ describe('Router', function () {
     this.timeout(30000);
     const { host, router } = await setup();
 
-    await goto('/bar@left=id=123', router);
+    await goto('/bar@left(id=123)', router);
     expect(host.textContent).to.contain('Viewport: bar');
     expect(host.textContent).to.contain('Parameter id: [123]');
 
-    await goto('/bar@left=id=456', router);
+    await goto('/bar@left(id=456)', router);
     expect(host.textContent).to.contain('Viewport: bar');
     expect(host.textContent).to.contain('Parameter id: [456]');
 
@@ -283,11 +283,11 @@ describe('Router', function () {
     this.timeout(30000);
     const { host, router } = await setup();
 
-    await goto('/bar@left=123', router);
+    await goto('/bar@left(123)', router);
     expect(host.textContent).to.contain('Viewport: bar');
     expect(host.textContent).to.contain('Parameter id: [123]');
 
-    await goto('/bar@right=456', router);
+    await goto('/bar@right(456)', router);
     expect(host.textContent).to.contain('Viewport: bar');
     expect(host.textContent).to.contain('Parameter id: [123]');
     expect(host.textContent).to.contain('Parameter id: [456]');
@@ -302,7 +302,7 @@ describe('Router', function () {
     await goto('/corge@left', router);
     expect(host.textContent).to.contain('Viewport: corge');
 
-    await goto('/baz=123', router);
+    await goto('/baz(123)', router);
     expect(host.textContent).to.contain('Viewport: baz');
     expect(host.textContent).to.contain('Parameter id: [123]');
 
@@ -316,7 +316,7 @@ describe('Router', function () {
     await goto('/corge@left', router);
     expect(host.textContent).to.contain('Viewport: corge');
 
-    await goto('/baz=id=123', router);
+    await goto('/baz(id=123)', router);
     expect(host.textContent).to.contain('Viewport: baz');
     expect(host.textContent).to.contain('Parameter id: [123]');
 
@@ -327,12 +327,12 @@ describe('Router', function () {
     this.timeout(30000);
     const { host, router } = await setup();
 
-    await goto('/bar@left=123&OneTwoThree', router);
+    await goto('/bar@left(123&OneTwoThree)', router);
     expect(host.textContent).to.contain('Viewport: bar');
     expect(host.textContent).to.contain('Parameter id: [123]');
     expect(host.textContent).to.contain('Parameter name: [OneTwoThree]');
 
-    await goto('/bar@left=456&FourFiveSix', router);
+    await goto('/bar@left(456&FourFiveSix)', router);
     expect(host.textContent).to.contain('Viewport: bar');
     expect(host.textContent).to.contain('Parameter id: [456]');
     expect(host.textContent).to.contain('Parameter name: [FourFiveSix]');
@@ -344,12 +344,12 @@ describe('Router', function () {
     this.timeout(30000);
     const { host, router } = await setup();
 
-    await goto('/bar@left=id=123&name=OneTwoThree', router);
+    await goto('/bar@left(id=123&name=OneTwoThree)', router);
     expect(host.textContent).to.contain('Viewport: bar');
     expect(host.textContent).to.contain('Parameter id: [123]');
     expect(host.textContent).to.contain('Parameter name: [OneTwoThree]');
 
-    await goto('/bar@left=name=FourFiveSix&id=456', router);
+    await goto('/bar@left(name=FourFiveSix&id=456)', router);
     expect(host.textContent).to.contain('Viewport: bar');
     expect(host.textContent).to.contain('Parameter id: [456]');
     expect(host.textContent).to.contain('Parameter name: [FourFiveSix]');
@@ -377,16 +377,16 @@ describe('Router', function () {
     this.timeout(30000);
     const { host, router } = await setup();
 
-    await goto('/bar@left=456?id=123', router);
+    await goto('/bar@left(456)?id=123', router);
     expect(host.textContent).to.contain('Viewport: bar');
     expect(host.textContent).to.contain('Parameter id: [456]');
 
-    await goto('/bar@left=456&FourFiveSix?id=123&name=OneTwoThree', router);
+    await goto('/bar@left(456&FourFiveSix)?id=123&name=OneTwoThree', router);
     expect(host.textContent).to.contain('Viewport: bar');
     expect(host.textContent).to.contain('Parameter id: [456]');
     expect(host.textContent).to.contain('Parameter name: [FourFiveSix]');
 
-    await goto('/bar@left=name=SevenEightNine&id=789?id=123&name=OneTwoThree', router);
+    await goto('/bar@left(name=SevenEightNine&id=789)?id=123&name=OneTwoThree', router);
     expect(host.textContent).to.contain('Viewport: bar');
     expect(host.textContent).to.contain('Parameter id: [789]');
     expect(host.textContent).to.contain('Parameter name: [SevenEightNine]');

@@ -6,7 +6,7 @@ import { UsersRepository } from '../../repositories/users';
   name: 'chat-users', template: `<template>
 <ul>
   <li repeat.for="user of users">
-    <a href="chat-user=\${user.id}">\${user.id} (\${user.name})</a>
+    <a href="chat-user(\${user.id})">\${user.id} (\${user.name})</a>
   </li>
 </ul>
 </template>` })

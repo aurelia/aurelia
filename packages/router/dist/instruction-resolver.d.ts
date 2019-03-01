@@ -8,6 +8,7 @@ export interface IRouteSeparators {
     scope: string;
     ownsScope: string;
     parameters: string;
+    parametersEnd: string;
     parameter: string;
     add: string;
     clear: string;

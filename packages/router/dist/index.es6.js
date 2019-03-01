@@ -1116,7 +1116,8 @@ class InstructionResolver {
             sibling: '+',
             scope: '/',
             ownsScope: '!',
-            parameters: '=',
+            parameters: '(',
+            parametersEnd: ')',
             parameter: '&',
             add: '+',
             clear: '-',
@@ -1224,7 +1225,12 @@ class InstructionResolver {
                 viewport = viewport.slice(0, -this.separators.ownsScope.length);
             }
         }
-        const parametersString = parameters.length ? parameters.join(this.separators.parameters) : undefined;
+        let parametersString = parameters.length ? parameters.join(this.separators.parameters) : undefined;
+        // The parameter separator can be either a standalone character (such as / or =) or a pair of enclosing characters
+        // (such as ()). The separating character is consumed but the end character is not, so we still need to remove that.
+        if (this.separators.parametersEnd.length && parametersString && parametersString.endsWith(this.separators.parametersEnd)) {
+            parametersString = parametersString.slice(0, -this.separators.parametersEnd.length);
+        }
         return new ViewportInstruction(component, viewport, parametersString, scope);
     }
     stringifyAViewportInstruction(instruction, excludeViewport = false) {
@@ -1238,7 +1244,7 @@ class InstructionResolver {
             }
             if (instruction.parametersString) {
                 // TODO: Review parameters in ViewportInstruction
-                instructionString += this.separators.parameters + instruction.parametersString;
+                instructionString += this.separators.parameters + instruction.parametersString + this.separators.parametersEnd;
             }
             return instructionString;
         }

@@ -151,6 +151,8 @@ export class InstructionResolver {
       }
     }
     let parametersString = parameters.length ? parameters.join(this.separators.parameters) : undefined;
+    // The parameter separator can be either a standalone character (such as / or =) or a pair of enclosing characters
+    // (such as ()). The separating character is consumed but the end character is not, so we still need to remove that.
     if (this.separators.parametersEnd.length && parametersString && parametersString.endsWith(this.separators.parametersEnd)) {
       parametersString = parametersString.slice(0, -this.separators.parametersEnd.length);
     }

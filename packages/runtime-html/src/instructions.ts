@@ -109,7 +109,7 @@ export class SetAttributeInstruction implements ITargetedInstruction {
 export class AttributeBindingInstruction implements IAttributeBindingInstruction {
   public type: HTMLTargetedInstructionType.attributeBinding;
 
-  public from: string;
+  public from: string | IsBindingBehavior;
   /**
    * `attr` and `to` have the same value on a normal attribute
    * Will be different on `class` and `style`
@@ -119,7 +119,7 @@ export class AttributeBindingInstruction implements IAttributeBindingInstruction
   public attr: string;
   public to: string;
 
-  constructor(attr: string, from: string, to: string) {
+  constructor(attr: string, from: string | IsBindingBehavior, to: string) {
     this.type = HTMLTargetedInstructionType.attributeBinding;
 
     this.from = from;

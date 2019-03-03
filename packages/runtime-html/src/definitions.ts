@@ -62,7 +62,7 @@ export interface ISetAttributeInstruction extends ITargetedInstruction {
 
 export interface IAttributeBindingInstruction extends ITargetedInstruction {
   type: HTMLTargetedInstructionType.attributeBinding;
-  from: string;
+  from: string | IsBindingBehavior;
   
   /**
    * `attr` and `to` have the same value on a normal attribute

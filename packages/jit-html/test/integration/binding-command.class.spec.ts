@@ -7,7 +7,7 @@ import { TestContext } from '../util';
 import { eachCartesianJoin, eachCartesianJoinAsync, tearDown } from './util';
 
 // TemplateCompiler - Binding Commands integration
-describe.only('template-compiler.binding-commands.class', function() {
+describe('template-compiler.binding-commands.class', function() {
 
   const falsyValues = [0, false, null, undefined, ''];
   const truthyValues = [1, '1', true, {}, [], Symbol(), function() {/**/}, Number, new Proxy({}, {})];
@@ -72,7 +72,7 @@ describe.only('template-compiler.binding-commands.class', function() {
               const el = childEls[i];
               expect(
                 el.classList.contains(className.toLowerCase()),
-                `classList.contains(${className})`
+                `[[truthy]]${el.className}.contains(${className}) 1`
               ).to.equal(true);
             }
 
@@ -82,7 +82,7 @@ describe.only('template-compiler.binding-commands.class', function() {
               const el = childEls[i];
               expect(
                 el.classList.contains(className.toLowerCase()),
-                `[${String(falsyValue)}]classList.contains(${className})`
+                `[${String(falsyValue)}]${el.className}.contains(${className}) 2`
               ).to.equal(false);
             }
 
@@ -92,7 +92,7 @@ describe.only('template-compiler.binding-commands.class', function() {
               const el = childEls[i];
               expect(
                 el.classList.contains(className.toLowerCase()),
-                `[${String(truthyValue)}]classList.contains(${className})`
+                `[${String(truthyValue)}]${el.className}.contains(${className}) 3`
               ).to.equal(true);
             }
           }
@@ -140,12 +140,14 @@ describe.only('template-compiler.binding-commands.class', function() {
         au.start();
         try {
           const els = typeof testCase.selector === 'string'
-            ? host.querySelectorAll(testCase.selector) as NodeListOf<HTMLElement>
-            : testCase.selector(ctx.doc);
+            ? host.querySelectorAll(testCase.selector)
+            : testCase.selector(ctx.doc) as ArrayLike<HTMLElement>;
           for (let i = 0, ii = els.length; ii > i; ++i) {
             const el = els[i];
-            debugger;
-            expect(el.classList.contains(className.toLowerCase()), `[true]classList.contains(${className})`).to.equal(true, `Actual: "${el.className}"`);
+            expect(
+              el.classList.contains(className.toLowerCase()),
+              `[true]${el.className}.contains(${className}) 1`
+            ).to.equal(true);
           }
 
           await eachCartesianJoinAsync(
@@ -155,14 +157,20 @@ describe.only('template-compiler.binding-commands.class', function() {
               await Promise.resolve();
               for (let i = 0, ii = els.length; ii > i; ++i) {
                 const el = els[i];
-                expect(el.classList.contains(className.toLowerCase()), `[${String(falsyValue)}]classList.contains(${className})`).to.equal(false);
+                expect(
+                  el.classList.contains(className.toLowerCase()),
+                  `[${String(falsyValue)}]${el.className}.contains(${className}) 2`
+                ).to.equal(false);
               }
 
               component.value = truthyValue;
               await Promise.resolve();
               for (let i = 0, ii = els.length; ii > i; ++i) {
                 const el = els[i];
-                expect(el.classList.contains(className.toLowerCase()), `[${String(truthyValue)}]classList.contains(${className})`).to.equal(true);
+                expect(
+                  el.classList.contains(className.toLowerCase()),
+                  `[${String(truthyValue)}]${el.className}.contains(${className}) 3`
+                ).to.equal(true);
               }
             }
           );
@@ -196,7 +204,7 @@ describe.only('template-compiler.binding-commands.class', function() {
     const host = ctx.doc.body.appendChild(ctx.createElement('app'));
     const au = new Aurelia(container);
     const App = CustomElementResource.define({ name: 'app', template }, $class);
-    const component = new App() as T;
+    const component = new App();
 
     return { container, lifecycle, ctx, host, au, component, observerLocator };
   }

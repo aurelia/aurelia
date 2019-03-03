@@ -23,6 +23,11 @@ export interface AttributeObserver extends
   IBatchedCollectionSubscriber,
   IPropertySubscriber { }
 
+/**
+ * Observer for handling two-way binding with attributes
+ * Has different strategy for class/style and normal attributes
+ * TODO: handle SVG/attributes with namespace
+ */
 @targetObserver('')
 export class AttributeObserver implements AttributeObserver, ElementMutationSubscription {
 
@@ -39,7 +44,6 @@ export class AttributeObserver implements AttributeObserver, ElementMutationSubs
   // DOM related properties
   public obj: IHtmlElement;
   private readonly targetAttribute: string;
-  private readonly targetKey: string;
 
   constructor(
     flags: LifecycleFlags,
@@ -64,7 +68,7 @@ export class AttributeObserver implements AttributeObserver, ElementMutationSubs
       this.setValueCore = this.setValueCoreInlineStyle;
       this.getValue = this.getValueInlineStyle;
     }
-    this.targetKey = targetKey;
+    this.propertyKey = targetKey;
   }
 
   public getValue(): unknown {
@@ -72,7 +76,7 @@ export class AttributeObserver implements AttributeObserver, ElementMutationSubs
   }
 
   public getValueInlineStyle(): string {
-    return this.obj.style.getPropertyValue(this.targetKey);
+    return this.obj.style.getPropertyValue(this.propertyKey);
   }
   public getValueClassName(): boolean {
     return this.obj.classList.contains(this.propertyKey);
@@ -94,10 +98,10 @@ export class AttributeObserver implements AttributeObserver, ElementMutationSubs
       priority = 'important';
       value = value.replace('!important', '');
     }
-    this.obj.style.setProperty(this.targetKey, value as string, priority);
+    this.obj.style.setProperty(this.propertyKey, value as string, priority);
   }
   public setValueCoreClassName(newValue: unknown): void {
-    const className = this.targetKey;
+    const className = this.propertyKey;
     const classList = this.obj.classList;
     // Why is class attribute observer setValue look different with class attribute accessor?
     // ==============
@@ -139,7 +143,7 @@ export class AttributeObserver implements AttributeObserver, ElementMutationSubs
   }
   public handleMutationInlineStyle(): void {
     const css = this.obj.style;
-    const rule = this.targetKey;
+    const rule = this.propertyKey;
     const newValue = css.getPropertyValue(rule);
     if (newValue !== this.currentValue) {
       this.currentValue = newValue;
@@ -147,7 +151,7 @@ export class AttributeObserver implements AttributeObserver, ElementMutationSubs
     }
   }
   public handleMutationClassName(): void {
-    const className = this.targetKey;
+    const className = this.propertyKey;
     const newValue = this.obj.classList.contains(className);
     if (newValue !== this.currentValue) {
       this.currentValue = newValue;

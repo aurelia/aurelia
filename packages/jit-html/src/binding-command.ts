@@ -8,6 +8,7 @@ import {
 import { IRegistry } from '@aurelia/kernel';
 import { BindingType, IsBindingBehavior } from '@aurelia/runtime';
 import {
+  AttributeBindingInstruction,
   CaptureBindingInstruction,
   DelegateBindingInstruction,
   HTMLAttributeInstruction,
@@ -58,3 +59,49 @@ export class CaptureBindingCommand implements IBindingCommand {
   }
 }
 BindingCommandResource.define('capture', CaptureBindingCommand);
+
+export interface AttrBindingCommand extends IBindingCommand {}
+export class AttrBindingCommand implements IBindingCommand {
+  public static readonly register: IRegistry['register'];
+  public readonly bindingType: BindingType.IsProperty;
+
+  constructor() {
+    this.bindingType = BindingType.IsProperty;
+  }
+
+  public compile(binding: PlainAttributeSymbol | BindingSymbol): HTMLAttributeInstruction {
+    const target = getTarget(binding, false);
+    return new AttributeBindingInstruction(target, binding.expression as IsBindingBehavior, target);
+  }
+}
+BindingCommandResource.define('attr', AttrBindingCommand);
+
+export interface StyleBindingCommand extends IBindingCommand {}
+export class StyleBindingCommand implements IBindingCommand {
+  public static readonly register: IRegistry['register'];
+  public readonly bindingType: BindingType.IsProperty;
+
+  constructor() {
+    this.bindingType = BindingType.IsProperty;
+  }
+
+  public compile(binding: PlainAttributeSymbol | BindingSymbol): HTMLAttributeInstruction {
+    return new AttributeBindingInstruction('style', binding.expression as IsBindingBehavior, getTarget(binding, true));
+  }
+}
+BindingCommandResource.define('style', StyleBindingCommand);
+
+export interface ClassBindingCommand extends IBindingCommand {}
+export class ClassBindingCommand implements IBindingCommand {
+  public static readonly register: IRegistry['register'];
+  public readonly bindingType: BindingType.IsProperty;
+
+  constructor() {
+    this.bindingType = BindingType.IsProperty;
+  }
+
+  public compile(binding: PlainAttributeSymbol | BindingSymbol): HTMLAttributeInstruction {
+    return new AttributeBindingInstruction('class', binding.expression as IsBindingBehavior, getTarget(binding, false));
+  }
+}
+BindingCommandResource.define('class', ClassBindingCommand);

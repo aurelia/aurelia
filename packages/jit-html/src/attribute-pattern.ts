@@ -1,8 +1,8 @@
 import { attributePattern, AttrSyntax, IAttributePattern } from '@aurelia/jit';
 import { IRegistry } from '@aurelia/kernel';
 
-export interface AttrPattern extends IAttributePattern {}
-export class AttrPattern implements AttrPattern {
+export interface AttrAttributePattern extends IAttributePattern {}
+export class AttrAttributePattern implements AttrAttributePattern {
   public static register: IRegistry['register'];
 
   public ['attr.PART'](rawName: string, rawValue: string, parts: string[]): AttrSyntax {

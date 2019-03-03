@@ -22,9 +22,11 @@ import {
   IListenerBindingInstruction,
   ISetAttributeInstruction,
   IStylePropertyBindingInstruction,
-  ITextBindingInstruction
+  ITextBindingInstruction,
+  IAttributeBindingInstruction
 } from './definitions';
 import { IEventManager } from './observation/event-manager';
+import { AttributeBinding } from './binding/attribute';
 
 const slice = Array.prototype.slice;
 
@@ -113,6 +115,37 @@ export class StylePropertyBindingRenderer implements IInstructionRenderer {
     if (Tracer.enabled) { Tracer.enter('StylePropertyBindingRenderer', 'render', slice.call(arguments)); }
     const expr = ensureExpression(this.parser, instruction.from, BindingType.IsPropertyCommand | BindingMode.toView);
     const binding = new Binding(expr, target.style, instruction.to, BindingMode.toView, this.observerLocator, context);
+    addBinding(renderable, binding);
+    if (Tracer.enabled) { Tracer.leave(); }
+  }
+}
+
+@instructionRenderer(HTMLTargetedInstructionType.attributeBinding)
+/** @internal */
+export class AttributeBindingRenderer implements IInstructionRenderer {
+  public static readonly inject: ReadonlyArray<InterfaceSymbol> = [IExpressionParser, IObserverLocator];
+  public static readonly register: IRegistry['register'];
+
+  private readonly parser: IExpressionParser;
+  private readonly observerLocator: IObserverLocator;
+
+  constructor(parser: IExpressionParser, observerLocator: IObserverLocator) {
+    this.parser = parser;
+    this.observerLocator = observerLocator;
+  }
+
+  public render(flags: LifecycleFlags, dom: IDOM, context: IRenderContext, renderable: IRenderable, target: HTMLElement, instruction: IAttributeBindingInstruction): void {
+    if (Tracer.enabled) { Tracer.enter('StylePropertyBindingRenderer', 'render', slice.call(arguments)); }
+    const expr = ensureExpression(this.parser, instruction.from, BindingType.IsPropertyCommand | BindingMode.toView);
+    const binding = new AttributeBinding(
+      expr,
+      target,
+      /*targetAttribute*/instruction.attr,
+      /*targetKey*/instruction.to,
+      BindingMode.toView,
+      this.observerLocator,
+      context
+    );
     addBinding(renderable, binding);
     if (Tracer.enabled) { Tracer.leave(); }
   }

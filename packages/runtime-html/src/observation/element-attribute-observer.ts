@@ -1,4 +1,3 @@
-import { PLATFORM } from '@aurelia/kernel';
 import {
   DOM,
   IBatchedCollectionSubscriber,
@@ -39,9 +38,8 @@ export class AttributeObserver implements AttributeObserver, ElementMutationSubs
 
   // DOM related properties
   public obj: IHtmlElement;
-  private targetAttribute: string;
-  private targetKey: string;
-  private hyphenatedCssRule: string;
+  private readonly targetAttribute: string;
+  private readonly targetKey: string;
 
   constructor(
     flags: LifecycleFlags,
@@ -57,24 +55,27 @@ export class AttributeObserver implements AttributeObserver, ElementMutationSubs
     this.lifecycle = lifecycle;
     this.obj = element as IHtmlElement;
     this.targetAttribute = targetAttribute;
-    this.handleMutationCore = targetAttribute === 'class'
-      ? this.handleMutationClassName
-      : targetAttribute === 'style'
-        ? this.handleMutationInlineStyle
-        : this.handleMutationCore;
+    if (targetAttribute === 'class') {
+      this.handleMutationCore = this.handleMutationClassName;
+      this.setValueCore = this.setValueCoreClassName;
+      this.getValue = this.getValueClassName;
+    } else if (targetAttribute === 'style') {
+      this.handleMutationCore = this.handleMutationInlineStyle;
+      this.setValueCore = this.setValueCoreInlineStyle;
+      this.getValue = this.getValueInlineStyle;
+    }
     this.targetKey = targetKey;
-    this.hyphenatedCssRule = PLATFORM.kebabCase(targetKey);
   }
 
-  public getValue(): string {
+  public getValue(): unknown {
     return this.obj.getAttribute(this.propertyKey);
   }
 
-  public getValueInlineStyle() {
-    return this.obj.style.getPropertyValue(this.hyphenatedCssRule);
+  public getValueInlineStyle(): string {
+    return this.obj.style.getPropertyValue(this.targetKey);
   }
-  public getValueClassName() {
-    return this.obj.classList
+  public getValueClassName(): boolean {
+    return this.obj.classList.contains(this.propertyKey);
   }
 
   public setValueCore(newValue: unknown, flags: LifecycleFlags): void {
@@ -86,16 +87,16 @@ export class AttributeObserver implements AttributeObserver, ElementMutationSubs
       obj.setAttribute(targetAttribute, newValue as string);
     }
   }
-  public setValueCoreInlineStyle(value: unknown) {
+  public setValueCoreInlineStyle(value: unknown): void {
     let priority = '';
 
     if (typeof value === 'string' && value.indexOf('!important') !== -1) {
       priority = 'important';
       value = value.replace('!important', '');
     }
-    this.obj.style.setProperty(this.hyphenatedCssRule, value as string, priority);
+    this.obj.style.setProperty(this.targetKey, value as string, priority);
   }
-  public setValueCoreClassName(newValue: unknown) {
+  public setValueCoreClassName(newValue: unknown): void {
     const className = this.targetKey;
     const classList = this.obj.classList;
     // Why is class attribute observer setValue look different with class attribute accessor?
@@ -111,8 +112,7 @@ export class AttributeObserver implements AttributeObserver, ElementMutationSubs
     // so there is no need for separating class by space and add all of them like class accessor
     if (newValue) {
       classList.add(className);
-    }
-    else {
+    } else {
       classList.remove(className);
     }
   }

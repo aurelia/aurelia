@@ -8,17 +8,20 @@ import { eachCartesianJoin, eachCartesianJoinAsync, tearDown } from './util';
 
 // TemplateCompiler - Binding Commands integration
 describe('template-compiler.binding-commands.style', () => {
-  const falsyValues = [0, false, null, undefined, ''];
-  const truthyValues = [1, '1', true, {}, [], Symbol(), function() {/**/}, Number, new Proxy({}, {})];
 
-  /** [ruleName, ruleValue, defaultValue] */
-  const rulesTests: [string, string, string][] = [
+  /** [ruleName, ruleValue, defaultValue, isInvalid, valueOnInvalid] */
+  const rulesTests: [string, string, string, boolean?, string?][] = [
     ['background', 'red', ''],
     ['color', 'red', ''],
     ['background-color', 'red', ''],
     ['font-size', '10px', ''],
     ['font-family', 'Arial', ''],
-    ['-webkit-user-select', 'none', 'none']
+    ['-webkit-user-select', 'none', ''],
+    ['--customprop', 'red', ''],
+    ['background', 'red!important', ''],
+    ['--custumprop', 'nah!important', ''],
+    // non happy path
+    ['-webkit-user-select', 'of course', '', true, ''],
   ];
 
   const testCases: ITestCase[] = [
@@ -32,29 +35,53 @@ describe('template-compiler.binding-commands.style', () => {
         <child value.bind="value"></child>
         <child repeat.for="i of 5" value.bind="value"></child>`;
       },
-      assert: async (au, lifecycle, host, component, [ruleName, ruleValue, ruleDefaultValue], testCase) => {
+      assert: async (au, lifecycle, host, component, [ruleName, ruleValue, ruleDefaultValue, isInvalid, valueOnInvalid], testCase) => {
         const childEls = host.querySelectorAll('child') as ArrayLike<HTMLElement>;
+        const hasImportant = ruleValue.indexOf('!important') > -1;
+        const ruleValueNoPriority = hasImportant ? ruleValue.replace('!important', '') : ruleValue;
+
         expect(childEls.length).to.equal(6);
 
         component.value = ruleValue;
         await Promise.resolve();
         for (let i = 0, ii = childEls.length; ii > i; ++i) {
           const child = childEls[i];
-          expect(child.style[ruleName], `[${ruleName}]component.value="${ruleValue}"`).to.equal(ruleValue);
+          expect(
+            child.style.getPropertyValue(ruleName),
+            `[${ruleName}]component.value="${ruleValue}" 1`
+          ).to.equal(isInvalid ? valueOnInvalid : ruleValueNoPriority);
+          if (hasImportant) {
+            expect(child.style.getPropertyPriority(ruleName)).to.equal('important');
+          }
         }
 
         component.value = '';
         await Promise.resolve();
         for (let i = 0, ii = childEls.length; ii > i; ++i) {
           const child = childEls[i];
-          expect(child.style[ruleName], `[${ruleName}]component.value=""`).to.equal(ruleDefaultValue);
+          expect(child.style.getPropertyValue(ruleName), `[${ruleName}]component.value="" 1`).to.equal(ruleDefaultValue);
+          if (hasImportant) {
+            expect(
+              child.style.getPropertyPriority(ruleName),
+              `!important[${ruleName}]vm.value="" 1`
+            ).to.equal('');
+          }
         }
 
         component.value = ruleValue;
         await Promise.resolve();
         for (let i = 0, ii = childEls.length; ii > i; ++i) {
           const child = childEls[i];
-          expect(child.style[ruleName], `[${ruleName}]component.value="${ruleValue}"`).to.equal(ruleValue);
+          expect(
+            child.style.getPropertyValue(ruleName),
+            `[${ruleName}]component.value="${ruleValue}" 2`
+          ).to.equal(isInvalid ? valueOnInvalid : ruleValueNoPriority);
+          if (hasImportant) {
+            expect(
+              child.style.getPropertyPriority(ruleName),
+              `!important[${ruleName}]component.value=${ruleValue} 2`
+            ).to.equal('important');
+          }
         }
 
         // TODO: for inlined css, there are rules that employs fallback value when incoming value is inappropriate
@@ -70,21 +97,21 @@ describe('template-compiler.binding-commands.style', () => {
    * 1. on init, select all elements specified by `testCase.selector`
    *  - verify it has inline style matching `ruleValue` (2nd var in destructed 1st tuple param)
    *  - if `ruleValue` has `"!important"`, verify priority of inline style is `"important"`
-   * 
-   * 2. set `value` of bound view model to empty string. For each of all elements queried by `testCase.selector` 
+   *
+   * 2. set `value` of bound view model to empty string. For each of all elements queried by `testCase.selector`
    *  - verify each element has inline style value equal empty string,
    *    or default value (3rd var in destructed 1st tuple param)
-   * 
+   *
    * 3. set `value` of bound view model to `ruleValue` (2nd var in destructed 1st tuple param)
    *  - verify each element has inline style value equal `ruleValue`
    *  - if `ruleValue` has `"!important"`, verify priority of inline style is `"important"`
-   * 
+   *
    * 4. repeat step 2
    * 5. Call custom `assert` of each test case with necessary parameters
    */
   eachCartesianJoin(
     [rulesTests, testCases],
-    ([ruleName, ruleValue, ruleDefaultValue], testCase, callIndex) => {
+    ([ruleName, ruleValue, ruleDefaultValue, isInvalid, valueOnInvalid], testCase, callIndex) => {
       it(testCase.title(ruleName, ruleValue, callIndex), async () => {
         const { ctx, au, lifecycle, host, component } = setup(
           testCase.template(ruleName),
@@ -107,51 +134,73 @@ describe('template-compiler.binding-commands.style', () => {
         au.app({ host, component });
         au.start();
         try {
-          const els = typeof testCase.selector === 'string'
-            ? host.querySelectorAll(testCase.selector) as NodeListOf<HTMLElement>
+          const els: ArrayLike<HTMLElement> = typeof testCase.selector === 'string'
+            ? host.querySelectorAll(testCase.selector)
             : testCase.selector(ctx.doc);
-          for (let i = 0, ii = els.length; ii > i; ++i) {
+          const ii = els.length;
+          const hasImportant = ruleValue.indexOf('!important') > -1;
+          const ruleValueNoPriority = hasImportant ? ruleValue.replace('!important', '') : ruleValue;
+
+          for (let i = 0; ii > i; ++i) {
             const el = els[i];
-            expect(el.style.getPropertyValue(ruleName)).to.equal(ruleValue);
-            if (ruleValue.indexOf('!important') > -1) {
-              expect(el.style.getPropertyPriority(ruleName)).to.equal('important');
+            expect(
+              el.style.getPropertyValue(ruleName),
+              `[${ruleName}]vm.value="${ruleValue}" 1`
+            ).to.equal(isInvalid ? valueOnInvalid : ruleValueNoPriority);
+            if (hasImportant) {
+              expect(
+                el.style.getPropertyPriority(ruleName),
+                `!important[${ruleName}]vm.value=${ruleValue} 1`
+              ).to.equal('important');
             }
           }
 
           component.value = '';
           await Promise.resolve();
-          for (let i = 0, ii = els.length; ii > i; ++i) {
+          for (let i = 0; ii > i; ++i) {
             const el = els[i];
-            expect(el.style.getPropertyValue(ruleName), `[${ruleName}]component.value="${ruleValue}"`).to.equal(ruleDefaultValue);
-            if (ruleValue.indexOf('!important') > -1) {
-              expect(el.style.getPropertyPriority(ruleName)).to.equal('important');
+            expect(el.style.getPropertyValue(ruleName), `[${ruleName}]vm.value="" 2`).to.equal(ruleDefaultValue);
+            if (hasImportant) {
+              expect(
+                el.style.getPropertyPriority(ruleName),
+                `!important[${ruleName}]vm.value=${ruleValue} 2`
+              ).to.equal('');
             }
           }
 
           component.value = ruleValue;
           await Promise.resolve();
-          for (let i = 0, ii = els.length; ii > i; ++i) {
+          for (let i = 0; ii > i; ++i) {
             const el = els[i];
-            expect(el.style.getPropertyValue(ruleName), `[${ruleName}]component.value="${ruleValue}"`).to.equal(ruleValue);
-            if (ruleValue.indexOf('!important') > -1) {
-              expect(el.style.getPropertyPriority(ruleName)).to.equal('important');
+            expect(
+              el.style.getPropertyValue(ruleName),
+              `[${ruleName}]vm.value="${ruleValue}" 3`
+            ).to.equal(isInvalid ? valueOnInvalid : ruleValueNoPriority);
+            if (hasImportant) {
+              expect(
+                el.style.getPropertyPriority(ruleName),
+                `!important[${ruleName}]vm.value=${ruleValue} 3`
+              ).to.equal('important');
             }
           }
 
           component.value = '';
           await Promise.resolve();
-          for (let i = 0, ii = els.length; ii > i; ++i) {
+          for (let i = 0; ii > i; ++i) {
             const el = els[i];
-            expect(el.style.getPropertyValue(ruleName), `[${ruleName}]component.value="${ruleValue}"`).to.equal(ruleDefaultValue);
-            if (ruleValue.indexOf('!important') > -1) {
-              expect(el.style.getPropertyPriority(ruleName)).to.equal('important');
+            expect(el.style.getPropertyValue(ruleName), `[${ruleName}]vm.value="" 4`).to.equal(ruleDefaultValue);
+            if (hasImportant) {
+              expect(
+                el.style.getPropertyPriority(ruleName),
+                `!important[${ruleName}]vm.value=${ruleValue} 4`
+              ).to.equal('');
             }
           }
 
           // TODO: for inlined css, there are rules that employs fallback value when incoming value is inappropriate
           //        better test those scenarios
 
-          await testCase.assert(au, lifecycle, host, component, [ruleName, ruleValue, ruleDefaultValue], testCase);
+          await testCase.assert(au, lifecycle, host, component, [ruleName, ruleValue, ruleDefaultValue, isInvalid, valueOnInvalid], testCase);
         } finally {
           const em = ctx.container.get(IEventManager);
           em.dispose();
@@ -171,7 +220,7 @@ describe('template-compiler.binding-commands.style', () => {
     selector: string | ((document: Document) => ArrayLike<HTMLElement>);
     title(...args: unknown[]): string;
     template(...args: string[]): string;
-    assert(au: Aurelia, lifecycle: ILifecycle, host: HTMLElement, component: IApp, ruleCase: [string, string, string], testCase): void | Promise<void>;
+    assert(au: Aurelia, lifecycle: ILifecycle, host: HTMLElement, component: IApp, ruleCase: [string, string, string, boolean?, string?], testCase): void | Promise<void>;
   }
 
   function setup<T>(template: string | Node, $class: Constructable<T> | null, ...registrations: any[]) {

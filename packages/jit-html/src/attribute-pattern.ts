@@ -14,6 +14,11 @@ export class AttrAttributePattern implements AttrAttributePattern {
   }
 }
 
+attributePattern(
+  { pattern: 'attr.PART', symbols: '.' },
+  { pattern: 'PART.attr', symbols: '.' }
+)(AttrAttributePattern);
+
 export interface StyleAttributePattern extends IAttributePattern {}
 export class StyleAttributePattern implements StyleAttributePattern {
   public static register: IRegistry['register'];

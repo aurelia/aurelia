@@ -86,7 +86,7 @@ export class StyleBindingCommand implements IBindingCommand {
   }
 
   public compile(binding: PlainAttributeSymbol | BindingSymbol): HTMLAttributeInstruction {
-    return new AttributeBindingInstruction('style', binding.expression as IsBindingBehavior, getTarget(binding, true));
+    return new AttributeBindingInstruction('style', binding.expression as IsBindingBehavior, getTarget(binding, false));
   }
 }
 BindingCommandResource.define('style', StyleBindingCommand);

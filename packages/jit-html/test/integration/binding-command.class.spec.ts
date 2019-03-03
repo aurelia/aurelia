@@ -7,7 +7,7 @@ import { TestContext } from '../util';
 import { eachCartesianJoin, eachCartesianJoinAsync, tearDown } from './util';
 
 // TemplateCompiler - Binding Commands integration
-describe('template-compiler.binding-commands.class', function() {
+describe.only('template-compiler.binding-commands.class', function() {
 
   const falsyValues = [0, false, null, undefined, ''];
   const truthyValues = [1, '1', true, {}, [], Symbol(), function() {/**/}, Number, new Proxy({}, {})];
@@ -144,7 +144,8 @@ describe('template-compiler.binding-commands.class', function() {
             : testCase.selector(ctx.doc);
           for (let i = 0, ii = els.length; ii > i; ++i) {
             const el = els[i];
-            expect(el.classList.contains(className.toLowerCase()), `[true]classList.contains(${className})`).to.equal(true);
+            debugger;
+            expect(el.classList.contains(className.toLowerCase()), `[true]classList.contains(${className})`).to.equal(true, `Actual: "${el.className}"`);
           }
 
           await eachCartesianJoinAsync(

@@ -39,7 +39,8 @@ export const DefaultComponents = [
  */
 export const JitAttrBindingSyntax = [
   StyleAttributePattern,
-  ClassAttributePattern
+  ClassAttributePattern,
+  AttrAttributePattern
 ];
 
 export const TriggerBindingCommandRegistration = TriggerBindingCommand as IRegistry;

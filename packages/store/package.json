@@ -1,6 +1,6 @@
 {
   "name": "@aurelia/store",
-  "version": "0.3.0-dev.20190302",
+  "version": "0.3.0-dev.20190303",
   "main": "dist/index.umd.js",
   "module": "dist/index.es6.js",
   "jsnext:main": "dist/index.es6.js",
@@ -48,7 +48,7 @@
     "access": "public"
   },
   "dependencies": {
-    "@aurelia/kernel": "0.3.0-dev.20190302",
+    "@aurelia/kernel": "0.3.0-dev.20190303",
     "rxjs": "^6.4.0"
   },
   "devDependencies": {

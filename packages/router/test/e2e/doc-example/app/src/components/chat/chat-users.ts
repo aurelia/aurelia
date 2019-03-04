@@ -5,8 +5,8 @@ import { UsersRepository } from '../../repositories/users';
 @customElement({
   name: 'chat-users', template: `<template>
 <ul>
-  <li repeat.for="user of users">
-    <a href="chat-user(\${user.id})">\${user.id} (\${user.name})</a>
+  <li data-test="chat-users-element-item" repeat.for="user of users">
+    <a data-test="chat-users-element-links" href="chat-user(\${user.id})">\${user.id} (\${user.name})</a>
   </li>
 </ul>
 </template>` })

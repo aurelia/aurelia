@@ -38,11 +38,17 @@ describe('doc-example / default route', () => {
 
   it('displays the correct viewports', () => {
     cy.get(Shared.listsViewportHeader)
+      .should('exist');
+    cy.get(Shared.listsViewportHeader)
       .should('contain', 'Viewport: lists  : authors');
 
     cy.get(Shared.contentViewportHeader)
+      .should('exist');
+    cy.get(Shared.contentViewportHeader)
       .should('contain', 'Viewport: content  : about');
 
+    cy.get(Shared.chatViewportHeader)
+      .should('exist');
     cy.get(Shared.chatViewportHeader)
       .should('contain', 'Viewport: chat  : null');
   });

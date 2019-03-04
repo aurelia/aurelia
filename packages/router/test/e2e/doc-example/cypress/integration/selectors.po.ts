@@ -36,3 +36,21 @@ export const BooksComponent = {
   bookLinks: '[data-test=books-element-book-link]',
   authorNames: '[data-test=books-element-author-name]'
 };
+
+export const ChatComponent = {
+  close: '[data-test=chat-element-close]',
+  chatMainViewport: 'au-viewport[name=chat-main]',
+  chatMainViewportHeader: 'au-viewport[name=chat-main] .viewport-header',
+  chatDetailsViewport: 'au-viewport[name=chat-details]',
+  chatDetailsViewportHeader: 'au-viewport[name=chat-details] .viewport-header'
+};
+
+export const ChatUsersComponent = {
+  items: '[data-test=chat-users-element-item]',
+  userLinks: '[data-test=chat-users-element-links]'
+};
+
+export const ChatDetailsComponent = {
+  chatTitle: '[data-test=chat-user-element-title]',
+  chatInput: '[data-test=chat-user-element-input]'
+};

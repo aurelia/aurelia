@@ -8,12 +8,18 @@ describe('doc-example / books route', () => {
   });
 
   it('displays the correct viewports', () => {
+    cy.get(Shared.listsViewport)
+      .should('exist');
     cy.get(Shared.listsViewportHeader)
       .should('contain', 'Viewport: lists  : books');
 
+    cy.get(Shared.contentViewport)
+      .should('exist');
     cy.get(Shared.contentViewportHeader)
       .should('contain', 'Viewport: content  : about');
 
+    cy.get(Shared.chatViewport)
+      .should('exist');
     cy.get(Shared.chatViewportHeader)
       .should('contain', 'Viewport: chat  : null');
   });

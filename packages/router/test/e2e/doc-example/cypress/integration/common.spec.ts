@@ -1,4 +1,4 @@
-import { AboutComponent, Shared, ChatComponent, ChatUsersComponent, ChatDetailsComponent } from './selectors.po';
+import { AboutComponent, ChatComponent, ChatDetailsComponent, ChatUsersComponent, Shared } from './selectors.po';
 
 describe('doc-example / common elements', () => {
   before(() => {
@@ -30,13 +30,33 @@ describe('doc-example / common elements', () => {
   });
 
   describe('chat component', () => {
-    beforeEach(() => {
+    before(() => {
       cy.visit('/#/chat');
     });
 
-    afterEach(() => {
+    after(() => {
       cy.get(ChatComponent.close)
         .click();
+    });
+
+    it('sets the correct nav items as active', () => {
+      const labels = [
+        'Authors',
+        'About',
+        'Chat'
+      ];
+
+      cy.get(Shared.appMenuNavItemsActive)
+        .as('activeNavigation');
+
+      cy.get('@activeNavigation')
+        .should('have.length', labels.length);
+
+      labels.forEach((l, i) => {
+        cy.get('@activeNavigation')
+          .eq(i)
+          .should('contain', l);
+      });
     });
 
     it('displays the default viewports', () => {
@@ -79,39 +99,21 @@ describe('doc-example / common elements', () => {
           .within(_ => {
             cy.get(ChatUsersComponent.userLinks)
               .should('have.attr', 'href', `chat-user(${u.id})`)
-              .and('contain', `${u.id} (${u.name})`)
-              .click();
+              .and('contain', `${u.id} (${u.name})`);
           });
       });
     });
 
     it('displays the correct user', () => {
-      const users = [
-        {
-          id: 'eisenbergeffect',
-          name: 'Rob Eisenberg'
-        },
-        {
-          id: 'jwx',
-          name: 'Jürgen Wenzel'
-        },
-        {
-          id: 'shahabganji',
-          name: 'Saeed Ganji'
-        }
-      ];
-
       cy.get(ChatUsersComponent.userLinks)
         .as('chatUsers');
 
-      users.forEach((u, i) => {
-        cy.get('@chatUsers')
-          .eq(i)
-          .click();
+      cy.get('@chatUsers')
+        .eq(0)
+        .click();
 
-        cy.get(ChatDetailsComponent.chatTitle)
-          .should('contain', `Chatting with ${u.id} (${u.name})`);
-      });
+      cy.get(ChatDetailsComponent.chatTitle)
+        .should('contain', `Chatting with eisenbergeffect (Rob Eisenberg)`);
     });
   });
 });

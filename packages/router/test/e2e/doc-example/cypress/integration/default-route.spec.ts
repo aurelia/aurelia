@@ -1,4 +1,4 @@
-import { AuthorsComponent, Shared } from './selectors.po';
+import { AuthorsComponent, Shared, AuthorComponent } from './selectors.po';
 
 describe('doc-example / default route', () => {
   it('navigates to default route', () => {
@@ -112,6 +112,79 @@ describe('doc-example / default route', () => {
             });
           });
       });
+    });
+  });
+
+  describe('author details component', () => {
+    before(() => {
+      cy.visit("/#/author(1)");
+    });
+
+    it('displays the correct viewport', () => {
+      cy.get(Shared.contentViewport)
+        .should('exist');
+      cy.get(Shared.contentViewportHeader)
+        .should('contain', 'Viewport: content  : author');
+
+      cy.get(AuthorComponent.authorTabsViewport)
+        .should('exist');
+      cy.get(AuthorComponent.authorTabsViewportHeader)
+        .should('contain', 'Viewport: author-tabs  : author-details');
+    });
+
+    it('display the correct author details', () => {
+      cy.get(AuthorComponent.authorName)
+        .should('contain', 'Terry Pratchett');
+
+      cy.get(AuthorComponent.authorBirthYear)
+        .should('contain', 'Born: 1948');
+
+      const books = [
+        'The Colour of Magic',
+        'Jingo',
+        'Night Watch',
+        'Good Omens'
+      ];
+
+      cy.get(AuthorComponent.bookLinks)
+        .as('books');
+
+      books.forEach((b, i) => {
+        cy.get('@books')
+          .eq(i)
+          .should('contain', b);
+      });
+    });
+
+    it('displays the correct author tabs', () => {
+      const tabs = [
+        'Details',
+        'About authors',
+        'Author information'
+      ];
+
+      cy.get(AuthorComponent.authorMenuNavItems)
+        .as('authorTabs');
+
+      tabs.forEach((t, i) => {
+        cy.get('@authorTabs')
+          .eq(i)
+          .should('contain', t);
+      });
+    });
+
+    it('toggles author tabs', () => {
+      cy.get(AuthorComponent.authorTabsViewport)
+        .should('exist');
+
+      cy.get(AuthorComponent.hideTabsCheckbox)
+        .click();
+
+      cy.get(AuthorComponent.authorTabsViewport)
+        .should('not.exist');
+
+      cy.get(AuthorComponent.hideTabsCheckbox)
+        .click();
     });
   });
 });

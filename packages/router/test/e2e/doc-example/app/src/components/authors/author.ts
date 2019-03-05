@@ -8,8 +8,8 @@ import { Information } from './information';
 
 @customElement({
   name: 'author', template: `<template>
-<h3>\${author.name}</h3>
-<div>Born: \${author.born}</div>
+<h3 data-test="author-element-author-name">\${author.name}</h3>
+<div data-test="author-element-birth-year">Born: \${author.born}</div>
 <div>Books:
   <ul>
     <li repeat.for="book of author.books"><a data-test="author-element-book-link" href="book(\${book.id})">\${book.title}</a></li>

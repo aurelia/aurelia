@@ -16,17 +16,17 @@ import {
   LifecycleFlags,
   MultiInterpolationBinding
 } from '@aurelia/runtime';
+import { AttributeBinding } from './binding/attribute';
 import { Listener } from './binding/listener';
 import {
   HTMLTargetedInstructionType,
+  IAttributeBindingInstruction,
   IListenerBindingInstruction,
   ISetAttributeInstruction,
   IStylePropertyBindingInstruction,
-  ITextBindingInstruction,
-  IAttributeBindingInstruction
+  ITextBindingInstruction
 } from './definitions';
 import { IEventManager } from './observation/event-manager';
-import { AttributeBinding } from './binding/attribute';
 
 const slice = Array.prototype.slice;
 
@@ -140,8 +140,8 @@ export class AttributeBindingRenderer implements IInstructionRenderer {
     const binding = new AttributeBinding(
       expr,
       target,
-      /*targetAttribute*/instruction.attr,
-      /*targetKey*/instruction.to,
+      instruction.attr/*targetAttribute*/,
+      instruction.to/*targetKey*/,
       BindingMode.toView,
       this.observerLocator,
       context

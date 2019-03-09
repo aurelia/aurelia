@@ -12,6 +12,9 @@ const toViewOrOneTime = toView | oneTime;
 
 export interface AttributeBinding extends IConnectableBinding {}
 
+/**
+ * Attribute binding. Handle attribute binding betwen view/view model. Understand Html special attributes
+ */
 @connectable()
 export class AttributeBinding implements IPartialConnectableBinding {
   public $nextBinding: IBinding;

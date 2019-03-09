@@ -6,10 +6,10 @@ import {
 } from '@aurelia/runtime';
 import {
   HTMLTargetedInstructionType,
+  IAttributeBindingInstruction,
   IListenerBindingInstruction,
   IStylePropertyBindingInstruction,
-  ITextBindingInstruction,
-  IAttributeBindingInstruction
+  ITextBindingInstruction
 } from './definitions';
 
 export class TextBindingInstruction implements ITextBindingInstruction {

@@ -42,6 +42,9 @@ function isRenderLocation(node: Node): node is Node & IRenderLocation {
   return node.textContent === 'au-end';
 }
 
+/**
+ * IDOM implementation for Html.
+ */
 export class HTMLDOM implements IDOM {
   public readonly Node: typeof Node;
   public readonly Element: typeof Element;
@@ -266,7 +269,10 @@ export class TextNodeSequence implements INodeSequence {
 // has an instance of this under the hood. Anyone who wants to create a node sequence from
 // a string of markup would also receive an instance of this.
 // CompiledTemplates create instances of FragmentNodeSequence.
-/** @internal */
+/**
+ * This is the most common form of INodeSequence.
+ * @internal
+ */
 export class FragmentNodeSequence implements INodeSequence {
   public dom: IDOM;
   public firstChild: Node;

@@ -32,6 +32,9 @@ export function createElement<T extends INode = Node>(
   }
 }
 
+/**
+ * RenderPlan. Todo: describe goal of this class
+ */
 export class RenderPlan<T extends INode = Node> {
   private readonly dom: IDOM<T>;
   private readonly dependencies: ReadonlyArray<IRegistry>;

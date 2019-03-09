@@ -22,6 +22,10 @@ describe('template-compiler.binding-commands.class', function() {
     'SOME_RIDI-COU@#$%-class',
     '1',
     '__1',
+    '✔',
+    '⛓',
+    '🤷‍♂️', // double characters
+    '🤯',
     ...[
     '@',
     '#',

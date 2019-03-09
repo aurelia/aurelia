@@ -44,6 +44,9 @@ const attributesToIgnore = {
   'replace-part': true
 };
 
+/**
+ * TemplateBinder. Todo: describe goal of this class
+ */
 export class TemplateBinder {
   public dom: IDOM;
   public resources: ResourceModel;
@@ -530,6 +533,9 @@ interface IAttrLike {
   value: string;
 }
 
+/**
+ * ParserState. Todo: describe goal of this class
+ */
 class ParserState {
   public input: string;
   public index: number;

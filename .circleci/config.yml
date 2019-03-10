@@ -1,5 +1,7 @@
 version: 2.1
 
+orbs:
+  common: aurelia/common@volatile
 
 # # # # # # # # # # # # # # # #
 # - Scalar variables -
@@ -75,6 +77,55 @@ commands:
       - run: npm ci --ignore-scripts
       - run: npm run bootstrap
 
+  checkout_install_bootstrap_build_bundle_publish_verdaccio:
+    parameters:
+      from:
+        type: string
+      to:
+        type: string
+      channel:
+        type: string
+      registry:
+        type: string
+        default: "http://localhost:4873"
+    steps:
+      - checkout_install_bootstrap
+      - run: npm run build
+      - run: npm run bundle:all
+      - clean_merge_commit_dist:
+          from: << parameters.from >>
+          to: << parameters.to >>
+          channel: << parameters.channel >>
+      - common/setup_verdaccio
+      - run: npm run publish:<< parameters.channel >> -- << parameters.registry >>
+
+  clean_merge_commit_dist:
+    from:
+      type: string
+    to:
+      type: string
+    channel:
+      type: string
+    message:
+      type: string
+      default: "chore(all): add latest build artifacts"
+    steps:
+      - run: ./node_modules/.bin/lerna clean -y
+      - run: rm -rf packages/*/dist/build/**
+      - run: git add packages/\*/dist/* --force && git status
+      - run: git stash && git status
+      - run: git checkout << parameters.to >> && git status
+      - run: git reset --hard origin/<< parameters.to >> && git status
+      - run: git merge << parameters.from >> --no-ff --no-edit -Xtheirs && git status
+      - run: rm -rf packages/*/dist && git status
+      - run: git add . && git status
+      - run: git checkout stash -- . && git status
+      - run: git add packages/\*/dist/* --force && git status
+      - run: npm run change-package-refs:rollup
+      - run: npm run bump-version:<< parameters.channel >>
+      - run: git add . && git status
+      - run: git commit --allow-empty -m "<< parameters.message >>" && git status
+
 # # # # # # # # # # # # # # # #
 # - Jobs -
 # # # # # # # # # # # # # # # #
@@ -131,27 +182,14 @@ jobs:
         type: string
       channel:
         type: string
-      message:
-        type: string
-        default: "chore(all): add latest build artifacts"
     steps:
       - checkout_install_bootstrap
       - run: npm run build
       - run: npm run bundle:release
-      - run: ./node_modules/.bin/lerna clean -y
-      - run: rm -rf packages/*/dist/build/**
-      - run: git add packages/\*/dist/* --force
-      - run: git stash
-      - run: git checkout << parameters.to >>
-      - run: git merge << parameters.from >> --no-ff --no-edit -Xtheirs
-      - run: rm -rf packages/*/dist
-      - run: git add .
-      - run: git stash pop
-      - run: git add packages/\*/dist/* --force
-      - run: npm run change-package-refs:rollup
-      - run: npm run bump-version:<< parameters.channel >>
-      - run: git add .
-      - run: git commit --allow-empty -m "<< parameters.message >>"
+      - clean_merge_commit_dist:
+          from: << parameters.from >>
+          to: << parameters.to >>
+          channel: << parameters.channel >>
       - run: git push origin << parameters.to >>
 
   e2e_browserstack:
@@ -228,30 +266,11 @@ jobs:
     parameters:
       path:
         type: string
-      build:
-        type: boolean
-        default: false
-      iife:
-        type: boolean
-        default: false
-      publish_local:
-        type: boolean
-        default: false
     steps:
-      - checkout_install
-      - when:
-          condition: << parameters.build >>
-          steps:
-            - run: npm run bootstrap
-            - run: npm run build
-      - when:
-          condition: << parameters.iife >>
-          steps:
-            - run: ./node_modules/.bin/ts-node -P scripts/tsconfig.json scripts/bundle.ts iife jit-html-browser
-      - when:
-          condition: << parameters.publish_local >>
-          steps:
-            - run: npm run publish:local
+      - checkout_install_bootstrap_build_bundle_publish_verdaccio
+          from: ${CIRCLE_BRANCH}
+          to: develop
+          channel: dev
       - run:
           name: "Install wdio"
           command: |
@@ -260,14 +279,14 @@ jobs:
       - run:
           name: "Install & build test app"
           command: |
-            cd test/wdio/cases/<< parameters.path >>
+            cd << parameters.path >>
             npm install
             npm run build
       - run:
           name: "Serve wdio test app"
           background: true
           command: |
-            cd test/wdio/cases/<< parameters.path >>
+            cd << parameters.path >>
             npm run serve
       - run:
           name: "Run wdio test"
@@ -308,38 +327,31 @@ workflows:
       - e2e_wdio:
           <<: *filter_ignore_develop_release
           name: jit-aurelia-cli-ts
-          path: "local/jit-aurelia-cli-ts"
-          build: true
+          path: "examples/jit-aurelia-cli-ts"
           requires:
             - lint_packages # not a real requirement but forces long-running jobs to go first
       - e2e_wdio:
           <<: *filter_ignore_develop_release
           name: jit-fuse-box-ts
-          path: "local/jit-fuse-box-ts"
-          build: true
+          path: "examples/jit-fuse-box-ts"
           requires:
             - lint_packages # not a real requirement but forces long-running jobs to go first
       - e2e_wdio:
           <<: *filter_ignore_develop_release
           name: jit-webpack-ts
-          path: "local/jit-webpack-ts"
-          build: true
+          path: "examples/jit-webpack-ts"
           requires:
             - lint_packages # not a real requirement but forces long-running jobs to go first
       - e2e_wdio:
           <<: *filter_ignore_develop_release
           name: jit-parcel-ts
-          path: "local/jit-parcel-ts"
-          build: true
-          publish_local: true
+          path: "examples/jit-parcel-ts"
           requires:
             - lint_packages # not a real requirement but forces long-running jobs to go first
       - e2e_wdio:
           <<: *filter_ignore_develop_release
           name: jit-iife-inline
-          path: "local/jit-iife-inline"
-          build: true
-          iife: true
+          path: "examples/jit-iife-inline"
           requires:
             - lint_packages # not a real requirement but forces long-running jobs to go first
       - merge_and_dist:
@@ -413,43 +425,6 @@ workflows:
             - request_publish_latest
           channel: latest
           branch: release
-      # verify the latest packages after publishing them
-      - e2e_wdio:
-          <<: *filter_only_release
-          name: jit-aurelia-cli-ts
-          path: "latest/jit-aurelia-cli-ts"
-          requires:
-            - publish_npm
-      - e2e_wdio:
-          <<: *filter_only_release
-          name: jit-browserify-ts
-          path: "latest/jit-browserify-ts"
-          requires:
-            - publish_npm
-      - e2e_wdio:
-          <<: *filter_only_release
-          name: jit-fuse-box-ts
-          path: "latest/jit-fuse-box-ts"
-          requires:
-            - publish_npm
-      - e2e_wdio:
-          <<: *filter_only_release
-          name: jit-parcel-ts
-          path: "latest/jit-parcel-ts"
-          requires:
-            - publish_npm
-      - e2e_wdio:
-          <<: *filter_only_release
-          name: jit-webpack-ts
-          path: "latest/jit-webpack-ts"
-          requires:
-            - publish_npm
-      - e2e_wdio:
-          <<: *filter_only_release
-          name: jit-iife-inline
-          path: "latest/jit-iife-inline"
-          requires:
-            - publish_npm
 
   # Runs build and tests, and pushes the built artifacts to the develop branch (which then triggers publish_dev)
   # Triggered by schedule once per day on 0:00 UTC on the master branch
@@ -469,34 +444,3 @@ workflows:
           branch: develop
           requires:
             - merge_and_dist
-      # verify the dev packages after publishing them
-      - e2e_wdio:
-          name: jit-aurelia-cli-ts
-          path: "dev/jit-aurelia-cli-ts"
-          requires:
-            - publish_npm
-      - e2e_wdio:
-          name: jit-browserify-ts
-          path: "dev/jit-browserify-ts"
-          requires:
-            - publish_npm
-      - e2e_wdio:
-          name: jit-fuse-box-ts
-          path: "dev/jit-fuse-box-ts"
-          requires:
-            - publish_npm
-      - e2e_wdio:
-          name: jit-parcel-ts
-          path: "dev/jit-parcel-ts"
-          requires:
-            - publish_npm
-      - e2e_wdio:
-          name: jit-webpack-ts
-          path: "dev/jit-webpack-ts"
-          requires:
-            - publish_npm
-      - e2e_wdio:
-          name: jit-iife-inline
-          path: "dev/jit-iife-inline"
-          requires:
-            - publish_npm

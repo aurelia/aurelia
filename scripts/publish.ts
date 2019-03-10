@@ -4,18 +4,19 @@ import { createLogger } from './logger';
 
 const log = createLogger('publish');
 
-function parseArgs(): {tag: string} {
+function parseArgs(): {tag: string; registry: string} {
   const args = process.argv.slice(2);
   const tag = args[0];
+  const registry = args[1] || 'https://registry.npmjs.org/';
   log(args.join(' '));
-  return { tag };
+  return { tag, registry };
 }
 
 async function run(): Promise<void> {
-  const { tag } = parseArgs();
+  const { tag, registry } = parseArgs();
   const { major, minor, patch } = getCurrentVersion();
   const newVersion = getNewVersion(major, minor, patch, tag);
-  lerna(['publish', newVersion, '--dist-tag', tag, '--no-git-tag-version', '--no-push', '--no-verify-registry', '--no-verify-access', '-y']);
+  lerna(['publish', newVersion, '--dist-tag', tag, '--no-git-tag-version', '--no-push', '--no-verify-registry', '--no-verify-access', '--registry', registry, '-y']);
 }
 
 run().then(() => {

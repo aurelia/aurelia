@@ -1,6 +1,6 @@
 {
   "name": "@aurelia/testing",
-  "version": "0.3.0-dev.20190309",
+  "version": "0.3.0-dev.20190310",
   "main": "dist/index.umd.js",
   "module": "dist/index.es6.js",
   "jsnext:main": "dist/index.es6.js",
@@ -48,8 +48,8 @@
     "access": "public"
   },
   "dependencies": {
-    "@aurelia/kernel": "0.3.0-dev.20190309",
-    "@aurelia/runtime": "0.3.0-dev.20190309"
+    "@aurelia/kernel": "0.3.0-dev.20190310",
+    "@aurelia/runtime": "0.3.0-dev.20190310"
   },
   "devDependencies": {
     "@types/chai": "^4.1.7",

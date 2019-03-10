@@ -2,7 +2,6 @@ import {
   Class,
   Constructable,
   IContainer,
-  Immutable,
   IResourceKind,
   IResourceType,
   IServiceLocator,
@@ -38,7 +37,7 @@ import {
 } from '../templating/lifecycle-bind';
 import { $hydrateAttribute } from '../templating/lifecycle-render';
 
-type CustomAttributeStaticProperties = Pick<Immutable<Required<IAttributeDefinition>>, 'bindables'>;
+type CustomAttributeStaticProperties = Pick<Required<IAttributeDefinition>, 'bindables'>;
 
 export type CustomAttributeConstructor = Constructable & CustomAttributeStaticProperties;
 
@@ -198,7 +197,7 @@ export function createCustomAttributeDescription(def: IAttributeDefinition, Type
   const defaultBindingMode = def.defaultBindingMode;
   return {
     name: def.name,
-    aliases: aliases === undefined || aliases === null ? PLATFORM.emptyArray : aliases,
+    aliases: aliases === undefined || aliases === null ? PLATFORM.emptyArray as any[] : aliases,
     defaultBindingMode: defaultBindingMode === undefined || defaultBindingMode === null ? BindingMode.toView : defaultBindingMode,
     hasDynamicOptions: def.hasDynamicOptions === undefined ? false : def.hasDynamicOptions,
     isTemplateController: def.isTemplateController === undefined ? false : def.isTemplateController,

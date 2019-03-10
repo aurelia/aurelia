@@ -1,4 +1,4 @@
-import { Constructable, Immutable, InjectArray, IRegistry } from '@aurelia/kernel';
+import { Constructable, InjectArray, IRegistry } from '@aurelia/kernel';
 import {
   bindable,
   CompositionCoordinator,
@@ -54,7 +54,7 @@ export class Compose<T extends INode = Node> implements Compose<T> {
   constructor(
     dom: IDOM<T>,
     renderable: IRenderable<T>,
-    instruction: Immutable<IHydrateElementInstruction>,
+    instruction: IHydrateElementInstruction,
     renderingEngine: IRenderingEngine,
     coordinator: CompositionCoordinator
   ) {

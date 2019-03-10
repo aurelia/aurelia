@@ -1,14 +1,12 @@
 import {
   Constructable,
   DI,
-  Immutable,
   IRegistry,
   IResourceDefinition,
   Omit,
   PLATFORM,
   ResourceDescription,
-  ResourcePartDescription,
-  Writable
+  ResourcePartDescription
 } from '@aurelia/kernel';
 import { IForOfStatement, IInterpolationExpression, IsBindingBehavior } from './ast';
 import { BindingMode, BindingStrategy, ensureValidStrategy } from './flags';
@@ -89,7 +87,7 @@ export interface ITemplateDefinition extends IResourceDefinition {
 export type TemplateDefinition = ResourceDescription<ITemplateDefinition>;
 
 export type TemplatePartDefinitions = Record<string, ResourcePartDescription<ITemplateDefinition>>;
-export type BindableDefinitions = Record<string, Immutable<IBindableDescription>>;
+export type BindableDefinitions = Record<string, IBindableDescription>;
 
 export interface IAttributeDefinition extends IResourceDefinition {
   defaultBindingMode?: BindingMode;
@@ -100,7 +98,7 @@ export interface IAttributeDefinition extends IResourceDefinition {
   strategy?: BindingStrategy;
 }
 
-export type AttributeDefinition = Immutable<Required<IAttributeDefinition>> | null;
+export type AttributeDefinition = Required<IAttributeDefinition> | null;
 
 export type InstructionTypeName = string;
 
@@ -275,10 +273,10 @@ export function buildTemplateDefinition(
   name: string): TemplateDefinition;
 export function buildTemplateDefinition(
   ctor: null,
-  def: Immutable<ITemplateDefinition>): TemplateDefinition;
+  def: ITemplateDefinition): TemplateDefinition;
 export function buildTemplateDefinition(
   ctor: CustomElementConstructor | null,
-  nameOrDef: string | Immutable<ITemplateDefinition>): TemplateDefinition;
+  nameOrDef: string | ITemplateDefinition): TemplateDefinition;
 // tslint:disable-next-line:parameters-max-number
 export function buildTemplateDefinition(
   ctor: CustomElementConstructor | null,
@@ -297,7 +295,7 @@ export function buildTemplateDefinition(
 // tslint:disable-next-line:parameters-max-number // TODO: Reduce complexity (currently at 64)
 export function buildTemplateDefinition(
   ctor: CustomElementConstructor | null,
-  nameOrDef: string | Immutable<ITemplateDefinition> | null,
+  nameOrDef: string | ITemplateDefinition | null,
   template?: unknown | null,
   cache?: number | '*' | null,
   build?: IBuildInstruction | boolean | null,

@@ -2,7 +2,6 @@ import {
   all,
   Class,
   IContainer,
-  ImmutableArray,
   InjectArray,
   IRegistry,
   IResolver,
@@ -117,7 +116,7 @@ export class Renderer implements IRenderer {
         throw Reporter.error(31);
       }
     }
-    let instructions: ImmutableArray<ITargetedInstruction>;
+    let instructions: ITargetedInstruction[];
     let target: INode;
     let current: ITargetedInstruction;
     for (let i = 0, ii = targets.length; i < ii; ++i) {

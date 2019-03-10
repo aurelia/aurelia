@@ -4,8 +4,6 @@ import {
   IContainer,
   IDisposable,
   IIndexable,
-  Immutable,
-  ImmutableArray,
   InjectArray,
   IRegistry,
   IResolver,
@@ -76,7 +74,7 @@ export const ITemplateFactory = DI.createInterface<ITemplateFactory>('ITemplateF
 export interface ITemplate<T extends INode = INode> {
   readonly renderContext: IRenderContext<T>;
   readonly dom: IDOM<T>;
-  render(renderable: IRenderable<T>, host?: T, parts?: Immutable<Record<string, ITemplateDefinition>>, flags?: LifecycleFlags): void;
+  render(renderable: IRenderable<T>, host?: T, parts?: Record<string, ITemplateDefinition>, flags?: LifecycleFlags): void;
 }
 
 // This is the main implementation of ITemplate.
@@ -156,7 +154,7 @@ export interface IRenderingEngine {
 
   getViewFactory<T extends INode = INode>(
     dom: IDOM<T>,
-    source: Immutable<ITemplateDefinition>,
+    source: ITemplateDefinition,
     parentContext: IRenderContext<T> | null
   ): IViewFactory<T>;
 
@@ -174,7 +172,7 @@ export class RenderingEngine implements IRenderingEngine {
   private readonly compilers: Record<string, ITemplateCompiler>;
   private readonly container: IContainer;
   private readonly templateFactory: ITemplateFactory;
-  private readonly viewFactoryLookup: Map<Immutable<ITemplateDefinition>, IViewFactory>;
+  private readonly viewFactoryLookup: Map<ITemplateDefinition, IViewFactory>;
   private readonly lifecycle: ILifecycle;
   private readonly templateLookup: Map<TemplateDefinition, ITemplate>;
 
@@ -218,7 +216,7 @@ export class RenderingEngine implements IRenderingEngine {
 
   public getViewFactory<T extends INode = INode>(
     dom: IDOM<T>,
-    definition: Immutable<ITemplateDefinition>,
+    definition: ITemplateDefinition,
     parentContext: IRenderContext<T> | null
   ): IViewFactory<T> {
     if (!definition) {
@@ -283,7 +281,7 @@ export class RenderingEngine implements IRenderingEngine {
 export function createRenderContext(
   dom: IDOM,
   parentRenderContext: IRenderContext,
-  dependencies: ImmutableArray<IRegistry>,
+  dependencies: IRegistry[],
   componentType: ICustomElementType | null
 ): IRenderContext {
   const context = parentRenderContext.createChild() as ExposedContext;

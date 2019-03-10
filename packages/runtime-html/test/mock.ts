@@ -1,7 +1,6 @@
 import {
   IContainer,
   IDisposable,
-  Immutable,
   IResourceType,
   PLATFORM,
   Writable
@@ -266,13 +265,13 @@ export class MockRenderingEngine implements IRenderingEngine {
   }
 
     //@ts-ignore
-  public getElementTemplate(dom: IDOM, definition: Immutable<Required<ITemplateDefinition>>, componentType?: ICustomElementType): ITemplate {
+  public getElementTemplate(dom: IDOM, definition: Required<ITemplateDefinition>, componentType?: ICustomElementType): ITemplate {
     this.trace(`getElementTemplate`, definition, componentType);
     return this.elementTemplate;
   }
 
     //@ts-ignore
-  public getViewFactory(dom: IDOM, source: Immutable<ITemplateDefinition>, parentContext?: IRenderContext): IViewFactory {
+  public getViewFactory(dom: IDOM, source: ITemplateDefinition, parentContext?: IRenderContext): IViewFactory {
     this.trace(`getViewFactory`, source, parentContext);
     return this.viewFactory;
   }
@@ -345,7 +344,7 @@ export function defineComponentLifecycleMock() {
       this.trace(`unbound`, flags);
       this.verifyStateBit(State.isBound, false, 'detached');
     }
-    public render(host: INode, parts: Record<string, Immutable<ITemplateDefinition>>): void {
+    public render(host: INode, parts: Record<string, ITemplateDefinition>): void {
       this.trace(`render`, host, parts);
     }
     public caching(flags: LifecycleFlags): void {
@@ -416,7 +415,7 @@ export function defineComponentLifecycleMock() {
     public verifyUnboundCalled(flags: LifecycleFlags): void {
       this.verifyLastCall(`unbound`, flags);
     }
-    public verifyRenderCalled(host: INode, parts: Record<string, Immutable<ITemplateDefinition>>): void {
+    public verifyRenderCalled(host: INode, parts: Record<string, ITemplateDefinition>): void {
       this.verifyLastCall(`render`, host, parts);
     }
     public verifyCachingCalled(flags: LifecycleFlags): void {

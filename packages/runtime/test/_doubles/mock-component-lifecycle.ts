@@ -1,4 +1,3 @@
-import { Immutable } from '@aurelia/kernel';
 import { ILifecycle, INode, ITemplateDefinition, LifecycleFlags, State } from '../../src/index';
 import { Lifecycle } from '../../src/lifecycle';
 
@@ -53,7 +52,7 @@ export function defineComponentLifecycleMock() {
       this.trace(`unbound`, flags);
       this.verifyStateBit(State.isBound, false, 'detached');
     }
-    public render(host: INode, parts: Record<string, Immutable<ITemplateDefinition>>): void {
+    public render(host: INode, parts: Record<string, ITemplateDefinition>): void {
       this.trace(`render`, host, parts);
     }
     public caching(flags: LifecycleFlags): void {
@@ -124,7 +123,7 @@ export function defineComponentLifecycleMock() {
     public verifyUnboundCalled(flags: LifecycleFlags): void {
       this.verifyLastCall(`unbound`, flags);
     }
-    public verifyRenderCalled(host: INode, parts: Record<string, Immutable<ITemplateDefinition>>): void {
+    public verifyRenderCalled(host: INode, parts: Record<string, ITemplateDefinition>): void {
       this.verifyLastCall(`render`, host, parts);
     }
     public verifyCachingCalled(flags: LifecycleFlags): void {

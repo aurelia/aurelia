@@ -2,7 +2,6 @@ import {
   DI,
   IContainer,
   IDisposable,
-  Immutable,
   InjectArray,
   IResolver,
   IServiceLocator,
@@ -74,7 +73,7 @@ export const IRenderable = DI.createInterface<IRenderable>('IRenderable').noDefa
 export interface IRenderContext<T extends INode = INode> extends IServiceLocator {
   createChild(): IRenderContext<T>;
   render(flags: LifecycleFlags, renderable: IRenderable<T>, targets: ArrayLike<object>, templateDefinition: TemplateDefinition, host?: T, parts?: TemplatePartDefinitions): void;
-  beginComponentOperation(renderable: IRenderable<T>, target: object, instruction: Immutable<ITargetedInstruction>, factory?: IViewFactory<T>, parts?: TemplatePartDefinitions, location?: IRenderLocation<T>, locationIsContainer?: boolean): IDisposable;
+  beginComponentOperation(renderable: IRenderable<T>, target: object, instruction: ITargetedInstruction, factory?: IViewFactory<T>, parts?: TemplatePartDefinitions, location?: IRenderLocation<T>, locationIsContainer?: boolean): IDisposable;
 }
 
 export interface IView<T extends INode = INode> extends IRenderable<T>, IMountableComponent {

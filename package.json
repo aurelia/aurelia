@@ -11,6 +11,7 @@
     "init": "npm ci && npm run bootstrap && npm run build",
     "bootstrap": "lerna bootstrap --ci",
     "postinstall": "lerna bootstrap --ci",
+    "rebuild": "npm run clean && npm run build",
     "build": "lerna run build",
     "build:test": "lerna run build:test",
     "dev": "lerna run dev --parallel",

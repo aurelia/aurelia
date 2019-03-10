@@ -25,14 +25,14 @@ export function getDate(sep?: string): string {
   return `${y}${s}${m}${s}${d}`;
 }
 
-export function getNewVersion(major: string | number, minor: string | number, patch: string | number, tag: string): string {
+export function getNewVersion(major: string | number, minor: string | number, patch: string | number, tag: string, suffix: string): string {
   let newVersion: string;
   switch (tag) {
     case 'dev':
-      newVersion = `${major}.${minor}.${patch}-${tag}.${getDate()}`;
+      newVersion = `${major}.${minor}.${patch}-${tag}.${getDate()}${suffix}`;
       break;
     case 'latest':
-      newVersion = `${major}.${minor}.${patch}`;
+      newVersion = `${major}.${minor}.${patch}${suffix}`;
       break;
     default:
       throw new Error(`Invalid tag "${tag}"`);

@@ -85,6 +85,9 @@ commands:
         type: string
       channel:
         type: string
+      suffix:
+        type: string
+        default: ""
       registry:
         type: string
         default: "http://localhost:4873"
@@ -97,8 +100,9 @@ commands:
           from: << parameters.from >>
           to: << parameters.to >>
           channel: << parameters.channel >>
+          suffix: << parameters.suffix >>
       - common/setup_verdaccio
-      - run: npm run publish:<< parameters.channel >> -- << parameters.registry >>
+      - run: npm run publish:<< parameters.channel >> -- << parameters.suffix >> << parameters.registry >>
 
   clean_merge_commit_dist:
     parameters:
@@ -108,6 +112,9 @@ commands:
         type: string
       channel:
         type: string
+      suffix:
+        type: string
+        default: ""
       message:
         type: string
         default: "chore(all): add latest build artifacts"
@@ -124,7 +131,7 @@ commands:
       - run: git checkout stash -- . && git status
       - run: git add packages/\*/dist/* --force && git status
       - run: npm run change-package-refs:rollup
-      - run: npm run bump-version:<< parameters.channel >>
+      - run: npm run bump-version:<< parameters.channel >> -- << parameters.suffix >>
       - run: git add . && git status
       - run: git commit --allow-empty -m "<< parameters.message >>" && git status
 
@@ -273,6 +280,7 @@ jobs:
           from: ${CIRCLE_BRANCH}
           to: develop
           channel: dev
+          suffix: "-${CIRCLE_BUILD_NUM}"
       - run:
           name: "Install wdio"
           command: |

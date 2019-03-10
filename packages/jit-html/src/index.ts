@@ -1,7 +1,10 @@
 export {
   TriggerBindingCommand,
   DelegateBindingCommand,
-  CaptureBindingCommand
+  CaptureBindingCommand,
+  AttrBindingCommand,
+  ClassBindingCommand,
+  StyleBindingCommand
 } from './binding-command';
 export {
   ITemplateCompilerRegistration,
@@ -12,6 +15,9 @@ export {
   TriggerBindingCommandRegistration,
   DelegateBindingCommandRegistration,
   CaptureBindingCommandRegistration,
+  AttrBindingCommandRegistration,
+  ClassBindingCommandRegistration,
+  StyleBindingCommandRegistration,
 
   DefaultBindingLanguage,
 

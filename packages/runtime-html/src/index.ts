@@ -1,6 +1,9 @@
 export {
   Listener
 } from './binding/listener';
+export {
+  AttributeBinding
+} from './binding/attribute';
 
 export {
   AttributeNSAccessor
@@ -82,6 +85,7 @@ export {
 
   DefaultResources,
 
+  AttributeBindingRendererRegistration,
   ListenerBindingRendererRegistration,
   SetAttributeRendererRegistration,
   StylePropertyBindingRendererRegistration,
@@ -101,6 +105,7 @@ export {
   HTMLNodeInstruction,
   HTMLTargetedInstruction,
   HTMLTargetedInstructionType,
+  IAttributeBindingInstruction,
   IListenerBindingInstruction,
   ISetAttributeInstruction,
   isHTMLTargetedInstruction,
@@ -113,6 +118,7 @@ export {
   DOM
 } from './dom';
 export {
+  AttributeBindingInstruction,
   CaptureBindingInstruction,
   DelegateBindingInstruction,
   SetAttributeInstruction,

@@ -10,8 +10,9 @@ import {
 export const enum HTMLTargetedInstructionType {
   textBinding = 'ha',
   listenerBinding = 'hb',
-  stylePropertyBinding = 'hc',
-  setAttribute = 'hd'
+  attributeBinding = 'hc',
+  stylePropertyBinding = 'hd',
+  setAttribute = 'he',
 }
 
 export type HTMLNodeInstruction =
@@ -21,6 +22,7 @@ export type HTMLNodeInstruction =
 export type HTMLAttributeInstruction =
   AttributeInstruction |
   IListenerBindingInstruction |
+  IAttributeBindingInstruction |
   IStylePropertyBindingInstruction |
   ISetAttributeInstruction;
 
@@ -55,5 +57,19 @@ export interface IStylePropertyBindingInstruction extends ITargetedInstruction {
 export interface ISetAttributeInstruction extends ITargetedInstruction {
   type: HTMLTargetedInstructionType.setAttribute;
   value: string;
+  to: string;
+}
+
+export interface IAttributeBindingInstruction extends ITargetedInstruction {
+  type: HTMLTargetedInstructionType.attributeBinding;
+  from: string | IsBindingBehavior;
+
+  /**
+   * `attr` and `to` have the same value on a normal attribute
+   * Will be different on `class` and `style`
+   * on `class`: attr = `class` (from binding command), to = attribute name
+   * on `style`: attr = `style` (from binding command), to = attribute name
+   */
+  attr: string;
   to: string;
 }

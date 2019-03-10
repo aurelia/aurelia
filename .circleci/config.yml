@@ -267,7 +267,7 @@ jobs:
       path:
         type: string
     steps:
-      - checkout_install_bootstrap_build_bundle_publish_verdaccio
+      - checkout_install_bootstrap_build_bundle_publish_verdaccio:
           from: ${CIRCLE_BRANCH}
           to: develop
           channel: dev

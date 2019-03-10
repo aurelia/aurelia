@@ -11,7 +11,9 @@
     "build": "echo \"Nothing to build!\"",
     "serve": "http-server -c-1 -p 9000 ."
   },
-  "dependencies": {},
+  "dependencies": {
+    "@aurelia/jit-html-browser": "dev"
+  },
   "devDependencies": {
     "http-server": "latest"
   }

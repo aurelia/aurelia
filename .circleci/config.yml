@@ -338,32 +338,32 @@ workflows:
           <<: *filter_ignore_develop_release
           name: jit-aurelia-cli-ts
           path: "examples/jit-aurelia-cli-ts"
-      #     requires:
-      #       - lint_packages # not a real requirement but forces long-running jobs to go first
-      # - e2e_wdio:
-      #     <<: *filter_ignore_develop_release
-      #     name: jit-fuse-box-ts
-      #     path: "examples/jit-fuse-box-ts"
-      #     requires:
-      #       - lint_packages # not a real requirement but forces long-running jobs to go first
-      # - e2e_wdio:
-      #     <<: *filter_ignore_develop_release
-      #     name: jit-webpack-ts
-      #     path: "examples/jit-webpack-ts"
-      #     requires:
-      #       - lint_packages # not a real requirement but forces long-running jobs to go first
-      # - e2e_wdio:
-      #     <<: *filter_ignore_develop_release
-      #     name: jit-parcel-ts
-      #     path: "examples/jit-parcel-ts"
-      #     requires:
-      #       - lint_packages # not a real requirement but forces long-running jobs to go first
-      # - e2e_wdio:
-      #     <<: *filter_ignore_develop_release
-      #     name: jit-iife-inline
-      #     path: "examples/jit-iife-inline"
-      #     requires:
-      #       - lint_packages # not a real requirement but forces long-running jobs to go first
+          requires:
+            - lint_packages # not a real requirement but forces long-running jobs to go first
+      - e2e_wdio:
+          <<: *filter_ignore_develop_release
+          name: jit-fuse-box-ts
+          path: "examples/jit-fuse-box-ts"
+          requires:
+            - lint_packages # not a real requirement but forces long-running jobs to go first
+      - e2e_wdio:
+          <<: *filter_ignore_develop_release
+          name: jit-webpack-ts
+          path: "examples/jit-webpack-ts"
+          requires:
+            - lint_packages # not a real requirement but forces long-running jobs to go first
+      - e2e_wdio:
+          <<: *filter_ignore_develop_release
+          name: jit-parcel-ts
+          path: "examples/jit-parcel-ts"
+          requires:
+            - lint_packages # not a real requirement but forces long-running jobs to go first
+      - e2e_wdio:
+          <<: *filter_ignore_develop_release
+          name: jit-iife-inline
+          path: "examples/jit-iife-inline"
+          requires:
+            - lint_packages # not a real requirement but forces long-running jobs to go first
       - merge_and_dist:
           <<: *filter_only_master
           requires:
@@ -374,10 +374,10 @@ workflows:
             - e2e_browserstack
             - e2e_cypress_doc_example
             - jit-aurelia-cli-ts
-            # - jit-fuse-box-ts
-            # - jit-webpack-ts
-            # - jit-parcel-ts
-            # - jit-iife-inline
+            - jit-fuse-box-ts
+            - jit-webpack-ts
+            - jit-parcel-ts
+            - jit-iife-inline
           from: master
           to: develop
           channel: dev

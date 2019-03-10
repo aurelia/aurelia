@@ -100,15 +100,16 @@ commands:
       - run: npm run publish:<< parameters.channel >> -- << parameters.registry >>
 
   clean_merge_commit_dist:
-    from:
-      type: string
-    to:
-      type: string
-    channel:
-      type: string
-    message:
-      type: string
-      default: "chore(all): add latest build artifacts"
+    parameters:
+      from:
+        type: string
+      to:
+        type: string
+      channel:
+        type: string
+      message:
+        type: string
+        default: "chore(all): add latest build artifacts"
     steps:
       - run: ./node_modules/.bin/lerna clean -y
       - run: rm -rf packages/*/dist/build/**

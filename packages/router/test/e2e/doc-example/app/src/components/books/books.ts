@@ -6,9 +6,9 @@ import { BooksRepository } from '../../repositories/books';
   name: 'books', template: `<template>
 <h3>Books</h3>
 <ul>
-  <li repeat.for="book of books">
-    <a href="book(\${book.id})">\${book.title}</a>
-    <ul><li repeat.for="author of book.authors">\${author.name}</li></ul>
+  <li data-test="books-element-item" repeat.for="book of books">
+    <a data-test="books-element-book-link" href="book(\${book.id})">\${book.title}</a>
+    <ul><li data-test="books-element-author-name" repeat.for="author of book.authors">\${author.name}</li></ul>
   </li>
 </ul>
 </template>` })

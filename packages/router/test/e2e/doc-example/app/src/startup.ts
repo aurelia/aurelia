@@ -3,7 +3,7 @@ import { BasicConfiguration } from '@aurelia/jit-html-browser';
 import { Aurelia, IDOM } from '@aurelia/runtime';
 import { registerComponent } from './utils';
 
-import { NavCustomElement, ViewportCustomElement } from '../../../../../router/src/index';
+import { NavCustomElement, ViewportCustomElement } from '../../../../../../router/src/index';
 import { App } from './app';
 
 import { About } from './components/about';

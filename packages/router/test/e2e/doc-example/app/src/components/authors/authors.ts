@@ -8,9 +8,9 @@ import { wait } from '../../utils';
   name: 'authors', template: `<template>
 <h3>Authors</h3>
 <ul>
-  <li repeat.for="author of authors">
-    <a href="author(\${author.id})">\${author.name}</a>
-    <ul><li repeat.for="book of author.books">\${book.title}</li></ul>
+  <li data-test="authors-element-item" repeat.for="author of authors">
+    <a data-test="authors-element-author-link" href="author(\${author.id})">\${author.name}</a>
+    <ul><li data-test="authors-element-book-name" repeat.for="book of author.books">\${book.title}</li></ul>
   </li>
 </ul>
 </template>` })

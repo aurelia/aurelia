@@ -1,6 +1,6 @@
 import { inject } from '@aurelia/kernel';
 import { customElement } from '@aurelia/runtime';
-import { Router } from '../../../../../router/src/index';
+import { Router } from '../../../../../../router/src/index';
 import { About } from './components/about';
 import { Authors } from './components/authors/authors';
 import { Books } from './components/books/books';
@@ -13,7 +13,7 @@ import { State } from './state';
     `<template>
   <div class="\${router.isNavigating ? 'routing' : ''}" style="--primary-color: \${color}">
     <div>
-      <au-nav name="app-menu"></au-nav>
+      <au-nav data-test="app-menu" name="app-menu"></au-nav>
       <span class="loader \${router.isNavigating ? 'routing' : ''}">&nbsp;</span>
     </div>
     <div class="info">
@@ -23,16 +23,16 @@ import { State } from './state';
       and the navigation is rolled back after 2 seconds.)
     </div>
     <div class="info">
-      <label><input type="checkbox" checked.two-way="state.noDelay">Disable loading delays for components</label><br>
-      <label><input type="checkbox" checked.two-way="state.allowEnterAuthorDetails">Allow entering <i>Author details</i></label><br>
+      <label><input data-test="no-delay-checkbox" type="checkbox" checked.two-way="state.noDelay">Disable loading delays for components</label><br>
+      <label><input data-test="allow-enter-author-details-checkbox" type="checkbox" checked.two-way="state.allowEnterAuthorDetails">Allow entering <i>Author details</i></label><br>
     </div>
     <div class="info" style="background-color: var(--primary-color)">
-      <select value.two-way="color">
+      <select data-test="info-background-color-select" value.two-way="color">
         <option value="lightblue">Light blue</option>
         <option value="lightgreen">Light green</option>
       <select>
       <div style="display: inline-block;">
-        The background is in the --primary-color: \${color}.
+        The background is in the --primary-color: <span data-test="info-background-color">\${color}</span>.
       </div>
     </div>
     <au-viewport name="lists" used-by="authors,books" default="authors"></au-viewport>

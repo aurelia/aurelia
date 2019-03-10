@@ -177,6 +177,34 @@ jobs:
             cd test/browserstack
             npm run e2e
 
+  e2e_cypress_doc_example:
+    executor: docker-circleci
+    steps:
+      - checkout_install_bootstrap
+      - run: npm run build
+      - run:
+          name: "Install cypress"
+          command: |
+            cd packages/router/test/e2e/doc-example
+            npm install
+      - run:
+          name: "Install and build test app"
+          command: |
+            cd packages/router/test/e2e/doc-example/app
+            npm install
+            npm run build
+      - run:
+          name: "Serve test app in the background"
+          background: true
+          command: |
+            cd packages/router/test/e2e/doc-example/app
+            npm run serve
+      - run:
+          name: "Run e2e tests"
+          command: |
+            cd packages/router/test/e2e/doc-example
+            npm run test
+
   publish_npm:
     executor: docker-aurelia
     parameters:
@@ -275,6 +303,8 @@ workflows:
           <<: *filter_ignore_develop_release
       - e2e_browserstack:
           <<: *filter_ignore_develop_release
+      - e2e_cypress_doc_example:
+          <<: *filter_ignore_develop_release
       - e2e_wdio:
           <<: *filter_ignore_develop_release
           name: jit-aurelia-cli-ts
@@ -320,6 +350,7 @@ workflows:
             - unit_test_node
             - lint_packages
             - e2e_browserstack
+            - e2e_cypress_doc_example
             - jit-aurelia-cli-ts
             - jit-fuse-box-ts
             - jit-webpack-ts
@@ -353,6 +384,8 @@ workflows:
           <<: *filter_only_tag
       - e2e_browserstack:
           <<: *filter_only_tag
+      - e2e_cypress_doc_example:
+          <<: *filter_only_tag
       - merge_and_dist:
           <<: *filter_only_tag
           requires:
@@ -361,6 +394,7 @@ workflows:
             - unit_test_node
             - lint_packages
             - e2e_browserstack
+            - e2e_cypress_doc_example
           from: $CIRCLE_TAG
           to: release
           channel: latest

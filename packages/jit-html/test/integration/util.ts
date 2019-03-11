@@ -12,6 +12,7 @@ import { expect } from 'chai';
 import {
   _,
   eachCartesianJoin,
+  eachCartesianJoinAsync,
   eachCartesianJoinFactory,
   ensureNotCalled,
   htmlStringify,
@@ -87,7 +88,7 @@ export function trimFull(text: string) {
   return text.replace(reg, '');
 }
 
-export { _, h, stringify, jsonStringify, htmlStringify, verifyEqual, padRight, massSpy, massStub, massReset, massRestore, ensureNotCalled, eachCartesianJoin, eachCartesianJoinFactory };
+export { _, h, stringify, jsonStringify, htmlStringify, verifyEqual, padRight, massSpy, massStub, massReset, massRestore, ensureNotCalled, eachCartesianJoin, eachCartesianJoinAsync, eachCartesianJoinFactory };
 
 const eventCmds = { delegate: 1, capture: 1, call: 1 };
 
@@ -124,7 +125,7 @@ export const hJsx = function(name: string, attrs: Record<string, string> | null,
       // ortherwise do fallback check
       else {
         // is it an event handler?
-        if (attr[0] === 'o' && attr[1] === 'n' && attr[attr.length] !== '$') {
+        if (attr[0] === 'o' && attr[1] === 'n' && !attr.endsWith('$')) {
           const decoded = PLATFORM.kebabCase(attr.slice(2));
           const parts = decoded.split('-');
           if (parts.length > 1) {

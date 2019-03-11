@@ -28,17 +28,18 @@ export async function updateDependencyVersions(newVersion: string): Promise<void
   writeFileSync(project['lerna.json'].path, `${JSON.stringify(lernaJson, null, 2)}\n`, { encoding: 'utf8' });
 }
 
-function parseArgs(): {tag: string} {
+function parseArgs(): {tag: string; suffix: string} {
   const args = process.argv.slice(2);
   const tag = args[0];
+  const suffix = args[1] || '';
   log(args.join(' '));
-  return { tag };
+  return { tag, suffix };
 }
 
 async function run(): Promise<void> {
-  const { tag } = parseArgs();
+  const { tag, suffix } = parseArgs();
   const { major, minor, patch } = getCurrentVersion();
-  const newVersion = getNewVersion(major, minor, patch, tag);
+  const newVersion = getNewVersion(major, minor, patch, tag, suffix);
   if (tag === 'dev') {
     await updateDependencyVersions(newVersion);
   }

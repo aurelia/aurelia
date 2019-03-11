@@ -8,16 +8,6 @@ import { PLATFORM } from '../packages/kernel/src/platform';
 const rootPath = resolve(__dirname, '..');
 const packagesPath = join(rootPath, 'packages');
 
-const channels = [
-  'dev',
-  'latest',
-  'local'
-] as [
-  'dev',
-  'latest',
-  'local'
-];
-
 const testApps = [
   'jit-aurelia-cli-ts',
   'jit-browserify-ts',
@@ -117,16 +107,7 @@ export default {
   'test': {
     'path': join(rootPath, 'test'),
     'wdio': {
-      'path': join(rootPath, 'test', 'wdio'),
-      'cases': channels.reduce((acc, channel) => {
-        acc[channel] = testApps.reduce((acc, app) => {
-          acc[app] = {
-            'path': join(rootPath, 'test', 'wdio', 'cases', channel, app)
-          };
-          return acc;
-        }, {} as Record<typeof testApps extends Array<infer K> ? K : never, { path: string }>);
-        return acc;
-      }, {} as Record<typeof channels extends Array<infer K> ? K : never, Record<typeof testApps extends Array<infer K> ? K : never, { path: string }>>)
+      'path': join(rootPath, 'test', 'wdio')
     }
   },
   'package.json': {

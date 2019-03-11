@@ -6,6 +6,7 @@ import {
 } from '@aurelia/runtime';
 import {
   HTMLTargetedInstructionType,
+  IAttributeBindingInstruction,
   IListenerBindingInstruction,
   IStylePropertyBindingInstruction,
   ITextBindingInstruction
@@ -102,5 +103,27 @@ export class SetAttributeInstruction implements ITargetedInstruction {
 
     this.to = to;
     this.value = value;
+  }
+}
+
+export class AttributeBindingInstruction implements IAttributeBindingInstruction {
+  public type: HTMLTargetedInstructionType.attributeBinding;
+
+  public from: string | IsBindingBehavior;
+  /**
+   * `attr` and `to` have the same value on a normal attribute
+   * Will be different on `class` and `style`
+   * on `class`: attr = `class` (from binding command), to = attribute name
+   * on `style`: attr = `style` (from binding command), to = attribute name
+   */
+  public attr: string;
+  public to: string;
+
+  constructor(attr: string, from: string | IsBindingBehavior, to: string) {
+    this.type = HTMLTargetedInstructionType.attributeBinding;
+
+    this.from = from;
+    this.attr = attr;
+    this.to = to;
   }
 }

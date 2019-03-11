@@ -16,6 +16,9 @@ import { IEventManager } from '../observation/event-manager';
 const slice = Array.prototype.slice;
 
 export interface Listener extends IConnectableBinding {}
+/**
+ * Listener binding. Handle event binding between view and view model
+ */
 export class Listener implements IBinding {
   public dom: IDOM;
 

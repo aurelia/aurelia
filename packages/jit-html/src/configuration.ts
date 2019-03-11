@@ -6,8 +6,16 @@ import {
 import { DI, IContainer, IRegistry } from '@aurelia/kernel';
 import { BasicConfiguration as RuntimeHtmlBasicConfiguration } from '@aurelia/runtime-html';
 import {
+  AttrAttributePattern,
+  ClassAttributePattern,
+  StyleAttributePattern
+} from './attribute-pattern';
+import {
+  AttrBindingCommand,
   CaptureBindingCommand,
+  ClassBindingCommand,
   DelegateBindingCommand,
+  StyleBindingCommand,
   TriggerBindingCommand
 } from './binding-command';
 import { TemplateCompiler } from './template-compiler';
@@ -26,9 +34,21 @@ export const DefaultComponents = [
   ITemplateElementFactoryRegistration
 ];
 
+/**
+ * Default HTML-specific (but environment-agnostic) implementations for style binding
+ */
+export const JitAttrBindingSyntax = [
+  StyleAttributePattern,
+  ClassAttributePattern,
+  AttrAttributePattern
+];
+
 export const TriggerBindingCommandRegistration = TriggerBindingCommand as IRegistry;
 export const DelegateBindingCommandRegistration = DelegateBindingCommand as IRegistry;
 export const CaptureBindingCommandRegistration = CaptureBindingCommand as IRegistry;
+export const AttrBindingCommandRegistration = AttrBindingCommand as IRegistry;
+export const ClassBindingCommandRegistration = ClassBindingCommand as IRegistry;
+export const StyleBindingCommandRegistration = StyleBindingCommand as IRegistry;
 
 /**
  * Default HTML-specific (but environment-agnostic) binding commands:
@@ -37,7 +57,10 @@ export const CaptureBindingCommandRegistration = CaptureBindingCommand as IRegis
 export const DefaultBindingLanguage = [
   TriggerBindingCommandRegistration,
   DelegateBindingCommandRegistration,
-  CaptureBindingCommandRegistration
+  CaptureBindingCommandRegistration,
+  ClassBindingCommandRegistration,
+  StyleBindingCommandRegistration,
+  AttrBindingCommandRegistration
 ];
 
 /**
@@ -59,6 +82,7 @@ export const BasicConfiguration = {
       .register(
         ...JitDefaultComponents,
         ...JitDefaultBindingSyntax,
+        ...JitAttrBindingSyntax,
         ...JitDefaultBindingLanguage,
         ...DefaultComponents,
         ...DefaultBindingLanguage

@@ -130,13 +130,16 @@ export function connectable<TProto, TClass>(target?: DecoratableConnectable<TPro
   return target === undefined ? connectableDecorator : connectableDecorator(target);
 }
 
+let value = 0;
 const idAttributes: PropertyDescriptor = {
   configurable: false,
   enumerable: false,
   writable: false,
-  value: 0
+  value: '$0'
 };
 connectable.assignIdTo = (instance: IConnectableBinding): void => {
-  ++idAttributes.value;
+  // No.
+  // tslint:disable-next-line: prefer-template
+  idAttributes.value = '$' + ++value;
   Reflect.defineProperty(instance, 'id', idAttributes);
 };

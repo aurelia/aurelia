@@ -236,9 +236,9 @@ class DefaultTemplateDefinition implements Required<ITemplateDefinition> {
     this.cache = 0;
     this.build = buildNotRequired;
     this.bindables = PLATFORM.emptyObject;
-    this.instructions = PLATFORM.emptyArray as this['instructions'];
-    this.dependencies = PLATFORM.emptyArray as this['dependencies'];
-    this.surrogates = PLATFORM.emptyArray as this['surrogates'];
+    this.instructions = PLATFORM.emptyArray as typeof PLATFORM.emptyArray & this['instructions'];
+    this.dependencies = PLATFORM.emptyArray as typeof PLATFORM.emptyArray & this['dependencies'];
+    this.surrogates = PLATFORM.emptyArray as typeof PLATFORM.emptyArray & this['surrogates'];
     this.containerless = false;
     this.shadowOptions = null;
     this.hasSlots = false;

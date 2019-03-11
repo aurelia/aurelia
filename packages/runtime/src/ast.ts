@@ -54,8 +54,8 @@ export interface IExpression {
   readonly $kind: ExpressionKind;
   accept<T>(visitor: IVisitor<T>): T;
   connect(flags: LifecycleFlags, scope: IScope, binding: IConnectable): void;
-  evaluate(flags: LifecycleFlags, scope: IScope, locator: IServiceLocator): unknown;
-  assign?(flags: LifecycleFlags, scope: IScope, locator: IServiceLocator, value: unknown): unknown;
+  evaluate(flags: LifecycleFlags, scope: IScope, locator: IServiceLocator | null): unknown;
+  assign?(flags: LifecycleFlags, scope: IScope, locator: IServiceLocator | null, value: unknown): unknown;
   bind?(flags: LifecycleFlags, scope: IScope, binding: IConnectable): void;
   unbind?(flags: LifecycleFlags, scope: IScope, binding: IConnectable): void;
 }

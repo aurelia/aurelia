@@ -40,12 +40,12 @@ const $now = (function (): () => number {
   let nodeLoadTime: number;
   let upTime: number;
 
-  if (($global.performance !== undefined && $global.performance !== null) && $global.performance.now) {
+  if ($global.performance != null && $global.performance.now != null) {
     const $performance = $global.performance;
     return function (): number {
       return $performance.now();
     };
-  } else if (($global.process !== undefined && $global.process !== null) && $global.process.hrtime) {
+  } else if ($global.process != null && $global.process.hrtime != null) {
     const now = function (): number {
       return (getNanoSeconds() - nodeLoadTime) / 1e6;
     };
@@ -59,6 +59,8 @@ const $now = (function (): () => number {
     upTime = $global.process.uptime() * 1e9;
     nodeLoadTime = moduleLoadTime - upTime;
     return now;
+  } else {
+    throw new Error('Unsupported runtime'); // Can't really happen, can it?
   }
 })();
 
@@ -82,14 +84,13 @@ const {
   $clearMeasures: IWindowOrWorkerGlobalScope['performance']['clearMeasures'];
  } {
   if (
-    $global.performance !== undefined &&
-    $global.performance !== null &&
-    $global.performance.mark &&
-    $global.performance.measure &&
-    $global.performance.getEntriesByName &&
-    $global.performance.getEntriesByType &&
-    $global.performance.clearMarks &&
-    $global.performance.clearMeasures
+    $global.performance != null &&
+    $global.performance.mark != null &&
+    $global.performance.measure != null &&
+    $global.performance.getEntriesByName != null &&
+    $global.performance.getEntriesByType != null &&
+    $global.performance.clearMarks != null &&
+    $global.performance.clearMeasures != null
   ) {
     const $performance = $global.performance;
     return {
@@ -112,11 +113,11 @@ const {
         $performance.clearMeasures(name);
       }
     };
-  } else if ($global.process !== undefined && $global.process !== null && $global.process.hrtime) {
+  } else if ($global.process != null && $global.process.hrtime != null) {
     const entries: IPerformanceEntry[] = [];
     const marksIndex: Record<string, IPerformanceEntry> = {};
 
-    const filterEntries = function (key: string, value: string): IPerformanceEntry[] {
+    const filterEntries = function (key: keyof IPerformanceEntry, value: string): IPerformanceEntry[] {
       let i = 0;
       const n = entries.length;
       const result = [];
@@ -128,7 +129,7 @@ const {
       return	result;
     };
 
-    const clearEntries = function (type: string, name: string): void {
+    const clearEntries = function (type: string, name?: string): void {
       let i = entries.length;
       let entry: IPerformanceEntry;
       while (i--) {
@@ -154,23 +155,31 @@ const {
         let startTime: number;
         let endTime: number;
 
-        if (endMark !== undefined && marksIndex[endMark] === undefined) {
-          throw new SyntaxError(`Failed to execute 'measure' on 'Performance': The mark '${endMark}' does not exist.`);
-        }
-        if (startMark !== undefined && marksIndex[startMark] === undefined) {
-          throw new SyntaxError(`Failed to execute 'measure' on 'Performance': The mark '${startMark}' does not exist.`);
-        }
-
-        if (marksIndex[startMark]) {
-          startTime = marksIndex[startMark].startTime;
-        } else {
-          startTime = 0;
-        }
-        if (marksIndex[endMark]) {
-          endTime = marksIndex[endMark].startTime;
+        if (endMark != null) {
+          if (marksIndex[endMark] == null) {
+            throw new SyntaxError(`Failed to execute 'measure' on 'Performance': The mark '${endMark}' does not exist.`);
+          }
+          if (marksIndex[endMark] !== void 0) {
+            endTime = marksIndex[endMark].startTime;
+          } else {
+            endTime = $now();
+          }
         } else {
           endTime = $now();
         }
+        if (startMark != null) {
+          if (marksIndex[startMark] == null) {
+            throw new SyntaxError(`Failed to execute 'measure' on 'Performance': The mark '${startMark}' does not exist.`);
+          }
+          if (marksIndex[startMark] !== void 0) {
+            startTime = marksIndex[startMark].startTime;
+          } else {
+            startTime = 0;
+          }
+        } else {
+          startTime = 0;
+        }
+
         entries.push({
           name,
           entryType: 'measure',
@@ -191,23 +200,17 @@ const {
         clearEntries('measure', name);
       }
     };
+  } else {
+    throw new Error('Unsupported runtime'); // Can't really happen, can it?
   }
 })();
 
 // RAF polyfill for non-browser envs from https://github.com/chrisdickinson/raf/blob/master/index.js
 const { $raf, $caf } = (function (): { $raf(callback: (time: number) => void): number; $caf(handle: number): void } {
-  const vendors = ['moz', 'webkit'];
-  const suffix = 'AnimationFrame';
-  let raf: (callback: (time: number) => void) => number = $global[`request${suffix}`];
-  let caf: (handle: number) => void = $global[`cancel${suffix}`] || $global[`cancelRequest${suffix}`];
+  let raf: (callback: (time: number) => void) => number = $global.requestAnimationFrame;
+  let caf: (handle: number) => void = $global.cancelAnimationFrame;
 
-  for (let i = 0; !raf && i < vendors.length; ++i) {
-    raf = $global[`${vendors[i]}Request${suffix}`];
-    caf = $global[`${vendors[i]}Cancel${suffix}`] || $global[`${vendors[i]}CancelRequest${suffix}`];
-  }
-
-  // Some versions of FF have rAF but not cAF
-  if (!raf || !caf) {
+  if (raf === void 0 || caf === void 0 ) {
     let last = 0;
     let id = 0;
     const queue: { handle: number; cancelled: boolean; callback(time: number): void }[] = [];
@@ -258,8 +261,8 @@ const { $raf, $caf } = (function (): { $raf(callback: (time: number) => void): n
   const $$raf = function(callback: (time: number) => void): number {
     return raf.call($global, callback);
   };
-  $$raf.cancel = function (): void {
-    caf.apply($global, arguments);
+  $$raf.cancel = function (time: number): void {
+    caf.call($global, time);
   };
   $global.requestAnimationFrame = raf;
   $global.cancelAnimationFrame = caf;
@@ -270,27 +273,27 @@ const { $raf, $caf } = (function (): { $raf(callback: (time: number) => void): n
 const fpms = 0.06;
 
 class Notifier {
-  public fn: (frameDelta?: number) => void;
-  public context: unknown;
-  public next: this;
-  public prev: this;
+  public fn?: (frameDelta?: number) => void;
+  public context?: object;
+  public next?: this;
+  public prev?: this;
   public disconnected: boolean;
 
-  constructor(fn: (frameDelta?: number) => void, context: unknown = null) {
+  constructor(fn?: (frameDelta?: number) => void, context: object | undefined = void 0) {
     this.fn = fn;
     this.context = context;
-    this.next = null;
-    this.prev = null;
+    this.next = void 0;
+    this.prev = void 0;
     this.disconnected = false;
   }
 
-  public equals(fn: (frameDelta?: number) => void, context: unknown): boolean {
-    return this.fn === fn && this.context === (context === undefined ? null : context);
+  public equals(fn: (frameDelta?: number) => void, context?: object): boolean {
+    return this.fn === fn && this.context === context;
   }
 
-  public notify(frameDelta: number): this {
-    if (this.fn !== null) {
-      if (this.context !== null) {
+  public notify(frameDelta: number): this | undefined {
+    if (this.fn !== void 0) {
+      if (this.context !== void 0) {
         this.fn.call(this.context, frameDelta);
       } else {
         this.fn(frameDelta);
@@ -298,33 +301,33 @@ class Notifier {
     }
     const next = this.next;
     if (this.disconnected) {
-      this.next = null;
+      this.next = void 0;
     }
     return next;
   }
 
   public connect(prev: this): void {
     this.prev = prev;
-    if (prev.next !== null) {
+    if (prev.next !== void 0) {
       prev.next.prev = this;
     }
     this.next = prev.next;
     prev.next = this;
   }
 
-  public disconnect(hard: boolean = false): this {
+  public disconnect(hard: boolean = false): this | undefined {
     this.disconnected = true;
-    this.fn = null;
-    this.context = null;
-    if (this.prev !== null) {
+    this.fn = void 0;
+    this.context = void 0;
+    if (this.prev !== void 0) {
       this.prev.next = this.next;
     }
-    if (this.next !== null) {
+    if (this.next !== void 0) {
       this.next.prev = this.prev;
     }
     const next = this.next;
-    this.next = hard ? null : next;
-    this.prev = null;
+    this.next = hard ? void 0 : next;
+    this.prev = void 0;
     return next;
   }
 }
@@ -334,45 +337,45 @@ export class Ticker {
   private frameDelta: number;
   private lastTime: number;
   private started: boolean;
-  private promise: Promise<number>;
+  private promise?: Promise<number>;
   private resolve: (deltaTime: number) => void;
   private readonly head: Notifier;
   private readonly tick: (deltaTime: number) => void;
 
   constructor() {
-    this.head = new Notifier(null, null);
+    this.head = new Notifier(void 0, void 0);
     this.requestId = -1;
     this.frameDelta = 1;
     this.lastTime = -1;
     this.started = false;
-    this.promise = null;
+    this.promise = void 0;
     this.resolve = $noop;
     this.tick = (deltaTime: number) => {
       this.requestId = -1;
       if (this.started) {
         this.update(deltaTime);
-        if (this.started && this.requestId === -1 && this.head.next !== null) {
+        if (this.started && this.requestId === -1 && this.head.next !== void 0) {
           this.requestId = $raf(this.tick);
         }
       }
       this.resolve(deltaTime);
       this.resolve = $noop;
-      this.promise = null;
+      this.promise = void 0;
     };
   }
 
-  public add(fn: (frameDelta?: number) => void, context: unknown): this {
+  public add(fn: (frameDelta?: number) => void, context?: object | undefined): this {
     const notifier = new Notifier(fn, context);
     let cur = this.head.next;
     let prev = this.head;
-    if (cur === null) {
+    if (cur === void 0) {
       notifier.connect(prev);
     } else {
-      while (cur !== null) {
+      while (cur !== void 0) {
         prev = cur;
         cur = cur.next;
       }
-      if (notifier.prev === null) {
+      if (notifier.prev === void 0) {
         notifier.connect(prev);
       }
     }
@@ -384,16 +387,16 @@ export class Ticker {
     return this;
   }
 
-  public remove(fn: (frameDelta?: number) => void, context: unknown): this {
+  public remove(fn: (frameDelta?: number) => void, context?: object | undefined): this {
     let notifier = this.head.next;
-    while (notifier !== null) {
+    while (notifier !== void 0) {
       if (notifier.equals(fn, context)) {
         notifier = notifier.disconnect();
       } else {
         notifier = notifier.next;
       }
     }
-    if (this.head.next === null) {
+    if (this.head.next === void 0) {
       this.tryCancel();
     }
     return this;
@@ -426,10 +429,10 @@ export class Ticker {
       this.frameDelta = (~~(elapsedMS * 60 + 0.5)) / 1000;
       const head = this.head;
       let notifier = head.next;
-      while (notifier !== null) {
+      while (notifier !== void 0) {
         notifier = notifier.notify(this.frameDelta);
       }
-      if (head.next === null) {
+      if (head.next === void 0) {
         this.tryCancel();
       }
     } else {
@@ -439,7 +442,7 @@ export class Ticker {
   }
 
   public waitForNextTick(): Promise<number> {
-    if (this.promise === null) {
+    if (this.promise === void 0) {
       // tslint:disable-next-line:promise-must-complete
       this.promise = new Promise(resolve => {
         this.resolve = resolve;
@@ -449,7 +452,7 @@ export class Ticker {
   }
 
   private tryRequest(): void {
-    if (this.requestId === -1 && this.head.next !== null) {
+    if (this.requestId === -1 && this.head.next !== void 0) {
       this.lastTime = $now();
       this.requestId = $raf(this.tick);
     }
@@ -466,6 +469,15 @@ export class Ticker {
 const camelCaseLookup: Record<string, string> = {};
 const kebabCaseLookup: Record<string, string> = {};
 
+const hasOwnProperty = Object.prototype.hasOwnProperty as unknown as {
+  call<V, T = object, K extends PropertyKey = PropertyKey>(target: T, key: K): target is (
+    T & { [P in K]: V; }
+  );
+  call<T, K extends keyof T>(target: T, key: K): target is (
+    T & { [P in K]-?: T[P]; }
+  );
+};
+
 export const PLATFORM = {
   global: $global,
   ticker: new Ticker(),
@@ -479,11 +491,12 @@ export const PLATFORM = {
   getEntriesByType: $getEntriesByType,
   clearMarks: $clearMarks,
   clearMeasures: $clearMeasures,
+  hasOwnProperty,
 
   camelCase(input: string): string {
     // benchmark: http://jsben.ch/qIz4Z
     let value = camelCaseLookup[input];
-    if (value !== undefined) return value;
+    if (value !== void 0) return value;
     value = '';
     let first = true;
     let sep = false;
@@ -504,7 +517,7 @@ export const PLATFORM = {
   kebabCase(input: string): string {
     // benchmark: http://jsben.ch/v7K9T
     let value = kebabCaseLookup[input];
-    if (value !== undefined) return value;
+    if (value !== void 0) return value;
     value = '';
     let first = true;
     let char: string, lower: string;

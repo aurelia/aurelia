@@ -47,7 +47,7 @@ export interface Subscription extends IDisposable {}
  * @param data The optional data published on the channel.
  * @param event The event that triggered the callback. Only available on channel based messaging.
  */
-export type EventAggregatorCallback<T = unknown> = (data?: T, event?: string) => unknown;
+export type EventAggregatorCallback<T = any> = (data?: T, event?: string) => any;
 
 /**
  * Enables loosely coupled publish/subscribe messaging.
@@ -120,8 +120,8 @@ export class EventAggregator {
    */
   public subscribe<T extends Constructable>(type: T, callback: EventAggregatorCallback<InstanceType<T>>): IDisposable;
   public subscribe<T extends Constructable>(channelOrType: string | T, callback: EventAggregatorCallback<T | InstanceType<T>>): IDisposable {
-    let handler: EventAggregatorCallback | Handler;
-    let subscribers: (EventAggregatorCallback | Handler)[];
+    let handler: EventAggregatorCallback<T | InstanceType<T>> | Handler;
+    let subscribers: (EventAggregatorCallback<T | InstanceType<T>> | Handler)[];
 
     if (!channelOrType) {
       throw Reporter.error(0); // TODO: create error code for 'Event channel/type was invalid.'
@@ -130,7 +130,10 @@ export class EventAggregator {
     if (typeof channelOrType === 'string') {
       const channel: string = channelOrType;
       handler = callback;
-      subscribers = this.eventLookup[channel] || (this.eventLookup[channel] = []);
+      if (this.eventLookup[channel] === void 0) {
+        this.eventLookup[channel] = [];
+      }
+      subscribers = this.eventLookup[channel];
     } else {
       const type: T = channelOrType;
       handler = new Handler(type, callback);

@@ -11878,6 +11878,9 @@ var au = (function (exports) {
         TextSymbol: TextSymbol
     });
 
+    /**
+     * Listener binding. Handle event binding between view and view model
+     */
     class Listener {
         // tslint:disable-next-line:parameters-max-number
         constructor(dom, targetEvent, delegationStrategy, sourceExpression, target, preventDefault, eventManager, locator) {
@@ -11948,6 +11951,311 @@ var au = (function (exports) {
             return;
         }
     }
+
+    /**
+     * Observer for handling two-way binding with attributes
+     * Has different strategy for class/style and normal attributes
+     * TODO: handle SVG/attributes with namespace
+     */
+    let AttributeObserver = class AttributeObserver {
+        constructor(flags, lifecycle, observerLocator, element, targetAttribute, targetKey) {
+            this.isDOMObserver = true;
+            this.persistentFlags = flags & 67108879 /* persistentBindingFlags */;
+            this.observerLocator = observerLocator;
+            this.lifecycle = lifecycle;
+            this.obj = element;
+            this.targetAttribute = targetAttribute;
+            if (targetAttribute === 'class') {
+                this.handleMutationCore = this.handleMutationClassName;
+                this.setValueCore = this.setValueCoreClassName;
+                this.getValue = this.getValueClassName;
+            }
+            else if (targetAttribute === 'style') {
+                this.handleMutationCore = this.handleMutationInlineStyle;
+                this.setValueCore = this.setValueCoreInlineStyle;
+                this.getValue = this.getValueInlineStyle;
+            }
+            this.propertyKey = targetKey;
+        }
+        getValue() {
+            return this.obj.getAttribute(this.propertyKey);
+        }
+        getValueInlineStyle() {
+            return this.obj.style.getPropertyValue(this.propertyKey);
+        }
+        getValueClassName() {
+            return this.obj.classList.contains(this.propertyKey);
+        }
+        setValueCore(newValue, flags) {
+            const obj = this.obj;
+            const targetAttribute = this.targetAttribute;
+            if (newValue === null || newValue === undefined) {
+                obj.removeAttribute(targetAttribute);
+            }
+            else {
+                obj.setAttribute(targetAttribute, newValue);
+            }
+        }
+        setValueCoreInlineStyle(value) {
+            let priority = '';
+            if (typeof value === 'string' && value.indexOf('!important') !== -1) {
+                priority = 'important';
+                value = value.replace('!important', '');
+            }
+            this.obj.style.setProperty(this.propertyKey, value, priority);
+        }
+        setValueCoreClassName(newValue) {
+            const className = this.propertyKey;
+            const classList = this.obj.classList;
+            // Why is class attribute observer setValue look different with class attribute accessor?
+            // ==============
+            // For class list
+            // newValue is simply checked if truthy or falsy
+            // and toggle the class accordingly
+            // -- the rule of this is quite different to normal attribute
+            //
+            // for class attribute, observer is different in a way that it only observe a particular class at a time
+            // this also comes from syntax, where it would typically be my-class.class="someProperty"
+            //
+            // so there is no need for separating class by space and add all of them like class accessor
+            if (newValue) {
+                classList.add(className);
+            }
+            else {
+                classList.remove(className);
+            }
+        }
+        handleMutation(mutationRecords) {
+            let shouldProcess = false;
+            for (let i = 0, ii = mutationRecords.length; ii > i; ++i) {
+                const record = mutationRecords[i];
+                if (record.type === 'attributes' && record.attributeName === this.targetAttribute) {
+                    shouldProcess = true;
+                    break;
+                }
+            }
+            if (shouldProcess) {
+                this.handleMutationCore();
+            }
+        }
+        handleMutationCore() {
+            const newValue = this.obj.getAttribute(this.targetAttribute);
+            if (newValue !== this.currentValue) {
+                this.currentValue = newValue;
+                this.setValue(newValue, 0 /* none */);
+            }
+        }
+        handleMutationInlineStyle() {
+            const css = this.obj.style;
+            const rule = this.propertyKey;
+            const newValue = css.getPropertyValue(rule);
+            if (newValue !== this.currentValue) {
+                this.currentValue = newValue;
+                this.setValue(newValue, 0 /* none */);
+            }
+        }
+        handleMutationClassName() {
+            const className = this.propertyKey;
+            const newValue = this.obj.classList.contains(className);
+            if (newValue !== this.currentValue) {
+                this.currentValue = newValue;
+                this.setValue(newValue, 0 /* none */);
+            }
+        }
+        subscribe(subscriber) {
+            if (!this.hasSubscribers()) {
+                startObservation(this.obj, this);
+            }
+            this.addSubscriber(subscriber);
+        }
+        unsubscribe(subscriber) {
+            if (this.removeSubscriber(subscriber) && !this.hasSubscribers()) {
+                stopObservation(this.obj, this);
+            }
+        }
+    };
+    AttributeObserver = __decorate([
+        targetObserver('')
+    ], AttributeObserver);
+    const startObservation = (element, subscription) => {
+        if (element.$eMObservers === undefined) {
+            element.$eMObservers = new Set();
+        }
+        if (element.$mObserver === undefined) {
+            element.$mObserver = DOM.createNodeObserver(element, handleMutation, { attributes: true });
+        }
+        element.$eMObservers.add(subscription);
+    };
+    const stopObservation = (element, subscription) => {
+        const $eMObservers = element.$eMObservers;
+        if ($eMObservers.delete(subscription)) {
+            if ($eMObservers.size === 0) {
+                element.$mObserver.disconnect();
+                element.$mObserver = undefined;
+            }
+            return true;
+        }
+        return false;
+    };
+    const handleMutation = (mutationRecords) => {
+        mutationRecords[0].target.$eMObservers.forEach(invokeHandleMutation, mutationRecords);
+    };
+    function invokeHandleMutation(s) {
+        s.handleMutation(this);
+    }
+
+    // BindingMode is not a const enum (and therefore not inlined), so assigning them to a variable to save a member accessor is a minor perf tweak
+    const { oneTime: oneTime$3, toView: toView$3, fromView: fromView$3 } = BindingMode;
+    // pre-combining flags for bitwise checks is a minor perf tweak
+    const toViewOrOneTime$1 = toView$3 | oneTime$3;
+    /**
+     * Attribute binding. Handle attribute binding betwen view/view model. Understand Html special attributes
+     */
+    let AttributeBinding = class AttributeBinding {
+        constructor(sourceExpression, target, 
+        // some attributes may have inner structure
+        // such as class -> collection of class names
+        // such as style -> collection of style rules
+        //
+        // for normal attributes, targetAttribute and targetProperty are the same and can be ignore
+        targetAttribute, targetKey, mode, observerLocator, locator) {
+            connectable.assignIdTo(this);
+            this.$nextBinding = null;
+            this.$prevBinding = null;
+            this.$state = 0 /* none */;
+            this.$lifecycle = locator.get(ILifecycle);
+            this.$nextConnect = null;
+            this.$nextPatch = null;
+            this.$scope = null;
+            this.locator = locator;
+            this.mode = mode;
+            this.observerLocator = observerLocator;
+            this.sourceExpression = sourceExpression;
+            this.target = target;
+            this.targetAttribute = targetAttribute;
+            this.targetProperty = targetKey;
+            this.persistentFlags = 0 /* none */;
+        }
+        updateTarget(value, flags) {
+            flags |= this.persistentFlags;
+            this.targetObserver.setValue(value, flags | 16 /* updateTargetInstance */);
+        }
+        updateSource(value, flags) {
+            flags |= this.persistentFlags;
+            this.sourceExpression.assign(flags | 32 /* updateSourceExpression */, this.$scope, this.locator, value);
+        }
+        handleChange(newValue, _previousValue, flags) {
+            if (!(this.$state & 2 /* isBound */)) {
+                return;
+            }
+            flags |= this.persistentFlags;
+            if (this.mode === BindingMode.fromView) {
+                flags &= ~16 /* updateTargetInstance */;
+                flags |= 32 /* updateSourceExpression */;
+            }
+            if (flags & 16 /* updateTargetInstance */) {
+                const previousValue = this.targetObserver.getValue();
+                // if the only observable is an AccessScope then we can assume the passed-in newValue is the correct and latest value
+                if (this.sourceExpression.$kind !== 10082 /* AccessScope */ || this.observerSlots > 1) {
+                    newValue = this.sourceExpression.evaluate(flags, this.$scope, this.locator);
+                }
+                if (newValue !== previousValue) {
+                    this.updateTarget(newValue, flags);
+                }
+                if ((this.mode & oneTime$3) === 0) {
+                    this.version++;
+                    this.sourceExpression.connect(flags, this.$scope, this);
+                    this.unobserve(false);
+                }
+                return;
+            }
+            if (flags & 32 /* updateSourceExpression */) {
+                if (newValue !== this.sourceExpression.evaluate(flags, this.$scope, this.locator)) {
+                    this.updateSource(newValue, flags);
+                }
+                return;
+            }
+            throw Reporter.error(15, flags);
+        }
+        $bind(flags, scope) {
+            if (this.$state & 2 /* isBound */) {
+                if (this.$scope === scope) {
+                    return;
+                }
+                this.$unbind(flags | 2048 /* fromBind */);
+            }
+            // add isBinding flag
+            this.$state |= 1 /* isBinding */;
+            // Store flags which we can only receive during $bind and need to pass on
+            // to the AST during evaluate/connect/assign
+            this.persistentFlags = flags & 67108879 /* persistentBindingFlags */;
+            this.$scope = scope;
+            let sourceExpression = this.sourceExpression;
+            if (hasBind(sourceExpression)) {
+                sourceExpression.bind(flags, scope, this);
+            }
+            let targetObserver = this.targetObserver;
+            if (!targetObserver) {
+                targetObserver = this.targetObserver = new AttributeObserver(2048 /* fromBind */, this.$lifecycle, this.observerLocator, this.target, this.targetAttribute, this.targetProperty);
+            }
+            if (targetObserver.bind) {
+                targetObserver.bind(flags);
+            }
+            // during bind, binding behavior might have changed sourceExpression
+            sourceExpression = this.sourceExpression;
+            if (this.mode & toViewOrOneTime$1) {
+                this.updateTarget(sourceExpression.evaluate(flags, scope, this.locator), flags);
+            }
+            if (this.mode & toView$3) {
+                sourceExpression.connect(flags, scope, this);
+            }
+            if (this.mode & fromView$3) {
+                targetObserver[this.id] |= 32 /* updateSourceExpression */;
+                targetObserver.subscribe(this);
+            }
+            // add isBound flag and remove isBinding flag
+            this.$state |= 2 /* isBound */;
+            this.$state &= ~1 /* isBinding */;
+        }
+        $unbind(flags) {
+            if (!(this.$state & 2 /* isBound */)) {
+                return;
+            }
+            // add isUnbinding flag
+            this.$state |= 64 /* isUnbinding */;
+            // clear persistent flags
+            this.persistentFlags = 0 /* none */;
+            if (hasUnbind(this.sourceExpression)) {
+                this.sourceExpression.unbind(flags, this.$scope, this);
+            }
+            this.$scope = null;
+            if (this.targetObserver.unbind) {
+                this.targetObserver.unbind(flags);
+            }
+            if (this.targetObserver.unsubscribe) {
+                this.targetObserver.unsubscribe(this);
+                this.targetObserver[this.id] &= ~32 /* updateSourceExpression */;
+            }
+            this.unobserve(true);
+            // remove isBound and isUnbinding flags
+            this.$state &= ~(2 /* isBound */ | 64 /* isUnbinding */);
+        }
+        connect(flags) {
+            if (this.$state & 2 /* isBound */) {
+                flags |= this.persistentFlags;
+                this.sourceExpression.connect(flags | 1048576 /* mustEvaluate */, this.$scope, this);
+            }
+        }
+        patch(flags) {
+            if (this.$state & 2 /* isBound */) {
+                flags |= this.persistentFlags;
+                this.updateTarget(this.sourceExpression.evaluate(flags | 1048576 /* mustEvaluate */, this.$scope, this.locator), flags);
+            }
+        }
+    };
+    AttributeBinding = __decorate([
+        connectable()
+    ], AttributeBinding);
 
     let AttributeNSAccessor = class AttributeNSAccessor {
         constructor(lifecycle, obj, propertyKey, attributeName, namespace) {
@@ -12965,8 +13273,9 @@ var au = (function (exports) {
     (function (HTMLTargetedInstructionType) {
         HTMLTargetedInstructionType["textBinding"] = "ha";
         HTMLTargetedInstructionType["listenerBinding"] = "hb";
-        HTMLTargetedInstructionType["stylePropertyBinding"] = "hc";
-        HTMLTargetedInstructionType["setAttribute"] = "hd";
+        HTMLTargetedInstructionType["attributeBinding"] = "hc";
+        HTMLTargetedInstructionType["stylePropertyBinding"] = "hd";
+        HTMLTargetedInstructionType["setAttribute"] = "he";
     })(HTMLTargetedInstructionType || (HTMLTargetedInstructionType = {}));
     function isHTMLTargetedInstruction(value) {
         const type = value.type;
@@ -13008,16 +13317,24 @@ var au = (function (exports) {
     }
     class StylePropertyBindingInstruction {
         constructor(from, to) {
-            this.type = "hc" /* stylePropertyBinding */;
+            this.type = "hd" /* stylePropertyBinding */;
             this.from = from;
             this.to = to;
         }
     }
     class SetAttributeInstruction {
         constructor(value, to) {
-            this.type = "hd" /* setAttribute */;
+            this.type = "he" /* setAttribute */;
             this.to = to;
             this.value = value;
+        }
+    }
+    class AttributeBindingInstruction {
+        constructor(attr, from, to) {
+            this.type = "hc" /* attributeBinding */;
+            this.from = from;
+            this.attr = attr;
+            this.to = to;
         }
     }
 
@@ -13029,6 +13346,9 @@ var au = (function (exports) {
             return createElementForType(dom, tagOrType, props, children);
         }
     }
+    /**
+     * RenderPlan. Todo: describe goal of this class
+     */
     class RenderPlan {
         constructor(dom, node, instructions, dependencies) {
             this.dom = dom;
@@ -13258,6 +13578,9 @@ var au = (function (exports) {
     function isRenderLocation(node) {
         return node.textContent === 'au-end';
     }
+    /**
+     * IDOM implementation for Html.
+     */
     class HTMLDOM {
         constructor(window, document, TNode, TElement, THTMLElement, TCustomEvent) {
             this.window = window;
@@ -13421,7 +13744,10 @@ var au = (function (exports) {
     // has an instance of this under the hood. Anyone who wants to create a node sequence from
     // a string of markup would also receive an instance of this.
     // CompiledTemplates create instances of FragmentNodeSequence.
-    /** @internal */
+    /**
+     * This is the most common form of INodeSequence.
+     * @internal
+     */
     class FragmentNodeSequence {
         constructor(dom, fragment) {
             this.dom = dom;
@@ -13646,7 +13972,7 @@ var au = (function (exports) {
         }
     };
     SetAttributeRenderer = __decorate([
-        instructionRenderer("hd" /* setAttribute */)
+        instructionRenderer("he" /* setAttribute */)
         /** @internal */
     ], SetAttributeRenderer);
     let StylePropertyBindingRenderer = 
@@ -13664,9 +13990,27 @@ var au = (function (exports) {
     };
     StylePropertyBindingRenderer.inject = [IExpressionParser, IObserverLocator];
     StylePropertyBindingRenderer = __decorate([
-        instructionRenderer("hc" /* stylePropertyBinding */)
+        instructionRenderer("hd" /* stylePropertyBinding */)
         /** @internal */
     ], StylePropertyBindingRenderer);
+    let AttributeBindingRenderer = 
+    /** @internal */
+    class AttributeBindingRenderer {
+        constructor(parser, observerLocator) {
+            this.parser = parser;
+            this.observerLocator = observerLocator;
+        }
+        render(flags, dom, context, renderable, target, instruction) {
+            const expr = ensureExpression(this.parser, instruction.from, 48 /* IsPropertyCommand */ | BindingMode.toView);
+            const binding = new AttributeBinding(expr, target, instruction.attr /*targetAttribute*/, instruction.to /*targetKey*/, BindingMode.toView, this.observerLocator, context);
+            addBinding(renderable, binding);
+        }
+    };
+    AttributeBindingRenderer.inject = [IExpressionParser, IObserverLocator];
+    AttributeBindingRenderer = __decorate([
+        instructionRenderer("hc" /* attributeBinding */)
+        /** @internal */
+    ], AttributeBindingRenderer);
 
     const defaultShadowOptions$1 = {
         mode: 'open'
@@ -13811,6 +14155,7 @@ var au = (function (exports) {
         ComposeRegistration,
     ];
     const ListenerBindingRendererRegistration = ListenerBindingRenderer;
+    const AttributeBindingRendererRegistration = AttributeBindingRenderer;
     const SetAttributeRendererRegistration = SetAttributeRenderer;
     const StylePropertyBindingRendererRegistration = StylePropertyBindingRenderer;
     const TextBindingRendererRegistration = TextBindingRenderer;
@@ -13823,6 +14168,7 @@ var au = (function (exports) {
      */
     const DefaultRenderers$1 = [
         ListenerBindingRendererRegistration,
+        AttributeBindingRendererRegistration,
         SetAttributeRendererRegistration,
         StylePropertyBindingRendererRegistration,
         TextBindingRendererRegistration
@@ -13855,6 +14201,7 @@ var au = (function (exports) {
 
     var index$3 = /*#__PURE__*/Object.freeze({
         Listener: Listener,
+        get AttributeBinding () { return AttributeBinding; },
         get AttributeNSAccessor () { return AttributeNSAccessor; },
         get CheckedObserver () { return CheckedObserver; },
         get ClassAttributeAccessor () { return ClassAttributeAccessor; },
@@ -13885,6 +14232,7 @@ var au = (function (exports) {
         UpdateTriggerBindingBehaviorRegistration: UpdateTriggerBindingBehaviorRegistration,
         ComposeRegistration: ComposeRegistration,
         DefaultResources: DefaultResources$1,
+        AttributeBindingRendererRegistration: AttributeBindingRendererRegistration,
         ListenerBindingRendererRegistration: ListenerBindingRendererRegistration,
         SetAttributeRendererRegistration: SetAttributeRendererRegistration,
         StylePropertyBindingRendererRegistration: StylePropertyBindingRendererRegistration,
@@ -13898,6 +14246,7 @@ var au = (function (exports) {
         get NodeType () { return NodeType; },
         HTMLDOM: HTMLDOM,
         DOM: $DOM,
+        AttributeBindingInstruction: AttributeBindingInstruction,
         CaptureBindingInstruction: CaptureBindingInstruction,
         DelegateBindingInstruction: DelegateBindingInstruction,
         SetAttributeInstruction: SetAttributeInstruction,
@@ -13906,6 +14255,9 @@ var au = (function (exports) {
         TriggerBindingInstruction: TriggerBindingInstruction
     });
 
+    /**
+     * Trigger binding command. Compile attr with binding symbol with command `trigger` to `TriggerBindingInstruction`
+     */
     class TriggerBindingCommand {
         constructor() {
             this.bindingType = 86 /* TriggerCommand */;
@@ -13915,6 +14267,9 @@ var au = (function (exports) {
         }
     }
     BindingCommandResource.define('trigger', TriggerBindingCommand);
+    /**
+     * Delegate binding command. Compile attr with binding symbol with command `delegate` to `DelegateBindingInstruction`
+     */
     class DelegateBindingCommand {
         constructor() {
             this.bindingType = 88 /* DelegateCommand */;
@@ -13924,6 +14279,9 @@ var au = (function (exports) {
         }
     }
     BindingCommandResource.define('delegate', DelegateBindingCommand);
+    /**
+     * Capture binding command. Compile attr with binding symbol with command `capture` to `CaptureBindingInstruction`
+     */
     class CaptureBindingCommand {
         constructor() {
             this.bindingType = 87 /* CaptureCommand */;
@@ -13933,6 +14291,100 @@ var au = (function (exports) {
         }
     }
     BindingCommandResource.define('capture', CaptureBindingCommand);
+    /**
+     * Attr binding command. Compile attr with binding symbol with command `attr` to `AttributeBindingInstruction`
+     */
+    class AttrBindingCommand {
+        constructor() {
+            this.bindingType = 32 /* IsProperty */;
+        }
+        compile(binding) {
+            const target = getTarget(binding, false);
+            return new AttributeBindingInstruction(target, binding.expression, target);
+        }
+    }
+    BindingCommandResource.define('attr', AttrBindingCommand);
+    /**
+     * Style binding command. Compile attr with binding symbol with command `style` to `AttributeBindingInstruction`
+     */
+    class StyleBindingCommand {
+        constructor() {
+            this.bindingType = 32 /* IsProperty */;
+        }
+        compile(binding) {
+            return new AttributeBindingInstruction('style', binding.expression, getTarget(binding, false));
+        }
+    }
+    BindingCommandResource.define('style', StyleBindingCommand);
+    /**
+     * Class binding command. Compile attr with binding symbol with command `class` to `AttributeBindingInstruction`
+     */
+    class ClassBindingCommand {
+        constructor() {
+            this.bindingType = 32 /* IsProperty */;
+        }
+        compile(binding) {
+            return new AttributeBindingInstruction('class', binding.expression, getTarget(binding, false));
+        }
+    }
+    BindingCommandResource.define('class', ClassBindingCommand);
+
+    /**
+     * Attribute syntax pattern recognizer, helping Aurelia understand template:
+     * ```html
+     * <div attr.some-attr="someAttrValue"></div>
+     * <div some-attr.attr="someAttrValue"></div>
+     * ````
+     */
+    class AttrAttributePattern {
+        ['attr.PART'](rawName, rawValue, parts) {
+            return new AttrSyntax(rawName, rawValue, parts[1], 'attr');
+        }
+        ['PART.attr'](rawName, rawValue, parts) {
+            return new AttrSyntax(rawName, rawValue, parts[0], 'attr');
+        }
+    }
+    attributePattern({ pattern: 'attr.PART', symbols: '.' }, { pattern: 'PART.attr', symbols: '.' })(AttrAttributePattern);
+    /**
+     * Style syntax pattern recognizer, helps Aurelia understand template:
+     * ```html
+     * <div background.style="bg"></div>
+     * <div style.background="bg"></div>
+     * <div background-color.style="bg"></div>
+     * <div style.background-color="bg"></div>
+     * <div -webkit-user-select.style="select"></div>
+     * <div style.-webkit-user-select="select"></div>
+     * <div --custom-prop-css.style="cssProp"></div>
+     * <div style.--custom-prop-css="cssProp"></div>
+     * ```
+     */
+    class StyleAttributePattern {
+        ['style.PART'](rawName, rawValue, parts) {
+            return new AttrSyntax(rawName, rawValue, parts[1], 'style');
+        }
+        ['PART.style'](rawName, rawValue, parts) {
+            return new AttrSyntax(rawName, rawValue, parts[0], 'style');
+        }
+    }
+    attributePattern({ pattern: 'style.PART', symbols: '.' }, { pattern: 'PART.style', symbols: '.' })(StyleAttributePattern);
+    /**
+     * Class syntax pattern recognizer, helps Aurelia understand template:
+     * ```html
+     * <div my-class.class="class"></div>
+     * <div class.my-class="class"></div>
+     * <div ✔.class="checked"></div>
+     * <div class.✔="checked"></div>
+     * ```
+     */
+    class ClassAttributePattern {
+        ['class.PART'](rawName, rawValue, parts) {
+            return new AttrSyntax(rawName, rawValue, parts[1], 'class');
+        }
+        ['PART.class'](rawName, rawValue, parts) {
+            return new AttrSyntax(rawName, rawValue, parts[0], 'class');
+        }
+    }
+    attributePattern({ pattern: 'class.PART', symbols: '.' }, { pattern: 'PART.class', symbols: '.' })(ClassAttributePattern);
 
     const { enter: enter$5, leave: leave$5 } = Profiler.createTimer('TemplateBinder');
     const invalidSurrogateAttribute = {
@@ -13945,6 +14397,9 @@ var au = (function (exports) {
         'part': true,
         'replace-part': true
     };
+    /**
+     * TemplateBinder. Todo: describe goal of this class
+     */
     class TemplateBinder {
         constructor(dom, resources, attrParser, exprParser) {
             this.dom = dom;
@@ -14332,6 +14787,9 @@ var au = (function (exports) {
             currentTemplate.content.appendChild(proxyNode);
         }
     }
+    /**
+     * ParserState. Todo: describe goal of this class
+     */
     class ParserState$1 {
         constructor(input) {
             this.input = input;
@@ -14694,9 +15152,20 @@ var au = (function (exports) {
         ITemplateCompilerRegistration,
         ITemplateElementFactoryRegistration
     ];
+    /**
+     * Default HTML-specific (but environment-agnostic) implementations for style binding
+     */
+    const JitAttrBindingSyntax = [
+        StyleAttributePattern,
+        ClassAttributePattern,
+        AttrAttributePattern
+    ];
     const TriggerBindingCommandRegistration = TriggerBindingCommand;
     const DelegateBindingCommandRegistration = DelegateBindingCommand;
     const CaptureBindingCommandRegistration = CaptureBindingCommand;
+    const AttrBindingCommandRegistration = AttrBindingCommand;
+    const ClassBindingCommandRegistration = ClassBindingCommand;
+    const StyleBindingCommandRegistration = StyleBindingCommand;
     /**
      * Default HTML-specific (but environment-agnostic) binding commands:
      * - Event listeners: `.trigger`, `.delegate`, `.capture`
@@ -14704,7 +15173,10 @@ var au = (function (exports) {
     const DefaultBindingLanguage$1 = [
         TriggerBindingCommandRegistration,
         DelegateBindingCommandRegistration,
-        CaptureBindingCommandRegistration
+        CaptureBindingCommandRegistration,
+        ClassBindingCommandRegistration,
+        StyleBindingCommandRegistration,
+        AttrBindingCommandRegistration
     ];
     /**
      * A DI configuration object containing html-specific (but environment-agnostic) registrations:
@@ -14722,7 +15194,7 @@ var au = (function (exports) {
         register(container) {
             return BasicConfiguration$1
                 .register(container)
-                .register(...DefaultComponents$1, ...DefaultBindingSyntax, ...DefaultBindingLanguage, ...DefaultComponents$3, ...DefaultBindingLanguage$1);
+                .register(...DefaultComponents$1, ...DefaultBindingSyntax, ...JitAttrBindingSyntax, ...DefaultBindingLanguage, ...DefaultComponents$3, ...DefaultBindingLanguage$1);
         },
         /**
          * Create a new container with this configuration applied to it.
@@ -14790,13 +15262,13 @@ var au = (function (exports) {
             case "rj" /* refBinding */:
                 output += 'refBinding\n';
                 break;
-            case "hc" /* stylePropertyBinding */:
+            case "hd" /* stylePropertyBinding */:
                 output += 'stylePropertyBinding\n';
                 break;
             case "re" /* setProperty */:
                 output += 'setProperty\n';
                 break;
-            case "hd" /* setAttribute */:
+            case "he" /* setAttribute */:
                 output += 'setAttribute\n';
                 break;
             case "rf" /* interpolation */:
@@ -14850,12 +15322,18 @@ var au = (function (exports) {
         TriggerBindingCommand: TriggerBindingCommand,
         DelegateBindingCommand: DelegateBindingCommand,
         CaptureBindingCommand: CaptureBindingCommand,
+        AttrBindingCommand: AttrBindingCommand,
+        ClassBindingCommand: ClassBindingCommand,
+        StyleBindingCommand: StyleBindingCommand,
         ITemplateCompilerRegistration: ITemplateCompilerRegistration,
         ITemplateElementFactoryRegistration: ITemplateElementFactoryRegistration,
         DefaultComponents: DefaultComponents$3,
         TriggerBindingCommandRegistration: TriggerBindingCommandRegistration,
         DelegateBindingCommandRegistration: DelegateBindingCommandRegistration,
         CaptureBindingCommandRegistration: CaptureBindingCommandRegistration,
+        AttrBindingCommandRegistration: AttrBindingCommandRegistration,
+        ClassBindingCommandRegistration: ClassBindingCommandRegistration,
+        StyleBindingCommandRegistration: StyleBindingCommandRegistration,
         DefaultBindingLanguage: DefaultBindingLanguage$1,
         BasicConfiguration: BasicConfiguration$2,
         stringifyDOM: stringifyDOM,

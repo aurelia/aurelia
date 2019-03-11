@@ -1,10 +1,12 @@
 System.register('jitHtml', ['@aurelia/jit', '@aurelia/runtime-html', '@aurelia/kernel', '@aurelia/runtime'], function (exports, module) {
   'use strict';
-  var getTarget, BindingCommandResource, PlainElementSymbol, CustomElementSymbol, LetElementSymbol, BindableInfo, BindingSymbol, TextSymbol, TemplateControllerSymbol, CustomAttributeSymbol, PlainAttributeSymbol, ReplacePartSymbol, ResourceModel, IAttributeParser, DefaultComponents$1, DefaultBindingSyntax, DefaultBindingLanguage$1, TriggerBindingInstruction, DelegateBindingInstruction, CaptureBindingInstruction, TextBindingInstruction, SetAttributeInstruction, BasicConfiguration$1, Profiler, PLATFORM, DI, Registration, BindingMode, IDOM, ITemplateCompiler, LetBindingInstruction, LetElementInstruction, HydrateElementInstruction, HydrateTemplateController, SetPropertyInstruction, InterpolationInstruction, HydrateAttributeInstruction, RefBindingInstruction, IExpressionParser;
+  var getTarget, BindingCommandResource, attributePattern, AttrSyntax, PlainElementSymbol, CustomElementSymbol, LetElementSymbol, BindableInfo, BindingSymbol, TextSymbol, TemplateControllerSymbol, CustomAttributeSymbol, PlainAttributeSymbol, ReplacePartSymbol, ResourceModel, IAttributeParser, DefaultComponents$1, DefaultBindingSyntax, DefaultBindingLanguage$1, TriggerBindingInstruction, DelegateBindingInstruction, CaptureBindingInstruction, AttributeBindingInstruction, TextBindingInstruction, SetAttributeInstruction, BasicConfiguration$1, Profiler, PLATFORM, DI, Registration, BindingMode, IDOM, ITemplateCompiler, LetBindingInstruction, LetElementInstruction, HydrateElementInstruction, HydrateTemplateController, SetPropertyInstruction, InterpolationInstruction, HydrateAttributeInstruction, RefBindingInstruction, IExpressionParser;
   return {
     setters: [function (module) {
       getTarget = module.getTarget;
       BindingCommandResource = module.BindingCommandResource;
+      attributePattern = module.attributePattern;
+      AttrSyntax = module.AttrSyntax;
       PlainElementSymbol = module.PlainElementSymbol;
       CustomElementSymbol = module.CustomElementSymbol;
       LetElementSymbol = module.LetElementSymbol;
@@ -24,6 +26,7 @@ System.register('jitHtml', ['@aurelia/jit', '@aurelia/runtime-html', '@aurelia/k
       TriggerBindingInstruction = module.TriggerBindingInstruction;
       DelegateBindingInstruction = module.DelegateBindingInstruction;
       CaptureBindingInstruction = module.CaptureBindingInstruction;
+      AttributeBindingInstruction = module.AttributeBindingInstruction;
       TextBindingInstruction = module.TextBindingInstruction;
       SetAttributeInstruction = module.SetAttributeInstruction;
       BasicConfiguration$1 = module.BasicConfiguration;
@@ -54,6 +57,9 @@ System.register('jitHtml', ['@aurelia/jit', '@aurelia/runtime-html', '@aurelia/k
         stringifyTemplateDefinition: stringifyTemplateDefinition
       });
 
+      /**
+       * Trigger binding command. Compile attr with binding symbol with command `trigger` to `TriggerBindingInstruction`
+       */
       class TriggerBindingCommand {
           constructor() {
               this.bindingType = 86 /* TriggerCommand */;
@@ -63,6 +69,9 @@ System.register('jitHtml', ['@aurelia/jit', '@aurelia/runtime-html', '@aurelia/k
           }
       } exports('TriggerBindingCommand', TriggerBindingCommand);
       BindingCommandResource.define('trigger', TriggerBindingCommand);
+      /**
+       * Delegate binding command. Compile attr with binding symbol with command `delegate` to `DelegateBindingInstruction`
+       */
       class DelegateBindingCommand {
           constructor() {
               this.bindingType = 88 /* DelegateCommand */;
@@ -72,6 +81,9 @@ System.register('jitHtml', ['@aurelia/jit', '@aurelia/runtime-html', '@aurelia/k
           }
       } exports('DelegateBindingCommand', DelegateBindingCommand);
       BindingCommandResource.define('delegate', DelegateBindingCommand);
+      /**
+       * Capture binding command. Compile attr with binding symbol with command `capture` to `CaptureBindingInstruction`
+       */
       class CaptureBindingCommand {
           constructor() {
               this.bindingType = 87 /* CaptureCommand */;
@@ -81,6 +93,100 @@ System.register('jitHtml', ['@aurelia/jit', '@aurelia/runtime-html', '@aurelia/k
           }
       } exports('CaptureBindingCommand', CaptureBindingCommand);
       BindingCommandResource.define('capture', CaptureBindingCommand);
+      /**
+       * Attr binding command. Compile attr with binding symbol with command `attr` to `AttributeBindingInstruction`
+       */
+      class AttrBindingCommand {
+          constructor() {
+              this.bindingType = 32 /* IsProperty */;
+          }
+          compile(binding) {
+              const target = getTarget(binding, false);
+              return new AttributeBindingInstruction(target, binding.expression, target);
+          }
+      } exports('AttrBindingCommand', AttrBindingCommand);
+      BindingCommandResource.define('attr', AttrBindingCommand);
+      /**
+       * Style binding command. Compile attr with binding symbol with command `style` to `AttributeBindingInstruction`
+       */
+      class StyleBindingCommand {
+          constructor() {
+              this.bindingType = 32 /* IsProperty */;
+          }
+          compile(binding) {
+              return new AttributeBindingInstruction('style', binding.expression, getTarget(binding, false));
+          }
+      } exports('StyleBindingCommand', StyleBindingCommand);
+      BindingCommandResource.define('style', StyleBindingCommand);
+      /**
+       * Class binding command. Compile attr with binding symbol with command `class` to `AttributeBindingInstruction`
+       */
+      class ClassBindingCommand {
+          constructor() {
+              this.bindingType = 32 /* IsProperty */;
+          }
+          compile(binding) {
+              return new AttributeBindingInstruction('class', binding.expression, getTarget(binding, false));
+          }
+      } exports('ClassBindingCommand', ClassBindingCommand);
+      BindingCommandResource.define('class', ClassBindingCommand);
+
+      /**
+       * Attribute syntax pattern recognizer, helping Aurelia understand template:
+       * ```html
+       * <div attr.some-attr="someAttrValue"></div>
+       * <div some-attr.attr="someAttrValue"></div>
+       * ````
+       */
+      class AttrAttributePattern {
+          ['attr.PART'](rawName, rawValue, parts) {
+              return new AttrSyntax(rawName, rawValue, parts[1], 'attr');
+          }
+          ['PART.attr'](rawName, rawValue, parts) {
+              return new AttrSyntax(rawName, rawValue, parts[0], 'attr');
+          }
+      }
+      attributePattern({ pattern: 'attr.PART', symbols: '.' }, { pattern: 'PART.attr', symbols: '.' })(AttrAttributePattern);
+      /**
+       * Style syntax pattern recognizer, helps Aurelia understand template:
+       * ```html
+       * <div background.style="bg"></div>
+       * <div style.background="bg"></div>
+       * <div background-color.style="bg"></div>
+       * <div style.background-color="bg"></div>
+       * <div -webkit-user-select.style="select"></div>
+       * <div style.-webkit-user-select="select"></div>
+       * <div --custom-prop-css.style="cssProp"></div>
+       * <div style.--custom-prop-css="cssProp"></div>
+       * ```
+       */
+      class StyleAttributePattern {
+          ['style.PART'](rawName, rawValue, parts) {
+              return new AttrSyntax(rawName, rawValue, parts[1], 'style');
+          }
+          ['PART.style'](rawName, rawValue, parts) {
+              return new AttrSyntax(rawName, rawValue, parts[0], 'style');
+          }
+      }
+      attributePattern({ pattern: 'style.PART', symbols: '.' }, { pattern: 'PART.style', symbols: '.' })(StyleAttributePattern);
+      /**
+       * Class syntax pattern recognizer, helps Aurelia understand template:
+       * ```html
+       * <div my-class.class="class"></div>
+       * <div class.my-class="class"></div>
+       * <div ✔.class="checked"></div>
+       * <div class.✔="checked"></div>
+       * ```
+       */
+      class ClassAttributePattern {
+          ['class.PART'](rawName, rawValue, parts) {
+              return new AttrSyntax(rawName, rawValue, parts[1], 'class');
+          }
+          ['PART.class'](rawName, rawValue, parts) {
+              return new AttrSyntax(rawName, rawValue, parts[0], 'class');
+          }
+      }
+      attributePattern({ pattern: 'class.PART', symbols: '.' }, { pattern: 'PART.class', symbols: '.' })(ClassAttributePattern);
 
       const { enter, leave } = Profiler.createTimer('TemplateBinder');
       const invalidSurrogateAttribute = {
@@ -93,6 +199,9 @@ System.register('jitHtml', ['@aurelia/jit', '@aurelia/runtime-html', '@aurelia/k
           'part': true,
           'replace-part': true
       };
+      /**
+       * TemplateBinder. Todo: describe goal of this class
+       */
       class TemplateBinder {
           constructor(dom, resources, attrParser, exprParser) {
               this.dom = dom;
@@ -480,6 +589,9 @@ System.register('jitHtml', ['@aurelia/jit', '@aurelia/runtime-html', '@aurelia/k
               currentTemplate.content.appendChild(proxyNode);
           }
       }
+      /**
+       * ParserState. Todo: describe goal of this class
+       */
       class ParserState {
           constructor(input) {
               this.input = input;
@@ -842,9 +954,20 @@ System.register('jitHtml', ['@aurelia/jit', '@aurelia/runtime-html', '@aurelia/k
           ITemplateCompilerRegistration,
           ITemplateElementFactoryRegistration
       ]);
+      /**
+       * Default HTML-specific (but environment-agnostic) implementations for style binding
+       */
+      const JitAttrBindingSyntax = [
+          StyleAttributePattern,
+          ClassAttributePattern,
+          AttrAttributePattern
+      ];
       const TriggerBindingCommandRegistration = exports('TriggerBindingCommandRegistration', TriggerBindingCommand);
       const DelegateBindingCommandRegistration = exports('DelegateBindingCommandRegistration', DelegateBindingCommand);
       const CaptureBindingCommandRegistration = exports('CaptureBindingCommandRegistration', CaptureBindingCommand);
+      const AttrBindingCommandRegistration = exports('AttrBindingCommandRegistration', AttrBindingCommand);
+      const ClassBindingCommandRegistration = exports('ClassBindingCommandRegistration', ClassBindingCommand);
+      const StyleBindingCommandRegistration = exports('StyleBindingCommandRegistration', StyleBindingCommand);
       /**
        * Default HTML-specific (but environment-agnostic) binding commands:
        * - Event listeners: `.trigger`, `.delegate`, `.capture`
@@ -852,7 +975,10 @@ System.register('jitHtml', ['@aurelia/jit', '@aurelia/runtime-html', '@aurelia/k
       const DefaultBindingLanguage = exports('DefaultBindingLanguage', [
           TriggerBindingCommandRegistration,
           DelegateBindingCommandRegistration,
-          CaptureBindingCommandRegistration
+          CaptureBindingCommandRegistration,
+          ClassBindingCommandRegistration,
+          StyleBindingCommandRegistration,
+          AttrBindingCommandRegistration
       ]);
       /**
        * A DI configuration object containing html-specific (but environment-agnostic) registrations:
@@ -870,7 +996,7 @@ System.register('jitHtml', ['@aurelia/jit', '@aurelia/runtime-html', '@aurelia/k
           register(container) {
               return BasicConfiguration$1
                   .register(container)
-                  .register(...DefaultComponents$1, ...DefaultBindingSyntax, ...DefaultBindingLanguage$1, ...DefaultComponents, ...DefaultBindingLanguage);
+                  .register(...DefaultComponents$1, ...DefaultBindingSyntax, ...JitAttrBindingSyntax, ...DefaultBindingLanguage$1, ...DefaultComponents, ...DefaultBindingLanguage);
           },
           /**
            * Create a new container with this configuration applied to it.
@@ -938,13 +1064,13 @@ System.register('jitHtml', ['@aurelia/jit', '@aurelia/runtime-html', '@aurelia/k
               case "rj" /* refBinding */:
                   output += 'refBinding\n';
                   break;
-              case "hc" /* stylePropertyBinding */:
+              case "hd" /* stylePropertyBinding */:
                   output += 'stylePropertyBinding\n';
                   break;
               case "re" /* setProperty */:
                   output += 'setProperty\n';
                   break;
-              case "hd" /* setAttribute */:
+              case "he" /* setAttribute */:
                   output += 'setAttribute\n';
                   break;
               case "rf" /* interpolation */:

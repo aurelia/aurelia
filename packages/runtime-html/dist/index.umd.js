@@ -4,6 +4,9 @@
   (global = global || self, factory(global.runtimeHtml = {}, global.kernel, global.runtime));
 }(this, function (exports, kernel, runtime) { 'use strict';
 
+  /**
+   * Listener binding. Handle event binding between view and view model
+   */
   class Listener {
       // tslint:disable-next-line:parameters-max-number
       constructor(dom, targetEvent, delegationStrategy, sourceExpression, target, preventDefault, eventManager, locator) {
@@ -96,6 +99,311 @@
       else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
       return c > 3 && r && Object.defineProperty(target, key, r), r;
   }
+
+  /**
+   * Observer for handling two-way binding with attributes
+   * Has different strategy for class/style and normal attributes
+   * TODO: handle SVG/attributes with namespace
+   */
+  let AttributeObserver = class AttributeObserver {
+      constructor(flags, lifecycle, observerLocator, element, targetAttribute, targetKey) {
+          this.isDOMObserver = true;
+          this.persistentFlags = flags & 67108879 /* persistentBindingFlags */;
+          this.observerLocator = observerLocator;
+          this.lifecycle = lifecycle;
+          this.obj = element;
+          this.targetAttribute = targetAttribute;
+          if (targetAttribute === 'class') {
+              this.handleMutationCore = this.handleMutationClassName;
+              this.setValueCore = this.setValueCoreClassName;
+              this.getValue = this.getValueClassName;
+          }
+          else if (targetAttribute === 'style') {
+              this.handleMutationCore = this.handleMutationInlineStyle;
+              this.setValueCore = this.setValueCoreInlineStyle;
+              this.getValue = this.getValueInlineStyle;
+          }
+          this.propertyKey = targetKey;
+      }
+      getValue() {
+          return this.obj.getAttribute(this.propertyKey);
+      }
+      getValueInlineStyle() {
+          return this.obj.style.getPropertyValue(this.propertyKey);
+      }
+      getValueClassName() {
+          return this.obj.classList.contains(this.propertyKey);
+      }
+      setValueCore(newValue, flags) {
+          const obj = this.obj;
+          const targetAttribute = this.targetAttribute;
+          if (newValue === null || newValue === undefined) {
+              obj.removeAttribute(targetAttribute);
+          }
+          else {
+              obj.setAttribute(targetAttribute, newValue);
+          }
+      }
+      setValueCoreInlineStyle(value) {
+          let priority = '';
+          if (typeof value === 'string' && value.indexOf('!important') !== -1) {
+              priority = 'important';
+              value = value.replace('!important', '');
+          }
+          this.obj.style.setProperty(this.propertyKey, value, priority);
+      }
+      setValueCoreClassName(newValue) {
+          const className = this.propertyKey;
+          const classList = this.obj.classList;
+          // Why is class attribute observer setValue look different with class attribute accessor?
+          // ==============
+          // For class list
+          // newValue is simply checked if truthy or falsy
+          // and toggle the class accordingly
+          // -- the rule of this is quite different to normal attribute
+          //
+          // for class attribute, observer is different in a way that it only observe a particular class at a time
+          // this also comes from syntax, where it would typically be my-class.class="someProperty"
+          //
+          // so there is no need for separating class by space and add all of them like class accessor
+          if (newValue) {
+              classList.add(className);
+          }
+          else {
+              classList.remove(className);
+          }
+      }
+      handleMutation(mutationRecords) {
+          let shouldProcess = false;
+          for (let i = 0, ii = mutationRecords.length; ii > i; ++i) {
+              const record = mutationRecords[i];
+              if (record.type === 'attributes' && record.attributeName === this.targetAttribute) {
+                  shouldProcess = true;
+                  break;
+              }
+          }
+          if (shouldProcess) {
+              this.handleMutationCore();
+          }
+      }
+      handleMutationCore() {
+          const newValue = this.obj.getAttribute(this.targetAttribute);
+          if (newValue !== this.currentValue) {
+              this.currentValue = newValue;
+              this.setValue(newValue, 0 /* none */);
+          }
+      }
+      handleMutationInlineStyle() {
+          const css = this.obj.style;
+          const rule = this.propertyKey;
+          const newValue = css.getPropertyValue(rule);
+          if (newValue !== this.currentValue) {
+              this.currentValue = newValue;
+              this.setValue(newValue, 0 /* none */);
+          }
+      }
+      handleMutationClassName() {
+          const className = this.propertyKey;
+          const newValue = this.obj.classList.contains(className);
+          if (newValue !== this.currentValue) {
+              this.currentValue = newValue;
+              this.setValue(newValue, 0 /* none */);
+          }
+      }
+      subscribe(subscriber) {
+          if (!this.hasSubscribers()) {
+              startObservation(this.obj, this);
+          }
+          this.addSubscriber(subscriber);
+      }
+      unsubscribe(subscriber) {
+          if (this.removeSubscriber(subscriber) && !this.hasSubscribers()) {
+              stopObservation(this.obj, this);
+          }
+      }
+  };
+  AttributeObserver = __decorate([
+      runtime.targetObserver('')
+  ], AttributeObserver);
+  const startObservation = (element, subscription) => {
+      if (element.$eMObservers === undefined) {
+          element.$eMObservers = new Set();
+      }
+      if (element.$mObserver === undefined) {
+          element.$mObserver = runtime.DOM.createNodeObserver(element, handleMutation, { attributes: true });
+      }
+      element.$eMObservers.add(subscription);
+  };
+  const stopObservation = (element, subscription) => {
+      const $eMObservers = element.$eMObservers;
+      if ($eMObservers.delete(subscription)) {
+          if ($eMObservers.size === 0) {
+              element.$mObserver.disconnect();
+              element.$mObserver = undefined;
+          }
+          return true;
+      }
+      return false;
+  };
+  const handleMutation = (mutationRecords) => {
+      mutationRecords[0].target.$eMObservers.forEach(invokeHandleMutation, mutationRecords);
+  };
+  function invokeHandleMutation(s) {
+      s.handleMutation(this);
+  }
+
+  // BindingMode is not a const enum (and therefore not inlined), so assigning them to a variable to save a member accessor is a minor perf tweak
+  const { oneTime, toView, fromView } = runtime.BindingMode;
+  // pre-combining flags for bitwise checks is a minor perf tweak
+  const toViewOrOneTime = toView | oneTime;
+  /**
+   * Attribute binding. Handle attribute binding betwen view/view model. Understand Html special attributes
+   */
+  exports.AttributeBinding = class AttributeBinding {
+      constructor(sourceExpression, target, 
+      // some attributes may have inner structure
+      // such as class -> collection of class names
+      // such as style -> collection of style rules
+      //
+      // for normal attributes, targetAttribute and targetProperty are the same and can be ignore
+      targetAttribute, targetKey, mode, observerLocator, locator) {
+          runtime.connectable.assignIdTo(this);
+          this.$nextBinding = null;
+          this.$prevBinding = null;
+          this.$state = 0 /* none */;
+          this.$lifecycle = locator.get(runtime.ILifecycle);
+          this.$nextConnect = null;
+          this.$nextPatch = null;
+          this.$scope = null;
+          this.locator = locator;
+          this.mode = mode;
+          this.observerLocator = observerLocator;
+          this.sourceExpression = sourceExpression;
+          this.target = target;
+          this.targetAttribute = targetAttribute;
+          this.targetProperty = targetKey;
+          this.persistentFlags = 0 /* none */;
+      }
+      updateTarget(value, flags) {
+          flags |= this.persistentFlags;
+          this.targetObserver.setValue(value, flags | 16 /* updateTargetInstance */);
+      }
+      updateSource(value, flags) {
+          flags |= this.persistentFlags;
+          this.sourceExpression.assign(flags | 32 /* updateSourceExpression */, this.$scope, this.locator, value);
+      }
+      handleChange(newValue, _previousValue, flags) {
+          if (!(this.$state & 2 /* isBound */)) {
+              return;
+          }
+          flags |= this.persistentFlags;
+          if (this.mode === runtime.BindingMode.fromView) {
+              flags &= ~16 /* updateTargetInstance */;
+              flags |= 32 /* updateSourceExpression */;
+          }
+          if (flags & 16 /* updateTargetInstance */) {
+              const previousValue = this.targetObserver.getValue();
+              // if the only observable is an AccessScope then we can assume the passed-in newValue is the correct and latest value
+              if (this.sourceExpression.$kind !== 10082 /* AccessScope */ || this.observerSlots > 1) {
+                  newValue = this.sourceExpression.evaluate(flags, this.$scope, this.locator);
+              }
+              if (newValue !== previousValue) {
+                  this.updateTarget(newValue, flags);
+              }
+              if ((this.mode & oneTime) === 0) {
+                  this.version++;
+                  this.sourceExpression.connect(flags, this.$scope, this);
+                  this.unobserve(false);
+              }
+              return;
+          }
+          if (flags & 32 /* updateSourceExpression */) {
+              if (newValue !== this.sourceExpression.evaluate(flags, this.$scope, this.locator)) {
+                  this.updateSource(newValue, flags);
+              }
+              return;
+          }
+          throw kernel.Reporter.error(15, flags);
+      }
+      $bind(flags, scope) {
+          if (this.$state & 2 /* isBound */) {
+              if (this.$scope === scope) {
+                  return;
+              }
+              this.$unbind(flags | 2048 /* fromBind */);
+          }
+          // add isBinding flag
+          this.$state |= 1 /* isBinding */;
+          // Store flags which we can only receive during $bind and need to pass on
+          // to the AST during evaluate/connect/assign
+          this.persistentFlags = flags & 67108879 /* persistentBindingFlags */;
+          this.$scope = scope;
+          let sourceExpression = this.sourceExpression;
+          if (runtime.hasBind(sourceExpression)) {
+              sourceExpression.bind(flags, scope, this);
+          }
+          let targetObserver = this.targetObserver;
+          if (!targetObserver) {
+              targetObserver = this.targetObserver = new AttributeObserver(2048 /* fromBind */, this.$lifecycle, this.observerLocator, this.target, this.targetAttribute, this.targetProperty);
+          }
+          if (targetObserver.bind) {
+              targetObserver.bind(flags);
+          }
+          // during bind, binding behavior might have changed sourceExpression
+          sourceExpression = this.sourceExpression;
+          if (this.mode & toViewOrOneTime) {
+              this.updateTarget(sourceExpression.evaluate(flags, scope, this.locator), flags);
+          }
+          if (this.mode & toView) {
+              sourceExpression.connect(flags, scope, this);
+          }
+          if (this.mode & fromView) {
+              targetObserver[this.id] |= 32 /* updateSourceExpression */;
+              targetObserver.subscribe(this);
+          }
+          // add isBound flag and remove isBinding flag
+          this.$state |= 2 /* isBound */;
+          this.$state &= ~1 /* isBinding */;
+      }
+      $unbind(flags) {
+          if (!(this.$state & 2 /* isBound */)) {
+              return;
+          }
+          // add isUnbinding flag
+          this.$state |= 64 /* isUnbinding */;
+          // clear persistent flags
+          this.persistentFlags = 0 /* none */;
+          if (runtime.hasUnbind(this.sourceExpression)) {
+              this.sourceExpression.unbind(flags, this.$scope, this);
+          }
+          this.$scope = null;
+          if (this.targetObserver.unbind) {
+              this.targetObserver.unbind(flags);
+          }
+          if (this.targetObserver.unsubscribe) {
+              this.targetObserver.unsubscribe(this);
+              this.targetObserver[this.id] &= ~32 /* updateSourceExpression */;
+          }
+          this.unobserve(true);
+          // remove isBound and isUnbinding flags
+          this.$state &= ~(2 /* isBound */ | 64 /* isUnbinding */);
+      }
+      connect(flags) {
+          if (this.$state & 2 /* isBound */) {
+              flags |= this.persistentFlags;
+              this.sourceExpression.connect(flags | 1048576 /* mustEvaluate */, this.$scope, this);
+          }
+      }
+      patch(flags) {
+          if (this.$state & 2 /* isBound */) {
+              flags |= this.persistentFlags;
+              this.updateTarget(this.sourceExpression.evaluate(flags | 1048576 /* mustEvaluate */, this.$scope, this.locator), flags);
+          }
+      }
+  };
+  exports.AttributeBinding = __decorate([
+      runtime.connectable()
+  ], exports.AttributeBinding);
 
   exports.AttributeNSAccessor = class AttributeNSAccessor {
       constructor(lifecycle, obj, propertyKey, attributeName, namespace) {
@@ -1112,8 +1420,9 @@
   (function (HTMLTargetedInstructionType) {
       HTMLTargetedInstructionType["textBinding"] = "ha";
       HTMLTargetedInstructionType["listenerBinding"] = "hb";
-      HTMLTargetedInstructionType["stylePropertyBinding"] = "hc";
-      HTMLTargetedInstructionType["setAttribute"] = "hd";
+      HTMLTargetedInstructionType["attributeBinding"] = "hc";
+      HTMLTargetedInstructionType["stylePropertyBinding"] = "hd";
+      HTMLTargetedInstructionType["setAttribute"] = "he";
   })(exports.HTMLTargetedInstructionType || (exports.HTMLTargetedInstructionType = {}));
   function isHTMLTargetedInstruction(value) {
       const type = value.type;
@@ -1155,16 +1464,24 @@
   }
   class StylePropertyBindingInstruction {
       constructor(from, to) {
-          this.type = "hc" /* stylePropertyBinding */;
+          this.type = "hd" /* stylePropertyBinding */;
           this.from = from;
           this.to = to;
       }
   }
   class SetAttributeInstruction {
       constructor(value, to) {
-          this.type = "hd" /* setAttribute */;
+          this.type = "he" /* setAttribute */;
           this.to = to;
           this.value = value;
+      }
+  }
+  class AttributeBindingInstruction {
+      constructor(attr, from, to) {
+          this.type = "hc" /* attributeBinding */;
+          this.from = from;
+          this.attr = attr;
+          this.to = to;
       }
   }
 
@@ -1176,6 +1493,9 @@
           return createElementForType(dom, tagOrType, props, children);
       }
   }
+  /**
+   * RenderPlan. Todo: describe goal of this class
+   */
   class RenderPlan {
       constructor(dom, node, instructions, dependencies) {
           this.dom = dom;
@@ -1404,6 +1724,9 @@
   function isRenderLocation(node) {
       return node.textContent === 'au-end';
   }
+  /**
+   * IDOM implementation for Html.
+   */
   class HTMLDOM {
       constructor(window, document, TNode, TElement, THTMLElement, TCustomEvent) {
           this.window = window;
@@ -1567,7 +1890,10 @@
   // has an instance of this under the hood. Anyone who wants to create a node sequence from
   // a string of markup would also receive an instance of this.
   // CompiledTemplates create instances of FragmentNodeSequence.
-  /** @internal */
+  /**
+   * This is the most common form of INodeSequence.
+   * @internal
+   */
   class FragmentNodeSequence {
       constructor(dom, fragment) {
           this.dom = dom;
@@ -1792,7 +2118,7 @@
       }
   };
   SetAttributeRenderer = __decorate([
-      runtime.instructionRenderer("hd" /* setAttribute */)
+      runtime.instructionRenderer("he" /* setAttribute */)
       /** @internal */
   ], SetAttributeRenderer);
   let StylePropertyBindingRenderer = 
@@ -1810,9 +2136,27 @@
   };
   StylePropertyBindingRenderer.inject = [runtime.IExpressionParser, runtime.IObserverLocator];
   StylePropertyBindingRenderer = __decorate([
-      runtime.instructionRenderer("hc" /* stylePropertyBinding */)
+      runtime.instructionRenderer("hd" /* stylePropertyBinding */)
       /** @internal */
   ], StylePropertyBindingRenderer);
+  let AttributeBindingRenderer = 
+  /** @internal */
+  class AttributeBindingRenderer {
+      constructor(parser, observerLocator) {
+          this.parser = parser;
+          this.observerLocator = observerLocator;
+      }
+      render(flags, dom, context, renderable, target, instruction) {
+          const expr = runtime.ensureExpression(this.parser, instruction.from, 48 /* IsPropertyCommand */ | runtime.BindingMode.toView);
+          const binding = new exports.AttributeBinding(expr, target, instruction.attr /*targetAttribute*/, instruction.to /*targetKey*/, runtime.BindingMode.toView, this.observerLocator, context);
+          runtime.addBinding(renderable, binding);
+      }
+  };
+  AttributeBindingRenderer.inject = [runtime.IExpressionParser, runtime.IObserverLocator];
+  AttributeBindingRenderer = __decorate([
+      runtime.instructionRenderer("hc" /* attributeBinding */)
+      /** @internal */
+  ], AttributeBindingRenderer);
 
   const defaultShadowOptions = {
       mode: 'open'
@@ -1957,6 +2301,7 @@
       ComposeRegistration,
   ];
   const ListenerBindingRendererRegistration = ListenerBindingRenderer;
+  const AttributeBindingRendererRegistration = AttributeBindingRenderer;
   const SetAttributeRendererRegistration = SetAttributeRenderer;
   const StylePropertyBindingRendererRegistration = StylePropertyBindingRenderer;
   const TextBindingRendererRegistration = TextBindingRenderer;
@@ -1969,6 +2314,7 @@
    */
   const DefaultRenderers = [
       ListenerBindingRendererRegistration,
+      AttributeBindingRendererRegistration,
       SetAttributeRendererRegistration,
       StylePropertyBindingRendererRegistration,
       TextBindingRendererRegistration
@@ -2020,6 +2366,7 @@
   exports.UpdateTriggerBindingBehaviorRegistration = UpdateTriggerBindingBehaviorRegistration;
   exports.ComposeRegistration = ComposeRegistration;
   exports.DefaultResources = DefaultResources;
+  exports.AttributeBindingRendererRegistration = AttributeBindingRendererRegistration;
   exports.ListenerBindingRendererRegistration = ListenerBindingRendererRegistration;
   exports.SetAttributeRendererRegistration = SetAttributeRendererRegistration;
   exports.StylePropertyBindingRendererRegistration = StylePropertyBindingRendererRegistration;
@@ -2031,6 +2378,7 @@
   exports.isHTMLTargetedInstruction = isHTMLTargetedInstruction;
   exports.HTMLDOM = HTMLDOM;
   exports.DOM = $DOM;
+  exports.AttributeBindingInstruction = AttributeBindingInstruction;
   exports.CaptureBindingInstruction = CaptureBindingInstruction;
   exports.DelegateBindingInstruction = DelegateBindingInstruction;
   exports.SetAttributeInstruction = SetAttributeInstruction;

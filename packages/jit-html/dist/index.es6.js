@@ -1,8 +1,11 @@
-import { getTarget, BindingCommandResource, PlainElementSymbol, CustomElementSymbol, LetElementSymbol, BindableInfo, BindingSymbol, TextSymbol, TemplateControllerSymbol, CustomAttributeSymbol, PlainAttributeSymbol, ReplacePartSymbol, ResourceModel, IAttributeParser, DefaultComponents as DefaultComponents$1, DefaultBindingSyntax, DefaultBindingLanguage as DefaultBindingLanguage$1 } from '@aurelia/jit';
-import { TriggerBindingInstruction, DelegateBindingInstruction, CaptureBindingInstruction, TextBindingInstruction, SetAttributeInstruction, BasicConfiguration as BasicConfiguration$1 } from '@aurelia/runtime-html';
+import { getTarget, BindingCommandResource, attributePattern, AttrSyntax, PlainElementSymbol, CustomElementSymbol, LetElementSymbol, BindableInfo, BindingSymbol, TextSymbol, TemplateControllerSymbol, CustomAttributeSymbol, PlainAttributeSymbol, ReplacePartSymbol, ResourceModel, IAttributeParser, DefaultComponents as DefaultComponents$1, DefaultBindingSyntax, DefaultBindingLanguage as DefaultBindingLanguage$1 } from '@aurelia/jit';
+import { TriggerBindingInstruction, DelegateBindingInstruction, CaptureBindingInstruction, AttributeBindingInstruction, TextBindingInstruction, SetAttributeInstruction, BasicConfiguration as BasicConfiguration$1 } from '@aurelia/runtime-html';
 import { Profiler, PLATFORM, DI, Registration } from '@aurelia/kernel';
 import { BindingMode, IDOM, ITemplateCompiler, LetBindingInstruction, LetElementInstruction, HydrateElementInstruction, HydrateTemplateController, SetPropertyInstruction, InterpolationInstruction, HydrateAttributeInstruction, RefBindingInstruction, IExpressionParser } from '@aurelia/runtime';
 
+/**
+ * Trigger binding command. Compile attr with binding symbol with command `trigger` to `TriggerBindingInstruction`
+ */
 class TriggerBindingCommand {
     constructor() {
         this.bindingType = 86 /* TriggerCommand */;
@@ -12,6 +15,9 @@ class TriggerBindingCommand {
     }
 }
 BindingCommandResource.define('trigger', TriggerBindingCommand);
+/**
+ * Delegate binding command. Compile attr with binding symbol with command `delegate` to `DelegateBindingInstruction`
+ */
 class DelegateBindingCommand {
     constructor() {
         this.bindingType = 88 /* DelegateCommand */;
@@ -21,6 +27,9 @@ class DelegateBindingCommand {
     }
 }
 BindingCommandResource.define('delegate', DelegateBindingCommand);
+/**
+ * Capture binding command. Compile attr with binding symbol with command `capture` to `CaptureBindingInstruction`
+ */
 class CaptureBindingCommand {
     constructor() {
         this.bindingType = 87 /* CaptureCommand */;
@@ -30,6 +39,100 @@ class CaptureBindingCommand {
     }
 }
 BindingCommandResource.define('capture', CaptureBindingCommand);
+/**
+ * Attr binding command. Compile attr with binding symbol with command `attr` to `AttributeBindingInstruction`
+ */
+class AttrBindingCommand {
+    constructor() {
+        this.bindingType = 32 /* IsProperty */;
+    }
+    compile(binding) {
+        const target = getTarget(binding, false);
+        return new AttributeBindingInstruction(target, binding.expression, target);
+    }
+}
+BindingCommandResource.define('attr', AttrBindingCommand);
+/**
+ * Style binding command. Compile attr with binding symbol with command `style` to `AttributeBindingInstruction`
+ */
+class StyleBindingCommand {
+    constructor() {
+        this.bindingType = 32 /* IsProperty */;
+    }
+    compile(binding) {
+        return new AttributeBindingInstruction('style', binding.expression, getTarget(binding, false));
+    }
+}
+BindingCommandResource.define('style', StyleBindingCommand);
+/**
+ * Class binding command. Compile attr with binding symbol with command `class` to `AttributeBindingInstruction`
+ */
+class ClassBindingCommand {
+    constructor() {
+        this.bindingType = 32 /* IsProperty */;
+    }
+    compile(binding) {
+        return new AttributeBindingInstruction('class', binding.expression, getTarget(binding, false));
+    }
+}
+BindingCommandResource.define('class', ClassBindingCommand);
+
+/**
+ * Attribute syntax pattern recognizer, helping Aurelia understand template:
+ * ```html
+ * <div attr.some-attr="someAttrValue"></div>
+ * <div some-attr.attr="someAttrValue"></div>
+ * ````
+ */
+class AttrAttributePattern {
+    ['attr.PART'](rawName, rawValue, parts) {
+        return new AttrSyntax(rawName, rawValue, parts[1], 'attr');
+    }
+    ['PART.attr'](rawName, rawValue, parts) {
+        return new AttrSyntax(rawName, rawValue, parts[0], 'attr');
+    }
+}
+attributePattern({ pattern: 'attr.PART', symbols: '.' }, { pattern: 'PART.attr', symbols: '.' })(AttrAttributePattern);
+/**
+ * Style syntax pattern recognizer, helps Aurelia understand template:
+ * ```html
+ * <div background.style="bg"></div>
+ * <div style.background="bg"></div>
+ * <div background-color.style="bg"></div>
+ * <div style.background-color="bg"></div>
+ * <div -webkit-user-select.style="select"></div>
+ * <div style.-webkit-user-select="select"></div>
+ * <div --custom-prop-css.style="cssProp"></div>
+ * <div style.--custom-prop-css="cssProp"></div>
+ * ```
+ */
+class StyleAttributePattern {
+    ['style.PART'](rawName, rawValue, parts) {
+        return new AttrSyntax(rawName, rawValue, parts[1], 'style');
+    }
+    ['PART.style'](rawName, rawValue, parts) {
+        return new AttrSyntax(rawName, rawValue, parts[0], 'style');
+    }
+}
+attributePattern({ pattern: 'style.PART', symbols: '.' }, { pattern: 'PART.style', symbols: '.' })(StyleAttributePattern);
+/**
+ * Class syntax pattern recognizer, helps Aurelia understand template:
+ * ```html
+ * <div my-class.class="class"></div>
+ * <div class.my-class="class"></div>
+ * <div ✔.class="checked"></div>
+ * <div class.✔="checked"></div>
+ * ```
+ */
+class ClassAttributePattern {
+    ['class.PART'](rawName, rawValue, parts) {
+        return new AttrSyntax(rawName, rawValue, parts[1], 'class');
+    }
+    ['PART.class'](rawName, rawValue, parts) {
+        return new AttrSyntax(rawName, rawValue, parts[0], 'class');
+    }
+}
+attributePattern({ pattern: 'class.PART', symbols: '.' }, { pattern: 'PART.class', symbols: '.' })(ClassAttributePattern);
 
 const { enter, leave } = Profiler.createTimer('TemplateBinder');
 const invalidSurrogateAttribute = {
@@ -42,6 +145,9 @@ const attributesToIgnore = {
     'part': true,
     'replace-part': true
 };
+/**
+ * TemplateBinder. Todo: describe goal of this class
+ */
 class TemplateBinder {
     constructor(dom, resources, attrParser, exprParser) {
         this.dom = dom;
@@ -429,6 +535,9 @@ function processReplacePart(dom, replacePart, manifestProxy) {
         currentTemplate.content.appendChild(proxyNode);
     }
 }
+/**
+ * ParserState. Todo: describe goal of this class
+ */
 class ParserState {
     constructor(input) {
         this.input = input;
@@ -791,9 +900,20 @@ const DefaultComponents = [
     ITemplateCompilerRegistration,
     ITemplateElementFactoryRegistration
 ];
+/**
+ * Default HTML-specific (but environment-agnostic) implementations for style binding
+ */
+const JitAttrBindingSyntax = [
+    StyleAttributePattern,
+    ClassAttributePattern,
+    AttrAttributePattern
+];
 const TriggerBindingCommandRegistration = TriggerBindingCommand;
 const DelegateBindingCommandRegistration = DelegateBindingCommand;
 const CaptureBindingCommandRegistration = CaptureBindingCommand;
+const AttrBindingCommandRegistration = AttrBindingCommand;
+const ClassBindingCommandRegistration = ClassBindingCommand;
+const StyleBindingCommandRegistration = StyleBindingCommand;
 /**
  * Default HTML-specific (but environment-agnostic) binding commands:
  * - Event listeners: `.trigger`, `.delegate`, `.capture`
@@ -801,7 +921,10 @@ const CaptureBindingCommandRegistration = CaptureBindingCommand;
 const DefaultBindingLanguage = [
     TriggerBindingCommandRegistration,
     DelegateBindingCommandRegistration,
-    CaptureBindingCommandRegistration
+    CaptureBindingCommandRegistration,
+    ClassBindingCommandRegistration,
+    StyleBindingCommandRegistration,
+    AttrBindingCommandRegistration
 ];
 /**
  * A DI configuration object containing html-specific (but environment-agnostic) registrations:
@@ -819,7 +942,7 @@ const BasicConfiguration = {
     register(container) {
         return BasicConfiguration$1
             .register(container)
-            .register(...DefaultComponents$1, ...DefaultBindingSyntax, ...DefaultBindingLanguage$1, ...DefaultComponents, ...DefaultBindingLanguage);
+            .register(...DefaultComponents$1, ...DefaultBindingSyntax, ...JitAttrBindingSyntax, ...DefaultBindingLanguage$1, ...DefaultComponents, ...DefaultBindingLanguage);
     },
     /**
      * Create a new container with this configuration applied to it.
@@ -887,13 +1010,13 @@ function stringifyInstructions(instruction, depth) {
         case "rj" /* refBinding */:
             output += 'refBinding\n';
             break;
-        case "hc" /* stylePropertyBinding */:
+        case "hd" /* stylePropertyBinding */:
             output += 'stylePropertyBinding\n';
             break;
         case "re" /* setProperty */:
             output += 'setProperty\n';
             break;
-        case "hd" /* setAttribute */:
+        case "he" /* setAttribute */:
             output += 'setAttribute\n';
             break;
         case "rf" /* interpolation */:
@@ -941,5 +1064,5 @@ function stringifyTemplateDefinition(def, depth) {
     return output;
 }
 
-export { TriggerBindingCommand, DelegateBindingCommand, CaptureBindingCommand, ITemplateCompilerRegistration, ITemplateElementFactoryRegistration, DefaultComponents, TriggerBindingCommandRegistration, DelegateBindingCommandRegistration, CaptureBindingCommandRegistration, DefaultBindingLanguage, BasicConfiguration, stringifyDOM, stringifyInstructions, stringifyTemplateDefinition, TemplateBinder, ITemplateElementFactory };
+export { TriggerBindingCommand, DelegateBindingCommand, CaptureBindingCommand, AttrBindingCommand, ClassBindingCommand, StyleBindingCommand, ITemplateCompilerRegistration, ITemplateElementFactoryRegistration, DefaultComponents, TriggerBindingCommandRegistration, DelegateBindingCommandRegistration, CaptureBindingCommandRegistration, AttrBindingCommandRegistration, ClassBindingCommandRegistration, StyleBindingCommandRegistration, DefaultBindingLanguage, BasicConfiguration, stringifyDOM, stringifyInstructions, stringifyTemplateDefinition, TemplateBinder, ITemplateElementFactory };
 //# sourceMappingURL=index.es6.js.map

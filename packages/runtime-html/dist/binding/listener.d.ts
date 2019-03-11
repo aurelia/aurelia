@@ -3,6 +3,9 @@ import { DelegationStrategy, IBinding, IConnectableBinding, IDOM, IsBindingBehav
 import { IEventManager } from '../observation/event-manager';
 export interface Listener extends IConnectableBinding {
 }
+/**
+ * Listener binding. Handle event binding between view and view model
+ */
 export declare class Listener implements IBinding {
     dom: IDOM;
     $nextBinding: IBinding;

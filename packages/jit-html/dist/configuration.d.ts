@@ -1,4 +1,5 @@
 import { IContainer, IRegistry } from '@aurelia/kernel';
+import { AttrAttributePattern, ClassAttributePattern, StyleAttributePattern } from './attribute-pattern';
 export declare const ITemplateCompilerRegistration: IRegistry;
 export declare const ITemplateElementFactoryRegistration: IRegistry;
 /**
@@ -7,9 +8,16 @@ export declare const ITemplateElementFactoryRegistration: IRegistry;
  * - `ITemplateElementFactory`
  */
 export declare const DefaultComponents: IRegistry[];
+/**
+ * Default HTML-specific (but environment-agnostic) implementations for style binding
+ */
+export declare const JitAttrBindingSyntax: (typeof StyleAttributePattern | typeof ClassAttributePattern | typeof AttrAttributePattern)[];
 export declare const TriggerBindingCommandRegistration: IRegistry;
 export declare const DelegateBindingCommandRegistration: IRegistry;
 export declare const CaptureBindingCommandRegistration: IRegistry;
+export declare const AttrBindingCommandRegistration: IRegistry;
+export declare const ClassBindingCommandRegistration: IRegistry;
+export declare const StyleBindingCommandRegistration: IRegistry;
 /**
  * Default HTML-specific (but environment-agnostic) binding commands:
  * - Event listeners: `.trigger`, `.delegate`, `.capture`

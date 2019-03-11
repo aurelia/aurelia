@@ -2,6 +2,9 @@ import { Constructable, IRegistry } from '@aurelia/kernel';
 import { ICustomElementType, IDOM, INode, IRenderContext, IRenderingEngine, ITemplate, IView, IViewFactory, LifecycleFlags, TemplateDefinition } from '@aurelia/runtime';
 import { HTMLTargetedInstruction } from './definitions';
 export declare function createElement<T extends INode = Node>(dom: IDOM<T>, tagOrType: string | Constructable, props?: Record<string, string | HTMLTargetedInstruction>, children?: ArrayLike<unknown>): RenderPlan<T>;
+/**
+ * RenderPlan. Todo: describe goal of this class
+ */
 export declare class RenderPlan<T extends INode = Node> {
     private readonly dom;
     private readonly dependencies;

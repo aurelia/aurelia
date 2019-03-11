@@ -1,4 +1,5 @@
 export { Listener } from './binding/listener';
+export { AttributeBinding } from './binding/attribute';
 export { AttributeNSAccessor } from './observation/attribute-ns-accessor';
 export { IInputElement, CheckedObserver } from './observation/checked-observer';
 export { ClassAttributeAccessor } from './observation/class-attribute-accessor';
@@ -14,9 +15,9 @@ export { AttrBindingBehavior } from './resources/binding-behaviors/attr';
 export { SelfableBinding, SelfBindingBehavior } from './resources/binding-behaviors/self';
 export { UpdateTriggerBindingBehavior, UpdateTriggerableBinding, UpdateTriggerableObserver } from './resources/binding-behaviors/update-trigger';
 export { Subject, Compose } from './resources/custom-elements/compose';
-export { IProjectorLocatorRegistration, ITargetAccessorLocatorRegistration, ITargetObserverLocatorRegistration, ITemplateFactoryRegistration, DefaultComponents, AttrBindingBehaviorRegistration, SelfBindingBehaviorRegistration, UpdateTriggerBindingBehaviorRegistration, ComposeRegistration, DefaultResources, ListenerBindingRendererRegistration, SetAttributeRendererRegistration, StylePropertyBindingRendererRegistration, TextBindingRendererRegistration, DefaultRenderers, BasicConfiguration } from './configuration';
+export { IProjectorLocatorRegistration, ITargetAccessorLocatorRegistration, ITargetObserverLocatorRegistration, ITemplateFactoryRegistration, DefaultComponents, AttrBindingBehaviorRegistration, SelfBindingBehaviorRegistration, UpdateTriggerBindingBehaviorRegistration, ComposeRegistration, DefaultResources, AttributeBindingRendererRegistration, ListenerBindingRendererRegistration, SetAttributeRendererRegistration, StylePropertyBindingRendererRegistration, TextBindingRendererRegistration, DefaultRenderers, BasicConfiguration } from './configuration';
 export { createElement, RenderPlan } from './create-element';
-export { HTMLAttributeInstruction, HTMLInstructionRow, HTMLNodeInstruction, HTMLTargetedInstruction, HTMLTargetedInstructionType, IListenerBindingInstruction, ISetAttributeInstruction, isHTMLTargetedInstruction, IStylePropertyBindingInstruction, ITextBindingInstruction } from './definitions';
+export { HTMLAttributeInstruction, HTMLInstructionRow, HTMLNodeInstruction, HTMLTargetedInstruction, HTMLTargetedInstructionType, IAttributeBindingInstruction, IListenerBindingInstruction, ISetAttributeInstruction, isHTMLTargetedInstruction, IStylePropertyBindingInstruction, ITextBindingInstruction } from './definitions';
 export { NodeType, HTMLDOM, DOM } from './dom';
-export { CaptureBindingInstruction, DelegateBindingInstruction, SetAttributeInstruction, StylePropertyBindingInstruction, TextBindingInstruction, TriggerBindingInstruction } from './instructions';
+export { AttributeBindingInstruction, CaptureBindingInstruction, DelegateBindingInstruction, SetAttributeInstruction, StylePropertyBindingInstruction, TextBindingInstruction, TriggerBindingInstruction } from './instructions';
 //# sourceMappingURL=index.d.ts.map

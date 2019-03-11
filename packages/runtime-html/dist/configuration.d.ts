@@ -22,6 +22,7 @@ export declare const ComposeRegistration: IRegistry;
  */
 export declare const DefaultResources: IRegistry[];
 export declare const ListenerBindingRendererRegistration: IRegistry;
+export declare const AttributeBindingRendererRegistration: IRegistry;
 export declare const SetAttributeRendererRegistration: IRegistry;
 export declare const StylePropertyBindingRendererRegistration: IRegistry;
 export declare const TextBindingRendererRegistration: IRegistry;

@@ -1,6 +1,6 @@
-import { InjectArray, IRegistry } from '@aurelia/kernel';
+import { InjectArray, InterfaceSymbol, IRegistry } from '@aurelia/kernel';
 import { IDOM, IExpressionParser, IInstructionRenderer, IObserverLocator, IRenderable, IRenderContext, LifecycleFlags } from '@aurelia/runtime';
-import { IListenerBindingInstruction, ISetAttributeInstruction, IStylePropertyBindingInstruction, ITextBindingInstruction } from './definitions';
+import { IAttributeBindingInstruction, IListenerBindingInstruction, ISetAttributeInstruction, IStylePropertyBindingInstruction, ITextBindingInstruction } from './definitions';
 import { IEventManager } from './observation/event-manager';
 export declare class TextBindingRenderer implements IInstructionRenderer {
     static readonly inject: InjectArray;
@@ -29,5 +29,13 @@ export declare class StylePropertyBindingRenderer implements IInstructionRendere
     private readonly observerLocator;
     constructor(parser: IExpressionParser, observerLocator: IObserverLocator);
     render(flags: LifecycleFlags, dom: IDOM, context: IRenderContext, renderable: IRenderable, target: HTMLElement, instruction: IStylePropertyBindingInstruction): void;
+}
+export declare class AttributeBindingRenderer implements IInstructionRenderer {
+    static readonly inject: ReadonlyArray<InterfaceSymbol>;
+    static readonly register: IRegistry['register'];
+    private readonly parser;
+    private readonly observerLocator;
+    constructor(parser: IExpressionParser, observerLocator: IObserverLocator);
+    render(flags: LifecycleFlags, dom: IDOM, context: IRenderContext, renderable: IRenderable, target: HTMLElement, instruction: IAttributeBindingInstruction): void;
 }
 //# sourceMappingURL=html-renderer.d.ts.map

@@ -1,5 +1,8 @@
 import { IAttributeParser, PlainElementSymbol, ResourceModel } from '@aurelia/jit';
 import { IDOM, IExpressionParser } from '@aurelia/runtime';
+/**
+ * TemplateBinder. Todo: describe goal of this class
+ */
 export declare class TemplateBinder {
     dom: IDOM;
     resources: ResourceModel;

@@ -14,6 +14,9 @@ export declare const enum NodeType {
     DocumentFragment = 11,
     Notation = 12
 }
+/**
+ * IDOM implementation for Html.
+ */
 export declare class HTMLDOM implements IDOM {
     readonly Node: typeof Node;
     readonly Element: typeof Element;

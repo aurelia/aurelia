@@ -12,12 +12,12 @@ export interface LetBinding extends IConnectableBinding {}
 
 @connectable()
 export class LetBinding implements IPartialConnectableBinding {
-  public id: string;
-  public $nextBinding: IBinding;
-  public $prevBinding: IBinding;
+  public id!: string;
+  public $nextBinding?: IBinding;
+  public $prevBinding?: IBinding;
   public $state: State;
   public $lifecycle: ILifecycle;
-  public $scope: IScope;
+  public $scope?: IScope;
 
   public locator: IServiceLocator;
   public observerLocator: IObserverLocator;
@@ -29,11 +29,11 @@ export class LetBinding implements IPartialConnectableBinding {
 
   constructor(sourceExpression: IExpression, targetProperty: string, observerLocator: IObserverLocator, locator: IServiceLocator, toViewModel: boolean = false) {
     connectable.assignIdTo(this);
-    this.$nextBinding = null;
-    this.$prevBinding = null;
+    this.$nextBinding = void 0;
+    this.$prevBinding = void 0;
     this.$state = State.none;
     this.$lifecycle = locator.get(ILifecycle);
-    this.$scope = null;
+    this.$scope = void 0;
 
     this.locator = locator;
     this.observerLocator = observerLocator;
@@ -54,7 +54,7 @@ export class LetBinding implements IPartialConnectableBinding {
     if (flags & LifecycleFlags.updateTargetInstance) {
       const { target, targetProperty } = this as {target: IIndexable; targetProperty: string};
       const previousValue: unknown = target[targetProperty];
-      const newValue: unknown = this.sourceExpression.evaluate(flags, this.$scope, this.locator);
+      const newValue: unknown = this.sourceExpression.evaluate(flags, this.$scope!, this.locator);
       if (newValue !== previousValue) {
         target[targetProperty] = newValue;
       }
@@ -105,9 +105,9 @@ export class LetBinding implements IPartialConnectableBinding {
 
     const sourceExpression = this.sourceExpression;
     if (sourceExpression.unbind) {
-      sourceExpression.unbind(flags, this.$scope, this);
+      sourceExpression.unbind(flags, this.$scope!, this);
     }
-    this.$scope = null;
+    this.$scope = void 0;
     this.unobserve(true);
 
     // remove isBound and isUnbinding flags

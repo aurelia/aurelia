@@ -21,10 +21,10 @@ export interface IState {
 }
 
 export interface IBinding {
-  readonly $nextBinding: IBinding | null;
-  readonly $prevBinding: IBinding | null;
+  readonly $nextBinding?: IBinding;
+  readonly $prevBinding?: IBinding;
   readonly locator: IServiceLocator;
-  readonly $scope: IScope | null;
+  readonly $scope?: IScope;
   readonly $state: State;
   $bind(flags: LifecycleFlags, scope: IScope): void;
   $unbind(flags: LifecycleFlags): void;

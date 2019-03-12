@@ -38,9 +38,12 @@ export interface IConnectableBinding extends IPartialConnectableBinding, IConnec
 }
 
 /** @internal */
-export function addObserver(this: IConnectableBinding, observer: ISubscribable<MutationKind.instance | MutationKind.proxy>): void {
+export function addObserver(
+  this: IConnectableBinding & { [key: string]: ISubscribable<MutationKind> & { [id: string]: number } | number },
+  observer: ISubscribable<MutationKind> & { [id: string]: number }
+): void {
   // find the observer.
-  const observerSlots = this.observerSlots === undefined ? 0 : this.observerSlots;
+  const observerSlots = this.observerSlots === void 0 ? 0 : this.observerSlots;
   let i = observerSlots;
 
   while (i-- && this[slotNames[i]] !== observer);
@@ -60,7 +63,7 @@ export function addObserver(this: IConnectableBinding, observer: ISubscribable<M
     }
   }
   // set the "version" when the observer was used.
-  if (this.version === undefined) {
+  if (this.version === void 0) {
     this.version = 0;
   }
   this[versionSlotNames[i]] = this.version;
@@ -83,15 +86,15 @@ export function observeProperty(this: IConnectableBinding, flags: LifecycleFlags
 }
 
 /** @internal */
-export function unobserve(this: IConnectableBinding, all?: boolean): void {
+export function unobserve(this: IConnectableBinding & { [key: string]: unknown }, all?: boolean): void {
   const slots = this.observerSlots;
   let slotName: string;
-  let observer: IBindingTargetObserver;
+  let observer: IBindingTargetObserver & { [key: string]: number };
   if (all === true) {
     for (let i = 0; i < slots; ++i) {
       slotName = slotNames[i];
-      observer = this[slotName];
-      if (observer !== null && observer !== undefined) {
+      observer = this[slotName] as IBindingTargetObserver & { [key: string]: number };
+      if (observer !== null && observer !== void 0) {
         this[slotName] = null;
         observer.unsubscribe(this);
         observer[this.id] &= ~LifecycleFlags.updateTargetInstance;
@@ -102,8 +105,8 @@ export function unobserve(this: IConnectableBinding, all?: boolean): void {
     for (let i = 0; i < slots; ++i) {
       if (this[versionSlotNames[i]] !== version) {
         slotName = slotNames[i];
-        observer = this[slotName];
-        if (observer !== null && observer !== undefined) {
+        observer = this[slotName] as IBindingTargetObserver & { [key: string]: number };
+        if (observer !== null && observer !== void 0) {
           this[slotName] = null;
           observer.unsubscribe(this);
           observer[this.id] &= ~LifecycleFlags.updateTargetInstance;
@@ -127,7 +130,7 @@ function connectableDecorator<TProto, TClass>(target: DecoratableConnectable<TPr
 export function connectable(): typeof connectableDecorator;
 export function connectable<TProto, TClass>(target: DecoratableConnectable<TProto, TClass>): DecoratedConnectable<TProto, TClass>;
 export function connectable<TProto, TClass>(target?: DecoratableConnectable<TProto, TClass>): DecoratedConnectable<TProto, TClass> | typeof connectableDecorator {
-  return target === undefined ? connectableDecorator : connectableDecorator(target);
+  return target === void 0 ? connectableDecorator : connectableDecorator(target);
 }
 
 let value = 0;

@@ -11,18 +11,18 @@ const slice = Array.prototype.slice;
 
 export interface Call extends IConnectableBinding {}
 export class Call {
-  public $nextBinding: IBinding;
-  public $prevBinding: IBinding;
+  public $nextBinding?: IBinding;
+  public $prevBinding?: IBinding;
   public $state: State;
-  public $scope: IScope;
+  public $scope?: IScope;
 
   public locator: IServiceLocator;
   public sourceExpression: IsBindingBehavior;
   public targetObserver: IAccessor;
 
   constructor(sourceExpression: IsBindingBehavior, target: IObservable | IBindingContext, targetProperty: string, observerLocator: IObserverLocator, locator: IServiceLocator) {
-    this.$nextBinding = null;
-    this.$prevBinding = null;
+    this.$nextBinding = void 0;
+    this.$prevBinding = void 0;
     this.$state = State.none;
 
     this.locator = locator;
@@ -32,9 +32,9 @@ export class Call {
 
   public callSource(args: object): unknown {
     if (Tracer.enabled) { Tracer.enter('Call', 'callSource', slice.call(arguments)); }
-    const overrideContext = this.$scope.overrideContext;
+    const overrideContext = this.$scope!.overrideContext;
     Object.assign(overrideContext, args);
-    const result = this.sourceExpression.evaluate(LifecycleFlags.mustEvaluate, this.$scope, this.locator);
+    const result = this.sourceExpression.evaluate(LifecycleFlags.mustEvaluate, this.$scope!, this.locator);
 
     for (const prop in args) {
       Reflect.deleteProperty(overrideContext, prop);
@@ -63,7 +63,7 @@ export class Call {
       this.sourceExpression.bind(flags, scope, this);
     }
 
-    this.targetObserver.setValue($args => this.callSource($args), flags);
+    this.targetObserver.setValue(($args: object) => this.callSource($args), flags);
 
     // add isBound flag and remove isBinding flag
     this.$state |= State.isBound;
@@ -81,10 +81,10 @@ export class Call {
     this.$state |= State.isUnbinding;
 
     if (hasUnbind(this.sourceExpression)) {
-      this.sourceExpression.unbind(flags, this.$scope, this);
+      this.sourceExpression.unbind(flags, this.$scope!, this);
     }
 
-    this.$scope = null;
+    this.$scope = void 0;
     this.targetObserver.setValue(null, flags);
 
     // remove isBound and isUnbinding flags

@@ -9,7 +9,6 @@
     ":automergeDisabled",
     ":disableRateLimiting",
     ":maintainLockFilesMonthly",
-    ":prNotPending",
     "helpers:disableTypesNodeMajor",
     "schedule:weekly",
     "group:all"

@@ -68,7 +68,7 @@ export const Tracer: typeof RuntimeTracer = {
    */
   enabled: false,
   liveLoggingEnabled: false,
-  liveWriter: null,
+  liveWriter: null!,
   /**
    * Call this at the start of a method/function.
    * Each call to `enter` **must** have an accompanying call to `leave` for the tracer to work properly.
@@ -125,7 +125,7 @@ export const Tracer: typeof RuntimeTracer = {
    */
   disableLiveLogging(): void {
     this.liveLoggingEnabled = false;
-    this.liveWriter = null;
+    this.liveWriter = null!;
   }
 };
 

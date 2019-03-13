@@ -79,7 +79,7 @@ export class TemplateCompiler implements ITemplateCompiler {
     this.factory = factory;
     this.attrParser = attrParser;
     this.exprParser = exprParser;
-    this.instructionRows = null;
+    this.instructionRows = null!;
   }
 
   public static register(container: IContainer): IResolver<ITemplateCompiler> {
@@ -91,7 +91,7 @@ export class TemplateCompiler implements ITemplateCompiler {
     const binder = new TemplateBinder(dom, new ResourceModel(descriptions), this.attrParser, this.exprParser);
     const template = definition.template = this.factory.createTemplate(definition.template) as HTMLTemplateElement;
     const surrogate = binder.bind(template);
-    if (definition.instructions === undefined || definition.instructions === PLATFORM.emptyArray) {
+    if (definition.instructions === undefined || definition.instructions === (PLATFORM.emptyArray as typeof definition.instructions & typeof PLATFORM.emptyArray)) {
       definition.instructions = [];
     }
     if (surrogate.hasSlots === true) {
@@ -104,7 +104,7 @@ export class TemplateCompiler implements ITemplateCompiler {
     const len = attributes.length;
     if (len > 0) {
       let surrogates: ITargetedInstruction[];
-      if (definition.surrogates === undefined || definition.surrogates === PLATFORM.emptyArray) {
+      if (definition.surrogates === undefined || definition.surrogates === (PLATFORM.emptyArray as typeof definition.surrogates & typeof PLATFORM.emptyArray)) {
         definition.surrogates = Array(len);
       }
       surrogates = definition.surrogates;
@@ -113,9 +113,10 @@ export class TemplateCompiler implements ITemplateCompiler {
       }
     }
 
+    // @ts-ignore
     this.compileChildNodes(surrogate);
 
-    this.instructionRows = null;
+    this.instructionRows = null!;
 
     if (Profiler.enabled) { leave(); }
     return definition as TemplateDefinition;
@@ -149,6 +150,7 @@ export class TemplateCompiler implements ITemplateCompiler {
 
   private compileCustomElement(symbol: CustomElementSymbol): void {
     // offset 1 to leave a spot for the hydrate instruction so we don't need to create 2 arrays with a spread etc
+    // @ts-ignore
     const instructionRow = this.compileAttributes(symbol, 1) as HTMLInstructionRow;
     instructionRow[0] = new HydrateElementInstruction(
       symbol.res,
@@ -160,10 +162,12 @@ export class TemplateCompiler implements ITemplateCompiler {
   }
 
   private compilePlainElement(symbol: PlainElementSymbol): void {
+    // @ts-ignore
     const attributes = this.compileAttributes(symbol, 0);
     if (attributes.length > 0) {
       this.instructionRows.push(attributes as HTMLInstructionRow);
     }
+    // @ts-ignore
     this.compileChildNodes(symbol);
   }
 
@@ -184,7 +188,7 @@ export class TemplateCompiler implements ITemplateCompiler {
     const bindings = this.compileBindings(symbol);
     const instructionRowsSave = this.instructionRows;
     const controllerInstructions = this.instructionRows = [];
-    this.compileParentNode(symbol.template);
+    this.compileParentNode(symbol.template!);
     this.instructionRows = instructionRowsSave;
 
     const def = {
@@ -209,7 +213,7 @@ export class TemplateCompiler implements ITemplateCompiler {
         bindingInstructions[i] = this.compileBinding(bindings[i]);
       }
     } else {
-      bindingInstructions = PLATFORM.emptyArray as HTMLAttributeInstruction[];
+      bindingInstructions = PLATFORM.emptyArray as typeof PLATFORM.emptyArray & HTMLAttributeInstruction[];
     }
     return bindingInstructions;
   }
@@ -244,7 +248,7 @@ export class TemplateCompiler implements ITemplateCompiler {
     } else if (offset > 0) {
       attributeInstructions = Array(offset);
     } else {
-      attributeInstructions = PLATFORM.emptyArray as HTMLAttributeInstruction[];
+      attributeInstructions = PLATFORM.emptyArray as typeof PLATFORM.emptyArray & HTMLAttributeInstruction[];
     }
     return attributeInstructions;
   }
@@ -295,7 +299,7 @@ export class TemplateCompiler implements ITemplateCompiler {
         replacePart = replaceParts[i];
         instructionRowsSave = this.instructionRows;
         partInstructions = this.instructionRows = [];
-        this.compileParentNode(replacePart.template);
+        this.compileParentNode(replacePart.template!);
         parts[replacePart.name] = {
           name: replacePart.name,
           template: replacePart.physicalNode,

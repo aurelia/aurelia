@@ -67,6 +67,8 @@ export function instructionRenderer<TType extends string>(instructionType: TType
   return function decorator<TProto, TClass>(target: DecoratableInstructionRenderer<TType, TProto, TClass>): DecoratedInstructionRenderer<TType, TProto, TClass> {
     // wrap the constructor to set the instructionType to the instance (for better performance than when set on the prototype)
     const decoratedTarget = function(...args: unknown[]): TProto {
+      // TODO: fix this
+      // @ts-ignore
       const instance = new target(...args);
       instance.instructionType = instructionType;
       return instance;
@@ -88,14 +90,16 @@ export function instructionRenderer<TType extends string>(instructionType: TType
 
 /* @internal */
 export class Renderer implements IRenderer {
+  // TODO: fix this
+  // @ts-ignore
   public static readonly inject: InjectArray = [all(IInstructionRenderer)];
 
   public instructionRenderers: Record<InstructionTypeName, IInstructionRenderer>;
 
   constructor(instructionRenderers: IInstructionRenderer[]) {
-    const record = this.instructionRenderers = {};
+    const record: Record<InstructionTypeName, IInstructionRenderer> = this.instructionRenderers = {};
     instructionRenderers.forEach(item => {
-      record[item.instructionType] = item;
+      record[item.instructionType!] = item;
     });
   }
 
@@ -151,7 +155,7 @@ export function ensureExpression<TFrom>(parser: IExpressionParser, srcOrExpr: TF
 export function addBinding(renderable: IRenderable, binding: IBinding): void {
   if (Tracer.enabled) { Tracer.enter('Renderer', 'addBinding', slice.call(arguments)); }
   (binding as Writable<IBinding>).$prevBinding = renderable.$bindingTail;
-  (binding as Writable<IBinding>).$nextBinding = null;
+  (binding as Writable<IBinding>).$nextBinding = null!;
   if (renderable.$bindingTail === null) {
     renderable.$bindingHead = binding;
   } else {
@@ -163,7 +167,7 @@ export function addBinding(renderable: IRenderable, binding: IBinding): void {
 
 export function addComponent(renderable: IRenderable, component: IComponent): void {
   if (Tracer.enabled) { Tracer.enter('Renderer', 'addComponent', slice.call(arguments)); }
-  (component as Writable<IComponent>).$prevComponent = renderable.$componentTail;
+  (component! as Writable<IComponent>).$prevComponent = renderable.$componentTail!;
   (component as Writable<IComponent>).$nextComponent = null;
   if (renderable.$componentTail === null) {
     renderable.$componentHead = component;
@@ -181,7 +185,7 @@ export class SetPropertyRenderer implements IInstructionRenderer {
 
   public render(flags: LifecycleFlags, dom: IDOM, context: IRenderContext, renderable: IRenderable, target: object, instruction: ISetPropertyInstruction): void {
     if (Tracer.enabled) { Tracer.enter('SetPropertyRenderer', 'render', slice.call(arguments)); }
-    target[instruction.to] = instruction.value;
+    target[instruction.to as keyof object] = instruction.value as never; // Yeah, yeah..
     if (Tracer.enabled) { Tracer.leave(); }
   }
 }
@@ -193,7 +197,7 @@ export class CustomElementRenderer implements IInstructionRenderer {
 
   public render(flags: LifecycleFlags, dom: IDOM, context: IRenderContext, renderable: IRenderable, target: INode, instruction: IHydrateElementInstruction): void {
     if (Tracer.enabled) { Tracer.enter('CustomElementRenderer', 'render', slice.call(arguments)); }
-    const operation = context.beginComponentOperation(renderable, target, instruction, null, null, target, true);
+    const operation = context.beginComponentOperation(renderable, target, instruction, null!, null!, target, true);
     const component = context.get<ICustomElement>(customElementKey(instruction.res));
     const instructionRenderers = context.get(IRenderer).instructionRenderers;
     const childInstructions = instruction.instructions;
@@ -263,7 +267,7 @@ export class TemplateControllerRenderer implements IInstructionRenderer {
     component.$hydrate(flags, context);
 
     if (instruction.link) {
-      (component as ICustomAttribute & { link(componentTail: IComponent): void}).link(renderable.$componentTail);
+      (component as ICustomAttribute & { link(componentTail: IComponent): void}).link(renderable.$componentTail!);
     }
 
     let current: ITargetedInstruction;

@@ -358,7 +358,7 @@ export interface ILifecycle {
    * If unsure which flags to provide, it's OK to use `LifecycleFlags.none` (or simply `0`)
    * This default will work, but is generally less efficient.
    */
-  endBind(flags: LifecycleFlags): ILifecycleTask;
+  endBind(flags: LifecycleFlags): ILifecycleTask | undefined;
 
   /**
    * Open up / expand an unbind batch for enqueueing `unbound` callbacks.
@@ -387,7 +387,7 @@ export interface ILifecycle {
    * If unsure which flags to provide, it's OK to use `LifecycleFlags.none` (or simply `0`)
    * This default will work, but is generally less efficient.
    */
-  endUnbind(flags: LifecycleFlags): ILifecycleTask;
+  endUnbind(flags: LifecycleFlags): ILifecycleTask | undefined;
 
   processAttachQueue(flags: LifecycleFlags): void;
   processDetachQueue(flags: LifecycleFlags): void;
@@ -428,7 +428,7 @@ export interface ILifecycle {
    * If unsure which flags to provide, it's OK to use `LifecycleFlags.none` (or simply `0`)
    * This default will work, but is generally less efficient.
    */
-  endAttach(flags: LifecycleFlags): ILifecycleTask;
+  endAttach(flags: LifecycleFlags): ILifecycleTask | undefined;
 
   /**
    * Open up / expand a detach batch for enqueueing `$unmount` and `detached` callbacks.
@@ -477,7 +477,7 @@ export interface ILifecycle {
    * If unsure which flags to provide, it's OK to use `LifecycleFlags.none` (or simply `0`).
    * This default will work, but is generally less efficient.
    */
-  endDetach(flags: LifecycleFlags): ILifecycleTask;
+  endDetach(flags: LifecycleFlags): ILifecycleTask | undefined;
 
   registerTask(task: ILifecycleTask): void;
   finishTask(task: ILifecycleTask): void;
@@ -583,7 +583,7 @@ export class Lifecycle implements ILifecycle {
     this.unboundHead = this;
     this.unboundTail = this;
 
-    this.flushed = null;
+    this.flushed = null!;
     this.promise = Promise.resolve();
 
     this.flushCount = 0;
@@ -661,13 +661,13 @@ export class Lifecycle implements ILifecycle {
     // flush callbacks may lead to additional flush operations, so keep looping until
     // the flush head is back to `this` (though this will typically happen in the first iteration)
     while (this.flushCount > 0) {
-      let current = this.flushHead.$nextFlush;
+      let current: IChangeTracker = this.flushHead.$nextFlush!;
       this.flushHead = this.flushTail = this;
       this.flushCount = 0;
-      let next: typeof current;
+      let next: IChangeTracker;
       do {
-        next = current.$nextFlush;
-        current.$nextFlush = null;
+        next = current.$nextFlush!;
+        current.$nextFlush = null!;
         current.flush(flags);
         current = next;
       } while (current !== marker);
@@ -701,7 +701,7 @@ export class Lifecycle implements ILifecycle {
     if (Tracer.enabled) { Tracer.leave(); }
   }
 
-  public endBind(flags: LifecycleFlags): ILifecycleTask {
+  public endBind(flags: LifecycleFlags): ILifecycleTask | undefined {
     if (Tracer.enabled) { Tracer.enter('Lifecycle', 'endBind', slice.call(arguments)); }
     // close / shrink a bind batch
     if (--this.bindDepth === 0) {
@@ -730,13 +730,13 @@ export class Lifecycle implements ILifecycle {
     // the bound head is back to `this` (though this will typically happen in the first iteration)
     while (this.boundCount > 0) {
       this.boundCount = 0;
-      let current = this.boundHead.$nextBound;
+      let current = this.boundHead.$nextBound!;
       let next: ILifecycleHooks;
       this.boundHead = this.boundTail = this;
       do {
-        current.bound(flags);
-        next = current.$nextBound;
-        current.$nextBound = null;
+        current.bound!(flags);
+        next = current.$nextBound!;
+        current.$nextBound = null!;
         current = next;
       } while (current !== marker);
     }
@@ -764,7 +764,7 @@ export class Lifecycle implements ILifecycle {
     if (Tracer.enabled) { Tracer.leave(); }
   }
 
-  public endUnbind(flags: LifecycleFlags): ILifecycleTask {
+  public endUnbind(flags: LifecycleFlags): ILifecycleTask | undefined {
     if (Tracer.enabled) { Tracer.enter('Lifecycle', 'endUnbind', slice.call(arguments)); }
     // close / shrink an unbind batch
     if (--this.unbindDepth === 0) {
@@ -788,13 +788,13 @@ export class Lifecycle implements ILifecycle {
     // the unbound head is back to `this` (though this will typically happen in the first iteration)
     while (this.unboundCount > 0) {
       this.unboundCount = 0;
-      let current = this.unboundHead.$nextUnbound;
+      let current = this.unboundHead.$nextUnbound!;
       let next: ILifecycleHooks;
       this.unboundHead = this.unboundTail = this;
       do {
-        current.unbound(flags);
-        next = current.$nextUnbound;
-        current.$nextUnbound = null;
+        current.unbound!(flags);
+        next = current.$nextUnbound!;
+        current.$nextUnbound = null!;
         current = next;
       } while (current !== marker);
     }
@@ -836,7 +836,7 @@ export class Lifecycle implements ILifecycle {
     if (Tracer.enabled) { Tracer.leave(); }
   }
 
-  public endAttach(flags: LifecycleFlags): ILifecycleTask {
+  public endAttach(flags: LifecycleFlags): ILifecycleTask | undefined {
     if (Tracer.enabled) { Tracer.enter('Lifecycle', 'endAttach', slice.call(arguments)); }
     // close / shrink an attach batch
     if (--this.attachDepth === 0) {
@@ -864,28 +864,28 @@ export class Lifecycle implements ILifecycle {
 
     if (this.mountCount > 0) {
       this.mountCount = 0;
-      let currentMount = this.mountHead.$nextMount;
+      let currentMount = this.mountHead.$nextMount!;
       this.mountHead = this.mountTail = this as unknown as IMountableComponent;
-      let nextMount: typeof currentMount;
+      let nextMount: IMountableComponent;
 
       do {
         currentMount.$mount(flags);
-        nextMount = currentMount.$nextMount;
-        currentMount.$nextMount = null;
+        nextMount = currentMount.$nextMount!;
+        currentMount.$nextMount = null!;
         currentMount = nextMount;
       } while (currentMount !== marker);
     }
 
     if (this.attachedCount > 0) {
       this.attachedCount = 0;
-      let currentAttached = this.attachedHead.$nextAttached;
+      let currentAttached = this.attachedHead.$nextAttached!;
       this.attachedHead = this.attachedTail = this;
-      let nextAttached: typeof currentAttached;
+      let nextAttached: ILifecycleHooks;
 
       do {
-        currentAttached.attached(flags);
-        nextAttached = currentAttached.$nextAttached;
-        currentAttached.$nextAttached = null;
+        currentAttached.attached!(flags);
+        nextAttached = currentAttached.$nextAttached!;
+        currentAttached.$nextAttached = null!;
         currentAttached = nextAttached;
       } while (currentAttached !== marker);
     }
@@ -916,13 +916,13 @@ export class Lifecycle implements ILifecycle {
     // and should be dealt with in a less hacky way)
     if (requestor.$nextMount !== null) {
       let current = this.mountHead;
-      let next = current.$nextMount;
+      let next = current.$nextMount!;
       while (next !== requestor) {
         current = next;
-        next = current.$nextMount;
+        next = current.$nextMount!;
       }
       current.$nextMount = next.$nextMount;
-      next.$nextMount = null;
+      next.$nextMount = null!;
       if (this.mountTail === next) {
         this.mountTail = this as unknown as IMountableComponent;
       }
@@ -959,7 +959,7 @@ export class Lifecycle implements ILifecycle {
     if (Tracer.enabled) { Tracer.leave(); }
   }
 
-  public endDetach(flags: LifecycleFlags): ILifecycleTask {
+  public endDetach(flags: LifecycleFlags): ILifecycleTask | undefined {
     if (Tracer.enabled) { Tracer.enter('Lifecycle', 'endDetach', slice.call(arguments)); }
     // close / shrink a detach batch
     if (--this.detachDepth === 0) {
@@ -984,28 +984,28 @@ export class Lifecycle implements ILifecycle {
 
     if (this.unmountCount > 0) {
       this.unmountCount = 0;
-      let currentUnmount = this.unmountHead.$nextUnmount;
+      let currentUnmount = this.unmountHead.$nextUnmount!;
       this.unmountHead = this.unmountTail = this as unknown as IMountableComponent;
-      let nextUnmount: typeof currentUnmount;
+      let nextUnmount: IMountableComponent;
 
       do {
         currentUnmount.$unmount(flags);
-        nextUnmount = currentUnmount.$nextUnmount;
-        currentUnmount.$nextUnmount = null;
+        nextUnmount = currentUnmount.$nextUnmount!;
+        currentUnmount.$nextUnmount = null!;
         currentUnmount = nextUnmount;
       } while (currentUnmount !== marker);
     }
 
     if (this.detachedCount > 0) {
       this.detachedCount = 0;
-      let currentDetached = this.detachedHead.$nextDetached;
+      let currentDetached = this.detachedHead.$nextDetached!;
       this.detachedHead = this.detachedTail = this;
-      let nextDetached: typeof currentDetached;
+      let nextDetached: ILifecycleHooks;
 
       do {
-        currentDetached.detached(flags);
-        nextDetached = currentDetached.$nextDetached;
-        currentDetached.$nextDetached = null;
+        currentDetached.detached!(flags);
+        nextDetached = currentDetached.$nextDetached!;
+        currentDetached.$nextDetached = null!;
         currentDetached = nextDetached;
       } while (currentDetached !== marker);
     }
@@ -1013,14 +1013,14 @@ export class Lifecycle implements ILifecycle {
     if (this.unbindAfterDetachCount > 0) {
       this.beginUnbind();
       this.unbindAfterDetachCount = 0;
-      let currentUnbind = this.unbindAfterDetachHead.$nextUnbindAfterDetach;
+      let currentUnbind = this.unbindAfterDetachHead.$nextUnbindAfterDetach!;
       this.unbindAfterDetachHead = this.unbindAfterDetachTail = this as unknown as IComponent;
-      let nextUnbind: typeof currentUnbind;
+      let nextUnbind: IComponent;
 
       do {
         currentUnbind.$unbind(flags);
-        nextUnbind = currentUnbind.$nextUnbindAfterDetach;
-        currentUnbind.$nextUnbindAfterDetach = null;
+        nextUnbind = currentUnbind.$nextUnbindAfterDetach!;
+        currentUnbind.$nextUnbindAfterDetach = null!;
         currentUnbind = nextUnbind;
       } while (currentUnbind !== marker);
       this.endUnbind(flags);
@@ -1040,7 +1040,7 @@ export class CompositionCoordinator {
   private isAttached: boolean;
   private isBound: boolean;
   private queue: (IView | PromiseSwap)[] | null;
-  private scope: IScope;
+  private scope!: IScope;
   private swapTask: ILifecycleTask;
 
   constructor($lifecycle: ILifecycle) {
@@ -1048,7 +1048,7 @@ export class CompositionCoordinator {
 
     this.onSwapComplete = PLATFORM.noop;
 
-    this.currentView = null;
+    this.currentView = null!;
     this.isAttached = false;
     this.isBound = false;
     this.queue = null;
@@ -1114,7 +1114,7 @@ export class CompositionCoordinator {
   }
 
   public caching(flags: LifecycleFlags): void {
-    this.currentView = null;
+    this.currentView = null!;
   }
 
   private enqueue(view: IView | PromiseSwap): void {
@@ -1145,7 +1145,7 @@ export class CompositionCoordinator {
       $lifecycle.enqueueUnbindAfterDetach(currentView);
       $lifecycle.beginDetach();
       currentView.$detach(flags);
-      lifecycleTask = $lifecycle.endDetach(flags);
+      lifecycleTask = $lifecycle.endDetach(flags)!;
     }
     swapTask.addTask(lifecycleTask);
 
@@ -1162,7 +1162,7 @@ export class CompositionCoordinator {
       if (this.isAttached) {
         $lifecycle.beginAttach();
         currentView.$attach(flags);
-        lifecycleTask = $lifecycle.endAttach(flags);
+        lifecycleTask = $lifecycle.endAttach(flags)!;
       } else {
         lifecycleTask = LifecycleTask.done;
       }
@@ -1185,7 +1185,7 @@ export class CompositionCoordinator {
   private processNext(): void {
     if (Tracer.enabled) { Tracer.enter('CompositionCoordinator', 'processNext', slice.call(arguments)); }
     if (this.queue !== null && this.queue.length > 0) {
-      const next = this.queue.pop();
+      const next = this.queue.pop()!;
       this.queue.length = 0;
 
       if (PromiseSwap.is(next)) {
@@ -1229,11 +1229,11 @@ export class AggregateLifecycleTask implements ILifecycleTask<void> {
   constructor() {
     this.done = true;
 
-    this.owner = null;
+    this.owner = null!;
 
-    this.resolve = null;
+    this.resolve = null!;
     this.tasks = [];
-    this.waiter = null;
+    this.waiter = null!;
   }
 
   public addTask(task: ILifecycleTask): void {
@@ -1256,7 +1256,7 @@ export class AggregateLifecycleTask implements ILifecycleTask<void> {
     }
     if (this.tasks.length === 0 && this.owner !== null) {
       this.owner.finishTask(this);
-      this.owner = null;
+      this.owner = null!;
     }
     if (Tracer.enabled) { Tracer.leave(); }
   }
@@ -1431,7 +1431,7 @@ export class PromiseTask<T = void> implements ILifecycleTask<T> {
       this.done = true;
       this.callback(value);
       return value;
-    });
+    }) as Promise<T>;
   }
 
   public canCancel(): boolean {

@@ -144,41 +144,41 @@ function define<N extends INode = INode, T extends Constructable = Constructable
 
   proto.$prevComponent = null;
   proto.$nextComponent = null;
-  proto.$nextPatch = null;
+  proto.$nextPatch = null!;
 
   proto.$nextUnbindAfterDetach = null;
 
-  proto.$scope = null;
+  proto.$scope = null!;
   proto.$hooks = 0;
   proto.$state = 0;
 
   if ('flush' in proto) {
-    proto.$nextFlush = null;
+    proto.$nextFlush = null!;
   }
 
   if ('binding' in proto) proto.$hooks |= Hooks.hasBinding;
   if ('bound' in proto) {
     proto.$hooks |= Hooks.hasBound;
-    proto.$nextBound = null;
+    proto.$nextBound = null!;
   }
 
   if ('unbinding' in proto) proto.$hooks |= Hooks.hasUnbinding;
   if ('unbound' in proto) {
     proto.$hooks |= Hooks.hasUnbound;
-    proto.$nextUnbound = null;
+    proto.$nextUnbound = null!;
   }
 
   if ('created' in proto) proto.$hooks |= Hooks.hasCreated;
   if ('attaching' in proto) proto.$hooks |= Hooks.hasAttaching;
   if ('attached' in proto) {
     proto.$hooks |= Hooks.hasAttached;
-    proto.$nextAttached = null;
+    proto.$nextAttached = null!;
   }
   if ('detaching' in proto) proto.$hooks |= Hooks.hasDetaching;
   if ('caching' in proto) proto.$hooks |= Hooks.hasCaching;
   if ('detached' in proto) {
     proto.$hooks |= Hooks.hasDetached;
-    proto.$nextDetached = null;
+    proto.$nextDetached = null!;
   }
 
   return Type;
@@ -197,7 +197,7 @@ export function createCustomAttributeDescription(def: IAttributeDefinition, Type
   const defaultBindingMode = def.defaultBindingMode;
   return {
     name: def.name,
-    aliases: aliases == null ? PLATFORM.emptyArray as any[] : aliases,
+    aliases: aliases == null ? PLATFORM.emptyArray as typeof PLATFORM['emptyArray'] & any[] : aliases,
     defaultBindingMode: defaultBindingMode == null ? BindingMode.toView : defaultBindingMode,
     hasDynamicOptions: def.hasDynamicOptions === undefined ? false : def.hasDynamicOptions,
     isTemplateController: def.isTemplateController === undefined ? false : def.isTemplateController,

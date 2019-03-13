@@ -45,7 +45,7 @@ export class If<T extends INode = INode> implements If<T> {
   public binding(flags: LifecycleFlags): void {
     this.persistentFlags = flags & LifecycleFlags.persistentBindingFlags;
     const view = this.updateView(flags);
-    this.coordinator.compose(view, flags);
+    this.coordinator.compose(view!, flags);
     this.coordinator.binding(flags, this.$scope);
   }
 
@@ -74,14 +74,14 @@ export class If<T extends INode = INode> implements If<T> {
   }
 
   public valueChanged(newValue: boolean, oldValue: boolean, flags: LifecycleFlags): void {
-    if (this.$state & (State.isBound | State.isBinding)) {
+    if (this.$state! & (State.isBound | State.isBinding)) {
       flags |= this.persistentFlags;
       const $this = ProxyObserver.getRawIfProxy(this);
       if (flags & LifecycleFlags.fromFlush) {
         const view = $this.updateView(flags);
-        $this.coordinator.compose(view, flags);
+        $this.coordinator.compose(view!, flags);
       } else {
-        $this.$lifecycle.enqueueFlush($this).catch(error => { throw error; });
+        $this.$lifecycle!.enqueueFlush($this).catch(error => { throw error; });
       }
     }
   }
@@ -90,7 +90,7 @@ export class If<T extends INode = INode> implements If<T> {
     flags |= this.persistentFlags;
     const $this = ProxyObserver.getRawIfProxy(this);
     const view = $this.updateView(flags);
-    $this.coordinator.compose(view, flags);
+    $this.coordinator.compose(view!, flags);
   }
 
   /** @internal */

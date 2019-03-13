@@ -1,6 +1,6 @@
 import { Profiler, Tracer, Writable } from '@aurelia/kernel';
 import { Hooks, LifecycleFlags, State } from '../flags';
-import { IComponent, ILifecycleHooks, IRenderable } from '../lifecycle';
+import { IComponent, ILifecycleHooks, IRenderable, IBinding } from '../lifecycle';
 import { IPatchable, IScope } from '../observation';
 import { patchProperties } from '../observation/patch-properties';
 
@@ -16,7 +16,7 @@ interface IBindable extends IRenderable, ILifecycleHooks, IComponent {
 }
 
 /** @internal */
-export function $bindAttribute(this: Writable<IBindable>, flags: LifecycleFlags, scope: IScope): void {
+export function $bindAttribute(this: Required<IBindable>, flags: LifecycleFlags, scope: IScope): void {
   if (Profiler.enabled) { enter(); }
   if (Tracer.enabled) { Tracer.enter(this.constructor.description && this.constructor.description.name || this.constructor.name, '$bind', slice.call(arguments)); }
   flags |= LifecycleFlags.fromBind;
@@ -41,7 +41,7 @@ export function $bindAttribute(this: Writable<IBindable>, flags: LifecycleFlags,
     lifecycle.enqueueBound(this);
   }
 
-  this.$scope = scope;
+  (this as Writable<typeof this>).$scope = scope;
 
   if (hooks & Hooks.hasBinding) {
     this.binding(flags);
@@ -57,7 +57,7 @@ export function $bindAttribute(this: Writable<IBindable>, flags: LifecycleFlags,
 }
 
 /** @internal */
-export function $bindElement(this: Writable<IBindable>, flags: LifecycleFlags, parentScope: IScope | null): void {
+export function $bindElement(this: Required<IBindable>, flags: LifecycleFlags, parentScope: IScope | null): void {
   if (Tracer.enabled) { Tracer.enter(this.constructor.description && this.constructor.description.name || this.constructor.name, '$bind', slice.call(arguments)); }
   if (Profiler.enabled) { enter(); }
   if (this.$state & State.isBound) {
@@ -65,7 +65,7 @@ export function $bindElement(this: Writable<IBindable>, flags: LifecycleFlags, p
     if (Tracer.enabled) { Tracer.leave(); }
     return;
   }
-  const scope: Writable<IScope> = this.$scope;
+  const scope: Required<Writable<IScope>> = this.$scope;
   scope.parentScope = parentScope;
 
   const lifecycle = this.$lifecycle;
@@ -83,7 +83,7 @@ export function $bindElement(this: Writable<IBindable>, flags: LifecycleFlags, p
   let binding = this.$bindingHead;
   while (binding !== null) {
     binding.$bind(flags, scope);
-    binding = binding.$nextBinding;
+    binding = binding.$nextBinding!;
   }
 
   if (hooks & Hooks.hasBinding) {
@@ -93,7 +93,7 @@ export function $bindElement(this: Writable<IBindable>, flags: LifecycleFlags, p
   let component = this.$componentHead;
   while (component !== null) {
     component.$bind(flags, scope);
-    component = component.$nextComponent;
+    component = component.$nextComponent!;
   }
 
   // add isBound flag and remove isBinding flag
@@ -106,7 +106,7 @@ export function $bindElement(this: Writable<IBindable>, flags: LifecycleFlags, p
 }
 
 /** @internal */
-export function $bindView(this: Writable<IBindable>, flags: LifecycleFlags, scope: IScope): void {
+export function $bindView(this: Required<IBindable>, flags: LifecycleFlags, scope: IScope): void {
   if (Tracer.enabled) { Tracer.enter('IView', '$bind', slice.call(arguments)); }
   flags |= LifecycleFlags.fromBind;
 
@@ -121,18 +121,18 @@ export function $bindView(this: Writable<IBindable>, flags: LifecycleFlags, scop
   // add isBinding flag
   this.$state |= State.isBinding;
 
-  this.$scope = scope;
+  (this as Writable<typeof this>).$scope = scope;
 
   let binding = this.$bindingHead;
   while (binding !== null) {
     binding.$bind(flags, scope);
-    binding = binding.$nextBinding;
+    binding = binding.$nextBinding!;
   }
 
   let component = this.$componentHead;
   while (component !== null) {
     component.$bind(flags, scope);
-    component = component.$nextComponent;
+    component = component.$nextComponent!;
   }
 
   // add isBound flag and remove isBinding flag
@@ -142,7 +142,7 @@ export function $bindView(this: Writable<IBindable>, flags: LifecycleFlags, scop
 }
 
 /** @internal */
-export function $lockedBind(this: IBindable, flags: LifecycleFlags): void {
+export function $lockedBind(this: Required<IBindable>, flags: LifecycleFlags): void {
   if (Tracer.enabled) { Tracer.enter('IView', 'lockedBind', slice.call(arguments)); }
   flags |= LifecycleFlags.fromBind;
 
@@ -158,13 +158,13 @@ export function $lockedBind(this: IBindable, flags: LifecycleFlags): void {
   let binding = this.$bindingHead;
   while (binding !== null) {
     binding.$bind(flags, scope);
-    binding = binding.$nextBinding;
+    binding = binding.$nextBinding!;
   }
 
   let component = this.$componentHead;
   while (component !== null) {
     component.$bind(flags, scope);
-    component = component.$nextComponent;
+    component = component.$nextComponent!;
   }
 
   // add isBound flag and remove isBinding flag
@@ -174,7 +174,7 @@ export function $lockedBind(this: IBindable, flags: LifecycleFlags): void {
 }
 
 /** @internal */
-export function $unbindAttribute(this: Writable<IBindable>, flags: LifecycleFlags): void {
+export function $unbindAttribute(this: Required<IBindable>, flags: LifecycleFlags): void {
   if (Tracer.enabled) { Tracer.enter(this.constructor.description && this.constructor.description.name || this.constructor.name, '$bind', slice.call(arguments)); }
   if (this.$state & State.isBound) {
     const lifecycle = this.$lifecycle;
@@ -202,7 +202,7 @@ export function $unbindAttribute(this: Writable<IBindable>, flags: LifecycleFlag
 }
 
 /** @internal */
-export function $unbindElement(this: Writable<IBindable>, flags: LifecycleFlags): void {
+export function $unbindElement(this: Required<IBindable>, flags: LifecycleFlags): void {
   if (Tracer.enabled) { Tracer.enter(this.constructor.description && this.constructor.description.name || this.constructor.name, '$bind', slice.call(arguments)); }
   if (this.$state & State.isBound) {
     const lifecycle = this.$lifecycle;
@@ -224,13 +224,13 @@ export function $unbindElement(this: Writable<IBindable>, flags: LifecycleFlags)
     let component = this.$componentTail;
     while (component !== null) {
       component.$unbind(flags);
-      component = component.$prevComponent;
+      component = component.$prevComponent!;
     }
 
     let binding = this.$bindingTail;
     while (binding !== null) {
       binding.$unbind(flags);
-      binding = binding.$prevBinding;
+      binding = binding.$prevBinding!;
     }
 
     (this.$scope as Writable<IScope>).parentScope = null;
@@ -244,7 +244,7 @@ export function $unbindElement(this: Writable<IBindable>, flags: LifecycleFlags)
 }
 
 /** @internal */
-export function $unbindView(this: Writable<IBindable>, flags: LifecycleFlags): void {
+export function $unbindView(this: Required<IBindable>, flags: LifecycleFlags): void {
   if (Tracer.enabled) { Tracer.enter('IView', '$unbind', slice.call(arguments)); }
   if (this.$state & State.isBound) {
     // add isUnbinding flag
@@ -255,18 +255,18 @@ export function $unbindView(this: Writable<IBindable>, flags: LifecycleFlags): v
     let component = this.$componentTail;
     while (component !== null) {
       component.$unbind(flags);
-      component = component.$prevComponent;
+      component = component.$prevComponent!;
     }
 
     let binding = this.$bindingTail;
     while (binding !== null) {
       binding.$unbind(flags);
-      binding = binding.$prevBinding;
+      binding = binding.$prevBinding!;
     }
 
     // remove isBound and isUnbinding flags
     this.$state &= ~(State.isBound | State.isUnbinding);
-    this.$scope = null;
+    (this as Writable<typeof this>).$scope = null!;
   }
   if (Tracer.enabled) { Tracer.leave(); }
 }
@@ -274,26 +274,26 @@ export function $unbindView(this: Writable<IBindable>, flags: LifecycleFlags): v
 /** @internal */
 export function $lockedUnbind(this: IBindable, flags: LifecycleFlags): void {
   if (Tracer.enabled) { Tracer.enter('IView', 'lockedUnbind', slice.call(arguments)); }
-  if (this.$state & State.isBound) {
+  if (this.$state! & State.isBound) {
     // add isUnbinding flag
-    this.$state |= State.isUnbinding;
+    this.$state! |= State.isUnbinding;
 
     flags |= LifecycleFlags.fromUnbind;
 
-    let component = this.$componentTail;
+    let component = this.$componentTail!;
     while (component !== null) {
       component.$unbind(flags);
-      component = component.$prevComponent;
+      component = component.$prevComponent!;
     }
 
-    let binding = this.$bindingTail;
+    let binding = this.$bindingTail!;
     while (binding !== null) {
       binding.$unbind(flags);
-      binding = binding.$prevBinding;
+      binding = binding.$prevBinding!;
     }
 
     // remove isBound and isUnbinding flags
-    this.$state &= ~(State.isBound | State.isUnbinding);
+    this.$state! &= ~(State.isBound | State.isUnbinding);
   }
   if (Tracer.enabled) { Tracer.leave(); }
 }
@@ -307,7 +307,7 @@ export function $patch(this: IBindable, flags: LifecycleFlags): void {
   let component = this.$componentHead;
   while (component) {
     component.$patch(flags);
-    component = component.$nextComponent;
+    component = component.$nextComponent!;
   }
 
   let binding = this.$bindingHead;

@@ -27,7 +27,7 @@ export class With<T extends INode = INode> implements With<T>  {
     factory: IViewFactory<T>,
     location: IRenderLocation<T>
   ) {
-    this.value = null;
+    this.value = null!;
 
     this.factory = factory;
     this.currentView = this.factory.create();
@@ -35,7 +35,7 @@ export class With<T extends INode = INode> implements With<T>  {
   }
 
   public valueChanged(this: With): void {
-    if (this.$state & (State.isBound | State.isBinding)) {
+    if (this.$state! & (State.isBound | State.isBinding)) {
       this.bindChild(LifecycleFlags.fromBind);
     }
   }

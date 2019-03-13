@@ -59,12 +59,12 @@ export const enum BindingStrategy {
 const mandatoryStrategy = BindingStrategy.getterSetter | BindingStrategy.proxies | BindingStrategy.patch;
 
 export function ensureValidStrategy(strategy: BindingStrategy | null | undefined): BindingStrategy {
-  if ((strategy & mandatoryStrategy) === 0 || strategy === BindingStrategy.keyed) {
+  if ((strategy! & mandatoryStrategy) === 0 || strategy === BindingStrategy.keyed) {
     // TODO: probably want to validate that user isn't trying to mix proxy/patch, getterSetter/patch, getterSetter/proxy
     // TODO: also need to make sure that strategy can be changed away from patch/proxies inside the component tree (not here though, but just making a note)
-    return strategy | BindingStrategy.getterSetter;
+    return strategy! | BindingStrategy.getterSetter;
   }
-  return strategy;
+  return strategy!;
 }
 
 export const enum State {

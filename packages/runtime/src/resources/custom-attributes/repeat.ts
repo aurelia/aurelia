@@ -21,13 +21,13 @@ export class Repeat<C extends ObservedCollection = IObservedArray, T extends INo
   public static readonly kind: ICustomAttributeResource;
   public static readonly description: AttributeDefinition;
 
-  @bindable public items: C;
+  @bindable public items!: C;
 
-  public $scope: IScope;
+  public $scope!: IScope;
 
-  public forOf: ForOfStatement;
+  public forOf!: ForOfStatement;
   public hasPendingInstanceMutation: boolean;
-  public local: string;
+  public local!: string;
   public location: IRenderLocation<T>;
   public observer: CollectionObserver | null;
   public renderable: IRenderable<T>;
@@ -35,7 +35,7 @@ export class Repeat<C extends ObservedCollection = IObservedArray, T extends INo
   public views: IView<T>[];
   public key: string | null;
   public keyed: boolean;
-  private persistentFlags: LifecycleFlags;
+  private persistentFlags!: LifecycleFlags;
 
   constructor(
     location: IRenderLocation<T>,
@@ -133,7 +133,7 @@ export class Repeat<C extends ObservedCollection = IObservedArray, T extends INo
   private processViewsNonKeyed(indexMap: number[] | null, flags: LifecycleFlags): void {
     const { views, $lifecycle } = this;
     let view: IView;
-    if (this.$state & (State.isBound | State.isBinding)) {
+    if (this.$state! & (State.isBound | State.isBinding)) {
       const { local, $scope, factory, forOf, items } = this;
       const oldLength = views.length;
       const newLength = forOf.count(flags, items);
@@ -143,19 +143,19 @@ export class Repeat<C extends ObservedCollection = IObservedArray, T extends INo
           views[i] = factory.create(flags);
         }
       } else if (newLength < oldLength) {
-        $lifecycle.beginDetach();
+        $lifecycle!.beginDetach();
         for (let i = newLength; i < oldLength; ++i) {
           view = views[i];
           view.release(flags);
           view.$detach(flags);
         }
-        $lifecycle.endDetach(flags);
-        $lifecycle.beginUnbind();
+        $lifecycle!.endDetach(flags);
+        $lifecycle!.beginUnbind();
         for (let i = newLength; i < oldLength; ++i) {
           view = views[i];
           view.$unbind(flags);
         }
-        $lifecycle.endUnbind(flags);
+        $lifecycle!.endUnbind(flags);
         views.length = newLength;
         if (newLength === 0) {
           return;
@@ -164,32 +164,32 @@ export class Repeat<C extends ObservedCollection = IObservedArray, T extends INo
         return;
       }
 
-      $lifecycle.beginBind();
+      $lifecycle!.beginBind();
       if (indexMap === null) {
-        forOf.iterate(flags, items, (arr, i, item: BindingContextValue) => {
+        forOf.iterate(flags, items, (arr, i, item) => {
           view = views[i];
           if (!!view.$scope && view.$scope.bindingContext[local] === item) {
             view.$bind(flags, Scope.fromParent(flags, $scope, view.$scope.bindingContext));
           } else {
-            view.$bind(flags, Scope.fromParent(flags, $scope, BindingContext.create(flags, local, item)));
+            view.$bind(flags, Scope.fromParent(flags, $scope, BindingContext.create(flags, local, item as object)));
           }
         });
       } else {
-        forOf.iterate(flags, items, (arr, i, item: BindingContextValue) => {
+        forOf.iterate(flags, items, (arr, i, item) => {
           view = views[i];
           if (!!view.$scope && (indexMap[i] === i || view.$scope.bindingContext[local] === item)) {
             view.$bind(flags, Scope.fromParent(flags, $scope, view.$scope.bindingContext));
           } else {
-            view.$bind(flags, Scope.fromParent(flags, $scope, BindingContext.create(flags, local, item)));
+            view.$bind(flags, Scope.fromParent(flags, $scope, BindingContext.create(flags, local, item as object)));
           }
         });
       }
-      $lifecycle.endBind(flags);
+      $lifecycle!.endBind(flags);
     }
 
-    if (this.$state & (State.isAttached | State.isAttaching)) {
+    if (this.$state! & (State.isAttached | State.isAttaching)) {
       const { location } = this;
-      $lifecycle.beginAttach();
+      $lifecycle!.beginAttach();
       if (indexMap === null) {
         for (let i = 0, ii = views.length; i < ii; ++i) {
           view = views[i];
@@ -205,7 +205,7 @@ export class Repeat<C extends ObservedCollection = IObservedArray, T extends INo
           }
         }
       }
-      $lifecycle.endAttach(flags);
+      $lifecycle!.endAttach(flags);
     }
   }
 
@@ -213,8 +213,8 @@ export class Repeat<C extends ObservedCollection = IObservedArray, T extends INo
     const { $lifecycle, local, $scope, factory, forOf, items } = this;
     let views = this.views;
     if (indexMap === null) {
-      if (this.$state & (State.isBound | State.isBinding)) {
-        $lifecycle.beginDetach();
+      if (this.$state! & (State.isBound | State.isBinding)) {
+        $lifecycle!.beginDetach();
         const oldLength = views.length;
         let view: IView;
         for (let i = 0; i < oldLength; ++i) {
@@ -222,28 +222,28 @@ export class Repeat<C extends ObservedCollection = IObservedArray, T extends INo
           view.release(flags);
           view.$detach(flags);
         }
-        $lifecycle.endDetach(flags);
-        $lifecycle.beginUnbind();
+        $lifecycle!.endDetach(flags);
+        $lifecycle!.beginUnbind();
         for (let i = 0; i < oldLength; ++i) {
           view = views[i];
           view.$unbind(flags);
         }
-        $lifecycle.endUnbind(flags);
+        $lifecycle!.endUnbind(flags);
 
         const newLen = forOf.count(flags, items);
         views = this.views = Array(newLen);
 
-        $lifecycle.beginBind();
-        forOf.iterate(flags, items, (arr, i, item: BindingContextValue) => {
+        $lifecycle!.beginBind();
+        forOf.iterate(flags, items, (arr, i, item) => {
           view = views[i] = factory.create(flags);
-          view.$bind(flags, Scope.fromParent(flags, $scope, BindingContext.create(flags, local, item)));
+          view.$bind(flags, Scope.fromParent(flags, $scope, BindingContext.create(flags, local, item as object)));
         });
-        $lifecycle.endBind(flags);
+        $lifecycle!.endBind(flags);
       }
 
-      if (this.$state & (State.isAttached | State.isAttaching)) {
+      if (this.$state! & (State.isAttached | State.isAttaching)) {
         const { location } = this;
-        $lifecycle.beginAttach();
+        $lifecycle!.beginAttach();
         let view: IView;
         const len = views.length;
         for (let i = 0; i < len; ++i) {
@@ -251,38 +251,38 @@ export class Repeat<C extends ObservedCollection = IObservedArray, T extends INo
           view.hold(location);
           view.$attach(flags);
         }
-        $lifecycle.endAttach(flags);
+        $lifecycle!.endAttach(flags);
       }
     } else {
       const mapLen = indexMap.length;
       let view: IView<T>;
       const deleted = indexMap.deletedItems;
-      const deletedLen = deleted.length;
+      const deletedLen = deleted!.length;
       let i = 0;
-      if (this.$state & (State.isBound | State.isBinding)) {
+      if (this.$state! & (State.isBound | State.isBinding)) {
         // first detach+unbind+(remove from array) the deleted view indices
         if (deletedLen > 0) {
-          $lifecycle.beginDetach();
+          $lifecycle!.beginDetach();
           i = 0;
           for (; i < deletedLen; ++i) {
-            view = views[deleted[i]];
+            view = views[deleted![i]];
             view.release(flags);
             view.$detach(flags);
           }
-          $lifecycle.endDetach(flags);
-          $lifecycle.beginUnbind();
+          $lifecycle!.endDetach(flags);
+          $lifecycle!.beginUnbind();
           for (i = 0; i < deletedLen; ++i) {
-            view = views[deleted[i]];
+            view = views[deleted![i]];
             view.$unbind(flags);
           }
-          $lifecycle.endUnbind(flags);
+          $lifecycle!.endUnbind(flags);
           i = 0;
           let j = 0;
           let k = 0;
           // tslint:disable-next-line:no-alphabetical-sort // alphabetical (numeric) sort is intentional
-          deleted.sort();
+          deleted!.sort();
           for (; i < deletedLen; ++i) {
-            j = deleted[i] - i;
+            j = deleted![i] - i;
             views.splice(j, 1);
             k = 0;
             for (; k < mapLen; ++k) {
@@ -294,30 +294,30 @@ export class Repeat<C extends ObservedCollection = IObservedArray, T extends INo
         }
 
         // then insert new views at the "added" indices to bring the views array in aligment with indexMap size
-        $lifecycle.beginBind();
+        $lifecycle!.beginBind();
         i = 0;
         for (; i < mapLen; ++i) {
           if (indexMap[i] === -2) {
             view = factory.create(flags);
-            view.$bind(flags, Scope.fromParent(flags, $scope, BindingContext.create(flags, local, items[i])));
+            view.$bind(flags, Scope.fromParent(flags, $scope, BindingContext.create(flags, local, items![i as keyof typeof items])));
             views.splice(i, 0, view);
           }
         }
-        $lifecycle.endBind(flags);
+        $lifecycle!.endBind(flags);
         if (views.length !== mapLen) {
           // TODO: create error code and use reporter with more informative message
           throw new Error(`viewsLen=${views.length}, mapLen=${mapLen}`);
         }
       }
 
-      if (this.$state & (State.isAttached | State.isAttaching)) {
+      if (this.$state! & (State.isAttached | State.isAttaching)) {
         const { location } = this;
         // this algorithm retrieves the indices of the longest increasing subsequence of items in the repeater
         // the items on those indices are not moved; this minimizes the number of DOM operations that need to be performed
         const seq = longestIncreasingSubsequence(indexMap);
         const seqLen = seq.length;
-        $lifecycle.beginDetach();
-        $lifecycle.beginAttach();
+        $lifecycle!.beginDetach();
+        $lifecycle!.beginAttach();
         const operation: Partial<IMountableComponent> = {
           $mount(): void {
             let next = location;
@@ -327,44 +327,44 @@ export class Repeat<C extends ObservedCollection = IObservedArray, T extends INo
               if (indexMap[i] === -2) {
                 view = views[i];
 
-                view.$state |= State.isAttaching;
+                view.$state! |= State.isAttaching;
 
-                let current = view.$componentHead;
+                let current = view.$componentHead!;
                 while (current !== null) {
-                  current.$attach(flags | LifecycleFlags.fromAttach);
-                  current = current.$nextComponent;
+                  current!.$attach(flags | LifecycleFlags.fromAttach);
+                  current = current!.$nextComponent!;
                 }
 
                 view.$nodes.insertBefore(next);
 
-                view.$state |= (State.isMounted | State.isAttached);
-                view.$state &= ~State.isAttaching;
+                view.$state! |= (State.isMounted | State.isAttached);
+                view.$state! &= ~State.isAttaching;
                 next = view.$nodes.firstChild;
               } else if (j < 0 || seqLen === 1 || i !== seq[j]) {
                 view = views[indexMap[i]];
-                view.$state |= State.isDetaching;
+                view.$state! |= State.isDetaching;
 
                 let current = view.$componentTail;
                 while (current !== null) {
-                  current.$detach(flags | LifecycleFlags.fromDetach);
-                  current = current.$prevComponent;
+                  current!.$detach(flags | LifecycleFlags.fromDetach);
+                  current = current!.$prevComponent!;
                 }
                 view.$nodes.remove();
 
-                view.$state &= ~(State.isAttached | State.isDetaching | State.isMounted);
+                view.$state! &= ~(State.isAttached | State.isDetaching | State.isMounted);
 
-                view.$state |= State.isAttaching;
+                view.$state! |= State.isAttaching;
 
-                current = view.$componentHead;
+                current = view.$componentHead!;
                 while (current !== null) {
-                  current.$attach(flags | LifecycleFlags.fromAttach);
-                  current = current.$nextComponent;
+                  current!.$attach(flags | LifecycleFlags.fromAttach);
+                  current = current!.$nextComponent!;
                 }
 
                 view.$nodes.insertBefore(next);
 
-                view.$state |= (State.isMounted | State.isAttached);
-                view.$state &= ~State.isAttaching;
+                view.$state! |= (State.isMounted | State.isAttached);
+                view.$state! &= ~State.isAttaching;
 
                 next = view.$nodes.firstChild;
               } else {
@@ -374,13 +374,13 @@ export class Repeat<C extends ObservedCollection = IObservedArray, T extends INo
               }
             }
           },
-          $nextMount: null
+          $nextMount: null!
         };
 
-        $lifecycle.enqueueMount(operation as IMountableComponent);
+        $lifecycle!.enqueueMount(operation as IMountableComponent);
 
-        $lifecycle.endDetach(flags);
-        $lifecycle.endAttach(flags);
+        $lifecycle!.endDetach(flags);
+        $lifecycle!.endAttach(flags);
       }
     }
   }
@@ -388,8 +388,8 @@ export class Repeat<C extends ObservedCollection = IObservedArray, T extends INo
   private checkCollectionObserver(flags: LifecycleFlags): void {
     const $this = ProxyObserver.getRawIfProxy(this);
     const oldObserver = $this.observer;
-    if ($this.$state & (State.isBound | State.isBinding)) {
-      const newObserver = $this.observer = getCollectionObserver(flags, $this.$lifecycle, $this.items);
+    if ($this.$state! & (State.isBound | State.isBinding)) {
+      const newObserver = $this.observer = getCollectionObserver(flags, $this.$lifecycle!, $this.items);
       if (oldObserver !== newObserver && oldObserver) {
         oldObserver.unsubscribeBatched($this);
       }
@@ -413,7 +413,7 @@ let maxLen = 0;
 /** @internal */
 export function longestIncreasingSubsequence(indexMap: IndexMap): Uint8Array | Uint16Array | Uint32Array {
   const len = indexMap.length;
-  const origLen = len + indexMap.deletedItems.length;
+  const origLen = len + indexMap.deletedItems!.length;
   const TArr = origLen < 0xFF ? Uint8Array : origLen < 0xFFFF ? Uint16Array : Uint32Array;
 
   if (len > maxLen) {

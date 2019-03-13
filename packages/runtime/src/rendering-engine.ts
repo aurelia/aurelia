@@ -38,7 +38,8 @@ import {
   IPropertySubscriber,
   ISubscribable,
   ISubscriberCollection,
-  MutationKind
+  MutationKind,
+  IObserversLookup
 } from './observation';
 import { ProxyObserver } from './observation/proxy-observer';
 import { SelfObserver } from './observation/self-observer';
@@ -108,11 +109,11 @@ export class CompiledTemplate<T extends INode = INode> implements ITemplate {
 // This is an implementation of ITemplate that always returns a node sequence representing "no DOM" to render.
 /** @internal */
 export const noViewTemplate: ITemplate = {
-  renderContext: null,
-  dom: null,
+  renderContext: null!,
+  dom: null!,
   render(renderable: IRenderable): void {
     (renderable as Writable<IRenderable>).$nodes = NodeSequence.empty;
-    (renderable as Writable<IRenderable>).$context = null;
+    (renderable as Writable<IRenderable>).$context = null!;
   }
 };
 
@@ -166,6 +167,7 @@ export const IRenderingEngine = DI.createInterface<IRenderingEngine>('IRendering
 
 /** @internal */
 export class RenderingEngine implements IRenderingEngine {
+  // @ts-ignore
   public static readonly inject: InjectArray = [IContainer, ITemplateFactory, ILifecycle, all(ITemplateCompiler)];
 
   private readonly behaviorLookup: Map<ICustomElementType | ICustomAttributeType, RuntimeBehavior>;
@@ -193,6 +195,7 @@ export class RenderingEngine implements IRenderingEngine {
     );
   }
 
+  // @ts-ignore
   public getElementTemplate<T extends INode = INode>(
     dom: IDOM<T>,
     definition: TemplateDefinition,
@@ -200,7 +203,7 @@ export class RenderingEngine implements IRenderingEngine {
     componentType: ICustomElementType<T> | null
   ): ITemplate<T> {
     if (!definition) {
-      return null;
+      return null!;
     }
 
     let found = this.templateLookup.get(definition);
@@ -220,7 +223,7 @@ export class RenderingEngine implements IRenderingEngine {
     parentContext: IRenderContext<T> | null
   ): IViewFactory<T> {
     if (!definition) {
-      return null;
+      return null!;
     }
 
     let factory = this.viewFactoryLookup.get(definition);
@@ -312,13 +315,14 @@ export function createRenderContext(
     renderer.render(flags, dom, this, renderable, targets, templateDefinition, host, parts);
   };
 
+  // @ts-ignore
   context.beginComponentOperation = function(renderable: IRenderable, target: INode, instruction: ITargetedInstruction, factory: IViewFactory | null, parts?: TemplatePartDefinitions, location?: IRenderLocation): IDisposable {
     renderableProvider.prepare(renderable);
     elementProvider.prepare(target);
     instructionProvider.prepare(instruction);
 
     if (factory) {
-      factoryProvider.prepare(factory, parts);
+      factoryProvider.prepare(factory, parts!);
     }
 
     if (location) {
@@ -365,8 +369,8 @@ export class InstanceProvider<T> implements IResolver {
 
 /** @internal */
 export class ViewFactoryProvider implements IResolver {
-  private factory: IViewFactory | null;
-  private replacements: TemplatePartDefinitions;
+  private factory!: IViewFactory | null;
+  private replacements!: TemplatePartDefinitions;
 
   public prepare(factory: IViewFactory, parts: TemplatePartDefinitions): void {
     this.factory = factory;
@@ -415,7 +419,7 @@ export class ChildrenObserver implements Partial<IChildrenObserver> {
   constructor(lifecycle: ILifecycle, customElement: ICustomElement & { $childrenChanged?(): void }) {
     this.hasChanges = false;
 
-    this.children = null;
+    this.children = null!;
     this.customElement = customElement;
     this.lifecycle = lifecycle;
     this.observing = false;
@@ -450,7 +454,7 @@ export class ChildrenObserver implements Partial<IChildrenObserver> {
     this.children = findElements(this.customElement.$projector.children);
 
     if ('$childrenChanged' in this.customElement) {
-      this.customElement.$childrenChanged();
+      this.customElement.$childrenChanged!();
     }
 
     this.lifecycle.enqueueFlush(this).catch(error => { throw error; });
@@ -476,7 +480,7 @@ export function findElements(nodes: ArrayLike<unknown>): ICustomElement[] {
 
 /** @internal */
 export class RuntimeBehavior {
-  public bindables: BindableDefinitions;
+  public bindables!: BindableDefinitions;
 
   private constructor() {}
 
@@ -504,14 +508,14 @@ export class RuntimeBehavior {
 
     Reflect.defineProperty(instance, '$children', {
       enumerable: false,
-      get: function (): unknown {
+      get: function (this: { $observers: { $children: ChildrenObserver } }): unknown {
         return this['$observers'].$children.getValue();
       }
     });
   }
 
   private applyToCore(flags: LifecycleFlags, instance: ICustomAttribute | ICustomElement): IIndexable {
-    const observers = {};
+    const observers: Record<string, SelfObserver> = {};
     const bindables = this.bindables;
     const observableNames = Object.getOwnPropertyNames(bindables);
 
@@ -523,7 +527,7 @@ export class RuntimeBehavior {
           flags,
           ProxyObserver.getOrCreate(instance).proxy,
           name,
-          bindables[name].callback
+          bindables[name].callback!
         );
       }
     } else {
@@ -533,8 +537,8 @@ export class RuntimeBehavior {
         observers[name] = new SelfObserver(
           flags,
           instance,
-          name,
-          bindables[name].callback
+          name!,
+          bindables[name].callback!
         );
 
         if (!(flags & LifecycleFlags.patchStrategy)) {
@@ -555,8 +559,8 @@ export class RuntimeBehavior {
 function createGetterSetter(flags: LifecycleFlags, instance: ICustomAttribute | ICustomElement, name: string): void {
   Reflect.defineProperty(instance, name, {
     enumerable: true,
-    get: function (): unknown { return this['$observers'][name].getValue(); },
-    set: function(value: unknown): void { this['$observers'][name].setValue(value, flags & LifecycleFlags.persistentBindingFlags); }
+    get: function (this: { $observers: { [key: string]: SelfObserver } }): unknown { return this['$observers'][name].getValue(); },
+    set: function(this: { $observers: { [key: string]: SelfObserver } }, value: unknown): void { this['$observers'][name].setValue(value, flags & LifecycleFlags.persistentBindingFlags); }
   });
 }
 

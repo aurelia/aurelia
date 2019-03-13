@@ -45,7 +45,7 @@ export interface ILifecycleRender {
 
 /** @internal */
 // tslint:disable-next-line:no-ignored-initial-value
-export function $hydrateAttribute(this: Writable<ICustomAttribute>, flags: LifecycleFlags, parentContext: IServiceLocator): void {
+export function $hydrateAttribute(this: Required<ICustomAttribute>, flags: LifecycleFlags, parentContext: IServiceLocator): void {
   if (Profiler.enabled) { enter(); }
   const Type = this.constructor as ICustomAttributeType;
   if (Tracer.enabled) { Tracer.enter(Type.description.name, '$hydrate', slice.call(arguments)); }
@@ -72,7 +72,7 @@ export function $hydrateAttribute(this: Writable<ICustomAttribute>, flags: Lifec
 
 /** @internal */
 // tslint:disable-next-line:no-ignored-initial-value
-export function $hydrateElement(this: Writable<ICustomElement>, flags: LifecycleFlags, parentContext: IServiceLocator, host: INode, options: IElementHydrationOptions = PLATFORM.emptyObject): void {
+export function $hydrateElement(this: Required<ICustomElement>, flags: LifecycleFlags, parentContext: IServiceLocator, host: INode, options: IElementHydrationOptions = PLATFORM.emptyObject): void {
   if (Profiler.enabled) { enter(); }
   const Type = this.constructor as ICustomElementType;
   if (Tracer.enabled) { Tracer.enter(Type.description.name, '$hydrate', slice.call(arguments)); }
@@ -90,14 +90,14 @@ export function $hydrateElement(this: Writable<ICustomElement>, flags: Lifecycle
     bindingContext = this;
   }
 
-  this.$scope = Scope.create(flags, bindingContext, null);
-  this.$host = host;
-  this.$projector = projectorLocator.getElementProjector(dom, this, host, description);
+  (this as Writable<typeof this>).$scope = Scope.create(flags, bindingContext, null);
+  (this as Writable<typeof this>).$host = host;
+  (this as Writable<typeof this>).$projector = projectorLocator.getElementProjector(dom, this, host, description);
 
   renderingEngine.applyRuntimeBehavior(flags, Type, this);
 
   if (this.$hooks & Hooks.hasRender) {
-    const result = this.render(flags, host, options.parts, parentContext);
+    const result = this.render(flags, host, options.parts!, parentContext);
 
     if (result && 'getElementTemplate' in result) {
       const template = result.getElementTemplate(renderingEngine, Type, parentContext);

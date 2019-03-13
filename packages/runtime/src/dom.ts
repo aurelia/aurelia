@@ -152,8 +152,8 @@ export const DOM: IDOM & {
 // the explicit idea of "no view".
 const emptySequence: INodeSequence = {
   childNodes: PLATFORM.emptyArray,
-  firstChild: null,
-  lastChild: null,
+  firstChild: null!,
+  lastChild: null!,
   findTargets(): ArrayLike<INode> { return PLATFORM.emptyArray; },
   insertBefore(refNode: INode): void { /*do nothing*/ },
   appendTo(parent: INode): void { /*do nothing*/ },

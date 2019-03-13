@@ -36,7 +36,7 @@ export function bindable<T extends InstanceType<Constructable & Partial<WithBind
     // Non invocation:
     // - @bindable
     config = {};
-    decorator(configOrTarget as T, prop);
+    decorator(configOrTarget as T, prop!);
     return;
   } else if (typeof configOrTarget === 'string') {
     // ClassDecorator
@@ -64,7 +64,7 @@ export const Bindable = {
   for<T extends Partial<WithBindables>>(obj: T): IFluentBindableBuilder {
     const builder: IFluentBindableBuilder = {
       add(nameOrConfig: string | IBindableDescription): typeof builder {
-        let description: IBindableDescription;
+        let description: IBindableDescription = (void 0)!;
         if (nameOrConfig !== null && typeof nameOrConfig === 'object') {
           description = nameOrConfig;
         } else if (typeof nameOrConfig === 'string') {
@@ -85,7 +85,7 @@ export const Bindable = {
         if (description.mode === undefined) {
           description.mode = BindingMode.toView;
         }
-        obj.bindables[prop] = description;
+        (obj.bindables as Record<string, IBindableDescription>)[prop] = description;
         return this;
       },
       get(): Record<string, IBindableDescription> {

@@ -133,7 +133,7 @@ function define<N extends INode = INode, T extends Constructable = Constructable
   Type.register = registerElement;
 
   proto.$hydrate = $hydrateElement;
-  proto.$bind = $bindElement;
+  proto.$bind = $bindElement as typeof proto['$bind'];
   proto.$patch = $patch;
   proto.$attach = $attachElement;
   proto.$detach = $detachElement;
@@ -142,40 +142,40 @@ function define<N extends INode = INode, T extends Constructable = Constructable
 
   proto.$prevComponent = null;
   proto.$nextComponent = null;
-  proto.$nextPatch = null;
+  proto.$nextPatch = null!;
 
   proto.$nextUnbindAfterDetach = null;
 
-  proto.$scope = null;
+  proto.$scope = null!;
   proto.$hooks = 0;
 
-  proto.$bindingHead = null;
-  proto.$bindingTail = null;
-  proto.$componentHead = null;
-  proto.$componentTail = null;
+  proto.$bindingHead = null!;
+  proto.$bindingTail = null!;
+  proto.$componentHead = null!;
+  proto.$componentTail = null!;
 
   proto.$mount = $mountElement;
   proto.$unmount = $unmountElement;
 
-  proto.$nextMount = null;
-  proto.$nextUnmount = null;
+  proto.$nextMount = null!;
+  proto.$nextUnmount = null!;
 
-  proto.$projector = null;
+  proto.$projector = null!;
 
   if ('flush' in proto) {
-    proto.$nextFlush = null;
+    proto.$nextFlush = null!;
   }
 
   if ('binding' in proto) proto.$hooks |= Hooks.hasBinding;
   if ('bound' in proto) {
     proto.$hooks |= Hooks.hasBound;
-    proto.$nextBound = null;
+    proto.$nextBound = null!;
   }
 
   if ('unbinding' in proto) proto.$hooks |= Hooks.hasUnbinding;
   if ('unbound' in proto) {
     proto.$hooks |= Hooks.hasUnbound;
-    proto.$nextUnbound = null;
+    proto.$nextUnbound = null!;
   }
 
   if ('render' in proto) proto.$hooks |= Hooks.hasRender;
@@ -183,13 +183,13 @@ function define<N extends INode = INode, T extends Constructable = Constructable
   if ('attaching' in proto) proto.$hooks |= Hooks.hasAttaching;
   if ('attached' in proto) {
     proto.$hooks |= Hooks.hasAttached;
-    proto.$nextAttached = null;
+    proto.$nextAttached = null!;
   }
   if ('detaching' in proto) proto.$hooks |= Hooks.hasDetaching;
   if ('caching' in proto) proto.$hooks |= Hooks.hasCaching;
   if ('detached' in proto) {
     proto.$hooks |= Hooks.hasDetached;
-    proto.$nextDetached = null;
+    proto.$nextDetached = null!;
   }
 
   return Type;

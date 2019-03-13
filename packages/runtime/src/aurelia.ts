@@ -48,8 +48,8 @@ export class Aurelia {
     domInitializer.initialize(config);
     Registration.instance(INode, host).register(this.container);
 
-    const startFlags = LifecycleFlags.fromStartTask | config.strategy;
-    const stopFlags = LifecycleFlags.fromStopTask | config.strategy;
+    const startFlags = LifecycleFlags.fromStartTask | config.strategy!;
+    const stopFlags = LifecycleFlags.fromStopTask | config.strategy!;
 
     let component: ICustomElement;
     const componentOrType = config.component as ICustomElement | ICustomElementType;
@@ -69,7 +69,7 @@ export class Aurelia {
         component.$hydrate(startFlags, this.container as ExposedContext, host);
       }
 
-      component.$bind(startFlags | LifecycleFlags.fromBind, null);
+      component.$bind(startFlags | LifecycleFlags.fromBind, null!);
       component.$attach(startFlags | LifecycleFlags.fromAttach);
     };
 
@@ -89,7 +89,7 @@ export class Aurelia {
   }
 
   public root(): ICustomElement | null {
-    return ProxyObserver.getProxyOrSelf(this._root);
+    return ProxyObserver.getProxyOrSelf(this._root!);
   }
 
   public start(): this {

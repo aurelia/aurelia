@@ -21,7 +21,7 @@ export function customElementKey(name: string): string {
 }
 /** @internal */
 export function customElementBehavior(node: unknown): ICustomElement | null {
-  return (node as CustomElementHost).$customElement === undefined ? null : (node as CustomElementHost).$customElement;
+  return (node as CustomElementHost).$customElement === undefined ? null : (node as CustomElementHost).$customElement!;
 }
 
 /** @internal */
@@ -217,18 +217,18 @@ const buildNotRequired: IBuildInstruction = Object.freeze({
 // assigned in the same order ensures the browser can keep reusing the same generated hidden
 // class
 class DefaultTemplateDefinition implements Required<ITemplateDefinition> {
-  public name: ITemplateDefinition['name'];
-  public cache: ITemplateDefinition['cache'];
-  public template: ITemplateDefinition['template'];
-  public instructions: ITemplateDefinition['instructions'];
-  public dependencies: ITemplateDefinition['dependencies'];
-  public build: ITemplateDefinition['build'];
-  public surrogates: ITemplateDefinition['surrogates'];
-  public bindables: ITemplateDefinition['bindables'];
-  public containerless: ITemplateDefinition['containerless'];
-  public shadowOptions: ITemplateDefinition['shadowOptions'];
-  public hasSlots: ITemplateDefinition['hasSlots'];
-  public strategy: ITemplateDefinition['strategy'];
+  public name: string;
+  public cache: '*' | number;
+  public template: unknown;
+  public instructions: ITargetedInstruction[][];
+  public dependencies: IRegistry[];
+  public build: IBuildInstruction;
+  public surrogates: ITargetedInstruction[];
+  public bindables: Record<string, IBindableDescription> | string[];
+  public containerless: boolean;
+  public shadowOptions: { mode: 'open' | 'closed' };
+  public hasSlots: boolean;
+  public strategy: BindingStrategy;
 
   constructor() {
     this.name = 'unnamed';
@@ -240,7 +240,7 @@ class DefaultTemplateDefinition implements Required<ITemplateDefinition> {
     this.dependencies = PLATFORM.emptyArray as typeof PLATFORM.emptyArray & this['dependencies'];
     this.surrogates = PLATFORM.emptyArray as typeof PLATFORM.emptyArray & this['surrogates'];
     this.containerless = false;
-    this.shadowOptions = null;
+    this.shadowOptions = null!;
     this.hasSlots = false;
     this.strategy = BindingStrategy.getterSetter;
   }
@@ -278,6 +278,7 @@ export function buildTemplateDefinition(
   ctor: CustomElementConstructor | null,
   nameOrDef: string | ITemplateDefinition): TemplateDefinition;
 // tslint:disable-next-line:parameters-max-number
+// @ts-ignore
 export function buildTemplateDefinition(
   ctor: CustomElementConstructor | null,
   name: string | null,
@@ -314,15 +315,15 @@ export function buildTemplateDefinition(
   const argLen = arguments.length;
   switch (argLen) {
     case 13: if (strategy !== null) def.strategy = ensureValidStrategy(strategy);
-    case 12: if (hasSlots !== null) def.hasSlots = hasSlots;
-    case 11: if (shadowOptions !== null) def.shadowOptions = shadowOptions;
-    case 10: if (containerless !== null) def.containerless = containerless;
-    case 9: if (surrogates !== null) def.surrogates = PLATFORM.toArray(surrogates);
-    case 8: if (dependencies !== null) def.dependencies = PLATFORM.toArray(dependencies);
-    case 7: if (instructions !== null) def.instructions = PLATFORM.toArray(instructions) as ITargetedInstruction[][];
+    case 12: if (hasSlots !== null) def.hasSlots = hasSlots!;
+    case 11: if (shadowOptions !== null) def.shadowOptions = shadowOptions!;
+    case 10: if (containerless !== null) def.containerless = containerless!;
+    case 9: if (surrogates !== null) def.surrogates = PLATFORM.toArray(surrogates!);
+    case 8: if (dependencies !== null) def.dependencies = PLATFORM.toArray(dependencies!);
+    case 7: if (instructions !== null) def.instructions = PLATFORM.toArray(instructions!) as ITargetedInstruction[][];
     case 6: if (bindables !== null) def.bindables = { ...bindables };
-    case 5: if (build !== null) def.build = build === true ? buildRequired : build === false ? buildNotRequired : { ...build };
-    case 4: if (cache !== null) def.cache = cache;
+    case 5: if (build !== null) def.build = build === true ? buildRequired : build === false ? buildNotRequired : { ...build! };
+    case 4: if (cache !== null) def.cache = cache!;
     case 3: if (template !== null) def.template = template;
     case 2:
       if (ctor !== null) {
@@ -343,13 +344,13 @@ export function buildTemplateDefinition(
       } else if (nameOrDef !== null) {
         def.strategy = ensureValidStrategy(nameOrDef.strategy);
         templateDefinitionAssignables.forEach(prop => {
-          if (nameOrDef[prop]) {
-            def[prop] = nameOrDef[prop];
+          if (nameOrDef[prop as keyof typeof nameOrDef]) {
+            def[prop as keyof typeof def] = nameOrDef[prop as keyof typeof nameOrDef];
           }
         });
         templateDefinitionArrays.forEach(prop => {
-          if (nameOrDef[prop]) {
-            def[prop] = PLATFORM.toArray(nameOrDef[prop]);
+          if (nameOrDef[prop as keyof typeof nameOrDef]) {
+            def[prop as keyof typeof def] = PLATFORM.toArray(nameOrDef[prop as keyof typeof nameOrDef] as unknown[]);
           }
         });
         if (nameOrDef['bindables']) {
@@ -363,7 +364,7 @@ export function buildTemplateDefinition(
   }
 
   // special handling for invocations that quack like a @customElement decorator
-  if (argLen === 2 && ctor !== null && (typeof nameOrDef === 'string' || !('build' in nameOrDef))) {
+  if (argLen === 2 && ctor !== null && (typeof nameOrDef === 'string' || !('build' in nameOrDef!))) {
     def.build = buildRequired;
   }
 

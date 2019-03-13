@@ -40,35 +40,35 @@ export class View<T extends INode = INode> implements IView<T> {
 
   public $state: State;
   public $scope: IScope;
-  public $nodes: INodeSequence<T>;
-  public $context: IRenderContext<T>;
+  public $nodes!: INodeSequence<T>;
+  public $context!: IRenderContext<T>;
   public cache: IViewCache<T>;
-  public location: IRenderLocation<T>;
+  public location!: IRenderLocation<T>;
   public isFree: boolean;
 
   public readonly $lifecycle: ILifecycle;
 
   constructor($lifecycle: ILifecycle, cache: IViewCache<T>) {
-    this.$bindingHead = null;
-    this.$bindingTail = null;
+    this.$bindingHead = null!;
+    this.$bindingTail = null!;
 
-    this.$componentHead = null;
-    this.$componentTail = null;
+    this.$componentHead = null!;
+    this.$componentTail = null!;
 
-    this.$componentHead = null;
-    this.$componentTail = null;
+    this.$componentHead = null!;
+    this.$componentTail = null!;
 
-    this.$nextComponent = null;
-    this.$prevComponent = null;
-    this.$nextPatch = null;
+    this.$nextComponent = null!;
+    this.$prevComponent = null!;
+    this.$nextPatch = null!;
 
-    this.$nextMount = null;
-    this.$nextUnmount = null;
+    this.$nextMount = null!;
+    this.$nextUnmount = null!;
 
-    this.$nextUnbindAfterDetach = null;
+    this.$nextUnbindAfterDetach = null!;
 
     this.$state = State.none;
-    this.$scope = null;
+    this.$scope = null!;
     this.isFree = false;
 
     this.$lifecycle = $lifecycle;
@@ -137,7 +137,7 @@ export class ViewFactory<T extends INode = INode> implements IViewFactory<T> {
     this.isCaching = false;
 
     this.cacheSize = -1;
-    this.cache = null;
+    this.cache = null!;
     this.lifecycle = lifecycle;
     this.name = name;
     this.template = template;
@@ -159,7 +159,7 @@ export class ViewFactory<T extends INode = INode> implements IViewFactory<T> {
     if (this.cacheSize > 0) {
       this.cache = [];
     } else {
-      this.cache = null;
+      this.cache = null!;
     }
 
     this.isCaching = this.cacheSize > 0;
@@ -184,13 +184,13 @@ export class ViewFactory<T extends INode = INode> implements IViewFactory<T> {
     let view: View<T>;
 
     if (cache !== null && cache.length > 0) {
-      view = cache.pop();
+      view = cache.pop()!;
       view.$state &= ~State.isCached;
       return view;
     }
 
     view = new View<T>(this.lifecycle, this);
-    this.template.render(view, null, null, flags);
+    this.template.render(view, null!, null!, flags);
     if (!view.$nodes) {
       throw Reporter.error(90);
     }

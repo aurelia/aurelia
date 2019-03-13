@@ -175,10 +175,8 @@ describe(`Repeat`, function () {
   const strategySpecs: StrategySpec[] = [
     { t: '1', strategy: BindingStrategy.getterSetter },
     { t: '2', strategy: BindingStrategy.proxies },
-    { t: '3', strategy: BindingStrategy.patch },
     { t: '4', strategy: BindingStrategy.keyed | BindingStrategy.getterSetter },
     { t: '5', strategy: BindingStrategy.keyed | BindingStrategy.proxies },
-    { t: '6', strategy: BindingStrategy.keyed | BindingStrategy.patch },
   ];
 
   const duplicateOperationSpecs: DuplicateOperationSpec[] = [
@@ -585,7 +583,6 @@ describe(`Repeat`, function () {
       const baseFlags: LifecycleFlags = strategy as unknown as LifecycleFlags;
       const keyed = (strategy & BindingStrategy.keyed) > 0;
       const proxies = (strategy & BindingStrategy.proxies) > 0;
-      const patch = (strategy & BindingStrategy.patch) > 0;
       const container = AuDOMConfiguration.createContainer();
       const dom = container.get<AuDOM>(IDOM);
       const observerLocator = container.get(IObserverLocator);
@@ -651,11 +648,11 @@ describe(`Repeat`, function () {
       }
 
       runAttachLifecycle(lifecycle, sut, baseFlags | attachFlags1);
-      if (patch) { sut.$patch(baseFlags); }
+
       expect(host.textContent).to.equal(expectedText1, 'host.textContent #1');
       if (attachTwice) {
         runAttachLifecycle(lifecycle, sut, baseFlags | attachFlags1);
-        if (patch) { sut.$patch(baseFlags); }
+
         expect(host.textContent).to.equal(expectedText1, 'host.textContent #2');
       }
 
@@ -664,11 +661,11 @@ describe(`Repeat`, function () {
 
       if (flush) {
         lifecycle.processFlushQueue(baseFlags);
-        if (patch) { sut.$patch(baseFlags); }
+
         expect(host.textContent).to.equal(expectedText2, 'host.textContent #3');
       } else {
         const assign = mutations.find(m => m.op === 'assign') as AssignSpec;
-        if (patch) { sut.$patch(baseFlags); }
+
         if (assign) {
           expect(host.textContent).to.equal(assign.newItems.join(''), 'host.textContent #4');
         } else {
@@ -681,7 +678,7 @@ describe(`Repeat`, function () {
         runDetachLifecycle(lifecycle, sut, baseFlags | detachFlags1);
       }
 
-      if (patch) { sut.$patch(baseFlags); }
+
       expect(host.textContent).to.equal('', 'host.textContent #6');
 
       runUnbindLifecycle(lifecycle, sut, baseFlags | unbindFlags1);
@@ -703,11 +700,11 @@ describe(`Repeat`, function () {
       }
 
       runAttachLifecycle(lifecycle, sut, baseFlags | attachFlags2);
-      if (patch) { sut.$patch(baseFlags); }
+
       expect(host.textContent).to.equal(expectedText3, 'host.textContent #7');
       if (attachTwice) {
         runAttachLifecycle(lifecycle, sut, baseFlags | attachFlags2);
-        if (patch) { sut.$patch(baseFlags); }
+
         expect(host.textContent).to.equal(expectedText3, 'host.textContent #8');
       }
 
@@ -716,11 +713,11 @@ describe(`Repeat`, function () {
 
       if (flush) {
         lifecycle.processFlushQueue(baseFlags);
-        if (patch) { sut.$patch(baseFlags); }
+
         expect(host.textContent).to.equal(expectedText4, 'host.textContent #9');
       } else {
         const assign = mutations.find(m => m.op === 'assign') as AssignSpec;
-        if (patch) { sut.$patch(baseFlags); }
+
         if (assign) {
           expect(host.textContent).to.equal(assign.newItems.join(''), 'host.textContent #10');
         } else {
@@ -733,7 +730,7 @@ describe(`Repeat`, function () {
         runDetachLifecycle(lifecycle, sut, baseFlags | detachFlags2);
       }
 
-      if (patch) { sut.$patch(baseFlags); }
+
       expect(host.textContent).to.equal('', 'host.textContent #12');
 
       runUnbindLifecycle(lifecycle, sut, baseFlags | unbindFlags2);

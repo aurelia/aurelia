@@ -60,9 +60,6 @@ export class Binding implements IPartialConnectableBinding {
   public updateTarget(value: unknown, flags: LifecycleFlags): void {
     flags |= this.persistentFlags;
     this.targetObserver!.setValue(value, flags);
-    if (flags & LifecycleFlags.patchStrategy) {
-      this.targetObserver!.$patch(flags);
-    }
   }
 
   public updateSource(value: unknown, flags: LifecycleFlags): void {
@@ -191,14 +188,6 @@ export class Binding implements IPartialConnectableBinding {
 
     // remove isBound and isUnbinding flags
     this.$state &= ~(State.isBound | State.isUnbinding);
-    if (Tracer.enabled) { Tracer.leave(); }
-  }
-
-  public $patch(flags: LifecycleFlags): void {
-    if (Tracer.enabled) { Tracer.enter('Binding', '$patch', slice.call(arguments)); }
-    if (this.$state & State.isBound) {
-      this.targetObserver!.$patch(flags | this.persistentFlags);
-    }
     if (Tracer.enabled) { Tracer.leave(); }
   }
 }

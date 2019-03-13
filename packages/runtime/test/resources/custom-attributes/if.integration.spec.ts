@@ -100,7 +100,6 @@ describe(`If/Else`, function () {
   const strategySpecs: StrategySpec[] = [
     { t: '1', strategy: BindingStrategy.getterSetter },
     { t: '2', strategy: BindingStrategy.proxies },
-    { t: '3', strategy: BindingStrategy.patch }
   ];
 
   const duplicateOperationSpecs: DuplicateOperationSpec[] = [
@@ -177,7 +176,6 @@ describe(`If/Else`, function () {
       // common stuff
       const baseFlags: LifecycleFlags = strategy as unknown as LifecycleFlags;
       const proxies = (strategy & BindingStrategy.proxies) > 0;
-      const patch = (strategy & BindingStrategy.patch) > 0;
       const container = AuDOMConfiguration.createContainer();
       const dom = container.get<AuDOM>(IDOM);
       const observerLocator = container.get(IObserverLocator);
@@ -232,15 +230,6 @@ describe(`If/Else`, function () {
       }
       elseSut.link(sut);
 
-      (sut as Writable<If>).$scope = null;
-      (elseSut as Writable<Else>).$scope = null;
-
-      const ifBehavior = RuntimeBehavior.create(If);
-      ifBehavior.applyTo(baseFlags, sut, lifecycle);
-
-      const elseBehavior = RuntimeBehavior.create(Else);
-      elseBehavior.applyTo(baseFlags, elseSut, lifecycle);
-
       let firstBindInitialNodesText: string;
       let firstBindFinalNodesText: string;
       let secondBindInitialNodesText: string;
@@ -253,7 +242,7 @@ describe(`If/Else`, function () {
       firstBindInitialNodesText = value1 ? ifText : elseText;
       if (bindTwice) {
         firstAttachInitialHostText = newValueForDuplicateBind ? ifText : elseText;
-        if ((newScopeForDuplicateBind || (bindFlags1 & LifecycleFlags.fromStartTask)) || patch) {
+        if (newScopeForDuplicateBind || (bindFlags1 & LifecycleFlags.fromStartTask)) {
           firstBindFinalNodesText = newValueForDuplicateBind ? ifText : elseText;
         } else {
           firstBindFinalNodesText = firstBindInitialNodesText;
@@ -262,7 +251,7 @@ describe(`If/Else`, function () {
         firstBindFinalNodesText = firstBindInitialNodesText;
         firstAttachInitialHostText = value1 ? ifText : elseText;
       }
-      if (flush1 || patch) {
+      if (flush1) {
         firstAttachFinalHostText = newValue1 ? ifText : elseText;
       } else {
         firstAttachFinalHostText = firstAttachInitialHostText;
@@ -271,7 +260,7 @@ describe(`If/Else`, function () {
       secondBindInitialNodesText = value2 ? ifText : elseText;
       if (bindTwice) {
         secondAttachInitialHostText = newValueForDuplicateBind ? ifText : elseText;
-        if ((newScopeForDuplicateBind || (bindFlags2 & LifecycleFlags.fromStartTask)) || patch) {
+        if (newScopeForDuplicateBind || (bindFlags2 & LifecycleFlags.fromStartTask)) {
           secondBindFinalNodesText = newValueForDuplicateBind ? ifText : elseText;
         } else {
           secondBindFinalNodesText = secondBindInitialNodesText;
@@ -280,7 +269,7 @@ describe(`If/Else`, function () {
         secondBindFinalNodesText = secondBindInitialNodesText;
         secondAttachInitialHostText = value2 ? ifText : elseText;
       }
-      if (flush2 || patch) {
+      if (flush2) {
         secondAttachFinalHostText = newValue2 ? ifText : elseText;
       } else {
         secondAttachFinalHostText = secondAttachInitialHostText;
@@ -297,7 +286,7 @@ describe(`If/Else`, function () {
       sut.value = value1;
 
       runBindLifecycle(lifecycle, sut, baseFlags | bindFlags1, scope);
-      if (patch) { sut.$patch(baseFlags); }
+
       expect(sut.coordinator['currentView'].$nodes.firstChild['textContent']).to.equal(firstBindInitialNodesText, '$nodes.textContent #1');
 
       // after binding the nodes should be present and already updated with the correct values
@@ -306,24 +295,24 @@ describe(`If/Else`, function () {
           scope = Scope.create(baseFlags, ctx);
         }
         sut.value = newValueForDuplicateBind;
-        if (patch) { sut.$patch(baseFlags); }
+
         runBindLifecycle(lifecycle, sut, baseFlags | bindFlags1, scope);
       }
       expect(sut.coordinator['currentView'].$nodes.firstChild['textContent']).to.equal(firstBindFinalNodesText, '$nodes.textContent #2');
 
       runAttachLifecycle(lifecycle, sut, baseFlags | attachFlags1);
-      if (patch) { sut.$patch(baseFlags); }
+
       expect(host.textContent).to.equal(firstAttachInitialHostText, 'host.textContent #1');
       if (attachTwice) {
         runAttachLifecycle(lifecycle, sut, baseFlags | attachFlags1);
-        if (patch) { sut.$patch(baseFlags); }
+
         expect(host.textContent).to.equal(firstAttachInitialHostText, 'host.textContent #2');
       }
 
       sut.value = newValue1;
       // swapping is batched so shouldn't update yet
 
-      if (patch) { sut.$patch(baseFlags); }
+
       if (flush1) {
         lifecycle.processFlushQueue(baseFlags);
         // flushing always forces pending swaps
@@ -336,7 +325,7 @@ describe(`If/Else`, function () {
       }
       // host should be empty but nodes below should still be intact and up-to-date
 
-      if (patch) { sut.$patch(baseFlags); }
+
       expect(host.textContent).to.equal('', 'host.textContent #3');
 
       runUnbindLifecycle(lifecycle, sut, baseFlags | unbindFlags1);
@@ -350,7 +339,7 @@ describe(`If/Else`, function () {
       sut.value = value2;
 
       runBindLifecycle(lifecycle, sut, baseFlags | bindFlags2, scope);
-      if (patch) { sut.$patch(baseFlags); }
+
       expect(sut.coordinator['currentView'].$nodes.firstChild['textContent']).to.equal(secondBindInitialNodesText, '$nodes.textContent #3');
       if (bindTwice) {
         if (newScopeForDuplicateBind) {
@@ -359,21 +348,21 @@ describe(`If/Else`, function () {
         sut.value = newValueForDuplicateBind;
         runBindLifecycle(lifecycle, sut, baseFlags | bindFlags2, scope);
       }
-      if (patch) { sut.$patch(baseFlags); }
+
       expect(sut.coordinator['currentView'].$nodes.firstChild['textContent']).to.equal(secondBindFinalNodesText, '$nodes.textContent #4');
 
       runAttachLifecycle(lifecycle, sut, baseFlags | attachFlags2);
-      if (patch) { sut.$patch(baseFlags); }
+
       expect(host.textContent).to.equal(secondAttachInitialHostText, 'host.textContent #4');
       if (attachTwice) {
         runAttachLifecycle(lifecycle, sut, baseFlags | attachFlags2);
-        if (patch) { sut.$patch(baseFlags); }
+
         expect(host.textContent).to.equal(secondAttachInitialHostText, 'host.textContent #5');
       }
 
       sut.value = newValue2;
 
-      if (patch) { sut.$patch(baseFlags); }
+
       if (flush2) {
         lifecycle.processFlushQueue(baseFlags);
       }
@@ -384,7 +373,7 @@ describe(`If/Else`, function () {
         runDetachLifecycle(lifecycle, sut, baseFlags | detachFlags2);
       }
 
-      if (patch) { sut.$patch(baseFlags); }
+
       expect(host.textContent).to.equal('', 'host.textContent #6');
 
       runUnbindLifecycle(lifecycle, sut, baseFlags | unbindFlags2);

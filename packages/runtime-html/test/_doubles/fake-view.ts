@@ -79,8 +79,6 @@ export class FakeView implements IView {
     this.$state |= State.isBound;
   }
 
-  public $patch(flags: LifecycleFlags): void { /* do nothing */ }
-
   public $unbind(): void {
     this.$state &= ~State.isBound;
   }

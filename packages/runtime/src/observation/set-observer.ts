@@ -3,7 +3,6 @@ import { LifecycleFlags } from '../flags';
 import { ILifecycle } from '../lifecycle';
 import { CollectionKind, ICollectionObserver, IObservedSet } from '../observation';
 import { collectionObserver } from './collection-observer';
-import { patchProperties } from './patch-properties';
 
 const proto = Set.prototype as { [K in keyof Set<any>]: Set<any>[K] & { observing?: boolean } };
 
@@ -145,12 +144,6 @@ export class SetObserver implements SetObserver {
     this.flags = flags & LifecycleFlags.persistentBindingFlags;
     this.resetIndexMap();
     if (Tracer.enabled) { Tracer.leave(); }
-  }
-
-  public $patch(flags: LifecycleFlags): void {
-    this.collection.forEach((value, key) => {
-      patchProperties(key, flags);
-    });
   }
 }
 

@@ -1026,5 +1026,4 @@ class MockObserver implements IBindingTargetObserver {
   public setValue = spy();
   public subscribe = spy();
   public unsubscribe = spy();
-  public $patch = spy();
 }

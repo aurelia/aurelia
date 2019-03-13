@@ -702,12 +702,6 @@ describe('@customElement', function () {
       getExpectedStrategy() { return BindingStrategy.proxies; }
     },
     {
-      description: 'strategy is patch',
-      expectation: 'uses patch',
-      getStrategy() { return BindingStrategy.patch; },
-      getExpectedStrategy() { return BindingStrategy.patch; }
-    },
-    {
       description: 'strategy is keyed',
       expectation: 'uses keyed|getterSetter',
       getStrategy() { return BindingStrategy.keyed; },
@@ -725,12 +719,6 @@ describe('@customElement', function () {
       getStrategy() { return BindingStrategy.keyed | BindingStrategy.proxies; },
       getExpectedStrategy() { return BindingStrategy.keyed | BindingStrategy.proxies; }
     },
-    {
-      description: 'strategy is keyed|patch',
-      expectation: 'uses keyed|patch',
-      getStrategy() { return BindingStrategy.keyed | BindingStrategy.patch; },
-      getExpectedStrategy() { return BindingStrategy.keyed | BindingStrategy.patch; }
-    }
   ];
 
   eachCartesianJoin([strategySpecs], (strategySpec) => {

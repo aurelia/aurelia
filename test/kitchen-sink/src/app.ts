@@ -26,7 +26,6 @@ export class App {
   public cols: string[];
   public subject: Subject;
   @bindable public keyedStrategy: boolean;
-  @bindable public patchStrategy: boolean;
   @bindable public proxyStrategy: boolean;
 
   constructor() {
@@ -57,9 +56,6 @@ export class App {
     }
     if (this.proxyStrategy) {
       strategy |= BindingStrategy.proxies;
-    }
-    if (this.patchStrategy) {
-      strategy |= BindingStrategy.patch;
     }
     const dom = this.$context.get<IDOM<Node>>(IDOM);
     this.subject = createElement<Node>(dom, 'table', {

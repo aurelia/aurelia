@@ -330,9 +330,6 @@ const BindingArgsProcessor = {
 };
 
 const ObservationArgsProcessor = {
-  $patch(info: ITraceInfo): string {
-    return flagsText(info);
-  },
   callSource(info: ITraceInfo): string {
     switch (info.objName) {
       case 'Listener':

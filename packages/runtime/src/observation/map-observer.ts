@@ -3,7 +3,6 @@ import { LifecycleFlags } from '../flags';
 import { ILifecycle } from '../lifecycle';
 import { CollectionKind, ICollectionObserver, IObservedMap } from '../observation';
 import { collectionObserver } from './collection-observer';
-import { patchProperties } from './patch-properties';
 
 const proto = Map.prototype as { [K in keyof Map<any, any>]: Map<any, any>[K] & { observing?: boolean } };
 
@@ -156,13 +155,6 @@ export class MapObserver implements MapObserver {
     this.flags = flags & LifecycleFlags.persistentBindingFlags;
     this.resetIndexMap();
     if (Tracer.enabled) { Tracer.leave(); }
-  }
-
-  public $patch(flags: LifecycleFlags): void {
-    this.collection.forEach((value, key) => {
-      patchProperties(value, flags);
-      patchProperties(key, flags);
-    });
   }
 }
 

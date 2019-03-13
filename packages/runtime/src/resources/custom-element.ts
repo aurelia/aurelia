@@ -36,7 +36,6 @@ import {
 } from '../templating/lifecycle-attach';
 import {
   $bindElement,
-  $patch,
   $unbindElement
 } from '../templating/lifecycle-bind';
 import {
@@ -134,7 +133,6 @@ function define<N extends INode = INode, T extends Constructable = Constructable
 
   proto.$hydrate = $hydrateElement;
   proto.$bind = $bindElement as typeof proto['$bind'];
-  proto.$patch = $patch;
   proto.$attach = $attachElement;
   proto.$detach = $detachElement;
   proto.$unbind = $unbindElement;

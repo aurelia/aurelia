@@ -153,13 +153,13 @@ export class BindingContext implements IBindingContext {
 }
 
 export class Scope implements IScope {
-  public bindingContext: IBindingContext | IBinding;
+  public bindingContext: object;
   public overrideContext: IOverrideContext;
   // parentScope is strictly internal API and mainly for replaceable template controller.
   // NOT intended for regular scope traversal!
   /** @internal */public readonly parentScope: IScope | null;
 
-  private constructor(bindingContext: IBindingContext | IBinding, overrideContext: IOverrideContext) {
+  private constructor(bindingContext: object, overrideContext: IOverrideContext) {
     this.bindingContext = bindingContext;
     this.overrideContext = overrideContext;
     this.parentScope = null;
@@ -172,7 +172,7 @@ export class Scope implements IScope {
    * or when you simply want to prevent binding expressions from traversing up the scope.
    * @param bc The `BindingContext` to back the `Scope` with.
    */
-  public static create(flags: LifecycleFlags, bc: IBindingContext | IBinding): Scope;
+  public static create(flags: LifecycleFlags, bc: object): Scope;
   /**
    * Create a new `Scope` backed by the provided `BindingContext` and `OverrideContext`.
    *
@@ -182,7 +182,7 @@ export class Scope implements IScope {
    * during binding, it will traverse up via the `parentOverrideContext` of the `OverrideContext` until
    * it finds the property.
    */
-  public static create(flags: LifecycleFlags, bc: IBindingContext | IBinding, oc: IOverrideContext): Scope;
+  public static create(flags: LifecycleFlags, bc: object, oc: IOverrideContext): Scope;
   /**
    * Create a new `Scope` backed by the provided `BindingContext` and `OverrideContext`.
    *
@@ -192,8 +192,8 @@ export class Scope implements IScope {
    * @param bc The `BindingContext` to back the `Scope` with.
    * @param oc null. This overload is functionally equivalent to not passing this argument at all.
    */
-  public static create(flags: LifecycleFlags, bc: IBindingContext | IBinding, oc: null): Scope;
-  public static create(flags: LifecycleFlags, bc: IBindingContext | IBinding, oc?: IOverrideContext | null): Scope {
+  public static create(flags: LifecycleFlags, bc: object, oc: null): Scope;
+  public static create(flags: LifecycleFlags, bc: object, oc?: IOverrideContext | null): Scope {
     if (Tracer.enabled) { Tracer.enter('Scope', 'create', slice.call(arguments)); }
     if (Tracer.enabled) { Tracer.leave(); }
     return new Scope(bc, oc == null ? OverrideContext.create(flags, bc, oc!) : oc);
@@ -208,7 +208,7 @@ export class Scope implements IScope {
     return new Scope(oc.bindingContext, oc);
   }
 
-  public static fromParent(flags: LifecycleFlags, ps: IScope | null, bc: IBindingContext | IBinding): Scope {
+  public static fromParent(flags: LifecycleFlags, ps: IScope | null, bc: object): Scope {
     if (Tracer.enabled) { Tracer.enter('Scope', 'fromParent', slice.call(arguments)); }
     if (ps == null) {
       throw Reporter.error(RuntimeError.NilParentScope);
@@ -222,16 +222,16 @@ export class OverrideContext implements IOverrideContext {
   [key: string]: ObservedCollection | StrictPrimitive | IIndexable;
 
   public readonly $synthetic: true;
-  public bindingContext: IBindingContext | IBinding;
+  public bindingContext: object;
   public parentOverrideContext: IOverrideContext | null;
 
-  private constructor(bindingContext: IBindingContext | IBinding, parentOverrideContext: IOverrideContext | null) {
+  private constructor(bindingContext: object, parentOverrideContext: IOverrideContext | null) {
     this.$synthetic = true;
     this.bindingContext = bindingContext;
     this.parentOverrideContext = parentOverrideContext;
   }
 
-  public static create(flags: LifecycleFlags, bc: IBindingContext | IBinding, poc: IOverrideContext | null): OverrideContext {
+  public static create(flags: LifecycleFlags, bc: object, poc: IOverrideContext | null): OverrideContext {
     if (Tracer.enabled) { Tracer.enter('OverrideContext', 'create', slice.call(arguments)); }
     if (Tracer.enabled) { Tracer.leave(); }
     return new OverrideContext(bc, poc === void 0 ? null : poc);

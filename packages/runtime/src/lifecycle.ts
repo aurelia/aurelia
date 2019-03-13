@@ -12,7 +12,7 @@ import {
 import { ITargetedInstruction, TemplateDefinition, TemplatePartDefinitions } from './definitions';
 import { INode, INodeSequence, IRenderLocation } from './dom';
 import { Hooks, LifecycleFlags, State } from './flags';
-import { IChangeTracker, IPatchable, IScope, IObserversLookup } from './observation';
+import { IChangeTracker, IObserversLookup, IScope } from './observation';
 
 const slice = Array.prototype.slice;
 export interface IState {
@@ -244,7 +244,7 @@ export interface ILifecycleHooks extends IState {
   caching?(flags: LifecycleFlags): void;
 }
 
-export interface IComponent extends IPatchable {
+export interface IComponent {
   readonly $nextComponent?: IComponent;
   readonly $prevComponent?: IComponent;
   $nextUnbindAfterDetach?: IComponent;

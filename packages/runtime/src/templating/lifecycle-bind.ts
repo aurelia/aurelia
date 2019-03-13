@@ -1,8 +1,7 @@
 import { Profiler, Tracer, Writable } from '@aurelia/kernel';
 import { Hooks, LifecycleFlags, State } from '../flags';
-import { IComponent, ILifecycleHooks, IRenderable, IBinding } from '../lifecycle';
-import { IPatchable, IScope } from '../observation';
-import { patchProperties } from '../observation/patch-properties';
+import { IComponent, ILifecycleHooks, IRenderable } from '../lifecycle';
+import { IScope } from '../observation';
 
 const slice = Array.prototype.slice;
 
@@ -295,29 +294,5 @@ export function $lockedUnbind(this: IBindable, flags: LifecycleFlags): void {
     // remove isBound and isUnbinding flags
     this.$state! &= ~(State.isBound | State.isUnbinding);
   }
-  if (Tracer.enabled) { Tracer.leave(); }
-}
-
-export function $patch(this: IBindable, flags: LifecycleFlags): void {
-  if (Tracer.enabled) { Tracer.enter(this.constructor.description && this.constructor.description.name || this.constructor.name, '$patch', slice.call(arguments)); }
-  if (Profiler.enabled) { enter(); }
-
-  patchProperties(this, flags);
-
-  let component = this.$componentHead;
-  while (component) {
-    component.$patch(flags);
-    component = component.$nextComponent!;
-  }
-
-  let binding = this.$bindingHead;
-  while (binding) {
-    if ((binding as unknown as IPatchable).$patch != null) {
-      (binding as unknown as IPatchable).$patch(flags);
-    }
-    binding = binding.$nextBinding;
-  }
-
-  if (Profiler.enabled) { leave(); }
   if (Tracer.enabled) { Tracer.leave(); }
 }

@@ -66,14 +66,4 @@ export class SelfObserver implements SelfObserver {
       }
     }
   }
-  public $patch(flags: LifecycleFlags): void {
-    const oldValue = this.currentValue;
-    const newValue = this.obj[this.propertyKey as keyof object];
-    flags |= this.persistentFlags;
-    this.currentValue = newValue;
-    this.callSubscribers(newValue, oldValue, flags);
-    if (this.callback != null) {
-      this.callback.call(this.obj, newValue, oldValue, flags);
-    }
-  }
 }

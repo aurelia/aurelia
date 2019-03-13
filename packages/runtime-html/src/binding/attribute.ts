@@ -220,13 +220,4 @@ export class AttributeBinding implements IPartialConnectableBinding {
     }
     if (Tracer.enabled) { Tracer.leave(); }
   }
-
-  public patch(flags: LifecycleFlags): void {
-    if (Tracer.enabled) { Tracer.enter('Binding', 'patch', slice.call(arguments)); }
-    if (this.$state & State.isBound) {
-      flags |= this.persistentFlags;
-      this.updateTarget(this.sourceExpression.evaluate(flags | LifecycleFlags.mustEvaluate, this.$scope, this.locator), flags);
-    }
-    if (Tracer.enabled) { Tracer.leave(); }
-  }
 }

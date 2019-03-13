@@ -1,5 +1,5 @@
 import { IDisposable, IIndexable } from '@aurelia/kernel';
-import { LifecycleFlags, State } from './flags';
+import { LifecycleFlags } from './flags';
 import { ILifecycle } from './lifecycle';
 
 export interface IProxyObserver<TObj extends object = object, TMut extends MutationKind = MutationKind.proxy> extends ISubscriberCollection<TMut> {
@@ -92,14 +92,10 @@ export enum MutationKind {
   proxy      = 0b100
 }
 
-export interface IPatchable {
-  $patch(flags: LifecycleFlags): void;
-}
-
 /**
  * Describes a type that specifically tracks changes in an object property, or simply something that can have a getter and/or setter
  */
-export interface IPropertyChangeTracker<TObj extends Record<string, unknown>, TProp = keyof TObj, TValue = unknown> extends IPatchable {
+export interface IPropertyChangeTracker<TObj extends Record<string, unknown>, TProp = keyof TObj, TValue = unknown> {
   obj: TObj;
   propertyKey?: TProp;
   currentValue?: TValue;
@@ -344,7 +340,6 @@ export type ObservedCollectionKindToType<T> =
  */
 export interface ICollectionObserver<T extends CollectionKind> extends
   IDisposable,
-  IPatchable,
   ICollectionChangeTracker<CollectionKindToType<T>>,
   ISubscriberCollection<MutationKind.collection>,
   IBatchedSubscriberCollection<MutationKind.collection> {
@@ -352,7 +347,7 @@ export interface ICollectionObserver<T extends CollectionKind> extends
     collection: ObservedCollectionKindToType<T>;
     lengthPropertyName: LengthPropertyName<CollectionKindToType<T>>;
     collectionKind: T;
-    lengthObserver: IBindingTargetObserver & IPatchable;
+    lengthObserver: IBindingTargetObserver;
     getLengthObserver(flags: LifecycleFlags): IBindingTargetObserver;
 }
 export type CollectionObserver = ICollectionObserver<CollectionKind>;

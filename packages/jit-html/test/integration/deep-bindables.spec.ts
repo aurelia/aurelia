@@ -26,10 +26,8 @@ describe(spec, function () {
 
   for (const strategy of [
     BindingStrategy.getterSetter,
-    BindingStrategy.patch,
     BindingStrategy.proxies,
     BindingStrategy.keyed | BindingStrategy.getterSetter,
-    BindingStrategy.keyed | BindingStrategy.patch,
     BindingStrategy.keyed | BindingStrategy.proxies
   ]) {
     it(`strategy=${stringifyLifecycleFlags(strategy)}`, function () {
@@ -79,9 +77,6 @@ describe(spec, function () {
       );
 
       function verify(c: ICustomElement & $App) {
-        if ((strategy & BindingStrategy.patch) > 0) {
-          c.$patch(LifecycleFlags.none);
-        }
         lifecycle.processFlushQueue(strategy);
         const { a, max, items } = c;
         expect(host.textContent, `#${++num}`).to.equal(getExpectedText(a ? 'a' : 'b', max, items, 0, 1));
@@ -158,10 +153,8 @@ describe(spec, function () {
 
   for (const strategy of [
     BindingStrategy.getterSetter,
-    BindingStrategy.patch,
     BindingStrategy.proxies,
     BindingStrategy.keyed | BindingStrategy.getterSetter,
-    BindingStrategy.keyed | BindingStrategy.patch,
     BindingStrategy.keyed | BindingStrategy.proxies
   ]) {
     it(`profile, strategy=${stringifyLifecycleFlags(strategy)}`, function () {

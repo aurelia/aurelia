@@ -36,7 +36,7 @@ class TraceInfo implements ITraceInfo {
   public static reset(): void {
     let current: ITraceInfo | null = TraceInfo.head;
     let next = null;
-    while (current !== null) {
+    while (current != null) {
       next = current.next;
       current.next = null;
       current.prev = null;
@@ -110,9 +110,9 @@ export const Tracer: typeof RuntimeTracer = {
    * @param writer An object to write the output to. Can be null to simply reset the tracer state.
    */
   flushAll(writer: ITraceWriter | null): void {
-    if (writer !== null) {
+    if (writer != null) {
       let current = TraceInfo.head.next; // skip the marker
-      while (current !== null && current !== marker) {
+      while (current != null && current !== marker) {
         writer.write(current);
         current = current.next;
       }
@@ -172,7 +172,7 @@ type Instance = {
 
 const toString = Object.prototype.toString;
 function flagsText(info: ITraceInfo, i: number = 0): string {
-  if (info.params !== null && info.params.length > i) {
+  if (info.params != null && info.params.length > i) {
     return stringifyLifecycleFlags(info.params[i] as LifecycleFlags);
   }
   return 'none';
@@ -197,14 +197,14 @@ function _ctorName(obj: Instance | undefined): string {
   return name;
 }
 function ctorName(info: ITraceInfo, i: number = 0): string {
-  if (info.params !== null && info.params.length > i) {
+  if (info.params != null && info.params.length > i) {
     return _ctorName(info.params[i] as Instance);
   }
   return 'undefined';
 }
 function scopeText(info: ITraceInfo, i: number = 0): string {
   let $ctorName: string;
-  if (info.params !== null && info.params.length > i) {
+  if (info.params != null && info.params.length > i) {
     const $scope = info.params[i] as IScope | undefined;
     if ($scope != null && $scope.bindingContext != null) {
       $ctorName = _ctorName($scope.bindingContext as Instance);
@@ -216,7 +216,7 @@ function scopeText(info: ITraceInfo, i: number = 0): string {
   return 'undefined';
 }
 function keyText(info: ITraceInfo, i: number = 0): string {
-  if (info.params !== null && info.params.length > i) {
+  if (info.params != null && info.params.length > i) {
     const $key = info.params[i] as object | undefined;
     if (typeof $key === 'string') {
       return `'${$key}'`;
@@ -229,7 +229,7 @@ function keyText(info: ITraceInfo, i: number = 0): string {
   return 'undefined';
 }
 function primitive(info: ITraceInfo, i: number = 0): string {
-  if (info.params !== null && info.params.length > i) {
+  if (info.params != null && info.params.length > i) {
     const $key = info.params[i] as string | symbol | number;
     if (typeof $key === 'string') {
       return `'${$key}'`;
@@ -339,7 +339,7 @@ const ObservationArgsProcessor = {
         return ((info.params as ReadonlyArray<{ type: string }>)[0]).type;
       case 'Call':
         const names: string[] = [];
-        if (info.params !== null) {
+        if (info.params != null) {
           for (let i = 0, ii = info.params.length; i < ii; ++i) {
             names.push(ctorName(info, i));
           }
@@ -429,7 +429,7 @@ const DIArgsProcessor = {
         return keyText(info);
       case 'register':
         const names: string[] = [];
-        if (info.params !== null) {
+        if (info.params != null) {
           for (let i = 0, ii = info.params.length; i < ii; ++i) {
             names.push(keyText(info, i));
           }

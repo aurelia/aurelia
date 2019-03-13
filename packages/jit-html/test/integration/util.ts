@@ -33,7 +33,7 @@ import { HTMLTestContext, TestContext } from '../util';
 export function cleanup(ctx: HTMLTestContext): void {
   const body = ctx.doc.body;
   let current = body.firstElementChild;
-  while (current !== null) {
+  while (current != null) {
     const next = current.nextElementSibling;
     if (current.tagName === 'APP') {
       body.removeChild(current);
@@ -97,7 +97,7 @@ const eventCmds = { delegate: 1, capture: 1, call: 1 };
  */
 export const hJsx = function(name: string, attrs: Record<string, string> | null, ...children: (Node | string | (Node | string)[])[]) {
   const el = document.createElement(name === 'let$' ? 'let' : name);
-  if (attrs !== null) {
+  if (attrs != null) {
     let value: string | string[];
     let len: number;
     for (const attr in attrs) {

@@ -633,7 +633,7 @@ describe('Binding', function () {
           }
 
           expect(subscriber00, `subscriber00 #07`).to.equal(sut);
-          expect(subscriber01, `subscriber01 #08`).to.equal(null);
+          expect(subscriber01, `subscriber01 #08`).to.equal(undefined);
 
           expect(sut.targetObserver, `sut.targetObserver #09`).to.equal(targetObserver);
           expect(sut.targetObserver, `sut.targetObserver #10`).to.be.instanceof(SetterObserver);
@@ -735,7 +735,7 @@ describe('Binding', function () {
           }
 
           expect(subscriber10, `subscriber10 #48`).to.equal(sut);
-          expect(subscriber11, `subscriber11 #49`).to.equal(null);
+          expect(subscriber11, `subscriber11 #49`).to.equal(undefined);
 
           if (observer00) {
             // verify the behavior of the sourceExpression / sourceObserver (redundant)
@@ -886,7 +886,7 @@ describe('Binding', function () {
       const unbindSpy = dummySourceExpression.unbind = spy();
       (dummySourceExpression as any).$kind |= ExpressionKind.HasUnbind;
       sut.$unbind(LF.fromUnbind);
-      expect(sut['$scope'], `sut['$scope']`).to.equal(null);
+      expect(sut['$scope'], `sut['$scope']`).to.equal(undefined);
       expect(sut['$state'] & State.isBound, `sut['$state'] & State.isBound`).to.equal(0);
       //expect(unobserveSpy, `unobserveSpy`).to.have.been.calledWith(true);
       //expect(unbindSpy, `unbindSpy`).to.have.been.calledWith(LF.fromUnbind, scope, sut);

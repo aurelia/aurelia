@@ -126,17 +126,17 @@ function verifyResultOrError(expr: string, expected: any, expectedMsg?: string, 
     error = e;
   }
   if (bindingType === BindingType.Interpolation && !(expected instanceof Interpolation)) {
-    if (error !== null) {
+    if (error != null) {
       throw new Error(`Expected expression "${expr}" with BindingType.${bindingTypeToString(bindingType)} not to throw, but it threw "${error.message}"`);
     }
   } else if (expectedMsg == null) {
-    if (error === null) {
+    if (error == null) {
       verifyASTEqual(actual, expected);
     } else {
       throw new Error(`Expected expression "${expr}" with BindingType.${bindingTypeToString(bindingType)} parse successfully, but it threw "${error.message}"`);
     }
   } else {
-    if (error === null) {
+    if (error == null) {
       throw new Error(`Expected expression "${expr}" with BindingType.${bindingTypeToString(bindingType)} to throw "${expectedMsg}", but no error was thrown`);
     } else {
       if (error.message !== expectedMsg) {

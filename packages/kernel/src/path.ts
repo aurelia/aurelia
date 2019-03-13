@@ -133,7 +133,7 @@ function buildParam(key: string, value: ComplexQueryParams, traditional?: boolea
       if (traditional) {
         result.push(`${encodeKey(key)}=${encode(value[i] as string)}`);
       } else {
-        const arrayKey = `${key}[${(typeof value[i] === 'object' && value[i] !== null ? i : '')}]`;
+        const arrayKey = `${key}[${(typeof value[i] === 'object' && value[i] != null ? i : '')}]`;
         result = result.concat(buildParam(arrayKey, value[i]));
       }
     }

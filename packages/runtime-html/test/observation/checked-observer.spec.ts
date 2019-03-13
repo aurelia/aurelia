@@ -193,7 +193,7 @@ describe('CheckedObserver', function () {
             const expectedPropValue = checkedBefore === undefined ? null : checkedBefore;
             const expectedNewValue = checkedAfter === undefined ? null : checkedAfter;
 
-            const changeCountBefore = expectedPropValue !== null ? 3 : 0;
+            const changeCountBefore = expectedPropValue != null ? 3 : 0;
             const changeCountAfter = expectedPropValue !== expectedNewValue ? 3 : 0;
 
             const { ctx, sutA, sutB, sutC, elA, elB, elC, lifecycle, subscriberA, subscriberB, subscriberC } = setup(hasSubscriber);

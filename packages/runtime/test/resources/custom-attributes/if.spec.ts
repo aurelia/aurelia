@@ -81,7 +81,7 @@ describe('The "if" template controller', function () {
     let elseView = ifAttr['elseView'] as IView<AuNode>;
 
     expect(child).not.to.equal(null);
-    expect(elseView).to.equal(null);
+    expect(elseView).to.equal(undefined);
 
     lifecycle.processFlushQueue(LifecycleFlags.none);
 

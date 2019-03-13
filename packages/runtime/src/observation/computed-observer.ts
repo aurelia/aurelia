@@ -288,7 +288,7 @@ function proxyOrValue(flags: LifecycleFlags, target: object, key: PropertyKey, o
   if (typeof value === 'function') {
     return (target as any)[key].bind(target);
   }
-  if (typeof value !== 'object' || value === null) {
+  if (!(value instanceof Object)) {
     return value;
   }
   return new Proxy(value, createGetterTraps(flags, observerLocator, observer));

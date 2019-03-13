@@ -65,7 +65,7 @@ export const Bindable = {
     const builder: IFluentBindableBuilder = {
       add(nameOrConfig: string | IBindableDescription): typeof builder {
         let description: IBindableDescription = (void 0)!;
-        if (nameOrConfig !== null && typeof nameOrConfig === 'object') {
+        if (nameOrConfig instanceof Object) {
           description = nameOrConfig;
         } else if (typeof nameOrConfig === 'string') {
           description = {

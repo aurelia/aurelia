@@ -58,7 +58,7 @@ export class SelfObserver implements SelfObserver {
         flags |= this.persistentFlags;
         this.currentValue = newValue;
         this.callSubscribers(newValue, oldValue, flags | LifecycleFlags.allowPublishRoundtrip);
-        if (this.callback !== null) {
+        if (this.callback != null) {
           this.callback.call(this.obj, newValue, oldValue, flags);
         }
       } else {
@@ -72,7 +72,7 @@ export class SelfObserver implements SelfObserver {
     flags |= this.persistentFlags;
     this.currentValue = newValue;
     this.callSubscribers(newValue, oldValue, flags);
-    if (this.callback !== null) {
+    if (this.callback != null) {
       this.callback.call(this.obj, newValue, oldValue, flags);
     }
   }

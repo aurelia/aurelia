@@ -58,7 +58,7 @@ function getPropertyDescriptor(subject: object, name: string): PropertyDescripto
   let pd = Object.getOwnPropertyDescriptor(subject, name);
   let proto = Object.getPrototypeOf(subject);
 
-  while (pd === void 0 && proto !== null) {
+  while (pd == null && proto != null) {
     pd = Object.getOwnPropertyDescriptor(proto, name);
     proto = Object.getPrototypeOf(proto);
   }
@@ -171,7 +171,7 @@ export class ObserverLocator implements IObserverLocator {
     for (let i = 0, ii = this.adapters.length; i < ii; i++) {
       const adapter = this.adapters[i];
       const observer = adapter.getObserver(flags, obj, propertyName, descriptor);
-      if (observer) {
+      if (observer != null) {
         return observer;
       }
     }
@@ -186,10 +186,7 @@ export class ObserverLocator implements IObserverLocator {
     let isNode = false;
     if (this.targetObserverLocator.handles(flags, obj)) {
       const observer = this.targetObserverLocator.getObserver(flags, this.lifecycle, this, obj, propertyName);
-      if (observer !== null) {
-        return observer;
-      }
-      if (observer !== null) {
+      if (observer != null) {
         return observer;
       }
       isNode = true;

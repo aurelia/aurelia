@@ -55,7 +55,7 @@ describe('@customAttribute', function () {
         // Assert
         expect(sut).to.not.have.$state.isAttached('sut.$isAttached');
         expect(sut.$state & State.isBound).to.equal(LF.none, 'sut.$isBound');
-        expect(sut.$scope).to.equal(null, 'sut.$scope');
+        expect(sut.$scope).to.equal(undefined, 'sut.$scope');
 
         expect(appliedType).to.equal(Type, 'appliedType');
         expect(appliedInstance).to.equal(sut, 'appliedInstance');

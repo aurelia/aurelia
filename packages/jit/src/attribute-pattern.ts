@@ -98,7 +98,7 @@ export class Interpretation {
     }
   }
   public set pattern(value: string | null) {
-    if (value === null) {
+    if (value == null) {
       this._pattern = '';
       this.parts = PLATFORM.emptyArray;
     } else {
@@ -178,7 +178,7 @@ export class State {
       patterns.push(pattern);
     }
     let state = this.findChild(charSpec);
-    if (state === null) {
+    if (state == null) {
       state = new State(charSpec, pattern);
       this.nextStates.push(state);
       if (charSpec.repeat) {

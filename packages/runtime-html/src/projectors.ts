@@ -51,9 +51,7 @@ export class ShadowDOMProjector implements IElementProjector<Node> {
 
     let shadowOptions: ShadowRootInit;
     if (
-      definition.shadowOptions !== undefined &&
-      definition.shadowOptions !== null &&
-      typeof definition.shadowOptions === 'object' &&
+      definition.shadowOptions instanceof Object &&
       'mode' in definition.shadowOptions
     ) {
       shadowOptions = definition.shadowOptions as unknown as ShadowRootInit;

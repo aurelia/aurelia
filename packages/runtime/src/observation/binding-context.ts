@@ -15,8 +15,7 @@ import { SetterObserver } from './setter-observer';
 const slice = Array.prototype.slice;
 
 const enum RuntimeError {
-  UndefinedScope = 250, // trying to evaluate on something that's not a valid binding
-  NullScope = 251, // trying to evaluate on an unbound binding
+  NilScope = 250,
   NilOverrideContext = 252,
   NilParentScope = 253
 }
@@ -89,14 +88,14 @@ export class BindingContext implements IBindingContext {
   public static get(scope: IScope, name: string, ancestor: number, flags: LifecycleFlags): IBindingContext | IOverrideContext | IBinding | undefined | null {
     if (Tracer.enabled) { Tracer.enter('BindingContext', 'get', slice.call(arguments)); }
     if (scope == null) {
-      throw Reporter.error(RuntimeError.NullScope);
+      throw Reporter.error(RuntimeError.NilScope);
     }
     let overrideContext = scope.overrideContext;
 
     if (ancestor > 0) {
       // jump up the required number of ancestor contexts (eg $parent.$parent requires two jumps)
       while (ancestor > 0) {
-        if (overrideContext.parentOverrideContext === null) {
+        if (overrideContext.parentOverrideContext == null) {
           if (Tracer.enabled) { Tracer.leave(); }
           return void 0;
         }
@@ -120,7 +119,7 @@ export class BindingContext implements IBindingContext {
     }
 
     // the name wasn't found. see if parent scope traversal is allowed and if so, try that
-    if ((flags & LifecycleFlags.allowParentScopeTraversal) && scope.parentScope !== null) {
+    if ((flags & LifecycleFlags.allowParentScopeTraversal) && scope.parentScope != null) {
       const result = this.get(scope.parentScope, name, ancestor, flags
         // unset the flag; only allow one level of scope boundary traversal
         & ~LifecycleFlags.allowParentScopeTraversal
@@ -145,7 +144,7 @@ export class BindingContext implements IBindingContext {
 
   public getObservers(flags: LifecycleFlags): ObserversLookup<IOverrideContext> {
     if (Tracer.enabled) { Tracer.enter('BindingContext', 'getObservers', slice.call(arguments)); }
-    if (this.$observers === void 0) {
+    if (this.$observers == null) {
       this.$observers = new InternalObserversLookup() as ObserversLookup<IOverrideContext>;
     }
     if (Tracer.enabled) { Tracer.leave(); }

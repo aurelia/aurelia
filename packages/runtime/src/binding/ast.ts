@@ -124,8 +124,7 @@ const enum RuntimeError {
   NoBinding = 206,
   NotAFunction = 207,
   UnknownOperator = 208,
-  UndefinedScope = 250, // trying to evaluate on something that's not a valid binding
-  NullScope = 251, // trying to evaluate on an unbound binding
+  NilScope = 250,
 }
 
 export class BindingBehavior implements IBindingBehaviorExpression {
@@ -157,7 +156,7 @@ export class BindingBehavior implements IBindingBehaviorExpression {
 
   public bind(flags: LifecycleFlags, scope: IScope, binding: IConnectableBinding & { [key: string]: IBindingBehavior | undefined }): void {
     if (scope == null) {
-      throw Reporter.error(RuntimeError.NullScope, this);
+      throw Reporter.error(RuntimeError.NilScope, this);
     }
     if (!binding) {
       throw Reporter.error(RuntimeError.NoBinding, this);
@@ -254,7 +253,7 @@ export class ValueConverter implements IValueConverterExpression {
 
   public connect(flags: LifecycleFlags, scope: IScope, binding: IConnectableBinding): void {
     if (scope == null) {
-      throw Reporter.error(RuntimeError.NullScope, this);
+      throw Reporter.error(RuntimeError.NilScope, this);
     }
     if (!binding) {
       throw Reporter.error(RuntimeError.NoBinding, this);
@@ -383,7 +382,7 @@ export class AccessThis implements IAccessThisExpression {
 
   public evaluate(flags: LifecycleFlags, scope: IScope, locator: IServiceLocator): IBindingContext | undefined {
     if (scope == null) {
-      throw Reporter.error(RuntimeError.NullScope, this);
+      throw Reporter.error(RuntimeError.NilScope, this);
     }
     let oc: IOverrideContext | null = scope.overrideContext;
     let i = this.ancestor;
@@ -508,7 +507,7 @@ export class AccessKeyed implements IAccessKeyedExpression {
   public connect(flags: LifecycleFlags, scope: IScope, binding: IConnectableBinding): void {
     const obj = this.object.evaluate(flags, scope, null);
     this.object.connect(flags, scope, binding);
-    if (typeof obj === 'object' && obj !== null) {
+    if (obj instanceof Object) {
       this.key.connect(flags, scope, binding);
       const key = this.key.evaluate(flags, scope, null);
 
@@ -710,8 +709,8 @@ export class Binary implements IBinaryExpression {
   }
   private ['in'](f: LifecycleFlags, s: IScope, l: IServiceLocator): boolean {
     const right = this.right.evaluate(f, s, l);
-    if (right !== null && typeof right === 'object') {
-      return this.left.evaluate(f, s, l) as string in right!;
+    if (right instanceof Object) {
+      return this.left.evaluate(f, s, l) as string in right;
     }
     return false;
   }

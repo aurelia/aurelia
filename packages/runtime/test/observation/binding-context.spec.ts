@@ -213,7 +213,7 @@ describe('BindingContext', function () {
     });
 
     it('null', function () {
-      expect(() => BindingContext.get(null, undefined, undefined, LF.none)).to.throw('Code 251');
+      expect(() => BindingContext.get(null, undefined, undefined, LF.none)).to.throw('Code 250');
     });
 
     it('{ bindingContext: undefined, overrideContext: undefined }', function () {

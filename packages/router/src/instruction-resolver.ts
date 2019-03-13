@@ -164,7 +164,7 @@ export class InstructionResolver {
       return this.stringifyViewportInstruction(this.parseViewportInstruction(instruction), excludeViewport);
     } else {
       let instructionString = instruction.componentName;
-      if (instruction.viewportName !== null && !excludeViewport) {
+      if (instruction.viewportName != null && !excludeViewport) {
         instructionString += this.separators.viewport + instruction.viewportName;
       }
       if (instruction.parametersString) {

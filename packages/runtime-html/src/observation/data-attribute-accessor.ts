@@ -25,7 +25,7 @@ export class DataAttributeAccessor implements DataAttributeAccessor {
   }
 
   public setValueCore(newValue: string): void {
-    if (newValue === null) {
+    if (newValue == null) {
       this.obj.removeAttribute(this.propertyKey);
     } else {
       this.obj.setAttribute(this.propertyKey, newValue);

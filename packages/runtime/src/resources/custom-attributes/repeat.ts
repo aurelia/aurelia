@@ -56,7 +56,7 @@ export class Repeat<C extends ObservedCollection = IObservedArray, T extends INo
     this.persistentFlags = flags & LifecycleFlags.persistentBindingFlags;
     this.checkCollectionObserver(flags);
     let current = this.renderable.$bindingHead as Binding;
-    while (current !== null) {
+    while (current != null) {
       if (ProxyObserver.getRawIfProxy(current.target) === ProxyObserver.getRawIfProxy(this) && current.targetProperty === 'items') {
         this.forOf = current.sourceExpression as ForOfStatement;
         break;
@@ -165,7 +165,7 @@ export class Repeat<C extends ObservedCollection = IObservedArray, T extends INo
       }
 
       $lifecycle!.beginBind();
-      if (indexMap === null) {
+      if (indexMap == null) {
         forOf.iterate(flags, items, (arr, i, item) => {
           view = views[i];
           if (!!view.$scope && view.$scope.bindingContext[local] === item) {
@@ -190,7 +190,7 @@ export class Repeat<C extends ObservedCollection = IObservedArray, T extends INo
     if (this.$state! & (State.isAttached | State.isAttaching)) {
       const { location } = this;
       $lifecycle!.beginAttach();
-      if (indexMap === null) {
+      if (indexMap == null) {
         for (let i = 0, ii = views.length; i < ii; ++i) {
           view = views[i];
           view.hold(location);
@@ -212,7 +212,7 @@ export class Repeat<C extends ObservedCollection = IObservedArray, T extends INo
   private processViewsKeyed(indexMap: IndexMap | null, flags: LifecycleFlags): void {
     const { $lifecycle, local, $scope, factory, forOf, items } = this;
     let views = this.views;
-    if (indexMap === null) {
+    if (indexMap == null) {
       if (this.$state! & (State.isBound | State.isBinding)) {
         $lifecycle!.beginDetach();
         const oldLength = views.length;
@@ -330,7 +330,7 @@ export class Repeat<C extends ObservedCollection = IObservedArray, T extends INo
                 view.$state! |= State.isAttaching;
 
                 let current = view.$componentHead!;
-                while (current !== null) {
+                while (current != null) {
                   current!.$attach(flags | LifecycleFlags.fromAttach);
                   current = current!.$nextComponent!;
                 }
@@ -345,7 +345,7 @@ export class Repeat<C extends ObservedCollection = IObservedArray, T extends INo
                 view.$state! |= State.isDetaching;
 
                 let current = view.$componentTail;
-                while (current !== null) {
+                while (current != null) {
                   current!.$detach(flags | LifecycleFlags.fromDetach);
                   current = current!.$prevComponent!;
                 }
@@ -356,7 +356,7 @@ export class Repeat<C extends ObservedCollection = IObservedArray, T extends INo
                 view.$state! |= State.isAttaching;
 
                 current = view.$componentHead!;
-                while (current !== null) {
+                while (current != null) {
                   current!.$attach(flags | LifecycleFlags.fromAttach);
                   current = current!.$nextComponent!;
                 }

@@ -256,11 +256,11 @@ export class RenderingEngine implements IRenderingEngine {
     parentContext: IRenderContext | null,
     componentType: ICustomElementType | null
   ): ITemplate {
-    if (parentContext === null) {
+    if (parentContext == null) {
       parentContext = this.container as ExposedContext;
     }
 
-    if (definition.template !== null) {
+    if (definition.template != null) {
       const renderContext = createRenderContext(dom, parentContext, definition.dependencies, componentType) as ExposedContext;
 
       if (definition.build.required) {
@@ -470,7 +470,7 @@ export function findElements(nodes: ArrayLike<unknown>): ICustomElement[] {
     const current = nodes[i];
     const component = customElementBehavior(current);
 
-    if (component !== null) {
+    if (component != null) {
       components.push(component);
     }
   }

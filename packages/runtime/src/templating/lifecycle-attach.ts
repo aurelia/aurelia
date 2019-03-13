@@ -71,7 +71,7 @@ export function $attachElement(this: Required<IAttachable & IMountableComponent>
   }
 
   let current = this.$componentHead as Required<IComponent>;
-  while (current !== null) {
+  while (current != null) {
     current.$attach(flags);
     current = current.$nextComponent as Required<IComponent>;
   }
@@ -102,7 +102,7 @@ export function $attachView(this: Required<IAttachable & IMountableComponent>, f
   flags |= LifecycleFlags.fromAttach;
 
   let current = this.$componentHead as Required<IComponent>;
-  while (current !== null) {
+  while (current != null) {
     current.$attach(flags);
     current = current.$nextComponent as Required<IComponent>;
   }
@@ -167,7 +167,7 @@ export function $detachElement(this: Required<IAttachable & IMountableComponent>
     }
 
     let current = this.$componentTail as Required<IComponent>;
-    while (current !== null) {
+    while (current != null) {
       current.$detach(flags);
       current = current.$prevComponent as Required<IComponent>;
     }
@@ -200,7 +200,7 @@ export function $detachView(this: Required<IAttachable & IMountableComponent>, f
     }
 
     let current = this.$componentTail as Required<IComponent>;
-    while (current !== null) {
+    while (current != null) {
       current.$detach(flags);
       current = current.$prevComponent as Required<IComponent>;
     }
@@ -230,7 +230,7 @@ export function $cacheElement(this: Required<IAttachable>, flags: LifecycleFlags
   }
 
   let current = this.$componentTail as Required<IComponent>;
-  while (current !== null) {
+  while (current != null) {
     current.$cache(flags);
     current = current.$prevComponent as Required<IComponent>;
   }
@@ -242,7 +242,7 @@ export function $cacheView(this: Required<IAttachable>, flags: LifecycleFlags): 
   if (Tracer.enabled) { Tracer.enter('IView', '$cache', slice.call(arguments)); }
   flags |= LifecycleFlags.fromCache;
   let current = this.$componentTail as Required<IComponent>;
-  while (current !== null) {
+  while (current != null) {
     current.$cache(flags);
     current = current.$prevComponent as Required<IComponent>;
   }

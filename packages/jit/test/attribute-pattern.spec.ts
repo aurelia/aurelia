@@ -161,7 +161,7 @@ describe('@attributePattern', function () {
           interpreter.add(attrPattern.$patternDefs);
 
           const result = interpreter.interpret(value);
-          if (match !== null) {
+          if (match != null) {
             expect(attrPattern.$patternDefs.map(d => d.pattern).indexOf(result.pattern)).to.be.gte(0);
             attrPattern[result.pattern](value, 'foo', result.parts);
             expect(receivedRawName).to.equal(value);

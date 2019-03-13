@@ -68,7 +68,7 @@ export class HTMLTemplateElementFactory implements ITemplateElementFactory {
       const node = template.content.firstElementChild;
       // if the input is either not wrapped in a template or there is more than one node,
       // return the whole template that wraps it/them (and create a new one for the next input)
-      if (node === null || node.nodeName !== 'TEMPLATE' || node.nextElementSibling !== null) {
+      if (node == null || node.nodeName !== 'TEMPLATE' || node.nextElementSibling != null) {
         this.template = this.dom.createTemplate() as HTMLTemplateElement;
         if (Profiler.enabled) { leave(); }
         return template;
@@ -88,7 +88,7 @@ export class HTMLTemplateElementFactory implements ITemplateElementFactory {
     }
     // we got a template element, remove it from the DOM if it's present there and don't
     // do any other processing
-    if (input.parentNode !== null) {
+    if (input.parentNode != null) {
       input.parentNode.removeChild(input);
     }
     if (Profiler.enabled) { leave(); }

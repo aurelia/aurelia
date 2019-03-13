@@ -192,7 +192,7 @@ export class TemplateCompiler implements ITemplateCompiler {
     this.instructionRows = instructionRowsSave;
 
     const def = {
-      name: symbol.partName === null ? symbol.res : symbol.partName,
+      name: symbol.partName == null ? symbol.res : symbol.partName,
       template: symbol.physicalNode,
       instructions: controllerInstructions,
       build: buildNotRequired
@@ -219,9 +219,9 @@ export class TemplateCompiler implements ITemplateCompiler {
   }
 
   private compileBinding(symbol: BindingSymbol): HTMLAttributeInstruction {
-    if (symbol.command === null) {
+    if (symbol.command == null) {
       // either an interpolation or a normal string value assigned to an element or attribute binding
-      if (symbol.expression === null) {
+      if (symbol.expression == null) {
         // the template binder already filtered out non-bindables, so we know we need a setProperty here
         return new SetPropertyInstruction(symbol.rawValue, symbol.bindable.propName);
       } else {
@@ -260,8 +260,8 @@ export class TemplateCompiler implements ITemplateCompiler {
   }
 
   private compilePlainAttribute(symbol: PlainAttributeSymbol): HTMLAttributeInstruction {
-    if (symbol.command === null) {
-      if (symbol.expression === null) {
+    if (symbol.command == null) {
+      if (symbol.expression == null) {
         // a plain attribute on a surrogate
         return new SetAttributeInstruction(symbol.syntax.rawValue, symbol.syntax.target);
       } else {

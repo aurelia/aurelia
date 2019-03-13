@@ -84,7 +84,7 @@ export class TemplateControllerSymbol implements IResourceAttributeSymbol, IPare
 
   private _bindings: BindingSymbol[] | null;
   public get bindings(): BindingSymbol[] {
-    if (this._bindings === null) {
+    if (this._bindings == null) {
       this._bindings = [];
       this.flags |= SymbolFlags.hasBindings;
     }
@@ -136,7 +136,7 @@ export class CustomAttributeSymbol implements IAttributeSymbol, IResourceAttribu
 
   private _bindings: BindingSymbol[] | null;
   public get bindings(): BindingSymbol[] {
-    if (this._bindings === null) {
+    if (this._bindings == null) {
       this._bindings = [];
       this.flags |= SymbolFlags.hasBindings;
     }
@@ -222,7 +222,7 @@ export class CustomElementSymbol implements IElementSymbol, ISymbolWithBindings,
 
   private _attributes: IAttributeSymbol[] | null;
   public get attributes(): IAttributeSymbol[] {
-    if (this._attributes === null) {
+    if (this._attributes == null) {
       this._attributes = [];
       this.flags |= SymbolFlags.hasAttributes;
     }
@@ -231,7 +231,7 @@ export class CustomElementSymbol implements IElementSymbol, ISymbolWithBindings,
 
   private _bindings: BindingSymbol[] | null;
   public get bindings(): BindingSymbol[] {
-    if (this._bindings === null) {
+    if (this._bindings == null) {
       this._bindings = [];
       this.flags |= SymbolFlags.hasBindings;
     }
@@ -240,7 +240,7 @@ export class CustomElementSymbol implements IElementSymbol, ISymbolWithBindings,
 
   private _childNodes: INodeSymbol[] | null;
   public get childNodes(): INodeSymbol[] {
-    if (this._childNodes === null) {
+    if (this._childNodes == null) {
       this._childNodes = [];
       this.flags |= SymbolFlags.hasChildNodes;
     }
@@ -249,7 +249,7 @@ export class CustomElementSymbol implements IElementSymbol, ISymbolWithBindings,
 
   private _parts: ReplacePartSymbol[] | null;
   public get parts(): ReplacePartSymbol[] {
-    if (this._parts === null) {
+    if (this._parts == null) {
       this._parts = [];
       this.flags |= SymbolFlags.hasParts;
     }
@@ -286,7 +286,7 @@ export class LetElementSymbol implements INodeSymbol, ISymbolWithBindings, ISymb
 
   private _bindings: BindingSymbol[] | null;
   public get bindings(): BindingSymbol[] {
-    if (this._bindings === null) {
+    if (this._bindings == null) {
       this._bindings = [];
       this.flags |= SymbolFlags.hasBindings;
     }
@@ -316,7 +316,7 @@ export class PlainElementSymbol implements IElementSymbol {
 
   private _attributes: IAttributeSymbol[] | null;
   public get attributes(): IAttributeSymbol[] {
-    if (this._attributes === null) {
+    if (this._attributes == null) {
       this._attributes = [];
       this.flags |= SymbolFlags.hasAttributes;
     }
@@ -325,7 +325,7 @@ export class PlainElementSymbol implements IElementSymbol {
 
   private _childNodes: INodeSymbol[] | null;
   public get childNodes(): INodeSymbol[] {
-    if (this._childNodes === null) {
+    if (this._childNodes == null) {
       this._childNodes = [];
       this.flags |= SymbolFlags.hasChildNodes;
     }

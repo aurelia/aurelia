@@ -105,7 +105,7 @@ export class TemplateBinder {
         // TODO: use reporter
       }
       const attrInfo = this.resources.getAttributeInfo(attrSyntax);
-      if (attrInfo === null) {
+      if (attrInfo == null) {
         this.bindPlainAttribute(attrSyntax, attr);
       } else if (attrInfo.isTemplateController) {
         if (Profiler.enabled) { leave(); }
@@ -156,11 +156,11 @@ export class TemplateBinder {
 
     let manifestRoot: CustomElementSymbol = (void 0)!;
     let name = node.getAttribute('as-element');
-    if (name === null) {
+    if (name == null) {
       name = node.nodeName.toLowerCase();
     }
     const elementInfo = this.resources.getElementInfo(name);
-    if (elementInfo === null) {
+    if (elementInfo == null) {
       // there is no registered custom element with this name
       // @ts-ignore
       this.manifest = new PlainElementSymbol(node);
@@ -178,7 +178,7 @@ export class TemplateBinder {
     // wrapping them
     this.bindAttributes(node, parentManifest);
 
-    if (manifestRoot !== undefined && manifestRoot.isContainerless) {
+    if (manifestRoot != null && manifestRoot.isContainerless) {
       node.parentNode!.replaceChild(manifestRoot.marker as Node, node);
     } else if (this.manifest!.isTarget) {
       node.classList.add('au');
@@ -207,7 +207,7 @@ export class TemplateBinder {
       }
       const attrSyntax = this.attrParser.parse(attr.name, attr.value);
       const command = this.resources.getBindingCommand(attrSyntax);
-      const bindingType = command === null ? BindingType.Interpolation : command.bindingType;
+      const bindingType = command == null ? BindingType.Interpolation : command.bindingType;
       const expr = this.exprParser.parse(attrSyntax.rawValue, bindingType);
       const to = PLATFORM.camelCase(attrSyntax.target);
       const info = new BindableInfo(to, BindingMode.toView);
@@ -243,7 +243,7 @@ export class TemplateBinder {
       const attrSyntax = this.attrParser.parse(attr.name, attr.value);
       const attrInfo = this.resources.getAttributeInfo(attrSyntax);
 
-      if (attrInfo === null) {
+      if (attrInfo == null) {
         // it's not a custom attribute but might be a regular bound attribute or interpolation (it might also be nothing)
         this.bindPlainAttribute(attrSyntax, attr);
       } else if (attrInfo.isTemplateController) {
@@ -272,7 +272,7 @@ export class TemplateBinder {
 
     processTemplateControllers(this.dom, manifestProxy, manifest!);
 
-    if (replacePart === null) {
+    if (replacePart == null) {
       // the proxy is either the manifest itself or the outer-most controller; add it directly to the parent
       parentManifest.childNodes.push(manifestProxy);
     } else {
@@ -303,7 +303,7 @@ export class TemplateBinder {
     }
 
     let nextChild: ChildNode;
-    while (childNode !== null) {
+    while (childNode != null) {
       switch (childNode.nodeType) {
         case NodeType.Element:
           nextChild = childNode.nextSibling as ChildNode;
@@ -331,12 +331,12 @@ export class TemplateBinder {
   private bindText(node: Text): ChildNode {
     if (Tracer.enabled) { Tracer.enter('TemplateBinder', 'bindText', slice.call(arguments)); }
     const interpolation = this.exprParser.parse(node.wholeText, BindingType.Interpolation);
-    if (interpolation !== null) {
+    if (interpolation != null) {
       const symbol = new TextSymbol(this.dom, node, interpolation);
       this.manifest!.childNodes.push(symbol);
       processInterpolationText(symbol);
     }
-    while (node.nextSibling !== null && node.nextSibling.nodeType === NodeType.Text) {
+    while (node.nextSibling != null && node.nextSibling.nodeType === NodeType.Text) {
       node = node.nextSibling as Text;
     }
     if (Tracer.enabled) { Tracer.leave(); }
@@ -349,13 +349,13 @@ export class TemplateBinder {
     let symbol: TemplateControllerSymbol;
     // dynamicOptions logic here is similar to (and explained in) bindCustomAttribute
     const command = this.resources.getBindingCommand(attrSyntax);
-    if (command === null && attrInfo.hasDynamicOptions) {
+    if (command == null && attrInfo.hasDynamicOptions) {
       symbol = new TemplateControllerSymbol(this.dom, attrSyntax, attrInfo, this.partName);
       this.partName = null;
       this.bindMultiAttribute(symbol, attrInfo, attrSyntax.rawValue);
     } else {
       symbol = new TemplateControllerSymbol(this.dom, attrSyntax, attrInfo, this.partName);
-      const bindingType = command === null ? BindingType.Interpolation : command.bindingType;
+      const bindingType = command == null ? BindingType.Interpolation : command.bindingType;
       const expr = this.exprParser.parse(attrSyntax.rawValue, bindingType);
       symbol.bindings.push(new BindingSymbol(command, attrInfo.bindable, expr, attrSyntax.rawValue, attrSyntax.target));
       this.partName = null;
@@ -370,7 +370,7 @@ export class TemplateBinder {
 
     const command = this.resources.getBindingCommand(attrSyntax);
     let symbol: CustomAttributeSymbol;
-    if (command === null && attrInfo.hasDynamicOptions) {
+    if (command == null && attrInfo.hasDynamicOptions) {
       // a dynamicOptions (semicolon separated binding) is only valid without a binding command;
       // the binding commands must be declared in the dynamicOptions expression itself
       symbol = new CustomAttributeSymbol(attrSyntax, attrInfo);
@@ -379,7 +379,7 @@ export class TemplateBinder {
       // we've either got a command (with or without dynamicOptions, the latter maps to the first bindable),
       // or a null command but without dynamicOptions (which may be an interpolation or a normal string)
       symbol = new CustomAttributeSymbol(attrSyntax, attrInfo);
-      const bindingType = command === null ? BindingType.Interpolation : command.bindingType;
+      const bindingType = command == null ? BindingType.Interpolation : command.bindingType;
       const expr = this.exprParser.parse(attrSyntax.rawValue, bindingType);
       symbol.bindings.push(new BindingSymbol(command, attrInfo.bindable, expr, attrSyntax.rawValue, attrSyntax.target));
     }
@@ -398,7 +398,7 @@ export class TemplateBinder {
       attr = attributes[i];
       const attrSyntax = this.attrParser.parse(attr.name, attr.value);
       const command = this.resources.getBindingCommand(attrSyntax);
-      const bindingType = command === null ? BindingType.Interpolation : command.bindingType;
+      const bindingType = command == null ? BindingType.Interpolation : command.bindingType;
       const expr = this.exprParser.parse(attrSyntax.rawValue, bindingType);
       let bindable = attrInfo.bindables[attrSyntax.target];
       if (bindable === undefined) {
@@ -421,23 +421,23 @@ export class TemplateBinder {
     }
 
     const command = this.resources.getBindingCommand(attrSyntax);
-    const bindingType = command === null ? BindingType.Interpolation : command.bindingType;
+    const bindingType = command == null ? BindingType.Interpolation : command.bindingType;
     const manifest = this.manifest;
     const expr = this.exprParser.parse(attrSyntax.rawValue, bindingType);
 
     if (manifest!.flags & SymbolFlags.isCustomElement) {
       const bindable = (manifest as CustomElementSymbol).bindables[attrSyntax.target];
-      if (bindable !== undefined) {
+      if (bindable != null) {
         // if the attribute name matches a bindable property name, add it regardless of whether it's a command, interpolation, or just a plain string;
         // the template compiler will translate it to the correct instruction
         (manifest as CustomElementSymbol).bindings.push(new BindingSymbol(command, bindable, expr, attrSyntax.rawValue, attrSyntax.target));
         manifest!.isTarget = true;
-      } else if (expr !== null || attrSyntax.target === 'ref') {
+      } else if (expr != null || attrSyntax.target === 'ref') {
         // if it does not map to a bindable, only add it if we were able to parse an expression (either a command or interpolation)
         manifest!.attributes.push(new PlainAttributeSymbol(attrSyntax, command, expr));
         manifest!.isTarget = true;
       }
-    } else if (expr !== null || attrSyntax.target === 'ref') {
+    } else if (expr != null || attrSyntax.target === 'ref') {
       // either a binding command, an interpolation, or a ref
       manifest!.attributes.push(new PlainAttributeSymbol(attrSyntax, command, expr));
       manifest!.isTarget = true;
@@ -447,7 +447,7 @@ export class TemplateBinder {
       manifest!.attributes.push(new PlainAttributeSymbol(attrSyntax, command, expr));
     }
 
-    if (command === null && expr !== null) {
+    if (command == null && expr != null) {
       // if it's an interpolation, clear the attribute value
       attr.value = '';
     }
@@ -459,7 +459,7 @@ export class TemplateBinder {
     if (Tracer.enabled) { Tracer.enter('TemplateBinder', 'declareReplacePart', slice.call(arguments)); }
 
     const name = node.getAttribute('replace-part');
-    if (name === null) {
+    if (name == null) {
       if (Tracer.enabled) { Tracer.leave(); }
       return null!;
     }
@@ -475,7 +475,7 @@ export class TemplateBinder {
 function processInterpolationText(symbol: TextSymbol): void {
   const node = symbol.physicalNode as Text;
   const parentNode = node.parentNode;
-  while (node.nextSibling !== null && node.nextSibling.nodeType === NodeType.Text) {
+  while (node.nextSibling != null && node.nextSibling.nodeType === NodeType.Text) {
     parentNode!.removeChild(node.nextSibling);
   }
   node.textContent = '';

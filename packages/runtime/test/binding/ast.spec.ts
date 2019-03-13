@@ -369,7 +369,7 @@ describe('AST', function () {
           throwsOn(expr, 'evaluate', 'Code 250', null, undefined);
         });
         it(`${text}, null`, function () {
-          throwsOn(expr, 'evaluate', 'Code 251', null, null);
+          throwsOn(expr, 'evaluate', 'Code 250', null, null);
         });
       }
     });
@@ -410,7 +410,7 @@ describe('AST', function () {
           throwsOn(expr, 'evaluate', 'Code 250', null, undefined);
         });
         it(`${text}, null`, function () {
-          throwsOn(expr, 'evaluate', 'Code 251', null, null);
+          throwsOn(expr, 'evaluate', 'Code 250', null, null);
         });
       }
     });
@@ -425,7 +425,7 @@ describe('AST', function () {
           throwsOn(expr, 'assign', 'Code 250', null, undefined);
         });
         it(`${text}, null`, function () {
-          throwsOn(expr, 'assign', 'Code 251', null, null);
+          throwsOn(expr, 'assign', 'Code 250', null, null);
         });
       }
     });
@@ -456,7 +456,7 @@ describe('AST', function () {
           throwsOn(expr, 'connect', 'Code 250', null, undefined);
         });
         it(`${text}, null`, function () {
-          throwsOn(expr, 'connect', 'Code 251', null, null);
+          throwsOn(expr, 'connect', 'Code 250', null, null);
         });
       }
     });
@@ -473,7 +473,7 @@ describe('AST', function () {
           throwsOn(expr, 'evaluate', 'Code 250', null, undefined);
         });
         it(`${text}, null`, function () {
-          throwsOn(expr, 'evaluate', 'Code 251', null, null);
+          throwsOn(expr, 'evaluate', 'Code 250', null, null);
         });
       }
     });
@@ -502,7 +502,7 @@ describe('AST', function () {
           throwsOn(expr, 'connect', 'Code 250', null, undefined);
         });
         it(`${text}, null`, function () {
-          throwsOn(expr, 'connect', 'Code 251', null, null);
+          throwsOn(expr, 'connect', 'Code 250', null, null);
         });
       }
     });
@@ -528,7 +528,7 @@ describe('AST', function () {
           throwsOn(expr, 'evaluate', 'Code 250', null, undefined);
         });
         it(`${text}, null`, function () {
-          throwsOn(expr, 'evaluate', 'Code 251', null, null);
+          throwsOn(expr, 'evaluate', 'Code 250', null, null);
         });
       }
     });
@@ -550,7 +550,7 @@ describe('AST', function () {
           throwsOn(expr, 'connect', 'Code 250', null, undefined);
         });
         it(`${text}, null`, function () {
-          throwsOn(expr, 'connect', 'Code 251', null, null);
+          throwsOn(expr, 'connect', 'Code 250', null, null);
         });
       }
     });
@@ -570,7 +570,7 @@ describe('AST', function () {
           throwsOn(expr, 'evaluate', 'Code 250', null, undefined);
         });
         it(`${text}, null`, function () {
-          throwsOn(expr, 'evaluate', 'Code 251', null, null);
+          throwsOn(expr, 'evaluate', 'Code 250', null, null);
         });
       }
     });
@@ -606,7 +606,7 @@ describe('AST', function () {
           throwsOn(expr, 'connect', 'Code 250', null, undefined);
         });
         it(`${text}, null`, function () {
-          throwsOn(expr, 'connect', 'Code 251', null, null);
+          throwsOn(expr, 'connect', 'Code 250', null, null);
         });
       }
     });
@@ -619,7 +619,7 @@ describe('AST', function () {
           throwsOn(expr, 'evaluate', 'Code 250', null, undefined);
         });
         it(`${text}, null`, function () {
-          throwsOn(expr, 'evaluate', 'Code 251', null, null);
+          throwsOn(expr, 'evaluate', 'Code 250', null, null);
         });
       }
     });
@@ -641,7 +641,7 @@ describe('AST', function () {
           throwsOn(expr, 'connect', 'Code 250', null, undefined);
         });
         it(`${text}, null`, function () {
-          throwsOn(expr, 'connect', 'Code 251', null, null);
+          throwsOn(expr, 'connect', 'Code 250', null, null);
         });
       }
     });
@@ -654,7 +654,7 @@ describe('AST', function () {
           throwsOn(expr, 'evaluate', 'Code 250', null, undefined);
         });
         it(`${text}, null`, function () {
-          throwsOn(expr, 'evaluate', 'Code 251', null, null);
+          throwsOn(expr, 'evaluate', 'Code 250', null, null);
         });
       }
     });
@@ -665,7 +665,7 @@ describe('AST', function () {
           throwsOn(expr, 'assign', 'Code 250', null, undefined);
         });
         it(`${text}, null`, function () {
-          throwsOn(expr, 'assign', 'Code 251', null, null);
+          throwsOn(expr, 'assign', 'Code 250', null, null);
         });
       }
     });
@@ -731,7 +731,7 @@ describe('AST', function () {
           throwsOn(expr, 'connect', 'Code 250', null, undefined);
         });
         it(`${text}, null`, function () {
-          throwsOn(expr, 'connect', 'Code 251', null, null);
+          throwsOn(expr, 'connect', 'Code 250', null, null);
         });
       }
     });
@@ -771,7 +771,7 @@ describe('AST', function () {
           throwsOn(expr, 'evaluate', 'Code 250', null, undefined);
         });
         it(`${text}, null`, function () {
-          throwsOn(expr, 'evaluate', 'Code 251', null, null);
+          throwsOn(expr, 'evaluate', 'Code 250', null, null);
         });
       }
     });
@@ -782,7 +782,7 @@ describe('AST', function () {
           throwsOn(expr, 'assign', 'Code 250', null, undefined);
         });
         it(`${text}, null`, function () {
-          throwsOn(expr, 'assign', 'Code 251', null, null);
+          throwsOn(expr, 'assign', 'Code 250', null, null);
         });
       }
     });
@@ -793,7 +793,7 @@ describe('AST', function () {
           throwsOn(expr, 'connect', 'Code 250', null, undefined);
         });
         it(`${text}, null`, function () {
-          throwsOn(expr, 'connect', 'Code 251', null, null);
+          throwsOn(expr, 'connect', 'Code 250', null, null);
         });
       }
     });
@@ -804,7 +804,7 @@ describe('AST', function () {
           throwsOn(expr, 'bind', 'Code 250', null, undefined);
         });
         it(`${text}, null`, function () {
-          throwsOn(expr, 'bind', 'Code 251', null, null);
+          throwsOn(expr, 'bind', 'Code 250', null, null);
         });
       }
     });
@@ -1969,7 +1969,7 @@ describe('BindingBehavior', function () {
       expect(binding['binding-behavior:mock']).to.equal(undefined);
 
       // act
-      sut.bind(flags, scope, binding);
+      sut.bind(flags, scope, binding as any);
 
       // assert
       expect(binding['binding-behavior:mock']).to.equal(mock);
@@ -2107,10 +2107,10 @@ describe('BindingBehavior', function () {
       expect(binding['binding-behavior:mock']).to.equal(mock);
 
       // act
-      sut.unbind(flags, scope, binding);
+      sut.unbind(flags, scope, binding as any);
 
       // assert
-      expect(binding['binding-behavior:mock']).to.equal(null);
+      expect(binding['binding-behavior:mock']).to.equal(void 0);
 
       expect(mock.calls.length).to.equal(2);
       expect(mock.calls[1].length).to.equal(4);

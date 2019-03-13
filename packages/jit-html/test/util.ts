@@ -70,7 +70,7 @@ export class HTMLTestContext {
   private readonly config: IRegistry;
 
   public get container(): IContainer {
-    if (this._container === null) {
+    if (this._container == null) {
       this._container = DI.createContainer(this.config);
       Registration.instance(IDOM, this.dom).register(this._container);
       Registration.instance(HTMLTestContext, this).register(this._container);
@@ -78,37 +78,37 @@ export class HTMLTestContext {
     return this._container;
   }
   public get templateCompiler(): ITemplateCompiler {
-    if (this._templateCompiler === null) {
+    if (this._templateCompiler == null) {
       this._templateCompiler = this.container.get(ITemplateCompiler);
     }
     return this._templateCompiler;
   }
   public get observerLocator(): IObserverLocator {
-    if (this._observerLocator === null) {
+    if (this._observerLocator == null) {
       this._observerLocator = this.container.get(IObserverLocator);
     }
     return this._observerLocator;
   }
   public get lifecycle(): ILifecycle & { flushCount?: number } {
-    if (this._lifecycle === null) {
+    if (this._lifecycle == null) {
       this._lifecycle = this.container.get(ILifecycle);
     }
     return this._lifecycle;
   }
   public get renderer(): IRenderer {
-    if (this._renderer === null) {
+    if (this._renderer == null) {
       this._renderer = this.container.get(IRenderer);
     }
     return this._renderer;
   }
   public get projectorLocator(): IProjectorLocator {
-    if (this._projectorLocator === null) {
+    if (this._projectorLocator == null) {
       this._projectorLocator = this.container.get(IProjectorLocator);
     }
     return this._projectorLocator;
   }
   public get renderingEngine(): IRenderingEngine {
-    if (this._renderingEngine === null) {
+    if (this._renderingEngine == null) {
       this._renderingEngine = this.container.get(IRenderingEngine);
     }
     return this._renderingEngine;

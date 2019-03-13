@@ -73,7 +73,7 @@ export class AuNode implements INode {
     if (this._isConnected !== value) {
       this._isConnected = value;
       let current = this.firstChild;
-      while (current !== null) {
+      while (current != null) {
         current.isConnected = value;
         current = current.nextSibling;
       }
@@ -85,7 +85,7 @@ export class AuNode implements INode {
   public get textContent(): string {
     let textContent = this._textContent;
     let current = this.firstChild;
-    while (current !== null) {
+    while (current != null) {
       if (current.isRenderLocation === false) {
         textContent += current.textContent;
       }
@@ -159,10 +159,10 @@ export class AuNode implements INode {
   }
 
   public appendChild(childNode: AuNode): this {
-    if (childNode.parentNode !== null) {
+    if (childNode.parentNode != null) {
       childNode.remove();
     }
-    if (this.firstChild === null) {
+    if (this.firstChild == null) {
       this.firstChild = childNode;
     } else {
       this.lastChild.nextSibling = childNode;
@@ -180,10 +180,10 @@ export class AuNode implements INode {
     if (childNode.parentNode === this) {
       const prev = childNode.previousSibling;
       const next = childNode.nextSibling;
-      if (prev !== null) {
+      if (prev != null) {
         prev.nextSibling = next;
       }
-      if (next !== null) {
+      if (next != null) {
         next.previousSibling = prev;
       }
       if (this.firstChild === childNode) {
@@ -203,7 +203,7 @@ export class AuNode implements INode {
 
   public remove(): void {
     const currentParent = this.parentNode;
-    if (currentParent !== null) {
+    if (currentParent != null) {
       currentParent.removeChild(this);
     }
   }
@@ -218,10 +218,10 @@ export class AuNode implements INode {
     newNode.previousSibling = oldNode.previousSibling;
     newNode.nextSibling = oldNode.nextSibling;
     newNode.parentNode = this;
-    if (newNode.previousSibling !== null) {
+    if (newNode.previousSibling != null) {
       newNode.previousSibling.nextSibling = newNode;
     }
-    if (newNode.nextSibling !== null) {
+    if (newNode.nextSibling != null) {
       newNode.nextSibling.previousSibling = newNode;
     }
     newNode.isMounted = true;
@@ -241,7 +241,7 @@ export class AuNode implements INode {
   }
 
   public insertBefore(newNode: AuNode, refNode: AuNode): void {
-    if (newNode.parentNode !== null) {
+    if (newNode.parentNode != null) {
       newNode.remove();
     }
     const idx = this.childNodes.indexOf(refNode);
@@ -249,7 +249,7 @@ export class AuNode implements INode {
 
     newNode.nextSibling = refNode;
     newNode.previousSibling = refNode.previousSibling;
-    if (refNode.previousSibling !== null) {
+    if (refNode.previousSibling != null) {
       refNode.previousSibling.nextSibling = newNode;
     }
     refNode.previousSibling = newNode;
@@ -266,7 +266,7 @@ export class AuNode implements INode {
     newNode._textContent = this._textContent;
     if (deep === true) {
       let current = this.firstChild;
-      while (current !== null) {
+      while (current != null) {
         newNode.appendChild(current.cloneNode(true));
         current = current.nextSibling;
       }
@@ -276,7 +276,7 @@ export class AuNode implements INode {
 
   public populateTargets(targets: AuNode[]): void {
     let current = this.firstChild;
-    while (current !== null) {
+    while (current != null) {
       if (current.isTarget === true) {
         targets.push(current);
       }
@@ -325,7 +325,7 @@ export class AuDOM implements IDOM<AuNode> {
       } else if (nodeOrText.isWrapper === true) {
         let current = nodeOrText.firstChild;
         let next: AuNode;
-        while (current !== null) {
+        while (current != null) {
           next = current.nextSibling;
           template.appendChild(current);
           current = next;
@@ -460,7 +460,7 @@ export class AuNodeSequence implements INodeSequence<AuNode> {
     const parent = refNode.parentNode;
     let current = this.firstChild;
     let next: AuNode;
-    while (current !== null) {
+    while (current != null) {
       next = current.nextSibling;
       parent.insertBefore(current, refNode);
       current = next;
@@ -468,7 +468,7 @@ export class AuNodeSequence implements INodeSequence<AuNode> {
     if (refNode.isRenderLocation) {
       this.end = refNode;
       this.start = refNode.$start;
-      if (this.start.$nodes === null) {
+      if (this.start.$nodes == null) {
         this.start.$nodes = this;
       } else {
         this.start.$nodes = PLATFORM.emptyObject;
@@ -479,7 +479,7 @@ export class AuNodeSequence implements INodeSequence<AuNode> {
   public appendTo(parent: AuNode): void {
     let current = this.firstChild;
     let next: AuNode;
-    while (current !== null) {
+    while (current != null) {
       next = current.nextSibling;
       parent.appendChild(current);
       current = next;
@@ -488,7 +488,7 @@ export class AuNodeSequence implements INodeSequence<AuNode> {
 
   public remove(): void {
     const wrapper = this.wrapper;
-    if (this.start !== null && this.start.$nodes === this) {
+    if (this.start != null && this.start.$nodes === this) {
       const end = this.end;
       let next: AuNode;
       let current = this.start.nextSibling;
@@ -505,7 +505,7 @@ export class AuNodeSequence implements INodeSequence<AuNode> {
       if (current.parentNode !== wrapper) {
         const end = this.lastChild;
         let next: AuNode;
-        while (current !== null) {
+        while (current != null) {
           next = current.nextSibling;
           wrapper.appendChild(current);
           if (current === end) {

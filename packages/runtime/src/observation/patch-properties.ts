@@ -3,7 +3,7 @@ import { AccessorOrObserver, CollectionKind, ICollectionObserver, IObserversLook
 
 /** @internal */
 export function mayHaveObservers(value: unknown): value is { $observers: IObserversLookup; $observer: ICollectionObserver<CollectionKind.indexed | CollectionKind.keyed> } {
-  return value !== null && typeof value === 'object';
+  return value instanceof Object;
 }
 
 /**
@@ -13,17 +13,17 @@ export function mayHaveObservers(value: unknown): value is { $observers: IObserv
  */
 export function patchProperties(value: unknown, flags: LifecycleFlags): void {
   if (mayHaveObservers(value)) {
-    if (value.$observers !== undefined) {
+    if (value.$observers != null) {
       const observers = value.$observers;
       let key: string;
       let observer: AccessorOrObserver;
       for (key in observers) {
         observer = observers[key as keyof typeof observers] as AccessorOrObserver;
-        if (observer.$patch !== undefined) {
+        if (observer.$patch != null) {
           observer.$patch(flags | LifecycleFlags.patchStrategy | LifecycleFlags.updateTargetInstance | LifecycleFlags.fromFlush);
         }
       }
-    } else if (value.$observer !== undefined && value.$observer.$patch !== undefined) {
+    } else if (value.$observer != null && value.$observer.$patch != null) {
       value.$observer.$patch(flags | LifecycleFlags.patchStrategy | LifecycleFlags.updateTargetInstance | LifecycleFlags.fromFlush);
     }
   }
@@ -31,9 +31,9 @@ export function patchProperties(value: unknown, flags: LifecycleFlags): void {
 
 /** @internal */
 export function patchProperty(value: unknown, key: string, flags: LifecycleFlags): void {
-  if (mayHaveObservers(value) && value.$observers !== undefined) {
+  if (mayHaveObservers(value) && value.$observers != null) {
     const observer = value.$observers[key as keyof typeof value['$observers']] as AccessorOrObserver;
-    if (observer && observer.$patch !== undefined) {
+    if (observer != null && observer.$patch != null) {
       observer.$patch(flags | LifecycleFlags.patchStrategy | LifecycleFlags.updateTargetInstance | LifecycleFlags.fromFlush);
     }
   }

@@ -23,19 +23,19 @@ export interface View<T extends INode = INode> extends IView<T> {}
 
 /** @internal */
 export class View<T extends INode = INode> implements IView<T> {
-  public $bindingHead: IBinding;
-  public $bindingTail: IBinding;
+  public $bindingHead?: IBinding;
+  public $bindingTail?: IBinding;
 
-  public $componentHead: IComponent;
-  public $componentTail: IComponent;
+  public $componentHead?: IComponent;
+  public $componentTail?: IComponent;
 
-  public $nextComponent: IComponent;
-  public $prevComponent: IComponent;
+  public $nextComponent?: IComponent;
+  public $prevComponent?: IComponent;
 
-  public $nextMount: IMountableComponent;
-  public $nextUnmount: IMountableComponent;
+  public $nextMount?: IMountableComponent;
+  public $nextUnmount?: IMountableComponent;
 
-  public $nextUnbindAfterDetach: IComponent;
+  public $nextUnbindAfterDetach?: IComponent;
 
   public $state: State;
   public $scope: IScope;
@@ -48,23 +48,6 @@ export class View<T extends INode = INode> implements IView<T> {
   public readonly $lifecycle: ILifecycle;
 
   constructor($lifecycle: ILifecycle, cache: IViewCache<T>) {
-    this.$bindingHead = null!;
-    this.$bindingTail = null!;
-
-    this.$componentHead = null!;
-    this.$componentTail = null!;
-
-    this.$componentHead = null!;
-    this.$componentTail = null!;
-
-    this.$nextComponent = null!;
-    this.$prevComponent = null!;
-
-    this.$nextMount = null!;
-    this.$nextUnmount = null!;
-
-    this.$nextUnbindAfterDetach = null!;
-
     this.$state = State.none;
     this.$scope = null!;
     this.isFree = false;
@@ -164,7 +147,7 @@ export class ViewFactory<T extends INode = INode> implements IViewFactory<T> {
   }
 
   public canReturnToCache(view: IView<T>): boolean {
-    return this.cache !== null && this.cache.length < this.cacheSize;
+    return this.cache != null && this.cache.length < this.cacheSize;
   }
 
   public tryReturnToCache(view: View<T>): boolean {
@@ -181,7 +164,7 @@ export class ViewFactory<T extends INode = INode> implements IViewFactory<T> {
     const cache = this.cache;
     let view: View<T>;
 
-    if (cache !== null && cache.length > 0) {
+    if (cache != null && cache.length > 0) {
       view = cache.pop()!;
       view.$state &= ~State.isCached;
       return view;

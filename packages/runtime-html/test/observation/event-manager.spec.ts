@@ -69,7 +69,7 @@ describe('ListenerTracker', function () {
     const handler = function (e: UIEvent) {
       handlerPath.push(eventPropertiesShallowClone(e));
     };
-    if (listener === null) {
+    if (listener == null) {
       listener = handler;
     } else {
       listener['handleEvent'] = handler;
@@ -202,7 +202,7 @@ describe('TriggerSubscription', function () {
     const ctx = TestContext.createHTMLTestContext();
     const handler = spy();
 
-    if (listener === null) {
+    if (listener == null) {
       listener = handler;
     } else {
       listener['handleEvent'] = handler;
@@ -260,7 +260,7 @@ describe('EventSubscriber', function () {
     const ctx = TestContext.createHTMLTestContext();
     const handler = spy();
 
-    if (listener === null) {
+    if (listener == null) {
       listener = handler;
     } else {
       listener['handleEvent'] = handler;
@@ -471,7 +471,7 @@ describe('EventManager', function () {
       };
       let childListener: EventListenerOrEventListenerObject;
       let parentListener: EventListenerOrEventListenerObject;
-      if (listener === null) {
+      if (listener == null) {
         childListener = childHandler;
         parentListener = parentHandler;
       } else {
@@ -545,7 +545,7 @@ describe('EventManager', function () {
 
                     switch (strategy) {
                       case DelegationStrategy.bubbling:
-                        if (bubbles && shadow === null) {
+                        if (bubbles && shadow == null) {
                           expect(childHandlerPath.length).to.equal(1, 'childHandlerPath.length');
                           expect(childHandlerPath[0].eventPhase).to.equal(BUBBLING_PHASE, 'eventPhase');
                           expect(childHandlerPath[0].target.nodeName).to.equal('CHILD-DIV');
@@ -564,7 +564,7 @@ describe('EventManager', function () {
                         }
                         break;
                       case DelegationStrategy.capturing:
-                        if (shadow === null) {
+                        if (shadow == null) {
                           expect(parentHandlerPath.length).to.equal(1, 'parentHandlerPath.length');
                           expect(parentHandlerPath[0].eventPhase).to.equal(CAPTURING_PHASE, 'eventPhase');
                           expect(parentHandlerPath[0].target.nodeName).to.equal('CHILD-DIV');
@@ -605,7 +605,7 @@ describe('EventManager', function () {
                     switch (strategy) {
                       case DelegationStrategy.bubbling:
                         expect(childHandlerPath.length).to.equal(0, 'childHandlerPath.length');
-                        if (bubbles && shadow === null) {
+                        if (bubbles && shadow == null) {
                           expect(parentHandlerPath.length).to.equal(1, 'parentHandlerPath.length');
                           expect(parentHandlerPath[0].eventPhase).to.equal(BUBBLING_PHASE, 'eventPhase');
                           expect(parentHandlerPath[0].target.nodeName).to.equal('PARENT-DIV');
@@ -616,7 +616,7 @@ describe('EventManager', function () {
                         break;
                       case DelegationStrategy.capturing:
                         expect(childHandlerPath.length).to.equal(0, 'childHandlerPath.length');
-                        if (shadow === null) {
+                        if (shadow == null) {
                           expect(parentHandlerPath.length).to.equal(1, 'parentHandlerPath.length');
                           expect(parentHandlerPath[0].eventPhase).to.equal(CAPTURING_PHASE, 'eventPhase');
                           expect(parentHandlerPath[0].target.nodeName).to.equal('PARENT-DIV');

@@ -44,10 +44,10 @@ export class RuntimeCompilationResources implements IResourceDescriptions {
       resolver = resourceLookup[key] = this.context.getResolver(key, false);
     }
 
-    if (resolver !== null && resolver.getFactory) {
+    if (resolver != null && resolver.getFactory) {
       const factory = resolver.getFactory(this.context);
 
-      if (factory !== null) {
+      if (factory != null) {
         const description = (factory.Type as IResourceType<TDef, TProto>).description;
         return description === undefined ? null : description;
       }
@@ -63,7 +63,7 @@ export class RuntimeCompilationResources implements IResourceDescriptions {
     if (resolver === undefined) {
       resolver = resourceLookup[key] = this.context.getResolver(key, false);
     }
-    if (resolver !== null) {
+    if (resolver != null) {
       const instance = resolver.resolve(this.context, this.context);
       return instance === undefined ? null : instance;
     }

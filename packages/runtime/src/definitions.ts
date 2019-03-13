@@ -314,19 +314,19 @@ export function buildTemplateDefinition(
   // all cases fall through intentionally
   const argLen = arguments.length;
   switch (argLen) {
-    case 13: if (strategy !== null) def.strategy = ensureValidStrategy(strategy);
-    case 12: if (hasSlots !== null) def.hasSlots = hasSlots!;
-    case 11: if (shadowOptions !== null) def.shadowOptions = shadowOptions!;
-    case 10: if (containerless !== null) def.containerless = containerless!;
-    case 9: if (surrogates !== null) def.surrogates = PLATFORM.toArray(surrogates!);
-    case 8: if (dependencies !== null) def.dependencies = PLATFORM.toArray(dependencies!);
-    case 7: if (instructions !== null) def.instructions = PLATFORM.toArray(instructions!) as ITargetedInstruction[][];
-    case 6: if (bindables !== null) def.bindables = { ...bindables };
-    case 5: if (build !== null) def.build = build === true ? buildRequired : build === false ? buildNotRequired : { ...build! };
-    case 4: if (cache !== null) def.cache = cache!;
-    case 3: if (template !== null) def.template = template;
+    case 13: if (strategy != null) def.strategy = ensureValidStrategy(strategy);
+    case 12: if (hasSlots != null) def.hasSlots = hasSlots!;
+    case 11: if (shadowOptions != null) def.shadowOptions = shadowOptions!;
+    case 10: if (containerless != null) def.containerless = containerless!;
+    case 9: if (surrogates != null) def.surrogates = PLATFORM.toArray(surrogates!);
+    case 8: if (dependencies != null) def.dependencies = PLATFORM.toArray(dependencies!);
+    case 7: if (instructions != null) def.instructions = PLATFORM.toArray(instructions!) as ITargetedInstruction[][];
+    case 6: if (bindables != null) def.bindables = { ...bindables };
+    case 5: if (build != null) def.build = build === true ? buildRequired : build === false ? buildNotRequired : { ...build! };
+    case 4: if (cache != null) def.cache = cache!;
+    case 3: if (template != null) def.template = template;
     case 2:
-      if (ctor !== null) {
+      if (ctor != null) {
         if (ctor['bindables']) {
           def.bindables = Bindable.for(ctor as unknown as {}).get();
         }
@@ -341,7 +341,7 @@ export function buildTemplateDefinition(
         if (nameOrDef.length > 0) {
           def.name = nameOrDef;
         }
-      } else if (nameOrDef !== null) {
+      } else if (nameOrDef != null) {
         def.strategy = ensureValidStrategy(nameOrDef.strategy);
         templateDefinitionAssignables.forEach(prop => {
           if (nameOrDef[prop as keyof typeof nameOrDef]) {

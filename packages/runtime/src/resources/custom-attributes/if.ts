@@ -18,10 +18,10 @@ export class If<T extends INode = INode> implements If<T> {
 
   @bindable public value: boolean;
 
-  public elseFactory: IViewFactory<T> | null;
-  public elseView: IView<T> | null;
-  public ifFactory: IViewFactory<T>;
-  public ifView: IView<T> | null;
+  public elseFactory?: IViewFactory<T>;
+  public elseView?: IView<T>;
+  public ifFactory?: IViewFactory<T>;
+  public ifView?: IView<T>;
   public location: IRenderLocation<T>;
   public coordinator: CompositionCoordinator;
   private persistentFlags: LifecycleFlags;
@@ -34,10 +34,7 @@ export class If<T extends INode = INode> implements If<T> {
     this.value = false;
 
     this.coordinator = coordinator;
-    this.elseFactory = null;
-    this.elseView = null;
     this.ifFactory = ifFactory;
-    this.ifView = null;
     this.location = location;
     this.persistentFlags = LifecycleFlags.none;
   }
@@ -62,12 +59,12 @@ export class If<T extends INode = INode> implements If<T> {
   }
 
   public caching(flags: LifecycleFlags): void {
-    if (this.ifView !== null && this.ifView.release(flags)) {
-      this.ifView = null;
+    if (this.ifView != null && this.ifView.release(flags)) {
+      this.ifView = void 0;
     }
 
-    if (this.elseView !== null && this.elseView.release(flags)) {
-      this.elseView = null;
+    if (this.elseView != null && this.elseView.release(flags)) {
+      this.elseView = void 0;
     }
 
     this.coordinator.caching(flags);
@@ -98,8 +95,8 @@ export class If<T extends INode = INode> implements If<T> {
     let view: IView<T> | null;
 
     if (this.value) {
-      view = this.ifView = this.ensureView(this.ifView, this.ifFactory, flags);
-    } else if (this.elseFactory !== null) {
+      view = this.ifView = this.ensureView(this.ifView, this.ifFactory!, flags);
+    } else if (this.elseFactory != null) {
       view = this.elseView  = this.ensureView(this.elseView, this.elseFactory, flags);
     } else {
       view = null;
@@ -109,8 +106,8 @@ export class If<T extends INode = INode> implements If<T> {
   }
 
   /** @internal */
-  public ensureView(view: IView<T> | null, factory: IViewFactory<T>, flags: LifecycleFlags): IView<T> {
-    if (view === null) {
+  public ensureView(view: IView<T> | undefined, factory: IViewFactory<T>, flags: LifecycleFlags): IView<T> {
+    if (view == null) {
       view = factory.create(flags);
     }
 

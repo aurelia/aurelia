@@ -38,7 +38,7 @@ export class ResourceModel {
     let result = this.elementLookup[name];
     if (result === void 0) {
       const def = this.resources.find(CustomElementResource, name);
-      if (def === null) {
+      if (def == null) {
         result = null!;
       } else {
         result = createElementInfo(def);
@@ -60,7 +60,7 @@ export class ResourceModel {
     let result = this.attributeLookup[name];
     if (result === void 0) {
       const def = this.resources.find(CustomAttributeResource, name);
-      if (def === null) {
+      if (def == null) {
         result = null!;
       } else {
         result = createAttributeInfo(def);
@@ -85,7 +85,7 @@ export class ResourceModel {
     let result = this.commandLookup[name];
     if (result === void 0) {
       result = this.resources.create(BindingCommandResource, name)!;
-      if (result === null) {
+      if (result == null) {
         // unknown binding command
         throw Reporter.error(0); // TODO: create error code
       }

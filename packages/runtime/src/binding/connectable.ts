@@ -43,7 +43,7 @@ export function addObserver(
   observer: ISubscribable<MutationKind> & { [id: string]: number }
 ): void {
   // find the observer.
-  const observerSlots = this.observerSlots === void 0 ? 0 : this.observerSlots;
+  const observerSlots = this.observerSlots == null ? 0 : this.observerSlots;
   let i = observerSlots;
 
   while (i-- && this[slotNames[i]] !== observer);
@@ -63,7 +63,7 @@ export function addObserver(
     }
   }
   // set the "version" when the observer was used.
-  if (this.version === void 0) {
+  if (this.version == null) {
     this.version = 0;
   }
   this[versionSlotNames[i]] = this.version;
@@ -94,8 +94,8 @@ export function unobserve(this: IConnectableBinding & { [key: string]: unknown }
     for (let i = 0; i < slots; ++i) {
       slotName = slotNames[i];
       observer = this[slotName] as IBindingTargetObserver & { [key: string]: number };
-      if (observer !== null && observer !== void 0) {
-        this[slotName] = null;
+      if (observer != null) {
+        this[slotName] = void 0;
         observer.unsubscribe(this);
         observer[this.id] &= ~LifecycleFlags.updateTargetInstance;
       }
@@ -106,8 +106,8 @@ export function unobserve(this: IConnectableBinding & { [key: string]: unknown }
       if (this[versionSlotNames[i]] !== version) {
         slotName = slotNames[i];
         observer = this[slotName] as IBindingTargetObserver & { [key: string]: number };
-        if (observer !== null && observer !== void 0) {
-          this[slotName] = null;
+        if (observer != null) {
+          this[slotName] = void 0;
           observer.unsubscribe(this);
           observer[this.id] &= ~LifecycleFlags.updateTargetInstance;
         }
@@ -130,7 +130,7 @@ function connectableDecorator<TProto, TClass>(target: DecoratableConnectable<TPr
 export function connectable(): typeof connectableDecorator;
 export function connectable<TProto, TClass>(target: DecoratableConnectable<TProto, TClass>): DecoratedConnectable<TProto, TClass>;
 export function connectable<TProto, TClass>(target?: DecoratableConnectable<TProto, TClass>): DecoratedConnectable<TProto, TClass> | typeof connectableDecorator {
-  return target === void 0 ? connectableDecorator : connectableDecorator(target);
+  return target == null ? connectableDecorator : connectableDecorator(target);
 }
 
 let value = 0;

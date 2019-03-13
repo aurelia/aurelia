@@ -95,7 +95,7 @@ export class HTMLDOM implements IDOM {
       return node; // it's already a IRenderLocation (converted by FragmentNodeSequence)
     }
 
-    if (node.parentNode === null) {
+    if (node.parentNode == null) {
       throw Reporter.error(52);
     }
 
@@ -337,7 +337,7 @@ export class FragmentNodeSequence implements INodeSequence {
     if (isRenderLocation(refNode)) {
       this.end = refNode;
       const start = this.start = refNode.$start as IRenderLocation & Comment;
-      if (start.$nodes === null) {
+      if (start.$nodes == null) {
         start.$nodes = this;
       } else {
         // if more than one INodeSequence uses the same IRenderLocation, it's an child
@@ -362,7 +362,7 @@ export class FragmentNodeSequence implements INodeSequence {
 
   public remove(): void {
     const fragment = this.fragment;
-    if (this.start !== null && this.start.$nodes === this) {
+    if (this.start != null && this.start.$nodes === this) {
       // if we're between a valid "start" and "end" (e.g. if/else, containerless, or a
       // repeater with a single item) then simply remove everything in-between (but not
       // the comments themselves as they belong to the parent)
@@ -385,7 +385,7 @@ export class FragmentNodeSequence implements INodeSequence {
         const end = this.lastChild;
         let next: Node;
 
-        while (current !== null) {
+        while (current != null) {
           next = current.nextSibling!;
           // tslint:disable-next-line:no-any
           fragment.appendChild(current);

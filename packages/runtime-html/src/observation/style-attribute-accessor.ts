@@ -42,7 +42,7 @@ export class StyleAttributeAccessor implements StyleAttributeAccessor {
     let style: string;
     let version = this.version;
 
-    if (newValue !== null) {
+    if (newValue != null) {
       if (newValue instanceof Object) {
         let value: string;
         for (style in newValue) {
@@ -56,7 +56,7 @@ export class StyleAttributeAccessor implements StyleAttributeAccessor {
       } else if (newValue.length) {
         const rx = /\s*([\w\-]+)\s*:\s*((?:(?:[\w\-]+\(\s*(?:"(?:\\"|[^"])*"|'(?:\\'|[^'])*'|[\w\-]+\(\s*(?:[^"](?:\\"|[^"])*"|'(?:\\'|[^'])*'|[^\)]*)\),?|[^\)]*)\),?|"(?:\\"|[^"])*"|'(?:\\'|[^'])*'|[^;]*),?\s*)+);?/g;
         let pair: RegExpExecArray;
-        while ((pair = rx.exec(newValue)!) !== null) {
+        while ((pair = rx.exec(newValue)!) != null) {
           style = pair[1];
           if (!style) { continue; }
 

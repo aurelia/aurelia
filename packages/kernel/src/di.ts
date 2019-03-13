@@ -393,7 +393,7 @@ export const all = createResolver((key: unknown, handler: IContainer, requestor:
 export const lazy = createResolver((key: unknown, handler: IContainer, requestor: IContainer) =>  {
   let instance: unknown = null; // cache locally so that lazy always returns the same instance once resolved
   return () => {
-    if (instance === null) {
+    if (instance == null) {
       instance = requestor.get(key);
     }
 
@@ -508,7 +508,7 @@ export class Factory implements IFactory {
       ? this.invoker.invokeWithDynamicDependencies(container, this.Type, this.dependencies, dynamicDependencies)
       : this.invoker.invoke(container, this.Type, this.dependencies);
 
-    if (transformers === null) {
+    if (transformers == null) {
       if (Tracer.enabled) { Tracer.leave(); }
       return instance;
     }
@@ -522,7 +522,7 @@ export class Factory implements IFactory {
   }
 
   public registerTransformer(transformer: (instance: any) => any): boolean {
-    if (this.transformers === null) {
+    if (this.transformers == null) {
       this.transformers = [];
     }
 
@@ -642,14 +642,14 @@ export class Container implements IContainer {
   public registerTransformer(key: IResolver, transformer: (instance: any) => any): boolean {
     const resolver = this.getResolver(key);
 
-    if (resolver === null) {
+    if (resolver == null) {
       return false;
     }
 
     if (resolver.getFactory) {
       const handler = resolver.getFactory(this);
 
-      if (handler === null) {
+      if (handler == null) {
         return false;
       }
 
@@ -669,11 +669,11 @@ export class Container implements IContainer {
     let current: Container = this;
     let resolver: IResolver | undefined;
 
-    while (current !== null) {
+    while (current != null) {
       resolver = current.resolvers.get(key as InterfaceSymbol<IContainer>);
 
       if (resolver == null) {
-        if (current.parent === null) {
+        if (current.parent == null) {
           return autoRegister ? this.jitRegister(key as InterfaceSymbol<IContainer>, current) : null;
         }
 
@@ -689,7 +689,7 @@ export class Container implements IContainer {
   public has(key: Key<IContainer>, searchAncestors: boolean = false): boolean {
     return this.resolvers.has(key as InterfaceSymbol<IContainer>)
       ? true
-      : searchAncestors && this.parent !== null
+      : searchAncestors && this.parent != null
       ? this.parent.has(key, true)
       : false;
   }
@@ -706,11 +706,11 @@ export class Container implements IContainer {
     let current: Container = this;
     let resolver: IResolver | undefined;
 
-    while (current !== null) {
+    while (current != null) {
       resolver = current.resolvers.get(key as InterfaceSymbol<IContainer>);
 
       if (resolver == null) {
-        if (current.parent === null) {
+        if (current.parent == null) {
           resolver = this.jitRegister(key as InterfaceSymbol<IContainer>, current);
           if (Tracer.enabled) { Tracer.leave(); }
           return resolver.resolve(current, this);
@@ -731,11 +731,11 @@ export class Container implements IContainer {
     let current: Container | null = this;
     let resolver: IResolver | undefined;
 
-    while (current !== null) {
+    while (current != null) {
       resolver = current.resolvers.get(key as InterfaceSymbol<IContainer>);
 
       if (resolver == null) {
-        if (this.parent === null) {
+        if (this.parent == null) {
           if (Tracer.enabled) { Tracer.leave(); }
           return PLATFORM.emptyArray;
         }
@@ -813,20 +813,20 @@ export const Registration = {
       register(container: IContainer): void {
         const resolver = container.getResolver<IRegistry>(interpreterKey);
 
-        if (resolver !== null) {
+        if (resolver != null) {
           let registry: IRegistry | null =  null;
 
           if (resolver.getFactory) {
             const factory = resolver.getFactory(container);
 
-            if (factory !== null) {
+            if (factory != null) {
               registry = factory.construct(container, rest);
             }
           } else {
             registry = resolver.resolve(container, container);
           }
 
-          if (registry !== null) {
+          if (registry != null) {
             registry.register(container);
           }
         }

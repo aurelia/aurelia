@@ -8,11 +8,7 @@
     "lib": [
       "dom",
       "esnext"
-    ],
-
-    "noImplicitThis": true,
-    "alwaysStrict": true,
-    "strict": true
+    ]
   },
   "include": [
     "src"

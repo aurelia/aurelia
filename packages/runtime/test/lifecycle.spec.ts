@@ -72,11 +72,6 @@ describe('Lifecycle', function () {
     expect(sut.flushed).to.equal(undefined, 'sut.flushed');
     expect(sut.task).to.equal(undefined, 'sut.task');
     expect(sut.promise).to.be.instanceof(Promise, 'sut.promise');
-
-    // ensure no undefined properties on initialization
-    for (const prop in sut) {
-      expect(sut[prop]).to.not.equal(undefined, `sut.${prop}`);
-    }
   });
 
   // TODO: more tests needed

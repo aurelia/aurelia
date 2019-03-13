@@ -168,7 +168,7 @@ export const CustomAttributeResource = {
 
 /** @internal */
 export function createCustomAttributeDescription(def: IAttributeDefinition, Type: ICustomAttributeType): ResourceDescription<IAttributeDefinition> {
-  const aliases = def. aliases;
+  const aliases = def.aliases;
   const defaultBindingMode = def.defaultBindingMode;
   return {
     name: def.name,

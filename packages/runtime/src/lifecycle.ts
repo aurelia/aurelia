@@ -12,7 +12,7 @@ import {
 import { ITargetedInstruction, TemplateDefinition, TemplatePartDefinitions } from './definitions';
 import { INode, INodeSequence, IRenderLocation } from './dom';
 import { Hooks, LifecycleFlags, State } from './flags';
-import { IChangeTracker, IOverrideContext, IPatchable, IScope, ObserversLookup } from './observation';
+import { IChangeTracker, IPatchable, IScope, IObserversLookup } from './observation';
 
 const slice = Array.prototype.slice;
 export interface IState {
@@ -248,7 +248,7 @@ export interface IComponent extends IPatchable {
   readonly $nextComponent?: IComponent;
   readonly $prevComponent?: IComponent;
   $nextUnbindAfterDetach?: IComponent;
-  /** @internal */readonly $observers?: ObserversLookup<IOverrideContext>;
+  /** @internal */readonly $observers?: IObserversLookup;
   $bind(flags: LifecycleFlags, scope?: IScope): void;
   $unbind(flags: LifecycleFlags): void;
   $attach(flags: LifecycleFlags): void;
@@ -1035,10 +1035,10 @@ export class CompositionCoordinator {
 
   public onSwapComplete: () => void;
 
-  private currentView: IView;
+  private currentView: IView | null;
   private isAttached: boolean;
   private isBound: boolean;
-  private queue: (IView | PromiseSwap)[] | null;
+  private queue: (IView | PromiseSwap | null)[] | null;
   private scope!: IScope;
   private swapTask: ILifecycleTask;
 
@@ -1047,7 +1047,7 @@ export class CompositionCoordinator {
 
     this.onSwapComplete = PLATFORM.noop;
 
-    this.currentView = (void 0)!;
+    this.currentView = null;
     this.isAttached = false;
     this.isBound = false;
     this.queue = null;
@@ -1058,7 +1058,7 @@ export class CompositionCoordinator {
     return Registration.transient(this, this).register(container, this);
   }
 
-  public compose(value: IView | Promise<IView>, flags: LifecycleFlags): void {
+  public compose(value: null | IView | Promise<IView>, flags: LifecycleFlags): void {
     if (this.swapTask.done) {
       if (value instanceof Promise) {
         this.enqueue(new PromiseSwap(this, value));
@@ -1116,7 +1116,7 @@ export class CompositionCoordinator {
     this.currentView = (void 0)!;
   }
 
-  private enqueue(view: IView | PromiseSwap): void {
+  private enqueue(view: null | IView | PromiseSwap): void {
     if (Tracer.enabled) { Tracer.enter('CompositionCoordinator', 'enqueue', slice.call(arguments)); }
     if (this.queue == null) {
       this.queue = [];
@@ -1126,7 +1126,7 @@ export class CompositionCoordinator {
     if (Tracer.enabled) { Tracer.leave(); }
   }
 
-  private swap(view: IView, flags: LifecycleFlags): void {
+  private swap(view: IView | null, flags: LifecycleFlags): void {
     if (Tracer.enabled) { Tracer.enter('CompositionCoordinator', 'swap', slice.call(arguments)); }
     if (this.currentView === view) {
       if (Tracer.enabled) { Tracer.leave(); }
@@ -1446,4 +1446,90 @@ export class PromiseTask<T = void> implements ILifecycleTask<T> {
   public wait(): Promise<T> {
     return this.promise;
   }
+}
+
+export function isBinding(state: State): boolean {
+  return (state & State.isBinding) === State.isBinding;
+}
+export function isBound(state: State): boolean {
+  return (state & State.isBound) === State.isBound;
+}
+export function isNotBound(state: State): boolean {
+  return (state & State.isBound) === 0;
+}
+export function isAttaching(state: State): boolean {
+  return (state & State.isAttaching) === State.isAttaching;
+}
+export function isAttached(state: State): boolean {
+  return (state & State.isAttached) === State.isAttached;
+}
+export function isNotAttached(state: State): boolean {
+  return (state & State.isAttached) === 0;
+}
+export function isMounted(state: State): boolean {
+  return (state & State.isMounted) === State.isMounted;
+}
+export function isNotMounted(state: State): boolean {
+  return (state & State.isMounted) === 0;
+}
+export function isDetaching(state: State): boolean {
+  return (state & State.isDetaching) === State.isDetaching;
+}
+export function isUnbinding(state: State): boolean {
+  return (state & State.isUnbinding) === State.isUnbinding;
+}
+export function isCached(state: State): boolean {
+  return (state & State.isCached) === State.isCached;
+}
+export function isContainerless(state: State): boolean {
+  return (state & State.isContainerless) === State.isContainerless;
+}
+export function isPatching(state: State): boolean {
+  return (state & State.isPatching) === State.isPatching;
+}
+
+export function setBinding(state: State): State {
+  return state | State.isBinding;
+}
+export function setBound(state: State): State {
+  return (state & ~State.isBinding) | State.isBound;
+}
+export function setAttaching(state: State): State {
+  return state | State.isAttaching;
+}
+export function setAttached(state: State): State {
+  return (state & ~State.isAttaching) | State.isAttached;
+}
+export function setDetached(state: State): State {
+  return state & ~(State.isAttached | State.isAttaching);
+}
+export function setMounted(state: State): State {
+  return state | State.isMounted;
+}
+export function setNotMounted(state: State): State {
+  return state & ~State.isMounted;
+}
+export function setDetaching(state: State): State {
+  return state | State.isDetaching;
+}
+export function setUnbinding(state: State): State {
+  return state | State.isUnbinding;
+}
+export function setUnbound(state: State): State {
+  return state & ~(State.isBound | State.isUnbinding);
+}
+export function setCached(state: State): State {
+  return state | State.isCached;
+}
+export function setNotCached(state: State): State {
+  return state & ~State.isCached;
+}
+export function setContainerless(state: State): State {
+  return state | State.isContainerless;
+}
+export function setPatching(state: State): State {
+  return state | State.isPatching;
+}
+export function setNotPatching(state: State): State {
+  return state & ~State.isPatching;
 }

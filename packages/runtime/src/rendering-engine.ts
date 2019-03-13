@@ -375,7 +375,7 @@ export class ViewFactoryProvider implements IResolver {
 
   public resolve(handler: IContainer, requestor: ExposedContext): IViewFactory {
     const factory = this.factory;
-    if (factory === undefined || factory === null) { // unmet precondition: call prepare
+    if (factory == null) { // unmet precondition: call prepare
       throw Reporter.error(50); // TODO: organize error codes
     }
     if (!factory.name || !factory.name.length) { // unmet invariant: factory must have a name

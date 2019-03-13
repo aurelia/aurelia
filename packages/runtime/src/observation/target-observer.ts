@@ -20,7 +20,7 @@ type BindingTargetAccessor = IBindingTargetAccessor & {
 function setValue(this: BindingTargetAccessor, newValue: unknown, flags: LifecycleFlags): Promise<void> {
   if (Tracer.enabled) { Tracer.enter(this['constructor'].name, 'setValue', slice.call(arguments)); }
   const currentValue = this.currentValue;
-  newValue = newValue === null || newValue === undefined ? this.defaultValue : newValue;
+  newValue = newValue == null ? this.defaultValue : newValue;
   if (currentValue !== newValue) {
     this.oldValue = this.currentValue;
     this.currentValue = newValue;
@@ -83,7 +83,7 @@ export function targetObserver(defaultValue: unknown = null): ClassDecorator {
     subscriberCollection(MutationKind.instance)(target);
     const proto = target.prototype as BindingTargetAccessor;
 
-    proto.$nextFlush = null;
+    proto.$nextFlush = (void 0)!;
 
     proto.currentValue = defaultValue;
     proto.oldValue = defaultValue;

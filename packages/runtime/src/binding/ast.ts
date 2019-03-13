@@ -90,7 +90,7 @@ export function isLiteral(expr: IsExpressionOrStatement): expr is IsLiteral {
   return (expr.$kind & ExpressionKind.IsLiteral) === ExpressionKind.IsLiteral;
 }
 export function arePureLiterals(expressions: ReadonlyArray<IsExpressionOrStatement> | undefined): expressions is IsLiteral[] {
-  if (expressions === undefined || expressions.length === 0) {
+  if (expressions === void 0 || expressions.length === 0) {
     return true;
   }
   for (let i = 0; i < expressions.length; ++i) {
@@ -156,10 +156,7 @@ export class BindingBehavior implements IBindingBehaviorExpression {
   }
 
   public bind(flags: LifecycleFlags, scope: IScope, binding: IConnectableBinding & { [key: string]: IBindingBehavior | undefined }): void {
-    if (scope === undefined) {
-      throw Reporter.error(RuntimeError.UndefinedScope, this);
-    }
-    if (scope === null) {
+    if (scope == null) {
       throw Reporter.error(RuntimeError.NullScope, this);
     }
     if (!binding) {
@@ -256,10 +253,7 @@ export class ValueConverter implements IValueConverterExpression {
   }
 
   public connect(flags: LifecycleFlags, scope: IScope, binding: IConnectableBinding): void {
-    if (scope === undefined) {
-      throw Reporter.error(RuntimeError.UndefinedScope, this);
-    }
-    if (scope === null) {
+    if (scope == null) {
       throw Reporter.error(RuntimeError.NullScope, this);
     }
     if (!binding) {
@@ -279,7 +273,7 @@ export class ValueConverter implements IValueConverterExpression {
       throw Reporter.error(RuntimeError.NoConverterFound, this);
     }
     const signals = converter.signals;
-    if (signals === undefined) {
+    if (signals === void 0) {
       return;
     }
     const signaler = locator.get(ISignaler);
@@ -292,7 +286,7 @@ export class ValueConverter implements IValueConverterExpression {
     const locator = binding.locator;
     const converter = locator.get(this.converterKey) as { signals?: string[] };
     const signals = converter.signals;
-    if (signals === undefined) {
+    if (signals === void 0) {
       return;
     }
     const signaler = locator.get(ISignaler);
@@ -388,10 +382,7 @@ export class AccessThis implements IAccessThisExpression {
   }
 
   public evaluate(flags: LifecycleFlags, scope: IScope, locator: IServiceLocator): IBindingContext | undefined {
-    if (scope === undefined) {
-      throw Reporter.error(RuntimeError.UndefinedScope, this);
-    }
-    if (scope === null) {
+    if (scope == null) {
       throw Reporter.error(RuntimeError.NullScope, this);
     }
     let oc: IOverrideContext | null = scope.overrideContext;
@@ -399,7 +390,7 @@ export class AccessThis implements IAccessThisExpression {
     while (i-- && oc) {
       oc = oc.parentOverrideContext;
     }
-    return i < 1 && oc ? oc.bindingContext : undefined;
+    return i < 1 && oc ? oc.bindingContext : void 0;
   }
 
   public accept<T>(visitor: IVisitor<T>): T {
@@ -425,18 +416,18 @@ export class AccessScope implements IAccessScopeExpression {
   public assign(flags: LifecycleFlags, scope: IScope, locator: IServiceLocator, value: unknown): unknown {
     const obj = BindingContext.get(scope, this.name, this.ancestor, flags) as IBindingContext;
     if (obj instanceof Object) {
-      if (obj.$observers !== undefined && obj.$observers[this.name] !== undefined) {
+      if (obj.$observers !== void 0 && obj.$observers[this.name] !== void 0) {
         obj.$observers[this.name].setValue(value, flags);
         return value;
       } else {
         return obj[this.name] = value;
       }
     }
-    return undefined;
+    return void 0;
   }
 
   public connect(flags: LifecycleFlags, scope: IScope, binding: IConnectableBinding): void {
-    const context = BindingContext.get(scope, this.name, this.ancestor, flags);
+    const context = BindingContext.get(scope, this.name, this.ancestor, flags)!;
     binding.observeProperty(flags, context, this.name);
   }
 
@@ -458,13 +449,13 @@ export class AccessMember implements IAccessMemberExpression {
 
   public evaluate(flags: LifecycleFlags, scope: IScope, locator: IServiceLocator): unknown {
     const instance = this.object.evaluate(flags, scope, locator) as IIndexable;
-    return instance === null || instance === undefined ? instance : instance[this.name];
+    return instance == null ? instance : instance[this.name];
   }
 
   public assign(flags: LifecycleFlags, scope: IScope, locator: IServiceLocator, value: unknown): unknown {
     const obj = this.object.evaluate(flags, scope, locator) as IBindingContext;
     if (obj instanceof Object) {
-      if (obj.$observers !== undefined && obj.$observers[this.name] !== undefined) {
+      if (obj.$observers !== void 0 && obj.$observers[this.name] !== void 0) {
         obj.$observers[this.name].setValue(value, flags);
       } else {
         obj[this.name] = value;
@@ -505,7 +496,7 @@ export class AccessKeyed implements IAccessKeyedExpression {
       const key = this.key.evaluate(flags, scope, locator) as string;
       return (instance as IIndexable)[key];
     }
-    return undefined;
+    return void 0;
   }
 
   public assign(flags: LifecycleFlags, scope: IScope, locator: IServiceLocator, value: unknown): unknown {
@@ -556,12 +547,12 @@ export class CallScope implements ICallScopeExpression {
 
   public evaluate(flags: LifecycleFlags, scope: IScope, locator: IServiceLocator | null): unknown {
     const args = evalList(flags, scope, locator, this.args);
-    const context = BindingContext.get(scope, this.name, this.ancestor, flags);
+    const context = BindingContext.get(scope, this.name, this.ancestor, flags)!;
     const func = getFunction(flags, context, this.name);
     if (func) {
       return func.apply(context, args as unknown[]);
     }
-    return undefined;
+    return void 0;
   }
 
   public connect(flags: LifecycleFlags, scope: IScope, binding: IConnectableBinding): void {
@@ -598,7 +589,7 @@ export class CallMember implements ICallMemberExpression {
     if (func) {
       return func.apply(instance, args as unknown[]);
     }
-    return undefined;
+    return void 0;
   }
 
   public connect(flags: LifecycleFlags, scope: IScope, binding: IConnectableBinding): void {
@@ -635,8 +626,8 @@ export class CallFunction implements ICallFunctionExpression {
     if (typeof func === 'function') {
       return func.apply(null, evalList(flags, scope, locator, this.args));
     }
-    if (!(flags & LifecycleFlags.mustEvaluate) && (func === null || func === undefined)) {
-      return undefined;
+    if (!(flags & LifecycleFlags.mustEvaluate) && (func == null)) {
+      return void 0;
     }
     throw Reporter.error(RuntimeError.NotAFunction, this);
   }
@@ -807,7 +798,7 @@ export class Unary implements IUnaryExpression {
   }
 }
 export class PrimitiveLiteral<TValue extends StrictPrimitive = StrictPrimitive> implements IPrimitiveLiteralExpression {
-  public static readonly $undefined: PrimitiveLiteral<undefined> = new PrimitiveLiteral<undefined>(undefined);
+  public static readonly $undefined: PrimitiveLiteral<undefined> = new PrimitiveLiteral<undefined>(void 0);
   public static readonly $null: PrimitiveLiteral<null> = new PrimitiveLiteral<null>(null);
   public static readonly $true: PrimitiveLiteral<true> = new PrimitiveLiteral<true>(true);
   public static readonly $false: PrimitiveLiteral<false> = new PrimitiveLiteral<false>(false);
@@ -850,7 +841,7 @@ export class HtmlLiteral implements IHtmlLiteralExpression {
     let value;
     for (let i = 0, ii = elements.length; i < ii; ++i) {
       value = elements[i].evaluate(flags, scope, locator);
-      if (value === undefined || value === null) {
+      if (value == null) {
         continue;
       }
       result += value;
@@ -951,7 +942,7 @@ export class Template implements ITemplateExpression {
     this.$kind = ExpressionKind.Template;
     this.assign = PLATFORM.noop as () => unknown;
     this.cooked = cooked;
-    this.expressions = expressions === undefined ? PLATFORM.emptyArray : expressions;
+    this.expressions = expressions === void 0 ? PLATFORM.emptyArray : expressions;
   }
 
   public evaluate(flags: LifecycleFlags, scope: IScope, locator: IServiceLocator): string {
@@ -991,7 +982,7 @@ export class TaggedTemplate implements ITaggedTemplateExpression {
     this.cooked = cooked;
     this.cooked.raw = raw;
     this.func = func;
-    this.expressions = expressions === undefined ? PLATFORM.emptyArray : expressions;
+    this.expressions = expressions === void 0 ? PLATFORM.emptyArray : expressions;
   }
 
   public evaluate(flags: LifecycleFlags, scope: IScope, locator: IServiceLocator): string {
@@ -1033,12 +1024,12 @@ export class ArrayBindingPattern implements IArrayBindingPattern {
 
   public evaluate(flags: LifecycleFlags, scope: IScope, locator: IServiceLocator): unknown {
     // TODO
-    return undefined;
+    return void 0;
   }
 
   public assign(flags: LifecycleFlags, scope: IScope, locator: IServiceLocator, obj: IIndexable): unknown {
     // TODO
-    return undefined;
+    return void 0;
   }
 
   public connect(flags: LifecycleFlags, scope: IScope, binding: IConnectableBinding): void {
@@ -1064,12 +1055,12 @@ export class ObjectBindingPattern implements IObjectBindingPattern {
 
   public evaluate(flags: LifecycleFlags, scope: IScope, locator: IServiceLocator): unknown {
     // TODO
-    return undefined;
+    return void 0;
   }
 
   public assign(flags: LifecycleFlags, scope: IScope, locator: IServiceLocator, obj: IIndexable): unknown {
     // TODO
-    return undefined;
+    return void 0;
   }
 
   public connect(flags: LifecycleFlags, scope: IScope, binding: IConnectableBinding): void {
@@ -1171,7 +1162,7 @@ export class Interpolation implements IInterpolationExpression {
     this.$kind = ExpressionKind.Interpolation;
     this.assign = PLATFORM.noop as () => unknown;
     this.parts = parts;
-    this.expressions = expressions === undefined ? PLATFORM.emptyArray : expressions;
+    this.expressions = expressions === void 0 ? PLATFORM.emptyArray : expressions;
     this.isMulti = this.expressions.length > 1;
     this.firstExpression = this.expressions[0];
   }

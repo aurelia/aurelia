@@ -17,23 +17,16 @@ const observedPropertyDescriptor: PropertyDescriptor = {
 function subscribe(this: PropertyObserver, subscriber: IPropertySubscriber): void {
   if (this.observing === false) {
     this.observing = true;
-    this.currentValue = this.obj[this.propertyKey];
+    this.currentValue = this.obj[this.propertyKey!];
     if ((this.persistentFlags & LifecycleFlags.patchStrategy) === 0) {
       observedPropertyDescriptor.get = () => this.getValue();
       observedPropertyDescriptor.set = value => { this.setValue(value, LifecycleFlags.none); };
-      if (!defineProperty(this.obj, this.propertyKey, observedPropertyDescriptor)) {
+      if (!defineProperty(this.obj, this.propertyKey!, observedPropertyDescriptor)) {
         Reporter.write(1, this.propertyKey, this.obj);
       }
     }
   }
   this.addSubscriber(subscriber);
-}
-
-function dispose(this: PropertyObserver): void {
-  Reflect.deleteProperty(this.obj, this.propertyKey);
-  this.obj = null;
-  this.propertyKey = null;
-  this.currentValue = null;
 }
 
 export function propertyObserver(): ClassDecorator {
@@ -43,8 +36,8 @@ export function propertyObserver(): ClassDecorator {
     const proto = target.prototype as PropertyObserver;
 
     proto.observing = false;
-    proto.obj = null;
-    proto.propertyKey = null;
+    proto.obj = null!;
+    proto.propertyKey = null!;
     // Note: this will generate some "false positive" changes when setting a target undefined from a source undefined,
     // but those aren't harmful because the changes won't be propagated through to subscribers during $bind anyway.
     // It will, however, solve some "false negative" changes when the source value is undefined but the target value is not;
@@ -54,7 +47,5 @@ export function propertyObserver(): ClassDecorator {
 
     proto.subscribe = proto.subscribe || subscribe;
     proto.unsubscribe = proto.unsubscribe || proto.removeSubscriber;
-
-    proto.dispose = proto.dispose || dispose;
   };
 }

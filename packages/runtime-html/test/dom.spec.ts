@@ -77,7 +77,7 @@ describe('NodeSequenceFactory', function () {
             const fragment3 = factory.createNodeSequence()['fragment'];
 
             if (markup.length === 0) {
-              if (!(fragment1 === undefined && fragment2 === undefined && fragment3 === undefined)) {
+              if (!(fragment1 == null && fragment3 === undefined)) {
                 throw new Error('Expected all fragments to be undefined');
               }
             } else {

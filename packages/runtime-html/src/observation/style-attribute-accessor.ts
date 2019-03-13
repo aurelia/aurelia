@@ -29,7 +29,7 @@ export class StyleAttributeAccessor implements StyleAttributeAccessor {
   public _setProperty(style: string, value: string): void {
     let priority = '';
 
-    if (value !== null && value !== undefined && typeof value.indexOf === 'function' && value.indexOf('!important') !== -1) {
+    if (value != null && typeof value.indexOf === 'function' && value.indexOf('!important') !== -1) {
       priority = 'important';
       value = value.replace('!important', '');
     }

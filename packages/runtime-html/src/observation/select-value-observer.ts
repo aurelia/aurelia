@@ -78,7 +78,7 @@ export class SelectValueObserver implements SelectValueObserver {
 
   public setValueCore(newValue: unknown, flags: LifecycleFlags): void {
     const isArray = Array.isArray(newValue);
-    if (!isArray && newValue !== null && newValue !== undefined && this.obj.multiple) {
+    if (!isArray && newValue != null && this.obj.multiple) {
       throw new Error('Only null or Array instances can be bound to a multi-select.');
     }
     if (this.arrayObserver) {

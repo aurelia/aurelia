@@ -27,9 +27,7 @@ function flush(this: CollectionObserver, flags: LifecycleFlags): void {
 }
 
 function dispose(this: CollectionObserver): void {
-  this.collection.$observer = undefined;
-  this.collection = null;
-  this.indexMap = null;
+  this.collection.$observer = void 0;
 }
 
 function resetIndexMapIndexed(this: ICollectionObserver<CollectionKind.indexed>): void {
@@ -53,7 +51,7 @@ function resetIndexMapKeyed(this: ICollectionObserver<CollectionKind.keyed>): vo
 }
 
 function getLengthObserver(this: CollectionObserver): CollectionLengthObserver {
-  return this.lengthObserver === undefined ? (this.lengthObserver = new CollectionLengthObserver(this as Collection&ICollectionObserver<CollectionKind>, this.lengthPropertyName)) : this.lengthObserver as CollectionLengthObserver;
+  return this.lengthObserver === void 0 ? (this.lengthObserver = new CollectionLengthObserver(this as Collection&ICollectionObserver<CollectionKind>, this.lengthPropertyName)) : this.lengthObserver as CollectionLengthObserver;
 }
 
 export function collectionObserver(kind: CollectionKind.array | CollectionKind.set | CollectionKind.map): ClassDecorator {
@@ -63,10 +61,8 @@ export function collectionObserver(kind: CollectionKind.array | CollectionKind.s
     batchedSubscriberCollection()(target);
     const proto = target.prototype as CollectionObserver;
 
-    proto.$nextFlush = null;
+    proto.$nextFlush = void 0;
 
-    proto.collection = null;
-    proto.indexMap = null;
     proto.hasChanges = false;
     proto.lengthPropertyName = kind & CollectionKind.indexed ? 'length' : 'size';
     proto.collectionKind = kind;
@@ -96,22 +92,22 @@ export class CollectionLengthObserver implements CollectionLengthObserver, IPatc
     this.obj = obj;
     this.propertyKey = propertyKey;
 
-    this.currentValue = obj[propertyKey];
+    this.currentValue = (obj as any)[propertyKey];
   }
 
   public getValue(): number {
-    return this.obj[this.propertyKey];
+    return (this.obj as any)[this.propertyKey];
   }
 
   public setValueCore(newValue: number): void {
-    this.obj[this.propertyKey] = newValue;
+    (this.obj as any)[this.propertyKey] = newValue;
   }
 
   public $patch(flags: LifecycleFlags): void {
-    const newValue = this.obj[this.propertyKey];
+    const newValue = (this.obj as any)[this.propertyKey];
     const oldValue = this.currentValue;
     if (oldValue !== newValue) {
-      this.obj[this.propertyKey] = newValue;
+      (this.obj as any)[this.propertyKey] = newValue;
       this.currentValue = newValue;
       this.callSubscribers(newValue, oldValue, flags | LifecycleFlags.updateTargetInstance);
     }

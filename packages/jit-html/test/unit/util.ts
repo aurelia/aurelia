@@ -142,7 +142,7 @@ export function verifyBindingInstructionsEqual(actual: any, expected: any, error
   if (errors === undefined) {
     errors = [];
   }
-  if (typeof expected !== 'object' || expected === null || expected === undefined || typeof actual !== 'object' || actual === null || actual === undefined) {
+  if (typeof expected !== 'object' || expected == null || typeof actual !== 'object' || actual == null) {
     if (actual !== expected) {
       if (typeof expected === 'object' && expected !== null) {
         expected = JSON.stringify(expected);

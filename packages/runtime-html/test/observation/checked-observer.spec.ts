@@ -417,7 +417,7 @@ describe('CheckedObserver', function () {
       for (const prop of ['value', 'model']) {
         for (const value of ['foo', 'bar', 42, null, undefined, '']) {
 
-          const valueCanBeChecked = prop === 'model' || (typeof value !== 'number' && value !== undefined && value !== null);
+          const valueCanBeChecked = prop === 'model' || (typeof value !== 'number' && value != null);
 
           it(_`hasSubscriber=${hasSubscriber}, ${prop}=${value}`, function () {
 
@@ -544,7 +544,7 @@ describe('CheckedObserver', function () {
       for (const prop of ['value', 'model']) {
         for (const value of ['foo', 'bar', 42, null, undefined, '']) {
 
-          const valueCanBeChecked = prop === 'model' || (typeof value !== 'number' && value !== undefined && value !== null);
+          const valueCanBeChecked = prop === 'model' || (typeof value !== 'number' && value != null);
 
           for (const checkedBefore of [true, false]) {
             for (const checkedAfter of [true, false]) {

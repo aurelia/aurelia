@@ -37,7 +37,7 @@ export class SanitizeValueConverter {
   * @param untrustedMarkup The untrusted markup to be sanitized.
   */
   public toView(untrustedMarkup: string): string|null {
-    if (untrustedMarkup === null || untrustedMarkup === undefined) {
+    if (untrustedMarkup == null) {
       return null;
     }
 

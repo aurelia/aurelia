@@ -32,8 +32,8 @@ export class SelfObserver implements SelfObserver {
       this.obj = instance;
     }
     this.propertyKey = propertyName;
-    this.currentValue = this.obj[propertyName];
-    this.callback = this.obj[cbName] === undefined ? null : this.obj[cbName];
+    this.currentValue = this.obj[propertyName as keyof object];
+    this.callback = this.obj[cbName as keyof object] === void 0 ? null : this.obj[cbName as keyof object];
     if (flags & LifecycleFlags.patchStrategy) {
       this.getValue = this.getValueDirect;
     }
@@ -48,7 +48,7 @@ export class SelfObserver implements SelfObserver {
     return this.currentValue;
   }
   public getValueDirect(): unknown {
-    return this.obj[this.propertyKey];
+    return this.obj[this.propertyKey as keyof object];
   }
 
   public setValue(newValue: unknown, flags: LifecycleFlags): void {
@@ -68,7 +68,7 @@ export class SelfObserver implements SelfObserver {
   }
   public $patch(flags: LifecycleFlags): void {
     const oldValue = this.currentValue;
-    const newValue = this.obj[this.propertyKey];
+    const newValue = this.obj[this.propertyKey as keyof object];
     flags |= this.persistentFlags;
     this.currentValue = newValue;
     this.callSubscribers(newValue, oldValue, flags);

@@ -27,7 +27,7 @@ export class Signaler implements ISignaler {
       return;
     }
     for (const listener of listeners.keys()) {
-      listener.handleChange(undefined, undefined, flags | LifecycleFlags.updateTargetInstance);
+      listener.handleChange(undefined, undefined, flags! | LifecycleFlags.updateTargetInstance);
     }
   }
 

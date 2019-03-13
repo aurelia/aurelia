@@ -13,11 +13,11 @@ export class PrimitiveObserver implements IAccessor, ISubscribable<MutationKind.
   // removed the error reporter here because technically any primitive property that can get, can also set,
   // but since that never serves any purpose (e.g. setting string.length doesn't throw but doesn't change the length either),
   // we could best just leave this as a no-op and so don't need to store the propertyName
-  public setValue: () => void;
-  public subscribe: () => void;
-  public unsubscribe: () => void;
-  public dispose: () => void;
-  public $patch: () => void;
+  public setValue!: () => void;
+  public subscribe!: () => void;
+  public unsubscribe!: () => void;
+  public dispose!: () => void;
+  public $patch!: () => void;
 
   public doNotCache: boolean = true;
   public obj: Primitive;

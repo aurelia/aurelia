@@ -26,21 +26,21 @@ export class ProxySubscriberCollection<TObj extends object = object> implements 
     this.proxy = proxy;
     this.subscribe = this.addSubscriber;
     this.unsubscribe = this.removeSubscriber;
-    if (raw[key] instanceof Object) { // Ensure we observe array indices and newly created object properties
-      raw[key] = ProxyObserver.getOrCreate(raw[key]).proxy;
+    if (raw[key as keyof TObj] instanceof Object) { // Ensure we observe array indices and newly created object properties
+      raw[key as keyof TObj] = ProxyObserver.getOrCreate(raw[key as keyof TObj]).proxy as unknown as TObj[keyof TObj];
     }
     if (Tracer.enabled) { Tracer.leave(); }
   }
 
   public setValue(value: unknown, flags?: LifecycleFlags): void {
-    const oldValue = this.raw[this.key];
+    const oldValue = this.raw[this.key as keyof TObj];
     if (oldValue !== value) {
-      this.raw[this.key] = value;
-      this.callSubscribers(value, oldValue, flags | LifecycleFlags.proxyStrategy | LifecycleFlags.updateTargetInstance);
+      this.raw[this.key as keyof TObj] = value as TObj[keyof TObj];
+      this.callSubscribers(value, oldValue, flags! | LifecycleFlags.proxyStrategy | LifecycleFlags.updateTargetInstance);
     }
   }
   public getValue(): unknown {
-    return this.raw[this.key];
+    return this.raw[this.key as keyof TObj];
   }
 }
 
@@ -91,7 +91,7 @@ export class ProxyObserver<TObj extends object = object> implements ProxyObserve
         proxyObserver = (proxy as { $observer: ProxyObserver<T> }).$observer;
       }
     } else {
-      proxyObserver = obj.$observer;
+      proxyObserver = obj.$observer!;
     }
     if (arguments.length === 1) {
       return proxyObserver;
@@ -100,7 +100,7 @@ export class ProxyObserver<TObj extends object = object> implements ProxyObserve
     if (subscribers === undefined) {
       const raw = this.getRawIfProxy(obj);
       const proxy = proxyObserver.proxy;
-      subscribers = proxyObserver.subscribers[key as string | number] = new ProxySubscriberCollection(proxy, raw, key);
+      subscribers = proxyObserver.subscribers[key as string | number] = new ProxySubscriberCollection(proxy, raw, key as keyof T);
     }
     return subscribers;
   }
@@ -116,11 +116,11 @@ export class ProxyObserver<TObj extends object = object> implements ProxyObserve
     if (p === '$raw') {
       return target;
     }
-    return target[p];
+    return target[p as keyof TObj];
   }
 
   public set(target: TObj, p: PropertyKey, value: unknown, receiver?: unknown): boolean {
-    const oldValue = target[p];
+    const oldValue = target[p as keyof TObj];
     if (oldValue !== value) {
       Reflect.set(target, p, value, target);
       this.callPropertySubscribers(value, oldValue, p);
@@ -130,7 +130,7 @@ export class ProxyObserver<TObj extends object = object> implements ProxyObserve
   }
 
   public deleteProperty(target: TObj, p: PropertyKey): boolean {
-    const oldValue = target[p];
+    const oldValue = target[p as keyof TObj];
     if (Reflect.deleteProperty(target, p)) {
       if (oldValue !== undefined) {
         this.callPropertySubscribers(undefined, oldValue, p);
@@ -142,7 +142,7 @@ export class ProxyObserver<TObj extends object = object> implements ProxyObserve
   }
 
   public defineProperty(target: TObj, p: PropertyKey, attributes: PropertyDescriptor): boolean {
-    const oldValue = target[p];
+    const oldValue = target[p as keyof TObj];
     if (Reflect.defineProperty(target, p, attributes)) {
       if (attributes.value !== oldValue) {
         this.callPropertySubscribers(attributes.value, oldValue, p);
@@ -155,7 +155,7 @@ export class ProxyObserver<TObj extends object = object> implements ProxyObserve
 
   public apply(target: TObj, thisArg: unknown, argArray?: unknown[]): unknown {
     // tslint:disable-next-line:ban-types // Reflect API dictates this
-    return Reflect.apply(target as Function, target, argArray);
+    return Reflect.apply(target as Function, target, argArray!);
   }
 
   public subscribe(subscriber: IProxySubscriber): void;
@@ -166,7 +166,7 @@ export class ProxyObserver<TObj extends object = object> implements ProxyObserve
     } else {
       let subscribers = this.subscribers[key as string | number];
       if (subscribers === undefined) {
-        subscribers = this.subscribers[key as string | number] = new ProxySubscriberCollection(this.proxy, this.raw, key);
+        subscribers = this.subscribers[key as string | number] = new ProxySubscriberCollection(this.proxy, this.raw, key as keyof TObj);
       }
       subscribers.addSubscriber(subscriber as IPropertySubscriber);
     }

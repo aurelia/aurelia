@@ -5,14 +5,14 @@ import { CollectionKind, ICollectionObserver, IObservedSet } from '../observatio
 import { collectionObserver } from './collection-observer';
 import { patchProperties } from './patch-properties';
 
-const proto = Set.prototype;
+const proto = Set.prototype as { [K in keyof Set<any>]: Set<any>[K] & { observing?: boolean } };
 
 const $add = proto.add;
 const $clear = proto.clear;
 const $delete = proto.delete;
 
 const native = { add: $add, clear: $clear, delete: $delete };
-const methods = ['add', 'clear', 'delete'];
+const methods: ['add', 'clear', 'delete'] = ['add', 'clear', 'delete'];
 
 // note: we can't really do much with Set due to the internal data structure not being accessible so we're just using the native calls
 // fortunately, add/delete/clear are easy to reconstruct for the indexMap
@@ -55,7 +55,7 @@ const observe = {
       let i = 0;
       for (const entry of $this.keys()) {
         if (indexMap[i] > -1) {
-          indexMap.deletedItems.push(indexMap[i]);
+          indexMap.deletedItems!.push(indexMap[i]);
         }
         i++;
       }
@@ -84,7 +84,7 @@ const observe = {
     for (const entry of $this.keys()) {
       if (entry === value) {
         if (indexMap[i] > -1) {
-          indexMap.deletedItems.push(indexMap[i]);
+          indexMap.deletedItems!.push(indexMap[i]);
         }
         indexMap.splice(i, 1);
         return $delete.call($this, value);
@@ -132,7 +132,7 @@ export interface SetObserver extends ICollectionObserver<CollectionKind.set> {}
 
 @collectionObserver(CollectionKind.set)
 export class SetObserver implements SetObserver {
-  public resetIndexMap: () => void;
+  public resetIndexMap!: () => void;
 
   public collection: IObservedSet;
   public readonly flags: LifecycleFlags;

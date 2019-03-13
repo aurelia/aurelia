@@ -29,7 +29,7 @@
 // };
 
 // function verifyViewBindingContexts(views: IView[], items: any[]): void {
-//   if (items === null || items === undefined) {
+//   if (items == null) {
 //     return;
 //   }
 //   if (typeof items === 'number') {

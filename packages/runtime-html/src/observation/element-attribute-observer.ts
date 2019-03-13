@@ -85,7 +85,7 @@ export class AttributeObserver implements AttributeObserver, ElementMutationSubs
   public setValueCore(newValue: unknown, flags: LifecycleFlags): void {
     const obj = this.obj;
     const targetAttribute = this.targetAttribute;
-    if (newValue === null || newValue === undefined) {
+    if (newValue == null) {
       obj.removeAttribute(targetAttribute);
     } else {
       obj.setAttribute(targetAttribute, newValue as string);

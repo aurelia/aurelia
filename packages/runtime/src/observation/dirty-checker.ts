@@ -87,7 +87,7 @@ export class DirtyChecker {
     }
   }
 
-  public check(delta: number): void {
+  public check(delta?: number): void {
     if (DirtyCheckSettings.disabled) {
       return;
     }

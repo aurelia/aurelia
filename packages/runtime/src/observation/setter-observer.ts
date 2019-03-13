@@ -10,8 +10,8 @@ export interface SetterObserver extends IPropertyObserver<IIndexable, string> {}
 
 @propertyObserver()
 export class SetterObserver implements SetterObserver {
-  public subscribe: (subscriber: IPropertySubscriber) => void;
-  public unsubscribe: (subscriber: IPropertySubscriber) => void;
+  public subscribe!: (subscriber: IPropertySubscriber) => void;
+  public unsubscribe!: (subscriber: IPropertySubscriber) => void;
   public readonly persistentFlags: LifecycleFlags;
   public obj: IIndexable;
   public propertyKey: string;

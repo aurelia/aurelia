@@ -113,7 +113,7 @@ export class HTMLDOM implements IDOM {
   }
 
   public createDocumentFragment(markupOrNode?: string | Node): DocumentFragment {
-    if (markupOrNode === undefined || markupOrNode === null) {
+    if (markupOrNode == null) {
       return this.document.createDocumentFragment();
     }
 
@@ -163,7 +163,7 @@ export class HTMLDOM implements IDOM {
   }
 
   public createTemplate(markup?: unknown): HTMLTemplateElement {
-    if (markup === undefined || markup === null) {
+    if (markup == null) {
       return this.document.createElement('template');
     }
 
@@ -185,7 +185,7 @@ export class HTMLDOM implements IDOM {
   }
 
   public isNodeInstance(potentialNode: unknown): potentialNode is Node {
-    return potentialNode !== null && potentialNode !== undefined && (potentialNode as Node).nodeType > 0;
+    return potentialNode != null && (potentialNode as Node).nodeType > 0;
   }
 
   public isRenderLocation(node: unknown): node is IRenderLocation {

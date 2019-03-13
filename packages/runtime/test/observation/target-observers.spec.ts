@@ -81,7 +81,7 @@
 //   const valueArr = [undefined, null, '', 'foo'];
 //   describe('getValue()', function () {
 //     for (const name of globalAttributeNames) {
-//       for (const value of valueArr.filter(v => v !== null && v !== undefined)) {
+//       for (const value of valueArr.filter(v => v != null)) {
 //         it(`returns "${value}" for attribute "${name}"`, function () {
 //           el = createElement(`<div ${name}="${value}"></div>`);
 //           lifecycle = new Lifecycle();
@@ -99,10 +99,10 @@
 //         it(`sets attribute "${name}" to "${value}"`, function () {
 //           el = createElement(`<div></div>`);
 //           lifecycle = new Lifecycle();
-//           const expected = value !== null && value !== undefined ? `<div ${name}="${value}"></div>` : '<div></div>';
+//           const expected = value != null ? `<div ${name}="${value}"></div>` : '<div></div>';
 //           sut = new DataAttributeAccessor(dom, lifecycle, el, name);
 //           sut.setValue(value, LifecycleFlags.none);
-//           if (value !== null && value !== undefined) {
+//           if (value != null) {
 //             expect(el.outerHTML).not.to.equal(expected);
 //           }
 //           lifecycle.processFlushQueue(LifecycleFlags.none);

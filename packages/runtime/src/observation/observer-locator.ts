@@ -58,12 +58,12 @@ function getPropertyDescriptor(subject: object, name: string): PropertyDescripto
   let pd = Object.getOwnPropertyDescriptor(subject, name);
   let proto = Object.getPrototypeOf(subject);
 
-  while (pd === undefined && proto !== null) {
+  while (pd === void 0 && proto !== null) {
     pd = Object.getOwnPropertyDescriptor(proto, name);
     proto = Object.getPrototypeOf(proto);
   }
 
-  return pd;
+  return pd!;
 }
 
 /** @internal */
@@ -98,7 +98,7 @@ export class ObserverLocator implements IObserverLocator {
       return ProxyObserver.getOrCreate(obj, propertyName) as unknown as AccessorOrObserver; // TODO: fix typings (and ensure proper contracts ofc)
     }
     if (isBindingContext(obj)) {
-      return obj.getObservers(flags).getOrCreate(flags, obj, propertyName);
+      return obj.getObservers!(flags).getOrCreate(flags, obj, propertyName);
     }
     let observersLookup = obj.$observers;
     let observer: AccessorOrObserver & { doNotCache?: boolean };
@@ -110,7 +110,7 @@ export class ObserverLocator implements IObserverLocator {
     observer = this.createPropertyObserver(flags, obj, propertyName);
 
     if (!observer.doNotCache) {
-      if (observersLookup === undefined) {
+      if (observersLookup === void 0) {
         observersLookup = this.getOrCreateObserversLookup(obj);
       }
 
@@ -241,7 +241,7 @@ export class ObserverLocator implements IObserverLocator {
 
 type RepeatableCollection = IObservedMap | IObservedSet | IObservedArray | null | undefined | number;
 
-export function getCollectionObserver(flags: LifecycleFlags, lifecycle: ILifecycle, collection: RepeatableCollection): CollectionObserver {
+export function getCollectionObserver(flags: LifecycleFlags, lifecycle: ILifecycle, collection: RepeatableCollection): CollectionObserver | null {
   // If the collection is wrapped by a proxy then `$observer` will return the proxy observer instead of the collection observer, which is not what we want
   // when we ask for getCollectionObserver
   const rawCollection = collection instanceof Object ? ProxyObserver.getRawIfProxy(collection) : collection;

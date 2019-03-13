@@ -1,4 +1,4 @@
-import { Constructable, PLATFORM, Reporter, Tracer } from '@aurelia/kernel';
+import { Constructable, PLATFORM, Reporter, Tracer, IIndexable } from '@aurelia/kernel';
 import { LifecycleFlags } from '../flags';
 import { ILifecycle } from '../lifecycle';
 import {
@@ -26,9 +26,9 @@ export interface ComputedOverrides {
 export type ComputedLookup = { computed?: Record<string, ComputedOverrides> };
 
 export function computed(config: ComputedOverrides): PropertyDecorator {
-  return function(target: Constructable & ComputedLookup, key: string): void {
+  return function(target: any, key: string): void {
     (target.computed || (target.computed = {}))[key] = config;
-  };
+  } as any;
 }
 
 const computedOverrideDefaults: ComputedOverrides = { static: false, volatile: false };
@@ -77,14 +77,14 @@ export class CustomSetterObserver implements CustomSetterObserver {
   constructor(obj: IObservable, propertyKey: string, descriptor: PropertyDescriptor) {
     this.obj = obj;
     this.propertyKey = propertyKey;
-    this.currentValue = this.oldValue = undefined;
+    this.currentValue = this.oldValue = void 0;
     this.descriptor = descriptor;
     this.observing = false;
   }
 
   public setValue(newValue: unknown): void {
     if (Tracer.enabled) { Tracer.enter('CustomSetterObserver', 'setValue', slice.call(arguments)); }
-    this.descriptor.set.call(this.obj, newValue);
+    this.descriptor.set!.call(this.obj, newValue);
     if (this.currentValue !== newValue) {
       this.oldValue = this.currentValue;
       this.currentValue = newValue;
@@ -139,7 +139,7 @@ export class GetterObserver implements GetterObserver {
     this.obj = obj;
     this.propertyKey = propertyKey;
     this.isCollecting = false;
-    this.currentValue = this.oldValue = undefined;
+    this.currentValue = this.oldValue = void 0;
 
     this.propertyDeps = [];
     this.collectionDeps = [];
@@ -167,9 +167,9 @@ export class GetterObserver implements GetterObserver {
   public getValue(): unknown {
     if (Tracer.enabled) { Tracer.enter('GetterObserver', 'getValue', slice.call(arguments)); }
     if (this.subscriberCount === 0 || this.isCollecting) {
-      this.currentValue = Reflect.apply(this.descriptor.get, this.proxy, PLATFORM.emptyArray);
+      this.currentValue = Reflect.apply(this.descriptor.get!, this.proxy, PLATFORM.emptyArray);
     } else {
-      this.currentValue = Reflect.apply(this.descriptor.get, this.obj, PLATFORM.emptyArray);
+      this.currentValue = Reflect.apply(this.descriptor.get!, this.obj, PLATFORM.emptyArray);
     }
     if (Tracer.enabled) { Tracer.leave(); }
     return this.currentValue;
@@ -286,7 +286,7 @@ function createGetterTraps(flags: LifecycleFlags, observerLocator: IObserverLoca
 function proxyOrValue(flags: LifecycleFlags, target: object, key: PropertyKey, observerLocator: IObserverLocator, observer: GetterObserver): ProxyHandler<object> {
   const value = Reflect.get(target, key, target);
   if (typeof value === 'function') {
-    return target[key].bind(target);
+    return (target as any)[key].bind(target);
   }
   if (typeof value !== 'object' || value === null) {
     return value;

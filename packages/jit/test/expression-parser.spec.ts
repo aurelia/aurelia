@@ -129,7 +129,7 @@ function verifyResultOrError(expr: string, expected: any, expectedMsg?: string, 
     if (error !== null) {
       throw new Error(`Expected expression "${expr}" with BindingType.${bindingTypeToString(bindingType)} not to throw, but it threw "${error.message}"`);
     }
-  } else if (expectedMsg === null || expectedMsg === undefined) {
+  } else if (expectedMsg == null) {
     if (error === null) {
       verifyASTEqual(actual, expected);
     } else {

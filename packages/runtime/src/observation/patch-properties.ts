@@ -18,7 +18,7 @@ export function patchProperties(value: unknown, flags: LifecycleFlags): void {
       let key: string;
       let observer: AccessorOrObserver;
       for (key in observers) {
-        observer = observers[key];
+        observer = observers[key as keyof typeof observers] as AccessorOrObserver;
         if (observer.$patch !== undefined) {
           observer.$patch(flags | LifecycleFlags.patchStrategy | LifecycleFlags.updateTargetInstance | LifecycleFlags.fromFlush);
         }
@@ -32,7 +32,7 @@ export function patchProperties(value: unknown, flags: LifecycleFlags): void {
 /** @internal */
 export function patchProperty(value: unknown, key: string, flags: LifecycleFlags): void {
   if (mayHaveObservers(value) && value.$observers !== undefined) {
-    const observer = value.$observers[key];
+    const observer = value.$observers[key as keyof typeof value['$observers']] as AccessorOrObserver;
     if (observer && observer.$patch !== undefined) {
       observer.$patch(flags | LifecycleFlags.patchStrategy | LifecycleFlags.updateTargetInstance | LifecycleFlags.fromFlush);
     }

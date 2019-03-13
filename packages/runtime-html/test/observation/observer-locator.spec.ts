@@ -147,7 +147,7 @@ describe('ObserverLocator', function () {
   ] as any[]) {
     it(_`getObserver() - ${obj} - returns PrimitiveObserver`, function () {
       const { sut } = setup();
-      if (obj === null || obj === undefined) {
+      if (obj == null) {
         expect(() => sut.getObserver(LF.none, obj, 'foo')).to.throw;
       } else {
         const actual = sut.getObserver(LF.none, obj, 'foo');

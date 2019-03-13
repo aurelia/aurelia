@@ -123,7 +123,7 @@
 //   ]) {
 //     it(_`getObserver() - ${obj} - returns PrimitiveObserver`, function () {
 //       const { sut } = setup();
-//       if (obj === null || obj === undefined) {
+//       if (obj == null) {
 //         expect(() => sut.getObserver(obj, 'foo')).to.throw;
 //       } else {
 //         const actual = sut.getObserver(obj, 'foo');

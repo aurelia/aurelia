@@ -105,7 +105,7 @@ export const hJsx = function(name: string, attrs: Record<string, string> | null,
       // if attr is class or its alias
       // split up by splace and add to element via classList API
       if (attr === 'class' || attr === 'className' || attr === 'cls') {
-        value = value === undefined || value === null
+        value = value == null
           ? []
           : Array.isArray(value)
             ? value
@@ -160,7 +160,7 @@ export const hJsx = function(name: string, attrs: Record<string, string> | null,
   }
   const appender = (el instanceof HTMLTemplateElement) ? el.content : el;
   for (const child of children) {
-    if (child === null || child === undefined) {
+    if (child == null) {
       continue;
     }
     if (Array.isArray(child)) {

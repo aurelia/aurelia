@@ -94,7 +94,7 @@ export function getMode(binding: PlainAttributeSymbol | BindingSymbol): BindingM
   if (binding.flags & SymbolFlags.isBinding) {
     return (binding as BindingSymbol).bindable.mode;
   } else {
-    return commandToMode[(binding as PlainAttributeSymbol).syntax.command];
+    return commandToMode[(binding as PlainAttributeSymbol).syntax.command as keyof typeof commandToMode];
   }
 }
 
@@ -187,6 +187,7 @@ export class DefaultBindingCommand implements IBindingCommand {
   }
 
   public compile(binding: PlainAttributeSymbol | BindingSymbol): AttributeInstruction {
+    // @ts-ignore
     return this[modeToProperty[getMode(binding)]](binding);
   }
 }

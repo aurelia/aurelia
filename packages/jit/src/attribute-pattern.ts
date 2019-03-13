@@ -135,7 +135,7 @@ export class Interpretation {
       } else {
         partsRecord[pattern].push(currentRecord[pattern]);
       }
-      currentRecord[pattern] = undefined;
+      currentRecord[pattern] = undefined!;
     }
   }
 }
@@ -162,14 +162,14 @@ export class State {
   public findChild(charSpec: ICharSpec): State {
     const nextStates = this.nextStates;
     const len = nextStates.length;
-    let child: State = null;
+    let child: State = null!;
     for (let i = 0; i < len; ++i) {
       child = nextStates[i];
       if (charSpec.equals(child.charSpec)) {
         return child;
       }
     }
-    return null;
+    return null!;
   }
 
   public append(charSpec: ICharSpec, pattern: string): State {
@@ -194,7 +194,7 @@ export class State {
     const nextStates = this.nextStates;
     const len = nextStates.length;
     let childLen = 0;
-    let child: State = null;
+    let child: State = null!;
     let i = 0;
     let j = 0;
     for (; i < len; ++i) {
@@ -233,7 +233,7 @@ export class StaticSegment implements ISegment {
   constructor(text: string) {
     this.text = text;
     const len = this.len = text.length;
-    const specs = this.specs = [];
+    const specs = this.specs = [] as CharSpec[];
     for (let i = 0; i < len; ++i) {
       specs.push(new CharSpec(text[i], false, false, false));
     }
@@ -305,7 +305,7 @@ export class SyntaxInterpreter {
   private readonly initialStates: State[];
 
   constructor() {
-    this.rootState = new State(null);
+    this.rootState = new State(null!);
     this.initialStates = [this.rootState];
   }
 
@@ -357,8 +357,8 @@ export class SyntaxInterpreter {
       } else {
         return 0;
       }
-      const aTypes = a.types;
-      const bTypes = b.types;
+      const aTypes = a.types!;
+      const bTypes = b.types!;
       if (aTypes.statics !== bTypes.statics) {
         return bTypes.statics - aTypes.statics;
       }
@@ -374,7 +374,7 @@ export class SyntaxInterpreter {
     if (states.length > 0) {
       const state = states[0];
       if (!state.charSpec.isSymbol) {
-        interpretation.next(state.pattern);
+        interpretation.next(state.pattern!);
       }
       interpretation.pattern = state.pattern;
     }
@@ -384,7 +384,7 @@ export class SyntaxInterpreter {
   public getNextStates(states: State[], ch: string, interpretation: Interpretation): State[] {
     // TODO: reuse preallocated arrays
     const nextStates: State[] = [];
-    let state: State = null;
+    let state: State = null!;
     const len = states.length;
     for (let i = 0; i < len; ++i) {
       state = states[i];

@@ -92,7 +92,7 @@ export class TargetObserverLocator implements ITargetObserverLocator {
       case 'checked':
         return new CheckedObserver(flags, lifecycle, obj as IInputElement, new EventSubscriber(this.dom, inputEvents), observerLocator);
       case 'value':
-        if (obj['tagName'] === 'SELECT') {
+        if ((obj as Element).tagName === 'SELECT') {
           return new SelectValueObserver(flags, lifecycle, obj as ISelectElement, new EventSubscriber(this.dom, selectEvents), observerLocator, this.dom);
         }
         return new ValueAttributeObserver(lifecycle, obj, propertyName, new EventSubscriber(this.dom, inputEvents));
@@ -122,7 +122,7 @@ export class TargetObserverLocator implements ITargetObserverLocator {
           return new DataAttributeAccessor(lifecycle, obj as HTMLElement, propertyName);
         }
     }
-    return null;
+    return null!;
   }
 
   public overridesAccessor(flags: LifecycleFlags, obj: Node, propertyName: string): boolean {

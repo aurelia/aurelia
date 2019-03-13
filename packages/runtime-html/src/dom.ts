@@ -104,10 +104,10 @@ export class HTMLDOM implements IDOM {
 
     node.parentNode.replaceChild(locationEnd, node);
 
-    locationEnd.parentNode.insertBefore(locationStart, locationEnd);
+    locationEnd.parentNode!.insertBefore(locationStart, locationEnd);
 
     (locationEnd as IRenderLocation).$start = locationStart as IRenderLocation;
-    (locationStart as IRenderLocation).$nodes = null;
+    (locationStart as IRenderLocation).$nodes = null!;
 
     return locationEnd as IRenderLocation;
   }
@@ -153,7 +153,7 @@ export class HTMLDOM implements IDOM {
       return {
         disconnect(): void { /*empty*/ },
         observe(): void { /*empty*/ },
-        takeRecords(): MutationRecord[] { return PLATFORM.emptyArray as MutationRecord[]; }
+        takeRecords(): MutationRecord[] { return PLATFORM.emptyArray as typeof PLATFORM.emptyArray & MutationRecord[]; }
       };
     }
 
@@ -177,7 +177,7 @@ export class HTMLDOM implements IDOM {
   }
 
   public insertBefore(nodeToInsert: Node, referenceNode: Node): void {
-    referenceNode.parentNode.insertBefore(nodeToInsert, referenceNode);
+    referenceNode.parentNode!.insertBefore(nodeToInsert, referenceNode);
   }
 
   public isMarker(node: unknown): node is HTMLElement {
@@ -207,7 +207,7 @@ export class HTMLDOM implements IDOM {
     if ((node as ChildNode).remove) {
       (node as ChildNode).remove();
     } else {
-      node.parentNode.removeChild(node);
+      node.parentNode!.removeChild(node);
     }
   }
 
@@ -251,7 +251,7 @@ export class TextNodeSequence implements INodeSequence {
   }
 
   public insertBefore(refNode: Node): void {
-    refNode.parentNode.insertBefore(this.firstChild, refNode);
+    refNode.parentNode!.insertBefore(this.firstChild, refNode);
   }
 
   public appendTo(parent: Node): void {
@@ -319,10 +319,10 @@ export class FragmentNodeSequence implements INodeSequence {
       ++i;
     }
 
-    this.firstChild = fragment.firstChild;
-    this.lastChild = fragment.lastChild;
+    this.firstChild = fragment.firstChild!;
+    this.lastChild = fragment.lastChild!;
 
-    this.start = this.end = null;
+    this.start = this.end = null!;
   }
 
   public findTargets(): ArrayLike<Node> {
@@ -330,7 +330,7 @@ export class FragmentNodeSequence implements INodeSequence {
   }
 
   public insertBefore(refNode: IRenderLocation & Comment): void {
-    refNode.parentNode.insertBefore(this.fragment, refNode);
+    refNode.parentNode!.insertBefore(this.fragment, refNode);
     // internally we could generally assume that this is an IRenderLocation,
     // but since this is also public API we still need to double check
     // (or horrible things might happen)
@@ -357,7 +357,7 @@ export class FragmentNodeSequence implements INodeSequence {
     parent.appendChild(this.fragment);
     // this can never be a IRenderLocation, and if for whatever reason we moved
     // from a IRenderLocation to a host, make sure "start" and "end" are null
-    this.start = this.end = null;
+    this.start = this.end = null!;
   }
 
   public remove(): void {
@@ -370,13 +370,13 @@ export class FragmentNodeSequence implements INodeSequence {
       let next: Node;
       let current = this.start.nextSibling;
       while (current !== end) {
-        next = current.nextSibling;
+        next = current!.nextSibling!;
         // tslint:disable-next-line:no-any
-        fragment.appendChild(current);
+        fragment.appendChild(current!);
         current = next;
       }
-      this.start.$nodes = null;
-      this.start = this.end = null;
+      this.start.$nodes = null!;
+      this.start = this.end = null!;
     } else {
       // otherwise just remove from first to last child in the regular way
       let current = this.firstChild;
@@ -386,7 +386,7 @@ export class FragmentNodeSequence implements INodeSequence {
         let next: Node;
 
         while (current !== null) {
-          next = current.nextSibling;
+          next = current.nextSibling!;
           // tslint:disable-next-line:no-any
           fragment.appendChild(current);
 
@@ -409,9 +409,9 @@ export interface NodeSequenceFactory {
 /** @internal */
 export class NodeSequenceFactory implements NodeSequenceFactory {
   private readonly dom: IDOM;
-  private readonly deepClone: boolean;
-  private readonly node: Node;
-  private readonly Type: Constructable<INodeSequence>;
+  private readonly deepClone!: boolean;
+  private readonly node!: Node;
+  private readonly Type!: Constructable<INodeSequence>;
 
   constructor(dom: IDOM, markupOrNode: string | Node) {
     this.dom = dom;
@@ -425,7 +425,7 @@ export class NodeSequenceFactory implements NodeSequenceFactory {
         const target = childNodes[0];
         if (target.nodeName === 'AU-M' || target.nodeName === '#comment') {
           const text = childNodes[1];
-          if (text.nodeType === NodeType.Text && text.textContent.length === 0) {
+          if (text.nodeType === NodeType.Text && text.textContent!.length === 0) {
             this.deepClone = false;
             this.node = text;
             this.Type = TextNodeSequence;
@@ -450,15 +450,15 @@ export interface AuMarker extends INode { }
 /** @internal */
 export class AuMarker implements INode {
   public get parentNode(): Node & ParentNode {
-    return this.nextSibling.parentNode;
+    return this.nextSibling.parentNode!;
   }
 
   public readonly nextSibling: Node;
-  public readonly previousSibling: Node;
+  public readonly previousSibling!: Node;
   public readonly content?: Node;
-  public readonly childNodes: ArrayLike<ChildNode>;
-  public readonly nodeName: 'AU-M';
-  public readonly nodeType: NodeType.Element;
+  public readonly childNodes!: ArrayLike<ChildNode>;
+  public readonly nodeName!: 'AU-M';
+  public readonly nodeType!: NodeType.Element;
 
   public textContent: string;
 
@@ -471,7 +471,7 @@ export class AuMarker implements INode {
 }
 
 (proto => {
-  proto.previousSibling = null;
+  proto.previousSibling = null!;
   proto.childNodes = PLATFORM.emptyArray;
   proto.nodeName = 'AU-M';
   proto.nodeType = NodeType.Element;

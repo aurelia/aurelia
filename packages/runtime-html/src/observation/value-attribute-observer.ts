@@ -1,7 +1,7 @@
 import { IBindingTargetObserver, ILifecycle, IPropertySubscriber, LifecycleFlags, targetObserver } from '@aurelia/runtime';
 import { IEventSubscriber } from './event-manager';
 
-const inputValueDefaults = {
+const inputValueDefaults: Record<string, string> = {
   ['button']: '',
   ['checkbox']: 'on',
   ['color']: '#000000',
@@ -31,11 +31,11 @@ export interface ValueAttributeObserver extends IBindingTargetObserver<Node, str
 @targetObserver('')
 export class ValueAttributeObserver implements ValueAttributeObserver {
   public readonly isDOMObserver: true;
-  public currentFlags: LifecycleFlags;
+  public currentFlags!: LifecycleFlags;
   public currentValue: unknown;
   public defaultValue: unknown;
   public oldValue: unknown;
-  public flush: () => void;
+  public flush!: () => void;
   public handler: IEventSubscriber;
   public lifecycle: ILifecycle;
   public obj: Node;
@@ -53,7 +53,7 @@ export class ValueAttributeObserver implements ValueAttributeObserver {
 
     // input.value (for type='file') however, can only be assigned an empty string
     if (propertyKey === 'value') {
-      const nodeType = obj['type'];
+      const nodeType = (obj as HTMLInputElement)['type'];
       this.defaultValue = inputValueDefaults[nodeType || 'text'];
       if (nodeType === 'file') {
         this.flush = this.flushFileChanges;
@@ -61,15 +61,15 @@ export class ValueAttributeObserver implements ValueAttributeObserver {
     } else {
       this.defaultValue = '';
     }
-    this.oldValue = this.currentValue = obj[propertyKey];
+    this.oldValue = this.currentValue = obj[propertyKey as keyof Node];
   }
 
   public getValue(): unknown {
-    return this.obj[this.propertyKey];
+    return this.obj[this.propertyKey as keyof Node];
   }
 
   public setValueCore(newValue: unknown, flags: LifecycleFlags): void {
-    this.obj[this.propertyKey] = newValue;
+    (this.obj as Record<string, unknown>)[this.propertyKey] = newValue;
     if (flags & LifecycleFlags.fromBind) {
       return;
     }

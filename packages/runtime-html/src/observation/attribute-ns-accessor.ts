@@ -7,7 +7,7 @@ export class AttributeNSAccessor implements AttributeNSAccessor {
   public readonly isDOMObserver: true;
   public attributeName: string;
   public currentValue: string;
-  public defaultValue: string;
+  public defaultValue!: string;
   public lifecycle: ILifecycle;
   public obj: HTMLElement;
   public oldValue: string;
@@ -19,13 +19,13 @@ export class AttributeNSAccessor implements AttributeNSAccessor {
     this.attributeName = attributeName;
     this.lifecycle = lifecycle;
     this.obj = obj;
-    this.oldValue = this.currentValue = this.getValue();
+    this.oldValue = this.currentValue = this.getValue()!;
     this.propertyKey = propertyKey;
     this.namespace = namespace;
   }
 
   public getValue(): string {
-    return this.obj.getAttributeNS(this.namespace, this.attributeName);
+    return this.obj.getAttributeNS(this.namespace, this.attributeName)!;
   }
 
   public setValueCore(newValue: string): void {

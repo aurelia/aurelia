@@ -2,6 +2,7 @@ import { Constructable, IRegistry, Tracer } from '@aurelia/kernel';
 import {
   buildTemplateDefinition,
   HydrateElementInstruction,
+  IBindableDescription,
   ICustomElementType,
   IDOM,
   INode,
@@ -41,7 +42,7 @@ export class RenderPlan<T extends INode = Node> {
   private readonly instructions: HTMLTargetedInstruction[][];
   private readonly node: T;
 
-  private lazyDefinition: TemplateDefinition;
+  private lazyDefinition!: TemplateDefinition;
 
   constructor(
     dom: IDOM<T>,
@@ -61,7 +62,7 @@ export class RenderPlan<T extends INode = Node> {
   }
 
   public getElementTemplate(engine: IRenderingEngine, Type?: ICustomElementType<T>): ITemplate<T> {
-    return engine.getElementTemplate(this.dom, this.definition, null, Type);
+    return engine.getElementTemplate(this.dom, this.definition, null!, Type!);
   }
 
   public createView(flags: LifecycleFlags, engine: IRenderingEngine, parentContext?: IRenderContext): IView {
@@ -69,7 +70,7 @@ export class RenderPlan<T extends INode = Node> {
   }
 
   public getViewFactory(engine: IRenderingEngine, parentContext?: IRenderContext): IViewFactory {
-    return engine.getViewFactory(this.dom, this.definition, parentContext);
+    return engine.getViewFactory(this.dom, this.definition, parentContext!);
   }
 
   /** @internal */
@@ -115,14 +116,14 @@ function createElementForTag<T extends INode>(dom: IDOM<T>, tagName: string, pro
   return new RenderPlan(dom, element, allInstructions, dependencies);
 }
 
-function createElementForType<T extends INode>(dom: IDOM<T>, Type: ICustomElementType<T>, props?: object, children?: ArrayLike<unknown>): RenderPlan<T> {
+function createElementForType<T extends INode>(dom: IDOM<T>, Type: ICustomElementType<T>, props?: Record<string, unknown>, children?: ArrayLike<unknown>): RenderPlan<T> {
   if (Tracer.enabled) { Tracer.enter('createElement', 'createElementForType', slice.call(arguments)); }
   const tagName = Type.description.name;
   const instructions: HTMLTargetedInstruction[] = [];
   const allInstructions = [instructions];
   const dependencies: IRegistry[] = [];
   const childInstructions: HTMLTargetedInstruction[] = [];
-  const bindables = Type.description.bindables;
+  const bindables = Type.description.bindables as Record<string, IBindableDescription>;
   const element = dom.createElement(tagName);
 
   dom.makeTarget(element);
@@ -136,7 +137,7 @@ function createElementForType<T extends INode>(dom: IDOM<T>, Type: ICustomElemen
   if (props) {
     Object.keys(props)
       .forEach(to => {
-        const value: HTMLTargetedInstruction | string = props[to];
+        const value = props[to] as HTMLTargetedInstruction | string;
 
         if (isHTMLTargetedInstruction(value)) {
           childInstructions.push(value);

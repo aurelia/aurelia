@@ -36,18 +36,18 @@ export interface CheckedObserver extends
 export class CheckedObserver implements CheckedObserver {
   public readonly isDOMObserver: true;
   public readonly persistentFlags: LifecycleFlags;
-  public currentFlags: LifecycleFlags;
+  public currentFlags!: LifecycleFlags;
   public currentValue: unknown;
   public defaultValue: unknown;
-  public flush: () => void;
+  public flush!: () => void;
   public handler: IEventSubscriber;
   public lifecycle: ILifecycle;
   public obj: IInputElement;
   public observerLocator: IObserverLocator;
   public oldValue: unknown;
 
-  private arrayObserver: ICollectionObserver<CollectionKind.array>;
-  private valueObserver: ValueAttributeObserver | SetterObserver;
+  private arrayObserver!: ICollectionObserver<CollectionKind.array>;
+  private valueObserver!: ValueAttributeObserver | SetterObserver;
 
   constructor(
     flags: LifecycleFlags,
@@ -70,14 +70,14 @@ export class CheckedObserver implements CheckedObserver {
 
   public setValueCore(newValue: unknown, flags: LifecycleFlags): void {
     if (!this.valueObserver) {
-      this.valueObserver = this.obj['$observers'] && (this.obj['$observers'].model || this.obj['$observers'].value);
+      this.valueObserver = (this.obj['$observers'] && (this.obj['$observers'].model || this.obj['$observers'].value))!;
       if (this.valueObserver) {
         this.valueObserver.subscribe(this);
       }
     }
     if (this.arrayObserver) {
       this.arrayObserver.unsubscribeBatched(this);
-      this.arrayObserver = null;
+      this.arrayObserver = null!;
     }
     if (this.obj.type === 'checkbox' && Array.isArray(newValue)) {
       this.arrayObserver = this.observerLocator.getArrayObserver(this.persistentFlags | flags, newValue);
@@ -173,7 +173,7 @@ export class CheckedObserver implements CheckedObserver {
   public unbind(): void {
     if (this.arrayObserver) {
       this.arrayObserver.unsubscribeBatched(this);
-      this.arrayObserver = null;
+      this.arrayObserver = null!;
     }
     if (this.valueObserver) {
       this.valueObserver.unsubscribe(this);

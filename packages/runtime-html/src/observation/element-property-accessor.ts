@@ -6,7 +6,7 @@ export interface ElementPropertyAccessor extends IBindingTargetAccessor<object, 
 export class ElementPropertyAccessor implements ElementPropertyAccessor {
   public readonly isDOMObserver: true;
   public lifecycle: ILifecycle;
-  public obj: object;
+  public obj: Record<string, unknown>;
   public propertyKey: string;
 
   constructor(lifecycle: ILifecycle, obj: object, propertyKey: string) {

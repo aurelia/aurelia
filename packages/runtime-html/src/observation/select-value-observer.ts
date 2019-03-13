@@ -45,15 +45,15 @@ export class SelectValueObserver implements SelectValueObserver {
   public handler: IEventSubscriber;
   public observerLocator: IObserverLocator;
   public currentValue: unknown;
-  public currentFlags: LifecycleFlags;
+  public currentFlags!: LifecycleFlags;
   public oldValue: unknown;
   public defaultValue: unknown;
 
-  public flush: () => void;
+  public flush!: () => void;
 
   private readonly dom: IDOM;
-  private arrayObserver: ICollectionObserver<CollectionKind.array>;
-  private nodeObserver: MutationObserver;
+  private arrayObserver!: ICollectionObserver<CollectionKind.array>;
+  private nodeObserver!: MutationObserver;
 
   constructor(
     flags: LifecycleFlags,
@@ -83,7 +83,7 @@ export class SelectValueObserver implements SelectValueObserver {
     }
     if (this.arrayObserver) {
       this.arrayObserver.unsubscribeBatched(this);
-      this.arrayObserver = null;
+      this.arrayObserver = null!;
     }
     if (isArray) {
       this.arrayObserver = this.observerLocator.getArrayObserver(this.persistentFlags | flags, newValue as unknown[]);
@@ -247,16 +247,16 @@ export class SelectValueObserver implements SelectValueObserver {
   }
 
   public bind(): void {
-    this.nodeObserver = this.dom.createNodeObserver(this.obj, this.handleNodeChange.bind(this), childObserverOptions) as MutationObserver;
+    this.nodeObserver = this.dom.createNodeObserver!(this.obj, this.handleNodeChange.bind(this), childObserverOptions) as MutationObserver;
   }
 
   public unbind(): void {
     this.nodeObserver.disconnect();
-    this.nodeObserver = null;
+    this.nodeObserver = null!;
 
     if (this.arrayObserver) {
       this.arrayObserver.unsubscribeBatched(this);
-      this.arrayObserver = null;
+      this.arrayObserver = null!;
     }
   }
 

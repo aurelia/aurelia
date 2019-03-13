@@ -37,7 +37,7 @@ export class AttributeObserver implements AttributeObserver, ElementMutationSubs
   public observerLocator: IObserverLocator;
   public lifecycle: ILifecycle;
   public currentValue: unknown;
-  public currentFlags: LifecycleFlags;
+  public currentFlags!: LifecycleFlags;
   public oldValue: unknown;
   public defaultValue: unknown;
 
@@ -72,14 +72,14 @@ export class AttributeObserver implements AttributeObserver, ElementMutationSubs
   }
 
   public getValue(): unknown {
-    return this.obj.getAttribute(this.propertyKey);
+    return this.obj.getAttribute(this.propertyKey!);
   }
 
   public getValueInlineStyle(): string {
-    return this.obj.style.getPropertyValue(this.propertyKey);
+    return this.obj.style.getPropertyValue(this.propertyKey!);
   }
   public getValueClassName(): boolean {
-    return this.obj.classList.contains(this.propertyKey);
+    return this.obj.classList.contains(this.propertyKey!);
   }
 
   public setValueCore(newValue: unknown, flags: LifecycleFlags): void {
@@ -98,7 +98,7 @@ export class AttributeObserver implements AttributeObserver, ElementMutationSubs
       priority = 'important';
       value = value.replace('!important', '');
     }
-    this.obj.style.setProperty(this.propertyKey, value as string, priority);
+    this.obj.style.setProperty(this.propertyKey!, value as string, priority);
   }
   public setValueCoreClassName(newValue: unknown): void {
     const className = this.propertyKey;
@@ -115,9 +115,9 @@ export class AttributeObserver implements AttributeObserver, ElementMutationSubs
     //
     // so there is no need for separating class by space and add all of them like class accessor
     if (newValue) {
-      classList.add(className);
+      classList.add(className!);
     } else {
-      classList.remove(className);
+      classList.remove(className!);
     }
   }
 
@@ -144,7 +144,7 @@ export class AttributeObserver implements AttributeObserver, ElementMutationSubs
   public handleMutationInlineStyle(): void {
     const css = this.obj.style;
     const rule = this.propertyKey;
-    const newValue = css.getPropertyValue(rule);
+    const newValue = css.getPropertyValue(rule!);
     if (newValue !== this.currentValue) {
       this.currentValue = newValue;
       this.setValue(newValue, LifecycleFlags.none);
@@ -152,7 +152,7 @@ export class AttributeObserver implements AttributeObserver, ElementMutationSubs
   }
   public handleMutationClassName(): void {
     const className = this.propertyKey;
-    const newValue = this.obj.classList.contains(className);
+    const newValue = this.obj.classList.contains(className!);
     if (newValue !== this.currentValue) {
       this.currentValue = newValue;
       this.setValue(newValue, LifecycleFlags.none);
@@ -178,8 +178,9 @@ const startObservation = (element: IHtmlElement, subscription: ElementMutationSu
     element.$eMObservers = new Set();
   }
   if (element.$mObserver === undefined) {
-    element.$mObserver = DOM.createNodeObserver(
+    element.$mObserver = DOM.createNodeObserver!(
       element,
+      // @ts-ignore
       handleMutation,
       { attributes: true }
     ) as MutationObserver;
@@ -192,7 +193,7 @@ const stopObservation = (element: IHtmlElement, subscription: ElementMutationSub
   if ($eMObservers.delete(subscription)) {
     if ($eMObservers.size === 0) {
       element.$mObserver.disconnect();
-      element.$mObserver = undefined;
+      element.$mObserver = undefined!;
     }
     return true;
   }

@@ -6,7 +6,7 @@ export interface DataAttributeAccessor extends IBindingTargetAccessor<Node, stri
 export class DataAttributeAccessor implements DataAttributeAccessor {
   public readonly isDOMObserver: true;
   public currentValue: string;
-  public defaultValue: string;
+  public defaultValue!: string;
   public lifecycle: ILifecycle;
   public obj: HTMLElement;
   public oldValue: string;
@@ -16,12 +16,12 @@ export class DataAttributeAccessor implements DataAttributeAccessor {
     this.isDOMObserver = true;
     this.lifecycle = lifecycle;
     this.obj = obj;
-    this.oldValue = this.currentValue = this.getValue();
+    this.oldValue = this.currentValue = this.getValue()!;
     this.propertyKey = propertyKey;
   }
 
-  public getValue(): string | null {
-    return this.obj.getAttribute(this.propertyKey);
+  public getValue(): string {
+    return this.obj.getAttribute(this.propertyKey)!;
   }
 
   public setValueCore(newValue: string): void {

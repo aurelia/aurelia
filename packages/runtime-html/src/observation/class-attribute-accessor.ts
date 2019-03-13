@@ -5,19 +5,19 @@ export interface ClassAttributeAccessor extends IBindingTargetAccessor<INode, st
 @targetObserver('')
 export class ClassAttributeAccessor implements ClassAttributeAccessor {
   public readonly isDOMObserver: true;
-  public currentValue: string;
+  public currentValue!: string;
   public doNotCache: true;
   public lifecycle: ILifecycle;
   public nameIndex: object;
   public obj: HTMLElement;
-  public oldValue: string;
+  public oldValue!: string;
   public version: number;
 
   constructor(lifecycle: ILifecycle, obj: HTMLElement) {
     this.isDOMObserver = true;
     this.doNotCache = true;
     this.lifecycle = lifecycle;
-    this.nameIndex = null;
+    this.nameIndex = null!;
     this.obj = obj;
     this.version = 0;
   }
@@ -27,7 +27,7 @@ export class ClassAttributeAccessor implements ClassAttributeAccessor {
   }
 
   public setValueCore(newValue: string): void {
-    const nameIndex = this.nameIndex || {};
+    const nameIndex: Record<string, number> = this.nameIndex as Record<string, number> || {};
     let version = this.version;
     let names: string[];
     let name: string;

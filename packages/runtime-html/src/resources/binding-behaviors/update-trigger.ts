@@ -22,7 +22,7 @@ export class UpdateTriggerBindingBehavior {
 
   public static register: IRegistry['register'];
 
-  public persistentFlags: LifecycleFlags;
+  public persistentFlags!: LifecycleFlags;
   private readonly observerLocator: IObserverLocator;
 
   constructor(observerLocator: IObserverLocator) {
@@ -58,8 +58,8 @@ export class UpdateTriggerBindingBehavior {
   public unbind(flags: LifecycleFlags, scope: IScope, binding: UpdateTriggerableBinding): void {
     // restore the state of the binding.
     binding.targetObserver.handler.dispose();
-    binding.targetObserver.handler = binding.targetObserver.originalHandler;
-    binding.targetObserver.originalHandler = null;
+    binding.targetObserver.handler = binding.targetObserver.originalHandler!;
+    binding.targetObserver.originalHandler = null!;
   }
 }
 BindingBehaviorResource.define('updateTrigger', UpdateTriggerBindingBehavior);

@@ -72,11 +72,11 @@ export class Compose<T extends INode = Node> implements Compose<T> {
     };
 
     this.properties = instruction.instructions
-      .filter((x: ITargetedInstruction & {to?: string}) => !composeProps.includes(x.to))
-      .reduce(
+      .filter((x: ITargetedInstruction & {to?: string}) => !composeProps.includes(x.to!))
+      .reduce<Record<string, TargetedInstruction>>(
         (acc, item: ITargetedInstruction & {to?: string}) => {
           if (item.to) {
-            acc[item.to] = item;
+            acc[item.to!] = item! as TargetedInstruction;
           }
 
           return acc;
@@ -119,7 +119,7 @@ export class Compose<T extends INode = Node> implements Compose<T> {
     this.lastSubject = subject;
 
     if (subject instanceof Promise) {
-      subject = subject.then(x => this.resolveView(x, flags));
+      subject = subject.then(x => this.resolveView(x, flags)) as Promise<IView<T>>;
     } else {
       subject = this.resolveView(subject, flags);
     }

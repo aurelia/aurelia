@@ -6,11 +6,11 @@ export interface StyleAttributeAccessor extends IBindingTargetAccessor<HTMLEleme
 export class StyleAttributeAccessor implements StyleAttributeAccessor {
   public readonly isDOMObserver: true;
   public currentValue: string | Record<string, string>;
-  public defaultValue: string | Record<string, string>;
+  public defaultValue!: string | Record<string, string>;
   public lifecycle: ILifecycle;
   public obj: HTMLElement;
   public oldValue: string | Record<string, string>;
-  public styles: object;
+  public styles: Record<string, number>;
   public version: number;
 
   constructor(lifecycle: ILifecycle, obj: HTMLElement) {
@@ -18,7 +18,7 @@ export class StyleAttributeAccessor implements StyleAttributeAccessor {
     this.oldValue = this.currentValue = obj.style.cssText;
     this.lifecycle = lifecycle;
     this.obj = obj;
-    this.styles = null;
+    this.styles = null!;
     this.version = 0;
   }
 
@@ -38,7 +38,7 @@ export class StyleAttributeAccessor implements StyleAttributeAccessor {
   }
 
   public setValueCore(newValue: string | Record<string, string>): void {
-    const styles = this.styles || {};
+    const styles: Record<string, number> = this.styles || {};
     let style: string;
     let version = this.version;
 
@@ -56,7 +56,7 @@ export class StyleAttributeAccessor implements StyleAttributeAccessor {
       } else if (newValue.length) {
         const rx = /\s*([\w\-]+)\s*:\s*((?:(?:[\w\-]+\(\s*(?:"(?:\\"|[^"])*"|'(?:\\'|[^'])*'|[\w\-]+\(\s*(?:[^"](?:\\"|[^"])*"|'(?:\\'|[^'])*'|[^\)]*)\),?|[^\)]*)\),?|"(?:\\"|[^"])*"|'(?:\\'|[^'])*'|[^;]*),?\s*)+);?/g;
         let pair: RegExpExecArray;
-        while ((pair = rx.exec(newValue)) !== null) {
+        while ((pair = rx.exec(newValue)!) !== null) {
           style = pair[1];
           if (!style) { continue; }
 

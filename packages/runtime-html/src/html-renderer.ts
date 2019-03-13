@@ -53,9 +53,9 @@ export class TextBindingRenderer implements IInstructionRenderer {
     let binding: MultiInterpolationBinding | InterpolationBinding;
     const expr = ensureExpression(this.parser, instruction.from, BindingType.Interpolation);
     if (expr.isMulti) {
-      binding = new MultiInterpolationBinding(this.observerLocator, expr, next, 'textContent', BindingMode.toView, context);
+      binding = new MultiInterpolationBinding(this.observerLocator, expr, next!, 'textContent', BindingMode.toView, context);
     } else {
-      binding = new InterpolationBinding(expr.firstExpression, expr, next, 'textContent', BindingMode.toView, this.observerLocator, context, true);
+      binding = new InterpolationBinding(expr.firstExpression, expr, next!, 'textContent', BindingMode.toView, this.observerLocator, context, true);
     }
     addBinding(renderable, binding);
     if (Tracer.enabled) { Tracer.leave(); }
@@ -123,6 +123,7 @@ export class StylePropertyBindingRenderer implements IInstructionRenderer {
 @instructionRenderer(HTMLTargetedInstructionType.attributeBinding)
 /** @internal */
 export class AttributeBindingRenderer implements IInstructionRenderer {
+  // @ts-ignore
   public static readonly inject: ReadonlyArray<InterfaceSymbol> = [IExpressionParser, IObserverLocator];
   public static readonly register: IRegistry['register'];
 

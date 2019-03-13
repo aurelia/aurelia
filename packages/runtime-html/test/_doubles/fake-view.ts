@@ -16,22 +16,22 @@ import { NodeSequenceFactory } from '../../src/dom';
 import { HTMLTestContext } from '../util';
 
 export class FakeView implements IView {
-  public $bindingHead: IBinding;
-  public $bindingTail: IBinding;
+  public $bindingHead?: IBinding;
+  public $bindingTail?: IBinding;
 
-  public $nextBinding: IBinding;
-  public $prevBinding: IBinding;
+  public $nextBinding?: IBinding;
+  public $prevBinding?: IBinding;
 
-  public $componentHead: IComponent;
-  public $componentTail: IComponent;
+  public $componentHead?: IComponent;
+  public $componentTail?: IComponent;
 
-  public $nextComponent: IComponent;
-  public $prevComponent: IComponent;
+  public $nextComponent?: IComponent;
+  public $prevComponent?: IComponent;
 
-  public $nextMount: IMountableComponent;
-  public $nextUnmount: IMountableComponent;
+  public $nextMount?: IMountableComponent;
+  public $nextUnmount?: IMountableComponent;
 
-  public $nextUnbindAfterDetach: IComponent;
+  public $nextUnbindAfterDetach?: IComponent;
 
   public $state: State;
   public $scope: IScope;
@@ -44,26 +44,6 @@ export class FakeView implements IView {
   public readonly $lifecycle: ILifecycle;
 
   constructor(ctx: HTMLTestContext) {
-    this.$bindingHead = null;
-    this.$bindingTail = null;
-
-    this.$componentHead = null;
-    this.$componentTail = null;
-
-    this.$nextBinding = null;
-    this.$prevBinding = null;
-
-    this.$componentHead = null;
-    this.$componentTail = null;
-
-    this.$nextComponent = null;
-    this.$prevComponent = null;
-
-    this.$nextMount = null;
-    this.$nextUnmount = null;
-
-    this.$nextUnbindAfterDetach = null;
-
     this.$state = State.none;
     this.$scope = null;
     this.$nodes = new NodeSequenceFactory(ctx.dom, '<div>Fake View</div>').createNodeSequence();

@@ -142,44 +142,19 @@ function define<N extends INode = INode, T extends Constructable = Constructable
   proto.$unbind = $unbindAttribute;
   proto.$cache = $cacheAttribute;
 
-  proto.$prevComponent = null;
-  proto.$nextComponent = null;
-  proto.$nextPatch = null!;
-
-  proto.$nextUnbindAfterDetach = null;
-
-  proto.$scope = null!;
   proto.$hooks = 0;
   proto.$state = 0;
 
-  if ('flush' in proto) {
-    proto.$nextFlush = null!;
-  }
-
   if ('binding' in proto) proto.$hooks |= Hooks.hasBinding;
-  if ('bound' in proto) {
-    proto.$hooks |= Hooks.hasBound;
-    proto.$nextBound = null!;
-  }
-
+  if ('bound' in proto) proto.$hooks |= Hooks.hasBound;
   if ('unbinding' in proto) proto.$hooks |= Hooks.hasUnbinding;
-  if ('unbound' in proto) {
-    proto.$hooks |= Hooks.hasUnbound;
-    proto.$nextUnbound = null!;
-  }
-
+  if ('unbound' in proto) proto.$hooks |= Hooks.hasUnbound;
   if ('created' in proto) proto.$hooks |= Hooks.hasCreated;
   if ('attaching' in proto) proto.$hooks |= Hooks.hasAttaching;
-  if ('attached' in proto) {
-    proto.$hooks |= Hooks.hasAttached;
-    proto.$nextAttached = null!;
-  }
+  if ('attached' in proto) proto.$hooks |= Hooks.hasAttached;
   if ('detaching' in proto) proto.$hooks |= Hooks.hasDetaching;
   if ('caching' in proto) proto.$hooks |= Hooks.hasCaching;
-  if ('detached' in proto) {
-    proto.$hooks |= Hooks.hasDetached;
-    proto.$nextDetached = null!;
-  }
+  if ('detached' in proto) proto.$hooks |= Hooks.hasDetached;
 
   return Type;
 }

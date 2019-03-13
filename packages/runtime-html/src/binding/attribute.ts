@@ -22,7 +22,6 @@ export class AttributeBinding implements IPartialConnectableBinding {
   public $state: State;
   public $lifecycle: ILifecycle;
   public $nextConnect: IConnectableBinding;
-  public $nextPatch: IConnectableBinding;
   public $scope: IScope;
 
   public locator: IServiceLocator;
@@ -60,7 +59,6 @@ export class AttributeBinding implements IPartialConnectableBinding {
     this.$state = State.none;
     this.$lifecycle = locator.get(ILifecycle);
     this.$nextConnect = null!;
-    this.$nextPatch = null!;
     this.$scope = null!;
 
     this.locator = locator;

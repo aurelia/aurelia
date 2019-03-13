@@ -31,7 +31,6 @@ export class View<T extends INode = INode> implements IView<T> {
 
   public $nextComponent: IComponent;
   public $prevComponent: IComponent;
-  public $nextPatch: IComponent;
 
   public $nextMount: IMountableComponent;
   public $nextUnmount: IMountableComponent;
@@ -60,7 +59,6 @@ export class View<T extends INode = INode> implements IView<T> {
 
     this.$nextComponent = null!;
     this.$prevComponent = null!;
-    this.$nextPatch = null!;
 
     this.$nextMount = null!;
     this.$nextUnmount = null!;

@@ -206,7 +206,7 @@ function scopeText(info: ITraceInfo, i: number = 0): string {
   let $ctorName: string;
   if (info.params !== null && info.params.length > i) {
     const $scope = info.params[i] as IScope | undefined;
-    if ($scope !== undefined && $scope.bindingContext !== undefined) {
+    if ($scope != null && $scope.bindingContext != null) {
       $ctorName = _ctorName($scope.bindingContext as Instance);
     } else {
       $ctorName = 'undefined';

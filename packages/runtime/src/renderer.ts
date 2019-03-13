@@ -155,8 +155,7 @@ export function ensureExpression<TFrom>(parser: IExpressionParser, srcOrExpr: TF
 export function addBinding(renderable: IRenderable, binding: IBinding): void {
   if (Tracer.enabled) { Tracer.enter('Renderer', 'addBinding', slice.call(arguments)); }
   (binding as Writable<IBinding>).$prevBinding = renderable.$bindingTail;
-  (binding as Writable<IBinding>).$nextBinding = null!;
-  if (renderable.$bindingTail === null) {
+  if (renderable.$bindingTail == null) {
     renderable.$bindingHead = binding;
   } else {
     (renderable.$bindingTail as Writable<IBinding>).$nextBinding = binding;
@@ -167,9 +166,8 @@ export function addBinding(renderable: IRenderable, binding: IBinding): void {
 
 export function addComponent(renderable: IRenderable, component: IComponent): void {
   if (Tracer.enabled) { Tracer.enter('Renderer', 'addComponent', slice.call(arguments)); }
-  (component! as Writable<IComponent>).$prevComponent = renderable.$componentTail!;
-  (component as Writable<IComponent>).$nextComponent = null;
-  if (renderable.$componentTail === null) {
+  (component as Writable<IComponent>).$prevComponent = renderable.$componentTail;
+  if (renderable.$componentTail == null) {
     renderable.$componentHead = component;
   } else {
     (renderable.$componentTail as Writable<IComponent>).$nextComponent = component;

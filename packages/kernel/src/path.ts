@@ -155,7 +155,7 @@ function buildParam(key: string, value: ComplexQueryParams, traditional?: boolea
  * @returns The generated query string, excluding leading '?'.
  */
 export function buildQueryString(params?: IQueryParams, traditional?: boolean): string {
-  if (params === void 0) {
+  if (params == null) {
     return '';
   }
   const pairs: string[] = [];

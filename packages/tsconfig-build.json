@@ -18,8 +18,6 @@
     "preserveConstEnums": true,
     "stripInternal": true,
 
-    "noImplicitThis": true,
-    "alwaysStrict": true,
     "strict": true,
 
     "types": []

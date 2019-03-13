@@ -57,7 +57,7 @@ describe('template-compiler.binding-commands.class', function() {
   const testCases: ITestCase[] = [
     {
       selector: 'button',
-      title: (className: string, callIndex: number) => `${callIndex}. <button class.${className}=value>`,
+      title: (className: string, callIndex: number) => `${callIndex}. <button class.${encodeURI(className)}=value>`,
       template: (className) => {
         return `
         <button ${className}.class="value"></button>

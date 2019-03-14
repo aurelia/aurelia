@@ -99,7 +99,7 @@ describe(`If/Else`, function () {
 
   const strategySpecs: StrategySpec[] = [
     { t: '1', strategy: BindingStrategy.getterSetter },
-    { t: '2', strategy: BindingStrategy.proxies },
+    //{ t: '2', strategy: BindingStrategy.proxies },
   ];
 
   const duplicateOperationSpecs: DuplicateOperationSpec[] = [
@@ -222,8 +222,8 @@ describe(`If/Else`, function () {
       let sut: If<AuNode>;
       let elseSut: Else<AuNode>;
       if (proxies) {
-        sut = new ProxyObserver(new If<AuNode>(ifFactory, location, new CompositionCoordinator(lifecycle))).proxy;
-        elseSut = new ProxyObserver(new Else<AuNode>(elseFactory)).proxy;
+        sut = ProxyObserver.getOrCreate(new If<AuNode>(ifFactory, location, new CompositionCoordinator(lifecycle))).proxy;
+        elseSut = ProxyObserver.getOrCreate(new Else<AuNode>(elseFactory)).proxy;
       } else {
         sut = new If<AuNode>(ifFactory, location, new CompositionCoordinator(lifecycle));
         elseSut = new Else<AuNode>(elseFactory);

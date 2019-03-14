@@ -135,7 +135,7 @@ export class If<T extends INode = INode> implements If<T> {
     flags |= LifecycleFlags.fromBind;
     if (isBound(this.$state)) {
       if (this.$scope === scope) return;
-      this.coordinator.unbinding(flags);
+      this.$unbind(flags);
     }
 
     this.$scope = scope;

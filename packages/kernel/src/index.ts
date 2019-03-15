@@ -16,7 +16,8 @@ export {
   Registration,
   ResolveCallback,
   singleton,
-  transient
+  transient,
+  InstanceProvider
 } from './di';
 export {
   Class,

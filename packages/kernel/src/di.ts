@@ -835,6 +835,29 @@ export const Registration = {
   }
 };
 
+export class InstanceProvider<T> implements IResolver<T | null> {
+  private instance: T | null;
+
+  constructor() {
+    this.instance = null;
+  }
+
+  public prepare(instance: T): void {
+    this.instance = instance;
+  }
+
+  public resolve(handler: IContainer, requestor: IContainer): T | null {
+    if (this.instance === undefined) { // unmet precondition: call prepare
+      throw Reporter.error(50); // TODO: organize error codes
+    }
+    return this.instance;
+  }
+
+  public dispose(): void {
+    this.instance = null;
+  }
+}
+
 /** @internal */
 export function validateKey(key: unknown): void {
   // note: design:paramTypes which will default to Object if the param types cannot be statically analyzed by tsc

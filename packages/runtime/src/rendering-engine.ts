@@ -12,7 +12,8 @@ import {
   PLATFORM,
   Reporter,
   RuntimeCompilationResources,
-  Writable
+  Writable,
+  InstanceProvider
 } from '@aurelia/kernel';
 import {
   BindableDefinitions,
@@ -343,29 +344,6 @@ export function createRenderContext(
   return context;
 }
 
-/** @internal */
-export class InstanceProvider<T> implements IResolver {
-  private instance: T | null;
-
-  constructor() {
-    this.instance = null;
-  }
-
-  public prepare(instance: T): void {
-    this.instance = instance;
-  }
-
-  public resolve(handler: IContainer, requestor: IContainer): T | null {
-    if (this.instance === undefined) { // unmet precondition: call prepare
-      throw Reporter.error(50); // TODO: organize error codes
-    }
-    return this.instance;
-  }
-
-  public dispose(): void {
-    this.instance = null;
-  }
-}
 
 /** @internal */
 export class ViewFactoryProvider implements IResolver {

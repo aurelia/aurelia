@@ -1,11 +1,10 @@
 import { expect } from 'chai';
-import { Container } from '../src/di';
-import { RuntimeCompilationResources } from '../src/index';
+import { DI, RuntimeCompilationResources } from '@aurelia/kernel';
 
 describe('RuntimeCompilationResources', function () {
 
   it('does not register while finding resource', function () {
-    const container = new Container();
+    const container = DI.createContainer();
     const resources = new RuntimeCompilationResources(container as any);
 
     const res = { keyFrom(name: string): string {

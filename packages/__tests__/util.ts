@@ -2,7 +2,8 @@ import {
   IContainer,
   ITraceInfo,
   Registration,
-  Tracer
+  Tracer,
+  DI
 } from '@aurelia/kernel';
 import { expect } from 'chai';
 import { spy } from 'sinon';
@@ -21,10 +22,7 @@ import {
   padRight,
   stringify,
   verifyEqual
-} from '../../../scripts/test-lib';
-import {
-  stringifyLifecycleFlags, Tracer as DebugTracer
-} from '../../debug/src/tracer';
+} from './test-lib';
 import {
   CustomElementResource,
   ICustomElement,
@@ -34,10 +32,39 @@ import {
   ITemplateDefinition,
   LifecycleFlags as LF,
   OverrideContext,
-  Scope
-} from '../src/index';
-import { Lifecycle } from '../src/lifecycle';
-import { ObserverLocator } from '../src/observation/observer-locator';
+  Scope,
+  ITargetObserverLocator,
+  ITargetAccessorLocator
+} from '@aurelia/runtime';
+import {
+  Serializer,
+  Unparser,
+  Tracer as DebugTracer
+} from '@aurelia/debug';
+import { IDirtyChecker } from '@aurelia/runtime/src';
+
+export function verifyASTEqual(actual: any, expected: any, errors?: string[], path?: string): any {
+  if (expected == null) {
+    if (actual != null) {
+      expect(actual).to.equal(null);
+    }
+  } else if (actual == null) {
+    const expectedSerialized = Serializer.serialize(expected);
+    expect(actual).to.equal(expectedSerialized);
+  } else {
+    const expectedSerialized = Serializer.serialize(expected);
+    const expectedUnparsed = Unparser.unparse(expected);
+    const actualSerialized = Serializer.serialize(actual);
+    const actualUnparsed = Unparser.unparse(actual);
+    if (actualSerialized !== expectedSerialized) {
+      expect(actualSerialized).to.equal(expectedSerialized);
+    }
+    if (actualUnparsed !== expectedUnparsed) {
+      expect(actualUnparsed).to.equal(expectedUnparsed);
+    }
+  }
+}
+
 
 /**
  * Object describing a test fixture
@@ -268,22 +295,22 @@ export class SpySubscriber {
 }
 
 export function createObserverLocator(containerOrLifecycle?: IContainer | ILifecycle): IObserverLocator {
-  let lifecycle: ILifecycle;
-  if (containerOrLifecycle === undefined) {
-    lifecycle = new Lifecycle();
-  } else if ('get' in containerOrLifecycle) {
-    lifecycle = containerOrLifecycle.get(ILifecycle);
+  let container: IContainer;
+  if (containerOrLifecycle === undefined || !('get' in containerOrLifecycle)) {
+    container = DI.createContainer();
+  } else {
+    container = containerOrLifecycle as IContainer;
   }
+  const lifecycle = container.get(ILifecycle);
   const dummyLocator: any = {
     handles(): boolean {
       return false;
     }
   };
-  const observerLocator = new ObserverLocator(lifecycle, null, dummyLocator, dummyLocator);
-  if (containerOrLifecycle !== undefined && 'get' in containerOrLifecycle) {
-    Registration.instance(IObserverLocator, observerLocator).register(containerOrLifecycle, IObserverLocator);
-  }
-  return observerLocator;
+  Registration.instance(IDirtyChecker, null).register(container);
+  Registration.instance(ITargetObserverLocator, dummyLocator).register(container);
+  Registration.instance(ITargetAccessorLocator, dummyLocator).register(container);
+  return container.get(IObserverLocator);
 }
 
 // https://developer.mozilla.org/en-US/docs/Web/HTML/Global_attributes

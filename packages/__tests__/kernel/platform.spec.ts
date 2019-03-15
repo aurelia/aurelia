@@ -1,6 +1,6 @@
 import { expect } from 'chai';
-import { PLATFORM } from '../src/index';
-import { _ } from './util';
+import { PLATFORM } from '@aurelia/kernel';
+import { _ } from '../util';
 
 // tslint:disable:no-typeof-undefined
 

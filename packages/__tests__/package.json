@@ -7,7 +7,8 @@
     "npm": ">=6.1.0 <7.0.0"
   },
   "scripts": {
-    "lint": "npm run lint:src && npm run lint:test",
+    "test-node": "cross-env TS_NODE_PROJECT=\"./tsconfig.node.json\" mocha --opts mocha.opts setup-node.ts kernel/**/*.spec.ts",
+    "test-node:watch": "npm run test-node -- --watch --watch-extensions ts",
     "lint:src": "tslint --project tsconfig.json -t stylish",
     "lint:test": "tslint --project tsconfig-test.json --config ../tslint-test.json -e \"src/**/*.ts\" -t stylish",
     "~test": "cross-env TS_NODE_PROJECT=\"../../scripts/tsconfig.json\" karma start ../../scripts/karma.conf.ts --package=debug",
@@ -16,15 +17,7 @@
     "test:watch": "npm run ~test -- --browsers=ChromeHeadlessOpt --coverage",
     "test:watch:verbose": "npm run ~test -- --browsers=ChromeHeadlessOpt --coverage --reporter=mocha",
     "test:debugger": "npm run ~test -- --browsers=ChromeDebugging",
-    "test:debugger:verbose": "npm run ~test -- --browsers=ChromeDebugging --reporter=mocha",
-    "build": "tsc -b",
-    "build:test": "tsc -p test/tsconfig.json --outDir dist/test",
-    "bundle": "ts-node -P ../../scripts/tsconfig.json ../../scripts/bundle.ts umd,esm,system debug",
-    "dev": "tsc -b -w",
-    "publish:local": "npm pack"
-  },
-  "publishConfig": {
-    "access": "public"
+    "test:debugger:verbose": "npm run ~test -- --browsers=ChromeDebugging --reporter=mocha"
   },
   "dependencies": {
     "@aurelia/aot": "0.3.0",

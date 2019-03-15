@@ -6,7 +6,7 @@ import {
   inject,
   InterfaceSymbol,
   Registration
-} from '../src/index';
+} from '@aurelia/kernel';
 
 describe('DI.createInterface() -> container.get()', function () {
   let container: IContainer;

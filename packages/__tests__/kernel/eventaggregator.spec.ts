@@ -1,5 +1,10 @@
 import { expect } from 'chai';
-import { DI, EventAggregator } from '../src/index';
+import { DI, EventAggregator } from '@aurelia/kernel';
+
+type EA = EventAggregator & {
+  eventLookup: { [key: string]: any };
+  messageHandlers: any[];
+};
 
 describe('event aggregator', function () {
 
@@ -8,7 +13,7 @@ describe('event aggregator', function () {
     describe('string events', function () {
 
       it('should not remove another callback when execute called twice', function () {
-        const ea = new EventAggregator();
+        const ea = new EventAggregator() as EA;
         let data = 0;
 
         const subscription = ea.subscribe('dinner', function () { return; });
@@ -23,7 +28,7 @@ describe('event aggregator', function () {
       });
 
       it('adds event with callback to the eventLookup object', function () {
-        const ea = new EventAggregator();
+        const ea = new EventAggregator() as EA;
         const callback = function () { return; };
         ea.subscribe('dinner', callback);
 
@@ -32,7 +37,7 @@ describe('event aggregator', function () {
       });
 
       it('adds multiple callbacks the same event', function () {
-        const ea = new EventAggregator();
+        const ea = new EventAggregator() as EA;
         const callback = function () { return; };
         ea.subscribe('dinner', callback);
 
@@ -45,7 +50,7 @@ describe('event aggregator', function () {
       });
 
       it('removes the callback after execution', function () {
-        const ea = new EventAggregator();
+        const ea = new EventAggregator() as EA;
 
         const callback = function () { return; };
         const subscription = ea.subscribe('dinner', callback);
@@ -67,7 +72,7 @@ describe('event aggregator', function () {
       });
 
       it('will respond to an event any time it is published', function () {
-        const ea = new EventAggregator();
+        const ea = new EventAggregator() as EA;
         const callback = function () { return; };
         ea.subscribe('dinner', callback);
 
@@ -83,7 +88,7 @@ describe('event aggregator', function () {
       });
 
       it('will pass published data to the callback function', function () {
-        const ea = new EventAggregator();
+        const ea = new EventAggregator() as EA;
         let data = null;
         const callback = function(d) { data = d; };
         ea.subscribe('dinner', callback);
@@ -100,7 +105,7 @@ describe('event aggregator', function () {
     describe('handler events', function () {
 
       it('should not remove another handler when execute called twice', function () {
-        const ea = new EventAggregator();
+        const ea = new EventAggregator() as EA;
         let data = 0;
 
         const subscription = ea.subscribe(DinnerEvent, function () { return; });
@@ -115,7 +120,7 @@ describe('event aggregator', function () {
       });
 
       it('adds handler with messageType and callback to the messageHandlers array', function () {
-        const ea = new EventAggregator();
+        const ea = new EventAggregator() as EA;
         const callback = function () { return; };
         ea.subscribe(DinnerEvent, callback);
 
@@ -125,7 +130,7 @@ describe('event aggregator', function () {
       });
 
       it('removes the handler after execution', function () {
-        const ea = new EventAggregator();
+        const ea = new EventAggregator() as EA;
         const callback = function () { return; };
         const subscription = ea.subscribe(DinnerEvent, callback);
 
@@ -137,7 +142,7 @@ describe('event aggregator', function () {
     });
 
     describe('invalid events', function () {
-      const ea = new EventAggregator();
+      const ea = new EventAggregator() as EA;
       const callback = function () { return; };
 
       it('throws if channelOrType is undefined', function () {
@@ -153,7 +158,7 @@ describe('event aggregator', function () {
     describe('string events', function () {
 
       it('adds event with an anynomous function that will execute the callback to the eventLookup object', function () {
-        const ea = new EventAggregator();
+        const ea = new EventAggregator() as EA;
         const callback = function () { return; };
         ea.subscribeOnce('dinner', callback);
 
@@ -163,7 +168,7 @@ describe('event aggregator', function () {
       });
 
       it('adds multiple callbacks the same event', function () {
-        const ea = new EventAggregator();
+        const ea = new EventAggregator() as EA;
         const callback = function () { return; };
         ea.subscribeOnce('dinner', callback);
 
@@ -178,7 +183,7 @@ describe('event aggregator', function () {
       });
 
       it('removes the callback after execution', function () {
-        const ea = new EventAggregator();
+        const ea = new EventAggregator() as EA;
         const callback = function () { return; };
         const subscription = ea.subscribeOnce('dinner', callback);
 
@@ -201,7 +206,7 @@ describe('event aggregator', function () {
       });
 
       it('will respond to an event only once', function () {
-        const ea = new EventAggregator();
+        const ea = new EventAggregator() as EA;
         let data = null;
 
         const callback = function () { data = 'something'; };
@@ -222,7 +227,7 @@ describe('event aggregator', function () {
       });
 
       it('will pass published data to the callback function', function () {
-        const ea = new EventAggregator();
+        const ea = new EventAggregator() as EA;
 
         let data = null;
         const callback = function(d) { data = d; };
@@ -244,7 +249,7 @@ describe('event aggregator', function () {
     describe('handler events', function () {
 
       it('adds handler with messageType and callback to the messageHandlers array', function () {
-        const ea = new EventAggregator();
+        const ea = new EventAggregator() as EA;
 
         const callback = function () { return; };
         ea.subscribeOnce(DinnerEvent, callback);
@@ -257,7 +262,7 @@ describe('event aggregator', function () {
       });
 
       it('removes the handler after execution', function () {
-        const ea = new EventAggregator();
+        const ea = new EventAggregator() as EA;
         const callback = function () { return; };
         const subscription = ea.subscribeOnce(DinnerEvent, callback);
 
@@ -275,7 +280,7 @@ describe('event aggregator', function () {
     describe('string events', function () {
 
       it('calls the callback functions for the event', function () {
-        const ea = new EventAggregator();
+        const ea = new EventAggregator() as EA;
 
         let someData: unknown, someData2: unknown;
 
@@ -297,7 +302,7 @@ describe('event aggregator', function () {
       });
 
       it('does not call the callback functions if subscriber does not exist', function () {
-        const ea = new EventAggregator();
+        const ea = new EventAggregator() as EA;
 
         let someData: unknown;
 
@@ -312,7 +317,7 @@ describe('event aggregator', function () {
       });
 
       it('handles errors in subscriber callbacks', function () {
-        const ea = new EventAggregator();
+        const ea = new EventAggregator() as EA;
 
         let someMessage: unknown;
 
@@ -340,7 +345,7 @@ describe('event aggregator', function () {
     describe('handler events', function () {
 
       it('calls the callback functions for the event', function () {
-        const ea = new EventAggregator();
+        const ea = new EventAggregator() as EA;
 
         let someMessage: { message: string };
 
@@ -361,7 +366,7 @@ describe('event aggregator', function () {
       });
 
       it('does not call the callback funtions if message is not an instance of the messageType', function () {
-        const ea = new EventAggregator();
+        const ea = new EventAggregator() as EA;
 
         let someMessage: unknown;
 
@@ -376,7 +381,7 @@ describe('event aggregator', function () {
       });
 
       it('handles errors in subscriber callbacks', function () {
-        const ea = new EventAggregator();
+        const ea = new EventAggregator() as EA;
 
         let someMessage: { message: unknown };
 
@@ -401,7 +406,7 @@ describe('event aggregator', function () {
     });
 
     describe('invalid events', function () {
-      const ea = new EventAggregator();
+      const ea = new EventAggregator() as EA;
 
       it('throws if channelOrType is undefined', function () {
         expect(() => { ea.publish(undefined, {}); }).to.throw('Code 0');

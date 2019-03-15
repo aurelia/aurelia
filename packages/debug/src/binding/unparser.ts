@@ -37,7 +37,6 @@ export function adoptDebugMethods($type: Unwrap<typeof astTypeMap>['type'], name
   $type.prototype.toString = function (): string { return Unparser.unparse(this); };
 }
 
-/** @internal */
 export class Unparser implements AST.IVisitor<void> {
   public text: string = '';
 
@@ -289,7 +288,6 @@ export class Unparser implements AST.IVisitor<void> {
   }
 }
 
-/** @internal */
 export class Serializer implements AST.IVisitor<string> {
   public static serialize(expr: AST.IExpression): string {
     const visitor = new Serializer();

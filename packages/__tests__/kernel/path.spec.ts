@@ -1,5 +1,5 @@
 import { expect } from 'chai';
-import { buildQueryString, join, parseQueryString, relativeToFile } from '../src/index';
+import { buildQueryString, join, parseQueryString, relativeToFile } from '@aurelia/kernel';
 
 describe('relativeToFile', function () {
   it('can make a dot path relative to a simple file', function () {

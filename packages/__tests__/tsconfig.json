@@ -1,0 +1,29 @@
+{
+  "compilerOptions": {
+    "pretty": true,
+    "lib": ["esnext"],
+    "target": "es2018",
+    "module": "esnext",
+    "moduleResolution": "node",
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true,
+    "rootDir": ".",
+    "baseUrl": ".",
+
+    "forceConsistentCasingInFileNames": true,
+    "sourceMap": true,
+    "alwaysStrict": true,
+    "preserveConstEnums": true,
+    "allowSyntheticDefaultImports": true,
+    "types": [
+      "./asserts",
+      "node",
+      "mocha",
+      "chai",
+      "sinon",
+      "sinon-chai",
+      "webpack-env"
+    ]
+  },
+  "include": ["."]
+}

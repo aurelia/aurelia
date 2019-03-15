@@ -1,4 +1,4 @@
-import { IBinding, IScope, LifecycleFlags } from '../../src/index';
+import { IBinding, IScope, LifecycleFlags } from '@aurelia/runtime';
 
 export class MockBindingBehavior {
   public calls: [keyof MockBindingBehavior, ...any[]][] = [];

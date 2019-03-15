@@ -1,6 +1,6 @@
-import { Hooks, LifecycleFlags, State } from '../../src/index';
+import { Hooks, LifecycleFlags, State } from '@aurelia/runtime';
 import { createCustomAttribute, CustomAttribute } from '../resources/custom-attribute._builder';
-import { eachCartesianJoin } from '../util';
+import { eachCartesianJoin } from '../../util';
 
 describe('@customAttribute', function () {
 

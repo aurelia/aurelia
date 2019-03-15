@@ -10,7 +10,7 @@ import {
   OneTimeBindingBehavior,
   ToViewBindingBehavior,
   TwoWayBindingBehavior
-} from '../../../src/index';
+} from '@aurelia/runtime';
 
 const tests = [
   { Behavior: OneTimeBindingBehavior, mode: BindingMode.oneTime },

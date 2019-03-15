@@ -1,6 +1,6 @@
 import { expect } from 'chai';
 import { spy } from 'sinon';
-import { QueuedBrowserHistory } from './../../src/index';
+import { QueuedBrowserHistory } from '@aurelia/router';
 
 describe('QueuedBrowserHistory', function () {
   this.timeout(30000);

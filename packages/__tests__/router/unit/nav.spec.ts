@@ -1,8 +1,8 @@
 import { expect } from 'chai';
-import { DebugConfiguration } from '../../../debug/src/index';
-import { BasicConfiguration } from '../../../jit-html-browser/src/index';
-import { Aurelia, CustomElementResource, IDOM } from '../../../runtime/src/index';
-import { NavCustomElement, Router, ViewportCustomElement } from '../../src/index';
+import { DebugConfiguration } from '@aurelia/debug';
+import { BasicConfiguration } from '@aurelia/jit-html-browser';
+import { Aurelia, CustomElementResource, IDOM } from '@aurelia/runtime';
+import { NavCustomElement, Router, ViewportCustomElement } from '@aurelia/router';
 import { MockBrowserHistoryLocation } from '../mock/browser-history-location.mock';
 import { registerComponent } from './utils';
 

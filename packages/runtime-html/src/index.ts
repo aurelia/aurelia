@@ -115,7 +115,8 @@ export {
 export {
   NodeType,
   HTMLDOM,
-  DOM
+  DOM,
+  NodeSequenceFactory
 } from './dom';
 export {
   AttributeBindingInstruction,

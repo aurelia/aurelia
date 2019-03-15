@@ -480,6 +480,17 @@ export interface ILifecycle {
 
   registerTask(task: ILifecycleTask): void;
   finishTask(task: ILifecycleTask): void;
+
+
+  readonly flushCount: number;
+  readonly patchCount: number;
+  readonly boundCount: number;
+  readonly mountCount: number;
+  readonly attachedCount: number;
+  readonly unmountCount: number;
+  readonly detachedCount: number;
+  readonly unbindAfterDetachCount: number;
+  readonly unboundCount: number;
 }
 
 export const ILifecycle = DI.createInterface<ILifecycle>('ILifecycle').withDefault(x => x.singleton(Lifecycle));

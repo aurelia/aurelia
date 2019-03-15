@@ -2,7 +2,7 @@ import { Writable } from '@aurelia/kernel';
 import { expect } from 'chai';
 import {
   eachCartesianJoin
-} from '../../../../../scripts/test-lib';
+} from '../../../test-lib';
 import {
   AccessScope,
   addBinding,
@@ -22,10 +22,10 @@ import {
   LifecycleFlags,
   ProxyObserver,
   Repeat,
-  Scope
-} from '../../../src/index';
-import { RuntimeBehavior } from '../../../src/rendering-engine';
-import { ViewFactory } from '../../../src/templating/view';
+  Scope,
+  ViewFactory,
+  RuntimeBehavior
+} from '@aurelia/runtime';
 import {
   AuDOM,
   AuDOMConfiguration,

@@ -1,7 +1,7 @@
 import { PLATFORM, Registration } from '@aurelia/kernel';
 import { expect } from 'chai';
 import { SinonSpy, spy } from 'sinon';
-import { IExpressionParserRegistration } from '../../jit/src';
+import { IExpressionParserRegistration } from '@aurelia/jit';
 import {
   AccessScope,
   CallBindingInstruction,
@@ -25,9 +25,9 @@ import {
   TargetedInstructionType,
   ToViewBindingInstruction,
   TwoWayBindingInstruction
-} from '../src/index';
+} from '@aurelia/runtime';
 import { AuDOMConfiguration, AuNode } from './au-dom';
-import { _ } from './util';
+import { _ } from '../util';
 
 describe('Renderer', function () {
   function setup() {

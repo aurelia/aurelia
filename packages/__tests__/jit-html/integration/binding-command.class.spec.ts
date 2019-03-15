@@ -2,7 +2,7 @@ import { Constructable } from '@aurelia/kernel';
 import { Aurelia, BindingMode, CustomElementResource, ILifecycle } from '@aurelia/runtime';
 import { IEventManager } from '@aurelia/runtime-html';
 import { expect } from 'chai';
-import { BasicConfiguration } from '../../src/index';
+import { BasicConfiguration } from '@aurelia/jit-html';
 import { TestContext } from '../util';
 import { eachCartesianJoin, eachCartesianJoinAsync, tearDown } from './util';
 

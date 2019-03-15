@@ -1,4 +1,4 @@
-import { LifecycleFlags } from '../../src/index';
+import { LifecycleFlags } from '@aurelia/runtime';
 
 export class MockPropertySubscriber {
   public calls: [keyof MockPropertySubscriber, ...any[]][] = [];

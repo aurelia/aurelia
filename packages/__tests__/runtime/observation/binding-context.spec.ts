@@ -3,7 +3,7 @@ import {
   BindingContext,
   LifecycleFlags as LF,
   Scope
-} from '../../src/index';
+} from '@aurelia/runtime';
 
 describe('Scope', function () {
   describe('create', function () {

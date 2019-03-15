@@ -401,12 +401,10 @@ export class FragmentNodeSequence implements INodeSequence {
   }
 }
 
-/** @internal */
 export interface NodeSequenceFactory {
   createNodeSequence(): INodeSequence;
 }
 
-/** @internal */
 export class NodeSequenceFactory implements NodeSequenceFactory {
   private readonly dom: IDOM;
   private readonly deepClone!: boolean;

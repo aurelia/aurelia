@@ -30,7 +30,7 @@
 //   State,
 //   TargetedInstructionType,
 //   ViewFactory
-// } from '../../../src/index';
+// } from '@aurelia/runtime';
 // import {
 //   MockIfElseTextNodeTemplate,
 //   MockNodeSequence

@@ -1,6 +1,6 @@
 import { expect } from 'chai';
-import { eachCartesianJoin } from '../../../../scripts/test-lib';
-import { LifecycleFlags, ProxyObserver } from '../../src/index';
+import { eachCartesianJoin } from '../../test-lib';
+import { LifecycleFlags, ProxyObserver } from '@aurelia/runtime';
 
 class Foo {}
 

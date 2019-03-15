@@ -1,5 +1,5 @@
 {
-  "name": "aurelia-tests",
+  "name": "@aurelia/__tests__",
   "private": true,
   "license": "MIT",
   "engines": {
@@ -7,7 +7,8 @@
     "npm": ">=6.1.0 <7.0.0"
   },
   "scripts": {
-    "test-node": "cross-env TS_NODE_PROJECT=\"./tsconfig.node.json\" mocha --opts mocha.opts setup-node.ts kernel/**/*.spec.ts jit/**/*.spec.ts",
+    "test-node": "cross-env TS_NODE_PROJECT=\"./tsconfig.node.json\" mocha --opts mocha.opts dist/build/__tests__/setup-node.js dist/build/__tests__/**/*.spec.js",
+    "test-node:verbose": "cross-env TS_NODE_PROJECT=\"./tsconfig.node.json\" mocha --opts mocha.opts --reporter spec --bail setup-node.ts runtime/**/*.spec.ts",
     "test-node:watch": "npm run test-node -- --watch --watch-extensions ts",
     "lint:src": "tslint --project tsconfig.json -t stylish",
     "lint:test": "tslint --project tsconfig-test.json --config ../tslint-test.json -e \"src/**/*.ts\" -t stylish",
@@ -17,7 +18,8 @@
     "test:watch": "npm run ~test -- --browsers=ChromeHeadlessOpt --coverage",
     "test:watch:verbose": "npm run ~test -- --browsers=ChromeHeadlessOpt --coverage --reporter=mocha",
     "test:debugger": "npm run ~test -- --browsers=ChromeDebugging",
-    "test:debugger:verbose": "npm run ~test -- --browsers=ChromeDebugging --reporter=mocha"
+    "test:debugger:verbose": "npm run ~test -- --browsers=ChromeDebugging --reporter=mocha",
+    "build": "tsc -b"
   },
   "dependencies": {
     "@aurelia/aot": "0.3.0",

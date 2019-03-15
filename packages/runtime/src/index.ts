@@ -142,6 +142,7 @@ export {
   ComputedOverrides,
   ComputedLookup,
   computed,
+  createComputedObserver,
   CustomSetterObserver,
   GetterObserver
 } from './observation/computed-observer';
@@ -275,6 +276,11 @@ export {
   IElementTemplateProvider,
   ILifecycleRender
 } from './templating/lifecycle-render';
+export {
+  View,
+  ViewFactory
+  // These exports are temporary until we have a proper way to unit test them
+} from './templating/view';
 
 export {
   Aurelia,
@@ -459,5 +465,6 @@ export {
   ITemplate,
   ITemplateCompiler,
   ITemplateFactory,
-  ViewCompileFlags
+  ViewCompileFlags,
+  RuntimeBehavior // temporary export for unit testing
 } from './rendering-engine';

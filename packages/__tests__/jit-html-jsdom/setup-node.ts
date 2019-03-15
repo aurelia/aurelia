@@ -1,8 +1,8 @@
 import * as chai from 'chai';
 import { JSDOM } from 'jsdom';
 import * as sinonChai from 'sinon-chai';
-import { HTMLTestContext, TestContext } from '../../jit-html/test/util';
-import { BasicConfiguration } from '../src/index';
+import { HTMLTestContext, TestContext } from '../jit-html/util';
+import { BasicConfiguration } from '@aurelia/jit-html-jsdom';
 
 const jsdom = new JSDOM(`<!DOCTYPE html><html><head></head><body></body></html>`);
 

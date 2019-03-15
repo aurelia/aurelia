@@ -4,7 +4,7 @@ import {
 import { expect } from 'chai';
 import {
   eachCartesianJoin
-} from '../../../../../scripts/test-lib';
+} from '../../../test-lib';
 import {
   AccessScope,
   addBinding,
@@ -22,10 +22,9 @@ import {
   ITemplate,
   LifecycleFlags,
   ProxyObserver,
-  Scope
-} from '../../../src/index';
-import { RuntimeBehavior } from '../../../src/rendering-engine';
-import { ViewFactory } from '../../../src/templating/view';
+  Scope,
+  ViewFactory
+} from '@aurelia/runtime';
 import {
   AuDOM,
   AuDOMConfiguration,

@@ -4,7 +4,7 @@ import {
   IAttributeDefinition,
   ICustomAttribute,
   templateController
-} from '../../src/index';
+} from '@aurelia/runtime';
 import { defineComponentLifecycleMock, IComponentLifecycleMock } from '../_doubles/mock-component-lifecycle';
 
 export type CustomAttribute = Writable<ICustomAttribute> & IComponentLifecycleMock;

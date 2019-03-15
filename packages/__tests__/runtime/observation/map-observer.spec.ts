@@ -5,13 +5,14 @@ import {
   enableMapObservation,
   IndexMap,
   LifecycleFlags as LF,
-  MapObserver
-} from '../../src/index';
-import { Lifecycle } from '../../src/lifecycle';
+  MapObserver,
+  ILifecycle
+} from '@aurelia/runtime';
 import {
   SpySubscriber,
   stringify
-} from '../util';
+} from '../../util';
+import { DI } from '@aurelia/kernel';
 
 function assetMapEqual(actual: Map<any, any>, expected: Map<any, any>): void {
   const len = actual.size;
@@ -51,7 +52,7 @@ describe(`MapObserver`, function () {
     it('set', function () {
       const s = new SpySubscriber();
       const map = new Map();
-      sut = new MapObserver(LF.none, new Lifecycle(), map);
+      sut = new MapObserver(LF.none, DI.createContainer().get(ILifecycle), map);
       sut.subscribe(s);
       map.set(1, 1);
       expect(s.handleChange).to.have.been.calledWith('set', match(x => x[0] === 1));
@@ -62,7 +63,7 @@ describe(`MapObserver`, function () {
     it('set', function () {
       const s = new SpySubscriber();
       const map = new Map();
-      sut = new MapObserver(LF.none, new Lifecycle(), map);
+      sut = new MapObserver(LF.none, DI.createContainer().get(ILifecycle), map);
       sut.subscribe(s);
       sut.unsubscribe(s);
       map.set(1, 1);
@@ -74,7 +75,7 @@ describe(`MapObserver`, function () {
     it('set', function () {
       const s = new SpySubscriber();
       const map = new Map();
-      sut = new MapObserver(LF.none, new Lifecycle(), map);
+      sut = new MapObserver(LF.none, DI.createContainer().get(ILifecycle), map);
       sut.subscribeBatched(s);
       map.set(1, 1);
       const indexMap: IndexMap = sut.indexMap.slice();
@@ -88,7 +89,7 @@ describe(`MapObserver`, function () {
     it('set', function () {
       const s = new SpySubscriber();
       const map = new Map();
-      sut = new MapObserver(LF.none, new Lifecycle(), map);
+      sut = new MapObserver(LF.none, DI.createContainer().get(ILifecycle), map);
       sut.subscribeBatched(s);
       sut.unsubscribeBatched(s);
       map.set(1, 1);
@@ -103,7 +104,7 @@ describe(`MapObserver`, function () {
     it('set', function () {
       const s = new SpySubscriber();
       const map = new Map();
-      sut = new MapObserver(LF.none, new Lifecycle(), map);
+      sut = new MapObserver(LF.none, DI.createContainer().get(ILifecycle), map);
       sut.subscribeBatched(s);
       sut.flush(LF.none);
       expect(s.handleBatchedChange).to.have.been.called;
@@ -121,7 +122,7 @@ describe(`MapObserver`, function () {
             const map = new Map(Array.from(init));
             const expectedMap = new Map(Array.from(init));
             const newItems = items && items.slice();
-            sut = new MapObserver(LF.none, new Lifecycle(), map);
+            sut = new MapObserver(LF.none, DI.createContainer().get(ILifecycle), map);
             let expectedResult;
             let actualResult;
             let i = 0;
@@ -149,7 +150,7 @@ describe(`MapObserver`, function () {
             const map = new Map(Array.from(init));
             const copy = new Map(Array.from(init));
             const newItems = items && items.slice();
-            sut = new MapObserver(LF.none, new Lifecycle(), map);
+            sut = new MapObserver(LF.none, DI.createContainer().get(ILifecycle), map);
             let i = 0;
             while (i < repeat) {
               incrementItems(newItems, i);
@@ -182,7 +183,7 @@ describe(`MapObserver`, function () {
             const map = new Map(Array.from(init));
             const expectedMap = new Map(Array.from(init));
             const newItems = items && items.slice();
-            sut = new MapObserver(LF.none, new Lifecycle(), map);
+            sut = new MapObserver(LF.none, DI.createContainer().get(ILifecycle), map);
             let expectedResult;
             let actualResult;
             let i = 0;
@@ -210,7 +211,7 @@ describe(`MapObserver`, function () {
             const map = new Map(Array.from(init));
             const copy = new Map(Array.from(init));
             const newItems = items && items.slice();
-            sut = new MapObserver(LF.none, new Lifecycle(), map);
+            sut = new MapObserver(LF.none, DI.createContainer().get(ILifecycle), map);
             let i = 0;
             while (i < repeat) {
               incrementItems(newItems, i);
@@ -240,7 +241,7 @@ describe(`MapObserver`, function () {
         it(`size=${padRight(init.size, 2)} repeat=${repeat} - behaves as native`, function () {
           const map = new Map(Array.from(init));
           const expectedMap = new Map(Array.from(init));
-          sut = new MapObserver(LF.none, new Lifecycle(), map);
+          sut = new MapObserver(LF.none, DI.createContainer().get(ILifecycle), map);
           let i = 0;
           while (i < repeat) {
             expectedMap.clear();
@@ -253,7 +254,7 @@ describe(`MapObserver`, function () {
         it(`size=${padRight(init.size, 2)} repeat=${repeat} - tracks changes`, function () {
           const map = new Map(Array.from(init));
           const copy = new Map(Array.from(init));
-          sut = new MapObserver(LF.none, new Lifecycle(), map);
+          sut = new MapObserver(LF.none, DI.createContainer().get(ILifecycle), map);
           let i = 0;
           while (i < repeat) {
             map.clear();

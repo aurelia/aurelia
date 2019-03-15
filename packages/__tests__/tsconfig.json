@@ -1,19 +1,21 @@
 {
+  "extends": "../tsconfig-build.json",
   "compilerOptions": {
-    "pretty": true,
-    "lib": ["esnext"],
-    "target": "es2018",
-    "module": "esnext",
-    "moduleResolution": "node",
-    "experimentalDecorators": true,
-    "rootDir": ".",
-    "baseUrl": ".",
+    "declarationDir": "dist",
+    "outDir": "dist/build",
+    "lib": ["esnext", "dom"],
+    "module": "commonjs",
 
+
+    "resolveJsonModule": true,
     "forceConsistentCasingInFileNames": true,
-    "sourceMap": true,
+    "strict": false,
     "alwaysStrict": true,
-    "preserveConstEnums": true,
     "allowSyntheticDefaultImports": true,
+
+    "jsx": "react",
+    "jsxFactory": "hJsx",
+
     "types": [
       "./asserts",
       "node",
@@ -21,8 +23,30 @@
       "chai",
       "sinon",
       "sinon-chai",
-      "webpack-env"
+      "webpack-env",
+      "@aurelia/kernel",
+      "@aurelia/fetch-client",
+      "@aurelia/runtime",
+      "@aurelia/runtime-html",
+      "@aurelia/runtime-html-browser",
+      "@aurelia/runtime-html-jsdom",
+      "@aurelia/router",
+      "@aurelia/jit",
+      "@aurelia/jit-html",
+      "@aurelia/jit-html-browser",
+      "@aurelia/jit-html-jsdom",
     ]
   },
-  "include": ["."]
+  "include": ["."],
+  "exclude": [
+    "router",
+    "runtime-html",
+    "runtime-html-browser",
+    "runtime-html-jsdom",
+    "jit-html",
+    "jit-html-browser",
+    "jit-html-jsdom",
+    "fetch-client",
+    "dist"
+  ]
 }

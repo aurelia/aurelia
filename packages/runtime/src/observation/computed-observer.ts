@@ -1,4 +1,4 @@
-import { Constructable, PLATFORM, Reporter, Tracer, IIndexable } from '@aurelia/kernel';
+import { PLATFORM, Reporter, Tracer } from '@aurelia/kernel';
 import { LifecycleFlags } from '../flags';
 import { ILifecycle } from '../lifecycle';
 import {
@@ -33,7 +33,6 @@ export function computed(config: ComputedOverrides): PropertyDecorator {
 
 const computedOverrideDefaults: ComputedOverrides = { static: false, volatile: false };
 
-/* @internal */
 export function createComputedObserver(
   flags: LifecycleFlags,
   observerLocator: IObserverLocator,

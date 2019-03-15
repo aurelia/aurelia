@@ -1,7 +1,7 @@
 import { PLATFORM } from '@aurelia/kernel';
 import { expect } from 'chai';
-import { BindingStrategy, customElement } from '../../src/index';
-import { eachCartesianJoin } from '../util';
+import { BindingStrategy, customElement } from '@aurelia/runtime';
+import { eachCartesianJoin } from '../../util';
 import { createCustomElement } from './custom-element._builder';
 
 describe('@customElement', function () {

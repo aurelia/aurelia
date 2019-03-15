@@ -1,5 +1,5 @@
 import { expect } from 'chai';
-import { ConfigurableRoute, RouteRecognizer } from '../../src/index';
+import { ConfigurableRoute, RouteRecognizer } from '@aurelia/router';
 import { eachCartesianJoin } from '../util';
 
 const staticRoute = {'path': 'static', 'handler': {'name': 'static'}};

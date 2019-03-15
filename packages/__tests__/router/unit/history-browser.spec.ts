@@ -1,5 +1,5 @@
+import { HistoryBrowser } from '@aurelia/router';
 import { expect } from 'chai';
-import { HistoryBrowser } from '../../src/index';
 
 describe('HistoryBrowser', function () {
   it('can be created', function () {

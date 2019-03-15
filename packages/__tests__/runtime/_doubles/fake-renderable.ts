@@ -1,4 +1,4 @@
-import { ICustomElement, IRenderable } from '../../src/index';
+import { ICustomElement, IRenderable, ILifecycleHooks, IMountableComponent } from '@aurelia/runtime';
 
 export class FakeRenderable implements IRenderable {
   public $context: IRenderable['$context'] = null;
@@ -17,14 +17,14 @@ export class FakeRenderable implements IRenderable {
   public $componentHead: ICustomElement['$componentHead'] = null;
   public $componentTail: ICustomElement['$componentTail'] = null;
 
-  public $nextMount: ICustomElement['$nextMount'] = null;
-  public $nextUnmount: ICustomElement['$nextUnmount'] = null;
+  public $nextMount: IMountableComponent = null;
+  public $nextUnmount: IMountableComponent = null;
 
   public $projector: ICustomElement['$projector'] = null;
 
   public $nextFlush: ICustomElement['$nextFlush'] = null;
-  public $nextBound: ICustomElement['$nextBound'] = null;
-  public $nextUnbound: ICustomElement['$nextUnbound'] = null;
-  public $nextAttached: ICustomElement['$nextAttached'] = null;
-  public $nextDetached: ICustomElement['$nextDetached'] = null;
+  public $nextBound: ILifecycleHooks = null;
+  public $nextUnbound: ILifecycleHooks = null;
+  public $nextAttached: ILifecycleHooks = null;
+  public $nextDetached: ILifecycleHooks = null;
 }

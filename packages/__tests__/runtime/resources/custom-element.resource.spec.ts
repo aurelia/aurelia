@@ -1,5 +1,5 @@
 import { expect } from 'chai';
-import { CustomAttributeResource, CustomElementResource } from '../../src/index';
+import { CustomAttributeResource, CustomElementResource } from '@aurelia/runtime';
 
 describe('CustomElementResource', function () {
   describe(`define`, function () {

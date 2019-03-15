@@ -1,7 +1,7 @@
 import { PLATFORM } from '@aurelia/kernel';
 import { expect } from 'chai';
-import { BindingMode, BindingStrategy, customAttribute, IAttributeDefinition } from '../../src/index';
-import { eachCartesianJoin } from '../util';
+import { BindingMode, BindingStrategy, customAttribute, IAttributeDefinition } from '@aurelia/runtime';
+import { eachCartesianJoin } from '../../util';
 import { createCustomAttribute } from './custom-attribute._builder';
 
 // Note regarding the expect() assertions:

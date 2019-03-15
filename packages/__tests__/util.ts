@@ -34,14 +34,16 @@ import {
   OverrideContext,
   Scope,
   ITargetObserverLocator,
-  ITargetAccessorLocator
+  ITargetAccessorLocator,
+  ILifecycleRegistration,
+  IObserverLocatorRegistration,
+  IDirtyChecker
 } from '@aurelia/runtime';
 import {
   Serializer,
   Unparser,
   Tracer as DebugTracer
 } from '@aurelia/debug';
-import { IDirtyChecker } from '@aurelia/runtime/src';
 
 export function verifyASTEqual(actual: any, expected: any, errors?: string[], path?: string): any {
   if (expected == null) {
@@ -298,6 +300,7 @@ export function createObserverLocator(containerOrLifecycle?: IContainer | ILifec
   let container: IContainer;
   if (containerOrLifecycle === undefined || !('get' in containerOrLifecycle)) {
     container = DI.createContainer();
+    container.register(ILifecycleRegistration);
   } else {
     container = containerOrLifecycle as IContainer;
   }
@@ -310,6 +313,7 @@ export function createObserverLocator(containerOrLifecycle?: IContainer | ILifec
   Registration.instance(IDirtyChecker, null).register(container);
   Registration.instance(ITargetObserverLocator, dummyLocator).register(container);
   Registration.instance(ITargetAccessorLocator, dummyLocator).register(container);
+  container.register(IObserverLocatorRegistration);
   return container.get(IObserverLocator);
 }
 

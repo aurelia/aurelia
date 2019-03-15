@@ -1,5 +1,5 @@
 import { Writable } from '@aurelia/kernel';
-import { customElement, ICustomElement, ITemplateDefinition } from '../../src/index';
+import { customElement, ICustomElement, ITemplateDefinition } from '@aurelia/runtime';
 import { defineComponentLifecycleMock, IComponentLifecycleMock } from '../_doubles/mock-component-lifecycle';
 
 export type CustomElement = Writable<ICustomElement> & IComponentLifecycleMock;

@@ -1,8 +1,8 @@
 import { IServiceLocator } from '@aurelia/kernel';
 import { expect } from 'chai';
-import { Hooks, ICustomElementType,  IDOM, INode, IProjectorLocator, IRenderingEngine, ITemplate, LifecycleFlags as LF } from '../../src/index';
+import { Hooks, ICustomElementType,  IDOM, INode, IProjectorLocator, IRenderingEngine, ITemplate, LifecycleFlags as LF } from '@aurelia/runtime';
 import { createCustomElement, CustomElement } from '../resources/custom-element._builder';
-import { eachCartesianJoin } from '../util';
+import { eachCartesianJoin } from '../../util';
 
 describe('@customElement', function () {
 

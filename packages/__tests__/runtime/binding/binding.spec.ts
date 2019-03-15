@@ -25,9 +25,7 @@ import {
   Scope,
   SetterObserver,
   State
-} from '../../src/index';
-import { Lifecycle } from '../../src/lifecycle';
-import { SubscriberFlags } from '../../src/observation';
+} from '@aurelia/runtime';
 import {
   _,
   createObserverLocator,
@@ -38,7 +36,7 @@ import {
   massRestore,
   massSpy,
   verifyEqual
-} from '../util';
+} from '../../util';
 
 /**
  * pad a string with spaces on the right-hand side until it's the specified length
@@ -64,7 +62,7 @@ describe('Binding', function () {
   function setup(sourceExpression: any = dummySourceExpression, target: any = dummyTarget, targetProperty: string = dummyTargetProperty, mode: BindingMode = dummyMode) {
     const container = RuntimeBasicConfiguration.createContainer();
     const observerLocator = createObserverLocator(container);
-    const lifecycle = container.get(ILifecycle) as Lifecycle;
+    const lifecycle = container.get(ILifecycle);
     const sut = new Binding(sourceExpression, target, targetProperty, mode, observerLocator, container);
 
     return { sut, lifecycle, container, observerLocator };
@@ -1002,7 +1000,7 @@ describe('Binding', function () {
 });
 
 class MockObserver implements IBindingTargetObserver {
-  public _subscriberFlags?: SubscriberFlags;
+  public _subscriberFlags?: number;
   public _subscriber0?: IPropertySubscriber;
   public _subscriber1?: IPropertySubscriber;
   public _subscriber2?: IPropertySubscriber;

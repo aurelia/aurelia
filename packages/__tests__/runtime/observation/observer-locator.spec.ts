@@ -19,7 +19,7 @@
 //   CollectionLengthObserver,
 //   PropertyAccessor,
 //   ElementPropertyAccessor
-// } from '../../src/index';
+// } from '@aurelia/runtime';
 // import { expect } from 'chai';
 // import { DI } from '@aurelia/kernel';
 // import {

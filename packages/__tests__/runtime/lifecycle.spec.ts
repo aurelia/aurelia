@@ -1,12 +1,11 @@
-import { DI } from '@aurelia/kernel';
+import { DI, IIndexable } from '@aurelia/kernel';
 import { expect } from 'chai';
-import { Hooks, ILifecycle, LifecycleFlags, PromiseTask, State } from '../src/index';
-import { IComponent, ILifecycleHooks, Lifecycle } from '../src/lifecycle';
+import { Hooks, ILifecycle, LifecycleFlags, PromiseTask, State, ILifecycleHooks } from '@aurelia/runtime';
 
 describe('Lifecycle', function () {
 
   it('initializes properties', function () {
-    const sut = new Lifecycle();
+    const sut = DI.createContainer().get(ILifecycle);
 
     const linkedListProps = [
       'flush',
@@ -69,15 +68,15 @@ describe('Lifecycle', function () {
       expect(sut[prop]).to.be.a('object', `sut.${prop}`);
     }
 
-    expect(sut.flushed).to.equal(undefined, 'sut.flushed');
-    expect(sut.task).to.equal(undefined, 'sut.task');
-    expect(sut.promise).to.be.instanceof(Promise, 'sut.promise');
+    expect(sut['flushed']).to.equal(undefined, 'sut.flushed');
+    expect(sut['task']).to.equal(undefined, 'sut.task');
+    expect(sut['promise']).to.be.instanceof(Promise, 'sut.promise');
   });
 
   // TODO: more tests needed
   describe('endBind()', function () {
     it('handles task first', async function () {
-      const sut = new Lifecycle();
+      const sut = DI.createContainer().get(ILifecycle);
       const flags = LifecycleFlags.none;
 
       let callbackCalled = false;
@@ -90,7 +89,7 @@ describe('Lifecycle', function () {
       });
 
       let boundCalled = false;
-      const subject1: ILifecycleHooks = {
+      const subject1: ILifecycleHooks & IIndexable = {
         $nextBound: null,
         bound(_flags: LifecycleFlags): void {
           expect(callbackCalled).to.equal(true, 'callbackCalled');

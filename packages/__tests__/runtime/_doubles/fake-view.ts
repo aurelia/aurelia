@@ -11,7 +11,7 @@ import {
   IViewCache,
   LifecycleFlags,
   State,
-} from '../../src/index';
+} from '@aurelia/runtime';
 import { AuDOM, AuNode, AuNodeSequence } from '../au-dom';
 
 export class FakeView implements IView<AuNode> {

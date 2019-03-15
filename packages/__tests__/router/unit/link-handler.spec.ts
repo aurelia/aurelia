@@ -1,6 +1,6 @@
 import { expect } from 'chai';
 import { spy } from 'sinon';
-import { LinkHandler } from './../../src/index';
+import { LinkHandler } from '@aurelia/router';
 
 describe('LinkHandler', function () {
   let linkHandler;

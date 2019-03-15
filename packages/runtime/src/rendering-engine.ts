@@ -456,18 +456,17 @@ export function findElements(nodes: ArrayLike<unknown>): ICustomElement[] {
   return components;
 }
 
-/** @internal */
 export class RuntimeBehavior {
-  public bindables!: BindableDefinitions;
+  public readonly bindables: BindableDefinitions;
 
-  private constructor() {}
+  private constructor(
+    bindables: BindableDefinitions
+  ) {
+    this.bindables = bindables;
+  }
 
   public static create(Component: ICustomElementType | ICustomAttributeType): RuntimeBehavior {
-    const behavior = new RuntimeBehavior();
-
-    behavior.bindables = Component.description.bindables as Record<string, IBindableDescription>;
-
-    return behavior;
+    return new RuntimeBehavior(Component.description.bindables as Record<string, IBindableDescription>);
   }
 
   public applyTo(flags: LifecycleFlags, instance: ICustomAttribute | ICustomElement, lifecycle: ILifecycle): void {

@@ -1,4 +1,4 @@
-import { ExpressionKind } from '../../src/index';
+import { ExpressionKind } from '@aurelia/runtime';
 
 export class MockTracingExpression {
   public $kind: ExpressionKind = ExpressionKind.HasBind | ExpressionKind.HasUnbind;

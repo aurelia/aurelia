@@ -1,15 +1,16 @@
 
 import { expect } from 'chai';
-import { HTMLTemplateElementFactory, ITemplateElementFactory } from '../../src/template-element-factory';
+import { ITemplateElementFactory, ITemplateElementFactoryRegistration } from '@aurelia/jit-html';
 import { HTMLTestContext, TestContext } from '../util';
 
 describe('HTMLTemplateElementFactory', function () {
-  let sut: HTMLTemplateElementFactory;
+  let sut: ITemplateElementFactory<HTMLElement>;
   let ctx: HTMLTestContext;
 
   beforeEach(function () {
     ctx = TestContext.createHTMLTestContext();
-    sut = new HTMLTemplateElementFactory(ctx.dom);
+    ctx.container.register(ITemplateElementFactoryRegistration);
+    sut = ctx.container.get(ITemplateElementFactory);
   });
 
   it('template-wrapped markup string', function () {

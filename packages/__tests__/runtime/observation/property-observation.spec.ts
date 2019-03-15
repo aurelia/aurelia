@@ -5,8 +5,8 @@ import {
   PrimitiveObserver,
   SelfObserver,
   SetterObserver
-} from '../../src/index';
-import { SpySubscriber } from '../util';
+} from '@aurelia/runtime';
+import { SpySubscriber } from '../../util';
 
 const getName = (o: any) => Object.prototype.toString.call(o).slice(8, -1);
 

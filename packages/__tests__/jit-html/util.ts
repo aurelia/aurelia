@@ -15,7 +15,7 @@ import {
   ITemplateCompiler
 } from '@aurelia/runtime';
 import { HTMLDOM } from '@aurelia/runtime-html';
-import { padLeft } from '../../../scripts/test-lib';
+import { padLeft } from '../test-lib';
 import { padRight } from './unit/util';
 
 export function getVisibleText(au, host) {

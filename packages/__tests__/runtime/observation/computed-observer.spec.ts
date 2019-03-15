@@ -1,6 +1,6 @@
 import { IIndexable, Registration, Tracer } from '@aurelia/kernel';
 import { expect } from 'chai';
-import { eachCartesianJoin } from '../../../../scripts/test-lib';
+import { eachCartesianJoin } from '../../test-lib';
 import {
   DirtyCheckProperty,
   IDirtyChecker,
@@ -9,10 +9,11 @@ import {
   ITargetAccessorLocator,
   ITargetObserverLocator,
   LifecycleFlags as LF,
-  RuntimeBasicConfiguration
-} from '../../src/index';
-import { ComputedOverrides, createComputedObserver } from '../../src/observation/computed-observer';
-import { disableTracing, enableTracing } from '../util';
+  RuntimeBasicConfiguration,
+  ComputedOverrides,
+  createComputedObserver
+} from '@aurelia/runtime';
+import { disableTracing, enableTracing } from '../../util';
 
 // tslint:disable:no-statements-same-line
 

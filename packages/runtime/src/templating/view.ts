@@ -18,10 +18,8 @@ import { $bindView, $lockedBind, $lockedUnbind, $unbindView } from './lifecycle-
 
 const slice = Array.prototype.slice;
 
-/** @internal */
 export interface View<T extends INode = INode> extends IView<T> {}
 
-/** @internal */
 export class View<T extends INode = INode> implements IView<T> {
   public $bindingHead?: IBinding;
   public $bindingTail?: IBinding;
@@ -102,7 +100,6 @@ export class View<T extends INode = INode> implements IView<T> {
 
 }
 
-/** @internal */
 export class ViewFactory<T extends INode = INode> implements IViewFactory<T> {
   public static maxCacheSize: number = 0xFFFF;
 

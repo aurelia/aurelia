@@ -12,9 +12,9 @@ import {
   IRenderLocation,
   ITargetedInstruction,
   IViewFactory,
-  TemplateDefinition
-} from '../src/index';
-import { ViewFactory } from '../src/templating/view';
+  TemplateDefinition,
+  ViewFactory
+} from '@aurelia/runtime';
 import {
   AuDOM,
   AuDOMConfiguration,

@@ -1,4 +1,4 @@
-import { Constructable, IContainer, Overwrite, Registration } from '@aurelia/kernel';
+import { Constructable, IContainer, Overwrite, Registration, DI, InstanceProvider } from '@aurelia/kernel';
 import { expect } from 'chai';
 import {
   CustomAttributeResource,
@@ -12,13 +12,11 @@ import {
   IView,
   IViewFactory,
   LifecycleFlags as LF
-} from '../../../src/index';
-import { Lifecycle } from '../../../src/lifecycle';
-import { InstanceProvider } from '../../../src/rendering-engine';
+} from '@aurelia/runtime';
 import { FakeView } from '../../_doubles/fake-view';
 import { FakeViewFactory } from '../../_doubles/fake-view-factory';
 import { AuDOMConfiguration, AuNode } from '../../au-dom';
-import { createScopeForTest } from '../../util';
+import { createScopeForTest } from '../../../util';
 
 export function ensureSingleChildTemplateControllerBehaviors<T extends ICustomAttributeType>(
   Type: T,
@@ -32,7 +30,7 @@ export function ensureSingleChildTemplateControllerBehaviors<T extends ICustomAt
   });
 
   it('enforces the attach lifecycle of its child instance', function () {
-    const lifecycle = new Lifecycle();
+    const lifecycle = DI.createContainer().get(ILifecycle);
     const { attribute } = hydrateCustomAttribute(Type, { lifecycle });
     const child = getChildView(attribute);
 
@@ -45,7 +43,7 @@ export function ensureSingleChildTemplateControllerBehaviors<T extends ICustomAt
   });
 
   it('adds a child instance at the render location when attaching', function () {
-    const lifecycle = new Lifecycle();
+    const lifecycle = DI.createContainer().get(ILifecycle);
     const { attribute, location } = hydrateCustomAttribute(Type, { lifecycle });
     const child = getChildView(attribute);
 
@@ -67,7 +65,7 @@ export function ensureSingleChildTemplateControllerBehaviors<T extends ICustomAt
   });
 
   it('enforces the detach lifecycle of its child instance', function () {
-    const lifecycle = new Lifecycle();
+    const lifecycle = DI.createContainer().get(ILifecycle);
     const { attribute } = hydrateCustomAttribute(Type, { lifecycle });
     const child = getChildView(attribute);
 
@@ -93,13 +91,13 @@ export function ensureSingleChildTemplateControllerBehaviors<T extends ICustomAt
     expect(unbindCalled).to.equal(true);
   });
 
-  function runAttachLifecycle(lifecycle: Lifecycle, item: IComponent) {
+  function runAttachLifecycle(lifecycle: ILifecycle, item: IComponent) {
     lifecycle.beginAttach();
     item.$attach(LF.none);
     lifecycle.endAttach(LF.none);
   }
 
-  function runDetachLifecycle(lifecycle: Lifecycle, item: IComponent) {
+  function runDetachLifecycle(lifecycle: ILifecycle, item: IComponent) {
     lifecycle.beginDetach();
     item.$detach(LF.none);
     lifecycle.endDetach(LF.none);
@@ -107,7 +105,7 @@ export function ensureSingleChildTemplateControllerBehaviors<T extends ICustomAt
 }
 
 interface IAttributeTestOptions {
-  lifecycle?: Lifecycle;
+  lifecycle?: ILifecycle;
   container?: IContainer;
   target?: INode;
 }
@@ -115,7 +113,7 @@ interface IAttributeTestOptions {
 interface ICustomAttributeCreation<T extends Constructable> {
   attribute: Overwrite<InstanceType<T>, ICustomAttribute<AuNode>>;
   location?: IRenderLocation<AuNode> & AuNode;
-  lifecycle: Lifecycle;
+  lifecycle: ILifecycle;
 }
 
 export function hydrateCustomAttribute<T extends ICustomAttributeType>(
@@ -128,7 +126,7 @@ export function hydrateCustomAttribute<T extends ICustomAttributeType>(
   if (options.lifecycle) {
     Registration.instance(ILifecycle, options.lifecycle).register(container, ILifecycle);
   }
-  const lifecycle = container.get(ILifecycle) as Lifecycle;
+  const lifecycle = container.get(ILifecycle);
 
   let location: IRenderLocation<AuNode> & AuNode = null;
 

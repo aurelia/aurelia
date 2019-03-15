@@ -1,8 +1,8 @@
 import { IServiceLocator } from '@aurelia/kernel';
 import { expect } from 'chai';
-import { Hooks, ICustomAttributeType, LifecycleFlags as LF, State } from '../../src/index';
+import { Hooks, ICustomAttributeType, LifecycleFlags as LF, State } from '@aurelia/runtime';
 import { createCustomAttribute, CustomAttribute } from '../resources/custom-attribute._builder';
-import { eachCartesianJoin } from '../util';
+import { eachCartesianJoin } from '../../util';
 
 describe('@customAttribute', function () {
 

@@ -4,17 +4,18 @@ import {
   IComponent,
   If,
   IView,
-  LifecycleFlags
-} from '../../../src/index';
-import { Lifecycle } from '../../../src/lifecycle';
+  LifecycleFlags,
+  ICustomAttributeType,
+  ILifecycle
+} from '@aurelia/runtime';
 import { FakeView } from '../../_doubles/fake-view';
 import { AuDOMConfiguration, AuNode } from '../../au-dom';
-import { createScopeForTest } from '../../util';
+import { createScopeForTest } from '../../../util';
 import { hydrateCustomAttribute } from './template-controller-tests';
 
 describe('The "if" template controller', function () {
   it('renders its view when the value is true', function () {
-    const { attribute: ifAttr, location, lifecycle } = hydrateCustomAttribute(If);
+    const { attribute: ifAttr, location, lifecycle } = hydrateCustomAttribute(If as typeof If & ICustomAttributeType);
 
     ifAttr.value = true;
     ifAttr.$bind(LifecycleFlags.fromBind, createScopeForTest());
@@ -35,7 +36,7 @@ describe('The "if" template controller', function () {
   });
 
   it('queues the view removal via the lifecycle when the value is false', function () {
-    const { attribute: ifAttr, location, lifecycle } = hydrateCustomAttribute(If);
+    const { attribute: ifAttr, location, lifecycle } = hydrateCustomAttribute(If as typeof If & ICustomAttributeType);
 
     ifAttr.value = true;
     ifAttr.$bind(LifecycleFlags.fromBind, createScopeForTest());
@@ -68,8 +69,8 @@ describe('The "if" template controller', function () {
 
   it('queues the rendering of an else view when one is linked and its value is false', function () {
     const container = AuDOMConfiguration.createContainer();
-    const { attribute: ifAttr, location } = hydrateCustomAttribute(If, { container });
-    const { attribute: elseAttr, lifecycle } = hydrateCustomAttribute(Else, { container });
+    const { attribute: ifAttr, location } = hydrateCustomAttribute(If as typeof If & ICustomAttributeType, { container });
+    const { attribute: elseAttr, lifecycle } = hydrateCustomAttribute(Else as typeof Else & ICustomAttributeType, { container });
 
     elseAttr.link(ifAttr as If<AuNode>);
 
@@ -100,7 +101,7 @@ describe('The "if" template controller', function () {
   });
 
   it('detaches its child view when it is detached', function () {
-    const { attribute: ifAttr, lifecycle } = hydrateCustomAttribute(If);
+    const { attribute: ifAttr, lifecycle } = hydrateCustomAttribute(If as typeof If & ICustomAttributeType);
 
     ifAttr.value = true;
     ifAttr.$bind(LifecycleFlags.fromBind, createScopeForTest());
@@ -115,7 +116,7 @@ describe('The "if" template controller', function () {
   });
 
   it('unbinds its child view when it is unbound', function () {
-    const { attribute: ifAttr } = hydrateCustomAttribute(If);
+    const { attribute: ifAttr } = hydrateCustomAttribute(If as typeof If & ICustomAttributeType);
 
     ifAttr.value = true;
     ifAttr.$bind(LifecycleFlags.fromBind, createScopeForTest());
@@ -132,13 +133,13 @@ describe('The "if" template controller', function () {
     return ifAttr['coordinator']['currentView'] as IView<AuNode>;
   }
 
-  function runAttachLifecycle(lifecycle: Lifecycle, item: IComponent) {
+  function runAttachLifecycle(lifecycle: ILifecycle, item: IComponent) {
     lifecycle.beginAttach();
     item.$attach(LifecycleFlags.none);
     lifecycle.endAttach(LifecycleFlags.none);
   }
 
-  function runDetachLifecycle(lifecycle: Lifecycle, item: IComponent) {
+  function runDetachLifecycle(lifecycle: ILifecycle, item: IComponent) {
     lifecycle.beginDetach();
     item.$detach(LifecycleFlags.none);
     lifecycle.endDetach(LifecycleFlags.none);

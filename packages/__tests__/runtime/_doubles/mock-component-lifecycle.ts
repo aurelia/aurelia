@@ -1,5 +1,5 @@
-import { ILifecycle, INode, ITemplateDefinition, LifecycleFlags, State } from '../../src/index';
-import { Lifecycle } from '../../src/lifecycle';
+import { ILifecycle, INode, ITemplateDefinition, LifecycleFlags, State } from '@aurelia/runtime';
+import { DI } from '@aurelia/kernel';
 
 export type IComponentLifecycleMock = InstanceType<ReturnType<typeof defineComponentLifecycleMock>>;
 
@@ -9,7 +9,7 @@ export function defineComponentLifecycleMock() {
     public calls: [keyof ComponentLifecycleMock, ...any[]][] = [];
 
     constructor() {
-      this.$lifecycle = new Lifecycle();
+      this.$lifecycle = DI.createContainer().get(ILifecycle);
     }
 
     public created(): void {
@@ -160,7 +160,7 @@ export function defineComponentLifecycleMock() {
         this.fail(`expected no further calls, but found additional calls: ${callChain}`);
       }
     }
-    private fail(message: string) {
+    public fail(message: string) {
       throw new Error(`ComponentLifecycleMock: ${message}`);
     }
   };

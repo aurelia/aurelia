@@ -4,12 +4,12 @@ import {
   LifecycleFlags as LF,
   Scope,
   State
-} from '../../src/index';
+} from '@aurelia/runtime';
 import {
   createCustomElement,
   CustomElement
 } from '../resources/custom-element._builder';
-import { eachCartesianJoin } from '../util';
+import { eachCartesianJoin } from '../../util';
 
 //TODO: verify mount callbacks
 describe('@customElement', function () {

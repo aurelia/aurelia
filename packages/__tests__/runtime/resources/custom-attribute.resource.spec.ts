@@ -1,5 +1,5 @@
 import { expect } from 'chai';
-import { customAttribute, CustomAttributeResource } from '../../src/index';
+import { customAttribute, CustomAttributeResource } from '@aurelia/runtime';
 
 describe('CustomAttributeResource', function () {
   it('name is custom-attribute', function () {

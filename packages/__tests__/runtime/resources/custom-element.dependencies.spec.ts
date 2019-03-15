@@ -1,5 +1,5 @@
 import { expect } from 'chai';
-import { CustomElementResource } from '../../src/index';
+import { CustomElementResource } from '@aurelia/runtime';
 import { AuDOMTest } from '../au-dom';
 
 describe('CustomElementResource', function () {

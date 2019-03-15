@@ -1,4 +1,4 @@
-import { ILifecycle, IView, IViewFactory } from '../../src/index';
+import { ILifecycle, IView, IViewFactory } from '@aurelia/runtime';
 import { FakeView } from './fake-view';
 
 export class FakeViewFactory implements IViewFactory {

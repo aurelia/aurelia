@@ -1,10 +1,9 @@
 import { expect } from 'chai';
-import { DebugConfiguration } from '../../../debug/src/index';
-import { BasicConfiguration } from '../../../jit-html-browser/src/index';
-import { Aurelia, CustomElementResource } from '../../../runtime/src/index';
-import { Router, ViewportCustomElement } from '../../src/index';
+import { DebugConfiguration } from '@aurelia/debug';
+import { BasicConfiguration } from '@aurelia/jit-html-browser';
+import { Aurelia, CustomElementResource } from '@aurelia/runtime';
+import { Router, ViewportCustomElement, ViewportInstruction } from '@aurelia/router';
 import { MockBrowserHistoryLocation } from '../mock/browser-history-location.mock';
-import { ViewportInstruction } from './../../src/viewport-instruction';
 
 describe('InstructionResolver', function () {
   this.timeout(30000);

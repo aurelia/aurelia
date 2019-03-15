@@ -18,7 +18,7 @@
 //   RuntimeBehavior,
 //   State,
 //    ViewFactory
-// } from '../../../src/index';
+// } from '@aurelia/runtime';
 // import { MockTextNodeTemplate } from '../../mock';
 // import { createScopeForTest } from '../../shared';
 // import { eachCartesianJoinFactory } from '../../util';

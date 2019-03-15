@@ -1,6 +1,6 @@
 import * as chai from 'chai';
 import * as sinonChai from 'sinon-chai';
-import { addChaiAsserts_$state, HTMLTestContext, TestContext } from '../../runtime-html/test/util';
+import { addChaiAsserts_$state, HTMLTestContext, TestContext } from '../runtime-html/util';
 
 export function createHTMLTestContext(): HTMLTestContext {
   return HTMLTestContext.create(
@@ -26,5 +26,5 @@ TestContext.HTMLDivElement = HTMLDivElement;
 chai.use(sinonChai);
 chai.use(addChaiAsserts_$state);
 
-const testContext = require.context('../../runtime-html/test', true, /spec\.ts$/);
+const testContext = require.context('../runtime-html', true, /spec\.ts$/);
 testContext.keys().forEach(testContext);

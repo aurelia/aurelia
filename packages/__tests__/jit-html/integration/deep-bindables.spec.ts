@@ -7,7 +7,7 @@ import {
   LifecycleFlags
 } from '@aurelia/runtime';
 import { expect } from 'chai';
-import { stringifyLifecycleFlags } from '../../../debug/src/tracer';
+import { stringifyLifecycleFlags } from '@aurelia/debug';
 import { disableTracing, enableTracing } from '../unit/util';
 import { TestContext, writeProfilerReport } from '../util';
 

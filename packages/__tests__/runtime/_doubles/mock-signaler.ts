@@ -1,4 +1,4 @@
-import { ISignaler } from '../../src/index';
+import { ISignaler } from '@aurelia/runtime';
 
 export interface MockSignaler extends ISignaler {}
 export class MockSignaler {

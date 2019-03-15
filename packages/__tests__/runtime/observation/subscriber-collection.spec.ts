@@ -4,7 +4,7 @@ import {
   LifecycleFlags,
   MutationKind,
   subscriberCollection
-} from '../../src/index';
+} from '@aurelia/runtime';
 
 @subscriberCollection(MutationKind.instance)
 class Test {}

@@ -1,7 +1,7 @@
 import * as chai from 'chai';
 import * as sinonChai from 'sinon-chai';
-import { HTMLTestContext, TestContext } from '../../jit-html/test/util';
-import { BasicConfiguration } from '../src/index';
+import { HTMLTestContext, TestContext } from '../jit-html/util';
+import { BasicConfiguration } from '@aurelia/jit-html-browser';
 
 export function createHTMLTestContext(): HTMLTestContext {
   return HTMLTestContext.create(
@@ -24,5 +24,5 @@ TestContext.createHTMLTestContext = createHTMLTestContext;
 
 chai.use(sinonChai);
 
-const testContext = require.context('../../jit-html/test', true, /\.spec\.tsx?$/);
+const testContext = require.context('../jit-html', true, /\.spec\.tsx?$/);
 testContext.keys().forEach(testContext);

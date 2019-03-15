@@ -5,13 +5,14 @@ import {
   disableArrayObservation,
   enableArrayObservation,
   IndexMap,
-  LifecycleFlags as LF
-} from '../../src/index';
-import { Lifecycle } from '../../src/lifecycle';
+  LifecycleFlags as LF,
+  ILifecycle
+} from '@aurelia/runtime';
 import {
   SpySubscriber,
   stringify
-} from '../util';
+} from '../../util';
+import { DI } from '@aurelia/kernel';
 
 export function assertArrayEqual(actual: ReadonlyArray<any>, expected: ReadonlyArray<any>): void {
   const len = actual.length;
@@ -49,7 +50,7 @@ describe(`ArrayObserver`, function () {
     it('push', function () {
       const s = new SpySubscriber();
       const arr = [];
-      sut = new ArrayObserver(LF.none, new Lifecycle(), arr);
+      sut = new ArrayObserver(LF.none, DI.createContainer().get(ILifecycle), arr);
       sut.subscribe(s);
       arr.push(1);
       expect(s.handleChange).to.have.been.calledWith('push', match(x => x[0] === 1));
@@ -58,7 +59,7 @@ describe(`ArrayObserver`, function () {
     it('push', function () {
       const s = new SpySubscriber();
       const arr = [];
-      sut = new ArrayObserver(LF.none, new Lifecycle(), arr);
+      sut = new ArrayObserver(LF.none, DI.createContainer().get(ILifecycle), arr);
       sut.subscribe(s);
       arr.push(1, 2);
       expect(s.handleChange).to.have.been.calledWith('push', match(x => x[0] === 1 && x[1] === 2));
@@ -69,7 +70,7 @@ describe(`ArrayObserver`, function () {
     it('push', function () {
       const s = new SpySubscriber();
       const arr = [];
-      sut = new ArrayObserver(LF.none, new Lifecycle(), arr);
+      sut = new ArrayObserver(LF.none, DI.createContainer().get(ILifecycle), arr);
       sut.subscribe(s);
       sut.unsubscribe(s);
       arr.push(1);
@@ -81,7 +82,7 @@ describe(`ArrayObserver`, function () {
     it('push', function () {
       const s = new SpySubscriber();
       const arr = [];
-      sut = new ArrayObserver(LF.none, new Lifecycle(), arr);
+      sut = new ArrayObserver(LF.none, DI.createContainer().get(ILifecycle), arr);
       sut.subscribeBatched(s);
       arr.push(1);
       const indexMap: IndexMap = sut.indexMap.slice();
@@ -93,7 +94,7 @@ describe(`ArrayObserver`, function () {
     it('push', function () {
       const s = new SpySubscriber();
       const arr = [];
-      sut = new ArrayObserver(LF.none, new Lifecycle(), arr);
+      sut = new ArrayObserver(LF.none, DI.createContainer().get(ILifecycle), arr);
       sut.subscribeBatched(s);
       arr.push(1, 2);
       const indexMap: IndexMap = sut.indexMap.slice();
@@ -107,7 +108,7 @@ describe(`ArrayObserver`, function () {
     it('push', function () {
       const s = new SpySubscriber();
       const arr = [];
-      sut = new ArrayObserver(LF.none, new Lifecycle(), arr);
+      sut = new ArrayObserver(LF.none, DI.createContainer().get(ILifecycle), arr);
       sut.subscribeBatched(s);
       sut.unsubscribeBatched(s);
       arr.push(1);
@@ -122,7 +123,7 @@ describe(`ArrayObserver`, function () {
     it('push', function () {
       const s = new SpySubscriber();
       const arr = [];
-      sut = new ArrayObserver(LF.none, new Lifecycle(), arr);
+      sut = new ArrayObserver(LF.none, DI.createContainer().get(ILifecycle), arr);
       sut.subscribeBatched(s);
       sut.flush(LF.none);
       expect(s.handleBatchedChange).to.have.been.called;
@@ -140,7 +141,7 @@ describe(`ArrayObserver`, function () {
             const arr = init.slice();
             const expectedArr = init.slice();
             const newItems = items && items.slice();
-            sut = new ArrayObserver(LF.none, new Lifecycle(), arr);
+            sut = new ArrayObserver(LF.none, DI.createContainer().get(ILifecycle), arr);
             let expectedResult;
             let actualResult;
             let i = 0;
@@ -163,7 +164,7 @@ describe(`ArrayObserver`, function () {
             const arr = init.slice();
             const copy = init.slice();
             const newItems = items && items.slice();
-            sut = new ArrayObserver(LF.none, new Lifecycle(), arr);
+            sut = new ArrayObserver(LF.none, DI.createContainer().get(ILifecycle), arr);
             let i = 0;
             while (i < repeat) {
               incrementItems(newItems, i);
@@ -194,7 +195,7 @@ describe(`ArrayObserver`, function () {
             const arr = init.slice();
             const expectedArr = init.slice();
             const newItems = items && items.slice();
-            sut = new ArrayObserver(LF.none, new Lifecycle(), arr);
+            sut = new ArrayObserver(LF.none, DI.createContainer().get(ILifecycle), arr);
             let expectedResult;
             let actualResult;
             let i = 0;
@@ -217,7 +218,7 @@ describe(`ArrayObserver`, function () {
             const arr = init.slice();
             const copy = init.slice();
             const newItems = items && items.slice();
-            sut = new ArrayObserver(LF.none, new Lifecycle(), arr);
+            sut = new ArrayObserver(LF.none, DI.createContainer().get(ILifecycle), arr);
             let i = 0;
             while (i < repeat) {
               incrementItems(newItems, i);
@@ -245,7 +246,7 @@ describe(`ArrayObserver`, function () {
         it(`size=${padRight(init.length, 2)} repeat=${repeat} - behaves as native`, function () {
           const arr = init.slice();
           const expectedArr = init.slice();
-          sut = new ArrayObserver(LF.none, new Lifecycle(), arr);
+          sut = new ArrayObserver(LF.none, DI.createContainer().get(ILifecycle), arr);
           let expectedResult;
           let actualResult;
           let i = 0;
@@ -261,7 +262,7 @@ describe(`ArrayObserver`, function () {
         it(`size=${padRight(init.length, 2)} repeat=${repeat} - tracks changes`, function () {
           const arr = init.slice();
           const copy = init.slice();
-          sut = new ArrayObserver(LF.none, new Lifecycle(), arr);
+          sut = new ArrayObserver(LF.none, DI.createContainer().get(ILifecycle), arr);
           let i = 0;
           while (i < repeat) {
             arr.pop();
@@ -283,7 +284,7 @@ describe(`ArrayObserver`, function () {
         const arr = init.slice();
         const expectedArr = init.slice();
         it(`size=${padRight(init.length, 2)} repeat=${repeat} - behaves as native`, function () {
-          sut = new ArrayObserver(LF.none, new Lifecycle(), arr);
+          sut = new ArrayObserver(LF.none, DI.createContainer().get(ILifecycle), arr);
           let expectedResult;
           let actualResult;
           let i = 0;
@@ -299,7 +300,7 @@ describe(`ArrayObserver`, function () {
         it(`size=${padRight(init.length, 2)} repeat=${repeat} - tracks changes`, function () {
           const arr2 = init.slice();
           const copy = init.slice();
-          sut = new ArrayObserver(LF.none, new Lifecycle(), arr2);
+          sut = new ArrayObserver(LF.none, DI.createContainer().get(ILifecycle), arr2);
           let i = 0;
           while (i < repeat) {
             arr2.shift();
@@ -328,7 +329,7 @@ describe(`ArrayObserver`, function () {
                 const arr = init.slice();
                 const expectedArr = init.slice();
                 const newItems = items && items.slice();
-                sut = new ArrayObserver(LF.none, new Lifecycle(), arr);
+                sut = new ArrayObserver(LF.none, DI.createContainer().get(ILifecycle), arr);
                 let expectedResult;
                 let actualResult;
                 let i = 0;
@@ -361,7 +362,7 @@ describe(`ArrayObserver`, function () {
                 const arr = init.slice();
                 const copy = init.slice();
                 const newItems = items && items.slice();
-                sut = new ArrayObserver(LF.none, new Lifecycle(), arr);
+                sut = new ArrayObserver(LF.none, DI.createContainer().get(ILifecycle), arr);
                 let i = 0;
                 while (i < repeat) {
                   incrementItems(newItems, i);
@@ -395,7 +396,7 @@ describe(`ArrayObserver`, function () {
         it(`size=${padRight(init.length, 2)} repeat=${repeat} - behaves as native`, function () {
           const arr = init.slice();
           const expectedArr = init.slice();
-          sut = new ArrayObserver(LF.none, new Lifecycle(), arr);
+          sut = new ArrayObserver(LF.none, DI.createContainer().get(ILifecycle), arr);
           let expectedResult;
           let actualResult;
           let i = 0;
@@ -411,7 +412,7 @@ describe(`ArrayObserver`, function () {
         it(`size=${padRight(init.length, 2)} repeat=${repeat} - tracks changes`, function () {
           const arr = init.slice();
           const copy = init.slice();
-          sut = new ArrayObserver(LF.none, new Lifecycle(), arr);
+          sut = new ArrayObserver(LF.none, DI.createContainer().get(ILifecycle), arr);
           let i = 0;
           while (i < repeat) {
             arr.reverse();
@@ -455,7 +456,7 @@ describe(`ArrayObserver`, function () {
             it(`size=${padRight(init.length, 4)} type=${padRight(type, 9)} reverse=${padRight(reverse, 5)} sortFunc=${compareFn} - behaves as native`, function () {
               const arr = init.slice();
               const expectedArr = init.slice();
-              sut = new ArrayObserver(LF.none, new Lifecycle(), arr);
+              sut = new ArrayObserver(LF.none, DI.createContainer().get(ILifecycle), arr);
               const expectedResult = expectedArr.sort(compareFn);
               const actualResult = arr.sort(compareFn);
               expect(expectedResult).to.equal(expectedArr);
@@ -484,7 +485,7 @@ describe(`ArrayObserver`, function () {
             it(`size=${padRight(init.length, 4)} type=${padRight(type, 9)} reverse=${padRight(reverse, 5)} sortFunc=${compareFn} - tracks changes`, function () {
               const arr = init.slice();
               const copy = init.slice();
-              sut = new ArrayObserver(LF.none, new Lifecycle(), arr);
+              sut = new ArrayObserver(LF.none, DI.createContainer().get(ILifecycle), arr);
               arr.sort(compareFn);
               synchronize(copy, sut.indexMap, arr);
               assertArrayEqual(copy, arr);

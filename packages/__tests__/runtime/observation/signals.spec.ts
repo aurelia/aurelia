@@ -13,7 +13,7 @@ import {
   ISignaler,
   LifecycleFlags,
   SignalBindingBehavior
-} from '../../src/index';
+} from '@aurelia/runtime';
 
 describe('SignalBindingBehavior', function () {
   const container: IContainer = DI.createContainer();

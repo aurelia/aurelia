@@ -11,7 +11,7 @@ import {
   IsBindingBehavior,
   IScope,
   LifecycleFlags
-} from '../../src/index';
+} from '@aurelia/runtime';
 
 describe('DebounceBindingBehavior', function () {
   const container: IContainer = DI.createContainer();

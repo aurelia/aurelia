@@ -1,10 +1,10 @@
 import {
-  Writable
+  Writable, DI
 } from '@aurelia/kernel';
 import { expect } from 'chai';
 import {
   eachCartesianJoin
-} from '../../../../scripts/test-lib';
+} from '../../test-lib';
 import {
   AccessScope,
   addBinding,
@@ -21,10 +21,9 @@ import {
   ITemplate,
   IView,
   LifecycleFlags as LF,
-  Scope
-} from '../../src/index';
-import { Lifecycle } from '../../src/lifecycle';
-import { ViewFactory } from '../../src/templating/view';
+  Scope,
+  ViewFactory
+} from '@aurelia/runtime';
 import {
   AuDOM,
   AuDOMConfiguration,
@@ -88,7 +87,7 @@ describe(`ViewFactory`, function () {
     eachCartesianJoin(inputs, ([text1, doNotOverride1], [text2, size2, isPositive2], [text3, doNotOverride3], [text4, size4, isPositive4]) => {
         it(`setCacheSize(${text2},${text1}) -> tryReturnToCache -> create x2 -> setCacheSize(${text4},${text3}) -> tryReturnToCache -> create x2`, function () {
           const template = new StubTemplate();
-          const sut = new ViewFactory(null, template as any, new Lifecycle());
+          const sut = new ViewFactory(null, template as any, DI.createContainer().get(ILifecycle));
           const view1 = new StubView();
           const view2 = new StubView();
 

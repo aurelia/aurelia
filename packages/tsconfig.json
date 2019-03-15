@@ -1,6 +1,7 @@
 {
   "files": [],
   "references": [
+    { "path": "__tests__" },
     { "path": "kernel" },
     { "path": "runtime" },
     { "path": "runtime-html" },

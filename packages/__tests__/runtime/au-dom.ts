@@ -11,8 +11,7 @@ import {
 } from '@aurelia/kernel';
 import {
   parseExpression
-} from '../../jit/src/index';
-import { TargetedInstruction } from '../dist';
+} from '@aurelia/jit';
 import {
   addBinding,
   Aurelia,
@@ -53,8 +52,9 @@ import {
   LifecycleFlags,
   RuntimeBasicConfiguration,
   TemplateDefinition,
-  ToViewBindingInstruction
-} from '../src/index';
+  ToViewBindingInstruction,
+  TargetedInstruction
+} from '@aurelia/runtime';
 
 const slice = Array.prototype.slice;
 

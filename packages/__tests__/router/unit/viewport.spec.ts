@@ -1,9 +1,5 @@
-import { Registration } from '@aurelia/kernel';
-import { expect } from 'chai';
-import { BasicConfiguration } from '../../../jit-html-browser/src/index';
-import { CustomElementResource } from '../../../runtime/src/index';
-import { Router, Viewport } from '../../src/index';
-import { registerComponent } from './utils';
+import { CustomElementResource } from '@aurelia/runtime';
+import { Viewport } from '@aurelia/router';
 
 const define = (CustomElementResource as any).define;
 

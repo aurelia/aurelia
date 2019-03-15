@@ -5,7 +5,7 @@ import {
   IDirtyChecker,
   LifecycleFlags,
   RuntimeBasicConfiguration
-} from '../../src/index';
+} from '@aurelia/runtime';
 
 describe('DirtyChecker', function () {
   afterEach(function () {

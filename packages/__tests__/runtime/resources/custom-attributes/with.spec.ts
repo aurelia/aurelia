@@ -1,6 +1,6 @@
 import { expect } from 'chai';
-import { LifecycleFlags, With } from '../../../src/index';
-import { createScopeForTest } from '../../util';
+import { LifecycleFlags, With } from '@aurelia/runtime';
+import { createScopeForTest } from '../../../util';
 import { ensureSingleChildTemplateControllerBehaviors, hydrateCustomAttribute } from './template-controller-tests';
 
 describe('The "with" template controller', function () {

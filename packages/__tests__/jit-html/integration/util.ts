@@ -24,10 +24,10 @@ import {
   padRight,
   stringify,
   verifyEqual
-} from '../../../../scripts/test-lib';
+} from '../../test-lib';
 import {
   h
-} from '../../../../scripts/test-lib-dom';
+} from '../../test-lib-dom';
 import { HTMLTestContext, TestContext } from '../util';
 
 export function cleanup(ctx: HTMLTestContext): void {

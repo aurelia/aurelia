@@ -8,8 +8,8 @@ import {
   ISignaler,
   LifecycleFlags } from '@aurelia/runtime';
 import { expect } from 'chai';
-import { NodeSequenceFactory } from '../../../runtime-html/src/dom';
-import { TemplateBinder } from '../../src/index';
+import { NodeSequenceFactory } from '@aurelia/runtime-html';
+import { TemplateBinder } from '@aurelia/jit-html';
 import { TestContext } from '../util';
 
 const spec = 'kitchen-sink';

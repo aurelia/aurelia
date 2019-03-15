@@ -1,7 +1,7 @@
 import * as chai from 'chai';
 import { JSDOM } from 'jsdom';
 import * as sinonChai from 'sinon-chai';
-import { addChaiAsserts_$state, HTMLTestContext, TestContext } from '../../runtime-html/test/util';
+import { addChaiAsserts_$state, HTMLTestContext, TestContext } from '../runtime-html/util';
 
 const jsdom = new JSDOM(`<!DOCTYPE html><html><head></head><body></body></html>`);
 

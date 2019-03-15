@@ -1,6 +1,6 @@
-import { Hooks, LifecycleFlags as LF, Scope, State } from '../../src/index';
+import { Hooks, LifecycleFlags as LF, Scope, State } from '@aurelia/runtime';
 import { createCustomElement, CustomElement } from '../resources/custom-element._builder';
-import { eachCartesianJoin } from '../util';
+import { eachCartesianJoin } from '../../util';
 
 describe('@customElement', function () {
 

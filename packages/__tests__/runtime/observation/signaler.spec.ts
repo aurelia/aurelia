@@ -1,11 +1,11 @@
 import { expect } from 'chai';
-import { eachCartesianJoinFactory } from '../../../../scripts/test-lib';
+import { eachCartesianJoinFactory } from '../../test-lib';
 import {
   ISignaler,
   LifecycleFlags
-} from '../../src/index';
-import { Signaler } from '../../src/observation/signaler';
+} from '@aurelia/runtime';
 import { MockPropertySubscriber } from '../_doubles/mock-subscriber';
+import { DI } from '@aurelia/kernel';
 
 describe('ISignaler', function () {
   type $1 = [string, ISignaler, MockPropertySubscriber[]];
@@ -17,14 +17,14 @@ describe('ISignaler', function () {
 
   const sutVariations: (() => [string, ISignaler, MockPropertySubscriber[]])[] = [
     () => {
-      const sut = new Signaler();
+      const sut = DI.createContainer().get(ISignaler);
       const subscribers = [
         new MockPropertySubscriber()
       ];
       return [`1 subscriber  `, sut, subscribers];
     },
     () => {
-      const sut = new Signaler();
+      const sut = DI.createContainer().get(ISignaler);
       const subscribers = [
         new MockPropertySubscriber(),
         new MockPropertySubscriber(),

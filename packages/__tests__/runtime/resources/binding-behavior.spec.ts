@@ -1,6 +1,6 @@
 import { DI, IContainer } from '@aurelia/kernel';
 import { expect } from 'chai';
-import { bindingBehavior, BindingBehaviorResource } from '../../src/index';
+import { bindingBehavior, BindingBehaviorResource } from '@aurelia/runtime';
 
 describe(`@bindingBehavior('foo')`, function () {
   let container: IContainer;

@@ -15,8 +15,7 @@ import {
   LifecycleFlags as LF,
   RuntimeBasicConfiguration,
   SetterObserver
-} from '../../src/index';
-import { Lifecycle } from '../../src/lifecycle';
+} from '@aurelia/runtime';
 import {
   _,
   createObserverLocator,
@@ -25,12 +24,12 @@ import {
   massReset,
   massRestore,
   massSpy
-} from '../util';
+} from '../../util';
 
 describe('Call', function () {
   function setup(sourceExpression: IExpression, target: any, targetProperty: string) {
     const container = RuntimeBasicConfiguration.createContainer();
-    const lifecycle = container.get(ILifecycle) as Lifecycle;
+    const lifecycle = container.get(ILifecycle);
     const observerLocator = createObserverLocator(container);
     const sut = new Call(sourceExpression as any, target, targetProperty, observerLocator, container);
 

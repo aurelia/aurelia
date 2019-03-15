@@ -1,6 +1,6 @@
 import { DI, IContainer } from '@aurelia/kernel';
 import { expect } from 'chai';
-import { valueConverter, ValueConverterResource } from '../../src/index';
+import { valueConverter, ValueConverterResource } from '@aurelia/runtime';
 
 describe(`@valueConverter('foo')`, function () {
   let container: IContainer;

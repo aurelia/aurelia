@@ -1,7 +1,7 @@
 // TODO: unit test this stuff in a somewhat manageable way
 
 // import { expect } from 'chai';
-// import { IndexMap } from '../../../src/index';
+// import { IndexMap } from '@aurelia/runtime';
 // import { longestIncreasingSubsequence } from '../../../src/resources/custom-attributes/repeat';
 // import { assertArrayEqual } from '../../observation/array-observer.spec';
 

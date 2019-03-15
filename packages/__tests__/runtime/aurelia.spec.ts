@@ -1,6 +1,6 @@
 import { expect } from 'chai';
 import { spy } from 'sinon';
-import { Aurelia, State } from '../src/index';
+import { Aurelia, State } from '@aurelia/runtime';
 import { AuDOMConfiguration } from './au-dom';
 
 describe('Aurelia', function () {

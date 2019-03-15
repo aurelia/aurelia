@@ -1,5 +1,5 @@
 import { expect } from 'chai';
-import { useShadowDOM } from '../../src/index';
+import { useShadowDOM } from '@aurelia/runtime';
 
 describe('@useShadowDOM', function () {
   it(`non-invocation`, function () {

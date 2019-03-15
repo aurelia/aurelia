@@ -7,7 +7,7 @@ import {
 import {
   eachCartesianJoin,
   eachCartesianJoinFactory
-} from '../../../../scripts/test-lib';
+} from '../../test-lib';
 import {
   AccessKeyed,
   AccessMember,
@@ -58,14 +58,14 @@ import {
   Template,
   Unary,
   ValueConverter
-} from '../../src/index';
+} from '@aurelia/runtime';
 
 import { MockBindingBehavior } from '../_doubles/mock-binding-behavior';
 import { MockServiceLocator } from '../_doubles/mock-service-locator';
 import { MockSignaler } from '../_doubles/mock-signaler';
 import { MockTracingExpression } from '../_doubles/mock-tracing-expression';
 import { MockValueConverter } from '../_doubles/mock-value-converter';
-import { createObserverLocator, createScopeForTest } from '../util';
+import { createObserverLocator, createScopeForTest } from '../../util';
 
 const $false = PrimitiveLiteral.$false;
 const $true = PrimitiveLiteral.$true;
@@ -941,7 +941,7 @@ describe('AccessKeyed', function () {
           expect(binding.observeProperty.callCount).to.equal(1);
         });
       })
-    );
+    )
   });
 });
 
@@ -1038,7 +1038,7 @@ describe('AccessMember', function () {
 
   const expression: AccessMember = new AccessMember(new AccessScope('foo', 0), 'bar');
 
-  eachCartesianJoinFactory(inputs, (([t1, obj, isFalsey, canHaveProperty], [t2, prop, value]) => {
+  eachCartesianJoinFactory.call(this, inputs, (([t1, obj, isFalsey, canHaveProperty], [t2, prop, value]) => {
       it(`${t1}.${t2}.evaluate() -> connect -> assign`, function () {
         const scope = createScopeForTest({ foo: obj });
         const sut = new AccessMember(new AccessScope('foo', 0), prop);
@@ -2138,7 +2138,7 @@ describe('BindingBehavior', function () {
   const inputs: [typeof flagVariations, typeof kindVariations, typeof inputVariations, typeof bindVariations, typeof evaluateVariations, typeof connectVariations, typeof assignVariations, typeof $2ndEvaluateVariations, typeof unbindVariations]
     = [flagVariations, kindVariations, inputVariations, bindVariations, evaluateVariations, connectVariations, assignVariations, $2ndEvaluateVariations, unbindVariations];
 
-  eachCartesianJoinFactory(inputs, ([t1], [t2], [t3], bind, evaluate1, connect, assign, evaluate2, unbind) => {
+  eachCartesianJoinFactory.call(this, inputs, ([t1], [t2], [t3], bind, evaluate1, connect, assign, evaluate2, unbind) => {
       it(`flags=${t1}, kind=${t2}, expr=${t3} -> bind() -> evaluate() -> connect() -> assign() -> evaluate() -> unbind()`, function () {
         bind();
         evaluate1();
@@ -2500,7 +2500,7 @@ describe('ValueConverter', function () {
   const inputs: [typeof flagVariations, typeof kindVariations, typeof inputVariations, typeof evaluateVariations, typeof connectVariations, typeof assignVariations, typeof $2ndEvaluateVariations, typeof unbindVariations]
     = [flagVariations, kindVariations, inputVariations, evaluateVariations, connectVariations, assignVariations, $2ndEvaluateVariations, unbindVariations];
 
-  eachCartesianJoinFactory(inputs, ([t1], [t2], [t3], evaluate1, connect, assign, evaluate2, unbind) => {
+  eachCartesianJoinFactory.call(this, inputs, ([t1], [t2], [t3], evaluate1, connect, assign, evaluate2, unbind) => {
       it(`flags=${t1}, signalr=${t2} expr=${t3} -> evaluate() -> connect() -> assign() -> evaluate() -> unbind()`, function () {
         evaluate1();
         connect();

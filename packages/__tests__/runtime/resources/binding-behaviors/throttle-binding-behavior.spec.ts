@@ -7,7 +7,7 @@ import {
   Binding,
   LifecycleFlags,
   ThrottleBindingBehavior
-} from '../../../src/index';
+} from '@aurelia/runtime';
 
 describe('ThrottleBindingBehavior', function () {
   const container: IContainer = DI.createContainer();

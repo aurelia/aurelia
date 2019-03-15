@@ -5,6 +5,7 @@ export {
 
 export {
   Tracer,
+  stringifyLifecycleFlags,
 } from './tracer';
 
 export {

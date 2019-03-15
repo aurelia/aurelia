@@ -431,9 +431,11 @@ export function eachCartesianJoinFactory<T extends any,U>(
     }
   }
   if (errors.length > 0) {
-    // TODO: this doesn't actually log anything to the terminal and effectively suppresses any errors, find out a way to log it to the console..
-    // in the meantime, only use this by commenting out the throw by hand if the throw makes it difficult to troubleshoot an error
-    const msg = `eachCartesionJoinFactory failed to load ${errors.length} tests:\n\n${errors.map(e => e.message).join('\n')}`;
+    let desc = '';
+    if (this && this.title) {
+      desc = ` at "${this.title}"`;
+    }
+    const msg = `eachCartesionJoinFactory failed to load ${errors.length} tests${desc}:\n\n${errors.map(e => e.message).join('\n')}`;
     throw new Error(msg);
   }
 }

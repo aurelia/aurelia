@@ -7,7 +7,7 @@
     "npm": ">=6.1.0 <7.0.0"
   },
   "scripts": {
-    "test-node": "cross-env TS_NODE_PROJECT=\"./tsconfig.node.json\" mocha --opts mocha.opts setup-node.ts kernel/**/*.spec.ts",
+    "test-node": "cross-env TS_NODE_PROJECT=\"./tsconfig.node.json\" mocha --opts mocha.opts setup-node.ts kernel/**/*.spec.ts jit/**/*.spec.ts",
     "test-node:watch": "npm run test-node -- --watch --watch-extensions ts",
     "lint:src": "tslint --project tsconfig.json -t stylish",
     "lint:test": "tslint --project tsconfig-test.json --config ../tslint-test.json -e \"src/**/*.ts\" -t stylish",

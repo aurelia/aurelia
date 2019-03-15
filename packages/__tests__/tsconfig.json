@@ -6,7 +6,6 @@
     "module": "esnext",
     "moduleResolution": "node",
     "experimentalDecorators": true,
-    "emitDecoratorMetadata": true,
     "rootDir": ".",
     "baseUrl": ".",
 

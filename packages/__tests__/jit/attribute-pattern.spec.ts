@@ -5,7 +5,7 @@ import {
   AttributePatternDefinition,
   IAttributePattern,
   ISyntaxInterpreter
-} from '../src/index';
+} from '@aurelia/jit';
 
 describe('@attributePattern', function () {
   for (const [defs, tests] of [

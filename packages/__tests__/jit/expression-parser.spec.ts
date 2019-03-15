@@ -27,17 +27,19 @@ import {
   ValueConverter
 } from '@aurelia/runtime';
 import { expect } from 'chai';
-import { Access, Precedence } from '../src/common';
-import { parse, ParserState } from '../src/expression-parser';
 import {
-  parseExpression
-} from '../src/index';
+  Access,
+  Precedence,
+  parseExpression,
+  parse,
+  ParserState
+} from '@aurelia/jit';
 import {
   latin1IdentifierPartChars,
   latin1IdentifierStartChars,
   otherBMPIdentifierPartChars
 } from './unicode';
-import { verifyASTEqual } from './util';
+import { verifyASTEqual } from '../util';
 
 const binaryMultiplicative: BinaryOperator[] = ['*', '%', '/'];
 const binaryAdditive: BinaryOperator[] = ['+', '-'];

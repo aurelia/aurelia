@@ -60,7 +60,15 @@ export {
 
   BasicConfiguration
 } from './configuration';
-export { parseExpression } from './expression-parser';
+export {
+  Access,
+  Precedence,
+} from './common';
+export {
+  parseExpression,
+  parse,
+  ParserState,
+} from './expression-parser';
 export {
   ResourceModel,
   BindableInfo,

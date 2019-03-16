@@ -29,10 +29,6 @@
   "include": ["."],
   "exclude": [
     "router",
-    "runtime-html-browser",
-    "runtime-html-jsdom",
-    "jit-html-browser",
-    "jit-html-jsdom",
     "fetch-client",
     "dist"
   ]

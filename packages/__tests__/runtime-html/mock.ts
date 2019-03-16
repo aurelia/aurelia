@@ -40,10 +40,7 @@ import {
   TemplatePartDefinitions
 } from '@aurelia/runtime';
 import { spy } from 'sinon';
-import { Lifecycle } from '../../runtime/src/lifecycle';
-import { ObserverLocator } from '../../runtime/src/observation/observer-locator';
-import { RuntimeBehavior } from '../../runtime/src/rendering-engine';
-import { ViewFactory } from '../../runtime/src/templating/view';
+import { ObserverLocator, RuntimeBehavior, ViewFactory } from '@aurelia/runtime';
 import { HTMLTestContext } from './util';
 
 export class MockContext {
@@ -452,7 +449,7 @@ export function defineComponentLifecycleMock() {
         this.fail(`expected no further calls, but found additional calls: ${callChain}`);
       }
     }
-    private fail(message: string) {
+    public fail(message: string) {
       throw new Error(`ComponentLifecycleMock: ${message}`);
     }
   };

@@ -31,7 +31,8 @@ export {
   IEventSubscriber,
   IEventTargetWithLookups,
   EventSubscriber,
-  EventSubscription
+  EventSubscription,
+  EventManager
 } from './observation/event-manager';
 export {
   TargetAccessorLocator,
@@ -116,7 +117,8 @@ export {
   NodeType,
   HTMLDOM,
   DOM,
-  NodeSequenceFactory
+  NodeSequenceFactory,
+  FragmentNodeSequence
 } from './dom';
 export {
   AttributeBindingInstruction,
@@ -127,3 +129,9 @@ export {
   TextBindingInstruction,
   TriggerBindingInstruction
 } from './instructions';
+export {
+  ContainerlessProjector,
+  HostProjector,
+  HTMLProjectorLocator,
+  ShadowDOMProjector
+} from './projectors';

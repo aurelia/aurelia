@@ -19,7 +19,7 @@ import {
   SelectValueObserver,
   StyleAttributeAccessor,
   ValueAttributeObserver
-} from '../../src/index';
+} from '@aurelia/runtime-html';
 import { _, TestContext } from '../util';
 
 describe('ObserverLocator', function () {

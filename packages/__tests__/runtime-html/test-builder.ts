@@ -23,9 +23,9 @@ import {
   ToViewBindingInstruction
 
 } from '@aurelia/runtime';
-import { BasicConfiguration } from '../../jit-html/src/index';
-import { parseExpression } from '../../jit/src/index';
-import { HTMLTargetedInstruction, TextBindingInstruction } from '../src/index';
+import { BasicConfiguration } from '@aurelia/jit-html';
+import { parseExpression } from '@aurelia/jit';
+import { HTMLTargetedInstruction, TextBindingInstruction } from '@aurelia/runtime-html';
 
 export type TemplateCb = (builder: TemplateBuilder) => TemplateBuilder;
 export type InstructionCb = (builder: InstructionBuilder) => InstructionBuilder;
@@ -346,7 +346,7 @@ export class TestBuilder<T extends Constructable> {
     const { container, Type } = this;
     const host = document.createElement('div');
     const component = new Type();
-    return new TestContext(container, host, component);
+    return new TestContext(container, host, component as any);
   }
 }
 

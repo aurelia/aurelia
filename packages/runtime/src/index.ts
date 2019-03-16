@@ -156,7 +156,8 @@ export {
   IObserverLocator,
   ITargetObserverLocator,
   ITargetAccessorLocator,
-  getCollectionObserver
+  getCollectionObserver,
+  ObserverLocator
 } from './observation/observer-locator';
 export {
   PrimitiveObserver

@@ -7,8 +7,8 @@ import {
   IManagedEvent,
   ListenerTracker,
   TriggerSubscription
-} from '../../src/index';
-import { EventManager } from '../../src/observation/event-manager';
+} from '@aurelia/runtime-html';
+import { EventManager } from '@aurelia/runtime-html';
 import { _, TestContext } from '../util';
 
 const CAPTURING_PHASE = 1;

@@ -12,7 +12,7 @@ import {
   LifecycleFlags,
   State
 } from '@aurelia/runtime';
-import { NodeSequenceFactory } from '../../src/dom';
+import { NodeSequenceFactory } from '@aurelia/runtime-html';
 import { HTMLTestContext } from '../util';
 
 export class FakeView implements IView {

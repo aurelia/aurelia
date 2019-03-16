@@ -11,7 +11,7 @@ import {
   createElement as sut,
   HTMLTargetedInstructionType,
   RenderPlan
-} from '../src/index';
+} from '@aurelia/runtime-html';
 import {
   _,
   eachCartesianJoin,

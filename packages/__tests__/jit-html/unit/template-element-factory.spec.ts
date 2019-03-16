@@ -10,7 +10,7 @@ describe('HTMLTemplateElementFactory', function () {
   beforeEach(function () {
     ctx = TestContext.createHTMLTestContext();
     ctx.container.register(ITemplateElementFactoryRegistration);
-    sut = ctx.container.get(ITemplateElementFactory);
+    sut = ctx.container.get(ITemplateElementFactory) as ITemplateElementFactory<HTMLElement>;
   });
 
   it('template-wrapped markup string', function () {

@@ -1,7 +1,7 @@
 import { DI, IContainer } from '@aurelia/kernel';
 import { Binding } from '@aurelia/runtime';
 import { expect } from 'chai';
-import { SelfBindingBehavior } from '../../../src/index';
+import { SelfBindingBehavior } from '@aurelia/runtime-html';
 
 describe('SelfBindingBehavior', function () {
   const container: IContainer = DI.createContainer();

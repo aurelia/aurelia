@@ -1,10 +1,7 @@
---require source-map-support/register
 --require esm
 --ui bdd
 --colors
 --reporter progress
---full-trace
---check-leaks
 --recursive
 --timeout 5000
 

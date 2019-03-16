@@ -1,7 +1,7 @@
 import { LifecycleFlags as LF } from '@aurelia/runtime';
 import { expect } from 'chai';
 import { spy } from 'sinon';
-import { SelectValueObserver } from '../../src/index';
+import { SelectValueObserver } from '@aurelia/runtime-html';
 import { _, h, HTMLTestContext, TestContext, verifyEqual } from '../util';
 
 type Anything = any;

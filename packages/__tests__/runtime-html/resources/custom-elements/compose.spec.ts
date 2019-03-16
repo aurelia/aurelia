@@ -1,6 +1,6 @@
-import { CustomElementResource, IComponent, ITemplateDefinition, IViewFactory, LifecycleFlags } from '@aurelia/runtime';
+import { CustomElementResource, IComponent, ITemplateDefinition, IViewFactory, LifecycleFlags, ICustomElementType, ICustomElement } from '@aurelia/runtime';
 import { expect } from 'chai';
-import { Compose, RenderPlan } from '../../../src/index';
+import { Compose, RenderPlan } from '@aurelia/runtime-html';
 import { FakeViewFactory } from '../../_doubles/fake-view-factory';
 import { hydrateCustomElement } from '../../behavior-assistance';
 import { HTMLTestContext, TestContext } from '../../util';
@@ -50,7 +50,7 @@ describe('The "compose" custom element', function () {
     for (const producerPossibility of producerPossibilities) {
       it(`can compose a ${subjectPossibility.description} ${producerPossibility.description}`, done => {
         const ctx = TestContext.createHTMLTestContext();
-        const { element } = hydrateCustomElement(Compose, ctx);
+        const element = hydrateCustomElement(Compose as any, ctx).element as Compose<Node>;
         const value = producerPossibility.create(subjectPossibility.create(ctx));
 
         waitForCompositionEnd(
@@ -68,7 +68,7 @@ describe('The "compose" custom element', function () {
 
       it(`enforces the attach lifecycle of its composed ${subjectPossibility.description} ${producerPossibility.description}`, done => {
         const ctx = TestContext.createHTMLTestContext();
-        const { element } = hydrateCustomElement(Compose, ctx);
+        const element = hydrateCustomElement(Compose as any, ctx).element as Compose<Node>;
         const value = producerPossibility.create(subjectPossibility.create(ctx));
 
         waitForCompositionEnd(
@@ -90,7 +90,7 @@ describe('The "compose" custom element', function () {
 
       it(`adds a view at the render location when attaching a ${subjectPossibility.description} ${producerPossibility.description}`, done => {
         const ctx = TestContext.createHTMLTestContext();
-        const { element } = hydrateCustomElement(Compose, ctx);
+        const element = hydrateCustomElement(Compose as any, ctx).element as Compose<Node>;
         const value = producerPossibility.create(subjectPossibility.create(ctx));
 
         waitForCompositionEnd(
@@ -111,7 +111,7 @@ describe('The "compose" custom element', function () {
 
       it(`enforces the bind lifecycle of its composed ${subjectPossibility.description} ${producerPossibility.description}`, done => {
         const ctx = TestContext.createHTMLTestContext();
-        const { element } = hydrateCustomElement(Compose, ctx);
+        const element = hydrateCustomElement(Compose as any, ctx).element as Compose<Node>;
         const value = producerPossibility.create(subjectPossibility.create(ctx));
 
         waitForCompositionEnd(
@@ -134,7 +134,7 @@ describe('The "compose" custom element', function () {
 
       it(`enforces the detach lifecycle of its composed ${subjectPossibility.description} ${producerPossibility.description}`, done => {
         const ctx = TestContext.createHTMLTestContext();
-        const { element } = hydrateCustomElement(Compose, ctx);
+        const element = hydrateCustomElement(Compose as any, ctx).element as Compose<Node>;
         const value = producerPossibility.create(subjectPossibility.create(ctx));
 
         waitForCompositionEnd(
@@ -157,7 +157,7 @@ describe('The "compose" custom element', function () {
 
       it(`enforces the unbind lifecycle of its composed ${subjectPossibility.description} ${producerPossibility.description}`, done => {
         const ctx = TestContext.createHTMLTestContext();
-        const { element } = hydrateCustomElement(Compose, ctx);
+        const element = hydrateCustomElement(Compose as any, ctx).element as Compose<Node>;
         const value = producerPossibility.create(subjectPossibility.create(ctx));
 
         waitForCompositionEnd(
@@ -183,7 +183,7 @@ describe('The "compose" custom element', function () {
   for (const producer of producerPossibilities) {
     it(`can swap between views ${producer.description}`, done => {
       const ctx = TestContext.createHTMLTestContext();
-      const { element } = hydrateCustomElement(Compose, ctx);
+      const element = hydrateCustomElement(Compose as any, ctx).element as Compose<Node>;
       const view1 = createViewFactory(ctx).create();
       const view2 = createViewFactory(ctx).create();
 
@@ -221,7 +221,7 @@ describe('The "compose" custom element', function () {
     for (const producer of producerPossibilities) {
       it(`clears out the view when the subject is ${value} ${producer.description}`, done => {
         const ctx = TestContext.createHTMLTestContext();
-        const { element } = hydrateCustomElement(Compose, ctx);
+        const element = hydrateCustomElement(Compose as any, ctx).element as Compose<Node>;
 
         const view1 = createViewFactory(ctx).create();
         const location = element.$projector.host;
@@ -257,7 +257,7 @@ describe('The "compose" custom element', function () {
                 throw new Error(`[ASSERTION ERROR]: expected location.previousSibling (with textContent "${
                   location.previousSibling && location.previousSibling.textContent || 'NULL'
                 }") to equal location.$start (with textContent "${
-                  location.$start && location.$start.textContent || 'NULL'
+                  location.$start && (location.$start as Text).textContent || 'NULL'
                 }")`);
               }
             },
@@ -267,7 +267,7 @@ describe('The "compose" custom element', function () {
           element.subject = producer.create(value);
         });
 
-        element.subject = view1;
+        element.subject = view1 as any;
       });
     }
   }

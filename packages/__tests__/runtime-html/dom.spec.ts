@@ -1,7 +1,7 @@
 import { INode, NodeSequence } from '@aurelia/runtime';
 import { expect } from 'chai';
 import { spy } from 'sinon';
-import { FragmentNodeSequence, NodeSequenceFactory } from '../src/dom';
+import { FragmentNodeSequence, NodeSequenceFactory } from '@aurelia/runtime-html';
 import { HTMLTestContext, TestContext } from './util';
 
 function wrap(inner: string, tag: string): string {

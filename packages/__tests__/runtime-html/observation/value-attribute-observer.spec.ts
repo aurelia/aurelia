@@ -1,7 +1,7 @@
 import { IPropertySubscriber, LifecycleFlags as LF } from '@aurelia/runtime';
 import { expect } from 'chai';
 import { SinonSpy, spy } from 'sinon';
-import { ValueAttributeObserver } from '../../src/index';
+import { ValueAttributeObserver } from '@aurelia/runtime-html';
 import { _, TestContext } from '../util';
 
 describe('ValueAttributeObserver', function () {

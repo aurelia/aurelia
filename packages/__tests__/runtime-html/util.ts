@@ -28,12 +28,12 @@ import {
   padRight,
   stringify,
   verifyEqual
-} from '../../../scripts/test-lib';
-import { h } from '../../../scripts/test-lib-dom';
+} from '../test-lib';
+import { h } from '../test-lib-dom';
 import {
   BasicConfiguration,
   HTMLDOM
-} from '../src/index';
+} from '@aurelia/runtime-html';
 
 /**
  * Object describing a test fixture

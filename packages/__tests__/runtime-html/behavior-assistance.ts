@@ -10,7 +10,7 @@ import {
   LifecycleFlags as LF,
   TargetedInstructionType
 } from '@aurelia/runtime';
-import { InstanceProvider } from '../../runtime/src/rendering-engine';
+import { InstanceProvider } from '@aurelia/kernel';
 import { FakeView } from './_doubles/fake-view';
 import { HTMLTestContext } from './util';
 

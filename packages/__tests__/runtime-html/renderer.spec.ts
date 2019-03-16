@@ -13,7 +13,7 @@ import {
 } from '@aurelia/runtime';
 import { expect } from 'chai';
 import { spy } from 'sinon';
-import { IExpressionParserRegistration } from '../../jit/src/index';
+import { IExpressionParserRegistration } from '@aurelia/jit';
 import {
   CaptureBindingInstruction,
   DelegateBindingInstruction,
@@ -23,7 +23,7 @@ import {
   StylePropertyBindingInstruction,
   TextBindingInstruction,
   TriggerBindingInstruction
-} from '../src/index';
+} from '@aurelia/runtime-html';
 import { _, TestContext } from './util';
 
 describe('Renderer', function () {

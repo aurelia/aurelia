@@ -6,7 +6,7 @@ import {
 } from '@aurelia/runtime';
 import { expect } from 'chai';
 import { spy } from 'sinon';
-import { CheckedObserver, IInputElement } from '../../src/index';
+import { CheckedObserver, IInputElement } from '@aurelia/runtime-html';
 import { _, TestContext } from '../util';
 
 type ObservedInputElement = HTMLInputElement & {

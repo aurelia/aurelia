@@ -1,7 +1,7 @@
 import { IContainer } from '@aurelia/kernel';
 import { Binding } from '@aurelia/runtime';
 import { expect } from 'chai';
-import { AttrBindingBehavior, DataAttributeAccessor } from '../../../src/index';
+import { AttrBindingBehavior, DataAttributeAccessor } from '@aurelia/runtime-html';
 import { TestContext } from '../../util';
 
 describe('AttrBindingBehavior', function () {

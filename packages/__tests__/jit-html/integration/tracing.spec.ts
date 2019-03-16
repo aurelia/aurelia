@@ -1,7 +1,7 @@
 import { Tracer } from '@aurelia/kernel';
 import { Aurelia, CustomElementResource } from '@aurelia/runtime';
 import { expect } from 'chai';
-import { stringifyTemplateDefinition } from '@aurelia/debug';
+import { stringifyTemplateDefinition } from '@aurelia/jit-html';
 import { disableTracing, enableTracing } from '../unit/util';
 import { getVisibleText, TestContext } from '../util';
 

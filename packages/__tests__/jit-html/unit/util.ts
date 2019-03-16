@@ -26,11 +26,11 @@ import {
   padRight,
   stringify,
   verifyEqual
-} from '../../../../scripts/test-lib';
+} from '../../test-lib';
 import {
   stringifyLifecycleFlags,
   Tracer as DebugTracer
-} from '../../../debug/src/tracer';
+} from '@aurelia/debug';
 
 export const SymbolTraceWriter = {
   write(info: ITraceInfo): void {

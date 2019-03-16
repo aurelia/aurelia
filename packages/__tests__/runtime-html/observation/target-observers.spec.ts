@@ -7,7 +7,7 @@ import {
   ClassAttributeAccessor,
   DataAttributeAccessor,
   StyleAttributeAccessor
-} from '../../../runtime-html/src';
+} from '@aurelia/runtime-html';
 import { CSS_PROPERTIES } from '../css-properties';
 import { globalAttributeNames, HTMLTestContext, TestContext } from '../util';
 

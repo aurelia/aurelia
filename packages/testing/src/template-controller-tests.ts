@@ -20,7 +20,7 @@ import {
   LifecycleFlags as LF
 } from '@aurelia/runtime';
 import { expect } from 'chai';
-import { AuNode, AuDOMConfiguration } from './au-dom';
+import { AuNode, AuDOMConfiguration, AuNodeSequence, AuDOM } from './au-dom';
 import { FakeView, FakeViewFactory } from './fakes';
 import { createScopeForTest } from './test-builder';
 
@@ -141,12 +141,17 @@ export function hydrateCustomAttribute<T extends ICustomAttributeType>(
   if (AttributeType.description.isTemplateController) {
     const loc = AuNode.createRenderLocation();
     AuNode.createHost().appendChild(loc.$start!).appendChild(loc);
+    const createView: (factory: FakeViewFactory) => IView = factory => {
+      const view = new FakeView(lifecycle, factory);
+      view.$nodes = new AuNodeSequence(new AuDOM(), AuNode.createTemplate().appendChild(AuNode.createText()));
+      return view;
+    };
     container.register(
       Registration.instance(
         IRenderLocation,
         location = ((options.target as typeof loc) || loc) as any
       ),
-      Registration.singleton(IViewFactory, FakeViewFactory)
+      Registration.instance(IViewFactory, new FakeViewFactory('fake-view', createView, lifecycle))
     );
   } else {
     const hostProvider = new InstanceProvider();

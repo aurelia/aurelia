@@ -36,7 +36,8 @@
     "@aurelia/runtime-html": "0.3.0",
     "@aurelia/runtime": "0.3.0",
     "@aurelia/store": "0.3.0",
-    "@aurelia/validation": "0.3.0"
+    "@aurelia/validation": "0.3.0",
+    "@aurelia/testing": "0.3.0"
   },
   "devDependencies": {
     "@types/chai": "^4.1.7",

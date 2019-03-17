@@ -1,6 +1,6 @@
 import { expect } from 'chai';
 import { CustomElementResource, LifecycleFlags } from '@aurelia/runtime';
-import { AuDOMTest as AU } from './au-dom';
+import { AuDOMTest as AU } from '@aurelia/testing';
 
 describe('AuDOM', function () {
   it('works', function () {

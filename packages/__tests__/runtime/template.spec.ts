@@ -20,7 +20,7 @@ import {
   AuDOMConfiguration,
   AuNode,
   AuNodeSequenceFactory
-} from './au-dom';
+} from '@aurelia/testing';
 
 describe('createRenderContext', function () {
   it('properly initializes a renderContext', function () {

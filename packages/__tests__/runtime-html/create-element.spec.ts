@@ -18,7 +18,7 @@ import {
   eachCartesianJoinFactory,
   HTMLTestContext,
   TestContext
-} from './util';
+} from '@aurelia/testing';
 
 describe(`createElement() creates element based on tag`, function () {
   eachCartesianJoin([['div', 'template']], (tag: string) => {

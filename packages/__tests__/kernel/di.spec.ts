@@ -15,7 +15,7 @@ import {
   singleton,
   transient
 } from '@aurelia/kernel';
-import { _ } from '../util';
+import { _ } from '@aurelia/testing';
 
 function assertIsMutableArray(arr: any[], length: number): void {
   expect(Array.isArray(arr)).to.equal(true);

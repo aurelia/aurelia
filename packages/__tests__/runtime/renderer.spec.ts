@@ -26,8 +26,7 @@ import {
   ToViewBindingInstruction,
   TwoWayBindingInstruction
 } from '@aurelia/runtime';
-import { AuDOMConfiguration, AuNode } from './au-dom';
-import { _ } from '../util';
+import { AuDOMConfiguration, AuNode, _ } from '@aurelia/testing';
 
 describe('Renderer', function () {
   function setup() {

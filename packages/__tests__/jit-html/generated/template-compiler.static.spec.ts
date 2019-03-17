@@ -2,7 +2,7 @@
 import { Profiler } from "@aurelia/kernel";
 import { Aurelia, CustomElementResource } from "@aurelia/runtime";
 import { expect } from "chai";
-import { getVisibleText, TestContext, writeProfilerReport } from "../util";
+import { getVisibleText, TestContext, writeProfilerReport } from "@aurelia/testing";
 
 describe("generated.template-compiler.static", function () {
     before(function () {

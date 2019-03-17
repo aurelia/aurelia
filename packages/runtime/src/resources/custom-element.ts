@@ -99,6 +99,7 @@ export interface ICustomElementResource<T extends INode = INode> extends
 export function registerElement(this: ICustomElementType, container: IContainer): void {
   const resourceKey = this.kind.keyFrom(this.description.name);
   container.register(Registration.transient(resourceKey, this));
+  container.register(Registration.transient(this, this));
 }
 
 /**

@@ -2,7 +2,7 @@ import { INode, NodeSequence } from '@aurelia/runtime';
 import { expect } from 'chai';
 import { spy } from 'sinon';
 import { FragmentNodeSequence, NodeSequenceFactory } from '@aurelia/runtime-html';
-import { HTMLTestContext, TestContext } from './util';
+import { HTMLTestContext, TestContext } from '@aurelia/testing';
 
 function wrap(inner: string, tag: string): string {
   if (tag.length === 0) {

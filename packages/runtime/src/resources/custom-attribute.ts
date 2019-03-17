@@ -64,6 +64,7 @@ export function registerAttribute(this: ICustomAttributeType, container: IContai
   const aliases = description.aliases;
 
   container.register(Registration.transient(resourceKey, this));
+  container.register(Registration.transient(this, this));
 
   for (let i = 0, ii = aliases.length; i < ii; ++i) {
     const aliasKey = this.kind.keyFrom(aliases[i]);

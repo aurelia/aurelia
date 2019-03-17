@@ -1,7 +1,7 @@
 import { expect } from 'chai';
 import { spy } from 'sinon';
 import { Aurelia, State } from '@aurelia/runtime';
-import { AuDOMConfiguration } from './au-dom';
+import { AuDOMConfiguration } from '@aurelia/testing';
 
 describe('Aurelia', function () {
   let sut: Aurelia;

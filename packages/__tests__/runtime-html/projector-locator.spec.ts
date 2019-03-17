@@ -1,7 +1,7 @@
 import { CustomElementResource, ICustomElementType } from '@aurelia/runtime';
 import { expect } from 'chai';
 import { ContainerlessProjector, HostProjector, HTMLProjectorLocator, ShadowDOMProjector } from '@aurelia/runtime-html';
-import { TestContext } from './util';
+import { TestContext } from '@aurelia/testing';
 
 describe(`determineProjector`, function () {
   const ctx = TestContext.createHTMLTestContext();

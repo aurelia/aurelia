@@ -39,7 +39,7 @@ import {
   latin1IdentifierStartChars,
   otherBMPIdentifierPartChars
 } from './unicode';
-import { verifyASTEqual } from '../util';
+import { verifyASTEqual } from '@aurelia/testing';
 
 const binaryMultiplicative: BinaryOperator[] = ['*', '%', '/'];
 const binaryAdditive: BinaryOperator[] = ['+', '-'];

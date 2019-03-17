@@ -17,7 +17,7 @@
     "jsxFactory": "hJsx",
 
     "types": [
-      "./asserts",
+      "@aurelia/testing/src/asserts",
       "node",
       "mocha",
       "chai",

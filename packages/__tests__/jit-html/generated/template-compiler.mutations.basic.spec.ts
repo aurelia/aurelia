@@ -1,7 +1,7 @@
 // tslint:disable:quotemark member-access no-all-duplicated-branches
 import { Aurelia, CustomElementResource, INode } from "@aurelia/runtime";
 import { expect } from "chai";
-import { TestContext } from "../util";
+import { TestContext } from "@aurelia/testing";
 
 describe("generated.template-compiler.mutations.basic", function () {
     function setup() {

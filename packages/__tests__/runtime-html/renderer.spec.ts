@@ -24,7 +24,7 @@ import {
   TextBindingInstruction,
   TriggerBindingInstruction
 } from '@aurelia/runtime-html';
-import { _, TestContext } from './util';
+import { _, TestContext } from '@aurelia/testing';
 
 describe('Renderer', function () {
   function setup() {

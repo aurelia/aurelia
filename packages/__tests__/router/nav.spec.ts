@@ -3,8 +3,7 @@ import { DebugConfiguration } from '@aurelia/debug';
 import { BasicConfiguration } from '@aurelia/jit-html-browser';
 import { Aurelia, CustomElementResource, IDOM } from '@aurelia/runtime';
 import { NavCustomElement, Router, ViewportCustomElement } from '@aurelia/router';
-import { MockBrowserHistoryLocation } from '../mock/browser-history-location.mock';
-import { registerComponent } from './utils';
+import { MockBrowserHistoryLocation } from '@aurelia/testing';
 
 describe('Nav', function () {
   it('generates nav with a link', async function () {
@@ -65,7 +64,7 @@ const setup = async (component): Promise<{ au; container; host; router }> => {
 
   container.register(Router as any);
   container.register(ViewportCustomElement as any, NavCustomElement as any);
-  registerComponent(container, Foo, Bar, Baz, Qux);
+  container.register(Foo, Bar, Baz, Qux);
 
   const router = container.get(Router);
   const mockBrowserHistoryLocation = new MockBrowserHistoryLocation();

@@ -3,7 +3,6 @@ import { expect } from 'chai';
 import { BasicConfiguration } from '@aurelia/jit-html-browser';
 import { CustomElementResource } from '@aurelia/runtime';
 import { Router, ViewportContent } from '@aurelia/router';
-import { registerComponent } from './utils';
 
 const define = (CustomElementResource as any).define;
 
@@ -26,7 +25,7 @@ describe('ViewportContent', function () {
       const Global = define({ name: 'global', template: 'global' }, null);
       const { container, router } = await $setup([Local]);
 
-      registerComponent(container, Global);
+      container.register(Global);
       const viewport = new ViewportContent('global', null, null, router.container as unknown as IRenderContext);
       expect(viewport.componentName()).to.equal('global');
     });
@@ -35,7 +34,7 @@ describe('ViewportContent', function () {
       const Global = define({ name: 'global', template: 'global' }, null);
       const { container, router } = await $setup([Local]);
 
-      registerComponent(container, Global);
+      container.register(Global);
       const viewport = new ViewportContent('global', null, null, router.container as unknown as IRenderContext);
       expect(viewport.componentName()).to.equal('global');
     });
@@ -45,7 +44,7 @@ describe('ViewportContent', function () {
       const Global = define({ name: 'global', template: 'global' }, null);
       const { container, router } = await $setup([Local]);
 
-      registerComponent(container, Global);
+      container.register(Global);
       const viewport = new ViewportContent('global', null, null, router.container as unknown as IRenderContext);
       expect(viewport.componentType(router.container as unknown as IRenderContext)).to.equal(Global);
     });
@@ -54,7 +53,7 @@ describe('ViewportContent', function () {
       const Global = define({ name: 'global', template: 'global' }, null);
       const { container, router } = await $setup([Local]);
 
-      registerComponent(container, Global);
+      container.register(Global);
       const viewport = new ViewportContent(Global, null, null, router.container as unknown as IRenderContext);
       expect(viewport.componentType(router.container as unknown as IRenderContext)).to.equal(Global);
     });
@@ -64,7 +63,7 @@ describe('ViewportContent', function () {
       const Global = define({ name: 'global', template: 'global' }, null);
       const { container, router } = await $setup([Local]);
 
-      registerComponent(container, Global);
+      container.register(Global);
       const viewport = new ViewportContent('global', null, null, router.container as unknown as IRenderContext);
       const component = viewport.componentInstance(router.container as unknown as IRenderContext);
       expect(component.constructor).to.equal(Global);
@@ -74,7 +73,7 @@ describe('ViewportContent', function () {
       const Global = define({ name: 'global', template: 'global' }, null);
       const { container, router } = await $setup([Local]);
 
-      registerComponent(container, Global);
+      container.register(Global);
       // Registration.alias(CustomElementResource.keyFrom('global'), Global).register(container);
 
       const viewport = new ViewportContent(Global, null, null, router.container as unknown as IRenderContext);

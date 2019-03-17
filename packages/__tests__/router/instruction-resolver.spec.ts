@@ -3,7 +3,7 @@ import { DebugConfiguration } from '@aurelia/debug';
 import { BasicConfiguration } from '@aurelia/jit-html-browser';
 import { Aurelia, CustomElementResource } from '@aurelia/runtime';
 import { Router, ViewportCustomElement, ViewportInstruction } from '@aurelia/router';
-import { MockBrowserHistoryLocation } from '../mock/browser-history-location.mock';
+import { MockBrowserHistoryLocation } from '@aurelia/testing';
 
 describe('InstructionResolver', function () {
   this.timeout(30000);

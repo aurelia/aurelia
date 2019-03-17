@@ -3,8 +3,7 @@ import { DebugConfiguration } from '@aurelia/debug';
 import { BasicConfiguration } from '@aurelia/jit-html-browser';
 import { Aurelia, CustomElementResource } from '@aurelia/runtime';
 import { Router, ViewportCustomElement } from '@aurelia/router';
-import { MockBrowserHistoryLocation } from '../mock/browser-history-location.mock';
-import { registerComponent } from './utils';
+import { MockBrowserHistoryLocation } from '@aurelia/testing';
 
 const define = (CustomElementResource as any).define;
 
@@ -522,7 +521,8 @@ describe('Router', function () {
 
     async function $setup(dependencies: any[] = []) {
       const container = BasicConfiguration.createContainer();
-      registerComponent(container, ViewportCustomElement as any);
+
+      container.register(ViewportCustomElement);
       const App = define({ name: 'app', template: '<au-viewport></au-viewport>', dependencies }, null);
 
       const host = document.createElement('div');
@@ -561,7 +561,7 @@ describe('Router', function () {
       const Global = define({ name: 'global', template: 'global' }, null);
       const { container, host, router } = await $setup([Local]);
 
-      registerComponent(container, Global);
+      container.register(Global);
 
       await $goto(router, 'global');
 
@@ -598,7 +598,7 @@ describe('Router', function () {
       const Local2 = define({ name: 'local2', template: 'local2<au-viewport name="two" used-by="global3"></au-viewport>' }, null);
       const Local1 = define({ name: 'local1', template: 'local1<au-viewport name="one" used-by="local2"></au-viewport>', dependencies: [Local2] }, null);
       const { host, router, container } = await $setup([Local1]);
-      registerComponent(container, Global3);
+      container.register(Global3);
 
       await $goto(router, 'local1+local2+global3');
 
@@ -612,7 +612,7 @@ describe('Router', function () {
       const Global2 = define({ name: 'global2', template: 'global2<au-viewport name="two" used-by="local3"></au-viewport>', dependencies: [Local3] }, null);
       const Local1 = define({ name: 'local1', template: 'local1<au-viewport name="one" used-by="global2"></au-viewport>' }, null);
       const { host, router, container } = await $setup([Local1]);
-      registerComponent(container, Global2);
+      container.register(Global2);
 
       await $goto(router, 'local1+global2+local3');
 
@@ -626,7 +626,7 @@ describe('Router', function () {
       const Local2 = define({ name: 'local2', template: 'local2<au-viewport name="two" used-by="local3"></au-viewport>', dependencies: [Local3] }, null);
       const Global1 = define({ name: 'global1', template: 'global1<au-viewport name="one" used-by="local2"></au-viewport>', dependencies: [Local2] }, null);
       const { host, router, container } = await $setup();
-      registerComponent(container, Global1);
+      container.register(Global1);
 
       await $goto(router, 'global1+local2+local3');
 
@@ -672,7 +672,7 @@ describe('Router', function () {
       const Conflict2 = define({ name: 'conflict', template: 'conflict2' }, null);
       const Global2 = define({ name: 'global2', template: 'global2<au-viewport name="two"></au-viewport>', dependencies: [Conflict2] }, null);
       const { host, router, container } = await $setup();
-      registerComponent(container, Global1, Global2);
+      container.register(Global1, Global2);
 
       await $goto(router, 'global1@default+conflict@one');
 
@@ -691,7 +691,7 @@ describe('Router', function () {
       const Conflict2 = define({ name: 'conflict', template: 'conflict2' }, null);
       const Global2 = define({ name: 'global2', template: 'global2<au-viewport name="two"></au-viewport>', dependencies: [Conflict2] }, null);
       const { host, router, container } = await $setup([Local1]);
-      registerComponent(container, Global2);
+      container.register(Global2);
 
       await $goto(router, 'local1@default+conflict@one');
 
@@ -760,7 +760,7 @@ describe('Router', function () {
           const Conflict2 = define({ name: 'conflict', template: 'conflict2<au-viewport></au-viewport>' }, null);
           const Local2 = define({ name: 'local2', template: 'local2<au-viewport name="two"></au-viewport>', dependencies: [Conflict2] }, null);
           const { host, router, container } = await $setup([Local2]);
-          registerComponent(container, Global1);
+          container.register(Global1);
 
           await $goto(router, path);
 
@@ -840,7 +840,7 @@ const setup = async (): Promise<{ au; container; host; router }> => {
 
   container.register(Router as any);
   container.register(ViewportCustomElement as any);
-  registerComponent(container, Foo, Bar, Baz, Qux, Quux, Corge, Uier, Grault, Garply, Waldo);
+  container.register(Foo, Bar, Baz, Qux, Quux, Corge, Uier, Grault, Garply, Waldo);
 
   const router = container.get(Router);
   const mockBrowserHistoryLocation = new MockBrowserHistoryLocation();

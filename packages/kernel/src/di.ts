@@ -55,12 +55,12 @@ export interface IRegistry {
 }
 
 export interface IContainer extends IServiceLocator {
-  register(...params: IRegistry[]): IContainer;
-  register(...params: Record<string, Partial<IRegistry>>[]): IContainer;
-  register(...params: (IRegistry | Record<string, Partial<IRegistry>>)[]): IContainer;
-  register(registry: Record<string, Partial<IRegistry>>): IContainer;
-  register(registry: IRegistry): IContainer;
-  register(registry: IRegistry | Record<string, Partial<IRegistry>>): IContainer;
+  register(...params: object[]): IContainer;
+  register(...params: Record<string, object>[]): IContainer;
+  register(...params: (object | Record<string, object>)[]): IContainer;
+  register(registry: Record<string, object>): IContainer;
+  register(registry: object): IContainer;
+  register(registry: object | Record<string, object>): IContainer;
 
   registerResolver<T>(key: Key<T>, resolver: IResolver<T>): IResolver<T>;
   registerResolver<T extends Constructable>(key: T, resolver: IResolver<InstanceType<T>>): IResolver<InstanceType<T>>;

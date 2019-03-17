@@ -37,8 +37,6 @@ export {
 } from './h';
 export {
   HTMLTestContext,
-  initializeBrowserTestContext,
-  initializeJSDOMTestContext,
   TestContext,
 } from './html-test-context';
 export {

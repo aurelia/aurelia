@@ -316,16 +316,17 @@ workflows:
   # Triggered by push to master or topic branches
   build_test:
     jobs:
-      # - unit_test:
-      #     <<: *filter_ignore_develop_release
-      #     name: unit_test_chrome
-      #     e: docker-aurelia
-      # - unit_test:
-      #     <<: *filter_ignore_develop_release
-      #     name: unit_test_firefox
-      #     e: docker-aurelia
-      #     npm_command: "test-firefox"
-      #     coverage: false
+      - unit_test:
+          <<: *filter_ignore_develop_release
+          name: unit_test_chrome
+          e: docker-circleci
+          npm_command: "test-chrome"
+      - unit_test:
+          <<: *filter_ignore_develop_release
+          name: unit_test_firefox
+          e: docker-circleci
+          npm_command: "test-firefox"
+          coverage: false
       - unit_test:
           <<: *filter_ignore_develop_release
           name: unit_test_node
@@ -371,8 +372,8 @@ workflows:
       - merge_and_dist:
           <<: *filter_only_master
           requires:
-            # - unit_test_chrome
-            # - unit_test_firefox
+            - unit_test_chrome
+            - unit_test_firefox
             - unit_test_node
             - lint_packages
             - e2e_browserstack

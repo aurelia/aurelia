@@ -1,10 +1,4 @@
 import {
-  BasicConfiguration as BasicBrowserConfiguration
-} from '@aurelia/jit-html-browser';
-import {
-  BasicConfiguration as BasicJSDOMConfiguration
-} from '@aurelia/jit-html-jsdom';
-import {
   DI,
   IContainer,
   IRegistry,
@@ -17,13 +11,11 @@ import {
   IProjectorLocator,
   IRenderer,
   IRenderingEngine,
-  ITemplateCompiler,
-  DOM
+  ITemplateCompiler
 } from '@aurelia/runtime';
 import {
   HTMLDOM
 } from '@aurelia/runtime-html';
-import { JSDOM } from 'jsdom';
 
 export class HTMLTestContext {
   public readonly wnd: Window;
@@ -192,51 +184,3 @@ export const TestContext = {
     throw new Error('No createHTMLTestContext function has been provided. Did you forget to call initializeJSDOMTestContext() or initializeBrowserTestContext()?');
   }
 };
-
-function createJSDOMTestContext(): HTMLTestContext {
-  const jsdom = new JSDOM(`<!DOCTYPE html><html><head></head><body></body></html>`);
-
-  return HTMLTestContext.create(
-    BasicJSDOMConfiguration,
-    jsdom.window,
-    jsdom.window.UIEvent,
-    jsdom.window.Event,
-    jsdom.window.CustomEvent,
-    jsdom.window.Node,
-    jsdom.window.Element,
-    jsdom.window.HTMLElement,
-    jsdom.window.HTMLDivElement,
-    jsdom.window.Text,
-    jsdom.window.Comment,
-    jsdom.window.DOMParser
-  );
-}
-
-function createBrowserTestContext(): HTMLTestContext {
-  return HTMLTestContext.create(
-    BasicBrowserConfiguration,
-    window,
-    UIEvent,
-    Event,
-    CustomEvent,
-    Node,
-    Element,
-    HTMLElement,
-    HTMLDivElement,
-    Text,
-    Comment,
-    DOMParser
-  );
-}
-
-export function initializeJSDOMTestContext(): void {
-  TestContext.createHTMLTestContext = createJSDOMTestContext;
-  // Just trigger the HTMLDOM to be resolved once so it sets the DOM globals
-  TestContext.createHTMLTestContext().dom.createElement('div');
-}
-
-export function initializeBrowserTestContext(): void {
-  TestContext.createHTMLTestContext = createBrowserTestContext;
-  // Just trigger the HTMLDOM to be resolved once so it sets the DOM globals
-  TestContext.createHTMLTestContext().dom.createElement('div');
-}

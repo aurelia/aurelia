@@ -1,4 +1,5 @@
 const path = require('path');
+const webpack = require('webpack');
 
 const basePath = path.resolve(__dirname);
 
@@ -40,8 +41,21 @@ module.exports = function (config) {
       mode: 'development',
       resolve: {
         extensions: ['.js'],
+        modules: [
+          'dist',
+          'node_modules'
+        ]
       },
-      devtool: browsers.indexOf('ChromeDebugging') > -1 ? 'eval-source-map' : 'inline-source-map',
+      devtool: 'none',
+      module: {
+        rules: [
+          {
+            test: /\.js$/,
+            use: ['source-map-loader'],
+            enforce: 'pre',
+          },
+        ]
+      }
     },
     mime: {
       'text/x-typescript': ['ts']
@@ -74,13 +88,20 @@ module.exports = function (config) {
   };
 
   if (config.coverage) {
+    options.webpack.module.rules.push({
+      enforce: 'post',
+      exclude: /(node_modules|\.spec\.ts$)/,
+      loader: 'istanbul-instrumenter-loader',
+      options: { esModules: true },
+      test: /node_modules[\/\\]@aurelia[\/\\].+\.js$/
+    });
     options.reporters = ['coverage-istanbul', ...options.reporters];
     options.coverageIstanbulReporter = {
       reports: ['html', 'text-summary', 'json', 'lcovonly', 'cobertura'],
-      dir: './coverage'
+      dir: 'coverage'
     };
     options.junitReporter = {
-      outputDir: './coverage',
+      outputDir: 'coverage',
       outputFile: 'test-results.xml',
       useBrowserName: false
     };

@@ -7,6 +7,7 @@
     "module": "esnext",
 
 
+    "sourceMap": false,
     "resolveJsonModule": true,
     "forceConsistentCasingInFileNames": false,
     "strict": false,
@@ -21,7 +22,8 @@
       "mocha",
       "chai",
       "sinon",
-      "sinon-chai"
+      "sinon-chai",
+      "webpack-env"
     ]
   },
   "include": ["."],

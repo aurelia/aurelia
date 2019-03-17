@@ -1,7 +1,7 @@
 import {
-  initializeJSDOMTestContext,
+  initializeBrowserTestContext,
   initializeChaiExtensions,
 } from '@aurelia/testing';
 
-initializeJSDOMTestContext();
+initializeBrowserTestContext();
 initializeChaiExtensions();

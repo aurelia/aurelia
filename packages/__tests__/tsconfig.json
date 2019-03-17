@@ -4,14 +4,13 @@
     "declarationDir": "dist",
     "outDir": "dist/build",
     "lib": ["esnext", "dom"],
-    "module": "commonjs",
+    "module": "esnext",
 
 
     "resolveJsonModule": true,
     "forceConsistentCasingInFileNames": false,
     "strict": false,
     "alwaysStrict": true,
-    "allowSyntheticDefaultImports": true,
 
     "jsx": "react",
     "jsxFactory": "hJsx",
@@ -22,8 +21,7 @@
       "mocha",
       "chai",
       "sinon",
-      "sinon-chai",
-      "webpack-env"
+      "sinon-chai"
     ]
   },
   "include": ["."],

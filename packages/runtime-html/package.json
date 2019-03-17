@@ -28,14 +28,10 @@
     "LICENSE"
   ],
   "scripts": {
-    "lint": "npm run lint:src && npm run lint:test",
-    "lint:src": "tslint --project tsconfig.json -t stylish",
-    "lint:test": "tslint --project tsconfig-test.json --config ../tslint-test.json -e \"src/**/*.ts\" -t stylish",
+    "lint": "tslint --project tsconfig.json -t stylish",
     "build": "tsc -b",
-    "build:test": "tsc -p test/tsconfig.json --outDir dist/test",
     "bundle": "ts-node -P ../../scripts/tsconfig.json ../../scripts/bundle.ts umd,esm,system runtime-html",
-    "dev": "tsc -b -w",
-    "publish:local": "npm pack"
+    "dev": "tsc -b -w"
   },
   "publishConfig": {
     "access": "public"
@@ -46,8 +42,6 @@
   },
   "devDependencies": {
     "@types/node": "^10.12.27",
-    "cross-env": "^5.2.0",
-    "ts-node": "^8.0.2",
     "tslib": "^1.9.3",
     "tslint": "^5.12.1",
     "tslint-microsoft-contrib": "^6.0.0",

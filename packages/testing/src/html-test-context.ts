@@ -17,7 +17,8 @@ import {
   IProjectorLocator,
   IRenderer,
   IRenderingEngine,
-  ITemplateCompiler
+  ITemplateCompiler,
+  DOM
 } from '@aurelia/runtime';
 import {
   HTMLDOM
@@ -230,8 +231,12 @@ function createBrowserTestContext(): HTMLTestContext {
 
 export function initializeJSDOMTestContext(): void {
   TestContext.createHTMLTestContext = createJSDOMTestContext;
+  // Just trigger the HTMLDOM to be resolved once so it sets the DOM globals
+  TestContext.createHTMLTestContext().dom.createElement('div');
 }
 
 export function initializeBrowserTestContext(): void {
   TestContext.createHTMLTestContext = createBrowserTestContext;
+  // Just trigger the HTMLDOM to be resolved once so it sets the DOM globals
+  TestContext.createHTMLTestContext().dom.createElement('div');
 }

@@ -8,7 +8,7 @@
 
 
     "resolveJsonModule": true,
-    "forceConsistentCasingInFileNames": true,
+    "forceConsistentCasingInFileNames": false,
     "strict": false,
     "alwaysStrict": true,
     "allowSyntheticDefaultImports": true,

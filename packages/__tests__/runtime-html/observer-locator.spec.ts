@@ -18,7 +18,8 @@ import {
   ElementPropertyAccessor,
   SelectValueObserver,
   StyleAttributeAccessor,
-  ValueAttributeObserver
+  ValueAttributeObserver,
+  DOM
 } from '@aurelia/runtime-html';
 import { _, TestContext } from '@aurelia/testing';
 
@@ -282,14 +283,9 @@ describe('ObserverLocator', function () {
     for (const hasAdapterObserver of [true, false]) {
       for (const adapterIsDefined of hasAdapterObserver ? [true, false] : [false]) {
         const descriptors = {
-          //@ts-ignore
-          ...Object.getOwnPropertyDescriptors(TestContext.Node.prototype),
-          //@ts-ignore
-          ...Object.getOwnPropertyDescriptors(TestContext.Element.prototype),
-          //@ts-ignore
-          ...Object.getOwnPropertyDescriptors(TestContext.HTMLElement.prototype),
-          //@ts-ignore
-          ...Object.getOwnPropertyDescriptors(TestContext.HTMLDivElement.prototype)
+          ...Object.getOwnPropertyDescriptors(DOM.Node.prototype),
+          ...Object.getOwnPropertyDescriptors(DOM.Element.prototype),
+          ...Object.getOwnPropertyDescriptors(DOM.HTMLElement.prototype)
         };
         for (const property of Object.keys(descriptors)) {
           it(_`getObserver() - obj=<div></div>, property=${property}, hasAdapterObserver=${hasAdapterObserver}, adapterIsDefined=${adapterIsDefined}`, function () {

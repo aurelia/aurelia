@@ -1,4 +1,5 @@
 import { PLATFORM, Writable } from '@aurelia/kernel';
+import { DOM } from '@aurelia/runtime-html';
 
 export type H = string | number | boolean | null | undefined | Node;
 
@@ -50,7 +51,7 @@ const eventCmds = { delegate: 1, capture: 1, call: 1 };
  * jsx with aurelia binding command friendly version of h
  */
 export const hJsx = function(name: string, attrs: Record<string, string> | null, ...children: (Node | string | (Node | string)[])[]) {
-  const el = document.createElement(name === 'let$' ? 'let' : name);
+  const el = DOM.createElement(name === 'let$' ? 'let' : name);
   if (attrs != null) {
     let value: string | string[];
     let len: number;
@@ -112,17 +113,17 @@ export const hJsx = function(name: string, attrs: Record<string, string> | null,
       }
     }
   }
-  const appender = (el instanceof HTMLTemplateElement) ? el.content : el;
+  const appender = (el as HTMLTemplateElement).content != null ? (el as HTMLTemplateElement).content : el;
   for (const child of children) {
     if (child == null) {
       continue;
     }
     if (Array.isArray(child)) {
       for (const child_child of child) {
-        appender.appendChild(child_child instanceof Node ? child_child : document.createTextNode('' + child_child));
+        appender.appendChild(DOM.isNodeInstance(child_child) ? child_child : DOM.createTextNode('' + child_child));
       }
     } else {
-      appender.appendChild(child instanceof Node ? child : document.createTextNode('' + child));
+      appender.appendChild(DOM.isNodeInstance(child) ? child : DOM.createTextNode('' + child));
     }
   }
   return el;

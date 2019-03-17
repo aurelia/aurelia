@@ -22,6 +22,15 @@
     "build": "tsc -b"
   },
   "dependencies": {
+    "@types/chai": "^4.1.7",
+    "@types/jsdom": "^12.2.2",
+    "@types/karma": "^3.0.2",
+    "@types/mocha": "^5.2.6",
+    "@types/node": "^10.12.27",
+    "@types/sinon": "^7.0.6",
+    "@types/sinon-chai": "^3.2.2",
+    "@types/webpack": "^4.4.24",
+    "@types/webpack-env": "^1.13.7",
     "@aurelia/aot": "0.3.0",
     "@aurelia/debug": "0.3.0",
     "@aurelia/fetch-client": "0.3.0",
@@ -37,21 +46,8 @@
     "@aurelia/runtime": "0.3.0",
     "@aurelia/store": "0.3.0",
     "@aurelia/validation": "0.3.0",
-    "@aurelia/testing": "0.3.0"
-  },
-  "devDependencies": {
-    "@types/chai": "^4.1.7",
-    "@types/jsdom": "^12.2.2",
-    "@types/karma": "^3.0.2",
-    "@types/mocha": "^5.2.6",
-    "@types/node": "^10.12.27",
-    "@types/sinon": "^7.0.6",
-    "@types/sinon-chai": "^3.2.2",
-    "@types/webpack": "^4.4.24",
-    "@types/webpack-env": "^1.13.7",
+    "@aurelia/testing": "0.3.0",
     "chai": "^4.2.0",
-    "chalk": "^2.4.2",
-    "cross-env": "^5.2.0",
     "esm": "^3.2.6",
     "istanbul": "^0.4.5",
     "istanbul-instrumenter-loader": "^3.0.1",
@@ -72,14 +68,18 @@
     "mocha": "^6.0.1",
     "sinon": "^7.2.4",
     "sinon-chai": "^3.3.0",
+    "webpack": "^4.29.5",
+    "webpack-cli": "^3.2.3",
+    "webpack-dev-server": "^3.2.0"
+  },
+  "devDependencies": {
+    "chalk": "^2.4.2",
+    "cross-env": "^5.2.0",
     "source-map": "^0.7.3",
     "ts-loader": "^5.3.3",
     "ts-node": "^8.0.2",
     "tsconfig-paths": "^3.8.0",
     "tslib": "^1.9.3",
-    "typescript": "^3.3.3333",
-    "webpack": "^4.29.5",
-    "webpack-cli": "^3.2.3",
-    "webpack-dev-server": "^3.2.0"
+    "typescript": "^3.3.3333"
   }
 }

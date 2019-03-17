@@ -31,12 +31,17 @@ module.exports = function (config) {
     basePath,
     frameworks: ['source-map-support', 'mocha', 'chai'],
     files: [
-      { pattern: 'dist/build/__tests__/setup-browser.js', type: 'module' },
-      { pattern: 'dist/build/__tests__/**/*.spec.js', type: 'module' },
+      'dist/build/__tests__/setup-browser.js',
     ],
     preprocessors: {
-      ['dist/build/__tests__/setup-browser.js']: ['sourcemap'],
-      ['dist/build/__tests__/**/*.spec.js']: ['sourcemap']
+      ['dist/build/__tests__/setup-browser.js']: ['webpack', 'sourcemap'],
+    },
+    webpack: {
+      mode: 'development',
+      resolve: {
+        extensions: ['.js'],
+      },
+      devtool: browsers.indexOf('ChromeDebugging') > -1 ? 'eval-source-map' : 'inline-source-map',
     },
     mime: {
       'text/x-typescript': ['ts']

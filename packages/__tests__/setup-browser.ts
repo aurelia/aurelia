@@ -5,3 +5,6 @@ import {
 
 initializeBrowserTestContext();
 initializeChaiExtensions();
+
+const testContext = require.context('.', true, /\.spec/);
+testContext.keys().forEach(testContext);

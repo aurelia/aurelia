@@ -210,7 +210,7 @@ const { $raf, $caf } = (function (): { $raf(callback: (time: number) => void): n
   let raf: (callback: (time: number) => void) => number = $global.requestAnimationFrame;
   let caf: (handle: number) => void = $global.cancelAnimationFrame;
 
-  if (raf === void 0 || caf === void 0 ) {
+  if (raf === void 0 || caf === void 0) {
     let last = 0;
     let id = 0;
     const queue: { handle: number; cancelled: boolean; callback(time: number): void }[] = [];

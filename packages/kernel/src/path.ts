@@ -32,7 +32,7 @@ function trimDots(ary: string[]): void {
  * @return The calculated path.
  */
 export function relativeToFile(name: string, file: string): string {
-  const fileParts = file && file.split('/');
+  const fileParts = !file ? file : file.split('/');
   const nameParts = name.trim().split('/');
 
   if (nameParts[0].charAt(0) === '.' && fileParts) {
@@ -266,6 +266,7 @@ export function parseQueryString(queryString: string): IQueryParams {
     //Else it's basic key
     if (/\[/.test(keys[0]) && /\]$/.test(keys[keysLastIndex])) {
       keys[keysLastIndex] = keys[keysLastIndex].replace(/\]$/, '');
+      // tslint:disable-next-line: no-non-null-assertion // outer condition already ensures not-null
       keys = keys.shift()!.split('[').concat(keys);
       keysLastIndex = keys.length - 1;
     } else {

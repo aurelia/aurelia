@@ -88,7 +88,7 @@ export class EventAggregator {
     if (typeof channelOrInstance === 'string') {
       const channel: string = channelOrInstance;
       subscribers = this.eventLookup[channel];
-      if (subscribers) {
+      if (subscribers != null) {
         subscribers = subscribers.slice();
         i = subscribers.length;
 

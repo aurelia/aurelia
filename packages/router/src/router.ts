@@ -28,7 +28,9 @@ export interface IRouteViewport {
 }
 
 export class Router {
-  public static readonly inject: InjectArray = [IContainer, IRouteTransformer];
+  public static readonly inject: InjectArray = [IContainer, IRouteTransformer, HistoryBrowser, LinkHandler, InstructionResolver];
+
+  public readonly container: IContainer;
 
   public rootScope: Scope;
   public scopes: Scope[] = [];
@@ -45,18 +47,24 @@ export class Router {
   private options: IRouterOptions;
   private isActive: boolean = false;
 
+  private readonly routeTransformer: IRouteTransformer;
   private readonly pendingNavigations: INavigationInstruction[] = [];
   private processingNavigation: INavigationInstruction = null;
   private lastNavigation: INavigationInstruction = null;
 
-  private readonly routeTransformer: IRouteTransformer;
 
-  constructor(public container: IContainer, routeTransformer: IRouteTransformer) {
-    this.historyBrowser = new HistoryBrowser();
-    this.linkHandler = new LinkHandler();
-    this.instructionResolver = new InstructionResolver();
-
+  constructor(
+    container: IContainer,
+    routeTransformer: IRouteTransformer,
+    historyBrowser: HistoryBrowser,
+    linkHandler: LinkHandler,
+    instructionResolver: InstructionResolver
+  ) {
+    this.container = container;
     this.routeTransformer = routeTransformer;
+    this.historyBrowser = historyBrowser;
+    this.linkHandler = linkHandler;
+    this.instructionResolver = instructionResolver;
   }
 
   public get isNavigating(): boolean {

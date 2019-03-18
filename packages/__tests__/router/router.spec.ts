@@ -3,11 +3,104 @@ import { DebugConfiguration } from '@aurelia/debug';
 import { BasicConfiguration } from '@aurelia/jit-html-browser';
 import { Aurelia, CustomElementResource } from '@aurelia/runtime';
 import { Router, ViewportCustomElement } from '@aurelia/router';
-import { MockBrowserHistoryLocation } from '@aurelia/testing';
-
-const define = (CustomElementResource as any).define;
+import { MockBrowserHistoryLocation, HTMLTestContext, TestContext } from '@aurelia/testing';
 
 describe('Router', function () {
+  const setup = async (): Promise<{ au; container; host; router }> => {
+    const container = ctx.container
+
+    const App = CustomElementResource.define({ name: 'app', template: '<template><au-viewport name="left"></au-viewport><au-viewport name="right"></au-viewport></template>' });
+    const Foo = CustomElementResource.define({ name: 'foo', template: '<template>Viewport: foo <a href="#/baz@foo"><span>baz</span></a><au-viewport name="foo"></au-viewport></template>' });
+    const Bar = CustomElementResource.define({ name: 'bar', template: '<template>Viewport: bar Parameter id: [${id}] Parameter name: [${name}] <au-viewport name="bar"></au-viewport></template>' }, class {
+      public static parameters = ['id', 'name'];
+      public id = 'no id';
+      public name = 'no name';
+      public enter(params) {
+        if (params.id) { this.id = params.id; }
+        if (params.name) { this.name = params.name; }
+      }
+    });
+    const Baz = CustomElementResource.define({ name: 'baz', template: '<template>Viewport: baz Parameter id: [${id}] <au-viewport name="baz"></au-viewport></template>' }, class {
+      public static parameters = ['id'];
+      public id = 'no id';
+      public enter(params) { if (params.id) { this.id = params.id; } }
+    });
+    const Qux = CustomElementResource.define({ name: 'qux', template: '<template>Viewport: qux<au-viewport name="qux"></au-viewport></template>' }, class {
+      public canEnter() { return true; }
+      public canLeave() {
+        if (quxCantLeave > 0) {
+          quxCantLeave--;
+          return false;
+        } else {
+          return true;
+        }
+      }
+      public enter() { return true; }
+      public leave() { return true; }
+    });
+    const Quux = CustomElementResource.define({ name: 'quux', template: '<template>Viewport: quux<au-viewport name="quux" scope></au-viewport></template>' });
+    const Corge = CustomElementResource.define({ name: 'corge', template: '<template>Viewport: corge<au-viewport name="corge" used-by="baz"></au-viewport></template>' });
+
+    const Uier = CustomElementResource.define({ name: 'uier', template: '<template>Viewport: uier</template>' }, class {
+      public async canEnter() {
+        await wait(500);
+        return true;
+      }
+    });
+
+    const Grault = CustomElementResource.define(
+      {
+        name: 'grault', template: '<template><input type="checkbox" checked.two-way="toggle">toggle<div if.bind="toggle">Viewport: grault<au-viewport name="grault" stateful used-by="garply,corge" default="garply"></au-viewport></div></template>'
+      },
+      class {
+        public toggle = false;
+      });
+    const Garply = CustomElementResource.define(
+      {
+        name: 'garply', template: '<template>garply<input checked.two-way="text">text</template>'
+      },
+      class {
+        public text;
+      });
+    const Waldo = CustomElementResource.define(
+      {
+        name: 'waldo', template: '<template>Viewport: waldo<au-viewport name="waldo" stateful used-by="grault,foo" default="grault"></au-viewport></div></template>'
+      },
+      class { });
+
+    container.register(Router as any);
+    container.register(ViewportCustomElement as any);
+    container.register(Foo, Bar, Baz, Qux, Quux, Corge, Uier, Grault, Garply, Waldo);
+
+    const router = container.get(Router);
+    const mockBrowserHistoryLocation = new MockBrowserHistoryLocation();
+    mockBrowserHistoryLocation.changeCallback = router.historyBrowser.pathChanged;
+    router.historyBrowser.history = mockBrowserHistoryLocation as any;
+    router.historyBrowser.location = mockBrowserHistoryLocation as any;
+
+    const host = ctx.doc.createElement('div');
+    ctx.doc.body.appendChild(host as any);
+
+    const au = window['au'] = new Aurelia(container)
+      .register(DebugConfiguration)
+      .app({ host: host, component: App })
+      .start();
+
+    await router.activate();
+    return { au, container, host, router };
+  };
+
+  const teardown = async (host, router, count) => {
+    ctx.doc.body.removeChild(host);
+    router.deactivate();
+  };
+
+  let ctx: HTMLTestContext;
+
+  beforeEach(function () {
+    ctx = TestContext.createHTMLTestContext();
+  });
+
   it('can be created', async function () {
     this.timeout(30000);
     const { host, router } = await setup();
@@ -523,10 +616,10 @@ describe('Router', function () {
       const container = BasicConfiguration.createContainer();
 
       container.register(ViewportCustomElement);
-      const App = define({ name: 'app', template: '<au-viewport></au-viewport>', dependencies }, null);
+      const App = CustomElementResource.define({ name: 'app', template: '<au-viewport></au-viewport>', dependencies }, null);
 
-      const host = document.createElement('div');
-      document.body.appendChild(host as any);
+      const host = ctx.doc.createElement('div');
+      ctx.doc.body.appendChild(host as any);
       const component = new App();
 
       const au = new Aurelia(container);
@@ -546,7 +639,7 @@ describe('Router', function () {
       return { container, host, component, au, router };
     }
     async function $teardown(host, router) {
-      document.body.removeChild(host);
+      ctx.doc.body.removeChild(host);
       router.deactivate();
     }
 
@@ -557,8 +650,8 @@ describe('Router', function () {
     }
 
     it('verify that the test isn\'t broken', async function () {
-      const Local = define({ name: 'local', template: 'local' }, null);
-      const Global = define({ name: 'global', template: 'global' }, null);
+      const Local = CustomElementResource.define({ name: 'local', template: 'local' }, null);
+      const Global = CustomElementResource.define({ name: 'global', template: 'global' }, null);
       const { container, host, router } = await $setup([Local]);
 
       container.register(Global);
@@ -571,7 +664,7 @@ describe('Router', function () {
     });
 
     it('navigates to locally registered dep', async function () {
-      const Local = define({ name: 'local', template: 'local' }, null);
+      const Local = CustomElementResource.define({ name: 'local', template: 'local' }, null);
       const { host, router } = await $setup([Local]);
 
       await $goto(router, 'local');
@@ -582,8 +675,8 @@ describe('Router', function () {
     });
 
     it('navigates to locally registered dep - nested', async function () {
-      const Local2 = define({ name: 'local2', template: 'local2' }, class { });
-      const Local1 = define({ name: 'local1', template: 'local1<au-viewport name="one"></au-viewport>', dependencies: [Local2] }, null);
+      const Local2 = CustomElementResource.define({ name: 'local2', template: 'local2' }, class { });
+      const Local1 = CustomElementResource.define({ name: 'local1', template: 'local1<au-viewport name="one"></au-viewport>', dependencies: [Local2] }, null);
       const { host, router } = await $setup([Local1]);
 
       await $goto(router, 'local1+local2');
@@ -594,9 +687,9 @@ describe('Router', function () {
     });
 
     it('navigates to locally registered dep - double nested - case #1', async function () {
-      const Global3 = define({ name: 'global3', template: 'global3' }, null);
-      const Local2 = define({ name: 'local2', template: 'local2<au-viewport name="two" used-by="global3"></au-viewport>' }, null);
-      const Local1 = define({ name: 'local1', template: 'local1<au-viewport name="one" used-by="local2"></au-viewport>', dependencies: [Local2] }, null);
+      const Global3 = CustomElementResource.define({ name: 'global3', template: 'global3' }, null);
+      const Local2 = CustomElementResource.define({ name: 'local2', template: 'local2<au-viewport name="two" used-by="global3"></au-viewport>' }, null);
+      const Local1 = CustomElementResource.define({ name: 'local1', template: 'local1<au-viewport name="one" used-by="local2"></au-viewport>', dependencies: [Local2] }, null);
       const { host, router, container } = await $setup([Local1]);
       container.register(Global3);
 
@@ -608,9 +701,9 @@ describe('Router', function () {
     });
 
     it('navigates to locally registered dep - double nested - case #2', async function () {
-      const Local3 = define({ name: 'local3', template: 'local3' }, null);
-      const Global2 = define({ name: 'global2', template: 'global2<au-viewport name="two" used-by="local3"></au-viewport>', dependencies: [Local3] }, null);
-      const Local1 = define({ name: 'local1', template: 'local1<au-viewport name="one" used-by="global2"></au-viewport>' }, null);
+      const Local3 = CustomElementResource.define({ name: 'local3', template: 'local3' }, null);
+      const Global2 = CustomElementResource.define({ name: 'global2', template: 'global2<au-viewport name="two" used-by="local3"></au-viewport>', dependencies: [Local3] }, null);
+      const Local1 = CustomElementResource.define({ name: 'local1', template: 'local1<au-viewport name="one" used-by="global2"></au-viewport>' }, null);
       const { host, router, container } = await $setup([Local1]);
       container.register(Global2);
 
@@ -622,9 +715,9 @@ describe('Router', function () {
     });
 
     it('navigates to locally registered dep - double nested - case #3', async function () {
-      const Local3 = define({ name: 'local3', template: 'local3' }, null);
-      const Local2 = define({ name: 'local2', template: 'local2<au-viewport name="two" used-by="local3"></au-viewport>', dependencies: [Local3] }, null);
-      const Global1 = define({ name: 'global1', template: 'global1<au-viewport name="one" used-by="local2"></au-viewport>', dependencies: [Local2] }, null);
+      const Local3 = CustomElementResource.define({ name: 'local3', template: 'local3' }, null);
+      const Local2 = CustomElementResource.define({ name: 'local2', template: 'local2<au-viewport name="two" used-by="local3"></au-viewport>', dependencies: [Local3] }, null);
+      const Global1 = CustomElementResource.define({ name: 'global1', template: 'global1<au-viewport name="one" used-by="local2"></au-viewport>', dependencies: [Local2] }, null);
       const { host, router, container } = await $setup();
       container.register(Global1);
 
@@ -636,9 +729,9 @@ describe('Router', function () {
     });
 
     it('navigates to locally registered dep - double nested - case #4', async function () {
-      const Local3 = define({ name: 'local3', template: 'local3' }, null);
-      const Local2 = define({ name: 'local2', template: 'local2<au-viewport name="two" used-by="local3"></au-viewport>', dependencies: [Local3] }, null);
-      const Local1 = define({ name: 'local1', template: 'local1<au-viewport name="one" used-by="local2"></au-viewport>', dependencies: [Local2] }, null);
+      const Local3 = CustomElementResource.define({ name: 'local3', template: 'local3' }, null);
+      const Local2 = CustomElementResource.define({ name: 'local2', template: 'local2<au-viewport name="two" used-by="local3"></au-viewport>', dependencies: [Local3] }, null);
+      const Local1 = CustomElementResource.define({ name: 'local1', template: 'local1<au-viewport name="one" used-by="local2"></au-viewport>', dependencies: [Local2] }, null);
       const { host, router } = await $setup([Local1]);
 
       await $goto(router, 'local1+local2+local3');
@@ -649,10 +742,10 @@ describe('Router', function () {
     });
 
     it('navigates to locally registered dep - conflicting scoped siblings - case #1', async function () {
-      const Conflict1 = define({ name: 'conflict', template: 'conflict1' }, null);
-      const Local1 = define({ name: 'local1', template: 'local1<au-viewport name="one"></au-viewport>', dependencies: [Conflict1] }, null);
-      const Conflict2 = define({ name: 'conflict', template: 'conflict2' }, null);
-      const Local2 = define({ name: 'local2', template: 'local2<au-viewport name="two"></au-viewport>', dependencies: [Conflict2] }, null);
+      const Conflict1 = CustomElementResource.define({ name: 'conflict', template: 'conflict1' }, null);
+      const Local1 = CustomElementResource.define({ name: 'local1', template: 'local1<au-viewport name="one"></au-viewport>', dependencies: [Conflict1] }, null);
+      const Conflict2 = CustomElementResource.define({ name: 'conflict', template: 'conflict2' }, null);
+      const Local2 = CustomElementResource.define({ name: 'local2', template: 'local2<au-viewport name="two"></au-viewport>', dependencies: [Conflict2] }, null);
       const { host, router } = await $setup([Local1, Local2]);
 
       await $goto(router, 'local1@default+conflict@one');
@@ -667,10 +760,10 @@ describe('Router', function () {
     });
 
     it('navigates to locally registered dep - conflicting scoped siblings - case #2', async function () {
-      const Conflict1 = define({ name: 'conflict', template: 'conflict1' }, null);
-      const Global1 = define({ name: 'global1', template: 'global1<au-viewport name="one"></au-viewport>', dependencies: [Conflict1] }, null);
-      const Conflict2 = define({ name: 'conflict', template: 'conflict2' }, null);
-      const Global2 = define({ name: 'global2', template: 'global2<au-viewport name="two"></au-viewport>', dependencies: [Conflict2] }, null);
+      const Conflict1 = CustomElementResource.define({ name: 'conflict', template: 'conflict1' }, null);
+      const Global1 = CustomElementResource.define({ name: 'global1', template: 'global1<au-viewport name="one"></au-viewport>', dependencies: [Conflict1] }, null);
+      const Conflict2 = CustomElementResource.define({ name: 'conflict', template: 'conflict2' }, null);
+      const Global2 = CustomElementResource.define({ name: 'global2', template: 'global2<au-viewport name="two"></au-viewport>', dependencies: [Conflict2] }, null);
       const { host, router, container } = await $setup();
       container.register(Global1, Global2);
 
@@ -686,10 +779,10 @@ describe('Router', function () {
     });
 
     it('navigates to locally registered dep - conflicting scoped siblings - case #3', async function () {
-      const Conflict1 = define({ name: 'conflict', template: 'conflict1' }, null);
-      const Local1 = define({ name: 'local1', template: 'local1<au-viewport name="one"></au-viewport>', dependencies: [Conflict1] }, null);
-      const Conflict2 = define({ name: 'conflict', template: 'conflict2' }, null);
-      const Global2 = define({ name: 'global2', template: 'global2<au-viewport name="two"></au-viewport>', dependencies: [Conflict2] }, null);
+      const Conflict1 = CustomElementResource.define({ name: 'conflict', template: 'conflict1' }, null);
+      const Local1 = CustomElementResource.define({ name: 'local1', template: 'local1<au-viewport name="one"></au-viewport>', dependencies: [Conflict1] }, null);
+      const Conflict2 = CustomElementResource.define({ name: 'conflict', template: 'conflict2' }, null);
+      const Global2 = CustomElementResource.define({ name: 'global2', template: 'global2<au-viewport name="two"></au-viewport>', dependencies: [Conflict2] }, null);
       const { host, router, container } = await $setup([Local1]);
       container.register(Global2);
 
@@ -755,10 +848,10 @@ describe('Router', function () {
         const expectedText = new RegExp(`.*${texts.join('.*')}.*`);
 
         xit(`path: ${path}, expectedText: ${expectedText}`, async function () {
-          const Conflict1 = define({ name: 'conflict', template: 'conflict1<au-viewport></au-viewport>' }, null);
-          const Global1 = define({ name: 'global1', template: 'global1<au-viewport name="one"></au-viewport>', dependencies: [Conflict1] }, null);
-          const Conflict2 = define({ name: 'conflict', template: 'conflict2<au-viewport></au-viewport>' }, null);
-          const Local2 = define({ name: 'local2', template: 'local2<au-viewport name="two"></au-viewport>', dependencies: [Conflict2] }, null);
+          const Conflict1 = CustomElementResource.define({ name: 'conflict', template: 'conflict1<au-viewport></au-viewport>' }, null);
+          const Global1 = CustomElementResource.define({ name: 'global1', template: 'global1<au-viewport name="one"></au-viewport>', dependencies: [Conflict1] }, null);
+          const Conflict2 = CustomElementResource.define({ name: 'conflict', template: 'conflict2<au-viewport></au-viewport>' }, null);
+          const Local2 = CustomElementResource.define({ name: 'local2', template: 'local2<au-viewport name="two"></au-viewport>', dependencies: [Conflict2] }, null);
           const { host, router, container } = await $setup([Local2]);
           container.register(Global1);
 
@@ -775,95 +868,6 @@ describe('Router', function () {
 });
 
 let quxCantLeave = 2;
-
-const setup = async (): Promise<{ au; container; host; router }> => {
-  const container = BasicConfiguration.createContainer();
-
-  const App = (CustomElementResource as any).define({ name: 'app', template: '<template><au-viewport name="left"></au-viewport><au-viewport name="right"></au-viewport></template>' });
-  const Foo = (CustomElementResource as any).define({ name: 'foo', template: '<template>Viewport: foo <a href="#/baz@foo"><span>baz</span></a><au-viewport name="foo"></au-viewport></template>' });
-  const Bar = CustomElementResource.define({ name: 'bar', template: '<template>Viewport: bar Parameter id: [${id}] Parameter name: [${name}] <au-viewport name="bar"></au-viewport></template>' }, class {
-    public static parameters = ['id', 'name'];
-    public id = 'no id';
-    public name = 'no name';
-    public enter(params) {
-      if (params.id) { this.id = params.id; }
-      if (params.name) { this.name = params.name; }
-    }
-  });
-  const Baz = CustomElementResource.define({ name: 'baz', template: '<template>Viewport: baz Parameter id: [${id}] <au-viewport name="baz"></au-viewport></template>' }, class {
-    public static parameters = ['id'];
-    public id = 'no id';
-    public enter(params) { if (params.id) { this.id = params.id; } }
-  });
-  const Qux = CustomElementResource.define({ name: 'qux', template: '<template>Viewport: qux<au-viewport name="qux"></au-viewport></template>' }, class {
-    public canEnter() { return true; }
-    public canLeave() {
-      if (quxCantLeave > 0) {
-        quxCantLeave--;
-        return false;
-      } else {
-        return true;
-      }
-    }
-    public enter() { return true; }
-    public leave() { return true; }
-  });
-  const Quux = (CustomElementResource as any).define({ name: 'quux', template: '<template>Viewport: quux<au-viewport name="quux" scope></au-viewport></template>' });
-  const Corge = (CustomElementResource as any).define({ name: 'corge', template: '<template>Viewport: corge<au-viewport name="corge" used-by="baz"></au-viewport></template>' });
-
-  const Uier = CustomElementResource.define({ name: 'uier', template: '<template>Viewport: uier</template>' }, class {
-    public async canEnter() {
-      await wait(500);
-      return true;
-    }
-  });
-
-  const Grault = (CustomElementResource as any).define(
-    {
-      name: 'grault', template: '<template><input type="checkbox" checked.two-way="toggle">toggle<div if.bind="toggle">Viewport: grault<au-viewport name="grault" stateful used-by="garply,corge" default="garply"></au-viewport></div></template>'
-    },
-    class {
-      public toggle = false;
-    });
-  const Garply = (CustomElementResource as any).define(
-    {
-      name: 'garply', template: '<template>garply<input checked.two-way="text">text</template>'
-    },
-    class {
-      public text;
-    });
-  const Waldo = (CustomElementResource as any).define(
-    {
-      name: 'waldo', template: '<template>Viewport: waldo<au-viewport name="waldo" stateful used-by="grault,foo" default="grault"></au-viewport></div></template>'
-    },
-    class { });
-
-  container.register(Router as any);
-  container.register(ViewportCustomElement as any);
-  container.register(Foo, Bar, Baz, Qux, Quux, Corge, Uier, Grault, Garply, Waldo);
-
-  const router = container.get(Router);
-  const mockBrowserHistoryLocation = new MockBrowserHistoryLocation();
-  mockBrowserHistoryLocation.changeCallback = router.historyBrowser.pathChanged;
-  router.historyBrowser.history = mockBrowserHistoryLocation as any;
-  router.historyBrowser.location = mockBrowserHistoryLocation as any;
-
-  const host = document.createElement('div');
-  document.body.appendChild(host as any);
-
-  const au = window['au'] = new Aurelia(container)
-    .register(DebugConfiguration)
-    .app({ host: host, component: App })
-    .start();
-
-  await router.activate();
-  return { au, container, host, router };
-};
-
-const teardown = async (host, router, count) => {
-  document.body.removeChild(host);
-  router.deactivate();
-};
 
 const goto = async (path: string, router: Router) => {
   await router.goto(path);

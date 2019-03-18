@@ -49,7 +49,6 @@ export class HistoryBrowser {
   private isRefreshing: boolean;
 
   constructor() {
-    this.location = window.location;
     this.history = new QueuedBrowserHistory();
 
     this.currentEntry = null;

@@ -3,9 +3,45 @@ import { DebugConfiguration } from '@aurelia/debug';
 import { BasicConfiguration } from '@aurelia/jit-html-browser';
 import { Aurelia, CustomElementResource } from '@aurelia/runtime';
 import { Router, ViewportCustomElement, ViewportInstruction } from '@aurelia/router';
-import { MockBrowserHistoryLocation } from '@aurelia/testing';
+import { MockBrowserHistoryLocation, TestContext, HTMLTestContext } from '@aurelia/testing';
 
 describe('InstructionResolver', function () {
+  const setup = async (): Promise<{ au; container; host; router }> => {
+    const container = ctx.container;
+
+    const App = CustomElementResource.define({ name: 'app', template: '<template><au-viewport name="left"></au-viewport><au-viewport name="right"></au-viewport></template>' });
+    container.register(Router);
+    container.register(ViewportCustomElement);
+
+    const router = container.get(Router);
+    const mockBrowserHistoryLocation = new MockBrowserHistoryLocation();
+    mockBrowserHistoryLocation.changeCallback = router.historyBrowser.pathChanged;
+    router.historyBrowser.history = mockBrowserHistoryLocation as any;
+    router.historyBrowser.location = mockBrowserHistoryLocation as any;
+
+    const host = ctx.doc.createElement('div');
+    ctx.doc.body.appendChild(host);
+
+    const au = window['au'] = new Aurelia(container)
+      .register(DebugConfiguration)
+      .app({ host: host, component: App })
+      .start();
+
+    await router.activate();
+    return { au, container, host, router };
+  };
+
+  const teardown = async (host, router) => {
+    ctx.doc.body.removeChild(host);
+    router.deactivate();
+  };
+
+  let ctx: HTMLTestContext;
+
+  beforeEach(function () {
+    ctx = TestContext.createHTMLTestContext();
+  });
+
   this.timeout(30000);
   it('can be created', async function () {
     const { host, router } = await setup();
@@ -70,36 +106,6 @@ describe('InstructionResolver', function () {
     });
   }
 });
-
-const setup = async (): Promise<{ au; container; host; router }> => {
-  const container = BasicConfiguration.createContainer();
-
-  const App = (CustomElementResource as any).define({ name: 'app', template: '<template><au-viewport name="left"></au-viewport><au-viewport name="right"></au-viewport></template>' });
-  container.register(Router as any);
-  container.register(ViewportCustomElement as any);
-
-  const router = container.get(Router);
-  const mockBrowserHistoryLocation = new MockBrowserHistoryLocation();
-  mockBrowserHistoryLocation.changeCallback = router.historyBrowser.pathChanged;
-  router.historyBrowser.history = mockBrowserHistoryLocation as any;
-  router.historyBrowser.location = mockBrowserHistoryLocation as any;
-
-  const host = document.createElement('div');
-  document.body.appendChild(host as any);
-
-  const au = window['au'] = new Aurelia(container)
-    .register(DebugConfiguration)
-    .app({ host: host, component: App })
-    .start();
-
-  await router.activate();
-  return { au, container, host, router };
-};
-
-const teardown = async (host, router) => {
-  document.body.removeChild(host);
-  router.deactivate();
-};
 
 const wait = async (time = 500) => {
   await new Promise((resolve) => {

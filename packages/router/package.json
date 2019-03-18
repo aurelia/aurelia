@@ -38,7 +38,8 @@
   },
   "dependencies": {
     "@aurelia/kernel": "0.3.0",
-    "@aurelia/runtime": "0.3.0"
+    "@aurelia/runtime": "0.3.0",
+    "@aurelia/runtime-html": "0.3.0"
   },
   "devDependencies": {
     "@types/node": "^10.12.27",

@@ -1,4 +1,5 @@
 import { PLATFORM, Reporter } from '@aurelia/kernel';
+import { DOM } from '@aurelia/runtime-html';
 
 export interface QueuedBrowserHistory extends History {
   activate(callback: (ev?: PopStateEvent) => void): void;
@@ -14,9 +15,6 @@ interface QueueItem {
 }
 
 export class QueuedBrowserHistory implements QueuedBrowserHistory {
-  public window: Window;
-  public history: History;
-
   private readonly queue: QueueItem[];
   private isActive: boolean;
   private currentHistoryActivity: QueueItem;
@@ -26,8 +24,6 @@ export class QueuedBrowserHistory implements QueuedBrowserHistory {
   private suppressPopstateResolve: ((value?: void | PromiseLike<void>) => void);
 
   constructor() {
-    this.window = window;
-    this.history = window.history;
     this.queue = [];
     this.isActive = false;
     this.currentHistoryActivity = null;
@@ -43,24 +39,24 @@ export class QueuedBrowserHistory implements QueuedBrowserHistory {
     this.isActive = true;
     this.callback = callback;
     PLATFORM.ticker.add(this.dequeue, this);
-    this.window.addEventListener('popstate', this.handlePopstate);
+    DOM.window.addEventListener('popstate', this.handlePopstate);
   }
   public deactivate(): void {
-    this.window.removeEventListener('popstate', this.handlePopstate);
+    DOM.window.removeEventListener('popstate', this.handlePopstate);
     PLATFORM.ticker.remove(this.dequeue, this);
     this.callback = null;
     this.isActive = false;
   }
 
   get length(): number {
-    return this.history.length;
+    return DOM.window.history.length;
   }
   // tslint:disable-next-line:no-any - typed according to DOM
   get state(): any {
-    return this.history.state;
+    return DOM.window.history.state;
   }
   get scrollRestoration(): ScrollRestoration {
-    return this.history.scrollRestoration;
+    return DOM.window.history.scrollRestoration;
   }
 
   public async go(delta?: number, suppressPopstate: boolean = false): Promise<void> {
@@ -68,7 +64,7 @@ export class QueuedBrowserHistory implements QueuedBrowserHistory {
       return this.enqueue(this, '_go', [delta], true);
     }
     const promise = this.enqueue(this, 'suppressPopstate', [], true);
-    this.enqueue(this.history, 'go', [delta]).catch(error => { throw error; });
+    this.enqueue(DOM.window.history, 'go', [delta]).catch(error => { throw error; });
     return promise;
   }
   public back(): Promise<void> {
@@ -80,12 +76,12 @@ export class QueuedBrowserHistory implements QueuedBrowserHistory {
 
   // tslint:disable-next-line:no-any - typed according to DOM
   public async pushState(data: any, title: string, url?: string | null): Promise<void> {
-    return this.enqueue(this.history, 'pushState', [data, title, url]);
+    return this.enqueue(DOM.window.history, 'pushState', [data, title, url]);
   }
 
   // tslint:disable-next-line:no-any - typed according to DOM
   public async replaceState(data: any, title: string, url?: string | null): Promise<void> {
-    return this.enqueue(this.history, 'replaceState', [data, title, url]);
+    return this.enqueue(DOM.window.history, 'replaceState', [data, title, url]);
   }
 
   private readonly handlePopstate = async (ev: PopStateEvent): Promise<void> => {
@@ -110,7 +106,7 @@ export class QueuedBrowserHistory implements QueuedBrowserHistory {
 
   private _go(delta: number, resolve: ((value?: void | PromiseLike<void>) => void)): void {
     this.goResolve = resolve;
-    this.history.go(delta);
+    DOM.window.history.go(delta);
   }
 
   private suppressPopstate(resolve: ((value?: void | PromiseLike<void>) => void)): void {

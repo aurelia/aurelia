@@ -29,7 +29,6 @@
   "include": ["."],
   "exclude": [
     "router/e2e",
-    "fetch-client",
     "dist"
   ]
 }

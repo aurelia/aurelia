@@ -1,12 +1,21 @@
 import { PLATFORM } from '@aurelia/kernel';
 import { expect } from 'chai';
-import { match, SinonStub, stub } from 'sinon';
-import { HTMLTestContext, TestContext } from '../../../runtime-html/test/util';
-import { HttpClient } from '../../src/http-client';
-import { HttpClientConfiguration } from '../../src/http-client-configuration';
-import { Interceptor } from '../../src/interfaces';
-import { retryStrategy } from '../../src/retry-interceptor';
-import { json } from '../../src/util';
+import {
+  match,
+  SinonStub,
+  stub
+} from 'sinon';
+import {
+  HTMLTestContext,
+  TestContext
+} from '@aurelia/testing';
+import {
+  HttpClient,
+  HttpClientConfiguration,
+  Interceptor,
+  retryStrategy,
+  json
+} from '@aurelia/fetch-client';
 
 describe('HttpClient', function () {
   let ctx: HTMLTestContext;
@@ -636,7 +645,7 @@ describe('HttpClient', function () {
     it('evaluates default header function values with no headers', function(done) {
       const headers: Partial<HeadersInit> & {[key: string]: () => string} = { 'x-foo': () => 'bar' };
       fetch.returns(emptyResponse(200));
-      client.defaults = { headers: headers as HeadersInit };
+      client.defaults = { headers: headers as unknown as HeadersInit };
 
       client.fetch('path')
         .then(() => {
@@ -650,7 +659,7 @@ describe('HttpClient', function () {
     it('evaluates default header function values with other headers', function(done) {
       const headers: Partial<HeadersInit> & {[key: string]: () => string} = { 'x-foo': () => 'bar' };
       fetch.returns(emptyResponse(200));
-      client.defaults = { headers: headers as HeadersInit };
+      client.defaults = { headers: headers as unknown as HeadersInit };
 
       client.fetch('path', { headers: { 'x-baz': 'bat' } })
         .then(() => {
@@ -671,7 +680,7 @@ describe('HttpClient', function () {
       fetch.returns(emptyResponse(200));
       let value = 0;
       client.defaults = {
-        headers: headers as HeadersInit
+        headers: headers as unknown as HeadersInit
       };
 
       const promises = [];

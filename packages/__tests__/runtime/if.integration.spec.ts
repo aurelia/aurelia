@@ -226,6 +226,7 @@ describe(`If/Else`, function () {
         elseSut = new Else<AuNode>(elseFactory);
       }
       elseSut.link(sut);
+      sut.$hydrate(LifecycleFlags.none, container);
 
       let firstBindInitialNodesText: string;
       let firstBindFinalNodesText: string;

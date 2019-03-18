@@ -1,6 +1,6 @@
 {
   "name": "@aurelia/plugin-svg",
-  "version": "0.3.0-dev.20190317",
+  "version": "0.3.0-dev.20190318",
   "main": "dist/index.umd.js",
   "module": "dist/index.es6.js",
   "jsnext:main": "dist/index.es6.js",
@@ -48,9 +48,9 @@
     "access": "public"
   },
   "dependencies": {
-    "@aurelia/kernel": "0.3.0-dev.20190317",
-    "@aurelia/runtime": "0.3.0-dev.20190317",
-    "@aurelia/runtime-html": "0.3.0-dev.20190317"
+    "@aurelia/kernel": "0.3.0-dev.20190318",
+    "@aurelia/runtime": "0.3.0-dev.20190318",
+    "@aurelia/runtime-html": "0.3.0-dev.20190318"
   },
   "devDependencies": {
     "@types/chai": "^4.1.7",

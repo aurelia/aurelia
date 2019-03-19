@@ -1,7 +1,13 @@
 import { Tracer } from '@aurelia/kernel';
 import { LifecycleFlags } from '../flags';
 import { ILifecycle } from '../lifecycle';
-import { CollectionKind, ICollectionObserver, IndexMap, IObservedArray } from '../observation';
+import {
+  CollectionKind,
+  createIndexMap,
+  ICollectionObserver,
+  IndexMap,
+  IObservedArray
+} from '../observation';
 import { collectionObserver } from './collection-observer';
 
 // https://tc39.github.io/ecma262/#sec-sortcompare
@@ -174,7 +180,7 @@ const observe = {
       o.indexMap[i] = - 2;
       i++;
     }
-    o.callSubscribers('push', arguments, o.persistentFlags | LifecycleFlags.isCollectionMutation);
+    o.notify();
     return $this.length;
   },
   // https://tc39.github.io/ecma262/#sec-array.prototype.unshift
@@ -195,7 +201,7 @@ const observe = {
     }
     $unshift.apply(o.indexMap, inserts);
     const len = $unshift.apply($this, arguments as IArguments & unknown[]);
-    o.callSubscribers('unshift', arguments, o.persistentFlags | LifecycleFlags.isCollectionMutation);
+    o.notify();
     return len;
   },
   // https://tc39.github.io/ecma262/#sec-array.prototype.pop
@@ -216,7 +222,7 @@ const observe = {
       indexMap.deletedItems!.push(indexMap[index]);
     }
     $pop.call(indexMap);
-    o.callSubscribers('pop', arguments, o.persistentFlags | LifecycleFlags.isCollectionMutation);
+    o.notify();
     return element;
   },
   // https://tc39.github.io/ecma262/#sec-array.prototype.shift
@@ -236,7 +242,7 @@ const observe = {
       indexMap.deletedItems!.push(indexMap[0]);
     }
     $shift.call(indexMap);
-    o.callSubscribers('shift', arguments, o.persistentFlags | LifecycleFlags.isCollectionMutation);
+    o.notify();
     return element;
   },
   // https://tc39.github.io/ecma262/#sec-array.prototype.splice
@@ -273,7 +279,7 @@ const observe = {
       $splice.call(indexMap, start, deleteCount!);
     }
     const deleted = $splice.apply($this, arguments as IArguments & [number, number, ...any[]]);
-    o.callSubscribers('splice', arguments, o.persistentFlags | LifecycleFlags.isCollectionMutation);
+    o.notify();
     return deleted;
   },
   // https://tc39.github.io/ecma262/#sec-array.prototype.reverse
@@ -300,7 +306,7 @@ const observe = {
       lower++;
     }
     // tslint:enable:no-statements-same-line
-    o.callSubscribers('reverse', arguments, o.persistentFlags | LifecycleFlags.isCollectionMutation);
+    o.notify();
     return this;
   },
   // https://tc39.github.io/ecma262/#sec-array.prototype.sort
@@ -331,7 +337,7 @@ const observe = {
       compareFn = sortCompare;
     }
     quickSort($this, o.indexMap, 0, i, compareFn);
-    o.callSubscribers('sort', arguments, o.persistentFlags | LifecycleFlags.isCollectionMutation);
+    o.notify();
     return this;
   }
 };
@@ -372,18 +378,21 @@ export interface ArrayObserver extends ICollectionObserver<CollectionKind.array>
 
 @collectionObserver(CollectionKind.array)
 export class ArrayObserver implements ArrayObserver {
-  public resetIndexMap!: () => void;
-
-  public collection: IObservedArray;
   public readonly flags: LifecycleFlags;
 
   constructor(flags: LifecycleFlags, lifecycle: ILifecycle, array: IObservedArray) {
     if (Tracer.enabled) { Tracer.enter('ArrayObserver', 'constructor', slice.call(arguments)); }
-    this.lifecycle = lifecycle;
-    array.$observer = this;
+
+    this.$nextBatch = void 0;
     this.collection = array;
     this.flags = flags & LifecycleFlags.persistentBindingFlags;
-    this.resetIndexMap();
+    this.indexMap = createIndexMap(array.length);
+    this.lengthPropertyName = 'length';
+    this.collectionKind = CollectionKind.array;
+    this.lifecycle = lifecycle;
+
+    array.$observer = this;
+
     if (Tracer.enabled) { Tracer.leave(); }
   }
 }

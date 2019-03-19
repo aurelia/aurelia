@@ -1,13 +1,12 @@
-import { PLATFORM, Reporter, Tracer } from '@aurelia/kernel';
+import { Constructable, PLATFORM, Reporter, Tracer } from '@aurelia/kernel';
 import { LifecycleFlags } from '../flags';
 import { ILifecycle } from '../lifecycle';
 import {
-  IBatchedSubscribable,
   IBindingTargetObserver,
+  ICollectionSubscribable,
   IObservable,
-  IPropertySubscriber,
   ISubscribable,
-  MutationKind
+  ISubscriber
 } from '../observation';
 import { IDirtyChecker } from './dirty-checker';
 import { IObserverLocator } from './observer-locator';
@@ -26,13 +25,14 @@ export interface ComputedOverrides {
 export type ComputedLookup = { computed?: Record<string, ComputedOverrides> };
 
 export function computed(config: ComputedOverrides): PropertyDecorator {
-  return function(target: any, key: string): void {
+  return function (target: Constructable & ComputedLookup, key: string): void {
     (target.computed || (target.computed = {}))[key] = config;
-  } as any;
+  } as PropertyDecorator;
 }
 
 const computedOverrideDefaults: ComputedOverrides = { static: false, volatile: false };
 
+/* @internal */
 export function createComputedObserver(
   flags: LifecycleFlags,
   observerLocator: IObserverLocator,
@@ -63,7 +63,7 @@ export function createComputedObserver(
 export interface CustomSetterObserver extends IBindingTargetObserver { }
 
 // Used when the getter is dependent solely on changes that happen within the setter.
-@subscriberCollection(MutationKind.instance)
+@subscriberCollection()
 export class CustomSetterObserver implements CustomSetterObserver {
   public readonly obj: IObservable;
   public readonly propertyKey: string;
@@ -76,13 +76,14 @@ export class CustomSetterObserver implements CustomSetterObserver {
   constructor(obj: IObservable, propertyKey: string, descriptor: PropertyDescriptor) {
     this.obj = obj;
     this.propertyKey = propertyKey;
-    this.currentValue = this.oldValue = void 0;
+    this.currentValue = this.oldValue = undefined;
     this.descriptor = descriptor;
     this.observing = false;
   }
 
   public setValue(newValue: unknown): void {
     if (Tracer.enabled) { Tracer.enter('CustomSetterObserver', 'setValue', slice.call(arguments)); }
+    // tslint:disable-next-line: no-non-null-assertion // Non-null is implied because descriptors without setters won't end up here
     this.descriptor.set!.call(this.obj, newValue);
     if (this.currentValue !== newValue) {
       this.oldValue = this.currentValue;
@@ -92,14 +93,14 @@ export class CustomSetterObserver implements CustomSetterObserver {
     if (Tracer.enabled) { Tracer.leave(); }
   }
 
-  public subscribe(subscriber: IPropertySubscriber): void {
+  public subscribe(subscriber: ISubscriber): void {
     if (!this.observing) {
       this.convertProperty();
     }
     this.addSubscriber(subscriber);
   }
 
-  public unsubscribe(subscriber: IPropertySubscriber): void {
+  public unsubscribe(subscriber: ISubscriber): void {
     this.removeSubscriber(subscriber);
   }
 
@@ -119,7 +120,7 @@ export interface GetterObserver extends IBindingTargetObserver { }
 // Used when there is no setter, and the getter is dependent on other properties of the object;
 // Used when there is a setter but the value of the getter can change based on properties set outside of the setter.
 /** @internal */
-@subscriberCollection(MutationKind.instance)
+@subscriberCollection()
 export class GetterObserver implements GetterObserver {
   public readonly obj: IObservable;
   public readonly propertyKey: string;
@@ -127,8 +128,8 @@ export class GetterObserver implements GetterObserver {
   public oldValue: unknown;
 
   private readonly proxy: ProxyHandler<object>;
-  private readonly propertyDeps: ISubscribable<MutationKind.instance>[];
-  private readonly collectionDeps: IBatchedSubscribable<MutationKind.collection>[];
+  private readonly propertyDeps: ISubscribable[];
+  private readonly collectionDeps: ICollectionSubscribable[];
   private readonly overrides: ComputedOverrides;
   private readonly descriptor: PropertyDescriptor;
   private subscriberCount: number;
@@ -138,7 +139,7 @@ export class GetterObserver implements GetterObserver {
     this.obj = obj;
     this.propertyKey = propertyKey;
     this.isCollecting = false;
-    this.currentValue = this.oldValue = void 0;
+    this.currentValue = this.oldValue = undefined;
 
     this.propertyDeps = [];
     this.collectionDeps = [];
@@ -151,13 +152,13 @@ export class GetterObserver implements GetterObserver {
     Reflect.defineProperty(obj, propertyKey, { get });
   }
 
-  public addPropertyDep(subscribable: ISubscribable<MutationKind.instance>): void {
+  public addPropertyDep(subscribable: ISubscribable): void {
     if (this.propertyDeps.indexOf(subscribable) === -1) {
       this.propertyDeps.push(subscribable);
     }
   }
 
-  public addCollectionDep(subscribable: IBatchedSubscribable<MutationKind.collection>): void {
+  public addCollectionDep(subscribable: ICollectionSubscribable): void {
     if (this.collectionDeps.indexOf(subscribable) === -1) {
       this.collectionDeps.push(subscribable);
     }
@@ -166,22 +167,24 @@ export class GetterObserver implements GetterObserver {
   public getValue(): unknown {
     if (Tracer.enabled) { Tracer.enter('GetterObserver', 'getValue', slice.call(arguments)); }
     if (this.subscriberCount === 0 || this.isCollecting) {
+      // tslint:disable-next-line: no-non-null-assertion // Non-null is implied because descriptors without getters won't end up here
       this.currentValue = Reflect.apply(this.descriptor.get!, this.proxy, PLATFORM.emptyArray);
     } else {
+      // tslint:disable-next-line: no-non-null-assertion // Non-null is implied because descriptors without getters won't end up here
       this.currentValue = Reflect.apply(this.descriptor.get!, this.obj, PLATFORM.emptyArray);
     }
     if (Tracer.enabled) { Tracer.leave(); }
     return this.currentValue;
   }
 
-  public subscribe(subscriber: IPropertySubscriber): void {
+  public subscribe(subscriber: ISubscriber): void {
     this.addSubscriber(subscriber);
     if (++this.subscriberCount === 1) {
       this.getValueAndCollectDependencies(true);
     }
   }
 
-  public unsubscribe(subscriber: IPropertySubscriber): void {
+  public unsubscribe(subscriber: ISubscriber): void {
     this.removeSubscriber(subscriber);
     if (--this.subscriberCount === 0) {
       this.unsubscribeAllDependencies();
@@ -196,11 +199,11 @@ export class GetterObserver implements GetterObserver {
     }
   }
 
-  public handleBatchedChange(): void {
+  public handleCollectionChange(): void {
     const oldValue = this.currentValue;
     const newValue = this.getValueAndCollectDependencies(false);
     if (oldValue !== newValue) {
-      this.callSubscribers(newValue, oldValue, LifecycleFlags.fromFlush | LifecycleFlags.updateTargetInstance);
+      this.callSubscribers(newValue, oldValue, LifecycleFlags.updateTargetInstance);
     }
   }
 
@@ -217,7 +220,7 @@ export class GetterObserver implements GetterObserver {
 
     if (dynamicDependencies) {
       this.propertyDeps.forEach(x => { x.subscribe(this); });
-      this.collectionDeps.forEach(x => { x.subscribeBatched(this); });
+      this.collectionDeps.forEach(x => { x.subscribeToCollection(this); });
       this.isCollecting = false;
     }
 
@@ -232,7 +235,7 @@ export class GetterObserver implements GetterObserver {
   private unsubscribeAllDependencies(): void {
     this.propertyDeps.forEach(x => { x.unsubscribe(this); });
     this.propertyDeps.length = 0;
-    this.collectionDeps.forEach(x => { x.unsubscribeBatched(this); });
+    this.collectionDeps.forEach(x => { x.unsubscribeFromCollection(this); });
     this.collectionDeps.length = 0;
   }
 }
@@ -285,9 +288,10 @@ function createGetterTraps(flags: LifecycleFlags, observerLocator: IObserverLoca
 function proxyOrValue(flags: LifecycleFlags, target: object, key: PropertyKey, observerLocator: IObserverLocator, observer: GetterObserver): ProxyHandler<object> {
   const value = Reflect.get(target, key, target);
   if (typeof value === 'function') {
-    return (target as any)[key].bind(target);
+    // tslint:disable-next-line: ban-types // We need Function's bind() method here
+    return (target as { [key: string]: Function })[key as string].bind(target);
   }
-  if (!(value instanceof Object)) {
+  if (typeof value !== 'object' || value === null) {
     return value;
   }
   return new Proxy(value, createGetterTraps(flags, observerLocator, observer));

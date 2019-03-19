@@ -1,7 +1,7 @@
 import { Tracer } from '@aurelia/kernel';
 import { LifecycleFlags } from '../flags';
 import { ILifecycle } from '../lifecycle';
-import { CollectionKind, ICollectionObserver, IObservedSet } from '../observation';
+import { CollectionKind, ICollectionObserver, IObservedSet, createIndexMap } from '../observation';
 import { collectionObserver } from './collection-observer';
 
 const proto = Set.prototype as { [K in keyof Set<any>]: Set<any>[K] & { observing?: boolean } };
@@ -35,7 +35,7 @@ const observe = {
       return this;
     }
     o.indexMap[oldSize] = -2;
-    o.callSubscribers('add', arguments, o.persistentFlags | LifecycleFlags.isCollectionMutation);
+    o.notify();
     return this;
   },
   // https://tc39.github.io/ecma262/#sec-set.prototype.clear
@@ -60,7 +60,7 @@ const observe = {
       }
       $clear.call($this);
       indexMap.length = 0;
-      o.callSubscribers('clear', arguments, o.persistentFlags | LifecycleFlags.isCollectionMutation);
+      o.notify();
     }
     return undefined;
   },
@@ -90,7 +90,7 @@ const observe = {
       }
       i++;
     }
-    o.callSubscribers('delete', arguments, o.persistentFlags | LifecycleFlags.isCollectionMutation);
+    o.notify();
     return false;
   }
 };
@@ -131,18 +131,19 @@ export interface SetObserver extends ICollectionObserver<CollectionKind.set> {}
 
 @collectionObserver(CollectionKind.set)
 export class SetObserver implements SetObserver {
-  public resetIndexMap!: () => void;
-
-  public collection: IObservedSet;
   public readonly flags: LifecycleFlags;
 
   constructor(flags: LifecycleFlags, lifecycle: ILifecycle, observedSet: IObservedSet) {
     if (Tracer.enabled) { Tracer.enter('SetObserver', 'constructor', slice.call(arguments)); }
-    this.lifecycle = lifecycle;
-    observedSet.$observer = this;
+
+    this.$nextBatch = void 0;
     this.collection = observedSet;
     this.flags = flags & LifecycleFlags.persistentBindingFlags;
-    this.resetIndexMap();
+    this.indexMap = createIndexMap(observedSet.size);
+    this.lengthPropertyName = 'size';
+    this.collectionKind = CollectionKind.set;
+    this.lifecycle = lifecycle;
+
     if (Tracer.enabled) { Tracer.leave(); }
   }
 }

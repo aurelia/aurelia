@@ -1,7 +1,12 @@
 import { Tracer } from '@aurelia/kernel';
 import { LifecycleFlags } from '../flags';
 import { ILifecycle } from '../lifecycle';
-import { CollectionKind, ICollectionObserver, IObservedMap } from '../observation';
+import {
+  CollectionKind,
+  createIndexMap,
+  ICollectionObserver,
+  IObservedMap
+} from '../observation';
 import { collectionObserver } from './collection-observer';
 
 const proto = Map.prototype as { [K in keyof Map<any, any>]: Map<any, any>[K] & { observing?: boolean } };
@@ -45,7 +50,7 @@ const observe = {
       return this;
     }
     o.indexMap[oldSize] = -2;
-    o.callSubscribers('set', arguments, o.persistentFlags | LifecycleFlags.isCollectionMutation);
+    o.notify();
     return this;
   },
   // https://tc39.github.io/ecma262/#sec-map.prototype.clear
@@ -70,7 +75,7 @@ const observe = {
       }
       $clear.call($this);
       indexMap.length = 0;
-      o.callSubscribers('clear', arguments, o.persistentFlags | LifecycleFlags.isCollectionMutation);
+      o.notify();
     }
     return undefined;
   },
@@ -100,7 +105,7 @@ const observe = {
       }
       i++;
     }
-    o.callSubscribers('delete', arguments, o.persistentFlags | LifecycleFlags.isCollectionMutation);
+    o.notify();
     return false;
   }
 };
@@ -141,19 +146,21 @@ export interface MapObserver extends ICollectionObserver<CollectionKind.map> {}
 
 @collectionObserver(CollectionKind.map)
 export class MapObserver implements MapObserver {
-  public resetIndexMap!: () => void;
-  public lifecycle: ILifecycle;
-
-  public collection: IObservedMap;
   public readonly flags: LifecycleFlags;
 
   constructor(flags: LifecycleFlags, lifecycle: ILifecycle, map: IObservedMap) {
     if (Tracer.enabled) { Tracer.enter('MapObserver', 'constructor', slice.call(arguments)); }
-    this.lifecycle = lifecycle;
-    map.$observer = this;
+
+    this.$nextBatch = void 0;
     this.collection = map;
     this.flags = flags & LifecycleFlags.persistentBindingFlags;
-    this.resetIndexMap();
+    this.indexMap = createIndexMap(map.size);
+    this.lengthPropertyName = 'size';
+    this.collectionKind = CollectionKind.map;
+    this.lifecycle = lifecycle;
+
+    map.$observer = this;
+
     if (Tracer.enabled) { Tracer.leave(); }
   }
 }

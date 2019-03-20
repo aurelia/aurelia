@@ -12,11 +12,11 @@ import {
   IDOM,
   ILifecycle,
   IObserverLocator,
-  IRenderable,
+  IController,
   IRenderLocation,
   IScope,
   ITemplate,
-  IView,
+  IController,
   LifecycleFlags as LF,
   Scope,
   ViewFactory
@@ -38,8 +38,8 @@ class StubView {
 
 class StubTemplate {
   constructor(public nodes = {}) {}
-  public render(renderable: Partial<IRenderable>) {
-    (renderable as Writable<IRenderable>).$nodes = this.nodes as any;
+  public render(renderable: Partial<IController>) {
+    (renderable as Writable<IController>).$nodes = this.nodes as any;
   }
 }
 
@@ -140,27 +140,27 @@ describe(`ViewFactory`, function () {
   });
 });
 
-// public render(renderable: Partial<IRenderable>, host?: INode, parts?: TemplatePartDefinitions): void {
-//   const nodes = (<Writable<IRenderable>>renderable).$nodes = new MockTextNodeSequence();
+// public render(renderable: Partial<IController>, host?: INode, parts?: TemplatePartDefinitions): void {
+//   const nodes = (<Writable<IController>>renderable).$nodes = new MockTextNodeSequence();
 //   addBinding(renderable, new Binding(this.sourceExpression, nodes.firstChild, 'textContent', BindingMode.toView, this.observerLocator, this.container));
 // }
 describe('View', function () {
-  function runBindLifecycle(lifecycle: ILifecycle, view: IView<AuNode>, flags: LF, scope: IScope): void {
+  function runBindLifecycle(lifecycle: ILifecycle, view: IController<AuNode>, flags: LF, scope: IScope): void {
     lifecycle.beginBind();
     view.$bind(flags, scope);
     lifecycle.endBind(flags);
   }
-  function runUnbindLifecycle(lifecycle: ILifecycle, view: IView<AuNode>, flags: LF): void {
+  function runUnbindLifecycle(lifecycle: ILifecycle, view: IController<AuNode>, flags: LF): void {
     lifecycle.beginUnbind();
     view.$unbind(flags);
     lifecycle.endUnbind(flags);
   }
-  function runAttachLifecycle(lifecycle: ILifecycle, view: IView<AuNode>, flags: LF): void {
+  function runAttachLifecycle(lifecycle: ILifecycle, view: IController<AuNode>, flags: LF): void {
     lifecycle.beginAttach();
     view.$attach(flags);
     lifecycle.endAttach(flags);
   }
-  function runDetachLifecycle(lifecycle: ILifecycle, view: IView<AuNode>, flags: LF): void {
+  function runDetachLifecycle(lifecycle: ILifecycle, view: IController<AuNode>, flags: LF): void {
     lifecycle.beginDetach();
     view.$detach(flags);
     lifecycle.endDetach(flags);
@@ -414,7 +414,7 @@ describe('View', function () {
       const childFactory = new ViewFactory<AuNode>('child', childTemplate, lifecycle);
       // keep track of the child views because we need to do manually hold/release them
       // during the appropriate lifecycles (normally a template controller would do this)
-      const childSuts: IView<AuNode>[] = Array(childCount);
+      const childSuts: IController<AuNode>[] = Array(childCount);
 
       // CompiledTemplate mock for the top-level view (sut)
       const rootTemplate: ITemplate<AuNode> = {
@@ -445,7 +445,7 @@ describe('View', function () {
 
       const scope1 = Scope.create(LF.none, BindingContext.create(LF.none, propName, propValue1));
       if (lockScope1) {
-        sut.lockScope(scope1);
+        sut.controller(scope1);
       }
       sut.hold(location);
 
@@ -533,7 +533,7 @@ describe('View', function () {
         scope2 = scope1;
       }
       if (lockScope2) {
-        sut.lockScope(scope2);
+        sut.controller(scope2);
       }
       sut.hold(location);
 

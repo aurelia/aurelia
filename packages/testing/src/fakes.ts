@@ -9,18 +9,18 @@ import {
   IMountableComponent,
   INode,
   INodeSequence,
-  IRenderable,
+  IController,
   IRenderContext,
   IRenderLocation,
   IScope,
-  IView,
+  IController,
   IViewCache,
   IViewFactory,
   LifecycleFlags,
   State
 } from '@aurelia/runtime';
 
-export class FakeRenderable<T extends INode = INode> implements IRenderable<T> {
+export class FakeRenderable<T extends INode = INode> implements IController<T> {
   public $bindingHead?: IBinding;
   public $bindingTail?: IBinding;
 
@@ -73,9 +73,9 @@ export class FakeViewFactory<T extends INode = INode> implements IViewFactory<T>
   public isCaching: boolean;
 
   public readonly lifecycle: ILifecycle;
-  public readonly createView: (factory: FakeViewFactory<T>) => IView<T>;
+  public readonly createView: (factory: FakeViewFactory<T>) => IController<T>;
 
-  constructor(name: string, createView: (factory: FakeViewFactory<T>) => IView<T>, lifecycle: ILifecycle) {
+  constructor(name: string, createView: (factory: FakeViewFactory<T>) => IController<T>, lifecycle: ILifecycle) {
     this.isCaching = false;
     this.name = name;
 
@@ -83,19 +83,19 @@ export class FakeViewFactory<T extends INode = INode> implements IViewFactory<T>
     this.createView = createView;
   }
 
-  public canReturnToCache(view: IView): boolean {
+  public canReturnToCache(view: IController): boolean {
     return false;
   }
-  public tryReturnToCache(view: IView): boolean {
+  public tryReturnToCache(view: IController): boolean {
     return false;
   }
   public setCacheSize(size: number | '*', doNotOverrideIfAlreadySet: boolean): void { return; }
-  public create(): IView<T> {
+  public create(): IController<T> {
     return this.createView(this);
   }
 }
 
-export class FakeView<T extends INode = INode> implements IView<T> {
+export class FakeView<T extends INode = INode> implements IController<T> {
   public $bindingHead?: IBinding;
   public $bindingTail?: IBinding;
 

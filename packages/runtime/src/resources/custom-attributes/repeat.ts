@@ -4,7 +4,7 @@ import { Binding } from '../../binding/binding';
 import { AttributeDefinition, IAttributeDefinition } from '../../definitions';
 import { INode, IRenderLocation } from '../../dom';
 import { LifecycleFlags, State } from '../../flags';
-import { IMountableComponent, IRenderable, IView, IViewFactory } from '../../lifecycle';
+import { IMountableComponent, IController, IController, IViewFactory } from '../../lifecycle';
 import { CollectionObserver, IBatchedCollectionSubscriber, IndexMap, IObservedArray, IScope, ObservedCollection } from '../../observation';
 import { BindingContext, BindingContextValue, Scope } from '../../observation/binding-context';
 import { getCollectionObserver } from '../../observation/observer-locator';
@@ -14,7 +14,7 @@ import { CustomAttributeResource, ICustomAttribute, ICustomAttributeResource } f
 
 export interface Repeat<C extends ObservedCollection, T extends INode = INode> extends ICustomAttribute<T>, IBatchedCollectionSubscriber {}
 export class Repeat<C extends ObservedCollection = IObservedArray, T extends INode = INode> implements Repeat<C, T> {
-  public static readonly inject: InjectArray = [IRenderLocation, IRenderable, IViewFactory];
+  public static readonly inject: InjectArray = [IRenderLocation, IController, IViewFactory];
 
   public static readonly register: IRegistry['register'];
   public static readonly bindables: IAttributeDefinition['bindables'];
@@ -30,16 +30,16 @@ export class Repeat<C extends ObservedCollection = IObservedArray, T extends INo
   public local!: string;
   public location: IRenderLocation<T>;
   public observer: CollectionObserver | null;
-  public renderable: IRenderable<T>;
+  public renderable: IController<T>;
   public factory: IViewFactory<T>;
-  public views: IView<T>[];
+  public views: IController<T>[];
   public key: string | null;
   public keyed: boolean;
   private persistentFlags!: LifecycleFlags;
 
   constructor(
     location: IRenderLocation<T>,
-    renderable: IRenderable<T>,
+    renderable: IController<T>,
     factory: IViewFactory<T>
   ) {
     this.factory = factory;
@@ -74,7 +74,7 @@ export class Repeat<C extends ObservedCollection = IObservedArray, T extends INo
 
   public attaching(flags: LifecycleFlags): void {
     const { views, location } = this;
-    let view: IView;
+    let view: IController;
     for (let i = 0, ii = views.length; i < ii; ++i) {
       view = views[i];
       view.hold(location);
@@ -84,7 +84,7 @@ export class Repeat<C extends ObservedCollection = IObservedArray, T extends INo
 
   public detaching(flags: LifecycleFlags): void {
     const { views } = this;
-    let view: IView;
+    let view: IController;
     for (let i = 0, ii = views.length; i < ii; ++i) {
       view = views[i];
       view.$detach(flags);
@@ -96,7 +96,7 @@ export class Repeat<C extends ObservedCollection = IObservedArray, T extends INo
     this.checkCollectionObserver(flags);
 
     const { views } = this;
-    let view: IView;
+    let view: IController;
     for (let i = 0, ii = views.length; i < ii; ++i) {
       view = views[i];
       view.$unbind(flags);
@@ -132,7 +132,7 @@ export class Repeat<C extends ObservedCollection = IObservedArray, T extends INo
   // TODO: Reduce complexity (currently at 46)
   private processViewsNonKeyed(indexMap: number[] | null, flags: LifecycleFlags): void {
     const { views, $lifecycle } = this;
-    let view: IView;
+    let view: IController;
     if (this.$state! & (State.isBound | State.isBinding)) {
       const { local, $scope, factory, forOf, items } = this;
       const oldLength = views.length;
@@ -216,7 +216,7 @@ export class Repeat<C extends ObservedCollection = IObservedArray, T extends INo
       if (this.$state! & (State.isBound | State.isBinding)) {
         $lifecycle!.beginDetach();
         const oldLength = views.length;
-        let view: IView;
+        let view: IController;
         for (let i = 0; i < oldLength; ++i) {
           view = views[i];
           view.release(flags);
@@ -244,7 +244,7 @@ export class Repeat<C extends ObservedCollection = IObservedArray, T extends INo
       if (this.$state! & (State.isAttached | State.isAttaching)) {
         const { location } = this;
         $lifecycle!.beginAttach();
-        let view: IView;
+        let view: IController;
         const len = views.length;
         for (let i = 0; i < len; ++i) {
           view = views[i];
@@ -255,7 +255,7 @@ export class Repeat<C extends ObservedCollection = IObservedArray, T extends INo
       }
     } else {
       const mapLen = indexMap.length;
-      let view: IView<T>;
+      let view: IController<T>;
       const deleted = indexMap.deletedItems;
       const deletedLen = deleted!.length;
       let i = 0;

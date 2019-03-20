@@ -9,7 +9,7 @@
 //   IDOM,
 //   ILifecycle,
 //   IObservedArray,
-//   IView,
+//   IController,
 //   Lifecycle,
 //   LifecycleFlags,
 //   ObservedCollection,
@@ -28,7 +28,7 @@
 //   items: new ForOfStatement(new BindingIdentifier('item'), new AccessScope('items'))
 // };
 
-// function verifyViewBindingContexts(views: IView[], items: any[]): void {
+// function verifyViewBindingContexts(views: IController[], items: any[]): void {
 //   if (items == null) {
 //     return;
 //   }

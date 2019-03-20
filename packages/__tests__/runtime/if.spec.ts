@@ -3,7 +3,7 @@ import {
   Else,
   IComponent,
   If,
-  IView,
+  IController,
   LifecycleFlags,
   ICustomAttributeType,
   ILifecycle
@@ -24,7 +24,7 @@ describe('The "if" template controller', function () {
     ifAttr.$bind(LifecycleFlags.fromBind, createScopeForTest());
 
     const child = getCurrentView(ifAttr as If<AuNode>);
-    const ifView = ifAttr['ifView'] as IView<AuNode>;
+    const ifView = ifAttr['ifView'] as IController<AuNode>;
 
     expect(child).not.to.equal(null);
     expect(child).to.equal(ifView);
@@ -50,7 +50,7 @@ describe('The "if" template controller', function () {
 
     ifAttr.value = false;
 
-    let ifView = ifAttr['ifView'] as IView<AuNode>;
+    let ifView = ifAttr['ifView'] as IController<AuNode>;
     expect(ifView).to.have.$state.isAttached();
     expect(ifView).to.have.$state.isBound();
 
@@ -65,7 +65,7 @@ describe('The "if" template controller', function () {
     expect(child).to.equal(null);
     expect(location.previousSibling).to.equal(location.$start);
 
-    ifView = ifAttr['ifView'] as IView<AuNode>;
+    ifView = ifAttr['ifView'] as IController<AuNode>;
     expect(ifView).to.not.have.$state.isAttached();
     expect(ifView).to.not.have.$state.isBound();
   });
@@ -82,7 +82,7 @@ describe('The "if" template controller', function () {
     ifAttr.value = false;
 
     let child = getCurrentView(ifAttr as If<AuNode>);
-    let elseView = ifAttr['elseView'] as IView<AuNode>;
+    let elseView = ifAttr['elseView'] as IController<AuNode>;
 
     expect(child).not.to.equal(null);
     expect(elseView).to.equal(undefined);
@@ -90,7 +90,7 @@ describe('The "if" template controller', function () {
     lifecycle.processFlushQueue(LifecycleFlags.none);
 
     child = getCurrentView(ifAttr as If<AuNode>);
-    elseView = ifAttr['elseView'] as IView<AuNode>;
+    elseView = ifAttr['elseView'] as IController<AuNode>;
     expect(child).not.to.equal(null);
     expect(child).to.equal(elseView);
     expect(elseView).to.be.instanceof(FakeView);
@@ -109,7 +109,7 @@ describe('The "if" template controller', function () {
     ifAttr.value = true;
     ifAttr.$bind(LifecycleFlags.fromBind, createScopeForTest());
 
-    const ifView = ifAttr['ifView'] as IView<AuNode>;
+    const ifView = ifAttr['ifView'] as IController<AuNode>;
 
     runAttachLifecycle(lifecycle, ifAttr);
     runDetachLifecycle(lifecycle, ifAttr);
@@ -124,7 +124,7 @@ describe('The "if" template controller', function () {
     ifAttr.value = true;
     ifAttr.$bind(LifecycleFlags.fromBind, createScopeForTest());
 
-    const ifView = ifAttr['ifView'] as IView<AuNode>;
+    const ifView = ifAttr['ifView'] as IController<AuNode>;
 
     ifAttr.$unbind(LifecycleFlags.fromUnbind);
 
@@ -132,8 +132,8 @@ describe('The "if" template controller', function () {
     expect(ifAttr).to.not.have.$state.isBound();
   });
 
-  function getCurrentView(ifAttr: If<AuNode>): IView<AuNode> {
-    return ifAttr['coordinator']['currentView'] as IView<AuNode>;
+  function getCurrentView(ifAttr: If<AuNode>): IController<AuNode> {
+    return ifAttr['coordinator']['currentView'] as IController<AuNode>;
   }
 
   function runAttachLifecycle(lifecycle: ILifecycle, item: IComponent) {

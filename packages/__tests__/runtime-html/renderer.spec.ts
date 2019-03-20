@@ -5,7 +5,7 @@ import {
   DelegationStrategy,
   Interpolation,
   InterpolationBinding,
-  IRenderable,
+  IController,
   IRenderContext,
   IRenderer,
   IRenderingEngine,
@@ -31,8 +31,8 @@ describe('Renderer', function () {
     const ctx = TestContext.createHTMLTestContext();
     const { dom, container } = ctx;
     IExpressionParserRegistration.register(container);
-    const renderable: IRenderable = { $bindingHead: null, $bindingTail: null, $componentHead: null, $componentTail: null, $context: null, $nodes: null, $scope: null };
-    container.register(Registration.instance(IRenderable, renderable));
+    const renderable: IController = { $bindingHead: null, $bindingTail: null, $componentHead: null, $componentTail: null, $context: null, $nodes: null, $scope: null };
+    container.register(Registration.instance(IController, renderable));
     const wrapper = ctx.createElementFromMarkup('<div><au-target class="au"></au-target> </div>');
     dom.appendChild(ctx.doc.body, wrapper);
     const target = wrapper.firstElementChild as HTMLElement;

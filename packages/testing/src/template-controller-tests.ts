@@ -15,7 +15,7 @@ import {
   ILifecycle,
   INode,
   IRenderLocation,
-  IView,
+  IController,
   IViewFactory,
   LifecycleFlags as LF
 } from '@aurelia/runtime';
@@ -26,7 +26,7 @@ import { createScopeForTest } from './test-builder';
 
 export function ensureSingleChildTemplateControllerBehaviors<T extends ICustomAttributeType>(
   Type: T,
-  getChildView: (attribute: ICustomAttribute<AuNode>) => IView<AuNode>
+  getChildView: (attribute: ICustomAttribute<AuNode>) => IController<AuNode>
 ) {
   it('creates a child instance from its template', function () {
     const { attribute } = hydrateCustomAttribute(Type);
@@ -141,7 +141,7 @@ export function hydrateCustomAttribute<T extends ICustomAttributeType>(
   if (AttributeType.description.isTemplateController) {
     const loc = AuNode.createRenderLocation();
     AuNode.createHost().appendChild(loc.$start!).appendChild(loc);
-    const createView: (factory: FakeViewFactory) => IView = factory => {
+    const createView: (factory: FakeViewFactory) => IController = factory => {
       const view = new FakeView(lifecycle, factory);
       view.$nodes = new AuNodeSequence(new AuDOM(), AuNode.createTemplate().appendChild(AuNode.createText()));
       return view;

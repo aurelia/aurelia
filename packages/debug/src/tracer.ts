@@ -457,9 +457,9 @@ const LifecycleArgsProcessor = {
   CompositionCoordinator(info: ITraceInfo): string {
     switch (info.methodName) {
       case 'enqueue':
-        return 'IView';
+        return 'IController';
       case 'swap':
-        return `IView,${flagsText(info, 1)}`;
+        return `IController,${flagsText(info, 1)}`;
       case 'processNext':
         return '';
       default:

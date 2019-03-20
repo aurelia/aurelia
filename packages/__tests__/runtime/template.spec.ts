@@ -8,7 +8,7 @@ import {
   createRenderContext,
   IDOM,
   INode,
-  IRenderable,
+  IController,
   IRenderLocation,
   ITargetedInstruction,
   IViewFactory,
@@ -34,7 +34,7 @@ describe('createRenderContext', function () {
     expect(sut['parent']).to.equal(parent, `sut['parent']`);
 
     expect(sut.has(IViewFactory, false)).to.equal(true, `sut.has(IViewFactory, false)`);
-    expect(sut.has(IRenderable, false)).to.equal(true, `sut.has(IRenderable, false)`);
+    expect(sut.has(IController, false)).to.equal(true, `sut.has(IController, false)`);
     expect(sut.has(ITargetedInstruction, false)).to.equal(true, `sut.has(ITargetedInstruction, false)`);
     expect(sut.has(IRenderLocation, false)).to.equal(true, `sut.has(IRenderLocation, false)`);
     expect(sut.has(Foo, false)).to.equal(true, `sut.has(Foo, false)`);
@@ -47,7 +47,7 @@ describe('createRenderContext', function () {
     expect(typeof sut['dispose']).to.equal('function', `typeof sut['dispose']`);
 
     expect(() => sut.get(IViewFactory)).to.throw(/50/);
-    expect(sut.get(IRenderable)).to.equal(null, `sut.get(IRenderable)`);
+    expect(sut.get(IController)).to.equal(null, `sut.get(IController)`);
     expect(sut.get(ITargetedInstruction)).to.equal(null, `sut.get(ITargetedInstruction)`);
     expect(sut.get(IRenderLocation)).to.equal(null, `sut.get(IRenderLocation)`);
 
@@ -60,7 +60,7 @@ describe('createRenderContext', function () {
     sut.beginComponentOperation(renderable, target, instruction, viewFactory as any, parts, location);
 
     expect(() => sut.get(IViewFactory)).to.throw(/51/);
-    expect(sut.get(IRenderable)).to.equal(renderable, `sut.get(IRenderable)`);
+    expect(sut.get(IController)).to.equal(renderable, `sut.get(IController)`);
     expect(sut.get(INode)).to.equal(target, `sut.get(INode)`);
     expect(sut.get(AuNode)).to.equal(target, `sut.get(AuNode)`);
     expect(sut.get(ITargetedInstruction)).to.equal(instruction, `sut.get(ITargetedInstruction)`);

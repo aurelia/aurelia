@@ -8,11 +8,11 @@ import {
   IDOM,
   IHydrateElementInstruction,
   INode,
-  IRenderable,
+  IController,
   IRenderingEngine,
   ITargetedInstruction,
   ITemplateDefinition,
-  IView,
+  IController,
   IViewFactory,
   LifecycleFlags,
   TargetedInstruction,
@@ -27,12 +27,12 @@ const composeSource: ITemplateDefinition = {
 
 const composeProps = ['subject', 'composing'];
 
-export type Subject<T extends INode = Node> = IViewFactory<T> | IView<T> | RenderPlan<T> | Constructable | TemplateDefinition;
+export type Subject<T extends INode = Node> = IViewFactory<T> | IController<T> | RenderPlan<T> | Constructable | TemplateDefinition;
 export type MaybeSubjectPromise<T> = Subject<T> | Promise<Subject<T>> | null;
 
 export interface Compose<T extends INode = Node> extends ICustomElement<T> {}
 export class Compose<T extends INode = Node> implements Compose<T> {
-  public static readonly inject: InjectArray = [IDOM, IRenderable, ITargetedInstruction, IRenderingEngine, CompositionCoordinator];
+  public static readonly inject: InjectArray = [IDOM, IController, ITargetedInstruction, IRenderingEngine, CompositionCoordinator];
 
   public static readonly register: IRegistry['register'];
   public static readonly kind: ICustomElementResource<Node>;
@@ -47,13 +47,13 @@ export class Compose<T extends INode = Node> implements Compose<T> {
   private readonly dom: IDOM;
   private readonly coordinator: CompositionCoordinator;
   private readonly properties: Record<string, TargetedInstruction>;
-  private readonly renderable: IRenderable<T>;
+  private readonly renderable: IController<T>;
   private readonly renderingEngine: IRenderingEngine;
   private lastSubject: MaybeSubjectPromise<T>;
 
   constructor(
     dom: IDOM<T>,
-    renderable: IRenderable<T>,
+    renderable: IController<T>,
     instruction: IHydrateElementInstruction,
     renderingEngine: IRenderingEngine,
     coordinator: CompositionCoordinator
@@ -119,16 +119,16 @@ export class Compose<T extends INode = Node> implements Compose<T> {
     this.lastSubject = subject;
 
     if (subject instanceof Promise) {
-      subject = subject.then(x => this.resolveView(x, flags)) as Promise<IView<T>>;
+      subject = subject.then(x => this.resolveView(x, flags)) as Promise<IController<T>>;
     } else {
       subject = this.resolveView(subject, flags);
     }
 
     this.composing = true;
-    this.coordinator.compose(subject as IView<T> | Promise<IView<T>>, flags);
+    this.coordinator.compose(subject as IController<T> | Promise<IController<T>>, flags);
   }
 
-  private resolveView(subject: Subject<T> | null, flags: LifecycleFlags): IView<T> | null {
+  private resolveView(subject: Subject<T> | null, flags: LifecycleFlags): IController<T> | null {
     const view = this.provideViewFor(subject, flags);
 
     if (view) {
@@ -140,12 +140,12 @@ export class Compose<T extends INode = Node> implements Compose<T> {
     return null;
   }
 
-  private provideViewFor(subject: Subject<T> | null, flags: LifecycleFlags): IView<T> | null {
+  private provideViewFor(subject: Subject<T> | null, flags: LifecycleFlags): IController<T> | null {
     if (!subject) {
       return null;
     }
 
-    if ('lockScope' in subject) { // IView
+    if ('lockScope' in subject) { // IController
       return subject;
     }
 
@@ -154,7 +154,7 @@ export class Compose<T extends INode = Node> implements Compose<T> {
         flags,
         this.renderingEngine,
         this.renderable.$context
-      ) as IView<T>;
+      ) as IController<T>;
     }
 
     if ('create' in subject) { // IViewFactory
@@ -166,7 +166,7 @@ export class Compose<T extends INode = Node> implements Compose<T> {
         this.dom,
         subject,
         this.renderable.$context
-      ).create() as IView<T>;
+      ).create() as IController<T>;
     }
 
     // Constructable (Custom Element Constructor)
@@ -179,7 +179,7 @@ export class Compose<T extends INode = Node> implements Compose<T> {
       flags,
       this.renderingEngine,
       this.renderable.$context
-    ) as IView<T>;
+    ) as IController<T>;
   }
 }
 CustomElementResource.define(composeSource, Compose);

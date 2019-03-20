@@ -30,7 +30,7 @@ import { IDOM, INode, INodeSequenceFactory, IRenderLocation, NodeSequence } from
 import { LifecycleFlags } from './flags';
 import {
   ILifecycle,
-  IRenderable,
+  IController,
   IRenderContext,
   IViewFactory
 } from './lifecycle';
@@ -76,11 +76,11 @@ export const ITemplateFactory = DI.createInterface<ITemplateFactory>('ITemplateF
 export interface ITemplate<T extends INode = INode> {
   readonly renderContext: IRenderContext<T>;
   readonly dom: IDOM<T>;
-  render(renderable: IRenderable<T>, host?: T, parts?: Record<string, ITemplateDefinition>, flags?: LifecycleFlags): void;
+  render(renderable: IController<T>, host?: T, parts?: Record<string, ITemplateDefinition>, flags?: LifecycleFlags): void;
 }
 
 // This is the main implementation of ITemplate.
-// It is used to create instances of IView based on a compiled TemplateDefinition.
+// It is used to create instances of IController based on a compiled TemplateDefinition.
 // TemplateDefinitions are hand-coded today, but will ultimately be the output of the
 // TemplateCompiler either through a JIT or AOT process.
 // Essentially, CompiledTemplate wraps up the small bit of code that is needed to take a TemplateDefinition
@@ -99,9 +99,9 @@ export class CompiledTemplate<T extends INode = INode> implements ITemplate {
     this.renderContext = renderContext;
   }
 
-  public render(renderable: IRenderable<T>, host?: T, parts?: TemplatePartDefinitions, flags: LifecycleFlags = LifecycleFlags.none): void {
-    const nodes = (renderable as Writable<IRenderable>).$nodes = this.factory.createNodeSequence();
-    (renderable as Writable<IRenderable>).$context = this.renderContext;
+  public render(renderable: IController<T>, host?: T, parts?: TemplatePartDefinitions, flags: LifecycleFlags = LifecycleFlags.none): void {
+    const nodes = (renderable as Writable<IController>).$nodes = this.factory.createNodeSequence();
+    (renderable as Writable<IController>).$context = this.renderContext;
     flags |= this.definition.strategy;
     this.renderContext.render(flags, renderable, nodes.findTargets(), this.definition, host, parts);
   }
@@ -112,9 +112,9 @@ export class CompiledTemplate<T extends INode = INode> implements ITemplate {
 export const noViewTemplate: ITemplate = {
   renderContext: null!,
   dom: null!,
-  render(renderable: IRenderable): void {
-    (renderable as Writable<IRenderable>).$nodes = NodeSequence.empty;
-    (renderable as Writable<IRenderable>).$context = null!;
+  render(renderable: IController): void {
+    (renderable as Writable<IController>).$nodes = NodeSequence.empty;
+    (renderable as Writable<IController>).$context = null!;
   }
 };
 
@@ -125,7 +125,7 @@ export interface IInstructionTypeClassifier<TType extends string = string> {
 }
 
 export interface IInstructionRenderer<TType extends InstructionTypeName = InstructionTypeName> extends Partial<IInstructionTypeClassifier<TType>> {
-  render(flags: LifecycleFlags, dom: IDOM, context: IRenderContext, renderable: IRenderable, target: unknown, instruction: ITargetedInstruction, ...rest: unknown[]): void;
+  render(flags: LifecycleFlags, dom: IDOM, context: IRenderContext, renderable: IController, target: unknown, instruction: ITargetedInstruction, ...rest: unknown[]): void;
 }
 
 export const IInstructionRenderer = DI.createInterface<IInstructionRenderer>('IInstructionRenderer').noDefault();
@@ -136,7 +136,7 @@ export interface IRenderer {
     flags: LifecycleFlags,
     dom: IDOM,
     context: IRenderContext,
-    renderable: IRenderable,
+    renderable: IController,
     targets: ArrayLike<INode>,
     templateDefinition: TemplateDefinition,
     host?: INode,
@@ -299,7 +299,7 @@ export function createRenderContext(
   dom.registerElementResolver(context, elementProvider);
 
   context.registerResolver(IViewFactory, factoryProvider);
-  context.registerResolver(IRenderable, renderableProvider);
+  context.registerResolver(IController, renderableProvider);
   context.registerResolver(ITargetedInstruction, instructionProvider);
   context.registerResolver(IRenderLocation, renderLocationProvider);
 
@@ -312,12 +312,12 @@ export function createRenderContext(
     componentType.register(context);
   }
 
-  context.render = function(this: IRenderContext, flags: LifecycleFlags, renderable: IRenderable, targets: ArrayLike<INode>, templateDefinition: TemplateDefinition, host?: INode, parts?: TemplatePartDefinitions): void {
+  context.render = function(this: IRenderContext, flags: LifecycleFlags, renderable: IController, targets: ArrayLike<INode>, templateDefinition: TemplateDefinition, host?: INode, parts?: TemplatePartDefinitions): void {
     renderer.render(flags, dom, this, renderable, targets, templateDefinition, host, parts);
   };
 
   // @ts-ignore
-  context.beginComponentOperation = function(renderable: IRenderable, target: INode, instruction: ITargetedInstruction, factory: IViewFactory | null, parts?: TemplatePartDefinitions, location?: IRenderLocation): IDisposable {
+  context.beginComponentOperation = function(renderable: IController, target: INode, instruction: ITargetedInstruction, factory: IViewFactory | null, parts?: TemplatePartDefinitions, location?: IRenderLocation): IDisposable {
     renderableProvider.prepare(renderable);
     elementProvider.prepare(target);
     instructionProvider.prepare(instruction);

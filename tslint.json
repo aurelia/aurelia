@@ -117,7 +117,7 @@
     ],
     "switch-default": false,
     "switch-final-break": true,
-    "triple-equals": [true, "allow-null-check"],
+    "triple-equals": [false],
     "use-isnan": true,
     "use-named-parameter": true,
 

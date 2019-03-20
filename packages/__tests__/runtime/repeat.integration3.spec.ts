@@ -13,7 +13,7 @@ import {
   ILifecycle,
   IObservedArray,
   IObserverLocator,
-  IRenderable,
+  IController,
   IScope,
   ITemplate,
   LifecycleFlags,
@@ -612,7 +612,7 @@ describe(`Repeat`, function () {
         targetProperty: 'items',
         sourceExpression: new ForOfStatement(new BindingIdentifier('item'), new AccessScope('items'))
       } as any;
-      const renderable: IRenderable<AuNode> = {
+      const renderable: IController<AuNode> = {
         $bindingHead: binding
       } as any;
       let sut: Repeat<IObservedArray, AuNode>;

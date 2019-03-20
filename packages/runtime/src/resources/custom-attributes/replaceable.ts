@@ -24,7 +24,7 @@ import {
   isBound,
   isNotAttached,
   isNotBound,
-  IView,
+  IController,
   IViewFactory,
   setAttached,
   setAttaching,
@@ -61,7 +61,7 @@ export class Replaceable<T extends INode = INode> implements Replaceable<T> {
   public $state: State;
   public $scope: IScope;
 
-  private readonly currentView: IView<T>;
+  private readonly currentView: IController<T>;
   private readonly factory: IViewFactory<T>;
 
   constructor(

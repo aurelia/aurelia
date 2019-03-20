@@ -36,7 +36,7 @@ import {
   Interpolation,
   IObserverLocator,
   IObserverLocatorRegistration,
-  IRenderable,
+  IController,
   IRenderingEngine,
   IsBindingBehavior,
   IScope,
@@ -45,7 +45,7 @@ import {
   ITargetObserverLocator,
   ITemplateDefinition,
   IteratorBindingInstruction,
-  IView,
+  IController,
   IViewFactory,
   LifecycleFlags as LF,
   OverrideContext,
@@ -552,7 +552,7 @@ export function hydrateCustomElement<T>(Type: Constructable<T>, ctx: HTMLTestCon
   const ElementType: ICustomElementType = Type as any;
   const parent = ctx.createElement('div');
   const host = ctx.createElement(ElementType.description.name);
-  const createView = (factory: IViewFactory<T>): IView<T> => {
+  const createView = (factory: IViewFactory<T>): IController<T> => {
     const view = new FakeView(ctx.lifecycle, factory);
     view.$nodes = new NodeSequenceFactory(dom, '<div>Fake View</div>').createNodeSequence() as INodeSequence<T>;
     return view;
@@ -575,7 +575,7 @@ export function hydrateCustomElement<T>(Type: Constructable<T>, ctx: HTMLTestCon
   instructionProvider.prepare(instruction);
 
   container.register(ElementType);
-  container.registerResolver(IRenderable, renderableProvider);
+  container.registerResolver(IController, renderableProvider);
   container.registerResolver(ITargetedInstruction, instructionProvider);
   dom.registerElementResolver(container, elementProvider);
 

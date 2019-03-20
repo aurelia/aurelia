@@ -25,7 +25,7 @@ import {
   ILifecycle,
   INode,
   INodeSequence,
-  IRenderable,
+  IController,
   IRenderContext,
   IRenderer,
   IRenderingEngine,
@@ -65,7 +65,7 @@ export class MockBindingBehavior {
 export type IComponentLifecycleMock = InstanceType<ReturnType<typeof defineComponentLifecycleMock>>;
 
 export function defineComponentLifecycleMock() {
-  return class ComponentLifecycleMock<T extends INode = INode> implements IRenderable<T> {
+  return class ComponentLifecycleMock<T extends INode = INode> implements IController<T> {
     public $state: State;
     public $scope: IScope;
     public $nodes!: INodeSequence<T>;
@@ -468,9 +468,9 @@ export class MockTextNodeTemplate {
     public container: any
   ) {}
 
-  public render(renderable: Partial<IRenderable>, host?: INode, parts?: TemplatePartDefinitions): void {
-    const nodes = (renderable as Writable<IRenderable>).$nodes = new MockTextNodeSequence(undefined!);
-    addBinding(renderable as IRenderable, new Binding(this.sourceExpression, nodes.firstChild, 'textContent', BindingMode.toView, this.observerLocator, this.container));
+  public render(renderable: Partial<IController>, host?: INode, parts?: TemplatePartDefinitions): void {
+    const nodes = (renderable as Writable<IController>).$nodes = new MockTextNodeSequence(undefined!);
+    addBinding(renderable as IController, new Binding(this.sourceExpression, nodes.firstChild, 'textContent', BindingMode.toView, this.observerLocator, this.container));
   }
 }
 
@@ -488,8 +488,8 @@ export class MockIfTextNodeTemplate {
     public container: any
   ) {}
 
-  public render(renderable: Partial<IRenderable>, host?: INode, parts?: TemplatePartDefinitions): void {
-    const nodes = (renderable as Writable<IRenderable>).$nodes = MockNodeSequence.createRenderLocation(undefined!);
+  public render(renderable: Partial<IController>, host?: INode, parts?: TemplatePartDefinitions): void {
+    const nodes = (renderable as Writable<IController>).$nodes = MockNodeSequence.createRenderLocation(undefined!);
 
     const observerLocator = new ObserverLocator(this.lifecycle, null, null, null);
     const factory = new ViewFactory(null!, new MockTextNodeTemplate(expressions.if, observerLocator, this.container) as any, this.lifecycle);
@@ -503,8 +503,8 @@ export class MockIfTextNodeTemplate {
     const behavior = RuntimeBehavior.create(If as any);
     behavior.applyTo(LifecycleFlags.none, sut, this.lifecycle);
 
-    addComponent(renderable as IRenderable, sut);
-    addBinding(renderable as IRenderable, new Binding(this.sourceExpression, sut, 'value', BindingMode.toView, this.observerLocator, this.container));
+    addComponent(renderable as IController, sut);
+    addBinding(renderable as IController, new Binding(this.sourceExpression, sut, 'value', BindingMode.toView, this.observerLocator, this.container));
   }
 }
 
@@ -517,8 +517,8 @@ export class MockIfElseTextNodeTemplate {
     public container: any
   ) {}
 
-  public render(renderable: Partial<IRenderable>, host?: INode, parts?: TemplatePartDefinitions): void {
-    const ifNodes = (renderable as Writable<IRenderable>).$nodes = MockNodeSequence.createRenderLocation(undefined!);
+  public render(renderable: Partial<IController>, host?: INode, parts?: TemplatePartDefinitions): void {
+    const ifNodes = (renderable as Writable<IController>).$nodes = MockNodeSequence.createRenderLocation(undefined!);
 
     const observerLocator = new ObserverLocator(this.lifecycle, null, null, null);
     const ifFactory = new ViewFactory(null!, new MockTextNodeTemplate(expressions.if, observerLocator, this.container) as any, this.lifecycle);
@@ -532,8 +532,8 @@ export class MockIfElseTextNodeTemplate {
     const ifBehavior = RuntimeBehavior.create(If as any);
     ifBehavior.applyTo(LifecycleFlags.none, ifSut, this.lifecycle);
 
-    addComponent(renderable as IRenderable, ifSut);
-    addBinding(renderable as IRenderable, new Binding(this.sourceExpression, ifSut, 'value', BindingMode.toView, this.observerLocator, this.container));
+    addComponent(renderable as IController, ifSut);
+    addBinding(renderable as IController, new Binding(this.sourceExpression, ifSut, 'value', BindingMode.toView, this.observerLocator, this.container));
 
     const elseFactory = new ViewFactory(null!, new MockTextNodeTemplate(expressions.else, observerLocator, this.container) as any, this.lifecycle);
 
@@ -548,8 +548,8 @@ export class MockIfElseTextNodeTemplate {
     const elseBehavior = RuntimeBehavior.create(Else as any);
     elseBehavior.applyTo(LifecycleFlags.none, elseSut as any, this.lifecycle);
 
-    addComponent(renderable as IRenderable, elseSut as any);
-    addBinding(renderable as IRenderable, new Binding(this.sourceExpression, elseSut, 'value', BindingMode.toView, this.observerLocator, this.container));
+    addComponent(renderable as IController, elseSut as any);
+    addBinding(renderable as IController, new Binding(this.sourceExpression, elseSut, 'value', BindingMode.toView, this.observerLocator, this.container));
   }
 }
 

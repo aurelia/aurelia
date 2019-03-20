@@ -20,7 +20,7 @@
 //   Interpolation,
 //   IObservedArray,
 //   ITemplateDefinition,
-//   IView,
+//   IController,
 //   Lifecycle,
 //   LifecycleFlags,
 //   ObservedCollection,
@@ -47,7 +47,7 @@
 //   show: new AccessScope('show', 0)
 // };
 
-// function verifyViewBindingContexts(views: IView[], items: any[]): void {
+// function verifyViewBindingContexts(views: IController[], items: any[]): void {
 //   if (items == null) {
 //     return;
 //   }

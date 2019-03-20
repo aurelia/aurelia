@@ -36,7 +36,7 @@ import {
   instructionRenderer,
   IObserverLocator,
   IProjectorLocator,
-  IRenderable,
+  IController,
   IRenderContext,
   IRenderLocation,
   IsBindingBehavior,
@@ -610,7 +610,7 @@ export class AuTextRenderer implements IInstructionRenderer {
     this.observerLocator = observerLocator;
   }
 
-  public render(flags: LifecycleFlags, dom: IDOM, context: IRenderContext<AuNode>, renderable: IRenderable<AuNode>, target: AuNode, instruction: AuTextInstruction): void {
+  public render(flags: LifecycleFlags, dom: IDOM, context: IRenderContext<AuNode>, renderable: IController<AuNode>, target: AuNode, instruction: AuTextInstruction): void {
     if (Tracer.enabled) { Tracer.enter('AuTextRenderer', 'render', slice.call(arguments)); }
     let realTarget: AuNode;
     if (target.isRenderLocation) {

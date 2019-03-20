@@ -5,7 +5,6 @@ import {
   IContainer,
   IResourceKind,
   IResourceType,
-  IServiceLocator,
   Registration,
   Reporter,
   Writable
@@ -15,42 +14,22 @@ import {
   customElementBehavior,
   customElementKey,
   customElementName,
-  IElementHydrationOptions,
   ITemplateDefinition,
   TemplateDefinition
 } from '../definitions';
 import { IDOM, INode, INodeSequence, IRenderLocation } from '../dom';
-import { Hooks, LifecycleFlags } from '../flags';
 import {
   ILifecycleHooks,
-  IMountableComponent,
-  IRenderable
 } from '../lifecycle';
-import { IChangeTracker } from '../observation';
-import {
-  $attachElement,
-  $cacheElement,
-  $detachElement,
-  $mountElement,
-  $unmountElement
-} from '../templating/lifecycle-attach';
-import {
-  $bindElement,
-  $unbindElement
-} from '../templating/lifecycle-bind';
-import {
-  $hydrateElement,
-  ILifecycleRender
-} from '../templating/lifecycle-render';
 
-export interface ICustomElementType<T extends INode = INode, C extends Constructable = Constructable> extends
-  IResourceType<ITemplateDefinition, InstanceType<C> & ICustomElement<T>>,
+export interface ICustomElementType<C extends Constructable = Constructable> extends
+  IResourceType<ITemplateDefinition, InstanceType<C> & ILifecycleHooks>,
   ICustomElementStaticProperties {
   description: TemplateDefinition;
 }
 
 export type CustomElementHost<T extends INode = INode> = IRenderLocation<T> & T & {
-  $customElement?: ICustomElement<T>;
+  $customElement?: ILifecycleHooks;
 };
 
 export interface IElementProjector<T extends INode = INode> {
@@ -67,7 +46,7 @@ export interface IElementProjector<T extends INode = INode> {
 export const IProjectorLocator = DI.createInterface<IProjectorLocator>('IProjectorLocator').noDefault();
 
 export interface IProjectorLocator<T extends INode = INode> {
-  getElementProjector(dom: IDOM<T>, $component: ICustomElement<T>, host: CustomElementHost<T>, def: TemplateDefinition): IElementProjector<T>;
+  getElementProjector(dom: IDOM<T>, $component: ILifecycleHooks, host: CustomElementHost<T>, def: TemplateDefinition): IElementProjector<T>;
 }
 
 export interface ICustomElementStaticProperties {
@@ -77,22 +56,9 @@ export interface ICustomElementStaticProperties {
   strategy?: TemplateDefinition['strategy'];
 }
 
-export interface ICustomElement<T extends INode = INode> extends
-  Partial<IChangeTracker>,
-  ILifecycleHooks,
-  ILifecycleRender,
-  IMountableComponent,
-  IRenderable<T> {
-
-  readonly $projector: IElementProjector<T>;
-  readonly $host: CustomElementHost<T>;
-
-  $hydrate(flags: LifecycleFlags, parentContext: IServiceLocator, host: INode, options?: IElementHydrationOptions): void;
-}
-
 export interface ICustomElementResource<T extends INode = INode> extends
-  IResourceKind<ITemplateDefinition, ICustomElement<T>, Class<ICustomElement<T>> & ICustomElementStaticProperties> {
-  behaviorFor(node: T): ICustomElement<T> | null;
+  IResourceKind<ITemplateDefinition, ILifecycleHooks, Class<ILifecycleHooks> & ICustomElementStaticProperties> {
+  behaviorFor(node: T): ILifecycleHooks | null;
 }
 
 /** @internal */
@@ -116,45 +82,20 @@ function isType<T>(this: ICustomElementResource, Type: T & Partial<ICustomElemen
   return Type.kind === this;
 }
 
-function define<N extends INode = INode, T extends Constructable = Constructable>(this: ICustomElementResource, definition: ITemplateDefinition, ctor?: T | null): T & ICustomElementType<N, T>;
-function define<N extends INode = INode, T extends Constructable = Constructable>(this: ICustomElementResource, name: string, ctor?: T | null): T & ICustomElementType<N, T>;
-function define<N extends INode = INode, T extends Constructable = Constructable>(this: ICustomElementResource, nameOrDefinition: string | ITemplateDefinition, ctor: T | null): T & ICustomElementType<N, T>;
-function define<N extends INode = INode, T extends Constructable = Constructable>(this: ICustomElementResource, nameOrDefinition: string | ITemplateDefinition, ctor: T | null = null): T & ICustomElementType<N, T> {
+function define<T extends Constructable = Constructable>(this: ICustomElementResource, definition: ITemplateDefinition, ctor?: T | null): T & ICustomElementType<T>;
+function define<T extends Constructable = Constructable>(this: ICustomElementResource, name: string, ctor?: T | null): T & ICustomElementType<T>;
+function define<T extends Constructable = Constructable>(this: ICustomElementResource, nameOrDefinition: string | ITemplateDefinition, ctor: T | null): T & ICustomElementType<T>;
+function define<T extends Constructable = Constructable>(this: ICustomElementResource, nameOrDefinition: string | ITemplateDefinition, ctor: T | null = null): T & ICustomElementType<T> {
   if (!nameOrDefinition) {
     throw Reporter.error(70);
   }
-  const Type = (ctor == null ? class HTMLOnlyElement { /* HTML Only */ } : ctor) as T & ICustomElementType<N, T>;
-  const WritableType = Type as Writable<ICustomElementType<N, T>>;
+  const Type = (ctor == null ? class HTMLOnlyElement { /* HTML Only */ } : ctor) as T & ICustomElementType<T>;
+  const WritableType = Type as Writable<ICustomElementType<T>>;
   const description = buildTemplateDefinition(Type, nameOrDefinition);
-  const proto: Writable<ICustomElement> = Type.prototype;
 
   WritableType.kind = CustomElementResource as ICustomElementResource;
   Type.description = description;
   Type.register = registerElement;
-
-  proto.$hydrate = $hydrateElement;
-  proto.$bind = $bindElement as typeof proto['$bind'];
-  proto.$attach = $attachElement;
-  proto.$detach = $detachElement;
-  proto.$unbind = $unbindElement;
-  proto.$cache = $cacheElement;
-
-  proto.$hooks = 0;
-
-  proto.$mount = $mountElement;
-  proto.$unmount = $unmountElement;
-
-  if ('binding' in proto) proto.$hooks |= Hooks.hasBinding;
-  if ('bound' in proto) proto.$hooks |= Hooks.hasBound;
-  if ('unbinding' in proto) proto.$hooks |= Hooks.hasUnbinding;
-  if ('unbound' in proto) proto.$hooks |= Hooks.hasUnbound;
-  if ('render' in proto) proto.$hooks |= Hooks.hasRender;
-  if ('created' in proto) proto.$hooks |= Hooks.hasCreated;
-  if ('attaching' in proto) proto.$hooks |= Hooks.hasAttaching;
-  if ('attached' in proto) proto.$hooks |= Hooks.hasAttached;
-  if ('detaching' in proto) proto.$hooks |= Hooks.hasDetaching;
-  if ('caching' in proto) proto.$hooks |= Hooks.hasCaching;
-  if ('detached' in proto) proto.$hooks |= Hooks.hasDetached;
 
   return Type;
 }

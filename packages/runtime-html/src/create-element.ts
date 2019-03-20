@@ -9,7 +9,7 @@ import {
   IRenderContext,
   IRenderingEngine,
   ITemplate,
-  IView,
+  IController,
   IViewFactory,
   LifecycleFlags,
   TargetedInstructionType,
@@ -65,7 +65,7 @@ export class RenderPlan<T extends INode = Node> {
     return engine.getElementTemplate(this.dom, this.definition, null!, Type!);
   }
 
-  public createView(flags: LifecycleFlags, engine: IRenderingEngine, parentContext?: IRenderContext): IView {
+  public createView(flags: LifecycleFlags, engine: IRenderingEngine, parentContext?: IRenderContext): IController {
     return this.getViewFactory(engine, parentContext).create();
   }
 

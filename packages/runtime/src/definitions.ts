@@ -82,6 +82,7 @@ export interface ITemplateDefinition extends IResourceDefinition {
   shadowOptions?: { mode: 'open' | 'closed' };
   hasSlots?: boolean;
   strategy?: BindingStrategy;
+  hooks?: Readonly<HooksDefinition>;
 }
 
 export type TemplateDefinition = ResourceDescription<ITemplateDefinition>;
@@ -96,6 +97,7 @@ export interface IAttributeDefinition extends IResourceDefinition {
   hasDynamicOptions?: boolean;
   bindables?: Record<string, IBindableDescription> | string[];
   strategy?: BindingStrategy;
+  hooks?: Readonly<HooksDefinition>;
 }
 
 export type AttributeDefinition = Required<IAttributeDefinition> | null;
@@ -213,6 +215,40 @@ const buildNotRequired: IBuildInstruction = Object.freeze({
   compiler: 'default'
 });
 
+export class HooksDefinition {
+  public static readonly none: Readonly<HooksDefinition> = Object.freeze(new HooksDefinition({}));
+
+  public readonly hasRender: boolean;
+  public readonly hasCreated: boolean;
+
+  public readonly hasBinding: boolean;
+  public readonly hasBound: boolean;
+
+  public readonly hasUnbinding: boolean;
+  public readonly hasUnbound: boolean;
+
+  public readonly hasAttaching: boolean;
+  public readonly hasAttached: boolean;
+
+  public readonly hasDetaching: boolean;
+  public readonly hasDetached: boolean;
+  public readonly hasCaching: boolean;
+
+  constructor(target: object) {
+    this.hasRender = 'render' in target;
+    this.hasCreated = 'created' in target;
+    this.hasBinding = 'binding' in target;
+    this.hasBound = 'bound' in target;
+    this.hasUnbinding = 'unbinding' in target;
+    this.hasUnbound = 'unbound' in target;
+    this.hasAttaching = 'attaching' in target;
+    this.hasAttached = 'attached' in target;
+    this.hasDetaching = 'detaching' in target;
+    this.hasDetached = 'detached' in target;
+    this.hasCaching = 'caching' in target;
+  }
+}
+
 // Note: this is a little perf thing; having one predefined class with the properties always
 // assigned in the same order ensures the browser can keep reusing the same generated hidden
 // class
@@ -229,6 +265,7 @@ class DefaultTemplateDefinition implements Required<ITemplateDefinition> {
   public shadowOptions: { mode: 'open' | 'closed' };
   public hasSlots: boolean;
   public strategy: BindingStrategy;
+  public hooks: Readonly<HooksDefinition>;
 
   constructor() {
     this.name = 'unnamed';
@@ -243,6 +280,7 @@ class DefaultTemplateDefinition implements Required<ITemplateDefinition> {
     this.shadowOptions = null!;
     this.hasSlots = false;
     this.strategy = BindingStrategy.getterSetter;
+    this.hooks = HooksDefinition.none;
   }
 }
 
@@ -327,14 +365,17 @@ export function buildTemplateDefinition(
     case 3: if (template != null) def.template = template;
     case 2:
       if (ctor != null) {
-        if (ctor['bindables']) {
+        if (ctor.bindables) {
           def.bindables = Bindable.for(ctor as unknown as {}).get();
         }
-        if (ctor['containerless']) {
+        if (ctor.containerless) {
           def.containerless = ctor.containerless;
         }
-        if (ctor['shadowOptions']) {
+        if (ctor.shadowOptions) {
           def.shadowOptions = ctor.shadowOptions as unknown as { mode: 'open' | 'closed' };
+        }
+        if (ctor.prototype) {
+          def.hooks = new HooksDefinition(ctor.prototype);
         }
       }
       if (typeof nameOrDef === 'string') {

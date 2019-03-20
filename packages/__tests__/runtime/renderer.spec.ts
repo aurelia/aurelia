@@ -12,7 +12,7 @@ import {
   IDOM,
   InterpolationBinding,
   IPropertyBindingInstruction,
-  IRenderable,
+  IController,
   IRenderContext,
   IRenderer,
   IRenderingEngine,
@@ -33,7 +33,7 @@ describe('Renderer', function () {
     const container = AuDOMConfiguration.createContainer();
     IExpressionParserRegistration.register(container as any);
     const dom = container.get(IDOM);
-    const renderable: IRenderable = {
+    const renderable: IController = {
       $bindingHead: null,
       $bindingTail: null,
       $componentHead: null,
@@ -42,7 +42,7 @@ describe('Renderer', function () {
       $nodes: null,
       $scope: null
     };
-    container.register(Registration.instance(IRenderable, renderable));
+    container.register(Registration.instance(IController, renderable));
     const target = AuNode.createMarker();
 
     const renderingEngine = container.get(IRenderingEngine);

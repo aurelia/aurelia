@@ -23,7 +23,7 @@ import {
   isBound,
   isNotAttached,
   isNotBound,
-  IView,
+  IController,
   IViewFactory,
   setAttached,
   setAttaching,
@@ -82,9 +82,9 @@ export class If<T extends INode = INode> implements If<T> {
   public $scope: IScope;
 
   public elseFactory?: IViewFactory<T>;
-  public elseView?: IView<T>;
+  public elseView?: IController<T>;
   public ifFactory?: IViewFactory<T>;
-  public ifView?: IView<T>;
+  public ifView?: IController<T>;
   public location: IRenderLocation<T>;
   public coordinator: CompositionCoordinator;
 
@@ -212,8 +212,8 @@ export class If<T extends INode = INode> implements If<T> {
   }
 
   /** @internal */
-  public updateView(flags: LifecycleFlags): IView<T> | null {
-    let view: IView<T> | null;
+  public updateView(flags: LifecycleFlags): IController<T> | null {
+    let view: IController<T> | null;
 
     if (this.value) {
       view = this.ifView = this.ensureView(this.ifView, (this.ifFactory as IViewFactory<T>), flags);
@@ -227,7 +227,7 @@ export class If<T extends INode = INode> implements If<T> {
   }
 
   /** @internal */
-  public ensureView(view: IView<T> | undefined, factory: IViewFactory<T>, flags: LifecycleFlags): IView<T> {
+  public ensureView(view: IController<T> | undefined, factory: IViewFactory<T>, flags: LifecycleFlags): IController<T> {
     if (view == null) {
       view = factory.create(flags);
     }

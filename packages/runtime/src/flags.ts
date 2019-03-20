@@ -57,17 +57,25 @@ export function ensureValidStrategy(strategy: BindingStrategy | null | undefined
 }
 
 export const enum State {
-  none                  = 0b000000000000,
-  isBinding             = 0b000000000001,
-  isBound               = 0b000000000010,
-  isAttaching           = 0b000000000100,
-  isAttached            = 0b000000001000,
-  isMounted             = 0b000000010000,
-  isDetaching           = 0b000000100000,
-  isUnbinding           = 0b000001000000,
-  isCached              = 0b000010000000,
-  isContainerless       = 0b000100000000,
-  isPatching            = 0b001000000000
+  none                  = 0b000000_00_00000000,
+  isBinding             = 0b000000_00_00000001,
+  isBound               = 0b000000_00_00000010,
+  isBoundOrBinding      = 0b000000_00_00000011,
+  isAttaching           = 0b000000_00_00000100,
+  isAttached            = 0b000000_00_00001000,
+  isAttachedOrAttaching = 0b000000_00_00001100,
+  isMounted             = 0b000000_00_00010000,
+  isDetaching           = 0b000000_00_00100000,
+  isUnbinding           = 0b000000_00_01000000,
+  isCached              = 0b000000_00_10000000,
+  hasLockedScope        = 0b000000_01_00000000,
+  canBeCached           = 0b000000_10_00000000,
+  inBoundQueue          = 0b000001_00_00000000,
+  inUnboundQueue        = 0b000010_00_00000000,
+  inAttachedQueue       = 0b000100_00_00000000,
+  inDetachedQueue       = 0b001000_00_00000000,
+  inMountQueue          = 0b010000_00_00000000,
+  inUnmountQueue        = 0b100000_00_00000000,
 }
 
 export const enum Hooks {

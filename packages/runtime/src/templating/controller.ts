@@ -898,11 +898,11 @@ function createObservers(description: Description, flags: LifecycleFlags, instan
 }
 
 function getBindingContext(flags: LifecycleFlags, instance: IIndexable): BindingContext {
-  if ((flags & LifecycleFlags.proxyStrategy) > 0) {
-    return ProxyObserver.getOrCreate(instance).proxy as BindingContext;
+  if (instance.noProxy === true || (flags & LifecycleFlags.proxyStrategy) === 0) {
+    return instance as BindingContext;
   }
 
-  return instance as BindingContext;
+  return ProxyObserver.getOrCreate(instance).proxy as BindingContext;
 }
 
 function createGetterSetter(flags: LifecycleFlags, instance: IIndexable, name: string): void {

@@ -188,6 +188,8 @@ export class Controller<T extends INode = INode> implements IController<T> {
       }
       this.lifecycle = parentContext.get(ILifecycle);
 
+      viewModel.$controller = this;
+
       const Type = viewModel.constructor;
       if (!hasDescription(Type)) {
         // TODO: create error code
@@ -314,7 +316,7 @@ export class Controller<T extends INode = INode> implements IController<T> {
     return this.unmountSynthetic(flags);
   }
 
-  public bind(flags: LifecycleFlags, scope: IScope): ILifecycleTask {
+  public bind(flags: LifecycleFlags, scope?: IScope): ILifecycleTask {
     // TODO: benchmark which of these techniques is fastest:
     // - the current one (enum with switch)
     // - set the name of the method in the constructor, e.g. this.bindMethod = 'bindCustomElement'
@@ -420,7 +422,7 @@ export class Controller<T extends INode = INode> implements IController<T> {
   }
 
   // #region bind/unbind
-  private bindCustomElement(flags: LifecycleFlags, scope: IScope): ILifecycleTask {
+  private bindCustomElement(flags: LifecycleFlags, scope?: IScope): ILifecycleTask {
     if ((this.state & State.isBound) > 0) {
       return LifecycleTask.done;
     }
@@ -441,7 +443,7 @@ export class Controller<T extends INode = INode> implements IController<T> {
     return this.bindControllers(flags, $scope);
   }
 
-  private bindCustomAttribute(flags: LifecycleFlags, scope: IScope): ILifecycleTask {
+  private bindCustomAttribute(flags: LifecycleFlags, scope?: IScope): ILifecycleTask {
     if ((this.state & State.isBound) > 0) {
       if (this.scope === scope) {
         return LifecycleTask.done;
@@ -471,7 +473,11 @@ export class Controller<T extends INode = INode> implements IController<T> {
     return LifecycleTask.done;
   }
 
-  private bindSynthetic(flags: LifecycleFlags, scope: IScope): ILifecycleTask {
+  private bindSynthetic(flags: LifecycleFlags, scope?: IScope): ILifecycleTask {
+    if (scope == void 0) {
+      throw new Error(`Scope is null or undefined`); // TODO: create error code
+    }
+
     if ((this.state & State.isBound) > 0) {
       if (this.scope === scope || (this.state & State.hasLockedScope) > 0) {
         return LifecycleTask.done;
@@ -858,23 +864,28 @@ export class Controller<T extends INode = INode> implements IController<T> {
 }
 
 function createObservers(description: Description, flags: LifecycleFlags, instance: IIndexable): void {
-  const observers: Record<string, SelfObserver> = {};
+  const hasLookup = instance.$observers != void 0;
+  const observers: Record<string, SelfObserver> = hasLookup ? instance.$observers as Record<string, SelfObserver> : {};
   const bindables = description.bindables as Record<string, Required<IBindableDescription>>;
   const observableNames = Object.getOwnPropertyNames(bindables);
   const useProxy = (flags & LifecycleFlags.proxyStrategy) > 0 ;
 
-  for (let i = 0, ii = observableNames.length; i < ii; ++i) {
-    const name = observableNames[i];
+  const { length } = observableNames;
+  let name: string;
+  for (let i = 0; i < length; ++i) {
+    name = observableNames[i];
 
-    observers[name] = new SelfObserver(
-      flags,
-      useProxy ? ProxyObserver.getOrCreate(instance).proxy : instance,
-      name,
-      bindables[name].callback
-    );
+    if (observers[name] == void 0) {
+      observers[name] = new SelfObserver(
+        flags,
+        useProxy ? ProxyObserver.getOrCreate(instance).proxy : instance,
+        name,
+        bindables[name].callback
+      );
 
-    if (!useProxy) {
-      createGetterSetter(flags, instance, name);
+      if (!useProxy) {
+        createGetterSetter(flags, instance, name);
+      }
     }
   }
 

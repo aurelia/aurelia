@@ -332,5 +332,5 @@ export type ObserversLookup<TObj extends IIndexable = IIndexable, TKey extends k
 
 export type IObservable = IIndexable & {
   readonly $synthetic?: false;
-  $observers?: Record<string, AccessorOrObserver>;
+  $observers?: IObserversLookup;
 };

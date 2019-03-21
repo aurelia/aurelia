@@ -21,10 +21,8 @@ export const enum BindingStrategy {
    *
    * This strategy is the most compatible, convenient and has the best performance on frequently updated bindings on components that are infrequently replaced.
    * However, it also consumes the most resources on initialization.
-   *
-   * Cannot be combined with `proxies`
    */
-  getterSetter = 0b0001,
+  getterSetter = 0b01,
   /**
    * Configures all components "below" this one to operate in proxy binding mode.
    * No getters/setters are created.
@@ -32,23 +30,14 @@ export const enum BindingStrategy {
    * This strategy consumes significantly fewer resources than `getterSetter` on initialization and has the best performance on infrequently updated bindings on
    * components that are frequently replaced.
    * However, it consumes more resources on updates.
-   *
-   * Cannot be combined with `getterSetter`
    */
-  proxies      = 0b0010,
-  /**
-   * Configures any repeaters "below" this component to operate in keyed mode.
-   * To only put a single repeater in that mode, use `& keyed` (this will change to track-by etc soon)
-   *
-   * Can be combined with either `getterSetter` or `proxies`.
-   */
-  keyed        = 0b1000
+  proxies      = 0b10,
 }
 
 const mandatoryStrategy = BindingStrategy.getterSetter | BindingStrategy.proxies;
 
 export function ensureValidStrategy(strategy: BindingStrategy | null | undefined): BindingStrategy {
-  if ((strategy! & mandatoryStrategy) === 0 || strategy === BindingStrategy.keyed) {
+  if ((strategy! & mandatoryStrategy) === 0) {
     // TODO: probably want to validate that user isn't trying to mix getterSetter/proxy
     // TODO: also need to make sure that strategy can be changed away from proxies inside the component tree (not here though, but just making a note)
     return strategy! | BindingStrategy.getterSetter;

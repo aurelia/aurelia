@@ -301,7 +301,6 @@ export {
   SignalBindingBehaviorRegistration,
   ThrottleBindingBehaviorRegistration,
   TwoWayBindingBehaviorRegistration,
-  KeyedBindingBehaviorRegistration,
 
   RefBindingRendererRegistration,
   CallBindingRendererRegistration,

@@ -16,7 +16,6 @@ import {
 } from './renderer';
 import { FromViewBindingBehavior, OneTimeBindingBehavior, ToViewBindingBehavior, TwoWayBindingBehavior } from './resources/binding-behaviors/binding-mode';
 import { DebounceBindingBehavior } from './resources/binding-behaviors/debounce';
-import { KeyedBindingBehavior } from './resources/binding-behaviors/keyed';
 import { SignalBindingBehavior } from './resources/binding-behaviors/signals';
 import { ThrottleBindingBehavior } from './resources/binding-behaviors/throttle';
 import { Else, If } from './resources/custom-attributes/if';
@@ -48,7 +47,6 @@ export const ReplaceableRegistration = Replaceable as IRegistry;
 export const WithRegistration = With as IRegistry;
 export const SanitizeValueConverterRegistration = SanitizeValueConverter as IRegistry;
 export const DebounceBindingBehaviorRegistration = DebounceBindingBehavior as IRegistry;
-export const KeyedBindingBehaviorRegistration = KeyedBindingBehavior as IRegistry;
 export const OneTimeBindingBehaviorRegistration = OneTimeBindingBehavior as IRegistry;
 export const ToViewBindingBehaviorRegistration = ToViewBindingBehavior as IRegistry;
 export const FromViewBindingBehaviorRegistration = FromViewBindingBehavior as IRegistry;
@@ -70,7 +68,6 @@ export const DefaultResources = [
   WithRegistration,
   SanitizeValueConverterRegistration,
   DebounceBindingBehaviorRegistration,
-  KeyedBindingBehaviorRegistration,
   OneTimeBindingBehaviorRegistration,
   ToViewBindingBehaviorRegistration,
   FromViewBindingBehaviorRegistration,

@@ -96,7 +96,6 @@ export class Repeat<C extends ObservedCollection = IObservedArray, T extends INo
   public factory: IViewFactory<T>;
   public views: IController<T>[];
   public key?: string;
-  public keyed: boolean;
   public readonly noProxy: true;
 
   private task: ILifecycleTask;
@@ -118,7 +117,6 @@ export class Repeat<C extends ObservedCollection = IObservedArray, T extends INo
     this.renderable = renderable;
     this.views = [];
     this.key = void 0;
-    this.keyed = false;
     this.noProxy = true;
 
     this.task = LifecycleTask.done;
@@ -143,11 +141,7 @@ export class Repeat<C extends ObservedCollection = IObservedArray, T extends INo
     }
     this.local = this.forOf.declaration.evaluate(flags, this.$controller.scope!, null) as string;
 
-    if (this.keyed || (flags & LF.keyedStrategy) > 0) {
-      this.processViewsKeyed(void 0, flags);
-    } else {
-      this.processViewsNonKeyed(void 0, flags);
-    }
+    this.processViewsKeyed(void 0, flags);
     return this.task;
   }
 
@@ -185,63 +179,14 @@ export class Repeat<C extends ObservedCollection = IObservedArray, T extends INo
     flags |= this.$controller.flags;
     this.checkCollectionObserver(flags);
     flags |= LF.updateTargetInstance;
-    if (this.keyed || (flags & LF.keyedStrategy) > 0) {
-      this.processViewsKeyed(void 0, flags);
-    } else {
-      this.processViewsNonKeyed(void 0, flags);
-    }
+    this.processViewsKeyed(void 0, flags);
   }
 
   // called by a CollectionObserver
   public handleCollectionChange(indexMap: IndexMap | undefined, flags: LF): void {
     flags |= this.$controller.flags;
     flags |= (LF.fromFlush | LF.updateTargetInstance);
-    if (this.keyed || (flags & LF.keyedStrategy) > 0) {
-      this.processViewsKeyed(indexMap, flags);
-    } else {
-      this.processViewsNonKeyed(indexMap, flags);
-    }
-  }
-
-  // if the indexMap === void 0, it is an instance mutation, otherwise it's an items mutation
-  private processViewsNonKeyed(indexMap: IndexMap | undefined, flags: LF): void {
-    if ((this.$controller.state & State.isBoundOrBinding) > 0) {
-      const oldLength = this.views.length;
-      const newLength = this.forOf.count(flags, this.items);
-      if (oldLength < newLength) {
-        const { views, factory } = this;
-        views.length = newLength;
-        for (let i = oldLength; i < newLength; ++i) {
-          views[i] = factory.create(flags);
-        }
-      } else if (newLength < oldLength) {
-        this.detachViewsByRange(newLength, oldLength, flags);
-        if (this.task.done) {
-          this.task = this.unbindAndRemoveViewsByRange(newLength, oldLength, flags, true);
-        } else {
-          this.task = new ContinuationTask(this.task, this.unbindAndRemoveViewsByRange, this, newLength, oldLength, flags, true);
-        }
-        if (newLength === 0) {
-          return;
-        }
-      } else if (newLength === 0) {
-        return;
-      }
-
-      if (this.task.done) {
-        this.task = this.bindViewsByIndexOrReference(indexMap, flags);
-      } else {
-        this.task = new ContinuationTask(this.task, this.bindViewsByIndexOrReference, this, indexMap, flags);
-      }
-    }
-
-    if ((this.$controller.state & State.isAttachedOrAttaching) > 0) {
-      if (this.task.done) {
-        this.attachViews(indexMap, flags);
-      } else {
-        this.task = new ContinuationTask(this.task, this.attachViews, this, indexMap, flags);
-      }
-    }
+    this.processViewsKeyed(indexMap, flags);
   }
 
   private processViewsKeyed(indexMap: IndexMap | undefined, flags: LF): void {
@@ -410,55 +355,6 @@ export class Repeat<C extends ObservedCollection = IObservedArray, T extends INo
     }
 
     return new AggregateContinuationTask(tasks, this.$controller.lifecycle.endUnbind, this.$controller.lifecycle, flags);
-  }
-
-  private bindViewsByIndexOrReference(indexMap: IndexMap | undefined, flags: LF): ILifecycleTask {
-    let tasks: ILifecycleTask[] | undefined = void 0;
-    let task: ILifecycleTask;
-    let view: IController<T>;
-    const { views, items, local } = this;
-    const scope = this.$controller.scope as IScope;
-    this.$controller.lifecycle.beginBind();
-    if (indexMap === void 0) {
-      this.forOf.iterate(flags, items, (arr, i, item) => {
-        view = views[i];
-        if (!!view.scope && view.scope.bindingContext[local] === item) {
-          task = view.bind(flags, Scope.fromParent(flags, scope, view.scope.bindingContext));
-        } else {
-          task = view.bind(flags, Scope.fromParent(flags, scope, BindingContext.create(flags, local, item)));
-        }
-
-        if (!task.done) {
-          if (tasks === undefined) {
-            tasks = [];
-          }
-          tasks.push(task);
-        }
-      });
-    } else {
-      this.forOf.iterate(flags, items, (arr, i, item) => {
-        view = views[i];
-        if (!!view.scope && (indexMap[i] === i || view.scope.bindingContext[local] === item)) {
-          task = view.bind(flags, Scope.fromParent(flags, scope, view.scope.bindingContext));
-        } else {
-          task = view.bind(flags, Scope.fromParent(flags, scope, BindingContext.create(flags, local, item)));
-        }
-
-        if (!task.done) {
-          if (tasks === undefined) {
-            tasks = [];
-          }
-          tasks.push(task);
-        }
-      });
-    }
-
-    if (tasks === undefined) {
-      this.$controller.lifecycle.endBind(flags);
-      return LifecycleTask.done;
-    }
-
-    return new AggregateContinuationTask(tasks, this.$controller.lifecycle.endBind, this.$controller.lifecycle, flags);
   }
 
   private createAndBindAllViews(flags: LF): ILifecycleTask {

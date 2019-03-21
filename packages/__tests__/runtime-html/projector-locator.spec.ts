@@ -22,8 +22,8 @@ describe(`determineProjector`, function () {
 
     expect(projector).to.be.instanceof(ShadowDOMProjector);
     expect(projector['shadowRoot']).to.be.instanceof(ctx.Node);
-    expect(projector['shadowRoot'].$customElement).to.equal(component);
-    expect(host['$customElement']).to.equal(component);
+    expect(projector['shadowRoot'].$controller).to.equal(component);
+    expect(host['$controller']).to.equal(component);
     expect(projector.children.length).to.equal(projector['shadowRoot']['childNodes'].length);
     if (projector.children.length > 0) {
       expect(projector.children).to.deep.equal(projector['shadowRoot']['childNodes']);
@@ -45,8 +45,8 @@ describe(`determineProjector`, function () {
 
     expect(projector).to.be.instanceof(ShadowDOMProjector);
     expect(projector['shadowRoot']).to.be.instanceof(ctx.Node);
-    expect(projector['shadowRoot'].$customElement).to.equal(component);
-    expect(host['$customElement']).to.equal(component);
+    expect(projector['shadowRoot'].$controller).to.equal(component);
+    expect(host['$controller']).to.equal(component);
     expect(projector.children.length).to.equal(projector['shadowRoot']['childNodes'].length);
     if (projector.children.length > 0) {
       expect(projector.children).to.deep.equal(projector['shadowRoot']['childNodes']);
@@ -75,7 +75,7 @@ describe(`determineProjector`, function () {
     expect(parent.firstChild.textContent).to.equal('au-start');
     expect(parent.lastChild).to.be.instanceof(ctx.Comment);
     expect(parent.lastChild.textContent).to.equal('au-end');
-    expect(parent.firstChild.nextSibling['$customElement']).to.equal(component);
+    expect(parent.firstChild.nextSibling['$controller']).to.equal(component);
     expect(projector.children.length).to.equal(projector.host['childNodes'].length);
     if (projector.children.length > 0) {
       expect(projector.children).to.deep.equal(projector.host['childNodes']);
@@ -107,7 +107,7 @@ describe(`determineProjector`, function () {
     expect(parent.firstChild.textContent).to.equal('au-start');
     expect(parent.lastChild).to.be.instanceof(ctx.Comment);
     expect(parent.lastChild.textContent).to.equal('au-end');
-    expect(parent.firstChild.nextSibling['$customElement']).to.equal(component);
+    expect(parent.firstChild.nextSibling['$controller']).to.equal(component);
     expect(projector.provideEncapsulationSource()).not.to.equal(projector['host']);
     expect(projector.provideEncapsulationSource()).to.equal(parent);
   });
@@ -123,7 +123,7 @@ describe(`determineProjector`, function () {
     const component = new Foo();
     const projector = locator.getElementProjector(dom, component, host, Foo.description);
 
-    expect(host['$customElement']).to.equal(component);
+    expect(host['$controller']).to.equal(component);
     expect(projector).to.be.instanceof(HostProjector);
     expect(projector.children).to.equal(projector.host.childNodes);
     expect(projector.provideEncapsulationSource()).to.equal(host);

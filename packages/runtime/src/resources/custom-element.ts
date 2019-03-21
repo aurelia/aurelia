@@ -36,7 +36,7 @@ export interface ICustomElementType<C extends Constructable = Constructable> ext
 }
 
 export type CustomElementHost<T extends INode = INode> = IRenderLocation<T> & T & {
-  $customElement?: IController<T>;
+  $controller?: IController<T>;
 };
 
 export interface IElementProjector<T extends INode = INode> {

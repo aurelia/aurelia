@@ -44,11 +44,11 @@ describe('CustomElementResource', function () {
   });
 
   describe(`behaviorFor`, function () {
-    it(`returns $customElement variable if it exists`, function () {
-      expect(CustomElementResource.behaviorFor({$customElement: 'foo'} as any)).to.equal('foo');
+    it(`returns $controller variable if it exists`, function () {
+      expect(CustomElementResource.behaviorFor({$controller: 'foo'} as any)).to.equal('foo');
     });
 
-    it(`returns null if the $customElement variable does nots`, function () {
+    it(`returns null if the $controller variable does nots`, function () {
       expect(CustomElementResource.behaviorFor({} as any)).to.equal(null);
     });
   });

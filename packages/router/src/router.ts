@@ -413,7 +413,7 @@ export class Router {
     return this.rootScope;
     // TODO: It would be better if it was something like this
     // const el = closestCustomElement(element);
-    // let container: ChildContainer = el.$customElement.$context.get(IContainer);
+    // let container: ChildContainer = el.$controller.$context.get(IContainer);
     // while (container) {
     //   const scope = this.scopes.find((item) => item.context.get(IContainer) === container);
     //   if (scope) {

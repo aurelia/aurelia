@@ -35,7 +35,7 @@ export function customElementKey(name: string): string {
 }
 /** @internal */
 export function customElementBehavior<T extends INode = INode>(node: T): IController<T> | undefined {
-  return (node as CustomElementHost<T>).$customElement;
+  return (node as CustomElementHost<T>).$controller;
 }
 
 /** @internal */

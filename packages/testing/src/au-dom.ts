@@ -394,9 +394,9 @@ export class AuProjectorLocator implements IProjectorLocator {
 export class AuProjector implements IElementProjector {
   public host: CustomElementHost<AuNode>;
 
-  constructor($customElement: ICustomElement<AuNode>, host: CustomElementHost<AuNode>) {
+  constructor($controller: ICustomElement<AuNode>, host: CustomElementHost<AuNode>) {
     this.host = host;
-    this.host.$customElement = $customElement;
+    this.host.$controller = $controller;
   }
 
   public get children(): ArrayLike<CustomElementHost<IRenderLocation<AuNode> & AuNode>> {

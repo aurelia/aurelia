@@ -53,7 +53,7 @@ export class ShadowDOMProjector implements IElementProjector<Node> {
   public shadowRoot: CustomElementHost<ShadowRoot>;
   public dom: IDOM<Node>;
 
-  constructor(dom: IDOM<Node>, $customElement: IController<Node>, host: CustomElementHost<HTMLElement>, definition: TemplateDefinition) {
+  constructor(dom: IDOM<Node>, $controller: IController<Node>, host: CustomElementHost<HTMLElement>, definition: TemplateDefinition) {
     this.dom = dom;
     this.host = host;
 
@@ -67,8 +67,8 @@ export class ShadowDOMProjector implements IElementProjector<Node> {
       shadowOptions = defaultShadowOptions;
     }
     this.shadowRoot = host.attachShadow(shadowOptions);
-    this.host.$customElement = $customElement;
-    this.shadowRoot.$customElement = $customElement as IController<ShadowRoot>;
+    this.host.$controller = $controller;
+    this.shadowRoot.$controller = $controller as IController<ShadowRoot>;
   }
 
   public get children(): ArrayLike<CustomElementHost<Node>> {
@@ -103,7 +103,7 @@ export class ContainerlessProjector implements IElementProjector<Node> {
 
   private readonly childNodes: ReadonlyArray<CustomElementHost<Node>>;
 
-  constructor(dom: IDOM<Node>, $customElement: IController<Node>, host: Node) {
+  constructor(dom: IDOM<Node>, $controller: IController<Node>, host: Node) {
     if (host.childNodes.length) {
       this.childNodes = PLATFORM.toArray(host.childNodes);
     } else {
@@ -111,7 +111,7 @@ export class ContainerlessProjector implements IElementProjector<Node> {
     }
 
     this.host = dom.convertToRenderLocation(host) as CustomElementHost<Node>;
-    this.host.$customElement = $customElement;
+    this.host.$controller = $controller;
   }
 
   public get children(): ArrayLike<CustomElementHost<Node>> {
@@ -145,9 +145,9 @@ export class ContainerlessProjector implements IElementProjector<Node> {
 export class HostProjector implements IElementProjector<Node> {
   public host: CustomElementHost<Node>;
 
-  constructor($customElement: IController<Node>, host: CustomElementHost<Node>) {
+  constructor($controller: IController<Node>, host: CustomElementHost<Node>) {
     this.host = host;
-    this.host.$customElement = $customElement;
+    this.host.$controller = $controller;
   }
 
   public get children(): ArrayLike<CustomElementHost<Node>> {

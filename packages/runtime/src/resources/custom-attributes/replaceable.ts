@@ -1,49 +1,34 @@
 import {
   IContainer,
   InjectArray,
-  IServiceLocator,
   PLATFORM,
-  Registration
+  Registration,
 } from '@aurelia/kernel';
 import {
-  IAttributeDefinition
+  HooksDefinition,
+  IAttributeDefinition,
 } from '../../definitions';
 import {
   INode,
-  IRenderLocation
+  IRenderLocation,
 } from '../../dom';
 import {
   BindingMode,
   BindingStrategy,
   LifecycleFlags,
-  State
 } from '../../flags';
 import {
-  ILifecycle,
-  isAttached,
-  isBound,
-  isNotAttached,
-  isNotBound,
   IController,
+  ILifecycleTask,
   IViewFactory,
-  setAttached,
-  setAttaching,
-  setBinding,
-  setBound,
-  setDetached,
-  setDetaching,
-  setUnbinding,
-  setUnbound
+  LifecycleTask,
 } from '../../lifecycle';
-import { IScope } from '../../observation';
 import {
   CustomAttributeResource,
-  ICustomAttribute,
-  ICustomAttributeResource
+  ICustomAttributeResource,
 } from '../custom-attribute';
 
-export interface Replaceable<T extends INode = INode> extends ICustomAttribute<T> {}
-export class Replaceable<T extends INode = INode> implements Replaceable<T> {
+export class Replaceable<T extends INode = INode> {
   public static readonly inject: InjectArray = [IViewFactory, IRenderLocation];
 
   public static readonly kind: ICustomAttributeResource = CustomAttributeResource;
@@ -55,23 +40,19 @@ export class Replaceable<T extends INode = INode> implements Replaceable<T> {
     isTemplateController: true,
     bindables: PLATFORM.emptyObject,
     strategy: BindingStrategy.getterSetter,
+    hooks: new HooksDefinition(Replaceable.prototype)
   };
-
-  public $lifecycle: ILifecycle;
-  public $state: State;
-  public $scope: IScope;
 
   private readonly currentView: IController<T>;
   private readonly factory: IViewFactory<T>;
+
+  // tslint:disable-next-line: prefer-readonly // This is set by the controller after this instance is constructed
+  private $controller!: IController<T>;
 
   constructor(
     factory: IViewFactory<T>,
     location: IRenderLocation<T>
   ) {
-    this.$lifecycle = (void 0)!;
-    this.$state = State.none;
-    this.$scope = (void 0)!;
-
     this.factory = factory;
 
     this.currentView = this.factory.create();
@@ -80,53 +61,23 @@ export class Replaceable<T extends INode = INode> implements Replaceable<T> {
 
   public static register(container: IContainer): void {
     container.register(Registration.transient('custom-attribute:replaceable', this));
+    container.register(Registration.transient(this, this));
   }
 
-  public $hydrate(flags: LifecycleFlags, parentContext: IServiceLocator): void { /* empty */ }
-
-  public $bind(flags: LifecycleFlags, scope: IScope): void {
-    flags |= LifecycleFlags.fromBind;
-    if (isBound(this.$state)) {
-      if (this.$scope === scope) return;
-      this.$unbind(flags);
-    }
-
-    this.$scope = scope;
-
-    this.$state = setBinding(this.$state);
-
-    this.currentView.$bind(flags | LifecycleFlags.allowParentScopeTraversal, this.$scope);
-
-    this.$state = setBound(this.$state);
+  public binding(flags: LifecycleFlags): ILifecycleTask {
+    return this.currentView.bind(flags | LifecycleFlags.allowParentScopeTraversal, this.$controller.scope);
   }
 
-  public $unbind(flags: LifecycleFlags): void {
-    if (isNotBound(this.$state)) return;
-
-    this.$state = setUnbinding(this.$state);
-
-    this.currentView.$unbind(flags);
-
-    this.$state = setUnbound(this.$state);
+  public attaching(flags: LifecycleFlags): void {
+    this.currentView.attach(flags);
   }
 
-  public $attach(flags: LifecycleFlags): void {
-    if (isAttached(this.$state)) return;
-
-    this.$state = setAttaching(this.$state);
-
-    this.currentView.$attach(flags);
-
-    this.$state = setAttached(this.$state);
+  public detaching(flags: LifecycleFlags): ILifecycleTask {
+    this.currentView.detach(flags);
+    return LifecycleTask.done;
   }
 
-  public $detach(flags: LifecycleFlags): void {
-    if (isNotAttached(this.$state)) return;
-
-    this.$state = setDetaching(this.$state);
-
-    this.currentView.$detach(flags);
-
-    this.$state = setDetached(this.$state);
+  public unbinding(flags: LifecycleFlags): ILifecycleTask {
+    return this.currentView.unbind(flags);
   }
 }

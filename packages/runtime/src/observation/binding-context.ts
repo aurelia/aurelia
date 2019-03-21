@@ -35,13 +35,13 @@ export class InternalObserversLookup {
 export type BindingContextValue = ObservedCollection | StrictPrimitive | IIndexable;
 
 export class BindingContext implements IBindingContext {
-  [key: string]: BindingContextValue;
+  [key: string]: unknown;
 
   public readonly $synthetic: true;
 
   public $observers?: ObserversLookup<IOverrideContext>;
 
-  private constructor(keyOrObj?: string | IIndexable, value?: BindingContextValue) {
+  private constructor(keyOrObj?: string | IIndexable, value?: unknown) {
     this.$synthetic = true;
 
     if (keyOrObj !== void 0) {
@@ -52,7 +52,7 @@ export class BindingContext implements IBindingContext {
         // can either be some random object or another bindingContext to clone from
         for (const prop in keyOrObj as IIndexable) {
           if (keyOrObj.hasOwnProperty(prop)) {
-            this[prop] = (keyOrObj as IIndexable)[prop] as typeof value;
+            this[prop] = (keyOrObj as IIndexable)[prop];
           }
         }
       }
@@ -69,15 +69,15 @@ export class BindingContext implements IBindingContext {
    * @param key The name of the only property to initialize this `BindingContext` with.
    * @param value The value of the only property to initialize this `BindingContext` with.
    */
-  public static create(flags: LifecycleFlags, key: string, value: BindingContextValue): BindingContext;
+  public static create(flags: LifecycleFlags, key: string, value: unknown): BindingContext;
   /**
    * Create a new synthetic `BindingContext` for use in a `Scope`.
    *
    * This overload signature is simply the combined signatures of the other two, and can be used
    * to keep strong typing in situations where the arguments are dynamic.
    */
-  public static create(flags: LifecycleFlags, keyOrObj?: string | IIndexable, value?: BindingContextValue): BindingContext;
-  public static create(flags: LifecycleFlags, keyOrObj?: string | IIndexable, value?: BindingContextValue): BindingContext {
+  public static create(flags: LifecycleFlags, keyOrObj?: string | IIndexable, value?: unknown): BindingContext;
+  public static create(flags: LifecycleFlags, keyOrObj?: string | IIndexable, value?: unknown): BindingContext {
     const bc = new BindingContext(keyOrObj, value);
     if (flags & LifecycleFlags.proxyStrategy) {
       return ProxyObserver.getOrCreate(bc).proxy;

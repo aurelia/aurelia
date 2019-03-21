@@ -33,10 +33,6 @@ import { IElementProjector } from './resources/custom-element';
 import { Controller } from './templating/controller';
 
 const slice = Array.prototype.slice;
-export interface IState {
-  $state: State;
-  $lifecycle?: ILifecycle;
-}
 
 export interface IBinding {
   readonly locator: IServiceLocator;
@@ -136,7 +132,8 @@ export const IViewFactory = DI.createInterface<IViewFactory>('IViewFactory').noD
 /**
  * Defines optional lifecycle hooks that will be called only when they are implemented.
  */
-export interface ILifecycleHooks extends IState {
+export interface ILifecycleHooks<T extends INode = INode> {
+  readonly $controller: IController<T>;
   created?(flags: LifecycleFlags): void;
   binding?(flags: LifecycleFlags): MaybePromiseOrTask;
   bound?(flags: LifecycleFlags): void;

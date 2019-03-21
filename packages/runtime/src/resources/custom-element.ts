@@ -9,6 +9,7 @@ import {
   Reporter,
   Writable
 } from '@aurelia/kernel';
+
 import {
   buildTemplateDefinition,
   customElementBehavior,
@@ -17,8 +18,14 @@ import {
   ITemplateDefinition,
   TemplateDefinition
 } from '../definitions';
-import { IDOM, INode, INodeSequence, IRenderLocation } from '../dom';
 import {
+  IDOM,
+  INode,
+  INodeSequence,
+  IRenderLocation
+} from '../dom';
+import {
+  IController,
   ILifecycleHooks,
 } from '../lifecycle';
 
@@ -29,7 +36,7 @@ export interface ICustomElementType<C extends Constructable = Constructable> ext
 }
 
 export type CustomElementHost<T extends INode = INode> = IRenderLocation<T> & T & {
-  $customElement?: ILifecycleHooks;
+  $customElement?: IController<T>;
 };
 
 export interface IElementProjector<T extends INode = INode> {
@@ -46,7 +53,7 @@ export interface IElementProjector<T extends INode = INode> {
 export const IProjectorLocator = DI.createInterface<IProjectorLocator>('IProjectorLocator').noDefault();
 
 export interface IProjectorLocator<T extends INode = INode> {
-  getElementProjector(dom: IDOM<T>, $component: ILifecycleHooks, host: CustomElementHost<T>, def: TemplateDefinition): IElementProjector<T>;
+  getElementProjector(dom: IDOM<T>, $component: IController<T>, host: CustomElementHost<T>, def: TemplateDefinition): IElementProjector<T>;
 }
 
 export interface ICustomElementStaticProperties {
@@ -58,7 +65,7 @@ export interface ICustomElementStaticProperties {
 
 export interface ICustomElementResource<T extends INode = INode> extends
   IResourceKind<ITemplateDefinition, ILifecycleHooks, Class<ILifecycleHooks> & ICustomElementStaticProperties> {
-  behaviorFor(node: T): ILifecycleHooks | null;
+  behaviorFor(node: T): IController<T> | undefined;
 }
 
 /** @internal */

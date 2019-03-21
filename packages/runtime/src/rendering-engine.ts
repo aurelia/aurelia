@@ -3,7 +3,6 @@ import {
   DI,
   IContainer,
   IDisposable,
-  IIndexable,
   InjectArray,
   InstanceProvider,
   IRegistry,
@@ -17,10 +16,8 @@ import {
 } from '@aurelia/kernel';
 
 import {
-  BindableDefinitions,
   buildTemplateDefinition,
   customElementBehavior,
-  IBindableDescription,
   InstructionTypeName,
   ITargetedInstruction,
   ITemplateDefinition,
@@ -38,27 +35,23 @@ import { LifecycleFlags } from './flags';
 import {
   IController,
   ILifecycle,
+  ILifecycleHooks,
   IRenderContext,
   IViewFactory,
-  ILifecycleHooks,
 } from './lifecycle';
 import {
   IAccessor,
   ISubscribable,
-  ISubscriberCollection,
   ISubscriber,
+  ISubscriberCollection,
 } from './observation';
-import { ProxyObserver } from './observation/proxy-observer';
-import { SelfObserver } from './observation/self-observer';
 import { subscriberCollection } from './observation/subscriber-collection';
 import {
-  ICustomAttributeType,
-} from './resources/custom-attribute';
-import {
   ICustomElementType,
+  IElementProjector,
 } from './resources/custom-element';
-import { ViewFactory } from './templating/view';
 import { Controller } from './templating/controller';
+import { ViewFactory } from './templating/view';
 
 export interface ITemplateCompiler {
   readonly name: string;
@@ -180,9 +173,6 @@ export interface IRenderingEngine {
     source: ITemplateDefinition,
     parentContext?: IRenderContext<T>,
   ): IViewFactory<T>;
-
-  applyRuntimeBehavior<T extends INode = INode>(flags: LifecycleFlags, Type: ICustomAttributeType, instance: ILifecycleHooks): void;
-  applyRuntimeBehavior<T extends INode = INode>(flags: LifecycleFlags, Type: ICustomElementType, instance: ILifecycleHooks): void;
 }
 
 export const IRenderingEngine = DI.createInterface<IRenderingEngine>('IRenderingEngine').withDefault(x => x.singleton(RenderingEngine));
@@ -192,7 +182,6 @@ export class RenderingEngine implements IRenderingEngine {
   // @ts-ignore
   public static readonly inject: InjectArray = [IContainer, ITemplateFactory, ILifecycle, all(ITemplateCompiler)];
 
-  private readonly behaviorLookup: Map<ICustomElementType | ICustomAttributeType, RuntimeBehavior>;
   private readonly compilers: Record<string, ITemplateCompiler>;
   private readonly container: IContainer;
   private readonly templateFactory: ITemplateFactory;
@@ -201,7 +190,6 @@ export class RenderingEngine implements IRenderingEngine {
   private readonly templateLookup: Map<TemplateDefinition, ITemplate>;
 
   constructor(container: IContainer, templateFactory: ITemplateFactory, lifecycle: ILifecycle, templateCompilers: ITemplateCompiler[]) {
-    this.behaviorLookup = new Map();
     this.container = container;
     this.templateFactory = templateFactory;
     this.viewFactoryLookup = new Map();
@@ -259,17 +247,6 @@ export class RenderingEngine implements IRenderingEngine {
     }
 
     return factory as IViewFactory<T>;
-  }
-
-  public applyRuntimeBehavior(flags: LifecycleFlags, Type: ICustomAttributeType | ICustomElementType, instance: ILifecycleHooks): void {
-    let found = this.behaviorLookup.get(Type);
-
-    if (!found) {
-      found = RuntimeBehavior.create(Type);
-      this.behaviorLookup.set(Type, found);
-    }
-
-    found.applyTo(flags, instance, this.lifecycle);
   }
 
   private templateFromSource(
@@ -405,33 +382,39 @@ export interface IChildrenObserver extends
   ISubscribable,
   ISubscriberCollection { }
 
+type HasChildrenChanged = ILifecycleHooks & { $childrenChanged(): void };
+function hasChildrenChanged(viewModel: ILifecycleHooks | undefined): viewModel is HasChildrenChanged {
+  return viewModel != void 0 && '$childrenChanged' in viewModel;
+}
+
 /** @internal */
 @subscriberCollection()
 export class ChildrenObserver implements Partial<IChildrenObserver> {
   [key: number]: LifecycleFlags;
   public hasChanges: boolean;
 
-  private readonly customElement: ILifecycleHooks & { $childrenChanged?(): void };
-  private readonly lifecycle: ILifecycle;
   private readonly controller: IController;
-  private children: ILifecycleHooks[];
+  private readonly lifecycle: ILifecycle;
+  private readonly projector: IElementProjector;
+  private children: IController[];
   private observing: boolean;
 
-  constructor(lifecycle: ILifecycle, customElement: ILifecycleHooks & { $childrenChanged?(): void }) {
+  constructor(lifecycle: ILifecycle, controller: IController) {
     this.hasChanges = false;
 
     this.children = (void 0)!;
-    this.customElement = customElement;
+    this.controller = controller;
     this.lifecycle = lifecycle;
-    this.controller = Controller.forCustomElement(customElement, (void 0)!, (void 0)!);
+    this.controller = Controller.forCustomElement(controller, (void 0)!, (void 0)!);
+    this.projector = this.controller.projector!;
     this.observing = false;
   }
 
-  public getValue(): ILifecycleHooks[] {
+  public getValue(): IController[] {
     if (!this.observing) {
       this.observing = true;
-      this.controller.projector!.subscribeToChildrenChange(() => { this.onChildrenChanged(); });
-      this.children = findElements(this.controller.projector!.children);
+      this.projector.subscribeToChildrenChange(() => { this.onChildrenChanged(); });
+      this.children = findElements(this.projector.children);
     }
 
     return this.children;
@@ -453,10 +436,10 @@ export class ChildrenObserver implements Partial<IChildrenObserver> {
   }
 
   private onChildrenChanged(): void {
-    this.children = findElements(this.controller.projector!.children);
+    this.children = findElements(this.projector.children);
 
-    if ('$childrenChanged' in this.customElement) {
-      this.customElement.$childrenChanged!();
+    if (hasChildrenChanged(this.controller.viewModel)) {
+      this.controller.viewModel.$childrenChanged();
     }
 
     this.lifecycle.enqueueBatch(this);
@@ -465,104 +448,19 @@ export class ChildrenObserver implements Partial<IChildrenObserver> {
 }
 
 /** @internal */
-export function findElements(nodes: ArrayLike<unknown>): ILifecycleHooks[] {
-  const components: ILifecycleHooks[] = [];
+export function findElements<T extends INode = INode>(nodes: ArrayLike<T>): IController<T>[] {
+  const components: IController<T>[] = [];
 
   for (let i = 0, ii = nodes.length; i < ii; ++i) {
     const current = nodes[i];
-    const component = customElementBehavior(current);
+    const component = customElementBehavior<T>(current);
 
-    if (component != null) {
+    if (component != void 0) {
       components.push(component);
     }
   }
 
   return components;
-}
-
-export class RuntimeBehavior {
-  public readonly bindables: BindableDefinitions;
-
-  private constructor(
-    bindables: BindableDefinitions
-  ) {
-    this.bindables = bindables;
-  }
-
-  public static create(Component: ICustomElementType | ICustomAttributeType): RuntimeBehavior {
-    return new RuntimeBehavior(Component.description.bindables as Record<string, IBindableDescription>);
-  }
-
-  public applyTo(flags: LifecycleFlags, instance: ILifecycleHooks, lifecycle: ILifecycle): void {
-    instance.$lifecycle = lifecycle;
-    if ('$projector' in instance) {
-      this.applyToElement(flags, lifecycle, instance);
-    } else {
-      this.applyToCore(flags, instance);
-    }
-  }
-
-  private applyToElement(flags: LifecycleFlags, lifecycle: ILifecycle, instance: ILifecycleHooks): void {
-    const observers = this.applyToCore(flags, instance);
-
-    observers.$children = new ChildrenObserver(lifecycle, instance);
-
-    Reflect.defineProperty(instance, '$children', {
-      enumerable: false,
-      get: function (this: { $observers: { $children: ChildrenObserver } }): unknown {
-        return this['$observers'].$children.getValue();
-      }
-    });
-  }
-
-  private applyToCore(flags: LifecycleFlags, instance: ILifecycleHooks): IIndexable {
-    const observers: Record<string, SelfObserver> = {};
-    const bindables = this.bindables;
-    const observableNames = Object.getOwnPropertyNames(bindables);
-
-    if (flags & LifecycleFlags.proxyStrategy) {
-      for (let i = 0, ii = observableNames.length; i < ii; ++i) {
-        const name = observableNames[i];
-
-        observers[name] = new SelfObserver(
-          flags,
-          ProxyObserver.getOrCreate(instance).proxy,
-          name,
-          bindables[name].callback!
-        );
-      }
-    } else {
-      for (let i = 0, ii = observableNames.length; i < ii; ++i) {
-        const name = observableNames[i];
-
-        observers[name] = new SelfObserver(
-          flags,
-          instance,
-          name!,
-          bindables[name].callback!
-        );
-
-        if (!(flags & LifecycleFlags.patchStrategy)) {
-          createGetterSetter(flags, instance, name);
-        }
-      }
-
-      Reflect.defineProperty(instance, '$observers', {
-        enumerable: false,
-        value: observers
-      });
-    }
-
-    return observers;
-  }
-}
-
-function createGetterSetter(flags: LifecycleFlags, instance: ILifecycleHooks, name: string): void {
-  Reflect.defineProperty(instance, name, {
-    enumerable: true,
-    get: function (this: { $observers: { [key: string]: SelfObserver } }): unknown { return this['$observers'][name].getValue(); },
-    set: function(this: { $observers: { [key: string]: SelfObserver } }, value: unknown): void { this['$observers'][name].setValue(value, flags & LifecycleFlags.persistentBindingFlags); }
-  });
 }
 
 /** @internal */

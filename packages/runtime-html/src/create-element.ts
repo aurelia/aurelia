@@ -1,35 +1,47 @@
-import { Constructable, IRegistry, Tracer } from '@aurelia/kernel';
+import {
+  Constructable,
+  IRegistry,
+  Tracer
+} from '@aurelia/kernel';
+
 import {
   buildTemplateDefinition,
+  CustomElementResource,
   HydrateElementInstruction,
   IBindableDescription,
+  IController,
   ICustomElementType,
   IDOM,
   INode,
   IRenderContext,
   IRenderingEngine,
   ITemplate,
-  IController,
   IViewFactory,
   LifecycleFlags,
   TargetedInstructionType,
   TemplateDefinition
 } from '@aurelia/runtime';
-import { HTMLTargetedInstruction, isHTMLTargetedInstruction } from './definitions';
+
+import {
+  HTMLTargetedInstruction,
+  isHTMLTargetedInstruction
+} from './definitions';
 import { SetAttributeInstruction } from './instructions';
 
 const slice = Array.prototype.slice;
 
-export function createElement<T extends INode = Node>(
+export function createElement<T extends INode = Node, C extends Constructable = Constructable>(
   dom: IDOM<T>,
-  tagOrType: string | Constructable,
+  tagOrType: string | C,
   props?: Record<string, string | HTMLTargetedInstruction>,
   children?: ArrayLike<unknown>
 ): RenderPlan<T> {
   if (typeof tagOrType === 'string') {
     return createElementForTag(dom, tagOrType, props, children);
+  } else if (CustomElementResource.isType(tagOrType)) {
+    return createElementForType(dom, tagOrType, props, children);
   } else {
-    return createElementForType(dom, tagOrType as ICustomElementType<T>, props, children);
+    throw new Error(`Invalid tagOrType.`);
   }
 }
 
@@ -61,7 +73,7 @@ export class RenderPlan<T extends INode = Node> {
       buildTemplateDefinition(null, null, this.node, null, typeof this.node === 'string', null, this.instructions, this.dependencies));
   }
 
-  public getElementTemplate(engine: IRenderingEngine, Type?: ICustomElementType<T>): ITemplate<T> {
+  public getElementTemplate(engine: IRenderingEngine, Type?: ICustomElementType): ITemplate<T> {
     return engine.getElementTemplate(this.dom, this.definition, null!, Type!);
   }
 
@@ -116,7 +128,12 @@ function createElementForTag<T extends INode>(dom: IDOM<T>, tagName: string, pro
   return new RenderPlan(dom, element, allInstructions, dependencies);
 }
 
-function createElementForType<T extends INode>(dom: IDOM<T>, Type: ICustomElementType<T>, props?: Record<string, unknown>, children?: ArrayLike<unknown>): RenderPlan<T> {
+function createElementForType<T extends INode>(
+  dom: IDOM<T>,
+  Type: ICustomElementType,
+  props?: Record<string, unknown>,
+  children?: ArrayLike<unknown>,
+): RenderPlan<T> {
   if (Tracer.enabled) { Tracer.enter('createElement', 'createElementForType', slice.call(arguments)); }
   const tagName = Type.description.name;
   const instructions: HTMLTargetedInstruction[] = [];

@@ -1,7 +1,6 @@
 import {
   Constructable,
   DI,
-  IIndexable,
   IRegistry,
   IResourceDefinition,
   Omit,
@@ -9,9 +8,22 @@ import {
   ResourceDescription,
   ResourcePartDescription
 } from '@aurelia/kernel';
-import { IForOfStatement, IInterpolationExpression, IsBindingBehavior } from './ast';
-import { BindingMode, BindingStrategy, ensureValidStrategy } from './flags';
-import { ILifecycleHooks } from './lifecycle';
+
+import {
+  IForOfStatement,
+  IInterpolationExpression,
+  IsBindingBehavior
+} from './ast';
+import { INode } from './dom';
+import {
+  BindingMode,
+  BindingStrategy,
+  ensureValidStrategy
+} from './flags';
+import {
+  IController,
+  ILifecycleHooks
+} from './lifecycle';
 import { CustomElementHost } from './resources/custom-element';
 import { Bindable } from './templating/bindable';
 
@@ -22,8 +34,8 @@ export function customElementKey(name: string): string {
   return `${customElementName}:${name}`;
 }
 /** @internal */
-export function customElementBehavior(node: unknown): ILifecycleHooks | undefined {
-  return (node as CustomElementHost).$customElement;
+export function customElementBehavior<T extends INode = INode>(node: T): IController<T> | undefined {
+  return (node as CustomElementHost<T>).$customElement;
 }
 
 /** @internal */

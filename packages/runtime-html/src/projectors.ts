@@ -1,12 +1,20 @@
-import { IContainer, IResolver, PLATFORM, Registration, Reporter, Tracer } from '@aurelia/kernel';
+import {
+  IContainer,
+  IResolver,
+  PLATFORM,
+  Registration,
+  Reporter,
+  Tracer
+} from '@aurelia/kernel';
+
 import {
   CustomElementHost,
-  ICustomElement,
   IDOM,
   IElementProjector,
   INodeSequence,
   IProjectorLocator,
-  TemplateDefinition
+  TemplateDefinition,
+  IController
 } from '@aurelia/runtime';
 
 const slice = Array.prototype.slice;
@@ -20,7 +28,7 @@ export class HTMLProjectorLocator implements IProjectorLocator<Node> {
     return Registration.singleton(IProjectorLocator, this).register(container);
   }
 
-  public getElementProjector(dom: IDOM<Node>, $component: ICustomElement<Node>, host: CustomElementHost<HTMLElement>, def: TemplateDefinition): IElementProjector<Node> {
+  public getElementProjector(dom: IDOM<Node>, $component: IController<Node>, host: CustomElementHost<HTMLElement>, def: TemplateDefinition): IElementProjector<Node> {
     if (def.shadowOptions || def.hasSlots) {
       if (def.containerless) {
         throw Reporter.error(21);
@@ -45,7 +53,7 @@ export class ShadowDOMProjector implements IElementProjector<Node> {
   public shadowRoot: CustomElementHost<ShadowRoot>;
   public dom: IDOM<Node>;
 
-  constructor(dom: IDOM<Node>, $customElement: ICustomElement<Node>, host: CustomElementHost<HTMLElement>, definition: TemplateDefinition) {
+  constructor(dom: IDOM<Node>, $customElement: IController<Node>, host: CustomElementHost<HTMLElement>, definition: TemplateDefinition) {
     this.dom = dom;
     this.host = host;
 
@@ -60,7 +68,7 @@ export class ShadowDOMProjector implements IElementProjector<Node> {
     }
     this.shadowRoot = host.attachShadow(shadowOptions);
     this.host.$customElement = $customElement;
-    this.shadowRoot.$customElement = $customElement as ICustomElement<ShadowRoot>;
+    this.shadowRoot.$customElement = $customElement as IController<ShadowRoot>;
   }
 
   public get children(): ArrayLike<CustomElementHost<Node>> {
@@ -95,7 +103,7 @@ export class ContainerlessProjector implements IElementProjector<Node> {
 
   private readonly childNodes: ReadonlyArray<CustomElementHost<Node>>;
 
-  constructor(dom: IDOM<Node>, $customElement: ICustomElement<Node>, host: Node) {
+  constructor(dom: IDOM<Node>, $customElement: IController<Node>, host: Node) {
     if (host.childNodes.length) {
       this.childNodes = PLATFORM.toArray(host.childNodes);
     } else {
@@ -137,7 +145,7 @@ export class ContainerlessProjector implements IElementProjector<Node> {
 export class HostProjector implements IElementProjector<Node> {
   public host: CustomElementHost<Node>;
 
-  constructor($customElement: ICustomElement<Node>, host: CustomElementHost<Node>) {
+  constructor($customElement: IController<Node>, host: CustomElementHost<Node>) {
     this.host = host;
     this.host.$customElement = $customElement;
   }

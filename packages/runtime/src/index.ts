@@ -401,7 +401,6 @@ export {
   ILifecycleTask,
   IController,
   IRenderContext,
-  IState,
   IViewCache,
   IViewFactory,
   LifecycleTask,
@@ -466,5 +465,4 @@ export {
   ITemplateCompiler,
   ITemplateFactory,
   ViewCompileFlags,
-  RuntimeBehavior // temporary export for unit testing
 } from './rendering-engine';

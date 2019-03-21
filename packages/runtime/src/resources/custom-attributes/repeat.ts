@@ -1,41 +1,110 @@
-import { InjectArray, IRegistry } from '@aurelia/kernel';
+import {
+  IContainer,
+  InjectArray,
+  PLATFORM,
+  Registration,
+} from '@aurelia/kernel';
+
 import { ForOfStatement } from '../../binding/ast';
 import { Binding } from '../../binding/binding';
-import { AttributeDefinition, IAttributeDefinition } from '../../definitions';
-import { INode, IRenderLocation } from '../../dom';
-import { LifecycleFlags, State } from '../../flags';
-import { IMountableComponent, IController, IController, IViewFactory } from '../../lifecycle';
-import { CollectionObserver, IBatchedCollectionSubscriber, IndexMap, IObservedArray, IScope, ObservedCollection } from '../../observation';
-import { BindingContext, BindingContextValue, Scope } from '../../observation/binding-context';
+import {
+  HooksDefinition,
+  IAttributeDefinition,
+} from '../../definitions';
+import {
+  INode,
+  IRenderLocation
+} from '../../dom';
+import {
+  BindingMode,
+  BindingStrategy,
+  LifecycleFlags as LF,
+  State,
+} from '../../flags';
+import {
+  AggregateContinuationTask,
+  ContinuationTask,
+  IController,
+  ILifecycleTask,
+  IViewFactory,
+  LifecycleTask
+} from '../../lifecycle';
+import {
+  CollectionObserver,
+  IndexMap,
+  IObservable,
+  IObservedArray,
+  IObserversLookup,
+  IScope,
+  ObservedCollection,
+} from '../../observation';
+import {
+  BindingContext,
+  Scope
+} from '../../observation/binding-context';
 import { getCollectionObserver } from '../../observation/observer-locator';
-import { ProxyObserver } from '../../observation/proxy-observer';
-import { bindable } from '../../templating/bindable';
-import { CustomAttributeResource, ICustomAttribute, ICustomAttributeResource } from '../custom-attribute';
+import { SetterObserver } from '../../observation/setter-observer';
+import { Bindable } from '../../templating/bindable';
+import {
+  CustomAttributeResource,
+  ICustomAttributeResource,
+} from '../custom-attribute';
 
-export interface Repeat<C extends ObservedCollection, T extends INode = INode> extends ICustomAttribute<T>, IBatchedCollectionSubscriber {}
-export class Repeat<C extends ObservedCollection = IObservedArray, T extends INode = INode> implements Repeat<C, T> {
+type Items<C extends ObservedCollection = IObservedArray> = C | undefined | undefined;
+
+const isMountedOrAttached = State.isMounted | State.isAttached;
+const isMountedOrAttachedOrAttaching = isMountedOrAttached | State.isAttaching;
+const isMountedOrAttachedOrDetaching = isMountedOrAttached | State.isDetaching;
+const isMountedOrAttachedOrDetachingOrAttaching = isMountedOrAttachedOrDetaching | State.isAttaching;
+
+export class Repeat<C extends ObservedCollection = IObservedArray, T extends INode = INode> implements IObservable {
   public static readonly inject: InjectArray = [IRenderLocation, IController, IViewFactory];
 
-  public static readonly register: IRegistry['register'];
-  public static readonly bindables: IAttributeDefinition['bindables'];
-  public static readonly kind: ICustomAttributeResource;
-  public static readonly description: AttributeDefinition;
+  public static readonly kind: ICustomAttributeResource = CustomAttributeResource;
+  public static readonly description: Required<IAttributeDefinition> = {
+    name: 'repeat',
+    aliases: PLATFORM.emptyArray as typeof PLATFORM.emptyArray & string[],
+    defaultBindingMode: BindingMode.toView,
+    hasDynamicOptions: false,
+    isTemplateController: true,
+    bindables: Bindable.for({ bindables: ['items'] }).get(),
+    strategy: BindingStrategy.getterSetter,
+    hooks: new HooksDefinition(Repeat.prototype)
+  };
 
-  @bindable public items!: C;
+  public get items(): Items<C> {
+    return this._items;
+  }
+  public set items(newValue: Items<C>) {
+    const oldValue = this._items;
+    if (oldValue !== newValue) {
+      this._items = newValue;
+      this.itemsChanged(LF.none);
+    }
+  }
 
-  public $scope!: IScope;
+  public readonly $observers: IObserversLookup = {
+    items: this as this & SetterObserver,
+  };
 
   public forOf!: ForOfStatement;
   public hasPendingInstanceMutation: boolean;
   public local!: string;
   public location: IRenderLocation<T>;
-  public observer: CollectionObserver | null;
+  public observer?: CollectionObserver;
   public renderable: IController<T>;
   public factory: IViewFactory<T>;
   public views: IController<T>[];
-  public key: string | null;
+  public key?: string;
   public keyed: boolean;
-  private persistentFlags!: LifecycleFlags;
+  public readonly noProxy: true;
+
+  private task: ILifecycleTask;
+
+  // tslint:disable-next-line: prefer-readonly // This is set by the controller after this instance is constructed
+  private $controller!: IController<T>;
+
+  private _items: Items<C>;
 
   constructor(
     location: IRenderLocation<T>,
@@ -45,118 +114,113 @@ export class Repeat<C extends ObservedCollection = IObservedArray, T extends INo
     this.factory = factory;
     this.hasPendingInstanceMutation = false;
     this.location = location;
-    this.observer = null;
+    this.observer = void 0;
     this.renderable = renderable;
     this.views = [];
-    this.key = null;
+    this.key = void 0;
     this.keyed = false;
+    this.noProxy = true;
+
+    this.task = LifecycleTask.done;
   }
 
-  public binding(flags: LifecycleFlags): void {
-    this.persistentFlags = flags & LifecycleFlags.persistentBindingFlags;
+  public static register(container: IContainer): void {
+    container.register(Registration.transient('custom-attribute:repeat', this));
+    container.register(Registration.transient(this, this));
+  }
+
+  public binding(flags: LF): ILifecycleTask {
     this.checkCollectionObserver(flags);
-    let current = this.renderable.$bindingHead as Binding;
-    while (current != null) {
-      if (ProxyObserver.getRawIfProxy(current.target) === ProxyObserver.getRawIfProxy(this) && current.targetProperty === 'items') {
-        this.forOf = current.sourceExpression as ForOfStatement;
+    const bindings = this.renderable.bindings as Binding[];
+    const { length } = bindings;
+    let binding: Binding;
+    for (let i = 0; i < length; ++i) {
+      binding = bindings[i];
+      if (binding.target === this && binding.targetProperty === 'items') {
+        this.forOf = binding.sourceExpression as ForOfStatement;
         break;
       }
-      current = current.$nextBinding as Binding;
     }
-    this.local = this.forOf.declaration.evaluate(flags, this.$scope, null) as string;
+    this.local = this.forOf.declaration.evaluate(flags, this.$controller.scope!, null) as string;
 
-    if (this.keyed || (flags & LifecycleFlags.keyedStrategy) > 0) {
-      this.processViewsKeyed(null, flags);
+    if (this.keyed || (flags & LF.keyedStrategy) > 0) {
+      this.processViewsKeyed(void 0, flags);
     } else {
-      this.processViewsNonKeyed(null, flags);
+      this.processViewsNonKeyed(void 0, flags);
     }
+    return this.task;
   }
 
-  public attaching(flags: LifecycleFlags): void {
-    const { views, location } = this;
-    let view: IController;
-    for (let i = 0, ii = views.length; i < ii; ++i) {
-      view = views[i];
-      view.hold(location);
-      view.$attach(flags);
+  public attaching(flags: LF): ILifecycleTask {
+    if (this.task.done) {
+      this.attachViews(void 0, flags);
+    } else {
+      this.task = new ContinuationTask(this.task, this.attachViews, this, void 0, flags);
     }
+    return this.task;
   }
 
-  public detaching(flags: LifecycleFlags): void {
-    const { views } = this;
-    let view: IController;
-    for (let i = 0, ii = views.length; i < ii; ++i) {
-      view = views[i];
-      view.$detach(flags);
-      view.release(flags);
+  public detaching(flags: LF): ILifecycleTask {
+    if (this.task.done) {
+      this.detachViewsByRange(0, this.views.length, flags);
+    } else {
+      this.task = new ContinuationTask(this.task, this.detachViewsByRange, this, 0, this.views.length, flags);
     }
+    return this.task;
   }
 
-  public unbinding(flags: LifecycleFlags): void {
+  public unbinding(flags: LF): ILifecycleTask {
     this.checkCollectionObserver(flags);
 
-    const { views } = this;
-    let view: IController;
-    for (let i = 0, ii = views.length; i < ii; ++i) {
-      view = views[i];
-      view.$unbind(flags);
-    }
-  }
-
-  // called by SetterObserver (sync)
-  public itemsChanged(newValue: C, oldValue: C, flags: LifecycleFlags): void {
-    flags |= this.persistentFlags;
-    const $this = ProxyObserver.getRawIfProxy(this);
-    $this.checkCollectionObserver(flags);
-    flags |= LifecycleFlags.updateTargetInstance;
-    if ($this.keyed || (flags & LifecycleFlags.keyedStrategy) > 0) {
-      $this.processViewsKeyed(null, flags);
+    if (this.task.done) {
+      this.task = this.unbindAndRemoveViewsByRange(0, this.views.length, flags, false);
     } else {
-      $this.processViewsNonKeyed(null, flags);
+      this.task = new ContinuationTask(this.task, this.unbindAndRemoveViewsByRange, this, 0, this.views.length, flags, false);
     }
+    return this.task;
   }
 
-  // called by a CollectionObserver (async)
-  public handleBatchedChange(indexMap: number[] | null, flags: LifecycleFlags): void {
-    flags |= this.persistentFlags;
-    const $this = ProxyObserver.getRawIfProxy(this);
-    flags |= (LifecycleFlags.fromFlush | LifecycleFlags.updateTargetInstance);
-    if ($this.keyed || (flags & LifecycleFlags.keyedStrategy) > 0) {
-      $this.processViewsKeyed(indexMap, flags);
+  // called by SetterObserver
+  public itemsChanged(flags: LF): void {
+    flags |= this.$controller.flags;
+    this.checkCollectionObserver(flags);
+    flags |= LF.updateTargetInstance;
+    if (this.keyed || (flags & LF.keyedStrategy) > 0) {
+      this.processViewsKeyed(void 0, flags);
     } else {
-      $this.processViewsNonKeyed(indexMap, flags);
+      this.processViewsNonKeyed(void 0, flags);
     }
   }
 
-  // if the indexMap === null, it is an instance mutation, otherwise it's an items mutation
-  // TODO: Reduce complexity (currently at 46)
-  private processViewsNonKeyed(indexMap: number[] | null, flags: LifecycleFlags): void {
-    const { views, $lifecycle } = this;
-    let view: IController;
-    if (this.$state! & (State.isBound | State.isBinding)) {
-      const { local, $scope, factory, forOf, items } = this;
-      const oldLength = views.length;
-      const newLength = forOf.count(flags, items);
+  // called by a CollectionObserver
+  public handleCollectionChange(indexMap: IndexMap | undefined, flags: LF): void {
+    flags |= this.$controller.flags;
+    flags |= (LF.fromFlush | LF.updateTargetInstance);
+    if (this.keyed || (flags & LF.keyedStrategy) > 0) {
+      this.processViewsKeyed(indexMap, flags);
+    } else {
+      this.processViewsNonKeyed(indexMap, flags);
+    }
+  }
+
+  // if the indexMap === void 0, it is an instance mutation, otherwise it's an items mutation
+  private processViewsNonKeyed(indexMap: IndexMap | undefined, flags: LF): void {
+    if ((this.$controller.state & State.isBoundOrBinding) > 0) {
+      const oldLength = this.views.length;
+      const newLength = this.forOf.count(flags, this.items);
       if (oldLength < newLength) {
+        const { views, factory } = this;
         views.length = newLength;
         for (let i = oldLength; i < newLength; ++i) {
           views[i] = factory.create(flags);
         }
       } else if (newLength < oldLength) {
-        $lifecycle!.beginDetach();
-        for (let i = newLength; i < oldLength; ++i) {
-          view = views[i];
-          view.release(flags);
-          view.$detach(flags);
+        this.detachViewsByRange(newLength, oldLength, flags);
+        if (this.task.done) {
+          this.task = this.unbindAndRemoveViewsByRange(newLength, oldLength, flags, true);
+        } else {
+          this.task = new ContinuationTask(this.task, this.unbindAndRemoveViewsByRange, this, newLength, oldLength, flags, true);
         }
-        $lifecycle!.endDetach(flags);
-        $lifecycle!.beginUnbind();
-        for (let i = newLength; i < oldLength; ++i) {
-          view = views[i];
-          view.$unbind(flags);
-        }
-        $lifecycle!.endUnbind(flags);
-        views.length = newLength;
         if (newLength === 0) {
           return;
         }
@@ -164,244 +228,408 @@ export class Repeat<C extends ObservedCollection = IObservedArray, T extends INo
         return;
       }
 
-      $lifecycle!.beginBind();
-      if (indexMap == null) {
-        forOf.iterate(flags, items, (arr, i, item) => {
-          view = views[i];
-          if (!!view.$scope && view.$scope.bindingContext[local] === item) {
-            view.$bind(flags, Scope.fromParent(flags, $scope, view.$scope.bindingContext));
-          } else {
-            view.$bind(flags, Scope.fromParent(flags, $scope, BindingContext.create(flags, local, item as object)));
-          }
-        });
+      if (this.task.done) {
+        this.task = this.bindViewsByIndexOrReference(indexMap, flags);
       } else {
-        forOf.iterate(flags, items, (arr, i, item) => {
-          view = views[i];
-          if (!!view.$scope && (indexMap[i] === i || view.$scope.bindingContext[local] === item)) {
-            view.$bind(flags, Scope.fromParent(flags, $scope, view.$scope.bindingContext));
-          } else {
-            view.$bind(flags, Scope.fromParent(flags, $scope, BindingContext.create(flags, local, item as object)));
-          }
-        });
+        this.task = new ContinuationTask(this.task, this.bindViewsByIndexOrReference, this, indexMap, flags);
       }
-      $lifecycle!.endBind(flags);
     }
 
-    if (this.$state! & (State.isAttached | State.isAttaching)) {
-      const { location } = this;
-      $lifecycle!.beginAttach();
-      if (indexMap == null) {
-        for (let i = 0, ii = views.length; i < ii; ++i) {
-          view = views[i];
-          view.hold(location);
-          view.$attach(flags);
-        }
+    if ((this.$controller.state & State.isAttachedOrAttaching) > 0) {
+      if (this.task.done) {
+        this.attachViews(indexMap, flags);
       } else {
-        for (let i = 0, ii = views.length; i < ii; ++i) {
-          if (indexMap[i] !== i) {
-            view = views[i];
-            view.hold(location);
-            view.$attach(flags);
-          }
-        }
+        this.task = new ContinuationTask(this.task, this.attachViews, this, indexMap, flags);
       }
-      $lifecycle!.endAttach(flags);
     }
   }
 
-  private processViewsKeyed(indexMap: IndexMap | null, flags: LifecycleFlags): void {
-    const { $lifecycle, local, $scope, factory, forOf, items } = this;
-    let views = this.views;
-    if (indexMap == null) {
-      if (this.$state! & (State.isBound | State.isBinding)) {
-        $lifecycle!.beginDetach();
-        const oldLength = views.length;
-        let view: IController;
-        for (let i = 0; i < oldLength; ++i) {
-          view = views[i];
-          view.release(flags);
-          view.$detach(flags);
+  private processViewsKeyed(indexMap: IndexMap | undefined, flags: LF): void {
+    if (indexMap === void 0) {
+      if ((this.$controller.state & State.isBoundOrBinding) > 0) {
+        const oldLength = this.views.length;
+        this.detachViewsByRange(0, oldLength, flags);
+        if (this.task.done) {
+          this.task = this.unbindAndRemoveViewsByRange(0, oldLength, flags, false);
+        } else {
+          this.task = new ContinuationTask(this.task, this.unbindAndRemoveViewsByRange, this, 0, oldLength, flags, false);
         }
-        $lifecycle!.endDetach(flags);
-        $lifecycle!.beginUnbind();
-        for (let i = 0; i < oldLength; ++i) {
-          view = views[i];
-          view.$unbind(flags);
+
+        if (this.task.done) {
+          this.task = this.createAndBindAllViews(flags);
+        } else {
+          this.task = new ContinuationTask(this.task, this.createAndBindAllViews, this, flags);
         }
-        $lifecycle!.endUnbind(flags);
-
-        const newLen = forOf.count(flags, items);
-        views = this.views = Array(newLen);
-
-        $lifecycle!.beginBind();
-        forOf.iterate(flags, items, (arr, i, item) => {
-          view = views[i] = factory.create(flags);
-          view.$bind(flags, Scope.fromParent(flags, $scope, BindingContext.create(flags, local, item as object)));
-        });
-        $lifecycle!.endBind(flags);
       }
 
-      if (this.$state! & (State.isAttached | State.isAttaching)) {
-        const { location } = this;
-        $lifecycle!.beginAttach();
-        let view: IController;
-        const len = views.length;
-        for (let i = 0; i < len; ++i) {
-          view = views[i];
-          view.hold(location);
-          view.$attach(flags);
+      if ((this.$controller.state & State.isAttachedOrAttaching) > 0) {
+        if (this.task.done) {
+          this.attachViewsKeyed(flags);
+        } else {
+          this.task = new ContinuationTask(this.task, this.attachViewsKeyed, this, flags);
         }
-        $lifecycle!.endAttach(flags);
       }
     } else {
-      const mapLen = indexMap.length;
-      let view: IController<T>;
-      const deleted = indexMap.deletedItems;
-      const deletedLen = deleted!.length;
-      let i = 0;
-      if (this.$state! & (State.isBound | State.isBinding)) {
+      if ((this.$controller.state & State.isBoundOrBinding) > 0) {
         // first detach+unbind+(remove from array) the deleted view indices
-        if (deletedLen > 0) {
-          $lifecycle!.beginDetach();
-          i = 0;
-          for (; i < deletedLen; ++i) {
-            view = views[deleted![i]];
-            view.release(flags);
-            view.$detach(flags);
-          }
-          $lifecycle!.endDetach(flags);
-          $lifecycle!.beginUnbind();
-          for (i = 0; i < deletedLen; ++i) {
-            view = views[deleted![i]];
-            view.$unbind(flags);
-          }
-          $lifecycle!.endUnbind(flags);
-          i = 0;
-          let j = 0;
-          let k = 0;
+        if (indexMap.deletedItems.length > 0) {
           // tslint:disable-next-line:no-alphabetical-sort // alphabetical (numeric) sort is intentional
-          deleted!.sort();
-          for (; i < deletedLen; ++i) {
-            j = deleted![i] - i;
-            views.splice(j, 1);
-            k = 0;
-            for (; k < mapLen; ++k) {
-              if (indexMap[k] >= j) {
-                --indexMap[k];
-              }
-            }
+          indexMap.deletedItems.sort();
+          if (this.task.done) {
+            this.detachViewsByKey(indexMap, flags);
+          } else {
+            this.task = new ContinuationTask(this.task, this.detachViewsByKey, this, indexMap, flags);
+          }
+
+          if (this.task.done) {
+            this.task = this.unbindAndRemoveViewsByKey(indexMap, flags);
+          } else {
+            this.task = new ContinuationTask(this.task, this.unbindAndRemoveViewsByKey, this, indexMap, flags);
           }
         }
 
         // then insert new views at the "added" indices to bring the views array in aligment with indexMap size
-        $lifecycle!.beginBind();
-        i = 0;
-        for (; i < mapLen; ++i) {
-          if (indexMap[i] === -2) {
-            view = factory.create(flags);
-            view.$bind(flags, Scope.fromParent(flags, $scope, BindingContext.create(flags, local, items![i as keyof typeof items])));
-            views.splice(i, 0, view);
-          }
-        }
-        $lifecycle!.endBind(flags);
-        if (views.length !== mapLen) {
-          // TODO: create error code and use reporter with more informative message
-          throw new Error(`viewsLen=${views.length}, mapLen=${mapLen}`);
+        if (this.task.done) {
+          this.task = this.createAndBindNewViewsByKey(indexMap, flags);
+        } else {
+          this.task = new ContinuationTask(this.task, this.createAndBindNewViewsByKey, this, indexMap, flags);
         }
       }
 
-      if (this.$state! & (State.isAttached | State.isAttaching)) {
-        const { location } = this;
-        // this algorithm retrieves the indices of the longest increasing subsequence of items in the repeater
-        // the items on those indices are not moved; this minimizes the number of DOM operations that need to be performed
-        const seq = longestIncreasingSubsequence(indexMap);
-        const seqLen = seq.length;
-        $lifecycle!.beginDetach();
-        $lifecycle!.beginAttach();
-        const operation: Partial<IMountableComponent> = {
-          $mount(): void {
-            let next = location;
-            let j = seqLen - 1;
-            i = indexMap.length - 1;
-            for (; i >= 0; --i) {
-              if (indexMap[i] === -2) {
-                view = views[i];
-
-                view.$state! |= State.isAttaching;
-
-                let current = view.$componentHead!;
-                while (current != null) {
-                  current!.$attach(flags | LifecycleFlags.fromAttach);
-                  current = current!.$nextComponent!;
-                }
-
-                view.$nodes.insertBefore(next);
-
-                view.$state! |= (State.isMounted | State.isAttached);
-                view.$state! &= ~State.isAttaching;
-                next = view.$nodes.firstChild;
-              } else if (j < 0 || seqLen === 1 || i !== seq[j]) {
-                view = views[indexMap[i]];
-                view.$state! |= State.isDetaching;
-
-                let current = view.$componentTail;
-                while (current != null) {
-                  current!.$detach(flags | LifecycleFlags.fromDetach);
-                  current = current!.$prevComponent!;
-                }
-                view.$nodes.remove();
-
-                view.$state! &= ~(State.isAttached | State.isDetaching | State.isMounted);
-
-                view.$state! |= State.isAttaching;
-
-                current = view.$componentHead!;
-                while (current != null) {
-                  current!.$attach(flags | LifecycleFlags.fromAttach);
-                  current = current!.$nextComponent!;
-                }
-
-                view.$nodes.insertBefore(next);
-
-                view.$state! |= (State.isMounted | State.isAttached);
-                view.$state! &= ~State.isAttaching;
-
-                next = view.$nodes.firstChild;
-              } else {
-                view = views[i];
-                next = view.$nodes.firstChild;
-                --j;
-              }
-            }
-          },
-          $nextMount: null!
-        };
-
-        $lifecycle!.enqueueMount(operation as IMountableComponent);
-
-        $lifecycle!.endDetach(flags);
-        $lifecycle!.endAttach(flags);
+      if ((this.$controller.state & State.isAttachedOrAttaching) > 0) {
+        if (this.task.done) {
+          this.sortViewsByKey(indexMap, flags);
+        } else {
+          this.task = new ContinuationTask(this.task, this.sortViewsByKey, this, indexMap, flags);
+        }
       }
     }
   }
 
-  private checkCollectionObserver(flags: LifecycleFlags): void {
-    const $this = ProxyObserver.getRawIfProxy(this);
-    const oldObserver = $this.observer;
-    if ($this.$state! & (State.isBound | State.isBinding)) {
-      const newObserver = $this.observer = getCollectionObserver(flags, $this.$lifecycle!, $this.items);
+  private checkCollectionObserver(flags: LF): void {
+    const oldObserver = this.observer;
+    if ((this.$controller.state & State.isBoundOrBinding) > 0) {
+      const newObserver = this.observer = getCollectionObserver(flags, this.$controller.lifecycle, this.items);
       if (oldObserver !== newObserver && oldObserver) {
-        oldObserver.unsubscribeBatched($this);
+        oldObserver.unsubscribeFromCollection(this);
       }
       if (newObserver) {
-        newObserver.subscribeBatched($this);
+        newObserver.subscribeToCollection(this);
       }
     } else if (oldObserver) {
-      oldObserver.unsubscribeBatched($this);
+      oldObserver.unsubscribeFromCollection(this);
     }
   }
+
+  private detachViewsByRange(iStart: number, iEnd: number, flags: LF): void {
+    let view: IController<T>;
+    for (let i = iStart; i < iEnd; ++i) {
+      view = this.views[i];
+      view.release(flags);
+      view.detach(flags);
+    }
+  }
+
+  private unbindAndRemoveViewsByRange(iStart: number, iEnd: number, flags: LF, adjustLength: boolean): ILifecycleTask {
+    let tasks: ILifecycleTask[] | undefined = void 0;
+    let task: ILifecycleTask;
+    this.$controller.lifecycle.beginUnbind();
+    let view: IController<T>;
+    for (let i = iStart; i < iEnd; ++i) {
+      view = this.views[i];
+      task = view.unbind(flags);
+      if (!task.done) {
+        if (tasks === undefined) {
+          tasks = [];
+        }
+        tasks.push(task);
+      }
+    }
+
+    if (adjustLength) {
+      this.views.length = iStart;
+    }
+
+    if (tasks === undefined) {
+      this.$controller.lifecycle.endUnbind(flags);
+      return LifecycleTask.done;
+    }
+
+    return new AggregateContinuationTask(tasks, this.$controller.lifecycle.endUnbind, this.$controller.lifecycle, flags);
+  }
+
+  private detachViewsByKey(indexMap: IndexMap, flags: LF): void {
+    const deleted = indexMap.deletedItems;
+    const deletedLen = deleted.length;
+    let view: IController<T>;
+    for (let i = 0; i < deletedLen; ++i) {
+      view = this.views[deleted[i]];
+      view.release(flags);
+      view.detach(flags);
+    }
+  }
+
+  private unbindAndRemoveViewsByKey(indexMap: IndexMap, flags: LF): ILifecycleTask {
+    let tasks: ILifecycleTask[] | undefined = void 0;
+    let task: ILifecycleTask;
+    this.$controller.lifecycle.beginUnbind();
+    const deleted = indexMap.deletedItems;
+    const deletedLen = deleted.length;
+    const mapLen = indexMap.length;
+    const views = this.views;
+    let view: IController<T>;
+    let i = 0;
+    for (; i < deletedLen; ++i) {
+      view = views[deleted[i]];
+      task = view.unbind(flags);
+      if (!task.done) {
+        if (tasks === undefined) {
+          tasks = [];
+        }
+        tasks.push(task);
+      }
+    }
+
+    i = 0;
+    let j = 0;
+    let k = 0;
+    for (; i < deletedLen; ++i) {
+      j = deleted[i] - i;
+      views.splice(j, 1);
+      k = 0;
+      for (; k < mapLen; ++k) {
+        if (indexMap[k] >= j) {
+          --indexMap[k];
+        }
+      }
+    }
+
+    if (tasks === undefined) {
+      this.$controller.lifecycle.endUnbind(flags);
+      return LifecycleTask.done;
+    }
+
+    return new AggregateContinuationTask(tasks, this.$controller.lifecycle.endUnbind, this.$controller.lifecycle, flags);
+  }
+
+  private bindViewsByIndexOrReference(indexMap: IndexMap | undefined, flags: LF): ILifecycleTask {
+    let tasks: ILifecycleTask[] | undefined = void 0;
+    let task: ILifecycleTask;
+    let view: IController<T>;
+    const { views, items, local } = this;
+    const scope = this.$controller.scope as IScope;
+    this.$controller.lifecycle.beginBind();
+    if (indexMap === void 0) {
+      this.forOf.iterate(flags, items, (arr, i, item) => {
+        view = views[i];
+        if (!!view.scope && view.scope.bindingContext[local] === item) {
+          task = view.bind(flags, Scope.fromParent(flags, scope, view.scope.bindingContext));
+        } else {
+          task = view.bind(flags, Scope.fromParent(flags, scope, BindingContext.create(flags, local, item)));
+        }
+
+        if (!task.done) {
+          if (tasks === undefined) {
+            tasks = [];
+          }
+          tasks.push(task);
+        }
+      });
+    } else {
+      this.forOf.iterate(flags, items, (arr, i, item) => {
+        view = views[i];
+        if (!!view.scope && (indexMap[i] === i || view.scope.bindingContext[local] === item)) {
+          task = view.bind(flags, Scope.fromParent(flags, scope, view.scope.bindingContext));
+        } else {
+          task = view.bind(flags, Scope.fromParent(flags, scope, BindingContext.create(flags, local, item)));
+        }
+
+        if (!task.done) {
+          if (tasks === undefined) {
+            tasks = [];
+          }
+          tasks.push(task);
+        }
+      });
+    }
+
+    if (tasks === undefined) {
+      this.$controller.lifecycle.endBind(flags);
+      return LifecycleTask.done;
+    }
+
+    return new AggregateContinuationTask(tasks, this.$controller.lifecycle.endBind, this.$controller.lifecycle, flags);
+  }
+
+  private createAndBindAllViews(flags: LF): ILifecycleTask {
+    let tasks: ILifecycleTask[] | undefined = void 0;
+    let task: ILifecycleTask;
+    let view: IController<T>;
+    this.$controller.lifecycle.beginBind();
+    const { items, factory, local } = this;
+    const scope = this.$controller.scope as IScope;
+    const newLen = this.forOf.count(flags, items);
+    const views = this.views = Array(newLen);
+    this.forOf.iterate(flags, items, (arr, i, item) => {
+      view = views[i] = factory.create(flags);
+      task = view.bind(flags, Scope.fromParent(flags, scope, BindingContext.create(flags, local, item)));
+
+      if (!task.done) {
+        if (tasks === undefined) {
+          tasks = [];
+        }
+        tasks.push(task);
+      }
+    });
+
+    if (tasks === undefined) {
+      this.$controller.lifecycle.endBind(flags);
+      return LifecycleTask.done;
+    }
+
+    return new AggregateContinuationTask(tasks, this.$controller.lifecycle.endBind, this.$controller.lifecycle, flags);
+  }
+
+  private createAndBindNewViewsByKey(indexMap: IndexMap, flags: LF): ILifecycleTask {
+    let tasks: ILifecycleTask[] | undefined = void 0;
+    let task: ILifecycleTask;
+    let view: IController<T>;
+    const { factory, views, local, items } = this;
+    const scope = this.$controller.scope as IScope;
+    this.$controller.lifecycle.beginBind();
+    const mapLen = indexMap.length;
+    for (let i = 0; i < mapLen; ++i) {
+      if (indexMap[i] === -2) {
+        view = factory.create(flags);
+        // TODO: test with map/set/undefined/null, make sure we can use strong typing here as well, etc
+        task = view.bind(flags, Scope.fromParent(flags, scope, BindingContext.create(flags, local, (items as any)[i])));
+        views.splice(i, 0, view);
+
+        if (!task.done) {
+          if (tasks === undefined) {
+            tasks = [];
+          }
+          tasks.push(task);
+        }
+      }
+    }
+
+    if (views.length !== mapLen) {
+      // TODO: create error code and use reporter with more informative message
+      throw new Error(`viewsLen=${views.length}, mapLen=${mapLen}`);
+    }
+
+    if (tasks === undefined) {
+      this.$controller.lifecycle.endBind(flags);
+      return LifecycleTask.done;
+    }
+
+    return new AggregateContinuationTask(tasks, this.$controller.lifecycle.endBind, this.$controller.lifecycle, flags);
+  }
+
+  private attachViews(indexMap: IndexMap | undefined, flags: LF): void {
+    let view: IController<T>;
+    const { views, location } = this;
+    if (indexMap === void 0) {
+      for (let i = 0, ii = views.length; i < ii; ++i) {
+        view = views[i];
+        view.hold(location);
+        view.attach(flags);
+      }
+    } else {
+      for (let i = 0, ii = views.length; i < ii; ++i) {
+        if (indexMap[i] !== i) {
+          view = views[i];
+          view.hold(location);
+          view.attach(flags);
+        }
+      }
+    }
+  }
+
+  private attachViewsKeyed(flags: LF): void {
+    let view: IController<T>;
+    const { views, location } = this;
+    for (let i = 0, ii = views.length; i < ii; ++i) {
+      view = views[i];
+      view.hold(location);
+      view.attach(flags);
+    }
+  }
+
+  private sortViewsByKey(indexMap: IndexMap, flags: LF): void {
+    // TODO: integrate with tasks
+    const { location, views } = this;
+    // this algorithm retrieves the indices of the longest increasing subsequence of items in the repeater
+    // the items on those indices are not moved; this minimizes the number of DOM operations that need to be performed
+    const seq = longestIncreasingSubsequence(indexMap);
+    const seqLen = seq.length;
+    const operation: Partial<IController<T>> = {
+      mount($flags: LF): void {
+        $flags |= flags;
+        let next = location;
+        let j = seqLen - 1;
+        let i = indexMap.length - 1;
+        let view: IController;
+        for (; i >= 0; --i) {
+          if (indexMap[i] === -2) {
+            view = views[i];
+
+            view.state |= State.isAttaching;
+
+            const { controllers } = view;
+            if (controllers != void 0) {
+              const { length } = controllers;
+              for (let k = 0; k < length; ++k) {
+                controllers[i].attach($flags);
+              }
+            }
+
+            view.nodes!.insertBefore(next);
+
+            view.state = (view.state | isMountedOrAttachedOrAttaching) ^ State.isAttaching;
+            next = view.nodes!.firstChild;
+          } else if (j < 0 || seqLen === 1 || i !== seq[j]) {
+            view = views[indexMap[i]];
+            view.state |= State.isDetaching;
+
+            const { controllers } = view;
+            if (controllers != void 0) {
+              const { length } = controllers;
+              for (let k = length - 1; k >= 0; --k) {
+                controllers[i].detach($flags);
+              }
+            }
+            view.nodes!.remove();
+
+            view.state = (view.state | isMountedOrAttachedOrDetachingOrAttaching) ^ isMountedOrAttachedOrDetaching;
+
+            if (controllers != void 0) {
+              const { length } = controllers;
+              for (let k = 0; k < length; ++k) {
+                controllers[i].attach($flags);
+              }
+            }
+
+            view.nodes!.insertBefore(next);
+
+            view.state = (view.state | isMountedOrAttachedOrAttaching) ^ State.isAttaching;
+
+            next = view.nodes!.firstChild;
+          } else {
+            view = views[i];
+            next = view.nodes!.firstChild;
+            --j;
+          }
+        }
+      },
+      nextMount: void 0,
+      prevMount: void 0,
+    };
+
+    this.$controller.lifecycle.enqueueMount(operation as IController<T>);
+  }
 }
-CustomAttributeResource.define({ name: 'repeat', isTemplateController: true }, Repeat);
 
 let prevIndices: Int32Array;
 let tailIndices: Int32Array;

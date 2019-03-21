@@ -31,7 +31,7 @@ export class With<T extends INode = INode> {
   }
 
   public valueChanged(this: With): void {
-    if ((this.ownController.state & (State.isBound | State.isBinding)) > 0) {
+    if ((this.ownController.state & State.isBoundOrBinding) > 0) {
       this.bindChild(LifecycleFlags.fromBind);
     }
   }

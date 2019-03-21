@@ -175,7 +175,7 @@ export class If<T extends INode = INode> {
   }
 
   public valueChanged(newValue: boolean, oldValue: boolean, flags: LifecycleFlags): void {
-    if ((this.$controller.state & (State.isBound | State.isBinding)) > 0) {
+    if ((this.$controller.state & State.isBoundOrBinding) > 0) {
       if ((flags & LifecycleFlags.fromFlush) > 0) {
         if (this.task.done) {
           this.task = this.swap(newValue, flags);
@@ -256,14 +256,14 @@ export class If<T extends INode = INode> {
   }
 
   private bindView(flags: LifecycleFlags): ILifecycleTask {
-    if (this.currentView !== void 0 && (this.$controller.state & (State.isBound | State.isBinding)) > 0) {
+    if (this.currentView !== void 0 && (this.$controller.state & State.isBoundOrBinding) > 0) {
       return this.currentView.bind(flags, this.$controller.scope);
     }
     return LifecycleTask.done;
   }
 
   private attachView(flags: LifecycleFlags): void {
-    if (this.currentView !== void 0 && (this.$controller.state & (State.isAttached | State.isAttaching)) > 0) {
+    if (this.currentView !== void 0 && (this.$controller.state & State.isAttachedOrAttaching) > 0) {
       this.currentView.attach(flags);
     }
   }

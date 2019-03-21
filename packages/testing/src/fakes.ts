@@ -5,7 +5,7 @@ import {
   IComponent,
   IElementProjector,
   ILifecycle,
-  ILifecycleHooks,
+  IViewModel,
   IMountableComponent,
   INode,
   INodeSequence,
@@ -44,10 +44,10 @@ export class FakeRenderable<T extends INode = INode> implements IController<T> {
   public $projector: IElementProjector;
 
   public $nextFlush: IChangeTracker;
-  public $nextBound: ILifecycleHooks;
-  public $nextUnbound: ILifecycleHooks;
-  public $nextAttached: ILifecycleHooks;
-  public $nextDetached: ILifecycleHooks;
+  public $nextBound: IViewModel;
+  public $nextUnbound: IViewModel;
+  public $nextAttached: IViewModel;
+  public $nextDetached: IViewModel;
 
   constructor() {
     this.$state = State.none;

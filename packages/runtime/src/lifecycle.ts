@@ -77,7 +77,7 @@ export interface IController<T extends INode = INode> {
   readonly lifecycle: ILifecycle;
 
   readonly hooks: HooksDefinition;
-  readonly viewModel?: ILifecycleHooks;
+  readonly viewModel?: IViewModel;
   readonly bindingContext?: IIndexable;
 
   readonly host?: T;
@@ -132,7 +132,7 @@ export const IViewFactory = DI.createInterface<IViewFactory>('IViewFactory').noD
 /**
  * Defines optional lifecycle hooks that will be called only when they are implemented.
  */
-export interface ILifecycleHooks<T extends INode = INode> {
+export interface IViewModel<T extends INode = INode> {
   readonly $controller: IController<T>;
   created?(flags: LifecycleFlags): void;
   binding?(flags: LifecycleFlags): MaybePromiseOrTask;

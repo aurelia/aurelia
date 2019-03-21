@@ -21,7 +21,7 @@ import {
   ensureValidStrategy,
 } from '../flags';
 import {
-  ILifecycleHooks,
+  IViewModel,
 } from '../lifecycle';
 import { Bindable } from '../templating/bindable';
 
@@ -30,11 +30,11 @@ type CustomAttributeStaticProperties = Pick<Required<IAttributeDefinition>, 'bin
 export type CustomAttributeConstructor = Constructable & CustomAttributeStaticProperties;
 
 export interface ICustomAttributeType<C extends Constructable = Constructable> extends
-  IResourceType<IAttributeDefinition, InstanceType<C> & ILifecycleHooks>,
+  IResourceType<IAttributeDefinition, InstanceType<C> & IViewModel>,
   CustomAttributeStaticProperties { }
 
 export interface ICustomAttributeResource extends
-  IResourceKind<IAttributeDefinition, ILifecycleHooks, Class<ILifecycleHooks> & CustomAttributeStaticProperties> {
+  IResourceKind<IAttributeDefinition, IViewModel, Class<IViewModel> & CustomAttributeStaticProperties> {
 }
 
 /** @internal */

@@ -1,6 +1,6 @@
 import { DI, IIndexable } from '@aurelia/kernel';
 import { expect } from 'chai';
-import { Hooks, ILifecycle, LifecycleFlags, PromiseTask, State, ILifecycleHooks } from '@aurelia/runtime';
+import { Hooks, ILifecycle, LifecycleFlags, PromiseTask, State, IViewModel } from '@aurelia/runtime';
 
 describe('Lifecycle', function () {
 
@@ -89,7 +89,7 @@ describe('Lifecycle', function () {
       });
 
       let boundCalled = false;
-      const subject1: ILifecycleHooks & IIndexable = {
+      const subject1: IViewModel & IIndexable = {
         $nextBound: null,
         bound(_flags: LifecycleFlags): void {
           expect(callbackCalled).to.equal(true, 'callbackCalled');

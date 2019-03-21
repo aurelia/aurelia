@@ -22,7 +22,7 @@ import {
 } from './flags';
 import {
   IController,
-  ILifecycleHooks
+  IViewModel
 } from './lifecycle';
 import { CustomElementHost } from './resources/custom-element';
 import { Bindable } from './templating/bindable';

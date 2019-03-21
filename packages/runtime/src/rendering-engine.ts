@@ -35,7 +35,7 @@ import { LifecycleFlags } from './flags';
 import {
   IController,
   ILifecycle,
-  ILifecycleHooks,
+  IViewModel,
   IRenderContext,
   IViewFactory,
 } from './lifecycle';
@@ -382,8 +382,8 @@ export interface IChildrenObserver extends
   ISubscribable,
   ISubscriberCollection { }
 
-type HasChildrenChanged = ILifecycleHooks & { $childrenChanged(): void };
-function hasChildrenChanged(viewModel: ILifecycleHooks | undefined): viewModel is HasChildrenChanged {
+type HasChildrenChanged = IViewModel & { $childrenChanged(): void };
+function hasChildrenChanged(viewModel: IViewModel | undefined): viewModel is HasChildrenChanged {
   return viewModel != void 0 && '$childrenChanged' in viewModel;
 }
 

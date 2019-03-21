@@ -397,7 +397,7 @@ export {
   ContinuationTask,
   IBinding,
   ILifecycle,
-  ILifecycleHooks,
+  IViewModel,
   ILifecycleTask,
   IController,
   IRenderContext,

@@ -29,7 +29,7 @@ import {
   IBinding,
   IController,
   ILifecycle,
-  ILifecycleHooks,
+  IViewModel,
   ILifecycleTask,
   IRenderContext,
   IViewCache,
@@ -113,7 +113,7 @@ export class Controller<T extends INode = INode> implements IController<T> {
   public readonly lifecycle: ILifecycle;
 
   public readonly hooks: HooksDefinition;
-  public readonly viewModel?: ILifecycleHooks;
+  public readonly viewModel?: IViewModel;
   public readonly bindingContext?: BindingContext;
 
   public readonly host?: T;
@@ -202,7 +202,7 @@ export class Controller<T extends INode = INode> implements IController<T> {
       flags |= description.strategy;
       createObservers(description, flags, viewModel);
       this.hooks = description.hooks;
-      this.viewModel = viewModel as ILifecycleHooks;
+      this.viewModel = viewModel as IViewModel;
       this.bindingContext = getBindingContext(flags, viewModel);
 
       this.host = host;

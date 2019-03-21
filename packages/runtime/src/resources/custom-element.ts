@@ -26,11 +26,11 @@ import {
 } from '../dom';
 import {
   IController,
-  ILifecycleHooks,
+  IViewModel,
 } from '../lifecycle';
 
 export interface ICustomElementType<C extends Constructable = Constructable> extends
-  IResourceType<ITemplateDefinition, InstanceType<C> & ILifecycleHooks>,
+  IResourceType<ITemplateDefinition, InstanceType<C> & IViewModel>,
   ICustomElementStaticProperties {
   description: TemplateDefinition;
 }
@@ -64,7 +64,7 @@ export interface ICustomElementStaticProperties {
 }
 
 export interface ICustomElementResource<T extends INode = INode> extends
-  IResourceKind<ITemplateDefinition, ILifecycleHooks, Class<ILifecycleHooks> & ICustomElementStaticProperties> {
+  IResourceKind<ITemplateDefinition, IViewModel, Class<IViewModel> & ICustomElementStaticProperties> {
   behaviorFor(node: T): IController<T> | undefined;
 }
 

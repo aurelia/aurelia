@@ -20,7 +20,7 @@ import {
   ContinuationTask,
   IController,
   ILifecycle,
-  ILifecycleHooks,
+  IViewModel,
   ILifecycleTask,
   LifecycleTask,
 } from './lifecycle';
@@ -122,13 +122,13 @@ export class Aurelia<TNode extends INode = INode> {
     this.stopFlags = LifecycleFlags.fromStopTask | config.strategy!;
 
     let controller: IController;
-    const componentOrType = config.component as ILifecycleHooks | ICustomElementType;
+    const componentOrType = config.component as IViewModel | ICustomElementType;
     if (CustomElementResource.isType(componentOrType as ICustomElementType)) {
       this.container.register(componentOrType as ICustomElementType);
-      const component = this.container.get<ILifecycleHooks>(CustomElementResource.keyFrom((componentOrType as ICustomElementType).description.name));
+      const component = this.container.get<IViewModel>(CustomElementResource.keyFrom((componentOrType as ICustomElementType).description.name));
       controller = Controller.forCustomElement(component, this.container as ExposedContext, this.host, this.startFlags);
     } else {
-      controller = Controller.forCustomElement(componentOrType as ILifecycleHooks, this.container as ExposedContext, this.host, this.startFlags);
+      controller = Controller.forCustomElement(componentOrType as IViewModel, this.container as ExposedContext, this.host, this.startFlags);
     }
 
     this.next = controller;

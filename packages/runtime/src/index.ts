@@ -270,7 +270,8 @@ export {
 export {
   bindable,
   BindableDecorator,
-  WithBindables
+  WithBindables,
+  Bindable,
 } from './templating/bindable';
 // These exports are temporary until we have a proper way to unit test them
 export {
@@ -326,6 +327,7 @@ export {
   BindableSource,
   buildTemplateDefinition,
   CustomElementConstructor,
+  HooksDefinition,
   IAttributeDefinition,
   IBindableDescription,
   IBuildInstruction,

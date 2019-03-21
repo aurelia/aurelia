@@ -1,13 +1,13 @@
 import {
   CollectionKind,
-  IBatchedCollectionSubscriber,
   IBindingTargetObserver,
   ICollectionObserver,
+  ICollectionSubscriber,
   IDOM,
   ILifecycle,
   IndexMap,
   IObserverLocator,
-  IPropertySubscriber,
+  ISubscriber,
   LifecycleFlags,
   targetObserver
 } from '@aurelia/runtime';
@@ -33,8 +33,8 @@ export interface IOptionElement extends HTMLOptionElement {
 
 export interface SelectValueObserver extends
   IBindingTargetObserver<ISelectElement, string>,
-  IBatchedCollectionSubscriber,
-  IPropertySubscriber { }
+  ICollectionSubscriber,
+  ISubscriber { }
 
 @targetObserver()
 export class SelectValueObserver implements SelectValueObserver {
@@ -82,19 +82,19 @@ export class SelectValueObserver implements SelectValueObserver {
       throw new Error('Only null or Array instances can be bound to a multi-select.');
     }
     if (this.arrayObserver) {
-      this.arrayObserver.unsubscribeBatched(this);
+      this.arrayObserver.unsubscribeFromCollection(this);
       this.arrayObserver = null!;
     }
     if (isArray) {
       this.arrayObserver = this.observerLocator.getArrayObserver(this.persistentFlags | flags, newValue as unknown[]);
-      this.arrayObserver.subscribeBatched(this);
+      this.arrayObserver.subscribeToCollection(this);
     }
     this.synchronizeOptions();
     this.notify(flags);
   }
 
   // called when the array mutated (items sorted/added/removed, etc)
-  public handleBatchedChange(indexMap: number[]): void {
+  public handleBatchedChange(indexMap: IndexMap): void {
     // we don't need to go through the normal setValue logic and can directly call synchronizeOptions here,
     // because the change already waited one tick (batched) and there's no point in calling notify when the instance didn't change
     this.synchronizeOptions(indexMap);
@@ -233,14 +233,14 @@ export class SelectValueObserver implements SelectValueObserver {
     return true;
   }
 
-  public subscribe(subscriber: IPropertySubscriber): void {
+  public subscribe(subscriber: ISubscriber): void {
     if (!this.hasSubscribers()) {
       this.handler.subscribe(this.obj, this);
     }
     this.addSubscriber(subscriber);
   }
 
-  public unsubscribe(subscriber: IPropertySubscriber): void {
+  public unsubscribe(subscriber: ISubscriber): void {
     if (this.removeSubscriber(subscriber) && !this.hasSubscribers()) {
       this.handler.dispose();
     }
@@ -255,7 +255,7 @@ export class SelectValueObserver implements SelectValueObserver {
     this.nodeObserver = null!;
 
     if (this.arrayObserver) {
-      this.arrayObserver.unsubscribeBatched(this);
+      this.arrayObserver.unsubscribeFromCollection(this);
       this.arrayObserver = null!;
     }
   }

@@ -1,10 +1,9 @@
 import {
   DOM,
-  IBatchedCollectionSubscriber,
   IBindingTargetObserver,
   ILifecycle,
   IObserverLocator,
-  IPropertySubscriber,
+  ISubscriber,
   LifecycleFlags,
   targetObserver
 } from '@aurelia/runtime';
@@ -20,8 +19,7 @@ export interface ElementMutationSubscription {
 
 export interface AttributeObserver extends
   IBindingTargetObserver<IHtmlElement, string>,
-  IBatchedCollectionSubscriber,
-  IPropertySubscriber { }
+  ISubscriber { }
 
 /**
  * Observer for handling two-way binding with attributes
@@ -159,14 +157,14 @@ export class AttributeObserver implements AttributeObserver, ElementMutationSubs
     }
   }
 
-  public subscribe(subscriber: IPropertySubscriber): void {
+  public subscribe(subscriber: ISubscriber): void {
     if (!this.hasSubscribers()) {
       startObservation(this.obj, this);
     }
     this.addSubscriber(subscriber);
   }
 
-  public unsubscribe(subscriber: IPropertySubscriber): void {
+  public unsubscribe(subscriber: ISubscriber): void {
     if (this.removeSubscriber(subscriber) && !this.hasSubscribers()) {
       stopObservation(this.obj, this);
     }

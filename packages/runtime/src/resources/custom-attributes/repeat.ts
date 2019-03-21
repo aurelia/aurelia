@@ -403,23 +403,20 @@ export class Repeat<C extends ObservedCollection = IObservedArray, T extends INo
 }
 CustomAttributeResource.define({ name: 'repeat', isTemplateController: true }, Repeat);
 
-type UintArray = Uint8Array | Uint16Array | Uint32Array;
-let prevIndices: UintArray;
-let tailIndices: UintArray;
+let prevIndices: Int32Array;
+let tailIndices: Int32Array;
 let maxLen = 0;
 
 // Based on inferno's lis_algorithm @ https://github.com/infernojs/inferno/blob/master/packages/inferno/src/DOM/patching.ts#L732
 // with some tweaks to make it just a bit faster + account for IndexMap (and some names changes for readability)
 /** @internal */
-export function longestIncreasingSubsequence(indexMap: IndexMap): Uint8Array | Uint16Array | Uint32Array {
+export function longestIncreasingSubsequence(indexMap: IndexMap): Int32Array {
   const len = indexMap.length;
-  const origLen = len + indexMap.deletedItems!.length;
-  const TArr = origLen < 0xFF ? Uint8Array : origLen < 0xFFFF ? Uint16Array : Uint32Array;
 
   if (len > maxLen) {
     maxLen = len;
-    prevIndices = new TArr(len);
-    tailIndices = new TArr(len);
+    prevIndices = new Int32Array(len);
+    tailIndices = new Int32Array(len);
   }
 
   let cursor = 0;
@@ -466,7 +463,7 @@ export function longestIncreasingSubsequence(indexMap: IndexMap): Uint8Array | U
     }
   }
   i = ++cursor;
-  const result = new TArr(i);
+  const result = new Int32Array(i);
   cur = prevIndices[cursor - 1];
 
   while (cursor-- > 0) {

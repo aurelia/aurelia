@@ -157,12 +157,12 @@ export class Scope implements IScope {
   public overrideContext: IOverrideContext;
   // parentScope is strictly internal API and mainly for replaceable template controller.
   // NOT intended for regular scope traversal!
-  /** @internal */public readonly parentScope: IScope | null;
+  /** @internal */public readonly parentScope?: IScope;
 
   private constructor(bindingContext: object, overrideContext: IOverrideContext) {
     this.bindingContext = bindingContext;
     this.overrideContext = overrideContext;
-    this.parentScope = null;
+    this.parentScope = void 0;
   }
 
   /**

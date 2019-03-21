@@ -99,7 +99,7 @@ export interface IController<T extends INode = INode> {
   lockScope(scope: IScope): void;
   hold(location: IRenderLocation<T>): void;
   release(flags: LifecycleFlags): boolean;
-  bind(flags: LifecycleFlags, scope: IScope): ILifecycleTask;
+  bind(flags: LifecycleFlags, scope?: IScope): ILifecycleTask;
   unbind(flags: LifecycleFlags): ILifecycleTask;
   bound(flags: LifecycleFlags): void;
   unbound(flags: LifecycleFlags): void;
@@ -291,7 +291,7 @@ export class Lifecycle implements ILifecycle, IController {
   public lockScope: (scope: IScope) => void;
   public hold: (location: IRenderLocation) => void;
   public release: (flags: LifecycleFlags) => boolean;
-  public bind: (flags: LifecycleFlags, scope: IScope) => ILifecycleTask;
+  public bind: (flags: LifecycleFlags, scope?: IScope) => ILifecycleTask;
   public unbind: (flags: LifecycleFlags) => ILifecycleTask;
   public bound: (flags: LifecycleFlags) => void;
   public unbound: (flags: LifecycleFlags) => void;

@@ -145,22 +145,20 @@ export class Repeat<C extends ObservedCollection = IObservedArray, T extends INo
     return this.task;
   }
 
-  public attaching(flags: LF): ILifecycleTask {
+  public attaching(flags: LF): void {
     if (this.task.done) {
       this.attachViews(void 0, flags);
     } else {
       this.task = new ContinuationTask(this.task, this.attachViews, this, void 0, flags);
     }
-    return this.task;
   }
 
-  public detaching(flags: LF): ILifecycleTask {
+  public detaching(flags: LF): void {
     if (this.task.done) {
       this.detachViewsByRange(0, this.views.length, flags);
     } else {
       this.task = new ContinuationTask(this.task, this.detachViewsByRange, this, 0, this.views.length, flags);
     }
-    return this.task;
   }
 
   public unbinding(flags: LF): ILifecycleTask {

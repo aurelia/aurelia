@@ -72,9 +72,8 @@ export class Replaceable<T extends INode = INode> {
     this.currentView.attach(flags);
   }
 
-  public detaching(flags: LifecycleFlags): ILifecycleTask {
+  public detaching(flags: LifecycleFlags): void {
     this.currentView.detach(flags);
-    return LifecycleTask.done;
   }
 
   public unbinding(flags: LifecycleFlags): ILifecycleTask {

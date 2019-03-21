@@ -182,7 +182,8 @@ export {
 } from './observation/signaler';
 export {
   subscriberCollection,
-  batchedSubscriberCollection
+  collectionSubscriberCollection,
+  proxySubscriberCollection,
 } from './observation/subscriber-collection';
 export {
   targetObserver
@@ -222,7 +223,6 @@ export {
   CustomAttributeDecorator,
   CustomAttributeResource,
   dynamicOptions,
-  ICustomAttribute,
   ICustomAttributeResource,
   ICustomAttributeType,
   templateController
@@ -246,7 +246,6 @@ export {
   customElement,
   CustomElementHost,
   CustomElementResource,
-  ICustomElement,
   ICustomElementDecorator,
   ICustomElementResource,
   ICustomElementType,
@@ -273,14 +272,12 @@ export {
   BindableDecorator,
   WithBindables
 } from './templating/bindable';
+// These exports are temporary until we have a proper way to unit test them
 export {
-  IElementTemplateProvider,
-  ILifecycleRender
-} from './templating/lifecycle-render';
+  Controller,
+} from './templating/controller';
 export {
-  View,
-  ViewFactory
-  // These exports are temporary until we have a proper way to unit test them
+  ViewFactory,
 } from './templating/view';
 
 export {
@@ -390,18 +387,20 @@ export {
   TwoWayBindingInstruction
 } from './instructions';
 export {
-  AggregateLifecycleTask,
-  CompositionCoordinator,
-  IComponent,
+  PromiseOrTask,
+  MaybePromiseOrTask,
+  ViewModelKind,
+  AggregateContinuationTask,
+  TerminalTask,
+  AggregateTerminalTask,
+  ContinuationTask,
   IBinding,
   ILifecycle,
   ILifecycleHooks,
-  IMountableComponent,
   ILifecycleTask,
   IController,
   IRenderContext,
   IState,
-  IController,
   IViewCache,
   IViewFactory,
   LifecycleTask,
@@ -409,22 +408,13 @@ export {
 } from './lifecycle';
 export {
   AccessorOrObserver,
-  BatchedSubscriber,
   Collection,
   CollectionKind,
   DelegationStrategy,
   IAccessor,
-  IBatchedCollectionChangeHandler,
-  IBatchedCollectionChangeNotifier,
-  IBatchedCollectionSubscriber,
-  IBatchedSubscribable,
-  IBatchedSubscriberCollection,
   IBindingContext,
   IBindingTargetAccessor,
   IBindingTargetObserver,
-  IChangeTracker,
-  ICollectionChangeHandler,
-  ICollectionChangeNotifier,
   ICollectionChangeTracker,
   ICollectionObserver,
   ICollectionSubscriber,
@@ -435,19 +425,28 @@ export {
   IObservedSet,
   IObserversLookup,
   IOverrideContext,
-  IPropertyChangeHandler,
-  IPropertyChangeNotifier,
   IPropertyChangeTracker,
   IPropertyObserver,
-  IPropertySubscriber,
   IScope,
   ISubscribable,
   ISubscriberCollection,
-  MutationKind,
   ObservedCollection,
   ObserversLookup,
   PropertyObserver,
-  Subscriber
+  CollectionObserver,
+  ICollectionSubscriberCollection,
+  IProxyObserver,
+  IProxy,
+  IProxySubscribable,
+  IProxySubscriber,
+  IProxySubscriberCollection,
+  ICollectionSubscribable,
+  IBatchChangeTracker,
+  IPatchable,
+  IRAFChangeTracker,
+  ISubscriber,
+  isIndexMap,
+  createIndexMap,
 } from './observation';
 export {
   instructionRenderer,

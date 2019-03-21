@@ -255,14 +255,10 @@ export function isIndexMap(value: unknown): value is IndexMap {
   return value instanceof Array && (value as IndexMap).isIndexMap === true;
 }
 
-export interface IPatchable {
-  $patch(flags: LifecycleFlags): void;
-}
-
 /**
  * Describes a type that specifically tracks changes in an object property, or simply something that can have a getter and/or setter
  */
-export interface IPropertyChangeTracker<TObj extends Record<string, unknown>, TProp = keyof TObj, TValue = unknown> extends IPatchable {
+export interface IPropertyChangeTracker<TObj extends Record<string, unknown>, TProp = keyof TObj, TValue = unknown> {
   obj: TObj;
   propertyKey?: TProp;
   currentValue?: TValue;
@@ -282,7 +278,6 @@ export interface ICollectionChangeTracker<T extends Collection> extends IBatchCh
  */
 export interface ICollectionObserver<T extends CollectionKind> extends
   IDisposable,
-  IPatchable,
   ICollectionChangeTracker<CollectionKindToType<T>>,
   ICollectionSubscriberCollection {
     lifecycle: ILifecycle;
@@ -290,7 +285,7 @@ export interface ICollectionObserver<T extends CollectionKind> extends
     collection: ObservedCollectionKindToType<T>;
     lengthPropertyName: LengthPropertyName<CollectionKindToType<T>>;
     collectionKind: T;
-    lengthObserver: IBindingTargetObserver & IPatchable;
+    lengthObserver: IBindingTargetObserver;
     getLengthObserver(flags: LifecycleFlags): IBindingTargetObserver;
     notify(): void;
 }

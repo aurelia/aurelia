@@ -1,11 +1,36 @@
-import { IServiceLocator, Reporter, Tracer } from '@aurelia/kernel';
-import { IForOfStatement, IsBindingBehavior } from '../ast';
-import { BindingMode, ExpressionKind, LifecycleFlags, State } from '../flags';
-import { IBinding, ILifecycle } from '../lifecycle';
-import { AccessorOrObserver, IBindingTargetObserver, IObservable, IScope } from '../observation';
+import {
+  IServiceLocator,
+  Reporter,
+  Tracer,
+} from '@aurelia/kernel';
+
+import {
+  IForOfStatement,
+  IsBindingBehavior,
+} from '../ast';
+import {
+  BindingMode,
+  ExpressionKind,
+  LifecycleFlags,
+  State,
+} from '../flags';
+import { ILifecycle } from '../lifecycle';
+import {
+  AccessorOrObserver,
+  IBindingTargetObserver,
+  IObservable,
+  IScope,
+} from '../observation';
 import { IObserverLocator } from '../observation/observer-locator';
-import { hasBind, hasUnbind } from './ast';
-import { connectable, IConnectableBinding, IPartialConnectableBinding } from './connectable';
+import {
+  hasBind,
+  hasUnbind,
+} from './ast';
+import {
+  connectable,
+  IConnectableBinding,
+  IPartialConnectableBinding,
+} from './connectable';
 
 const slice = Array.prototype.slice;
 
@@ -19,12 +44,9 @@ export interface Binding extends IConnectableBinding {}
 
 @connectable()
 export class Binding implements IPartialConnectableBinding {
-  public id!: string;
-  public $nextBinding?: IBinding;
-  public $prevBinding?: IBinding;
+  public id!: number;
   public $state: State;
   public $lifecycle: ILifecycle;
-  public $nextConnect?: IConnectableBinding;
   public $scope?: IScope;
 
   public locator: IServiceLocator;
@@ -38,13 +60,17 @@ export class Binding implements IPartialConnectableBinding {
 
   public persistentFlags: LifecycleFlags;
 
-  constructor(sourceExpression: IsBindingBehavior | IForOfStatement, target: IObservable, targetProperty: string, mode: BindingMode, observerLocator: IObserverLocator, locator: IServiceLocator) {
+  constructor(
+    sourceExpression: IsBindingBehavior | IForOfStatement,
+    target: IObservable,
+    targetProperty: string,
+    mode: BindingMode,
+    observerLocator: IObserverLocator,
+    locator: IServiceLocator,
+  ) {
     connectable.assignIdTo(this);
-    this.$nextBinding = void 0;
-    this.$prevBinding = void 0;
     this.$state = State.none;
     this.$lifecycle = locator.get(ILifecycle);
-    this.$nextConnect = void 0;
     this.$scope = void 0;
 
     this.locator = locator;

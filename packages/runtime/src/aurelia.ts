@@ -1,9 +1,35 @@
-import { DI, IContainer, IRegistry, PLATFORM, Profiler, Registration, Reporter } from '@aurelia/kernel';
-import { IDOM, INode } from './dom';
-import { BindingStrategy, LifecycleFlags } from './flags';
-import { ProxyObserver } from './observation/proxy-observer';
+import {
+  DI,
+  IContainer,
+  IRegistry,
+  PLATFORM,
+  Profiler,
+  Registration
+} from '@aurelia/kernel';
+
+import { IActivator } from './activator';
+import {
+  IDOM,
+  INode
+} from './dom';
+import {
+  BindingStrategy,
+  LifecycleFlags
+} from './flags';
+import {
+  ContinuationTask,
+  IController,
+  ILifecycle,
+  ILifecycleHooks,
+  ILifecycleTask,
+  LifecycleTask,
+} from './lifecycle';
 import { ExposedContext } from './rendering-engine';
-import { CustomElementResource, ICustomElement, ICustomElementType } from './resources/custom-element';
+import {
+  CustomElementResource,
+  ICustomElementType
+} from './resources/custom-element';
+import { Controller } from './templating/controller';
 
 const { enter: enterStart, leave: leaveStart } = Profiler.createTimer('Aurelia.start');
 const { enter: enterStop, leave: leaveStop } = Profiler.createTimer('Aurelia.stop');
@@ -15,25 +41,66 @@ export interface ISinglePageApp<THost extends INode = INode> {
   component: unknown;
 }
 
-export class Aurelia {
-  private readonly container: IContainer;
-  private readonly components: ICustomElement[];
-  private readonly startTasks: (() => void)[];
-  private readonly stopTasks: (() => void)[];
-  private isStarted: boolean;
-  private _root: ICustomElement | null;
+type Publisher = { dispatchEvent(evt: unknown, options?: unknown): void };
+
+export class Aurelia<TNode extends INode = INode> {
+  public readonly container: IContainer;
+  public get isRunning(): boolean {
+    return this._isRunning;
+  }
+  public get isStarting(): boolean {
+    return this._isStarting;
+  }
+  public get isStopping(): boolean {
+    return this._isStopping;
+  }
+  public get root(): IController {
+    if (this._root == void 0) {
+      throw new Error(`root is not defined`); // TODO: create error code
+    }
+    return this._root;
+  }
+  public get host(): TNode & {$au?: Aurelia<TNode>} {
+    if (this._host == void 0) {
+      throw new Error(`root is not defined`); // TODO: create error code
+    }
+    return this._host;
+  }
+  public get dom(): IDOM<TNode> {
+    if (this._dom == void 0) {
+      throw new Error(`root is not defined`); // TODO: create error code
+    }
+    return this._dom;
+  }
+  private startFlags: LifecycleFlags;
+  private stopFlags: LifecycleFlags;
+  private task: ILifecycleTask;
+  private _isRunning: boolean;
+  private _isStarting: boolean;
+  private _isStopping: boolean;
+  private _root?: IController;
+  private _host?: TNode & {$au?: Aurelia<TNode> };
+  private _dom?: IDOM<TNode>;
+
+  private next?: IController;
 
   constructor(container: IContainer = DI.createContainer()) {
     this.container = container;
-    this.components = [];
-    this.startTasks = [];
-    this.stopTasks = [];
-    this.isStarted = false;
-    this._root = null;
+    this.startFlags = LifecycleFlags.none;
+    this.stopFlags = LifecycleFlags.none;
+    this.task = LifecycleTask.done;
 
-    Registration
-      .instance(Aurelia, this)
-      .register(container, Aurelia);
+    this._isRunning = false;
+    this._isStarting = false;
+    this._isStopping = false;
+
+    this._root = void 0;
+    this._host = void 0;
+    this._dom = void 0;
+
+    this.next = void 0;
+
+    Registration.instance(Aurelia, this).register(container);
   }
 
   public register(...params: (IRegistry | Record<string, Partial<IRegistry>>)[]): this {
@@ -42,74 +109,127 @@ export class Aurelia {
   }
 
   public app(config: ISinglePageApp): this {
-    const host = config.host as INode & {$au?: Aurelia | null};
+    // if no host provided but we already have one, we might just be switching component/strategy/dom
+    // TODO: only switching host is not working yet (need to re-hydrate for that)
+    this._host = (config.host as TNode & {$au?: Aurelia<TNode>}) || this._host;
 
     const domInitializer = this.container.get(IDOMInitializer);
-    domInitializer.initialize(config);
-    Registration.instance(INode, host).register(this.container);
+    this._dom = domInitializer.initialize(config) as IDOM<TNode>;
 
-    const startFlags = LifecycleFlags.fromStartTask | config.strategy!;
-    const stopFlags = LifecycleFlags.fromStopTask | config.strategy!;
+    Registration.instance(INode, this._host).register(this.container);
 
-    let component: ICustomElement;
-    const componentOrType = config.component as ICustomElement | ICustomElementType;
+    this.startFlags = LifecycleFlags.fromStartTask | config.strategy!;
+    this.stopFlags = LifecycleFlags.fromStopTask | config.strategy!;
+
+    let controller: IController;
+    const componentOrType = config.component as ILifecycleHooks | ICustomElementType;
     if (CustomElementResource.isType(componentOrType as ICustomElementType)) {
       this.container.register(componentOrType as ICustomElementType);
-      component = this.container.get<ICustomElement>(CustomElementResource.keyFrom((componentOrType as ICustomElementType).description.name));
+      const component = this.container.get<ILifecycleHooks>(CustomElementResource.keyFrom((componentOrType as ICustomElementType).description.name));
+      controller = Controller.forCustomElement(component, this.container as ExposedContext, this.host, this.startFlags);
     } else {
-      component = componentOrType as ICustomElement;
+      controller = Controller.forCustomElement(componentOrType as ILifecycleHooks, this.container as ExposedContext, this.host, this.startFlags);
     }
-    component = ProxyObserver.getRawIfProxy(component);
 
-    const startTask = () => {
-      host.$au = this;
-      if (!this.components.includes(component)) {
-        this._root = component;
-        this.components.push(component);
-        component.$hydrate(startFlags, this.container as ExposedContext, host);
+    this.next = controller;
+
+    if (this.isRunning) {
+      this.start();
+    }
+
+    return this;
+  }
+
+  public start(): ILifecycleTask {
+    this.stop();
+
+    if (this.task.done) {
+      this.onBeforeStart();
+    } else {
+      this.task = new ContinuationTask(this.task, this.onBeforeStart, this);
+    }
+
+    const activator = this.container.get(IActivator);
+    if (this.task.done) {
+      this.task = activator.activate(this.host, this.next!.viewModel!, this.container, this.startFlags, void 0);
+    } else {
+      this.task = new ContinuationTask(this.task, activator.activate, activator, this.host, this.next!.viewModel!, this.container, this.startFlags, void 0);
+    }
+
+    if (this.task.done) {
+      this.onAfterStart();
+    } else {
+      this.task = new ContinuationTask(this.task, this.onAfterStart, this);
+    }
+
+    return this.task;
+  }
+
+  public stop(): ILifecycleTask {
+    if ((this.isRunning && this._root !== null) || !this.task.done) {
+      if (this.task.done) {
+        this.onBeforeStop();
+      } else {
+        this.task = new ContinuationTask(this.task, this.onBeforeStop, this);
       }
 
-      component.$bind(startFlags | LifecycleFlags.fromBind, null!);
-      component.$attach(startFlags | LifecycleFlags.fromAttach);
-    };
+      const activator = this.container.get(IActivator);
+      if (this.task.done) {
+        this.task = activator.deactivate(this.root.viewModel!, this.stopFlags);
+      } else {
+        this.task = new ContinuationTask(this.task, activator.deactivate, activator, this.root.viewModel!, this.stopFlags);
+      }
 
-    this.startTasks.push(startTask);
-
-    this.stopTasks.push(() => {
-      component.$detach(stopFlags | LifecycleFlags.fromDetach);
-      component.$unbind(stopFlags | LifecycleFlags.fromUnbind);
-      host.$au = null;
-    });
-
-    if (this.isStarted) {
-      startTask();
+      if (this.task.done) {
+        this.onAfterStop();
+      } else {
+        this.task = new ContinuationTask(this.task, this.onAfterStop, this);
+      }
     }
 
-    return this;
+    return this.task;
   }
 
-  public root(): ICustomElement | null {
-    return ProxyObserver.getProxyOrSelf(this._root!);
+  public wait(): Promise<void> {
+    return this.task.wait() as Promise<void>;
   }
 
-  public start(): this {
+  private onBeforeStart(): void {
+    this.container.get(ILifecycle).startTicking(PLATFORM.ticker);
+    Reflect.set(this.host, '$au', this);
+    this._root = this.next;
+    this._isStarting = true;
     if (Profiler.enabled) { enterStart(); }
-    for (const runStartTask of this.startTasks) {
-      runStartTask();
-    }
-    this.isStarted = true;
-    if (Profiler.enabled) { leaveStart(); }
-    return this;
   }
 
-  public stop(): this {
+  private onAfterStart(): void {
+    this._isRunning = true;
+    this._isStarting = false;
+    this.dispatchEvent('aurelia-composed', this.dom);
+    this.dispatchEvent('au-started', this.host as unknown as Publisher);
+    if (Profiler.enabled) { leaveStart(); }
+  }
+
+  private onBeforeStop(): void {
+    this._isRunning = false;
+    this._isStopping = true;
     if (Profiler.enabled) { enterStop(); }
-    this.isStarted = false;
-    for (const runStopTask of this.stopTasks) {
-      runStopTask();
+  }
+
+  private onAfterStop(): void {
+    if (this._root != void 0) {
+      Reflect.deleteProperty(this.root.host!, '$au');
     }
+    this._root = void 0;
+    this._isStopping = false;
+    this.dispatchEvent('au-stopped', this.host as unknown as Publisher);
+    this.container.get(ILifecycle).stopTicking();
     if (Profiler.enabled) { leaveStop(); }
-    return this;
+  }
+
+  private dispatchEvent(name: string, target: Publisher): void {
+    target = 'dispatchEvent' in target ? target : this.dom;
+    target.dispatchEvent(this.dom.createCustomEvent(name, { detail: this, bubbles: true, cancelable: true }));
   }
 }
 (PLATFORM.global as typeof PLATFORM.global & {Aurelia: unknown}).Aurelia = Aurelia;

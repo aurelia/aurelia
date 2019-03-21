@@ -39,8 +39,6 @@ export interface IState {
 }
 
 export interface IBinding {
-  readonly $nextBinding?: IBinding;
-  readonly $prevBinding?: IBinding;
   readonly locator: IServiceLocator;
   readonly $scope?: IScope;
   readonly $state: State;
@@ -83,6 +81,7 @@ export interface IController<T extends INode = INode> {
   readonly lifecycle: ILifecycle;
 
   readonly hooks: HooksDefinition;
+  readonly viewModel?: ILifecycleHooks;
   readonly bindingContext?: IIndexable;
 
   readonly host?: T;

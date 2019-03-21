@@ -1,16 +1,30 @@
 import { IServiceLocator } from '@aurelia/kernel';
-import { IExpression, IInterpolationExpression } from '../ast';
-import { BindingMode, LifecycleFlags, State } from '../flags';
+
+import {
+  IExpression,
+  IInterpolationExpression,
+} from '../ast';
+import {
+  BindingMode,
+  LifecycleFlags,
+  State,
+} from '../flags';
 import { IBinding } from '../lifecycle';
-import { IBindingTargetAccessor, IObservable, IScope } from '../observation';
+import {
+  IBindingTargetAccessor,
+  IObservable,
+  IScope,
+} from '../observation';
 import { IObserverLocator } from '../observation/observer-locator';
-import { connectable, IConnectableBinding, IPartialConnectableBinding } from './connectable';
+import {
+  connectable,
+  IConnectableBinding,
+  IPartialConnectableBinding,
+} from './connectable';
 
 const { toView, oneTime } = BindingMode;
 
 export class MultiInterpolationBinding implements IBinding {
-  public $nextBinding?: IBinding;
-  public $prevBinding?: IBinding;
   public $state: State;
   public $scope?: IScope;
 
@@ -22,9 +36,14 @@ export class MultiInterpolationBinding implements IBinding {
   public target: IObservable;
   public targetProperty: string;
 
-  constructor(observerLocator: IObserverLocator, interpolation: IInterpolationExpression, target: IObservable, targetProperty: string, mode: BindingMode, locator: IServiceLocator) {
-    this.$nextBinding = void 0;
-    this.$prevBinding = void 0;
+  constructor(
+    observerLocator: IObserverLocator,
+    interpolation: IInterpolationExpression,
+    target: IObservable,
+    targetProperty: string,
+    mode: BindingMode,
+    locator: IServiceLocator,
+  ) {
     this.$state = State.none;
     this.$scope = void 0;
 
@@ -79,7 +98,7 @@ export interface InterpolationBinding extends IConnectableBinding {}
 
 @connectable()
 export class InterpolationBinding implements IPartialConnectableBinding {
-  public id!: string;
+  public id!: number;
   public $scope?: IScope;
   public $state: State;
 
@@ -95,7 +114,16 @@ export class InterpolationBinding implements IPartialConnectableBinding {
   public targetObserver: IBindingTargetAccessor;
 
   // tslint:disable-next-line:parameters-max-number
-  constructor(sourceExpression: IExpression, interpolation: IInterpolationExpression, target: IObservable, targetProperty: string, mode: BindingMode, observerLocator: IObserverLocator, locator: IServiceLocator, isFirst: boolean) {
+  constructor(
+    sourceExpression: IExpression,
+    interpolation: IInterpolationExpression,
+    target: IObservable,
+    targetProperty: string,
+    mode: BindingMode,
+    observerLocator: IObserverLocator,
+    locator: IServiceLocator,
+    isFirst: boolean,
+  ) {
     connectable.assignIdTo(this);
     this.$state = State.none;
 

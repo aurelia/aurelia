@@ -1,9 +1,14 @@
-import { DI, PLATFORM, Reporter } from '@aurelia/kernel';
+import {
+  DI,
+  PLATFORM,
+  Reporter,
+} from '@aurelia/kernel';
+
 import {
   AnyBindingExpression,
   IForOfStatement,
   IInterpolationExpression,
-  IsBindingBehavior
+  IsBindingBehavior,
 } from '../ast';
 import { ExpressionKind } from '../flags';
 import {
@@ -13,7 +18,7 @@ import {
   CallScope,
   ForOfStatement,
   Interpolation,
-  PrimitiveLiteral
+  PrimitiveLiteral,
 } from './ast';
 
 export interface IExpressionParser {

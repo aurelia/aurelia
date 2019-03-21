@@ -1,6 +1,6 @@
 import { Reporter } from '@aurelia/kernel';
 import { LifecycleFlags } from '../flags';
-import { IPropertySubscriber, MutationKind, PropertyObserver } from '../observation';
+import { ISubscriber, PropertyObserver } from '../observation';
 import { subscriberCollection } from './subscriber-collection';
 
 const defineProperty = Reflect.defineProperty;
@@ -14,7 +14,7 @@ const observedPropertyDescriptor: PropertyDescriptor = {
   configurable: true
 };
 
-function subscribe(this: PropertyObserver, subscriber: IPropertySubscriber): void {
+function subscribe(this: PropertyObserver, subscriber: ISubscriber): void {
   if (this.observing === false) {
     this.observing = true;
     this.currentValue = this.obj[this.propertyKey!];
@@ -32,7 +32,7 @@ function subscribe(this: PropertyObserver, subscriber: IPropertySubscriber): voi
 export function propertyObserver(): ClassDecorator {
   // tslint:disable-next-line:ban-types // ClassDecorator expects it to be derived from Function
   return function(target: Function): void {
-    subscriberCollection(MutationKind.instance)(target);
+    subscriberCollection()(target);
     const proto = target.prototype as PropertyObserver;
 
     proto.observing = false;

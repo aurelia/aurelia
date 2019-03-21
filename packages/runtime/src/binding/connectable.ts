@@ -1,8 +1,18 @@
-import { Class, IIndexable, Tracer } from '@aurelia/kernel';
+import {
+  Class,
+  IIndexable,
+  Tracer
+} from '@aurelia/kernel';
+
 import { IConnectable } from '../ast';
 import { LifecycleFlags } from '../flags';
 import { IBinding } from '../lifecycle';
-import { IBindingTargetObserver, IPropertySubscriber, ISubscribable, MutationKind } from '../observation';
+import {
+  IBindingTargetObserver,
+  IProxySubscribable,
+  ISubscribable,
+  ISubscriber
+} from '../observation';
 import { IObserverLocator } from '../observation/observer-locator';
 
 // TODO: add connect-queue (or something similar) back in when everything else is working, to improve startup time
@@ -24,23 +34,22 @@ function ensureEnoughSlotNames(currentSlot: number): void {
 }
 ensureEnoughSlotNames(-1);
 
-export interface IPartialConnectableBinding extends IBinding, IPropertySubscriber {
+export interface IPartialConnectableBinding extends IBinding, ISubscriber {
   observerLocator: IObserverLocator;
 }
 
 export interface IConnectableBinding extends IPartialConnectableBinding, IConnectable {
-  id: string;
-  $nextConnect?: IConnectableBinding;
+  id: number;
   observerSlots: number;
   version: number;
-  addObserver(observer: ISubscribable<MutationKind.instance | MutationKind.proxy>): void;
+  addObserver(observer: ISubscribable | IProxySubscribable): void;
   unobserve(all?: boolean): void;
 }
 
 /** @internal */
 export function addObserver(
-  this: IConnectableBinding & { [key: string]: ISubscribable<MutationKind> & { [id: string]: number } | number },
-  observer: ISubscribable<MutationKind> & { [id: string]: number }
+  this: IConnectableBinding & { [key: string]: ISubscribable & { [id: string]: number } | number },
+  observer: ISubscribable & { [id: number]: number }
 ): void {
   // find the observer.
   const observerSlots = this.observerSlots == null ? 0 : this.observerSlots;
@@ -134,15 +143,7 @@ export function connectable<TProto, TClass>(target?: DecoratableConnectable<TPro
 }
 
 let value = 0;
-const idAttributes: PropertyDescriptor = {
-  configurable: false,
-  enumerable: false,
-  writable: false,
-  value: '$0'
-};
+
 connectable.assignIdTo = (instance: IConnectableBinding): void => {
-  // No.
-  // tslint:disable-next-line: prefer-template
-  idAttributes.value = '$' + ++value;
-  Reflect.defineProperty(instance, 'id', idAttributes);
+  instance.id = ++value;
 };

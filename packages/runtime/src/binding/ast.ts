@@ -1,4 +1,11 @@
-import { IIndexable, IServiceLocator, PLATFORM, Reporter, StrictPrimitive } from '@aurelia/kernel';
+import {
+  IIndexable,
+  IServiceLocator,
+  PLATFORM,
+  Reporter,
+  StrictPrimitive,
+} from '@aurelia/kernel';
+
 import {
   BinaryOperator,
   BindingIdentifierOrPattern,
@@ -44,16 +51,31 @@ import {
   IValueConverterExpression,
   IVisitor,
   Observes,
-  UnaryOperator
+  UnaryOperator,
 } from '../ast';
-import { ExpressionKind, LifecycleFlags } from '../flags';
+import {
+  ExpressionKind,
+  LifecycleFlags,
+} from '../flags';
 import { IBinding } from '../lifecycle';
-import { Collection, IBindingContext, IOverrideContext, IScope, ObservedCollection } from '../observation';
+import {
+  Collection,
+  IBindingContext,
+  IOverrideContext,
+  IScope,
+  ObservedCollection,
+} from '../observation';
 import { BindingContext } from '../observation/binding-context';
 import { ProxyObserver } from '../observation/proxy-observer';
 import { ISignaler } from '../observation/signaler';
-import { BindingBehaviorResource, IBindingBehavior } from '../resources/binding-behavior';
-import { IValueConverter, ValueConverterResource } from '../resources/value-converter';
+import {
+  BindingBehaviorResource,
+  IBindingBehavior,
+} from '../resources/binding-behavior';
+import {
+  IValueConverter,
+  ValueConverterResource,
+} from '../resources/value-converter';
 import { IConnectableBinding } from './connectable';
 
 export function connects(expr: IsExpressionOrStatement): expr is Connects {

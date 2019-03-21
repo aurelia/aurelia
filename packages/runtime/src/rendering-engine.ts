@@ -5,6 +5,7 @@ import {
   IDisposable,
   IIndexable,
   InjectArray,
+  InstanceProvider,
   IRegistry,
   IResolver,
   IResourceDescriptions,
@@ -13,8 +14,8 @@ import {
   Reporter,
   RuntimeCompilationResources,
   Writable,
-  InstanceProvider
 } from '@aurelia/kernel';
+
 import {
   BindableDefinitions,
   buildTemplateDefinition,
@@ -24,30 +25,40 @@ import {
   ITargetedInstruction,
   ITemplateDefinition,
   TemplateDefinition,
-  TemplatePartDefinitions
+  TemplatePartDefinitions,
 } from './definitions';
-import { IDOM, INode, INodeSequenceFactory, IRenderLocation, NodeSequence } from './dom';
+import {
+  IDOM,
+  INode,
+  INodeSequenceFactory,
+  IRenderLocation,
+  NodeSequence,
+} from './dom';
 import { LifecycleFlags } from './flags';
 import {
-  ILifecycle,
   IController,
+  ILifecycle,
   IRenderContext,
-  IViewFactory
+  IViewFactory,
+  ILifecycleHooks,
 } from './lifecycle';
 import {
   IAccessor,
-  IPropertySubscriber,
   ISubscribable,
   ISubscriberCollection,
-  MutationKind,
-  IObserversLookup
+  ISubscriber,
 } from './observation';
 import { ProxyObserver } from './observation/proxy-observer';
 import { SelfObserver } from './observation/self-observer';
 import { subscriberCollection } from './observation/subscriber-collection';
-import { ICustomAttribute, ICustomAttributeType } from './resources/custom-attribute';
-import { ICustomElement, ICustomElementType } from './resources/custom-element';
+import {
+  ICustomAttributeType,
+} from './resources/custom-attribute';
+import {
+  ICustomElementType,
+} from './resources/custom-element';
 import { ViewFactory } from './templating/view';
+import { Controller } from './templating/controller';
 
 export interface ITemplateCompiler {
   readonly name: string;
@@ -100,8 +111,8 @@ export class CompiledTemplate<T extends INode = INode> implements ITemplate {
   }
 
   public render(renderable: IController<T>, host?: T, parts?: TemplatePartDefinitions, flags: LifecycleFlags = LifecycleFlags.none): void {
-    const nodes = (renderable as Writable<IController>).$nodes = this.factory.createNodeSequence();
-    (renderable as Writable<IController>).$context = this.renderContext;
+    const nodes = (renderable as Writable<IController>).nodes = this.factory.createNodeSequence();
+    (renderable as Writable<IController>).context = this.renderContext;
     flags |= this.definition.strategy;
     this.renderContext.render(flags, renderable, nodes.findTargets(), this.definition, host, parts);
   }
@@ -110,11 +121,11 @@ export class CompiledTemplate<T extends INode = INode> implements ITemplate {
 // This is an implementation of ITemplate that always returns a node sequence representing "no DOM" to render.
 /** @internal */
 export const noViewTemplate: ITemplate = {
-  renderContext: null!,
-  dom: null!,
+  renderContext: (void 0)!,
+  dom: (void 0)!,
   render(renderable: IController): void {
-    (renderable as Writable<IController>).$nodes = NodeSequence.empty;
-    (renderable as Writable<IController>).$context = null!;
+    (renderable as Writable<IController>).nodes = NodeSequence.empty;
+    (renderable as Writable<IController>).context = void 0;
   }
 };
 
@@ -124,8 +135,18 @@ export interface IInstructionTypeClassifier<TType extends string = string> {
   instructionType: TType;
 }
 
-export interface IInstructionRenderer<TType extends InstructionTypeName = InstructionTypeName> extends Partial<IInstructionTypeClassifier<TType>> {
-  render(flags: LifecycleFlags, dom: IDOM, context: IRenderContext, renderable: IController, target: unknown, instruction: ITargetedInstruction, ...rest: unknown[]): void;
+export interface IInstructionRenderer<
+  TType extends InstructionTypeName = InstructionTypeName
+> extends Partial<IInstructionTypeClassifier<TType>> {
+  render(
+    flags: LifecycleFlags,
+    dom: IDOM,
+    context: IRenderContext,
+    renderable: IController,
+    target: unknown,
+    instruction: ITargetedInstruction,
+    ...rest: unknown[]
+  ): void;
 }
 
 export const IInstructionRenderer = DI.createInterface<IInstructionRenderer>('IInstructionRenderer').noDefault();
@@ -150,18 +171,18 @@ export interface IRenderingEngine {
   getElementTemplate<T extends INode = INode>(
     dom: IDOM<T>,
     definition: TemplateDefinition,
-    parentContext: IServiceLocator,
-    componentType: ICustomElementType<T> | null
+    parentContext?: IServiceLocator,
+    componentType?: ICustomElementType,
   ): ITemplate<T>;
 
   getViewFactory<T extends INode = INode>(
     dom: IDOM<T>,
     source: ITemplateDefinition,
-    parentContext: IRenderContext<T> | null
+    parentContext?: IRenderContext<T>,
   ): IViewFactory<T>;
 
-  applyRuntimeBehavior<T extends INode = INode>(flags: LifecycleFlags, Type: ICustomAttributeType<T>, instance: ICustomAttribute<T>): void;
-  applyRuntimeBehavior<T extends INode = INode>(flags: LifecycleFlags, Type: ICustomElementType<T>, instance: ICustomElement<T>): void;
+  applyRuntimeBehavior<T extends INode = INode>(flags: LifecycleFlags, Type: ICustomAttributeType, instance: ILifecycleHooks): void;
+  applyRuntimeBehavior<T extends INode = INode>(flags: LifecycleFlags, Type: ICustomElementType, instance: ILifecycleHooks): void;
 }
 
 export const IRenderingEngine = DI.createInterface<IRenderingEngine>('IRenderingEngine').withDefault(x => x.singleton(RenderingEngine));
@@ -200,11 +221,11 @@ export class RenderingEngine implements IRenderingEngine {
   public getElementTemplate<T extends INode = INode>(
     dom: IDOM<T>,
     definition: TemplateDefinition,
-    parentContext: IRenderContext<T> | null,
-    componentType: ICustomElementType<T> | null
-  ): ITemplate<T> {
-    if (!definition) {
-      return null!;
+    parentContext?: IRenderContext<T>,
+    componentType?: ICustomElementType
+  ): ITemplate<T> | undefined {
+    if (definition == void 0) {
+      return void 0;
     }
 
     let found = this.templateLookup.get(definition);
@@ -221,17 +242,17 @@ export class RenderingEngine implements IRenderingEngine {
   public getViewFactory<T extends INode = INode>(
     dom: IDOM<T>,
     definition: ITemplateDefinition,
-    parentContext: IRenderContext<T> | null
+    parentContext?: IRenderContext<T>
   ): IViewFactory<T> {
-    if (!definition) {
-      return null!;
+    if (definition == void 0) {
+      throw new Error(`No definition provided`); // TODO: create error code
     }
 
     let factory = this.viewFactoryLookup.get(definition);
 
     if (!factory) {
       const validSource = buildTemplateDefinition(null, definition);
-      const template = this.templateFromSource(dom, validSource, parentContext, null);
+      const template = this.templateFromSource(dom, validSource, parentContext, void 0);
       factory = new ViewFactory(validSource.name, template, this.lifecycle);
       factory.setCacheSize(validSource.cache, true);
       this.viewFactoryLookup.set(definition, factory);
@@ -240,7 +261,7 @@ export class RenderingEngine implements IRenderingEngine {
     return factory as IViewFactory<T>;
   }
 
-  public applyRuntimeBehavior(flags: LifecycleFlags, Type: ICustomAttributeType | ICustomElementType, instance: ICustomAttribute | ICustomElement): void {
+  public applyRuntimeBehavior(flags: LifecycleFlags, Type: ICustomAttributeType | ICustomElementType, instance: ILifecycleHooks): void {
     let found = this.behaviorLookup.get(Type);
 
     if (!found) {
@@ -254,14 +275,14 @@ export class RenderingEngine implements IRenderingEngine {
   private templateFromSource(
     dom: IDOM,
     definition: TemplateDefinition,
-    parentContext: IRenderContext | null,
-    componentType: ICustomElementType | null
+    parentContext?: IRenderContext,
+    componentType?: ICustomElementType
   ): ITemplate {
-    if (parentContext == null) {
+    if (parentContext == void 0) {
       parentContext = this.container as ExposedContext;
     }
 
-    if (definition.template != null) {
+    if (definition.template != void 0) {
       const renderContext = createRenderContext(dom, parentContext, definition.dependencies, componentType) as ExposedContext;
 
       if (definition.build.required) {
@@ -286,7 +307,7 @@ export function createRenderContext(
   dom: IDOM,
   parentRenderContext: IRenderContext,
   dependencies: IRegistry[],
-  componentType: ICustomElementType | null
+  componentType?: ICustomElementType
 ): IRenderContext {
   const context = parentRenderContext.createChild() as ExposedContext;
   const renderableProvider = new InstanceProvider();
@@ -303,7 +324,7 @@ export function createRenderContext(
   context.registerResolver(ITargetedInstruction, instructionProvider);
   context.registerResolver(IRenderLocation, renderLocationProvider);
 
-  if (dependencies) {
+  if (dependencies != void 0) {
     context.register(...dependencies);
   }
 
@@ -381,33 +402,36 @@ export class ViewFactoryProvider implements IResolver {
 
 export interface IChildrenObserver extends
   IAccessor,
-  ISubscribable<MutationKind.instance>,
-  ISubscriberCollection<MutationKind.instance> { }
+  ISubscribable,
+  ISubscriberCollection { }
 
 /** @internal */
-@subscriberCollection(MutationKind.instance)
+@subscriberCollection()
 export class ChildrenObserver implements Partial<IChildrenObserver> {
+  [key: number]: LifecycleFlags;
   public hasChanges: boolean;
 
-  private readonly customElement: ICustomElement & { $childrenChanged?(): void };
+  private readonly customElement: ILifecycleHooks & { $childrenChanged?(): void };
   private readonly lifecycle: ILifecycle;
-  private children: ICustomElement[];
+  private readonly controller: IController;
+  private children: ILifecycleHooks[];
   private observing: boolean;
 
-  constructor(lifecycle: ILifecycle, customElement: ICustomElement & { $childrenChanged?(): void }) {
+  constructor(lifecycle: ILifecycle, customElement: ILifecycleHooks & { $childrenChanged?(): void }) {
     this.hasChanges = false;
 
-    this.children = null!;
+    this.children = (void 0)!;
     this.customElement = customElement;
     this.lifecycle = lifecycle;
+    this.controller = Controller.forCustomElement(customElement, (void 0)!, (void 0)!);
     this.observing = false;
   }
 
-  public getValue(): ICustomElement[] {
+  public getValue(): ILifecycleHooks[] {
     if (!this.observing) {
       this.observing = true;
-      this.customElement.$projector.subscribeToChildrenChange(() => { this.onChildrenChanged(); });
-      this.children = findElements(this.customElement.$projector.children);
+      this.controller.projector!.subscribeToChildrenChange(() => { this.onChildrenChanged(); });
+      this.children = findElements(this.controller.projector!.children);
     }
 
     return this.children;
@@ -415,34 +439,34 @@ export class ChildrenObserver implements Partial<IChildrenObserver> {
 
   public setValue(newValue: unknown): void { /* do nothing */ }
 
-  public flush(this: ChildrenObserver & IChildrenObserver, flags: LifecycleFlags): void {
+  public flushBatch(this: ChildrenObserver & IChildrenObserver, flags: LifecycleFlags): void {
     this.callSubscribers(this.children, undefined, flags | LifecycleFlags.updateTargetInstance);
     this.hasChanges = false;
   }
 
-  public subscribe(this: ChildrenObserver & IChildrenObserver, subscriber: IPropertySubscriber): void {
+  public subscribe(this: ChildrenObserver & IChildrenObserver, subscriber: ISubscriber): void {
     this.addSubscriber(subscriber);
   }
 
-  public unsubscribe(this: ChildrenObserver & IChildrenObserver, subscriber: IPropertySubscriber): void {
+  public unsubscribe(this: ChildrenObserver & IChildrenObserver, subscriber: ISubscriber): void {
     this.removeSubscriber(subscriber);
   }
 
   private onChildrenChanged(): void {
-    this.children = findElements(this.customElement.$projector.children);
+    this.children = findElements(this.controller.projector!.children);
 
     if ('$childrenChanged' in this.customElement) {
       this.customElement.$childrenChanged!();
     }
 
-    this.lifecycle.enqueueFlush(this).catch(error => { throw error; });
+    this.lifecycle.enqueueBatch(this);
     this.hasChanges = true;
   }
 }
 
 /** @internal */
-export function findElements(nodes: ArrayLike<unknown>): ICustomElement[] {
-  const components: ICustomElement[] = [];
+export function findElements(nodes: ArrayLike<unknown>): ILifecycleHooks[] {
+  const components: ILifecycleHooks[] = [];
 
   for (let i = 0, ii = nodes.length; i < ii; ++i) {
     const current = nodes[i];
@@ -469,7 +493,7 @@ export class RuntimeBehavior {
     return new RuntimeBehavior(Component.description.bindables as Record<string, IBindableDescription>);
   }
 
-  public applyTo(flags: LifecycleFlags, instance: ICustomAttribute | ICustomElement, lifecycle: ILifecycle): void {
+  public applyTo(flags: LifecycleFlags, instance: ILifecycleHooks, lifecycle: ILifecycle): void {
     instance.$lifecycle = lifecycle;
     if ('$projector' in instance) {
       this.applyToElement(flags, lifecycle, instance);
@@ -478,7 +502,7 @@ export class RuntimeBehavior {
     }
   }
 
-  private applyToElement(flags: LifecycleFlags, lifecycle: ILifecycle, instance: ICustomElement): void {
+  private applyToElement(flags: LifecycleFlags, lifecycle: ILifecycle, instance: ILifecycleHooks): void {
     const observers = this.applyToCore(flags, instance);
 
     observers.$children = new ChildrenObserver(lifecycle, instance);
@@ -491,7 +515,7 @@ export class RuntimeBehavior {
     });
   }
 
-  private applyToCore(flags: LifecycleFlags, instance: ICustomAttribute | ICustomElement): IIndexable {
+  private applyToCore(flags: LifecycleFlags, instance: ILifecycleHooks): IIndexable {
     const observers: Record<string, SelfObserver> = {};
     const bindables = this.bindables;
     const observableNames = Object.getOwnPropertyNames(bindables);
@@ -533,7 +557,7 @@ export class RuntimeBehavior {
   }
 }
 
-function createGetterSetter(flags: LifecycleFlags, instance: ICustomAttribute | ICustomElement, name: string): void {
+function createGetterSetter(flags: LifecycleFlags, instance: ILifecycleHooks, name: string): void {
   Reflect.defineProperty(instance, name, {
     enumerable: true,
     get: function (this: { $observers: { [key: string]: SelfObserver } }): unknown { return this['$observers'][name].getValue(); },

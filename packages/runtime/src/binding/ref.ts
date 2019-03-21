@@ -1,17 +1,29 @@
-import { IIndexable, IServiceLocator, Tracer } from '@aurelia/kernel';
+import {
+  IIndexable,
+  IServiceLocator,
+  Tracer,
+} from '@aurelia/kernel';
+
 import { IsBindingBehavior } from '../ast';
-import { LifecycleFlags, State } from '../flags';
+import {
+  LifecycleFlags,
+  State,
+} from '../flags';
 import { IBinding } from '../lifecycle';
-import { IObservable, IScope } from '../observation';
-import { hasBind, hasUnbind } from './ast';
+import {
+  IObservable,
+  IScope,
+} from '../observation';
+import {
+  hasBind,
+  hasUnbind,
+} from './ast';
 import { IConnectableBinding } from './connectable';
 
 const slice = Array.prototype.slice;
 
 export interface Ref extends IConnectableBinding {}
 export class Ref implements IBinding {
-  public $nextBinding?: IBinding;
-  public $prevBinding?: IBinding;
   public $state: State;
   public $scope?: IScope;
 
@@ -19,9 +31,11 @@ export class Ref implements IBinding {
   public sourceExpression: IsBindingBehavior;
   public target: IObservable;
 
-  constructor(sourceExpression: IsBindingBehavior, target: IObservable, locator: IServiceLocator) {
-    this.$nextBinding = void 0;
-    this.$prevBinding = void 0;
+  constructor(
+    sourceExpression: IsBindingBehavior,
+    target: IObservable,
+    locator: IServiceLocator,
+  ) {
     this.$state = State.none;
     this.$scope = void 0;
 

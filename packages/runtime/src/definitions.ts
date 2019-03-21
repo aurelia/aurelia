@@ -1,6 +1,7 @@
 import {
   Constructable,
   DI,
+  IIndexable,
   IRegistry,
   IResourceDefinition,
   Omit,
@@ -10,7 +11,8 @@ import {
 } from '@aurelia/kernel';
 import { IForOfStatement, IInterpolationExpression, IsBindingBehavior } from './ast';
 import { BindingMode, BindingStrategy, ensureValidStrategy } from './flags';
-import { CustomElementHost, ICustomElement } from './resources/custom-element';
+import { ILifecycleHooks } from './lifecycle';
+import { CustomElementHost } from './resources/custom-element';
 import { Bindable } from './templating/bindable';
 
 /** @internal */
@@ -20,8 +22,8 @@ export function customElementKey(name: string): string {
   return `${customElementName}:${name}`;
 }
 /** @internal */
-export function customElementBehavior(node: unknown): ICustomElement | null {
-  return (node as CustomElementHost).$customElement === undefined ? null : (node as CustomElementHost).$customElement!;
+export function customElementBehavior(node: unknown): ILifecycleHooks | undefined {
+  return (node as CustomElementHost).$customElement;
 }
 
 /** @internal */

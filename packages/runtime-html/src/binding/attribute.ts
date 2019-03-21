@@ -17,11 +17,9 @@ export interface AttributeBinding extends IConnectableBinding {}
  */
 @connectable()
 export class AttributeBinding implements IPartialConnectableBinding {
-  public $nextBinding: IBinding;
-  public $prevBinding: IBinding;
+  public id!: number;
   public $state: State;
   public $lifecycle: ILifecycle;
-  public $nextConnect: IConnectableBinding;
   public $scope: IScope;
 
   public locator: IServiceLocator;
@@ -54,11 +52,8 @@ export class AttributeBinding implements IPartialConnectableBinding {
     locator: IServiceLocator
   ) {
     connectable.assignIdTo(this);
-    this.$nextBinding = null!;
-    this.$prevBinding = null!;
     this.$state = State.none;
     this.$lifecycle = locator.get(ILifecycle);
-    this.$nextConnect = null!;
     this.$scope = null!;
 
     this.locator = locator;

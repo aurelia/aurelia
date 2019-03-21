@@ -12,7 +12,9 @@ import {
   IObservable,
   IObservedArray,
   IObservedMap,
-  IObservedSet
+  IObservedSet,
+  ObserversLookup,
+  PropertyObserver
 } from '../observation';
 import { getArrayObserver } from './array-observer';
 import { createComputedObserver } from './computed-observer';
@@ -100,7 +102,7 @@ export class ObserverLocator implements IObserverLocator {
     if (isBindingContext(obj)) {
       return obj.getObservers!(flags).getOrCreate(flags, obj, propertyName);
     }
-    let observersLookup = obj.$observers;
+    let observersLookup = obj.$observers as ObserversLookup;
     let observer: AccessorOrObserver & { doNotCache?: boolean };
 
     if (observersLookup && propertyName in observersLookup) {
@@ -111,10 +113,10 @@ export class ObserverLocator implements IObserverLocator {
 
     if (!observer.doNotCache) {
       if (observersLookup === void 0) {
-        observersLookup = this.getOrCreateObserversLookup(obj);
+        observersLookup = this.getOrCreateObserversLookup(obj) as ObserversLookup;
       }
 
-      observersLookup[propertyName] = observer;
+      observersLookup[propertyName] = observer as PropertyObserver;
     }
 
     return observer;
@@ -151,7 +153,7 @@ export class ObserverLocator implements IObserverLocator {
   }
 
   private getOrCreateObserversLookup(obj: IObservable): Record<string, AccessorOrObserver | IBindingTargetObserver> {
-    return obj.$observers || this.createObserversLookup(obj);
+    return obj.$observers as ObserversLookup || this.createObserversLookup(obj);
   }
 
   private createObserversLookup(obj: IObservable): Record<string, IBindingTargetObserver> {

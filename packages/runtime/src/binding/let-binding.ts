@@ -1,10 +1,29 @@
-import { IIndexable, IServiceLocator, Reporter, Tracer } from '@aurelia/kernel';
+import {
+  IIndexable,
+  IServiceLocator,
+  Reporter,
+  Tracer,
+} from '@aurelia/kernel';
+
 import { IExpression } from '../ast';
-import { LifecycleFlags, State } from '../flags';
-import { IBinding, ILifecycle } from '../lifecycle';
-import { IObservable, IScope } from '../observation';
+import {
+  LifecycleFlags,
+  State,
+} from '../flags';
+import {
+  IBinding,
+  ILifecycle,
+} from '../lifecycle';
+import {
+  IObservable,
+  IScope,
+} from '../observation';
 import { IObserverLocator } from '../observation/observer-locator';
-import { connectable, IConnectableBinding, IPartialConnectableBinding } from './connectable';
+import {
+  connectable,
+  IConnectableBinding,
+  IPartialConnectableBinding,
+} from './connectable';
 
 const slice = Array.prototype.slice;
 
@@ -12,9 +31,7 @@ export interface LetBinding extends IConnectableBinding {}
 
 @connectable()
 export class LetBinding implements IPartialConnectableBinding {
-  public id!: string;
-  public $nextBinding?: IBinding;
-  public $prevBinding?: IBinding;
+  public id!: number;
   public $state: State;
   public $lifecycle: ILifecycle;
   public $scope?: IScope;
@@ -27,10 +44,14 @@ export class LetBinding implements IPartialConnectableBinding {
 
   private readonly toViewModel: boolean;
 
-  constructor(sourceExpression: IExpression, targetProperty: string, observerLocator: IObserverLocator, locator: IServiceLocator, toViewModel: boolean = false) {
+  constructor(
+    sourceExpression: IExpression,
+    targetProperty: string,
+    observerLocator: IObserverLocator,
+    locator: IServiceLocator,
+    toViewModel: boolean = false,
+  ) {
     connectable.assignIdTo(this);
-    this.$nextBinding = void 0;
-    this.$prevBinding = void 0;
     this.$state = State.none;
     this.$lifecycle = locator.get(ILifecycle);
     this.$scope = void 0;

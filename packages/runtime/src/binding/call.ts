@@ -1,18 +1,31 @@
-import { IServiceLocator, Tracer } from '@aurelia/kernel';
+import {
+  IServiceLocator,
+  Tracer,
+} from '@aurelia/kernel';
+
 import { IsBindingBehavior } from '../ast';
-import { LifecycleFlags, State } from '../flags';
+import {
+  LifecycleFlags,
+  State,
+} from '../flags';
 import { IBinding } from '../lifecycle';
-import { IAccessor, IBindingContext, IObservable, IScope } from '../observation';
+import {
+  IAccessor,
+  IBindingContext,
+  IObservable,
+  IScope,
+} from '../observation';
 import { IObserverLocator } from '../observation/observer-locator';
-import { hasBind, hasUnbind } from './ast';
+import {
+  hasBind,
+  hasUnbind,
+} from './ast';
 import { IConnectableBinding } from './connectable';
 
 const slice = Array.prototype.slice;
 
 export interface Call extends IConnectableBinding {}
 export class Call {
-  public $nextBinding?: IBinding;
-  public $prevBinding?: IBinding;
   public $state: State;
   public $scope?: IScope;
 
@@ -20,9 +33,13 @@ export class Call {
   public sourceExpression: IsBindingBehavior;
   public targetObserver: IAccessor;
 
-  constructor(sourceExpression: IsBindingBehavior, target: IObservable | IBindingContext, targetProperty: string, observerLocator: IObserverLocator, locator: IServiceLocator) {
-    this.$nextBinding = void 0;
-    this.$prevBinding = void 0;
+  constructor(
+    sourceExpression: IsBindingBehavior,
+    target: IObservable | IBindingContext,
+    targetProperty: string,
+    observerLocator: IObserverLocator,
+    locator: IServiceLocator,
+  ) {
     this.$state = State.none;
 
     this.locator = locator;

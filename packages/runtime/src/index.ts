@@ -441,7 +441,6 @@ export {
   IProxySubscriberCollection,
   ICollectionSubscribable,
   IBatchChangeTracker,
-  IPatchable,
   IRAFChangeTracker,
   ISubscriber,
   isIndexMap,

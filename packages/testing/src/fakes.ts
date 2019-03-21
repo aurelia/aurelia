@@ -24,9 +24,6 @@ export class FakeRenderable<T extends INode = INode> implements IController<T> {
   public $bindingHead?: IBinding;
   public $bindingTail?: IBinding;
 
-  public $nextBinding?: IBinding;
-  public $prevBinding?: IBinding;
-
   public $componentHead?: IComponent;
   public $componentTail?: IComponent;
 
@@ -98,9 +95,6 @@ export class FakeViewFactory<T extends INode = INode> implements IViewFactory<T>
 export class FakeView<T extends INode = INode> implements IController<T> {
   public $bindingHead?: IBinding;
   public $bindingTail?: IBinding;
-
-  public $nextBinding?: IBinding;
-  public $prevBinding?: IBinding;
 
   public $componentHead?: IComponent;
   public $componentTail?: IComponent;

@@ -29,6 +29,7 @@ import {
   IBinding,
   IController,
   ILifecycle,
+  ILifecycleHooks,
   ILifecycleTask,
   IRenderContext,
   IViewCache,
@@ -112,6 +113,7 @@ export class Controller<T extends INode = INode> implements IController<T> {
   public readonly lifecycle: ILifecycle;
 
   public readonly hooks: HooksDefinition;
+  public readonly viewModel?: ILifecycleHooks;
   public readonly bindingContext?: BindingContext;
 
   public readonly host?: T;
@@ -169,6 +171,7 @@ export class Controller<T extends INode = INode> implements IController<T> {
       this.lifecycle = lifecycle;
 
       this.hooks = HooksDefinition.none;
+      this.viewModel = void 0;
       this.bindingContext = void 0; // stays undefined
 
       this.host = void 0; // stays undefined
@@ -199,6 +202,7 @@ export class Controller<T extends INode = INode> implements IController<T> {
       flags |= description.strategy;
       createObservers(description, flags, viewModel);
       this.hooks = description.hooks;
+      this.viewModel = viewModel as ILifecycleHooks;
       this.bindingContext = getBindingContext(flags, viewModel);
 
       this.host = host;

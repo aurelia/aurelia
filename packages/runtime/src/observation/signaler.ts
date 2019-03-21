@@ -1,21 +1,21 @@
 import { DI } from '@aurelia/kernel';
 import { LifecycleFlags } from '../flags';
-import { IPropertySubscriber } from '../observation';
+import { ISubscriber } from '../observation';
 
 type Signal = string;
 
 export interface ISignaler {
-  signals: Record<string, Set<IPropertySubscriber>>;
+  signals: Record<string, Set<ISubscriber>>;
   dispatchSignal(name: Signal, flags?: LifecycleFlags): void;
-  addSignalListener(name: Signal, listener: IPropertySubscriber): void;
-  removeSignalListener(name: Signal, listener: IPropertySubscriber): void;
+  addSignalListener(name: Signal, listener: ISubscriber): void;
+  removeSignalListener(name: Signal, listener: ISubscriber): void;
 }
 
 export const ISignaler = DI.createInterface<ISignaler>('ISignaler').withDefault(x => x.singleton(Signaler));
 
 /** @internal */
 export class Signaler implements ISignaler {
-  public signals: Record<string, Set<IPropertySubscriber>>;
+  public signals: Record<string, Set<ISubscriber>>;
 
   constructor() {
     this.signals = Object.create(null);
@@ -31,7 +31,7 @@ export class Signaler implements ISignaler {
     }
   }
 
-  public addSignalListener(name: Signal, listener: IPropertySubscriber): void {
+  public addSignalListener(name: Signal, listener: ISubscriber): void {
     const signals = this.signals;
     const listeners = signals[name];
     if (listeners === undefined) {
@@ -41,7 +41,7 @@ export class Signaler implements ISignaler {
     }
   }
 
-  public removeSignalListener(name: Signal, listener: IPropertySubscriber): void {
+  public removeSignalListener(name: Signal, listener: ISubscriber): void {
     const listeners = this.signals[name];
     if (listeners) {
       listeners.delete(listener);

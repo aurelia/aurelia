@@ -32,7 +32,7 @@ export class Replaceable<T extends INode = INode> {
   public static readonly inject: InjectArray = [IViewFactory, IRenderLocation];
 
   public static readonly kind: ICustomAttributeResource = CustomAttributeResource;
-  public static readonly description: Required<IAttributeDefinition> = {
+  public static readonly description: Required<IAttributeDefinition> = Object.freeze({
     name: 'replaceable',
     aliases: PLATFORM.emptyArray as typeof PLATFORM.emptyArray & string[],
     defaultBindingMode: BindingMode.toView,
@@ -40,8 +40,8 @@ export class Replaceable<T extends INode = INode> {
     isTemplateController: true,
     bindables: PLATFORM.emptyObject,
     strategy: BindingStrategy.getterSetter,
-    hooks: new HooksDefinition(Replaceable.prototype)
-  };
+    hooks: Object.freeze(new HooksDefinition(Replaceable.prototype)),
+  });
 
   private readonly currentView: IController<T>;
   private readonly factory: IViewFactory<T>;

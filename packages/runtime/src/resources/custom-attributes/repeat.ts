@@ -61,16 +61,16 @@ export class Repeat<C extends ObservedCollection = IObservedArray, T extends INo
   public static readonly inject: InjectArray = [IRenderLocation, IController, IViewFactory];
 
   public static readonly kind: ICustomAttributeResource = CustomAttributeResource;
-  public static readonly description: Required<IAttributeDefinition> = {
+  public static readonly description: Required<IAttributeDefinition> = Object.freeze({
     name: 'repeat',
     aliases: PLATFORM.emptyArray as typeof PLATFORM.emptyArray & string[],
     defaultBindingMode: BindingMode.toView,
     hasDynamicOptions: false,
     isTemplateController: true,
-    bindables: Bindable.for({ bindables: ['items'] }).get(),
+    bindables: Object.freeze(Bindable.for({ bindables: ['items'] }).get()),
     strategy: BindingStrategy.getterSetter,
-    hooks: new HooksDefinition(Repeat.prototype)
-  };
+    hooks: Object.freeze(new HooksDefinition(Repeat.prototype)),
+  });
 
   public get items(): Items<C> {
     return this._items;

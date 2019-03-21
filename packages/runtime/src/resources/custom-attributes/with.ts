@@ -36,16 +36,16 @@ export class With<T extends INode = INode> {
   public static readonly inject: InjectArray = [IViewFactory, IRenderLocation];
 
   public static readonly kind: ICustomAttributeResource = CustomAttributeResource;
-  public static readonly description: Required<IAttributeDefinition> = {
+  public static readonly description: Required<IAttributeDefinition> = Object.freeze({
     name: 'with',
     aliases: PLATFORM.emptyArray as typeof PLATFORM.emptyArray & string[],
     defaultBindingMode: BindingMode.toView,
     hasDynamicOptions: false,
     isTemplateController: true,
-    bindables: Bindable.for({ bindables: ['value'] }).get(),
+    bindables: Object.freeze(Bindable.for({ bindables: ['value'] }).get()),
     strategy: BindingStrategy.getterSetter,
-    hooks: new HooksDefinition(With.prototype)
-  };
+    hooks: Object.freeze(new HooksDefinition(With.prototype)),
+  });
 
   public get value(): object | undefined {
     return this._value;

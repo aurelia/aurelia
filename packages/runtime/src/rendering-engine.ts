@@ -35,9 +35,9 @@ import { LifecycleFlags } from './flags';
 import {
   IController,
   ILifecycle,
-  IViewModel,
   IRenderContext,
   IViewFactory,
+  IViewModel,
 } from './lifecycle';
 import {
   IAccessor,
@@ -80,7 +80,8 @@ export const ITemplateFactory = DI.createInterface<ITemplateFactory>('ITemplateF
 export interface ITemplate<T extends INode = INode> {
   readonly renderContext: IRenderContext<T>;
   readonly dom: IDOM<T>;
-  render(renderable: IController<T>, host?: T, parts?: Record<string, ITemplateDefinition>, flags?: LifecycleFlags): void;
+  render(controller: IController<T>, host?: T, parts?: Record<string, ITemplateDefinition>, flags?: LifecycleFlags): void;
+  render(viewModel: IViewModel<T>, host?: T, parts?: Record<string, ITemplateDefinition>, flags?: LifecycleFlags): void;
 }
 
 // This is the main implementation of ITemplate.
@@ -103,11 +104,19 @@ export class CompiledTemplate<T extends INode = INode> implements ITemplate {
     this.renderContext = renderContext;
   }
 
-  public render(renderable: IController<T>, host?: T, parts?: TemplatePartDefinitions, flags: LifecycleFlags = LifecycleFlags.none): void {
-    const nodes = (renderable as Writable<IController>).nodes = this.factory.createNodeSequence();
-    (renderable as Writable<IController>).context = this.renderContext;
+  public render(viewModel: IViewModel<T>, host?: T, parts?: TemplatePartDefinitions, flags?: LifecycleFlags): void;
+  public render(controller: IController<T>, host?: T, parts?: TemplatePartDefinitions, flags?: LifecycleFlags): void;
+  public render(viewModelOrController: IViewModel<T> | IController<T>, host?: T, parts?: TemplatePartDefinitions, flags: LifecycleFlags = LifecycleFlags.none): void {
+    const controller = viewModelOrController instanceof Controller
+      ? viewModelOrController as IController<T>
+      : (viewModelOrController as IViewModel<T>).$controller;
+    if (controller == void 0) {
+      throw new Error(`Controller is missing from the view model`); // TODO: create error code
+    }
+    const nodes = (controller as Writable<IController>).nodes = this.factory.createNodeSequence();
+    (controller as Writable<IController>).context = this.renderContext;
     flags |= this.definition.strategy;
-    this.renderContext.render(flags, renderable, nodes.findTargets(), this.definition, host, parts);
+    this.renderContext.render(flags, controller, nodes.findTargets(), this.definition, host, parts);
   }
 }
 
@@ -116,9 +125,10 @@ export class CompiledTemplate<T extends INode = INode> implements ITemplate {
 export const noViewTemplate: ITemplate = {
   renderContext: (void 0)!,
   dom: (void 0)!,
-  render(renderable: IController): void {
-    (renderable as Writable<IController>).nodes = NodeSequence.empty;
-    (renderable as Writable<IController>).context = void 0;
+  render(viewModelOrController: IViewModel | IController): void {
+    const controller = viewModelOrController instanceof Controller ? viewModelOrController : (viewModelOrController as IViewModel).$controller;
+    (controller as Writable<IController>).nodes = NodeSequence.empty;
+    (controller as Writable<IController>).context = void 0;
   }
 };
 

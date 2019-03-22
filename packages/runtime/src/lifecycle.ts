@@ -50,7 +50,7 @@ export const enum ViewModelKind {
 
 // TODO: extract 3 specialized interfaces for custom element / custom attribute / synthetic view
 //  to keep the public API intuitive
-export interface IController<T extends INode = INode> {
+export interface IController<T extends INode = INode, C extends IViewModel<T> = IViewModel<T>> {
   nextBound?: IController<T>;
   nextUnbound?: IController<T>;
   prevBound?: IController<T>;
@@ -77,8 +77,8 @@ export interface IController<T extends INode = INode> {
   readonly lifecycle: ILifecycle;
 
   readonly hooks: HooksDefinition;
-  readonly viewModel?: IViewModel;
-  readonly bindingContext?: IIndexable;
+  readonly viewModel?: C;
+  readonly bindingContext?: C & IIndexable;
 
   readonly host?: T;
 
@@ -133,7 +133,7 @@ export const IViewFactory = DI.createInterface<IViewFactory>('IViewFactory').noD
  * Defines optional lifecycle hooks that will be called only when they are implemented.
  */
 export interface IViewModel<T extends INode = INode> {
-  readonly $controller: IController<T>;
+  readonly $controller?: IController<T, this>;
   created?(flags: LifecycleFlags): void;
   binding?(flags: LifecycleFlags): MaybePromiseOrTask;
   bound?(flags: LifecycleFlags): void;
@@ -144,6 +144,10 @@ export interface IViewModel<T extends INode = INode> {
   detaching?(flags: LifecycleFlags): void;
   detached?(flags: LifecycleFlags): void;
   caching?(flags: LifecycleFlags): void;
+}
+
+export interface IHydratedViewModel<T extends INode = INode> extends IViewModel<T> {
+  readonly $controller: IController<T, this>;
 }
 
 export interface ILifecycle {

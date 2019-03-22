@@ -4,6 +4,7 @@ import {
   PLATFORM,
   Writable
 } from '@aurelia/kernel';
+
 import {
   HooksDefinition,
   IAttributeDefinition,
@@ -29,10 +30,10 @@ import {
   IBinding,
   IController,
   ILifecycle,
-  IViewModel,
   ILifecycleTask,
   IRenderContext,
   IViewCache,
+  IViewModel,
   LifecycleTask,
   MaybePromiseOrTask,
   ViewModelKind
@@ -65,8 +66,8 @@ interface IElementTemplateProvider {
   getElementTemplate(renderingEngine: unknown, customElementType: unknown, parentContext: IServiceLocator): ITemplate;
 }
 
-type BindingContext = IIndexable & {
-  render(flags: LifecycleFlags, host: INode, parts: Record<string, TemplateDefinition>, parentContext: IServiceLocator): IElementTemplateProvider | void;
+type BindingContext<T extends INode, C extends IViewModel<T>> = C & IIndexable & {
+  render(flags: LifecycleFlags, host: T, parts: Record<string, TemplateDefinition>, parentContext: IServiceLocator): IElementTemplateProvider | void;
   created(flags: LifecycleFlags): void;
 
   binding(flags: LifecycleFlags): MaybePromiseOrTask;
@@ -84,37 +85,37 @@ type BindingContext = IIndexable & {
   caching(flags: LifecycleFlags): void;
 }
 
-export class Controller<T extends INode = INode> implements IController<T> {
+export class Controller<T extends INode = INode, C extends IViewModel<T> = IViewModel<T>> implements IController<T, C> {
   private static readonly lookup: WeakMap<object, Controller> = new WeakMap();
 
-  public nextBound?: Controller<T>;
-  public nextUnbound?: Controller<T>;
-  public prevBound?: Controller<T>;
-  public prevUnbound?: Controller<T>;
+  public nextBound?: Controller<T, C>;
+  public nextUnbound?: Controller<T, C>;
+  public prevBound?: Controller<T, C>;
+  public prevUnbound?: Controller<T, C>;
 
-  public nextAttached?: Controller<T>;
-  public nextDetached?: Controller<T>;
-  public prevAttached?: Controller<T>;
-  public prevDetached?: Controller<T>;
+  public nextAttached?: Controller<T, C>;
+  public nextDetached?: Controller<T, C>;
+  public prevAttached?: Controller<T, C>;
+  public prevDetached?: Controller<T, C>;
 
-  public nextMount?: Controller<T>;
-  public nextUnmount?: Controller<T>;
-  public prevMount?: Controller<T>;
-  public prevUnmount?: Controller<T>;
+  public nextMount?: Controller<T, C>;
+  public nextUnmount?: Controller<T, C>;
+  public prevMount?: Controller<T, C>;
+  public prevUnmount?: Controller<T, C>;
 
   public readonly flags: LifecycleFlags;
   public readonly viewCache?: IViewCache<T>;
 
   public bindings?: IBinding[];
-  public controllers?: Controller<T>[];
+  public controllers?: Controller<T, C>[];
 
   public state: State;
 
   public readonly lifecycle: ILifecycle;
 
   public readonly hooks: HooksDefinition;
-  public readonly viewModel?: IViewModel;
-  public readonly bindingContext?: BindingContext;
+  public readonly viewModel?: C;
+  public readonly bindingContext?: BindingContext<T, C>;
 
   public readonly host?: T;
 
@@ -131,7 +132,7 @@ export class Controller<T extends INode = INode> implements IController<T> {
     flags: LifecycleFlags,
     viewCache: IViewCache<T> | undefined,
     lifecycle: ILifecycle | undefined,
-    viewModel: IIndexable | undefined,
+    viewModel: C | undefined,
     parentContext: IRenderContext<T> | undefined,
     host: T | undefined,
     options: Partial<IElementHydrationOptions>
@@ -191,7 +192,7 @@ export class Controller<T extends INode = INode> implements IController<T> {
       }
       this.lifecycle = parentContext.get(ILifecycle);
 
-      viewModel.$controller = this;
+      (viewModel as Writable<C>).$controller = this;
 
       const Type = viewModel.constructor;
       if (!hasDescription(Type)) {
@@ -202,8 +203,8 @@ export class Controller<T extends INode = INode> implements IController<T> {
       flags |= description.strategy;
       createObservers(description, flags, viewModel);
       this.hooks = description.hooks;
-      this.viewModel = viewModel as IViewModel;
-      this.bindingContext = getBindingContext(flags, viewModel);
+      this.viewModel = viewModel;
+      this.bindingContext = getBindingContext<T, C>(flags, viewModel);
 
       this.host = host;
 
@@ -224,20 +225,18 @@ export class Controller<T extends INode = INode> implements IController<T> {
 
             if (result != void 0 && 'getElementTemplate' in result) {
               const template = result.getElementTemplate(renderingEngine, Type, parentContext);
-              // TODO: remove this cast when ITemplate is updated to take Controller type
-              template.render(this as any, host, parts);
+              template.render(this, host, parts);
             }
           } else {
             const dom = parentContext.get(IDOM);
             const template = renderingEngine.getElementTemplate(dom, description, parentContext, Type as ICustomElementType);
-            // TODO: remove this cast when ITemplate is updated to take Controller type
-            template.render(this as any, host, parts);
+            template.render(this, host, parts);
           }
 
           this.scope = Scope.create(flags, this.bindingContext, null);
           this.projector = parentContext.get(IProjectorLocator).getElementProjector(
             parentContext.get(IDOM),
-            this as any, // TODO: remove this cast when IProjectorLocator is updated to take Controller type
+            this,
             host,
             description
           );
@@ -314,7 +313,7 @@ export class Controller<T extends INode = INode> implements IController<T> {
     this.state |= State.canBeCached;
     if ((this.state & State.isAttached) > 0) {
       // tslint:disable-next-line: no-non-null-assertion // non-null is implied by the hook
-      return this.viewCache!.canReturnToCache(this as any);
+      return this.viewCache!.canReturnToCache(this);
     }
 
     return this.unmountSynthetic(flags);
@@ -434,11 +433,11 @@ export class Controller<T extends INode = INode> implements IController<T> {
     flags |= LifecycleFlags.fromBind;
     const $scope = this.scope as Writable<IScope>;
     $scope.parentScope = scope;
-    this.lifecycle.beginBind(this as any);
+    this.lifecycle.beginBind(this);
     this.bindBindings(flags, $scope);
 
     if (this.hooks.hasBinding) {
-      const ret = (this.bindingContext as BindingContext).binding(flags);
+      const ret = (this.bindingContext as BindingContext<T, C>).binding(flags);
       if (hasAsyncWork(ret)) {
         return new ContinuationTask(ret, this.bindControllers, this, flags, $scope);
       }
@@ -464,10 +463,10 @@ export class Controller<T extends INode = INode> implements IController<T> {
     }
 
     this.scope = scope;
-    this.lifecycle.beginBind(this as any);
+    this.lifecycle.beginBind(this);
 
     if (this.hooks.hasBinding) {
-      const ret = (this.bindingContext as BindingContext).binding(flags);
+      const ret = (this.bindingContext as BindingContext<T, C>).binding(flags);
       if (hasAsyncWork(ret)) {
         return new ContinuationTask(ret, this.endBind, this, flags);
       }
@@ -501,7 +500,7 @@ export class Controller<T extends INode = INode> implements IController<T> {
       this.scope = scope;
     }
 
-    this.lifecycle.beginBind(this as any);
+    this.lifecycle.beginBind(this);
     this.bindBindings(flags, scope);
 
     return this.bindControllers(flags, scope);
@@ -544,9 +543,9 @@ export class Controller<T extends INode = INode> implements IController<T> {
 
   private endBind(flags: LifecycleFlags): void {
     if (this.hooks.hasBound) {
-      this.lifecycle.enqueueBound(this as any);
+      this.lifecycle.enqueueBound(this);
     }
-    this.lifecycle.endBind(flags, this as any);
+    this.lifecycle.endBind(flags, this);
   }
 
   private unbindCustomElement(flags: LifecycleFlags): ILifecycleTask {
@@ -555,10 +554,10 @@ export class Controller<T extends INode = INode> implements IController<T> {
     }
 
     flags |= LifecycleFlags.fromUnbind;
-    this.lifecycle.beginUnbind(this as any);
+    this.lifecycle.beginUnbind(this);
 
     if (this.hooks.hasUnbinding) {
-      const ret = (this.bindingContext as BindingContext).unbinding(flags);
+      const ret = (this.bindingContext as BindingContext<T, C>).unbinding(flags);
       if (hasAsyncWork(ret)) {
         return new ContinuationTask(ret, this.unbindControllers, this, flags);
       }
@@ -573,10 +572,10 @@ export class Controller<T extends INode = INode> implements IController<T> {
     }
 
     flags |= LifecycleFlags.fromUnbind;
-    this.lifecycle.beginUnbind(this as any);
+    this.lifecycle.beginUnbind(this);
 
     if (this.hooks.hasUnbinding) {
-      const ret = (this.bindingContext as BindingContext).unbinding(flags);
+      const ret = (this.bindingContext as BindingContext<T, C>).unbinding(flags);
       if (hasAsyncWork(ret)) {
         return new ContinuationTask(ret, this.endUnbind, this, flags);
       }
@@ -592,7 +591,7 @@ export class Controller<T extends INode = INode> implements IController<T> {
     }
 
     flags |= LifecycleFlags.fromUnbind;
-    this.lifecycle.beginUnbind(this as any);
+    this.lifecycle.beginUnbind(this);
 
     return this.unbindControllers(flags);
   }
@@ -641,9 +640,9 @@ export class Controller<T extends INode = INode> implements IController<T> {
         }
     }
     if (this.hooks.hasUnbound) {
-      this.lifecycle.enqueueBound(this as any);
+      this.lifecycle.enqueueBound(this);
     }
-    this.lifecycle.endBind(flags, this as any);
+    this.lifecycle.endBind(flags, this);
   }
   // #endregion
 
@@ -656,16 +655,16 @@ export class Controller<T extends INode = INode> implements IController<T> {
     flags |= LifecycleFlags.fromAttach;
     this.state |= State.isAttaching;
 
-    this.lifecycle.enqueueMount(this as any);
+    this.lifecycle.enqueueMount(this);
 
     if (this.hooks.hasAttaching) {
-      (this.bindingContext as BindingContext).attaching(flags);
+      (this.bindingContext as BindingContext<T, C>).attaching(flags);
     }
 
     this.attachControllers(flags);
 
     if (this.hooks.hasAttached) {
-      this.lifecycle.enqueueAttached(this as any);
+      this.lifecycle.enqueueAttached(this);
     }
 
     this.state = this.state ^ State.isAttaching | State.isAttached;
@@ -680,11 +679,11 @@ export class Controller<T extends INode = INode> implements IController<T> {
     this.state |= State.isAttaching;
 
     if (this.hooks.hasAttaching) {
-      (this.bindingContext as BindingContext).attaching(flags);
+      (this.bindingContext as BindingContext<T, C>).attaching(flags);
     }
 
     if (this.hooks.hasAttached) {
-      this.lifecycle.enqueueAttached(this as any);
+      this.lifecycle.enqueueAttached(this);
     }
 
     this.state = this.state ^ State.isAttaching | State.isAttached;
@@ -698,7 +697,7 @@ export class Controller<T extends INode = INode> implements IController<T> {
     flags |= LifecycleFlags.fromAttach;
     this.state |= State.isAttaching;
 
-    this.lifecycle.enqueueMount(this as any);
+    this.lifecycle.enqueueMount(this);
 
     this.attachControllers(flags);
 
@@ -713,14 +712,14 @@ export class Controller<T extends INode = INode> implements IController<T> {
     flags |= LifecycleFlags.fromDetach;
     this.state |= State.isDetaching;
 
-    this.lifecycle.enqueueUnmount(this as any);
+    this.lifecycle.enqueueUnmount(this);
 
     if (this.hooks.hasDetaching) {
-      (this.bindingContext as BindingContext).detaching(flags);
+      (this.bindingContext as BindingContext<T, C>).detaching(flags);
     }
 
     if (this.hooks.hasDetached) {
-      this.lifecycle.enqueueDetached(this as any);
+      this.lifecycle.enqueueDetached(this);
     }
 
     this.state = this.state ^ (State.isDetaching | State.isAttached);
@@ -735,11 +734,11 @@ export class Controller<T extends INode = INode> implements IController<T> {
     this.state |= State.isDetaching;
 
     if (this.hooks.hasDetaching) {
-      (this.bindingContext as BindingContext).detaching(flags);
+      (this.bindingContext as BindingContext<T, C>).detaching(flags);
     }
 
     if (this.hooks.hasDetached) {
-      this.lifecycle.enqueueDetached(this as any);
+      this.lifecycle.enqueueDetached(this);
     }
 
     this.state = this.state ^ (State.isDetaching | State.isAttached);
@@ -753,7 +752,7 @@ export class Controller<T extends INode = INode> implements IController<T> {
     flags |= LifecycleFlags.fromDetach;
     this.state |= State.isDetaching;
 
-    this.lifecycle.enqueueUnmount(this as any);
+    this.lifecycle.enqueueUnmount(this);
 
     this.detachControllers(flags);
 
@@ -823,7 +822,7 @@ export class Controller<T extends INode = INode> implements IController<T> {
     if ((this.state & State.canBeCached) > 0) {
       this.state ^= State.canBeCached;
       // tslint:disable-next-line: no-non-null-assertion // non-null is implied by the hook
-      if (this.viewCache!.tryReturnToCache(this as any)) {
+      if (this.viewCache!.tryReturnToCache(this)) {
         this.state |= State.isCached;
         return true;
       }
@@ -901,12 +900,12 @@ function createObservers(description: Description, flags: LifecycleFlags, instan
   }
 }
 
-function getBindingContext(flags: LifecycleFlags, instance: IIndexable): BindingContext {
+function getBindingContext<T extends INode, C extends IViewModel<T>>(flags: LifecycleFlags, instance: IIndexable): BindingContext<T, C> {
   if (instance.noProxy === true || (flags & LifecycleFlags.proxyStrategy) === 0) {
-    return instance as BindingContext;
+    return instance as BindingContext<T, C>;
   }
 
-  return ProxyObserver.getOrCreate(instance).proxy as BindingContext;
+  return ProxyObserver.getOrCreate(instance).proxy as BindingContext<T, C>;
 }
 
 function createGetterSetter(flags: LifecycleFlags, instance: IIndexable, name: string): void {

@@ -22,7 +22,7 @@ import {
   IAttributeDefinition,
   ICustomAttribute,
 
-  ICustomElement,
+  IViewModel,
 
   ICustomElementType,
 
@@ -395,7 +395,7 @@ export class TestBuilder<T extends Constructable> {
 export class TestContext<T extends object> {
   public container: IContainer;
   public host: INode;
-  public component: ICustomElement & T;
+  public component: IViewModel & T;
   public lifecycle: ILifecycle;
   public isHydrated: boolean;
   public assertCount: number;
@@ -403,7 +403,7 @@ export class TestContext<T extends object> {
   constructor(
     container: IContainer,
     host: INode,
-    component: ICustomElement & T
+    component: IViewModel & T
   ) {
     this.container = container;
     this.host = host;
@@ -535,7 +535,7 @@ export function createTemplateController(nameOrDef: string | IAttributeDefinitio
   return { Type, sut };
 }
 
-export type CustomElement = Writable<ICustomElement> & IComponentLifecycleMock;
+export type CustomElement = Writable<IViewModel> & IComponentLifecycleMock;
 
 export function createCustomElement(nameOrDef: string | ITemplateDefinition) {
   if (arguments.length === 0) {
@@ -579,9 +579,9 @@ export function hydrateCustomElement<T>(Type: Constructable<T>, ctx: HTMLTestCon
   container.registerResolver(ITargetedInstruction, instructionProvider);
   dom.registerElementResolver(container, elementProvider);
 
-  const element = container.get<T & ICustomElement>(
+  const element = container.get<T & IViewModel>(
     CustomElementResource.keyFrom(ElementType.description.name)
-  ) as T & ICustomElement & InstanceType<typeof Type>;
+  ) as T & IViewModel & InstanceType<typeof Type>;
 
   element.$hydrate(LF.none, container, host);
 

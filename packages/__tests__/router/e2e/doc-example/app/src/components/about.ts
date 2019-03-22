@@ -1,5 +1,5 @@
 import { inject } from '@aurelia/kernel';
-import { customElement, ICustomElement } from '@aurelia/runtime';
+import { customElement, IViewModel } from '@aurelia/runtime';
 import { Router } from '../../../../../../src';
 import { State } from '../state';
 import { wait } from '../utils';
@@ -54,4 +54,4 @@ export class About {
     console.log('books', this.router.historyBrowser.history.history.state);
   }
 }
-export interface About extends ICustomElement<HTMLElement> { }
+export interface About extends IViewModel<HTMLElement> { }

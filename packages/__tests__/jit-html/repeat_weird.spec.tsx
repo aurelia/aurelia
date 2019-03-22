@@ -1,4 +1,4 @@
-import { Aurelia, CustomElementResource, ICustomElement } from '@aurelia/runtime';
+import { Aurelia, CustomElementResource, IViewModel } from '@aurelia/runtime';
 import { expect } from 'chai';
 import { TestContext, HTMLTestContext, hJsx } from '@aurelia/testing';
 

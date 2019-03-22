@@ -1,12 +1,12 @@
 import { InjectArray } from '@aurelia/kernel';
-import { Aurelia, CustomElementResource as CE, ICustomElement, INode, LifecycleFlags as LF } from '@aurelia/runtime';
+import { Aurelia, CustomElementResource as CE, IViewModel, INode, LifecycleFlags as LF } from '@aurelia/runtime';
 import { expect } from 'chai';
 import { TestContext, eachCartesianJoin } from '@aurelia/testing';
 
 interface IThing {
   enabled?: boolean;
 }
-type VM<T> = T & ICustomElement<Node> & {
+type VM<T> = T & IViewModel<Node> & {
   el: Element;
   parent?: VM<T>;
 };

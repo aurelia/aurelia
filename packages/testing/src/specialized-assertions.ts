@@ -4,7 +4,7 @@ import {
   Serializer,
   Unparser,
 } from '@aurelia/debug';
-import { Aurelia, ICustomElement, INode, TargetedInstructionType } from '@aurelia/runtime';
+import { Aurelia, IViewModel, INode, TargetedInstructionType } from '@aurelia/runtime';
 import { HTMLTargetedInstructionType } from '@aurelia/runtime-html';
 
 export function verifyASTEqual(actual: any, expected: any, errors?: string[], path?: string): any {

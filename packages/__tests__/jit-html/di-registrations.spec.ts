@@ -3,7 +3,7 @@ import {
   Aurelia,
   BindingContext,
   CustomElementResource,
-  ICustomElement,
+  IViewModel,
   INode,
   LifecycleFlags as LF,
   Scope
@@ -196,13 +196,13 @@ describe('DI', function () {
         },
         class {
           public node: INode;
-          public child: ICustomElement;
+          public child: IViewModel;
           constructor(node: INode) {
             this.node = node;
           }
 
-          public binding(this: ICustomElement & this): void {
-            this.child = this.$context.get<ICustomElement>('custom-element:foo');
+          public binding(this: IViewModel & this): void {
+            this.child = this.$context.get<IViewModel>('custom-element:foo');
             this.child.$hydrate(LF.none, this.$context, this.node);
             this.child.$bind(LF.none, Scope.create(LF.none, BindingContext.create(LF.none)));
           }
@@ -239,13 +239,13 @@ describe('DI', function () {
         class {
           public static readonly inject: InjectArray = [INode];
           public node: INode;
-          public child: ICustomElement;
+          public child: IViewModel;
           constructor(node: INode) {
             this.node = node;
           }
 
-          public binding(this: ICustomElement & this): void {
-            this.child = this.$context.get<ICustomElement>('custom-element:bar');
+          public binding(this: IViewModel & this): void {
+            this.child = this.$context.get<IViewModel>('custom-element:bar');
             this.child.$hydrate(LF.none, this.$context, this.node);
             this.child.$bind(LF.none, Scope.create(LF.none, BindingContext.create(LF.none)));
           }
@@ -291,13 +291,13 @@ describe('DI', function () {
         class {
           public static readonly inject: InjectArray = [INode];
           public node: INode;
-          public child: ICustomElement;
+          public child: IViewModel;
           constructor(node: INode) {
             this.node = node;
           }
 
-          public binding(this: ICustomElement & this): void {
-            this.child = this.$context.get<ICustomElement>('custom-element:baz');
+          public binding(this: IViewModel & this): void {
+            this.child = this.$context.get<IViewModel>('custom-element:baz');
             this.child.$hydrate(LF.none, this.$context, this.node);
             this.child.$bind(LF.none, Scope.create(LF.none, BindingContext.create(LF.none)));
           }

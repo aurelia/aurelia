@@ -24,7 +24,7 @@ import {
   HydrateTemplateController,
   IBindingTargetAccessor,
   IBindingTargetObserver,
-  ICustomElement,
+  IViewModel,
   IDOM,
   IDOMInitializer,
   IElementProjector,
@@ -386,7 +386,7 @@ export class AuDOM implements IDOM<AuNode> {
 }
 
 export class AuProjectorLocator implements IProjectorLocator {
-  public getElementProjector(dom: IDOM, $component: ICustomElement<AuNode>, host: CustomElementHost<AuNode>, def: TemplateDefinition): IElementProjector {
+  public getElementProjector(dom: IDOM, $component: IViewModel<AuNode>, host: CustomElementHost<AuNode>, def: TemplateDefinition): IElementProjector {
     return new AuProjector($component, host);
   }
 }
@@ -394,7 +394,7 @@ export class AuProjectorLocator implements IProjectorLocator {
 export class AuProjector implements IElementProjector {
   public host: CustomElementHost<AuNode>;
 
-  constructor($controller: ICustomElement<AuNode>, host: CustomElementHost<AuNode>) {
+  constructor($controller: IViewModel<AuNode>, host: CustomElementHost<AuNode>) {
     this.host = host;
     this.host.$controller = $controller;
   }

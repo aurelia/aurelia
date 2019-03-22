@@ -3,7 +3,7 @@ import {
   Aurelia,
   BindingStrategy,
   CustomElementResource,
-  ICustomElement,
+  IViewModel,
   LifecycleFlags
 } from '@aurelia/runtime';
 import { expect } from 'chai';
@@ -75,7 +75,7 @@ describe(spec, function () {
         $App
       );
 
-      function verify(c: ICustomElement & $App) {
+      function verify(c: IViewModel & $App) {
         lifecycle.processFlushQueue(strategy);
         const { a, max, items } = c;
         expect(host.textContent, `#${++num}`).to.equal(getExpectedText(a ? 'a' : 'b', max, items, 0, 1));
@@ -118,7 +118,7 @@ describe(spec, function () {
 
       au.app({ host, component: App, strategy });
       au.start();
-      const component = au.root() as ICustomElement & $App;
+      const component = au.root() as IViewModel & $App;
 
       verify(component);
       component.max = 2;

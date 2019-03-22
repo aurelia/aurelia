@@ -1,4 +1,4 @@
-import { Aurelia, CustomElementResource as CE, ICustomElement, LifecycleFlags as LF } from '@aurelia/runtime';
+import { Aurelia, CustomElementResource as CE, IViewModel, LifecycleFlags as LF } from '@aurelia/runtime';
 import { IEventManager } from '@aurelia/runtime-html';
 import { expect } from 'chai';
 import { spy } from 'sinon';
@@ -238,7 +238,7 @@ describe('binding-commands', function () {
             class {
               public b: string;
 
-              public attached(this: this & ICustomElement<Node>): void {
+              public attached(this: this & IViewModel<Node>): void {
                 expect(this.b).to.equal('x');
                 expect(this.$host.textContent).to.equal('x');
                 this.b = 'y';
@@ -250,11 +250,11 @@ describe('binding-commands', function () {
       class {
         public a: string;
 
-        public bound(this: this & ICustomElement<Node>): void {
+        public bound(this: this & IViewModel<Node>): void {
           expect(this.a).to.equal('x');
         }
 
-        public attached(this: this & ICustomElement<Node>): void {
+        public attached(this: this & IViewModel<Node>): void {
           expect(this.a).to.equal('y');
           expect(this.$host.textContent).to.equal('xx');
         }

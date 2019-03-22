@@ -1,5 +1,5 @@
 import { inject } from '@aurelia//kernel';
-import { customElement, ICustomElement } from '@aurelia/runtime';
+import { customElement, IViewModel } from '@aurelia/runtime';
 import { AuthorsRepository } from '../../repositories/authors';
 import { State } from '../../state';
 import { wait } from '../../utils';
@@ -24,4 +24,4 @@ export class Authors {
     return wait(this.state.noDelay ? 0 : 2000);
   }
 }
-export interface Authors extends ICustomElement<HTMLElement> { }
+export interface Authors extends IViewModel<HTMLElement> { }

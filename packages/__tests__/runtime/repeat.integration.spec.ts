@@ -12,7 +12,7 @@
 //   BindingIdentifier,
 //   BindingMode,
 //   ForOfStatement,
-//   ICustomElement,
+//   IViewModel,
 //   IDOM,
 //   IExpressionParser,
 //   ILifecycle,
@@ -245,7 +245,7 @@
 //   let host: INode;
 
 //   let aureliaConfig: any;
-//   let component: ICustomElement;
+//   let component: IViewModel;
 
 //   beforeEach(function () {
 //     container = DI.createContainer();

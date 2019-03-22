@@ -19,7 +19,7 @@ import {
   IAttributeDefinition,
   IBinding,
   ICustomAttribute,
-  ICustomElement,
+  IViewModel,
   ICustomElementType,
   If,
   ILifecycle,
@@ -590,7 +590,7 @@ export class MockRenderingEngine implements IRenderingEngine {
   }
 
   public applyRuntimeBehavior(flags: LifecycleFlags, type: IResourceType<IAttributeDefinition, ICustomAttribute>, instance: ICustomAttribute): void;
-  public applyRuntimeBehavior(flags: LifecycleFlags, type: ICustomElementType, instance: ICustomElement): void;
+  public applyRuntimeBehavior(flags: LifecycleFlags, type: ICustomElementType, instance: IViewModel): void;
   public applyRuntimeBehavior(flags: LifecycleFlags, type: any, instance: any) {
     this.trace(`applyRuntimeBehavior`, type, instance);
     this.runtimeBehaviorApplicator(type, instance);

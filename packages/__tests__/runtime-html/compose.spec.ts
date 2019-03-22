@@ -1,4 +1,4 @@
-import { CustomElementResource, IComponent, ITemplateDefinition, IViewFactory, LifecycleFlags, ICustomElementType, ICustomElement } from '@aurelia/runtime';
+import { CustomElementResource, IComponent, ITemplateDefinition, IViewFactory, LifecycleFlags, ICustomElementType, IViewModel } from '@aurelia/runtime';
 import { expect } from 'chai';
 import { Compose, RenderPlan } from '@aurelia/runtime-html';
 import { FakeViewFactory, hydrateCustomElement, HTMLTestContext, TestContext, FakeView } from '@aurelia/testing';

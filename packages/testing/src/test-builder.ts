@@ -20,7 +20,7 @@ import {
   HydrateElementInstruction,
   HydrateTemplateController,
   IAttributeDefinition,
-  ICustomAttribute,
+  IViewModel,
 
   IViewModel,
 
@@ -519,7 +519,7 @@ export function createScopeForTest(bindingContext: any = {}, parentBindingContex
   return Scope.create(LF.none, bindingContext, OverrideContext.create(LF.none, bindingContext, null));
 }
 
-export type CustomAttribute = Writable<ICustomAttribute> & IComponentLifecycleMock;
+export type CustomAttribute = Writable<IViewModel> & IComponentLifecycleMock;
 
 export function createCustomAttribute(nameOrDef: string | IAttributeDefinition = 'foo') {
   const Type = customAttribute(nameOrDef)(defineComponentLifecycleMock());

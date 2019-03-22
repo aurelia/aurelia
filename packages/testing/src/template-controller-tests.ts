@@ -9,7 +9,7 @@ import {
 import {
   CustomAttributeResource,
   IComponent,
-  ICustomAttribute,
+  IViewModel,
   ICustomAttributeType,
   IDOM,
   ILifecycle,
@@ -26,7 +26,7 @@ import { createScopeForTest } from './test-builder';
 
 export function ensureSingleChildTemplateControllerBehaviors<T extends ICustomAttributeType>(
   Type: T,
-  getChildView: (attribute: ICustomAttribute<AuNode>) => IController<AuNode>
+  getChildView: (attribute: IViewModel<AuNode>) => IController<AuNode>
 ) {
   it('creates a child instance from its template', function () {
     const { attribute } = hydrateCustomAttribute(Type);
@@ -117,7 +117,7 @@ interface IAttributeTestOptions {
 }
 
 interface ICustomAttributeCreation<T extends Constructable> {
-  attribute: Overwrite<InstanceType<T>, ICustomAttribute<AuNode>>;
+  attribute: Overwrite<InstanceType<T>, IViewModel<AuNode>>;
   location?: IRenderLocation<AuNode> & AuNode;
   lifecycle: ILifecycle;
 }
@@ -160,10 +160,10 @@ export function hydrateCustomAttribute<T extends ICustomAttributeType>(
     dom.registerElementResolver(container, hostProvider);
   }
 
-  const attribute = container.get<InstanceType<T> & ICustomAttribute<AuNode>>(
+  const attribute = container.get<InstanceType<T> & IViewModel<AuNode>>(
     CustomAttributeResource.keyFrom(AttributeType.description.name)
   );
   attribute.$hydrate(LF.none, container);
 
-  return { attribute: attribute as Overwrite<InstanceType<T>, ICustomAttribute<AuNode>>, location, lifecycle };
+  return { attribute: attribute as Overwrite<InstanceType<T>, IViewModel<AuNode>>, location, lifecycle };
 }

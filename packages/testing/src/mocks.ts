@@ -18,7 +18,7 @@ import {
   ExpressionKind,
   IAttributeDefinition,
   IBinding,
-  ICustomAttribute,
+  IViewModel,
   IViewModel,
   ICustomElementType,
   If,
@@ -589,7 +589,7 @@ export class MockRenderingEngine implements IRenderingEngine {
     return this.renderer;
   }
 
-  public applyRuntimeBehavior(flags: LifecycleFlags, type: IResourceType<IAttributeDefinition, ICustomAttribute>, instance: ICustomAttribute): void;
+  public applyRuntimeBehavior(flags: LifecycleFlags, type: IResourceType<IAttributeDefinition, IViewModel>, instance: IViewModel): void;
   public applyRuntimeBehavior(flags: LifecycleFlags, type: ICustomElementType, instance: IViewModel): void;
   public applyRuntimeBehavior(flags: LifecycleFlags, type: any, instance: any) {
     this.trace(`applyRuntimeBehavior`, type, instance);

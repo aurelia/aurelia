@@ -302,7 +302,7 @@ Foo.register(container);
 export const IContainer = DI.createInterface<IContainer>('IContainer').noDefault();
 export const IServiceLocator = IContainer as unknown as InterfaceSymbol<IServiceLocator>;
 
-function createResolver(getter: (key: any, handler: IContainer, requestor: IContainer) => any): (key: any) => ReturnType<typeof DI.inject> {
+function createResolver(getter: (key: any, handler: IContainer, requestor: IContainer) => any): (key: any) => any {
   return function (key: any): ReturnType<typeof DI.inject> {
     const resolver: ReturnType<typeof DI.inject> & Partial<Pick<IResolver, 'resolve'>> = function (target: Injectable, property?: string, descriptor?: PropertyDescriptor | number): void {
       DI.inject(resolver)(target, property, descriptor);
@@ -312,7 +312,7 @@ function createResolver(getter: (key: any, handler: IContainer, requestor: ICont
       return getter(key, handler, requestor);
     };
 
-    return resolver as ReturnType<typeof DI.inject>;
+    return resolver;
   };
 }
 

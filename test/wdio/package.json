@@ -3,7 +3,7 @@
   "version": "0.3.0",
   "devDependencies": {
     "chromedriver": "~2.45.0",
-    "mocha": "^6.0.1",
+    "mocha": "^6.0.2",
     "wdio": "^3.0.3",
     "wdio-mocha-framework": "^0.6.4"
   },

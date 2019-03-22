@@ -1,5 +1,5 @@
 {
-  "name": "@aurelia/jit-pixi",
+  "name": "@aurelia/plugin-pixi",
   "version": "0.3.0",
   "main": "dist/build/index.js",
   "module": "dist/build/index.js",
@@ -18,7 +18,7 @@
   },
   "keywords": [
     "aurelia",
-    "jit-pixi"
+    "plugin-pixi"
   ],
   "files": [
     "dist",
@@ -30,7 +30,7 @@
   "scripts": {
     "lint": "tslint --project tsconfig.json -t stylish",
     "build": "tsc -b",
-    "bundle": "ts-node -P ../../scripts/tsconfig.json ../../scripts/bundle.ts umd,esm,system jit-pixi",
+    "bundle": "ts-node -P ../../scripts/tsconfig.json ../../scripts/bundle.ts umd,esm,system plugin-pixi",
     "dev": "tsc -b -w"
   },
   "publishConfig": {
@@ -41,9 +41,7 @@
     "@aurelia/runtime": "0.3.0",
     "@aurelia/runtime-html": "0.3.0",
     "@aurelia/runtime-html-browser": "0.3.0",
-    "@aurelia/runtime-pixi": "0.3.0",
-    "@aurelia/jit": "0.3.0",
-    "@aurelia/jit-html": "0.3.0"
+    "pixi.js": "^4.8.6"
   },
   "devDependencies": {
     "@types/node": "^10.12.27",

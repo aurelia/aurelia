@@ -1,10 +1,10 @@
-import { IRegistry } from '@aurelia/kernel';
 import {
   bindable,
   customElement,
-  ICustomElement,
+  IController,
   State
 } from '@aurelia/runtime';
+
 import {
   Circle,
   Container,
@@ -62,12 +62,8 @@ const pointProps = [
   'skew'
 ];
 
-export interface PixiSprite extends ICustomElement<Node> {}
-
 @customElement({ name: 'pixi-sprite', template: '<template></template>' })
 export class PixiSprite {
-  public static readonly register: IRegistry['register'];
-
   public get sprite(): Sprite & { [key: string]: unknown } {
     return this._sprite as Sprite;
   }
@@ -144,6 +140,8 @@ export class PixiSprite {
   @bindable public texture?: Texture;
   @bindable public tint?: number;
 
+  public $controller!: IController<Element, this>;
+
   private _sprite: Sprite & { [key: string]: unknown } | null;
 
   constructor() {
@@ -183,19 +181,19 @@ export class PixiSprite {
 
 for (const prop of directProps) {
   (PixiSprite.prototype as { [key: string]: unknown })[`${prop}Changed`] = function(this: PixiSprite, newValue: unknown): void {
-    if (this.$state !== undefined && (this.$state & State.isBound) && this.sprite != null) {
+    if ((this.$controller.state & State.isBound) > 0 && this.sprite != null) {
       this.sprite[prop] = newValue;
     }
   };
 }
 for (const prop of pointProps) {
   (PixiSprite.prototype as { [key: string]: unknown })[`${prop}XChanged`] = function(this: PixiSprite, newValue: unknown): void {
-    if (this.$state !== undefined && (this.$state & State.isBound) && this.sprite != null) {
+    if ((this.$controller.state & State.isBound) > 0 && this.sprite != null) {
       (this.sprite[prop] as { x: unknown }).x = newValue;
     }
   };
   (PixiSprite.prototype as { [key: string]: unknown })[`${prop}YChanged`] = function(this: PixiSprite, newValue: unknown): void {
-    if (this.$state !== undefined && (this.$state & State.isBound) && this.sprite != null) {
+    if ((this.$controller.state & State.isBound) > 0 && this.sprite != null) {
       (this.sprite[prop] as { y: unknown }).y = newValue;
     }
   };

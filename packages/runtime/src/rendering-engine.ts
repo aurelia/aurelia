@@ -189,7 +189,6 @@ export const IRenderingEngine = DI.createInterface<IRenderingEngine>('IRendering
 
 /** @internal */
 export class RenderingEngine implements IRenderingEngine {
-  // @ts-ignore
   public static readonly inject: InjectArray = [IContainer, ITemplateFactory, ILifecycle, all(ITemplateCompiler)];
 
   private readonly compilers: Record<string, ITemplateCompiler>;

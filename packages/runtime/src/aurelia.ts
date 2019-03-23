@@ -20,9 +20,9 @@ import {
   ContinuationTask,
   IController,
   ILifecycle,
-  IViewModel,
   ILifecycleTask,
   LifecycleTask,
+  IHydratedViewModel,
 } from './lifecycle';
 import { ExposedContext } from './rendering-engine';
 import {
@@ -43,6 +43,98 @@ export interface ISinglePageApp<THost extends INode = INode> {
 
 type Publisher = { dispatchEvent(evt: unknown, options?: unknown): void };
 
+export class CompositionRoot<T extends INode = INode> {
+  public readonly config: ISinglePageApp<T>;
+  public readonly container: IContainer;
+  public readonly controller: IController;
+  public readonly host: T & { $au?: Aurelia<T> };
+  public readonly dom: IDOM<T>;
+  public readonly viewModel: IHydratedViewModel<T>;
+  public readonly strategy: BindingStrategy;
+  public readonly lifecycle: ILifecycle;
+  public readonly activator: IActivator;
+  public task: ILifecycleTask;
+
+  constructor(
+    config: ISinglePageApp<T>,
+    container: IContainer,
+  ) {
+    this.config = config;
+    if (config.host != void 0) {
+      if (container.has(INode, false)) {
+        this.container = container.createChild();
+      } else {
+        this.container = container;
+      }
+      Registration.instance(INode, config.host).register(this.container);
+      this.host = config.host;
+    } else if (container.has(INode, true)) {
+      this.container = container;
+      this.host = container.get(INode) as T;
+    } else {
+      throw new Error(`No host element found.`);
+    }
+    this.strategy = config.strategy != void 0 ? config.strategy : BindingStrategy.getterSetter;
+
+    const initializer = this.container.get(IDOMInitializer);
+    this.dom = initializer.initialize(config) as IDOM<T>;
+
+    this.viewModel = CustomElementResource.isType(config.component as ICustomElementType)
+      ? this.container.get(config.component) as IHydratedViewModel<T>
+      : config.component as IHydratedViewModel<T>;
+
+    this.controller = Controller.forCustomElement(this.viewModel, this.container as ExposedContext, this.host, this.strategy as number);
+    this.lifecycle = this.container.get(ILifecycle);
+    this.activator = this.container.get(IActivator);
+    this.task = LifecycleTask.done;
+    this.lifecycle.startTicking(PLATFORM.ticker);
+  }
+
+  public activate(antecedent?: ILifecycleTask): ILifecycleTask {
+    const { task, host, viewModel, container, activator, strategy } = this;
+    const flags = strategy | LifecycleFlags.fromStartTask;
+
+    if (task.done) {
+      if (antecedent == void 0 || antecedent.done) {
+        this.task = activator.activate(host, viewModel, container, flags, void 0);
+      } else {
+        this.task = new ContinuationTask(antecedent, activator.activate, activator, host, viewModel, container, flags, void 0);
+      }
+    } else {
+      if (antecedent == void 0 || antecedent.done) {
+        this.task = new ContinuationTask(task, activator.activate, activator, host, viewModel, container, flags, void 0);
+      } else {
+        const combinedAntecedent = new ContinuationTask(task, antecedent.wait, antecedent);
+        this.task = new ContinuationTask(combinedAntecedent, activator.activate, activator, host, viewModel, container, flags, void 0);
+      }
+    }
+
+    return this.task;
+  }
+
+  public deactivate(antecedent?: ILifecycleTask): ILifecycleTask {
+    const { task, viewModel, activator, strategy } = this;
+    const flags = strategy | LifecycleFlags.fromStopTask;
+
+    if (task.done) {
+      if (antecedent == void 0 || antecedent.done) {
+        this.task = activator.deactivate(viewModel, flags);
+      } else {
+        this.task = new ContinuationTask(antecedent, activator.deactivate, activator, viewModel, flags);
+      }
+    } else {
+      if (antecedent == void 0 || antecedent.done) {
+        this.task = new ContinuationTask(task, activator.deactivate, activator, viewModel, flags);
+      } else {
+        const combinedAntecedent = new ContinuationTask(task, antecedent.wait, antecedent);
+        this.task = new ContinuationTask(combinedAntecedent, activator.deactivate, activator, viewModel, flags);
+      }
+    }
+
+    return this.task;
+  }
+}
+
 export class Aurelia<TNode extends INode = INode> {
   public readonly container: IContainer;
   public get isRunning(): boolean {
@@ -54,40 +146,25 @@ export class Aurelia<TNode extends INode = INode> {
   public get isStopping(): boolean {
     return this._isStopping;
   }
-  public get root(): IController {
+  public get root(): CompositionRoot<TNode> {
     if (this._root == void 0) {
-      throw new Error(`root is not defined`); // TODO: create error code
+      if (this.next == void 0) {
+        throw new Error(`root is not defined`); // TODO: create error code
+      }
+      return this.next;
     }
     return this._root;
   }
-  public get host(): TNode & {$au?: Aurelia<TNode>} {
-    if (this._host == void 0) {
-      throw new Error(`root is not defined`); // TODO: create error code
-    }
-    return this._host;
-  }
-  public get dom(): IDOM<TNode> {
-    if (this._dom == void 0) {
-      throw new Error(`root is not defined`); // TODO: create error code
-    }
-    return this._dom;
-  }
-  private startFlags: LifecycleFlags;
-  private stopFlags: LifecycleFlags;
   private task: ILifecycleTask;
   private _isRunning: boolean;
   private _isStarting: boolean;
   private _isStopping: boolean;
-  private _root?: IController;
-  private _host?: TNode & {$au?: Aurelia<TNode> };
-  private _dom?: IDOM<TNode>;
+  private _root?: CompositionRoot<TNode>;
 
-  private next?: IController;
+  private next?: CompositionRoot<TNode>;
 
   constructor(container: IContainer = DI.createContainer()) {
     this.container = container;
-    this.startFlags = LifecycleFlags.none;
-    this.stopFlags = LifecycleFlags.none;
     this.task = LifecycleTask.done;
 
     this._isRunning = false;
@@ -95,10 +172,8 @@ export class Aurelia<TNode extends INode = INode> {
     this._isStopping = false;
 
     this._root = void 0;
-    this._host = void 0;
-    this._dom = void 0;
 
-    this.next = void 0;
+    this.next = void 0!;
 
     Registration.instance(Aurelia, this).register(container);
   }
@@ -108,30 +183,8 @@ export class Aurelia<TNode extends INode = INode> {
     return this;
   }
 
-  public app(config: ISinglePageApp): this {
-    // if no host provided but we already have one, we might just be switching component/strategy/dom
-    // TODO: only switching host is not working yet (need to re-hydrate for that)
-    this._host = (config.host as TNode & {$au?: Aurelia<TNode>}) || this._host;
-
-    const domInitializer = this.container.get(IDOMInitializer);
-    this._dom = domInitializer.initialize(config) as IDOM<TNode>;
-
-    Registration.instance(INode, this._host).register(this.container);
-
-    this.startFlags = LifecycleFlags.fromStartTask | config.strategy!;
-    this.stopFlags = LifecycleFlags.fromStopTask | config.strategy!;
-
-    let controller: IController;
-    const componentOrType = config.component as IViewModel | ICustomElementType;
-    if (CustomElementResource.isType(componentOrType as ICustomElementType)) {
-      this.container.register(componentOrType as ICustomElementType);
-      const component = this.container.get<IViewModel>(CustomElementResource.keyFrom((componentOrType as ICustomElementType).description.name));
-      controller = Controller.forCustomElement(component, this.container as ExposedContext, this.host, this.startFlags);
-    } else {
-      controller = Controller.forCustomElement(componentOrType as IViewModel, this.container as ExposedContext, this.host, this.startFlags);
-    }
-
-    this.next = controller;
+  public app(config: ISinglePageApp<TNode>): this {
+    this.next = new CompositionRoot(config, this.container);
 
     if (this.isRunning) {
       this.start();
@@ -140,50 +193,44 @@ export class Aurelia<TNode extends INode = INode> {
     return this;
   }
 
-  public start(): ILifecycleTask {
-    this.stop();
-
-    if (this.task.done) {
-      this.onBeforeStart();
-    } else {
-      this.task = new ContinuationTask(this.task, this.onBeforeStart, this);
+  public start(root: CompositionRoot<TNode> | undefined = this.next): ILifecycleTask {
+    if (root == void 0) {
+      throw new Error(`There is no composition root`); // TODO: create error code
     }
 
-    const activator = this.container.get(IActivator);
-    if (this.task.done) {
-      this.task = activator.activate(this.host, this.next!.viewModel!, this.container, this.startFlags, void 0);
-    } else {
-      this.task = new ContinuationTask(this.task, activator.activate, activator, this.host, this.next!.viewModel!, this.container, this.startFlags, void 0);
-    }
+    this.stop(root);
 
     if (this.task.done) {
-      this.onAfterStart();
+      this.onBeforeStart(root);
     } else {
-      this.task = new ContinuationTask(this.task, this.onAfterStart, this);
+      this.task = new ContinuationTask(this.task, this.onBeforeStart, this, root);
+    }
+
+    this.task = this.root.activate(this.task);
+
+    if (this.task.done) {
+      this.task = this.onAfterStart(root);
+    } else {
+      this.task = new ContinuationTask(this.task, this.onAfterStart, this, root);
     }
 
     return this.task;
   }
 
-  public stop(): ILifecycleTask {
-    if ((this.isRunning && this._root !== null) || !this.task.done) {
+  public stop(root: CompositionRoot<TNode> | undefined = this._root): ILifecycleTask {
+    if (this._isRunning && root != void 0) {
       if (this.task.done) {
-        this.onBeforeStop();
+        this.onBeforeStop(root);
       } else {
-        this.task = new ContinuationTask(this.task, this.onBeforeStop, this);
+        this.task = new ContinuationTask(this.task, this.onBeforeStop, this, root);
       }
 
-      const activator = this.container.get(IActivator);
-      if (this.task.done) {
-        this.task = activator.deactivate(this.root.viewModel!, this.stopFlags);
-      } else {
-        this.task = new ContinuationTask(this.task, activator.deactivate, activator, this.root.viewModel!, this.stopFlags);
-      }
+      this.task = root.deactivate(this.task);
 
       if (this.task.done) {
-        this.onAfterStop();
+        this.task = this.onAfterStop(root);
       } else {
-        this.task = new ContinuationTask(this.task, this.onAfterStop, this);
+        this.task = new ContinuationTask(this.task, this.onAfterStop, this, root);
       }
     }
 
@@ -194,42 +241,48 @@ export class Aurelia<TNode extends INode = INode> {
     return this.task.wait() as Promise<void>;
   }
 
-  private onBeforeStart(): void {
-    this.container.get(ILifecycle).startTicking(PLATFORM.ticker);
-    Reflect.set(this.host, '$au', this);
-    this._root = this.next;
+  private onBeforeStart(root: CompositionRoot<TNode>): void {
+    Reflect.set(root.host, '$au', this);
+    this._root = root;
     this._isStarting = true;
     if (Profiler.enabled) { enterStart(); }
   }
 
-  private onAfterStart(): void {
+  private onAfterStart(root: CompositionRoot): ILifecycleTask {
+    if (root.lifecycle.rafCount > 0 || root.lifecycle.mountCount > 0) {
+      return new ContinuationTask(PLATFORM.ticker.waitForNextTick(), this.onAfterStart, this, root);
+    }
+
     this._isRunning = true;
     this._isStarting = false;
-    this.dispatchEvent('aurelia-composed', this.dom);
-    this.dispatchEvent('au-started', this.host as unknown as Publisher);
+    this.dispatchEvent(root, 'aurelia-composed', root.dom);
+    this.dispatchEvent(root, 'au-started', root.host as Publisher);
     if (Profiler.enabled) { leaveStart(); }
+    return LifecycleTask.done;
   }
 
-  private onBeforeStop(): void {
+  private onBeforeStop(root: CompositionRoot): void {
     this._isRunning = false;
     this._isStopping = true;
     if (Profiler.enabled) { enterStop(); }
   }
 
-  private onAfterStop(): void {
-    if (this._root != void 0) {
-      Reflect.deleteProperty(this.root.host!, '$au');
+  private onAfterStop(root: CompositionRoot): ILifecycleTask {
+    if (root.lifecycle.rafCount > 0 || root.lifecycle.unmountCount > 0) {
+      return new ContinuationTask(PLATFORM.ticker.waitForNextTick(), this.onAfterStop, this, root);
     }
+
+    Reflect.deleteProperty(root.host, '$au');
     this._root = void 0;
     this._isStopping = false;
-    this.dispatchEvent('au-stopped', this.host as unknown as Publisher);
-    this.container.get(ILifecycle).stopTicking();
+    this.dispatchEvent(root, 'au-stopped', root.host as Publisher);
     if (Profiler.enabled) { leaveStop(); }
+    return LifecycleTask.done;
   }
 
-  private dispatchEvent(name: string, target: Publisher): void {
-    target = 'dispatchEvent' in target ? target : this.dom;
-    target.dispatchEvent(this.dom.createCustomEvent(name, { detail: this, bubbles: true, cancelable: true }));
+  private dispatchEvent(root: CompositionRoot, name: string, target: Publisher): void {
+    target = 'dispatchEvent' in target ? target : root.dom;
+    target.dispatchEvent(root.dom.createCustomEvent(name, { detail: this, bubbles: true, cancelable: true }));
   }
 }
 (PLATFORM.global as typeof PLATFORM.global & {Aurelia: unknown}).Aurelia = Aurelia;

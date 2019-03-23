@@ -2,24 +2,24 @@ import {
   DI,
   IContainer,
   IDisposable,
+  IIndexable,
   IResolver,
   IServiceLocator,
   PLATFORM,
   Registration,
-  Tracer,
-  IIndexable,
-  Ticker
+  Ticker,Tracer
 } from '@aurelia/kernel';
+
 import {
+  HooksDefinition,
   ITargetedInstruction,
   TemplateDefinition,
   TemplatePartDefinitions,
-  HooksDefinition
 } from './definitions';
 import {
   INode,
   INodeSequence,
-  IRenderLocation
+  IRenderLocation,
 } from './dom';
 import {
   LifecycleFlags,
@@ -28,9 +28,9 @@ import {
 import {
   IBatchChangeTracker,
   IRAFChangeTracker,
-  IScope} from './observation';
+  IScope,
+} from './observation';
 import { IElementProjector } from './resources/custom-element';
-import { Controller } from './templating/controller';
 
 const slice = Array.prototype.slice;
 
@@ -192,19 +192,14 @@ export interface ILifecycle {
 
   startTicking(ticker?: Ticker, frameBudget?: number): void;
   stopTicking(): void;
-
-  registerDetachingTask(task: ILifecycleTask): void;
 }
 
 export const ILifecycle = DI.createInterface<ILifecycle>('ILifecycle').withDefault(x => x.singleton(Lifecycle));
 
-const marker = Controller.forSyntheticView(
-  PLATFORM.emptyObject as IViewCache,
-  PLATFORM.emptyObject as ILifecycle,
-);
-
 /** @internal */
 export class Lifecycle implements ILifecycle, IController {
+  public static marker: IController;
+
   public batchDepth: number;
   public bindDepth: number;
   public patchDepth: number;
@@ -308,9 +303,10 @@ export class Lifecycle implements ILifecycle, IController {
   public isFlushingRAF: boolean;
 
   public ticker: Ticker;
-  public detachingTasks: ILifecycleTask[];
 
   public frameBudget: number;
+
+  public dependents: number;
 
   constructor() {
     this.batchDepth = 0;
@@ -324,23 +320,23 @@ export class Lifecycle implements ILifecycle, IController {
     this.batchHead = this;
     this.batchTail = this;
 
-    this.boundHead = marker;
-    this.boundTail = marker;
+    this.boundHead = Lifecycle.marker;
+    this.boundTail = Lifecycle.marker;
 
-    this.mountHead = marker;
-    this.mountTail = marker;
+    this.mountHead = Lifecycle.marker;
+    this.mountTail = Lifecycle.marker;
 
-    this.attachedHead = marker;
-    this.attachedTail = marker;
+    this.attachedHead = Lifecycle.marker;
+    this.attachedTail = Lifecycle.marker;
 
-    this.unmountHead = marker;
-    this.unmountTail = marker;
+    this.unmountHead = Lifecycle.marker;
+    this.unmountTail = Lifecycle.marker;
 
-    this.detachedHead = marker; //LOL
-    this.detachedTail = marker;
+    this.detachedHead = Lifecycle.marker; //LOL
+    this.detachedTail = Lifecycle.marker;
 
-    this.unboundHead = marker;
-    this.unboundTail = marker;
+    this.unboundHead = Lifecycle.marker;
+    this.unboundTail = Lifecycle.marker;
 
     this.flushed = void 0;
     this.promise = Promise.resolve();
@@ -414,9 +410,10 @@ export class Lifecycle implements ILifecycle, IController {
     this.isFlushingRAF = false;
 
     this.ticker = null!;
-    this.detachingTasks = [];
 
     this.frameBudget = 10;
+
+    this.dependents = 0;
   }
 
   public static register(container: IContainer): IResolver<ILifecycle> {
@@ -424,15 +421,21 @@ export class Lifecycle implements ILifecycle, IController {
   }
 
   public startTicking(ticker: Ticker = PLATFORM.ticker, frameBudget: number = 10): void {
-    this.frameBudget = frameBudget;
-    this.stopTicking();
-    this.ticker = ticker;
-    ticker.add(this.tick, void 0);
+    if (++this.dependents === 1) {
+      this.frameBudget = frameBudget;
+      if (this.ticker !== null) {
+        this.ticker.remove(this.tick, void 0);
+      }
+      this.ticker = ticker;
+      ticker.add(this.tick, void 0);
+    }
   }
 
   public stopTicking(): void {
-    if (this.ticker !== null) {
-      this.ticker.remove(this.tick, void 0);
+    if (--this.dependents === 0) {
+      if (this.ticker !== null) {
+        this.ticker.remove(this.tick, void 0);
+      }
     }
   }
 
@@ -547,7 +550,7 @@ export class Lifecycle implements ILifecycle, IController {
       this.boundCount = 0;
       let current = this.boundHead.nextBound;
       let next: IController | undefined;
-      this.boundHead = this.boundTail = marker;
+      this.boundHead = this.boundTail = Lifecycle.marker;
       while (current != void 0) {
         current.bound(flags);
         next = current.nextBound;
@@ -565,7 +568,7 @@ export class Lifecycle implements ILifecycle, IController {
       this.unboundCount = 0;
       let current = this.boundHead.nextBound;
       let next: IController | undefined;
-      this.boundHead = this.boundTail = marker;
+      this.boundHead = this.boundTail = Lifecycle.marker;
       while (current != void 0) {
         current.bound(flags);
         next = current.nextUnbound;
@@ -588,10 +591,10 @@ export class Lifecycle implements ILifecycle, IController {
     if (this.mountCount > 0) {
       this.mountCount = 0;
       let currentMount = this.mountHead.nextMount;
-      this.mountHead = this.mountTail = marker;
+      this.mountHead = this.mountTail = Lifecycle.marker;
       let nextMount: IController | undefined;
       while (currentMount != void 0) {
-        currentMount.bound(flags);
+        currentMount.mount(flags);
         nextMount = currentMount.nextMount;
         currentMount.nextMount = void 0;
         currentMount.prevMount = void 0;
@@ -602,10 +605,10 @@ export class Lifecycle implements ILifecycle, IController {
     if (this.attachedCount > 0) {
       this.attachedCount = 0;
       let currentAttached = this.attachedHead.nextAttached;
-      this.attachedHead = this.attachedTail = marker;
+      this.attachedHead = this.attachedTail = Lifecycle.marker;
       let nextAttached: IController | undefined;
       while (currentAttached != void 0) {
-        currentAttached.bound(flags);
+        currentAttached.attached(flags);
         nextAttached = currentAttached.nextAttached;
         currentAttached.nextAttached = void 0;
         currentAttached.prevAttached = void 0;
@@ -621,20 +624,11 @@ export class Lifecycle implements ILifecycle, IController {
     // which may lead to additional unmount operations
     this.processBatchQueue(flags | LifecycleFlags.fromFlush | LifecycleFlags.doNotUpdateDOM);
 
-    if (this.detachingTasks.length > 0) {
-      const tasks = this.detachingTasks.slice();
-      this.detachingTasks = [];
-      Promise.all(tasks.map(t => t.wait())).then(() => {
-        this.processDetachQueue(flags);
-      }).catch(e => { throw e; });
-      return;
-    }
-
     if (this.unmountCount > 0) {
       if (Tracer.enabled) { Tracer.enter('Lifecycle', 'processUnmountQueue', slice.call(arguments)); }
       this.unmountCount = 0;
       let currentUnmount = this.unmountHead.nextUnmount;
-      this.unmountHead = this.unmountTail = marker;
+      this.unmountHead = this.unmountTail = Lifecycle.marker;
       let nextUnmount: IController | undefined;
 
       while (currentUnmount != void 0) {
@@ -651,11 +645,11 @@ export class Lifecycle implements ILifecycle, IController {
       if (Tracer.enabled) { Tracer.enter('Lifecycle', 'processDetachedQueue', slice.call(arguments)); }
       this.detachedCount = 0;
       let currentDetached = this.detachedHead.nextDetached;
-      this.detachedHead = this.detachedTail = marker;
+      this.detachedHead = this.detachedTail = Lifecycle.marker;
       let nextDetached: IController | undefined;
 
       while (currentDetached != void 0) {
-        currentDetached.unmount(flags);
+        currentDetached.detached(flags);
         nextDetached = currentDetached.nextDetached;
         currentDetached.prevDetached = void 0;
         currentDetached.nextDetached = void 0;
@@ -758,42 +752,38 @@ export class Lifecycle implements ILifecycle, IController {
     if (this.isFlushingRAF) {
       return;
     }
-    // if (this.rafCount > 0) {
-    //   const start = PLATFORM.now();
-    //   const frameBudget = this.frameBudget;
-    //   let i = 0;
-    //   this.isFlushingRAF = true;
-    //   let current = this.rafHead.$nextRAF;
-    //   this.rafHead = this.rafTail = this;
-    //   this.rafCount = 0;
-    //   let next: typeof current;
-    //   do {
-    //     if (++i === 100) {
-    //       i = 0;
-    //       if (PLATFORM.now() - start > frameBudget) {
-    //         this.rafHead.$nextRAF = current;
-    //         next = current;
-    //         while (next !== marker) {
-    //           current = next;
-    //           next = current.nextRAF;
-    //         }
-    //         this.rafTail = current;
-    //         break;
-    //       }
-    //     }
-    //     next = current.nextRAF;
-    //     current.nextRAF = null;
-    //     current.flushRAF(flags);
-    //     current = next;
-    //   } while (current !== marker);
-    // }
+    if (this.rafCount > 0) {
+      const start = PLATFORM.now();
+      const frameBudget = this.frameBudget;
+      let i = 0;
+      this.isFlushingRAF = true;
+      let current = this.rafHead.$nextRAF as IRAFChangeTracker;
+      this.rafHead = this.rafTail = this;
+      this.rafCount = 0;
+      let next: typeof current;
+      do {
+        if (++i === 100) {
+          i = 0;
+          if (PLATFORM.now() - start > frameBudget) {
+            this.rafHead.$nextRAF = current;
+            next = current;
+            while (next !== (PLATFORM.emptyObject as IRAFChangeTracker)) {
+              current = next;
+              next = current.$nextRAF as IRAFChangeTracker;
+            }
+            this.rafTail = current;
+            break;
+          }
+        }
+        next = current.$nextRAF as IRAFChangeTracker;
+        current.$nextRAF = void 0;
+        current.flushRAF(flags);
+        current = next;
+      } while (current !== (PLATFORM.emptyObject as IRAFChangeTracker));
+    }
     this.processDetachQueue(flags);
     this.processAttachQueue(flags);
     this.isFlushingRAF = false;
-  }
-
-  public registerDetachingTask(task: ILifecycleTask): void {
-    this.detachingTasks.push(task);
   }
 
   private readonly tick = () => {

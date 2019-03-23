@@ -338,7 +338,7 @@ export class Ticker {
   private lastTime: number;
   private started: boolean;
   private promise?: Promise<number>;
-  private resolve: (deltaTime: number) => void;
+  private resolve!: () => void;
   private readonly head: Notifier;
   private readonly tick: (deltaTime: number) => void;
 
@@ -348,8 +348,10 @@ export class Ticker {
     this.frameDelta = 1;
     this.lastTime = -1;
     this.started = false;
-    this.promise = void 0;
-    this.resolve = $noop;
+    // tslint:disable-next-line:promise-must-complete
+    this.promise = new Promise(resolve => {
+      this.resolve = resolve;
+    });
     this.tick = (deltaTime: number) => {
       this.requestId = -1;
       if (this.started) {
@@ -358,9 +360,6 @@ export class Ticker {
           this.requestId = $raf(this.tick);
         }
       }
-      this.resolve(deltaTime);
-      this.resolve = $noop;
-      this.promise = void 0;
     };
   }
 
@@ -435,6 +434,11 @@ export class Ticker {
       if (head.next === void 0) {
         this.tryCancel();
       }
+      this.resolve();
+      // tslint:disable-next-line:promise-must-complete
+      this.promise = new Promise(resolve => {
+        this.resolve = resolve;
+      });
     } else {
       this.frameDelta = 0;
     }
@@ -442,13 +446,7 @@ export class Ticker {
   }
 
   public waitForNextTick(): Promise<number> {
-    if (this.promise === void 0) {
-      // tslint:disable-next-line:promise-must-complete
-      this.promise = new Promise(resolve => {
-        this.resolve = resolve;
-      });
-    }
-    return this.promise;
+    return this.promise!;
   }
 
   private tryRequest(): void {

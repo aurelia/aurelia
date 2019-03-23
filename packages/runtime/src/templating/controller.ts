@@ -34,6 +34,7 @@ import {
   IRenderContext,
   IViewCache,
   IViewModel,
+  Lifecycle,
   LifecycleTask,
   MaybePromiseOrTask,
   ViewModelKind
@@ -363,8 +364,10 @@ export class Controller<T extends INode = INode, C extends IViewModel<T> = IView
     switch (this.vmKind) {
       case ViewModelKind.customElement:
         this.attachCustomElement(flags);
+        break;
       case ViewModelKind.customAttribute:
         this.attachCustomAttribute(flags);
+        break;
       case ViewModelKind.synthetic:
         this.attachSynthetic(flags);
     }
@@ -374,8 +377,10 @@ export class Controller<T extends INode = INode, C extends IViewModel<T> = IView
     switch (this.vmKind) {
       case ViewModelKind.customElement:
         this.detachCustomElement(flags);
+        break;
       case ViewModelKind.customAttribute:
         this.detachCustomAttribute(flags);
+        break;
       case ViewModelKind.synthetic:
         this.detachSynthetic(flags);
     }
@@ -865,6 +870,13 @@ export class Controller<T extends INode = INode, C extends IViewModel<T> = IView
   }
   // #endregion
 }
+
+const marker = Controller.forSyntheticView(
+  PLATFORM.emptyObject as IViewCache,
+  PLATFORM.emptyObject as ILifecycle,
+);
+
+Lifecycle.marker = marker;
 
 function createObservers(description: Description, flags: LifecycleFlags, instance: IIndexable): void {
   const hasLookup = instance.$observers != void 0;

@@ -72,9 +72,9 @@ export class If<T extends INode = INode> {
   public ifView?: IController<T>;
   public location: IRenderLocation<T>;
   public readonly noProxy: true;
+  public view?: IController<T>;
 
   private task: ILifecycleTask;
-  private currentView?: IController<T>;
   // tslint:disable-next-line: prefer-readonly // This is set by the controller after this instance is constructed
   private $controller!: IController<T>;
 
@@ -92,7 +92,7 @@ export class If<T extends INode = INode> {
     this.noProxy = true;
 
     this.task = LifecycleTask.done;
-    this.currentView = void 0;
+    this.view = void 0;
 
     this._value = false;
   }
@@ -139,11 +139,11 @@ export class If<T extends INode = INode> {
   }
 
   public detaching(flags: LifecycleFlags): ILifecycleTask {
-    if (this.currentView !== void 0) {
+    if (this.view !== void 0) {
       if (this.task.done) {
-        this.currentView.detach(flags);
+        this.view.detach(flags);
       } else {
-        this.task = new ContinuationTask(this.task, this.currentView.detach, this.currentView, flags);
+        this.task = new ContinuationTask(this.task, this.view.detach, this.view, flags);
       }
     }
 
@@ -151,11 +151,11 @@ export class If<T extends INode = INode> {
   }
 
   public unbinding(flags: LifecycleFlags): ILifecycleTask {
-    if (this.currentView !== void 0) {
+    if (this.view !== void 0) {
       if (this.task.done) {
-        this.task = this.currentView.unbind(flags);
+        this.task = this.view.unbind(flags);
       } else {
-        this.task = new ContinuationTask(this.task, this.currentView.unbind, this.currentView, flags);
+        this.task = new ContinuationTask(this.task, this.view.unbind, this.view, flags);
       }
     }
 
@@ -171,7 +171,7 @@ export class If<T extends INode = INode> {
       this.elseView = void 0;
     }
 
-    this.currentView = void 0;
+    this.view = void 0;
   }
 
   public valueChanged(newValue: boolean, oldValue: boolean, flags: LifecycleFlags): void {
@@ -232,7 +232,7 @@ export class If<T extends INode = INode> {
   }
 
   private deactivate(flags: LifecycleFlags): ILifecycleTask {
-    const view = this.currentView;
+    const view = this.view;
     if (view === void 0) {
       return LifecycleTask.done;
     }
@@ -242,7 +242,7 @@ export class If<T extends INode = INode> {
   }
 
   private activate(view: IController<T> | undefined, flags: LifecycleFlags): ILifecycleTask {
-    this.currentView = view;
+    this.view = view;
     if (view === void 0) {
       return LifecycleTask.done;
     }
@@ -256,15 +256,15 @@ export class If<T extends INode = INode> {
   }
 
   private bindView(flags: LifecycleFlags): ILifecycleTask {
-    if (this.currentView !== void 0 && (this.$controller.state & State.isBoundOrBinding) > 0) {
-      return this.currentView.bind(flags, this.$controller.scope);
+    if (this.view !== void 0 && (this.$controller.state & State.isBoundOrBinding) > 0) {
+      return this.view.bind(flags, this.$controller.scope);
     }
     return LifecycleTask.done;
   }
 
   private attachView(flags: LifecycleFlags): void {
-    if (this.currentView !== void 0 && (this.$controller.state & State.isAttachedOrAttaching) > 0) {
-      this.currentView.attach(flags);
+    if (this.view !== void 0 && (this.$controller.state & State.isAttachedOrAttaching) > 0) {
+      this.view.attach(flags);
     }
   }
 }

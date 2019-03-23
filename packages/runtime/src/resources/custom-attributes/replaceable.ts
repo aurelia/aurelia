@@ -43,7 +43,7 @@ export class Replaceable<T extends INode = INode> {
     hooks: Object.freeze(new HooksDefinition(Replaceable.prototype)),
   });
 
-  private readonly currentView: IController<T>;
+  public readonly view: IController<T>;
   private readonly factory: IViewFactory<T>;
 
   // tslint:disable-next-line: prefer-readonly // This is set by the controller after this instance is constructed
@@ -55,8 +55,8 @@ export class Replaceable<T extends INode = INode> {
   ) {
     this.factory = factory;
 
-    this.currentView = this.factory.create();
-    this.currentView.hold(location);
+    this.view = this.factory.create();
+    this.view.hold(location);
   }
 
   public static register(container: IContainer): void {
@@ -65,18 +65,18 @@ export class Replaceable<T extends INode = INode> {
   }
 
   public binding(flags: LifecycleFlags): ILifecycleTask {
-    return this.currentView.bind(flags | LifecycleFlags.allowParentScopeTraversal, this.$controller.scope);
+    return this.view.bind(flags | LifecycleFlags.allowParentScopeTraversal, this.$controller.scope);
   }
 
   public attaching(flags: LifecycleFlags): void {
-    this.currentView.attach(flags);
+    this.view.attach(flags);
   }
 
   public detaching(flags: LifecycleFlags): void {
-    this.currentView.detach(flags);
+    this.view.detach(flags);
   }
 
   public unbinding(flags: LifecycleFlags): ILifecycleTask {
-    return this.currentView.unbind(flags);
+    return this.view.unbind(flags);
   }
 }

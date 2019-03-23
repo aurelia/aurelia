@@ -76,6 +76,8 @@ export class Compose<T extends INode = Node> {
   public subject?: MaybeSubjectPromise<T>;
   public composing: boolean;
 
+  public view?: IController<T>;
+
   private readonly dom: IDOM;
   private readonly renderable: IController<T>;
   private readonly renderingEngine: IRenderingEngine;
@@ -83,7 +85,6 @@ export class Compose<T extends INode = Node> {
 
   private task: ILifecycleTask;
   private lastSubject?: MaybeSubjectPromise<T>;
-  private currentView?: IController<T>;
   // tslint:disable-next-line: prefer-readonly // This is set by the controller after this instance is constructed
   private $controller!: IController<T>;
 
@@ -114,7 +115,7 @@ export class Compose<T extends INode = Node> {
 
     this.task = LifecycleTask.done;
     this.lastSubject = void 0;
-    this.currentView = void 0;
+    this.view = void 0;
   }
 
   public static register(container: IContainer): void {
@@ -147,22 +148,22 @@ export class Compose<T extends INode = Node> {
   }
 
   public detaching(flags: LifecycleFlags): void {
-    if (this.currentView != void 0) {
+    if (this.view != void 0) {
       if (this.task.done) {
-        this.currentView.detach(flags);
+        this.view.detach(flags);
       } else {
-        this.task = new ContinuationTask(this.task, this.currentView.detach, this.currentView, flags);
+        this.task = new ContinuationTask(this.task, this.view.detach, this.view, flags);
       }
     }
   }
 
   public unbinding(flags: LifecycleFlags): ILifecycleTask {
     this.lastSubject = void 0;
-    if (this.currentView != void 0) {
+    if (this.view != void 0) {
       if (this.task.done) {
-        this.task = this.currentView.unbind(flags);
+        this.task = this.view.unbind(flags);
       } else {
-        this.task = new ContinuationTask(this.task, this.currentView.unbind, this.currentView, flags);
+        this.task = new ContinuationTask(this.task, this.view.unbind, this.view, flags);
       }
     }
 
@@ -170,7 +171,7 @@ export class Compose<T extends INode = Node> {
   }
 
   public caching(flags: LifecycleFlags): void {
-    this.currentView = void 0;
+    this.view = void 0;
   }
 
   public subjectChanged(newValue: Subject<T> | Promise<Subject<T>>, previousValue: Subject<T> | Promise<Subject<T>>, flags: LifecycleFlags): void {
@@ -219,7 +220,7 @@ export class Compose<T extends INode = Node> {
   }
 
   private deactivate(flags: LifecycleFlags): ILifecycleTask {
-    const view = this.currentView;
+    const view = this.view;
     if (view == void 0) {
       return LifecycleTask.done;
     }
@@ -228,7 +229,7 @@ export class Compose<T extends INode = Node> {
   }
 
   private activate(view: IController<T> | undefined, flags: LifecycleFlags): ILifecycleTask {
-    this.currentView = view;
+    this.view = view;
     if (view == void 0) {
       return LifecycleTask.done;
     }
@@ -242,15 +243,15 @@ export class Compose<T extends INode = Node> {
   }
 
   private bindView(flags: LifecycleFlags): ILifecycleTask {
-    if (this.currentView != void 0 && (this.$controller.state & (State.isBoundOrBinding)) > 0) {
-      return this.currentView.bind(flags, this.renderable.scope);
+    if (this.view != void 0 && (this.$controller.state & (State.isBoundOrBinding)) > 0) {
+      return this.view.bind(flags, this.renderable.scope);
     }
     return LifecycleTask.done;
   }
 
   private attachView(flags: LifecycleFlags): void {
-    if (this.currentView != void 0 && (this.$controller.state & (State.isAttachedOrAttaching)) > 0) {
-      this.currentView.attach(flags);
+    if (this.view != void 0 && (this.$controller.state & (State.isAttachedOrAttaching)) > 0) {
+      this.view.attach(flags);
     }
   }
 

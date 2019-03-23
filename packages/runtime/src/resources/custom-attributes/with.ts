@@ -62,7 +62,7 @@ export class With<T extends INode = INode> {
     value: this as this & SetterObserver,
   };
 
-  private readonly view: IController<T>;
+  public readonly view: IController<T>;
   private readonly factory: IViewFactory<T>;
   // tslint:disable-next-line: prefer-readonly // This is set by the controller after this instance is constructed
   private $controller!: IController<T>;

@@ -388,24 +388,26 @@ export {
   TwoWayBindingInstruction
 } from './instructions';
 export {
-  PromiseOrTask,
-  MaybePromiseOrTask,
   ViewModelKind,
-  AggregateContinuationTask,
-  TerminalTask,
-  AggregateTerminalTask,
-  ContinuationTask,
   IBinding,
   ILifecycle,
   IViewModel,
-  ILifecycleTask,
   IController,
   IRenderContext,
   IViewCache,
   IViewFactory,
+} from './lifecycle';
+export {
+  PromiseOrTask,
+  MaybePromiseOrTask,
+  AggregateContinuationTask,
+  TerminalTask,
+  AggregateTerminalTask,
+  ContinuationTask,
+  ILifecycleTask,
   LifecycleTask,
   PromiseTask
-} from './lifecycle';
+} from './lifecycle-task';
 export {
   AccessorOrObserver,
   Collection,

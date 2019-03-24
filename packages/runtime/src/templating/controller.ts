@@ -24,21 +24,23 @@ import {
   State
 } from '../flags';
 import {
-  AggregateContinuationTask,
-  ContinuationTask,
-  hasAsyncWork,
   IBinding,
   IController,
   ILifecycle,
-  ILifecycleTask,
   IRenderContext,
   IViewCache,
   IViewModel,
   Lifecycle,
-  LifecycleTask,
-  MaybePromiseOrTask,
   ViewModelKind
 } from '../lifecycle';
+import {
+  AggregateContinuationTask,
+  ContinuationTask,
+  hasAsyncWork,
+  ILifecycleTask,
+  LifecycleTask,
+  MaybePromiseOrTask,
+} from '../lifecycle-task';
 import { IScope } from '../observation';
 import { Scope } from '../observation/binding-context';
 import { ProxyObserver } from '../observation/proxy-observer';

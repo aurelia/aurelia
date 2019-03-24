@@ -17,13 +17,15 @@ import {
   LifecycleFlags
 } from './flags';
 import {
-  ContinuationTask,
   IController,
   ILifecycle,
-  ILifecycleTask,
-  LifecycleTask,
   IHydratedViewModel,
 } from './lifecycle';
+import {
+  ContinuationTask,
+  ILifecycleTask,
+  LifecycleTask,
+} from './lifecycle-task';
 import { ExposedContext } from './rendering-engine';
 import {
   CustomElementResource,

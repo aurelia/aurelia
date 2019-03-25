@@ -10,7 +10,7 @@
     "@types/selenium-webdriver": "^3.0.15",
     "chai": "^4.2.0",
     "chromedriver": "~2.45.0",
-    "esm": "^3.2.18",
+    "esm": "^3.2.20",
     "mocha": "^6.0.2",
     "path": "^0.12.7",
     "selenium-webdriver": "^4.0.0-alpha.1",

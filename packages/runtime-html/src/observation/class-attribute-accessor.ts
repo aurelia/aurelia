@@ -1,17 +1,11 @@
 import {
-  IBindingTargetAccessor,
+  IAccessor,
   ILifecycle,
-  INode,
-  subscriberCollection,
-  ISubscriberCollection,
+  LifecycleFlags,
   Priority,
-  ISubscriber,
 } from '@aurelia/runtime';
 
-export interface ClassAttributeAccessor extends IBindingTargetAccessor<INode, string, string>, ISubscriberCollection {}
-
-@subscriberCollection()
-export class ClassAttributeAccessor implements ClassAttributeAccessor {
+export class ClassAttributeAccessor implements IAccessor<string> {
   public readonly lifecycle: ILifecycle;
 
   public readonly obj: HTMLElement;
@@ -44,64 +38,68 @@ export class ClassAttributeAccessor implements ClassAttributeAccessor {
     return this.currentValue;
   }
 
-  public setValueCore(newValue: string): void {
-    const { nameIndex } = this;
-    let { version } = this;
-    let names: string[];
-    let name: string;
+  public setValue(newValue: string, flags: LifecycleFlags): void {
+    this.currentValue = newValue;
+    this.hasChanges = newValue !== this.oldValue;
+    if (this.lifecycle.isFlushingRAF || (flags & LifecycleFlags.fromBind) > 0) {
+      this.flushRAF(flags);
+    }
+  }
 
-    // Add the classes, tracking the version at which they were added.
-    if (newValue.length) {
-      const node = this.obj;
-      names = newValue.split(/\s+/);
-      for (let i = 0, length = names.length; i < length; i++) {
-        name = names[i];
-        if (!name.length) {
+  public flushRAF(flags: LifecycleFlags): void {
+    if (this.hasChanges) {
+      this.hasChanges = false;
+      const { currentValue, nameIndex } = this;
+      let { version } = this;
+
+      this.oldValue = currentValue;
+      let names: string[];
+      let name: string;
+
+      // Add the classes, tracking the version at which they were added.
+      if (currentValue.length) {
+        const node = this.obj;
+        names = currentValue.split(/\s+/);
+        for (let i = 0, length = names.length; i < length; i++) {
+          name = names[i];
+          if (!name.length) {
+            continue;
+          }
+          nameIndex[name] = version;
+          node.classList.add(name);
+        }
+      }
+
+      // Update state variables.
+      this.nameIndex = nameIndex;
+      this.version += 1;
+
+      // First call to setValue?  We're done.
+      if (version === 0) {
+        return;
+      }
+
+      // Remove classes from previous version.
+      version -= 1;
+      for (name in nameIndex) {
+        if (!nameIndex.hasOwnProperty(name) || nameIndex[name] !== version) {
           continue;
         }
-        nameIndex[name] = version;
-        node.classList.add(name);
+
+        // TODO: this has the side-effect that classes already present which are added again,
+        // will be removed if they're not present in the next update.
+        // Better would be do have some configurability for this behavior, allowing the user to
+        // decide whether initial classes always need to be kept, always removed, or something in between
+        this.obj.classList.remove(name);
       }
-    }
-
-    // Update state variables.
-    this.nameIndex = nameIndex;
-    this.version += 1;
-
-    // First call to setValue?  We're done.
-    if (version === 0) {
-      return;
-    }
-
-    // Remove classes from previous version.
-    version -= 1;
-    for (name in nameIndex) {
-      if (!nameIndex.hasOwnProperty(name) || nameIndex[name] !== version) {
-        continue;
-      }
-
-      // TODO: this has the side-effect that classes already present which are added again,
-      // will be removed if they're not present in the next update.
-      // Better would be do have some configurability for this behavior, allowing the user to
-      // decide whether initial classes always need to be kept, always removed, or something in between
-      this.obj.classList.remove(name);
     }
   }
 
-  public subscribe(subscriber: ISubscriber): void {
-    if (!this.isActive) {
-      this.isActive = true;
-      this.lifecycle.enqueueRAF(this.flushRAF, this, Priority.propagate);
-      this.currentValue = this.oldValue = this.obj[this.propertyKey];
-    }
-    this.addSubscriber(subscriber);
+  public bind(flags: LifecycleFlags): void {
+    this.lifecycle.enqueueRAF(this.flushRAF, this, Priority.propagate);
   }
 
-  public unsubscribe(subscriber: ISubscriber): void {
-    this.removeSubscriber(subscriber);
-    if (!this.hasSubscribers()) {
-      this.isActive = false;
-      this.lifecycle.dequeueRAF(this.flushRAF, this);
-    }
+  public unbind(flags: LifecycleFlags): void {
+    this.lifecycle.dequeueRAF(this.flushRAF, this);
   }
 }

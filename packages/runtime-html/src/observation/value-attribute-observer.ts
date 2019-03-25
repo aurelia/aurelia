@@ -1,109 +1,109 @@
-import { IBindingTargetObserver, ILifecycle, ISubscriber, LifecycleFlags, targetObserver } from '@aurelia/runtime';
+import { IIndexable } from '@aurelia/kernel';
+import {
+  IAccessor,
+  ILifecycle,
+  ISubscriber,
+  ISubscriberCollection,
+  LifecycleFlags,
+  Priority,
+  subscriberCollection,
+} from '@aurelia/runtime';
+
 import { IEventSubscriber } from './event-manager';
 
-const inputValueDefaults: Record<string, string> = {
-  ['button']: '',
-  ['checkbox']: 'on',
-  ['color']: '#000000',
-  ['date']: '',
-  ['datetime-local']: '',
-  ['email']: '',
-  ['file']: '',
-  ['hidden']: '',
-  ['image']: '',
-  ['month']: '',
-  ['number']: '',
-  ['password']: '',
-  ['radio']: 'on',
-  ['range']: '50',
-  ['reset']: '',
-  ['search']: '',
-  ['submit']: '',
-  ['tel']: '',
-  ['text']: '',
-  ['time']: '',
-  ['url']: '',
-  ['week']: ''
-};
+export interface ValueAttributeObserver
+  extends ISubscriberCollection {}
 
-export interface ValueAttributeObserver extends IBindingTargetObserver<Node, string> { }
+// TODO: handle file attribute properly again, etc
 
-@targetObserver('')
-export class ValueAttributeObserver implements ValueAttributeObserver {
-  public readonly isDOMObserver: true;
-  public currentFlags!: LifecycleFlags;
+@subscriberCollection()
+export class ValueAttributeObserver implements IAccessor<unknown> {
+  public readonly lifecycle: ILifecycle;
+
+  public readonly obj: Node & IIndexable;
+  public readonly propertyKey: string;
   public currentValue: unknown;
-  public defaultValue: unknown;
   public oldValue: unknown;
-  public flush!: () => void;
-  public handler: IEventSubscriber;
-  public lifecycle: ILifecycle;
-  public obj: Node;
-  public propertyKey: string;
 
-  constructor(lifecycle: ILifecycle, obj: Node, propertyKey: string, handler: IEventSubscriber) {
-    this.isDOMObserver = true;
-    this.handler = handler;
+  public readonly handler: IEventSubscriber;
+
+  public hasChanges: boolean;
+
+  constructor(
+    lifecycle: ILifecycle,
+    obj: Node,
+    propertyKey: string,
+    handler: IEventSubscriber,
+  ) {
     this.lifecycle = lifecycle;
+
     this.obj = obj;
     this.propertyKey = propertyKey;
+    this.handler = handler;
+    this.currentValue = '';
+    this.oldValue = '';
 
-    // note: input.files can be assigned and this was fixed in Firefox 57:
-    // https://bugzilla.mozilla.org/show_bug.cgi?id=1384030
-
-    // input.value (for type='file') however, can only be assigned an empty string
-    if (propertyKey === 'value') {
-      const nodeType = (obj as HTMLInputElement)['type'];
-      this.defaultValue = inputValueDefaults[nodeType || 'text'];
-      if (nodeType === 'file') {
-        this.flush = this.flushFileChanges;
-      }
-    } else {
-      this.defaultValue = '';
-    }
-    this.oldValue = this.currentValue = obj[propertyKey as keyof Node];
+    this.hasChanges = false;
   }
 
   public getValue(): unknown {
-    return this.obj[this.propertyKey as keyof Node];
+    return this.currentValue;
   }
 
-  public setValueCore(newValue: unknown, flags: LifecycleFlags): void {
-    (this.obj as Record<string, unknown>)[this.propertyKey] = newValue;
-    if (flags & LifecycleFlags.fromBind) {
-      return;
+  public setValue(newValue: string | null, flags: LifecycleFlags): void {
+    this.currentValue = newValue;
+    this.hasChanges = newValue !== this.oldValue;
+    if (this.lifecycle.isFlushingRAF || (flags & LifecycleFlags.fromBind) > 0) {
+      this.flushRAF(flags);
     }
-    this.callSubscribers(this.currentValue, this.oldValue, flags);
+  }
+
+  public flushRAF(flags: LifecycleFlags): void {
+    if (this.hasChanges) {
+      this.hasChanges = false;
+      const { currentValue, oldValue } = this;
+      this.oldValue = currentValue;
+      if (currentValue == void 0) {
+        this.obj[this.propertyKey] = '';
+      } else {
+        this.obj[this.propertyKey] = currentValue;
+      }
+
+      if ((flags & LifecycleFlags.fromBind) === 0) {
+        this.callSubscribers(currentValue, oldValue, flags);
+      }
+    }
   }
 
   public handleEvent(): void {
     const oldValue = this.oldValue = this.currentValue;
-    const newValue = this.currentValue = this.getValue();
-    if (oldValue !== newValue) {
-      this.callSubscribers(newValue, oldValue, LifecycleFlags.fromDOMEvent | LifecycleFlags.allowPublishRoundtrip);
-      this.oldValue = newValue;
+    const currentValue = this.currentValue = this.obj[this.propertyKey];
+    if (oldValue !== currentValue) {
+      this.oldValue = currentValue;
+      this.callSubscribers(currentValue, oldValue, LifecycleFlags.fromDOMEvent | LifecycleFlags.allowPublishRoundtrip);
     }
   }
 
   public subscribe(subscriber: ISubscriber): void {
     if (!this.hasSubscribers()) {
-      this.oldValue = this.getValue();
       this.handler.subscribe(this.obj, this);
+      this.currentValue = this.oldValue = this.obj[this.propertyKey];
     }
     this.addSubscriber(subscriber);
   }
 
   public unsubscribe(subscriber: ISubscriber): void {
-    if (this.removeSubscriber(subscriber) && !this.hasSubscribers()) {
+    this.removeSubscriber(subscriber);
+    if (!this.hasSubscribers()) {
       this.handler.dispose();
     }
   }
 
-  private flushFileChanges(): void {
-    const currentValue = this.currentValue;
-    if (this.oldValue !== currentValue && currentValue === '') {
-      this.setValueCore(currentValue, this.currentFlags);
-      this.oldValue = this.currentValue;
-    }
+  public bind(flags: LifecycleFlags): void {
+    this.lifecycle.enqueueRAF(this.flushRAF, this, Priority.propagate);
+  }
+
+  public unbind(flags: LifecycleFlags): void {
+    this.lifecycle.dequeueRAF(this.flushRAF, this);
   }
 }

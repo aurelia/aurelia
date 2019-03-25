@@ -1,25 +1,43 @@
-import { IBindingTargetAccessor, ILifecycle, INode, targetObserver } from '@aurelia/runtime';
+import {
+  IBindingTargetAccessor,
+  ILifecycle,
+  INode,
+  subscriberCollection,
+  ISubscriberCollection,
+  Priority,
+  ISubscriber,
+} from '@aurelia/runtime';
 
-export interface ClassAttributeAccessor extends IBindingTargetAccessor<INode, string, string> {}
+export interface ClassAttributeAccessor extends IBindingTargetAccessor<INode, string, string>, ISubscriberCollection {}
 
-@targetObserver('')
+@subscriberCollection()
 export class ClassAttributeAccessor implements ClassAttributeAccessor {
-  public readonly isDOMObserver: true;
-  public currentValue!: string;
-  public doNotCache: true;
-  public lifecycle: ILifecycle;
-  public nameIndex: object;
-  public obj: HTMLElement;
-  public oldValue!: string;
+  public readonly lifecycle: ILifecycle;
+
+  public readonly obj: HTMLElement;
+  public currentValue: string;
+  public oldValue: string;
+
+  public readonly doNotCache: true;
+  public nameIndex: Record<string, number>;
   public version: number;
 
+  public hasChanges: boolean;
+  public isActive: boolean;
+
   constructor(lifecycle: ILifecycle, obj: HTMLElement) {
-    this.isDOMObserver = true;
-    this.doNotCache = true;
     this.lifecycle = lifecycle;
-    this.nameIndex = null!;
+
     this.obj = obj;
+    this.currentValue = '';
+    this.oldValue = '';
+
+    this.doNotCache = true;
+    this.nameIndex = {};
     this.version = 0;
+
+    this.isActive = false;
+    this.hasChanges = false;
   }
 
   public getValue(): string {
@@ -27,8 +45,8 @@ export class ClassAttributeAccessor implements ClassAttributeAccessor {
   }
 
   public setValueCore(newValue: string): void {
-    const nameIndex: Record<string, number> = this.nameIndex as Record<string, number> || {};
-    let version = this.version;
+    const { nameIndex } = this;
+    let { version } = this;
     let names: string[];
     let name: string;
 
@@ -67,6 +85,23 @@ export class ClassAttributeAccessor implements ClassAttributeAccessor {
       // Better would be do have some configurability for this behavior, allowing the user to
       // decide whether initial classes always need to be kept, always removed, or something in between
       this.obj.classList.remove(name);
+    }
+  }
+
+  public subscribe(subscriber: ISubscriber): void {
+    if (!this.isActive) {
+      this.isActive = true;
+      this.lifecycle.enqueueRAF(this.flushRAF, this, Priority.propagate);
+      this.currentValue = this.oldValue = this.obj[this.propertyKey];
+    }
+    this.addSubscriber(subscriber);
+  }
+
+  public unsubscribe(subscriber: ISubscriber): void {
+    this.removeSubscriber(subscriber);
+    if (!this.hasSubscribers()) {
+      this.isActive = false;
+      this.lifecycle.dequeueRAF(this.flushRAF, this);
     }
   }
 }

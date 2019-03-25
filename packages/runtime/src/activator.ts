@@ -1,8 +1,18 @@
+import {
+  DI,
+  IContainer,
+  IResolver,
+  IServiceLocator,
+  Registration,
+} from '@aurelia/kernel';
 
-import { DI, IContainer, IResolver, IServiceLocator, Registration } from '@aurelia/kernel';
 import { INode } from './dom';
 import { LifecycleFlags } from './flags';
-import { ContinuationTask, IViewModel, ILifecycleTask } from './lifecycle';
+import { IViewModel } from './lifecycle';
+import {
+  ContinuationTask,
+  ILifecycleTask,
+} from './lifecycle-task';
 import { IScope } from './observation';
 import { ExposedContext } from './rendering-engine';
 import { Controller } from './templating/controller';

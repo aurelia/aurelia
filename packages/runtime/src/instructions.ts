@@ -1,4 +1,8 @@
-import { IForOfStatement, IInterpolationExpression, IsBindingBehavior } from './ast';
+import {
+  IForOfStatement,
+  IInterpolationExpression,
+  IsBindingBehavior,
+} from './ast';
 import {
   ICallBindingInstruction,
   IHydrateAttributeInstruction,

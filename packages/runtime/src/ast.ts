@@ -1,6 +1,18 @@
-import { IIndexable, IServiceLocator, StrictPrimitive } from '@aurelia/kernel';
-import { ExpressionKind, LifecycleFlags } from './flags';
-import { Collection, IScope, ObservedCollection } from './observation';
+import {
+  IIndexable,
+  IServiceLocator,
+  StrictPrimitive
+} from '@aurelia/kernel';
+
+import {
+  ExpressionKind,
+  LifecycleFlags
+} from './flags';
+import {
+  Collection,
+  IScope,
+  ObservedCollection
+} from './observation';
 
 export type IsPrimary = IAccessThisExpression | IAccessScopeExpression | IArrayLiteralExpression | IObjectLiteralExpression | IPrimitiveLiteralExpression | ITemplateExpression;
 export type IsLiteral = IArrayLiteralExpression | IObjectLiteralExpression | IPrimitiveLiteralExpression | ITemplateExpression;

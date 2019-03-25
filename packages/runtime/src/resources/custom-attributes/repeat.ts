@@ -22,13 +22,15 @@ import {
   State,
 } from '../../flags';
 import {
+  IController,
+  IViewFactory,
+} from '../../lifecycle';
+import {
   AggregateContinuationTask,
   ContinuationTask,
-  IController,
   ILifecycleTask,
-  IViewFactory,
-  LifecycleTask
-} from '../../lifecycle';
+  LifecycleTask,
+} from '../../lifecycle-task';
 import {
   CollectionObserver,
   IndexMap,

@@ -1,4 +1,10 @@
-import { DI, IContainer, IResolver, PLATFORM, Reporter } from '@aurelia/kernel';
+import {
+  DI,
+  IContainer,
+  IResolver,
+  PLATFORM,
+  Reporter,
+} from '@aurelia/kernel';
 
 export interface INode extends Object { }
 

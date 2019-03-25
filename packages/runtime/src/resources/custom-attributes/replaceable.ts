@@ -19,10 +19,11 @@ import {
 } from '../../flags';
 import {
   IController,
-  ILifecycleTask,
   IViewFactory,
-  LifecycleTask,
 } from '../../lifecycle';
+import {
+  ILifecycleTask,
+} from '../../lifecycle-task';
 import {
   CustomAttributeResource,
   ICustomAttributeResource,

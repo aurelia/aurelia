@@ -1,4 +1,9 @@
-import { DI, IContainer, IRegistry } from '@aurelia/kernel';
+import {
+  DI,
+  IContainer,
+  IRegistry
+} from '@aurelia/kernel';
+
 import { Lifecycle } from './lifecycle';
 import { ObserverLocator } from './observation/observer-locator';
 import {
@@ -14,11 +19,19 @@ import {
   SetPropertyRenderer,
   TemplateControllerRenderer
 } from './renderer';
-import { FromViewBindingBehavior, OneTimeBindingBehavior, ToViewBindingBehavior, TwoWayBindingBehavior } from './resources/binding-behaviors/binding-mode';
+import {
+  FromViewBindingBehavior,
+  OneTimeBindingBehavior,
+  ToViewBindingBehavior,
+  TwoWayBindingBehavior
+} from './resources/binding-behaviors/binding-mode';
 import { DebounceBindingBehavior } from './resources/binding-behaviors/debounce';
 import { SignalBindingBehavior } from './resources/binding-behaviors/signals';
 import { ThrottleBindingBehavior } from './resources/binding-behaviors/throttle';
-import { Else, If } from './resources/custom-attributes/if';
+import {
+  Else,
+  If
+} from './resources/custom-attributes/if';
 import { Repeat } from './resources/custom-attributes/repeat';
 import { Replaceable } from './resources/custom-attributes/replaceable';
 import { With } from './resources/custom-attributes/with';

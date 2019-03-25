@@ -1,4 +1,4 @@
-import { IDisposable, IIndexable } from '@aurelia/kernel';
+import { IIndexable } from '@aurelia/kernel';
 import { LifecycleFlags } from './flags';
 import { ILifecycle } from './lifecycle';
 
@@ -98,7 +98,6 @@ export interface ICollectionSubscriberCollection extends ICollectionSubscribable
  * Describes a complete property observer with an accessor, change tracking fields, normal and batched subscribers
  */
 export interface IPropertyObserver<TObj extends Record<string, unknown>, TProp extends keyof TObj> extends
-  IDisposable,
   IAccessor<TObj[TProp]>,
   IPropertyChangeTracker<TObj, TProp>,
   ISubscriberCollection {
@@ -115,23 +114,23 @@ export type PropertyObserver = IPropertyObserver<IIndexable, string>;
  * A collection (array, set or map)
  */
 export type Collection = unknown[] | Set<unknown> | Map<unknown, unknown>;
-interface IObservedCollection {
-  $observer?: CollectionObserver;
+interface IObservedCollection<T extends CollectionKind = CollectionKind> {
+  $observer?: ICollectionObserver<T>;
   $raw?: this;
 }
 
 /**
  * An array that is being observed for mutations
  */
-export interface IObservedArray<T = unknown> extends IObservedCollection, Array<T> { }
+export interface IObservedArray<T = unknown> extends IObservedCollection<CollectionKind.array>, Array<T> { }
 /**
  * A set that is being observed for mutations
  */
-export interface IObservedSet<T = unknown> extends IObservedCollection, Set<T> { }
+export interface IObservedSet<T = unknown> extends IObservedCollection<CollectionKind.set>, Set<T> { }
 /**
  * A map that is being observed for mutations
  */
-export interface IObservedMap<K = unknown, V = unknown> extends IObservedCollection, Map<K, V> { }
+export interface IObservedMap<K = unknown, V = unknown> extends IObservedCollection<CollectionKind.map>, Map<K, V> { }
 /**
  * A collection that is being observed for mutations
  */
@@ -182,16 +181,6 @@ export type IProxy<TObj extends object = object> = TObj & {
   $observer: IProxyObserver<TObj>;
 };
 
-export interface IBatchChangeTracker {
-  $nextBatch?: IBatchChangeTracker;
-  flushBatch(flags: LifecycleFlags): void;
-}
-
-export interface IRAFChangeTracker {
-  $nextRAF?: IRAFChangeTracker;
-  flushRAF(flags: LifecycleFlags): void;
-}
-
 /**
  * Basic interface to normalize getting/setting a value of any property on any object
  */
@@ -207,10 +196,8 @@ export interface IBindingTargetAccessor<
   TObj = any,
   TProp = keyof TObj,
   TValue = unknown>
-  extends IDisposable,
-          IAccessor<TValue>,
+  extends IAccessor<TValue>,
           IPropertyChangeTracker<TObj, TProp> {
-  isDOMObserver?: boolean;
 }
 
 /**
@@ -264,29 +251,33 @@ export interface IPropertyChangeTracker<TObj extends Record<string, unknown>, TP
   currentValue?: TValue;
 }
 
+export interface ICollectionLengthObserver extends IAccessor<number>, IPropertyChangeTracker<unknown[], 'length', number>, ISubscriberCollection {
+  currentValue: number;
+}
+
+export interface ICollectionSizeObserver extends IAccessor<number>, IPropertyChangeTracker<Set<unknown> | Map<unknown, unknown>, 'size', number>, ISubscriberCollection {
+  currentValue: number;
+}
+
 /**
  * Describes a type that specifically tracks changes in a collection (map, set or array)
  */
-export interface ICollectionChangeTracker<T extends Collection> extends IBatchChangeTracker {
+export interface ICollectionChangeTracker<T extends Collection> {
   collection: T;
   indexMap: IndexMap;
-  resetIndexMap(): void;
 }
 
 /**
  * An observer that tracks collection mutations and notifies subscribers (either directly or in batches)
  */
 export interface ICollectionObserver<T extends CollectionKind> extends
-  IDisposable,
   ICollectionChangeTracker<CollectionKindToType<T>>,
   ICollectionSubscriberCollection {
     lifecycle: ILifecycle;
     persistentFlags: LifecycleFlags;
     collection: ObservedCollectionKindToType<T>;
-    lengthPropertyName: LengthPropertyName<CollectionKindToType<T>>;
-    collectionKind: T;
-    lengthObserver: IBindingTargetObserver;
-    getLengthObserver(flags: LifecycleFlags): IBindingTargetObserver;
+    lengthObserver: T extends CollectionKind.array ? ICollectionLengthObserver : ICollectionSizeObserver;
+    getLengthObserver(): T extends CollectionKind.array ? ICollectionLengthObserver : ICollectionSizeObserver;
     notify(): void;
 }
 export type CollectionObserver = ICollectionObserver<CollectionKind>;

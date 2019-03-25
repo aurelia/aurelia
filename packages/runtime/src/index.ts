@@ -135,9 +135,11 @@ export {
   OverrideContext
 } from './observation/binding-context';
 export {
-  collectionObserver,
-  CollectionLengthObserver
-} from './observation/collection-observer';
+  CollectionLengthObserver,
+} from './observation/collection-length-observer';
+export {
+  CollectionSizeObserver,
+} from './observation/collection-size-observer';
 export {
   ComputedOverrides,
   ComputedLookup,
@@ -166,9 +168,6 @@ export {
   PropertyAccessor
 } from './observation/property-accessor';
 export {
-  propertyObserver
-} from './observation/property-observer';
-export {
   ProxyObserver
 } from './observation/proxy-observer';
 export {
@@ -185,9 +184,6 @@ export {
   collectionSubscriberCollection,
   proxySubscriberCollection,
 } from './observation/subscriber-collection';
-export {
-  targetObserver
-} from './observation/target-observer';
 
 export {
   bindingBehavior,
@@ -443,8 +439,6 @@ export {
   IProxySubscriber,
   IProxySubscriberCollection,
   ICollectionSubscribable,
-  IBatchChangeTracker,
-  IRAFChangeTracker,
   ISubscriber,
   isIndexMap,
   createIndexMap,

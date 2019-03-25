@@ -1,4 +1,13 @@
-import { DI, IContainer, InjectArray, IResolver, Primitive, Registration, Reporter } from '@aurelia/kernel';
+import {
+  DI,
+  IContainer,
+  InjectArray,
+  IResolver,
+  Primitive,
+  Registration,
+  Reporter,
+} from '@aurelia/kernel';
+
 import { LifecycleFlags } from '../flags';
 import { ILifecycle } from '../lifecycle';
 import {
@@ -14,7 +23,7 @@ import {
   IObservedMap,
   IObservedSet,
   ObserversLookup,
-  PropertyObserver
+  PropertyObserver,
 } from '../observation';
 import { getArrayObserver } from './array-observer';
 import { createComputedObserver } from './computed-observer';
@@ -198,17 +207,17 @@ export class ObserverLocator implements IObserverLocator {
     switch (tag) {
       case '[object Array]':
         if (propertyName === 'length') {
-          return this.getArrayObserver(flags, obj as IObservedArray).getLengthObserver(flags);
+          return this.getArrayObserver(flags, obj as IObservedArray).getLengthObserver();
         }
         return this.dirtyChecker.createProperty(obj, propertyName);
       case '[object Map]':
         if (propertyName === 'size') {
-          return this.getMapObserver(flags, obj as IObservedMap).getLengthObserver(flags);
+          return this.getMapObserver(flags, obj as IObservedMap).getLengthObserver();
         }
         return this.dirtyChecker.createProperty(obj, propertyName);
       case '[object Set]':
         if (propertyName === 'size') {
-          return this.getSetObserver(flags, obj as IObservedSet).getLengthObserver(flags);
+          return this.getSetObserver(flags, obj as IObservedSet).getLengthObserver();
         }
         return this.dirtyChecker.createProperty(obj, propertyName);
     }

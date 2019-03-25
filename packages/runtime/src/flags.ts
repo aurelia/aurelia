@@ -91,8 +91,6 @@ export const enum LifecycleFlags {
   bindingStrategy           = 0b0_00000000_000000000000_00_1111,
   getterSetterStrategy      = 0b0_00000000_000000000000_00_0001,
   proxyStrategy             = 0b0_00000000_000000000000_00_0010,
-  patchStrategy             = 0b0_00000000_000000000000_00_0100,
-  keyedStrategy             = 0b0_00000000_000000000000_00_1000,
   update                    = 0b0_00000000_000000000000_11_0000,
   updateTargetInstance      = 0b0_00000000_000000000000_01_0000,
   updateSourceExpression    = 0b0_00000000_000000000000_10_0000,

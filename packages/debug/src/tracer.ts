@@ -551,8 +551,6 @@ export function stringifyLifecycleFlags(flags: LifecycleFlags): string {
   if (flags & LifecycleFlags.allowParentScopeTraversal) { flagNames.push('allowParentScopeTraversal'); }
   if (flags & LifecycleFlags.getterSetterStrategy) { flagNames.push('getterSetterStrategy'); }
   if (flags & LifecycleFlags.proxyStrategy) { flagNames.push('proxyStrategy'); }
-  if (flags & LifecycleFlags.keyedStrategy) { flagNames.push('keyedStrategy'); }
-  if (flags & LifecycleFlags.patchStrategy) { flagNames.push('patchStrategy'); }
 
   if (flagNames.length === 0) {
     return 'none';

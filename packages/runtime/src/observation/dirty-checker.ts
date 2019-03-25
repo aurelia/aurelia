@@ -1,7 +1,8 @@
-import { DI, PLATFORM, Reporter, Tracer } from '@aurelia/kernel';
+import { DI, PLATFORM, Reporter, Tracer, InjectArray } from '@aurelia/kernel';
 import { LifecycleFlags } from '../flags';
 import { IBindingTargetObserver, IObservable, ISubscriber } from '../observation';
-import { propertyObserver } from './property-observer';
+import { subscriberCollection } from './subscriber-collection';
+import { ILifecycle, Priority } from '../lifecycle';
 
 export interface IDirtyChecker {
   createProperty(obj: IObservable, propertyName: string): IBindingTargetObserver;
@@ -53,13 +54,17 @@ export const DirtyCheckSettings = {
 
 /** @internal */
 export class DirtyChecker {
+  public static readonly inject: InjectArray = [ILifecycle];
+
   private readonly tracked: DirtyCheckProperty[];
+  private readonly lifecycle: ILifecycle;
 
   private elapsedFrames: number;
 
-  public constructor() {
+  public constructor(lifecycle: ILifecycle) {
     this.elapsedFrames = 0;
     this.tracked = [];
+    this.lifecycle = lifecycle;
   }
 
   public createProperty(obj: IObservable, propertyName: string): DirtyCheckProperty {
@@ -76,14 +81,14 @@ export class DirtyChecker {
     this.tracked.push(property);
 
     if (this.tracked.length === 1) {
-      PLATFORM.ticker.add(this.check, this);
+      this.lifecycle.enqueueRAF(this.check, this, Priority.low);
     }
   }
 
   public removeProperty(property: DirtyCheckProperty): void {
     this.tracked.splice(this.tracked.indexOf(property), 1);
     if (this.tracked.length === 0) {
-      PLATFORM.ticker.remove(this.check, this);
+      this.lifecycle.dequeueRAF(this.check, this);
     }
   }
 
@@ -112,7 +117,7 @@ const slice = Array.prototype.slice;
 
 export interface DirtyCheckProperty extends IBindingTargetObserver { }
 
-@propertyObserver()
+@subscriberCollection()
 export class DirtyCheckProperty implements DirtyCheckProperty {
   public obj: IObservable;
   public oldValue: unknown;

@@ -8,7 +8,8 @@ import {
   IndexMap,
   IObservedArray
 } from '../observation';
-import { collectionObserver } from './collection-observer';
+import { CollectionLengthObserver } from './collection-length-observer';
+import { collectionSubscriberCollection } from './subscriber-collection';
 
 // https://tc39.github.io/ecma262/#sec-sortcompare
 function sortCompare(x: unknown, y: unknown): number {
@@ -376,27 +377,43 @@ const slice = Array.prototype.slice;
 
 export interface ArrayObserver extends ICollectionObserver<CollectionKind.array> {}
 
-@collectionObserver(CollectionKind.array)
-export class ArrayObserver implements ArrayObserver {
-  public readonly flags: LifecycleFlags;
-
+@collectionSubscriberCollection()
+export class ArrayObserver {
   constructor(flags: LifecycleFlags, lifecycle: ILifecycle, array: IObservedArray) {
     if (Tracer.enabled) { Tracer.enter('ArrayObserver', 'constructor', slice.call(arguments)); }
 
-    this.$nextBatch = void 0;
     this.collection = array;
-    this.flags = flags & LifecycleFlags.persistentBindingFlags;
+    this.persistentFlags = flags & LifecycleFlags.persistentBindingFlags;
     this.indexMap = createIndexMap(array.length);
-    this.lengthPropertyName = 'length';
-    this.collectionKind = CollectionKind.array;
     this.lifecycle = lifecycle;
+    this.lengthObserver = (void 0)!;
 
     array.$observer = this;
 
     if (Tracer.enabled) { Tracer.leave(); }
   }
+
+  public notify(): void {
+    const { indexMap, collection } = this;
+    const { length } = collection;
+    this.indexMap = createIndexMap(length);
+    this.callCollectionSubscribers(indexMap, LifecycleFlags.updateTargetInstance | this.persistentFlags);
+    if (this.lengthObserver !== void 0) {
+      this.lengthObserver.setValue(length, LifecycleFlags.updateTargetInstance);
+    }
+  }
+
+  public getLengthObserver(): CollectionLengthObserver {
+    if (this.lengthObserver === void 0) {
+      this.lengthObserver = new CollectionLengthObserver(this.collection);
+    }
+    return this.lengthObserver;
+  }
 }
 
 export function getArrayObserver(flags: LifecycleFlags, lifecycle: ILifecycle, array: IObservedArray): ArrayObserver {
-  return (array.$observer as ArrayObserver) || new ArrayObserver(flags, lifecycle, array);
+  if (array.$observer === void 0) {
+    array.$observer = new ArrayObserver(flags, lifecycle, array);
+  }
+  return array.$observer;
 }

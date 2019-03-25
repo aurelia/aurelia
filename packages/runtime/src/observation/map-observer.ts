@@ -7,7 +7,8 @@ import {
   ICollectionObserver,
   IObservedMap
 } from '../observation';
-import { collectionObserver } from './collection-observer';
+import { CollectionSizeObserver } from './collection-size-observer';
+import { collectionSubscriberCollection } from './subscriber-collection';
 
 const proto = Map.prototype as { [K in keyof Map<any, any>]: Map<any, any>[K] & { observing?: boolean } };
 
@@ -144,27 +145,43 @@ const slice = Array.prototype.slice;
 
 export interface MapObserver extends ICollectionObserver<CollectionKind.map> {}
 
-@collectionObserver(CollectionKind.map)
-export class MapObserver implements MapObserver {
-  public readonly flags: LifecycleFlags;
-
+@collectionSubscriberCollection()
+export class MapObserver {
   constructor(flags: LifecycleFlags, lifecycle: ILifecycle, map: IObservedMap) {
     if (Tracer.enabled) { Tracer.enter('MapObserver', 'constructor', slice.call(arguments)); }
 
-    this.$nextBatch = void 0;
     this.collection = map;
-    this.flags = flags & LifecycleFlags.persistentBindingFlags;
+    this.persistentFlags = flags & LifecycleFlags.persistentBindingFlags;
     this.indexMap = createIndexMap(map.size);
-    this.lengthPropertyName = 'size';
-    this.collectionKind = CollectionKind.map;
     this.lifecycle = lifecycle;
+    this.lengthObserver = (void 0)!;
 
     map.$observer = this;
 
     if (Tracer.enabled) { Tracer.leave(); }
   }
+
+  public notify(): void {
+    const { indexMap, collection } = this;
+    const { size } = collection;
+    this.indexMap = createIndexMap(size);
+    this.callCollectionSubscribers(indexMap, LifecycleFlags.updateTargetInstance | this.persistentFlags);
+    if (this.lengthObserver !== void 0) {
+      this.lengthObserver.setValue(size, LifecycleFlags.updateTargetInstance);
+    }
+  }
+
+  public getLengthObserver(): CollectionSizeObserver {
+    if (this.lengthObserver === void 0) {
+      this.lengthObserver = new CollectionSizeObserver(this.collection);
+    }
+    return this.lengthObserver;
+  }
 }
 
 export function getMapObserver(flags: LifecycleFlags, lifecycle: ILifecycle, map: IObservedMap): MapObserver {
-  return (map.$observer as MapObserver) || new MapObserver(flags, lifecycle, map);
+  if (map.$observer === void 0) {
+    map.$observer = new MapObserver(flags, lifecycle, map);
+  }
+  return map.$observer;
 }

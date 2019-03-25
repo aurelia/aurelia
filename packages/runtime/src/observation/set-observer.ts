@@ -1,8 +1,9 @@
 import { Tracer } from '@aurelia/kernel';
 import { LifecycleFlags } from '../flags';
 import { ILifecycle } from '../lifecycle';
-import { CollectionKind, ICollectionObserver, IObservedSet, createIndexMap } from '../observation';
-import { collectionObserver } from './collection-observer';
+import { CollectionKind, createIndexMap, ICollectionObserver, IObservedSet } from '../observation';
+import { CollectionSizeObserver } from './collection-size-observer';
+import { collectionSubscriberCollection } from './subscriber-collection';
 
 const proto = Set.prototype as { [K in keyof Set<any>]: Set<any>[K] & { observing?: boolean } };
 
@@ -129,25 +130,43 @@ const slice = Array.prototype.slice;
 
 export interface SetObserver extends ICollectionObserver<CollectionKind.set> {}
 
-@collectionObserver(CollectionKind.set)
-export class SetObserver implements SetObserver {
-  public readonly flags: LifecycleFlags;
-
+@collectionSubscriberCollection()
+export class SetObserver {
   constructor(flags: LifecycleFlags, lifecycle: ILifecycle, observedSet: IObservedSet) {
     if (Tracer.enabled) { Tracer.enter('SetObserver', 'constructor', slice.call(arguments)); }
 
-    this.$nextBatch = void 0;
     this.collection = observedSet;
-    this.flags = flags & LifecycleFlags.persistentBindingFlags;
+    this.persistentFlags = flags & LifecycleFlags.persistentBindingFlags;
     this.indexMap = createIndexMap(observedSet.size);
-    this.lengthPropertyName = 'size';
-    this.collectionKind = CollectionKind.set;
     this.lifecycle = lifecycle;
+    this.lengthObserver = (void 0)!;
+
+    observedSet.$observer = this;
 
     if (Tracer.enabled) { Tracer.leave(); }
+  }
+
+  public notify(): void {
+    const { indexMap, collection } = this;
+    const { size } = collection;
+    this.indexMap = createIndexMap(size);
+    this.callCollectionSubscribers(indexMap, LifecycleFlags.updateTargetInstance | this.persistentFlags);
+    if (this.lengthObserver !== void 0) {
+      this.lengthObserver.setValue(size, LifecycleFlags.updateTargetInstance);
+    }
+  }
+
+  public getLengthObserver(): CollectionSizeObserver {
+    if (this.lengthObserver === void 0) {
+      this.lengthObserver = new CollectionSizeObserver(this.collection);
+    }
+    return this.lengthObserver;
   }
 }
 
 export function getSetObserver(flags: LifecycleFlags, lifecycle: ILifecycle, observedSet: IObservedSet): SetObserver {
-  return (observedSet.$observer as SetObserver) || new SetObserver(flags, lifecycle, observedSet);
+  if (observedSet.$observer === void 0) {
+    observedSet.$observer = new SetObserver(flags, lifecycle, observedSet);
+  }
+  return observedSet.$observer;
 }

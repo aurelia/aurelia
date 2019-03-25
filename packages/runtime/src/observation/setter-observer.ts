@@ -1,42 +1,40 @@
-import { IIndexable, Tracer } from '@aurelia/kernel';
+import { IIndexable, Reporter, Tracer } from '@aurelia/kernel';
 import { LifecycleFlags } from '../flags';
 import { IPropertyObserver, ISubscriber } from '../observation';
-import { propertyObserver } from './property-observer';
+import { subscriberCollection } from './subscriber-collection';
 
 const slice = Array.prototype.slice;
 
 export interface SetterObserver extends IPropertyObserver<IIndexable, string> {}
 
-@propertyObserver()
-export class SetterObserver implements SetterObserver {
-  public subscribe!: (subscriber: ISubscriber) => void;
-  public unsubscribe!: (subscriber: ISubscriber) => void;
+@subscriberCollection()
+export class SetterObserver {
+  public observing: boolean;
   public readonly persistentFlags: LifecycleFlags;
   public obj: IIndexable;
   public propertyKey: string;
+  public currentValue: unknown;
 
   constructor(flags: LifecycleFlags, obj: IIndexable, propertyKey: string) {
     if (Tracer.enabled) { Tracer.enter('SetterObserver', 'constructor', slice.call(arguments)); }
+
+    this.observing = false;
     this.persistentFlags = flags & LifecycleFlags.persistentBindingFlags;
     this.obj = obj;
     this.propertyKey = propertyKey;
-    if (flags & LifecycleFlags.patchStrategy) {
-      this.getValue = this.getValueDirect;
-    }
+    this.currentValue = void 0;
+
     if (Tracer.enabled) { Tracer.leave(); }
   }
 
   public getValue(): unknown {
     return this.currentValue;
   }
-  public getValueDirect(): unknown {
-    return this.obj[this.propertyKey];
-  }
   public setValue(newValue: unknown, flags: LifecycleFlags): void {
     const currentValue = this.currentValue;
-    if (currentValue !== newValue || (flags & LifecycleFlags.patchStrategy)) {
+    if (currentValue !== newValue) {
       this.currentValue = newValue;
-      if (!(flags & LifecycleFlags.fromBind)) {
+      if ((flags & LifecycleFlags.fromBind) === 0) {
         this.callSubscribers(newValue, currentValue, this.persistentFlags | flags);
       }
       // If subscribe() has been called, the target property descriptor is replaced by these getter/setter methods,
@@ -49,5 +47,32 @@ export class SetterObserver implements SetterObserver {
         this.obj[this.propertyKey] = newValue;
       }
     }
+  }
+
+  public subscribe(subscriber: ISubscriber): void {
+    if (this.observing === false) {
+      this.observing = true;
+      this.currentValue = this.obj[this.propertyKey];
+      if (
+        !Reflect.defineProperty(
+          this.obj,
+          this.propertyKey,
+          {
+            enumerable: true,
+            configurable: true,
+            get: () => {
+              return this.getValue();
+            },
+            set: value => {
+              this.setValue(value, LifecycleFlags.none);
+            },
+          }
+        )
+      ) {
+        Reporter.write(1, this.propertyKey, this.obj);
+      }
+    }
+
+    this.addSubscriber(subscriber);
   }
 }

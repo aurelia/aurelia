@@ -38,6 +38,7 @@ import {
   IRenderContext,
   IViewFactory,
   IViewModel,
+  Priority,
 } from './lifecycle';
 import {
   IAccessor,
@@ -407,6 +408,7 @@ export class ChildrenObserver implements Partial<IChildrenObserver> {
   private readonly projector: IElementProjector;
   private children: IController[];
   private observing: boolean;
+  private ticking: boolean;
 
   constructor(lifecycle: ILifecycle, controller: IController) {
     this.hasChanges = false;
@@ -417,6 +419,7 @@ export class ChildrenObserver implements Partial<IChildrenObserver> {
     this.controller = Controller.forCustomElement(controller, (void 0)!, (void 0)!);
     this.projector = this.controller.projector!;
     this.observing = false;
+    this.ticking = false;
   }
 
   public getValue(): IController[] {
@@ -431,17 +434,27 @@ export class ChildrenObserver implements Partial<IChildrenObserver> {
 
   public setValue(newValue: unknown): void { /* do nothing */ }
 
-  public flushBatch(this: ChildrenObserver & IChildrenObserver, flags: LifecycleFlags): void {
-    this.callSubscribers(this.children, undefined, flags | LifecycleFlags.updateTargetInstance);
-    this.hasChanges = false;
+  public flushRAF(this: ChildrenObserver & IChildrenObserver, flags: LifecycleFlags): void {
+    if (this.hasChanges) {
+      this.callSubscribers(this.children, undefined, flags | LifecycleFlags.updateTargetInstance);
+      this.hasChanges = false;
+    }
   }
 
   public subscribe(this: ChildrenObserver & IChildrenObserver, subscriber: ISubscriber): void {
+    if (!this.ticking) {
+      this.ticking = true;
+      this.lifecycle.enqueueRAF(this.flushRAF, this, Priority.bind);
+    }
     this.addSubscriber(subscriber);
   }
 
   public unsubscribe(this: ChildrenObserver & IChildrenObserver, subscriber: ISubscriber): void {
     this.removeSubscriber(subscriber);
+    if (this.ticking && !this.hasSubscribers()) {
+      this.ticking = false;
+      this.lifecycle.dequeueRAF(this.flushRAF, this);
+    }
   }
 
   private onChildrenChanged(): void {
@@ -451,7 +464,6 @@ export class ChildrenObserver implements Partial<IChildrenObserver> {
       this.controller.viewModel.$childrenChanged();
     }
 
-    this.lifecycle.enqueueBatch(this);
     this.hasChanges = true;
   }
 }

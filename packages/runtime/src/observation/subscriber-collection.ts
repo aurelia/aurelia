@@ -24,6 +24,9 @@ export function subscriberCollection(): ClassDecorator {
     proto.hasSubscriber = hasSubscriber;
     proto.hasSubscribers = hasSubscribers;
     proto.callSubscribers = callSubscribers;
+
+    if (proto.subscribe === void 0) proto.subscribe = addSubscriber;
+    if (proto.unsubscribe === void 0) proto.unsubscribe = removeSubscriber;
   };
 }
 
@@ -39,6 +42,9 @@ export function proxySubscriberCollection(): ClassDecorator {
     proto.hasProxySubscriber = hasProxySubscriber;
     proto.hasProxySubscribers = hasProxySubscribers;
     proto.callProxySubscribers = callProxySubscribers;
+
+    if (proto.subscribeToProxy === void 0) proto.subscribeToProxy = addProxySubscriber;
+    if (proto.unsubscribeFromProxy === void 0) proto.unsubscribeFromProxy = removeProxySubscriber;
   };
 }
 
@@ -54,6 +60,9 @@ export function collectionSubscriberCollection(): ClassDecorator {
     proto.hasCollectionSubscriber = hasCollectionSubscriber;
     proto.hasCollectionSubscribers = hasCollectionSubscribers;
     proto.callCollectionSubscribers = callCollectionSubscribers;
+
+    if (proto.subscribeToCollection === void 0) proto.subscribeToCollection = addCollectionSubscriber;
+    if (proto.unsubscribeFromCollection === void 0) proto.unsubscribeFromCollection = removeCollectionSubscriber;
   };
 }
 

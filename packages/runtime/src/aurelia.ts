@@ -18,8 +18,8 @@ import {
 } from './flags';
 import {
   IController,
-  ILifecycle,
   IHydratedViewModel,
+  ILifecycle,
 } from './lifecycle';
 import {
   ContinuationTask,
@@ -56,6 +56,8 @@ export class CompositionRoot<T extends INode = INode> {
   public readonly lifecycle: ILifecycle;
   public readonly activator: IActivator;
   public task: ILifecycleTask;
+  public hasPendingStartFrame: boolean;
+  public hasPendingStopFrame: boolean;
 
   constructor(
     config: ISinglePageApp<T>,
@@ -89,7 +91,8 @@ export class CompositionRoot<T extends INode = INode> {
     this.lifecycle = this.container.get(ILifecycle);
     this.activator = this.container.get(IActivator);
     this.task = LifecycleTask.done;
-    this.lifecycle.startTicking(PLATFORM.ticker);
+    this.hasPendingStartFrame = true;
+    this.hasPendingStopFrame = true;
   }
 
   public activate(antecedent?: ILifecycleTask): ILifecycleTask {
@@ -175,7 +178,7 @@ export class Aurelia<TNode extends INode = INode> {
 
     this._root = void 0;
 
-    this.next = void 0!;
+    this.next = (void 0)!;
 
     Registration.instance(Aurelia, this).register(container);
   }
@@ -247,14 +250,20 @@ export class Aurelia<TNode extends INode = INode> {
     Reflect.set(root.host, '$au', this);
     this._root = root;
     this._isStarting = true;
+    // Disable timeslicing during start to minimize startup time and make startup reliably awaitable
+    root.lifecycle.disableTimeslicing();
     if (Profiler.enabled) { enterStart(); }
   }
 
   private onAfterStart(root: CompositionRoot): ILifecycleTask {
-    if (root.lifecycle.rafCount > 0 || root.lifecycle.mountCount > 0) {
-      return new ContinuationTask(PLATFORM.ticker.waitForNextTick(), this.onAfterStart, this, root);
+    if (root.hasPendingStartFrame) {
+      root.hasPendingStartFrame = false;
+      return new ContinuationTask(root.lifecycle.nextFrame, this.onAfterStart, this, root);
     }
 
+    root.hasPendingStartFrame = true;
+    // Enable timeslicing after startup to maximize responsiveness
+    root.lifecycle.enableTimeslicing();
     this._isRunning = true;
     this._isStarting = false;
     this.dispatchEvent(root, 'aurelia-composed', root.dom);
@@ -266,14 +275,18 @@ export class Aurelia<TNode extends INode = INode> {
   private onBeforeStop(root: CompositionRoot): void {
     this._isRunning = false;
     this._isStopping = true;
+    // Disable timeslicing during stop to minimize shutdown time and make shutdown reliably awaitable
+    root.lifecycle.disableTimeslicing();
     if (Profiler.enabled) { enterStop(); }
   }
 
   private onAfterStop(root: CompositionRoot): ILifecycleTask {
-    if (root.lifecycle.rafCount > 0 || root.lifecycle.unmountCount > 0) {
-      return new ContinuationTask(PLATFORM.ticker.waitForNextTick(), this.onAfterStop, this, root);
+    if (root.hasPendingStopFrame) {
+      root.hasPendingStopFrame = false;
+      return new ContinuationTask(root.lifecycle.nextFrame, this.onAfterStop, this, root);
     }
 
+    root.hasPendingStopFrame = true;
     Reflect.deleteProperty(root.host, '$au');
     this._root = void 0;
     this._isStopping = false;

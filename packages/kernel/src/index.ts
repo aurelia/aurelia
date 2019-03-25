@@ -63,7 +63,7 @@ export {
   parseQueryString,
   IQueryParams
 } from './path';
-export { PLATFORM, Ticker } from './platform';
+export { PLATFORM } from './platform';
 export {
   ITraceInfo,
   ITraceWriter,

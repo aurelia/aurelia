@@ -269,201 +269,6 @@ const { $raf, $caf } = (function (): { $raf(callback: (time: number) => void): n
   return { $raf: $$raf, $caf: caf };
 })();
 
-// A stripped-down version of pixijs's ticker @ https://github.com/pixijs/pixi.js/tree/dev/packages/ticker/src
-const fpms = 0.06;
-
-class Notifier {
-  public fn?: (frameDelta?: number) => void;
-  public context?: object;
-  public next?: this;
-  public prev?: this;
-  public disconnected: boolean;
-
-  constructor(fn?: (frameDelta?: number) => void, context: object | undefined = void 0) {
-    this.fn = fn;
-    this.context = context;
-    this.next = void 0;
-    this.prev = void 0;
-    this.disconnected = false;
-  }
-
-  public equals(fn: (frameDelta?: number) => void, context?: object): boolean {
-    return this.fn === fn && this.context === context;
-  }
-
-  public notify(frameDelta: number): this | undefined {
-    if (this.fn !== void 0) {
-      if (this.context !== void 0) {
-        this.fn.call(this.context, frameDelta);
-      } else {
-        this.fn(frameDelta);
-      }
-    }
-    const next = this.next;
-    if (this.disconnected) {
-      this.next = void 0;
-    }
-    return next;
-  }
-
-  public connect(prev: this): void {
-    this.prev = prev;
-    if (prev.next !== void 0) {
-      prev.next.prev = this;
-    }
-    this.next = prev.next;
-    prev.next = this;
-  }
-
-  public disconnect(hard: boolean = false): this | undefined {
-    this.disconnected = true;
-    this.fn = void 0;
-    this.context = void 0;
-    if (this.prev !== void 0) {
-      this.prev.next = this.next;
-    }
-    if (this.next !== void 0) {
-      this.next.prev = this.prev;
-    }
-    const next = this.next;
-    this.next = hard ? void 0 : next;
-    this.prev = void 0;
-    return next;
-  }
-}
-
-export class Ticker {
-  private requestId: number;
-  private frameDelta: number;
-  private lastTime: number;
-  private started: boolean;
-  private promise?: Promise<number>;
-  private resolve!: () => void;
-  private readonly head: Notifier;
-  private readonly tick: (deltaTime: number) => void;
-
-  constructor() {
-    this.head = new Notifier(void 0, void 0);
-    this.requestId = -1;
-    this.frameDelta = 1;
-    this.lastTime = -1;
-    this.started = false;
-    // tslint:disable-next-line:promise-must-complete
-    this.promise = new Promise(resolve => {
-      this.resolve = resolve;
-    });
-    this.tick = (deltaTime: number) => {
-      this.requestId = -1;
-      if (this.started) {
-        this.update(deltaTime);
-        if (this.started && this.requestId === -1 && this.head.next !== void 0) {
-          this.requestId = $raf(this.tick);
-        }
-      }
-    };
-  }
-
-  public add(fn: (frameDelta?: number) => void, context?: object | undefined): this {
-    const notifier = new Notifier(fn, context);
-    let cur = this.head.next;
-    let prev = this.head;
-    if (cur === void 0) {
-      notifier.connect(prev);
-    } else {
-      while (cur !== void 0) {
-        prev = cur;
-        cur = cur.next;
-      }
-      if (notifier.prev === void 0) {
-        notifier.connect(prev);
-      }
-    }
-    if (this.started) {
-      this.tryRequest();
-    } else {
-      this.start();
-    }
-    return this;
-  }
-
-  public remove(fn: (frameDelta?: number) => void, context?: object | undefined): this {
-    let notifier = this.head.next;
-    while (notifier !== void 0) {
-      if (notifier.equals(fn, context)) {
-        notifier = notifier.disconnect();
-      } else {
-        notifier = notifier.next;
-      }
-    }
-    if (this.head.next === void 0) {
-      this.tryCancel();
-    }
-    return this;
-  }
-
-  public start(): void {
-    if (!this.started) {
-      this.started = true;
-      this.tryRequest();
-    }
-  }
-
-  public stop(): void {
-    if (this.started) {
-      this.started = false;
-      this.tryCancel();
-    }
-  }
-
-  public update(currentTime: number = $now()): void {
-    let elapsedMS: number;
-
-    if (currentTime > this.lastTime) {
-      elapsedMS = currentTime - this.lastTime;
-      // ElapsedMS * 60 / 1000 is to get the frame delta as calculated based on the elapsed time.
-      // Adding half a rounding margin to that and performing a double bitwise negate rounds it to the rounding margin which is the nearest
-      // 1/1000th of a frame (this algorithm is about twice as fast as Math.round - every CPU cycle counts :)).
-      // The rounding is to account for floating point imprecisions in performance.now caused by the browser, and accounts for frame counting mismatch
-      // caused by frame delta's like 0.999238239.
-      this.frameDelta = (~~(elapsedMS * 60 + 0.5)) / 1000;
-      const head = this.head;
-      let notifier = head.next;
-      while (notifier !== void 0) {
-        notifier = notifier.notify(this.frameDelta);
-      }
-      if (head.next === void 0) {
-        this.tryCancel();
-      }
-      this.resolve();
-      // tslint:disable-next-line:promise-must-complete
-      this.promise = new Promise(resolve => {
-        this.resolve = resolve;
-      });
-    } else {
-      this.frameDelta = 0;
-    }
-    this.lastTime = currentTime;
-  }
-
-  public waitForNextTick(): Promise<number> {
-    return this.promise!;
-  }
-
-  private tryRequest(): void {
-    if (this.requestId === -1 && this.head.next !== void 0) {
-      this.lastTime = $now();
-      this.requestId = $raf(this.tick);
-    }
-  }
-
-  private tryCancel(): void {
-    if (this.requestId !== -1) {
-      $caf(this.requestId);
-      this.requestId = -1;
-    }
-  }
-}
-
 const camelCaseLookup: Record<string, string> = {};
 const kebabCaseLookup: Record<string, string> = {};
 
@@ -478,7 +283,6 @@ const hasOwnProperty = Object.prototype.hasOwnProperty as unknown as {
 
 export const PLATFORM = {
   global: $global,
-  ticker: new Ticker(),
   emptyArray: Object.freeze([]),
   emptyObject: Object.freeze({}),
   noop: $noop,
@@ -540,6 +344,10 @@ export const PLATFORM = {
 
   requestAnimationFrame(callback: (time: number) => void): number {
     return $raf(callback);
+  },
+
+  cancelAnimationFrame(handle: number): void {
+    return $caf(handle);
   },
 
   clearInterval(handle?: number): void {

@@ -7,7 +7,7 @@ import {
   IServiceLocator,
   PLATFORM,
   Registration,
-  Ticker,Tracer
+  Tracer,
 } from '@aurelia/kernel';
 
 import {
@@ -25,13 +25,11 @@ import {
   LifecycleFlags,
   State
 } from './flags';
+import { ILifecycleTask, MaybePromiseOrTask } from './lifecycle-task';
 import {
-  IBatchChangeTracker,
-  IRAFChangeTracker,
   IScope,
 } from './observation';
 import { IElementProjector } from './resources/custom-element';
-import { ILifecycleTask, MaybePromiseOrTask } from './lifecycle-task';
 
 const slice = Array.prototype.slice;
 
@@ -152,23 +150,25 @@ export interface IHydratedViewModel<T extends INode = INode> extends IViewModel<
 }
 
 export interface ILifecycle {
-  readonly rafCount: number;
-  readonly batchCount: number;
-  readonly patchCount: number;
+  readonly FPS: number;
+  readonly nextFrame: Promise<number>;
+  minFPS: number;
+  maxFPS: number;
+  pendingChanges: number;
+
   readonly boundCount: number;
   readonly mountCount: number;
   readonly attachedCount: number;
   readonly unmountCount: number;
   readonly detachedCount: number;
   readonly unboundCount: number;
+  readonly isFlushingRAF: boolean;
 
   beginBind(requestor?: IController): void;
   beginUnbind(requestor?: IController): void;
-  beginBatch(): void;
 
   endBind(flags: LifecycleFlags, requestor?: IController): void;
   endUnbind(flags: LifecycleFlags, requestor?: IController): void;
-  endBatch(flags: LifecycleFlags): void;
 
   enqueueBound(requestor: IController): void;
   enqueueUnbound(requestor: IController): void;
@@ -185,32 +185,136 @@ export interface ILifecycle {
   enqueueMount(requestor: IController): void;
   enqueueUnmount(requestor: IController): void;
 
-  enqueueBatch(requestor: IBatchChangeTracker): void;
-  enqueueRAF(requestor: IRAFChangeTracker): void;
+  enqueueRAF(cb: (flags: LifecycleFlags) => void, context?: unknown, priority?: Priority, once?: boolean): void;
+  enqueueRAF(cb: () => void, context?: unknown, priority?: Priority, once?: boolean): void;
+  dequeueRAF(cb: (flags: LifecycleFlags) => void, context?: unknown): void;
+  dequeueRAF(cb: () => void, context?: unknown): void;
 
-  processBatchQueue(flags: LifecycleFlags): void;
-  processRAFQueue(flags: LifecycleFlags): void;
+  processRAFQueue(flags: LifecycleFlags, timestamp?: number): void;
 
-  startTicking(ticker?: Ticker, frameBudget?: number): void;
+  startTicking(): void;
   stopTicking(): void;
+
+  enableTimeslicing(): void;
+  disableTimeslicing(): void;
+}
+
+class LinkedCallback {
+  public cb?: (flags: LifecycleFlags) => void;
+  public context?: unknown;
+  public priority: Priority;
+  public once: boolean;
+
+  public next?: this;
+  public prev?: this;
+
+  public unlinked: boolean;
+
+  constructor(
+    cb?: (() => void) | ((flags: LifecycleFlags) => void),
+    context: unknown = void 0,
+    priority: Priority = Priority.normal,
+    once: boolean = false,
+  ) {
+    this.cb = cb;
+    this.context = context;
+    this.priority = priority;
+    this.once = once;
+
+    this.next = void 0;
+    this.prev = void 0;
+
+    this.unlinked = false;
+  }
+
+  public equals(fn: (() => void) | ((flags: LifecycleFlags) => void), context?: unknown): boolean {
+    return this.cb === fn && this.context === context;
+  }
+
+  public call(flags: LifecycleFlags): this | undefined {
+    if (this.cb !== void 0) {
+      if (this.context !== void 0) {
+        this.cb.call(this.context, flags);
+      } else {
+        this.cb(flags);
+      }
+    }
+
+    if (this.once) {
+      return this.unlink(true);
+    } else if (this.unlinked) {
+      const next = this.next;
+      this.next = void 0;
+
+      return next;
+    } else {
+      return this.next;
+    }
+  }
+
+  public link(prev: this): void {
+    this.prev = prev;
+
+    if (prev.next !== void 0) {
+      prev.next.prev = this;
+    }
+
+    this.next = prev.next;
+    prev.next = this;
+  }
+
+  public unlink(removeNext: boolean = false): this | undefined {
+    this.unlinked = true;
+    this.cb = void 0;
+    this.context = void 0;
+
+    if (this.prev !== void 0) {
+      this.prev.next = this.next;
+    }
+
+    if (this.next !== void 0) {
+      this.next.prev = this.prev;
+    }
+
+    this.prev = void 0;
+
+    if (removeNext) {
+      const { next } = this;
+      this.next = void 0;
+      return next;
+    }
+
+    return this.next;
+  }
+}
+
+export const enum Priority {
+  preempt   = 0x8000,
+  high      = 0x7000,
+  bind      = 0x6000,
+  attach    = 0x5000,
+  normal    = 0x4000,
+  propagate = 0x3000,
+  connect   = 0x2000,
+  low       = 0x1000,
 }
 
 export const ILifecycle = DI.createInterface<ILifecycle>('ILifecycle').withDefault(x => x.singleton(Lifecycle));
+
+const { min, max } = Math;
 
 /** @internal */
 export class Lifecycle implements ILifecycle {
   public static marker: IController;
 
-  public batchDepth: number;
   public bindDepth: number;
-  public patchDepth: number;
   public unbindDepth: number;
 
-  public rafHead: IRAFChangeTracker;
-  public rafTail: IRAFChangeTracker;
+  public rafHead: LinkedCallback;
+  public rafTail: LinkedCallback;
 
-  public batchHead: IBatchChangeTracker;
-  public batchTail: IBatchChangeTracker;
+  public batchHead: LinkedCallback;
+  public batchTail: LinkedCallback;
 
   public boundHead: IController;
   public boundTail: IController;
@@ -233,9 +337,6 @@ export class Lifecycle implements ILifecycle {
   public flushed?: Promise<void>;
   public promise: Promise<void>;
 
-  public rafCount: number;
-  public batchCount: number;
-  public patchCount: number;
   public boundCount: number;
   public mountCount: number;
   public attachedCount: number;
@@ -243,35 +344,59 @@ export class Lifecycle implements ILifecycle {
   public detachedCount: number;
   public unboundCount: number;
 
-  // These are dummy properties to make the lifecycle conform to the interfaces
-  // of the components it manages. This allows the lifecycle itself to be the first link
-  // in the chain and removes the need for an additional null check on each addition.
-  public $nextRAF: IRAFChangeTracker;
-  public flushRAF: IRAFChangeTracker['flushRAF'];
-  public $nextBatch: IBatchChangeTracker;
-  public flushBatch: IBatchChangeTracker['flushBatch'];
-
   public $state: State;
 
   public isFlushingRAF: boolean;
+  public rafRequestId: number;
+  public rafStartTime: number;
+  public isTicking: boolean;
 
-  public ticker: Ticker;
+  public minFrameDuration: number;
+  public maxFrameDuration: number;
+  public prevFrameDuration: number;
 
-  public frameBudget: number;
+  public get FPS(): number {
+    return 1000 / this.prevFrameDuration;
+  }
 
-  public dependents: number;
+  public get minFPS(): number {
+    return 1000 / this.maxFrameDuration;
+  }
+
+  public set minFPS(fps: number) {
+    this.maxFrameDuration = 1000 / min(max(0, min(this.maxFPS, fps)), 60);
+  }
+
+  public get maxFPS(): number {
+    if (this.minFrameDuration > 0) {
+      return 1000 / this.minFrameDuration;
+    }
+    return 60;
+  }
+
+  public set maxFPS(fps: number) {
+    if (fps >= 60) {
+      this.minFrameDuration = 0;
+    } else {
+      this.minFrameDuration = 1000 / min(max(1, max(this.minFPS, fps)), 60);
+    }
+  }
+
+  public nextFrame: Promise<number>;
+  public resolveNextFrame!: (timestamp: number) => void;
+
+  public timeslicingEnabled: boolean;
+  public pendingChanges: number;
+
+  private readonly tick: (timestamp: number) => void;
 
   constructor() {
-    this.batchDepth = 0;
     this.bindDepth = 0;
-    this.patchDepth = 0;
     this.unbindDepth = 0;
 
-    this.rafHead = this;
-    this.rafTail = this;
+    this.rafHead = this.rafTail = new LinkedCallback(void 0, void 0, Infinity);
 
-    this.batchHead = this;
-    this.batchTail = this;
+    this.batchHead = this.batchTail = new LinkedCallback(void 0, void 0, Infinity);
 
     this.boundHead = Lifecycle.marker;
     this.boundTail = Lifecycle.marker;
@@ -294,9 +419,6 @@ export class Lifecycle implements ILifecycle {
     this.flushed = void 0;
     this.promise = Promise.resolve();
 
-    this.rafCount = 0;
-    this.batchCount = 0;
-    this.patchCount = 0;
     this.boundCount = 0;
     this.mountCount = 0;
     this.attachedCount = 0;
@@ -304,49 +426,69 @@ export class Lifecycle implements ILifecycle {
     this.detachedCount = 0;
     this.unboundCount = 0;
 
-    this.$nextRAF = PLATFORM.emptyObject as this['$nextRAF'];
-    this.flushRAF = PLATFORM.noop;
-    this.$nextBatch = PLATFORM.emptyObject as this['$nextBatch'];
-    this.flushBatch = PLATFORM.noop;
-
     this.$state = State.none;
 
     this.isFlushingRAF = false;
+    this.rafRequestId = -1;
+    this.rafStartTime = -1;
+    this.isTicking = false;
 
-    this.ticker = null!;
+    this.minFrameDuration = 0;
+    this.maxFrameDuration = 0;
+    this.prevFrameDuration = 0;
 
-    this.frameBudget = 10;
+    // tslint:disable-next-line: promise-must-complete
+    this.nextFrame = new Promise(resolve => {
+      this.resolveNextFrame = resolve;
+    });
 
-    this.dependents = 0;
+    this.tick = (timestamp: number) => {
+      this.rafRequestId = -1;
+      if (this.isTicking) {
+        this.processRAFQueue(LifecycleFlags.fromFlush, timestamp);
+        if (this.isTicking && this.rafRequestId === -1 && this.rafHead.next !== void 0) {
+          this.rafRequestId = PLATFORM.requestAnimationFrame(this.tick);
+        }
+        this.resolveNextFrame(timestamp);
+        // tslint:disable-next-line: promise-must-complete
+        this.nextFrame = new Promise(resolve => {
+          this.resolveNextFrame = resolve;
+        });
+      }
+    };
+
+    this.pendingChanges = 0;
+    this.timeslicingEnabled = true;
   }
 
   public static register(container: IContainer): IResolver<ILifecycle> {
     return Registration.singleton(ILifecycle, this).register(container);
   }
 
-  public startTicking(ticker: Ticker = PLATFORM.ticker, frameBudget: number = 10): void {
-    if (++this.dependents === 1) {
-      this.frameBudget = frameBudget;
-      if (this.ticker !== null) {
-        this.ticker.remove(this.tick, void 0);
+  public startTicking(): void {
+    if (!this.isTicking) {
+      this.isTicking = true;
+      if (this.rafRequestId === -1 && this.rafHead.next !== void 0) {
+        this.rafStartTime = PLATFORM.now();
+        this.rafRequestId = PLATFORM.requestAnimationFrame(this.tick);
       }
-      this.ticker = ticker;
-      ticker.add(this.tick, void 0);
+    } else if (this.rafRequestId === -1 && this.rafHead.next !== void 0) {
+      this.rafStartTime = PLATFORM.now();
+      this.rafRequestId = PLATFORM.requestAnimationFrame(this.tick);
     }
   }
 
   public stopTicking(): void {
-    if (--this.dependents === 0) {
-      if (this.ticker !== null) {
-        this.ticker.remove(this.tick, void 0);
+    if (this.isTicking) {
+      this.isTicking = false;
+      if (this.rafRequestId !== -1) {
+        PLATFORM.cancelAnimationFrame(this.rafRequestId);
+        this.rafRequestId = -1;
       }
+    } else if (this.rafRequestId !== -1) {
+      PLATFORM.cancelAnimationFrame(this.rafRequestId);
+      this.rafRequestId = -1;
     }
-  }
-
-  public beginBatch(): void {
-    if (Tracer.enabled) { Tracer.enter('Lifecycle', 'beginBatch', slice.call(arguments)); }
-    ++this.batchDepth;
-    if (Tracer.enabled) { Tracer.leave(); }
   }
 
   public beginBind(requestor?: IController): void {
@@ -364,14 +506,6 @@ export class Lifecycle implements ILifecycle {
       requestor.state |= State.isUnbinding;
     }
     ++this.unbindDepth;
-    if (Tracer.enabled) { Tracer.leave(); }
-  }
-
-  public endBatch(flags: LifecycleFlags): void {
-    if (Tracer.enabled) { Tracer.enter('Lifecycle', 'endBatch', slice.call(arguments)); }
-    if (--this.batchDepth === 0) {
-      this.processBatchQueue(flags);
-    }
     if (Tracer.enabled) { Tracer.leave(); }
   }
 
@@ -442,13 +576,6 @@ export class Lifecycle implements ILifecycle {
   }
 
   public processBindQueue(flags: LifecycleFlags): void {
-    // flushBatch before processing bound callbacks, but only if this is the initial bind;
-    // no DOM is attached yet so we can safely let everything propagate
-    if (flags & LifecycleFlags.fromStartTask) {
-      ++this.bindDepth; // make sure any nested bound callbacks happen AFTER the ones already queued
-      this.processBatchQueue(flags | LifecycleFlags.fromSyncFlush);
-      --this.bindDepth;
-    }
     while (this.boundCount > 0) {
       if (Tracer.enabled) { Tracer.enter('Lifecycle', 'processBindQueue', slice.call(arguments)); }
       this.boundCount = 0;
@@ -486,12 +613,6 @@ export class Lifecycle implements ILifecycle {
 
   public processAttachQueue(flags: LifecycleFlags): void {
     if (Tracer.enabled) { Tracer.enter('Lifecycle', 'processAttachQueue', slice.call(arguments)); }
-    // flushBatch and patch before starting the attach lifecycle to ensure batched collection changes are propagated to repeaters
-    // and the DOM is updated
-    this.processBatchQueue(flags | LifecycleFlags.fromSyncFlush);
-    // TODO: prevent duplicate updates coming from the patch queue (or perhaps it's just not needed in its entirety?)
-    //this.processPatchQueue(flags | LifecycleFlags.fromSyncFlush);
-
     if (this.mountCount > 0) {
       this.mountCount = 0;
       let currentMount = this.mountHead.nextMount;
@@ -524,10 +645,6 @@ export class Lifecycle implements ILifecycle {
 
   public processDetachQueue(flags: LifecycleFlags): void {
     if (Tracer.enabled) { Tracer.enter('Lifecycle', 'processDetachQueue', slice.call(arguments)); }
-    // flushBatch before unmounting to ensure batched collection changes propagate to the repeaters,
-    // which may lead to additional unmount operations
-    this.processBatchQueue(flags | LifecycleFlags.fromFlush | LifecycleFlags.doNotUpdateDOM);
-
     if (this.unmountCount > 0) {
       if (Tracer.enabled) { Tracer.enter('Lifecycle', 'processUnmountQueue', slice.call(arguments)); }
       this.unmountCount = 0;
@@ -602,96 +719,103 @@ export class Lifecycle implements ILifecycle {
     }
   }
 
-  public enqueueBatch(requestor: IBatchChangeTracker): void {
-    // Queue a flushBatch() callback; the depth is just for debugging / testing purposes and has
-    // no effect on execution. flushBatch() will automatically be invoked when the promise resolves,
-    // or it can be manually invoked synchronously.
-    if (this.batchDepth === 0) {
-      requestor.flushBatch(LifecycleFlags.fromSyncFlush);
-    } else if (requestor.$nextBatch == void 0) {
-      if (Tracer.enabled) { Tracer.enter('Lifecycle', 'enqueueBatch', slice.call(arguments)); }
-      requestor.$nextBatch = PLATFORM.emptyObject as IBatchChangeTracker;
-      this.batchTail.$nextBatch = requestor;
-      this.batchTail = requestor;
-      ++this.batchCount;
-      if (Tracer.enabled) { Tracer.leave(); }
-    }
-  }
+  public enqueueRAF(cb: (flags: LifecycleFlags) => void, context?: unknown, priority?: Priority, once?: boolean): void;
+  public enqueueRAF(cb: () => void, context?: unknown, priority?: Priority, once?: boolean): void;
+  public enqueueRAF(
+    cb: (() => void) | ((flags: LifecycleFlags) => void),
+    context: unknown = void 0,
+    priority: Priority = Priority.normal,
+    once: boolean = false,
+  ): void {
+    const node = new LinkedCallback(cb, context, priority, once);
 
-  public enqueueRAF(requestor: IRAFChangeTracker): void {
-    if (this.isFlushingRAF) {
-      requestor.flushRAF(LifecycleFlags.fromSyncFlush);
-    } else if (requestor.$nextRAF == void 0) {
-      if (Tracer.enabled) { Tracer.enter('Lifecycle', 'enqueueRAF', slice.call(arguments)); }
-      requestor.$nextRAF = PLATFORM.emptyObject as IRAFChangeTracker;
-      this.rafTail.$nextRAF = requestor;
-      this.rafTail = requestor;
-      ++this.rafCount;
-      if (Tracer.enabled) { Tracer.leave(); }
-    }
-  }
-
-  public processBatchQueue(flags: LifecycleFlags): void {
-    if (Tracer.enabled) { Tracer.enter('Lifecycle', 'processBatchQueue', slice.call(arguments)); }
-    flags |= LifecycleFlags.fromSyncFlush;
-    // flushBatch callbacks may lead to additional flushBatch operations, so keep looping until
-    // the flushBatch head is back to `this` (though this will typically happen in the first iteration)
-    while (this.batchCount > 0) {
-      let current = this.batchHead.$nextBatch!;
-      this.batchHead = this.batchTail = this;
-      this.batchCount = 0;
-      let next: typeof current;
+    let prev = this.rafHead;
+    let current = prev.next;
+    if (current === void 0) {
+      node.link(prev);
+    } else {
       do {
-        next = current.$nextBatch!;
-        current.$nextBatch = void 0;
-        current.flushBatch(flags);
-        current = next;
-      } while (current !== PLATFORM.emptyObject);
+        if (priority > current.priority) {
+          node.link(prev);
+          break;
+        }
+
+        prev = current;
+        current = current.next;
+      } while (current !== void 0);
+
+      if (node.prev === void 0) {
+        node.link(prev);
+      }
     }
-    if (Tracer.enabled) { Tracer.leave(); }
+
+    this.startTicking();
   }
 
-  // UGLY WIP WIP WIP - move along people
-  public processRAFQueue(flags: LifecycleFlags): void {
+  public dequeueRAF(cb: (flags: LifecycleFlags) => void, context?: unknown): void;
+  public dequeueRAF(cb: () => void, context?: unknown): void;
+  public dequeueRAF(
+    cb: (() => void) | ((flags: LifecycleFlags) => void),
+    context: unknown = void 0,
+  ): void {
+    let current = this.rafHead.next;
+    while (current !== void 0) {
+      if (current.equals(cb, context)) {
+        current = current.unlink();
+      } else {
+        current = current.next;
+      }
+    }
+  }
+
+  public processRAFQueue(flags: LifecycleFlags, timestamp: number = PLATFORM.now()): void {
     if (this.isFlushingRAF) {
       return;
     }
-    if (this.rafCount > 0) {
-      const start = PLATFORM.now();
-      const frameBudget = this.frameBudget;
+
+    this.isFlushingRAF = true;
+
+    if (timestamp > this.rafStartTime) {
+      const prevFrameDuration = this.prevFrameDuration = timestamp - this.rafStartTime;
+      if (prevFrameDuration + 1 < this.minFrameDuration) {
+        return;
+      }
+
       let i = 0;
-      this.isFlushingRAF = true;
-      let current = this.rafHead.$nextRAF as IRAFChangeTracker;
-      this.rafHead = this.rafTail = this;
-      this.rafCount = 0;
-      let next: typeof current;
+      const deadline = timestamp + this.maxFrameDuration;
       do {
-        if (++i === 100) {
-          i = 0;
-          if (PLATFORM.now() - start > frameBudget) {
-            this.rafHead.$nextRAF = current;
-            next = current;
-            while (next !== (PLATFORM.emptyObject as IRAFChangeTracker)) {
-              current = next;
-              next = current.$nextRAF as IRAFChangeTracker;
+        this.pendingChanges = 0;
+
+        let current = this.rafHead.next;
+        while (current !== void 0) {
+          // only call performance.now() every 100 calls to reduce the overhead (is this low enough though?)
+          if (this.timeslicingEnabled && ++i === 100) {
+            i = 0;
+            if (PLATFORM.now() >= deadline) {
+              // TODO: put unprocessed items to the front of the queue per priority, etc
+              break;
             }
-            this.rafTail = current;
-            break;
           }
+
+          current = current.call(flags);
         }
-        next = current.$nextRAF as IRAFChangeTracker;
-        current.$nextRAF = void 0;
-        current.flushRAF(flags);
-        current = next;
-      } while (current !== (PLATFORM.emptyObject as IRAFChangeTracker));
+      } while (this.pendingChanges > 0);
+
+      if (this.rafHead.next === void 0) {
+        this.stopTicking();
+      }
     }
-    this.processDetachQueue(flags);
-    this.processAttachQueue(flags);
+
+    this.rafStartTime = timestamp;
     this.isFlushingRAF = false;
   }
 
-  private readonly tick = () => {
-    this.processRAFQueue(LifecycleFlags.none);
+  public enableTimeslicing(): void {
+    this.timeslicingEnabled = true;
+  }
+
+  public disableTimeslicing(): void {
+    this.timeslicingEnabled = false;
   }
 }
 

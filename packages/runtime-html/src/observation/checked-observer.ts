@@ -184,6 +184,7 @@ export class CheckedObserver implements IAccessor<unknown> {
 
   public bind(flags: LifecycleFlags): void {
     this.lifecycle.enqueueRAF(this.flushRAF, this, Priority.propagate);
+    this.currentValue = this.obj.checked;
   }
 
   public unbind(flags: LifecycleFlags): void {

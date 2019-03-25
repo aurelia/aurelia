@@ -31,7 +31,7 @@ export class DataAttributeAccessor implements IAccessor<string | null> {
   }
 
   public getValue(): string | null {
-    return this.obj.getAttribute(this.propertyKey);
+    return this.currentValue;
   }
 
   public setValue(newValue: string | null, flags: LifecycleFlags): void {

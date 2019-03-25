@@ -36,7 +36,7 @@ export class AttributeNSAccessor implements IAccessor<string | null> {
   }
 
   public getValue(): string | null {
-    return this.obj.getAttributeNS(this.namespace, this.propertyKey);
+    return this.currentValue;
   }
 
   public setValue(newValue: string | null, flags: LifecycleFlags): void {

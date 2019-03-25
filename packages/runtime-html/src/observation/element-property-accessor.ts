@@ -32,7 +32,7 @@ export class ElementPropertyAccessor implements IAccessor<unknown> {
   }
 
   public getValue(): unknown {
-    return this.obj[this.propertyKey];
+    return this.currentValue;
   }
 
   public setValue(newValue: string | null, flags: LifecycleFlags): void {

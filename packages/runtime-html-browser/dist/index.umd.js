@@ -65,9 +65,9 @@
       }
   };
 
-  exports.IDOMInitializerRegistration = IDOMInitializerRegistration;
-  exports.DefaultComponents = DefaultComponents;
   exports.BasicConfiguration = BasicConfiguration;
+  exports.DefaultComponents = DefaultComponents;
+  exports.IDOMInitializerRegistration = IDOMInitializerRegistration;
 
   Object.defineProperty(exports, '__esModule', { value: true });
 

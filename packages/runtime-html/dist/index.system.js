@@ -47,10 +47,10 @@ System.register('runtimeHtml', ['@aurelia/kernel', '@aurelia/runtime'], function
     execute: function () {
 
       exports({
-        createElement: createElement,
         HTMLTargetedInstructionType: void 0,
-        isHTMLTargetedInstruction: isHTMLTargetedInstruction,
-        NodeType: void 0
+        NodeType: void 0,
+        createElement: createElement,
+        isHTMLTargetedInstruction: isHTMLTargetedInstruction
       });
 
       /**

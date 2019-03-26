@@ -535,11 +535,11 @@
       throw x;
   }
 
+  exports.HttpClient = HttpClient;
+  exports.HttpClientConfiguration = HttpClientConfiguration;
+  exports.RetryInterceptor = RetryInterceptor;
   exports.json = json;
   exports.retryStrategy = retryStrategy;
-  exports.RetryInterceptor = RetryInterceptor;
-  exports.HttpClientConfiguration = HttpClientConfiguration;
-  exports.HttpClient = HttpClient;
 
   Object.defineProperty(exports, '__esModule', { value: true });
 

@@ -532,5 +532,5 @@ function thrower(x) {
     throw x;
 }
 
-export { json, retryStrategy, RetryInterceptor, HttpClientConfiguration, HttpClient };
+export { HttpClient, HttpClientConfiguration, RetryInterceptor, json, retryStrategy };
 //# sourceMappingURL=index.es6.js.map

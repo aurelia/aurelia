@@ -4,12 +4,12 @@ System.register('kernel', [], function (exports, module) {
     execute: function () {
 
       exports({
-        singleton: singleton,
-        transient: transient,
-        relativeToFile: relativeToFile,
-        join: join,
         buildQueryString: buildQueryString,
-        parseQueryString: parseQueryString
+        join: join,
+        parseQueryString: parseQueryString,
+        relativeToFile: relativeToFile,
+        singleton: singleton,
+        transient: transient
       });
 
       // tslint:disable-next-line:no-redundant-jump

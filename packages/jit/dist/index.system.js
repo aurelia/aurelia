@@ -48,12 +48,12 @@ System.register('jit', ['@aurelia/kernel', '@aurelia/runtime'], function (export
     execute: function () {
 
       exports({
+        SymbolFlags: void 0,
         attributePattern: attributePattern,
         bindingCommand: bindingCommand,
         getMode: getMode,
         getTarget: getTarget,
-        parseExpression: parseExpression,
-        SymbolFlags: void 0
+        parseExpression: parseExpression
       });
 
       class AttrSyntax {

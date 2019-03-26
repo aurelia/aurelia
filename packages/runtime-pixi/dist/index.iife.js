@@ -411,10 +411,10 @@ this.au.runtimePixi = (function (exports, kernel, runtimeHtmlBrowser, runtime, p
         }
     };
 
+    exports.BasicConfiguration = BasicConfiguration;
+    exports.DefaultResources = DefaultResources;
     exports.PixiAppRegistration = PixiAppRegistration;
     exports.PixiSpriteRegistration = PixiSpriteRegistration;
-    exports.DefaultResources = DefaultResources;
-    exports.BasicConfiguration = BasicConfiguration;
 
     return exports;
 

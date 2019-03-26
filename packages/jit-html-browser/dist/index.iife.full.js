@@ -15443,13 +15443,13 @@ var au = (function (exports) {
         BasicConfiguration: BasicConfiguration$4
     });
 
+    exports.jit = index$2;
+    exports.jitHtml = index$4;
+    exports.jitHtmlBrowser = index$6;
     exports.kernel = index;
     exports.runtime = index$1;
     exports.runtimeHtml = index$3;
     exports.runtimeHtmlBrowser = index$5;
-    exports.jit = index$2;
-    exports.jitHtml = index$4;
-    exports.jitHtmlBrowser = index$6;
 
     return exports;
 

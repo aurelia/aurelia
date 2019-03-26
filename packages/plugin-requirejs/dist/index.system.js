@@ -8,20 +8,20 @@ System.register('pluginRequirejs', ['@aurelia/runtime'], function (exports, modu
     execute: function () {
 
       exports({
-        loadComponent: load,
-        writeComponent: write,
-        loadView: load$1,
-        writeView: write$1,
-        installRequireJSPlugins: installRequireJSPlugins,
-        processImports: processImports,
         addHyphenAndLower: addHyphenAndLower,
-        kebabCase: kebabCase,
-        escape: escape,
         createTemplateDescription: createTemplateDescription,
-        parseImport: parseImport,
-        relativeToFile: relativeToFile,
+        escape: escape,
+        installRequireJSPlugins: installRequireJSPlugins,
+        kebabCase: kebabCase,
+        loadComponent: load,
         loadFromFile: loadFromFile,
-        trimDots: trimDots
+        loadView: load$1,
+        parseImport: parseImport,
+        processImports: processImports,
+        relativeToFile: relativeToFile,
+        trimDots: trimDots,
+        writeComponent: write,
+        writeView: write$1
       });
 
       function processImports(toProcess, relativeTo) {

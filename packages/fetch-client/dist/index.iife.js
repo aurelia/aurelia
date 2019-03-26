@@ -533,11 +533,11 @@ this.au.fetchClient = (function (exports, kernel, runtime) {
       throw x;
   }
 
+  exports.HttpClient = HttpClient;
+  exports.HttpClientConfiguration = HttpClientConfiguration;
+  exports.RetryInterceptor = RetryInterceptor;
   exports.json = json;
   exports.retryStrategy = retryStrategy;
-  exports.RetryInterceptor = RetryInterceptor;
-  exports.HttpClientConfiguration = HttpClientConfiguration;
-  exports.HttpClient = HttpClient;
 
   return exports;
 

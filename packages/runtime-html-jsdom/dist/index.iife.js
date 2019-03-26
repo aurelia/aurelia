@@ -67,9 +67,9 @@ this.au.runtimeHtmlJsdom = (function (exports, kernel, runtime, runtimeHtml, jsd
       }
   };
 
-  exports.IDOMInitializerRegistration = IDOMInitializerRegistration;
-  exports.DefaultComponents = DefaultComponents;
   exports.BasicConfiguration = BasicConfiguration;
+  exports.DefaultComponents = DefaultComponents;
+  exports.IDOMInitializerRegistration = IDOMInitializerRegistration;
 
   return exports;
 

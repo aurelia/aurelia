@@ -63,5 +63,5 @@ const BasicConfiguration = {
     }
 };
 
-export { IDOMInitializerRegistration, DefaultComponents, BasicConfiguration };
+export { BasicConfiguration, DefaultComponents, IDOMInitializerRegistration };
 //# sourceMappingURL=index.es6.js.map

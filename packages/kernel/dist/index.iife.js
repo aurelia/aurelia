@@ -1590,26 +1590,26 @@ this.au.kernel = (function (exports) {
       }
   }
 
-  exports.all = all;
   exports.DI = DI;
+  exports.EventAggregator = EventAggregator;
   exports.IContainer = IContainer;
-  exports.inject = inject;
   exports.IServiceLocator = IServiceLocator;
+  exports.PLATFORM = PLATFORM;
+  exports.Profiler = Profiler;
+  exports.Registration = Registration;
+  exports.Reporter = Reporter;
+  exports.RuntimeCompilationResources = RuntimeCompilationResources;
+  exports.Tracer = Tracer;
+  exports.all = all;
+  exports.buildQueryString = buildQueryString;
+  exports.inject = inject;
+  exports.join = join;
   exports.lazy = lazy;
   exports.optional = optional;
-  exports.Registration = Registration;
+  exports.parseQueryString = parseQueryString;
+  exports.relativeToFile = relativeToFile;
   exports.singleton = singleton;
   exports.transient = transient;
-  exports.relativeToFile = relativeToFile;
-  exports.join = join;
-  exports.buildQueryString = buildQueryString;
-  exports.parseQueryString = parseQueryString;
-  exports.PLATFORM = PLATFORM;
-  exports.Reporter = Reporter;
-  exports.Tracer = Tracer;
-  exports.Profiler = Profiler;
-  exports.RuntimeCompilationResources = RuntimeCompilationResources;
-  exports.EventAggregator = EventAggregator;
 
   return exports;
 

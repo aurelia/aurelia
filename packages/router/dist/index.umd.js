@@ -2570,24 +2570,24 @@
       })
   ], exports.NavCustomElement);
 
+  exports.CharSpec = CharSpec;
+  exports.DynamicSegment = DynamicSegment;
+  exports.EpsilonSegment = EpsilonSegment;
+  exports.HandlerEntry = HandlerEntry;
   exports.HistoryBrowser = HistoryBrowser;
+  exports.IRouteTransformer = IRouteTransformer;
   exports.LinkHandler = LinkHandler;
   exports.Nav = Nav;
   exports.QueuedBrowserHistory = QueuedBrowserHistory;
-  exports.HandlerEntry = HandlerEntry;
-  exports.RouteGenerator = RouteGenerator;
-  exports.TypesRecord = TypesRecord;
   exports.RecognizeResult = RecognizeResult;
-  exports.CharSpec = CharSpec;
-  exports.State = State;
-  exports.StaticSegment = StaticSegment;
-  exports.DynamicSegment = DynamicSegment;
-  exports.StarSegment = StarSegment;
-  exports.EpsilonSegment = EpsilonSegment;
+  exports.RouteGenerator = RouteGenerator;
   exports.RouteRecognizer = RouteRecognizer;
-  exports.IRouteTransformer = IRouteTransformer;
   exports.Router = Router;
   exports.Scope = Scope;
+  exports.StarSegment = StarSegment;
+  exports.State = State;
+  exports.StaticSegment = StaticSegment;
+  exports.TypesRecord = TypesRecord;
   exports.Viewport = Viewport;
   exports.ViewportCustomElement = ViewportCustomElement;
 

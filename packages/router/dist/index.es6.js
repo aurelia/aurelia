@@ -2567,5 +2567,5 @@ NavCustomElement = __decorate([
     })
 ], NavCustomElement);
 
-export { HistoryBrowser, LinkHandler, Nav, QueuedBrowserHistory, HandlerEntry, RouteGenerator, TypesRecord, RecognizeResult, CharSpec, State, StaticSegment, DynamicSegment, StarSegment, EpsilonSegment, RouteRecognizer, IRouteTransformer, Router, Scope, Viewport, ViewportCustomElement, NavCustomElement };
+export { CharSpec, DynamicSegment, EpsilonSegment, HandlerEntry, HistoryBrowser, IRouteTransformer, LinkHandler, Nav, NavCustomElement, QueuedBrowserHistory, RecognizeResult, RouteGenerator, RouteRecognizer, Router, Scope, StarSegment, State, StaticSegment, TypesRecord, Viewport, ViewportCustomElement };
 //# sourceMappingURL=index.es6.js.map

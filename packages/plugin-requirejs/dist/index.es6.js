@@ -253,5 +253,5 @@ function installRequireJSPlugins() {
     nonAnonDefine('component', [], componentPlugin);
 }
 
-export { load as loadComponent, write as writeComponent, load$1 as loadView, write$1 as writeView, installRequireJSPlugins, processImports, addHyphenAndLower, kebabCase, escape, createTemplateDescription, parseImport, relativeToFile, loadFromFile, trimDots };
+export { addHyphenAndLower, createTemplateDescription, escape, installRequireJSPlugins, kebabCase, load as loadComponent, loadFromFile, load$1 as loadView, parseImport, processImports, relativeToFile, trimDots, write as writeComponent, write$1 as writeView };
 //# sourceMappingURL=index.es6.js.map

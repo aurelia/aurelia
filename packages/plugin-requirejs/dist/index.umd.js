@@ -257,20 +257,20 @@
       nonAnonDefine('component', [], componentPlugin);
   }
 
-  exports.loadComponent = load;
-  exports.writeComponent = write;
-  exports.loadView = load$1;
-  exports.writeView = write$1;
-  exports.installRequireJSPlugins = installRequireJSPlugins;
-  exports.processImports = processImports;
   exports.addHyphenAndLower = addHyphenAndLower;
-  exports.kebabCase = kebabCase;
-  exports.escape = escape;
   exports.createTemplateDescription = createTemplateDescription;
-  exports.parseImport = parseImport;
-  exports.relativeToFile = relativeToFile;
+  exports.escape = escape;
+  exports.installRequireJSPlugins = installRequireJSPlugins;
+  exports.kebabCase = kebabCase;
+  exports.loadComponent = load;
   exports.loadFromFile = loadFromFile;
+  exports.loadView = load$1;
+  exports.parseImport = parseImport;
+  exports.processImports = processImports;
+  exports.relativeToFile = relativeToFile;
   exports.trimDots = trimDots;
+  exports.writeComponent = write;
+  exports.writeView = write$1;
 
   Object.defineProperty(exports, '__esModule', { value: true });
 

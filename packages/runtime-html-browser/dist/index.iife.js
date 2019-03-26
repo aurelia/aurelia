@@ -63,9 +63,9 @@ this.au.runtimeHtmlBrowser = (function (exports, kernel, runtime, runtimeHtml) {
       }
   };
 
-  exports.IDOMInitializerRegistration = IDOMInitializerRegistration;
-  exports.DefaultComponents = DefaultComponents;
   exports.BasicConfiguration = BasicConfiguration;
+  exports.DefaultComponents = DefaultComponents;
+  exports.IDOMInitializerRegistration = IDOMInitializerRegistration;
 
   return exports;
 

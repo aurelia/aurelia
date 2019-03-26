@@ -1064,5 +1064,5 @@ function stringifyTemplateDefinition(def, depth) {
     return output;
 }
 
-export { TriggerBindingCommand, DelegateBindingCommand, CaptureBindingCommand, AttrBindingCommand, ClassBindingCommand, StyleBindingCommand, ITemplateCompilerRegistration, ITemplateElementFactoryRegistration, DefaultComponents, TriggerBindingCommandRegistration, DelegateBindingCommandRegistration, CaptureBindingCommandRegistration, AttrBindingCommandRegistration, ClassBindingCommandRegistration, StyleBindingCommandRegistration, DefaultBindingLanguage, BasicConfiguration, stringifyDOM, stringifyInstructions, stringifyTemplateDefinition, TemplateBinder, ITemplateElementFactory };
+export { AttrBindingCommand, AttrBindingCommandRegistration, BasicConfiguration, CaptureBindingCommand, CaptureBindingCommandRegistration, ClassBindingCommand, ClassBindingCommandRegistration, DefaultBindingLanguage, DefaultComponents, DelegateBindingCommand, DelegateBindingCommandRegistration, ITemplateCompilerRegistration, ITemplateElementFactory, ITemplateElementFactoryRegistration, StyleBindingCommand, StyleBindingCommandRegistration, TemplateBinder, TriggerBindingCommand, TriggerBindingCommandRegistration, stringifyDOM, stringifyInstructions, stringifyTemplateDefinition };
 //# sourceMappingURL=index.es6.js.map

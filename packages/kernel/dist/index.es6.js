@@ -1586,5 +1586,5 @@ class EventAggregator {
     }
 }
 
-export { all, DI, IContainer, inject, IServiceLocator, lazy, optional, Registration, singleton, transient, relativeToFile, join, buildQueryString, parseQueryString, PLATFORM, Reporter, Tracer, Profiler, RuntimeCompilationResources, EventAggregator };
+export { DI, EventAggregator, IContainer, IServiceLocator, PLATFORM, Profiler, Registration, Reporter, RuntimeCompilationResources, Tracer, all, buildQueryString, inject, join, lazy, optional, parseQueryString, relativeToFile, singleton, transient };
 //# sourceMappingURL=index.es6.js.map

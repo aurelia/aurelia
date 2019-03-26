@@ -412,5 +412,5 @@ const BasicConfiguration = {
     }
 };
 
-export { PixiApp, PixiSprite, PixiAppRegistration, PixiSpriteRegistration, DefaultResources, BasicConfiguration };
+export { BasicConfiguration, DefaultResources, PixiApp, PixiAppRegistration, PixiSprite, PixiSpriteRegistration };
 //# sourceMappingURL=index.es6.js.map

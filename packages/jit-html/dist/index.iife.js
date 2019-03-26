@@ -1063,28 +1063,28 @@ this.au.jitHtml = (function (exports, jit, runtimeHtml, kernel, runtime) {
       return output;
   }
 
-  exports.TriggerBindingCommand = TriggerBindingCommand;
-  exports.DelegateBindingCommand = DelegateBindingCommand;
-  exports.CaptureBindingCommand = CaptureBindingCommand;
   exports.AttrBindingCommand = AttrBindingCommand;
-  exports.ClassBindingCommand = ClassBindingCommand;
-  exports.StyleBindingCommand = StyleBindingCommand;
-  exports.ITemplateCompilerRegistration = ITemplateCompilerRegistration;
-  exports.ITemplateElementFactoryRegistration = ITemplateElementFactoryRegistration;
-  exports.DefaultComponents = DefaultComponents;
-  exports.TriggerBindingCommandRegistration = TriggerBindingCommandRegistration;
-  exports.DelegateBindingCommandRegistration = DelegateBindingCommandRegistration;
-  exports.CaptureBindingCommandRegistration = CaptureBindingCommandRegistration;
   exports.AttrBindingCommandRegistration = AttrBindingCommandRegistration;
-  exports.ClassBindingCommandRegistration = ClassBindingCommandRegistration;
-  exports.StyleBindingCommandRegistration = StyleBindingCommandRegistration;
-  exports.DefaultBindingLanguage = DefaultBindingLanguage;
   exports.BasicConfiguration = BasicConfiguration;
+  exports.CaptureBindingCommand = CaptureBindingCommand;
+  exports.CaptureBindingCommandRegistration = CaptureBindingCommandRegistration;
+  exports.ClassBindingCommand = ClassBindingCommand;
+  exports.ClassBindingCommandRegistration = ClassBindingCommandRegistration;
+  exports.DefaultBindingLanguage = DefaultBindingLanguage;
+  exports.DefaultComponents = DefaultComponents;
+  exports.DelegateBindingCommand = DelegateBindingCommand;
+  exports.DelegateBindingCommandRegistration = DelegateBindingCommandRegistration;
+  exports.ITemplateCompilerRegistration = ITemplateCompilerRegistration;
+  exports.ITemplateElementFactory = ITemplateElementFactory;
+  exports.ITemplateElementFactoryRegistration = ITemplateElementFactoryRegistration;
+  exports.StyleBindingCommand = StyleBindingCommand;
+  exports.StyleBindingCommandRegistration = StyleBindingCommandRegistration;
+  exports.TemplateBinder = TemplateBinder;
+  exports.TriggerBindingCommand = TriggerBindingCommand;
+  exports.TriggerBindingCommandRegistration = TriggerBindingCommandRegistration;
   exports.stringifyDOM = stringifyDOM;
   exports.stringifyInstructions = stringifyInstructions;
   exports.stringifyTemplateDefinition = stringifyTemplateDefinition;
-  exports.TemplateBinder = TemplateBinder;
-  exports.ITemplateElementFactory = ITemplateElementFactory;
 
   return exports;
 

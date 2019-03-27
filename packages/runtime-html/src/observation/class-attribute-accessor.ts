@@ -19,7 +19,10 @@ export class ClassAttributeAccessor implements IAccessor<string> {
   public hasChanges: boolean;
   public isActive: boolean;
 
-  constructor(lifecycle: ILifecycle, obj: HTMLElement) {
+  constructor(
+    lifecycle: ILifecycle,
+    obj: HTMLElement,
+  ) {
     this.lifecycle = lifecycle;
 
     this.obj = obj;

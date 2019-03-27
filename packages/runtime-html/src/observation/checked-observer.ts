@@ -15,6 +15,7 @@ import {
   SetterObserver,
   subscriberCollection,
 } from '@aurelia/runtime';
+
 import { IEventSubscriber } from './event-manager';
 import { ValueAttributeObserver } from './value-attribute-observer';
 
@@ -32,17 +33,15 @@ function defaultMatcher(a: unknown, b: unknown): boolean {
 }
 
 export interface CheckedObserver extends
-  ISubscriberCollection,
-  ICollectionSubscriberCollection {}
+  ISubscriberCollection {}
 
 @subscriberCollection()
-@collectionSubscriberCollection()
 export class CheckedObserver implements IAccessor<unknown> {
   public readonly lifecycle: ILifecycle;
   public readonly observerLocator: IObserverLocator;
+  public readonly handler: IEventSubscriber;
 
   public readonly obj: IInputElement;
-  public readonly handler: IEventSubscriber;
   public currentValue: unknown;
   public oldValue: unknown;
 
@@ -53,15 +52,15 @@ export class CheckedObserver implements IAccessor<unknown> {
 
   constructor(
     lifecycle: ILifecycle,
-    obj: IInputElement,
-    handler: IEventSubscriber,
     observerLocator: IObserverLocator,
+    handler: IEventSubscriber,
+    obj: IInputElement,
   ) {
     this.lifecycle = lifecycle;
     this.observerLocator = observerLocator;
+    this.handler = handler;
 
     this.obj = obj;
-    this.handler = handler;
     this.currentValue = void 0;
     this.oldValue = void 0;
 
@@ -117,13 +116,15 @@ export class CheckedObserver implements IAccessor<unknown> {
   }
 
   public handleCollectionChange(indexMap: IndexMap, flags: LifecycleFlags): void {
+    const { currentValue, oldValue } = this;
     if (this.lifecycle.isFlushingRAF || (flags & LifecycleFlags.fromBind) > 0) {
+      this.oldValue = currentValue;
       this.synchronizeElement();
     } else {
       this.hasChanges = true;
     }
 
-    this.callCollectionSubscribers(indexMap, flags);
+    this.callSubscribers(currentValue, oldValue, flags);
   }
 
   public handleChange(newValue: unknown, previousValue: unknown, flags: LifecycleFlags): void {

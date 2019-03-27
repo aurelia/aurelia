@@ -19,27 +19,26 @@ export interface ValueAttributeObserver
 @subscriberCollection()
 export class ValueAttributeObserver implements IAccessor<unknown> {
   public readonly lifecycle: ILifecycle;
+  public readonly handler: IEventSubscriber;
 
   public readonly obj: Node & IIndexable;
   public readonly propertyKey: string;
   public currentValue: unknown;
   public oldValue: unknown;
 
-  public readonly handler: IEventSubscriber;
-
   public hasChanges: boolean;
 
   constructor(
     lifecycle: ILifecycle,
+    handler: IEventSubscriber,
     obj: Node,
     propertyKey: string,
-    handler: IEventSubscriber,
   ) {
     this.lifecycle = lifecycle;
+    this.handler = handler;
 
     this.obj = obj;
     this.propertyKey = propertyKey;
-    this.handler = handler;
     this.currentValue = '';
     this.oldValue = '';
 

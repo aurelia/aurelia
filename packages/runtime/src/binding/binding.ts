@@ -163,7 +163,7 @@ export class Binding implements IPartialConnectableBinding {
         targetObserver = this.targetObserver = this.observerLocator.getAccessor(flags, this.target, this.targetProperty) as IBindingTargetObserver;
       }
     }
-    if (targetObserver.bind) {
+    if (this.mode !== BindingMode.oneTime && targetObserver.bind) {
       targetObserver.bind(flags);
     }
 

@@ -1,4 +1,5 @@
-import { PLATFORM, Reporter } from '@aurelia/kernel';
+import { InjectArray, PLATFORM, Reporter } from '@aurelia/kernel';
+import { ILifecycle, Priority } from '@aurelia/runtime';
 import { DOM } from '@aurelia/runtime-html';
 
 export interface QueuedBrowserHistory extends History {
@@ -15,6 +16,9 @@ interface QueueItem {
 }
 
 export class QueuedBrowserHistory implements QueuedBrowserHistory {
+  public static readonly inject: InjectArray = [ILifecycle];
+
+  private readonly lifecycle: ILifecycle;
   private readonly queue: QueueItem[];
   private isActive: boolean;
   private currentHistoryActivity: QueueItem;
@@ -23,7 +27,8 @@ export class QueuedBrowserHistory implements QueuedBrowserHistory {
   private goResolve: ((value?: void | PromiseLike<void>) => void);
   private suppressPopstateResolve: ((value?: void | PromiseLike<void>) => void);
 
-  constructor() {
+  constructor(lifecycle: ILifecycle) {
+    this.lifecycle = lifecycle;
     this.queue = [];
     this.isActive = false;
     this.currentHistoryActivity = null;
@@ -38,12 +43,12 @@ export class QueuedBrowserHistory implements QueuedBrowserHistory {
     }
     this.isActive = true;
     this.callback = callback;
-    PLATFORM.ticker.add(this.dequeue, this);
+    this.lifecycle.enqueueRAF(this.dequeue, this, Priority.low);
     DOM.window.addEventListener('popstate', this.handlePopstate);
   }
   public deactivate(): void {
     DOM.window.removeEventListener('popstate', this.handlePopstate);
-    PLATFORM.ticker.remove(this.dequeue, this);
+    this.lifecycle.dequeueRAF(this.dequeue, this);
     this.callback = null;
     this.isActive = false;
   }

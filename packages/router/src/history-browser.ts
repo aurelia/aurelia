@@ -1,5 +1,6 @@
-import { Reporter } from '@aurelia/kernel';
+import { Reporter, InjectArray } from '@aurelia/kernel';
 import { QueuedBrowserHistory } from './queued-browser-history';
+import { ILifecycle } from '@aurelia/runtime';
 export interface IHistoryEntry {
   path: string;
   fullStatePath: string;
@@ -31,6 +32,8 @@ export interface INavigationInstruction extends IHistoryEntry, INavigationFlags 
 }
 
 export class HistoryBrowser {
+  public static readonly inject: InjectArray = [ILifecycle];
+
   public currentEntry: IHistoryEntry;
   public historyEntries: IHistoryEntry[];
   public historyOffset: number;
@@ -48,8 +51,8 @@ export class HistoryBrowser {
   private isReplacing: boolean;
   private isRefreshing: boolean;
 
-  constructor() {
-    this.history = new QueuedBrowserHistory();
+  constructor(lifecycle: ILifecycle) {
+    this.history = new QueuedBrowserHistory(lifecycle);
 
     this.currentEntry = null;
     this.historyEntries = null;

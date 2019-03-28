@@ -396,7 +396,7 @@ export class Router {
   private ensureRootScope(): void {
     if (!this.rootScope) {
       const root = this.container.get(Aurelia).root;
-      this.rootScope = new Scope(this, root.host as Element, root.context, null);
+      this.rootScope = new Scope(this, root.host as Element, root.controller.context, null);
       this.scopes.push(this.rootScope);
     }
   }

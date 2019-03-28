@@ -136,7 +136,7 @@ export class Repeat<C extends ObservedCollection = IObservedArray, T extends INo
     let binding: Binding;
     for (let i = 0; i < length; ++i) {
       binding = bindings[i];
-      if (binding.target === this && binding.targetProperty === 'items') {
+      if (binding.target === this.$controller && binding.targetProperty === 'items') {
         this.forOf = binding.sourceExpression as ForOfStatement;
         break;
       }

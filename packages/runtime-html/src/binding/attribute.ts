@@ -145,7 +145,6 @@ export class AttributeBinding implements IPartialConnectableBinding {
     let targetObserver = this.targetObserver as IBindingTargetObserver;
     if (!targetObserver) {
       targetObserver = this.targetObserver = new AttributeObserver(
-        LifecycleFlags.fromBind,
         this.$lifecycle,
         this.observerLocator,
         this.target,

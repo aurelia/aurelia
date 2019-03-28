@@ -776,6 +776,10 @@ export class Container implements IContainer {
     if ((keyAsValue as IRegistration).register !== void 0) {
       const registrationResolver = (keyAsValue as IRegistration).register(handler, keyAsValue);
       if (!(registrationResolver instanceof Object) || registrationResolver.resolve == null) {
+        const newResolver = handler.resolvers.get(keyAsValue as any);
+        if (newResolver != void 0) {
+          return newResolver;
+        }
         throw Reporter.error(40); // did not return a valid resolver from the static register method
       }
       return registrationResolver;

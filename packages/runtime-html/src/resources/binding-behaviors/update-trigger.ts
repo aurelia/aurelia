@@ -1,4 +1,4 @@
-import { InjectArray, IRegistry, Reporter } from '@aurelia/kernel';
+import { InjectArray, IRegistry, Reporter, Writable } from '@aurelia/kernel';
 import { Binding, BindingBehaviorResource, BindingMode, IDOM, IObserverLocator, IScope, LifecycleFlags } from '@aurelia/runtime';
 import { CheckedObserver } from '../../observation/checked-observer';
 import { EventSubscriber, IEventSubscriber } from '../../observation/event-manager';
@@ -52,13 +52,13 @@ export class UpdateTriggerBindingBehavior {
     targetObserver.originalHandler = binding.targetObserver.handler;
 
     // replace the element subscribe function with one that uses the correct events.
-    targetObserver.handler = new EventSubscriber(binding.locator.get(IDOM), events);
+    (targetObserver as Writable<typeof targetObserver>).handler = new EventSubscriber(binding.locator.get(IDOM), events);
   }
 
   public unbind(flags: LifecycleFlags, scope: IScope, binding: UpdateTriggerableBinding): void {
     // restore the state of the binding.
     binding.targetObserver.handler.dispose();
-    binding.targetObserver.handler = binding.targetObserver.originalHandler!;
+    (binding.targetObserver as Writable<typeof binding.targetObserver>).handler = binding.targetObserver.originalHandler!;
     binding.targetObserver.originalHandler = null!;
   }
 }

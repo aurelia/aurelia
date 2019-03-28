@@ -17,11 +17,12 @@
     "test-firefox": "karma start karma.conf.js --browsers=FirefoxHeadless --single-run --coverage",
     "test-node:verbose": "mocha --opts mocha.opts --reporter spec --bail setup-node.ts runtime/**/*.spec.ts",
     "test-node:watch": "npm run test-node -- --watch --watch-extensions ts",
-    "test-chrome:watch": "npm run ~test -- --browsers=ChromeHeadlessOpt --coverage",
-    "test-chrome:watch:verbose": "npm run ~test -- --browsers=ChromeHeadlessOpt --coverage --reporter=mocha",
-    "test-chrome:debugger": "npm run ~test -- --browsers=ChromeDebugging",
-    "test-chrome:debugger:verbose": "npm run ~test -- --browsers=ChromeDebugging --reporter=mocha",
-    "build": "tsc -b"
+    "test-chrome:watch": "karma start karma.conf.js --browsers=ChromeHeadlessOpt --coverage --watch-extensions js",
+    "test-chrome:watch:verbose": "karma start karma.conf.js --browsers=ChromeHeadlessOpt --coverage --watch-extensions js --reporter=mocha",
+    "test-chrome:debugger": "karma start karma.conf.js --browsers=ChromeDebugging --watch-extensions js",
+    "test-chrome:debugger:verbose": "karma start karma.conf.js --browsers=ChromeDebugging --watch-extensions js --reporter=mocha",
+    "build": "tsc -b",
+    "dev": "tsc -b -w"
   },
   "dependencies": {
     "@types/chai": "^4.1.7",

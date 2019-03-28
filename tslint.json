@@ -205,7 +205,7 @@
     ],
     "underscore-consistent-invocation": true,
     "unified-signatures": false,
-    "use-default-type-parameter": true,
+    "use-default-type-parameter": false,
     "variable-name": [true, "ban-keywords", "allow-leading-underscore", "allow-pascal-case"],
 
   /**

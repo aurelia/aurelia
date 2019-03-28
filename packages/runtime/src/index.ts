@@ -392,6 +392,7 @@ export {
   IRenderContext,
   IViewCache,
   IViewFactory,
+  Priority,
 } from './lifecycle';
 export {
   PromiseOrTask,

@@ -1,6 +1,6 @@
 {
   "name": "@aurelia/runtime-pixi",
-  "version": "0.3.0-dev.20190327",
+  "version": "0.3.0-dev.20190328",
   "main": "dist/index.umd.js",
   "module": "dist/index.es6.js",
   "jsnext:main": "dist/index.es6.js",
@@ -48,10 +48,10 @@
     "access": "public"
   },
   "dependencies": {
-    "@aurelia/kernel": "0.3.0-dev.20190327",
-    "@aurelia/runtime": "0.3.0-dev.20190327",
-    "@aurelia/runtime-html": "0.3.0-dev.20190327",
-    "@aurelia/runtime-html-browser": "0.3.0-dev.20190327",
+    "@aurelia/kernel": "0.3.0-dev.20190328",
+    "@aurelia/runtime": "0.3.0-dev.20190328",
+    "@aurelia/runtime-html": "0.3.0-dev.20190328",
+    "@aurelia/runtime-html-browser": "0.3.0-dev.20190328",
     "pixi.js": "^4.8.6"
   },
   "devDependencies": {

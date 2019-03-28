@@ -54,7 +54,10 @@ export {
   StrictPrimitive,
   Unwrap,
   ValuesOf,
-  Writable
+  Writable,
+  IfEquals,
+  ReadonlyKeys,
+  WritableKeys,
 } from './interfaces';
 export {
   relativeToFile,

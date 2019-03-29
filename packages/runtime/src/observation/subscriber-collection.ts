@@ -328,13 +328,13 @@ function callSubscribers(this: ISubscriberCollection, newValue: unknown, previou
     subscribers = subscribers.slice();
   }
   if (subscriber0 !== void 0) {
-    callSubscriber(subscriber0, newValue, previousValue, flags, this[subscriber0.id === void 0 ? -1 : subscriber0.id]);
+    callSubscriber(subscriber0, newValue, previousValue, flags, subscriber0.id === void 0 ? 0 : this[subscriber0.id]);
   }
   if (subscriber1 !== void 0) {
-    callSubscriber(subscriber1, newValue, previousValue, flags, this[subscriber1.id === void 0 ? -1 : subscriber1.id]);
+    callSubscriber(subscriber1, newValue, previousValue, flags, subscriber1.id === void 0 ? 0 : this[subscriber1.id]);
   }
   if (subscriber2 !== void 0) {
-    callSubscriber(subscriber2, newValue, previousValue, flags, this[subscriber2.id === void 0 ? -1 : subscriber2.id]);
+    callSubscriber(subscriber2, newValue, previousValue, flags, subscriber2.id === void 0 ? 0 : this[subscriber2.id]);
   }
   if (subscribers !== void 0) {
     const { length } = subscribers;
@@ -342,7 +342,7 @@ function callSubscribers(this: ISubscriberCollection, newValue: unknown, previou
     for (let i = 0; i < length; ++i) {
       subscriber = subscribers[i];
       if (subscriber !== void 0) {
-        callSubscriber(subscriber, newValue, previousValue, flags, this[subscriber.id === void 0 ? -1 : subscriber.id]);
+        callSubscriber(subscriber, newValue, previousValue, flags, subscriber.id === void 0 ? 0 : this[subscriber.id]);
       }
     }
   }
@@ -355,31 +355,7 @@ function callSubscriber(
   flags: LF,
   ownFlags: LF,
 ): void {
-  if (ownFlags === -1) {
-    // If ownFlags is undefined then the subscriber is not a connectable binding and we don't
-    // have any business trying to restrict the data flow, so just call it with whatever we received.
-    subscriber.handleChange(newValue, previousValue, flags);
-
-  // Note: if the update flags for both directions are set, that means an observer's callSubscribers caused the update direction to switch
-  // back to the origin of the change.
-  // With this heuristic we stop this roundtrip a little earlier than vCurrent does (where the target or source is evaluated
-  // and compared again) and effectively make this a "purer" one-way update flow that prevents observable side-effects from
-  // flowing back the opposite direction.
-  } else if (((flags | ownFlags) & LF.update) === LF.update) {
-
-    // Observers should explicitly pass this flag if they want a roundtrip to happen anyway.
-    // SelfObserver does this in order to propagate from-view changes from a child component back to the bindings
-    // on its own component.
-    // Some target observers (e.g. select) do this as well, but the other way around.
-    if ((flags & LF.allowPublishRoundtrip) > 0) {
-      // Unset the directional flag that came in from the origin and allowPublishRoundtrip since we don't
-      // want these to flow into the next subscriberCollection
-      subscriber.handleChange(newValue, previousValue, (flags & ~(LF.update | LF.allowPublishRoundtrip)) | ownFlags);
-    }
-  } else {
-    // If this is not a roundtrip, simply proceed in the same direction.
-    subscriber.handleChange(newValue, previousValue, flags | ownFlags);
-  }
+  subscriber.handleChange(newValue, previousValue, ((flags | LF.update) ^ LF.update) | ownFlags);
 }
 
 function callProxySubscribers(this: IProxySubscriberCollection, key: PropertyKey, newValue: unknown, previousValue: unknown, flags: LF): void {

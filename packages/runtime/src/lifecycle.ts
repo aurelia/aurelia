@@ -205,10 +205,26 @@ class LinkedCallback {
   public priority: Priority;
   public once: boolean;
 
-  public next?: this;
-  public prev?: this;
+  public next?: LinkedCallback;
+  public prev?: LinkedCallback;
 
   public unlinked: boolean;
+
+  public get first(): LinkedCallback {
+    let cur: LinkedCallback = this;
+    while (cur.prev !== void 0 && cur.prev.priority === this.priority) {
+      cur = cur.prev;
+    }
+    return cur;
+  }
+
+  public get last(): LinkedCallback {
+    let cur: LinkedCallback = this;
+    while (cur.next !== void 0 && cur.next.priority === this.priority) {
+      cur = cur.next;
+    }
+    return cur;
+  }
 
   constructor(
     cb?: (() => void) | ((flags: LifecycleFlags) => void),
@@ -231,7 +247,7 @@ class LinkedCallback {
     return this.cb === fn && this.context === context;
   }
 
-  public call(flags: LifecycleFlags): this | undefined {
+  public call(flags: LifecycleFlags): LinkedCallback | undefined {
     if (this.cb !== void 0) {
       if (this.context !== void 0) {
         this.cb.call(this.context, flags);
@@ -252,7 +268,32 @@ class LinkedCallback {
     }
   }
 
-  public link(prev: this): void {
+  public rotate(): void {
+    if (this.prev === void 0 || this.prev.priority > this.priority) {
+      return;
+    }
+
+    const { first, last } = this;
+
+    const firstPrev = first.prev;
+    const lastNext = last.next;
+    const thisPrev = this.prev;
+
+    this.prev = firstPrev;
+    if (firstPrev !== void 0) {
+      firstPrev.next = this;
+    }
+
+    last.next = first;
+    first.prev = last;
+
+    thisPrev.next = lastNext;
+    if (lastNext !== void 0) {
+      lastNext.prev = thisPrev;
+    }
+  }
+
+  public link(prev: LinkedCallback): void {
     this.prev = prev;
 
     if (prev.next !== void 0) {
@@ -263,7 +304,7 @@ class LinkedCallback {
     prev.next = this;
   }
 
-  public unlink(removeNext: boolean = false): this | undefined {
+  public unlink(removeNext: boolean = false): LinkedCallback | undefined {
     this.unlinked = true;
     this.cb = void 0;
     this.context = void 0;
@@ -386,6 +427,8 @@ export class Lifecycle implements ILifecycle {
   public resolveNextFrame!: (timestamp: number) => void;
 
   public timeslicingEnabled: boolean;
+  public adaptiveTimeslicing: boolean;
+  public frameDurationFactor: number;
   public pendingChanges: number;
 
   private readonly tick: (timestamp: number) => void;
@@ -394,7 +437,8 @@ export class Lifecycle implements ILifecycle {
     this.bindDepth = 0;
     this.unbindDepth = 0;
 
-    this.rafHead = this.rafTail = new LinkedCallback(void 0, void 0, Infinity);
+    this.rafHead = new LinkedCallback(void 0, void 0, Infinity);
+    this.rafTail = (void 0)!;
 
     this.batchHead = this.batchTail = new LinkedCallback(void 0, void 0, Infinity);
 
@@ -434,7 +478,7 @@ export class Lifecycle implements ILifecycle {
     this.isTicking = false;
 
     this.minFrameDuration = 0;
-    this.maxFrameDuration = 0;
+    this.maxFrameDuration = 1000 / 30;
     this.prevFrameDuration = 0;
 
     // tslint:disable-next-line: promise-must-complete
@@ -459,6 +503,8 @@ export class Lifecycle implements ILifecycle {
 
     this.pendingChanges = 0;
     this.timeslicingEnabled = true;
+    this.adaptiveTimeslicing = true;
+    this.frameDurationFactor = 1;
   }
 
   public static register(container: IContainer): IResolver<ILifecycle> {
@@ -735,7 +781,7 @@ export class Lifecycle implements ILifecycle {
       node.link(prev);
     } else {
       do {
-        if (priority > current.priority) {
+        if (priority > current.priority || (priority === current.priority && once && !current.once)) {
           node.link(prev);
           break;
         }
@@ -747,6 +793,10 @@ export class Lifecycle implements ILifecycle {
       if (node.prev === void 0) {
         node.link(prev);
       }
+    }
+
+    if (node.next === void 0) {
+      this.rafTail = node;
     }
 
     this.startTicking();
@@ -782,17 +832,24 @@ export class Lifecycle implements ILifecycle {
       }
 
       let i = 0;
-      const deadline = timestamp + this.maxFrameDuration;
+      if (this.adaptiveTimeslicing && this.maxFrameDuration > 0) {
+        // Clamp the factor between 10 and 0.1 to prevent hanging or unjustified skipping during sudden shifts in workload
+        this.frameDurationFactor = min(max(this.frameDurationFactor * (this.maxFrameDuration / prevFrameDuration), 0.1), 10);
+      } else {
+        this.frameDurationFactor = 1;
+      }
+
+      const deadline = timestamp + max(this.maxFrameDuration * this.frameDurationFactor, 1);
       do {
         this.pendingChanges = 0;
 
         let current = this.rafHead.next;
         while (current !== void 0) {
-          // only call performance.now() every 100 calls to reduce the overhead (is this low enough though?)
-          if (this.timeslicingEnabled && ++i === 100) {
+          // only call performance.now() every 10 calls to reduce the overhead (is this low enough though?)
+          if (this.timeslicingEnabled && ++i === 10) {
             i = 0;
             if (PLATFORM.now() >= deadline) {
-              // TODO: put unprocessed items to the front of the queue per priority, etc
+              current.rotate();
               break;
             }
           }
@@ -810,8 +867,9 @@ export class Lifecycle implements ILifecycle {
     this.isFlushingRAF = false;
   }
 
-  public enableTimeslicing(): void {
+  public enableTimeslicing(adaptive: boolean = true): void {
     this.timeslicingEnabled = true;
+    this.adaptiveTimeslicing = adaptive;
   }
 
   public disableTimeslicing(): void {

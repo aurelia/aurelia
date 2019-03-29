@@ -38,7 +38,7 @@ import {
   TemplateDefinition,
   TemplatePartDefinitions
 } from './definitions';
-import { IDOM, INode } from './dom';
+import { IDOM, INode, DOM } from './dom';
 import { BindingMode, LifecycleFlags } from './flags';
 import {
   IBinding,
@@ -172,14 +172,21 @@ export function addComponent(renderable: IController, component: IController): v
   if (Tracer.enabled) { Tracer.leave(); }
 }
 
+export function getTarget(potentialTarget: object): object {
+  if ((potentialTarget as { bindingContext?: object }).bindingContext !== void 0) {
+    return (potentialTarget as { bindingContext: object }).bindingContext;
+  }
+  return potentialTarget;
+}
+
 @instructionRenderer(TargetedInstructionType.setProperty)
 /** @internal */
 export class SetPropertyRenderer implements IInstructionRenderer {
   public static readonly register: IRegistry['register'];
 
-  public render(flags: LifecycleFlags, dom: IDOM, context: IRenderContext, renderable: IController, target: object, instruction: ISetPropertyInstruction): void {
+  public render(flags: LifecycleFlags, dom: IDOM, context: IRenderContext, renderable: IController, target: IController, instruction: ISetPropertyInstruction): void {
     if (Tracer.enabled) { Tracer.enter('SetPropertyRenderer', 'render', slice.call(arguments)); }
-    target[instruction.to as keyof object] = instruction.value as never; // Yeah, yeah..
+    getTarget(target)[instruction.to as keyof object] = instruction.value as never; // Yeah, yeah..
     if (Tracer.enabled) { Tracer.leave(); }
   }
 }
@@ -325,10 +332,10 @@ export class CallBindingRenderer implements IInstructionRenderer {
     this.observerLocator = observerLocator;
   }
 
-  public render(flags: LifecycleFlags, dom: IDOM, context: IRenderContext, renderable: IController, target: INode, instruction: ICallBindingInstruction): void {
+  public render(flags: LifecycleFlags, dom: IDOM, context: IRenderContext, renderable: IController, target: IController, instruction: ICallBindingInstruction): void {
     if (Tracer.enabled) { Tracer.enter('CallBindingRenderer', 'render', slice.call(arguments)); }
     const expr = ensureExpression(this.parser, instruction.from, BindingType.CallCommand);
-    const binding = new Call(expr, target, instruction.to, this.observerLocator, context);
+    const binding = new Call(expr, getTarget(target), instruction.to, this.observerLocator, context);
     addBinding(renderable, binding);
     if (Tracer.enabled) { Tracer.leave(); }
   }
@@ -346,10 +353,10 @@ export class RefBindingRenderer implements IInstructionRenderer {
     this.parser = parser;
   }
 
-  public render(flags: LifecycleFlags, dom: IDOM, context: IRenderContext, renderable: IController, target: INode, instruction: IRefBindingInstruction): void {
+  public render(flags: LifecycleFlags, dom: IDOM, context: IRenderContext, renderable: IController, target: IController, instruction: IRefBindingInstruction): void {
     if (Tracer.enabled) { Tracer.enter('RefBindingRenderer', 'render', slice.call(arguments)); }
     const expr = ensureExpression(this.parser, instruction.from, BindingType.IsRef);
-    const binding = new Ref(expr, target, context);
+    const binding = new Ref(expr, getTarget(target), context);
     addBinding(renderable, binding);
     if (Tracer.enabled) { Tracer.leave(); }
   }
@@ -369,14 +376,14 @@ export class InterpolationBindingRenderer implements IInstructionRenderer {
     this.observerLocator = observerLocator;
   }
 
-  public render(flags: LifecycleFlags, dom: IDOM, context: IRenderContext, renderable: IController, target: INode, instruction: IInterpolationInstruction): void {
+  public render(flags: LifecycleFlags, dom: IDOM, context: IRenderContext, renderable: IController, target: IController, instruction: IInterpolationInstruction): void {
     if (Tracer.enabled) { Tracer.enter('InterpolationBindingRenderer', 'render', slice.call(arguments)); }
     let binding: MultiInterpolationBinding | InterpolationBinding;
     const expr = ensureExpression(this.parser, instruction.from, BindingType.Interpolation);
     if (expr.isMulti) {
-      binding = new MultiInterpolationBinding(this.observerLocator, expr, target, instruction.to, BindingMode.toView, context);
+      binding = new MultiInterpolationBinding(this.observerLocator, expr, getTarget(target), instruction.to, BindingMode.toView, context);
     } else {
-      binding = new InterpolationBinding(expr.firstExpression, expr, target, instruction.to, BindingMode.toView, this.observerLocator, context, true);
+      binding = new InterpolationBinding(expr.firstExpression, expr, getTarget(target), instruction.to, BindingMode.toView, this.observerLocator, context, true);
     }
     addBinding(renderable, binding);
     if (Tracer.enabled) { Tracer.leave(); }
@@ -397,10 +404,10 @@ export class PropertyBindingRenderer implements IInstructionRenderer {
     this.observerLocator = observerLocator;
   }
 
-  public render(flags: LifecycleFlags, dom: IDOM, context: IRenderContext, renderable: IController, target: INode, instruction: IPropertyBindingInstruction): void {
+  public render(flags: LifecycleFlags, dom: IDOM, context: IRenderContext, renderable: IController, target: IController, instruction: IPropertyBindingInstruction): void {
     if (Tracer.enabled) { Tracer.enter('PropertyBindingRenderer', 'render', slice.call(arguments)); }
     const expr = ensureExpression(this.parser, instruction.from, BindingType.IsPropertyCommand | instruction.mode);
-    const binding = new Binding(expr, target, instruction.to, instruction.mode, this.observerLocator, context);
+    const binding = new Binding(expr, getTarget(target), instruction.to, instruction.mode, this.observerLocator, context);
     addBinding(renderable, binding);
     if (Tracer.enabled) { Tracer.leave(); }
   }
@@ -420,10 +427,10 @@ export class IteratorBindingRenderer implements IInstructionRenderer {
     this.observerLocator = observerLocator;
   }
 
-  public render(flags: LifecycleFlags, dom: IDOM, context: IRenderContext, renderable: IController, target: INode, instruction: IIteratorBindingInstruction): void {
+  public render(flags: LifecycleFlags, dom: IDOM, context: IRenderContext, renderable: IController, target: IController, instruction: IIteratorBindingInstruction): void {
     if (Tracer.enabled) { Tracer.enter('IteratorBindingRenderer', 'render', slice.call(arguments)); }
     const expr = ensureExpression(this.parser, instruction.from, BindingType.ForCommand);
-    const binding = new Binding(expr, target, instruction.to, BindingMode.toView, this.observerLocator, context);
+    const binding = new Binding(expr, getTarget(target), instruction.to, BindingMode.toView, this.observerLocator, context);
     addBinding(renderable, binding);
     if (Tracer.enabled) { Tracer.leave(); }
   }

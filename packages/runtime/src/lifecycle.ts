@@ -841,7 +841,9 @@ export class Lifecycle implements ILifecycle {
         this.frameDurationFactor = 1;
       }
 
-      const deadline = timestamp + max(this.maxFrameDuration * this.frameDurationFactor, 1);
+      const deadlineLow = timestamp + max(this.maxFrameDuration * this.frameDurationFactor, 1);
+      const deadlineNormal = timestamp + max(this.maxFrameDuration * this.frameDurationFactor * 5, 5);
+      const deadlineHigh = timestamp + max(this.maxFrameDuration * this.frameDurationFactor * 15, 15);
       do {
         this.pendingChanges = 0;
 
@@ -850,9 +852,35 @@ export class Lifecycle implements ILifecycle {
           // only call performance.now() every 10 calls to reduce the overhead (is this low enough though?)
           if (this.timeslicingEnabled && ++i === 10) {
             i = 0;
-            if (PLATFORM.now() >= deadline) {
-              current.rotate();
-              break;
+            const { priority } = current;
+            const now = PLATFORM.now();
+            if (priority <= Priority.low) {
+              if (now >= deadlineLow) {
+                current.rotate();
+                if (current.last != void 0 && current.last.next != void 0) {
+                  current = current.last.next;
+                } else {
+                  break;
+                }
+              }
+            } else if (priority < Priority.high) {
+              if (now >= deadlineNormal) {
+                current.rotate();
+                if (current.last != void 0 && current.last.next != void 0) {
+                  current = current.last.next;
+                } else {
+                  break;
+                }
+              }
+            } else {
+              if (now >= deadlineHigh) {
+                current.rotate();
+                if (current.last != void 0 && current.last.next != void 0) {
+                  current = current.last.next;
+                } else {
+                  break;
+                }
+              }
             }
           }
 

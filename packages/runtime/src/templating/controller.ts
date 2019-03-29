@@ -31,7 +31,8 @@ import {
   IViewCache,
   IViewModel,
   Lifecycle,
-  ViewModelKind
+  ViewModelKind,
+  Priority
 } from '../lifecycle';
 import {
   AggregateContinuationTask,
@@ -662,7 +663,7 @@ export class Controller<T extends INode = INode, C extends IViewModel<T> = IView
     flags |= LifecycleFlags.fromAttach;
     this.state |= State.isAttaching;
 
-    this.lifecycle.enqueueMount(this);
+    this.lifecycle.enqueueRAF(this.mount, this, Priority.attach, true);
 
     if (this.hooks.hasAttaching) {
       (this.bindingContext as BindingContext<T, C>).attaching(flags);
@@ -671,7 +672,7 @@ export class Controller<T extends INode = INode, C extends IViewModel<T> = IView
     this.attachControllers(flags);
 
     if (this.hooks.hasAttached) {
-      this.lifecycle.enqueueAttached(this);
+      this.lifecycle.enqueueRAF(this.attached, this, Priority.attach, true);
     }
 
     this.state = this.state ^ State.isAttaching | State.isAttached;
@@ -690,7 +691,7 @@ export class Controller<T extends INode = INode, C extends IViewModel<T> = IView
     }
 
     if (this.hooks.hasAttached) {
-      this.lifecycle.enqueueAttached(this);
+      this.lifecycle.enqueueRAF(this.attached, this, Priority.attach, true);
     }
 
     this.state = this.state ^ State.isAttaching | State.isAttached;
@@ -704,7 +705,7 @@ export class Controller<T extends INode = INode, C extends IViewModel<T> = IView
     flags |= LifecycleFlags.fromAttach;
     this.state |= State.isAttaching;
 
-    this.lifecycle.enqueueMount(this);
+    this.lifecycle.enqueueRAF(this.mount, this, Priority.attach, true);
 
     this.attachControllers(flags);
 
@@ -719,14 +720,14 @@ export class Controller<T extends INode = INode, C extends IViewModel<T> = IView
     flags |= LifecycleFlags.fromDetach;
     this.state |= State.isDetaching;
 
-    this.lifecycle.enqueueUnmount(this);
+    this.lifecycle.enqueueRAF(this.unmount, this, Priority.attach, true);
 
     if (this.hooks.hasDetaching) {
       (this.bindingContext as BindingContext<T, C>).detaching(flags);
     }
 
     if (this.hooks.hasDetached) {
-      this.lifecycle.enqueueDetached(this);
+      this.lifecycle.enqueueRAF(this.detached, this, Priority.attach, true);
     }
 
     this.state = this.state ^ (State.isDetaching | State.isAttached);
@@ -745,7 +746,7 @@ export class Controller<T extends INode = INode, C extends IViewModel<T> = IView
     }
 
     if (this.hooks.hasDetached) {
-      this.lifecycle.enqueueDetached(this);
+      this.lifecycle.enqueueRAF(this.detached, this, Priority.attach, true);
     }
 
     this.state = this.state ^ (State.isDetaching | State.isAttached);
@@ -759,7 +760,7 @@ export class Controller<T extends INode = INode, C extends IViewModel<T> = IView
     flags |= LifecycleFlags.fromDetach;
     this.state |= State.isDetaching;
 
-    this.lifecycle.enqueueUnmount(this);
+    this.lifecycle.enqueueRAF(this.unmount, this, Priority.attach, true);
 
     this.detachControllers(flags);
 

@@ -24,6 +24,7 @@ import {
 import {
   IController,
   IViewFactory,
+  Priority,
 } from '../../lifecycle';
 import {
   AggregateContinuationTask,
@@ -136,7 +137,7 @@ export class Repeat<C extends ObservedCollection = IObservedArray, T extends INo
     let binding: Binding;
     for (let i = 0; i < length; ++i) {
       binding = bindings[i];
-      if (binding.target === this.$controller && binding.targetProperty === 'items') {
+      if (binding.target === this && binding.targetProperty === 'items') {
         this.forOf = binding.sourceExpression as ForOfStatement;
         break;
       }
@@ -523,7 +524,69 @@ export class Repeat<C extends ObservedCollection = IObservedArray, T extends INo
       prevMount: void 0,
     };
 
-    this.$controller.lifecycle.enqueueMount(operation as IController<T>);
+    this.$controller.lifecycle.enqueueRAF(
+      ($flags: LF): void => {
+        $flags |= flags;
+        let next = location;
+        let j = seqLen - 1;
+        let i = indexMap.length - 1;
+        let view: IController;
+        for (; i >= 0; --i) {
+          if (indexMap[i] === -2) {
+            view = views[i];
+
+            view.state |= State.isAttaching;
+
+            const { controllers } = view;
+            if (controllers != void 0) {
+              const { length } = controllers;
+              for (let k = 0; k < length; ++k) {
+                controllers[i].attach($flags);
+              }
+            }
+
+            view.nodes!.insertBefore(next);
+
+            view.state = (view.state | isMountedOrAttachedOrAttaching) ^ State.isAttaching;
+            next = view.nodes!.firstChild;
+          } else if (j < 0 || seqLen === 1 || i !== seq[j]) {
+            view = views[indexMap[i]];
+            view.state |= State.isDetaching;
+
+            const { controllers } = view;
+            if (controllers != void 0) {
+              const { length } = controllers;
+              for (let k = length - 1; k >= 0; --k) {
+                controllers[i].detach($flags);
+              }
+            }
+            view.nodes!.remove();
+
+            view.state = (view.state | isMountedOrAttachedOrDetachingOrAttaching) ^ isMountedOrAttachedOrDetaching;
+
+            if (controllers != void 0) {
+              const { length } = controllers;
+              for (let k = 0; k < length; ++k) {
+                controllers[i].attach($flags);
+              }
+            }
+
+            view.nodes!.insertBefore(next);
+
+            view.state = (view.state | isMountedOrAttachedOrAttaching) ^ State.isAttaching;
+
+            next = view.nodes!.firstChild;
+          } else {
+            view = views[i];
+            next = view.nodes!.firstChild;
+            --j;
+          }
+        }
+      },
+      void 0,
+      Priority.attach,
+      true,
+    );
   }
 }
 

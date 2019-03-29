@@ -31,8 +31,8 @@ import {
   IViewCache,
   IViewModel,
   Lifecycle,
-  ViewModelKind,
-  Priority
+  Priority,
+  ViewModelKind
 } from '../lifecycle';
 import {
   AggregateContinuationTask,
@@ -42,7 +42,7 @@ import {
   LifecycleTask,
   MaybePromiseOrTask,
 } from '../lifecycle-task';
-import { IScope } from '../observation';
+import { IBindingTargetAccessor, IScope, ObserversLookup } from '../observation';
 import { Scope } from '../observation/binding-context';
 import { ProxyObserver } from '../observation/proxy-observer';
 import { SelfObserver } from '../observation/self-observer';
@@ -52,6 +52,7 @@ import {
   IElementProjector,
   IProjectorLocator
 } from '../resources/custom-element';
+import { Binding } from '../binding/binding';
 
 type Description = Required<IAttributeDefinition> | Required<ITemplateDefinition>;
 type Kind = { name: string };
@@ -430,6 +431,17 @@ export class Controller<T extends INode = INode, C extends IViewModel<T> = IView
       case ViewModelKind.synthetic:
         this.cacheSynthetic(flags);
     }
+  }
+
+  public getTargetAccessor(propertyName: string): IBindingTargetAccessor | undefined {
+    const { bindings } = this;
+    if (bindings !== void 0) {
+      const binding = bindings.find(b => (b as Binding).targetProperty === 'transform') as Binding;
+      if (binding !== void 0) {
+        return binding.targetObserver;
+      }
+    }
+    return void 0;
   }
 
   // #region bind/unbind

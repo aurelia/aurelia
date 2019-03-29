@@ -27,6 +27,7 @@ import {
 } from './flags';
 import { ILifecycleTask, MaybePromiseOrTask } from './lifecycle-task';
 import {
+  IBindingTargetAccessor,
   IScope,
 } from './observation';
 import { IElementProjector } from './resources/custom-element';
@@ -104,6 +105,7 @@ export interface IController<T extends INode = INode, C extends IViewModel<T> = 
   mount(flags: LifecycleFlags): void;
   unmount(flags: LifecycleFlags): void;
   cache(flags: LifecycleFlags): void;
+  getTargetAccessor(propertyName: string): IBindingTargetAccessor | undefined;
 }
 
 export const IController = DI.createInterface<IController>('IController').noDefault();

@@ -369,7 +369,9 @@ export class Repeat<C extends ObservedCollection = IObservedArray, T extends INo
     const views = this.views = Array(newLen);
     this.forOf.iterate(flags, items, (arr, i, item) => {
       view = views[i] = factory.create(flags);
-      task = view.bind(flags, Scope.fromParent(flags, scope, BindingContext.create(flags, local, item)));
+      const ctx = BindingContext.create(flags, local, item);
+      ctx.$view = view;
+      task = view.bind(flags, Scope.fromParent(flags, scope, ctx));
 
       if (!task.done) {
         if (tasks === undefined) {
@@ -399,7 +401,9 @@ export class Repeat<C extends ObservedCollection = IObservedArray, T extends INo
       if (indexMap[i] === -2) {
         view = factory.create(flags);
         // TODO: test with map/set/undefined/null, make sure we can use strong typing here as well, etc
-        task = view.bind(flags, Scope.fromParent(flags, scope, BindingContext.create(flags, local, (items as any)[i])));
+        const ctx = BindingContext.create(flags, local, (items as any)[i]);
+        ctx.$view = view;
+        task = view.bind(flags, Scope.fromParent(flags, scope, ctx));
         views.splice(i, 0, view);
 
         if (!task.done) {

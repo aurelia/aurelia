@@ -82,7 +82,7 @@ export class SelectValueObserver implements IAccessor<unknown> {
   public setValue(newValue: unknown, flags: LifecycleFlags): void {
     this.currentValue = newValue;
     this.hasChanges = newValue !== this.oldValue;
-    if (this.lifecycle.isFlushingRAF || (flags & LifecycleFlags.fromBind) > 0) {
+    if ((flags & LifecycleFlags.fromBind) > 0) {
       this.flushRAF(flags);
     }
   }
@@ -111,7 +111,7 @@ export class SelectValueObserver implements IAccessor<unknown> {
   }
 
   public handleCollectionChange(indexMap: IndexMap, flags: LifecycleFlags): void {
-    if (this.lifecycle.isFlushingRAF || (flags & LifecycleFlags.fromBind) > 0) {
+    if ((flags & LifecycleFlags.fromBind) > 0) {
       this.synchronizeOptions();
     } else {
       this.hasChanges = true;
@@ -121,7 +121,7 @@ export class SelectValueObserver implements IAccessor<unknown> {
   }
 
   public handleChange(newValue: unknown, previousValue: unknown, flags: LifecycleFlags): void {
-    if (this.lifecycle.isFlushingRAF || (flags & LifecycleFlags.fromBind) > 0) {
+    if ((flags & LifecycleFlags.fromBind) > 0) {
       this.synchronizeOptions();
     } else {
       this.hasChanges = true;

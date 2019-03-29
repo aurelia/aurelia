@@ -40,7 +40,7 @@ export class StyleAttributeAccessor implements IAccessor<unknown> {
   public setValue(newValue: string | Record<string, string>, flags: LifecycleFlags): void {
     this.currentValue = newValue;
     this.hasChanges = newValue !== this.oldValue;
-    if (this.lifecycle.isFlushingRAF || (flags & LifecycleFlags.fromBind) > 0) {
+    if ((flags & LifecycleFlags.fromBind) > 0) {
       this.flushRAF(flags);
     }
   }

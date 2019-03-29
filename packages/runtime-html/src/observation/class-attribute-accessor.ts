@@ -44,7 +44,7 @@ export class ClassAttributeAccessor implements IAccessor<string> {
   public setValue(newValue: string, flags: LifecycleFlags): void {
     this.currentValue = newValue;
     this.hasChanges = newValue !== this.oldValue;
-    if (this.lifecycle.isFlushingRAF || (flags & LifecycleFlags.fromBind) > 0) {
+    if ((flags & LifecycleFlags.fromBind) > 0) {
       this.flushRAF(flags);
     }
   }

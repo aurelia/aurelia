@@ -37,7 +37,7 @@ export class DataAttributeAccessor implements IAccessor<string | null> {
   public setValue(newValue: string | null, flags: LifecycleFlags): void {
     this.currentValue = newValue;
     this.hasChanges = newValue !== this.oldValue;
-    if (this.lifecycle.isFlushingRAF || (flags & LifecycleFlags.fromBind) > 0) {
+    if ((flags & LifecycleFlags.fromBind) > 0) {
       this.flushRAF(flags);
     }
   }

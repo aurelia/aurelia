@@ -176,6 +176,9 @@ export class InterpolationBinding implements IPartialConnectableBinding {
     if (sourceExpression.bind) {
       sourceExpression.bind(flags, scope, this);
     }
+    if (this.mode !== BindingMode.oneTime && this.targetObserver.bind) {
+      this.targetObserver.bind(flags);
+    }
 
     // since the interpolation already gets the whole value, we only need to let the first
     // text binding do the update if there are multiple
@@ -196,6 +199,9 @@ export class InterpolationBinding implements IPartialConnectableBinding {
     const sourceExpression = this.sourceExpression;
     if (sourceExpression.unbind) {
       sourceExpression.unbind(flags, this.$scope!, this);
+    }
+    if (this.targetObserver.unbind) {
+      this.targetObserver.unbind(flags);
     }
 
     this.$scope = void 0;

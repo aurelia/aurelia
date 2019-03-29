@@ -198,6 +198,8 @@ export interface IBindingTargetAccessor<
   TValue = unknown>
   extends IAccessor<TValue>,
           IPropertyChangeTracker<TObj, TProp> {
+  bind?(flags: LifecycleFlags): void;
+  unbind?(flags: LifecycleFlags): void;
 }
 
 /**
@@ -209,11 +211,7 @@ export interface IBindingTargetObserver<
   TValue = unknown>
   extends IBindingTargetAccessor<TObj, TProp, TValue>,
           ISubscribable,
-          ISubscriberCollection {
-
-  bind?(flags: LifecycleFlags): void;
-  unbind?(flags: LifecycleFlags): void;
-}
+          ISubscriberCollection {}
 
 export type AccessorOrObserver = IBindingTargetAccessor | IBindingTargetObserver;
 

@@ -436,7 +436,7 @@ export class Controller<T extends INode = INode, C extends IViewModel<T> = IView
   public getTargetAccessor(propertyName: string): IBindingTargetAccessor | undefined {
     const { bindings } = this;
     if (bindings !== void 0) {
-      const binding = bindings.find(b => (b as Binding).targetProperty === 'transform') as Binding;
+      const binding = bindings.find(b => (b as Binding).targetProperty === propertyName) as Binding;
       if (binding !== void 0) {
         return binding.targetObserver;
       }

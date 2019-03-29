@@ -212,7 +212,6 @@ function defineApp(fps, count) {
       attached() {
         this.count = count;
         this.lifecycle.enqueueRAF(Point.update, Point, Priority.preempt);
-        this.$controller.lifecycle.frameBudget = this.fps;
       }
 
       fpsChanged(fps) {

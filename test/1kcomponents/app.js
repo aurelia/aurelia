@@ -211,7 +211,6 @@ const App = CustomElementResource.define(
     attached() {
       this.count = 1000;
       this.lifecycle.enqueueRAF(Point.update, Point, Priority.preempt);
-      this.$controller.lifecycle.frameBudget = this.fps;
     }
 
     fpsChanged(fps) {

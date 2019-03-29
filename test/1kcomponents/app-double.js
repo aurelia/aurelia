@@ -85,8 +85,8 @@ class Spiral {
   }
 }
 
-const wh = window.innerHeight / 2;
-const ww = window.innerWidth / 2;
+const wh = window.innerHeight / 4;
+const ww = window.innerWidth / 4;
 const magnitude = min(wh, ww);
 
 class Point {
@@ -158,107 +158,117 @@ Point.nxProp = '';
 Point.pyProp = '';
 Point.nyProp = '';
 
-const App = CustomElementResource.define(
-  {
-    name: 'app',
-    template: `
-      <div class="app-wrapper">
-        <svg class="demo">
-          <g>
-            <rect
-              repeat.for="point of points"
-              class="point"
-              transform.bind="point.transform"
-              fill.bind="point.color"
-              view.one-time="point.$controller = $view"
-            />
-          </g>
-        </svg>
+function defineApp(fps, count) {
+  return CustomElementResource.define(
+    {
+      name: 'app',
+      template: `
+        <div class="app-wrapper">
+          <svg class="demo">
+            <g>
+              <rect
+                repeat.for="point of points"
+                class="point"
+                transform.bind="point.transform"
+                fill.bind="point.color"
+                view.one-time="point.$controller = $view"
+              />
+            </g>
+          </svg>
 
-        <div class="controls">
-          # Target FPS
-          <input style="width: 20%" type="range" min.bind="1" max.bind="60" value.two-way="fps | num" />
-          \${fps}
+          <div class="controls">
+            # Target FPS
+            <input style="width: 20%" type="range" min.bind="1" max.bind="60" value.two-way="fps | num" />
+            \${fps}
 
-          &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
 
-          # Points
-          <input type="range" min.bind="10" max.bind="10000" value.two-way="count | num" />
-          \${count}
+            # Points
+            <input type="range" min.bind="10" max.bind="10000" value.two-way="count | num" />
+            \${count}
+          </div>
+
+          <div className="about">
+            Aurelia 1k Components Demo
+            based on <a href="https://infernojs.github.io/inferno/1kcomponents/" target="_blank">InfernoJS 1k Components Demo</a>.
+          </div>
         </div>
+      `,
+      bindables: ['count', 'fps'],
+      dependencies: [
+        ValueConverterResource.define('num', class { fromView(str) { return parseInt(str, 10); } })
+      ]
+    },
+    class {
+      static get inject() { return [ILifecycle]; }
 
-        <div className="about">
-          Aurelia 1k Components Demo
-          based on <a href="https://infernojs.github.io/inferno/1kcomponents/" target="_blank">InfernoJS 1k Components Demo</a>.
-        </div>
-      </div>
-    `,
-    bindables: ['count', 'fps'],
-    dependencies: [
-      ValueConverterResource.define('num', class { fromView(str) { return parseInt(str, 10); } })
-    ]
-  },
-  class {
-    static get inject() { return [ILifecycle]; }
+      constructor(lifecycle) {
+        this.lifecycle = lifecycle;
+        this.points = [];
+        this.count = 0;
+        this.fps = fps;
+      }
 
-    constructor(lifecycle) {
-      this.lifecycle = lifecycle;
-      this.points = [];
-      this.count = 0;
-      this.fps = 30;
-    }
+      attached() {
+        this.count = count;
+        this.lifecycle.enqueueRAF(Point.update, Point, Priority.preempt);
+        this.$controller.lifecycle.frameBudget = this.fps;
+      }
 
-    attached() {
-      this.count = 1000;
-      this.lifecycle.enqueueRAF(Point.update, Point, Priority.preempt);
-      this.$controller.lifecycle.frameBudget = this.fps;
-    }
+      fpsChanged(fps) {
+        this.$controller.lifecycle.minFPS = fps;
+      }
 
-    fpsChanged(fps) {
-      this.$controller.lifecycle.minFPS = fps;
-    }
+      countChanged(count) {
+        Phyllotaxis.count = count;
+        Grid.count = count;
+        Wave.count = count;
+        Spiral.count = count;
 
-    countChanged(count) {
-      Phyllotaxis.count = count;
-      Grid.count = count;
-      Wave.count = count;
-      Spiral.count = count;
-
-      const { points } = this;
-      const { length } = points;
-      if (count > length) {
-        for (let i = 0; i < length; ++i) {
-          points[i].update(i, count);
+        const { points } = this;
+        const { length } = points;
+        if (count > length) {
+          for (let i = 0; i < length; ++i) {
+            points[i].update(i, count);
+          }
+          const newPoints = [];
+          for (let i = length; i < count; ++i) {
+            newPoints.push(this.createPoint(count, i));
+          }
+          points.push(...newPoints);
+        } else if (length > count) {
+          for (let i = 0; i < count; ++i) {
+            points[i].update(i, count);
+          }
+          let point;
+          for (let i = count; i < length; ++i) {
+            point = points[i];
+            this.lifecycle.dequeueRAF(point.flushRAF, point);
+          }
+          points.splice(count, length - count);
         }
-        const newPoints = [];
-        for (let i = length; i < count; ++i) {
-          newPoints.push(this.createPoint(count, i));
-        }
-        points.push(...newPoints);
-      } else if (length > count) {
-        for (let i = 0; i < count; ++i) {
-          points[i].update(i, count);
-        }
-        let point;
-        for (let i = count; i < length; ++i) {
-          point = points[i];
-          this.lifecycle.dequeueRAF(point.flushRAF, point);
-        }
-        points.splice(count, length - count);
+      }
+
+      createPoint(count, i) {
+        const point = new Point(i, count);
+        this.lifecycle.enqueueRAF(point.flushRAF, point, Priority.low);
+        return point;
       }
     }
-
-    createPoint(count, i) {
-      const point = new Point(i, count);
-      this.lifecycle.enqueueRAF(point.flushRAF, point, Priority.low);
-      return point;
-    }
-  }
-);
+  );
+}
 
 new Aurelia().register(BasicConfiguration, { register }).app(
   {
-    host: document.getElementById('app'),
-    component: App
+    host: document.getElementById('app-left'),
+    component: defineApp(5, 2000)
   }
 ).start();
+
+new Aurelia().register(BasicConfiguration, { register }).app(
+  {
+    host: document.getElementById('app-right'),
+    component: defineApp(25, 1000)
+  }
+).start();
+

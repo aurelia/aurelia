@@ -19,12 +19,9 @@ import {
   State
 } from '../../flags';
 import {
-  ContinuationTask,
   IController,
-  ILifecycleTask,
   IViewFactory,
-  LifecycleTask,
-  PromiseTask
+  Priority,
 } from '../../lifecycle';
 import {
   IObserversLookup,
@@ -35,6 +32,12 @@ import {
   CustomAttributeResource,
   ICustomAttributeResource
 } from '../custom-attribute';
+import {
+  ILifecycleTask,
+  LifecycleTask,
+  ContinuationTask,
+  PromiseTask
+} from '../../lifecycle-task';
 
 export class If<T extends INode = INode> {
   public static readonly inject: InjectArray = [IViewFactory, IRenderLocation];
@@ -55,10 +58,8 @@ export class If<T extends INode = INode> {
     return this._value;
   }
   public set value(newValue: boolean) {
-    const oldValue = this._value;
-    if (oldValue !== newValue) {
-      this._value = newValue;
-      this.valueChanged(newValue, oldValue, LifecycleFlags.none);
+    if (this._value !== newValue) {
+      this.valueChanged(newValue, this._value, LifecycleFlags.none);
     }
   }
 
@@ -78,6 +79,7 @@ export class If<T extends INode = INode> {
   // tslint:disable-next-line: prefer-readonly // This is set by the controller after this instance is constructed
   private $controller!: IController<T>;
 
+  private _prevValue: boolean;
   private _value: boolean;
 
   constructor(
@@ -95,6 +97,7 @@ export class If<T extends INode = INode> {
     this.view = void 0;
 
     this._value = false;
+    this._prevValue = false;
   }
 
   public static register(container: IContainer): void {
@@ -107,11 +110,13 @@ export class If<T extends INode = INode> {
   }
 
   public setValue(newValue: boolean, flags: LifecycleFlags): void {
-    const oldValue = this._value;
-    if (oldValue !== newValue) {
-      this._value = newValue;
-      this.valueChanged(newValue, oldValue, flags);
+    if (this._value !== newValue) {
+      this.valueChanged(newValue, this._value, LifecycleFlags.none);
     }
+  }
+
+  public created(flags: LifecycleFlags): void {
+    this.$controller.lifecycle.enqueueRAF(this.flushRAF, this, Priority.bind);
   }
 
   public binding(flags: LifecycleFlags): ILifecycleTask {
@@ -175,24 +180,18 @@ export class If<T extends INode = INode> {
   }
 
   public valueChanged(newValue: boolean, oldValue: boolean, flags: LifecycleFlags): void {
-    if ((this.$controller.state & State.isBoundOrBinding) > 0) {
-      if ((flags & LifecycleFlags.fromFlush) > 0) {
-        if (this.task.done) {
-          this.task = this.swap(newValue, flags);
-        } else {
-          this.task = new ContinuationTask(this.task, this.swap, this, newValue, flags);
-        }
-      } else {
-        this.$controller.lifecycle.enqueueBatch(this);
-      }
+    this._value = newValue;
+    if (this.$controller.lifecycle.isFlushingRAF) {
+      this.flushRAF(flags);
+    } else if (this._prevValue !== newValue) {
+      ++this.$controller.lifecycle.pendingChanges;
     }
   }
 
-  public flushBatch(flags: LifecycleFlags): void {
-    if (this.task.done) {
+  public flushRAF(flags: LifecycleFlags): void {
+    if (this._prevValue !== this._value && this.task.done) {
+      this._prevValue = this._value;
       this.task = this.swap(this.value, flags);
-    } else {
-      this.task = new ContinuationTask(this.task, this.swap, this, this.value, flags);
     }
   }
 

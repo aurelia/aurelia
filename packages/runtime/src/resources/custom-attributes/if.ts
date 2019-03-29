@@ -293,7 +293,13 @@ export class Else<T extends INode = INode> {
     container.register(Registration.transient('custom-attribute:else', this));
   }
 
-  public link(ifBehavior: If<T>): void {
-    ifBehavior.elseFactory = this.factory;
+  public link(ifBehavior: If<T> | IController<T>): void {
+    if (ifBehavior instanceof If) {
+      ifBehavior.elseFactory = this.factory;
+    } else if (ifBehavior.viewModel instanceof If) {
+      ifBehavior.viewModel.elseFactory = this.factory;
+    } else {
+      throw new Error(`Unsupported IfBehavior`); // TODO: create error code
+    }
   }
 }

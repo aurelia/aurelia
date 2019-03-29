@@ -16,6 +16,7 @@ export class AttributeNSAccessor implements IAccessor<string | null> {
   public readonly namespace: string;
 
   public hasChanges: boolean;
+  public priority: Priority;
 
   constructor(
     lifecycle: ILifecycle,
@@ -33,6 +34,7 @@ export class AttributeNSAccessor implements IAccessor<string | null> {
     this.namespace = namespace;
 
     this.hasChanges = false;
+    this.priority = Priority.propagate;
   }
 
   public getValue(): string | null {
@@ -61,7 +63,7 @@ export class AttributeNSAccessor implements IAccessor<string | null> {
   }
 
   public bind(flags: LifecycleFlags): void {
-    this.lifecycle.enqueueRAF(this.flushRAF, this, Priority.propagate);
+    this.lifecycle.enqueueRAF(this.flushRAF, this, this.priority);
     this.currentValue = this.oldValue = this.obj.getAttributeNS(this.namespace, this.propertyKey);
   }
 

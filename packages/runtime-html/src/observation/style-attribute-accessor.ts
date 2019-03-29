@@ -16,6 +16,7 @@ export class StyleAttributeAccessor implements IAccessor<unknown> {
   public version: number;
 
   public hasChanges: boolean;
+  public priority: Priority;
 
   constructor(
     lifecycle: ILifecycle,
@@ -31,6 +32,7 @@ export class StyleAttributeAccessor implements IAccessor<unknown> {
     this.version = 0;
 
     this.hasChanges = false;
+    this.priority = Priority.propagate;
   }
 
   public getValue(): string {
@@ -104,7 +106,7 @@ export class StyleAttributeAccessor implements IAccessor<unknown> {
   }
 
   public bind(flags: LifecycleFlags): void {
-    this.lifecycle.enqueueRAF(this.flushRAF, this, Priority.propagate);
+    this.lifecycle.enqueueRAF(this.flushRAF, this, this.priority);
     this.oldValue = this.currentValue = this.obj.style.cssText;
   }
 

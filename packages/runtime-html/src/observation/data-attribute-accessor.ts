@@ -14,6 +14,7 @@ export class DataAttributeAccessor implements IAccessor<string | null> {
   public oldValue: string | null;
 
   public hasChanges: boolean;
+  public priority: Priority;
 
   constructor(
     lifecycle: ILifecycle,
@@ -28,6 +29,7 @@ export class DataAttributeAccessor implements IAccessor<string | null> {
     this.oldValue = null;
 
     this.hasChanges = false;
+    this.priority = Priority.propagate;
   }
 
   public getValue(): string | null {
@@ -56,7 +58,7 @@ export class DataAttributeAccessor implements IAccessor<string | null> {
   }
 
   public bind(flags: LifecycleFlags): void {
-    this.lifecycle.enqueueRAF(this.flushRAF, this, Priority.propagate);
+    this.lifecycle.enqueueRAF(this.flushRAF, this, this.priority);
     this.currentValue = this.oldValue = this.obj.getAttribute(this.propertyKey);
   }
 

@@ -27,6 +27,7 @@ export class ValueAttributeObserver implements IAccessor<unknown> {
   public oldValue: unknown;
 
   public hasChanges: boolean;
+  public priority: Priority;
 
   constructor(
     lifecycle: ILifecycle,
@@ -43,6 +44,7 @@ export class ValueAttributeObserver implements IAccessor<unknown> {
     this.oldValue = '';
 
     this.hasChanges = false;
+    this.priority = Priority.propagate;
   }
 
   public getValue(): unknown {
@@ -99,7 +101,7 @@ export class ValueAttributeObserver implements IAccessor<unknown> {
   }
 
   public bind(flags: LifecycleFlags): void {
-    this.lifecycle.enqueueRAF(this.flushRAF, this, Priority.propagate);
+    this.lifecycle.enqueueRAF(this.flushRAF, this, this.priority);
   }
 
   public unbind(flags: LifecycleFlags): void {

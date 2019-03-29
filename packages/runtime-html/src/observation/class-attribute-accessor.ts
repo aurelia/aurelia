@@ -18,6 +18,7 @@ export class ClassAttributeAccessor implements IAccessor<string> {
 
   public hasChanges: boolean;
   public isActive: boolean;
+  public priority: Priority;
 
   constructor(
     lifecycle: ILifecycle,
@@ -35,6 +36,7 @@ export class ClassAttributeAccessor implements IAccessor<string> {
 
     this.isActive = false;
     this.hasChanges = false;
+    this.priority = Priority.propagate;
   }
 
   public getValue(): string {
@@ -99,7 +101,7 @@ export class ClassAttributeAccessor implements IAccessor<string> {
   }
 
   public bind(flags: LifecycleFlags): void {
-    this.lifecycle.enqueueRAF(this.flushRAF, this, Priority.propagate);
+    this.lifecycle.enqueueRAF(this.flushRAF, this, this.priority);
   }
 
   public unbind(flags: LifecycleFlags): void {

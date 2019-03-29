@@ -46,6 +46,7 @@ export class CheckedObserver implements IAccessor<unknown> {
   public oldValue: unknown;
 
   public hasChanges: boolean;
+  public priority: Priority;
 
   public arrayObserver?: ICollectionObserver<CollectionKind.array>;
   public valueObserver?: ValueAttributeObserver | SetterObserver;
@@ -65,6 +66,7 @@ export class CheckedObserver implements IAccessor<unknown> {
     this.oldValue = void 0;
 
     this.hasChanges = false;
+    this.priority = Priority.propagate;
 
     this.arrayObserver = void 0;
     this.valueObserver = void 0;
@@ -184,7 +186,7 @@ export class CheckedObserver implements IAccessor<unknown> {
   }
 
   public bind(flags: LifecycleFlags): void {
-    this.lifecycle.enqueueRAF(this.flushRAF, this, Priority.propagate);
+    this.lifecycle.enqueueRAF(this.flushRAF, this, this.priority);
     this.currentValue = this.obj.checked;
   }
 

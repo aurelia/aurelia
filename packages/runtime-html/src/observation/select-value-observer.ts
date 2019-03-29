@@ -49,6 +49,7 @@ export class SelectValueObserver implements IAccessor<unknown> {
   public oldValue: unknown;
 
   public hasChanges: boolean;
+  public priority: Priority;
 
   public arrayObserver?: ICollectionObserver<CollectionKind.array>;
   public nodeObserver?: MutationObserver;
@@ -70,6 +71,7 @@ export class SelectValueObserver implements IAccessor<unknown> {
     this.oldValue = void 0;
 
     this.hasChanges = false;
+    this.priority = Priority.propagate;
 
     this.arrayObserver = void 0;
     this.nodeObserver = void 0;
@@ -260,7 +262,7 @@ export class SelectValueObserver implements IAccessor<unknown> {
   public bind(): void {
     this.nodeObserver = this.dom.createNodeObserver!(this.obj, this.handleNodeChange.bind(this), childObserverOptions) as MutationObserver;
 
-    this.lifecycle.enqueueRAF(this.flushRAF, this, Priority.propagate);
+    this.lifecycle.enqueueRAF(this.flushRAF, this, this.priority);
   }
 
   public unbind(): void {

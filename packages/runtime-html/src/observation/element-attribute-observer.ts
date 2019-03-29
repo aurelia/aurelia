@@ -41,6 +41,7 @@ export class AttributeObserver implements AttributeObserver, ElementMutationSubs
   public oldValue: unknown;
 
   public hasChanges: boolean;
+  public priority: Priority;
 
   constructor(
     lifecycle: ILifecycle,
@@ -59,6 +60,7 @@ export class AttributeObserver implements AttributeObserver, ElementMutationSubs
     this.oldValue = null;
 
     this.hasChanges = false;
+    this.priority = Priority.propagate;
   }
 
   public getValue(): unknown {
@@ -159,7 +161,7 @@ export class AttributeObserver implements AttributeObserver, ElementMutationSubs
   }
 
   public bind(flags: LifecycleFlags): void {
-    this.lifecycle.enqueueRAF(this.flushRAF, this, Priority.propagate);
+    this.lifecycle.enqueueRAF(this.flushRAF, this, this.priority);
   }
 
   public unbind(flags: LifecycleFlags): void {

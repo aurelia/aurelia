@@ -36,6 +36,7 @@ import { Repeat } from './resources/custom-attributes/repeat';
 import { Replaceable } from './resources/custom-attributes/replaceable';
 import { With } from './resources/custom-attributes/with';
 import { SanitizeValueConverter } from './resources/value-converters/sanitize';
+import { PriorityBindingBehavior } from './resources/binding-behaviors/priority';
 
 export const IObserverLocatorRegistration = ObserverLocator as IRegistry;
 export const ILifecycleRegistration = Lifecycle as IRegistry;
@@ -66,6 +67,7 @@ export const FromViewBindingBehaviorRegistration = FromViewBindingBehavior as IR
 export const SignalBindingBehaviorRegistration = SignalBindingBehavior as IRegistry;
 export const ThrottleBindingBehaviorRegistration = ThrottleBindingBehavior as IRegistry;
 export const TwoWayBindingBehaviorRegistration = TwoWayBindingBehavior as IRegistry;
+export const PriorityBindingBehaviorRegistration = PriorityBindingBehavior as IRegistry;
 
 /**
  * Default resources:
@@ -85,6 +87,7 @@ export const DefaultResources = [
   ToViewBindingBehaviorRegistration,
   FromViewBindingBehaviorRegistration,
   SignalBindingBehaviorRegistration,
+  PriorityBindingBehaviorRegistration,
   ThrottleBindingBehaviorRegistration,
   TwoWayBindingBehaviorRegistration
 ];

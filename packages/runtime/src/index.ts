@@ -205,6 +205,9 @@ export {
   DebounceBindingBehavior
 } from './resources/binding-behaviors/debounce';
 export {
+  PriorityBindingBehavior,
+} from './resources/binding-behaviors/priority';
+export {
   SignalableBinding,
   SignalBindingBehavior
 } from './resources/binding-behaviors/signals';
@@ -295,6 +298,7 @@ export {
   OneTimeBindingBehaviorRegistration,
   ToViewBindingBehaviorRegistration,
   FromViewBindingBehaviorRegistration,
+  PriorityBindingBehaviorRegistration,
   SignalBindingBehaviorRegistration,
   ThrottleBindingBehaviorRegistration,
   TwoWayBindingBehaviorRegistration,

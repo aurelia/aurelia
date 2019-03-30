@@ -119,9 +119,10 @@ export class EventAggregator {
    * @param callback The callback to be invoked when the specified message is published.
    */
   public subscribe<T extends Constructable>(type: T, callback: EventAggregatorCallback<InstanceType<T>>): IDisposable;
-  public subscribe<T extends Constructable>(channelOrType: string | T, callback: EventAggregatorCallback<T | InstanceType<T>>): IDisposable {
-    let handler: EventAggregatorCallback<T | InstanceType<T>> | Handler;
-    let subscribers: (EventAggregatorCallback<T | InstanceType<T>> | Handler)[];
+  public subscribe<T extends Constructable | string>(channelOrType: T, callback: EventAggregatorCallback<T extends Constructable ? InstanceType<T> : T>): IDisposable;
+  public subscribe<T extends Constructable | string>(channelOrType: T, callback: EventAggregatorCallback<T extends Constructable ? InstanceType<T> : T>): IDisposable {
+    let handler: (typeof callback) | Handler;
+    let subscribers: ((typeof callback) | Handler)[];
 
     if (!channelOrType) {
       throw Reporter.error(0); // TODO: create error code for 'Event channel/type was invalid.'
@@ -135,8 +136,7 @@ export class EventAggregator {
       }
       subscribers = this.eventLookup[channel];
     } else {
-      const type: T = channelOrType;
-      handler = new Handler(type, callback);
+      handler = new Handler(channelOrType as Constructable, callback);
       subscribers = this.messageHandlers;
     }
 
@@ -164,8 +164,9 @@ export class EventAggregator {
    * @param callback The callback to be invoked when the specified message is published.
    */
   public subscribeOnce<T extends Constructable>(type: T, callback: EventAggregatorCallback<InstanceType<T>>): IDisposable;
-  public subscribeOnce<T extends Constructable>(channelOrType: string | T, callback: EventAggregatorCallback<T | InstanceType<T>>): IDisposable {
-    const sub = this.subscribe(channelOrType as T, (data?: T, event?: string) => {
+  public subscribeOnce<T extends Constructable | string>(channelOrType: T, callback: EventAggregatorCallback<T>): IDisposable;
+  public subscribeOnce<T extends Constructable | string>(channelOrType: T, callback: EventAggregatorCallback<T>): IDisposable {
+    const sub = this.subscribe(channelOrType, (data?: T, event?: string) => {
       sub.dispose();
       return callback(data, event);
     });

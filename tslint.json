@@ -191,7 +191,7 @@
     "prefer-for-of": false,
     "prefer-method-signature": true,
     "prefer-object-spread": true,
-    "prefer-template": true,
+    "prefer-template": false,
     "type-literal-delimiter": true,
     "typedef": [
       true,

@@ -42,292 +42,292 @@ describe(`The DI object`, function () {
     });
   });
 
-  describe(`getDesignParamTypes()`, function () {
-    it(`returns PLATFORM.emptyArray if the class has no constructor or decorators`, function () {
-      class Foo {}
-      const actual = DI.getDesignParamTypes(Foo);
-      expect(actual).to.equal(PLATFORM.emptyArray);
-    });
-    it(`returns PLATFORM.emptyArray if the class has a decorator but no constructor`, function () {
-      @decorator()
-      class Foo {}
-      const actual = DI.getDesignParamTypes(Foo);
-      expect(actual).to.equal(PLATFORM.emptyArray);
-    });
+  // describe(`getDesignParamTypes()`, function () {
+  //   it(`returns PLATFORM.emptyArray if the class has no constructor or decorators`, function () {
+  //     class Foo {}
+  //     const actual = DI.getDesignParamTypes(Foo);
+  //     expect(actual).to.equal(PLATFORM.emptyArray);
+  //   });
+  //   it(`returns PLATFORM.emptyArray if the class has a decorator but no constructor`, function () {
+  //     @decorator()
+  //     class Foo {}
+  //     const actual = DI.getDesignParamTypes(Foo);
+  //     expect(actual).to.equal(PLATFORM.emptyArray);
+  //   });
 
-    it(`returns PLATFORM.emptyArray if the class has no constructor args or decorators`, function () {
-      class Foo { constructor() { return; } }
-      const actual = DI.getDesignParamTypes(Foo);
-      expect(actual).to.equal(PLATFORM.emptyArray);
-    });
+  //   it(`returns PLATFORM.emptyArray if the class has no constructor args or decorators`, function () {
+  //     class Foo { constructor() { return; } }
+  //     const actual = DI.getDesignParamTypes(Foo);
+  //     expect(actual).to.equal(PLATFORM.emptyArray);
+  //   });
 
-    it(`returns PLATFORM.emptyArray if the class has constructor args but no decorators`, function () {
-      class Bar {}
-      class Foo { constructor(public bar: Bar) {} }
-      const actual = DI.getDesignParamTypes(Foo);
-      expect(actual).to.equal(PLATFORM.emptyArray);
-    });
+  //   it(`returns PLATFORM.emptyArray if the class has constructor args but no decorators`, function () {
+  //     class Bar {}
+  //     class Foo { constructor(public bar: Bar) {} }
+  //     const actual = DI.getDesignParamTypes(Foo);
+  //     expect(actual).to.equal(PLATFORM.emptyArray);
+  //   });
 
-    it(`returns PLATFORM.emptyArray if the class has constructor args and the decorator is applied via a function call`, function () {
-      class Bar {}
-      class Foo { constructor(public bar: Bar) {} }
-      decorator()(Foo);
-      const actual = DI.getDesignParamTypes(Foo);
-      expect(actual).to.equal(PLATFORM.emptyArray);
-    });
+  //   it(`returns PLATFORM.emptyArray if the class has constructor args and the decorator is applied via a function call`, function () {
+  //     class Bar {}
+  //     class Foo { constructor(public bar: Bar) {} }
+  //     decorator()(Foo);
+  //     const actual = DI.getDesignParamTypes(Foo);
+  //     expect(actual).to.equal(PLATFORM.emptyArray);
+  //   });
 
-    it(`returns PLATFORM.emptyArray if the class is declared as an anonymous variable, even if it has ctor args and decorator is applied properly`, function () {
-      class Bar {}
-      // @ts-ignore
-      @decorator()
-      const FooInline = class { constructor(public bar: Bar) {} };
-      const actual = DI.getDesignParamTypes(FooInline);
-      expect(actual).to.equal(PLATFORM.emptyArray);
-    });
+  //   it(`returns PLATFORM.emptyArray if the class is declared as an anonymous variable, even if it has ctor args and decorator is applied properly`, function () {
+  //     class Bar {}
+  //     // @ts-ignore
+  //     @decorator()
+  //     const FooInline = class { constructor(public bar: Bar) {} };
+  //     const actual = DI.getDesignParamTypes(FooInline);
+  //     expect(actual).to.equal(PLATFORM.emptyArray);
+  //   });
 
-    it(`returns PLATFORM.emptyArray if the class is declared as a named variable, even if it has ctor args and decorator is applied properly`, function () {
-      class Bar {}
-      // @ts-ignore
-      @decorator()
-      const FooInline = class Foo { constructor(public bar: Bar) {} };
-      const actual = DI.getDesignParamTypes(FooInline);
-      expect(actual).to.equal(PLATFORM.emptyArray);
-    });
+  //   it(`returns PLATFORM.emptyArray if the class is declared as a named variable, even if it has ctor args and decorator is applied properly`, function () {
+  //     class Bar {}
+  //     // @ts-ignore
+  //     @decorator()
+  //     const FooInline = class Foo { constructor(public bar: Bar) {} };
+  //     const actual = DI.getDesignParamTypes(FooInline);
+  //     expect(actual).to.equal(PLATFORM.emptyArray);
+  //   });
 
-    describe(`returns an empty array if the class has a decorator but no constructor args`, function () {
-      @decorator()
-      class Foo { constructor() { return; } }
+  //   describe(`returns an empty array if the class has a decorator but no constructor args`, function () {
+  //     @decorator()
+  //     class Foo { constructor() { return; } }
 
-      it(_`${Foo}`, function () {
-        const actual = DI.getDesignParamTypes(Foo);
-        assertIsMutableArray(actual, 0);
-      });
+  //     it(_`${Foo}`, function () {
+  //       const actual = DI.getDesignParamTypes(Foo);
+  //       assertIsMutableArray(actual, 0);
+  //     });
 
-      it(_`${class {}}`, function () {
-        let cls;
-        function anonDecorator(): ClassDecorator { return (target: any) => cls = target; }
-        // @ts-ignore
-        @anonDecorator()
-        class { constructor() { return; } }
-        const actual = DI.getDesignParamTypes(cls);
-        assertIsMutableArray(actual, 0);
-      });
-    });
+  //     it(_`${class {}}`, function () {
+  //       let cls;
+  //       function anonDecorator(): ClassDecorator { return (target: any) => cls = target; }
+  //       // @ts-ignore
+  //       @anonDecorator()
+  //       class { constructor() { return; } }
+  //       const actual = DI.getDesignParamTypes(cls);
+  //       assertIsMutableArray(actual, 0);
+  //     });
+  //   });
 
-    describe(`falls back to Object for declarations that cannot be statically analyzed`, function () {
-      interface ArgCtor {}
-      for (const argCtor of [
-        class Bar {},
-        function () { return; },
-        () => { return; },
-        class {},
-        {},
-        Error,
-        Array,
-        (class Bar {}).prototype,
-        (class Bar {}).prototype.constructor
-      ] as any[]) {
-        @decorator()
-        class FooDecoratorInvocation { constructor(public arg: ArgCtor) {} }
+  //   describe(`falls back to Object for declarations that cannot be statically analyzed`, function () {
+  //     interface ArgCtor {}
+  //     for (const argCtor of [
+  //       class Bar {},
+  //       function () { return; },
+  //       () => { return; },
+  //       class {},
+  //       {},
+  //       Error,
+  //       Array,
+  //       (class Bar {}).prototype,
+  //       (class Bar {}).prototype.constructor
+  //     ] as any[]) {
+  //       @decorator()
+  //       class FooDecoratorInvocation { constructor(public arg: ArgCtor) {} }
 
-        it(_`${FooDecoratorInvocation} { constructor(${argCtor}) }`, function () {
-          const actual = DI.getDesignParamTypes(FooDecoratorInvocation);
-          assertIsMutableArray(actual, 1);
-          expect(actual[0]).to.equal(Object);
-        });
+  //       it(_`${FooDecoratorInvocation} { constructor(${argCtor}) }`, function () {
+  //         const actual = DI.getDesignParamTypes(FooDecoratorInvocation);
+  //         assertIsMutableArray(actual, 1);
+  //         expect(actual[0]).to.equal(Object);
+  //       });
 
-        @(decorator as any)
-        class FooDecoratorNonInvocation { constructor(public arg: ArgCtor) {} }
+  //       @(decorator as any)
+  //       class FooDecoratorNonInvocation { constructor(public arg: ArgCtor) {} }
 
-        it(_`${FooDecoratorNonInvocation} { constructor(${argCtor}) }`, function () {
-          const actual = DI.getDesignParamTypes(FooDecoratorInvocation);
-          assertIsMutableArray(actual, 1);
-          expect(actual[0]).to.equal(Object);
-        });
-      }
-    });
+  //       it(_`${FooDecoratorNonInvocation} { constructor(${argCtor}) }`, function () {
+  //         const actual = DI.getDesignParamTypes(FooDecoratorInvocation);
+  //         assertIsMutableArray(actual, 1);
+  //         expect(actual[0]).to.equal(Object);
+  //       });
+  //     }
+  //   });
 
-    describe(`falls back to Object for mismatched declarations`, function () {
+  //   describe(`falls back to Object for mismatched declarations`, function () {
 
-      // Technically we're testing TypeScript here, but it's still useful to have an in-place fixture to validate our assumptions
-      // And also to have an alert mechanism for when the functionality in TypeScript changes, without having to read the changelogs
+  //     // Technically we're testing TypeScript here, but it's still useful to have an in-place fixture to validate our assumptions
+  //     // And also to have an alert mechanism for when the functionality in TypeScript changes, without having to read the changelogs
 
-      // What we're verifying here is under which circumstances a function object will or won't be properly resolved as a
-      // designParamType, and it seems like the presence of a same-name interface actually breaks this in some situations
+  //     // What we're verifying here is under which circumstances a function object will or won't be properly resolved as a
+  //     // designParamType, and it seems like the presence of a same-name interface actually breaks this in some situations
 
-      // Note: the order of declaration (interface first or other thing first) doesn't seem to matter here
-      // But whether or not there is a direct type cast, does seem to matter in the case of AnonClass (note the negative assertion)
+  //     // Note: the order of declaration (interface first or other thing first) doesn't seem to matter here
+  //     // But whether or not there is a direct type cast, does seem to matter in the case of AnonClass (note the negative assertion)
 
-      // It's unclear whether the difference between AnonClass (which works) and AnonClassInterface (which doesn't work) is a bug in TS or not,
-      // but it has ramifications we need to keep in mind.
+  //     // It's unclear whether the difference between AnonClass (which works) and AnonClassInterface (which doesn't work) is a bug in TS or not,
+  //     // but it has ramifications we need to keep in mind.
 
-      interface Bar {}
-      class Bar {}
+  //     interface Bar {}
+  //     class Bar {}
 
-      interface AnonClass {}
-      const AnonClass = class {};
+  //     interface AnonClass {}
+  //     const AnonClass = class {};
 
-      interface AnonClassInterface {}
-      const AnonClassInterface: AnonClassInterface = class {};
+  //     interface AnonClassInterface {}
+  //     const AnonClassInterface: AnonClassInterface = class {};
 
-      interface VarFunc {}
-      const VarFunc = function () { return; };
+  //     interface VarFunc {}
+  //     const VarFunc = function () { return; };
 
-      interface VarFuncInterface {}
-      const VarFuncInterface: VarFuncInterface = function () { return; };
+  //     interface VarFuncInterface {}
+  //     const VarFuncInterface: VarFuncInterface = function () { return; };
 
-      interface Func {}
-      // tslint:disable-next-line:no-empty
-      function Func() {}
+  //     interface Func {}
+  //     // tslint:disable-next-line:no-empty
+  //     function Func() {}
 
-      interface Arrow {}
-      const Arrow = () => { return; };
+  //     interface Arrow {}
+  //     const Arrow = () => { return; };
 
-      interface ArrowInterface {}
-      const ArrowInterface: ArrowInterface = () => { return; };
+  //     interface ArrowInterface {}
+  //     const ArrowInterface: ArrowInterface = () => { return; };
 
-      describe(`decorator invocation`, function () {
-        @decorator()
-        class FooBar { constructor(public arg: Bar) {} }
+  //     describe(`decorator invocation`, function () {
+  //       @decorator()
+  //       class FooBar { constructor(public arg: Bar) {} }
 
-        // Note: this is a negative assertion meant to make it easier to compare this describe with the one below
-        it(_`NOT ${FooBar} { constructor(public ${Bar}) }`, function () {
-          const actual = DI.getDesignParamTypes(FooBar);
-          assertIsMutableArray(actual, 1);
-          expect(actual[0]).to.equal(Bar);
-        });
+  //       // Note: this is a negative assertion meant to make it easier to compare this describe with the one below
+  //       it(_`NOT ${FooBar} { constructor(public ${Bar}) }`, function () {
+  //         const actual = DI.getDesignParamTypes(FooBar);
+  //         assertIsMutableArray(actual, 1);
+  //         expect(actual[0]).to.equal(Bar);
+  //       });
 
-        @decorator()
-        class FooAnonClass { constructor(public arg: AnonClass) {} }
+  //       @decorator()
+  //       class FooAnonClass { constructor(public arg: AnonClass) {} }
 
-        // Note: this is a negative assertion meant to make it easier to compare this describe with the one below
-        it(_`NOT ${FooAnonClass} { constructor(public ${AnonClass}) }`, function () {
-          const actual = DI.getDesignParamTypes(FooAnonClass);
-          assertIsMutableArray(actual, 1);
-          expect(actual[0]).to.equal(AnonClass);
-        });
+  //       // Note: this is a negative assertion meant to make it easier to compare this describe with the one below
+  //       it(_`NOT ${FooAnonClass} { constructor(public ${AnonClass}) }`, function () {
+  //         const actual = DI.getDesignParamTypes(FooAnonClass);
+  //         assertIsMutableArray(actual, 1);
+  //         expect(actual[0]).to.equal(AnonClass);
+  //       });
 
-        @decorator()
-        class FooAnonClassInterface { constructor(public arg: AnonClassInterface) {} }
+  //       @decorator()
+  //       class FooAnonClassInterface { constructor(public arg: AnonClassInterface) {} }
 
-        // this one is particularly interesting..
-        it(_`${FooAnonClassInterface} { constructor(public ${AnonClassInterface}) }`, function () {
-          const actual = DI.getDesignParamTypes(FooAnonClassInterface);
-          assertIsMutableArray(actual, 1);
-          expect(actual[0]).to.equal(Object);
-        });
+  //       // this one is particularly interesting..
+  //       it(_`${FooAnonClassInterface} { constructor(public ${AnonClassInterface}) }`, function () {
+  //         const actual = DI.getDesignParamTypes(FooAnonClassInterface);
+  //         assertIsMutableArray(actual, 1);
+  //         expect(actual[0]).to.equal(Object);
+  //       });
 
-        @decorator()
-        class FooVarFunc { constructor(public arg: VarFunc) {} }
+  //       @decorator()
+  //       class FooVarFunc { constructor(public arg: VarFunc) {} }
 
-        it(_`${FooVarFunc} { constructor(public ${VarFunc}) }`, function () {
-          const actual = DI.getDesignParamTypes(FooVarFunc);
-          assertIsMutableArray(actual, 1);
-          expect(actual[0]).to.equal(Object);
-        });
+  //       it(_`${FooVarFunc} { constructor(public ${VarFunc}) }`, function () {
+  //         const actual = DI.getDesignParamTypes(FooVarFunc);
+  //         assertIsMutableArray(actual, 1);
+  //         expect(actual[0]).to.equal(Object);
+  //       });
 
-        @decorator()
-        class FooVarFuncInterface { constructor(public arg: VarFuncInterface) {} }
+  //       @decorator()
+  //       class FooVarFuncInterface { constructor(public arg: VarFuncInterface) {} }
 
-        it(_`${FooVarFuncInterface} { constructor(public ${VarFuncInterface}) }`, function () {
-          const actual = DI.getDesignParamTypes(FooVarFuncInterface);
-          assertIsMutableArray(actual, 1);
-          expect(actual[0]).to.equal(Object);
-        });
+  //       it(_`${FooVarFuncInterface} { constructor(public ${VarFuncInterface}) }`, function () {
+  //         const actual = DI.getDesignParamTypes(FooVarFuncInterface);
+  //         assertIsMutableArray(actual, 1);
+  //         expect(actual[0]).to.equal(Object);
+  //       });
 
-        @decorator()
-        class FooFunc { constructor(public arg: Func) {} }
+  //       @decorator()
+  //       class FooFunc { constructor(public arg: Func) {} }
 
-        it(_`${FooFunc} { constructor(public ${Func}) }`, function () {
-          const actual = DI.getDesignParamTypes(FooFunc);
-          assertIsMutableArray(actual, 1);
-          expect(actual[0]).to.equal(Object);
-        });
+  //       it(_`${FooFunc} { constructor(public ${Func}) }`, function () {
+  //         const actual = DI.getDesignParamTypes(FooFunc);
+  //         assertIsMutableArray(actual, 1);
+  //         expect(actual[0]).to.equal(Object);
+  //       });
 
-        @decorator()
-        class FooArrow { constructor(public arg: Arrow) {} }
+  //       @decorator()
+  //       class FooArrow { constructor(public arg: Arrow) {} }
 
-        it(_`${FooArrow} { constructor(public ${Arrow}) }`, function () {
-          const actual = DI.getDesignParamTypes(FooArrow);
-          assertIsMutableArray(actual, 1);
-          expect(actual[0]).to.equal(Object);
-        });
+  //       it(_`${FooArrow} { constructor(public ${Arrow}) }`, function () {
+  //         const actual = DI.getDesignParamTypes(FooArrow);
+  //         assertIsMutableArray(actual, 1);
+  //         expect(actual[0]).to.equal(Object);
+  //       });
 
-        @decorator()
-        class FooArrowInterface { constructor(public arg: ArrowInterface) {} }
+  //       @decorator()
+  //       class FooArrowInterface { constructor(public arg: ArrowInterface) {} }
 
-        it(_`${FooArrowInterface} { constructor(public ${ArrowInterface}) }`, function () {
-          const actual = DI.getDesignParamTypes(FooArrowInterface);
-          assertIsMutableArray(actual, 1);
-          expect(actual[0]).to.equal(Object);
-        });
-      });
-    });
+  //       it(_`${FooArrowInterface} { constructor(public ${ArrowInterface}) }`, function () {
+  //         const actual = DI.getDesignParamTypes(FooArrowInterface);
+  //         assertIsMutableArray(actual, 1);
+  //         expect(actual[0]).to.equal(Object);
+  //       });
+  //     });
+  //   });
 
-    describe(`returns the correct types for valid declarations`, function () {
-      class Bar {}
+  //   describe(`returns the correct types for valid declarations`, function () {
+  //     class Bar {}
 
-      const AnonClass = class {};
+  //     const AnonClass = class {};
 
-      const VarFunc = function () { return; };
+  //     const VarFunc = function () { return; };
 
-      // tslint:disable-next-line:no-empty
-      function Func() {}
+  //     // tslint:disable-next-line:no-empty
+  //     function Func() {}
 
-      const Arrow = () => { return; };
+  //     const Arrow = () => { return; };
 
-      describe(`decorator invocation`, function () {
-        @decorator()
-        class FooBar { constructor(public arg: Bar) {} }
+  //     describe(`decorator invocation`, function () {
+  //       @decorator()
+  //       class FooBar { constructor(public arg: Bar) {} }
 
-        it(_`${FooBar} { constructor(public ${Bar}) }`, function () {
-          const actual = DI.getDesignParamTypes(FooBar);
-          assertIsMutableArray(actual, 1);
-          expect(actual[0]).to.equal(Bar);
-        });
+  //       it(_`${FooBar} { constructor(public ${Bar}) }`, function () {
+  //         const actual = DI.getDesignParamTypes(FooBar);
+  //         assertIsMutableArray(actual, 1);
+  //         expect(actual[0]).to.equal(Bar);
+  //       });
 
-        @decorator()
-        // @ts-ignore
-        class FooAnonClass { constructor(public arg: AnonClass) {} }
+  //       @decorator()
+  //       // @ts-ignore
+  //       class FooAnonClass { constructor(public arg: AnonClass) {} }
 
-        it(_`${FooAnonClass} { constructor(public ${AnonClass}) }`, function () {
-          const actual = DI.getDesignParamTypes(FooAnonClass);
-          assertIsMutableArray(actual, 1);
-          expect(actual[0]).to.equal(AnonClass);
-        });
+  //       it(_`${FooAnonClass} { constructor(public ${AnonClass}) }`, function () {
+  //         const actual = DI.getDesignParamTypes(FooAnonClass);
+  //         assertIsMutableArray(actual, 1);
+  //         expect(actual[0]).to.equal(AnonClass);
+  //       });
 
-        @decorator()
-        // @ts-ignore
-        class FooVarFunc { constructor(public arg: VarFunc) {} }
+  //       @decorator()
+  //       // @ts-ignore
+  //       class FooVarFunc { constructor(public arg: VarFunc) {} }
 
-        it(_`${FooVarFunc} { constructor(public ${VarFunc}) }`, function () {
-          const actual = DI.getDesignParamTypes(FooVarFunc);
-          assertIsMutableArray(actual, 1);
-          expect(actual[0]).to.equal(VarFunc);
-        });
+  //       it(_`${FooVarFunc} { constructor(public ${VarFunc}) }`, function () {
+  //         const actual = DI.getDesignParamTypes(FooVarFunc);
+  //         assertIsMutableArray(actual, 1);
+  //         expect(actual[0]).to.equal(VarFunc);
+  //       });
 
-        @decorator()
-        // @ts-ignore
-        class FooFunc { constructor(public arg: Func) {} }
+  //       @decorator()
+  //       // @ts-ignore
+  //       class FooFunc { constructor(public arg: Func) {} }
 
-        it(_`${FooFunc} { constructor(public ${Func}) }`, function () {
-          const actual = DI.getDesignParamTypes(FooFunc);
-          assertIsMutableArray(actual, 1);
-          expect(actual[0]).to.equal(Func);
-        });
+  //       it(_`${FooFunc} { constructor(public ${Func}) }`, function () {
+  //         const actual = DI.getDesignParamTypes(FooFunc);
+  //         assertIsMutableArray(actual, 1);
+  //         expect(actual[0]).to.equal(Func);
+  //       });
 
-        @decorator()
-        // @ts-ignore
-        class FooArrow { constructor(public arg: Arrow) {} }
+  //       @decorator()
+  //       // @ts-ignore
+  //       class FooArrow { constructor(public arg: Arrow) {} }
 
-        it(_`${FooArrow} { constructor(public ${Arrow}) }`, function () {
-          const actual = DI.getDesignParamTypes(FooArrow);
-          assertIsMutableArray(actual, 1);
-          expect(actual[0]).to.equal(Arrow);
-        });
-      });
-    });
-  });
+  //       it(_`${FooArrow} { constructor(public ${Arrow}) }`, function () {
+  //         const actual = DI.getDesignParamTypes(FooArrow);
+  //         assertIsMutableArray(actual, 1);
+  //         expect(actual[0]).to.equal(Arrow);
+  //       });
+  //     });
+  //   });
+  // });
 
   describe(`getDependencies()`, function () {
     let getDesignParamTypes: ReturnType<typeof spy>;
@@ -343,18 +343,16 @@ describe(`The DI object`, function () {
       class Bar {}
       @decorator()
       class Foo { constructor(bar: Bar) { return; } }
-      const actual = DI.getDependencies(Foo);
+      DI.getDependencies(Foo);
       expect(getDesignParamTypes).to.have.been.calledWith(Foo);
-      expect(actual).to.deep.equal([Bar]);
     });
 
     it(`uses getDesignParamTypes() if the static inject property is undefined`, function () {
       class Bar {}
       @decorator()
       class Foo { public static inject; constructor(bar: Bar) { return; } }
-      const actual = DI.getDependencies(Foo);
+      DI.getDependencies(Foo);
       expect(getDesignParamTypes).to.have.been.calledWith(Foo);
-      expect(actual).to.deep.equal([Bar]);
     });
 
     it(`throws when inject is not an array`, function () {
@@ -548,12 +546,12 @@ describe(`The inject decorator`, function () {
     expect(Foo['inject']).to.deep.equal([Dep1, Dep2, Dep3]);
   });
 
-  it(`can decorate classes with implicit dependencies`, function () {
-    @inject()
-    class Foo { constructor(dep1: Dep1, dep2: Dep2, dep3: Dep3) { return; } }
+  // it(`can decorate classes with implicit dependencies`, function () {
+  //   @inject()
+  //   class Foo { constructor(dep1: Dep1, dep2: Dep2, dep3: Dep3) { return; } }
 
-    expect(Foo['inject']).to.deep.equal([Dep1, Dep2, Dep3]);
-  });
+  //   expect(Foo['inject']).to.deep.equal([Dep1, Dep2, Dep3]);
+  // });
 
   it(`can decorate constructor parameters explicitly`, function () {
     class Foo { constructor(@inject(Dep1)dep1, @inject(Dep2)dep2, @inject(Dep3)dep3) { return; } }
@@ -561,11 +559,11 @@ describe(`The inject decorator`, function () {
     expect(Foo['inject']).to.deep.equal([Dep1, Dep2, Dep3]);
   });
 
-  it(`can decorate constructor parameters implicitly`, function () {
-    class Foo { constructor(@inject() dep1: Dep1, @inject() dep2: Dep2, @inject() dep3: Dep3) { return; } }
+  // it(`can decorate constructor parameters implicitly`, function () {
+  //   class Foo { constructor(@inject() dep1: Dep1, @inject() dep2: Dep2, @inject() dep3: Dep3) { return; } }
 
-    expect(Foo['inject']).to.deep.equal([Dep1, Dep2, Dep3]);
-  });
+  //   expect(Foo['inject']).to.deep.equal([Dep1, Dep2, Dep3]);
+  // });
 
   it(`can decorate properties explicitly`, function () {
     // @ts-ignore

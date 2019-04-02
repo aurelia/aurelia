@@ -24,7 +24,7 @@
     "path": "^0.12.7",
     "rimraf": "^2.6.3",
     "tsify": "^4.0.1",
-    "typescript": "^3.3.4000",
+    "typescript": "~3.3.4000",
     "vinyl-source-stream": "^2.0.0",
     "watchify": "^3.11.1"
   }

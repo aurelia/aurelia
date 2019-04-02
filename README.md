@@ -34,7 +34,7 @@ Please see our [CONTRIBUTING.md](docs/CONTRIBUTING.md) for more information.
 
 ## Developing
 
-Check out our [engineering/README.md](docs/engineering/README.md) to get started with setting up the repo, building, testing and debugging.
+Check out our [engineering-notes/README.md](docs/engineering-notes/README.md) to get started with setting up the repo, building, testing, and debugging.
 
 ---
 

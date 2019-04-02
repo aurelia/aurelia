@@ -3,12 +3,12 @@
 This folder contains documentation targeted at people who are using Aurelia to create applications, component libraries, and plugins. For documentation on how to build or work on Aurelia itself, see our [engineering notes](../engineering-notes/README.md).
 
 > What you'll learn...
-> * What are the three fundamental types of documentation?
+> * What are the three types of documentation?
 > * How do I contribute to each type of documentation?
 > * What syntax is used throughout the documentation?
 > * How is the documentation organized?
 
-## The Three Fundamental Types of Documentation
+## Documentation Types
 
 The three fundamental types of documentation are **articles**, **API reference**, and **recipes**.
 
@@ -43,15 +43,17 @@ Recipes are code-focused documentation that demonstrate solutions for specific t
 
 ## Docs Organization
 
-The documentation is organized into five major sections, all available through a single `Docs` link in the sidebar:
+The documentation is organized into seven major sections, all available through a single `Docs` link in the main site navigation:
 
 * **Foundations** - These are guides and tutorials oriented towards a person's first encounter with Aurelia. They teach the foundational topics needed to get them up and running with the framework. After reading these docs, a person should feel comfortable creating a new project and building a small-scale application on their own.
 * **Essentials** - These are primarily guides covering topics relevant to someone who has started building a production app. They introduce additional topics beyond Foundations, but also go deeper in areas previously covered by Foundations. After reading these articles, a person should feel confident that they can tackle most front-end challenges and particularly that they know what is needed to build their specific app.
 * **Mastery** - These are guides that cover more advanced topics, such as architecture, framework extensibility, performance optimization, etc.
 * **API Reference** - This section of the ToC contains an entry for each shippable package. The API reference for a give package should all be contained within a single page. This content is generated from source code.
 * **Recipes** - This section provides access to code examples and recipes as described above.
+* **Contributing** - This includes our basic contribution guide and code of conduct, along with a version of this doc and a subset of our engineering notes, designed to help people start contributing quickly and with confidence.
+* **FAQ** - This section has various articles that address common questions and provides more information around the project itself.
 
-Each of these sections will be represented in the ToC as a bold section delimiter. Articles and Packages will be listed below each section. When an article is clicked on, it will expand inline to show its level-2 headings. API reference will not expand inline. Instead, it will have an in-page sub-ToC.
+Each of these sections is represented in the ToC as a bold section delimiter. Articles and Packages are listed below each section. When an article is clicked on, it expands inline to show its level-2 headings. API reference does not expand inline. Instead, it has an in-page sub-ToC.
 
 ### WIP vNext ToC
 
@@ -65,6 +67,7 @@ Each of these sections will be represented in the ToC as a bold section delimite
   *
   *
 * Essentials
+  * Managing Application State
   * Securing Your App
   * Integrating 3rd Party Libraries
   *
@@ -76,4 +79,25 @@ Each of these sections will be represented in the ToC as a bold section delimite
   *
   *
 * API Reference
+  * CLI Command Reference
+  * Core Framework
+    * @aurelia/kernel
+    * @aurelia/jit
+    * ...
+  * Plugins
+    * @aurelia/fetch
+    * @aurelia/router
+    * @aurelia/store
+    * ...
 * Recipes
+  * Configuring Auth-Protected Routes
+  * ...
+* Contributing
+  * Contributor's Guide
+  * Building and Testing Aurelia
+  * Writing Documentation
+* FAQ
+  * Framework Comparison
+  * Versioning Policy
+  * Migrating to Aurelia 2.0
+  * Glossary

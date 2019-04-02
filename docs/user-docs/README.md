@@ -65,11 +65,14 @@ Each of these sections will be represented in the ToC as a bold section delimite
   *
   *
 * Essentials
-  *
+  * Securing Your App
+  * Integrating 3rd Party Libraries
   *
   *
 * Mastery
-  *
+  * UI Modeling with Composite MVVM
+  * Extending the Template Compiler
+  * Extending the Binding Engine
   *
   *
 * API Reference

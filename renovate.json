@@ -31,6 +31,10 @@
     {
       "packageNames": ["chromedriver"],
       "allowedVersions": "~2.45.0"
+    },
+    {
+      "packageNames": ["typescript"],
+      "allowedVersions": "~3.3.4000"
     }
   ]
 }

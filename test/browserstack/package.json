@@ -23,8 +23,8 @@
     "@types/mocha": "^5.2.6",
     "@types/node": "^10.12.27",
     "@wdio/browserstack-service": "^5.7.2",
-    "@wdio/cli": "^5.7.3",
-    "@wdio/local-runner": "^5.7.3",
+    "@wdio/cli": "^5.7.5",
+    "@wdio/local-runner": "^5.7.5",
     "@wdio/mocha-framework": "^5.7.3",
     "@wdio/selenium-standalone-service": "^5.7.2",
     "@wdio/spec-reporter": "^5.7.2",
@@ -42,7 +42,7 @@
     "ts-node": "^8.0.3",
     "tsconfig-paths": "^3.8.0",
     "tslib": "^1.9.3",
-    "typescript": "^3.3.3333",
+    "typescript": "~3.3.4000",
     "webpack": "^4.29.6",
     "webpack-cli": "^3.3.0"
   }

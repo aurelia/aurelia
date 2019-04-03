@@ -49,6 +49,8 @@ import {
   Object_keys,
   createFrozenNullObject,
 } from './util';
+import { CompositionRoot } from '@aurelia/runtime';
+import { getVisibleText } from './specialized-assertions';
 
 // tslint:disable: no-commented-code
 // tslint:disable: ban-types
@@ -288,30 +290,34 @@ function expectsNoError(
 
 export function throws(
   fn: () => any,
-  ...args: [ErrorMatcher, string]
+  errorMatcher?: ErrorMatcher,
+  message?: string,
 ): void {
-  expectsError(throws, getActual(fn), ...args);
+  expectsError(throws, getActual(fn), errorMatcher, message);
 }
 
 export async function rejects(
   promiseFn: () => Promise<any>,
-  ...args: [ErrorMatcher, string]
+  errorMatcher?: ErrorMatcher,
+  message?: string,
 ): Promise<void> {
-  expectsError(rejects, await waitForActual(promiseFn), ...args);
+  expectsError(rejects, await waitForActual(promiseFn), errorMatcher, message);
 }
 
 export function doesNotThrow(
   fn: () => any,
-  ...args: [ErrorMatcher, string]
+  errorMatcher?: ErrorMatcher,
+  message?: string,
 ): void {
-  expectsNoError(doesNotThrow, getActual(fn), ...args);
+  expectsNoError(doesNotThrow, getActual(fn), errorMatcher, message);
 }
 
 export async function doesNotReject(
   promiseFn: () => Promise<any>,
-  ...args: [ErrorMatcher, string]
+  errorMatcher?: ErrorMatcher,
+  message?: string,
 ): Promise<void> {
-  expectsNoError(doesNotReject, await waitForActual(promiseFn), ...args);
+  expectsNoError(doesNotReject, await waitForActual(promiseFn), errorMatcher, message);
 }
 
 export function ifError(err?: Error): void {
@@ -374,6 +380,19 @@ export function fail(message: string | Error = 'Failed'): never {
   err.generatedMessage = message === 'Failed';
 
   throw err;
+}
+
+export function visibleTextEqual(root: CompositionRoot, expectedText: string, message?: string): void {
+  const actualText = getVisibleText(root.controller, root.host as Node);
+  if (actualText !== expectedText) {
+    innerFail({
+      actual: actualText,
+      expected: expectedText,
+      message,
+      operator: '==' as any,
+      stackStartFn: visibleTextEqual
+    });
+  }
 }
 
 export function equal(actual: any, expected: any, message?: string): void {
@@ -487,6 +506,7 @@ const assert = createFrozenNullObject({
   notDeepStrictEqual,
   strictEqual,
   notStrictEqual,
+  visibleTextEqual,
   strict: {
     deepEqual: deepStrictEqual,
     notDeepEqual: notDeepStrictEqual,

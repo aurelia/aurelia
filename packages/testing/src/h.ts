@@ -5,13 +5,12 @@ export type H = string | number | boolean | null | undefined | Node;
 
 const emptyArray = PLATFORM.emptyArray as unknown as string[];
 
-export function h<T extends keyof HTMLElementTagNameMap, TChildren extends H[]>(
-  doc: Document,
+export function h<T extends string, TChildren extends H[]>(
   name: T,
   attrs: Record<string, string | null | undefined | string[] | boolean | number> | null = null,
   ...children: TChildren
-): HTMLElementTagNameMap[T] {
-  const el = doc.createElement<T>(name);
+): T extends keyof HTMLElementTagNameMap ? HTMLElementTagNameMap[T] : HTMLElement {
+  const el = DOM.createElement(name);
   for (const attr in attrs) {
     if (attr === 'class' || attr === 'className' || attr === 'cls') {
       let value = attrs[attr];
@@ -22,7 +21,7 @@ export function h<T extends keyof HTMLElementTagNameMap, TChildren extends H[]>(
           : (`${value}`).split(' ');
       el.classList.add(...value.filter(Boolean));
     } else if (attr in el || attr === 'data' || attr[0] === '_') {
-      el[attr.replace(/^_/, '') as keyof typeof el] = attrs[attr] as unknown as HTMLElementTagNameMap[T][keyof HTMLElementTagNameMap[T]];
+      (el as any)[attr.replace(/^_/, '')] = attrs[attr];
     } else {
       el.setAttribute(attr, attrs[attr] as string);
     }
@@ -34,10 +33,10 @@ export function h<T extends keyof HTMLElementTagNameMap, TChildren extends H[]>(
     }
     childrenCt.appendChild(isNodeOrTextOrComment(child)
       ? child
-      : doc.createTextNode(`${child}`)
+      : DOM.createTextNode(`${child}`)
     );
   }
-  return el;
+  return el as any;
 }
 
 function isNodeOrTextOrComment(obj: unknown): obj is Text | Comment | Node {

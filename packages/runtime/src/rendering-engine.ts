@@ -292,11 +292,11 @@ export class RenderingEngine implements IRenderingEngine {
 
 export function createRenderContext(
   dom: IDOM,
-  parentRenderContext: IRenderContext,
+  parent: IRenderContext | IContainer,
   dependencies: IRegistry[],
   componentType?: ICustomElementType
 ): IRenderContext {
-  const context = parentRenderContext.createChild() as ExposedContext;
+  const context = parent.createChild() as ExposedContext;
   const renderableProvider = new InstanceProvider();
   const elementProvider = new InstanceProvider();
   const instructionProvider = new InstanceProvider<ITargetedInstruction>();

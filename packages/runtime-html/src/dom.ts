@@ -371,9 +371,9 @@ export class FragmentNodeSequence implements INodeSequence {
       let current = this.start.nextSibling;
       while (current !== end) {
         next = current!.nextSibling!;
-        // tslint:disable-next-line:no-any
         fragment.appendChild(current!);
-        current = next;
+        // tslint:disable-next-line:no-any
+        current = next as any;
       }
       this.start.$nodes = null!;
       this.start = this.end = null!;

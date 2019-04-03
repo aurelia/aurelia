@@ -138,7 +138,7 @@ export class Controller<T extends INode = INode, C extends IViewModel<T> = IView
     viewCache: IViewCache<T> | undefined,
     lifecycle: ILifecycle | undefined,
     viewModel: C | undefined,
-    parentContext: IRenderContext<T> | undefined,
+    parentContext: IServiceLocator | undefined,
     host: T | undefined,
     options: Partial<IElementHydrationOptions>
   ) {
@@ -270,14 +270,14 @@ export class Controller<T extends INode = INode, C extends IViewModel<T> = IView
 
   public static forCustomElement<T extends INode = INode>(
     viewModel: object,
-    parentContext: IRenderContext<T>,
+    parentContext: IServiceLocator,
     host: T,
     flags: LifecycleFlags = LifecycleFlags.none,
     options: IElementHydrationOptions = PLATFORM.emptyObject,
   ): Controller<T> {
     let controller = Controller.lookup.get(viewModel) as Controller<T> | undefined;
     if (controller === void 0) {
-      controller = new Controller(flags, void 0, void 0, viewModel, parentContext, host, options);
+      controller = new Controller<T>(flags, void 0, void 0, viewModel, parentContext, host, options);
       this.lookup.set(viewModel, controller);
     }
     return controller;
@@ -285,12 +285,12 @@ export class Controller<T extends INode = INode, C extends IViewModel<T> = IView
 
   public static forCustomAttribute<T extends INode = INode>(
     viewModel: object,
-    parentContext: IRenderContext<T>,
+    parentContext: IServiceLocator,
     flags: LifecycleFlags = LifecycleFlags.none,
   ): Controller<T> {
     let controller = Controller.lookup.get(viewModel) as Controller<T> | undefined;
     if (controller === void 0) {
-      controller = new Controller(flags, void 0, void 0, viewModel, parentContext, void 0, PLATFORM.emptyObject);
+      controller = new Controller<T>(flags, void 0, void 0, viewModel, parentContext, void 0, PLATFORM.emptyObject);
       this.lookup.set(viewModel, controller);
     }
     return controller;
@@ -301,7 +301,7 @@ export class Controller<T extends INode = INode, C extends IViewModel<T> = IView
     lifecycle: ILifecycle,
     flags: LifecycleFlags = LifecycleFlags.none,
   ): Controller<T> {
-    return new Controller(flags, viewCache, lifecycle, void 0, void 0, void 0, PLATFORM.emptyObject);
+    return new Controller<T>(flags, viewCache, lifecycle, void 0, void 0, void 0, PLATFORM.emptyObject);
   }
 
   public lockScope(scope: IScope): void {

@@ -89,7 +89,7 @@ export interface IController<T extends INode = INode, C extends IViewModel<T> = 
   projector?: IElementProjector;
 
   nodes?: INodeSequence<T>;
-  context?: IRenderContext<T>;
+  context?: IServiceLocator;
   location?: IRenderLocation<T>;
 
   lockScope(scope: IScope): void;

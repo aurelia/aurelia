@@ -1,18 +1,22 @@
 export {
-  AuNode,
-  AuDOM,
-  AuDOMConfiguration,
-  AuDOMInitializer,
-  AuDOMTest,
-  AuNodeSequence,
-  AuNodeSequenceFactory,
-  AuObserverLocator,
-  AuProjector,
-  AuProjectorLocator,
-  AuTemplateFactory,
-  AuTextInstruction,
-  AuTextRenderer,
-} from './au-dom';
+  assert,
+} from './assert';
+
+// export {
+//   AuNode,
+//   AuDOM,
+//   AuDOMConfiguration,
+//   AuDOMInitializer,
+//   AuDOMTest,
+//   AuNodeSequence,
+//   AuNodeSequenceFactory,
+//   AuObserverLocator,
+//   AuProjector,
+//   AuProjectorLocator,
+//   AuTemplateFactory,
+//   AuTextInstruction,
+//   AuTextRenderer,
+// } from './au-dom';
 export {
   initializeChaiExtensions,
 } from './chai-extensions';
@@ -26,11 +30,11 @@ export {
   eachCartesianJoin,
   eachCartesianJoinAsync,
 } from './each-cartesian-join';
-export {
-  FakeRenderable,
-  FakeView,
-  FakeViewFactory,
-} from './fakes';
+// export {
+//   FakeRenderable,
+//   FakeView,
+//   FakeViewFactory,
+// } from './fakes';
 export {
   h,
   hJsx,
@@ -40,6 +44,9 @@ export {
   TestContext,
 } from './html-test-context';
 export {
+  inspect,
+} from './inspect';
+export {
   massReset,
   massRestore,
   massSpy,
@@ -48,22 +55,25 @@ export {
   getAllPropertyDescriptors,
 } from './mass-spy';
 export {
-  MockBindingBehavior,
+  // MockBindingBehavior,
   MockBrowserHistoryLocation,
-  MockContext,
-  MockIfElseTextNodeTemplate,
-  MockIfTextNodeTemplate,
-  MockNodeSequence,
-  MockPropertySubscriber,
-  MockRenderingEngine,
-  MockServiceLocator,
-  MockSignaler,
-  MockTextNodeSequence,
-  MockTextNodeTemplate,
-  MockTracingExpression,
-  MockValueConverter,
-  IComponentLifecycleMock,
-  defineComponentLifecycleMock,
+  // MockContext,
+  // MockIfElseTextNodeTemplate,
+  // MockIfTextNodeTemplate,
+  // MockNodeSequence,
+  // MockPropertySubscriber,
+  // MockRenderingEngine,
+  // MockServiceLocator,
+  // MockSignaler,
+  // MockTextNodeSequence,
+  // MockTextNodeTemplate,
+  // MockTracingExpression,
+  // MockValueConverter,
+  // IComponentLifecycleMock,
+  // defineComponentLifecycleMock,
+  ChangeSet,
+  CollectionChangeSet,
+  ProxyChangeSet,
   SpySubscriber,
 } from './mocks';
 export {
@@ -74,15 +84,15 @@ export {
   JsonValueConverter,
   TestConfiguration,
 } from './resources';
-export {
-  cleanup,
-  setup,
-  setupAndStart,
-  setupWithDocument,
-  setupWithDocumentAndStart,
-  tearDown,
-  trimFull,
-} from './setup';
+// export {
+//   cleanup,
+//   setup,
+//   setupAndStart,
+//   setupWithDocument,
+//   setupWithDocumentAndStart,
+//   tearDown,
+//   trimFull,
+// } from './setup';
 export {
   verifyASTEqual,
   verifyBindingInstructionsEqual,
@@ -98,24 +108,24 @@ export {
   padLeft,
   padRight,
 } from './string-manipulation';
-export {
-  ensureSingleChildTemplateControllerBehaviors,
-  hydrateCustomAttribute,
-} from './template-controller-tests';
-export {
-  DefinitionBuilder,
-  InstructionBuilder,
-  TemplateBuilder,
-  TestBuilder,
-  createCustomAttribute,
-  createCustomElement,
-  createObserverLocator,
-  createScopeForTest,
-  createTemplateController,
-  CustomAttribute,
-  CustomElement,
-  hydrateCustomElement,
-} from './test-builder';
+// export {
+//   ensureSingleChildTemplateControllerBehaviors,
+//   hydrateCustomAttribute,
+// } from './template-controller-tests';
+// export {
+//   DefinitionBuilder,
+//   InstructionBuilder,
+//   TemplateBuilder,
+//   TestBuilder,
+//   createCustomAttribute,
+//   createCustomElement,
+//   createObserverLocator,
+//   createScopeForTest,
+//   createTemplateController,
+//   CustomAttribute,
+//   CustomElement,
+//   hydrateCustomElement,
+// } from './test-builder';
 export {
   enableTracing,
   disableTracing,

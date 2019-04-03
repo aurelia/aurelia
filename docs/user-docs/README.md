@@ -55,7 +55,7 @@ The documentation is organized into seven major sections, all available through 
 * **Contributing** - These articles include our basic contribution guide and code of conduct, along with a version of this doc and a subset of our engineering notes, designed to help people start contributing quickly and with confidence.
 * **FAQ** - The FAQ has various articles that address common questions and provides more information around the project itself.
 
-Each of these sections is represented in the ToC as a bold section delimiter. Articles and Packages are listed below each section. When an article is clicked on, it expands inline to show its level-2 headings. API reference does not expand inline. Instead, it has an in-page sub-ToC for navigating classes, methods, etc.
+Each of these sections is represented in the ToC as a bold section delimiter. Articles and Packages are listed after each section, not nested. When an article is clicked on, it expands inline to show its level-2 headings, nested under the article name. API reference does not expand inline. Instead, it has an in-page sub-ToC for navigating classes, methods, etc.
 
 ### WIP vNext ToC
 

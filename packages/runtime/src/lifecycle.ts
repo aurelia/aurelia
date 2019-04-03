@@ -27,6 +27,7 @@ import {
 } from './flags';
 import { ILifecycleTask, MaybePromiseOrTask } from './lifecycle-task';
 import {
+  IBatchable,
   IBindingTargetAccessor,
   IScope,
 } from './observation';
@@ -158,6 +159,7 @@ export interface ILifecycle {
   maxFPS: number;
   pendingChanges: number;
 
+  readonly batchDepth: number;
   readonly boundCount: number;
   readonly mountCount: number;
   readonly attachedCount: number;
@@ -165,6 +167,11 @@ export interface ILifecycle {
   readonly detachedCount: number;
   readonly unboundCount: number;
   readonly isFlushingRAF: boolean;
+
+  beginBatch(): void;
+  endBatch(): void;
+  enqueueBatch(requestor: IBatchable): void;
+  batch(operation: (flags?: LifecycleFlags) => void, context?: unknown): void;
 
   beginBind(requestor?: IController): void;
   beginUnbind(requestor?: IController): void;
@@ -350,14 +357,14 @@ const { min, max } = Math;
 export class Lifecycle implements ILifecycle {
   public static marker: IController;
 
+  public batchQueue: IBatchable[];
+  public batchDepth: number;
+
   public bindDepth: number;
   public unbindDepth: number;
 
   public rafHead: LinkedCallback;
   public rafTail: LinkedCallback;
-
-  public batchHead: LinkedCallback;
-  public batchTail: LinkedCallback;
 
   public boundHead: IController;
   public boundTail: IController;
@@ -436,13 +443,14 @@ export class Lifecycle implements ILifecycle {
   private readonly tick: (timestamp: number) => void;
 
   constructor() {
+    this.batchQueue = [];
+    this.batchDepth = 0;
+
     this.bindDepth = 0;
     this.unbindDepth = 0;
 
     this.rafHead = new LinkedCallback(void 0, void 0, Infinity);
     this.rafTail = (void 0)!;
-
-    this.batchHead = this.batchTail = new LinkedCallback(void 0, void 0, Infinity);
 
     this.boundHead = Lifecycle.marker;
     this.boundTail = Lifecycle.marker;
@@ -537,6 +545,41 @@ export class Lifecycle implements ILifecycle {
       PLATFORM.cancelAnimationFrame(this.rafRequestId);
       this.rafRequestId = -1;
     }
+  }
+
+  public beginBatch(): void {
+    ++this.batchDepth;
+  }
+
+  public endBatch(): void {
+    if (--this.batchDepth === 0) {
+      const batch = this.batchQueue.slice();
+      this.batchQueue = [];
+      const { length } = batch;
+      for (let i = 0; i < length; ++i) {
+        batch[i].flushBatch(LifecycleFlags.fromFlush);
+      }
+    }
+  }
+
+  public batch(operation: (flags?: LifecycleFlags) => void, context?: unknown): void {
+    // TODO: this is just temporary "to get it to work", needs to be made more efficient, avoid creating unnecessary objects etc
+    const argLen = arguments.length;
+    this.beginBatch();
+    this.enqueueBatch({
+      flushBatch(flags: LifecycleFlags): void {
+        if (argLen === 2) {
+          operation.call(context, flags);
+        } else {
+          operation(flags);
+        }
+      },
+    });
+    this.endBatch();
+  }
+
+  public enqueueBatch(requestor: IBatchable): void {
+    this.batchQueue.push(requestor);
   }
 
   public beginBind(requestor?: IController): void {

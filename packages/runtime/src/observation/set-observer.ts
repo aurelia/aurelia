@@ -132,8 +132,12 @@ export interface SetObserver extends ICollectionObserver<CollectionKind.set> {}
 
 @collectionSubscriberCollection()
 export class SetObserver {
+  public inBatch: boolean;
+
   constructor(flags: LifecycleFlags, lifecycle: ILifecycle, observedSet: IObservedSet) {
     if (Tracer.enabled) { Tracer.enter('SetObserver', 'constructor', slice.call(arguments)); }
+
+    this.inBatch = false;
 
     this.collection = observedSet;
     this.persistentFlags = flags & LifecycleFlags.persistentBindingFlags;
@@ -147,12 +151,13 @@ export class SetObserver {
   }
 
   public notify(): void {
-    const { indexMap, collection } = this;
-    const { size } = collection;
-    this.indexMap = createIndexMap(size);
-    this.callCollectionSubscribers(indexMap, LifecycleFlags.updateTargetInstance | this.persistentFlags);
-    if (this.lengthObserver !== void 0) {
-      this.lengthObserver.setValue(size, LifecycleFlags.updateTargetInstance);
+    if (this.lifecycle.batchDepth > 0) {
+      if (!this.inBatch) {
+        this.inBatch = true;
+        this.lifecycle.enqueueBatch(this);
+      }
+    } else {
+      this.flushBatch(LifecycleFlags.none);
     }
   }
 
@@ -161,6 +166,17 @@ export class SetObserver {
       this.lengthObserver = new CollectionSizeObserver(this.collection);
     }
     return this.lengthObserver;
+  }
+
+  public flushBatch(flags: LifecycleFlags): void {
+    this.inBatch = false;
+    const { indexMap, collection } = this;
+    const { size } = collection;
+    this.indexMap = createIndexMap(size);
+    this.callCollectionSubscribers(indexMap, LifecycleFlags.updateTargetInstance | this.persistentFlags);
+    if (this.lengthObserver !== void 0) {
+      this.lengthObserver.setValue(size, LifecycleFlags.updateTargetInstance);
+    }
   }
 }
 

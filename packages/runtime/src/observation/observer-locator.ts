@@ -109,7 +109,7 @@ export class ObserverLocator implements IObserverLocator {
       return ProxyObserver.getOrCreate(obj, propertyName) as unknown as AccessorOrObserver; // TODO: fix typings (and ensure proper contracts ofc)
     }
     if (isBindingContext(obj)) {
-      return obj.getObservers!(flags).getOrCreate(flags, obj, propertyName);
+      return obj.getObservers!(flags).getOrCreate(this.lifecycle, flags, obj, propertyName);
     }
     let observersLookup = obj.$observers as ObserversLookup;
     let observer: AccessorOrObserver & { doNotCache?: boolean };
@@ -243,7 +243,7 @@ export class ObserverLocator implements IObserverLocator {
 
       return createComputedObserver(flags, this, this.dirtyChecker, this.lifecycle, obj, propertyName, descriptor);
     }
-    return new SetterObserver(flags, obj, propertyName);
+    return new SetterObserver(this.lifecycle, flags, obj, propertyName);
   }
 }
 

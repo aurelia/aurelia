@@ -206,7 +206,7 @@ export class Controller<T extends INode = INode, C extends IViewModel<T> = IView
       }
       const { description } = Type;
       flags |= description.strategy;
-      createObservers(description, flags, viewModel);
+      createObservers(this.lifecycle, description, flags, viewModel);
       this.hooks = description.hooks;
       this.viewModel = viewModel;
       this.bindingContext = getBindingContext<T, C>(flags, viewModel);
@@ -893,7 +893,12 @@ const marker = Controller.forSyntheticView(
 
 Lifecycle.marker = marker;
 
-function createObservers(description: Description, flags: LifecycleFlags, instance: IIndexable): void {
+function createObservers(
+  lifecycle: ILifecycle,
+  description: Description,
+  flags: LifecycleFlags,
+  instance: IIndexable,
+): void {
   const hasLookup = instance.$observers != void 0;
   const observers: Record<string, SelfObserver> = hasLookup ? instance.$observers as Record<string, SelfObserver> : {};
   const bindables = description.bindables as Record<string, Required<IBindableDescription>>;
@@ -907,15 +912,12 @@ function createObservers(description: Description, flags: LifecycleFlags, instan
 
     if (observers[name] == void 0) {
       observers[name] = new SelfObserver(
+        lifecycle,
         flags,
         useProxy ? ProxyObserver.getOrCreate(instance).proxy : instance,
         name,
         bindables[name].callback
       );
-
-      if (!useProxy) {
-        createGetterSetter(flags, instance, name);
-      }
     }
   }
 
@@ -933,16 +935,4 @@ function getBindingContext<T extends INode, C extends IViewModel<T>>(flags: Life
   }
 
   return ProxyObserver.getOrCreate(instance).proxy as BindingContext<T, C>;
-}
-
-function createGetterSetter(flags: LifecycleFlags, instance: IIndexable, name: string): void {
-  Reflect.defineProperty(instance, name, {
-    enumerable: true,
-    get: function (this: { $observers: { [key: string]: SelfObserver } }): unknown {
-      return this.$observers[name].getValue();
-    },
-    set: function (this: { $observers: { [key: string]: SelfObserver } }, value: unknown): void {
-      this.$observers[name].setValue(value, flags & LifecycleFlags.persistentBindingFlags);
-    },
-  });
 }

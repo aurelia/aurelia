@@ -1,44 +1,62 @@
-import { IIndexable, Reporter, Tracer } from '@aurelia/kernel';
+import { IIndexable, Reporter } from '@aurelia/kernel';
 import { LifecycleFlags } from '../flags';
+import { ILifecycle } from '../lifecycle';
 import { IPropertyObserver, ISubscriber } from '../observation';
 import { ProxyObserver } from './proxy-observer';
 import { subscriberCollection } from './subscriber-collection';
-
-const slice = Array.prototype.slice;
 
 export interface SelfObserver extends IPropertyObserver<IIndexable, string> {}
 
 @subscriberCollection()
 export class SelfObserver {
-  public observing: boolean;
-  public readonly persistentFlags: LifecycleFlags;
-  public obj: IIndexable;
-  public propertyKey: string;
+  public readonly lifecycle: ILifecycle;
+
+  public readonly obj: IIndexable;
+  public readonly propertyKey: string;
   public currentValue: unknown;
+  public oldValue: unknown;
+
+  public readonly persistentFlags: LifecycleFlags;
+  public inBatch: boolean;
+  public observing: boolean;
 
   private readonly callback?: (newValue: unknown, oldValue: unknown, flags: LifecycleFlags) => void;
 
   constructor(
+    lifecycle: ILifecycle,
     flags: LifecycleFlags,
-    instance: IIndexable,
+    obj: IIndexable,
     propertyName: string,
     cbName: string
   ) {
-    if (Tracer.enabled) { Tracer.enter('SelfObserver', 'constructor', slice.call(arguments)); }
+    this.lifecycle = lifecycle;
 
-    this.observing = false;
-    this.persistentFlags = flags & LifecycleFlags.persistentBindingFlags;
-    if (ProxyObserver.isProxy(instance)) {
-      instance.$observer.subscribe(this, propertyName);
-      this.obj = instance.$raw;
+    let isProxy = false;
+    if (ProxyObserver.isProxy(obj)) {
+      isProxy = true;
+      obj.$observer.subscribe(this, propertyName);
+      this.obj = obj.$raw;
     } else {
-      this.obj = instance;
+      this.obj = obj;
     }
     this.propertyKey = propertyName;
-    this.currentValue = this.obj[propertyName];
+    this.currentValue = void 0;
+    this.oldValue = void 0;
+
+    this.inBatch = false;
+
     this.callback = this.obj[cbName] as typeof SelfObserver.prototype.callback;
 
-    if (Tracer.enabled) { Tracer.leave(); }
+    if (this.callback === void 0) {
+      this.observing = false;
+    } else {
+      this.observing = true;
+      this.currentValue = this.obj[this.propertyKey];
+      if (!isProxy) {
+        this.createGetterSetter();
+      }
+    }
+    this.persistentFlags = flags & LifecycleFlags.persistentBindingFlags;
   }
 
   public handleChange(newValue: unknown, oldValue: unknown, flags: LifecycleFlags): void {
@@ -50,18 +68,27 @@ export class SelfObserver {
   }
 
   public setValue(newValue: unknown, flags: LifecycleFlags): void {
-    if (newValue !== this.currentValue) {
-      if ((flags & LifecycleFlags.fromBind) === 0) {
-        const oldValue = this.currentValue;
-        flags |= this.persistentFlags;
-        this.currentValue = newValue;
-        this.callSubscribers(newValue, oldValue, flags | LifecycleFlags.allowPublishRoundtrip);
-        if (this.callback != null) {
-          this.callback.call(this.obj, newValue, oldValue, flags);
+    if (this.observing) {
+      if (this.lifecycle.batchDepth === 0) {
+        if ((flags & LifecycleFlags.fromBind) === 0) {
+          const { currentValue } = this;
+          this.currentValue = newValue;
+          this.callSubscribers(newValue, currentValue, this.persistentFlags | flags);
+          if (this.callback !== void 0) {
+            this.callback.call(this.obj, newValue, currentValue, this.persistentFlags | flags);
+          }
         }
+      } else if (!this.inBatch) {
+        this.inBatch = true;
+        this.oldValue = this.currentValue;
+        this.currentValue = newValue;
+        this.lifecycle.enqueueBatch(this);
       } else {
         this.currentValue = newValue;
       }
+    } else {
+      // See SetterObserver.setValue for explanation
+      this.obj[this.propertyKey] = newValue;
     }
   }
 
@@ -69,26 +96,29 @@ export class SelfObserver {
     if (this.observing === false) {
       this.observing = true;
       this.currentValue = this.obj[this.propertyKey];
-      if (
-        !Reflect.defineProperty(
-          this.obj,
-          this.propertyKey,
-          {
-            enumerable: true,
-            configurable: true,
-            get: () => {
-              return this.getValue();
-            },
-            set: value => {
-              this.setValue(value, LifecycleFlags.none);
-            },
-          }
-        )
-      ) {
-        Reporter.write(1, this.propertyKey, this.obj);
-      }
     }
 
     this.addSubscriber(subscriber);
+  }
+
+  private createGetterSetter(): void {
+    if (
+      !Reflect.defineProperty(
+        this.obj,
+        this.propertyKey,
+        {
+          enumerable: true,
+          configurable: true,
+          get: () => {
+            return this.currentValue;
+          },
+          set: value => {
+            this.setValue(value, LifecycleFlags.none);
+          },
+        }
+      )
+    ) {
+      Reporter.write(1, this.propertyKey, this.obj);
+    }
   }
 }

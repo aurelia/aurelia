@@ -1,6 +1,6 @@
 import { IIndexable, Reporter, StrictPrimitive, Tracer } from '@aurelia/kernel';
 import { LifecycleFlags } from '../flags';
-import { IBinding } from '../lifecycle';
+import { IBinding, ILifecycle } from '../lifecycle';
 import {
   IBindingContext,
   IOverrideContext,
@@ -22,10 +22,16 @@ const enum RuntimeError {
 
 /** @internal */
 export class InternalObserversLookup {
-  public getOrCreate(this: { [key: string]: PropertyObserver }, flags: LifecycleFlags, obj: IBindingContext | IOverrideContext, key: string): PropertyObserver {
+  public getOrCreate(
+    this: { [key: string]: PropertyObserver },
+    lifecycle: ILifecycle,
+    flags: LifecycleFlags,
+    obj: IBindingContext | IOverrideContext,
+    key: string,
+  ): PropertyObserver {
     if (Tracer.enabled) { Tracer.enter('InternalObserversLookup', 'getOrCreate', slice.call(arguments)); }
     if (this[key] === void 0) {
-      this[key] = new SetterObserver(flags, obj, key);
+      this[key] = new SetterObserver(lifecycle, flags, obj, key);
     }
     if (Tracer.enabled) { Tracer.leave(); }
     return this[key];

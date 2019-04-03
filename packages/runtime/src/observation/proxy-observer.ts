@@ -18,11 +18,16 @@ export interface ProxySubscriberCollection extends IPropertyObserver<Indexable, 
 
 @subscriberCollection()
 export class ProxySubscriberCollection<TObj extends object = object> implements ProxySubscriberCollection<TObj> {
+  public inBatch: boolean;
+
   public readonly proxy: IProxy<TObj>;
   public readonly raw: TObj;
   public readonly key: string | number;
   constructor(proxy: IProxy<TObj>, raw: TObj, key: string | number) {
     if (Tracer.enabled) { Tracer.enter('ProxySubscriberCollection', 'constructor', slice.call(arguments)); }
+
+    this.inBatch = false;
+
     this.raw = raw;
     this.key = key;
     this.proxy = proxy;
@@ -43,6 +48,10 @@ export class ProxySubscriberCollection<TObj extends object = object> implements 
   }
   public getValue(): unknown {
     return this.raw[this.key as keyof TObj];
+  }
+
+  public flushBatch(flags: LifecycleFlags): void {
+
   }
 }
 

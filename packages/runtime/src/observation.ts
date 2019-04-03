@@ -18,6 +18,10 @@ export enum DelegationStrategy {
   bubbling = 2
 }
 
+export interface IBatchable {
+  flushBatch(flags: LifecycleFlags): void;
+}
+
 export interface ISubscriber<TValue = unknown> {
   id?: number;
   handleChange(newValue: TValue, previousValue: TValue, flags: LifecycleFlags): void;
@@ -100,7 +104,9 @@ export interface ICollectionSubscriberCollection extends ICollectionSubscribable
 export interface IPropertyObserver<TObj extends Record<string, unknown>, TProp extends keyof TObj> extends
   IAccessor<TObj[TProp]>,
   IPropertyChangeTracker<TObj, TProp>,
-  ISubscriberCollection {
+  ISubscriberCollection,
+  IBatchable {
+  inBatch: boolean;
   observing: boolean;
   persistentFlags: LifecycleFlags;
 }
@@ -226,6 +232,28 @@ export type IndexMap = number[] & {
   isIndexMap: true;
 };
 
+export function copyIndexMap(
+  existing: number[] & { deletedItems?: number[] },
+  deletedItems?: number[],
+): IndexMap {
+  const { length } = existing;
+  const arr = Array(length) as IndexMap;
+  let i = 0;
+  while (i < length) {
+    arr[i] = existing[i];
+    ++i;
+  }
+  if (deletedItems !== void 0) {
+    arr.deletedItems = deletedItems.slice(0);
+  } else if (existing.deletedItems !== void 0) {
+    arr.deletedItems = existing.deletedItems.slice(0);
+  } else {
+    arr.deletedItems = [];
+  }
+  arr.isIndexMap = true;
+  return arr;
+}
+
 export function createIndexMap(length: number = 0): IndexMap {
   const arr = Array(length) as IndexMap;
   let i = 0;
@@ -271,7 +299,9 @@ export interface ICollectionChangeTracker<T extends Collection> {
  */
 export interface ICollectionObserver<T extends CollectionKind> extends
   ICollectionChangeTracker<CollectionKindToType<T>>,
-  ICollectionSubscriberCollection {
+  ICollectionSubscriberCollection,
+  IBatchable {
+    inBatch: boolean;
     lifecycle: ILifecycle;
     persistentFlags: LifecycleFlags;
     collection: ObservedCollectionKindToType<T>;
@@ -313,7 +343,14 @@ export interface IObserversLookup<TObj extends IIndexable = IIndexable, TKey ext
 
 export type ObserversLookup<TObj extends IIndexable = IIndexable, TKey extends keyof TObj =
   Exclude<keyof TObj, '$synthetic' | '$observers' | 'bindingContext' | 'overrideContext' | 'parentOverrideContext'>> =
-  { [P in TKey]: PropertyObserver; } & { getOrCreate(flags: LifecycleFlags, obj: IBindingContext | IOverrideContext, key: string): PropertyObserver };
+  { [P in TKey]: PropertyObserver; } & {
+    getOrCreate(
+      lifecycle: ILifecycle,
+      flags: LifecycleFlags,
+      obj: IBindingContext | IOverrideContext,
+      key: string,
+    ): PropertyObserver;
+  };
 
 export type IObservable = IIndexable & {
   readonly $synthetic?: false;

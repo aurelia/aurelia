@@ -3,5 +3,6 @@
 --colors
 --reporter progress
 --recursive
+--watch-extensions js
 --timeout 5000
 

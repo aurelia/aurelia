@@ -283,7 +283,8 @@ export {
 export {
   Aurelia,
   IDOMInitializer,
-  ISinglePageApp
+  ISinglePageApp,
+  CompositionRoot,
 } from './aurelia';
 export {
   IfRegistration,
@@ -446,6 +447,7 @@ export {
   ICollectionSubscribable,
   ISubscriber,
   isIndexMap,
+  copyIndexMap,
   createIndexMap,
 } from './observation';
 export {

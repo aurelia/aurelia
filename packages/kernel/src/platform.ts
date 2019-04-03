@@ -271,6 +271,7 @@ const { $raf, $caf } = (function (): { $raf(callback: (time: number) => void): n
 
 const camelCaseLookup: Record<string, string> = {};
 const kebabCaseLookup: Record<string, string> = {};
+const isNumericLookup: Record<string, boolean> = {};
 
 const hasOwnProperty = Object.prototype.hasOwnProperty as unknown as {
   call<V, T = object, K extends PropertyKey = PropertyKey>(target: T, key: K): target is (
@@ -281,10 +282,13 @@ const hasOwnProperty = Object.prototype.hasOwnProperty as unknown as {
   );
 };
 
+const emptyArray = Object.freeze([]) as unknown as any[];
+const emptyObject = Object.freeze({}) as any;
+
 export const PLATFORM = {
   global: $global,
-  emptyArray: Object.freeze([]),
-  emptyObject: Object.freeze({}),
+  emptyArray,
+  emptyObject,
   noop: $noop,
   now: $now,
   mark: $mark,
@@ -294,6 +298,33 @@ export const PLATFORM = {
   clearMarks: $clearMarks,
   clearMeasures: $clearMeasures,
   hasOwnProperty,
+
+  isNumeric(value: unknown): value is number | string {
+    switch (typeof value) {
+      case 'number':
+        return true;
+      case 'string': {
+        const result = isNumericLookup[value];
+        if (result !== void 0) {
+          return result;
+        }
+        const { length } = value;
+        if (length === 0) {
+          return isNumericLookup[value] = false;
+        }
+        let ch = 0;
+        for (let i = 0; i < length; ++i) {
+          ch = value.charCodeAt(i);
+          if (ch < 0x30 /*0*/ || ch > 0x39/*9*/) {
+            return isNumericLookup[value] = false;
+          }
+        }
+        return isNumericLookup[value] = true;
+      }
+      default:
+        return false;
+    }
+  },
 
   camelCase(input: string): string {
     // benchmark: http://jsben.ch/qIz4Z

@@ -57,29 +57,59 @@ The documentation is organized into seven major sections, all available through 
 
 Each of these sections is represented in the ToC as a bold section delimiter. Articles and Packages are listed after each section, not nested. When an article is clicked on, it expands inline to show its level-2 headings, nested under the article name. API reference does not expand inline. Instead, it has an in-page sub-ToC for navigating classes, methods, etc.
 
-### WIP vNext ToC
+### Proposed ToC
 
 * Foundations
-  * Introduction [Guide]
+  * Introduction
     * What is Aurelia?
     * How to use these docs.
     * Installation
     * Hello World
-  * Building a TodoApp [Tutorial]
-  *
-  *
+  * Building a Todo App [Tutorial]
+  * Displaying Basic Data
+  * Rendering Collections
+  * Conditional Rendering
+  * Handling Events
+  * Building a Contact Manager [Tutorial]
+  * Working with Form Elements
+  * Dependency Injection
+  * Components
+  * Routing
+  * Streamlining Your Workflow with Aurelia Tooling
+  * Building a Dashboard [Tutorial]
+  * Calling Web Services
+  * Transforming Data with Value Converters
+  * Leveraging Dynamic Composition
+  * Cheat Sheet
 * Essentials
-  * Managing Application State
-  * Securing Your App
+  * Building a Reusable Component [Tutorial]
+  * Styling Your Components
   * Integrating 3rd Party Libraries
-  *
-  *
+  * App Configuration and Startup
+  * Reusing Behavior with Custom Attributes
+  * Cross-Component Communication
+  * Managing App State
+  * Securing Your App
+  * Customizing Binding Behavior
+  * Validating Your Data
+  * Internationalization
+  * Adding Animation
+  * Overlays, Modal Dialogs, and Toast
+  * Testing Your App and Components
 * Mastery
+  * One Thousand Components [Tutorial]
+  * Binding and Templating Internals
+  * Performance Optimization Techniques
+  * Virtualizing Large Collections
+  * Organizing Large-Scale Projects
   * Advanced UI Modeling with Composite MVVM
+  * Producing and Consuming Web Components
+  * Shipping Your Own Aurelia Plugin
+  * Server Side Rendering
+  * Building Electron Apps
+  * Building Cordova/PhoneGap Apps
   * Extending the Template Compiler
   * Extending the Binding Engine
-  *
-  *
 * API Reference
   * CLI Command Reference
   * Core Framework
@@ -95,11 +125,16 @@ Each of these sections is represented in the ToC as a bold section delimiter. Ar
   * Configuring Auth-Protected Routes
   * ...
 * Contributing
+  * Joining the Community
+  * Code of Conduct
   * Contributor's Guide
   * Building and Testing Aurelia
   * Writing Documentation
+  * Translating Documentation
 * FAQ
-  * Framework Comparison
+  * Browser Support
   * Versioning Policy
+  * Framework Comparison
   * Migrating to Aurelia 2.0
+  * The Aurelia Team
   * Glossary

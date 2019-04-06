@@ -85,7 +85,19 @@ export class Viewport {
       }
     }
 
-    return this.content.isChange(this.nextContent) || instruction.isRefresh;
+    if (this.content.isChange(this.nextContent) ||
+      instruction.isRefresh ||
+      this.content.reentryBehavior() === 'refresh') {
+      return true;
+    }
+
+    if (this.content.reentryBehavior() === 'enter') {
+      this.nextContent = this.content;
+      this.content.reentry = true;
+      return true;
+    }
+
+    return false;
   }
 
   public setElement(element: Element, context: IRenderContext, options: IViewportOptions): void {
@@ -197,10 +209,12 @@ export class Viewport {
       // Only when next component activation is done
       if (this.content.component) {
         await this.content.leave(this.nextContent.instruction);
-        this.content.removeComponent(this.element, this.options.stateful);
-        this.content.terminateComponent(this.options.stateful);
-        this.content.unloadComponent();
-        this.content.destroyComponent();
+        if (!this.nextContent.reentry) {
+          this.content.removeComponent(this.element, this.options.stateful);
+          this.content.terminateComponent(this.options.stateful);
+          this.content.unloadComponent();
+          this.content.destroyComponent();
+        }
       }
 
       this.content = this.nextContent;

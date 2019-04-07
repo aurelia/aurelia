@@ -95,4 +95,6 @@ export {
   camelCase,
   kebabCase,
   toArray,
+  nextId,
+  resetId,
 } from './functions';

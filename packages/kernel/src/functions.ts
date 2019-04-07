@@ -106,3 +106,29 @@ export function toArray<T = unknown>(input: ArrayLike<T>): T[] {
   }
   return arr;
 }
+
+const ids: Record<string, number> = {};
+
+/**
+ * Retrieve the next ID in a sequence for a given string, starting with `1`.
+ *
+ * Used by Aurelia to assign unique ID's to controllers and resources.
+ *
+ * Aurelia will always prepend the context name with `au$`, so as long as you avoid
+ * using that convention you should be safe from collisions.
+ */
+export function nextId(context: string): number {
+  if (ids[context] === void 0) {
+    ids[context] = 0;
+  }
+  return ++ids[context];
+}
+
+/**
+ * Reset the ID for the given string, so that `nextId` will return `1` again for the next call.
+ *
+ * Used by Aurelia to reset ID's in between unit tests.
+ */
+export function resetId(context: string): void {
+  ids[context] = 0;
+}

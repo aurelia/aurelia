@@ -63,6 +63,7 @@ export {
 export {
   Access,
   Precedence,
+  Char,
   // These exports are temporary until we have a proper way to unit test them
 } from './common';
 export {

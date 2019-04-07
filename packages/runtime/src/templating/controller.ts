@@ -1,10 +1,9 @@
 import {
+  IContainer,
   IIndexable,
   IServiceLocator,
   PLATFORM,
   Writable,
-  IContainer,
-  Class,
 } from '@aurelia/kernel';
 
 import {
@@ -390,6 +389,10 @@ export class Controller<
   }
 
   public attach(flags: LifecycleFlags): void {
+    if ((this.state & State.isAttached) > 0) {
+      return;
+    }
+
     flags |= LifecycleFlags.fromAttach;
     switch (this.vmKind) {
       case ViewModelKind.customElement:
@@ -404,6 +407,10 @@ export class Controller<
   }
 
   public detach(flags: LifecycleFlags): void {
+    if ((this.state & State.isAttached) === 0) {
+      return;
+    }
+
     flags |= LifecycleFlags.fromDetach;
     switch (this.vmKind) {
       case ViewModelKind.customElement:
@@ -696,10 +703,6 @@ export class Controller<
 
   // #region attach/detach
   private attachCustomElement(flags: LifecycleFlags): void {
-    if ((this.state & State.isAttached) > 0) {
-      return;
-    }
-
     flags |= LifecycleFlags.fromAttach;
     this.state |= State.isAttaching;
 
@@ -719,10 +722,6 @@ export class Controller<
   }
 
   private attachCustomAttribute(flags: LifecycleFlags): void {
-    if ((this.state & State.isAttached) > 0) {
-      return;
-    }
-
     flags |= LifecycleFlags.fromAttach;
     this.state |= State.isAttaching;
 
@@ -738,10 +737,6 @@ export class Controller<
   }
 
   private attachSynthetic(flags: LifecycleFlags): void {
-    if ((this.state & State.isAttached) > 0) {
-      return;
-    }
-
     flags |= LifecycleFlags.fromAttach;
     this.state |= State.isAttaching;
 
@@ -753,10 +748,6 @@ export class Controller<
   }
 
   private detachCustomElement(flags: LifecycleFlags): void {
-    if ((this.state & State.isAttached) === 0) {
-      return;
-    }
-
     flags |= LifecycleFlags.fromDetach;
     this.state |= State.isDetaching;
 
@@ -774,10 +765,6 @@ export class Controller<
   }
 
   private detachCustomAttribute(flags: LifecycleFlags): void {
-    if ((this.state & State.isAttached) === 0) {
-      return;
-    }
-
     flags |= LifecycleFlags.fromDetach;
     this.state |= State.isDetaching;
 
@@ -793,10 +780,6 @@ export class Controller<
   }
 
   private detachSynthetic(flags: LifecycleFlags): void {
-    if ((this.state & State.isAttached) === 0) {
-      return;
-    }
-
     flags |= LifecycleFlags.fromDetach;
     this.state |= State.isDetaching;
 

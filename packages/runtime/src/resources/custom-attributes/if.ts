@@ -24,6 +24,12 @@ import {
   Priority,
 } from '../../lifecycle';
 import {
+  ContinuationTask,
+  ILifecycleTask,
+  LifecycleTask,
+  PromiseTask
+} from '../../lifecycle-task';
+import {
   IObserversLookup,
 } from '../../observation';
 import { SetterObserver } from '../../observation/setter-observer';
@@ -32,12 +38,6 @@ import {
   CustomAttributeResource,
   ICustomAttributeResource
 } from '../custom-attribute';
-import {
-  ILifecycleTask,
-  LifecycleTask,
-  ContinuationTask,
-  PromiseTask
-} from '../../lifecycle-task';
 
 export class If<T extends INode = INode> {
   public static readonly inject: InjectArray = [IViewFactory, IRenderLocation];

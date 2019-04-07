@@ -536,6 +536,7 @@ export function stringifyLifecycleFlags(flags: LifecycleFlags): string {
   if (flags & LifecycleFlags.updateSourceExpression) { flagNames.push('updateSourceExpression'); }
   if (flags & LifecycleFlags.fromAsyncFlush) { flagNames.push('fromAsyncFlush'); }
   if (flags & LifecycleFlags.fromSyncFlush) { flagNames.push('fromSyncFlush'); }
+  if (flags & LifecycleFlags.fromTick) { flagNames.push('fromTick'); }
   if (flags & LifecycleFlags.fromStartTask) { flagNames.push('fromStartTask'); }
   if (flags & LifecycleFlags.fromStopTask) { flagNames.push('fromStopTask'); }
   if (flags & LifecycleFlags.fromBind) { flagNames.push('fromBind'); }

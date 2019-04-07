@@ -4,17 +4,18 @@ import {
   PLATFORM,
   Registration,
   Reporter,
+  toArray,
   Tracer
 } from '@aurelia/kernel';
 
 import {
   CustomElementHost,
+  IController,
   IDOM,
   IElementProjector,
   INodeSequence,
   IProjectorLocator,
-  TemplateDefinition,
-  IController
+  TemplateDefinition
 } from '@aurelia/runtime';
 
 const slice = Array.prototype.slice;
@@ -105,7 +106,7 @@ export class ContainerlessProjector implements IElementProjector<Node> {
 
   constructor(dom: IDOM<Node>, $controller: IController<Node>, host: Node) {
     if (host.childNodes.length) {
-      this.childNodes = PLATFORM.toArray(host.childNodes);
+      this.childNodes = toArray(host.childNodes);
     } else {
       this.childNodes = PLATFORM.emptyArray;
     }

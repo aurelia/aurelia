@@ -305,7 +305,9 @@ export class Compose<T extends INode = Node> {
       this.dom,
       subject,
       this.properties,
-      this.$controller.projector!.children
+      this.$controller.projector === void 0
+        ? PLATFORM.emptyArray
+        : this.$controller.projector.children
     ).createView(
       flags,
       this.renderingEngine,

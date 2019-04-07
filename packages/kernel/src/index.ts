@@ -90,3 +90,9 @@ export {
   EventAggregator,
   EventAggregatorCallback
 } from './eventaggregator';
+export {
+  isNumeric,
+  camelCase,
+  kebabCase,
+  toArray,
+} from './functions';

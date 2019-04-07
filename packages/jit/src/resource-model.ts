@@ -1,4 +1,9 @@
-import { IResourceDescriptions, PLATFORM, Reporter } from '@aurelia/kernel';
+import {
+  camelCase,
+  IResourceDescriptions,
+  kebabCase,
+  Reporter,
+} from '@aurelia/kernel';
 import {
   AttributeDefinition,
   BindingMode,
@@ -56,7 +61,7 @@ export class ResourceModel {
    * @returns The resource information if the attribute exists, or `null` if it does not exist.
    */
   public getAttributeInfo(syntax: AttrSyntax): AttrInfo | null {
-    const name = PLATFORM.camelCase(syntax.target);
+    const name = camelCase(syntax.target);
     let result = this.attributeLookup[name];
     if (result === void 0) {
       const def = this.resources.find(CustomAttributeResource, name);
@@ -116,7 +121,7 @@ function createElementInfo(def: TemplateDefinition): ElementInfo {
       attr = bindable.attribute;
     } else {
       // derive the attribute name from the resolved property name
-      attr = PLATFORM.kebabCase(prop);
+      attr = kebabCase(prop);
     }
     if (bindable.mode !== void 0 && bindable.mode !== BindingMode.default) {
       mode = bindable.mode;

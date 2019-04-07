@@ -1,5 +1,6 @@
 import {
   Constructable,
+  IContainer,
   IRegistry,
   Tracer
 } from '@aurelia/kernel';
@@ -54,7 +55,7 @@ export class RenderPlan<T extends INode = Node> {
   private readonly instructions: HTMLTargetedInstruction[][];
   private readonly node: T;
 
-  private lazyDefinition!: TemplateDefinition;
+  private lazyDefinition?: TemplateDefinition;
 
   constructor(
     dom: IDOM<T>,
@@ -66,23 +67,26 @@ export class RenderPlan<T extends INode = Node> {
     this.dependencies = dependencies;
     this.instructions = instructions;
     this.node = node;
+    this.lazyDefinition = void 0;
   }
 
   public get definition(): TemplateDefinition {
-    return this.lazyDefinition || (this.lazyDefinition =
-      buildTemplateDefinition(null, null, this.node, null, typeof this.node === 'string', null, this.instructions, this.dependencies));
+    if (this.lazyDefinition === void 0) {
+      this.lazyDefinition = buildTemplateDefinition(null, null, this.node, null, typeof this.node === 'string', null, this.instructions, this.dependencies);
+    }
+    return this.lazyDefinition;
   }
 
   public getElementTemplate(engine: IRenderingEngine, Type?: ICustomElementType): ITemplate<T> {
-    return engine.getElementTemplate(this.dom, this.definition, null!, Type!);
+    return engine.getElementTemplate(this.dom, this.definition, void 0, Type);
   }
 
-  public createView(flags: LifecycleFlags, engine: IRenderingEngine, parentContext?: IRenderContext): IController {
+  public createView(flags: LifecycleFlags, engine: IRenderingEngine, parentContext?: IRenderContext<T> | IContainer): IController {
     return this.getViewFactory(engine, parentContext).create();
   }
 
-  public getViewFactory(engine: IRenderingEngine, parentContext?: IRenderContext): IViewFactory {
-    return engine.getViewFactory(this.dom, this.definition, parentContext!);
+  public getViewFactory(engine: IRenderingEngine, parentContext?: IRenderContext<T> | IContainer): IViewFactory {
+    return engine.getViewFactory(this.dom, this.definition, parentContext);
   }
 
   /** @internal */
@@ -161,7 +165,7 @@ function createElementForType<T extends INode>(
         } else {
           const bindable = bindables[to];
 
-          if (bindable) {
+          if (bindable !== void 0) {
             childInstructions.push({
               type: TargetedInstructionType.setProperty,
               to,

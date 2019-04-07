@@ -175,14 +175,14 @@ export interface IRenderingEngine {
   getElementTemplate<T extends INode = INode>(
     dom: IDOM<T>,
     definition: TemplateDefinition,
-    parentContext?: IServiceLocator,
+    parentContext?: IContainer | IRenderContext<T>,
     componentType?: ICustomElementType,
   ): ITemplate<T>;
 
   getViewFactory<T extends INode = INode>(
     dom: IDOM<T>,
     source: ITemplateDefinition,
-    parentContext?: IRenderContext<T>,
+    parentContext?: IContainer | IRenderContext<T>,
   ): IViewFactory<T>;
 }
 
@@ -219,7 +219,7 @@ export class RenderingEngine implements IRenderingEngine {
   public getElementTemplate<T extends INode = INode>(
     dom: IDOM<T>,
     definition: TemplateDefinition,
-    parentContext?: IRenderContext<T>,
+    parentContext?: IContainer | IRenderContext<T>,
     componentType?: ICustomElementType
   ): ITemplate<T> | undefined {
     if (definition == void 0) {
@@ -240,7 +240,7 @@ export class RenderingEngine implements IRenderingEngine {
   public getViewFactory<T extends INode = INode>(
     dom: IDOM<T>,
     definition: ITemplateDefinition,
-    parentContext?: IRenderContext<T>
+    parentContext?: IContainer | IRenderContext<T>
   ): IViewFactory<T> {
     if (definition == void 0) {
       throw new Error(`No definition provided`); // TODO: create error code
@@ -262,7 +262,7 @@ export class RenderingEngine implements IRenderingEngine {
   private templateFromSource(
     dom: IDOM,
     definition: TemplateDefinition,
-    parentContext?: IRenderContext,
+    parentContext?: IContainer | IRenderContext,
     componentType?: ICustomElementType
   ): ITemplate {
     if (parentContext == void 0) {

@@ -114,7 +114,7 @@ export class TargetObserverLocator implements ITargetObserverLocator {
       case 'css':
         return new StyleAttributeAccessor(lifecycle, obj as HTMLElement);
       case 'model':
-        return new SetterObserver(flags, obj, propertyName);
+        return new SetterObserver(lifecycle, flags, obj, propertyName);
       case 'role':
         return new DataAttributeAccessor(lifecycle, obj as HTMLElement, propertyName);
       default:

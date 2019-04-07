@@ -1,6 +1,16 @@
-import { Constructable, PLATFORM, Reporter } from '@aurelia/kernel';
-import { BindableSource, IBindableDescription } from '../definitions';
-import { BindingMode } from '../flags';
+import {
+  Constructable,
+  Reporter,
+  kebabCase,
+} from '@aurelia/kernel';
+
+import {
+  BindableSource,
+  IBindableDescription,
+} from '../definitions';
+import {
+  BindingMode,
+} from '../flags';
 
 /**
  * Decorator: Specifies custom behavior for a bindable property.
@@ -77,7 +87,7 @@ export const Bindable = {
           throw Reporter.error(0); // TODO: create error code (must provide a property name)
         }
         if (!description.attribute) {
-          description.attribute = PLATFORM.kebabCase(prop);
+          description.attribute = kebabCase(prop);
         }
         if (!description.callback) {
           description.callback = `${prop}Changed`;

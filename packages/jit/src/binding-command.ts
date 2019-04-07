@@ -1,4 +1,5 @@
 import {
+  camelCase,
   Class,
   Constructable,
   IContainer,
@@ -6,7 +7,6 @@ import {
   IResourceDefinition,
   IResourceKind,
   IResourceType,
-  PLATFORM,
   Registration,
   Writable
 } from '@aurelia/kernel';
@@ -24,7 +24,12 @@ import {
   ToViewBindingInstruction,
   TwoWayBindingInstruction
 } from '@aurelia/runtime';
-import { BindingSymbol, PlainAttributeSymbol, SymbolFlags } from './semantic-model';
+
+import {
+  BindingSymbol,
+  PlainAttributeSymbol,
+  SymbolFlags,
+} from './semantic-model';
 
 export interface IBindingCommand {
   bindingType: BindingType;
@@ -80,11 +85,11 @@ export const BindingCommandResource: IBindingCommandResource = {
   define
 };
 
-export function getTarget(binding: PlainAttributeSymbol | BindingSymbol, camelCase: boolean): string {
+export function getTarget(binding: PlainAttributeSymbol | BindingSymbol, makeCamelCase: boolean): string {
   if (binding.flags & SymbolFlags.isBinding) {
     return (binding as BindingSymbol).bindable.propName;
-  } else if (camelCase) {
-    return PLATFORM.camelCase((binding as PlainAttributeSymbol).syntax.target);
+  } else if (makeCamelCase) {
+    return camelCase((binding as PlainAttributeSymbol).syntax.target);
   } else {
     return (binding as PlainAttributeSymbol).syntax.target;
   }

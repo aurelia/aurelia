@@ -19,14 +19,20 @@ import {
   TemplateControllerSymbol,
   TextSymbol
 } from '@aurelia/jit';
-import { PLATFORM, Profiler, Tracer } from '@aurelia/kernel';
+import {
+  camelCase,
+  Profiler,
+  Tracer,
+} from '@aurelia/kernel';
 import {
   BindingMode,
   BindingType,
   IDOM,
   IExpressionParser
 } from '@aurelia/runtime';
-import { NodeType } from '@aurelia/runtime-html';
+import {
+  NodeType,
+} from '@aurelia/runtime-html';
 
 const slice = Array.prototype.slice;
 
@@ -209,7 +215,7 @@ export class TemplateBinder {
       const command = this.resources.getBindingCommand(attrSyntax);
       const bindingType = command == null ? BindingType.Interpolation : command.bindingType;
       const expr = this.exprParser.parse(attrSyntax.rawValue, bindingType);
-      const to = PLATFORM.camelCase(attrSyntax.target);
+      const to = camelCase(attrSyntax.target);
       const info = new BindableInfo(to, BindingMode.toView);
       symbol.bindings.push(new BindingSymbol(command, info, expr, attrSyntax.rawValue, to));
 

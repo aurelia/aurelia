@@ -4,6 +4,7 @@ import {
   PLATFORM,
   Reporter,
   StrictPrimitive,
+  isNumeric,
 } from '@aurelia/kernel';
 
 import {
@@ -1231,22 +1232,6 @@ function getFunction(flags: LifecycleFlags, obj: IIndexable, name: string): ((..
     return null;
   }
   throw Reporter.error(RuntimeError.NotAFunction, obj, name, func);
-}
-
-function isNumeric(value: unknown): value is number {
-  const valueType = typeof value;
-  if (valueType === 'number') return true;
-  if (valueType !== 'string') return false;
-  const len = (value as string).length;
-  if (len === 0) return false;
-  let char;
-  for (let i = 0; i < len; ++i) {
-    char = (value as string).charCodeAt(i);
-    if (char < 0x30 /*0*/ || char > 0x39/*9*/) {
-      return false;
-    }
-  }
-  return true;
 }
 
 const proxyAndOriginalArray = LifecycleFlags.proxyStrategy | LifecycleFlags.isOriginalArray;

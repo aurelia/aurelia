@@ -2,6 +2,7 @@ import {
   IContainer,
   IIndexable,
   IServiceLocator,
+  nextId,
   PLATFORM,
   Writable,
 } from '@aurelia/kernel';
@@ -108,7 +109,6 @@ export class Controller<
   T extends INode = INode,
   C extends IViewModel<T> = IViewModel<T>
 > implements IController<T, C> {
-  public static lastId: number = 0;
   private static readonly lookup: WeakMap<object, Controller> = new WeakMap();
 
   public readonly id: number;
@@ -162,7 +162,7 @@ export class Controller<
     host: T | undefined,
     options: Partial<IElementHydrationOptions>
   ) {
-    this.id = ++Controller.lastId;
+    this.id = nextId('au$component');
 
     this.nextBound = void 0;
     this.nextUnbound = void 0;

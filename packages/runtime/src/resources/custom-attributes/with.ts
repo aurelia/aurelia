@@ -1,6 +1,7 @@
 import {
   IContainer,
   InjectArray,
+  nextId,
   PLATFORM,
   Registration
 } from '@aurelia/kernel';
@@ -47,6 +48,8 @@ export class With<T extends INode = INode> {
     hooks: Object.freeze(new HooksDefinition(With.prototype)),
   });
 
+  public readonly id: number;
+
   public get value(): object | undefined {
     return this._value;
   }
@@ -73,6 +76,8 @@ export class With<T extends INode = INode> {
     factory: IViewFactory<T>,
     location: IRenderLocation<T>
   ) {
+    this.id = nextId('au$component');
+
     this.factory = factory;
     this.view = this.factory.create();
     this.view.hold(location);

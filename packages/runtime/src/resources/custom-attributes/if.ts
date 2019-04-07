@@ -1,6 +1,7 @@
 import {
   IContainer,
   InjectArray,
+  nextId,
   PLATFORM,
   Registration
 } from '@aurelia/kernel';
@@ -54,6 +55,8 @@ export class If<T extends INode = INode> {
     hooks: Object.freeze(new HooksDefinition(If.prototype)),
   });
 
+  public readonly id: number;
+
   public get value(): boolean {
     return this._value;
   }
@@ -86,6 +89,8 @@ export class If<T extends INode = INode> {
     ifFactory: IViewFactory<T>,
     location: IRenderLocation<T>,
   ) {
+    this.id = nextId('au$component');
+
     this.elseFactory = void 0;
     this.elseView = void 0;
     this.ifFactory = ifFactory;

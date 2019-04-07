@@ -1,6 +1,7 @@
 import {
   IContainer,
   InjectArray,
+  nextId,
   PLATFORM,
   Registration,
 } from '@aurelia/kernel';
@@ -75,6 +76,8 @@ export class Repeat<C extends ObservedCollection = IObservedArray, T extends INo
     hooks: Object.freeze(new HooksDefinition(Repeat.prototype)),
   });
 
+  public readonly id: number;
+
   public get items(): Items<C> {
     return this._items;
   }
@@ -113,6 +116,8 @@ export class Repeat<C extends ObservedCollection = IObservedArray, T extends INo
     renderable: IController<T>,
     factory: IViewFactory<T>
   ) {
+    this.id = nextId('au$component');
+
     this.factory = factory;
     this.hasPendingInstanceMutation = false;
     this.location = location;

@@ -1,6 +1,7 @@
 import {
   IContainer,
   InjectArray,
+  nextId,
   PLATFORM,
   Registration,
 } from '@aurelia/kernel';
@@ -44,6 +45,8 @@ export class Replaceable<T extends INode = INode> {
     hooks: Object.freeze(new HooksDefinition(Replaceable.prototype)),
   });
 
+  public readonly id: number;
+
   public readonly view: IController<T>;
   private readonly factory: IViewFactory<T>;
 
@@ -54,6 +57,8 @@ export class Replaceable<T extends INode = INode> {
     factory: IViewFactory<T>,
     location: IRenderLocation<T>
   ) {
+    this.id = nextId('au$component');
+
     this.factory = factory;
 
     this.view = this.factory.create();

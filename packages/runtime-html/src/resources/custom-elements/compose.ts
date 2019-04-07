@@ -3,6 +3,7 @@ import {
   IContainer,
   InjectArray,
   IRegistry,
+  nextId,
   PLATFORM,
   Registration,
 } from '@aurelia/kernel';
@@ -73,6 +74,8 @@ export class Compose<T extends INode = Node> {
     hooks: Object.freeze(new HooksDefinition(Compose.prototype)),
   });
 
+  public readonly id: number;
+
   public subject?: MaybeSubjectPromise<T>;
   public composing: boolean;
 
@@ -94,6 +97,8 @@ export class Compose<T extends INode = Node> {
     instruction: IHydrateElementInstruction,
     renderingEngine: IRenderingEngine,
   ) {
+    this.id = nextId('au$component');
+
     this.subject = void 0;
     this.composing = false;
 

@@ -61,8 +61,10 @@ export class If<T extends INode = INode> {
     return this._value;
   }
   public set value(newValue: boolean) {
-    if (this._value !== newValue) {
-      this.valueChanged(newValue, this._value, LifecycleFlags.none);
+    const oldValue = this._value;
+    if (oldValue !== newValue) {
+      this._value = newValue;
+      this.valueChanged(newValue, oldValue, LifecycleFlags.none);
     }
   }
 
@@ -82,7 +84,6 @@ export class If<T extends INode = INode> {
   // tslint:disable-next-line: prefer-readonly // This is set by the controller after this instance is constructed
   private $controller!: IController<T>;
 
-  private _prevValue: boolean;
   private _value: boolean;
 
   constructor(
@@ -102,7 +103,6 @@ export class If<T extends INode = INode> {
     this.view = void 0;
 
     this._value = false;
-    this._prevValue = false;
   }
 
   public static register(container: IContainer): void {
@@ -115,13 +115,11 @@ export class If<T extends INode = INode> {
   }
 
   public setValue(newValue: boolean, flags: LifecycleFlags): void {
-    if (this._value !== newValue) {
-      this.valueChanged(newValue, this._value, LifecycleFlags.none);
+    const oldValue = this._value;
+    if (oldValue !== newValue) {
+      this._value = newValue;
+      this.valueChanged(newValue, oldValue, LifecycleFlags.none);
     }
-  }
-
-  public created(flags: LifecycleFlags): void {
-    this.$controller.lifecycle.enqueueRAF(this.flushRAF, this, Priority.bind);
   }
 
   public binding(flags: LifecycleFlags): ILifecycleTask {
@@ -182,18 +180,10 @@ export class If<T extends INode = INode> {
     if ((this.$controller.state & State.isBound) === 0) {
       return;
     }
-    this._value = newValue;
-    if (this.$controller.lifecycle.isFlushingRAF) {
-      this.flushRAF(flags);
-    } else if (this._prevValue !== newValue) {
-      ++this.$controller.lifecycle.pendingChanges;
-    }
-  }
-
-  public flushRAF(flags: LifecycleFlags): void {
-    if (this._prevValue !== this._value && this.task.done) {
-      this._prevValue = this._value;
+    if (this.task.done) {
       this.task = this.swap(this.value, flags);
+    } else {
+      this.task = new ContinuationTask(this.task, this.swap, this, this.value, flags);
     }
   }
 
@@ -222,7 +212,13 @@ export class If<T extends INode = INode> {
   }
 
   private swap(value: boolean, flags: LifecycleFlags): ILifecycleTask {
-    let task = this.deactivate(flags);
+    let task: ILifecycleTask = LifecycleTask.done;
+    if (
+      (value === true && this.elseView !== void 0)
+      || (value !== true && this.ifView === void 0)
+    ) {
+      task = this.deactivate(flags);
+    }
     if (task.done) {
       const view = this.updateView(value, flags);
       task = this.activate(view, flags);
@@ -248,6 +244,10 @@ export class If<T extends INode = INode> {
       return LifecycleTask.done;
     }
     let task = this.bindView(flags);
+    if ((this.$controller.state & State.isAttached) === 0) {
+      return task;
+    }
+
     if (task.done) {
       this.attachView(flags);
     } else {

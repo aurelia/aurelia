@@ -305,13 +305,13 @@ export class Router {
   }
 
   // Called from the viewport custom element in attached()
-  public addViewport(name: string, element: Element, context: IRenderContext, options?: IViewportOptions): Viewport {
+  public addViewport(name: string, element: Element, context: IRenderContext | IContainer, options?: IViewportOptions): Viewport {
     Reporter.write(10000, 'Viewport added', name, element);
     const parentScope = this.findScope(element);
     return parentScope.addViewport(name, element, context, options);
   }
   // Called from the viewport custom element
-  public removeViewport(viewport: Viewport, element: Element, context: IRenderContext): void {
+  public removeViewport(viewport: Viewport, element: Element, context: IRenderContext | IContainer): void {
     // TODO: There's something hinky with remove!
     const scope = viewport.owningScope;
     if (!scope.removeViewport(viewport, element, context)) {

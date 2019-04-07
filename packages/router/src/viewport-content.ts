@@ -33,7 +33,7 @@ export class ViewportContent {
   public entered: boolean;
   public fromCache: boolean;
 
-  constructor(content: Partial<ICustomElementType> | string = null, parameters: string = null, instruction: INavigationInstruction = null, context: IRenderContext = null) {
+  constructor(content: Partial<ICustomElementType> | string = null, parameters: string = null, instruction: INavigationInstruction = null, context: IRenderContext | IContainer = null) {
     // Can be a (resolved) type or a string (to be resolved later)
     this.content = content;
     this.parameters = parameters;
@@ -62,7 +62,7 @@ export class ViewportContent {
       this.parameters === other.parameters;
   }
 
-  public createComponent(context: IRenderContext): void {
+  public createComponent(context: IRenderContext | IContainer): void {
     if (this.contentStatus !== ContentStatus.none) {
       return;
     }
@@ -139,7 +139,7 @@ export class ViewportContent {
     this.entered = false;
   }
 
-  public loadComponent(context: IRenderContext, element: Element): Promise<void> {
+  public loadComponent(context: IRenderContext | IContainer, element: Element): Promise<void> {
     if (this.contentStatus !== ContentStatus.created || !this.entered) {
       return;
     }
@@ -238,7 +238,7 @@ export class ViewportContent {
       return (this.content).description.name;
     }
   }
-  public componentType(context: IRenderContext): IRouteableCustomElementType {
+  public componentType(context: IRenderContext | IContainer): IRouteableCustomElementType {
     if (this.content === null) {
       return null;
     } else if (typeof this.content !== 'string') {
@@ -252,7 +252,7 @@ export class ViewportContent {
       return null;
     }
   }
-  public componentInstance(context: IRenderContext): IRouteableCustomElement {
+  public componentInstance(context: IRenderContext | IContainer): IRouteableCustomElement {
     if (this.content === null) {
       return null;
     }

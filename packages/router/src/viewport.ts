@@ -1,4 +1,4 @@
-import { Reporter } from '@aurelia/kernel';
+import { IContainer, Reporter } from '@aurelia/kernel';
 import { ICustomElementType, IRenderContext, LifecycleFlags } from '@aurelia/runtime';
 import { INavigationInstruction } from './history-browser';
 import { Router } from './router';
@@ -20,7 +20,7 @@ export interface IViewportOptions {
 export class Viewport {
   public name: string;
   public element: Element;
-  public context: IRenderContext;
+  public context: IRenderContext | IContainer;
   public owningScope: Scope;
   public scope: Scope;
   public options?: IViewportOptions;
@@ -39,7 +39,7 @@ export class Viewport {
 
   private cache: ViewportContent[];
 
-  constructor(router: Router, name: string, element: Element, context: IRenderContext, owningScope: Scope, scope: Scope, options?: IViewportOptions) {
+  constructor(router: Router, name: string, element: Element, context: IRenderContext | IContainer, owningScope: Scope, scope: Scope, options?: IViewportOptions) {
     this.router = router;
     this.name = name;
     this.element = element;
@@ -88,7 +88,7 @@ export class Viewport {
     return this.content.isChange(this.nextContent) || instruction.isRefresh;
   }
 
-  public setElement(element: Element, context: IRenderContext, options: IViewportOptions): void {
+  public setElement(element: Element, context: IRenderContext | IContainer, options: IViewportOptions): void {
     // First added viewport with element is always scope viewport (except for root scope)
     if (this.scope && this.scope.parent && !this.scope.viewport) {
       this.scope.viewport = this;
@@ -132,7 +132,7 @@ export class Viewport {
     }
   }
 
-  public remove(element: Element, context: IRenderContext): boolean {
+  public remove(element: Element, context: IRenderContext | IContainer): boolean {
     if (this.element === element && this.context === context) {
       if (this.content.component) {
         this.content.freeContent(this.element, (this.nextContent ? this.nextContent.instruction : null), this.options.stateful).catch(error => { throw error; });

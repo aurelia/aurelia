@@ -51,7 +51,12 @@ export const enum ViewModelKind {
 
 // TODO: extract 3 specialized interfaces for custom element / custom attribute / synthetic view
 //  to keep the public API intuitive
-export interface IController<T extends INode = INode, C extends IViewModel<T> = IViewModel<T>> {
+export interface IController<
+  T extends INode = INode,
+  C extends IViewModel<T> = IViewModel<T>,
+> {
+  readonly id: number;
+
   nextBound?: IController<T>;
   nextUnbound?: IController<T>;
   prevBound?: IController<T>;
@@ -89,7 +94,7 @@ export interface IController<T extends INode = INode, C extends IViewModel<T> = 
   projector?: IElementProjector;
 
   nodes?: INodeSequence<T>;
-  context?: IServiceLocator;
+  context?: IContainer | IRenderContext<T>;
   location?: IRenderLocation<T>;
 
   lockScope(scope: IScope): void;

@@ -2,9 +2,13 @@ import {
   IIndexable,
   IServiceLocator,
   PLATFORM,
-  Writable
+  Writable,
+  IContainer,
 } from '@aurelia/kernel';
 
+import {
+  Binding,
+} from '../binding/binding';
 import {
   HooksDefinition,
   IAttributeDefinition,
@@ -42,17 +46,27 @@ import {
   LifecycleTask,
   MaybePromiseOrTask,
 } from '../lifecycle-task';
-import { IBindingTargetAccessor, IScope, ObserversLookup } from '../observation';
-import { Scope } from '../observation/binding-context';
-import { ProxyObserver } from '../observation/proxy-observer';
-import { SelfObserver } from '../observation/self-observer';
-import { IRenderingEngine } from '../rendering-engine';
+import {
+  IBindingTargetAccessor,
+  IScope,
+} from '../observation';
+import {
+  Scope,
+} from '../observation/binding-context';
+import {
+  ProxyObserver,
+} from '../observation/proxy-observer';
+import {
+  SelfObserver,
+} from '../observation/self-observer';
+import {
+  IRenderingEngine,
+} from '../rendering-engine';
 import {
   ICustomElementType,
   IElementProjector,
   IProjectorLocator
 } from '../resources/custom-element';
-import { Binding } from '../binding/binding';
 
 type Description = Required<IAttributeDefinition> | Required<ITemplateDefinition>;
 type Kind = { name: string };
@@ -88,10 +102,19 @@ type BindingContext<T extends INode, C extends IViewModel<T>> = C & IIndexable &
   detached(flags: LifecycleFlags): void;
 
   caching(flags: LifecycleFlags): void;
-}
+};
 
-export class Controller<T extends INode = INode, C extends IViewModel<T> = IViewModel<T>> implements IController<T, C> {
+export class Controller<
+  T extends INode = INode,
+  C extends IViewModel<T> = IViewModel<T>
+> implements IController<T, C> {
+  public static get lastId(): number {
+    return this._lastId;
+  }
+  private static _lastId: number = 0;
   private static readonly lookup: WeakMap<object, Controller> = new WeakMap();
+
+  public readonly id: number;
 
   public nextBound?: Controller<T, C>;
   public nextUnbound?: Controller<T, C>;
@@ -130,7 +153,7 @@ export class Controller<T extends INode = INode, C extends IViewModel<T> = IView
   public projector?: IElementProjector;
 
   public nodes?: INodeSequence<T>;
-  public context?: IRenderContext<T>;
+  public context?: IContainer | IRenderContext<T>;
   public location?: IRenderLocation<T>;
 
   private constructor(
@@ -138,10 +161,12 @@ export class Controller<T extends INode = INode, C extends IViewModel<T> = IView
     viewCache: IViewCache<T> | undefined,
     lifecycle: ILifecycle | undefined,
     viewModel: C | undefined,
-    parentContext: IServiceLocator | undefined,
+    parentContext: IContainer | IRenderContext<T> | undefined,
     host: T | undefined,
     options: Partial<IElementHydrationOptions>
   ) {
+    this.id = ++Controller._lastId;
+
     this.nextBound = void 0;
     this.nextUnbound = void 0;
     this.prevBound = void 0;
@@ -270,7 +295,7 @@ export class Controller<T extends INode = INode, C extends IViewModel<T> = IView
 
   public static forCustomElement<T extends INode = INode>(
     viewModel: object,
-    parentContext: IServiceLocator,
+    parentContext: IContainer | IRenderContext<T>,
     host: T,
     flags: LifecycleFlags = LifecycleFlags.none,
     options: IElementHydrationOptions = PLATFORM.emptyObject,
@@ -285,7 +310,7 @@ export class Controller<T extends INode = INode, C extends IViewModel<T> = IView
 
   public static forCustomAttribute<T extends INode = INode>(
     viewModel: object,
-    parentContext: IServiceLocator,
+    parentContext: IContainer | IRenderContext<T>,
     flags: LifecycleFlags = LifecycleFlags.none,
   ): Controller<T> {
     let controller = Controller.lookup.get(viewModel) as Controller<T> | undefined;

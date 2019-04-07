@@ -126,12 +126,6 @@ export class If<T extends INode = INode> {
       this.task = new ContinuationTask(this.task, this.swap, this, this.value, flags);
     }
 
-    if (this.task.done) {
-      this.task = this.bindView(flags);
-    } else {
-      this.task = new ContinuationTask(this.task, this.bindView, this, flags);
-    }
-
     return this.task;
   }
 
@@ -180,6 +174,9 @@ export class If<T extends INode = INode> {
   }
 
   public valueChanged(newValue: boolean, oldValue: boolean, flags: LifecycleFlags): void {
+    if ((this.$controller.state & State.isBound) === 0) {
+      return;
+    }
     this._value = newValue;
     if (this.$controller.lifecycle.isFlushingRAF) {
       this.flushRAF(flags);

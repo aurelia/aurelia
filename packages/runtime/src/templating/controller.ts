@@ -4,6 +4,7 @@ import {
   PLATFORM,
   Writable,
   IContainer,
+  Class,
 } from '@aurelia/kernel';
 
 import {
@@ -108,10 +109,7 @@ export class Controller<
   T extends INode = INode,
   C extends IViewModel<T> = IViewModel<T>
 > implements IController<T, C> {
-  public static get lastId(): number {
-    return this._lastId;
-  }
-  private static _lastId: number = 0;
+  public static lastId: number = 0;
   private static readonly lookup: WeakMap<object, Controller> = new WeakMap();
 
   public readonly id: number;
@@ -156,7 +154,7 @@ export class Controller<
   public context?: IContainer | IRenderContext<T>;
   public location?: IRenderLocation<T>;
 
-  private constructor(
+  constructor(
     flags: LifecycleFlags,
     viewCache: IViewCache<T> | undefined,
     lifecycle: ILifecycle | undefined,
@@ -165,7 +163,7 @@ export class Controller<
     host: T | undefined,
     options: Partial<IElementHydrationOptions>
   ) {
-    this.id = ++Controller._lastId;
+    this.id = ++Controller.lastId;
 
     this.nextBound = void 0;
     this.nextUnbound = void 0;
@@ -358,9 +356,10 @@ export class Controller<
     // - make bind() a property and set it to one of the 3 methods in the constructor,
     //    e.g. this.bind = this.bindCustomElement (eliminates branching + reduces call stack depth by 1,
     //    but might make the call site megamorphic)
+    flags |= LifecycleFlags.fromBind;
     switch (this.vmKind) {
       case ViewModelKind.customElement:
-        return this.bindCustomElement(flags, scope);
+        return this.bindCustomElement(flags, this.scope);
       case ViewModelKind.customAttribute:
         return this.bindCustomAttribute(flags, scope);
       case ViewModelKind.synthetic:
@@ -369,6 +368,7 @@ export class Controller<
   }
 
   public unbind(flags: LifecycleFlags): ILifecycleTask {
+    flags |= LifecycleFlags.fromUnbind;
     switch (this.vmKind) {
       case ViewModelKind.customElement:
         return this.unbindCustomElement(flags);
@@ -390,6 +390,7 @@ export class Controller<
   }
 
   public attach(flags: LifecycleFlags): void {
+    flags |= LifecycleFlags.fromAttach;
     switch (this.vmKind) {
       case ViewModelKind.customElement:
         this.attachCustomElement(flags);
@@ -403,6 +404,7 @@ export class Controller<
   }
 
   public detach(flags: LifecycleFlags): void {
+    flags |= LifecycleFlags.fromDetach;
     switch (this.vmKind) {
       case ViewModelKind.customElement:
         this.detachCustomElement(flags);
@@ -669,6 +671,7 @@ export class Controller<
     }
 
     if (tasks === void 0) {
+      this.unbindBindings(flags);
       return LifecycleTask.done;
     }
     return new AggregateContinuationTask(tasks, this.unbindBindings, this, flags);
@@ -685,9 +688,9 @@ export class Controller<
         }
     }
     if (this.hooks.hasUnbound) {
-      this.lifecycle.enqueueBound(this);
+      this.lifecycle.enqueueUnbound(this);
     }
-    this.lifecycle.endBind(flags, this);
+    this.lifecycle.endUnbind(flags, this);
   }
   // #endregion
 
@@ -818,7 +821,7 @@ export class Controller<
     const { controllers } = this;
     if (controllers !== void 0) {
       for (let i = controllers.length - 1; i >= 0; --i) {
-        controllers[i].attach(flags);
+        controllers[i].detach(flags);
       }
     }
   }

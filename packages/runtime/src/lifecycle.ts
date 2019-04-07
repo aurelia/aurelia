@@ -697,7 +697,7 @@ export class Lifecycle implements ILifecycle {
       let next: IController | undefined;
       this.boundHead = this.boundTail = Lifecycle.marker;
       while (current != void 0) {
-        current.bound(flags);
+        current.unbound(flags);
         next = current.nextUnbound;
         current.nextUnbound = void 0;
         current.prevUnbound = void 0;
@@ -892,6 +892,7 @@ export class Lifecycle implements ILifecycle {
       const deadlineLow = timestamp + max(this.maxFrameDuration * this.frameDurationFactor, 1);
       const deadlineNormal = timestamp + max(this.maxFrameDuration * this.frameDurationFactor * 5, 5);
       const deadlineHigh = timestamp + max(this.maxFrameDuration * this.frameDurationFactor * 15, 15);
+      flags |= LifecycleFlags.fromTick;
       do {
         this.pendingChanges = 0;
 

@@ -28,7 +28,7 @@
     "http-server": "latest",
     "rimraf": "latest",
     "ts-loader": "latest",
-    "typescript": "latest",
+    "typescript": "~3.3.4000",
     "webpack-cli": "latest",
     "webpack-dev-server": "latest",
     "webpack": "latest"

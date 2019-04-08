@@ -25,7 +25,7 @@
     "@types/node": "latest",
     "http-server": "latest",
     "rimraf": "latest",
-    "typescript": "latest",
+    "typescript": "~3.3.4000",
     "fuse-box": "latest",
     "uglify-es": "latest",
     "uglify-js": "latest"

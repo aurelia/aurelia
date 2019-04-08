@@ -757,6 +757,8 @@ export class Controller<
       (this.bindingContext as BindingContext<T, C>).detaching(flags);
     }
 
+    this.detachControllers(flags);
+
     if (this.hooks.hasDetached) {
       this.lifecycle.enqueueRAF(this.detached, this, Priority.attach, true);
     }

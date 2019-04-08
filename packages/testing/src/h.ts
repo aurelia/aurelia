@@ -1,5 +1,11 @@
-import { PLATFORM, Writable } from '@aurelia/kernel';
-import { DOM } from '@aurelia/runtime-html';
+import {
+  kebabCase,
+  PLATFORM,
+  Writable,
+} from '@aurelia/kernel';
+import {
+  DOM,
+} from '@aurelia/runtime-html';
 
 export type H = string | number | boolean | null | undefined | Node;
 
@@ -80,7 +86,7 @@ export const hJsx = function(name: string, attrs: Record<string, string> | null,
       else {
         // is it an event handler?
         if (attr[0] === 'o' && attr[1] === 'n' && !attr.endsWith('$')) {
-          const decoded = PLATFORM.kebabCase(attr.slice(2));
+          const decoded = kebabCase(attr.slice(2));
           const parts = decoded.split('-');
           if (parts.length > 1) {
             const lastPart = parts[parts.length - 1];
@@ -93,20 +99,20 @@ export const hJsx = function(name: string, attrs: Record<string, string> | null,
           const len = attr.length;
           const parts = attr.split('$');
           if (parts.length === 1) {
-            el.setAttribute(PLATFORM.kebabCase(attr), value);
+            el.setAttribute(kebabCase(attr), value);
           } else {
             if (parts[parts.length - 1] === '') {
               parts[parts.length - 1] = 'bind';
             }
-            el.setAttribute(parts.map(PLATFORM.kebabCase).join('.'), value);
+            el.setAttribute(parts.map(kebabCase).join('.'), value);
           }
           // const lastIdx = attr.lastIndexOf('$');
           // if (lastIdx === -1) {
-          //   el.setAttribute(PLATFORM.kebabCase(attr), value);
+          //   el.setAttribute(kebabCase(attr), value);
           // } else {
           //   let cmd = attr.slice(lastIdx + 1);
-          //   cmd = cmd ? PLATFORM.kebabCase(cmd) : 'bind';
-          //   el.setAttribute(`${PLATFORM.kebabCase(attr.slice(0, lastIdx))}.${cmd}`, value);
+          //   cmd = cmd ? kebabCase(cmd) : 'bind';
+          //   el.setAttribute(`${kebabCase(attr.slice(0, lastIdx))}.${cmd}`, value);
           // }
         }
       }

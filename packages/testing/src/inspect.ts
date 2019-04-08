@@ -24,16 +24,25 @@
  */
 
 import {
+  stringifyLifecycleFlags,
+  Unparser,
+} from '@aurelia/debug';
+import {
+  Char,
+} from '@aurelia/jit';
+import {
   Constructable,
+  isNumeric,
   Primitive,
 } from '@aurelia/kernel';
+import {
+  DOM,
+} from '@aurelia/runtime-html';
 
 import {
   BigInt_valueOf,
   Boolean_valueOf,
   colors,
-  createFrozenNullObject,
-  createNullObject,
   Date_getTime,
   Date_toISOString,
   Date_toString,
@@ -90,7 +99,6 @@ import {
   Map_entries,
   Number_valueOf,
   Object_assign,
-  Object_create,
   Object_freeze,
   Object_is,
   Object_keys,
@@ -105,6 +113,7 @@ import {
   TypedArray,
   TypedArrayConstructor,
 } from './util';
+import { Call } from './tracing';
 
 // tslint:disable: no-commented-code
 // tslint:disable: no-big-function
@@ -115,6 +124,7 @@ import {
 // tslint:disable: no-nested-template-literals
 // tslint:disable: strict-boolean-expressions
 // tslint:disable: no-non-null-assertion
+// tslint:disable: no-nested-switch
 
 let maxStack_ErrorName: string;
 let maxStack_ErrorMessage: string;
@@ -161,7 +171,7 @@ export interface IInspectContext extends IInspectOptions {
   stop?: boolean;
 }
 
-const defaultInspectOptions: Readonly<IInspectOptions> = createFrozenNullObject(
+const defaultInspectOptions: Readonly<IInspectOptions> = Object_freeze(
   {
     showHidden: false,
     depth: 2,
@@ -183,7 +193,7 @@ const defaultInspectOptions: Readonly<IInspectOptions> = createFrozenNullObject(
 const mandatoryInspectKeys = Object_keys(defaultInspectOptions) as (keyof IInspectOptions)[];
 
 function getUserOptions(ctx: Partial<IInspectOptions>): IInspectOptions {
-  const obj: IInspectOptions = Object_create(null);
+  const obj: Partial<IInspectOptions> = {};
   for (const key of mandatoryInspectKeys) {
     obj[key] = ctx[key];
   }
@@ -192,20 +202,18 @@ function getUserOptions(ctx: Partial<IInspectOptions>): IInspectOptions {
     Object_assign(obj, ctx.userOptions);
   }
 
-  return obj;
+  return obj as IInspectOptions;
 }
 
 function getInspectContext(ctx: Partial<IInspectOptions>): IInspectContext {
-  const obj: IInspectContext = createNullObject(
-    {
-      ...defaultInspectOptions,
-      budget: {},
-      indentationLvl: 0,
-      seen: [],
-      currentDepth: 0,
-      stylize: ctx.colors ? stylizeWithColor : stylizeNoColor,
-    }
-  );
+  const obj: IInspectContext = {
+    ...defaultInspectOptions,
+    budget: {},
+    indentationLvl: 0,
+    seen: [],
+    currentDepth: 0,
+    stylize: ctx.colors ? stylizeWithColor : stylizeNoColor,
+  };
 
   for (const key of mandatoryInspectKeys) {
     if (hasOwnProperty(ctx, key)) {
@@ -233,7 +241,7 @@ interface IStyles {
   regexp: 'red';
 }
 
-const styles: Readonly<IStyles> = createFrozenNullObject(
+const styles: Readonly<IStyles> = Object_freeze(
   {
     special: 'cyan' as 'cyan',
     number: 'yellow' as 'yellow',
@@ -262,7 +270,7 @@ interface IOperatorText {
   notIdentical: string;
 }
 
-const operatorText: Readonly<IOperatorText> = createFrozenNullObject(
+const operatorText: Readonly<IOperatorText> = Object_freeze(
   {
     deepStrictEqual: 'Expected values to be strictly deep-equal:',
     strictEqual: 'Expected values to be strictly equal:',
@@ -283,7 +291,7 @@ export const customInspectSymbol = Symbol.for('customInspect');
 function stylizeWithColor(str: string, styleType: keyof typeof styles): string {
   const style = styles[styleType];
 
-  if (style !== void 0) {
+  if (isString(style)) {
     return colors[style](str);
   } else {
     return str;
@@ -321,61 +329,59 @@ export class AssertionError extends Error {
     const limit = Error.stackTraceLimit;
     Error.stackTraceLimit = 0;
 
-    if (message != null) {
-      super(String(message));
-    } else {
-      if (operator === 'deepStrictEqual' || operator === 'strictEqual') {
-        super(createErrDiff(actual, expected, operator));
-      } else if (
-        operator === 'notDeepStrictEqual'
-        || operator === 'notStrictEqual'
+    const prefix = message == null ? '' : `${message} - `;
+
+    if (operator === 'deepStrictEqual' || operator === 'strictEqual') {
+      super(`${prefix}${createErrDiff(actual, expected, operator)}`);
+    } else if (
+      operator === 'notDeepStrictEqual'
+      || operator === 'notStrictEqual'
+    ) {
+      let base = operatorText[operator];
+      const res = inspectValue(actual).split('\n');
+      if (
+        operator === 'notStrictEqual'
+        && isObject(actual)
       ) {
-        let base = operatorText[operator];
-        const res = inspectValue(actual).split('\n');
-        if (
-          operator === 'notStrictEqual'
-          && isObject(actual)
-        ) {
-          base = operatorText.notStrictEqualObject;
-        }
+        base = operatorText.notStrictEqualObject;
+      }
 
-        if (res.length > 30) {
-          res[26] = colors.blue('...');
-          while (res.length > 27) {
-            res.pop();
-          }
+      if (res.length > 30) {
+        res[26] = colors.blue('...');
+        while (res.length > 27) {
+          res.pop();
         }
+      }
 
-        if (res.length === 1) {
-          super(`${base} ${res[0]}`);
-        } else {
-          super(`${base}\n\n${join(res, '\n')}\n`);
+      if (res.length === 1) {
+        super(`${prefix}${base} ${res[0]}`);
+      } else {
+        super(`${prefix}${base}\n\n${join(res, '\n')}\n`);
+      }
+    } else {
+      let res = inspectValue(actual);
+      let other = '';
+      const knownOperators = operatorText[operator];
+      if (operator === 'notDeepEqual' || operator === 'notEqual') {
+        res = `${operatorText[operator]}\n\n${res}`;
+        if (res.length > 1024) {
+          res = `${res.slice(0, 1021)}...`;
         }
       } else {
-        let res = inspectValue(actual);
-        let other = '';
-        const knownOperators = operatorText[operator];
-        if (operator === 'notDeepEqual' || operator === 'notEqual') {
-          res = `${operatorText[operator]}\n\n${res}`;
-          if (res.length > 1024) {
-            res = `${res.slice(0, 1021)}...`;
-          }
-        } else {
-          other = `${inspectValue(expected)}`;
-          if (res.length > 512) {
-            res = `${res.slice(0, 509)}...`;
-          }
-          if (other.length > 512) {
-            other = `${other.slice(0, 509)}...`;
-          }
-          if (operator === 'deepEqual' || operator === 'equal') {
-            res = `${knownOperators}\n\n${res}\n\nshould equal\n\n`;
-          } else {
-            other = ` ${operator} ${other}`;
-          }
+        other = `${inspectValue(expected)}`;
+        if (res.length > 512) {
+          res = `${res.slice(0, 509)}...`;
         }
-        super(`${res}${other}`);
+        if (other.length > 512) {
+          other = `${other.slice(0, 509)}...`;
+        }
+        if (operator === 'deepEqual' || operator === 'equal') {
+          res = `${knownOperators}\n\n${res}\n\nshould equal\n\n`;
+        } else {
+          other = ` ${operator} ${other}`;
+        }
       }
+      super(`${prefix}${res}${other}`);
     }
 
     Error.stackTraceLimit = limit;
@@ -404,11 +410,11 @@ export class AssertionError extends Error {
   public [customInspectSymbol](recurseTimes: number, ctx: IInspectContext): string {
     return inspect(
       this,
-      createNullObject({
+      {
         ...ctx,
         customInspect: false,
         depth: 0,
-      }),
+      },
     );
   }
 }
@@ -576,7 +582,7 @@ function createErrDiff(actual: any, expected: any, operator: keyof IOperatorText
         }
       }
     }
-    if (printedLines > 20 && i < maxLines - 2) {
+    if (printedLines > 1000 && i < maxLines - 2) {
       return `${msg}${skippedMsg}\n${res}\n${colors.blue('...')}${other}\n${colors.blue('...')}`;
     }
   }
@@ -588,8 +594,38 @@ const kObjectType = 0;
 const kArrayType = 1;
 const kArrayExtrasType = 2;
 
-const keyStrRegExp = /^[a-zA-Z_][a-zA-Z_0-9]*$/;
-const numberRegExp = /^(0|[1-9][0-9]*)$/;
+const idStart = new Int8Array(0x80);
+const idPart = new Int8Array(0x80);
+
+for (let i = 0; i < 0x80; ++i) {
+  if (
+    i === Char.Dollar
+    || i === Char.Underscore
+    || (i >= Char.UpperA && i <= Char.UpperZ)
+    || (i >= Char.LowerA && i <= Char.LowerZ)
+  ) {
+    idStart[i] = idPart[i] = 1;
+  } else if (
+    i >= Char.One && i <= Char.Nine
+  ) {
+    idPart[i] = 1;
+  }
+}
+
+function isValidIdentifier(str: string): boolean {
+  if (idStart[str.charCodeAt(0)] !== 1) {
+    return false;
+  }
+
+  const { length } = str;
+  for (let i = 1; i < length; ++i) {
+    if (idPart[str.charCodeAt(i)] !== 1) {
+      return false;
+    }
+  }
+
+  return true;
+}
 
 const readableRegExps: Record<number, RegExp> = {};
 
@@ -605,6 +641,9 @@ function groupArrayElements(ctx: IInspectContext, output: string[]): string[] {
   let maxLength = 0;
   let i = 0;
   const dataLen = new Array(output.length);
+  // Calculate the total length of all output entries and the individual max
+  // entries length of all output entries. We have to remove colors first,
+  // otherwise the length would not be calculated properly.
 
   for (; i < output.length; i++) {
     const len = ctx.colors ? removeColors(output[i]).length : output[i].length;
@@ -615,28 +654,46 @@ function groupArrayElements(ctx: IInspectContext, output: string[]): string[] {
     }
   }
 
+  // Add two to `maxLength` as we add a single whitespace character plus a comma
+  // in-between two entries.
   const actualMax = maxLength + 2;
+  // Check if at least three entries fit next to each other and prevent grouping
+  // of arrays that contains entries of very different length (i.e., if a single
+  // entry is longer than 1/5 of all other entries combined). Otherwise the
+  // space in-between small entries would be enormous.
   if (
     actualMax * 3 + ctx.indentationLvl < ctx.breakLength
     && (totalLength / maxLength > 5 || maxLength <= 6)
   ) {
     const approxCharHeights = 2.5;
     const bias = 1;
+    // Dynamically check how many columns seem possible.
     const columns = Math.min(
+      // Ideally a square should be drawn. We expect a character to be about 2.5
+      // times as high as wide. This is the area formula to calculate a square
+      // which contains n rectangles of size `actualMax * approxCharHeights`.
+      // Divide that by `actualMax` to receive the correct number of columns.
+      // The added bias slightly increases the columns for short entries.
       Math.round(
         Math.sqrt(
           approxCharHeights * (actualMax - bias) * output.length
         )
         / (actualMax - bias)
       ),
+      // Limit array grouping for small `compact` modes as the user requested
+      // minimal grouping.
       (ctx.compact as unknown as number) * 3,
+      // Limit the columns to a maximum of ten.
       10
     );
 
+    // Return with the original output if no grouping should happen.
     if (columns <= 1) {
       return output;
     }
 
+    // Calculate the maximum length of all entries that are visible in the first
+    // column of the group.
     const tmp = [];
     let firstLineMaxLength = dataLen[0];
     for (i = columns; i < dataLen.length; i += columns) {
@@ -645,9 +702,14 @@ function groupArrayElements(ctx: IInspectContext, output: string[]): string[] {
       }
     }
 
+    // Each iteration creates a single line of grouped entries.
     for (i = 0; i < output.length; i += columns) {
+      // Calculate extra color padding in case it's active. This has to be done
+      // line by line as some lines might contain more colors than others.
       let colorPadding = output[i].length - dataLen[i];
+      // Add padding to the first column of the output.
       let str = output[i].padStart(firstLineMaxLength + colorPadding, ' ');
+      // The last lines may contain less entries than columns.
       const max = Math.min(i + columns, output.length);
       for (let j = i + 1; j < max; j++) {
         colorPadding = output[j].length - dataLen[j];
@@ -782,12 +844,10 @@ function getConstructorName(
     return null;
   }
 
-  const newCtx: IInspectContext = createFrozenNullObject(
-    {
-      ...ctx,
-      customInspect: false,
-    }
-  );
+  const newCtx: IInspectContext = {
+    ...ctx,
+    customInspect: false,
+  };
   return `<${inspect(firstProto, newCtx)}>`;
 }
 
@@ -1021,7 +1081,7 @@ export function formatSpecialArray(
       break;
     }
     if (`${index}` !== key) {
-      if (!numberRegExp.test(key)) {
+      if (!isNumeric(key)) {
         break;
       }
       const emptyItems = tmp - index;
@@ -1244,6 +1304,74 @@ export function formatPromise(ctx: IInspectContext, value: Promise<any>, recurse
   return ['[object Promise]'];
 }
 
+// Still incomplete
+const methodNamesWithFlags: PropertyKey[] = [
+  'created',
+
+  'bind',
+  'bindCustomElement',
+  'bindCustomAttribute',
+  'bindSynthetic',
+
+  'bindBindings',
+  'bindControllers',
+  'endBind',
+
+  'binding',
+  'bound',
+
+  'attach',
+  'attachCustomElement',
+  'attachCustomAttribute',
+  'attachSynthetic',
+
+  'attachControllers',
+
+  'attaching',
+  'attached',
+
+  'mount',
+  'mountCustomElement',
+  'mountCustomAttribute',
+  'mountSynthetic',
+
+  'detach',
+  'detachCustomElement',
+  'detachCustomAttribute',
+  'detachSynthetic',
+
+  'detachControllers',
+
+  'detaching',
+  'detached',
+
+  'unmount',
+  'unmountCustomElement',
+  'unmountCustomAttribute',
+  'unmountSynthetic',
+
+  'release',
+
+  'cache',
+  'cacheCustomElement',
+  'cacheCustomAttribute',
+  'cacheSynthetic',
+
+  'caching',
+
+  'unbind',
+  'unbindCustomElement',
+  'unbindCustomAttribute',
+  'unbindSynthetic',
+
+  'unbindBindings',
+  'unbindControllers',
+  'endUnbind',
+
+  'unbinding',
+  'unbound',
+];
+
 export function formatProperty(
   ctx: IInspectContext,
   value: any,
@@ -1251,6 +1379,95 @@ export function formatProperty(
   key: PropertyKey,
   type: number,
 ): string {
+  switch (key) {
+    // Aurelia-specific:
+    // Note: this is actually the only place in inspection where we actually mutate the input
+    // It should be fine since we're only mutating recorded call args, but still important to keep in mind
+    case 'args':
+      if (value instanceof Call) {
+        switch (value.method) {
+          case 'created':
+
+          case 'bind':
+          case 'bindCustomElement':
+          case 'bindCustomAttribute':
+          case 'bindSynthetic':
+
+          case 'bindBindings':
+          case 'bindControllers':
+          case 'endBind':
+
+          case 'binding':
+          case 'bound':
+
+          case 'attach':
+          case 'attachCustomElement':
+          case 'attachCustomAttribute':
+          case 'attachSynthetic':
+
+          case 'attachControllers':
+
+          case 'attaching':
+          case 'attached':
+
+          case 'mount':
+          case 'mountCustomElement':
+          case 'mountCustomAttribute':
+          case 'mountSynthetic':
+
+          case 'detach':
+          case 'detachCustomElement':
+          case 'detachCustomAttribute':
+          case 'detachSynthetic':
+
+          case 'detachControllers':
+
+          case 'detaching':
+          case 'detached':
+
+          case 'unmount':
+          case 'unmountCustomElement':
+          case 'unmountCustomAttribute':
+          case 'unmountSynthetic':
+
+          case 'release':
+
+          case 'cache':
+          case 'cacheCustomElement':
+          case 'cacheCustomAttribute':
+          case 'cacheSynthetic':
+
+          case 'caching':
+
+          case 'unbind':
+          case 'unbindCustomElement':
+          case 'unbindCustomAttribute':
+          case 'unbindSynthetic':
+
+          case 'unbindBindings':
+          case 'unbindControllers':
+          case 'endUnbind':
+
+          case 'unbinding':
+          case 'unbound':
+            value.args[0] = stringifyLifecycleFlags(value.args[0]);
+            break;
+          case 'valueChanged':
+            value.args[2] = stringifyLifecycleFlags(value.args[2]);
+            break;
+          case 'swap':
+          case 'updateView':
+            value.args[1] = stringifyLifecycleFlags(value.args[1]);
+            break;
+        }
+      }
+      break;
+    case '$controller':
+      return `$controller: { id: ${value.$controller.id} } (omitted for brevity)`;
+    case 'overrideContext':
+      return 'overrideContext: (omitted for brevity)';
+  }
+
   let name, str;
   let extra = ' ';
   const desc = (
@@ -1325,7 +1542,7 @@ export function formatProperty(
     name = `[${ctx.stylize(tmp, 'symbol')}]`;
   } else if (desc.enumerable === false) {
     name = `[${escapeString(key.toString())}]`;
-  } else if (keyStrRegExp.test(key as string)) {
+  } else if (isValidIdentifier(key as string)) {
     name = ctx.stylize((key as string), 'name' as keyof typeof styles);
   } else {
     name = ctx.stylize(escapeAndQuoteString(key as string), 'string');
@@ -1342,6 +1559,49 @@ export function formatRaw(
   let keys: PropertyKey[] = (void 0)!;
 
   const constructor = getConstructorName(value, ctx);
+  switch (constructor) {
+    // Aurelia-specific:
+    // Skip some standard components as their difference will not matter in assertions, but they will
+    // generate a lot of noise and slow down the inspection due to their size and property depth
+    case 'Container':
+    case 'Lifecycle':
+    case 'ObserverLocator':
+    // Also skip window object as it's not a node instance and therefore not filtered by formatProperty
+    case 'Window':
+      return ctx.stylize(`${constructor} (omitted for brevity)`, 'special');
+    case 'Function':
+    // It's likely a constructor, filter out some additional globals that don't matter in inspection
+      if (value.name === 'Node') {
+        return ctx.stylize('Node constructor (omitted for brevity)', 'special');
+      }
+      break;
+    // Use the Unparser for AST nodes
+    case 'AccessKeyed':
+    case 'AccessMember':
+    case 'AccessScope':
+    case 'AccessThis':
+    case 'ArrayBindingPattern':
+    case 'ArrayLiteral':
+    case 'Assign':
+    case 'Binary':
+    case 'BindingBehavior':
+    case 'BindingIdentifier':
+    case 'CallFunction':
+    case 'CallMember':
+    case 'CallScope':
+    case 'Conditional':
+    case 'ForOfStatement':
+    case 'HtmlLiteral':
+    case 'Interpolation':
+    case 'ObjectBindingPattern':
+    case 'ObjectLiteral':
+    case 'PrimitiveLiteral':
+    case 'TaggedTemplate':
+    case 'Template':
+    case 'Unary':
+    case 'ValueConverter':
+      return ctx.stylize(Unparser.unparse(value), 'special');
+  }
   let tag = value[Symbol.toStringTag];
   if (!isString(tag)) {
     tag = '';
@@ -1429,6 +1689,7 @@ export function formatRaw(
       }
       base = `[${name}]`;
     } else if (isRegExp(value)) {
+      // Make RegExps say that they are RegExps
       base = RegExp_toString(constructor !== null ? value : new RegExp(value));
       const prefix = getPrefix(constructor, tag, 'RegExp');
       if (prefix !== 'RegExp ') {
@@ -1438,6 +1699,7 @@ export function formatRaw(
         return ctx.stylize(base, 'regexp');
       }
     } else if (isDate(value)) {
+      // Make dates with properties first say the date
       base = Number.isNaN(Date_getTime(value))
         ? Date_toString(value)
         : Date_toISOString(value);
@@ -1449,11 +1711,14 @@ export function formatRaw(
         return ctx.stylize(base, 'date');
       }
     } else if (isError(value)) {
+      // Make error with message first say the error.
       base = formatError(value);
+      // Wrap the error in brackets in case it has no stack trace.
       const stackStart = base.indexOf('\n    at');
       if (stackStart === -1) {
         base = `[${base}]`;
       }
+      // The message and the stack have to be indented as well!
       if (ctx.indentationLvl !== 0) {
         const indentation = ' '.repeat(ctx.indentationLvl);
         base = formatError(value).replace(/\n/g, `\n${indentation}`);
@@ -1467,6 +1732,9 @@ export function formatRaw(
         base = `[${base.slice(0, stackStart)}]`;
       }
     } else if (isAnyArrayBuffer(value)) {
+      // Fast path for ArrayBuffer and SharedArrayBuffer.
+      // Can't do the same for DataView because it has a non-primitive
+      // .buffer property that we need to recurse for.
       const arrayType = isArrayBuffer(value)
         ? 'ArrayBuffer'
         : 'SharedArrayBuffer';
@@ -1480,6 +1748,7 @@ export function formatRaw(
       keys.unshift('byteLength');
     } else if (isDataView(value)) {
       braces[0] = `${getPrefix(constructor, tag, 'DataView')}{`;
+      // .buffer goes last, it's not a primitive like the others.
       keys.unshift('byteLength', 'byteOffset', 'buffer');
     } else if (isPromise(value)) {
       braces[0] = `${getPrefix(constructor, tag, 'Promise')}{`;
@@ -1501,6 +1770,9 @@ export function formatRaw(
       } else if (isStringObject(value)) {
         base = `[String: ${getBoxedValue(String_valueOf(value), ctx)}]`;
         type = 'string';
+        // For boxed Strings, we have to remove the 0-n indexed entries,
+        // since they just noisy up the output and are redundant
+        // Make boxed primitive Strings look like such
         keys = keys.slice(value.length);
       } else if (isBooleanObject(value)) {
         base = `[Boolean: ${getBoxedValue(Boolean_valueOf(value), ctx)}]`;
@@ -1516,6 +1788,8 @@ export function formatRaw(
         return ctx.stylize(base, type as keyof typeof styles);
       }
     } else {
+      // The input prototype got manipulated. Special handle these. We have to
+      // rebuild the information so we are able to display everything.
       if (constructor === null) {
         const specialIterator = noPrototypeIterator(ctx, value, recurseTimes);
         if (specialIterator) {
@@ -1528,6 +1802,7 @@ export function formatRaw(
       } else if (isSetIterator(value)) {
         braces = setIteratorBraces('Set', tag);
         formatter = formatIterator;
+        // Handle other regular objects again.
       } else if (keys.length === 0) {
         // if (isExternal(value)) {
         //   return ctx.stylize('[External]', 'special');
@@ -1550,8 +1825,20 @@ export function formatRaw(
   const indentationLvl = ctx.indentationLvl;
   try {
     output = formatter(ctx, value, recurseTimes, keys, braces);
+    let $key: PropertyKey;
+    const isNotNode = !(value instanceof DOM.Node);
     for (i = 0; i < keys.length; i++) {
-      output.push(formatProperty(ctx, value, recurseTimes, keys[i] as string | symbol, extrasType));
+      $key = keys[i];
+      if (
+        // Aurelia-specific:
+        // Don't deep inspect html nodes, they are huge, have many irrelevant properties and make the diff unreadable
+        (isNotNode || $key === 'textContent' || $key === 'outerHTML')
+        // Aurelia-specific:
+        // By convention we use $$calls for the CallCollection tracker, never deep inspect that as it's never relevant to the assertion
+        && $key !== '$$calls'
+      ) {
+        output.push(formatProperty(ctx, value, recurseTimes, keys[i] as string | symbol, extrasType));
+      }
     }
   } catch (err) {
     return handleMaxCallStackSize(ctx, err, constructor!, tag, indentationLvl);
@@ -1570,10 +1857,28 @@ export function formatRaw(
 
   let combine = false;
   if (isNumber(ctx.compact)) {
+    // Memorize the original output length. In case the the output is grouped,
+    // prevent lining up the entries on a single line.
     const entries = output.length;
+    // Group array elements together if the array contains at least six separate
+    // entries.
     if (extrasType === kArrayExtrasType && output.length > 6) {
       output = groupArrayElements(ctx, output);
     }
+    // `ctx.currentDepth` is set to the most inner depth of the currently
+    // inspected object part while `recurseTimes` is the actual current depth
+    // that is inspected.
+    //
+    // Example:
+    //
+    // const a = { first: [ 1, 2, 3 ], second: { inner: [ 1, 2, 3 ] } }
+    //
+    // The deepest depth of `a` is 2 (a.second.inner) and `a.first` has a max
+    // depth of 1.
+    //
+    // Consolidate all entries of the local most inner depth up to
+    // `ctx.compact`, as long as the properties are smaller than
+    // `ctx.breakLength`.
     if (
       ctx.currentDepth - recurseTimes < ctx.compact
       && entries === output.length
@@ -1647,7 +1952,7 @@ export function inspectValue(val: any): string {
     {
       compact: false,
       customInspect: false,
-      depth: 1000,
+      depth: 100,
       maxArrayLength: Infinity,
       showHidden: false,
       breakLength: Infinity,

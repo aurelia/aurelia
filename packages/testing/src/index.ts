@@ -130,4 +130,8 @@ export {
   enableTracing,
   disableTracing,
   SymbolTraceWriter,
+  Call,
+  CallCollection,
+  recordCalls,
+  stopRecordingCalls,
 } from './tracing';

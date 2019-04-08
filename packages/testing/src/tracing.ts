@@ -1,16 +1,22 @@
 import {
-  Tracer as DebugTracer,
-  stringifyLifecycleFlags
+  stringifyLifecycleFlags,
+  Tracer as DebugTracer
 } from '@aurelia/debug';
 import {
-  Tracer,
-  ITraceInfo,
-} from '@aurelia/kernel';
-import {
-  ISymbol,
+  IAttributeSymbol,
   INodeSymbol,
-  IAttributeSymbol
+  ISymbol,
 } from '@aurelia/jit';
+import {
+  Class,
+  IContainer,
+  IIndexable,
+  ITraceInfo,
+  Registration,
+  Tracer,
+  Writable,
+} from '@aurelia/kernel';
+import { getOwnPropertyDescriptors, defineProperty, Reflect_apply } from './util';
 
 const RuntimeTracer = { ...Tracer };
 export function enableTracing(): void {
@@ -77,3 +83,116 @@ export const SymbolTraceWriter = {
     console.debug(`${'  '.repeat(info.depth)}${info.objName}.${info.methodName} - ${output}`);
   }
 };
+
+export class Call {
+  public readonly instance: any;
+  public readonly args: any[];
+  public readonly method: PropertyKey;
+  public readonly index: number;
+
+  constructor(
+    instance: any,
+    args: any[],
+    method: PropertyKey,
+    index: number,
+  ) {
+    this.instance = instance;
+    this.args = args;
+    this.method = method;
+    this.index = index;
+  }
+}
+
+export class CallCollection {
+  public readonly calls: Call[];
+
+  constructor() {
+    this.calls = [];
+  }
+
+  public static register(container: IContainer): void {
+    container.register(Registration.singleton(this, this));
+  }
+
+  public addCall(instance: any, method: PropertyKey, ...args: any[]): CallCollection {
+    this.calls.push(new Call(instance, args, method, this.calls.length));
+    return this;
+  }
+}
+
+export function recordCalls<TProto extends object>(
+  ctor: Class<TProto>,
+  calls: CallCollection,
+): void {
+  const proto = ctor.prototype;
+  const properties = getOwnPropertyDescriptors(proto);
+
+  for (const key in properties) {
+    const property = properties[key];
+
+    if (
+      key !== 'constructor'
+      && typeof property.value === 'function'
+      && property.configurable === true
+      && property.writable === true
+    ) {
+
+      const original = property.value;
+
+      const wrapper = function(this: any, ...args: any[]): any {
+        calls.addCall(this.id, key, ...args);
+        return Reflect_apply(original, this, args);
+      };
+
+      Reflect.defineProperty(
+        wrapper,
+        'original',
+        {
+          value: original,
+          writable: true,
+          configurable: true,
+          enumerable: false,
+        },
+      );
+      Reflect.defineProperty(
+        proto,
+        key,
+        {
+          value: wrapper,
+          writable: property.writable,
+          configurable: property.configurable,
+          enumerable: property.enumerable,
+        },
+      );
+    }
+  }
+}
+
+export function stopRecordingCalls<TProto extends object>(
+  ctor: Class<TProto>,
+): void {
+  const proto = ctor.prototype;
+  const properties = getOwnPropertyDescriptors(proto);
+
+  for (const key in properties) {
+    const property = properties[key];
+
+    if (
+      key !== 'constructor'
+      && typeof property.value === 'function'
+      && property.configurable === true
+      && property.writable === true
+    ) {
+      Reflect.defineProperty(
+        proto,
+        key,
+        {
+          value: property.value.original,
+          writable: property.writable,
+          configurable: property.configurable,
+          enumerable: property.enumerable,
+        },
+      );
+    }
+  }
+}

@@ -47,7 +47,7 @@ import {
   isUndefined,
   Object_is,
   Object_keys,
-  createFrozenNullObject,
+  Object_freeze,
 } from './util';
 import { CompositionRoot } from '@aurelia/runtime';
 import { getVisibleText } from './specialized-assertions';
@@ -491,7 +491,7 @@ export function notStrictEqual(actual: any, expected: any, message?: string): vo
   }
 }
 
-const assert = createFrozenNullObject({
+const assert = Object_freeze({
   throws,
   doesNotThrow,
   rejects,

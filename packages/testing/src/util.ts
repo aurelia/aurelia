@@ -24,7 +24,7 @@
  */
 
 import {
-  PLATFORM,
+  isNumeric,
   Primitive,
 } from '@aurelia/kernel';
 
@@ -67,8 +67,6 @@ export const Number_isNaN = Number.isNaN;
 export const Reflect_apply = Reflect.apply;
 
 export const ArrayBuffer_isView = ArrayBuffer.isView;
-
-export const isNumeric = PLATFORM.isNumeric;
 
 export function uncurryThis<TArgs extends any[], TRet>(func: (...args: TArgs) => TRet): (thisArg: unknown, ...args: TArgs) => TRet {
   return (thisArg: unknown, ...args: TArgs) => Reflect_apply(func, thisArg, args);
@@ -317,7 +315,7 @@ interface IColors {
 }
 
 // http://en.wikipedia.org/wiki/ANSI_escape_code#graphics
-export const colors: Readonly<IColors> = createFrozenNullObject(
+export const colors: Readonly<IColors> = Object_freeze(
   {
     bold(str: string): string {
       return '\u001b[1m' + str + '\u001b[22m';

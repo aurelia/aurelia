@@ -4,8 +4,8 @@ import {
   Serializer,
   Unparser,
 } from '@aurelia/debug';
-import { Aurelia, IViewModel, INode, TargetedInstructionType } from '@aurelia/runtime';
-import { HTMLTargetedInstructionType } from '@aurelia/runtime-html';
+import { Aurelia, IViewModel, INode, TargetedInstructionType, IController, IElementProjector, Replaceable, With, If, Repeat } from '@aurelia/runtime';
+import { HTMLTargetedInstructionType, Compose } from '@aurelia/runtime-html';
 
 export function verifyASTEqual(actual: any, expected: any, errors?: string[], path?: string): any {
   if (expected == null) {
@@ -63,28 +63,41 @@ export function verifyEqual(actual: any, expected: any, depth?: number, property
   }
 }
 
-export function getVisibleText(au: Aurelia, host: Node): string | null {
+export function getVisibleText(root: IController, host: Node): string | null {
   const context = { text: host.textContent };
-  $getVisibleText(au.root()!, context);
+  $getVisibleText(root, context);
   return context.text;
 }
 
-function $getVisibleText(root: any, context: { text: string | null}) {
-  let current = root.$componentHead;
-  while (current) {
-    if (current.$projector && current.$projector.shadowRoot) {
-      context.text += current.$projector.shadowRoot.textContent;
-      $getVisibleText(current, context);
-    } else if (current.currentView) { // replaceable, with
-      $getVisibleText(current.currentView, context);
-    } else if (current.coordinator && current.coordinator.currentView) { // if, else, au-compose
-      $getVisibleText(current.coordinator.currentView, context);
-    } else if (current.views) { // repeat
-      for (const view of current.views) {
+function isShadowDOMProjector(projector: IElementProjector | undefined): projector is IElementProjector & { shadowRoot: ShadowRoot } {
+  return projector != void 0 && 'shadowRoot' in projector;
+}
+
+function $getVisibleText(root: IController, context: { text: string | null}): void {
+  const { controllers } = root;
+  if (controllers == void 0) {
+    return;
+  }
+  const { length } = controllers;
+  let controller;
+  for (let i = 0; i < length; ++i) {
+    controller = controllers[i];
+    if (isShadowDOMProjector(controller.projector)) {
+      context.text += controller.projector.shadowRoot.textContent!;
+      $getVisibleText(controller, context);
+    } else if (controller.viewModel instanceof Replaceable) {
+      $getVisibleText((controller.viewModel as Replaceable).view, context);
+    } else if (controller.viewModel instanceof With) {
+      $getVisibleText((controller.viewModel as With).view, context);
+    } else if (controller.viewModel instanceof If) {
+      $getVisibleText((controller.viewModel as If).view!, context);
+    } else if (controller.viewModel instanceof Compose) {
+      $getVisibleText((controller.viewModel as Compose).view!, context);
+    } else if (controller.viewModel instanceof Repeat) {
+      for (const view of (controller.viewModel as Repeat).views) {
         $getVisibleText(view, context);
       }
     }
-    current = current.$nextComponent;
   }
 }
 

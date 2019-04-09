@@ -25,13 +25,18 @@ import {
   LifecycleFlags,
   State
 } from './flags';
-import { ILifecycleTask, MaybePromiseOrTask } from './lifecycle-task';
+import {
+  ILifecycleTask,
+  MaybePromiseOrTask,
+} from './lifecycle-task';
 import {
   IBatchable,
   IBindingTargetAccessor,
   IScope,
 } from './observation';
-import { IElementProjector } from './resources/custom-element';
+import {
+  IElementProjector,
+} from './resources/custom-element';
 
 const slice = Array.prototype.slice;
 
@@ -162,42 +167,19 @@ export interface ILifecycle {
   readonly nextFrame: Promise<number>;
   minFPS: number;
   maxFPS: number;
-  pendingChanges: number;
 
-  readonly batchDepth: number;
-  readonly boundCount: number;
-  readonly mountCount: number;
-  readonly attachedCount: number;
-  readonly unmountCount: number;
-  readonly detachedCount: number;
-  readonly unboundCount: number;
   readonly isFlushingRAF: boolean;
 
-  beginBatch(): void;
-  endBatch(): void;
-  enqueueBatch(requestor: IBatchable): void;
-  batch(operation: (flags?: LifecycleFlags) => void, context?: unknown): void;
+  readonly batch: IAutoProcessingQueue<IBatchable>;
 
-  beginBind(requestor?: IController): void;
-  beginUnbind(requestor?: IController): void;
+  readonly mount: IProcessingQueue<IController>;
+  readonly unmount: IProcessingQueue<IController>;
 
-  endBind(flags: LifecycleFlags, requestor?: IController): void;
-  endUnbind(flags: LifecycleFlags, requestor?: IController): void;
+  readonly bound: IAutoProcessingQueue<IController>;
+  readonly unbound: IAutoProcessingQueue<IController>;
 
-  enqueueBound(requestor: IController): void;
-  enqueueUnbound(requestor: IController): void;
-
-  enqueueAttached(requestor: IController): void;
-  enqueueDetached(requestor: IController): void;
-
-  processBindQueue(flags: LifecycleFlags): void;
-  processUnbindQueue(flags: LifecycleFlags): void;
-
-  processAttachQueue(flags: LifecycleFlags): void;
-  processDetachQueue(flags: LifecycleFlags): void;
-
-  enqueueMount(requestor: IController): void;
-  enqueueUnmount(requestor: IController): void;
+  readonly attached: IAutoProcessingQueue<IController>;
+  readonly detached: IAutoProcessingQueue<IController>;
 
   enqueueRAF(cb: (flags: LifecycleFlags) => void, context?: unknown, priority?: Priority, once?: boolean): void;
   enqueueRAF(cb: () => void, context?: unknown, priority?: Priority, once?: boolean): void;
@@ -209,7 +191,7 @@ export interface ILifecycle {
   startTicking(): void;
   stopTicking(): void;
 
-  enableTimeslicing(): void;
+  enableTimeslicing(adaptive?: boolean): void;
   disableTimeslicing(): void;
 }
 
@@ -358,53 +340,518 @@ export const ILifecycle = DI.createInterface<ILifecycle>('ILifecycle').withDefau
 
 const { min, max } = Math;
 
-/** @internal */
-export class Lifecycle implements ILifecycle {
-  public static marker: IController;
+export interface IProcessingQueue<T> {
+  add(requestor: T): void;
+  remove(requestor: T): void;
+  process(flags: LifecycleFlags): void;
+}
 
-  public batchQueue: IBatchable[];
-  public batchDepth: number;
+export interface IAutoProcessingQueue<T> extends IProcessingQueue<T> {
+  readonly depth: number;
+  begin(): void;
+  end(flags: LifecycleFlags): void;
+}
 
-  public bindDepth: number;
-  public unbindDepth: number;
+export class BoundQueue implements IAutoProcessingQueue<IController> {
+  public readonly lifecycle: ILifecycle;
 
+  public depth: number;
+
+  public head?: IController;
+  public tail?: IController;
+
+  constructor(lifecycle: ILifecycle) {
+    this.lifecycle = lifecycle;
+
+    this.depth = 0;
+
+    this.head = void 0;
+    this.tail = void 0;
+  }
+
+  public begin(): void {
+    ++this.depth;
+  }
+
+  public end(flags: LifecycleFlags): void {
+    if (--this.depth === 0) {
+      this.process(flags);
+    }
+  }
+
+  public add(controller: IController): void {
+    if (this.head === void 0) {
+      this.head = controller;
+    } else {
+      controller.prevBound = this.tail;
+      // tslint:disable-next-line: no-non-null-assertion // implied by boundHead not being undefined
+      this.tail!.nextBound = controller;
+    }
+    this.tail = controller;
+    controller.state |= State.inBoundQueue;
+  }
+
+  public remove(controller: IController): void {
+    if (controller.prevBound !== void 0) {
+      controller.prevBound.nextBound = controller.nextBound;
+    }
+    if (controller.nextBound !== void 0) {
+      controller.nextBound.prevBound = controller.prevBound;
+    }
+    controller.prevBound = void 0;
+    controller.nextBound = void 0;
+    if (this.tail === controller) {
+      this.tail = controller.prevBound;
+    }
+    if (this.head === controller) {
+      this.head = controller.nextBound;
+    }
+    controller.state ^= State.inBoundQueue;
+  }
+
+  public process(flags: LifecycleFlags): void {
+    while (this.head !== void 0) {
+      let cur = this.head;
+      this.head = this.tail = void 0;
+      let next: IController | undefined;
+      do {
+        cur.state ^= State.inBoundQueue;
+        cur.bound(flags);
+        next = cur.nextBound;
+        cur.nextBound = void 0;
+        cur.prevBound = void 0;
+        // tslint:disable-next-line: no-non-null-assertion // we're checking it for undefined the next line
+        cur = next!;
+      } while (cur !== void 0);
+    }
+  }
+}
+
+export class UnboundQueue implements IAutoProcessingQueue<IController> {
+  public readonly lifecycle: ILifecycle;
+
+  public depth: number;
+
+  public head?: IController;
+  public tail?: IController;
+
+  constructor(lifecycle: ILifecycle) {
+    this.lifecycle = lifecycle;
+
+    this.depth = 0;
+
+    this.head = void 0;
+    this.tail = void 0;
+  }
+
+  public begin(): void {
+    ++this.depth;
+  }
+
+  public end(flags: LifecycleFlags): void {
+    if (--this.depth === 0) {
+      this.process(flags);
+    }
+  }
+
+  public add(controller: IController): void {
+    if (this.head === void 0) {
+      this.head = controller;
+    } else {
+      controller.prevUnbound = this.tail;
+      // tslint:disable-next-line: no-non-null-assertion // implied by unboundHead not being undefined
+      this.tail!.nextUnbound = controller;
+    }
+    this.tail = controller;
+    controller.state |= State.inUnboundQueue;
+  }
+
+  public remove(controller: IController): void {
+    if (controller.prevUnbound !== void 0) {
+      controller.prevUnbound.nextUnbound = controller.nextUnbound;
+    }
+    if (controller.nextUnbound !== void 0) {
+      controller.nextUnbound.prevUnbound = controller.prevUnbound;
+    }
+    controller.prevUnbound = void 0;
+    controller.nextUnbound = void 0;
+    if (this.tail === controller) {
+      this.tail = controller.prevUnbound;
+    }
+    if (this.head === controller) {
+      this.head = controller.nextUnbound;
+    }
+    controller.state ^= State.inUnboundQueue;
+  }
+
+  public process(flags: LifecycleFlags): void {
+    while (this.head !== void 0) {
+      let cur = this.head;
+      this.head = this.tail = void 0;
+      let next: IController | undefined;
+      do {
+        cur.state ^= State.inUnboundQueue;
+        cur.unbound(flags);
+        next = cur.nextUnbound;
+        cur.nextUnbound = void 0;
+        cur.prevUnbound = void 0;
+        // tslint:disable-next-line: no-non-null-assertion // we're checking it for undefined the next line
+        cur = next!;
+      } while (cur !== void 0);
+    }
+  }
+}
+
+export class AttachedQueue implements IAutoProcessingQueue<IController> {
+  public readonly lifecycle: ILifecycle;
+
+  public depth: number;
+
+  public head?: IController;
+  public tail?: IController;
+
+  constructor(lifecycle: ILifecycle) {
+    this.lifecycle = lifecycle;
+
+    this.depth = 0;
+
+    this.head = void 0;
+    this.tail = void 0;
+  }
+
+  public begin(): void {
+    ++this.depth;
+  }
+
+  public end(flags: LifecycleFlags): void {
+    if (--this.depth === 0) {
+      // temporary, until everything else works and we're ready for integrating mount/unmount in the RAF queue
+      this.lifecycle.mount.process(flags);
+      this.process(flags);
+    }
+  }
+
+  public add(controller: IController): void {
+    if (this.head === void 0) {
+      this.head = controller;
+    } else {
+      controller.prevAttached = this.tail;
+      // tslint:disable-next-line: no-non-null-assertion // implied by attachedHead not being undefined
+      this.tail!.nextAttached = controller;
+    }
+    this.tail = controller;
+    controller.state |= State.inAttachedQueue;
+  }
+
+  public remove(controller: IController): void {
+    if (controller.prevAttached !== void 0) {
+      controller.prevAttached.nextAttached = controller.nextAttached;
+    }
+    if (controller.nextAttached !== void 0) {
+      controller.nextAttached.prevAttached = controller.prevAttached;
+    }
+    controller.prevAttached = void 0;
+    controller.nextAttached = void 0;
+    if (this.tail === controller) {
+      this.tail = controller.prevAttached;
+    }
+    if (this.head === controller) {
+      this.head = controller.nextAttached;
+    }
+    controller.state ^= State.inAttachedQueue;
+  }
+
+  public process(flags: LifecycleFlags): void {
+    while (this.head !== void 0) {
+      let cur = this.head;
+      this.head = this.tail = void 0;
+      let next: IController | undefined;
+      do {
+        cur.state ^= State.inAttachedQueue;
+        cur.attached(flags);
+        next = cur.nextAttached;
+        cur.nextAttached = void 0;
+        cur.prevAttached = void 0;
+        // tslint:disable-next-line: no-non-null-assertion // we're checking it for undefined the next line
+        cur = next!;
+      } while (cur !== void 0);
+    }
+  }
+}
+
+export class DetachedQueue implements IAutoProcessingQueue<IController> {
+  public readonly lifecycle: ILifecycle;
+
+  public depth: number;
+
+  public head?: IController;
+  public tail?: IController;
+
+  constructor(lifecycle: ILifecycle) {
+    this.lifecycle = lifecycle;
+
+    this.depth = 0;
+
+    this.head = void 0;
+    this.tail = void 0;
+  }
+
+  public begin(): void {
+    ++this.depth;
+  }
+
+  public end(flags: LifecycleFlags): void {
+    if (--this.depth === 0) {
+      // temporary, until everything else works and we're ready for integrating mount/unmount in the RAF queue
+      this.lifecycle.unmount.process(flags);
+      this.process(flags);
+    }
+  }
+
+  public add(controller: IController): void {
+    if (this.head === void 0) {
+      this.head = controller;
+    } else {
+      controller.prevDetached = this.tail;
+      // tslint:disable-next-line: no-non-null-assertion // implied by detachedHead not being undefined
+      this.tail!.nextDetached = controller;
+    }
+    this.tail = controller;
+    controller.state |= State.inDetachedQueue;
+  }
+
+  public remove(controller: IController): void {
+    if (controller.prevDetached !== void 0) {
+      controller.prevDetached.nextDetached = controller.nextDetached;
+    }
+    if (controller.nextDetached !== void 0) {
+      controller.nextDetached.prevDetached = controller.prevDetached;
+    }
+    controller.prevDetached = void 0;
+    controller.nextDetached = void 0;
+    if (this.tail === controller) {
+      this.tail = controller.prevDetached;
+    }
+    if (this.head === controller) {
+      this.head = controller.nextDetached;
+    }
+    controller.state ^= State.inDetachedQueue;
+  }
+
+  public process(flags: LifecycleFlags): void {
+    while (this.head !== void 0) {
+      let cur = this.head;
+      this.head = this.tail = void 0;
+      let next: IController | undefined;
+      do {
+        cur.state ^= State.inDetachedQueue;
+        cur.detached(flags);
+        next = cur.nextDetached;
+        cur.nextDetached = void 0;
+        cur.prevDetached = void 0;
+        // tslint:disable-next-line: no-non-null-assertion // we're checking it for undefined the next line
+        cur = next!;
+      } while (cur !== void 0);
+    }
+  }
+}
+
+export class MountQueue implements IProcessingQueue<IController> {
+  public readonly lifecycle: ILifecycle;
+
+  public head?: IController;
+  public tail?: IController;
+
+  constructor(lifecycle: ILifecycle) {
+    this.lifecycle = lifecycle;
+
+    this.head = void 0;
+    this.tail = void 0;
+  }
+
+  public add(controller: IController): void {
+    if ((controller.state & State.inUnmountQueue) > 0) {
+      this.lifecycle.unmount.remove(controller);
+      return;
+    }
+    if (this.head === void 0) {
+      this.head = controller;
+    } else {
+      controller.prevMount = this.tail;
+      // tslint:disable-next-line: no-non-null-assertion // implied by mountHead not being undefined
+      this.tail!.nextMount = controller;
+    }
+    this.tail = controller;
+    controller.state |= State.inMountQueue;
+  }
+
+  public remove(controller: IController): void {
+    if (controller.prevMount !== void 0) {
+      controller.prevMount.nextMount = controller.nextMount;
+    }
+    if (controller.nextMount !== void 0) {
+      controller.nextMount.prevMount = controller.prevMount;
+    }
+    controller.prevMount = void 0;
+    controller.nextMount = void 0;
+    if (this.tail === controller) {
+      this.tail = controller.prevMount;
+    }
+    if (this.head === controller) {
+      this.head = controller.nextMount;
+    }
+    controller.state ^= State.inMountQueue;
+  }
+
+  public process(flags: LifecycleFlags): void {
+    while (this.head !== void 0) {
+      let cur = this.head;
+      this.head = this.tail = void 0;
+      let next: IController | undefined;
+      do {
+        cur.state ^= State.inMountQueue;
+        cur.mount(flags);
+        next = cur.nextMount;
+        cur.nextMount = void 0;
+        cur.prevMount = void 0;
+        // tslint:disable-next-line: no-non-null-assertion // we're checking it for undefined the next line
+        cur = next!;
+      } while (cur !== void 0);
+    }
+  }
+}
+
+export class UnmountQueue implements IProcessingQueue<IController> {
+  public readonly lifecycle: ILifecycle;
+
+  public head?: IController;
+  public tail?: IController;
+
+  constructor(lifecycle: ILifecycle) {
+    this.lifecycle = lifecycle;
+
+    this.head = void 0;
+    this.tail = void 0;
+  }
+
+  public add(controller: IController): void {
+    if ((controller.state & State.inMountQueue) > 0) {
+      this.lifecycle.mount.remove(controller);
+      return;
+    }
+    if (this.head === void 0) {
+      this.head = controller;
+    } else {
+      controller.prevUnmount = this.tail;
+      // tslint:disable-next-line: no-non-null-assertion // implied by unmountHead not being undefined
+      this.tail!.nextUnmount = controller;
+    }
+    this.tail = controller;
+    controller.state |= State.inUnmountQueue;
+  }
+
+  public remove(controller: IController): void {
+    if (controller.prevUnmount !== void 0) {
+      controller.prevUnmount.nextUnmount = controller.nextUnmount;
+    }
+    if (controller.nextUnmount !== void 0) {
+      controller.nextUnmount.prevUnmount = controller.prevUnmount;
+    }
+    controller.prevUnmount = void 0;
+    controller.nextUnmount = void 0;
+    if (this.tail === controller) {
+      this.tail = controller.prevUnmount;
+    }
+    if (this.head === controller) {
+      this.head = controller.nextUnmount;
+    }
+    controller.state ^= State.inUnmountQueue;
+  }
+
+  public process(flags: LifecycleFlags): void {
+    while (this.head !== void 0) {
+      let cur = this.head;
+      this.head = this.tail = void 0;
+      let next: IController | undefined;
+      do {
+        cur.state ^= State.inUnmountQueue;
+        cur.unmount(flags);
+        next = cur.nextUnmount;
+        cur.nextUnmount = void 0;
+        cur.prevUnmount = void 0;
+        // tslint:disable-next-line: no-non-null-assertion // we're checking it for undefined the next line
+        cur = next!;
+      } while (cur !== void 0);
+    }
+  }
+}
+
+export class BatchQueue implements IAutoProcessingQueue<IBatchable> {
+  public readonly lifecycle: ILifecycle;
+
+  public queue: IBatchable[];
+  public depth: number;
+
+  constructor(lifecycle: ILifecycle) {
+    this.lifecycle = lifecycle;
+
+    this.queue = [];
+    this.depth = 0;
+  }
+
+  public begin(): void {
+    ++this.depth;
+  }
+
+  public end(flags: LifecycleFlags): void {
+    if (--this.depth === 0) {
+      this.process(flags);
+    }
+  }
+
+  public add(requestor: IBatchable): void {
+    this.queue.push(requestor);
+  }
+
+  public remove(requestor: IBatchable): void {
+    const index = this.queue.indexOf(requestor);
+    if (index > -1) {
+      this.queue.splice(index, 1);
+    }
+  }
+
+  public process(flags: LifecycleFlags): void {
+    flags |= LifecycleFlags.fromBatch;
+    while (this.queue.length > 0) {
+      const batch = this.queue.slice();
+      this.queue = [];
+      const { length } = batch;
+      for (let i = 0; i < length; ++i) {
+        batch[i].flushBatch(flags);
+      }
+    }
+  }
+}
+
+export class Lifecycle {
   public rafHead: LinkedCallback;
   public rafTail: LinkedCallback;
-
-  public boundHead: IController;
-  public boundTail: IController;
-
-  public mountHead: IController;
-  public mountTail: IController;
-
-  public attachedHead: IController;
-  public attachedTail: IController;
-
-  public unmountHead: IController;
-  public unmountTail: IController;
-
-  public detachedHead: IController;
-  public detachedTail: IController;
-
-  public unboundHead: IController;
-  public unboundTail: IController;
-
-  public flushed?: Promise<void>;
-  public promise: Promise<void>;
-
-  public boundCount: number;
-  public mountCount: number;
-  public attachedCount: number;
-  public unmountCount: number;
-  public detachedCount: number;
-  public unboundCount: number;
-
-  public $state: State;
 
   public isFlushingRAF: boolean;
   public rafRequestId: number;
   public rafStartTime: number;
   public isTicking: boolean;
+
+  public readonly batch: IAutoProcessingQueue<IBatchable>;
+
+  public readonly mount: IProcessingQueue<IController>;
+  public readonly unmount: IProcessingQueue<IController>;
+
+  public readonly bound: IAutoProcessingQueue<IController>;
+  public readonly unbound: IAutoProcessingQueue<IController>;
+
+  public readonly attached: IAutoProcessingQueue<IController>;
+  public readonly detached: IAutoProcessingQueue<IController>;
 
   public minFrameDuration: number;
   public maxFrameDuration: number;
@@ -437,6 +884,7 @@ export class Lifecycle implements ILifecycle {
     }
   }
 
+  public currentTick: number;
   public nextFrame: Promise<number>;
   public resolveNextFrame!: (timestamp: number) => void;
 
@@ -448,49 +896,26 @@ export class Lifecycle implements ILifecycle {
   private readonly tick: (timestamp: number) => void;
 
   constructor() {
-    this.batchQueue = [];
-    this.batchDepth = 0;
-
-    this.bindDepth = 0;
-    this.unbindDepth = 0;
-
     this.rafHead = new LinkedCallback(void 0, void 0, Infinity);
     this.rafTail = (void 0)!;
 
-    this.boundHead = Lifecycle.marker;
-    this.boundTail = Lifecycle.marker;
-
-    this.mountHead = Lifecycle.marker;
-    this.mountTail = Lifecycle.marker;
-
-    this.attachedHead = Lifecycle.marker;
-    this.attachedTail = Lifecycle.marker;
-
-    this.unmountHead = Lifecycle.marker;
-    this.unmountTail = Lifecycle.marker;
-
-    this.detachedHead = Lifecycle.marker; //LOL
-    this.detachedTail = Lifecycle.marker;
-
-    this.unboundHead = Lifecycle.marker;
-    this.unboundTail = Lifecycle.marker;
-
-    this.flushed = void 0;
-    this.promise = Promise.resolve();
-
-    this.boundCount = 0;
-    this.mountCount = 0;
-    this.attachedCount = 0;
-    this.unmountCount = 0;
-    this.detachedCount = 0;
-    this.unboundCount = 0;
-
-    this.$state = State.none;
+    this.currentTick = 0;
 
     this.isFlushingRAF = false;
     this.rafRequestId = -1;
     this.rafStartTime = -1;
     this.isTicking = false;
+
+    this.batch = new BatchQueue(this);
+
+    this.mount = new MountQueue(this);
+    this.unmount = new UnmountQueue(this);
+
+    this.bound = new BoundQueue(this);
+    this.unbound = new UnboundQueue(this);
+
+    this.attached = new AttachedQueue(this);
+    this.detached = new DetachedQueue(this);
 
     this.minFrameDuration = 0;
     this.maxFrameDuration = 1000 / 30;
@@ -508,17 +933,19 @@ export class Lifecycle implements ILifecycle {
         if (this.isTicking && this.rafRequestId === -1 && this.rafHead.next !== void 0) {
           this.rafRequestId = PLATFORM.requestAnimationFrame(this.tick);
         }
-        this.resolveNextFrame(timestamp);
-        // tslint:disable-next-line: promise-must-complete
-        this.nextFrame = new Promise(resolve => {
-          this.resolveNextFrame = resolve;
-        });
+        if (++this.currentTick > 1) {
+          this.resolveNextFrame(timestamp);
+          // tslint:disable-next-line: promise-must-complete
+          this.nextFrame = new Promise(resolve => {
+            this.resolveNextFrame = resolve;
+          });
+        }
       }
     };
 
     this.pendingChanges = 0;
-    this.timeslicingEnabled = true;
-    this.adaptiveTimeslicing = true;
+    this.timeslicingEnabled = false;
+    this.adaptiveTimeslicing = false;
     this.frameDurationFactor = 1;
   }
 
@@ -549,269 +976,6 @@ export class Lifecycle implements ILifecycle {
     } else if (this.rafRequestId !== -1) {
       PLATFORM.cancelAnimationFrame(this.rafRequestId);
       this.rafRequestId = -1;
-    }
-  }
-
-  public beginBatch(): void {
-    ++this.batchDepth;
-  }
-
-  public endBatch(): void {
-    if (--this.batchDepth === 0) {
-      const batch = this.batchQueue.slice();
-      this.batchQueue = [];
-      const { length } = batch;
-      for (let i = 0; i < length; ++i) {
-        batch[i].flushBatch(LifecycleFlags.fromFlush);
-      }
-    }
-  }
-
-  public batch(operation: (flags?: LifecycleFlags) => void, context?: unknown): void {
-    // TODO: this is just temporary "to get it to work", needs to be made more efficient, avoid creating unnecessary objects etc
-    const argLen = arguments.length;
-    this.beginBatch();
-    this.enqueueBatch({
-      flushBatch(flags: LifecycleFlags): void {
-        if (argLen === 2) {
-          operation.call(context, flags);
-        } else {
-          operation(flags);
-        }
-      },
-    });
-    this.endBatch();
-  }
-
-  public enqueueBatch(requestor: IBatchable): void {
-    this.batchQueue.push(requestor);
-  }
-
-  public beginBind(requestor?: IController): void {
-    if (Tracer.enabled) { Tracer.enter('Lifecycle', 'beginBind', slice.call(arguments)); }
-    if (requestor != void 0) {
-      requestor.state |= State.isBinding;
-    }
-    ++this.bindDepth;
-    if (Tracer.enabled) { Tracer.leave(); }
-  }
-
-  public beginUnbind(requestor?: IController): void {
-    if (Tracer.enabled) { Tracer.enter('Lifecycle', 'beginUnbind', slice.call(arguments)); }
-    if (requestor != void 0) {
-      requestor.state |= State.isUnbinding;
-    }
-    ++this.unbindDepth;
-    if (Tracer.enabled) { Tracer.leave(); }
-  }
-
-  public endBind(flags: LifecycleFlags, requestor?: IController): void {
-    if (Tracer.enabled) { Tracer.enter('Lifecycle', 'endBind', slice.call(arguments)); }
-    if (requestor != void 0) {
-      requestor.state = requestor.state ^ State.isBinding | State.isBound;
-    }
-    if (--this.bindDepth === 0) {
-      this.processBindQueue(flags);
-    }
-    if (Tracer.enabled) { Tracer.leave(); }
-  }
-
-  public endUnbind(flags: LifecycleFlags, requestor?: IController): void {
-    if (Tracer.enabled) { Tracer.enter('Lifecycle', 'endUnbind', slice.call(arguments)); }
-    if (requestor != void 0) {
-      requestor.state = requestor.state ^ (State.isBinding | State.isBound);
-    }
-    if (--this.unbindDepth === 0) {
-      this.processUnbindQueue(flags);
-    }
-    if (Tracer.enabled) { Tracer.leave(); }
-  }
-
-  public enqueueBound(requestor: IController): void {
-    if (requestor.prevBound == void 0) {
-      if (Tracer.enabled) { Tracer.enter('Lifecycle', 'enqueueBound', slice.call(arguments)); }
-      requestor.prevBound = this.boundTail;
-      this.boundTail.nextBound = requestor;
-      this.boundTail = requestor;
-      ++this.boundCount;
-      if (Tracer.enabled) { Tracer.leave(); }
-    }
-  }
-
-  public enqueueUnbound(requestor: IController): void {
-    if (requestor.prevUnbound == void 0) {
-      if (Tracer.enabled) { Tracer.enter('Lifecycle', 'enqueueUnbound', slice.call(arguments)); }
-      requestor.prevUnbound = this.unboundTail;
-      this.unboundTail.nextUnbound = requestor;
-      this.unboundTail = requestor;
-      ++this.unboundCount;
-      if (Tracer.enabled) { Tracer.leave(); }
-    }
-  }
-
-  public enqueueAttached(requestor: IController): void {
-    if (requestor.prevAttached == void 0) {
-      if (Tracer.enabled) { Tracer.enter('Lifecycle', 'enqueueAttached', slice.call(arguments)); }
-      requestor.prevAttached = this.attachedTail;
-      this.attachedTail.nextAttached = requestor;
-      this.attachedTail = requestor;
-      ++this.attachedCount;
-      if (Tracer.enabled) { Tracer.leave(); }
-    }
-  }
-
-  public enqueueDetached(requestor: IController): void {
-    if (requestor.prevDetached == void 0) {
-      if (Tracer.enabled) { Tracer.enter('Lifecycle', 'enqueueDetached', slice.call(arguments)); }
-      requestor.prevDetached = this.detachedTail;
-      this.detachedTail.nextDetached = requestor;
-      this.detachedTail = requestor;
-      ++this.detachedCount;
-      if (Tracer.enabled) { Tracer.leave(); }
-    }
-  }
-
-  public processBindQueue(flags: LifecycleFlags): void {
-    while (this.boundCount > 0) {
-      if (Tracer.enabled) { Tracer.enter('Lifecycle', 'processBindQueue', slice.call(arguments)); }
-      this.boundCount = 0;
-      let current = this.boundHead.nextBound;
-      let next: IController | undefined;
-      this.boundHead = this.boundTail = Lifecycle.marker;
-      while (current != void 0) {
-        current.bound(flags);
-        next = current.nextBound;
-        current.nextBound = void 0;
-        current.prevBound = void 0;
-        current = next;
-      }
-      if (Tracer.enabled) { Tracer.leave(); }
-    }
-  }
-
-  public processUnbindQueue(flags: LifecycleFlags): void {
-    while (this.unboundCount > 0) {
-      if (Tracer.enabled) { Tracer.enter('Lifecycle', 'processUnbindQueue', slice.call(arguments)); }
-      this.unboundCount = 0;
-      let current = this.boundHead.nextBound;
-      let next: IController | undefined;
-      this.boundHead = this.boundTail = Lifecycle.marker;
-      while (current != void 0) {
-        current.unbound(flags);
-        next = current.nextUnbound;
-        current.nextUnbound = void 0;
-        current.prevUnbound = void 0;
-        current = next;
-      }
-      if (Tracer.enabled) { Tracer.leave(); }
-    }
-  }
-
-  public processAttachQueue(flags: LifecycleFlags): void {
-    if (Tracer.enabled) { Tracer.enter('Lifecycle', 'processAttachQueue', slice.call(arguments)); }
-    if (this.mountCount > 0) {
-      this.mountCount = 0;
-      let currentMount = this.mountHead.nextMount;
-      this.mountHead = this.mountTail = Lifecycle.marker;
-      let nextMount: IController | undefined;
-      while (currentMount != void 0) {
-        currentMount.mount(flags);
-        nextMount = currentMount.nextMount;
-        currentMount.nextMount = void 0;
-        currentMount.prevMount = void 0;
-        currentMount = nextMount;
-      }
-    }
-
-    if (this.attachedCount > 0) {
-      this.attachedCount = 0;
-      let currentAttached = this.attachedHead.nextAttached;
-      this.attachedHead = this.attachedTail = Lifecycle.marker;
-      let nextAttached: IController | undefined;
-      while (currentAttached != void 0) {
-        currentAttached.attached(flags);
-        nextAttached = currentAttached.nextAttached;
-        currentAttached.nextAttached = void 0;
-        currentAttached.prevAttached = void 0;
-        currentAttached = nextAttached;
-      }
-    }
-    if (Tracer.enabled) { Tracer.leave(); }
-  }
-
-  public processDetachQueue(flags: LifecycleFlags): void {
-    if (Tracer.enabled) { Tracer.enter('Lifecycle', 'processDetachQueue', slice.call(arguments)); }
-    if (this.unmountCount > 0) {
-      if (Tracer.enabled) { Tracer.enter('Lifecycle', 'processUnmountQueue', slice.call(arguments)); }
-      this.unmountCount = 0;
-      let currentUnmount = this.unmountHead.nextUnmount;
-      this.unmountHead = this.unmountTail = Lifecycle.marker;
-      let nextUnmount: IController | undefined;
-
-      while (currentUnmount != void 0) {
-        currentUnmount.unmount(flags);
-        nextUnmount = currentUnmount.nextUnmount;
-        currentUnmount.prevUnmount = void 0;
-        currentUnmount.nextUnmount = void 0;
-        currentUnmount = nextUnmount;
-      }
-      if (Tracer.enabled) { Tracer.leave(); }
-    }
-
-    if (this.detachedCount > 0) {
-      if (Tracer.enabled) { Tracer.enter('Lifecycle', 'processDetachedQueue', slice.call(arguments)); }
-      this.detachedCount = 0;
-      let currentDetached = this.detachedHead.nextDetached;
-      this.detachedHead = this.detachedTail = Lifecycle.marker;
-      let nextDetached: IController | undefined;
-
-      while (currentDetached != void 0) {
-        currentDetached.detached(flags);
-        nextDetached = currentDetached.nextDetached;
-        currentDetached.prevDetached = void 0;
-        currentDetached.nextDetached = void 0;
-        currentDetached = nextDetached;
-      }
-      if (Tracer.enabled) { Tracer.leave(); }
-    }
-    if (Tracer.enabled) { Tracer.leave(); }
-  }
-
-  public enqueueMount(requestor: IController): void {
-    if (requestor.prevMount == void 0) {
-      if (Tracer.enabled) { Tracer.enter('Lifecycle', 'enqueueMount', slice.call(arguments)); }
-      requestor.prevMount = this.mountTail;
-      this.mountTail.nextMount = requestor;
-      this.mountTail = requestor;
-      ++this.mountCount;
-      if (Tracer.enabled) { Tracer.leave(); }
-    }
-  }
-
-  public enqueueUnmount(requestor: IController): void {
-    if (requestor.prevUnmount == void 0) {
-      if (Tracer.enabled) { Tracer.enter('Lifecycle', 'enqueueUnmount', slice.call(arguments)); }
-      requestor.prevUnmount = this.unmountTail;
-      this.unmountTail.nextUnmount = requestor;
-      this.unmountTail = requestor;
-      ++this.unmountCount;
-      if (Tracer.enabled) { Tracer.leave(); }
-    }
-    // this is a temporary solution until a cleaner method surfaces.
-    // if an item being queued for unmounting is already in the mount queue,
-    // remove it from the mount queue (this can occur in some very exotic situations
-    // and should be dealt with in a less hacky way)
-    if (requestor.prevMount != void 0) {
-      if (Tracer.enabled) { Tracer.enter('Lifecycle', 'dequeueMount', slice.call(arguments)); }
-      if (requestor.nextMount != void 0) {
-        requestor.prevMount.nextMount = requestor.nextMount;
-        requestor.nextMount.prevMount = requestor.prevMount;
-        requestor.nextMount = void 0;
-      } else {
-        requestor.prevMount.nextMount = void 0;
-      }
-      requestor.prevMount = void 0;
-      if (Tracer.enabled) { Tracer.leave(); }
     }
   }
 
@@ -899,35 +1063,37 @@ export class Lifecycle implements ILifecycle {
         let current = this.rafHead.next;
         while (current !== void 0) {
           // only call performance.now() every 10 calls to reduce the overhead (is this low enough though?)
-          if (this.timeslicingEnabled && ++i === 10) {
+          if (++i === 10) {
             i = 0;
-            const { priority } = current;
-            const now = PLATFORM.now();
-            if (priority <= Priority.low) {
-              if (now >= deadlineLow) {
-                current.rotate();
-                if (current.last != void 0 && current.last.next != void 0) {
-                  current = current.last.next;
-                } else {
-                  break;
+            if (this.timeslicingEnabled) {
+              const { priority } = current;
+              const now = PLATFORM.now();
+              if (priority <= Priority.low) {
+                if (now >= deadlineLow) {
+                  current.rotate();
+                  if (current.last != void 0 && current.last.next != void 0) {
+                    current = current.last.next;
+                  } else {
+                    break;
+                  }
                 }
-              }
-            } else if (priority < Priority.high) {
-              if (now >= deadlineNormal) {
-                current.rotate();
-                if (current.last != void 0 && current.last.next != void 0) {
-                  current = current.last.next;
-                } else {
-                  break;
+              } else if (priority < Priority.high) {
+                if (now >= deadlineNormal) {
+                  current.rotate();
+                  if (current.last != void 0 && current.last.next != void 0) {
+                    current = current.last.next;
+                  } else {
+                    break;
+                  }
                 }
-              }
-            } else {
-              if (now >= deadlineHigh) {
-                current.rotate();
-                if (current.last != void 0 && current.last.next != void 0) {
-                  current = current.last.next;
-                } else {
-                  break;
+              } else {
+                if (now >= deadlineHigh) {
+                  current.rotate();
+                  if (current.last != void 0 && current.last.next != void 0) {
+                    current = current.last.next;
+                  } else {
+                    break;
+                  }
                 }
               }
             }
@@ -948,11 +1114,10 @@ export class Lifecycle implements ILifecycle {
 
   public enableTimeslicing(adaptive: boolean = true): void {
     this.timeslicingEnabled = true;
-    this.adaptiveTimeslicing = adaptive;
+    this.adaptiveTimeslicing = adaptive === true;
   }
 
   public disableTimeslicing(): void {
     this.timeslicingEnabled = false;
   }
 }
-

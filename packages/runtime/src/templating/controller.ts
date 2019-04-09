@@ -35,8 +35,6 @@ import {
   IRenderContext,
   IViewCache,
   IViewModel,
-  Lifecycle,
-  Priority,
   ViewModelKind
 } from '../lifecycle';
 import {
@@ -487,7 +485,10 @@ export class Controller<
     flags |= LifecycleFlags.fromBind;
     const $scope = this.scope as Writable<IScope>;
     $scope.parentScope = scope;
-    this.lifecycle.beginBind(this);
+
+    this.state |= State.isBinding;
+
+    this.lifecycle.bound.begin();
     this.bindBindings(flags, $scope);
 
     if (this.hooks.hasBinding) {
@@ -516,8 +517,10 @@ export class Controller<
       flags |= LifecycleFlags.fromBind;
     }
 
+    this.state |= State.isBinding;
+
     this.scope = scope;
-    this.lifecycle.beginBind(this);
+    this.lifecycle.bound.begin();
 
     if (this.hooks.hasBinding) {
       const ret = (this.bindingContext as BindingContext<T, C>).binding(flags);
@@ -554,7 +557,9 @@ export class Controller<
       this.scope = scope;
     }
 
-    this.lifecycle.beginBind(this);
+    this.state |= State.isBinding;
+
+    this.lifecycle.bound.begin();
     this.bindBindings(flags, scope);
 
     return this.bindControllers(flags, scope);
@@ -597,9 +602,10 @@ export class Controller<
 
   private endBind(flags: LifecycleFlags): void {
     if (this.hooks.hasBound) {
-      this.lifecycle.enqueueBound(this);
+      this.lifecycle.bound.add(this);
     }
-    this.lifecycle.endBind(flags, this);
+    this.state = this.state ^ State.isBinding | State.isBound;
+    this.lifecycle.bound.end(flags);
   }
 
   private unbindCustomElement(flags: LifecycleFlags): ILifecycleTask {
@@ -607,8 +613,10 @@ export class Controller<
       return LifecycleTask.done;
     }
 
+    this.state |= State.isUnbinding;
+
     flags |= LifecycleFlags.fromUnbind;
-    this.lifecycle.beginUnbind(this);
+    this.lifecycle.unbound.begin();
 
     if (this.hooks.hasUnbinding) {
       const ret = (this.bindingContext as BindingContext<T, C>).unbinding(flags);
@@ -625,8 +633,10 @@ export class Controller<
       return LifecycleTask.done;
     }
 
+    this.state |= State.isUnbinding;
+
     flags |= LifecycleFlags.fromUnbind;
-    this.lifecycle.beginUnbind(this);
+    this.lifecycle.unbound.begin();
 
     if (this.hooks.hasUnbinding) {
       const ret = (this.bindingContext as BindingContext<T, C>).unbinding(flags);
@@ -644,8 +654,10 @@ export class Controller<
       return LifecycleTask.done;
     }
 
+    this.state |= State.isUnbinding;
+
     flags |= LifecycleFlags.fromUnbind;
-    this.lifecycle.beginUnbind(this);
+    this.lifecycle.unbound.begin();
 
     return this.unbindControllers(flags);
   }
@@ -695,9 +707,11 @@ export class Controller<
         }
     }
     if (this.hooks.hasUnbound) {
-      this.lifecycle.enqueueUnbound(this);
+      this.lifecycle.unbound.add(this);
     }
-    this.lifecycle.endUnbind(flags, this);
+
+    this.state ^= State.isBoundOrUnbinding;
+    this.lifecycle.unbound.end(flags);
   }
   // #endregion
 
@@ -706,7 +720,8 @@ export class Controller<
     flags |= LifecycleFlags.fromAttach;
     this.state |= State.isAttaching;
 
-    this.lifecycle.enqueueRAF(this.mount, this, Priority.attach, true);
+    this.lifecycle.mount.add(this);
+    this.lifecycle.attached.begin();
 
     if (this.hooks.hasAttaching) {
       (this.bindingContext as BindingContext<T, C>).attaching(flags);
@@ -715,43 +730,50 @@ export class Controller<
     this.attachControllers(flags);
 
     if (this.hooks.hasAttached) {
-      this.lifecycle.enqueueRAF(this.attached, this, Priority.attach, true);
+      this.lifecycle.attached.add(this);
     }
 
     this.state = this.state ^ State.isAttaching | State.isAttached;
+    this.lifecycle.attached.end(flags);
   }
 
   private attachCustomAttribute(flags: LifecycleFlags): void {
     flags |= LifecycleFlags.fromAttach;
     this.state |= State.isAttaching;
 
+    this.lifecycle.attached.begin();
+
     if (this.hooks.hasAttaching) {
       (this.bindingContext as BindingContext<T, C>).attaching(flags);
     }
 
     if (this.hooks.hasAttached) {
-      this.lifecycle.enqueueRAF(this.attached, this, Priority.attach, true);
+      this.lifecycle.attached.add(this);
     }
 
     this.state = this.state ^ State.isAttaching | State.isAttached;
+    this.lifecycle.attached.end(flags);
   }
 
   private attachSynthetic(flags: LifecycleFlags): void {
     flags |= LifecycleFlags.fromAttach;
     this.state |= State.isAttaching;
 
-    this.lifecycle.enqueueRAF(this.mount, this, Priority.attach, true);
+    this.lifecycle.mount.add(this);
+    this.lifecycle.attached.begin();
 
     this.attachControllers(flags);
 
     this.state = this.state ^ State.isAttaching | State.isAttached;
+    this.lifecycle.attached.end(flags);
   }
 
   private detachCustomElement(flags: LifecycleFlags): void {
     flags |= LifecycleFlags.fromDetach;
     this.state |= State.isDetaching;
 
-    this.lifecycle.enqueueRAF(this.unmount, this, Priority.attach, true);
+    this.lifecycle.detached.begin();
+    this.lifecycle.unmount.add(this);
 
     if (this.hooks.hasDetaching) {
       (this.bindingContext as BindingContext<T, C>).detaching(flags);
@@ -760,36 +782,42 @@ export class Controller<
     this.detachControllers(flags);
 
     if (this.hooks.hasDetached) {
-      this.lifecycle.enqueueRAF(this.detached, this, Priority.attach, true);
+      this.lifecycle.detached.add(this);
     }
 
-    this.state = this.state ^ (State.isDetaching | State.isAttached);
+    this.state ^= State.isAttachedOrDetaching;
+    this.lifecycle.detached.end(flags);
   }
 
   private detachCustomAttribute(flags: LifecycleFlags): void {
     flags |= LifecycleFlags.fromDetach;
     this.state |= State.isDetaching;
 
+    this.lifecycle.detached.begin();
+
     if (this.hooks.hasDetaching) {
       (this.bindingContext as BindingContext<T, C>).detaching(flags);
     }
 
     if (this.hooks.hasDetached) {
-      this.lifecycle.enqueueRAF(this.detached, this, Priority.attach, true);
+      this.lifecycle.detached.add(this);
     }
 
-    this.state = this.state ^ (State.isDetaching | State.isAttached);
+    this.state ^= State.isAttachedOrDetaching;
+    this.lifecycle.detached.end(flags);
   }
 
   private detachSynthetic(flags: LifecycleFlags): void {
     flags |= LifecycleFlags.fromDetach;
     this.state |= State.isDetaching;
 
-    this.lifecycle.enqueueRAF(this.unmount, this, Priority.attach, true);
+    this.lifecycle.detached.begin();
+    this.lifecycle.unmount.add(this);
 
     this.detachControllers(flags);
 
-    this.state = this.state ^ (State.isDetaching | State.isAttached);
+    this.state ^= State.isAttachedOrDetaching;
+    this.lifecycle.detached.end(flags);
   }
 
   private attachControllers(flags: LifecycleFlags): void {
@@ -898,13 +926,6 @@ export class Controller<
   }
   // #endregion
 }
-
-const marker = Controller.forSyntheticView(
-  PLATFORM.emptyObject as IViewCache,
-  PLATFORM.emptyObject as ILifecycle,
-);
-
-Lifecycle.marker = marker;
 
 function createObservers(
   lifecycle: ILifecycle,

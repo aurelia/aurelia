@@ -46,7 +46,7 @@ export class SetterObserver {
 
   public setValue(newValue: unknown, flags: LifecycleFlags): void {
     if (this.observing) {
-      if (this.lifecycle.batchDepth === 0) {
+      if (this.lifecycle.batch.depth === 0) {
         if ((flags & LifecycleFlags.fromBind) === 0) {
           const { currentValue } = this;
           this.currentValue = newValue;
@@ -56,7 +56,7 @@ export class SetterObserver {
         this.inBatch = true;
         this.oldValue = this.currentValue;
         this.currentValue = newValue;
-        this.lifecycle.enqueueBatch(this);
+        this.lifecycle.batch.add(this);
       } else {
         this.currentValue = newValue;
       }

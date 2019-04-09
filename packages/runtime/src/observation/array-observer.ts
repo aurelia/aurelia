@@ -398,10 +398,10 @@ export class ArrayObserver {
   }
 
   public notify(): void {
-    if (this.lifecycle.batchDepth > 0) {
+    if (this.lifecycle.batch.depth > 0) {
       if (!this.inBatch) {
         this.inBatch = true;
-        this.lifecycle.enqueueBatch(this);
+        this.lifecycle.batch.add(this);
       }
     } else {
       this.flushBatch(LifecycleFlags.none);

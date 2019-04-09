@@ -37,6 +37,8 @@ const { enter: enterStart, leave: leaveStart } = Profiler.createTimer('Aurelia.s
 const { enter: enterStop, leave: leaveStop } = Profiler.createTimer('Aurelia.stop');
 
 export interface ISinglePageApp<THost extends INode = INode> {
+  enableTimeSlicing?: boolean;
+  adaptiveTimeSlicing?: boolean;
   strategy?: BindingStrategy;
   dom?: IDOM;
   host: THost;
@@ -90,6 +92,11 @@ export class CompositionRoot<T extends INode = INode> {
     this.controller = Controller.forCustomElement(this.viewModel, this.container as ExposedContext, this.host, this.strategy as number);
     this.lifecycle = this.container.get(ILifecycle);
     this.activator = this.container.get(IActivator);
+    if (config.enableTimeSlicing === true) {
+      this.lifecycle.enableTimeslicing(config.adaptiveTimeSlicing);
+    } else {
+      this.lifecycle.disableTimeslicing();
+    }
     this.task = LifecycleTask.done;
     this.hasPendingStartFrame = true;
     this.hasPendingStopFrame = true;
@@ -256,14 +263,6 @@ export class Aurelia<TNode extends INode = INode> {
   }
 
   private onAfterStart(root: CompositionRoot): ILifecycleTask {
-    if (root.hasPendingStartFrame) {
-      root.hasPendingStartFrame = false;
-      return new ContinuationTask(root.lifecycle.nextFrame, this.onAfterStart, this, root);
-    }
-
-    root.hasPendingStartFrame = true;
-    // Enable timeslicing after startup to maximize responsiveness
-    root.lifecycle.enableTimeslicing();
     this._isRunning = true;
     this._isStarting = false;
     this.dispatchEvent(root, 'aurelia-composed', root.dom);
@@ -275,18 +274,10 @@ export class Aurelia<TNode extends INode = INode> {
   private onBeforeStop(root: CompositionRoot): void {
     this._isRunning = false;
     this._isStopping = true;
-    // Disable timeslicing during stop to minimize shutdown time and make shutdown reliably awaitable
-    root.lifecycle.disableTimeslicing();
     if (Profiler.enabled) { enterStop(); }
   }
 
   private onAfterStop(root: CompositionRoot): ILifecycleTask {
-    if (root.hasPendingStopFrame) {
-      root.hasPendingStopFrame = false;
-      return new ContinuationTask(root.lifecycle.nextFrame, this.onAfterStop, this, root);
-    }
-
-    root.hasPendingStopFrame = true;
     Reflect.deleteProperty(root.host, '$au');
     this._root = void 0;
     this._isStopping = false;

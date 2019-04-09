@@ -24,7 +24,9 @@ import {
   TaggedTemplate,
   Template,
   Unary,
-  ValueConverter
+  ValueConverter,
+  IsLeftHandSide,
+  IsAssign
 } from '@aurelia/runtime';
 import { expect } from 'chai';
 import {
@@ -39,7 +41,11 @@ import {
   latin1IdentifierStartChars,
   otherBMPIdentifierPartChars
 } from './unicode';
-import { verifyASTEqual } from '@aurelia/testing';
+import { assert } from '@aurelia/testing';
+
+function createTaggedTemplate(cooked: string[], func: IsLeftHandSide, expressions?: ReadonlyArray<IsAssign>): TaggedTemplate {
+  return new TaggedTemplate(cooked, cooked, func, expressions);
+}
 
 const binaryMultiplicative: BinaryOperator[] = ['*', '%', '/'];
 const binaryAdditive: BinaryOperator[] = ['+', '-'];
@@ -133,7 +139,7 @@ function verifyResultOrError(expr: string, expected: any, expectedMsg?: string, 
     }
   } else if (expectedMsg == null) {
     if (error == null) {
-      verifyASTEqual(actual, expected);
+      assert.deepStrictEqual(actual, expected);
     } else {
       throw new Error(`Expected expression "${expr}" with BindingType.${bindingTypeToString(bindingType)} parse successfully, but it threw "${error.message}"`);
     }
@@ -228,7 +234,7 @@ describe('ExpressionParser', function () {
   const SimpleParenthesizedList: [string, any][] = [
     [`(a[b])`,            new AccessKeyed($a, $b)],
     [`(a.b)`,             new AccessMember($a, 'b')],
-    [`(a\`\`)`,           new TaggedTemplate([''], [''], $a, [])],
+    [`(a\`\`)`,           createTaggedTemplate([''], $a, [])],
     [`($this())`,         new CallFunction($this, [])],
     [`(a())`,             new CallScope('a', [])],
     [`(!a)`,              new Unary('!', $a)],
@@ -257,10 +263,10 @@ describe('ExpressionParser', function () {
   // 4. parseMemberExpression.MemberExpression TemplateLiteral
   const SimpleTaggedTemplateList: [string, any][] = [
     ...SimplePrimaryList
-      .map(([input, expr]) => [`${input}\`\``, new TaggedTemplate([''], [''], expr, [])] as [string, any]),
+      .map(([input, expr]) => [`${input}\`\``, createTaggedTemplate([''], expr, [])] as [string, any]),
 
     ...SimplePrimaryList
-      .map(([input, expr]) => [`${input}\`\${a}\``, new TaggedTemplate(['', ''], ['', ''], expr, [$a])] as [string, any])
+      .map(([input, expr]) => [`${input}\`\${a}\``, createTaggedTemplate(['', ''], expr, [$a])] as [string, any])
   ];
   // 1. parseCallExpression.MemberExpression Arguments (this one doesn't technically fit the spec here)
   const SimpleCallFunctionList: [string, any][] = [
@@ -652,7 +658,7 @@ describe('ExpressionParser', function () {
               (result.$kind & ExpressionKind.Unary) === ExpressionKind.Unary) {
               if ((expected.$kind & ExpressionKind.IsPrimary) > 0 ||
                 (expected.$kind & ExpressionKind.Unary) === ExpressionKind.Unary) {
-                verifyASTEqual(result, expected);
+                assert.deepStrictEqual(result, expected);
                 expect(state.index).to.be.gte(state.length);
               } else {
                 expect(state.index).to.be.lessThan(state.length);
@@ -676,7 +682,7 @@ describe('ExpressionParser', function () {
               if ((expected.$kind & ExpressionKind.IsPrimary) > 0 ||
                 (expected.$kind & ExpressionKind.Unary) === ExpressionKind.Unary ||
                 (expected.$kind & ExpressionKind.Binary) === ExpressionKind.Binary) {
-                verifyASTEqual(result, expected);
+                assert.deepStrictEqual(result, expected);
                 expect(state.index).to.be.gte(state.length);
               } else {
                 expect(state.index).to.be.lessThan(state.length);
@@ -702,7 +708,7 @@ describe('ExpressionParser', function () {
                 (expected.$kind & ExpressionKind.Unary) === ExpressionKind.Unary ||
                 (expected.$kind & ExpressionKind.Binary) === ExpressionKind.Binary ||
                 (expected.$kind & ExpressionKind.Conditional) === ExpressionKind.Conditional) {
-                verifyASTEqual(result, expected);
+                assert.deepStrictEqual(result, expected);
                 expect(state.index).to.be.gte(state.length);
               } else {
                 expect(state.index).to.be.lessThan(state.length);
@@ -730,7 +736,7 @@ describe('ExpressionParser', function () {
                 (expected.$kind & ExpressionKind.Binary) === ExpressionKind.Binary ||
                 (expected.$kind & ExpressionKind.Conditional) === ExpressionKind.Conditional ||
                 (expected.$kind & ExpressionKind.Assign) === ExpressionKind.Assign) {
-                verifyASTEqual(result, expected);
+                assert.deepStrictEqual(result, expected);
                 expect(state.index).to.be.gte(state.length);
               } else {
                 expect(state.index).to.be.lessThan(state.length);
@@ -748,7 +754,7 @@ describe('ExpressionParser', function () {
           it(input, function () {
             const state = new ParserState(input);
             const result = parse(state, Access.Reset, Precedence.Variadic, bindingType);
-            verifyASTEqual(result, expected);
+            assert.deepStrictEqual(result, expected);
           });
         }
       });
@@ -804,7 +810,7 @@ describe('ExpressionParser', function () {
   describe('parse ComplexStringLiteralList', function () {
     for (const [input, expected] of ComplexStringLiteralList) {
       it(input, function () {
-        verifyASTEqual(parseExpression(input), expected);
+        assert.deepStrictEqual(parseExpression(input), expected);
       });
     }
   });
@@ -824,7 +830,7 @@ describe('ExpressionParser', function () {
   describe('parse ComplexNumberList', function () {
     for (const [input, expected] of ComplexNumberList) {
       it(input, function () {
-        verifyASTEqual(parseExpression(input), expected);
+        assert.deepStrictEqual(parseExpression(input), expected);
       });
     }
   });
@@ -863,7 +869,7 @@ describe('ExpressionParser', function () {
   describe('parse ComplexTemplateLiteralList', function () {
     for (const [input, expected] of ComplexTemplateLiteralList) {
       it(input, function () {
-        verifyASTEqual(parseExpression(input), expected);
+        assert.deepStrictEqual(parseExpression(input), expected);
       });
     }
   });
@@ -897,7 +903,7 @@ describe('ExpressionParser', function () {
   describe('parse ComplexArrayLiteralList', function () {
     for (const [input, expected] of ComplexArrayLiteralList) {
       it(input, function () {
-        verifyASTEqual(parseExpression(input), expected);
+        assert.deepStrictEqual(parseExpression(input), expected);
       });
     }
   });
@@ -940,7 +946,7 @@ describe('ExpressionParser', function () {
   describe('parse ComplexObjectLiteralList', function () {
     for (const [input, expected] of ComplexObjectLiteralList) {
       it(input, function () {
-        verifyASTEqual(parseExpression(input), expected);
+        assert.deepStrictEqual(parseExpression(input), expected);
       });
     }
   });
@@ -952,7 +958,7 @@ describe('ExpressionParser', function () {
   describe('parse ComplexAccessKeyedList', function () {
     for (const [input, expected] of ComplexAccessKeyedList) {
       it(input, function () {
-        verifyASTEqual(parseExpression(input), expected);
+        assert.deepStrictEqual(parseExpression(input), expected);
       });
     }
   });
@@ -972,44 +978,44 @@ describe('ExpressionParser', function () {
   describe('parse ComplexAccessMemberList', function () {
     for (const [input, expected] of ComplexAccessMemberList) {
       it(input, function () {
-        verifyASTEqual(parseExpression(input), expected);
+        assert.deepStrictEqual(parseExpression(input), expected);
       });
     }
   });
 
   const ComplexTaggedTemplateList: [string, any][] = [
-    [`a\`a\``,                       new TaggedTemplate(['a'],           ['a'],             $a, [])],
-    [`a\`\\\${a}\``,                 new TaggedTemplate(['${a}'],        ['${a}'],          $a, [])],
-    [`a\`$a\``,                      new TaggedTemplate(['$a'],          ['$a'],            $a, [])],
-    [`a\`\${b}\${c}\``,              new TaggedTemplate(['', '', ''],    ['', '', ''],      $a, [$b, $c])],
-    [`a\`a\${b}\${c}\``,             new TaggedTemplate(['a', '', ''],   ['a', '', ''],     $a, [$b, $c])],
-    [`a\`\${b}a\${c}\``,             new TaggedTemplate(['', 'a', ''],   ['', 'a', ''],     $a, [$b, $c])],
-    [`a\`a\${b}a\${c}\``,            new TaggedTemplate(['a', 'a', ''],  ['a', 'a', ''],    $a, [$b, $c])],
-    [`a\`\${b}\${c}a\``,             new TaggedTemplate(['', '', 'a'],   ['', '', 'a'],     $a, [$b, $c])],
-    [`a\`\${b}a\${c}a\``,            new TaggedTemplate(['', 'a', 'a'],  ['', 'a', 'a'],    $a, [$b, $c])],
-    [`a\`a\${b}a\${c}a\``,           new TaggedTemplate(['a', 'a', 'a'], ['a', 'a', 'a'],   $a, [$b, $c])],
-    [`a\`\${\`\${a}\`}\``,           new TaggedTemplate(['', ''],        ['', ''],          $a, [new Template(['', ''],   [$a])])],
-    [`a\`\${\`a\${a}\`}\``,          new TaggedTemplate(['', ''],        ['', ''],          $a, [new Template(['a', ''],  [$a])])],
-    [`a\`\${\`\${a}a\`}\``,          new TaggedTemplate(['', ''],        ['', ''],          $a, [new Template(['', 'a'],  [$a])])],
-    [`a\`\${\`a\${a}a\`}\``,         new TaggedTemplate(['', ''],        ['', ''],          $a, [new Template(['a', 'a'], [$a])])],
-    [`a\`\${\`\${\`\${a}\`}\`}\``,   new TaggedTemplate(['', ''],        ['', ''],          $a, [new Template(['', ''], [new Template(['', ''],   [$a])])])],
+    [`a\`a\``,                       createTaggedTemplate(['a'],           $a, [])],
+    [`a\`\\\${a}\``,                 createTaggedTemplate(['${a}'],        $a, [])],
+    [`a\`$a\``,                      createTaggedTemplate(['$a'],          $a, [])],
+    [`a\`\${b}\${c}\``,              createTaggedTemplate(['', '', ''],    $a, [$b, $c])],
+    [`a\`a\${b}\${c}\``,             createTaggedTemplate(['a', '', ''],   $a, [$b, $c])],
+    [`a\`\${b}a\${c}\``,             createTaggedTemplate(['', 'a', ''],   $a, [$b, $c])],
+    [`a\`a\${b}a\${c}\``,            createTaggedTemplate(['a', 'a', ''],  $a, [$b, $c])],
+    [`a\`\${b}\${c}a\``,             createTaggedTemplate(['', '', 'a'],   $a, [$b, $c])],
+    [`a\`\${b}a\${c}a\``,            createTaggedTemplate(['', 'a', 'a'],  $a, [$b, $c])],
+    [`a\`a\${b}a\${c}a\``,           createTaggedTemplate(['a', 'a', 'a'], $a, [$b, $c])],
+    [`a\`\${\`\${a}\`}\``,           createTaggedTemplate(['', ''],        $a, [new Template(['', ''],   [$a])])],
+    [`a\`\${\`a\${a}\`}\``,          createTaggedTemplate(['', ''],        $a, [new Template(['a', ''],  [$a])])],
+    [`a\`\${\`\${a}a\`}\``,          createTaggedTemplate(['', ''],        $a, [new Template(['', 'a'],  [$a])])],
+    [`a\`\${\`a\${a}a\`}\``,         createTaggedTemplate(['', ''],        $a, [new Template(['a', 'a'], [$a])])],
+    [`a\`\${\`\${\`\${a}\`}\`}\``,   createTaggedTemplate(['', ''],        $a, [new Template(['', ''], [new Template(['', ''],   [$a])])])],
     ...stringEscapables.map(([raw, cooked]) => [
-      [`a\`${raw}\``,                new TaggedTemplate([cooked],         [cooked],         $a,     [])],
-      [`a\`\${a}${raw}\``,           new TaggedTemplate(['', cooked],     ['', cooked],     $a,   [$a])],
-      [`a\`${raw}\${a}\``,           new TaggedTemplate([cooked, ''],     [cooked, ''],     $a,   [$a])],
-      [`a\`${raw}\${a}${raw}\``,     new TaggedTemplate([cooked, cooked], [cooked, cooked], $a,   [$a])],
-      [`a\`\${a}${raw}\${a}\``,      new TaggedTemplate(['', cooked, ''], ['', cooked, ''], $a,   [$a, $a])],
+      [`a\`${raw}\``,                createTaggedTemplate([cooked],         $a,     [])],
+      [`a\`\${a}${raw}\``,           createTaggedTemplate(['', cooked],     $a,   [$a])],
+      [`a\`${raw}\${a}\``,           createTaggedTemplate([cooked, ''],     $a,   [$a])],
+      [`a\`${raw}\${a}${raw}\``,     createTaggedTemplate([cooked, cooked], $a,   [$a])],
+      [`a\`\${a}${raw}\${a}\``,      createTaggedTemplate(['', cooked, ''], $a,   [$a, $a])],
     ] as [string, any][])
     .reduce((acc, cur) => acc.concat(cur)),
     ...SimpleIsAssignList
-      .map(([input, expr]) => [`a\`\${${input}}\``, new TaggedTemplate(['', ''], ['', ''], $a, [expr])] as [string, any]),
+      .map(([input, expr]) => [`a\`\${${input}}\``, createTaggedTemplate(['', ''], $a, [expr])] as [string, any]),
     ...SimpleIsAssignList
-      .map(([input, expr]) => [`a\`\${${input}}\${${input}}\``, new TaggedTemplate(['', '', ''], ['', '', ''], $a, [expr, expr])] as [string, any])
+      .map(([input, expr]) => [`a\`\${${input}}\${${input}}\``, createTaggedTemplate(['', '', ''], $a, [expr, expr])] as [string, any])
   ];
   describe('parse ComplexTaggedTemplateList', function () {
     for (const [input, expected] of ComplexTaggedTemplateList) {
       it(input, function () {
-        verifyASTEqual(parseExpression(input), expected);
+        assert.deepStrictEqual(parseExpression(input), expected);
       });
     }
   });
@@ -1023,7 +1029,7 @@ describe('ExpressionParser', function () {
   describe('parse ComplexCallFunctionList', function () {
     for (const [input, expected] of ComplexCallFunctionList) {
       it(input, function () {
-        verifyASTEqual(parseExpression(input), expected);
+        assert.deepStrictEqual(parseExpression(input), expected);
       });
     }
   });
@@ -1037,7 +1043,7 @@ describe('ExpressionParser', function () {
   describe('parse ComplexCallScopeList', function () {
     for (const [input, expected] of ComplexCallScopeList) {
       it(input, function () {
-        verifyASTEqual(parseExpression(input), expected);
+        assert.deepStrictEqual(parseExpression(input), expected);
       });
     }
   });
@@ -1051,7 +1057,7 @@ describe('ExpressionParser', function () {
   describe('parse ComplexCallMemberList', function () {
     for (const [input, expected] of ComplexCallMemberList) {
       it(input, function () {
-        verifyASTEqual(parseExpression(input), expected);
+        assert.deepStrictEqual(parseExpression(input), expected);
       });
     }
   });
@@ -1071,7 +1077,7 @@ describe('ExpressionParser', function () {
   describe('parse ComplexUnaryList', function () {
     for (const [input, expected] of ComplexUnaryList) {
       it(input, function () {
-        verifyASTEqual(parseExpression(input), expected);
+        assert.deepStrictEqual(parseExpression(input), expected);
       });
     }
   });
@@ -1095,7 +1101,7 @@ describe('ExpressionParser', function () {
   describe('parse ComplexMultiplicativeList', function () {
     for (const [input, expected] of ComplexMultiplicativeList) {
       it(input, function () {
-        verifyASTEqual(parseExpression(input), expected);
+        assert.deepStrictEqual(parseExpression(input), expected);
       });
     }
   });
@@ -1117,7 +1123,7 @@ describe('ExpressionParser', function () {
   describe('parse ComplexAdditiveList', function () {
     for (const [input, expected] of ComplexAdditiveList) {
       it(input, function () {
-        verifyASTEqual(parseExpression(input), expected);
+        assert.deepStrictEqual(parseExpression(input), expected);
       });
     }
   });
@@ -1139,7 +1145,7 @@ describe('ExpressionParser', function () {
   describe('parse ComplexRelationalList', function () {
     for (const [input, expected] of ComplexRelationalList) {
       it(input, function () {
-        verifyASTEqual(parseExpression(input), expected);
+        assert.deepStrictEqual(parseExpression(input), expected);
       });
     }
   });
@@ -1161,7 +1167,7 @@ describe('ExpressionParser', function () {
   describe('parse ComplexEqualityList', function () {
     for (const [input, expected] of ComplexEqualityList) {
       it(input, function () {
-        verifyASTEqual(parseExpression(input), expected);
+        assert.deepStrictEqual(parseExpression(input), expected);
       });
     }
   });
@@ -1181,7 +1187,7 @@ describe('ExpressionParser', function () {
   describe('parse ComplexLogicalANDList', function () {
     for (const [input, expected] of ComplexLogicalANDList) {
       it(input, function () {
-        verifyASTEqual(parseExpression(input), expected);
+        assert.deepStrictEqual(parseExpression(input), expected);
       });
     }
   });
@@ -1201,7 +1207,7 @@ describe('ExpressionParser', function () {
   describe('parse ComplexLogicalORList', function () {
     for (const [input, expected] of ComplexLogicalORList) {
       it(input, function () {
-        verifyASTEqual(parseExpression(input), expected);
+        assert.deepStrictEqual(parseExpression(input), expected);
       });
     }
   });
@@ -1215,7 +1221,7 @@ describe('ExpressionParser', function () {
   describe('parse ComplexConditionalList', function () {
     for (const [input, expected] of ComplexConditionalList) {
       it(input, function () {
-        verifyASTEqual(parseExpression(input), expected);
+        assert.deepStrictEqual(parseExpression(input), expected);
       });
     }
   });
@@ -1231,7 +1237,7 @@ describe('ExpressionParser', function () {
   describe('parse ComplexAssignList', function () {
     for (const [input, expected] of ComplexAssignList) {
       it(input, function () {
-        verifyASTEqual(parseExpression(input), expected);
+        assert.deepStrictEqual(parseExpression(input), expected);
       });
     }
   });
@@ -1250,7 +1256,7 @@ describe('ExpressionParser', function () {
   describe('parse ComplexValueConverterList', function () {
     for (const [input, expected] of ComplexValueConverterList) {
       it(input, function () {
-        verifyASTEqual(parseExpression(input), expected);
+        assert.deepStrictEqual(parseExpression(input), expected);
       });
     }
   });
@@ -1269,7 +1275,7 @@ describe('ExpressionParser', function () {
   describe('parse ComplexBindingBehaviorList', function () {
     for (const [input, expected] of ComplexBindingBehaviorList) {
       it(input, function () {
-        verifyASTEqual(parseExpression(input), expected);
+        assert.deepStrictEqual(parseExpression(input), expected);
       });
     }
   });
@@ -1326,7 +1332,7 @@ describe('ExpressionParser', function () {
 
     for (const [input, expected] of ForOfStatements) {
       it(input, function () {
-        verifyASTEqual(parseExpression(input, BindingType.ForCommand as any), expected);
+        assert.deepStrictEqual(parseExpression(input, BindingType.ForCommand as any), expected);
       });
     }
   });
@@ -1367,7 +1373,7 @@ describe('ExpressionParser', function () {
   describe('parse Interpolation', function () {
     for (const [input, expected] of InterpolationList) {
       it(input, function () {
-        verifyASTEqual(parseExpression(input, BindingType.Interpolation as any), expected);
+        assert.deepStrictEqual(parseExpression(input, BindingType.Interpolation as any), expected);
       });
     }
   });
@@ -1375,7 +1381,7 @@ describe('ExpressionParser', function () {
   describe('parse unicode IdentifierStart', function () {
     for (const char of latin1IdentifierStartChars) {
       it(char, function () {
-        verifyASTEqual(parseExpression(char), new AccessScope(char, 0));
+        assert.deepStrictEqual(parseExpression(char), new AccessScope(char, 0));
       });
     }
   });
@@ -1384,7 +1390,7 @@ describe('ExpressionParser', function () {
     for (const char of latin1IdentifierPartChars) {
       it(char, function () {
         const identifier = `$${char}`;
-        verifyASTEqual(parseExpression(identifier), new AccessScope(identifier, 0));
+        assert.deepStrictEqual(parseExpression(identifier), new AccessScope(identifier, 0));
       });
     }
   });

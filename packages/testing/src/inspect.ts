@@ -1574,33 +1574,6 @@ export function formatRaw(
       if (value.name === 'Node') {
         return ctx.stylize('Node constructor (omitted for brevity)', 'special');
       }
-      break;
-    // Use the Unparser for AST nodes
-    case 'AccessKeyed':
-    case 'AccessMember':
-    case 'AccessScope':
-    case 'AccessThis':
-    case 'ArrayBindingPattern':
-    case 'ArrayLiteral':
-    case 'Assign':
-    case 'Binary':
-    case 'BindingBehavior':
-    case 'BindingIdentifier':
-    case 'CallFunction':
-    case 'CallMember':
-    case 'CallScope':
-    case 'Conditional':
-    case 'ForOfStatement':
-    case 'HtmlLiteral':
-    case 'Interpolation':
-    case 'ObjectBindingPattern':
-    case 'ObjectLiteral':
-    case 'PrimitiveLiteral':
-    case 'TaggedTemplate':
-    case 'Template':
-    case 'Unary':
-    case 'ValueConverter':
-      return ctx.stylize(Unparser.unparse(value), 'special');
   }
   let tag = value[Symbol.toStringTag];
   if (!isString(tag)) {

@@ -1,8 +1,7 @@
 // tslint:disable:quotemark member-access no-all-duplicated-branches
 import { Profiler } from "@aurelia/kernel";
 import { Aurelia, CustomElementResource } from "@aurelia/runtime";
-import { expect } from "chai";
-import { getVisibleText, TestContext, writeProfilerReport } from "@aurelia/testing";
+import { TestContext, writeProfilerReport, assert } from "@aurelia/testing";
 
 describe("generated.template-compiler.static.if-else.repeat", function () {
     before(function () {
@@ -19,20 +18,21 @@ describe("generated.template-compiler.static.if-else.repeat", function () {
         return { au, host };
     }
     function verify(au, host, expected) {
+        const root = au.root;
         au.start();
         const outerHtmlAfterStart1 = host.outerHTML;
-        expect(getVisibleText(au, host)).to.equal(expected, "after start #1");
+        assert.visibleTextEqual(root, expected, "after start #1");
         au.stop();
         const outerHtmlAfterStop1 = host.outerHTML;
-        expect(getVisibleText(au, host)).to.equal("", "after stop #1");
+        assert.visibleTextEqual(root, "", "after stop #1");
         au.start();
         const outerHtmlAfterStart2 = host.outerHTML;
-        expect(getVisibleText(au, host)).to.equal(expected, "after start #2");
+        assert.visibleTextEqual(root, expected, "after start #2");
         au.stop();
         const outerHtmlAfterStop2 = host.outerHTML;
-        expect(getVisibleText(au, host)).to.equal("", "after stop #2");
-        expect(outerHtmlAfterStart1).to.equal(outerHtmlAfterStart2, "outerHTML after start #1 / #2");
-        expect(outerHtmlAfterStop1).to.equal(outerHtmlAfterStop2, "outerHTML after stop #1 / #2");
+        assert.visibleTextEqual(root, "", "after stop #2");
+        assert.strictEqual(outerHtmlAfterStart1, outerHtmlAfterStart2, "outerHTML after start #1 / #2");
+        assert.strictEqual(outerHtmlAfterStop1, outerHtmlAfterStop2, "outerHTML after stop #1 / #2");
     }
     it("tag$01 text$01 if$01 repeat$11 variant$01 _", function () {
         const { au, host } = setup();

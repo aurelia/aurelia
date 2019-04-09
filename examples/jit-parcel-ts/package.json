@@ -30,6 +30,6 @@
     "parcel-bundler": "latest",
     "parcel-plugin-typescript": "latest",
     "rimraf": "latest",
-    "typescript": "latest"
+    "typescript": "~3.3.4000"
   }
 }

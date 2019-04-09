@@ -10,7 +10,7 @@ export interface IRouteableCustomElementType extends Partial<ICustomElementType>
 }
 
 export interface IRouteableCustomElement extends ICustomElement {
-  reentryBehavior?: 'disallow' | 'enter' | 'refresh';
+  reentryBehavior?: ReentryBehavior;
   canEnter?(parameters?: string[] | Record<string, string>, nextInstruction?: INavigationInstruction, instruction?: INavigationInstruction): boolean | string | ViewportInstruction[] | Promise<boolean | string | ViewportInstruction[]>;
   enter?(parameters?: string[] | Record<string, string>, nextInstruction?: INavigationInstruction, instruction?: INavigationInstruction): void | Promise<void>;
   canLeave?(nextInstruction?: INavigationInstruction, instruction?: INavigationInstruction): boolean | Promise<boolean>;
@@ -23,6 +23,13 @@ export const enum ContentStatus {
   loaded = 2,
   initialized = 3,
   added = 4,
+}
+
+export const enum ReentryBehavior {
+  default = 'default',
+  disallow = 'disallow',
+  enter = 'enter',
+  refresh = 'refresh',
 }
 
 export class ViewportContent {
@@ -52,15 +59,19 @@ export class ViewportContent {
     }
   }
 
-  public isChange(other: ViewportContent): boolean {
-    return ((typeof other.content === 'string' && this.componentName() !== other.content) ||
-      (typeof other.content !== 'string' && this.content !== other.content) ||
-      this.parameters !== other.parameters ||
-      !this.instruction || this.instruction.query !== other.instruction.query);
+  public equalComponent(other: ViewportContent): boolean {
+    return (typeof other.content === 'string' && this.componentName() === other.content) ||
+      (typeof other.content !== 'string' && this.content === other.content);
   }
 
-  public reentryBehavior(): string {
-    return this.component.reentryBehavior || 'disallow';
+  public equalParameters(other: ViewportContent): boolean {
+    // TODO: Review this
+    return this.parameters === other.parameters &&
+      this.instruction.query === other.instruction.query;
+  }
+
+  public reentryBehavior(): ReentryBehavior {
+    return this.component.reentryBehavior || ReentryBehavior.default;
   }
 
   public isCacheEqual(other: ViewportContent): boolean {

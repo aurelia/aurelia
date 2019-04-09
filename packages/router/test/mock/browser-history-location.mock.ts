@@ -105,11 +105,13 @@ export class MockBrowserHistoryLocation {
     this.paths[this.index] = path;
   }
 
-  public go(movement: number) {
+  public go(movement: number, suppressPopstate: boolean = false) {
     const newIndex = this.index + movement;
     if (newIndex >= 0 && newIndex < this.states.length) {
       this.index = newIndex;
-      this.notifyChange();
+      if (!suppressPopstate) {
+        this.notifyChange();
+      }
     }
   }
 

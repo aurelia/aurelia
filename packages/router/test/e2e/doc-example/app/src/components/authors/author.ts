@@ -44,23 +44,17 @@ export class Author {
   }
   public enter(parameters) {
     console.log('### enter', this, parameters);
-    if (parameters.id) {
-      this.author = this.authorsRepository.author(+parameters.id);
-    }
+    this.author = this.authorsRepository.author(+parameters.id);
     this.router.setNav('author-menu', [
-      {
-        title: 'Details',
-        route: `author-details(${this.author.id})`
-      },
-      {
-        title: 'About authors',
-        route: 'about-authors'
-      },
-      {
-        title: 'Author information',
-        route: 'information'
-      },
+      { title: 'Details', route: `author-details(${this.author.id})` },
+      { title: 'About authors', route: 'about-authors' },
+      { title: 'Author information', route: 'information' },
     ]);
+    const vp = this.router.getViewport('author-tabs');
+    const component = vp && vp.content && vp.content.componentName();
+    if (component) {
+      this.router.goto(component + (component === 'author-details' ? `(${this.author.id})` : ''));
+    }
     return wait(this.state.noDelay ? 0 : 2000);
   }
   public binding() {

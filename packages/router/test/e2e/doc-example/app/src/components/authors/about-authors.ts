@@ -18,8 +18,8 @@ import { State } from '../../state';
 </template>` })
 @inject(State)
 export class AboutAuthors {
-  public reentryBehaviors = ['disallow', 'refresh', 'enter'];
-  public reentryBehavior: string = 'disallow';
+  public reentryBehaviors = ['default', 'disallow', 'refresh', 'enter'];
+  public reentryBehavior: string = 'default';
   public entries = 0;
 
   constructor(private readonly state: State) { }

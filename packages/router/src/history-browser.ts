@@ -178,7 +178,7 @@ export class HistoryBrowser {
       return;
     }
 
-    const newHash = `#/${path}`;
+    const newHash = `#${path}`;
     const { pathname, search, hash } = this.location;
     // tslint:disable-next-line:possible-timing-attack
     if (newHash === hash && this.currentEntry.path === path && this.currentEntry.fullStatePath === fullStatePath) {
@@ -295,9 +295,10 @@ export class HistoryBrowser {
   }
   private async setPath(path: string, replace: boolean = false): Promise<void> {
     // More checks, such as parameters, needed
-    if (this.currentEntry && this.currentEntry.path === path && !this.isRefreshing) {
-      return;
-    }
+    // Not used at all since we can now reenter exactly same component+parameters
+    // if (this.currentEntry && this.currentEntry.path === path && !this.isRefreshing) {
+    //   return;
+    // }
 
     const { pathname, search } = this.location;
     const hash = `#${path}`;

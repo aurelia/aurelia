@@ -1,6 +1,7 @@
 import { DI, IContainer, Key, Reporter } from '@aurelia/kernel';
 import { Aurelia, ICustomElementType, IRenderContext } from '@aurelia/runtime';
 import { BrowserNavigation, INavigationViewerEvent } from './browser-navigation';
+import { Guardian, GuardTypes } from './guardian';
 import { InstructionResolver, IRouteSeparators } from './instruction-resolver';
 import { AnchorEventInfo, LinkHandler } from './link-handler';
 import { INavRoute, Nav } from './nav';
@@ -76,6 +77,7 @@ export class Router implements IRouter {
 
   public linkHandler: LinkHandler;
   public instructionResolver: InstructionResolver;
+  public guardian: Guardian;
 
   public navs: Record<string, Nav> = {};
   public activeComponents: string[] = [];
@@ -103,6 +105,7 @@ export class Router implements IRouter {
     this.routeTransformer = routeTransformer;
     this.linkHandler = linkHandler;
     this.instructionResolver = instructionResolver;
+    this.guardian = new Guardian();
   }
 
   public get isNavigating(): boolean {
@@ -240,6 +243,15 @@ export class Router implements IRouter {
       }
 
       const changedViewports: Viewport[] = [];
+
+      const outcome = this.guardian.passes(GuardTypes.Before, viewportInstructions, instruction);
+      if (!outcome) {
+        return this.cancelNavigation([...changedViewports, ...updatedViewports], instruction);
+      }
+      if (typeof outcome !== 'boolean') {
+        viewportInstructions = outcome;
+      }
+
       for (const viewportInstruction of viewportInstructions) {
         const viewport = viewportInstruction.viewport;
         const componentWithParameters = this.instructionResolver.stringifyViewportInstruction(viewportInstruction, true);
@@ -259,6 +271,7 @@ export class Router implements IRouter {
       if (results.some(result => result === false)) {
         return this.cancelNavigation([...changedViewports, ...updatedViewports], instruction);
       }
+
       results = await Promise.all(changedViewports.map(async (value) => {
         const canEnter = await value.canEnter();
         if (typeof canEnter === 'boolean') {

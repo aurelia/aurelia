@@ -1,13 +1,13 @@
 import { inject } from '@aurelia/kernel';
 import { customElement } from '@aurelia/runtime';
-import { Router } from '@aurelia/router';
+import { Guardian, Router, GuardTypes } from '@aurelia/router';
 import { About } from './components/about';
 import { Authors } from './components/authors/authors';
 import { Books } from './components/books/books';
 import { AuthorsRepository } from './repositories/authors';
 import { State } from './state';
 
-@inject(Router, AuthorsRepository, State)
+@inject(Router, Guardian, AuthorsRepository, State)
 @customElement({
   name: 'app', template:
     `<template>
@@ -43,7 +43,7 @@ import { State } from './state';
 ` })
 export class App {
   public color: string = 'lightgreen';
-  constructor(private readonly router: Router, authorsRepository: AuthorsRepository, private readonly state: State) {
+  constructor(private readonly router: Router, private readonly guardian: Guardian, authorsRepository: AuthorsRepository, private readonly state: State) {
     authorsRepository.authors(); // Only here to initialize repositories
   }
 
@@ -107,5 +107,30 @@ export class App {
         title: 'Chat',
       },
     ]);
+
+    this.router.guardian.addGuard((instructions) => {
+      return this.notify('Guarded (all)', instructions);
+    });
+
+    this.router.guardian.addGuard((instructions) => {
+      return this.notify('Guarded (all but "author")', instructions);
+    }, { exclude: ['author'] });
+
+    this.router.guardian.addGuard((instructions) => {
+      return this.notify('Guarded ("author" and "book")', instructions);
+    }, { include: ['author', 'book'] });
+
+    this.router.guardian.addGuard((instructions) => {
+      return this.notify('Guarded (everything in VIEWPORT "author-tabs")', instructions);
+    }, { include: [{ viewportName: 'author-tabs' }] });
+
+    console.log('#### guardian', this.router.guardian.guards);
+    // console.log('#### passes', this.guardian.passes(GuardTypes.Before, { path: 'some-component', fullStatePath: null }));
+  }
+
+  notify(message, instructions) {
+    alert(message + ': ' + instructions.map(i => i.componentName).join(', '));
+    console.log('#####', message, instructions);
+    return true;
   }
 }

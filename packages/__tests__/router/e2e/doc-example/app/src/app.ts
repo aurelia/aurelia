@@ -1,16 +1,22 @@
 import { inject } from '@aurelia/kernel';
 import { customElement } from '@aurelia/runtime';
-import { Guardian, Router, GuardTypes } from '@aurelia/router';
+import { Router } from '@aurelia/router';
 import { About } from './components/about';
 import { Authors } from './components/authors/authors';
 import { Books } from './components/books/books';
 import { AuthorsRepository } from './repositories/authors';
 import { State } from './state';
 
-@inject(Router, Guardian, AuthorsRepository, State)
+import { arrayRemove } from '../../../../../../router/src/utils';
+
+@inject(Router, AuthorsRepository, State)
 @customElement({
   name: 'app', template:
-    `<template>
+    `
+<div if.bind="!state.loggedIn">
+  <login></login>
+</div>
+<div if.bind="state.loggedIn">
   <div class="\${router.isNavigating ? 'routing' : ''}" style="--primary-color: \${color}">
     <div>
       <au-nav data-test="app-menu" name="app-menu"></au-nav>
@@ -39,11 +45,21 @@ import { State } from './state';
     <au-viewport name="content" default="about"></au-viewport>
     <au-viewport name="chat" used-by="chat" no-link no-history></au-viewport>
   </div>
-</template>
+</div>
 ` })
 export class App {
   public color: string = 'lightgreen';
-  constructor(private readonly router: Router, private readonly guardian: Guardian, authorsRepository: AuthorsRepository, private readonly state: State) {
+  constructor(private readonly router: Router, authorsRepository: AuthorsRepository, private readonly state: State) {
+    let arr: any = [{ id: 1 }, { id: 2 }, { id: 3 }, { id: 2 }];
+    console.log('§§§§§', arr);
+    console.log('§§§§§', arrayRemove(arr, value => value.id === 2));
+    console.log('§§§§§', arr);
+
+    arr = [1, 2, 3, 2];
+    console.log('§§§§§', arr);
+    console.log('§§§§§', arrayRemove(arr, value => value === 2));
+    console.log('§§§§§', arr);
+
     authorsRepository.authors(); // Only here to initialize repositories
   }
 
@@ -87,6 +103,7 @@ export class App {
       //   return parts.join('/');
       // }
     }).catch(error => { throw error; });
+
     this.router.addNav('app-menu', [
       {
         title: 'Authors',
@@ -109,23 +126,49 @@ export class App {
     ]);
 
     this.router.guardian.addGuard((instructions) => {
-      return this.notify('Guarded (all)', instructions);
-    });
+      if (this.verifyLogin()) {
+        return true;
+      }
+      this.state.loginReturnTo = this.router.instructionResolver.stringifyViewportInstructions(instructions);
+      this.state.loggedIn = false;
+      return false;
+    }, { exclude: ['login'] });
 
     this.router.guardian.addGuard((instructions) => {
-      return this.notify('Guarded (all but "author")', instructions);
-    }, { exclude: ['author'] });
+      if (this.verifyLogin(true)) { // true makes it separate and "special"
+        return true;
+      }
+      const params = this.router.instructionResolver.encodeViewportInstructions(instructions);
+      this.router.goto(`login(${params}&1)`);
+      return [];
+    }, { include: [{ viewportName: 'author-tabs' }], exclude: ['login'] });
 
-    this.router.guardian.addGuard((instructions) => {
-      return this.notify('Guarded ("author" and "book")', instructions);
-    }, { include: ['author', 'book'] });
+    // this.router.guardian.addGuard((instructions) => {
+    //   return this.notify('Guarded (all)', instructions);
+    // });
 
-    this.router.guardian.addGuard((instructions) => {
-      return this.notify('Guarded (everything in VIEWPORT "author-tabs")', instructions);
-    }, { include: [{ viewportName: 'author-tabs' }] });
+    // this.router.guardian.addGuard((instructions) => {
+    //   return this.notify('Guarded (all but "author")', instructions);
+    // }, { exclude: ['author'] });
+
+    // this.router.guardian.addGuard((instructions) => {
+    //   return this.notify('Guarded ("author" and "book")', instructions);
+    // }, { include: ['author', 'book'] });
+
+    // this.router.guardian.addGuard((instructions) => {
+    //   this.notify('Guarded (everything in VIEWPORT "author-tabs")', instructions);
+    //   this.router.goto('about');
+    //   return false;
+    // }, { include: [{ viewportName: 'author-tabs' }] });
 
     console.log('#### guardian', this.router.guardian.guards);
     // console.log('#### passes', this.guardian.passes(GuardTypes.Before, { path: 'some-component', fullStatePath: null }));
+  }
+
+  private verifyLogin(special: boolean = false): boolean {
+    return special
+      ? this.state.loggedInSpecial && (new Date().getTime() - this.state.loggedInSpecialAt.getTime() < 5 * 1000)
+      : this.state.loggedIn && (new Date().getTime() - this.state.loggedInAt.getTime() < 15 * 1000);
   }
 
   notify(message, instructions) {

@@ -1,5 +1,6 @@
 import { ICustomElementType } from '@aurelia/runtime';
 
+import { Guard } from './guard';
 import { INavigationInstruction } from './history-browser';
 import { Viewport } from './viewport';
 import { ViewportInstruction } from './viewport-instruction';
@@ -11,45 +12,12 @@ export interface IGuardTarget {
   viewportName?: string;
 }
 
-export class Target {
-  public component?: Partial<ICustomElementType>;
-  public componentName?: string;
-  public viewport?: Viewport;
-  public viewportName?: string;
-
-  constructor(target: GuardTarget) {
-    const { component, componentName, viewport, viewportName } = target as IGuardTarget;
-    if (typeof target === 'string') {
-      this.componentName = target;
-    } else if (component || componentName || viewport || viewportName) {
-      this.component = component;
-      this.componentName = componentName;
-      this.viewport = viewport;
-      this.viewportName = viewportName;
-    } else {
-      this.component = target as Partial<ICustomElementType>;
-    }
-  }
-
-  public matches(viewportInstructions: ViewportInstruction[]): boolean {
-    for (const instruction of viewportInstructions) {
-      if (this.componentName === instruction.componentName ||
-        this.component === instruction.component ||
-        this.viewportName === instruction.viewportName ||
-        this.viewport === instruction.viewport) {
-        return true;
-      }
-    }
-    return false;
-  }
-}
-
 // Only one so far, but it's easier to support more from the start
 export const enum GuardTypes {
   Before = 'before',
 }
 
-export type GuardFunction = (viewportInstructions?: ViewportInstruction[], navigationInstruction?: INavigationInstruction) => boolean;
+export type GuardFunction = (viewportInstructions?: ViewportInstruction[], navigationInstruction?: INavigationInstruction) => boolean | ViewportInstruction[];
 export type GuardTarget = IGuardTarget | Partial<ICustomElementType> | string;
 export type GuardIdentity = number;
 
@@ -59,46 +27,8 @@ export interface IGuardOptions {
   exclude?: GuardTarget[];
 }
 
-export class Guard {
-  public type: GuardTypes;
-  public includeTargets: Target[];
-  public excludeTargets: Target[];
-  public guard: GuardFunction;
-  public id: GuardIdentity;
-
-  constructor(guard: GuardFunction, options: IGuardOptions, id: GuardIdentity) {
-    this.type = options.type || GuardTypes.Before;
-    this.guard = guard;
-    this.id = id;
-
-    this.includeTargets = [];
-    for (const target of options.include || []) {
-      this.includeTargets.push(new Target(target));
-    }
-    this.excludeTargets = [];
-    for (const target of options.exclude || []) {
-      this.excludeTargets.push(new Target(target));
-    }
-  }
-
-  public matches(viewportInstructions: ViewportInstruction[]): boolean {
-    if (!this.includeTargets.length && !this.excludeTargets.length) {
-      return true;
-    }
-    if (this.includeTargets.length) {
-      return this.includeTargets.some(target => target.matches(viewportInstructions));
-    } else {
-      return !this.excludeTargets.some(target => target.matches(viewportInstructions));
-    }
-  }
-
-  public check(viewportInstructions: ViewportInstruction[], navigationInstruction: INavigationInstruction): boolean | ViewportInstruction[] {
-    return this.guard(viewportInstructions, navigationInstruction);
-  }
-}
-
 export class Guardian {
-  public guards: Record<GuardTypes, Guard[]> = { before: [] };
+  public guards: Record<GuardTypes, Guard[]>;
 
   private lastIdentity: number;
 
@@ -115,10 +45,12 @@ export class Guardian {
     return this.lastIdentity;
   }
 
-  public removeGuard(id: GuardIdentity): void {
-    const index = this.guards.before.findIndex(guard => guard.id === id);
-    if (index > -1) {
-      this.guards.before.splice(index, 1);
+  public removeGuard(id: GuardIdentity): Guard {
+    for (const type in this.guards) {
+      const index = this.guards[type].findIndex(guard => guard.id === id);
+      if (index > -1) {
+        return this.guards[type].splice(index, 1);
+      }
     }
   }
 

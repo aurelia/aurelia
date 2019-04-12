@@ -20,7 +20,7 @@ import { Information } from './information';
 </div>
 <div if.bind="!hideTabs">
   <au-nav data-test="author-menu" name="author-menu"></au-nav>
-  <au-viewport name="author-tabs" default="author-details(\${author.id})" used-by="about-authors,author-details,information" no-history></au-viewport>
+  <au-viewport name="author-tabs" default="author-details(\${author.id})" used-by="about-authors,author-details,information,login" no-history></au-viewport>
 </div>
 </template>`,
   dependencies: [Information as any]

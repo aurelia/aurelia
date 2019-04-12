@@ -67,12 +67,12 @@ export interface IDisposable {
 
 export type Constructable<T = {}> = {
   // tslint:disable-next-line:callable-types
-  new(...args: unknown[]): T;
+  new(...args: any[]): T;
 };
 
 export type Class<T, C = IIndexable> = C & {
   readonly prototype: T;
-  new(...args: unknown[]): T;
+  new(...args: any[]): T;
 };
 
 // For resources, we want the 'constructor' property to remain on the instance type but we need to do that
@@ -81,10 +81,10 @@ export type Class<T, C = IIndexable> = C & {
 // So, in lack of a better name.. we probably need to clean this up, but this is how it works for now.
 export type ConstructableClass<T, C = IIndexable> = C & {
   readonly prototype: T & { constructor: C };
-  new(...args: unknown[]): T & { constructor: C };
+  new(...args: any[]): T & { constructor: C };
 };
 
-export type InterfaceSymbol<T = unknown> = (target: Injectable<T>, property: string, index: number) => unknown;
+export type InterfaceSymbol<T = any> = (target: Injectable<T>, property: string, index: number) => any;
 
 export type InjectArray = ReadonlyArray<InterfaceSymbol<any> | Constructable | string>;
 

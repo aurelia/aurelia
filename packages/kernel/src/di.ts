@@ -6,7 +6,7 @@ import { IResourceType } from './resource';
 
 const slice = Array.prototype.slice;
 
-export type ResolveCallback<T = unknown> = (handler?: IContainer, requestor?: IContainer, resolver?: IResolver) => T;
+export type ResolveCallback<T = any> = (handler?: IContainer, requestor?: IContainer, resolver?: IResolver) => T;
 
 export type Key<T> = InterfaceSymbol<T> | Primitive | IIndexable | Constructable;
 
@@ -151,8 +151,8 @@ export const DI = {
     return dependencies;
   },
 
-  createInterface<T = unknown>(friendlyName?: string): IDefaultableInterfaceSymbol<T> {
-    const Interface: IDefaultableInterfaceSymbol<T> & Partial<IRegistration<T> & {friendlyName: string}> = function(target: Injectable, property: string, index: number): unknown {
+  createInterface<T = any>(friendlyName?: string): IDefaultableInterfaceSymbol<T> {
+    const Interface: IDefaultableInterfaceSymbol<T> & Partial<IRegistration<T> & {friendlyName: string}> = function(target: Injectable, property: string, index: number): any {
       if (target === undefined) {
         throw Reporter.error(16, Interface.friendlyName, Interface); // TODO: add error (trying to resolve an InterfaceSymbol that has no registrations)
       }
@@ -197,7 +197,7 @@ export const DI = {
     return Interface;
   },
 
-  inject(...dependencies: Key<unknown>[]): (target: Injectable, key?: string, descriptor?: PropertyDescriptor | number) => void {
+  inject(...dependencies: Key<any>[]): (target: Injectable, key?: string, descriptor?: PropertyDescriptor | number) => void {
     return function(target: Injectable, key?: string, descriptor?: PropertyDescriptor | number): void {
       if (typeof descriptor === 'number') { // It's a parameter decorator.
         if (!target.hasOwnProperty('inject')) {

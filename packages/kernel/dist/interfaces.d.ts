@@ -51,22 +51,22 @@ export interface IDisposable {
     dispose(): void;
 }
 export declare type Constructable<T = {}> = {
-    new (...args: unknown[]): T;
+    new (...args: any[]): T;
 };
 export declare type Class<T, C = IIndexable> = C & {
     readonly prototype: T;
-    new (...args: unknown[]): T;
+    new (...args: any[]): T;
 };
 export declare type ConstructableClass<T, C = IIndexable> = C & {
     readonly prototype: T & {
         constructor: C;
     };
-    new (...args: unknown[]): T & {
+    new (...args: any[]): T & {
         constructor: C;
     };
 };
-export declare type InterfaceSymbol<T = unknown> = (target: Injectable<T>, property: string, index: number) => unknown;
-export declare type InjectArray = ReadonlyArray<InterfaceSymbol<any> | Constructable | string>;
+export declare type InterfaceSymbol<T = any> = (target: Injectable<T>, property: string, index: number) => any;
+export declare type InjectArray = ReadonlyArray<InterfaceSymbol | Constructable | string>;
 export declare type Injectable<T = {}> = Constructable<T> & {
     inject?: (InterfaceSymbol | Constructable)[];
 };

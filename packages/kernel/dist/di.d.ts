@@ -1,5 +1,5 @@
 import { Constructable, IIndexable, Injectable, InterfaceSymbol, Primitive } from './interfaces';
-export declare type ResolveCallback<T = unknown> = (handler?: IContainer, requestor?: IContainer, resolver?: IResolver) => T;
+export declare type ResolveCallback<T = any> = (handler?: IContainer, requestor?: IContainer, resolver?: IResolver) => T;
 export declare type Key<T> = InterfaceSymbol<T> | Primitive | IIndexable | Constructable;
 export interface IDefaultableInterfaceSymbol<T> extends InterfaceSymbol<T> {
     withDefault(configure: (builder: IResolverBuilder<T>) => IResolver): InterfaceSymbol<T>;
@@ -63,8 +63,8 @@ export declare const DI: {
     createContainer: typeof createContainer;
     getDesignParamTypes(target: Constructable<{}>): Key<unknown>[];
     getDependencies(Type: Constructable<{}> | Injectable<{}>): Key<unknown>[];
-    createInterface<T = unknown>(friendlyName?: string): IDefaultableInterfaceSymbol<T>;
-    inject(...dependencies: Key<unknown>[]): (target: Injectable<{}>, key?: string, descriptor?: number | PropertyDescriptor) => void;
+    createInterface<T = any>(friendlyName?: string): IDefaultableInterfaceSymbol<T>;
+    inject(...dependencies: Key<any>[]): (target: Injectable<{}>, key?: string, descriptor?: number | PropertyDescriptor) => void;
     /**
      * Registers the `target` class as a transient dependency; each time the dependency is resolved
      * a new instance will be created.
@@ -107,7 +107,7 @@ export declare const DI: {
 };
 export declare const IContainer: InterfaceSymbol<IContainer>;
 export declare const IServiceLocator: InterfaceSymbol<IServiceLocator>;
-export declare const inject: (...dependencies: Key<unknown>[]) => (target: Injectable<{}>, key?: string, descriptor?: number | PropertyDescriptor) => void;
+export declare const inject: (...dependencies: Key<any>[]) => (target: Injectable<{}>, key?: string, descriptor?: number | PropertyDescriptor) => void;
 declare function transientDecorator<T extends Constructable>(target: T & Partial<RegisterSelf<T>>): T & RegisterSelf<T>;
 /**
  * Registers the decorated class as a transient dependency; each time the dependency is resolved
@@ -165,7 +165,7 @@ export declare const Registration: {
     instance(key: Key<unknown>, value: unknown): IRegistration<any>;
     singleton(key: Key<unknown>, value: Constructable<{}>): IRegistration<any>;
     transient(key: Key<unknown>, value: Constructable<{}>): IRegistration<any>;
-    callback(key: Key<unknown>, callback: ResolveCallback<unknown>): IRegistration<any>;
+    callback(key: Key<unknown>, callback: ResolveCallback<any>): IRegistration<any>;
     alias(originalKey: Key<unknown>, aliasKey: Key<unknown>): IRegistration<any>;
     interpret(interpreterKey: Key<{}>, ...rest: Constructable<{}>[]): IRegistry;
 };

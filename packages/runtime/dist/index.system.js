@@ -7323,7 +7323,13 @@ System.register('runtime', ['@aurelia/kernel'], function (exports, module) {
                 return function decorator(target) {
                     // wrap the constructor to set the instructionType to the instance (for better performance than when set on the prototype)
                     const decoratedTarget = function (...args) {
+                        // tslint:disable: no-commented-code
+                        // tslint:disable: no-unnecessary-type-assertion
+                        // tslint:disable: no-any
                         const instance = new target(...args);
+                        // tslint:enable: no-unnecessary-type-assertion
+                        // tslint:enable: no-any
+                        // tslint:enable: no-commented-code
                         instance.instructionType = instructionType;
                         return instance;
                     };

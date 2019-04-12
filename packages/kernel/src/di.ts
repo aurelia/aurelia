@@ -4,6 +4,8 @@ import { PLATFORM } from './platform';
 import { Reporter, Tracer } from './reporter';
 import { IResourceType } from './resource';
 
+// tslint:disable: no-any
+
 const slice = Array.prototype.slice;
 
 export type ResolveCallback<T = any> = (handler?: IContainer, requestor?: IContainer, resolver?: IResolver) => T;

@@ -68,7 +68,13 @@ export function instructionRenderer<TType extends string>(instructionType: TType
   return function decorator<TProto, TClass>(target: DecoratableInstructionRenderer<TType, TProto, TClass>): DecoratedInstructionRenderer<TType, TProto, TClass> {
     // wrap the constructor to set the instructionType to the instance (for better performance than when set on the prototype)
     const decoratedTarget = function(...args: unknown[]): TProto {
+      // tslint:disable: no-commented-code
+      // tslint:disable: no-unnecessary-type-assertion
+      // tslint:disable: no-any
       const instance = new (target as any)(...args);
+      // tslint:enable: no-unnecessary-type-assertion
+      // tslint:enable: no-any
+      // tslint:enable: no-commented-code
       instance.instructionType = instructionType;
       return instance;
     } as unknown as DecoratedInstructionRenderer<TType, TProto, TClass>;

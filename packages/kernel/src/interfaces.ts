@@ -1,3 +1,5 @@
+// tslint:disable: no-any
+
 export interface IPerformance {
   now(): number;
   mark(name: string): void;

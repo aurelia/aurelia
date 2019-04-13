@@ -1,6 +1,7 @@
 {
   "name": "@aurelia/jit-html-browser",
   "version": "0.3.0",
+  "sideEffects": false,
   "main": "dist/build/index.js",
   "module": "dist/build/index.js",
   "jsnext:main": "dist/build/index.js",

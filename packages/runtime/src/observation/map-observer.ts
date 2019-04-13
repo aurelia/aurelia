@@ -123,6 +123,8 @@ for (const method of methods) {
   def(observe[method], 'observing', { value: true, writable: false, configurable: false, enumerable: false });
 }
 
+let enableMapObservationCalled = false;
+
 export function enableMapObservation(): void {
   for (const method of methods) {
     if (proto[method].observing !== true) {
@@ -130,8 +132,6 @@ export function enableMapObservation(): void {
     }
   }
 }
-
-enableMapObservation();
 
 export function disableMapObservation(): void {
   for (const method of methods) {
@@ -151,6 +151,11 @@ export class MapObserver {
 
   constructor(flags: LifecycleFlags, lifecycle: ILifecycle, map: IObservedMap) {
     if (Tracer.enabled) { Tracer.enter('MapObserver', 'constructor', slice.call(arguments)); }
+
+    if (!enableMapObservationCalled) {
+      enableMapObservationCalled = true;
+      enableMapObservation();
+    }
 
     this.inBatch = false;
 

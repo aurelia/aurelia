@@ -355,6 +355,8 @@ for (const method of methods) {
   def(observe[method], 'observing', { value: true, writable: false, configurable: false, enumerable: false });
 }
 
+let enableArrayObservationCalled = false;
+
 export function enableArrayObservation(): void {
   for (const method of methods) {
     if (proto[method].observing !== true) {
@@ -362,8 +364,6 @@ export function enableArrayObservation(): void {
     }
   }
 }
-
-enableArrayObservation();
 
 export function disableArrayObservation(): void {
   for (const method of methods) {
@@ -383,6 +383,11 @@ export class ArrayObserver {
 
   constructor(flags: LifecycleFlags, lifecycle: ILifecycle, array: IObservedArray) {
     if (Tracer.enabled) { Tracer.enter('ArrayObserver', 'constructor', slice.call(arguments)); }
+
+    if (!enableArrayObservationCalled) {
+      enableArrayObservationCalled = true;
+      enableArrayObservation();
+    }
 
     this.inBatch = false;
 

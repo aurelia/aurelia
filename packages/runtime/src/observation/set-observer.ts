@@ -108,6 +108,8 @@ for (const method of methods) {
   def(observe[method], 'observing', { value: true, writable: false, configurable: false, enumerable: false });
 }
 
+let enableSetObservationCalled = false;
+
 export function enableSetObservation(): void {
   for (const method of methods) {
     if (proto[method].observing !== true) {
@@ -115,8 +117,6 @@ export function enableSetObservation(): void {
     }
   }
 }
-
-enableSetObservation();
 
 export function disableSetObservation(): void {
   for (const method of methods) {
@@ -136,6 +136,11 @@ export class SetObserver {
 
   constructor(flags: LifecycleFlags, lifecycle: ILifecycle, observedSet: IObservedSet) {
     if (Tracer.enabled) { Tracer.enter('SetObserver', 'constructor', slice.call(arguments)); }
+
+    if (!enableSetObservationCalled) {
+      enableSetObservationCalled = true;
+      enableSetObservation();
+    }
 
     this.inBatch = false;
 

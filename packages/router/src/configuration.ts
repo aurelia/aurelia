@@ -2,6 +2,17 @@ import { DI, IContainer, IRegistry } from '@aurelia/kernel';
 
 import { NavCustomElement } from './resources/nav';
 import { ViewportCustomElement } from './resources/viewport';
+import { Router } from './router';
+
+export const RouterRegistration = Router as unknown as IRegistry;
+
+/**
+ * Default runtime/environment-agnostic implementations for the following interfaces:
+ * - `IRouter`
+ */
+export const DefaultComponents = [
+  RouterRegistration
+];
 
 export {
   ViewportCustomElement,
@@ -23,12 +34,15 @@ export const DefaultResources: IRegistry[] = [
 /**
  * A DI configuration object containing router resource registrations.
  */
-export const BasicRouterConfiguration = {
+export const RouterConfiguration = {
   /**
    * Apply this configuration to the provided container.
    */
   register(container: IContainer): IContainer {
-    return container.register(...DefaultResources);
+    return container.register(
+      ...DefaultComponents,
+      ...DefaultResources
+      );
   },
   /**
    * Create a new container with this configuration applied to it.

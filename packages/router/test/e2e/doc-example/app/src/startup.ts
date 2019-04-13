@@ -1,7 +1,7 @@
 import { DebugConfiguration } from '@aurelia/debug';
 import { BasicConfiguration } from '@aurelia/jit-html-browser';
 import { Aurelia, IDOM } from '@aurelia/runtime';
-import { BasicRouterConfiguration } from '../../../../../../router/src';
+import { RouterConfiguration } from '../../../../../../router/src';
 import { registerComponent } from './utils';
 
 import { App } from './app';
@@ -45,6 +45,6 @@ registerComponent(
 );
 
 window['au'] = new Aurelia(container)
-  .register(DebugConfiguration, BasicRouterConfiguration)
+  .register(DebugConfiguration, RouterConfiguration)
   .app({ host: document.querySelector('app'), component: App })
   .start();

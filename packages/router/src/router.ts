@@ -28,6 +28,8 @@ export interface IRouteViewport {
 }
 
 export interface IRouter {
+  readonly isNavigating: boolean;
+
   activate(options?: IRouterOptions): Promise<void>;
   deactivate(): void;
 

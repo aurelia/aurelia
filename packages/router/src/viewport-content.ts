@@ -71,7 +71,7 @@ export class ViewportContent {
   }
 
   public reentryBehavior(): ReentryBehavior {
-    return this.component.reentryBehavior || ReentryBehavior.default;
+    return 'reentryBehavior' in this.component ? this.component.reentryBehavior : ReentryBehavior.default;
   }
 
   public isCacheEqual(other: ViewportContent): boolean {

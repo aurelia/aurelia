@@ -20,7 +20,30 @@ export interface IRouteViewport {
     name: string;
     component: Partial<ICustomElementType> | string;
 }
-export declare class Router {
+export interface IRouter {
+    readonly isNavigating: boolean;
+    activate(options?: IRouterOptions): Promise<void>;
+    deactivate(): void;
+    linkCallback(info: AnchorEventInfo): void;
+    historyCallback(instruction: INavigationInstruction): void;
+    processNavigations(): Promise<void>;
+    addProcessingViewport(componentOrInstruction: string | Partial<ICustomElementType> | ViewportInstruction, viewport?: Viewport | string): void;
+    addViewport(name: string, element: Element, context: IRenderContext, options?: IViewportOptions): Viewport;
+    removeViewport(viewport: Viewport, element: Element, context: IRenderContext): void;
+    allViewports(): Viewport[];
+    findScope(element: Element): Scope;
+    removeScope(scope: Scope): void;
+    goto(pathOrViewports: string | Record<string, Viewport>, title?: string, data?: Record<string, unknown>): Promise<void>;
+    replace(pathOrViewports: string | Record<string, Viewport>, title?: string, data?: Record<string, unknown>): Promise<void>;
+    refresh(): Promise<void>;
+    back(): Promise<void>;
+    forward(): Promise<void>;
+    setNav(name: string, routes: INavRoute[]): void;
+    addNav(name: string, routes: INavRoute[]): void;
+    findNav(name: string): Nav;
+}
+export declare const IRouter: import("@aurelia/kernel/dist/interfaces").InterfaceSymbol<IRouter>;
+export declare class Router implements IRouter {
     container: IContainer;
     static readonly inject: InjectArray;
     rootScope: Scope;

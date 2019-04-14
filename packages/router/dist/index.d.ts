@@ -6,6 +6,5 @@ export * from './route-recognizer';
 export * from './router';
 export * from './scope';
 export * from './viewport';
-export * from './resources/viewport';
-export * from './resources/nav';
+export * from './configuration';
 //# sourceMappingURL=index.d.ts.map

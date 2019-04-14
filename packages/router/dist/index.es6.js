@@ -1,5 +1,5 @@
 import { Reporter, PLATFORM, IContainer, buildQueryString, parseQueryString, DI, inject } from '@aurelia/kernel';
-import { CustomElementResource, IObserverLocator, Aurelia, IDOM, createRenderContext, INode, IRenderingEngine, bindable, customElement } from '@aurelia/runtime';
+import { CustomElementResource, IObserverLocator, Aurelia, bindable, customElement, IDOM, createRenderContext, INode, IRenderingEngine } from '@aurelia/runtime';
 
 class QueuedBrowserHistory {
     constructor() {
@@ -2028,6 +2028,7 @@ class Scope {
 }
 
 const IRouteTransformer = DI.createInterface('IRouteTransformer').withDefault(x => x.singleton(RouteTable));
+const IRouter = DI.createInterface('IRouter').withDefault(x => x.singleton(Router));
 class Router {
     constructor(container, routeTransformer) {
         this.container = container;
@@ -2401,6 +2402,49 @@ function __decorate(decorators, target, key, desc) {
     return c > 3 && r && Object.defineProperty(target, key, r), r;
 }
 
+// NOTE: this file is currently not in use
+let NavCustomElement = class NavCustomElement {
+    constructor(router) {
+        this.router = router;
+        this.name = null;
+        this.routes = null;
+        this.level = 0;
+    }
+    get navRoutes() {
+        const nav = this.router.navs[this.name];
+        return (nav ? nav.routes : []);
+    }
+    active(route) {
+        return 'Active';
+    }
+};
+__decorate([
+    bindable
+], NavCustomElement.prototype, "name", void 0);
+__decorate([
+    bindable
+], NavCustomElement.prototype, "routes", void 0);
+__decorate([
+    bindable
+], NavCustomElement.prototype, "level", void 0);
+NavCustomElement = __decorate([
+    inject(Router, Element),
+    customElement({
+        name: 'au-nav', template: `<template>
+  <nav if.bind="name" class="\${name}">
+    <au-nav routes.bind="navRoutes" containerless></au-nav>
+  </nav>
+  <ul if.bind="routes" class="nav-level-\${level}">
+    <li repeat.for="route of routes" class="\${route.active} \${route.hasChildren}">
+      <a if.bind="route.link && route.link.length" href="\${route.link}">\${route.title}</a>
+      <a if.bind="!route.link || !route.link.length" click.delegate="route.toggleActive()" href="">\${route.title}</a>
+      <au-nav if.bind="route.children" routes.bind="route.children" level.bind="level + 1" containerless></au-nav>
+    </li>
+  </ul>
+</template>`
+    })
+], NavCustomElement);
+
 class ViewportCustomElement {
     constructor(router, element, renderingEngine) {
         this.router = router;
@@ -2524,48 +2568,41 @@ __decorate([
 // tslint:disable-next-line:no-invalid-template-strings
 CustomElementResource.define({ name: 'au-viewport', template: '<template><div class="viewport-header"> Viewport: <b>${name}</b> ${scope ? "[new scope]" : ""} : <b>${viewport.content && viewport.content.componentName()}</b></div></template>' }, ViewportCustomElement);
 
-// NOTE: this file is currently not in use
-let NavCustomElement = class NavCustomElement {
-    constructor(router) {
-        this.router = router;
-        this.name = null;
-        this.routes = null;
-        this.level = 0;
-    }
-    get navRoutes() {
-        const nav = this.router.navs[this.name];
-        return (nav ? nav.routes : []);
-    }
-    active(route) {
-        return 'Active';
+const RouterRegistration = Router;
+/**
+ * Default runtime/environment-agnostic implementations for the following interfaces:
+ * - `IRouter`
+ */
+const DefaultComponents = [
+    RouterRegistration
+];
+const ViewportCustomElementRegistration = ViewportCustomElement;
+const NavCustomElementRegistration = NavCustomElement;
+/**
+ * Default router resources:
+ * - Custom Elements: `au-viewport`, `au-nav`
+ */
+const DefaultResources = [
+    ViewportCustomElement,
+    NavCustomElement,
+];
+/**
+ * A DI configuration object containing router resource registrations.
+ */
+const RouterConfiguration = {
+    /**
+     * Apply this configuration to the provided container.
+     */
+    register(container) {
+        return container.register(...DefaultComponents, ...DefaultResources);
+    },
+    /**
+     * Create a new container with this configuration applied to it.
+     */
+    createContainer() {
+        return this.register(DI.createContainer());
     }
 };
-__decorate([
-    bindable
-], NavCustomElement.prototype, "name", void 0);
-__decorate([
-    bindable
-], NavCustomElement.prototype, "routes", void 0);
-__decorate([
-    bindable
-], NavCustomElement.prototype, "level", void 0);
-NavCustomElement = __decorate([
-    inject(Router, Element),
-    customElement({
-        name: 'au-nav', template: `<template>
-  <nav if.bind="name" class="\${name}">
-    <au-nav routes.bind="navRoutes" containerless></au-nav>
-  </nav>
-  <ul if.bind="routes" class="nav-level-\${level}">
-    <li repeat.for="route of routes" class="\${route.active} \${route.hasChildren}">
-      <a if.bind="route.link && route.link.length" href="\${route.link}">\${route.title}</a>
-      <a if.bind="!route.link || !route.link.length" click.delegate="route.toggleActive()" href="">\${route.title}</a>
-      <au-nav if.bind="route.children" routes.bind="route.children" level.bind="level + 1" containerless></au-nav>
-    </li>
-  </ul>
-</template>`
-    })
-], NavCustomElement);
 
-export { CharSpec, DynamicSegment, EpsilonSegment, HandlerEntry, HistoryBrowser, IRouteTransformer, LinkHandler, Nav, NavCustomElement, QueuedBrowserHistory, RecognizeResult, RouteGenerator, RouteRecognizer, Router, Scope, StarSegment, State, StaticSegment, TypesRecord, Viewport, ViewportCustomElement };
+export { CharSpec, DefaultComponents, DefaultResources, DynamicSegment, EpsilonSegment, HandlerEntry, HistoryBrowser, IRouteTransformer, IRouter, LinkHandler, Nav, NavCustomElement, NavCustomElementRegistration, QueuedBrowserHistory, RecognizeResult, RouteGenerator, RouteRecognizer, Router, RouterConfiguration, RouterRegistration, Scope, StarSegment, State, StaticSegment, TypesRecord, Viewport, ViewportCustomElement, ViewportCustomElementRegistration };
 //# sourceMappingURL=index.es6.js.map

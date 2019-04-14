@@ -2031,6 +2031,7 @@
   }
 
   const IRouteTransformer = kernel.DI.createInterface('IRouteTransformer').withDefault(x => x.singleton(RouteTable));
+  const IRouter = kernel.DI.createInterface('IRouter').withDefault(x => x.singleton(Router));
   class Router {
       constructor(container, routeTransformer) {
           this.container = container;
@@ -2404,6 +2405,49 @@
       return c > 3 && r && Object.defineProperty(target, key, r), r;
   }
 
+  // NOTE: this file is currently not in use
+  exports.NavCustomElement = class NavCustomElement {
+      constructor(router) {
+          this.router = router;
+          this.name = null;
+          this.routes = null;
+          this.level = 0;
+      }
+      get navRoutes() {
+          const nav = this.router.navs[this.name];
+          return (nav ? nav.routes : []);
+      }
+      active(route) {
+          return 'Active';
+      }
+  };
+  __decorate([
+      runtime.bindable
+  ], exports.NavCustomElement.prototype, "name", void 0);
+  __decorate([
+      runtime.bindable
+  ], exports.NavCustomElement.prototype, "routes", void 0);
+  __decorate([
+      runtime.bindable
+  ], exports.NavCustomElement.prototype, "level", void 0);
+  exports.NavCustomElement = __decorate([
+      kernel.inject(Router, Element),
+      runtime.customElement({
+          name: 'au-nav', template: `<template>
+  <nav if.bind="name" class="\${name}">
+    <au-nav routes.bind="navRoutes" containerless></au-nav>
+  </nav>
+  <ul if.bind="routes" class="nav-level-\${level}">
+    <li repeat.for="route of routes" class="\${route.active} \${route.hasChildren}">
+      <a if.bind="route.link && route.link.length" href="\${route.link}">\${route.title}</a>
+      <a if.bind="!route.link || !route.link.length" click.delegate="route.toggleActive()" href="">\${route.title}</a>
+      <au-nav if.bind="route.children" routes.bind="route.children" level.bind="level + 1" containerless></au-nav>
+    </li>
+  </ul>
+</template>`
+      })
+  ], exports.NavCustomElement);
+
   class ViewportCustomElement {
       constructor(router, element, renderingEngine) {
           this.router = router;
@@ -2527,62 +2571,61 @@
   // tslint:disable-next-line:no-invalid-template-strings
   runtime.CustomElementResource.define({ name: 'au-viewport', template: '<template><div class="viewport-header"> Viewport: <b>${name}</b> ${scope ? "[new scope]" : ""} : <b>${viewport.content && viewport.content.componentName()}</b></div></template>' }, ViewportCustomElement);
 
-  // NOTE: this file is currently not in use
-  exports.NavCustomElement = class NavCustomElement {
-      constructor(router) {
-          this.router = router;
-          this.name = null;
-          this.routes = null;
-          this.level = 0;
-      }
-      get navRoutes() {
-          const nav = this.router.navs[this.name];
-          return (nav ? nav.routes : []);
-      }
-      active(route) {
-          return 'Active';
+  const RouterRegistration = Router;
+  /**
+   * Default runtime/environment-agnostic implementations for the following interfaces:
+   * - `IRouter`
+   */
+  const DefaultComponents = [
+      RouterRegistration
+  ];
+  const ViewportCustomElementRegistration = ViewportCustomElement;
+  const NavCustomElementRegistration = exports.NavCustomElement;
+  /**
+   * Default router resources:
+   * - Custom Elements: `au-viewport`, `au-nav`
+   */
+  const DefaultResources = [
+      ViewportCustomElement,
+      exports.NavCustomElement,
+  ];
+  /**
+   * A DI configuration object containing router resource registrations.
+   */
+  const RouterConfiguration = {
+      /**
+       * Apply this configuration to the provided container.
+       */
+      register(container) {
+          return container.register(...DefaultComponents, ...DefaultResources);
+      },
+      /**
+       * Create a new container with this configuration applied to it.
+       */
+      createContainer() {
+          return this.register(kernel.DI.createContainer());
       }
   };
-  __decorate([
-      runtime.bindable
-  ], exports.NavCustomElement.prototype, "name", void 0);
-  __decorate([
-      runtime.bindable
-  ], exports.NavCustomElement.prototype, "routes", void 0);
-  __decorate([
-      runtime.bindable
-  ], exports.NavCustomElement.prototype, "level", void 0);
-  exports.NavCustomElement = __decorate([
-      kernel.inject(Router, Element),
-      runtime.customElement({
-          name: 'au-nav', template: `<template>
-  <nav if.bind="name" class="\${name}">
-    <au-nav routes.bind="navRoutes" containerless></au-nav>
-  </nav>
-  <ul if.bind="routes" class="nav-level-\${level}">
-    <li repeat.for="route of routes" class="\${route.active} \${route.hasChildren}">
-      <a if.bind="route.link && route.link.length" href="\${route.link}">\${route.title}</a>
-      <a if.bind="!route.link || !route.link.length" click.delegate="route.toggleActive()" href="">\${route.title}</a>
-      <au-nav if.bind="route.children" routes.bind="route.children" level.bind="level + 1" containerless></au-nav>
-    </li>
-  </ul>
-</template>`
-      })
-  ], exports.NavCustomElement);
 
   exports.CharSpec = CharSpec;
+  exports.DefaultComponents = DefaultComponents;
+  exports.DefaultResources = DefaultResources;
   exports.DynamicSegment = DynamicSegment;
   exports.EpsilonSegment = EpsilonSegment;
   exports.HandlerEntry = HandlerEntry;
   exports.HistoryBrowser = HistoryBrowser;
   exports.IRouteTransformer = IRouteTransformer;
+  exports.IRouter = IRouter;
   exports.LinkHandler = LinkHandler;
   exports.Nav = Nav;
+  exports.NavCustomElementRegistration = NavCustomElementRegistration;
   exports.QueuedBrowserHistory = QueuedBrowserHistory;
   exports.RecognizeResult = RecognizeResult;
   exports.RouteGenerator = RouteGenerator;
   exports.RouteRecognizer = RouteRecognizer;
   exports.Router = Router;
+  exports.RouterConfiguration = RouterConfiguration;
+  exports.RouterRegistration = RouterRegistration;
   exports.Scope = Scope;
   exports.StarSegment = StarSegment;
   exports.State = State;
@@ -2590,6 +2633,7 @@
   exports.TypesRecord = TypesRecord;
   exports.Viewport = Viewport;
   exports.ViewportCustomElement = ViewportCustomElement;
+  exports.ViewportCustomElementRegistration = ViewportCustomElementRegistration;
 
   Object.defineProperty(exports, '__esModule', { value: true });
 

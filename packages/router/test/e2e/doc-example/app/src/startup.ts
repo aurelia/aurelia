@@ -1,9 +1,9 @@
 import { DebugConfiguration } from '@aurelia/debug';
 import { BasicConfiguration } from '@aurelia/jit-html-browser';
 import { Aurelia, IDOM } from '@aurelia/runtime';
+import { RouterConfiguration } from '../../../../../../router/src';
 import { registerComponent } from './utils';
 
-import { NavCustomElement, ViewportCustomElement } from '../../../../../../router/src/index';
 import { App } from './app';
 
 import { About } from './components/about';
@@ -24,8 +24,6 @@ import { State } from './state';
 const container = BasicConfiguration.createContainer();
 
 container.register(
-  ViewportCustomElement as any,
-  NavCustomElement as any,
   App as any,
   State as any,
 );
@@ -47,6 +45,6 @@ registerComponent(
 );
 
 window['au'] = new Aurelia(container)
-  .register(DebugConfiguration)
+  .register(DebugConfiguration, RouterConfiguration)
   .app({ host: document.querySelector('app'), component: App })
   .start();

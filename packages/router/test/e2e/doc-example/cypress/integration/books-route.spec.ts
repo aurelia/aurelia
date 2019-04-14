@@ -112,7 +112,7 @@ describe('doc-example / books route', () => {
 
   describe('book details component', () => {
     before(() => {
-      cy.get(BooksComponent.items)
+      cy.get(BooksComponent.bookLinks)
         .eq(0)
         .click();
     });

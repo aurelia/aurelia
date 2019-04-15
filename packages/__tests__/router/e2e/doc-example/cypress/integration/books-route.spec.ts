@@ -1,6 +1,12 @@
-import { BooksComponent, Shared, BookComponent } from './selectors.po';
+import { BooksComponent, Shared, BookComponent, LoginComponent } from './selectors.po';
 
 describe('doc-example / books route', () => {
+  it('shows login button', () => {
+    cy.visit('/#/books+about');
+    cy.get(LoginComponent.loginButton)
+      .should('exist');
+  });
+
   it('navigates to books route', () => {
     cy.visit('/#/books+about')
       .url()

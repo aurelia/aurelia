@@ -66,3 +66,7 @@ export const ChatDetailsComponent = {
   chatTitle: '[data-test=chat-user-element-title]',
   chatInput: '[data-test=chat-user-element-input]'
 };
+
+export const LoginComponent = {
+  loginButton: '[data-test=login-button]'
+};

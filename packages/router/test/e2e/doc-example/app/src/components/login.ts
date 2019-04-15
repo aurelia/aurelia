@@ -8,7 +8,7 @@ import { wait } from '../utils';
   name: 'login', template: `
 <div class="login">
   <p>You need to be logged in \${specialText} to continue.</p>
-  <button click.trigger="login()">Okay, log me in \${specialText}</button>
+  <button data-test="login-button" click.trigger="login()">Okay, log me in \${specialText}</button>
 </div>` })
 @inject(State, Router)
 export class Login {

@@ -132,7 +132,7 @@ export class App {
       this.state.loginReturnTo = this.router.instructionResolver.stringifyViewportInstructions(instructions);
       this.state.loggedIn = false;
       return false;
-    }, { exclude: ['login'] });
+    }, { exclude: ['', 'login'] });
 
     this.router.guardian.addGuard((instructions) => {
       if (this.verifyLogin(true)) { // true makes it separate and "special"
@@ -141,7 +141,7 @@ export class App {
       const params = this.router.instructionResolver.encodeViewportInstructions(instructions);
       this.router.goto(`login(${params}&1)`);
       return [];
-    }, { include: [{ viewportName: 'author-tabs' }], exclude: ['login'] });
+    }, { include: [{ viewportName: 'author-tabs' }], exclude: ['', 'login'] });
 
     // this.router.guardian.addGuard((instructions) => {
     //   return this.notify('Guarded (all)', instructions);
@@ -166,9 +166,14 @@ export class App {
   }
 
   private verifyLogin(special: boolean = false): boolean {
-    return special
-      ? this.state.loggedInSpecial && (new Date().getTime() - this.state.loggedInSpecialAt.getTime() < 5 * 1000)
-      : this.state.loggedIn && (new Date().getTime() - this.state.loggedInAt.getTime() < 15 * 1000);
+    if (!(special ? this.state.loggedInSpecial : this.state.loggedIn)) {
+      return false;
+    }
+    const timeout = special
+      ? this.state.loggedInSpecialAt.getTime() + 5 * 1000
+      : this.state.loggedInAt.getTime() + 15 * 1000;
+    const now = new Date().getTime();
+    return timeout > now;
   }
 
   notify(message, instructions) {

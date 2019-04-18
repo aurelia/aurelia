@@ -63,7 +63,11 @@ class Target {
   }
 
   public matches(viewportInstructions: ViewportInstruction[]): boolean {
-    for (const instruction of viewportInstructions) {
+    const instructions = viewportInstructions.slice();
+    if (!instructions.length) {
+      instructions.push(new ViewportInstruction(''));
+    }
+    for (const instruction of instructions) {
       if (this.componentName === instruction.componentName ||
         this.component === instruction.component ||
         this.viewportName === instruction.viewportName ||

@@ -39,8 +39,15 @@ export class Login {
       this.state.loggedInSpecial = true;
       this.state.loggedInSpecialAt = new Date();
     }
+    const returnTos = [];
+    if (this.returnTo) {
+      returnTos.push(this.returnTo);
+    }
+    if (this.state.loginReturnTo) {
+      returnTos.push(this.state.loginReturnTo);
+    }
     console.log(this.router.instructionResolver.parseViewportInstructions(this.returnTo));
-    this.router.goto(this.returnTo || this.state.loginReturnTo || 'authors+about');
+    this.router.goto(returnTos.length ? returnTos.join('+') : 'authors+about');
     this.state.loginReturnTo = null;
   }
 }

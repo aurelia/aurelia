@@ -40,6 +40,6 @@
     "http-server": "latest",
     "minimatch": "latest",
     "rimraf": "latest",
-    "typescript": "latest"
+    "typescript": "~3.3.4000"
   }
 }

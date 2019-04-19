@@ -6,6 +6,7 @@ export interface IRouteableCustomElementType extends Partial<ICustomElementType>
     parameters?: string[];
 }
 export interface IRouteableCustomElement extends ICustomElement {
+    reentryBehavior?: ReentryBehavior;
     canEnter?(parameters?: string[] | Record<string, string>, nextInstruction?: INavigationInstruction, instruction?: INavigationInstruction): boolean | string | ViewportInstruction[] | Promise<boolean | string | ViewportInstruction[]>;
     enter?(parameters?: string[] | Record<string, string>, nextInstruction?: INavigationInstruction, instruction?: INavigationInstruction): void | Promise<void>;
     canLeave?(nextInstruction?: INavigationInstruction, instruction?: INavigationInstruction): boolean | Promise<boolean>;
@@ -18,6 +19,12 @@ export declare const enum ContentStatus {
     initialized = 3,
     added = 4
 }
+export declare const enum ReentryBehavior {
+    default = "default",
+    disallow = "disallow",
+    enter = "enter",
+    refresh = "refresh"
+}
 export declare class ViewportContent {
     content: IRouteableCustomElementType | string;
     parameters: string;
@@ -26,8 +33,11 @@ export declare class ViewportContent {
     contentStatus: ContentStatus;
     entered: boolean;
     fromCache: boolean;
+    reentry: boolean;
     constructor(content?: Partial<ICustomElementType> | string, parameters?: string, instruction?: INavigationInstruction, context?: IRenderContext);
-    isChange(other: ViewportContent): boolean;
+    equalComponent(other: ViewportContent): boolean;
+    equalParameters(other: ViewportContent): boolean;
+    reentryBehavior(): ReentryBehavior;
     isCacheEqual(other: ViewportContent): boolean;
     createComponent(context: IRenderContext): void;
     destroyComponent(): void;

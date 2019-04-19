@@ -315,7 +315,7 @@ class HistoryBrowser {
             console.warn('replacePath: entry not matching currentEntry', entry, this.currentEntry);
             return;
         }
-        const newHash = `#/${path}`;
+        const newHash = `#${path}`;
         const { pathname, search, hash } = this.location;
         // tslint:disable-next-line:possible-timing-attack
         if (newHash === hash && this.currentEntry.path === path && this.currentEntry.fullStatePath === fullStatePath) {
@@ -344,9 +344,10 @@ class HistoryBrowser {
     }
     async setPath(path, replace = false) {
         // More checks, such as parameters, needed
-        if (this.currentEntry && this.currentEntry.path === path && !this.isRefreshing) {
-            return;
-        }
+        // Not used at all since we can now reenter exactly same component+parameters
+        // if (this.currentEntry && this.currentEntry.path === path && !this.isRefreshing) {
+        //   return;
+        // }
         const { pathname, search } = this.location;
         const hash = `#${path}`;
         if (replace) {
@@ -1337,6 +1338,13 @@ var ContentStatus;
     ContentStatus[ContentStatus["initialized"] = 3] = "initialized";
     ContentStatus[ContentStatus["added"] = 4] = "added";
 })(ContentStatus || (ContentStatus = {}));
+var ReentryBehavior;
+(function (ReentryBehavior) {
+    ReentryBehavior["default"] = "default";
+    ReentryBehavior["disallow"] = "disallow";
+    ReentryBehavior["enter"] = "enter";
+    ReentryBehavior["refresh"] = "refresh";
+})(ReentryBehavior || (ReentryBehavior = {}));
 class ViewportContent {
     constructor(content = null, parameters = null, instruction = null, context = null) {
         // Can be a (resolved) type or a string (to be resolved later)
@@ -1347,16 +1355,23 @@ class ViewportContent {
         this.contentStatus = 0 /* none */;
         this.entered = false;
         this.fromCache = false;
+        this.reentry = false;
         // If we've got a container, we're good to resolve type
         if (this.content !== null && typeof this.content === 'string' && context !== null) {
             this.content = this.componentType(context);
         }
     }
-    isChange(other) {
-        return ((typeof other.content === 'string' && this.componentName() !== other.content) ||
-            (typeof other.content !== 'string' && this.content !== other.content) ||
-            this.parameters !== other.parameters ||
-            !this.instruction || this.instruction.query !== other.instruction.query);
+    equalComponent(other) {
+        return (typeof other.content === 'string' && this.componentName() === other.content) ||
+            (typeof other.content !== 'string' && this.content === other.content);
+    }
+    equalParameters(other) {
+        // TODO: Review this
+        return this.parameters === other.parameters &&
+            this.instruction.query === other.instruction.query;
+    }
+    reentryBehavior() {
+        return 'reentryBehavior' in this.component ? this.component.reentryBehavior : "default" /* default */;
     }
     isCacheEqual(other) {
         return ((typeof other.content === 'string' && this.componentName() === other.content) ||
@@ -1413,7 +1428,7 @@ class ViewportContent {
         return result;
     }
     async enter(previousInstruction) {
-        if (this.contentStatus !== 1 /* created */ || this.entered) {
+        if (!this.reentry && (this.contentStatus !== 1 /* created */ || this.entered)) {
             return;
         }
         if (this.component.enter) {
@@ -1606,7 +1621,27 @@ class Viewport {
                 this.cache.push(this.nextContent);
             }
         }
-        return this.content.isChange(this.nextContent) || instruction.isRefresh;
+        // ReentryBehavior 'refresh' takes precedence
+        if (!this.content.equalComponent(this.nextContent) ||
+            instruction.isRefresh ||
+            this.content.reentryBehavior() === "refresh" /* refresh */) {
+            return true;
+        }
+        // Explicitly don't allow navigation back to the same component again
+        if (this.content.reentryBehavior() === "disallow" /* disallow */) {
+            return;
+        }
+        // ReentryBehavior is now 'enter' or 'default'
+        if (!this.content.equalParameters(this.nextContent) ||
+            this.content.reentryBehavior() === "enter" /* enter */) {
+            this.content.reentry = true;
+            this.nextContent.content = this.content.content;
+            this.nextContent.component = this.content.component;
+            this.nextContent.contentStatus = this.content.contentStatus;
+            this.nextContent.reentry = this.content.reentry;
+            return true;
+        }
+        return false;
     }
     setElement(element, context, options) {
         // First added viewport with element is always scope viewport (except for root scope)
@@ -1701,12 +1736,15 @@ class Viewport {
             // Only when next component activation is done
             if (this.content.component) {
                 await this.content.leave(this.nextContent.instruction);
-                this.content.removeComponent(this.element, this.options.stateful);
-                this.content.terminateComponent(this.options.stateful);
-                this.content.unloadComponent();
-                this.content.destroyComponent();
+                if (!this.content.reentry) {
+                    this.content.removeComponent(this.element, this.options.stateful);
+                    this.content.terminateComponent(this.options.stateful);
+                    this.content.unloadComponent();
+                    this.content.destroyComponent();
+                }
             }
             this.content = this.nextContent;
+            this.content.reentry = false;
         }
         if (this.clear) {
             this.content = new ViewportContent(null, null, this.nextContent.instruction);
@@ -2248,6 +2286,10 @@ class Router {
     findScope(element) {
         this.ensureRootScope();
         return this.closestScope(element);
+    }
+    // External API to get viewport by name
+    getViewport(name) {
+        return this.allViewports().find(viewport => viewport.name === name);
     }
     // Called from the viewport custom element in attached()
     addViewport(name, element, context, options) {

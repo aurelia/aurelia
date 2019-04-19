@@ -69,6 +69,7 @@ export declare class Router implements IRouter {
     processNavigations(): Promise<void>;
     addProcessingViewport(componentOrInstruction: string | Partial<ICustomElementType> | ViewportInstruction, viewport?: Viewport | string): void;
     findScope(element: Element): Scope;
+    getViewport(name: string): Viewport;
     addViewport(name: string, element: Element, context: IRenderContext, options?: IViewportOptions): Viewport;
     removeViewport(viewport: Viewport, element: Element, context: IRenderContext): void;
     allViewports(): Viewport[];

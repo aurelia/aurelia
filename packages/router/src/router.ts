@@ -330,6 +330,11 @@ export class Router implements IRouter {
     return this.closestScope(element);
   }
 
+  // External API to get viewport by name
+  public getViewport(name: string): Viewport {
+    return this.allViewports().find(viewport => viewport.name === name);
+  }
+
   // Called from the viewport custom element in attached()
   public addViewport(name: string, element: Element, context: IRenderContext, options?: IViewportOptions): Viewport {
     Reporter.write(10000, 'Viewport added', name, element);

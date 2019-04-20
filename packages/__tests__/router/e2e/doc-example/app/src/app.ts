@@ -129,7 +129,8 @@ export class App {
       if (this.verifyLogin()) {
         return true;
       }
-      this.state.loginReturnTo = this.router.instructionResolver.stringifyViewportInstructions(instructions);
+      this.state.loginReturnTo.push(this.router.instructionResolver.stringifyViewportInstructions(instructions));
+      alert("You've timed out!");
       this.state.loggedIn = false;
       return false;
     }, { exclude: ['', 'login'] });
@@ -140,6 +141,7 @@ export class App {
       }
       const params = this.router.instructionResolver.encodeViewportInstructions(instructions);
       this.router.goto(`login(${params}&1)`);
+      this.state.loggedInSpecial = false;
       return [];
     }, { include: [{ viewportName: 'author-tabs' }], exclude: ['', 'login'] });
 

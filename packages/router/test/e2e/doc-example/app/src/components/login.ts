@@ -25,11 +25,6 @@ export class Login {
     console.log('>>>>>>>>>', this.returnTo);
     this.specialLogin = !!params[1];
     this.specialText = this.specialLogin ? 'SPECIAL ' : '';
-    if (!this.specialLogin) {
-      alert("You've timed out!");
-      this.state.loggedIn = false;
-    }
-    this.state.loggedInSpecial = false;
   }
 
   public login() {
@@ -39,16 +34,14 @@ export class Login {
       this.state.loggedInSpecial = true;
       this.state.loggedInSpecialAt = new Date();
     }
-    const returnTos = [];
     if (this.returnTo) {
-      returnTos.push(this.returnTo);
+      this.state.loginReturnTo.push(this.returnTo);
     }
-    if (this.state.loginReturnTo) {
-      returnTos.push(this.state.loginReturnTo);
+    if (this.state.loginReturnTo.length) {
+      console.log(this.state.loginReturnTo.join('+'));
+      this.router.goto(this.state.loginReturnTo.join('+'));
     }
-    console.log(this.router.instructionResolver.parseViewportInstructions(this.returnTo));
-    this.router.goto(returnTos.length ? returnTos.join('+') : 'authors+about');
-    this.state.loginReturnTo = null;
+    this.state.loginReturnTo = [];
   }
 }
 export interface Login extends ICustomElement<HTMLElement> { }

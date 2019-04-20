@@ -5,5 +5,5 @@ export class State {
   public loggedInSpecial: boolean = false;
   public loggedInAt: Date;
   public loggedInSpecialAt: Date;
-  public loginReturnTo: string;
+  public loginReturnTo: string[] = [];
 }

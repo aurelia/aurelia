@@ -70,7 +70,7 @@
     "karma": "^4.0.1",
     "mocha": "^6.0.2",
     "sinon": "^7.3.0",
-    "ts-loader": "^5.3.3",
+    "ts-loader": "^5.4.4",
     "webpack": "^4.29.6"
   },
   "devDependencies": {
@@ -78,9 +78,9 @@
     "cross-env": "^5.2.0",
     "source-map": "^0.7.3",
     "source-map-loader": "^0.2.4",
-    "ts-node": "^8.0.3",
+    "ts-node": "^8.1.0",
     "tsconfig-paths": "^3.8.0",
     "tslib": "^1.9.3",
-    "typescript": "^3.3.4000"
+    "typescript": "^3.4.5"
   }
 }

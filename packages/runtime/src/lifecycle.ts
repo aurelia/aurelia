@@ -265,7 +265,6 @@ class LinkedCallback {
   }
 
   public rotate(): void {
-    //console.log(`rotating`, this);
     if (this.prev === void 0 || this.prev.priority > this.priority) {
       return;
     }
@@ -350,7 +349,8 @@ export interface IProcessingQueue<T> {
 export interface IAutoProcessingQueue<T> extends IProcessingQueue<T> {
   readonly depth: number;
   begin(): void;
-  end(flags: LifecycleFlags): void;
+  end(flags?: LifecycleFlags): void;
+  inline(fn: () => void, flags?: LifecycleFlags): void;
 }
 
 export class BoundQueue implements IAutoProcessingQueue<IController> {
@@ -374,10 +374,19 @@ export class BoundQueue implements IAutoProcessingQueue<IController> {
     ++this.depth;
   }
 
-  public end(flags: LifecycleFlags): void {
+  public end(flags?: LifecycleFlags): void {
+    if (flags === void 0) {
+      flags = LifecycleFlags.none;
+    }
     if (--this.depth === 0) {
       this.process(flags);
     }
+  }
+
+  public inline(fn: () => void, flags?: LifecycleFlags): void {
+    this.begin();
+    fn();
+    this.end(flags);
   }
 
   public add(controller: IController): void {
@@ -449,10 +458,19 @@ export class UnboundQueue implements IAutoProcessingQueue<IController> {
     ++this.depth;
   }
 
-  public end(flags: LifecycleFlags): void {
+  public end(flags?: LifecycleFlags): void {
+    if (flags === void 0) {
+      flags = LifecycleFlags.none;
+    }
     if (--this.depth === 0) {
       this.process(flags);
     }
+  }
+
+  public inline(fn: () => void, flags?: LifecycleFlags): void {
+    this.begin();
+    fn();
+    this.end(flags);
   }
 
   public add(controller: IController): void {
@@ -524,12 +542,21 @@ export class AttachedQueue implements IAutoProcessingQueue<IController> {
     ++this.depth;
   }
 
-  public end(flags: LifecycleFlags): void {
+  public end(flags?: LifecycleFlags): void {
+    if (flags === void 0) {
+      flags = LifecycleFlags.none;
+    }
     if (--this.depth === 0) {
       // temporary, until everything else works and we're ready for integrating mount/unmount in the RAF queue
       this.lifecycle.mount.process(flags);
       this.process(flags);
     }
+  }
+
+  public inline(fn: () => void, flags?: LifecycleFlags): void {
+    this.begin();
+    fn();
+    this.end(flags);
   }
 
   public add(controller: IController): void {
@@ -601,12 +628,21 @@ export class DetachedQueue implements IAutoProcessingQueue<IController> {
     ++this.depth;
   }
 
-  public end(flags: LifecycleFlags): void {
+  public end(flags?: LifecycleFlags): void {
+    if (flags === void 0) {
+      flags = LifecycleFlags.none;
+    }
     if (--this.depth === 0) {
       // temporary, until everything else works and we're ready for integrating mount/unmount in the RAF queue
       this.lifecycle.unmount.process(flags);
       this.process(flags);
     }
+  }
+
+  public inline(fn: () => void, flags?: LifecycleFlags): void {
+    this.begin();
+    fn();
+    this.end(flags);
   }
 
   public add(controller: IController): void {
@@ -722,7 +758,6 @@ export class MountQueue implements IProcessingQueue<IController> {
         cur = next!;
       } while (cur !== void 0);
     }
-    console.log(`UnmountQueue, processed ${i}`);
   }
 }
 
@@ -742,7 +777,6 @@ export class UnmountQueue implements IProcessingQueue<IController> {
   public add(controller: IController): void {
     if ((controller.state & State.inMountQueue) > 0) {
       this.lifecycle.mount.remove(controller);
-      console.log(`in mount queue during unmountQueue.add, so removing`, this);
       return;
     }
     if (this.head === void 0) {
@@ -791,7 +825,6 @@ export class UnmountQueue implements IProcessingQueue<IController> {
         cur = next!;
       } while (cur !== void 0);
     }
-    console.log(`UnmountQueue, processed ${i}`);
   }
 }
 
@@ -812,10 +845,19 @@ export class BatchQueue implements IAutoProcessingQueue<IBatchable> {
     ++this.depth;
   }
 
-  public end(flags: LifecycleFlags): void {
+  public end(flags?: LifecycleFlags): void {
+    if (flags === void 0) {
+      flags = LifecycleFlags.none;
+    }
     if (--this.depth === 0) {
       this.process(flags);
     }
+  }
+
+  public inline(fn: () => void, flags?: LifecycleFlags): void {
+    this.begin();
+    fn();
+    this.end(flags);
   }
 
   public add(requestor: IBatchable): void {
@@ -1051,7 +1093,6 @@ export class Lifecycle {
     if (timestamp > this.rafStartTime) {
       const prevFrameDuration = this.prevFrameDuration = timestamp - this.rafStartTime;
       if (prevFrameDuration + 1 < this.minFrameDuration) {
-        console.log(`processRAFQueue #1, skipping because !(${prevFrameDuration + 1} < ${this.minFrameDuration})`);
         return;
       }
 
@@ -1116,8 +1157,6 @@ export class Lifecycle {
       if (this.rafHead.next === void 0) {
         this.stopTicking();
       }
-    } else {
-      console.log(`processRAFQueue, skipping because !(${timestamp} > ${this.rafStartTime})`);
     }
 
     this.rafStartTime = timestamp;

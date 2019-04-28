@@ -258,6 +258,8 @@ const App = CustomElementResource.define(
 new Aurelia().register(BasicConfiguration, { register }).app(
   {
     host: document.getElementById('app'),
-    component: App
+    component: App,
+    enableTimeSlicing: true,
+    adaptiveTimeSlicing: true
   }
 ).start();

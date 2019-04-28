@@ -132,3 +132,11 @@ export function nextId(context: string): number {
 export function resetId(context: string): void {
   ids[context] = 0;
 }
+
+/**
+ * A compare function to pass to `Array.prototype.sort` for sorting numbers.
+ * This is needed for numeric sort, since the default sorts them as strings.
+ */
+export function compareNumber(a: number, b: number): number {
+  return a - b;
+}

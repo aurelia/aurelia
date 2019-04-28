@@ -72,7 +72,7 @@ export class ViewFactory<T extends INode = INode> implements IViewFactory<T> {
 
     if (cache != null && cache.length > 0) {
       controller = cache.pop()!;
-      controller.state ^= State.isCached;
+      controller.state = (controller.state | State.isCached) ^ State.isCached;
       return controller;
     }
 

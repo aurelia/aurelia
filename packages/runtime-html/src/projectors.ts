@@ -94,6 +94,7 @@ export class ShadowDOMProjector implements IElementProjector<Node> {
   public take(nodes: INodeSequence<Node>): void {
     if (Tracer.enabled) { Tracer.enter('ShadowDOMProjector', 'take', slice.call(arguments)); }
     nodes.remove();
+    nodes.unlink();
     if (Tracer.enabled) { Tracer.leave(); }
   }
 }
@@ -138,6 +139,7 @@ export class ContainerlessProjector implements IElementProjector<Node> {
   public take(nodes: INodeSequence<Node>): void {
     if (Tracer.enabled) { Tracer.enter('ContainerlessProjector', 'take', slice.call(arguments)); }
     nodes.remove();
+    nodes.unlink();
     if (Tracer.enabled) { Tracer.leave(); }
   }
 }
@@ -172,6 +174,7 @@ export class HostProjector implements IElementProjector<Node> {
   public take(nodes: INodeSequence<Node>): void {
     if (Tracer.enabled) { Tracer.enter('HostProjector', 'take', slice.call(arguments)); }
     nodes.remove();
+    nodes.unlink();
     if (Tracer.enabled) { Tracer.leave(); }
   }
 }

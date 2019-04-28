@@ -387,7 +387,7 @@ export class Controller<
   }
 
   public attach(flags: LifecycleFlags): void {
-    if ((this.state & State.isAttached) > 0) {
+    if ((this.state & State.isAttachedOrAttaching) > 0 && (flags & LifecycleFlags.reorderNodes) === 0) {
       return;
     }
 
@@ -405,7 +405,7 @@ export class Controller<
   }
 
   public detach(flags: LifecycleFlags): void {
-    if ((this.state & State.isAttached) === 0) {
+    if ((this.state & State.isAttachedOrAttaching) === 0) {
       return;
     }
 
@@ -478,12 +478,17 @@ export class Controller<
 
   // #region bind/unbind
   private bindCustomElement(flags: LifecycleFlags, scope?: IScope): ILifecycleTask {
+    const $scope = this.scope as Writable<IScope>;
+    if ((flags & LifecycleFlags.updateOneTimeBindings) > 0) {
+      this.bindBindings(flags, $scope);
+      return LifecycleTask.done;
+    }
+
     if ((this.state & State.isBound) > 0) {
       return LifecycleTask.done;
     }
 
     flags |= LifecycleFlags.fromBind;
-    const $scope = this.scope as Writable<IScope>;
     $scope.parentScope = scope;
 
     this.state |= State.isBinding;
@@ -536,6 +541,11 @@ export class Controller<
   private bindSynthetic(flags: LifecycleFlags, scope?: IScope): ILifecycleTask {
     if (scope == void 0) {
       throw new Error(`Scope is null or undefined`); // TODO: create error code
+    }
+
+    if ((flags & LifecycleFlags.updateOneTimeBindings) > 0) {
+      this.bindBindings(flags, scope);
+      return LifecycleTask.done;
     }
 
     if ((this.state & State.isBound) > 0) {
@@ -710,7 +720,7 @@ export class Controller<
       this.lifecycle.unbound.add(this);
     }
 
-    this.state ^= State.isBoundOrUnbinding;
+    this.state = (this.state | State.isBoundOrUnbinding) ^ State.isBoundOrUnbinding;
     this.lifecycle.unbound.end(flags);
   }
   // #endregion
@@ -756,16 +766,20 @@ export class Controller<
   }
 
   private attachSynthetic(flags: LifecycleFlags): void {
-    flags |= LifecycleFlags.fromAttach;
-    this.state |= State.isAttaching;
+    if (((this.state & State.isAttached) > 0 && flags & LifecycleFlags.reorderNodes) > 0) {
+      this.lifecycle.mount.add(this);
+    } else {
+      flags |= LifecycleFlags.fromAttach;
+      this.state |= State.isAttaching;
 
-    this.lifecycle.mount.add(this);
-    this.lifecycle.attached.begin();
+      this.lifecycle.mount.add(this);
+      this.lifecycle.attached.begin();
 
-    this.attachControllers(flags);
+      this.attachControllers(flags);
 
-    this.state = this.state ^ State.isAttaching | State.isAttached;
-    this.lifecycle.attached.end(flags);
+      this.state = this.state ^ State.isAttaching | State.isAttached;
+      this.lifecycle.attached.end(flags);
+    }
   }
 
   private detachCustomElement(flags: LifecycleFlags): void {
@@ -785,7 +799,7 @@ export class Controller<
       this.lifecycle.detached.add(this);
     }
 
-    this.state ^= State.isAttachedOrDetaching;
+    this.state = (this.state | State.isAttachedOrDetaching) ^ State.isAttachedOrDetaching;
     this.lifecycle.detached.end(flags);
   }
 
@@ -803,7 +817,7 @@ export class Controller<
       this.lifecycle.detached.add(this);
     }
 
-    this.state ^= State.isAttachedOrDetaching;
+    this.state = (this.state | State.isAttachedOrDetaching) ^ State.isAttachedOrDetaching;
     this.lifecycle.detached.end(flags);
   }
 
@@ -816,7 +830,7 @@ export class Controller<
 
     this.detachControllers(flags);
 
-    this.state ^= State.isAttachedOrDetaching;
+    this.state = (this.state | State.isAttachedOrDetaching) ^ State.isAttachedOrDetaching;
     this.lifecycle.detached.end(flags);
   }
 
@@ -852,10 +866,6 @@ export class Controller<
   }
 
   private mountSynthetic(flags: LifecycleFlags): void {
-    if ((this.state & State.isMounted) > 0) {
-      return;
-    }
-
     this.state |= State.isMounted;
     // tslint:disable-next-line: no-non-null-assertion // non-null is implied by the hook
     this.nodes!.insertBefore(this.location!);
@@ -866,7 +876,7 @@ export class Controller<
       return;
     }
 
-    this.state ^= State.isMounted;
+    this.state = (this.state | State.isMounted) ^ State.isMounted;
     // tslint:disable-next-line: no-non-null-assertion // non-null is implied by the hook
     this.projector!.take(this.nodes!);
   }
@@ -876,12 +886,13 @@ export class Controller<
       return false;
     }
 
-    this.state ^= State.isMounted;
+    this.state = (this.state | State.isMounted) ^ State.isMounted;
     // tslint:disable-next-line: no-non-null-assertion // non-null is implied by the hook
     this.nodes!.remove();
+    this.nodes!.unlink();
 
     if ((this.state & State.canBeCached) > 0) {
-      this.state ^= State.canBeCached;
+      this.state = (this.state | State.canBeCached) ^ State.canBeCached;
       // tslint:disable-next-line: no-non-null-assertion // non-null is implied by the hook
       if (this.viewCache!.tryReturnToCache(this)) {
         this.state |= State.isCached;

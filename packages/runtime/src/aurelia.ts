@@ -257,8 +257,6 @@ export class Aurelia<TNode extends INode = INode> {
     Reflect.set(root.host, '$au', this);
     this._root = root;
     this._isStarting = true;
-    // Disable timeslicing during start to minimize startup time and make startup reliably awaitable
-    root.lifecycle.disableTimeslicing();
     if (Profiler.enabled) { enterStart(); }
   }
 

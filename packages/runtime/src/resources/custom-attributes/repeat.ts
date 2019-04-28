@@ -1,4 +1,5 @@
 import {
+  compareNumber,
   IContainer,
   InjectArray,
   nextId,
@@ -14,6 +15,7 @@ import {
 } from '../../definitions';
 import {
   INode,
+  INodeSequence,
   IRenderLocation
 } from '../../dom';
 import {
@@ -224,8 +226,7 @@ export class Repeat<C extends ObservedCollection = IObservedArray, T extends INo
       if ((this.$controller.state & State.isBoundOrBinding) > 0) {
         // first detach+unbind+(remove from array) the deleted view indices
         if (indexMap.deletedItems.length > 0) {
-          // tslint:disable-next-line:no-alphabetical-sort // alphabetical (numeric) sort is intentional
-          indexMap.deletedItems.sort();
+          indexMap.deletedItems.sort(compareNumber);
           if (this.task.done) {
             this.detachViewsByKey(indexMap, flags);
           } else {
@@ -273,10 +274,11 @@ export class Repeat<C extends ObservedCollection = IObservedArray, T extends INo
   }
 
   private detachViewsByRange(iStart: number, iEnd: number, flags: LF): void {
+    const views = this.views;
     this.$controller.lifecycle.detached.begin();
     let view: IController<T>;
     for (let i = iStart; i < iEnd; ++i) {
-      view = this.views[i];
+      view = views[i];
       view.release(flags);
       view.detach(flags);
     }
@@ -284,12 +286,13 @@ export class Repeat<C extends ObservedCollection = IObservedArray, T extends INo
   }
 
   private unbindAndRemoveViewsByRange(iStart: number, iEnd: number, flags: LF, adjustLength: boolean): ILifecycleTask {
+    const views = this.views;
     let tasks: ILifecycleTask[] | undefined = void 0;
     let task: ILifecycleTask;
     this.$controller.lifecycle.unbound.begin();
     let view: IController<T>;
     for (let i = iStart; i < iEnd; ++i) {
-      view = this.views[i];
+      view = views[i];
       task = view.unbind(flags);
       if (!task.done) {
         if (tasks === undefined) {
@@ -317,12 +320,13 @@ export class Repeat<C extends ObservedCollection = IObservedArray, T extends INo
   }
 
   private detachViewsByKey(indexMap: IndexMap, flags: LF): void {
+    const views = this.views;
     this.$controller.lifecycle.detached.begin();
     const deleted = indexMap.deletedItems;
     const deletedLen = deleted.length;
     let view: IController<T>;
     for (let i = 0; i < deletedLen; ++i) {
-      view = this.views[deleted[i]];
+      view = views[deleted[i]];
       view.release(flags);
       view.detach(flags);
     }
@@ -330,13 +334,12 @@ export class Repeat<C extends ObservedCollection = IObservedArray, T extends INo
   }
 
   private unbindAndRemoveViewsByKey(indexMap: IndexMap, flags: LF): ILifecycleTask {
+    const views = this.views;
     let tasks: ILifecycleTask[] | undefined = void 0;
     let task: ILifecycleTask;
     this.$controller.lifecycle.unbound.begin();
     const deleted = indexMap.deletedItems;
     const deletedLen = deleted.length;
-    const mapLen = indexMap.length;
-    const views = this.views;
     let view: IController<T>;
     let i = 0;
     for (; i < deletedLen; ++i) {
@@ -352,16 +355,9 @@ export class Repeat<C extends ObservedCollection = IObservedArray, T extends INo
 
     i = 0;
     let j = 0;
-    let k = 0;
     for (; i < deletedLen; ++i) {
       j = deleted[i] - i;
-      views.splice(j, 1);
-      k = 0;
-      for (; k < mapLen; ++k) {
-        if (indexMap[k] >= j) {
-          --indexMap[k];
-        }
-      }
+      this.views.splice(j, 1);
     }
 
     if (tasks === undefined) {
@@ -382,7 +378,9 @@ export class Repeat<C extends ObservedCollection = IObservedArray, T extends INo
     let task: ILifecycleTask;
     let view: IController<T>;
     this.$controller.lifecycle.bound.begin();
-    const { items, factory, local } = this;
+    const factory = this.factory;
+    const local = this.local;
+    const items = this.items;
     const scope = this.$controller.scope as IScope;
     const newLen = this.forOf.count(flags, items);
     const views = this.views = Array(newLen);
@@ -417,7 +415,10 @@ export class Repeat<C extends ObservedCollection = IObservedArray, T extends INo
     let tasks: ILifecycleTask[] | undefined = void 0;
     let task: ILifecycleTask;
     let view: IController<T>;
-    const { factory, views, local, items } = this;
+    const factory = this.factory;
+    const views = this.views;
+    const local = this.local;
+    const items = this.items;
     const scope = this.$controller.scope as IScope;
     this.$controller.lifecycle.bound.begin();
     const mapLen = indexMap.length;
@@ -465,6 +466,7 @@ export class Repeat<C extends ObservedCollection = IObservedArray, T extends INo
       for (let i = 0, ii = views.length; i < ii; ++i) {
         view = views[i];
         view.hold(location);
+        view.nodes!.unlink();
         view.attach(flags);
       }
     } else {
@@ -472,6 +474,7 @@ export class Repeat<C extends ObservedCollection = IObservedArray, T extends INo
         if (indexMap[i] !== i) {
           view = views[i];
           view.hold(location);
+          view.nodes!.unlink();
           view.attach(flags);
         }
       }
@@ -486,6 +489,7 @@ export class Repeat<C extends ObservedCollection = IObservedArray, T extends INo
     for (let i = 0, ii = views.length; i < ii; ++i) {
       view = views[i];
       view.hold(location);
+      view.nodes!.unlink();
       view.attach(flags);
     }
     this.$controller.lifecycle.attached.end(flags);
@@ -493,82 +497,50 @@ export class Repeat<C extends ObservedCollection = IObservedArray, T extends INo
 
   private sortViewsByKey(indexMap: IndexMap, flags: LF): void {
     // TODO: integrate with tasks
-    const { location, views } = this;
+    const location = this.location;
+    const views = this.views;
+    const viewsCopy = views.slice();
+
+    const len = indexMap.length;
+    let to = 0;
+    let from = 0;
+    while (to < len) {
+      from = indexMap[to];
+      if (from !== -2) {
+        views[to] = viewsCopy[from];
+      }
+      ++to;
+    }
+
     // this algorithm retrieves the indices of the longest increasing subsequence of items in the repeater
     // the items on those indices are not moved; this minimizes the number of DOM operations that need to be performed
     const seq = longestIncreasingSubsequence(indexMap);
     const seqLen = seq.length;
-    this.$controller.lifecycle.detached.begin();
     this.$controller.lifecycle.attached.begin();
-    const operation: Partial<IController<T>> = {
-      mount($flags: LF): void {
-        $flags |= flags;
-        let next = location;
-        let j = seqLen - 1;
-        let i = indexMap.length - 1;
-        let view: IController;
-        for (; i >= 0; --i) {
-          if (indexMap[i] === -2) {
-            view = views[i];
 
-            view.state |= State.isAttaching;
+    flags |= LF.reorderNodes;
 
-            const { controllers } = view;
-            if (controllers != void 0) {
-              const { length } = controllers;
-              for (let k = 0; k < length; ++k) {
-                controllers[i].attach($flags);
-              }
-            }
+    let next: IController;
+    let j = seqLen - 1;
+    let i = indexMap.length - 1;
+    for (; i >= 0; --i) {
+      if (indexMap[i] === -2) {
+        views[i].hold(location);
+        views[i].attach(flags);
+      } else if (j < 0 || seqLen === 1 || i !== seq[j]) {
+        views[i].attach(flags);
+      } else {
+        --j;
+      }
 
-            view.nodes!.insertBefore(next);
+      next = views[i + 1];
+      if (next !== void 0) {
+        views[i].nodes!.link(next.nodes!);
+      } else {
+        views[i].nodes!.link(location);
+      }
+    }
 
-            view.state = (view.state | isMountedOrAttachedOrAttaching) ^ State.isAttaching;
-            next = view.nodes!.firstChild;
-          } else if (j < 0 || seqLen === 1 || i !== seq[j]) {
-            view = views[indexMap[i]];
-            view.state |= State.isDetaching;
-
-            const { controllers } = view;
-            if (controllers != void 0) {
-              const { length } = controllers;
-              for (let k = length - 1; k >= 0; --k) {
-                controllers[i].detach($flags);
-              }
-            }
-            view.nodes!.remove();
-
-            view.state = (view.state | isMountedOrAttachedOrDetachingOrAttaching) ^ isMountedOrAttachedOrDetaching;
-
-            if (controllers != void 0) {
-              const { length } = controllers;
-              for (let k = 0; k < length; ++k) {
-                controllers[i].attach($flags);
-              }
-            }
-
-            view.nodes!.insertBefore(next);
-
-            view.state = (view.state | isMountedOrAttachedOrAttaching) ^ State.isAttaching;
-
-            next = view.nodes!.firstChild;
-          } else {
-            view = views[i];
-            next = view.nodes!.firstChild;
-            --j;
-          }
-        }
-      },
-      nextMount: void 0,
-      prevMount: void 0,
-      nextUnmount: void 0,
-      prevUnmount: void 0,
-      state: State.none,
-    };
-
-    // TODO: make this less hacky
-    this.$controller.lifecycle.mount.add(operation as unknown as IController);
-    this.$controller.lifecycle.detached.end(flags);
     this.$controller.lifecycle.attached.end(flags);
   }
 }
@@ -626,7 +598,7 @@ export function longestIncreasingSubsequence(indexMap: IndexMap): Int32Array {
       prev = indexMap[prevIndices[low]];
       if (cur < prev || prev === -2) {
         if (low > 0) {
-          prevIndices[i] = prevIndices[low - 1];
+          tailIndices[i] = prevIndices[low - 1];
         }
         prevIndices[low] = i;
       }

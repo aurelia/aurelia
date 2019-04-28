@@ -265,6 +265,7 @@ class LinkedCallback {
   }
 
   public rotate(): void {
+    //console.log(`rotating`, this);
     if (this.prev === void 0 || this.prev.priority > this.priority) {
       return;
     }
@@ -406,7 +407,7 @@ export class BoundQueue implements IAutoProcessingQueue<IController> {
     if (this.head === controller) {
       this.head = controller.nextBound;
     }
-    controller.state ^= State.inBoundQueue;
+    controller.state = (controller.state | State.inBoundQueue) ^ State.inBoundQueue;
   }
 
   public process(flags: LifecycleFlags): void {
@@ -415,7 +416,7 @@ export class BoundQueue implements IAutoProcessingQueue<IController> {
       this.head = this.tail = void 0;
       let next: IController | undefined;
       do {
-        cur.state ^= State.inBoundQueue;
+        cur.state = (cur.state | State.inBoundQueue) ^ State.inBoundQueue;
         cur.bound(flags);
         next = cur.nextBound;
         cur.nextBound = void 0;
@@ -481,7 +482,7 @@ export class UnboundQueue implements IAutoProcessingQueue<IController> {
     if (this.head === controller) {
       this.head = controller.nextUnbound;
     }
-    controller.state ^= State.inUnboundQueue;
+    controller.state = (controller.state | State.inUnboundQueue) ^ State.inUnboundQueue;
   }
 
   public process(flags: LifecycleFlags): void {
@@ -490,7 +491,7 @@ export class UnboundQueue implements IAutoProcessingQueue<IController> {
       this.head = this.tail = void 0;
       let next: IController | undefined;
       do {
-        cur.state ^= State.inUnboundQueue;
+        cur.state = (cur.state | State.inUnboundQueue) ^ State.inUnboundQueue;
         cur.unbound(flags);
         next = cur.nextUnbound;
         cur.nextUnbound = void 0;
@@ -558,7 +559,7 @@ export class AttachedQueue implements IAutoProcessingQueue<IController> {
     if (this.head === controller) {
       this.head = controller.nextAttached;
     }
-    controller.state ^= State.inAttachedQueue;
+    controller.state = (controller.state | State.inAttachedQueue) ^ State.inAttachedQueue;
   }
 
   public process(flags: LifecycleFlags): void {
@@ -567,7 +568,7 @@ export class AttachedQueue implements IAutoProcessingQueue<IController> {
       this.head = this.tail = void 0;
       let next: IController | undefined;
       do {
-        cur.state ^= State.inAttachedQueue;
+        cur.state = (cur.state | State.inAttachedQueue) ^ State.inAttachedQueue;
         cur.attached(flags);
         next = cur.nextAttached;
         cur.nextAttached = void 0;
@@ -635,7 +636,7 @@ export class DetachedQueue implements IAutoProcessingQueue<IController> {
     if (this.head === controller) {
       this.head = controller.nextDetached;
     }
-    controller.state ^= State.inDetachedQueue;
+    controller.state = (controller.state | State.inDetachedQueue) ^ State.inDetachedQueue;
   }
 
   public process(flags: LifecycleFlags): void {
@@ -644,7 +645,7 @@ export class DetachedQueue implements IAutoProcessingQueue<IController> {
       this.head = this.tail = void 0;
       let next: IController | undefined;
       do {
-        cur.state ^= State.inDetachedQueue;
+        cur.state = (cur.state | State.inDetachedQueue) ^ State.inDetachedQueue;
         cur.detached(flags);
         next = cur.nextDetached;
         cur.nextDetached = void 0;
@@ -672,6 +673,7 @@ export class MountQueue implements IProcessingQueue<IController> {
   public add(controller: IController): void {
     if ((controller.state & State.inUnmountQueue) > 0) {
       this.lifecycle.unmount.remove(controller);
+      console.log(`in unmount queue during mountQueue.add, so removing`, this);
       return;
     }
     if (this.head === void 0) {
@@ -700,16 +702,18 @@ export class MountQueue implements IProcessingQueue<IController> {
     if (this.head === controller) {
       this.head = controller.nextMount;
     }
-    controller.state ^= State.inMountQueue;
+    controller.state = (controller.state | State.inMountQueue) ^ State.inMountQueue;
   }
 
   public process(flags: LifecycleFlags): void {
+    let i = 0;
     while (this.head !== void 0) {
       let cur = this.head;
       this.head = this.tail = void 0;
       let next: IController | undefined;
       do {
-        cur.state ^= State.inMountQueue;
+        cur.state = (cur.state | State.inMountQueue) ^ State.inMountQueue;
+        ++i;
         cur.mount(flags);
         next = cur.nextMount;
         cur.nextMount = void 0;
@@ -718,6 +722,7 @@ export class MountQueue implements IProcessingQueue<IController> {
         cur = next!;
       } while (cur !== void 0);
     }
+    console.log(`UnmountQueue, processed ${i}`);
   }
 }
 
@@ -737,6 +742,7 @@ export class UnmountQueue implements IProcessingQueue<IController> {
   public add(controller: IController): void {
     if ((controller.state & State.inMountQueue) > 0) {
       this.lifecycle.mount.remove(controller);
+      console.log(`in mount queue during unmountQueue.add, so removing`, this);
       return;
     }
     if (this.head === void 0) {
@@ -765,16 +771,18 @@ export class UnmountQueue implements IProcessingQueue<IController> {
     if (this.head === controller) {
       this.head = controller.nextUnmount;
     }
-    controller.state ^= State.inUnmountQueue;
+    controller.state = (controller.state | State.inUnmountQueue) ^ State.inUnmountQueue;
   }
 
   public process(flags: LifecycleFlags): void {
+    let i = 0;
     while (this.head !== void 0) {
       let cur = this.head;
       this.head = this.tail = void 0;
       let next: IController | undefined;
       do {
-        cur.state ^= State.inUnmountQueue;
+        cur.state = (cur.state | State.inUnmountQueue) ^ State.inUnmountQueue;
+        ++i;
         cur.unmount(flags);
         next = cur.nextUnmount;
         cur.nextUnmount = void 0;
@@ -783,6 +791,7 @@ export class UnmountQueue implements IProcessingQueue<IController> {
         cur = next!;
       } while (cur !== void 0);
     }
+    console.log(`UnmountQueue, processed ${i}`);
   }
 }
 
@@ -1042,6 +1051,7 @@ export class Lifecycle {
     if (timestamp > this.rafStartTime) {
       const prevFrameDuration = this.prevFrameDuration = timestamp - this.rafStartTime;
       if (prevFrameDuration + 1 < this.minFrameDuration) {
+        console.log(`processRAFQueue #1, skipping because !(${prevFrameDuration + 1} < ${this.minFrameDuration})`);
         return;
       }
 
@@ -1106,6 +1116,8 @@ export class Lifecycle {
       if (this.rafHead.next === void 0) {
         this.stopTicking();
       }
+    } else {
+      console.log(`processRAFQueue, skipping because !(${timestamp} > ${this.rafStartTime})`);
     }
 
     this.rafStartTime = timestamp;

@@ -97,4 +97,5 @@ export {
   toArray,
   nextId,
   resetId,
+  compareNumber,
 } from './functions';

@@ -1,35 +1,61 @@
 import { expect } from 'chai';
-import { match } from 'sinon';
 import {
   ArrayObserver,
   disableArrayObservation,
   enableArrayObservation,
   IndexMap,
   LifecycleFlags as LF,
-  ILifecycle
+  ILifecycle,
+  copyIndexMap,
+  ICollectionSubscriber,
+  LifecycleFlags,
 } from '@aurelia/runtime';
 import {
-  stringify,
   SpySubscriber,
+  assert,
+  CollectionChangeSet,
+  eachCartesianJoin,
 } from '@aurelia/testing';
 import { DI } from '@aurelia/kernel';
 
-export function assertArrayEqual(actual: ReadonlyArray<any>, expected: ReadonlyArray<any>): void {
-  const len = actual.length;
-  let i = 0;
-  while (i < len) {
-    if (actual[i] !== expected[i]) {
-      const start = Math.max(i - 3, 0);
-      const end = Math.min(i + 3, len);
-      const $actual = actual.slice(start, end).map(stringify).join(',');
-      const $expected = expected.slice(start, end).map(stringify).join(',');
-      const prefix = `[${start > 0 ? '...,' : ''}`;
-      const suffix = `${end < len ? ',...' : ''}]`;
-      throw new Error(`expected ${prefix}${$actual}${suffix} to equal ${prefix}${$expected}${suffix}`);
-    }
-    i++;
+export class SynchronizingCollectionSubscriber implements ICollectionSubscriber {
+  public readonly oldArr: unknown[];
+  public readonly newArr: unknown[];
+
+  constructor(
+    oldArr: unknown[],
+    newArr: unknown[],
+  ) {
+    this.oldArr = oldArr;
+    this.newArr = newArr;
   }
-  expect(len).to.equal(expected.length, `expected.length=${expected.length}, actual.length=${actual.length}`);
+
+  public handleCollectionChange(indexMap: IndexMap, flags: LifecycleFlags): void {
+    const newArr = this.newArr;
+    const oldArr = this.oldArr;
+
+    if (newArr.length === 0 && oldArr.length === 0) {
+      return;
+    }
+
+    const copy = oldArr.slice();
+
+    const len = indexMap.length;
+    let to = 0;
+    let from = 0;
+    while (to < len) {
+      from = indexMap[to];
+      if (from > -1) {
+        // move existing
+        oldArr[to] = copy[from];
+      } else if (from < -1) {
+        // add new
+        oldArr[to] = newArr[to];
+      }
+      to++;
+    }
+    oldArr.length = newArr.length;
+  }
 }
 
 describe(`ArrayObserver`, function () {
@@ -40,29 +66,29 @@ describe(`ArrayObserver`, function () {
     enableArrayObservation();
   });
 
-  afterEach(function () {
-    if (sut) {
-      sut.dispose();
-    }
-  });
-
   describe('should allow subscribing for immediate notification', function () {
     it('push', function () {
       const s = new SpySubscriber();
       const arr = [];
       sut = new ArrayObserver(LF.none, DI.createContainer().get(ILifecycle), arr);
-      sut.subscribe(s);
+      sut.subscribeToCollection(s);
       arr.push(1);
-      expect(s.handleChange).to.have.been.calledWith('push', match(x => x[0] === 1));
+      assert.deepStrictEqual(
+        s.collectionChanges.pop(),
+        new CollectionChangeSet(0, LF.updateTargetInstance, copyIndexMap([-2]))
+      );
     });
 
     it('push', function () {
       const s = new SpySubscriber();
       const arr = [];
       sut = new ArrayObserver(LF.none, DI.createContainer().get(ILifecycle), arr);
-      sut.subscribe(s);
+      sut.subscribeToCollection(s);
       arr.push(1, 2);
-      expect(s.handleChange).to.have.been.calledWith('push', match(x => x[0] === 1 && x[1] === 2));
+      assert.deepStrictEqual(
+        s.collectionChanges.pop(),
+        new CollectionChangeSet(0, LF.updateTargetInstance, copyIndexMap([-2, -2]))
+      );
     });
   });
 
@@ -71,10 +97,10 @@ describe(`ArrayObserver`, function () {
       const s = new SpySubscriber();
       const arr = [];
       sut = new ArrayObserver(LF.none, DI.createContainer().get(ILifecycle), arr);
-      sut.subscribe(s);
-      sut.unsubscribe(s);
+      sut.subscribeToCollection(s);
+      sut.unsubscribeFromCollection(s);
       arr.push(1);
-      expect(s.handleChange).not.to.have.been.called;
+      assert.strictEqual(s.collectionChanges.length, 0);
     });
   });
 
@@ -82,25 +108,35 @@ describe(`ArrayObserver`, function () {
     it('push', function () {
       const s = new SpySubscriber();
       const arr = [];
-      sut = new ArrayObserver(LF.none, DI.createContainer().get(ILifecycle), arr);
-      sut.subscribeBatched(s);
-      arr.push(1);
-      const indexMap: IndexMap = sut.indexMap.slice();
-      indexMap.deletedItems = sut.indexMap.deletedItems;
-      sut.flush(LF.none);
-      expect(s.handleBatchedChange).to.have.been.calledWith(indexMap);
+      const lifecycle = DI.createContainer().get(ILifecycle);
+      sut = new ArrayObserver(LF.none, lifecycle, arr);
+      sut.subscribeToCollection(s);
+      lifecycle.batch.inline(
+        function () {
+          arr.push(1);
+        },
+      );
+      assert.deepStrictEqual(
+        s.collectionChanges.pop(),
+        new CollectionChangeSet(0, LF.updateTargetInstance, copyIndexMap([-2]))
+      );
     });
 
     it('push', function () {
       const s = new SpySubscriber();
       const arr = [];
-      sut = new ArrayObserver(LF.none, DI.createContainer().get(ILifecycle), arr);
-      sut.subscribeBatched(s);
-      arr.push(1, 2);
-      const indexMap: IndexMap = sut.indexMap.slice();
-      indexMap.deletedItems = sut.indexMap.deletedItems;
-      sut.flush(LF.none);
-      expect(s.handleBatchedChange).to.have.been.calledWith(indexMap);
+      const lifecycle = DI.createContainer().get(ILifecycle);
+      sut = new ArrayObserver(LF.none, lifecycle, arr);
+      sut.subscribeToCollection(s);
+      lifecycle.batch.inline(
+        function () {
+          arr.push(1, 2);
+        },
+      );
+      assert.deepStrictEqual(
+        s.collectionChanges.pop(),
+        new CollectionChangeSet(0, LF.updateTargetInstance, copyIndexMap([-2, -2]))
+      );
     });
   });
 
@@ -108,25 +144,29 @@ describe(`ArrayObserver`, function () {
     it('push', function () {
       const s = new SpySubscriber();
       const arr = [];
-      sut = new ArrayObserver(LF.none, DI.createContainer().get(ILifecycle), arr);
-      sut.subscribeBatched(s);
-      sut.unsubscribeBatched(s);
-      arr.push(1);
-      sut.flush(LF.none);
-      expect(s.handleBatchedChange).not.to.have.been.called;
+      const lifecycle = DI.createContainer().get(ILifecycle);
+      sut = new ArrayObserver(LF.none, lifecycle, arr);
+      sut.subscribeToCollection(s);
+      sut.unsubscribeFromCollection(s);
+      lifecycle.batch.inline(
+        function () {
+          arr.push(1);
+        },
+      );
+      assert.strictEqual(s.collectionChanges.length, 0);
     });
   });
 
-  // the reason for this is because only a change will cause it to queue itself, so it would never normally be called without changes anyway,
-  // but for the occasion that it needs to be forced (such as via patch lifecycle), we do want all subscribers to be invoked regardless
-  describe('should notify batched subscribers even if there are no changes', function () {
+  describe('should not notify batched subscribers if there are no changes', function () {
     it('push', function () {
       const s = new SpySubscriber();
       const arr = [];
-      sut = new ArrayObserver(LF.none, DI.createContainer().get(ILifecycle), arr);
-      sut.subscribeBatched(s);
-      sut.flush(LF.none);
-      expect(s.handleBatchedChange).to.have.been.called;
+      const lifecycle = DI.createContainer().get(ILifecycle);
+      sut = new ArrayObserver(LF.none, lifecycle, arr);
+      lifecycle.batch.inline(
+        function () {},
+      );
+      assert.strictEqual(s.collectionChanges.length, 0);
     });
   });
 
@@ -134,115 +174,127 @@ describe(`ArrayObserver`, function () {
     const initArr = [[], [1], [1, 2]];
     const itemsArr = [undefined, [], [1], [1, 2]];
     const repeatArr = [1, 2];
-    for (const init of initArr) {
-      for (const items of itemsArr) {
-        for (const repeat of repeatArr) {
-          it(`size=${padRight(init.length, 2)} itemCount=${padRight(items && items.length, 9)} repeat=${repeat} - behaves as native`, function () {
-            const arr = init.slice();
-            const expectedArr = init.slice();
-            const newItems = items && items.slice();
-            sut = new ArrayObserver(LF.none, DI.createContainer().get(ILifecycle), arr);
-            let expectedResult;
-            let actualResult;
-            let i = 0;
-            while (i < repeat) {
-              incrementItems(newItems, i);
-              if (newItems === undefined) {
-                expectedResult = expectedArr.push();
-                actualResult = arr.push();
-              } else {
-                expectedResult = expectedArr.push(...newItems);
-                actualResult = arr.push(...newItems);
-              }
-              assertArrayEqual(actualResult, expectedResult);
-              assertArrayEqual(arr, expectedArr);
-              i++;
-            }
-          });
 
-          it(`size=${padRight(init.length, 2)} itemCount=${padRight(items && items.length, 9)} repeat=${repeat} - tracks changes`, function () {
-            const arr = init.slice();
-            const copy = init.slice();
-            const newItems = items && items.slice();
-            sut = new ArrayObserver(LF.none, DI.createContainer().get(ILifecycle), arr);
-            let i = 0;
-            while (i < repeat) {
-              incrementItems(newItems, i);
-              if (newItems === undefined) {
-                arr.push();
-              } else {
-                arr.push(...newItems);
-              }
-              synchronize(copy, sut.indexMap, arr);
-              assertArrayEqual(copy, arr);
-              sut.resetIndexMap();
-              i++;
+    eachCartesianJoin(
+      [
+        initArr,
+        itemsArr,
+        repeatArr,
+      ],
+      function (init, items, repeat) {
+        it(`size=${padRight(init.length, 2)} itemCount=${padRight(items && items.length, 9)} repeat=${repeat} - behaves as native`, function () {
+          const arr = init.slice();
+          const expectedArr = init.slice();
+          const newItems = items && items.slice();
+          sut = new ArrayObserver(LF.none, DI.createContainer().get(ILifecycle), arr);
+          let expectedResult;
+          let actualResult;
+          let i = 0;
+          while (i < repeat) {
+            incrementItems(newItems, i);
+            if (newItems === undefined) {
+              expectedResult = expectedArr.push();
+              actualResult = arr.push();
+            } else {
+              expectedResult = expectedArr.push(...newItems);
+              actualResult = arr.push(...newItems);
             }
-          });
-        }
-      }
-    }
+            assert.deepStrictEqual(actualResult, expectedResult);
+            assert.deepStrictEqual(arr, expectedArr);
+            i++;
+          }
+        });
+
+        it(`size=${padRight(init.length, 2)} itemCount=${padRight(items && items.length, 9)} repeat=${repeat} - tracks changes`, function () {
+          const arr = init.slice();
+          const copy = init.slice();
+          const newItems = items && items.slice();
+          sut = new ArrayObserver(LF.none, DI.createContainer().get(ILifecycle), arr);
+          sut.subscribeToCollection(new SynchronizingCollectionSubscriber(copy, arr));
+
+          let i = 0;
+          while (i < repeat) {
+            incrementItems(newItems, i);
+            if (newItems === undefined) {
+              arr.push();
+            } else {
+              arr.push(...newItems);
+            }
+            assert.deepStrictEqual(copy, arr);
+            i++;
+          }
+        });
+      },
+    )
   });
 
   describe(`observeUnshift`, function () {
     const initArr = [[], [1], [1, 2]];
     const itemsArr = [undefined, [], [1], [1, 2]];
     const repeatArr = [1, 2];
-    for (const init of initArr) {
-      for (const items of itemsArr) {
-        for (const repeat of repeatArr) {
-          it(`size=${padRight(init.length, 2)} itemCount=${padRight(items && items.length, 9)} repeat=${repeat} - behaves as native`, function () {
-            const arr = init.slice();
-            const expectedArr = init.slice();
-            const newItems = items && items.slice();
-            sut = new ArrayObserver(LF.none, DI.createContainer().get(ILifecycle), arr);
-            let expectedResult;
-            let actualResult;
-            let i = 0;
-            while (i < repeat) {
-              incrementItems(newItems, i);
-              if (newItems === undefined) {
-                expectedResult = expectedArr.unshift();
-                actualResult = arr.unshift();
-              } else {
-                expectedResult = expectedArr.unshift(...newItems);
-                actualResult = arr.unshift(...newItems);
-              }
-              assertArrayEqual(actualResult, expectedResult);
-              assertArrayEqual(arr, expectedArr);
-              i++;
-            }
-          });
 
-          it(`size=${padRight(init.length, 2)} itemCount=${padRight(items && items.length, 9)} repeat=${repeat} - tracks changes`, function () {
-            const arr = init.slice();
-            const copy = init.slice();
-            const newItems = items && items.slice();
-            sut = new ArrayObserver(LF.none, DI.createContainer().get(ILifecycle), arr);
-            let i = 0;
-            while (i < repeat) {
-              incrementItems(newItems, i);
-              if (newItems === undefined) {
-                arr.unshift();
-              } else {
-                arr.unshift(...newItems);
-              }
-              synchronize(copy, sut.indexMap, arr);
-              assertArrayEqual(copy, arr);
-              sut.resetIndexMap();
-              i++;
+    eachCartesianJoin(
+      [
+        initArr,
+        itemsArr,
+        repeatArr,
+      ],
+      function (init, items, repeat) {
+        it(`size=${padRight(init.length, 2)} itemCount=${padRight(items && items.length, 9)} repeat=${repeat} - behaves as native`, function () {
+          const arr = init.slice();
+          const expectedArr = init.slice();
+          const newItems = items && items.slice();
+          sut = new ArrayObserver(LF.none, DI.createContainer().get(ILifecycle), arr);
+          let expectedResult;
+          let actualResult;
+          let i = 0;
+          while (i < repeat) {
+            incrementItems(newItems, i);
+            if (newItems === undefined) {
+              expectedResult = expectedArr.unshift();
+              actualResult = arr.unshift();
+            } else {
+              expectedResult = expectedArr.unshift(...newItems);
+              actualResult = arr.unshift(...newItems);
             }
-          });
-        }
-      }
-    }
+            assert.deepStrictEqual(actualResult, expectedResult);
+            assert.deepStrictEqual(arr, expectedArr);
+            i++;
+          }
+        });
+
+        it(`size=${padRight(init.length, 2)} itemCount=${padRight(items && items.length, 9)} repeat=${repeat} - tracks changes`, function () {
+          const arr = init.slice();
+          const copy = init.slice();
+          const newItems = items && items.slice();
+          sut = new ArrayObserver(LF.none, DI.createContainer().get(ILifecycle), arr);
+          sut.subscribeToCollection(new SynchronizingCollectionSubscriber(copy, arr));
+          let i = 0;
+          while (i < repeat) {
+            incrementItems(newItems, i);
+            if (newItems === undefined) {
+              arr.unshift();
+            } else {
+              arr.unshift(...newItems);
+            }
+            assert.deepStrictEqual(copy, arr);
+            i++;
+          }
+        });
+      },
+    );
   });
 
   describe(`observePop`, function () {
     const initArr = [[], [1], [1, 2]];
     const repeatArr = [1, 2, 3, 4];
-    for (const init of initArr) {
-      for (const repeat of repeatArr.filter(r => r <= (init.length + 1))) {
+
+    eachCartesianJoin(
+      [
+        initArr,
+        repeatArr,
+      ],
+      function (init, repeat) {
         it(`size=${padRight(init.length, 2)} repeat=${repeat} - behaves as native`, function () {
           const arr = init.slice();
           const expectedArr = init.slice();
@@ -254,7 +306,7 @@ describe(`ArrayObserver`, function () {
             expectedResult = expectedArr.pop();
             actualResult = arr.pop();
             expect(actualResult).to.equal(expectedResult);
-            assertArrayEqual(arr, expectedArr);
+            assert.deepStrictEqual(arr, expectedArr);
             i++;
           }
         });
@@ -263,27 +315,31 @@ describe(`ArrayObserver`, function () {
           const arr = init.slice();
           const copy = init.slice();
           sut = new ArrayObserver(LF.none, DI.createContainer().get(ILifecycle), arr);
+          sut.subscribeToCollection(new SynchronizingCollectionSubscriber(copy, arr));
           let i = 0;
           while (i < repeat) {
             arr.pop();
-            synchronize(copy, sut.indexMap, arr);
-            assertArrayEqual(copy, arr);
-            sut.resetIndexMap();
+            assert.deepStrictEqual(copy, arr);
             i++;
           }
         });
-      }
-    }
+      },
+    );
   });
 
   describe(`observeShift`, function () {
     const initArr = [[], [1], [1, 2]];
     const repeatArr = [1, 2, 3, 4];
-    for (const init of initArr) {
-      for (const repeat of repeatArr.filter(r => r <= (init.length + 1))) {
-        const arr = init.slice();
-        const expectedArr = init.slice();
+
+    eachCartesianJoin(
+      [
+        initArr,
+        repeatArr,
+      ],
+      function (init, repeat) {
         it(`size=${padRight(init.length, 2)} repeat=${repeat} - behaves as native`, function () {
+          const arr = init.slice();
+          const expectedArr = init.slice();
           sut = new ArrayObserver(LF.none, DI.createContainer().get(ILifecycle), arr);
           let expectedResult;
           let actualResult;
@@ -292,26 +348,25 @@ describe(`ArrayObserver`, function () {
             expectedResult = expectedArr.shift();
             actualResult = arr.shift();
             expect(actualResult).to.equal(expectedResult);
-            assertArrayEqual(arr, expectedArr);
+            assert.deepStrictEqual(arr, expectedArr);
             i++;
           }
         });
 
         it(`size=${padRight(init.length, 2)} repeat=${repeat} - tracks changes`, function () {
-          const arr2 = init.slice();
+          const arr = init.slice();
           const copy = init.slice();
-          sut = new ArrayObserver(LF.none, DI.createContainer().get(ILifecycle), arr2);
+          sut = new ArrayObserver(LF.none, DI.createContainer().get(ILifecycle), arr);
+          sut.subscribeToCollection(new SynchronizingCollectionSubscriber(copy, arr));
           let i = 0;
           while (i < repeat) {
-            arr2.shift();
-            synchronize(copy, sut.indexMap, arr2);
-            assertArrayEqual(copy, arr2);
-            sut.resetIndexMap();
+            arr.shift();
+            assert.deepStrictEqual(copy, arr);
             i++;
           }
         });
-      }
-    }
+      },
+    );
   });
 
   describe(`observeSplice`, function () {
@@ -320,79 +375,85 @@ describe(`ArrayObserver`, function () {
     const deleteCountArr = [undefined, -1, 0, 1, 2, 3];
     const itemsArr = [undefined, [], [1], [1, 2]];
     const repeatArr = [1, 2];
-    for (const init of initArr) {
-      for (const start of startArr.filter(s => s === undefined || s <= (init.length + 1))) {
-        for (const deleteCount of deleteCountArr.filter(d => d === undefined || d <= (init.length + 1))) {
-          for (const items of itemsArr) {
-            for (const repeat of repeatArr) {
-              it(`size=${padRight(init.length, 2)} start=${padRight(start, 9)} deleteCount=${padRight(deleteCount, 9)} itemCount=${padRight(items && items.length, 9)} repeat=${repeat} - behaves as native`, function () {
-                const arr = init.slice();
-                const expectedArr = init.slice();
-                const newItems = items && items.slice();
-                sut = new ArrayObserver(LF.none, DI.createContainer().get(ILifecycle), arr);
-                let expectedResult;
-                let actualResult;
-                let i = 0;
-                while (i < repeat) {
-                  incrementItems(newItems, i);
-                  if (items === undefined) {
-                    if (deleteCount === undefined) {
-                      if (start === undefined) {
-                        expectedResult = (expectedArr as any).splice();
-                        actualResult = (arr as any).splice();
-                      } else {
-                        expectedResult = expectedArr.splice(start);
-                        actualResult = arr.splice(start);
-                      }
-                    } else {
-                      expectedResult = expectedArr.splice(start, deleteCount);
-                      actualResult = arr.splice(start, deleteCount);
-                    }
-                  } else {
-                    expectedResult = expectedArr.splice(start, deleteCount, ...newItems);
-                    actualResult = arr.splice(start, deleteCount, ...newItems);
-                  }
-                  assertArrayEqual(actualResult, expectedResult);
-                  assertArrayEqual(arr, expectedArr);
-                  i++;
-                }
-              });
 
-              it(`size=${padRight(init.length, 2)} start=${padRight(start, 9)} deleteCount=${padRight(deleteCount, 9)} itemCount=${padRight(items && items.length, 9)} repeat=${repeat} - tracks changes`, function () {
-                const arr = init.slice();
-                const copy = init.slice();
-                const newItems = items && items.slice();
-                sut = new ArrayObserver(LF.none, DI.createContainer().get(ILifecycle), arr);
-                let i = 0;
-                while (i < repeat) {
-                  incrementItems(newItems, i);
-                  if (newItems === undefined) {
-                    if (deleteCount === undefined) {
-                      arr.splice(start);
-                    } else {
-                      arr.splice(start, deleteCount);
-                    }
-                  } else {
-                    arr.splice(start, deleteCount, ...newItems);
-                  }
-                  synchronize(copy, sut.indexMap, arr);
-                  assertArrayEqual(copy, arr);
-                  sut.resetIndexMap();
-                  i++;
+    eachCartesianJoin(
+      [
+        initArr,
+        startArr,
+        deleteCountArr,
+        itemsArr,
+        repeatArr,
+      ],
+      function (init, start, deleteCount, items, repeat) {
+        it(`size=${padRight(init.length, 2)} start=${padRight(start, 9)} deleteCount=${padRight(deleteCount, 9)} itemCount=${padRight(items && items.length, 9)} repeat=${repeat} - behaves as native`, function () {
+          const arr = init.slice();
+          const expectedArr = init.slice();
+          const newItems = items && items.slice();
+          sut = new ArrayObserver(LF.none, DI.createContainer().get(ILifecycle), arr);
+          let expectedResult;
+          let actualResult;
+          let i = 0;
+          while (i < repeat) {
+            incrementItems(newItems, i);
+            if (items === undefined) {
+              if (deleteCount === undefined) {
+                if (start === undefined) {
+                  expectedResult = (expectedArr as any).splice();
+                  actualResult = (arr as any).splice();
+                } else {
+                  expectedResult = expectedArr.splice(start);
+                  actualResult = arr.splice(start);
                 }
-              });
+              } else {
+                expectedResult = expectedArr.splice(start, deleteCount);
+                actualResult = arr.splice(start, deleteCount);
+              }
+            } else {
+              expectedResult = expectedArr.splice(start, deleteCount, ...newItems);
+              actualResult = arr.splice(start, deleteCount, ...newItems);
             }
+            assert.deepStrictEqual(actualResult, expectedResult);
+            assert.deepStrictEqual(arr, expectedArr);
+            i++;
           }
-        }
-      }
-    }
+        });
+
+        it(`size=${padRight(init.length, 2)} start=${padRight(start, 9)} deleteCount=${padRight(deleteCount, 9)} itemCount=${padRight(items && items.length, 9)} repeat=${repeat} - tracks changes`, function () {
+          const arr = init.slice();
+          const copy = init.slice();
+          const newItems = items && items.slice();
+          sut = new ArrayObserver(LF.none, DI.createContainer().get(ILifecycle), arr);
+          sut.subscribeToCollection(new SynchronizingCollectionSubscriber(copy, arr));
+          let i = 0;
+          while (i < repeat) {
+            incrementItems(newItems, i);
+            if (newItems === undefined) {
+              if (deleteCount === undefined) {
+                arr.splice(start);
+              } else {
+                arr.splice(start, deleteCount);
+              }
+            } else {
+              arr.splice(start, deleteCount, ...newItems);
+            }
+            assert.deepStrictEqual(copy, arr);
+            i++;
+          }
+        });
+      },
+    );
   });
 
   describe(`observeReverse`, function () {
     const initArr = [[], [1], [1, 2], [1, 2, 3], [1, 2, 3, 4]];
     const repeatArr = [1, 2];
-    for (const init of initArr) {
-      for (const repeat of repeatArr) {
+
+    eachCartesianJoin(
+      [
+        initArr,
+        repeatArr,
+      ],
+      function (init, repeat) {
         it(`size=${padRight(init.length, 2)} repeat=${repeat} - behaves as native`, function () {
           const arr = init.slice();
           const expectedArr = init.slice();
@@ -403,8 +464,8 @@ describe(`ArrayObserver`, function () {
           while (i < repeat) {
             expectedResult = expectedArr.reverse();
             actualResult = arr.reverse();
-            assertArrayEqual(actualResult, expectedResult);
-            assertArrayEqual(arr, expectedArr);
+            assert.deepStrictEqual(actualResult, expectedResult);
+            assert.deepStrictEqual(arr, expectedArr);
             i++;
           }
         });
@@ -413,17 +474,16 @@ describe(`ArrayObserver`, function () {
           const arr = init.slice();
           const copy = init.slice();
           sut = new ArrayObserver(LF.none, DI.createContainer().get(ILifecycle), arr);
+          sut.subscribeToCollection(new SynchronizingCollectionSubscriber(copy, arr));
           let i = 0;
           while (i < repeat) {
             arr.reverse();
-            synchronize(copy, sut.indexMap, arr);
-            assertArrayEqual(copy, arr);
-            sut.resetIndexMap();
+            assert.deepStrictEqual(copy, arr);
             i++;
           }
         });
-      }
-    }
+      },
+    );
   });
 
   describe(`observeSort`, function () {
@@ -462,7 +522,7 @@ describe(`ArrayObserver`, function () {
               expect(expectedResult).to.equal(expectedArr);
               expect(actualResult).to.equal(arr);
               try {
-                assertArrayEqual(arr, expectedArr);
+                assert.deepStrictEqual(arr, expectedArr);
               } catch (e) {
                 if (compareFn !== undefined) {
                   // a browser may wrap a custom sort function to normalize the results
@@ -486,10 +546,9 @@ describe(`ArrayObserver`, function () {
               const arr = init.slice();
               const copy = init.slice();
               sut = new ArrayObserver(LF.none, DI.createContainer().get(ILifecycle), arr);
+              sut.subscribeToCollection(new SynchronizingCollectionSubscriber(copy, arr));
               arr.sort(compareFn);
-              synchronize(copy, sut.indexMap, arr);
-              assertArrayEqual(copy, arr);
-              sut.resetIndexMap();
+              assert.deepStrictEqual(copy, arr);
             });
           }
         }
@@ -540,29 +599,6 @@ function getValueFactory(getNumber: (i: number) => unknown, type: string, types:
       ];
       return (i) => factories[i % 6](i);
   }
-}
-
-function synchronize(oldArr: unknown[], indexMap: number[], newArr: unknown[]): void {
-  if (newArr.length === 0 && oldArr.length === 0) {
-    return;
-  }
-
-  const copy = oldArr.slice();
-  const len = indexMap.length;
-  let to = 0;
-  let from = 0;
-  while (to < len) {
-    from = indexMap[to];
-    if (from > -1) {
-      // move existing
-      oldArr[to] = copy[from];
-    } else if (from < -1) {
-      // add new
-      oldArr[to] = newArr[to];
-    }
-    to++;
-  }
-  oldArr.length = newArr.length;
 }
 
 function incrementItems(items: number[], by: number): void {

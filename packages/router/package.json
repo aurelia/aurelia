@@ -1,6 +1,6 @@
 {
   "name": "@aurelia/router",
-  "version": "0.3.0-dev.20190429",
+  "version": "0.3.0-dev.20190430",
   "main": "dist/index.umd.js",
   "module": "dist/index.es6.js",
   "jsnext:main": "dist/index.es6.js",
@@ -48,8 +48,8 @@
     "access": "public"
   },
   "dependencies": {
-    "@aurelia/kernel": "0.3.0-dev.20190429",
-    "@aurelia/runtime": "0.3.0-dev.20190429"
+    "@aurelia/kernel": "0.3.0-dev.20190430",
+    "@aurelia/runtime": "0.3.0-dev.20190430"
   },
   "devDependencies": {
     "@types/chai": "^4.1.7",

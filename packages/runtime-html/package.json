@@ -1,6 +1,6 @@
 {
   "name": "@aurelia/runtime-html",
-  "version": "0.3.0-dev.20190509",
+  "version": "0.3.0-dev.20190510",
   "main": "dist/index.umd.js",
   "module": "dist/index.es6.js",
   "jsnext:main": "dist/index.es6.js",
@@ -41,8 +41,8 @@
     "access": "public"
   },
   "dependencies": {
-    "@aurelia/kernel": "0.3.0-dev.20190509",
-    "@aurelia/runtime": "0.3.0-dev.20190509"
+    "@aurelia/kernel": "0.3.0-dev.20190510",
+    "@aurelia/runtime": "0.3.0-dev.20190510"
   },
   "devDependencies": {
     "@types/node": "^10.12.27",

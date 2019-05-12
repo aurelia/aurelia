@@ -8,7 +8,6 @@ import {
   ILifecycle,
   copyIndexMap,
   ICollectionSubscriber,
-  LifecycleFlags,
 } from '@aurelia/runtime';
 import {
   SpySubscriber,
@@ -30,7 +29,7 @@ export class SynchronizingCollectionSubscriber implements ICollectionSubscriber 
     this.newArr = newArr;
   }
 
-  public handleCollectionChange(indexMap: IndexMap, flags: LifecycleFlags): void {
+  public handleCollectionChange(indexMap: IndexMap, flags: LF): void {
     const newArr = this.newArr;
     const oldArr = this.oldArr;
 

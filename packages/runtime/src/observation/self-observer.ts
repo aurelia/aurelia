@@ -69,10 +69,10 @@ export class SelfObserver {
 
   public setValue(newValue: unknown, flags: LifecycleFlags): void {
     if (this.observing) {
+      const currentValue = this.currentValue;
+      this.currentValue = newValue;
       if (this.lifecycle.batch.depth === 0) {
         if ((flags & LifecycleFlags.fromBind) === 0) {
-          const { currentValue } = this;
-          this.currentValue = newValue;
           this.callSubscribers(newValue, currentValue, this.persistentFlags | flags);
           if (this.callback !== void 0) {
             this.callback.call(this.obj, newValue, currentValue, this.persistentFlags | flags);
@@ -80,11 +80,8 @@ export class SelfObserver {
         }
       } else if (!this.inBatch) {
         this.inBatch = true;
-        this.oldValue = this.currentValue;
-        this.currentValue = newValue;
+        this.oldValue = currentValue;
         this.lifecycle.batch.add(this);
-      } else {
-        this.currentValue = newValue;
       }
     } else {
       // See SetterObserver.setValue for explanation

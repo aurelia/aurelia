@@ -46,19 +46,16 @@ export class SetterObserver {
 
   public setValue(newValue: unknown, flags: LifecycleFlags): void {
     if (this.observing) {
+      const currentValue = this.currentValue;
+      this.currentValue = newValue;
       if (this.lifecycle.batch.depth === 0) {
         if ((flags & LifecycleFlags.fromBind) === 0) {
-          const { currentValue } = this;
-          this.currentValue = newValue;
           this.callSubscribers(newValue, currentValue, this.persistentFlags | flags);
         }
       } else if (!this.inBatch) {
         this.inBatch = true;
-        this.oldValue = this.currentValue;
-        this.currentValue = newValue;
+        this.oldValue = currentValue;
         this.lifecycle.batch.add(this);
-      } else {
-        this.currentValue = newValue;
       }
     } else {
       // If subscribe() has been called, the target property descriptor is replaced by these getter/setter methods,
@@ -73,7 +70,10 @@ export class SetterObserver {
 
   public flushBatch(flags: LifecycleFlags): void {
     this.inBatch = false;
-    this.callSubscribers(this.currentValue, this.oldValue, this.persistentFlags | flags);
+    const currentValue = this.currentValue;
+    const oldValue = this.oldValue;
+    this.oldValue = currentValue;
+    this.callSubscribers(currentValue, oldValue, this.persistentFlags | flags);
   }
 
   public subscribe(subscriber: ISubscriber): void {

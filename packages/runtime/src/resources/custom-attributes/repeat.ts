@@ -87,7 +87,7 @@ export class Repeat<C extends ObservedCollection = IObservedArray, T extends INo
     const oldValue = this._items;
     if (oldValue !== newValue) {
       this._items = newValue;
-      this.itemsChanged(LF.none);
+      this.itemsChanged(this.$controller.flags);
     }
   }
 
@@ -109,7 +109,7 @@ export class Repeat<C extends ObservedCollection = IObservedArray, T extends INo
   private task: ILifecycleTask;
 
   // tslint:disable-next-line: prefer-readonly // This is set by the controller after this instance is constructed
-  private $controller!: IController<T>;
+  public $controller!: IController<T>;
 
   private _items: Items<C>;
 

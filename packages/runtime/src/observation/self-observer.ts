@@ -93,6 +93,7 @@ export class SelfObserver {
     if (this.observing === false) {
       this.observing = true;
       this.currentValue = this.obj[this.propertyKey];
+      this.createGetterSetter();
     }
 
     this.addSubscriber(subscriber);

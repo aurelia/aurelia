@@ -37,6 +37,8 @@ export const ITemplateElementFactory: InterfaceSymbol<ITemplateElementFactory> =
 
 const { enter, leave } = Profiler.createTimer('TemplateElementFactory');
 
+const markupCache: Record<string, HTMLTemplateElement | undefined> = {};
+
 /**
  * Default implementation for `ITemplateFactory` for use in an HTML based runtime.
  *
@@ -63,21 +65,28 @@ export class HTMLTemplateElementFactory implements ITemplateElementFactory {
   public createTemplate(input: string | Node): HTMLTemplateElement {
     if (Profiler.enabled) { enter(); }
     if (typeof input === 'string') {
-      const template = this.template;
-      template.innerHTML = input;
-      const node = template.content.firstElementChild;
-      // if the input is either not wrapped in a template or there is more than one node,
-      // return the whole template that wraps it/them (and create a new one for the next input)
-      if (node == null || node.nodeName !== 'TEMPLATE' || node.nextElementSibling != null) {
-        this.template = this.dom.createTemplate() as HTMLTemplateElement;
-        if (Profiler.enabled) { leave(); }
-        return template;
+      let result = markupCache[input];
+      if (result === void 0) {
+        const template = this.template;
+        template.innerHTML = input;
+        const node = template.content.firstElementChild;
+        // if the input is either not wrapped in a template or there is more than one node,
+        // return the whole template that wraps it/them (and create a new one for the next input)
+        if (node == null || node.nodeName !== 'TEMPLATE' || node.nextElementSibling != null) {
+          this.template = this.dom.createTemplate() as HTMLTemplateElement;
+          result = template;
+        } else {
+          // the node to return is both a template and the only node, so return just the node
+          // and clean up the template for the next input
+          template.content.removeChild(node);
+          result = node as HTMLTemplateElement;
+        }
+
+        markupCache[input] = result;
       }
-      // the node to return is both a template and the only node, so return just the node
-      // and clean up the template for the next input
-      template.content.removeChild(node);
+
       if (Profiler.enabled) { leave(); }
-      return node as HTMLTemplateElement;
+      return result.cloneNode(true) as HTMLTemplateElement;
     }
     if (input.nodeName !== 'TEMPLATE') {
       // if we get one node that is not a template, wrap it in one

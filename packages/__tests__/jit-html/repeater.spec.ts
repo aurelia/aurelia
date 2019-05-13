@@ -1,6 +1,5 @@
 import { Aurelia, CustomElementResource } from '@aurelia/runtime';
-import { expect } from 'chai';
-import { eachCartesianJoin, TestContext, TestConfiguration } from '@aurelia/testing';
+import { eachCartesianJoin, TestContext, TestConfiguration, assert } from '@aurelia/testing';
 
 const spec = 'repeater';
 
@@ -207,48 +206,6 @@ describe(spec, function () {
           return `<template><template repeat.for="item of ${items}"><div if.bind="false"></div><div else>${tpl}</div></template></template>`;
         }
       },
-      {
-        t: '08',
-        createTemplate(items, tpl) {
-          return `<template><div repeat.for="item of ${items} & keyed">${tpl}</div></template>`;
-        }
-      },
-      {
-        t: '09',
-        createTemplate(items, tpl) {
-          return `<template><div repeat.for="item of ${items} & keyed" if.bind="true">${tpl}</div></template>`;
-        }
-      },
-      {
-        t: '10',
-        createTemplate(items, tpl) {
-          return `<template><div if.bind="true" repeat.for="item of ${items} & keyed">${tpl}</div></template>`;
-        }
-      },
-      {
-        t: '11',
-        createTemplate(items, tpl) {
-          return `<template><div if.bind="false"></div><div else repeat.for="item of ${items} & keyed">${tpl}</div></template>`;
-        }
-      },
-      {
-        t: '12',
-        createTemplate(items, tpl) {
-          return `<template><template repeat.for="item of ${items} & keyed">${tpl}</template></template>`;
-        }
-      },
-      {
-        t: '13',
-        createTemplate(items, tpl) {
-          return `<template><template repeat.for="item of ${items} & keyed"><div if.bind="true">${tpl}</div></template></template>`;
-        }
-      },
-      {
-        t: '14',
-        createTemplate(items, tpl) {
-          return `<template><template repeat.for="item of ${items} & keyed"><div if.bind="false"></div><div else>${tpl}</div></template></template>`;
-        }
-      },
     ];
 
     eachCartesianJoin([bindSpecs, templateSpecs], (bindSpec, templateSpec) => {
@@ -271,11 +228,11 @@ describe(spec, function () {
         au.app({ host, component });
         au.start();
 
-        expect(host.textContent).to.equal(expected);
+        assert.strictEqual(host.textContent, expected, 'host.textContent');
 
         au.stop();
 
-        expect(host.textContent).to.equal('');
+        assert.strictEqual(host.textContent, '', 'host.textContent');
       });
     });
 });

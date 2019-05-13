@@ -8,7 +8,6 @@ import {
   InjectArray,
   IRegistry,
   IResolver,
-  PLATFORM,
   Registration,
   Tracer
 } from '@aurelia/kernel';
@@ -24,7 +23,6 @@ import {
   HydrateTemplateController,
   IBindingTargetAccessor,
   IBindingTargetObserver,
-  IViewModel,
   IDOM,
   IDOMInitializer,
   IElementProjector,
@@ -355,8 +353,8 @@ export class AuDOM implements IDOM<AuNode> {
   public isNodeInstance(node: AuNode): node is AuNode {
     return node instanceof AuNode;
   }
-  public isRenderLocation(node: AuNode): node is IRenderLocation<AuNode> & AuNode {
-    return node.isRenderLocation;
+  public isRenderLocation(node: unknown): node is IRenderLocation<AuNode> & AuNode {
+    return node !== void 0 && (node as AuNode).isRenderLocation;
   }
   public makeTarget(node: AuNode): void {
     node.isTarget = true;
@@ -386,7 +384,7 @@ export class AuDOM implements IDOM<AuNode> {
 }
 
 export class AuProjectorLocator implements IProjectorLocator {
-  public getElementProjector(dom: IDOM, $component: IViewModel<AuNode>, host: CustomElementHost<AuNode>, def: TemplateDefinition): IElementProjector {
+  public getElementProjector(dom: IDOM, $component: IController<AuNode>, host: CustomElementHost<AuNode>, def: TemplateDefinition): IElementProjector {
     return new AuProjector($component, host);
   }
 }
@@ -394,7 +392,7 @@ export class AuProjectorLocator implements IProjectorLocator {
 export class AuProjector implements IElementProjector {
   public host: CustomElementHost<AuNode>;
 
-  constructor($controller: IViewModel<AuNode>, host: CustomElementHost<AuNode>) {
+  constructor($controller: IController<AuNode>, host: CustomElementHost<AuNode>) {
     this.host = host;
     this.host.$controller = $controller;
   }
@@ -428,16 +426,25 @@ export class AuProjector implements IElementProjector {
 
 export class AuNodeSequence implements INodeSequence<AuNode> {
   public readonly dom: AuDOM;
+
+  public isMounted: boolean;
+  public isLinked: boolean;
+
   public firstChild: AuNode;
   public lastChild: AuNode;
   public childNodes: AuNode[];
 
-  private start: AuNode;
-  private end: AuNode;
+  public next?: INodeSequence<AuNode>;
+
+  private refNode?: AuNode;
+
   private readonly wrapper: AuNode;
   private readonly targets: AuNode[];
 
   constructor(dom: AuDOM, wrapper: AuNode) {
+    this.isMounted = false;
+    this.isLinked = false;
+
     this.dom = dom;
     const targets: AuNode[] = [];
     wrapper.populateTargets(targets);
@@ -453,10 +460,12 @@ export class AuNodeSequence implements INodeSequence<AuNode> {
     this.childNodes = wrapper.childNodes.slice();
     this.firstChild = wrapper.firstChild!;
     this.lastChild = wrapper.lastChild!;
-    this.start = null!;
-    this.end = null!;
     this.wrapper = wrapper;
     this.targets = targets;
+
+    this.next = void 0;
+
+    this.refNode = void 0;
   }
 
   public findTargets(): AuNode[] {
@@ -464,66 +473,110 @@ export class AuNodeSequence implements INodeSequence<AuNode> {
   }
 
   public insertBefore(refNode: AuNode): void {
-    const parent = refNode.parentNode;
-    if (parent == null) {
-      throw new Error('refNode.parentNode.parentNode is null in convertToRenderLocation');
-    }
-    let current = this.firstChild;
-    let next: AuNode;
-    while (current != null) {
-      next = current.nextSibling!;
-      parent.insertBefore(current, refNode);
-      current = next;
-    }
-    if (refNode.isRenderLocation) {
-      this.end = refNode;
-      this.start = refNode.$start!;
-      if (this.start.$nodes == null) {
-        this.start.$nodes = this;
-      } else {
-        this.start.$nodes = PLATFORM.emptyObject;
+    if (this.isLinked && !!this.refNode) {
+      this.addToLinked();
+    } else {
+      this.isMounted = true;
+      const parent = refNode.parentNode!;
+      let current = this.firstChild;
+      const end = this.lastChild;
+      let next: AuNode;
+
+      while (current != null) {
+        next = current.nextSibling!;
+        parent.insertBefore(current, refNode);
+
+        if (current === end) {
+          break;
+        }
+
+        current = next;
       }
     }
   }
 
   public appendTo(parent: AuNode): void {
+    this.isMounted = true;
+
     let current = this.firstChild;
+    const end = this.lastChild;
     let next: AuNode;
+
     while (current != null) {
       next = current.nextSibling!;
       parent.appendChild(current);
+
+      if (current === end) {
+        break;
+      }
+
       current = next;
     }
   }
 
   public remove(): void {
-    const wrapper = this.wrapper;
-    if (this.start != null && this.start.$nodes === this) {
-      const end = this.end;
+    if (this.isMounted) {
+      this.isMounted = false;
+
+      const fragment = this.wrapper;
+      const end = this.lastChild;
       let next: AuNode;
-      let current = this.start.nextSibling!;
-      while (current !== end) {
+
+      let current = this.firstChild;
+      while (current !== null) {
         next = current.nextSibling!;
-        wrapper.appendChild(current);
+        fragment.appendChild(current);
+
+        if (current === end) {
+          break;
+        }
+
         current = next;
       }
-      this.start.$nodes = null;
-      this.start = null!;
-      this.end = null!;
-    } else {
-      let current = this.firstChild;
-      if (current.parentNode !== wrapper) {
-        const end = this.lastChild;
-        let next: AuNode;
-        while (current != null) {
-          next = current.nextSibling!;
-          wrapper.appendChild(current);
-          if (current === end) {
-            break;
-          }
-          current = next;
-        }
+    }
+  }
+
+  public addToLinked(): void {
+    const refNode = this.refNode!;
+    const parent = refNode.parentNode!;
+    this.isMounted = true;
+    let current = this.firstChild;
+    const end = this.lastChild;
+    let next: AuNode;
+
+    while (current != null) {
+      next = current.nextSibling!;
+      parent.insertBefore(current, refNode);
+
+      if (current === end) {
+        break;
       }
+
+      current = next;
+    }
+  }
+
+  public unlink(): void {
+    this.isLinked = false;
+    this.next = void 0;
+    this.refNode = void 0;
+  }
+
+  public link(next: INodeSequence<AuNode> | IRenderLocation<AuNode> | undefined): void {
+    this.isLinked = true;
+    if (this.dom.isRenderLocation(next)) {
+      this.refNode = next;
+    } else {
+      this.next = next as INodeSequence<AuNode> | undefined;
+      this.obtainRefNode();
+    }
+  }
+
+  private obtainRefNode(): void {
+    if (this.next !== void 0) {
+      this.refNode = this.next.firstChild;
+    } else {
+      this.refNode = void 0;
     }
   }
 }

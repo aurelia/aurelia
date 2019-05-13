@@ -397,7 +397,16 @@ export class ArrayObserver {
     this.lifecycle = lifecycle;
     this.lengthObserver = (void 0)!;
 
-    array.$observer = this;
+    Reflect.defineProperty(
+      array,
+      '$observer',
+      {
+        value: this,
+        enumerable: false,
+        writable: true,
+        configurable: true,
+      },
+    );
 
     if (Tracer.enabled) { Tracer.leave(); }
   }

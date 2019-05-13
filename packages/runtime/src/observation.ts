@@ -265,6 +265,13 @@ export function createIndexMap(length: number = 0): IndexMap {
   return arr;
 }
 
+export function cloneIndexMap(indexMap: IndexMap): IndexMap {
+  const clone = indexMap.slice() as IndexMap;
+  clone.deletedItems = indexMap.deletedItems.slice();
+  clone.isIndexMap = true;
+  return clone;
+}
+
 export function isIndexMap(value: unknown): value is IndexMap {
   return value instanceof Array && (value as IndexMap).isIndexMap === true;
 }

@@ -299,7 +299,7 @@ export class TextNodeSequence implements INodeSequence {
     this.refNode = void 0;
   }
 
-  public link(next: INodeSequence<Node> | IRenderLocation & Comment | undefined): void {
+  public link(next: INodeSequence<Node> | (IRenderLocation & Comment) | undefined): void {
     this.isLinked = true;
     if (this.dom.isRenderLocation(next)) {
       this.refNode = next;

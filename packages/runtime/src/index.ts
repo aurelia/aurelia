@@ -448,6 +448,7 @@ export {
   ISubscriber,
   isIndexMap,
   copyIndexMap,
+  cloneIndexMap,
   createIndexMap,
 } from './observation';
 export {

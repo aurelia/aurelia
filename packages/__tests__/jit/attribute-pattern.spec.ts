@@ -1,11 +1,11 @@
 import { DI } from '@aurelia/kernel';
-import { expect } from 'chai';
 import {
   attributePattern,
   AttributePatternDefinition,
   IAttributePattern,
   ISyntaxInterpreter
 } from '@aurelia/jit';
+import { assert } from '@aurelia/testing';
 
 describe('@attributePattern', function () {
   for (const [defs, tests] of [
@@ -162,16 +162,24 @@ describe('@attributePattern', function () {
 
           const result = interpreter.interpret(value);
           if (match != null) {
-            expect(attrPattern.$patternDefs.map(d => d.pattern).indexOf(result.pattern)).to.be.gte(0);
+            assert.strictEqual(
+              attrPattern.$patternDefs.map(d => d.pattern).indexOf(result.pattern) >= 0,
+              true,
+              `attrPattern.$patternDefs.map(d => d.pattern).indexOf(result.pattern) >= 0`
+            );
             attrPattern[result.pattern](value, 'foo', result.parts);
-            expect(receivedRawName).to.equal(value);
-            expect(receivedRawValue).to.equal('foo');
-            expect(receivedParts).to.deep.equal(result.parts);
+            assert.strictEqual(receivedRawName, value, `receivedRawName`);
+            assert.strictEqual(receivedRawValue, 'foo', `receivedRawValue`);
+            assert.deepStrictEqual(receivedParts, result.parts, `receivedParts`);
           } else {
-            expect(attrPattern.$patternDefs.map(d => d.pattern)).not.to.contain(result.pattern);
+            assert.strictEqual(
+              attrPattern.$patternDefs.map(d => d.pattern).indexOf(result.pattern) === -1,
+              true,
+              `attrPattern.$patternDefs.map(d => d.pattern).indexOf(result.pattern) === -1`
+            );
           }
 
-          expect(result.parts).to.deep.equal(values);
+          assert.deepStrictEqual(result.parts, values, `result.parts`);
         });
       }
     });

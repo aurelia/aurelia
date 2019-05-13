@@ -28,7 +28,6 @@ import {
   IsLeftHandSide,
   IsAssign
 } from '@aurelia/runtime';
-import { expect } from 'chai';
 import {
   Access,
   Precedence,
@@ -659,10 +658,10 @@ describe('ExpressionParser', function () {
               if ((expected.$kind & ExpressionKind.IsPrimary) > 0 ||
                 (expected.$kind & ExpressionKind.Unary) === ExpressionKind.Unary) {
                 assert.deepStrictEqual(result, expected);
-                expect(state.index).to.be.gte(state.length);
+                assert.strictEqual(state.index >= state.length, true, `state.index >= state.length`);
               } else {
-                expect(state.index).to.be.lessThan(state.length);
-                expect(result.$kind).not.to.equal(expected.$kind);
+                assert.strictEqual(state.index < state.length, true, `state.index < state.length`);
+                assert.notStrictEqual(result.$kind, expected.$kind, 'result.$kind');
               }
             } else {
               throw new Error('Should not parse anything higher than Unary');
@@ -683,10 +682,10 @@ describe('ExpressionParser', function () {
                 (expected.$kind & ExpressionKind.Unary) === ExpressionKind.Unary ||
                 (expected.$kind & ExpressionKind.Binary) === ExpressionKind.Binary) {
                 assert.deepStrictEqual(result, expected);
-                expect(state.index).to.be.gte(state.length);
+                assert.strictEqual(state.index >= state.length, true, `state.index >= state.length`);
               } else {
-                expect(state.index).to.be.lessThan(state.length);
-                expect(result.$kind).not.to.equal(expected.$kind);
+                assert.strictEqual(state.index < state.length, true, `state.index < state.length`);
+                assert.notStrictEqual(result.$kind, expected.$kind, 'result.$kind');
               }
             } else {
               throw new Error('Should not parse anything higher than Binary');
@@ -709,10 +708,10 @@ describe('ExpressionParser', function () {
                 (expected.$kind & ExpressionKind.Binary) === ExpressionKind.Binary ||
                 (expected.$kind & ExpressionKind.Conditional) === ExpressionKind.Conditional) {
                 assert.deepStrictEqual(result, expected);
-                expect(state.index).to.be.gte(state.length);
+                assert.strictEqual(state.index >= state.length, true, `state.index >= state.length`);
               } else {
-                expect(state.index).to.be.lessThan(state.length);
-                expect(result.$kind).not.to.equal(expected.$kind);
+                assert.strictEqual(state.index < state.length, true, `state.index < state.length`);
+                assert.notStrictEqual(result.$kind, expected.$kind, 'result.$kind');
               }
             } else {
               throw new Error('Should not parse anything higher than Conditional');
@@ -737,10 +736,10 @@ describe('ExpressionParser', function () {
                 (expected.$kind & ExpressionKind.Conditional) === ExpressionKind.Conditional ||
                 (expected.$kind & ExpressionKind.Assign) === ExpressionKind.Assign) {
                 assert.deepStrictEqual(result, expected);
-                expect(state.index).to.be.gte(state.length);
+                assert.strictEqual(state.index >= state.length, true, `state.index >= state.length`);
               } else {
-                expect(state.index).to.be.lessThan(state.length);
-                expect(result.$kind).not.to.equal(expected.$kind);
+                assert.strictEqual(state.index < state.length, true, `state.index < state.length`);
+                assert.notStrictEqual(result.$kind, expected.$kind, 'result.$kind');
               }
             } else {
               throw new Error('Should not parse anything higher than Assign');

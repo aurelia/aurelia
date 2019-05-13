@@ -407,6 +407,30 @@ export function equal(actual: any, expected: any, message?: string): void {
   }
 }
 
+export function instanceOf(actual: any, expected: any, message?: string): void {
+  if (!(actual instanceof expected)) {
+    innerFail({
+      actual,
+      expected,
+      message,
+      operator: 'instanceOf' as any,
+      stackStartFn: instanceOf
+    });
+  }
+}
+
+export function notInstanceOf(actual: any, expected: any, message?: string): void {
+  if (actual instanceof expected) {
+    innerFail({
+      actual,
+      expected,
+      message,
+      operator: 'notInstanceOf' as any,
+      stackStartFn: notInstanceOf
+    });
+  }
+}
+
 export function notEqual(actual: any, expected: any, message?: string): void {
   if (actual == expected) {
     innerFail({
@@ -499,6 +523,8 @@ const assert = Object_freeze({
   ok,
   fail,
   equal,
+  instanceOf,
+  notInstanceOf,
   notEqual,
   deepEqual,
   notDeepEqual,

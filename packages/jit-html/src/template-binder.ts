@@ -145,10 +145,7 @@ export class TemplateBinder {
         if (Tracer.enabled) { Tracer.leave(); }
         return;
       case 'SLOT':
-        // slot requires no compilation
         this.surrogate!.hasSlots = true;
-        if (Tracer.enabled) { Tracer.leave(); }
-        return;
     }
 
     // nodes are processed bottom-up so we need to store the manifests before traversing down and

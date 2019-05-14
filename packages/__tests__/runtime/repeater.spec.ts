@@ -1,5 +1,4 @@
 import { Writable } from '@aurelia/kernel';
-import { expect } from 'chai';
 import {
   AccessScope,
   addBinding,
@@ -21,7 +20,7 @@ import {
   Repeat,
   Scope,
   ViewFactory,
-  RuntimeBehavior
+  Controller,
 } from '@aurelia/runtime';
 import {
   AuDOM,
@@ -29,28 +28,29 @@ import {
   AuNode,
   AuNodeSequence,
   eachCartesianJoin,
+  assert,
 } from '@aurelia/testing';
 
 describe(`Repeat`, function () {
   function runBindLifecycle(lifecycle: ILifecycle, sut: Repeat<IObservedArray, AuNode>, flags: LifecycleFlags, scope: IScope): void {
-    lifecycle.beginBind();
-    sut.$bind(flags, scope);
-    lifecycle.endBind(flags);
+    lifecycle.bound.begin();
+    sut.$controller.bind(flags, scope);
+    lifecycle.bound.end(flags);
   }
   function runUnbindLifecycle(lifecycle: ILifecycle, sut: Repeat<IObservedArray, AuNode>, flags: LifecycleFlags): void {
-    lifecycle.beginUnbind();
-    sut.$unbind(flags);
-    lifecycle.endUnbind(flags);
+    lifecycle.unbound.begin();
+    sut.$controller.unbind(flags);
+    lifecycle.unbound.end(flags);
   }
   function runAttachLifecycle(lifecycle: ILifecycle, sut: Repeat<IObservedArray, AuNode>, flags: LifecycleFlags): void {
-    lifecycle.beginAttach();
-    sut.$attach(flags);
-    lifecycle.endAttach(flags);
+    lifecycle.attached.begin();
+    sut.$controller.attach(flags);
+    lifecycle.attached.end(flags);
   }
   function runDetachLifecycle(lifecycle: ILifecycle, sut: Repeat<IObservedArray, AuNode>, flags: LifecycleFlags): void {
-    lifecycle.beginDetach();
-    sut.$detach(flags);
-    lifecycle.endDetach(flags);
+    lifecycle.detached.begin();
+    sut.$controller.detach(flags);
+    lifecycle.detached.end(flags);
   }
 
   interface Spec {
@@ -168,13 +168,12 @@ describe(`Repeat`, function () {
           sut.items.sort(spec.fn);
       }
     }
+
   }
 
   const strategySpecs: StrategySpec[] = [
     { t: '1', strategy: BindingStrategy.getterSetter },
     { t: '2', strategy: BindingStrategy.proxies },
-    { t: '4', strategy: BindingStrategy.keyed | BindingStrategy.getterSetter },
-    { t: '5', strategy: BindingStrategy.keyed | BindingStrategy.proxies },
   ];
 
   const duplicateOperationSpecs: DuplicateOperationSpec[] = [
@@ -579,7 +578,6 @@ describe(`Repeat`, function () {
       const items = $items.slice();
       // common stuff
       const baseFlags: LifecycleFlags = strategy as unknown as LifecycleFlags;
-      const keyed = (strategy & BindingStrategy.keyed) > 0;
       const proxies = (strategy & BindingStrategy.proxies) > 0;
       const container = AuDOMConfiguration.createContainer();
       const dom = container.get<AuDOM>(IDOM);
@@ -600,7 +598,7 @@ describe(`Repeat`, function () {
           const itemBinding = new Binding(new AccessScope('item'), text, 'textContent', BindingMode.toView, observerLocator, container);
           binding.persistentFlags |= strategy;
 
-          (itemRenderable as Writable<typeof itemRenderable>).$nodes = nodes;
+          (itemRenderable as Writable<typeof itemRenderable>).nodes = nodes;
           addBinding(itemRenderable, itemBinding);
         }
       };
@@ -613,22 +611,18 @@ describe(`Repeat`, function () {
         sourceExpression: new ForOfStatement(new BindingIdentifier('item'), new AccessScope('items'))
       } as any;
       const renderable: IController<AuNode> = {
-        $bindingHead: binding
+        bindings: [binding]
       } as any;
       let sut: Repeat<IObservedArray, AuNode>;
       if (proxies) {
-        sut = new ProxyObserver(new Repeat<IObservedArray, AuNode>(location, renderable, itemFactory)).proxy;
+        const raw = new Repeat<IObservedArray, AuNode>(location, renderable, itemFactory);
+        sut = new ProxyObserver(raw).proxy;
+        raw.$controller = Controller.forCustomAttribute(sut, container);
       } else {
         sut = new Repeat<IObservedArray, AuNode>(location, renderable, itemFactory);
+        sut.$controller = Controller.forCustomAttribute(sut, container);
       }
-      sut.keyed = keyed;
       binding.target = sut;
-
-      (sut as Writable<Repeat>).$scope = null;
-
-      const repeatBehavior = RuntimeBehavior.create(Repeat);
-      sut.keyed = keyed;
-      repeatBehavior.applyTo(baseFlags, sut, lifecycle);
 
       // -- Round 1 --
       let scope = Scope.create(baseFlags, BindingContext.create(baseFlags));
@@ -647,27 +641,27 @@ describe(`Repeat`, function () {
 
       runAttachLifecycle(lifecycle, sut, baseFlags | attachFlags1);
 
-      expect(host.textContent).to.equal(expectedText1, 'host.textContent #1');
+      assert.strictEqual(host.textContent, expectedText1, 'host.textContent #1');
       if (attachTwice) {
         runAttachLifecycle(lifecycle, sut, baseFlags | attachFlags1);
 
-        expect(host.textContent).to.equal(expectedText1, 'host.textContent #2');
+        assert.strictEqual(host.textContent, expectedText1, 'host.textContent #2');
       }
 
       applyMutations(sut, mutations);
       const expectedText2 = sut.items ? sut.items.join('') : '';
 
       if (flush) {
-        lifecycle.processFlushQueue(baseFlags);
+        lifecycle.processRAFQueue(baseFlags);
 
-        expect(host.textContent).to.equal(expectedText2, 'host.textContent #3');
+        assert.strictEqual(host.textContent, expectedText2, 'host.textContent #3');
       } else {
         const assign = mutations.find(m => m.op === 'assign') as AssignSpec;
 
         if (assign) {
-          expect(host.textContent).to.equal(assign.newItems.join(''), 'host.textContent #4');
+          assert.strictEqual(host.textContent, assign.newItems.join(''), 'host.textContent #4');
         } else {
-          expect(host.textContent).to.equal(expectedText1, 'host.textContent #5');
+          assert.strictEqual(host.textContent, expectedText1, 'host.textContent #5');
         }
       }
 
@@ -677,7 +671,7 @@ describe(`Repeat`, function () {
       }
 
 
-      expect(host.textContent).to.equal('', 'host.textContent #6');
+      assert.strictEqual(host.textContent, '', 'host.textContent #6');
 
       runUnbindLifecycle(lifecycle, sut, baseFlags | unbindFlags1);
       if (unbindTwice) {
@@ -699,27 +693,27 @@ describe(`Repeat`, function () {
 
       runAttachLifecycle(lifecycle, sut, baseFlags | attachFlags2);
 
-      expect(host.textContent).to.equal(expectedText3, 'host.textContent #7');
+      assert.strictEqual(host.textContent, expectedText3, 'host.textContent #7');
       if (attachTwice) {
         runAttachLifecycle(lifecycle, sut, baseFlags | attachFlags2);
 
-        expect(host.textContent).to.equal(expectedText3, 'host.textContent #8');
+        assert.strictEqual(host.textContent, expectedText3, 'host.textContent #8');
       }
 
       applyMutations(sut, mutations);
       const expectedText4 = sut.items ? sut.items.join('') : '';
 
       if (flush) {
-        lifecycle.processFlushQueue(baseFlags);
+        lifecycle.processRAFQueue(baseFlags);
 
-        expect(host.textContent).to.equal(expectedText4, 'host.textContent #9');
+        assert.strictEqual(host.textContent, expectedText4, 'host.textContent #9');
       } else {
         const assign = mutations.find(m => m.op === 'assign') as AssignSpec;
 
         if (assign) {
-          expect(host.textContent).to.equal(assign.newItems.join(''), 'host.textContent #10');
+          assert.strictEqual(host.textContent, assign.newItems.join(''), 'host.textContent #10');
         } else {
-          expect(host.textContent).to.equal(expectedText3, 'host.textContent #11');
+          assert.strictEqual(host.textContent, expectedText3, 'host.textContent #11');
         }
       }
 
@@ -729,7 +723,7 @@ describe(`Repeat`, function () {
       }
 
 
-      expect(host.textContent).to.equal('', 'host.textContent #12');
+      assert.strictEqual(host.textContent, '', 'host.textContent #12');
 
       runUnbindLifecycle(lifecycle, sut, baseFlags | unbindFlags2);
       if (unbindTwice) {

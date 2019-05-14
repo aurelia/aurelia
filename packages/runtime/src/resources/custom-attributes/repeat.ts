@@ -223,6 +223,7 @@ export class Repeat<C extends ObservedCollection = IObservedArray, T extends INo
         }
       }
     } else {
+      applyMutationsToIndices(indexMap);
       if ((this.$controller.state & State.isBoundOrBinding) > 0) {
         // first detach+unbind+(remove from array) the deleted view indices
         if (indexMap.deletedItems.length > 0) {
@@ -499,18 +500,7 @@ export class Repeat<C extends ObservedCollection = IObservedArray, T extends INo
     // TODO: integrate with tasks
     const location = this.location;
     const views = this.views;
-    const viewsCopy = views.slice();
-
-    const len = indexMap.length;
-    let to = 0;
-    let from = 0;
-    while (to < len) {
-      from = indexMap[to];
-      if (from !== -2) {
-        views[to] = viewsCopy[from];
-      }
-      ++to;
-    }
+    synchronizeIndices(views, indexMap);
 
     // this algorithm retrieves the indices of the longest increasing subsequence of items in the repeater
     // the items on those indices are not moved; this minimizes the number of DOM operations that need to be performed
@@ -614,4 +604,47 @@ export function longestIncreasingSubsequence(indexMap: IndexMap): Int32Array {
   }
   while (i-- > 0) prevIndices[i] = 0;
   return result;
+}
+
+/**
+ * Applies offsets to the non-negative indices in the IndexMap
+ * based on added and deleted items relative to those indices.
+ *
+ * e.g. turn `[-2, 0, 1]` into `[-2, 1, 2]`, allowing the values at the indices to be
+ * used for sorting/reordering items if needed
+ */
+function applyMutationsToIndices(indexMap: IndexMap): void {
+  let offset = 0;
+  let j = 0;
+  const len = indexMap.length;
+  for (let i = 0; i < len; ++i) {
+    while (indexMap.deletedItems[j] <= i - offset) {
+      ++j;
+      --offset;
+    }
+    if (indexMap[i] === -2) {
+      ++offset;
+    } else {
+      indexMap[i] += offset;
+    }
+  }
+}
+
+/**
+ * After `applyMutationsToIndices`, this function can be used to reorder items in a derived
+ * array (e.g.  the items in the `views` in the repeater are derived from the `items` property)
+ */
+function synchronizeIndices<T>(items: T[], indexMap: IndexMap): void {
+  const copy = items.slice();
+
+  const len = indexMap.length;
+  let to = 0;
+  let from = 0;
+  while (to < len) {
+    from = indexMap[to];
+    if (from !== -2) {
+      items[to] = copy[from];
+    }
+    ++to;
+  }
 }

@@ -30,29 +30,71 @@ module.exports = function (config) {
 
   const options = {
     basePath,
-    frameworks: ['source-map-support', 'mocha', 'chai'],
+    frameworks: [
+      'source-map-support',
+      'mocha',
+      'chai',
+    ],
     files: [
       'dist/build/__tests__/setup-browser.js',
     ],
     preprocessors: {
-      ['dist/build/__tests__/setup-browser.js']: ['webpack', 'sourcemap'],
+      ['dist/build/__tests__/setup-browser.js']: [
+        'webpack',
+        'sourcemap',
+      ],
     },
     webpack: {
-      mode: 'development',
+      mode: 'none',
       resolve: {
-        extensions: ['.js'],
+        extensions: [
+          '.js',
+        ],
         modules: [
           'dist',
           'node_modules'
-        ]
+        ],
+        mainFields: [
+          'module',
+        ],
       },
-      devtool: 'none',
+      devtool: 'inline-source-map',
+      performance: {
+        hints: false,
+      },
+      optimization: {
+        namedModules: false,
+        namedChunks: false,
+        nodeEnv: false,
+        usedExports: true,
+        flagIncludedChunks: false,
+        occurrenceOrder: false,
+        sideEffects: true,
+        concatenateModules: true,
+        splitChunks: {
+          name: false,
+        },
+        runtimeChunk: false,
+        noEmitOnErrors: false,
+        checkWasmTypes: false,
+        minimize: false,
+      },
       module: {
         rules: [
           {
+            test: /\.js\.map$/,
+            use: ['ignore-loader'],
+          },
+          {
             test: /\.js$/,
-            use: ['source-map-loader'],
-            enforce: 'pre',
+            use: [
+              {
+                loader: 'source-map-loader',
+                options: {
+                  enforce: 'pre',
+                },
+              },
+            ],
           },
         ]
       }
@@ -60,7 +102,7 @@ module.exports = function (config) {
     mime: {
       'text/x-typescript': ['ts']
     },
-    reporters: ['junit', config.reporter || (process.env.CI ? 'min' : 'progress')],
+    reporters: [config.reporter || (process.env.CI ? 'min' : 'progress')],
     browsers: browsers,
     customLaunchers: {
       ChromeDebugging: {

@@ -76,6 +76,7 @@
   "devDependencies": {
     "chalk": "^2.4.2",
     "cross-env": "^5.2.0",
+    "ignore-loader": "^0.1.2",
     "source-map": "^0.7.3",
     "source-map-loader": "^0.2.4",
     "ts-node": "^8.1.0",

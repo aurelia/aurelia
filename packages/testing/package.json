@@ -60,8 +60,8 @@
     "@aurelia/validation": "0.3.0",
     "chai": "^4.2.0",
     "jsdom": "^14.0.0",
-    "mocha": "^6.0.2",
-    "sinon": "^7.3.0",
+    "mocha": "^6.1.4",
+    "sinon": "^7.3.2",
     "sinon-chai": "^3.3.0"
   },
   "devDependencies": {

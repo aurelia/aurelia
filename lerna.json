@@ -4,7 +4,7 @@
       "hoist": "**"
     }
   },
-  "lerna": "3.13.0",
+  "lerna": "3.13.4",
   "packages": [
     "packages/__tests__",
     "packages/aot",

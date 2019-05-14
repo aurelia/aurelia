@@ -67,11 +67,11 @@
     "karma-source-map-support": "^1.4.0",
     "karma-sourcemap-loader": "^0.3.7",
     "karma-webpack": "^3.0.5",
-    "karma": "^4.0.1",
-    "mocha": "^6.0.2",
-    "sinon": "^7.3.0",
-    "ts-loader": "^5.4.4",
-    "webpack": "^4.29.6"
+    "karma": "^4.1.0",
+    "mocha": "^6.1.4",
+    "sinon": "^7.3.2",
+    "ts-loader": "^6.0.0",
+    "webpack": "^4.31.0"
   },
   "devDependencies": {
     "chalk": "^2.4.2",

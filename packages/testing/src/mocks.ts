@@ -3,9 +3,10 @@ import {
   IContainer,
   IDisposable,
   IResourceType,
+  IServiceLocator,
   PLATFORM,
   Writable,
-  IServiceLocator
+  IIndexable
 } from '@aurelia/kernel';
 import {
   AccessMember,
@@ -18,14 +19,13 @@ import {
   ExpressionKind,
   IAttributeDefinition,
   IBinding,
-  IViewModel,
-  IViewModel,
+  IController,
   ICustomElementType,
+  IDOM,
   If,
   ILifecycle,
   INode,
   INodeSequence,
-  IController,
   IRenderContext,
   IRenderer,
   IRenderingEngine,
@@ -34,17 +34,66 @@ import {
   ITemplate,
   ITemplateDefinition,
   IViewFactory,
+  IViewModel,
   LifecycleFlags,
   ObserverLocator,
-  RuntimeBehavior,
   State,
   TemplatePartDefinitions,
   ViewFactory,
-  CompositionCoordinator,
-  IDOM
+  IndexMap,
+  ISubscribable,
+  IConnectableBinding,
+  IObserverLocator
 } from '@aurelia/runtime';
-import { spy } from 'sinon';
 import { HTMLTestContext } from './html-test-context';
+
+export class MockBinding implements IConnectableBinding {
+  public id!: number;
+  public observerSlots!: number;
+  public version!: number;
+  public observerLocator!: IObserverLocator;
+  public locator!: IServiceLocator;
+  public $scope?: IScope | undefined;
+  public $state!: State;
+
+  public calls: [keyof MockBinding, ...any[]][] = [];
+
+  public updateTarget(value: unknown, flags: LifecycleFlags): void {
+    this.trace('updateTarget', value, flags);
+  }
+
+  public updateSource(value: unknown, flags: LifecycleFlags): void {
+    this.trace('updateSource', value, flags);
+  }
+
+  public handleChange(newValue: unknown, _previousValue: unknown, flags: LifecycleFlags): void {
+    this.trace('handleChange', newValue, _previousValue, flags);
+  }
+
+  public observeProperty(flags: LifecycleFlags, obj: IIndexable, propertyName: string): void {
+    this.trace('observeProperty', flags, obj, propertyName);
+  }
+
+  public unobserve(all?: boolean): void {
+    this.trace('unobserve', all);
+  }
+
+  public addObserver(observer: ISubscribable): void {
+    this.trace('addObserver', observer);
+  }
+
+  public $bind(flags: LifecycleFlags, scope: IScope): void {
+    this.trace('$bind', flags, scope);
+  }
+
+  public $unbind(flags: LifecycleFlags): void {
+    this.trace('$unbind', flags);
+  }
+
+  public trace(fnName: keyof MockBinding, ...args: any[]): void {
+    this.calls.push([fnName, ...args]);
+  }
+}
 
 export class MockBindingBehavior {
   public calls: [keyof MockBindingBehavior, ...any[]][] = [];
@@ -60,177 +109,6 @@ export class MockBindingBehavior {
   public trace(fnName: keyof MockBindingBehavior, ...args: any[]): void {
     this.calls.push([fnName, ...args]);
   }
-}
-
-export type IComponentLifecycleMock = InstanceType<ReturnType<typeof defineComponentLifecycleMock>>;
-
-export function defineComponentLifecycleMock() {
-  return class ComponentLifecycleMock<T extends INode = INode> implements IController<T> {
-    public $state: State;
-    public $scope: IScope;
-    public $nodes!: INodeSequence<T>;
-    public $context!: IRenderContext<T>;
-    public readonly $lifecycle: ILifecycle;
-    public calls: [keyof ComponentLifecycleMock, ...any[]][] = [];
-
-    constructor() {
-      this.$state = State.none;
-      this.$scope = null!;
-      this.$lifecycle = DI.createContainer().get(ILifecycle);
-    }
-
-    public created(): void {
-      this.trace(`created`);
-      this.verifyStateBit(State.isBound, false, 'created');
-      this.verifyStateBit(State.isAttached, false, 'created');
-    }
-    public binding(flags: LifecycleFlags): void {
-      this.trace(`binding`, flags);
-    }
-    public bound(flags: LifecycleFlags): void {
-      this.trace(`bound`, flags);
-      this.verifyStateBit(State.isBound, true, 'bound');
-    }
-    public attaching(flags: LifecycleFlags): void {
-      this.trace(`attaching`, flags);
-      this.verifyStateBit(State.isBound, true, 'attaching');
-      this.verifyStateBit(State.isAttached, false, 'attaching');
-    }
-    public attached(flags: LifecycleFlags): void {
-      this.trace(`attached`, flags);
-      this.verifyStateBit(State.isBound, true, 'attached');
-      this.verifyStateBit(State.isAttached, true, 'attached');
-    }
-    public detaching(flags: LifecycleFlags): void {
-      this.trace(`detaching`, flags);
-      this.verifyStateBit(State.isBound, true, 'detaching');
-      this.verifyStateBit(State.isAttached, true, 'detaching');
-    }
-    public detached(flags: LifecycleFlags): void {
-      this.trace(`detached`, flags);
-      this.verifyStateBit(State.isBound, true, 'detached');
-      this.verifyStateBit(State.isAttached, false, 'detached');
-    }
-    public unbinding(flags: LifecycleFlags): void {
-      this.trace(`unbinding`, flags);
-      this.verifyStateBit(State.isBound, true, 'detached');
-    }
-    public unbound(flags: LifecycleFlags): void {
-      this.trace(`unbound`, flags);
-      this.verifyStateBit(State.isBound, false, 'detached');
-    }
-    public render(host: INode, parts: Record<string, ITemplateDefinition>): void {
-      this.trace(`render`, host, parts);
-    }
-    public caching(flags: LifecycleFlags): void {
-      this.trace(`caching`, flags);
-    }
-
-    public trace(fnName: keyof ComponentLifecycleMock, ...args: any[]): void {
-      this.calls.push([fnName, ...args]);
-    }
-
-    public verifyPropertyValue(prop: keyof ComponentLifecycleMock, value: any, during?: string): void {
-      if (this[prop] !== value) {
-        let msg = `expected ${prop} to be ${value}`;
-        if (during !== undefined) {
-          msg += ` during ${during}() lifecycle hook`;
-        }
-        msg += `, got but: ${this[prop]}`;
-        this.fail(msg);
-      }
-    }
-
-    public verifyStateBit(value: any, isTrue: boolean, during?: string): void {
-      if (!isTrue) {
-        if ((this.$state & value) === value) {
-          let msg = `expected $state to NOT have flag ${value}`;
-          if (during !== undefined) {
-            msg += ` during ${during}() lifecycle hook`;
-          }
-          msg += `, got but: ${this.$state}`;
-          this.fail(msg);
-        }
-      } else {
-        if ((this.$state & value) !== value) {
-          let msg = `expected $state to have flag ${value}`;
-          if (during !== undefined) {
-            msg += ` during ${during}() lifecycle hook`;
-          }
-          msg += `, got but: ${this.$state}`;
-          this.fail(msg);
-        }
-      }
-    }
-
-    public verifyCreatedCalled(): void {
-      this.verifyLastCall('created');
-    }
-    public verifyBindingCalled(flags: LifecycleFlags): void {
-      this.verifyLastCall(`binding`, flags);
-    }
-    public verifyBoundCalled(flags: LifecycleFlags): void {
-      this.verifyLastCall(`bound`, flags);
-    }
-    public verifyAttachingCalled(flags: LifecycleFlags): void {
-      this.verifyLastCall(`attaching`, flags);
-    }
-    public verifyAttachedCalled(flags: LifecycleFlags): void {
-      this.verifyLastCall(`attached`, flags);
-    }
-    public verifyDetachingCalled(flags: LifecycleFlags): void {
-      this.verifyLastCall(`detaching`, flags);
-    }
-    public verifyDetachedCalled(flags: LifecycleFlags): void {
-      this.verifyLastCall(`detached`, flags);
-    }
-    public verifyUnbindingCalled(flags: LifecycleFlags): void {
-      this.verifyLastCall(`unbinding`, flags);
-    }
-    public verifyUnboundCalled(flags: LifecycleFlags): void {
-      this.verifyLastCall(`unbound`, flags);
-    }
-    public verifyRenderCalled(host: INode, parts: Record<string, ITemplateDefinition>): void {
-      this.verifyLastCall(`render`, host, parts);
-    }
-    public verifyCachingCalled(flags: LifecycleFlags): void {
-      this.verifyLastCall(`caching`, flags);
-    }
-    public verifyLastCall(name: string, ...args: any[]): void {
-      const calls = this.calls;
-      if (calls.length === 0) {
-        this.fail(`expected "${name}" to be the last called method, but no methods on this mock were called at all`);
-      }
-      const lastCall = calls.pop()!;
-      if (lastCall[0] !== name) {
-        if (calls.length === 0) {
-          this.fail(`expected "${name}" to be the last called method, but the ONLY method called on this mock was "${lastCall[0]}"`);
-        } else {
-          const callChain = calls.map(c => `"${c[0]}"`).join('->');
-          this.fail(`expected "${name}" to be the last called method, but the last method called on this mock was "${lastCall[0]}", preceded by: ${callChain}`);
-        }
-      }
-      for (let i = 0, ii = args.length; i < ii; ++i) {
-        const expected = args[i];
-        const actual = lastCall[i + 1];
-        if (expected !== actual) {
-          this.fail(`expected argument #${i} of the call to "${name}" to be: ${expected}, but instead got: ${actual}`);
-        }
-      }
-      if (lastCall.length > args.length + 1) {
-        this.fail(`expected "${name}" to have been called with ${args.length} arguments, but it was called with ${lastCall.length - 1} arguments instead (last argument is: ${lastCall[lastCall.length - 1]})`);
-      }
-    }
-    public verifyNoFurtherCalls(): void {
-      if (this.calls.length > 0) {
-        const callChain = this.calls.map(c => `"${c[0]}"`).join('->');
-        this.fail(`expected no further calls, but found additional calls: ${callChain}`);
-      }
-    }
-    public fail(message: string) {
-      throw new Error(`ComponentLifecycleMock: ${message}`);
-    }
-  };
 }
 
 export interface MockServiceLocator extends IContainer {}
@@ -354,253 +232,6 @@ export class MockContext {
 }
 export type ExposedContext = IRenderContext & IDisposable & IContainer;
 
-export class MockNodeSequence implements INodeSequence {
-  public firstChild: Node;
-  public lastChild: Node;
-  public childNodes: Node[];
-
-  public fragment: DocumentFragment;
-
-  constructor(fragment: DocumentFragment) {
-    this.fragment = fragment;
-    this.firstChild = fragment.firstChild!;
-    this.lastChild = fragment.lastChild!;
-    this.childNodes = PLATFORM.toArray(fragment.childNodes);
-  }
-
-  public static createSimpleMarker(ctx: HTMLTestContext): MockNodeSequence {
-    const fragment = ctx.doc.createDocumentFragment();
-    const marker = ctx.createElement('au-m');
-    marker.classList.add('au');
-    fragment.appendChild(marker);
-    return new MockNodeSequence(fragment);
-  }
-
-  public static createRenderLocation(ctx: HTMLTestContext): MockNodeSequence {
-    const fragment = ctx.doc.createDocumentFragment();
-    const location = ctx.doc.createComment('au-loc');
-    fragment.appendChild(location);
-    return new MockNodeSequence(fragment);
-  }
-
-  public static createTextBindingMarker(ctx: HTMLTestContext): MockNodeSequence {
-    const fragment = ctx.doc.createDocumentFragment();
-    const marker = ctx.createElement('au-m');
-    marker.classList.add('au');
-    const textNode = ctx.doc.createTextNode('');
-    fragment.appendChild(marker);
-    fragment.appendChild(textNode);
-    return new MockNodeSequence(fragment);
-  }
-
-  public findTargets(): ArrayLike<Node> {
-    return this.fragment.querySelectorAll('.au');
-  }
-
-  public insertBefore(refNode: Node): void {
-    refNode.parentNode!.insertBefore(this.fragment, refNode);
-  }
-
-  public appendTo(parent: Node): void {
-    parent.appendChild(this.fragment);
-  }
-
-  public remove(): void {
-    const fragment = this.fragment;
-    let current = this.firstChild;
-    if (current.parentNode !== fragment) {
-      const append = fragment.appendChild.bind(fragment);
-      const end = this.lastChild;
-      let next: Node;
-      while (current) {
-        next = current.nextSibling!;
-        append(current);
-        if (current === end) {
-          break;
-        }
-        current = next;
-      }
-    }
-  }
-}
-
-export class MockTextNodeSequence implements INodeSequence {
-  public firstChild: Node;
-  public lastChild: Node;
-  public childNodes: Node[];
-
-  public fragment: DocumentFragment;
-
-  constructor(ctx: HTMLTestContext) {
-    const fragment = this.fragment = ctx.doc.createDocumentFragment();
-    const textNode = this.firstChild = this.lastChild = ctx.doc.createTextNode('');
-    fragment.appendChild(textNode);
-    this.childNodes = [textNode];
-  }
-
-  public findTargets(): ArrayLike<Node> {
-    return [this.firstChild];
-  }
-
-  public insertBefore(refNode: Node): void {
-    if (refNode) {
-      refNode.parentNode!.insertBefore(this.fragment, refNode);
-    }
-  }
-
-  public appendTo(parent: Node): void {
-    parent.appendChild(this.fragment);
-  }
-
-  public remove(): void {
-    const fragment = this.fragment;
-    const textNode = this.firstChild;
-    if (textNode.parentNode !== fragment) {
-      fragment.appendChild(textNode);
-    }
-  }
-}
-
-export class MockTextNodeTemplate {
-  constructor(
-    public sourceExpression: any,
-    public observerLocator: any,
-    public container: any
-  ) {}
-
-  public render(renderable: Partial<IController>, host?: INode, parts?: TemplatePartDefinitions): void {
-    const nodes = (renderable as Writable<IController>).$nodes = new MockTextNodeSequence(undefined!);
-    addBinding(renderable as IController, new Binding(this.sourceExpression, nodes.firstChild, 'textContent', BindingMode.toView, this.observerLocator, this.container));
-  }
-}
-
-const expressions = {
-  if: new AccessMember(new AccessScope('item'), 'if'),
-  else: new AccessMember(new AccessScope('item'), 'else')
-};
-
-export class MockIfTextNodeTemplate {
-  constructor(
-    public dom: any,
-    public sourceExpression: any,
-    public observerLocator: any,
-    public lifecycle: any,
-    public container: any
-  ) {}
-
-  public render(renderable: Partial<IController>, host?: INode, parts?: TemplatePartDefinitions): void {
-    const nodes = (renderable as Writable<IController>).$nodes = MockNodeSequence.createRenderLocation(undefined!);
-
-    const observerLocator = new ObserverLocator(this.lifecycle, null, null, null);
-    const factory = new ViewFactory(null!, new MockTextNodeTemplate(expressions.if, observerLocator, this.container) as any, this.lifecycle);
-
-    //@ts-ignore
-    const sut = new If(factory, nodes.firstChild, new CompositionCoordinator(this.lifecycle));
-
-    (sut as any)['$isAttached'] = false;
-    (sut as any)['$scope'] = null;
-
-    const behavior = RuntimeBehavior.create(If as any);
-    behavior.applyTo(LifecycleFlags.none, sut, this.lifecycle);
-
-    addComponent(renderable as IController, sut);
-    addBinding(renderable as IController, new Binding(this.sourceExpression, sut, 'value', BindingMode.toView, this.observerLocator, this.container));
-  }
-}
-
-export class MockIfElseTextNodeTemplate {
-  constructor(
-    public dom: any,
-    public sourceExpression: any,
-    public observerLocator: any,
-    public lifecycle: any,
-    public container: any
-  ) {}
-
-  public render(renderable: Partial<IController>, host?: INode, parts?: TemplatePartDefinitions): void {
-    const ifNodes = (renderable as Writable<IController>).$nodes = MockNodeSequence.createRenderLocation(undefined!);
-
-    const observerLocator = new ObserverLocator(this.lifecycle, null, null, null);
-    const ifFactory = new ViewFactory(null!, new MockTextNodeTemplate(expressions.if, observerLocator, this.container) as any, this.lifecycle);
-
-    const ifSut = new If(ifFactory, ifNodes.firstChild, new CompositionCoordinator(this.lifecycle));
-
-    (ifSut as any)['$isAttached'] = false;
-    (ifSut as any)['$state'] = State.none;
-    (ifSut as any)['$scope'] = null;
-
-    const ifBehavior = RuntimeBehavior.create(If as any);
-    ifBehavior.applyTo(LifecycleFlags.none, ifSut, this.lifecycle);
-
-    addComponent(renderable as IController, ifSut);
-    addBinding(renderable as IController, new Binding(this.sourceExpression, ifSut, 'value', BindingMode.toView, this.observerLocator, this.container));
-
-    const elseFactory = new ViewFactory(null!, new MockTextNodeTemplate(expressions.else, observerLocator, this.container) as any, this.lifecycle);
-
-    const elseSut = new Else(elseFactory);
-
-    elseSut.link(renderable.$componentTail as any);
-
-    (elseSut as any)['$isAttached'] = false;
-    (elseSut as any)['$state'] = State.none;
-    (elseSut as any)['$scope'] = null;
-
-    const elseBehavior = RuntimeBehavior.create(Else as any);
-    elseBehavior.applyTo(LifecycleFlags.none, elseSut as any, this.lifecycle);
-
-    addComponent(renderable as IController, elseSut as any);
-    addBinding(renderable as IController, new Binding(this.sourceExpression, elseSut, 'value', BindingMode.toView, this.observerLocator, this.container));
-  }
-}
-
-export class MockRenderingEngine implements IRenderingEngine {
-  public calls: [keyof MockRenderingEngine, ...any[]][];
-
-  constructor(
-    public elementTemplate: ITemplate,
-    public viewFactory: IViewFactory,
-    public renderer: IRenderer,
-    public runtimeBehaviorApplicator: (type: any, instance: any) => void
-  ) {
-    this.calls = [];
-  }
-
-  public getElementTemplate<T extends INode = INode>(
-    dom: IDOM<T>,
-    definition: Required<ITemplateDefinition>,
-    parentContext: IServiceLocator,
-    componentType: ICustomElementType<T> | null,
-  ): ITemplate<T> {
-    this.trace(`getElementTemplate`, definition, componentType);
-    return this.elementTemplate as unknown as ITemplate<T>;
-  }
-
-  public getViewFactory<T extends INode = INode>(
-    dom: IDOM<T>,
-    source: ITemplateDefinition,
-    parentContext: IRenderContext<T> | null,
-  ): IViewFactory<T> {
-    this.trace(`getViewFactory`, source, parentContext);
-    return this.viewFactory as unknown as IViewFactory<T>;
-  }
-
-  public createRenderer(context: IRenderContext): IRenderer {
-    this.trace(`createRenderer`, context);
-    return this.renderer;
-  }
-
-  public applyRuntimeBehavior(flags: LifecycleFlags, type: IResourceType<IAttributeDefinition, IViewModel>, instance: IViewModel): void;
-  public applyRuntimeBehavior(flags: LifecycleFlags, type: ICustomElementType, instance: IViewModel): void;
-  public applyRuntimeBehavior(flags: LifecycleFlags, type: any, instance: any) {
-    this.trace(`applyRuntimeBehavior`, type, instance);
-    this.runtimeBehaviorApplicator(type, instance);
-  }
-
-  public trace(fnName: keyof MockRenderingEngine, ...args: any[]): void {
-    this.calls.push([fnName, ...args]);
-  }
-
-}
 export class MockBrowserHistoryLocation {
   public changeCallback?: () => void;
 
@@ -724,16 +355,187 @@ export class MockBrowserHistoryLocation {
   }
 }
 
+export class ChangeSet implements IDisposable {
+  public readonly index: number;
+  public readonly flags: LifecycleFlags;
 
-export class SpySubscriber {
-  public handleChange: ReturnType<typeof spy>;
-  public handleBatchedChange: ReturnType<typeof spy>;
-  constructor() {
-    this.handleChange = spy();
-    this.handleBatchedChange = spy();
+  public get newValue(): any {
+    return this._newValue;
   }
-  public resetHistory() {
-    this.handleChange.resetHistory();
-    this.handleBatchedChange.resetHistory();
+  public get oldValue(): any {
+    return this._oldValue;
+  }
+
+  private _newValue: any;
+  private _oldValue: any;
+
+  constructor(
+    index: number,
+    flags: LifecycleFlags,
+    newValue: any,
+    oldValue: any,
+  ) {
+    this.index = index;
+    this.flags = flags;
+
+    this._newValue = newValue;
+    this._oldValue = oldValue;
+  }
+
+  public dispose(): void {
+    this._newValue = (void 0)!;
+    this._oldValue = (void 0)!;
+  }
+}
+
+export class ProxyChangeSet implements IDisposable {
+  public readonly index: number;
+  public readonly flags: LifecycleFlags;
+  public readonly key: PropertyKey;
+
+  public get newValue(): any {
+    return this._newValue;
+  }
+  public get oldValue(): any {
+    return this._oldValue;
+  }
+
+  private _newValue: any;
+  private _oldValue: any;
+
+  constructor(
+    index: number,
+    flags: LifecycleFlags,
+    key: PropertyKey,
+    newValue: any,
+    oldValue: any,
+  ) {
+    this.index = index;
+    this.flags = flags;
+    this.key = key;
+
+    this._newValue = newValue;
+    this._oldValue = oldValue;
+  }
+
+  public dispose(): void {
+    this._newValue = (void 0)!;
+    this._oldValue = (void 0)!;
+  }
+}
+
+export class CollectionChangeSet implements IDisposable {
+  public readonly index: number;
+  public readonly flags: LifecycleFlags;
+
+  public get indexMap(): IndexMap {
+    return this._indexMap;
+  }
+
+  private _indexMap: IndexMap;
+
+  constructor(
+    index: number,
+    flags: LifecycleFlags,
+    indexMap: IndexMap,
+  ) {
+    this.index = index;
+    this.flags = flags;
+
+    this._indexMap = indexMap;
+  }
+
+  public dispose(): void {
+    this._indexMap = (void 0)!;
+  }
+}
+
+
+export class SpySubscriber implements IDisposable {
+  public get changes(): ChangeSet[] {
+    if (this._changes === void 0) {
+      return PLATFORM.emptyArray;
+    }
+    return this._changes;
+  }
+  public get proxyChanges(): ProxyChangeSet[] {
+    if (this._proxyChanges === void 0) {
+      return PLATFORM.emptyArray;
+    }
+    return this._proxyChanges;
+  }
+  public get collectionChanges(): CollectionChangeSet[] {
+    if (this._collectionChanges === void 0) {
+      return PLATFORM.emptyArray;
+    }
+    return this._collectionChanges;
+  }
+
+  public get hasChanges(): boolean {
+    return this._changes !== void 0;
+  }
+  public get hasProxyChanges(): boolean {
+    return this._proxyChanges !== void 0;
+  }
+  public get hasCollectionChanges(): boolean {
+    return this._collectionChanges !== void 0;
+  }
+
+  public get callCount(): number {
+    return this._callCount;
+  }
+
+  private _changes?: ChangeSet[];
+  private _proxyChanges?: ProxyChangeSet[];
+  private _collectionChanges?: CollectionChangeSet[];
+
+  private _callCount: number;
+
+  constructor() {
+    this._changes = void 0;
+    this._proxyChanges = void 0;
+    this._collectionChanges = void 0;
+    this._callCount = 0;
+  }
+
+  public handleChange(newValue: any, oldValue: any, flags: LifecycleFlags): void {
+    if (this._changes === void 0) {
+      this._changes = [new ChangeSet(this._callCount++, flags, newValue, oldValue)];
+    } else {
+      this._changes.push(new ChangeSet(this._callCount++, flags, newValue, oldValue));
+    }
+  }
+
+  public handleProxyChange(key: PropertyKey, newValue: any, oldValue: any, flags: LifecycleFlags): void {
+    if (this._proxyChanges === void 0) {
+      this._proxyChanges = [new ProxyChangeSet(this._callCount++, flags, key, newValue, oldValue)];
+    } else {
+      this._proxyChanges.push(new ProxyChangeSet(this._callCount++, flags, key, newValue, oldValue));
+    }
+  }
+
+  public handleCollectionChange(indexMap: IndexMap, flags: LifecycleFlags): void {
+    if (this._collectionChanges === void 0) {
+      this._collectionChanges = [new CollectionChangeSet(this._callCount++, flags, indexMap)];
+    } else {
+      this._collectionChanges.push(new CollectionChangeSet(this._callCount++, flags, indexMap));
+    }
+  }
+
+  public dispose(): void {
+    if (this._changes !== void 0) {
+      this._changes.forEach(c => c.dispose());
+      this._changes = void 0;
+    }
+    if (this._proxyChanges !== void 0) {
+      this._proxyChanges.forEach(c => c.dispose());
+      this._proxyChanges = void 0;
+    }
+    if (this._collectionChanges !== void 0) {
+      this._collectionChanges.forEach(c => c.dispose());
+      this._collectionChanges = void 0;
+    }
+
+    this._callCount = 0;
   }
 }

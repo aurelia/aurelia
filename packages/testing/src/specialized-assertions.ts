@@ -74,6 +74,10 @@ function isShadowDOMProjector(projector: IElementProjector | undefined): project
 }
 
 function $getVisibleText(root: IController, context: { text: string | null}): void {
+  if (root == void 0) {
+    return;
+  }
+
   const { controllers } = root;
   if (controllers == void 0) {
     return;

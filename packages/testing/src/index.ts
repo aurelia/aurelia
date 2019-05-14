@@ -2,24 +2,21 @@ export {
   assert,
 } from './assert';
 
-// export {
-//   AuNode,
-//   AuDOM,
-//   AuDOMConfiguration,
-//   AuDOMInitializer,
-//   AuDOMTest,
-//   AuNodeSequence,
-//   AuNodeSequenceFactory,
-//   AuObserverLocator,
-//   AuProjector,
-//   AuProjectorLocator,
-//   AuTemplateFactory,
-//   AuTextInstruction,
-//   AuTextRenderer,
-// } from './au-dom';
 export {
-  initializeChaiExtensions,
-} from './chai-extensions';
+  AuNode,
+  AuDOM,
+  AuDOMConfiguration,
+  AuDOMInitializer,
+  AuDOMTest,
+  AuNodeSequence,
+  AuNodeSequenceFactory,
+  AuObserverLocator,
+  AuProjector,
+  AuProjectorLocator,
+  AuTemplateFactory,
+  AuTextInstruction,
+  AuTextRenderer,
+} from './au-dom';
 export {
   globalAttributeNames,
   CSS_PROPERTIES,
@@ -30,11 +27,6 @@ export {
   eachCartesianJoin,
   eachCartesianJoinAsync,
 } from './each-cartesian-join';
-// export {
-//   FakeRenderable,
-//   FakeView,
-//   FakeViewFactory,
-// } from './fakes';
 export {
   h,
   hJsx,
@@ -47,30 +39,15 @@ export {
   inspect,
 } from './inspect';
 export {
-  massReset,
-  massRestore,
-  massSpy,
-  massStub,
-  ensureNotCalled,
-  getAllPropertyDescriptors,
-} from './mass-spy';
-export {
-  // MockBindingBehavior,
+  MockBinding,
+  MockBindingBehavior,
   MockBrowserHistoryLocation,
-  // MockContext,
-  // MockIfElseTextNodeTemplate,
-  // MockIfTextNodeTemplate,
-  // MockNodeSequence,
-  // MockPropertySubscriber,
-  // MockRenderingEngine,
-  // MockServiceLocator,
-  // MockSignaler,
-  // MockTextNodeSequence,
-  // MockTextNodeTemplate,
-  // MockTracingExpression,
-  // MockValueConverter,
-  // IComponentLifecycleMock,
-  // defineComponentLifecycleMock,
+  MockContext,
+  MockPropertySubscriber,
+  MockServiceLocator,
+  MockSignaler,
+  MockTracingExpression,
+  MockValueConverter,
   ChangeSet,
   CollectionChangeSet,
   ProxyChangeSet,
@@ -84,15 +61,6 @@ export {
   JsonValueConverter,
   TestConfiguration,
 } from './resources';
-// export {
-//   cleanup,
-//   setup,
-//   setupAndStart,
-//   setupWithDocument,
-//   setupWithDocumentAndStart,
-//   tearDown,
-//   trimFull,
-// } from './setup';
 export {
   verifyASTEqual,
   verifyBindingInstructionsEqual,
@@ -108,24 +76,20 @@ export {
   padLeft,
   padRight,
 } from './string-manipulation';
-// export {
-//   ensureSingleChildTemplateControllerBehaviors,
-//   hydrateCustomAttribute,
-// } from './template-controller-tests';
-// export {
-//   DefinitionBuilder,
-//   InstructionBuilder,
-//   TemplateBuilder,
-//   TestBuilder,
-//   createCustomAttribute,
-//   createCustomElement,
-//   createObserverLocator,
-//   createScopeForTest,
-//   createTemplateController,
-//   CustomAttribute,
-//   CustomElement,
-//   hydrateCustomElement,
-// } from './test-builder';
+export {
+  // DefinitionBuilder,
+  // InstructionBuilder,
+  // TemplateBuilder,
+  // TestBuilder,
+  // createCustomAttribute,
+  // createCustomElement,
+  createObserverLocator,
+  createScopeForTest,
+  // createTemplateController,
+  // CustomAttribute,
+  // CustomElement,
+  // hydrateCustomElement,
+} from './test-builder';
 export {
   enableTracing,
   disableTracing,
@@ -135,3 +99,6 @@ export {
   recordCalls,
   stopRecordingCalls,
 } from './tracing';
+export {
+  trimFull,
+} from './util';

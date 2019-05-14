@@ -1,5 +1,5 @@
 import { join } from 'path';
-import { PropertyDeclaration, Statement, createBinary, SyntaxKind } from 'typescript';
+import { PropertyDeclaration, Statement, createBinary, SyntaxKind, Expression } from 'typescript';
 import { kebabCase } from '../../packages/kernel/src/index';
 import project from '../project';
 import {
@@ -221,24 +221,7 @@ const repeat$13_2: TplCtrl = {
 repeat$13_1.opposite = repeat$13_2;
 repeat$13_2.opposite = repeat$13_1;
 
-const repeat$14_1: TplCtrl = {
-  id: 'repeat$14',
-  value: ['a', 'b', 'c'],
-  prop: 'item',
-  attr: 'repeat.for="item of [\'a\', \'b\', \'c\'] & keyed"',
-  properties: []
-};
-const repeat$14_2: TplCtrl = {
-  id: 'repeat$14',
-  value: [],
-  prop: 'item',
-  attr: 'repeat.for="item of [] & keyed"',
-  properties: []
-};
-repeat$14_1.opposite = repeat$14_2;
-repeat$14_2.opposite = repeat$14_1;
-
-const repeats = [repeat$11_1, repeat$12_1, repeat$13_1, repeat$14_1];
+const repeats = [repeat$11_1, repeat$12_1, repeat$13_1];
 
 function generateTests(testTags: Tag[], textBindings: TextBinding[], ifElsePairs: TplCtrl[], repeaters: TplCtrl[]): Record<string, Statement[]> {
   const tests: Record<string, Statement[]> = {};
@@ -624,14 +607,14 @@ function generateTests(testTags: Tag[], textBindings: TextBinding[], ifElsePairs
             $(tag, [$else], elseText.markup),
             expected, properties, [tag, ifText, $if, {id: `${branchId}$06`}, {id: 'sibling$03'}], resources)
           );
-          ifElseDoubleTests.push($$test(
-            $(tag, [$if], ifText.markup) +
-            $(tag, [$else, $if], elseText.markup) + // never renders
-            $(tag, [$else, $if], ifText.markup) + // never renders
-            $(tag, [$if], '') +
-            $(tag, [$else], elseText.markup),
-            expected, properties, [tag, ifText, $if, {id: `${branchId}$06`}, {id: 'sibling$04'}], resources)
-          );
+          // ifElseDoubleTests.push($$test(
+          //   $(tag, [$if], ifText.markup) +
+          //   $(tag, [$else, $if], elseText.markup) + // never renders
+          //   $(tag, [$else, $if], ifText.markup) + // never renders
+          //   $(tag, [$if], '') +
+          //   $(tag, [$else], elseText.markup),
+          //   expected, properties, [tag, ifText, $if, {id: `${branchId}$06`}, {id: 'sibling$04'}], resources)
+          // );
         //}
 
         for (const $repeat of repeaters) {

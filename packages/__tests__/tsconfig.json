@@ -4,10 +4,8 @@
     "declarationDir": "dist",
     "outDir": "dist/build",
     "lib": ["esnext", "dom"],
-    "module": "esnext",
 
 
-    "sourceMap": false,
     "resolveJsonModule": true,
     "forceConsistentCasingInFileNames": false,
     "strict": false,

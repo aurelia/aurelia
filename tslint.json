@@ -195,9 +195,9 @@
     "type-literal-delimiter": true,
     "typedef": [
       true,
-      "call-signature",
+      //"call-signature",
       //"arrow-call-signature",
-      "parameter",
+      //"parameter",
       //"arrow-parameter",
       "property-declaration",
       //"variable-declaration",

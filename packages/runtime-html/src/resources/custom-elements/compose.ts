@@ -37,11 +37,6 @@ import {
   RenderPlan,
 } from '../../create-element';
 
-const composeSource: ITemplateDefinition = {
-  name: 'au-compose',
-  containerless: true
-};
-
 const bindables = ['subject', 'composing'];
 
 export type Subject<T extends INode = Node> = IViewFactory<T> | IController<T> | RenderPlan<T> | Constructable | TemplateDefinition;
@@ -124,7 +119,7 @@ export class Compose<T extends INode = Node> {
   }
 
   public static register(container: IContainer): void {
-    container.register(Registration.transient('custom-element:compose', this));
+    container.register(Registration.transient('custom-element:au-compose', this));
     container.register(Registration.transient(this, this));
   }
 
@@ -320,4 +315,3 @@ export class Compose<T extends INode = Node> {
     ) as IController<T>;
   }
 }
-CustomElementResource.define(composeSource, Compose);

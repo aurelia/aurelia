@@ -6,10 +6,9 @@ import {
   ILifecycle,
   IObserverLocator,
   IRenderingEngine,
-  LifecycleFlags } from '@aurelia/runtime';
+} from '@aurelia/runtime';
 import { RenderPlan } from '@aurelia/runtime-html';
-import { expect } from 'chai';
-import { eachCartesianJoin, TestContext, trimFull } from '@aurelia/testing';
+import { eachCartesianJoin, TestContext, trimFull, assert } from '@aurelia/testing';
 
 const build = { required: true, compiler: 'default' };
 const spec = 'compose';
@@ -66,13 +65,11 @@ describe(spec, function () {
     },
     {
       t: '4',
-      // @ts-ignore
       createSubject: ctx => ctx.re.getViewFactory(ctx.dom, { name: 'cmp', template: `<template>Hello!</template>`, build }, ctx.container),
       expectedText: 'Hello!'
     },
     {
       t: '5',
-      // @ts-ignore
       createSubject: ctx => ctx.re.getViewFactory(ctx.dom, {  name: 'cmp', template: `<template>Hello!</template>`, build }, ctx.container).create(),
       expectedText: 'Hello!'
     },
@@ -95,10 +92,6 @@ describe(spec, function () {
     {
       t: '13',
       template: `<template><au-compose repeat.for="i of 1" subject.bind="sub"></au-compose></template>`
-    },
-    {
-      t: '23',
-      template: `<template><au-compose repeat.for="i of 1 & keyed" subject.bind="sub"></au-compose></template>`
     },
     {
       t: '4',
@@ -124,22 +117,6 @@ describe(spec, function () {
       t: '19',
       template: `<template><au-compose if.bind="true" subject.bind="sub" repeat.for="i of 1"></au-compose></template>`
     },
-    {
-      t: '26',
-      template: `<template><au-compose if.bind="true" repeat.for="i of 1 & keyed" subject.bind="sub"></au-compose></template>`
-    },
-    {
-      t: '27',
-      template: `<template><au-compose if.bind="true" repeat.for="i of 1 & keyed" subject.bind="sub"></au-compose></template>`
-    },
-    {
-      t: '28',
-      template: `<template><au-compose subject.bind="sub" if.bind="true" repeat.for="i of 1 & keyed"></au-compose></template>`
-    },
-    {
-      t: '29',
-      template: `<template><au-compose if.bind="true" subject.bind="sub" repeat.for="i of 1 & keyed"></au-compose></template>`
-    },
   ];
 
   eachCartesianJoin([subjectSpecs, templateSpecs], (subjectSpec, templateSpec) => {
@@ -149,20 +126,19 @@ describe(spec, function () {
     it(`verify au-compose behavior - subjectSpec ${subjectSpec.t}, templateSpec ${templateSpec.t}`, async function () {
       const ctx = setup();
       const subject = createSubject(ctx);
-      const { au, host, lifecycle } = ctx;
+      const { au, host } = ctx;
 
       class App { public sub: any = null; }
       CustomElementResource.define({ name: 'app', template }, App);
       const component = new App();
       component.sub = subject;
-      au.app({ host, component }).start();
-      lifecycle.processFlushQueue(LifecycleFlags.none);
+      const task = au.app({ host, component }).start();
       if (subject instanceof Promise) {
-        expect(trimFull(host.textContent)).to.equal('');
-        await subject;
-        expect(trimFull(host.textContent)).to.equal(expectedText);
+        assert.strictEqual(trimFull(host.textContent), '', `host.textContent #1`);
+        await task.wait();
+        assert.strictEqual(trimFull(host.textContent), expectedText, `host.textContent #2`);
       } else {
-        expect(trimFull(host.textContent)).to.equal(expectedText);
+        assert.strictEqual(trimFull(host.textContent), expectedText, `host.textContent #3`);
       }
     });
   });

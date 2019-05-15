@@ -1,8 +1,9 @@
 import { HistoryBrowser } from '@aurelia/router';
-import { expect } from 'chai';
+import { DI } from '@aurelia/kernel';
+import { ILifecycle } from '@aurelia/runtime';
 
 describe('HistoryBrowser', function () {
   it('can be created', function () {
-    new HistoryBrowser();
+    new HistoryBrowser(DI.createContainer().get(ILifecycle));
   });
 });

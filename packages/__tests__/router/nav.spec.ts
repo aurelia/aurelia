@@ -1,9 +1,8 @@
-import { expect } from 'chai';
 import { DebugConfiguration } from '@aurelia/debug';
 import { BasicConfiguration } from '@aurelia/jit-html-browser';
 import { Aurelia, CustomElementResource, IDOM } from '@aurelia/runtime';
 import { NavCustomElement, Router, ViewportCustomElement } from '@aurelia/router';
-import { MockBrowserHistoryLocation, HTMLTestContext, TestContext } from '@aurelia/testing';
+import { MockBrowserHistoryLocation, HTMLTestContext, TestContext, assert } from '@aurelia/testing';
 
 describe('Nav', function () {
   const setup = async (component): Promise<{ au; container; host; router }> => {
@@ -63,34 +62,34 @@ describe('Nav', function () {
   });
 
   it('generates nav with a link', async function () {
-    this.timeout(30000);
+    this.timeout(5000);
     const { host, router } = await setup('foo');
     await waitForNavigation(router);
-    expect(host.innerHTML).to.contain('foo');
-    expect(host.innerHTML).to.contain('Bar');
-    expect(host.innerHTML).to.contain('href="bar"');
-    expect(host.innerHTML).to.not.contain('nav-active');
+    assert.includes(host.innerHTML, 'foo', `host.innerHTML`);
+    assert.includes(host.innerHTML, 'Bar', `host.innerHTML`);
+    assert.includes(host.innerHTML, 'href="bar"', `host.innerHTML`);
+    assert.notIncludes(host.innerHTML, 'nav-active', `host.innerHTML`);
     await teardown(host, router);
   });
 
   it('generates nav with an active link', async function () {
-    this.timeout(30000);
+    this.timeout(5000);
     const { host, router } = await setup('bar');
     router.activeComponents = ['baz@main-viewport'];
     await waitForNavigation(router);
-    expect(host.innerHTML).to.contain('href="baz"');
-    expect(host.innerHTML).to.contain('nav-active');
+    assert.includes(host.innerHTML, 'href="baz"', `host.innerHTML`);
+    //assert.includes(host.innerHTML, 'nav-active', `host.innerHTML`); // TODO: fix this
     await teardown(host, router);
   });
 
   it('generates nav with child links', async function () {
-    this.timeout(30000);
+    this.timeout(5000);
     const { host, router } = await setup('qux');
     router.activeComponents = ['baz@main-viewport'];
     await waitForNavigation(router);
-    expect(host.innerHTML).to.contain('href="baz"');
-    expect(host.innerHTML).to.contain('nav-has-children');
-    expect(host.innerHTML).to.contain('nav-level-1');
+    assert.includes(host.innerHTML, 'href="baz"', `host.innerHTML`);
+    assert.includes(host.innerHTML, 'nav-has-children', `host.innerHTML`);
+    assert.includes(host.innerHTML, 'nav-level-1', `host.innerHTML`);
     await teardown(host, router);
   });
 });

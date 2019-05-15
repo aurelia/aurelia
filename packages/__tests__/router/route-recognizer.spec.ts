@@ -1,6 +1,5 @@
-import { expect } from 'chai';
 import { ConfigurableRoute, RouteRecognizer } from '@aurelia/router';
-import { eachCartesianJoin } from '@aurelia/testing';
+import { eachCartesianJoin, assert } from '@aurelia/testing';
 
 const staticRoute = {'path': 'static', 'handler': {'name': 'static'}};
 const dynamicRoute = {'path': 'dynamic/:id', 'handler': {'name': 'dynamic'}};
@@ -149,24 +148,24 @@ describe('route sut', function () {
   it('should reject unknown routes', function () {
     const sut = new RouteRecognizer();
 
-    expect(sut.hasRoute('static')).to.equal(false);
-    expect(() => sut.handlersFor('static')).to.throw();
-    expect(() => sut.generate('static')).to.throw();
-    expect(sut.recognize('/notfound')).to.equal(undefined);
+    assert.strictEqual(sut.hasRoute('static'), false, `sut.hasRoute('static')`);
+    assert.throws(() => sut.handlersFor('static'), void 0, `() => sut.handlersFor('static')`);
+    assert.throws(() => sut.generate('static'), void 0, `() => sut.generate('static')`);
+    assert.strictEqual(sut.recognize('/notfound'), undefined, `sut.recognize('/notfound')`);
   });
 
   it('should reject default parameter values', function () {
     const sut = new RouteRecognizer();
 
-    expect(() => sut.add([{'path': 'user/:id=1', 'handler': {}}])).to.throw();
+    assert.throws(() => sut.add([{'path': 'user/:id=1', 'handler': {}}]), void 0, `() => sut.add([{'path': 'user/:id=1', 'handler': {}}])`);
   });
 
   it('should register unnamed routes', function () {
     const sut = new RouteRecognizer();
     sut.add([{'path': 'b', 'handler': {}}]);
 
-    expect(sut.names).to.deep.equal({});
-    expect(!!sut.recognize('/b')).to.equal(true);
+    assert.deepStrictEqual(sut.names, {}, `sut.names`);
+    assert.strictEqual(!!sut.recognize('/b'), true, `!!sut.recognize('/b')`);
   });
 
   eachCartesianJoin([routeSpecs], function(routeSpec) {
@@ -176,11 +175,11 @@ describe('route sut', function () {
       sut.add([route]);
 
       const result = sut.recognize(path);
-      expect(!!result).to.equal(true);
-      expect(result.length).to.equal(1);
-      expect(result[0].handler).to.equal(route.handler);
-      expect(result[0].isDynamic).to.equal(isDynamic);
-      expect(result[0].params).to.deep.equal(params);
+      assert.strictEqual(!!result, true, `!!result`);
+      assert.strictEqual(result.length, 1, `result.length`);
+      assert.strictEqual(result[0].handler, route.handler, `result[0].handler`);
+      assert.strictEqual(result[0].isDynamic, isDynamic, `result[0].isDynamic`);
+      assert.deepStrictEqual(result[0].params, params, `result[0].params`);
     });
 
     it(`is case insensitive by default - ${routeSpec.t}`, function () {
@@ -189,15 +188,15 @@ describe('route sut', function () {
       sut.add([route]);
 
       const result = sut.recognize(path.toUpperCase());
-      expect(!!result).to.equal(true);
-      expect(result.length).to.equal(1);
-      expect(result[0].handler).to.equal(route.handler);
-      expect(result[0].isDynamic).to.equal(isDynamic);
+      assert.strictEqual(!!result, true, `!!result`);
+      assert.strictEqual(result.length, 1, `result.length`);
+      assert.strictEqual(result[0].handler, route.handler, `result[0].handler`);
+      assert.strictEqual(result[0].isDynamic, isDynamic, `result[0].isDynamic`);
       Object.keys(result[0].params).forEach((property) => {
         if (params[property] === undefined) {
           return;
         }
-        expect(result[0].params[property].toUpperCase()).to.equal(params[property].toUpperCase());
+        assert.strictEqual(result[0].params[property].toUpperCase(), params[property].toUpperCase(), `result[0].params[property].toUpperCase()`);
       });
     });
 
@@ -206,7 +205,7 @@ describe('route sut', function () {
       const sut = new RouteRecognizer();
       sut.add([route]);
 
-      expect(sut.generate(route.handler.name as string, params)).to.equal(path);
+      assert.strictEqual(sut.generate(route.handler.name as string, params), path, `sut.generate(route.handler.name as string, params)`);
     });
   });
 
@@ -214,9 +213,9 @@ describe('route sut', function () {
     const sut = new RouteRecognizer();
     sut.add([dynamicRoute]);
 
-    expect(() => sut.generate('dynamic')).to.throw();
-    expect(() => sut.generate('dynamic', {})).to.throw();
-    expect(() => sut.generate('dynamic', { id: null })).to.throw();
+    assert.throws(() => sut.generate('dynamic'), void 0, `() => sut.generate('dynamic')`);
+    assert.throws(() => sut.generate('dynamic', {}), void 0, `() => sut.generate('dynamic', {})`);
+    assert.throws(() => sut.generate('dynamic', { id: null }), void 0, `() => sut.generate('dynamic', { id: null })`);
   });
 
   it('should generate URIs with extra parameters added to the query string', function () {
@@ -224,28 +223,30 @@ describe('route sut', function () {
     sut.add([staticRoute]);
     sut.add([dynamicRoute]);
 
-    expect(sut.generate('static')).to.equal('/static');
-    expect(sut.generate('static', {})).to.equal('/static');
-    expect(sut.generate('static', { id: 1 })).to.equal('/static?id=1');
+    assert.strictEqual(sut.generate('static'), '/static', `sut.generate('static')`);
+    assert.strictEqual(sut.generate('static', {}), '/static', `sut.generate('static', {})`);
+    assert.strictEqual(sut.generate('static', { id: 1 }), '/static?id=1', `sut.generate('static', { id: 1 })`);
 
-    expect(sut.generate('dynamic', { id: 1 })).to.equal('/dynamic/1');
-    expect(sut.generate('dynamic', { id: 1, test: 2 })).to.equal('/dynamic/1?test=2');
+    assert.strictEqual(sut.generate('dynamic', { id: 1 }), '/dynamic/1', `sut.generate('dynamic', { id: 1 })`);
+    assert.strictEqual(sut.generate('dynamic', { id: 1, test: 2 }), '/dynamic/1?test=2', `sut.generate('dynamic', { id: 1, test: 2 })`);
   });
 
   it('should find handlers by route name', function () {
     const sut = new RouteRecognizer();
     sut.add([staticRoute]);
 
-    expect(sut.hasRoute('static')).to.equal(true);
-    expect(sut.handlersFor('static')[0].handler).to.equal(staticRoute.handler);
+    assert.strictEqual(sut.hasRoute('static'), true, `sut.hasRoute('static')`);
+    assert.strictEqual(sut.handlersFor('static')[0].handler, staticRoute.handler, `sut.handlersFor('static')[0].handler`);
   });
 
   it('should find a handler by multiple names', function () {
     const sut = new RouteRecognizer();
     sut.add([multiNameRoute]);
 
-    expect(sut.handlersFor('static-multiple')[0].handler)
-      .to.equal(sut.handlersFor('static-multiple-alias')[0].handler);
+    assert.strictEqual(
+      sut.handlersFor('static-multiple')[0].handler,
+      sut.handlersFor('static-multiple-alias')[0].handler
+    );
   });
 
   it('should distinguish between dynamic and static parts', function () {
@@ -254,8 +255,8 @@ describe('route sut', function () {
     sut.add([optionalRoute, similarRoute]);
 
     const result = sut.recognize('optionalToo');
-    expect(result.length).to.equal(1);
-    expect(result[0].handler.name).to.equal('similar');
+    assert.strictEqual(result.length, 1, `result.length`);
+    assert.strictEqual(result[0].handler.name, 'similar', `result[0].handler.name`);
   });
 
   it('can set case sensitive route and fails', function () {
@@ -270,6 +271,6 @@ describe('route sut', function () {
     sut.add([routeTest.route]);
 
     const result = sut.recognize(routeTest.path);
-    expect(result).to.equal(undefined);
+    assert.strictEqual(result, undefined, `result`);
   });
 });

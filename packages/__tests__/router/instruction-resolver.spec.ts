@@ -1,9 +1,7 @@
-import { expect } from 'chai';
 import { DebugConfiguration } from '@aurelia/debug';
-import { BasicConfiguration } from '@aurelia/jit-html-browser';
 import { Aurelia, CustomElementResource } from '@aurelia/runtime';
 import { Router, ViewportCustomElement, ViewportInstruction } from '@aurelia/router';
-import { MockBrowserHistoryLocation, TestContext, HTMLTestContext } from '@aurelia/testing';
+import { MockBrowserHistoryLocation, TestContext, HTMLTestContext, assert } from '@aurelia/testing';
 
 describe('InstructionResolver', function () {
   const setup = async (): Promise<{ au; container; host; router }> => {
@@ -42,7 +40,7 @@ describe('InstructionResolver', function () {
     ctx = TestContext.createHTMLTestContext();
   });
 
-  this.timeout(30000);
+  this.timeout(5000);
   it('can be created', async function () {
     const { host, router } = await setup();
     await waitForNavigation(router);
@@ -59,9 +57,9 @@ describe('InstructionResolver', function () {
       new ViewportInstruction('bar', 'right', '456'),
     ];
     let instructionsString = router.instructionResolver.stringifyViewportInstructions(instructions);
-    expect(instructionsString).to.equal('foo@left(123)+bar@right(456)');
+    assert.strictEqual(instructionsString, 'foo@left(123)+bar@right(456)', `instructionsString`);
     let newInstructions = router.instructionResolver.parseViewportInstructions(instructionsString);
-    expect(newInstructions).to.deep.equal(instructions);
+    assert.deepStrictEqual(newInstructions, instructions, `newInstructions`);
 
     instructions = [
       new ViewportInstruction('foo', undefined, '123'),
@@ -69,9 +67,9 @@ describe('InstructionResolver', function () {
       new ViewportInstruction('baz'),
     ];
     instructionsString = router.instructionResolver.stringifyViewportInstructions(instructions);
-    expect(instructionsString).to.equal('foo(123)+bar@right+baz');
+    assert.strictEqual(instructionsString, 'foo(123)+bar@right+baz', `instructionsString`);
     newInstructions = router.instructionResolver.parseViewportInstructions(instructionsString);
-    expect(newInstructions).to.deep.equal(instructions);
+    assert.deepStrictEqual(newInstructions, instructions, `newInstructions`);
 
     await teardown(host, router);
   });
@@ -98,9 +96,9 @@ describe('InstructionResolver', function () {
       await waitForNavigation(router);
 
       const parsed = router.instructionResolver.parseViewportInstruction(instruction);
-      expect(parsed).to.deep.equal(viewportInstruction);
+      assert.deepStrictEqual(parsed, viewportInstruction, `parsed`);
       const newInstruction = router.instructionResolver.stringifyViewportInstruction(parsed);
-      expect(newInstruction).to.equal(instruction);
+      assert.strictEqual(newInstruction, instruction, `newInstruction`);
 
       await teardown(host, router);
     });

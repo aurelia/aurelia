@@ -15,7 +15,6 @@
     "jsxFactory": "hJsx",
 
     "types": [
-      "@aurelia/testing/src/asserts",
       "node",
       "mocha",
       "webpack-env"

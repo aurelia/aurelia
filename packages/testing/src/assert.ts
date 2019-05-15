@@ -28,6 +28,10 @@ import {
 } from '@aurelia/kernel';
 
 import {
+  CompositionRoot,
+} from '@aurelia/runtime';
+
+import {
   isDeepEqual,
   isDeepStrictEqual,
 } from './comparison';
@@ -36,6 +40,7 @@ import {
   IAssertionErrorOpts,
   inspect,
 } from './inspect';
+import { getVisibleText } from './specialized-assertions';
 import {
   isError,
   isFunction,
@@ -45,12 +50,10 @@ import {
   isRegExp,
   isString,
   isUndefined,
+  Object_freeze,
   Object_is,
   Object_keys,
-  Object_freeze,
 } from './util';
-import { CompositionRoot } from '@aurelia/runtime';
-import { getVisibleText } from './specialized-assertions';
 
 // tslint:disable: no-commented-code
 // tslint:disable: ban-types
@@ -431,6 +434,82 @@ export function notInstanceOf(actual: any, expected: any, message?: string): voi
   }
 }
 
+export function includes(outer: any[], inner: any, message?: string): void;
+export function includes(outer: string, inner: string, message?: string): void;
+export function includes(outer: any[] | string, inner: any, message?: string): void {
+  if (!outer.includes(inner)) {
+    innerFail({
+      actual: outer,
+      expected: inner,
+      message,
+      operator: 'includes' as any,
+      stackStartFn: includes
+    });
+  }
+}
+
+export function notIncludes(outer: any[], inner: any, message?: string): void;
+export function notIncludes(outer: string, inner: string, message?: string): void;
+export function notIncludes(outer: any[] | string, inner: any, message?: string): void {
+  if (outer.includes(inner)) {
+    innerFail({
+      actual: outer,
+      expected: inner,
+      message,
+      operator: 'notIncludes' as any,
+      stackStartFn: notIncludes
+    });
+  }
+}
+
+export function greaterThan(left: any, right: any, message?: string): void {
+  if (!(left > right)) {
+    innerFail({
+      actual: left,
+      expected: right,
+      message,
+      operator: 'greaterThan' as any,
+      stackStartFn: greaterThan
+    });
+  }
+}
+
+export function greaterThanOrEqualTo(left: any, right: any, message?: string): void {
+  if (!(left >= right)) {
+    innerFail({
+      actual: left,
+      expected: right,
+      message,
+      operator: 'greaterThanOrEqualTo' as any,
+      stackStartFn: greaterThanOrEqualTo
+    });
+  }
+}
+
+export function lessThan(left: any, right: any, message?: string): void {
+  if (!(left < right)) {
+    innerFail({
+      actual: left,
+      expected: right,
+      message,
+      operator: 'lessThan' as any,
+      stackStartFn: lessThan
+    });
+  }
+}
+
+export function lessThanOrEqualTo(left: any, right: any, message?: string): void {
+  if (!(left <= right)) {
+    innerFail({
+      actual: left,
+      expected: right,
+      message,
+      operator: 'lessThanOrEqualTo' as any,
+      stackStartFn: lessThanOrEqualTo
+    });
+  }
+}
+
 export function notEqual(actual: any, expected: any, message?: string): void {
   if (actual == expected) {
     innerFail({
@@ -525,6 +604,12 @@ const assert = Object_freeze({
   equal,
   instanceOf,
   notInstanceOf,
+  includes,
+  notIncludes,
+  greaterThan,
+  greaterThanOrEqualTo,
+  lessThan,
+  lessThanOrEqualTo,
   notEqual,
   deepEqual,
   notDeepEqual,

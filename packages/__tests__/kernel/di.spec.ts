@@ -1,11 +1,4 @@
-import { expect } from 'chai';
 import {
-  match,
-  SinonMatcher,
-  spy
-} from 'sinon';
-import {
-  Constructable,
   DI,
   IContainer,
   IDefaultableInterfaceSymbol,
@@ -15,17 +8,17 @@ import {
   singleton,
   transient
 } from '@aurelia/kernel';
-import { _ } from '@aurelia/testing';
+import { _, assert, createSpy, ISpy } from '@aurelia/testing';
 
 function assertIsMutableArray(arr: any[], length: number): void {
-  expect(Array.isArray(arr)).to.equal(true);
-  expect(arr instanceof Array).to.equal(true);
-  expect(arr).not.to.equal(PLATFORM.emptyArray);
-  expect(arr.length).to.equal(length);
+  assert.strictEqual(Array.isArray(arr), true, `Array.isArray(arr)`);
+  assert.strictEqual(arr instanceof Array, true, `arr instanceof Array`);
+  assert.notStrictEqual(arr, PLATFORM.emptyArray, `arr`);
+  assert.strictEqual(arr.length, length, `arr.length`);
   arr.push(null);
-  expect(arr.length).to.equal(length + 1);
+  assert.strictEqual(arr.length, length + 1, `arr.length`);
   arr.pop();
-  expect(arr.length).to.equal(length);
+  assert.strictEqual(arr.length, length, `arr.length`);
 }
 
 function decorator(): ClassDecorator { return (target: any) => target; }
@@ -34,11 +27,11 @@ describe(`The DI object`, function () {
   describe(`createContainer()`, function () {
     // it(`returns an instance of Container`, function () {
     //   const actual = DI.createContainer();
-    //   expect(actual).to.be.instanceof(Container);
+    //   assert.instanceOf(actual, Container, `actual`);
     // });
 
     it(`returns a new container every time`, function () {
-      expect(DI.createContainer()).not.to.equal(DI.createContainer());
+      assert.notStrictEqual(DI.createContainer(), DI.createContainer(), `DI.createContainer()`);
     });
   });
 
@@ -46,26 +39,26 @@ describe(`The DI object`, function () {
   //   it(`returns PLATFORM.emptyArray if the class has no constructor or decorators`, function () {
   //     class Foo {}
   //     const actual = DI.getDesignParamTypes(Foo);
-  //     expect(actual).to.equal(PLATFORM.emptyArray);
+  //     assert.strictEqual(actual, PLATFORM.emptyArray, `actual`);
   //   });
   //   it(`returns PLATFORM.emptyArray if the class has a decorator but no constructor`, function () {
   //     @decorator()
   //     class Foo {}
   //     const actual = DI.getDesignParamTypes(Foo);
-  //     expect(actual).to.equal(PLATFORM.emptyArray);
+  //     assert.strictEqual(actual, PLATFORM.emptyArray, `actual`);
   //   });
 
   //   it(`returns PLATFORM.emptyArray if the class has no constructor args or decorators`, function () {
   //     class Foo { constructor() { return; } }
   //     const actual = DI.getDesignParamTypes(Foo);
-  //     expect(actual).to.equal(PLATFORM.emptyArray);
+  //     assert.strictEqual(actual, PLATFORM.emptyArray, `actual`);
   //   });
 
   //   it(`returns PLATFORM.emptyArray if the class has constructor args but no decorators`, function () {
   //     class Bar {}
   //     class Foo { constructor(public bar: Bar) {} }
   //     const actual = DI.getDesignParamTypes(Foo);
-  //     expect(actual).to.equal(PLATFORM.emptyArray);
+  //     assert.strictEqual(actual, PLATFORM.emptyArray, `actual`);
   //   });
 
   //   it(`returns PLATFORM.emptyArray if the class has constructor args and the decorator is applied via a function call`, function () {
@@ -73,7 +66,7 @@ describe(`The DI object`, function () {
   //     class Foo { constructor(public bar: Bar) {} }
   //     decorator()(Foo);
   //     const actual = DI.getDesignParamTypes(Foo);
-  //     expect(actual).to.equal(PLATFORM.emptyArray);
+  //     assert.strictEqual(actual, PLATFORM.emptyArray, `actual`);
   //   });
 
   //   it(`returns PLATFORM.emptyArray if the class is declared as an anonymous variable, even if it has ctor args and decorator is applied properly`, function () {
@@ -82,7 +75,7 @@ describe(`The DI object`, function () {
   //     @decorator()
   //     const FooInline = class { constructor(public bar: Bar) {} };
   //     const actual = DI.getDesignParamTypes(FooInline);
-  //     expect(actual).to.equal(PLATFORM.emptyArray);
+  //     assert.strictEqual(actual, PLATFORM.emptyArray, `actual`);
   //   });
 
   //   it(`returns PLATFORM.emptyArray if the class is declared as a named variable, even if it has ctor args and decorator is applied properly`, function () {
@@ -91,7 +84,7 @@ describe(`The DI object`, function () {
   //     @decorator()
   //     const FooInline = class Foo { constructor(public bar: Bar) {} };
   //     const actual = DI.getDesignParamTypes(FooInline);
-  //     expect(actual).to.equal(PLATFORM.emptyArray);
+  //     assert.strictEqual(actual, PLATFORM.emptyArray, `actual`);
   //   });
 
   //   describe(`returns an empty array if the class has a decorator but no constructor args`, function () {
@@ -133,7 +126,7 @@ describe(`The DI object`, function () {
   //       it(_`${FooDecoratorInvocation} { constructor(${argCtor}) }`, function () {
   //         const actual = DI.getDesignParamTypes(FooDecoratorInvocation);
   //         assertIsMutableArray(actual, 1);
-  //         expect(actual[0]).to.equal(Object);
+  //         assert.strictEqual(actual[0], Object, `actual[0]`);
   //       });
 
   //       @(decorator as any)
@@ -142,7 +135,7 @@ describe(`The DI object`, function () {
   //       it(_`${FooDecoratorNonInvocation} { constructor(${argCtor}) }`, function () {
   //         const actual = DI.getDesignParamTypes(FooDecoratorInvocation);
   //         assertIsMutableArray(actual, 1);
-  //         expect(actual[0]).to.equal(Object);
+  //         assert.strictEqual(actual[0], Object, `actual[0]`);
   //       });
   //     }
   //   });
@@ -194,7 +187,7 @@ describe(`The DI object`, function () {
   //       it(_`NOT ${FooBar} { constructor(public ${Bar}) }`, function () {
   //         const actual = DI.getDesignParamTypes(FooBar);
   //         assertIsMutableArray(actual, 1);
-  //         expect(actual[0]).to.equal(Bar);
+  //         assert.strictEqual(actual[0], Bar, `actual[0]`);
   //       });
 
   //       @decorator()
@@ -204,7 +197,7 @@ describe(`The DI object`, function () {
   //       it(_`NOT ${FooAnonClass} { constructor(public ${AnonClass}) }`, function () {
   //         const actual = DI.getDesignParamTypes(FooAnonClass);
   //         assertIsMutableArray(actual, 1);
-  //         expect(actual[0]).to.equal(AnonClass);
+  //         assert.strictEqual(actual[0], AnonClass, `actual[0]`);
   //       });
 
   //       @decorator()
@@ -214,7 +207,7 @@ describe(`The DI object`, function () {
   //       it(_`${FooAnonClassInterface} { constructor(public ${AnonClassInterface}) }`, function () {
   //         const actual = DI.getDesignParamTypes(FooAnonClassInterface);
   //         assertIsMutableArray(actual, 1);
-  //         expect(actual[0]).to.equal(Object);
+  //         assert.strictEqual(actual[0], Object, `actual[0]`);
   //       });
 
   //       @decorator()
@@ -223,7 +216,7 @@ describe(`The DI object`, function () {
   //       it(_`${FooVarFunc} { constructor(public ${VarFunc}) }`, function () {
   //         const actual = DI.getDesignParamTypes(FooVarFunc);
   //         assertIsMutableArray(actual, 1);
-  //         expect(actual[0]).to.equal(Object);
+  //         assert.strictEqual(actual[0], Object, `actual[0]`);
   //       });
 
   //       @decorator()
@@ -232,7 +225,7 @@ describe(`The DI object`, function () {
   //       it(_`${FooVarFuncInterface} { constructor(public ${VarFuncInterface}) }`, function () {
   //         const actual = DI.getDesignParamTypes(FooVarFuncInterface);
   //         assertIsMutableArray(actual, 1);
-  //         expect(actual[0]).to.equal(Object);
+  //         assert.strictEqual(actual[0], Object, `actual[0]`);
   //       });
 
   //       @decorator()
@@ -241,7 +234,7 @@ describe(`The DI object`, function () {
   //       it(_`${FooFunc} { constructor(public ${Func}) }`, function () {
   //         const actual = DI.getDesignParamTypes(FooFunc);
   //         assertIsMutableArray(actual, 1);
-  //         expect(actual[0]).to.equal(Object);
+  //         assert.strictEqual(actual[0], Object, `actual[0]`);
   //       });
 
   //       @decorator()
@@ -250,7 +243,7 @@ describe(`The DI object`, function () {
   //       it(_`${FooArrow} { constructor(public ${Arrow}) }`, function () {
   //         const actual = DI.getDesignParamTypes(FooArrow);
   //         assertIsMutableArray(actual, 1);
-  //         expect(actual[0]).to.equal(Object);
+  //         assert.strictEqual(actual[0], Object, `actual[0]`);
   //       });
 
   //       @decorator()
@@ -259,7 +252,7 @@ describe(`The DI object`, function () {
   //       it(_`${FooArrowInterface} { constructor(public ${ArrowInterface}) }`, function () {
   //         const actual = DI.getDesignParamTypes(FooArrowInterface);
   //         assertIsMutableArray(actual, 1);
-  //         expect(actual[0]).to.equal(Object);
+  //         assert.strictEqual(actual[0], Object, `actual[0]`);
   //       });
   //     });
   //   });
@@ -283,7 +276,7 @@ describe(`The DI object`, function () {
   //       it(_`${FooBar} { constructor(public ${Bar}) }`, function () {
   //         const actual = DI.getDesignParamTypes(FooBar);
   //         assertIsMutableArray(actual, 1);
-  //         expect(actual[0]).to.equal(Bar);
+  //         assert.strictEqual(actual[0], Bar, `actual[0]`);
   //       });
 
   //       @decorator()
@@ -293,7 +286,7 @@ describe(`The DI object`, function () {
   //       it(_`${FooAnonClass} { constructor(public ${AnonClass}) }`, function () {
   //         const actual = DI.getDesignParamTypes(FooAnonClass);
   //         assertIsMutableArray(actual, 1);
-  //         expect(actual[0]).to.equal(AnonClass);
+  //         assert.strictEqual(actual[0], AnonClass, `actual[0]`);
   //       });
 
   //       @decorator()
@@ -303,7 +296,7 @@ describe(`The DI object`, function () {
   //       it(_`${FooVarFunc} { constructor(public ${VarFunc}) }`, function () {
   //         const actual = DI.getDesignParamTypes(FooVarFunc);
   //         assertIsMutableArray(actual, 1);
-  //         expect(actual[0]).to.equal(VarFunc);
+  //         assert.strictEqual(actual[0], VarFunc, `actual[0]`);
   //       });
 
   //       @decorator()
@@ -313,7 +306,7 @@ describe(`The DI object`, function () {
   //       it(_`${FooFunc} { constructor(public ${Func}) }`, function () {
   //         const actual = DI.getDesignParamTypes(FooFunc);
   //         assertIsMutableArray(actual, 1);
-  //         expect(actual[0]).to.equal(Func);
+  //         assert.strictEqual(actual[0], Func, `actual[0]`);
   //       });
 
   //       @decorator()
@@ -323,17 +316,17 @@ describe(`The DI object`, function () {
   //       it(_`${FooArrow} { constructor(public ${Arrow}) }`, function () {
   //         const actual = DI.getDesignParamTypes(FooArrow);
   //         assertIsMutableArray(actual, 1);
-  //         expect(actual[0]).to.equal(Arrow);
+  //         assert.strictEqual(actual[0], Arrow, `actual[0]`);
   //       });
   //     });
   //   });
   // });
 
   describe(`getDependencies()`, function () {
-    let getDesignParamTypes: ReturnType<typeof spy>;
+    let getDesignParamTypes: ISpy<typeof DI.getDesignParamTypes>;
 
     beforeEach(function () {
-      getDesignParamTypes = spy(DI, 'getDesignParamTypes');
+      getDesignParamTypes = createSpy(DI, 'getDesignParamTypes', true);
     });
     afterEach(function () {
       getDesignParamTypes.restore();
@@ -344,7 +337,14 @@ describe(`The DI object`, function () {
       @decorator()
       class Foo { constructor(bar: Bar) { return; } }
       DI.getDependencies(Foo);
-      expect(getDesignParamTypes).to.have.been.calledWith(Foo);
+
+      assert.deepStrictEqual(
+        getDesignParamTypes.calls,
+        [
+          [Foo],
+        ],
+        `getDesignParamTypes.calls`,
+      );
     });
 
     it(`uses getDesignParamTypes() if the static inject property is undefined`, function () {
@@ -352,14 +352,27 @@ describe(`The DI object`, function () {
       @decorator()
       class Foo { public static inject; constructor(bar: Bar) { return; } }
       DI.getDependencies(Foo);
-      expect(getDesignParamTypes).to.have.been.calledWith(Foo);
+
+      assert.deepStrictEqual(
+        getDesignParamTypes.calls,
+        [
+          [Foo],
+        ],
+        `getDesignParamTypes.calls`,
+      );
     });
 
     it(`throws when inject is not an array`, function () {
       class Bar {}
       class Foo { public static inject = Bar; }
-      expect(() => DI.getDependencies(Foo)).to.throw();
-      expect(getDesignParamTypes).not.to.have.been.called;
+
+      assert.throws(() => DI.getDependencies(Foo), void 0, `() => DI.getDependencies(Foo)`);
+
+      assert.deepStrictEqual(
+        getDesignParamTypes.calls,
+        [],
+        `getDesignParamTypes.calls`,
+      );
     });
 
     for (const deps of [
@@ -372,9 +385,15 @@ describe(`The DI object`, function () {
       it(_`returns a copy of the inject array ${deps}`, function () {
         class Foo { public static inject = deps.slice(); }
         const actual = DI.getDependencies(Foo);
-        expect(getDesignParamTypes).not.to.have.been.called;
-        expect(actual).to.deep.equal(deps);
-        expect(actual).not.to.equal(Foo.inject);
+
+        assert.deepStrictEqual(actual, deps, `actual`);
+        assert.notStrictEqual(actual, Foo.inject, `actual`);
+
+        assert.deepStrictEqual(
+          getDesignParamTypes.calls,
+          [],
+          `getDesignParamTypes.calls`,
+        );
       });
     }
 
@@ -389,10 +408,16 @@ describe(`The DI object`, function () {
         class Foo { public static inject = deps.slice(); }
         class Bar extends Foo { public static inject = deps.slice(); }
         const actual = DI.getDependencies(Bar);
-        expect(getDesignParamTypes).not.to.have.been.called;
-        expect(actual).to.deep.equal([...deps, ...deps]);
-        expect(actual).not.to.equal(Foo.inject);
-        expect(actual).not.to.equal(Bar.inject);
+
+        assert.deepStrictEqual(actual, [...deps, ...deps], `actual`);
+        assert.notStrictEqual(actual, Foo.inject, `actual`);
+        assert.notStrictEqual(actual, Bar.inject, `actual`);
+
+        assert.deepStrictEqual(
+          getDesignParamTypes.calls,
+          [],
+          `getDesignParamTypes.calls`,
+        );
       });
 
       it(_`traverses the 3-layer prototype chain for inject array ${deps}`, function () {
@@ -400,11 +425,17 @@ describe(`The DI object`, function () {
         class Bar extends Foo { public static inject = deps.slice(); }
         class Baz extends Bar { public static inject = deps.slice(); }
         const actual = DI.getDependencies(Baz);
-        expect(getDesignParamTypes).not.to.have.been.called;
-        expect(actual).to.deep.equal([...deps, ...deps, ...deps]);
-        expect(actual).not.to.equal(Foo.inject);
-        expect(actual).not.to.equal(Bar.inject);
-        expect(actual).not.to.equal(Baz.inject);
+
+        assert.deepStrictEqual(actual, [...deps, ...deps, ...deps], `actual`);
+        assert.notStrictEqual(actual, Foo.inject, `actual`);
+        assert.notStrictEqual(actual, Bar.inject, `actual`);
+        assert.notStrictEqual(actual, Baz.inject, `actual`);
+
+        assert.deepStrictEqual(
+          getDesignParamTypes.calls,
+          [],
+          `getDesignParamTypes.calls`,
+        );
       });
 
       it(_`traverses the 1-layer + 2-layer prototype chain (with gap) for inject array ${deps}`, function () {
@@ -413,11 +444,17 @@ describe(`The DI object`, function () {
         class Baz extends Bar { public static inject = deps.slice(); }
         class Qux extends Baz { public static inject = deps.slice(); }
         const actual = DI.getDependencies(Qux);
-        expect(getDesignParamTypes).not.to.have.been.called;
-        expect(actual).to.deep.equal([...deps, ...deps, ...deps]);
-        expect(actual).not.to.equal(Foo.inject);
-        expect(actual).not.to.equal(Baz.inject);
-        expect(actual).not.to.equal(Qux.inject);
+
+        assert.deepStrictEqual(actual, [...deps, ...deps, ...deps], `actual`);
+        assert.notStrictEqual(actual, Foo.inject, `actual`);
+        assert.notStrictEqual(actual, Baz.inject, `actual`);
+        assert.notStrictEqual(actual, Qux.inject, `actual`);
+
+        assert.deepStrictEqual(
+          getDesignParamTypes.calls,
+          [],
+          `getDesignParamTypes.calls`,
+        );
       });
     }
 
@@ -426,42 +463,42 @@ describe(`The DI object`, function () {
   describe(`createInterface()`, function () {
     it(`returns a function that has withDefault and noDefault functions`, function () {
       const sut = DI.createInterface();
-      expect(typeof sut).to.equal('function');
-      expect(typeof sut.withDefault).to.equal('function');
-      expect(typeof sut.noDefault).to.equal('function');
+      assert.strictEqual(typeof sut, 'function', `typeof sut`);
+      assert.strictEqual(typeof sut.withDefault, 'function', `typeof sut.withDefault`);
+      assert.strictEqual(typeof sut.noDefault, 'function', `typeof sut.noDefault`);
     });
 
     it(`noDefault returns self`, function () {
       const sut = DI.createInterface();
-      expect(sut.noDefault()).to.equal(sut);
+      assert.strictEqual(sut.noDefault(), sut, `sut.noDefault()`);
     });
 
     it(`withDefault returns self with modified withDefault that throws`, function () {
       const sut = DI.createInterface();
       const sut2 = sut.withDefault(null as any);
-      expect(sut).to.equal(sut2);
-      expect(() => sut.withDefault(null as any)).to.throw;
+      assert.strictEqual(sut, sut2, `sut`);
+      assert.throws(() => sut.withDefault(null as any));
     });
 
     describe(`withDefault returns self with register function that registers the appropriate resolver`, function () {
       let sut: IDefaultableInterfaceSymbol<any>;
       let container: IContainer;
 
-      let registerResolver: ReturnType<typeof spy>;
+      let registerResolver: ISpy<IContainer['registerResolver']>;
 
       beforeEach(function () {
         sut = DI.createInterface();
         container = DI.createContainer();
-        registerResolver = spy(container, 'registerResolver');
+        registerResolver = createSpy(container, 'registerResolver', true);
       });
 
       afterEach(function () {
         registerResolver.restore();
       });
 
-      function matchResolver(key: any, strategy: any, state: any): SinonMatcher {
-        return match(val => val.key === key && val.strategy === strategy && val.state === state);
-      }
+      // function matchResolver(key: any, strategy: any, state: any): SinonMatcher {
+      //   return match(val => val.key === key && val.strategy === strategy && val.state === state);
+      // }
 
       // it(`instance without key`, function () {
       //   const value = {};
@@ -543,44 +580,44 @@ describe(`The inject decorator`, function () {
     @inject(Dep1, Dep2, Dep3)
     class Foo {}
 
-    expect(Foo['inject']).to.deep.equal([Dep1, Dep2, Dep3]);
+    assert.deepStrictEqual(Foo['inject'], [Dep1, Dep2, Dep3], `Foo['inject']`);
   });
 
   // it(`can decorate classes with implicit dependencies`, function () {
   //   @inject()
   //   class Foo { constructor(dep1: Dep1, dep2: Dep2, dep3: Dep3) { return; } }
 
-  //   expect(Foo['inject']).to.deep.equal([Dep1, Dep2, Dep3]);
+  //   assert.deepStrictEqual(Foo['inject'], [Dep1, Dep2, Dep3], `Foo['inject']`);
   // });
 
   it(`can decorate constructor parameters explicitly`, function () {
     class Foo { constructor(@inject(Dep1)dep1, @inject(Dep2)dep2, @inject(Dep3)dep3) { return; } }
 
-    expect(Foo['inject']).to.deep.equal([Dep1, Dep2, Dep3]);
+    assert.deepStrictEqual(Foo['inject'], [Dep1, Dep2, Dep3], `Foo['inject']`);
   });
 
   // it(`can decorate constructor parameters implicitly`, function () {
   //   class Foo { constructor(@inject() dep1: Dep1, @inject() dep2: Dep2, @inject() dep3: Dep3) { return; } }
 
-  //   expect(Foo['inject']).to.deep.equal([Dep1, Dep2, Dep3]);
+  //   assert.deepStrictEqual(Foo['inject'], [Dep1, Dep2, Dep3], `Foo['inject']`);
   // });
 
   it(`can decorate properties explicitly`, function () {
     // @ts-ignore
     class Foo { @inject(Dep1)public dep1; @inject(Dep2)public dep2; @inject(Dep3)public dep3; }
 
-    expect(Foo['inject'].dep1).to.equal(Dep1);
-    expect(Foo['inject'].dep2).to.equal(Dep2);
-    expect(Foo['inject'].dep3).to.equal(Dep3);
+    assert.strictEqual(Foo['inject'].dep1, Dep1, `Foo['inject'].dep1`);
+    assert.strictEqual(Foo['inject'].dep2, Dep2, `Foo['inject'].dep2`);
+    assert.strictEqual(Foo['inject'].dep3, Dep3, `Foo['inject'].dep3`);
   });
 
   it(`cannot decorate properties implicitly`, function () {
     // @ts-ignore
     class Foo { @inject()public dep1: Dep1; @inject()public dep2: Dep2; @inject()public dep3: Dep3; }
 
-    expect(Foo['inject'].dep1).to.equal(undefined);
-    expect(Foo['inject'].dep2).to.equal(undefined);
-    expect(Foo['inject'].dep3).to.equal(undefined);
+    assert.strictEqual(Foo['inject'].dep1, undefined, `Foo['inject'].dep1`);
+    assert.strictEqual(Foo['inject'].dep2, undefined, `Foo['inject'].dep2`);
+    assert.strictEqual(Foo['inject'].dep3, undefined, `Foo['inject'].dep3`);
   });
 });
 
@@ -589,28 +626,28 @@ describe(`The transient decorator`, function () {
     @transient
     class Foo {}
 
-    expect(Foo['register']).to.be.a('function');
+    assert.instanceOf(Foo['register'], Function, `Foo['register']`);
 
     const container = DI.createContainer();
 
     const foo1 = container.get(Foo);
     const foo2 = container.get(Foo);
 
-    expect(foo1).not.to.equal(foo2);
+    assert.notStrictEqual(foo1, foo2, `foo1`);
   });
 
   it(`works as an invocation`, function () {
     @transient()
     class Foo {}
 
-    expect(Foo['register']).to.be.a('function');
+    assert.instanceOf(Foo['register'], Function, `Foo['register']`);
 
     const container = DI.createContainer();
 
     const foo1 = container.get(Foo);
     const foo2 = container.get(Foo);
 
-    expect(foo1).not.to.equal(foo2);
+    assert.notStrictEqual(foo1, foo2, `foo1`);
   });
 });
 
@@ -619,28 +656,28 @@ describe(`The singleton decorator`, function () {
     @singleton
     class Foo {}
 
-    expect(Foo['register']).to.be.a('function');
+    assert.instanceOf(Foo['register'], Function, `Foo['register']`);
 
     const container = DI.createContainer();
 
     const foo1 = container.get(Foo);
     const foo2 = container.get(Foo);
 
-    expect(foo1).to.equal(foo2);
+    assert.strictEqual(foo1, foo2, `foo1`);
   });
 
   it(`works as an invocation`, function () {
     @singleton()
     class Foo {}
 
-    expect(Foo['register']).to.be.a('function');
+    assert.instanceOf(Foo['register'], Function, `Foo['register']`);
 
     const container = DI.createContainer();
 
     const foo1 = container.get(Foo);
     const foo2 = container.get(Foo);
 
-    expect(foo1).to.equal(foo2);
+    assert.strictEqual(foo1, foo2, `foo1`);
   });
 });
 
@@ -676,28 +713,28 @@ describe(`The singleton decorator`, function () {
 //       const state = {};
 //       const sut = new Resolver('foo', ResolverStrategy.instance, state);
 //       const actual = sut.resolve(container, container);
-//       expect(actual).to.equal(state);
+//       assert.strictEqual(actual, state, `actual`);
 //     });
 
 //     it(`singleton - returns an instance of the type and sets strategy to instance`, function () {
 //       class Foo {}
 //       const sut = new Resolver('foo', ResolverStrategy.singleton, Foo);
 //       const actual = sut.resolve(container, container);
-//       expect(actual).to.be.instanceof(Foo);
+//       assert.instanceOf(actual, Foo, `actual`);
 
 //       const actual2 = sut.resolve(container, container);
-//       expect(actual2).to.equal(actual);
+//       assert.strictEqual(actual2, actual, `actual2`);
 //     });
 
 //     it(`transient - always returns a new instance of the type`, function () {
 //       class Foo {}
 //       const sut = new Resolver('foo', ResolverStrategy.transient, Foo);
 //       const actual1 = sut.resolve(container, container);
-//       expect(actual1).to.be.instanceof(Foo);
+//       assert.instanceOf(actual1, Foo, `actual1`);
 
 //       const actual2 = sut.resolve(container, container);
-//       expect(actual2).to.be.instanceof(Foo);
-//       expect(actual2).not.to.equal(actual1);
+//       assert.instanceOf(actual2, Foo, `actual2`);
+//       assert.notStrictEqual(actual2, actual1, `actual2`);
 //     });
 
 //     it(`array - calls resolve() on the first item in the state array`, function () {
@@ -709,7 +746,7 @@ describe(`The singleton decorator`, function () {
 
 //     it(`throws for unknown strategy`, function () {
 //       const sut = new Resolver('foo', -1, null);
-//       expect(() => sut.resolve(container, container)).to.throw(/6/);
+//       assert.throws(() => sut.resolve(container, container), /6/, `() => sut.resolve(container, container)`);
 //     });
 //   });
 
@@ -718,44 +755,44 @@ describe(`The singleton decorator`, function () {
 //       class Foo {}
 //       const sut = new Resolver(Foo, ResolverStrategy.singleton, Foo);
 //       const actual = sut.getFactory(container);
-//       expect(actual).to.be.instanceof(Factory);
-//       expect(actual.Type).to.equal(Foo);
+//       assert.instanceOf(actual, Factory, `actual`);
+//       assert.strictEqual(actual.Type, Foo, `actual.Type`);
 //     });
 
 //     it(`returns a new transient Factory if it does not exist`, function () {
 //       class Foo {}
 //       const sut = new Resolver(Foo, ResolverStrategy.transient, Foo);
 //       const actual = sut.getFactory(container);
-//       expect(actual).to.be.instanceof(Factory);
-//       expect(actual.Type).to.equal(Foo);
+//       assert.instanceOf(actual, Factory, `actual`);
+//       assert.strictEqual(actual.Type, Foo, `actual.Type`);
 //     });
 
 //     it(`returns a null for instance strategy`, function () {
 //       class Foo {}
 //       const sut = new Resolver(Foo, ResolverStrategy.instance, Foo);
 //       const actual = sut.getFactory(container);
-//       expect(actual).to.equal(null);
+//       assert.strictEqual(actual, null, `actual`);
 //     });
 
 //     it(`returns a null for array strategy`, function () {
 //       class Foo {}
 //       const sut = new Resolver(Foo, ResolverStrategy.array, Foo);
 //       const actual = sut.getFactory(container);
-//       expect(actual).to.equal(null);
+//       assert.strictEqual(actual, null, `actual`);
 //     });
 
 //     it(`returns a null for alias strategy`, function () {
 //       class Foo {}
 //       const sut = new Resolver(Foo, ResolverStrategy.alias, Foo);
 //       const actual = sut.getFactory(container);
-//       expect(actual).to.equal(null);
+//       assert.strictEqual(actual, null, `actual`);
 //     });
 
 //     it(`returns a null for callback strategy`, function () {
 //       class Foo {}
 //       const sut = new Resolver(Foo, ResolverStrategy.callback, Foo);
 //       const actual = sut.getFactory(container);
-//       expect(actual).to.equal(null);
+//       assert.strictEqual(actual, null, `actual`);
 //     });
 //   });
 // });
@@ -768,15 +805,15 @@ describe(`The singleton decorator`, function () {
 //         class Bar {}
 //         class Foo {public static inject = Array(count).map(c => Bar); }
 //         const actual = Factory.create(Foo);
-//         expect(actual).to.be.instanceof(Factory);
-//         expect(actual.Type).to.equal(Foo);
+//         assert.instanceOf(actual, Factory, `actual`);
+//         assert.strictEqual(actual.Type, Foo, `actual.Type`);
 //         if (count < 6) {
-//           expect(actual['invoker']).to.equal(classInvokers[count]);
+//           assert.strictEqual(actual['invoker'], classInvokers[count], `actual['invoker']`);
 //         } else {
-//           expect(actual['invoker']).to.equal(fallbackInvoker);
+//           assert.strictEqual(actual['invoker'], fallbackInvoker, `actual['invoker']`);
 //         }
-//         expect(actual['dependencies']).not.to.equal(Foo.inject);
-//         expect(actual['dependencies']).to.deep.equal(Foo.inject);
+//         assert.notStrictEqual(actual['dependencies'], Foo.inject, `actual['dependencies']`);
+//         assert.deepStrictEqual(actual['dependencies'], Foo.inject, `actual['dependencies']`);
 //       });
 //     }
 //   });
@@ -794,10 +831,10 @@ describe(`The singleton decorator`, function () {
 //           const actual = sut.construct(container, dynamicDeps);
 
 //           for (let i = 0, ii = Foo.inject.length; i < ii; ++i) {
-//             expect(actual.args[i]).to.be.instanceof(Foo.inject[i]);
+//             assert.instanceOf(actual.args[i], Foo.inject[i], `actual.args[i]`);
 //           }
 //           for (let i = 0, ii = dynamicDeps ? dynamicDeps.length : 0; i < ii; ++i) {
-//             expect(actual.args[Foo.inject.length + i]).to.equal(dynamicDeps[i]);
+//             assert.strictEqual(actual.args[Foo.inject.length + i], dynamicDeps[i], `actual.args[Foo.inject.length + i]`);
 //           }
 //         });
 //       }
@@ -814,99 +851,190 @@ describe(`The singleton decorator`, function () {
 //       // tslint:disable-next-line:prefer-object-spread
 //       sut.registerTransformer(foo2 => Object.assign(foo2, { baz: 2 }));
 //       const foo = sut.construct(container);
-//       expect(foo.bar).to.equal(1);
-//       expect(foo.baz).to.equal(2);
-//       expect(foo).to.be.instanceof(Foo);
+//       assert.strictEqual(foo.bar, 1, `foo.bar`);
+//       assert.strictEqual(foo.baz, 2, `foo.baz`);
+//       assert.instanceOf(foo, Foo, `foo`);
 //     });
 //   });
 
 // });
 
 describe(`The Container class`, function () {
-  let sut: IContainer;
+  function setup() {
+    const sut = DI.createContainer();
+    const register = createSpy();
 
-  beforeEach(function () {
-    sut = DI.createContainer();
-  });
+    return { sut, register };
+  }
 
   describe(`register()`, function () {
-    let register: ReturnType<typeof spy>;
-
-    beforeEach(function () {
-      register = spy();
-    });
-
     it(_`calls register() on {register}`, function () {
+      const { sut, register } = setup();
       sut.register({register});
-      expect(register).to.have.been.calledWith(sut);
+
+      assert.deepStrictEqual(
+        register.calls,
+        [
+          [sut],
+        ],
+        `register.calls`,
+      );
     });
 
     it(_`calls register() on {register},{register}`, function () {
+      const { sut, register } = setup();
       sut.register({register}, {register});
-      expect(register).to.have.been.calledWith(sut);
-      expect(register.getCalls().length).to.equal(2);
+
+      assert.deepStrictEqual(
+        register.calls,
+        [
+          [sut],
+          [sut],
+        ],
+        `register.calls`,
+      );
     });
 
     it(_`calls register() on [{register},{register}]`, function () {
+      const { sut, register } = setup();
       sut.register([{register}, {register}] as any);
-      expect(register).to.have.been.calledWith(sut);
-      expect(register.getCalls().length).to.equal(2);
+
+      assert.deepStrictEqual(
+        register.calls,
+        [
+          [sut],
+          [sut],
+        ],
+        `register.calls`,
+      );
     });
 
     it(_`calls register() on {foo:{register}}`, function () {
+      const { sut, register } = setup();
       sut.register({foo: {register}});
-      expect(register).to.have.been.calledWith(sut);
+
+      assert.deepStrictEqual(
+        register.calls,
+        [
+          [sut],
+        ],
+        `register.calls`,
+      );
     });
 
     it(_`calls register() on {foo:{register}},{foo:{register}}`, function () {
+      const { sut, register } = setup();
       sut.register({foo: {register}}, {foo: {register}});
-      expect(register).to.have.been.calledWith(sut);
-      expect(register.getCalls().length).to.equal(2);
+
+      assert.deepStrictEqual(
+        register.calls,
+        [
+          [sut],
+          [sut],
+        ],
+        `register.calls`,
+      );
     });
 
     it(_`calls register() on [{foo:{register}},{foo:{register}}]`, function () {
+      const { sut, register } = setup();
       sut.register([{foo: {register}}, {foo: {register}}] as any);
-      expect(register).to.have.been.calledWith(sut);
-      expect(register.getCalls().length).to.equal(2);
+
+      assert.deepStrictEqual(
+        register.calls,
+        [
+          [sut],
+          [sut],
+        ],
+        `register.calls`,
+      );
     });
 
     it(_`calls register() on {register},{foo:{register}}`, function () {
+      const { sut, register } = setup();
       sut.register({register}, {foo: {register}});
-      expect(register).to.have.been.calledWith(sut);
-      expect(register.getCalls().length).to.equal(2);
+
+      assert.deepStrictEqual(
+        register.calls,
+        [
+          [sut],
+          [sut],
+        ],
+        `register.calls`,
+      );
     });
 
     it(_`calls register() on [{register},{foo:{register}}]`, function () {
+      const { sut, register } = setup();
       sut.register([{register}, {foo: {register}}] as any);
-      expect(register).to.have.been.calledWith(sut);
-      expect(register.getCalls().length).to.equal(2);
+
+      assert.deepStrictEqual(
+        register.calls,
+        [
+          [sut],
+          [sut],
+        ],
+        `register.calls`,
+      );
     });
 
     it(_`calls register() on [{register},{}]`, function () {
+      const { sut, register } = setup();
       sut.register([{register}, {}] as any);
-      expect(register).to.have.been.calledWith(sut);
+
+      assert.deepStrictEqual(
+        register.calls,
+        [
+          [sut],
+        ],
+        `register.calls`,
+      );
     });
 
     it(_`calls register() on [{},{register}]`, function () {
+      const { sut, register } = setup();
       sut.register([{}, {register}] as any);
-      expect(register).to.have.been.calledWith(sut);
+
+      assert.deepStrictEqual(
+        register.calls,
+        [
+          [sut],
+        ],
+        `register.calls`,
+      );
     });
 
     it(_`calls register() on [{foo:{register}},{foo:{}}]`, function () {
+      const { sut, register } = setup();
       sut.register([{foo: {register}}, {foo: {}}] as any);
-      expect(register).to.have.been.calledWith(sut);
+
+      assert.deepStrictEqual(
+        register.calls,
+        [
+          [sut],
+        ],
+        `register.calls`,
+      );
     });
 
     it(_`calls register() on [{foo:{}},{foo:{register}}]`, function () {
+      const { sut, register } = setup();
       sut.register([{foo: {}}, {foo: {register}}] as any);
-      expect(register).to.have.been.calledWith(sut);
+
+      assert.deepStrictEqual(
+        register.calls,
+        [
+          [sut],
+        ],
+        `register.calls`,
+      );
     });
   });
 
   // describe(`registerResolver()`, function () {
   //   for (const key of [null, undefined, Object]) {
   //     it(_`throws on invalid key ${key}`, function () {
-  //       expect(() => sut.registerResolver(key, null as any)).to.throw(/5/);
+  //       assert.throws(() => sut.registerResolver(key, null as any), /5/, `() => sut.registerResolver(key, null as any)`);
   //     });
   //   }
 
@@ -915,7 +1043,7 @@ describe(`The Container class`, function () {
   //     const resolver = new Resolver(key, ResolverStrategy.instance, {});
   //     sut.registerResolver(key, resolver);
   //     const actual = sut.getResolver(key);
-  //     expect(actual).to.equal(resolver);
+  //     assert.strictEqual(actual, resolver, `actual`);
   //   });
 
   //   it(`changes to array resolver if the key already exists`, function () {
@@ -924,15 +1052,15 @@ describe(`The Container class`, function () {
   //     const resolver2 = new Resolver(key, ResolverStrategy.instance, {});
   //     sut.registerResolver(key, resolver1);
   //     const actual1 = sut.getResolver(key);
-  //     expect(actual1).to.equal(resolver1);
+  //     assert.strictEqual(actual1, resolver1, `actual1`);
   //     sut.registerResolver(key, resolver2);
   //     const actual2 = sut.getResolver(key);
-  //     expect(actual2).not.to.equal(actual1);
-  //     expect(actual2).not.to.equal(resolver1);
-  //     expect(actual2).not.to.equal(resolver2);
-  //     expect(actual2['strategy']).to.equal(ResolverStrategy.array);
-  //     expect(actual2['state'][0]).to.equal(resolver1);
-  //     expect(actual2['state'][1]).to.equal(resolver2);
+  //     assert.notStrictEqual(actual2, actual1, `actual2`);
+  //     assert.notStrictEqual(actual2, resolver1, `actual2`);
+  //     assert.notStrictEqual(actual2, resolver2, `actual2`);
+  //     assert.strictEqual(actual2['strategy'], ResolverStrategy.array, `actual2['strategy']`);
+  //     assert.strictEqual(actual2['state'][0], resolver1, `actual2['state'][0]`);
+  //     assert.strictEqual(actual2['state'][1], resolver2, `actual2['state'][1]`);
   //   });
 
   //   it(`appends to the array resolver if the key already exists more than once`, function () {
@@ -944,17 +1072,18 @@ describe(`The Container class`, function () {
   //     sut.registerResolver(key, resolver2);
   //     sut.registerResolver(key, resolver3);
   //     const actual1 = sut.getResolver(key);
-  //     expect(actual1['strategy']).to.equal(ResolverStrategy.array);
-  //     expect(actual1['state'][0]).to.equal(resolver1);
-  //     expect(actual1['state'][1]).to.equal(resolver2);
-  //     expect(actual1['state'][2]).to.equal(resolver3);
+  //     assert.strictEqual(actual1['strategy'], ResolverStrategy.array, `actual1['strategy']`);
+  //     assert.strictEqual(actual1['state'][0], resolver1, `actual1['state'][0]`);
+  //     assert.strictEqual(actual1['state'][1], resolver2, `actual1['state'][1]`);
+  //     assert.strictEqual(actual1['state'][2], resolver3, `actual1['state'][2]`);
   //   });
   // });
 
   describe(`registerTransformer()`, function () {
     for (const key of [null, undefined, Object]) {
       it(_`throws on invalid key ${key}`, function () {
-        expect(() => sut.registerTransformer(key, null as any)).to.throw(/5/);
+        const { sut } = setup();
+        assert.throws(() => sut.registerTransformer(key, null as any), /5/, `() => sut.registerTransformer(key, null as any)`);
       });
     }
 
@@ -970,7 +1099,8 @@ describe(`The Container class`, function () {
   describe(`getResolver()`, function () {
     for (const key of [null, undefined, Object]) {
       it(_`throws on invalid key ${key}`, function () {
-        expect(() => sut.getResolver(key, null as any)).to.throw(/5/);
+        const { sut } = setup();
+        assert.throws(() => sut.getResolver(key, null as any), /5/, `() => sut.getResolver(key, null as any)`);
       });
     }
 
@@ -979,20 +1109,21 @@ describe(`The Container class`, function () {
   // describe(`has()`, function () {
   //   for (const key of [null, undefined, Object]) {
   //     it(_`returns false for non-existing key ${key}`, function () {
-  //       expect(sut.has(key as any, false)).to.equal(false);
+  //       assert.strictEqual(sut.has(key as any, false), false, `sut.has(key as any, false)`);
   //     });
   //   }
   //   it(`returns true for existing key`, function () {
   //     const key = {};
   //     sut.registerResolver(key, new Resolver(key, ResolverStrategy.instance, {}));
-  //     expect(sut.has(key as any, false)).to.equal(true);
+  //     assert.strictEqual(sut.has(key as any, false), true, `sut.has(key as any, false)`);
   //   });
   // });
 
   describe(`get()`, function () {
     for (const key of [null, undefined, Object]) {
       it(_`throws on invalid key ${key}`, function () {
-        expect(() => sut.get(key)).to.throw(/5/);
+        const { sut } = setup();
+        assert.throws(() => sut.get(key), /5/, `() => sut.get(key)`);
       });
     }
 
@@ -1001,7 +1132,8 @@ describe(`The Container class`, function () {
   describe(`getAll()`, function () {
     for (const key of [null, undefined, Object]) {
       it(_`throws on invalid key ${key}`, function () {
-        expect(() => sut.getAll(key)).to.throw(/5/);
+        const { sut } = setup();
+        assert.throws(() => sut.getAll(key), /5/, `() => sut.getAll(key)`);
       });
     }
 
@@ -1015,15 +1147,15 @@ describe(`The Container class`, function () {
   //       class Bar {}
   //       class Foo {public static inject = Array(count).map(c => Bar); }
   //       const actual = sut.getFactory(Foo);
-  //       expect(actual).to.be.instanceof(Factory);
-  //       expect(actual.Type).to.equal(Foo);
+  //       assert.instanceOf(actual, Factory, `actual`);
+  //       assert.strictEqual(actual.Type, Foo, `actual.Type`);
   //       if (count < 6) {
-  //         expect(actual['invoker']).to.equal(classInvokers[count]);
+  //         assert.strictEqual(actual['invoker'], classInvokers[count], `actual['invoker']`);
   //       } else {
-  //         expect(actual['invoker']).to.equal(fallbackInvoker);
+  //         assert.strictEqual(actual['invoker'], fallbackInvoker, `actual['invoker']`);
   //       }
-  //       expect(actual['dependencies']).not.to.equal(Foo.inject);
-  //       expect(actual['dependencies']).to.deep.equal(Foo.inject);
+  //       assert.notStrictEqual(actual['dependencies'], Foo.inject, `actual['dependencies']`);
+  //       assert.deepStrictEqual(actual['dependencies'], Foo.inject, `actual['dependencies']`);
   //     });
   //   }
 
@@ -1031,9 +1163,9 @@ describe(`The Container class`, function () {
   //     const create = spy(Factory, 'create');
   //     class Foo {}
   //     const actual = sut.getFactory(Foo);
-  //     expect(actual).to.be.instanceof(Factory);
+  //     assert.instanceOf(actual, Factory, `actual`);
   //     const actual2 = sut.getFactory(Foo);
-  //     expect(actual).to.equal(actual2);
+  //     assert.strictEqual(actual, actual2, `actual`);
   //     expect(create).to.have.been.calledOnce;
   //     create.restore();
   //   });
@@ -1041,18 +1173,19 @@ describe(`The Container class`, function () {
 
   describe(`createChild()`, function () {
     it(`creates a child with same config and sut as parent, and copies over the resourceLookup`, function () {
+      const { sut } = setup();
       const obj = {};
       Registration.instance('foo', obj).register(sut, 'foo');
-      expect(sut['resourceLookup'].foo.state).to.equal(obj);
-      expect(sut['configuration'].resourceLookup.foo.state).to.equal(obj);
+      assert.strictEqual(sut['resourceLookup'].foo.state, obj, `sut['resourceLookup'].foo.state`);
+      assert.strictEqual(sut['configuration'].resourceLookup.foo.state, obj, `sut['configuration'].resourceLookup.foo.state`);
       const actual = sut.createChild();
-      expect(actual['configuration']).not.to.equal(sut['configuration']);
-      expect(actual['configuration'].factories).to.equal(sut['configuration'].factories);
-      expect(actual['configuration'].resourceLookup).not.to.equal(sut['configuration'].resourceLookup);
-      expect(actual['configuration'].resourceLookup).to.deep.equal(sut['configuration'].resourceLookup);
-      expect(actual['configuration'].resourceLookup.foo.state).to.equal(obj);
-      expect(actual['parent']).to.equal(sut);
-      expect(sut['parent']).to.equal(null);
+      assert.notStrictEqual(actual['configuration'], sut['configuration'], `actual['configuration']`);
+      assert.strictEqual(actual['configuration'].factories, sut['configuration'].factories, `actual['configuration'].factories`);
+      assert.notStrictEqual(actual['configuration'].resourceLookup, sut['configuration'].resourceLookup, `actual['configuration'].resourceLookup`);
+      assert.deepStrictEqual(actual['configuration'].resourceLookup, sut['configuration'].resourceLookup, `actual['configuration'].resourceLookup`);
+      assert.strictEqual(actual['configuration'].resourceLookup.foo.state, obj, `actual['configuration'].resourceLookup.foo.state`);
+      assert.strictEqual(actual['parent'], sut, `actual['parent']`);
+      assert.strictEqual(sut['parent'], null, `sut['parent']`);
     });
 
   });
@@ -1068,40 +1201,40 @@ describe(`The Container class`, function () {
 //   it(`instance() returns the correct resolver`, function () {
 //     const value = {};
 //     const actual = Registration.instance('key', value);
-//     expect(actual['key']).to.equal('key');
-//     expect(actual['strategy']).to.equal(ResolverStrategy.instance);
-//     expect(actual['state']).to.equal(value);
+//     assert.strictEqual(actual['key'], 'key', `actual['key']`);
+//     assert.strictEqual(actual['strategy'], ResolverStrategy.instance, `actual['strategy']`);
+//     assert.strictEqual(actual['state'], value, `actual['state']`);
 //   });
 
 //   it(`singleton() returns the correct resolver`, function () {
 //     class Foo {}
 //     const actual = Registration.singleton('key', Foo);
-//     expect(actual['key']).to.equal('key');
-//     expect(actual['strategy']).to.equal(ResolverStrategy.singleton);
-//     expect(actual['state']).to.equal(Foo);
+//     assert.strictEqual(actual['key'], 'key', `actual['key']`);
+//     assert.strictEqual(actual['strategy'], ResolverStrategy.singleton, `actual['strategy']`);
+//     assert.strictEqual(actual['state'], Foo, `actual['state']`);
 //   });
 
 //   it(`transient() returns the correct resolver`, function () {
 //     class Foo {}
 //     const actual = Registration.transient('key', Foo);
-//     expect(actual['key']).to.equal('key');
-//     expect(actual['strategy']).to.equal(ResolverStrategy.transient);
-//     expect(actual['state']).to.equal(Foo);
+//     assert.strictEqual(actual['key'], 'key', `actual['key']`);
+//     assert.strictEqual(actual['strategy'], ResolverStrategy.transient, `actual['strategy']`);
+//     assert.strictEqual(actual['state'], Foo, `actual['state']`);
 //   });
 
 //   it(`callback() returns the correct resolver`, function () {
 //     const callback = () => { return; };
 //     const actual = Registration.callback('key', callback);
-//     expect(actual['key']).to.equal('key');
-//     expect(actual['strategy']).to.equal(ResolverStrategy.callback);
-//     expect(actual['state']).to.equal(callback);
+//     assert.strictEqual(actual['key'], 'key', `actual['key']`);
+//     assert.strictEqual(actual['strategy'], ResolverStrategy.callback, `actual['strategy']`);
+//     assert.strictEqual(actual['state'], callback, `actual['state']`);
 //   });
 
 //   it(`alias() returns the correct resolver`, function () {
 //     const actual = Registration.alias('key', 'key2');
-//     expect(actual['key']).to.equal('key2');
-//     expect(actual['strategy']).to.equal(ResolverStrategy.alias);
-//     expect(actual['state']).to.equal('key');
+//     assert.strictEqual(actual['key'], 'key2', `actual['key']`);
+//     assert.strictEqual(actual['strategy'], ResolverStrategy.alias, `actual['strategy']`);
+//     assert.strictEqual(actual['state'], 'key', `actual['state']`);
 //   });
 // });
 
@@ -1120,51 +1253,51 @@ describe(`The Container class`, function () {
 
 //   it(`invoke() handles 0 deps`, function () {
 //     const actual = classInvokers[0].invoke(container, Foo, []) as Foo;
-//     expect(actual.args.length).to.equal(0);
+//     assert.strictEqual(actual.args.length, 0, `actual.args.length`);
 //   });
 
 //   it(`invoke() handles 1 dep`, function () {
 //     const actual = classInvokers[1].invoke(container, Foo, [Dep1]) as Foo;
-//     expect(actual.args.length).to.equal(1);
-//     expect(actual.args[0]).to.be.instanceof(Dep1);
+//     assert.strictEqual(actual.args.length, 1, `actual.args.length`);
+//     assert.instanceOf(actual.args[0], Dep1, `actual.args[0]`);
 //   });
 
 //   it(`invoke() handles 2 deps`, function () {
 //     const actual = classInvokers[2].invoke(container, Foo, [Dep1, Dep2]) as Foo;
-//     expect(actual.args.length).to.equal(2);
-//     expect(actual.args[0]).to.be.instanceof(Dep1);
-//     expect(actual.args[1]).to.be.instanceof(Dep2);
+//     assert.strictEqual(actual.args.length, 2, `actual.args.length`);
+//     assert.instanceOf(actual.args[0], Dep1, `actual.args[0]`);
+//     assert.instanceOf(actual.args[1], Dep2, `actual.args[1]`);
 //   });
 
 //   it(`invoke() handles 3 deps`, function () {
 //     const actual = classInvokers[3].invoke(container, Foo, [Dep1, Dep2, Dep3]) as Foo;
-//     expect(actual.args.length).to.equal(3);
-//     expect(actual.args[0]).to.be.instanceof(Dep1);
-//     expect(actual.args[1]).to.be.instanceof(Dep2);
-//     expect(actual.args[2]).to.be.instanceof(Dep3);
+//     assert.strictEqual(actual.args.length, 3, `actual.args.length`);
+//     assert.instanceOf(actual.args[0], Dep1, `actual.args[0]`);
+//     assert.instanceOf(actual.args[1], Dep2, `actual.args[1]`);
+//     assert.instanceOf(actual.args[2], Dep3, `actual.args[2]`);
 //   });
 
 //   it(`invoke() handles 4 deps`, function () {
 //     const actual = classInvokers[4].invoke(container, Foo, [Dep1, Dep2, Dep3, Dep4]) as Foo;
-//     expect(actual.args.length).to.equal(4);
-//     expect(actual.args[0]).to.be.instanceof(Dep1);
-//     expect(actual.args[1]).to.be.instanceof(Dep2);
-//     expect(actual.args[2]).to.be.instanceof(Dep3);
-//     expect(actual.args[3]).to.be.instanceof(Dep4);
+//     assert.strictEqual(actual.args.length, 4, `actual.args.length`);
+//     assert.instanceOf(actual.args[0], Dep1, `actual.args[0]`);
+//     assert.instanceOf(actual.args[1], Dep2, `actual.args[1]`);
+//     assert.instanceOf(actual.args[2], Dep3, `actual.args[2]`);
+//     assert.instanceOf(actual.args[3], Dep4, `actual.args[3]`);
 //   });
 
 //   it(`invoke() handles 5 deps`, function () {
 //     const actual = classInvokers[5].invoke(container, Foo, [Dep1, Dep2, Dep3, Dep4, Dep5]) as Foo;
-//     expect(actual.args.length).to.equal(5);
-//     expect(actual.args[0]).to.be.instanceof(Dep1);
-//     expect(actual.args[1]).to.be.instanceof(Dep2);
-//     expect(actual.args[2]).to.be.instanceof(Dep3);
-//     expect(actual.args[3]).to.be.instanceof(Dep4);
-//     expect(actual.args[4]).to.be.instanceof(Dep5);
+//     assert.strictEqual(actual.args.length, 5, `actual.args.length`);
+//     assert.instanceOf(actual.args[0], Dep1, `actual.args[0]`);
+//     assert.instanceOf(actual.args[1], Dep2, `actual.args[1]`);
+//     assert.instanceOf(actual.args[2], Dep3, `actual.args[2]`);
+//     assert.instanceOf(actual.args[3], Dep4, `actual.args[3]`);
+//     assert.instanceOf(actual.args[4], Dep5, `actual.args[4]`);
 //   });
 
 //   it(`invoke() does not handle 6 deps`, function () {
-//     expect(() => classInvokers[6].invoke(container, Foo, [Dep1, Dep2, Dep3, Dep4, Dep5, Dep6])).to.throw(/undefined/);
+//     assert.throws(() => classInvokers[6].invoke(container, Foo, [Dep1, Dep2, Dep3, Dep4, Dep5, Dep6]), /undefined/, `() => classInvokers[6].invoke(container, Foo, [Dep1, Dep2, Dep3, Dep4, Dep5, Dep6])`);
 //   });
 
 // });
@@ -1178,49 +1311,49 @@ describe(`The Container class`, function () {
 //   const deps = [class Dep1 {}, class Dep2 {}, class Dep3 {}];
 
 //   it(_`throws when staticDeps is null`, function () {
-//     expect(() => invokeWithDynamicDependencies(container, Foo, null, [])).to.throw();
+//     assert.throws(() => invokeWithDynamicDependencies(container, Foo, null, []), void 0, `() => invokeWithDynamicDependencies(container, Foo, null, [])`);
 //   });
 
 //   it(_`throws when any of the staticDeps is null`, function () {
-//     expect(() => invokeWithDynamicDependencies(container, Foo, [null], [])).to.throw(/7/);
+//     assert.throws(() => invokeWithDynamicDependencies(container, Foo, [null], []), /7/, `() => invokeWithDynamicDependencies(container, Foo, [null], [])`);
 //   });
 
 //   it(_`throws when any of the staticDeps is undefined`, function () {
-//     expect(() => invokeWithDynamicDependencies(container, Foo, [undefined], [])).to.throw(/7/);
+//     assert.throws(() => invokeWithDynamicDependencies(container, Foo, [undefined], []), /7/, `() => invokeWithDynamicDependencies(container, Foo, [undefined], [])`);
 //   });
 
 //   it(_`throws when staticDeps is undefined`, function () {
-//     expect(() => invokeWithDynamicDependencies(container, Foo, undefined, [])).to.throw();
+//     assert.throws(() => invokeWithDynamicDependencies(container, Foo, undefined, []), void 0, `() => invokeWithDynamicDependencies(container, Foo, undefined, [])`);
 //   });
 
 //   it(_`handles staticDeps is ${deps}`, function () {
 //     const actual = invokeWithDynamicDependencies(container, Foo, deps, []);
-//     expect(actual.args).to.deep.equal(deps.map(d => `static${d}`));
+//     assert.deepStrictEqual(actual.args, deps.map(d => `static${d}`), `actual.args`);
 //   });
 
 //   it(`handles dynamicDeps is null`, function () {
 //     const actual = invokeWithDynamicDependencies(container, Foo, [], null);
-//     expect(actual.args.length).to.equal(1);
-//     expect(actual.args[0]).to.equal(null);
+//     assert.strictEqual(actual.args.length, 1, `actual.args.length`);
+//     assert.strictEqual(actual.args[0], null, `actual.args[0]`);
 //   });
 
 //   it(`handles dynamicDeps is undefined`, function () {
 //     const actual = invokeWithDynamicDependencies(container, Foo, [], undefined);
-//     expect(actual.args.length).to.equal(0);
+//     assert.strictEqual(actual.args.length, 0, `actual.args.length`);
 //   });
 
 //   it(_`handles dynamicDeps is ${deps}`, function () {
 //     const actual = invokeWithDynamicDependencies(container, Foo, [], deps);
-//     expect(actual.args).to.deep.equal(deps);
+//     assert.deepStrictEqual(actual.args, deps, `actual.args`);
 //   });
 
 //   it(_`handles staticDeps is ${deps} and dynamicDeps is ${deps}`, function () {
 //     const actual = invokeWithDynamicDependencies(container, Foo, deps, deps);
-//     expect(actual.args[0]).to.equal(`static${deps[0]}`);
-//     expect(actual.args[1]).to.equal(`static${deps[1]}`);
-//     expect(actual.args[2]).to.equal(`static${deps[2]}`);
-//     expect(actual.args[3]).to.equal(deps[0]);
-//     expect(actual.args[4]).to.equal(deps[1]);
-//     expect(actual.args[5]).to.equal(deps[2]);
+//     assert.strictEqual(actual.args[0], `static${deps[0]}`, `actual.args[0]`);
+//     assert.strictEqual(actual.args[1], `static${deps[1]}`, `actual.args[1]`);
+//     assert.strictEqual(actual.args[2], `static${deps[2]}`, `actual.args[2]`);
+//     assert.strictEqual(actual.args[3], deps[0], `actual.args[3]`);
+//     assert.strictEqual(actual.args[4], deps[1], `actual.args[4]`);
+//     assert.strictEqual(actual.args[5], deps[2], `actual.args[5]`);
 //   });
 // });

@@ -1,5 +1,5 @@
-import { expect } from 'chai';
 import { DI, RuntimeCompilationResources } from '@aurelia/kernel';
+import { assert } from '@aurelia/testing';
 
 describe('RuntimeCompilationResources', function () {
 
@@ -11,6 +11,6 @@ describe('RuntimeCompilationResources', function () {
       return name;
     } } as any;
     resources.find(res, 'a');
-    expect(container.getResolver(res.keyFrom('a'), false)).to.equal(null);
+    assert.strictEqual(container.getResolver(res.keyFrom('a'), false), null, `container.getResolver(res.keyFrom('a'), false)`);
   });
 });

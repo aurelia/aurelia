@@ -765,7 +765,7 @@ export class Container implements IContainer {
   public createChild(): IContainer {
     if (Tracer.enabled) { Tracer.enter('Container', 'createChild', slice.call(arguments)); }
     const config = this.configuration;
-    const childConfig = { factories: config.factories, resourceLookup: { ...config.resourceLookup } };
+    const childConfig = { factories: config.factories, resourceLookup: Object.assign(Object.create(null), config.resourceLookup) };
     const child = new Container(childConfig);
     child.parent = this;
     if (Tracer.enabled) { Tracer.leave(); }

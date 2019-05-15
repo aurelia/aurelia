@@ -1,6 +1,5 @@
-import { expect } from 'chai';
-import { PLATFORM } from '@aurelia/kernel';
-import { _ } from '@aurelia/testing';
+import { PLATFORM, kebabCase, camelCase, toArray } from '@aurelia/kernel';
+import { _, assert } from '@aurelia/testing';
 
 // tslint:disable:no-typeof-undefined
 
@@ -9,21 +8,21 @@ const toString = Object.prototype.toString;
 describe(`The PLATFORM object`, function () {
   if (typeof global !== 'undefined') {
     it(`global references global`, function () {
-      expect(PLATFORM.global).to.equal(global);
+      assert.strictEqual(PLATFORM.global, global, `PLATFORM.global`);
     });
   }
   // @ts-ignore
   if (typeof self !== 'undefined') {
     it(`global references self`, function () {
       // @ts-ignore
-      expect(PLATFORM.global).to.equal(self);
+      assert.strictEqual(PLATFORM.global, self, `PLATFORM.global`);
     });
   }
   // @ts-ignore
   if (typeof window !== 'undefined') {
     it(`global references window`, function () {
       // @ts-ignore
-      expect(PLATFORM.global).to.equal(window);
+      assert.strictEqual(PLATFORM.global, window, `PLATFORM.global`);
     });
   }
 
@@ -32,19 +31,19 @@ describe(`The PLATFORM object`, function () {
 
     await Promise.resolve();
     const $2 = PLATFORM.now();
-    expect($2).to.be.gte($1);
+    assert.greaterThanOrEqualTo($2, $1, `$2`);
 
     await Promise.resolve();
     const $3 = PLATFORM.now();
-    expect($3).to.be.gte($2);
+    assert.greaterThanOrEqualTo($3, $2, `$3`);
 
     await Promise.resolve();
     const $4 = PLATFORM.now();
-    expect($4).to.be.gte($3);
+    assert.greaterThanOrEqualTo($4, $3, `$4`);
 
     await Promise.resolve();
     const $5 = PLATFORM.now();
-    expect($5).to.be.gte($4);
+    assert.greaterThanOrEqualTo($5, $4, `$5`);
   });
 
   it(`requestAnimationFrame() resolves after microtasks`, done => {
@@ -52,13 +51,13 @@ describe(`The PLATFORM object`, function () {
     let promiseResolved = false;
     PLATFORM.requestAnimationFrame(() => {
       rafResolved = true;
-      expect(promiseResolved).to.equal(true);
+      assert.strictEqual(promiseResolved, true, `promiseResolved`);
       done();
     });
     Promise.resolve().then(() => {
       Promise.resolve().then(() => {
         Promise.resolve().then(() => {
-          expect(rafResolved).to.equal(false);
+          assert.strictEqual(rafResolved, false, `rafResolved`);
           promiseResolved = true;
         }).catch(error => { throw error; });
       }).catch(error => { throw error; });
@@ -83,9 +82,9 @@ describe(`The PLATFORM object`, function () {
               if (prepend) input = actualSep + input;
               if (append) input += actualSep;
               it(`${input} -> ${expected}`, function () {
-                const actual = PLATFORM.camelCase(input);
-                expect(actual).to.equal(expected);
-                expect(PLATFORM.camelCase(input)).to.equal(actual); // verify via code coverage report that cache is being hit
+                const actual = camelCase(input);
+                assert.strictEqual(actual, expected, `actual`);
+                assert.strictEqual(camelCase(input), actual, `camelCase(input)`); // verify via code coverage report that cache is being hit
               });
             }
           }
@@ -103,9 +102,9 @@ describe(`The PLATFORM object`, function () {
       ['fOObARbAZ', 'f-o-ob-a-rb-a-z']
     ]) {
       it(`${input} -> ${expected}`, function () {
-        const actual = PLATFORM.kebabCase(input);
-        expect(actual).to.equal(expected);
-        expect(PLATFORM.kebabCase(input)).to.equal(actual); // verify via code coverage report that cache is being hit
+        const actual = kebabCase(input);
+        assert.strictEqual(actual, expected, `actual`);
+        assert.strictEqual(kebabCase(input), actual, `kebabCase(input)`); // verify via code coverage report that cache is being hit
       });
     }
   });
@@ -117,13 +116,13 @@ describe(`The PLATFORM object`, function () {
     ] as ArrayLike<any>[]) {
       it(_`converts ${input} to array`, function () {
         const expected = Array.from(input);
-        const actual = PLATFORM.toArray(input);
-        expect(typeof expected).to.equal(typeof actual);
-        expect(toString.call(expected)).to.equal(toString.call(actual));
-        expect(expected instanceof Array).to.equal(actual instanceof Array);
-        expect(expected.length).to.equal(actual.length);
+        const actual = toArray(input);
+        assert.strictEqual(typeof expected, typeof actual, `typeof expected`);
+        assert.strictEqual(toString.call(expected), toString.call(actual), `toString.call(expected)`);
+        assert.strictEqual(expected instanceof Array, actual instanceof Array, `expected instanceof Array`);
+        assert.strictEqual(expected.length, actual.length, `expected.length`);
         for (let i = 0, ii = expected.length; i < ii; ++i) {
-          expect(expected[i]).to.equal(actual[i]);
+          assert.strictEqual(expected[i], actual[i], `expected[i]`);
         }
       });
     }

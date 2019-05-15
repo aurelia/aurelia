@@ -1,5 +1,3 @@
-import { expect } from 'chai';
-import { spy } from 'sinon';
 import {
   DI,
   IContainer,
@@ -7,6 +5,7 @@ import {
   InterfaceSymbol,
   Registration,
 } from '@aurelia/kernel';
+import { assert, createSpy, ISpy } from '@aurelia/testing';
 
 describe('DI.createInterface() -> container.get()', function () {
   let container: IContainer;
@@ -27,9 +26,9 @@ describe('DI.createInterface() -> container.get()', function () {
   interface ICallback {}
   class Callback implements ICallback {}
   let ICallback: InterfaceSymbol<ICallback>;
-  let callback: ReturnType<typeof spy>;
 
-  let get: ReturnType<typeof spy>;
+  let callback: ISpy<() => ICallback>;
+  let get: ISpy<IContainer['get']>;
 
   beforeEach(function () {
     container = DI.createContainer();
@@ -37,9 +36,9 @@ describe('DI.createInterface() -> container.get()', function () {
     ISingleton = DI.createInterface<ISingleton>('ISingleton').withDefault(x => x.singleton(Singleton));
     instance = new Instance();
     IInstance = DI.createInterface<IInstance>('IInstance').withDefault(x => x.instance(instance));
-    callback = spy(() => new Callback());
+    callback = createSpy(() => new Callback());
     ICallback = DI.createInterface<ICallback>('ICallback').withDefault(x => x.callback(callback));
-    get = spy(container, 'get');
+    get = createSpy(container, 'get', true);
   });
 
   afterEach(function () {
@@ -49,53 +48,88 @@ describe('DI.createInterface() -> container.get()', function () {
   describe('leaf', function () {
     it(`transient registration returns a new instance each time`, function () {
       const actual1 = container.get(ITransient);
-      expect(actual1).to.be.instanceof(Transient);
+      assert.instanceOf(actual1, Transient, `actual1`);
 
       const actual2 = container.get(ITransient);
-      expect(actual2).to.be.instanceof(Transient);
+      assert.instanceOf(actual2, Transient, `actual2`);
 
-      expect(actual1).not.to.equal(actual2);
+      assert.notStrictEqual(actual1, actual2, `actual1`);
 
-      expect(get.getCalls().length).to.equal(2);
+      assert.deepStrictEqual(
+        get.calls,
+        [
+          [ITransient],
+          [ITransient],
+        ],
+        `get.calls`,
+      );
     });
 
     it(`singleton registration returns the same instance each time`, function () {
       const actual1 = container.get(ISingleton);
-      expect(actual1).to.be.instanceof(Singleton);
+      assert.instanceOf(actual1, Singleton, `actual1`);
 
       const actual2 = container.get(ISingleton);
-      expect(actual2).to.be.instanceof(Singleton);
+      assert.instanceOf(actual2, Singleton, `actual2`);
 
-      expect(actual1).to.equal(actual2);
+      assert.strictEqual(actual1, actual2, `actual1`);
 
-      expect(get.getCalls().length).to.equal(2);
+      assert.deepStrictEqual(
+        get.calls,
+        [
+          [ISingleton],
+          [ISingleton],
+        ],
+        `get.calls`,
+      );
     });
 
     it(`instance registration returns the same instance each time`, function () {
       const actual1 = container.get(IInstance);
-      expect(actual1).to.be.instanceof(Instance);
+      assert.instanceOf(actual1, Instance, `actual1`);
 
       const actual2 = container.get(IInstance);
-      expect(actual2).to.be.instanceof(Instance);
+      assert.instanceOf(actual2, Instance, `actual2`);
 
-      expect(actual1).to.equal(instance);
-      expect(actual2).to.equal(instance);
+      assert.strictEqual(actual1, instance, `actual1`);
+      assert.strictEqual(actual2, instance, `actual2`);
 
-      expect(get.getCalls().length).to.equal(2);
+      assert.deepStrictEqual(
+        get.calls,
+        [
+          [IInstance],
+          [IInstance],
+        ],
+        `get.calls`,
+      );
     });
 
     it(`callback registration is invoked each time`, function () {
       const actual1 = container.get(ICallback);
-      expect(actual1).to.be.instanceof(Callback);
+      assert.instanceOf(actual1, Callback, `actual1`);
 
       const actual2 = container.get(ICallback);
-      expect(actual2).to.be.instanceof(Callback);
+      assert.instanceOf(actual2, Callback, `actual2`);
 
-      expect(callback.getCalls().length).to.equal(2);
+      assert.notStrictEqual(actual1, actual2, `actual1`);
 
-      expect(actual1).not.to.equal(actual2);
+      assert.deepStrictEqual(
+        callback.calls,
+        [
+          [container, container, container.getResolver(ICallback)],
+          [container, container, container.getResolver(ICallback)],
+        ],
+        `callback.calls`,
+      );
 
-      expect(get.getCalls().length).to.equal(2);
+      assert.deepStrictEqual(
+        get.calls,
+        [
+          [ICallback],
+          [ICallback],
+        ],
+        `get.calls`,
+      );
     });
 
     it(`InterfaceSymbol alias to transient registration returns a new instance each time`, function () {
@@ -103,12 +137,23 @@ describe('DI.createInterface() -> container.get()', function () {
       const IAlias = DI.createInterface<IAlias>('IAlias').withDefault(x => x.aliasTo(ITransient));
 
       const actual1 = container.get(IAlias);
-      expect(actual1).to.be.instanceof(Transient);
+      assert.instanceOf(actual1, Transient, `actual1`);
 
       const actual2 = container.get(IAlias);
-      expect(actual2).to.be.instanceof(Transient);
+      assert.instanceOf(actual2, Transient, `actual2`);
 
-      expect(actual1).not.to.equal(actual2);
+      assert.notStrictEqual(actual1, actual2, `actual1`);
+
+      assert.deepStrictEqual(
+        get.calls,
+        [
+          [IAlias],
+          [ITransient],
+          [IAlias],
+          [ITransient],
+        ],
+        `get.calls`,
+      );
     });
 
     it(`InterfaceSymbol alias to singleton registration returns the same instance each time`, function () {
@@ -116,12 +161,23 @@ describe('DI.createInterface() -> container.get()', function () {
       const IAlias = DI.createInterface<IAlias>('IAlias').withDefault(x => x.aliasTo(ISingleton));
 
       const actual1 = container.get(IAlias);
-      expect(actual1).to.be.instanceof(Singleton);
+      assert.instanceOf(actual1, Singleton, `actual1`);
 
       const actual2 = container.get(IAlias);
-      expect(actual2).to.be.instanceof(Singleton);
+      assert.instanceOf(actual2, Singleton, `actual2`);
 
-      expect(actual1).to.equal(actual2);
+      assert.strictEqual(actual1, actual2, `actual1`);
+
+      assert.deepStrictEqual(
+        get.calls,
+        [
+          [IAlias],
+          [ISingleton],
+          [IAlias],
+          [ISingleton],
+        ],
+        `get.calls`,
+      );
     });
 
     it(`InterfaceSymbol alias to instance registration returns the same instance each time`, function () {
@@ -129,13 +185,24 @@ describe('DI.createInterface() -> container.get()', function () {
       const IAlias = DI.createInterface<IAlias>('IAlias').withDefault(x => x.aliasTo(IInstance));
 
       const actual1 = container.get(IAlias);
-      expect(actual1).to.be.instanceof(Instance);
+      assert.instanceOf(actual1, Instance, `actual1`);
 
       const actual2 = container.get(IAlias);
-      expect(actual2).to.be.instanceof(Instance);
+      assert.instanceOf(actual2, Instance, `actual2`);
 
-      expect(actual1).to.equal(instance);
-      expect(actual2).to.equal(instance);
+      assert.strictEqual(actual1, instance, `actual1`);
+      assert.strictEqual(actual2, instance, `actual2`);
+
+      assert.deepStrictEqual(
+        get.calls,
+        [
+          [IAlias],
+          [IInstance],
+          [IAlias],
+          [IInstance],
+        ],
+        `get.calls`,
+      );
     });
 
     // TODO: make test work
@@ -144,65 +211,134 @@ describe('DI.createInterface() -> container.get()', function () {
       const IAlias = DI.createInterface<IAlias>('IAlias').withDefault(x => x.aliasTo(ICallback));
 
       const actual1 = container.get(IAlias);
-      expect(actual1).to.be.instanceof(Callback);
+      assert.instanceOf(actual1, Callback, `actual1`);
 
       const actual2 = container.get(IAlias);
-      expect(actual2).to.be.instanceof(Callback);
+      assert.instanceOf(actual2, Callback, `actual2`);
 
-      expect(callback.getCalls().length).to.equal(2);
+      assert.notStrictEqual(actual1, actual2, `actual1`);
 
-      expect(actual1).not.to.equal(actual2);
+      assert.deepStrictEqual(
+        callback.calls,
+        [
+          [container, container, container.getResolver(ICallback)],
+          [container, container, container.getResolver(ICallback)],
+        ],
+        `callback.calls`,
+      );
+
+      assert.deepStrictEqual(
+        get.calls,
+        [
+          [IAlias],
+          [ICallback],
+          [IAlias],
+          [ICallback],
+        ],
+        `get.calls`,
+      );
     });
 
     it(`string alias to transient registration returns a new instance each time`, function () {
       container.register(Registration.alias(ITransient, 'alias'));
 
       const actual1 = container.get('alias');
-      expect(actual1).to.be.instanceof(Transient);
+      assert.instanceOf(actual1, Transient, `actual1`);
 
       const actual2 = container.get('alias');
-      expect(actual2).to.be.instanceof(Transient);
+      assert.instanceOf(actual2, Transient, `actual2`);
 
-      expect(actual1).not.to.equal(actual2);
+      assert.notStrictEqual(actual1, actual2, `actual1`);
+
+      assert.deepStrictEqual(
+        get.calls,
+        [
+          ['alias'],
+          [ITransient],
+          ['alias'],
+          [ITransient],
+        ],
+        `get.calls`,
+      );
     });
 
     it(`string alias to singleton registration returns the same instance each time`, function () {
       container.register(Registration.alias(ISingleton, 'alias'));
 
       const actual1 = container.get('alias');
-      expect(actual1).to.be.instanceof(Singleton);
+      assert.instanceOf(actual1, Singleton, `actual1`);
 
       const actual2 = container.get('alias');
-      expect(actual2).to.be.instanceof(Singleton);
+      assert.instanceOf(actual2, Singleton, `actual2`);
 
-      expect(actual1).to.equal(actual2);
+      assert.strictEqual(actual1, actual2, `actual1`);
+
+      assert.deepStrictEqual(
+        get.calls,
+        [
+          ['alias'],
+          [ISingleton],
+          ['alias'],
+          [ISingleton],
+        ],
+        `get.calls`,
+      );
     });
 
     it(`string alias to instance registration returns the same instance each time`, function () {
       container.register(Registration.alias(IInstance, 'alias'));
 
       const actual1 = container.get('alias');
-      expect(actual1).to.be.instanceof(Instance);
+      assert.instanceOf(actual1, Instance, `actual1`);
 
       const actual2 = container.get('alias');
-      expect(actual2).to.be.instanceof(Instance);
+      assert.instanceOf(actual2, Instance, `actual2`);
 
-      expect(actual1).to.equal(instance);
-      expect(actual2).to.equal(instance);
+      assert.strictEqual(actual1, instance, `actual1`);
+      assert.strictEqual(actual2, instance, `actual2`);
+
+      assert.deepStrictEqual(
+        get.calls,
+        [
+          ['alias'],
+          [IInstance],
+          ['alias'],
+          [IInstance],
+        ],
+        `get.calls`,
+      );
     });
 
     it(`string alias to callback registration is invoked each time`, function () {
       container.register(Registration.alias(ICallback, 'alias'));
 
       const actual1 = container.get('alias');
-      expect(actual1).to.be.instanceof(Callback);
+      assert.instanceOf(actual1, Callback, `actual1`);
 
       const actual2 = container.get('alias');
-      expect(actual2).to.be.instanceof(Callback);
+      assert.instanceOf(actual2, Callback, `actual2`);
 
-      expect(callback.getCalls().length).to.equal(2);
+      assert.notStrictEqual(actual1, actual2, `actual1`);
 
-      expect(actual1).not.to.equal(actual2);
+      assert.deepStrictEqual(
+        callback.calls,
+        [
+          [container, container, container.getResolver(ICallback)],
+          [container, container, container.getResolver(ICallback)],
+        ],
+        `callback.calls`,
+      );
+
+      assert.deepStrictEqual(
+        get.calls,
+        [
+          ['alias'],
+          [ICallback],
+          ['alias'],
+          [ICallback],
+        ],
+        `get.calls`,
+      );
     });
   });
 
@@ -220,7 +356,7 @@ describe('DI.createInterface() -> container.get()', function () {
   //     class Parent implements IParent { constructor(public dep: ITransient) {} }
   //     register(Parent);
 
-  //     expect(() => container.get(IParent)).to.throw(/5/);
+  //     assert.throws(() => container.get(IParent), /5/, `() => container.get(IParent)`);
   //   });
 
   //   it(`singleton child registration throws`, function () {
@@ -228,7 +364,7 @@ describe('DI.createInterface() -> container.get()', function () {
   //     class Parent implements IParent { constructor(public dep: ISingleton) {} }
   //     register(Parent);
 
-  //     expect(() => container.get(IParent)).to.throw(/5/);
+  //     assert.throws(() => container.get(IParent), /5/, `() => container.get(IParent)`);
   //   });
 
   //   it(`instance child registration throws`, function () {
@@ -236,7 +372,7 @@ describe('DI.createInterface() -> container.get()', function () {
   //     class Parent implements IParent { constructor(public dep: IInstance) {} }
   //     register(Parent);
 
-  //     expect(() => container.get(IParent)).to.throw(/5/);
+  //     assert.throws(() => container.get(IParent), /5/, `() => container.get(IParent)`);
   //   });
 
   //   it(`callback child registration throws`, function () {
@@ -244,7 +380,7 @@ describe('DI.createInterface() -> container.get()', function () {
   //     class Parent implements IParent { constructor(public dep: ICallback) {} }
   //     register(Parent);
 
-  //     expect(() => container.get(IParent)).to.throw(/5/);
+  //     assert.throws(() => container.get(IParent), /5/, `() => container.get(IParent)`);
   //   });
   // });
 
@@ -262,18 +398,27 @@ describe('DI.createInterface() -> container.get()', function () {
       register(TransientParent);
 
       const actual1 = container.get(ITransientParent);
-      expect(actual1).to.be.instanceof(TransientParent);
-      expect(actual1.dep).to.be.instanceof(Transient);
+      assert.instanceOf(actual1, TransientParent, `actual1`);
+      assert.instanceOf(actual1.dep, Transient, `actual1.dep`);
 
       const actual2 = container.get(ITransientParent);
-      expect(actual2).to.be.instanceof(TransientParent);
-      expect(actual2.dep).to.be.instanceof(Transient);
+      assert.instanceOf(actual2, TransientParent, `actual2`);
+      assert.instanceOf(actual2.dep, Transient, `actual2.dep`);
 
-      expect(actual1).not.to.equal(actual2);
+      assert.notStrictEqual(actual1, actual2, `actual1`);
 
-      expect(actual1.dep).not.to.equal(actual2.dep);
+      assert.notStrictEqual(actual1.dep, actual2.dep, `actual1.dep`);
 
-      expect(get.getCalls().length).to.equal(4);
+      assert.deepStrictEqual(
+        get.calls,
+        [
+          [ITransientParent],
+          [ITransient],
+          [ITransientParent],
+          [ITransient],
+        ],
+        `get.calls`,
+      );
     });
 
     it(`singleton child registration returns the same instance each time`, function () {
@@ -282,18 +427,27 @@ describe('DI.createInterface() -> container.get()', function () {
       register(TransientParent);
 
       const actual1 = container.get(ITransientParent);
-      expect(actual1).to.be.instanceof(TransientParent);
-      expect(actual1.dep).to.be.instanceof(Singleton);
+      assert.instanceOf(actual1, TransientParent, `actual1`);
+      assert.instanceOf(actual1.dep, Singleton, `actual1.dep`);
 
       const actual2 = container.get(ITransientParent);
-      expect(actual2).to.be.instanceof(TransientParent);
-      expect(actual2.dep).to.be.instanceof(Singleton);
+      assert.instanceOf(actual2, TransientParent, `actual2`);
+      assert.instanceOf(actual2.dep, Singleton, `actual2.dep`);
 
-      expect(actual1).not.to.equal(actual2);
+      assert.notStrictEqual(actual1, actual2, `actual1`);
 
-      expect(actual1.dep).to.equal(actual2.dep);
+      assert.strictEqual(actual1.dep, actual2.dep, `actual1.dep`);
 
-      expect(get.getCalls().length).to.equal(4);
+      assert.deepStrictEqual(
+        get.calls,
+        [
+          [ITransientParent],
+          [ISingleton],
+          [ITransientParent],
+          [ISingleton],
+        ],
+        `get.calls`,
+      );
     });
 
     it(`instance child registration returns the same instance each time`, function () {
@@ -302,18 +456,27 @@ describe('DI.createInterface() -> container.get()', function () {
       register(TransientParent);
 
       const actual1 = container.get(ITransientParent);
-      expect(actual1).to.be.instanceof(TransientParent);
-      expect(actual1.dep).to.be.instanceof(Instance);
+      assert.instanceOf(actual1, TransientParent, `actual1`);
+      assert.instanceOf(actual1.dep, Instance, `actual1.dep`);
 
       const actual2 = container.get(ITransientParent);
-      expect(actual2).to.be.instanceof(TransientParent);
-      expect(actual2.dep).to.be.instanceof(Instance);
+      assert.instanceOf(actual2, TransientParent, `actual2`);
+      assert.instanceOf(actual2.dep, Instance, `actual2.dep`);
 
-      expect(actual1).not.to.equal(actual2);
+      assert.notStrictEqual(actual1, actual2, `actual1`);
 
-      expect(actual1.dep).to.equal(actual2.dep);
+      assert.strictEqual(actual1.dep, actual2.dep, `actual1.dep`);
 
-      expect(get.getCalls().length).to.equal(4);
+      assert.deepStrictEqual(
+        get.calls,
+        [
+          [ITransientParent],
+          [IInstance],
+          [ITransientParent],
+          [IInstance],
+        ],
+        `get.calls`,
+      );
     });
 
     it(`callback child registration is invoked each time`, function () {
@@ -322,19 +485,35 @@ describe('DI.createInterface() -> container.get()', function () {
       register(TransientParent);
 
       const actual1 = container.get(ITransientParent);
-      expect(actual1).to.be.instanceof(TransientParent);
-      expect(actual1.dep).to.be.instanceof(Callback);
+      assert.instanceOf(actual1, TransientParent, `actual1`);
+      assert.instanceOf(actual1.dep, Callback, `actual1.dep`);
 
       const actual2 = container.get(ITransientParent);
-      expect(actual2).to.be.instanceof(TransientParent);
-      expect(actual2.dep).to.be.instanceof(Callback);
+      assert.instanceOf(actual2, TransientParent, `actual2`);
+      assert.instanceOf(actual2.dep, Callback, `actual2.dep`);
 
-      expect(callback.getCalls().length).to.equal(2);
+      assert.notStrictEqual(actual1, actual2, `actual1`);
+      assert.notStrictEqual(actual1.dep, actual2.dep, `actual1.dep`);
 
-      expect(actual1).not.to.equal(actual2);
-      expect(actual1.dep).not.to.equal(actual2.dep);
+      assert.deepStrictEqual(
+        callback.calls,
+        [
+          [container, container, container.getResolver(ICallback)],
+          [container, container, container.getResolver(ICallback)],
+        ],
+        `callback.calls`,
+      );
 
-      expect(get.getCalls().length).to.equal(4);
+      assert.deepStrictEqual(
+        get.calls,
+        [
+          [ITransientParent],
+          [ICallback],
+          [ITransientParent],
+          [ICallback],
+        ],
+        `get.calls`,
+      );
     });
   });
 
@@ -352,18 +531,26 @@ describe('DI.createInterface() -> container.get()', function () {
       register(SingletonParent);
 
       const actual1 = container.get(ISingletonParent);
-      expect(actual1).to.be.instanceof(SingletonParent);
-      expect(actual1.dep).to.be.instanceof(Transient);
+      assert.instanceOf(actual1, SingletonParent, `actual1`);
+      assert.instanceOf(actual1.dep, Transient, `actual1.dep`);
 
       const actual2 = container.get(ISingletonParent);
-      expect(actual2).to.be.instanceof(SingletonParent);
-      expect(actual2.dep).to.be.instanceof(Transient);
+      assert.instanceOf(actual2, SingletonParent, `actual2`);
+      assert.instanceOf(actual2.dep, Transient, `actual2.dep`);
 
-      expect(actual1).to.equal(actual2);
+      assert.strictEqual(actual1, actual2, `actual1`);
 
-      expect(actual1.dep).to.equal(actual2.dep);
+      assert.strictEqual(actual1.dep, actual2.dep, `actual1.dep`);
 
-      expect(get.getCalls().length).to.equal(3);
+      assert.deepStrictEqual(
+        get.calls,
+        [
+          [ISingletonParent],
+          [ITransient],
+          [ISingletonParent],
+        ],
+        `get.calls`,
+      );
     });
 
     it(`singleton registration is reused by the singleton parent`, function () {
@@ -372,18 +559,26 @@ describe('DI.createInterface() -> container.get()', function () {
       register(SingletonParent);
 
       const actual1 = container.get(ISingletonParent);
-      expect(actual1).to.be.instanceof(SingletonParent);
-      expect(actual1.dep).to.be.instanceof(Singleton);
+      assert.instanceOf(actual1, SingletonParent, `actual1`);
+      assert.instanceOf(actual1.dep, Singleton, `actual1.dep`);
 
       const actual2 = container.get(ISingletonParent);
-      expect(actual2).to.be.instanceof(SingletonParent);
-      expect(actual2.dep).to.be.instanceof(Singleton);
+      assert.instanceOf(actual2, SingletonParent, `actual2`);
+      assert.instanceOf(actual2.dep, Singleton, `actual2.dep`);
 
-      expect(actual1).to.equal(actual2);
+      assert.strictEqual(actual1, actual2, `actual1`);
 
-      expect(actual1.dep).to.equal(actual2.dep);
+      assert.strictEqual(actual1.dep, actual2.dep, `actual1.dep`);
 
-      expect(get.getCalls().length).to.equal(3);
+      assert.deepStrictEqual(
+        get.calls,
+        [
+          [ISingletonParent],
+          [ISingleton],
+          [ISingletonParent],
+        ],
+        `get.calls`,
+      );
     });
 
     it(`instance registration is reused by the singleton parent`, function () {
@@ -392,18 +587,26 @@ describe('DI.createInterface() -> container.get()', function () {
       register(SingletonParent);
 
       const actual1 = container.get(ISingletonParent);
-      expect(actual1).to.be.instanceof(SingletonParent);
-      expect(actual1.dep).to.be.instanceof(Instance);
+      assert.instanceOf(actual1, SingletonParent, `actual1`);
+      assert.instanceOf(actual1.dep, Instance, `actual1.dep`);
 
       const actual2 = container.get(ISingletonParent);
-      expect(actual2).to.be.instanceof(SingletonParent);
-      expect(actual2.dep).to.be.instanceof(Instance);
+      assert.instanceOf(actual2, SingletonParent, `actual2`);
+      assert.instanceOf(actual2.dep, Instance, `actual2.dep`);
 
-      expect(actual1).to.equal(actual2);
+      assert.strictEqual(actual1, actual2, `actual1`);
 
-      expect(actual1.dep).to.equal(actual2.dep);
+      assert.strictEqual(actual1.dep, actual2.dep, `actual1.dep`);
 
-      expect(get.getCalls().length).to.equal(3);
+      assert.deepStrictEqual(
+        get.calls,
+        [
+          [ISingletonParent],
+          [IInstance],
+          [ISingletonParent],
+        ],
+        `get.calls`,
+      );
     });
 
     it(`callback registration is reused by the singleton parent`, function () {
@@ -412,19 +615,33 @@ describe('DI.createInterface() -> container.get()', function () {
       register(SingletonParent);
 
       const actual1 = container.get(ISingletonParent);
-      expect(actual1).to.be.instanceof(SingletonParent);
-      expect(actual1.dep).to.be.instanceof(Callback);
+      assert.instanceOf(actual1, SingletonParent, `actual1`);
+      assert.instanceOf(actual1.dep, Callback, `actual1.dep`);
 
       const actual2 = container.get(ISingletonParent);
-      expect(actual2).to.be.instanceof(SingletonParent);
-      expect(actual2.dep).to.be.instanceof(Callback);
+      assert.instanceOf(actual2, SingletonParent, `actual2`);
+      assert.instanceOf(actual2.dep, Callback, `actual2.dep`);
 
-      expect(callback.getCalls().length).to.equal(1);
+      assert.strictEqual(actual1, actual2, `actual1`);
+      assert.strictEqual(actual1.dep, actual2.dep, `actual1.dep`);
 
-      expect(actual1).to.equal(actual2);
-      expect(actual1.dep).to.equal(actual2.dep);
+      assert.deepStrictEqual(
+        callback.calls,
+        [
+          [container, container, container.getResolver(ICallback)],
+        ],
+        `callback.calls`,
+      );
 
-      expect(get.getCalls().length).to.equal(3);
+      assert.deepStrictEqual(
+        get.calls,
+        [
+          [ISingletonParent],
+          [ICallback],
+          [ISingletonParent],
+        ],
+        `get.calls`,
+      );
     });
   });
 
@@ -435,7 +652,7 @@ describe('DI.createInterface() -> container.get()', function () {
 
     function register(cls: any) {
       instanceParent = container.get(cls);
-      get.resetHistory();
+      get.reset();
       IInstanceParent = DI.createInterface<IInstanceParent>('IInstanceParent').withDefault(x => x.instance(instanceParent));
     }
 
@@ -445,18 +662,25 @@ describe('DI.createInterface() -> container.get()', function () {
       register(InstanceParent);
 
       const actual1 = container.get(IInstanceParent);
-      expect(actual1).to.be.instanceof(InstanceParent);
-      expect(actual1.dep).to.be.instanceof(Transient);
+      assert.instanceOf(actual1, InstanceParent, `actual1`);
+      assert.instanceOf(actual1.dep, Transient, `actual1.dep`);
 
       const actual2 = container.get(IInstanceParent);
-      expect(actual2).to.be.instanceof(InstanceParent);
-      expect(actual2.dep).to.be.instanceof(Transient);
+      assert.instanceOf(actual2, InstanceParent, `actual2`);
+      assert.instanceOf(actual2.dep, Transient, `actual2.dep`);
 
-      expect(actual1).to.equal(actual2);
+      assert.strictEqual(actual1, actual2, `actual1`);
 
-      expect(actual1.dep).to.equal(actual2.dep);
+      assert.strictEqual(actual1.dep, actual2.dep, `actual1.dep`);
 
-      expect(get.getCalls().length).to.equal(2);
+      assert.deepStrictEqual(
+        get.calls,
+        [
+          [IInstanceParent],
+          [IInstanceParent],
+        ],
+        `get.calls`,
+      );
     });
 
     it(`singleton registration is reused by the instance parent`, function () {
@@ -465,18 +689,25 @@ describe('DI.createInterface() -> container.get()', function () {
       register(InstanceParent);
 
       const actual1 = container.get(IInstanceParent);
-      expect(actual1).to.be.instanceof(InstanceParent);
-      expect(actual1.dep).to.be.instanceof(Singleton);
+      assert.instanceOf(actual1, InstanceParent, `actual1`);
+      assert.instanceOf(actual1.dep, Singleton, `actual1.dep`);
 
       const actual2 = container.get(IInstanceParent);
-      expect(actual2).to.be.instanceof(InstanceParent);
-      expect(actual2.dep).to.be.instanceof(Singleton);
+      assert.instanceOf(actual2, InstanceParent, `actual2`);
+      assert.instanceOf(actual2.dep, Singleton, `actual2.dep`);
 
-      expect(actual1).to.equal(actual2);
+      assert.strictEqual(actual1, actual2, `actual1`);
 
-      expect(actual1.dep).to.equal(actual2.dep);
+      assert.strictEqual(actual1.dep, actual2.dep, `actual1.dep`);
 
-      expect(get.getCalls().length).to.equal(2);
+      assert.deepStrictEqual(
+        get.calls,
+        [
+          [IInstanceParent],
+          [IInstanceParent],
+        ],
+        `get.calls`,
+      );
     });
 
     it(`instance registration is reused by the instance parent`, function () {
@@ -485,18 +716,25 @@ describe('DI.createInterface() -> container.get()', function () {
       register(InstanceParent);
 
       const actual1 = container.get(IInstanceParent);
-      expect(actual1).to.be.instanceof(InstanceParent);
-      expect(actual1.dep).to.be.instanceof(Instance);
+      assert.instanceOf(actual1, InstanceParent, `actual1`);
+      assert.instanceOf(actual1.dep, Instance, `actual1.dep`);
 
       const actual2 = container.get(IInstanceParent);
-      expect(actual2).to.be.instanceof(InstanceParent);
-      expect(actual2.dep).to.be.instanceof(Instance);
+      assert.instanceOf(actual2, InstanceParent, `actual2`);
+      assert.instanceOf(actual2.dep, Instance, `actual2.dep`);
 
-      expect(actual1).to.equal(actual2);
+      assert.strictEqual(actual1, actual2, `actual1`);
 
-      expect(actual1.dep).to.equal(actual2.dep);
+      assert.strictEqual(actual1.dep, actual2.dep, `actual1.dep`);
 
-      expect(get.getCalls().length).to.equal(2);
+      assert.deepStrictEqual(
+        get.calls,
+        [
+          [IInstanceParent],
+          [IInstanceParent],
+        ],
+        `get.calls`,
+      );
     });
 
     it(`callback registration is reused by the instance parent`, function () {
@@ -505,19 +743,32 @@ describe('DI.createInterface() -> container.get()', function () {
       register(InstanceParent);
 
       const actual1 = container.get(IInstanceParent);
-      expect(actual1).to.be.instanceof(InstanceParent);
-      expect(actual1.dep).to.be.instanceof(Callback);
+      assert.instanceOf(actual1, InstanceParent, `actual1`);
+      assert.instanceOf(actual1.dep, Callback, `actual1.dep`);
 
       const actual2 = container.get(IInstanceParent);
-      expect(actual2).to.be.instanceof(InstanceParent);
-      expect(actual2.dep).to.be.instanceof(Callback);
+      assert.instanceOf(actual2, InstanceParent, `actual2`);
+      assert.instanceOf(actual2.dep, Callback, `actual2.dep`);
 
-      expect(callback.getCalls().length).to.equal(1);
+      assert.strictEqual(actual1, actual2, `actual1`);
+      assert.strictEqual(actual1.dep, actual2.dep, `actual1.dep`);
 
-      expect(actual1).to.equal(actual2);
-      expect(actual1.dep).to.equal(actual2.dep);
+      assert.deepStrictEqual(
+        callback.calls,
+        [
+          [container, container, container.getResolver(ICallback)],
+        ],
+        `callback.calls`,
+      );
 
-      expect(get.getCalls().length).to.equal(2);
+      assert.deepStrictEqual(
+        get.calls,
+        [
+          [IInstanceParent],
+          [IInstanceParent],
+        ],
+        `get.calls`,
+      );
     });
   });
 });

@@ -72,7 +72,8 @@ export {
   ITraceWriter,
   ILiveLoggingOptions,
   Reporter,
-  Tracer
+  Tracer,
+  LogLevel,
 } from './reporter';
 export {
   Profiler

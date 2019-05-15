@@ -25,6 +25,7 @@
 
 import {
   isNumeric,
+  PLATFORM,
   Primitive,
 } from '@aurelia/kernel';
 
@@ -491,3 +492,118 @@ export const trimFull = (function () {
     return result;
   };
 }());
+
+type AnyFunction = (...args: unknown[]) => unknown;
+type VoidFunction = (...args: unknown[]) => void;
+
+export type ISpy<
+  T extends AnyFunction = AnyFunction
+> = T & {
+  readonly calls: (readonly unknown[])[];
+  restore(): void;
+  reset(): void;
+}
+
+export function createSpy<
+  T extends {},
+  K extends keyof T,
+>(instance: T, key: K): T[K] extends AnyFunction ? ISpy<T[K]> : never;
+export function createSpy<
+  T extends {},
+  K extends keyof T,
+  F extends AnyFunction,
+>(instance: T, key: K, innerFn: F): T[K] extends AnyFunction ? ISpy<T[K]> : never;
+export function createSpy<
+  T extends {},
+  K extends keyof T,
+>(instance: T, key: K, callThrough: true): T[K] extends AnyFunction ? ISpy<T[K]> : never;
+export function createSpy<
+  T extends AnyFunction = VoidFunction,
+>(innerFn: T): ISpy<T>;
+export function createSpy(): ISpy<VoidFunction>;
+export function createSpy<
+  T extends {} | AnyFunction = VoidFunction,
+  K extends keyof T | never = never,
+  F extends AnyFunction | never = never,
+>(instanceOrInnerFn?: T, key?: K, callThroughOrInnerFn?: true | F) {
+  const calls: (readonly unknown[])[] = [];
+
+  function reset() {
+    calls.length = 0;
+  }
+
+  let $spy: AnyFunction;
+  let $restore: () => void;
+
+  if (instanceOrInnerFn === void 0) {
+    $spy = function spy(...args: unknown[]) {
+      calls.push(args);
+    };
+    $restore = PLATFORM.noop;
+  } else if (key === void 0) {
+    $spy = function spy(...args: unknown[]) {
+      calls.push(args);
+      return (instanceOrInnerFn as AnyFunction)(...args);
+    };
+    $restore = PLATFORM.noop;
+  } else {
+    if (!(key in instanceOrInnerFn)) {
+      throw new Error(`No method named '${key}' exists in object of type ${Reflect.getPrototypeOf(instanceOrInnerFn).constructor.name}`)
+    }
+    let descriptorOwner = instanceOrInnerFn;
+    let descriptor = Reflect.getOwnPropertyDescriptor(descriptorOwner, key)!;
+    while (descriptor === void 0) {
+      descriptorOwner = Reflect.getPrototypeOf(descriptorOwner) as T;
+      descriptor = Reflect.getOwnPropertyDescriptor(descriptorOwner, key)!;
+    }
+
+    // Already wrapped, restore first
+    if (Reflect.has(descriptor.value, 'restore')) {
+      (descriptor.value as ISpy).restore();
+      descriptor = Reflect.getOwnPropertyDescriptor(descriptorOwner, key)!;
+    }
+
+    $restore = function restore() {
+      if (instanceOrInnerFn === descriptorOwner) {
+        Reflect.defineProperty(instanceOrInnerFn, key, descriptor);
+      } else {
+        Reflect.deleteProperty(instanceOrInnerFn, key);
+      }
+    };
+
+    if (callThroughOrInnerFn === void 0) {
+      $spy = function spy(...args: unknown[]) {
+        calls.push(args);
+      };
+    } else if (callThroughOrInnerFn === true) {
+      $spy = function spy(...args: unknown[]) {
+        calls.push(args);
+        return (descriptor.value as AnyFunction).apply(instanceOrInnerFn, args);
+      };
+    } else if (typeof callThroughOrInnerFn === 'function') {
+      $spy = function spy(...args: unknown[]) {
+        calls.push(args);
+        return callThroughOrInnerFn(...args);
+      };
+    } else {
+      throw new Error(`Invalid spy`);
+    }
+
+    Reflect.defineProperty(instanceOrInnerFn, key, {
+      ...descriptor,
+      value: $spy,
+    });
+  }
+
+  Reflect.defineProperty($spy, 'calls', {
+    value: calls,
+  });
+  Reflect.defineProperty($spy, 'reset', {
+    value: reset,
+  });
+  Reflect.defineProperty($spy, 'restore', {
+    value: $restore,
+  });
+
+  return $spy;
+}

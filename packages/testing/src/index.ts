@@ -101,4 +101,6 @@ export {
 } from './tracing';
 export {
   trimFull,
+  createSpy,
+  ISpy,
 } from './util';

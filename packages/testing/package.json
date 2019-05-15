@@ -38,11 +38,8 @@
     "access": "public"
   },
   "dependencies": {
-    "@types/chai": "^4.1.7",
     "@types/mocha": "^5.2.6",
     "@types/node": "^10.12.27",
-    "@types/sinon": "^7.0.10",
-    "@types/sinon-chai": "^3.2.2",
     "@aurelia/aot": "0.3.0",
     "@aurelia/debug": "0.3.0",
     "@aurelia/fetch-client": "0.3.0",
@@ -58,11 +55,8 @@
     "@aurelia/runtime": "0.3.0",
     "@aurelia/store": "0.3.0",
     "@aurelia/validation": "0.3.0",
-    "chai": "^4.2.0",
     "jsdom": "^14.0.0",
-    "mocha": "^6.1.4",
-    "sinon": "^7.3.2",
-    "sinon-chai": "^3.3.0"
+    "mocha": "^6.1.4"
   },
   "devDependencies": {
     "tslib": "^1.9.3",

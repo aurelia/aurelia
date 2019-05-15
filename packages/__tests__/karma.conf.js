@@ -33,7 +33,6 @@ module.exports = function (config) {
     frameworks: [
       'source-map-support',
       'mocha',
-      'chai',
     ],
     files: [
       'dist/build/__tests__/setup-browser.js',

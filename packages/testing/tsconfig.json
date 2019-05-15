@@ -8,10 +8,7 @@
 
     "types": [
       "node",
-      "mocha",
-      "chai",
-      "sinon",
-      "sinon-chai"
+      "mocha"
     ]
   },
   "include": ["src"]

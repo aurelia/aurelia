@@ -18,9 +18,6 @@
       "@aurelia/testing/src/asserts",
       "node",
       "mocha",
-      "chai",
-      "sinon",
-      "sinon-chai",
       "webpack-env"
     ]
   },

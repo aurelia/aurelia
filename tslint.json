@@ -116,7 +116,7 @@
       "allow-mix"
     ],
     "switch-default": false,
-    "switch-final-break": true,
+    "switch-final-break": false,
     "triple-equals": [false],
     "use-isnan": true,
     "use-named-parameter": true,

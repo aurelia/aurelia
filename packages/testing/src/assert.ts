@@ -594,6 +594,30 @@ export function notStrictEqual(actual: any, expected: any, message?: string): vo
   }
 }
 
+export function match(actual: any, regex: RegExp, message?: string): void {
+  if (!regex.test(actual)) {
+    innerFail({
+      actual,
+      expected: regex,
+      message,
+      operator: 'match' as any,
+      stackStartFn: match
+    });
+  }
+}
+
+export function notMatch(actual: any, regex: RegExp, message?: string): void {
+  if (regex.test(actual)) {
+    innerFail({
+      actual,
+      expected: regex,
+      message,
+      operator: 'notMatch' as any,
+      stackStartFn: notMatch
+    });
+  }
+}
+
 const assert = Object_freeze({
   throws,
   doesNotThrow,
@@ -617,6 +641,8 @@ const assert = Object_freeze({
   notDeepStrictEqual,
   strictEqual,
   notStrictEqual,
+  match,
+  notMatch,
   visibleTextEqual,
   strict: {
     deepEqual: deepStrictEqual,

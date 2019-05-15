@@ -20,7 +20,14 @@ export interface ILiveLoggingOptions {
   lifecycle?: boolean;
   jit?: boolean;
 }
+export const enum LogLevel {
+  error,
+  warn,
+  info,
+  debug,
+}
 export const Reporter = {
+  level: LogLevel.warn,
   write(code: number, ...params: unknown[]): void { return; },
   error(code: number, ...params: unknown[]): Error { return new Error(`Code ${code}`); }
 };

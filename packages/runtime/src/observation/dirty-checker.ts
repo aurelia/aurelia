@@ -69,10 +69,10 @@ export class DirtyChecker {
 
   public createProperty(obj: IObservable, propertyName: string): DirtyCheckProperty {
     if (DirtyCheckSettings.throw) {
-      throw Reporter.error(800); // TODO: create/organize error code
+      throw Reporter.error(800, propertyName); // TODO: create/organize error code
     }
     if (DirtyCheckSettings.warn) {
-      Reporter.write(801);
+      Reporter.write(801, propertyName);
     }
     return new DirtyCheckProperty(this, obj, propertyName);
   }

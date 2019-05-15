@@ -1,8 +1,11 @@
 import {
+  DebugConfiguration,
+} from '@aurelia/debug';
+import {
   DI,
   IContainer,
   IRegistry,
-  Registration
+  Registration,
 } from '@aurelia/kernel';
 import {
   IDOM,
@@ -11,10 +14,10 @@ import {
   IProjectorLocator,
   IRenderer,
   IRenderingEngine,
-  ITemplateCompiler
+  ITemplateCompiler,
 } from '@aurelia/runtime';
 import {
-  HTMLDOM
+  HTMLDOM,
 } from '@aurelia/runtime-html';
 
 export class HTMLTestContext {
@@ -40,6 +43,7 @@ export class HTMLTestContext {
       this._container = DI.createContainer(this.config);
       Registration.instance(IDOM, this.dom).register(this._container);
       Registration.instance(HTMLTestContext, this).register(this._container);
+      this._container.register(DebugConfiguration);
     }
     return this._container;
   }

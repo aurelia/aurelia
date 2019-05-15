@@ -439,9 +439,9 @@ function validatePrototype(handler: IAttributePatternHandler, patternDefs: Attri
   for (const def of patternDefs) {
     // note: we're intentionally not throwing here
     if (!(def.pattern in handler)) {
-      Reporter.write(401, def); // TODO: organize error codes
+      Reporter.write(401, def.pattern); // TODO: organize error codes
     } else if (typeof handler[def.pattern] !== 'function') {
-      Reporter.write(402, def); // TODO: organize error codes
+      Reporter.write(402, def.pattern); // TODO: organize error codes
     }
   }
 }

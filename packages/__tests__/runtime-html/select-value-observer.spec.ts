@@ -1,8 +1,6 @@
 import { LifecycleFlags as LF } from '@aurelia/runtime';
-import { expect } from 'chai';
-import { spy } from 'sinon';
 import { SelectValueObserver } from '@aurelia/runtime-html';
-import { _, h, HTMLTestContext, TestContext, verifyEqual } from '@aurelia/testing';
+import { _, h, HTMLTestContext, TestContext, verifyEqual, assert, createSpy } from '@aurelia/testing';
 
 type Anything = any;
 
@@ -17,7 +15,7 @@ describe('SelectValueObserver', function () {
     const el = ctx.createElementFromMarkup(markup) as HTMLSelectElement;
     const sut = observerLocator.getObserver(LF.none, el, 'value') as SelectValueObserver;
     sut.setValue(initialValue, LF.none);
-    lifecycle.processFlushQueue(LF.none);
+    lifecycle.processRAFQueue(LF.none);
 
     return { ctx, lifecycle, el, sut, dom };
   }
@@ -32,13 +30,13 @@ describe('SelectValueObserver', function () {
           it(`sets 'value' from "${initial}" to "${next}"`, function () {
             const { lifecycle, el } = createFixture(initial, values);
 
-            lifecycle.processFlushQueue(LF.none);
-            expect(el.value).to.equal(initial);
+            lifecycle.processRAFQueue(LF.none);
+            assert.strictEqual(el.value, initial, `el.value`);
 
             el.options.item(values.indexOf(next)).selected = true;
 
-            lifecycle.processFlushQueue(LF.none);
-            expect(el.value).to.equal(next);
+            lifecycle.processRAFQueue(LF.none);
+            assert.strictEqual(el.value, next, `el.value`);
           });
         }
       }
@@ -51,12 +49,12 @@ describe('SelectValueObserver', function () {
       it('uses private method handleNodeChange as callback', async function () {
         for (const isMultiple of [true, false]) {
           const { ctx, el, sut } = createFixture([], [], isMultiple);
-          const callbackSpy = spy(sut, 'handleNodeChange');
+          const callbackSpy = createSpy(sut, 'handleNodeChange');
           sut.bind();
-          expect(callbackSpy.calledOnce).to.equal(false);
+          assert.strictEqual(callbackSpy.calls.length, 0, 'callbackSpy.calls.length');
           el.appendChild(ctx.createElement('option'));
           await Promise.resolve();
-          expect(callbackSpy).to.have.been.calledOnce;
+          assert.strictEqual(callbackSpy.calls.length, 1, 'callbackSpy.calls.length');
         }
       });
     }
@@ -72,8 +70,8 @@ describe('SelectValueObserver', function () {
         } };
         sut['nodeObserver'] = nodeObserver;
         sut.unbind();
-        expect(count).to.equal(1);
-        expect(sut['nodeObserver']).to.equal(null);
+        assert.strictEqual(count, 1, `count`);
+        assert.strictEqual(sut['nodeObserver'], null, `sut['nodeObserver']`);
       }
     });
     it('unsubscribes array observer', function () {
@@ -85,15 +83,15 @@ describe('SelectValueObserver', function () {
         } };
         const arrayObserver: any = {
           unsubscribeBatched(observer: Anything) {
-            expect(observer).to.equal(sut, 'It should have unsubscribe with right observer.');
+            assert.strictEqual(observer, sut, 'It should have unsubscribe with right observer.');
             count++;
           }
         };
         sut['nodeObserver'] = nodeObserver;
         sut['arrayObserver'] = arrayObserver;
         sut.unbind();
-        expect(count).to.equal(1);
-        expect(sut['arrayObserver']).to.equal(null);
+        assert.strictEqual(count, 1, `count`);
+        assert.strictEqual(sut['arrayObserver'], null, `sut['arrayObserver']`);
       }
     });
   });
@@ -119,11 +117,11 @@ describe('SelectValueObserver', function () {
           option({ text: 'C' })
         ]);
         const currentValue = sut.currentValue as any[];
-        expect(currentValue).to.be.instanceOf(Array);
-        expect(currentValue['length']).to.equal(0);
+        assert.instanceOf(currentValue, Array);
+        assert.strictEqual(currentValue['length'], 0, `currentValue['length']`);
         sut.synchronizeValue();
-        expect(currentValue).to.equal(sut.currentValue);
-        expect(currentValue['length']).to.equal(2);
+        assert.strictEqual(currentValue, sut.currentValue, `currentValue`);
+        assert.strictEqual(currentValue['length'], 2, `currentValue['length']`);
       });
 
       it('synchronizes with null', function () {
@@ -133,9 +131,9 @@ describe('SelectValueObserver', function () {
           option({ text: 'C' })
         ]);
         const currentValue = sut.currentValue as any;
-        expect(currentValue).to.equal(null);
+        assert.strictEqual(currentValue, null, `currentValue`);
         sut.synchronizeValue();
-        expect(currentValue).to.equal(sut.currentValue);
+        assert.strictEqual(currentValue, sut.currentValue, `currentValue`);
       });
 
       it('synchronizes with undefined', function () {
@@ -145,9 +143,9 @@ describe('SelectValueObserver', function () {
           option({ text: 'C' })
         ]);
         const currentValue = sut.currentValue as any;
-        expect(currentValue).to.equal(undefined);
+        assert.strictEqual(currentValue, undefined, `currentValue`);
         sut.synchronizeValue();
-        expect(currentValue).to.equal(sut.currentValue);
+        assert.strictEqual(currentValue, sut.currentValue, `currentValue`);
       });
 
       it('synchronizes with array (2)', function () {
@@ -158,8 +156,8 @@ describe('SelectValueObserver', function () {
         ]);
         const currentValue = sut.currentValue as any[];
         sut.synchronizeValue();
-        expect(currentValue).to.equal(sut.currentValue);
-        expect(currentValue['length']).to.equal(2);
+        assert.strictEqual(currentValue, sut.currentValue, `currentValue`);
+        assert.strictEqual(currentValue['length'], 2, `currentValue['length']`);
         verifyEqual(
           currentValue,
           [
@@ -177,8 +175,8 @@ describe('SelectValueObserver', function () {
         ]);
         const currentValue = sut.currentValue as any[];
         sut.synchronizeValue();
-        expect(currentValue).to.equal(sut.currentValue);
-        expect(currentValue['length']).to.equal(2);
+        assert.strictEqual(currentValue, sut.currentValue, `currentValue`);
+        assert.strictEqual(currentValue['length'], 2, `currentValue['length']`);
         verifyEqual(
           currentValue,
           [
@@ -196,7 +194,7 @@ describe('SelectValueObserver', function () {
         ]);
         const currentValue = sut.currentValue as any[];
         sut.synchronizeValue();
-        expect(currentValue).to.equal(sut.currentValue);
+        assert.strictEqual(currentValue, sut.currentValue, `currentValue`);
         verifyEqual(
           currentValue,
           [
@@ -218,8 +216,8 @@ describe('SelectValueObserver', function () {
           ]);
           const currentValue = sut.currentValue as any[];
           sut.synchronizeValue();
-          expect(currentValue).to.equal(sut.currentValue);
-          expect(currentValue['length']).to.equal(2);
+          assert.strictEqual(currentValue, sut.currentValue, `currentValue`);
+          assert.strictEqual(currentValue['length'], 2, `currentValue['length']`);
           verifyEqual(
             currentValue,
             [
@@ -245,7 +243,7 @@ describe('SelectValueObserver', function () {
 
       function select(...options: SelectValidChild[]): (ctx: HTMLTestContext) => HTMLSelectElement {
         return function(ctx: HTMLTestContext) {
-          return h(ctx.doc, 'select',
+          return h('select',
                    { multiple: true },
                    ...options
           );
@@ -256,13 +254,13 @@ describe('SelectValueObserver', function () {
 
   function option(attributes: Record<string, any>) {
     return function(ctx: HTMLTestContext) {
-      return h(ctx.doc, 'option', attributes);
+      return h('option', attributes);
     };
   }
 
   function optgroup(attributes: Record<string, any>, ...optionFactories: ((ctx: HTMLTestContext) => HTMLOptionElement)[]) {
     return function(ctx: HTMLTestContext) {
-      return h(ctx.doc, 'optgroup', attributes, ...optionFactories.map(create => create(ctx)));
+      return h('optgroup', attributes, ...optionFactories.map(create => create(ctx)));
     };
   }
 });

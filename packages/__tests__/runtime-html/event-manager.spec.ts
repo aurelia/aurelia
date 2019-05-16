@@ -1,6 +1,4 @@
 import { DelegationStrategy } from '@aurelia/runtime';
-import { expect } from 'chai';
-import { spy } from 'sinon';
 import {
   DelegateOrCaptureSubscription,
   EventSubscriber,
@@ -9,7 +7,7 @@ import {
   TriggerSubscription
 } from '@aurelia/runtime-html';
 import { EventManager } from '@aurelia/runtime-html';
-import { _, TestContext } from '@aurelia/testing';
+import { _, TestContext, assert, createSpy } from '@aurelia/testing';
 
 const CAPTURING_PHASE = 1;
 const AT_TARGET = 2;
@@ -178,9 +176,11 @@ describe('ListenerTracker', function () {
 
 describe('DelegateOrCaptureSubscription', function () {
   function setup(eventName: string) {
-    const entry = { decrement: spy() } as any as ListenerTracker;
+    const entry = {
+      decrement: createSpy(),
+    };
     const lookup = {};
-    const callback = spy();
+    const callback = createSpy();
     const sut = new DelegateOrCaptureSubscription(entry, lookup, eventName, callback);
 
     return { entry, lookup, callback, sut };
@@ -189,10 +189,16 @@ describe('DelegateOrCaptureSubscription', function () {
   for (const eventName of ['foo', 'bar']) {
     it(_`dispose() decrements and removes the callback (eventName=${eventName})`, function () {
       const { sut, lookup, callback, entry } = setup(eventName);
-      expect(lookup[eventName]).to.equal(callback, 'lookup[eventName]');
+      assert.strictEqual(lookup[eventName], callback, 'lookup[eventName]');
       sut.dispose();
-      expect(lookup[eventName]).to.equal(null, 'lookup[eventName]');
-      expect(entry.decrement).to.have.been.calledOnce;
+      assert.strictEqual(lookup[eventName], null, 'lookup[eventName]');
+      assert.deepStrictEqual(
+        entry.decrement.calls,
+        [
+          [],
+        ],
+        'entry.decrement.calls',
+      );
     });
   }
 });
@@ -200,7 +206,7 @@ describe('DelegateOrCaptureSubscription', function () {
 describe('TriggerSubscription', function () {
   function setup(listener: EventListenerOrEventListenerObject | null, eventName: string, bubbles: boolean) {
     const ctx = TestContext.createHTMLTestContext();
-    const handler = spy();
+    const handler = createSpy();
 
     if (listener == null) {
       listener = handler;
@@ -216,7 +222,7 @@ describe('TriggerSubscription', function () {
       view: ctx.wnd
     });
 
-    const callback = spy();
+    const callback = createSpy();
     const sut = new TriggerSubscription(ctx.dom, el, eventName, callback);
 
     return { ctx, callback, sut, handler, event, el };
@@ -234,19 +240,37 @@ describe('TriggerSubscription', function () {
 
           el.dispatchEvent(event);
 
-          expect(callback).to.have.been.calledOnce;
-          expect(callback.getCalls()[0]).to.have.been.calledWith(event);
+          assert.deepStrictEqual(
+            callback.calls,
+            [
+              [event],
+            ],
+            'callback.calls',
+          );
 
           el.dispatchEvent(event);
 
-          expect(callback).to.have.been.calledTwice;
-          expect(callback.getCalls()[1]).to.have.been.calledWith(event);
+          assert.deepStrictEqual(
+            callback.calls,
+            [
+              [event],
+              [event],
+            ],
+            'callback.calls',
+          );
 
           sut.dispose();
 
           el.dispatchEvent(event);
 
-          expect(callback).to.have.been.calledTwice;
+          assert.deepStrictEqual(
+            callback.calls,
+            [
+              [event],
+              [event],
+            ],
+            'callback.calls',
+          );
 
           tearDown({ ctx, el });
         });
@@ -258,7 +282,7 @@ describe('TriggerSubscription', function () {
 describe('EventSubscriber', function () {
   function setup(listener: EventListenerOrEventListenerObject, eventNames: string[], bubbles: boolean) {
     const ctx = TestContext.createHTMLTestContext();
-    const handler = spy();
+    const handler = createSpy();
 
     if (listener == null) {
       listener = handler;
@@ -296,15 +320,15 @@ describe('EventSubscriber', function () {
           for (let i = 0, ii = events.length; i < ii; ++i) {
             const event = events[i];
             el.dispatchEvent(event);
-            expect(handler.getCalls().length).to.equal(i + 1, 'handler.getCalls().length');
-            expect(handler.getCalls()[i]).to.have.been.calledWith(event);
+            assert.strictEqual(handler.calls.length, i + 1, 'handler.calls.length');
+            assert.deepStrictEqual(handler.calls[i], [event], `handler.calls[${i}]`);
           }
 
           for (let i = 0, ii = events.length; i < ii; ++i) {
             const event = events[i];
             el.dispatchEvent(event);
-            expect(handler.getCalls().length).to.equal(i + 4, 'handler.getCalls().length');
-            expect(handler.getCalls()[i + 3]).to.have.been.calledWith(event);
+            assert.strictEqual(handler.calls.length, i + 4, 'handler.calls.length');
+            assert.deepStrictEqual(handler.calls[i + 3], [event], `handler.calls[${i + 3}]`);
           }
 
           sut.dispose();
@@ -314,7 +338,7 @@ describe('EventSubscriber', function () {
             el.dispatchEvent(event);
           }
 
-          expect(handler.getCalls().length).to.equal(6, 'handler.getCalls().length');
+          assert.strictEqual(handler.calls.length, 6, 'handler.calls.length');
 
           tearDown({ ctx, el });
         });
@@ -329,35 +353,35 @@ describe('EventManager', function () {
   //   const sut = new EventManager();
   //   const lookup = sut.elementHandlerLookup;
 
-  //   expect(lookup['INPUT']['value'].length).to.equal(2);
+  //   assert.strictEqual(lookup['INPUT']['value'].length, 2, `lookup['INPUT']['value'].length`);
   //   expect(lookup['INPUT']['value']).to.include('change');
   //   expect(lookup['INPUT']['value']).to.include('input');
 
-  //   expect(lookup['INPUT']['checked'].length).to.equal(2);
+  //   assert.strictEqual(lookup['INPUT']['checked'].length, 2, `lookup['INPUT']['checked'].length`);
   //   expect(lookup['INPUT']['checked']).to.include('change');
   //   expect(lookup['INPUT']['checked']).to.include('input');
 
-  //   expect(lookup['INPUT']['files'].length).to.equal(2);
+  //   assert.strictEqual(lookup['INPUT']['files'].length, 2, `lookup['INPUT']['files'].length`);
   //   expect(lookup['INPUT']['files']).to.include('change');
   //   expect(lookup['INPUT']['files']).to.include('input');
 
-  //   expect(lookup['TEXTAREA']['value'].length).to.equal(2);
+  //   assert.strictEqual(lookup['TEXTAREA']['value'].length, 2, `lookup['TEXTAREA']['value'].length`);
   //   expect(lookup['TEXTAREA']['value']).to.include('change');
   //   expect(lookup['TEXTAREA']['value']).to.include('input');
 
-  //   expect(lookup['SELECT']['value'].length).to.equal(1);
+  //   assert.strictEqual(lookup['SELECT']['value'].length, 1, `lookup['SELECT']['value'].length`);
   //   expect(lookup['SELECT']['value']).to.include('change');
 
-  //   expect(lookup['content editable']['value'].length).to.equal(5);
+  //   assert.strictEqual(lookup['content editable']['value'].length, 5, `lookup['content editable']['value'].length`);
   //   expect(lookup['content editable']['value']).to.include('change');
   //   expect(lookup['content editable']['value']).to.include('input');
   //   expect(lookup['content editable']['value']).to.include('blur');
   //   expect(lookup['content editable']['value']).to.include('keyup');
   //   expect(lookup['content editable']['value']).to.include('paste');
 
-  //   expect(lookup['scrollable element']['scrollTop'].length).to.equal(1);
+  //   assert.strictEqual(lookup['scrollable element']['scrollTop'].length, 1, `lookup['scrollable element']['scrollTop'].length`);
   //   expect(lookup['scrollable element']['scrollTop']).to.include('scroll');
-  //   expect(lookup['scrollable element']['scrollLeft'].length).to.equal(1);
+  //   assert.strictEqual(lookup['scrollable element']['scrollLeft'].length, 1, `lookup['scrollable element']['scrollLeft'].length`);
   //   expect(lookup['scrollable element']['scrollLeft']).to.include('scroll');
   // });
 
@@ -371,7 +395,7 @@ describe('EventManager', function () {
   //   });
 
   //   const lookup = sut.elementHandlerLookup;
-  //   expect(lookup['FOO']['bar'].length).to.equal(1);
+  //   assert.strictEqual(lookup['FOO']['bar'].length, 1, `lookup['FOO']['bar'].length`);
   //   expect(lookup['FOO']['bar']).to.include('baz');
   // });
 
@@ -390,7 +414,7 @@ describe('EventManager', function () {
   //   });
 
   //   const lookup = sut.elementHandlerLookup;
-  //   expect(lookup['FOO']['bar'].length).to.equal(1);
+  //   assert.strictEqual(lookup['FOO']['bar'].length, 1, `lookup['FOO']['bar'].length`);
   //   expect(lookup['FOO']['bar']).to.include('baz');
   // });
 
@@ -421,7 +445,7 @@ describe('EventManager', function () {
   //       }
   //       it(_`tagName=${tagName}, propertyName=${propertyName} returns handler with eventNames=${expectedEventNames}`, function () {
   //         const handler = sut.getElementHandler(ctx.dom, ctx.createElement(`<${tagName}></${tagName}>`), propertyName);
-  //         expect(handler['events']).to.deep.equal(expectedEventNames);
+  //         assert.deepStrictEqual(handler['events'], expectedEventNames, `handler['events']`);
   //       });
   //     }
   //   }
@@ -429,15 +453,15 @@ describe('EventManager', function () {
   //   it(`returns null if the target does not have a tagName`, function () {
   //     const text = ctx.doc.createTextNode('asdf');
   //     const handler = sut.getElementHandler(ctx.dom, text, 'textContent');
-  //     expect(handler).to.equal(null);
+  //     assert.strictEqual(handler, null, `handler`);
   //   });
 
   //   it(`returns null if the property does not exist in the configuration`, function () {
   //     const el = ctx.createElement('<input></input>');
   //     let handler = sut.getElementHandler(ctx.dom, el, 'value');
-  //     expect(handler).not.to.equal(null);
+  //     assert.notStrictEqual(handler, null, `handler`);
   //     handler = sut.getElementHandler(ctx.dom, el, 'value1');
-  //     expect(handler).to.equal(null);
+  //     assert.strictEqual(handler, null, `handler`);
   //   });
   // });
 
@@ -533,12 +557,12 @@ describe('EventManager', function () {
                     switch (strategy) {
                       case DelegationStrategy.bubbling:
                       case DelegationStrategy.capturing:
-                        expect(parentSubscription).to.be.instanceof(DelegateOrCaptureSubscription);
-                        expect(childSubscription).to.be.instanceof(DelegateOrCaptureSubscription);
+                        assert.instanceOf(parentSubscription, DelegateOrCaptureSubscription, `parentSubscription`);
+                        assert.instanceOf(childSubscription, DelegateOrCaptureSubscription, `childSubscription`);
                         break;
                       case DelegationStrategy.none:
-                        expect(parentSubscription).to.be.instanceof(TriggerSubscription);
-                        expect(childSubscription).to.be.instanceof(TriggerSubscription);
+                        assert.instanceOf(parentSubscription, TriggerSubscription, `parentSubscription`);
+                        assert.instanceOf(childSubscription, TriggerSubscription, `childSubscription`);
                     }
 
                     childEl.dispatchEvent(event);
@@ -546,54 +570,54 @@ describe('EventManager', function () {
                     switch (strategy) {
                       case DelegationStrategy.bubbling:
                         if (bubbles && shadow == null) {
-                          expect(childHandlerPath.length).to.equal(1, 'childHandlerPath.length');
-                          expect(childHandlerPath[0].eventPhase).to.equal(BUBBLING_PHASE, 'eventPhase');
-                          expect(childHandlerPath[0].target.nodeName).to.equal('CHILD-DIV');
-                          expect(childHandlerPath[0].currentTarget).to.equal(ctx.doc);
+                          assert.strictEqual(childHandlerPath.length, 1, 'childHandlerPath.length');
+                          assert.strictEqual(childHandlerPath[0].eventPhase, BUBBLING_PHASE, 'eventPhase');
+                          assert.strictEqual(childHandlerPath[0].target.nodeName, 'CHILD-DIV', `childHandlerPath[0].target.nodeName`);
+                          assert.strictEqual(childHandlerPath[0].currentTarget, ctx.doc, `childHandlerPath[0].currentTarget`);
                           if (stopPropagation) {
-                            expect(parentHandlerPath.length).to.equal(0, 'parentHandlerPath.length');
+                            assert.strictEqual(parentHandlerPath.length, 0, 'parentHandlerPath.length');
                           } else {
-                            expect(parentHandlerPath.length).to.equal(1, 'parentHandlerPath.length');
-                            expect(parentHandlerPath[0].eventPhase).to.equal(BUBBLING_PHASE, 'eventPhase');
-                            expect(parentHandlerPath[0].target.nodeName).to.equal('CHILD-DIV');
-                            expect(parentHandlerPath[0].currentTarget).to.equal(ctx.doc);
+                            assert.strictEqual(parentHandlerPath.length, 1, 'parentHandlerPath.length');
+                            assert.strictEqual(parentHandlerPath[0].eventPhase, BUBBLING_PHASE, 'eventPhase');
+                            assert.strictEqual(parentHandlerPath[0].target.nodeName, 'CHILD-DIV', `parentHandlerPath[0].target.nodeName`);
+                            assert.strictEqual(parentHandlerPath[0].currentTarget, ctx.doc, `parentHandlerPath[0].currentTarget`);
                           }
                         } else {
-                          expect(childHandlerPath.length).to.equal(0, 'childHandlerPath.length');
-                          expect(parentHandlerPath.length).to.equal(0, 'parentHandlerPath.length');
+                          assert.strictEqual(childHandlerPath.length, 0, 'childHandlerPath.length');
+                          assert.strictEqual(parentHandlerPath.length, 0, 'parentHandlerPath.length');
                         }
                         break;
                       case DelegationStrategy.capturing:
                         if (shadow == null) {
-                          expect(parentHandlerPath.length).to.equal(1, 'parentHandlerPath.length');
-                          expect(parentHandlerPath[0].eventPhase).to.equal(CAPTURING_PHASE, 'eventPhase');
-                          expect(parentHandlerPath[0].target.nodeName).to.equal('CHILD-DIV');
-                          expect(parentHandlerPath[0].currentTarget).to.equal(ctx.doc);
+                          assert.strictEqual(parentHandlerPath.length, 1, 'parentHandlerPath.length');
+                          assert.strictEqual(parentHandlerPath[0].eventPhase, CAPTURING_PHASE, 'eventPhase');
+                          assert.strictEqual(parentHandlerPath[0].target.nodeName, 'CHILD-DIV', `parentHandlerPath[0].target.nodeName`);
+                          assert.strictEqual(parentHandlerPath[0].currentTarget, ctx.doc, `parentHandlerPath[0].currentTarget`);
                           if (stopPropagation) {
-                            expect(childHandlerPath.length).to.equal(0, 'childHandlerPath.length');
+                            assert.strictEqual(childHandlerPath.length, 0, 'childHandlerPath.length');
                           } else {
-                            expect(childHandlerPath.length).to.equal(1, 'childHandlerPath.length');
-                            expect(childHandlerPath[0].eventPhase).to.equal(CAPTURING_PHASE, 'eventPhase');
-                            expect(childHandlerPath[0].target.nodeName).to.equal('CHILD-DIV');
-                            expect(childHandlerPath[0].currentTarget).to.equal(ctx.doc);
+                            assert.strictEqual(childHandlerPath.length, 1, 'childHandlerPath.length');
+                            assert.strictEqual(childHandlerPath[0].eventPhase, CAPTURING_PHASE, 'eventPhase');
+                            assert.strictEqual(childHandlerPath[0].target.nodeName, 'CHILD-DIV', `childHandlerPath[0].target.nodeName`);
+                            assert.strictEqual(childHandlerPath[0].currentTarget, ctx.doc, `childHandlerPath[0].currentTarget`);
                           }
                         } else {
-                          expect(parentHandlerPath.length).to.equal(0, 'parentHandlerPath.length');
-                          expect(childHandlerPath.length).to.equal(0, 'childHandlerPath.length');
+                          assert.strictEqual(parentHandlerPath.length, 0, 'parentHandlerPath.length');
+                          assert.strictEqual(childHandlerPath.length, 0, 'childHandlerPath.length');
                         }
                         break;
                       case DelegationStrategy.none:
-                        expect(childHandlerPath.length).to.equal(1, 'childHandlerPath.length');
-                        expect(childHandlerPath[0].eventPhase).to.equal(AT_TARGET, 'eventPhase');
-                        expect(childHandlerPath[0].target.nodeName).to.equal('CHILD-DIV');
-                        expect(childHandlerPath[0].currentTarget).to.equal(childEl);
+                        assert.strictEqual(childHandlerPath.length, 1, 'childHandlerPath.length');
+                        assert.strictEqual(childHandlerPath[0].eventPhase, AT_TARGET, 'eventPhase');
+                        assert.strictEqual(childHandlerPath[0].target.nodeName, 'CHILD-DIV', `childHandlerPath[0].target.nodeName`);
+                        assert.strictEqual(childHandlerPath[0].currentTarget, childEl, `childHandlerPath[0].currentTarget`);
                         if (bubbles && !stopPropagation) {
-                          expect(parentHandlerPath.length).to.equal(1, 'parentHandlerPath.length');
-                          expect(parentHandlerPath[0].eventPhase).to.equal(BUBBLING_PHASE, 'eventPhase');
-                          expect(parentHandlerPath[0].target.nodeName).to.equal('CHILD-DIV');
-                          expect(parentHandlerPath[0].currentTarget).to.equal(parentEl);
+                          assert.strictEqual(parentHandlerPath.length, 1, 'parentHandlerPath.length');
+                          assert.strictEqual(parentHandlerPath[0].eventPhase, BUBBLING_PHASE, 'eventPhase');
+                          assert.strictEqual(parentHandlerPath[0].target.nodeName, 'CHILD-DIV', `parentHandlerPath[0].target.nodeName`);
+                          assert.strictEqual(parentHandlerPath[0].currentTarget, parentEl, `parentHandlerPath[0].currentTarget`);
                         } else {
-                          expect(parentHandlerPath.length).to.equal(0, 'parentHandlerPath.length');
+                          assert.strictEqual(parentHandlerPath.length, 0, 'parentHandlerPath.length');
                         }
                     }
 
@@ -604,33 +628,33 @@ describe('EventManager', function () {
 
                     switch (strategy) {
                       case DelegationStrategy.bubbling:
-                        expect(childHandlerPath.length).to.equal(0, 'childHandlerPath.length');
+                        assert.strictEqual(childHandlerPath.length, 0, 'childHandlerPath.length');
                         if (bubbles && shadow == null) {
-                          expect(parentHandlerPath.length).to.equal(1, 'parentHandlerPath.length');
-                          expect(parentHandlerPath[0].eventPhase).to.equal(BUBBLING_PHASE, 'eventPhase');
-                          expect(parentHandlerPath[0].target.nodeName).to.equal('PARENT-DIV');
-                          expect(parentHandlerPath[0].currentTarget).to.equal(ctx.doc);
+                          assert.strictEqual(parentHandlerPath.length, 1, 'parentHandlerPath.length');
+                          assert.strictEqual(parentHandlerPath[0].eventPhase, BUBBLING_PHASE, 'eventPhase');
+                          assert.strictEqual(parentHandlerPath[0].target.nodeName, 'PARENT-DIV', `parentHandlerPath[0].target.nodeName`);
+                          assert.strictEqual(parentHandlerPath[0].currentTarget, ctx.doc, `parentHandlerPath[0].currentTarget`);
                         } else {
-                          expect(parentHandlerPath.length).to.equal(0, 'parentHandlerPath.length');
+                          assert.strictEqual(parentHandlerPath.length, 0, 'parentHandlerPath.length');
                         }
                         break;
                       case DelegationStrategy.capturing:
-                        expect(childHandlerPath.length).to.equal(0, 'childHandlerPath.length');
+                        assert.strictEqual(childHandlerPath.length, 0, 'childHandlerPath.length');
                         if (shadow == null) {
-                          expect(parentHandlerPath.length).to.equal(1, 'parentHandlerPath.length');
-                          expect(parentHandlerPath[0].eventPhase).to.equal(CAPTURING_PHASE, 'eventPhase');
-                          expect(parentHandlerPath[0].target.nodeName).to.equal('PARENT-DIV');
-                          expect(parentHandlerPath[0].currentTarget).to.equal(ctx.doc);
+                          assert.strictEqual(parentHandlerPath.length, 1, 'parentHandlerPath.length');
+                          assert.strictEqual(parentHandlerPath[0].eventPhase, CAPTURING_PHASE, 'eventPhase');
+                          assert.strictEqual(parentHandlerPath[0].target.nodeName, 'PARENT-DIV', `parentHandlerPath[0].target.nodeName`);
+                          assert.strictEqual(parentHandlerPath[0].currentTarget, ctx.doc, `parentHandlerPath[0].currentTarget`);
                         } else {
-                          expect(parentHandlerPath.length).to.equal(0, 'parentHandlerPath.length');
+                          assert.strictEqual(parentHandlerPath.length, 0, 'parentHandlerPath.length');
                         }
                         break;
                       case DelegationStrategy.none:
-                        expect(childHandlerPath.length).to.equal(0, 'childHandlerPath.length');
-                        expect(parentHandlerPath.length).to.equal(1, 'parentHandlerPath.length');
-                        expect(parentHandlerPath[0].eventPhase).to.equal(AT_TARGET, 'eventPhase');
-                        expect(parentHandlerPath[0].target.nodeName).to.equal('PARENT-DIV');
-                        expect(parentHandlerPath[0].currentTarget).to.equal(parentEl);
+                        assert.strictEqual(childHandlerPath.length, 0, 'childHandlerPath.length');
+                        assert.strictEqual(parentHandlerPath.length, 1, 'parentHandlerPath.length');
+                        assert.strictEqual(parentHandlerPath[0].eventPhase, AT_TARGET, 'eventPhase');
+                        assert.strictEqual(parentHandlerPath[0].target.nodeName, 'PARENT-DIV', `parentHandlerPath[0].target.nodeName`);
+                        assert.strictEqual(parentHandlerPath[0].currentTarget, parentEl, `parentHandlerPath[0].currentTarget`);
                     }
 
                     tearDown({ ctx, wrapper, parentSubscription, childSubscription });

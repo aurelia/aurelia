@@ -1,14 +1,12 @@
 
 import { ILifecycle, LifecycleFlags } from '@aurelia/runtime';
-import { expect } from 'chai';
-import { spy } from 'sinon';
 import {
   AttributeNSAccessor,
   ClassAttributeAccessor,
   DataAttributeAccessor,
   StyleAttributeAccessor
 } from '@aurelia/runtime-html';
-import { CSS_PROPERTIES, globalAttributeNames, HTMLTestContext, TestContext } from '@aurelia/testing';
+import { CSS_PROPERTIES, globalAttributeNames, HTMLTestContext, TestContext, assert, createSpy } from '@aurelia/testing';
 
 function createSvgUseElement(ctx: HTMLTestContext, name: string, value: string) {
   return ctx.createElementFromMarkup(`<svg>
@@ -51,9 +49,9 @@ describe('AttributeNSAccessor', function () {
         const { ctx, lifecycle: $lifecycle } = setup();
         lifecycle = $lifecycle;
         el = createSvgUseElement(ctx, name, value) as HTMLElement;
-        sut = new AttributeNSAccessor(lifecycle, el, `xlink:${name}`, name, 'http://www.w3.org/1999/xlink');
+        sut = new AttributeNSAccessor(lifecycle, el, `xlink:${name}`, 'http://www.w3.org/1999/xlink');
         const actual = sut.getValue();
-        expect(actual).to.equal(value);
+        assert.strictEqual(actual, value, `actual`);
       });
     }
   });
@@ -65,11 +63,11 @@ describe('AttributeNSAccessor', function () {
         el = createSvgUseElement(ctx, name, value) as HTMLElement;
         const { lifecycle: $lifecycle } = setup();
         lifecycle = $lifecycle;
-        sut = new AttributeNSAccessor(lifecycle, el, `xlink:${name}`, name, 'http://www.w3.org/1999/xlink');
+        sut = new AttributeNSAccessor(lifecycle, el, `xlink:${name}`, 'http://www.w3.org/1999/xlink');
         sut.setValue('foo', LifecycleFlags.none);
-        expect(sut.getValue()).not.to.equal('foo');
-        lifecycle.processFlushQueue(LifecycleFlags.none);
-        expect(sut.getValue()).to.equal('foo');
+        assert.notStrictEqual(sut.getValue(), 'foo', `sut.getValue()`);
+        lifecycle.processRAFQueue(LifecycleFlags.none);
+        assert.strictEqual(sut.getValue(), 'foo', `sut.getValue()`);
       });
     }
   });
@@ -92,7 +90,7 @@ describe('DataAttributeAccessor', function () {
           lifecycle = $lifecycle;
           sut = new DataAttributeAccessor(lifecycle, el, name);
           const actual = sut.getValue();
-          expect(actual).to.equal(value);
+          assert.strictEqual(actual, value, `actual`);
         });
       }
     }
@@ -110,10 +108,10 @@ describe('DataAttributeAccessor', function () {
           sut = new DataAttributeAccessor(lifecycle, el, name);
           sut.setValue(value, LifecycleFlags.none);
           if (value != null) {
-            expect(el.outerHTML).not.to.equal(expected);
+            assert.notStrictEqual(el.outerHTML, expected, `el.outerHTML`);
           }
-          lifecycle.processFlushQueue(LifecycleFlags.none);
-          expect(el.outerHTML).to.equal(expected);
+          lifecycle.processRAFQueue(LifecycleFlags.none);
+          assert.strictEqual(el.outerHTML, expected, `el.outerHTML`);
         });
       }
     }
@@ -138,13 +136,23 @@ describe('StyleAccessor', function () {
       const { lifecycle: $lifecycle } = setup();
       lifecycle = $lifecycle;
       sut = new StyleAttributeAccessor(lifecycle, el);
-      sut._setProperty = spy();
+      const setPropertySpy = createSpy(sut, 'setProperty');
 
       sut.setValue(rule, LifecycleFlags.none);
-      expect(sut._setProperty).not.to.have.been.calledOnce;
-      lifecycle.processFlushQueue(LifecycleFlags.none);
-      expect(sut._setProperty).to.have.been.calledOnce;
-      expect(sut._setProperty).to.have.been.calledWith(propName, value);
+      assert.deepStrictEqual(
+        setPropertySpy.calls,
+        [],
+        `setPropertySpy.calls`,
+      );
+
+      lifecycle.processRAFQueue(LifecycleFlags.none);
+      assert.deepStrictEqual(
+        setPropertySpy.calls,
+        [
+          [propName, value],
+        ],
+        `setPropertySpy.calls`,
+      );
     });
   }
 
@@ -156,7 +164,7 @@ describe('StyleAccessor', function () {
     sut = new StyleAttributeAccessor(lifecycle, el);
 
     const actual = sut.getValue();
-    expect(actual).to.equal('display: block;');
+    assert.strictEqual(actual, 'display: block;', `actual`);
   });
 });
 
@@ -187,33 +195,33 @@ describe('ClassAccessor', function () {
 
       it(`setValue("${classList}") updates ${markup}`, function () {
         sut.setValue(classList, LifecycleFlags.none);
-        expect(el.classList.toString()).to.equal(initialClassList);
-        lifecycle.processFlushQueue(LifecycleFlags.none);
+        assert.strictEqual(el.classList.toString(), initialClassList, `el.classList.toString()`);
+        lifecycle.processRAFQueue(LifecycleFlags.none);
         const updatedClassList = el.classList.toString();
         for (const cls of initialClassList.split(' ')) {
-          expect(updatedClassList).to.contain(cls);
+          assert.includes(updatedClassList, cls, `updatedClassList`);
         }
         for (const cls of classList.split(' ')) {
-          expect(updatedClassList).to.contain(cls);
+          assert.includes(updatedClassList, cls, `updatedClassList`);
         }
       });
 
       for (const secondClassList of secondClassListArr) {
         it(`setValue("${secondClassList}") updates already-updated ${markup}`, function () {
           sut.setValue(classList, LifecycleFlags.none);
-          lifecycle.processFlushQueue(LifecycleFlags.none);
+          lifecycle.processRAFQueue(LifecycleFlags.none);
           const updatedClassList = el.classList.toString();
           sut.setValue(secondClassList, LifecycleFlags.none);
-          expect(el.classList.toString()).to.equal(updatedClassList);
-          lifecycle.processFlushQueue(LifecycleFlags.none);
+          assert.strictEqual(el.classList.toString(), updatedClassList, `el.classList.toString()`);
+          lifecycle.processRAFQueue(LifecycleFlags.none);
           const secondUpdatedClassList = el.classList.toString();
           for (const cls of initialClassList.split(' ')) {
             if (!classList.includes(cls)) {
-              expect(secondUpdatedClassList).to.contain(cls);
+              assert.includes(secondUpdatedClassList, cls, `secondUpdatedClassList`);
             }
           }
           for (const cls of secondClassList.split(' ')) {
-            expect(secondUpdatedClassList).to.contain(cls);
+            assert.includes(secondUpdatedClassList, cls, `secondUpdatedClassList`);
           }
         });
       }

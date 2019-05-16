@@ -1,7 +1,6 @@
-import { CustomElementResource, ICustomElementType } from '@aurelia/runtime';
-import { expect } from 'chai';
+import { CustomElementResource, ICustomElementType, Controller } from '@aurelia/runtime';
 import { ContainerlessProjector, HostProjector, HTMLProjectorLocator, ShadowDOMProjector } from '@aurelia/runtime-html';
-import { TestContext } from '@aurelia/testing';
+import { TestContext, assert } from '@aurelia/testing';
 
 describe(`determineProjector`, function () {
   const ctx = TestContext.createHTMLTestContext();
@@ -16,19 +15,20 @@ describe(`determineProjector`, function () {
         shadowOptions: { mode: 'open' }
       },
       class {}
-    ) as ICustomElementType<Node>;
+    );
     const component = new Foo();
-    const projector = locator.getElementProjector(dom, component, host, Foo.description);
+    const controller = Controller.forCustomElement(component, ctx.container, host)
+    const projector = locator.getElementProjector(dom, controller, host, Foo.description);
 
-    expect(projector).to.be.instanceof(ShadowDOMProjector);
-    expect(projector['shadowRoot']).to.be.instanceof(ctx.Node);
-    expect(projector['shadowRoot'].$controller).to.equal(component);
-    expect(host['$controller']).to.equal(component);
-    expect(projector.children.length).to.equal(projector['shadowRoot']['childNodes'].length);
+    assert.instanceOf(projector, ShadowDOMProjector, `projector`);
+    assert.instanceOf(projector['shadowRoot'], ctx.Node, `projector['shadowRoot']`);
+    assert.strictEqual(projector['shadowRoot'].$controller, component, `projector['shadowRoot'].$controller`);
+    assert.strictEqual(host['$controller'], component, `host['$controller']`);
+    assert.strictEqual(projector.children.length, projector['shadowRoot']['childNodes'].length, `projector.children.length`);
     if (projector.children.length > 0) {
-      expect(projector.children).to.deep.equal(projector['shadowRoot']['childNodes']);
+      assert.deepStrictEqual(projector.children, projector['shadowRoot']['childNodes'], `projector.children`);
     }
-    expect(projector.provideEncapsulationSource()).to.equal(projector['shadowRoot']);
+    assert.strictEqual(projector.provideEncapsulationSource(), projector['shadowRoot'], `projector.provideEncapsulationSource()`);
   });
 
   it(`hasSlots=true yields ShadowDOMProjector`, function () {
@@ -39,19 +39,20 @@ describe(`determineProjector`, function () {
         hasSlots: true
       },
       class {}
-    ) as ICustomElementType<Node>;
+    );
     const component = new Foo();
-    const projector = locator.getElementProjector(dom, component, host, Foo.description);
+    const controller = Controller.forCustomElement(component, ctx.container, host)
+    const projector = locator.getElementProjector(dom, controller, host, Foo.description);
 
-    expect(projector).to.be.instanceof(ShadowDOMProjector);
-    expect(projector['shadowRoot']).to.be.instanceof(ctx.Node);
-    expect(projector['shadowRoot'].$controller).to.equal(component);
-    expect(host['$controller']).to.equal(component);
-    expect(projector.children.length).to.equal(projector['shadowRoot']['childNodes'].length);
+    assert.instanceOf(projector, ShadowDOMProjector, `projector`);
+    assert.instanceOf(projector['shadowRoot'], ctx.Node, `projector['shadowRoot']`);
+    assert.strictEqual(projector['shadowRoot'].$controller, component, `projector['shadowRoot'].$controller`);
+    assert.strictEqual(host['$controller'], component, `host['$controller']`);
+    assert.strictEqual(projector.children.length, projector['shadowRoot']['childNodes'].length, `projector.children.length`);
     if (projector.children.length > 0) {
-      expect(projector.children).to.deep.equal(projector['shadowRoot']['childNodes']);
+      assert.deepStrictEqual(projector.children, projector['shadowRoot']['childNodes'], `projector.children`);
     }
-    expect(projector.provideEncapsulationSource()).to.equal(projector['shadowRoot']);
+    assert.strictEqual(projector.provideEncapsulationSource(), projector['shadowRoot'], `projector.provideEncapsulationSource()`);
   });
 
   it(`@containerless yields ContainerlessProjector`, function () {
@@ -64,24 +65,25 @@ describe(`determineProjector`, function () {
         containerless: true
       },
       class {}
-    ) as ICustomElementType<Node>;
+    );
     const component = new Foo();
-    const projector = locator.getElementProjector(dom, component, host, Foo.description);
+    const controller = Controller.forCustomElement(component, ctx.container, host)
+    const projector = locator.getElementProjector(dom, controller, host, Foo.description);
 
-    expect(projector).to.be.instanceof(ContainerlessProjector);
-    expect(projector['childNodes'].length).to.equal(0);
-    expect(host.parentNode).to.equal(null);
-    expect(parent.firstChild).to.be.instanceof(ctx.Comment);
-    expect(parent.firstChild.textContent).to.equal('au-start');
-    expect(parent.lastChild).to.be.instanceof(ctx.Comment);
-    expect(parent.lastChild.textContent).to.equal('au-end');
-    expect(parent.firstChild.nextSibling['$controller']).to.equal(component);
-    expect(projector.children.length).to.equal(projector.host['childNodes'].length);
+    assert.instanceOf(projector, ContainerlessProjector, `projector`);
+    assert.strictEqual(projector['childNodes'].length, 0, `projector['childNodes'].length`);
+    assert.strictEqual(host.parentNode, null, `host.parentNode`);
+    assert.instanceOf(parent.firstChild, ctx.Comment, `parent.firstChild`);
+    assert.strictEqual(parent.firstChild.textContent, 'au-start', `parent.firstChild.textContent`);
+    assert.instanceOf(parent.lastChild, ctx.Comment, `parent.lastChild`);
+    assert.strictEqual(parent.lastChild.textContent, 'au-end', `parent.lastChild.textContent`);
+    assert.strictEqual(parent.firstChild.nextSibling['$controller'], component, `parent.firstChild.nextSibling['$controller']`);
+    assert.strictEqual(projector.children.length, projector.host['childNodes'].length, `projector.children.length`);
     if (projector.children.length > 0) {
-      expect(projector.children).to.deep.equal(projector.host['childNodes']);
+      assert.deepStrictEqual(projector.children, projector.host['childNodes'], `projector.children`);
     }
-    expect(projector.provideEncapsulationSource()).not.to.equal(projector['host']);
-    expect(projector.provideEncapsulationSource()).to.equal(parent);
+    assert.notStrictEqual(projector.provideEncapsulationSource(), projector['host'], `projector.provideEncapsulationSource()`);
+    assert.strictEqual(projector.provideEncapsulationSource(), parent, `projector.provideEncapsulationSource()`);
   });
 
   it(`@containerless yields ContainerlessProjector (with child)`, function () {
@@ -96,20 +98,21 @@ describe(`determineProjector`, function () {
         containerless: true
       },
       class {}
-    ) as ICustomElementType<Node>;
+    );
     const component = new Foo();
-    const projector = locator.getElementProjector(dom, component, host, Foo.description);
+    const controller = Controller.forCustomElement(component, ctx.container, host)
+    const projector = locator.getElementProjector(dom, controller, host, Foo.description);
 
-    expect(projector).to.be.instanceof(ContainerlessProjector);
-    expect(projector['childNodes'][0]).to.equal(child);
-    expect(host.parentNode).to.equal(null);
-    expect(parent.firstChild).to.be.instanceof(ctx.Comment);
-    expect(parent.firstChild.textContent).to.equal('au-start');
-    expect(parent.lastChild).to.be.instanceof(ctx.Comment);
-    expect(parent.lastChild.textContent).to.equal('au-end');
-    expect(parent.firstChild.nextSibling['$controller']).to.equal(component);
-    expect(projector.provideEncapsulationSource()).not.to.equal(projector['host']);
-    expect(projector.provideEncapsulationSource()).to.equal(parent);
+    assert.instanceOf(projector, ContainerlessProjector, `projector`);
+    assert.strictEqual(projector['childNodes'][0], child, `projector['childNodes'][0]`);
+    assert.strictEqual(host.parentNode, null, `host.parentNode`);
+    assert.instanceOf(parent.firstChild, ctx.Comment, `parent.firstChild`);
+    assert.strictEqual(parent.firstChild.textContent, 'au-start', `parent.firstChild.textContent`);
+    assert.instanceOf(parent.lastChild, ctx.Comment, `parent.lastChild`);
+    assert.strictEqual(parent.lastChild.textContent, 'au-end', `parent.lastChild.textContent`);
+    assert.strictEqual(parent.firstChild.nextSibling['$controller'], component, `parent.firstChild.nextSibling['$controller']`);
+    assert.notStrictEqual(projector.provideEncapsulationSource(), projector['host'], `projector.provideEncapsulationSource()`);
+    assert.strictEqual(projector.provideEncapsulationSource(), parent, `projector.provideEncapsulationSource()`);
   });
 
   it(`no shadowDOM, slots or containerless yields HostProjector`, function () {
@@ -119,14 +122,15 @@ describe(`determineProjector`, function () {
         name: 'foo'
       },
       class {}
-    ) as ICustomElementType<Node>;
+    );
     const component = new Foo();
-    const projector = locator.getElementProjector(dom, component, host, Foo.description);
+    const controller = Controller.forCustomElement(component, ctx.container, host)
+    const projector = locator.getElementProjector(dom, controller, host, Foo.description);
 
-    expect(host['$controller']).to.equal(component);
-    expect(projector).to.be.instanceof(HostProjector);
-    expect(projector.children).to.equal(projector.host.childNodes);
-    expect(projector.provideEncapsulationSource()).to.equal(host);
+    assert.strictEqual(host['$controller'], component, `host['$controller']`);
+    assert.instanceOf(projector, HostProjector, `projector`);
+    assert.strictEqual(projector.children, projector.host.childNodes, `projector.children`);
+    assert.strictEqual(projector.provideEncapsulationSource(), host, `projector.provideEncapsulationSource()`);
   });
 
   it(`@containerless + @useShadowDOM throws`, function () {
@@ -138,10 +142,11 @@ describe(`determineProjector`, function () {
         shadowOptions: { mode: 'open' }
       },
       class {}
-    ) as ICustomElementType<Node>;
+    );
     const component = new Foo();
+    const controller = Controller.forCustomElement(component, ctx.container, host)
 
-    expect(() => locator.getElementProjector(dom, component, host, Foo.description)).to.throw(/21/);
+    assert.throws(() => locator.getElementProjector(dom, controller, host, Foo.description), /21/, `() => locator.getElementProjector(dom, component, host, Foo.description)`);
   });
 
   it(`@containerless + hasSlots throws`, function () {
@@ -153,9 +158,10 @@ describe(`determineProjector`, function () {
         hasSlots: true
       },
       class {}
-    ) as ICustomElementType<Node>;
+    );
     const component = new Foo();
+    const controller = Controller.forCustomElement(component, ctx.container, host)
 
-    expect(() => locator.getElementProjector(dom, component, host, Foo.description)).to.throw(/21/);
+    assert.throws(() => locator.getElementProjector(dom, controller, host, Foo.description), /21/, `() => locator.getElementProjector(dom, component, host, Foo.description)`);
   });
 });

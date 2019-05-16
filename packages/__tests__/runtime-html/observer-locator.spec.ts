@@ -8,8 +8,6 @@ import {
   PropertyAccessor,
   SetterObserver
 } from '@aurelia/runtime';
-import { expect } from 'chai';
-import { spy } from 'sinon';
 import {
   AttributeNSAccessor,
   CheckedObserver,
@@ -21,7 +19,7 @@ import {
   ValueAttributeObserver,
   DOM
 } from '@aurelia/runtime-html';
-import { _, TestContext } from '@aurelia/testing';
+import { _, TestContext, assert, createSpy } from '@aurelia/testing';
 
 describe('ObserverLocator', function () {
   function setup() {
@@ -47,7 +45,7 @@ describe('ObserverLocator', function () {
     const expected = sut.getObserver(LF.none, el, attr.name);
     it(_`getAccessor() - ${markup} - returns ${expected.constructor.name}`, function () {
       const actual = sut.getAccessor(LF.none, el, attr.name);
-      expect(actual).to.be.instanceof(expected['constructor']);
+      assert.instanceOf(actual, expected['constructor'], `actual`);
     });
   }
 
@@ -71,8 +69,8 @@ describe('ObserverLocator', function () {
   //     const attr = el.attributes[0];
   //     const { sut } = setup();
   //     const actual = sut.getAccessor(LF.none, el, attr.name);
-  //     expect(actual.constructor.name).to.equal(DataAttributeAccessor.name);
-  //     expect(actual).to.be.instanceof(DataAttributeAccessor);
+  //     assert.strictEqual(actual.constructor.name, DataAttributeAccessor.name, `actual.constructor.name`);
+  //     assert.instanceOf(actual, DataAttributeAccessor, `actual`);
   //   });
   // }
   for (const markup of [
@@ -88,8 +86,8 @@ describe('ObserverLocator', function () {
       const el = ctx.createElementFromMarkup(markup);
       const attr = el.attributes[0];
       const actual = sut.getAccessor(LF.none, el, attr.name);
-      expect(actual.constructor.name).to.equal(DataAttributeAccessor.name);
-      expect(actual).to.be.instanceof(DataAttributeAccessor);
+      assert.strictEqual(actual.constructor.name, DataAttributeAccessor.name, `actual.constructor.name`);
+      assert.instanceOf(actual, DataAttributeAccessor, `actual`);
     });
   }
   for (const markup of [
@@ -105,8 +103,8 @@ describe('ObserverLocator', function () {
       const el = ctx.createElementFromMarkup(markup);
       const attr = el.attributes[0];
       const actual = sut.getAccessor(LF.none, el, attr.name);
-      expect(actual.constructor.name).to.equal(ElementPropertyAccessor.name);
-      expect(actual).to.be.instanceof(ElementPropertyAccessor);
+      assert.strictEqual(actual.constructor.name, ElementPropertyAccessor.name, `actual.constructor.name`);
+      assert.instanceOf(actual, ElementPropertyAccessor, `actual`);
     });
   }
 
@@ -129,8 +127,8 @@ describe('ObserverLocator', function () {
       const el = ctx.createElementFromMarkup(markup);
       const attr = el.attributes[0];
       const actual = sut.getAccessor(LF.none, el, attr.name);
-      expect(actual.constructor.name).to.equal(ElementPropertyAccessor.name);
-      expect(actual).to.be.instanceof(ElementPropertyAccessor);
+      assert.strictEqual(actual.constructor.name, ElementPropertyAccessor.name, `actual.constructor.name`);
+      assert.instanceOf(actual, ElementPropertyAccessor, `actual`);
     });
   }
 
@@ -138,8 +136,8 @@ describe('ObserverLocator', function () {
     const { sut } = setup();
     const obj = {};
     const actual = sut.getAccessor(LF.none, obj, 'foo');
-    expect(actual.constructor.name).to.equal(PropertyAccessor.name);
-    expect(actual).to.be.instanceof(PropertyAccessor);
+    assert.strictEqual(actual.constructor.name, PropertyAccessor.name, `actual.constructor.name`);
+    assert.instanceOf(actual, PropertyAccessor, `actual`);
   });
 
   for (const obj of [
@@ -149,11 +147,11 @@ describe('ObserverLocator', function () {
     it(_`getObserver() - ${obj} - returns PrimitiveObserver`, function () {
       const { sut } = setup();
       if (obj == null) {
-        expect(() => sut.getObserver(LF.none, obj, 'foo')).to.throw;
+        assert.throws(() => sut.getObserver(LF.none, obj, 'foo'));
       } else {
         const actual = sut.getObserver(LF.none, obj, 'foo');
-        expect(actual.constructor.name).to.equal(PrimitiveObserver.name);
-        expect(actual).to.be.instanceof(PrimitiveObserver);
+        assert.strictEqual(actual.constructor.name, PrimitiveObserver.name, `actual.constructor.name`);
+        assert.instanceOf(actual, PrimitiveObserver, `actual`);
       }
     });
   }
@@ -163,7 +161,7 @@ describe('ObserverLocator', function () {
     const obj = {};
     const expected = sut.getObserver(LF.none, obj, 'foo');
     const actual = sut.getObserver(LF.none, obj, 'foo');
-    expect(actual).to.equal(expected);
+    assert.strictEqual(actual, expected, `actual`);
   });
 
   it(_`getObserver() - {} - twice in a row different property - returns different observer`, function () {
@@ -171,7 +169,7 @@ describe('ObserverLocator', function () {
     const obj = {};
     const expected = sut.getObserver(LF.none, obj, 'foo');
     const actual = sut.getObserver(LF.none, obj, 'bar');
-    expect(actual).not.to.equal(expected);
+    assert.notStrictEqual(actual, expected, `actual`);
   });
 
   for (const { markup, ctor } of [
@@ -195,8 +193,8 @@ describe('ObserverLocator', function () {
       const el = ctx.createElementFromMarkup(markup);
       const attr = el.attributes[0];
       const actual = sut.getObserver(LF.none, el, attr.name);
-      expect(actual.constructor.name).to.equal(ctor.name);
-      expect(actual).to.be.instanceof(ctor);
+      assert.strictEqual(actual.constructor.name, ctor.name, `actual.constructor.name`);
+      assert.instanceOf(actual, ctor, `actual`);
     });
   }
 
@@ -243,26 +241,26 @@ describe('ObserverLocator', function () {
                       }
                       Reflect.defineProperty(obj, 'foo', descriptor);
                       if (hasSetter && configurable && !hasGetter && !(hasAdapterObserver && adapterIsDefined)) {
-                        expect(() => sut.getObserver(LF.none, obj, 'foo')).to.throw(/18/);
+                        assert.throws(() => sut.getObserver(LF.none, obj, 'foo'), /18/, `() => sut.getObserver(LF.none, obj, 'foo')`);
                       } else {
                         const actual = sut.getObserver(LF.none, obj, 'foo');
                         if ((hasGetter || hasSetter) && !hasGetObserver && hasAdapterObserver && adapterIsDefined) {
-                          expect(actual).to.equal(dummyObserver);
+                          assert.strictEqual(actual, dummyObserver, `actual`);
                         } else if (!(hasGetter || hasSetter)) {
-                          expect(actual.constructor.name).to.equal(SetterObserver.name);
-                          expect(actual).to.be.instanceof(SetterObserver);
+                          assert.strictEqual(actual.constructor.name, SetterObserver.name, `actual.constructor.name`);
+                          assert.instanceOf(actual, SetterObserver, `actual`);
                         } else if (hasGetObserver) {
-                          expect(actual).to.equal(dummyObserver);
+                          assert.strictEqual(actual, dummyObserver, `actual`);
                         } else {
                           if (!configurable) {
-                            expect(actual.constructor.name).to.equal(DirtyCheckProperty.name);
-                            expect(actual).to.be.instanceof(DirtyCheckProperty);
+                            assert.strictEqual(actual.constructor.name, DirtyCheckProperty.name, `actual.constructor.name`);
+                            assert.instanceOf(actual, DirtyCheckProperty, `actual`);
                           } else {
                             if (hasGetObserver) {
-                              expect(actual).to.equal(dummyObserver);
+                              assert.strictEqual(actual, dummyObserver, `actual`);
                             } else {
                               if (hasSetter) {
-                                expect(actual.constructor.name).to.equal(CustomSetterObserver.name);
+                                assert.strictEqual(actual.constructor.name, CustomSetterObserver.name, `actual.constructor.name`);
                               }
                             }
                           }
@@ -305,18 +303,18 @@ describe('ObserverLocator', function () {
             }
             const actual = sut.getObserver(LF.none, obj, property);
             if (property === 'textContent' || property === 'innerHTML' || property === 'scrollTop' || property === 'scrollLeft') {
-              expect(actual.constructor.name).to.equal(ValueAttributeObserver.name);
+              assert.strictEqual(actual.constructor.name, ValueAttributeObserver.name, `actual.constructor.name`);
             } else if (property === 'style' || property === 'css') {
-              expect(actual.constructor.name).to.equal(StyleAttributeAccessor.name);
+              assert.strictEqual(actual.constructor.name, StyleAttributeAccessor.name, `actual.constructor.name`);
             } else if (descriptors[property].get === undefined) {
-              expect(actual.constructor.name).to.equal(SetterObserver.name);
+              assert.strictEqual(actual.constructor.name, SetterObserver.name, `actual.constructor.name`);
             } else {
               if (!(hasAdapterObserver && adapterIsDefined)) {
-                expect(actual.constructor.name).to.equal(DirtyCheckProperty.name);
+                assert.strictEqual(actual.constructor.name, DirtyCheckProperty.name, `actual.constructor.name`);
               } else if ((!hasGetObserver && hasAdapterObserver && adapterIsDefined) || hasGetObserver) {
-                expect(actual).to.equal(dummyObserver);
+                assert.strictEqual(actual, dummyObserver, `actual`);
               } else {
-                expect(actual.constructor.name).to.equal(DirtyCheckProperty.name);
+                assert.strictEqual(actual.constructor.name, DirtyCheckProperty.name, `actual.constructor.name`);
               }
             }
           });
@@ -328,60 +326,66 @@ describe('ObserverLocator', function () {
   it(_`getObserver() - throws if $observers is undefined`, function () {
     const { sut } = setup();
     const obj = {};
-    const write = Reporter.write;
-    Reporter.write = spy();
+    const writeSpy = createSpy(Reporter, 'write');
     Reflect.defineProperty(obj, '$observers', { value: undefined });
     sut.getObserver(LF.none, obj, 'foo');
-    expect(Reporter.write).to.have.been.calledWith(0);
-    Reporter.write = write;
+
+    writeSpy.restore();
+    assert.deepStrictEqual(
+      writeSpy.calls,
+      [
+        [0],
+      ],
+      `writeSpy.calls`,
+    );
   });
 
   it(_`getObserver() - Array.foo - returns ArrayObserver`, function () {
     const { sut } = setup();
     const obj = [];
     const actual = sut.getObserver(LF.none, obj, 'foo');
-    expect(actual.constructor.name).to.equal(DirtyCheckProperty.name);
-    expect(actual).to.be.instanceof(DirtyCheckProperty);
+    assert.strictEqual(actual.constructor.name, DirtyCheckProperty.name, `actual.constructor.name`);
+    assert.instanceOf(actual, DirtyCheckProperty, `actual`);
   });
 
   it(_`getObserver() - Array.length - returns ArrayObserver`, function () {
     const { sut } = setup();
     const obj = [];
     const actual = sut.getObserver(LF.none, obj, 'length');
-    expect(actual.constructor.name).to.equal(CollectionLengthObserver.name);
-    expect(actual).to.be.instanceof(CollectionLengthObserver);
+    assert.strictEqual(actual.constructor.name, CollectionLengthObserver.name, `actual.constructor.name`);
+    assert.instanceOf(actual, CollectionLengthObserver, `actual`);
   });
 
   it(_`getObserver() - Set.foo - returns SetObserver`, function () {
     const { sut } = setup();
     const obj = new Set();
     const actual = sut.getObserver(LF.none, obj, 'foo');
-    expect(actual.constructor.name).to.equal(DirtyCheckProperty.name);
-    expect(actual).to.be.instanceof(DirtyCheckProperty);
+    assert.strictEqual(actual.constructor.name, DirtyCheckProperty.name, `actual.constructor.name`);
+    assert.instanceOf(actual, DirtyCheckProperty, `actual`);
   });
 
   it(_`getObserver() - Set.size - returns SetObserver`, function () {
     const { sut } = setup();
     const obj = new Set();
     const actual = sut.getObserver(LF.none, obj, 'size');
-    expect(actual.constructor.name).to.equal(CollectionLengthObserver.name);
-    expect(actual).to.be.instanceof(CollectionLengthObserver);
+    assert.strictEqual(actual.constructor.name, CollectionLengthObserver.name, `actual.constructor.name`);
+    assert.instanceOf(actual, CollectionLengthObserver, `actual`);
   });
 
   it(_`getObserver() - Map.foo - returns MapObserver`, function () {
     const { sut } = setup();
     const obj = new Map();
     const actual = sut.getObserver(LF.none, obj, 'foo');
-    expect(actual.constructor.name).to.equal(DirtyCheckProperty.name);
-    expect(actual).to.be.instanceof(DirtyCheckProperty);
+    assert.strictEqual(actual.constructor.name, DirtyCheckProperty.name, `actual.constructor.name`);
+    assert.instanceOf(actual, DirtyCheckProperty, `actual`);
   });
 
   it(_`getObserver() - Map.size - returns MapObserver`, function () {
     const { sut } = setup();
     const obj = new Map();
     const actual = sut.getObserver(LF.none, obj, 'size');
-    expect(actual.constructor.name).to.equal(CollectionLengthObserver.name);
-    expect(actual).to.be.instanceof(CollectionLengthObserver);
+    assert.strictEqual(actual.constructor.name, CollectionLengthObserver.name, `actual.constructor.name`);
+    assert.instanceOf(actual, CollectionLengthObserver, `actual`);
   });
 
 });

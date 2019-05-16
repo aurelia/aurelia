@@ -1,8 +1,6 @@
-import { IPropertySubscriber, LifecycleFlags as LF } from '@aurelia/runtime';
-import { expect } from 'chai';
-import { SinonSpy, spy } from 'sinon';
+import { LifecycleFlags as LF } from '@aurelia/runtime';
 import { ValueAttributeObserver } from '@aurelia/runtime-html';
-import { _, TestContext } from '@aurelia/testing';
+import { _, TestContext, assert, createSpy } from '@aurelia/testing';
 
 describe('ValueAttributeObserver', function () {
   const eventDefaults = { bubbles: true };
@@ -30,7 +28,7 @@ describe('ValueAttributeObserver', function () {
 
         const sut = observerLocator.getObserver(LF.none, el, 'value') as ValueAttributeObserver;
 
-        const subscriber: IPropertySubscriber = { handleChange: spy() };
+        const subscriber = { handleChange: createSpy() };
         if (hasSubscriber) {
           sut.subscribe(subscriber);
         }
@@ -40,7 +38,6 @@ describe('ValueAttributeObserver', function () {
 
       function tearDown({ ctx, sut, el }: Partial<ReturnType<typeof setup>>) {
         ctx.doc.body.removeChild(el);
-        sut.dispose();
       }
 
       for (const hasSubscriber of [true, false]) {
@@ -51,34 +48,47 @@ describe('ValueAttributeObserver', function () {
 
               const { ctx, sut, lifecycle, el, subscriber } = setup(hasSubscriber);
 
-              const expectedValueBefore = nullValues.includes(valueBefore) ? sut.defaultValue : valueBefore;
-              const expectedValueAfter = nullValues.includes(valueAfter) ? sut.defaultValue : valueAfter;
+              const expectedValueBefore = nullValues.includes(valueBefore) ? '' : valueBefore;
+              const expectedValueAfter = nullValues.includes(valueAfter) ? '' : valueAfter;
 
-              const changeCountBefore = expectedValueBefore !== sut.defaultValue ? 1 : 0;
+              const changeCountBefore = expectedValueBefore !== '' ? 1 : 0;
               const changeCountAfter = expectedValueBefore !== expectedValueAfter ? 1 : 0;
               let callCount = 0;
 
               sut.setValue(valueBefore, LF.none);
-              expect(lifecycle.flushCount).to.equal(changeCountBefore, 'lifecycle.flushCount 1');
-              lifecycle.processFlushQueue(LF.none);
-              expect(el.value).to.equal(expectedValueBefore, 'el.value 1');
-              expect(sut.getValue()).to.equal(expectedValueBefore, 'sut.getValue() 1');
+              assert.strictEqual(lifecycle.flushCount, changeCountBefore, 'lifecycle.flushCount 1');
+              lifecycle.processRAFQueue(LF.none);
+              assert.strictEqual(el.value, expectedValueBefore, 'el.value 1');
+              assert.strictEqual(sut.getValue(), expectedValueBefore, 'sut.getValue() 1');
               if (hasSubscriber && changeCountBefore) {
                 callCount++;
-                expect(subscriber.handleChange).to.have.been.calledWith(expectedValueBefore, sut.defaultValue, LF.fromSyncFlush | LF.updateTargetInstance);
+                assert.deepStrictEqual(
+                  subscriber.handleChange.calls,
+                  [
+                    [expectedValueBefore, '', LF.fromSyncFlush | LF.updateTargetInstance],
+                  ],
+                 'subscriber.handleChange.calls',
+                );
               }
 
               sut.setValue(valueAfter, LF.none);
-              expect(lifecycle.flushCount).to.equal(changeCountAfter, 'lifecycle.flushCount 2');
-              lifecycle.processFlushQueue(LF.none);
-              expect(el.value).to.equal(expectedValueAfter, 'el.value 2');
-              expect(sut.getValue()).to.equal(expectedValueAfter, 'sut.getValue() 2');
+              assert.strictEqual(lifecycle.flushCount, changeCountAfter, 'lifecycle.flushCount 2');
+              lifecycle.processRAFQueue(LF.none);
+              assert.strictEqual(el.value, expectedValueAfter, 'el.value 2');
+              assert.strictEqual(sut.getValue(), expectedValueAfter, 'sut.getValue() 2',);
               if (hasSubscriber && changeCountAfter) {
                 callCount++;
-                expect(subscriber.handleChange).to.have.been.calledWith(expectedValueAfter, expectedValueBefore, LF.fromSyncFlush | LF.updateTargetInstance);
+                assert.deepStrictEqual(
+                  subscriber.handleChange.calls,
+                  [
+                    [expectedValueBefore, '', LF.fromSyncFlush | LF.updateTargetInstance],
+                    [expectedValueAfter, expectedValueBefore, LF.fromSyncFlush | LF.updateTargetInstance],
+                  ],
+                 'subscriber.handleChange.calls',
+                );
               }
               if (hasSubscriber) {
-                expect((subscriber.handleChange as SinonSpy).getCalls().length).to.equal(callCount);
+                assert.strictEqual(subscriber.handleChange.calls.length, callCount, `subscriber.handleChange.calls.length`);
               }
 
               tearDown({ ctx, sut, lifecycle, el });
@@ -98,7 +108,7 @@ describe('ValueAttributeObserver', function () {
 
         const sut = observerLocator.getObserver(LF.none, el, 'value') as ValueAttributeObserver;
 
-        const subscriber: IPropertySubscriber = { handleChange: spy() };
+        const subscriber = { handleChange: createSpy() };
         sut.subscribe(subscriber);
 
         return { ctx, container, observerLocator, el, sut, subscriber };
@@ -106,7 +116,6 @@ describe('ValueAttributeObserver', function () {
 
       function tearDown({ ctx, sut, el }: Partial<ReturnType<typeof setup>>) {
         ctx.doc.body.removeChild(el);
-        sut.dispose();
       }
 
       for (const valueBefore of [...nullValues, ...validValues]) {
@@ -123,22 +132,35 @@ describe('ValueAttributeObserver', function () {
 
               el.value = valueBefore;
               el.dispatchEvent(new ctx.Event(event, eventDefaults));
-              expect(el.value).to.equal(expectedValueBefore, 'el.value 1');
-              expect(sut.getValue()).to.equal(expectedValueBefore, 'sut.getValue() 1');
+              assert.strictEqual(el.value, expectedValueBefore, 'el.value 1');
+              assert.strictEqual(sut.getValue(), expectedValueBefore, 'sut.getValue() 1');
               if (expectedValueBefore !== '') {
                 callCount++;
-                expect(subscriber.handleChange).to.have.been.calledWith(expectedValueBefore, sut.defaultValue, LF.fromDOMEvent | LF.allowPublishRoundtrip);
+                assert.deepStrictEqual(
+                  subscriber.handleChange.calls,
+                  [
+                    [expectedValueBefore, '', LF.fromDOMEvent | LF.allowPublishRoundtrip],
+                  ],
+                 'subscriber.handleChange.calls',
+                );
               }
 
               el.value = valueAfter;
               el.dispatchEvent(new ctx.Event(event, eventDefaults));
-              expect(el.value).to.equal(expectedValueAfter, 'el.value 2');
-              expect(sut.getValue()).to.equal(expectedValueAfter, 'sut.getValue() 2');
+              assert.strictEqual(el.value, expectedValueAfter, 'el.value 2');
+              assert.strictEqual(sut.getValue(), expectedValueAfter, 'sut.getValue() 2');
               if (expectedValueBefore !== expectedValueAfter) {
                 callCount++;
-                expect(subscriber.handleChange).to.have.been.calledWith(expectedValueAfter, expectedValueBefore, LF.fromDOMEvent | LF.allowPublishRoundtrip);
+                assert.deepStrictEqual(
+                  subscriber.handleChange.calls,
+                  [
+                    [expectedValueBefore, '', LF.fromDOMEvent | LF.allowPublishRoundtrip],
+                    [expectedValueAfter, expectedValueBefore, LF.fromDOMEvent | LF.allowPublishRoundtrip],
+                  ],
+                 'subscriber.handleChange.calls',
+                );
               }
-              expect((subscriber.handleChange as SinonSpy).getCalls().length).to.equal(callCount);
+              assert.strictEqual(subscriber.handleChange.calls.length, callCount, `subscriber.handleChange.calls.length`);
 
               tearDown({ ctx, sut, el });
             });

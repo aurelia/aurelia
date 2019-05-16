@@ -1,17 +1,20 @@
-import { PLATFORM } from '@aurelia/kernel';
-import { expect } from 'chai';
+import { PLATFORM, Primitive, IIndexable } from '@aurelia/kernel';
 import {
   LifecycleFlags as LF,
   PrimitiveObserver,
   SelfObserver,
   SetterObserver
 } from '@aurelia/runtime';
-import { SpySubscriber } from '@aurelia/testing';
+import { SpySubscriber, assert, TestContext, ChangeSet } from '@aurelia/testing';
 
 const getName = (o: any) => Object.prototype.toString.call(o).slice(8, -1);
 
 describe('PrimitiveObserver', function () {
-  let sut: PrimitiveObserver;
+  function setup(obj: Primitive, key: PropertyKey) {
+    const sut = new PrimitiveObserver(obj, key);
+
+    return { sut };
+  }
 
   describe('getValue()', function () {
     const primitiveArr = [
@@ -24,17 +27,20 @@ describe('PrimitiveObserver', function () {
       for (const propertyName of propertyNameArr) {
         const propName = typeof propertyName === 'string' ? `'${propertyName}'` : typeof propertyName;
         it(`should correctly handle ${typeof primitive}[${propName}]`, function () {
-          sut = new PrimitiveObserver(primitive, propertyName);
+          const { sut } = setup(primitive, propertyName);
           if (propertyName === 'length') {
             if (typeof primitive === 'string') {
               const actual = sut.getValue();
-              expect(actual).to.equal(primitive.length);
+              assert.strictEqual(actual, primitive.length, `actual`);
+            } else if (primitive != null) {
+              const actual = sut.getValue();
+              assert.strictEqual(actual, void 0, `actual`);
             } else {
-              expect(() => sut.getValue()).to.throw;
+              assert.throws(() => sut.getValue());
             }
           } else {
             const actual = sut.getValue();
-            expect(actual).to.equal(undefined);
+            assert.strictEqual(actual, undefined, `actual`);
           }
         });
       }
@@ -43,25 +49,25 @@ describe('PrimitiveObserver', function () {
 
   describe('setValue()', function () {
     it('is a no-op', function () {
-      expect(new PrimitiveObserver(null, 0).setValue === PLATFORM.noop).to.equal(true);
+      assert.strictEqual(new PrimitiveObserver(null, 0).setValue === PLATFORM.noop, true, `new PrimitiveObserver(null, 0).setValue === PLATFORM.noop`);
     });
   });
 
   describe('subscribe()', function () {
     it('is a no-op', function () {
-      expect(new PrimitiveObserver(null, 0).subscribe === PLATFORM.noop).to.equal(true);
+      assert.strictEqual(new PrimitiveObserver(null, 0).subscribe === PLATFORM.noop, true, `new PrimitiveObserver(null, 0).subscribe === PLATFORM.noop`);
     });
   });
 
   describe('unsubscribe()', function () {
     it('is a no-op', function () {
-      expect(new PrimitiveObserver(null, 0).unsubscribe === PLATFORM.noop).to.equal(true);
+      assert.strictEqual(new PrimitiveObserver(null, 0).unsubscribe === PLATFORM.noop, true, `new PrimitiveObserver(null, 0).unsubscribe === PLATFORM.noop`);
     });
   });
 
   describe('doNotCache', function () {
     it('is true', function () {
-      expect(new PrimitiveObserver(null, 0).doNotCache).to.equal(true);
+      assert.strictEqual(new PrimitiveObserver(null, 0).doNotCache, true, `new PrimitiveObserver(null, 0).doNotCache`);
     });
   });
 });
@@ -69,7 +75,13 @@ describe('PrimitiveObserver', function () {
 class Foo {}
 
 describe('SetterObserver', function () {
-  let sut: SetterObserver;
+  function setup(flags: LF, obj: IIndexable, key: string) {
+    const ctx = TestContext.createHTMLTestContext();
+    const lifecycle = ctx.lifecycle;
+    const sut = new SetterObserver(lifecycle, flags, obj, key);
+
+    return { sut };
+  }
 
   describe('getValue()', function () {
     const objectArr = createObjectArr();
@@ -77,13 +89,10 @@ describe('SetterObserver', function () {
     for (const object of objectArr) {
       for (const propertyName of propertyNameArr) {
         it(`should correctly handle ${getName(object)}[${typeof propertyName}]`, function () {
-          sut = new SetterObserver(LF.none, object, propertyName as any);
+          const { sut } = setup(LF.none, object, propertyName as any);
           sut.subscribe(new SpySubscriber());
           const actual = sut.getValue();
-          // note: we're deliberately using explicit strict equality here (and in various other places) instead of expect(actual).to.equal(expected)
-          // this is because .equal assertions can give false positives in certain edge cases, and triple-equals also speeds up the tests (which is needed with these quantities)
-          // the obvious drawback is that the error messages are less helpful when tests fail, so a todo is to make a utility function that reports the differences when not equal
-          expect(actual === object[propertyName]).to.equal(true);
+          assert.strictEqual(actual, object[propertyName], `actual`);
         });
       }
     }
@@ -98,10 +107,10 @@ describe('SetterObserver', function () {
       for (const propertyName of propertyNameArr) {
         for (const value of valueArr) {
           it(`should correctly handle ${getName(object)}[${typeof propertyName}]=${getName(value)}`, function () {
-            sut = new SetterObserver(LF.none, object, propertyName as any);
+            const { sut } = setup(LF.none, object, propertyName as any);
             sut.subscribe(new SpySubscriber());
             sut.setValue(value, flags);
-            expect(object[propertyName] === value).to.equal(true);
+            assert.strictEqual(object[propertyName], value, `object[propertyName]`);
           });
         }
       }
@@ -115,7 +124,7 @@ describe('SetterObserver', function () {
     for (const object of objectArr) {
       for (const propertyName of propertyNameArr) {
         it(`can handle ${getName(object)}[${typeof propertyName}]`, function () {
-          sut = new SetterObserver(LF.none, object, propertyName as any);
+          const { sut } = setup(LF.none, object, propertyName as any);
           sut.subscribe(new SpySubscriber());
         });
       }
@@ -134,26 +143,34 @@ describe('SetterObserver', function () {
           for (const subscribers of subscribersArr) {
             const object = {};
             it(`should notify ${subscribers.length} subscriber(s) for ${getName(object)}[${typeof propertyName}]=${getName(value)}`, function () {
-              sut = new SetterObserver(LF.none, object, propertyName as any);
+              const { sut } = setup(LF.none, object, propertyName as any);
               for (const subscriber of subscribers) {
                 sut.subscribe(subscriber);
               }
               const prevValue = object[propertyName];
               sut.setValue(value, flags);
               for (const subscriber of subscribers) {
-                expect(subscriber.handleChange).to.have.been.calledOnce;
-                expect(subscriber.handleChange).to.have.been.calledWith(value, prevValue, flags);
+                assert.deepStrictEqual(
+                  subscriber.changes,
+                  [
+                    new ChangeSet(0, flags & ~LF.update, value, prevValue),
+                  ],
+                );
               }
               if (calls === 2) {
                 sut.setValue(prevValue, flags);
                 for (const subscriber of subscribers) {
-                  expect(subscriber.handleChange).to.have.been.calledWith(prevValue, value, flags);
-                  expect(subscriber.handleChange).to.have.been.calledTwice;
+                  assert.deepStrictEqual(
+                    subscriber.changes,
+                    [
+                      new ChangeSet(0, flags & ~LF.update, value, prevValue),
+                      new ChangeSet(1, flags & ~LF.update, prevValue, value),
+                    ],
+                  );
                 }
               }
               for (const subscriber of subscribers) {
                 sut.unsubscribe(subscriber);
-                subscriber.resetHistory();
               }
             });
           }
@@ -163,14 +180,117 @@ describe('SetterObserver', function () {
   });
 });
 
-describe('Observer', function () {
+describe('SelfObserver', function () {
+  function setup(flags: LF, obj: IIndexable, key: string) {
+    const ctx = TestContext.createHTMLTestContext();
+    const lifecycle = ctx.lifecycle;
+    const sut = new SelfObserver(lifecycle, flags, obj, key, `${key ? key.toString() : key + ''}Changed`);
 
-  it('initializes the default callback to null', function () {
+    return { sut };
+  }
+
+  it('initializes the default callback to undefined', function () {
     const values = createObjectArr();
     values.forEach(value => {
-      const observer = new SelfObserver(LF.none, {}, 'a', 'aChanged');
-      expect(observer['callback']).to.equal(null);
+      const observer = setup(LF.none, {}, 'a');
+      assert.strictEqual(observer['callback'], void 0, `observer['callback']`);
     });
+  });
+
+  describe('getValue()', function () {
+    const objectArr = createObjectArr();
+    const propertyNameArr = [undefined, null, Symbol(), '', 'foo', 'length', '__proto__'];
+    for (const object of objectArr) {
+      for (const propertyName of propertyNameArr) {
+        it(`should correctly handle ${getName(object)}[${typeof propertyName}]`, function () {
+          const { sut } = setup(LF.none, object, propertyName as any);
+          sut.subscribe(new SpySubscriber());
+          const actual = sut.getValue();
+          assert.strictEqual(actual, object[propertyName], `actual`);
+        });
+      }
+    }
+  });
+
+  describe('setValue()', function () {
+    const valueArr = [undefined, null, 0, '', {}];
+    const objectArr = createObjectArr();
+    const propertyNameArr = [undefined, null, Symbol(), '', 'foo'];
+    const flags = LF.updateTargetInstance;
+    for (const object of objectArr) {
+      for (const propertyName of propertyNameArr) {
+        for (const value of valueArr) {
+          it(`should correctly handle ${getName(object)}[${typeof propertyName}]=${getName(value)}`, function () {
+            const { sut } = setup(LF.none, object, propertyName as any);
+            sut.subscribe(new SpySubscriber());
+            sut.setValue(value, flags);
+            assert.strictEqual(object[propertyName], value, `object[propertyName]`);
+          });
+        }
+      }
+    }
+  });
+
+  describe('subscribe()', function () {
+    const propertyNameArr = [undefined, null, Symbol(), '', 'foo', 1];
+    const objectArr = createObjectArr();
+    const flags = LF.updateTargetInstance;
+    for (const object of objectArr) {
+      for (const propertyName of propertyNameArr) {
+        it(`can handle ${getName(object)}[${typeof propertyName}]`, function () {
+          const { sut } = setup(LF.none, object, propertyName as any);
+          sut.subscribe(new SpySubscriber());
+        });
+      }
+    }
+
+    const valueArr = [0, '', {}];
+    const callsArr = [1, 2];
+    for (const calls of callsArr) {
+      for (const propertyName of propertyNameArr) {
+        for (const value of valueArr) {
+          const subscribersArr = [
+            [new SpySubscriber()],
+            [new SpySubscriber(), new SpySubscriber(), new SpySubscriber()],
+            [new SpySubscriber(), new SpySubscriber(), new SpySubscriber(), new SpySubscriber(), new SpySubscriber(), new SpySubscriber(), new SpySubscriber(), new SpySubscriber(), new SpySubscriber(), new SpySubscriber()]
+          ];
+          for (const subscribers of subscribersArr) {
+            const object = {};
+            it(`should notify ${subscribers.length} subscriber(s) for ${getName(object)}[${typeof propertyName}]=${getName(value)}`, function () {
+              const { sut } = setup(LF.none, object, propertyName as any);
+              for (const subscriber of subscribers) {
+                sut.subscribe(subscriber);
+              }
+              const prevValue = object[propertyName];
+              sut.setValue(value, flags);
+              for (const subscriber of subscribers) {
+                assert.deepStrictEqual(
+                  subscriber.changes,
+                  [
+                    new ChangeSet(0, flags & ~LF.update, value, prevValue),
+                  ],
+                );
+              }
+              if (calls === 2) {
+                sut.setValue(prevValue, flags);
+                for (const subscriber of subscribers) {
+                  assert.deepStrictEqual(
+                    subscriber.changes,
+                    [
+                      new ChangeSet(0, flags & ~LF.update, value, prevValue),
+                      new ChangeSet(1, flags & ~LF.update, prevValue, value),
+                    ],
+                  );
+                }
+              }
+              for (const subscriber of subscribers) {
+                sut.unsubscribe(subscriber);
+              }
+            });
+          }
+        }
+      }
+    }
   });
 });
 

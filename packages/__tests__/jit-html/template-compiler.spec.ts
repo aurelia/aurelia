@@ -6,7 +6,9 @@ import {
   IRegistry,
   IResourceDescriptions,
   PLATFORM,
-  RuntimeCompilationResources
+  RuntimeCompilationResources,
+  camelCase,
+  kebabCase
 } from '@aurelia/kernel';
 import {
   AccessScope,
@@ -31,8 +33,7 @@ import {
   TargetedInstructionType as TT
 } from '@aurelia/runtime';
 import { HTMLTargetedInstructionType as HTT } from '@aurelia/runtime-html';
-import { expect } from 'chai';
-import { HTMLTestContext, TestContext, eachCartesianJoinFactory, verifyBindingInstructionsEqual } from '@aurelia/testing';
+import { HTMLTestContext, TestContext, eachCartesianJoinFactory, verifyBindingInstructionsEqual, assert } from '@aurelia/testing';
 
 export function createAttribute(name: string, value: string): Attr {
   const attr = document.createAttribute(name);
@@ -60,7 +61,7 @@ describe('TemplateCompiler', function () {
 
     it('set hasSlots to true <slot/>', function () {
       const definition = compileWith('<template><slot></slot></template>', []);
-      expect(definition.hasSlots).to.equal(true);
+      assert.strictEqual(definition.hasSlots, true, `definition.hasSlots`);
 
       // test this with nested slot inside template controller
     });
@@ -105,10 +106,10 @@ describe('TemplateCompiler', function () {
         it('throws on attributes that require to be unique', function () {
           const attrs = ['id', 'part', 'replace-part'];
           attrs.forEach(attr => {
-            expect(() => compileWith(
-              `<template ${attr}="${attr}"></template>`,
-              []
-            )).to.throw(/Invalid surrogate attribute/);
+            assert.throws(
+              () => compileWith(`<template ${attr}="${attr}"></template>`, []),
+              /Invalid surrogate attribute/,
+            );
           });
         });
       });
@@ -130,8 +131,8 @@ describe('TemplateCompiler', function () {
           </template>`,
           [El, Prop]
         );
-        expect(actual.instructions.length).to.equal(1);
-        expect(actual.instructions[0].length).to.equal(3);
+        assert.strictEqual(actual.instructions.length, 1, `actual.instructions.length`);
+        assert.strictEqual(actual.instructions[0].length, 3, `actual.instructions[0].length`);
         const siblingInstructions = actual.instructions[0].slice(1);
         const expectedSiblingInstructions = [
           { toVerify: ['type', 'res', 'to'], type: TT.hydrateAttribute, res: 'prop3' },
@@ -243,9 +244,9 @@ describe('TemplateCompiler', function () {
             `<template><el prop.bind="p"></el></template>`,
             [Prop]
           );
-          expect((template as HTMLTemplateElement).outerHTML).to.equal('<template><au-m class="au"></au-m></template>');
+          assert.strictEqual((template as HTMLTemplateElement).outerHTML, '<template><au-m class="au"></au-m></template>', `(template as HTMLTemplateElement).outerHTML`);
           const [hydratePropAttrInstruction] = instructions[0] as unknown as [HydrateTemplateController];
-          expect((hydratePropAttrInstruction.def.template as HTMLTemplateElement).outerHTML).to.equal('<template><el></el></template>');
+          assert.strictEqual((hydratePropAttrInstruction.def.template as HTMLTemplateElement).outerHTML, '<template><el></el></template>', `(hydratePropAttrInstruction.def.template as HTMLTemplateElement).outerHTML`);
         });
 
         it('moves attrbiutes instructions before the template controller into it', function () {
@@ -260,7 +261,7 @@ describe('TemplateCompiler', function () {
             `<template><el name.bind="name" title.bind="title" prop.bind="p"></el></template>`,
             [Prop]
           );
-          expect((template as HTMLTemplateElement).outerHTML).to.equal('<template><au-m class="au"></au-m></template>');
+          assert.strictEqual((template as HTMLTemplateElement).outerHTML, '<template><au-m class="au"></au-m></template>', `(template as HTMLTemplateElement).outerHTML`);
           const [hydratePropAttrInstruction] = instructions[0] as unknown as [HydrateTemplateController];
           verifyInstructions(hydratePropAttrInstruction.instructions, [
             { toVerify: ['type', 'to', 'from'],
@@ -287,7 +288,7 @@ describe('TemplateCompiler', function () {
 
           it('does not throw when element is not found', function () {
             const { instructions } = compileWith('<template><div as-element="not-div"></div></template>');
-            expect(instructions.length).to.equal(0);
+            assert.strictEqual(instructions.length, 0, `instructions.length`);
           });
 
           describe('with template controller', function () {
@@ -323,12 +324,12 @@ describe('TemplateCompiler', function () {
 
         it('compiles', function () {
           const { instructions } = compileWith(`<template><let></let></template>`);
-          expect(instructions.length).to.equal(1);
+          assert.strictEqual(instructions.length, 1, `instructions.length`);
         });
 
         it('does not generate instructions when there is no bindings', function () {
           const { instructions } = compileWith(`<template><let></let></template>`);
-          expect((instructions[0][0]).instructions.length).to.equal(0);
+          assert.strictEqual((instructions[0][0]).instructions.length, 0, `(instructions[0][0]).instructions.length`);
         });
 
         it('ignores custom element resource', function () {
@@ -357,7 +358,7 @@ describe('TemplateCompiler', function () {
         describe('[to-view-model]', function () {
           it('understands [to-view-model]', function () {
             const { instructions } = compileWith(`<template><let to-view-model></let></template>`);
-            expect((instructions[0][0]).toViewModel).to.equal(true);
+            assert.strictEqual((instructions[0][0]).toViewModel, true, `(instructions[0][0]).toViewModel`);
           });
 
           it('ignores [to-view-model] order', function () {
@@ -386,24 +387,24 @@ describe('TemplateCompiler', function () {
     }
 
     function verifyInstructions(actual: any[], expectation: IExpectedInstruction[], type?: string) {
-      expect(actual.length).to.equal(expectation.length, `Expected to have ${expectation.length} ${type ? type : ''} instructions. Received: ${actual.length}`);
+      assert.strictEqual(actual.length, expectation.length, `Expected to have ${expectation.length} ${type ? type : ''} instructions. Received: ${actual.length}`);
       for (let i = 0, ii = actual.length; i < ii; ++i) {
         const actualInst = actual[i];
         const expectedInst = expectation[i];
         const ofType = type ? `of ${type}` : '';
         for (const prop of expectedInst.toVerify) {
           if (expectedInst[prop] instanceof Object) {
-            expect(
-              actualInst[prop]).to.deep.equal(
-                expectedInst[prop],
-                `Expected actual instruction ${ofType} to have "${prop}": ${expectedInst[prop]}. Received: ${actualInst[prop]} (on index: ${i})`
-              );
+            assert.deepStrictEqual(
+              actualInst[prop],
+              expectedInst[prop],
+              `Expected actual instruction ${ofType} to have "${prop}": ${expectedInst[prop]}. Received: ${actualInst[prop]} (on index: ${i})`
+            );
           } else {
-            expect(
-              actualInst[prop]).to.equal(
-                expectedInst[prop],
-                `Expected actual instruction ${ofType} to have "${prop}": ${expectedInst[prop]}. Received: ${actualInst[prop]} (on index: ${i})`
-              );
+            assert.deepStrictEqual(
+              actualInst[prop],
+              expectedInst[prop],
+              `Expected actual instruction ${ofType} to have "${prop}": ${expectedInst[prop]}. Received: ${actualInst[prop]} (on index: ${i})`
+            );
           }
         }
       }
@@ -710,7 +711,7 @@ describe(`TemplateCompiler - combinations`, function () {
       if (childInstruction.mode !== undefined) {
         childInstruction.oneTime = childInstruction.mode === BindingMode.oneTime;
       }
-      const def = { name: PLATFORM.camelCase(attr), defaultBindingMode, bindables };
+      const def = { name: camelCase(attr), defaultBindingMode, bindables };
       const markup = `<div ${name}="${value}"></div>`;
 
       it(`${markup}  CustomAttribute=${JSON.stringify(def)}`, function () {
@@ -744,11 +745,11 @@ describe(`TemplateCompiler - combinations`, function () {
         (ctx, pdName) => `${pdName}Bar` // descriptor.property is different from the actual property name
       ] as ((ctx: HTMLTestContext, $1: string) => string)[],
       [
-        (ctx, pdName, pdProp) => ({ [pdName]: { property: pdProp, attribute: PLATFORM.kebabCase(pdProp), mode: BindingMode.default  } }),
-        (ctx, pdName, pdProp) => ({ [pdName]: { property: pdProp, attribute: PLATFORM.kebabCase(pdProp), mode: BindingMode.oneTime  } }),
-        (ctx, pdName, pdProp) => ({ [pdName]: { property: pdProp, attribute: PLATFORM.kebabCase(pdProp), mode: BindingMode.toView   } }),
-        (ctx, pdName, pdProp) => ({ [pdName]: { property: pdProp, attribute: PLATFORM.kebabCase(pdProp), mode: BindingMode.fromView } }),
-        (ctx, pdName, pdProp) => ({ [pdName]: { property: pdProp, attribute: PLATFORM.kebabCase(pdProp), mode: BindingMode.twoWay   } })
+        (ctx, pdName, pdProp) => ({ [pdName]: { property: pdProp, attribute: kebabCase(pdProp), mode: BindingMode.default  } }),
+        (ctx, pdName, pdProp) => ({ [pdName]: { property: pdProp, attribute: kebabCase(pdProp), mode: BindingMode.oneTime  } }),
+        (ctx, pdName, pdProp) => ({ [pdName]: { property: pdProp, attribute: kebabCase(pdProp), mode: BindingMode.toView   } }),
+        (ctx, pdName, pdProp) => ({ [pdName]: { property: pdProp, attribute: kebabCase(pdProp), mode: BindingMode.fromView } }),
+        (ctx, pdName, pdProp) => ({ [pdName]: { property: pdProp, attribute: kebabCase(pdProp), mode: BindingMode.twoWay   } })
       ] as ((ctx: HTMLTestContext, $1: string, $2: string) => Bindables)[],
       [
         (ctx) => [``,           `''`],
@@ -787,7 +788,7 @@ describe(`TemplateCompiler - combinations`, function () {
             //console.log('ACTUAL: ', JSON.stringify(actual.instructions[0][0], null, 2));
             e = err;
           }
-          expect(e).to.be.an('Error');
+          assert.instanceOf(e, Error);
         } else {
           // enableTracing();
           // Tracer.enableLiveLogging(SymbolTraceWriter);
@@ -1014,8 +1015,8 @@ describe(`TemplateCompiler - combinations`, function () {
         (ctx, pdName) => `${pdName}Bar` // descriptor.property is different from the actual property name
       ] as ((ctx: HTMLTestContext, $1: string) => string)[],
       [
-        (ctx, pdName, pdProp) => PLATFORM.kebabCase(pdProp),
-        (ctx, pdName, pdProp) => `${PLATFORM.kebabCase(pdProp)}-baz` // descriptor.attribute is different from kebab-cased descriptor.property
+        (ctx, pdName, pdProp) => kebabCase(pdProp),
+        (ctx, pdName, pdProp) => `${kebabCase(pdProp)}-baz` // descriptor.attribute is different from kebab-cased descriptor.property
       ] as ((ctx: HTMLTestContext, $1: string, $2: string) => string)[],
       [
         (ctx, pdName, pdProp, pdAttr) => ({ [pdName]: { property: pdProp, attribute: pdAttr, mode: BindingMode.default  } }),
@@ -1066,7 +1067,7 @@ describe(`TemplateCompiler - combinations`, function () {
             //console.log('ACTUAL: ', JSON.stringify(actual.instructions[0][0], null, 2));
             e = err;
           }
-          expect(e).to.be.an('Error');
+          assert.instanceOf(e, Error);
         } else {
           // enableTracing();
           // Tracer.enableLiveLogging(SymbolTraceWriter);

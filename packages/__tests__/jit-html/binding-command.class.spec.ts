@@ -1,9 +1,8 @@
 import { Constructable } from '@aurelia/kernel';
 import { Aurelia, BindingMode, CustomElementResource, ILifecycle } from '@aurelia/runtime';
 import { IEventManager } from '@aurelia/runtime-html';
-import { expect } from 'chai';
 import { BasicConfiguration } from '@aurelia/jit-html';
-import { TestContext, eachCartesianJoin, eachCartesianJoinAsync, tearDown } from '@aurelia/testing';
+import { TestContext, eachCartesianJoin, eachCartesianJoinAsync, assert } from '@aurelia/testing';
 
 // TemplateCompiler - Binding Commands integration
 describe('template-compiler.binding-commands.class', function() {
@@ -67,36 +66,39 @@ describe('template-compiler.binding-commands.class', function() {
       },
       assert: async (au, lifecycle, host, component, testCase, className) => {
         const childEls = host.querySelectorAll('child');
-        expect(childEls.length).to.equal(6);
+        assert.strictEqual(childEls.length, 6, `childEls.length`);
         await eachCartesianJoinAsync(
           [falsyValues, truthyValues],
           async (falsyValue, truthyValue) => {
             for (let i = 0, ii = childEls.length; ii > i; ++i) {
               const el = childEls[i];
-              expect(
+              assert.strictEqual(
                 el.classList.contains(className.toLowerCase()),
+                true,
                 `[[truthy]]${el.className}.contains(${className}) 1`
-              ).to.equal(true);
+              );
             }
 
             component.value = falsyValue;
             await Promise.resolve();
             for (let i = 0, ii = childEls.length; ii > i; ++i) {
               const el = childEls[i];
-              expect(
+              assert.strictEqual(
                 el.classList.contains(className.toLowerCase()),
+                false,
                 `[${String(falsyValue)}]${el.className}.contains(${className}) 2`
-              ).to.equal(false);
+              );
             }
 
             component.value = truthyValue;
             await Promise.resolve();
             for (let i = 0, ii = childEls.length; ii > i; ++i) {
               const el = childEls[i];
-              expect(
+              assert.strictEqual(
                 el.classList.contains(className.toLowerCase()),
+                true,
                 `[${String(truthyValue)}]${el.className}.contains(${className}) 3`
-              ).to.equal(true);
+              );
             }
           }
         );
@@ -120,7 +122,7 @@ describe('template-compiler.binding-commands.class', function() {
     [classNameTests, testCases],
     (className, testCase, callIndex) => {
       it(testCase.title(className, callIndex), async function() {
-        const { ctx, au, lifecycle, host, component } = setup(
+        const { ctx, au, lifecycle, host, component, tearDown } = setup(
           testCase.template(className),
           class App {
             public value: unknown = true;
@@ -147,10 +149,11 @@ describe('template-compiler.binding-commands.class', function() {
             : testCase.selector(ctx.doc) as ArrayLike<HTMLElement>;
           for (let i = 0, ii = els.length; ii > i; ++i) {
             const el = els[i];
-            expect(
+            assert.strictEqual(
               el.classList.contains(className.toLowerCase()),
+              true,
               `[true]${el.className}.contains(${className}) 1`
-            ).to.equal(true);
+            );
           }
 
           await eachCartesianJoinAsync(
@@ -160,20 +163,22 @@ describe('template-compiler.binding-commands.class', function() {
               await Promise.resolve();
               for (let i = 0, ii = els.length; ii > i; ++i) {
                 const el = els[i];
-                expect(
+                assert.strictEqual(
                   el.classList.contains(className.toLowerCase()),
+                  false,
                   `[${String(falsyValue)}]${el.className}.contains(${className}) 2`
-                ).to.equal(false);
+                );
               }
 
               component.value = truthyValue;
               await Promise.resolve();
               for (let i = 0, ii = els.length; ii > i; ++i) {
                 const el = els[i];
-                expect(
+                assert.strictEqual(
                   el.classList.contains(className.toLowerCase()),
+                  true,
                   `[${String(truthyValue)}]${el.className}.contains(${className}) 3`
-                ).to.equal(true);
+                );
               }
             }
           );
@@ -181,7 +186,7 @@ describe('template-compiler.binding-commands.class', function() {
         } finally {
           const em = ctx.container.get(IEventManager);
           em.dispose();
-          tearDown(au, lifecycle, host);
+          tearDown();
         }
       });
     }
@@ -209,6 +214,10 @@ describe('template-compiler.binding-commands.class', function() {
     const App = CustomElementResource.define({ name: 'app', template }, $class);
     const component = new App();
 
-    return { container, lifecycle, ctx, host, au, component, observerLocator };
+    function tearDown() {
+      ctx.doc.body.removeChild(host);
+    }
+
+    return { container, lifecycle, ctx, host, au, component, observerLocator, tearDown };
   }
 });

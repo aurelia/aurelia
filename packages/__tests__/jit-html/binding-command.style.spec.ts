@@ -1,9 +1,8 @@
 import { Constructable } from '@aurelia/kernel';
 import { Aurelia, CustomElementResource, ILifecycle } from '@aurelia/runtime';
 import { IEventManager } from '@aurelia/runtime-html';
-import { expect } from 'chai';
 import { BasicConfiguration } from '@aurelia/jit-html';
-import { TestContext, eachCartesianJoin, eachCartesianJoinAsync, tearDown } from '@aurelia/testing';
+import { TestContext, eachCartesianJoin, assert } from '@aurelia/testing';
 
 // TemplateCompiler - Binding Commands integration
 describe('template-compiler.binding-commands.style', () => {
@@ -39,18 +38,19 @@ describe('template-compiler.binding-commands.style', () => {
         const hasImportant = ruleValue.indexOf('!important') > -1;
         const ruleValueNoPriority = hasImportant ? ruleValue.replace('!important', '') : ruleValue;
 
-        expect(childEls.length).to.equal(6);
+        assert.strictEqual(childEls.length, 6, `childEls.length`);
 
         component.value = ruleValue;
         await Promise.resolve();
         for (let i = 0, ii = childEls.length; ii > i; ++i) {
           const child = childEls[i];
-          expect(
+          assert.strictEqual(
             child.style.getPropertyValue(ruleName),
+            isInvalid ? valueOnInvalid : ruleValueNoPriority,
             `[${ruleName}]component.value="${ruleValue}" 1`
-          ).to.equal(isInvalid ? valueOnInvalid : ruleValueNoPriority);
+          );
           if (hasImportant) {
-            expect(child.style.getPropertyPriority(ruleName)).to.equal('important');
+            assert.strictEqual(child.style.getPropertyPriority(ruleName), 'important', `child.style.getPropertyPriority(ruleName)`);
           }
         }
 
@@ -58,12 +58,13 @@ describe('template-compiler.binding-commands.style', () => {
         await Promise.resolve();
         for (let i = 0, ii = childEls.length; ii > i; ++i) {
           const child = childEls[i];
-          expect(child.style.getPropertyValue(ruleName), `[${ruleName}]component.value="" 1`).to.equal(ruleDefaultValue);
+          assert.strictEqual(child.style.getPropertyValue(ruleName), ruleDefaultValue, `[${ruleName}]component.value="" 1`);
           if (hasImportant) {
-            expect(
+            assert.strictEqual(
               child.style.getPropertyPriority(ruleName),
+              '',
               `!important[${ruleName}]vm.value="" 1`
-            ).to.equal('');
+            );
           }
         }
 
@@ -71,15 +72,17 @@ describe('template-compiler.binding-commands.style', () => {
         await Promise.resolve();
         for (let i = 0, ii = childEls.length; ii > i; ++i) {
           const child = childEls[i];
-          expect(
+          assert.strictEqual(
             child.style.getPropertyValue(ruleName),
+            isInvalid ? valueOnInvalid : ruleValueNoPriority,
             `[${ruleName}]component.value="${ruleValue}" 2`
-          ).to.equal(isInvalid ? valueOnInvalid : ruleValueNoPriority);
+          );
           if (hasImportant) {
-            expect(
+            assert.strictEqual(
               child.style.getPropertyPriority(ruleName),
+              'important',
               `!important[${ruleName}]component.value=${ruleValue} 2`
-            ).to.equal('important');
+            );
           }
         }
 
@@ -112,7 +115,7 @@ describe('template-compiler.binding-commands.style', () => {
     [rulesTests, testCases],
     ([ruleName, ruleValue, ruleDefaultValue, isInvalid, valueOnInvalid], testCase, callIndex) => {
       it(testCase.title(ruleName, ruleValue, callIndex), async () => {
-        const { ctx, au, lifecycle, host, component } = setup(
+        const { ctx, au, lifecycle, host, component, tearDown } = setup(
           testCase.template(ruleName),
           class App {
             public value: string = ruleValue;
@@ -142,15 +145,17 @@ describe('template-compiler.binding-commands.style', () => {
 
           for (let i = 0; ii > i; ++i) {
             const el = els[i];
-            expect(
+            assert.strictEqual(
               el.style.getPropertyValue(ruleName),
+              isInvalid ? valueOnInvalid : ruleValueNoPriority,
               `[${ruleName}]vm.value="${ruleValue}" 1`
-            ).to.equal(isInvalid ? valueOnInvalid : ruleValueNoPriority);
+            );
             if (hasImportant) {
-              expect(
+              assert.strictEqual(
                 el.style.getPropertyPriority(ruleName),
+                'important',
                 `!important[${ruleName}]vm.value=${ruleValue} 1`
-              ).to.equal('important');
+              );
             }
           }
 
@@ -158,12 +163,13 @@ describe('template-compiler.binding-commands.style', () => {
           await Promise.resolve();
           for (let i = 0; ii > i; ++i) {
             const el = els[i];
-            expect(el.style.getPropertyValue(ruleName), `[${ruleName}]vm.value="" 2`).to.equal(ruleDefaultValue);
+            assert.strictEqual(el.style.getPropertyValue(ruleName), ruleDefaultValue, `[${ruleName}]vm.value="" 2`);
             if (hasImportant) {
-              expect(
+              assert.strictEqual(
                 el.style.getPropertyPriority(ruleName),
+                '',
                 `!important[${ruleName}]vm.value=${ruleValue} 2`
-              ).to.equal('');
+              );
             }
           }
 
@@ -171,15 +177,17 @@ describe('template-compiler.binding-commands.style', () => {
           await Promise.resolve();
           for (let i = 0; ii > i; ++i) {
             const el = els[i];
-            expect(
+            assert.strictEqual(
               el.style.getPropertyValue(ruleName),
+              isInvalid ? valueOnInvalid : ruleValueNoPriority,
               `[${ruleName}]vm.value="${ruleValue}" 3`
-            ).to.equal(isInvalid ? valueOnInvalid : ruleValueNoPriority);
+            );
             if (hasImportant) {
-              expect(
+              assert.strictEqual(
                 el.style.getPropertyPriority(ruleName),
+                'important',
                 `!important[${ruleName}]vm.value=${ruleValue} 3`
-              ).to.equal('important');
+              );
             }
           }
 
@@ -187,12 +195,13 @@ describe('template-compiler.binding-commands.style', () => {
           await Promise.resolve();
           for (let i = 0; ii > i; ++i) {
             const el = els[i];
-            expect(el.style.getPropertyValue(ruleName), `[${ruleName}]vm.value="" 4`).to.equal(ruleDefaultValue);
+            assert.strictEqual(el.style.getPropertyValue(ruleName), ruleDefaultValue, `[${ruleName}]vm.value="" 4`);
             if (hasImportant) {
-              expect(
+              assert.strictEqual(
                 el.style.getPropertyPriority(ruleName),
+                '',
                 `!important[${ruleName}]vm.value=${ruleValue} 4`
-              ).to.equal('');
+              );
             }
           }
 
@@ -203,7 +212,7 @@ describe('template-compiler.binding-commands.style', () => {
         } finally {
           const em = ctx.container.get(IEventManager);
           em.dispose();
-          tearDown(au, lifecycle, host);
+          tearDown();
         }
       });
     }
@@ -231,6 +240,10 @@ describe('template-compiler.binding-commands.style', () => {
     const App = CustomElementResource.define({ name: 'app', template }, $class);
     const component: T = new App();
 
-    return { container, lifecycle, ctx, host, au, component, observerLocator };
+    function tearDown() {
+      ctx.doc.body.removeChild(host);
+    }
+
+    return { container, lifecycle, ctx, host, au, component, observerLocator, tearDown };
   }
 });

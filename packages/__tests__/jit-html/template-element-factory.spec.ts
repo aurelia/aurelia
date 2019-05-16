@@ -1,7 +1,6 @@
 
-import { expect } from 'chai';
 import { ITemplateElementFactory, ITemplateElementFactoryRegistration } from '@aurelia/jit-html';
-import { HTMLTestContext, TestContext } from '@aurelia/testing';
+import { HTMLTestContext, TestContext, assert } from '@aurelia/testing';
 
 describe('HTMLTemplateElementFactory', function () {
   let sut: ITemplateElementFactory<HTMLElement>;
@@ -19,7 +18,7 @@ describe('HTMLTemplateElementFactory', function () {
     const expectedHTML = markup;
     const actualHTML = sut.createTemplate(markup).outerHTML;
 
-    expect(actualHTML).to.equal(expectedHTML);
+    assert.strictEqual(actualHTML, expectedHTML, `actualHTML`);
   });
 
   it('non-template-wrapped markup string', function () {
@@ -28,7 +27,7 @@ describe('HTMLTemplateElementFactory', function () {
     const expectedHTML = `<template>${markup}</template>`;
     const actualHTML = sut.createTemplate(markup).outerHTML;
 
-    expect(actualHTML).to.equal(expectedHTML);
+    assert.strictEqual(actualHTML, expectedHTML, `actualHTML`);
   });
 
   it('double template-wrapped markup string', function () {
@@ -37,7 +36,7 @@ describe('HTMLTemplateElementFactory', function () {
     const expectedHTML = `<template>${markup}</template>`;
     const actualHTML = sut.createTemplate(markup).outerHTML;
 
-    expect(actualHTML).to.equal(expectedHTML);
+    assert.strictEqual(actualHTML, expectedHTML, `actualHTML`);
   });
 
   it('double non-template-wrapped markup string', function () {
@@ -46,7 +45,7 @@ describe('HTMLTemplateElementFactory', function () {
     const expectedHTML = `<template>${markup}</template>`;
     const actualHTML = sut.createTemplate(markup).outerHTML;
 
-    expect(actualHTML).to.equal(expectedHTML);
+    assert.strictEqual(actualHTML, expectedHTML, `actualHTML`);
   });
 
   it('template node', function () {
@@ -58,7 +57,7 @@ describe('HTMLTemplateElementFactory', function () {
     const expectedHTML = `<template>${markup}</template>`;
     const actualHTML = sut.createTemplate(node).outerHTML;
 
-    expect(actualHTML).to.equal(expectedHTML);
+    assert.strictEqual(actualHTML, expectedHTML, `actualHTML`);
   });
 
   it('non-template node', function () {
@@ -70,7 +69,7 @@ describe('HTMLTemplateElementFactory', function () {
     const expectedHTML = `<template>${markup}</template>`;
     const actualHTML = sut.createTemplate(node).outerHTML;
 
-    expect(actualHTML).to.equal(expectedHTML);
+    assert.strictEqual(actualHTML, expectedHTML, `actualHTML`);
   });
 
   it('template node with parent', function () {
@@ -79,12 +78,12 @@ describe('HTMLTemplateElementFactory', function () {
     template.innerHTML = markup;
     const node = template.content.firstElementChild;
 
-    expect(node.parentNode).not.to.equal(null);
+    assert.notStrictEqual(node.parentNode, null, `node.parentNode`);
 
     const expectedHTML = markup;
     const actualNode = sut.createTemplate(node);
 
-    expect(actualNode.outerHTML).to.equal(expectedHTML);
-    expect(actualNode.parentNode).to.equal(null);
+    assert.strictEqual(actualNode.outerHTML, expectedHTML, `actualNode.outerHTML`);
+    assert.strictEqual(actualNode.parentNode, null, `actualNode.parentNode`);
   });
 });

@@ -1,6 +1,5 @@
 import { Aurelia, CustomElementResource } from '@aurelia/runtime';
-import { expect } from 'chai';
-import { TestContext } from '@aurelia/testing';
+import { TestContext, assert } from '@aurelia/testing';
 
 describe('replaceable', function () {
   for (const [title, appMarkup, ceMarkup, , , , , , expected] of [
@@ -43,7 +42,7 @@ describe('replaceable', function () {
 
       au.start();
 
-      expect(host.textContent).to.equal(expected);
+      assert.strictEqual(host.textContent, expected, `host.textContent`);
 
     });
   }
@@ -64,7 +63,7 @@ describe('replaceable', function () {
 
     au.start();
 
-    expect(host.textContent).to.equal('abc');
+    assert.strictEqual(host.textContent, 'abc', `host.textContent`);
 
   });
 
@@ -84,7 +83,7 @@ describe('replaceable', function () {
 
     au.start();
 
-    expect(host.textContent).to.equal('def');
+    assert.strictEqual(host.textContent, 'def', `host.textContent`);
 
   });
 
@@ -104,7 +103,7 @@ describe('replaceable', function () {
 
     au.start();
 
-    expect(host.textContent).to.equal('abc');
+    assert.strictEqual(host.textContent, 'abc', `host.textContent`);
 
   });
 
@@ -124,7 +123,7 @@ describe('replaceable', function () {
 
     au.start();
 
-    expect(host.textContent).to.equal('def');
+    assert.strictEqual(host.textContent, 'def', `host.textContent`);
 
   });
 
@@ -144,7 +143,7 @@ describe('replaceable', function () {
 
     au.start();
 
-    expect(host.textContent).to.equal('def');
+    assert.strictEqual(host.textContent, 'def', `host.textContent`);
 
   });
 
@@ -164,7 +163,7 @@ describe('replaceable', function () {
 
     au.start();
 
-    expect(host.textContent).to.equal('abcabc');
+    assert.strictEqual(host.textContent, 'abcabc', `host.textContent`);
 
   });
 
@@ -185,7 +184,7 @@ describe('replaceable', function () {
 
     au.start();
 
-    expect(host.textContent).to.equal('abc');
+    assert.strictEqual(host.textContent, 'abc', `host.textContent`);
 
   });
 
@@ -205,7 +204,7 @@ describe('replaceable', function () {
 
     au.start();
 
-    expect(host.textContent).to.equal('abc');
+    assert.strictEqual(host.textContent, 'abc', `host.textContent`);
 
   });
 
@@ -225,7 +224,7 @@ describe('replaceable', function () {
 
     au.start();
 
-    expect(host.textContent).to.equal('abc');
+    assert.strictEqual(host.textContent, 'abc', `host.textContent`);
 
   });
 
@@ -245,7 +244,7 @@ describe('replaceable', function () {
 
     au.start();
 
-    expect(host.textContent).to.equal('abc');
+    assert.strictEqual(host.textContent, 'abc', `host.textContent`);
 
   });
 
@@ -299,7 +298,7 @@ describe('replaceable', function () {
 
           au.start();
 
-          expect(host.textContent, 'host.textContent').to.equal(buildExpectedTextContent(i));
+          assert.strictEqual(host.textContent, buildExpectedTextContent(i), 'host.textContent');
           tearDown(au);
         });
       }
@@ -347,7 +346,7 @@ describe('replaceable', function () {
           au.app({ host, component });
           au.start();
 
-          expect(host.textContent, `[i=${i}]host.textContent`).to.equal(`replace-part-p`.repeat(i));
+          assert.strictEqual(host.textContent, `replace-part-p`.repeat(i), `[i=${i}]host.textContent`);
           tearDown(au);
         });
       }
@@ -439,10 +438,11 @@ describe('replaceable', function () {
             au.app({ host, component });
             au.start();
 
-            expect(
+            assert.strictEqual(
               host.textContent,
+              buildExpectedTextContent(baseReplaceableCount, nestedDepth),
               `[base=${baseReplaceableCount}, depth=${nestedDepth}]host.textContent`
-            ).to.equal(buildExpectedTextContent(baseReplaceableCount, nestedDepth));
+            );
             tearDown(au);
           });
         }
@@ -457,7 +457,7 @@ describe('replaceable', function () {
 
   function tearDown(au: Aurelia) {
     au.stop();
-    (au.root().$host as Element).remove();
+    (au.root.host as Element).remove();
   }
 
   function createItems(count: number, baseName: string = 'item') {

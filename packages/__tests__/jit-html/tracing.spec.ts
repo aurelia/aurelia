@@ -1,8 +1,7 @@
 import { Tracer } from '@aurelia/kernel';
 import { Aurelia, CustomElementResource } from '@aurelia/runtime';
-import { expect } from 'chai';
 import { stringifyTemplateDefinition } from '@aurelia/jit-html';
-import { disableTracing, enableTracing, getVisibleText, TestContext } from '@aurelia/testing';
+import { disableTracing, enableTracing, getVisibleText, TestContext, assert } from '@aurelia/testing';
 
 describe('tracing', function () {
   function setup() {
@@ -16,18 +15,18 @@ describe('tracing', function () {
   function verify(au, host, expected, description) {
       au.start();
       const outerHtmlAfterStart1 = host.outerHTML;
-      expect(getVisibleText(au, host)).to.equal(expected, 'after start #1');
+      assert.strictEqual(getVisibleText(au, host), expected, 'after start #1');
       au.stop();
       const outerHtmlAfterStop1 = host.outerHTML;
-      expect(getVisibleText(au, host)).to.equal('', 'after stop #1');
+      assert.strictEqual(getVisibleText(au, host), '', 'after stop #1');
       au.start();
       const outerHtmlAfterStart2 = host.outerHTML;
-      expect(getVisibleText(au, host)).to.equal(expected, 'after start #2');
+      assert.strictEqual(getVisibleText(au, host), expected, 'after start #2');
       au.stop();
       const outerHtmlAfterStop2 = host.outerHTML;
-      expect(getVisibleText(au, host)).to.equal('', 'after stop #2');
-      expect(outerHtmlAfterStart1).to.equal(outerHtmlAfterStart2, 'outerHTML after start #1 / #2');
-      expect(outerHtmlAfterStop1).to.equal(outerHtmlAfterStop2, 'outerHTML after stop #1 / #2');
+      assert.strictEqual(getVisibleText(au, host), '', 'after stop #2');
+      assert.strictEqual(outerHtmlAfterStart1, outerHtmlAfterStart2, 'outerHTML after start #1 / #2');
+      assert.strictEqual(outerHtmlAfterStop1, outerHtmlAfterStop2, 'outerHTML after stop #1 / #2');
 
       console.log(`\n${stringifyTemplateDefinition(description, 0)}`);
       disableTracing();

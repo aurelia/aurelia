@@ -1,6 +1,5 @@
 import { Aurelia, CustomElementResource, IViewModel } from '@aurelia/runtime';
-import { expect } from 'chai';
-import { TestContext, HTMLTestContext, hJsx } from '@aurelia/testing';
+import { TestContext, HTMLTestContext, hJsx, assert } from '@aurelia/testing';
 
 // IMPORTANT:
 //      JSX is used to eliminate space between tags so test result can be easier to manually constructed
@@ -204,9 +203,11 @@ describe.skip('replaceable', function () {
             async (host, app, foo) => {
               app.message = 'Hello world from Aurelia';
               await Promise.resolve();
-              expect(host.textContent, 'host.textContent@changed')
-                .to
-                .equal('0-item-0. Message: Hello world from Aurelia.');
+              assert.strictEqual(
+                host.textContent,
+                '0-item-0. Message: Hello world from Aurelia.',
+                'host.textContent@changed',
+              );
             }
           ],
           // Same with previous. Though [with] + [replaceable] are on same element
@@ -226,9 +227,11 @@ describe.skip('replaceable', function () {
             async (host, app, foo) => {
               app.message = 'Hello world from Aurelia';
               await Promise.resolve();
-              expect(host.textContent, 'host.textContent@changed')
-                .to
-                .equal('0-item-0. Message: Hello world from Aurelia.');
+              assert.strictEqual(
+                host.textContent,
+                '0-item-0. Message: Hello world from Aurelia.',
+                'host.textContent@changed',
+              );
             }
           ],
           [
@@ -253,13 +256,19 @@ describe.skip('replaceable', function () {
             async (host, app, foo) => {
               foo.items = createItems(3, 'ITEM');
               await Promise.resolve();
-              expect(host.textContent, 'host.textContent@changed')
-                .to
-                .equal(`0-ITEM-0`);
+              assert.strictEqual(
+                host.textContent,
+                `0-ITEM-0`,
+                'host.textContent@changed',
+              );
 
               foo.items = [];
               await Promise.resolve();
-              expect(host.textContent, 'host.textContent@[]').to.equal('');
+              assert.strictEqual(
+                host.textContent,
+                '',
+                'host.textContent@[]',
+              );
             }
           ],
           // Same with previous. Though [with] + [replaceable] are on same element
@@ -282,13 +291,15 @@ describe.skip('replaceable', function () {
             async (host, app, foo) => {
               foo.items = createItems(3, 'ITEM');
               await Promise.resolve();
-              expect(host.textContent, 'host.textContent@changed')
-                .to
-                .equal(`0-ITEM-0.`);
+              assert.strictEqual(
+                host.textContent,
+                `0-ITEM-0.`,
+                'host.textContent@changed',
+              );
 
               foo.items = [];
               await Promise.resolve();
-              expect(host.textContent, 'host.textContent@[]').to.equal('');
+              assert.strictEqual(host.textContent, '', 'host.textContent@[]');
             }
           ]
         ];
@@ -322,9 +333,9 @@ describe.skip('replaceable', function () {
             au.app({ host, component });
             au.start();
 
-            expect(host.textContent, `host.textContent`).to.equal(expectedTextContent);
+            assert.strictEqual(host.textContent, expectedTextContent, `host.textContent`);
             if (customAssertion) {
-              await customAssertion(host, component, component.$componentHead as any as IFoo);
+              await customAssertion(host, component, component.$controller.controllers[0] as any as IFoo);
             }
             tearDown(au);
           });
@@ -348,7 +359,7 @@ describe.skip('replaceable', function () {
 
   function tearDown(au: Aurelia) {
     au.stop();
-    (au.root().$host as Element).remove();
+    (au.root.host as Element).remove();
   }
 
   function createItems(count: number, baseName: string = 'item') {

@@ -7,10 +7,9 @@ import {
   INodeSequence,
   ISignaler,
   LifecycleFlags } from '@aurelia/runtime';
-import { expect } from 'chai';
 import { NodeSequenceFactory } from '@aurelia/runtime-html';
 import { TemplateBinder } from '@aurelia/jit-html';
-import { TestContext } from '@aurelia/testing';
+import { TestContext, assert } from '@aurelia/testing';
 
 const spec = 'kitchen-sink';
 
@@ -20,14 +19,15 @@ describe(spec, function () {
     const ctx = TestContext.createHTMLTestContext();
     const component = CustomElementResource.define({ name: 'app', template: `<template>\${message}</template>` }, class { public message = 'Hello!'; });
     const host = ctx.createElement('div');
-    const au = new Aurelia(ctx.container).register().app({ host, component }).start();
-    expect(host.textContent).to.equal('Hello!');
-    au.stop();
-    expect(host.textContent).to.equal('');
+    const au = new Aurelia(ctx.container).register().app({ host, component });
     au.start();
-    expect(host.textContent).to.equal('Hello!');
+    assert.strictEqual(host.textContent, 'Hello!', `host.textContent`);
     au.stop();
-    expect(host.textContent).to.equal('');
+    assert.strictEqual(host.textContent, '', `host.textContent`);
+    au.start();
+    assert.strictEqual(host.textContent, 'Hello!', `host.textContent`);
+    au.stop();
+    assert.strictEqual(host.textContent, '', `host.textContent`);
   });
 
   it('signaler', async function () {
@@ -52,17 +52,17 @@ describe(spec, function () {
 
     au.start();
 
-    expect(host.textContent).to.equal('012');
+    assert.strictEqual(host.textContent, '012', `host.textContent`);
 
     items[0] = 2;
 
-    lifecycle.processFlushQueue(LifecycleFlags.none);
+    lifecycle.processRAFQueue(LifecycleFlags.none);
 
-    expect(host.textContent).to.equal('012');
+    assert.strictEqual(host.textContent, '012', `host.textContent`);
 
     signaler.dispatchSignal('updateItem', LifecycleFlags.fromFlush);
 
-    expect(host.textContent).to.equal('212');
+    assert.strictEqual(host.textContent, '212', `host.textContent`);
 
   });
 
@@ -88,17 +88,17 @@ describe(spec, function () {
 
     au.start();
 
-    expect(host.textContent).to.equal('012');
+    assert.strictEqual(host.textContent, '012', `host.textContent`);
 
     items[0] = 2;
 
-    lifecycle.processFlushQueue(LifecycleFlags.none);
+    lifecycle.processRAFQueue(LifecycleFlags.none);
 
-    expect(host.textContent).to.equal('012');
+    assert.strictEqual(host.textContent, '012', `host.textContent`);
 
     signaler.dispatchSignal('updateItem', LifecycleFlags.fromFlush);
 
-    expect(host.textContent).to.equal('212');
+    assert.strictEqual(host.textContent, '212', `host.textContent`);
 
   });
 
@@ -124,7 +124,7 @@ describe(spec, function () {
 
     au.start();
 
-    expect(host.textContent).to.equal('foo');
+    assert.strictEqual(host.textContent, 'foo', `host.textContent`);
 
   });
 });
@@ -171,7 +171,7 @@ describe('xml node compiler tests', function () {
       );
 
       const result = binder.bind(fakeSurrogate as any);
-      expect(result.physicalNode).to.equal(fakeSurrogate);
+      assert.strictEqual(result.physicalNode, fakeSurrogate, `result.physicalNode`);
     });
   }
 });
@@ -206,14 +206,14 @@ describe('dependency injection', function () {
 
     au.start();
 
-    expect(host.textContent).to.equal('bar');
+    assert.strictEqual(host.textContent, 'bar', `host.textContent`);
   });
 });
 
 // commented out code left here intentionally, serves as a staring point for template controller tests
 
-// describe.only('test', () => {
-//   it.only('if', () => {
+// describe('test', () => {
+//   it('if', () => {
 //     enableTracing();
 //     Tracer.enableLiveLogging(SymbolTraceWriter);
 //     const container = BasicConfiguration.createContainer();
@@ -253,7 +253,7 @@ describe('dependency injection', function () {
 //     expect(host.textContent).to.equal('bar')
 //   });
 
-//   it.only('if2', () => {
+//   it('if2', () => {
 //     enableTracing();
 //     Tracer.enableLiveLogging(SymbolTraceWriter);
 //     // common stuff
@@ -350,7 +350,7 @@ describe('dependency injection', function () {
 
 //     sut.$attach(LifecycleFlags.none);
 
-//     expect(host.textContent).to.equal(firstAttachInitialHostText, 'host.textContent #1');
+//     assert.strictEqual(host.textContent, firstAttachInitialHostText, 'host.textContent #1', `host.textContent`);
 //     disableTracing();
 
 //   });

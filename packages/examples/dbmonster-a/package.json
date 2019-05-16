@@ -14,10 +14,10 @@
   },
   "devDependencies": {
     "@types/node": "^10.12.27",
-    "browser-sync": "^2.26.3",
+    "browser-sync": "^2.26.5",
     "browserify": "^16.2.3",
     "cross-env": "^5.2.0",
-    "gulp": "^4.0.0",
+    "gulp": "^4.0.2",
     "gulp-typescript": "^5.0.1",
     "gulp-util": "^3.0.8",
     "http-server": "^0.11.1",

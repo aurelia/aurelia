@@ -49,26 +49,26 @@
     "@aurelia/runtime-html-jsdom": "0.3.0",
     "@aurelia/jit": "0.3.0",
     "@aurelia/jit-html": "0.3.0",
-    "jsdom": "^13.2.0 || ^14.0.0"
+    "jsdom": "^13.2.0 || ^14.0.0 || ^15.0.0"
   },
   "devDependencies": {
     "@types/chai": "^4.1.7",
     "@types/jsdom": "^12.2.3",
     "@types/mocha": "^5.2.6",
     "@types/node": "^10.12.27",
-    "@types/sinon": "^7.0.10",
+    "@types/sinon": "^7.0.11",
     "@types/sinon-chai": "^3.2.2",
     "chai": "^4.2.0",
     "cross-env": "^5.2.0",
-    "mocha": "^6.0.2",
+    "mocha": "^6.1.4",
     "path": "^0.12.7",
-    "sinon": "^7.3.0",
+    "sinon": "^7.3.2",
     "sinon-chai": "^3.3.0",
-    "ts-node": "^8.0.3",
+    "ts-node": "^8.1.0",
     "tsconfig-paths": "^3.8.0",
     "tslib": "^1.9.3",
-    "tslint": "^5.14.0",
-    "tslint-microsoft-contrib": "^6.1.0",
+    "tslint": "^5.16.0",
+    "tslint-microsoft-contrib": "^6.1.1",
     "tslint-sonarts": "^1.9.0",
     "typescript": "~3.3.4000"
   }

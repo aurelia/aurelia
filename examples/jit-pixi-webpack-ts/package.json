@@ -14,12 +14,12 @@
     "@aurelia/runtime-html": "file:../../packages/runtime-html",
     "@aurelia/runtime-pixi": "file:../../packages/runtime-pixi",
     "@aurelia/runtime": "file:../../packages/runtime",
-    "pixi.js": "^4.8.7"
+    "pixi.js": "^4.8.7 || ^5.0.0"
   },
   "devDependencies": {
     "@types/node": "latest",
-    "@types/pixi.js": "^4.8.6",
-    "copy-webpack-plugin": "^5.0.2",
+    "@types/pixi.js": "^4.8.7",
+    "copy-webpack-plugin": "^5.0.3",
     "file-loader": "^3.0.1",
     "html-loader": "latest",
     "html-webpack-plugin": "latest",

@@ -1,11 +1,11 @@
 import { PLATFORM, Reporter } from '@aurelia/kernel';
-import { expect } from 'chai';
 import {
   DirtyCheckSettings,
   IDirtyChecker,
   LifecycleFlags,
   RuntimeBasicConfiguration
 } from '@aurelia/runtime';
+import { assert } from '@aurelia/testing';
 
 describe('DirtyChecker', function () {
   afterEach(function () {
@@ -160,33 +160,33 @@ describe('DirtyChecker', function () {
         // marker is just to make it easier to pin down failing assertions from the test logs
         const expected = frameChecks[frameCount];
         if (expected.callCount > 0) {
-          expect(callCount1).to.equal(expected.callCount, `callCount1 #${marker}`);
-          expect(newValue1).to.equal(expected.newValue, `newValue1 #${marker}`);
-          expect(oldValue1).to.equal(expected.oldValue, `oldValue1 #${marker}`);
-          expect(flags1).to.equal(expected.flags, `flag1s #${marker}`);
+          assert.strictEqual(callCount1, expected.callCount, `callCount1 #${marker}`);
+          assert.strictEqual(newValue1, expected.newValue, `newValue1 #${marker}`);
+          assert.strictEqual(oldValue1, expected.oldValue, `oldValue1 #${marker}`);
+          assert.strictEqual(flags1, expected.flags, `flag1s #${marker}`);
 
-          expect(callCount2).to.equal(expected.callCount, `callCount2 #${marker}`);
-          expect(newValue2).to.equal(expected.newValue, `newValue2 #${marker}`);
-          expect(oldValue2).to.equal(expected.oldValue, `oldValue2 #${marker}`);
-          expect(flags2).to.equal(expected.flags, `flags2 #${marker}`);
+          assert.strictEqual(callCount2, expected.callCount, `callCount2 #${marker}`);
+          assert.strictEqual(newValue2, expected.newValue, `newValue2 #${marker}`);
+          assert.strictEqual(oldValue2, expected.oldValue, `oldValue2 #${marker}`);
+          assert.strictEqual(flags2, expected.flags, `flags2 #${marker}`);
 
-          expect(callCount3).to.equal(expected.callCount, `callCount3 #${marker}`);
-          expect(newValue3).to.equal(expected.newValue, `newValue3 #${marker}`);
-          expect(oldValue3).to.equal(expected.oldValue, `oldValue3 #${marker}`);
-          expect(flags3).to.equal(expected.flags, `flags3 #${marker}`);
+          assert.strictEqual(callCount3, expected.callCount, `callCount3 #${marker}`);
+          assert.strictEqual(newValue3, expected.newValue, `newValue3 #${marker}`);
+          assert.strictEqual(oldValue3, expected.oldValue, `oldValue3 #${marker}`);
+          assert.strictEqual(flags3, expected.flags, `flags3 #${marker}`);
 
-          expect(callCount4).to.equal(expected.callCount, `callCount4 #${marker}`);
-          expect(newValue4).to.equal(expected.newValue, `newValue4 #${marker}`);
-          expect(oldValue4).to.equal(expected.oldValue, `oldValue4 #${marker}`);
-          expect(flags4).to.equal(expected.flags, `flags4 #${marker}`);
+          assert.strictEqual(callCount4, expected.callCount, `callCount4 #${marker}`);
+          assert.strictEqual(newValue4, expected.newValue, `newValue4 #${marker}`);
+          assert.strictEqual(oldValue4, expected.oldValue, `oldValue4 #${marker}`);
+          assert.strictEqual(flags4, expected.flags, `flags4 #${marker}`);
         } else {
-          expect(callCount1).to.equal(0, `callCount1 #${marker}`);
+          assert.strictEqual(callCount1, 0, `callCount1 #${marker}`);
 
-          expect(callCount2).to.equal(0, `callCount2 #${marker}`);
+          assert.strictEqual(callCount2, 0, `callCount2 #${marker}`);
 
-          expect(callCount3).to.equal(0, `callCount3 #${marker}`);
+          assert.strictEqual(callCount3, 0, `callCount3 #${marker}`);
 
-          expect(callCount4).to.equal(0, `callCount4 #${marker}`);
+          assert.strictEqual(callCount4, 0, `callCount4 #${marker}`);
         }
       }
 
@@ -198,10 +198,10 @@ describe('DirtyChecker', function () {
 
         obj1.foo = obj2.foo = `${frameCount + 1}`;
 
-        expect(callCount1).to.equal(0);
-        expect(callCount2).to.equal(0);
-        expect(callCount3).to.equal(0);
-        expect(callCount4).to.equal(0);
+        assert.strictEqual(callCount1, 0, `callCount1`);
+        assert.strictEqual(callCount2, 0, `callCount2`);
+        assert.strictEqual(callCount3, 0, `callCount3`);
+        assert.strictEqual(callCount4, 0, `callCount4`);
         PLATFORM.requestAnimationFrame(() => {
           obj1.foo = obj2.foo = `${++frameCount + 1}`;
           verifyCalled(2);
@@ -271,18 +271,18 @@ describe('DirtyChecker', function () {
 
     obj.foo = `1`;
 
-    expect(callCount).to.equal(0);
+    assert.strictEqual(callCount, 0, `callCount`);
 
     PLATFORM.requestAnimationFrame(() => {
-      expect(callCount).to.equal(0);
+      assert.strictEqual(callCount, 0, `callCount`);
       PLATFORM.requestAnimationFrame(() => {
-        expect(callCount).to.equal(0);
+        assert.strictEqual(callCount, 0, `callCount`);
         PLATFORM.requestAnimationFrame(() => {
-          expect(callCount).to.equal(0);
+          assert.strictEqual(callCount, 0, `callCount`);
           PLATFORM.requestAnimationFrame(() => {
-            expect(callCount).to.equal(0);
+            assert.strictEqual(callCount, 0, `callCount`);
             PLATFORM.requestAnimationFrame(() => {
-              expect(callCount).to.equal(0);
+              assert.strictEqual(callCount, 0, `callCount`);
               observer.unsubscribe(subscriber);
               done();
             });
@@ -303,7 +303,7 @@ describe('DirtyChecker', function () {
     } catch (e) {
       err = e;
     }
-    expect(err.message).to.match(/800/);
+    assert.match(err.message, /800/, `err.message`);
   });
 
   it('warns by default', function () {
@@ -318,7 +318,7 @@ describe('DirtyChecker', function () {
 
     const obj = { foo: '0' };
     dirtyChecker.createProperty(obj, 'foo');
-    expect(warnCalled).to.equal(true);
+    assert.strictEqual(warnCalled, true, `warnCalled`);
     Reporter.write = writeBackup;
   });
 
@@ -335,7 +335,7 @@ describe('DirtyChecker', function () {
 
     const obj = { foo: '0' };
     dirtyChecker.createProperty(obj, 'foo');
-    expect(warnCalled).to.equal(false);
+    assert.strictEqual(warnCalled, false, `warnCalled`);
     Reporter.write = writeBackup;
   });
 });

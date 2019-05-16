@@ -2,7 +2,6 @@ import {
   DI,
   IContainer
 } from '@aurelia/kernel';
-import { expect } from 'chai';
 import {
   Binding,
   BindingMode,
@@ -12,6 +11,7 @@ import {
   IScope,
   LifecycleFlags
 } from '@aurelia/runtime';
+import { assert } from '@aurelia/testing';
 
 describe('DebounceBindingBehavior', function () {
   const container: IContainer = DI.createContainer();
@@ -28,19 +28,19 @@ describe('DebounceBindingBehavior', function () {
 
   // TODO: test properly (whether debouncing works etc)
   it('bind()   should apply the correct behavior', function () {
-    expect(binding['debouncedMethod'] === originalFn).to.equal(true);
-    expect(binding['debouncedMethod'].originalName).to.equal('handleChange');
-    expect(binding.handleChange === originalFn).to.equal(false);
-    expect(typeof binding.handleChange).to.equal('function');
-    expect(binding['debounceState']).not.to.equal(null);
-    expect(typeof binding['debounceState']).to.equal('object');
+    assert.strictEqual(binding['debouncedMethod'] === originalFn, true, `binding['debouncedMethod'] === originalFn`);
+    assert.strictEqual(binding['debouncedMethod'].originalName, 'handleChange', `binding['debouncedMethod'].originalName`);
+    assert.strictEqual(binding.handleChange === originalFn, false, `binding.handleChange === originalFn`);
+    assert.strictEqual(typeof binding.handleChange, 'function', `typeof binding.handleChange`);
+    assert.notStrictEqual(binding['debounceState'], null, `binding['debounceState']`);
+    assert.strictEqual(typeof binding['debounceState'], 'object', `typeof binding['debounceState']`);
   });
 
   it('unbind() should revert the original behavior', function () {
     sut.unbind(undefined, undefined, binding as any);
-    expect(binding['debouncedMethod']).to.equal(null);
-    expect(binding.handleChange === originalFn).to.equal(true);
-    expect(typeof binding.handleChange).to.equal('function');
-    expect(binding['debounceState']).to.equal(null);
+    assert.strictEqual(binding['debouncedMethod'], null, `binding['debouncedMethod']`);
+    assert.strictEqual(binding.handleChange === originalFn, true, `binding.handleChange === originalFn`);
+    assert.strictEqual(typeof binding.handleChange, 'function', `typeof binding.handleChange`);
+    assert.strictEqual(binding['debounceState'], null, `binding['debounceState']`);
   });
 });

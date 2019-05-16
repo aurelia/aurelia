@@ -146,7 +146,7 @@ function verifyResultOrError(expr: string, expected: any, expectedMsg?: string, 
     if (error == null) {
       throw new Error(`Expected expression "${expr}" with BindingType.${bindingTypeToString(bindingType)} to throw "${expectedMsg}", but no error was thrown`);
     } else {
-      if (error.message !== expectedMsg) {
+      if (!error.message.startsWith(expectedMsg)) {
         throw new Error(`Expected expression "${expr}" with BindingType.${bindingTypeToString(bindingType)} to throw "${expectedMsg}", but got "${error.message}" instead`);
       }
     }

@@ -1,6 +1,6 @@
 import { DI, IContainer } from '@aurelia/kernel';
-import { expect } from 'chai';
 import { valueConverter, ValueConverterResource } from '@aurelia/runtime';
+import { assert } from '@aurelia/testing';
 
 describe(`@valueConverter('foo')`, function () {
   let container: IContainer;
@@ -14,11 +14,11 @@ describe(`@valueConverter('foo')`, function () {
   class FooValueConverter { }
 
   it(`should define the value converter`, function () {
-    expect(FooValueConverter['kind']).to.equal(ValueConverterResource);
-    expect(FooValueConverter['description'].name).to.equal('foo');
+    assert.strictEqual(FooValueConverter['kind'], ValueConverterResource, `FooValueConverter['kind']`);
+    assert.strictEqual(FooValueConverter['description'].name, 'foo', `FooValueConverter['description'].name`);
     FooValueConverter['register'](container);
     const instance = container.get(ValueConverterResource.keyFrom('foo'));
-    expect(instance).to.be.instanceof(FooValueConverter);
+    assert.instanceOf(instance, FooValueConverter, `instance`);
   });
 
 });

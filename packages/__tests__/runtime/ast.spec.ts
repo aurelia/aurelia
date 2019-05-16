@@ -85,7 +85,7 @@ function throwsOn<TExpr extends IsBindingBehavior>(expr: TExpr, method: keyof TE
   }
   assert.notStrictEqual(err, null, 'err');
   if (msg && msg.length) {
-    assert.strictEqual(err.message.includes(msg), true, 'err.message.includes(msg)');
+    assert.includes(err.message, msg, 'err.message.includes(msg)');
   }
 }
 

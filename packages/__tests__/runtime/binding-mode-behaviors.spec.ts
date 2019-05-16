@@ -2,7 +2,6 @@ import {
   DI,
   IContainer
 } from '@aurelia/kernel';
-import { expect } from 'chai';
 import {
   Binding,
   BindingMode,
@@ -11,6 +10,7 @@ import {
   ToViewBindingBehavior,
   TwoWayBindingBehavior
 } from '@aurelia/runtime';
+import { assert } from '@aurelia/testing';
 
 const tests = [
   { Behavior: OneTimeBindingBehavior, mode: BindingMode.oneTime },
@@ -36,12 +36,12 @@ describe('BindingModeBehavior', function () {
         });
 
         it(`bind()   should apply  bindingMode ${mode}`, function () {
-          expect(binding.mode).to.equal(mode);
+          assert.strictEqual(binding.mode, mode, `binding.mode`);
         });
 
         it(`unbind() should revert bindingMode ${initMode}`, function () {
           sut.unbind(undefined, undefined, binding);
-          expect(binding.mode).to.equal(initMode);
+          assert.strictEqual(binding.mode, initMode, `binding.mode`);
         });
       });
     }

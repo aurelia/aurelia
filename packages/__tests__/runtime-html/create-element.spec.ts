@@ -6,7 +6,6 @@ import {
   TargetedInstruction,
   TargetedInstructionType
 } from '@aurelia/runtime';
-import { expect } from 'chai';
 import {
   createElement as sut,
   HTMLTargetedInstructionType,
@@ -17,7 +16,8 @@ import {
   eachCartesianJoin,
   eachCartesianJoinFactory,
   HTMLTestContext,
-  TestContext
+  TestContext,
+  assert
 } from '@aurelia/testing';
 
 describe(`createElement() creates element based on tag`, function () {
@@ -29,11 +29,11 @@ describe(`createElement() creates element based on tag`, function () {
 
         const node = actual['node'] as Element;
 
-        expect(node.getAttribute('title')).to.equal('asdf');
-        expect(node.getAttribute('foo')).to.equal('bar');
+        assert.strictEqual(node.getAttribute('title'), 'asdf', `node.getAttribute('title')`);
+        assert.strictEqual(node.getAttribute('foo'), 'bar', `node.getAttribute('foo')`);
 
-        expect(actual['instructions'].length).to.equal(0);
-        expect(node.getAttribute('class')).to.equal(null);
+        assert.strictEqual(actual['instructions'].length, 0, `actual['instructions'].length`);
+        assert.strictEqual(node.getAttribute('class'), null, `node.getAttribute('class')`);
       });
 
       eachCartesianJoin([[[null, 'null'], [undefined, 'undefined']]], ([props, str]) => {
@@ -44,8 +44,8 @@ describe(`createElement() creates element based on tag`, function () {
 
           const node = actual['node'] as Element;
 
-          expect(actual['instructions'].length).to.equal(0);
-          expect(node.getAttribute('class')).to.equal(null);
+          assert.strictEqual(actual['instructions'].length, 0, `actual['instructions'].length`);
+          assert.strictEqual(node.getAttribute('class'), null, `node.getAttribute('class')`);
         });
       });
 
@@ -78,10 +78,10 @@ describe(`createElement() creates element based on tag`, function () {
           const instruction = actual['instructions'][0][0] as TargetedInstruction;
           const node = actual['node'] as Element;
 
-          expect(actual['instructions'].length).to.equal(1);
-          expect(actual['instructions'][0].length).to.equal(1);
-          expect(instruction.type).to.equal(t);
-          expect(node.getAttribute('class')).to.equal('au');
+          assert.strictEqual(actual['instructions'].length, 1, `actual['instructions'].length`);
+          assert.strictEqual(actual['instructions'][0].length, 1, `actual['instructions'][0].length`);
+          assert.strictEqual(instruction.type, t, `instruction.type`);
+          assert.strictEqual(node.getAttribute('class'), 'au', `node.getAttribute('class')`);
         });
       });
 
@@ -105,10 +105,10 @@ describe(`createElement() creates element based on tag`, function () {
 
           const node = actual['node'] as Element;
 
-          expect(actual['instructions'].length).to.equal(0);
-          expect(node.getAttribute('class')).to.equal(null);
+          assert.strictEqual(actual['instructions'].length, 0, `actual['instructions'].length`);
+          assert.strictEqual(node.getAttribute('class'), null, `node.getAttribute('class')`);
 
-          expect(node.textContent).to.equal(expected);
+          assert.strictEqual(node.textContent, expected, `node.textContent`);
         });
       });
     });
@@ -132,25 +132,25 @@ describe(`createElement() creates element based on type`, function () {
         const node = actual['node'] as Element;
         const instruction = (actual['instructions'][0][0] as any) as HydrateElementInstruction;
 
-        expect(node.getAttribute('title')).to.equal(null);
-        expect(node.getAttribute('foo')).to.equal(null);
+        assert.strictEqual(node.getAttribute('title'), null, `node.getAttribute('title')`);
+        assert.strictEqual(node.getAttribute('foo'), null, `node.getAttribute('foo')`);
 
-        expect(actual['instructions'].length).to.equal(1);
-        expect(actual['instructions'][0].length).to.equal(1);
-        expect(instruction.type).to.equal(TargetedInstructionType.hydrateElement);
-        expect(instruction.res).to.equal(type.description.name);
-        expect(instruction.instructions.length).to.equal(2);
-        expect(instruction.instructions[0].type).to.equal(HTMLTargetedInstructionType.setAttribute);
-        expect(instruction.instructions[0]['to']).to.equal('title');
-        expect(instruction.instructions[0]['value']).to.equal('asdf');
+        assert.strictEqual(actual['instructions'].length, 1, `actual['instructions'].length`);
+        assert.strictEqual(actual['instructions'][0].length, 1, `actual['instructions'][0].length`);
+        assert.strictEqual(instruction.type, TargetedInstructionType.hydrateElement, `instruction.type`);
+        assert.strictEqual(instruction.res, type.description.name, `instruction.res`);
+        assert.strictEqual(instruction.instructions.length, 2, `instruction.instructions.length`);
+        assert.strictEqual(instruction.instructions[0].type, HTMLTargetedInstructionType.setAttribute, `instruction.instructions[0].type`);
+        assert.strictEqual(instruction.instructions[0]['to'], 'title', `instruction.instructions[0]['to']`);
+        assert.strictEqual(instruction.instructions[0]['value'], 'asdf', `instruction.instructions[0]['value']`);
         if (type.description.bindables['foo']) {
-          expect(instruction.instructions[1].type).to.equal(TargetedInstructionType.setProperty);
+          assert.strictEqual(instruction.instructions[1].type, TargetedInstructionType.setProperty, `instruction.instructions[1].type`);
         } else {
-          expect(instruction.instructions[1].type).to.equal(HTMLTargetedInstructionType.setAttribute);
+          assert.strictEqual(instruction.instructions[1].type, HTMLTargetedInstructionType.setAttribute, `instruction.instructions[1].type`);
         }
-        expect(instruction.instructions[1]['to']).to.equal('foo');
-        expect(instruction.instructions[1]['value']).to.equal('bar');
-        expect(node.getAttribute('class')).to.equal('au');
+        assert.strictEqual(instruction.instructions[1]['to'], 'foo', `instruction.instructions[1]['to']`);
+        assert.strictEqual(instruction.instructions[1]['value'], 'bar', `instruction.instructions[1]['value']`);
+        assert.strictEqual(node.getAttribute('class'), 'au', `node.getAttribute('class')`);
       });
 
       eachCartesianJoin([[[null, 'null'], [undefined, 'undefined']]], ([props, str]) => {
@@ -163,10 +163,10 @@ describe(`createElement() creates element based on type`, function () {
           const node = actual['node'] as Element;
           const instruction = (actual['instructions'][0][0] as any) as HydrateElementInstruction;
 
-          expect(actual['instructions'].length).to.equal(1);
-          expect(actual['instructions'][0].length).to.equal(1);
-          expect(instruction.instructions.length).to.equal(0);
-          expect(node.getAttribute('class')).to.equal('au');
+          assert.strictEqual(actual['instructions'].length, 1, `actual['instructions'].length`);
+          assert.strictEqual(actual['instructions'][0].length, 1, `actual['instructions'][0].length`);
+          assert.strictEqual(instruction.instructions.length, 0, `instruction.instructions.length`);
+          assert.strictEqual(node.getAttribute('class'), 'au', `node.getAttribute('class')`);
         });
       });
 
@@ -200,13 +200,13 @@ describe(`createElement() creates element based on type`, function () {
           const node = actual['node'] as Element;
           const instruction = (actual['instructions'][0][0] as any) as HydrateElementInstruction;
 
-          expect(actual['instructions'].length).to.equal(1);
-          expect(actual['instructions'][0].length).to.equal(1);
-          expect(instruction.type).to.equal(TargetedInstructionType.hydrateElement);
-          expect(instruction.res).to.equal(type.description.name);
-          expect(instruction.instructions.length).to.equal(1);
-          expect(instruction.instructions[0].type).to.equal(t);
-          expect(node.getAttribute('class')).to.equal('au');
+          assert.strictEqual(actual['instructions'].length, 1, `actual['instructions'].length`);
+          assert.strictEqual(actual['instructions'][0].length, 1, `actual['instructions'][0].length`);
+          assert.strictEqual(instruction.type, TargetedInstructionType.hydrateElement, `instruction.type`);
+          assert.strictEqual(instruction.res, type.description.name, `instruction.res`);
+          assert.strictEqual(instruction.instructions.length, 1, `instruction.instructions.length`);
+          assert.strictEqual(instruction.instructions[0].type, t, `instruction.instructions[0].type`);
+          assert.strictEqual(node.getAttribute('class'), 'au', `node.getAttribute('class')`);
         });
       });
 
@@ -232,14 +232,14 @@ describe(`createElement() creates element based on type`, function () {
           const node = actual['node'] as Element;
           const instruction = (actual['instructions'][0][0] as any) as HydrateElementInstruction;
 
-          expect(actual['instructions'].length).to.equal(1);
-          expect(actual['instructions'][0].length).to.equal(1);
-          expect(instruction.type).to.equal(TargetedInstructionType.hydrateElement);
-          expect(instruction.res).to.equal(type.description.name);
-          expect(instruction.instructions.length).to.equal(0);
-          expect(node.getAttribute('class')).to.equal('au');
+          assert.strictEqual(actual['instructions'].length, 1, `actual['instructions'].length`);
+          assert.strictEqual(actual['instructions'][0].length, 1, `actual['instructions'][0].length`);
+          assert.strictEqual(instruction.type, TargetedInstructionType.hydrateElement, `instruction.type`);
+          assert.strictEqual(instruction.res, type.description.name, `instruction.res`);
+          assert.strictEqual(instruction.instructions.length, 0, `instruction.instructions.length`);
+          assert.strictEqual(node.getAttribute('class'), 'au', `node.getAttribute('class')`);
 
-          expect(node.textContent).to.equal(expected);
+          assert.strictEqual(node.textContent, expected, `node.textContent`);
         });
       });
     });

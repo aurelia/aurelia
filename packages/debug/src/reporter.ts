@@ -15,6 +15,9 @@ interface IMessageInfo {
 
 export const Reporter: typeof RuntimeReporter = {
   ...RuntimeReporter,
+  get level() {
+    return RuntimeReporter.level;
+  },
   write(code: number, ...params: unknown[]): void {
     const info = getMessageInfoForCode(code);
     const message = `Code ${code}: ${info.message}`;

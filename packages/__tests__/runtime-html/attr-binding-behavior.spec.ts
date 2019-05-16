@@ -1,8 +1,7 @@
 import { IContainer } from '@aurelia/kernel';
 import { Binding } from '@aurelia/runtime';
-import { expect } from 'chai';
 import { AttrBindingBehavior, DataAttributeAccessor } from '@aurelia/runtime-html';
-import { TestContext } from '@aurelia/testing';
+import { TestContext, assert } from '@aurelia/testing';
 
 describe('AttrBindingBehavior', function () {
   let target: any;
@@ -22,9 +21,9 @@ describe('AttrBindingBehavior', function () {
   });
 
   it('bind()   should put a DataAttributeObserver on the binding', function () {
-    expect(binding.targetObserver instanceof DataAttributeAccessor).to.equal(true);
-    expect(binding.targetObserver['obj'] === target).to.equal(true);
-    expect(binding.targetObserver['propertyKey'] === targetProperty).to.equal(true);
+    assert.strictEqual(binding.targetObserver instanceof DataAttributeAccessor, true, `binding.targetObserver instanceof DataAttributeAccessor`);
+    assert.strictEqual(binding.targetObserver['obj'] === target, true, `binding.targetObserver['obj'] === target`);
+    assert.strictEqual(binding.targetObserver['propertyKey'] === targetProperty, true, `binding.targetObserver['propertyKey'] === targetProperty`);
   });
 
   // it('unbind() should clear the DataAttributeObserver from the binding', function () {

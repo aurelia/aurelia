@@ -1,7 +1,7 @@
 import { DI, IContainer } from '@aurelia/kernel';
 import { Binding } from '@aurelia/runtime';
-import { expect } from 'chai';
 import { SelfBindingBehavior } from '@aurelia/runtime-html';
+import { assert } from '@aurelia/testing';
 
 describe('SelfBindingBehavior', function () {
   const container: IContainer = DI.createContainer();
@@ -19,14 +19,14 @@ describe('SelfBindingBehavior', function () {
 
   // TODO: test properly (different binding types)
   it('bind()   should apply the correct behavior', function () {
-    expect(binding['selfEventCallSource'] === originalCallSource).to.equal(true);
-    expect(binding['callSource'] === originalCallSource).to.equal(false);
-    expect(typeof binding['callSource']).to.equal('function');
+    assert.strictEqual(binding['selfEventCallSource'] === originalCallSource, true, `binding['selfEventCallSource'] === originalCallSource`);
+    assert.strictEqual(binding['callSource'] === originalCallSource, false, `binding['callSource'] === originalCallSource`);
+    assert.strictEqual(typeof binding['callSource'], 'function', `typeof binding['callSource']`);
   });
 
   it('unbind() should revert the original behavior', function () {
     sut.unbind(undefined, undefined, binding as any);
-    expect(binding['selfEventCallSource']).to.equal(null);
-    expect(binding['callSource'] === originalCallSource).to.equal(true);
+    assert.strictEqual(binding['selfEventCallSource'], null, `binding['selfEventCallSource']`);
+    assert.strictEqual(binding['callSource'] === originalCallSource, true, `binding['callSource'] === originalCallSource`);
   });
 });

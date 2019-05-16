@@ -1,4 +1,3 @@
-import { expect } from 'chai';
 import {
   ArrayObserver,
   disableArrayObservation,
@@ -304,7 +303,7 @@ describe(`ArrayObserver`, function () {
           while (i < repeat) {
             expectedResult = expectedArr.pop();
             actualResult = arr.pop();
-            expect(actualResult).to.equal(expectedResult);
+            assert.strictEqual(actualResult, expectedResult, `actualResult`);
             assert.deepStrictEqual(arr, expectedArr);
             i++;
           }
@@ -346,7 +345,7 @@ describe(`ArrayObserver`, function () {
           while (i < repeat) {
             expectedResult = expectedArr.shift();
             actualResult = arr.shift();
-            expect(actualResult).to.equal(expectedResult);
+            assert.strictEqual(actualResult, expectedResult, `actualResult`);
             assert.deepStrictEqual(arr, expectedArr);
             i++;
           }
@@ -518,8 +517,8 @@ describe(`ArrayObserver`, function () {
               sut = new ArrayObserver(LF.none, DI.createContainer().get(ILifecycle), arr);
               const expectedResult = expectedArr.sort(compareFn);
               const actualResult = arr.sort(compareFn);
-              expect(expectedResult).to.equal(expectedArr);
-              expect(actualResult).to.equal(arr);
+              assert.strictEqual(expectedResult, expectedArr, `expectedResult`);
+              assert.strictEqual(actualResult, arr, `actualResult`);
               try {
                 assert.deepStrictEqual(arr, expectedArr);
               } catch (e) {

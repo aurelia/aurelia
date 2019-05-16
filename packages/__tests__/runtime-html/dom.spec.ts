@@ -1,8 +1,6 @@
 import { INode, NodeSequence } from '@aurelia/runtime';
-import { expect } from 'chai';
-import { spy } from 'sinon';
 import { FragmentNodeSequence, NodeSequenceFactory } from '@aurelia/runtime-html';
-import { HTMLTestContext, TestContext } from '@aurelia/testing';
+import { HTMLTestContext, TestContext, assert, createSpy } from '@aurelia/testing';
 
 function wrap(inner: string, tag: string): string {
   if (tag.length === 0) {
@@ -18,7 +16,7 @@ function verifyThrows(call: () => void): void {
   } catch (e) {
     err = e;
   }
-  expect(err instanceof Error).to.equal(true);
+  assert.strictEqual(err instanceof Error, true, `err instanceof Error`);
 }
 
 function verifyDoesNotThrow(call: () => void): void {
@@ -28,7 +26,7 @@ function verifyDoesNotThrow(call: () => void): void {
   } catch (e) {
     err = e;
   }
-  expect(err).to.equal(undefined);
+  assert.strictEqual(err, undefined, `err`);
 }
 
 describe('NodeSequenceFactory', function () {
@@ -51,7 +49,7 @@ describe('NodeSequenceFactory', function () {
             const factory = new NodeSequenceFactory(ctx.dom, markup);
             const view = factory.createNodeSequence();
             if (markup.length === 0) {
-              expect(view).to.equal(NodeSequence.empty);
+              assert.strictEqual(view, NodeSequence.empty, `view`);
             } else {
               const fragment = view['fragment'] as DocumentFragment;
               let parsedMarkup = '';
@@ -66,7 +64,7 @@ describe('NodeSequenceFactory', function () {
                 }
                 i++;
               }
-              expect(parsedMarkup).to.equal(markup);
+              assert.strictEqual(parsedMarkup, markup, `parsedMarkup`);
             }
           });
 
@@ -134,14 +132,23 @@ describe('dom', function () {
 
   describe('createElement', function () {
     it('should call document.createElement', function () {
-      const spyCreateElement = ctx.doc.createElement = spy();
+      const createElementSpy = createSpy(ctx.doc, 'createElement');
       ctx.dom.createElement('div');
-      expect(spyCreateElement).to.have.been.calledWith('div');
+
+      assert.deepStrictEqual(
+        createElementSpy,
+        [
+          ['div'],
+        ],
+        `createElementSpy`,
+      );
+
+      createElementSpy.restore();
     });
 
     it('should create an element', function () {
       const el = ctx.dom.createElement('div');
-      expect(el['outerHTML']).to.equal('<div></div>');
+      assert.strictEqual(el['outerHTML'], '<div></div>', `el['outerHTML']`);
     });
 
     const validInputArr: any[] = ['asdf', 'div', new Error(), true, false, undefined, null];
@@ -164,24 +171,45 @@ describe('dom', function () {
     for (const trueValue of trueValueArr) {
       it(`should call node.cloneNode(true) when given ${trueValue}`, function () {
         const node = ctx.dom.createElement('div');
-        node.cloneNode = spy();
+        const cloneNodeSpy = createSpy(node, 'cloneNode');
         ctx.dom.cloneNode(node, trueValue);
-        expect(node.cloneNode).to.have.been.calledWith(true);
+
+        assert.deepStrictEqual(
+          cloneNodeSpy.calls,
+          [
+            [true],
+          ],
+          `cloneNodeSpy.calls`,
+        );
       });
     }
 
     it('should call node.cloneNode(true) by default', function () {
       const node = ctx.dom.createElement('div');
-      node.cloneNode = spy();
+      const cloneNodeSpy = createSpy(node, 'cloneNode');
       ctx.dom.cloneNode(node);
-      expect(node.cloneNode).to.have.been.calledWith(true);
+
+      assert.deepStrictEqual(
+        cloneNodeSpy.calls,
+        [
+          [true],
+        ],
+        `cloneNodeSpy.calls`,
+      );
     });
 
     it('should call node.cloneNode(false) if given false', function () {
       const node = ctx.dom.createElement('div');
-      node.cloneNode = spy();
+      const cloneNodeSpy = createSpy(node, 'cloneNode');
       ctx.dom.cloneNode(node, false);
-      expect(node.cloneNode).to.have.been.calledWith(false);
+
+      assert.deepStrictEqual(
+        cloneNodeSpy.calls,
+        [
+          [false],
+        ],
+        `cloneNodeSpy.calls`,
+      );
     });
   });
 
@@ -198,7 +226,7 @@ describe('dom', function () {
     for (const [node, text] of nodes) {
       it(`should return true if the value is of type ${Object.prototype.toString.call(node)} (${text})`, function () {
         const actual = ctx.dom.isNodeInstance(node);
-        expect(actual).to.equal(true);
+        assert.strictEqual(actual, true, `actual`);
       });
     }
 
@@ -209,7 +237,7 @@ describe('dom', function () {
     for (const nonNode of nonNodes) {
       it(`should return false if the value is of type ${Object.prototype.toString.call(nonNode)}`, function () {
         const actual = ctx.dom.isNodeInstance(nonNode);
-        expect(actual).to.equal(false);
+        assert.strictEqual(actual, false, `actual`);
       });
     }
   });
@@ -220,7 +248,7 @@ describe('dom', function () {
       const childNode = ctx.dom.createElement('div');
       node.appendChild(childNode);
       ctx.dom.remove(childNode);
-      expect(node.childNodes.length).to.equal(0);
+      assert.strictEqual(node.childNodes.length, 0, `node.childNodes.length`);
     });
 
     it('should remove the childNode from its parent (polyfilled)', function () {
@@ -230,7 +258,7 @@ describe('dom', function () {
       const childNode = ctx.dom.createElement('div');
       node.appendChild(childNode);
       ctx.dom.remove(childNode);
-      expect(node.childNodes.length).to.equal(0);
+      assert.strictEqual(node.childNodes.length, 0, `node.childNodes.length`);
       ctx.Element.prototype.remove = remove;
     });
   });
@@ -240,7 +268,7 @@ describe('dom', function () {
       const node = ctx.dom.createElement('div');
       const childNode = ctx.dom.createElement('div');
       ctx.dom.appendChild(node, childNode);
-      expect(node.firstChild === childNode).to.equal(true);
+      assert.strictEqual(node.firstChild === childNode, true, `node.firstChild === childNode`);
     });
   });
 
@@ -253,57 +281,73 @@ describe('dom', function () {
       node.appendChild(refNode1);
       node.appendChild(refNode2);
       ctx.dom.insertBefore(childNode, refNode2);
-      expect(node.childNodes.item(0) === refNode1).to.equal(true);
-      expect(node.childNodes.item(1) === childNode).to.equal(true);
-      expect(node.childNodes.item(2) === refNode2).to.equal(true);
+      assert.strictEqual(node.childNodes.item(0) === refNode1, true, `node.childNodes.item(0) === refNode1`);
+      assert.strictEqual(node.childNodes.item(1) === childNode, true, `node.childNodes.item(1) === childNode`);
+      assert.strictEqual(node.childNodes.item(2) === refNode2, true, `node.childNodes.item(2) === refNode2`);
     });
   });
 
   describe('addEventListener', function () {
     it('should add the specified eventListener to the node if the node is specified', done => {
       const node = ctx.dom.createElement('div');
-      const eventListener = spy();
+      const eventListener = createSpy();
       ctx.dom.addEventListener('click', eventListener, node);
       node.dispatchEvent(new ctx.CustomEvent('click', { bubbles: true }));
-      setTimeout(() => {
-        expect(eventListener).to.have.been.calledOnce;
-        done();
-      },         0);
+
+      setTimeout(
+        () => {
+          assert.strictEqual(eventListener.calls.length, 1, `eventListener.calls.length`);
+          done();
+        },
+        0,
+      );
     });
 
     it('should add the specified eventListener to the document if the node is NOT specified', done => {
-      const eventListener = spy();
+      const eventListener = createSpy();
       ctx.dom.addEventListener('click', eventListener);
       ctx.doc.dispatchEvent(new ctx.CustomEvent('click', { bubbles: true }));
-      setTimeout(() => {
-        expect(eventListener).to.have.been.calledOnce;
-        done();
-      },         0);
+
+      setTimeout(
+        () => {
+          assert.strictEqual(eventListener.calls.length, 1, `eventListener.calls.length`);
+          done();
+        },
+        0,
+      );
     });
   });
 
   describe('removeEventListener', function () {
     it('should remove the specified eventListener from the node if the node is specified', done => {
       const node = ctx.dom.createElement('div');
-      const eventListener = spy();
+      const eventListener = createSpy();
       node.addEventListener('click', eventListener);
       ctx.dom.removeEventListener('click', eventListener, node);
       node.dispatchEvent(new ctx.CustomEvent('click', { bubbles: true }));
-      setTimeout(() => {
-        expect(eventListener).not.to.have.been.called;
-        done();
-      },         0);
+
+      setTimeout(
+        () => {
+          assert.strictEqual(eventListener.calls.length, 0, `eventListener.calls.length`);
+          done();
+        },
+        0,
+      );
     });
 
     it('should remove the specified eventListener from the document if the node is NOT specified', done => {
-      const eventListener = spy();
+      const eventListener = createSpy();
       ctx.doc.addEventListener('click', eventListener);
       ctx.dom.removeEventListener('click', eventListener);
       ctx.doc.dispatchEvent(new ctx.CustomEvent('click', { bubbles: true }));
-      setTimeout(() => {
-        expect(eventListener).not.to.have.been.called;
-        done();
-      },         0);
+
+      setTimeout(
+        () => {
+          assert.strictEqual(eventListener.calls.length, 0, `eventListener.calls.length`);
+          done();
+        },
+        0,
+      );
     });
   });
 
@@ -318,13 +362,13 @@ describe('dom', function () {
     it('should replace the provided node with two comment nodes', function () {
       const {node, childNode} = createTestNodes();
       const location = ctx.dom.convertToRenderLocation(childNode);
-      expect(location['nodeName']).to.equal('#comment');
-      expect(location.$start['nodeName']).to.equal('#comment');
-      expect(childNode === location).to.equal(false);
-      expect(node.childNodes.length).to.equal(2);
-      expect(node.firstChild === location).to.equal(false);
-      expect(node.firstChild === location.$start).to.equal(true);
-      expect(node.lastChild === location).to.equal(true);
+      assert.strictEqual(location['nodeName'], '#comment', `location['nodeName']`);
+      assert.strictEqual(location.$start['nodeName'], '#comment', `location.$start['nodeName']`);
+      assert.strictEqual(childNode === location, false, `childNode === location`);
+      assert.strictEqual(node.childNodes.length, 2, `node.childNodes.length`);
+      assert.strictEqual(node.firstChild === location, false, `node.firstChild === location`);
+      assert.strictEqual(node.firstChild === location.$start, true, `node.firstChild === location.$start`);
+      assert.strictEqual(node.lastChild === location, true, `node.lastChild === location`);
     });
   });
 
@@ -341,10 +385,17 @@ describe('dom', function () {
     }
     for (const key of keys) {
       it(`should register the resolver for type ${Object.prototype.toString.call(key)}`, function () {
-        const mockContainer: any = { registerResolver: spy() };
+        const mockContainer: any = { registerResolver: createSpy() };
         const resolver: any = {};
         ctx.dom.registerElementResolver(mockContainer, resolver);
-        expect(mockContainer.registerResolver).to.have.been.calledWith(key, resolver);
+
+        assert.deepStrictEqual(
+          mockContainer.registerResolver.calls,
+          [
+            [key, resolver],
+          ],
+          `mockContainer.registerResolver.calls`,
+        );
       });
     }
   });
@@ -361,9 +412,9 @@ describe('FragmentNodeSequence', function () {
         const node = ctx.dom.createElement('div');
         const fragment = createFragment(ctx, node, 0, 1, width);
         sut = new FragmentNodeSequence(ctx.dom, fragment);
-        expect(sut.childNodes.length).to.equal(width);
-        expect(sut.childNodes[0] === sut.firstChild).to.equal(true);
-        expect(sut.childNodes[width - 1] === sut.lastChild).to.equal(true);
+        assert.strictEqual(sut.childNodes.length, width, `sut.childNodes.length`);
+        assert.strictEqual(sut.childNodes[0] === sut.firstChild, true, `sut.childNodes[0] === sut.firstChild`);
+        assert.strictEqual(sut.childNodes[width - 1] === sut.lastChild, true, `sut.childNodes[width - 1] === sut.lastChild`);
       });
     }
   });
@@ -377,7 +428,7 @@ describe('FragmentNodeSequence', function () {
           const fragment = createFragment(ctx, node, 0, depth, width);
           sut = new FragmentNodeSequence(ctx.dom, fragment);
           const actual = sut.findTargets();
-          expect(actual.length).to.equal(0);
+          assert.strictEqual(actual.length, 0, `actual.length`);
         });
 
         it(`should return all elements when all are targets targets (depth=${depth},width=${width})`, function () {
@@ -386,7 +437,7 @@ describe('FragmentNodeSequence', function () {
           const fragment = createFragment(ctx, node, 0, depth, width);
           sut = new FragmentNodeSequence(ctx.dom, fragment);
           const actual = sut.findTargets();
-          expect(actual.length).to.equal(fragment.querySelectorAll('div').length);
+          assert.strictEqual(actual.length, fragment.querySelectorAll('div').length, `actual.length`);
         });
       }
     }
@@ -406,16 +457,16 @@ describe('FragmentNodeSequence', function () {
           parent.appendChild(ref2);
           // @ts-ignore
           sut.insertBefore(ref2);
-          expect(parent.childNodes.length).to.equal(width + 2);
-          expect(fragment.childNodes.length).to.equal(0);
-          expect(parent.childNodes.item(0) === ref1).to.equal(true);
+          assert.strictEqual(parent.childNodes.length, width + 2, `parent.childNodes.length`);
+          assert.strictEqual(fragment.childNodes.length, 0, `fragment.childNodes.length`);
+          assert.strictEqual(parent.childNodes.item(0) === ref1, true, `parent.childNodes.item(0) === ref1`);
           let i = 0;
           while (i < width) {
-            expect(parent.childNodes.item(i + 1) === sut.childNodes[i]).to.equal(true);
+            assert.strictEqual(parent.childNodes.item(i + 1) === sut.childNodes[i], true, `parent.childNodes.item(i + 1) === sut.childNodes[i]`);
             i++;
           }
-          expect(parent.childNodes.item(width + 1) === ref2).to.equal(true);
-          expect(fragment.childNodes.length).to.equal(0);
+          assert.strictEqual(parent.childNodes.item(width + 1) === ref2, true, `parent.childNodes.item(width + 1) === ref2`);
+          assert.strictEqual(fragment.childNodes.length, 0, `fragment.childNodes.length`);
         });
       }
     }
@@ -430,11 +481,11 @@ describe('FragmentNodeSequence', function () {
           sut = new FragmentNodeSequence(ctx.dom, fragment);
           const parent = ctx.dom.createElement('div');
           sut.appendTo(parent);
-          expect(parent.childNodes.length).to.equal(width);
-          expect(fragment.childNodes.length).to.equal(0);
+          assert.strictEqual(parent.childNodes.length, width, `parent.childNodes.length`);
+          assert.strictEqual(fragment.childNodes.length, 0, `fragment.childNodes.length`);
           let i = 0;
           while (i < width) {
-            expect(parent.childNodes.item(i) === sut.childNodes[i]).to.equal(true);
+            assert.strictEqual(parent.childNodes.item(i) === sut.childNodes[i], true, `parent.childNodes.item(i) === sut.childNodes[i]`);
             i++;
           }
         });
@@ -450,14 +501,14 @@ describe('FragmentNodeSequence', function () {
           const fragment = createFragment(ctx, node, 0, depth, width);
           sut = new FragmentNodeSequence(ctx.dom, fragment);
           const parent = ctx.dom.createElement('div');
-          expect(parent.childNodes.length).to.equal(0);
-          expect(fragment.childNodes.length).to.equal(width);
+          assert.strictEqual(parent.childNodes.length, 0, `parent.childNodes.length`);
+          assert.strictEqual(fragment.childNodes.length, width, `fragment.childNodes.length`);
           parent.appendChild(fragment);
-          expect(parent.childNodes.length).to.equal(width);
-          expect(fragment.childNodes.length).to.equal(0);
+          assert.strictEqual(parent.childNodes.length, width, `parent.childNodes.length`);
+          assert.strictEqual(fragment.childNodes.length, 0, `fragment.childNodes.length`);
           sut.remove();
-          expect(parent.childNodes.length).to.equal(0);
-          expect(fragment.childNodes.length).to.equal(width);
+          assert.strictEqual(parent.childNodes.length, 0, `parent.childNodes.length`);
+          assert.strictEqual(fragment.childNodes.length, width, `fragment.childNodes.length`);
         });
       }
     }

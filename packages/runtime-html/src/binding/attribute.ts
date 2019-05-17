@@ -148,8 +148,8 @@ export class AttributeBinding implements IPartialConnectableBinding {
         this.$lifecycle,
         this.observerLocator,
         this.target,
+        this.targetProperty,
         this.targetAttribute,
-        this.targetProperty
       );
     }
     if (targetObserver.bind) {

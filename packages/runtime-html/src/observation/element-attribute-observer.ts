@@ -93,7 +93,7 @@ export class AttributeObserver implements AttributeObserver, ElementMutationSubs
           // this also comes from syntax, where it would typically be my-class.class="someProperty"
           //
           // so there is no need for separating class by space and add all of them like class accessor
-          if (currentValue === true) {
+          if (!!currentValue) {
             this.obj.classList.add(this.propertyKey);
           } else {
             this.obj.classList.remove(this.propertyKey);

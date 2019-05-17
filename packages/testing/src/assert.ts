@@ -462,6 +462,30 @@ export function notIncludes(outer: any[] | string, inner: any, message?: string)
   }
 }
 
+export function contains(outer: any, inner: any, message?: string): void {
+  if (!outer.contains(inner)) {
+    innerFail({
+      actual: outer,
+      expected: inner,
+      message,
+      operator: 'contains' as any,
+      stackStartFn: contains
+    });
+  }
+}
+
+export function notContains(outer: any, inner: any, message?: string): void {
+  if (outer.contains(inner)) {
+    innerFail({
+      actual: outer,
+      expected: inner,
+      message,
+      operator: 'notContains' as any,
+      stackStartFn: notContains
+    });
+  }
+}
+
 export function greaterThan(left: any, right: any, message?: string): void {
   if (!(left > right)) {
     innerFail({
@@ -630,6 +654,8 @@ const assert = Object_freeze({
   notInstanceOf,
   includes,
   notIncludes,
+  contains,
+  notContains,
   greaterThan,
   greaterThanOrEqualTo,
   lessThan,

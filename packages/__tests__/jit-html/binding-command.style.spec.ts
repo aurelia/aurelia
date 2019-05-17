@@ -1,5 +1,5 @@
 import { Constructable } from '@aurelia/kernel';
-import { Aurelia, CustomElementResource, ILifecycle } from '@aurelia/runtime';
+import { Aurelia, CustomElementResource, ILifecycle, LifecycleFlags } from '@aurelia/runtime';
 import { IEventManager } from '@aurelia/runtime-html';
 import { BasicConfiguration } from '@aurelia/jit-html';
 import { TestContext, eachCartesianJoin, assert } from '@aurelia/testing';
@@ -41,7 +41,9 @@ describe('template-compiler.binding-commands.style', () => {
         assert.strictEqual(childEls.length, 6, `childEls.length`);
 
         component.value = ruleValue;
-        await Promise.resolve();
+
+        lifecycle.processRAFQueue(LifecycleFlags.none);
+
         for (let i = 0, ii = childEls.length; ii > i; ++i) {
           const child = childEls[i];
           assert.strictEqual(
@@ -55,7 +57,9 @@ describe('template-compiler.binding-commands.style', () => {
         }
 
         component.value = '';
-        await Promise.resolve();
+
+        lifecycle.processRAFQueue(LifecycleFlags.none);
+
         for (let i = 0, ii = childEls.length; ii > i; ++i) {
           const child = childEls[i];
           assert.strictEqual(child.style.getPropertyValue(ruleName), ruleDefaultValue, `[${ruleName}]component.value="" 1`);
@@ -69,7 +73,9 @@ describe('template-compiler.binding-commands.style', () => {
         }
 
         component.value = ruleValue;
-        await Promise.resolve();
+
+        lifecycle.processRAFQueue(LifecycleFlags.none);
+
         for (let i = 0, ii = childEls.length; ii > i; ++i) {
           const child = childEls[i];
           assert.strictEqual(
@@ -114,7 +120,7 @@ describe('template-compiler.binding-commands.style', () => {
   eachCartesianJoin(
     [rulesTests, testCases],
     ([ruleName, ruleValue, ruleDefaultValue, isInvalid, valueOnInvalid], testCase, callIndex) => {
-      it.skip(testCase.title(ruleName, ruleValue, callIndex), async () => {
+      it(testCase.title(ruleName, ruleValue, callIndex), async () => {
         const { ctx, au, lifecycle, host, component, tearDown } = setup(
           testCase.template(ruleName),
           class App {
@@ -160,7 +166,9 @@ describe('template-compiler.binding-commands.style', () => {
           }
 
           component.value = '';
-          await Promise.resolve();
+
+          lifecycle.processRAFQueue(LifecycleFlags.none);
+
           for (let i = 0; ii > i; ++i) {
             const el = els[i];
             assert.strictEqual(el.style.getPropertyValue(ruleName), ruleDefaultValue, `[${ruleName}]vm.value="" 2`);
@@ -174,7 +182,9 @@ describe('template-compiler.binding-commands.style', () => {
           }
 
           component.value = ruleValue;
-          await Promise.resolve();
+
+          lifecycle.processRAFQueue(LifecycleFlags.none);
+
           for (let i = 0; ii > i; ++i) {
             const el = els[i];
             assert.strictEqual(
@@ -192,7 +202,9 @@ describe('template-compiler.binding-commands.style', () => {
           }
 
           component.value = '';
-          await Promise.resolve();
+
+          lifecycle.processRAFQueue(LifecycleFlags.none);
+
           for (let i = 0; ii > i; ++i) {
             const el = els[i];
             assert.strictEqual(el.style.getPropertyValue(ruleName), ruleDefaultValue, `[${ruleName}]vm.value="" 4`);

@@ -2,7 +2,7 @@ import {startFPSMonitor, startMemMonitor, initProfiler, startProfile, endProfile
 import * as faker from 'faker';
 import './app.scss';
 
-import { customElement, IViewModel, IDOM, CustomElementResource, buildTemplateDefinition, IteratorBindingInstruction, HydrateTemplateController, InterpolationInstruction, bindable, BindingStrategy } from '@aurelia/runtime';
+import { customElement, IViewModel, IDOM, CustomElementResource, buildTemplateDefinition, IteratorBindingInstruction, HydrateTemplateController, InterpolationInstruction, bindable, BindingStrategy, IController } from '@aurelia/runtime';
 import { Subject, createElement, TextBindingInstruction } from '@aurelia/runtime-html'
 
 startFPSMonitor();
@@ -18,8 +18,6 @@ function createItem() {
   };
 }
 
-export interface App extends IViewModel<HTMLElement> {}
-
 @customElement({ name: 'app', template })
 export class App {
   public rows: any[];
@@ -28,6 +26,8 @@ export class App {
   @bindable public keyedStrategy: boolean;
   @bindable public proxyStrategy: boolean;
 
+  public $controller: IController<Node>;
+
   constructor() {
     this.rows = [];
     this.cols = ['name', 'phone', 'country'];
@@ -35,7 +35,7 @@ export class App {
 
 
   public created(): void {
-    this.$host.textContent = '';
+    this.$controller.host.textContent = '';
     this.createSubject();
   }
 
@@ -51,13 +51,10 @@ export class App {
 
   private createSubject(): void {
     let strategy: BindingStrategy;
-    if (this.keyedStrategy) {
-      strategy |= BindingStrategy.keyed;
-    }
     if (this.proxyStrategy) {
       strategy |= BindingStrategy.proxies;
     }
-    const dom = this.$context.get<IDOM<Node>>(IDOM);
+    const dom = this.$controller.context.get<IDOM<Node>>(IDOM);
     this.subject = createElement<Node>(dom, 'table', {
       class: 'table is-fullwidth',
     }, [
@@ -70,7 +67,7 @@ export class App {
               strategy
             },
             'repeat',
-            [new IteratorBindingInstruction(this.keyedStrategy ? 'col of cols & keyed' : 'col of cols', 'items')]
+            [new IteratorBindingInstruction(this.keyedStrategy ? 'col of cols' : 'col of cols', 'items')]
           )
         })
       ]),
@@ -85,11 +82,11 @@ export class App {
                 strategy
               },
               'repeat',
-              [new IteratorBindingInstruction(this.keyedStrategy ? 'col of cols & keyed' : 'col of cols', 'items')]
+              [new IteratorBindingInstruction(this.keyedStrategy ? 'col of cols' : 'col of cols', 'items')]
             )]]
           },
           'repeat',
-          [new IteratorBindingInstruction(this.keyedStrategy ? 'row of rows & keyed' : 'row of rows', 'items')]
+          [new IteratorBindingInstruction(this.keyedStrategy ? 'row of rows' : 'row of rows', 'items')]
         )
       })
     ]);

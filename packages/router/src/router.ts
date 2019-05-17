@@ -27,7 +27,41 @@ export interface IRouteViewport {
   component: Partial<ICustomElementType> | string;
 }
 
-export class Router {
+export interface IRouter {
+  readonly isNavigating: boolean;
+
+  activate(options?: IRouterOptions): Promise<void>;
+  deactivate(): void;
+
+  linkCallback(info: AnchorEventInfo): void;
+  historyCallback(instruction: INavigationInstruction): void;
+
+  processNavigations(): Promise<void>;
+  addProcessingViewport(componentOrInstruction: string | Partial<ICustomElementType> | ViewportInstruction, viewport?: Viewport | string): void;
+
+  // Called from the viewport custom element in attached()
+  addViewport(name: string, element: Element, context: IRenderContext, options?: IViewportOptions): Viewport;
+  // Called from the viewport custom element
+  removeViewport(viewport: Viewport, element: Element, context: IRenderContext): void;
+
+  allViewports(): Viewport[];
+  findScope(element: Element): Scope;
+  removeScope(scope: Scope): void;
+
+  goto(pathOrViewports: string | Record<string, Viewport>, title?: string, data?: Record<string, unknown>): Promise<void>;
+  replace(pathOrViewports: string | Record<string, Viewport>, title?: string, data?: Record<string, unknown>): Promise<void>;
+  refresh(): Promise<void>;
+  back(): Promise<void>;
+  forward(): Promise<void>;
+
+  setNav(name: string, routes: INavRoute[]): void;
+  addNav(name: string, routes: INavRoute[]): void;
+  findNav(name: string): Nav;
+}
+
+export const IRouter = DI.createInterface<IRouter>('IRouter').withDefault(x => x.singleton(Router));
+
+export class Router implements IRouter {
   public static readonly inject: InjectArray = [IContainer, IRouteTransformer, HistoryBrowser, LinkHandler, InstructionResolver];
 
   public readonly container: IContainer;
@@ -302,6 +336,11 @@ export class Router {
   public findScope(element: Element): Scope {
     this.ensureRootScope();
     return this.closestScope(element);
+  }
+
+  // External API to get viewport by name
+  public getViewport(name: string): Viewport {
+    return this.allViewports().find(viewport => viewport.name === name);
   }
 
   // Called from the viewport custom element in attached()

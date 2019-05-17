@@ -9,5 +9,4 @@ export * from './viewport';
 export * from './viewport-content';
 export * from './viewport-instruction';
 
-export * from './resources/viewport';
-export * from './resources/nav';
+export * from './configuration';

@@ -15,7 +15,7 @@
     "@aurelia/runtime-html-browser": "file:../../packages/runtime-html-browser",
     "@aurelia/runtime-html": "file:../../packages/runtime-html",
     "@aurelia/runtime": "file:../../packages/runtime",
-    "pixi.js": "^4.8.6"
+    "pixi.js": "^4.8.7"
   },
   "devDependencies": {
     "@types/node": "latest",
@@ -27,7 +27,7 @@
     "http-server": "latest",
     "rimraf": "latest",
     "ts-loader": "latest",
-    "typescript": "latest",
+    "typescript": "~3.3.4000",
     "webpack": "latest",
     "webpack-cli": "latest",
     "webpack-dev-server": "latest"

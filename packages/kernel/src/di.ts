@@ -4,9 +4,11 @@ import { PLATFORM } from './platform';
 import { Reporter, Tracer } from './reporter';
 import { IResourceType } from './resource';
 
+// tslint:disable: no-any
+
 const slice = Array.prototype.slice;
 
-export type ResolveCallback<T = unknown> = (handler?: IContainer, requestor?: IContainer, resolver?: IResolver) => T;
+export type ResolveCallback<T = any> = (handler?: IContainer, requestor?: IContainer, resolver?: IResolver) => T;
 
 export type Key<T> = InterfaceSymbol<T> | Primitive | IIndexable | Constructable;
 
@@ -208,7 +210,7 @@ export const DI = {
     return Interface;
   },
 
-  inject(...dependencies: Key<unknown>[]): (target: Injectable, key?: string, descriptor?: PropertyDescriptor | number) => void {
+  inject(...dependencies: Key<any>[]): (target: Injectable, key?: string, descriptor?: PropertyDescriptor | number) => void {
     return function(target: Injectable, key?: string, descriptor?: PropertyDescriptor | number): void {
       if (typeof descriptor === 'number') { // It's a parameter decorator.
         if (!hasOwnProperty.call(target, 'inject')) {

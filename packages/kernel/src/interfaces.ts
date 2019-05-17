@@ -1,3 +1,5 @@
+// tslint:disable: no-any
+
 export interface IPerformance {
   now(): number;
   mark(name: string): void;
@@ -86,7 +88,7 @@ export type ConstructableClass<T, C = IIndexable> = C & {
 
 export type InterfaceSymbol<T = unknown> = (target: Injectable<T>, property: string, index: number) => Injectable<T>;
 
-export type InjectArray = ReadonlyArray<InterfaceSymbol<any> | Constructable | string>;
+export type InjectArray = ReadonlyArray<InterfaceSymbol | Constructable | string>;
 
 export type Injectable<T = {}> = Constructable<T> & { inject?: (InterfaceSymbol<any> | Constructable)[] };
 

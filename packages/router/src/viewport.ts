@@ -4,7 +4,7 @@ import { INavigationInstruction } from './history-browser';
 import { Router } from './router';
 import { Scope } from './scope';
 import { IViewportOptions } from './viewport';
-import { ViewportContent } from './viewport-content';
+import { ReentryBehavior, ViewportContent } from './viewport-content';
 import { ViewportInstruction } from './viewport-instruction';
 
 export interface IViewportOptions {
@@ -85,7 +85,32 @@ export class Viewport {
       }
     }
 
-    return this.content.isChange(this.nextContent) || instruction.isRefresh;
+    // ReentryBehavior 'refresh' takes precedence
+    if (!this.content.equalComponent(this.nextContent) ||
+      instruction.isRefresh ||
+      this.content.reentryBehavior() === ReentryBehavior.refresh) {
+      return true;
+    }
+
+    // Explicitly don't allow navigation back to the same component again
+    if (this.content.reentryBehavior() === ReentryBehavior.disallow) {
+      return;
+    }
+
+    // ReentryBehavior is now 'enter' or 'default'
+
+    if (!this.content.equalParameters(this.nextContent) ||
+      this.content.reentryBehavior() === ReentryBehavior.enter) {
+      this.content.reentry = true;
+
+      this.nextContent.content = this.content.content;
+      this.nextContent.component = this.content.component;
+      this.nextContent.contentStatus = this.content.contentStatus;
+      this.nextContent.reentry = this.content.reentry;
+      return true;
+    }
+
+    return false;
   }
 
   public setElement(element: Element, context: IRenderContext | IContainer, options: IViewportOptions): void {
@@ -197,13 +222,16 @@ export class Viewport {
       // Only when next component activation is done
       if (this.content.component) {
         await this.content.leave(this.nextContent.instruction);
-        this.content.removeComponent(this.element, this.options.stateful);
-        this.content.terminateComponent(this.options.stateful);
-        this.content.unloadComponent();
-        this.content.destroyComponent();
+        if (!this.content.reentry) {
+          this.content.removeComponent(this.element, this.options.stateful);
+          this.content.terminateComponent(this.options.stateful);
+          this.content.unloadComponent();
+          this.content.destroyComponent();
+        }
       }
 
       this.content = this.nextContent;
+      this.content.reentry = false;
     }
 
     if (this.clear) {

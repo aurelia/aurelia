@@ -4,12 +4,12 @@ describe('doc-example / default route', () => {
   it('navigates to default route', () => {
     cy.visit('/')
       .url()
-      .should('contain', '/authors+about');
+      .should('contain', 'authors+about');
   });
 
   it('redirects to the default route', () => {
     cy.url()
-      .should('contain', '/authors+about');
+      .should('contain', 'authors+about');
   });
 
   it('sets the correct nav items as active', () => {

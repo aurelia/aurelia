@@ -10,6 +10,7 @@ export interface IRouteableCustomElementType extends Partial<ICustomElementType>
 }
 
 export interface IRouteableCustomElement<T extends INode = INode> extends IViewModel<T> {
+  reentryBehavior?: ReentryBehavior;
   canEnter?(parameters?: string[] | Record<string, string>, nextInstruction?: INavigationInstruction, instruction?: INavigationInstruction): boolean | string | ViewportInstruction[] | Promise<boolean | string | ViewportInstruction[]>;
   enter?(parameters?: string[] | Record<string, string>, nextInstruction?: INavigationInstruction, instruction?: INavigationInstruction): void | Promise<void>;
   canLeave?(nextInstruction?: INavigationInstruction, instruction?: INavigationInstruction): boolean | Promise<boolean>;
@@ -24,6 +25,13 @@ export const enum ContentStatus {
   added = 4,
 }
 
+export const enum ReentryBehavior {
+  default = 'default',
+  disallow = 'disallow',
+  enter = 'enter',
+  refresh = 'refresh',
+}
+
 export class ViewportContent {
   public content: IRouteableCustomElementType | string;
   public parameters: string;
@@ -32,6 +40,7 @@ export class ViewportContent {
   public contentStatus: ContentStatus;
   public entered: boolean;
   public fromCache: boolean;
+  public reentry: boolean;
 
   constructor(content: Partial<ICustomElementType> | string = null, parameters: string = null, instruction: INavigationInstruction = null, context: IRenderContext | IContainer = null) {
     // Can be a (resolved) type or a string (to be resolved later)
@@ -42,6 +51,7 @@ export class ViewportContent {
     this.contentStatus = ContentStatus.none;
     this.entered = false;
     this.fromCache = false;
+    this.reentry = false;
 
     // If we've got a container, we're good to resolve type
     if (this.content !== null && typeof this.content === 'string' && context !== null) {
@@ -49,11 +59,19 @@ export class ViewportContent {
     }
   }
 
-  public isChange(other: ViewportContent): boolean {
-    return ((typeof other.content === 'string' && this.componentName() !== other.content) ||
-      (typeof other.content !== 'string' && this.content !== other.content) ||
-      this.parameters !== other.parameters ||
-      !this.instruction || this.instruction.query !== other.instruction.query);
+  public equalComponent(other: ViewportContent): boolean {
+    return (typeof other.content === 'string' && this.componentName() === other.content) ||
+      (typeof other.content !== 'string' && this.content === other.content);
+  }
+
+  public equalParameters(other: ViewportContent): boolean {
+    // TODO: Review this
+    return this.parameters === other.parameters &&
+      this.instruction.query === other.instruction.query;
+  }
+
+  public reentryBehavior(): ReentryBehavior {
+    return 'reentryBehavior' in this.component ? this.component.reentryBehavior : ReentryBehavior.default;
   }
 
   public isCacheEqual(other: ViewportContent): boolean {
@@ -118,7 +136,7 @@ export class ViewportContent {
   }
 
   public async enter(previousInstruction: INavigationInstruction): Promise<void> {
-    if (this.contentStatus !== ContentStatus.created || this.entered) {
+    if (!this.reentry && (this.contentStatus !== ContentStatus.created || this.entered)) {
       return;
     }
     if (this.component.enter) {

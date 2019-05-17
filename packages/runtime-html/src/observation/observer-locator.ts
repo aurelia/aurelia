@@ -120,7 +120,7 @@ export class TargetObserverLocator implements ITargetObserverLocator {
       default:
         if (nsAttributes[propertyName] !== undefined) {
           const nsProps = nsAttributes[propertyName];
-          return new AttributeNSAccessor(lifecycle, obj as HTMLElement, propertyName, nsProps[1]);
+          return new AttributeNSAccessor(lifecycle, obj as HTMLElement, nsProps[0], nsProps[1]);
         }
         if (isDataAttribute(obj, propertyName, this.svgAnalyzer)) {
           return new DataAttributeAccessor(lifecycle, obj as HTMLElement, propertyName);
@@ -173,7 +173,7 @@ export class TargetAccessorLocator implements ITargetAccessorLocator {
       default:
         if (nsAttributes[propertyName] !== undefined) {
           const nsProps = nsAttributes[propertyName];
-          return new AttributeNSAccessor(lifecycle, obj as HTMLElement, propertyName, nsProps[1]);
+          return new AttributeNSAccessor(lifecycle, obj as HTMLElement, nsProps[0], nsProps[1]);
         }
         if (isDataAttribute(obj, propertyName, this.svgAnalyzer)) {
           return new DataAttributeAccessor(lifecycle, obj as HTMLElement, propertyName);

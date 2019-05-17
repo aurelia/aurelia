@@ -29,7 +29,7 @@ function setup() {
   return { ctx, container, lifecycle, observerLocator };
 }
 
-describe.skip('AttributeNSAccessor', function () {
+describe('AttributeNSAccessor', function () {
   let sut: AttributeNSAccessor;
   let el: HTMLElement;
   let lifecycle: ILifecycle;
@@ -49,32 +49,64 @@ describe.skip('AttributeNSAccessor', function () {
         const { ctx, lifecycle: $lifecycle } = setup();
         lifecycle = $lifecycle;
         el = createSvgUseElement(ctx, name, value) as HTMLElement;
-        sut = new AttributeNSAccessor(lifecycle, el, `xlink:${name}`, 'http://www.w3.org/1999/xlink');
-        const actual = sut.getValue();
+        sut = new AttributeNSAccessor(lifecycle, el, name, 'http://www.w3.org/1999/xlink');
+
+        let actual = sut.getValue();
+        assert.strictEqual(actual, null, `actual`);
+
+        sut.bind(LifecycleFlags.none);
+        actual = sut.getValue();
         assert.strictEqual(actual, value, `actual`);
+
+        sut.unbind(LifecycleFlags.none);
       });
     }
   });
 
-  describe('setValue()', function () {
+  describe('setValue() with flags.none', function () {
     for (const { name, value } of tests) {
-      it(`sets xlink:${name} to foo`, function () {
+      it(`sets xlink:${name} only after flushing RAF`, function () {
         const ctx = TestContext.createHTMLTestContext();
         el = createSvgUseElement(ctx, name, value) as HTMLElement;
         const { lifecycle: $lifecycle } = setup();
         lifecycle = $lifecycle;
-        sut = new AttributeNSAccessor(lifecycle, el, `xlink:${name}`, 'http://www.w3.org/1999/xlink');
+        sut = new AttributeNSAccessor(lifecycle, el, name, 'http://www.w3.org/1999/xlink');
+
+        sut.bind(LifecycleFlags.none);
         sut.setValue('foo', LifecycleFlags.none);
-        assert.notStrictEqual(sut.getValue(), 'foo', `sut.getValue()`);
-        lifecycle.processRAFQueue(LifecycleFlags.none);
         assert.strictEqual(sut.getValue(), 'foo', `sut.getValue()`);
+        assert.strictEqual(el.getAttributeNS(sut.namespace, sut.propertyKey), value, `el.getAttributeNS(sut.namespace, sut.propertyKey) before flush`);
+
+        lifecycle.processRAFQueue(LifecycleFlags.none);
+        assert.strictEqual(el.getAttributeNS(sut.namespace, sut.propertyKey), 'foo', `el.getAttributeNS(sut.namespace, sut.propertyKey) after flush`);
+
+        sut.unbind(LifecycleFlags.none);
+      });
+    }
+  });
+
+  describe('setValue() with flags.fromBind', function () {
+    for (const { name, value } of tests) {
+      it(`sets xlink:${name} immediately`, function () {
+        const ctx = TestContext.createHTMLTestContext();
+        el = createSvgUseElement(ctx, name, value) as HTMLElement;
+        const { lifecycle: $lifecycle } = setup();
+        lifecycle = $lifecycle;
+        sut = new AttributeNSAccessor(lifecycle, el, name, 'http://www.w3.org/1999/xlink');
+
+        sut.bind(LifecycleFlags.none);
+        sut.setValue('foo', LifecycleFlags.fromBind);
+        assert.strictEqual(sut.getValue(), 'foo', `sut.getValue()`);
+        assert.strictEqual(el.getAttributeNS(sut.namespace, sut.propertyKey), 'foo', `el.getAttributeNS(sut.namespace, sut.propertyKey) before flush`);
+
+        sut.unbind(LifecycleFlags.none);
       });
     }
   });
 
 });
 
-describe.skip('DataAttributeAccessor', function () {
+describe('DataAttributeAccessor', function () {
   let sut: DataAttributeAccessor;
   let el: HTMLElement;
   let lifecycle: ILifecycle;
@@ -89,36 +121,69 @@ describe.skip('DataAttributeAccessor', function () {
           const { lifecycle: $lifecycle } = setup();
           lifecycle = $lifecycle;
           sut = new DataAttributeAccessor(lifecycle, el, name);
-          const actual = sut.getValue();
+
+          let actual = sut.getValue();
+          assert.strictEqual(actual, null, `actual`);
+
+          sut.bind(LifecycleFlags.none);
+          actual = sut.getValue();
           assert.strictEqual(actual, value, `actual`);
+
+          sut.unbind(LifecycleFlags.none);
         });
       }
     }
   });
 
-  describe('setValue()', function () {
+  describe('setValue() with flags.none', function () {
     for (const name of globalAttributeNames) {
       for (const value of valueArr) {
-        it(`sets attribute "${name}" to "${value}"`, function () {
+        it(`sets attribute "${name}" to "${value}" only after flushing RAF`, function () {
           const ctx = TestContext.createHTMLTestContext();
           el = ctx.createElementFromMarkup(`<div></div>`);
           const { lifecycle: $lifecycle } = setup();
           lifecycle = $lifecycle;
           const expected = value != null ? `<div ${name}="${value}"></div>` : '<div></div>';
           sut = new DataAttributeAccessor(lifecycle, el, name);
+
+          sut.bind(LifecycleFlags.none);
           sut.setValue(value, LifecycleFlags.none);
-          if (value != null) {
-            assert.notStrictEqual(el.outerHTML, expected, `el.outerHTML`);
-          }
+          assert.strictEqual(sut.getValue(), value, `sut.getValue()`);
+          assert.strictEqual(el.outerHTML, '<div></div>', `el.outerHTML before flush`);
+
           lifecycle.processRAFQueue(LifecycleFlags.none);
-          assert.strictEqual(el.outerHTML, expected, `el.outerHTML`);
+          assert.strictEqual(el.outerHTML, expected, `el.outerHTML after flush`);
+
+          sut.unbind(LifecycleFlags.none);
+        });
+      }
+    }
+  });
+
+  describe('setValue() with flags.fromBind', function () {
+    for (const name of globalAttributeNames) {
+      for (const value of valueArr) {
+        it(`sets attribute "${name}" to "${value}" immediately`, function () {
+          const ctx = TestContext.createHTMLTestContext();
+          el = ctx.createElementFromMarkup(`<div></div>`);
+          const { lifecycle: $lifecycle } = setup();
+          lifecycle = $lifecycle;
+          const expected = value != null ? `<div ${name}="${value}"></div>` : '<div></div>';
+          sut = new DataAttributeAccessor(lifecycle, el, name);
+
+          sut.bind(LifecycleFlags.none);
+          sut.setValue(value, LifecycleFlags.fromBind);
+          assert.strictEqual(sut.getValue(), value, `sut.getValue()`);
+          assert.strictEqual(el.outerHTML, expected, `el.outerHTML before flush`);
+
+          sut.unbind(LifecycleFlags.none);
         });
       }
     }
   });
 });
 
-describe.skip('StyleAccessor', function () {
+describe('StyleAccessor', function () {
   const propNames = Object.getOwnPropertyNames(CSS_PROPERTIES);
 
   let sut: StyleAttributeAccessor;
@@ -130,14 +195,15 @@ describe.skip('StyleAccessor', function () {
     const values = CSS_PROPERTIES[propName]['values'];
     const value = values[0];
     const rule = `${propName}:${value}`;
-    it(`setValue - style="${rule}"`, function () {
+    it(`setValue - style="${rule}" flags.none`, function () {
       const ctx = TestContext.createHTMLTestContext();
       el = ctx.createElementFromMarkup('<div></div>');
       const { lifecycle: $lifecycle } = setup();
       lifecycle = $lifecycle;
       sut = new StyleAttributeAccessor(lifecycle, el);
-      const setPropertySpy = createSpy(sut, 'setProperty');
+      const setPropertySpy = createSpy(sut, 'setProperty', true);
 
+      sut.bind(LifecycleFlags.none);
       sut.setValue(rule, LifecycleFlags.none);
       assert.deepStrictEqual(
         setPropertySpy.calls,
@@ -153,6 +219,34 @@ describe.skip('StyleAccessor', function () {
         ],
         `setPropertySpy.calls`,
       );
+
+      sut.unbind(LifecycleFlags.none);
+    });
+  }
+
+  for (const propName of propNames) {
+    const values = CSS_PROPERTIES[propName]['values'];
+    const value = values[0];
+    const rule = `${propName}:${value}`;
+    it(`setValue - style="${rule}" flags.fromBind`, function () {
+      const ctx = TestContext.createHTMLTestContext();
+      el = ctx.createElementFromMarkup('<div></div>');
+      const { lifecycle: $lifecycle } = setup();
+      lifecycle = $lifecycle;
+      sut = new StyleAttributeAccessor(lifecycle, el);
+      const setPropertySpy = createSpy(sut, 'setProperty', true);
+
+      sut.bind(LifecycleFlags.none);
+      sut.setValue(rule, LifecycleFlags.fromBind);
+      assert.deepStrictEqual(
+        setPropertySpy.calls,
+        [
+          [propName, value],
+        ],
+        `setPropertySpy.calls`,
+      );
+
+      sut.unbind(LifecycleFlags.none);
     });
   }
 
@@ -168,7 +262,7 @@ describe.skip('StyleAccessor', function () {
   });
 });
 
-describe.skip('ClassAccessor', function () {
+describe('ClassAccessor', function () {
   let sut: ClassAttributeAccessor;
   let el: HTMLElement;
   let lifecycle: ILifecycle;
@@ -184,47 +278,109 @@ describe.skip('ClassAccessor', function () {
   const secondClassListArr = ['', 'fooo'];
   for (const markup of markupArr) {
     for (const classList of classListArr) {
-      beforeEach(function () {
-        const ctx = TestContext.createHTMLTestContext();
-        el = ctx.createElementFromMarkup(markup);
-        initialClassList = el.classList.toString();
-        const { lifecycle: $lifecycle } = setup();
-        lifecycle = $lifecycle;
-        sut = new ClassAttributeAccessor(lifecycle, el);
-      });
 
-      it(`setValue("${classList}") updates ${markup}`, function () {
-        sut.setValue(classList, LifecycleFlags.none);
-        assert.strictEqual(el.classList.toString(), initialClassList, `el.classList.toString()`);
-        lifecycle.processRAFQueue(LifecycleFlags.none);
-        const updatedClassList = el.classList.toString();
-        for (const cls of initialClassList.split(' ')) {
-          assert.includes(updatedClassList, cls, `updatedClassList`);
-        }
-        for (const cls of classList.split(' ')) {
-          assert.includes(updatedClassList, cls, `updatedClassList`);
-        }
-      });
+      describe('with flags.none', function () {
+        beforeEach(function () {
+          const ctx = TestContext.createHTMLTestContext();
+          el = ctx.createElementFromMarkup(markup);
+          initialClassList = el.classList.toString();
+          const { lifecycle: $lifecycle } = setup();
+          lifecycle = $lifecycle;
+          sut = new ClassAttributeAccessor(lifecycle, el);
+          sut.bind(LifecycleFlags.none);
+        });
 
-      for (const secondClassList of secondClassListArr) {
-        it(`setValue("${secondClassList}") updates already-updated ${markup}`, function () {
+        afterEach(function () {
+          sut.unbind(LifecycleFlags.none);
+        });
+
+        it(`setValue("${classList}") updates ${markup} flags.none`, function () {
           sut.setValue(classList, LifecycleFlags.none);
+
+          assert.strictEqual(el.classList.toString(), initialClassList, `el.classList.toString()`);
+
           lifecycle.processRAFQueue(LifecycleFlags.none);
+
           const updatedClassList = el.classList.toString();
-          sut.setValue(secondClassList, LifecycleFlags.none);
-          assert.strictEqual(el.classList.toString(), updatedClassList, `el.classList.toString()`);
-          lifecycle.processRAFQueue(LifecycleFlags.none);
-          const secondUpdatedClassList = el.classList.toString();
           for (const cls of initialClassList.split(' ')) {
-            if (!classList.includes(cls)) {
-              assert.includes(secondUpdatedClassList, cls, `secondUpdatedClassList`);
-            }
+            assert.includes(updatedClassList, cls, `updatedClassList`);
           }
-          for (const cls of secondClassList.split(' ')) {
-            assert.includes(secondUpdatedClassList, cls, `secondUpdatedClassList`);
+          for (const cls of classList.split(' ')) {
+            assert.includes(updatedClassList, cls, `updatedClassList`);
           }
         });
-      }
+
+        for (const secondClassList of secondClassListArr) {
+          it(`setValue("${secondClassList}") updates already-updated ${markup} flags.none`, function () {
+            sut.setValue(classList, LifecycleFlags.none);
+
+            lifecycle.processRAFQueue(LifecycleFlags.none);
+
+            const updatedClassList = el.classList.toString();
+
+            sut.setValue(secondClassList, LifecycleFlags.none);
+            assert.strictEqual(el.classList.toString(), updatedClassList, `el.classList.toString()`);
+
+            lifecycle.processRAFQueue(LifecycleFlags.none);
+
+            const secondUpdatedClassList = el.classList.toString();
+            for (const cls of initialClassList.split(' ')) {
+              if (!classList.includes(cls)) {
+                assert.includes(secondUpdatedClassList, cls, `secondUpdatedClassList`);
+              }
+            }
+            for (const cls of secondClassList.split(' ')) {
+              assert.includes(secondUpdatedClassList, cls, `secondUpdatedClassList`);
+            }
+          });
+        }
+      });
+
+      describe('with flags.fromBind', function () {
+        beforeEach(function () {
+          const ctx = TestContext.createHTMLTestContext();
+          el = ctx.createElementFromMarkup(markup);
+          initialClassList = el.classList.toString();
+          const { lifecycle: $lifecycle } = setup();
+          lifecycle = $lifecycle;
+          sut = new ClassAttributeAccessor(lifecycle, el);
+          sut.bind(LifecycleFlags.none);
+        });
+
+        afterEach(function () {
+          sut.unbind(LifecycleFlags.none);
+        });
+
+        it(`setValue("${classList}") updates ${markup} flags.fromBind`, function () {
+          sut.setValue(classList, LifecycleFlags.fromBind);
+
+          const updatedClassList = el.classList.toString();
+          for (const cls of initialClassList.split(' ')) {
+            assert.includes(updatedClassList, cls, `updatedClassList`);
+          }
+          for (const cls of classList.split(' ')) {
+            assert.includes(updatedClassList, cls, `updatedClassList`);
+          }
+        });
+
+        for (const secondClassList of secondClassListArr) {
+          it(`setValue("${secondClassList}") updates already-updated ${markup} flags.fromBind`, function () {
+            sut.setValue(classList, LifecycleFlags.fromBind);
+
+            sut.setValue(secondClassList, LifecycleFlags.fromBind);
+
+            const secondUpdatedClassList = el.classList.toString();
+            for (const cls of initialClassList.split(' ')) {
+              if (!classList.includes(cls)) {
+                assert.includes(secondUpdatedClassList, cls, `secondUpdatedClassList`);
+              }
+            }
+            for (const cls of secondClassList.split(' ')) {
+              assert.includes(secondUpdatedClassList, cls, `secondUpdatedClassList`);
+            }
+          });
+        }
+      });
     }
   }
 });

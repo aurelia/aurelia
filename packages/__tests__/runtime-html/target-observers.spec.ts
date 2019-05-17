@@ -29,7 +29,7 @@ function setup() {
   return { ctx, container, lifecycle, observerLocator };
 }
 
-describe('AttributeNSAccessor', function () {
+describe.skip('AttributeNSAccessor', function () {
   let sut: AttributeNSAccessor;
   let el: HTMLElement;
   let lifecycle: ILifecycle;
@@ -74,7 +74,7 @@ describe('AttributeNSAccessor', function () {
 
 });
 
-describe('DataAttributeAccessor', function () {
+describe.skip('DataAttributeAccessor', function () {
   let sut: DataAttributeAccessor;
   let el: HTMLElement;
   let lifecycle: ILifecycle;
@@ -118,7 +118,7 @@ describe('DataAttributeAccessor', function () {
   });
 });
 
-describe('StyleAccessor', function () {
+describe.skip('StyleAccessor', function () {
   const propNames = Object.getOwnPropertyNames(CSS_PROPERTIES);
 
   let sut: StyleAttributeAccessor;
@@ -168,7 +168,7 @@ describe('StyleAccessor', function () {
   });
 });
 
-describe('ClassAccessor', function () {
+describe.skip('ClassAccessor', function () {
   let sut: ClassAttributeAccessor;
   let el: HTMLElement;
   let lifecycle: ILifecycle;

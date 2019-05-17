@@ -1,12 +1,10 @@
-import { expect } from 'chai';
-import { spy } from 'sinon';
 import {
   LifecycleFlags,
-  MutationKind,
   subscriberCollection
 } from '@aurelia/runtime';
+import { createSpy, assert } from '@aurelia/testing';
 
-@subscriberCollection(MutationKind.instance)
+@subscriberCollection()
 class Test {}
 
 describe('subscriberCollection', function () {
@@ -15,42 +13,102 @@ describe('subscriberCollection', function () {
     const observer = new Test();
     const observer2 = new Test();
 
-    const callable1 = { handleChange: spy() };
+    const callable1 = { handleChange: createSpy() };
     observer['addSubscriber'](callable1);
-    const callable2 = { handleChange: spy() };
+    const callable2 = { handleChange: createSpy() };
     observer['addSubscriber'](callable2);
-    const callable3 = { handleChange: spy() };
+    const callable3 = { handleChange: createSpy() };
     observer['addSubscriber'](callable3);
     const callable4 = {
-      handleChange: spy(() => observer2['callSubscribers']('new value2', 'old value2', flags))
+      handleChange: createSpy(() => observer2['callSubscribers']('new value2', 'old value2', flags))
     };
     observer['addSubscriber'](callable4);
-    const callable5 = { handleChange: spy() };
+    const callable5 = { handleChange: createSpy() };
     observer['addSubscriber'](callable5);
 
-    const callable6 = { handleChange: spy() };
+    const callable6 = { handleChange: createSpy() };
     observer2['addSubscriber'](callable6);
-    const callable7 = { handleChange: spy() };
+    const callable7 = { handleChange: createSpy() };
     observer2['addSubscriber'](callable7);
-    const callable8 = { handleChange: spy() };
+    const callable8 = { handleChange: createSpy() };
     observer2['addSubscriber'](callable8);
-    const callable9 = { handleChange: spy() };
+    const callable9 = { handleChange: createSpy() };
     observer2['addSubscriber'](callable9);
-    const callable10 = { handleChange: spy() };
+    const callable10 = { handleChange: createSpy() };
     observer2['addSubscriber'](callable10);
 
     observer['callSubscribers']('new value', 'old value', flags);
 
-    expect(callable1.handleChange).to.have.been.calledWith('new value', 'old value', flags);
-    expect(callable2.handleChange).to.have.been.calledWith('new value', 'old value', flags);
-    expect(callable3.handleChange).to.have.been.calledWith('new value', 'old value', flags);
-    expect(callable4.handleChange).to.have.been.calledWith('new value', 'old value', flags);
-    expect(callable5.handleChange).to.have.been.calledWith('new value', 'old value', flags);
-    expect(callable6.handleChange).to.have.been.calledWith('new value2', 'old value2', flags);
-    expect(callable7.handleChange).to.have.been.calledWith('new value2', 'old value2', flags);
-    expect(callable8.handleChange).to.have.been.calledWith('new value2', 'old value2', flags);
-    expect(callable9.handleChange).to.have.been.calledWith('new value2', 'old value2', flags);
-    expect(callable10.handleChange).to.have.been.calledWith('new value2', 'old value2', flags);
+    assert.deepStrictEqual(
+      callable1.handleChange.calls,
+      [
+        ['new value', 'old value', flags & ~LifecycleFlags.update],
+      ],
+      `callable1.handleChange`,
+    );
+    assert.deepStrictEqual(
+      callable2.handleChange.calls,
+      [
+        ['new value', 'old value', flags  & ~LifecycleFlags.update],
+      ],
+      `callable2.handleChange`,
+    );
+    assert.deepStrictEqual(
+      callable3.handleChange.calls,
+      [
+        ['new value', 'old value', flags  & ~LifecycleFlags.update],
+      ],
+      `callable3.handleChange`,
+    );
+    assert.deepStrictEqual(
+      callable4.handleChange.calls,
+      [
+        ['new value', 'old value', flags  & ~LifecycleFlags.update],
+      ],
+      `callable4.handleChange`,
+    );
+    assert.deepStrictEqual(
+      callable5.handleChange.calls,
+      [
+        ['new value', 'old value', flags  & ~LifecycleFlags.update],
+      ],
+      `callable5.handleChange`,
+    );
+    assert.deepStrictEqual(
+      callable6.handleChange.calls,
+      [
+        ['new value2', 'old value2', flags  & ~LifecycleFlags.update],
+      ],
+      `callable6.handleChange`,
+    );
+    assert.deepStrictEqual(
+      callable7.handleChange.calls,
+      [
+        ['new value2', 'old value2', flags  & ~LifecycleFlags.update],
+      ],
+      `callable7.handleChange`,
+    );
+    assert.deepStrictEqual(
+      callable8.handleChange.calls,
+      [
+        ['new value2', 'old value2', flags  & ~LifecycleFlags.update],
+      ],
+      `callable8.handleChange`,
+    );
+    assert.deepStrictEqual(
+      callable9.handleChange.calls,
+      [
+        ['new value2', 'old value2', flags  & ~LifecycleFlags.update],
+      ],
+      `callable9.handleChange`,
+    );
+    assert.deepStrictEqual(
+      callable10.handleChange.calls,
+      [
+        ['new value2', 'old value2', flags  & ~LifecycleFlags.update],
+      ],
+      `callable10.handleChange`,
+    );
   });
 
   it('removes subscribers', function () {
@@ -68,8 +126,8 @@ describe('subscriberCollection', function () {
         removalCount++;
       }
     }
-    expect(observer['_subscribersRest'].length).to.equal(subscribers.length - 3 - removalCount);
+    assert.strictEqual(observer['_subscribersRest'].length, subscribers.length - 3 - removalCount, `observer['_subscribersRest'].length`);
 
-    expect(observer['removeSubscriber']({} as any)).to.equal(false);
+    assert.strictEqual(observer['removeSubscriber']({} as any), false, `observer['removeSubscriber']({} as any)`);
   });
 });

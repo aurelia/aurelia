@@ -1,8 +1,7 @@
-// import { expect } from 'chai';
-// import { spy } from 'sinon';
 // import { DI, IContainer } from '@aurelia/kernel';
 // import { LetBinding, LifecycleFlags, BindingMode, ExpressionKind, IBindingTarget, IExpression, IObserverLocator, IScope, Scope, State } from '@aurelia/runtime';
 // import { MockExpression } from '../mock';
+// import { assert } from '@aurelia/testing';
 
 // const getName = (o: any) => Object.prototype.toString.call(o).slice(8, -1);
 
@@ -44,7 +43,7 @@
 //       sut.$bind(LifecycleFlags.none, scope);
 //       const target = sut.target;
 //       sut.$bind(LifecycleFlags.none, scope);
-//       expect(sut.target).to.equal(target, 'It should have not recreated target');
+//       assert.strictEqual(sut.target, target, 'It should have not recreated target');
 //     });
 
 //     it('creates right target with toViewModel === true', function () {
@@ -52,7 +51,7 @@
 //       const sourceExpression = new MockExpression();
 //       sut = new LetBinding(<any>sourceExpression, 'foo', observerLocator, container, true);
 //       sut.$bind(LifecycleFlags.none, Scope.create(vm, null));
-//       expect(sut.target).to.equal(vm, 'It should have used bindingContext to create target.');
+//       assert.strictEqual(sut.target, vm, 'It should have used bindingContext to create target.');
 //     });
 
 //     it('creates right target with toViewModel === false', function () {
@@ -61,7 +60,7 @@
 //       const sourceExpression = new MockExpression();
 //       sut = new LetBinding(<any>sourceExpression, 'foo', observerLocator, container);
 //       sut.$bind(LifecycleFlags.none, Scope.create(vm, <any>view));
-//       expect(sut.target).to.equal(view, 'It should have used overrideContext to create target.');
+//       assert.strictEqual(sut.target, view, 'It should have used overrideContext to create target.');
 //     });
 //   });
 
@@ -83,7 +82,7 @@
 //       sut = new LetBinding(<any>sourceExpression, 'foo', observerLocator, container, true);
 //       sut['$scope'] = scope;
 //       sut.$unbind(LifecycleFlags.fromUnbind);
-//       expect(sut['$scope'] === scope).to.equal(true);
+//       assert.strictEqual(sut['$scope'] === scope, true, `sut['$scope'] === scope`);
 //     });
 
 //     it('should unbind if it is bound', function () {
@@ -92,13 +91,25 @@
 //       sut = new LetBinding(<any>sourceExpression, 'foo', observerLocator, container, true);
 //       sut['$scope'] = scope;
 //       sut.$state |= State.isBound;
-//       const unobserveSpy = spy(sut, 'unobserve');
-//       const unbindSpy = sourceExpression.unbind = spy();
+//       // const unobserveSpy = spy(sut, 'unobserve');
+//       // const unbindSpy = sourceExpression.unbind = spy();
 //       sut.$unbind(LifecycleFlags.fromUnbind);
-//       expect(sut['$scope']).to.equal(null);
-//       expect(sut['$state'] & State.isBound).to.equal(0);
-//       expect(unobserveSpy).to.have.been.calledWith(true);
-//       expect(unbindSpy).to.have.been.calledWith(LifecycleFlags.fromUnbind, scope, sut);
+//       assert.strictEqual(sut['$scope'], null, `sut['$scope']`);
+//       assert.strictEqual(sut['$state'] & State.isBound, 0, `sut['$state'] & State.isBound`);
+//       assert.deepStrictEqual(
+//         unobserveSpy.calls,
+//         [
+//           [true],
+//         ],
+//         `unobserveSpy`,
+//       );
+//       assert.deepStrictEqual(
+//         unbindSpy.calls,
+//         [
+//           [LifecycleFlags.fromUnbind, scope, sut],
+//         ],
+//         `unbindSpy`,
+//       );
 //     });
 //   });
 // });

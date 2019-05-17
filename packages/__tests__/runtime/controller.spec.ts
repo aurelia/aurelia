@@ -45,7 +45,7 @@ import {
   nextId,
 } from '@aurelia/kernel';
 
-describe('controller', function () {
+describe.skip('controller', function () {
   const buildNotRequired = Object.freeze({ compiler: 'default', required: false });
   const allHooks = Object.freeze(new HooksDefinition({
     created: true,

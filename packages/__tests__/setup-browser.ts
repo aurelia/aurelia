@@ -1,11 +1,16 @@
 import {
-  initializeChaiExtensions,
   HTMLTestContext,
   TestContext,
 } from '@aurelia/testing';
 import {
   BasicConfiguration as BasicBrowserConfiguration
 } from '@aurelia/jit-html-browser';
+import {
+  Reporter,
+  LogLevel,
+} from '@aurelia/kernel';
+
+Reporter.level = LogLevel.error;
 
 function createBrowserTestContext(): HTMLTestContext {
   return HTMLTestContext.create(
@@ -32,7 +37,6 @@ function initializeBrowserTestContext(): void {
 
 
 initializeBrowserTestContext();
-initializeChaiExtensions();
 
-const testContext = require.context('.', true, /\.spec/);
+const testContext = require.context('.', true, /\.spec\.js$/i);
 testContext.keys().forEach(testContext);

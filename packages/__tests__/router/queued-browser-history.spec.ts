@@ -134,7 +134,7 @@ describe('QueuedBrowserHistory', function () {
     tearDown();
   });
 
-  xit('awaits go', async function () {
+  it.skip('awaits go', async function () {
     const { sut, tearDown, callback } = setup();
 
     let counter = 0;
@@ -157,7 +157,7 @@ describe('QueuedBrowserHistory', function () {
     tearDown();
   });
 
-  xit('suppresses popstate event callback', async function () {
+  it.skip('suppresses popstate event callback', async function () {
     const { sut, tearDown, callback } = setup();
 
     let counter = 0;

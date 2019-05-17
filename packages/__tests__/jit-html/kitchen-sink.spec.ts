@@ -15,7 +15,7 @@ const spec = 'kitchen-sink';
 
 // TemplateCompiler - integration with various different parts
 describe(spec, function () {
-  it('startup with App type', function () {
+  it.skip('startup with App type', function () {
     const ctx = TestContext.createHTMLTestContext();
     const component = CustomElementResource.define({ name: 'app', template: `<template>\${message}</template>` }, class { public message = 'Hello!'; });
     const host = ctx.createElement('div');
@@ -30,7 +30,7 @@ describe(spec, function () {
     assert.strictEqual(host.textContent, '', `host.textContent`);
   });
 
-  it('signaler', async function () {
+  it.skip('signaler', async function () {
 
     const items = [0, 1, 2];
     const App = CustomElementResource.define({
@@ -66,7 +66,7 @@ describe(spec, function () {
 
   });
 
-  it('signaler + oneTime', async function () {
+  it.skip('signaler + oneTime', async function () {
 
     const items = [0, 1, 2];
     const App = CustomElementResource.define({
@@ -102,7 +102,7 @@ describe(spec, function () {
 
   });
 
-  it('render hook', async function () {
+  it.skip('render hook', async function () {
 
     const ctx = TestContext.createHTMLTestContext();
     const App = CustomElementResource.define({
@@ -157,7 +157,7 @@ describe('xml node compiler tests', function () {
 
   for (const markup of markups) {
     const escaped = markup.replace(/\b/g, '\\b').replace(/\t/g, '\\t').replace(/\n/g, '\\n').replace(/\v/g, '\\v').replace(/\f/g, '\\f').replace(/\r/g, '\\r');
-    it(escaped, function () {
+    it.skip(escaped, function () {
       const ctx = TestContext.createHTMLTestContext();
       const parser = new ctx.DOMParser();
       const doc = parser.parseFromString(markup, 'application/xml');
@@ -178,7 +178,7 @@ describe('xml node compiler tests', function () {
 
 describe('dependency injection', function () {
 
-  it('register local dependencies ', function () {
+  it.skip('register local dependencies ', function () {
     const Foo = CustomElementResource.define(
       {
         name: 'foo',
@@ -213,7 +213,7 @@ describe('dependency injection', function () {
 // commented out code left here intentionally, serves as a staring point for template controller tests
 
 // describe('test', () => {
-//   it('if', () => {
+//   it.skip('if', () => {
 //     enableTracing();
 //     Tracer.enableLiveLogging(SymbolTraceWriter);
 //     const container = BasicConfiguration.createContainer();
@@ -253,7 +253,7 @@ describe('dependency injection', function () {
 //     expect(host.textContent).to.equal('bar')
 //   });
 
-//   it('if2', () => {
+//   it.skip('if2', () => {
 //     enableTracing();
 //     Tracer.enableLiveLogging(SymbolTraceWriter);
 //     // common stuff

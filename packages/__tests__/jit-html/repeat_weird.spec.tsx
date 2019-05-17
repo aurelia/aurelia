@@ -5,7 +5,7 @@ import { TestContext, HTMLTestContext, hJsx, assert } from '@aurelia/testing';
 //      JSX is used to eliminate space between tags so test result can be easier to manually constructed
 //      if template string can be used to achieve the same effect, it could be converted back
 
-describe.skip('[repeat] -- funny cases', function () {
+describe('[repeat] -- funny cases', function () {
 
   const testCases: [string, HTMLElement, HTMLElement, ITestItem[], string, ICustomAssertion?][] = [
     [
@@ -69,7 +69,7 @@ describe.skip('[repeat] -- funny cases', function () {
       customAssertion
     ] of testCases
   ) {
-    it(`\n----\n${testTitle}`, async function() {
+    it.skip(`\n----\n${testTitle}`, async function() {
       const Foo = CustomElementResource.define(
         { name: 'foo', template: <template>{fooContentTemplate}</template> },
         class Foo { items = fooItems }

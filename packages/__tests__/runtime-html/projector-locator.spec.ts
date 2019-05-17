@@ -2,7 +2,7 @@ import { CustomElementResource, ICustomElementType, Controller } from '@aurelia/
 import { ContainerlessProjector, HostProjector, HTMLProjectorLocator, ShadowDOMProjector } from '@aurelia/runtime-html';
 import { TestContext, assert } from '@aurelia/testing';
 
-describe(`determineProjector`, function () {
+describe.skip(`determineProjector`, function () {
   const ctx = TestContext.createHTMLTestContext();
   const dom = ctx.dom;
   const locator = new HTMLProjectorLocator();

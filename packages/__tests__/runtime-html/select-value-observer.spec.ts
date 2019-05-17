@@ -5,7 +5,7 @@ import { _, h, HTMLTestContext, TestContext, verifyEqual, assert, createSpy } fr
 type Anything = any;
 
 // TODO: need many more tests here, this is just preliminary
-describe('SelectValueObserver', function () {
+describe.skip('SelectValueObserver', function () {
   function createFixture(initialValue: Anything = '', options = [], multiple = false) {
     const ctx = TestContext.createHTMLTestContext();
     const { dom, lifecycle, observerLocator } = ctx;

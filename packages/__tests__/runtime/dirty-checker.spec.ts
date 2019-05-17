@@ -7,7 +7,7 @@ import {
 } from '@aurelia/runtime';
 import { assert } from '@aurelia/testing';
 
-describe('DirtyChecker', function () {
+describe.skip('DirtyChecker', function () {
   afterEach(function () {
     DirtyCheckSettings.resetToDefault();
   });

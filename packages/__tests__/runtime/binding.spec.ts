@@ -865,14 +865,14 @@ describe('Binding', function () {
       assert.strictEqual(sut['$scope'] === scope, true, `sut['$scope'] === scope`);
     });
 
-    it('should unbind if it is bound', function () {
+    xit('should unbind if it is bound', function () {
       const { sut } = setup();
       const scope: any = {};
       sut['$scope'] = scope;
       sut.$state = State.isBound;
       sut['targetObserver'] = {} as any;
-      //const unobserveSpy = spy(sut, 'unobserve');
-      //const unbindSpy = dummySourceExpression.unbind = createSpy();
+      const unobserveSpy = createSpy(sut, 'unobserve');
+      const unbindSpy = dummySourceExpression.unbind = createSpy();
       (dummySourceExpression as any).$kind |= ExpressionKind.HasUnbind;
       sut.$unbind(LF.fromUnbind);
       assert.strictEqual(sut['$scope'], undefined, `sut['$scope']`);

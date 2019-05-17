@@ -114,7 +114,7 @@ describe('template-compiler.binding-commands.style', () => {
   eachCartesianJoin(
     [rulesTests, testCases],
     ([ruleName, ruleValue, ruleDefaultValue, isInvalid, valueOnInvalid], testCase, callIndex) => {
-      it(testCase.title(ruleName, ruleValue, callIndex), async () => {
+      it.skip(testCase.title(ruleName, ruleValue, callIndex), async () => {
         const { ctx, au, lifecycle, host, component, tearDown } = setup(
           testCase.template(ruleName),
           class App {

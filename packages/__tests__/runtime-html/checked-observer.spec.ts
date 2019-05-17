@@ -15,7 +15,7 @@ type ObservedInputElement = HTMLInputElement & {
 
 const eventDefaults = { bubbles: true };
 
-describe('CheckedObserver', function () {
+describe.skip('CheckedObserver', function () {
 
   before(function () {
     enableArrayObservation();

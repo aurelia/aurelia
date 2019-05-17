@@ -2,7 +2,7 @@ import { LifecycleFlags as LF } from '@aurelia/runtime';
 import { ValueAttributeObserver } from '@aurelia/runtime-html';
 import { _, TestContext, assert, createSpy } from '@aurelia/testing';
 
-describe('ValueAttributeObserver', function () {
+describe.skip('ValueAttributeObserver', function () {
   const eventDefaults = { bubbles: true };
 
   for (const { inputType, nullValues, validValues } of [

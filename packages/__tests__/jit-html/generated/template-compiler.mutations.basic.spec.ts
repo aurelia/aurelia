@@ -29,24 +29,24 @@
 //             }
 //             bound() {
 //                 this.items.push(2);
-//                 expect(this.el.textContent).to.equal(this.cycled ? "" : "", "this.el.textContent during bound() before mutation");
+//                 assert.strictEqual(this.el.textContent, this.cycled ? "" : "", "this.el.textContent during bound() before mutation", `this.el.textContent`);
 //             }
 //             attaching() {
 //                 this.items.push(3);
-//                 expect(this.el.textContent).to.equal(this.cycled ? "" : "", "this.el.textContent during attaching() before mutation before flushChanges()");
+//                 assert.strictEqual(this.el.textContent, this.cycled ? "" : "", "this.el.textContent during attaching() before mutation before flushChanges()", `this.el.textContent`);
 //                 this.$lifecycle.processFlushQueue();
 //             }
 //             attached() {
 //                 this.items.push(4);
-//                 expect(this.el.textContent).to.equal(this.cycled ? "12345678123" : "123", "this.el.textContent during attached() before mutation before flushChanges()");
+//                 assert.strictEqual(this.el.textContent, this.cycled ? "12345678123" : "123", "this.el.textContent during attached() before mutation before flushChanges()", `this.el.textContent`);
 //                 this.$lifecycle.processFlushQueue();
-//                 expect(this.el.textContent).to.equal(this.cycled ? "123456781234" : "1234", "this.el.textContent during attached() after mutation after flushChanges()");
+//                 assert.strictEqual(this.el.textContent, this.cycled ? "123456781234" : "1234", "this.el.textContent during attached() after mutation after flushChanges()", `this.el.textContent`);
 //             }
 //             detaching() {
 //                 this.items.push(5);
-//                 expect(this.el.textContent).to.equal(this.cycled ? "123456781234" : "1234", "this.el.textContent during detaching() before mutation before flushChanges()");
+//                 assert.strictEqual(this.el.textContent, this.cycled ? "123456781234" : "1234", "this.el.textContent during detaching() before mutation before flushChanges()", `this.el.textContent`);
 //                 this.$lifecycle.processFlushQueue();
-//                 expect(this.el.textContent).to.equal(this.cycled ? "1234567812345" : "12345", "this.el.textContent during detaching() after mutation after flushChanges()");
+//                 assert.strictEqual(this.el.textContent, this.cycled ? "1234567812345" : "12345", "this.el.textContent during detaching() after mutation after flushChanges()", `this.el.textContent`);
 //             }
 //             detached() {
 //                 this.items.push(6);
@@ -57,26 +57,26 @@
 //             unbound() {
 //                 this.items.push(8);
 //                 this.cycled = true;
-//                 expect(this.el.textContent).to.equal(this.cycled ? "" : "", "this.el.textContent during unbound() before mutation before flushChanges()");
+//                 assert.strictEqual(this.el.textContent, this.cycled ? "" : "", "this.el.textContent during unbound() before mutation before flushChanges()", `this.el.textContent`);
 //                 this.$lifecycle.processFlushQueue();
-//                 expect(this.el.textContent).to.equal(this.cycled ? "" : "", "this.el.textContent during unbound() after mutation after flushChanges()");
+//                 assert.strictEqual(this.el.textContent, this.cycled ? "" : "", "this.el.textContent during unbound() after mutation after flushChanges()", `this.el.textContent`);
 //             }
 //         });
 //         au.register(Foo);
 //         const component = new App();
 //         au.app({ host, component });
 //         au.start();
-//         expect(host.textContent).to.equal("1234", "host.textContent after start #1");
-//         expect(items).to.deep.equal([1, 2, 3, 4]);
+//         assert.strictEqual(host.textContent, "1234", "host.textContent after start #1", `host.textContent`);
+//         assert.deepStrictEqual(items, [1, 2, 3, 4], `items`);
 //         au.stop();
-//         expect(host.textContent).to.equal("", "host.textContent after stop #1");
-//         expect(items).to.deep.equal([1, 2, 3, 4, 5, 6, 7, 8]);
+//         assert.strictEqual(host.textContent, "", "host.textContent after stop #1", `host.textContent`);
+//         assert.deepStrictEqual(items, [1, 2, 3, 4, 5, 6, 7, 8], `items`);
 //         au.start();
-//         expect(host.textContent).to.equal("123456781234", "host.textContent after start #2");
-//         expect(items).to.deep.equal([1, 2, 3, 4, 5, 6, 7, 8, 1, 2, 3, 4]);
+//         assert.strictEqual(host.textContent, "123456781234", "host.textContent after start #2", `host.textContent`);
+//         assert.deepStrictEqual(items, [1, 2, 3, 4, 5, 6, 7, 8, 1, 2, 3, 4], `items`);
 //         au.stop();
-//         expect(host.textContent).to.equal("", "host.textContent after stop #2");
-//         expect(items).to.deep.equal([1, 2, 3, 4, 5, 6, 7, 8, 1, 2, 3, 4, 5, 6, 7, 8]);
+//         assert.strictEqual(host.textContent, "", "host.textContent after stop #2", `host.textContent`);
+//         assert.deepStrictEqual(items, [1, 2, 3, 4, 5, 6, 7, 8, 1, 2, 3, 4, 5, 6, 7, 8], `items`);
 //     });
 //     it("works 2", function () {
 //         const { au, host } = setup();
@@ -97,19 +97,19 @@
 //             }
 //             bound() {
 //                 this.items.push(2);
-//                 expect(this.el.textContent).to.equal(this.cycled ? "" : "", "this.el.textContent during bound() before mutation");
+//                 assert.strictEqual(this.el.textContent, this.cycled ? "" : "", "this.el.textContent during bound() before mutation", `this.el.textContent`);
 //             }
 //             attaching() {
 //                 this.items.push(3);
-//                 expect(this.el.textContent).to.equal(this.cycled ? "" : "", "this.el.textContent during attaching() before mutation");
+//                 assert.strictEqual(this.el.textContent, this.cycled ? "" : "", "this.el.textContent during attaching() before mutation", `this.el.textContent`);
 //             }
 //             attached() {
 //                 this.items.push(4);
-//                 expect(this.el.textContent).to.equal(this.cycled ? "12345678123" : "123", "this.el.textContent during attached() before mutation");
+//                 assert.strictEqual(this.el.textContent, this.cycled ? "12345678123" : "123", "this.el.textContent during attached() before mutation", `this.el.textContent`);
 //             }
 //             detaching() {
 //                 this.items.push(5);
-//                 expect(this.el.textContent).to.equal(this.cycled ? "12345678123" : "123", "this.el.textContent during detaching() before mutation");
+//                 assert.strictEqual(this.el.textContent, this.cycled ? "12345678123" : "123", "this.el.textContent during detaching() before mutation", `this.el.textContent`);
 //             }
 //             detached() {
 //                 this.items.push(6);
@@ -120,26 +120,26 @@
 //             unbound() {
 //                 this.items.push(8);
 //                 this.cycled = true;
-//                 expect(this.el.textContent).to.equal(this.cycled ? "" : "", "this.el.textContent during unbound() before mutation before flushChanges()");
+//                 assert.strictEqual(this.el.textContent, this.cycled ? "" : "", "this.el.textContent during unbound() before mutation before flushChanges()", `this.el.textContent`);
 //                 this.$lifecycle.processFlushQueue();
-//                 expect(this.el.textContent).to.equal(this.cycled ? "" : "", "this.el.textContent during unbound() after mutation after flushChanges()");
+//                 assert.strictEqual(this.el.textContent, this.cycled ? "" : "", "this.el.textContent during unbound() after mutation after flushChanges()", `this.el.textContent`);
 //             }
 //         });
 //         au.register(Foo);
 //         const component = new App();
 //         au.app({ host, component });
 //         au.start();
-//         expect(host.textContent).to.equal("123", "host.textContent after start #1");
-//         expect(items).to.deep.equal([1, 2, 3, 4]);
+//         assert.strictEqual(host.textContent, "123", "host.textContent after start #1", `host.textContent`);
+//         assert.deepStrictEqual(items, [1, 2, 3, 4], `items`);
 //         au.stop();
-//         expect(host.textContent).to.equal("", "host.textContent after stop #1");
-//         expect(items).to.deep.equal([1, 2, 3, 4, 5, 6, 7, 8]);
+//         assert.strictEqual(host.textContent, "", "host.textContent after stop #1", `host.textContent`);
+//         assert.deepStrictEqual(items, [1, 2, 3, 4, 5, 6, 7, 8], `items`);
 //         au.start();
-//         expect(host.textContent).to.equal("12345678123", "host.textContent after start #2");
-//         expect(items).to.deep.equal([1, 2, 3, 4, 5, 6, 7, 8, 1, 2, 3, 4]);
+//         assert.strictEqual(host.textContent, "12345678123", "host.textContent after start #2", `host.textContent`);
+//         assert.deepStrictEqual(items, [1, 2, 3, 4, 5, 6, 7, 8, 1, 2, 3, 4], `items`);
 //         au.stop();
-//         expect(host.textContent).to.equal("", "host.textContent after stop #2");
-//         expect(items).to.deep.equal([1, 2, 3, 4, 5, 6, 7, 8, 1, 2, 3, 4, 5, 6, 7, 8]);
+//         assert.strictEqual(host.textContent, "", "host.textContent after stop #2", `host.textContent`);
+//         assert.deepStrictEqual(items, [1, 2, 3, 4, 5, 6, 7, 8, 1, 2, 3, 4, 5, 6, 7, 8], `items`);
 //     });
 //     it("works 3", function () {
 //         const { au, host } = setup();
@@ -161,24 +161,24 @@
 //             }
 //             bound() {
 //                 this.items.push(2);
-//                 expect(this.el.textContent).to.equal(this.cycled ? "" : "", "this.el.textContent during bound() before mutation");
+//                 assert.strictEqual(this.el.textContent, this.cycled ? "" : "", "this.el.textContent during bound() before mutation", `this.el.textContent`);
 //             }
 //             attaching() {
 //                 this.items.push(3);
-//                 expect(this.el.textContent).to.equal(this.cycled ? "" : "", "this.el.textContent during attaching() before mutation before flushChanges()");
+//                 assert.strictEqual(this.el.textContent, this.cycled ? "" : "", "this.el.textContent during attaching() before mutation before flushChanges()", `this.el.textContent`);
 //                 this.$lifecycle.processFlushQueue();
 //             }
 //             attached() {
 //                 this.items.push(4);
-//                 expect(this.el.textContent).to.equal(this.cycled ? "363" : "2", "this.el.textContent during attached() before mutation before flushChanges()");
+//                 assert.strictEqual(this.el.textContent, this.cycled ? "363" : "2", "this.el.textContent during attached() before mutation before flushChanges()", `this.el.textContent`);
 //                 this.$lifecycle.processFlushQueue();
-//                 expect(this.el.textContent).to.equal(this.cycled ? "363" : "24", "this.el.textContent during attached() after mutation after flushChanges()");
+//                 assert.strictEqual(this.el.textContent, this.cycled ? "363" : "24", "this.el.textContent during attached() after mutation after flushChanges()", `this.el.textContent`);
 //             }
 //             detaching() {
 //                 this.items.push(5);
-//                 expect(this.el.textContent).to.equal(this.cycled ? "363" : "24", "this.el.textContent during detaching() before mutation before flushChanges()");
+//                 assert.strictEqual(this.el.textContent, this.cycled ? "363" : "24", "this.el.textContent during detaching() before mutation before flushChanges()", `this.el.textContent`);
 //                 this.$lifecycle.processFlushQueue();
-//                 expect(this.el.textContent).to.equal(this.cycled ? "363" : "24", "this.el.textContent during detaching() after mutation after flushChanges()");
+//                 assert.strictEqual(this.el.textContent, this.cycled ? "363" : "24", "this.el.textContent during detaching() after mutation after flushChanges()", `this.el.textContent`);
 //             }
 //             detached() {
 //                 this.items.push(6);
@@ -190,26 +190,26 @@
 //                 this.items.push(8);
 //                 this.cycled = true;
 //                 this.mod = 3;
-//                 expect(this.el.textContent).to.equal(this.cycled ? "" : "", "this.el.textContent during unbound() before mutation before flushChanges()");
+//                 assert.strictEqual(this.el.textContent, this.cycled ? "" : "", "this.el.textContent during unbound() before mutation before flushChanges()", `this.el.textContent`);
 //                 this.$lifecycle.processFlushQueue();
-//                 expect(this.el.textContent).to.equal(this.cycled ? "" : "", "this.el.textContent during unbound() after mutation after flushChanges()");
+//                 assert.strictEqual(this.el.textContent, this.cycled ? "" : "", "this.el.textContent during unbound() after mutation after flushChanges()", `this.el.textContent`);
 //             }
 //         });
 //         au.register(Foo);
 //         const component = new App();
 //         au.app({ host, component });
 //         au.start();
-//         expect(host.textContent).to.equal("24", "host.textContent after start #1");
-//         expect(items).to.deep.equal([1, 2, 3, 4]);
+//         assert.strictEqual(host.textContent, "24", "host.textContent after start #1", `host.textContent`);
+//         assert.deepStrictEqual(items, [1, 2, 3, 4], `items`);
 //         au.stop();
-//         expect(host.textContent).to.equal("", "host.textContent after stop #1");
-//         expect(items).to.deep.equal([1, 2, 3, 4, 5, 6, 7, 8]);
+//         assert.strictEqual(host.textContent, "", "host.textContent after stop #1", `host.textContent`);
+//         assert.deepStrictEqual(items, [1, 2, 3, 4, 5, 6, 7, 8], `items`);
 //         au.start();
-//         expect(host.textContent).to.equal("363", "host.textContent after start #2");
-//         expect(items).to.deep.equal([1, 2, 3, 4, 5, 6, 7, 8, 1, 2, 3, 4]);
+//         assert.strictEqual(host.textContent, "363", "host.textContent after start #2", `host.textContent`);
+//         assert.deepStrictEqual(items, [1, 2, 3, 4, 5, 6, 7, 8, 1, 2, 3, 4], `items`);
 //         au.stop();
-//         expect(host.textContent).to.equal("", "host.textContent after stop #2");
-//         expect(items).to.deep.equal([1, 2, 3, 4, 5, 6, 7, 8, 1, 2, 3, 4, 5, 6, 7, 8]);
+//         assert.strictEqual(host.textContent, "", "host.textContent after stop #2", `host.textContent`);
+//         assert.deepStrictEqual(items, [1, 2, 3, 4, 5, 6, 7, 8, 1, 2, 3, 4, 5, 6, 7, 8], `items`);
 //     });
 //     it("works 4", function () {
 //         const { au, host } = setup();
@@ -231,19 +231,19 @@
 //             }
 //             bound() {
 //                 this.items.push(2);
-//                 expect(this.el.textContent).to.equal(this.cycled ? "" : "", "this.el.textContent during bound() before mutation");
+//                 assert.strictEqual(this.el.textContent, this.cycled ? "" : "", "this.el.textContent during bound() before mutation", `this.el.textContent`);
 //             }
 //             attaching() {
 //                 this.items.push(3);
-//                 expect(this.el.textContent).to.equal(this.cycled ? "" : "", "this.el.textContent during attaching() before mutation");
+//                 assert.strictEqual(this.el.textContent, this.cycled ? "" : "", "this.el.textContent during attaching() before mutation", `this.el.textContent`);
 //             }
 //             attached() {
 //                 this.items.push(4);
-//                 expect(this.el.textContent).to.equal(this.cycled ? "363" : "2", "this.el.textContent during attached() before mutation");
+//                 assert.strictEqual(this.el.textContent, this.cycled ? "363" : "2", "this.el.textContent during attached() before mutation", `this.el.textContent`);
 //             }
 //             detaching() {
 //                 this.items.push(5);
-//                 expect(this.el.textContent).to.equal(this.cycled ? "363" : "2", "this.el.textContent during detaching() before mutation");
+//                 assert.strictEqual(this.el.textContent, this.cycled ? "363" : "2", "this.el.textContent during detaching() before mutation", `this.el.textContent`);
 //             }
 //             detached() {
 //                 this.items.push(6);
@@ -255,25 +255,25 @@
 //                 this.items.push(8);
 //                 this.cycled = true;
 //                 this.mod = 3;
-//                 expect(this.el.textContent).to.equal(this.cycled ? "" : "", "this.el.textContent during unbound() before mutation before flushChanges()");
+//                 assert.strictEqual(this.el.textContent, this.cycled ? "" : "", "this.el.textContent during unbound() before mutation before flushChanges()", `this.el.textContent`);
 //                 this.$lifecycle.processFlushQueue();
-//                 expect(this.el.textContent).to.equal(this.cycled ? "" : "", "this.el.textContent during unbound() after mutation after flushChanges()");
+//                 assert.strictEqual(this.el.textContent, this.cycled ? "" : "", "this.el.textContent during unbound() after mutation after flushChanges()", `this.el.textContent`);
 //             }
 //         });
 //         au.register(Foo);
 //         const component = new App();
 //         au.app({ host, component });
 //         au.start();
-//         expect(host.textContent).to.equal("2", "host.textContent after start #1");
-//         expect(items).to.deep.equal([1, 2, 3, 4]);
+//         assert.strictEqual(host.textContent, "2", "host.textContent after start #1", `host.textContent`);
+//         assert.deepStrictEqual(items, [1, 2, 3, 4], `items`);
 //         au.stop();
-//         expect(host.textContent).to.equal("", "host.textContent after stop #1");
-//         expect(items).to.deep.equal([1, 2, 3, 4, 5, 6, 7, 8]);
+//         assert.strictEqual(host.textContent, "", "host.textContent after stop #1", `host.textContent`);
+//         assert.deepStrictEqual(items, [1, 2, 3, 4, 5, 6, 7, 8], `items`);
 //         au.start();
-//         expect(host.textContent).to.equal("363", "host.textContent after start #2");
-//         expect(items).to.deep.equal([1, 2, 3, 4, 5, 6, 7, 8, 1, 2, 3, 4]);
+//         assert.strictEqual(host.textContent, "363", "host.textContent after start #2", `host.textContent`);
+//         assert.deepStrictEqual(items, [1, 2, 3, 4, 5, 6, 7, 8, 1, 2, 3, 4], `items`);
 //         au.stop();
-//         expect(host.textContent).to.equal("", "host.textContent after stop #2");
-//         expect(items).to.deep.equal([1, 2, 3, 4, 5, 6, 7, 8, 1, 2, 3, 4, 5, 6, 7, 8]);
+//         assert.strictEqual(host.textContent, "", "host.textContent after stop #2", `host.textContent`);
+//         assert.deepStrictEqual(items, [1, 2, 3, 4, 5, 6, 7, 8, 1, 2, 3, 4, 5, 6, 7, 8], `items`);
 //     });
 // });

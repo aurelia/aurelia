@@ -131,7 +131,7 @@ describe('dom', function () {
   });
 
   describe('createElement', function () {
-    it('should call document.createElement', function () {
+    it.skip('should call document.createElement', function () {
       const createElementSpy = createSpy(ctx.doc, 'createElement');
       ctx.dom.createElement('div');
 
@@ -372,7 +372,7 @@ describe('dom', function () {
     });
   });
 
-  describe('registerElementResolver', function () {
+  describe.skip('registerElementResolver', function () {
     const keys = [INode, ctx.Node, ctx.Element, ctx.HTMLElement];
     if (typeof Node !== 'undefined') {
       keys.push(Node);
@@ -493,7 +493,7 @@ describe('FragmentNodeSequence', function () {
     }
   });
 
-  describe('remove', function () {
+  describe.skip('remove', function () {
     for (const width of widthArr) {
       for (const depth of depthArr.filter(d => d > 0)) {
         it(`should put the view back into the fragment (depth=${depth},width=${width})`, function () {

@@ -1,30 +1,29 @@
-import { expect } from 'chai';
-
 import {
   Serializer,
   Unparser,
 } from '@aurelia/debug';
-import { Aurelia, IViewModel, INode, TargetedInstructionType, IController, IElementProjector, Replaceable, With, If, Repeat } from '@aurelia/runtime';
-import { HTMLTargetedInstructionType, Compose } from '@aurelia/runtime-html';
+import { Aurelia, IController, IElementProjector, If, INode, IViewModel, Repeat, Replaceable, TargetedInstructionType, With } from '@aurelia/runtime';
+import { Compose, HTMLTargetedInstructionType } from '@aurelia/runtime-html';
+import { assert } from './assert';
 
 export function verifyASTEqual(actual: any, expected: any, errors?: string[], path?: string): any {
   if (expected == null) {
     if (actual != null) {
-      expect(actual).to.equal(null);
+      assert.strictEqual(actual, null, `actual`);
     }
   } else if (actual == null) {
     const expectedSerialized = Serializer.serialize(expected);
-    expect(actual).to.equal(expectedSerialized);
+    assert.strictEqual(actual, expectedSerialized, `actual`);
   } else {
     const expectedSerialized = Serializer.serialize(expected);
     const expectedUnparsed = Unparser.unparse(expected);
     const actualSerialized = Serializer.serialize(actual);
     const actualUnparsed = Unparser.unparse(actual);
     if (actualSerialized !== expectedSerialized) {
-      expect(actualSerialized).to.equal(expectedSerialized);
+      assert.strictEqual(actualSerialized, expectedSerialized, `actualSerialized`);
     }
     if (actualUnparsed !== expectedUnparsed) {
-      expect(actualUnparsed).to.equal(expectedUnparsed);
+      assert.strictEqual(actualUnparsed, expectedUnparsed, `actualUnparsed`);
     }
   }
 }
@@ -34,7 +33,7 @@ export function verifyEqual(actual: any, expected: any, depth?: number, property
     depth = 0;
   }
   if (typeof expected !== 'object' || expected === null || expected === undefined) {
-    expect(actual).to.equal(expected, `depth=${depth}, prop=${property}, index=${index}`);
+    assert.strictEqual(actual, expected, `actual, depth=${depth}, prop=${property}, index=${index}`);
     return;
   }
   if (expected instanceof Array) {
@@ -49,14 +48,14 @@ export function verifyEqual(actual: any, expected: any, depth?: number, property
         verifyEqual(actual.childNodes.item(i), expected.childNodes.item(i), depth + 1, property, i);
       }
     } else {
-      expect(actual.outerHTML).to.equal(expected.outerHTML, `depth=${depth}, prop=${property}, index=${index}`);
+      assert.strictEqual(actual.outerHTML, expected.outerHTML, `actual.outerHTML, depth=${depth}, prop=${property}, index=${index}`);
     }
     return;
   }
 
   if (actual) {
-    expect(actual.constructor.name).to.equal(expected.constructor.name, `depth=${depth}, prop=${property}, index=${index}`);
-    expect(actual.toString()).to.equal(expected.toString(), `depth=${depth}, prop=${property}, index=${index}`);
+    assert.strictEqual(actual.constructor.name, expected.constructor.name, `actual.constructor.name, depth=${depth}, prop=${property}, index=${index}`);
+    assert.strictEqual(actual.toString(), expected.toString(), `actual.toString(), depth=${depth}, prop=${property}, index=${index}`);
     for (const prop of Object.keys(expected)) {
       verifyEqual(actual[prop], expected[prop], depth + 1, prop, index);
     }

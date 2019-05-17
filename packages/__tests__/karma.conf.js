@@ -6,6 +6,7 @@ const basePath = path.resolve(__dirname);
 const commonChromeFlags = [
   '--no-default-browser-check',
   '--no-first-run',
+  '--no-sandbox',
   '--no-managed-user-acknowledgment-check',
   '--disable-background-timer-throttling',
   '--disable-backing-store-limit',
@@ -15,7 +16,7 @@ const commonChromeFlags = [
   '--disable-default-apps',
   '--disable-extensions',
   '--disable-infobars',
-  '--disable-translate'
+  '--disable-translate',
 ];
 
 module.exports = function (config) {
@@ -30,6 +31,8 @@ module.exports = function (config) {
 
   const options = {
     basePath,
+    browserDisconnectTimeout: 10000,
+    processKillTimeout: 10000,
     frameworks: [
       'source-map-support',
       'mocha',
@@ -131,10 +134,10 @@ module.exports = function (config) {
   if (config.coverage) {
     options.webpack.module.rules.push({
       enforce: 'post',
-      exclude: /(node_modules|\.spec\.ts$)/,
+      exclude: /(__tests__|node_modules|\.spec\.[tj]s$)/,
       loader: 'istanbul-instrumenter-loader',
       options: { esModules: true },
-      test: /node_modules[\/\\]@aurelia[\/\\].+\.js$/
+      test: /\.[tj]s$/
     });
     options.reporters = ['coverage-istanbul', ...options.reporters];
     options.coverageIstanbulReporter = {

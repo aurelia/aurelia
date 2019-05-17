@@ -582,7 +582,7 @@ describe('Router', function () {
   });
 
   // TODO: Fix scoped viewports!
-  xit('loads scoped viewport', async function () {
+  it.skip('loads scoped viewport', async function () {
     this.timeout(5000);
     const { host, router } = await setup();
 
@@ -846,7 +846,7 @@ describe('Router', function () {
         const path = segments.join('/');
         const expectedText = new RegExp(`.*${texts.join('.*')}.*`);
 
-        xit(`path: ${path}, expectedText: ${expectedText}`, async function () {
+        it.skip(`path: ${path}, expectedText: ${expectedText}`, async function () {
           const Conflict1 = CustomElementResource.define({ name: 'conflict', template: 'conflict1<au-viewport></au-viewport>' }, null);
           const Global1 = CustomElementResource.define({ name: 'global1', template: 'global1<au-viewport name="one"></au-viewport>', dependencies: [Conflict1] }, null);
           const Conflict2 = CustomElementResource.define({ name: 'conflict', template: 'conflict2<au-viewport></au-viewport>' }, null);

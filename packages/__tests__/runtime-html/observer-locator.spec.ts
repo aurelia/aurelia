@@ -6,7 +6,8 @@ import {
   LifecycleFlags as LF,
   PrimitiveObserver,
   PropertyAccessor,
-  SetterObserver
+  SetterObserver,
+  CollectionSizeObserver
 } from '@aurelia/runtime';
 import {
   AttributeNSAccessor,
@@ -334,7 +335,7 @@ describe('ObserverLocator', function () {
     assert.deepStrictEqual(
       writeSpy.calls,
       [
-        [0],
+        [0, {}],
       ],
       `writeSpy.calls`,
     );
@@ -368,8 +369,8 @@ describe('ObserverLocator', function () {
     const { sut } = setup();
     const obj = new Set();
     const actual = sut.getObserver(LF.none, obj, 'size');
-    assert.strictEqual(actual.constructor.name, CollectionLengthObserver.name, `actual.constructor.name`);
-    assert.instanceOf(actual, CollectionLengthObserver, `actual`);
+    assert.strictEqual(actual.constructor.name, CollectionSizeObserver.name, `actual.constructor.name`);
+    assert.instanceOf(actual, CollectionSizeObserver, `actual`);
   });
 
   it(_`getObserver() - Map.foo - returns MapObserver`, function () {
@@ -384,8 +385,8 @@ describe('ObserverLocator', function () {
     const { sut } = setup();
     const obj = new Map();
     const actual = sut.getObserver(LF.none, obj, 'size');
-    assert.strictEqual(actual.constructor.name, CollectionLengthObserver.name, `actual.constructor.name`);
-    assert.instanceOf(actual, CollectionLengthObserver, `actual`);
+    assert.strictEqual(actual.constructor.name, CollectionSizeObserver.name, `actual.constructor.name`);
+    assert.instanceOf(actual, CollectionSizeObserver, `actual`);
   });
 
 });

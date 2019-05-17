@@ -3,7 +3,7 @@ import { Aurelia, CustomElementResource } from '@aurelia/runtime';
 import { stringifyTemplateDefinition } from '@aurelia/jit-html';
 import { disableTracing, enableTracing, getVisibleText, TestContext, assert } from '@aurelia/testing';
 
-describe('tracing', function () {
+describe.skip('tracing', function () {
   function setup() {
       enableTracing();
       Tracer.enableLiveLogging();

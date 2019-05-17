@@ -1,11 +1,16 @@
 import {
-  initializeChaiExtensions,
   HTMLTestContext,
   TestContext,
 } from '@aurelia/testing';
 import {
   BasicConfiguration as BasicJSDOMConfiguration
 } from '@aurelia/jit-html-jsdom';
+import {
+  Reporter,
+  LogLevel,
+} from '@aurelia/kernel';
+
+Reporter.level = LogLevel.error;
 import { JSDOM } from 'jsdom';
 
 function createJSDOMTestContext(): HTMLTestContext {
@@ -34,4 +39,3 @@ function initializeJSDOMTestContext(): void {
 }
 
 initializeJSDOMTestContext();
-initializeChaiExtensions();

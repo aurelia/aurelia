@@ -67,7 +67,7 @@ describe('replaceable', function () {
 
   });
 
-  it(`replaceable - bind to parent scope`, function () {
+  it.skip(`replaceable - bind to parent scope`, function () {
 
     const App = CustomElementResource.define({ name: 'app', template: `<template><foo><div replace-part="bar">\${baz}</div></foo></template>` }, class { public baz = 'def'; });
     const Foo = CustomElementResource.define({ name: 'foo', template: `<template><div replaceable part="bar"></div></template>` }, class {});
@@ -87,7 +87,7 @@ describe('replaceable', function () {
 
   });
 
-  it(`replaceable/template - bind to target scope`, function () {
+  it.skip(`replaceable/template - bind to target scope`, function () {
 
     const App = CustomElementResource.define({ name: 'app', template: `<template><foo><template replace-part="bar">\${baz}</template></foo></template>` }, class { public baz = 'def'; });
     const Foo = CustomElementResource.define({ name: 'foo', template: `<template><template replaceable part="bar"></template></template>` }, class { public baz = 'abc'; });
@@ -107,7 +107,7 @@ describe('replaceable', function () {
 
   });
 
-  it(`replaceable/template - bind to parent scope`, function () {
+  it.skip(`replaceable/template - bind to parent scope`, function () {
 
     const App = CustomElementResource.define({ name: 'app', template: `<template><foo><template replace-part="bar">\${baz}</template></foo></template>` }, class { public baz = 'def'; });
     const Foo = CustomElementResource.define({ name: 'foo', template: `<template><template replaceable part="bar"></template></template>` }, class {});
@@ -127,7 +127,7 @@ describe('replaceable', function () {
 
   });
 
-  it(`replaceable/template - uses last on name conflict`, function () {
+  it.skip(`replaceable/template - uses last on name conflict`, function () {
 
     const App = CustomElementResource.define({ name: 'app', template: `<template><foo><template replace-part="bar">\${qux}</template><template replace-part="bar">\${baz}</template></foo></template>` }, class { public baz = 'def'; });
     const Foo = CustomElementResource.define({ name: 'foo', template: `<template><template replaceable part="bar"></template></template>` }, class {});
@@ -168,7 +168,7 @@ describe('replaceable', function () {
   });
 
   // TODO: fix this scenario
-  xit(`replaceable/template - parent template controller`, function () {
+  it.skip(`replaceable/template - parent template controller`, function () {
 
     const App = CustomElementResource.define({ name: 'app', template: `<template><foo><template if.bind="true"><template replace-part="bar">\${baz}</template></template></foo></template>` }, class { public baz = 'def'; });
     const Foo = CustomElementResource.define({ name: 'foo', template: `<template><template replaceable part="bar"></template></template>` }, class { public baz = 'abc'; });

@@ -121,7 +121,7 @@ describe('template-compiler.binding-commands.class', function() {
   eachCartesianJoin(
     [classNameTests, testCases],
     (className, testCase, callIndex) => {
-      it(testCase.title(className, callIndex), async function() {
+      it.skip(testCase.title(className, callIndex), async function() {
         const { ctx, au, lifecycle, host, component, tearDown } = setup(
           testCase.template(className),
           class App {

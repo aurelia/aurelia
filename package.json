@@ -36,7 +36,7 @@
     "generate-tests:template-compiler.mutations": "ts-node -P scripts/tsconfig.json scripts/generate-tests/template-compiler.mutations.ts"
   },
   "dependencies": {
-    "jsdom": "^13.2.0 || ^14.0.0",
+    "jsdom": "^14.0.0",
     "pixi.js": "^4.8.7"
   },
   "devDependencies": {

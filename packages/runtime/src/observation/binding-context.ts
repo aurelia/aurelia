@@ -41,6 +41,8 @@ export class InternalObserversLookup {
 export type BindingContextValue = ObservedCollection | StrictPrimitive | IIndexable;
 
 export class BindingContext implements IBindingContext {
+  public static partName: string | null = null;
+
   [key: string]: unknown;
 
   public readonly $synthetic: true;
@@ -125,8 +127,9 @@ export class BindingContext implements IBindingContext {
     }
 
     // the name wasn't found. see if parent scope traversal is allowed and if so, try that
-    if ((flags & LifecycleFlags.allowParentScopeTraversal) && scope.parentScope != null) {
-      const result = this.get(scope.parentScope, name, ancestor, flags
+    if ((flags & LifecycleFlags.allowParentScopeTraversal) > 0) {
+      const partScope = scope.partScopes![BindingContext.partName!]!;
+      const result = this.get(partScope, name, ancestor, flags
         // unset the flag; only allow one level of scope boundary traversal
         & ~LifecycleFlags.allowParentScopeTraversal
         // tell the scope to return null if the name could not be found
@@ -161,14 +164,13 @@ export class BindingContext implements IBindingContext {
 export class Scope implements IScope {
   public bindingContext: object;
   public overrideContext: IOverrideContext;
-  // parentScope is strictly internal API and mainly for replaceable template controller.
-  // NOT intended for regular scope traversal!
-  /** @internal */public readonly parentScope?: IScope;
+
+  public partScopes?: Record<string, IScope | undefined>;
 
   private constructor(bindingContext: object, overrideContext: IOverrideContext) {
     this.bindingContext = bindingContext;
     this.overrideContext = overrideContext;
-    this.parentScope = void 0;
+    this.partScopes = void 0;
   }
 
   /**

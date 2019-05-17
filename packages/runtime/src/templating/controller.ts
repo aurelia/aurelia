@@ -16,7 +16,10 @@ import {
   IBindableDescription,
   IElementHydrationOptions,
   ITemplateDefinition,
-  TemplateDefinition
+  TemplateDefinition,
+  IHydrateElementInstruction,
+  TargetedInstructionType,
+  IHydrateTemplateController
 } from '../definitions';
 import {
   IDOM,
@@ -59,7 +62,7 @@ import {
   SelfObserver,
 } from '../observation/self-observer';
 import {
-  IRenderingEngine,
+  IRenderingEngine, ITemplate,
 } from '../rendering-engine';
 import {
   ICustomElementType,
@@ -72,12 +75,6 @@ type Kind = { name: string };
 
 function hasDescription(type: unknown): type is ({ description: Description; kind: Kind }) {
   return (type as { description: Description }).description != void 0;
-}
-
-interface ITemplate<T extends INode = INode> {
-  readonly renderContext: IRenderContext<T>;
-  readonly dom: IDOM<T>;
-  render(renderable: IController<T>, host?: T, parts?: Record<string, ITemplateDefinition>, flags?: LifecycleFlags): void;
 }
 
 interface IElementTemplateProvider {
@@ -151,6 +148,8 @@ export class Controller<
   public context?: IContainer | IRenderContext<T>;
   public location?: IRenderLocation<T>;
 
+  public readonly scopeParts: readonly string[];
+
   constructor(
     flags: LifecycleFlags,
     viewCache: IViewCache<T> | undefined,
@@ -158,7 +157,8 @@ export class Controller<
     viewModel: C | undefined,
     parentContext: IContainer | IRenderContext<T> | undefined,
     host: T | undefined,
-    options: Partial<IElementHydrationOptions>
+    options: Partial<IElementHydrationOptions>,
+    scopeParts: readonly string[],
   ) {
     this.id = nextId('au$component');
 
@@ -184,6 +184,8 @@ export class Controller<
     this.controllers = void 0;
 
     this.state = State.none;
+
+    this.scopeParts = scopeParts;
 
     if (viewModel == void 0) {
       if (viewCache == void 0) {
@@ -243,22 +245,58 @@ export class Controller<
           this.vmKind = ViewModelKind.customElement;
 
           const renderingEngine = parentContext.get(IRenderingEngine);
-          const parts = options.parts == void 0 ? PLATFORM.emptyObject : options.parts;
 
+          let template: ITemplate<INode> | undefined = void 0;
           if (this.hooks.hasRender) {
-            const result = this.bindingContext.render(flags, host, parts, parentContext);
+            const result = this.bindingContext.render(
+              flags,
+              host,
+              options.parts == void 0
+                ? PLATFORM.emptyObject
+                : options.parts,
+              parentContext,
+            );
 
             if (result != void 0 && 'getElementTemplate' in result) {
-              const template = result.getElementTemplate(renderingEngine, Type, parentContext);
-              template.render(this, host, parts);
+              template = result.getElementTemplate(renderingEngine, Type, parentContext);
             }
           } else {
             const dom = parentContext.get(IDOM);
-            const template = renderingEngine.getElementTemplate(dom, description, parentContext, Type as ICustomElementType);
+            template = renderingEngine.getElementTemplate(dom, description, parentContext, Type as ICustomElementType);
+          }
+
+          if (template !== void 0) {
+            let parts: Record<string, TemplateDefinition>;
+            if (
+              template.definition == null ||
+              template.definition.instructions.length === 0 ||
+              template.definition.instructions[0].length === 0 ||
+              (
+                (template.definition.instructions[0][0] as IHydrateElementInstruction | IHydrateTemplateController).parts == void 0
+              )
+            ) {
+              if (options.parts == void 0) {
+                parts = PLATFORM.emptyObject;
+              } else {
+                parts = options.parts;
+              }
+            } else {
+              const instruction = template.definition.instructions[0][0] as IHydrateElementInstruction | IHydrateTemplateController;
+              if (options.parts == void 0) {
+                parts = instruction.parts as typeof parts;
+              } else {
+                parts = { ...options.parts, ...(instruction.parts as typeof parts) };
+              }
+
+              if (scopeParts === PLATFORM.emptyArray) {
+                this.scopeParts = Object.keys(instruction.parts!);
+              }
+            }
             template.render(this, host, parts);
           }
 
           this.scope = Scope.create(flags, this.bindingContext, null);
+
           this.projector = parentContext.get(IProjectorLocator).getElementProjector(
             parentContext.get(IDOM),
             this,
@@ -297,7 +335,16 @@ export class Controller<
   ): Controller<T> {
     let controller = Controller.lookup.get(viewModel) as Controller<T> | undefined;
     if (controller === void 0) {
-      controller = new Controller<T>(flags, void 0, void 0, viewModel, parentContext, host, options);
+      controller = new Controller<T>(
+        flags,
+        void 0,
+        void 0,
+        viewModel,
+        parentContext,
+        host,
+        options,
+        PLATFORM.emptyArray,
+      );
       this.lookup.set(viewModel, controller);
     }
     return controller;
@@ -307,10 +354,20 @@ export class Controller<
     viewModel: object,
     parentContext: IContainer | IRenderContext<T>,
     flags: LifecycleFlags = LifecycleFlags.none,
+    scopeParts: readonly string[] = PLATFORM.emptyArray,
   ): Controller<T> {
     let controller = Controller.lookup.get(viewModel) as Controller<T> | undefined;
     if (controller === void 0) {
-      controller = new Controller<T>(flags, void 0, void 0, viewModel, parentContext, void 0, PLATFORM.emptyObject);
+      controller = new Controller<T>(
+        flags,
+        void 0,
+        void 0,
+        viewModel,
+        parentContext,
+        void 0,
+        PLATFORM.emptyObject,
+        scopeParts,
+      );
       this.lookup.set(viewModel, controller);
     }
     return controller;
@@ -321,7 +378,16 @@ export class Controller<
     lifecycle: ILifecycle,
     flags: LifecycleFlags = LifecycleFlags.none,
   ): Controller<T> {
-    return new Controller<T>(flags, viewCache, lifecycle, void 0, void 0, void 0, PLATFORM.emptyObject);
+    return new Controller<T>(
+      flags,
+      viewCache,
+      lifecycle,
+      void 0,
+      void 0,
+      void 0,
+      PLATFORM.emptyObject,
+      PLATFORM.emptyArray,
+    );
   }
 
   public lockScope(scope: IScope): void {
@@ -356,7 +422,7 @@ export class Controller<
     flags |= LifecycleFlags.fromBind;
     switch (this.vmKind) {
       case ViewModelKind.customElement:
-        return this.bindCustomElement(flags, this.scope);
+        return this.bindCustomElement(flags, scope);
       case ViewModelKind.customAttribute:
         return this.bindCustomAttribute(flags, scope);
       case ViewModelKind.synthetic:
@@ -479,6 +545,27 @@ export class Controller<
   // #region bind/unbind
   private bindCustomElement(flags: LifecycleFlags, scope?: IScope): ILifecycleTask {
     const $scope = this.scope as Writable<IScope>;
+
+    if ($scope.partScopes == void 0) {
+      if (
+        scope != null &&
+        scope.partScopes != void 0 &&
+        scope.partScopes !== PLATFORM.emptyObject
+      ) {
+        $scope.partScopes = { ...scope.partScopes };
+      } else if (this.scopeParts !== PLATFORM.emptyArray) {
+        $scope.partScopes = {};
+      }
+
+      if ($scope.partScopes == void 0) {
+        $scope.partScopes = PLATFORM.emptyObject;
+      } else {
+        for (const partName of this.scopeParts) {
+          $scope.partScopes[partName] = $scope;
+        }
+      }
+    }
+
     if ((flags & LifecycleFlags.updateOneTimeBindings) > 0) {
       this.bindBindings(flags, $scope);
       return LifecycleTask.done;
@@ -489,7 +576,6 @@ export class Controller<
     }
 
     flags |= LifecycleFlags.fromBind;
-    $scope.parentScope = scope;
 
     this.state |= State.isBinding;
 

@@ -29,6 +29,7 @@ import {
   CustomAttributeResource,
   ICustomAttributeResource,
 } from '../custom-attribute';
+import { BindingContext } from '../../observation/binding-context';
 
 export class Replaceable<T extends INode = INode> {
   public static readonly inject: InjectArray = [IViewFactory, IRenderLocation];
@@ -71,7 +72,17 @@ export class Replaceable<T extends INode = INode> {
   }
 
   public binding(flags: LifecycleFlags): ILifecycleTask {
-    return this.view.bind(flags | LifecycleFlags.allowParentScopeTraversal, this.$controller.scope);
+    const prevName = BindingContext.partName;
+    BindingContext.partName = this.factory.name;
+    const task = this.view.bind(flags | LifecycleFlags.allowParentScopeTraversal, this.$controller.scope);
+    if (task.done) {
+      BindingContext.partName = prevName;
+    } else {
+      task.wait().then(() => {
+        BindingContext.partName = prevName;
+      });
+    }
+    return task;
   }
 
   public attaching(flags: LifecycleFlags): void {

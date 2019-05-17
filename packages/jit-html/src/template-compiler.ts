@@ -71,6 +71,8 @@ export class TemplateCompiler implements ITemplateCompiler {
    */
   private instructionRows: HTMLInstructionRow[];
 
+  private parts: Record<string, ITemplateDefinition>;
+
   public get name(): string {
     return 'default';
   }
@@ -80,6 +82,7 @@ export class TemplateCompiler implements ITemplateCompiler {
     this.attrParser = attrParser;
     this.exprParser = exprParser;
     this.instructionRows = null!;
+    this.parts = null!;
   }
 
   public static register(container: IContainer): IResolver<ITemplateCompiler> {
@@ -99,6 +102,7 @@ export class TemplateCompiler implements ITemplateCompiler {
     }
 
     this.instructionRows = definition.instructions as HTMLInstructionRow[];
+    this.parts = {};
 
     const attributes = surrogate.attributes;
     const len = attributes.length;
@@ -113,10 +117,10 @@ export class TemplateCompiler implements ITemplateCompiler {
       }
     }
 
-    // @ts-ignore
     this.compileChildNodes(surrogate);
 
     this.instructionRows = null!;
+    this.parts = null!;
 
     if (Profiler.enabled) { leave(); }
     return definition as TemplateDefinition;
@@ -150,7 +154,6 @@ export class TemplateCompiler implements ITemplateCompiler {
 
   private compileCustomElement(symbol: CustomElementSymbol): void {
     // offset 1 to leave a spot for the hydrate instruction so we don't need to create 2 arrays with a spread etc
-    // @ts-ignore
     const instructionRow = this.compileAttributes(symbol, 1) as HTMLInstructionRow;
     instructionRow[0] = new HydrateElementInstruction(
       symbol.res,
@@ -159,15 +162,16 @@ export class TemplateCompiler implements ITemplateCompiler {
     );
 
     this.instructionRows.push(instructionRow);
+
+    this.compileChildNodes(symbol);
   }
 
   private compilePlainElement(symbol: PlainElementSymbol): void {
-    // @ts-ignore
     const attributes = this.compileAttributes(symbol, 0);
     if (attributes.length > 0) {
       this.instructionRows.push(attributes as HTMLInstructionRow);
     }
-    // @ts-ignore
+
     this.compileChildNodes(symbol);
   }
 
@@ -188,16 +192,25 @@ export class TemplateCompiler implements ITemplateCompiler {
     const bindings = this.compileBindings(symbol);
     const instructionRowsSave = this.instructionRows;
     const controllerInstructions = this.instructionRows = [];
-    this.compileParentNode(symbol.template!);
+    this.compileParentNode(symbol.template);
     this.instructionRows = instructionRowsSave;
 
-    const def = {
+    const def: ITemplateDefinition = {
       name: symbol.partName == null ? symbol.res : symbol.partName,
       template: symbol.physicalNode,
       instructions: controllerInstructions,
       build: buildNotRequired
     };
-    this.instructionRows.push([new HydrateTemplateController(def, symbol.res, bindings, symbol.res === 'else')]);
+
+    let parts: Record<string, ITemplateDefinition> | undefined = void 0;
+    if ((symbol.flags & SymbolFlags.hasParts) > 0) {
+      parts = {};
+      for (const part of symbol.parts) {
+        parts[part.name] = this.parts[part.name];
+      }
+    }
+
+    this.instructionRows.push([new HydrateTemplateController(def, symbol.res, bindings, symbol.res === 'else', parts)]);
   }
 
   private compileBindings(symbol: ISymbolWithBindings): HTMLAttributeInstruction[] {
@@ -299,8 +312,8 @@ export class TemplateCompiler implements ITemplateCompiler {
         replacePart = replaceParts[i];
         instructionRowsSave = this.instructionRows;
         partInstructions = this.instructionRows = [];
-        this.compileParentNode(replacePart.template!);
-        parts[replacePart.name] = {
+        this.compileParentNode(replacePart.template);
+        this.parts[replacePart.name] = parts[replacePart.name] = {
           name: replacePart.name,
           template: replacePart.physicalNode,
           instructions: partInstructions,

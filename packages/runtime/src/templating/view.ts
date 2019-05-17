@@ -1,4 +1,4 @@
-import { Reporter } from '@aurelia/kernel';
+import { Reporter, PLATFORM } from '@aurelia/kernel';
 import { INode } from '../dom';
 import { LifecycleFlags, State } from '../flags';
 import {
@@ -8,17 +8,20 @@ import {
 } from '../lifecycle';
 import { ITemplate } from '../rendering-engine';
 import { Controller } from './controller';
+import { TemplatePartDefinitions, ITemplateDefinition } from '../definitions';
 
 export class ViewFactory<T extends INode = INode> implements IViewFactory<T> {
   public static maxCacheSize: number = 0xFFFF;
 
   public isCaching: boolean;
   public name: string;
+  public parts: TemplatePartDefinitions;
 
   private cache: IController<T>[];
   private cacheSize: number;
   private readonly lifecycle: ILifecycle;
   private readonly template: ITemplate<T>;
+
 
   constructor(name: string, template: ITemplate<T>, lifecycle: ILifecycle) {
     this.isCaching = false;
@@ -28,6 +31,7 @@ export class ViewFactory<T extends INode = INode> implements IViewFactory<T> {
     this.lifecycle = lifecycle;
     this.name = name;
     this.template = template;
+    this.parts = PLATFORM.emptyObject;
   }
 
   public setCacheSize(size: number | '*', doNotOverrideIfAlreadySet: boolean): void {
@@ -77,10 +81,18 @@ export class ViewFactory<T extends INode = INode> implements IViewFactory<T> {
     }
 
     controller = Controller.forSyntheticView(this, this.lifecycle, flags);
-    this.template.render(controller, null!, null!, flags);
+    this.template.render(controller, null!, this.parts, flags);
     if (!controller.nodes) {
       throw Reporter.error(90);
     }
     return controller;
+  }
+
+  public addParts(parts: Record<string, ITemplateDefinition>): void {
+    if (this.parts === PLATFORM.emptyObject) {
+      this.parts = { ...parts };
+    } else {
+      Object.assign(this.parts, parts);
+    }
   }
 }

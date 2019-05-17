@@ -91,6 +91,15 @@ export class TemplateControllerSymbol implements IResourceAttributeSymbol, IPare
     return this._bindings;
   }
 
+  private _parts: ReplacePartSymbol[] | null;
+  public get parts(): ReplacePartSymbol[] {
+    if (this._parts == null) {
+      this._parts = [];
+      this.flags |= SymbolFlags.hasParts;
+    }
+    return this._parts;
+  }
+
   constructor(dom: IDOM, syntax: AttrSyntax, info: AttrInfo, partName: string | null) {
     this.flags = SymbolFlags.isTemplateController | SymbolFlags.hasMarker;
     this.res = info.name;
@@ -101,6 +110,7 @@ export class TemplateControllerSymbol implements IResourceAttributeSymbol, IPare
     this.templateController = null!;
     this.marker = createMarker(dom);
     this._bindings = null;
+    this._parts = null;
   }
 }
 

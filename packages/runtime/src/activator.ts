@@ -38,7 +38,12 @@ export class Activator implements IActivator {
     parentScope?: IScope
   ): ILifecycleTask {
     flags = flags === void 0 ? LifecycleFlags.none : flags;
-    const controller = Controller.forCustomElement(component, locator as ExposedContext, host, flags);
+    const controller = Controller.forCustomElement(
+      component,
+      locator as ExposedContext,
+      host,
+      flags,
+    );
     let task = controller.bind(flags | LifecycleFlags.fromBind, parentScope);
     if (task.done) {
       controller.attach(flags | LifecycleFlags.fromAttach);

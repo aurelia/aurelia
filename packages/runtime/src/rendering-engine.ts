@@ -81,6 +81,7 @@ export const ITemplateFactory = DI.createInterface<ITemplateFactory>('ITemplateF
 export interface ITemplate<T extends INode = INode> {
   readonly renderContext: IRenderContext<T>;
   readonly dom: IDOM<T>;
+  readonly definition: TemplateDefinition
   render(controller: IController<T>, host?: T, parts?: Record<string, ITemplateDefinition>, flags?: LifecycleFlags): void;
   render(viewModel: IViewModel<T>, host?: T, parts?: Record<string, ITemplateDefinition>, flags?: LifecycleFlags): void;
 }
@@ -96,7 +97,7 @@ export class CompiledTemplate<T extends INode = INode> implements ITemplate {
   public readonly renderContext: IRenderContext<T>;
   public readonly dom: IDOM<T>;
 
-  private readonly definition: TemplateDefinition;
+  public readonly definition: TemplateDefinition;
 
   constructor(dom: IDOM<T>, definition: TemplateDefinition, factory: INodeSequenceFactory<T>, renderContext: IRenderContext<T>) {
     this.dom = dom;
@@ -126,6 +127,7 @@ export class CompiledTemplate<T extends INode = INode> implements ITemplate {
 export const noViewTemplate: ITemplate = {
   renderContext: (void 0)!,
   dom: (void 0)!,
+  definition: (void 0)!,
   render(viewModelOrController: IViewModel | IController): void {
     const controller = viewModelOrController instanceof Controller ? viewModelOrController : (viewModelOrController as IViewModel).$controller;
     (controller as Writable<IController>).nodes = NodeSequence.empty;
@@ -320,12 +322,27 @@ export function createRenderContext(
     componentType.register(context);
   }
 
-  context.render = function(this: IRenderContext, flags: LifecycleFlags, renderable: IController, targets: ArrayLike<INode>, templateDefinition: TemplateDefinition, host?: INode, parts?: TemplatePartDefinitions): void {
+  context.render = function(
+    this: IRenderContext,
+    flags: LifecycleFlags,
+    renderable: IController,
+    targets: ArrayLike<INode>,
+    templateDefinition: TemplateDefinition,
+    host?: INode,
+    parts?: TemplatePartDefinitions,
+  ): void {
     renderer.render(flags, dom, this, renderable, targets, templateDefinition, host, parts);
   };
 
   // @ts-ignore
-  context.beginComponentOperation = function(renderable: IController, target: INode, instruction: ITargetedInstruction, factory: IViewFactory | null, parts?: TemplatePartDefinitions, location?: IRenderLocation): IDisposable {
+  context.beginComponentOperation = function(
+    renderable: IController,
+    target: INode,
+    instruction: ITargetedInstruction,
+    factory: IViewFactory | null,
+    parts?: TemplatePartDefinitions,
+    location?: IRenderLocation,
+  ): IDisposable {
     renderableProvider.prepare(renderable);
     elementProvider.prepare(target);
     instructionProvider.prepare(instruction);
@@ -356,11 +373,10 @@ export function createRenderContext(
 /** @internal */
 export class ViewFactoryProvider implements IResolver {
   private factory!: IViewFactory | null;
-  private replacements!: TemplatePartDefinitions;
 
   public prepare(factory: IViewFactory, parts: TemplatePartDefinitions): void {
     this.factory = factory;
-    this.replacements = parts || PLATFORM.emptyObject;
+    factory.addParts(parts);
   }
 
   public resolve(handler: IContainer, requestor: ExposedContext): IViewFactory {
@@ -371,7 +387,7 @@ export class ViewFactoryProvider implements IResolver {
     if (!factory.name || !factory.name.length) { // unmet invariant: factory must have a name
       throw Reporter.error(51); // TODO: organize error codes
     }
-    const found = this.replacements[factory.name];
+    const found = factory.parts[factory.name];
     if (found) {
       const renderingEngine = handler.get(IRenderingEngine);
       const dom = handler.get(IDOM);
@@ -383,7 +399,6 @@ export class ViewFactoryProvider implements IResolver {
 
   public dispose(): void {
     this.factory = null;
-    this.replacements = PLATFORM.emptyObject;
   }
 }
 

@@ -339,9 +339,10 @@ export interface IOverrideContext {
 export interface IScope {
   readonly bindingContext: IBindingContext;
   readonly overrideContext: IOverrideContext;
-  // parentScope is strictly internal API and mainly for replaceable template controller.
-  // NOT intended for regular scope traversal!
-  /** @internal */readonly parentScope?: IScope;
+  /**
+   * Associates replace-part names with the scopes they have access to.
+   */
+  readonly partScopes?: Record<string, IScope | undefined>;
 }
 
 // TODO: currently unused, still need to fix the observersLookup type

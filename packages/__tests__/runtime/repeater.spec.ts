@@ -590,6 +590,7 @@ describe(`Repeat`, function () {
       const itemTemplate: ITemplate<AuNode> = {
         renderContext: null as any,
         dom: null as any,
+        definition: null as any,
         render(itemRenderable) {
           const text = AuNode.createText();
           const wrapper = AuNode.createTemplate().appendChild(text);

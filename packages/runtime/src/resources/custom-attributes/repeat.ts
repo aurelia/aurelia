@@ -382,14 +382,11 @@ export class Repeat<C extends ObservedCollection = IObservedArray, T extends INo
     const factory = this.factory;
     const local = this.local;
     const items = this.items;
-    const scope = this.$controller.scope as IScope;
     const newLen = this.forOf.count(flags, items);
     const views = this.views = Array(newLen);
     this.forOf.iterate(flags, items, (arr, i, item) => {
       view = views[i] = factory.create(flags);
-      const ctx = BindingContext.create(flags, local, item);
-      ctx.$view = view;
-      task = view.bind(flags, Scope.fromParent(flags, scope, ctx));
+      task = view.bind(flags, this.createScope(flags, local, item, view));
 
       if (!task.done) {
         if (tasks === undefined) {
@@ -420,16 +417,13 @@ export class Repeat<C extends ObservedCollection = IObservedArray, T extends INo
     const views = this.views;
     const local = this.local;
     const items = this.items;
-    const scope = this.$controller.scope as IScope;
     this.$controller.lifecycle.bound.begin();
     const mapLen = indexMap.length;
     for (let i = 0; i < mapLen; ++i) {
       if (indexMap[i] === -2) {
         view = factory.create(flags);
         // TODO: test with map/set/undefined/null, make sure we can use strong typing here as well, etc
-        const ctx = BindingContext.create(flags, local, (items as any)[i]);
-        ctx.$view = view;
-        task = view.bind(flags, Scope.fromParent(flags, scope, ctx));
+        task = view.bind(flags, this.createScope(flags, local, (items as any)[i], view));
         views.splice(i, 0, view);
 
         if (!task.done) {
@@ -457,6 +451,35 @@ export class Repeat<C extends ObservedCollection = IObservedArray, T extends INo
       this.$controller.lifecycle.bound,
       flags,
     );
+  }
+
+  private createScope(
+    flags: LF,
+    local: string,
+    item: unknown,
+    view: IController<T>,
+  ): IScope {
+    const controller = this.$controller;
+    const parentScope = controller.scope!;
+    const ctx = BindingContext.create(flags, local, item);
+    ctx.$view = view;
+    const scope = Scope.fromParent(flags, parentScope, ctx);
+    if (controller.scopeParts !== PLATFORM.emptyArray) {
+      if (
+        parentScope.partScopes !== void 0 &&
+        parentScope.partScopes !== PLATFORM.emptyObject
+      ) {
+        scope.partScopes = { ...parentScope.partScopes };
+      } else {
+        scope.partScopes = {};
+      }
+
+      for (const partName of controller.scopeParts) {
+        scope.partScopes[partName] = scope;
+      }
+    }
+
+    return scope;
   }
 
   private attachViews(indexMap: IndexMap | undefined, flags: LF): void {

@@ -171,6 +171,7 @@ describe(`If/Else`, function () {
       const ifTemplate: ITemplate<AuNode> = {
         renderContext: null as any,
         dom: null as any,
+        definition: null as any,
         render(controller: IController<AuNode>) {
           const text = AuNode.createText();
           const wrapper = AuNode.createTemplate().appendChild(text);
@@ -187,6 +188,7 @@ describe(`If/Else`, function () {
       const elseTemplate: ITemplate<AuNode> = {
         renderContext: null as any,
         dom: null as any,
+        definition: null as any,
         render(controller: IController<AuNode>) {
           const text = AuNode.createText();
           const wrapper = AuNode.createTemplate().appendChild(text);

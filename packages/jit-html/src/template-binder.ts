@@ -96,7 +96,6 @@ export class TemplateBinder {
     const manifestRootSave = this.manifestRoot;
     const manifestSave = this.manifest;
 
-    // @ts-ignore
     const manifest = this.surrogate = this.manifest = new PlainElementSymbol(node);
 
     const attributes = node.attributes;
@@ -289,6 +288,10 @@ export class TemplateBinder {
       const partOwner = manifest === manifestRoot ? parentManifestRoot : manifestRoot;
       partOwner!.parts.push(replacePart);
 
+      if (parentManifest.templateController != null) {
+        parentManifest.templateController.parts.push(replacePart);
+      }
+
       processReplacePart(this.dom, replacePart, manifestProxy);
     }
 
@@ -469,6 +472,8 @@ export class TemplateBinder {
     node.removeAttribute('replace-part');
 
     const symbol = new ReplacePartSymbol(name);
+
+    this.bindChildNodes(node);
 
     if (Tracer.enabled) { Tracer.leave(); }
     return symbol;

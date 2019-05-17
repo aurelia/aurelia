@@ -8,7 +8,8 @@ import {
   Registration,
   Reporter,
   Tracer,
-  Writable
+  Writable,
+  PLATFORM
 } from '@aurelia/kernel';
 import { AnyBindingExpression } from './ast';
 import { Binding } from './binding/binding';
@@ -203,7 +204,13 @@ export class CustomElementRenderer implements IInstructionRenderer {
     const instructionRenderers = context.get(IRenderer).instructionRenderers;
     const childInstructions = instruction.instructions;
 
-    const controller = Controller.forCustomElement(component, context, target, flags, instruction as IElementHydrationOptions);
+    const controller = Controller.forCustomElement(
+      component,
+      context,
+      target,
+      flags,
+      instruction as IElementHydrationOptions,
+    );
 
     let current: ITargetedInstruction;
     for (let i = 0, ii = childInstructions.length; i < ii; ++i) {
@@ -230,7 +237,11 @@ export class CustomAttributeRenderer implements IInstructionRenderer {
     const instructionRenderers = context.get(IRenderer).instructionRenderers;
     const childInstructions = instruction.instructions;
 
-    const controller = Controller.forCustomAttribute(component, context, flags);
+    const controller = Controller.forCustomAttribute(
+      component,
+      context,
+      flags,
+    );
 
     let current: ITargetedInstruction;
     for (let i = 0, ii = childInstructions.length; i < ii; ++i) {
@@ -265,7 +276,14 @@ export class TemplateControllerRenderer implements IInstructionRenderer {
     const instructionRenderers = context.get(IRenderer).instructionRenderers;
     const childInstructions = instruction.instructions;
 
-    const controller = Controller.forCustomAttribute(component, context, flags);
+    const controller = Controller.forCustomAttribute(
+      component,
+      context,
+      flags,
+      instruction.parts == void 0
+        ? PLATFORM.emptyArray
+        : Object.keys(instruction.parts),
+    );
 
     if (instruction.link) {
       const controllers = renderable.controllers!;

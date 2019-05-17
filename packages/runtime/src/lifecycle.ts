@@ -102,6 +102,8 @@ export interface IController<
   context?: IContainer | IRenderContext<T>;
   location?: IRenderLocation<T>;
 
+  readonly scopeParts: readonly string[];
+
   lockScope(scope: IScope): void;
   hold(location: IRenderLocation<T>): void;
   release(flags: LifecycleFlags): boolean;
@@ -136,7 +138,9 @@ export interface IViewCache<T extends INode = INode> {
 
 export interface IViewFactory<T extends INode = INode> extends IViewCache<T> {
   readonly name: string;
+  readonly parts: TemplatePartDefinitions;
   create(flags?: LifecycleFlags): IController<T>;
+  addParts(parts: TemplatePartDefinitions): void;
 }
 
 export const IViewFactory = DI.createInterface<IViewFactory>('IViewFactory').noDefault();

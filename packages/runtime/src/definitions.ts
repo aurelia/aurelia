@@ -205,6 +205,7 @@ export interface IHydrateTemplateController extends ITargetedInstruction {
   instructions: ITargetedInstruction[];
   def: ITemplateDefinition;
   link?: boolean;
+  parts?: Record<string, ITemplateDefinition>;
 }
 
 export interface IHydrateLetElementInstruction extends ITargetedInstruction {

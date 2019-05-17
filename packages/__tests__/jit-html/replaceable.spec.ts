@@ -67,7 +67,7 @@ describe('replaceable', function () {
 
   });
 
-  it.skip(`replaceable - bind to parent scope`, function () {
+  it(`replaceable - bind to parent scope`, function () {
 
     const App = CustomElementResource.define({ name: 'app', template: `<template><foo><div replace-part="bar">\${baz}</div></foo></template>` }, class { public baz = 'def'; });
     const Foo = CustomElementResource.define({ name: 'foo', template: `<template><div replaceable part="bar"></div></template>` }, class {});
@@ -87,7 +87,7 @@ describe('replaceable', function () {
 
   });
 
-  it.skip(`replaceable/template - bind to target scope`, function () {
+  it(`replaceable/template - bind to target scope`, function () {
 
     const App = CustomElementResource.define({ name: 'app', template: `<template><foo><template replace-part="bar">\${baz}</template></foo></template>` }, class { public baz = 'def'; });
     const Foo = CustomElementResource.define({ name: 'foo', template: `<template><template replaceable part="bar"></template></template>` }, class { public baz = 'abc'; });
@@ -107,7 +107,7 @@ describe('replaceable', function () {
 
   });
 
-  it.skip(`replaceable/template - bind to parent scope`, function () {
+  it(`replaceable/template - bind to parent scope`, function () {
 
     const App = CustomElementResource.define({ name: 'app', template: `<template><foo><template replace-part="bar">\${baz}</template></foo></template>` }, class { public baz = 'def'; });
     const Foo = CustomElementResource.define({ name: 'foo', template: `<template><template replaceable part="bar"></template></template>` }, class {});
@@ -127,7 +127,7 @@ describe('replaceable', function () {
 
   });
 
-  it.skip(`replaceable/template - uses last on name conflict`, function () {
+  it(`replaceable/template - uses last on name conflict`, function () {
 
     const App = CustomElementResource.define({ name: 'app', template: `<template><foo><template replace-part="bar">\${qux}</template><template replace-part="bar">\${baz}</template></foo></template>` }, class { public baz = 'def'; });
     const Foo = CustomElementResource.define({ name: 'foo', template: `<template><template replaceable part="bar"></template></template>` }, class {});
@@ -168,7 +168,7 @@ describe('replaceable', function () {
   });
 
   // TODO: fix this scenario
-  it.skip(`replaceable/template - parent template controller`, function () {
+  it(`replaceable/template - parent template controller`, function () {
 
     const App = CustomElementResource.define({ name: 'app', template: `<template><foo><template if.bind="true"><template replace-part="bar">\${baz}</template></template></foo></template>` }, class { public baz = 'def'; });
     const Foo = CustomElementResource.define({ name: 'foo', template: `<template><template replaceable part="bar"></template></template>` }, class { public baz = 'abc'; });
@@ -248,7 +248,7 @@ describe('replaceable', function () {
 
   });
 
-  describe.skip('Difficult cases', function() {
+  describe('Difficult cases', function() {
     describe('with multiple nested replaceable from 1 -> 10 levels', function() {
       const createReplaceableDiv = (level: number) => {
         let currentLevel = 0;
@@ -268,9 +268,9 @@ describe('replaceable', function () {
           return 'replace-part-p';
         }
         let content = '';
-        let i = 0;
-        while (level > i) {
-          content += i === level - 1 ? `replaceable-p-${i}` : 'replace-part-p';
+        let i = 1;
+        while (level >= i) {
+          content += i === level ? 'replace-part-p' : `replaceable-p-${i}`;
           ++i;
         }
         return content;
@@ -279,7 +279,7 @@ describe('replaceable', function () {
       for (let i = 1; 11 > i; ++i) {
         it(`works with replaceable on normal <div/> with. Nesting level: ${i}`, function() {
           const App = CustomElementResource.define(
-            { name: 'app', template: `<template><foo><template replace-part="p-${i}"><span>replace-part-p</span><template></foo></template>` },
+            { name: 'app', template: `<template><foo><template replace-part="p-${i}"><span>replace-part-p</span></template></foo></template>` },
             class App {}
           );
           const Foo = CustomElementResource.define(
@@ -352,102 +352,102 @@ describe('replaceable', function () {
       }
     });
 
-    describe('with multiple replaceables + with nested replaceables + from 1 -> 10 siblings + from 1 -> nesting levels', function() {
-      // in this part, we will test replacing a replaceable somewhere between 1 -> 10 levels of nesting replaceable
-      // with only 1 replacement
-      const maxReplaceableSiblingCount = 10;
-      const maxDepth = 10;
-      const buildNestedReplaceableDiv = (baseSiblingIndex: number, nestedDepth: number) => {
-        let template = '';
-        let currentBaseLevel = 0;
-        while (baseSiblingIndex > currentBaseLevel) {
-          let currentDepth = 0;
-          let $template = `<div replaceable part="p-${currentBaseLevel}-0">replaceable-p-${currentBaseLevel}-0`;
-          while (nestedDepth > currentDepth) {
-            $template += `<div replaceable part="p-${currentBaseLevel}-${currentDepth}">replaceable-p-${currentBaseLevel}-${currentDepth}`;
-            ++currentDepth;
-          }
-          while (currentDepth > 0) {
-            $template += '</div>';
-            --currentDepth;
-          }
-          $template += '<div>';
-          template += $template;
-          ++currentBaseLevel;
-        }
-        return template;
-      };
-      const buildNestedReplacementTemplate = (baseSiblingIndex: number, nestedDepth: number) => {
-        return `<template replace-part="p-${baseSiblingIndex}-${nestedDepth}">replace-part-p${baseSiblingIndex}-${nestedDepth}</template>`;
-      };
-      const buildExpectedTextContent = (baseSiblingIndex: number, nestedDepth: number) => {
-        let currentBaseIndex = 0;
-        let finalTextContent = '';
-        while (maxReplaceableSiblingCount > currentBaseIndex) {
-          if (baseSiblingIndex > currentBaseIndex) {
-            let i = 0;
-            while (maxDepth > i) {
-              finalTextContent += `replaceable-p-${currentBaseIndex}-${i}`;
-              ++i;
-            }
-          } else if (baseSiblingIndex === currentBaseIndex) {
-            let currentDepth = 0;
-            /**
-             * <template replaceable>
-             *   <template replaceable>
-             *      <template replaceable>  <----- replacement here won't affect any level above it
-             *        <template>            <--x-- but will terminate all replacement after it
-             */
-            while (nestedDepth > currentDepth) {
-              finalTextContent += `replaceable-p-${currentBaseIndex}-${currentDepth}`;
-            }
-            finalTextContent += `replace-part-p-${currentBaseIndex}-${nestedDepth}`;
-          } else {
-            let i = 0;
-            while (maxDepth > i) {
-              finalTextContent += `replaceable-p-${currentBaseIndex}-${i}`;
-              ++i;
-            }
-          }
-          ++currentBaseIndex;
-        }
-        return finalTextContent;
-      };
+    // describe('with multiple replaceables + with nested replaceables + from 1 -> 10 siblings + from 1 -> nesting levels', function() {
+    //   // in this part, we will test replacing a replaceable somewhere between 1 -> 10 levels of nesting replaceable
+    //   // with only 1 replacement
+    //   const maxReplaceableSiblingCount = 10;
+    //   const maxDepth = 10;
+    //   const buildNestedReplaceableDiv = (baseSiblingIndex: number, nestedDepth: number) => {
+    //     let template = '';
+    //     let currentBaseLevel = 0;
+    //     while (baseSiblingIndex > currentBaseLevel) {
+    //       let currentDepth = 0;
+    //       let $template = `<div replaceable part="p-${currentBaseLevel}-0">replaceable-p-${currentBaseLevel}-0`;
+    //       while (nestedDepth > currentDepth) {
+    //         $template += `<div replaceable part="p-${currentBaseLevel}-${currentDepth}">replaceable-p-${currentBaseLevel}-${currentDepth}`;
+    //         ++currentDepth;
+    //       }
+    //       while (currentDepth > 0) {
+    //         $template += '</div>';
+    //         --currentDepth;
+    //       }
+    //       $template += '<div>';
+    //       template += $template;
+    //       ++currentBaseLevel;
+    //     }
+    //     return template;
+    //   };
+    //   const buildNestedReplacementTemplate = (baseSiblingIndex: number, nestedDepth: number) => {
+    //     return `<template replace-part="p-${baseSiblingIndex}-${nestedDepth}">replace-part-p${baseSiblingIndex}-${nestedDepth}</template>`;
+    //   };
+    //   const buildExpectedTextContent = (baseSiblingIndex: number, nestedDepth: number) => {
+    //     let currentBaseIndex = 0;
+    //     let finalTextContent = '';
+    //     while (maxReplaceableSiblingCount > currentBaseIndex) {
+    //       if (baseSiblingIndex > currentBaseIndex) {
+    //         let i = 0;
+    //         while (maxDepth > i) {
+    //           finalTextContent += `replaceable-p-${currentBaseIndex}-${i}`;
+    //           ++i;
+    //         }
+    //       } else if (baseSiblingIndex === currentBaseIndex) {
+    //         let currentDepth = 0;
+    //         /**
+    //          * <template replaceable>
+    //          *   <template replaceable>
+    //          *      <template replaceable>  <----- replacement here won't affect any level above it
+    //          *        <template>            <--x-- but will terminate all replacement after it
+    //          */
+    //         while (nestedDepth > currentDepth) {
+    //           finalTextContent += `replaceable-p-${currentBaseIndex}-${currentDepth}`;
+    //         }
+    //         finalTextContent += `replace-part-p-${currentBaseIndex}-${nestedDepth}`;
+    //       } else {
+    //         let i = 0;
+    //         while (maxDepth > i) {
+    //           finalTextContent += `replaceable-p-${currentBaseIndex}-${i}`;
+    //           ++i;
+    //         }
+    //       }
+    //       ++currentBaseIndex;
+    //     }
+    //     return finalTextContent;
+    //   };
 
-      for (let baseReplaceableCount = 0; 10 > baseReplaceableCount; ++baseReplaceableCount) {
-        for (let nestedDepth = 0; 10 > nestedDepth; ++nestedDepth) {
-          it(`works with replaceable on normal <div/>. Siblings count: ${baseReplaceableCount}`, function() {
-            const App = CustomElementResource.define(
-              { name: 'app', template:
-                `<template><foo>${buildNestedReplacementTemplate(baseReplaceableCount, nestedDepth)}</foo></template>`
-              },
-              class App {}
-            );
-            const Foo = CustomElementResource.define(
-              { name: 'foo', template: `<template>${buildNestedReplaceableDiv(baseReplaceableCount, nestedDepth)}</template>` },
-              class Foo {}
-            );
+    //   for (let baseReplaceableCount = 0; 10 > baseReplaceableCount; ++baseReplaceableCount) {
+    //     for (let nestedDepth = 0; 10 > nestedDepth; ++nestedDepth) {
+    //       it(`works with replaceable on normal <div/>. Siblings count: ${baseReplaceableCount}`, function() {
+    //         const App = CustomElementResource.define(
+    //           { name: 'app', template:
+    //             `<template><foo>${buildNestedReplacementTemplate(baseReplaceableCount, nestedDepth)}</foo></template>`
+    //           },
+    //           class App {}
+    //         );
+    //         const Foo = CustomElementResource.define(
+    //           { name: 'foo', template: `<template>${buildNestedReplaceableDiv(baseReplaceableCount, nestedDepth)}</template>` },
+    //           class Foo {}
+    //         );
 
-            const ctx = TestContext.createHTMLTestContext();
-            ctx.container.register(Foo);
-            const au = new Aurelia(ctx.container);
+    //         const ctx = TestContext.createHTMLTestContext();
+    //         ctx.container.register(Foo);
+    //         const au = new Aurelia(ctx.container);
 
-            const host = ctx.createElement('div');
-            const component = new App();
+    //         const host = ctx.createElement('div');
+    //         const component = new App();
 
-            au.app({ host, component });
-            au.start();
+    //         au.app({ host, component });
+    //         au.start();
 
-            assert.strictEqual(
-              host.textContent,
-              buildExpectedTextContent(baseReplaceableCount, nestedDepth),
-              `[base=${baseReplaceableCount}, depth=${nestedDepth}]host.textContent`
-            );
-            tearDown(au);
-          });
-        }
-      }
-    });
+    //         assert.strictEqual(
+    //           host.textContent,
+    //           buildExpectedTextContent(baseReplaceableCount, nestedDepth),
+    //           `[base=${baseReplaceableCount}, depth=${nestedDepth}]host.textContent`
+    //         );
+    //         tearDown(au);
+    //       });
+    //     }
+    //   }
+    // });
   });
 
   interface ITestItem {

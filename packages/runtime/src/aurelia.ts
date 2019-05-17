@@ -89,7 +89,12 @@ export class CompositionRoot<T extends INode = INode> {
       ? this.container.get(config.component) as IHydratedViewModel<T>
       : config.component as IHydratedViewModel<T>;
 
-    this.controller = Controller.forCustomElement(this.viewModel, this.container as ExposedContext, this.host, this.strategy as number);
+    this.controller = Controller.forCustomElement(
+      this.viewModel,
+      this.container as ExposedContext,
+      this.host,
+      this.strategy as number,
+    );
     this.lifecycle = this.container.get(ILifecycle);
     this.activator = this.container.get(IActivator);
     if (config.enableTimeSlicing === true) {

@@ -5,7 +5,7 @@ import { _, h, HTMLTestContext, TestContext, verifyEqual, assert, createSpy } fr
 type Anything = any;
 
 // TODO: need many more tests here, this is just preliminary
-describe.skip('SelectValueObserver', function () {
+describe('SelectValueObserver', function () {
   function createFixture(initialValue: Anything = '', options = [], multiple = false) {
     const ctx = TestContext.createHTMLTestContext();
     const { dom, lifecycle, observerLocator } = ctx;
@@ -14,8 +14,7 @@ describe.skip('SelectValueObserver', function () {
     const markup = `<select ${multiple ? 'multiple' : ''}>\n${optionElements}\n</select>`;
     const el = ctx.createElementFromMarkup(markup) as HTMLSelectElement;
     const sut = observerLocator.getObserver(LF.none, el, 'value') as SelectValueObserver;
-    sut.setValue(initialValue, LF.none);
-    lifecycle.processRAFQueue(LF.none);
+    sut.setValue(initialValue, LF.fromBind);
 
     return { ctx, lifecycle, el, sut, dom };
   }
@@ -28,15 +27,18 @@ describe.skip('SelectValueObserver', function () {
       for (const initial of initialArr) {
         for (const next of nextArr) {
           it(`sets 'value' from "${initial}" to "${next}"`, function () {
-            const { lifecycle, el } = createFixture(initial, values);
+            const { lifecycle, el, sut } = createFixture(initial, values);
 
-            lifecycle.processRAFQueue(LF.none);
             assert.strictEqual(el.value, initial, `el.value`);
+
+            sut.bind();
 
             el.options.item(values.indexOf(next)).selected = true;
 
             lifecycle.processRAFQueue(LF.none);
             assert.strictEqual(el.value, next, `el.value`);
+
+            sut.unbind();
           });
         }
       }
@@ -49,12 +51,18 @@ describe.skip('SelectValueObserver', function () {
       it('uses private method handleNodeChange as callback', async function () {
         for (const isMultiple of [true, false]) {
           const { ctx, el, sut } = createFixture([], [], isMultiple);
-          const callbackSpy = createSpy(sut, 'handleNodeChange');
+
+          const callbackSpy = createSpy(sut, 'handleNodeChange', true);
+
           sut.bind();
-          assert.strictEqual(callbackSpy.calls.length, 0, 'callbackSpy.calls.length');
+
           el.appendChild(ctx.createElement('option'));
+
           await Promise.resolve();
+
           assert.strictEqual(callbackSpy.calls.length, 1, 'callbackSpy.calls.length');
+
+          sut.unbind();
         }
       });
     }
@@ -64,12 +72,15 @@ describe.skip('SelectValueObserver', function () {
     it('disconnect node observer', function () {
       for (const isMultiple of [true, false]) {
         const { sut } = createFixture([], [], isMultiple);
+
         let count = 0;
         const nodeObserver: any = { disconnect() {
           count++;
         } };
         sut['nodeObserver'] = nodeObserver;
+
         sut.unbind();
+
         assert.strictEqual(count, 1, `count`);
         assert.strictEqual(sut['nodeObserver'], null, `sut['nodeObserver']`);
       }
@@ -82,14 +93,16 @@ describe.skip('SelectValueObserver', function () {
           return;
         } };
         const arrayObserver: any = {
-          unsubscribeBatched(observer: Anything) {
+          unsubscribeFromCollection(observer: Anything) {
             assert.strictEqual(observer, sut, 'It should have unsubscribe with right observer.');
             count++;
           }
         };
         sut['nodeObserver'] = nodeObserver;
         sut['arrayObserver'] = arrayObserver;
+
         sut.unbind();
+
         assert.strictEqual(count, 1, `count`);
         assert.strictEqual(sut['arrayObserver'], null, `sut['arrayObserver']`);
       }
@@ -116,12 +129,19 @@ describe.skip('SelectValueObserver', function () {
           option({ text: 'B', selected: true }),
           option({ text: 'C' })
         ]);
+
+        sut.bind();
+
         const currentValue = sut.currentValue as any[];
         assert.instanceOf(currentValue, Array);
         assert.strictEqual(currentValue['length'], 0, `currentValue['length']`);
+
         sut.synchronizeValue();
+
         assert.strictEqual(currentValue, sut.currentValue, `currentValue`);
         assert.strictEqual(currentValue['length'], 2, `currentValue['length']`);
+
+        sut.unbind();
       });
 
       it('synchronizes with null', function () {
@@ -130,10 +150,17 @@ describe.skip('SelectValueObserver', function () {
           option({ text: 'B', selected: true }),
           option({ text: 'C' })
         ]);
+
+        sut.bind();
+
         const currentValue = sut.currentValue as any;
         assert.strictEqual(currentValue, null, `currentValue`);
+
         sut.synchronizeValue();
+
         assert.strictEqual(currentValue, sut.currentValue, `currentValue`);
+
+        sut.unbind();
       });
 
       it('synchronizes with undefined', function () {
@@ -142,10 +169,17 @@ describe.skip('SelectValueObserver', function () {
           option({ text: 'B', selected: true }),
           option({ text: 'C' })
         ]);
+
+        sut.bind();
+
         const currentValue = sut.currentValue as any;
         assert.strictEqual(currentValue, undefined, `currentValue`);
+
         sut.synchronizeValue();
+
         assert.strictEqual(currentValue, sut.currentValue, `currentValue`);
+
+        sut.unbind();
       });
 
       it('synchronizes with array (2)', function () {
@@ -154,10 +188,16 @@ describe.skip('SelectValueObserver', function () {
           option({ text: 'B', _model: { id: 2, name: 'select 2' }, selected: true }),
           option({ text: 'C' })
         ]);
+
+        sut.bind();
+
         const currentValue = sut.currentValue as any[];
+
         sut.synchronizeValue();
+
         assert.strictEqual(currentValue, sut.currentValue, `currentValue`);
         assert.strictEqual(currentValue['length'], 2, `currentValue['length']`);
+
         verifyEqual(
           currentValue,
           [
@@ -165,6 +205,8 @@ describe.skip('SelectValueObserver', function () {
             { id: 2, name: 'select 2' }
           ]
         );
+
+        sut.unbind();
       });
 
       it('synchronizes with array (3): disregard "value" when there is model', function () {
@@ -173,10 +215,16 @@ describe.skip('SelectValueObserver', function () {
           option({ text: 'B', value: 'BB', _model: { id: 2, name: 'select 2' }, selected: true }),
           option({ text: 'C', value: 'CC' })
         ]);
+
+        sut.bind();
+
         const currentValue = sut.currentValue as any[];
+
         sut.synchronizeValue();
+
         assert.strictEqual(currentValue, sut.currentValue, `currentValue`);
         assert.strictEqual(currentValue['length'], 2, `currentValue['length']`);
+
         verifyEqual(
           currentValue,
           [
@@ -184,6 +232,8 @@ describe.skip('SelectValueObserver', function () {
             { id: 2, name: 'select 2' }
           ]
         );
+
+        sut.unbind();
       });
 
       it('synchronize regardless disabled state of <option/>', function () {
@@ -192,9 +242,15 @@ describe.skip('SelectValueObserver', function () {
           option({ text: 'B', value: 'BB', disabled: true, _model: { id: 2, name: 'select 2' }, selected: true }),
           option({ text: 'C', value: 'CC', disabled: true, selected: true })
         ]);
+
+        sut.bind();
+
         const currentValue = sut.currentValue as any[];
+
         sut.synchronizeValue();
+
         assert.strictEqual(currentValue, sut.currentValue, `currentValue`);
+
         verifyEqual(
           currentValue,
           [
@@ -203,6 +259,8 @@ describe.skip('SelectValueObserver', function () {
             'CC'
           ]
         );
+
+        sut.unbind();
       });
 
       describe('with <optgroup>', function () {
@@ -214,10 +272,16 @@ describe.skip('SelectValueObserver', function () {
             ),
             option({ text: 'C', value: 'CC' })
           ]);
+
+          sut.bind();
+
           const currentValue = sut.currentValue as any[];
+
           sut.synchronizeValue();
+
           assert.strictEqual(currentValue, sut.currentValue, `currentValue`);
           assert.strictEqual(currentValue['length'], 2, `currentValue['length']`);
+
           verifyEqual(
             currentValue,
             [
@@ -225,6 +289,8 @@ describe.skip('SelectValueObserver', function () {
               { id: 2, name: 'select 2' }
             ]
           );
+
+          sut.unbind();
         });
 
       });
@@ -237,6 +303,7 @@ describe.skip('SelectValueObserver', function () {
 
         const el = select(...optionFactories.map(create => create(ctx)))(ctx);
         const sut = observerLocator.getObserver(LF.none, el, 'value') as SelectValueObserver;
+
         sut.oldValue = sut.currentValue = initialValue;
         return { ctx, el, sut };
       }

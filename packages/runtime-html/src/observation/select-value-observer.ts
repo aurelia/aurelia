@@ -75,6 +75,8 @@ export class SelectValueObserver implements IAccessor<unknown> {
 
     this.arrayObserver = void 0;
     this.nodeObserver = void 0;
+
+    this.handleNodeChange = this.handleNodeChange.bind(this);
   }
 
   public getValue(): unknown {
@@ -260,7 +262,7 @@ export class SelectValueObserver implements IAccessor<unknown> {
   }
 
   public bind(): void {
-    this.nodeObserver = this.dom.createNodeObserver!(this.obj, this.handleNodeChange.bind(this), childObserverOptions) as MutationObserver;
+    this.nodeObserver = this.dom.createNodeObserver!(this.obj, this.handleNodeChange, childObserverOptions) as MutationObserver;
 
     this.lifecycle.enqueueRAF(this.flushRAF, this, this.priority);
   }

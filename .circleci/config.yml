@@ -165,15 +165,15 @@ jobs:
             - run:
                 name: "Process coverage results for Code Climate"
                 command: |
-                  ~/cc-test-reporter format-coverage coverage/lcov.info -t lcov -o coverage/cc-final.json
-                  ~/cc-test-reporter upload-coverage -i coverage/cc-final.json
+                  ~/cc-test-reporter format-coverage packages/__tests__/coverage/lcov.info -t lcov -o packages/__tests__/coverage/cc-final.json
+                  ~/cc-test-reporter upload-coverage -i packages/__tests__/coverage/cc-final.json
                 environment:
                   CC_TEST_REPORTER_ID: 29ad19bd108faacbd91b36265a5b5e891b404571ebf937f40655157877aa71a1
                 when: always
             - run:
                 name: "Process coverage for Codecov"
                 command: |
-                  codecov -f coverage/coverage-final.json
+                  codecov -f packages/__tests__/coverage/coverage-final.json
                 when: always
       - store_test_results:
           path: coverage

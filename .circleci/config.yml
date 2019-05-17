@@ -165,6 +165,7 @@ jobs:
             - run:
                 name: "Process coverage results for Code Climate"
                 command: |
+                  curl -L https://codeclimate.com/downloads/test-reporter/test-reporter-latest-linux-amd64 > ~/cc-test-reporter && chmod +x ~/cc-test-reporter
                   ~/cc-test-reporter format-coverage packages/__tests__/coverage/lcov.info -t lcov -o packages/__tests__/coverage/cc-final.json
                   ~/cc-test-reporter upload-coverage -i packages/__tests__/coverage/cc-final.json
                 environment:
@@ -173,12 +174,12 @@ jobs:
             - run:
                 name: "Process coverage for Codecov"
                 command: |
-                  codecov -f packages/__tests__/coverage/coverage-final.json
+                  node_modules/codecov/bin/codecov -f packages/__tests__/coverage/coverage-final.json
                 when: always
       - store_test_results:
-          path: coverage
+          path: packages/__tests__/coverage
       - store_artifacts:
-          path: coverage
+          path: packages/__tests__/coverage
 
   lint_packages:
     executor: docker-circleci

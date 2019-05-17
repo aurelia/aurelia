@@ -52,6 +52,7 @@
     "@types/webpack": "^4.4.26",
     "@types/webpack-env": "^1.13.9",
     "chalk": "^2.4.2",
+    "codecov": "^3.5.0",
     "commitizen": "^3.0.7",
     "cross-env": "^5.2.0",
     "cz-conventional-changelog": "^2.1.0",

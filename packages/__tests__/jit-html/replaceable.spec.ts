@@ -1,7 +1,7 @@
 import { Aurelia, CustomElementResource } from '@aurelia/runtime';
 import { TestContext, assert } from '@aurelia/testing';
 
-describe('replaceable', function () {
+describe.only('replaceable', function () {
   for (const [title, appMarkup, ceMarkup, , , , , , expected] of [
     [
       `single, static`,
@@ -371,7 +371,7 @@ describe('replaceable', function () {
     //         $template += '</div>';
     //         --currentDepth;
     //       }
-    //       $template += '<div>';
+    //       $template += '</div>';
     //       template += $template;
     //       ++currentBaseLevel;
     //     }

@@ -97,4 +97,8 @@ export class ViewportInstruction {
     }
     return compareType ? this.component === other.component : this.componentName === other.componentName;
   }
+
+  public sameViewport(other: ViewportInstruction): boolean {
+    return (this.viewport ? this.viewport.name : this.viewportName) === (other.viewport ? other.viewport.name : other.viewportName);
+  }
 }

@@ -29,8 +29,9 @@ export class Book {
   constructor(private readonly router: Router, private readonly booksRepository: BooksRepository) { }
 
   public enter(parameters) {
-    if (parameters.id) {
-      this.book = this.booksRepository.book(+parameters.id);
+    let id = +(parameters.id ? parameters.id : parameters[0]);
+    if (id) {
+      this.book = this.booksRepository.book(id);
     }
     this.router.setNav('book-menu', [
       {

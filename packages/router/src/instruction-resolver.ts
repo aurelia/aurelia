@@ -107,6 +107,23 @@ export class InstructionResolver {
     return { clear: clearViewports, newPath };
   }
 
+  public mergeViewportInstructions(instructions: (string | ViewportInstruction)[]): ViewportInstruction[] {
+    const merged: ViewportInstruction[] = [];
+
+    for (let instruction of instructions) {
+      if (typeof instruction === 'string') {
+        instruction = this.parseViewportInstruction(instruction);
+      }
+      const index = merged.findIndex(merge => merge.sameViewport(instruction as ViewportInstruction));
+      if (index >= 0) {
+        merged.splice(index, 1, instruction);
+      } else {
+        merged.push(instruction);
+      }
+    }
+    return merged;
+  }
+
   public removeStateDuplicates(states: string[]): string[] {
     let sorted: string[] = states.slice().sort((a, b) => b.split(this.separators.scope).length - a.split(this.separators.scope).length);
     sorted = sorted.map((value) => `${this.separators.scope}${value}${this.separators.scope}`);

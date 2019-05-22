@@ -40,7 +40,7 @@ export interface IRouter {
   linkCallback(info: AnchorEventInfo): void;
 
   processNavigations(qInstruction: QueueItem<INavigationInstruction>): Promise<void>;
-  addProcessingViewport(componentOrInstruction: string | Partial<ICustomElementType> | ViewportInstruction, viewport?: Viewport | string): void;
+  addProcessingViewport(componentOrInstruction: string | Partial<ICustomElementType> | ViewportInstruction, viewport?: Viewport | string, onlyIfProcessingStatus?: boolean): void;
 
   // Called from the viewport custom element in attached()
   addViewport(name: string, element: Element, context: IRenderContext, options?: IViewportOptions): Viewport;
@@ -314,6 +314,7 @@ export class Router implements IRouter {
         viewport.options.default
         && viewport.content.component === null
         && doneDefaultViewports.every(done => done !== viewport)
+        && updatedViewports.every(updated => updated !== viewport)
       );
       if (!this.allViewports().length) {
         viewportsRemaining = false;
@@ -340,8 +341,8 @@ export class Router implements IRouter {
     await this.navigator.finalize(instruction);
   }
 
-  public addProcessingViewport(componentOrInstruction: string | Partial<ICustomElementType> | ViewportInstruction, viewport?: Viewport | string): void {
-    if (this.processingNavigation) {
+  public addProcessingViewport(componentOrInstruction: string | Partial<ICustomElementType> | ViewportInstruction, viewport?: Viewport | string, onlyIfProcessingStatus?: boolean): void {
+    if (this.processingNavigation && (onlyIfProcessingStatus === undefined || onlyIfProcessingStatus)) {
       if (componentOrInstruction instanceof ViewportInstruction) {
         if (!componentOrInstruction.viewport) {
           // TODO: Deal with not yet existing viewports
@@ -355,7 +356,7 @@ export class Router implements IRouter {
         }
         this.addedViewports.push(new ViewportInstruction(componentOrInstruction, viewport));
       }
-    } else if (this.lastNavigation) {
+    } else if (this.lastNavigation && (onlyIfProcessingStatus === undefined || !onlyIfProcessingStatus)) {
       this.navigator.navigate({ instruction: '', fullStateInstruction: '', repeating: true }).catch(error => { throw error; });
       // Don't wait for the (possibly slow) navigation
     }

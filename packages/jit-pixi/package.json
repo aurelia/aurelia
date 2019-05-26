@@ -1,6 +1,6 @@
 {
   "name": "@aurelia/jit-pixi",
-  "version": "0.3.0-dev.20190525",
+  "version": "0.3.0-dev.20190526",
   "main": "dist/index.umd.js",
   "module": "dist/index.es6.js",
   "jsnext:main": "dist/index.es6.js",
@@ -48,13 +48,13 @@
     "access": "public"
   },
   "dependencies": {
-    "@aurelia/kernel": "0.3.0-dev.20190525",
-    "@aurelia/runtime": "0.3.0-dev.20190525",
-    "@aurelia/runtime-html": "0.3.0-dev.20190525",
-    "@aurelia/runtime-html-browser": "0.3.0-dev.20190525",
-    "@aurelia/runtime-pixi": "0.3.0-dev.20190525",
-    "@aurelia/jit": "0.3.0-dev.20190525",
-    "@aurelia/jit-html": "0.3.0-dev.20190525"
+    "@aurelia/kernel": "0.3.0-dev.20190526",
+    "@aurelia/runtime": "0.3.0-dev.20190526",
+    "@aurelia/runtime-html": "0.3.0-dev.20190526",
+    "@aurelia/runtime-html-browser": "0.3.0-dev.20190526",
+    "@aurelia/runtime-pixi": "0.3.0-dev.20190526",
+    "@aurelia/jit": "0.3.0-dev.20190526",
+    "@aurelia/jit-html": "0.3.0-dev.20190526"
   },
   "devDependencies": {
     "@types/chai": "^4.1.7",

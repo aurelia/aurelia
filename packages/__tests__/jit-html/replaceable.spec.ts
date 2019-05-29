@@ -1,7 +1,7 @@
 import { Aurelia, CustomElementResource } from '@aurelia/runtime';
 import { TestContext, assert } from '@aurelia/testing';
 
-describe.only('replaceable', function () {
+describe('replaceable', function () {
   for (const [title, appMarkup, ceMarkup, , , , , , expected] of [
     [
       `single, static`,

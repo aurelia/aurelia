@@ -1,7 +1,7 @@
 import { Aurelia, CustomElementResource } from '@aurelia/runtime';
 import { TestContext, assert, hJsx } from '@aurelia/testing';
 
-describe.only('replaceable', function () {
+describe('replaceable', function () {
   type INestinngReplaceableTestCase = [
     /*title*/string,
     /*foo template*/HTMLElement,

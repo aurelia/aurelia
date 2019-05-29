@@ -1,4 +1,4 @@
-import { DI, IDisposable } from '@aurelia/kernel';
+import { DI, IDisposable, Reporter } from '@aurelia/kernel';
 import { DelegationStrategy, IDOM } from '@aurelia/runtime';
 
 export interface IManagedEvent extends Event {
@@ -209,6 +209,11 @@ export class EventSubscriber implements IEventSubscriber {
     const callbackOrListener = this.handler;
     const events = this.events;
     const remove = this.dom.removeEventListener;
+
+    if (node === null) {
+      // todo: organize error code
+      return;
+    }
 
     for (let i = 0, ii = events.length; ii > i; ++i) {
       remove(events[i], callbackOrListener, node);

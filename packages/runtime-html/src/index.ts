@@ -66,10 +66,18 @@ export {
   UpdateTriggerableObserver
 } from './resources/binding-behaviors/update-trigger';
 
+// #section custom element
 export {
   Subject,
   Compose
 } from './resources/custom-elements/compose';
+// #end-section custom element
+
+// #section custom attributes
+export {
+  FocusCustomAttribute
+} from './resources/custom-attributes/focus';
+// #end-section custom attributes
 
 export {
   IProjectorLocatorRegistration,

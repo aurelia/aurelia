@@ -1,6 +1,63 @@
+// Place your settings in this file to overwrite default and user settings.
 {
-    "cSpell.words": [
-        "Lifecycle",
-        "viewports"
-    ]
+  "typescript.tsdk": "node_modules/typescript/lib",
+  "tslint.nodePath": "node_modules/tslint/lib",
+  "html.suggest.angular1": false,
+  "html.suggest.ionic": false,
+  "html.format.endWithNewline": true,
+  "tslint.exclude": [
+    "**/.vscode/**",
+    "**/allure-results/**",
+    "**/aurelia_project/**",
+    "**/coverage/**",
+    "**/node_modules/**",
+    "**/scripts/**"
+  ],
+  "emmet.triggerExpansionOnTab": true,
+  "prettier.printWidth": 260,
+  "prettier.singleQuote": true,
+  "prettier.tabWidth": 2,
+  "search.exclude": {
+    "**/.vscode": true,
+    "**/allure-results": true,
+    "**/aurelia_project": true,
+    "**/coverage": true,
+    "**/dist": true,
+    "**/node_modules": true,
+    "**/scripts": true
+  },
+  "files.autoSave": "off",
+  "files.watcherExclude": {
+    "**/.rpt2_cache/**": true,
+    "**/allure-results/**": true,
+    "**/coverage/**": true,
+    "**/node_modules/*/**": true
+  },
+  "typescript.preferences.quoteStyle": "single",
+  "typescript.preferences.importModuleSpecifier": "relative",
+  "cSpell.words": [
+    "Constructable",
+    "Injectable",
+    "Renderable",
+    "Unbindable",
+    "attachables",
+    "bindables",
+    "containerless",
+    "renderables",
+    "requestor's"
+  ],
+  "workbench.colorCustomizations": {
+    "activityBar.background": "#563f80",
+    "activityBar.foreground": "#e7e7e7",
+    "activityBar.inactiveForeground": "#e7e7e799",
+    "activityBarBadge.background": "#ab7354",
+    "activityBarBadge.foreground": "#15202b",
+    "titleBar.activeBackground": "#3f2e5e",
+    "titleBar.inactiveBackground": "#3f2e5e99",
+    "titleBar.activeForeground": "#e7e7e7",
+    "titleBar.inactiveForeground": "#e7e7e799",
+    "statusBar.background": "#3f2e5e",
+    "statusBarItem.hoverBackground": "#563f80",
+    "statusBar.foreground": "#e7e7e7"
+  }
 }

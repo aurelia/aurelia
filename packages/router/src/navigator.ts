@@ -1,101 +1,137 @@
 import { Reporter } from '@aurelia/kernel';
-import { QueuedBrowserHistory } from './queued-browser-history';
-export interface INavigationEntry {
+
+export interface IStoredNavigationEntry {
   instruction: string;
   fullStateInstruction: string;
   index?: number;
   firstEntry?: boolean; // Index might change to not require first === 0, firstEntry should be reliable
+  path?: string;
   title?: string;
   query?: string;
   parameters?: Record<string, string>;
   parameterList?: string[];
   data?: Record<string, unknown>;
-  fromBrowser: boolean;
+}
+
+export interface INavigationEntry extends IStoredNavigationEntry {
+  fromBrowser?: boolean;
   replacing?: boolean;
   refreshing?: boolean;
   historyMovement?: number;
+  resolve?: ((value?: void | PromiseLike<void>) => void);
+  reject?: ((value?: void | PromiseLike<void>) => void);
 }
 
-export interface IHistoryOptions {
+export interface INavigatorOptions {
+  viewer?: any;
+  store?: any;
   callback?(instruction: INavigationInstruction): void;
 }
 
 export interface INavigationFlags {
-  isFirst?: boolean;
-  isNew?: boolean;
-  isRefresh?: boolean;
-  isForward?: boolean;
-  isBack?: boolean;
-  isReplace?: boolean;
-  isRepeat?: boolean;
+  first?: boolean;
+  new?: boolean;
+  refresh?: boolean;
+  forward?: boolean;
+  back?: boolean;
+  replace?: boolean;
 }
 
-export interface INavigationInstruction extends INavigationEntry, INavigationFlags {
-  previous?: INavigationEntry;
+export interface INavigationInstruction extends INavigationEntry {
+  navigation?: INavigationFlags;
+  previous?: IStoredNavigationEntry;
+  repeating?: boolean;
+}
+
+interface INavigatorState {
+  state: Record<string, unknown>;
+  entries: IStoredNavigationEntry[];
+  currentEntry: IStoredNavigationEntry;
 }
 
 export class Navigator {
-  public currentEntry: INavigationEntry;
-  public entries: INavigationEntry[];
+  public currentEntry: INavigationInstruction;
+  public entries: IStoredNavigationEntry[];
 
-  public history: QueuedBrowserHistory;
-  public location: Location;
+  private readonly pendingNavigations: INavigationInstruction[];
+  private processingNavigation: INavigationInstruction;
 
-  private options: IHistoryOptions;
+  private options: INavigatorOptions;
   private isActive: boolean;
 
-  private lastHistoryMovement: number;
   constructor() {
-    this.location = window.location;
-    this.history = new QueuedBrowserHistory();
-
     this.currentEntry = null;
     this.entries = null;
+    this.pendingNavigations = [];
+    this.processingNavigation = null;
 
     this.options = null;
     this.isActive = false;
-
-    this.lastHistoryMovement = null;
   }
 
-  public activate(options?: IHistoryOptions): void {
+  public activate(options?: INavigatorOptions): void {
     if (this.isActive) {
-      throw Reporter.error(0); // TODO: create error code for 'History has already been activated.'
+      throw Reporter.error(0); // TODO: create error code for 'Navigator has already been activated.'
     }
 
     this.isActive = true;
     this.options = { ...options };
-
-    // TODO: fix history connection
-    // this.history.activate(this.pathChanged);
   }
 
   public deactivate(): void {
-    this.history.deactivate();
     this.isActive = false;
   }
 
-  public goto(path: string, title?: string, data?: Record<string, unknown>, fromBrowser: boolean = false): Promise<void> {
-    const entry: INavigationEntry = {
-      instruction: path,
-      fullStateInstruction: null,
-      title: title,
-      data: data,
-      fromBrowser: fromBrowser,
-    };
-    return this.navigateTo(entry);
+  public async navigate(entry: INavigationEntry): Promise<void> {
+    // tslint:disable-next-line:promise-must-complete
+    const promise: Promise<void> = new Promise((resolve, reject) => {
+      entry.resolve = resolve;
+      entry.reject = reject;
+    });
+    this.pendingNavigations.push(entry);
+    this.processNavigations();
+    return promise;
   }
 
-  public replace(path: string, title?: string, data?: Record<string, unknown>): Promise<void> {
-    const entry = {
-      instruction: path,
-      fullStateInstruction: null,
-      title: title,
-      data: data,
-      fromBrowser: false,
-      replacing: true,
-    };
-    return this.navigateTo(entry);
+  public processNavigations(): void {
+    if (this.processingNavigation !== null || !this.pendingNavigations.length) {
+      return;
+    }
+    const entry = this.processingNavigation = this.pendingNavigations.shift();
+    const navigationFlags: INavigationFlags = {};
+
+    if (!this.currentEntry) { // Refresh or first entry
+      this.loadState();
+      if (this.currentEntry) {
+        navigationFlags.refresh = true;
+      } else {
+        navigationFlags.first = true;
+        navigationFlags.new = true;
+        // TODO: Should this really be created here? Shouldn't it be in the viewer?
+        this.currentEntry = {
+          index: 0,
+          instruction: null,
+          fullStateInstruction: null,
+          // path: this.options.viewer.getPath(true),
+          // fromBrowser: null,
+        };
+        this.entries = [];
+      }
+    }
+    if (entry.index !== undefined && !entry.replacing && !entry.refreshing) { // History navigation
+      entry.historyMovement = entry.index - this.currentEntry.index;
+      entry.instruction = entry.fullStateInstruction;
+      entry.replacing = true;
+      if (entry.historyMovement > 0) {
+        navigationFlags.forward = true;
+      } else if (entry.historyMovement < 0) {
+        navigationFlags.back = true;
+      }
+    } else { // New entry
+      navigationFlags.new = true;
+      entry.index = (entry.replacing ? entry.index : this.entries.length);
+    }
+    this.callback(entry, navigationFlags, this.currentEntry);
   }
 
   public async refresh(): Promise<void> {
@@ -105,15 +141,7 @@ export class Navigator {
     }
     entry.replacing = true;
     entry.refreshing = true;
-    return this.navigateTo(entry);
-  }
-
-  public back(): Promise<void> {
-    return this.go(-1);
-  }
-
-  public forward(): Promise<void> {
-    return this.go(1);
+    return this.navigate(entry);
   }
 
   public go(movement: number): Promise<void> {
@@ -121,105 +149,89 @@ export class Navigator {
     if (newIndex >= this.entries.length) {
       return Promise.reject();
     }
-    return this.navigateTo(this.entries[newIndex]);
-  }
-
-  public async setState(key: string | Record<string, unknown>, value?: Record<string, unknown>): Promise<void> {
-    const { pathname, search, hash } = this.location;
-    let state = { ...this.history.state };
-    if (typeof key === 'string') {
-      state[key] = JSON.parse(JSON.stringify(value));
-    } else {
-      state = { ...state, ...JSON.parse(JSON.stringify(key)) };
-    }
-    return this.history.replaceState(state, null, `${pathname}${search}${hash}`);
-  }
-
-  public getState(key: string): Record<string, unknown> {
-    const state = { ...this.history.state };
-    return state[key];
+    const entry = this.entries[newIndex];
+    return this.navigate(entry);
   }
 
   public setEntryTitle(title: string): Promise<void> {
     this.currentEntry.title = title;
-    this.entries[this.currentEntry.index] = this.currentEntry;
-    return this.setState({
-      'HistoryEntries': this.entries,
-      'HistoryEntry': this.currentEntry,
-    });
+    return this.saveState();
   }
 
   get titles(): string[] {
     return (this.entries ? this.entries.slice(0, this.currentEntry.index + 1).map((value) => value.title) : []);
   }
 
+  public getState(): INavigatorState {
+    const state = { ...this.options.store.state };
+    const entries = (state.NavigationEntries || []) as IStoredNavigationEntry[];
+    const currentEntry = state.NavigationEntry as IStoredNavigationEntry;
+    return { state, entries, currentEntry };
+  }
+
   public loadState(): void {
-    this.entries = (this.getState('HistoryEntries') || []) as INavigationEntry[];
-    this.currentEntry = this.getState('HistoryEntry') as INavigationEntry;
+    const state = this.getState();
+    this.entries = (state.entries || []) as IStoredNavigationEntry[];
+    this.currentEntry = state.currentEntry as IStoredNavigationEntry;
   }
 
   public async saveState(push: boolean = false): Promise<void> {
-    // TODO: Replace or push path and state (ignore change event)
-    await this.setState({
-      'HistoryEntries': this.entries,
-      'HistoryEntry': this.currentEntry
-    });
+    const storedEntry = this.storableEntry(this.currentEntry);
+    this.entries[storedEntry.index] = storedEntry;
+    const state = {
+      'NavigationEntries': this.entries,
+      'NavigationEntry': storedEntry,
+    };
+    // console.log('saveState', state);
+    if (push) {
+      return this.options.store.push(state);
+    } else {
+      return this.options.store.replace(state);
+    }
+  }
+
+  public storableEntry(entry: INavigationInstruction): IStoredNavigationEntry {
+    const {
+      previous,
+      fromBrowser,
+      replacing,
+      refreshing,
+      historyMovement,
+      navigation,
+
+      ...storableEntry } = entry;
+    return storableEntry;
   }
 
   public finalize(navigation: INavigationInstruction): void {
     this.currentEntry = navigation;
     if (this.currentEntry.replacing) {
-      this.entries[this.currentEntry.index] = this.currentEntry;
+      this.entries[this.currentEntry.index] = this.storableEntry(this.currentEntry);
       this.saveState();
     } else {
       this.entries = this.entries.slice(0, this.currentEntry.index);
-      this.entries.push(this.currentEntry);
+      this.entries.push(this.storableEntry(this.currentEntry));
       this.saveState(true);
     }
+    this.processingNavigation = null;
+    this.currentEntry.resolve();
+    this.processNavigations();
   }
 
   public cancel(navigation: INavigationInstruction): void {
     if (navigation.fromBrowser) {
       // TODO: Update browser history or path but ignore change event
     }
+    this.processingNavigation = null;
+    this.currentEntry.reject();
+    this.processNavigations();
   }
 
-  public async navigateTo(entry: INavigationEntry): Promise<void> {
-    const navigationFlags: INavigationFlags = {};
-
-    if (!this.currentEntry) { // Refresh or first entry
-      this.loadState();
-      if (this.currentEntry) {
-        navigationFlags.isRefresh = true;
-      } else {
-        navigationFlags.isFirst = true;
-        this.currentEntry = {
-          index: 0,
-          instruction: null,
-          fullStateInstruction: null,
-          fromBrowser: null,
-        };
-        this.entries = [];
-      }
-    }
-    if (entry.index !== undefined) { // History navigation
-      entry.historyMovement = entry.index - this.currentEntry.index;
-      if (entry.index > 0) {
-        navigationFlags.isForward = true;
-      } else if (entry.index < 0) {
-        navigationFlags.isBack = true;
-      }
-    } else { // New entry
-      navigationFlags.isNew = true;
-      entry.index = (entry.replacing ? entry.index : this.entries.length);
-    }
-    this.callback(entry, navigationFlags, this.currentEntry);
-  }
-
-  private callback(currentEntry: INavigationEntry, navigationFlags: INavigationFlags, previousEntry: INavigationEntry): void {
-    const instruction: INavigationInstruction = { ...currentEntry, ...navigationFlags };
-    instruction.previous = previousEntry;
-    Reporter.write(10000, 'callback', currentEntry, navigationFlags);
+  private callback(entry: INavigationEntry, navigationFlags: INavigationFlags, previousEntry: INavigationEntry): void {
+    const instruction: INavigationInstruction = { ...entry };
+    instruction.navigation = navigationFlags;
+    instruction.previous = this.storableEntry(previousEntry);
+    Reporter.write(10000, 'callback', instruction, instruction.previous, this.entries);
     if (this.options.callback) {
       this.options.callback(instruction);
     }

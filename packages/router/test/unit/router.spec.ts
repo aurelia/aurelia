@@ -1,3 +1,4 @@
+import { RouterConfiguration } from './../../src/configuration';
 import { expect } from 'chai';
 import { DebugConfiguration } from '../../../debug/src/index';
 import { BasicConfiguration } from '../../../jit-html-browser/src/index';
@@ -70,7 +71,7 @@ describe('Router', function () {
     await router.goto('uier@left');
     await wait(100);
     await router.goto('bar@left');
-    expect(router.pendingNavigations.length).to.equal(1);
+    expect(router.navigator.pendingNavigations.length).to.equal(1);
     await waitForNavigation(router);
     expect(host.textContent).to.contain('Viewport: bar');
 
@@ -81,15 +82,15 @@ describe('Router', function () {
     this.timeout(30000);
     const { host, router } = await setup();
 
-    const historyLength = router.historyBrowser.history.length;
+    const historyLength = router.navigation.history.length;
     await goto('foo@left', router);
     expect(host.textContent).to.contain('foo');
-    expect(router.historyBrowser.history.length).to.equal(historyLength + 1);
+    expect(router.navigation.history.length).to.equal(historyLength + 1);
 
     await router.replace('bar@left');
     await waitForNavigation(router);
     expect(host.textContent).to.contain('bar');
-    expect(router.historyBrowser.history.length).to.equal(historyLength + 1);
+    expect(router.navigation.history.length).to.equal(historyLength + 1);
 
     await teardown(host, router, 1);
   });
@@ -590,15 +591,18 @@ describe('Router', function () {
       const component = new App();
 
       const au = new Aurelia(container);
-
+      au.register(DebugConfiguration, RouterConfiguration);
       au.app({ host, component });
       au.start();
 
       const router = container.get(Router);
       const mockBrowserHistoryLocation = new MockBrowserHistoryLocation();
-      mockBrowserHistoryLocation.changeCallback = router.historyBrowser.pathChanged;
-      router.historyBrowser.history = mockBrowserHistoryLocation as any;
-      router.historyBrowser.location = mockBrowserHistoryLocation as any;
+      // mockBrowserHistoryLocation.changeCallback = router.historyBrowser.pathChanged;
+      // router.historyBrowser.history = mockBrowserHistoryLocation as any;
+      // router.historyBrowser.location = mockBrowserHistoryLocation as any;
+      mockBrowserHistoryLocation.changeCallback = router.navigation.handlePopstate as any;
+      router.navigation.history = mockBrowserHistoryLocation as any;
+      router.navigation.location = mockBrowserHistoryLocation as any;
 
       router.activate().catch(error => { throw error; });
       await Promise.resolve();
@@ -905,23 +909,29 @@ const setup = async (): Promise<{ au; container; host; router }> => {
     }
   });
 
-  container.register(Router as any);
+  // container.register(Router as any);
   container.register(ViewportCustomElement as any);
   registerComponent(container, Foo, Bar, Baz, Qux, Quux, Corge, Uier, Grault, Garply, Waldo, Plugh);
 
-  const router = container.get(Router);
-  const mockBrowserHistoryLocation = new MockBrowserHistoryLocation();
-  mockBrowserHistoryLocation.changeCallback = router.historyBrowser.pathChanged;
-  router.historyBrowser.history = mockBrowserHistoryLocation as any;
-  router.historyBrowser.location = mockBrowserHistoryLocation as any;
+  // const router = container.get(Router);
+  // const mockBrowserHistoryLocation = new MockBrowserHistoryLocation();
+  // mockBrowserHistoryLocation.changeCallback = router.historyBrowser.pathChanged;
+  // router.historyBrowser.history = mockBrowserHistoryLocation as any;
+  // router.historyBrowser.location = mockBrowserHistoryLocation as any;
 
   const host = document.createElement('div');
   document.body.appendChild(host as any);
 
   const au = window['au'] = new Aurelia(container)
-    .register(DebugConfiguration)
+    .register(DebugConfiguration, RouterConfiguration)
     .app({ host: host, component: App })
     .start();
+
+  const router = container.get(Router);
+  const mockBrowserHistoryLocation = new MockBrowserHistoryLocation();
+  mockBrowserHistoryLocation.changeCallback = router.navigation.handlePopstate as any;
+  router.navigation.history = mockBrowserHistoryLocation as any;
+  router.navigation.location = mockBrowserHistoryLocation as any;
 
   await router.activate();
   return { au, container, host, router };

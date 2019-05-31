@@ -94,10 +94,10 @@ export class InstructionResolver {
     return href;
   }
 
-  public shouldClearViewports(path: string): { clearViewports: boolean; newPath: string } {
+  public shouldClearViewports(path: string): { clear: boolean; newPath: string } {
     const clearViewports = (path === this.separators.clear || path.startsWith(this.separators.clear + this.separators.add));
     const newPath = path.startsWith(this.separators.clear) ? path.slice(2) : path;
-    return { clearViewports, newPath };
+    return { clear: clearViewports, newPath };
   }
 
   public removeStateDuplicates(states: string[]): string[] {

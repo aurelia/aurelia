@@ -1,4 +1,5 @@
 import { Reporter } from '@aurelia/kernel';
+import { Queue, QueueItem } from './queue';
 
 export interface IStoredNavigationEntry {
   instruction: string;
@@ -53,8 +54,7 @@ export class Navigator {
   public currentEntry: INavigationInstruction;
   public entries: IStoredNavigationEntry[];
 
-  private readonly pendingNavigations: INavigationInstruction[];
-  private processingNavigation: INavigationInstruction;
+  private readonly pendingNavigations: Queue<INavigationInstruction>;
 
   private options: INavigatorOptions;
   private isActive: boolean;
@@ -62,8 +62,7 @@ export class Navigator {
   constructor() {
     this.currentEntry = null;
     this.entries = null;
-    this.pendingNavigations = [];
-    this.processingNavigation = null;
+    this.pendingNavigations = new Queue<INavigationInstruction>(this.processNavigations);
 
     this.options = null;
     this.isActive = false;
@@ -83,21 +82,11 @@ export class Navigator {
   }
 
   public async navigate(entry: INavigationEntry): Promise<void> {
-    // tslint:disable-next-line:promise-must-complete
-    const promise: Promise<void> = new Promise((resolve, reject) => {
-      entry.resolve = resolve;
-      entry.reject = reject;
-    });
-    this.pendingNavigations.push(entry);
-    this.processNavigations();
-    return promise;
+    return this.pendingNavigations.enqueue(entry);
   }
 
-  public processNavigations(): void {
-    if (this.processingNavigation !== null || !this.pendingNavigations.length) {
-      return;
-    }
-    const entry = this.processingNavigation = this.pendingNavigations.shift();
+  public processNavigations = (qEntry: QueueItem<INavigationInstruction>): void => {
+    const entry = qEntry as INavigationInstruction;
     const navigationFlags: INavigationFlags = {};
 
     if (!this.currentEntry) { // Refresh or first entry
@@ -199,12 +188,15 @@ export class Navigator {
       historyMovement,
       navigation,
 
+      resolve,
+      reject,
+
       ...storableEntry } = entry;
     return storableEntry;
   }
 
-  public finalize(navigation: INavigationInstruction): void {
-    this.currentEntry = navigation;
+  public finalize(instruction: INavigationInstruction): void {
+    this.currentEntry = instruction;
     if (this.currentEntry.replacing) {
       this.entries[this.currentEntry.index] = this.storableEntry(this.currentEntry);
       this.saveState();
@@ -213,18 +205,18 @@ export class Navigator {
       this.entries.push(this.storableEntry(this.currentEntry));
       this.saveState(true);
     }
-    this.processingNavigation = null;
     this.currentEntry.resolve();
-    this.processNavigations();
   }
 
-  public cancel(navigation: INavigationInstruction): void {
-    if (navigation.fromBrowser) {
-      // TODO: Update browser history or path but ignore change event
+  public cancel(instruction: INavigationInstruction): void {
+    if (instruction.fromBrowser) {
+      if (instruction.navigation.new) {
+        this.options.store.pop();
+      } else {
+        this.options.store.go(-instruction.historyMovement, true);
+      }
     }
-    this.processingNavigation = null;
-    this.currentEntry.reject();
-    this.processNavigations();
+    this.currentEntry.resolve();
   }
 
   private callback(entry: INavigationEntry, navigationFlags: INavigationFlags, previousEntry: INavigationEntry): void {

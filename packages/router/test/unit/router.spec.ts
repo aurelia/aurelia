@@ -68,9 +68,9 @@ describe('Router', function () {
     this.timeout(40000);
     const { host, router } = await setup();
 
-    await router.goto('uier@left');
-    await wait(100);
-    await router.goto('bar@left');
+    router.goto('uier@left');
+    // await wait(100);
+    router.goto('bar@left');
     expect(router.navigator.pendingNavigations.length).to.equal(1);
     await waitForNavigation(router);
     expect(host.textContent).to.contain('Viewport: bar');
@@ -943,7 +943,7 @@ const teardown = async (host, router, count) => {
 };
 
 const goto = async (path: string, router: Router) => {
-  await router.goto(path);
+  router.goto(path).catch(error => { throw error; });
   await waitForNavigation(router);
 }
 

@@ -22,6 +22,10 @@ export class Queue<T> {
     this.isActive = false;
   }
 
+  public get length(): number {
+    return this.pending.length;
+  }
+
   public activate(tickLimit: number): void {
     if (this.isActive) {
       // TODO: Fix error message
@@ -41,21 +45,22 @@ export class Queue<T> {
     this.isActive = false;
   }
 
-  public async enqueue(item: QueueItem<T>): Promise<void> {
+  public async enqueue(item: T): Promise<void> {
+    const qItem: QueueItem<T> = { ...item };
     // tslint:disable-next-line:promise-must-complete
     const promise: Promise<void> = new Promise((resolve, reject) => {
-      item.resolve = () => {
+      qItem.resolve = () => {
         resolve();
         this.processing = null;
         this.dequeue();
       };
-      item.reject = () => {
+      qItem.reject = () => {
         reject();
         this.processing = null;
         this.dequeue();
       };
     });
-    this.pending.push(item);
+    this.pending.push(qItem);
     this.dequeue();
     return promise;
   }

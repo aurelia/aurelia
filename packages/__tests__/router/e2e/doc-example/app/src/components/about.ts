@@ -43,15 +43,15 @@ export class About {
     return wait(this.state.noDelay ? 0 : 4000);
   }
   async goClick(suppress) {
-    await this.router.historyBrowser.history.pushState('books', null, '#books');
-    // tslint:disable-next-line:no-console
-    console.log('books', this.router.historyBrowser.history.state);
-    await this.router.historyBrowser.history.pushState('two', null, '#two');
-    // tslint:disable-next-line:no-console
-    console.log('two', this.router.historyBrowser.history.state);
-    await this.router.historyBrowser.history.go(-1, suppress);
-    // tslint:disable-next-line:no-console
-    console.log('books', this.router.historyBrowser.history.state);
+    // await this.router.historyBrowser.history.pushState('books', null, '#books');
+    // // tslint:disable-next-line:no-console
+    // console.log('books', this.router.historyBrowser.history.history.state);
+    // await this.router.historyBrowser.history.pushState('two', null, '#two');
+    // // tslint:disable-next-line:no-console
+    // console.log('two', this.router.historyBrowser.history.history.state);
+    // await this.router.historyBrowser.history.go(-1, suppress);
+    // // tslint:disable-next-line:no-console
+    // console.log('books', this.router.historyBrowser.history.history.state);
   }
 }
 export interface About extends IViewModel<HTMLElement> { }

@@ -103,6 +103,36 @@ describe('InstructionResolver', function () {
   }
 });
 
+const setup = async (): Promise<{ au; container; host; router }> => {
+  const container = BasicConfiguration.createContainer();
+
+  const App = (CustomElementResource as any).define({ name: 'app', template: '<template><au-viewport name="left"></au-viewport><au-viewport name="right"></au-viewport></template>' });
+  container.register(Router as any);
+  container.register(ViewportCustomElement as any);
+
+  const host = document.createElement('div');
+  document.body.appendChild(host as any);
+
+  const au = window['au'] = new Aurelia(container)
+    .register(DebugConfiguration, RouterConfiguration)
+    .app({ host: host, component: App })
+    .start();
+
+  const router = container.get(Router);
+  const mockBrowserHistoryLocation = new MockBrowserHistoryLocation();
+  mockBrowserHistoryLocation.changeCallback = router.navigation.handlePopstate as any;
+  router.navigation.history = mockBrowserHistoryLocation as any;
+  router.navigation.location = mockBrowserHistoryLocation as any;
+
+  await router.activate();
+  return { au, container, host, router };
+};
+
+const teardown = async (host, router) => {
+  document.body.removeChild(host);
+  router.deactivate();
+};
+
 const wait = async (time = 500) => {
   await new Promise((resolve) => {
     setTimeout(resolve, time);

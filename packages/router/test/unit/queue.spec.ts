@@ -17,7 +17,7 @@ describe('Queue', function () {
     const q = new Queue<Animal>(async (qAnimal: QueueItem<Animal>) => {
       const animal = qAnimal as Animal;
       console.log('Animal', animal);
-      await wait(3000);
+      await wait(100);
       if (animal.name === 'dog') {
         qAnimal.reject();
       } else {
@@ -28,7 +28,7 @@ describe('Queue', function () {
     expect(q.pending.length).to.equal(0);
     q.enqueue(new Animal('cat', 'Figaro') as QueueItem<Animal>);
     expect(q.pending.length).to.equal(1);
-    await wait(3200);
+    await wait(110);
     expect(q.pending.length).to.equal(0);
   });
 
@@ -37,7 +37,7 @@ describe('Queue', function () {
     const q = new Queue<Animal>(async (qAnimal: QueueItem<Animal>) => {
       const animal = qAnimal as Animal;
       console.log('Animal', animal);
-      await wait(3000);
+      await wait(100);
       if (animal.name === 'dog') {
         qAnimal.reject();
       } else {
@@ -52,7 +52,7 @@ describe('Queue', function () {
     await promise;
     promise = q.enqueue(new Animal('cat', 'Figaro') as QueueItem<Animal>);
     expect(q.pending.length).to.equal(1);
-    await wait(3200);
+    await wait(110);
     expect(q.pending.length).to.equal(0);
     q.deactivate();
   });

@@ -63,15 +63,8 @@ const setup = async (component): Promise<{ au; container; host; router }> => {
     }
   });
 
-  // container.register(Router as any);
   container.register(ViewportCustomElement as any, NavCustomElement as any);
   registerComponent(container, Foo, Bar, Baz, Qux);
-
-  // const router = container.get(Router);
-  // const mockBrowserHistoryLocation = new MockBrowserHistoryLocation();
-  // mockBrowserHistoryLocation.changeCallback = router.historyBrowser.pathChanged;
-  // router.historyBrowser.history = mockBrowserHistoryLocation as any;
-  // router.historyBrowser.location = mockBrowserHistoryLocation as any;
 
   const host = document.createElement('div');
   document.body.appendChild(host as any);

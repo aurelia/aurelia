@@ -597,9 +597,6 @@ describe('Router', function () {
 
       const router = container.get(Router);
       const mockBrowserHistoryLocation = new MockBrowserHistoryLocation();
-      // mockBrowserHistoryLocation.changeCallback = router.historyBrowser.pathChanged;
-      // router.historyBrowser.history = mockBrowserHistoryLocation as any;
-      // router.historyBrowser.location = mockBrowserHistoryLocation as any;
       mockBrowserHistoryLocation.changeCallback = router.navigation.handlePopstate as any;
       router.navigation.history = mockBrowserHistoryLocation as any;
       router.navigation.location = mockBrowserHistoryLocation as any;
@@ -909,15 +906,8 @@ const setup = async (): Promise<{ au; container; host; router }> => {
     }
   });
 
-  // container.register(Router as any);
   container.register(ViewportCustomElement as any);
   registerComponent(container, Foo, Bar, Baz, Qux, Quux, Corge, Uier, Grault, Garply, Waldo, Plugh);
-
-  // const router = container.get(Router);
-  // const mockBrowserHistoryLocation = new MockBrowserHistoryLocation();
-  // mockBrowserHistoryLocation.changeCallback = router.historyBrowser.pathChanged;
-  // router.historyBrowser.history = mockBrowserHistoryLocation as any;
-  // router.historyBrowser.location = mockBrowserHistoryLocation as any;
 
   const host = document.createElement('div');
   document.body.appendChild(host as any);

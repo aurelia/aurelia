@@ -18,6 +18,7 @@ export interface INavigationEntry extends IStoredNavigationEntry {
   fromBrowser?: boolean;
   replacing?: boolean;
   refreshing?: boolean;
+  untracked?: boolean;
   historyMovement?: number;
   resolve?: ((value?: void | PromiseLike<void>) => void);
   reject?: ((value?: void | PromiseLike<void>) => void);
@@ -171,7 +172,6 @@ export class Navigator {
       'NavigationEntries': this.entries,
       'NavigationEntry': storedEntry,
     };
-    // console.log('saveState', state);
     if (push) {
       return this.options.store.push(state);
     } else {
@@ -185,6 +185,7 @@ export class Navigator {
       fromBrowser,
       replacing,
       refreshing,
+      untracked,
       historyMovement,
       navigation,
 
@@ -197,7 +198,14 @@ export class Navigator {
 
   public finalize(instruction: INavigationInstruction): void {
     this.currentEntry = instruction;
-    if (this.currentEntry.replacing) {
+    if (this.currentEntry.untracked) {
+      if (instruction.fromBrowser) {
+        this.options.store.pop();
+      }
+      this.currentEntry.index--;
+      this.entries[this.currentEntry.index] = this.storableEntry(this.currentEntry);
+      this.saveState();
+    } else if (this.currentEntry.replacing) {
       this.entries[this.currentEntry.index] = this.storableEntry(this.currentEntry);
       this.saveState();
     } else {

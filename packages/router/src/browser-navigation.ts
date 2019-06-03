@@ -1,5 +1,4 @@
 import { PLATFORM, Reporter } from '@aurelia/kernel';
-import { hasAncestor } from '@aurelia/runtime';
 
 export interface NavigationStore {
 }
@@ -49,7 +48,7 @@ export class BrowserNavigation implements NavigationStore, NavigationViewer {
 
   public activate(callback: (ev?: PopStateEvent) => void): Promise<void> {
     if (this.isActive) {
-      throw Reporter.error(2003);
+      throw Reporter.error(2003); // Browser navigation has already been activated
     }
     this.isActive = true;
     this.callback = callback;

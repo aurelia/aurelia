@@ -246,8 +246,8 @@ const codeLookup: Record<string, IMessageInfo> = {
     message: 'Failed to resolve all viewports.'
   },
   2003: {
-    level: LogLevel.error,
-    message: 'Queued browser history has already been activated.'
+    type: MessageType.error,
+    message: 'Browser navigation has already been activated.'
   },
   2004: {
     level: LogLevel.error,

@@ -24,9 +24,9 @@ describe('Queue', function () {
         qAnimal.resolve();
       }
     });
-    q.enqueue(new Animal('dog', 'Pluto') as QueueItem<Animal>);
+    q.enqueue(new Animal('dog', 'Pluto') as Animal);
     expect(q.pending.length).to.equal(0);
-    q.enqueue(new Animal('cat', 'Figaro') as QueueItem<Animal>);
+    q.enqueue(new Animal('cat', 'Figaro') as Animal);
     expect(q.pending.length).to.equal(1);
     await wait(110);
     expect(q.pending.length).to.equal(0);
@@ -45,12 +45,12 @@ describe('Queue', function () {
       }
     });
     q.activate(0);
-    let promise = q.enqueue(new Animal('dog', 'Pluto') as QueueItem<Animal>);
+    let promise = q.enqueue(new Animal('dog', 'Pluto') as Animal);
     expect(q.pending.length).to.equal(1);
     await wait(50);
     expect(q.pending.length).to.equal(0);
     await promise;
-    promise = q.enqueue(new Animal('cat', 'Figaro') as QueueItem<Animal>);
+    promise = q.enqueue(new Animal('cat', 'Figaro') as Animal);
     expect(q.pending.length).to.equal(1);
     await wait(110);
     expect(q.pending.length).to.equal(0);

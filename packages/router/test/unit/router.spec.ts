@@ -1,10 +1,10 @@
-import { RouterConfiguration } from './../../src/configuration';
 import { expect } from 'chai';
 import { DebugConfiguration } from '../../../debug/src/index';
 import { BasicConfiguration } from '../../../jit-html-browser/src/index';
 import { Aurelia, CustomElementResource } from '../../../runtime/src/index';
 import { Router, ViewportCustomElement } from '../../src/index';
 import { MockBrowserHistoryLocation } from '../mock/browser-history-location.mock';
+import { RouterConfiguration } from './../../src/configuration';
 import { registerComponent } from './utils';
 
 const define = (CustomElementResource as any).define;
@@ -935,7 +935,7 @@ const teardown = async (host, router, count) => {
 const goto = async (path: string, router: Router) => {
   router.goto(path).catch(error => { throw error; });
   await waitForNavigation(router);
-}
+};
 
 const wait = async (time = 500) => {
   await new Promise((resolve) => {
@@ -949,4 +949,3 @@ const waitForNavigation = async (router) => {
     await wait(100);
   }
 };
-

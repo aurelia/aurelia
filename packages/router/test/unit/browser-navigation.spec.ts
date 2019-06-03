@@ -1,6 +1,6 @@
-import { INavigationState } from './../../src/browser-navigation';
 import { expect } from 'chai';
 import { spy } from 'sinon';
+import { INavigationState } from './../../src/browser-navigation';
 import { BrowserNavigation } from './../../src/index';
 
 describe('BrowserNavigation', function () {
@@ -120,7 +120,7 @@ describe('BrowserNavigation', function () {
   });
 });
 
-const navigationState = (instruction: string): INavigationState {
+const navigationState = (instruction: string): INavigationState => {
   return {
     NavigationEntries: [],
     NavigationEntry: {

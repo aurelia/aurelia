@@ -1,6 +1,6 @@
 import { DI, IContainer, InjectArray, Reporter } from '@aurelia/kernel';
 import { Aurelia, ICustomElementType, IRenderContext } from '@aurelia/runtime';
-import { BrowserNavigation } from './browser-navigation';
+import { BrowserNavigation, INavigationViewerEvent } from './browser-navigation';
 import { InstructionResolver, IRouteSeparators } from './instruction-resolver';
 import { AnchorEventInfo, LinkHandler } from './link-handler';
 import { INavRoute, Nav } from './nav';
@@ -117,11 +117,11 @@ export class Router implements IRouter {
 
     this.instructionResolver.activate({ separators: this.options.separators });
     this.navigator.activate({
-      callback: this.navigatorCallback as any,
+      callback: this.navigatorCallback,
       store: this.navigation,
     });
     this.linkHandler.activate({ callback: this.linkCallback });
-    return this.navigation.activate(this.navigationCallback as any);
+    return this.navigation.activate(this.navigationCallback);
   }
 
   public deactivate(): void {
@@ -143,19 +143,17 @@ export class Router implements IRouter {
       const context = scope.scopeContext();
       href = this.instructionResolver.buildScopedLink(context, href);
     }
-    this.goto(href);
+    this.goto(href).catch(error => { throw error; });
   }
 
   public navigatorCallback = (instruction: INavigationInstruction): void => {
-    // console.log('navigatorCallback', instruction);
-    this.processNavigations(instruction);
+    this.processNavigations(instruction).catch(error => { throw error; });
   }
-  public navigationCallback = (navigation: any): void => {
-    // console.log('navigationCallback', navigation);
-    const entry: INavigationEntry = (navigation.state && navigation.state.NavigationEntry ? navigation.state.NavigationEntry : {});
+  public navigationCallback = (navigation: INavigationViewerEvent): void => {
+    const entry = (navigation.state && navigation.state.NavigationEntry ? navigation.state.NavigationEntry as INavigationEntry : { instruction: null, fullStateInstruction: null });
     entry.instruction = navigation.instruction;
     entry.fromBrowser = true;
-    this.navigator.navigate(entry);
+    this.navigator.navigate(entry).catch(error => { throw error; });
   }
 
   public processNavigations = async (qInstruction: QueueItem<INavigationInstruction>): Promise<void> => {
@@ -192,18 +190,10 @@ export class Router implements IRouter {
         path = newPath;
       }
       views = this.instructionResolver.parseViewportInstructions(path);
-      // if (!views && !views.length && !clearViewports) {
-      //   this.processingNavigation = null;
-      //   qInstruction.resolve();
-      //   return;
-      // }
+      // TODO: Used to have an early exit if no views. Restore it?
     } else {
       views = instruction.instruction;
-      // if (!views && !views.length) { //} && !clearViewports) {
-      //   this.processingNavigation = null;
-      //   qInstruction.resolve();
-      //   return;
-      // }
+      // TODO: Used to have an early exit if no views. Restore it?
     }
 
     const parsedQuery: IParsedQuery = parseQuery(instruction.query);
@@ -333,7 +323,7 @@ export class Router implements IRouter {
         this.addedViewports.push(new ViewportInstruction(componentOrInstruction, viewport));
       }
     } else if (this.lastNavigation) {
-      this.pendingNavigations.enqueue({ instruction: '', fullStateInstruction: '', repeating: true, navigation: {} });
+      this.pendingNavigations.enqueue({ instruction: '', fullStateInstruction: '', repeating: true, navigation: {} }).catch(error => { throw error; });
       // Don't wait for the (possibly slow) navigation
     }
   }
@@ -433,7 +423,7 @@ export class Router implements IRouter {
     updatedViewports.forEach((viewport) => {
       viewport.abortContentChange().catch(error => { throw error; });
     });
-    await this.navigator.cancel(qInstruction as INavigationInstruction);
+    this.navigator.cancel(qInstruction as INavigationInstruction);
     this.processingNavigation = null;
     qInstruction.reject();
   }

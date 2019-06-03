@@ -1,5 +1,5 @@
 import { Reporter } from '@aurelia/kernel';
-import { INavigationState } from './browser-navigation';
+import { INavigationState, INavigationStore, INavigationViewer } from './browser-navigation';
 import { Queue, QueueItem } from './queue';
 
 export interface IStoredNavigationEntry {
@@ -26,8 +26,8 @@ export interface INavigationEntry extends IStoredNavigationEntry {
 }
 
 export interface INavigatorOptions {
-  viewer?: any;
-  store?: any;
+  viewer?: INavigationViewer;
+  store?: INavigationStore;
   callback?(instruction: INavigationInstruction): void;
 }
 
@@ -162,8 +162,8 @@ export class Navigator {
 
   public loadState(): void {
     const state = this.getState();
-    this.entries = (state.entries || []) as IStoredNavigationEntry[];
-    this.currentEntry = state.currentEntry as IStoredNavigationEntry;
+    this.entries = (state.entries || []);
+    this.currentEntry = state.currentEntry;
   }
 
   public async saveState(push: boolean = false): Promise<void> {
@@ -201,18 +201,18 @@ export class Navigator {
     this.currentEntry = instruction;
     if (this.currentEntry.untracked) {
       if (instruction.fromBrowser) {
-        this.options.store.pop();
+        this.options.store.pop().catch(error => { throw error; });
       }
       this.currentEntry.index--;
       this.entries[this.currentEntry.index] = this.storableEntry(this.currentEntry);
-      this.saveState();
+      this.saveState().catch(error => { throw error; });
     } else if (this.currentEntry.replacing) {
       this.entries[this.currentEntry.index] = this.storableEntry(this.currentEntry);
-      this.saveState();
+      this.saveState().catch(error => { throw error; });
     } else {
       this.entries = this.entries.slice(0, this.currentEntry.index);
       this.entries.push(this.storableEntry(this.currentEntry));
-      this.saveState(true);
+      this.saveState(true).catch(error => { throw error; });
     }
     this.currentEntry.resolve();
   }
@@ -220,9 +220,9 @@ export class Navigator {
   public cancel(instruction: INavigationInstruction): void {
     if (instruction.fromBrowser) {
       if (instruction.navigation.new) {
-        this.options.store.pop();
+        this.options.store.pop().catch(error => { throw error; });
       } else {
-        this.options.store.go(-instruction.historyMovement, true);
+        this.options.store.go(-instruction.historyMovement, true).catch(error => { throw error; });
       }
     }
     this.currentEntry.resolve();

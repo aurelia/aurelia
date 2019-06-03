@@ -11,7 +11,7 @@ export class Queue<T> {
   public processing: QueueItem<T>;
   public tickLimit: number;
   public unticked: number;
-  private callback: (item?: QueueItem<T>) => void;
+  private readonly callback: (item?: QueueItem<T>) => void;
 
   constructor(callback: (item?: QueueItem<T>) => void) {
     this.pending = [];

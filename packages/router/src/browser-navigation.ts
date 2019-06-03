@@ -1,12 +1,28 @@
 import { PLATFORM, Reporter } from '@aurelia/kernel';
 import { IStoredNavigationEntry } from './navigator';
 
-export interface NavigationStore {
+export interface INavigationStore {
+  length: number;
+  state: Record<string, unknown>;
+  go(delta?: number, suppressPopstate?: boolean): Promise<void>;
+  push(state: INavigationState): Promise<void>;
+  replace(state: INavigationState): Promise<void>;
+  pop(): Promise<void>;
+  handlePopstate(ev: PopStateEvent): Promise<void>;
 }
 
-export interface NavigationViewer {
-  activate(callback: (ev?: PopStateEvent) => void): void;
+export interface INavigationViewer {
+  activate(callback: (ev?: INavigationViewerEvent) => void): Promise<void>;
   deactivate(): void;
+}
+
+export interface INavigationViewerEvent {
+  event: PopStateEvent;
+  state?: INavigationState;
+  path: string;
+  data: string;
+  hash: string;
+  instruction: string;
 }
 
 export interface INavigationState {
@@ -22,7 +38,7 @@ interface QueueItem {
   resolve: ((value?: void | PromiseLike<void>) => void);
 }
 
-export class BrowserNavigation implements NavigationStore, NavigationViewer {
+export class BrowserNavigation implements INavigationStore, INavigationViewer {
   public window: Window;
   public history: History;
   public location: Location;
@@ -34,7 +50,7 @@ export class BrowserNavigation implements NavigationStore, NavigationViewer {
   private isActive: boolean;
   private currentHistoryActivity: QueueItem;
   private unticked: number;
-  private callback: (ev?: PopStateEvent) => void;
+  private callback: (ev?: INavigationViewerEvent) => void;
 
   private goResolve: ((value?: void | PromiseLike<void>) => void);
   private suppressPopstateResolve: ((value?: void | PromiseLike<void>) => void);
@@ -54,7 +70,7 @@ export class BrowserNavigation implements NavigationStore, NavigationViewer {
     this.suppressPopstateResolve = null;
   }
 
-  public activate(callback: (ev?: PopStateEvent) => void): Promise<void> {
+  public activate(callback: (ev?: INavigationViewerEvent) => void): Promise<void> {
     if (this.isActive) {
       throw Reporter.error(2003); // Browser navigation has already been activated
     }
@@ -81,33 +97,33 @@ export class BrowserNavigation implements NavigationStore, NavigationViewer {
   public async go(delta?: number, suppressPopstate: boolean = false): Promise<void> {
     if (!suppressPopstate) {
       const promise2 = this.enqueue(this, '_go', [delta], true);
-      this.dequeue();
+      this.dequeue().catch(error => { throw error; });
       return promise2;
     }
     const promise = this.enqueue(this, 'suppressPopstate', [], true);
     this.enqueue(this.history, 'go', [delta]).catch(error => { throw error; });
-    this.dequeue();
-    this.dequeue();
+    this.dequeue().catch(error => { throw error; });
+    this.dequeue().catch(error => { throw error; });
     return promise;
   }
 
   public async push(state: INavigationState): Promise<void> {
-    const { title, path } = state.NavigationEntry as any;
+    const { title, path } = state.NavigationEntry;
     const promise = this.enqueue(this.history, 'pushState', [state, title, `#${path}`]);
-    this.dequeue();
+    this.dequeue().catch(error => { throw error; });
     return promise;
   }
 
   public async replace(state: INavigationState): Promise<void> {
-    const { title, path } = state.NavigationEntry as any;
+    const { title, path } = state.NavigationEntry;
     const promise = this.enqueue(this.history, 'replaceState', [state, title, `#${path}`]);
-    this.dequeue();
+    this.dequeue().catch(error => { throw error; });
     return promise;
   }
 
   public async pop(): Promise<void> {
     const promise = this.enqueue(this, '_popState', []);
-    this.dequeue();
+    this.dequeue().catch(error => { throw error; });
     return promise;
   }
 
@@ -131,7 +147,7 @@ export class BrowserNavigation implements NavigationStore, NavigationViewer {
         data: search,
         hash,
         instruction: this.useHash ? hash.slice(1) : pathname,
-      } as any);
+      });
     } else {
       const resolve = this.suppressPopstateResolve;
       this.suppressPopstateResolve = null;

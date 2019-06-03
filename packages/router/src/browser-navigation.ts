@@ -148,7 +148,7 @@ export class BrowserNavigation implements NavigationStore, NavigationViewer {
     await this.go(-1, true);
     const state = this.history.state;
     // TODO: Fix browser forward bug after pop on first entry
-    if (!state.NavigationEntry.firstEntry) {
+    if (state && state.navigationEntry && !state.NavigationEntry.firstEntry) {
       await this.go(-1, true);
       return this.push(state);
     }

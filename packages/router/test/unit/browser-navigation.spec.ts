@@ -64,26 +64,14 @@ describe('BrowserNavigation', function () {
   });
 
   it('queues consecutive calls', async function () {
-    const callbackSpy = spy(browserNavigation, 'dequeue');
     browserNavigation.activate(callback);
 
-    const state: INavigationState = {
-      NavigationEntries: [],
-      NavigationEntry: {
-        instruction: null,
-        fullStateInstruction: null,
-      }
-    };
-    const length = browserNavigation.length;
-    state.NavigationEntry.instruction = 'one';
-    browserNavigation.push(state);
-    state.NavigationEntry.instruction = 'two';
-    browserNavigation.replace(state);
+    const length = browserNavigation.queue.length;
+    browserNavigation.push(navigationState('one'));
+    browserNavigation.replace(navigationState('two'));
     browserNavigation.go(-1);
     browserNavigation.go(1);
-    expect(callbackSpy.callCount).to.equal(browserNavigation.allowedNoOfExecsWithinTick);
-    expect(browserNavigation.length).to.equal(length + browserNavigation.allowedNoOfExecsWithinTick);
-    expect(browserNavigation.queue.length).to.equal(4 - browserNavigation.allowedNoOfExecsWithinTick);
+    expect(browserNavigation.queue.length).to.equal(length + 4 - browserNavigation.allowedNoOfExecsWithinTick);
     await wait();
 
     browserNavigation.deactivate();
@@ -91,42 +79,56 @@ describe('BrowserNavigation', function () {
 
   it('awaits go', async function () {
     let counter = 0;
-    browserNavigation.activate(function () {
-      counter++;
-    });
+    browserNavigation.activate(
+      // Called once as part of activation and then for each url/location change
+      function () {
+        counter++;
+      });
 
-    await browserNavigation.push('one', null, '#one');
-    expect(browserNavigation.history.state).to.equal('one');
-    await browserNavigation.push('two', null, '#two');
-    expect(browserNavigation.history.state).to.equal('two');
+    await browserNavigation.push(navigationState('one'));
+    expect(browserNavigation.history.state.NavigationEntry.instruction).to.equal('one');
+    await browserNavigation.push(navigationState('two'));
+    expect(browserNavigation.history.state.NavigationEntry.instruction).to.equal('two');
     await browserNavigation.go(-1);
     await Promise.resolve();
-    expect(browserNavigation.history.state).to.equal('one');
+    expect(browserNavigation.history.state.NavigationEntry.instruction).to.equal('one');
 
-    expect(counter).to.equal(1);
+    expect(counter).to.equal(2); // Initial + above 'go'
 
     browserNavigation.deactivate();
   });
 
   it('suppresses popstate event callback', async function () {
     let counter = 0;
-    browserNavigation.activate(function () {
-      counter++;
-    });
+    browserNavigation.activate(
+      // Called once as part of activation and then for each url/location change
+      function () {
+        counter++;
+      });
 
-    await browserNavigation.push('one', null, '#one');
-    expect(browserNavigation.history.state).to.equal('one');
-    await browserNavigation.push('two', null, '#two');
-    expect(browserNavigation.history.state).to.equal('two');
+    await browserNavigation.push(navigationState('one'));
+    expect(browserNavigation.history.state.NavigationEntry.instruction).to.equal('one');
+    await browserNavigation.push(navigationState('two'));
+    expect(browserNavigation.history.state.NavigationEntry.instruction).to.equal('two');
     await browserNavigation.go(-1, true);
     await Promise.resolve();
-    expect(browserNavigation.history.state).to.equal('one');
+    expect(browserNavigation.history.state.NavigationEntry.instruction).to.equal('one');
 
-    expect(counter).to.equal(0);
+    expect(counter).to.equal(1); // Initial (and not + the above 'go')
 
     browserNavigation.deactivate();
   });
 });
+
+const navigationState = (instruction: string): INavigationState {
+  return {
+    NavigationEntries: [],
+    NavigationEntry: {
+      instruction: instruction,
+      fullStateInstruction: null,
+    }
+  };
+};
 
 const wait = async (time = 100) => {
   await new Promise((resolve) => {

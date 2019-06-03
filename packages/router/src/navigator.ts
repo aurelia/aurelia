@@ -1,4 +1,5 @@
 import { Reporter } from '@aurelia/kernel';
+import { INavigationState } from './browser-navigation';
 import { Queue, QueueItem } from './queue';
 
 export interface IStoredNavigationEntry {
@@ -168,7 +169,7 @@ export class Navigator {
   public async saveState(push: boolean = false): Promise<void> {
     const storedEntry = this.storableEntry(this.currentEntry);
     this.entries[storedEntry.index] = storedEntry;
-    const state = {
+    const state: INavigationState = {
       'NavigationEntries': this.entries,
       'NavigationEntry': storedEntry,
     };

@@ -1,4 +1,5 @@
 import { PLATFORM, Reporter } from '@aurelia/kernel';
+import { IStoredNavigationEntry } from './navigator';
 
 export interface NavigationStore {
 }
@@ -6,6 +7,11 @@ export interface NavigationStore {
 export interface NavigationViewer {
   activate(callback: (ev?: PopStateEvent) => void): void;
   deactivate(): void;
+}
+
+export interface INavigationState {
+  NavigationEntries: IStoredNavigationEntry[];
+  NavigationEntry: IStoredNavigationEntry;
 }
 
 interface QueueItem {
@@ -22,6 +28,7 @@ export class BrowserNavigation implements NavigationStore, NavigationViewer {
   public location: Location;
 
   public useHash: boolean;
+  public allowedNoOfExecsWithinTick: number;
 
   private readonly queue: QueueItem[];
   private isActive: boolean;
@@ -37,6 +44,7 @@ export class BrowserNavigation implements NavigationStore, NavigationViewer {
     this.history = window.history;
     this.location = window.location;
     this.useHash = true;
+    this.allowedNoOfExecsWithinTick = 2;
     this.queue = [];
     this.isActive = false;
     this.currentHistoryActivity = null;
@@ -63,6 +71,9 @@ export class BrowserNavigation implements NavigationStore, NavigationViewer {
     this.isActive = false;
   }
 
+  get length(): number {
+    return this.history.length;
+  }
   get state(): Record<string, unknown> {
     return this.history.state;
   }
@@ -80,14 +91,14 @@ export class BrowserNavigation implements NavigationStore, NavigationViewer {
     return promise;
   }
 
-  public async push(state: Record<string, unknown>): Promise<void> {
+  public async push(state: INavigationState): Promise<void> {
     const { title, path } = state.NavigationEntry as any;
     const promise = this.enqueue(this.history, 'pushState', [state, title, `#${path}`]);
     this.dequeue();
     return promise;
   }
 
-  public async replace(state: Record<string, unknown>): Promise<void> {
+  public async replace(state: INavigationState): Promise<void> {
     const { title, path } = state.NavigationEntry as any;
     const promise = this.enqueue(this.history, 'replaceState', [state, title, `#${path}`]);
     this.dequeue();
@@ -172,7 +183,7 @@ export class BrowserNavigation implements NavigationStore, NavigationViewer {
     }
     if (delta === undefined) {
       this.unticked++;
-      if (this.unticked > 2) {
+      if (this.unticked > this.allowedNoOfExecsWithinTick) {
         return;
       }
     } else {

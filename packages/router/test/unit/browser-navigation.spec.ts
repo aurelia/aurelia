@@ -1,3 +1,4 @@
+import { INavigationState } from './../../src/browser-navigation';
 import { expect } from 'chai';
 import { spy } from 'sinon';
 import { BrowserNavigation } from './../../src/index';
@@ -57,7 +58,7 @@ describe('BrowserNavigation', function () {
     } catch (e) {
       err = e;
     }
-    expect(err.message).to.contain('Browser navigation has already been activated');
+    expect(err.message).to.be.oneOf(['Browser navigation has already been activated', 'Code 2003']);
 
     browserNavigation.deactivate();
   });
@@ -66,14 +67,23 @@ describe('BrowserNavigation', function () {
     const callbackSpy = spy(browserNavigation, 'dequeue');
     browserNavigation.activate(callback);
 
+    const state: INavigationState = {
+      NavigationEntries: [],
+      NavigationEntry: {
+        instruction: null,
+        fullStateInstruction: null,
+      }
+    };
     const length = browserNavigation.length;
-    browserNavigation.push({}, null, '#one');
-    browserNavigation.replace("test", null, '#two');
-    browserNavigation.back();
-    browserNavigation.forward();
-    expect(callbackSpy.callCount).to.equal(0);
-    expect(browserNavigation.length).to.equal(length);
-    expect(browserNavigation.queue.length).to.equal(4);
+    state.NavigationEntry.instruction = 'one';
+    browserNavigation.push(state);
+    state.NavigationEntry.instruction = 'two';
+    browserNavigation.replace(state);
+    browserNavigation.go(-1);
+    browserNavigation.go(1);
+    expect(callbackSpy.callCount).to.equal(browserNavigation.allowedNoOfExecsWithinTick);
+    expect(browserNavigation.length).to.equal(length + browserNavigation.allowedNoOfExecsWithinTick);
+    expect(browserNavigation.queue.length).to.equal(4 - browserNavigation.allowedNoOfExecsWithinTick);
     await wait();
 
     browserNavigation.deactivate();

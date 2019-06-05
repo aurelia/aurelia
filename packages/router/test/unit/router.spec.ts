@@ -120,6 +120,25 @@ describe('Router', function () {
     await teardown(host, router, 2);
   });
 
+  it('reloads state when refresh method is called', async function () {
+    this.timeout(30000);
+    const { host, router } = await setup();
+
+    await goto('foo@left', router);
+    expect(host.textContent).to.contain('Viewport: foo');
+    expect(host.textContent).to.not.contain('Viewport: bar');
+
+    await goto('bar@right', router);
+    expect(host.textContent).to.contain('Viewport: foo');
+    expect(host.textContent).to.contain('Viewport: bar');
+
+    await router.refresh();
+    expect(host.textContent).to.contain('Viewport: foo');
+    expect(host.textContent).to.contain('Viewport: bar');
+
+    await teardown(host, router, 2);
+  });
+
   it('navigates back and forward with one viewport', async function () {
     this.timeout(40000);
     const { host, router } = await setup();

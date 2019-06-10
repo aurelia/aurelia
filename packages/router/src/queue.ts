@@ -29,8 +29,7 @@ export class Queue<T> {
 
   public activate(tickLimit: number): void {
     if (this.isActive) {
-      // TODO: Fix error message
-      throw Reporter.error(0);
+      throw new Error('Queue has already been activated');
     }
     this.isActive = true;
     this.tickLimit = tickLimit;
@@ -38,8 +37,7 @@ export class Queue<T> {
   }
   public deactivate(): void {
     if (!this.isActive) {
-      // TODO: Fix error message
-      throw Reporter.error(0);
+      throw new Error('Queue has not been activated');
     }
     PLATFORM.ticker.remove(this.dequeue, this);
     this.tickLimit = null;

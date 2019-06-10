@@ -104,7 +104,7 @@ export class Router implements IRouter {
 
   public activate(options?: IRouterOptions): Promise<void> {
     if (this.isActive) {
-      throw Reporter.error(2001);
+      throw new Error('Router has already been activated');
     }
 
     this.isActive = true;
@@ -126,7 +126,7 @@ export class Router implements IRouter {
 
   public deactivate(): void {
     if (!this.isActive) {
-      throw Reporter.error(2000);
+      throw new Error('Router has not been activated');
     }
     this.linkHandler.deactivate();
     this.navigator.deactivate();

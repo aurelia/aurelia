@@ -72,7 +72,7 @@ export class Navigator {
 
   public activate(options?: INavigatorOptions): void {
     if (this.isActive) {
-      throw Reporter.error(0); // TODO: create error code for 'Navigator has already been activated.'
+      throw new Error('Navigator has already been activated.');
     }
 
     this.isActive = true;
@@ -80,6 +80,9 @@ export class Navigator {
   }
 
   public deactivate(): void {
+    if (!this.isActive) {
+      throw new Error('Navigator has not been activated');
+    }
     this.isActive = false;
   }
 

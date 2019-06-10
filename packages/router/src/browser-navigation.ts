@@ -87,6 +87,9 @@ export class BrowserNavigation implements INavigationStore, INavigationViewer {
     });
   }
   public deactivate(): void {
+    if (!this.isActive) {
+      throw new Error('Browser navigation has not been activated');
+    }
     this.window.removeEventListener('popstate', this.handlePopstate);
     this.pendingCalls.deactivate();
     this.callback = null;

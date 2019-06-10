@@ -45,6 +45,9 @@ export class App {
   public color: string = 'lightgreen';
   constructor(private readonly router: Router, authorsRepository: AuthorsRepository, private readonly state: State) {
     authorsRepository.authors(); // Only here to initialize repositories
+  }
+
+  public bound() {
     this.router.activate({
       // transformFromUrl: (path, router) => {
       //   if (!path.length) {

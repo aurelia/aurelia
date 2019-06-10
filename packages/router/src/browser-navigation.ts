@@ -1,5 +1,6 @@
 import { PLATFORM, Reporter } from '@aurelia/kernel';
 import { IStoredNavigationEntry } from './navigator';
+import { Queue, QueueItem } from './queue';
 
 export interface INavigationStore {
   length: number;
@@ -8,7 +9,6 @@ export interface INavigationStore {
   push(state: INavigationState): Promise<void>;
   replace(state: INavigationState): Promise<void>;
   pop(): Promise<void>;
-  handlePopstate(ev: PopStateEvent): Promise<void>;
 }
 
 export interface INavigationViewer {
@@ -30,30 +30,31 @@ export interface INavigationState {
   NavigationEntry: IStoredNavigationEntry;
 }
 
-interface QueueItem {
+interface Call {
   target: object;
   methodName: string;
   parameters: unknown[];
-  // TODO: Could someone verify this? It's the resolve from a Promise<void>
-  resolve: ((value?: void | PromiseLike<void>) => void);
+  propagateResolve?: boolean;
+  suppressPopstate?: boolean;
 }
 
+interface ForwardedState {
+  suppressPopstate?: boolean;
+  resolve?: ((value?: void | PromiseLike<void>) => void);
+}
 export class BrowserNavigation implements INavigationStore, INavigationViewer {
   public window: Window;
   public history: History;
   public location: Location;
 
   public useHash: boolean;
-  public allowedNoOfExecsWithinTick: number;
+  public allowedNoOfExecsWithinTick: number; // Limit no of executed actions within the same PLATFORM.Tick (due to browser limitation)
 
-  private readonly queue: QueueItem[];
+  private readonly pendingCalls: Queue<Call>;
   private isActive: boolean;
-  private currentHistoryActivity: QueueItem;
-  private unticked: number;
   private callback: (ev?: INavigationViewerEvent) => void;
 
-  private goResolve: ((value?: void | PromiseLike<void>) => void);
-  private suppressPopstateResolve: ((value?: void | PromiseLike<void>) => void);
+  private forwardedState: ForwardedState;
 
   constructor() {
     this.window = window;
@@ -61,28 +62,33 @@ export class BrowserNavigation implements INavigationStore, INavigationViewer {
     this.location = window.location;
     this.useHash = true;
     this.allowedNoOfExecsWithinTick = 2;
-    this.queue = [];
+    this.pendingCalls = new Queue<Call>(this.processCalls);
     this.isActive = false;
-    this.currentHistoryActivity = null;
-    this.unticked = 0;
     this.callback = null;
-    this.goResolve = null;
-    this.suppressPopstateResolve = null;
+    this.forwardedState = {};
   }
 
   public activate(callback: (ev?: INavigationViewerEvent) => void): Promise<void> {
     if (this.isActive) {
-      throw Reporter.error(2003); // Browser navigation has already been activated
+      throw new Error('Browser navigation has already been activated');
     }
     this.isActive = true;
     this.callback = callback;
-    PLATFORM.ticker.add(this.dequeue, this);
+    this.pendingCalls.activate(this.allowedNoOfExecsWithinTick);
     this.window.addEventListener('popstate', this.handlePopstate);
-    return this.handlePopstate(null);
+
+    return new Promise(resolve => {
+      setTimeout(
+        async () => {
+          await this.handlePopstate(null);
+          resolve();
+        },
+        0);
+    });
   }
   public deactivate(): void {
     this.window.removeEventListener('popstate', this.handlePopstate);
-    PLATFORM.ticker.remove(this.dequeue, this);
+    this.pendingCalls.deactivate();
     this.callback = null;
     this.isActive = false;
   }
@@ -94,51 +100,30 @@ export class BrowserNavigation implements INavigationStore, INavigationViewer {
     return this.history.state;
   }
 
-  public async go(delta?: number, suppressPopstate: boolean = false): Promise<void> {
-    if (!suppressPopstate) {
-      const promise2 = this.enqueue(this, '_go', [delta], true);
-      this.dequeue().catch(error => { throw error; });
-      return promise2;
-    }
-    const promise = this.enqueue(this, 'suppressPopstate', [], true);
-    this.enqueue(this.history, 'go', [delta]).catch(error => { throw error; });
-    this.dequeue().catch(error => { throw error; });
-    this.dequeue().catch(error => { throw error; });
-    return promise;
+  public go(delta?: number, suppressPopstate: boolean = false): Promise<void> {
+    return this.enqueue(this.history, 'go', [delta], suppressPopstate);
   }
 
-  public async push(state: INavigationState): Promise<void> {
+  public push(state: INavigationState): Promise<void> {
     const { title, path } = state.NavigationEntry;
-    const promise = this.enqueue(this.history, 'pushState', [state, title, `#${path}`]);
-    this.dequeue().catch(error => { throw error; });
-    return promise;
+    return this.enqueue(this.history, 'pushState', [state, title, `#${path}`]);
   }
 
-  public async replace(state: INavigationState): Promise<void> {
+  public replace(state: INavigationState): Promise<void> {
     const { title, path } = state.NavigationEntry;
-    const promise = this.enqueue(this.history, 'replaceState', [state, title, `#${path}`]);
-    this.dequeue().catch(error => { throw error; });
-    return promise;
+    return this.enqueue(this.history, 'replaceState', [state, title, `#${path}`]);
   }
 
-  public async pop(): Promise<void> {
-    const promise = this.enqueue(this, '_popState', []);
-    this.dequeue().catch(error => { throw error; });
-    return promise;
+  public pop(): Promise<void> {
+    return this.enqueue(this, 'popState', []);
   }
 
-  public readonly handlePopstate = async (ev: PopStateEvent): Promise<void> => {
+  public readonly handlePopstate = (ev: PopStateEvent): Promise<void> => {
     return this.enqueue(this, 'popstate', [ev]);
   }
 
-  private async popstate(ev: PopStateEvent): Promise<void> {
-    if (!this.suppressPopstateResolve) {
-      if (this.goResolve) {
-        const resolve = this.goResolve;
-        this.goResolve = null;
-        resolve();
-        await Promise.resolve();
-      }
+  private popstate(ev: PopStateEvent, resolve: ((value?: void | PromiseLike<void>) => void), suppressPopstate: boolean = false): void {
+    if (!suppressPopstate) {
       const { pathname, search, hash } = this.location;
       this.callback({
         event: ev,
@@ -148,19 +133,13 @@ export class BrowserNavigation implements INavigationStore, INavigationViewer {
         hash,
         instruction: this.useHash ? hash.slice(1) : pathname,
       });
-    } else {
-      const resolve = this.suppressPopstateResolve;
-      this.suppressPopstateResolve = null;
+    }
+    if (resolve) {
       resolve();
     }
   }
 
-  private _go(delta: number, resolve: ((value?: void | PromiseLike<void>) => void)): void {
-    this.goResolve = resolve;
-    this.history.go(delta);
-  }
-
-  private async _popState(resolve: ((value?: void | PromiseLike<void>) => void)): Promise<void> {
+  private async popState(resolve: ((value?: void | PromiseLike<void>) => void)): Promise<void> {
     await this.go(-1, true);
     const state = this.history.state;
     // TODO: Fix browser forward bug after pop on first entry
@@ -168,51 +147,68 @@ export class BrowserNavigation implements INavigationStore, INavigationViewer {
       await this.go(-1, true);
       return this.push(state);
     }
+    resolve();
   }
 
-  private suppressPopstate(resolve: ((value?: void | PromiseLike<void>) => void)): void {
-    this.suppressPopstateResolve = resolve;
+  private forwardState(state: ForwardedState): void {
+    this.forwardedState = state;
   }
 
-  private enqueue(target: object, methodName: string, parameters: unknown[], resolveInParameters: boolean = false): Promise<void> {
-    let _resolve;
-    // tslint:disable-next-line:promise-must-complete
-    const promise: Promise<void> = new Promise((resolve) => {
-      _resolve = resolve;
-    });
-    if (resolveInParameters) {
-      parameters.push(_resolve);
-      _resolve = null;
+  // Everything that wants to await a browser event should pass suppressPopstate param
+  // Events NOT resulting in popstate events should NOT pass suppressPopstate param
+  private enqueue(target: object, methodName: string, parameters: unknown[], suppressPopstate?: boolean): Promise<void> {
+    const calls: Call[] = [];
+    const costs: number[] = [];
+    const promises: Promise<void>[] = [];
+
+    if (suppressPopstate !== undefined) {
+      // Due to (browser) events not having a promise, we create and propagate one
+      let resolve: ((value?: void | PromiseLike<void>) => void);
+      // tslint:disable-next-line:promise-must-complete
+      promises.push(new Promise(_resolve => {
+        resolve = _resolve;
+      }));
+
+      calls.push({
+        target: this,
+        methodName: 'forwardState',
+        parameters: [
+          {
+            resolve,
+            suppressPopstate,
+          }
+        ],
+      });
+      costs.push(0);
     }
-    this.queue.push({
+
+    calls.push({
       target: target,
       methodName: methodName,
       parameters: parameters,
-      resolve: _resolve,
     });
-    return promise;
+    costs.push(1);
+
+    promises.push(this.pendingCalls.enqueue(calls, costs)[0]);
+    return promises[0];
   }
 
-  private async dequeue(delta?: number): Promise<void> {
-    if (!this.queue.length || this.currentHistoryActivity !== null) {
-      return;
-    }
-    if (delta === undefined) {
-      this.unticked++;
-      if (this.unticked > this.allowedNoOfExecsWithinTick) {
-        return;
+  private readonly processCalls = (qCall: QueueItem<Call>): void => {
+    const call = qCall as Call;
+
+    if (call.target === this && call.methodName !== 'forwardState') {
+      call.parameters.push(this.forwardedState.resolve);
+      this.forwardedState.resolve = null;
+
+      // Should we suppress this popstate event?
+      if (call.methodName === 'popstate' && this.forwardedState.suppressPopstate) {
+        call.parameters.push(true);
+        this.forwardedState.suppressPopstate = false;
       }
-    } else {
-      this.unticked = 0;
     }
-    this.currentHistoryActivity = this.queue.shift();
-    const method = this.currentHistoryActivity.target[this.currentHistoryActivity.methodName];
-    Reporter.write(10000, 'DEQUEUE', this.currentHistoryActivity.methodName, this.currentHistoryActivity.parameters);
-    method.apply(this.currentHistoryActivity.target, this.currentHistoryActivity.parameters);
-    const resolve = this.currentHistoryActivity.resolve;
-    this.currentHistoryActivity = null;
-    if (resolve) {
-      resolve();
-    }
+    const method = call.target[call.methodName];
+    Reporter.write(10000, 'DEQUEUE', call.methodName, call.parameters);
+    method.apply(call.target, call.parameters);
+    qCall.resolve();
   }
 }

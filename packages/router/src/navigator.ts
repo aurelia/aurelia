@@ -83,8 +83,8 @@ export class Navigator {
     this.isActive = false;
   }
 
-  public async navigate(entry: INavigationEntry): Promise<void> {
-    return this.pendingNavigations.enqueue(entry);
+  public navigate(entry: INavigationEntry): Promise<void> {
+    return this.pendingNavigations.enqueue(entry) as Promise<void>;
   }
 
   public processNavigations = (qEntry: QueueItem<INavigationInstruction>): void => {
@@ -125,7 +125,7 @@ export class Navigator {
     this.callback(entry, navigationFlags, this.currentEntry);
   }
 
-  public async refresh(): Promise<void> {
+  public refresh(): Promise<void> {
     const entry = this.currentEntry;
     if (!entry) {
       return Promise.reject();
@@ -166,12 +166,12 @@ export class Navigator {
     this.currentEntry = state.currentEntry;
   }
 
-  public async saveState(push: boolean = false): Promise<void> {
+  public saveState(push: boolean = false): Promise<void> {
     const storedEntry = this.storableEntry(this.currentEntry);
     this.entries[storedEntry.index] = storedEntry;
     const state: INavigationState = {
-      'NavigationEntries': this.entries,
-      'NavigationEntry': storedEntry,
+      NavigationEntries: this.entries,
+      NavigationEntry: storedEntry,
     };
     if (push) {
       return this.options.store.push(state);

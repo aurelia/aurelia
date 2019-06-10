@@ -323,7 +323,7 @@ export class Router implements IRouter {
         this.addedViewports.push(new ViewportInstruction(componentOrInstruction, viewport));
       }
     } else if (this.lastNavigation) {
-      this.pendingNavigations.enqueue({ instruction: '', fullStateInstruction: '', repeating: true, navigation: {} }).catch(error => { throw error; });
+      this.pendingNavigations.enqueue({ instruction: '', fullStateInstruction: '', repeating: true, navigation: {} });
       // Don't wait for the (possibly slow) navigation
     }
   }
@@ -380,6 +380,7 @@ export class Router implements IRouter {
       entry.instruction = path;
       entry.query = search;
     }
+    entry.replacing = replace;
     return this.navigator.navigate(entry);
   }
 

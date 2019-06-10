@@ -3,6 +3,7 @@ import { PLATFORM, Reporter } from '@aurelia/kernel';
 export interface QueueItem<T> {
   resolve?: ((value?: void | PromiseLike<void>) => void);
   reject?: ((value?: void | PromiseLike<void>) => void);
+  cost?: number;
 }
 
 export class Queue<T> {
@@ -45,34 +46,46 @@ export class Queue<T> {
     this.isActive = false;
   }
 
-  public async enqueue(item: T): Promise<void> {
-    const qItem: QueueItem<T> = { ...item };
-    // tslint:disable-next-line:promise-must-complete
-    const promise: Promise<void> = new Promise((resolve, reject) => {
-      qItem.resolve = () => {
-        resolve();
-        this.processing = null;
-        this.dequeue();
-      };
-      qItem.reject = () => {
-        reject();
-        this.processing = null;
-        this.dequeue();
-      };
-    });
-    this.pending.push(qItem);
+  public enqueue(itemOrItems: T | T[], costOrCosts?: number | number[]): Promise<void> | Promise<void>[] {
+    const list = Array.isArray(itemOrItems);
+    const items: T[] = list ? itemOrItems as T[] : [itemOrItems as T];
+    const costs: number[] = items
+      .map((value, index) => !Array.isArray(costOrCosts) ? costOrCosts : costOrCosts[index])
+      .map(value => value !== undefined ? value : 1);
+    const promises: Promise<void>[] = [];
+    for (const item of items) {
+      const qItem: QueueItem<T> = { ...item };
+      qItem.cost = costs.shift();
+      // tslint:disable-next-line:promise-must-complete
+      promises.push(new Promise((resolve, reject) => {
+        qItem.resolve = () => {
+          resolve();
+          this.processing = null;
+          this.dequeue();
+        };
+        qItem.reject = () => {
+          reject();
+          this.processing = null;
+          this.dequeue();
+        };
+      }));
+      this.pending.push(qItem);
+    }
     this.dequeue();
-    return promise;
+    return list ? promises : promises[0];
   }
 
   public dequeue(delta?: number): void {
-    if (this.processing !== null || !this.pending.length) {
+    if (this.processing !== null) {
+      return;
+    }
+    if (!this.pending.length) {
+      this.unticked = 0;
       return;
     }
     if (this.tickLimit !== null) {
       if (delta === undefined) {
-        this.unticked++;
-        if (this.unticked > this.tickLimit) {
+        if (this.unticked + this.pending[0].cost > this.tickLimit) {
           return;
         }
       } else {
@@ -80,6 +93,7 @@ export class Queue<T> {
       }
     }
     this.processing = this.pending.shift();
+    this.unticked += this.processing.cost;
     this.callback(this.processing);
   }
 }

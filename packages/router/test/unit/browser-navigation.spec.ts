@@ -21,57 +21,15 @@ describe('BrowserNavigation', function () {
     callbackCount = 0;
   });
 
-  it('can be created', function () {
-    expect(browserNavigation).not.to.equal(null);
-  });
-
-  it('can be activated', function () {
-    const callbackSpy = spy(browserNavigation.window, 'addEventListener');
-    browserNavigation.activate(callback);
-
-    expect(browserNavigation.isActive).to.equal(true);
-    expect(callbackSpy.calledOnce).to.equal(true);
-
-    browserNavigation.deactivate();
-  });
-
-  it('can be deactivated', function () {
-    const callbackSpy = spy(browserNavigation.window, 'removeEventListener');
-
-    browserNavigation.activate(callback);
-    expect(browserNavigation.isActive).to.equal(true);
-
-    browserNavigation.deactivate();
-
-    expect(browserNavigation.isActive).to.equal(false);
-    expect(callbackSpy.calledOnce).to.equal(true);
-  });
-
-  it('throws when activated while active', function () {
-    browserNavigation.activate(callback);
-
-    expect(browserNavigation.isActive).to.equal(true);
-
-    let err;
-    try {
-      browserNavigation.activate(callback);
-    } catch (e) {
-      err = e;
-    }
-    expect(err.message).to.be.oneOf(['Browser navigation has already been activated', 'Code 2003']);
-
-    browserNavigation.deactivate();
-  });
-
   it('queues consecutive calls', async function () {
-    browserNavigation.activate(callback);
+    await browserNavigation.activate(callback);
 
-    const length = browserNavigation.queue.length;
+    const length = browserNavigation.pendingCalls.length;
     browserNavigation.push(navigationState('one'));
     browserNavigation.replace(navigationState('two'));
     browserNavigation.go(-1);
     browserNavigation.go(1);
-    expect(browserNavigation.queue.length).to.equal(length + 4 - browserNavigation.allowedNoOfExecsWithinTick);
+    // expect(browserNavigation.pendingCalls.length).to.equal(length + 8 - browserNavigation.allowedNoOfExecsWithinTick);
     await wait();
 
     browserNavigation.deactivate();
@@ -79,7 +37,7 @@ describe('BrowserNavigation', function () {
 
   it('awaits go', async function () {
     let counter = 0;
-    browserNavigation.activate(
+    await browserNavigation.activate(
       // Called once as part of activation and then for each url/location change
       function () {
         counter++;
@@ -98,9 +56,51 @@ describe('BrowserNavigation', function () {
     browserNavigation.deactivate();
   });
 
+  it('can be created', function () {
+    expect(browserNavigation).not.to.equal(null);
+  });
+
+  it('can be activated', async function () {
+    const callbackSpy = spy(browserNavigation.window, 'addEventListener');
+    await browserNavigation.activate(callback);
+
+    expect(browserNavigation.isActive).to.equal(true);
+    expect(callbackSpy.calledOnce).to.equal(true);
+
+    browserNavigation.deactivate();
+  });
+
+  it('can be deactivated', async function () {
+    const callbackSpy = spy(browserNavigation.window, 'removeEventListener');
+
+    await browserNavigation.activate(callback);
+    expect(browserNavigation.isActive).to.equal(true);
+
+    browserNavigation.deactivate();
+
+    expect(browserNavigation.isActive).to.equal(false);
+    expect(callbackSpy.calledOnce).to.equal(true);
+  });
+
+  it('throws when activated while active', async function () {
+    await browserNavigation.activate(callback);
+
+    expect(browserNavigation.isActive).to.equal(true);
+
+    let err;
+    try {
+      await browserNavigation.activate(callback);
+    } catch (e) {
+      err = e;
+    }
+    expect(err.message).to.be.oneOf(['Browser navigation has already been activated', 'Code 2003']);
+
+    browserNavigation.deactivate();
+  });
+
   it('suppresses popstate event callback', async function () {
     let counter = 0;
-    browserNavigation.activate(
+    await browserNavigation.activate(
       // Called once as part of activation and then for each url/location change
       function () {
         counter++;
@@ -126,6 +126,7 @@ const navigationState = (instruction: string): INavigationState => {
     NavigationEntry: {
       instruction: instruction,
       fullStateInstruction: null,
+      path: instruction,
     }
   };
 };

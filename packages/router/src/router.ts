@@ -174,7 +174,8 @@ export class Router implements IRouter {
       // }
     }
 
-    let views, clearViewports;
+    let views: ViewportInstruction[];
+    let clearViewports: boolean;
     if (typeof instruction.instruction === 'string') {
       let path = instruction.instruction;
       if (this.options.transformFromUrl && !fullStateInstruction) {
@@ -304,7 +305,7 @@ export class Router implements IRouter {
       this.lastNavigation.repeating = false;
     }
     this.processingNavigation = null;
-    this.navigator.finalize(instruction);
+    await this.navigator.finalize(instruction);
   }
 
   public addProcessingViewport(componentOrInstruction: string | Partial<ICustomElementType> | ViewportInstruction, viewport?: Viewport | string): void {
@@ -424,7 +425,7 @@ export class Router implements IRouter {
     updatedViewports.forEach((viewport) => {
       viewport.abortContentChange().catch(error => { throw error; });
     });
-    this.navigator.cancel(qInstruction as INavigationInstruction);
+    await this.navigator.cancel(qInstruction as INavigationInstruction);
     this.processingNavigation = null;
     qInstruction.reject();
   }

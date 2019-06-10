@@ -125,7 +125,7 @@ export class Navigator {
       navigationFlags.new = true;
       entry.index = (entry.replacing ? entry.index : this.entries.length);
     }
-    this.callback(entry, navigationFlags, this.currentEntry);
+    this.invokeCallback(entry, navigationFlags, this.currentEntry);
   }
 
   public refresh(): Promise<void> {
@@ -231,7 +231,7 @@ export class Navigator {
     this.currentEntry.resolve();
   }
 
-  private callback(entry: INavigationEntry, navigationFlags: INavigationFlags, previousEntry: INavigationEntry): void {
+  private invokeCallback(entry: INavigationEntry, navigationFlags: INavigationFlags, previousEntry: INavigationEntry): void {
     const instruction: INavigationInstruction = { ...entry };
     instruction.navigation = navigationFlags;
     instruction.previous = this.storableEntry(previousEntry);

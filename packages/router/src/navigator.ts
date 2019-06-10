@@ -165,7 +165,7 @@ export class Navigator {
 
   public loadState(): void {
     const state = this.getState();
-    this.entries = (state.entries || []);
+    this.entries = state.entries || [];
     this.currentEntry = state.currentEntry;
   }
 
@@ -200,32 +200,32 @@ export class Navigator {
     return storableEntry;
   }
 
-  public finalize(instruction: INavigationInstruction): void {
+  public async finalize(instruction: INavigationInstruction): Promise<void> {
     this.currentEntry = instruction;
     if (this.currentEntry.untracked) {
       if (instruction.fromBrowser) {
-        this.options.store.pop().catch(error => { throw error; });
+        await this.options.store.pop();
       }
       this.currentEntry.index--;
       this.entries[this.currentEntry.index] = this.storableEntry(this.currentEntry);
-      this.saveState().catch(error => { throw error; });
+      await this.saveState();
     } else if (this.currentEntry.replacing) {
       this.entries[this.currentEntry.index] = this.storableEntry(this.currentEntry);
-      this.saveState().catch(error => { throw error; });
+      await this.saveState();
     } else {
       this.entries = this.entries.slice(0, this.currentEntry.index);
       this.entries.push(this.storableEntry(this.currentEntry));
-      this.saveState(true).catch(error => { throw error; });
+      await this.saveState(true);
     }
     this.currentEntry.resolve();
   }
 
-  public cancel(instruction: INavigationInstruction): void {
+  public async cancel(instruction: INavigationInstruction): Promise<void> {
     if (instruction.fromBrowser) {
       if (instruction.navigation.new) {
-        this.options.store.pop().catch(error => { throw error; });
+        await this.options.store.pop();
       } else {
-        this.options.store.go(-instruction.historyMovement, true).catch(error => { throw error; });
+        await this.options.store.go(-instruction.historyMovement, true);
       }
     }
     this.currentEntry.resolve();

@@ -22,8 +22,10 @@ export interface Listener extends IConnectableBinding {}
 export class Listener implements IBinding {
   public dom: IDOM;
 
+  public $nextBinding: IBinding;
+  public $prevBinding: IBinding;
   public $state: State;
-  public $scope!: IScope;
+  public $scope: IScope;
 
   public delegationStrategy: DelegationStrategy;
   public locator: IServiceLocator;
@@ -33,7 +35,7 @@ export class Listener implements IBinding {
   public targetEvent: string;
 
   private readonly eventManager: IEventManager;
-  private handler!: IDisposable;
+  private handler: IDisposable;
 
   // tslint:disable-next-line:parameters-max-number
   constructor(
@@ -47,6 +49,8 @@ export class Listener implements IBinding {
     locator: IServiceLocator
   ) {
     this.dom = dom;
+    this.$nextBinding = null;
+    this.$prevBinding = null;
     this.$state = State.none;
 
     this.delegationStrategy = delegationStrategy;
@@ -128,9 +132,9 @@ export class Listener implements IBinding {
       sourceExpression.unbind(flags, this.$scope, this);
     }
 
-    this.$scope = null!;
+    this.$scope = null;
     this.handler.dispose();
-    this.handler = null!;
+    this.handler = null;
 
     // remove isBound and isUnbinding flags
     this.$state &= ~(State.isBound | State.isUnbinding);

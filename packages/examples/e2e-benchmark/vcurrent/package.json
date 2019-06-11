@@ -48,7 +48,7 @@
     "gulp-typescript": "^5.0.1",
     "http-server": "^0.11.1",
     "lazypipe": "^1.0.2",
-    "mocha": "^6.1.4",
+    "mocha": "^6.0.2",
     "path": "^0.12.7",
     "rimraf": "^2.6.3",
     "selenium-webdriver": "^4.0.0-alpha.1",

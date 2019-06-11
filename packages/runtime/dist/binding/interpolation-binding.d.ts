@@ -6,8 +6,10 @@ import { IBindingTargetAccessor, IObservable, IScope } from '../observation';
 import { IObserverLocator } from '../observation/observer-locator';
 import { IConnectableBinding, IPartialConnectableBinding } from './connectable';
 export declare class MultiInterpolationBinding implements IBinding {
+    $nextBinding: IBinding;
+    $prevBinding: IBinding;
     $state: State;
-    $scope?: IScope;
+    $scope: IScope;
     interpolation: IInterpolationExpression;
     observerLocator: IObserverLocator;
     locator: IServiceLocator;
@@ -22,8 +24,8 @@ export declare class MultiInterpolationBinding implements IBinding {
 export interface InterpolationBinding extends IConnectableBinding {
 }
 export declare class InterpolationBinding implements IPartialConnectableBinding {
-    id: number;
-    $scope?: IScope;
+    id: string;
+    $scope: IScope;
     $state: State;
     interpolation: IInterpolationExpression;
     isFirst: boolean;

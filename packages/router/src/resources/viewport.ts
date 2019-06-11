@@ -1,29 +1,9 @@
-import {
-  InjectArray,
-  Writable
-} from '@aurelia/kernel';
-
-import {
-  bindable,
-  createRenderContext,
-  CustomElementResource,
-  IController,
-  ICustomElementType,
-  IDOM,
-  INode,
-  IRenderContext,
-  IRenderingEngine,
-  ITemplate,
-  LifecycleFlags,
-  TemplateDefinition
-} from '@aurelia/runtime';
-
+import { InjectArray, Writable } from '@aurelia/kernel';
+import { bindable, createRenderContext, CustomElementResource, ICustomElement, ICustomElementType, IDOM, IElementTemplateProvider, INode, IRenderContext, IRenderingEngine, ITemplate, LifecycleFlags, TemplateDefinition } from '@aurelia/runtime';
 import { Router } from '../router';
-import {
-  IViewportOptions,
-  Viewport
-} from '../viewport';
+import { IViewportOptions, Viewport } from '../viewport';
 
+export interface ViewportCustomElement extends ICustomElement<Element> { }
 export class ViewportCustomElement {
   public static readonly inject: InjectArray = [Router, INode, IRenderingEngine];
 
@@ -37,14 +17,15 @@ export class ViewportCustomElement {
 
   public viewport: Viewport;
 
-  // tslint:disable-next-line: prefer-readonly // This is set by the controller after this instance is constructed
-  public $controller!: IController;
-
   private readonly router: Router;
   private readonly element: Element;
   private readonly renderingEngine: IRenderingEngine;
 
   constructor(router: Router, element: Element, renderingEngine: IRenderingEngine) {
+    this.router = router;
+    this.element = element;
+    this.renderingEngine = renderingEngine;
+
     this.name = 'default';
     this.scope = null;
     this.usedBy = null;
@@ -53,13 +34,9 @@ export class ViewportCustomElement {
     this.noHistory = null;
     this.stateful = null;
     this.viewport = null;
-
-    this.router = router;
-    this.element = element;
-    this.renderingEngine = renderingEngine;
   }
 
-  public render(flags: LifecycleFlags, host: INode, parts: Record<string, TemplateDefinition>, parentContext: IRenderContext | null): void {
+  public render(flags: LifecycleFlags, host: INode, parts: Record<string, TemplateDefinition>, parentContext: IRenderContext | null): IElementTemplateProvider | void {
     const Type = this.constructor as ICustomElementType;
     const dom = parentContext.get(IDOM);
     const template = this.renderingEngine.getElementTemplate(dom, Type.description, parentContext, Type);
@@ -119,10 +96,10 @@ export class ViewportCustomElement {
     if (this.element.hasAttribute('stateful')) {
       options.stateful = true;
     }
-    this.viewport = this.router.addViewport(this.name, this.element, this.$controller.context, options);
+    this.viewport = this.router.addViewport(this.name, this.element, this.$context, options);
   }
   public disconnect(): void {
-    this.router.removeViewport(this.viewport, this.element, this.$controller.context);
+    this.router.removeViewport(this.viewport, this.element, this.$context);
   }
 
   public binding(flags: LifecycleFlags): void {

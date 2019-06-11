@@ -1,5 +1,5 @@
 import { IContainer, Reporter } from '@aurelia/kernel';
-import { CustomElementResource, ICustomElementType, INode, IRenderContext, IViewModel, LifecycleFlags, IController, Controller } from '@aurelia/runtime';
+import { CustomElementResource, ICustomElement, ICustomElementType, INode, IRenderContext, LifecycleFlags } from '@aurelia/runtime';
 import { INavigationInstruction } from './history-browser';
 import { mergeParameters } from './parser';
 import { Viewport } from './viewport';
@@ -9,7 +9,7 @@ export interface IRouteableCustomElementType extends Partial<ICustomElementType>
   parameters?: string[];
 }
 
-export interface IRouteableCustomElement<T extends INode = INode> extends IViewModel<T> {
+export interface IRouteableCustomElement extends ICustomElement {
   reentryBehavior?: ReentryBehavior;
   canEnter?(parameters?: string[] | Record<string, string>, nextInstruction?: INavigationInstruction, instruction?: INavigationInstruction): boolean | string | ViewportInstruction[] | Promise<boolean | string | ViewportInstruction[]>;
   enter?(parameters?: string[] | Record<string, string>, nextInstruction?: INavigationInstruction, instruction?: INavigationInstruction): void | Promise<void>;
@@ -42,7 +42,7 @@ export class ViewportContent {
   public fromCache: boolean;
   public reentry: boolean;
 
-  constructor(content: Partial<ICustomElementType> | string = null, parameters: string = null, instruction: INavigationInstruction = null, context: IRenderContext | IContainer = null) {
+  constructor(content: Partial<ICustomElementType> | string = null, parameters: string = null, instruction: INavigationInstruction = null, context: IRenderContext = null) {
     // Can be a (resolved) type or a string (to be resolved later)
     this.content = content;
     this.parameters = parameters;
@@ -80,7 +80,7 @@ export class ViewportContent {
       this.parameters === other.parameters;
   }
 
-  public createComponent(context: IRenderContext | IContainer): void {
+  public createComponent(context: IRenderContext): void {
     if (this.contentStatus !== ContentStatus.none) {
       return;
     }
@@ -157,7 +157,7 @@ export class ViewportContent {
     this.entered = false;
   }
 
-  public loadComponent(context: IRenderContext | IContainer, element: Element): Promise<void> {
+  public loadComponent(context: IRenderContext, element: Element): Promise<void> {
     if (this.contentStatus !== ContentStatus.created || !this.entered) {
       return;
     }
@@ -165,7 +165,7 @@ export class ViewportContent {
     if (!this.fromCache) {
       const host: INode = element as INode;
       const container = context;
-      Controller.forCustomElement(this.component, container, host);
+      this.component.$hydrate(LifecycleFlags.none, container, host);
     }
     this.contentStatus = ContentStatus.loaded;
     return Promise.resolve();
@@ -185,7 +185,7 @@ export class ViewportContent {
     }
     // Don't initialize cached content
     if (!this.fromCache) {
-      this.component.$controller.bind(LifecycleFlags.fromStartTask | LifecycleFlags.fromBind, null);
+      this.component.$bind(LifecycleFlags.fromStartTask | LifecycleFlags.fromBind, null);
     }
     this.contentStatus = ContentStatus.initialized;
   }
@@ -195,7 +195,7 @@ export class ViewportContent {
     }
     // Don't terminate cached content
     if (!stateful) {
-      this.component.$controller.unbind(LifecycleFlags.fromStopTask | LifecycleFlags.fromUnbind);
+      this.component.$unbind(LifecycleFlags.fromStopTask | LifecycleFlags.fromUnbind);
       this.contentStatus = ContentStatus.loaded;
     }
   }
@@ -204,7 +204,7 @@ export class ViewportContent {
     if (this.contentStatus !== ContentStatus.initialized) {
       return;
     }
-    this.component.$controller.attach(LifecycleFlags.fromStartTask);
+    this.component.$attach(LifecycleFlags.fromStartTask);
     if (this.fromCache) {
       const elements = Array.from(element.getElementsByTagName('*'));
       for (const el of elements) {
@@ -229,7 +229,7 @@ export class ViewportContent {
         }
       }
     }
-    this.component.$controller.detach(LifecycleFlags.fromStopTask);
+    this.component.$detach(LifecycleFlags.fromStopTask);
     this.contentStatus = ContentStatus.initialized;
   }
 
@@ -256,7 +256,7 @@ export class ViewportContent {
       return (this.content).description.name;
     }
   }
-  public componentType(context: IRenderContext | IContainer): IRouteableCustomElementType {
+  public componentType(context: IRenderContext): IRouteableCustomElementType {
     if (this.content === null) {
       return null;
     } else if (typeof this.content !== 'string') {
@@ -270,7 +270,7 @@ export class ViewportContent {
       return null;
     }
   }
-  public componentInstance(context: IRenderContext | IContainer): IRouteableCustomElement {
+  public componentInstance(context: IRenderContext): IRouteableCustomElement {
     if (this.content === null) {
       return null;
     }

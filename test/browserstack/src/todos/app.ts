@@ -66,7 +66,23 @@ export class App {
   }
 
   public bound(): void {
+    Promise.resolve().then(() => {
+      this.todos.$observer.subscribe(this);
+      this.todos.$observer.subscribeBatched(this);
+    });
     console.log('app bound');
+  }
+
+  public handleChange(origin: string, args?: IArguments): void {
+    if (this.log) {
+      console.log('handleChange', origin, args);
+    }
+  }
+
+  public handleBatchedChange(indexMap: Array<number>): void {
+    if (this.log) {
+      console.log('handleBatchedChange', indexMap);
+    }
   }
 
   public attaching(): void {
@@ -87,5 +103,7 @@ export class App {
 
   public unbound(): void {
     console.log('app unbound');
+    this.todos.$observer.unsubscribe(this);
+    this.todos.$observer.unsubscribeBatched(this);
   }
 }

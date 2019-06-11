@@ -1,5 +1,5 @@
 import { IContainer, IResolver } from '@aurelia/kernel';
-import { IDOM, INode, INodeSequence, IRenderLocation } from '@aurelia/runtime';
+import { IDOM, INode, IRenderLocation } from '@aurelia/runtime';
 export declare const enum NodeType {
     Element = 1,
     Attr = 2,
@@ -50,16 +50,6 @@ export declare class HTMLDOM implements IDOM {
 }
 declare const $DOM: HTMLDOM;
 export { $DOM as DOM };
-export interface NodeSequenceFactory {
-    createNodeSequence(): INodeSequence;
-}
-export declare class NodeSequenceFactory implements NodeSequenceFactory {
-    private readonly dom;
-    private readonly deepClone;
-    private readonly node;
-    private readonly Type;
-    constructor(dom: IDOM, markupOrNode: string | Node);
-}
 export interface AuMarker extends INode {
 }
 //# sourceMappingURL=dom.d.ts.map

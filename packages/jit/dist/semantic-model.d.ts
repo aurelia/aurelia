@@ -59,15 +59,13 @@ export declare class TemplateControllerSymbol implements IResourceAttributeSymbo
     flags: SymbolFlags;
     res: string;
     partName: string | null;
-    physicalNode: INode;
+    physicalNode: INode | null;
     syntax: AttrSyntax;
-    template: IParentNodeSymbol;
-    templateController: TemplateControllerSymbol;
+    template: IParentNodeSymbol | null;
+    templateController: TemplateControllerSymbol | null;
     marker: INode;
     private _bindings;
     readonly bindings: BindingSymbol[];
-    private _parts;
-    readonly parts: ReplacePartSymbol[];
     constructor(dom: IDOM, syntax: AttrSyntax, info: AttrInfo, partName: string | null);
 }
 /**
@@ -79,9 +77,9 @@ export declare class TemplateControllerSymbol implements IResourceAttributeSymbo
 export declare class ReplacePartSymbol implements ISymbolWithTemplate {
     flags: SymbolFlags;
     name: string;
-    physicalNode: INode;
+    physicalNode: INode | null;
     parent: IParentNodeSymbol | null;
-    template: IParentNodeSymbol;
+    template: IParentNodeSymbol | null;
     constructor(name: string);
 }
 /**
@@ -134,9 +132,9 @@ export declare class CustomElementSymbol implements IElementSymbol, ISymbolWithB
     physicalNode: INode;
     bindables: Record<string, BindableInfo>;
     isTarget: true;
-    templateController: TemplateControllerSymbol;
+    templateController: TemplateControllerSymbol | null;
     isContainerless: boolean;
-    marker: INode;
+    marker: INode | null;
     private _attributes;
     readonly attributes: IAttributeSymbol[];
     private _bindings;
@@ -165,7 +163,7 @@ export declare class PlainElementSymbol implements IElementSymbol {
     flags: SymbolFlags;
     physicalNode: INode;
     isTarget: boolean;
-    templateController: TemplateControllerSymbol;
+    templateController: TemplateControllerSymbol | null;
     hasSlots?: boolean;
     private _attributes;
     readonly attributes: IAttributeSymbol[];

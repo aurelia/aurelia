@@ -24,7 +24,6 @@ export interface IValueConverterResource extends
 function register(this: IValueConverterType, container: IContainer): void {
   const resourceKey = this.kind.keyFrom(this.description.name);
   container.register(Registration.singleton(resourceKey, this));
-  container.register(Registration.singleton(this, this));
 }
 
 export function valueConverter(definition: IValueConverterDefinition): ValueConverterDecorator;

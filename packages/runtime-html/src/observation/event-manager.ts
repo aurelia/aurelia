@@ -17,7 +17,7 @@ export function findOriginalEventTarget(event: IManagedEvent): EventTarget {
 }
 
 function stopPropagation(this: IManagedEvent): void {
-  this.standardStopPropagation!();
+  this.standardStopPropagation();
   this.propagationStopped = true;
 }
 
@@ -39,7 +39,7 @@ function handleCapturedEvent(event: IManagedEvent): void {
         orderedCallbacks.push(callback);
       }
     }
-    target = target.parentNode!;
+    target = target.parentNode;
   }
 
   for (let i = orderedCallbacks.length - 1; i >= 0 && !event.propagationStopped; i--) {
@@ -70,7 +70,7 @@ function handleDelegatedEvent(event: IManagedEvent): void {
         }
       }
     }
-    target = target.parentNode!;
+    target = target.parentNode;
   }
 }
 
@@ -116,12 +116,12 @@ export class ListenerTracker {
  * Enable dispose() pattern for `delegate` & `capture` commands
  */
 export class DelegateOrCaptureSubscription implements IDisposable {
-  public entry: { decrement: () => void; };
+  public entry: ListenerTracker;
   public lookup: Record<string, EventListenerOrEventListenerObject>;
   public targetEvent: string;
 
   constructor(
-    entry: { decrement: () => void; },
+    entry: ListenerTracker,
     lookup: Record<string, EventListenerOrEventListenerObject>,
     targetEvent: string,
     callback: EventListenerOrEventListenerObject
@@ -134,7 +134,7 @@ export class DelegateOrCaptureSubscription implements IDisposable {
 
   public dispose(): void {
     this.entry.decrement();
-    this.lookup[this.targetEvent] = null!;
+    this.lookup[this.targetEvent] = null;
   }
 }
 
@@ -188,8 +188,8 @@ export class EventSubscriber implements IEventSubscriber {
   constructor(dom: IDOM, events: string[]) {
     this.dom = dom;
     this.events = events;
-    this.target = null!;
-    this.handler = null!;
+    this.target = null;
+    this.handler = null;
   }
 
   public subscribe(node: Node, callbackOrListener: EventListenerOrEventListenerObject): void {
@@ -214,7 +214,7 @@ export class EventSubscriber implements IEventSubscriber {
       remove(events[i], callbackOrListener, node);
     }
 
-    this.target = this.handler = null!;
+    this.target = this.handler = null;
   }
 }
 

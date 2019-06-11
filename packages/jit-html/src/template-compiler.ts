@@ -71,8 +71,6 @@ export class TemplateCompiler implements ITemplateCompiler {
    */
   private instructionRows: HTMLInstructionRow[];
 
-  private parts: Record<string, ITemplateDefinition>;
-
   public get name(): string {
     return 'default';
   }
@@ -81,8 +79,7 @@ export class TemplateCompiler implements ITemplateCompiler {
     this.factory = factory;
     this.attrParser = attrParser;
     this.exprParser = exprParser;
-    this.instructionRows = null!;
-    this.parts = null!;
+    this.instructionRows = null;
   }
 
   public static register(container: IContainer): IResolver<ITemplateCompiler> {
@@ -94,7 +91,7 @@ export class TemplateCompiler implements ITemplateCompiler {
     const binder = new TemplateBinder(dom, new ResourceModel(descriptions), this.attrParser, this.exprParser);
     const template = definition.template = this.factory.createTemplate(definition.template) as HTMLTemplateElement;
     const surrogate = binder.bind(template);
-    if (definition.instructions === undefined || definition.instructions === (PLATFORM.emptyArray as typeof definition.instructions & typeof PLATFORM.emptyArray)) {
+    if (definition.instructions === undefined || definition.instructions === PLATFORM.emptyArray) {
       definition.instructions = [];
     }
     if (surrogate.hasSlots === true) {
@@ -102,13 +99,12 @@ export class TemplateCompiler implements ITemplateCompiler {
     }
 
     this.instructionRows = definition.instructions as HTMLInstructionRow[];
-    this.parts = {};
 
     const attributes = surrogate.attributes;
     const len = attributes.length;
     if (len > 0) {
       let surrogates: ITargetedInstruction[];
-      if (definition.surrogates === undefined || definition.surrogates === (PLATFORM.emptyArray as typeof definition.surrogates & typeof PLATFORM.emptyArray)) {
+      if (definition.surrogates === undefined || definition.surrogates === PLATFORM.emptyArray) {
         definition.surrogates = Array(len);
       }
       surrogates = definition.surrogates;
@@ -119,8 +115,7 @@ export class TemplateCompiler implements ITemplateCompiler {
 
     this.compileChildNodes(surrogate);
 
-    this.instructionRows = null!;
-    this.parts = null!;
+    this.instructionRows = null;
 
     if (Profiler.enabled) { leave(); }
     return definition as TemplateDefinition;
@@ -162,8 +157,6 @@ export class TemplateCompiler implements ITemplateCompiler {
     );
 
     this.instructionRows.push(instructionRow);
-
-    this.compileChildNodes(symbol);
   }
 
   private compilePlainElement(symbol: PlainElementSymbol): void {
@@ -171,7 +164,6 @@ export class TemplateCompiler implements ITemplateCompiler {
     if (attributes.length > 0) {
       this.instructionRows.push(attributes as HTMLInstructionRow);
     }
-
     this.compileChildNodes(symbol);
   }
 
@@ -195,22 +187,13 @@ export class TemplateCompiler implements ITemplateCompiler {
     this.compileParentNode(symbol.template);
     this.instructionRows = instructionRowsSave;
 
-    const def: ITemplateDefinition = {
-      name: symbol.partName == null ? symbol.res : symbol.partName,
+    const def = {
+      name: symbol.partName === null ? symbol.res : symbol.partName,
       template: symbol.physicalNode,
       instructions: controllerInstructions,
       build: buildNotRequired
     };
-
-    let parts: Record<string, ITemplateDefinition> | undefined = void 0;
-    if ((symbol.flags & SymbolFlags.hasParts) > 0) {
-      parts = {};
-      for (const part of symbol.parts) {
-        parts[part.name] = this.parts[part.name];
-      }
-    }
-
-    this.instructionRows.push([new HydrateTemplateController(def, symbol.res, bindings, symbol.res === 'else', parts)]);
+    this.instructionRows.push([new HydrateTemplateController(def, symbol.res, bindings, symbol.res === 'else')]);
   }
 
   private compileBindings(symbol: ISymbolWithBindings): HTMLAttributeInstruction[] {
@@ -226,15 +209,15 @@ export class TemplateCompiler implements ITemplateCompiler {
         bindingInstructions[i] = this.compileBinding(bindings[i]);
       }
     } else {
-      bindingInstructions = PLATFORM.emptyArray as typeof PLATFORM.emptyArray & HTMLAttributeInstruction[];
+      bindingInstructions = PLATFORM.emptyArray as HTMLAttributeInstruction[];
     }
     return bindingInstructions;
   }
 
   private compileBinding(symbol: BindingSymbol): HTMLAttributeInstruction {
-    if (symbol.command == null) {
+    if (symbol.command === null) {
       // either an interpolation or a normal string value assigned to an element or attribute binding
-      if (symbol.expression == null) {
+      if (symbol.expression === null) {
         // the template binder already filtered out non-bindables, so we know we need a setProperty here
         return new SetPropertyInstruction(symbol.rawValue, symbol.bindable.propName);
       } else {
@@ -261,7 +244,7 @@ export class TemplateCompiler implements ITemplateCompiler {
     } else if (offset > 0) {
       attributeInstructions = Array(offset);
     } else {
-      attributeInstructions = PLATFORM.emptyArray as typeof PLATFORM.emptyArray & HTMLAttributeInstruction[];
+      attributeInstructions = PLATFORM.emptyArray as HTMLAttributeInstruction[];
     }
     return attributeInstructions;
   }
@@ -273,8 +256,8 @@ export class TemplateCompiler implements ITemplateCompiler {
   }
 
   private compilePlainAttribute(symbol: PlainAttributeSymbol): HTMLAttributeInstruction {
-    if (symbol.command == null) {
-      if (symbol.expression == null) {
+    if (symbol.command === null) {
+      if (symbol.expression === null) {
         // a plain attribute on a surrogate
         return new SetAttributeInstruction(symbol.syntax.rawValue, symbol.syntax.target);
       } else {
@@ -313,7 +296,7 @@ export class TemplateCompiler implements ITemplateCompiler {
         instructionRowsSave = this.instructionRows;
         partInstructions = this.instructionRows = [];
         this.compileParentNode(replacePart.template);
-        this.parts[replacePart.name] = parts[replacePart.name] = {
+        parts[replacePart.name] = {
           name: replacePart.name,
           template: replacePart.physicalNode,
           instructions: partInstructions,

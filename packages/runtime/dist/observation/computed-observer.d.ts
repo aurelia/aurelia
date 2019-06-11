@@ -1,4 +1,4 @@
-import { IBindingTargetObserver, IObservable, ISubscriber } from '../observation';
+import { IBindingTargetObserver, IObservable, IPropertySubscriber } from '../observation';
 export interface ComputedOverrides {
     static?: boolean;
     volatile?: boolean;
@@ -18,8 +18,8 @@ export declare class CustomSetterObserver implements CustomSetterObserver {
     private observing;
     constructor(obj: IObservable, propertyKey: string, descriptor: PropertyDescriptor);
     setValue(newValue: unknown): void;
-    subscribe(subscriber: ISubscriber): void;
-    unsubscribe(subscriber: ISubscriber): void;
+    subscribe(subscriber: IPropertySubscriber): void;
+    unsubscribe(subscriber: IPropertySubscriber): void;
     convertProperty(): void;
 }
 export interface GetterObserver extends IBindingTargetObserver {

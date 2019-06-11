@@ -1,13 +1,4 @@
-import {
-  DI,
-  IContainer,
-  InjectArray,
-  IResolver,
-  Primitive,
-  Registration,
-  Reporter,
-} from '@aurelia/kernel';
-
+import { DI, IContainer, InjectArray, IResolver, Primitive, Registration, Reporter } from '@aurelia/kernel';
 import { LifecycleFlags } from '../flags';
 import { ILifecycle } from '../lifecycle';
 import {
@@ -21,9 +12,7 @@ import {
   IObservable,
   IObservedArray,
   IObservedMap,
-  IObservedSet,
-  ObserversLookup,
-  PropertyObserver,
+  IObservedSet
 } from '../observation';
 import { getArrayObserver } from './array-observer';
 import { createComputedObserver } from './computed-observer';
@@ -69,12 +58,12 @@ function getPropertyDescriptor(subject: object, name: string): PropertyDescripto
   let pd = Object.getOwnPropertyDescriptor(subject, name);
   let proto = Object.getPrototypeOf(subject);
 
-  while (pd == null && proto != null) {
+  while (pd === undefined && proto !== null) {
     pd = Object.getOwnPropertyDescriptor(proto, name);
     proto = Object.getPrototypeOf(proto);
   }
 
-  return pd!;
+  return pd;
 }
 
 /** @internal */
@@ -109,9 +98,9 @@ export class ObserverLocator implements IObserverLocator {
       return ProxyObserver.getOrCreate(obj, propertyName) as unknown as AccessorOrObserver; // TODO: fix typings (and ensure proper contracts ofc)
     }
     if (isBindingContext(obj)) {
-      return obj.getObservers!(flags).getOrCreate(this.lifecycle, flags, obj, propertyName);
+      return obj.getObservers(flags).getOrCreate(flags, obj, propertyName);
     }
-    let observersLookup = obj.$observers as ObserversLookup;
+    let observersLookup = obj.$observers;
     let observer: AccessorOrObserver & { doNotCache?: boolean };
 
     if (observersLookup && propertyName in observersLookup) {
@@ -121,11 +110,11 @@ export class ObserverLocator implements IObserverLocator {
     observer = this.createPropertyObserver(flags, obj, propertyName);
 
     if (!observer.doNotCache) {
-      if (observersLookup === void 0) {
-        observersLookup = this.getOrCreateObserversLookup(obj) as ObserversLookup;
+      if (observersLookup === undefined) {
+        observersLookup = this.getOrCreateObserversLookup(obj);
       }
 
-      observersLookup[propertyName] = observer as PropertyObserver;
+      observersLookup[propertyName] = observer;
     }
 
     return observer;
@@ -162,7 +151,7 @@ export class ObserverLocator implements IObserverLocator {
   }
 
   private getOrCreateObserversLookup(obj: IObservable): Record<string, AccessorOrObserver | IBindingTargetObserver> {
-    return obj.$observers as ObserversLookup || this.createObserversLookup(obj);
+    return obj.$observers || this.createObserversLookup(obj);
   }
 
   private createObserversLookup(obj: IObservable): Record<string, IBindingTargetObserver> {
@@ -182,7 +171,7 @@ export class ObserverLocator implements IObserverLocator {
     for (let i = 0, ii = this.adapters.length; i < ii; i++) {
       const adapter = this.adapters[i];
       const observer = adapter.getObserver(flags, obj, propertyName, descriptor);
-      if (observer != null) {
+      if (observer) {
         return observer;
       }
     }
@@ -197,7 +186,10 @@ export class ObserverLocator implements IObserverLocator {
     let isNode = false;
     if (this.targetObserverLocator.handles(flags, obj)) {
       const observer = this.targetObserverLocator.getObserver(flags, this.lifecycle, this, obj, propertyName);
-      if (observer != null) {
+      if (observer !== null) {
+        return observer;
+      }
+      if (observer !== null) {
         return observer;
       }
       isNode = true;
@@ -207,17 +199,17 @@ export class ObserverLocator implements IObserverLocator {
     switch (tag) {
       case '[object Array]':
         if (propertyName === 'length') {
-          return this.getArrayObserver(flags, obj as IObservedArray).getLengthObserver();
+          return this.getArrayObserver(flags, obj as IObservedArray).getLengthObserver(flags);
         }
         return this.dirtyChecker.createProperty(obj, propertyName);
       case '[object Map]':
         if (propertyName === 'size') {
-          return this.getMapObserver(flags, obj as IObservedMap).getLengthObserver();
+          return this.getMapObserver(flags, obj as IObservedMap).getLengthObserver(flags);
         }
         return this.dirtyChecker.createProperty(obj, propertyName);
       case '[object Set]':
         if (propertyName === 'size') {
-          return this.getSetObserver(flags, obj as IObservedSet).getLengthObserver();
+          return this.getSetObserver(flags, obj as IObservedSet).getLengthObserver(flags);
         }
         return this.dirtyChecker.createProperty(obj, propertyName);
     }
@@ -243,13 +235,13 @@ export class ObserverLocator implements IObserverLocator {
 
       return createComputedObserver(flags, this, this.dirtyChecker, this.lifecycle, obj, propertyName, descriptor);
     }
-    return new SetterObserver(this.lifecycle, flags, obj, propertyName);
+    return new SetterObserver(flags, obj, propertyName);
   }
 }
 
 type RepeatableCollection = IObservedMap | IObservedSet | IObservedArray | null | undefined | number;
 
-export function getCollectionObserver(flags: LifecycleFlags, lifecycle: ILifecycle, collection: RepeatableCollection): CollectionObserver | undefined {
+export function getCollectionObserver(flags: LifecycleFlags, lifecycle: ILifecycle, collection: RepeatableCollection): CollectionObserver {
   // If the collection is wrapped by a proxy then `$observer` will return the proxy observer instead of the collection observer, which is not what we want
   // when we ask for getCollectionObserver
   const rawCollection = collection instanceof Object ? ProxyObserver.getRawIfProxy(collection) : collection;
@@ -261,7 +253,7 @@ export function getCollectionObserver(flags: LifecycleFlags, lifecycle: ILifecyc
     case '[object Set]':
       return getSetObserver(flags, lifecycle, rawCollection as IObservedSet);
   }
-  return void 0;
+  return null;
 }
 
 function isBindingContext(obj: unknown): obj is IBindingContext {

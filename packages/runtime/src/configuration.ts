@@ -1,9 +1,4 @@
-import {
-  DI,
-  IContainer,
-  IRegistry
-} from '@aurelia/kernel';
-
+import { DI, IContainer, IRegistry } from '@aurelia/kernel';
 import { Lifecycle } from './lifecycle';
 import { ObserverLocator } from './observation/observer-locator';
 import {
@@ -19,24 +14,16 @@ import {
   SetPropertyRenderer,
   TemplateControllerRenderer
 } from './renderer';
-import {
-  FromViewBindingBehavior,
-  OneTimeBindingBehavior,
-  ToViewBindingBehavior,
-  TwoWayBindingBehavior
-} from './resources/binding-behaviors/binding-mode';
+import { FromViewBindingBehavior, OneTimeBindingBehavior, ToViewBindingBehavior, TwoWayBindingBehavior } from './resources/binding-behaviors/binding-mode';
 import { DebounceBindingBehavior } from './resources/binding-behaviors/debounce';
+import { KeyedBindingBehavior } from './resources/binding-behaviors/keyed';
 import { SignalBindingBehavior } from './resources/binding-behaviors/signals';
 import { ThrottleBindingBehavior } from './resources/binding-behaviors/throttle';
-import {
-  Else,
-  If
-} from './resources/custom-attributes/if';
+import { Else, If } from './resources/custom-attributes/if';
 import { Repeat } from './resources/custom-attributes/repeat';
 import { Replaceable } from './resources/custom-attributes/replaceable';
 import { With } from './resources/custom-attributes/with';
 import { SanitizeValueConverter } from './resources/value-converters/sanitize';
-import { PriorityBindingBehavior } from './resources/binding-behaviors/priority';
 
 export const IObserverLocatorRegistration = ObserverLocator as IRegistry;
 export const ILifecycleRegistration = Lifecycle as IRegistry;
@@ -61,13 +48,13 @@ export const ReplaceableRegistration = Replaceable as IRegistry;
 export const WithRegistration = With as IRegistry;
 export const SanitizeValueConverterRegistration = SanitizeValueConverter as IRegistry;
 export const DebounceBindingBehaviorRegistration = DebounceBindingBehavior as IRegistry;
+export const KeyedBindingBehaviorRegistration = KeyedBindingBehavior as IRegistry;
 export const OneTimeBindingBehaviorRegistration = OneTimeBindingBehavior as IRegistry;
 export const ToViewBindingBehaviorRegistration = ToViewBindingBehavior as IRegistry;
 export const FromViewBindingBehaviorRegistration = FromViewBindingBehavior as IRegistry;
 export const SignalBindingBehaviorRegistration = SignalBindingBehavior as IRegistry;
 export const ThrottleBindingBehaviorRegistration = ThrottleBindingBehavior as IRegistry;
 export const TwoWayBindingBehaviorRegistration = TwoWayBindingBehavior as IRegistry;
-export const PriorityBindingBehaviorRegistration = PriorityBindingBehavior as IRegistry;
 
 /**
  * Default resources:
@@ -83,11 +70,11 @@ export const DefaultResources = [
   WithRegistration,
   SanitizeValueConverterRegistration,
   DebounceBindingBehaviorRegistration,
+  KeyedBindingBehaviorRegistration,
   OneTimeBindingBehaviorRegistration,
   ToViewBindingBehaviorRegistration,
   FromViewBindingBehaviorRegistration,
   SignalBindingBehaviorRegistration,
-  PriorityBindingBehaviorRegistration,
   ThrottleBindingBehaviorRegistration,
   TwoWayBindingBehaviorRegistration
 ];

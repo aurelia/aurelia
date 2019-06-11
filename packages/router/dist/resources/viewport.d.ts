@@ -1,7 +1,9 @@
 import { InjectArray } from '@aurelia/kernel';
-import { IController, INode, IRenderContext, IRenderingEngine, LifecycleFlags, TemplateDefinition } from '@aurelia/runtime';
+import { ICustomElement, IElementTemplateProvider, INode, IRenderContext, IRenderingEngine, LifecycleFlags, TemplateDefinition } from '@aurelia/runtime';
 import { Router } from '../router';
 import { Viewport } from '../viewport';
+export interface ViewportCustomElement extends ICustomElement<Element> {
+}
 export declare class ViewportCustomElement {
     static readonly inject: InjectArray;
     name: string;
@@ -12,12 +14,11 @@ export declare class ViewportCustomElement {
     noHistory: boolean;
     stateful: boolean;
     viewport: Viewport;
-    $controller: IController;
     private readonly router;
     private readonly element;
     private readonly renderingEngine;
     constructor(router: Router, element: Element, renderingEngine: IRenderingEngine);
-    render(flags: LifecycleFlags, host: INode, parts: Record<string, TemplateDefinition>, parentContext: IRenderContext | null): void;
+    render(flags: LifecycleFlags, host: INode, parts: Record<string, TemplateDefinition>, parentContext: IRenderContext | null): IElementTemplateProvider | void;
     bound(): void;
     unbound(): void;
     connect(): void;

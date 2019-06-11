@@ -1,7 +1,6 @@
 {
   "name": "@aurelia/runtime-html",
   "version": "0.3.0-dev.20190611",
-  "sideEffects": false,
   "main": "dist/index.umd.js",
   "module": "dist/index.es6.js",
   "jsnext:main": "dist/index.es6.js",
@@ -29,10 +28,14 @@
     "LICENSE"
   ],
   "scripts": {
-    "lint": "tslint --project tsconfig.json -t stylish",
+    "lint": "npm run lint:src && npm run lint:test",
+    "lint:src": "tslint --project tsconfig.json -t stylish",
+    "lint:test": "tslint --project tsconfig-test.json --config ../tslint-test.json -e \"src/**/*.ts\" -t stylish",
     "build": "tsc -b",
+    "build:test": "tsc -p test/tsconfig.json --outDir dist/test",
     "bundle": "ts-node -P ../../scripts/tsconfig.json ../../scripts/bundle.ts umd,esm,system runtime-html",
-    "dev": "tsc -b -w"
+    "dev": "tsc -b -w",
+    "publish:local": "npm pack"
   },
   "publishConfig": {
     "access": "public"
@@ -43,10 +46,12 @@
   },
   "devDependencies": {
     "@types/node": "^10.12.27",
+    "cross-env": "^5.2.0",
+    "ts-node": "^8.0.3",
     "tslib": "^1.9.3",
-    "tslint": "^5.16.0",
-    "tslint-microsoft-contrib": "^6.1.1",
+    "tslint": "^5.14.0",
+    "tslint-microsoft-contrib": "^6.1.0",
     "tslint-sonarts": "^1.9.0",
-    "typescript": "^3.4.5"
+    "typescript": "~3.3.4000"
   }
 }

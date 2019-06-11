@@ -1,7 +1,7 @@
 import { join, resolve } from 'path';
 import * as lernaJson from '../lerna.json';
 import * as packageJson from '../package.json';
-import { camelCase } from '../packages/kernel/src/index';
+import { PLATFORM } from '../packages/kernel/src/platform';
 
 // TODO: generate this file automatically
 
@@ -57,7 +57,7 @@ export default {
   },
   'packages': lernaJson.packages.map(p => {
     const kebabName = p.split('/')[1];
-    const camelName = camelCase(kebabName);
+    const camelName = PLATFORM.camelCase(kebabName);
 
     const path = join(packagesPath, kebabName);
     const node_modules = join(path, 'node_modules');

@@ -1,18 +1,18 @@
 import { Tracer } from '@aurelia/kernel';
 import { LifecycleFlags } from '../flags';
 import { ILifecycle } from '../lifecycle';
-import { CollectionKind, createIndexMap, ICollectionObserver, IObservedSet } from '../observation';
-import { CollectionSizeObserver } from './collection-size-observer';
-import { collectionSubscriberCollection } from './subscriber-collection';
+import { CollectionKind, ICollectionObserver, IObservedSet } from '../observation';
+import { collectionObserver } from './collection-observer';
+import { patchProperties } from './patch-properties';
 
-const proto = Set.prototype as { [K in keyof Set<any>]: Set<any>[K] & { observing?: boolean } };
+const proto = Set.prototype;
 
 const $add = proto.add;
 const $clear = proto.clear;
 const $delete = proto.delete;
 
 const native = { add: $add, clear: $clear, delete: $delete };
-const methods: ['add', 'clear', 'delete'] = ['add', 'clear', 'delete'];
+const methods = ['add', 'clear', 'delete'];
 
 // note: we can't really do much with Set due to the internal data structure not being accessible so we're just using the native calls
 // fortunately, add/delete/clear are easy to reconstruct for the indexMap
@@ -36,7 +36,7 @@ const observe = {
       return this;
     }
     o.indexMap[oldSize] = -2;
-    o.notify();
+    o.callSubscribers('add', arguments, o.persistentFlags | LifecycleFlags.isCollectionMutation);
     return this;
   },
   // https://tc39.github.io/ecma262/#sec-set.prototype.clear
@@ -55,13 +55,13 @@ const observe = {
       let i = 0;
       for (const entry of $this.keys()) {
         if (indexMap[i] > -1) {
-          indexMap.deletedItems!.push(indexMap[i]);
+          indexMap.deletedItems.push(indexMap[i]);
         }
         i++;
       }
       $clear.call($this);
       indexMap.length = 0;
-      o.notify();
+      o.callSubscribers('clear', arguments, o.persistentFlags | LifecycleFlags.isCollectionMutation);
     }
     return undefined;
   },
@@ -84,14 +84,14 @@ const observe = {
     for (const entry of $this.keys()) {
       if (entry === value) {
         if (indexMap[i] > -1) {
-          indexMap.deletedItems!.push(indexMap[i]);
+          indexMap.deletedItems.push(indexMap[i]);
         }
         indexMap.splice(i, 1);
         return $delete.call($this, value);
       }
       i++;
     }
-    o.notify();
+    o.callSubscribers('delete', arguments, o.persistentFlags | LifecycleFlags.isCollectionMutation);
     return false;
   }
 };
@@ -108,8 +108,6 @@ for (const method of methods) {
   def(observe[method], 'observing', { value: true, writable: false, configurable: false, enumerable: false });
 }
 
-let enableSetObservationCalled = false;
-
 export function enableSetObservation(): void {
   for (const method of methods) {
     if (proto[method].observing !== true) {
@@ -117,6 +115,8 @@ export function enableSetObservation(): void {
     }
   }
 }
+
+enableSetObservation();
 
 export function disableSetObservation(): void {
   for (const method of methods) {
@@ -130,64 +130,30 @@ const slice = Array.prototype.slice;
 
 export interface SetObserver extends ICollectionObserver<CollectionKind.set> {}
 
-@collectionSubscriberCollection()
-export class SetObserver {
-  public inBatch: boolean;
+@collectionObserver(CollectionKind.set)
+export class SetObserver implements SetObserver {
+  public resetIndexMap: () => void;
+
+  public collection: IObservedSet;
+  public readonly flags: LifecycleFlags;
 
   constructor(flags: LifecycleFlags, lifecycle: ILifecycle, observedSet: IObservedSet) {
     if (Tracer.enabled) { Tracer.enter('SetObserver', 'constructor', slice.call(arguments)); }
-
-    if (!enableSetObservationCalled) {
-      enableSetObservationCalled = true;
-      enableSetObservation();
-    }
-
-    this.inBatch = false;
-
-    this.collection = observedSet;
-    this.persistentFlags = flags & LifecycleFlags.persistentBindingFlags;
-    this.indexMap = createIndexMap(observedSet.size);
     this.lifecycle = lifecycle;
-    this.lengthObserver = (void 0)!;
-
     observedSet.$observer = this;
-
+    this.collection = observedSet;
+    this.flags = flags & LifecycleFlags.persistentBindingFlags;
+    this.resetIndexMap();
     if (Tracer.enabled) { Tracer.leave(); }
   }
 
-  public notify(): void {
-    if (this.lifecycle.batch.depth > 0) {
-      if (!this.inBatch) {
-        this.inBatch = true;
-        this.lifecycle.batch.add(this);
-      }
-    } else {
-      this.flushBatch(LifecycleFlags.none);
-    }
-  }
-
-  public getLengthObserver(): CollectionSizeObserver {
-    if (this.lengthObserver === void 0) {
-      this.lengthObserver = new CollectionSizeObserver(this.collection);
-    }
-    return this.lengthObserver;
-  }
-
-  public flushBatch(flags: LifecycleFlags): void {
-    this.inBatch = false;
-    const { indexMap, collection } = this;
-    const { size } = collection;
-    this.indexMap = createIndexMap(size);
-    this.callCollectionSubscribers(indexMap, LifecycleFlags.updateTargetInstance | this.persistentFlags);
-    if (this.lengthObserver !== void 0) {
-      this.lengthObserver.setValue(size, LifecycleFlags.updateTargetInstance);
-    }
+  public $patch(flags: LifecycleFlags): void {
+    this.collection.forEach((value, key) => {
+      patchProperties(key, flags);
+    });
   }
 }
 
 export function getSetObserver(flags: LifecycleFlags, lifecycle: ILifecycle, observedSet: IObservedSet): SetObserver {
-  if (observedSet.$observer === void 0) {
-    observedSet.$observer = new SetObserver(flags, lifecycle, observedSet);
-  }
-  return observedSet.$observer;
+  return (observedSet.$observer as SetObserver) || new SetObserver(flags, lifecycle, observedSet);
 }

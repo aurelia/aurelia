@@ -28,7 +28,6 @@ export interface IBindingBehaviorResource extends
 function register(this: IBindingBehaviorType, container: IContainer): void {
   const resourceKey = BindingBehaviorResource.keyFrom(this.description.name);
   container.register(Registration.singleton(resourceKey, this));
-  container.register(Registration.singleton(this, this));
 }
 
 export function bindingBehavior(definition: IBindingBehaviorDefinition): BindingBehaviorDecorator;

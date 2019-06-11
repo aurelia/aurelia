@@ -1,6 +1,6 @@
 System.register('jit', ['@aurelia/kernel', '@aurelia/runtime'], function (exports, module) {
   'use strict';
-  var PLATFORM, DI, Registration, Reporter, Profiler, all, camelCase, kebabCase, OneTimeBindingInstruction, ToViewBindingInstruction, FromViewBindingInstruction, TwoWayBindingInstruction, BindingMode, CallBindingInstruction, IteratorBindingInstruction, PrimitiveLiteral, AccessThis, Unary, BindingIdentifier, AccessScope, Template, AccessMember, AccessKeyed, CallScope, CallMember, CallFunction, TaggedTemplate, Binary, Conditional, Assign, ValueConverter, BindingBehavior, ArrayBindingPattern, ArrayLiteral, ForOfStatement, ObjectBindingPattern, ObjectLiteral, Interpolation, IExpressionParser, RuntimeBasicConfiguration, CustomElementResource, CustomAttributeResource;
+  var PLATFORM, DI, Registration, Reporter, Profiler, all, OneTimeBindingInstruction, ToViewBindingInstruction, FromViewBindingInstruction, TwoWayBindingInstruction, BindingMode, CallBindingInstruction, IteratorBindingInstruction, PrimitiveLiteral, AccessThis, Unary, BindingIdentifier, AccessScope, Template, AccessMember, AccessKeyed, CallScope, CallMember, CallFunction, TaggedTemplate, Binary, Conditional, Assign, ValueConverter, BindingBehavior, ArrayBindingPattern, ArrayLiteral, ForOfStatement, ObjectBindingPattern, ObjectLiteral, Interpolation, IExpressionParser, RuntimeBasicConfiguration, CustomElementResource, CustomAttributeResource;
   return {
     setters: [function (module) {
       PLATFORM = module.PLATFORM;
@@ -9,8 +9,6 @@ System.register('jit', ['@aurelia/kernel', '@aurelia/runtime'], function (export
       Reporter = module.Reporter;
       Profiler = module.Profiler;
       all = module.all;
-      camelCase = module.camelCase;
-      kebabCase = module.kebabCase;
     }, function (module) {
       OneTimeBindingInstruction = module.OneTimeBindingInstruction;
       ToViewBindingInstruction = module.ToViewBindingInstruction;
@@ -50,15 +48,11 @@ System.register('jit', ['@aurelia/kernel', '@aurelia/runtime'], function (export
     execute: function () {
 
       exports({
-        Access: void 0,
-        Char: void 0,
-        Precedence: void 0,
         SymbolFlags: void 0,
         attributePattern: attributePattern,
         bindingCommand: bindingCommand,
         getMode: getMode,
         getTarget: getTarget,
-        parse: parse,
         parseExpression: parseExpression
       });
 
@@ -139,7 +133,7 @@ System.register('jit', ['@aurelia/kernel', '@aurelia/runtime'], function (export
               }
           }
           set pattern(value) {
-              if (value == null) {
+              if (value === null) {
                   this._pattern = '';
                   this.parts = PLATFORM.emptyArray;
               }
@@ -207,7 +201,7 @@ System.register('jit', ['@aurelia/kernel', '@aurelia/runtime'], function (export
                   patterns.push(pattern);
               }
               let state = this.findChild(charSpec);
-              if (state == null) {
+              if (state === null) {
                   state = new State(charSpec, pattern);
                   this.nextStates.push(state);
                   if (charSpec.repeat) {
@@ -423,10 +417,10 @@ System.register('jit', ['@aurelia/kernel', '@aurelia/runtime'], function (export
           for (const def of patternDefs) {
               // note: we're intentionally not throwing here
               if (!(def.pattern in handler)) {
-                  Reporter.write(401, def.pattern); // TODO: organize error codes
+                  Reporter.write(401, def); // TODO: organize error codes
               }
               else if (typeof handler[def.pattern] !== 'function') {
-                  Reporter.write(402, def.pattern); // TODO: organize error codes
+                  Reporter.write(402, def); // TODO: organize error codes
               }
           }
       }
@@ -493,29 +487,19 @@ System.register('jit', ['@aurelia/kernel', '@aurelia/runtime'], function (export
               });
           }
           parse(name, value) {
-              if (Profiler.enabled) {
-                  enter();
-              }
               let interpretation = this.cache[name];
-              if (interpretation == null) {
+              if (interpretation === undefined) {
                   interpretation = this.cache[name] = this.interpreter.interpret(name);
               }
               const pattern = interpretation.pattern;
-              if (pattern == null) {
-                  if (Profiler.enabled) {
-                      leave();
-                  }
+              if (pattern === null) {
                   return new AttrSyntax(name, value, name, null);
               }
               else {
-                  if (Profiler.enabled) {
-                      leave();
-                  }
                   return this.patterns[pattern][pattern](name, value, interpretation.parts);
               }
           }
       }
-      // @ts-ignore
       AttributeParser.inject = [ISyntaxInterpreter, all(IAttributePattern)];
 
       function register(container) {
@@ -546,12 +530,12 @@ System.register('jit', ['@aurelia/kernel', '@aurelia/runtime'], function (export
           isType,
           define
       });
-      function getTarget(binding, makeCamelCase) {
+      function getTarget(binding, camelCase) {
           if (binding.flags & 256 /* isBinding */) {
               return binding.bindable.propName;
           }
-          else if (makeCamelCase) {
-              return camelCase(binding.syntax.target);
+          else if (camelCase) {
+              return PLATFORM.camelCase(binding.syntax.target);
           }
           else {
               return binding.syntax.target;
@@ -620,7 +604,6 @@ System.register('jit', ['@aurelia/kernel', '@aurelia/runtime'], function (export
               this.$6 = TwoWayBindingCommand.prototype.compile;
           }
           compile(binding) {
-              // @ts-ignore
               return this[modeToProperty[getMode(binding)]](binding);
           }
       } exports('DefaultBindingCommand', DefaultBindingCommand);
@@ -644,6 +627,7 @@ System.register('jit', ['@aurelia/kernel', '@aurelia/runtime'], function (export
       } exports('ForBindingCommand', ForBindingCommand);
       BindingCommandResource.define('for', ForBindingCommand);
 
+      /** @internal */
       function unescapeCode(code) {
           switch (code) {
               case 98 /* LowerB */: return 8 /* Backspace */;
@@ -658,6 +642,7 @@ System.register('jit', ['@aurelia/kernel', '@aurelia/runtime'], function (export
               default: return code;
           }
       }
+      /** @internal */
       var Access;
       (function (Access) {
           Access[Access["Reset"] = 0] = "Reset";
@@ -666,7 +651,8 @@ System.register('jit', ['@aurelia/kernel', '@aurelia/runtime'], function (export
           Access[Access["Scope"] = 1024] = "Scope";
           Access[Access["Member"] = 2048] = "Member";
           Access[Access["Keyed"] = 4096] = "Keyed";
-      })(Access || (Access = exports('Access', {})));
+      })(Access || (Access = {}));
+      /** @internal */
       var Precedence;
       (function (Precedence) {
           Precedence[Precedence["Variadic"] = 61] = "Variadic";
@@ -682,7 +668,7 @@ System.register('jit', ['@aurelia/kernel', '@aurelia/runtime'], function (export
           Precedence[Precedence["LeftHandSide"] = 449] = "LeftHandSide";
           Precedence[Precedence["Primary"] = 450] = "Primary";
           Precedence[Precedence["Unary"] = 451] = "Unary";
-      })(Precedence || (Precedence = exports('Precedence', {})));
+      })(Precedence || (Precedence = {}));
       /** @internal */
       var Token;
       (function (Token) {
@@ -746,6 +732,7 @@ System.register('jit', ['@aurelia/kernel', '@aurelia/runtime'], function (export
           Token[Token["TemplateContinuation"] = 540714] = "TemplateContinuation";
           Token[Token["OfKeyword"] = 1051179] = "OfKeyword";
       })(Token || (Token = {}));
+      /** @internal */
       var Char;
       (function (Char) {
           Char[Char["Null"] = 0] = "Null";
@@ -847,7 +834,7 @@ System.register('jit', ['@aurelia/kernel', '@aurelia/runtime'], function (export
           Char[Char["LowerX"] = 120] = "LowerX";
           Char[Char["LowerY"] = 121] = "LowerY";
           Char[Char["LowerZ"] = 122] = "LowerZ";
-      })(Char || (Char = exports('Char', {})));
+      })(Char || (Char = {}));
 
       const { enter: enter$1, leave: leave$1 } = Profiler.createTimer('ExpressionParser');
       const $false = PrimitiveLiteral.$false;
@@ -872,7 +859,7 @@ System.register('jit', ['@aurelia/kernel', '@aurelia/runtime'], function (export
               this.currentChar = input.charCodeAt(0);
               this.assignable = true;
           }
-      } exports('ParserState', ParserState);
+      }
       const $state = new ParserState('');
       var SyntaxError;
       (function (SyntaxError) {
@@ -901,7 +888,7 @@ System.register('jit', ['@aurelia/kernel', '@aurelia/runtime'], function (export
           $state.length = input.length;
           $state.index = 0;
           $state.currentChar = input.charCodeAt(0);
-          return parse($state, 0 /* Reset */, 61 /* Variadic */, bindingType === void 0 ? 53 /* BindCommand */ : bindingType);
+          return parse($state, 0 /* Reset */, 61 /* Variadic */, bindingType === undefined ? 53 /* BindCommand */ : bindingType);
       }
       /** @internal */
       // JUSTIFICATION: This is performance-critical code which follows a subset of the well-known ES spec.
@@ -913,27 +900,18 @@ System.register('jit', ['@aurelia/kernel', '@aurelia/runtime'], function (export
       // For reference, most of the parsing logic is based on: https://tc39.github.io/ecma262/#sec-ecmascript-language-expressions
       // tslint:disable-next-line:no-big-function cognitive-complexity
       function parse(state, access, minPrecedence, bindingType) {
-          if (Profiler.enabled) {
-              enter$1();
-          }
           if (state.index === 0) {
               if (bindingType & 2048 /* Interpolation */) {
-                  if (Profiler.enabled) {
-                      leave$1();
-                  }
                   // tslint:disable-next-line:no-any
                   return parseInterpolation(state);
               }
               nextToken(state);
               if (state.currentToken & 1048576 /* ExpressionTerminal */) {
-                  if (Profiler.enabled) {
-                      leave$1();
-                  }
                   throw Reporter.error(100 /* InvalidExpressionStart */, { state });
               }
           }
           state.assignable = 448 /* Binary */ > minPrecedence;
-          let result = void 0;
+          let result = undefined;
           if (state.currentToken & 32768 /* UnaryOp */) {
               /** parseUnaryExpression
                * https://tc39.github.io/ecma262/#sec-unary-operators
@@ -991,15 +969,9 @@ System.register('jit', ['@aurelia/kernel', '@aurelia/runtime'], function (export
                           access++; // ancestor
                           if (consumeOpt(state, 16392 /* Dot */)) {
                               if (state.currentToken === 16392 /* Dot */) {
-                                  if (Profiler.enabled) {
-                                      leave$1();
-                                  }
                                   throw Reporter.error(102 /* DoubleDot */, { state });
                               }
                               else if (state.currentToken === 1572864 /* EOF */) {
-                                  if (Profiler.enabled) {
-                                      leave$1();
-                                  }
                                   throw Reporter.error(105 /* ExpectedIdentifier */, { state });
                               }
                           }
@@ -1010,9 +982,6 @@ System.register('jit', ['@aurelia/kernel', '@aurelia/runtime'], function (export
                               break primary;
                           }
                           else {
-                              if (Profiler.enabled) {
-                                  leave$1();
-                              }
                               throw Reporter.error(103 /* InvalidMemberExpression */, { state });
                           }
                       } while (state.currentToken === 3077 /* ParentScope */);
@@ -1076,29 +1045,17 @@ System.register('jit', ['@aurelia/kernel', '@aurelia/runtime'], function (export
                       break;
                   default:
                       if (state.index >= state.length) {
-                          if (Profiler.enabled) {
-                              leave$1();
-                          }
                           throw Reporter.error(104 /* UnexpectedEndOfExpression */, { state });
                       }
                       else {
-                          if (Profiler.enabled) {
-                              leave$1();
-                          }
                           throw Reporter.error(101 /* UnconsumedToken */, { state });
                       }
               }
               if (bindingType & 512 /* IsIterator */) {
-                  if (Profiler.enabled) {
-                      leave$1();
-                  }
                   // tslint:disable-next-line:no-any
                   return parseForOfStatement(state, result);
               }
               if (449 /* LeftHandSide */ < minPrecedence) {
-                  if (Profiler.enabled) {
-                      leave$1();
-                  }
                   // tslint:disable-next-line:no-any
                   return result;
               }
@@ -1133,9 +1090,6 @@ System.register('jit', ['@aurelia/kernel', '@aurelia/runtime'], function (export
                           state.assignable = true;
                           nextToken(state);
                           if ((state.currentToken & 3072 /* IdentifierName */) === 0) {
-                              if (Profiler.enabled) {
-                                  leave$1();
-                              }
                               throw Reporter.error(105 /* ExpectedIdentifier */, { state });
                           }
                           name = state.tokenValue;
@@ -1197,9 +1151,6 @@ System.register('jit', ['@aurelia/kernel', '@aurelia/runtime'], function (export
               }
           }
           if (448 /* Binary */ < minPrecedence) {
-              if (Profiler.enabled) {
-                  leave$1();
-              }
               // tslint:disable-next-line:no-any
               return result;
           }
@@ -1240,9 +1191,6 @@ System.register('jit', ['@aurelia/kernel', '@aurelia/runtime'], function (export
               state.assignable = false;
           }
           if (63 /* Conditional */ < minPrecedence) {
-              if (Profiler.enabled) {
-                  leave$1();
-              }
               // tslint:disable-next-line:no-any
               return result;
           }
@@ -1264,9 +1212,6 @@ System.register('jit', ['@aurelia/kernel', '@aurelia/runtime'], function (export
               state.assignable = false;
           }
           if (62 /* Assign */ < minPrecedence) {
-              if (Profiler.enabled) {
-                  leave$1();
-              }
               // tslint:disable-next-line:no-any
               return result;
           }
@@ -1283,17 +1228,11 @@ System.register('jit', ['@aurelia/kernel', '@aurelia/runtime'], function (export
            */
           if (consumeOpt(state, 1048615 /* Equals */)) {
               if (!state.assignable) {
-                  if (Profiler.enabled) {
-                      leave$1();
-                  }
                   throw Reporter.error(150 /* NotAssignable */, { state });
               }
               result = new Assign(result, parse(state, access, 62 /* Assign */, bindingType));
           }
           if (61 /* Variadic */ < minPrecedence) {
-              if (Profiler.enabled) {
-                  leave$1();
-              }
               // tslint:disable-next-line:no-any
               return result;
           }
@@ -1301,9 +1240,6 @@ System.register('jit', ['@aurelia/kernel', '@aurelia/runtime'], function (export
            */
           while (consumeOpt(state, 1572883 /* Bar */)) {
               if (state.currentToken === 1572864 /* EOF */) {
-                  if (Profiler.enabled) {
-                      leave$1();
-                  }
                   throw Reporter.error(112);
               }
               const name = state.tokenValue;
@@ -1318,9 +1254,6 @@ System.register('jit', ['@aurelia/kernel', '@aurelia/runtime'], function (export
            */
           while (consumeOpt(state, 1572880 /* Ampersand */)) {
               if (state.currentToken === 1572864 /* EOF */) {
-                  if (Profiler.enabled) {
-                      leave$1();
-                  }
                   throw Reporter.error(113);
               }
               const name = state.tokenValue;
@@ -1333,25 +1266,13 @@ System.register('jit', ['@aurelia/kernel', '@aurelia/runtime'], function (export
           }
           if (state.currentToken !== 1572864 /* EOF */) {
               if (bindingType & 2048 /* Interpolation */) {
-                  if (Profiler.enabled) {
-                      leave$1();
-                  }
                   // tslint:disable-next-line:no-any
                   return result;
               }
               if (state.tokenRaw === 'of') {
-                  if (Profiler.enabled) {
-                      leave$1();
-                  }
                   throw Reporter.error(151 /* UnexpectedForOf */, { state });
               }
-              if (Profiler.enabled) {
-                  leave$1();
-              }
               throw Reporter.error(101 /* UnconsumedToken */, { state });
-          }
-          if (Profiler.enabled) {
-              leave$1();
           }
           // tslint:disable-next-line:no-any
           return result;
@@ -1572,7 +1493,7 @@ System.register('jit', ['@aurelia/kernel', '@aurelia/runtime'], function (export
       function nextToken(state) {
           while (state.index < state.length) {
               state.startIndex = state.index;
-              if (((state.currentToken = (CharScanners[state.currentChar](state)))) != null) { // a null token means the character must be skipped
+              if ((state.currentToken = CharScanners[state.currentChar](state)) !== null) { // a null token means the character must be skipped
                   return;
               }
           }
@@ -1880,7 +1801,7 @@ System.register('jit', ['@aurelia/kernel', '@aurelia/runtime'], function (export
       const IExpressionParserRegistration = exports('IExpressionParserRegistration', {
           register(container) {
               container.registerTransformer(IExpressionParser, parser => {
-                  Reflect.set(parser, 'parseCore', parseExpression);
+                  parser['parseCore'] = parseExpression;
                   return parser;
               });
           }
@@ -1980,9 +1901,9 @@ System.register('jit', ['@aurelia/kernel', '@aurelia/runtime'], function (export
            */
           getElementInfo(name) {
               let result = this.elementLookup[name];
-              if (result === void 0) {
+              if (result === undefined) {
                   const def = this.resources.find(CustomElementResource, name);
-                  if (def == null) {
+                  if (def === null) {
                       result = null;
                   }
                   else {
@@ -2000,11 +1921,11 @@ System.register('jit', ['@aurelia/kernel', '@aurelia/runtime'], function (export
            * @returns The resource information if the attribute exists, or `null` if it does not exist.
            */
           getAttributeInfo(syntax) {
-              const name = camelCase(syntax.target);
+              const name = PLATFORM.camelCase(syntax.target);
               let result = this.attributeLookup[name];
-              if (result === void 0) {
+              if (result === undefined) {
                   const def = this.resources.find(CustomAttributeResource, name);
-                  if (def == null) {
+                  if (def === null) {
                       result = null;
                   }
                   else {
@@ -2027,9 +1948,9 @@ System.register('jit', ['@aurelia/kernel', '@aurelia/runtime'], function (export
                   return null;
               }
               let result = this.commandLookup[name];
-              if (result === void 0) {
+              if (result === undefined) {
                   result = this.resources.create(BindingCommandResource, name);
-                  if (result == null) {
+                  if (result === null) {
                       // unknown binding command
                       throw Reporter.error(0); // TODO: create error code
                   }
@@ -2049,18 +1970,18 @@ System.register('jit', ['@aurelia/kernel', '@aurelia/runtime'], function (export
           for (prop in bindables) {
               bindable = bindables[prop];
               // explicitly provided property name has priority over the implicit property name
-              if (bindable.property !== void 0) {
+              if (bindable.property !== undefined) {
                   prop = bindable.property;
               }
               // explicitly provided attribute name has priority over the derived implicit attribute name
-              if (bindable.attribute !== void 0) {
+              if (bindable.attribute !== undefined) {
                   attr = bindable.attribute;
               }
               else {
                   // derive the attribute name from the resolved property name
-                  attr = kebabCase(prop);
+                  attr = PLATFORM.kebabCase(prop);
               }
-              if (bindable.mode !== void 0 && bindable.mode !== BindingMode.default) {
+              if (bindable.mode !== undefined && bindable.mode !== BindingMode.default) {
                   mode = bindable.mode;
               }
               else {
@@ -2073,7 +1994,7 @@ System.register('jit', ['@aurelia/kernel', '@aurelia/runtime'], function (export
       function createAttributeInfo(def) {
           const info = new AttrInfo(def.name, def.isTemplateController);
           const bindables = def.bindables;
-          const defaultBindingMode = def.defaultBindingMode !== void 0 && def.defaultBindingMode !== BindingMode.default
+          const defaultBindingMode = def.defaultBindingMode !== undefined && def.defaultBindingMode !== BindingMode.default
               ? def.defaultBindingMode
               : BindingMode.toView;
           let bindable;
@@ -2084,10 +2005,10 @@ System.register('jit', ['@aurelia/kernel', '@aurelia/runtime'], function (export
               ++bindableCount;
               bindable = bindables[prop];
               // explicitly provided property name has priority over the implicit property name
-              if (bindable.property !== void 0) {
+              if (bindable.property !== undefined) {
                   prop = bindable.property;
               }
-              if (bindable.mode !== void 0 && bindable.mode !== BindingMode.default) {
+              if (bindable.mode !== undefined && bindable.mode !== BindingMode.default) {
                   mode = bindable.mode;
               }
               else {
@@ -2172,18 +2093,11 @@ System.register('jit', ['@aurelia/kernel', '@aurelia/runtime'], function (export
        */
       class TemplateControllerSymbol {
           get bindings() {
-              if (this._bindings == null) {
+              if (this._bindings === null) {
                   this._bindings = [];
                   this.flags |= 4096 /* hasBindings */;
               }
               return this._bindings;
-          }
-          get parts() {
-              if (this._parts == null) {
-                  this._parts = [];
-                  this.flags |= 16384 /* hasParts */;
-              }
-              return this._parts;
           }
           constructor(dom, syntax, info, partName) {
               this.flags = 1 /* isTemplateController */ | 512 /* hasMarker */;
@@ -2195,7 +2109,6 @@ System.register('jit', ['@aurelia/kernel', '@aurelia/runtime'], function (export
               this.templateController = null;
               this.marker = createMarker(dom);
               this._bindings = null;
-              this._parts = null;
           }
       } exports('TemplateControllerSymbol', TemplateControllerSymbol);
       /**
@@ -2218,7 +2131,7 @@ System.register('jit', ['@aurelia/kernel', '@aurelia/runtime'], function (export
        */
       class CustomAttributeSymbol {
           get bindings() {
-              if (this._bindings == null) {
+              if (this._bindings === null) {
                   this._bindings = [];
                   this.flags |= 4096 /* hasBindings */;
               }
@@ -2268,28 +2181,28 @@ System.register('jit', ['@aurelia/kernel', '@aurelia/runtime'], function (export
        */
       class CustomElementSymbol {
           get attributes() {
-              if (this._attributes == null) {
+              if (this._attributes === null) {
                   this._attributes = [];
                   this.flags |= 2048 /* hasAttributes */;
               }
               return this._attributes;
           }
           get bindings() {
-              if (this._bindings == null) {
+              if (this._bindings === null) {
                   this._bindings = [];
                   this.flags |= 4096 /* hasBindings */;
               }
               return this._bindings;
           }
           get childNodes() {
-              if (this._childNodes == null) {
+              if (this._childNodes === null) {
                   this._childNodes = [];
                   this.flags |= 8192 /* hasChildNodes */;
               }
               return this._childNodes;
           }
           get parts() {
-              if (this._parts == null) {
+              if (this._parts === null) {
                   this._parts = [];
                   this.flags |= 16384 /* hasParts */;
               }
@@ -2319,7 +2232,7 @@ System.register('jit', ['@aurelia/kernel', '@aurelia/runtime'], function (export
       } exports('CustomElementSymbol', CustomElementSymbol);
       class LetElementSymbol {
           get bindings() {
-              if (this._bindings == null) {
+              if (this._bindings === null) {
                   this._bindings = [];
                   this.flags |= 4096 /* hasBindings */;
               }
@@ -2340,14 +2253,14 @@ System.register('jit', ['@aurelia/kernel', '@aurelia/runtime'], function (export
        */
       class PlainElementSymbol {
           get attributes() {
-              if (this._attributes == null) {
+              if (this._attributes === null) {
                   this._attributes = [];
                   this.flags |= 2048 /* hasAttributes */;
               }
               return this._attributes;
           }
           get childNodes() {
-              if (this._childNodes == null) {
+              if (this._childNodes === null) {
                   this._childNodes = [];
                   this.flags |= 8192 /* hasChildNodes */;
               }

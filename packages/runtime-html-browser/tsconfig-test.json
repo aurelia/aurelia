@@ -1,0 +1,7 @@
+{
+  "extends": "../tsconfig-test.json",
+  "compilerOptions": {
+    "emitDecoratorMetadata": false
+  },
+  "include": ["src", "test", "../runtime-html/src", "../runtime-html/test"]
+}

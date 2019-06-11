@@ -55,7 +55,7 @@ export class DebounceBindingBehavior {
   public bind(flags: LifecycleFlags, scope: IScope, binding: DebounceableBinding, delay: number = 200): void {
     let methodToDebounce;
     let callContextToDebounce;
-    let debouncer: typeof debounceCall | typeof debounceCallSource;
+    let debouncer;
 
     if (binding instanceof Binding) {
       methodToDebounce = 'handleChange';
@@ -70,11 +70,11 @@ export class DebounceBindingBehavior {
     // stash the original method and it's name.
     // note: a generic name like "originalMethod" is not used to avoid collisions
     // with other binding behavior types.
-    binding.debouncedMethod = binding[methodToDebounce as keyof DebounceableBinding]! as DebounceableBinding['debouncedMethod'];
+    binding.debouncedMethod = binding[methodToDebounce];
     binding.debouncedMethod.originalName = methodToDebounce;
 
     // replace the original method with the debouncing version.
-    (binding as typeof binding & { [key: string]: typeof debouncer })[methodToDebounce] = debouncer;
+    binding[methodToDebounce] = debouncer;
 
     // create the debounce state.
     binding.debounceState = {
@@ -88,10 +88,10 @@ export class DebounceBindingBehavior {
   public unbind(flags: LifecycleFlags, scope: IScope, binding: DebounceableBinding): void {
     // restore the state of the binding.
     const methodToRestore = binding.debouncedMethod.originalName;
-    (binding as typeof binding & { [key: string]: DebounceableBinding['debouncedMethod'] })[methodToRestore] = binding.debouncedMethod;
-    binding.debouncedMethod = null!;
+    binding[methodToRestore] = binding.debouncedMethod;
+    binding.debouncedMethod = null;
     PLATFORM.global.clearTimeout(binding.debounceState.timeoutId);
-    binding.debounceState = null!;
+    binding.debounceState = null;
   }
 }
 BindingBehaviorResource.define('debounce', DebounceBindingBehavior);

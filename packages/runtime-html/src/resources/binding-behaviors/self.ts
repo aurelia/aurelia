@@ -32,7 +32,7 @@ export class SelfBindingBehavior {
 
   public unbind(flags: LifecycleFlags, scope: IScope, binding: SelfableBinding): void {
     binding.callSource = binding.selfEventCallSource;
-    binding.selfEventCallSource = null!;
+    binding.selfEventCallSource = null;
   }
 }
 BindingBehaviorResource.define('self', SelfBindingBehavior);

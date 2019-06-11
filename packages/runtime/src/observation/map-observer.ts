@@ -1,23 +1,18 @@
 import { Tracer } from '@aurelia/kernel';
 import { LifecycleFlags } from '../flags';
 import { ILifecycle } from '../lifecycle';
-import {
-  CollectionKind,
-  createIndexMap,
-  ICollectionObserver,
-  IObservedMap
-} from '../observation';
-import { CollectionSizeObserver } from './collection-size-observer';
-import { collectionSubscriberCollection } from './subscriber-collection';
+import { CollectionKind, ICollectionObserver, IObservedMap } from '../observation';
+import { collectionObserver } from './collection-observer';
+import { patchProperties } from './patch-properties';
 
-const proto = Map.prototype as { [K in keyof Map<any, any>]: Map<any, any>[K] & { observing?: boolean } };
+const proto = Map.prototype;
 
 const $set = proto.set;
 const $clear = proto.clear;
 const $delete = proto.delete;
 
 const native = { set: $set, clear: $clear, delete: $delete };
-const methods: ['set', 'clear', 'delete'] = ['set', 'clear', 'delete'];
+const methods = ['set', 'clear', 'delete'];
 
 // note: we can't really do much with Map due to the internal data structure not being accessible so we're just using the native calls
 // fortunately, map/delete/clear are easy to reconstruct for the indexMap
@@ -51,7 +46,7 @@ const observe = {
       return this;
     }
     o.indexMap[oldSize] = -2;
-    o.notify();
+    o.callSubscribers('set', arguments, o.persistentFlags | LifecycleFlags.isCollectionMutation);
     return this;
   },
   // https://tc39.github.io/ecma262/#sec-map.prototype.clear
@@ -70,13 +65,13 @@ const observe = {
       let i = 0;
       for (const entry of $this.keys()) {
         if (indexMap[i] > -1) {
-          indexMap.deletedItems!.push(indexMap[i]);
+          indexMap.deletedItems.push(indexMap[i]);
         }
         i++;
       }
       $clear.call($this);
       indexMap.length = 0;
-      o.notify();
+      o.callSubscribers('clear', arguments, o.persistentFlags | LifecycleFlags.isCollectionMutation);
     }
     return undefined;
   },
@@ -99,14 +94,14 @@ const observe = {
     for (const entry of $this.keys()) {
       if (entry === value) {
         if (indexMap[i] > -1) {
-          indexMap.deletedItems!.push(indexMap[i]);
+          indexMap.deletedItems.push(indexMap[i]);
         }
         indexMap.splice(i, 1);
         return $delete.call($this, value);
       }
       i++;
     }
-    o.notify();
+    o.callSubscribers('delete', arguments, o.persistentFlags | LifecycleFlags.isCollectionMutation);
     return false;
   }
 };
@@ -123,8 +118,6 @@ for (const method of methods) {
   def(observe[method], 'observing', { value: true, writable: false, configurable: false, enumerable: false });
 }
 
-let enableMapObservationCalled = false;
-
 export function enableMapObservation(): void {
   for (const method of methods) {
     if (proto[method].observing !== true) {
@@ -132,6 +125,8 @@ export function enableMapObservation(): void {
     }
   }
 }
+
+enableMapObservation();
 
 export function disableMapObservation(): void {
   for (const method of methods) {
@@ -145,64 +140,32 @@ const slice = Array.prototype.slice;
 
 export interface MapObserver extends ICollectionObserver<CollectionKind.map> {}
 
-@collectionSubscriberCollection()
-export class MapObserver {
-  public inBatch: boolean;
+@collectionObserver(CollectionKind.map)
+export class MapObserver implements MapObserver {
+  public resetIndexMap: () => void;
+  public lifecycle: ILifecycle;
+
+  public collection: IObservedMap;
+  public readonly flags: LifecycleFlags;
 
   constructor(flags: LifecycleFlags, lifecycle: ILifecycle, map: IObservedMap) {
     if (Tracer.enabled) { Tracer.enter('MapObserver', 'constructor', slice.call(arguments)); }
-
-    if (!enableMapObservationCalled) {
-      enableMapObservationCalled = true;
-      enableMapObservation();
-    }
-
-    this.inBatch = false;
-
-    this.collection = map;
-    this.persistentFlags = flags & LifecycleFlags.persistentBindingFlags;
-    this.indexMap = createIndexMap(map.size);
     this.lifecycle = lifecycle;
-    this.lengthObserver = (void 0)!;
-
     map.$observer = this;
-
+    this.collection = map;
+    this.flags = flags & LifecycleFlags.persistentBindingFlags;
+    this.resetIndexMap();
     if (Tracer.enabled) { Tracer.leave(); }
   }
 
-  public notify(): void {
-    if (this.lifecycle.batch.depth > 0) {
-      if (!this.inBatch) {
-        this.inBatch = true;
-        this.lifecycle.batch.add(this);
-      }
-    } else {
-      this.flushBatch(LifecycleFlags.none);
-    }
-  }
-
-  public getLengthObserver(): CollectionSizeObserver {
-    if (this.lengthObserver === void 0) {
-      this.lengthObserver = new CollectionSizeObserver(this.collection);
-    }
-    return this.lengthObserver;
-  }
-
-  public flushBatch(flags: LifecycleFlags): void {
-    this.inBatch = false;
-    const { indexMap, collection } = this;
-    const { size } = collection;
-    this.indexMap = createIndexMap(size);
-    this.callCollectionSubscribers(indexMap, LifecycleFlags.updateTargetInstance | this.persistentFlags);
-    if (this.lengthObserver !== void 0) {
-      this.lengthObserver.setValue(size, LifecycleFlags.updateTargetInstance);
-    }
+  public $patch(flags: LifecycleFlags): void {
+    this.collection.forEach((value, key) => {
+      patchProperties(value, flags);
+      patchProperties(key, flags);
+    });
   }
 }
 
 export function getMapObserver(flags: LifecycleFlags, lifecycle: ILifecycle, map: IObservedMap): MapObserver {
-  if (map.$observer === void 0) {
-    map.$observer = new MapObserver(flags, lifecycle, map);
-  }
-  return map.$observer;
+  return (map.$observer as MapObserver) || new MapObserver(flags, lifecycle, map);
 }

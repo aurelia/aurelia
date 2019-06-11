@@ -1,20 +1,17 @@
-import { IAccessor, ILifecycle, LifecycleFlags, Priority } from '@aurelia/runtime';
-export declare class ClassAttributeAccessor implements IAccessor<string> {
-    readonly lifecycle: ILifecycle;
-    readonly obj: HTMLElement;
+import { IBindingTargetAccessor, ILifecycle, INode } from '@aurelia/runtime';
+export interface ClassAttributeAccessor extends IBindingTargetAccessor<INode, string, string> {
+}
+export declare class ClassAttributeAccessor implements ClassAttributeAccessor {
+    readonly isDOMObserver: true;
     currentValue: string;
+    doNotCache: true;
+    lifecycle: ILifecycle;
+    nameIndex: object;
+    obj: HTMLElement;
     oldValue: string;
-    readonly doNotCache: true;
-    nameIndex: Record<string, number>;
     version: number;
-    hasChanges: boolean;
-    isActive: boolean;
-    priority: Priority;
     constructor(lifecycle: ILifecycle, obj: HTMLElement);
     getValue(): string;
-    setValue(newValue: string, flags: LifecycleFlags): void;
-    flushRAF(flags: LifecycleFlags): void;
-    bind(flags: LifecycleFlags): void;
-    unbind(flags: LifecycleFlags): void;
+    setValueCore(newValue: string): void;
 }
 //# sourceMappingURL=class-attribute-accessor.d.ts.map

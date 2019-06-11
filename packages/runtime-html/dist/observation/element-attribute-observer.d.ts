@@ -1,4 +1,4 @@
-import { IBindingTargetObserver, ILifecycle, IObserverLocator, ISubscriber, ISubscriberCollection, LifecycleFlags, Priority } from '@aurelia/runtime';
+import { IBatchedCollectionSubscriber, IBindingTargetObserver, ILifecycle, IObserverLocator, IPropertySubscriber, LifecycleFlags } from '@aurelia/runtime';
 export interface IHtmlElement extends HTMLElement {
     $mObserver: MutationObserver;
     $eMObservers: Set<ElementMutationSubscription>;
@@ -6,7 +6,7 @@ export interface IHtmlElement extends HTMLElement {
 export interface ElementMutationSubscription {
     handleMutation(mutationRecords: MutationRecord[]): void;
 }
-export interface AttributeObserver extends IBindingTargetObserver<IHtmlElement, string>, ISubscriber, ISubscriberCollection {
+export interface AttributeObserver extends IBindingTargetObserver<IHtmlElement, string>, IBatchedCollectionSubscriber, IPropertySubscriber {
 }
 /**
  * Observer for handling two-way binding with attributes
@@ -14,23 +14,28 @@ export interface AttributeObserver extends IBindingTargetObserver<IHtmlElement, 
  * TODO: handle SVG/attributes with namespace
  */
 export declare class AttributeObserver implements AttributeObserver, ElementMutationSubscription {
-    readonly lifecycle: ILifecycle;
-    readonly observerLocator: IObserverLocator;
-    readonly obj: IHtmlElement;
-    readonly propertyKey: string;
-    readonly targetAttribute: string;
+    readonly isDOMObserver: true;
+    readonly persistentFlags: LifecycleFlags;
+    observerLocator: IObserverLocator;
+    lifecycle: ILifecycle;
     currentValue: unknown;
+    currentFlags: LifecycleFlags;
     oldValue: unknown;
-    hasChanges: boolean;
-    priority: Priority;
-    constructor(lifecycle: ILifecycle, observerLocator: IObserverLocator, element: Element, propertyKey: string, targetAttribute: string);
+    defaultValue: unknown;
+    obj: IHtmlElement;
+    private readonly targetAttribute;
+    constructor(flags: LifecycleFlags, lifecycle: ILifecycle, observerLocator: IObserverLocator, element: Element, targetAttribute: string, targetKey: string);
     getValue(): unknown;
-    setValue(newValue: unknown, flags: LifecycleFlags): void;
-    flushRAF(flags: LifecycleFlags): void;
+    getValueInlineStyle(): string;
+    getValueClassName(): boolean;
+    setValueCore(newValue: unknown, flags: LifecycleFlags): void;
+    setValueCoreInlineStyle(value: unknown): void;
+    setValueCoreClassName(newValue: unknown): void;
     handleMutation(mutationRecords: MutationRecord[]): void;
-    subscribe(subscriber: ISubscriber): void;
-    unsubscribe(subscriber: ISubscriber): void;
-    bind(flags: LifecycleFlags): void;
-    unbind(flags: LifecycleFlags): void;
+    handleMutationCore(): void;
+    handleMutationInlineStyle(): void;
+    handleMutationClassName(): void;
+    subscribe(subscriber: IPropertySubscriber): void;
+    unsubscribe(subscriber: IPropertySubscriber): void;
 }
 //# sourceMappingURL=element-attribute-observer.d.ts.map

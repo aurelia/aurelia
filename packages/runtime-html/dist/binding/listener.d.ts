@@ -8,6 +8,8 @@ export interface Listener extends IConnectableBinding {
  */
 export declare class Listener implements IBinding {
     dom: IDOM;
+    $nextBinding: IBinding;
+    $prevBinding: IBinding;
     $state: State;
     $scope: IScope;
     delegationStrategy: DelegationStrategy;

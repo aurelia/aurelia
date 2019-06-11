@@ -1,24 +1,23 @@
-import { IContainer, InjectArray } from '@aurelia/kernel';
-import { IAttributeDefinition } from '../../definitions';
+import { InjectArray, IRegistry } from '@aurelia/kernel';
+import { AttributeDefinition, IAttributeDefinition } from '../../definitions';
 import { INode, IRenderLocation } from '../../dom';
 import { LifecycleFlags } from '../../flags';
-import { IController, IViewFactory } from '../../lifecycle';
-import { IObserversLookup } from '../../observation';
-import { ICustomAttributeResource } from '../custom-attribute';
-export declare class With<T extends INode = INode> {
+import { IBinding, IViewFactory } from '../../lifecycle';
+import { IBindingContext } from '../../observation';
+import { ICustomAttribute, ICustomAttributeResource } from '../custom-attribute';
+export interface With<T extends INode = INode> extends ICustomAttribute<T> {
+}
+export declare class With<T extends INode = INode> implements With<T> {
     static readonly inject: InjectArray;
+    static readonly register: IRegistry['register'];
+    static readonly bindables: IAttributeDefinition['bindables'];
     static readonly kind: ICustomAttributeResource;
-    static readonly description: Required<IAttributeDefinition>;
-    readonly id: number;
-    value: object | undefined;
-    readonly $observers: IObserversLookup;
-    readonly view: IController<T>;
+    static readonly description: AttributeDefinition;
+    value: IBinding | IBindingContext;
+    private readonly currentView;
     private readonly factory;
-    private $controller;
-    private _value;
     constructor(factory: IViewFactory<T>, location: IRenderLocation<T>);
-    static register(container: IContainer): void;
-    valueChanged(newValue: unknown, oldValue: unknown, flags: LifecycleFlags): void;
+    valueChanged(this: With): void;
     binding(flags: LifecycleFlags): void;
     attaching(flags: LifecycleFlags): void;
     detaching(flags: LifecycleFlags): void;

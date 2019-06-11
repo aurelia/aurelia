@@ -37,6 +37,7 @@ export function adoptDebugMethods($type: Unwrap<typeof astTypeMap>['type'], name
   $type.prototype.toString = function (): string { return Unparser.unparse(this); };
 }
 
+/** @internal */
 export class Unparser implements AST.IVisitor<void> {
   public text: string = '';
 
@@ -288,10 +289,11 @@ export class Unparser implements AST.IVisitor<void> {
   }
 }
 
+/** @internal */
 export class Serializer implements AST.IVisitor<string> {
   public static serialize(expr: AST.IExpression): string {
     const visitor = new Serializer();
-    if (expr == null || typeof expr.accept !== 'function') {
+    if (expr === null || expr === undefined || typeof expr.accept !== 'function') {
       return `${expr}`;
     }
     return expr.accept(visitor);
@@ -419,7 +421,7 @@ function serializePrimitives(values: ReadonlyArray<unknown>): string {
 function serializePrimitive(value: unknown): string {
   if (typeof value === 'string') {
     return `"\\"${escapeString(value)}\\""`;
-  } else if (value == null) {
+  } else if (value === null || value === undefined) {
     return `"${value}"`;
   } else {
     return `${value}`;

@@ -1,208 +1,116 @@
-import {
-  IContainer,
-  InjectArray,
-  nextId,
-  PLATFORM,
-  Registration
-} from '@aurelia/kernel';
-import {
-  HooksDefinition,
-  IAttributeDefinition
-} from '../../definitions';
-import {
-  INode,
-  IRenderLocation
-} from '../../dom';
-import {
-  BindingMode,
-  BindingStrategy,
-  LifecycleFlags,
-  State
-} from '../../flags';
-import {
-  IController,
-  IViewFactory,
-  Priority,
-} from '../../lifecycle';
-import {
-  ContinuationTask,
-  ILifecycleTask,
-  LifecycleTask,
-  PromiseTask
-} from '../../lifecycle-task';
-import {
-  IObserversLookup,
-} from '../../observation';
-import { SetterObserver } from '../../observation/setter-observer';
-import { Bindable } from '../../templating/bindable';
-import {
-  CustomAttributeResource,
-  ICustomAttributeResource
-} from '../custom-attribute';
+import { InjectArray, InterfaceSymbol, IRegistry } from '@aurelia/kernel';
+import { AttributeDefinition, IAttributeDefinition } from '../../definitions';
+import { INode, IRenderLocation } from '../../dom';
+import { LifecycleFlags, State } from '../../flags';
+import { CompositionCoordinator, IView, IViewFactory } from '../../lifecycle';
+import { ProxyObserver } from '../../observation/proxy-observer';
+import { bindable } from '../../templating/bindable';
+import { CustomAttributeResource, ICustomAttribute, ICustomAttributeResource } from '../custom-attribute';
 
-export class If<T extends INode = INode> {
-  public static readonly inject: InjectArray = [IViewFactory, IRenderLocation];
+export interface If<T extends INode = INode> extends ICustomAttribute<T> {}
+export class If<T extends INode = INode> implements If<T> {
+  public static readonly inject: InjectArray = [IViewFactory, IRenderLocation, CompositionCoordinator];
 
-  public static readonly kind: ICustomAttributeResource = CustomAttributeResource;
-  public static readonly description: Required<IAttributeDefinition> = Object.freeze({
-    name: 'if',
-    aliases: PLATFORM.emptyArray as typeof PLATFORM.emptyArray & string[],
-    defaultBindingMode: BindingMode.toView,
-    hasDynamicOptions: false,
-    isTemplateController: true,
-    bindables: Object.freeze(Bindable.for({ bindables: ['value'] }).get()),
-    strategy: BindingStrategy.getterSetter,
-    hooks: Object.freeze(new HooksDefinition(If.prototype)),
-  });
+  public static readonly register: IRegistry['register'];
+  public static readonly bindables: IAttributeDefinition['bindables'];
+  public static readonly kind: ICustomAttributeResource;
+  public static readonly description: AttributeDefinition;
 
-  public readonly id: number;
+  @bindable public value: boolean;
 
-  public get value(): boolean {
-    return this._value;
-  }
-  public set value(newValue: boolean) {
-    const oldValue = this._value;
-    if (oldValue !== newValue) {
-      this._value = newValue;
-      this.valueChanged(newValue, oldValue, this.$controller.flags);
-    }
-  }
-
-  public readonly $observers: IObserversLookup = {
-    value: this as this & SetterObserver,
-  };
-
-  public elseFactory?: IViewFactory<T>;
-  public elseView?: IController<T>;
+  public elseFactory: IViewFactory<T> | null;
+  public elseView: IView<T> | null;
   public ifFactory: IViewFactory<T>;
-  public ifView?: IController<T>;
+  public ifView: IView<T> | null;
   public location: IRenderLocation<T>;
-  public readonly noProxy: true;
-  public view?: IController<T>;
-
-  private task: ILifecycleTask;
-  // tslint:disable-next-line: prefer-readonly // This is set by the controller after this instance is constructed
-  public $controller!: IController<T>;
-
-  private _value: boolean;
+  public coordinator: CompositionCoordinator;
+  private persistentFlags: LifecycleFlags;
 
   constructor(
     ifFactory: IViewFactory<T>,
     location: IRenderLocation<T>,
+    coordinator: CompositionCoordinator
   ) {
-    this.id = nextId('au$component');
+    this.value = false;
 
-    this.elseFactory = void 0;
-    this.elseView = void 0;
+    this.coordinator = coordinator;
+    this.elseFactory = null;
+    this.elseView = null;
     this.ifFactory = ifFactory;
-    this.ifView = void 0;
+    this.ifView = null;
     this.location = location;
-    this.noProxy = true;
-
-    this.task = LifecycleTask.done;
-    this.view = void 0;
-
-    this._value = false;
+    this.persistentFlags = LifecycleFlags.none;
   }
 
-  public static register(container: IContainer): void {
-    container.register(Registration.transient('custom-attribute:if', this));
-    container.register(Registration.transient(this, this));
-  }
-
-  public getValue(): boolean {
-    return this._value;
-  }
-
-  public setValue(newValue: boolean, flags: LifecycleFlags): void {
-    const oldValue = this._value;
-    if (oldValue !== newValue) {
-      this._value = newValue;
-      this.valueChanged(newValue, oldValue, flags | this.$controller.flags);
-    }
-  }
-
-  public binding(flags: LifecycleFlags): ILifecycleTask {
-    if (this.task.done) {
-      this.task = this.swap(this.value, flags);
-    } else {
-      this.task = new ContinuationTask(this.task, this.swap, this, this.value, flags);
-    }
-
-    return this.task;
+  public binding(flags: LifecycleFlags): void {
+    this.persistentFlags = flags & LifecycleFlags.persistentBindingFlags;
+    const view = this.updateView(flags);
+    this.coordinator.compose(view, flags);
+    this.coordinator.binding(flags, this.$scope);
   }
 
   public attaching(flags: LifecycleFlags): void {
-    if (this.task.done) {
-      this.attachView(flags);
-    } else {
-      this.task = new ContinuationTask(this.task, this.attachView, this, flags);
-    }
+    this.coordinator.attaching(flags);
   }
 
-  public detaching(flags: LifecycleFlags): ILifecycleTask {
-    if (this.view !== void 0) {
-      if (this.task.done) {
-        this.view.detach(flags);
-      } else {
-        this.task = new ContinuationTask(this.task, this.view.detach, this.view, flags);
-      }
-    }
-
-    return this.task;
+  public detaching(flags: LifecycleFlags): void {
+    this.coordinator.detaching(flags);
   }
 
-  public unbinding(flags: LifecycleFlags): ILifecycleTask {
-    if (this.view !== void 0) {
-      if (this.task.done) {
-        this.task = this.view.unbind(flags);
-      } else {
-        this.task = new ContinuationTask(this.task, this.view.unbind, this.view, flags);
-      }
-    }
-
-    return this.task;
+  public unbinding(flags: LifecycleFlags): void {
+    this.coordinator.unbinding(flags);
   }
 
   public caching(flags: LifecycleFlags): void {
-    if (this.ifView !== void 0 && this.ifView.release(flags)) {
-      this.ifView = void 0;
+    if (this.ifView !== null && this.ifView.release(flags)) {
+      this.ifView = null;
     }
 
-    if (this.elseView !== void 0 && this.elseView.release(flags)) {
-      this.elseView = void 0;
+    if (this.elseView !== null && this.elseView.release(flags)) {
+      this.elseView = null;
     }
 
-    this.view = void 0;
+    this.coordinator.caching(flags);
   }
 
   public valueChanged(newValue: boolean, oldValue: boolean, flags: LifecycleFlags): void {
-    if ((this.$controller.state & State.isBound) === 0) {
-      return;
-    }
-    if (this.task.done) {
-      this.task = this.swap(this.value, flags);
-    } else {
-      this.task = new ContinuationTask(this.task, this.swap, this, this.value, flags);
+    if (this.$state & (State.isBound | State.isBinding)) {
+      flags |= this.persistentFlags;
+      const $this = ProxyObserver.getRawIfProxy(this);
+      if (flags & LifecycleFlags.fromFlush) {
+        const view = $this.updateView(flags);
+        $this.coordinator.compose(view, flags);
+      } else {
+        $this.$lifecycle.enqueueFlush($this).catch(error => { throw error; });
+      }
     }
   }
 
+  public flush(flags: LifecycleFlags): void {
+    flags |= this.persistentFlags;
+    const $this = ProxyObserver.getRawIfProxy(this);
+    const view = $this.updateView(flags);
+    $this.coordinator.compose(view, flags);
+  }
+
   /** @internal */
-  public updateView(value: boolean, flags: LifecycleFlags): IController<T> | undefined {
-    let view: IController<T> | undefined;
-    if (value) {
+  public updateView(flags: LifecycleFlags): IView<T> | null {
+    let view: IView<T> | null;
+
+    if (this.value) {
       view = this.ifView = this.ensureView(this.ifView, this.ifFactory, flags);
-    } else if (this.elseFactory != void 0) {
+    } else if (this.elseFactory !== null) {
       view = this.elseView  = this.ensureView(this.elseView, this.elseFactory, flags);
     } else {
-      view = void 0;
+      view = null;
     }
+
     return view;
   }
 
   /** @internal */
-  public ensureView(view: IController<T> | undefined, factory: IViewFactory<T>, flags: LifecycleFlags): IController<T> {
-    if (view === void 0) {
+  public ensureView(view: IView<T> | null, factory: IViewFactory<T>, flags: LifecycleFlags): IView<T> {
+    if (view === null) {
       view = factory.create(flags);
     }
 
@@ -210,80 +118,17 @@ export class If<T extends INode = INode> {
 
     return view;
   }
-
-  private swap(value: boolean, flags: LifecycleFlags): ILifecycleTask {
-    let task: ILifecycleTask = LifecycleTask.done;
-    if (
-      (value === true && this.elseView !== void 0)
-      || (value !== true && this.ifView !== void 0)
-    ) {
-      task = this.deactivate(flags);
-    }
-    if (task.done) {
-      const view = this.updateView(value, flags);
-      task = this.activate(view, flags);
-    } else {
-      task = new PromiseTask<[LifecycleFlags], IController<T> | undefined>(task.wait().then(() => this.updateView(value, flags)), this.activate, this, flags);
-    }
-    return task;
-  }
-
-  private deactivate(flags: LifecycleFlags): ILifecycleTask {
-    const view = this.view;
-    if (view === void 0) {
-      return LifecycleTask.done;
-    }
-
-    view.detach(flags); // TODO: link this up with unbind
-    return view.unbind(flags);
-  }
-
-  private activate(view: IController<T> | undefined, flags: LifecycleFlags): ILifecycleTask {
-    this.view = view;
-    if (view === void 0) {
-      return LifecycleTask.done;
-    }
-    let task = this.bindView(flags);
-    if ((this.$controller.state & State.isAttached) === 0) {
-      return task;
-    }
-
-    if (task.done) {
-      this.attachView(flags);
-    } else {
-      task = new ContinuationTask(task, this.attachView, this, flags);
-    }
-    return task;
-  }
-
-  private bindView(flags: LifecycleFlags): ILifecycleTask {
-    if (this.view !== void 0 && (this.$controller.state & State.isBoundOrBinding) > 0) {
-      return this.view.bind(flags, this.$controller.scope);
-    }
-    return LifecycleTask.done;
-  }
-
-  private attachView(flags: LifecycleFlags): void {
-    if (this.view !== void 0 && (this.$controller.state & State.isAttachedOrAttaching) > 0) {
-      this.view.attach(flags);
-    }
-  }
 }
+CustomAttributeResource.define({ name: 'if', isTemplateController: true }, If);
 
-export class Else<T extends INode = INode> {
+export interface Else<T extends INode = INode> extends ICustomAttribute<T> {}
+export class Else<T extends INode = INode> implements Else<T> {
   public static readonly inject: InjectArray = [IViewFactory];
 
-  public static readonly kind: ICustomAttributeResource = CustomAttributeResource;
-  public static readonly description: Required<IAttributeDefinition> = {
-    name: 'else',
-    aliases: PLATFORM.emptyArray as typeof PLATFORM.emptyArray & string[],
-    defaultBindingMode: BindingMode.toView,
-    hasDynamicOptions: false,
-    isTemplateController: true,
-    bindables: PLATFORM.emptyObject,
-    strategy: BindingStrategy.getterSetter,
-    hooks: HooksDefinition.none,
-  };
+  public static readonly register: IRegistry['register'];
+  public static readonly bindables: IAttributeDefinition['bindables'];
+  public static readonly kind: ICustomAttributeResource;
+  public static readonly description: AttributeDefinition;
 
   private readonly factory: IViewFactory<T>;
 
@@ -291,17 +136,8 @@ export class Else<T extends INode = INode> {
     this.factory = factory;
   }
 
-  public static register(container: IContainer): void {
-    container.register(Registration.transient('custom-attribute:else', this));
-  }
-
-  public link(ifBehavior: If<T> | IController<T>): void {
-    if (ifBehavior instanceof If) {
-      ifBehavior.elseFactory = this.factory;
-    } else if (ifBehavior.viewModel instanceof If) {
-      ifBehavior.viewModel.elseFactory = this.factory;
-    } else {
-      throw new Error(`Unsupported IfBehavior`); // TODO: create error code
-    }
+  public link(ifBehavior: If<T>): void {
+    ifBehavior.elseFactory = this.factory;
   }
 }
+CustomAttributeResource.define({ name: 'else', isTemplateController: true }, Else);

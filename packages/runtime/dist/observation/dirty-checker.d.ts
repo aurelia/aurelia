@@ -1,5 +1,5 @@
 import { LifecycleFlags } from '../flags';
-import { IBindingTargetObserver, IObservable, ISubscriber } from '../observation';
+import { IBindingTargetObserver, IObservable, IPropertySubscriber } from '../observation';
 export interface IDirtyChecker {
     createProperty(obj: IObservable, propertyName: string): IBindingTargetObserver;
     addProperty(property: DirtyCheckProperty): void;
@@ -50,7 +50,7 @@ export declare class DirtyCheckProperty implements DirtyCheckProperty {
     constructor(dirtyChecker: IDirtyChecker, obj: IObservable, propertyKey: string);
     isDirty(): boolean;
     flush(flags: LifecycleFlags): void;
-    subscribe(subscriber: ISubscriber): void;
-    unsubscribe(subscriber: ISubscriber): void;
+    subscribe(subscriber: IPropertySubscriber): void;
+    unsubscribe(subscriber: IPropertySubscriber): void;
 }
 //# sourceMappingURL=dirty-checker.d.ts.map

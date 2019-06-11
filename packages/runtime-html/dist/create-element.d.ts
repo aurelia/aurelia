@@ -1,7 +1,7 @@
-import { Constructable, IContainer, IRegistry } from '@aurelia/kernel';
-import { IController, ICustomElementType, IDOM, INode, IRenderContext, IRenderingEngine, ITemplate, IViewFactory, LifecycleFlags, TemplateDefinition } from '@aurelia/runtime';
+import { Constructable, IRegistry } from '@aurelia/kernel';
+import { ICustomElementType, IDOM, INode, IRenderContext, IRenderingEngine, ITemplate, IView, IViewFactory, LifecycleFlags, TemplateDefinition } from '@aurelia/runtime';
 import { HTMLTargetedInstruction } from './definitions';
-export declare function createElement<T extends INode = Node, C extends Constructable = Constructable>(dom: IDOM<T>, tagOrType: string | C, props?: Record<string, string | HTMLTargetedInstruction>, children?: ArrayLike<unknown>): RenderPlan<T>;
+export declare function createElement<T extends INode = Node>(dom: IDOM<T>, tagOrType: string | Constructable, props?: Record<string, string | HTMLTargetedInstruction>, children?: ArrayLike<unknown>): RenderPlan<T>;
 /**
  * RenderPlan. Todo: describe goal of this class
  */
@@ -10,11 +10,11 @@ export declare class RenderPlan<T extends INode = Node> {
     private readonly dependencies;
     private readonly instructions;
     private readonly node;
-    private lazyDefinition?;
+    private lazyDefinition;
     constructor(dom: IDOM<T>, node: T, instructions: HTMLTargetedInstruction[][], dependencies: ReadonlyArray<IRegistry>);
     readonly definition: TemplateDefinition;
-    getElementTemplate(engine: IRenderingEngine, Type?: ICustomElementType): ITemplate<T>;
-    createView(flags: LifecycleFlags, engine: IRenderingEngine, parentContext?: IRenderContext<T> | IContainer): IController;
-    getViewFactory(engine: IRenderingEngine, parentContext?: IRenderContext<T> | IContainer): IViewFactory;
+    getElementTemplate(engine: IRenderingEngine, Type?: ICustomElementType<T>): ITemplate<T>;
+    createView(flags: LifecycleFlags, engine: IRenderingEngine, parentContext?: IRenderContext): IView;
+    getViewFactory(engine: IRenderingEngine, parentContext?: IRenderContext): IViewFactory;
 }
 //# sourceMappingURL=create-element.d.ts.map

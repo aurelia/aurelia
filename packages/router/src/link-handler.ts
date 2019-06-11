@@ -1,5 +1,4 @@
 import { Reporter } from '@aurelia/kernel';
-import { DOM } from '@aurelia/runtime-html';
 
 /**
  * Provides information about how to handle an anchor event.
@@ -33,11 +32,17 @@ export interface AnchorEventInfo {
  * Class responsible for handling interactions that should trigger navigation.
  */
 export class LinkHandler {
+  private static readonly window: Window;
+
   private options: ILinkHandlerOptions;
   private isActive: boolean = false;
 
   // private handler: EventListener;
+  private readonly document: Document;
 
+  constructor() {
+    this.document = document;
+  }
   /**
    * Gets the href and a "should handle" recommendation, given an Event.
    *
@@ -96,7 +101,7 @@ export class LinkHandler {
    */
   private static targetIsThisWindow(target: Element): boolean {
     const targetWindow = target.getAttribute('target');
-    const win = DOM.window;
+    const win = LinkHandler.window;
 
     return !targetWindow ||
       targetWindow === win.name ||
@@ -115,14 +120,14 @@ export class LinkHandler {
     this.isActive = true;
     this.options = { ...options };
 
-    DOM.document.addEventListener('click', this.handler, true);
+    this.document.addEventListener('click', this.handler, true);
   }
 
   /**
    * Deactivate the instance. Event handlers and other resources should be cleaned up here.
    */
   public deactivate(): void {
-    DOM.document.removeEventListener('click', this.handler, true);
+    this.document.removeEventListener('click', this.handler, true);
     this.isActive = false;
   }
 

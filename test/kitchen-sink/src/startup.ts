@@ -10,6 +10,7 @@ import {
   ElseRegistration,
   RepeatRegistration,
   ReplaceableRegistration,
+  KeyedBindingBehaviorRegistration,
   OneTimeBindingBehaviorRegistration,
   TwoWayBindingBehaviorRegistration,
   CustomElementRendererRegistration,
@@ -53,7 +54,7 @@ import {
   Router
 } from '@aurelia/router';
 import { App } from './app';
-import { DI, PLATFORM, Tracer, camelCase } from '@aurelia/kernel';
+import { DI, PLATFORM, Tracer } from '@aurelia/kernel';
 
 window['faker'] = faker;
 
@@ -85,6 +86,7 @@ const container = DI.createContainer().register(
   RepeatRegistration,
   ReplaceableRegistration,
 
+  KeyedBindingBehaviorRegistration,
   OneTimeBindingBehaviorRegistration,
   TwoWayBindingBehaviorRegistration,
 
@@ -141,7 +143,7 @@ const container = DI.createContainer().register(
   // custom inline registrations
   ValueConverterResource.define('pascal', class {
     public toView(input: string): string {
-      const camel = camelCase(input);
+      const camel = PLATFORM.camelCase(input);
       return camel.slice(0, 1).toUpperCase() + camel.slice(1);
     }
   }),

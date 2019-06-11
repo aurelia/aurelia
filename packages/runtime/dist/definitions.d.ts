@@ -1,4 +1,4 @@
-import { Constructable, IRegistry, IResourceDefinition, Omit, ResourceDescription, ResourcePartDescription } from '@aurelia/kernel';
+import { Constructable, Immutable, IRegistry, IResourceDefinition, Omit, ResourceDescription, ResourcePartDescription } from '@aurelia/kernel';
 import { IForOfStatement, IInterpolationExpression, IsBindingBehavior } from './ast';
 import { BindingMode, BindingStrategy } from './flags';
 export declare type IElementHydrationOptions = {
@@ -51,11 +51,10 @@ export interface ITemplateDefinition extends IResourceDefinition {
     };
     hasSlots?: boolean;
     strategy?: BindingStrategy;
-    hooks?: Readonly<HooksDefinition>;
 }
 export declare type TemplateDefinition = ResourceDescription<ITemplateDefinition>;
 export declare type TemplatePartDefinitions = Record<string, ResourcePartDescription<ITemplateDefinition>>;
-export declare type BindableDefinitions = Record<string, IBindableDescription>;
+export declare type BindableDefinitions = Record<string, Immutable<IBindableDescription>>;
 export interface IAttributeDefinition extends IResourceDefinition {
     defaultBindingMode?: BindingMode;
     aliases?: string[];
@@ -63,9 +62,8 @@ export interface IAttributeDefinition extends IResourceDefinition {
     hasDynamicOptions?: boolean;
     bindables?: Record<string, IBindableDescription> | string[];
     strategy?: BindingStrategy;
-    hooks?: Readonly<HooksDefinition>;
 }
-export declare type AttributeDefinition = Required<IAttributeDefinition> | null;
+export declare type AttributeDefinition = Immutable<Required<IAttributeDefinition>> | null;
 export declare type InstructionTypeName = string;
 export declare const ITargetedInstruction: import("@aurelia/kernel").InterfaceSymbol<ITargetedInstruction>;
 export interface ITargetedInstruction {
@@ -124,7 +122,6 @@ export interface IHydrateTemplateController extends ITargetedInstruction {
     instructions: ITargetedInstruction[];
     def: ITemplateDefinition;
     link?: boolean;
-    parts?: Record<string, ITemplateDefinition>;
 }
 export interface IHydrateLetElementInstruction extends ITargetedInstruction {
     type: TargetedInstructionType.hydrateLetElement;
@@ -136,29 +133,14 @@ export interface ILetBindingInstruction extends ITargetedInstruction {
     from: string | IsBindingBehavior | IInterpolationExpression;
     to: string;
 }
-export declare class HooksDefinition {
-    static readonly none: Readonly<HooksDefinition>;
-    readonly hasRender: boolean;
-    readonly hasCreated: boolean;
-    readonly hasBinding: boolean;
-    readonly hasBound: boolean;
-    readonly hasUnbinding: boolean;
-    readonly hasUnbound: boolean;
-    readonly hasAttaching: boolean;
-    readonly hasAttached: boolean;
-    readonly hasDetaching: boolean;
-    readonly hasDetached: boolean;
-    readonly hasCaching: boolean;
-    constructor(target: object);
-}
 export declare type CustomElementConstructor = Constructable & {
     containerless?: TemplateDefinition['containerless'];
     shadowOptions?: TemplateDefinition['shadowOptions'];
     bindables?: TemplateDefinition['bindables'];
 };
 export declare function buildTemplateDefinition(ctor: CustomElementConstructor, name: string): TemplateDefinition;
-export declare function buildTemplateDefinition(ctor: null, def: ITemplateDefinition): TemplateDefinition;
-export declare function buildTemplateDefinition(ctor: CustomElementConstructor | null, nameOrDef: string | ITemplateDefinition): TemplateDefinition;
+export declare function buildTemplateDefinition(ctor: null, def: Immutable<ITemplateDefinition>): TemplateDefinition;
+export declare function buildTemplateDefinition(ctor: CustomElementConstructor | null, nameOrDef: string | Immutable<ITemplateDefinition>): TemplateDefinition;
 export declare function buildTemplateDefinition(ctor: CustomElementConstructor | null, name: string | null, template: unknown, cache?: number | '*' | null, build?: IBuildInstruction | boolean | null, bindables?: Record<string, IBindableDescription> | null, instructions?: ReadonlyArray<ReadonlyArray<ITargetedInstruction>> | null, dependencies?: ReadonlyArray<unknown> | null, surrogates?: ReadonlyArray<ITargetedInstruction> | null, containerless?: boolean | null, shadowOptions?: {
     mode: 'open' | 'closed';
 } | null, hasSlots?: boolean | null, strategy?: BindingStrategy | null): TemplateDefinition;

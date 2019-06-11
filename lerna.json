@@ -4,9 +4,8 @@
       "hoist": "**"
     }
   },
-  "lerna": "3.13.4",
+  "lerna": "3.13.0",
   "packages": [
-    "packages/__tests__",
     "packages/aot",
     "packages/debug",
     "packages/fetch-client",
@@ -14,9 +13,9 @@
     "packages/jit-html",
     "packages/jit-html-browser",
     "packages/jit-html-jsdom",
+    "packages/jit-pixi",
     "packages/kernel",
     "packages/plugin-parcel",
-    "packages/plugin-pixi",
     "packages/plugin-requirejs",
     "packages/plugin-svg",
     "packages/plugin-webpack",
@@ -25,6 +24,7 @@
     "packages/runtime-html",
     "packages/runtime-html-browser",
     "packages/runtime-html-jsdom",
+    "packages/runtime-pixi",
     "packages/store",
     "packages/testing",
     "packages/validation"

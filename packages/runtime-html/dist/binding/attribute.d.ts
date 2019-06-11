@@ -1,14 +1,17 @@
 import { IServiceLocator } from '@aurelia/kernel';
-import { AccessorOrObserver, BindingMode, IConnectableBinding, IForOfStatement, ILifecycle, IObserverLocator, IPartialConnectableBinding, IsBindingBehavior, IScope, LifecycleFlags, State } from '@aurelia/runtime';
+import { AccessorOrObserver, BindingMode, IBinding, IConnectableBinding, IForOfStatement, ILifecycle, IObserverLocator, IPartialConnectableBinding, IsBindingBehavior, IScope, LifecycleFlags, State } from '@aurelia/runtime';
 export interface AttributeBinding extends IConnectableBinding {
 }
 /**
  * Attribute binding. Handle attribute binding betwen view/view model. Understand Html special attributes
  */
 export declare class AttributeBinding implements IPartialConnectableBinding {
-    id: number;
+    $nextBinding: IBinding;
+    $prevBinding: IBinding;
     $state: State;
     $lifecycle: ILifecycle;
+    $nextConnect: IConnectableBinding;
+    $nextPatch: IConnectableBinding;
     $scope: IScope;
     locator: IServiceLocator;
     mode: BindingMode;
@@ -29,5 +32,6 @@ export declare class AttributeBinding implements IPartialConnectableBinding {
     $bind(flags: LifecycleFlags, scope: IScope): void;
     $unbind(flags: LifecycleFlags): void;
     connect(flags: LifecycleFlags): void;
+    patch(flags: LifecycleFlags): void;
 }
 //# sourceMappingURL=attribute.d.ts.map

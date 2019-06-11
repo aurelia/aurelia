@@ -1,19 +1,17 @@
-import { InjectArray } from '@aurelia/kernel';
-import { ILifecycle } from '@aurelia/runtime';
 export interface QueuedBrowserHistory extends History {
     activate(callback: (ev?: PopStateEvent) => void): void;
     deactivate(): void;
 }
 export declare class QueuedBrowserHistory implements QueuedBrowserHistory {
-    static readonly inject: InjectArray;
-    private readonly lifecycle;
+    window: Window;
+    history: History;
     private readonly queue;
     private isActive;
     private currentHistoryActivity;
     private callback;
     private goResolve;
     private suppressPopstateResolve;
-    constructor(lifecycle: ILifecycle);
+    constructor();
     readonly length: number;
     readonly state: any;
     readonly scrollRestoration: ScrollRestoration;

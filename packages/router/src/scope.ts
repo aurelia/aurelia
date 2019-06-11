@@ -18,7 +18,7 @@ export type ChildContainer = IContainer & { parent?: ChildContainer };
 
 export class Scope {
   public element: Element;
-  public context: IRenderContext | IContainer;
+  public context: IRenderContext;
   public parent: Scope;
 
   public viewport: Viewport;
@@ -31,7 +31,7 @@ export class Scope {
   private viewportInstructions: ViewportInstruction[];
   private availableViewports: Record<string, Viewport>;
 
-  constructor(router: Router, element: Element, context: IRenderContext | IContainer, parent: Scope) {
+  constructor(router: Router, element: Element, context: IRenderContext, parent: Scope) {
     this.router = router;
     this.element = element;
     this.context = context;
@@ -163,7 +163,7 @@ export class Scope {
     };
   }
 
-  public addViewport(name: string, element: Element, context: IRenderContext | IContainer, options?: IViewportOptions): Viewport {
+  public addViewport(name: string, element: Element, context: IRenderContext, options?: IViewportOptions): Viewport {
     let viewport = this.getEnabledViewports()[name];
     // Each au-viewport element has its own Viewport
     if (element && viewport && viewport.element !== null && viewport.element !== element) {
@@ -189,7 +189,7 @@ export class Scope {
     }
     return viewport;
   }
-  public removeViewport(viewport: Viewport, element: Element, context: IRenderContext | IContainer): number {
+  public removeViewport(viewport: Viewport, element: Element, context: IRenderContext): number {
     if ((!element && !context) || viewport.remove(element, context)) {
       if (viewport.scope) {
         this.router.removeScope(viewport.scope);

@@ -1,11 +1,12 @@
 import { Primitive } from '@aurelia/kernel';
-import { IAccessor, ISubscribable } from '../observation';
-export declare class PrimitiveObserver implements IAccessor, ISubscribable {
+import { IAccessor, ISubscribable, MutationKind } from '../observation';
+export declare class PrimitiveObserver implements IAccessor, ISubscribable<MutationKind.instance> {
     getValue: () => undefined | number;
     setValue: () => void;
     subscribe: () => void;
     unsubscribe: () => void;
     dispose: () => void;
+    $patch: () => void;
     doNotCache: boolean;
     obj: Primitive;
     constructor(obj: Primitive, propertyKey: PropertyKey);

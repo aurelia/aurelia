@@ -1,51 +1,44 @@
-import { IContainer, InjectArray } from '@aurelia/kernel';
-import { IAttributeDefinition } from '../../definitions';
+import { InjectArray, IRegistry } from '@aurelia/kernel';
+import { AttributeDefinition, IAttributeDefinition } from '../../definitions';
 import { INode, IRenderLocation } from '../../dom';
 import { LifecycleFlags } from '../../flags';
-import { IController, IViewFactory } from '../../lifecycle';
-import { ILifecycleTask } from '../../lifecycle-task';
-import { IObserversLookup } from '../../observation';
-import { ICustomAttributeResource } from '../custom-attribute';
-export declare class If<T extends INode = INode> {
+import { CompositionCoordinator, IView, IViewFactory } from '../../lifecycle';
+import { ICustomAttribute, ICustomAttributeResource } from '../custom-attribute';
+export interface If<T extends INode = INode> extends ICustomAttribute<T> {
+}
+export declare class If<T extends INode = INode> implements If<T> {
     static readonly inject: InjectArray;
+    static readonly register: IRegistry['register'];
+    static readonly bindables: IAttributeDefinition['bindables'];
     static readonly kind: ICustomAttributeResource;
-    static readonly description: Required<IAttributeDefinition>;
-    readonly id: number;
+    static readonly description: AttributeDefinition;
     value: boolean;
-    readonly $observers: IObserversLookup;
-    elseFactory?: IViewFactory<T>;
-    elseView?: IController<T>;
+    elseFactory: IViewFactory<T> | null;
+    elseView: IView<T> | null;
     ifFactory: IViewFactory<T>;
-    ifView?: IController<T>;
+    ifView: IView<T> | null;
     location: IRenderLocation<T>;
-    readonly noProxy: true;
-    view?: IController<T>;
-    private task;
-    $controller: IController<T>;
-    private _value;
-    constructor(ifFactory: IViewFactory<T>, location: IRenderLocation<T>);
-    static register(container: IContainer): void;
-    getValue(): boolean;
-    setValue(newValue: boolean, flags: LifecycleFlags): void;
-    binding(flags: LifecycleFlags): ILifecycleTask;
+    coordinator: CompositionCoordinator;
+    private persistentFlags;
+    constructor(ifFactory: IViewFactory<T>, location: IRenderLocation<T>, coordinator: CompositionCoordinator);
+    binding(flags: LifecycleFlags): void;
     attaching(flags: LifecycleFlags): void;
-    detaching(flags: LifecycleFlags): ILifecycleTask;
-    unbinding(flags: LifecycleFlags): ILifecycleTask;
+    detaching(flags: LifecycleFlags): void;
+    unbinding(flags: LifecycleFlags): void;
     caching(flags: LifecycleFlags): void;
     valueChanged(newValue: boolean, oldValue: boolean, flags: LifecycleFlags): void;
-    private swap;
-    private deactivate;
-    private activate;
-    private bindView;
-    private attachView;
+    flush(flags: LifecycleFlags): void;
 }
-export declare class Else<T extends INode = INode> {
+export interface Else<T extends INode = INode> extends ICustomAttribute<T> {
+}
+export declare class Else<T extends INode = INode> implements Else<T> {
     static readonly inject: InjectArray;
+    static readonly register: IRegistry['register'];
+    static readonly bindables: IAttributeDefinition['bindables'];
     static readonly kind: ICustomAttributeResource;
-    static readonly description: Required<IAttributeDefinition>;
+    static readonly description: AttributeDefinition;
     private readonly factory;
     constructor(factory: IViewFactory<T>);
-    static register(container: IContainer): void;
-    link(ifBehavior: If<T> | IController<T>): void;
+    link(ifBehavior: If<T>): void;
 }
 //# sourceMappingURL=if.d.ts.map

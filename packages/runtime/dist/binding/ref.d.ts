@@ -7,8 +7,10 @@ import { IConnectableBinding } from './connectable';
 export interface Ref extends IConnectableBinding {
 }
 export declare class Ref implements IBinding {
+    $nextBinding: IBinding;
+    $prevBinding: IBinding;
     $state: State;
-    $scope?: IScope;
+    $scope: IScope;
     locator: IServiceLocator;
     sourceExpression: IsBindingBehavior;
     target: IObservable;

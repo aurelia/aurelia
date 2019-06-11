@@ -1,165 +1,97 @@
 import { LifecycleFlags as LF } from '../flags';
 import {
-  ICollectionSubscriber,
-  ICollectionSubscriberCollection,
+  IBatchedCollectionSubscriber,
+  IBatchedSubscriberCollection,
   IndexMap,
-  IProxySubscriber,
-  IProxySubscriberCollection,
-  ISubscriber,
+  IPropertySubscriber,
   ISubscriberCollection,
+  MutationKind,
+  MutationKindToBatchedSubscriber,
+  MutationKindToSubscriber,
   SubscriberFlags as SF
 } from '../observation';
 
-// TODO: see if we can de-duplicate these 3 decorators and their functions without killing performance or readability
-
-export function subscriberCollection(): ClassDecorator {
+export function subscriberCollection<T extends MutationKind>(mutationKind: T): ClassDecorator {
   // tslint:disable-next-line:ban-types // ClassDecorator expects it to be derived from Function
   return function(target: Function): void {
-    const proto = target.prototype as ISubscriberCollection;
+    const proto = target.prototype as ISubscriberCollection<MutationKind.instance | MutationKind.collection | MutationKind.proxy>;
 
     proto._subscriberFlags = SF.None;
+    proto._subscriber0 = null;
+    proto._subscriber1 = null;
+    proto._subscriber2 = null;
+    proto._subscribersRest = null;
 
     proto.addSubscriber = addSubscriber;
     proto.removeSubscriber = removeSubscriber;
     proto.hasSubscriber = hasSubscriber;
     proto.hasSubscribers = hasSubscribers;
-    proto.callSubscribers = callSubscribers;
-
-    if (proto.subscribe === void 0) proto.subscribe = addSubscriber;
-    if (proto.unsubscribe === void 0) proto.unsubscribe = removeSubscriber;
+    switch (mutationKind) {
+      case MutationKind.instance:
+        proto.callSubscribers = callPropertySubscribers;
+        break;
+      case MutationKind.collection:
+        proto.callSubscribers = callCollectionSubscribers;
+        break;
+      case MutationKind.proxy:
+        proto.callSubscribers = callProxySubscribers;
+    }
   };
 }
 
-export function proxySubscriberCollection(): ClassDecorator {
-  // tslint:disable-next-line:ban-types // ClassDecorator expects it to be derived from Function
-  return function(target: Function): void {
-    const proto = target.prototype as IProxySubscriberCollection;
-
-    proto._proxySubscriberFlags = SF.None;
-
-    proto.addProxySubscriber = addProxySubscriber;
-    proto.removeProxySubscriber = removeProxySubscriber;
-    proto.hasProxySubscriber = hasProxySubscriber;
-    proto.hasProxySubscribers = hasProxySubscribers;
-    proto.callProxySubscribers = callProxySubscribers;
-
-    if (proto.subscribeToProxy === void 0) proto.subscribeToProxy = addProxySubscriber;
-    if (proto.unsubscribeFromProxy === void 0) proto.unsubscribeFromProxy = removeProxySubscriber;
-  };
-}
-
-export function collectionSubscriberCollection(): ClassDecorator {
-  // tslint:disable-next-line:ban-types // ClassDecorator expects it to be derived from Function
-  return function(target: Function): void {
-    const proto = target.prototype as ICollectionSubscriberCollection;
-
-    proto._collectionSubscriberFlags = SF.None;
-
-    proto.addCollectionSubscriber = addCollectionSubscriber;
-    proto.removeCollectionSubscriber = removeCollectionSubscriber;
-    proto.hasCollectionSubscriber = hasCollectionSubscriber;
-    proto.hasCollectionSubscribers = hasCollectionSubscribers;
-    proto.callCollectionSubscribers = callCollectionSubscribers;
-
-    if (proto.subscribeToCollection === void 0) proto.subscribeToCollection = addCollectionSubscriber;
-    if (proto.unsubscribeFromCollection === void 0) proto.unsubscribeFromCollection = removeCollectionSubscriber;
-  };
-}
-
-function addSubscriber(this: ISubscriberCollection, subscriber: ISubscriber): boolean {
+function addSubscriber<T extends MutationKind>(this: ISubscriberCollection<T>, subscriber: MutationKindToSubscriber<T>): boolean {
   if (this.hasSubscriber(subscriber)) {
     return false;
   }
   const subscriberFlags = this._subscriberFlags;
-  if ((subscriberFlags & SF.Subscriber0) === 0) {
+  if (!(subscriberFlags & SF.Subscriber0)) {
     this._subscriber0 = subscriber;
     this._subscriberFlags |= SF.Subscriber0;
-  } else if ((subscriberFlags & SF.Subscriber1) === 0) {
+    return true;
+  }
+  if (!(subscriberFlags & SF.Subscriber1)) {
     this._subscriber1 = subscriber;
     this._subscriberFlags |= SF.Subscriber1;
-  } else if ((subscriberFlags & SF.Subscriber2) === 0) {
+    return true;
+  }
+  if (!(subscriberFlags & SF.Subscriber2)) {
     this._subscriber2 = subscriber;
     this._subscriberFlags |= SF.Subscriber2;
-  } else if ((subscriberFlags & SF.SubscribersRest) === 0) {
+    return true;
+  }
+  if (!(subscriberFlags & SF.SubscribersRest)) {
     this._subscribersRest = [subscriber];
     this._subscriberFlags |= SF.SubscribersRest;
-  } else {
-    // tslint:disable-next-line: no-non-null-assertion // Non-null is implied by else branch of (subscriberFlags & SF.SubscribersRest) === 0
-    this._subscribersRest!.push(subscriber);
+    return true;
   }
+  this._subscribersRest.push(subscriber);
   return true;
 }
 
-function addProxySubscriber(this: IProxySubscriberCollection, subscriber: IProxySubscriber): boolean {
-  if (this.hasProxySubscriber(subscriber)) {
-    return false;
-  }
-  const subscriberFlags = this._proxySubscriberFlags;
-  if ((subscriberFlags & SF.Subscriber0) === 0) {
-    this._proxySubscriber0 = subscriber;
-    this._proxySubscriberFlags |= SF.Subscriber0;
-  } else if ((subscriberFlags & SF.Subscriber1) === 0) {
-    this._proxySubscriber1 = subscriber;
-    this._proxySubscriberFlags |= SF.Subscriber1;
-  } else if ((subscriberFlags & SF.Subscriber2) === 0) {
-    this._proxySubscriber2 = subscriber;
-    this._proxySubscriberFlags |= SF.Subscriber2;
-  } else if ((subscriberFlags & SF.SubscribersRest) === 0) {
-    this._proxySubscribersRest = [subscriber];
-    this._proxySubscriberFlags |= SF.SubscribersRest;
-  } else {
-    // tslint:disable-next-line: no-non-null-assertion // Non-null is implied by else branch of (subscriberFlags & SF.SubscribersRest) === 0
-    this._proxySubscribersRest!.push(subscriber);
-  }
-  return true;
-}
-
-function addCollectionSubscriber(this: ICollectionSubscriberCollection, subscriber: ICollectionSubscriber): boolean {
-  if (this.hasCollectionSubscriber(subscriber)) {
-    return false;
-  }
-  const subscriberFlags = this._collectionSubscriberFlags;
-  if ((subscriberFlags & SF.Subscriber0) === 0) {
-    this._collectionSubscriber0 = subscriber;
-    this._collectionSubscriberFlags |= SF.Subscriber0;
-  } else if ((subscriberFlags & SF.Subscriber1) === 0) {
-    this._collectionSubscriber1 = subscriber;
-    this._collectionSubscriberFlags |= SF.Subscriber1;
-  } else if ((subscriberFlags & SF.Subscriber2) === 0) {
-    this._collectionSubscriber2 = subscriber;
-    this._collectionSubscriberFlags |= SF.Subscriber2;
-  } else if ((subscriberFlags & SF.SubscribersRest) === 0) {
-    this._collectionSubscribersRest = [subscriber];
-    this._collectionSubscriberFlags |= SF.SubscribersRest;
-  } else {
-    // tslint:disable-next-line: no-non-null-assertion // Non-null is implied by else branch of (subscriberFlags & SF.SubscribersRest) === 0
-    this._collectionSubscribersRest!.push(subscriber);
-  }
-  return true;
-}
-
-function removeSubscriber(this: ISubscriberCollection, subscriber: ISubscriber): boolean {
+function removeSubscriber<T extends MutationKind>(this: ISubscriberCollection<T>, subscriber: IPropertySubscriber): boolean {
   const subscriberFlags = this._subscriberFlags;
-  if ((subscriberFlags & SF.Subscriber0) > 0 && this._subscriber0 === subscriber) {
-    this._subscriber0 = void 0;
-    this._subscriberFlags = (this._subscriberFlags | SF.Subscriber0) ^ SF.Subscriber0;
+  if ((subscriberFlags & SF.Subscriber0) && this._subscriber0 === subscriber) {
+    this._subscriber0 = null;
+    this._subscriberFlags &= ~SF.Subscriber0;
     return true;
-  } else if ((subscriberFlags & SF.Subscriber1) > 0 && this._subscriber1 === subscriber) {
-    this._subscriber1 = void 0;
-    this._subscriberFlags = (this._subscriberFlags | SF.Subscriber1) ^ SF.Subscriber1;
+  }
+  if ((subscriberFlags & SF.Subscriber1) && this._subscriber1 === subscriber) {
+    this._subscriber1 = null;
+    this._subscriberFlags &= ~SF.Subscriber1;
     return true;
-  } else if ((subscriberFlags & SF.Subscriber2) > 0 && this._subscriber2 === subscriber) {
-    this._subscriber2 = void 0;
-    this._subscriberFlags = (this._subscriberFlags | SF.Subscriber2) ^ SF.Subscriber2;
+  }
+  if ((subscriberFlags & SF.Subscriber2) && this._subscriber2 === subscriber) {
+    this._subscriber2 = null;
+    this._subscriberFlags &= ~SF.Subscriber2;
     return true;
-  } else if ((subscriberFlags & SF.SubscribersRest) > 0) {
-    // tslint:disable-next-line: no-non-null-assertion // Non-null is implied by (subscriberFlags & SF.SubscribersRest) > 0
-    const subscribers = this._subscribersRest!;
+  }
+  if (subscriberFlags & SF.SubscribersRest) {
+    const subscribers = this._subscribersRest;
     for (let i = 0, ii = subscribers.length; i < ii; ++i) {
       if (subscribers[i] === subscriber) {
         subscribers.splice(i, 1);
         if (ii === 1) {
-          this._subscriberFlags = (this._subscriberFlags | SF.SubscribersRest) ^ SF.SubscribersRest;
+          this._subscriberFlags &= ~SF.SubscribersRest;
         }
         return true;
       }
@@ -168,151 +100,7 @@ function removeSubscriber(this: ISubscriberCollection, subscriber: ISubscriber):
   return false;
 }
 
-function removeProxySubscriber(this: IProxySubscriberCollection, subscriber: IProxySubscriber): boolean {
-  const subscriberFlags = this._proxySubscriberFlags;
-  if ((subscriberFlags & SF.Subscriber0) > 0 && this._proxySubscriber0 === subscriber) {
-    this._proxySubscriber0 = void 0;
-    this._proxySubscriberFlags = (this._proxySubscriberFlags | SF.Subscriber0) ^ SF.Subscriber0;
-    return true;
-  } else if ((subscriberFlags & SF.Subscriber1) > 0 && this._proxySubscriber1 === subscriber) {
-    this._proxySubscriber1 = void 0;
-    this._proxySubscriberFlags = (this._proxySubscriberFlags | SF.Subscriber1) ^ SF.Subscriber1;
-    return true;
-  } else if ((subscriberFlags & SF.Subscriber2) > 0 && this._proxySubscriber2 === subscriber) {
-    this._proxySubscriber2 = void 0;
-    this._proxySubscriberFlags = (this._proxySubscriberFlags | SF.Subscriber2) ^ SF.Subscriber2;
-    return true;
-  } else if ((subscriberFlags & SF.SubscribersRest) > 0) {
-    // tslint:disable-next-line: no-non-null-assertion // Non-null is implied by (subscriberFlags & SF.SubscribersRest) > 0
-    const subscribers = this._proxySubscribersRest!;
-    for (let i = 0, ii = subscribers.length; i < ii; ++i) {
-      if (subscribers[i] === subscriber) {
-        subscribers.splice(i, 1);
-        if (ii === 1) {
-          this._proxySubscriberFlags = (this._proxySubscriberFlags | SF.SubscribersRest) ^ SF.SubscribersRest;
-        }
-        return true;
-      }
-    }
-  }
-  return false;
-}
-
-function removeCollectionSubscriber(this: ICollectionSubscriberCollection, subscriber: ICollectionSubscriber): boolean {
-  const subscriberFlags = this._collectionSubscriberFlags;
-  if ((subscriberFlags & SF.Subscriber0) > 0 && this._collectionSubscriber0 === subscriber) {
-    this._collectionSubscriber0 = void 0;
-    this._collectionSubscriberFlags = (this._collectionSubscriberFlags | SF.Subscriber0) ^ SF.Subscriber0;
-    return true;
-  } else if ((subscriberFlags & SF.Subscriber1) > 0 && this._collectionSubscriber1 === subscriber) {
-    this._collectionSubscriber1 = void 0;
-    this._collectionSubscriberFlags = (this._collectionSubscriberFlags | SF.Subscriber1) ^ SF.Subscriber1;
-    return true;
-  } else if ((subscriberFlags & SF.Subscriber2) > 0 && this._collectionSubscriber2 === subscriber) {
-    this._collectionSubscriber2 = void 0;
-    this._collectionSubscriberFlags = (this._collectionSubscriberFlags | SF.Subscriber2) ^ SF.Subscriber2;
-    return true;
-  } else if ((subscriberFlags & SF.SubscribersRest) > 0) {
-    // tslint:disable-next-line: no-non-null-assertion // Non-null is implied by (subscriberFlags & SF.SubscribersRest) > 0
-    const subscribers = this._collectionSubscribersRest!;
-    for (let i = 0, ii = subscribers.length; i < ii; ++i) {
-      if (subscribers[i] === subscriber) {
-        subscribers.splice(i, 1);
-        if (ii === 1) {
-          this._collectionSubscriberFlags = (this._collectionSubscriberFlags | SF.SubscribersRest) ^ SF.SubscribersRest;
-        }
-        return true;
-      }
-    }
-  }
-  return false;
-}
-
-function hasSubscribers(this: ISubscriberCollection): boolean {
-  return this._subscriberFlags !== SF.None;
-}
-
-function hasProxySubscribers(this: IProxySubscriberCollection): boolean {
-  return this._proxySubscriberFlags !== SF.None;
-}
-
-function hasCollectionSubscribers(this: ICollectionSubscriberCollection): boolean {
-  return this._collectionSubscriberFlags !== SF.None;
-}
-
-function hasSubscriber(this: ISubscriberCollection, subscriber: ISubscriber): boolean {
-  // Flags here is just a perf tweak
-  // Compared to not using flags, it's a moderate speed-up when this collection does not have the subscriber;
-  // and minor slow-down when it does, and the former is more common than the latter.
-  const subscriberFlags = this._subscriberFlags;
-  if ((subscriberFlags & SF.Subscriber0) > 0 && this._subscriber0 === subscriber) {
-    return true;
-  }
-  if ((subscriberFlags & SF.Subscriber1) > 0 && this._subscriber1 === subscriber) {
-    return true;
-  }
-  if ((subscriberFlags & SF.Subscriber2) > 0 && this._subscriber2 === subscriber) {
-    return true;
-  }
-  if ((subscriberFlags & SF.SubscribersRest) > 0) {
-    // tslint:disable-next-line: no-non-null-assertion // Non-null is implied by (subscriberFlags & SF.SubscribersRest) > 0
-    const subscribers = this._subscribersRest!;
-    for (let i = 0, ii = subscribers.length; i < ii; ++i) {
-      if (subscribers[i] === subscriber) {
-        return true;
-      }
-    }
-  }
-  return false;
-}
-
-function hasProxySubscriber(this: IProxySubscriberCollection, subscriber: IProxySubscriber): boolean {
-  const subscriberFlags = this._proxySubscriberFlags;
-  if ((subscriberFlags & SF.Subscriber0) > 0 && this._proxySubscriber0 === subscriber) {
-    return true;
-  }
-  if ((subscriberFlags & SF.Subscriber1) > 0 && this._proxySubscriber1 === subscriber) {
-    return true;
-  }
-  if ((subscriberFlags & SF.Subscriber2) > 0 && this._proxySubscriber2 === subscriber) {
-    return true;
-  }
-  if ((subscriberFlags & SF.SubscribersRest) > 0) {
-    // tslint:disable-next-line: no-non-null-assertion // Non-null is implied by (subscriberFlags & SF.SubscribersRest) > 0
-    const subscribers = this._proxySubscribersRest!;
-    for (let i = 0, ii = subscribers.length; i < ii; ++i) {
-      if (subscribers[i] === subscriber) {
-        return true;
-      }
-    }
-  }
-  return false;
-}
-
-function hasCollectionSubscriber(this: ICollectionSubscriberCollection, subscriber: ICollectionSubscriber): boolean {
-  const subscriberFlags = this._collectionSubscriberFlags;
-  if ((subscriberFlags & SF.Subscriber0) > 0 && this._collectionSubscriber0 === subscriber) {
-    return true;
-  }
-  if ((subscriberFlags & SF.Subscriber1) > 0 && this._collectionSubscriber1 === subscriber) {
-    return true;
-  }
-  if ((subscriberFlags & SF.Subscriber2) > 0 && this._collectionSubscriber2 === subscriber) {
-    return true;
-  }
-  if ((subscriberFlags & SF.SubscribersRest) > 0) {
-    // tslint:disable-next-line: no-non-null-assertion // Non-null is implied by (subscriberFlags & SF.SubscribersRest) > 0
-    const subscribers = this._collectionSubscribersRest!;
-    for (let i = 0, ii = subscribers.length; i < ii; ++i) {
-      if (subscribers[i] === subscriber) {
-        return true;
-      }
-    }
-  }
-  return false;
-}
-
-function callSubscribers(this: ISubscriberCollection, newValue: unknown, previousValue: unknown, flags: LF): void {
+function callPropertySubscribers(this: ISubscriberCollection<MutationKind.instance>, newValue: unknown, previousValue: unknown, flags: LF): void {
   /**
    * Note: change handlers may have the side-effect of adding/removing subscribers to this collection during this
    * callSubscribers invocation, so we're caching them all before invoking any.
@@ -324,94 +112,284 @@ function callSubscribers(this: ISubscriberCollection, newValue: unknown, previou
   const subscriber1 = this._subscriber1;
   const subscriber2 = this._subscriber2;
   let subscribers = this._subscribersRest;
-  if (subscribers !== void 0) {
+  if (subscribers !== null) {
     subscribers = subscribers.slice();
   }
-  if (subscriber0 !== void 0) {
-    callSubscriber(subscriber0, newValue, previousValue, flags, subscriber0.id === void 0 ? 0 : this[subscriber0.id]);
+  if (subscriber0 !== null) {
+    callSubscriber(subscriber0, newValue, previousValue, flags, this[subscriber0.id]);
   }
-  if (subscriber1 !== void 0) {
-    callSubscriber(subscriber1, newValue, previousValue, flags, subscriber1.id === void 0 ? 0 : this[subscriber1.id]);
+  if (subscriber1 !== null) {
+    callSubscriber(subscriber1, newValue, previousValue, flags, this[subscriber1.id]);
   }
-  if (subscriber2 !== void 0) {
-    callSubscriber(subscriber2, newValue, previousValue, flags, subscriber2.id === void 0 ? 0 : this[subscriber2.id]);
+  if (subscriber2 !== null) {
+    callSubscriber(subscriber2, newValue, previousValue, flags, this[subscriber2.id]);
   }
-  if (subscribers !== void 0) {
-    const { length } = subscribers;
-    let subscriber: ISubscriber | undefined;
+  const length = subscribers && subscribers.length;
+  if (length !== undefined && length > 0) {
+    let subscriber = null;
     for (let i = 0; i < length; ++i) {
       subscriber = subscribers[i];
-      if (subscriber !== void 0) {
-        callSubscriber(subscriber, newValue, previousValue, flags, subscriber.id === void 0 ? 0 : this[subscriber.id]);
+      if (subscriber !== null) {
+        callSubscriber(subscriber, newValue, previousValue, flags, this[subscriber.id]);
       }
     }
   }
 }
 
 function callSubscriber(
-  subscriber: ISubscriber,
+  subscriber: IPropertySubscriber,
   newValue: unknown,
   previousValue: unknown,
   flags: LF,
   ownFlags: LF,
 ): void {
-  subscriber.handleChange(newValue, previousValue, ((flags | LF.update) ^ LF.update) | ownFlags);
+  if (ownFlags === undefined) {
+    // If ownFlags is undefined then the subscriber is not a connectable binding and we don't
+    // have any business trying to restrict the data flow, so just call it with whatever we received.
+    subscriber.handleChange(newValue, previousValue, flags);
+
+  // Note: if the update flags for both directions are set, that means an observer's callSubscribers caused the update direction to switch
+  // back to the origin of the change.
+  // With this heuristic we stop this roundtrip a little earlier than vCurrent does (where the target or source is evaluated
+  // and compared again) and effectively make this a "purer" one-way update flow that prevents observable side-effects from
+  // flowing back the opposite direction.
+  } else if (((flags | ownFlags) & LF.update) === LF.update) {
+
+    // Observers should explicitly pass this flag if they want a roundtrip to happen anyway.
+    // SelfObserver does this in order to propagate from-view changes from a child component back to the bindings
+    // on its own component.
+    // Some target observers (e.g. select) do this as well, but the other way around.
+    if ((flags & LF.allowPublishRoundtrip) > 0) {
+      // Unset the directional flag that came in from the origin and allowPublishRoundtrip since we don't
+      // want these to flow into the next subscriberCollection
+      subscriber.handleChange(newValue, previousValue, (flags & ~(LF.update | LF.allowPublishRoundtrip)) | ownFlags);
+    }
+  } else {
+    // If this is not a roundtrip, simply proceed in the same direction.
+    subscriber.handleChange(newValue, previousValue, flags | ownFlags);
+  }
 }
 
-function callProxySubscribers(this: IProxySubscriberCollection, key: PropertyKey, newValue: unknown, previousValue: unknown, flags: LF): void {
-  const subscriber0 = this._proxySubscriber0;
-  const subscriber1 = this._proxySubscriber1;
-  const subscriber2 = this._proxySubscriber2;
-  let subscribers = this._proxySubscribersRest;
-  if (subscribers !== void 0) {
+function callCollectionSubscribers(this: ISubscriberCollection<MutationKind.collection> & Required<IBatchedSubscriberCollection<MutationKind.collection>>, origin: string, args: IArguments | null, flags: LF): void {
+  const subscriber0 = this._subscriber0;
+  const subscriber1 = this._subscriber1;
+  const subscriber2 = this._subscriber2;
+  let subscribers = this._subscribersRest;
+  if (subscribers !== null) {
     subscribers = subscribers.slice();
   }
-  if (subscriber0 !== void 0) {
-    subscriber0.handleProxyChange(key, newValue, previousValue, flags);
+  if (subscriber0 !== null) {
+    subscriber0.handleChange(origin, args, flags);
   }
-  if (subscriber1 !== void 0) {
-    subscriber1.handleProxyChange(key, newValue, previousValue, flags);
+  if (subscriber1 !== null) {
+    subscriber1.handleChange(origin, args, flags);
   }
-  if (subscriber2 !== void 0) {
-    subscriber2.handleProxyChange(key, newValue, previousValue, flags);
+  if (subscriber2 !== null) {
+    subscriber2.handleChange(origin, args, flags);
   }
-  if (subscribers !== void 0) {
-    const { length } = subscribers;
-    let subscriber: IProxySubscriber | undefined;
+  const length = subscribers && subscribers.length;
+  if (length !== undefined && length > 0) {
     for (let i = 0; i < length; ++i) {
-      subscriber = subscribers[i];
-      if (subscriber !== void 0) {
-        subscriber.handleProxyChange(key, newValue, previousValue, flags);
+      const subscriber = subscribers[i];
+      if (subscriber !== null) {
+        subscriber.handleChange(origin, args, flags);
+      }
+    }
+  }
+  this.lifecycle.enqueueFlush(this).catch(error => { throw error; });
+}
+
+function callProxySubscribers(this: ISubscriberCollection<MutationKind.proxy>, key: PropertyKey, newValue: unknown, previousValue: unknown, flags: LF): void {
+  const subscriber0 = this._subscriber0;
+  const subscriber1 = this._subscriber1;
+  const subscriber2 = this._subscriber2;
+  let subscribers = this._subscribersRest;
+  if (subscribers !== null) {
+    subscribers = subscribers.slice();
+  }
+  if (subscriber0 !== null) {
+    subscriber0.handleChange(key, newValue, previousValue, flags);
+  }
+  if (subscriber1 !== null) {
+    subscriber1.handleChange(key, newValue, previousValue, flags);
+  }
+  if (subscriber2 !== null) {
+    subscriber2.handleChange(key, newValue, previousValue, flags);
+  }
+  const length = subscribers && subscribers.length;
+  if (length !== undefined && length > 0) {
+    for (let i = 0; i < length; ++i) {
+      const subscriber = subscribers[i];
+      if (subscriber !== null) {
+        subscriber.handleChange(key, newValue, previousValue, flags);
+      }
+    }
+  }
+}
+function hasSubscribers<T extends MutationKind>(this: ISubscriberCollection<T>): boolean {
+  return this._subscriberFlags !== SF.None;
+}
+
+function hasSubscriber<T extends MutationKind>(this: ISubscriberCollection<T>, subscriber: IPropertySubscriber): boolean {
+  // Flags here is just a perf tweak
+  // Compared to not using flags, it's a moderate speed-up when this collection does not have the subscriber;
+  // and minor slow-down when it does, and the former is more common than the latter.
+  const subscriberFlags = this._subscriberFlags;
+  if ((subscriberFlags & SF.Subscriber0) && this._subscriber0 === subscriber) {
+    return true;
+  }
+  if ((subscriberFlags & SF.Subscriber1) && this._subscriber1 === subscriber) {
+    return true;
+  }
+  if ((subscriberFlags & SF.Subscriber2) && this._subscriber2 === subscriber) {
+    return true;
+  }
+  if (subscriberFlags & SF.SubscribersRest) {
+    // no need to check length; if the flag is set, there's always at least one
+    const subscribers = this._subscribersRest;
+    for (let i = 0, ii = subscribers.length; i < ii; ++i) {
+      if (subscribers[i] === subscriber) {
+        return true;
+      }
+    }
+  }
+  return false;
+}
+
+export function batchedSubscriberCollection(): ClassDecorator {
+  // tslint:disable-next-line:ban-types // ClassDecorator expects it to be derived from Function
+  return function(target: Function): void {
+    const proto = target.prototype as IBatchedSubscriberCollection<MutationKind.collection>;
+
+    proto._batchedSubscriberFlags = SF.None;
+    proto._batchedSubscriber0 = null;
+    proto._batchedSubscriber1 = null;
+    proto._batchedSubscriber2 = null;
+    proto._batchedSubscribersRest = null;
+
+    proto.addBatchedSubscriber = addBatchedSubscriber;
+    proto.removeBatchedSubscriber = removeBatchedSubscriber;
+    proto.hasBatchedSubscriber = hasBatchedSubscriber;
+    proto.hasBatchedSubscribers = hasBatchedSubscribers;
+    proto.callBatchedSubscribers = callBatchedCollectionSubscribers;
+  };
+}
+
+function addBatchedSubscriber(this: IBatchedSubscriberCollection<MutationKind.collection>, subscriber: MutationKindToBatchedSubscriber<MutationKind.collection>): boolean {
+  if (this.hasBatchedSubscriber(subscriber)) {
+    return false;
+  }
+  const subscriberFlags = this._batchedSubscriberFlags;
+  if (!(subscriberFlags & SF.Subscriber0)) {
+    this._batchedSubscriber0 = subscriber;
+    this._batchedSubscriberFlags |= SF.Subscriber0;
+    return true;
+  }
+  if (!(subscriberFlags & SF.Subscriber1)) {
+    this._batchedSubscriber1 = subscriber;
+    this._batchedSubscriberFlags |= SF.Subscriber1;
+    return true;
+  }
+  if (!(subscriberFlags & SF.Subscriber2)) {
+    this._batchedSubscriber2 = subscriber;
+    this._batchedSubscriberFlags |= SF.Subscriber2;
+    return true;
+  }
+  if (!(subscriberFlags & SF.SubscribersRest)) {
+    this._batchedSubscribersRest = [subscriber];
+    this._batchedSubscriberFlags |= SF.SubscribersRest;
+    return true;
+  }
+  this._batchedSubscribersRest.push(subscriber);
+  return true;
+}
+
+function removeBatchedSubscriber(this: IBatchedSubscriberCollection<MutationKind.collection>, subscriber: IBatchedCollectionSubscriber): boolean {
+  const subscriberFlags = this._batchedSubscriberFlags;
+  if ((subscriberFlags & SF.Subscriber0) && this._batchedSubscriber0 === subscriber) {
+    this._batchedSubscriber0 = null;
+    this._batchedSubscriberFlags &= ~SF.Subscriber0;
+    return true;
+  }
+  if ((subscriberFlags & SF.Subscriber1) && this._batchedSubscriber1 === subscriber) {
+    this._batchedSubscriber1 = null;
+    this._batchedSubscriberFlags &= ~SF.Subscriber1;
+    return true;
+  }
+  if ((subscriberFlags & SF.Subscriber2) && this._batchedSubscriber2 === subscriber) {
+    this._batchedSubscriber2 = null;
+    this._batchedSubscriberFlags &= ~SF.Subscriber2;
+    return true;
+  }
+  if (subscriberFlags & SF.SubscribersRest) {
+    const subscribers = this._batchedSubscribersRest;
+    for (let i = 0, ii = subscribers.length; i < ii; ++i) {
+      if (subscribers[i] === subscriber) {
+        subscribers.splice(i, 1);
+        if (ii === 1) {
+          this._batchedSubscriberFlags &= ~SF.SubscribersRest;
+        }
+        return true;
+      }
+    }
+  }
+  return false;
+}
+
+function callBatchedCollectionSubscribers(this: IBatchedSubscriberCollection<MutationKind.collection>, indexMap: IndexMap, flags: LF): void {
+  const subscriber0 = this._batchedSubscriber0;
+  const subscriber1 = this._batchedSubscriber1;
+  const subscriber2 = this._batchedSubscriber2;
+  let subscribers = this._batchedSubscribersRest;
+  if (subscribers !== null) {
+    subscribers = subscribers.slice();
+  }
+  if (subscriber0 !== null) {
+    subscriber0.handleBatchedChange(indexMap, flags);
+  }
+  if (subscriber1 !== null) {
+    subscriber1.handleBatchedChange(indexMap, flags);
+  }
+  if (subscriber2 !== null) {
+    subscriber2.handleBatchedChange(indexMap, flags);
+  }
+  const length = subscribers && subscribers.length;
+  if (length !== undefined && length > 0) {
+    for (let i = 0; i < length; ++i) {
+      const subscriber = subscribers[i];
+      if (subscriber !== null) {
+        subscriber.handleBatchedChange(indexMap, flags);
       }
     }
   }
 }
 
-function callCollectionSubscribers(this: ICollectionSubscriberCollection, indexMap: IndexMap, flags: LF): void {
-  const subscriber0 = this._collectionSubscriber0;
-  const subscriber1 = this._collectionSubscriber1;
-  const subscriber2 = this._collectionSubscriber2;
-  let subscribers = this._collectionSubscribersRest;
-  if (subscribers !== void 0) {
-    subscribers = subscribers.slice();
+function hasBatchedSubscribers(this: IBatchedSubscriberCollection<MutationKind.collection>): boolean {
+  return this._batchedSubscriberFlags !== SF.None;
+}
+
+function hasBatchedSubscriber(this: IBatchedSubscriberCollection<MutationKind.collection>, subscriber: IBatchedCollectionSubscriber): boolean {
+  // Flags here is just a perf tweak
+  // Compared to not using flags, it's a moderate speed-up when this collection does not have the subscriber;
+  // and minor slow-down when it does, and the former is more common than the latter.
+  const subscriberFlags = this._batchedSubscriberFlags;
+  if ((subscriberFlags & SF.Subscriber0) && this._batchedSubscriber0 === subscriber) {
+    return true;
   }
-  if (subscriber0 !== void 0) {
-    subscriber0.handleCollectionChange(indexMap, flags);
+  if ((subscriberFlags & SF.Subscriber1) && this._batchedSubscriber1 === subscriber) {
+    return true;
   }
-  if (subscriber1 !== void 0) {
-    subscriber1.handleCollectionChange(indexMap, flags);
+  if ((subscriberFlags & SF.Subscriber2) && this._batchedSubscriber2 === subscriber) {
+    return true;
   }
-  if (subscriber2 !== void 0) {
-    subscriber2.handleCollectionChange(indexMap, flags);
-  }
-  if (subscribers !== void 0) {
-    const { length } = subscribers;
-    let subscriber: ICollectionSubscriber | undefined;
-    for (let i = 0; i < length; ++i) {
-      subscriber = subscribers[i];
-      if (subscriber !== void 0) {
-        subscriber.handleCollectionChange(indexMap, flags);
+  if (subscriberFlags & SF.SubscribersRest) {
+    // no need to check length; if the flag is set, there's always at least one
+    const subscribers = this._batchedSubscribersRest;
+    for (let i = 0, ii = subscribers.length; i < ii; ++i) {
+      if (subscribers[i] === subscriber) {
+        return true;
       }
     }
   }
+  return false;
 }

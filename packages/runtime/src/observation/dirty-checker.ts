@@ -1,8 +1,7 @@
-import { DI, PLATFORM, Reporter, Tracer, InjectArray } from '@aurelia/kernel';
+import { DI, PLATFORM, Reporter, Tracer } from '@aurelia/kernel';
 import { LifecycleFlags } from '../flags';
-import { IBindingTargetObserver, IObservable, ISubscriber } from '../observation';
-import { subscriberCollection } from './subscriber-collection';
-import { ILifecycle, Priority } from '../lifecycle';
+import { IBindingTargetObserver, IObservable, IPropertySubscriber } from '../observation';
+import { propertyObserver } from './property-observer';
 
 export interface IDirtyChecker {
   createProperty(obj: IObservable, propertyName: string): IBindingTargetObserver;
@@ -54,25 +53,21 @@ export const DirtyCheckSettings = {
 
 /** @internal */
 export class DirtyChecker {
-  public static readonly inject: InjectArray = [ILifecycle];
-
   private readonly tracked: DirtyCheckProperty[];
-  private readonly lifecycle: ILifecycle;
 
   private elapsedFrames: number;
 
-  public constructor(lifecycle: ILifecycle) {
+  public constructor() {
     this.elapsedFrames = 0;
     this.tracked = [];
-    this.lifecycle = lifecycle;
   }
 
   public createProperty(obj: IObservable, propertyName: string): DirtyCheckProperty {
     if (DirtyCheckSettings.throw) {
-      throw Reporter.error(800, propertyName); // TODO: create/organize error code
+      throw Reporter.error(800); // TODO: create/organize error code
     }
     if (DirtyCheckSettings.warn) {
-      Reporter.write(801, propertyName);
+      Reporter.write(801);
     }
     return new DirtyCheckProperty(this, obj, propertyName);
   }
@@ -81,18 +76,18 @@ export class DirtyChecker {
     this.tracked.push(property);
 
     if (this.tracked.length === 1) {
-      this.lifecycle.enqueueRAF(this.check, this, Priority.low);
+      PLATFORM.ticker.add(this.check, this);
     }
   }
 
   public removeProperty(property: DirtyCheckProperty): void {
     this.tracked.splice(this.tracked.indexOf(property), 1);
     if (this.tracked.length === 0) {
-      this.lifecycle.dequeueRAF(this.check, this);
+      PLATFORM.ticker.remove(this.check, this);
     }
   }
 
-  public check(delta?: number): void {
+  public check(delta: number): void {
     if (DirtyCheckSettings.disabled) {
       return;
     }
@@ -117,7 +112,7 @@ const slice = Array.prototype.slice;
 
 export interface DirtyCheckProperty extends IBindingTargetObserver { }
 
-@subscriberCollection()
+@propertyObserver()
 export class DirtyCheckProperty implements DirtyCheckProperty {
   public obj: IObservable;
   public oldValue: unknown;
@@ -147,7 +142,7 @@ export class DirtyCheckProperty implements DirtyCheckProperty {
     this.oldValue = newValue;
   }
 
-  public subscribe(subscriber: ISubscriber): void {
+  public subscribe(subscriber: IPropertySubscriber): void {
     if (!this.hasSubscribers()) {
       this.oldValue = this.obj[this.propertyKey];
       this.dirtyChecker.addProperty(this);
@@ -155,7 +150,7 @@ export class DirtyCheckProperty implements DirtyCheckProperty {
     this.addSubscriber(subscriber);
   }
 
-  public unsubscribe(subscriber: ISubscriber): void {
+  public unsubscribe(subscriber: IPropertySubscriber): void {
     if (this.removeSubscriber(subscriber) && !this.hasSubscribers()) {
       this.dirtyChecker.removeProperty(this);
     }

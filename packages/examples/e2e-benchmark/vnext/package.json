@@ -24,15 +24,15 @@
     "chromedriver": "~2.45.0",
     "cross-env": "^5.2.0",
     "http-server": "^0.11.1",
-    "mocha": "^6.1.4",
+    "mocha": "^6.0.2",
     "path": "^0.12.7",
     "rimraf": "^2.6.3",
     "selenium-webdriver": "^4.0.0-alpha.1",
     "ts-loader": "^5.3.3",
     "ts-node": "^8.0.3",
     "tsconfig-paths": "^3.8.0",
-    "typescript": "^3.3.4000",
-    "webpack": "^4.31.0",
+    "typescript": "~3.3.4000",
+    "webpack": "^4.29.6",
     "webpack-cli": "^3.3.0"
   }
 }

@@ -20,14 +20,14 @@ export interface ISyntaxInterpreter {
     add(defOrDefs: AttributePatternDefinition | AttributePatternDefinition[]): void;
     interpret(value: string): Interpretation;
 }
-export declare const ISyntaxInterpreter: import("@aurelia/kernel").InterfaceSymbol<ISyntaxInterpreter>;
+export declare const ISyntaxInterpreter: import("@aurelia/kernel/dist/interfaces").InterfaceSymbol<ISyntaxInterpreter>;
 export interface IAttributePattern {
     $patternDefs: AttributePatternDefinition[];
 }
 export interface IAttributePatternHandler {
     [pattern: string]: (rawName: string, rawValue: string, parts: ReadonlyArray<string>) => AttrSyntax;
 }
-export declare const IAttributePattern: import("@aurelia/kernel").InterfaceSymbol<IAttributePattern>;
+export declare const IAttributePattern: import("@aurelia/kernel/dist/interfaces").InterfaceSymbol<IAttributePattern>;
 declare type DecoratableAttributePattern<TProto, TClass> = Class<TProto & Partial<IAttributePattern | IAttributePatternHandler>, TClass> & Partial<IRegistry>;
 declare type DecoratedAttributePattern<TProto, TClass> = Class<TProto & IAttributePattern | IAttributePatternHandler, TClass> & IRegistry;
 declare type AttributePatternDecorator = <TProto, TClass>(target: DecoratableAttributePattern<TProto, TClass>) => DecoratedAttributePattern<TProto, TClass>;

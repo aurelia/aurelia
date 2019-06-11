@@ -1,21 +1,21 @@
-import { DI } from '@aurelia/kernel';
+import { DI, Immutable } from '@aurelia/kernel';
 import { LifecycleFlags } from '../flags';
-import { ISubscriber } from '../observation';
+import { IPropertySubscriber } from '../observation';
 
 type Signal = string;
 
 export interface ISignaler {
-  signals: Record<string, Set<ISubscriber>>;
+  signals: Immutable<Record<string, Set<IPropertySubscriber>>>;
   dispatchSignal(name: Signal, flags?: LifecycleFlags): void;
-  addSignalListener(name: Signal, listener: ISubscriber): void;
-  removeSignalListener(name: Signal, listener: ISubscriber): void;
+  addSignalListener(name: Signal, listener: IPropertySubscriber): void;
+  removeSignalListener(name: Signal, listener: IPropertySubscriber): void;
 }
 
 export const ISignaler = DI.createInterface<ISignaler>('ISignaler').withDefault(x => x.singleton(Signaler));
 
 /** @internal */
 export class Signaler implements ISignaler {
-  public signals: Record<string, Set<ISubscriber>>;
+  public signals: Record<string, Set<IPropertySubscriber>>;
 
   constructor() {
     this.signals = Object.create(null);
@@ -27,11 +27,11 @@ export class Signaler implements ISignaler {
       return;
     }
     for (const listener of listeners.keys()) {
-      listener.handleChange(undefined, undefined, flags! | LifecycleFlags.updateTargetInstance);
+      listener.handleChange(undefined, undefined, flags | LifecycleFlags.updateTargetInstance);
     }
   }
 
-  public addSignalListener(name: Signal, listener: ISubscriber): void {
+  public addSignalListener(name: Signal, listener: IPropertySubscriber): void {
     const signals = this.signals;
     const listeners = signals[name];
     if (listeners === undefined) {
@@ -41,7 +41,7 @@ export class Signaler implements ISignaler {
     }
   }
 
-  public removeSignalListener(name: Signal, listener: ISubscriber): void {
+  public removeSignalListener(name: Signal, listener: IPropertySubscriber): void {
     const listeners = this.signals[name];
     if (listeners) {
       listeners.delete(listener);

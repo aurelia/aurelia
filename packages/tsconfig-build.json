@@ -17,7 +17,6 @@
     "skipLibCheck": true,
     "preserveConstEnums": true,
     "stripInternal": true,
-
     "strict": true,
 
     "types": []

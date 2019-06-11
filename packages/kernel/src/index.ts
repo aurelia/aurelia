@@ -16,8 +16,7 @@ export {
   Registration,
   ResolveCallback,
   singleton,
-  transient,
-  InstanceProvider
+  transient
 } from './di';
 export {
   Class,
@@ -28,6 +27,9 @@ export {
   IDisposable,
   IFrameRequestCallback,
   IIndexable,
+  Immutable,
+  ImmutableArray,
+  ImmutableObject,
   InjectArray,
   Injectable,
   InterfaceSymbol,
@@ -54,10 +56,7 @@ export {
   StrictPrimitive,
   Unwrap,
   ValuesOf,
-  Writable,
-  IfEquals,
-  ReadonlyKeys,
-  WritableKeys,
+  Writable
 } from './interfaces';
 export {
   relativeToFile,
@@ -72,8 +71,7 @@ export {
   ITraceWriter,
   ILiveLoggingOptions,
   Reporter,
-  Tracer,
-  LogLevel,
+  Tracer
 } from './reporter';
 export {
   Profiler
@@ -91,12 +89,3 @@ export {
   EventAggregator,
   EventAggregatorCallback
 } from './eventaggregator';
-export {
-  isNumeric,
-  camelCase,
-  kebabCase,
-  toArray,
-  nextId,
-  resetId,
-  compareNumber,
-} from './functions';

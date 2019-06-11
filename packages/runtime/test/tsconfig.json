@@ -1,0 +1,16 @@
+{
+  "extends": "../tsconfig-test.json",
+  "compilerOptions": {
+    "forceConsistentCasingInFileNames": false,
+    "lib": ["esnext"],
+    "types": [
+      "./asserts",
+      "node",
+      "mocha",
+      "chai",
+      "sinon",
+      "sinon-chai",
+      "webpack-env"
+    ]
+  }
+}

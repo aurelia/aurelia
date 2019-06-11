@@ -1,10 +1,9 @@
-import { PixiConfiguration } from '@aurelia/plugin-pixi';
-import { BasicConfiguration } from '@aurelia/jit-html-browser';
+import { PixiJitConfiguration } from '@aurelia/jit-pixi';
 import { Aurelia } from '@aurelia/runtime';
 import { App } from './app';
 
 window['au'] = new Aurelia()
-  .register(BasicConfiguration, PixiConfiguration)
+  .register(PixiJitConfiguration)
   .app({ host: document.querySelector('app'), component: new App() })
   .start();
 

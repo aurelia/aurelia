@@ -11,7 +11,7 @@ export interface IRouteTransformer {
     transformFromUrl?(route: string, router: Router): string | ViewportInstruction[];
     transformToUrl?(instructions: ViewportInstruction[], router: Router): string | ViewportInstruction[];
 }
-export declare const IRouteTransformer: import("@aurelia/kernel").InterfaceSymbol<IRouteTransformer>;
+export declare const IRouteTransformer: import("@aurelia/kernel/dist/interfaces").InterfaceSymbol<IRouteTransformer>;
 export interface IRouterOptions extends IHistoryOptions, IRouteTransformer {
     separators?: IRouteSeparators;
     reportCallback?(instruction: INavigationInstruction): void;
@@ -42,10 +42,10 @@ export interface IRouter {
     addNav(name: string, routes: INavRoute[]): void;
     findNav(name: string): Nav;
 }
-export declare const IRouter: import("@aurelia/kernel").InterfaceSymbol<IRouter>;
+export declare const IRouter: import("@aurelia/kernel/dist/interfaces").InterfaceSymbol<IRouter>;
 export declare class Router implements IRouter {
+    container: IContainer;
     static readonly inject: InjectArray;
-    readonly container: IContainer;
     rootScope: Scope;
     scopes: Scope[];
     historyBrowser: HistoryBrowser;
@@ -56,11 +56,11 @@ export declare class Router implements IRouter {
     addedViewports: ViewportInstruction[];
     private options;
     private isActive;
-    private readonly routeTransformer;
     private readonly pendingNavigations;
     private processingNavigation;
     private lastNavigation;
-    constructor(container: IContainer, routeTransformer: IRouteTransformer, historyBrowser: HistoryBrowser, linkHandler: LinkHandler, instructionResolver: InstructionResolver);
+    private readonly routeTransformer;
+    constructor(container: IContainer, routeTransformer: IRouteTransformer);
     readonly isNavigating: boolean;
     activate(options?: IRouterOptions): Promise<void>;
     deactivate(): void;
@@ -70,8 +70,8 @@ export declare class Router implements IRouter {
     addProcessingViewport(componentOrInstruction: string | Partial<ICustomElementType> | ViewportInstruction, viewport?: Viewport | string): void;
     findScope(element: Element): Scope;
     getViewport(name: string): Viewport;
-    addViewport(name: string, element: Element, context: IRenderContext | IContainer, options?: IViewportOptions): Viewport;
-    removeViewport(viewport: Viewport, element: Element, context: IRenderContext | IContainer): void;
+    addViewport(name: string, element: Element, context: IRenderContext, options?: IViewportOptions): Viewport;
+    removeViewport(viewport: Viewport, element: Element, context: IRenderContext): void;
     allViewports(): Viewport[];
     removeScope(scope: Scope): void;
     goto(pathOrViewports: string | Record<string, Viewport>, title?: string, data?: Record<string, unknown>): Promise<void>;

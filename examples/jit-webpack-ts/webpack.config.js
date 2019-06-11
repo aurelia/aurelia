@@ -5,11 +5,10 @@ module.exports = function(env, { mode }) {
   return {
     mode: production ? 'production' : 'development',
     entry: './src/startup.ts',
-    devtool: false,
+    devtool: production ? 'source-map' : 'eval-source-map',
     resolve: {
       extensions: ['.ts'],
-      modules: ['src', 'node_modules'],
-      mainFields: ['module']
+      modules: ['src', 'node_modules']
     },
     devServer: {
       port: 9000,

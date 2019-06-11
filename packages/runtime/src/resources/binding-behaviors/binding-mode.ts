@@ -21,8 +21,8 @@ export abstract class BindingModeBehavior {
   }
 
   public unbind(flags: LifecycleFlags, scope: IScope, binding: Binding & WithMode): void {
-    binding.mode = binding.originalMode!;
-    binding.originalMode = null!;
+    binding.mode = binding.originalMode;
+    binding.originalMode = null;
   }
 }
 

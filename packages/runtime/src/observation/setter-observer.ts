@@ -1,105 +1,58 @@
-import { IIndexable, Reporter, Tracer } from '@aurelia/kernel';
+import { IIndexable, Tracer } from '@aurelia/kernel';
 import { LifecycleFlags } from '../flags';
-import { ILifecycle } from '../lifecycle';
-import { IPropertyObserver, ISubscriber } from '../observation';
-import { subscriberCollection } from './subscriber-collection';
+import { IPropertyObserver, IPropertySubscriber } from '../observation';
+import { patchProperties } from './patch-properties';
+import { propertyObserver } from './property-observer';
+
+const slice = Array.prototype.slice;
 
 export interface SetterObserver extends IPropertyObserver<IIndexable, string> {}
 
-@subscriberCollection()
-export class SetterObserver {
-  public readonly lifecycle: ILifecycle;
-
-  public readonly obj: IIndexable;
-  public readonly propertyKey: string;
-  public currentValue: unknown;
-  public oldValue: unknown;
-
+@propertyObserver()
+export class SetterObserver implements SetterObserver {
+  public subscribe: (subscriber: IPropertySubscriber) => void;
+  public unsubscribe: (subscriber: IPropertySubscriber) => void;
   public readonly persistentFlags: LifecycleFlags;
-  public inBatch: boolean;
-  public observing: boolean;
+  public obj: IIndexable;
+  public propertyKey: string;
 
-  constructor(
-    lifecycle: ILifecycle,
-    flags: LifecycleFlags,
-    obj: IIndexable,
-    propertyKey: string,
-  ) {
-    this.lifecycle = lifecycle;
-
+  constructor(flags: LifecycleFlags, obj: IIndexable, propertyKey: string) {
+    if (Tracer.enabled) { Tracer.enter('SetterObserver', 'constructor', slice.call(arguments)); }
+    this.persistentFlags = flags & LifecycleFlags.persistentBindingFlags;
     this.obj = obj;
     this.propertyKey = propertyKey;
-    this.currentValue = void 0;
-    this.oldValue = void 0;
-
-    this.inBatch = false;
-
-    this.observing = false;
-    this.persistentFlags = flags & LifecycleFlags.persistentBindingFlags;
-
+    if (flags & LifecycleFlags.patchStrategy) {
+      this.getValue = this.getValueDirect;
+    }
     if (Tracer.enabled) { Tracer.leave(); }
   }
 
   public getValue(): unknown {
     return this.currentValue;
   }
-
+  public getValueDirect(): unknown {
+    return this.obj[this.propertyKey];
+  }
   public setValue(newValue: unknown, flags: LifecycleFlags): void {
-    if (this.observing) {
-      const currentValue = this.currentValue;
+    const currentValue = this.currentValue;
+    if (currentValue !== newValue || (flags & LifecycleFlags.patchStrategy)) {
       this.currentValue = newValue;
-      if (this.lifecycle.batch.depth === 0) {
-        if ((flags & LifecycleFlags.fromBind) === 0) {
-          this.callSubscribers(newValue, currentValue, this.persistentFlags | flags);
-        }
-      } else if (!this.inBatch) {
-        this.inBatch = true;
-        this.oldValue = currentValue;
-        this.lifecycle.batch.add(this);
+      if (!(flags & LifecycleFlags.fromBind)) {
+        this.callSubscribers(newValue, currentValue, this.persistentFlags | flags);
       }
-    } else {
       // If subscribe() has been called, the target property descriptor is replaced by these getter/setter methods,
       // so calling obj[propertyKey] will actually return this.currentValue.
       // However, if subscribe() was not yet called (indicated by !this.observing), the target descriptor
       // is unmodified and we need to explicitly set the property value.
       // This will happen in one-time, to-view and two-way bindings during $bind, meaning that the $bind will not actually update the target value.
       // This wasn't visible in vCurrent due to connect-queue always doing a delayed update, so in many cases it didn't matter whether $bind updated the target or not.
-      this.obj[this.propertyKey] = newValue;
-    }
-  }
-
-  public flushBatch(flags: LifecycleFlags): void {
-    this.inBatch = false;
-    const currentValue = this.currentValue;
-    const oldValue = this.oldValue;
-    this.oldValue = currentValue;
-    this.callSubscribers(currentValue, oldValue, this.persistentFlags | flags);
-  }
-
-  public subscribe(subscriber: ISubscriber): void {
-    if (this.observing === false) {
-      this.observing = true;
-      this.currentValue = this.obj[this.propertyKey];
-      if (
-        !Reflect.defineProperty(
-          this.obj,
-          this.propertyKey,
-          {
-            enumerable: true,
-            configurable: true,
-            get: () => {
-              return this.getValue();
-            },
-            set: value => {
-              this.setValue(value, LifecycleFlags.none);
-            },
-          }
-        )
-      ) {
-        Reporter.write(1, this.propertyKey, this.obj);
+      if (!this.observing) {
+        this.obj[this.propertyKey] = newValue;
       }
     }
-
-    this.addSubscriber(subscriber);
+  }
+  public $patch(flags: LifecycleFlags): void {
+    this.callSubscribers(this.obj[this.propertyKey], this.currentValue, this.persistentFlags | flags);
+    patchProperties(this.obj[this.propertyKey], flags);
   }
 }

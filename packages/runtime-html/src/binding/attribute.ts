@@ -17,9 +17,12 @@ export interface AttributeBinding extends IConnectableBinding {}
  */
 @connectable()
 export class AttributeBinding implements IPartialConnectableBinding {
-  public id!: number;
+  public $nextBinding: IBinding;
+  public $prevBinding: IBinding;
   public $state: State;
   public $lifecycle: ILifecycle;
+  public $nextConnect: IConnectableBinding;
+  public $nextPatch: IConnectableBinding;
   public $scope: IScope;
 
   public locator: IServiceLocator;
@@ -33,7 +36,7 @@ export class AttributeBinding implements IPartialConnectableBinding {
    */
   public targetProperty: string;
 
-  public targetObserver!: AccessorOrObserver;
+  public targetObserver: AccessorOrObserver;
 
   public persistentFlags: LifecycleFlags;
 
@@ -52,9 +55,13 @@ export class AttributeBinding implements IPartialConnectableBinding {
     locator: IServiceLocator
   ) {
     connectable.assignIdTo(this);
+    this.$nextBinding = null;
+    this.$prevBinding = null;
     this.$state = State.none;
     this.$lifecycle = locator.get(ILifecycle);
-    this.$scope = null!;
+    this.$nextConnect = null;
+    this.$nextPatch = null;
+    this.$scope = null;
 
     this.locator = locator;
     this.mode = mode;
@@ -73,7 +80,7 @@ export class AttributeBinding implements IPartialConnectableBinding {
 
   public updateSource(value: unknown, flags: LifecycleFlags): void {
     flags |= this.persistentFlags;
-    this.sourceExpression.assign!(flags | LifecycleFlags.updateSourceExpression, this.$scope, this.locator, value);
+    this.sourceExpression.assign(flags | LifecycleFlags.updateSourceExpression, this.$scope, this.locator, value);
   }
 
   public handleChange(newValue: unknown, _previousValue: unknown, flags: LifecycleFlags): void {
@@ -145,11 +152,12 @@ export class AttributeBinding implements IPartialConnectableBinding {
     let targetObserver = this.targetObserver as IBindingTargetObserver;
     if (!targetObserver) {
       targetObserver = this.targetObserver = new AttributeObserver(
+        LifecycleFlags.fromBind,
         this.$lifecycle,
         this.observerLocator,
         this.target,
-        this.targetProperty,
         this.targetAttribute,
+        this.targetProperty
       );
     }
     if (targetObserver.bind) {
@@ -165,7 +173,7 @@ export class AttributeBinding implements IPartialConnectableBinding {
       sourceExpression.connect(flags, scope, this);
     }
     if (this.mode & fromView) {
-      (targetObserver as IBindingTargetObserver & { [key: string]: number })[this.id] |= LifecycleFlags.updateSourceExpression;
+      targetObserver[this.id] |= LifecycleFlags.updateSourceExpression;
       targetObserver.subscribe(this);
     }
 
@@ -190,14 +198,14 @@ export class AttributeBinding implements IPartialConnectableBinding {
     if (hasUnbind(this.sourceExpression)) {
       this.sourceExpression.unbind(flags, this.$scope, this);
     }
-    this.$scope = null!;
+    this.$scope = null;
 
     if ((this.targetObserver as IBindingTargetObserver).unbind) {
-      (this.targetObserver as IBindingTargetObserver).unbind!(flags);
+      (this.targetObserver as IBindingTargetObserver).unbind(flags);
     }
     if ((this.targetObserver as IBindingTargetObserver).unsubscribe) {
       (this.targetObserver as IBindingTargetObserver).unsubscribe(this);
-      (this.targetObserver as IBindingTargetObserver & { [key: string]: number })[this.id] &= ~LifecycleFlags.updateSourceExpression;
+      this.targetObserver[this.id] &= ~LifecycleFlags.updateSourceExpression;
     }
     this.unobserve(true);
 
@@ -211,6 +219,15 @@ export class AttributeBinding implements IPartialConnectableBinding {
     if (this.$state & State.isBound) {
       flags |= this.persistentFlags;
       this.sourceExpression.connect(flags | LifecycleFlags.mustEvaluate, this.$scope, this);
+    }
+    if (Tracer.enabled) { Tracer.leave(); }
+  }
+
+  public patch(flags: LifecycleFlags): void {
+    if (Tracer.enabled) { Tracer.enter('Binding', 'patch', slice.call(arguments)); }
+    if (this.$state & State.isBound) {
+      flags |= this.persistentFlags;
+      this.updateTarget(this.sourceExpression.evaluate(flags | LifecycleFlags.mustEvaluate, this.$scope, this.locator), flags);
     }
     if (Tracer.enabled) { Tracer.leave(); }
   }

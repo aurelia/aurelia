@@ -15,7 +15,7 @@ declare type BindingCommandDecorator = <TProto, TClass>(target: Class<TProto, TC
 export declare function bindingCommand(name: string): BindingCommandDecorator;
 export declare function bindingCommand(definition: IBindingCommandDefinition): BindingCommandDecorator;
 export declare const BindingCommandResource: IBindingCommandResource;
-export declare function getTarget(binding: PlainAttributeSymbol | BindingSymbol, makeCamelCase: boolean): string;
+export declare function getTarget(binding: PlainAttributeSymbol | BindingSymbol, camelCase: boolean): string;
 export declare function getMode(binding: PlainAttributeSymbol | BindingSymbol): BindingMode;
 export interface OneTimeBindingCommand extends IBindingCommand {
 }

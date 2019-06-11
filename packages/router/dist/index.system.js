@@ -1,42 +1,35 @@
-System.register('router', ['@aurelia/kernel', '@aurelia/runtime', '@aurelia/runtime-html'], function (exports, module) {
+System.register('router', ['@aurelia/kernel', '@aurelia/runtime'], function (exports, module) {
   'use strict';
-  var Reporter, IContainer, buildQueryString, parseQueryString, DI, inject, ILifecycle, CustomElementResource, IObserverLocator, Controller, Aurelia, bindable, INode, customElement, IDOM, createRenderContext, IRenderingEngine, DOM;
+  var Reporter, PLATFORM, IContainer, buildQueryString, parseQueryString, DI, inject, CustomElementResource, IObserverLocator, Aurelia, bindable, customElement, IDOM, createRenderContext, INode, IRenderingEngine;
   return {
     setters: [function (module) {
       Reporter = module.Reporter;
+      PLATFORM = module.PLATFORM;
       IContainer = module.IContainer;
       buildQueryString = module.buildQueryString;
       parseQueryString = module.parseQueryString;
       DI = module.DI;
       inject = module.inject;
     }, function (module) {
-      ILifecycle = module.ILifecycle;
       CustomElementResource = module.CustomElementResource;
       IObserverLocator = module.IObserverLocator;
-      Controller = module.Controller;
       Aurelia = module.Aurelia;
       bindable = module.bindable;
-      INode = module.INode;
       customElement = module.customElement;
       IDOM = module.IDOM;
       createRenderContext = module.createRenderContext;
+      INode = module.INode;
       IRenderingEngine = module.IRenderingEngine;
-    }, function (module) {
-      DOM = module.DOM;
     }],
     execute: function () {
 
-      exports({
-        ContentStatus: void 0,
-        ReentryBehavior: void 0
-      });
-
       class QueuedBrowserHistory {
-          constructor(lifecycle) {
+          constructor() {
               this.handlePopstate = async (ev) => {
                   return this.enqueue(this, 'popstate', [ev]);
               };
-              this.lifecycle = lifecycle;
+              this.window = window;
+              this.history = window.history;
               this.queue = [];
               this.isActive = false;
               this.currentHistoryActivity = null;
@@ -50,31 +43,31 @@ System.register('router', ['@aurelia/kernel', '@aurelia/runtime', '@aurelia/runt
               }
               this.isActive = true;
               this.callback = callback;
-              this.lifecycle.enqueueRAF(this.dequeue, this, 4096 /* low */);
-              DOM.window.addEventListener('popstate', this.handlePopstate);
+              PLATFORM.ticker.add(this.dequeue, this);
+              this.window.addEventListener('popstate', this.handlePopstate);
           }
           deactivate() {
-              DOM.window.removeEventListener('popstate', this.handlePopstate);
-              this.lifecycle.dequeueRAF(this.dequeue, this);
+              this.window.removeEventListener('popstate', this.handlePopstate);
+              PLATFORM.ticker.remove(this.dequeue, this);
               this.callback = null;
               this.isActive = false;
           }
           get length() {
-              return DOM.window.history.length;
+              return this.history.length;
           }
           // tslint:disable-next-line:no-any - typed according to DOM
           get state() {
-              return DOM.window.history.state;
+              return this.history.state;
           }
           get scrollRestoration() {
-              return DOM.window.history.scrollRestoration;
+              return this.history.scrollRestoration;
           }
           async go(delta, suppressPopstate = false) {
               if (!suppressPopstate) {
                   return this.enqueue(this, '_go', [delta], true);
               }
               const promise = this.enqueue(this, 'suppressPopstate', [], true);
-              this.enqueue(DOM.window.history, 'go', [delta]).catch(error => { throw error; });
+              this.enqueue(this.history, 'go', [delta]).catch(error => { throw error; });
               return promise;
           }
           back() {
@@ -85,11 +78,11 @@ System.register('router', ['@aurelia/kernel', '@aurelia/runtime', '@aurelia/runt
           }
           // tslint:disable-next-line:no-any - typed according to DOM
           async pushState(data, title, url) {
-              return this.enqueue(DOM.window.history, 'pushState', [data, title, url]);
+              return this.enqueue(this.history, 'pushState', [data, title, url]);
           }
           // tslint:disable-next-line:no-any - typed according to DOM
           async replaceState(data, title, url) {
-              return this.enqueue(DOM.window.history, 'replaceState', [data, title, url]);
+              return this.enqueue(this.history, 'replaceState', [data, title, url]);
           }
           async popstate(ev) {
               if (!this.suppressPopstateResolve) {
@@ -109,7 +102,7 @@ System.register('router', ['@aurelia/kernel', '@aurelia/runtime', '@aurelia/runt
           }
           _go(delta, resolve) {
               this.goResolve = resolve;
-              DOM.window.history.go(delta);
+              this.history.go(delta);
           }
           suppressPopstate(resolve) {
               this.suppressPopstateResolve = resolve;
@@ -147,10 +140,9 @@ System.register('router', ['@aurelia/kernel', '@aurelia/runtime', '@aurelia/runt
               }
           }
       } exports('QueuedBrowserHistory', QueuedBrowserHistory);
-      QueuedBrowserHistory.inject = [ILifecycle];
 
       class HistoryBrowser {
-          constructor(lifecycle) {
+          constructor() {
               this.pathChanged = async () => {
                   const path = this.getPath();
                   const search = this.getSearch();
@@ -235,7 +227,8 @@ System.register('router', ['@aurelia/kernel', '@aurelia/runtime', '@aurelia/runt
                   Reporter.write(10000, 'navigated', this.getState('HistoryEntry'), this.historyEntries, this.getState('HistoryOffset'));
                   this.callback(this.currentEntry, navigationFlags, previousEntry);
               };
-              this.history = new QueuedBrowserHistory(lifecycle);
+              this.location = window.location;
+              this.history = new QueuedBrowserHistory();
               this.currentEntry = null;
               this.historyEntries = null;
               this.historyOffset = null;
@@ -252,7 +245,7 @@ System.register('router', ['@aurelia/kernel', '@aurelia/runtime', '@aurelia/runt
                   throw Reporter.error(0); // TODO: create error code for 'History has already been activated.'
               }
               this.isActive = true;
-              this.options = { ...options };
+              this.options = Object.assign({}, options);
               this.history.activate(this.pathChanged);
               return Promise.resolve().then(() => {
                   this.setPath(this.getPath(), true).catch(error => { throw error; });
@@ -316,17 +309,17 @@ System.register('router', ['@aurelia/kernel', '@aurelia/runtime', '@aurelia/runt
           }
           async setState(key, value) {
               const { pathname, search, hash } = this.location;
-              let state = { ...this.history.state };
+              let state = Object.assign({}, this.history.state);
               if (typeof key === 'string') {
                   state[key] = JSON.parse(JSON.stringify(value));
               }
               else {
-                  state = { ...state, ...JSON.parse(JSON.stringify(key)) };
+                  state = Object.assign({}, state, JSON.parse(JSON.stringify(key)));
               }
               return this.history.replaceState(state, null, `${pathname}${search}${hash}`);
           }
           getState(key) {
-              const state = { ...this.history.state };
+              const state = Object.assign({}, this.history.state);
               return state[key];
           }
           setEntryTitle(title) {
@@ -352,13 +345,10 @@ System.register('router', ['@aurelia/kernel', '@aurelia/runtime', '@aurelia/runt
               }
               this.currentEntry.path = path;
               this.currentEntry.fullStatePath = fullStatePath;
-              const state = {
-                  ...this.history.state,
-                  ...{
-                      'HistoryEntry': this.currentEntry,
-                      'HistoryEntries': this.historyEntries,
-                  }
-              };
+              const state = Object.assign({}, this.history.state, {
+                  'HistoryEntry': this.currentEntry,
+                  'HistoryEntries': this.historyEntries,
+              });
               return this.history.replaceState(state, null, `${pathname}${search}${newHash}`);
           }
           setHash(hash) {
@@ -400,7 +390,7 @@ System.register('router', ['@aurelia/kernel', '@aurelia/runtime', '@aurelia/runt
               return hashSearches.length > 0 ? hashSearches.shift() : '';
           }
           callback(currentEntry, navigationFlags, previousEntry) {
-              const instruction = { ...currentEntry, ...navigationFlags };
+              const instruction = Object.assign({}, currentEntry, navigationFlags);
               instruction.previous = previousEntry;
               Reporter.write(10000, 'callback', currentEntry, navigationFlags);
               if (this.options.callback) {
@@ -408,7 +398,6 @@ System.register('router', ['@aurelia/kernel', '@aurelia/runtime', '@aurelia/runt
               }
           }
       } exports('HistoryBrowser', HistoryBrowser);
-      HistoryBrowser.inject = [ILifecycle];
 
       /**
        * Class responsible for handling interactions that should trigger navigation.
@@ -423,8 +412,8 @@ System.register('router', ['@aurelia/kernel', '@aurelia/runtime', '@aurelia/runt
                       this.options.callback(info);
                   }
               };
+              this.document = document;
           }
-          // private handler: EventListener;
           /**
            * Gets the href and a "should handle" recommendation, given an Event.
            *
@@ -475,7 +464,7 @@ System.register('router', ['@aurelia/kernel', '@aurelia/runtime', '@aurelia/runt
            */
           static targetIsThisWindow(target) {
               const targetWindow = target.getAttribute('target');
-              const win = DOM.window;
+              const win = LinkHandler.window;
               return !targetWindow ||
                   targetWindow === win.name ||
                   targetWindow === '_self';
@@ -489,14 +478,14 @@ System.register('router', ['@aurelia/kernel', '@aurelia/runtime', '@aurelia/runt
                   throw Reporter.error(2004);
               }
               this.isActive = true;
-              this.options = { ...options };
-              DOM.document.addEventListener('click', this.handler, true);
+              this.options = Object.assign({}, options);
+              this.document.addEventListener('click', this.handler, true);
           }
           /**
            * Deactivate the instance. Event handlers and other resources should be cleaned up here.
            */
           deactivate() {
-              DOM.document.removeEventListener('click', this.handler, true);
+              this.document.removeEventListener('click', this.handler, true);
               this.isActive = false;
           }
       } exports('LinkHandler', LinkHandler);
@@ -579,7 +568,7 @@ System.register('router', ['@aurelia/kernel', '@aurelia/runtime', '@aurelia/runt
               }
               return compareType ? this.component === other.component : this.componentName === other.componentName;
           }
-      } exports('ViewportInstruction', ViewportInstruction);
+      }
 
       class NavRoute {
           constructor(nav, route) {
@@ -1003,7 +992,7 @@ System.register('router', ['@aurelia/kernel', '@aurelia/runtime', '@aurelia/runt
               if (handler.generationUsesHref) {
                   return handler.href;
               }
-              const routeParams = { ...params };
+              const routeParams = Object.assign({}, params);
               const segments = route.segments;
               const consumed = {};
               let output = '';
@@ -1013,7 +1002,7 @@ System.register('router', ['@aurelia/kernel', '@aurelia/runtime', '@aurelia/runt
                       continue;
                   }
                   const segmentValue = segment.generate(routeParams, consumed);
-                  if (segmentValue == null) {
+                  if (segmentValue === null || segmentValue === undefined) {
                       if (!segment.optional) {
                           throw new Error(`A value is required for route parameter '${segment.name}' in route '${nameOrRoute}'.`);
                       }
@@ -1145,20 +1134,18 @@ System.register('router', ['@aurelia/kernel', '@aurelia/runtime', '@aurelia/runt
 
       class InstructionResolver {
           activate(options) {
-              this.separators = {
-                  ...{
-                      viewport: '@',
-                      sibling: '+',
-                      scope: '/',
-                      ownsScope: '!',
-                      parameters: '(',
-                      parametersEnd: ')',
-                      parameter: '&',
-                      add: '+',
-                      clear: '-',
-                      action: '.',
-                  }, ...options.separators
-              };
+              this.separators = Object.assign({
+                  viewport: '@',
+                  sibling: '+',
+                  scope: '/',
+                  ownsScope: '!',
+                  parameters: '(',
+                  parametersEnd: ')',
+                  parameter: '&',
+                  add: '+',
+                  clear: '-',
+                  action: '.',
+              }, options.separators);
           }
           get clearViewportInstruction() {
               return this.separators.clear;
@@ -1275,7 +1262,7 @@ System.register('router', ['@aurelia/kernel', '@aurelia/runtime', '@aurelia/runt
               }
               else {
                   let instructionString = instruction.componentName;
-                  if (instruction.viewportName != null && !excludeViewport) {
+                  if (instruction.viewportName !== null && !excludeViewport) {
                       instructionString += this.separators.viewport + instruction.viewportName;
                   }
                   if (instruction.parametersString) {
@@ -1310,7 +1297,7 @@ System.register('router', ['@aurelia/kernel', '@aurelia/runtime', '@aurelia/runt
       function mergeParameters(parameters, query, specifiedParameters) {
           const parsedQuery = parseQuery(query);
           const parsedParameters = parseQuery(parameters);
-          const params = { ...parsedQuery.parameters, ...parsedParameters.parameters };
+          const params = Object.assign({}, parsedQuery.parameters, parsedParameters.parameters);
           const list = [...parsedQuery.list, ...parsedParameters.list];
           if (list.length && specifiedParameters && specifiedParameters.length) {
               for (const param of specifiedParameters) {
@@ -1372,14 +1359,14 @@ System.register('router', ['@aurelia/kernel', '@aurelia/runtime', '@aurelia/runt
           ContentStatus[ContentStatus["loaded"] = 2] = "loaded";
           ContentStatus[ContentStatus["initialized"] = 3] = "initialized";
           ContentStatus[ContentStatus["added"] = 4] = "added";
-      })(ContentStatus || (ContentStatus = exports('ContentStatus', {})));
+      })(ContentStatus || (ContentStatus = {}));
       var ReentryBehavior;
       (function (ReentryBehavior) {
           ReentryBehavior["default"] = "default";
           ReentryBehavior["disallow"] = "disallow";
           ReentryBehavior["enter"] = "enter";
           ReentryBehavior["refresh"] = "refresh";
-      })(ReentryBehavior || (ReentryBehavior = exports('ReentryBehavior', {})));
+      })(ReentryBehavior || (ReentryBehavior = {}));
       class ViewportContent {
           constructor(content = null, parameters = null, instruction = null, context = null) {
               // Can be a (resolved) type or a string (to be resolved later)
@@ -1491,7 +1478,7 @@ System.register('router', ['@aurelia/kernel', '@aurelia/runtime', '@aurelia/runt
               if (!this.fromCache) {
                   const host = element;
                   const container = context;
-                  Controller.forCustomElement(this.component, container, host);
+                  this.component.$hydrate(0 /* none */, container, host);
               }
               this.contentStatus = 2 /* loaded */;
               return Promise.resolve();
@@ -1510,7 +1497,7 @@ System.register('router', ['@aurelia/kernel', '@aurelia/runtime', '@aurelia/runt
               }
               // Don't initialize cached content
               if (!this.fromCache) {
-                  this.component.$controller.bind(1024 /* fromStartTask */ | 4096 /* fromBind */, null);
+                  this.component.$bind(512 /* fromStartTask */ | 2048 /* fromBind */, null);
               }
               this.contentStatus = 3 /* initialized */;
           }
@@ -1520,7 +1507,7 @@ System.register('router', ['@aurelia/kernel', '@aurelia/runtime', '@aurelia/runt
               }
               // Don't terminate cached content
               if (!stateful) {
-                  this.component.$controller.unbind(2048 /* fromStopTask */ | 8192 /* fromUnbind */);
+                  this.component.$unbind(1024 /* fromStopTask */ | 4096 /* fromUnbind */);
                   this.contentStatus = 2 /* loaded */;
               }
           }
@@ -1528,7 +1515,7 @@ System.register('router', ['@aurelia/kernel', '@aurelia/runtime', '@aurelia/runt
               if (this.contentStatus !== 3 /* initialized */) {
                   return;
               }
-              this.component.$controller.attach(1024 /* fromStartTask */);
+              this.component.$attach(512 /* fromStartTask */);
               if (this.fromCache) {
                   const elements = Array.from(element.getElementsByTagName('*'));
                   for (const el of elements) {
@@ -1553,7 +1540,7 @@ System.register('router', ['@aurelia/kernel', '@aurelia/runtime', '@aurelia/runt
                       }
                   }
               }
-              this.component.$controller.detach(2048 /* fromStopTask */);
+              this.component.$detach(1024 /* fromStopTask */);
               this.contentStatus = 3 /* initialized */;
           }
           async freeContent(element, nextInstruction, stateful = false) {
@@ -1610,7 +1597,7 @@ System.register('router', ['@aurelia/kernel', '@aurelia/runtime', '@aurelia/runt
                   return container.get(CustomElementResource.keyFrom(component));
               }
           }
-      } exports('ViewportContent', ViewportContent);
+      }
 
       class Viewport {
           constructor(router, name, element, context, owningScope, scope, options) {
@@ -1688,7 +1675,7 @@ System.register('router', ['@aurelia/kernel', '@aurelia/runtime', '@aurelia/runt
               }
               if (this.element !== element) {
                   // TODO: Restore this state on navigation cancel
-                  this.previousViewportState = { ...this };
+                  this.previousViewportState = Object.assign({}, this);
                   this.clearState();
                   this.element = element;
                   if (options && options.usedBy) {
@@ -1912,7 +1899,7 @@ System.register('router', ['@aurelia/kernel', '@aurelia/runtime', '@aurelia/runt
               else if (!this.viewportInstructions) {
                   this.viewportInstructions = [];
               }
-              this.availableViewports = { ...this.getEnabledViewports(), ...this.availableViewports };
+              this.availableViewports = Object.assign({}, this.getEnabledViewports(), this.availableViewports);
               // Configured viewport is ruling
               for (let i = 0; i < this.viewportInstructions.length; i++) {
                   const instruction = this.viewportInstructions[i];
@@ -2103,7 +2090,8 @@ System.register('router', ['@aurelia/kernel', '@aurelia/runtime', '@aurelia/runt
       const IRouteTransformer = exports('IRouteTransformer', DI.createInterface('IRouteTransformer').withDefault(x => x.singleton(RouteTable)));
       const IRouter = exports('IRouter', DI.createInterface('IRouter').withDefault(x => x.singleton(Router)));
       class Router {
-          constructor(container, routeTransformer, historyBrowser, linkHandler, instructionResolver) {
+          constructor(container, routeTransformer) {
+              this.container = container;
               this.scopes = [];
               this.navs = {};
               this.activeComponents = [];
@@ -2124,11 +2112,10 @@ System.register('router', ['@aurelia/kernel', '@aurelia/runtime', '@aurelia/runt
                   }
                   this.historyBrowser.setHash(href);
               };
-              this.container = container;
+              this.historyBrowser = new HistoryBrowser();
+              this.linkHandler = new LinkHandler();
+              this.instructionResolver = new InstructionResolver();
               this.routeTransformer = routeTransformer;
-              this.historyBrowser = historyBrowser;
-              this.linkHandler = linkHandler;
-              this.instructionResolver = instructionResolver;
           }
           get isNavigating() {
               return this.processingNavigation !== null;
@@ -2138,15 +2125,13 @@ System.register('router', ['@aurelia/kernel', '@aurelia/runtime', '@aurelia/runt
                   throw Reporter.error(2001);
               }
               this.isActive = true;
-              this.options = {
-                  ...{
-                      callback: (navigationInstruction) => {
-                          this.historyCallback(navigationInstruction);
-                      },
-                      transformFromUrl: this.routeTransformer.transformFromUrl,
-                      transformToUrl: this.routeTransformer.transformToUrl,
-                  }, ...options
-              };
+              this.options = Object.assign({
+                  callback: (navigationInstruction) => {
+                      this.historyCallback(navigationInstruction);
+                  },
+                  transformFromUrl: this.routeTransformer.transformFromUrl,
+                  transformToUrl: this.routeTransformer.transformToUrl,
+              }, options);
               this.instructionResolver.activate({ separators: this.options.separators });
               this.linkHandler.activate({ callback: this.linkCallback });
               return this.historyBrowser.activate(this.options).catch(error => { throw error; });
@@ -2411,8 +2396,8 @@ System.register('router', ['@aurelia/kernel', '@aurelia/runtime', '@aurelia/runt
           }
           ensureRootScope() {
               if (!this.rootScope) {
-                  const root = this.container.get(Aurelia).root;
-                  this.rootScope = new Scope(this, root.host, root.controller.context, null);
+                  const root = this.container.get(Aurelia).root();
+                  this.rootScope = new Scope(this, root.$host, root.$context, null);
                   this.scopes.push(this.rootScope);
               }
           }
@@ -2428,7 +2413,7 @@ System.register('router', ['@aurelia/kernel', '@aurelia/runtime', '@aurelia/runt
               return this.rootScope;
               // TODO: It would be better if it was something like this
               // const el = closestCustomElement(element);
-              // let container: ChildContainer = el.$controller.$context.get(IContainer);
+              // let container: ChildContainer = el.$customElement.$context.get(IContainer);
               // while (container) {
               //   const scope = this.scopes.find((item) => item.context.get(IContainer) === container);
               //   if (scope) {
@@ -2457,7 +2442,7 @@ System.register('router', ['@aurelia/kernel', '@aurelia/runtime', '@aurelia/runt
               return this.historyBrowser.replacePath(state + query, this.instructionResolver.stateStringsToString(fullViewportStates, true) + query, instruction);
           }
       } exports('Router', Router);
-      Router.inject = [IContainer, IRouteTransformer, HistoryBrowser, LinkHandler, InstructionResolver];
+      Router.inject = [IContainer, IRouteTransformer];
 
       /*! *****************************************************************************
       Copyright (c) Microsoft Corporation. All rights reserved.
@@ -2507,7 +2492,7 @@ System.register('router', ['@aurelia/kernel', '@aurelia/runtime', '@aurelia/runt
           bindable
       ], NavCustomElement.prototype, "level", void 0);
       NavCustomElement = exports('NavCustomElement', __decorate([
-          inject(Router, INode),
+          inject(Router, Element),
           customElement({
               name: 'au-nav', template: `<template>
   <nav if.bind="name" class="\${name}">
@@ -2526,6 +2511,9 @@ System.register('router', ['@aurelia/kernel', '@aurelia/runtime', '@aurelia/runt
 
       class ViewportCustomElement {
           constructor(router, element, renderingEngine) {
+              this.router = router;
+              this.element = element;
+              this.renderingEngine = renderingEngine;
               this.name = 'default';
               this.scope = null;
               this.usedBy = null;
@@ -2534,9 +2522,6 @@ System.register('router', ['@aurelia/kernel', '@aurelia/runtime', '@aurelia/runt
               this.noHistory = null;
               this.stateful = null;
               this.viewport = null;
-              this.router = router;
-              this.element = element;
-              this.renderingEngine = renderingEngine;
           }
           render(flags, host, parts, parentContext) {
               const Type = this.constructor;
@@ -2596,10 +2581,10 @@ System.register('router', ['@aurelia/kernel', '@aurelia/runtime', '@aurelia/runt
               if (this.element.hasAttribute('stateful')) {
                   options.stateful = true;
               }
-              this.viewport = this.router.addViewport(this.name, this.element, this.$controller.context, options);
+              this.viewport = this.router.addViewport(this.name, this.element, this.$context, options);
           }
           disconnect() {
-              this.router.removeViewport(this.viewport, this.element, this.$controller.context);
+              this.router.removeViewport(this.viewport, this.element, this.$context);
           }
           binding(flags) {
               if (this.viewport) {

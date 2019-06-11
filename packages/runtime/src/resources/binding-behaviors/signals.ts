@@ -46,7 +46,7 @@ export class SignalBindingBehavior {
 
   public unbind(flags: LifecycleFlags, scope: IScope, binding: SignalableBinding): void {
     const name = binding.signal;
-    binding.signal = null! as string | string[];
+    binding.signal = null;
 
     if (Array.isArray(name)) {
       const names = name;

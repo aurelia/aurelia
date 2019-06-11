@@ -34,8 +34,6 @@ System.register('debug', ['@aurelia/kernel', '@aurelia/runtime'], function (expo
     }],
     execute: function () {
 
-      exports('stringifyLifecycleFlags', stringifyLifecycleFlags);
-
       const astTypeMap = [
           { type: AccessKeyed, name: 'AccessKeyed' },
           { type: AccessMember, name: 'AccessMember' },
@@ -69,6 +67,7 @@ System.register('debug', ['@aurelia/kernel', '@aurelia/runtime'], function (expo
       function adoptDebugMethods($type, name) {
           $type.prototype.toString = function () { return Unparser.unparse(this); };
       }
+      /** @internal */
       class Unparser {
           constructor() {
               this.text = '';
@@ -296,165 +295,27 @@ System.register('debug', ['@aurelia/kernel', '@aurelia/runtime'], function (expo
               }
               this.text += ')';
           }
-      } exports('Unparser', Unparser);
-      class Serializer {
-          static serialize(expr) {
-              const visitor = new Serializer();
-              if (expr == null || typeof expr.accept !== 'function') {
-                  return `${expr}`;
-              }
-              return expr.accept(visitor);
-          }
-          visitAccessMember(expr) {
-              return `{"type":"AccessMember","name":${expr.name},"object":${expr.object.accept(this)}}`;
-          }
-          visitAccessKeyed(expr) {
-              return `{"type":"AccessKeyed","object":${expr.object.accept(this)},"key":${expr.key.accept(this)}}`;
-          }
-          visitAccessThis(expr) {
-              return `{"type":"AccessThis","ancestor":${expr.ancestor}}`;
-          }
-          visitAccessScope(expr) {
-              return `{"type":"AccessScope","name":"${expr.name}","ancestor":${expr.ancestor}}`;
-          }
-          visitArrayLiteral(expr) {
-              return `{"type":"ArrayLiteral","elements":${this.serializeExpressions(expr.elements)}}`;
-          }
-          visitObjectLiteral(expr) {
-              return `{"type":"ObjectLiteral","keys":${serializePrimitives(expr.keys)},"values":${this.serializeExpressions(expr.values)}}`;
-          }
-          visitPrimitiveLiteral(expr) {
-              return `{"type":"PrimitiveLiteral","value":${serializePrimitive(expr.value)}}`;
-          }
-          visitCallFunction(expr) {
-              return `{"type":"CallFunction","func":${expr.func.accept(this)},"args":${this.serializeExpressions(expr.args)}}`;
-          }
-          visitCallMember(expr) {
-              return `{"type":"CallMember","name":"${expr.name}","object":${expr.object.accept(this)},"args":${this.serializeExpressions(expr.args)}}`;
-          }
-          visitCallScope(expr) {
-              return `{"type":"CallScope","name":"${expr.name}","ancestor":${expr.ancestor},"args":${this.serializeExpressions(expr.args)}}`;
-          }
-          visitTemplate(expr) {
-              return `{"type":"Template","cooked":${serializePrimitives(expr.cooked)},"expressions":${this.serializeExpressions(expr.expressions)}}`;
-          }
-          visitTaggedTemplate(expr) {
-              return `{"type":"TaggedTemplate","cooked":${serializePrimitives(expr.cooked)},"raw":${serializePrimitives(expr.cooked.raw)},"expressions":${this.serializeExpressions(expr.expressions)}}`;
-          }
-          visitUnary(expr) {
-              return `{"type":"Unary","operation":"${expr.operation}","expression":${expr.expression.accept(this)}}`;
-          }
-          visitBinary(expr) {
-              return `{"type":"Binary","operation":"${expr.operation}","left":${expr.left.accept(this)},"right":${expr.right.accept(this)}}`;
-          }
-          visitConditional(expr) {
-              return `{"type":"Conditional","condition":${expr.condition.accept(this)},"yes":${expr.yes.accept(this)},"no":${expr.no.accept(this)}}`;
-          }
-          visitAssign(expr) {
-              return `{"type":"Assign","target":${expr.target.accept(this)},"value":${expr.value.accept(this)}}`;
-          }
-          visitValueConverter(expr) {
-              return `{"type":"ValueConverter","name":"${expr.name}","expression":${expr.expression.accept(this)},"args":${this.serializeExpressions(expr.args)}}`;
-          }
-          visitBindingBehavior(expr) {
-              return `{"type":"BindingBehavior","name":"${expr.name}","expression":${expr.expression.accept(this)},"args":${this.serializeExpressions(expr.args)}}`;
-          }
-          visitArrayBindingPattern(expr) {
-              return `{"type":"ArrayBindingPattern","elements":${this.serializeExpressions(expr.elements)}}`;
-          }
-          visitObjectBindingPattern(expr) {
-              return `{"type":"ObjectBindingPattern","keys":${serializePrimitives(expr.keys)},"values":${this.serializeExpressions(expr.values)}}`;
-          }
-          visitBindingIdentifier(expr) {
-              return `{"type":"BindingIdentifier","name":"${expr.name}"}`;
-          }
-          visitHtmlLiteral(expr) { throw new Error('visitHtmlLiteral'); }
-          visitForOfStatement(expr) {
-              return `{"type":"ForOfStatement","declaration":${expr.declaration.accept(this)},"iterable":${expr.iterable.accept(this)}}`;
-          }
-          visitInterpolation(expr) {
-              return `{"type":"Interpolation","cooked":${serializePrimitives(expr.parts)},"expressions":${this.serializeExpressions(expr.expressions)}}`;
-          }
-          serializeExpressions(args) {
-              let text = '[';
-              for (let i = 0, ii = args.length; i < ii; ++i) {
-                  if (i !== 0) {
-                      text += ',';
-                  }
-                  text += args[i].accept(this);
-              }
-              text += ']';
-              return text;
-          }
-      } exports('Serializer', Serializer);
-      function serializePrimitives(values) {
-          let text = '[';
-          for (let i = 0, ii = values.length; i < ii; ++i) {
-              if (i !== 0) {
-                  text += ',';
-              }
-              text += serializePrimitive(values[i]);
-          }
-          text += ']';
-          return text;
-      }
-      function serializePrimitive(value) {
-          if (typeof value === 'string') {
-              return `"\\"${escapeString(value)}\\""`;
-          }
-          else if (value == null) {
-              return `"${value}"`;
-          }
-          else {
-              return `${value}`;
-          }
-      }
-      function escapeString(str) {
-          let ret = '';
-          for (let i = 0, ii = str.length; i < ii; ++i) {
-              ret += escape(str.charAt(i));
-          }
-          return ret;
-      }
-      function escape(ch) {
-          switch (ch) {
-              case '\b': return '\\b';
-              case '\t': return '\\t';
-              case '\n': return '\\n';
-              case '\v': return '\\v';
-              case '\f': return '\\f';
-              case '\r': return '\\r';
-              case '\"': return '\\"';
-              case '\'': return '\\\'';
-              case '\\': return '\\\\';
-              default: return ch;
-          }
       }
 
-      const Reporter = {
-          ...Reporter$1,
-          get level() {
-              return Reporter$1.level;
-          },
-          write(code, ...params) {
+      var MessageType;
+      (function (MessageType) {
+          MessageType[MessageType["error"] = 0] = "error";
+          MessageType[MessageType["warn"] = 1] = "warn";
+          MessageType[MessageType["info"] = 2] = "info";
+          MessageType[MessageType["debug"] = 3] = "debug";
+      })(MessageType || (MessageType = {}));
+      const Reporter = Object.assign({}, Reporter$1, { write(code, ...params) {
               const info = getMessageInfoForCode(code);
-              const message = `Code ${code}: ${info.message}`;
               // tslint:disable:no-console
-              switch (info.level) {
+              switch (info.type) {
                   case 3 /* debug */:
-                      if (this.level >= 3 /* debug */) {
-                          console.debug(message, ...params);
-                      }
+                      console.debug(info.message, ...params);
                       break;
                   case 2 /* info */:
-                      if (this.level >= 2 /* info */) {
-                          console.info(message, ...params);
-                      }
+                      console.info(info.message, ...params);
                       break;
                   case 1 /* warn */:
-                      if (this.level >= 1 /* warn */) {
-                          console.warn(message, ...params);
-                      }
+                      console.warn(info.message, ...params);
                       break;
                   case 0 /* error */:
                       throw this.error(code, ...params);
@@ -463,216 +324,195 @@ System.register('debug', ['@aurelia/kernel', '@aurelia/runtime'], function (expo
           },
           error(code, ...params) {
               const info = getMessageInfoForCode(code);
-              const error = new Error(`Code ${code}: ${info.message}`);
+              const error = new Error(info.message);
               error.data = params;
               return error;
-          }
-      };
+          } });
       function getMessageInfoForCode(code) {
           const info = codeLookup[code];
           return info !== undefined ? info : createInvalidCodeMessageInfo(code);
       }
       function createInvalidCodeMessageInfo(code) {
           return {
-              level: 0 /* error */,
+              type: 0 /* error */,
               message: `Attempted to report with unknown code ${code}.`
           };
       }
       const codeLookup = {
           0: {
-              level: 1 /* warn */,
+              type: 1 /* warn */,
               message: 'Cannot add observers to object.'
           },
           1: {
-              level: 1 /* warn */,
+              type: 1 /* warn */,
               message: 'Cannot observe property of object.'
           },
           2: {
-              level: 2 /* info */,
+              type: 2 /* info */,
               message: 'Starting application in debug mode.'
           },
           3: {
-              level: 0 /* error */,
+              type: 0 /* error */,
               message: 'Runtime expression compilation is only available when including JIT support.'
           },
           4: {
-              level: 0 /* error */,
+              type: 0 /* error */,
               message: 'Invalid animation direction.'
           },
           5: {
-              level: 0 /* error */,
+              type: 0 /* error */,
               message: 'key/value cannot be null or undefined. Are you trying to inject/register something that doesn\'t exist with DI?'
           },
           6: {
-              level: 0 /* error */,
+              type: 0 /* error */,
               message: 'Invalid resolver strategy specified.'
           },
           7: {
-              level: 0 /* error */,
+              type: 0 /* error */,
               message: 'Constructor Parameter with index cannot be null or undefined. Are you trying to inject/register something that doesn\'t exist with DI?'
           },
           8: {
-              level: 0 /* error */,
+              type: 0 /* error */,
               message: 'Self binding behavior only supports events.'
           },
           9: {
-              level: 0 /* error */,
+              type: 0 /* error */,
               message: 'The updateTrigger binding behavior requires at least one event name argument: eg <input value.bind="firstName & updateTrigger:\'blur\'">'
           },
           10: {
-              level: 0 /* error */,
+              type: 0 /* error */,
               message: 'The updateTrigger binding behavior can only be applied to two-way/ from-view bindings on input/select elements.'
           },
           11: {
-              level: 0 /* error */,
+              type: 0 /* error */,
               message: 'Only property bindings and string interpolation bindings can be signaled. Trigger, delegate and call bindings cannot be signaled.'
           },
           12: {
-              level: 0 /* error */,
+              type: 0 /* error */,
               message: 'Signal name is required.'
           },
           14: {
-              level: 0 /* error */,
+              type: 0 /* error */,
               message: 'Property cannot be assigned.'
           },
           15: {
-              level: 0 /* error */,
+              type: 0 /* error */,
               message: 'Unexpected call context.'
           },
           16: {
-              level: 0 /* error */,
+              type: 0 /* error */,
               message: 'Only one child observer per content view is supported for the life of the content view.'
           },
           17: {
-              level: 0 /* error */,
+              type: 0 /* error */,
               message: 'You can only define one default implementation for an interface.'
           },
           18: {
-              level: 0 /* error */,
+              type: 0 /* error */,
               message: 'You cannot observe a setter only property.'
           },
           19: {
-              level: 0 /* error */,
+              type: 0 /* error */,
               message: 'Value for expression is non-repeatable.'
           },
           20: {
-              level: 0 /* error */,
+              type: 0 /* error */,
               message: 'No template compiler found with the specified name. JIT support or a custom compiler is required.'
           },
           21: {
-              level: 0 /* error */,
+              type: 0 /* error */,
               message: 'You cannot combine the containerless custom element option with Shadow DOM.'
           },
           22: {
-              level: 0 /* error */,
+              type: 0 /* error */,
               message: 'A containerless custom element cannot be the root component of an application.'
           },
           30: {
-              level: 0 /* error */,
+              type: 0 /* error */,
               message: 'There are more targets than there are target instructions.'
           },
           31: {
-              level: 0 /* error */,
+              type: 0 /* error */,
               message: 'There are more target instructions than there are targets.'
           },
           100: {
-              level: 0 /* error */,
+              type: 0 /* error */,
               message: 'Invalid start of expression.'
           },
           101: {
-              level: 0 /* error */,
+              type: 0 /* error */,
               message: 'Unconsumed token.'
           },
           102: {
-              level: 0 /* error */,
+              type: 0 /* error */,
               message: 'Double dot and spread operators are not supported.'
           },
           103: {
-              level: 0 /* error */,
+              type: 0 /* error */,
               message: 'Invalid member expression.'
           },
           104: {
-              level: 0 /* error */,
+              type: 0 /* error */,
               message: 'Unexpected end of expression.'
           },
           105: {
-              level: 0 /* error */,
+              type: 0 /* error */,
               message: 'Expected identifier.'
           },
           106: {
-              level: 0 /* error */,
+              type: 0 /* error */,
               message: 'Invalid BindingIdentifier at left hand side of "of".'
           },
           107: {
-              level: 0 /* error */,
+              type: 0 /* error */,
               message: 'Invalid or unsupported property definition in object literal.'
           },
           108: {
-              level: 0 /* error */,
+              type: 0 /* error */,
               message: 'Unterminated quote in string literal.'
           },
           109: {
-              level: 0 /* error */,
+              type: 0 /* error */,
               message: 'Unterminated template string.'
           },
           110: {
-              level: 0 /* error */,
+              type: 0 /* error */,
               message: 'Missing expected token.'
           },
           111: {
-              level: 0 /* error */,
+              type: 0 /* error */,
               message: 'Unexpected character.'
           },
           150: {
-              level: 0 /* error */,
+              type: 0 /* error */,
               message: 'Left hand side of expression is not assignable.'
           },
           151: {
-              level: 0 /* error */,
+              type: 0 /* error */,
               message: 'Unexpected keyword "of"'
           },
-          401: {
-              level: 1 /* warn */,
-              message: `AttributePattern is missing a handler for '%s'.`
-          },
-          402: {
-              level: 1 /* warn */,
-              message: `AttributePattern handler for '%s' is not a function.`
-          },
-          800: {
-              level: 0 /* error */,
-              message: `Property '%s' is being dirty-checked.`
-          },
-          801: {
-              level: 1 /* warn */,
-              message: `Property '%s' is being dirty-checked.`
-          },
           2000: {
-              level: 0 /* error */,
+              type: 0 /* error */,
               message: 'Router has not been activated.'
           },
           2001: {
-              level: 0 /* error */,
+              type: 0 /* error */,
               message: 'Router has already been activated.'
           },
           2002: {
-              level: 0 /* error */,
+              type: 0 /* error */,
               message: 'Failed to resolve all viewports.'
           },
           2003: {
-              level: 0 /* error */,
+              type: 0 /* error */,
               message: 'Queued browser history has already been activated.'
           },
           2004: {
-              level: 0 /* error */,
+              type: 0 /* error */,
               message: 'LinkHandler has already been activated.'
           },
-          1001: {
-              level: 2 /* info */,
-              message: 'DOM already initialized. Destroying and re-initializing..'
-          },
           10000: {
-              level: 3 /* debug */,
+              type: 3 /* debug */,
               message: '%s'
           }
       };
@@ -700,7 +540,7 @@ System.register('debug', ['@aurelia/kernel', '@aurelia/runtime'], function (expo
           static reset() {
               let current = TraceInfo.head;
               let next = null;
-              while (current != null) {
+              while (current !== null) {
                   next = current.next;
                   current.next = null;
                   current.prev = null;
@@ -721,8 +561,7 @@ System.register('debug', ['@aurelia/kernel', '@aurelia/runtime'], function (expo
       TraceInfo.head = marker;
       TraceInfo.tail = marker;
       TraceInfo.stack = [];
-      const Tracer = exports('Tracer', {
-          ...Tracer$1,
+      const Tracer = Object.assign({}, Tracer$1, { 
           /**
            * A convenience property for the user to conditionally call the tracer.
            * This saves unnecessary `noop` and `slice` calls in non-AOT scenarios even if debugging is disabled.
@@ -730,9 +569,7 @@ System.register('debug', ['@aurelia/kernel', '@aurelia/runtime'], function (expo
            *
            * This property **only** turns on tracing if `@aurelia/debug` is included and configured as well.
            */
-          enabled: false,
-          liveLoggingEnabled: false,
-          liveWriter: null,
+          enabled: false, liveLoggingEnabled: false, liveWriter: null, 
           /**
            * Call this at the start of a method/function.
            * Each call to `enter` **must** have an accompanying call to `leave` for the tracer to work properly.
@@ -774,9 +611,9 @@ System.register('debug', ['@aurelia/kernel', '@aurelia/runtime'], function (expo
            * @param writer An object to write the output to. Can be null to simply reset the tracer state.
            */
           flushAll(writer) {
-              if (writer != null) {
+              if (writer !== null) {
                   let current = TraceInfo.head.next; // skip the marker
-                  while (current != null && current !== marker) {
+                  while (current !== null && current !== marker) {
                       writer.write(current);
                       current = current.next;
                   }
@@ -790,8 +627,7 @@ System.register('debug', ['@aurelia/kernel', '@aurelia/runtime'], function (expo
           disableLiveLogging() {
               this.liveLoggingEnabled = false;
               this.liveWriter = null;
-          }
-      });
+          } });
       const defaultOptions = Object.freeze({
           rendering: true,
           binding: true,
@@ -814,7 +650,7 @@ System.register('debug', ['@aurelia/kernel', '@aurelia/runtime'], function (expo
       }
       const toString = Object.prototype.toString;
       function flagsText(info, i = 0) {
-          if (info.params != null && info.params.length > i) {
+          if (info.params !== null && info.params.length > i) {
               return stringifyLifecycleFlags(info.params[i]);
           }
           return 'none';
@@ -844,16 +680,16 @@ System.register('debug', ['@aurelia/kernel', '@aurelia/runtime'], function (expo
           return name;
       }
       function ctorName(info, i = 0) {
-          if (info.params != null && info.params.length > i) {
+          if (info.params !== null && info.params.length > i) {
               return _ctorName(info.params[i]);
           }
           return 'undefined';
       }
       function scopeText(info, i = 0) {
           let $ctorName;
-          if (info.params != null && info.params.length > i) {
+          if (info.params !== null && info.params.length > i) {
               const $scope = info.params[i];
-              if ($scope != null && $scope.bindingContext != null) {
+              if ($scope !== undefined && $scope.bindingContext !== undefined) {
                   $ctorName = _ctorName($scope.bindingContext);
               }
               else {
@@ -864,7 +700,7 @@ System.register('debug', ['@aurelia/kernel', '@aurelia/runtime'], function (expo
           return 'undefined';
       }
       function keyText(info, i = 0) {
-          if (info.params != null && info.params.length > i) {
+          if (info.params !== null && info.params.length > i) {
               const $key = info.params[i];
               if (typeof $key === 'string') {
                   return `'${$key}'`;
@@ -877,7 +713,7 @@ System.register('debug', ['@aurelia/kernel', '@aurelia/runtime'], function (expo
           return 'undefined';
       }
       function primitive(info, i = 0) {
-          if (info.params != null && info.params.length > i) {
+          if (info.params !== null && info.params.length > i) {
               const $key = info.params[i];
               if (typeof $key === 'string') {
                   return `'${$key}'`;
@@ -975,13 +811,16 @@ System.register('debug', ['@aurelia/kernel', '@aurelia/runtime'], function (expo
           }
       };
       const ObservationArgsProcessor = {
+          $patch(info) {
+              return flagsText(info);
+          },
           callSource(info) {
               switch (info.objName) {
                   case 'Listener':
                       return (info.params[0]).type;
                   case 'Call':
                       const names = [];
-                      if (info.params != null) {
+                      if (info.params !== null) {
                           for (let i = 0, ii = info.params.length; i < ii; ++i) {
                               names.push(ctorName(info, i));
                           }
@@ -1069,7 +908,7 @@ System.register('debug', ['@aurelia/kernel', '@aurelia/runtime'], function (expo
                       return keyText(info);
                   case 'register':
                       const names = [];
-                      if (info.params != null) {
+                      if (info.params !== null) {
                           for (let i = 0, ii = info.params.length; i < ii; ++i) {
                               names.push(keyText(info, i));
                           }
@@ -1099,9 +938,9 @@ System.register('debug', ['@aurelia/kernel', '@aurelia/runtime'], function (expo
           CompositionCoordinator(info) {
               switch (info.methodName) {
                   case 'enqueue':
-                      return 'IController';
+                      return 'IView';
                   case 'swap':
-                      return `IController,${flagsText(info, 1)}`;
+                      return `IView,${flagsText(info, 1)}`;
                   case 'processNext':
                       return '';
                   default:
@@ -1169,10 +1008,10 @@ System.register('debug', ['@aurelia/kernel', '@aurelia/runtime'], function (expo
       }
       function stringifyLifecycleFlags(flags) {
           const flagNames = [];
-          if (flags & 2097152 /* mustEvaluate */) {
+          if (flags & 1048576 /* mustEvaluate */) {
               flagNames.push('mustEvaluate');
           }
-          if (flags & 67108864 /* isCollectionMutation */) {
+          if (flags & 33554432 /* isCollectionMutation */) {
               flagNames.push('isCollectionMutation');
           }
           if (flags & 16 /* updateTargetInstance */) {
@@ -1187,46 +1026,43 @@ System.register('debug', ['@aurelia/kernel', '@aurelia/runtime'], function (expo
           if (flags & 128 /* fromSyncFlush */) {
               flagNames.push('fromSyncFlush');
           }
-          if (flags & 256 /* fromTick */) {
-              flagNames.push('fromTick');
-          }
-          if (flags & 1024 /* fromStartTask */) {
+          if (flags & 512 /* fromStartTask */) {
               flagNames.push('fromStartTask');
           }
-          if (flags & 2048 /* fromStopTask */) {
+          if (flags & 1024 /* fromStopTask */) {
               flagNames.push('fromStopTask');
           }
-          if (flags & 4096 /* fromBind */) {
+          if (flags & 2048 /* fromBind */) {
               flagNames.push('fromBind');
           }
-          if (flags & 8192 /* fromUnbind */) {
+          if (flags & 4096 /* fromUnbind */) {
               flagNames.push('fromUnbind');
           }
-          if (flags & 16384 /* fromAttach */) {
+          if (flags & 8192 /* fromAttach */) {
               flagNames.push('fromAttach');
           }
-          if (flags & 32768 /* fromDetach */) {
+          if (flags & 16384 /* fromDetach */) {
               flagNames.push('fromDetach');
           }
-          if (flags & 65536 /* fromCache */) {
+          if (flags & 32768 /* fromCache */) {
               flagNames.push('fromCache');
           }
-          if (flags & 131072 /* fromDOMEvent */) {
+          if (flags & 65536 /* fromDOMEvent */) {
               flagNames.push('fromDOMEvent');
           }
-          if (flags & 262144 /* fromLifecycleTask */) {
+          if (flags & 131072 /* fromLifecycleTask */) {
               flagNames.push('fromLifecycleTask');
           }
-          if (flags & 4194304 /* parentUnmountQueued */) {
+          if (flags & 2097152 /* parentUnmountQueued */) {
               flagNames.push('parentUnmountQueued');
           }
-          if (flags & 8388608 /* doNotUpdateDOM */) {
+          if (flags & 4194304 /* doNotUpdateDOM */) {
               flagNames.push('doNotUpdateDOM');
           }
-          if (flags & 16777216 /* isTraversingParentScope */) {
+          if (flags & 8388608 /* isTraversingParentScope */) {
               flagNames.push('isTraversingParentScope');
           }
-          if (flags & 536870912 /* allowParentScopeTraversal */) {
+          if (flags & 67108864 /* allowParentScopeTraversal */) {
               flagNames.push('allowParentScopeTraversal');
           }
           if (flags & 1 /* getterSetterStrategy */) {
@@ -1234,6 +1070,12 @@ System.register('debug', ['@aurelia/kernel', '@aurelia/runtime'], function (expo
           }
           if (flags & 2 /* proxyStrategy */) {
               flagNames.push('proxyStrategy');
+          }
+          if (flags & 8 /* keyedStrategy */) {
+              flagNames.push('keyedStrategy');
+          }
+          if (flags & 4 /* patchStrategy */) {
+              flagNames.push('patchStrategy');
           }
           if (flagNames.length === 0) {
               return 'none';

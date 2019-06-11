@@ -1,99 +1,46 @@
-import {
-  IContainer,
-  InjectArray,
-  nextId,
-  PLATFORM,
-  Registration,
-} from '@aurelia/kernel';
-import {
-  HooksDefinition,
-  IAttributeDefinition,
-} from '../../definitions';
-import {
-  INode,
-  IRenderLocation,
-} from '../../dom';
-import {
-  BindingMode,
-  BindingStrategy,
-  LifecycleFlags,
-} from '../../flags';
-import {
-  IController,
-  IViewFactory,
-} from '../../lifecycle';
-import {
-  ILifecycleTask,
-} from '../../lifecycle-task';
-import {
-  CustomAttributeResource,
-  ICustomAttributeResource,
-} from '../custom-attribute';
-import { BindingContext } from '../../observation/binding-context';
+import { InjectArray, IRegistry } from '@aurelia/kernel';
+import { AttributeDefinition, IAttributeDefinition } from '../../definitions';
+import { INode, IRenderLocation } from '../../dom';
+import { LifecycleFlags } from '../../flags';
+import { IView, IViewFactory } from '../../lifecycle';
+import { CustomAttributeResource, ICustomAttribute, ICustomAttributeResource } from '../custom-attribute';
 
-export class Replaceable<T extends INode = INode> {
+export interface Replaceable<T extends INode = INode> extends ICustomAttribute<T> {}
+export class Replaceable<T extends INode = INode> implements Replaceable<T> {
   public static readonly inject: InjectArray = [IViewFactory, IRenderLocation];
 
-  public static readonly kind: ICustomAttributeResource = CustomAttributeResource;
-  public static readonly description: Required<IAttributeDefinition> = Object.freeze({
-    name: 'replaceable',
-    aliases: PLATFORM.emptyArray as typeof PLATFORM.emptyArray & string[],
-    defaultBindingMode: BindingMode.toView,
-    hasDynamicOptions: false,
-    isTemplateController: true,
-    bindables: PLATFORM.emptyObject,
-    strategy: BindingStrategy.getterSetter,
-    hooks: Object.freeze(new HooksDefinition(Replaceable.prototype)),
-  });
+  public static readonly register: IRegistry['register'];
+  public static readonly bindables: IAttributeDefinition['bindables'];
+  public static readonly kind: ICustomAttributeResource;
+  public static readonly description: AttributeDefinition;
 
-  public readonly id: number;
-
-  public readonly view: IController<T>;
+  private readonly currentView: IView<T>;
   private readonly factory: IViewFactory<T>;
-
-  // tslint:disable-next-line: prefer-readonly // This is set by the controller after this instance is constructed
-  private $controller!: IController<T>;
 
   constructor(
     factory: IViewFactory<T>,
     location: IRenderLocation<T>
   ) {
-    this.id = nextId('au$component');
-
     this.factory = factory;
 
-    this.view = this.factory.create();
-    this.view.hold(location);
+    this.currentView = this.factory.create();
+    this.currentView.hold(location);
   }
 
-  public static register(container: IContainer): void {
-    container.register(Registration.transient('custom-attribute:replaceable', this));
-    container.register(Registration.transient(this, this));
-  }
-
-  public binding(flags: LifecycleFlags): ILifecycleTask {
-    const prevName = BindingContext.partName;
-    BindingContext.partName = this.factory.name;
-    const task = this.view.bind(flags | LifecycleFlags.allowParentScopeTraversal, this.$controller.scope);
-    if (task.done) {
-      BindingContext.partName = prevName;
-    } else {
-      task.wait().then(() => {
-        BindingContext.partName = prevName;
-      });
-    }
-    return task;
+  public binding(flags: LifecycleFlags): void {
+    this.currentView.$bind(flags | LifecycleFlags.allowParentScopeTraversal, this.$scope);
   }
 
   public attaching(flags: LifecycleFlags): void {
-    this.view.attach(flags);
+    this.currentView.$attach(flags);
   }
 
   public detaching(flags: LifecycleFlags): void {
-    this.view.detach(flags);
+    this.currentView.$detach(flags);
   }
 
-  public unbinding(flags: LifecycleFlags): ILifecycleTask {
-    return this.view.unbind(flags);
+  public unbinding(flags: LifecycleFlags): void {
+    this.currentView.$unbind(flags);
   }
 }
+CustomAttributeResource.define({ name: 'replaceable', isTemplateController: true }, Replaceable);

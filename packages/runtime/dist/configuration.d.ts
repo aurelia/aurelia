@@ -16,13 +16,13 @@ export declare const ReplaceableRegistration: IRegistry;
 export declare const WithRegistration: IRegistry;
 export declare const SanitizeValueConverterRegistration: IRegistry;
 export declare const DebounceBindingBehaviorRegistration: IRegistry;
+export declare const KeyedBindingBehaviorRegistration: IRegistry;
 export declare const OneTimeBindingBehaviorRegistration: IRegistry;
 export declare const ToViewBindingBehaviorRegistration: IRegistry;
 export declare const FromViewBindingBehaviorRegistration: IRegistry;
 export declare const SignalBindingBehaviorRegistration: IRegistry;
 export declare const ThrottleBindingBehaviorRegistration: IRegistry;
 export declare const TwoWayBindingBehaviorRegistration: IRegistry;
-export declare const PriorityBindingBehaviorRegistration: IRegistry;
 /**
  * Default resources:
  * - Template controllers (`if`/`else`, `repeat`, `replaceable`, `with`)

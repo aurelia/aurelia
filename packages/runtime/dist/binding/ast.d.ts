@@ -3,6 +3,7 @@ import { BinaryOperator, BindingIdentifierOrPattern, CallsFunction, Connects, Ha
 import { ExpressionKind, LifecycleFlags } from '../flags';
 import { IBinding } from '../lifecycle';
 import { Collection, IBindingContext, IOverrideContext, IScope, ObservedCollection } from '../observation';
+import { IBindingBehavior } from '../resources/binding-behavior';
 import { IConnectableBinding } from './connectable';
 export declare function connects(expr: IsExpressionOrStatement): expr is Connects;
 export declare function observes(expr: IsExpressionOrStatement): expr is Observes;
@@ -27,8 +28,12 @@ export declare class BindingBehavior implements IBindingBehaviorExpression {
     evaluate(flags: LifecycleFlags, scope: IScope, locator: IServiceLocator): unknown;
     assign(flags: LifecycleFlags, scope: IScope, locator: IServiceLocator, value: unknown): unknown;
     connect(flags: LifecycleFlags, scope: IScope, binding: IConnectableBinding): void;
-    bind(flags: LifecycleFlags, scope: IScope, binding: IConnectableBinding): void;
-    unbind(flags: LifecycleFlags, scope: IScope, binding: IConnectableBinding): void;
+    bind(flags: LifecycleFlags, scope: IScope, binding: IConnectableBinding & {
+        [key: string]: IBindingBehavior | undefined;
+    }): void;
+    unbind(flags: LifecycleFlags, scope: IScope, binding: IConnectableBinding & {
+        [key: string]: IBindingBehavior | undefined;
+    }): void;
     accept<T>(visitor: IVisitor<T>): T;
 }
 export declare class ValueConverter implements IValueConverterExpression {

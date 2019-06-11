@@ -80,8 +80,9 @@ export declare class HydrateTemplateController implements IHydrateTemplateContro
     def: ITemplateDefinition;
     instructions: ITargetedInstruction[];
     link?: boolean;
+    parts?: Record<string, ITemplateDefinition>;
     res: string;
-    constructor(def: ITemplateDefinition, res: string, instructions: ITargetedInstruction[], link?: boolean);
+    constructor(def: ITemplateDefinition, res: string, instructions: ITargetedInstruction[], link?: boolean, parts?: Record<string, ITemplateDefinition>);
 }
 export declare class LetElementInstruction implements IHydrateLetElementInstruction {
     type: TargetedInstructionType.hydrateLetElement;

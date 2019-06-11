@@ -1,17 +1,16 @@
 import { Class } from '@aurelia/kernel';
 import { IConnectable } from '../ast';
 import { IBinding } from '../lifecycle';
-import { IPatchable, IPropertySubscriber, ISubscribable, MutationKind } from '../observation';
+import { IProxySubscribable, ISubscribable, ISubscriber } from '../observation';
 import { IObserverLocator } from '../observation/observer-locator';
-export interface IPartialConnectableBinding extends IBinding, IPropertySubscriber {
+export interface IPartialConnectableBinding extends IBinding, ISubscriber {
     observerLocator: IObserverLocator;
 }
-export interface IConnectableBinding extends IPartialConnectableBinding, IConnectable, IPatchable {
-    id: string;
-    $nextConnect?: IConnectableBinding;
+export interface IConnectableBinding extends IPartialConnectableBinding, IConnectable {
+    id: number;
     observerSlots: number;
     version: number;
-    addObserver(observer: ISubscribable<MutationKind.instance | MutationKind.proxy>): void;
+    addObserver(observer: ISubscribable | IProxySubscribable): void;
     unobserve(all?: boolean): void;
 }
 declare type DecoratableConnectable<TProto, TClass> = Class<TProto & Partial<IConnectableBinding> & IPartialConnectableBinding, TClass>;

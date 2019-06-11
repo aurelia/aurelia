@@ -1,15 +1,12 @@
-import { Class, Constructable, IResourceKind, IResourceType, IServiceLocator } from '@aurelia/kernel';
-import { customElementKey, IElementHydrationOptions, ITemplateDefinition, TemplateDefinition } from '../definitions';
+import { Class, Constructable, IResourceKind, IResourceType } from '@aurelia/kernel';
+import { customElementKey, ITemplateDefinition, TemplateDefinition } from '../definitions';
 import { IDOM, INode, INodeSequence, IRenderLocation } from '../dom';
-import { LifecycleFlags } from '../flags';
-import { ILifecycleHooks, IMountableComponent, IRenderable } from '../lifecycle';
-import { IChangeTracker } from '../observation';
-import { ILifecycleRender } from '../templating/lifecycle-render';
-export interface ICustomElementType<T extends INode = INode, C extends Constructable = Constructable> extends IResourceType<ITemplateDefinition, InstanceType<C> & ICustomElement<T>>, ICustomElementStaticProperties {
+import { IController, IViewModel } from '../lifecycle';
+export interface ICustomElementType<C extends Constructable = Constructable> extends IResourceType<ITemplateDefinition, InstanceType<C> & IViewModel>, ICustomElementStaticProperties {
     description: TemplateDefinition;
 }
 export declare type CustomElementHost<T extends INode = INode> = IRenderLocation<T> & T & {
-    $customElement?: ICustomElement<T>;
+    $controller?: IController<T>;
 };
 export interface IElementProjector<T extends INode = INode> {
     readonly host: CustomElementHost<T>;
@@ -21,7 +18,7 @@ export interface IElementProjector<T extends INode = INode> {
 }
 export declare const IProjectorLocator: import("@aurelia/kernel").InterfaceSymbol<IProjectorLocator<INode>>;
 export interface IProjectorLocator<T extends INode = INode> {
-    getElementProjector(dom: IDOM<T>, $component: ICustomElement<T>, host: CustomElementHost<T>, def: TemplateDefinition): IElementProjector<T>;
+    getElementProjector(dom: IDOM<T>, $component: IController<T>, host: CustomElementHost<T>, def: TemplateDefinition): IElementProjector<T>;
 }
 export interface ICustomElementStaticProperties {
     containerless?: TemplateDefinition['containerless'];
@@ -29,13 +26,8 @@ export interface ICustomElementStaticProperties {
     bindables?: TemplateDefinition['bindables'];
     strategy?: TemplateDefinition['strategy'];
 }
-export interface ICustomElement<T extends INode = INode> extends Partial<IChangeTracker>, ILifecycleHooks, ILifecycleRender, IMountableComponent, IRenderable<T> {
-    readonly $projector: IElementProjector<T>;
-    readonly $host: CustomElementHost<T>;
-    $hydrate(flags: LifecycleFlags, parentContext: IServiceLocator, host: INode, options?: IElementHydrationOptions): void;
-}
-export interface ICustomElementResource<T extends INode = INode> extends IResourceKind<ITemplateDefinition, ICustomElement<T>, Class<ICustomElement<T>> & ICustomElementStaticProperties> {
-    behaviorFor(node: T): ICustomElement<T> | null;
+export interface ICustomElementResource<T extends INode = INode> extends IResourceKind<ITemplateDefinition, IViewModel, Class<IViewModel> & ICustomElementStaticProperties> {
+    behaviorFor(node: T): IController<T> | undefined;
 }
 /**
  * Decorator: Indicates that the decorated class is a custom element.
@@ -44,14 +36,14 @@ export declare function customElement(definition: ITemplateDefinition): ICustomE
 export declare function customElement(name: string): ICustomElementDecorator;
 export declare function customElement(nameOrDefinition: string | ITemplateDefinition): ICustomElementDecorator;
 declare function isType<T>(this: ICustomElementResource, Type: T & Partial<ICustomElementType>): Type is T & ICustomElementType;
-declare function define<N extends INode = INode, T extends Constructable = Constructable>(this: ICustomElementResource, definition: ITemplateDefinition, ctor?: T | null): T & ICustomElementType<N, T>;
-declare function define<N extends INode = INode, T extends Constructable = Constructable>(this: ICustomElementResource, name: string, ctor?: T | null): T & ICustomElementType<N, T>;
-declare function define<N extends INode = INode, T extends Constructable = Constructable>(this: ICustomElementResource, nameOrDefinition: string | ITemplateDefinition, ctor: T | null): T & ICustomElementType<N, T>;
+declare function define<T extends Constructable = Constructable>(this: ICustomElementResource, definition: ITemplateDefinition, ctor?: T | null): T & ICustomElementType<T>;
+declare function define<T extends Constructable = Constructable>(this: ICustomElementResource, name: string, ctor?: T | null): T & ICustomElementType<T>;
+declare function define<T extends Constructable = Constructable>(this: ICustomElementResource, nameOrDefinition: string | ITemplateDefinition, ctor: T | null): T & ICustomElementType<T>;
 export declare const CustomElementResource: {
     name: string;
     keyFrom: typeof customElementKey;
     isType: typeof isType;
-    behaviorFor: (node: INode) => ICustomElement<INode>;
+    behaviorFor: (node: INode) => IController<INode, IViewModel<INode>> | undefined;
     define: typeof define;
 };
 export interface ICustomElementDecorator {

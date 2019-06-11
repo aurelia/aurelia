@@ -1,10 +1,6 @@
-import { IRegistry } from '@aurelia/kernel';
-import { ICustomElement } from '@aurelia/runtime';
+import { IController } from '@aurelia/runtime';
 import { Circle, Container, DisplayObject, Ellipse, Filter, Graphics, Matrix, ObservablePoint, Polygon, Rectangle, RoundedRectangle, Shader, Sprite, Texture, TransformBase } from 'pixi.js';
-export interface PixiSprite extends ICustomElement<Node> {
-}
 export declare class PixiSprite {
-    static readonly register: IRegistry['register'];
     readonly sprite: Sprite & {
         [key: string]: unknown;
     };
@@ -54,6 +50,7 @@ export declare class PixiSprite {
     shader?: Filter<Object> | Shader;
     texture?: Texture;
     tint?: number;
+    $controller: IController<Element, this>;
     private _sprite;
     constructor();
     attached(): void;

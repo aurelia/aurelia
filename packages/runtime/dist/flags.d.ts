@@ -12,8 +12,6 @@ export declare const enum BindingStrategy {
      *
      * This strategy is the most compatible, convenient and has the best performance on frequently updated bindings on components that are infrequently replaced.
      * However, it also consumes the most resources on initialization.
-     *
-     * Cannot be combined with `proxies` or `patch`.
      */
     getterSetter = 1,
     /**
@@ -23,42 +21,38 @@ export declare const enum BindingStrategy {
      * This strategy consumes significantly fewer resources than `getterSetter` on initialization and has the best performance on infrequently updated bindings on
      * components that are frequently replaced.
      * However, it consumes more resources on updates.
-     *
-     * Cannot be combined with `getterSetter` or `patch`.
      */
-    proxies = 2,
-    /**
-     * Configures all components "below" this one to operate in patched binding mode.
-     * Nothing is observed; to propagate changes, you manually need to call `$patch` on the component.
-     *
-     * This strategy consumes the least amount of resources and has the fastest initialization.
-     * Performance on updates will depend heavily on how it's used, but tends to be worse on a large number of
-     * nested bindings/components due to a larger number of reads on all properties.
-     *
-     * Cannot be combined with `getterSetter` or `proxies`.
-     */
-    patch = 4,
-    /**
-     * Configures any repeaters "below" this component to operate in keyed mode.
-     * To only put a single repeater in that mode, use `& keyed` (this will change to track-by etc soon)
-     *
-     * Can be combined with either `getterSetter`, `proxies` or `patch`.
-     */
-    keyed = 8
+    proxies = 2
 }
 export declare function ensureValidStrategy(strategy: BindingStrategy | null | undefined): BindingStrategy;
 export declare const enum State {
     none = 0,
     isBinding = 1,
-    isBound = 2,
-    isAttaching = 4,
-    isAttached = 8,
-    isMounted = 16,
-    isDetaching = 32,
-    isUnbinding = 64,
+    isUnbinding = 2,
+    isBound = 4,
+    isBoundOrBinding = 5,
+    isBoundOrUnbinding = 6,
+    isAttaching = 8,
+    isDetaching = 16,
+    isAttached = 32,
+    isAttachedOrAttaching = 40,
+    isAttachedOrDetaching = 48,
+    isMounted = 64,
     isCached = 128,
-    isContainerless = 256,
-    isPatching = 512
+    needsBind = 256,
+    needsUnbind = 512,
+    needsAttach = 1024,
+    needsDetach = 2048,
+    needsMount = 4096,
+    needsUnmount = 8192,
+    hasLockedScope = 16384,
+    canBeCached = 32768,
+    inBoundQueue = 65536,
+    inUnboundQueue = 131072,
+    inAttachedQueue = 262144,
+    inDetachedQueue = 524288,
+    inMountQueue = 1048576,
+    inUnmountQueue = 2097152
 }
 export declare const enum Hooks {
     none = 1,
@@ -76,38 +70,39 @@ export declare const enum Hooks {
 }
 export declare const enum LifecycleFlags {
     none = 0,
-    persistentBindingFlags = 67108879,
-    allowParentScopeTraversal = 67108864,
+    persistentBindingFlags = 536870927,
+    allowParentScopeTraversal = 536870912,
     bindingStrategy = 15,
     getterSetterStrategy = 1,
     proxyStrategy = 2,
-    patchStrategy = 4,
-    keyedStrategy = 8,
     update = 48,
     updateTargetInstance = 16,
     updateSourceExpression = 32,
-    from = 262080,
-    fromFlush = 448,
+    from = 524224,
+    fromFlush = 960,
     fromAsyncFlush = 64,
     fromSyncFlush = 128,
     fromTick = 256,
-    fromStartTask = 512,
-    fromStopTask = 1024,
-    fromBind = 2048,
-    fromUnbind = 4096,
-    fromAttach = 8192,
-    fromDetach = 16384,
-    fromCache = 32768,
-    fromDOMEvent = 65536,
-    fromLifecycleTask = 131072,
-    allowPublishRoundtrip = 262144,
-    isPublishing = 524288,
-    mustEvaluate = 1048576,
-    parentUnmountQueued = 2097152,
-    doNotUpdateDOM = 4194304,
-    isTraversingParentScope = 8388608,
-    isOriginalArray = 16777216,
-    isCollectionMutation = 33554432
+    fromBatch = 512,
+    fromStartTask = 1024,
+    fromStopTask = 2048,
+    fromBind = 4096,
+    fromUnbind = 8192,
+    fromAttach = 16384,
+    fromDetach = 32768,
+    fromCache = 65536,
+    fromDOMEvent = 131072,
+    fromLifecycleTask = 262144,
+    allowPublishRoundtrip = 524288,
+    isPublishing = 1048576,
+    mustEvaluate = 2097152,
+    parentUnmountQueued = 4194304,
+    doNotUpdateDOM = 8388608,
+    isTraversingParentScope = 16777216,
+    isOriginalArray = 33554432,
+    isCollectionMutation = 67108864,
+    updateOneTimeBindings = 134217728,
+    reorderNodes = 268435456
 }
 export declare const enum ExpressionKind {
     Connects = 32,

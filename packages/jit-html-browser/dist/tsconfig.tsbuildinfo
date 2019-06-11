@@ -1,0 +1,1977 @@
+{
+  "program": {
+    "fileInfos": {
+      "d:/projects/aurelia-12/node_modules/typescript/lib/lib.es5.d.ts": {
+        "version": "c8665e66018917580e71792b91022bcaf53fb946fab4aaf8dfb0738ed564db88",
+        "signature": "c8665e66018917580e71792b91022bcaf53fb946fab4aaf8dfb0738ed564db88"
+      },
+      "d:/projects/aurelia-12/node_modules/typescript/lib/lib.es2015.d.ts": {
+        "version": "7994d44005046d1413ea31d046577cdda33b8b2470f30281fd9c8b3c99fe2d96",
+        "signature": "7994d44005046d1413ea31d046577cdda33b8b2470f30281fd9c8b3c99fe2d96"
+      },
+      "d:/projects/aurelia-12/node_modules/typescript/lib/lib.es2016.d.ts": {
+        "version": "5f217838d25704474d9ef93774f04164889169ca31475fe423a9de6758f058d1",
+        "signature": "5f217838d25704474d9ef93774f04164889169ca31475fe423a9de6758f058d1"
+      },
+      "d:/projects/aurelia-12/node_modules/typescript/lib/lib.es2017.d.ts": {
+        "version": "459097c7bdd88fc5731367e56591e4f465f2c9de81a35427a7bd473165c34743",
+        "signature": "459097c7bdd88fc5731367e56591e4f465f2c9de81a35427a7bd473165c34743"
+      },
+      "d:/projects/aurelia-12/node_modules/typescript/lib/lib.es2018.d.ts": {
+        "version": "2edd3ddf436ef8e12df876dcae4ecd6a8748577944c477bf4b20d5596e0c9843",
+        "signature": "2edd3ddf436ef8e12df876dcae4ecd6a8748577944c477bf4b20d5596e0c9843"
+      },
+      "d:/projects/aurelia-12/node_modules/typescript/lib/lib.es2019.d.ts": {
+        "version": "6549045e428b5f483bc82d6e8f6d01a72decd0cb7387f650f365f2210fe10808",
+        "signature": "6549045e428b5f483bc82d6e8f6d01a72decd0cb7387f650f365f2210fe10808"
+      },
+      "d:/projects/aurelia-12/node_modules/typescript/lib/lib.esnext.d.ts": {
+        "version": "1c05c805f62c1c06a60b7812cd8de2dff7a5bda2218ce5edda5d9d298b1c48e1",
+        "signature": "1c05c805f62c1c06a60b7812cd8de2dff7a5bda2218ce5edda5d9d298b1c48e1"
+      },
+      "d:/projects/aurelia-12/node_modules/typescript/lib/lib.dom.d.ts": {
+        "version": "6994c583b66862deca24d7bbf77297d95b9d3da8160dbd9beef6b847cf7c1376",
+        "signature": "6994c583b66862deca24d7bbf77297d95b9d3da8160dbd9beef6b847cf7c1376"
+      },
+      "d:/projects/aurelia-12/node_modules/typescript/lib/lib.es2015.core.d.ts": {
+        "version": "384f66a3422d80014c51de2682159bb26f1e35854029880ccd5f6d1f00e6a36d",
+        "signature": "384f66a3422d80014c51de2682159bb26f1e35854029880ccd5f6d1f00e6a36d"
+      },
+      "d:/projects/aurelia-12/node_modules/typescript/lib/lib.es2015.collection.d.ts": {
+        "version": "dd94d8ef48c562389eb58af8df3a3a34d11367f7c818192aa5f16470d469e3f0",
+        "signature": "dd94d8ef48c562389eb58af8df3a3a34d11367f7c818192aa5f16470d469e3f0"
+      },
+      "d:/projects/aurelia-12/node_modules/typescript/lib/lib.es2015.generator.d.ts": {
+        "version": "828413486bdcaa342558e8e4570b1b287b776cb61b4b70b0214bd10c5d9a94c3",
+        "signature": "828413486bdcaa342558e8e4570b1b287b776cb61b4b70b0214bd10c5d9a94c3"
+      },
+      "d:/projects/aurelia-12/node_modules/typescript/lib/lib.es2015.iterable.d.ts": {
+        "version": "4d1f39313a169b8599b8817688f504b56ba8204c2ebafd03f66ff77ddb1899a4",
+        "signature": "4d1f39313a169b8599b8817688f504b56ba8204c2ebafd03f66ff77ddb1899a4"
+      },
+      "d:/projects/aurelia-12/node_modules/typescript/lib/lib.es2015.promise.d.ts": {
+        "version": "7c07d934680d0e33275a44d22fb11a4ff31d46c8c26a8d056828a478753f1efe",
+        "signature": "7c07d934680d0e33275a44d22fb11a4ff31d46c8c26a8d056828a478753f1efe"
+      },
+      "d:/projects/aurelia-12/node_modules/typescript/lib/lib.es2015.proxy.d.ts": {
+        "version": "5e72f949a89717db444e3bd9433468890068bb21a5638d8ab15a1359e05e54fe",
+        "signature": "5e72f949a89717db444e3bd9433468890068bb21a5638d8ab15a1359e05e54fe"
+      },
+      "d:/projects/aurelia-12/node_modules/typescript/lib/lib.es2015.reflect.d.ts": {
+        "version": "f5b242136ae9bfb1cc99a5971cccc44e99947ae6b5ef6fd8aa54b5ade553b976",
+        "signature": "f5b242136ae9bfb1cc99a5971cccc44e99947ae6b5ef6fd8aa54b5ade553b976"
+      },
+      "d:/projects/aurelia-12/node_modules/typescript/lib/lib.es2015.symbol.d.ts": {
+        "version": "9ae2860252d6b5f16e2026d8a2c2069db7b2a3295e98b6031d01337b96437230",
+        "signature": "9ae2860252d6b5f16e2026d8a2c2069db7b2a3295e98b6031d01337b96437230"
+      },
+      "d:/projects/aurelia-12/node_modules/typescript/lib/lib.es2015.symbol.wellknown.d.ts": {
+        "version": "3e0a459888f32b42138d5a39f706ff2d55d500ab1031e0988b5568b0f67c2303",
+        "signature": "3e0a459888f32b42138d5a39f706ff2d55d500ab1031e0988b5568b0f67c2303"
+      },
+      "d:/projects/aurelia-12/node_modules/typescript/lib/lib.es2016.array.include.d.ts": {
+        "version": "3f96f1e570aedbd97bf818c246727151e873125d0512e4ae904330286c721bc0",
+        "signature": "3f96f1e570aedbd97bf818c246727151e873125d0512e4ae904330286c721bc0"
+      },
+      "d:/projects/aurelia-12/node_modules/typescript/lib/lib.es2017.object.d.ts": {
+        "version": "ff8ad203e83338289b0f5defc1a5b5c253fb7d251b464db497383f915a0df3f4",
+        "signature": "ff8ad203e83338289b0f5defc1a5b5c253fb7d251b464db497383f915a0df3f4"
+      },
+      "d:/projects/aurelia-12/node_modules/typescript/lib/lib.es2017.sharedmemory.d.ts": {
+        "version": "b8667586a618c5cf64523d4e500ae39e781428abfb28f3de441fc66b56144b6f",
+        "signature": "b8667586a618c5cf64523d4e500ae39e781428abfb28f3de441fc66b56144b6f"
+      },
+      "d:/projects/aurelia-12/node_modules/typescript/lib/lib.es2017.string.d.ts": {
+        "version": "21df2e0059f14dcb4c3a0e125859f6b6ff01332ee24b0065a741d121250bc71c",
+        "signature": "21df2e0059f14dcb4c3a0e125859f6b6ff01332ee24b0065a741d121250bc71c"
+      },
+      "d:/projects/aurelia-12/node_modules/typescript/lib/lib.es2017.intl.d.ts": {
+        "version": "c1759cb171c7619af0d2234f2f8fb2a871ee88e956e2ed91bb61778e41f272c6",
+        "signature": "c1759cb171c7619af0d2234f2f8fb2a871ee88e956e2ed91bb61778e41f272c6"
+      },
+      "d:/projects/aurelia-12/node_modules/typescript/lib/lib.es2017.typedarrays.d.ts": {
+        "version": "28569d59e07d4378cb3d54979c4c60f9f06305c9bb6999ffe6cab758957adc46",
+        "signature": "28569d59e07d4378cb3d54979c4c60f9f06305c9bb6999ffe6cab758957adc46"
+      },
+      "d:/projects/aurelia-12/node_modules/typescript/lib/lib.es2018.asynciterable.d.ts": {
+        "version": "42102aaeb1bfec213be1e9777466a6d551eeba8567fed18c0cdbca8c35e3c6e4",
+        "signature": "42102aaeb1bfec213be1e9777466a6d551eeba8567fed18c0cdbca8c35e3c6e4"
+      },
+      "d:/projects/aurelia-12/node_modules/typescript/lib/lib.es2018.intl.d.ts": {
+        "version": "1b820b57379c726f94af50cd60053674af53ff9d079c1563cc70071e8b757dd0",
+        "signature": "1b820b57379c726f94af50cd60053674af53ff9d079c1563cc70071e8b757dd0"
+      },
+      "d:/projects/aurelia-12/node_modules/typescript/lib/lib.es2018.promise.d.ts": {
+        "version": "efe049114bad1035b0aa9a4a0359f50ab776e3897c411521e51d3013079cbd62",
+        "signature": "efe049114bad1035b0aa9a4a0359f50ab776e3897c411521e51d3013079cbd62"
+      },
+      "d:/projects/aurelia-12/node_modules/typescript/lib/lib.es2018.regexp.d.ts": {
+        "version": "e7780d04cd4120ee554c665829db2bbdd6b947cbaa3c150b7d9ea74df3beb2e8",
+        "signature": "e7780d04cd4120ee554c665829db2bbdd6b947cbaa3c150b7d9ea74df3beb2e8"
+      },
+      "d:/projects/aurelia-12/node_modules/typescript/lib/lib.es2019.array.d.ts": {
+        "version": "fc7c02b980e7dda0ed14d57ee71705c09efc51ec6286a10b971a25a3bb29262b",
+        "signature": "fc7c02b980e7dda0ed14d57ee71705c09efc51ec6286a10b971a25a3bb29262b"
+      },
+      "d:/projects/aurelia-12/node_modules/typescript/lib/lib.es2019.string.d.ts": {
+        "version": "669427ac10ef9f52b6a7a502a66670eaabba675e0a660eb971041bd73c9894e3",
+        "signature": "669427ac10ef9f52b6a7a502a66670eaabba675e0a660eb971041bd73c9894e3"
+      },
+      "d:/projects/aurelia-12/node_modules/typescript/lib/lib.es2019.symbol.d.ts": {
+        "version": "7a842c21e0fe143eb3ad4d689a1470bab5ed9bc7fd7223fe8b56cbae27038d62",
+        "signature": "7a842c21e0fe143eb3ad4d689a1470bab5ed9bc7fd7223fe8b56cbae27038d62"
+      },
+      "d:/projects/aurelia-12/node_modules/typescript/lib/lib.esnext.intl.d.ts": {
+        "version": "f6e0c89daaf72eac38dfb1d5ef0972183f7f26a68da15bfe5bcb7cfccf0c7db8",
+        "signature": "f6e0c89daaf72eac38dfb1d5ef0972183f7f26a68da15bfe5bcb7cfccf0c7db8"
+      },
+      "d:/projects/aurelia-12/node_modules/typescript/lib/lib.esnext.bigint.d.ts": {
+        "version": "63b66918290d794f73832a6d0325be5026236674fe8c0cb0b68d162000d7bbe8",
+        "signature": "63b66918290d794f73832a6d0325be5026236674fe8c0cb0b68d162000d7bbe8"
+      },
+      "d:/projects/aurelia-12/node_modules/tslib/tslib.d.ts": {
+        "version": "8a0a25ded65c0cb7b03c0109bc6ca580eeb8435bb073c5fb89cd043c9a1ee42e",
+        "signature": "8a0a25ded65c0cb7b03c0109bc6ca580eeb8435bb073c5fb89cd043c9a1ee42e"
+      },
+      "d:/projects/aurelia-12/packages/jit/dist/ast.d.ts": {
+        "version": "d6d040a9779bab8c9e247284c875f8693cbcf83dfff4606134cb179888d2cca3",
+        "signature": "d6d040a9779bab8c9e247284c875f8693cbcf83dfff4606134cb179888d2cca3"
+      },
+      "d:/projects/aurelia-12/packages/kernel/dist/interfaces.d.ts": {
+        "version": "acb59f66fed55fe0f8b80bbdee338df93c1c58fec1e13d79f50fd9a281f4fbe9",
+        "signature": "acb59f66fed55fe0f8b80bbdee338df93c1c58fec1e13d79f50fd9a281f4fbe9"
+      },
+      "d:/projects/aurelia-12/packages/kernel/dist/di.d.ts": {
+        "version": "5bcb1828ac25dd1eed5c72f84701c9b44f320401bc7f5417e83b6c6c1b399fc4",
+        "signature": "5bcb1828ac25dd1eed5c72f84701c9b44f320401bc7f5417e83b6c6c1b399fc4"
+      },
+      "d:/projects/aurelia-12/packages/kernel/dist/path.d.ts": {
+        "version": "302245733c8b1610dcfb7d11337449c2165e38f98e7d975900310109c77670bd",
+        "signature": "302245733c8b1610dcfb7d11337449c2165e38f98e7d975900310109c77670bd"
+      },
+      "d:/projects/aurelia-12/packages/kernel/dist/platform.d.ts": {
+        "version": "31e26348df1b6cedde39c9207a6b0a2a7b75868c523d4eccbc4cf56f73b2116c",
+        "signature": "31e26348df1b6cedde39c9207a6b0a2a7b75868c523d4eccbc4cf56f73b2116c"
+      },
+      "d:/projects/aurelia-12/packages/kernel/dist/reporter.d.ts": {
+        "version": "1f53ce4512223ef9c5e1bcbdcbe4ed542fa86223acdb473be73f25efae7a15a5",
+        "signature": "1f53ce4512223ef9c5e1bcbdcbe4ed542fa86223acdb473be73f25efae7a15a5"
+      },
+      "d:/projects/aurelia-12/packages/kernel/dist/profiler.d.ts": {
+        "version": "69658ec0694331b860adc0a8588aa7142f17759daef130033583d5d3cad20927",
+        "signature": "69658ec0694331b860adc0a8588aa7142f17759daef130033583d5d3cad20927"
+      },
+      "d:/projects/aurelia-12/packages/kernel/dist/resource.d.ts": {
+        "version": "8435618c6b9e532d1a4ccec3ed6fd7ff3c1ef83b110d73cf12da5a5cf5a948ce",
+        "signature": "8435618c6b9e532d1a4ccec3ed6fd7ff3c1ef83b110d73cf12da5a5cf5a948ce"
+      },
+      "d:/projects/aurelia-12/packages/kernel/dist/eventaggregator.d.ts": {
+        "version": "d37f36d53941c5f3912444b977316bc9b9ad8e9de45b96403968bb7db3ed674d",
+        "signature": "d37f36d53941c5f3912444b977316bc9b9ad8e9de45b96403968bb7db3ed674d"
+      },
+      "d:/projects/aurelia-12/packages/kernel/dist/functions.d.ts": {
+        "version": "706f2bfc4bf58e128ba6a26011bffd01231cb65d2f3b19b07e345110f1a3524f",
+        "signature": "706f2bfc4bf58e128ba6a26011bffd01231cb65d2f3b19b07e345110f1a3524f"
+      },
+      "d:/projects/aurelia-12/packages/kernel/dist/index.d.ts": {
+        "version": "6805e119a6215370fdbff875e22774739c9b9aa6e540ad5c95c96a2bbe77eed9",
+        "signature": "6805e119a6215370fdbff875e22774739c9b9aa6e540ad5c95c96a2bbe77eed9"
+      },
+      "d:/projects/aurelia-12/packages/jit/dist/attribute-parser.d.ts": {
+        "version": "7056847757b141673c735e385ff52de69041d2916ef7ee18ee86c2a76ced076f",
+        "signature": "7056847757b141673c735e385ff52de69041d2916ef7ee18ee86c2a76ced076f"
+      },
+      "d:/projects/aurelia-12/packages/jit/dist/attribute-pattern.d.ts": {
+        "version": "81ad735baad9354002fcb034ebf2f6ef9922e9f84958eec4018d3323b3dd44f2",
+        "signature": "81ad735baad9354002fcb034ebf2f6ef9922e9f84958eec4018d3323b3dd44f2"
+      },
+      "d:/projects/aurelia-12/packages/runtime/dist/flags.d.ts": {
+        "version": "8df9bcd1e292f132f6f033320e8778fa8cff32ab5f7bd16e69c2b976a3781568",
+        "signature": "8df9bcd1e292f132f6f033320e8778fa8cff32ab5f7bd16e69c2b976a3781568"
+      },
+      "d:/projects/aurelia-12/packages/runtime/dist/definitions.d.ts": {
+        "version": "9fa1e96bb0cc12ebc01f7f04cd2acb08ed94999e317d3968b99ccb1dddd9c4db",
+        "signature": "9fa1e96bb0cc12ebc01f7f04cd2acb08ed94999e317d3968b99ccb1dddd9c4db"
+      },
+      "d:/projects/aurelia-12/packages/runtime/dist/dom.d.ts": {
+        "version": "bf1aff0659ff89619b101660af8c26fd5a43388e8a2f2817475b7044e0686b06",
+        "signature": "bf1aff0659ff89619b101660af8c26fd5a43388e8a2f2817475b7044e0686b06"
+      },
+      "d:/projects/aurelia-12/packages/runtime/dist/lifecycle-task.d.ts": {
+        "version": "4c42b9313ab8eb35b0b7ca8b9fff243d2b9692cc3dfc0b34ff55b8748447a8ed",
+        "signature": "4c42b9313ab8eb35b0b7ca8b9fff243d2b9692cc3dfc0b34ff55b8748447a8ed"
+      },
+      "d:/projects/aurelia-12/packages/runtime/dist/resources/custom-element.d.ts": {
+        "version": "b8ecd8a93b615e87ddffa875406eb37f3d72876ec01a9cc6d3fd5876a4cb73f2",
+        "signature": "b8ecd8a93b615e87ddffa875406eb37f3d72876ec01a9cc6d3fd5876a4cb73f2"
+      },
+      "d:/projects/aurelia-12/packages/runtime/dist/lifecycle.d.ts": {
+        "version": "2b53f10f99c798f3cc0142e62726e91d93d90b2da25be79fd04dbd3ce141d016",
+        "signature": "2b53f10f99c798f3cc0142e62726e91d93d90b2da25be79fd04dbd3ce141d016"
+      },
+      "d:/projects/aurelia-12/packages/runtime/dist/observation.d.ts": {
+        "version": "680a0115ba93c0949cb302d1794ee0941dfde0f79c5e8f4f99fa75520e28b2f0",
+        "signature": "680a0115ba93c0949cb302d1794ee0941dfde0f79c5e8f4f99fa75520e28b2f0"
+      },
+      "d:/projects/aurelia-12/packages/runtime/dist/ast.d.ts": {
+        "version": "2cb2efe263d5b9efa8b8f19882c77e1566921b1fb0d6260a4f2d505f7a599353",
+        "signature": "2cb2efe263d5b9efa8b8f19882c77e1566921b1fb0d6260a4f2d505f7a599353"
+      },
+      "d:/projects/aurelia-12/packages/runtime/dist/resources/binding-behavior.d.ts": {
+        "version": "60d7c77aa720afb49d66df07ec1014126a4af48a873b33bbd3e70a869cc38b1a",
+        "signature": "60d7c77aa720afb49d66df07ec1014126a4af48a873b33bbd3e70a869cc38b1a"
+      },
+      "d:/projects/aurelia-12/packages/runtime/dist/observation/observer-locator.d.ts": {
+        "version": "c68551152961125119d60bcada71e5b877503e44bfa9638cc9e388e529711ab0",
+        "signature": "c68551152961125119d60bcada71e5b877503e44bfa9638cc9e388e529711ab0"
+      },
+      "d:/projects/aurelia-12/packages/runtime/dist/binding/connectable.d.ts": {
+        "version": "ab7a6f6cf0ef84aae402aba9725943f452c980ca286661f7e37233b7586bf412",
+        "signature": "ab7a6f6cf0ef84aae402aba9725943f452c980ca286661f7e37233b7586bf412"
+      },
+      "d:/projects/aurelia-12/packages/runtime/dist/binding/ast.d.ts": {
+        "version": "ed40bed4a1e3f80257ec49ac4668f6949ea3d5b40d851dcb41630949ca01d2b7",
+        "signature": "ed40bed4a1e3f80257ec49ac4668f6949ea3d5b40d851dcb41630949ca01d2b7"
+      },
+      "d:/projects/aurelia-12/packages/runtime/dist/binding/binding.d.ts": {
+        "version": "122cb0ace7fe4ab256444dee4fae160820b929739a77b1cd6f5ca5b4dba07423",
+        "signature": "122cb0ace7fe4ab256444dee4fae160820b929739a77b1cd6f5ca5b4dba07423"
+      },
+      "d:/projects/aurelia-12/packages/runtime/dist/binding/call.d.ts": {
+        "version": "43d7ed92334e4497c18fe2e34099d4c71ca658e00b7a4f83420f520774e7cdab",
+        "signature": "43d7ed92334e4497c18fe2e34099d4c71ca658e00b7a4f83420f520774e7cdab"
+      },
+      "d:/projects/aurelia-12/packages/runtime/dist/binding/expression-parser.d.ts": {
+        "version": "59f6a1115df5ae78f372c3b421018406673f22205976f489e2f317ca07538ad3",
+        "signature": "59f6a1115df5ae78f372c3b421018406673f22205976f489e2f317ca07538ad3"
+      },
+      "d:/projects/aurelia-12/packages/runtime/dist/binding/interpolation-binding.d.ts": {
+        "version": "edbe7fd463555dc34f5ed66097e4cf5a51e49cca8b2f5222997222562c9e5be5",
+        "signature": "edbe7fd463555dc34f5ed66097e4cf5a51e49cca8b2f5222997222562c9e5be5"
+      },
+      "d:/projects/aurelia-12/packages/runtime/dist/binding/let-binding.d.ts": {
+        "version": "1220bf1c83320f2ca1cbfd05d695f5a3916d53b6eb2281bed67751100f1ca3ee",
+        "signature": "1220bf1c83320f2ca1cbfd05d695f5a3916d53b6eb2281bed67751100f1ca3ee"
+      },
+      "d:/projects/aurelia-12/packages/runtime/dist/binding/ref.d.ts": {
+        "version": "6be30ee8ba79949e01cc8ec60c641323f9881d7c7b638ab423a5f9c245b0a8fa",
+        "signature": "6be30ee8ba79949e01cc8ec60c641323f9881d7c7b638ab423a5f9c245b0a8fa"
+      },
+      "d:/projects/aurelia-12/packages/runtime/dist/observation/collection-length-observer.d.ts": {
+        "version": "1676e1da9198bc536ab7e25c3e5999a5686e2c3e39a8e61a3c4d99feba25c219",
+        "signature": "1676e1da9198bc536ab7e25c3e5999a5686e2c3e39a8e61a3c4d99feba25c219"
+      },
+      "d:/projects/aurelia-12/packages/runtime/dist/observation/array-observer.d.ts": {
+        "version": "67d5387ab21a318285283ca248f70de8898c4ad0800d34e8cdc86b0ba153470f",
+        "signature": "67d5387ab21a318285283ca248f70de8898c4ad0800d34e8cdc86b0ba153470f"
+      },
+      "d:/projects/aurelia-12/packages/runtime/dist/observation/collection-size-observer.d.ts": {
+        "version": "c049b991904ff89107f0fe4de1315a1f56fa489387e15bab440d11b238817ba2",
+        "signature": "c049b991904ff89107f0fe4de1315a1f56fa489387e15bab440d11b238817ba2"
+      },
+      "d:/projects/aurelia-12/packages/runtime/dist/observation/map-observer.d.ts": {
+        "version": "77ab28110ec17b768ff4ceb7a8430094c236ab656be8945caa5360f7643aba53",
+        "signature": "77ab28110ec17b768ff4ceb7a8430094c236ab656be8945caa5360f7643aba53"
+      },
+      "d:/projects/aurelia-12/packages/runtime/dist/observation/set-observer.d.ts": {
+        "version": "67ba61ca333b066423e494411ed3d25cd969569bc556fe2917a9cce22bee0ee4",
+        "signature": "67ba61ca333b066423e494411ed3d25cd969569bc556fe2917a9cce22bee0ee4"
+      },
+      "d:/projects/aurelia-12/packages/runtime/dist/observation/binding-context.d.ts": {
+        "version": "f8d02d07c23b538e144c47b3909c6fda8af79ea45a3ed7d7a566e75c44614f36",
+        "signature": "f8d02d07c23b538e144c47b3909c6fda8af79ea45a3ed7d7a566e75c44614f36"
+      },
+      "d:/projects/aurelia-12/packages/runtime/dist/observation/computed-observer.d.ts": {
+        "version": "a1a6c66b5fc65f94de14c80f2f70c675c4458be0297ad34e20265700b6a68c1d",
+        "signature": "a1a6c66b5fc65f94de14c80f2f70c675c4458be0297ad34e20265700b6a68c1d"
+      },
+      "d:/projects/aurelia-12/packages/runtime/dist/observation/dirty-checker.d.ts": {
+        "version": "a1b79ff594d296c467fa23a5d8774c927d50c797be4f3be398efedec8370d8a6",
+        "signature": "a1b79ff594d296c467fa23a5d8774c927d50c797be4f3be398efedec8370d8a6"
+      },
+      "d:/projects/aurelia-12/packages/runtime/dist/observation/primitive-observer.d.ts": {
+        "version": "4ed8731b801bed205c2b4331d211f5394d75a76dc0cd5818a06d5be4a45464fa",
+        "signature": "4ed8731b801bed205c2b4331d211f5394d75a76dc0cd5818a06d5be4a45464fa"
+      },
+      "d:/projects/aurelia-12/packages/runtime/dist/observation/property-accessor.d.ts": {
+        "version": "fdaef00f17dd948050d780fd67f7770684d4ac477c127c94fb6a790b2bfaf5a7",
+        "signature": "fdaef00f17dd948050d780fd67f7770684d4ac477c127c94fb6a790b2bfaf5a7"
+      },
+      "d:/projects/aurelia-12/packages/runtime/dist/observation/proxy-observer.d.ts": {
+        "version": "ef571f72048c9e67d5f8ab4a0e8e19bfb896747027d5f773748ee4898bbfb93b",
+        "signature": "ef571f72048c9e67d5f8ab4a0e8e19bfb896747027d5f773748ee4898bbfb93b"
+      },
+      "d:/projects/aurelia-12/packages/runtime/dist/observation/self-observer.d.ts": {
+        "version": "c6e3ebeb1dc47e2848efc4be7fb8bc95db53745e0c8690a3076081bb38d30d66",
+        "signature": "c6e3ebeb1dc47e2848efc4be7fb8bc95db53745e0c8690a3076081bb38d30d66"
+      },
+      "d:/projects/aurelia-12/packages/runtime/dist/observation/setter-observer.d.ts": {
+        "version": "61ce38002d180ab11be3c4aaeaa79e6e45a024351fa5e65ca82d93bd8bfb5ff1",
+        "signature": "61ce38002d180ab11be3c4aaeaa79e6e45a024351fa5e65ca82d93bd8bfb5ff1"
+      },
+      "d:/projects/aurelia-12/packages/runtime/dist/observation/signaler.d.ts": {
+        "version": "84fe088b8e938956ee36c12f712f1135fa23bcebbdbbdc2366a81ab208e9e133",
+        "signature": "84fe088b8e938956ee36c12f712f1135fa23bcebbdbbdc2366a81ab208e9e133"
+      },
+      "d:/projects/aurelia-12/packages/runtime/dist/observation/subscriber-collection.d.ts": {
+        "version": "884e0ffe63207f864a6dcfdc192ac6b4ebc998bb55fea30b31d6331d223c9e3f",
+        "signature": "884e0ffe63207f864a6dcfdc192ac6b4ebc998bb55fea30b31d6331d223c9e3f"
+      },
+      "d:/projects/aurelia-12/packages/runtime/dist/resources/binding-behaviors/binding-mode.d.ts": {
+        "version": "e7132d08138872d5d5343ebacd2a8513a0c2883865e869cacc340327497a1f94",
+        "signature": "e7132d08138872d5d5343ebacd2a8513a0c2883865e869cacc340327497a1f94"
+      },
+      "d:/projects/aurelia-12/packages/runtime/dist/resources/binding-behaviors/debounce.d.ts": {
+        "version": "b6e4ba09882953e9608557e59785fe9cfe15f3149e8168979d7293baf895587f",
+        "signature": "b6e4ba09882953e9608557e59785fe9cfe15f3149e8168979d7293baf895587f"
+      },
+      "d:/projects/aurelia-12/packages/runtime/dist/resources/binding-behaviors/priority.d.ts": {
+        "version": "cba6c3bcc0eb3e7c795139119afc6103d4e5d988474cb2ffc67de7ae4f6774d3",
+        "signature": "cba6c3bcc0eb3e7c795139119afc6103d4e5d988474cb2ffc67de7ae4f6774d3"
+      },
+      "d:/projects/aurelia-12/packages/runtime/dist/resources/binding-behaviors/signals.d.ts": {
+        "version": "61f1119d4f9186d6824fc22fd136c7fc27d77519f7d9e805033568571332537d",
+        "signature": "61f1119d4f9186d6824fc22fd136c7fc27d77519f7d9e805033568571332537d"
+      },
+      "d:/projects/aurelia-12/packages/runtime/dist/resources/binding-behaviors/throttle.d.ts": {
+        "version": "921ab72ed4b8fe57c3172f5b2727091ff7ce4ebbdff415c0a39ff41c509f5dbc",
+        "signature": "921ab72ed4b8fe57c3172f5b2727091ff7ce4ebbdff415c0a39ff41c509f5dbc"
+      },
+      "d:/projects/aurelia-12/packages/runtime/dist/resources/custom-attribute.d.ts": {
+        "version": "a6d0e0447befd2efc14a690c020cf6467dcc0e3a7e55edc2dbac4e23732f9bf8",
+        "signature": "a6d0e0447befd2efc14a690c020cf6467dcc0e3a7e55edc2dbac4e23732f9bf8"
+      },
+      "d:/projects/aurelia-12/packages/runtime/dist/resources/custom-attributes/if.d.ts": {
+        "version": "fe848d444b1d71244c1c7ce3ebeb5b96471c8f1d9e5ae47713b1f95bd41aedff",
+        "signature": "fe848d444b1d71244c1c7ce3ebeb5b96471c8f1d9e5ae47713b1f95bd41aedff"
+      },
+      "d:/projects/aurelia-12/packages/runtime/dist/resources/custom-attributes/repeat.d.ts": {
+        "version": "bc0ca4c1875464c314be4a7a56717c1b414c62384c676626e6a1b7bcbf23fc7e",
+        "signature": "bc0ca4c1875464c314be4a7a56717c1b414c62384c676626e6a1b7bcbf23fc7e"
+      },
+      "d:/projects/aurelia-12/packages/runtime/dist/resources/custom-attributes/replaceable.d.ts": {
+        "version": "74a4da855b184489bc1faaca4e93fbb1590d267adb5934c6581f9221c4bb99cb",
+        "signature": "74a4da855b184489bc1faaca4e93fbb1590d267adb5934c6581f9221c4bb99cb"
+      },
+      "d:/projects/aurelia-12/packages/runtime/dist/resources/custom-attributes/with.d.ts": {
+        "version": "9ed18ccd63c77889a41959b1d40205f67b4f5f45a9626fda4e13e1fd0cc81aec",
+        "signature": "9ed18ccd63c77889a41959b1d40205f67b4f5f45a9626fda4e13e1fd0cc81aec"
+      },
+      "d:/projects/aurelia-12/packages/runtime/dist/resources/value-converter.d.ts": {
+        "version": "9c128326445741ca62b6078c6751115f9714b3a55c0bb95bf38b0bcf5f3bbedc",
+        "signature": "9c128326445741ca62b6078c6751115f9714b3a55c0bb95bf38b0bcf5f3bbedc"
+      },
+      "d:/projects/aurelia-12/packages/runtime/dist/resources/value-converters/sanitize.d.ts": {
+        "version": "35111cc8767225ea5374fe2f31affd9bef9519233ebbd97c720328641047959d",
+        "signature": "35111cc8767225ea5374fe2f31affd9bef9519233ebbd97c720328641047959d"
+      },
+      "d:/projects/aurelia-12/packages/runtime/dist/templating/bindable.d.ts": {
+        "version": "3812d8671d57877d9539136864372515804cc98fc19dcbb76e7a7b3730b5d731",
+        "signature": "3812d8671d57877d9539136864372515804cc98fc19dcbb76e7a7b3730b5d731"
+      },
+      "d:/projects/aurelia-12/packages/runtime/dist/rendering-engine.d.ts": {
+        "version": "56b1aa04b868dccf007e98881cf39b43801c74ccf328f79cbf958a06269d47dc",
+        "signature": "56b1aa04b868dccf007e98881cf39b43801c74ccf328f79cbf958a06269d47dc"
+      },
+      "d:/projects/aurelia-12/packages/runtime/dist/templating/controller.d.ts": {
+        "version": "04b480f166dd2234e5de7bdcfce1eafc5b0a9abc98c4230967a006918af9ec7e",
+        "signature": "04b480f166dd2234e5de7bdcfce1eafc5b0a9abc98c4230967a006918af9ec7e"
+      },
+      "d:/projects/aurelia-12/packages/runtime/dist/templating/view.d.ts": {
+        "version": "f91ea825e100fd5c0bd7d2c78e25ed3500d99878f3a47fd0439d548bced3defb",
+        "signature": "f91ea825e100fd5c0bd7d2c78e25ed3500d99878f3a47fd0439d548bced3defb"
+      },
+      "d:/projects/aurelia-12/packages/runtime/dist/activator.d.ts": {
+        "version": "3533a6ea7f69cfede764b703ee7b4e17787c1ce3dafc41963ffeada83d3004bd",
+        "signature": "3533a6ea7f69cfede764b703ee7b4e17787c1ce3dafc41963ffeada83d3004bd"
+      },
+      "d:/projects/aurelia-12/packages/runtime/dist/aurelia.d.ts": {
+        "version": "faf478f6d12e2dd2f42f67162b11e395f39ff991730eca43c55387ec4a78bb80",
+        "signature": "faf478f6d12e2dd2f42f67162b11e395f39ff991730eca43c55387ec4a78bb80"
+      },
+      "d:/projects/aurelia-12/packages/runtime/dist/configuration.d.ts": {
+        "version": "d8dbe9a2626be2959062ed7dd8d0ef77f08211164176592596fb2466ff79d155",
+        "signature": "d8dbe9a2626be2959062ed7dd8d0ef77f08211164176592596fb2466ff79d155"
+      },
+      "d:/projects/aurelia-12/packages/runtime/dist/instructions.d.ts": {
+        "version": "035dd5c2e1560000b4e85bb1bda3cd52d9797a3fadb49e557b82aeaa40733a80",
+        "signature": "035dd5c2e1560000b4e85bb1bda3cd52d9797a3fadb49e557b82aeaa40733a80"
+      },
+      "d:/projects/aurelia-12/packages/runtime/dist/renderer.d.ts": {
+        "version": "9a8c35537f8b7c053bbb614ee956eccbfcc5046e493c0ef311f5b29ce718a0eb",
+        "signature": "9a8c35537f8b7c053bbb614ee956eccbfcc5046e493c0ef311f5b29ce718a0eb"
+      },
+      "d:/projects/aurelia-12/packages/runtime/dist/index.d.ts": {
+        "version": "fa2cba4000cc866772f81b339e466f1180a7e0cf408b821b886acad485d84e86",
+        "signature": "fa2cba4000cc866772f81b339e466f1180a7e0cf408b821b886acad485d84e86"
+      },
+      "d:/projects/aurelia-12/packages/jit/dist/resource-model.d.ts": {
+        "version": "5083a4b08e5dd384037ed30f3bae106f347043c3bf66419ad22b1c0a3c9f031e",
+        "signature": "5083a4b08e5dd384037ed30f3bae106f347043c3bf66419ad22b1c0a3c9f031e"
+      },
+      "d:/projects/aurelia-12/packages/jit/dist/semantic-model.d.ts": {
+        "version": "cb68d1be778ecd7ef3db5b6a4cb61b0540209eda66bab1ee0dddc18d12e1db60",
+        "signature": "cb68d1be778ecd7ef3db5b6a4cb61b0540209eda66bab1ee0dddc18d12e1db60"
+      },
+      "d:/projects/aurelia-12/packages/jit/dist/binding-command.d.ts": {
+        "version": "af74314fa194a4a01781ee3503df2bd5e6caa893f1035387f5660e9b8b29a10c",
+        "signature": "af74314fa194a4a01781ee3503df2bd5e6caa893f1035387f5660e9b8b29a10c"
+      },
+      "d:/projects/aurelia-12/packages/jit/dist/configuration.d.ts": {
+        "version": "ca44f45337f2960ca36b69ba23572ba577835337fa2512f4bffa54718df96d71",
+        "signature": "ca44f45337f2960ca36b69ba23572ba577835337fa2512f4bffa54718df96d71"
+      },
+      "d:/projects/aurelia-12/packages/jit/dist/common.d.ts": {
+        "version": "374477c9b99480e098a4f1803e38fd87e5bf0ac6fb10810d27c2ff6ef6408a5c",
+        "signature": "374477c9b99480e098a4f1803e38fd87e5bf0ac6fb10810d27c2ff6ef6408a5c"
+      },
+      "d:/projects/aurelia-12/packages/jit/dist/expression-parser.d.ts": {
+        "version": "cbc5fde14448b3b35cf0b8d2d5fe72376e784eddb30cc7bc91cc6b9b3c3d0b79",
+        "signature": "cbc5fde14448b3b35cf0b8d2d5fe72376e784eddb30cc7bc91cc6b9b3c3d0b79"
+      },
+      "d:/projects/aurelia-12/packages/jit/dist/index.d.ts": {
+        "version": "47d049e39ed3e61d1c66cd86205108ccdaedea28170986ed21c7cd7d690145c9",
+        "signature": "47d049e39ed3e61d1c66cd86205108ccdaedea28170986ed21c7cd7d690145c9"
+      },
+      "d:/projects/aurelia-12/packages/runtime-html/dist/observation/event-manager.d.ts": {
+        "version": "9f0ea1b8dd801c44e85f69910c50cfe0e040c416d3a197c012cf52f2d3cf0ba5",
+        "signature": "9f0ea1b8dd801c44e85f69910c50cfe0e040c416d3a197c012cf52f2d3cf0ba5"
+      },
+      "d:/projects/aurelia-12/packages/runtime-html/dist/binding/listener.d.ts": {
+        "version": "43161988e1f75b90d161191094e36b1df191929de51a28a5757718a7e108d478",
+        "signature": "43161988e1f75b90d161191094e36b1df191929de51a28a5757718a7e108d478"
+      },
+      "d:/projects/aurelia-12/packages/runtime-html/dist/binding/attribute.d.ts": {
+        "version": "370c73acd70cd51a2e02ce4ba74983de351317a265d7dd1b1fb54f4021566d38",
+        "signature": "370c73acd70cd51a2e02ce4ba74983de351317a265d7dd1b1fb54f4021566d38"
+      },
+      "d:/projects/aurelia-12/packages/runtime-html/dist/observation/attribute-ns-accessor.d.ts": {
+        "version": "13fe28ada5d42eb2eafc7cb78aec9ea1b6eca137c7472f2495cfbdf51fbebe9a",
+        "signature": "13fe28ada5d42eb2eafc7cb78aec9ea1b6eca137c7472f2495cfbdf51fbebe9a"
+      },
+      "d:/projects/aurelia-12/packages/runtime-html/dist/observation/value-attribute-observer.d.ts": {
+        "version": "fd1bd2747e7ea98b45c0fe78cf83523be71ddc42f11c4f7dccb4ee3829dd7f42",
+        "signature": "fd1bd2747e7ea98b45c0fe78cf83523be71ddc42f11c4f7dccb4ee3829dd7f42"
+      },
+      "d:/projects/aurelia-12/packages/runtime-html/dist/observation/checked-observer.d.ts": {
+        "version": "dcaca2b2ca0a001ed5f919e0e97feb5cd347519ff40e6b364bb594136e84a891",
+        "signature": "dcaca2b2ca0a001ed5f919e0e97feb5cd347519ff40e6b364bb594136e84a891"
+      },
+      "d:/projects/aurelia-12/packages/runtime-html/dist/observation/class-attribute-accessor.d.ts": {
+        "version": "694e96668facba10110ee55d25b55a29c35e636fe80ce68cea34c4a04d6feea4",
+        "signature": "694e96668facba10110ee55d25b55a29c35e636fe80ce68cea34c4a04d6feea4"
+      },
+      "d:/projects/aurelia-12/packages/runtime-html/dist/observation/data-attribute-accessor.d.ts": {
+        "version": "214c695ca434bf343f7082562df753d527a20f169d0b58c95a7ce1e247229ed4",
+        "signature": "214c695ca434bf343f7082562df753d527a20f169d0b58c95a7ce1e247229ed4"
+      },
+      "d:/projects/aurelia-12/packages/runtime-html/dist/observation/element-property-accessor.d.ts": {
+        "version": "f97e09d255b38830dc052cb1e05ecf9ead04ee70e38e6c057e330ec83fab6ad9",
+        "signature": "f97e09d255b38830dc052cb1e05ecf9ead04ee70e38e6c057e330ec83fab6ad9"
+      },
+      "d:/projects/aurelia-12/packages/runtime-html/dist/observation/svg-analyzer.d.ts": {
+        "version": "7b5a01e81ad669e0c00105a65e063f5ba221d2255e6b700aaecfad40a9bc9aac",
+        "signature": "7b5a01e81ad669e0c00105a65e063f5ba221d2255e6b700aaecfad40a9bc9aac"
+      },
+      "d:/projects/aurelia-12/packages/runtime-html/dist/observation/observer-locator.d.ts": {
+        "version": "71f08fac11a93a9711ae8e6e4a5e1faeaa8d0b454302094448ee9111d7391912",
+        "signature": "71f08fac11a93a9711ae8e6e4a5e1faeaa8d0b454302094448ee9111d7391912"
+      },
+      "d:/projects/aurelia-12/packages/runtime-html/dist/observation/select-value-observer.d.ts": {
+        "version": "9a37d82b1ce21925ea7dc13c9421716e84125e504f0ee677b15aa3b1fbe8c582",
+        "signature": "9a37d82b1ce21925ea7dc13c9421716e84125e504f0ee677b15aa3b1fbe8c582"
+      },
+      "d:/projects/aurelia-12/packages/runtime-html/dist/observation/style-attribute-accessor.d.ts": {
+        "version": "04eb87c117fce052e22b4b0a802f472dd7233e43e693f195df4fc6ae5f007a3a",
+        "signature": "04eb87c117fce052e22b4b0a802f472dd7233e43e693f195df4fc6ae5f007a3a"
+      },
+      "d:/projects/aurelia-12/packages/runtime-html/dist/resources/binding-behaviors/attr.d.ts": {
+        "version": "f657e5e5633da8a381ad85827b852ce6ff283247a178f66e3c17d1f1d93d1743",
+        "signature": "f657e5e5633da8a381ad85827b852ce6ff283247a178f66e3c17d1f1d93d1743"
+      },
+      "d:/projects/aurelia-12/packages/runtime-html/dist/resources/binding-behaviors/self.d.ts": {
+        "version": "b84638a5f307a4a787f6d996441bf8977aa5bc7d9cde3bcb6adc2d1cf18fe926",
+        "signature": "b84638a5f307a4a787f6d996441bf8977aa5bc7d9cde3bcb6adc2d1cf18fe926"
+      },
+      "d:/projects/aurelia-12/packages/runtime-html/dist/resources/binding-behaviors/update-trigger.d.ts": {
+        "version": "086d6632bd568ffab80db8ebc32249a05e2fcd445950e72b68cceb7483b3217d",
+        "signature": "086d6632bd568ffab80db8ebc32249a05e2fcd445950e72b68cceb7483b3217d"
+      },
+      "d:/projects/aurelia-12/packages/runtime-html/dist/definitions.d.ts": {
+        "version": "49ad62c86f136267ae73b6477c911a96a85fe02dce453dd58aa8946046494697",
+        "signature": "49ad62c86f136267ae73b6477c911a96a85fe02dce453dd58aa8946046494697"
+      },
+      "d:/projects/aurelia-12/packages/runtime-html/dist/create-element.d.ts": {
+        "version": "f5f3a3bdbfe39278d31df6812428b4a22f31b7022e2eef43d78986a0f1848e6e",
+        "signature": "f5f3a3bdbfe39278d31df6812428b4a22f31b7022e2eef43d78986a0f1848e6e"
+      },
+      "d:/projects/aurelia-12/packages/runtime-html/dist/resources/custom-elements/compose.d.ts": {
+        "version": "22e050ab4068e83ce21e87ee4f0364fe897598a747da713dbcd673fddf34a00a",
+        "signature": "22e050ab4068e83ce21e87ee4f0364fe897598a747da713dbcd673fddf34a00a"
+      },
+      "d:/projects/aurelia-12/packages/runtime-html/dist/configuration.d.ts": {
+        "version": "e0e004894609578475f12c0d35d3585436eefe69ed4b703dcdfcc1f6a2d1094b",
+        "signature": "e0e004894609578475f12c0d35d3585436eefe69ed4b703dcdfcc1f6a2d1094b"
+      },
+      "d:/projects/aurelia-12/packages/runtime-html/dist/dom.d.ts": {
+        "version": "9f406df2e388024103450d174e1537d0c216608f387a6986cbf076bfdf3b0646",
+        "signature": "9f406df2e388024103450d174e1537d0c216608f387a6986cbf076bfdf3b0646"
+      },
+      "d:/projects/aurelia-12/packages/runtime-html/dist/instructions.d.ts": {
+        "version": "f5094241805369e8d94b735e6a90ad02396960d8e311a2b02a871a4b5128eda2",
+        "signature": "f5094241805369e8d94b735e6a90ad02396960d8e311a2b02a871a4b5128eda2"
+      },
+      "d:/projects/aurelia-12/packages/runtime-html/dist/projectors.d.ts": {
+        "version": "110c933a04aac93e8cd7146fb7918535aa091bf822951bd2f6e38ab1ce045993",
+        "signature": "110c933a04aac93e8cd7146fb7918535aa091bf822951bd2f6e38ab1ce045993"
+      },
+      "d:/projects/aurelia-12/packages/runtime-html/dist/index.d.ts": {
+        "version": "275470b53fe0525a58403b62ec6bb8eee1d3be4aa1f94827340adbe4e8bb7cad",
+        "signature": "275470b53fe0525a58403b62ec6bb8eee1d3be4aa1f94827340adbe4e8bb7cad"
+      },
+      "d:/projects/aurelia-12/packages/jit-html/dist/binding-command.d.ts": {
+        "version": "bd581ec411a925db52dd8c869ed610ff6b371b4e745963cd7e3a49763c1299f7",
+        "signature": "bd581ec411a925db52dd8c869ed610ff6b371b4e745963cd7e3a49763c1299f7"
+      },
+      "d:/projects/aurelia-12/packages/jit-html/dist/attribute-pattern.d.ts": {
+        "version": "f0a8f226beca4cd8f5960999727791454462e205e2d941d004e35c1eed7ee352",
+        "signature": "f0a8f226beca4cd8f5960999727791454462e205e2d941d004e35c1eed7ee352"
+      },
+      "d:/projects/aurelia-12/packages/jit-html/dist/configuration.d.ts": {
+        "version": "d438c402705d080a34d0492b33f4d249c7b8148daa21a651e82d8286f8fd4e8a",
+        "signature": "d438c402705d080a34d0492b33f4d249c7b8148daa21a651e82d8286f8fd4e8a"
+      },
+      "d:/projects/aurelia-12/packages/jit-html/dist/debugging.d.ts": {
+        "version": "286326b8a763d90f19a218900bcc9060283b51d4c33476cd721293ec85611f3f",
+        "signature": "286326b8a763d90f19a218900bcc9060283b51d4c33476cd721293ec85611f3f"
+      },
+      "d:/projects/aurelia-12/packages/jit-html/dist/template-binder.d.ts": {
+        "version": "11a819111ebaa84c8c929c623b171840345aa7dcf1c921c689746de7d8e48b19",
+        "signature": "11a819111ebaa84c8c929c623b171840345aa7dcf1c921c689746de7d8e48b19"
+      },
+      "d:/projects/aurelia-12/packages/jit-html/dist/template-element-factory.d.ts": {
+        "version": "9477ffa85f5fc6b8a49029a7b030357c68b837ff0efa26f0a49969edd5519b0a",
+        "signature": "9477ffa85f5fc6b8a49029a7b030357c68b837ff0efa26f0a49969edd5519b0a"
+      },
+      "d:/projects/aurelia-12/packages/jit-html/dist/index.d.ts": {
+        "version": "222a52b0da602e2ea0b9917d835a10edcdb020475a119a1c3ac13205ffb11afe",
+        "signature": "222a52b0da602e2ea0b9917d835a10edcdb020475a119a1c3ac13205ffb11afe"
+      },
+      "d:/projects/aurelia-12/packages/runtime-html-browser/dist/index.d.ts": {
+        "version": "e98cd3b572e6783c39a973f6269a8d9fd2dd16be0dbf3d02c3e456f83c7df5e8",
+        "signature": "e98cd3b572e6783c39a973f6269a8d9fd2dd16be0dbf3d02c3e456f83c7df5e8"
+      },
+      "d:/projects/aurelia-12/packages/jit-html-browser/src/index.ts": {
+        "version": "7e5ffa3a3e8678bdf23368a11fe5e6a9da1de6f88bc2a5e3b75e6af6b9718aad",
+        "signature": "4e35473e46075c73bdcf5b9e2cf9a40bfa3e3ab5fc6b0bde0cb8a616d860e020"
+      },
+      "d:/projects/aurelia-12/packages/jit-html-browser/src/index.full.ts": {
+        "version": "7b0eafd884be8a0de79694ef58811aeedfa771c77141281194433915a7ab404a",
+        "signature": "04d6e5fa55b565486249420d59f7ea979f13e97d3024513c2f7249e81a967ce9"
+      }
+    },
+    "options": {
+      "lib": [
+        "lib.esnext.d.ts",
+        "lib.dom.d.ts"
+      ],
+      "target": 5,
+      "module": 6,
+      "moduleResolution": 2,
+      "importHelpers": true,
+      "experimentalDecorators": true,
+      "rootDir": "D:/Projects/aurelia-12/packages/jit-html-browser/src",
+      "declaration": true,
+      "declarationMap": true,
+      "sourceMap": true,
+      "composite": true,
+      "noEmitOnError": true,
+      "skipLibCheck": true,
+      "preserveConstEnums": true,
+      "stripInternal": true,
+      "strict": true,
+      "types": [],
+      "declarationDir": "D:/Projects/aurelia-12/packages/jit-html-browser/dist",
+      "outDir": "D:/Projects/aurelia-12/packages/jit-html-browser/dist/build",
+      "configFilePath": "D:/Projects/aurelia-12/packages/jit-html-browser/tsconfig.json"
+    },
+    "referencedMap": {
+      "d:/projects/aurelia-12/packages/kernel/dist/di.d.ts": [
+        "d:/projects/aurelia-12/packages/kernel/dist/interfaces.d.ts"
+      ],
+      "d:/projects/aurelia-12/packages/kernel/dist/platform.d.ts": [
+        "d:/projects/aurelia-12/packages/kernel/dist/interfaces.d.ts"
+      ],
+      "d:/projects/aurelia-12/packages/kernel/dist/resource.d.ts": [
+        "d:/projects/aurelia-12/packages/kernel/dist/di.d.ts",
+        "d:/projects/aurelia-12/packages/kernel/dist/interfaces.d.ts"
+      ],
+      "d:/projects/aurelia-12/packages/kernel/dist/eventaggregator.d.ts": [
+        "d:/projects/aurelia-12/packages/kernel/dist/interfaces.d.ts"
+      ],
+      "d:/projects/aurelia-12/packages/kernel/dist/index.d.ts": [
+        "d:/projects/aurelia-12/packages/kernel/dist/di.d.ts",
+        "d:/projects/aurelia-12/packages/kernel/dist/interfaces.d.ts",
+        "d:/projects/aurelia-12/packages/kernel/dist/path.d.ts",
+        "d:/projects/aurelia-12/packages/kernel/dist/platform.d.ts",
+        "d:/projects/aurelia-12/packages/kernel/dist/reporter.d.ts",
+        "d:/projects/aurelia-12/packages/kernel/dist/profiler.d.ts",
+        "d:/projects/aurelia-12/packages/kernel/dist/resource.d.ts",
+        "d:/projects/aurelia-12/packages/kernel/dist/eventaggregator.d.ts",
+        "d:/projects/aurelia-12/packages/kernel/dist/functions.d.ts"
+      ],
+      "d:/projects/aurelia-12/packages/jit/dist/attribute-parser.d.ts": [
+        "d:/projects/aurelia-12/packages/jit/dist/ast.d.ts",
+        "d:/projects/aurelia-12/packages/kernel/dist/index.d.ts"
+      ],
+      "d:/projects/aurelia-12/packages/jit/dist/attribute-pattern.d.ts": [
+        "d:/projects/aurelia-12/packages/kernel/dist/index.d.ts",
+        "d:/projects/aurelia-12/packages/jit/dist/ast.d.ts"
+      ],
+      "d:/projects/aurelia-12/packages/runtime/dist/definitions.d.ts": [
+        "d:/projects/aurelia-12/packages/kernel/dist/index.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/ast.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/flags.d.ts"
+      ],
+      "d:/projects/aurelia-12/packages/runtime/dist/dom.d.ts": [
+        "d:/projects/aurelia-12/packages/kernel/dist/index.d.ts"
+      ],
+      "d:/projects/aurelia-12/packages/runtime/dist/resources/custom-element.d.ts": [
+        "d:/projects/aurelia-12/packages/kernel/dist/index.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/definitions.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/dom.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/lifecycle.d.ts"
+      ],
+      "d:/projects/aurelia-12/packages/runtime/dist/lifecycle.d.ts": [
+        "d:/projects/aurelia-12/packages/kernel/dist/index.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/definitions.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/dom.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/flags.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/lifecycle-task.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/observation.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/resources/custom-element.d.ts"
+      ],
+      "d:/projects/aurelia-12/packages/runtime/dist/observation.d.ts": [
+        "d:/projects/aurelia-12/packages/kernel/dist/index.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/flags.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/lifecycle.d.ts"
+      ],
+      "d:/projects/aurelia-12/packages/runtime/dist/ast.d.ts": [
+        "d:/projects/aurelia-12/packages/kernel/dist/index.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/flags.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/observation.d.ts"
+      ],
+      "d:/projects/aurelia-12/packages/runtime/dist/resources/binding-behavior.d.ts": [
+        "d:/projects/aurelia-12/packages/kernel/dist/index.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/flags.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/lifecycle.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/observation.d.ts"
+      ],
+      "d:/projects/aurelia-12/packages/runtime/dist/observation/observer-locator.d.ts": [
+        "d:/projects/aurelia-12/packages/runtime/dist/flags.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/lifecycle.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/observation.d.ts",
+        "d:/projects/aurelia-12/packages/kernel/dist/index.d.ts"
+      ],
+      "d:/projects/aurelia-12/packages/runtime/dist/binding/connectable.d.ts": [
+        "d:/projects/aurelia-12/packages/kernel/dist/index.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/ast.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/lifecycle.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/observation.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/observation/observer-locator.d.ts"
+      ],
+      "d:/projects/aurelia-12/packages/runtime/dist/binding/ast.d.ts": [
+        "d:/projects/aurelia-12/packages/kernel/dist/index.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/ast.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/flags.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/lifecycle.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/observation.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/resources/binding-behavior.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/binding/connectable.d.ts"
+      ],
+      "d:/projects/aurelia-12/packages/runtime/dist/binding/binding.d.ts": [
+        "d:/projects/aurelia-12/packages/kernel/dist/index.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/ast.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/flags.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/lifecycle.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/observation.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/observation/observer-locator.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/binding/connectable.d.ts"
+      ],
+      "d:/projects/aurelia-12/packages/runtime/dist/binding/call.d.ts": [
+        "d:/projects/aurelia-12/packages/kernel/dist/index.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/ast.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/flags.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/observation.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/observation/observer-locator.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/binding/connectable.d.ts"
+      ],
+      "d:/projects/aurelia-12/packages/runtime/dist/binding/expression-parser.d.ts": [
+        "d:/projects/aurelia-12/packages/runtime/dist/ast.d.ts",
+        "d:/projects/aurelia-12/packages/kernel/dist/index.d.ts"
+      ],
+      "d:/projects/aurelia-12/packages/runtime/dist/binding/interpolation-binding.d.ts": [
+        "d:/projects/aurelia-12/packages/kernel/dist/index.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/ast.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/flags.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/lifecycle.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/observation.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/observation/observer-locator.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/binding/connectable.d.ts"
+      ],
+      "d:/projects/aurelia-12/packages/runtime/dist/binding/let-binding.d.ts": [
+        "d:/projects/aurelia-12/packages/kernel/dist/index.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/ast.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/flags.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/lifecycle.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/observation.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/observation/observer-locator.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/binding/connectable.d.ts"
+      ],
+      "d:/projects/aurelia-12/packages/runtime/dist/binding/ref.d.ts": [
+        "d:/projects/aurelia-12/packages/kernel/dist/index.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/ast.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/flags.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/lifecycle.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/observation.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/binding/connectable.d.ts"
+      ],
+      "d:/projects/aurelia-12/packages/runtime/dist/observation/collection-length-observer.d.ts": [
+        "d:/projects/aurelia-12/packages/runtime/dist/flags.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/observation.d.ts"
+      ],
+      "d:/projects/aurelia-12/packages/runtime/dist/observation/array-observer.d.ts": [
+        "d:/projects/aurelia-12/packages/runtime/dist/flags.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/lifecycle.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/observation.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/observation/collection-length-observer.d.ts"
+      ],
+      "d:/projects/aurelia-12/packages/runtime/dist/observation/collection-size-observer.d.ts": [
+        "d:/projects/aurelia-12/packages/runtime/dist/flags.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/observation.d.ts"
+      ],
+      "d:/projects/aurelia-12/packages/runtime/dist/observation/map-observer.d.ts": [
+        "d:/projects/aurelia-12/packages/runtime/dist/flags.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/lifecycle.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/observation.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/observation/collection-size-observer.d.ts"
+      ],
+      "d:/projects/aurelia-12/packages/runtime/dist/observation/set-observer.d.ts": [
+        "d:/projects/aurelia-12/packages/runtime/dist/flags.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/lifecycle.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/observation.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/observation/collection-size-observer.d.ts"
+      ],
+      "d:/projects/aurelia-12/packages/runtime/dist/observation/binding-context.d.ts": [
+        "d:/projects/aurelia-12/packages/kernel/dist/index.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/flags.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/lifecycle.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/observation.d.ts"
+      ],
+      "d:/projects/aurelia-12/packages/runtime/dist/observation/computed-observer.d.ts": [
+        "d:/projects/aurelia-12/packages/runtime/dist/observation.d.ts"
+      ],
+      "d:/projects/aurelia-12/packages/runtime/dist/observation/dirty-checker.d.ts": [
+        "d:/projects/aurelia-12/packages/runtime/dist/flags.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/observation.d.ts",
+        "d:/projects/aurelia-12/packages/kernel/dist/index.d.ts"
+      ],
+      "d:/projects/aurelia-12/packages/runtime/dist/observation/primitive-observer.d.ts": [
+        "d:/projects/aurelia-12/packages/kernel/dist/index.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/observation.d.ts"
+      ],
+      "d:/projects/aurelia-12/packages/runtime/dist/observation/property-accessor.d.ts": [
+        "d:/projects/aurelia-12/packages/runtime/dist/observation.d.ts"
+      ],
+      "d:/projects/aurelia-12/packages/runtime/dist/observation/proxy-observer.d.ts": [
+        "d:/projects/aurelia-12/packages/runtime/dist/flags.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/observation.d.ts"
+      ],
+      "d:/projects/aurelia-12/packages/runtime/dist/observation/self-observer.d.ts": [
+        "d:/projects/aurelia-12/packages/kernel/dist/index.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/flags.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/lifecycle.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/observation.d.ts"
+      ],
+      "d:/projects/aurelia-12/packages/runtime/dist/observation/setter-observer.d.ts": [
+        "d:/projects/aurelia-12/packages/kernel/dist/index.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/flags.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/lifecycle.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/observation.d.ts"
+      ],
+      "d:/projects/aurelia-12/packages/runtime/dist/observation/signaler.d.ts": [
+        "d:/projects/aurelia-12/packages/runtime/dist/flags.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/observation.d.ts",
+        "d:/projects/aurelia-12/packages/kernel/dist/index.d.ts"
+      ],
+      "d:/projects/aurelia-12/packages/runtime/dist/resources/binding-behaviors/binding-mode.d.ts": [
+        "d:/projects/aurelia-12/packages/kernel/dist/index.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/binding/binding.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/flags.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/observation.d.ts"
+      ],
+      "d:/projects/aurelia-12/packages/runtime/dist/resources/binding-behaviors/debounce.d.ts": [
+        "d:/projects/aurelia-12/packages/kernel/dist/index.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/flags.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/lifecycle.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/observation.d.ts"
+      ],
+      "d:/projects/aurelia-12/packages/runtime/dist/resources/binding-behaviors/priority.d.ts": [
+        "d:/projects/aurelia-12/packages/kernel/dist/index.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/binding/binding.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/lifecycle.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/resources/binding-behavior.d.ts"
+      ],
+      "d:/projects/aurelia-12/packages/runtime/dist/resources/binding-behaviors/signals.d.ts": [
+        "d:/projects/aurelia-12/packages/kernel/dist/index.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/binding/binding.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/flags.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/observation.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/observation/signaler.d.ts"
+      ],
+      "d:/projects/aurelia-12/packages/runtime/dist/resources/binding-behaviors/throttle.d.ts": [
+        "d:/projects/aurelia-12/packages/kernel/dist/index.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/flags.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/lifecycle.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/observation.d.ts"
+      ],
+      "d:/projects/aurelia-12/packages/runtime/dist/resources/custom-attribute.d.ts": [
+        "d:/projects/aurelia-12/packages/kernel/dist/index.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/definitions.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/lifecycle.d.ts"
+      ],
+      "d:/projects/aurelia-12/packages/runtime/dist/resources/custom-attributes/if.d.ts": [
+        "d:/projects/aurelia-12/packages/kernel/dist/index.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/definitions.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/dom.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/flags.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/lifecycle.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/lifecycle-task.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/observation.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/resources/custom-attribute.d.ts"
+      ],
+      "d:/projects/aurelia-12/packages/runtime/dist/resources/custom-attributes/repeat.d.ts": [
+        "d:/projects/aurelia-12/packages/kernel/dist/index.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/binding/ast.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/definitions.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/dom.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/flags.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/lifecycle.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/lifecycle-task.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/observation.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/resources/custom-attribute.d.ts"
+      ],
+      "d:/projects/aurelia-12/packages/runtime/dist/resources/custom-attributes/replaceable.d.ts": [
+        "d:/projects/aurelia-12/packages/kernel/dist/index.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/definitions.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/dom.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/flags.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/lifecycle.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/lifecycle-task.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/resources/custom-attribute.d.ts"
+      ],
+      "d:/projects/aurelia-12/packages/runtime/dist/resources/custom-attributes/with.d.ts": [
+        "d:/projects/aurelia-12/packages/kernel/dist/index.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/definitions.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/dom.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/flags.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/lifecycle.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/observation.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/resources/custom-attribute.d.ts"
+      ],
+      "d:/projects/aurelia-12/packages/runtime/dist/resources/value-converter.d.ts": [
+        "d:/projects/aurelia-12/packages/kernel/dist/index.d.ts"
+      ],
+      "d:/projects/aurelia-12/packages/runtime/dist/resources/value-converters/sanitize.d.ts": [
+        "d:/projects/aurelia-12/packages/kernel/dist/index.d.ts"
+      ],
+      "d:/projects/aurelia-12/packages/runtime/dist/templating/bindable.d.ts": [
+        "d:/projects/aurelia-12/packages/kernel/dist/index.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/definitions.d.ts"
+      ],
+      "d:/projects/aurelia-12/packages/runtime/dist/rendering-engine.d.ts": [
+        "d:/projects/aurelia-12/packages/kernel/dist/index.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/definitions.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/dom.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/flags.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/lifecycle.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/observation.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/resources/custom-element.d.ts"
+      ],
+      "d:/projects/aurelia-12/packages/runtime/dist/templating/controller.d.ts": [
+        "d:/projects/aurelia-12/packages/kernel/dist/index.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/definitions.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/dom.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/flags.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/lifecycle.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/lifecycle-task.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/observation.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/rendering-engine.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/resources/custom-element.d.ts"
+      ],
+      "d:/projects/aurelia-12/packages/runtime/dist/templating/view.d.ts": [
+        "d:/projects/aurelia-12/packages/runtime/dist/dom.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/flags.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/lifecycle.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/rendering-engine.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/definitions.d.ts"
+      ],
+      "d:/projects/aurelia-12/packages/runtime/dist/activator.d.ts": [
+        "d:/projects/aurelia-12/packages/kernel/dist/index.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/dom.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/flags.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/lifecycle.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/lifecycle-task.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/observation.d.ts"
+      ],
+      "d:/projects/aurelia-12/packages/runtime/dist/aurelia.d.ts": [
+        "d:/projects/aurelia-12/packages/kernel/dist/index.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/activator.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/dom.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/flags.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/lifecycle.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/lifecycle-task.d.ts"
+      ],
+      "d:/projects/aurelia-12/packages/runtime/dist/configuration.d.ts": [
+        "d:/projects/aurelia-12/packages/kernel/dist/index.d.ts"
+      ],
+      "d:/projects/aurelia-12/packages/runtime/dist/instructions.d.ts": [
+        "d:/projects/aurelia-12/packages/runtime/dist/ast.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/definitions.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/flags.d.ts"
+      ],
+      "d:/projects/aurelia-12/packages/runtime/dist/renderer.d.ts": [
+        "d:/projects/aurelia-12/packages/kernel/dist/index.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/binding/expression-parser.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/definitions.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/dom.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/flags.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/lifecycle.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/observation/observer-locator.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/rendering-engine.d.ts"
+      ],
+      "d:/projects/aurelia-12/packages/runtime/dist/index.d.ts": [
+        "d:/projects/aurelia-12/packages/runtime/dist/binding/ast.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/ast.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/binding/binding.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/binding/call.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/binding/connectable.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/binding/expression-parser.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/binding/interpolation-binding.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/binding/let-binding.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/binding/ref.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/observation/array-observer.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/observation/map-observer.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/observation/set-observer.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/observation/binding-context.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/observation/collection-length-observer.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/observation/collection-size-observer.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/observation/computed-observer.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/observation/dirty-checker.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/observation/observer-locator.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/observation/primitive-observer.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/observation/property-accessor.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/observation/proxy-observer.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/observation/self-observer.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/observation/setter-observer.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/observation/signaler.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/observation/subscriber-collection.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/resources/binding-behavior.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/resources/binding-behaviors/binding-mode.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/resources/binding-behaviors/debounce.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/resources/binding-behaviors/priority.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/resources/binding-behaviors/signals.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/resources/binding-behaviors/throttle.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/resources/custom-attribute.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/resources/custom-attributes/if.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/resources/custom-attributes/repeat.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/resources/custom-attributes/replaceable.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/resources/custom-attributes/with.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/resources/custom-element.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/resources/value-converter.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/resources/value-converters/sanitize.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/templating/bindable.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/templating/controller.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/templating/view.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/aurelia.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/configuration.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/definitions.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/dom.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/flags.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/instructions.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/lifecycle.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/lifecycle-task.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/observation.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/renderer.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/rendering-engine.d.ts"
+      ],
+      "d:/projects/aurelia-12/packages/jit/dist/resource-model.d.ts": [
+        "d:/projects/aurelia-12/packages/kernel/dist/index.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/index.d.ts",
+        "d:/projects/aurelia-12/packages/jit/dist/ast.d.ts",
+        "d:/projects/aurelia-12/packages/jit/dist/binding-command.d.ts"
+      ],
+      "d:/projects/aurelia-12/packages/jit/dist/semantic-model.d.ts": [
+        "d:/projects/aurelia-12/packages/runtime/dist/index.d.ts",
+        "d:/projects/aurelia-12/packages/jit/dist/ast.d.ts",
+        "d:/projects/aurelia-12/packages/jit/dist/binding-command.d.ts",
+        "d:/projects/aurelia-12/packages/jit/dist/resource-model.d.ts"
+      ],
+      "d:/projects/aurelia-12/packages/jit/dist/binding-command.d.ts": [
+        "d:/projects/aurelia-12/packages/kernel/dist/index.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/index.d.ts",
+        "d:/projects/aurelia-12/packages/jit/dist/semantic-model.d.ts"
+      ],
+      "d:/projects/aurelia-12/packages/jit/dist/configuration.d.ts": [
+        "d:/projects/aurelia-12/packages/kernel/dist/index.d.ts"
+      ],
+      "d:/projects/aurelia-12/packages/jit/dist/expression-parser.d.ts": [
+        "d:/projects/aurelia-12/packages/runtime/dist/index.d.ts"
+      ],
+      "d:/projects/aurelia-12/packages/jit/dist/index.d.ts": [
+        "d:/projects/aurelia-12/packages/jit/dist/ast.d.ts",
+        "d:/projects/aurelia-12/packages/jit/dist/attribute-parser.d.ts",
+        "d:/projects/aurelia-12/packages/jit/dist/attribute-pattern.d.ts",
+        "d:/projects/aurelia-12/packages/jit/dist/binding-command.d.ts",
+        "d:/projects/aurelia-12/packages/jit/dist/configuration.d.ts",
+        "d:/projects/aurelia-12/packages/jit/dist/common.d.ts",
+        "d:/projects/aurelia-12/packages/jit/dist/expression-parser.d.ts",
+        "d:/projects/aurelia-12/packages/jit/dist/resource-model.d.ts",
+        "d:/projects/aurelia-12/packages/jit/dist/semantic-model.d.ts"
+      ],
+      "d:/projects/aurelia-12/packages/runtime-html/dist/observation/event-manager.d.ts": [
+        "d:/projects/aurelia-12/packages/kernel/dist/index.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/index.d.ts"
+      ],
+      "d:/projects/aurelia-12/packages/runtime-html/dist/binding/listener.d.ts": [
+        "d:/projects/aurelia-12/packages/kernel/dist/index.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/index.d.ts",
+        "d:/projects/aurelia-12/packages/runtime-html/dist/observation/event-manager.d.ts"
+      ],
+      "d:/projects/aurelia-12/packages/runtime-html/dist/binding/attribute.d.ts": [
+        "d:/projects/aurelia-12/packages/kernel/dist/index.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/index.d.ts"
+      ],
+      "d:/projects/aurelia-12/packages/runtime-html/dist/observation/attribute-ns-accessor.d.ts": [
+        "d:/projects/aurelia-12/packages/runtime/dist/index.d.ts"
+      ],
+      "d:/projects/aurelia-12/packages/runtime-html/dist/observation/value-attribute-observer.d.ts": [
+        "d:/projects/aurelia-12/packages/kernel/dist/index.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/index.d.ts",
+        "d:/projects/aurelia-12/packages/runtime-html/dist/observation/event-manager.d.ts"
+      ],
+      "d:/projects/aurelia-12/packages/runtime-html/dist/observation/checked-observer.d.ts": [
+        "d:/projects/aurelia-12/packages/runtime/dist/index.d.ts",
+        "d:/projects/aurelia-12/packages/runtime-html/dist/observation/event-manager.d.ts",
+        "d:/projects/aurelia-12/packages/runtime-html/dist/observation/value-attribute-observer.d.ts"
+      ],
+      "d:/projects/aurelia-12/packages/runtime-html/dist/observation/class-attribute-accessor.d.ts": [
+        "d:/projects/aurelia-12/packages/runtime/dist/index.d.ts"
+      ],
+      "d:/projects/aurelia-12/packages/runtime-html/dist/observation/data-attribute-accessor.d.ts": [
+        "d:/projects/aurelia-12/packages/runtime/dist/index.d.ts"
+      ],
+      "d:/projects/aurelia-12/packages/runtime-html/dist/observation/element-property-accessor.d.ts": [
+        "d:/projects/aurelia-12/packages/kernel/dist/index.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/index.d.ts"
+      ],
+      "d:/projects/aurelia-12/packages/runtime-html/dist/observation/svg-analyzer.d.ts": [
+        "d:/projects/aurelia-12/packages/runtime/dist/index.d.ts",
+        "d:/projects/aurelia-12/packages/kernel/dist/index.d.ts"
+      ],
+      "d:/projects/aurelia-12/packages/runtime-html/dist/observation/observer-locator.d.ts": [
+        "d:/projects/aurelia-12/packages/kernel/dist/index.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/index.d.ts",
+        "d:/projects/aurelia-12/packages/runtime-html/dist/observation/svg-analyzer.d.ts"
+      ],
+      "d:/projects/aurelia-12/packages/runtime-html/dist/observation/select-value-observer.d.ts": [
+        "d:/projects/aurelia-12/packages/runtime/dist/index.d.ts",
+        "d:/projects/aurelia-12/packages/runtime-html/dist/observation/event-manager.d.ts"
+      ],
+      "d:/projects/aurelia-12/packages/runtime-html/dist/observation/style-attribute-accessor.d.ts": [
+        "d:/projects/aurelia-12/packages/runtime/dist/index.d.ts"
+      ],
+      "d:/projects/aurelia-12/packages/runtime-html/dist/resources/binding-behaviors/attr.d.ts": [
+        "d:/projects/aurelia-12/packages/kernel/dist/index.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/index.d.ts"
+      ],
+      "d:/projects/aurelia-12/packages/runtime-html/dist/resources/binding-behaviors/self.d.ts": [
+        "d:/projects/aurelia-12/packages/kernel/dist/index.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/index.d.ts",
+        "d:/projects/aurelia-12/packages/runtime-html/dist/binding/listener.d.ts"
+      ],
+      "d:/projects/aurelia-12/packages/runtime-html/dist/resources/binding-behaviors/update-trigger.d.ts": [
+        "d:/projects/aurelia-12/packages/kernel/dist/index.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/index.d.ts",
+        "d:/projects/aurelia-12/packages/runtime-html/dist/observation/checked-observer.d.ts",
+        "d:/projects/aurelia-12/packages/runtime-html/dist/observation/event-manager.d.ts",
+        "d:/projects/aurelia-12/packages/runtime-html/dist/observation/select-value-observer.d.ts",
+        "d:/projects/aurelia-12/packages/runtime-html/dist/observation/value-attribute-observer.d.ts"
+      ],
+      "d:/projects/aurelia-12/packages/runtime-html/dist/definitions.d.ts": [
+        "d:/projects/aurelia-12/packages/runtime/dist/index.d.ts"
+      ],
+      "d:/projects/aurelia-12/packages/runtime-html/dist/create-element.d.ts": [
+        "d:/projects/aurelia-12/packages/kernel/dist/index.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/index.d.ts",
+        "d:/projects/aurelia-12/packages/runtime-html/dist/definitions.d.ts"
+      ],
+      "d:/projects/aurelia-12/packages/runtime-html/dist/resources/custom-elements/compose.d.ts": [
+        "d:/projects/aurelia-12/packages/kernel/dist/index.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/index.d.ts",
+        "d:/projects/aurelia-12/packages/runtime-html/dist/create-element.d.ts"
+      ],
+      "d:/projects/aurelia-12/packages/runtime-html/dist/configuration.d.ts": [
+        "d:/projects/aurelia-12/packages/kernel/dist/index.d.ts"
+      ],
+      "d:/projects/aurelia-12/packages/runtime-html/dist/dom.d.ts": [
+        "d:/projects/aurelia-12/packages/kernel/dist/index.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/index.d.ts"
+      ],
+      "d:/projects/aurelia-12/packages/runtime-html/dist/instructions.d.ts": [
+        "d:/projects/aurelia-12/packages/runtime/dist/index.d.ts",
+        "d:/projects/aurelia-12/packages/runtime-html/dist/definitions.d.ts"
+      ],
+      "d:/projects/aurelia-12/packages/runtime-html/dist/projectors.d.ts": [
+        "d:/projects/aurelia-12/packages/kernel/dist/index.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/index.d.ts"
+      ],
+      "d:/projects/aurelia-12/packages/runtime-html/dist/index.d.ts": [
+        "d:/projects/aurelia-12/packages/runtime-html/dist/binding/listener.d.ts",
+        "d:/projects/aurelia-12/packages/runtime-html/dist/binding/attribute.d.ts",
+        "d:/projects/aurelia-12/packages/runtime-html/dist/observation/attribute-ns-accessor.d.ts",
+        "d:/projects/aurelia-12/packages/runtime-html/dist/observation/checked-observer.d.ts",
+        "d:/projects/aurelia-12/packages/runtime-html/dist/observation/class-attribute-accessor.d.ts",
+        "d:/projects/aurelia-12/packages/runtime-html/dist/observation/data-attribute-accessor.d.ts",
+        "d:/projects/aurelia-12/packages/runtime-html/dist/observation/element-property-accessor.d.ts",
+        "d:/projects/aurelia-12/packages/runtime-html/dist/observation/event-manager.d.ts",
+        "d:/projects/aurelia-12/packages/runtime-html/dist/observation/observer-locator.d.ts",
+        "d:/projects/aurelia-12/packages/runtime-html/dist/observation/select-value-observer.d.ts",
+        "d:/projects/aurelia-12/packages/runtime-html/dist/observation/style-attribute-accessor.d.ts",
+        "d:/projects/aurelia-12/packages/runtime-html/dist/observation/svg-analyzer.d.ts",
+        "d:/projects/aurelia-12/packages/runtime-html/dist/observation/value-attribute-observer.d.ts",
+        "d:/projects/aurelia-12/packages/runtime-html/dist/resources/binding-behaviors/attr.d.ts",
+        "d:/projects/aurelia-12/packages/runtime-html/dist/resources/binding-behaviors/self.d.ts",
+        "d:/projects/aurelia-12/packages/runtime-html/dist/resources/binding-behaviors/update-trigger.d.ts",
+        "d:/projects/aurelia-12/packages/runtime-html/dist/resources/custom-elements/compose.d.ts",
+        "d:/projects/aurelia-12/packages/runtime-html/dist/configuration.d.ts",
+        "d:/projects/aurelia-12/packages/runtime-html/dist/create-element.d.ts",
+        "d:/projects/aurelia-12/packages/runtime-html/dist/definitions.d.ts",
+        "d:/projects/aurelia-12/packages/runtime-html/dist/dom.d.ts",
+        "d:/projects/aurelia-12/packages/runtime-html/dist/instructions.d.ts",
+        "d:/projects/aurelia-12/packages/runtime-html/dist/projectors.d.ts"
+      ],
+      "d:/projects/aurelia-12/packages/jit-html/dist/binding-command.d.ts": [
+        "d:/projects/aurelia-12/packages/jit/dist/index.d.ts",
+        "d:/projects/aurelia-12/packages/kernel/dist/index.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/index.d.ts",
+        "d:/projects/aurelia-12/packages/runtime-html/dist/index.d.ts"
+      ],
+      "d:/projects/aurelia-12/packages/jit-html/dist/attribute-pattern.d.ts": [
+        "d:/projects/aurelia-12/packages/jit/dist/index.d.ts",
+        "d:/projects/aurelia-12/packages/kernel/dist/index.d.ts"
+      ],
+      "d:/projects/aurelia-12/packages/jit-html/dist/configuration.d.ts": [
+        "d:/projects/aurelia-12/packages/kernel/dist/index.d.ts",
+        "d:/projects/aurelia-12/packages/jit-html/dist/attribute-pattern.d.ts"
+      ],
+      "d:/projects/aurelia-12/packages/jit-html/dist/debugging.d.ts": [
+        "d:/projects/aurelia-12/packages/runtime/dist/index.d.ts",
+        "d:/projects/aurelia-12/packages/runtime-html/dist/index.d.ts"
+      ],
+      "d:/projects/aurelia-12/packages/jit-html/dist/template-binder.d.ts": [
+        "d:/projects/aurelia-12/packages/jit/dist/index.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/index.d.ts"
+      ],
+      "d:/projects/aurelia-12/packages/jit-html/dist/template-element-factory.d.ts": [
+        "d:/projects/aurelia-12/packages/kernel/dist/index.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/index.d.ts"
+      ],
+      "d:/projects/aurelia-12/packages/jit-html/dist/index.d.ts": [
+        "d:/projects/aurelia-12/packages/jit-html/dist/binding-command.d.ts",
+        "d:/projects/aurelia-12/packages/jit-html/dist/configuration.d.ts",
+        "d:/projects/aurelia-12/packages/jit-html/dist/debugging.d.ts",
+        "d:/projects/aurelia-12/packages/jit-html/dist/template-binder.d.ts",
+        "d:/projects/aurelia-12/packages/jit-html/dist/template-element-factory.d.ts"
+      ],
+      "d:/projects/aurelia-12/packages/runtime-html-browser/dist/index.d.ts": [
+        "d:/projects/aurelia-12/packages/kernel/dist/index.d.ts"
+      ],
+      "d:/projects/aurelia-12/packages/jit-html-browser/src/index.ts": [
+        "d:/projects/aurelia-12/packages/jit/dist/index.d.ts",
+        "d:/projects/aurelia-12/packages/jit-html/dist/index.d.ts",
+        "d:/projects/aurelia-12/packages/kernel/dist/index.d.ts",
+        "d:/projects/aurelia-12/packages/runtime-html-browser/dist/index.d.ts"
+      ],
+      "d:/projects/aurelia-12/packages/jit-html-browser/src/index.full.ts": [
+        "d:/projects/aurelia-12/packages/jit/dist/index.d.ts",
+        "d:/projects/aurelia-12/packages/jit-html/dist/index.d.ts",
+        "d:/projects/aurelia-12/packages/kernel/dist/index.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/index.d.ts",
+        "d:/projects/aurelia-12/packages/runtime-html/dist/index.d.ts",
+        "d:/projects/aurelia-12/packages/runtime-html-browser/dist/index.d.ts",
+        "d:/projects/aurelia-12/packages/jit-html-browser/src/index.ts"
+      ]
+    },
+    "exportedModulesMap": {
+      "d:/projects/aurelia-12/packages/jit/dist/index.d.ts": [
+        "d:/projects/aurelia-12/packages/jit/dist/ast.d.ts",
+        "d:/projects/aurelia-12/packages/jit/dist/attribute-parser.d.ts",
+        "d:/projects/aurelia-12/packages/jit/dist/attribute-pattern.d.ts",
+        "d:/projects/aurelia-12/packages/jit/dist/binding-command.d.ts",
+        "d:/projects/aurelia-12/packages/jit/dist/configuration.d.ts",
+        "d:/projects/aurelia-12/packages/jit/dist/common.d.ts",
+        "d:/projects/aurelia-12/packages/jit/dist/expression-parser.d.ts",
+        "d:/projects/aurelia-12/packages/jit/dist/resource-model.d.ts",
+        "d:/projects/aurelia-12/packages/jit/dist/semantic-model.d.ts"
+      ],
+      "d:/projects/aurelia-12/packages/jit-html-browser/src/index.full.ts": [
+        "d:/projects/aurelia-12/packages/jit/dist/index.d.ts",
+        "d:/projects/aurelia-12/packages/jit-html/dist/index.d.ts",
+        "d:/projects/aurelia-12/packages/kernel/dist/index.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/index.d.ts",
+        "d:/projects/aurelia-12/packages/runtime-html/dist/index.d.ts",
+        "d:/projects/aurelia-12/packages/runtime-html-browser/dist/index.d.ts",
+        "d:/projects/aurelia-12/packages/jit-html-browser/src/index.ts"
+      ],
+      "d:/projects/aurelia-12/packages/jit-html-browser/src/index.ts": [
+        "d:/projects/aurelia-12/packages/kernel/dist/index.d.ts"
+      ],
+      "d:/projects/aurelia-12/packages/jit-html/dist/template-binder.d.ts": [
+        "d:/projects/aurelia-12/packages/jit/dist/index.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/index.d.ts"
+      ],
+      "d:/projects/aurelia-12/packages/jit-html/dist/index.d.ts": [
+        "d:/projects/aurelia-12/packages/jit-html/dist/binding-command.d.ts",
+        "d:/projects/aurelia-12/packages/jit-html/dist/configuration.d.ts",
+        "d:/projects/aurelia-12/packages/jit-html/dist/debugging.d.ts",
+        "d:/projects/aurelia-12/packages/jit-html/dist/template-binder.d.ts",
+        "d:/projects/aurelia-12/packages/jit-html/dist/template-element-factory.d.ts"
+      ],
+      "d:/projects/aurelia-12/packages/jit-html/dist/attribute-pattern.d.ts": [
+        "d:/projects/aurelia-12/packages/jit/dist/index.d.ts",
+        "d:/projects/aurelia-12/packages/kernel/dist/index.d.ts"
+      ],
+      "d:/projects/aurelia-12/packages/jit-html/dist/configuration.d.ts": [
+        "d:/projects/aurelia-12/packages/kernel/dist/index.d.ts",
+        "d:/projects/aurelia-12/packages/jit-html/dist/attribute-pattern.d.ts"
+      ],
+      "d:/projects/aurelia-12/packages/jit-html/dist/binding-command.d.ts": [
+        "d:/projects/aurelia-12/packages/jit/dist/index.d.ts",
+        "d:/projects/aurelia-12/packages/kernel/dist/index.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/index.d.ts",
+        "d:/projects/aurelia-12/packages/runtime-html/dist/index.d.ts"
+      ],
+      "d:/projects/aurelia-12/packages/jit/dist/semantic-model.d.ts": [
+        "d:/projects/aurelia-12/packages/runtime/dist/index.d.ts",
+        "d:/projects/aurelia-12/packages/jit/dist/ast.d.ts",
+        "d:/projects/aurelia-12/packages/jit/dist/binding-command.d.ts",
+        "d:/projects/aurelia-12/packages/jit/dist/resource-model.d.ts"
+      ],
+      "d:/projects/aurelia-12/packages/jit/dist/binding-command.d.ts": [
+        "d:/projects/aurelia-12/packages/kernel/dist/index.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/index.d.ts",
+        "d:/projects/aurelia-12/packages/jit/dist/semantic-model.d.ts"
+      ],
+      "d:/projects/aurelia-12/packages/jit/dist/resource-model.d.ts": [
+        "d:/projects/aurelia-12/packages/kernel/dist/index.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/index.d.ts",
+        "d:/projects/aurelia-12/packages/jit/dist/ast.d.ts",
+        "d:/projects/aurelia-12/packages/jit/dist/binding-command.d.ts"
+      ],
+      "d:/projects/aurelia-12/packages/jit/dist/attribute-pattern.d.ts": [
+        "d:/projects/aurelia-12/packages/kernel/dist/index.d.ts",
+        "d:/projects/aurelia-12/packages/jit/dist/ast.d.ts"
+      ],
+      "d:/projects/aurelia-12/packages/jit/dist/attribute-parser.d.ts": [
+        "d:/projects/aurelia-12/packages/jit/dist/ast.d.ts",
+        "d:/projects/aurelia-12/packages/kernel/dist/index.d.ts"
+      ],
+      "d:/projects/aurelia-12/packages/kernel/dist/index.d.ts": [
+        "d:/projects/aurelia-12/packages/kernel/dist/di.d.ts",
+        "d:/projects/aurelia-12/packages/kernel/dist/interfaces.d.ts",
+        "d:/projects/aurelia-12/packages/kernel/dist/path.d.ts",
+        "d:/projects/aurelia-12/packages/kernel/dist/platform.d.ts",
+        "d:/projects/aurelia-12/packages/kernel/dist/reporter.d.ts",
+        "d:/projects/aurelia-12/packages/kernel/dist/profiler.d.ts",
+        "d:/projects/aurelia-12/packages/kernel/dist/resource.d.ts",
+        "d:/projects/aurelia-12/packages/kernel/dist/eventaggregator.d.ts",
+        "d:/projects/aurelia-12/packages/kernel/dist/functions.d.ts"
+      ],
+      "d:/projects/aurelia-12/packages/runtime-html-browser/dist/index.d.ts": [
+        "d:/projects/aurelia-12/packages/kernel/dist/index.d.ts"
+      ],
+      "d:/projects/aurelia-12/packages/jit-html/dist/template-element-factory.d.ts": [
+        "d:/projects/aurelia-12/packages/kernel/dist/index.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/index.d.ts"
+      ],
+      "d:/projects/aurelia-12/packages/runtime-html/dist/projectors.d.ts": [
+        "d:/projects/aurelia-12/packages/kernel/dist/index.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/index.d.ts"
+      ],
+      "d:/projects/aurelia-12/packages/runtime-html/dist/index.d.ts": [
+        "d:/projects/aurelia-12/packages/runtime-html/dist/binding/listener.d.ts",
+        "d:/projects/aurelia-12/packages/runtime-html/dist/binding/attribute.d.ts",
+        "d:/projects/aurelia-12/packages/runtime-html/dist/observation/attribute-ns-accessor.d.ts",
+        "d:/projects/aurelia-12/packages/runtime-html/dist/observation/checked-observer.d.ts",
+        "d:/projects/aurelia-12/packages/runtime-html/dist/observation/class-attribute-accessor.d.ts",
+        "d:/projects/aurelia-12/packages/runtime-html/dist/observation/data-attribute-accessor.d.ts",
+        "d:/projects/aurelia-12/packages/runtime-html/dist/observation/element-property-accessor.d.ts",
+        "d:/projects/aurelia-12/packages/runtime-html/dist/observation/event-manager.d.ts",
+        "d:/projects/aurelia-12/packages/runtime-html/dist/observation/observer-locator.d.ts",
+        "d:/projects/aurelia-12/packages/runtime-html/dist/observation/select-value-observer.d.ts",
+        "d:/projects/aurelia-12/packages/runtime-html/dist/observation/style-attribute-accessor.d.ts",
+        "d:/projects/aurelia-12/packages/runtime-html/dist/observation/svg-analyzer.d.ts",
+        "d:/projects/aurelia-12/packages/runtime-html/dist/observation/value-attribute-observer.d.ts",
+        "d:/projects/aurelia-12/packages/runtime-html/dist/resources/binding-behaviors/attr.d.ts",
+        "d:/projects/aurelia-12/packages/runtime-html/dist/resources/binding-behaviors/self.d.ts",
+        "d:/projects/aurelia-12/packages/runtime-html/dist/resources/binding-behaviors/update-trigger.d.ts",
+        "d:/projects/aurelia-12/packages/runtime-html/dist/resources/custom-elements/compose.d.ts",
+        "d:/projects/aurelia-12/packages/runtime-html/dist/configuration.d.ts",
+        "d:/projects/aurelia-12/packages/runtime-html/dist/create-element.d.ts",
+        "d:/projects/aurelia-12/packages/runtime-html/dist/definitions.d.ts",
+        "d:/projects/aurelia-12/packages/runtime-html/dist/dom.d.ts",
+        "d:/projects/aurelia-12/packages/runtime-html/dist/instructions.d.ts",
+        "d:/projects/aurelia-12/packages/runtime-html/dist/projectors.d.ts"
+      ],
+      "d:/projects/aurelia-12/packages/jit-html/dist/debugging.d.ts": [
+        "d:/projects/aurelia-12/packages/runtime/dist/index.d.ts",
+        "d:/projects/aurelia-12/packages/runtime-html/dist/index.d.ts"
+      ],
+      "d:/projects/aurelia-12/packages/runtime-html/dist/dom.d.ts": [
+        "d:/projects/aurelia-12/packages/kernel/dist/index.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/index.d.ts"
+      ],
+      "d:/projects/aurelia-12/packages/runtime-html/dist/configuration.d.ts": [
+        "d:/projects/aurelia-12/packages/kernel/dist/index.d.ts"
+      ],
+      "d:/projects/aurelia-12/packages/runtime-html/dist/resources/custom-elements/compose.d.ts": [
+        "d:/projects/aurelia-12/packages/kernel/dist/index.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/index.d.ts",
+        "d:/projects/aurelia-12/packages/runtime-html/dist/create-element.d.ts"
+      ],
+      "d:/projects/aurelia-12/packages/runtime-html/dist/create-element.d.ts": [
+        "d:/projects/aurelia-12/packages/kernel/dist/index.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/index.d.ts",
+        "d:/projects/aurelia-12/packages/runtime-html/dist/definitions.d.ts"
+      ],
+      "d:/projects/aurelia-12/packages/runtime-html/dist/resources/binding-behaviors/update-trigger.d.ts": [
+        "d:/projects/aurelia-12/packages/kernel/dist/index.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/index.d.ts",
+        "d:/projects/aurelia-12/packages/runtime-html/dist/observation/checked-observer.d.ts",
+        "d:/projects/aurelia-12/packages/runtime-html/dist/observation/event-manager.d.ts",
+        "d:/projects/aurelia-12/packages/runtime-html/dist/observation/select-value-observer.d.ts",
+        "d:/projects/aurelia-12/packages/runtime-html/dist/observation/value-attribute-observer.d.ts"
+      ],
+      "d:/projects/aurelia-12/packages/runtime-html/dist/resources/binding-behaviors/self.d.ts": [
+        "d:/projects/aurelia-12/packages/kernel/dist/index.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/index.d.ts",
+        "d:/projects/aurelia-12/packages/runtime-html/dist/binding/listener.d.ts"
+      ],
+      "d:/projects/aurelia-12/packages/runtime-html/dist/resources/binding-behaviors/attr.d.ts": [
+        "d:/projects/aurelia-12/packages/kernel/dist/index.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/index.d.ts"
+      ],
+      "d:/projects/aurelia-12/packages/runtime-html/dist/observation/observer-locator.d.ts": [
+        "d:/projects/aurelia-12/packages/kernel/dist/index.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/index.d.ts",
+        "d:/projects/aurelia-12/packages/runtime-html/dist/observation/svg-analyzer.d.ts"
+      ],
+      "d:/projects/aurelia-12/packages/runtime-html/dist/observation/svg-analyzer.d.ts": [
+        "d:/projects/aurelia-12/packages/runtime/dist/index.d.ts",
+        "d:/projects/aurelia-12/packages/kernel/dist/index.d.ts"
+      ],
+      "d:/projects/aurelia-12/packages/runtime-html/dist/observation/element-property-accessor.d.ts": [
+        "d:/projects/aurelia-12/packages/kernel/dist/index.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/index.d.ts"
+      ],
+      "d:/projects/aurelia-12/packages/runtime-html/dist/observation/value-attribute-observer.d.ts": [
+        "d:/projects/aurelia-12/packages/kernel/dist/index.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/index.d.ts",
+        "d:/projects/aurelia-12/packages/runtime-html/dist/observation/event-manager.d.ts"
+      ],
+      "d:/projects/aurelia-12/packages/runtime-html/dist/observation/checked-observer.d.ts": [
+        "d:/projects/aurelia-12/packages/runtime/dist/index.d.ts",
+        "d:/projects/aurelia-12/packages/runtime-html/dist/observation/event-manager.d.ts",
+        "d:/projects/aurelia-12/packages/runtime-html/dist/observation/value-attribute-observer.d.ts"
+      ],
+      "d:/projects/aurelia-12/packages/runtime-html/dist/binding/attribute.d.ts": [
+        "d:/projects/aurelia-12/packages/kernel/dist/index.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/index.d.ts"
+      ],
+      "d:/projects/aurelia-12/packages/runtime-html/dist/binding/listener.d.ts": [
+        "d:/projects/aurelia-12/packages/kernel/dist/index.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/index.d.ts",
+        "d:/projects/aurelia-12/packages/runtime-html/dist/observation/event-manager.d.ts"
+      ],
+      "d:/projects/aurelia-12/packages/runtime-html/dist/observation/event-manager.d.ts": [
+        "d:/projects/aurelia-12/packages/kernel/dist/index.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/index.d.ts"
+      ],
+      "d:/projects/aurelia-12/packages/runtime-html/dist/observation/select-value-observer.d.ts": [
+        "d:/projects/aurelia-12/packages/runtime/dist/index.d.ts",
+        "d:/projects/aurelia-12/packages/runtime-html/dist/observation/event-manager.d.ts"
+      ],
+      "d:/projects/aurelia-12/packages/jit/dist/configuration.d.ts": [
+        "d:/projects/aurelia-12/packages/kernel/dist/index.d.ts"
+      ],
+      "d:/projects/aurelia-12/packages/runtime/dist/renderer.d.ts": [
+        "d:/projects/aurelia-12/packages/kernel/dist/index.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/binding/expression-parser.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/definitions.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/dom.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/flags.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/lifecycle.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/observation/observer-locator.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/rendering-engine.d.ts"
+      ],
+      "d:/projects/aurelia-12/packages/runtime/dist/index.d.ts": [
+        "d:/projects/aurelia-12/packages/runtime/dist/binding/ast.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/ast.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/binding/binding.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/binding/call.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/binding/connectable.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/binding/expression-parser.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/binding/interpolation-binding.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/binding/let-binding.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/binding/ref.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/observation/array-observer.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/observation/map-observer.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/observation/set-observer.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/observation/binding-context.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/observation/collection-length-observer.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/observation/collection-size-observer.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/observation/computed-observer.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/observation/dirty-checker.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/observation/observer-locator.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/observation/primitive-observer.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/observation/property-accessor.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/observation/proxy-observer.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/observation/self-observer.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/observation/setter-observer.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/observation/signaler.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/observation/subscriber-collection.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/resources/binding-behavior.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/resources/binding-behaviors/binding-mode.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/resources/binding-behaviors/debounce.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/resources/binding-behaviors/priority.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/resources/binding-behaviors/signals.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/resources/binding-behaviors/throttle.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/resources/custom-attribute.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/resources/custom-attributes/if.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/resources/custom-attributes/repeat.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/resources/custom-attributes/replaceable.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/resources/custom-attributes/with.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/resources/custom-element.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/resources/value-converter.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/resources/value-converters/sanitize.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/templating/bindable.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/templating/controller.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/templating/view.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/aurelia.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/configuration.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/definitions.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/dom.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/flags.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/instructions.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/lifecycle.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/lifecycle-task.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/observation.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/renderer.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/rendering-engine.d.ts"
+      ],
+      "d:/projects/aurelia-12/packages/runtime-html/dist/instructions.d.ts": [
+        "d:/projects/aurelia-12/packages/runtime/dist/index.d.ts",
+        "d:/projects/aurelia-12/packages/runtime-html/dist/definitions.d.ts"
+      ],
+      "d:/projects/aurelia-12/packages/runtime-html/dist/definitions.d.ts": [
+        "d:/projects/aurelia-12/packages/runtime/dist/index.d.ts"
+      ],
+      "d:/projects/aurelia-12/packages/runtime-html/dist/observation/style-attribute-accessor.d.ts": [
+        "d:/projects/aurelia-12/packages/runtime/dist/index.d.ts"
+      ],
+      "d:/projects/aurelia-12/packages/runtime-html/dist/observation/data-attribute-accessor.d.ts": [
+        "d:/projects/aurelia-12/packages/runtime/dist/index.d.ts"
+      ],
+      "d:/projects/aurelia-12/packages/runtime-html/dist/observation/class-attribute-accessor.d.ts": [
+        "d:/projects/aurelia-12/packages/runtime/dist/index.d.ts"
+      ],
+      "d:/projects/aurelia-12/packages/runtime-html/dist/observation/attribute-ns-accessor.d.ts": [
+        "d:/projects/aurelia-12/packages/runtime/dist/index.d.ts"
+      ],
+      "d:/projects/aurelia-12/packages/jit/dist/expression-parser.d.ts": [
+        "d:/projects/aurelia-12/packages/runtime/dist/index.d.ts"
+      ],
+      "d:/projects/aurelia-12/packages/runtime/dist/configuration.d.ts": [
+        "d:/projects/aurelia-12/packages/kernel/dist/index.d.ts"
+      ],
+      "d:/projects/aurelia-12/packages/runtime/dist/aurelia.d.ts": [
+        "d:/projects/aurelia-12/packages/kernel/dist/index.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/activator.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/dom.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/flags.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/lifecycle.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/lifecycle-task.d.ts"
+      ],
+      "d:/projects/aurelia-12/packages/runtime/dist/activator.d.ts": [
+        "d:/projects/aurelia-12/packages/kernel/dist/index.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/dom.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/flags.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/lifecycle.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/lifecycle-task.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/observation.d.ts"
+      ],
+      "d:/projects/aurelia-12/packages/runtime/dist/templating/controller.d.ts": [
+        "d:/projects/aurelia-12/packages/kernel/dist/index.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/definitions.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/dom.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/flags.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/lifecycle.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/lifecycle-task.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/observation.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/rendering-engine.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/resources/custom-element.d.ts"
+      ],
+      "d:/projects/aurelia-12/packages/runtime/dist/rendering-engine.d.ts": [
+        "d:/projects/aurelia-12/packages/kernel/dist/index.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/definitions.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/dom.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/flags.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/lifecycle.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/observation.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/resources/custom-element.d.ts"
+      ],
+      "d:/projects/aurelia-12/packages/runtime/dist/templating/view.d.ts": [
+        "d:/projects/aurelia-12/packages/runtime/dist/dom.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/flags.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/lifecycle.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/rendering-engine.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/definitions.d.ts"
+      ],
+      "d:/projects/aurelia-12/packages/runtime/dist/templating/bindable.d.ts": [
+        "d:/projects/aurelia-12/packages/kernel/dist/index.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/definitions.d.ts"
+      ],
+      "d:/projects/aurelia-12/packages/runtime/dist/resources/value-converters/sanitize.d.ts": [
+        "d:/projects/aurelia-12/packages/kernel/dist/index.d.ts"
+      ],
+      "d:/projects/aurelia-12/packages/runtime/dist/resources/value-converter.d.ts": [
+        "d:/projects/aurelia-12/packages/kernel/dist/index.d.ts"
+      ],
+      "d:/projects/aurelia-12/packages/runtime/dist/resources/custom-attributes/with.d.ts": [
+        "d:/projects/aurelia-12/packages/kernel/dist/index.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/definitions.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/dom.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/flags.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/lifecycle.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/observation.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/resources/custom-attribute.d.ts"
+      ],
+      "d:/projects/aurelia-12/packages/runtime/dist/resources/custom-attributes/replaceable.d.ts": [
+        "d:/projects/aurelia-12/packages/kernel/dist/index.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/definitions.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/dom.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/flags.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/lifecycle.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/lifecycle-task.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/resources/custom-attribute.d.ts"
+      ],
+      "d:/projects/aurelia-12/packages/runtime/dist/resources/custom-attributes/repeat.d.ts": [
+        "d:/projects/aurelia-12/packages/kernel/dist/index.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/binding/ast.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/definitions.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/dom.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/flags.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/lifecycle.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/lifecycle-task.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/observation.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/resources/custom-attribute.d.ts"
+      ],
+      "d:/projects/aurelia-12/packages/runtime/dist/resources/custom-attributes/if.d.ts": [
+        "d:/projects/aurelia-12/packages/kernel/dist/index.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/definitions.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/dom.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/flags.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/lifecycle.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/lifecycle-task.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/observation.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/resources/custom-attribute.d.ts"
+      ],
+      "d:/projects/aurelia-12/packages/runtime/dist/resources/custom-attribute.d.ts": [
+        "d:/projects/aurelia-12/packages/kernel/dist/index.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/definitions.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/lifecycle.d.ts"
+      ],
+      "d:/projects/aurelia-12/packages/runtime/dist/resources/binding-behaviors/throttle.d.ts": [
+        "d:/projects/aurelia-12/packages/kernel/dist/index.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/flags.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/lifecycle.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/observation.d.ts"
+      ],
+      "d:/projects/aurelia-12/packages/runtime/dist/resources/binding-behaviors/signals.d.ts": [
+        "d:/projects/aurelia-12/packages/kernel/dist/index.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/binding/binding.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/flags.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/observation.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/observation/signaler.d.ts"
+      ],
+      "d:/projects/aurelia-12/packages/runtime/dist/resources/binding-behaviors/priority.d.ts": [
+        "d:/projects/aurelia-12/packages/kernel/dist/index.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/binding/binding.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/lifecycle.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/resources/binding-behavior.d.ts"
+      ],
+      "d:/projects/aurelia-12/packages/runtime/dist/resources/binding-behaviors/debounce.d.ts": [
+        "d:/projects/aurelia-12/packages/kernel/dist/index.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/flags.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/lifecycle.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/observation.d.ts"
+      ],
+      "d:/projects/aurelia-12/packages/runtime/dist/resources/binding-behaviors/binding-mode.d.ts": [
+        "d:/projects/aurelia-12/packages/kernel/dist/index.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/binding/binding.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/flags.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/observation.d.ts"
+      ],
+      "d:/projects/aurelia-12/packages/runtime/dist/observation/signaler.d.ts": [
+        "d:/projects/aurelia-12/packages/runtime/dist/flags.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/observation.d.ts",
+        "d:/projects/aurelia-12/packages/kernel/dist/index.d.ts"
+      ],
+      "d:/projects/aurelia-12/packages/runtime/dist/observation/setter-observer.d.ts": [
+        "d:/projects/aurelia-12/packages/kernel/dist/index.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/flags.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/lifecycle.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/observation.d.ts"
+      ],
+      "d:/projects/aurelia-12/packages/runtime/dist/observation/self-observer.d.ts": [
+        "d:/projects/aurelia-12/packages/kernel/dist/index.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/flags.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/lifecycle.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/observation.d.ts"
+      ],
+      "d:/projects/aurelia-12/packages/runtime/dist/observation/primitive-observer.d.ts": [
+        "d:/projects/aurelia-12/packages/kernel/dist/index.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/observation.d.ts"
+      ],
+      "d:/projects/aurelia-12/packages/runtime/dist/observation/dirty-checker.d.ts": [
+        "d:/projects/aurelia-12/packages/runtime/dist/flags.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/observation.d.ts",
+        "d:/projects/aurelia-12/packages/kernel/dist/index.d.ts"
+      ],
+      "d:/projects/aurelia-12/packages/runtime/dist/observation/binding-context.d.ts": [
+        "d:/projects/aurelia-12/packages/kernel/dist/index.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/flags.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/lifecycle.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/observation.d.ts"
+      ],
+      "d:/projects/aurelia-12/packages/runtime/dist/binding/ref.d.ts": [
+        "d:/projects/aurelia-12/packages/kernel/dist/index.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/ast.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/flags.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/lifecycle.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/observation.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/binding/connectable.d.ts"
+      ],
+      "d:/projects/aurelia-12/packages/runtime/dist/binding/let-binding.d.ts": [
+        "d:/projects/aurelia-12/packages/kernel/dist/index.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/ast.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/flags.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/lifecycle.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/observation.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/observation/observer-locator.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/binding/connectable.d.ts"
+      ],
+      "d:/projects/aurelia-12/packages/runtime/dist/binding/interpolation-binding.d.ts": [
+        "d:/projects/aurelia-12/packages/kernel/dist/index.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/ast.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/flags.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/lifecycle.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/observation.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/observation/observer-locator.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/binding/connectable.d.ts"
+      ],
+      "d:/projects/aurelia-12/packages/runtime/dist/binding/expression-parser.d.ts": [
+        "d:/projects/aurelia-12/packages/runtime/dist/ast.d.ts",
+        "d:/projects/aurelia-12/packages/kernel/dist/index.d.ts"
+      ],
+      "d:/projects/aurelia-12/packages/runtime/dist/binding/call.d.ts": [
+        "d:/projects/aurelia-12/packages/kernel/dist/index.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/ast.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/flags.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/observation.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/observation/observer-locator.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/binding/connectable.d.ts"
+      ],
+      "d:/projects/aurelia-12/packages/runtime/dist/binding/binding.d.ts": [
+        "d:/projects/aurelia-12/packages/kernel/dist/index.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/ast.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/flags.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/lifecycle.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/observation.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/observation/observer-locator.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/binding/connectable.d.ts"
+      ],
+      "d:/projects/aurelia-12/packages/runtime/dist/binding/ast.d.ts": [
+        "d:/projects/aurelia-12/packages/kernel/dist/index.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/ast.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/flags.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/lifecycle.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/observation.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/resources/binding-behavior.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/binding/connectable.d.ts"
+      ],
+      "d:/projects/aurelia-12/packages/runtime/dist/binding/connectable.d.ts": [
+        "d:/projects/aurelia-12/packages/kernel/dist/index.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/ast.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/lifecycle.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/observation.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/observation/observer-locator.d.ts"
+      ],
+      "d:/projects/aurelia-12/packages/runtime/dist/observation/observer-locator.d.ts": [
+        "d:/projects/aurelia-12/packages/runtime/dist/flags.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/lifecycle.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/observation.d.ts",
+        "d:/projects/aurelia-12/packages/kernel/dist/index.d.ts"
+      ],
+      "d:/projects/aurelia-12/packages/runtime/dist/resources/binding-behavior.d.ts": [
+        "d:/projects/aurelia-12/packages/kernel/dist/index.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/flags.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/lifecycle.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/observation.d.ts"
+      ],
+      "d:/projects/aurelia-12/packages/runtime/dist/ast.d.ts": [
+        "d:/projects/aurelia-12/packages/kernel/dist/index.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/flags.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/observation.d.ts"
+      ],
+      "d:/projects/aurelia-12/packages/runtime/dist/instructions.d.ts": [
+        "d:/projects/aurelia-12/packages/runtime/dist/ast.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/definitions.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/flags.d.ts"
+      ],
+      "d:/projects/aurelia-12/packages/runtime/dist/definitions.d.ts": [
+        "d:/projects/aurelia-12/packages/kernel/dist/index.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/ast.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/flags.d.ts"
+      ],
+      "d:/projects/aurelia-12/packages/runtime/dist/lifecycle.d.ts": [
+        "d:/projects/aurelia-12/packages/kernel/dist/index.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/definitions.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/dom.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/flags.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/lifecycle-task.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/observation.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/resources/custom-element.d.ts"
+      ],
+      "d:/projects/aurelia-12/packages/runtime/dist/observation/set-observer.d.ts": [
+        "d:/projects/aurelia-12/packages/runtime/dist/flags.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/lifecycle.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/observation.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/observation/collection-size-observer.d.ts"
+      ],
+      "d:/projects/aurelia-12/packages/runtime/dist/observation/map-observer.d.ts": [
+        "d:/projects/aurelia-12/packages/runtime/dist/flags.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/lifecycle.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/observation.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/observation/collection-size-observer.d.ts"
+      ],
+      "d:/projects/aurelia-12/packages/runtime/dist/observation/array-observer.d.ts": [
+        "d:/projects/aurelia-12/packages/runtime/dist/flags.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/lifecycle.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/observation.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/observation/collection-length-observer.d.ts"
+      ],
+      "d:/projects/aurelia-12/packages/runtime/dist/observation.d.ts": [
+        "d:/projects/aurelia-12/packages/kernel/dist/index.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/flags.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/lifecycle.d.ts"
+      ],
+      "d:/projects/aurelia-12/packages/runtime/dist/observation/proxy-observer.d.ts": [
+        "d:/projects/aurelia-12/packages/runtime/dist/flags.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/observation.d.ts"
+      ],
+      "d:/projects/aurelia-12/packages/runtime/dist/observation/property-accessor.d.ts": [
+        "d:/projects/aurelia-12/packages/runtime/dist/observation.d.ts"
+      ],
+      "d:/projects/aurelia-12/packages/runtime/dist/observation/computed-observer.d.ts": [
+        "d:/projects/aurelia-12/packages/runtime/dist/observation.d.ts"
+      ],
+      "d:/projects/aurelia-12/packages/runtime/dist/observation/collection-size-observer.d.ts": [
+        "d:/projects/aurelia-12/packages/runtime/dist/flags.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/observation.d.ts"
+      ],
+      "d:/projects/aurelia-12/packages/runtime/dist/observation/collection-length-observer.d.ts": [
+        "d:/projects/aurelia-12/packages/runtime/dist/flags.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/observation.d.ts"
+      ],
+      "d:/projects/aurelia-12/packages/runtime/dist/resources/custom-element.d.ts": [
+        "d:/projects/aurelia-12/packages/kernel/dist/index.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/definitions.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/dom.d.ts",
+        "d:/projects/aurelia-12/packages/runtime/dist/lifecycle.d.ts"
+      ],
+      "d:/projects/aurelia-12/packages/runtime/dist/dom.d.ts": [
+        "d:/projects/aurelia-12/packages/kernel/dist/index.d.ts"
+      ],
+      "d:/projects/aurelia-12/packages/kernel/dist/eventaggregator.d.ts": [
+        "d:/projects/aurelia-12/packages/kernel/dist/interfaces.d.ts"
+      ],
+      "d:/projects/aurelia-12/packages/kernel/dist/resource.d.ts": [
+        "d:/projects/aurelia-12/packages/kernel/dist/di.d.ts",
+        "d:/projects/aurelia-12/packages/kernel/dist/interfaces.d.ts"
+      ],
+      "d:/projects/aurelia-12/packages/kernel/dist/platform.d.ts": [
+        "d:/projects/aurelia-12/packages/kernel/dist/interfaces.d.ts"
+      ],
+      "d:/projects/aurelia-12/packages/kernel/dist/di.d.ts": [
+        "d:/projects/aurelia-12/packages/kernel/dist/interfaces.d.ts"
+      ]
+    },
+    "semanticDiagnosticsPerFile": [
+      "d:/projects/aurelia-12/node_modules/typescript/lib/lib.es5.d.ts",
+      "d:/projects/aurelia-12/node_modules/typescript/lib/lib.es2015.d.ts",
+      "d:/projects/aurelia-12/node_modules/typescript/lib/lib.es2016.d.ts",
+      "d:/projects/aurelia-12/node_modules/typescript/lib/lib.es2017.d.ts",
+      "d:/projects/aurelia-12/node_modules/typescript/lib/lib.es2018.d.ts",
+      "d:/projects/aurelia-12/node_modules/typescript/lib/lib.es2019.d.ts",
+      "d:/projects/aurelia-12/node_modules/typescript/lib/lib.esnext.d.ts",
+      "d:/projects/aurelia-12/node_modules/typescript/lib/lib.dom.d.ts",
+      "d:/projects/aurelia-12/node_modules/typescript/lib/lib.es2015.core.d.ts",
+      "d:/projects/aurelia-12/node_modules/typescript/lib/lib.es2015.collection.d.ts",
+      "d:/projects/aurelia-12/node_modules/typescript/lib/lib.es2015.generator.d.ts",
+      "d:/projects/aurelia-12/node_modules/typescript/lib/lib.es2015.iterable.d.ts",
+      "d:/projects/aurelia-12/node_modules/typescript/lib/lib.es2015.promise.d.ts",
+      "d:/projects/aurelia-12/node_modules/typescript/lib/lib.es2015.proxy.d.ts",
+      "d:/projects/aurelia-12/node_modules/typescript/lib/lib.es2015.reflect.d.ts",
+      "d:/projects/aurelia-12/node_modules/typescript/lib/lib.es2015.symbol.d.ts",
+      "d:/projects/aurelia-12/node_modules/typescript/lib/lib.es2015.symbol.wellknown.d.ts",
+      "d:/projects/aurelia-12/node_modules/typescript/lib/lib.es2016.array.include.d.ts",
+      "d:/projects/aurelia-12/node_modules/typescript/lib/lib.es2017.object.d.ts",
+      "d:/projects/aurelia-12/node_modules/typescript/lib/lib.es2017.sharedmemory.d.ts",
+      "d:/projects/aurelia-12/node_modules/typescript/lib/lib.es2017.string.d.ts",
+      "d:/projects/aurelia-12/node_modules/typescript/lib/lib.es2017.intl.d.ts",
+      "d:/projects/aurelia-12/node_modules/typescript/lib/lib.es2017.typedarrays.d.ts",
+      "d:/projects/aurelia-12/node_modules/typescript/lib/lib.es2018.asynciterable.d.ts",
+      "d:/projects/aurelia-12/node_modules/typescript/lib/lib.es2018.intl.d.ts",
+      "d:/projects/aurelia-12/node_modules/typescript/lib/lib.es2018.promise.d.ts",
+      "d:/projects/aurelia-12/node_modules/typescript/lib/lib.es2018.regexp.d.ts",
+      "d:/projects/aurelia-12/node_modules/typescript/lib/lib.es2019.array.d.ts",
+      "d:/projects/aurelia-12/node_modules/typescript/lib/lib.es2019.string.d.ts",
+      "d:/projects/aurelia-12/node_modules/typescript/lib/lib.es2019.symbol.d.ts",
+      "d:/projects/aurelia-12/node_modules/typescript/lib/lib.esnext.intl.d.ts",
+      "d:/projects/aurelia-12/node_modules/typescript/lib/lib.esnext.bigint.d.ts",
+      "d:/projects/aurelia-12/node_modules/tslib/tslib.d.ts",
+      "d:/projects/aurelia-12/packages/jit/dist/ast.d.ts",
+      "d:/projects/aurelia-12/packages/kernel/dist/interfaces.d.ts",
+      "d:/projects/aurelia-12/packages/kernel/dist/di.d.ts",
+      "d:/projects/aurelia-12/packages/kernel/dist/path.d.ts",
+      "d:/projects/aurelia-12/packages/kernel/dist/platform.d.ts",
+      "d:/projects/aurelia-12/packages/kernel/dist/reporter.d.ts",
+      "d:/projects/aurelia-12/packages/kernel/dist/profiler.d.ts",
+      "d:/projects/aurelia-12/packages/kernel/dist/resource.d.ts",
+      "d:/projects/aurelia-12/packages/kernel/dist/eventaggregator.d.ts",
+      "d:/projects/aurelia-12/packages/kernel/dist/functions.d.ts",
+      "d:/projects/aurelia-12/packages/kernel/dist/index.d.ts",
+      "d:/projects/aurelia-12/packages/jit/dist/attribute-parser.d.ts",
+      "d:/projects/aurelia-12/packages/jit/dist/attribute-pattern.d.ts",
+      "d:/projects/aurelia-12/packages/runtime/dist/flags.d.ts",
+      "d:/projects/aurelia-12/packages/runtime/dist/definitions.d.ts",
+      "d:/projects/aurelia-12/packages/runtime/dist/dom.d.ts",
+      "d:/projects/aurelia-12/packages/runtime/dist/lifecycle-task.d.ts",
+      "d:/projects/aurelia-12/packages/runtime/dist/resources/custom-element.d.ts",
+      "d:/projects/aurelia-12/packages/runtime/dist/lifecycle.d.ts",
+      "d:/projects/aurelia-12/packages/runtime/dist/observation.d.ts",
+      "d:/projects/aurelia-12/packages/runtime/dist/ast.d.ts",
+      "d:/projects/aurelia-12/packages/runtime/dist/resources/binding-behavior.d.ts",
+      "d:/projects/aurelia-12/packages/runtime/dist/observation/observer-locator.d.ts",
+      "d:/projects/aurelia-12/packages/runtime/dist/binding/connectable.d.ts",
+      "d:/projects/aurelia-12/packages/runtime/dist/binding/ast.d.ts",
+      "d:/projects/aurelia-12/packages/runtime/dist/binding/binding.d.ts",
+      "d:/projects/aurelia-12/packages/runtime/dist/binding/call.d.ts",
+      "d:/projects/aurelia-12/packages/runtime/dist/binding/expression-parser.d.ts",
+      "d:/projects/aurelia-12/packages/runtime/dist/binding/interpolation-binding.d.ts",
+      "d:/projects/aurelia-12/packages/runtime/dist/binding/let-binding.d.ts",
+      "d:/projects/aurelia-12/packages/runtime/dist/binding/ref.d.ts",
+      "d:/projects/aurelia-12/packages/runtime/dist/observation/collection-length-observer.d.ts",
+      "d:/projects/aurelia-12/packages/runtime/dist/observation/array-observer.d.ts",
+      "d:/projects/aurelia-12/packages/runtime/dist/observation/collection-size-observer.d.ts",
+      "d:/projects/aurelia-12/packages/runtime/dist/observation/map-observer.d.ts",
+      "d:/projects/aurelia-12/packages/runtime/dist/observation/set-observer.d.ts",
+      "d:/projects/aurelia-12/packages/runtime/dist/observation/binding-context.d.ts",
+      "d:/projects/aurelia-12/packages/runtime/dist/observation/computed-observer.d.ts",
+      "d:/projects/aurelia-12/packages/runtime/dist/observation/dirty-checker.d.ts",
+      "d:/projects/aurelia-12/packages/runtime/dist/observation/primitive-observer.d.ts",
+      "d:/projects/aurelia-12/packages/runtime/dist/observation/property-accessor.d.ts",
+      "d:/projects/aurelia-12/packages/runtime/dist/observation/proxy-observer.d.ts",
+      "d:/projects/aurelia-12/packages/runtime/dist/observation/self-observer.d.ts",
+      "d:/projects/aurelia-12/packages/runtime/dist/observation/setter-observer.d.ts",
+      "d:/projects/aurelia-12/packages/runtime/dist/observation/signaler.d.ts",
+      "d:/projects/aurelia-12/packages/runtime/dist/observation/subscriber-collection.d.ts",
+      "d:/projects/aurelia-12/packages/runtime/dist/resources/binding-behaviors/binding-mode.d.ts",
+      "d:/projects/aurelia-12/packages/runtime/dist/resources/binding-behaviors/debounce.d.ts",
+      "d:/projects/aurelia-12/packages/runtime/dist/resources/binding-behaviors/priority.d.ts",
+      "d:/projects/aurelia-12/packages/runtime/dist/resources/binding-behaviors/signals.d.ts",
+      "d:/projects/aurelia-12/packages/runtime/dist/resources/binding-behaviors/throttle.d.ts",
+      "d:/projects/aurelia-12/packages/runtime/dist/resources/custom-attribute.d.ts",
+      "d:/projects/aurelia-12/packages/runtime/dist/resources/custom-attributes/if.d.ts",
+      "d:/projects/aurelia-12/packages/runtime/dist/resources/custom-attributes/repeat.d.ts",
+      "d:/projects/aurelia-12/packages/runtime/dist/resources/custom-attributes/replaceable.d.ts",
+      "d:/projects/aurelia-12/packages/runtime/dist/resources/custom-attributes/with.d.ts",
+      "d:/projects/aurelia-12/packages/runtime/dist/resources/value-converter.d.ts",
+      "d:/projects/aurelia-12/packages/runtime/dist/resources/value-converters/sanitize.d.ts",
+      "d:/projects/aurelia-12/packages/runtime/dist/templating/bindable.d.ts",
+      "d:/projects/aurelia-12/packages/runtime/dist/rendering-engine.d.ts",
+      "d:/projects/aurelia-12/packages/runtime/dist/templating/controller.d.ts",
+      "d:/projects/aurelia-12/packages/runtime/dist/templating/view.d.ts",
+      "d:/projects/aurelia-12/packages/runtime/dist/activator.d.ts",
+      "d:/projects/aurelia-12/packages/runtime/dist/aurelia.d.ts",
+      "d:/projects/aurelia-12/packages/runtime/dist/configuration.d.ts",
+      "d:/projects/aurelia-12/packages/runtime/dist/instructions.d.ts",
+      "d:/projects/aurelia-12/packages/runtime/dist/renderer.d.ts",
+      "d:/projects/aurelia-12/packages/runtime/dist/index.d.ts",
+      "d:/projects/aurelia-12/packages/jit/dist/resource-model.d.ts",
+      "d:/projects/aurelia-12/packages/jit/dist/semantic-model.d.ts",
+      "d:/projects/aurelia-12/packages/jit/dist/binding-command.d.ts",
+      "d:/projects/aurelia-12/packages/jit/dist/configuration.d.ts",
+      "d:/projects/aurelia-12/packages/jit/dist/common.d.ts",
+      "d:/projects/aurelia-12/packages/jit/dist/expression-parser.d.ts",
+      "d:/projects/aurelia-12/packages/jit/dist/index.d.ts",
+      "d:/projects/aurelia-12/packages/runtime-html/dist/observation/event-manager.d.ts",
+      "d:/projects/aurelia-12/packages/runtime-html/dist/binding/listener.d.ts",
+      "d:/projects/aurelia-12/packages/runtime-html/dist/binding/attribute.d.ts",
+      "d:/projects/aurelia-12/packages/runtime-html/dist/observation/attribute-ns-accessor.d.ts",
+      "d:/projects/aurelia-12/packages/runtime-html/dist/observation/value-attribute-observer.d.ts",
+      "d:/projects/aurelia-12/packages/runtime-html/dist/observation/checked-observer.d.ts",
+      "d:/projects/aurelia-12/packages/runtime-html/dist/observation/class-attribute-accessor.d.ts",
+      "d:/projects/aurelia-12/packages/runtime-html/dist/observation/data-attribute-accessor.d.ts",
+      "d:/projects/aurelia-12/packages/runtime-html/dist/observation/element-property-accessor.d.ts",
+      "d:/projects/aurelia-12/packages/runtime-html/dist/observation/svg-analyzer.d.ts",
+      "d:/projects/aurelia-12/packages/runtime-html/dist/observation/observer-locator.d.ts",
+      "d:/projects/aurelia-12/packages/runtime-html/dist/observation/select-value-observer.d.ts",
+      "d:/projects/aurelia-12/packages/runtime-html/dist/observation/style-attribute-accessor.d.ts",
+      "d:/projects/aurelia-12/packages/runtime-html/dist/resources/binding-behaviors/attr.d.ts",
+      "d:/projects/aurelia-12/packages/runtime-html/dist/resources/binding-behaviors/self.d.ts",
+      "d:/projects/aurelia-12/packages/runtime-html/dist/resources/binding-behaviors/update-trigger.d.ts",
+      "d:/projects/aurelia-12/packages/runtime-html/dist/definitions.d.ts",
+      "d:/projects/aurelia-12/packages/runtime-html/dist/create-element.d.ts",
+      "d:/projects/aurelia-12/packages/runtime-html/dist/resources/custom-elements/compose.d.ts",
+      "d:/projects/aurelia-12/packages/runtime-html/dist/configuration.d.ts",
+      "d:/projects/aurelia-12/packages/runtime-html/dist/dom.d.ts",
+      "d:/projects/aurelia-12/packages/runtime-html/dist/instructions.d.ts",
+      "d:/projects/aurelia-12/packages/runtime-html/dist/projectors.d.ts",
+      "d:/projects/aurelia-12/packages/runtime-html/dist/index.d.ts",
+      "d:/projects/aurelia-12/packages/jit-html/dist/binding-command.d.ts",
+      "d:/projects/aurelia-12/packages/jit-html/dist/attribute-pattern.d.ts",
+      "d:/projects/aurelia-12/packages/jit-html/dist/configuration.d.ts",
+      "d:/projects/aurelia-12/packages/jit-html/dist/debugging.d.ts",
+      "d:/projects/aurelia-12/packages/jit-html/dist/template-binder.d.ts",
+      "d:/projects/aurelia-12/packages/jit-html/dist/template-element-factory.d.ts",
+      "d:/projects/aurelia-12/packages/jit-html/dist/index.d.ts",
+      "d:/projects/aurelia-12/packages/runtime-html-browser/dist/index.d.ts",
+      "d:/projects/aurelia-12/packages/jit-html-browser/src/index.ts",
+      "d:/projects/aurelia-12/packages/jit-html-browser/src/index.full.ts"
+    ]
+  },
+  "version": "3.4.5"
+}

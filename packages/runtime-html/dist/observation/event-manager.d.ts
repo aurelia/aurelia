@@ -20,10 +20,14 @@ export declare class ListenerTracker {
  * Enable dispose() pattern for `delegate` & `capture` commands
  */
 export declare class DelegateOrCaptureSubscription implements IDisposable {
-    entry: ListenerTracker;
+    entry: {
+        decrement: () => void;
+    };
     lookup: Record<string, EventListenerOrEventListenerObject>;
     targetEvent: string;
-    constructor(entry: ListenerTracker, lookup: Record<string, EventListenerOrEventListenerObject>, targetEvent: string, callback: EventListenerOrEventListenerObject);
+    constructor(entry: {
+        decrement: () => void;
+    }, lookup: Record<string, EventListenerOrEventListenerObject>, targetEvent: string, callback: EventListenerOrEventListenerObject);
     dispose(): void;
 }
 /**
@@ -61,5 +65,5 @@ export declare type EventSubscription = DelegateOrCaptureSubscription | TriggerS
 export interface IEventManager extends IDisposable {
     addEventListener(dom: IDOM, target: Node, targetEvent: string, callbackOrListener: EventListenerOrEventListenerObject, delegate: DelegationStrategy): IDisposable;
 }
-export declare const IEventManager: import("@aurelia/kernel/dist/interfaces").InterfaceSymbol<IEventManager>;
+export declare const IEventManager: import("@aurelia/kernel").InterfaceSymbol<IEventManager>;
 //# sourceMappingURL=event-manager.d.ts.map

@@ -19,7 +19,14 @@ export interface ILiveLoggingOptions {
     lifecycle?: boolean;
     jit?: boolean;
 }
+export declare const enum LogLevel {
+    error = 0,
+    warn = 1,
+    info = 2,
+    debug = 3
+}
 export declare const Reporter: {
+    level: LogLevel;
     write(code: number, ...params: unknown[]): void;
     error(code: number, ...params: unknown[]): Error;
 };
@@ -33,7 +40,7 @@ export declare const Tracer: {
      */
     enabled: boolean;
     liveLoggingEnabled: boolean;
-    liveWriter: any;
+    liveWriter: ITraceWriter;
     /**
      * Call this at the start of a method/function.
      * Each call to `enter` **must** have an accompanying call to `leave` for the tracer to work properly.
@@ -41,7 +48,7 @@ export declare const Tracer: {
      * @param methodName Any human-friendly name to identify the traced method with.
      * @param args Pass in `Array.prototype.slice.call(arguments)` to also trace the parameters, or `null` if this is not needed (to save memory/cpu)
      */
-    enter(objName: string, methodName: string, args: unknown[]): void;
+    enter(objName: string, methodName: string, args: unknown[] | null): void;
     /**
      * Call this at the end of a method/function. Pops one trace item off the stack.
      */
@@ -55,7 +62,7 @@ export declare const Tracer: {
      * Writes all trace info captured since the previous flushAll operation.
      * @param writer An object to write the output to. Can be null to simply reset the tracer state.
      */
-    flushAll(writer: ITraceWriter): void;
+    flushAll(writer: ITraceWriter | null): void;
     enableLiveLogging: typeof enableLiveLogging;
     /**
      * Stops writing out each trace info item as they are traced.

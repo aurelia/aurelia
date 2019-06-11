@@ -1,11 +1,11 @@
 {
   "name": "@aurelia/router",
-  "version": "0.3.0",
+  "version": "0.3.0-dev.20190611",
   "sideEffects": false,
-  "main": "dist/build/index.js",
-  "module": "dist/build/index.js",
-  "jsnext:main": "dist/build/index.js",
-  "browser": "dist/build/index.js",
+  "main": "dist/index.umd.js",
+  "module": "dist/index.es6.js",
+  "jsnext:main": "dist/index.es6.js",
+  "browser": "dist/index.umd.js",
   "types": "dist/index.d.ts",
   "typings": "dist/index.d.ts",
   "license": "MIT",
@@ -38,9 +38,9 @@
     "access": "public"
   },
   "dependencies": {
-    "@aurelia/kernel": "0.3.0",
-    "@aurelia/runtime": "0.3.0",
-    "@aurelia/runtime-html": "0.3.0"
+    "@aurelia/kernel": "0.3.0-dev.20190611",
+    "@aurelia/runtime": "0.3.0-dev.20190611",
+    "@aurelia/runtime-html": "0.3.0-dev.20190611"
   },
   "devDependencies": {
     "@types/node": "^10.12.27",

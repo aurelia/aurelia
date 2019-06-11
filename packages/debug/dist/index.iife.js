@@ -35,7 +35,6 @@ this.au.debug = (function (exports, kernel, AST) {
   function adoptDebugMethods($type, name) {
       $type.prototype.toString = function () { return Unparser.unparse(this); };
   }
-  /** @internal */
   class Unparser {
       constructor() {
           this.text = '';
@@ -264,26 +263,164 @@ this.au.debug = (function (exports, kernel, AST) {
           this.text += ')';
       }
   }
+  class Serializer {
+      static serialize(expr) {
+          const visitor = new Serializer();
+          if (expr == null || typeof expr.accept !== 'function') {
+              return `${expr}`;
+          }
+          return expr.accept(visitor);
+      }
+      visitAccessMember(expr) {
+          return `{"type":"AccessMember","name":${expr.name},"object":${expr.object.accept(this)}}`;
+      }
+      visitAccessKeyed(expr) {
+          return `{"type":"AccessKeyed","object":${expr.object.accept(this)},"key":${expr.key.accept(this)}}`;
+      }
+      visitAccessThis(expr) {
+          return `{"type":"AccessThis","ancestor":${expr.ancestor}}`;
+      }
+      visitAccessScope(expr) {
+          return `{"type":"AccessScope","name":"${expr.name}","ancestor":${expr.ancestor}}`;
+      }
+      visitArrayLiteral(expr) {
+          return `{"type":"ArrayLiteral","elements":${this.serializeExpressions(expr.elements)}}`;
+      }
+      visitObjectLiteral(expr) {
+          return `{"type":"ObjectLiteral","keys":${serializePrimitives(expr.keys)},"values":${this.serializeExpressions(expr.values)}}`;
+      }
+      visitPrimitiveLiteral(expr) {
+          return `{"type":"PrimitiveLiteral","value":${serializePrimitive(expr.value)}}`;
+      }
+      visitCallFunction(expr) {
+          return `{"type":"CallFunction","func":${expr.func.accept(this)},"args":${this.serializeExpressions(expr.args)}}`;
+      }
+      visitCallMember(expr) {
+          return `{"type":"CallMember","name":"${expr.name}","object":${expr.object.accept(this)},"args":${this.serializeExpressions(expr.args)}}`;
+      }
+      visitCallScope(expr) {
+          return `{"type":"CallScope","name":"${expr.name}","ancestor":${expr.ancestor},"args":${this.serializeExpressions(expr.args)}}`;
+      }
+      visitTemplate(expr) {
+          return `{"type":"Template","cooked":${serializePrimitives(expr.cooked)},"expressions":${this.serializeExpressions(expr.expressions)}}`;
+      }
+      visitTaggedTemplate(expr) {
+          return `{"type":"TaggedTemplate","cooked":${serializePrimitives(expr.cooked)},"raw":${serializePrimitives(expr.cooked.raw)},"expressions":${this.serializeExpressions(expr.expressions)}}`;
+      }
+      visitUnary(expr) {
+          return `{"type":"Unary","operation":"${expr.operation}","expression":${expr.expression.accept(this)}}`;
+      }
+      visitBinary(expr) {
+          return `{"type":"Binary","operation":"${expr.operation}","left":${expr.left.accept(this)},"right":${expr.right.accept(this)}}`;
+      }
+      visitConditional(expr) {
+          return `{"type":"Conditional","condition":${expr.condition.accept(this)},"yes":${expr.yes.accept(this)},"no":${expr.no.accept(this)}}`;
+      }
+      visitAssign(expr) {
+          return `{"type":"Assign","target":${expr.target.accept(this)},"value":${expr.value.accept(this)}}`;
+      }
+      visitValueConverter(expr) {
+          return `{"type":"ValueConverter","name":"${expr.name}","expression":${expr.expression.accept(this)},"args":${this.serializeExpressions(expr.args)}}`;
+      }
+      visitBindingBehavior(expr) {
+          return `{"type":"BindingBehavior","name":"${expr.name}","expression":${expr.expression.accept(this)},"args":${this.serializeExpressions(expr.args)}}`;
+      }
+      visitArrayBindingPattern(expr) {
+          return `{"type":"ArrayBindingPattern","elements":${this.serializeExpressions(expr.elements)}}`;
+      }
+      visitObjectBindingPattern(expr) {
+          return `{"type":"ObjectBindingPattern","keys":${serializePrimitives(expr.keys)},"values":${this.serializeExpressions(expr.values)}}`;
+      }
+      visitBindingIdentifier(expr) {
+          return `{"type":"BindingIdentifier","name":"${expr.name}"}`;
+      }
+      visitHtmlLiteral(expr) { throw new Error('visitHtmlLiteral'); }
+      visitForOfStatement(expr) {
+          return `{"type":"ForOfStatement","declaration":${expr.declaration.accept(this)},"iterable":${expr.iterable.accept(this)}}`;
+      }
+      visitInterpolation(expr) {
+          return `{"type":"Interpolation","cooked":${serializePrimitives(expr.parts)},"expressions":${this.serializeExpressions(expr.expressions)}}`;
+      }
+      serializeExpressions(args) {
+          let text = '[';
+          for (let i = 0, ii = args.length; i < ii; ++i) {
+              if (i !== 0) {
+                  text += ',';
+              }
+              text += args[i].accept(this);
+          }
+          text += ']';
+          return text;
+      }
+  }
+  function serializePrimitives(values) {
+      let text = '[';
+      for (let i = 0, ii = values.length; i < ii; ++i) {
+          if (i !== 0) {
+              text += ',';
+          }
+          text += serializePrimitive(values[i]);
+      }
+      text += ']';
+      return text;
+  }
+  function serializePrimitive(value) {
+      if (typeof value === 'string') {
+          return `"\\"${escapeString(value)}\\""`;
+      }
+      else if (value == null) {
+          return `"${value}"`;
+      }
+      else {
+          return `${value}`;
+      }
+  }
+  function escapeString(str) {
+      let ret = '';
+      for (let i = 0, ii = str.length; i < ii; ++i) {
+          ret += escape(str.charAt(i));
+      }
+      return ret;
+  }
+  function escape(ch) {
+      switch (ch) {
+          case '\b': return '\\b';
+          case '\t': return '\\t';
+          case '\n': return '\\n';
+          case '\v': return '\\v';
+          case '\f': return '\\f';
+          case '\r': return '\\r';
+          case '\"': return '\\"';
+          case '\'': return '\\\'';
+          case '\\': return '\\\\';
+          default: return ch;
+      }
+  }
 
-  var MessageType;
-  (function (MessageType) {
-      MessageType[MessageType["error"] = 0] = "error";
-      MessageType[MessageType["warn"] = 1] = "warn";
-      MessageType[MessageType["info"] = 2] = "info";
-      MessageType[MessageType["debug"] = 3] = "debug";
-  })(MessageType || (MessageType = {}));
-  const Reporter = Object.assign({}, kernel.Reporter, { write(code, ...params) {
+  const Reporter = {
+      ...kernel.Reporter,
+      get level() {
+          return kernel.Reporter.level;
+      },
+      write(code, ...params) {
           const info = getMessageInfoForCode(code);
+          const message = `Code ${code}: ${info.message}`;
           // tslint:disable:no-console
-          switch (info.type) {
+          switch (info.level) {
               case 3 /* debug */:
-                  console.debug(info.message, ...params);
+                  if (this.level >= 3 /* debug */) {
+                      console.debug(message, ...params);
+                  }
                   break;
               case 2 /* info */:
-                  console.info(info.message, ...params);
+                  if (this.level >= 2 /* info */) {
+                      console.info(message, ...params);
+                  }
                   break;
               case 1 /* warn */:
-                  console.warn(info.message, ...params);
+                  if (this.level >= 1 /* warn */) {
+                      console.warn(message, ...params);
+                  }
                   break;
               case 0 /* error */:
                   throw this.error(code, ...params);
@@ -292,195 +429,216 @@ this.au.debug = (function (exports, kernel, AST) {
       },
       error(code, ...params) {
           const info = getMessageInfoForCode(code);
-          const error = new Error(info.message);
+          const error = new Error(`Code ${code}: ${info.message}`);
           error.data = params;
           return error;
-      } });
+      }
+  };
   function getMessageInfoForCode(code) {
       const info = codeLookup[code];
       return info !== undefined ? info : createInvalidCodeMessageInfo(code);
   }
   function createInvalidCodeMessageInfo(code) {
       return {
-          type: 0 /* error */,
+          level: 0 /* error */,
           message: `Attempted to report with unknown code ${code}.`
       };
   }
   const codeLookup = {
       0: {
-          type: 1 /* warn */,
+          level: 1 /* warn */,
           message: 'Cannot add observers to object.'
       },
       1: {
-          type: 1 /* warn */,
+          level: 1 /* warn */,
           message: 'Cannot observe property of object.'
       },
       2: {
-          type: 2 /* info */,
+          level: 2 /* info */,
           message: 'Starting application in debug mode.'
       },
       3: {
-          type: 0 /* error */,
+          level: 0 /* error */,
           message: 'Runtime expression compilation is only available when including JIT support.'
       },
       4: {
-          type: 0 /* error */,
+          level: 0 /* error */,
           message: 'Invalid animation direction.'
       },
       5: {
-          type: 0 /* error */,
+          level: 0 /* error */,
           message: 'key/value cannot be null or undefined. Are you trying to inject/register something that doesn\'t exist with DI?'
       },
       6: {
-          type: 0 /* error */,
+          level: 0 /* error */,
           message: 'Invalid resolver strategy specified.'
       },
       7: {
-          type: 0 /* error */,
+          level: 0 /* error */,
           message: 'Constructor Parameter with index cannot be null or undefined. Are you trying to inject/register something that doesn\'t exist with DI?'
       },
       8: {
-          type: 0 /* error */,
+          level: 0 /* error */,
           message: 'Self binding behavior only supports events.'
       },
       9: {
-          type: 0 /* error */,
+          level: 0 /* error */,
           message: 'The updateTrigger binding behavior requires at least one event name argument: eg <input value.bind="firstName & updateTrigger:\'blur\'">'
       },
       10: {
-          type: 0 /* error */,
+          level: 0 /* error */,
           message: 'The updateTrigger binding behavior can only be applied to two-way/ from-view bindings on input/select elements.'
       },
       11: {
-          type: 0 /* error */,
+          level: 0 /* error */,
           message: 'Only property bindings and string interpolation bindings can be signaled. Trigger, delegate and call bindings cannot be signaled.'
       },
       12: {
-          type: 0 /* error */,
+          level: 0 /* error */,
           message: 'Signal name is required.'
       },
       14: {
-          type: 0 /* error */,
+          level: 0 /* error */,
           message: 'Property cannot be assigned.'
       },
       15: {
-          type: 0 /* error */,
+          level: 0 /* error */,
           message: 'Unexpected call context.'
       },
       16: {
-          type: 0 /* error */,
+          level: 0 /* error */,
           message: 'Only one child observer per content view is supported for the life of the content view.'
       },
       17: {
-          type: 0 /* error */,
+          level: 0 /* error */,
           message: 'You can only define one default implementation for an interface.'
       },
       18: {
-          type: 0 /* error */,
+          level: 0 /* error */,
           message: 'You cannot observe a setter only property.'
       },
       19: {
-          type: 0 /* error */,
+          level: 0 /* error */,
           message: 'Value for expression is non-repeatable.'
       },
       20: {
-          type: 0 /* error */,
+          level: 0 /* error */,
           message: 'No template compiler found with the specified name. JIT support or a custom compiler is required.'
       },
       21: {
-          type: 0 /* error */,
+          level: 0 /* error */,
           message: 'You cannot combine the containerless custom element option with Shadow DOM.'
       },
       22: {
-          type: 0 /* error */,
+          level: 0 /* error */,
           message: 'A containerless custom element cannot be the root component of an application.'
       },
       30: {
-          type: 0 /* error */,
+          level: 0 /* error */,
           message: 'There are more targets than there are target instructions.'
       },
       31: {
-          type: 0 /* error */,
+          level: 0 /* error */,
           message: 'There are more target instructions than there are targets.'
       },
       100: {
-          type: 0 /* error */,
+          level: 0 /* error */,
           message: 'Invalid start of expression.'
       },
       101: {
-          type: 0 /* error */,
+          level: 0 /* error */,
           message: 'Unconsumed token.'
       },
       102: {
-          type: 0 /* error */,
+          level: 0 /* error */,
           message: 'Double dot and spread operators are not supported.'
       },
       103: {
-          type: 0 /* error */,
+          level: 0 /* error */,
           message: 'Invalid member expression.'
       },
       104: {
-          type: 0 /* error */,
+          level: 0 /* error */,
           message: 'Unexpected end of expression.'
       },
       105: {
-          type: 0 /* error */,
+          level: 0 /* error */,
           message: 'Expected identifier.'
       },
       106: {
-          type: 0 /* error */,
+          level: 0 /* error */,
           message: 'Invalid BindingIdentifier at left hand side of "of".'
       },
       107: {
-          type: 0 /* error */,
+          level: 0 /* error */,
           message: 'Invalid or unsupported property definition in object literal.'
       },
       108: {
-          type: 0 /* error */,
+          level: 0 /* error */,
           message: 'Unterminated quote in string literal.'
       },
       109: {
-          type: 0 /* error */,
+          level: 0 /* error */,
           message: 'Unterminated template string.'
       },
       110: {
-          type: 0 /* error */,
+          level: 0 /* error */,
           message: 'Missing expected token.'
       },
       111: {
-          type: 0 /* error */,
+          level: 0 /* error */,
           message: 'Unexpected character.'
       },
       150: {
-          type: 0 /* error */,
+          level: 0 /* error */,
           message: 'Left hand side of expression is not assignable.'
       },
       151: {
-          type: 0 /* error */,
+          level: 0 /* error */,
           message: 'Unexpected keyword "of"'
       },
+      401: {
+          level: 1 /* warn */,
+          message: `AttributePattern is missing a handler for '%s'.`
+      },
+      402: {
+          level: 1 /* warn */,
+          message: `AttributePattern handler for '%s' is not a function.`
+      },
+      800: {
+          level: 0 /* error */,
+          message: `Property '%s' is being dirty-checked.`
+      },
+      801: {
+          level: 1 /* warn */,
+          message: `Property '%s' is being dirty-checked.`
+      },
       2000: {
-          type: 0 /* error */,
+          level: 0 /* error */,
           message: 'Router has not been activated.'
       },
       2001: {
-          type: 0 /* error */,
+          level: 0 /* error */,
           message: 'Router has already been activated.'
       },
       2002: {
-          type: 0 /* error */,
+          level: 0 /* error */,
           message: 'Failed to resolve all viewports.'
       },
       2003: {
-          type: 0 /* error */,
+          level: 0 /* error */,
           message: 'Queued browser history has already been activated.'
       },
       2004: {
-          type: 0 /* error */,
+          level: 0 /* error */,
           message: 'LinkHandler has already been activated.'
       },
+      1001: {
+          level: 2 /* info */,
+          message: 'DOM already initialized. Destroying and re-initializing..'
+      },
       10000: {
-          type: 3 /* debug */,
+          level: 3 /* debug */,
           message: '%s'
       }
   };
@@ -508,7 +666,7 @@ this.au.debug = (function (exports, kernel, AST) {
       static reset() {
           let current = TraceInfo.head;
           let next = null;
-          while (current !== null) {
+          while (current != null) {
               next = current.next;
               current.next = null;
               current.prev = null;
@@ -529,7 +687,8 @@ this.au.debug = (function (exports, kernel, AST) {
   TraceInfo.head = marker;
   TraceInfo.tail = marker;
   TraceInfo.stack = [];
-  const Tracer = Object.assign({}, kernel.Tracer, { 
+  const Tracer = {
+      ...kernel.Tracer,
       /**
        * A convenience property for the user to conditionally call the tracer.
        * This saves unnecessary `noop` and `slice` calls in non-AOT scenarios even if debugging is disabled.
@@ -537,7 +696,9 @@ this.au.debug = (function (exports, kernel, AST) {
        *
        * This property **only** turns on tracing if `@aurelia/debug` is included and configured as well.
        */
-      enabled: false, liveLoggingEnabled: false, liveWriter: null, 
+      enabled: false,
+      liveLoggingEnabled: false,
+      liveWriter: null,
       /**
        * Call this at the start of a method/function.
        * Each call to `enter` **must** have an accompanying call to `leave` for the tracer to work properly.
@@ -579,9 +740,9 @@ this.au.debug = (function (exports, kernel, AST) {
        * @param writer An object to write the output to. Can be null to simply reset the tracer state.
        */
       flushAll(writer) {
-          if (writer !== null) {
+          if (writer != null) {
               let current = TraceInfo.head.next; // skip the marker
-              while (current !== null && current !== marker) {
+              while (current != null && current !== marker) {
                   writer.write(current);
                   current = current.next;
               }
@@ -595,7 +756,8 @@ this.au.debug = (function (exports, kernel, AST) {
       disableLiveLogging() {
           this.liveLoggingEnabled = false;
           this.liveWriter = null;
-      } });
+      }
+  };
   const defaultOptions = Object.freeze({
       rendering: true,
       binding: true,
@@ -618,7 +780,7 @@ this.au.debug = (function (exports, kernel, AST) {
   }
   const toString = Object.prototype.toString;
   function flagsText(info, i = 0) {
-      if (info.params !== null && info.params.length > i) {
+      if (info.params != null && info.params.length > i) {
           return stringifyLifecycleFlags(info.params[i]);
       }
       return 'none';
@@ -648,16 +810,16 @@ this.au.debug = (function (exports, kernel, AST) {
       return name;
   }
   function ctorName(info, i = 0) {
-      if (info.params !== null && info.params.length > i) {
+      if (info.params != null && info.params.length > i) {
           return _ctorName(info.params[i]);
       }
       return 'undefined';
   }
   function scopeText(info, i = 0) {
       let $ctorName;
-      if (info.params !== null && info.params.length > i) {
+      if (info.params != null && info.params.length > i) {
           const $scope = info.params[i];
-          if ($scope !== undefined && $scope.bindingContext !== undefined) {
+          if ($scope != null && $scope.bindingContext != null) {
               $ctorName = _ctorName($scope.bindingContext);
           }
           else {
@@ -668,7 +830,7 @@ this.au.debug = (function (exports, kernel, AST) {
       return 'undefined';
   }
   function keyText(info, i = 0) {
-      if (info.params !== null && info.params.length > i) {
+      if (info.params != null && info.params.length > i) {
           const $key = info.params[i];
           if (typeof $key === 'string') {
               return `'${$key}'`;
@@ -681,7 +843,7 @@ this.au.debug = (function (exports, kernel, AST) {
       return 'undefined';
   }
   function primitive(info, i = 0) {
-      if (info.params !== null && info.params.length > i) {
+      if (info.params != null && info.params.length > i) {
           const $key = info.params[i];
           if (typeof $key === 'string') {
               return `'${$key}'`;
@@ -779,16 +941,13 @@ this.au.debug = (function (exports, kernel, AST) {
       }
   };
   const ObservationArgsProcessor = {
-      $patch(info) {
-          return flagsText(info);
-      },
       callSource(info) {
           switch (info.objName) {
               case 'Listener':
                   return (info.params[0]).type;
               case 'Call':
                   const names = [];
-                  if (info.params !== null) {
+                  if (info.params != null) {
                       for (let i = 0, ii = info.params.length; i < ii; ++i) {
                           names.push(ctorName(info, i));
                       }
@@ -876,7 +1035,7 @@ this.au.debug = (function (exports, kernel, AST) {
                   return keyText(info);
               case 'register':
                   const names = [];
-                  if (info.params !== null) {
+                  if (info.params != null) {
                       for (let i = 0, ii = info.params.length; i < ii; ++i) {
                           names.push(keyText(info, i));
                       }
@@ -906,9 +1065,9 @@ this.au.debug = (function (exports, kernel, AST) {
       CompositionCoordinator(info) {
           switch (info.methodName) {
               case 'enqueue':
-                  return 'IView';
+                  return 'IController';
               case 'swap':
-                  return `IView,${flagsText(info, 1)}`;
+                  return `IController,${flagsText(info, 1)}`;
               case 'processNext':
                   return '';
               default:
@@ -976,10 +1135,10 @@ this.au.debug = (function (exports, kernel, AST) {
   }
   function stringifyLifecycleFlags(flags) {
       const flagNames = [];
-      if (flags & 1048576 /* mustEvaluate */) {
+      if (flags & 2097152 /* mustEvaluate */) {
           flagNames.push('mustEvaluate');
       }
-      if (flags & 33554432 /* isCollectionMutation */) {
+      if (flags & 67108864 /* isCollectionMutation */) {
           flagNames.push('isCollectionMutation');
       }
       if (flags & 16 /* updateTargetInstance */) {
@@ -994,43 +1153,46 @@ this.au.debug = (function (exports, kernel, AST) {
       if (flags & 128 /* fromSyncFlush */) {
           flagNames.push('fromSyncFlush');
       }
-      if (flags & 512 /* fromStartTask */) {
+      if (flags & 256 /* fromTick */) {
+          flagNames.push('fromTick');
+      }
+      if (flags & 1024 /* fromStartTask */) {
           flagNames.push('fromStartTask');
       }
-      if (flags & 1024 /* fromStopTask */) {
+      if (flags & 2048 /* fromStopTask */) {
           flagNames.push('fromStopTask');
       }
-      if (flags & 2048 /* fromBind */) {
+      if (flags & 4096 /* fromBind */) {
           flagNames.push('fromBind');
       }
-      if (flags & 4096 /* fromUnbind */) {
+      if (flags & 8192 /* fromUnbind */) {
           flagNames.push('fromUnbind');
       }
-      if (flags & 8192 /* fromAttach */) {
+      if (flags & 16384 /* fromAttach */) {
           flagNames.push('fromAttach');
       }
-      if (flags & 16384 /* fromDetach */) {
+      if (flags & 32768 /* fromDetach */) {
           flagNames.push('fromDetach');
       }
-      if (flags & 32768 /* fromCache */) {
+      if (flags & 65536 /* fromCache */) {
           flagNames.push('fromCache');
       }
-      if (flags & 65536 /* fromDOMEvent */) {
+      if (flags & 131072 /* fromDOMEvent */) {
           flagNames.push('fromDOMEvent');
       }
-      if (flags & 131072 /* fromLifecycleTask */) {
+      if (flags & 262144 /* fromLifecycleTask */) {
           flagNames.push('fromLifecycleTask');
       }
-      if (flags & 2097152 /* parentUnmountQueued */) {
+      if (flags & 4194304 /* parentUnmountQueued */) {
           flagNames.push('parentUnmountQueued');
       }
-      if (flags & 4194304 /* doNotUpdateDOM */) {
+      if (flags & 8388608 /* doNotUpdateDOM */) {
           flagNames.push('doNotUpdateDOM');
       }
-      if (flags & 8388608 /* isTraversingParentScope */) {
+      if (flags & 16777216 /* isTraversingParentScope */) {
           flagNames.push('isTraversingParentScope');
       }
-      if (flags & 67108864 /* allowParentScopeTraversal */) {
+      if (flags & 536870912 /* allowParentScopeTraversal */) {
           flagNames.push('allowParentScopeTraversal');
       }
       if (flags & 1 /* getterSetterStrategy */) {
@@ -1038,12 +1200,6 @@ this.au.debug = (function (exports, kernel, AST) {
       }
       if (flags & 2 /* proxyStrategy */) {
           flagNames.push('proxyStrategy');
-      }
-      if (flags & 8 /* keyedStrategy */) {
-          flagNames.push('keyedStrategy');
-      }
-      if (flags & 4 /* patchStrategy */) {
-          flagNames.push('patchStrategy');
       }
       if (flagNames.length === 0) {
           return 'none';
@@ -1065,7 +1221,11 @@ this.au.debug = (function (exports, kernel, AST) {
   };
 
   exports.DebugConfiguration = DebugConfiguration;
+  exports.Serializer = Serializer;
   exports.TraceConfiguration = TraceConfiguration;
+  exports.Tracer = Tracer;
+  exports.Unparser = Unparser;
+  exports.stringifyLifecycleFlags = stringifyLifecycleFlags;
 
   return exports;
 

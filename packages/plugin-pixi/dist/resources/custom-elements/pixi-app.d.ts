@@ -1,7 +1,6 @@
-import { InjectArray, IRegistry } from '@aurelia/kernel';
+import { InjectArray } from '@aurelia/kernel';
 import { Application, ApplicationOptions, Container } from 'pixi.js';
 export declare class PixiApp {
-    static readonly register: IRegistry['register'];
     static readonly inject: InjectArray;
     readonly app: Application | null;
     stage: Container | null;

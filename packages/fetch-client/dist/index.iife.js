@@ -32,7 +32,7 @@ this.au.fetchClient = (function (exports, kernel, runtime) {
        * Creates an instance of RetryInterceptor.
        */
       constructor(retryConfig) {
-          this.retryConfig = Object.assign({}, defaultRetryConfig, (retryConfig !== undefined ? retryConfig : {}));
+          this.retryConfig = { ...defaultRetryConfig, ...(retryConfig !== undefined ? retryConfig : {}) };
           if (this.retryConfig.strategy === retryStrategy.exponential &&
               this.retryConfig.interval <= 1000) {
               throw new Error('An interval less than or equal to 1 second is not allowed when using the exponential retry strategy');
@@ -46,7 +46,7 @@ this.au.fetchClient = (function (exports, kernel, runtime) {
        */
       request(request) {
           if (!request.retryConfig) {
-              request.retryConfig = Object.assign({}, this.retryConfig);
+              request.retryConfig = { ...this.retryConfig };
               request.retryConfig.counter = 0;
           }
           // do this on every request
@@ -93,7 +93,7 @@ this.au.fetchClient = (function (exports, kernel, runtime) {
                               return newRequest;
                           })
                               .then(newRequest => {
-                              const retryableRequest = Object.assign({}, newRequest, { retryConfig });
+                              const retryableRequest = { ...newRequest, retryConfig };
                               return httpClient.fetch(retryableRequest);
                           });
                       }
@@ -272,7 +272,7 @@ this.au.fetchClient = (function (exports, kernel, runtime) {
           else if (typeof config === 'function') {
               normalizedConfig = new HttpClientConfiguration();
               normalizedConfig.baseUrl = this.baseUrl;
-              normalizedConfig.defaults = Object.assign({}, this.defaults);
+              normalizedConfig.defaults = { ...this.defaults };
               normalizedConfig.interceptors = this.interceptors;
               const c = config(normalizedConfig);
               if (HttpClientConfiguration.prototype.isPrototypeOf(c)) {
@@ -366,7 +366,7 @@ this.au.fetchClient = (function (exports, kernel, runtime) {
               }
               body = init.body;
               const bodyObj = body !== undefined ? { body: body } : null;
-              const requestInit = Object.assign({}, defaults, { headers: {} }, init, bodyObj);
+              const requestInit = { ...defaults, headers: {}, ...init, ...bodyObj };
               requestContentType = new Headers(requestInit.headers).get('Content-Type');
               request = new Request(getRequestUrl(this.baseUrl, input), requestInit);
           }

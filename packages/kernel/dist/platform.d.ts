@@ -1,45 +1,27 @@
 import { IPerformanceEntry, ITimerHandler, IWindowOrWorkerGlobalScope } from './interfaces';
 declare function $noop(): void;
-export declare class Ticker {
-    private requestId;
-    private frameDelta;
-    private lastTime;
-    private started;
-    private promise;
-    private resolve;
-    private readonly head;
-    private readonly tick;
-    constructor();
-    add(fn: (frameDelta?: number) => void, context: unknown): this;
-    remove(fn: (frameDelta?: number) => void, context: unknown): this;
-    start(): void;
-    stop(): void;
-    update(currentTime?: number): void;
-    waitForNextTick(): Promise<number>;
-    private tryRequest;
-    private tryCancel;
-}
 export declare const PLATFORM: {
     global: IWindowOrWorkerGlobalScope;
-    ticker: Ticker;
-    emptyArray: ReadonlyArray<any>;
-    emptyObject: Readonly<{}>;
+    emptyArray: any[];
+    emptyObject: any;
     noop: typeof $noop;
     now: () => number;
     mark: (name: string) => void;
-    measure: (name: string, start?: string, end?: string) => void;
+    measure: (name: string, start?: string | undefined, end?: string | undefined) => void;
     getEntriesByName: (name: string) => IPerformanceEntry[];
     getEntriesByType: (type: string) => IPerformanceEntry[];
-    clearMarks: (name?: string) => void;
-    clearMeasures: (name?: string) => void;
-    camelCase(input: string): string;
-    kebabCase(input: string): string;
-    toArray<T = unknown>(input: ArrayLike<T>): T[];
+    clearMarks: (name?: string | undefined) => void;
+    clearMeasures: (name?: string | undefined) => void;
+    hasOwnProperty: {
+        call<V, T = object, K extends string | number | symbol = string | number | symbol>(target: T, key: K): target is T & { [P in K]: V; };
+        call<T, K extends keyof T>(target: T, key: K): target is T & { [P in K]-?: T[P]; };
+    };
     requestAnimationFrame(callback: (time: number) => void): number;
-    clearInterval(handle?: number): void;
-    clearTimeout(handle?: number): void;
-    setInterval(handler: ITimerHandler, timeout?: number, ...args: any[]): number;
-    setTimeout(handler: ITimerHandler, timeout?: number, ...args: any[]): number;
+    cancelAnimationFrame(handle: number): void;
+    clearInterval(handle?: number | undefined): void;
+    clearTimeout(handle?: number | undefined): void;
+    setInterval(handler: ITimerHandler, timeout?: number | undefined, ...args: any[]): number;
+    setTimeout(handler: ITimerHandler, timeout?: number | undefined, ...args: any[]): number;
 };
 export {};
 //# sourceMappingURL=platform.d.ts.map

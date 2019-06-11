@@ -79,7 +79,7 @@ this.au.jit = (function (exports, kernel, runtime) {
           }
       }
       set pattern(value) {
-          if (value === null) {
+          if (value == null) {
               this._pattern = '';
               this.parts = kernel.PLATFORM.emptyArray;
           }
@@ -147,7 +147,7 @@ this.au.jit = (function (exports, kernel, runtime) {
               patterns.push(pattern);
           }
           let state = this.findChild(charSpec);
-          if (state === null) {
+          if (state == null) {
               state = new State(charSpec, pattern);
               this.nextStates.push(state);
               if (charSpec.repeat) {
@@ -363,10 +363,10 @@ this.au.jit = (function (exports, kernel, runtime) {
       for (const def of patternDefs) {
           // note: we're intentionally not throwing here
           if (!(def.pattern in handler)) {
-              kernel.Reporter.write(401, def); // TODO: organize error codes
+              kernel.Reporter.write(401, def.pattern); // TODO: organize error codes
           }
           else if (typeof handler[def.pattern] !== 'function') {
-              kernel.Reporter.write(402, def); // TODO: organize error codes
+              kernel.Reporter.write(402, def.pattern); // TODO: organize error codes
           }
       }
   }
@@ -433,19 +433,29 @@ this.au.jit = (function (exports, kernel, runtime) {
           });
       }
       parse(name, value) {
+          if (kernel.Profiler.enabled) {
+              enter();
+          }
           let interpretation = this.cache[name];
-          if (interpretation === undefined) {
+          if (interpretation == null) {
               interpretation = this.cache[name] = this.interpreter.interpret(name);
           }
           const pattern = interpretation.pattern;
-          if (pattern === null) {
+          if (pattern == null) {
+              if (kernel.Profiler.enabled) {
+                  leave();
+              }
               return new AttrSyntax(name, value, name, null);
           }
           else {
+              if (kernel.Profiler.enabled) {
+                  leave();
+              }
               return this.patterns[pattern][pattern](name, value, interpretation.parts);
           }
       }
   }
+  // @ts-ignore
   AttributeParser.inject = [ISyntaxInterpreter, kernel.all(IAttributePattern)];
 
   function register(container) {
@@ -476,12 +486,12 @@ this.au.jit = (function (exports, kernel, runtime) {
       isType,
       define
   };
-  function getTarget(binding, camelCase) {
+  function getTarget(binding, makeCamelCase) {
       if (binding.flags & 256 /* isBinding */) {
           return binding.bindable.propName;
       }
-      else if (camelCase) {
-          return kernel.PLATFORM.camelCase(binding.syntax.target);
+      else if (makeCamelCase) {
+          return kernel.camelCase(binding.syntax.target);
       }
       else {
           return binding.syntax.target;
@@ -550,6 +560,7 @@ this.au.jit = (function (exports, kernel, runtime) {
           this.$6 = TwoWayBindingCommand.prototype.compile;
       }
       compile(binding) {
+          // @ts-ignore
           return this[modeToProperty[getMode(binding)]](binding);
       }
   }
@@ -573,7 +584,6 @@ this.au.jit = (function (exports, kernel, runtime) {
   }
   BindingCommandResource.define('for', ForBindingCommand);
 
-  /** @internal */
   function unescapeCode(code) {
       switch (code) {
           case 98 /* LowerB */: return 8 /* Backspace */;
@@ -588,8 +598,6 @@ this.au.jit = (function (exports, kernel, runtime) {
           default: return code;
       }
   }
-  /** @internal */
-  var Access;
   (function (Access) {
       Access[Access["Reset"] = 0] = "Reset";
       Access[Access["Ancestor"] = 511] = "Ancestor";
@@ -597,9 +605,7 @@ this.au.jit = (function (exports, kernel, runtime) {
       Access[Access["Scope"] = 1024] = "Scope";
       Access[Access["Member"] = 2048] = "Member";
       Access[Access["Keyed"] = 4096] = "Keyed";
-  })(Access || (Access = {}));
-  /** @internal */
-  var Precedence;
+  })(exports.Access || (exports.Access = {}));
   (function (Precedence) {
       Precedence[Precedence["Variadic"] = 61] = "Variadic";
       Precedence[Precedence["Assign"] = 62] = "Assign";
@@ -614,7 +620,7 @@ this.au.jit = (function (exports, kernel, runtime) {
       Precedence[Precedence["LeftHandSide"] = 449] = "LeftHandSide";
       Precedence[Precedence["Primary"] = 450] = "Primary";
       Precedence[Precedence["Unary"] = 451] = "Unary";
-  })(Precedence || (Precedence = {}));
+  })(exports.Precedence || (exports.Precedence = {}));
   /** @internal */
   var Token;
   (function (Token) {
@@ -678,8 +684,6 @@ this.au.jit = (function (exports, kernel, runtime) {
       Token[Token["TemplateContinuation"] = 540714] = "TemplateContinuation";
       Token[Token["OfKeyword"] = 1051179] = "OfKeyword";
   })(Token || (Token = {}));
-  /** @internal */
-  var Char;
   (function (Char) {
       Char[Char["Null"] = 0] = "Null";
       Char[Char["Backspace"] = 8] = "Backspace";
@@ -780,7 +784,7 @@ this.au.jit = (function (exports, kernel, runtime) {
       Char[Char["LowerX"] = 120] = "LowerX";
       Char[Char["LowerY"] = 121] = "LowerY";
       Char[Char["LowerZ"] = 122] = "LowerZ";
-  })(Char || (Char = {}));
+  })(exports.Char || (exports.Char = {}));
 
   const { enter: enter$1, leave: leave$1 } = kernel.Profiler.createTimer('ExpressionParser');
   const $false = runtime.PrimitiveLiteral.$false;
@@ -834,7 +838,7 @@ this.au.jit = (function (exports, kernel, runtime) {
       $state.length = input.length;
       $state.index = 0;
       $state.currentChar = input.charCodeAt(0);
-      return parse($state, 0 /* Reset */, 61 /* Variadic */, bindingType === undefined ? 53 /* BindCommand */ : bindingType);
+      return parse($state, 0 /* Reset */, 61 /* Variadic */, bindingType === void 0 ? 53 /* BindCommand */ : bindingType);
   }
   /** @internal */
   // JUSTIFICATION: This is performance-critical code which follows a subset of the well-known ES spec.
@@ -846,18 +850,27 @@ this.au.jit = (function (exports, kernel, runtime) {
   // For reference, most of the parsing logic is based on: https://tc39.github.io/ecma262/#sec-ecmascript-language-expressions
   // tslint:disable-next-line:no-big-function cognitive-complexity
   function parse(state, access, minPrecedence, bindingType) {
+      if (kernel.Profiler.enabled) {
+          enter$1();
+      }
       if (state.index === 0) {
           if (bindingType & 2048 /* Interpolation */) {
+              if (kernel.Profiler.enabled) {
+                  leave$1();
+              }
               // tslint:disable-next-line:no-any
               return parseInterpolation(state);
           }
           nextToken(state);
           if (state.currentToken & 1048576 /* ExpressionTerminal */) {
+              if (kernel.Profiler.enabled) {
+                  leave$1();
+              }
               throw kernel.Reporter.error(100 /* InvalidExpressionStart */, { state });
           }
       }
       state.assignable = 448 /* Binary */ > minPrecedence;
-      let result = undefined;
+      let result = void 0;
       if (state.currentToken & 32768 /* UnaryOp */) {
           /** parseUnaryExpression
            * https://tc39.github.io/ecma262/#sec-unary-operators
@@ -915,9 +928,15 @@ this.au.jit = (function (exports, kernel, runtime) {
                       access++; // ancestor
                       if (consumeOpt(state, 16392 /* Dot */)) {
                           if (state.currentToken === 16392 /* Dot */) {
+                              if (kernel.Profiler.enabled) {
+                                  leave$1();
+                              }
                               throw kernel.Reporter.error(102 /* DoubleDot */, { state });
                           }
                           else if (state.currentToken === 1572864 /* EOF */) {
+                              if (kernel.Profiler.enabled) {
+                                  leave$1();
+                              }
                               throw kernel.Reporter.error(105 /* ExpectedIdentifier */, { state });
                           }
                       }
@@ -928,6 +947,9 @@ this.au.jit = (function (exports, kernel, runtime) {
                           break primary;
                       }
                       else {
+                          if (kernel.Profiler.enabled) {
+                              leave$1();
+                          }
                           throw kernel.Reporter.error(103 /* InvalidMemberExpression */, { state });
                       }
                   } while (state.currentToken === 3077 /* ParentScope */);
@@ -991,17 +1013,29 @@ this.au.jit = (function (exports, kernel, runtime) {
                   break;
               default:
                   if (state.index >= state.length) {
+                      if (kernel.Profiler.enabled) {
+                          leave$1();
+                      }
                       throw kernel.Reporter.error(104 /* UnexpectedEndOfExpression */, { state });
                   }
                   else {
+                      if (kernel.Profiler.enabled) {
+                          leave$1();
+                      }
                       throw kernel.Reporter.error(101 /* UnconsumedToken */, { state });
                   }
           }
           if (bindingType & 512 /* IsIterator */) {
+              if (kernel.Profiler.enabled) {
+                  leave$1();
+              }
               // tslint:disable-next-line:no-any
               return parseForOfStatement(state, result);
           }
           if (449 /* LeftHandSide */ < minPrecedence) {
+              if (kernel.Profiler.enabled) {
+                  leave$1();
+              }
               // tslint:disable-next-line:no-any
               return result;
           }
@@ -1036,6 +1070,9 @@ this.au.jit = (function (exports, kernel, runtime) {
                       state.assignable = true;
                       nextToken(state);
                       if ((state.currentToken & 3072 /* IdentifierName */) === 0) {
+                          if (kernel.Profiler.enabled) {
+                              leave$1();
+                          }
                           throw kernel.Reporter.error(105 /* ExpectedIdentifier */, { state });
                       }
                       name = state.tokenValue;
@@ -1097,6 +1134,9 @@ this.au.jit = (function (exports, kernel, runtime) {
           }
       }
       if (448 /* Binary */ < minPrecedence) {
+          if (kernel.Profiler.enabled) {
+              leave$1();
+          }
           // tslint:disable-next-line:no-any
           return result;
       }
@@ -1137,6 +1177,9 @@ this.au.jit = (function (exports, kernel, runtime) {
           state.assignable = false;
       }
       if (63 /* Conditional */ < minPrecedence) {
+          if (kernel.Profiler.enabled) {
+              leave$1();
+          }
           // tslint:disable-next-line:no-any
           return result;
       }
@@ -1158,6 +1201,9 @@ this.au.jit = (function (exports, kernel, runtime) {
           state.assignable = false;
       }
       if (62 /* Assign */ < minPrecedence) {
+          if (kernel.Profiler.enabled) {
+              leave$1();
+          }
           // tslint:disable-next-line:no-any
           return result;
       }
@@ -1174,11 +1220,17 @@ this.au.jit = (function (exports, kernel, runtime) {
        */
       if (consumeOpt(state, 1048615 /* Equals */)) {
           if (!state.assignable) {
+              if (kernel.Profiler.enabled) {
+                  leave$1();
+              }
               throw kernel.Reporter.error(150 /* NotAssignable */, { state });
           }
           result = new runtime.Assign(result, parse(state, access, 62 /* Assign */, bindingType));
       }
       if (61 /* Variadic */ < minPrecedence) {
+          if (kernel.Profiler.enabled) {
+              leave$1();
+          }
           // tslint:disable-next-line:no-any
           return result;
       }
@@ -1186,6 +1238,9 @@ this.au.jit = (function (exports, kernel, runtime) {
        */
       while (consumeOpt(state, 1572883 /* Bar */)) {
           if (state.currentToken === 1572864 /* EOF */) {
+              if (kernel.Profiler.enabled) {
+                  leave$1();
+              }
               throw kernel.Reporter.error(112);
           }
           const name = state.tokenValue;
@@ -1200,6 +1255,9 @@ this.au.jit = (function (exports, kernel, runtime) {
        */
       while (consumeOpt(state, 1572880 /* Ampersand */)) {
           if (state.currentToken === 1572864 /* EOF */) {
+              if (kernel.Profiler.enabled) {
+                  leave$1();
+              }
               throw kernel.Reporter.error(113);
           }
           const name = state.tokenValue;
@@ -1212,13 +1270,25 @@ this.au.jit = (function (exports, kernel, runtime) {
       }
       if (state.currentToken !== 1572864 /* EOF */) {
           if (bindingType & 2048 /* Interpolation */) {
+              if (kernel.Profiler.enabled) {
+                  leave$1();
+              }
               // tslint:disable-next-line:no-any
               return result;
           }
           if (state.tokenRaw === 'of') {
+              if (kernel.Profiler.enabled) {
+                  leave$1();
+              }
               throw kernel.Reporter.error(151 /* UnexpectedForOf */, { state });
           }
+          if (kernel.Profiler.enabled) {
+              leave$1();
+          }
           throw kernel.Reporter.error(101 /* UnconsumedToken */, { state });
+      }
+      if (kernel.Profiler.enabled) {
+          leave$1();
       }
       // tslint:disable-next-line:no-any
       return result;
@@ -1439,7 +1509,7 @@ this.au.jit = (function (exports, kernel, runtime) {
   function nextToken(state) {
       while (state.index < state.length) {
           state.startIndex = state.index;
-          if ((state.currentToken = CharScanners[state.currentChar](state)) !== null) { // a null token means the character must be skipped
+          if (((state.currentToken = (CharScanners[state.currentChar](state)))) != null) { // a null token means the character must be skipped
               return;
           }
       }
@@ -1747,7 +1817,7 @@ this.au.jit = (function (exports, kernel, runtime) {
   const IExpressionParserRegistration = {
       register(container) {
           container.registerTransformer(runtime.IExpressionParser, parser => {
-              parser['parseCore'] = parseExpression;
+              Reflect.set(parser, 'parseCore', parseExpression);
               return parser;
           });
       }
@@ -1847,9 +1917,9 @@ this.au.jit = (function (exports, kernel, runtime) {
        */
       getElementInfo(name) {
           let result = this.elementLookup[name];
-          if (result === undefined) {
+          if (result === void 0) {
               const def = this.resources.find(runtime.CustomElementResource, name);
-              if (def === null) {
+              if (def == null) {
                   result = null;
               }
               else {
@@ -1867,11 +1937,11 @@ this.au.jit = (function (exports, kernel, runtime) {
        * @returns The resource information if the attribute exists, or `null` if it does not exist.
        */
       getAttributeInfo(syntax) {
-          const name = kernel.PLATFORM.camelCase(syntax.target);
+          const name = kernel.camelCase(syntax.target);
           let result = this.attributeLookup[name];
-          if (result === undefined) {
+          if (result === void 0) {
               const def = this.resources.find(runtime.CustomAttributeResource, name);
-              if (def === null) {
+              if (def == null) {
                   result = null;
               }
               else {
@@ -1894,9 +1964,9 @@ this.au.jit = (function (exports, kernel, runtime) {
               return null;
           }
           let result = this.commandLookup[name];
-          if (result === undefined) {
+          if (result === void 0) {
               result = this.resources.create(BindingCommandResource, name);
-              if (result === null) {
+              if (result == null) {
                   // unknown binding command
                   throw kernel.Reporter.error(0); // TODO: create error code
               }
@@ -1916,18 +1986,18 @@ this.au.jit = (function (exports, kernel, runtime) {
       for (prop in bindables) {
           bindable = bindables[prop];
           // explicitly provided property name has priority over the implicit property name
-          if (bindable.property !== undefined) {
+          if (bindable.property !== void 0) {
               prop = bindable.property;
           }
           // explicitly provided attribute name has priority over the derived implicit attribute name
-          if (bindable.attribute !== undefined) {
+          if (bindable.attribute !== void 0) {
               attr = bindable.attribute;
           }
           else {
               // derive the attribute name from the resolved property name
-              attr = kernel.PLATFORM.kebabCase(prop);
+              attr = kernel.kebabCase(prop);
           }
-          if (bindable.mode !== undefined && bindable.mode !== runtime.BindingMode.default) {
+          if (bindable.mode !== void 0 && bindable.mode !== runtime.BindingMode.default) {
               mode = bindable.mode;
           }
           else {
@@ -1940,7 +2010,7 @@ this.au.jit = (function (exports, kernel, runtime) {
   function createAttributeInfo(def) {
       const info = new AttrInfo(def.name, def.isTemplateController);
       const bindables = def.bindables;
-      const defaultBindingMode = def.defaultBindingMode !== undefined && def.defaultBindingMode !== runtime.BindingMode.default
+      const defaultBindingMode = def.defaultBindingMode !== void 0 && def.defaultBindingMode !== runtime.BindingMode.default
           ? def.defaultBindingMode
           : runtime.BindingMode.toView;
       let bindable;
@@ -1951,10 +2021,10 @@ this.au.jit = (function (exports, kernel, runtime) {
           ++bindableCount;
           bindable = bindables[prop];
           // explicitly provided property name has priority over the implicit property name
-          if (bindable.property !== undefined) {
+          if (bindable.property !== void 0) {
               prop = bindable.property;
           }
-          if (bindable.mode !== undefined && bindable.mode !== runtime.BindingMode.default) {
+          if (bindable.mode !== void 0 && bindable.mode !== runtime.BindingMode.default) {
               mode = bindable.mode;
           }
           else {
@@ -2038,11 +2108,18 @@ this.au.jit = (function (exports, kernel, runtime) {
    */
   class TemplateControllerSymbol {
       get bindings() {
-          if (this._bindings === null) {
+          if (this._bindings == null) {
               this._bindings = [];
               this.flags |= 4096 /* hasBindings */;
           }
           return this._bindings;
+      }
+      get parts() {
+          if (this._parts == null) {
+              this._parts = [];
+              this.flags |= 16384 /* hasParts */;
+          }
+          return this._parts;
       }
       constructor(dom, syntax, info, partName) {
           this.flags = 1 /* isTemplateController */ | 512 /* hasMarker */;
@@ -2054,6 +2131,7 @@ this.au.jit = (function (exports, kernel, runtime) {
           this.templateController = null;
           this.marker = createMarker(dom);
           this._bindings = null;
+          this._parts = null;
       }
   }
   /**
@@ -2076,7 +2154,7 @@ this.au.jit = (function (exports, kernel, runtime) {
    */
   class CustomAttributeSymbol {
       get bindings() {
-          if (this._bindings === null) {
+          if (this._bindings == null) {
               this._bindings = [];
               this.flags |= 4096 /* hasBindings */;
           }
@@ -2126,28 +2204,28 @@ this.au.jit = (function (exports, kernel, runtime) {
    */
   class CustomElementSymbol {
       get attributes() {
-          if (this._attributes === null) {
+          if (this._attributes == null) {
               this._attributes = [];
               this.flags |= 2048 /* hasAttributes */;
           }
           return this._attributes;
       }
       get bindings() {
-          if (this._bindings === null) {
+          if (this._bindings == null) {
               this._bindings = [];
               this.flags |= 4096 /* hasBindings */;
           }
           return this._bindings;
       }
       get childNodes() {
-          if (this._childNodes === null) {
+          if (this._childNodes == null) {
               this._childNodes = [];
               this.flags |= 8192 /* hasChildNodes */;
           }
           return this._childNodes;
       }
       get parts() {
-          if (this._parts === null) {
+          if (this._parts == null) {
               this._parts = [];
               this.flags |= 16384 /* hasParts */;
           }
@@ -2177,7 +2255,7 @@ this.au.jit = (function (exports, kernel, runtime) {
   }
   class LetElementSymbol {
       get bindings() {
-          if (this._bindings === null) {
+          if (this._bindings == null) {
               this._bindings = [];
               this.flags |= 4096 /* hasBindings */;
           }
@@ -2198,14 +2276,14 @@ this.au.jit = (function (exports, kernel, runtime) {
    */
   class PlainElementSymbol {
       get attributes() {
-          if (this._attributes === null) {
+          if (this._attributes == null) {
               this._attributes = [];
               this.flags |= 2048 /* hasAttributes */;
           }
           return this._attributes;
       }
       get childNodes() {
-          if (this._childNodes === null) {
+          if (this._childNodes == null) {
               this._childNodes = [];
               this.flags |= 8192 /* hasChildNodes */;
           }
@@ -2266,6 +2344,7 @@ this.au.jit = (function (exports, kernel, runtime) {
   exports.LetElementSymbol = LetElementSymbol;
   exports.OneTimeBindingCommand = OneTimeBindingCommand;
   exports.OneTimeBindingCommandRegistration = OneTimeBindingCommandRegistration;
+  exports.ParserState = ParserState;
   exports.PlainAttributeSymbol = PlainAttributeSymbol;
   exports.PlainElementSymbol = PlainElementSymbol;
   exports.RefAttributePattern = RefAttributePattern;
@@ -2283,6 +2362,7 @@ this.au.jit = (function (exports, kernel, runtime) {
   exports.bindingCommand = bindingCommand;
   exports.getMode = getMode;
   exports.getTarget = getTarget;
+  exports.parse = parse;
   exports.parseExpression = parseExpression;
 
   return exports;

@@ -1,4 +1,6 @@
+import { InjectArray } from '@aurelia/kernel';
 import { QueuedBrowserHistory } from './queued-browser-history';
+import { ILifecycle } from '@aurelia/runtime';
 export interface IHistoryEntry {
     path: string;
     fullStatePath: string;
@@ -26,6 +28,7 @@ export interface INavigationInstruction extends IHistoryEntry, INavigationFlags 
     previous?: IHistoryEntry;
 }
 export declare class HistoryBrowser {
+    static readonly inject: InjectArray;
     currentEntry: IHistoryEntry;
     historyEntries: IHistoryEntry[];
     historyOffset: number;
@@ -38,7 +41,7 @@ export declare class HistoryBrowser {
     private lastHistoryMovement;
     private isReplacing;
     private isRefreshing;
-    constructor();
+    constructor(lifecycle: ILifecycle);
     activate(options?: IHistoryOptions): Promise<void>;
     deactivate(): void;
     goto(path: string, title?: string, data?: Record<string, unknown>): Promise<void>;

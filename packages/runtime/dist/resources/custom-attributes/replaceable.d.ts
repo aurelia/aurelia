@@ -1,23 +1,23 @@
-import { InjectArray, IRegistry } from '@aurelia/kernel';
-import { AttributeDefinition, IAttributeDefinition } from '../../definitions';
+import { IContainer, InjectArray } from '@aurelia/kernel';
+import { IAttributeDefinition } from '../../definitions';
 import { INode, IRenderLocation } from '../../dom';
 import { LifecycleFlags } from '../../flags';
-import { IViewFactory } from '../../lifecycle';
-import { ICustomAttribute, ICustomAttributeResource } from '../custom-attribute';
-export interface Replaceable<T extends INode = INode> extends ICustomAttribute<T> {
-}
-export declare class Replaceable<T extends INode = INode> implements Replaceable<T> {
+import { IController, IViewFactory } from '../../lifecycle';
+import { ILifecycleTask } from '../../lifecycle-task';
+import { ICustomAttributeResource } from '../custom-attribute';
+export declare class Replaceable<T extends INode = INode> {
     static readonly inject: InjectArray;
-    static readonly register: IRegistry['register'];
-    static readonly bindables: IAttributeDefinition['bindables'];
     static readonly kind: ICustomAttributeResource;
-    static readonly description: AttributeDefinition;
-    private readonly currentView;
+    static readonly description: Required<IAttributeDefinition>;
+    readonly id: number;
+    readonly view: IController<T>;
     private readonly factory;
+    private $controller;
     constructor(factory: IViewFactory<T>, location: IRenderLocation<T>);
-    binding(flags: LifecycleFlags): void;
+    static register(container: IContainer): void;
+    binding(flags: LifecycleFlags): ILifecycleTask;
     attaching(flags: LifecycleFlags): void;
     detaching(flags: LifecycleFlags): void;
-    unbinding(flags: LifecycleFlags): void;
+    unbinding(flags: LifecycleFlags): ILifecycleTask;
 }
 //# sourceMappingURL=replaceable.d.ts.map

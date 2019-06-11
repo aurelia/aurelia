@@ -1,17 +1,11 @@
-import { Class, Constructable, Immutable, IResourceKind, IResourceType, IServiceLocator, Omit } from '@aurelia/kernel';
+import { Class, Constructable, IResourceKind, IResourceType, Omit } from '@aurelia/kernel';
 import { customAttributeKey, IAttributeDefinition } from '../definitions';
-import { INode } from '../dom';
-import { LifecycleFlags } from '../flags';
-import { IComponent, ILifecycleHooks, IRenderable } from '../lifecycle';
-import { IChangeTracker } from '../observation';
-declare type CustomAttributeStaticProperties = Pick<Immutable<Required<IAttributeDefinition>>, 'bindables'>;
+import { IViewModel } from '../lifecycle';
+declare type CustomAttributeStaticProperties = Pick<Required<IAttributeDefinition>, 'bindables'>;
 export declare type CustomAttributeConstructor = Constructable & CustomAttributeStaticProperties;
-export interface ICustomAttributeType<T extends INode = INode, C extends Constructable = Constructable> extends IResourceType<IAttributeDefinition, InstanceType<C> & ICustomAttribute<T>>, CustomAttributeStaticProperties {
+export interface ICustomAttributeType<C extends Constructable = Constructable> extends IResourceType<IAttributeDefinition, InstanceType<C> & IViewModel>, CustomAttributeStaticProperties {
 }
-export interface ICustomAttribute<T extends INode = INode> extends Partial<IChangeTracker>, ILifecycleHooks, IComponent, IRenderable<T> {
-    $hydrate(flags: LifecycleFlags, parentContext: IServiceLocator): void;
-}
-export interface ICustomAttributeResource<T extends INode = INode> extends IResourceKind<IAttributeDefinition, ICustomAttribute<T>, Class<ICustomAttribute<T>> & CustomAttributeStaticProperties> {
+export interface ICustomAttributeResource extends IResourceKind<IAttributeDefinition, IViewModel, Class<IViewModel> & CustomAttributeStaticProperties> {
 }
 /**
  * Decorator: Indicates that the decorated class is a custom attribute.
@@ -38,9 +32,9 @@ export declare function dynamicOptions(): typeof dynamicOptionsDecorator;
  */
 export declare function dynamicOptions<T extends Constructable>(target: T & HasDynamicOptions): T & Required<HasDynamicOptions>;
 declare function isType<T>(this: ICustomAttributeResource, Type: T & Partial<ICustomAttributeType>): Type is T & ICustomAttributeType;
-declare function define<N extends INode = INode, T extends Constructable = Constructable>(this: ICustomAttributeResource, definition: IAttributeDefinition, ctor: T): T & ICustomAttributeType<N, T>;
-declare function define<N extends INode = INode, T extends Constructable = Constructable>(this: ICustomAttributeResource, name: string, ctor: T): T & ICustomAttributeType<N, T>;
-declare function define<N extends INode = INode, T extends Constructable = Constructable>(this: ICustomAttributeResource, nameOrDefinition: string | IAttributeDefinition, ctor: T): T & ICustomAttributeType<N, T>;
+declare function define<T extends Constructable = Constructable>(this: ICustomAttributeResource, definition: IAttributeDefinition, ctor: T): T & ICustomAttributeType<T>;
+declare function define<T extends Constructable = Constructable>(this: ICustomAttributeResource, name: string, ctor: T): T & ICustomAttributeType<T>;
+declare function define<T extends Constructable = Constructable>(this: ICustomAttributeResource, nameOrDefinition: string | IAttributeDefinition, ctor: T): T & ICustomAttributeType<T>;
 export declare const CustomAttributeResource: {
     name: string;
     keyFrom: typeof customAttributeKey;

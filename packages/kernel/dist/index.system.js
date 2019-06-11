@@ -4,11 +4,19 @@ System.register('kernel', [], function (exports, module) {
     execute: function () {
 
       exports({
+        LogLevel: void 0,
         buildQueryString: buildQueryString,
+        camelCase: camelCase,
+        compareNumber: compareNumber,
+        isNumeric: isNumeric,
         join: join,
+        kebabCase: kebabCase,
+        nextId: nextId,
         parseQueryString: parseQueryString,
         relativeToFile: relativeToFile,
+        resetId: resetId,
         singleton: singleton,
+        toArray: toArray,
         transient: transient
       });
 
@@ -45,13 +53,13 @@ System.register('kernel', [], function (exports, module) {
           let moduleLoadTime;
           let nodeLoadTime;
           let upTime;
-          if (($global.performance !== undefined && $global.performance !== null) && $global.performance.now) {
+          if ($global.performance != null && $global.performance.now != null) {
               const $performance = $global.performance;
               return function () {
                   return $performance.now();
               };
           }
-          else if (($global.process !== undefined && $global.process !== null) && $global.process.hrtime) {
+          else if ($global.process != null && $global.process.hrtime != null) {
               const now = function () {
                   return (getNanoSeconds() - nodeLoadTime) / 1e6;
               };
@@ -66,20 +74,22 @@ System.register('kernel', [], function (exports, module) {
               nodeLoadTime = moduleLoadTime - upTime;
               return now;
           }
+          else {
+              throw new Error('Unsupported runtime'); // Can't really happen, can it?
+          }
       })();
       // performance.mark / measure polyfill based on https://github.com/blackswanny/performance-polyfill
       // note: this is NOT intended to be a polyfill for browsers that don't support it; it's just for NodeJS
       // TODO: probably want to move environment-specific logic to the appropriate runtime (e.g. the NodeJS polyfill
       // to runtime-html-jsdom)
       const { $mark, $measure, $getEntriesByName, $getEntriesByType, $clearMarks, $clearMeasures } = (function () {
-          if ($global.performance !== undefined &&
-              $global.performance !== null &&
-              $global.performance.mark &&
-              $global.performance.measure &&
-              $global.performance.getEntriesByName &&
-              $global.performance.getEntriesByType &&
-              $global.performance.clearMarks &&
-              $global.performance.clearMeasures) {
+          if ($global.performance != null &&
+              $global.performance.mark != null &&
+              $global.performance.measure != null &&
+              $global.performance.getEntriesByName != null &&
+              $global.performance.getEntriesByType != null &&
+              $global.performance.clearMarks != null &&
+              $global.performance.clearMeasures != null) {
               const $performance = $global.performance;
               return {
                   $mark: function (name) {
@@ -102,7 +112,7 @@ System.register('kernel', [], function (exports, module) {
                   }
               };
           }
-          else if ($global.process !== undefined && $global.process !== null && $global.process.hrtime) {
+          else if ($global.process != null && $global.process.hrtime != null) {
               const entries = [];
               const marksIndex = {};
               const filterEntries = function (key, value) {
@@ -140,23 +150,33 @@ System.register('kernel', [], function (exports, module) {
                   $measure: function (name, startMark, endMark) {
                       let startTime;
                       let endTime;
-                      if (endMark !== undefined && marksIndex[endMark] === undefined) {
-                          throw new SyntaxError(`Failed to execute 'measure' on 'Performance': The mark '${endMark}' does not exist.`);
-                      }
-                      if (startMark !== undefined && marksIndex[startMark] === undefined) {
-                          throw new SyntaxError(`Failed to execute 'measure' on 'Performance': The mark '${startMark}' does not exist.`);
-                      }
-                      if (marksIndex[startMark]) {
-                          startTime = marksIndex[startMark].startTime;
-                      }
-                      else {
-                          startTime = 0;
-                      }
-                      if (marksIndex[endMark]) {
-                          endTime = marksIndex[endMark].startTime;
+                      if (endMark != null) {
+                          if (marksIndex[endMark] == null) {
+                              throw new SyntaxError(`Failed to execute 'measure' on 'Performance': The mark '${endMark}' does not exist.`);
+                          }
+                          if (marksIndex[endMark] !== void 0) {
+                              endTime = marksIndex[endMark].startTime;
+                          }
+                          else {
+                              endTime = $now();
+                          }
                       }
                       else {
                           endTime = $now();
+                      }
+                      if (startMark != null) {
+                          if (marksIndex[startMark] == null) {
+                              throw new SyntaxError(`Failed to execute 'measure' on 'Performance': The mark '${startMark}' does not exist.`);
+                          }
+                          if (marksIndex[startMark] !== void 0) {
+                              startTime = marksIndex[startMark].startTime;
+                          }
+                          else {
+                              startTime = 0;
+                          }
+                      }
+                      else {
+                          startTime = 0;
                       }
                       entries.push({
                           name,
@@ -179,19 +199,15 @@ System.register('kernel', [], function (exports, module) {
                   }
               };
           }
+          else {
+              throw new Error('Unsupported runtime'); // Can't really happen, can it?
+          }
       })();
       // RAF polyfill for non-browser envs from https://github.com/chrisdickinson/raf/blob/master/index.js
       const { $raf, $caf } = (function () {
-          const vendors = ['moz', 'webkit'];
-          const suffix = 'AnimationFrame';
-          let raf = $global[`request${suffix}`];
-          let caf = $global[`cancel${suffix}`] || $global[`cancelRequest${suffix}`];
-          for (let i = 0; !raf && i < vendors.length; ++i) {
-              raf = $global[`${vendors[i]}Request${suffix}`];
-              caf = $global[`${vendors[i]}Cancel${suffix}`] || $global[`${vendors[i]}CancelRequest${suffix}`];
-          }
-          // Some versions of FF have rAF but not cAF
-          if (!raf || !caf) {
+          let raf = $global.requestAnimationFrame;
+          let caf = $global.cancelAnimationFrame;
+          if (raf === void 0 || caf === void 0) {
               let last = 0;
               let id = 0;
               const queue = [];
@@ -237,189 +253,20 @@ System.register('kernel', [], function (exports, module) {
           const $$raf = function (callback) {
               return raf.call($global, callback);
           };
-          $$raf.cancel = function () {
-              caf.apply($global, arguments);
+          $$raf.cancel = function (time) {
+              caf.call($global, time);
           };
           $global.requestAnimationFrame = raf;
           $global.cancelAnimationFrame = caf;
           return { $raf: $$raf, $caf: caf };
       })();
-      class Notifier {
-          constructor(fn, context = null) {
-              this.fn = fn;
-              this.context = context;
-              this.next = null;
-              this.prev = null;
-              this.disconnected = false;
-          }
-          equals(fn, context) {
-              return this.fn === fn && this.context === (context === undefined ? null : context);
-          }
-          notify(frameDelta) {
-              if (this.fn !== null) {
-                  if (this.context !== null) {
-                      this.fn.call(this.context, frameDelta);
-                  }
-                  else {
-                      this.fn(frameDelta);
-                  }
-              }
-              const next = this.next;
-              if (this.disconnected) {
-                  this.next = null;
-              }
-              return next;
-          }
-          connect(prev) {
-              this.prev = prev;
-              if (prev.next !== null) {
-                  prev.next.prev = this;
-              }
-              this.next = prev.next;
-              prev.next = this;
-          }
-          disconnect(hard = false) {
-              this.disconnected = true;
-              this.fn = null;
-              this.context = null;
-              if (this.prev !== null) {
-                  this.prev.next = this.next;
-              }
-              if (this.next !== null) {
-                  this.next.prev = this.prev;
-              }
-              const next = this.next;
-              this.next = hard ? null : next;
-              this.prev = null;
-              return next;
-          }
-      }
-      class Ticker {
-          constructor() {
-              this.head = new Notifier(null, null);
-              this.requestId = -1;
-              this.frameDelta = 1;
-              this.lastTime = -1;
-              this.started = false;
-              this.promise = null;
-              this.resolve = $noop;
-              this.tick = (deltaTime) => {
-                  this.requestId = -1;
-                  if (this.started) {
-                      this.update(deltaTime);
-                      if (this.started && this.requestId === -1 && this.head.next !== null) {
-                          this.requestId = $raf(this.tick);
-                      }
-                  }
-                  this.resolve(deltaTime);
-                  this.resolve = $noop;
-                  this.promise = null;
-              };
-          }
-          add(fn, context) {
-              const notifier = new Notifier(fn, context);
-              let cur = this.head.next;
-              let prev = this.head;
-              if (cur === null) {
-                  notifier.connect(prev);
-              }
-              else {
-                  while (cur !== null) {
-                      prev = cur;
-                      cur = cur.next;
-                  }
-                  if (notifier.prev === null) {
-                      notifier.connect(prev);
-                  }
-              }
-              if (this.started) {
-                  this.tryRequest();
-              }
-              else {
-                  this.start();
-              }
-              return this;
-          }
-          remove(fn, context) {
-              let notifier = this.head.next;
-              while (notifier !== null) {
-                  if (notifier.equals(fn, context)) {
-                      notifier = notifier.disconnect();
-                  }
-                  else {
-                      notifier = notifier.next;
-                  }
-              }
-              if (this.head.next === null) {
-                  this.tryCancel();
-              }
-              return this;
-          }
-          start() {
-              if (!this.started) {
-                  this.started = true;
-                  this.tryRequest();
-              }
-          }
-          stop() {
-              if (this.started) {
-                  this.started = false;
-                  this.tryCancel();
-              }
-          }
-          update(currentTime = $now()) {
-              let elapsedMS;
-              if (currentTime > this.lastTime) {
-                  elapsedMS = currentTime - this.lastTime;
-                  // ElapsedMS * 60 / 1000 is to get the frame delta as calculated based on the elapsed time.
-                  // Adding half a rounding margin to that and performing a double bitwise negate rounds it to the rounding margin which is the nearest
-                  // 1/1000th of a frame (this algorithm is about twice as fast as Math.round - every CPU cycle counts :)).
-                  // The rounding is to account for floating point imprecisions in performance.now caused by the browser, and accounts for frame counting mismatch
-                  // caused by frame delta's like 0.999238239.
-                  this.frameDelta = (~~(elapsedMS * 60 + 0.5)) / 1000;
-                  const head = this.head;
-                  let notifier = head.next;
-                  while (notifier !== null) {
-                      notifier = notifier.notify(this.frameDelta);
-                  }
-                  if (head.next === null) {
-                      this.tryCancel();
-                  }
-              }
-              else {
-                  this.frameDelta = 0;
-              }
-              this.lastTime = currentTime;
-          }
-          waitForNextTick() {
-              if (this.promise === null) {
-                  // tslint:disable-next-line:promise-must-complete
-                  this.promise = new Promise(resolve => {
-                      this.resolve = resolve;
-                  });
-              }
-              return this.promise;
-          }
-          tryRequest() {
-              if (this.requestId === -1 && this.head.next !== null) {
-                  this.lastTime = $now();
-                  this.requestId = $raf(this.tick);
-              }
-          }
-          tryCancel() {
-              if (this.requestId !== -1) {
-                  $caf(this.requestId);
-                  this.requestId = -1;
-              }
-          }
-      }
-      const camelCaseLookup = {};
-      const kebabCaseLookup = {};
+      const hasOwnProperty = Object.prototype.hasOwnProperty;
+      const emptyArray = Object.freeze([]);
+      const emptyObject = Object.freeze({});
       const PLATFORM = exports('PLATFORM', {
           global: $global,
-          ticker: new Ticker(),
-          emptyArray: Object.freeze([]),
-          emptyObject: Object.freeze({}),
+          emptyArray,
+          emptyObject,
           noop: $noop,
           now: $now,
           mark: $mark,
@@ -428,55 +275,12 @@ System.register('kernel', [], function (exports, module) {
           getEntriesByType: $getEntriesByType,
           clearMarks: $clearMarks,
           clearMeasures: $clearMeasures,
-          camelCase(input) {
-              // benchmark: http://jsben.ch/qIz4Z
-              let value = camelCaseLookup[input];
-              if (value !== undefined)
-                  return value;
-              value = '';
-              let first = true;
-              let sep = false;
-              let char;
-              for (let i = 0, ii = input.length; i < ii; ++i) {
-                  char = input.charAt(i);
-                  if (char === '-' || char === '.' || char === '_') {
-                      sep = true; // skip separators
-                  }
-                  else {
-                      value = value + (first ? char.toLowerCase() : (sep ? char.toUpperCase() : char));
-                      sep = false;
-                  }
-                  first = false;
-              }
-              return camelCaseLookup[input] = value;
-          },
-          kebabCase(input) {
-              // benchmark: http://jsben.ch/v7K9T
-              let value = kebabCaseLookup[input];
-              if (value !== undefined)
-                  return value;
-              value = '';
-              let first = true;
-              let char, lower;
-              for (let i = 0, ii = input.length; i < ii; ++i) {
-                  char = input.charAt(i);
-                  lower = char.toLowerCase();
-                  value = value + (first ? lower : (char !== lower ? `-${lower}` : lower));
-                  first = false;
-              }
-              return kebabCaseLookup[input] = value;
-          },
-          toArray(input) {
-              // benchmark: http://jsben.ch/xjsyF
-              const len = input.length;
-              const arr = Array(len);
-              for (let i = 0; i < len; ++i) {
-                  arr[i] = input[i];
-              }
-              return arr;
-          },
+          hasOwnProperty,
           requestAnimationFrame(callback) {
               return $raf(callback);
+          },
+          cancelAnimationFrame(handle) {
+              return $caf(handle);
           },
           clearInterval(handle) {
               $global.clearInterval(handle);
@@ -494,7 +298,15 @@ System.register('kernel', [], function (exports, module) {
           }
       });
 
+      var LogLevel;
+      (function (LogLevel) {
+          LogLevel[LogLevel["error"] = 0] = "error";
+          LogLevel[LogLevel["warn"] = 1] = "warn";
+          LogLevel[LogLevel["info"] = 2] = "info";
+          LogLevel[LogLevel["debug"] = 3] = "debug";
+      })(LogLevel || (LogLevel = exports('LogLevel', {})));
       const Reporter = exports('Reporter', {
+          level: 1 /* warn */,
           write(code, ...params) { return; },
           error(code, ...params) { return new Error(`Code ${code}`); }
       });
@@ -540,6 +352,8 @@ System.register('kernel', [], function (exports, module) {
       // tslint:disable-next-line:no-redundant-jump
       function enableLiveLogging(optionsOrWriter) { return; }
 
+      // tslint:disable: no-any
+      const slice = Array.prototype.slice;
       // Shims to augment the Reflect object with methods used from the Reflect Metadata API proposal:
       // https://www.typescriptlang.org/docs/handbook/decorators.html#metadata
       // https://rbuckton.github.io/reflect-metadata/
@@ -563,21 +377,26 @@ System.register('kernel', [], function (exports, module) {
               return new Container().register(...params);
           }
       }
+      const hasOwnProperty$1 = PLATFORM.hasOwnProperty;
       const DI = exports('DI', {
           createContainer,
           getDesignParamTypes(target) {
-              return Reflect.getOwnMetadata('design:paramtypes', target) || PLATFORM.emptyArray;
+              const paramTypes = Reflect.getOwnMetadata('design:paramtypes', target);
+              if (paramTypes == null) {
+                  return PLATFORM.emptyArray;
+              }
+              return paramTypes;
           },
           getDependencies(Type) {
               let dependencies;
-              if (Type.inject === undefined) {
+              if (Type.inject == null) {
                   dependencies = DI.getDesignParamTypes(Type);
               }
               else {
                   dependencies = [];
                   let ctor = Type;
                   while (typeof ctor === 'function') {
-                      if (ctor.hasOwnProperty('inject')) {
+                      if (hasOwnProperty$1.call(ctor, 'inject')) {
                           dependencies.push(...ctor.inject);
                       }
                       ctor = Object.getPrototypeOf(ctor);
@@ -587,13 +406,16 @@ System.register('kernel', [], function (exports, module) {
           },
           createInterface(friendlyName) {
               const Interface = function (target, property, index) {
-                  if (target === undefined) {
+                  if (target == null) {
                       throw Reporter.error(16, Interface.friendlyName, Interface); // TODO: add error (trying to resolve an InterfaceSymbol that has no registrations)
                   }
-                  (target.inject || (target.inject = []))[index] = Interface;
+                  if (target.inject == null) {
+                      target.inject = [];
+                  }
+                  target.inject[index] = Interface;
                   return target;
               };
-              Interface.friendlyName = friendlyName || 'Interface';
+              Interface.friendlyName = friendlyName == null ? 'Interface' : friendlyName;
               Interface.noDefault = function () {
                   return Interface;
               };
@@ -602,7 +424,7 @@ System.register('kernel', [], function (exports, module) {
                       throw Reporter.error(17, Interface);
                   };
                   Interface.register = function (container, key) {
-                      const trueKey = key || Interface;
+                      const trueKey = key == null ? Interface : key;
                       return configure({
                           instance(value) {
                               return container.registerResolver(trueKey, new Resolver(trueKey, 0 /* instance */, value));
@@ -628,17 +450,22 @@ System.register('kernel', [], function (exports, module) {
           inject(...dependencies) {
               return function (target, key, descriptor) {
                   if (typeof descriptor === 'number') { // It's a parameter decorator.
-                      if (!target.hasOwnProperty('inject')) {
+                      if (!hasOwnProperty$1.call(target, 'inject')) {
                           const types = DI.getDesignParamTypes(target);
                           target.inject = types.slice();
                       }
                       if (dependencies.length === 1) {
+                          // We know for sure that it's not void 0 due to the above check.
+                          // tslint:disable-next-line: no-non-null-assertion
                           target.inject[descriptor] = dependencies[0];
                       }
                   }
                   else if (key) { // It's a property decorator. Not supported by the container without plugins.
                       const actualTarget = target.constructor;
-                      (actualTarget.inject || (actualTarget.inject = {}))[key] = dependencies[0];
+                      if (actualTarget.inject == null) {
+                          actualTarget.inject = {};
+                      }
+                      actualTarget.inject[key] = dependencies[0];
                   }
                   else if (descriptor) { // It's a function decorator (not a Class constructor)
                       const fn = descriptor.value;
@@ -729,19 +556,19 @@ System.register('kernel', [], function (exports, module) {
           return DI.transient(target);
       }
       function transient(target) {
-          return target === undefined ? transientDecorator : transientDecorator(target);
+          return target == null ? transientDecorator : transientDecorator(target);
       }
       function singletonDecorator(target) {
           return DI.singleton(target);
       }
       function singleton(target) {
-          return target === undefined ? singletonDecorator : singletonDecorator(target);
+          return target == null ? singletonDecorator : singletonDecorator(target);
       }
       const all = exports('all', createResolver((key, handler, requestor) => requestor.getAll(key)));
       const lazy = exports('lazy', createResolver((key, handler, requestor) => {
           let instance = null; // cache locally so that lazy always returns the same instance once resolved
           return () => {
-              if (instance === null) {
+              if (instance == null) {
                   instance = requestor.get(key);
               }
               return instance;
@@ -819,24 +646,33 @@ System.register('kernel', [], function (exports, module) {
           }
           static create(Type) {
               const dependencies = DI.getDependencies(Type);
-              const invoker = classInvokers[dependencies.length] || fallbackInvoker;
+              const invoker = classInvokers.length > dependencies.length ? classInvokers[dependencies.length] : fallbackInvoker;
               return new Factory(Type, invoker, dependencies);
           }
           construct(container, dynamicDependencies) {
+              if (Tracer.enabled) {
+                  Tracer.enter('Factory', 'construct', [this.Type, ...slice.call(arguments)]);
+              }
               const transformers = this.transformers;
-              let instance = dynamicDependencies !== undefined
+              let instance = dynamicDependencies !== void 0
                   ? this.invoker.invokeWithDynamicDependencies(container, this.Type, this.dependencies, dynamicDependencies)
                   : this.invoker.invoke(container, this.Type, this.dependencies);
-              if (transformers === null) {
+              if (transformers == null) {
+                  if (Tracer.enabled) {
+                      Tracer.leave();
+                  }
                   return instance;
               }
               for (let i = 0, ii = transformers.length; i < ii; ++i) {
                   instance = transformers[i](instance);
               }
+              if (Tracer.enabled) {
+                  Tracer.leave();
+              }
               return instance;
           }
           registerTransformer(transformer) {
-              if (this.transformers === null) {
+              if (this.transformers == null) {
                   this.transformers = [];
               }
               this.transformers.push(transformer);
@@ -852,7 +688,7 @@ System.register('kernel', [], function (exports, module) {
           return typeof obj.register === 'function';
       }
       function isClass(obj) {
-          return obj.prototype !== undefined;
+          return obj.prototype !== void 0;
       }
       /** @internal */
       class Container {
@@ -861,11 +697,17 @@ System.register('kernel', [], function (exports, module) {
               this.registerDepth = 0;
               this.resolvers = new Map();
               this.configuration = configuration;
-              this.factories = configuration.factories || (configuration.factories = new Map());
+              if (configuration.factories == null) {
+                  configuration.factories = new Map();
+              }
+              this.factories = configuration.factories;
               this.resourceLookup = configuration.resourceLookup || (configuration.resourceLookup = Object.create(null));
               this.resolvers.set(IContainer, containerResolver);
           }
           register(...params) {
+              if (Tracer.enabled) {
+                  Tracer.enter('Container', 'register', slice.call(arguments));
+              }
               if (++this.registerDepth === 100) {
                   throw new Error('Unable to autoregister dependency');
                   // TODO: change to reporter.error and add various possible causes in description.
@@ -903,13 +745,16 @@ System.register('kernel', [], function (exports, module) {
                   }
               }
               --this.registerDepth;
+              if (Tracer.enabled) {
+                  Tracer.leave();
+              }
               return this;
           }
           registerResolver(key, resolver) {
               validateKey(key);
               const resolvers = this.resolvers;
               const result = resolvers.get(key);
-              if (result === undefined) {
+              if (result == null) {
                   resolvers.set(key, resolver);
                   if (typeof key === 'string') {
                       this.resourceLookup[key] = resolver;
@@ -925,12 +770,12 @@ System.register('kernel', [], function (exports, module) {
           }
           registerTransformer(key, transformer) {
               const resolver = this.getResolver(key);
-              if (resolver === null) {
+              if (resolver == null) {
                   return false;
               }
               if (resolver.getFactory) {
                   const handler = resolver.getFactory(this);
-                  if (handler === null) {
+                  if (handler == null) {
                       return false;
                   }
                   return handler.registerTransformer(transformer);
@@ -939,15 +784,15 @@ System.register('kernel', [], function (exports, module) {
           }
           getResolver(key, autoRegister = true) {
               validateKey(key);
-              if (key.resolve) {
+              if (key.resolve !== void 0) {
                   return key;
               }
               let current = this;
               let resolver;
-              while (current !== null) {
+              while (current != null) {
                   resolver = current.resolvers.get(key);
-                  if (resolver === undefined) {
-                      if (current.parent === null) {
+                  if (resolver == null) {
+                      if (current.parent == null) {
                           return autoRegister ? this.jitRegister(key, current) : null;
                       }
                       current = current.parent;
@@ -961,68 +806,102 @@ System.register('kernel', [], function (exports, module) {
           has(key, searchAncestors = false) {
               return this.resolvers.has(key)
                   ? true
-                  : searchAncestors && this.parent !== null
+                  : searchAncestors && this.parent != null
                       ? this.parent.has(key, true)
                       : false;
           }
           get(key) {
+              if (Tracer.enabled) {
+                  Tracer.enter('Container', 'get', slice.call(arguments));
+              }
               validateKey(key);
-              if (key.resolve) {
+              if (key.resolve !== void 0) {
+                  if (Tracer.enabled) {
+                      Tracer.leave();
+                  }
                   return key.resolve(this, this);
               }
               let current = this;
               let resolver;
-              while (current !== null) {
+              while (current != null) {
                   resolver = current.resolvers.get(key);
-                  if (resolver === undefined) {
-                      if (current.parent === null) {
+                  if (resolver == null) {
+                      if (current.parent == null) {
                           resolver = this.jitRegister(key, current);
+                          if (Tracer.enabled) {
+                              Tracer.leave();
+                          }
                           return resolver.resolve(current, this);
                       }
                       current = current.parent;
                   }
                   else {
+                      if (Tracer.enabled) {
+                          Tracer.leave();
+                      }
                       return resolver.resolve(current, this);
                   }
               }
           }
           getAll(key) {
+              if (Tracer.enabled) {
+                  Tracer.enter('Container', 'getAll', slice.call(arguments));
+              }
               validateKey(key);
               let current = this;
               let resolver;
-              while (current !== null) {
+              while (current != null) {
                   resolver = current.resolvers.get(key);
-                  if (resolver === undefined) {
-                      if (this.parent === null) {
+                  if (resolver == null) {
+                      if (this.parent == null) {
+                          if (Tracer.enabled) {
+                              Tracer.leave();
+                          }
                           return PLATFORM.emptyArray;
                       }
                       current = current.parent;
                   }
                   else {
+                      if (Tracer.enabled) {
+                          Tracer.leave();
+                      }
                       return buildAllResponse(resolver, current, this);
                   }
+              }
+              if (Tracer.enabled) {
+                  Tracer.leave();
               }
               return PLATFORM.emptyArray;
           }
           getFactory(Type) {
               let factory = this.factories.get(Type);
-              if (factory === undefined) {
+              if (factory == null) {
                   factory = Factory.create(Type);
                   this.factories.set(Type, factory);
               }
               return factory;
           }
           createChild() {
+              if (Tracer.enabled) {
+                  Tracer.enter('Container', 'createChild', slice.call(arguments));
+              }
               const config = this.configuration;
-              const childConfig = { factories: config.factories, resourceLookup: Object.assign({}, config.resourceLookup) };
+              const childConfig = { factories: config.factories, resourceLookup: Object.assign(Object.create(null), config.resourceLookup) };
               const child = new Container(childConfig);
               child.parent = this;
+              if (Tracer.enabled) {
+                  Tracer.leave();
+              }
               return child;
           }
           jitRegister(keyAsValue, handler) {
-              if (keyAsValue.register) {
+              if (keyAsValue.register !== void 0) {
                   const registrationResolver = keyAsValue.register(handler, keyAsValue);
-                  if (!(registrationResolver && registrationResolver.resolve)) {
+                  if (!(registrationResolver instanceof Object) || registrationResolver.resolve == null) {
+                      const newResolver = handler.resolvers.get(keyAsValue);
+                      if (newResolver != void 0) {
+                          return newResolver;
+                      }
                       throw Reporter.error(40); // did not return a valid resolver from the static register method
                   }
                   return registrationResolver;
@@ -1052,18 +931,18 @@ System.register('kernel', [], function (exports, module) {
               return {
                   register(container) {
                       const resolver = container.getResolver(interpreterKey);
-                      if (resolver !== null) {
+                      if (resolver != null) {
                           let registry = null;
                           if (resolver.getFactory) {
                               const factory = resolver.getFactory(container);
-                              if (factory !== null) {
+                              if (factory != null) {
                                   registry = factory.construct(container, rest);
                               }
                           }
                           else {
                               registry = resolver.resolve(container, container);
                           }
-                          if (registry !== null) {
+                          if (registry != null) {
                               registry.register(container);
                           }
                       }
@@ -1071,11 +950,28 @@ System.register('kernel', [], function (exports, module) {
               };
           }
       });
+      class InstanceProvider {
+          constructor() {
+              this.instance = null;
+          }
+          prepare(instance) {
+              this.instance = instance;
+          }
+          resolve(handler, requestor) {
+              if (this.instance === undefined) { // unmet precondition: call prepare
+                  throw Reporter.error(50); // TODO: organize error codes
+              }
+              return this.instance;
+          }
+          dispose() {
+              this.instance = null;
+          }
+      } exports('InstanceProvider', InstanceProvider);
       /** @internal */
       function validateKey(key) {
           // note: design:paramTypes which will default to Object if the param types cannot be statically analyzed by tsc
           // this check is intended to properly report on that problem - under no circumstance should Object be a valid key anyway
-          if (key === null || key === undefined || key === Object) {
+          if (key == null || key === Object) {
               throw Reporter.error(5);
           }
       }
@@ -1142,14 +1038,14 @@ System.register('kernel', [], function (exports, module) {
           let lookup;
           while (i--) {
               lookup = staticDependencies[i];
-              if (lookup === null || lookup === undefined) {
+              if (lookup == null) {
                   throw Reporter.error(7, `Index ${i}.`);
               }
               else {
                   args[i] = container.get(lookup);
               }
           }
-          if (dynamicDependencies !== undefined) {
+          if (dynamicDependencies !== void 0) {
               args = args.concat(dynamicDependencies);
           }
           return Reflect.construct(Type, args);
@@ -1189,7 +1085,7 @@ System.register('kernel', [], function (exports, module) {
        * @return The calculated path.
        */
       function relativeToFile(name, file) {
-          const fileParts = file && file.split('/');
+          const fileParts = !file ? file : file.split('/');
           const nameParts = name.trim().split('/');
           if (nameParts[0].charAt(0) === '.' && fileParts) {
               //Convert file to array, and lop off the last part,
@@ -1267,7 +1163,7 @@ System.register('kernel', [], function (exports, module) {
        */
       function buildParam(key, value, traditional) {
           let result = [];
-          if (value === null || value === undefined) {
+          if (value == null) {
               return result;
           }
           if (Array.isArray(value)) {
@@ -1276,7 +1172,7 @@ System.register('kernel', [], function (exports, module) {
                       result.push(`${encodeKey(key)}=${encode(value[i])}`);
                   }
                   else {
-                      const arrayKey = `${key}[${(typeof value[i] === 'object' && value[i] !== null ? i : '')}]`;
+                      const arrayKey = `${key}[${(typeof value[i] === 'object' && value[i] != null ? i : '')}]`;
                       result = result.concat(buildParam(arrayKey, value[i]));
                   }
               }
@@ -1299,11 +1195,15 @@ System.register('kernel', [], function (exports, module) {
        * @returns The generated query string, excluding leading '?'.
        */
       function buildQueryString(params, traditional) {
-          let pairs = [];
-          const keys = Object.keys(params || {}).sort();
-          for (let i = 0, len = keys.length; i < len; i++) {
-              const key = keys[i];
-              pairs = pairs.concat(buildParam(key, params[key], traditional));
+          if (params == null) {
+              return '';
+          }
+          const pairs = [];
+          const keys = Object.keys(params).sort();
+          let key;
+          for (let i = 0, len = keys.length; i < len; ++i) {
+              key = keys[i];
+              pairs.push(...buildParam(key, params[key], traditional));
           }
           if (pairs.length === 0) {
               return '';
@@ -1343,13 +1243,30 @@ System.register('kernel', [], function (exports, module) {
       function parseComplexParam(queryParams, keys, value) {
           let currentParams = queryParams;
           const keysLastIndex = keys.length - 1;
-          for (let j = 0; j <= keysLastIndex; j++) {
-              const key = keys[j] === '' ? currentParams.length : keys[j];
+          let key;
+          let prevValue;
+          for (let j = 0; j <= keysLastIndex; ++j) {
+              key = (keys[j] === '' ? currentParams.length : keys[j]);
               if (j < keysLastIndex) {
                   // The value has to be an array or a false value
                   // It can happen that the value is no array if the key was repeated with traditional style like `list=1&list[]=2`
-                  const prevValue = !currentParams[key] || typeof currentParams[key] === 'object' ? currentParams[key] : [currentParams[key]];
-                  currentParams = currentParams[key] = prevValue || (isNaN(keys[j + 1]) ? {} : []);
+                  if (!currentParams[key] || typeof currentParams[key] === 'object') {
+                      prevValue = currentParams[key];
+                  }
+                  else {
+                      prevValue = [currentParams[key]];
+                  }
+                  if (prevValue) {
+                      currentParams = currentParams[key] = prevValue;
+                  }
+                  else if (isNaN(keys[j + 1])) {
+                      // Kinda have no choice here
+                      // tslint:disable-next-line: no-object-literal-type-assertion
+                      currentParams = currentParams[key] = {};
+                  }
+                  else {
+                      currentParams = currentParams[key] = [];
+                  }
               }
               else {
                   currentParams = currentParams[key] = value;
@@ -1386,6 +1303,7 @@ System.register('kernel', [], function (exports, module) {
               //Else it's basic key
               if (/\[/.test(keys[0]) && /\]$/.test(keys[keysLastIndex])) {
                   keys[keysLastIndex] = keys[keysLastIndex].replace(/\]$/, '');
+                  // tslint:disable-next-line: no-non-null-assertion // outer condition already ensures not-null
                   keys = keys.shift().split('[').concat(keys);
                   keysLastIndex = keys.length - 1;
               }
@@ -1471,12 +1389,12 @@ System.register('kernel', [], function (exports, module) {
               const key = kind.keyFrom(name);
               const resourceLookup = this.context.resourceLookup;
               let resolver = resourceLookup[key];
-              if (resolver === undefined) {
+              if (resolver === void 0) {
                   resolver = resourceLookup[key] = this.context.getResolver(key, false);
               }
-              if (resolver !== null && resolver.getFactory) {
+              if (resolver != null && resolver.getFactory) {
                   const factory = resolver.getFactory(this.context);
-                  if (factory !== null) {
+                  if (factory != null) {
                       const description = factory.Type.description;
                       return description === undefined ? null : description;
                   }
@@ -1490,7 +1408,7 @@ System.register('kernel', [], function (exports, module) {
               if (resolver === undefined) {
                   resolver = resourceLookup[key] = this.context.getResolver(key, false);
               }
-              if (resolver !== null) {
+              if (resolver != null) {
                   const instance = resolver.resolve(this.context, this.context);
                   return instance === undefined ? null : instance;
               }
@@ -1548,7 +1466,7 @@ System.register('kernel', [], function (exports, module) {
               if (typeof channelOrInstance === 'string') {
                   const channel = channelOrInstance;
                   subscribers = this.eventLookup[channel];
-                  if (subscribers) {
+                  if (subscribers != null) {
                       subscribers = subscribers.slice();
                       i = subscribers.length;
                       while (i--) {
@@ -1574,11 +1492,13 @@ System.register('kernel', [], function (exports, module) {
               if (typeof channelOrType === 'string') {
                   const channel = channelOrType;
                   handler = callback;
-                  subscribers = this.eventLookup[channel] || (this.eventLookup[channel] = []);
+                  if (this.eventLookup[channel] === void 0) {
+                      this.eventLookup[channel] = [];
+                  }
+                  subscribers = this.eventLookup[channel];
               }
               else {
-                  const type = channelOrType;
-                  handler = new Handler(type, callback);
+                  handler = new Handler(channelOrType, callback);
                   subscribers = this.messageHandlers;
               }
               subscribers.push(handler);
@@ -1599,6 +1519,144 @@ System.register('kernel', [], function (exports, module) {
               return sub;
           }
       } exports('EventAggregator', EventAggregator);
+
+      const camelCaseLookup = {};
+      const kebabCaseLookup = {};
+      const isNumericLookup = {};
+      /**
+       * Efficiently determine whether the provided property key is numeric
+       * (and thus could be an array indexer) or not.
+       *
+       * Always returns true for values of type `'number'`.
+       *
+       * Otherwise, only returns true for strings that consist only of positive integers.
+       *
+       * Results are cached.
+       */
+      function isNumeric(value) {
+          switch (typeof value) {
+              case 'number':
+                  return true;
+              case 'string': {
+                  const result = isNumericLookup[value];
+                  if (result !== void 0) {
+                      return result;
+                  }
+                  const { length } = value;
+                  if (length === 0) {
+                      return isNumericLookup[value] = false;
+                  }
+                  let ch = 0;
+                  for (let i = 0; i < length; ++i) {
+                      ch = value.charCodeAt(i);
+                      if (ch < 0x30 /*0*/ || ch > 0x39 /*9*/) {
+                          return isNumericLookup[value] = false;
+                      }
+                  }
+                  return isNumericLookup[value] = true;
+              }
+              default:
+                  return false;
+          }
+      }
+      /**
+       * Efficiently convert a kebab-cased string to camelCase.
+       *
+       * Separators that signal the next character to be capitalized, are: `-`, `.`, `_`.
+       *
+       * Primarily used by Aurelia to convert DOM attribute names to ViewModel property names.
+       *
+       * Results are cached.
+       */
+      function camelCase(input) {
+          // benchmark: http://jsben.ch/qIz4Z
+          let value = camelCaseLookup[input];
+          if (value !== void 0)
+              return value;
+          value = '';
+          let first = true;
+          let sep = false;
+          let char;
+          for (let i = 0, ii = input.length; i < ii; ++i) {
+              char = input.charAt(i);
+              if (char === '-' || char === '.' || char === '_') {
+                  sep = true; // skip separators
+              }
+              else {
+                  value = value + (first ? char.toLowerCase() : (sep ? char.toUpperCase() : char));
+                  sep = false;
+              }
+              first = false;
+          }
+          return camelCaseLookup[input] = value;
+      }
+      /**
+       * Efficiently convert a camelCased string to kebab-case.
+       *
+       * Primarily used by Aurelia to convert ViewModel property names to DOM attribute names.
+       *
+       * Results are cached.
+       */
+      function kebabCase(input) {
+          // benchmark: http://jsben.ch/v7K9T
+          let value = kebabCaseLookup[input];
+          if (value !== void 0)
+              return value;
+          value = '';
+          let first = true;
+          let char, lower;
+          for (let i = 0, ii = input.length; i < ii; ++i) {
+              char = input.charAt(i);
+              lower = char.toLowerCase();
+              value = value + (first ? lower : (char !== lower ? `-${lower}` : lower));
+              first = false;
+          }
+          return kebabCaseLookup[input] = value;
+      }
+      /**
+       * Efficiently (up to 10x faster than `Array.from`) convert an `ArrayLike` to a real array.
+       *
+       * Primarily used by Aurelia to convert DOM node lists to arrays.
+       */
+      function toArray(input) {
+          // benchmark: http://jsben.ch/xjsyF
+          const { length } = input;
+          const arr = Array(length);
+          for (let i = 0; i < length; ++i) {
+              arr[i] = input[i];
+          }
+          return arr;
+      }
+      const ids = {};
+      /**
+       * Retrieve the next ID in a sequence for a given string, starting with `1`.
+       *
+       * Used by Aurelia to assign unique ID's to controllers and resources.
+       *
+       * Aurelia will always prepend the context name with `au$`, so as long as you avoid
+       * using that convention you should be safe from collisions.
+       */
+      function nextId(context) {
+          if (ids[context] === void 0) {
+              ids[context] = 0;
+          }
+          return ++ids[context];
+      }
+      /**
+       * Reset the ID for the given string, so that `nextId` will return `1` again for the next call.
+       *
+       * Used by Aurelia to reset ID's in between unit tests.
+       */
+      function resetId(context) {
+          ids[context] = 0;
+      }
+      /**
+       * A compare function to pass to `Array.prototype.sort` for sorting numbers.
+       * This is needed for numeric sort, since the default sorts them as strings.
+       */
+      function compareNumber(a, b) {
+          return a - b;
+      }
 
     }
   };

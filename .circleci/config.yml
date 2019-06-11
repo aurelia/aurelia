@@ -374,8 +374,8 @@ workflows:
           <<: *filter_only_master
           requires:
             - unit_test_chrome
-            - unit_test_firefox
-            - unit_test_node
+            #- unit_test_firefox
+            #- unit_test_node
             - lint_packages
             - e2e_browserstack
             - e2e_cypress_doc_example
@@ -418,8 +418,8 @@ workflows:
           <<: *filter_only_tag
           requires:
             - unit_test_chrome
-            - unit_test_firefox
-            - unit_test_node
+            #- unit_test_firefox
+            #- unit_test_node
             - lint_packages
             - e2e_browserstack
             - e2e_cypress_doc_example

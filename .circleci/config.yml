@@ -52,7 +52,7 @@ executors:
     parameters:
       node:
         type: string
-        default: "10.12"
+        default: "10.15.3"
     working_directory: *working_dir
     docker:
       - image: "circleci/node:<< parameters.node >>-stretch-browsers"
@@ -154,27 +154,32 @@ jobs:
     steps:
       - checkout_install_bootstrap
       - run: npm run build
-      - run: npm run << parameters.npm_command >>
+      - run:
+          name: "Run unit tests"
+          command: |
+            cd packages/__tests__
+            npm run << parameters.npm_command >>
       - when:
           condition: << parameters.coverage >>
           steps:
             - run:
                 name: "Process coverage results for Code Climate"
                 command: |
-                  ~/cc-test-reporter format-coverage coverage/lcov.info -t lcov -o coverage/cc-final.json
-                  ~/cc-test-reporter upload-coverage -i coverage/cc-final.json
+                  curl -L https://codeclimate.com/downloads/test-reporter/test-reporter-latest-linux-amd64 > ~/cc-test-reporter && chmod +x ~/cc-test-reporter
+                  ~/cc-test-reporter format-coverage packages/__tests__/coverage/lcov.info -t lcov -o packages/__tests__/coverage/cc-final.json
+                  ~/cc-test-reporter upload-coverage -i packages/__tests__/coverage/cc-final.json
                 environment:
                   CC_TEST_REPORTER_ID: 29ad19bd108faacbd91b36265a5b5e891b404571ebf937f40655157877aa71a1
                 when: always
             - run:
                 name: "Process coverage for Codecov"
                 command: |
-                  codecov -f coverage/coverage-final.json
+                  node_modules/codecov/bin/codecov -f packages/__tests__/coverage/coverage-final.json
                 when: always
       - store_test_results:
-          path: coverage
+          path: packages/__tests__/coverage
       - store_artifacts:
-          path: coverage
+          path: packages/__tests__/coverage
 
   lint_packages:
     executor: docker-circleci
@@ -315,11 +320,12 @@ workflows:
       - unit_test:
           <<: *filter_ignore_develop_release
           name: unit_test_chrome
-          e: docker-aurelia
+          e: docker-circleci
+          npm_command: "test-chrome"
       - unit_test:
           <<: *filter_ignore_develop_release
           name: unit_test_firefox
-          e: docker-aurelia
+          e: docker-circleci
           npm_command: "test-firefox"
           coverage: false
       - unit_test:
@@ -368,16 +374,16 @@ workflows:
           <<: *filter_only_master
           requires:
             - unit_test_chrome
-            - unit_test_firefox
-            - unit_test_node
+            #- unit_test_firefox
+            #- unit_test_node
             - lint_packages
-            - e2e_browserstack
-            - e2e_cypress_doc_example
-            - jit-aurelia-cli-ts
-            - jit-fuse-box-ts
-            - jit-webpack-ts
-            - jit-parcel-ts
-            - jit-iife-inline
+            #- e2e_browserstack
+            #- e2e_cypress_doc_example
+            #- jit-aurelia-cli-ts
+            #- jit-fuse-box-ts
+            #- jit-webpack-ts
+            #- jit-parcel-ts
+            #- jit-iife-inline
           from: master
           to: develop
           channel: dev
@@ -389,11 +395,11 @@ workflows:
       - unit_test:
           <<: *filter_only_tag
           name: unit_test_chrome
-          e: docker-aurelia
+          e: docker-circleci
       - unit_test:
           <<: *filter_only_tag
           name: unit_test_firefox
-          e: docker-aurelia
+          e: docker-circleci
           npm_command: "test-firefox"
           coverage: false
       - unit_test:
@@ -412,11 +418,11 @@ workflows:
           <<: *filter_only_tag
           requires:
             - unit_test_chrome
-            - unit_test_firefox
-            - unit_test_node
+            #- unit_test_firefox
+            #- unit_test_node
             - lint_packages
-            - e2e_browserstack
-            - e2e_cypress_doc_example
+            #- e2e_browserstack
+            #- e2e_cypress_doc_example
           from: $CIRCLE_TAG
           to: release
           channel: latest

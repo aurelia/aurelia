@@ -1,4 +1,8 @@
-import { IForOfStatement, IInterpolationExpression, IsBindingBehavior } from './ast';
+import {
+  IForOfStatement,
+  IInterpolationExpression,
+  IsBindingBehavior,
+} from './ast';
 import {
   ICallBindingInstruction,
   IHydrateAttributeInstruction,
@@ -193,14 +197,22 @@ export class HydrateTemplateController implements IHydrateTemplateController {
   public def: ITemplateDefinition;
   public instructions: ITargetedInstruction[];
   public link?: boolean;
+  public parts?: Record<string, ITemplateDefinition>;
   public res: string;
 
-  constructor(def: ITemplateDefinition, res: string, instructions: ITargetedInstruction[], link?: boolean) {
+  constructor(
+    def: ITemplateDefinition,
+    res: string,
+    instructions: ITargetedInstruction[],
+    link?: boolean,
+    parts?: Record<string, ITemplateDefinition>,
+  ) {
     this.type = TargetedInstructionType.hydrateTemplateController;
 
     this.def = def;
     this.instructions = instructions;
     this.link = link;
+    this.parts = parts;
     this.res = res;
   }
 }

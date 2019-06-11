@@ -62,7 +62,9 @@ export interface IRouter {
 export const IRouter = DI.createInterface<IRouter>('IRouter').withDefault(x => x.singleton(Router));
 
 export class Router implements IRouter {
-  public static readonly inject: InjectArray = [IContainer, IRouteTransformer];
+  public static readonly inject: InjectArray = [IContainer, IRouteTransformer, HistoryBrowser, LinkHandler, InstructionResolver];
+
+  public readonly container: IContainer;
 
   public rootScope: Scope;
   public scopes: Scope[] = [];
@@ -79,18 +81,24 @@ export class Router implements IRouter {
   private options: IRouterOptions;
   private isActive: boolean = false;
 
+  private readonly routeTransformer: IRouteTransformer;
   private readonly pendingNavigations: INavigationInstruction[] = [];
   private processingNavigation: INavigationInstruction = null;
   private lastNavigation: INavigationInstruction = null;
 
-  private readonly routeTransformer: IRouteTransformer;
 
-  constructor(public container: IContainer, routeTransformer: IRouteTransformer) {
-    this.historyBrowser = new HistoryBrowser();
-    this.linkHandler = new LinkHandler();
-    this.instructionResolver = new InstructionResolver();
-
+  constructor(
+    container: IContainer,
+    routeTransformer: IRouteTransformer,
+    historyBrowser: HistoryBrowser,
+    linkHandler: LinkHandler,
+    instructionResolver: InstructionResolver
+  ) {
+    this.container = container;
     this.routeTransformer = routeTransformer;
+    this.historyBrowser = historyBrowser;
+    this.linkHandler = linkHandler;
+    this.instructionResolver = instructionResolver;
   }
 
   public get isNavigating(): boolean {
@@ -336,13 +344,13 @@ export class Router implements IRouter {
   }
 
   // Called from the viewport custom element in attached()
-  public addViewport(name: string, element: Element, context: IRenderContext, options?: IViewportOptions): Viewport {
+  public addViewport(name: string, element: Element, context: IRenderContext | IContainer, options?: IViewportOptions): Viewport {
     Reporter.write(10000, 'Viewport added', name, element);
     const parentScope = this.findScope(element);
     return parentScope.addViewport(name, element, context, options);
   }
   // Called from the viewport custom element
-  public removeViewport(viewport: Viewport, element: Element, context: IRenderContext): void {
+  public removeViewport(viewport: Viewport, element: Element, context: IRenderContext | IContainer): void {
     // TODO: There's something hinky with remove!
     const scope = viewport.owningScope;
     if (!scope.removeViewport(viewport, element, context)) {
@@ -426,8 +434,8 @@ export class Router implements IRouter {
 
   private ensureRootScope(): void {
     if (!this.rootScope) {
-      const root = this.container.get(Aurelia).root();
-      this.rootScope = new Scope(this, root.$host as Element, root.$context, null);
+      const root = this.container.get(Aurelia).root;
+      this.rootScope = new Scope(this, root.host as Element, root.controller.context, null);
       this.scopes.push(this.rootScope);
     }
   }
@@ -444,7 +452,7 @@ export class Router implements IRouter {
     return this.rootScope;
     // TODO: It would be better if it was something like this
     // const el = closestCustomElement(element);
-    // let container: ChildContainer = el.$customElement.$context.get(IContainer);
+    // let container: ChildContainer = el.$controller.$context.get(IContainer);
     // while (container) {
     //   const scope = this.scopes.find((item) => item.context.get(IContainer) === container);
     //   if (scope) {

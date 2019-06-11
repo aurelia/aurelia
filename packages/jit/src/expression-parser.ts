@@ -114,7 +114,7 @@ export function parseExpression<TType extends BindingType = BindingType.BindComm
   $state.length = input.length;
   $state.index = 0;
   $state.currentChar = input.charCodeAt(0);
-  return parse($state, Access.Reset, Precedence.Variadic, bindingType === undefined ? BindingType.BindCommand : bindingType);
+  return parse($state, Access.Reset, Precedence.Variadic, bindingType === void 0 ? BindingType.BindCommand : bindingType);
 }
 
 /** @internal */
@@ -159,7 +159,7 @@ export function parse<TPrec extends Precedence, TType extends BindingType>(state
   }
 
   state.assignable = Precedence.Binary > minPrecedence;
-  let result = undefined as IsExpressionOrStatement;
+  let result = void 0 as unknown as IsExpressionOrStatement;
 
   if (state.currentToken & Token.UnaryOp) {
     /** parseUnaryExpression
@@ -668,7 +668,7 @@ function parseObjectLiteralExpression(state: ParserState, bindingType: BindingTy
 
 function parseInterpolation(state: ParserState): Interpolation {
   const parts = [];
-  const expressions = [];
+  const expressions: (IsBindingBehavior | IInterpolationExpression)[] = [];
   const length = state.length;
   let result = '';
   while (state.index < length) {
@@ -698,9 +698,9 @@ function parseInterpolation(state: ParserState): Interpolation {
   }
   if (expressions.length) {
     parts.push(result);
-    return new Interpolation(parts, expressions);
+    return new Interpolation(parts, expressions as IsBindingBehavior[]);
   }
-  return null;
+  return null!;
 }
 
 /**
@@ -759,7 +759,7 @@ function parseTemplate(state: ParserState, access: Access, bindingType: BindingT
 function nextToken(state: ParserState): void {
   while (state.index < state.length) {
     state.startIndex = state.index;
-    if ((state.currentToken = CharScanners[state.currentChar](state)) !== null) { // a null token means the character must be skipped
+    if (((state.currentToken = (CharScanners[state.currentChar](state)) as Token)) != null) { // a null token means the character must be skipped
       return;
     }
   }

@@ -1,9 +1,14 @@
-import { DI, PLATFORM, Reporter } from '@aurelia/kernel';
+import {
+  DI,
+  PLATFORM,
+  Reporter,
+} from '@aurelia/kernel';
+
 import {
   AnyBindingExpression,
   IForOfStatement,
   IInterpolationExpression,
-  IsBindingBehavior
+  IsBindingBehavior,
 } from '../ast';
 import { ExpressionKind } from '../flags';
 import {
@@ -13,7 +18,7 @@ import {
   CallScope,
   ForOfStatement,
   Interpolation,
-  PrimitiveLiteral
+  PrimitiveLiteral,
 } from './ast';
 
 export interface IExpressionParser {
@@ -45,14 +50,14 @@ export class ExpressionParser implements IExpressionParser {
     switch (bindingType) {
       case BindingType.Interpolation: {
         let found = this.interpolationLookup[expression];
-        if (found === undefined) {
+        if (found === void 0) {
           found = this.interpolationLookup[expression] = this.parseCore(expression, bindingType);
         }
         return found;
       }
       case BindingType.ForCommand: {
         let found = this.forOfLookup[expression];
-        if (found === undefined) {
+        if (found === void 0) {
           found = this.forOfLookup[expression] = this.parseCore(expression, bindingType);
         }
         return found;
@@ -64,7 +69,7 @@ export class ExpressionParser implements IExpressionParser {
           return PrimitiveLiteral.$empty;
         }
         let found = this.expressionLookup[expression];
-        if (found === undefined) {
+        if (found === void 0) {
           found = this.expressionLookup[expression] = this.parseCore(expression, bindingType);
         }
         return found;

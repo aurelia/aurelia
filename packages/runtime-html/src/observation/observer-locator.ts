@@ -31,46 +31,50 @@ const xmlNS = 'http://www.w3.org/XML/1998/namespace';
 const xmlnsNS = 'http://www.w3.org/2000/xmlns/';
 
 // https://html.spec.whatwg.org/multipage/syntax.html#attributes-2
-const nsAttributes = (function (o: Record<string, [string, string]>): typeof o {
-  o['xlink:actuate'] = ['actuate', xlinkNS];
-  o['xlink:arcrole'] = ['arcrole', xlinkNS];
-  o['xlink:href'] = ['href', xlinkNS];
-  o['xlink:role'] = ['role', xlinkNS];
-  o['xlink:show'] = ['show', xlinkNS];
-  o['xlink:title'] = ['title', xlinkNS];
-  o['xlink:type'] = ['type', xlinkNS];
-  o['xml:lang'] = ['lang', xmlNS];
-  o['xml:space'] = ['space', xmlNS];
-  o['xmlns'] = ['xmlns', xmlnsNS];
-  o['xmlns:xlink'] = ['xlink', xmlnsNS];
-  return o;
-})(Object.create(null));
+const nsAttributes = Object.assign(
+  Object.create(null),
+  {
+    'xlink:actuate': ['actuate', xlinkNS],
+    'xlink:arcrole': ['arcrole', xlinkNS],
+    'xlink:href': ['href', xlinkNS],
+    'xlink:role': ['role', xlinkNS],
+    'xlink:show': ['show', xlinkNS],
+    'xlink:title': ['title', xlinkNS],
+    'xlink:type': ['type', xlinkNS],
+    'xml:lang': ['lang', xmlNS],
+    'xml:space': ['space', xmlNS],
+    'xmlns': ['xmlns', xmlnsNS],
+    'xmlns:xlink': ['xlink', xmlnsNS],
+  }
+) as Record<string, [string, string]>;
 
 const inputEvents = ['change', 'input'];
 const selectEvents = ['change'];
 const contentEvents = ['change', 'input', 'blur', 'keyup', 'paste'];
 const scrollEvents = ['scroll'];
 
-const overrideProps = (function (o: Record<string, boolean>): typeof o {
-  o['class'] = true;
-  o['style'] = true;
-  o['css'] = true;
-  o['checked'] = true;
-  o['value'] = true;
-  o['model'] = true;
-  o['xlink:actuate'] = true;
-  o['xlink:arcrole'] = true;
-  o['xlink:href'] = true;
-  o['xlink:role'] = true;
-  o['xlink:show'] = true;
-  o['xlink:title'] = true;
-  o['xlink:type'] = true;
-  o['xml:lang'] = true;
-  o['xml:space'] = true;
-  o['xmlns'] = true;
-  o['xmlns:xlink'] = true;
-  return o;
-})(Object.create(null));
+const overrideProps = Object.assign(
+  Object.create(null),
+  {
+    'class': true,
+    'style': true,
+    'css': true,
+    'checked': true,
+    'value': true,
+    'model': true,
+    'xlink:actuate': true,
+    'xlink:arcrole': true,
+    'xlink:href': true,
+    'xlink:role': true,
+    'xlink:show': true,
+    'xlink:title': true,
+    'xlink:type': true,
+    'xml:lang': true,
+    'xml:space': true,
+    'xmlns': true,
+    'xmlns:xlink': true,
+  }
+) as Record<string, boolean>;
 
 export class TargetObserverLocator implements ITargetObserverLocator {
   public static readonly inject: InjectArray = [IDOM, ISVGAnalyzer];
@@ -90,39 +94,39 @@ export class TargetObserverLocator implements ITargetObserverLocator {
   public getObserver(flags: LifecycleFlags, lifecycle: ILifecycle, observerLocator: IObserverLocator, obj: Node, propertyName: string): IBindingTargetObserver | IBindingTargetAccessor {
     switch (propertyName) {
       case 'checked':
-        return new CheckedObserver(flags, lifecycle, obj as IInputElement, new EventSubscriber(this.dom, inputEvents), observerLocator);
+        return new CheckedObserver(lifecycle, observerLocator, new EventSubscriber(this.dom, inputEvents), obj as IInputElement);
       case 'value':
-        if (obj['tagName'] === 'SELECT') {
-          return new SelectValueObserver(flags, lifecycle, obj as ISelectElement, new EventSubscriber(this.dom, selectEvents), observerLocator, this.dom);
+        if ((obj as Element).tagName === 'SELECT') {
+          return new SelectValueObserver(lifecycle, observerLocator, this.dom, new EventSubscriber(this.dom, selectEvents), obj as ISelectElement);
         }
-        return new ValueAttributeObserver(lifecycle, obj, propertyName, new EventSubscriber(this.dom, inputEvents));
+        return new ValueAttributeObserver(lifecycle, new EventSubscriber(this.dom, inputEvents), obj, propertyName);
       case 'files':
-        return new ValueAttributeObserver(lifecycle, obj, propertyName, new EventSubscriber(this.dom, inputEvents));
+        return new ValueAttributeObserver(lifecycle, new EventSubscriber(this.dom, inputEvents), obj, propertyName);
       case 'textContent':
       case 'innerHTML':
-        return new ValueAttributeObserver(lifecycle, obj, propertyName, new EventSubscriber(this.dom, contentEvents));
+        return new ValueAttributeObserver(lifecycle, new EventSubscriber(this.dom, contentEvents), obj, propertyName);
       case 'scrollTop':
       case 'scrollLeft':
-        return new ValueAttributeObserver(lifecycle, obj, propertyName, new EventSubscriber(this.dom, scrollEvents));
+        return new ValueAttributeObserver(lifecycle, new EventSubscriber(this.dom, scrollEvents), obj, propertyName);
       case 'class':
         return new ClassAttributeAccessor(lifecycle, obj as HTMLElement);
       case 'style':
       case 'css':
         return new StyleAttributeAccessor(lifecycle, obj as HTMLElement);
       case 'model':
-        return new SetterObserver(flags, obj, propertyName);
+        return new SetterObserver(lifecycle, flags, obj, propertyName);
       case 'role':
         return new DataAttributeAccessor(lifecycle, obj as HTMLElement, propertyName);
       default:
         if (nsAttributes[propertyName] !== undefined) {
           const nsProps = nsAttributes[propertyName];
-          return new AttributeNSAccessor(lifecycle, obj as HTMLElement, propertyName, nsProps[0], nsProps[1]);
+          return new AttributeNSAccessor(lifecycle, obj as HTMLElement, nsProps[0], nsProps[1]);
         }
         if (isDataAttribute(obj, propertyName, this.svgAnalyzer)) {
           return new DataAttributeAccessor(lifecycle, obj as HTMLElement, propertyName);
         }
     }
-    return null;
+    return null!;
   }
 
   public overridesAccessor(flags: LifecycleFlags, obj: Node, propertyName: string): boolean {
@@ -169,7 +173,7 @@ export class TargetAccessorLocator implements ITargetAccessorLocator {
       default:
         if (nsAttributes[propertyName] !== undefined) {
           const nsProps = nsAttributes[propertyName];
-          return new AttributeNSAccessor(lifecycle, obj as HTMLElement, propertyName, nsProps[0], nsProps[1]);
+          return new AttributeNSAccessor(lifecycle, obj as HTMLElement, nsProps[0], nsProps[1]);
         }
         if (isDataAttribute(obj, propertyName, this.svgAnalyzer)) {
           return new DataAttributeAccessor(lifecycle, obj as HTMLElement, propertyName);

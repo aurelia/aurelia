@@ -1,0 +1,28 @@
+{
+  "extends": "../tsconfig-build.json",
+  "compilerOptions": {
+    "declarationDir": "dist",
+    "outDir": "dist/build",
+    "lib": ["esnext", "dom"],
+
+
+    "resolveJsonModule": true,
+    "forceConsistentCasingInFileNames": false,
+    "strict": false,
+    "alwaysStrict": true,
+
+    "jsx": "react",
+    "jsxFactory": "hJsx",
+
+    "types": [
+      "node",
+      "mocha",
+      "webpack-env"
+    ]
+  },
+  "include": ["."],
+  "exclude": [
+    "router/e2e",
+    "dist"
+  ]
+}

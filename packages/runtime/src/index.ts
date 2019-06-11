@@ -135,13 +135,16 @@ export {
   OverrideContext
 } from './observation/binding-context';
 export {
-  collectionObserver,
-  CollectionLengthObserver
-} from './observation/collection-observer';
+  CollectionLengthObserver,
+} from './observation/collection-length-observer';
+export {
+  CollectionSizeObserver,
+} from './observation/collection-size-observer';
 export {
   ComputedOverrides,
   ComputedLookup,
   computed,
+  createComputedObserver,
   CustomSetterObserver,
   GetterObserver
 } from './observation/computed-observer';
@@ -155,7 +158,8 @@ export {
   IObserverLocator,
   ITargetObserverLocator,
   ITargetAccessorLocator,
-  getCollectionObserver
+  getCollectionObserver,
+  ObserverLocator
 } from './observation/observer-locator';
 export {
   PrimitiveObserver
@@ -163,9 +167,6 @@ export {
 export {
   PropertyAccessor
 } from './observation/property-accessor';
-export {
-  propertyObserver
-} from './observation/property-observer';
 export {
   ProxyObserver
 } from './observation/proxy-observer';
@@ -180,11 +181,9 @@ export {
 } from './observation/signaler';
 export {
   subscriberCollection,
-  batchedSubscriberCollection
+  collectionSubscriberCollection,
+  proxySubscriberCollection,
 } from './observation/subscriber-collection';
-export {
-  targetObserver
-} from './observation/target-observer';
 
 export {
   bindingBehavior,
@@ -206,6 +205,9 @@ export {
   DebounceBindingBehavior
 } from './resources/binding-behaviors/debounce';
 export {
+  PriorityBindingBehavior,
+} from './resources/binding-behaviors/priority';
+export {
   SignalableBinding,
   SignalBindingBehavior
 } from './resources/binding-behaviors/signals';
@@ -220,7 +222,6 @@ export {
   CustomAttributeDecorator,
   CustomAttributeResource,
   dynamicOptions,
-  ICustomAttribute,
   ICustomAttributeResource,
   ICustomAttributeType,
   templateController
@@ -244,7 +245,6 @@ export {
   customElement,
   CustomElementHost,
   CustomElementResource,
-  ICustomElement,
   ICustomElementDecorator,
   ICustomElementResource,
   ICustomElementType,
@@ -269,17 +269,22 @@ export {
 export {
   bindable,
   BindableDecorator,
-  WithBindables
+  WithBindables,
+  Bindable,
 } from './templating/bindable';
+// These exports are temporary until we have a proper way to unit test them
 export {
-  IElementTemplateProvider,
-  ILifecycleRender
-} from './templating/lifecycle-render';
+  Controller,
+} from './templating/controller';
+export {
+  ViewFactory,
+} from './templating/view';
 
 export {
   Aurelia,
   IDOMInitializer,
-  ISinglePageApp
+  ISinglePageApp,
+  CompositionRoot,
 } from './aurelia';
 export {
   IfRegistration,
@@ -294,10 +299,10 @@ export {
   OneTimeBindingBehaviorRegistration,
   ToViewBindingBehaviorRegistration,
   FromViewBindingBehaviorRegistration,
+  PriorityBindingBehaviorRegistration,
   SignalBindingBehaviorRegistration,
   ThrottleBindingBehaviorRegistration,
   TwoWayBindingBehaviorRegistration,
-  KeyedBindingBehaviorRegistration,
 
   RefBindingRendererRegistration,
   CallBindingRendererRegistration,
@@ -323,6 +328,7 @@ export {
   BindableSource,
   buildTemplateDefinition,
   CustomElementConstructor,
+  HooksDefinition,
   IAttributeDefinition,
   IBindableDescription,
   IBuildInstruction,
@@ -383,41 +389,36 @@ export {
   TwoWayBindingInstruction
 } from './instructions';
 export {
-  AggregateLifecycleTask,
-  CompositionCoordinator,
-  IComponent,
+  ViewModelKind,
   IBinding,
   ILifecycle,
-  ILifecycleHooks,
-  IMountableComponent,
-  ILifecycleTask,
-  IRenderable,
+  IViewModel,
+  IController,
   IRenderContext,
-  IState,
-  IView,
   IViewCache,
   IViewFactory,
-  LifecycleTask,
-  PromiseTask
+  Priority,
 } from './lifecycle';
 export {
+  PromiseOrTask,
+  MaybePromiseOrTask,
+  AggregateContinuationTask,
+  TerminalTask,
+  AggregateTerminalTask,
+  ContinuationTask,
+  ILifecycleTask,
+  LifecycleTask,
+  PromiseTask
+} from './lifecycle-task';
+export {
   AccessorOrObserver,
-  BatchedSubscriber,
   Collection,
   CollectionKind,
   DelegationStrategy,
   IAccessor,
-  IBatchedCollectionChangeHandler,
-  IBatchedCollectionChangeNotifier,
-  IBatchedCollectionSubscriber,
-  IBatchedSubscribable,
-  IBatchedSubscriberCollection,
   IBindingContext,
   IBindingTargetAccessor,
   IBindingTargetObserver,
-  IChangeTracker,
-  ICollectionChangeHandler,
-  ICollectionChangeNotifier,
   ICollectionChangeTracker,
   ICollectionObserver,
   ICollectionSubscriber,
@@ -428,20 +429,27 @@ export {
   IObservedSet,
   IObserversLookup,
   IOverrideContext,
-  IPatchable,
-  IPropertyChangeHandler,
-  IPropertyChangeNotifier,
   IPropertyChangeTracker,
   IPropertyObserver,
-  IPropertySubscriber,
   IScope,
   ISubscribable,
   ISubscriberCollection,
-  MutationKind,
   ObservedCollection,
   ObserversLookup,
   PropertyObserver,
-  Subscriber
+  CollectionObserver,
+  ICollectionSubscriberCollection,
+  IProxyObserver,
+  IProxy,
+  IProxySubscribable,
+  IProxySubscriber,
+  IProxySubscriberCollection,
+  ICollectionSubscribable,
+  ISubscriber,
+  isIndexMap,
+  copyIndexMap,
+  cloneIndexMap,
+  createIndexMap,
 } from './observation';
 export {
   instructionRenderer,
@@ -460,5 +468,5 @@ export {
   ITemplate,
   ITemplateCompiler,
   ITemplateFactory,
-  ViewCompileFlags
+  ViewCompileFlags,
 } from './rendering-engine';

@@ -1,10 +1,29 @@
-import { IIndexable, IServiceLocator, Reporter, Tracer } from '@aurelia/kernel';
+import {
+  IIndexable,
+  IServiceLocator,
+  Reporter,
+  Tracer,
+} from '@aurelia/kernel';
+
 import { IExpression } from '../ast';
-import { LifecycleFlags, State } from '../flags';
-import { IBinding, ILifecycle } from '../lifecycle';
-import { IObservable, IScope } from '../observation';
+import {
+  LifecycleFlags,
+  State,
+} from '../flags';
+import {
+  IBinding,
+  ILifecycle,
+} from '../lifecycle';
+import {
+  IObservable,
+  IScope,
+} from '../observation';
 import { IObserverLocator } from '../observation/observer-locator';
-import { connectable, IConnectableBinding, IPartialConnectableBinding } from './connectable';
+import {
+  connectable,
+  IConnectableBinding,
+  IPartialConnectableBinding,
+} from './connectable';
 
 const slice = Array.prototype.slice;
 
@@ -12,12 +31,10 @@ export interface LetBinding extends IConnectableBinding {}
 
 @connectable()
 export class LetBinding implements IPartialConnectableBinding {
-  public id: string;
-  public $nextBinding: IBinding;
-  public $prevBinding: IBinding;
+  public id!: number;
   public $state: State;
   public $lifecycle: ILifecycle;
-  public $scope: IScope;
+  public $scope?: IScope;
 
   public locator: IServiceLocator;
   public observerLocator: IObserverLocator;
@@ -27,13 +44,17 @@ export class LetBinding implements IPartialConnectableBinding {
 
   private readonly toViewModel: boolean;
 
-  constructor(sourceExpression: IExpression, targetProperty: string, observerLocator: IObserverLocator, locator: IServiceLocator, toViewModel: boolean = false) {
+  constructor(
+    sourceExpression: IExpression,
+    targetProperty: string,
+    observerLocator: IObserverLocator,
+    locator: IServiceLocator,
+    toViewModel: boolean = false,
+  ) {
     connectable.assignIdTo(this);
-    this.$nextBinding = null;
-    this.$prevBinding = null;
     this.$state = State.none;
     this.$lifecycle = locator.get(ILifecycle);
-    this.$scope = null;
+    this.$scope = void 0;
 
     this.locator = locator;
     this.observerLocator = observerLocator;
@@ -54,7 +75,7 @@ export class LetBinding implements IPartialConnectableBinding {
     if (flags & LifecycleFlags.updateTargetInstance) {
       const { target, targetProperty } = this as {target: IIndexable; targetProperty: string};
       const previousValue: unknown = target[targetProperty];
-      const newValue: unknown = this.sourceExpression.evaluate(flags, this.$scope, this.locator);
+      const newValue: unknown = this.sourceExpression.evaluate(flags, this.$scope!, this.locator);
       if (newValue !== previousValue) {
         target[targetProperty] = newValue;
       }
@@ -105,9 +126,9 @@ export class LetBinding implements IPartialConnectableBinding {
 
     const sourceExpression = this.sourceExpression;
     if (sourceExpression.unbind) {
-      sourceExpression.unbind(flags, this.$scope, this);
+      sourceExpression.unbind(flags, this.$scope!, this);
     }
-    this.$scope = null;
+    this.$scope = void 0;
     this.unobserve(true);
 
     // remove isBound and isUnbinding flags

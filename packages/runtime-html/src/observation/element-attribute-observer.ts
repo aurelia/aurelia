@@ -1,12 +1,13 @@
 import {
   DOM,
-  IBatchedCollectionSubscriber,
   IBindingTargetObserver,
   ILifecycle,
   IObserverLocator,
-  IPropertySubscriber,
+  ISubscriber,
+  ISubscriberCollection,
   LifecycleFlags,
-  targetObserver
+  Priority,
+  subscriberCollection,
 } from '@aurelia/runtime';
 
 export interface IHtmlElement extends HTMLElement {
@@ -20,104 +21,95 @@ export interface ElementMutationSubscription {
 
 export interface AttributeObserver extends
   IBindingTargetObserver<IHtmlElement, string>,
-  IBatchedCollectionSubscriber,
-  IPropertySubscriber { }
+  ISubscriber,
+  ISubscriberCollection { }
 
 /**
  * Observer for handling two-way binding with attributes
  * Has different strategy for class/style and normal attributes
  * TODO: handle SVG/attributes with namespace
  */
-@targetObserver('')
+@subscriberCollection()
 export class AttributeObserver implements AttributeObserver, ElementMutationSubscription {
+  public readonly lifecycle: ILifecycle;
+  public readonly observerLocator: IObserverLocator;
 
-  // observation related properties
-  public readonly isDOMObserver: true;
-  public readonly persistentFlags: LifecycleFlags;
-  public observerLocator: IObserverLocator;
-  public lifecycle: ILifecycle;
+  public readonly obj: IHtmlElement;
+  public readonly propertyKey: string;
+  public readonly targetAttribute: string;
   public currentValue: unknown;
-  public currentFlags: LifecycleFlags;
   public oldValue: unknown;
-  public defaultValue: unknown;
 
-  // DOM related properties
-  public obj: IHtmlElement;
-  private readonly targetAttribute: string;
+  public hasChanges: boolean;
+  public priority: Priority;
 
   constructor(
-    flags: LifecycleFlags,
     lifecycle: ILifecycle,
     observerLocator: IObserverLocator,
     element: Element,
+    propertyKey: string,
     targetAttribute: string,
-    targetKey: string
   ) {
-    this.isDOMObserver = true;
-    this.persistentFlags = flags & LifecycleFlags.persistentBindingFlags;
     this.observerLocator = observerLocator;
     this.lifecycle = lifecycle;
+
     this.obj = element as IHtmlElement;
+    this.propertyKey = propertyKey;
     this.targetAttribute = targetAttribute;
-    if (targetAttribute === 'class') {
-      this.handleMutationCore = this.handleMutationClassName;
-      this.setValueCore = this.setValueCoreClassName;
-      this.getValue = this.getValueClassName;
-    } else if (targetAttribute === 'style') {
-      this.handleMutationCore = this.handleMutationInlineStyle;
-      this.setValueCore = this.setValueCoreInlineStyle;
-      this.getValue = this.getValueInlineStyle;
-    }
-    this.propertyKey = targetKey;
+    this.currentValue = null;
+    this.oldValue = null;
+
+    this.hasChanges = false;
+    this.priority = Priority.propagate;
   }
 
   public getValue(): unknown {
-    return this.obj.getAttribute(this.propertyKey);
+    return this.currentValue;
   }
 
-  public getValueInlineStyle(): string {
-    return this.obj.style.getPropertyValue(this.propertyKey);
-  }
-  public getValueClassName(): boolean {
-    return this.obj.classList.contains(this.propertyKey);
-  }
-
-  public setValueCore(newValue: unknown, flags: LifecycleFlags): void {
-    const obj = this.obj;
-    const targetAttribute = this.targetAttribute;
-    if (newValue === null || newValue === undefined) {
-      obj.removeAttribute(targetAttribute);
-    } else {
-      obj.setAttribute(targetAttribute, newValue as string);
+  public setValue(newValue: unknown, flags: LifecycleFlags): void {
+    this.currentValue = newValue;
+    this.hasChanges = newValue !== this.oldValue;
+    if ((flags & LifecycleFlags.fromBind) > 0) {
+      this.flushRAF(flags);
     }
   }
-  public setValueCoreInlineStyle(value: unknown): void {
-    let priority = '';
 
-    if (typeof value === 'string' && value.indexOf('!important') !== -1) {
-      priority = 'important';
-      value = value.replace('!important', '');
-    }
-    this.obj.style.setProperty(this.propertyKey, value as string, priority);
-  }
-  public setValueCoreClassName(newValue: unknown): void {
-    const className = this.propertyKey;
-    const classList = this.obj.classList;
-    // Why is class attribute observer setValue look different with class attribute accessor?
-    // ==============
-    // For class list
-    // newValue is simply checked if truthy or falsy
-    // and toggle the class accordingly
-    // -- the rule of this is quite different to normal attribute
-    //
-    // for class attribute, observer is different in a way that it only observe a particular class at a time
-    // this also comes from syntax, where it would typically be my-class.class="someProperty"
-    //
-    // so there is no need for separating class by space and add all of them like class accessor
-    if (newValue) {
-      classList.add(className);
-    } else {
-      classList.remove(className);
+  public flushRAF(flags: LifecycleFlags): void {
+    if (this.hasChanges) {
+      this.hasChanges = false;
+      const { currentValue } = this;
+      this.oldValue = currentValue;
+      switch (this.targetAttribute) {
+        case 'class': {
+          // Why is class attribute observer setValue look different with class attribute accessor?
+          // ==============
+          // For class list
+          // newValue is simply checked if truthy or falsy
+          // and toggle the class accordingly
+          // -- the rule of this is quite different to normal attribute
+          //
+          // for class attribute, observer is different in a way that it only observe a particular class at a time
+          // this also comes from syntax, where it would typically be my-class.class="someProperty"
+          //
+          // so there is no need for separating class by space and add all of them like class accessor
+          if (!!currentValue) {
+            this.obj.classList.add(this.propertyKey);
+          } else {
+            this.obj.classList.remove(this.propertyKey);
+          }
+          break;
+        }
+        case 'style': {
+          let priority = '';
+          let newValue = currentValue as string;
+          if (typeof newValue === 'string' && newValue.includes('!important')) {
+            priority = 'important';
+            newValue = newValue.replace('!important', '');
+          }
+          this.obj.style.setProperty(this.propertyKey, newValue, priority);
+        }
+      }
     }
   }
 
@@ -125,51 +117,55 @@ export class AttributeObserver implements AttributeObserver, ElementMutationSubs
     let shouldProcess = false;
     for (let i = 0, ii = mutationRecords.length; ii > i; ++i) {
       const record = mutationRecords[i];
-      if (record.type === 'attributes' && record.attributeName === this.targetAttribute) {
+      if (record.type === 'attributes' && record.attributeName === this.propertyKey) {
         shouldProcess = true;
         break;
       }
     }
+
     if (shouldProcess) {
-      this.handleMutationCore();
-    }
-  }
-  public handleMutationCore(): void {
-    const newValue = this.obj.getAttribute(this.targetAttribute);
-    if (newValue !== this.currentValue) {
-      this.currentValue = newValue;
-      this.setValue(newValue, LifecycleFlags.none);
-    }
-  }
-  public handleMutationInlineStyle(): void {
-    const css = this.obj.style;
-    const rule = this.propertyKey;
-    const newValue = css.getPropertyValue(rule);
-    if (newValue !== this.currentValue) {
-      this.currentValue = newValue;
-      this.setValue(newValue, LifecycleFlags.none);
-    }
-  }
-  public handleMutationClassName(): void {
-    const className = this.propertyKey;
-    const newValue = this.obj.classList.contains(className);
-    if (newValue !== this.currentValue) {
-      this.currentValue = newValue;
-      this.setValue(newValue, LifecycleFlags.none);
+      let newValue;
+      switch (this.targetAttribute) {
+        case 'class':
+          newValue = this.obj.classList.contains(this.propertyKey);
+          break;
+        case 'style':
+          newValue = this.obj.style.getPropertyValue(this.propertyKey);
+          break;
+        default:
+          throw new Error(`Unsupported targetAttribute: ${this.targetAttribute}`);
+      }
+
+      if (newValue !== this.currentValue) {
+        const { currentValue } = this;
+        this.currentValue = this.oldValue = newValue;
+        this.hasChanges = false;
+        this.callSubscribers(newValue, currentValue, LifecycleFlags.fromDOMEvent);
+      }
     }
   }
 
-  public subscribe(subscriber: IPropertySubscriber): void {
+  public subscribe(subscriber: ISubscriber): void {
     if (!this.hasSubscribers()) {
+      this.currentValue = this.oldValue = this.obj.getAttribute(this.propertyKey);
       startObservation(this.obj, this);
     }
     this.addSubscriber(subscriber);
   }
 
-  public unsubscribe(subscriber: IPropertySubscriber): void {
-    if (this.removeSubscriber(subscriber) && !this.hasSubscribers()) {
+  public unsubscribe(subscriber: ISubscriber): void {
+    this.removeSubscriber(subscriber);
+    if (!this.hasSubscribers()) {
       stopObservation(this.obj, this);
     }
+  }
+
+  public bind(flags: LifecycleFlags): void {
+    this.lifecycle.enqueueRAF(this.flushRAF, this, this.priority);
+  }
+
+  public unbind(flags: LifecycleFlags): void {
+    this.lifecycle.dequeueRAF(this.flushRAF, this);
   }
 }
 
@@ -178,8 +174,9 @@ const startObservation = (element: IHtmlElement, subscription: ElementMutationSu
     element.$eMObservers = new Set();
   }
   if (element.$mObserver === undefined) {
-    element.$mObserver = DOM.createNodeObserver(
+    element.$mObserver = DOM.createNodeObserver!(
       element,
+      // @ts-ignore
       handleMutation,
       { attributes: true }
     ) as MutationObserver;
@@ -192,7 +189,7 @@ const stopObservation = (element: IHtmlElement, subscription: ElementMutationSub
   if ($eMObservers.delete(subscription)) {
     if ($eMObservers.size === 0) {
       element.$mObserver.disconnect();
-      element.$mObserver = undefined;
+      element.$mObserver = undefined!;
     }
     return true;
   }

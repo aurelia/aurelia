@@ -1,4 +1,10 @@
-import { DI, IContainer, IResolver, PLATFORM, Reporter } from '@aurelia/kernel';
+import {
+  DI,
+  IContainer,
+  IResolver,
+  PLATFORM,
+  Reporter,
+} from '@aurelia/kernel';
 
 export interface INode extends Object { }
 
@@ -14,6 +20,11 @@ export interface IRenderLocation<T extends INode = INode> extends INode {
  * Represents a DocumentFragment
  */
 export interface INodeSequence<T extends INode = INode> extends INode {
+  readonly isMounted: boolean;
+  readonly isLinked: boolean;
+
+  readonly next?: INodeSequence<T>;
+
   /**
    * The nodes of this sequence.
    */
@@ -39,9 +50,15 @@ export interface INodeSequence<T extends INode = INode> extends INode {
   appendTo(parent: T): void;
 
   /**
-   * Remove this sequence from its parent.
+   * Remove this sequence from the DOM.
    */
   remove(): void;
+
+  addToLinked(): void;
+
+  unlink(): void;
+
+  link(next: INodeSequence<T> | IRenderLocation<T> | undefined): void;
 }
 
 export const IDOM = DI.createInterface<IDOM>('IDOM').noDefault();
@@ -151,13 +168,19 @@ export const DOM: IDOM & {
 // It's used in various places to avoid null and to encode
 // the explicit idea of "no view".
 const emptySequence: INodeSequence = {
+  isMounted: false,
+  isLinked: false,
+  next: void 0,
   childNodes: PLATFORM.emptyArray,
-  firstChild: null,
-  lastChild: null,
+  firstChild: null!,
+  lastChild: null!,
   findTargets(): ArrayLike<INode> { return PLATFORM.emptyArray; },
   insertBefore(refNode: INode): void { /*do nothing*/ },
   appendTo(parent: INode): void { /*do nothing*/ },
-  remove(): void { /*do nothing*/ }
+  remove(): void { /*do nothing*/ },
+  addToLinked(): void { /*do nothing*/ },
+  unlink(): void { /*do nothing*/ },
+  link(next: INodeSequence | IRenderLocation | undefined): void { /*do nothing*/ },
 };
 
 export const NodeSequence = {

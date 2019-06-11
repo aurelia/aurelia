@@ -1,11 +1,11 @@
 // NOTE: this file is currently not in use
 
 import { inject } from '@aurelia/kernel';
-import { bindable, customElement } from '@aurelia/runtime';
+import { bindable, customElement, INode } from '@aurelia/runtime';
 import { NavRoute } from '../nav-route';
 import { Router } from '../router';
 
-@inject(Router, Element)
+@inject(Router, INode)
 @customElement({
   name: 'au-nav', template:
     `<template>

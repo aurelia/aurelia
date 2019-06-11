@@ -11,6 +11,9 @@ export interface IRenderLocation<T extends INode = INode> extends INode {
  * Represents a DocumentFragment
  */
 export interface INodeSequence<T extends INode = INode> extends INode {
+    readonly isMounted: boolean;
+    readonly isLinked: boolean;
+    readonly next?: INodeSequence<T>;
     /**
      * The nodes of this sequence.
      */
@@ -30,9 +33,12 @@ export interface INodeSequence<T extends INode = INode> extends INode {
      */
     appendTo(parent: T): void;
     /**
-     * Remove this sequence from its parent.
+     * Remove this sequence from the DOM.
      */
     remove(): void;
+    addToLinked(): void;
+    unlink(): void;
+    link(next: INodeSequence<T> | IRenderLocation<T> | undefined): void;
 }
 export declare const IDOM: import("@aurelia/kernel").InterfaceSymbol<IDOM<INode>>;
 export interface IDOM<T extends INode = INode> {

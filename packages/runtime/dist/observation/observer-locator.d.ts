@@ -25,6 +25,6 @@ export interface ITargetAccessorLocator {
 }
 export declare const ITargetAccessorLocator: import("@aurelia/kernel").InterfaceSymbol<ITargetAccessorLocator>;
 declare type RepeatableCollection = IObservedMap | IObservedSet | IObservedArray | null | undefined | number;
-export declare function getCollectionObserver(flags: LifecycleFlags, lifecycle: ILifecycle, collection: RepeatableCollection): CollectionObserver;
+export declare function getCollectionObserver(flags: LifecycleFlags, lifecycle: ILifecycle, collection: RepeatableCollection): CollectionObserver | undefined;
 export {};
 //# sourceMappingURL=observer-locator.d.ts.map

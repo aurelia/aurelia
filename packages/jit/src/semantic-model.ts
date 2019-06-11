@@ -76,31 +76,41 @@ export class TemplateControllerSymbol implements IResourceAttributeSymbol, IPare
   public flags: SymbolFlags;
   public res: string;
   public partName: string | null;
-  public physicalNode: INode | null;
+  public physicalNode: INode;
   public syntax: AttrSyntax;
-  public template: IParentNodeSymbol | null;
-  public templateController: TemplateControllerSymbol | null;
+  public template: IParentNodeSymbol;
+  public templateController: TemplateControllerSymbol;
   public marker: INode;
 
   private _bindings: BindingSymbol[] | null;
   public get bindings(): BindingSymbol[] {
-    if (this._bindings === null) {
+    if (this._bindings == null) {
       this._bindings = [];
       this.flags |= SymbolFlags.hasBindings;
     }
     return this._bindings;
   }
 
+  private _parts: ReplacePartSymbol[] | null;
+  public get parts(): ReplacePartSymbol[] {
+    if (this._parts == null) {
+      this._parts = [];
+      this.flags |= SymbolFlags.hasParts;
+    }
+    return this._parts;
+  }
+
   constructor(dom: IDOM, syntax: AttrSyntax, info: AttrInfo, partName: string | null) {
     this.flags = SymbolFlags.isTemplateController | SymbolFlags.hasMarker;
     this.res = info.name;
     this.partName = partName;
-    this.physicalNode = null;
+    this.physicalNode = null!;
     this.syntax = syntax;
-    this.template = null;
-    this.templateController = null;
+    this.template = null!;
+    this.templateController = null!;
     this.marker = createMarker(dom);
     this._bindings = null;
+    this._parts = null;
   }
 }
 
@@ -113,16 +123,16 @@ export class TemplateControllerSymbol implements IResourceAttributeSymbol, IPare
 export class ReplacePartSymbol implements ISymbolWithTemplate {
   public flags: SymbolFlags;
   public name: string;
-  public physicalNode: INode | null;
+  public physicalNode: INode;
   public parent: IParentNodeSymbol | null;
-  public template: IParentNodeSymbol | null;
+  public template: IParentNodeSymbol;
 
   constructor(name: string) {
     this.flags = SymbolFlags.isReplacePart;
     this.name = name;
-    this.physicalNode = null;
+    this.physicalNode = null!;
     this.parent = null;
-    this.template = null;
+    this.template = null!;
   }
 }
 
@@ -136,7 +146,7 @@ export class CustomAttributeSymbol implements IAttributeSymbol, IResourceAttribu
 
   private _bindings: BindingSymbol[] | null;
   public get bindings(): BindingSymbol[] {
-    if (this._bindings === null) {
+    if (this._bindings == null) {
       this._bindings = [];
       this.flags |= SymbolFlags.hasBindings;
     }
@@ -216,13 +226,13 @@ export class CustomElementSymbol implements IElementSymbol, ISymbolWithBindings,
   public physicalNode: INode;
   public bindables: Record<string, BindableInfo>;
   public isTarget: true;
-  public templateController: TemplateControllerSymbol | null;
+  public templateController: TemplateControllerSymbol;
   public isContainerless: boolean;
-  public marker: INode | null;
+  public marker: INode;
 
   private _attributes: IAttributeSymbol[] | null;
   public get attributes(): IAttributeSymbol[] {
-    if (this._attributes === null) {
+    if (this._attributes == null) {
       this._attributes = [];
       this.flags |= SymbolFlags.hasAttributes;
     }
@@ -231,7 +241,7 @@ export class CustomElementSymbol implements IElementSymbol, ISymbolWithBindings,
 
   private _bindings: BindingSymbol[] | null;
   public get bindings(): BindingSymbol[] {
-    if (this._bindings === null) {
+    if (this._bindings == null) {
       this._bindings = [];
       this.flags |= SymbolFlags.hasBindings;
     }
@@ -240,7 +250,7 @@ export class CustomElementSymbol implements IElementSymbol, ISymbolWithBindings,
 
   private _childNodes: INodeSymbol[] | null;
   public get childNodes(): INodeSymbol[] {
-    if (this._childNodes === null) {
+    if (this._childNodes == null) {
       this._childNodes = [];
       this.flags |= SymbolFlags.hasChildNodes;
     }
@@ -249,7 +259,7 @@ export class CustomElementSymbol implements IElementSymbol, ISymbolWithBindings,
 
   private _parts: ReplacePartSymbol[] | null;
   public get parts(): ReplacePartSymbol[] {
-    if (this._parts === null) {
+    if (this._parts == null) {
       this._parts = [];
       this.flags |= SymbolFlags.hasParts;
     }
@@ -262,14 +272,14 @@ export class CustomElementSymbol implements IElementSymbol, ISymbolWithBindings,
     this.physicalNode = node;
     this.bindables = info.bindables;
     this.isTarget = true;
-    this.templateController = null;
+    this.templateController = null!;
     if (info.containerless) {
       this.isContainerless = true;
       this.marker = createMarker(dom);
       this.flags |= SymbolFlags.hasMarker;
     } else {
       this.isContainerless = false;
-      this.marker = null;
+      this.marker = null!;
     }
     this._attributes = null;
     this._bindings = null;
@@ -286,7 +296,7 @@ export class LetElementSymbol implements INodeSymbol, ISymbolWithBindings, ISymb
 
   private _bindings: BindingSymbol[] | null;
   public get bindings(): BindingSymbol[] {
-    if (this._bindings === null) {
+    if (this._bindings == null) {
       this._bindings = [];
       this.flags |= SymbolFlags.hasBindings;
     }
@@ -311,12 +321,12 @@ export class PlainElementSymbol implements IElementSymbol {
   public flags: SymbolFlags;
   public physicalNode: INode;
   public isTarget: boolean;
-  public templateController: TemplateControllerSymbol | null;
+  public templateController: TemplateControllerSymbol;
   public hasSlots?: boolean;
 
   private _attributes: IAttributeSymbol[] | null;
   public get attributes(): IAttributeSymbol[] {
-    if (this._attributes === null) {
+    if (this._attributes == null) {
       this._attributes = [];
       this.flags |= SymbolFlags.hasAttributes;
     }
@@ -325,7 +335,7 @@ export class PlainElementSymbol implements IElementSymbol {
 
   private _childNodes: INodeSymbol[] | null;
   public get childNodes(): INodeSymbol[] {
-    if (this._childNodes === null) {
+    if (this._childNodes == null) {
       this._childNodes = [];
       this.flags |= SymbolFlags.hasChildNodes;
     }
@@ -336,7 +346,7 @@ export class PlainElementSymbol implements IElementSymbol {
     this.flags = SymbolFlags.isPlainElement;
     this.physicalNode = node;
     this.isTarget = false;
-    this.templateController = null;
+    this.templateController = null!;
     this._attributes = null;
     this._childNodes = null;
   }

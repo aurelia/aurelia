@@ -17,16 +17,28 @@ this.au.jitHtmlBrowser = (function (exports, jit, jitHtml, kernel, runtimeHtmlBr
        * Apply this configuration to the provided container.
        */
       register(container) {
+          if (kernel.Profiler.enabled) {
+              enter();
+          }
           runtimeHtmlBrowser.BasicConfiguration
               .register(container)
               .register(...jit.DefaultBindingLanguage, ...jit.DefaultBindingSyntax, ...jit.DefaultComponents, ...jitHtml.DefaultBindingLanguage, ...jitHtml.DefaultComponents);
+          if (kernel.Profiler.enabled) {
+              leave();
+          }
           return container;
       },
       /**
        * Create a new container with this configuration applied to it.
        */
       createContainer() {
+          if (kernel.Profiler.enabled) {
+              enter();
+          }
           const container = this.register(kernel.DI.createContainer());
+          if (kernel.Profiler.enabled) {
+              leave();
+          }
           return container;
       }
   };

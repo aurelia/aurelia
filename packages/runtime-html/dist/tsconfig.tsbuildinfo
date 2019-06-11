@@ -1,0 +1,1746 @@
+{
+  "program": {
+    "fileInfos": {
+      "/home/circleci/repo/node_modules/typescript/lib/lib.es5.d.ts": {
+        "version": "c8665e66018917580e71792b91022bcaf53fb946fab4aaf8dfb0738ed564db88",
+        "signature": "c8665e66018917580e71792b91022bcaf53fb946fab4aaf8dfb0738ed564db88"
+      },
+      "/home/circleci/repo/node_modules/typescript/lib/lib.es2015.d.ts": {
+        "version": "7994d44005046d1413ea31d046577cdda33b8b2470f30281fd9c8b3c99fe2d96",
+        "signature": "7994d44005046d1413ea31d046577cdda33b8b2470f30281fd9c8b3c99fe2d96"
+      },
+      "/home/circleci/repo/node_modules/typescript/lib/lib.es2016.d.ts": {
+        "version": "5f217838d25704474d9ef93774f04164889169ca31475fe423a9de6758f058d1",
+        "signature": "5f217838d25704474d9ef93774f04164889169ca31475fe423a9de6758f058d1"
+      },
+      "/home/circleci/repo/node_modules/typescript/lib/lib.es2017.d.ts": {
+        "version": "459097c7bdd88fc5731367e56591e4f465f2c9de81a35427a7bd473165c34743",
+        "signature": "459097c7bdd88fc5731367e56591e4f465f2c9de81a35427a7bd473165c34743"
+      },
+      "/home/circleci/repo/node_modules/typescript/lib/lib.es2018.d.ts": {
+        "version": "2edd3ddf436ef8e12df876dcae4ecd6a8748577944c477bf4b20d5596e0c9843",
+        "signature": "2edd3ddf436ef8e12df876dcae4ecd6a8748577944c477bf4b20d5596e0c9843"
+      },
+      "/home/circleci/repo/node_modules/typescript/lib/lib.es2019.d.ts": {
+        "version": "6549045e428b5f483bc82d6e8f6d01a72decd0cb7387f650f365f2210fe10808",
+        "signature": "6549045e428b5f483bc82d6e8f6d01a72decd0cb7387f650f365f2210fe10808"
+      },
+      "/home/circleci/repo/node_modules/typescript/lib/lib.esnext.d.ts": {
+        "version": "1c05c805f62c1c06a60b7812cd8de2dff7a5bda2218ce5edda5d9d298b1c48e1",
+        "signature": "1c05c805f62c1c06a60b7812cd8de2dff7a5bda2218ce5edda5d9d298b1c48e1"
+      },
+      "/home/circleci/repo/node_modules/typescript/lib/lib.dom.d.ts": {
+        "version": "6994c583b66862deca24d7bbf77297d95b9d3da8160dbd9beef6b847cf7c1376",
+        "signature": "6994c583b66862deca24d7bbf77297d95b9d3da8160dbd9beef6b847cf7c1376"
+      },
+      "/home/circleci/repo/node_modules/typescript/lib/lib.es2015.core.d.ts": {
+        "version": "384f66a3422d80014c51de2682159bb26f1e35854029880ccd5f6d1f00e6a36d",
+        "signature": "384f66a3422d80014c51de2682159bb26f1e35854029880ccd5f6d1f00e6a36d"
+      },
+      "/home/circleci/repo/node_modules/typescript/lib/lib.es2015.collection.d.ts": {
+        "version": "dd94d8ef48c562389eb58af8df3a3a34d11367f7c818192aa5f16470d469e3f0",
+        "signature": "dd94d8ef48c562389eb58af8df3a3a34d11367f7c818192aa5f16470d469e3f0"
+      },
+      "/home/circleci/repo/node_modules/typescript/lib/lib.es2015.generator.d.ts": {
+        "version": "828413486bdcaa342558e8e4570b1b287b776cb61b4b70b0214bd10c5d9a94c3",
+        "signature": "828413486bdcaa342558e8e4570b1b287b776cb61b4b70b0214bd10c5d9a94c3"
+      },
+      "/home/circleci/repo/node_modules/typescript/lib/lib.es2015.iterable.d.ts": {
+        "version": "4d1f39313a169b8599b8817688f504b56ba8204c2ebafd03f66ff77ddb1899a4",
+        "signature": "4d1f39313a169b8599b8817688f504b56ba8204c2ebafd03f66ff77ddb1899a4"
+      },
+      "/home/circleci/repo/node_modules/typescript/lib/lib.es2015.promise.d.ts": {
+        "version": "7c07d934680d0e33275a44d22fb11a4ff31d46c8c26a8d056828a478753f1efe",
+        "signature": "7c07d934680d0e33275a44d22fb11a4ff31d46c8c26a8d056828a478753f1efe"
+      },
+      "/home/circleci/repo/node_modules/typescript/lib/lib.es2015.proxy.d.ts": {
+        "version": "5e72f949a89717db444e3bd9433468890068bb21a5638d8ab15a1359e05e54fe",
+        "signature": "5e72f949a89717db444e3bd9433468890068bb21a5638d8ab15a1359e05e54fe"
+      },
+      "/home/circleci/repo/node_modules/typescript/lib/lib.es2015.reflect.d.ts": {
+        "version": "f5b242136ae9bfb1cc99a5971cccc44e99947ae6b5ef6fd8aa54b5ade553b976",
+        "signature": "f5b242136ae9bfb1cc99a5971cccc44e99947ae6b5ef6fd8aa54b5ade553b976"
+      },
+      "/home/circleci/repo/node_modules/typescript/lib/lib.es2015.symbol.d.ts": {
+        "version": "9ae2860252d6b5f16e2026d8a2c2069db7b2a3295e98b6031d01337b96437230",
+        "signature": "9ae2860252d6b5f16e2026d8a2c2069db7b2a3295e98b6031d01337b96437230"
+      },
+      "/home/circleci/repo/node_modules/typescript/lib/lib.es2015.symbol.wellknown.d.ts": {
+        "version": "3e0a459888f32b42138d5a39f706ff2d55d500ab1031e0988b5568b0f67c2303",
+        "signature": "3e0a459888f32b42138d5a39f706ff2d55d500ab1031e0988b5568b0f67c2303"
+      },
+      "/home/circleci/repo/node_modules/typescript/lib/lib.es2016.array.include.d.ts": {
+        "version": "3f96f1e570aedbd97bf818c246727151e873125d0512e4ae904330286c721bc0",
+        "signature": "3f96f1e570aedbd97bf818c246727151e873125d0512e4ae904330286c721bc0"
+      },
+      "/home/circleci/repo/node_modules/typescript/lib/lib.es2017.object.d.ts": {
+        "version": "ff8ad203e83338289b0f5defc1a5b5c253fb7d251b464db497383f915a0df3f4",
+        "signature": "ff8ad203e83338289b0f5defc1a5b5c253fb7d251b464db497383f915a0df3f4"
+      },
+      "/home/circleci/repo/node_modules/typescript/lib/lib.es2017.sharedmemory.d.ts": {
+        "version": "b8667586a618c5cf64523d4e500ae39e781428abfb28f3de441fc66b56144b6f",
+        "signature": "b8667586a618c5cf64523d4e500ae39e781428abfb28f3de441fc66b56144b6f"
+      },
+      "/home/circleci/repo/node_modules/typescript/lib/lib.es2017.string.d.ts": {
+        "version": "21df2e0059f14dcb4c3a0e125859f6b6ff01332ee24b0065a741d121250bc71c",
+        "signature": "21df2e0059f14dcb4c3a0e125859f6b6ff01332ee24b0065a741d121250bc71c"
+      },
+      "/home/circleci/repo/node_modules/typescript/lib/lib.es2017.intl.d.ts": {
+        "version": "c1759cb171c7619af0d2234f2f8fb2a871ee88e956e2ed91bb61778e41f272c6",
+        "signature": "c1759cb171c7619af0d2234f2f8fb2a871ee88e956e2ed91bb61778e41f272c6"
+      },
+      "/home/circleci/repo/node_modules/typescript/lib/lib.es2017.typedarrays.d.ts": {
+        "version": "28569d59e07d4378cb3d54979c4c60f9f06305c9bb6999ffe6cab758957adc46",
+        "signature": "28569d59e07d4378cb3d54979c4c60f9f06305c9bb6999ffe6cab758957adc46"
+      },
+      "/home/circleci/repo/node_modules/typescript/lib/lib.es2018.asynciterable.d.ts": {
+        "version": "42102aaeb1bfec213be1e9777466a6d551eeba8567fed18c0cdbca8c35e3c6e4",
+        "signature": "42102aaeb1bfec213be1e9777466a6d551eeba8567fed18c0cdbca8c35e3c6e4"
+      },
+      "/home/circleci/repo/node_modules/typescript/lib/lib.es2018.intl.d.ts": {
+        "version": "1b820b57379c726f94af50cd60053674af53ff9d079c1563cc70071e8b757dd0",
+        "signature": "1b820b57379c726f94af50cd60053674af53ff9d079c1563cc70071e8b757dd0"
+      },
+      "/home/circleci/repo/node_modules/typescript/lib/lib.es2018.promise.d.ts": {
+        "version": "efe049114bad1035b0aa9a4a0359f50ab776e3897c411521e51d3013079cbd62",
+        "signature": "efe049114bad1035b0aa9a4a0359f50ab776e3897c411521e51d3013079cbd62"
+      },
+      "/home/circleci/repo/node_modules/typescript/lib/lib.es2018.regexp.d.ts": {
+        "version": "e7780d04cd4120ee554c665829db2bbdd6b947cbaa3c150b7d9ea74df3beb2e8",
+        "signature": "e7780d04cd4120ee554c665829db2bbdd6b947cbaa3c150b7d9ea74df3beb2e8"
+      },
+      "/home/circleci/repo/node_modules/typescript/lib/lib.es2019.array.d.ts": {
+        "version": "fc7c02b980e7dda0ed14d57ee71705c09efc51ec6286a10b971a25a3bb29262b",
+        "signature": "fc7c02b980e7dda0ed14d57ee71705c09efc51ec6286a10b971a25a3bb29262b"
+      },
+      "/home/circleci/repo/node_modules/typescript/lib/lib.es2019.string.d.ts": {
+        "version": "669427ac10ef9f52b6a7a502a66670eaabba675e0a660eb971041bd73c9894e3",
+        "signature": "669427ac10ef9f52b6a7a502a66670eaabba675e0a660eb971041bd73c9894e3"
+      },
+      "/home/circleci/repo/node_modules/typescript/lib/lib.es2019.symbol.d.ts": {
+        "version": "7a842c21e0fe143eb3ad4d689a1470bab5ed9bc7fd7223fe8b56cbae27038d62",
+        "signature": "7a842c21e0fe143eb3ad4d689a1470bab5ed9bc7fd7223fe8b56cbae27038d62"
+      },
+      "/home/circleci/repo/node_modules/typescript/lib/lib.esnext.intl.d.ts": {
+        "version": "f6e0c89daaf72eac38dfb1d5ef0972183f7f26a68da15bfe5bcb7cfccf0c7db8",
+        "signature": "f6e0c89daaf72eac38dfb1d5ef0972183f7f26a68da15bfe5bcb7cfccf0c7db8"
+      },
+      "/home/circleci/repo/node_modules/typescript/lib/lib.esnext.bigint.d.ts": {
+        "version": "63b66918290d794f73832a6d0325be5026236674fe8c0cb0b68d162000d7bbe8",
+        "signature": "63b66918290d794f73832a6d0325be5026236674fe8c0cb0b68d162000d7bbe8"
+      },
+      "/home/circleci/repo/node_modules/tslib/tslib.d.ts": {
+        "version": "8a0a25ded65c0cb7b03c0109bc6ca580eeb8435bb073c5fb89cd043c9a1ee42e",
+        "signature": "8a0a25ded65c0cb7b03c0109bc6ca580eeb8435bb073c5fb89cd043c9a1ee42e"
+      },
+      "/home/circleci/repo/packages/kernel/dist/interfaces.d.ts": {
+        "version": "0d03d1293ea1d488abb70631c3174bf38a2c2522316a2945efbff097fb7f617e",
+        "signature": "0d03d1293ea1d488abb70631c3174bf38a2c2522316a2945efbff097fb7f617e"
+      },
+      "/home/circleci/repo/packages/kernel/dist/di.d.ts": {
+        "version": "8ee3263d3d6588030c9186a25e57efa356d3335dfae8d4906fd865d6e1fcf5e7",
+        "signature": "8ee3263d3d6588030c9186a25e57efa356d3335dfae8d4906fd865d6e1fcf5e7"
+      },
+      "/home/circleci/repo/packages/kernel/dist/path.d.ts": {
+        "version": "df8f848b1cd834606c182c50be4904b733de38769f742c43a5fae8b5bd3c23dd",
+        "signature": "df8f848b1cd834606c182c50be4904b733de38769f742c43a5fae8b5bd3c23dd"
+      },
+      "/home/circleci/repo/packages/kernel/dist/platform.d.ts": {
+        "version": "5f23fef232200fb3cf160b86c0a2c9808aacbf6748b64e367078c81d81e6194f",
+        "signature": "5f23fef232200fb3cf160b86c0a2c9808aacbf6748b64e367078c81d81e6194f"
+      },
+      "/home/circleci/repo/packages/kernel/dist/reporter.d.ts": {
+        "version": "40e77727b3795848e271ae2b32c48602638562b9172fad55ef554480a577f942",
+        "signature": "40e77727b3795848e271ae2b32c48602638562b9172fad55ef554480a577f942"
+      },
+      "/home/circleci/repo/packages/kernel/dist/profiler.d.ts": {
+        "version": "f721e591098f1046b548b8d1aeee91a225e46307b37861d8303fdf4b2c59a578",
+        "signature": "f721e591098f1046b548b8d1aeee91a225e46307b37861d8303fdf4b2c59a578"
+      },
+      "/home/circleci/repo/packages/kernel/dist/resource.d.ts": {
+        "version": "4ecda712bcbb63d361fd9f51d873ba568c55ee79799c10dfc7fdda11414565cc",
+        "signature": "4ecda712bcbb63d361fd9f51d873ba568c55ee79799c10dfc7fdda11414565cc"
+      },
+      "/home/circleci/repo/packages/kernel/dist/eventaggregator.d.ts": {
+        "version": "69b319e84b16d4aba545cdd682a9ff40c2514ec4bedecd11741b2df39571cbb5",
+        "signature": "69b319e84b16d4aba545cdd682a9ff40c2514ec4bedecd11741b2df39571cbb5"
+      },
+      "/home/circleci/repo/packages/kernel/dist/functions.d.ts": {
+        "version": "80f353c14eb4cd1ef9972edeac1ab711060f2b51a9843ba381c2f5d360aa64e0",
+        "signature": "80f353c14eb4cd1ef9972edeac1ab711060f2b51a9843ba381c2f5d360aa64e0"
+      },
+      "/home/circleci/repo/packages/kernel/dist/index.d.ts": {
+        "version": "0d1a7e8a322e0aa036ca4a5da01848b9c0494dfee9a3cba2459b51eb58ec5e35",
+        "signature": "0d1a7e8a322e0aa036ca4a5da01848b9c0494dfee9a3cba2459b51eb58ec5e35"
+      },
+      "/home/circleci/repo/packages/runtime/dist/flags.d.ts": {
+        "version": "6880e4ea1752da77152a5a972f13c3d85eade665159c9bf34881ac2098f3030a",
+        "signature": "6880e4ea1752da77152a5a972f13c3d85eade665159c9bf34881ac2098f3030a"
+      },
+      "/home/circleci/repo/packages/runtime/dist/definitions.d.ts": {
+        "version": "1b5ec6c73ecdc86f5356588e66e50162f034c8d2bb2e23a16ff716bffd9df263",
+        "signature": "1b5ec6c73ecdc86f5356588e66e50162f034c8d2bb2e23a16ff716bffd9df263"
+      },
+      "/home/circleci/repo/packages/runtime/dist/dom.d.ts": {
+        "version": "505b6002bd01a443a36780faa6e203b042706b1fd00f7a48fea0cadad8ab3736",
+        "signature": "505b6002bd01a443a36780faa6e203b042706b1fd00f7a48fea0cadad8ab3736"
+      },
+      "/home/circleci/repo/packages/runtime/dist/lifecycle-task.d.ts": {
+        "version": "e7a51c70d2229706c74c5596747eb0ab5dc8a42e9b99b43c3364c1309b57914c",
+        "signature": "e7a51c70d2229706c74c5596747eb0ab5dc8a42e9b99b43c3364c1309b57914c"
+      },
+      "/home/circleci/repo/packages/runtime/dist/resources/custom-element.d.ts": {
+        "version": "0725a61aed266f9515ebdd3400b6f07ade01bbc1d0c380bae247c2a90ffbf2c2",
+        "signature": "0725a61aed266f9515ebdd3400b6f07ade01bbc1d0c380bae247c2a90ffbf2c2"
+      },
+      "/home/circleci/repo/packages/runtime/dist/lifecycle.d.ts": {
+        "version": "d577486f176c651eabf860c3dcfbe151e6529dcb3e74c1c0c2e849f458ece8b3",
+        "signature": "d577486f176c651eabf860c3dcfbe151e6529dcb3e74c1c0c2e849f458ece8b3"
+      },
+      "/home/circleci/repo/packages/runtime/dist/observation.d.ts": {
+        "version": "00a9c5f13a73c8270e7efb6ca49e784082c6ef88ad4b993cd5244c39961c3463",
+        "signature": "00a9c5f13a73c8270e7efb6ca49e784082c6ef88ad4b993cd5244c39961c3463"
+      },
+      "/home/circleci/repo/packages/runtime/dist/ast.d.ts": {
+        "version": "3aa84a8ea10ef15321282ba16e31efe64413e67a3160f8a582ed6af2b46a9c77",
+        "signature": "3aa84a8ea10ef15321282ba16e31efe64413e67a3160f8a582ed6af2b46a9c77"
+      },
+      "/home/circleci/repo/packages/runtime/dist/resources/binding-behavior.d.ts": {
+        "version": "d4708d09923b77eeb167fd0d2f7a8117ec41e64355999fc23005ebcba37010bb",
+        "signature": "d4708d09923b77eeb167fd0d2f7a8117ec41e64355999fc23005ebcba37010bb"
+      },
+      "/home/circleci/repo/packages/runtime/dist/observation/observer-locator.d.ts": {
+        "version": "c8630a1808f3f43b31566aea29106b578d510782e03d8f3aa6a9cd1634537125",
+        "signature": "c8630a1808f3f43b31566aea29106b578d510782e03d8f3aa6a9cd1634537125"
+      },
+      "/home/circleci/repo/packages/runtime/dist/binding/connectable.d.ts": {
+        "version": "8be13fd8ded416163c4edd5a64c4e6616b8ff931915bf9f0475a7d91bcaa5251",
+        "signature": "8be13fd8ded416163c4edd5a64c4e6616b8ff931915bf9f0475a7d91bcaa5251"
+      },
+      "/home/circleci/repo/packages/runtime/dist/binding/ast.d.ts": {
+        "version": "5cbd95999e5968ce8788353831203980a05c1777393814f03ca177fa66504cd7",
+        "signature": "5cbd95999e5968ce8788353831203980a05c1777393814f03ca177fa66504cd7"
+      },
+      "/home/circleci/repo/packages/runtime/dist/binding/binding.d.ts": {
+        "version": "66b8f324b4c18c413e4aca6b5419e3cc74ec1293e28f3b13a44d56ef8e1fc00d",
+        "signature": "66b8f324b4c18c413e4aca6b5419e3cc74ec1293e28f3b13a44d56ef8e1fc00d"
+      },
+      "/home/circleci/repo/packages/runtime/dist/binding/call.d.ts": {
+        "version": "ecb91402ff11df9947138141c33a4fa5883ded317c96278ccd1884efd1f4ddcb",
+        "signature": "ecb91402ff11df9947138141c33a4fa5883ded317c96278ccd1884efd1f4ddcb"
+      },
+      "/home/circleci/repo/packages/runtime/dist/binding/expression-parser.d.ts": {
+        "version": "972a1d511b353706fd944c42953a0a5f65edaff90a66ab63250943305813cbe2",
+        "signature": "972a1d511b353706fd944c42953a0a5f65edaff90a66ab63250943305813cbe2"
+      },
+      "/home/circleci/repo/packages/runtime/dist/binding/interpolation-binding.d.ts": {
+        "version": "64cf5dceef4e2d8ee0aaefb36db50b86d51d27c84ac712051068e899231228e9",
+        "signature": "64cf5dceef4e2d8ee0aaefb36db50b86d51d27c84ac712051068e899231228e9"
+      },
+      "/home/circleci/repo/packages/runtime/dist/binding/let-binding.d.ts": {
+        "version": "1c8e352e364db1ec646145d42cf10ff737483baf8522bfa8bdc3b0e0a66addcd",
+        "signature": "1c8e352e364db1ec646145d42cf10ff737483baf8522bfa8bdc3b0e0a66addcd"
+      },
+      "/home/circleci/repo/packages/runtime/dist/binding/ref.d.ts": {
+        "version": "cbe51804d7ab04c83b469adb840de049c5bf6e02aba700f43256a3eb5c1528af",
+        "signature": "cbe51804d7ab04c83b469adb840de049c5bf6e02aba700f43256a3eb5c1528af"
+      },
+      "/home/circleci/repo/packages/runtime/dist/observation/collection-length-observer.d.ts": {
+        "version": "26ed72d00b69933f9334ed4ce411fcc0e1e259ce70a22cb9c982a52f958e3cda",
+        "signature": "26ed72d00b69933f9334ed4ce411fcc0e1e259ce70a22cb9c982a52f958e3cda"
+      },
+      "/home/circleci/repo/packages/runtime/dist/observation/array-observer.d.ts": {
+        "version": "fc6dced9f3fd0b5e49bb60bd49b445930a7236f92813210646dd8d2641aa50e8",
+        "signature": "fc6dced9f3fd0b5e49bb60bd49b445930a7236f92813210646dd8d2641aa50e8"
+      },
+      "/home/circleci/repo/packages/runtime/dist/observation/collection-size-observer.d.ts": {
+        "version": "4957f30acb11278b20f18d55cd474d5f0d27ed1d89ecddbb11eec97af4fd1f03",
+        "signature": "4957f30acb11278b20f18d55cd474d5f0d27ed1d89ecddbb11eec97af4fd1f03"
+      },
+      "/home/circleci/repo/packages/runtime/dist/observation/map-observer.d.ts": {
+        "version": "d0a0be2608bd8129cfcc2669b2f26afbf637bdcebb493bf870726ca30c30bd7d",
+        "signature": "d0a0be2608bd8129cfcc2669b2f26afbf637bdcebb493bf870726ca30c30bd7d"
+      },
+      "/home/circleci/repo/packages/runtime/dist/observation/set-observer.d.ts": {
+        "version": "ec3310fed6f71ee75cf98feea3920d5ddf397535ac0b529045adc2ef360753e7",
+        "signature": "ec3310fed6f71ee75cf98feea3920d5ddf397535ac0b529045adc2ef360753e7"
+      },
+      "/home/circleci/repo/packages/runtime/dist/observation/binding-context.d.ts": {
+        "version": "656fb8981ec15d98c18866bf97cd274c93689316aa8170d6920cfcae434874ab",
+        "signature": "656fb8981ec15d98c18866bf97cd274c93689316aa8170d6920cfcae434874ab"
+      },
+      "/home/circleci/repo/packages/runtime/dist/observation/computed-observer.d.ts": {
+        "version": "fd8988f30f51a4f0c51410c2c58774c5ede6f1b61ad181dbbe7bc583f69ebeaa",
+        "signature": "fd8988f30f51a4f0c51410c2c58774c5ede6f1b61ad181dbbe7bc583f69ebeaa"
+      },
+      "/home/circleci/repo/packages/runtime/dist/observation/dirty-checker.d.ts": {
+        "version": "ad3d39831e10a212b48f86fc69acb267fa56c381c04746b11c8f65124556ba9a",
+        "signature": "ad3d39831e10a212b48f86fc69acb267fa56c381c04746b11c8f65124556ba9a"
+      },
+      "/home/circleci/repo/packages/runtime/dist/observation/primitive-observer.d.ts": {
+        "version": "91b4c445884ce7a616a615f9495364e3764d4e8e4b3a866a52eccf5e48c2a647",
+        "signature": "91b4c445884ce7a616a615f9495364e3764d4e8e4b3a866a52eccf5e48c2a647"
+      },
+      "/home/circleci/repo/packages/runtime/dist/observation/property-accessor.d.ts": {
+        "version": "14aa43b0c6c0a9295d1781efdb23e4b04db8810c1da000fe62a596bebeb91d7f",
+        "signature": "14aa43b0c6c0a9295d1781efdb23e4b04db8810c1da000fe62a596bebeb91d7f"
+      },
+      "/home/circleci/repo/packages/runtime/dist/observation/proxy-observer.d.ts": {
+        "version": "d4bae3fd76074b03a504a8223a86379ae2fb86327cb299c743a751fd6406b7f2",
+        "signature": "d4bae3fd76074b03a504a8223a86379ae2fb86327cb299c743a751fd6406b7f2"
+      },
+      "/home/circleci/repo/packages/runtime/dist/observation/self-observer.d.ts": {
+        "version": "026be3c13a429fede7e2522209ed8f5516f1e5fe36f353b1e1d90d709a279f97",
+        "signature": "026be3c13a429fede7e2522209ed8f5516f1e5fe36f353b1e1d90d709a279f97"
+      },
+      "/home/circleci/repo/packages/runtime/dist/observation/setter-observer.d.ts": {
+        "version": "1bcff880cacac3ec8730f95a612b5ab898e7472fdf61c95f2b898462f7e35942",
+        "signature": "1bcff880cacac3ec8730f95a612b5ab898e7472fdf61c95f2b898462f7e35942"
+      },
+      "/home/circleci/repo/packages/runtime/dist/observation/signaler.d.ts": {
+        "version": "44ea41da27c8b345fd29f52ad0e9d99b5ec77c99254805a0a6f093f997b6ddcb",
+        "signature": "44ea41da27c8b345fd29f52ad0e9d99b5ec77c99254805a0a6f093f997b6ddcb"
+      },
+      "/home/circleci/repo/packages/runtime/dist/observation/subscriber-collection.d.ts": {
+        "version": "21e4d0ef78d85389ca838d742f7224df1307d4ff67661f695870ac2cd5f58c96",
+        "signature": "21e4d0ef78d85389ca838d742f7224df1307d4ff67661f695870ac2cd5f58c96"
+      },
+      "/home/circleci/repo/packages/runtime/dist/resources/binding-behaviors/binding-mode.d.ts": {
+        "version": "1287fa4e0944b243477c10e15586909e622b49e8f9350ca18f0be4a5b5fa6a4f",
+        "signature": "1287fa4e0944b243477c10e15586909e622b49e8f9350ca18f0be4a5b5fa6a4f"
+      },
+      "/home/circleci/repo/packages/runtime/dist/resources/binding-behaviors/debounce.d.ts": {
+        "version": "09894bb0e9fe98b5768fb400f10b2cbb4da6d770216c419f8394b3ee2a5f7260",
+        "signature": "09894bb0e9fe98b5768fb400f10b2cbb4da6d770216c419f8394b3ee2a5f7260"
+      },
+      "/home/circleci/repo/packages/runtime/dist/resources/binding-behaviors/priority.d.ts": {
+        "version": "632dc6c13485ba95c91ad48abe491d284a3d029e96ce21c678410084aac183c1",
+        "signature": "632dc6c13485ba95c91ad48abe491d284a3d029e96ce21c678410084aac183c1"
+      },
+      "/home/circleci/repo/packages/runtime/dist/resources/binding-behaviors/signals.d.ts": {
+        "version": "eb2bd81e4e2c1560074ae8f97c0c5ecc3a10c8556140693d37b9ec578aac0d5d",
+        "signature": "eb2bd81e4e2c1560074ae8f97c0c5ecc3a10c8556140693d37b9ec578aac0d5d"
+      },
+      "/home/circleci/repo/packages/runtime/dist/resources/binding-behaviors/throttle.d.ts": {
+        "version": "7ee363e782cb845aef1ae1a9369245213e22a70013dcb97fef20630c5f4faebc",
+        "signature": "7ee363e782cb845aef1ae1a9369245213e22a70013dcb97fef20630c5f4faebc"
+      },
+      "/home/circleci/repo/packages/runtime/dist/resources/custom-attribute.d.ts": {
+        "version": "4372aa98d5e7a7472a00e65cd745ce3945d29d861ac49a819bf36438d3ef54d2",
+        "signature": "4372aa98d5e7a7472a00e65cd745ce3945d29d861ac49a819bf36438d3ef54d2"
+      },
+      "/home/circleci/repo/packages/runtime/dist/resources/custom-attributes/if.d.ts": {
+        "version": "10843b7b43e72e07d8d0f55e146397fd2fcd9f60784f3ed6998c04542b5fa272",
+        "signature": "10843b7b43e72e07d8d0f55e146397fd2fcd9f60784f3ed6998c04542b5fa272"
+      },
+      "/home/circleci/repo/packages/runtime/dist/resources/custom-attributes/repeat.d.ts": {
+        "version": "69b88a1592c0630106d2e272402ed8104b81cdf25d8c46fe536a608836af1f2d",
+        "signature": "69b88a1592c0630106d2e272402ed8104b81cdf25d8c46fe536a608836af1f2d"
+      },
+      "/home/circleci/repo/packages/runtime/dist/resources/custom-attributes/replaceable.d.ts": {
+        "version": "e18f205492d7b0f16ae1e4407190821fca72164784e2fafae4b406becdfa46bf",
+        "signature": "e18f205492d7b0f16ae1e4407190821fca72164784e2fafae4b406becdfa46bf"
+      },
+      "/home/circleci/repo/packages/runtime/dist/resources/custom-attributes/with.d.ts": {
+        "version": "5e9702ff4da88e06898d7f7297b5c0f76a2ee0f3d15ca69622119d1963fc2eeb",
+        "signature": "5e9702ff4da88e06898d7f7297b5c0f76a2ee0f3d15ca69622119d1963fc2eeb"
+      },
+      "/home/circleci/repo/packages/runtime/dist/resources/value-converter.d.ts": {
+        "version": "1ed8c0c799fa3fb6b4463a3e8c3b3726c7a746ce1ae96803084769f2a9a9e42f",
+        "signature": "1ed8c0c799fa3fb6b4463a3e8c3b3726c7a746ce1ae96803084769f2a9a9e42f"
+      },
+      "/home/circleci/repo/packages/runtime/dist/resources/value-converters/sanitize.d.ts": {
+        "version": "ecab030458c89b8b6d59982c70a11254022eba1c0b41fff106b3b2a1c4ffcb3d",
+        "signature": "ecab030458c89b8b6d59982c70a11254022eba1c0b41fff106b3b2a1c4ffcb3d"
+      },
+      "/home/circleci/repo/packages/runtime/dist/templating/bindable.d.ts": {
+        "version": "22b5f8218d8324d00cd485120c591d6d3c9e5bb1e0a7f6e73f2bb304a976bc65",
+        "signature": "22b5f8218d8324d00cd485120c591d6d3c9e5bb1e0a7f6e73f2bb304a976bc65"
+      },
+      "/home/circleci/repo/packages/runtime/dist/rendering-engine.d.ts": {
+        "version": "48d7eed30136a08414e008ec691e60f5c4ecc2bd5b7ee5f71927e4aa77398be8",
+        "signature": "48d7eed30136a08414e008ec691e60f5c4ecc2bd5b7ee5f71927e4aa77398be8"
+      },
+      "/home/circleci/repo/packages/runtime/dist/templating/controller.d.ts": {
+        "version": "db5ef0ae0045df9846e523a1b452c8347dfc64afdc040ccf47e4f3354eaccbc2",
+        "signature": "db5ef0ae0045df9846e523a1b452c8347dfc64afdc040ccf47e4f3354eaccbc2"
+      },
+      "/home/circleci/repo/packages/runtime/dist/templating/view.d.ts": {
+        "version": "25215a527d6adde53330ca95323157ed4023833e2fd1e9d054ee87afa6faa784",
+        "signature": "25215a527d6adde53330ca95323157ed4023833e2fd1e9d054ee87afa6faa784"
+      },
+      "/home/circleci/repo/packages/runtime/dist/activator.d.ts": {
+        "version": "f7bd685a4ad8b2ef3e23c4ca5d706e4431f756425965d7e23cbb187063346719",
+        "signature": "f7bd685a4ad8b2ef3e23c4ca5d706e4431f756425965d7e23cbb187063346719"
+      },
+      "/home/circleci/repo/packages/runtime/dist/aurelia.d.ts": {
+        "version": "8e77f4d5ca83c1123d06a66298f6be709403b03ace14afe33b9dbcbf91856b05",
+        "signature": "8e77f4d5ca83c1123d06a66298f6be709403b03ace14afe33b9dbcbf91856b05"
+      },
+      "/home/circleci/repo/packages/runtime/dist/configuration.d.ts": {
+        "version": "18dd583db7dfd6defbb677a904096eb3cdc9530d9bc4c345418fcf6c86794074",
+        "signature": "18dd583db7dfd6defbb677a904096eb3cdc9530d9bc4c345418fcf6c86794074"
+      },
+      "/home/circleci/repo/packages/runtime/dist/instructions.d.ts": {
+        "version": "8b5196e894e55dfe373fe30f4adf194f9760d7ebafbcb0def151697163eacc43",
+        "signature": "8b5196e894e55dfe373fe30f4adf194f9760d7ebafbcb0def151697163eacc43"
+      },
+      "/home/circleci/repo/packages/runtime/dist/renderer.d.ts": {
+        "version": "8d3215df96ca505d9a4b60b463bc491ff4d27990a94e3dfd1a9279501cb9076f",
+        "signature": "8d3215df96ca505d9a4b60b463bc491ff4d27990a94e3dfd1a9279501cb9076f"
+      },
+      "/home/circleci/repo/packages/runtime/dist/index.d.ts": {
+        "version": "4ed5a288d47d5dcea2fcbf42b294eb91b1e17d6f158cafa59927cb8184f9b404",
+        "signature": "4ed5a288d47d5dcea2fcbf42b294eb91b1e17d6f158cafa59927cb8184f9b404"
+      },
+      "/home/circleci/repo/packages/runtime-html/src/dom.ts": {
+        "version": "70497e76239d88c20d057feda03b3781497fbddf5d198dab8ac14c5fa258d6b3",
+        "signature": "1d25f526ab9878c2c64126be9c53c4099449d95e53e25ceaec3e3fc29f514dae"
+      },
+      "/home/circleci/repo/packages/runtime-html/src/observation/element-attribute-observer.ts": {
+        "version": "afc1e1224042a8e2af643fddd6f52701e7e38744681ecfe6c37010d700daf247",
+        "signature": "6128854ae90e62e08530632a7cd827776a5d97a2a90afd86c1cdc3956be6f60d"
+      },
+      "/home/circleci/repo/packages/runtime-html/src/binding/attribute.ts": {
+        "version": "b26c8f228518fed3a29099589afce63bd37522d9c2934018d9ef3d8cd0b9603b",
+        "signature": "5e7b0b03d67853b506525580b1ebfc568aced0b7cb996fa6fa4b8cfdb6e3089f"
+      },
+      "/home/circleci/repo/packages/runtime-html/src/observation/event-manager.ts": {
+        "version": "f0ef9e29c6ee871fabd5a54550b385d3a412a2b854da9010ae4103cbabadf513",
+        "signature": "a6c5ac3131923e8186d1020e4bb59f7d51bd6e3da50f8fd365d62fa0b0b45b25"
+      },
+      "/home/circleci/repo/packages/runtime-html/src/binding/listener.ts": {
+        "version": "dfc432a6079935f5fbf4903955a09ec4682b127447111b4696f8d9e5a89d3176",
+        "signature": "68f8565d5349831101a0f4fa64c659e2bc43917f0be93102465c23045fb6bf28"
+      },
+      "/home/circleci/repo/packages/runtime-html/src/definitions.ts": {
+        "version": "597f099349071da83b7383ecc4ea81678ccc39df1e720ff0dcf9a867d0591e4d",
+        "signature": "2dab501085d542894beb688c61d4e258239653e32f28f012b78ac66680e5ecac"
+      },
+      "/home/circleci/repo/packages/runtime-html/src/html-renderer.ts": {
+        "version": "fd6967a923222fb97ec88d0099fbd1417ae658aa6fb4453a91afb93c780ae891",
+        "signature": "7c40002bd780668954d7403ce1011e3f9f54436113d2d841f6fd8dbf46093cfe"
+      },
+      "/home/circleci/repo/packages/runtime-html/src/observation/attribute-ns-accessor.ts": {
+        "version": "967b40a1b520460b43616141df58803f8db3f267435e398d607faa2533f25dcd",
+        "signature": "e3a7f2a87cd3450094ea8c1847902f3bf003e1b84c4c761d5d4d62afa7ed7ebc"
+      },
+      "/home/circleci/repo/packages/runtime-html/src/observation/value-attribute-observer.ts": {
+        "version": "587f22d8a3e26d64350bcd2cb82a878919b26f7015986ba8ecd3480bfd5fc71d",
+        "signature": "ec303aaedfafad9a993eb4ebd88987509cb8ee4b4318b3a9b414832f705486c0"
+      },
+      "/home/circleci/repo/packages/runtime-html/src/observation/checked-observer.ts": {
+        "version": "9024104090f97342b4526aa470a1d62c6152806433c6536bd808d0fc18caf381",
+        "signature": "a1b738c56e6f94cb12b19d616ba3e254796830673d74e54fc033edff4b753231"
+      },
+      "/home/circleci/repo/packages/runtime-html/src/observation/class-attribute-accessor.ts": {
+        "version": "6280274fc81d5afdddf0f941774226e099589ccf6ec85e565e084a3b08b73703",
+        "signature": "d7da57fd1a2abe867c699f8588e3df6aacb8d805a550716a0f3ee6ff7b86379b"
+      },
+      "/home/circleci/repo/packages/runtime-html/src/observation/data-attribute-accessor.ts": {
+        "version": "b4e957646b40597ef418563a0b617d09c38a6c91d6bf57581f09ea8156a4d624",
+        "signature": "50db8b0fbe42d9887653b9aa79a950ee6c6f26b5f9da1c12778ae03aa7a1cf77"
+      },
+      "/home/circleci/repo/packages/runtime-html/src/observation/element-property-accessor.ts": {
+        "version": "7636110a98137397fc94ddb9b7e4e08e2f537cf715624c4ac14a5783ed7340b8",
+        "signature": "f7d6888b0eb545c0b552996a78d7d62a53498b226cab48c3cdc4a4c868a46841"
+      },
+      "/home/circleci/repo/packages/runtime-html/src/observation/select-value-observer.ts": {
+        "version": "43baed8a19c6aeb17301ed0d517bc2b335b3178d2d0db86c26b39fb424c34ec8",
+        "signature": "384a6c382ad4422a5a7c8cefeb310ff8de50fc7c3483b607aafa008121476df4"
+      },
+      "/home/circleci/repo/packages/runtime-html/src/observation/style-attribute-accessor.ts": {
+        "version": "6963e1ac3ffc409300d827a76be3b7aaa2b19da4a0d88c41d6455cd48cdc14eb",
+        "signature": "e0650482036f72e85202cda0b86803258d943a46b3ade41b465a8add99caedf5"
+      },
+      "/home/circleci/repo/packages/runtime-html/src/observation/svg-analyzer.ts": {
+        "version": "5b52cfba67fbc27deb113291c8b62ab256ff93afd40d962bbd5ee206e3bfda30",
+        "signature": "f143eb61352c36e7da764f5df395ef1d942df27e24938db3f51e51bb990e7e61"
+      },
+      "/home/circleci/repo/packages/runtime-html/src/observation/observer-locator.ts": {
+        "version": "0ddfaf2a144da174ca411c32df9169cbd186bbaadb4d8e3a5bf28279c441a4c6",
+        "signature": "375f9ff03de2deccdf0ead875b7f95823c572d0ebdb7af6f5e2bbe288d5d24cb"
+      },
+      "/home/circleci/repo/packages/runtime-html/src/projectors.ts": {
+        "version": "0e5936427225b6375311f8f6b9135cbe48473070c62702e937e5bbb6c57f9ede",
+        "signature": "fc294b754be9556c1e54a9fd69f43a92e1452d5059776c3c70907be9037e64d1"
+      },
+      "/home/circleci/repo/packages/runtime-html/src/resources/binding-behaviors/attr.ts": {
+        "version": "d2c1160ca066d849bd142f7c2b7814cb55a3d61ed6183ac6085b2b1517f72d96",
+        "signature": "e84122da59b5956a664bbdeb5087f461efd756eea85d7e07add8f971582e011d"
+      },
+      "/home/circleci/repo/packages/runtime-html/src/resources/binding-behaviors/self.ts": {
+        "version": "37dcc157713ace0f68165ae0fa78d11b022fd77d486014ef6810dee63a654e73",
+        "signature": "dcca1ca2cf96e2b83d20ccee5445c0a67e74669cbceeab1df05a1464f551e58d"
+      },
+      "/home/circleci/repo/packages/runtime-html/src/resources/binding-behaviors/update-trigger.ts": {
+        "version": "f59e5a5d653e7c69935cf954f31c40c72ef3c232435a2b894880c8de8f6999d7",
+        "signature": "efc6fdb2d31f8c0f2917dec550f75c71fb4b0c1c74532c5ebdae2dbac0130296"
+      },
+      "/home/circleci/repo/packages/runtime-html/src/instructions.ts": {
+        "version": "8fabff79ae202fcf84f5e256f5aa4df6a3b940aa47fbd9d601847d88b47ab484",
+        "signature": "d922a108d887b0942aea07aac7ea0b6e932e92e6ed6a24ddf1ec3df170abe2a5"
+      },
+      "/home/circleci/repo/packages/runtime-html/src/create-element.ts": {
+        "version": "364d83770c6675e299e6ab6001b4111046d11edaf633e9b4a7d5440a01ec3e6f",
+        "signature": "7e4989eedada04dfd8b985041ed46fb8d764820cf636c12ddd38ed1209bd2f24"
+      },
+      "/home/circleci/repo/packages/runtime-html/src/resources/custom-elements/compose.ts": {
+        "version": "f84c894d36231a40146f1d2be04485339af8199ecb9ad1db217e09a0ddc08c66",
+        "signature": "94020e0b65dfe471301d7cf0cb50158f3102e6e4d3cceea9aa24b3c63e1f4e15"
+      },
+      "/home/circleci/repo/packages/runtime-html/src/configuration.ts": {
+        "version": "85571a6fbda0cc160933a248464497ca5da54c97400950e4875d689a1fc2fdcc",
+        "signature": "e2b5028f83dd416f20235566d0bd8c0e7643d1029327dd0129d8bbcd00208dcb"
+      },
+      "/home/circleci/repo/packages/runtime-html/src/index.ts": {
+        "version": "20b85de39b8126ec507faef68081b616ad6c8690d4008f9b26a08624c9f7e263",
+        "signature": "575cfd683d6d2ea0172163eef52f625dd99e1d10b8b4d6a76bb48bb3c4714dc5"
+      }
+    },
+    "options": {
+      "lib": [
+        "lib.esnext.d.ts",
+        "lib.dom.d.ts"
+      ],
+      "target": 5,
+      "module": 6,
+      "moduleResolution": 2,
+      "importHelpers": true,
+      "experimentalDecorators": true,
+      "rootDir": "/home/circleci/repo/packages/runtime-html/src",
+      "declaration": true,
+      "declarationMap": true,
+      "sourceMap": true,
+      "composite": true,
+      "noEmitOnError": true,
+      "skipLibCheck": true,
+      "preserveConstEnums": true,
+      "stripInternal": true,
+      "strict": true,
+      "types": [],
+      "declarationDir": "/home/circleci/repo/packages/runtime-html/dist",
+      "outDir": "/home/circleci/repo/packages/runtime-html/dist/build",
+      "configFilePath": "/home/circleci/repo/packages/runtime-html/tsconfig.json"
+    },
+    "referencedMap": {
+      "/home/circleci/repo/packages/kernel/dist/di.d.ts": [
+        "/home/circleci/repo/packages/kernel/dist/interfaces.d.ts"
+      ],
+      "/home/circleci/repo/packages/kernel/dist/platform.d.ts": [
+        "/home/circleci/repo/packages/kernel/dist/interfaces.d.ts"
+      ],
+      "/home/circleci/repo/packages/kernel/dist/resource.d.ts": [
+        "/home/circleci/repo/packages/kernel/dist/di.d.ts",
+        "/home/circleci/repo/packages/kernel/dist/interfaces.d.ts"
+      ],
+      "/home/circleci/repo/packages/kernel/dist/eventaggregator.d.ts": [
+        "/home/circleci/repo/packages/kernel/dist/interfaces.d.ts"
+      ],
+      "/home/circleci/repo/packages/kernel/dist/index.d.ts": [
+        "/home/circleci/repo/packages/kernel/dist/di.d.ts",
+        "/home/circleci/repo/packages/kernel/dist/interfaces.d.ts",
+        "/home/circleci/repo/packages/kernel/dist/path.d.ts",
+        "/home/circleci/repo/packages/kernel/dist/platform.d.ts",
+        "/home/circleci/repo/packages/kernel/dist/reporter.d.ts",
+        "/home/circleci/repo/packages/kernel/dist/profiler.d.ts",
+        "/home/circleci/repo/packages/kernel/dist/resource.d.ts",
+        "/home/circleci/repo/packages/kernel/dist/eventaggregator.d.ts",
+        "/home/circleci/repo/packages/kernel/dist/functions.d.ts"
+      ],
+      "/home/circleci/repo/packages/runtime/dist/definitions.d.ts": [
+        "/home/circleci/repo/packages/kernel/dist/index.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/ast.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/flags.d.ts"
+      ],
+      "/home/circleci/repo/packages/runtime/dist/dom.d.ts": [
+        "/home/circleci/repo/packages/kernel/dist/index.d.ts"
+      ],
+      "/home/circleci/repo/packages/runtime/dist/resources/custom-element.d.ts": [
+        "/home/circleci/repo/packages/kernel/dist/index.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/definitions.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/dom.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/lifecycle.d.ts"
+      ],
+      "/home/circleci/repo/packages/runtime/dist/lifecycle.d.ts": [
+        "/home/circleci/repo/packages/kernel/dist/index.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/definitions.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/dom.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/flags.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/lifecycle-task.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/observation.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/resources/custom-element.d.ts"
+      ],
+      "/home/circleci/repo/packages/runtime/dist/observation.d.ts": [
+        "/home/circleci/repo/packages/kernel/dist/index.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/flags.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/lifecycle.d.ts"
+      ],
+      "/home/circleci/repo/packages/runtime/dist/ast.d.ts": [
+        "/home/circleci/repo/packages/kernel/dist/index.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/flags.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/observation.d.ts"
+      ],
+      "/home/circleci/repo/packages/runtime/dist/resources/binding-behavior.d.ts": [
+        "/home/circleci/repo/packages/kernel/dist/index.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/flags.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/lifecycle.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/observation.d.ts"
+      ],
+      "/home/circleci/repo/packages/runtime/dist/observation/observer-locator.d.ts": [
+        "/home/circleci/repo/packages/runtime/dist/flags.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/lifecycle.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/observation.d.ts",
+        "/home/circleci/repo/packages/kernel/dist/index.d.ts"
+      ],
+      "/home/circleci/repo/packages/runtime/dist/binding/connectable.d.ts": [
+        "/home/circleci/repo/packages/kernel/dist/index.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/ast.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/lifecycle.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/observation.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/observation/observer-locator.d.ts"
+      ],
+      "/home/circleci/repo/packages/runtime/dist/binding/ast.d.ts": [
+        "/home/circleci/repo/packages/kernel/dist/index.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/ast.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/flags.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/lifecycle.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/observation.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/resources/binding-behavior.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/binding/connectable.d.ts"
+      ],
+      "/home/circleci/repo/packages/runtime/dist/binding/binding.d.ts": [
+        "/home/circleci/repo/packages/kernel/dist/index.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/ast.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/flags.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/lifecycle.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/observation.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/observation/observer-locator.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/binding/connectable.d.ts"
+      ],
+      "/home/circleci/repo/packages/runtime/dist/binding/call.d.ts": [
+        "/home/circleci/repo/packages/kernel/dist/index.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/ast.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/flags.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/observation.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/observation/observer-locator.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/binding/connectable.d.ts"
+      ],
+      "/home/circleci/repo/packages/runtime/dist/binding/expression-parser.d.ts": [
+        "/home/circleci/repo/packages/runtime/dist/ast.d.ts",
+        "/home/circleci/repo/packages/kernel/dist/index.d.ts"
+      ],
+      "/home/circleci/repo/packages/runtime/dist/binding/interpolation-binding.d.ts": [
+        "/home/circleci/repo/packages/kernel/dist/index.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/ast.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/flags.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/lifecycle.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/observation.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/observation/observer-locator.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/binding/connectable.d.ts"
+      ],
+      "/home/circleci/repo/packages/runtime/dist/binding/let-binding.d.ts": [
+        "/home/circleci/repo/packages/kernel/dist/index.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/ast.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/flags.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/lifecycle.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/observation.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/observation/observer-locator.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/binding/connectable.d.ts"
+      ],
+      "/home/circleci/repo/packages/runtime/dist/binding/ref.d.ts": [
+        "/home/circleci/repo/packages/kernel/dist/index.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/ast.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/flags.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/lifecycle.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/observation.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/binding/connectable.d.ts"
+      ],
+      "/home/circleci/repo/packages/runtime/dist/observation/collection-length-observer.d.ts": [
+        "/home/circleci/repo/packages/runtime/dist/flags.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/observation.d.ts"
+      ],
+      "/home/circleci/repo/packages/runtime/dist/observation/array-observer.d.ts": [
+        "/home/circleci/repo/packages/runtime/dist/flags.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/lifecycle.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/observation.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/observation/collection-length-observer.d.ts"
+      ],
+      "/home/circleci/repo/packages/runtime/dist/observation/collection-size-observer.d.ts": [
+        "/home/circleci/repo/packages/runtime/dist/flags.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/observation.d.ts"
+      ],
+      "/home/circleci/repo/packages/runtime/dist/observation/map-observer.d.ts": [
+        "/home/circleci/repo/packages/runtime/dist/flags.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/lifecycle.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/observation.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/observation/collection-size-observer.d.ts"
+      ],
+      "/home/circleci/repo/packages/runtime/dist/observation/set-observer.d.ts": [
+        "/home/circleci/repo/packages/runtime/dist/flags.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/lifecycle.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/observation.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/observation/collection-size-observer.d.ts"
+      ],
+      "/home/circleci/repo/packages/runtime/dist/observation/binding-context.d.ts": [
+        "/home/circleci/repo/packages/kernel/dist/index.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/flags.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/lifecycle.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/observation.d.ts"
+      ],
+      "/home/circleci/repo/packages/runtime/dist/observation/computed-observer.d.ts": [
+        "/home/circleci/repo/packages/runtime/dist/observation.d.ts"
+      ],
+      "/home/circleci/repo/packages/runtime/dist/observation/dirty-checker.d.ts": [
+        "/home/circleci/repo/packages/runtime/dist/flags.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/observation.d.ts",
+        "/home/circleci/repo/packages/kernel/dist/index.d.ts"
+      ],
+      "/home/circleci/repo/packages/runtime/dist/observation/primitive-observer.d.ts": [
+        "/home/circleci/repo/packages/kernel/dist/index.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/observation.d.ts"
+      ],
+      "/home/circleci/repo/packages/runtime/dist/observation/property-accessor.d.ts": [
+        "/home/circleci/repo/packages/runtime/dist/observation.d.ts"
+      ],
+      "/home/circleci/repo/packages/runtime/dist/observation/proxy-observer.d.ts": [
+        "/home/circleci/repo/packages/runtime/dist/flags.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/observation.d.ts"
+      ],
+      "/home/circleci/repo/packages/runtime/dist/observation/self-observer.d.ts": [
+        "/home/circleci/repo/packages/kernel/dist/index.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/flags.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/lifecycle.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/observation.d.ts"
+      ],
+      "/home/circleci/repo/packages/runtime/dist/observation/setter-observer.d.ts": [
+        "/home/circleci/repo/packages/kernel/dist/index.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/flags.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/lifecycle.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/observation.d.ts"
+      ],
+      "/home/circleci/repo/packages/runtime/dist/observation/signaler.d.ts": [
+        "/home/circleci/repo/packages/runtime/dist/flags.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/observation.d.ts",
+        "/home/circleci/repo/packages/kernel/dist/index.d.ts"
+      ],
+      "/home/circleci/repo/packages/runtime/dist/resources/binding-behaviors/binding-mode.d.ts": [
+        "/home/circleci/repo/packages/kernel/dist/index.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/binding/binding.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/flags.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/observation.d.ts"
+      ],
+      "/home/circleci/repo/packages/runtime/dist/resources/binding-behaviors/debounce.d.ts": [
+        "/home/circleci/repo/packages/kernel/dist/index.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/flags.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/lifecycle.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/observation.d.ts"
+      ],
+      "/home/circleci/repo/packages/runtime/dist/resources/binding-behaviors/priority.d.ts": [
+        "/home/circleci/repo/packages/kernel/dist/index.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/binding/binding.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/lifecycle.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/resources/binding-behavior.d.ts"
+      ],
+      "/home/circleci/repo/packages/runtime/dist/resources/binding-behaviors/signals.d.ts": [
+        "/home/circleci/repo/packages/kernel/dist/index.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/binding/binding.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/flags.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/observation.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/observation/signaler.d.ts"
+      ],
+      "/home/circleci/repo/packages/runtime/dist/resources/binding-behaviors/throttle.d.ts": [
+        "/home/circleci/repo/packages/kernel/dist/index.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/flags.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/lifecycle.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/observation.d.ts"
+      ],
+      "/home/circleci/repo/packages/runtime/dist/resources/custom-attribute.d.ts": [
+        "/home/circleci/repo/packages/kernel/dist/index.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/definitions.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/lifecycle.d.ts"
+      ],
+      "/home/circleci/repo/packages/runtime/dist/resources/custom-attributes/if.d.ts": [
+        "/home/circleci/repo/packages/kernel/dist/index.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/definitions.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/dom.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/flags.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/lifecycle.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/lifecycle-task.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/observation.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/resources/custom-attribute.d.ts"
+      ],
+      "/home/circleci/repo/packages/runtime/dist/resources/custom-attributes/repeat.d.ts": [
+        "/home/circleci/repo/packages/kernel/dist/index.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/binding/ast.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/definitions.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/dom.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/flags.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/lifecycle.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/lifecycle-task.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/observation.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/resources/custom-attribute.d.ts"
+      ],
+      "/home/circleci/repo/packages/runtime/dist/resources/custom-attributes/replaceable.d.ts": [
+        "/home/circleci/repo/packages/kernel/dist/index.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/definitions.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/dom.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/flags.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/lifecycle.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/lifecycle-task.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/resources/custom-attribute.d.ts"
+      ],
+      "/home/circleci/repo/packages/runtime/dist/resources/custom-attributes/with.d.ts": [
+        "/home/circleci/repo/packages/kernel/dist/index.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/definitions.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/dom.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/flags.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/lifecycle.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/observation.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/resources/custom-attribute.d.ts"
+      ],
+      "/home/circleci/repo/packages/runtime/dist/resources/value-converter.d.ts": [
+        "/home/circleci/repo/packages/kernel/dist/index.d.ts"
+      ],
+      "/home/circleci/repo/packages/runtime/dist/resources/value-converters/sanitize.d.ts": [
+        "/home/circleci/repo/packages/kernel/dist/index.d.ts"
+      ],
+      "/home/circleci/repo/packages/runtime/dist/templating/bindable.d.ts": [
+        "/home/circleci/repo/packages/kernel/dist/index.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/definitions.d.ts"
+      ],
+      "/home/circleci/repo/packages/runtime/dist/rendering-engine.d.ts": [
+        "/home/circleci/repo/packages/kernel/dist/index.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/definitions.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/dom.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/flags.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/lifecycle.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/observation.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/resources/custom-element.d.ts"
+      ],
+      "/home/circleci/repo/packages/runtime/dist/templating/controller.d.ts": [
+        "/home/circleci/repo/packages/kernel/dist/index.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/definitions.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/dom.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/flags.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/lifecycle.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/lifecycle-task.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/observation.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/rendering-engine.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/resources/custom-element.d.ts"
+      ],
+      "/home/circleci/repo/packages/runtime/dist/templating/view.d.ts": [
+        "/home/circleci/repo/packages/runtime/dist/dom.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/flags.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/lifecycle.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/rendering-engine.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/definitions.d.ts"
+      ],
+      "/home/circleci/repo/packages/runtime/dist/activator.d.ts": [
+        "/home/circleci/repo/packages/kernel/dist/index.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/dom.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/flags.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/lifecycle.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/lifecycle-task.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/observation.d.ts"
+      ],
+      "/home/circleci/repo/packages/runtime/dist/aurelia.d.ts": [
+        "/home/circleci/repo/packages/kernel/dist/index.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/activator.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/dom.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/flags.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/lifecycle.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/lifecycle-task.d.ts"
+      ],
+      "/home/circleci/repo/packages/runtime/dist/configuration.d.ts": [
+        "/home/circleci/repo/packages/kernel/dist/index.d.ts"
+      ],
+      "/home/circleci/repo/packages/runtime/dist/instructions.d.ts": [
+        "/home/circleci/repo/packages/runtime/dist/ast.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/definitions.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/flags.d.ts"
+      ],
+      "/home/circleci/repo/packages/runtime/dist/renderer.d.ts": [
+        "/home/circleci/repo/packages/kernel/dist/index.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/binding/expression-parser.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/definitions.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/dom.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/flags.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/lifecycle.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/observation/observer-locator.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/rendering-engine.d.ts"
+      ],
+      "/home/circleci/repo/packages/runtime/dist/index.d.ts": [
+        "/home/circleci/repo/packages/runtime/dist/binding/ast.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/ast.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/binding/binding.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/binding/call.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/binding/connectable.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/binding/expression-parser.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/binding/interpolation-binding.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/binding/let-binding.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/binding/ref.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/observation/array-observer.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/observation/map-observer.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/observation/set-observer.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/observation/binding-context.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/observation/collection-length-observer.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/observation/collection-size-observer.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/observation/computed-observer.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/observation/dirty-checker.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/observation/observer-locator.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/observation/primitive-observer.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/observation/property-accessor.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/observation/proxy-observer.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/observation/self-observer.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/observation/setter-observer.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/observation/signaler.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/observation/subscriber-collection.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/resources/binding-behavior.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/resources/binding-behaviors/binding-mode.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/resources/binding-behaviors/debounce.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/resources/binding-behaviors/priority.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/resources/binding-behaviors/signals.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/resources/binding-behaviors/throttle.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/resources/custom-attribute.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/resources/custom-attributes/if.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/resources/custom-attributes/repeat.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/resources/custom-attributes/replaceable.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/resources/custom-attributes/with.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/resources/custom-element.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/resources/value-converter.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/resources/value-converters/sanitize.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/templating/bindable.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/templating/controller.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/templating/view.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/aurelia.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/configuration.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/definitions.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/dom.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/flags.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/instructions.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/lifecycle.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/lifecycle-task.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/observation.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/renderer.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/rendering-engine.d.ts"
+      ],
+      "/home/circleci/repo/packages/runtime-html/src/dom.ts": [
+        "/home/circleci/repo/packages/kernel/dist/index.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/index.d.ts"
+      ],
+      "/home/circleci/repo/packages/runtime-html/src/observation/element-attribute-observer.ts": [
+        "/home/circleci/repo/packages/runtime/dist/index.d.ts"
+      ],
+      "/home/circleci/repo/packages/runtime-html/src/binding/attribute.ts": [
+        "/home/circleci/repo/packages/kernel/dist/index.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/index.d.ts",
+        "/home/circleci/repo/packages/runtime-html/src/observation/element-attribute-observer.ts"
+      ],
+      "/home/circleci/repo/packages/runtime-html/src/observation/event-manager.ts": [
+        "/home/circleci/repo/packages/kernel/dist/index.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/index.d.ts"
+      ],
+      "/home/circleci/repo/packages/runtime-html/src/binding/listener.ts": [
+        "/home/circleci/repo/packages/kernel/dist/index.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/index.d.ts",
+        "/home/circleci/repo/packages/runtime-html/src/observation/event-manager.ts"
+      ],
+      "/home/circleci/repo/packages/runtime-html/src/definitions.ts": [
+        "/home/circleci/repo/packages/runtime/dist/index.d.ts"
+      ],
+      "/home/circleci/repo/packages/runtime-html/src/html-renderer.ts": [
+        "/home/circleci/repo/packages/kernel/dist/index.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/index.d.ts",
+        "/home/circleci/repo/packages/runtime-html/src/binding/attribute.ts",
+        "/home/circleci/repo/packages/runtime-html/src/binding/listener.ts",
+        "/home/circleci/repo/packages/runtime-html/src/definitions.ts",
+        "/home/circleci/repo/packages/runtime-html/src/observation/event-manager.ts"
+      ],
+      "/home/circleci/repo/packages/runtime-html/src/observation/attribute-ns-accessor.ts": [
+        "/home/circleci/repo/packages/runtime/dist/index.d.ts"
+      ],
+      "/home/circleci/repo/packages/runtime-html/src/observation/value-attribute-observer.ts": [
+        "/home/circleci/repo/packages/kernel/dist/index.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/index.d.ts",
+        "/home/circleci/repo/packages/runtime-html/src/observation/event-manager.ts"
+      ],
+      "/home/circleci/repo/packages/runtime-html/src/observation/checked-observer.ts": [
+        "/home/circleci/repo/packages/runtime/dist/index.d.ts",
+        "/home/circleci/repo/packages/runtime-html/src/observation/event-manager.ts",
+        "/home/circleci/repo/packages/runtime-html/src/observation/value-attribute-observer.ts"
+      ],
+      "/home/circleci/repo/packages/runtime-html/src/observation/class-attribute-accessor.ts": [
+        "/home/circleci/repo/packages/runtime/dist/index.d.ts"
+      ],
+      "/home/circleci/repo/packages/runtime-html/src/observation/data-attribute-accessor.ts": [
+        "/home/circleci/repo/packages/runtime/dist/index.d.ts"
+      ],
+      "/home/circleci/repo/packages/runtime-html/src/observation/element-property-accessor.ts": [
+        "/home/circleci/repo/packages/kernel/dist/index.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/index.d.ts"
+      ],
+      "/home/circleci/repo/packages/runtime-html/src/observation/select-value-observer.ts": [
+        "/home/circleci/repo/packages/runtime/dist/index.d.ts",
+        "/home/circleci/repo/packages/runtime-html/src/observation/event-manager.ts"
+      ],
+      "/home/circleci/repo/packages/runtime-html/src/observation/style-attribute-accessor.ts": [
+        "/home/circleci/repo/packages/runtime/dist/index.d.ts"
+      ],
+      "/home/circleci/repo/packages/runtime-html/src/observation/svg-analyzer.ts": [
+        "/home/circleci/repo/packages/kernel/dist/index.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/index.d.ts"
+      ],
+      "/home/circleci/repo/packages/runtime-html/src/observation/observer-locator.ts": [
+        "/home/circleci/repo/packages/kernel/dist/index.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/index.d.ts",
+        "/home/circleci/repo/packages/runtime-html/src/observation/attribute-ns-accessor.ts",
+        "/home/circleci/repo/packages/runtime-html/src/observation/checked-observer.ts",
+        "/home/circleci/repo/packages/runtime-html/src/observation/class-attribute-accessor.ts",
+        "/home/circleci/repo/packages/runtime-html/src/observation/data-attribute-accessor.ts",
+        "/home/circleci/repo/packages/runtime-html/src/observation/element-property-accessor.ts",
+        "/home/circleci/repo/packages/runtime-html/src/observation/event-manager.ts",
+        "/home/circleci/repo/packages/runtime-html/src/observation/select-value-observer.ts",
+        "/home/circleci/repo/packages/runtime-html/src/observation/style-attribute-accessor.ts",
+        "/home/circleci/repo/packages/runtime-html/src/observation/svg-analyzer.ts",
+        "/home/circleci/repo/packages/runtime-html/src/observation/value-attribute-observer.ts"
+      ],
+      "/home/circleci/repo/packages/runtime-html/src/projectors.ts": [
+        "/home/circleci/repo/packages/kernel/dist/index.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/index.d.ts"
+      ],
+      "/home/circleci/repo/packages/runtime-html/src/resources/binding-behaviors/attr.ts": [
+        "/home/circleci/repo/packages/kernel/dist/index.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/index.d.ts",
+        "/home/circleci/repo/packages/runtime-html/src/observation/data-attribute-accessor.ts"
+      ],
+      "/home/circleci/repo/packages/runtime-html/src/resources/binding-behaviors/self.ts": [
+        "/home/circleci/repo/packages/kernel/dist/index.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/index.d.ts",
+        "/home/circleci/repo/packages/runtime-html/src/binding/listener.ts",
+        "/home/circleci/repo/packages/runtime-html/src/observation/event-manager.ts"
+      ],
+      "/home/circleci/repo/packages/runtime-html/src/resources/binding-behaviors/update-trigger.ts": [
+        "/home/circleci/repo/packages/kernel/dist/index.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/index.d.ts",
+        "/home/circleci/repo/packages/runtime-html/src/observation/checked-observer.ts",
+        "/home/circleci/repo/packages/runtime-html/src/observation/event-manager.ts",
+        "/home/circleci/repo/packages/runtime-html/src/observation/select-value-observer.ts",
+        "/home/circleci/repo/packages/runtime-html/src/observation/value-attribute-observer.ts"
+      ],
+      "/home/circleci/repo/packages/runtime-html/src/instructions.ts": [
+        "/home/circleci/repo/packages/runtime/dist/index.d.ts",
+        "/home/circleci/repo/packages/runtime-html/src/definitions.ts"
+      ],
+      "/home/circleci/repo/packages/runtime-html/src/create-element.ts": [
+        "/home/circleci/repo/packages/kernel/dist/index.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/index.d.ts",
+        "/home/circleci/repo/packages/runtime-html/src/definitions.ts",
+        "/home/circleci/repo/packages/runtime-html/src/instructions.ts"
+      ],
+      "/home/circleci/repo/packages/runtime-html/src/resources/custom-elements/compose.ts": [
+        "/home/circleci/repo/packages/kernel/dist/index.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/index.d.ts",
+        "/home/circleci/repo/packages/runtime-html/src/create-element.ts"
+      ],
+      "/home/circleci/repo/packages/runtime-html/src/configuration.ts": [
+        "/home/circleci/repo/packages/kernel/dist/index.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/index.d.ts",
+        "/home/circleci/repo/packages/runtime-html/src/dom.ts",
+        "/home/circleci/repo/packages/runtime-html/src/html-renderer.ts",
+        "/home/circleci/repo/packages/runtime-html/src/observation/observer-locator.ts",
+        "/home/circleci/repo/packages/runtime-html/src/projectors.ts",
+        "/home/circleci/repo/packages/runtime-html/src/resources/binding-behaviors/attr.ts",
+        "/home/circleci/repo/packages/runtime-html/src/resources/binding-behaviors/self.ts",
+        "/home/circleci/repo/packages/runtime-html/src/resources/binding-behaviors/update-trigger.ts",
+        "/home/circleci/repo/packages/runtime-html/src/resources/custom-elements/compose.ts"
+      ],
+      "/home/circleci/repo/packages/runtime-html/src/index.ts": [
+        "/home/circleci/repo/packages/runtime-html/src/binding/listener.ts",
+        "/home/circleci/repo/packages/runtime-html/src/binding/attribute.ts",
+        "/home/circleci/repo/packages/runtime-html/src/observation/attribute-ns-accessor.ts",
+        "/home/circleci/repo/packages/runtime-html/src/observation/checked-observer.ts",
+        "/home/circleci/repo/packages/runtime-html/src/observation/class-attribute-accessor.ts",
+        "/home/circleci/repo/packages/runtime-html/src/observation/data-attribute-accessor.ts",
+        "/home/circleci/repo/packages/runtime-html/src/observation/element-property-accessor.ts",
+        "/home/circleci/repo/packages/runtime-html/src/observation/event-manager.ts",
+        "/home/circleci/repo/packages/runtime-html/src/observation/observer-locator.ts",
+        "/home/circleci/repo/packages/runtime-html/src/observation/select-value-observer.ts",
+        "/home/circleci/repo/packages/runtime-html/src/observation/style-attribute-accessor.ts",
+        "/home/circleci/repo/packages/runtime-html/src/observation/svg-analyzer.ts",
+        "/home/circleci/repo/packages/runtime-html/src/observation/value-attribute-observer.ts",
+        "/home/circleci/repo/packages/runtime-html/src/resources/binding-behaviors/attr.ts",
+        "/home/circleci/repo/packages/runtime-html/src/resources/binding-behaviors/self.ts",
+        "/home/circleci/repo/packages/runtime-html/src/resources/binding-behaviors/update-trigger.ts",
+        "/home/circleci/repo/packages/runtime-html/src/resources/custom-elements/compose.ts",
+        "/home/circleci/repo/packages/runtime-html/src/configuration.ts",
+        "/home/circleci/repo/packages/runtime-html/src/create-element.ts",
+        "/home/circleci/repo/packages/runtime-html/src/definitions.ts",
+        "/home/circleci/repo/packages/runtime-html/src/dom.ts",
+        "/home/circleci/repo/packages/runtime-html/src/instructions.ts",
+        "/home/circleci/repo/packages/runtime-html/src/projectors.ts"
+      ]
+    },
+    "exportedModulesMap": {
+      "/home/circleci/repo/packages/kernel/dist/index.d.ts": [
+        "/home/circleci/repo/packages/kernel/dist/di.d.ts",
+        "/home/circleci/repo/packages/kernel/dist/interfaces.d.ts",
+        "/home/circleci/repo/packages/kernel/dist/path.d.ts",
+        "/home/circleci/repo/packages/kernel/dist/platform.d.ts",
+        "/home/circleci/repo/packages/kernel/dist/reporter.d.ts",
+        "/home/circleci/repo/packages/kernel/dist/profiler.d.ts",
+        "/home/circleci/repo/packages/kernel/dist/resource.d.ts",
+        "/home/circleci/repo/packages/kernel/dist/eventaggregator.d.ts",
+        "/home/circleci/repo/packages/kernel/dist/functions.d.ts"
+      ],
+      "/home/circleci/repo/packages/runtime-html/src/configuration.ts": [
+        "/home/circleci/repo/packages/kernel/dist/index.d.ts"
+      ],
+      "/home/circleci/repo/packages/runtime-html/src/index.ts": [
+        "/home/circleci/repo/packages/runtime-html/src/binding/listener.ts",
+        "/home/circleci/repo/packages/runtime-html/src/binding/attribute.ts",
+        "/home/circleci/repo/packages/runtime-html/src/observation/attribute-ns-accessor.ts",
+        "/home/circleci/repo/packages/runtime-html/src/observation/checked-observer.ts",
+        "/home/circleci/repo/packages/runtime-html/src/observation/class-attribute-accessor.ts",
+        "/home/circleci/repo/packages/runtime-html/src/observation/data-attribute-accessor.ts",
+        "/home/circleci/repo/packages/runtime-html/src/observation/element-property-accessor.ts",
+        "/home/circleci/repo/packages/runtime-html/src/observation/event-manager.ts",
+        "/home/circleci/repo/packages/runtime-html/src/observation/observer-locator.ts",
+        "/home/circleci/repo/packages/runtime-html/src/observation/select-value-observer.ts",
+        "/home/circleci/repo/packages/runtime-html/src/observation/style-attribute-accessor.ts",
+        "/home/circleci/repo/packages/runtime-html/src/observation/svg-analyzer.ts",
+        "/home/circleci/repo/packages/runtime-html/src/observation/value-attribute-observer.ts",
+        "/home/circleci/repo/packages/runtime-html/src/resources/binding-behaviors/attr.ts",
+        "/home/circleci/repo/packages/runtime-html/src/resources/binding-behaviors/self.ts",
+        "/home/circleci/repo/packages/runtime-html/src/resources/binding-behaviors/update-trigger.ts",
+        "/home/circleci/repo/packages/runtime-html/src/resources/custom-elements/compose.ts",
+        "/home/circleci/repo/packages/runtime-html/src/configuration.ts",
+        "/home/circleci/repo/packages/runtime-html/src/create-element.ts",
+        "/home/circleci/repo/packages/runtime-html/src/definitions.ts",
+        "/home/circleci/repo/packages/runtime-html/src/dom.ts",
+        "/home/circleci/repo/packages/runtime-html/src/instructions.ts",
+        "/home/circleci/repo/packages/runtime-html/src/projectors.ts"
+      ],
+      "/home/circleci/repo/packages/runtime-html/src/resources/custom-elements/compose.ts": [
+        "/home/circleci/repo/packages/runtime/dist/index.d.ts",
+        "/home/circleci/repo/packages/runtime-html/src/create-element.ts",
+        "/home/circleci/repo/packages/kernel/dist/index.d.ts"
+      ],
+      "/home/circleci/repo/packages/runtime-html/src/create-element.ts": [
+        "/home/circleci/repo/packages/runtime/dist/index.d.ts",
+        "/home/circleci/repo/packages/kernel/dist/index.d.ts",
+        "/home/circleci/repo/packages/runtime-html/src/definitions.ts"
+      ],
+      "/home/circleci/repo/packages/runtime-html/src/resources/binding-behaviors/update-trigger.ts": [
+        "/home/circleci/repo/packages/runtime-html/src/observation/value-attribute-observer.ts",
+        "/home/circleci/repo/packages/runtime-html/src/observation/checked-observer.ts",
+        "/home/circleci/repo/packages/runtime-html/src/observation/select-value-observer.ts",
+        "/home/circleci/repo/packages/runtime-html/src/observation/event-manager.ts",
+        "/home/circleci/repo/packages/runtime/dist/index.d.ts",
+        "/home/circleci/repo/packages/kernel/dist/index.d.ts"
+      ],
+      "/home/circleci/repo/packages/runtime-html/src/resources/binding-behaviors/self.ts": [
+        "/home/circleci/repo/packages/runtime-html/src/binding/listener.ts",
+        "/home/circleci/repo/packages/kernel/dist/index.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/index.d.ts"
+      ],
+      "/home/circleci/repo/packages/runtime-html/src/resources/binding-behaviors/attr.ts": [
+        "/home/circleci/repo/packages/kernel/dist/index.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/index.d.ts"
+      ],
+      "/home/circleci/repo/packages/runtime-html/src/projectors.ts": [
+        "/home/circleci/repo/packages/kernel/dist/index.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/index.d.ts"
+      ],
+      "/home/circleci/repo/packages/runtime-html/src/observation/observer-locator.ts": [
+        "/home/circleci/repo/packages/kernel/dist/index.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/index.d.ts",
+        "/home/circleci/repo/packages/runtime-html/src/observation/svg-analyzer.ts"
+      ],
+      "/home/circleci/repo/packages/runtime-html/src/observation/svg-analyzer.ts": [
+        "/home/circleci/repo/packages/kernel/dist/index.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/index.d.ts"
+      ],
+      "/home/circleci/repo/packages/runtime-html/src/observation/element-property-accessor.ts": [
+        "/home/circleci/repo/packages/runtime/dist/index.d.ts",
+        "/home/circleci/repo/packages/kernel/dist/index.d.ts"
+      ],
+      "/home/circleci/repo/packages/runtime-html/src/observation/value-attribute-observer.ts": [
+        "/home/circleci/repo/packages/runtime/dist/index.d.ts",
+        "/home/circleci/repo/packages/runtime-html/src/observation/event-manager.ts",
+        "/home/circleci/repo/packages/kernel/dist/index.d.ts"
+      ],
+      "/home/circleci/repo/packages/runtime-html/src/observation/checked-observer.ts": [
+        "/home/circleci/repo/packages/runtime/dist/index.d.ts",
+        "/home/circleci/repo/packages/runtime-html/src/observation/value-attribute-observer.ts",
+        "/home/circleci/repo/packages/runtime-html/src/observation/event-manager.ts"
+      ],
+      "/home/circleci/repo/packages/runtime-html/src/html-renderer.ts": [
+        "/home/circleci/repo/packages/kernel/dist/index.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/index.d.ts",
+        "/home/circleci/repo/packages/runtime-html/src/definitions.ts",
+        "/home/circleci/repo/packages/runtime-html/src/observation/event-manager.ts"
+      ],
+      "/home/circleci/repo/packages/runtime-html/src/binding/listener.ts": [
+        "/home/circleci/repo/packages/runtime/dist/index.d.ts",
+        "/home/circleci/repo/packages/kernel/dist/index.d.ts",
+        "/home/circleci/repo/packages/runtime-html/src/observation/event-manager.ts"
+      ],
+      "/home/circleci/repo/packages/runtime-html/src/observation/event-manager.ts": [
+        "/home/circleci/repo/packages/kernel/dist/index.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/index.d.ts"
+      ],
+      "/home/circleci/repo/packages/runtime-html/src/observation/select-value-observer.ts": [
+        "/home/circleci/repo/packages/runtime/dist/index.d.ts",
+        "/home/circleci/repo/packages/runtime-html/src/observation/event-manager.ts"
+      ],
+      "/home/circleci/repo/packages/runtime-html/src/binding/attribute.ts": [
+        "/home/circleci/repo/packages/runtime/dist/index.d.ts",
+        "/home/circleci/repo/packages/kernel/dist/index.d.ts"
+      ],
+      "/home/circleci/repo/packages/runtime-html/src/dom.ts": [
+        "/home/circleci/repo/packages/kernel/dist/index.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/index.d.ts"
+      ],
+      "/home/circleci/repo/packages/runtime/dist/renderer.d.ts": [
+        "/home/circleci/repo/packages/kernel/dist/index.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/binding/expression-parser.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/definitions.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/dom.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/flags.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/lifecycle.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/observation/observer-locator.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/rendering-engine.d.ts"
+      ],
+      "/home/circleci/repo/packages/runtime/dist/index.d.ts": [
+        "/home/circleci/repo/packages/runtime/dist/binding/ast.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/ast.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/binding/binding.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/binding/call.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/binding/connectable.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/binding/expression-parser.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/binding/interpolation-binding.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/binding/let-binding.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/binding/ref.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/observation/array-observer.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/observation/map-observer.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/observation/set-observer.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/observation/binding-context.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/observation/collection-length-observer.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/observation/collection-size-observer.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/observation/computed-observer.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/observation/dirty-checker.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/observation/observer-locator.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/observation/primitive-observer.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/observation/property-accessor.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/observation/proxy-observer.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/observation/self-observer.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/observation/setter-observer.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/observation/signaler.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/observation/subscriber-collection.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/resources/binding-behavior.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/resources/binding-behaviors/binding-mode.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/resources/binding-behaviors/debounce.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/resources/binding-behaviors/priority.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/resources/binding-behaviors/signals.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/resources/binding-behaviors/throttle.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/resources/custom-attribute.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/resources/custom-attributes/if.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/resources/custom-attributes/repeat.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/resources/custom-attributes/replaceable.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/resources/custom-attributes/with.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/resources/custom-element.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/resources/value-converter.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/resources/value-converters/sanitize.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/templating/bindable.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/templating/controller.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/templating/view.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/aurelia.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/configuration.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/definitions.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/dom.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/flags.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/instructions.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/lifecycle.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/lifecycle-task.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/observation.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/renderer.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/rendering-engine.d.ts"
+      ],
+      "/home/circleci/repo/packages/runtime-html/src/instructions.ts": [
+        "/home/circleci/repo/packages/runtime-html/src/definitions.ts",
+        "/home/circleci/repo/packages/runtime/dist/index.d.ts"
+      ],
+      "/home/circleci/repo/packages/runtime-html/src/observation/style-attribute-accessor.ts": [
+        "/home/circleci/repo/packages/runtime/dist/index.d.ts"
+      ],
+      "/home/circleci/repo/packages/runtime-html/src/observation/data-attribute-accessor.ts": [
+        "/home/circleci/repo/packages/runtime/dist/index.d.ts"
+      ],
+      "/home/circleci/repo/packages/runtime-html/src/observation/class-attribute-accessor.ts": [
+        "/home/circleci/repo/packages/runtime/dist/index.d.ts"
+      ],
+      "/home/circleci/repo/packages/runtime-html/src/observation/attribute-ns-accessor.ts": [
+        "/home/circleci/repo/packages/runtime/dist/index.d.ts"
+      ],
+      "/home/circleci/repo/packages/runtime-html/src/definitions.ts": [
+        "/home/circleci/repo/packages/runtime/dist/index.d.ts"
+      ],
+      "/home/circleci/repo/packages/runtime-html/src/observation/element-attribute-observer.ts": [
+        "/home/circleci/repo/packages/runtime/dist/index.d.ts"
+      ],
+      "/home/circleci/repo/packages/runtime/dist/configuration.d.ts": [
+        "/home/circleci/repo/packages/kernel/dist/index.d.ts"
+      ],
+      "/home/circleci/repo/packages/runtime/dist/aurelia.d.ts": [
+        "/home/circleci/repo/packages/kernel/dist/index.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/activator.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/dom.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/flags.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/lifecycle.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/lifecycle-task.d.ts"
+      ],
+      "/home/circleci/repo/packages/runtime/dist/activator.d.ts": [
+        "/home/circleci/repo/packages/kernel/dist/index.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/dom.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/flags.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/lifecycle.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/lifecycle-task.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/observation.d.ts"
+      ],
+      "/home/circleci/repo/packages/runtime/dist/templating/controller.d.ts": [
+        "/home/circleci/repo/packages/kernel/dist/index.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/definitions.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/dom.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/flags.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/lifecycle.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/lifecycle-task.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/observation.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/rendering-engine.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/resources/custom-element.d.ts"
+      ],
+      "/home/circleci/repo/packages/runtime/dist/rendering-engine.d.ts": [
+        "/home/circleci/repo/packages/kernel/dist/index.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/definitions.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/dom.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/flags.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/lifecycle.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/observation.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/resources/custom-element.d.ts"
+      ],
+      "/home/circleci/repo/packages/runtime/dist/templating/view.d.ts": [
+        "/home/circleci/repo/packages/runtime/dist/dom.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/flags.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/lifecycle.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/rendering-engine.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/definitions.d.ts"
+      ],
+      "/home/circleci/repo/packages/runtime/dist/templating/bindable.d.ts": [
+        "/home/circleci/repo/packages/kernel/dist/index.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/definitions.d.ts"
+      ],
+      "/home/circleci/repo/packages/runtime/dist/resources/value-converters/sanitize.d.ts": [
+        "/home/circleci/repo/packages/kernel/dist/index.d.ts"
+      ],
+      "/home/circleci/repo/packages/runtime/dist/resources/value-converter.d.ts": [
+        "/home/circleci/repo/packages/kernel/dist/index.d.ts"
+      ],
+      "/home/circleci/repo/packages/runtime/dist/resources/custom-attributes/with.d.ts": [
+        "/home/circleci/repo/packages/kernel/dist/index.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/definitions.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/dom.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/flags.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/lifecycle.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/observation.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/resources/custom-attribute.d.ts"
+      ],
+      "/home/circleci/repo/packages/runtime/dist/resources/custom-attributes/replaceable.d.ts": [
+        "/home/circleci/repo/packages/kernel/dist/index.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/definitions.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/dom.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/flags.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/lifecycle.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/lifecycle-task.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/resources/custom-attribute.d.ts"
+      ],
+      "/home/circleci/repo/packages/runtime/dist/resources/custom-attributes/repeat.d.ts": [
+        "/home/circleci/repo/packages/kernel/dist/index.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/binding/ast.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/definitions.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/dom.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/flags.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/lifecycle.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/lifecycle-task.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/observation.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/resources/custom-attribute.d.ts"
+      ],
+      "/home/circleci/repo/packages/runtime/dist/resources/custom-attributes/if.d.ts": [
+        "/home/circleci/repo/packages/kernel/dist/index.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/definitions.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/dom.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/flags.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/lifecycle.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/lifecycle-task.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/observation.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/resources/custom-attribute.d.ts"
+      ],
+      "/home/circleci/repo/packages/runtime/dist/resources/custom-attribute.d.ts": [
+        "/home/circleci/repo/packages/kernel/dist/index.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/definitions.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/lifecycle.d.ts"
+      ],
+      "/home/circleci/repo/packages/runtime/dist/resources/binding-behaviors/throttle.d.ts": [
+        "/home/circleci/repo/packages/kernel/dist/index.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/flags.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/lifecycle.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/observation.d.ts"
+      ],
+      "/home/circleci/repo/packages/runtime/dist/resources/binding-behaviors/signals.d.ts": [
+        "/home/circleci/repo/packages/kernel/dist/index.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/binding/binding.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/flags.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/observation.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/observation/signaler.d.ts"
+      ],
+      "/home/circleci/repo/packages/runtime/dist/resources/binding-behaviors/priority.d.ts": [
+        "/home/circleci/repo/packages/kernel/dist/index.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/binding/binding.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/lifecycle.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/resources/binding-behavior.d.ts"
+      ],
+      "/home/circleci/repo/packages/runtime/dist/resources/binding-behaviors/debounce.d.ts": [
+        "/home/circleci/repo/packages/kernel/dist/index.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/flags.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/lifecycle.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/observation.d.ts"
+      ],
+      "/home/circleci/repo/packages/runtime/dist/resources/binding-behaviors/binding-mode.d.ts": [
+        "/home/circleci/repo/packages/kernel/dist/index.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/binding/binding.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/flags.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/observation.d.ts"
+      ],
+      "/home/circleci/repo/packages/runtime/dist/observation/signaler.d.ts": [
+        "/home/circleci/repo/packages/runtime/dist/flags.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/observation.d.ts",
+        "/home/circleci/repo/packages/kernel/dist/index.d.ts"
+      ],
+      "/home/circleci/repo/packages/runtime/dist/observation/setter-observer.d.ts": [
+        "/home/circleci/repo/packages/kernel/dist/index.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/flags.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/lifecycle.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/observation.d.ts"
+      ],
+      "/home/circleci/repo/packages/runtime/dist/observation/self-observer.d.ts": [
+        "/home/circleci/repo/packages/kernel/dist/index.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/flags.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/lifecycle.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/observation.d.ts"
+      ],
+      "/home/circleci/repo/packages/runtime/dist/observation/primitive-observer.d.ts": [
+        "/home/circleci/repo/packages/kernel/dist/index.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/observation.d.ts"
+      ],
+      "/home/circleci/repo/packages/runtime/dist/observation/dirty-checker.d.ts": [
+        "/home/circleci/repo/packages/runtime/dist/flags.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/observation.d.ts",
+        "/home/circleci/repo/packages/kernel/dist/index.d.ts"
+      ],
+      "/home/circleci/repo/packages/runtime/dist/observation/binding-context.d.ts": [
+        "/home/circleci/repo/packages/kernel/dist/index.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/flags.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/lifecycle.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/observation.d.ts"
+      ],
+      "/home/circleci/repo/packages/runtime/dist/binding/ref.d.ts": [
+        "/home/circleci/repo/packages/kernel/dist/index.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/ast.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/flags.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/lifecycle.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/observation.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/binding/connectable.d.ts"
+      ],
+      "/home/circleci/repo/packages/runtime/dist/binding/let-binding.d.ts": [
+        "/home/circleci/repo/packages/kernel/dist/index.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/ast.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/flags.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/lifecycle.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/observation.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/observation/observer-locator.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/binding/connectable.d.ts"
+      ],
+      "/home/circleci/repo/packages/runtime/dist/binding/interpolation-binding.d.ts": [
+        "/home/circleci/repo/packages/kernel/dist/index.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/ast.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/flags.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/lifecycle.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/observation.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/observation/observer-locator.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/binding/connectable.d.ts"
+      ],
+      "/home/circleci/repo/packages/runtime/dist/binding/expression-parser.d.ts": [
+        "/home/circleci/repo/packages/runtime/dist/ast.d.ts",
+        "/home/circleci/repo/packages/kernel/dist/index.d.ts"
+      ],
+      "/home/circleci/repo/packages/runtime/dist/binding/call.d.ts": [
+        "/home/circleci/repo/packages/kernel/dist/index.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/ast.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/flags.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/observation.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/observation/observer-locator.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/binding/connectable.d.ts"
+      ],
+      "/home/circleci/repo/packages/runtime/dist/binding/binding.d.ts": [
+        "/home/circleci/repo/packages/kernel/dist/index.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/ast.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/flags.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/lifecycle.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/observation.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/observation/observer-locator.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/binding/connectable.d.ts"
+      ],
+      "/home/circleci/repo/packages/runtime/dist/binding/ast.d.ts": [
+        "/home/circleci/repo/packages/kernel/dist/index.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/ast.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/flags.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/lifecycle.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/observation.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/resources/binding-behavior.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/binding/connectable.d.ts"
+      ],
+      "/home/circleci/repo/packages/runtime/dist/binding/connectable.d.ts": [
+        "/home/circleci/repo/packages/kernel/dist/index.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/ast.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/lifecycle.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/observation.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/observation/observer-locator.d.ts"
+      ],
+      "/home/circleci/repo/packages/runtime/dist/observation/observer-locator.d.ts": [
+        "/home/circleci/repo/packages/runtime/dist/flags.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/lifecycle.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/observation.d.ts",
+        "/home/circleci/repo/packages/kernel/dist/index.d.ts"
+      ],
+      "/home/circleci/repo/packages/runtime/dist/resources/binding-behavior.d.ts": [
+        "/home/circleci/repo/packages/kernel/dist/index.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/flags.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/lifecycle.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/observation.d.ts"
+      ],
+      "/home/circleci/repo/packages/runtime/dist/ast.d.ts": [
+        "/home/circleci/repo/packages/kernel/dist/index.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/flags.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/observation.d.ts"
+      ],
+      "/home/circleci/repo/packages/runtime/dist/instructions.d.ts": [
+        "/home/circleci/repo/packages/runtime/dist/ast.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/definitions.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/flags.d.ts"
+      ],
+      "/home/circleci/repo/packages/runtime/dist/definitions.d.ts": [
+        "/home/circleci/repo/packages/kernel/dist/index.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/ast.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/flags.d.ts"
+      ],
+      "/home/circleci/repo/packages/runtime/dist/lifecycle.d.ts": [
+        "/home/circleci/repo/packages/kernel/dist/index.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/definitions.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/dom.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/flags.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/lifecycle-task.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/observation.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/resources/custom-element.d.ts"
+      ],
+      "/home/circleci/repo/packages/runtime/dist/observation/set-observer.d.ts": [
+        "/home/circleci/repo/packages/runtime/dist/flags.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/lifecycle.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/observation.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/observation/collection-size-observer.d.ts"
+      ],
+      "/home/circleci/repo/packages/runtime/dist/observation/map-observer.d.ts": [
+        "/home/circleci/repo/packages/runtime/dist/flags.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/lifecycle.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/observation.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/observation/collection-size-observer.d.ts"
+      ],
+      "/home/circleci/repo/packages/runtime/dist/observation/array-observer.d.ts": [
+        "/home/circleci/repo/packages/runtime/dist/flags.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/lifecycle.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/observation.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/observation/collection-length-observer.d.ts"
+      ],
+      "/home/circleci/repo/packages/runtime/dist/observation.d.ts": [
+        "/home/circleci/repo/packages/kernel/dist/index.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/flags.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/lifecycle.d.ts"
+      ],
+      "/home/circleci/repo/packages/runtime/dist/observation/proxy-observer.d.ts": [
+        "/home/circleci/repo/packages/runtime/dist/flags.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/observation.d.ts"
+      ],
+      "/home/circleci/repo/packages/runtime/dist/observation/property-accessor.d.ts": [
+        "/home/circleci/repo/packages/runtime/dist/observation.d.ts"
+      ],
+      "/home/circleci/repo/packages/runtime/dist/observation/computed-observer.d.ts": [
+        "/home/circleci/repo/packages/runtime/dist/observation.d.ts"
+      ],
+      "/home/circleci/repo/packages/runtime/dist/observation/collection-size-observer.d.ts": [
+        "/home/circleci/repo/packages/runtime/dist/flags.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/observation.d.ts"
+      ],
+      "/home/circleci/repo/packages/runtime/dist/observation/collection-length-observer.d.ts": [
+        "/home/circleci/repo/packages/runtime/dist/flags.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/observation.d.ts"
+      ],
+      "/home/circleci/repo/packages/runtime/dist/resources/custom-element.d.ts": [
+        "/home/circleci/repo/packages/kernel/dist/index.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/definitions.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/dom.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/lifecycle.d.ts"
+      ],
+      "/home/circleci/repo/packages/runtime/dist/dom.d.ts": [
+        "/home/circleci/repo/packages/kernel/dist/index.d.ts"
+      ],
+      "/home/circleci/repo/packages/kernel/dist/eventaggregator.d.ts": [
+        "/home/circleci/repo/packages/kernel/dist/interfaces.d.ts"
+      ],
+      "/home/circleci/repo/packages/kernel/dist/resource.d.ts": [
+        "/home/circleci/repo/packages/kernel/dist/di.d.ts",
+        "/home/circleci/repo/packages/kernel/dist/interfaces.d.ts"
+      ],
+      "/home/circleci/repo/packages/kernel/dist/platform.d.ts": [
+        "/home/circleci/repo/packages/kernel/dist/interfaces.d.ts"
+      ],
+      "/home/circleci/repo/packages/kernel/dist/di.d.ts": [
+        "/home/circleci/repo/packages/kernel/dist/interfaces.d.ts"
+      ]
+    },
+    "semanticDiagnosticsPerFile": [
+      "/home/circleci/repo/node_modules/typescript/lib/lib.es5.d.ts",
+      "/home/circleci/repo/node_modules/typescript/lib/lib.es2015.d.ts",
+      "/home/circleci/repo/node_modules/typescript/lib/lib.es2016.d.ts",
+      "/home/circleci/repo/node_modules/typescript/lib/lib.es2017.d.ts",
+      "/home/circleci/repo/node_modules/typescript/lib/lib.es2018.d.ts",
+      "/home/circleci/repo/node_modules/typescript/lib/lib.es2019.d.ts",
+      "/home/circleci/repo/node_modules/typescript/lib/lib.esnext.d.ts",
+      "/home/circleci/repo/node_modules/typescript/lib/lib.dom.d.ts",
+      "/home/circleci/repo/node_modules/typescript/lib/lib.es2015.core.d.ts",
+      "/home/circleci/repo/node_modules/typescript/lib/lib.es2015.collection.d.ts",
+      "/home/circleci/repo/node_modules/typescript/lib/lib.es2015.generator.d.ts",
+      "/home/circleci/repo/node_modules/typescript/lib/lib.es2015.iterable.d.ts",
+      "/home/circleci/repo/node_modules/typescript/lib/lib.es2015.promise.d.ts",
+      "/home/circleci/repo/node_modules/typescript/lib/lib.es2015.proxy.d.ts",
+      "/home/circleci/repo/node_modules/typescript/lib/lib.es2015.reflect.d.ts",
+      "/home/circleci/repo/node_modules/typescript/lib/lib.es2015.symbol.d.ts",
+      "/home/circleci/repo/node_modules/typescript/lib/lib.es2015.symbol.wellknown.d.ts",
+      "/home/circleci/repo/node_modules/typescript/lib/lib.es2016.array.include.d.ts",
+      "/home/circleci/repo/node_modules/typescript/lib/lib.es2017.object.d.ts",
+      "/home/circleci/repo/node_modules/typescript/lib/lib.es2017.sharedmemory.d.ts",
+      "/home/circleci/repo/node_modules/typescript/lib/lib.es2017.string.d.ts",
+      "/home/circleci/repo/node_modules/typescript/lib/lib.es2017.intl.d.ts",
+      "/home/circleci/repo/node_modules/typescript/lib/lib.es2017.typedarrays.d.ts",
+      "/home/circleci/repo/node_modules/typescript/lib/lib.es2018.asynciterable.d.ts",
+      "/home/circleci/repo/node_modules/typescript/lib/lib.es2018.intl.d.ts",
+      "/home/circleci/repo/node_modules/typescript/lib/lib.es2018.promise.d.ts",
+      "/home/circleci/repo/node_modules/typescript/lib/lib.es2018.regexp.d.ts",
+      "/home/circleci/repo/node_modules/typescript/lib/lib.es2019.array.d.ts",
+      "/home/circleci/repo/node_modules/typescript/lib/lib.es2019.string.d.ts",
+      "/home/circleci/repo/node_modules/typescript/lib/lib.es2019.symbol.d.ts",
+      "/home/circleci/repo/node_modules/typescript/lib/lib.esnext.intl.d.ts",
+      "/home/circleci/repo/node_modules/typescript/lib/lib.esnext.bigint.d.ts",
+      "/home/circleci/repo/node_modules/tslib/tslib.d.ts",
+      "/home/circleci/repo/packages/kernel/dist/interfaces.d.ts",
+      "/home/circleci/repo/packages/kernel/dist/di.d.ts",
+      "/home/circleci/repo/packages/kernel/dist/path.d.ts",
+      "/home/circleci/repo/packages/kernel/dist/platform.d.ts",
+      "/home/circleci/repo/packages/kernel/dist/reporter.d.ts",
+      "/home/circleci/repo/packages/kernel/dist/profiler.d.ts",
+      "/home/circleci/repo/packages/kernel/dist/resource.d.ts",
+      "/home/circleci/repo/packages/kernel/dist/eventaggregator.d.ts",
+      "/home/circleci/repo/packages/kernel/dist/functions.d.ts",
+      "/home/circleci/repo/packages/kernel/dist/index.d.ts",
+      "/home/circleci/repo/packages/runtime/dist/flags.d.ts",
+      "/home/circleci/repo/packages/runtime/dist/definitions.d.ts",
+      "/home/circleci/repo/packages/runtime/dist/dom.d.ts",
+      "/home/circleci/repo/packages/runtime/dist/lifecycle-task.d.ts",
+      "/home/circleci/repo/packages/runtime/dist/resources/custom-element.d.ts",
+      "/home/circleci/repo/packages/runtime/dist/lifecycle.d.ts",
+      "/home/circleci/repo/packages/runtime/dist/observation.d.ts",
+      "/home/circleci/repo/packages/runtime/dist/ast.d.ts",
+      "/home/circleci/repo/packages/runtime/dist/resources/binding-behavior.d.ts",
+      "/home/circleci/repo/packages/runtime/dist/observation/observer-locator.d.ts",
+      "/home/circleci/repo/packages/runtime/dist/binding/connectable.d.ts",
+      "/home/circleci/repo/packages/runtime/dist/binding/ast.d.ts",
+      "/home/circleci/repo/packages/runtime/dist/binding/binding.d.ts",
+      "/home/circleci/repo/packages/runtime/dist/binding/call.d.ts",
+      "/home/circleci/repo/packages/runtime/dist/binding/expression-parser.d.ts",
+      "/home/circleci/repo/packages/runtime/dist/binding/interpolation-binding.d.ts",
+      "/home/circleci/repo/packages/runtime/dist/binding/let-binding.d.ts",
+      "/home/circleci/repo/packages/runtime/dist/binding/ref.d.ts",
+      "/home/circleci/repo/packages/runtime/dist/observation/collection-length-observer.d.ts",
+      "/home/circleci/repo/packages/runtime/dist/observation/array-observer.d.ts",
+      "/home/circleci/repo/packages/runtime/dist/observation/collection-size-observer.d.ts",
+      "/home/circleci/repo/packages/runtime/dist/observation/map-observer.d.ts",
+      "/home/circleci/repo/packages/runtime/dist/observation/set-observer.d.ts",
+      "/home/circleci/repo/packages/runtime/dist/observation/binding-context.d.ts",
+      "/home/circleci/repo/packages/runtime/dist/observation/computed-observer.d.ts",
+      "/home/circleci/repo/packages/runtime/dist/observation/dirty-checker.d.ts",
+      "/home/circleci/repo/packages/runtime/dist/observation/primitive-observer.d.ts",
+      "/home/circleci/repo/packages/runtime/dist/observation/property-accessor.d.ts",
+      "/home/circleci/repo/packages/runtime/dist/observation/proxy-observer.d.ts",
+      "/home/circleci/repo/packages/runtime/dist/observation/self-observer.d.ts",
+      "/home/circleci/repo/packages/runtime/dist/observation/setter-observer.d.ts",
+      "/home/circleci/repo/packages/runtime/dist/observation/signaler.d.ts",
+      "/home/circleci/repo/packages/runtime/dist/observation/subscriber-collection.d.ts",
+      "/home/circleci/repo/packages/runtime/dist/resources/binding-behaviors/binding-mode.d.ts",
+      "/home/circleci/repo/packages/runtime/dist/resources/binding-behaviors/debounce.d.ts",
+      "/home/circleci/repo/packages/runtime/dist/resources/binding-behaviors/priority.d.ts",
+      "/home/circleci/repo/packages/runtime/dist/resources/binding-behaviors/signals.d.ts",
+      "/home/circleci/repo/packages/runtime/dist/resources/binding-behaviors/throttle.d.ts",
+      "/home/circleci/repo/packages/runtime/dist/resources/custom-attribute.d.ts",
+      "/home/circleci/repo/packages/runtime/dist/resources/custom-attributes/if.d.ts",
+      "/home/circleci/repo/packages/runtime/dist/resources/custom-attributes/repeat.d.ts",
+      "/home/circleci/repo/packages/runtime/dist/resources/custom-attributes/replaceable.d.ts",
+      "/home/circleci/repo/packages/runtime/dist/resources/custom-attributes/with.d.ts",
+      "/home/circleci/repo/packages/runtime/dist/resources/value-converter.d.ts",
+      "/home/circleci/repo/packages/runtime/dist/resources/value-converters/sanitize.d.ts",
+      "/home/circleci/repo/packages/runtime/dist/templating/bindable.d.ts",
+      "/home/circleci/repo/packages/runtime/dist/rendering-engine.d.ts",
+      "/home/circleci/repo/packages/runtime/dist/templating/controller.d.ts",
+      "/home/circleci/repo/packages/runtime/dist/templating/view.d.ts",
+      "/home/circleci/repo/packages/runtime/dist/activator.d.ts",
+      "/home/circleci/repo/packages/runtime/dist/aurelia.d.ts",
+      "/home/circleci/repo/packages/runtime/dist/configuration.d.ts",
+      "/home/circleci/repo/packages/runtime/dist/instructions.d.ts",
+      "/home/circleci/repo/packages/runtime/dist/renderer.d.ts",
+      "/home/circleci/repo/packages/runtime/dist/index.d.ts",
+      "/home/circleci/repo/packages/runtime-html/src/dom.ts",
+      "/home/circleci/repo/packages/runtime-html/src/observation/element-attribute-observer.ts",
+      "/home/circleci/repo/packages/runtime-html/src/binding/attribute.ts",
+      "/home/circleci/repo/packages/runtime-html/src/observation/event-manager.ts",
+      "/home/circleci/repo/packages/runtime-html/src/binding/listener.ts",
+      "/home/circleci/repo/packages/runtime-html/src/definitions.ts",
+      "/home/circleci/repo/packages/runtime-html/src/html-renderer.ts",
+      "/home/circleci/repo/packages/runtime-html/src/observation/attribute-ns-accessor.ts",
+      "/home/circleci/repo/packages/runtime-html/src/observation/value-attribute-observer.ts",
+      "/home/circleci/repo/packages/runtime-html/src/observation/checked-observer.ts",
+      "/home/circleci/repo/packages/runtime-html/src/observation/class-attribute-accessor.ts",
+      "/home/circleci/repo/packages/runtime-html/src/observation/data-attribute-accessor.ts",
+      "/home/circleci/repo/packages/runtime-html/src/observation/element-property-accessor.ts",
+      "/home/circleci/repo/packages/runtime-html/src/observation/select-value-observer.ts",
+      "/home/circleci/repo/packages/runtime-html/src/observation/style-attribute-accessor.ts",
+      "/home/circleci/repo/packages/runtime-html/src/observation/svg-analyzer.ts",
+      "/home/circleci/repo/packages/runtime-html/src/observation/observer-locator.ts",
+      "/home/circleci/repo/packages/runtime-html/src/projectors.ts",
+      "/home/circleci/repo/packages/runtime-html/src/resources/binding-behaviors/attr.ts",
+      "/home/circleci/repo/packages/runtime-html/src/resources/binding-behaviors/self.ts",
+      "/home/circleci/repo/packages/runtime-html/src/resources/binding-behaviors/update-trigger.ts",
+      "/home/circleci/repo/packages/runtime-html/src/instructions.ts",
+      "/home/circleci/repo/packages/runtime-html/src/create-element.ts",
+      "/home/circleci/repo/packages/runtime-html/src/resources/custom-elements/compose.ts",
+      "/home/circleci/repo/packages/runtime-html/src/configuration.ts",
+      "/home/circleci/repo/packages/runtime-html/src/index.ts"
+    ]
+  },
+  "version": "3.4.5"
+}

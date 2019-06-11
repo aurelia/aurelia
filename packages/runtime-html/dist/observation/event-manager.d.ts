@@ -20,10 +20,14 @@ export declare class ListenerTracker {
  * Enable dispose() pattern for `delegate` & `capture` commands
  */
 export declare class DelegateOrCaptureSubscription implements IDisposable {
-    entry: ListenerTracker;
+    entry: {
+        decrement: () => void;
+    };
     lookup: Record<string, EventListenerOrEventListenerObject>;
     targetEvent: string;
-    constructor(entry: ListenerTracker, lookup: Record<string, EventListenerOrEventListenerObject>, targetEvent: string, callback: EventListenerOrEventListenerObject);
+    constructor(entry: {
+        decrement: () => void;
+    }, lookup: Record<string, EventListenerOrEventListenerObject>, targetEvent: string, callback: EventListenerOrEventListenerObject);
     dispose(): void;
 }
 /**

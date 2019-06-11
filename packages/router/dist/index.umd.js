@@ -1,16 +1,15 @@
 (function (global, factory) {
-  typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('@aurelia/kernel'), require('@aurelia/runtime')) :
-  typeof define === 'function' && define.amd ? define(['exports', '@aurelia/kernel', '@aurelia/runtime'], factory) :
-  (global = global || self, factory(global.router = {}, global.kernel, global.runtime));
-}(this, function (exports, kernel, runtime) { 'use strict';
+  typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('@aurelia/kernel'), require('@aurelia/runtime'), require('@aurelia/runtime-html')) :
+  typeof define === 'function' && define.amd ? define(['exports', '@aurelia/kernel', '@aurelia/runtime', '@aurelia/runtime-html'], factory) :
+  (global = global || self, factory(global.router = {}, global.kernel, global.runtime, global.runtimeHtml));
+}(this, function (exports, kernel, runtime, runtimeHtml) { 'use strict';
 
   class QueuedBrowserHistory {
-      constructor() {
+      constructor(lifecycle) {
           this.handlePopstate = async (ev) => {
               return this.enqueue(this, 'popstate', [ev]);
           };
-          this.window = window;
-          this.history = window.history;
+          this.lifecycle = lifecycle;
           this.queue = [];
           this.isActive = false;
           this.currentHistoryActivity = null;
@@ -24,31 +23,31 @@
           }
           this.isActive = true;
           this.callback = callback;
-          kernel.PLATFORM.ticker.add(this.dequeue, this);
-          this.window.addEventListener('popstate', this.handlePopstate);
+          this.lifecycle.enqueueRAF(this.dequeue, this, 4096 /* low */);
+          runtimeHtml.DOM.window.addEventListener('popstate', this.handlePopstate);
       }
       deactivate() {
-          this.window.removeEventListener('popstate', this.handlePopstate);
-          kernel.PLATFORM.ticker.remove(this.dequeue, this);
+          runtimeHtml.DOM.window.removeEventListener('popstate', this.handlePopstate);
+          this.lifecycle.dequeueRAF(this.dequeue, this);
           this.callback = null;
           this.isActive = false;
       }
       get length() {
-          return this.history.length;
+          return runtimeHtml.DOM.window.history.length;
       }
       // tslint:disable-next-line:no-any - typed according to DOM
       get state() {
-          return this.history.state;
+          return runtimeHtml.DOM.window.history.state;
       }
       get scrollRestoration() {
-          return this.history.scrollRestoration;
+          return runtimeHtml.DOM.window.history.scrollRestoration;
       }
       async go(delta, suppressPopstate = false) {
           if (!suppressPopstate) {
               return this.enqueue(this, '_go', [delta], true);
           }
           const promise = this.enqueue(this, 'suppressPopstate', [], true);
-          this.enqueue(this.history, 'go', [delta]).catch(error => { throw error; });
+          this.enqueue(runtimeHtml.DOM.window.history, 'go', [delta]).catch(error => { throw error; });
           return promise;
       }
       back() {
@@ -59,11 +58,11 @@
       }
       // tslint:disable-next-line:no-any - typed according to DOM
       async pushState(data, title, url) {
-          return this.enqueue(this.history, 'pushState', [data, title, url]);
+          return this.enqueue(runtimeHtml.DOM.window.history, 'pushState', [data, title, url]);
       }
       // tslint:disable-next-line:no-any - typed according to DOM
       async replaceState(data, title, url) {
-          return this.enqueue(this.history, 'replaceState', [data, title, url]);
+          return this.enqueue(runtimeHtml.DOM.window.history, 'replaceState', [data, title, url]);
       }
       async popstate(ev) {
           if (!this.suppressPopstateResolve) {
@@ -83,7 +82,7 @@
       }
       _go(delta, resolve) {
           this.goResolve = resolve;
-          this.history.go(delta);
+          runtimeHtml.DOM.window.history.go(delta);
       }
       suppressPopstate(resolve) {
           this.suppressPopstateResolve = resolve;
@@ -121,9 +120,10 @@
           }
       }
   }
+  QueuedBrowserHistory.inject = [runtime.ILifecycle];
 
   class HistoryBrowser {
-      constructor() {
+      constructor(lifecycle) {
           this.pathChanged = async () => {
               const path = this.getPath();
               const search = this.getSearch();
@@ -208,8 +208,7 @@
               kernel.Reporter.write(10000, 'navigated', this.getState('HistoryEntry'), this.historyEntries, this.getState('HistoryOffset'));
               this.callback(this.currentEntry, navigationFlags, previousEntry);
           };
-          this.location = window.location;
-          this.history = new QueuedBrowserHistory();
+          this.history = new QueuedBrowserHistory(lifecycle);
           this.currentEntry = null;
           this.historyEntries = null;
           this.historyOffset = null;
@@ -226,7 +225,7 @@
               throw kernel.Reporter.error(0); // TODO: create error code for 'History has already been activated.'
           }
           this.isActive = true;
-          this.options = Object.assign({}, options);
+          this.options = { ...options };
           this.history.activate(this.pathChanged);
           return Promise.resolve().then(() => {
               this.setPath(this.getPath(), true).catch(error => { throw error; });
@@ -290,17 +289,17 @@
       }
       async setState(key, value) {
           const { pathname, search, hash } = this.location;
-          let state = Object.assign({}, this.history.state);
+          let state = { ...this.history.state };
           if (typeof key === 'string') {
               state[key] = JSON.parse(JSON.stringify(value));
           }
           else {
-              state = Object.assign({}, state, JSON.parse(JSON.stringify(key)));
+              state = { ...state, ...JSON.parse(JSON.stringify(key)) };
           }
           return this.history.replaceState(state, null, `${pathname}${search}${hash}`);
       }
       getState(key) {
-          const state = Object.assign({}, this.history.state);
+          const state = { ...this.history.state };
           return state[key];
       }
       setEntryTitle(title) {
@@ -326,10 +325,13 @@
           }
           this.currentEntry.path = path;
           this.currentEntry.fullStatePath = fullStatePath;
-          const state = Object.assign({}, this.history.state, {
-              'HistoryEntry': this.currentEntry,
-              'HistoryEntries': this.historyEntries,
-          });
+          const state = {
+              ...this.history.state,
+              ...{
+                  'HistoryEntry': this.currentEntry,
+                  'HistoryEntries': this.historyEntries,
+              }
+          };
           return this.history.replaceState(state, null, `${pathname}${search}${newHash}`);
       }
       setHash(hash) {
@@ -371,7 +373,7 @@
           return hashSearches.length > 0 ? hashSearches.shift() : '';
       }
       callback(currentEntry, navigationFlags, previousEntry) {
-          const instruction = Object.assign({}, currentEntry, navigationFlags);
+          const instruction = { ...currentEntry, ...navigationFlags };
           instruction.previous = previousEntry;
           kernel.Reporter.write(10000, 'callback', currentEntry, navigationFlags);
           if (this.options.callback) {
@@ -379,6 +381,7 @@
           }
       }
   }
+  HistoryBrowser.inject = [runtime.ILifecycle];
 
   /**
    * Class responsible for handling interactions that should trigger navigation.
@@ -393,8 +396,8 @@
                   this.options.callback(info);
               }
           };
-          this.document = document;
       }
+      // private handler: EventListener;
       /**
        * Gets the href and a "should handle" recommendation, given an Event.
        *
@@ -445,7 +448,7 @@
        */
       static targetIsThisWindow(target) {
           const targetWindow = target.getAttribute('target');
-          const win = LinkHandler.window;
+          const win = runtimeHtml.DOM.window;
           return !targetWindow ||
               targetWindow === win.name ||
               targetWindow === '_self';
@@ -459,14 +462,14 @@
               throw kernel.Reporter.error(2004);
           }
           this.isActive = true;
-          this.options = Object.assign({}, options);
-          this.document.addEventListener('click', this.handler, true);
+          this.options = { ...options };
+          runtimeHtml.DOM.document.addEventListener('click', this.handler, true);
       }
       /**
        * Deactivate the instance. Event handlers and other resources should be cleaned up here.
        */
       deactivate() {
-          this.document.removeEventListener('click', this.handler, true);
+          runtimeHtml.DOM.document.removeEventListener('click', this.handler, true);
           this.isActive = false;
       }
   }
@@ -973,7 +976,7 @@
           if (handler.generationUsesHref) {
               return handler.href;
           }
-          const routeParams = Object.assign({}, params);
+          const routeParams = { ...params };
           const segments = route.segments;
           const consumed = {};
           let output = '';
@@ -983,7 +986,7 @@
                   continue;
               }
               const segmentValue = segment.generate(routeParams, consumed);
-              if (segmentValue === null || segmentValue === undefined) {
+              if (segmentValue == null) {
                   if (!segment.optional) {
                       throw new Error(`A value is required for route parameter '${segment.name}' in route '${nameOrRoute}'.`);
                   }
@@ -1115,18 +1118,20 @@
 
   class InstructionResolver {
       activate(options) {
-          this.separators = Object.assign({
-              viewport: '@',
-              sibling: '+',
-              scope: '/',
-              ownsScope: '!',
-              parameters: '(',
-              parametersEnd: ')',
-              parameter: '&',
-              add: '+',
-              clear: '-',
-              action: '.',
-          }, options.separators);
+          this.separators = {
+              ...{
+                  viewport: '@',
+                  sibling: '+',
+                  scope: '/',
+                  ownsScope: '!',
+                  parameters: '(',
+                  parametersEnd: ')',
+                  parameter: '&',
+                  add: '+',
+                  clear: '-',
+                  action: '.',
+              }, ...options.separators
+          };
       }
       get clearViewportInstruction() {
           return this.separators.clear;
@@ -1243,7 +1248,7 @@
           }
           else {
               let instructionString = instruction.componentName;
-              if (instruction.viewportName !== null && !excludeViewport) {
+              if (instruction.viewportName != null && !excludeViewport) {
                   instructionString += this.separators.viewport + instruction.viewportName;
               }
               if (instruction.parametersString) {
@@ -1278,7 +1283,7 @@
   function mergeParameters(parameters, query, specifiedParameters) {
       const parsedQuery = parseQuery(query);
       const parsedParameters = parseQuery(parameters);
-      const params = Object.assign({}, parsedQuery.parameters, parsedParameters.parameters);
+      const params = { ...parsedQuery.parameters, ...parsedParameters.parameters };
       const list = [...parsedQuery.list, ...parsedParameters.list];
       if (list.length && specifiedParameters && specifiedParameters.length) {
           for (const param of specifiedParameters) {
@@ -1333,21 +1338,19 @@
       }
   }
 
-  var ContentStatus;
   (function (ContentStatus) {
       ContentStatus[ContentStatus["none"] = 0] = "none";
       ContentStatus[ContentStatus["created"] = 1] = "created";
       ContentStatus[ContentStatus["loaded"] = 2] = "loaded";
       ContentStatus[ContentStatus["initialized"] = 3] = "initialized";
       ContentStatus[ContentStatus["added"] = 4] = "added";
-  })(ContentStatus || (ContentStatus = {}));
-  var ReentryBehavior;
+  })(exports.ContentStatus || (exports.ContentStatus = {}));
   (function (ReentryBehavior) {
       ReentryBehavior["default"] = "default";
       ReentryBehavior["disallow"] = "disallow";
       ReentryBehavior["enter"] = "enter";
       ReentryBehavior["refresh"] = "refresh";
-  })(ReentryBehavior || (ReentryBehavior = {}));
+  })(exports.ReentryBehavior || (exports.ReentryBehavior = {}));
   class ViewportContent {
       constructor(content = null, parameters = null, instruction = null, context = null) {
           // Can be a (resolved) type or a string (to be resolved later)
@@ -1459,7 +1462,7 @@
           if (!this.fromCache) {
               const host = element;
               const container = context;
-              this.component.$hydrate(0 /* none */, container, host);
+              runtime.Controller.forCustomElement(this.component, container, host);
           }
           this.contentStatus = 2 /* loaded */;
           return Promise.resolve();
@@ -1478,7 +1481,7 @@
           }
           // Don't initialize cached content
           if (!this.fromCache) {
-              this.component.$bind(512 /* fromStartTask */ | 2048 /* fromBind */, null);
+              this.component.$controller.bind(1024 /* fromStartTask */ | 4096 /* fromBind */, null);
           }
           this.contentStatus = 3 /* initialized */;
       }
@@ -1488,7 +1491,7 @@
           }
           // Don't terminate cached content
           if (!stateful) {
-              this.component.$unbind(1024 /* fromStopTask */ | 4096 /* fromUnbind */);
+              this.component.$controller.unbind(2048 /* fromStopTask */ | 8192 /* fromUnbind */);
               this.contentStatus = 2 /* loaded */;
           }
       }
@@ -1496,7 +1499,7 @@
           if (this.contentStatus !== 3 /* initialized */) {
               return;
           }
-          this.component.$attach(512 /* fromStartTask */);
+          this.component.$controller.attach(1024 /* fromStartTask */);
           if (this.fromCache) {
               const elements = Array.from(element.getElementsByTagName('*'));
               for (const el of elements) {
@@ -1521,7 +1524,7 @@
                   }
               }
           }
-          this.component.$detach(1024 /* fromStopTask */);
+          this.component.$controller.detach(2048 /* fromStopTask */);
           this.contentStatus = 3 /* initialized */;
       }
       async freeContent(element, nextInstruction, stateful = false) {
@@ -1656,7 +1659,7 @@
           }
           if (this.element !== element) {
               // TODO: Restore this state on navigation cancel
-              this.previousViewportState = Object.assign({}, this);
+              this.previousViewportState = { ...this };
               this.clearState();
               this.element = element;
               if (options && options.usedBy) {
@@ -1880,7 +1883,7 @@
           else if (!this.viewportInstructions) {
               this.viewportInstructions = [];
           }
-          this.availableViewports = Object.assign({}, this.getEnabledViewports(), this.availableViewports);
+          this.availableViewports = { ...this.getEnabledViewports(), ...this.availableViewports };
           // Configured viewport is ruling
           for (let i = 0; i < this.viewportInstructions.length; i++) {
               const instruction = this.viewportInstructions[i];
@@ -2071,8 +2074,7 @@
   const IRouteTransformer = kernel.DI.createInterface('IRouteTransformer').withDefault(x => x.singleton(RouteTable));
   const IRouter = kernel.DI.createInterface('IRouter').withDefault(x => x.singleton(Router));
   class Router {
-      constructor(container, routeTransformer) {
-          this.container = container;
+      constructor(container, routeTransformer, historyBrowser, linkHandler, instructionResolver) {
           this.scopes = [];
           this.navs = {};
           this.activeComponents = [];
@@ -2093,10 +2095,11 @@
               }
               this.historyBrowser.setHash(href);
           };
-          this.historyBrowser = new HistoryBrowser();
-          this.linkHandler = new LinkHandler();
-          this.instructionResolver = new InstructionResolver();
+          this.container = container;
           this.routeTransformer = routeTransformer;
+          this.historyBrowser = historyBrowser;
+          this.linkHandler = linkHandler;
+          this.instructionResolver = instructionResolver;
       }
       get isNavigating() {
           return this.processingNavigation !== null;
@@ -2106,13 +2109,15 @@
               throw kernel.Reporter.error(2001);
           }
           this.isActive = true;
-          this.options = Object.assign({
-              callback: (navigationInstruction) => {
-                  this.historyCallback(navigationInstruction);
-              },
-              transformFromUrl: this.routeTransformer.transformFromUrl,
-              transformToUrl: this.routeTransformer.transformToUrl,
-          }, options);
+          this.options = {
+              ...{
+                  callback: (navigationInstruction) => {
+                      this.historyCallback(navigationInstruction);
+                  },
+                  transformFromUrl: this.routeTransformer.transformFromUrl,
+                  transformToUrl: this.routeTransformer.transformToUrl,
+              }, ...options
+          };
           this.instructionResolver.activate({ separators: this.options.separators });
           this.linkHandler.activate({ callback: this.linkCallback });
           return this.historyBrowser.activate(this.options).catch(error => { throw error; });
@@ -2377,8 +2382,8 @@
       }
       ensureRootScope() {
           if (!this.rootScope) {
-              const root = this.container.get(runtime.Aurelia).root();
-              this.rootScope = new Scope(this, root.$host, root.$context, null);
+              const root = this.container.get(runtime.Aurelia).root;
+              this.rootScope = new Scope(this, root.host, root.controller.context, null);
               this.scopes.push(this.rootScope);
           }
       }
@@ -2394,7 +2399,7 @@
           return this.rootScope;
           // TODO: It would be better if it was something like this
           // const el = closestCustomElement(element);
-          // let container: ChildContainer = el.$customElement.$context.get(IContainer);
+          // let container: ChildContainer = el.$controller.$context.get(IContainer);
           // while (container) {
           //   const scope = this.scopes.find((item) => item.context.get(IContainer) === container);
           //   if (scope) {
@@ -2423,7 +2428,7 @@
           return this.historyBrowser.replacePath(state + query, this.instructionResolver.stateStringsToString(fullViewportStates, true) + query, instruction);
       }
   }
-  Router.inject = [kernel.IContainer, IRouteTransformer];
+  Router.inject = [kernel.IContainer, IRouteTransformer, HistoryBrowser, LinkHandler, InstructionResolver];
 
   /*! *****************************************************************************
   Copyright (c) Microsoft Corporation. All rights reserved.
@@ -2473,7 +2478,7 @@
       runtime.bindable
   ], exports.NavCustomElement.prototype, "level", void 0);
   exports.NavCustomElement = __decorate([
-      kernel.inject(Router, Element),
+      kernel.inject(Router, runtime.INode),
       runtime.customElement({
           name: 'au-nav', template: `<template>
   <nav if.bind="name" class="\${name}">
@@ -2492,9 +2497,6 @@
 
   class ViewportCustomElement {
       constructor(router, element, renderingEngine) {
-          this.router = router;
-          this.element = element;
-          this.renderingEngine = renderingEngine;
           this.name = 'default';
           this.scope = null;
           this.usedBy = null;
@@ -2503,6 +2505,9 @@
           this.noHistory = null;
           this.stateful = null;
           this.viewport = null;
+          this.router = router;
+          this.element = element;
+          this.renderingEngine = renderingEngine;
       }
       render(flags, host, parts, parentContext) {
           const Type = this.constructor;
@@ -2562,10 +2567,10 @@
           if (this.element.hasAttribute('stateful')) {
               options.stateful = true;
           }
-          this.viewport = this.router.addViewport(this.name, this.element, this.$context, options);
+          this.viewport = this.router.addViewport(this.name, this.element, this.$controller.context, options);
       }
       disconnect() {
-          this.router.removeViewport(this.viewport, this.element, this.$context);
+          this.router.removeViewport(this.viewport, this.element, this.$controller.context);
       }
       binding(flags) {
           if (this.viewport) {
@@ -2674,8 +2679,10 @@
   exports.StaticSegment = StaticSegment;
   exports.TypesRecord = TypesRecord;
   exports.Viewport = Viewport;
+  exports.ViewportContent = ViewportContent;
   exports.ViewportCustomElement = ViewportCustomElement;
   exports.ViewportCustomElementRegistration = ViewportCustomElementRegistration;
+  exports.ViewportInstruction = ViewportInstruction;
 
   Object.defineProperty(exports, '__esModule', { value: true });
 

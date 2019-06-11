@@ -1,6 +1,6 @@
 import { join } from 'path';
-import { PropertyDeclaration, Statement, createBinary, SyntaxKind } from 'typescript';
-import { PLATFORM } from '../../packages/kernel/src/index';
+import { PropertyDeclaration, Statement, createBinary, SyntaxKind, Expression } from 'typescript';
+import { kebabCase } from '../../packages/kernel/src/index';
 import project from '../project';
 import {
   $$call,
@@ -22,7 +22,7 @@ import {
 } from './util';
 
 function outFile(suffix: string): string {
-  return join(`${project.path}`, 'packages', 'jit-html', 'test', 'generated', `template-compiler.${suffix}.spec.ts`);
+  return join(`${project.path}`, 'packages', '__tests__', 'jit-html', 'generated', `template-compiler.${suffix}.spec.ts`);
 }
 
 interface Identifiable {
@@ -221,24 +221,7 @@ const repeat$13_2: TplCtrl = {
 repeat$13_1.opposite = repeat$13_2;
 repeat$13_2.opposite = repeat$13_1;
 
-const repeat$14_1: TplCtrl = {
-  id: 'repeat$14',
-  value: ['a', 'b', 'c'],
-  prop: 'item',
-  attr: 'repeat.for="item of [\'a\', \'b\', \'c\'] & keyed"',
-  properties: []
-};
-const repeat$14_2: TplCtrl = {
-  id: 'repeat$14',
-  value: [],
-  prop: 'item',
-  attr: 'repeat.for="item of [] & keyed"',
-  properties: []
-};
-repeat$14_1.opposite = repeat$14_2;
-repeat$14_2.opposite = repeat$14_1;
-
-const repeats = [repeat$11_1, repeat$12_1, repeat$13_1, repeat$14_1];
+const repeats = [repeat$11_1, repeat$12_1, repeat$13_1];
 
 function generateTests(testTags: Tag[], textBindings: TextBinding[], ifElsePairs: TplCtrl[], repeaters: TplCtrl[]): Record<string, Statement[]> {
   const tests: Record<string, Statement[]> = {};
@@ -266,7 +249,7 @@ function generateTests(testTags: Tag[], textBindings: TextBinding[], ifElsePairs
         return [
           $$const(tag.elName, $call('CustomElementResource.define', [
             $expression({
-              name: PLATFORM.kebabCase(tag.elName),
+              name: kebabCase(tag.elName),
               template: `<template>${markup}</template>`
             }),
             $class([
@@ -299,7 +282,7 @@ function generateTests(testTags: Tag[], textBindings: TextBinding[], ifElsePairs
           );
         } else if (tag.isCustom) {
           // binding with custom element
-          const $tag = PLATFORM.kebabCase(tag.elName);
+          const $tag = kebabCase(tag.elName);
           if (tag.hasReplaceable) {
             staticTests.push($$test(
               `<${$tag} ${ifText.variable}.bind="${ifText.variable}"><${tag.name} replace-part="part1">${ifText.markup}</${tag.name}></${$tag}>`,
@@ -320,7 +303,7 @@ function generateTests(testTags: Tag[], textBindings: TextBinding[], ifElsePairs
         }
       }
       if (tag.isCustom) {
-        const $tag = PLATFORM.kebabCase(tag.elName);
+        const $tag = kebabCase(tag.elName);
         resources.push(...registerCustomElement(`${ifText.markup}${elseText.markup}\${item}`, tag.containerless === undefined ? null : tag.containerless, tag.shadowMode === undefined ? null : tag.shadowMode));
         if (tag.hasReplaceable) {
           ifText.markup = `<${$tag} ${ifText.variable}.bind="${ifText.variable}"><${tag.name} replace-part="part1">${ifText.markup}</${tag.name}></${$tag}>`;
@@ -624,14 +607,14 @@ function generateTests(testTags: Tag[], textBindings: TextBinding[], ifElsePairs
             $(tag, [$else], elseText.markup),
             expected, properties, [tag, ifText, $if, {id: `${branchId}$06`}, {id: 'sibling$03'}], resources)
           );
-          ifElseDoubleTests.push($$test(
-            $(tag, [$if], ifText.markup) +
-            $(tag, [$else, $if], elseText.markup) + // never renders
-            $(tag, [$else, $if], ifText.markup) + // never renders
-            $(tag, [$if], '') +
-            $(tag, [$else], elseText.markup),
-            expected, properties, [tag, ifText, $if, {id: `${branchId}$06`}, {id: 'sibling$04'}], resources)
-          );
+          // ifElseDoubleTests.push($$test(
+          //   $(tag, [$if], ifText.markup) +
+          //   $(tag, [$else, $if], elseText.markup) + // never renders
+          //   $(tag, [$else, $if], ifText.markup) + // never renders
+          //   $(tag, [$if], '') +
+          //   $(tag, [$else], elseText.markup),
+          //   expected, properties, [tag, ifText, $if, {id: `${branchId}$06`}, {id: 'sibling$04'}], resources)
+          // );
         //}
 
         for (const $repeat of repeaters) {
@@ -888,8 +871,7 @@ function generateAndEmit(): void {
     const nodes = [
       $$import('@aurelia/kernel', 'Profiler'),
       $$import('@aurelia/runtime', 'Aurelia', 'CustomElementResource'),
-      $$import('chai', 'expect'),
-      $$import('../util', 'getVisibleText', 'TestContext', 'writeProfilerReport'),
+      $$import('@aurelia/testing', 'TestContext', 'writeProfilerReport', 'assert'),
       null,
       $$functionExpr('describe', [
         $expression(`generated.template-compiler.${suffix}`),
@@ -918,22 +900,24 @@ function generateAndEmit(): void {
           $$functionDecl(
             'verify',
             [
+              $$const('root', $access('au.root')),
+
               $$call('au.start'),
               $$const('outerHtmlAfterStart1', $access('host.outerHTML')),
-              $$call([$call('expect', [$call('getVisibleText', ['au', 'host'])]), 'to.equal'], ['expected', $expression('after start #1')]),
+              $$call('assert.visibleTextEqual', ['root', 'expected', $expression('after start #1')]),
               $$call('au.stop'),
               $$const('outerHtmlAfterStop1', $access('host.outerHTML')),
-              $$call([$call('expect', [$call('getVisibleText', ['au', 'host'])]), 'to.equal'], [$expression(''), $expression('after stop #1')]),
+              $$call('assert.visibleTextEqual', ['root', $expression(''), $expression('after stop #1')]),
 
               $$call('au.start'),
               $$const('outerHtmlAfterStart2', $access('host.outerHTML')),
-              $$call([$call('expect', [$call('getVisibleText', ['au', 'host'])]), 'to.equal'], ['expected', $expression('after start #2')]),
+              $$call('assert.visibleTextEqual', ['root', 'expected', $expression('after start #2')]),
               $$call('au.stop'),
               $$const('outerHtmlAfterStop2', $access('host.outerHTML')),
-              $$call([$call('expect', [$call('getVisibleText', ['au', 'host'])]), 'to.equal'], [$expression(''), $expression('after stop #2')]),
+              $$call('assert.visibleTextEqual', ['root', $expression(''), $expression('after stop #2')]),
               // Verify that starting/stopping multiple times results in the exact same html each time
-              $$call([$call('expect', ['outerHtmlAfterStart1']), 'to.equal'], ['outerHtmlAfterStart2', $expression('outerHTML after start #1 / #2')]),
-              $$call([$call('expect', ['outerHtmlAfterStop1']), 'to.equal'], ['outerHtmlAfterStop2', $expression('outerHTML after stop #1 / #2')])
+              $$call('assert.strictEqual', ['outerHtmlAfterStart1', 'outerHtmlAfterStart2', $expression('outerHTML after start #1 / #2')]),
+              $$call('assert.strictEqual', ['outerHtmlAfterStop1', 'outerHtmlAfterStop2', $expression('outerHTML after stop #1 / #2')])
             ],
             [
               $param('au'),

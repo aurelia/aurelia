@@ -32,16 +32,28 @@ System.register('jitHtmlJsdom', ['@aurelia/jit', '@aurelia/jit-html', '@aurelia/
            * Apply this configuration to the provided container.
            */
           register(container) {
+              if (Profiler.enabled) {
+                  enter();
+              }
               BasicConfiguration$1
                   .register(container)
                   .register(...DefaultBindingLanguage, ...DefaultBindingSyntax, ...DefaultComponents, ...DefaultBindingLanguage$1, ...DefaultComponents$1);
+              if (Profiler.enabled) {
+                  leave();
+              }
               return container;
           },
           /**
            * Create a new container with this configuration applied to it.
            */
           createContainer() {
+              if (Profiler.enabled) {
+                  enter();
+              }
               const container = this.register(DI.createContainer());
+              if (Profiler.enabled) {
+                  leave();
+              }
               return container;
           }
       });

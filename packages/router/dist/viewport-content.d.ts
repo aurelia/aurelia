@@ -1,11 +1,12 @@
-import { ICustomElement, ICustomElementType, IRenderContext } from '@aurelia/runtime';
+import { IContainer } from '@aurelia/kernel';
+import { ICustomElementType, INode, IRenderContext, IViewModel } from '@aurelia/runtime';
 import { INavigationInstruction } from './history-browser';
 import { Viewport } from './viewport';
 import { ViewportInstruction } from './viewport-instruction';
 export interface IRouteableCustomElementType extends Partial<ICustomElementType> {
     parameters?: string[];
 }
-export interface IRouteableCustomElement extends ICustomElement {
+export interface IRouteableCustomElement<T extends INode = INode> extends IViewModel<T> {
     reentryBehavior?: ReentryBehavior;
     canEnter?(parameters?: string[] | Record<string, string>, nextInstruction?: INavigationInstruction, instruction?: INavigationInstruction): boolean | string | ViewportInstruction[] | Promise<boolean | string | ViewportInstruction[]>;
     enter?(parameters?: string[] | Record<string, string>, nextInstruction?: INavigationInstruction, instruction?: INavigationInstruction): void | Promise<void>;
@@ -34,18 +35,18 @@ export declare class ViewportContent {
     entered: boolean;
     fromCache: boolean;
     reentry: boolean;
-    constructor(content?: Partial<ICustomElementType> | string, parameters?: string, instruction?: INavigationInstruction, context?: IRenderContext);
+    constructor(content?: Partial<ICustomElementType> | string, parameters?: string, instruction?: INavigationInstruction, context?: IRenderContext | IContainer);
     equalComponent(other: ViewportContent): boolean;
     equalParameters(other: ViewportContent): boolean;
     reentryBehavior(): ReentryBehavior;
     isCacheEqual(other: ViewportContent): boolean;
-    createComponent(context: IRenderContext): void;
+    createComponent(context: IRenderContext | IContainer): void;
     destroyComponent(): void;
     canEnter(viewport: Viewport, previousInstruction: INavigationInstruction): Promise<boolean | ViewportInstruction[]>;
     canLeave(nextInstruction: INavigationInstruction): Promise<boolean>;
     enter(previousInstruction: INavigationInstruction): Promise<void>;
     leave(nextInstruction: INavigationInstruction): Promise<void>;
-    loadComponent(context: IRenderContext, element: Element): Promise<void>;
+    loadComponent(context: IRenderContext | IContainer, element: Element): Promise<void>;
     unloadComponent(): void;
     initializeComponent(): void;
     terminateComponent(stateful?: boolean): void;
@@ -53,7 +54,7 @@ export declare class ViewportContent {
     removeComponent(element: Element, stateful?: boolean): void;
     freeContent(element: Element, nextInstruction: INavigationInstruction, stateful?: boolean): Promise<void>;
     componentName(): string;
-    componentType(context: IRenderContext): IRouteableCustomElementType;
-    componentInstance(context: IRenderContext): IRouteableCustomElement;
+    componentType(context: IRenderContext | IContainer): IRouteableCustomElementType;
+    componentInstance(context: IRenderContext | IContainer): IRouteableCustomElement;
 }
 //# sourceMappingURL=viewport-content.d.ts.map

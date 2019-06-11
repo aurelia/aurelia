@@ -16,7 +16,7 @@ export declare type ChildContainer = IContainer & {
 };
 export declare class Scope {
     element: Element;
-    context: IRenderContext;
+    context: IRenderContext | IContainer;
     parent: Scope;
     viewport: Viewport;
     children: Scope[];
@@ -24,12 +24,12 @@ export declare class Scope {
     private readonly router;
     private viewportInstructions;
     private availableViewports;
-    constructor(router: Router, element: Element, context: IRenderContext, parent: Scope);
+    constructor(router: Router, element: Element, context: IRenderContext | IContainer, parent: Scope);
     getEnabledViewports(): Record<string, Viewport>;
     findViewports(viewportInstructions?: ViewportInstruction[]): IFindViewportsResult;
     foundViewport(instruction: ViewportInstruction, viewport: Viewport): IFindViewportsResult;
-    addViewport(name: string, element: Element, context: IRenderContext, options?: IViewportOptions): Viewport;
-    removeViewport(viewport: Viewport, element: Element, context: IRenderContext): number;
+    addViewport(name: string, element: Element, context: IRenderContext | IContainer, options?: IViewportOptions): Viewport;
+    removeViewport(viewport: Viewport, element: Element, context: IRenderContext | IContainer): number;
     removeScope(): void;
     addChild(child: Scope): void;
     removeChild(child: Scope): void;

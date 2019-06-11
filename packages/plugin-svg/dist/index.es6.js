@@ -218,7 +218,9 @@ if (createElement('<svg><altGlyph /></svg>').firstElementChild.nodeName === 'alt
 }
 function register(container) {
     container.registerTransformer(ISVGAnalyzer, analyzer => {
-        return Object.assign({}, analyzer, { isStandardSvgAttribute(node, attributeName) {
+        return {
+            ...analyzer,
+            isStandardSvgAttribute(node, attributeName) {
                 // Using very HTML-specific code here since you won't install this module
                 // unless you are actually running in a browser, using HTML,
                 // and dealing with browser inconsistencies.
@@ -228,7 +230,8 @@ function register(container) {
                 const nodeName = node.nodeName;
                 return svgPresentationElements[nodeName] !== undefined && svgPresentationAttributes[attributeName] !== undefined
                     || svgElements[nodeName] !== undefined && svgElements[nodeName].indexOf(attributeName) !== -1;
-            } });
+            }
+        };
     });
 }
 

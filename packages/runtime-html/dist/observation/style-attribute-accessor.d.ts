@@ -1,18 +1,19 @@
-import { IBindingTargetAccessor, ILifecycle } from '@aurelia/runtime';
-export interface StyleAttributeAccessor extends IBindingTargetAccessor<HTMLElement, 'style', string | Record<string, string>> {
-}
-export declare class StyleAttributeAccessor implements StyleAttributeAccessor {
-    readonly isDOMObserver: true;
+import { IAccessor, ILifecycle, LifecycleFlags, Priority } from '@aurelia/runtime';
+export declare class StyleAttributeAccessor implements IAccessor<unknown> {
+    readonly lifecycle: ILifecycle;
+    readonly obj: HTMLElement;
     currentValue: string | Record<string, string>;
-    defaultValue: string | Record<string, string>;
-    lifecycle: ILifecycle;
-    obj: HTMLElement;
     oldValue: string | Record<string, string>;
-    styles: object;
+    styles: Record<string, number>;
     version: number;
+    hasChanges: boolean;
+    priority: Priority;
     constructor(lifecycle: ILifecycle, obj: HTMLElement);
     getValue(): string;
-    _setProperty(style: string, value: string): void;
-    setValueCore(newValue: string | Record<string, string>): void;
+    setValue(newValue: string | Record<string, string>, flags: LifecycleFlags): void;
+    flushRAF(flags: LifecycleFlags): void;
+    setProperty(style: string, value: string): void;
+    bind(flags: LifecycleFlags): void;
+    unbind(flags: LifecycleFlags): void;
 }
 //# sourceMappingURL=style-attribute-accessor.d.ts.map

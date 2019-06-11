@@ -28,11 +28,8 @@ export interface AnchorEventInfo {
  * Class responsible for handling interactions that should trigger navigation.
  */
 export declare class LinkHandler {
-    private static readonly window;
     private options;
     private isActive;
-    private readonly document;
-    constructor();
     /**
      * Gets the href and a "should handle" recommendation, given an Event.
      *

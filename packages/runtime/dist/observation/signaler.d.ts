@@ -1,12 +1,11 @@
-import { Immutable } from '@aurelia/kernel';
 import { LifecycleFlags } from '../flags';
-import { IPropertySubscriber } from '../observation';
+import { ISubscriber } from '../observation';
 declare type Signal = string;
 export interface ISignaler {
-    signals: Immutable<Record<string, Set<IPropertySubscriber>>>;
+    signals: Record<string, Set<ISubscriber>>;
     dispatchSignal(name: Signal, flags?: LifecycleFlags): void;
-    addSignalListener(name: Signal, listener: IPropertySubscriber): void;
-    removeSignalListener(name: Signal, listener: IPropertySubscriber): void;
+    addSignalListener(name: Signal, listener: ISubscriber): void;
+    removeSignalListener(name: Signal, listener: ISubscriber): void;
 }
 export declare const ISignaler: import("@aurelia/kernel").InterfaceSymbol<ISignaler>;
 export {};

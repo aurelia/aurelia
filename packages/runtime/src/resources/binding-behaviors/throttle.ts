@@ -62,11 +62,11 @@ export class ThrottleBindingBehavior {
     // stash the original method and it's name.
     // note: a generic name like "originalMethod" is not used to avoid collisions
     // with other binding behavior types.
-    binding.throttledMethod = binding[methodToThrottle];
+    binding.throttledMethod = binding[methodToThrottle as keyof ThrottleableBinding] as ThrottleableBinding['throttledMethod'];
     binding.throttledMethod.originalName = methodToThrottle;
 
     // replace the original method with the throttling version.
-    binding[methodToThrottle] = throttle;
+    (binding as typeof binding & { [key: string]: typeof throttle})[methodToThrottle] = throttle as ThrottleableBinding['throttledMethod'];
 
     // create the throttle state.
     binding.throttleState = {
@@ -79,10 +79,10 @@ export class ThrottleBindingBehavior {
   public unbind(flags: LifecycleFlags, scope: IScope, binding: ThrottleableBinding): void {
     // restore the state of the binding.
     const methodToRestore = binding.throttledMethod.originalName;
-    binding[methodToRestore] = binding.throttledMethod;
-    binding.throttledMethod = null;
+    (binding as typeof binding & { [key: string]: ThrottleableBinding['throttledMethod'] })[methodToRestore] = binding.throttledMethod;
+    binding.throttledMethod = null!;
     PLATFORM.global.clearTimeout(binding.throttleState.timeoutId);
-    binding.throttleState = null;
+    binding.throttleState = null!;
   }
 }
 BindingBehaviorResource.define('throttle', ThrottleBindingBehavior);

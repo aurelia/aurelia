@@ -1,19 +1,24 @@
 import { IIndexable } from '@aurelia/kernel';
 import { LifecycleFlags } from '../flags';
-import { IPropertyObserver } from '../observation';
+import { ILifecycle } from '../lifecycle';
+import { IPropertyObserver, ISubscriber } from '../observation';
 export interface SelfObserver extends IPropertyObserver<IIndexable, string> {
 }
-export declare class SelfObserver implements SelfObserver {
-    readonly persistentFlags: LifecycleFlags;
-    obj: object;
-    propertyKey: string;
+export declare class SelfObserver {
+    readonly lifecycle: ILifecycle;
+    readonly obj: IIndexable;
+    readonly propertyKey: string;
     currentValue: unknown;
-    private readonly callback;
-    constructor(flags: LifecycleFlags, instance: object, propertyName: string, cbName: string);
+    oldValue: unknown;
+    readonly persistentFlags: LifecycleFlags;
+    inBatch: boolean;
+    observing: boolean;
+    private readonly callback?;
+    constructor(lifecycle: ILifecycle, flags: LifecycleFlags, obj: IIndexable, propertyName: string, cbName: string);
     handleChange(newValue: unknown, oldValue: unknown, flags: LifecycleFlags): void;
     getValue(): unknown;
-    getValueDirect(): unknown;
     setValue(newValue: unknown, flags: LifecycleFlags): void;
-    $patch(flags: LifecycleFlags): void;
+    subscribe(subscriber: ISubscriber): void;
+    private createGetterSetter;
 }
 //# sourceMappingURL=self-observer.d.ts.map

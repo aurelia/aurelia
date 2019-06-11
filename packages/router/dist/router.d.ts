@@ -44,8 +44,8 @@ export interface IRouter {
 }
 export declare const IRouter: import("@aurelia/kernel/dist/interfaces").InterfaceSymbol<IRouter>;
 export declare class Router implements IRouter {
-    container: IContainer;
     static readonly inject: InjectArray;
+    readonly container: IContainer;
     rootScope: Scope;
     scopes: Scope[];
     historyBrowser: HistoryBrowser;
@@ -56,11 +56,11 @@ export declare class Router implements IRouter {
     addedViewports: ViewportInstruction[];
     private options;
     private isActive;
+    private readonly routeTransformer;
     private readonly pendingNavigations;
     private processingNavigation;
     private lastNavigation;
-    private readonly routeTransformer;
-    constructor(container: IContainer, routeTransformer: IRouteTransformer);
+    constructor(container: IContainer, routeTransformer: IRouteTransformer, historyBrowser: HistoryBrowser, linkHandler: LinkHandler, instructionResolver: InstructionResolver);
     readonly isNavigating: boolean;
     activate(options?: IRouterOptions): Promise<void>;
     deactivate(): void;
@@ -70,8 +70,8 @@ export declare class Router implements IRouter {
     addProcessingViewport(componentOrInstruction: string | Partial<ICustomElementType> | ViewportInstruction, viewport?: Viewport | string): void;
     findScope(element: Element): Scope;
     getViewport(name: string): Viewport;
-    addViewport(name: string, element: Element, context: IRenderContext, options?: IViewportOptions): Viewport;
-    removeViewport(viewport: Viewport, element: Element, context: IRenderContext): void;
+    addViewport(name: string, element: Element, context: IRenderContext | IContainer, options?: IViewportOptions): Viewport;
+    removeViewport(viewport: Viewport, element: Element, context: IRenderContext | IContainer): void;
     allViewports(): Viewport[];
     removeScope(scope: Scope): void;
     goto(pathOrViewports: string | Record<string, Viewport>, title?: string, data?: Record<string, unknown>): Promise<void>;

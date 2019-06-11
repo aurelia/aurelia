@@ -1,0 +1,46 @@
+<div class="container">
+  <div class="level">
+    <div class="level-left">
+      <div class="level-item">
+        <div class="buttons">
+          <a class="button is-primary" click.trigger="create(1)">Create 1</a>
+          <a class="button is-primary" click.trigger="create(10)">Create 10</a>
+          <a class="button is-primary" click.trigger="create(100)">Create 100</a>
+          <a class="button is-primary" click.trigger="create(1000)">Create 1000</a>
+          <a class="button is-primary" click.trigger="create(10000)">Create 10000</a>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="level">
+    <div class="level-left">
+      <div class="level-item">
+        <div class="buttons">
+          <a class="button is-primary" click.trigger="remove(1)">Remove 1</a>
+          <a class="button is-primary" click.trigger="remove(10)">Remove 10</a>
+          <a class="button is-primary" click.trigger="remove(100)">Remove 100</a>
+          <a class="button is-primary" click.trigger="remove(1000)">Remove 1000</a>
+          <a class="button is-primary" click.trigger="remove(10000)">Remove 10000</a>
+          <a class="button is-primary" click.trigger="remove()">Remove all</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <table class="table is-fullwidth">
+    <thead>
+      <tr>
+        <th repeat.for="col of cols" click.trigger="sort(col.name)" style="cursor: pointer;">
+          ${col.title & oneTime}
+        </th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr repeat.for="row of rows">
+        <td repeat.for="col of cols & oneTime">
+          ${row[col.name] & oneTime}
+        </td>
+      </tr>
+    </tbody>
+  </table>
+</div>

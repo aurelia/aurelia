@@ -1,0 +1,55 @@
+{
+  "name": "@aurelia/plugin-pixi",
+  "version": "0.3.0",
+  "sideEffects": false,
+  "main": "dist/build/index.js",
+  "module": "dist/build/index.js",
+  "jsnext:main": "dist/build/index.js",
+  "browser": "dist/build/index.js",
+  "types": "dist/index.d.ts",
+  "typings": "dist/index.d.ts",
+  "license": "MIT",
+  "homepage": "https://aurelia.io",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/aurelia/aurelia"
+  },
+  "bugs": {
+    "url": "https://github.com/aurelia/aurelia/issues"
+  },
+  "keywords": [
+    "aurelia",
+    "plugin-pixi"
+  ],
+  "files": [
+    "dist",
+    "src",
+    "README.md",
+    "CHANGELOG.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "lint": "tslint --project tsconfig.json -t stylish",
+    "build": "tsc -b",
+    "bundle": "ts-node -P ../../scripts/tsconfig.json ../../scripts/bundle.ts umd,esm,system plugin-pixi",
+    "dev": "tsc -b -w"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "dependencies": {
+    "@aurelia/kernel": "0.3.0",
+    "@aurelia/runtime": "0.3.0",
+    "@aurelia/runtime-html": "0.3.0",
+    "@aurelia/runtime-html-browser": "0.3.0",
+    "pixi.js": "^4.8.7"
+  },
+  "devDependencies": {
+    "@types/node": "^10.12.27",
+    "tslib": "^1.9.3",
+    "tslint": "^5.16.0",
+    "tslint-microsoft-contrib": "^6.1.1",
+    "tslint-sonarts": "^1.9.0",
+    "typescript": "^3.4.5"
+  }
+}

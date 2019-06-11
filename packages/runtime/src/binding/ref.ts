@@ -1,28 +1,43 @@
-import { IIndexable, IServiceLocator, Tracer } from '@aurelia/kernel';
+import {
+  IIndexable,
+  IServiceLocator,
+  Tracer,
+} from '@aurelia/kernel';
+
 import { IsBindingBehavior } from '../ast';
-import { LifecycleFlags, State } from '../flags';
+import {
+  LifecycleFlags,
+  State,
+} from '../flags';
 import { IBinding } from '../lifecycle';
-import { IObservable, IScope } from '../observation';
-import { hasBind, hasUnbind } from './ast';
+import {
+  IObservable,
+  IScope,
+} from '../observation';
+import {
+  hasBind,
+  hasUnbind,
+} from './ast';
 import { IConnectableBinding } from './connectable';
 
 const slice = Array.prototype.slice;
 
 export interface Ref extends IConnectableBinding {}
 export class Ref implements IBinding {
-  public $nextBinding: IBinding;
-  public $prevBinding: IBinding;
   public $state: State;
-  public $scope: IScope;
+  public $scope?: IScope;
 
   public locator: IServiceLocator;
   public sourceExpression: IsBindingBehavior;
   public target: IObservable;
 
-  constructor(sourceExpression: IsBindingBehavior, target: IObservable, locator: IServiceLocator) {
-    this.$nextBinding = null;
-    this.$prevBinding = null;
+  constructor(
+    sourceExpression: IsBindingBehavior,
+    target: IObservable,
+    locator: IServiceLocator,
+  ) {
     this.$state = State.none;
+    this.$scope = void 0;
 
     this.locator = locator;
     this.sourceExpression = sourceExpression;
@@ -48,7 +63,7 @@ export class Ref implements IBinding {
       this.sourceExpression.bind(flags, scope, this);
     }
 
-    this.sourceExpression.assign(flags, this.$scope, this.locator, this.target);
+    this.sourceExpression.assign!(flags, this.$scope, this.locator, this.target);
 
     // add isBound flag and remove isBinding flag
     this.$state |= State.isBound;
@@ -65,16 +80,16 @@ export class Ref implements IBinding {
     // add isUnbinding flag
     this.$state |= State.isUnbinding;
 
-    if (this.sourceExpression.evaluate(flags, this.$scope, this.locator) === this.target) {
-      this.sourceExpression.assign(flags, this.$scope, this.locator, null);
+    if (this.sourceExpression.evaluate(flags, this.$scope!, this.locator) === this.target) {
+      this.sourceExpression.assign!(flags, this.$scope!, this.locator, null);
     }
 
     const sourceExpression = this.sourceExpression;
     if (hasUnbind(sourceExpression)) {
-      sourceExpression.unbind(flags, this.$scope, this);
+      sourceExpression.unbind(flags, this.$scope!, this);
     }
 
-    this.$scope = null;
+    this.$scope = void 0;
 
     // remove isBound and isUnbinding flags
     this.$state &= ~(State.isBound | State.isUnbinding);

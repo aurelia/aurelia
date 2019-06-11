@@ -20,7 +20,7 @@ import { parseExpression } from './expression-parser';
 export const IExpressionParserRegistration: IRegistry = {
   register(container: IContainer): void {
     container.registerTransformer(IExpressionParser, parser => {
-      parser['parseCore'] = parseExpression;
+      Reflect.set(parser, 'parseCore', parseExpression);
       return parser;
     });
   }

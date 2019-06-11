@@ -32,7 +32,7 @@ function trimDots(ary: string[]): void {
  * @return The calculated path.
  */
 export function relativeToFile(name: string, file: string): string {
-  const fileParts = file && file.split('/');
+  const fileParts = !file ? file : file.split('/');
   const nameParts = name.trim().split('/');
 
   if (nameParts[0].charAt(0) === '.' && fileParts) {
@@ -125,7 +125,7 @@ type SimpleQueryParams = string | IQueryParams | (string | IQueryParams)[];
  */
 function buildParam(key: string, value: ComplexQueryParams, traditional?: boolean): string[] {
   let result: string[] = [];
-  if (value === null || value === undefined) {
+  if (value == null) {
     return result;
   }
   if (Array.isArray(value)) {
@@ -133,7 +133,7 @@ function buildParam(key: string, value: ComplexQueryParams, traditional?: boolea
       if (traditional) {
         result.push(`${encodeKey(key)}=${encode(value[i] as string)}`);
       } else {
-        const arrayKey = `${key}[${(typeof value[i] === 'object' && value[i] !== null ? i : '')}]`;
+        const arrayKey = `${key}[${(typeof value[i] === 'object' && value[i] != null ? i : '')}]`;
         result = result.concat(buildParam(arrayKey, value[i]));
       }
     }
@@ -155,11 +155,15 @@ function buildParam(key: string, value: ComplexQueryParams, traditional?: boolea
  * @returns The generated query string, excluding leading '?'.
  */
 export function buildQueryString(params?: IQueryParams, traditional?: boolean): string {
-  let pairs: string[] = [];
-  const keys = Object.keys(params || {}).sort();
-  for (let i = 0, len = keys.length; i < len; i++) {
-    const key = keys[i];
-    pairs = pairs.concat(buildParam(key, params[key], traditional));
+  if (params == null) {
+    return '';
+  }
+  const pairs: string[] = [];
+  const keys = Object.keys(params).sort();
+  let key: string;
+  for (let i = 0, len = keys.length; i < len; ++i) {
+    key = keys[i];
+    pairs.push(...buildParam(key, params[key], traditional));
   }
 
   if (pairs.length === 0) {
@@ -200,17 +204,31 @@ function processScalarParam(existedParam: SimpleQueryParams, value: string | IQu
  * @param value Parameter value to append.
  */
 function parseComplexParam(queryParams: IQueryParams, keys: (string | number)[], value: string): void {
-  let currentParams: SimpleQueryParams = queryParams;
+  let currentParams = queryParams as IQueryParams & (string | IQueryParams)[];
   const keysLastIndex = keys.length - 1;
-  for (let j = 0; j <= keysLastIndex; j++) {
-    const key = keys[j] === '' ? currentParams.length : keys[j];
+  let key: number;
+  let prevValue: SimpleQueryParams;
+  for (let j = 0; j <= keysLastIndex; ++j) {
+    key = (keys[j] === '' ? currentParams.length : keys[j]) as number;
     if (j < keysLastIndex) {
       // The value has to be an array or a false value
       // It can happen that the value is no array if the key was repeated with traditional style like `list=1&list[]=2`
-      const prevValue = !currentParams[key] || typeof currentParams[key] === 'object' ? currentParams[key] : [currentParams[key]];
-      currentParams = currentParams[key] = prevValue || (isNaN(keys[j + 1] as number) ? {} : []);
+      if (!currentParams[key] || typeof currentParams[key] === 'object') {
+        prevValue = currentParams[key];
+      } else {
+        prevValue = [currentParams[key]];
+      }
+      if (prevValue) {
+        currentParams = currentParams[key] = prevValue as typeof currentParams;
+      } else if (isNaN(keys[j + 1] as number)) {
+        // Kinda have no choice here
+        // tslint:disable-next-line: no-object-literal-type-assertion
+        currentParams = currentParams[key] = {} as typeof currentParams;
+      } else {
+        currentParams = currentParams[key] = [] as [] & typeof currentParams;
+      }
     } else {
-      currentParams = currentParams[key] = value;
+      currentParams = currentParams[key] = value as string & typeof currentParams;
     }
   }
 }
@@ -248,7 +266,8 @@ export function parseQueryString(queryString: string): IQueryParams {
     //Else it's basic key
     if (/\[/.test(keys[0]) && /\]$/.test(keys[keysLastIndex])) {
       keys[keysLastIndex] = keys[keysLastIndex].replace(/\]$/, '');
-      keys = keys.shift().split('[').concat(keys);
+      // tslint:disable-next-line: no-non-null-assertion // outer condition already ensures not-null
+      keys = keys.shift()!.split('[').concat(keys);
       keysLastIndex = keys.length - 1;
     } else {
       keysLastIndex = 0;

@@ -95,7 +95,7 @@ export class HTMLDOM implements IDOM {
       return node; // it's already a IRenderLocation (converted by FragmentNodeSequence)
     }
 
-    if (node.parentNode === null) {
+    if (node.parentNode == null) {
       throw Reporter.error(52);
     }
 
@@ -104,16 +104,16 @@ export class HTMLDOM implements IDOM {
 
     node.parentNode.replaceChild(locationEnd, node);
 
-    locationEnd.parentNode.insertBefore(locationStart, locationEnd);
+    locationEnd.parentNode!.insertBefore(locationStart, locationEnd);
 
     (locationEnd as IRenderLocation).$start = locationStart as IRenderLocation;
-    (locationStart as IRenderLocation).$nodes = null;
+    (locationStart as IRenderLocation).$nodes = null!;
 
     return locationEnd as IRenderLocation;
   }
 
   public createDocumentFragment(markupOrNode?: string | Node): DocumentFragment {
-    if (markupOrNode === undefined || markupOrNode === null) {
+    if (markupOrNode == null) {
       return this.document.createDocumentFragment();
     }
 
@@ -153,7 +153,7 @@ export class HTMLDOM implements IDOM {
       return {
         disconnect(): void { /*empty*/ },
         observe(): void { /*empty*/ },
-        takeRecords(): MutationRecord[] { return PLATFORM.emptyArray as MutationRecord[]; }
+        takeRecords(): MutationRecord[] { return PLATFORM.emptyArray as typeof PLATFORM.emptyArray & MutationRecord[]; }
       };
     }
 
@@ -163,7 +163,7 @@ export class HTMLDOM implements IDOM {
   }
 
   public createTemplate(markup?: unknown): HTMLTemplateElement {
-    if (markup === undefined || markup === null) {
+    if (markup == null) {
       return this.document.createElement('template');
     }
 
@@ -177,7 +177,7 @@ export class HTMLDOM implements IDOM {
   }
 
   public insertBefore(nodeToInsert: Node, referenceNode: Node): void {
-    referenceNode.parentNode.insertBefore(nodeToInsert, referenceNode);
+    referenceNode.parentNode!.insertBefore(nodeToInsert, referenceNode);
   }
 
   public isMarker(node: unknown): node is HTMLElement {
@@ -185,7 +185,7 @@ export class HTMLDOM implements IDOM {
   }
 
   public isNodeInstance(potentialNode: unknown): potentialNode is Node {
-    return potentialNode !== null && potentialNode !== undefined && (potentialNode as Node).nodeType > 0;
+    return potentialNode != null && (potentialNode as Node).nodeType > 0;
   }
 
   public isRenderLocation(node: unknown): node is IRenderLocation {
@@ -207,7 +207,7 @@ export class HTMLDOM implements IDOM {
     if ((node as ChildNode).remove) {
       (node as ChildNode).remove();
     } else {
-      node.parentNode.removeChild(node);
+      node.parentNode!.removeChild(node);
     }
   }
 
@@ -231,19 +231,33 @@ export { $DOM as DOM };
  */
 /** @internal */
 export class TextNodeSequence implements INodeSequence {
+  public isMounted: boolean;
+  public isLinked: boolean;
+
   public dom: HTMLDOM;
   public firstChild: Text;
   public lastChild: Text;
   public childNodes: Text[];
 
+  public next?: INodeSequence<Node>;
+
+  private refNode?: Node;
+
   private readonly targets: [Node];
 
   constructor(dom: HTMLDOM, text: Text) {
+    this.isMounted = false;
+    this.isLinked = false;
+
     this.dom = dom;
     this.firstChild = text;
     this.lastChild = text;
     this.childNodes = [text];
     this.targets = [new AuMarker(text) as unknown as Node];
+
+    this.next = void 0;
+
+    this.refNode = void 0;
   }
 
   public findTargets(): ArrayLike<Node> {
@@ -251,15 +265,56 @@ export class TextNodeSequence implements INodeSequence {
   }
 
   public insertBefore(refNode: Node): void {
-    refNode.parentNode.insertBefore(this.firstChild, refNode);
+    if (this.isLinked && !!this.refNode) {
+      this.addToLinked();
+    } else {
+      this.isMounted = true;
+      refNode.parentNode!.insertBefore(this.firstChild, refNode);
+    }
   }
 
   public appendTo(parent: Node): void {
-    parent.appendChild(this.firstChild);
+    if (this.isLinked && !!this.refNode) {
+      this.addToLinked();
+    } else {
+      this.isMounted = true;
+      parent.appendChild(this.firstChild);
+    }
   }
 
   public remove(): void {
+    this.isMounted = false;
     this.firstChild.remove();
+  }
+
+  public addToLinked(): void {
+    const refNode = this.refNode!;
+    this.isMounted = true;
+    refNode.parentNode!.insertBefore(this.firstChild, refNode);
+  }
+
+  public unlink(): void {
+    this.isLinked = false;
+    this.next = void 0;
+    this.refNode = void 0;
+  }
+
+  public link(next: INodeSequence<Node> | (IRenderLocation & Comment) | undefined): void {
+    this.isLinked = true;
+    if (this.dom.isRenderLocation(next)) {
+      this.refNode = next;
+    } else {
+      this.next = next;
+      this.obtainRefNode();
+    }
+  }
+
+  private obtainRefNode(): void {
+    if (this.next !== void 0) {
+      this.refNode = this.next.firstChild;
+    } else {
+      this.refNode = void 0;
+    }
   }
 }
 // tslint:enable:no-any
@@ -274,17 +329,25 @@ export class TextNodeSequence implements INodeSequence {
  * @internal
  */
 export class FragmentNodeSequence implements INodeSequence {
+  public isMounted: boolean;
+  public isLinked: boolean;
+
   public dom: IDOM;
   public firstChild: Node;
   public lastChild: Node;
   public childNodes: Node[];
 
-  private end: IRenderLocation & Comment;
-  private start: IRenderLocation & Comment;
+  public next?: INodeSequence<Node>;
+
+  private refNode?: Node;
+
   private readonly fragment: DocumentFragment;
   private readonly targets: ArrayLike<Node>;
 
   constructor(dom: IDOM, fragment: DocumentFragment) {
+    this.isMounted = false;
+    this.isLinked = false;
+
     this.dom = dom;
     this.fragment = fragment;
     // tslint:disable-next-line:no-any
@@ -319,10 +382,12 @@ export class FragmentNodeSequence implements INodeSequence {
       ++i;
     }
 
-    this.firstChild = fragment.firstChild;
-    this.lastChild = fragment.lastChild;
+    this.firstChild = fragment.firstChild!;
+    this.lastChild = fragment.lastChild!;
 
-    this.start = this.end = null;
+    this.next = void 0;
+
+    this.refNode = void 0;
   }
 
   public findTargets(): ArrayLike<Node> {
@@ -330,65 +395,18 @@ export class FragmentNodeSequence implements INodeSequence {
   }
 
   public insertBefore(refNode: IRenderLocation & Comment): void {
-    refNode.parentNode.insertBefore(this.fragment, refNode);
-    // internally we could generally assume that this is an IRenderLocation,
-    // but since this is also public API we still need to double check
-    // (or horrible things might happen)
-    if (isRenderLocation(refNode)) {
-      this.end = refNode;
-      const start = this.start = refNode.$start as IRenderLocation & Comment;
-      if (start.$nodes === null) {
-        start.$nodes = this;
-      } else {
-        // if more than one INodeSequence uses the same IRenderLocation, it's an child
-        // of a repeater (or something similar) and we shouldn't remove all nodes between
-        // start - end since that would always remove all items from a repeater, even
-        // when only one is removed
-        // so we set $nodes to PLATFORM.emptyObject to 1) tell other sequences that it's
-        // occupied and 2) prevent start.$nodes === this from ever evaluating to true
-        // during remove()
-        start.$nodes = PLATFORM.emptyObject;
-      }
-    }
-  }
-
-  public appendTo(parent: Node): void {
-    // tslint:disable-next-line:no-any
-    parent.appendChild(this.fragment);
-    // this can never be a IRenderLocation, and if for whatever reason we moved
-    // from a IRenderLocation to a host, make sure "start" and "end" are null
-    this.start = this.end = null;
-  }
-
-  public remove(): void {
-    const fragment = this.fragment;
-    if (this.start !== null && this.start.$nodes === this) {
-      // if we're between a valid "start" and "end" (e.g. if/else, containerless, or a
-      // repeater with a single item) then simply remove everything in-between (but not
-      // the comments themselves as they belong to the parent)
-      const end = this.end;
-      let next: Node;
-      let current = this.start.nextSibling;
-      while (current !== end) {
-        next = current.nextSibling;
-        // tslint:disable-next-line:no-any
-        fragment.appendChild(current);
-        current = next;
-      }
-      this.start.$nodes = null;
-      this.start = this.end = null;
+    if (this.isLinked && !!this.refNode) {
+      this.addToLinked();
     } else {
-      // otherwise just remove from first to last child in the regular way
-      let current = this.firstChild;
-
-      if (current.parentNode !== fragment) {
+      const parent = refNode.parentNode!;
+      if (this.isMounted) {
+        let current = this.firstChild;
         const end = this.lastChild;
         let next: Node;
 
-        while (current !== null) {
-          next = current.nextSibling;
-          // tslint:disable-next-line:no-any
-          fragment.appendChild(current);
+        while (current != null) {
+          next = current.nextSibling!;
+          parent.insertBefore(current, refNode);
 
           if (current === end) {
             break;
@@ -396,22 +414,115 @@ export class FragmentNodeSequence implements INodeSequence {
 
           current = next;
         }
+      } else {
+        this.isMounted = true;
+        refNode.parentNode!.insertBefore(this.fragment, refNode);
       }
+    }
+  }
+
+  public appendTo(parent: Node): void {
+    if (this.isMounted) {
+      let current = this.firstChild;
+      const end = this.lastChild;
+      let next: Node;
+
+      while (current != null) {
+        next = current.nextSibling!;
+        parent.appendChild(current);
+
+        if (current === end) {
+          break;
+        }
+
+        current = next;
+      }
+    } else {
+      this.isMounted = true;
+      parent.appendChild(this.fragment);
+    }
+  }
+
+  public remove(): void {
+    if (this.isMounted) {
+      this.isMounted = false;
+
+      const fragment = this.fragment;
+      const end = this.lastChild;
+      let next: Node;
+
+      let current = this.firstChild;
+      while (current !== null) {
+        next = current.nextSibling!;
+        fragment.appendChild(current);
+
+        if (current === end) {
+          break;
+        }
+
+        current = next;
+      }
+    }
+  }
+
+  public addToLinked(): void {
+    const refNode = this.refNode!;
+    const parent = refNode.parentNode!;
+    if (this.isMounted) {
+      let current = this.firstChild;
+      const end = this.lastChild;
+      let next: Node;
+
+      while (current != null) {
+        next = current.nextSibling!;
+        parent.insertBefore(current, refNode);
+
+        if (current === end) {
+          break;
+        }
+
+        current = next;
+      }
+    } else {
+      this.isMounted = true;
+      parent.insertBefore(this.fragment, refNode);
+    }
+  }
+
+  public unlink(): void {
+    this.isLinked = false;
+    this.next = void 0;
+    this.refNode = void 0;
+  }
+
+  public link(next: INodeSequence<Node> | IRenderLocation & Comment | undefined): void {
+    this.isLinked = true;
+    if (this.dom.isRenderLocation(next)) {
+      this.refNode = next;
+    } else {
+      this.next = next;
+      this.obtainRefNode();
+    }
+  }
+
+  private obtainRefNode(): void {
+    if (this.next !== void 0) {
+      this.refNode = this.next.firstChild;
+    } else {
+      this.refNode = void 0;
     }
   }
 }
 
-/** @internal */
 export interface NodeSequenceFactory {
   createNodeSequence(): INodeSequence;
 }
 
-/** @internal */
 export class NodeSequenceFactory implements NodeSequenceFactory {
   private readonly dom: IDOM;
-  private readonly deepClone: boolean;
-  private readonly node: Node;
-  private readonly Type: Constructable<INodeSequence>;
+  private readonly deepClone!: boolean;
+  private readonly node!: Node;
+  private readonly Type!: Constructable<INodeSequence>;
 
   constructor(dom: IDOM, markupOrNode: string | Node) {
     this.dom = dom;
@@ -425,7 +536,7 @@ export class NodeSequenceFactory implements NodeSequenceFactory {
         const target = childNodes[0];
         if (target.nodeName === 'AU-M' || target.nodeName === '#comment') {
           const text = childNodes[1];
-          if (text.nodeType === NodeType.Text && text.textContent.length === 0) {
+          if (text.nodeType === NodeType.Text && text.textContent!.length === 0) {
             this.deepClone = false;
             this.node = text;
             this.Type = TextNodeSequence;
@@ -450,15 +561,15 @@ export interface AuMarker extends INode { }
 /** @internal */
 export class AuMarker implements INode {
   public get parentNode(): Node & ParentNode {
-    return this.nextSibling.parentNode;
+    return this.nextSibling.parentNode!;
   }
 
   public readonly nextSibling: Node;
-  public readonly previousSibling: Node;
+  public readonly previousSibling!: Node;
   public readonly content?: Node;
-  public readonly childNodes: ArrayLike<ChildNode>;
-  public readonly nodeName: 'AU-M';
-  public readonly nodeType: NodeType.Element;
+  public readonly childNodes!: ArrayLike<ChildNode>;
+  public readonly nodeName!: 'AU-M';
+  public readonly nodeType!: NodeType.Element;
 
   public textContent: string;
 
@@ -471,7 +582,7 @@ export class AuMarker implements INode {
 }
 
 (proto => {
-  proto.previousSibling = null;
+  proto.previousSibling = null!;
   proto.childNodes = PLATFORM.emptyArray;
   proto.nodeName = 'AU-M';
   proto.nodeType = NodeType.Element;

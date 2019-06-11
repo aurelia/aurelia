@@ -1,43 +1,62 @@
-import { IIndexable, Tracer } from '@aurelia/kernel';
+import { IIndexable, Reporter } from '@aurelia/kernel';
 import { LifecycleFlags } from '../flags';
-import { IPropertyObserver } from '../observation';
-import { propertyObserver } from './property-observer';
+import { ILifecycle } from '../lifecycle';
+import { IPropertyObserver, ISubscriber } from '../observation';
 import { ProxyObserver } from './proxy-observer';
-
-const slice = Array.prototype.slice;
+import { subscriberCollection } from './subscriber-collection';
 
 export interface SelfObserver extends IPropertyObserver<IIndexable, string> {}
 
-@propertyObserver()
-export class SelfObserver implements SelfObserver {
-  public readonly persistentFlags: LifecycleFlags;
-  public obj: object;
-  public propertyKey: string;
-  public currentValue: unknown;
+@subscriberCollection()
+export class SelfObserver {
+  public readonly lifecycle: ILifecycle;
 
-  private readonly callback: ((newValue: unknown, oldValue: unknown, flags: LifecycleFlags) => void) | null;
+  public readonly obj: IIndexable;
+  public readonly propertyKey: string;
+  public currentValue: unknown;
+  public oldValue: unknown;
+
+  public readonly persistentFlags: LifecycleFlags;
+  public inBatch: boolean;
+  public observing: boolean;
+
+  private readonly callback?: (newValue: unknown, oldValue: unknown, flags: LifecycleFlags) => void;
 
   constructor(
+    lifecycle: ILifecycle,
     flags: LifecycleFlags,
-    instance: object,
+    obj: IIndexable,
     propertyName: string,
     cbName: string
   ) {
-    if (Tracer.enabled) { Tracer.enter('SelfObserver', 'constructor', slice.call(arguments)); }
-    this.persistentFlags = flags & LifecycleFlags.persistentBindingFlags;
-    if (ProxyObserver.isProxy(instance)) {
-      instance.$observer.subscribe(this, propertyName);
-      this.obj = instance.$raw;
+    this.lifecycle = lifecycle;
+
+    let isProxy = false;
+    if (ProxyObserver.isProxy(obj)) {
+      isProxy = true;
+      obj.$observer.subscribe(this, propertyName);
+      this.obj = obj.$raw;
     } else {
-      this.obj = instance;
+      this.obj = obj;
     }
     this.propertyKey = propertyName;
-    this.currentValue = this.obj[propertyName];
-    this.callback = this.obj[cbName] === undefined ? null : this.obj[cbName];
-    if (flags & LifecycleFlags.patchStrategy) {
-      this.getValue = this.getValueDirect;
+    this.currentValue = void 0;
+    this.oldValue = void 0;
+
+    this.inBatch = false;
+
+    this.callback = this.obj[cbName] as typeof SelfObserver.prototype.callback;
+
+    if (this.callback === void 0) {
+      this.observing = false;
+    } else {
+      this.observing = true;
+      this.currentValue = this.obj[this.propertyKey];
+      if (!isProxy) {
+        this.createGetterSetter();
+      }
     }
-    if (Tracer.enabled) { Tracer.leave(); }
+    this.persistentFlags = flags & LifecycleFlags.persistentBindingFlags;
   }
 
   public handleChange(newValue: unknown, oldValue: unknown, flags: LifecycleFlags): void {
@@ -47,33 +66,57 @@ export class SelfObserver implements SelfObserver {
   public getValue(): unknown {
     return this.currentValue;
   }
-  public getValueDirect(): unknown {
-    return this.obj[this.propertyKey];
-  }
 
   public setValue(newValue: unknown, flags: LifecycleFlags): void {
-    if (newValue !== this.currentValue || (flags & LifecycleFlags.patchStrategy) > 0) {
-      if ((flags & LifecycleFlags.fromBind) === 0) {
-        const oldValue = this.currentValue;
-        flags |= this.persistentFlags;
-        this.currentValue = newValue;
-        this.callSubscribers(newValue, oldValue, flags | LifecycleFlags.allowPublishRoundtrip);
-        if (this.callback !== null) {
-          this.callback.call(this.obj, newValue, oldValue, flags);
+    if (this.observing) {
+      const currentValue = this.currentValue;
+      this.currentValue = newValue;
+      if (this.lifecycle.batch.depth === 0) {
+        if ((flags & LifecycleFlags.fromBind) === 0) {
+          this.callSubscribers(newValue, currentValue, this.persistentFlags | flags);
+          if (this.callback !== void 0) {
+            this.callback.call(this.obj, newValue, currentValue, this.persistentFlags | flags);
+          }
         }
-      } else {
-        this.currentValue = newValue;
+      } else if (!this.inBatch) {
+        this.inBatch = true;
+        this.oldValue = currentValue;
+        this.lifecycle.batch.add(this);
       }
+    } else {
+      // See SetterObserver.setValue for explanation
+      this.obj[this.propertyKey] = newValue;
     }
   }
-  public $patch(flags: LifecycleFlags): void {
-    const oldValue = this.currentValue;
-    const newValue = this.obj[this.propertyKey];
-    flags |= this.persistentFlags;
-    this.currentValue = newValue;
-    this.callSubscribers(newValue, oldValue, flags);
-    if (this.callback !== null) {
-      this.callback.call(this.obj, newValue, oldValue, flags);
+
+  public subscribe(subscriber: ISubscriber): void {
+    if (this.observing === false) {
+      this.observing = true;
+      this.currentValue = this.obj[this.propertyKey];
+      this.createGetterSetter();
+    }
+
+    this.addSubscriber(subscriber);
+  }
+
+  private createGetterSetter(): void {
+    if (
+      !Reflect.defineProperty(
+        this.obj,
+        this.propertyKey,
+        {
+          enumerable: true,
+          configurable: true,
+          get: () => {
+            return this.currentValue;
+          },
+          set: value => {
+            this.setValue(value, LifecycleFlags.none);
+          },
+        }
+      )
+    ) {
+      Reporter.write(1, this.propertyKey, this.obj);
     }
   }
 }

@@ -3,11 +3,7 @@
   "compilerOptions": {
     "declarationDir": "dist",
     "outDir": "dist/build",
-    "rootDir": "src",
-
-    "noImplicitThis": true,
-    "alwaysStrict": true,
-    "strict": false
+    "rootDir": "src"
   },
   "include": ["src"]
 }

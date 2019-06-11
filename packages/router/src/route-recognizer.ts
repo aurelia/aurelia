@@ -447,7 +447,7 @@ export class RouteRecognizer {
       }
 
       const segmentValue = segment.generate(routeParams, consumed);
-      if (segmentValue === null || segmentValue === undefined) {
+      if (segmentValue == null) {
         if (!segment.optional) {
           throw new Error(`A value is required for route parameter '${segment.name}' in route '${nameOrRoute}'.`);
         }

@@ -1,18 +1,32 @@
 import { IServiceLocator } from '@aurelia/kernel';
-import { IExpression, IInterpolationExpression } from '../ast';
-import { BindingMode, LifecycleFlags, State } from '../flags';
+
+import {
+  IExpression,
+  IInterpolationExpression,
+} from '../ast';
+import {
+  BindingMode,
+  LifecycleFlags,
+  State,
+} from '../flags';
 import { IBinding } from '../lifecycle';
-import { IBindingTargetAccessor, IObservable, IScope } from '../observation';
+import {
+  IBindingTargetAccessor,
+  IObservable,
+  IScope,
+} from '../observation';
 import { IObserverLocator } from '../observation/observer-locator';
-import { connectable, IConnectableBinding, IPartialConnectableBinding } from './connectable';
+import {
+  connectable,
+  IConnectableBinding,
+  IPartialConnectableBinding,
+} from './connectable';
 
 const { toView, oneTime } = BindingMode;
 
 export class MultiInterpolationBinding implements IBinding {
-  public $nextBinding: IBinding;
-  public $prevBinding: IBinding;
   public $state: State;
-  public $scope: IScope;
+  public $scope?: IScope;
 
   public interpolation: IInterpolationExpression;
   public observerLocator: IObserverLocator;
@@ -22,11 +36,16 @@ export class MultiInterpolationBinding implements IBinding {
   public target: IObservable;
   public targetProperty: string;
 
-  constructor(observerLocator: IObserverLocator, interpolation: IInterpolationExpression, target: IObservable, targetProperty: string, mode: BindingMode, locator: IServiceLocator) {
-    this.$nextBinding = null;
-    this.$prevBinding = null;
+  constructor(
+    observerLocator: IObserverLocator,
+    interpolation: IInterpolationExpression,
+    target: IObservable,
+    targetProperty: string,
+    mode: BindingMode,
+    locator: IServiceLocator,
+  ) {
     this.$state = State.none;
-    this.$scope = null;
+    this.$scope = void 0;
 
     this.interpolation = interpolation;
     this.locator = locator;
@@ -67,7 +86,7 @@ export class MultiInterpolationBinding implements IBinding {
       return;
     }
     this.$state &= ~State.isBound;
-    this.$scope = null;
+    this.$scope = void 0;
     const parts = this.parts;
     for (let i = 0, ii = parts.length; i < ii; ++i) {
       parts[i].$unbind(flags);
@@ -79,8 +98,8 @@ export interface InterpolationBinding extends IConnectableBinding {}
 
 @connectable()
 export class InterpolationBinding implements IPartialConnectableBinding {
-  public id: string;
-  public $scope: IScope;
+  public id!: number;
+  public $scope?: IScope;
   public $state: State;
 
   public interpolation: IInterpolationExpression;
@@ -95,7 +114,16 @@ export class InterpolationBinding implements IPartialConnectableBinding {
   public targetObserver: IBindingTargetAccessor;
 
   // tslint:disable-next-line:parameters-max-number
-  constructor(sourceExpression: IExpression, interpolation: IInterpolationExpression, target: IObservable, targetProperty: string, mode: BindingMode, observerLocator: IObserverLocator, locator: IServiceLocator, isFirst: boolean) {
+  constructor(
+    sourceExpression: IExpression,
+    interpolation: IInterpolationExpression,
+    target: IObservable,
+    targetProperty: string,
+    mode: BindingMode,
+    observerLocator: IObserverLocator,
+    locator: IServiceLocator,
+    isFirst: boolean,
+  ) {
     connectable.assignIdTo(this);
     this.$state = State.none;
 
@@ -121,14 +149,14 @@ export class InterpolationBinding implements IPartialConnectableBinding {
     }
 
     const previousValue = this.targetObserver.getValue();
-    const newValue = this.interpolation.evaluate(flags, this.$scope, this.locator);
+    const newValue = this.interpolation.evaluate(flags, this.$scope!, this.locator);
     if (newValue !== previousValue) {
       this.updateTarget(newValue, flags);
     }
 
     if ((this.mode & oneTime) === 0) {
       this.version++;
-      this.sourceExpression.connect(flags, this.$scope, this);
+      this.sourceExpression.connect(flags, this.$scope!, this);
       this.unobserve(false);
     }
   }
@@ -147,6 +175,9 @@ export class InterpolationBinding implements IPartialConnectableBinding {
     const sourceExpression = this.sourceExpression;
     if (sourceExpression.bind) {
       sourceExpression.bind(flags, scope, this);
+    }
+    if (this.mode !== BindingMode.oneTime && this.targetObserver.bind) {
+      this.targetObserver.bind(flags);
     }
 
     // since the interpolation already gets the whole value, we only need to let the first
@@ -167,10 +198,13 @@ export class InterpolationBinding implements IPartialConnectableBinding {
 
     const sourceExpression = this.sourceExpression;
     if (sourceExpression.unbind) {
-      sourceExpression.unbind(flags, this.$scope, this);
+      sourceExpression.unbind(flags, this.$scope!, this);
+    }
+    if (this.targetObserver.unbind) {
+      this.targetObserver.unbind(flags);
     }
 
-    this.$scope = null;
+    this.$scope = void 0;
     this.unobserve(true);
   }
 }

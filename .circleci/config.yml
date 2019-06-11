@@ -377,13 +377,13 @@ workflows:
             #- unit_test_firefox
             #- unit_test_node
             - lint_packages
-            - e2e_browserstack
-            - e2e_cypress_doc_example
-            - jit-aurelia-cli-ts
-            - jit-fuse-box-ts
-            - jit-webpack-ts
-            - jit-parcel-ts
-            - jit-iife-inline
+            #- e2e_browserstack
+            #- e2e_cypress_doc_example
+            #- jit-aurelia-cli-ts
+            #- jit-fuse-box-ts
+            #- jit-webpack-ts
+            #- jit-parcel-ts
+            #- jit-iife-inline
           from: master
           to: develop
           channel: dev
@@ -421,8 +421,8 @@ workflows:
             #- unit_test_firefox
             #- unit_test_node
             - lint_packages
-            - e2e_browserstack
-            - e2e_cypress_doc_example
+            #- e2e_browserstack
+            #- e2e_cypress_doc_example
           from: $CIRCLE_TAG
           to: release
           channel: latest

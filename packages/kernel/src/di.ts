@@ -33,22 +33,22 @@ export interface IRegistration<T = any> {
 export interface IFactory<T = any> {
   readonly Type: Constructable;
   registerTransformer(transformer: (instance: T) => T): boolean;
-  construct(container: IContainer, dynamicDependencies?: Key<unknown>[]): T;
+  construct(container: IContainer, dynamicDependencies?: Key<any>[]): T;
 }
 
 export interface IServiceLocator {
-  has<K>(key: Constructable | Key<unknown> | IResolver<unknown> | K, searchAncestors: boolean): boolean;
+  has<K>(key: Constructable | Key<any> | IResolver<any> | K, searchAncestors: boolean): boolean;
 
-  get<K>(key: Constructable | Key<unknown> | IResolver<unknown> | K):
+  get<K>(key: Constructable | Key<any> | IResolver<any> | K):
     K extends InterfaceSymbol<infer T> ? T :
     K extends Constructable ? InstanceType<K> :
-    K extends IResolverLike<infer T1, unknown> ? T1 extends Constructable ? InstanceType<T1> : T1 :
+    K extends IResolverLike<infer T1, any> ? T1 extends Constructable ? InstanceType<T1> : T1 :
     K;
 
-  getAll<K>(key: Constructable | Key<unknown> | IResolver<unknown> | K):
+  getAll<K>(key: Constructable | Key<any> | IResolver<any> | K):
     K extends InterfaceSymbol<infer T> ? ReadonlyArray<T> :
     K extends Constructable ? ReadonlyArray<InstanceType<K>> :
-    K extends IResolverLike<infer T1, unknown> ? T1 extends Constructable ? ReadonlyArray<InstanceType<T1>> : ReadonlyArray<T1> :
+    K extends IResolverLike<infer T1, any> ? T1 extends Constructable ? ReadonlyArray<InstanceType<T1>> : ReadonlyArray<T1> :
     ReadonlyArray<K>;
 }
 
@@ -132,16 +132,16 @@ const hasOwnProperty = PLATFORM.hasOwnProperty;
 export const DI = {
   createContainer,
 
-  getDesignParamTypes(target: Constructable): Key<unknown>[] {
+  getDesignParamTypes(target: Constructable): Key<any>[] {
     const paramTypes = Reflect.getOwnMetadata('design:paramtypes', target);
     if (paramTypes == null) {
-      return PLATFORM.emptyArray as typeof PLATFORM.emptyArray & Key<unknown>[];
+      return PLATFORM.emptyArray as typeof PLATFORM.emptyArray & Key<any>[];
     }
     return paramTypes;
   },
 
-  getDependencies(Type: Constructable | Injectable): Key<unknown>[] {
-    let dependencies: Key<unknown>[];
+  getDependencies(Type: Constructable | Injectable): Key<any>[] {
+    let dependencies: Key<any>[];
 
     if ((Type as Injectable).inject == null) {
       dependencies = DI.getDesignParamTypes(Type);
@@ -390,9 +390,9 @@ export function singleton<T extends Constructable>(target?: T & Partial<Register
   return target == null ? singletonDecorator : singletonDecorator(target);
 }
 
-export const all = createResolver((key: unknown, handler: IContainer, requestor: IContainer) => requestor.getAll(key));
+export const all = createResolver((key: any, handler: IContainer, requestor: IContainer) => requestor.getAll(key));
 
-export const lazy = createResolver((key: unknown, handler: IContainer, requestor: IContainer) =>  {
+export const lazy = createResolver((key: any, handler: IContainer, requestor: IContainer) =>  {
   let instance: unknown = null; // cache locally so that lazy always returns the same instance once resolved
   return () => {
     if (instance == null) {
@@ -403,7 +403,7 @@ export const lazy = createResolver((key: unknown, handler: IContainer, requestor
   };
 });
 
-export const optional = createResolver((key: unknown, handler: IContainer, requestor: IContainer) =>  {
+export const optional = createResolver((key: any, handler: IContainer, requestor: IContainer) =>  {
   if (requestor.has(key, true)) {
     return requestor.get(key);
   } else {
@@ -423,20 +423,20 @@ export const enum ResolverStrategy {
 
 /** @internal */
 export class Resolver implements IResolver, IRegistration {
-  public key: Key<unknown>;
+  public key: Key<any>;
   public strategy: ResolverStrategy;
-  public state: unknown;
-  constructor(key: Key<unknown>, strategy: ResolverStrategy, state: unknown) {
+  public state: any;
+  constructor(key: Key<any>, strategy: ResolverStrategy, state: any) {
     this.key = key;
     this.strategy = strategy;
     this.state = state;
   }
 
-  public register(container: IContainer, key?: Key<unknown>): IResolver {
+  public register(container: IContainer, key?: Key<any>): IResolver {
     return container.registerResolver(key || this.key, this);
   }
 
-  public resolve(handler: IContainer, requestor: IContainer): unknown {
+  public resolve(handler: IContainer, requestor: IContainer): any {
     switch (this.strategy) {
       case ResolverStrategy.instance:
         return this.state;
@@ -474,12 +474,12 @@ export class Resolver implements IResolver, IRegistration {
 
 /** @internal */
 export interface IInvoker<T = {}> {
-  invoke(container: IContainer, fn: Constructable<T>, dependencies: Key<unknown>[]): T;
+  invoke(container: IContainer, fn: Constructable<T>, dependencies: Key<any>[]): T;
   invokeWithDynamicDependencies(
     container: IContainer,
     fn: Constructable<T>,
-    staticDependencies: Key<unknown>[],
-    dynamicDependencies: Key<unknown>[]
+    staticDependencies: Key<any>[],
+    dynamicDependencies: Key<any>[]
   ): T;
 }
 
@@ -487,10 +487,10 @@ export interface IInvoker<T = {}> {
 export class Factory implements IFactory {
   public Type: Constructable;
   private readonly invoker: IInvoker;
-  private readonly dependencies: Key<unknown>[];
+  private readonly dependencies: Key<any>[];
   private transformers: ((instance: any) => any)[] | null;
 
-  constructor(Type: Constructable, invoker: IInvoker, dependencies: Key<unknown>[]) {
+  constructor(Type: Constructable, invoker: IInvoker, dependencies: Key<any>[]) {
     this.Type = Type;
     this.invoker = invoker;
     this.dependencies = dependencies;
@@ -503,7 +503,7 @@ export class Factory implements IFactory {
     return new Factory(Type, invoker, dependencies);
   }
 
-  public construct(container: IContainer, dynamicDependencies?: Key<unknown>[]): {} {
+  public construct(container: IContainer, dynamicDependencies?: Key<any>[]): {} {
     if (Tracer.enabled) { Tracer.enter('Factory', 'construct', [this.Type, ...slice.call(arguments)]); }
     const transformers = this.transformers;
     let instance = dynamicDependencies !== void 0
@@ -536,7 +536,7 @@ export class Factory implements IFactory {
 /** @internal */
 export interface IContainerConfiguration {
   factories?: Map<Constructable, IFactory>;
-  resourceLookup?: Record<string, IResourceType<unknown, unknown>>;
+  resourceLookup?: Record<string, IResourceType<any, any>>;
 }
 
 const containerResolver: IResolver = {
@@ -549,7 +549,7 @@ function isRegistry(obj: IRegistry | Record<string, IRegistry>): obj is IRegistr
   return typeof obj.register === 'function';
 }
 
-function isClass<T extends { prototype?: unknown }>(obj: T): obj is Class<unknown, T> {
+function isClass<T extends { prototype?: any }>(obj: T): obj is Class<any, T> {
   return obj.prototype !== void 0;
 }
 
@@ -794,23 +794,23 @@ export class Container implements IContainer {
 }
 
 export const Registration = {
-  instance(key: Key<unknown>, value: unknown): IRegistration {
+  instance(key: Key<any>, value: any): IRegistration {
     return new Resolver(key, ResolverStrategy.instance, value);
   },
 
-  singleton(key: Key<unknown>, value: Constructable): IRegistration {
+  singleton(key: Key<any>, value: Constructable): IRegistration {
     return new Resolver(key, ResolverStrategy.singleton, value);
   },
 
-  transient(key: Key<unknown>, value: Constructable): IRegistration {
+  transient(key: Key<any>, value: Constructable): IRegistration {
     return new Resolver(key, ResolverStrategy.transient, value);
   },
 
-  callback(key: Key<unknown>, callback: ResolveCallback): IRegistration {
+  callback(key: Key<any>, callback: ResolveCallback): IRegistration {
     return new Resolver(key, ResolverStrategy.callback, callback);
   },
 
-  alias(originalKey: Key<unknown>, aliasKey: Key<unknown>): IRegistration {
+  alias(originalKey: Key<any>, aliasKey: Key<any>): IRegistration {
     return new Resolver(aliasKey, ResolverStrategy.alias, originalKey);
   },
 
@@ -865,7 +865,7 @@ export class InstanceProvider<T> implements IResolver<T | null> {
 }
 
 /** @internal */
-export function validateKey(key: unknown): void {
+export function validateKey(key: any): void {
   // note: design:paramTypes which will default to Object if the param types cannot be statically analyzed by tsc
   // this check is intended to properly report on that problem - under no circumstance should Object be a valid key anyway
   if (key == null || key === Object) {
@@ -898,25 +898,25 @@ export const classInvokers: IInvoker[] = [
     invokeWithDynamicDependencies
   },
   {
-    invoke<T>(container: IContainer, Type: Constructable<T>, deps: Key<unknown>[]): T {
+    invoke<T>(container: IContainer, Type: Constructable<T>, deps: Key<any>[]): T {
       return new Type(container.get(deps[0]));
     },
     invokeWithDynamicDependencies
   },
   {
-    invoke<T>(container: IContainer, Type: Constructable<T>, deps: Key<unknown>[]): T {
+    invoke<T>(container: IContainer, Type: Constructable<T>, deps: Key<any>[]): T {
       return new Type(container.get(deps[0]), container.get(deps[1]));
     },
     invokeWithDynamicDependencies
   },
   {
-    invoke<T>(container: IContainer, Type: Constructable<T>, deps: Key<unknown>[]): T {
+    invoke<T>(container: IContainer, Type: Constructable<T>, deps: Key<any>[]): T {
       return new Type(container.get(deps[0]), container.get(deps[1]), container.get(deps[2]));
     },
     invokeWithDynamicDependencies
   },
   {
-    invoke<T>(container: IContainer, Type: Constructable<T>, deps: Key<unknown>[]): T {
+    invoke<T>(container: IContainer, Type: Constructable<T>, deps: Key<any>[]): T {
       return new Type(
         container.get(deps[0]),
         container.get(deps[1]),
@@ -927,7 +927,7 @@ export const classInvokers: IInvoker[] = [
     invokeWithDynamicDependencies
   },
   {
-    invoke<T>(container: IContainer, Type: Constructable<T>, deps: Key<unknown>[]): T {
+    invoke<T>(container: IContainer, Type: Constructable<T>, deps: Key<any>[]): T {
       return new Type(
         container.get(deps[0]),
         container.get(deps[1]),
@@ -942,7 +942,7 @@ export const classInvokers: IInvoker[] = [
 
 /** @internal */
 export const fallbackInvoker: IInvoker = {
-  invoke: invokeWithDynamicDependencies as (container: IContainer, fn: Constructable, dependencies: Key<unknown>[]) => Constructable,
+  invoke: invokeWithDynamicDependencies as (container: IContainer, fn: Constructable, dependencies: Key<any>[]) => Constructable,
   invokeWithDynamicDependencies
 };
 
@@ -950,12 +950,12 @@ export const fallbackInvoker: IInvoker = {
 export function invokeWithDynamicDependencies<T>(
   container: IContainer,
   Type: Constructable<T>,
-  staticDependencies: Key<unknown>[],
-  dynamicDependencies: Key<unknown>[]
+  staticDependencies: Key<any>[],
+  dynamicDependencies: Key<any>[]
 ): T {
   let i = staticDependencies.length;
-  let args: Key<unknown>[] = new Array(i);
-  let lookup: Key<unknown>;
+  let args: Key<any>[] = new Array(i);
+  let lookup: Key<any>;
 
   while (i--) {
     lookup = staticDependencies[i];

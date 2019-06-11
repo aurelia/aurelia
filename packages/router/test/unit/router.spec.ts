@@ -620,8 +620,7 @@ describe('Router', function () {
       router.navigation.history = mockBrowserHistoryLocation as any;
       router.navigation.location = mockBrowserHistoryLocation as any;
 
-      router.activate().catch(error => { throw error; });
-      await Promise.resolve();
+      await router.activate();
 
       return { container, host, component, au, router };
     }

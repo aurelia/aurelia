@@ -40,7 +40,6 @@ import {
 } from '@aurelia/runtime-html';
 
 import {
-  BigInt_valueOf,
   Boolean_valueOf,
   colors,
   Date_getTime,
@@ -61,9 +60,6 @@ import {
   isAnyArrayBuffer,
   isArgumentsObject,
   isArrayBuffer,
-  isBigInt64Array,
-  isBigIntObject,
-  isBigUint64Array,
   isBooleanObject,
   isBoxedPrimitive,
   isDataView,
@@ -231,7 +227,6 @@ function getInspectContext(ctx: Partial<IInspectOptions>): IInspectContext {
 interface IStyles {
   special: 'cyan';
   number: 'yellow';
-  bigint: 'yellow';
   boolean: 'yellow';
   undefined: 'grey';
   null: 'bold';
@@ -245,7 +240,6 @@ const styles: Readonly<IStyles> = Object_freeze(
   {
     special: 'cyan' as 'cyan',
     number: 'yellow' as 'yellow',
-    bigint: 'yellow' as 'yellow',
     boolean: 'yellow' as 'yellow',
     undefined: 'grey' as 'grey',
     null: 'bold' as 'bold',
@@ -910,8 +904,6 @@ const typedConstructorMap = Object_freeze(
     [isInt32Array, Int32Array],
     [isFloat32Array, Float32Array],
     [isFloat64Array, Float64Array],
-    [isBigInt64Array, BigInt64Array],
-    [isBigUint64Array, BigUint64Array],
   ],
 );
 
@@ -1005,13 +997,6 @@ export function formatNumber(
   return fn(Object_is(value, -0) ? '-0' : `${value}`, 'number');
 }
 
-export function formatBigInt(
-  fn: (value: string, styleType: keyof IStyles) => string,
-  value: bigint,
-): string {
-  return fn(`${value}n`, 'bigint');
-}
-
 export function formatPrimitive(
   fn: (value: string, styleType: keyof IStyles) => string,
   value: Primitive,
@@ -1047,8 +1032,6 @@ export function formatPrimitive(
       return fn(escapeAndQuoteString(value), 'string');
     case 'number':
       return formatNumber(fn, value);
-    case 'bigint':
-      return formatBigInt(fn, value);
     case 'boolean':
       return fn(value.toString(), 'boolean');
     case 'undefined':
@@ -1159,12 +1142,9 @@ export function formatTypedArray(
   const maxLength = Math.min(Math.max(0, ctx.maxArrayLength), value.length);
   const remaining = value.length - maxLength;
   const output = new Array(maxLength);
-  const elementFormatter = value.length > 0 && isNumber(value[0])
-    ? formatNumber
-    : formatBigInt;
   let i = 0;
   for (; i < maxLength; ++i) {
-    output[i] = elementFormatter(ctx.stylize, value[i] as number & bigint);
+    output[i] = formatNumber(ctx.stylize, value[i] as number);
   }
   if (remaining > 0) {
     output[i] = `... ${remaining} more item${remaining > 1 ? 's' : ''}`;
@@ -1750,9 +1730,6 @@ export function formatRaw(
       } else if (isBooleanObject(value)) {
         base = `[Boolean: ${getBoxedValue(Boolean_valueOf(value), ctx)}]`;
         type = 'boolean';
-      } else if (isBigIntObject(value)) {
-        base = `[BigInt: ${getBoxedValue(BigInt_valueOf(value), ctx)}]`;
-        type = 'bigint';
       } else {
         base = `[Symbol: ${getBoxedValue(Symbol_valueOf(value), ctx)}]`;
         type = 'symbol';

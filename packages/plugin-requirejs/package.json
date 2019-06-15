@@ -1,6 +1,6 @@
 {
   "name": "@aurelia/plugin-requirejs",
-  "version": "0.3.0-dev.20190614",
+  "version": "0.3.0-dev.20190615",
   "sideEffects": false,
   "main": "dist/index.umd.js",
   "module": "dist/index.es6.js",
@@ -38,8 +38,8 @@
     "access": "public"
   },
   "dependencies": {
-    "@aurelia/kernel": "0.3.0-dev.20190614",
-    "@aurelia/runtime": "0.3.0-dev.20190614"
+    "@aurelia/kernel": "0.3.0-dev.20190615",
+    "@aurelia/runtime": "0.3.0-dev.20190615"
   },
   "devDependencies": {
     "@types/node": "^10.12.27",

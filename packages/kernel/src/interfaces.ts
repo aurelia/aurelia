@@ -86,12 +86,6 @@ export type ConstructableClass<T, C = IIndexable> = C & {
   new(...args: any[]): T & { constructor: C };
 };
 
-export type InterfaceSymbol<T = any> = (target: Injectable<T>, property: string, index: number) => Injectable<T>;
-
-export type InjectArray = ReadonlyArray<InterfaceSymbol | Constructable | string>;
-
-export type Injectable<T = {}> = Constructable<T> & { inject?: (InterfaceSymbol<any> | Constructable)[] };
-
 export type IIndexable<T extends object = object> = T & { [key: string]: unknown };
 
 export type Writable<T> = {

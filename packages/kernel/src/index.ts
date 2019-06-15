@@ -17,6 +17,8 @@ export {
   ResolveCallback,
   singleton,
   transient,
+  Injectable,
+  InterfaceSymbol,
   InstanceProvider
 } from './di';
 export {
@@ -28,9 +30,6 @@ export {
   IDisposable,
   IFrameRequestCallback,
   IIndexable,
-  InjectArray,
-  Injectable,
-  InterfaceSymbol,
   IPerformance,
   ITimerHandler,
   IWindowOrWorkerGlobalScope,

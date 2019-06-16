@@ -36,7 +36,7 @@
     "generate-tests:template-compiler.mutations": "ts-node -P scripts/tsconfig.json scripts/generate-tests/template-compiler.mutations.ts"
   },
   "dependencies": {
-    "jsdom": "^14.0.0",
+    "jsdom": "^15.1.1",
     "pixi.js": "^4.8.7"
   },
   "devDependencies": {
@@ -62,7 +62,6 @@
     "ignore-loader": "^0.1.2",
     "istanbul": "^0.4.5",
     "istanbul-instrumenter-loader": "^3.0.1",
-    "jsdom": "^14.0.0",
     "karma": "^4.1.0",
     "karma-chrome-launcher": "^2.2.0",
     "karma-coverage": "^1.1.2",

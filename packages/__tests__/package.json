@@ -50,7 +50,7 @@
     "esm": "^3.2.20",
     "istanbul": "^0.4.5",
     "istanbul-instrumenter-loader": "^3.0.1",
-    "jsdom": "^14.0.0",
+    "jsdom": "^15.1.1",
     "karma-chrome-launcher": "^2.2.0",
     "karma-coverage-istanbul-reporter": "^2.0.5",
     "karma-coverage": "^1.1.2",

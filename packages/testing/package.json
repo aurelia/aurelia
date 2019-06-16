@@ -55,7 +55,7 @@
     "@aurelia/runtime": "0.3.0",
     "@aurelia/store": "0.3.0",
     "@aurelia/validation": "0.3.0",
-    "jsdom": "^14.0.0",
+    "jsdom": "^15.1.1",
     "mocha": "^6.1.4"
   },
   "devDependencies": {

@@ -1,6 +1,7 @@
 import lerna from 'lerna';
 import { getCurrentVersion, getNewVersion } from './get-version-info';
 import { createLogger } from './logger';
+import { getRecommendedVersionBump } from './bump-version';
 
 const log = createLogger('publish');
 
@@ -16,7 +17,7 @@ function parseArgs(): {tag: string; suffix: string; registry: string} {
 async function run(): Promise<void> {
   const { tag, suffix, registry } = parseArgs();
   const { major, minor, patch } = getCurrentVersion();
-  const newVersion = getNewVersion(major, minor, patch, tag, suffix);
+  const newVersion = getNewVersion(major, minor, patch, tag, 'none', suffix);
   lerna(['publish', newVersion, '--dist-tag', tag, '--no-git-tag-version', '--no-push', '--no-verify-registry', '--no-verify-access', '--registry', registry, '-y']);
 }
 

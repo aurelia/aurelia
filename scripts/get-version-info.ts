@@ -25,14 +25,40 @@ export function getDate(sep?: string): string {
   return `${y}${s}${m}${s}${d}`;
 }
 
-export function getNewVersion(major: string | number, minor: string | number, patch: string | number, tag: string, suffix: string): string {
+export function getNewVersion(
+  major: string | number,
+  minor: string | number,
+  patch: string | number,
+  tag: string,
+  bump: 'major' | 'minor' | 'patch' | 'none',
+  suffix: string,
+): string {
+  let newMajor = typeof major === 'number' ? major : parseInt(major, 10);
+  let newMinor = typeof minor === 'number' ? minor : parseInt(minor, 10);
+  let newPatch = typeof patch === 'number' ? patch : parseInt(patch, 10);
+
+  switch (bump) {
+    case 'major':
+      newMajor += 1;
+      newMinor = 0;
+      newPatch = 0;
+      break;
+    case 'minor':
+      newMinor += 1;
+      newPatch = 0;
+      break;
+    case 'patch':
+      newPatch += 1;
+      break;
+  }
+
   let newVersion: string;
   switch (tag) {
     case 'dev':
-      newVersion = `${major}.${minor}.${patch}-${tag}.${getDate()}${suffix}`;
+      newVersion = `${newMajor}.${newMinor}.${newPatch}-${tag}.${getDate()}${suffix}`;
       break;
     case 'latest':
-      newVersion = `${major}.${minor}.${patch}${suffix}`;
+      newVersion = `${newMajor}.${newMinor}.${newPatch}${suffix}`;
       break;
     default:
       throw new Error(`Invalid tag "${tag}"`);

@@ -72,7 +72,7 @@ export type Constructable<T = {}> = {
   new(...args: any[]): T;
 };
 
-export type Class<T, C = IIndexable> = C & {
+export type Class<T, C = {}> = C & {
   readonly prototype: T;
   new(...args: any[]): T;
 };
@@ -81,7 +81,7 @@ export type Class<T, C = IIndexable> = C & {
 // with a separate type from Class, since that one is used for other things where this constructor property
 // would break the typings.
 // So, in lack of a better name.. we probably need to clean this up, but this is how it works for now.
-export type ConstructableClass<T, C = IIndexable> = C & {
+export type ConstructableClass<T, C = {}> = C & {
   readonly prototype: T & { constructor: C };
   new(...args: any[]): T & { constructor: C };
 };

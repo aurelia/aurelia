@@ -5,7 +5,7 @@ import {
   DI,
   IContainer,
   inject,
-  InjectArray,
+  Key,
   IRegistry,
   IResolver,
   Registration,
@@ -370,7 +370,7 @@ export class AuDOM implements IDOM<AuNode> {
     return;
   }
   public setAttribute(node: AuNode, name: string, value: unknown): void {
-    (node as Record<string, unknown>)[name] = value;
+    (node as AuNode & Record<string, unknown>)[name] = value;
   }
   public createCustomEvent(eventType: string, options?: unknown): unknown {
     throw new Error('Method not implemented.');
@@ -596,7 +596,7 @@ export class AuNodeSequenceFactory implements INodeSequenceFactory<AuNode> {
 }
 
 export class AuDOMInitializer implements IDOMInitializer {
-  public static readonly inject: InjectArray = [IContainer];
+  public static readonly inject: readonly Key[] = [IContainer];
 
   private readonly container: IContainer;
 
@@ -615,7 +615,7 @@ export class AuDOMInitializer implements IDOMInitializer {
 }
 
 export class AuTemplateFactory implements ITemplateFactory<AuNode> {
-  public static readonly inject: InjectArray = [IDOM];
+  public static readonly inject: readonly Key[] = [IDOM];
 
   private readonly dom: AuDOM;
 

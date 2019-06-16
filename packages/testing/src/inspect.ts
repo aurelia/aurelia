@@ -191,6 +191,7 @@ const mandatoryInspectKeys = Object_keys(defaultInspectOptions) as (keyof IInspe
 function getUserOptions(ctx: Partial<IInspectOptions>): IInspectOptions {
   const obj: Partial<IInspectOptions> = {};
   for (const key of mandatoryInspectKeys) {
+    // @ts-ignore // TODO: https://github.com/microsoft/TypeScript/issues/31904
     obj[key] = ctx[key];
   }
 
@@ -213,6 +214,7 @@ function getInspectContext(ctx: Partial<IInspectOptions>): IInspectContext {
 
   for (const key of mandatoryInspectKeys) {
     if (hasOwnProperty(ctx, key)) {
+      // @ts-ignore // TODO: https://github.com/microsoft/TypeScript/issues/31904
       obj[key] = ctx[key];
     }
   }

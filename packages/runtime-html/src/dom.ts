@@ -1,7 +1,7 @@
 import {
   Constructable,
   IContainer,
-  InjectArray,
+  Key,
   IResolver,
   PLATFORM,
   Registration,
@@ -74,7 +74,7 @@ export class HTMLDOM implements IDOM {
     DOM.initialize(this);
   }
 
-  public static register(container: IContainer): IResolver<HTMLDOM> {
+  public static register(container: IContainer): IResolver<IDOM> {
     return Registration.alias(IDOM, this).register(container);
   }
 
@@ -590,7 +590,7 @@ export class AuMarker implements INode {
 
 /** @internal */
 export class HTMLTemplateFactory implements ITemplateFactory {
-  public static readonly inject: InjectArray = [IDOM];
+  public static readonly inject: readonly Key[] = [IDOM];
 
   private readonly dom: IDOM;
 

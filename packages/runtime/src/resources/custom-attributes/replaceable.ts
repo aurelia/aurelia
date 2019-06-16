@@ -1,6 +1,6 @@
 import {
   IContainer,
-  InjectArray,
+  Key,
   nextId,
   PLATFORM,
   Registration,
@@ -32,7 +32,7 @@ import {
 import { BindingContext } from '../../observation/binding-context';
 
 export class Replaceable<T extends INode = INode> {
-  public static readonly inject: InjectArray = [IViewFactory, IRenderLocation];
+  public static readonly inject: readonly Key[] = [IViewFactory, IRenderLocation];
 
   public static readonly kind: ICustomAttributeResource = CustomAttributeResource;
   public static readonly description: Required<IAttributeDefinition> = Object.freeze({

@@ -38,7 +38,7 @@ import {
   IRegistry,
   Registration,
   IContainer,
-  InjectArray,
+  Key,
   Class,
   kebabCase,
   resetId,
@@ -155,7 +155,7 @@ describe.skip('controller', function () {
     instructions: ITargetedInstruction[][],
   ) {
 
-    const inject: InjectArray = Object.freeze([CallCollection]);
+    const inject: readonly Key[] = Object.freeze([CallCollection]);
 
     const kind: ICustomElementResource = CustomElementResource;
 

@@ -1,6 +1,6 @@
 import {
   IContainer,
-  InjectArray,
+  Key,
   nextId,
   PLATFORM,
   Registration
@@ -41,7 +41,7 @@ import {
 } from '../custom-attribute';
 
 export class If<T extends INode = INode> {
-  public static readonly inject: InjectArray = [IViewFactory, IRenderLocation];
+  public static readonly inject: readonly Key[] = [IViewFactory, IRenderLocation];
 
   public static readonly kind: ICustomAttributeResource = CustomAttributeResource;
   public static readonly description: Required<IAttributeDefinition> = Object.freeze({
@@ -271,7 +271,7 @@ export class If<T extends INode = INode> {
 }
 
 export class Else<T extends INode = INode> {
-  public static readonly inject: InjectArray = [IViewFactory];
+  public static readonly inject: readonly Key[] = [IViewFactory];
 
   public static readonly kind: ICustomAttributeResource = CustomAttributeResource;
   public static readonly description: Required<IAttributeDefinition> = {

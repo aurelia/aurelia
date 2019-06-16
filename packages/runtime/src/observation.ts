@@ -101,7 +101,7 @@ export interface ICollectionSubscriberCollection extends ICollectionSubscribable
 /**
  * Describes a complete property observer with an accessor, change tracking fields, normal and batched subscribers
  */
-export interface IPropertyObserver<TObj extends Record<string, unknown>, TProp extends keyof TObj> extends
+export interface IPropertyObserver<TObj extends object, TProp extends keyof TObj> extends
   IAccessor<TObj[TProp]>,
   IPropertyChangeTracker<TObj, TProp>,
   ISubscriberCollection,
@@ -279,7 +279,7 @@ export function isIndexMap(value: unknown): value is IndexMap {
 /**
  * Describes a type that specifically tracks changes in an object property, or simply something that can have a getter and/or setter
  */
-export interface IPropertyChangeTracker<TObj extends Record<string, unknown>, TProp = keyof TObj, TValue = unknown> {
+export interface IPropertyChangeTracker<TObj, TProp = keyof TObj, TValue = unknown> {
   obj: TObj;
   propertyKey?: TProp;
   currentValue?: TValue;
@@ -349,9 +349,10 @@ export interface IScope {
 export interface IObserversLookup<TObj extends IIndexable = IIndexable, TKey extends keyof TObj =
   Exclude<keyof TObj, '$synthetic' | '$observers' | 'bindingContext' | 'overrideContext' | 'parentOverrideContext'>> { }
 
-export type ObserversLookup<TObj extends IIndexable = IIndexable, TKey extends keyof TObj =
-  Exclude<keyof TObj, '$synthetic' | '$observers' | 'bindingContext' | 'overrideContext' | 'parentOverrideContext'>> =
-  { [P in TKey]: PropertyObserver; } & {
+export type ObserversLookup<
+  TObj extends IIndexable = IIndexable,
+  TKey extends keyof TObj = Exclude<keyof TObj, '$synthetic' | '$observers' | 'bindingContext' | 'overrideContext' | 'parentOverrideContext'>
+> = { [P in TKey]: PropertyObserver; } & {
     getOrCreate(
       lifecycle: ILifecycle,
       flags: LifecycleFlags,
@@ -360,7 +361,7 @@ export type ObserversLookup<TObj extends IIndexable = IIndexable, TKey extends k
     ): PropertyObserver;
   };
 
-export type IObservable = IIndexable & {
+export type IObservable = {
   readonly $synthetic?: false;
   $observers?: IObserversLookup;
 };

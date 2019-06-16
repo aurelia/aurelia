@@ -1,10 +1,10 @@
-import { Constructable, DI, IContainer, InjectArray, IRegistry, IResolver, Registration } from '@aurelia/kernel';
+import { Constructable, DI, IContainer, Key, IRegistry, IResolver, Registration } from '@aurelia/kernel';
 import { IDOM, IDOMInitializer, ISinglePageApp } from '@aurelia/runtime';
 import { BasicConfiguration as RuntimeHtmlConfiguration, HTMLDOM } from '@aurelia/runtime-html';
 import { JSDOM } from 'jsdom';
 
 class JSDOMInitializer implements IDOMInitializer {
-  public static readonly inject: InjectArray = [IContainer];
+  public static readonly inject: readonly Key[] = [IContainer];
 
   private readonly container: IContainer;
   private readonly jsdom: JSDOM;
@@ -15,7 +15,7 @@ class JSDOMInitializer implements IDOMInitializer {
   }
 
   public static register(container: IContainer): IResolver<IDOMInitializer> {
-    return Registration.singleton(IDOMInitializer, this as Constructable).register(container);
+    return Registration.singleton(IDOMInitializer, this).register(container);
   }
 
   public initialize(config?: ISinglePageApp<Node>): IDOM {

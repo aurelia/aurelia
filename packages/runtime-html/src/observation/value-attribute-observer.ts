@@ -38,7 +38,7 @@ export class ValueAttributeObserver implements IAccessor<unknown> {
     this.lifecycle = lifecycle;
     this.handler = handler;
 
-    this.obj = obj;
+    this.obj = obj as Node & IIndexable;
     this.propertyKey = propertyKey;
     this.currentValue = '';
     this.oldValue = '';

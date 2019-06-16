@@ -1,7 +1,7 @@
 import {
   DI,
   IContainer,
-  InjectArray,
+  Key,
   IResolver,
   Primitive,
   Registration,
@@ -42,8 +42,8 @@ export interface IObjectObservationAdapter {
 }
 
 export interface IObserverLocator {
-  getObserver(flags: LifecycleFlags, obj: IObservable|IBindingContext, propertyName: string): AccessorOrObserver;
-  getAccessor(flags: LifecycleFlags, obj: IObservable, propertyName: string): IBindingTargetAccessor;
+  getObserver(flags: LifecycleFlags, obj: object, propertyName: string): AccessorOrObserver;
+  getAccessor(flags: LifecycleFlags, obj: object, propertyName: string): IBindingTargetAccessor;
   addAdapter(adapter: IObjectObservationAdapter): void;
   getArrayObserver(flags: LifecycleFlags, observedArray: unknown[]): ICollectionObserver<CollectionKind.array>;
   getMapObserver(flags: LifecycleFlags, observedMap: Map<unknown, unknown>): ICollectionObserver<CollectionKind.map>;
@@ -79,7 +79,7 @@ function getPropertyDescriptor(subject: object, name: string): PropertyDescripto
 
 /** @internal */
 export class ObserverLocator implements IObserverLocator {
-  public static readonly inject: InjectArray = [ILifecycle, IDirtyChecker, ITargetObserverLocator, ITargetAccessorLocator];
+  public static readonly inject: readonly Key[] = [ILifecycle, IDirtyChecker, ITargetObserverLocator, ITargetAccessorLocator];
 
   private readonly adapters: IObjectObservationAdapter[];
   private readonly dirtyChecker: IDirtyChecker;

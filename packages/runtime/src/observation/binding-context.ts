@@ -7,7 +7,8 @@ import {
   IScope,
   ObservedCollection,
   ObserversLookup,
-  PropertyObserver
+  PropertyObserver,
+  IObserversLookup
 } from '../observation';
 import { ProxyObserver } from './proxy-observer';
 import { SetterObserver } from './setter-observer';
@@ -21,7 +22,7 @@ const enum RuntimeError {
 }
 
 /** @internal */
-export class InternalObserversLookup {
+export class InternalObserversLookup implements IObserversLookup {
   public getOrCreate(
     this: { [key: string]: PropertyObserver },
     lifecycle: ILifecycle,
@@ -162,12 +163,12 @@ export class BindingContext implements IBindingContext {
 }
 
 export class Scope implements IScope {
-  public bindingContext: object;
+  public bindingContext: IBindingContext;
   public overrideContext: IOverrideContext;
 
   public partScopes?: Record<string, IScope | undefined>;
 
-  private constructor(bindingContext: object, overrideContext: IOverrideContext) {
+  private constructor(bindingContext: IBindingContext, overrideContext: IOverrideContext) {
     this.bindingContext = bindingContext;
     this.overrideContext = overrideContext;
     this.partScopes = void 0;
@@ -204,7 +205,7 @@ export class Scope implements IScope {
   public static create(flags: LifecycleFlags, bc: object, oc?: IOverrideContext | null): Scope {
     if (Tracer.enabled) { Tracer.enter('Scope', 'create', slice.call(arguments)); }
     if (Tracer.enabled) { Tracer.leave(); }
-    return new Scope(bc, oc == null ? OverrideContext.create(flags, bc, oc!) : oc);
+    return new Scope(bc as IBindingContext, oc == null ? OverrideContext.create(flags, bc, oc!) : oc);
   }
 
   public static fromOverride(flags: LifecycleFlags, oc: IOverrideContext): Scope {
@@ -222,18 +223,19 @@ export class Scope implements IScope {
       throw Reporter.error(RuntimeError.NilParentScope);
     }
     if (Tracer.enabled) { Tracer.leave(); }
-    return new Scope(bc, OverrideContext.create(flags, bc, ps.overrideContext));
+    return new Scope(bc as IBindingContext, OverrideContext.create(flags, bc, ps.overrideContext));
   }
 }
 
 export class OverrideContext implements IOverrideContext {
-  [key: string]: ObservedCollection | StrictPrimitive | IIndexable;
+  [key: string]: unknown;
 
   public readonly $synthetic: true;
-  public bindingContext: object;
+  public $observers?: ObserversLookup<IOverrideContext>;
+  public bindingContext: IBindingContext;
   public parentOverrideContext: IOverrideContext | null;
 
-  private constructor(bindingContext: object, parentOverrideContext: IOverrideContext | null) {
+  private constructor(bindingContext: IBindingContext, parentOverrideContext: IOverrideContext | null) {
     this.$synthetic = true;
     this.bindingContext = bindingContext;
     this.parentOverrideContext = parentOverrideContext;
@@ -242,15 +244,15 @@ export class OverrideContext implements IOverrideContext {
   public static create(flags: LifecycleFlags, bc: object, poc: IOverrideContext | null): OverrideContext {
     if (Tracer.enabled) { Tracer.enter('OverrideContext', 'create', slice.call(arguments)); }
     if (Tracer.enabled) { Tracer.leave(); }
-    return new OverrideContext(bc, poc === void 0 ? null : poc);
+    return new OverrideContext(bc as IBindingContext, poc === void 0 ? null : poc);
   }
 
   public getObservers(): ObserversLookup<IOverrideContext> {
     if (Tracer.enabled) { Tracer.enter('OverrideContext', 'getObservers', slice.call(arguments)); }
     if (this.$observers === void 0) {
-      this.$observers = new InternalObserversLookup();
+      this.$observers = new InternalObserversLookup() as ObserversLookup;
     }
     if (Tracer.enabled) { Tracer.leave(); }
-    return this.$observers as ObserversLookup<IOverrideContext>;
+    return this.$observers;
   }
 }

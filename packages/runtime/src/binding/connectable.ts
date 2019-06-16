@@ -80,7 +80,7 @@ export function addObserver(
 }
 
 /** @internal */
-export function observeProperty(this: IConnectableBinding, flags: LifecycleFlags, obj: IIndexable, propertyName: string): void {
+export function observeProperty(this: IConnectableBinding, flags: LifecycleFlags, obj: object, propertyName: string): void {
   if (Tracer.enabled) { Tracer.enter(this['constructor'].name, 'observeProperty', slice.call(arguments)); }
   const observer = this.observerLocator.getObserver(flags, obj, propertyName) as IBindingTargetObserver;
   /* Note: we need to cast here because we can indeed get an accessor instead of an observer,

@@ -10,6 +10,8 @@ const slice = Array.prototype.slice;
 
 export type ResolveCallback<T = any> = (handler?: IContainer, requestor?: IContainer, resolver?: IResolver) => T;
 
+export type InterfaceSymbol<K = any> = (target: Injectable<K>, property: string, index: number) => void;
+
 export interface IDefaultableInterfaceSymbol<K> extends InterfaceSymbol<K> {
   withDefault(configure: (builder: IResolverBuilder<K>) => IResolver<K>): InterfaceSymbol<K>;
   noDefault(): InterfaceSymbol<K>;
@@ -37,9 +39,9 @@ export interface IFactory<T extends Constructable = any> {
 }
 
 export interface IServiceLocator {
-  has<K extends Key>(key: K, searchAncestors: boolean): boolean;
-  get<K extends Key>(key: K): Resolved<K>;
-  getAll<K extends Key>(key: K): readonly Resolved<K>[];
+  has<K extends Key>(key: K | Key, searchAncestors: boolean): boolean;
+  get<K extends Key>(key: K | Key): Resolved<K>;
+  getAll<K extends Key>(key: K | Key): readonly Resolved<K>[];
 }
 
 export interface IRegistry {
@@ -49,22 +51,22 @@ export interface IRegistry {
 export interface IContainer extends IServiceLocator {
   register(...params: any[]): IContainer;
   registerResolver<K extends Key>(key: K, resolver: IResolver<K>): IResolver<K>;
-  registerTransformer<T extends Constructable>(key: T, transformer: Transformer<T>): boolean;
-  getResolver<K extends Key>(key: K, autoRegister?: boolean): IResolver<K> | null;
+  registerTransformer<K extends Key>(key: K, transformer: Transformer<K>): boolean;
+  getResolver<K extends Key>(key: K | Key, autoRegister?: boolean): IResolver<K> | null;
   getFactory<T extends Constructable>(key: T): IFactory<T>;
   createChild(): IContainer;
 }
 
 export interface IResolverBuilder<K> {
   instance(value: K): IResolver<K>;
-  singleton<T extends Constructable>(value: T): IResolver<T>;
-  transient<T extends Constructable>(value: T): IResolver<T>;
+  singleton(value: Constructable): IResolver<K>;
+  transient(value: Constructable): IResolver<K>;
   callback(value: ResolveCallback<K>): IResolver<K>;
   aliasTo(destinationKey: Key): IResolver<K>;
 }
 
 export type RegisterSelf<T extends Constructable> = {
-  register(container: IContainer): IResolver<T>;
+  register(container: IContainer): IResolver<InstanceType<T>>;
 };
 
 export type Key = PropertyKey | object | InterfaceSymbol | Constructable | IResolver;
@@ -80,8 +82,6 @@ export type Resolved<K> = (
             : T1
         : K
 );
-
-export type InterfaceSymbol<K = any> = (target: Injectable<K>, property: string, index: number) => void;
 
 export type Injectable<T = {}> = Constructable<T> & { inject?: Key[] };
 
@@ -176,10 +176,10 @@ export class DI {
           instance(value: K): IResolver<K> {
             return container.registerResolver(trueKey, new Resolver(trueKey, ResolverStrategy.instance, value));
           },
-          singleton<T extends Constructable>(value: T): IResolver<T> {
+          singleton(value: Constructable): IResolver<K> {
             return container.registerResolver(trueKey, new Resolver(trueKey, ResolverStrategy.singleton, value));
           },
-          transient<T extends Constructable>(value: T): IResolver<T> {
+          transient(value: Constructable): IResolver<K> {
             return container.registerResolver(trueKey, new Resolver(trueKey, ResolverStrategy.transient, value));
           },
           callback(value: ResolveCallback<K>): IResolver<K> {
@@ -252,7 +252,7 @@ Foo.register(container);
    */
   // tslint:enable:jsdoc-format
   public static transient<T extends Constructable>(target: T & Partial<RegisterSelf<T>>): T & RegisterSelf<T> {
-    target.register = function register(container: IContainer): IResolver<T> {
+    target.register = function register(container: IContainer): IResolver<InstanceType<T>> {
       const registration = Registration.transient(target as T, target as T);
       return registration.register(container, target);
     };
@@ -280,7 +280,7 @@ Foo.register(container);
    */
   // tslint:enable:jsdoc-format
   public static singleton<T extends Constructable>(target: T & Partial<RegisterSelf<T>>): T & RegisterSelf<T> {
-    target.register = function register(container: IContainer): IResolver<T> {
+    target.register = function register(container: IContainer): IResolver<InstanceType<T>> {
       const registration = Registration.singleton(target, target);
       return registration.register(container, target);
     };
@@ -622,7 +622,7 @@ export class Container implements IContainer {
     return resolver;
   }
 
-  public registerTransformer<T extends Constructable>(key: T, transformer: Transformer<T>): boolean {
+  public registerTransformer<K extends Key>(key: K, transformer: Transformer<K>): boolean {
     const resolver = this.getResolver(key);
 
     if (resolver == null) {
@@ -646,7 +646,7 @@ export class Container implements IContainer {
     return false;
   }
 
-  public getResolver<K extends Key>(key: K, autoRegister?: boolean): IResolver<K> | null {
+  public getResolver<K extends Key>(key: K | Key, autoRegister?: boolean): IResolver<K> | null {
     validateKey(key);
 
     if ((key as unknown as IResolver).resolve !== void 0) {
@@ -780,27 +780,29 @@ export class Container implements IContainer {
   }
 }
 
-export const Registration = {
-  instance<T>(key: Key, value: T): IRegistration<T> {
+export class Registration {
+  private constructor() {}
+
+  public static instance<T>(key: Key, value: T): IRegistration<T> {
     return new Resolver(key, ResolverStrategy.instance, value);
-  },
+  }
 
-  singleton<T extends Constructable>(key: Key, value: T): IRegistration<T> {
+  public static singleton<T extends Constructable>(key: Key, value: T): IRegistration<InstanceType<T>> {
     return new Resolver(key, ResolverStrategy.singleton, value);
-  },
+  }
 
-  transient<T extends Constructable>(key: Key, value: T): IRegistration<T> {
+  public static transient<T extends Constructable>(key: Key, value: T): IRegistration<InstanceType<T>> {
     return new Resolver(key, ResolverStrategy.transient, value);
-  },
+  }
 
-  callback<T>(key: Key, callback: ResolveCallback<T>): IRegistration<T> {
+  public static callback<T>(key: Key, callback: ResolveCallback<T>): IRegistration<Resolved<T>> {
     return new Resolver(key, ResolverStrategy.callback, callback);
-  },
+  }
 
-  alias<T>(originalKey: T, aliasKey: Key): IRegistration<T> {
+  public static alias<T>(originalKey: T, aliasKey: Key): IRegistration<Resolved<T>> {
     return new Resolver(aliasKey, ResolverStrategy.alias, originalKey);
-  },
-};
+  }
+}
 
 export class InstanceProvider<K extends Key> implements IResolver<K | null> {
   private instance: Resolved<K> | null;

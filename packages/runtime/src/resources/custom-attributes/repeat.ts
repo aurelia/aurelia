@@ -1,7 +1,7 @@
 import {
   compareNumber,
   IContainer,
-  InjectArray,
+  Key,
   nextId,
   PLATFORM,
   Registration,
@@ -64,7 +64,7 @@ const isMountedOrAttachedOrDetaching = isMountedOrAttached | State.isDetaching;
 const isMountedOrAttachedOrDetachingOrAttaching = isMountedOrAttachedOrDetaching | State.isAttaching;
 
 export class Repeat<C extends ObservedCollection = IObservedArray, T extends INode = INode> implements IObservable {
-  public static readonly inject: InjectArray = [IRenderLocation, IController, IViewFactory];
+  public static readonly inject: readonly Key[] = [IRenderLocation, IController, IViewFactory];
 
   public static readonly kind: ICustomAttributeResource = CustomAttributeResource;
   public static readonly description: Required<IAttributeDefinition> = Object.freeze({

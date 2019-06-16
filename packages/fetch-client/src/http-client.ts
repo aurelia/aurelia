@@ -1,4 +1,4 @@
-import { InjectArray, PLATFORM } from '@aurelia/kernel';
+import { Key, PLATFORM, IIndexable } from '@aurelia/kernel';
 import { DOM, IDOM } from '@aurelia/runtime';
 import { HTMLDOM } from '@aurelia/runtime-html';
 import { HttpClientConfiguration } from './http-client-configuration';
@@ -11,7 +11,7 @@ const absoluteUrlRegexp = /^([a-z][a-z0-9+\-.]*:)?\/\//i;
  * An HTTP client based on the Fetch API.
  */
 export class HttpClient {
-  public static readonly inject: InjectArray = [IDOM];
+  public static readonly inject: readonly Key[] = [IDOM];
 
   /**
    * The current number of active requests.
@@ -177,7 +177,7 @@ export class HttpClient {
     let body: unknown;
     let requestContentType: string | null;
 
-    const parsedDefaultHeaders = parseHeaderValues(defaults.headers);
+    const parsedDefaultHeaders = parseHeaderValues(defaults.headers as IIndexable);
     if (Request.prototype.isPrototypeOf(input)) {
       request = input as Request;
       requestContentType = new Headers(request.headers).get('Content-Type');

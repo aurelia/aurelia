@@ -1,4 +1,4 @@
-// import { InjectArray } from '@aurelia/kernel';
+// import { Key } from '@aurelia/kernel';
 // import {
 //   Aurelia,
 //   BindingContext,
@@ -236,7 +236,7 @@
 //           template: 'foo'
 //         },
 //         class {
-//           public static readonly inject: InjectArray = [INode];
+//           public static readonly inject: readonly Key[] = [INode];
 //           public node: INode;
 //           public child: IViewModel;
 //           constructor(node: INode) {
@@ -288,7 +288,7 @@
 //           template: 'bar'
 //         },
 //         class {
-//           public static readonly inject: InjectArray = [INode];
+//           public static readonly inject: readonly Key[] = [INode];
 //           public node: INode;
 //           public child: IViewModel;
 //           constructor(node: INode) {

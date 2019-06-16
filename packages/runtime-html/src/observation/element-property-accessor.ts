@@ -9,7 +9,7 @@ import {
 export class ElementPropertyAccessor implements IAccessor<unknown> {
   public readonly lifecycle: ILifecycle;
 
-  public readonly obj: IIndexable;
+  public readonly obj: Node & IIndexable;
   public readonly propertyKey: string;
   public currentValue: unknown;
   public oldValue: unknown;
@@ -19,12 +19,12 @@ export class ElementPropertyAccessor implements IAccessor<unknown> {
 
   constructor(
     lifecycle: ILifecycle,
-    obj: IIndexable,
+    obj: Node,
     propertyKey: string,
   ) {
     this.lifecycle = lifecycle;
 
-    this.obj = obj;
+    this.obj = obj as Node & IIndexable;
     this.propertyKey = propertyKey;
     this.currentValue = void 0;
     this.oldValue = void 0;

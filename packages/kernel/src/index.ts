@@ -88,7 +88,8 @@ export {
 } from './resource';
 export {
   EventAggregator,
-  EventAggregatorCallback
+  EventAggregatorCallback,
+  IEventAggregator,
 } from './eventaggregator';
 export {
   isNumeric,

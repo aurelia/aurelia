@@ -1,4 +1,4 @@
-import { IContainer, IResolver, Registration } from './di';
+import { IContainer, IResolver, Registration, DI } from './di';
 import { Constructable, IDisposable } from './interfaces';
 import { Reporter } from './reporter';
 
@@ -48,6 +48,12 @@ export interface Subscription extends IDisposable {}
  * @param event The event that triggered the callback. Only available on channel based messaging.
  */
 export type EventAggregatorCallback<T = any> = (data?: T, event?: string) => any;
+
+export const IEventAggregator = DI.createInterface<IEventAggregator>('IEventAggregator').withDefault(x => x.singleton(EventAggregator));
+export interface IEventAggregator {
+  publish(channel: string, data?: unknown): void;
+  subscribe<T>(channel: string, callback: EventAggregatorCallback<T>): IDisposable;
+}
 
 /**
  * Enables loosely coupled publish/subscribe messaging.

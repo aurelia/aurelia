@@ -1,7 +1,7 @@
 import { DebugConfiguration } from '@aurelia/debug';
 import { BasicConfiguration } from '@aurelia/jit-html-browser';
 import { Aurelia, IDOM } from '@aurelia/runtime';
-import { RouterConfiguration } from '../../../../../../router/src';
+import { RouterConfiguration } from '@aurelia/router';
 import { registerComponent } from './utils';
 
 import { App } from './app';

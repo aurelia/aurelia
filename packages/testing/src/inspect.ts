@@ -393,9 +393,14 @@ export class AssertionError extends Error {
     this.actual = actual;
     this.expected = expected;
     this.operator = operator;
-    Error.captureStackTrace(this, stackStartFn);
-    // tslint:disable-next-line: no-unused-expression
-    this.stack;
+    if (typeof Error.captureStackTrace === 'function') {
+      Error.captureStackTrace(this, stackStartFn);
+      // tslint:disable-next-line: no-unused-expression
+      this.stack;
+    } else {
+      // tslint:disable-next-line: no-unused-expression
+      Error().stack;
+    }
     this.name = 'AssertionError';
   }
 

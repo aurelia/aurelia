@@ -41,7 +41,7 @@ describe('Nav', function () {
     const host = ctx.doc.createElement('div');
     ctx.doc.body.appendChild(host);
 
-    const au = window['au'] = new Aurelia(container)
+    const au = ctx.wnd['au'] = new Aurelia(container)
       .register(DebugConfiguration)
       .app({ host: host, component: App });
 

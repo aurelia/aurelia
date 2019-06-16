@@ -16,6 +16,9 @@ function getNormalizedStyle(el: HTMLElement, ruleName: string): string {
   }
 }
 
+// For tests that only work in the browser, only run them in the browser
+const isBrowser = typeof window !== 'undefined';
+
 // TemplateCompiler - Binding Commands integration
 describe('template-compiler.binding-commands.style', () => {
 
@@ -26,10 +29,19 @@ describe('template-compiler.binding-commands.style', () => {
     ['background-color', 'red', ''],
     ['font-size', '10px', ''],
     ['font-family', 'Arial', ''],
-    ['-webkit-user-select', 'none', ''],
-    ['--customprop', 'red', ''],
+    ...(
+      isBrowser
+        ? [
+          ['-webkit-user-select', 'none', ''],
+          ['--customprop', 'red', ''],
+          ['--custumprop', 'nah!important', ''],
+        ] as [string, string, string][]
+        : [
+
+        ]
+    )
+    ,
     ['background', 'red!important', ''],
-    ['--custumprop', 'nah!important', ''],
     // non happy path
     ['-webkit-user-select', 'of course', '', true, ''],
   ];

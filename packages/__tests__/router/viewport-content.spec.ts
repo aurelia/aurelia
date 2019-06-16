@@ -1,8 +1,7 @@
 import { IRenderContext } from '@aurelia/runtime';
-import { BasicConfiguration } from '@aurelia/jit-html-browser';
 import { CustomElementResource } from '@aurelia/runtime';
 import { Router, ViewportContent } from '@aurelia/router';
-import { assert } from '@aurelia/testing';
+import { assert, TestContext } from '@aurelia/testing';
 
 const define = (CustomElementResource as any).define;
 
@@ -15,7 +14,8 @@ describe('ViewportContent', function () {
     this.timeout(5000);
 
     async function $setup(dependencies: any[] = []) {
-      const container = BasicConfiguration.createContainer();
+      const ctx = TestContext.createHTMLTestContext();
+      const container = ctx.container;
       const router = container.get(Router);
       return { container, router };
     }

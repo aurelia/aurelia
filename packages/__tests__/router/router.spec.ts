@@ -1,8 +1,7 @@
 import { DebugConfiguration } from '@aurelia/debug';
-import { BasicConfiguration } from '@aurelia/jit-html-browser';
 import { Aurelia, CustomElementResource } from '@aurelia/runtime';
 import { Router, ViewportCustomElement } from '@aurelia/router';
-import { MockBrowserHistoryLocation, HTMLTestContext, TestContext, assert } from '@aurelia/testing';
+import { MockBrowserHistoryLocation, TestContext, assert } from '@aurelia/testing';
 
 describe('Router', function () {
   async function setup() {
@@ -643,7 +642,7 @@ describe('Router', function () {
     async function $setup(dependencies: any[] = []) {
       const ctx = TestContext.createHTMLTestContext();
 
-      const container = BasicConfiguration.createContainer();
+      const container = ctx.container;
 
       container.register(ViewportCustomElement);
       const App = CustomElementResource.define({ name: 'app', template: '<au-viewport></au-viewport>', dependencies }, null);

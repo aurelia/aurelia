@@ -150,7 +150,7 @@ export class DI {
   }
 
   public static createInterface<K extends Key>(friendlyName?: string): IDefaultableInterfaceSymbol<K> {
-    const Interface: InternalDefaultableInterfaceSymbol<K> = function(target: Injectable<K>, property: string, index: number): void {
+    const Interface: InternalDefaultableInterfaceSymbol<K> = function(target: Injectable<K>, property: string, index: number): any {
       if (target == null) {
         throw Reporter.error(16, Interface.friendlyName, Interface); // TODO: add error (trying to resolve an InterfaceSymbol that has no registrations)
       }
@@ -158,6 +158,7 @@ export class DI {
         target.inject = [];
       }
       target.inject[index] = Interface;
+      return target;
     };
     Interface.friendlyName = friendlyName == null ? 'Interface' : friendlyName;
 
@@ -646,7 +647,7 @@ export class Container implements IContainer {
     return false;
   }
 
-  public getResolver<K extends Key>(key: K | Key, autoRegister?: boolean): IResolver<K> | null {
+  public getResolver<K extends Key>(key: K | Key, autoRegister: boolean = true): IResolver<K> | null {
     validateKey(key);
 
     if ((key as unknown as IResolver).resolve !== void 0) {

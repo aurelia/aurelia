@@ -282,6 +282,7 @@ describe('ClassAccessor', function () {
         sut.bind(LifecycleFlags.none);
 
         function tearDown() {
+          lifecycle.processRAFQueue(LifecycleFlags.none);
           sut.unbind(LifecycleFlags.none);
         }
 
@@ -295,16 +296,16 @@ describe('ClassAccessor', function () {
 
           sut.setValue(classList, LifecycleFlags.none);
 
-          assert.strictEqual(el.classList.toString(), initialClassList, `el.classList.toString()`);
+          assert.strictEqual(el.classList.toString(), initialClassList, `el.classList.toString() === initialClassList`);
 
           lifecycle.processRAFQueue(LifecycleFlags.none);
 
           const updatedClassList = el.classList.toString();
           for (const cls of initialClassList.split(' ')) {
-            assert.includes(updatedClassList, cls, `updatedClassList`);
+            assert.includes(updatedClassList, cls, `updatedClassList includes class from initialClassList "${initialClassList}"`);
           }
           for (const cls of classList.split(' ')) {
-            assert.includes(updatedClassList, cls, `updatedClassList`);
+            assert.includes(updatedClassList, cls, `updatedClassList includes class from classList "${classList}"`);
           }
 
           tearDown();
@@ -328,11 +329,11 @@ describe('ClassAccessor', function () {
             const secondUpdatedClassList = el.classList.toString();
             for (const cls of initialClassList.split(' ')) {
               if (!classList.includes(cls)) {
-                assert.includes(secondUpdatedClassList, cls, `secondUpdatedClassList`);
+                assert.includes(secondUpdatedClassList, cls, `secondUpdatedClassList includes class from initialClassList "${initialClassList}" (except classes from classList "${classList}")`);
               }
             }
             for (const cls of secondClassList.split(' ')) {
-              assert.includes(secondUpdatedClassList, cls, `secondUpdatedClassList`);
+              assert.includes(secondUpdatedClassList, cls, `secondUpdatedClassList includes class from secondClassList "${secondClassList}"`);
             }
 
             tearDown();
@@ -348,10 +349,10 @@ describe('ClassAccessor', function () {
 
           const updatedClassList = el.classList.toString();
           for (const cls of initialClassList.split(' ')) {
-            assert.includes(updatedClassList, cls, `updatedClassList`);
+            assert.includes(updatedClassList, cls, `updatedClassList includes class from initialClassList "${initialClassList}"`);
           }
           for (const cls of classList.split(' ')) {
-            assert.includes(updatedClassList, cls, `updatedClassList`);
+            assert.includes(updatedClassList, cls, `updatedClassList includes class from classList "${classList}"`);
           }
 
           tearDown();
@@ -368,11 +369,11 @@ describe('ClassAccessor', function () {
             const secondUpdatedClassList = el.classList.toString();
             for (const cls of initialClassList.split(' ')) {
               if (!classList.includes(cls)) {
-                assert.includes(secondUpdatedClassList, cls, `secondUpdatedClassList`);
+                assert.includes(secondUpdatedClassList, cls, `secondUpdatedClassList includes class from initialClassList "${initialClassList}" (except classes from classList "${classList}")`);
               }
             }
             for (const cls of secondClassList.split(' ')) {
-              assert.includes(secondUpdatedClassList, cls, `secondUpdatedClassList`);
+              assert.includes(secondUpdatedClassList, cls, `secondUpdatedClassList includes class from secondClassList "${secondClassList}"`);
             }
 
             tearDown();

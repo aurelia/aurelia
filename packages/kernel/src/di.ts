@@ -92,12 +92,12 @@ export type Injectable<T = {}> = Constructable<T> & { inject?: Key[] };
 // tslint:disable:no-any ban-types
 if (!('getOwnMetadata' in Reflect)) {
   Reflect.getOwnMetadata = function(metadataKey: any, target: Object): any {
-    return (target as IIndexable)[metadataKey];
+    return (target as IIndexable<Object>)[metadataKey];
   };
 
   Reflect.metadata = function(metadataKey: any, metadataValue: any): (target: Function) => void {
     return function(target: Function): void {
-      (target as IIndexable)[metadataKey] = metadataValue;
+      (target as IIndexable<Function>)[metadataKey] = metadataValue;
     };
   } as (metadataKey: any, metadataValue: any) => {
     (target: Function): void;

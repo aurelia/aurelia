@@ -26,10 +26,12 @@ import {
   ILifecycleTask,
 } from '../../lifecycle-task';
 import {
+  BindingContext,
+} from '../../observation/binding-context';
+import {
   CustomAttributeResource,
   ICustomAttributeResource,
 } from '../custom-attribute';
-import { BindingContext } from '../../observation/binding-context';
 
 export class Replaceable<T extends INode = INode> {
   public static readonly inject: readonly Key[] = [IViewFactory, IRenderLocation];

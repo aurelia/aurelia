@@ -7,8 +7,7 @@ import {
   IScope,
   ObservedCollection,
   ObserversLookup,
-  PropertyObserver,
-  IObserversLookup
+  PropertyObserver
 } from '../observation';
 import { ProxyObserver } from './proxy-observer';
 import { SetterObserver } from './setter-observer';
@@ -22,7 +21,7 @@ const enum RuntimeError {
 }
 
 /** @internal */
-export class InternalObserversLookup implements IObserversLookup {
+export class InternalObserversLookup {
   public getOrCreate(
     this: { [key: string]: PropertyObserver },
     lifecycle: ILifecycle,
@@ -48,7 +47,7 @@ export class BindingContext implements IBindingContext {
 
   public readonly $synthetic: true;
 
-  public $observers?: ObserversLookup<IOverrideContext>;
+  public $observers?: ObserversLookup;
 
   private constructor(keyOrObj?: string | IIndexable, value?: unknown) {
     this.$synthetic = true;
@@ -152,10 +151,10 @@ export class BindingContext implements IBindingContext {
     return scope.bindingContext || scope.overrideContext;
   }
 
-  public getObservers(flags: LifecycleFlags): ObserversLookup<IOverrideContext> {
+  public getObservers(flags: LifecycleFlags): ObserversLookup {
     if (Tracer.enabled) { Tracer.enter('BindingContext', 'getObservers', slice.call(arguments)); }
     if (this.$observers == null) {
-      this.$observers = new InternalObserversLookup() as ObserversLookup<IOverrideContext>;
+      this.$observers = new InternalObserversLookup() as ObserversLookup;
     }
     if (Tracer.enabled) { Tracer.leave(); }
     return this.$observers;
@@ -231,7 +230,7 @@ export class OverrideContext implements IOverrideContext {
   [key: string]: unknown;
 
   public readonly $synthetic: true;
-  public $observers?: ObserversLookup<IOverrideContext>;
+  public $observers?: ObserversLookup;
   public bindingContext: IBindingContext;
   public parentOverrideContext: IOverrideContext | null;
 
@@ -247,7 +246,7 @@ export class OverrideContext implements IOverrideContext {
     return new OverrideContext(bc as IBindingContext, poc === void 0 ? null : poc);
   }
 
-  public getObservers(): ObserversLookup<IOverrideContext> {
+  public getObservers(): ObserversLookup {
     if (Tracer.enabled) { Tracer.enter('OverrideContext', 'getObservers', slice.call(arguments)); }
     if (this.$observers === void 0) {
       this.$observers = new InternalObserversLookup() as ObserversLookup;

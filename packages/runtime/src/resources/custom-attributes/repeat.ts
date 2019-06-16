@@ -15,7 +15,6 @@ import {
 } from '../../definitions';
 import {
   INode,
-  INodeSequence,
   IRenderLocation
 } from '../../dom';
 import {
@@ -27,7 +26,6 @@ import {
 import {
   IController,
   IViewFactory,
-  Priority,
 } from '../../lifecycle';
 import {
   AggregateContinuationTask,
@@ -38,9 +36,9 @@ import {
 import {
   CollectionObserver,
   IndexMap,
+  InlineObserversLookup,
   IObservable,
   IObservedArray,
-  IObserversLookup,
   IScope,
   ObservedCollection,
 } from '../../observation';
@@ -49,14 +47,13 @@ import {
   Scope
 } from '../../observation/binding-context';
 import { getCollectionObserver } from '../../observation/observer-locator';
-import { SetterObserver } from '../../observation/setter-observer';
 import { Bindable } from '../../templating/bindable';
 import {
   CustomAttributeResource,
   ICustomAttributeResource,
 } from '../custom-attribute';
 
-type Items<C extends ObservedCollection = IObservedArray> = C | undefined | undefined;
+type Items<C extends ObservedCollection = IObservedArray> = C | undefined;
 
 const isMountedOrAttached = State.isMounted | State.isAttached;
 const isMountedOrAttachedOrAttaching = isMountedOrAttached | State.isAttaching;
@@ -91,9 +88,9 @@ export class Repeat<C extends ObservedCollection = IObservedArray, T extends INo
     }
   }
 
-  public readonly $observers: IObserversLookup = {
-    items: this as this & SetterObserver,
-  };
+  public readonly $observers: InlineObserversLookup<this> = Object.freeze({
+    items: this,
+  });
 
   public forOf!: ForOfStatement;
   public hasPendingInstanceMutation: boolean;

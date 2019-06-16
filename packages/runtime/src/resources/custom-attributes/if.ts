@@ -22,7 +22,6 @@ import {
 import {
   IController,
   IViewFactory,
-  Priority,
 } from '../../lifecycle';
 import {
   ContinuationTask,
@@ -31,9 +30,8 @@ import {
   PromiseTask
 } from '../../lifecycle-task';
 import {
-  IObserversLookup,
+  InlineObserversLookup,
 } from '../../observation';
-import { SetterObserver } from '../../observation/setter-observer';
 import { Bindable } from '../../templating/bindable';
 import {
   CustomAttributeResource,
@@ -68,9 +66,9 @@ export class If<T extends INode = INode> {
     }
   }
 
-  public readonly $observers: IObserversLookup = {
-    value: this as this & SetterObserver,
-  };
+  public readonly $observers: InlineObserversLookup<this> = Object.freeze({
+    value: this,
+  });
 
   public elseFactory?: IViewFactory<T>;
   public elseView?: IController<T>;

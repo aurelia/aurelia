@@ -86,7 +86,11 @@ export type ConstructableClass<T, C = {}> = C & {
   new(...args: any[]): T & { constructor: C };
 };
 
-export type IIndexable<T extends object = object> = T & { [key: string]: unknown };
+export type IIndexable<
+  TBase extends {} = {},
+  TValue = unknown,
+  TKey extends PropertyKey = Exclude<PropertyKey, keyof TBase>,
+> = { [K in TKey]: TValue } & TBase;
 
 export type Writable<T> = {
   -readonly [K in keyof T]: T[K]
@@ -162,7 +166,7 @@ export type Unwrap<T> =
 
 export type StrictPrimitive = string | number | boolean | null | undefined;
 
-export type IfEquals<X, Y, A=X, B=never> =
+export type IfEquals<X, Y, A = X, B = never> =
   (<T>() => T extends X ? 1 : 2) extends
   (<T>() => T extends Y ? 1 : 2) ? A : B;
 

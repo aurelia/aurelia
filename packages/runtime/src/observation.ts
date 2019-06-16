@@ -178,11 +178,11 @@ export type ObservedCollectionKindToType<T> =
   T extends CollectionKind.keyed ? IObservedSet | IObservedMap :
   never;
 
-export interface IProxyObserver<TObj extends object = object> extends IProxySubscriberCollection {
+export interface IProxyObserver<TObj extends {} = {}> extends IProxySubscriberCollection {
   proxy: IProxy<TObj>;
 }
 
-export type IProxy<TObj extends object = object> = TObj & {
+export type IProxy<TObj extends {} = {}> = TObj & {
   $raw: TObj;
   $observer: IProxyObserver<TObj>;
 };
@@ -322,18 +322,18 @@ export interface IBindingContext {
   [key: string]: unknown;
 
   readonly $synthetic?: true;
-  readonly $observers?: ObserversLookup<IOverrideContext>;
-  getObservers?(flags: LifecycleFlags): ObserversLookup<IOverrideContext>;
+  readonly $observers?: ObserversLookup;
+  getObservers?(flags: LifecycleFlags): ObserversLookup;
 }
 
 export interface IOverrideContext {
   [key: string]: unknown;
 
   readonly $synthetic?: true;
-  readonly $observers?: ObserversLookup<IOverrideContext>;
+  readonly $observers?: ObserversLookup;
   readonly bindingContext: IBindingContext;
   readonly parentOverrideContext: IOverrideContext | null;
-  getObservers(flags: LifecycleFlags): ObserversLookup<IOverrideContext>;
+  getObservers(flags: LifecycleFlags): ObserversLookup;
 }
 
 export interface IScope {
@@ -345,23 +345,21 @@ export interface IScope {
   readonly partScopes?: Record<string, IScope | undefined>;
 }
 
-// TODO: currently unused, still need to fix the observersLookup type
-export interface IObserversLookup<TObj extends IIndexable = IIndexable, TKey extends keyof TObj =
-  Exclude<keyof TObj, '$synthetic' | '$observers' | 'bindingContext' | 'overrideContext' | 'parentOverrideContext'>> { }
-
-export type ObserversLookup<
-  TObj extends IIndexable = IIndexable,
-  TKey extends keyof TObj = Exclude<keyof TObj, '$synthetic' | '$observers' | 'bindingContext' | 'overrideContext' | 'parentOverrideContext'>
-> = { [P in TKey]: PropertyObserver; } & {
+export type ObserversLookup = IIndexable<
+  {
     getOrCreate(
       lifecycle: ILifecycle,
       flags: LifecycleFlags,
       obj: IBindingContext | IOverrideContext,
       key: string,
     ): PropertyObserver;
-  };
+  },
+  PropertyObserver
+>;
 
-export type IObservable = {
+export type InlineObserversLookup<T> = IIndexable<{}, T>;
+
+export type IObservable<T = {}> = {
   readonly $synthetic?: false;
-  $observers?: IObserversLookup;
+  $observers?: ObserversLookup | InlineObserversLookup<T>;
 };

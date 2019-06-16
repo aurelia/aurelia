@@ -81,24 +81,26 @@ interface IElementTemplateProvider {
   getElementTemplate(renderingEngine: unknown, customElementType: unknown, parentContext: IServiceLocator): ITemplate;
 }
 
-type BindingContext<T extends INode, C extends IViewModel<T>> = C & IIndexable & {
-  render(flags: LifecycleFlags, host: T, parts: Record<string, TemplateDefinition>, parentContext: IServiceLocator): IElementTemplateProvider | void;
-  created(flags: LifecycleFlags): void;
+type BindingContext<T extends INode, C extends IViewModel<T>> = IIndexable<
+  C & {
+    render(flags: LifecycleFlags, host: T, parts: Record<string, TemplateDefinition>, parentContext: IServiceLocator): IElementTemplateProvider | void;
+    created(flags: LifecycleFlags): void;
 
-  binding(flags: LifecycleFlags): MaybePromiseOrTask;
-  bound(flags: LifecycleFlags): void;
+    binding(flags: LifecycleFlags): MaybePromiseOrTask;
+    bound(flags: LifecycleFlags): void;
 
-  unbinding(flags: LifecycleFlags): MaybePromiseOrTask;
-  unbound(flags: LifecycleFlags): void;
+    unbinding(flags: LifecycleFlags): MaybePromiseOrTask;
+    unbound(flags: LifecycleFlags): void;
 
-  attaching(flags: LifecycleFlags): void;
-  attached(flags: LifecycleFlags): void;
+    attaching(flags: LifecycleFlags): void;
+    attached(flags: LifecycleFlags): void;
 
-  detaching(flags: LifecycleFlags): void;
-  detached(flags: LifecycleFlags): void;
+    detaching(flags: LifecycleFlags): void;
+    detached(flags: LifecycleFlags): void;
 
-  caching(flags: LifecycleFlags): void;
-};
+    caching(flags: LifecycleFlags): void;
+  }
+>;
 
 export class Controller<
   T extends INode = INode,
@@ -1065,5 +1067,5 @@ function getBindingContext<T extends INode, C extends IViewModel<T>>(flags: Life
     return instance as BindingContext<T, C>;
   }
 
-  return ProxyObserver.getOrCreate(instance).proxy as BindingContext<T, C>;
+  return ProxyObserver.getOrCreate(instance).proxy as unknown as BindingContext<T, C>;
 }

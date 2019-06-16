@@ -281,20 +281,6 @@ const hasOwnProperty = Object.prototype.hasOwnProperty as unknown as {
 const emptyArray = Object.freeze([]) as unknown as any[];
 const emptyObject = Object.freeze({}) as any;
 
-function getRestoreFn(): () => void {
-  const platformKeys = Object.freeze(Object.keys($PLATFORM) as (keyof typeof $PLATFORM)[]);
-
-  function restore(): void {
-    for (const key of platformKeys) {
-      if (PLATFORM[key] !== $PLATFORM[key]) {
-        PLATFORM[key] = $PLATFORM[key];
-      }
-    }
-  }
-
-  return restore;
-}
-
 const $PLATFORM = Object.freeze({
   global: $global,
   emptyArray,
@@ -334,14 +320,20 @@ const $PLATFORM = Object.freeze({
   setTimeout(handler: ITimerHandler, timeout?: number, ...args: any[]): number {
     return $global.setTimeout(handler, timeout, ...args);
   },
+});
+
+export const PLATFORM = {
+  ...$PLATFORM,
 
   /**
    * Restore the global `PLATFORM` object to its original state as it was immediately after module initialization.
    * Useful for when you need to stub out one or more of its methods in a unit test.
    *
    * Extraneous properties are NOT removed.
+   *
+   * This restore function itself is also NOT restored.
    */
-  restore: getRestoreFn(),
-});
-
-export const PLATFORM = { ...$PLATFORM };
+  restore(): void {
+    Object.assign(PLATFORM, $PLATFORM);
+  },
+};

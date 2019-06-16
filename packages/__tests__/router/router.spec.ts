@@ -81,7 +81,7 @@ describe('Router', function () {
     const host = ctx.doc.createElement('div');
     ctx.doc.body.appendChild(host as any);
 
-    const au = window['au'] = new Aurelia(container)
+    const au = ctx.wnd['au'] = new Aurelia(container)
       .register(DebugConfiguration)
       .app({ host: host, component: App });
 

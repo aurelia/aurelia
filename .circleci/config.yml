@@ -322,18 +322,18 @@ workflows:
           name: unit_test_chrome
           e: docker-circleci
           npm_command: "test-chrome"
-      #- unit_test:
-      #    <<: *filter_ignore_develop_release
-      #    name: unit_test_firefox
-      #    e: docker-circleci
-      #    npm_command: "test-firefox"
-      #    coverage: false
-      #- unit_test:
-      #    <<: *filter_ignore_develop_release
-      #    name: unit_test_node
-      #    e: docker-circleci
-      #    npm_command: "test-node"
-      #    coverage: false
+      - unit_test:
+         <<: *filter_ignore_develop_release
+         name: unit_test_firefox
+         e: docker-circleci
+         npm_command: "test-firefox"
+         coverage: false
+      - unit_test:
+         <<: *filter_ignore_develop_release
+         name: unit_test_node
+         e: docker-circleci
+         npm_command: "test-node"
+         coverage: false
       - lint_packages:
           <<: *filter_ignore_develop_release
       #- e2e_browserstack:
@@ -374,8 +374,8 @@ workflows:
           <<: *filter_only_master
           requires:
             - unit_test_chrome
-            #- unit_test_firefox
-            #- unit_test_node
+            - unit_test_firefox
+            - unit_test_node
             - lint_packages
             #- e2e_browserstack
             #- e2e_cypress_doc_example
@@ -396,18 +396,18 @@ workflows:
           <<: *filter_only_tag
           name: unit_test_chrome
           e: docker-circleci
-      #- unit_test:
-      #    <<: *filter_only_tag
-      #    name: unit_test_firefox
-      #    e: docker-circleci
-      #    npm_command: "test-firefox"
-      #    coverage: false
-      #- unit_test:
-      #    <<: *filter_only_tag
-      #    name: unit_test_node
-      #    e: docker-circleci
-      #    npm_command: "test-node"
-      #    coverage: false
+      - unit_test:
+         <<: *filter_only_tag
+         name: unit_test_firefox
+         e: docker-circleci
+         npm_command: "test-firefox"
+         coverage: false
+      - unit_test:
+         <<: *filter_only_tag
+         name: unit_test_node
+         e: docker-circleci
+         npm_command: "test-node"
+         coverage: false
       - lint_packages:
           <<: *filter_only_tag
       #- e2e_browserstack:
@@ -418,8 +418,8 @@ workflows:
           <<: *filter_only_tag
           requires:
             - unit_test_chrome
-            #- unit_test_firefox
-            #- unit_test_node
+            - unit_test_firefox
+            - unit_test_node
             - lint_packages
             #- e2e_browserstack
             #- e2e_cypress_doc_example

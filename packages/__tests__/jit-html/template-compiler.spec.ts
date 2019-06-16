@@ -659,7 +659,7 @@ describe(`TemplateCompiler - combinations`, function () {
 
       it(markup, function () {
         const input = { template: markup, instructions: [], surrogates: [] };
-        const expected = { template: ctx.createElementFromMarkup(`<template><${el} ${n1}="${v1}" class="au"></${el}></template>`), instructions: [[i1]], surrogates: [] };
+        const expected = { template: ctx.createElementFromMarkup(`<template><${el} ${n1}="${v1}" class="au"></${el}></template>`), instructions: [[i1]], surrogates: [], build: { compiler: 'default', required: false } };
 
         const { sut, resources, dom } = setup(ctx);
 
@@ -717,7 +717,7 @@ describe(`TemplateCompiler - combinations`, function () {
       it(`${markup}  CustomAttribute=${JSON.stringify(def)}`, function () {
         const input = { template: markup, instructions: [], surrogates: [] };
         const instruction = { type: TT.hydrateAttribute, res: def.name, instructions: [childInstruction] };
-        const expected = { template: ctx.createElementFromMarkup(`<template><div ${name}="${value}" class="au"></div></template>`), instructions: [[instruction]], surrogates: [] };
+        const expected = { template: ctx.createElementFromMarkup(`<template><div ${name}="${value}" class="au"></div></template>`), instructions: [[instruction]], surrogates: [], build: { compiler: 'default', required: false } };
 
         const $def = CustomAttributeResource.define(def, ctor);
         const { sut, resources, dom  } = setup(ctx, $def);

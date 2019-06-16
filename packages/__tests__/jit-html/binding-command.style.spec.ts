@@ -1,4 +1,4 @@
-import { Constructable } from '@aurelia/kernel';
+import { PLATFORM, Constructable } from '@aurelia/kernel';
 import { Aurelia, CustomElementResource, ILifecycle, LifecycleFlags } from '@aurelia/runtime';
 import { IEventManager } from '@aurelia/runtime-html';
 import { BasicConfiguration } from '@aurelia/jit-html';
@@ -16,9 +16,6 @@ function getNormalizedStyle(el: HTMLElement, ruleName: string): string {
   }
 }
 
-// For tests that only work in the browser, only run them in the browser
-const isBrowser = typeof window !== 'undefined';
-
 // TemplateCompiler - Binding Commands integration
 describe('template-compiler.binding-commands.style', () => {
 
@@ -30,7 +27,8 @@ describe('template-compiler.binding-commands.style', () => {
     ['font-size', '10px', ''],
     ['font-family', 'Arial', ''],
     ...(
-      isBrowser
+      // For tests that only work in the browser, only run them in the browser
+      PLATFORM.isBrowserLike
         ? [
           ['-webkit-user-select', 'none', ''],
           ['--customprop', 'red', ''],

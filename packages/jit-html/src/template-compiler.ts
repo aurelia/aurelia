@@ -122,6 +122,8 @@ export class TemplateCompiler implements ITemplateCompiler {
     this.instructionRows = null!;
     this.parts = null!;
 
+    definition.build = buildNotRequired;
+
     if (Profiler.enabled) { leave(); }
     return definition as TemplateDefinition;
   }

@@ -321,7 +321,7 @@ describe('Router', function () {
     await goto('/foo@left', router);
     assert.includes(host.textContent, 'foo', `host.textContent`);
 
-    (host.getElementsByTagName('SPAN')[0] as HTMLElement).click();
+    (host.getElementsByTagName('SPAN')[0] as HTMLElement).parentElement.click();
     await wait(100);
     await waitForNavigation(router);
     assert.includes(host.textContent, 'Viewport: baz', `host.textContent`);

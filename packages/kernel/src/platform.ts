@@ -3,6 +3,7 @@ import { IPerformanceEntry, ITimerHandler, IWindowOrWorkerGlobalScope } from './
 // tslint:disable-next-line:no-redundant-jump
 function $noop(): void { return; }
 
+declare var process: { versions: { node: unknown } };
 declare var global: IWindowOrWorkerGlobalScope;
 declare var self: IWindowOrWorkerGlobalScope;
 declare var window: IWindowOrWorkerGlobalScope;
@@ -31,6 +32,23 @@ const $global: IWindowOrWorkerGlobalScope = (function (): IWindowOrWorkerGlobalS
     return {} as IWindowOrWorkerGlobalScope;
   }
 })();
+
+const isBrowserLike = (
+  typeof window !== 'undefined'
+  && typeof (window as unknown as { document: unknown }).document !== 'undefined'
+);
+
+const isWebWorkerLike = (
+  typeof self === 'object'
+  && self.constructor != null
+  && self.constructor.name === 'DedicatedWorkerGlobalScope'
+);
+
+const isNodeLike = (
+  typeof process !== 'undefined'
+  && process.versions != null
+  && process.versions.node != null
+);
 
 // performance.now polyfill for non-browser envs based on https://github.com/myrne/performance-now
 const $now = (function (): () => number {
@@ -282,6 +300,30 @@ const emptyArray = Object.freeze([]) as unknown as any[];
 const emptyObject = Object.freeze({}) as any;
 
 const $PLATFORM = Object.freeze({
+  /**
+   * `true` if there is a `window` variable in the global scope with a `document` property.
+   *
+   * NOTE: this does not guarantee that the code is actually running in a browser, as some libraries tamper with globals.
+   * The only conclusion that can be drawn is that the `window` global is available and likely behaves similar to how it would in a browser.
+   */
+  isBrowserLike,
+
+  /**
+   * `true` if there is a `self` variable (of type `object`) in the global scope with constructor name `'DedicatedWorkerGlobalScope'`.
+   *
+   * NOTE: this does not guarantee that the code is actually running in a web worker, as some libraries tamper with globals.
+   * The only conclusion that can be drawn is that the `self` global is available and likely behaves similar to how it would in a web worker.
+   */
+  isWebWorkerLike,
+
+  /**
+   * `true` if there is a `process` variable in the global scope with a `versions` property which has a `node` property.
+   *
+   * NOTE: this is not a guarantee that the code is actually running in nodejs, as some libraries tamper with globals.
+   * The only conclusion that can be drawn is that the `process` global is available and likely behaves similar to how it would in nodejs.
+   */
+  isNodeLike,
+
   global: $global,
   emptyArray,
   emptyObject,

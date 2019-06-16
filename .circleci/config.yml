@@ -237,24 +237,24 @@ jobs:
       - run:
           name: "Install cypress"
           command: |
-            cd packages/router/test/e2e/doc-example
+            cd packages/__tests__/router/e2e/doc-example
             npm install
       - run:
           name: "Install and build test app"
           command: |
-            cd packages/router/test/e2e/doc-example/app
+            cd packages/__tests__/router/e2e/doc-example/app
             npm install
             npm run build
       - run:
           name: "Serve test app in the background"
           background: true
           command: |
-            cd packages/router/test/e2e/doc-example/app
+            cd packages/__tests__/router/e2e/doc-example/app
             npm run serve
       - run:
           name: "Run e2e tests"
           command: |
-            cd packages/router/test/e2e/doc-example
+            cd packages/__tests__/router/e2e/doc-example
             npm run test
 
   publish_npm:

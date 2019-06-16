@@ -41,6 +41,8 @@ export function createAttribute(name: string, value: string): Attr {
   return attr;
 }
 
+const buildNotRequired = { required: false, compiler: 'default' };
+
 describe('TemplateCompiler', function () {
   let ctx: HTMLTestContext;
   let sut: ITemplateCompiler;
@@ -461,7 +463,7 @@ function createTemplateController(ctx: HTMLTestContext, attr: string, target: st
         name: target,
         template: ctx.createElementFromMarkup(`<template><au-m class="au"></au-m></template>`),
         instructions: [[childInstr]],
-        build: { required: false, compiler: 'default' }
+        build: buildNotRequired
       },
       instructions: createTplCtrlAttributeInstruction(attr, value),
       link: attr === 'else'
@@ -472,7 +474,8 @@ function createTemplateController(ctx: HTMLTestContext, attr: string, target: st
     };
     const output = {
       template: ctx.createElementFromMarkup(`<template><div><au-m class="au"></au-m></div></template>`),
-      instructions: [[instruction]]
+      instructions: [[instruction]],
+      build: buildNotRequired,
     };
     // @ts-ignore
     return [input, output];
@@ -493,7 +496,7 @@ function createTemplateController(ctx: HTMLTestContext, attr: string, target: st
         name: target,
         template: ctx.createElementFromMarkup(tagName === 'template' ? compiledMarkup : `<template>${compiledMarkup}</template>`),
         instructions,
-        build: { required: false, compiler: 'default' }
+        build: buildNotRequired
       },
       instructions: createTplCtrlAttributeInstruction(attr, value),
       link: attr === 'else'
@@ -505,7 +508,8 @@ function createTemplateController(ctx: HTMLTestContext, attr: string, target: st
     };
     const output = {
       template: ctx.createElementFromMarkup(finalize ? `<template><div><au-m class="au"></au-m></div></template>` : `<au-m class="au"></au-m>`),
-      instructions: [[instruction]]
+      instructions: [[instruction]],
+      build: buildNotRequired,
     };
     // @ts-ignore
     return [input, output];
@@ -529,7 +533,8 @@ function createCustomElement(ctx: HTMLTestContext, tagName: string, finalize: bo
   outputMarkup.classList.add('au');
   const output = {
     template: finalize ? ctx.createElementFromMarkup(`<template><div>${outputMarkup.outerHTML}</div></template>`) : outputMarkup,
-    instructions: [[instruction, ...siblingInstructions], ...nestedElInstructions]
+    instructions: [[instruction, ...siblingInstructions], ...nestedElInstructions],
+    build: buildNotRequired,
   };
   return [input, output];
 }
@@ -550,7 +555,8 @@ function createCustomAttribute(ctx: HTMLTestContext, resName: string, finalize: 
   outputMarkup.classList.add('au');
   const output = {
     template: finalize ? ctx.createElementFromMarkup(`<template><div>${outputMarkup.outerHTML}</div></template>`) : outputMarkup,
-    instructions: [[instruction, ...siblingInstructions], ...nestedElInstructions]
+    instructions: [[instruction, ...siblingInstructions], ...nestedElInstructions],
+    build: buildNotRequired,
   };
   return [input, output];
 }
@@ -659,7 +665,7 @@ describe(`TemplateCompiler - combinations`, function () {
 
       it(markup, function () {
         const input = { template: markup, instructions: [], surrogates: [] };
-        const expected = { template: ctx.createElementFromMarkup(`<template><${el} ${n1}="${v1}" class="au"></${el}></template>`), instructions: [[i1]], surrogates: [], build: { compiler: 'default', required: false } };
+        const expected = { template: ctx.createElementFromMarkup(`<template><${el} ${n1}="${v1}" class="au"></${el}></template>`), instructions: [[i1]], surrogates: [], build: buildNotRequired };
 
         const { sut, resources, dom } = setup(ctx);
 
@@ -717,7 +723,7 @@ describe(`TemplateCompiler - combinations`, function () {
       it(`${markup}  CustomAttribute=${JSON.stringify(def)}`, function () {
         const input = { template: markup, instructions: [], surrogates: [] };
         const instruction = { type: TT.hydrateAttribute, res: def.name, instructions: [childInstruction] };
-        const expected = { template: ctx.createElementFromMarkup(`<template><div ${name}="${value}" class="au"></div></template>`), instructions: [[instruction]], surrogates: [], build: { compiler: 'default', required: false } };
+        const expected = { template: ctx.createElementFromMarkup(`<template><div ${name}="${value}" class="au"></div></template>`), instructions: [[instruction]], surrogates: [], build: buildNotRequired };
 
         const $def = CustomAttributeResource.define(def, ctor);
         const { sut, resources, dom  } = setup(ctx, $def);
@@ -982,7 +988,8 @@ describe(`TemplateCompiler - combinations`, function () {
         const output = {
           // @ts-ignore
           template: ctx.createElementFromMarkup(`<template><div>${output1.template['outerHTML']}${output2.template['outerHTML']}${output3.template['outerHTML']}</div></template>`),
-          instructions: [output1.instructions[0], output2.instructions[0], output3.instructions[0]]
+          instructions: [output1.instructions[0], output2.instructions[0], output3.instructions[0]],
+          build: buildNotRequired,
         };
         //enableTracing();
         //Tracer.enableLiveLogging(SymbolTraceWriter);

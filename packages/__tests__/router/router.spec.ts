@@ -67,10 +67,25 @@ describe('Router', function () {
         name: 'waldo', template: '<template>Viewport: waldo<au-viewport name="waldo" stateful used-by="grault,foo" default="grault"></au-viewport></div></template>'
       },
       class { });
+    const Plugh = CustomElementResource.define(
+      {
+        name: 'plugh', template: '<template>Parameter: ${param} Entry: ${entry}</template>'
+      },
+      class {
+        public param: number;
+        public entry: number = 0;
+        public reentryBehavior: string = 'default';
+        public enter(params) {
+          this.param = +params[0];
+          this.entry++;
+          this.reentryBehavior = plughReentryBehavior;
+        }
+      });
+
 
     container.register(Router as any);
     container.register(ViewportCustomElement as any);
-    container.register(Foo, Bar, Baz, Qux, Quux, Corge, Uier, Grault, Garply, Waldo);
+    container.register(Foo, Bar, Baz, Qux, Quux, Corge, Uier, Grault, Garply, Waldo, Plugh);
 
     const router = container.get(Router);
     const mockBrowserHistoryLocation = new MockBrowserHistoryLocation();
@@ -211,6 +226,26 @@ describe('Router', function () {
     assert.notIncludes(host.textContent, 'Viewport: bar', `host.textContent`);
 
     await $goto('bar@right', router, lifecycle);
+    assert.includes(host.textContent, 'Viewport: foo', `host.textContent`);
+    assert.includes(host.textContent, 'Viewport: bar', `host.textContent`);
+
+    await tearDown();
+  });
+
+  it('reloads state when refresh method is called', async function () {
+    this.timeout(5000);
+
+    const { lifecycle, host, router, tearDown } = await setup();
+
+    await $goto('foo@left', router, lifecycle);
+    assert.includes(host.textContent, 'Viewport: foo', `host.textContent`);
+    assert.notIncludes(host.textContent, 'Viewport: bar', `host.textContent`);
+
+    await $goto('bar@right', router, lifecycle);
+    assert.includes(host.textContent, 'Viewport: foo', `host.textContent`);
+    assert.includes(host.textContent, 'Viewport: bar', `host.textContent`);
+
+    await router.refresh();
     assert.includes(host.textContent, 'Viewport: foo', `host.textContent`);
     assert.includes(host.textContent, 'Viewport: bar', `host.textContent`);
 
@@ -508,6 +543,68 @@ describe('Router', function () {
     assert.includes(host.textContent, 'Viewport: bar', `host.textContent`);
     assert.includes(host.textContent, 'Parameter id: [789]', `host.textContent`);
     assert.includes(host.textContent, 'Parameter name: [SevenEightNine]', `host.textContent`);
+
+    await tearDown();
+  });
+
+  it('uses default reentry behavior', async function () {
+    this.timeout(5000);
+
+    const { lifecycle, host, router, tearDown } = await setup();
+
+    await $goto('plugh@left(123)', router, lifecycle);
+    assert.includes(host.textContent, 'Parameter: 123', `host.textContent`);
+    assert.includes(host.textContent, 'Entry: 1', `host.textContent`);
+
+    await $goto('plugh@left(123)', router, lifecycle);
+    assert.includes(host.textContent, 'Parameter: 123', `host.textContent`);
+    assert.includes(host.textContent, 'Entry: 1', `host.textContent`);
+
+    await $goto('plugh@left(456)', router, lifecycle);
+    assert.includes(host.textContent, 'Parameter: 456', `host.textContent`);
+    assert.includes(host.textContent, 'Entry: 2', `host.textContent`);
+
+    await $goto('plugh@left(456)', router, lifecycle);
+    assert.includes(host.textContent, 'Parameter: 456', `host.textContent`);
+    assert.includes(host.textContent, 'Entry: 2', `host.textContent`);
+
+    await tearDown();
+  });
+
+  it('uses overriding reentry behavior', async function () {
+    this.timeout(5000);
+
+    const { lifecycle, host, router, tearDown } = await setup();
+
+    plughReentryBehavior = 'enter'; // Affects navigation AFTER this one
+    await $goto('plugh@left(123)', router, lifecycle);
+    assert.includes(host.textContent, 'Parameter: 123', `host.textContent`);
+    assert.includes(host.textContent, 'Entry: 1', `host.textContent`);
+
+    plughReentryBehavior = 'refresh'; // Affects navigation AFTER this one
+    await $goto('plugh@left(123)', router, lifecycle);
+    assert.includes(host.textContent, 'Parameter: 123', `host.textContent`);
+    assert.includes(host.textContent, 'Entry: 2', `host.textContent`);
+
+    plughReentryBehavior = 'default'; // Affects navigation AFTER this one
+    await $goto('plugh@left(456)', router, lifecycle);
+    assert.includes(host.textContent, 'Parameter: 456', `host.textContent`);
+    assert.includes(host.textContent, 'Entry: 1', `host.textContent`);
+
+    plughReentryBehavior = 'enter'; // Affects navigation AFTER this one
+    await $goto('plugh@left(456)', router, lifecycle);
+    assert.includes(host.textContent, 'Parameter: 456', `host.textContent`);
+    assert.includes(host.textContent, 'Entry: 1', `host.textContent`);
+
+    plughReentryBehavior = 'disallow'; // Affects navigation AFTER this one
+    await $goto('plugh@left(123)', router, lifecycle);
+    assert.includes(host.textContent, 'Parameter: 123', `host.textContent`);
+    assert.includes(host.textContent, 'Entry: 2', `host.textContent`);
+
+    plughReentryBehavior = 'default'; // Affects navigation AFTER this one
+    await $goto('plugh@left(456)', router, lifecycle);
+    assert.includes(host.textContent, 'Parameter: 123', `host.textContent`);
+    assert.includes(host.textContent, 'Entry: 2', `host.textContent`);
 
     await tearDown();
   });
@@ -896,6 +993,7 @@ describe('Router', function () {
 });
 
 let quxCantLeave = 2;
+let plughReentryBehavior = 'default';
 
 const $goto = async (path: string, router: Router, lifecycle: ILifecycle) => {
   await router.goto(path);

@@ -1,5 +1,5 @@
 
-import { IContainer, InjectArray, InterfaceSymbol, IResolver, Registration } from '@aurelia/kernel';
+import { IContainer, Key, InterfaceSymbol, IResolver, Registration } from '@aurelia/kernel';
 import {
   IBindingTargetAccessor,
   IBindingTargetObserver,
@@ -77,7 +77,7 @@ const overrideProps = Object.assign(
 ) as Record<string, boolean>;
 
 export class TargetObserverLocator implements ITargetObserverLocator {
-  public static readonly inject: InjectArray = [IDOM, ISVGAnalyzer];
+  public static readonly inject: readonly Key[] = [IDOM, ISVGAnalyzer];
 
   private readonly dom: IDOM;
   private readonly svgAnalyzer: ISVGAnalyzer;
@@ -139,7 +139,7 @@ export class TargetObserverLocator implements ITargetObserverLocator {
 }
 
 export class TargetAccessorLocator implements ITargetAccessorLocator {
-  public static readonly inject: InjectArray = [IDOM, ISVGAnalyzer];
+  public static readonly inject: readonly Key[] = [IDOM, ISVGAnalyzer];
 
   private readonly dom: IDOM;
   private readonly svgAnalyzer: ISVGAnalyzer;

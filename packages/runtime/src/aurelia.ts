@@ -1,4 +1,5 @@
 import {
+  Constructable,
   DI,
   IContainer,
   IRegistry,
@@ -86,7 +87,7 @@ export class CompositionRoot<T extends INode = INode> {
     this.dom = initializer.initialize(config) as IDOM<T>;
 
     this.viewModel = CustomElementResource.isType(config.component as ICustomElementType)
-      ? this.container.get(config.component) as IHydratedViewModel<T>
+      ? this.container.get(config.component as Constructable | {}) as IHydratedViewModel<T>
       : config.component as IHydratedViewModel<T>;
 
     this.controller = Controller.forCustomElement(

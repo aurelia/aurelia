@@ -1,5 +1,5 @@
 import {
-  InjectArray,
+  Key,
   Writable
 } from '@aurelia/kernel';
 
@@ -25,7 +25,7 @@ import {
 } from '../viewport';
 
 export class ViewportCustomElement {
-  public static readonly inject: InjectArray = [Router, INode, IRenderingEngine];
+  public static readonly inject: readonly Key[] = [Router, INode, IRenderingEngine];
 
   @bindable public name: string;
   @bindable public scope: boolean;

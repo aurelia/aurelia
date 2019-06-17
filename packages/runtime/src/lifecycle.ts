@@ -1094,7 +1094,7 @@ export class Lifecycle {
 
     this.isFlushingRAF = true;
 
-    if (timestamp > this.rafStartTime) {
+    if (timestamp >= this.rafStartTime) {
       const prevFrameDuration = this.prevFrameDuration = timestamp - this.rafStartTime;
       if (prevFrameDuration + 1 < this.minFrameDuration) {
         return;

@@ -22,12 +22,12 @@ export class SetterObserver {
   constructor(
     lifecycle: ILifecycle,
     flags: LifecycleFlags,
-    obj: IIndexable,
+    obj: object,
     propertyKey: string,
   ) {
     this.lifecycle = lifecycle;
 
-    this.obj = obj;
+    this.obj = obj as IIndexable;
     this.propertyKey = propertyKey;
     this.currentValue = void 0;
     this.oldValue = void 0;

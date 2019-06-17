@@ -35,17 +35,15 @@ import {
 // tslint:disable: no-any
 // tslint:disable: no-control-regex
 
-export type BoxedPrimitive = Number | Boolean | String | BigInt | Symbol;
+export type BoxedPrimitive = Number | Boolean | String | Symbol;
 
 export type IntArray = Int8Array | Int16Array | Int32Array | Uint8Array | Uint8ClampedArray | Uint16Array | Uint32Array;
 export type FloatArray = Float32Array | Float64Array;
-export type BigIntArray = BigInt64Array | BigUint64Array;
-export type TypedArray = IntArray | FloatArray | BigIntArray;
+export type TypedArray = IntArray | FloatArray;
 
 export type IntArrayConstructor = Int8ArrayConstructor | Int16ArrayConstructor | Int32ArrayConstructor | Uint8ArrayConstructor | Uint8ClampedArrayConstructor | Uint16ArrayConstructor | Uint32ArrayConstructor;
 export type FloatArrayConstructor = Float32ArrayConstructor | Float64ArrayConstructor;
-export type BigIntArrayConstructor = BigInt64ArrayConstructor | BigUint64ArrayConstructor;
-export type TypedArrayConstructor = IntArrayConstructor | FloatArrayConstructor | BigIntArrayConstructor;
+export type TypedArrayConstructor = IntArrayConstructor | FloatArrayConstructor;
 
 export const {
   getPrototypeOf,
@@ -92,7 +90,6 @@ export const Date_getTime = uncurryThis(Date.prototype.getTime);
 export const Set_values = uncurryThis(Set.prototype.values);
 export const Map_entries = uncurryThis(Map.prototype.entries);
 
-export const BigInt_valueOf = uncurryThis(BigInt.prototype.valueOf);
 export const Boolean_valueOf = uncurryThis(Boolean.prototype.valueOf);
 export const Number_valueOf = uncurryThis(Number.prototype.valueOf);
 export const Symbol_valueOf = uncurryThis(Symbol.prototype.valueOf);
@@ -198,10 +195,6 @@ export function isBooleanObject(arg: unknown): arg is Boolean {
   return arg instanceof Boolean;
 }
 
-export function isBigIntObject(arg: unknown): arg is BigInt {
-  return arg instanceof BigInt;
-}
-
 export function isSymbolObject(arg: unknown): arg is Symbol {
   return arg instanceof Symbol;
 }
@@ -211,7 +204,6 @@ export function isBoxedPrimitive(arg: unknown): arg is BoxedPrimitive {
     isNumberObject(arg)
     || isStringObject(arg)
     || isBooleanObject(arg)
-    || isBigIntObject(arg)
     || isSymbolObject(arg)
   );
 }
@@ -254,14 +246,6 @@ export function isFloat32Array(value: unknown): value is Float32Array {
 
 export function isFloat64Array(value: unknown): value is Float64Array {
   return TypedArrayProto_toStringTag(value) === 'Float64Array';
-}
-
-export function isBigInt64Array(value: unknown): value is BigInt64Array {
-  return TypedArrayProto_toStringTag(value) === 'BigInt64Array';
-}
-
-export function isBigUint64Array(value: unknown): value is BigUint64Array {
-  return TypedArrayProto_toStringTag(value) === 'BigUint64Array';
 }
 
 export function isArgumentsObject(value: unknown): value is IArguments {

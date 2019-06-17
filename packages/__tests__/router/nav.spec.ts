@@ -1,12 +1,12 @@
 import { DebugConfiguration } from '@aurelia/debug';
-import { BasicConfiguration } from '@aurelia/jit-html-browser';
-import { Aurelia, CustomElementResource, IDOM } from '@aurelia/runtime';
+import { Aurelia, CustomElementResource } from '@aurelia/runtime';
 import { NavCustomElement, Router, ViewportCustomElement } from '@aurelia/router';
-import { MockBrowserHistoryLocation, HTMLTestContext, TestContext, assert } from '@aurelia/testing';
+import { MockBrowserHistoryLocation, TestContext, assert } from '@aurelia/testing';
 
 describe('Nav', function () {
-  const setup = async (component): Promise<{ au; container; host; router }> => {
-    const container = BasicConfiguration.createContainer();
+  async function setup(component) {
+    const ctx = TestContext.createHTMLTestContext();
+    const container = ctx.container;
 
     const App = CustomElementResource.define({ name: 'app', template: `<template><au-viewport name="app" used-by="${component}" default="${component}"></au-viewport></template>` });
     const Foo = CustomElementResource.define({ name: 'foo', template: '<template>Nav: foo <au-nav name="main-nav"></au-nav></template>' }, class {
@@ -41,56 +41,53 @@ describe('Nav', function () {
     const host = ctx.doc.createElement('div');
     ctx.doc.body.appendChild(host);
 
-    const au = window['au'] = new Aurelia(container)
+    const au = ctx.wnd['au'] = new Aurelia(container)
       .register(DebugConfiguration)
-      .app({ host: host, component: App })
-      .start();
+      .app({ host: host, component: App });
+
+    await au.start().wait();
 
     await router.activate();
-    return { au, container, host, router };
+
+    async function tearDown() {
+      await au.stop().wait();
+      ctx.doc.body.removeChild(host);
+      router.deactivate();
+    }
+
+    return { au, container, host, router, ctx, tearDown };
   };
-
-  const teardown = async (host, router) => {
-    ctx.doc.body.removeChild(host);
-    router.deactivate();
-  };
-
-  let ctx: HTMLTestContext;
-
-  beforeEach(function () {
-    ctx = TestContext.createHTMLTestContext();
-  });
 
   it('generates nav with a link', async function () {
     this.timeout(5000);
-    const { host, router } = await setup('foo');
+    const { host, router, tearDown } = await setup('foo');
     await waitForNavigation(router);
     assert.includes(host.innerHTML, 'foo', `host.innerHTML`);
     assert.includes(host.innerHTML, 'Bar', `host.innerHTML`);
     assert.includes(host.innerHTML, 'href="bar"', `host.innerHTML`);
     assert.notIncludes(host.innerHTML, 'nav-active', `host.innerHTML`);
-    await teardown(host, router);
+    await tearDown();
   });
 
   it('generates nav with an active link', async function () {
     this.timeout(5000);
-    const { host, router } = await setup('bar');
+    const { host, router, tearDown } = await setup('bar');
     router.activeComponents = ['baz@main-viewport'];
     await waitForNavigation(router);
     assert.includes(host.innerHTML, 'href="baz"', `host.innerHTML`);
     //assert.includes(host.innerHTML, 'nav-active', `host.innerHTML`); // TODO: fix this
-    await teardown(host, router);
+    await tearDown();
   });
 
   it('generates nav with child links', async function () {
     this.timeout(5000);
-    const { host, router } = await setup('qux');
+    const { host, router, tearDown } = await setup('qux');
     router.activeComponents = ['baz@main-viewport'];
     await waitForNavigation(router);
     assert.includes(host.innerHTML, 'href="baz"', `host.innerHTML`);
     assert.includes(host.innerHTML, 'nav-has-children', `host.innerHTML`);
     assert.includes(host.innerHTML, 'nav-level-1', `host.innerHTML`);
-    await teardown(host, router);
+    await tearDown();
   });
 });
 

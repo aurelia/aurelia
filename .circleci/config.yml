@@ -52,7 +52,7 @@ executors:
     parameters:
       node:
         type: string
-        default: "10.15.3"
+        default: "12.4.0"
     working_directory: *working_dir
     docker:
       - image: "circleci/node:<< parameters.node >>-stretch-browsers"
@@ -176,10 +176,10 @@ jobs:
                 command: |
                   node_modules/codecov/bin/codecov -f packages/__tests__/coverage/coverage-final.json
                 when: always
-      - store_test_results:
-          path: packages/__tests__/coverage
-      - store_artifacts:
-          path: packages/__tests__/coverage
+            - store_test_results:
+                path: packages/__tests__/coverage
+            - store_artifacts:
+                path: packages/__tests__/coverage
 
   lint_packages:
     executor: docker-circleci
@@ -237,24 +237,24 @@ jobs:
       - run:
           name: "Install cypress"
           command: |
-            cd packages/router/test/e2e/doc-example
+            cd packages/__tests__/router/e2e/doc-example
             npm install
       - run:
           name: "Install and build test app"
           command: |
-            cd packages/router/test/e2e/doc-example/app
+            cd packages/__tests__/router/e2e/doc-example/app
             npm install
             npm run build
       - run:
           name: "Serve test app in the background"
           background: true
           command: |
-            cd packages/router/test/e2e/doc-example/app
+            cd packages/__tests__/router/e2e/doc-example/app
             npm run serve
       - run:
           name: "Run e2e tests"
           command: |
-            cd packages/router/test/e2e/doc-example
+            cd packages/__tests__/router/e2e/doc-example
             npm run test
 
   publish_npm:
@@ -322,22 +322,22 @@ workflows:
           name: unit_test_chrome
           e: docker-circleci
           npm_command: "test-chrome"
-      #- unit_test:
-      #    <<: *filter_ignore_develop_release
-      #    name: unit_test_firefox
-      #    e: docker-circleci
-      #    npm_command: "test-firefox"
-      #    coverage: false
-      #- unit_test:
-      #    <<: *filter_ignore_develop_release
-      #    name: unit_test_node
-      #    e: docker-circleci
-      #    npm_command: "test-node"
-      #    coverage: false
+      - unit_test:
+         <<: *filter_ignore_develop_release
+         name: unit_test_firefox
+         e: docker-circleci
+         npm_command: "test-firefox"
+         coverage: false
+      - unit_test:
+         <<: *filter_ignore_develop_release
+         name: unit_test_node
+         e: docker-circleci
+         npm_command: "test-node"
+         coverage: false
       - lint_packages:
           <<: *filter_ignore_develop_release
-      #- e2e_browserstack:
-      #    <<: *filter_ignore_develop_release
+      - e2e_browserstack:
+          <<: *filter_ignore_develop_release
       #- e2e_cypress_doc_example:
       #    <<: *filter_ignore_develop_release
       #- e2e_wdio:
@@ -358,32 +358,32 @@ workflows:
       #    path: "examples/jit-webpack-ts"
       #    requires:
       #      - lint_packages # not a real requirement but forces long-running jobs to go first
-      #- e2e_wdio:
-      #    <<: *filter_ignore_develop_release
-      #    name: jit-parcel-ts
-      #    path: "examples/jit-parcel-ts"
-      #    requires:
-      #      - lint_packages # not a real requirement but forces long-running jobs to go first
-      #- e2e_wdio:
-      #    <<: *filter_ignore_develop_release
-      #    name: jit-iife-inline
-      #    path: "examples/jit-iife-inline"
-      #    requires:
-      #      - lint_packages # not a real requirement but forces long-running jobs to go first
+      - e2e_wdio:
+          <<: *filter_ignore_develop_release
+          name: jit-parcel-ts
+          path: "examples/jit-parcel-ts"
+          requires:
+            - lint_packages # not a real requirement but forces long-running jobs to go first
+      - e2e_wdio:
+          <<: *filter_ignore_develop_release
+          name: jit-iife-inline
+          path: "examples/jit-iife-inline"
+          requires:
+            - lint_packages # not a real requirement but forces long-running jobs to go first
       - merge_and_dist:
           <<: *filter_only_master
           requires:
             - unit_test_chrome
-            #- unit_test_firefox
-            #- unit_test_node
+            - unit_test_firefox
+            - unit_test_node
             - lint_packages
-            #- e2e_browserstack
+            - e2e_browserstack
             #- e2e_cypress_doc_example
             #- jit-aurelia-cli-ts
             #- jit-fuse-box-ts
             #- jit-webpack-ts
-            #- jit-parcel-ts
-            #- jit-iife-inline
+            - jit-parcel-ts
+            - jit-iife-inline
           from: master
           to: develop
           channel: dev
@@ -396,32 +396,32 @@ workflows:
           <<: *filter_only_tag
           name: unit_test_chrome
           e: docker-circleci
-      #- unit_test:
-      #    <<: *filter_only_tag
-      #    name: unit_test_firefox
-      #    e: docker-circleci
-      #    npm_command: "test-firefox"
-      #    coverage: false
-      #- unit_test:
-      #    <<: *filter_only_tag
-      #    name: unit_test_node
-      #    e: docker-circleci
-      #    npm_command: "test-node"
-      #    coverage: false
+      - unit_test:
+         <<: *filter_only_tag
+         name: unit_test_firefox
+         e: docker-circleci
+         npm_command: "test-firefox"
+         coverage: false
+      - unit_test:
+         <<: *filter_only_tag
+         name: unit_test_node
+         e: docker-circleci
+         npm_command: "test-node"
+         coverage: false
       - lint_packages:
           <<: *filter_only_tag
-      #- e2e_browserstack:
-      #    <<: *filter_only_tag
+      - e2e_browserstack:
+          <<: *filter_only_tag
       #- e2e_cypress_doc_example:
       #    <<: *filter_only_tag
       - merge_and_dist:
           <<: *filter_only_tag
           requires:
             - unit_test_chrome
-            #- unit_test_firefox
-            #- unit_test_node
+            - unit_test_firefox
+            - unit_test_node
             - lint_packages
-            #- e2e_browserstack
+            - e2e_browserstack
             #- e2e_cypress_doc_example
           from: $CIRCLE_TAG
           to: release

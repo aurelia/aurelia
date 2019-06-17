@@ -1,4 +1,4 @@
-import { InjectArray, PLATFORM, Reporter } from '@aurelia/kernel';
+import { Key, PLATFORM, Reporter } from '@aurelia/kernel';
 import { ILifecycle, Priority } from '@aurelia/runtime';
 import { DOM } from '@aurelia/runtime-html';
 
@@ -16,7 +16,7 @@ interface QueueItem {
 }
 
 export class QueuedBrowserHistory implements QueuedBrowserHistory {
-  public static readonly inject: InjectArray = [ILifecycle];
+  public static readonly inject: readonly Key[] = [ILifecycle];
 
   private readonly lifecycle: ILifecycle;
   private readonly queue: QueueItem[];

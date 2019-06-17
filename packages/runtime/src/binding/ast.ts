@@ -1223,8 +1223,8 @@ function evalList(flags: LifecycleFlags, scope: IScope, locator: IServiceLocator
   return result;
 }
 
-function getFunction(flags: LifecycleFlags, obj: IIndexable, name: string): ((...args: unknown[]) => unknown) | null {
-  const func = obj == null ? null : obj[name];
+function getFunction(flags: LifecycleFlags, obj: object, name: string): ((...args: unknown[]) => unknown) | null {
+  const func = obj == null ? null : (obj as IIndexable)[name];
   if (typeof func === 'function') {
     return func as (...args: unknown[]) => unknown;
   }

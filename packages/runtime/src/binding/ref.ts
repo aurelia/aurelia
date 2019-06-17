@@ -33,7 +33,7 @@ export class Ref implements IBinding {
 
   constructor(
     sourceExpression: IsBindingBehavior,
-    target: IObservable,
+    target: object,
     locator: IServiceLocator,
   ) {
     this.$state = State.none;
@@ -41,7 +41,7 @@ export class Ref implements IBinding {
 
     this.locator = locator;
     this.sourceExpression = sourceExpression;
-    this.target = target;
+    this.target = target as IObservable;
   }
 
   public $bind(flags: LifecycleFlags, scope: IScope): void {

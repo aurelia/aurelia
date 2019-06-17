@@ -65,7 +65,7 @@ const pointProps = [
 @customElement({ name: 'pixi-sprite', template: '<template></template>' })
 export class PixiSprite {
   public get sprite(): Sprite & { [key: string]: unknown } {
-    return this._sprite as Sprite;
+    return this._sprite as Sprite & { [key: string]: unknown };
   }
 
   @bindable public container?: Container;
@@ -150,8 +150,8 @@ export class PixiSprite {
 
   public attached(): void {
     if (this.container) {
-      const $this = this as PixiSprite & { [key: string]: unknown };
-      this._sprite = new Sprite(loader.resources[this.src as string].texture);
+      const $this = this as this & { [key: string]: unknown };
+      this._sprite = new Sprite(loader.resources[this.src as string].texture) as Sprite & { [key: string]: unknown };
       for (const prop of directProps) {
         if ($this[prop] !== undefined) {
           this._sprite[prop] = $this[prop];
@@ -180,19 +180,19 @@ export class PixiSprite {
 }
 
 for (const prop of directProps) {
-  (PixiSprite.prototype as { [key: string]: unknown })[`${prop}Changed`] = function(this: PixiSprite, newValue: unknown): void {
+  (PixiSprite.prototype as PixiSprite & { [key: string]: unknown })[`${prop}Changed`] = function(this: PixiSprite, newValue: unknown): void {
     if ((this.$controller.state & State.isBound) > 0 && this.sprite != null) {
       this.sprite[prop] = newValue;
     }
   };
 }
 for (const prop of pointProps) {
-  (PixiSprite.prototype as { [key: string]: unknown })[`${prop}XChanged`] = function(this: PixiSprite, newValue: unknown): void {
+  (PixiSprite.prototype as PixiSprite & { [key: string]: unknown })[`${prop}XChanged`] = function(this: PixiSprite, newValue: unknown): void {
     if ((this.$controller.state & State.isBound) > 0 && this.sprite != null) {
       (this.sprite[prop] as { x: unknown }).x = newValue;
     }
   };
-  (PixiSprite.prototype as { [key: string]: unknown })[`${prop}YChanged`] = function(this: PixiSprite, newValue: unknown): void {
+  (PixiSprite.prototype as PixiSprite & { [key: string]: unknown })[`${prop}YChanged`] = function(this: PixiSprite, newValue: unknown): void {
     if ((this.$controller.state & State.isBound) > 0 && this.sprite != null) {
       (this.sprite[prop] as { y: unknown }).y = newValue;
     }

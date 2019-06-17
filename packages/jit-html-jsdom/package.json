@@ -38,13 +38,13 @@
     "access": "public"
   },
   "dependencies": {
-    "@aurelia/kernel": "0.3.0-dev.20190616",
-    "@aurelia/runtime": "0.3.0-dev.20190616",
-    "@aurelia/runtime-html": "0.3.0-dev.20190616",
-    "@aurelia/runtime-html-jsdom": "0.3.0-dev.20190616",
-    "@aurelia/jit": "0.3.0-dev.20190616",
-    "@aurelia/jit-html": "0.3.0-dev.20190616",
-    "jsdom": "^14.0.0"
+    "@aurelia/kernel": "0.3.0",
+    "@aurelia/runtime": "0.3.0",
+    "@aurelia/runtime-html": "0.3.0",
+    "@aurelia/runtime-html-jsdom": "0.3.0",
+    "@aurelia/jit": "0.3.0",
+    "@aurelia/jit-html": "0.3.0",
+    "jsdom": "^15.1.1"
   },
   "devDependencies": {
     "@types/node": "^10.12.27",
@@ -52,6 +52,6 @@
     "tslint": "^5.16.0",
     "tslint-microsoft-contrib": "^6.1.1",
     "tslint-sonarts": "^1.9.0",
-    "typescript": "^3.4.5"
+    "typescript": "^3.5.2"
   }
 }

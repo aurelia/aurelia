@@ -31,7 +31,7 @@ export function valueConverter(definition: IValueConverterDefinition): ValueConv
 export function valueConverter(name: string): ValueConverterDecorator;
 export function valueConverter(nameOrDefinition: string | IValueConverterDefinition): ValueConverterDecorator;
 export function valueConverter(nameOrDefinition: string | IValueConverterDefinition): ValueConverterDecorator {
-  return target => ValueConverterResource.define(nameOrDefinition, target);
+  return target => ValueConverterResource.define(nameOrDefinition, target) as any; // TODO: fix this at some point
 }
 
 function keyFrom(this: IValueConverterResource, name: string): string {
@@ -58,7 +58,7 @@ function define<T extends Constructable = Constructable>(this: IValueConverterRe
   return Type as T & IValueConverterType<T>;
 }
 
-export const ValueConverterResource = {
+export const ValueConverterResource: IValueConverterResource = {
   name: 'value-converter',
   keyFrom,
   isType,

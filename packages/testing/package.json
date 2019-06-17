@@ -40,22 +40,22 @@
   "dependencies": {
     "@types/mocha": "^5.2.6",
     "@types/node": "^10.12.27",
-    "@aurelia/aot": "0.3.0-dev.20190616",
-    "@aurelia/debug": "0.3.0-dev.20190616",
-    "@aurelia/fetch-client": "0.3.0-dev.20190616",
-    "@aurelia/jit-html-browser": "0.3.0-dev.20190616",
-    "@aurelia/jit-html-jsdom": "0.3.0-dev.20190616",
-    "@aurelia/jit-html": "0.3.0-dev.20190616",
-    "@aurelia/jit": "0.3.0-dev.20190616",
-    "@aurelia/kernel": "0.3.0-dev.20190616",
-    "@aurelia/router": "0.3.0-dev.20190616",
-    "@aurelia/runtime-html-browser": "0.3.0-dev.20190616",
-    "@aurelia/runtime-html-jsdom": "0.3.0-dev.20190616",
-    "@aurelia/runtime-html": "0.3.0-dev.20190616",
-    "@aurelia/runtime": "0.3.0-dev.20190616",
-    "@aurelia/store": "0.3.0-dev.20190616",
-    "@aurelia/validation": "0.3.0-dev.20190616",
-    "jsdom": "^14.0.0",
+    "@aurelia/aot": "0.3.0",
+    "@aurelia/debug": "0.3.0",
+    "@aurelia/fetch-client": "0.3.0",
+    "@aurelia/jit-html-browser": "0.3.0",
+    "@aurelia/jit-html-jsdom": "0.3.0",
+    "@aurelia/jit-html": "0.3.0",
+    "@aurelia/jit": "0.3.0",
+    "@aurelia/kernel": "0.3.0",
+    "@aurelia/router": "0.3.0",
+    "@aurelia/runtime-html-browser": "0.3.0",
+    "@aurelia/runtime-html-jsdom": "0.3.0",
+    "@aurelia/runtime-html": "0.3.0",
+    "@aurelia/runtime": "0.3.0",
+    "@aurelia/store": "0.3.0",
+    "@aurelia/validation": "0.3.0",
+    "jsdom": "^15.1.1",
     "mocha": "^6.1.4"
   },
   "devDependencies": {
@@ -63,6 +63,6 @@
     "tslint": "^5.16.0",
     "tslint-microsoft-contrib": "^6.1.1",
     "tslint-sonarts": "^1.9.0",
-    "typescript": "^3.4.5"
+    "typescript": "^3.5.2"
   }
 }

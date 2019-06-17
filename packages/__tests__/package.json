@@ -7,7 +7,7 @@
     "npm": ">=6.1.0 <7.0.0"
   },
   "scripts": {
-    "test-node": "mocha --opts mocha.opts dist/build/__tests__/setup-node.js dist/build/__tests__/**/*.spec.js",
+    "test-node": "mocha --opts mocha.opts --reporter min --exit dist/build/__tests__/setup-node.js dist/build/__tests__/**/*.spec.js",
     "test-node:kernel": "mocha --opts mocha.opts dist/build/__tests__/setup-node.js dist/build/__tests__/kernel/**/*.spec.js --watch",
     "test-node:runtime": "mocha --opts mocha.opts dist/build/__tests__/setup-node.js dist/build/__tests__/runtime/**/*.spec.js --watch",
     "test-node:runtime-html": "mocha --opts mocha.opts dist/build/__tests__/setup-node.js dist/build/__tests__/runtime-html/**/*.spec.js --watch",
@@ -50,7 +50,7 @@
     "esm": "^3.2.20",
     "istanbul": "^0.4.5",
     "istanbul-instrumenter-loader": "^3.0.1",
-    "jsdom": "^14.0.0",
+    "jsdom": "^15.1.1",
     "karma-chrome-launcher": "^2.2.0",
     "karma-coverage-istanbul-reporter": "^2.0.5",
     "karma-coverage": "^1.1.2",
@@ -76,11 +76,6 @@
     "ts-node": "^8.1.0",
     "tsconfig-paths": "^3.8.0",
     "tslib": "^1.9.3",
-    "typescript": "^3.4.5"
-  },
-  "main": "dist/index.umd.js",
-  "module": "dist/index.es6.js",
-  "jsnext:main": "dist/index.es6.js",
-  "browser": "dist/index.umd.js",
-  "version": "0.3.0-dev.20190616"
+    "typescript": "^3.5.2"
+  }
 }

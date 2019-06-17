@@ -62,7 +62,7 @@ export class Binding implements IPartialConnectableBinding {
 
   constructor(
     sourceExpression: IsBindingBehavior | IForOfStatement,
-    target: IObservable,
+    target: object,
     targetProperty: string,
     mode: BindingMode,
     observerLocator: IObserverLocator,
@@ -77,7 +77,7 @@ export class Binding implements IPartialConnectableBinding {
     this.mode = mode;
     this.observerLocator = observerLocator;
     this.sourceExpression = sourceExpression;
-    this.target = target;
+    this.target = target as IObservable;
     this.targetProperty = targetProperty;
     this.targetObserver = void 0;
     this.persistentFlags = LifecycleFlags.none;
@@ -208,7 +208,7 @@ export class Binding implements IPartialConnectableBinding {
     }
     if ((this.targetObserver as IBindingTargetObserver).unsubscribe) {
       (this.targetObserver as IBindingTargetObserver).unsubscribe(this);
-      (this.targetObserver as this['targetObserver'] & { [key: string]: number })[this.id] &= ~LifecycleFlags.updateSourceExpression;
+      (this.targetObserver as this['targetObserver'] & { [key: number]: number })[this.id] &= ~LifecycleFlags.updateSourceExpression;
     }
     this.unobserve(true);
 

@@ -1,7 +1,7 @@
 import {
   Constructable,
   IContainer,
-  InjectArray,
+  Key,
   IRegistry,
   nextId,
   PLATFORM,
@@ -43,7 +43,7 @@ export type Subject<T extends INode = Node> = IViewFactory<T> | IController<T> |
 export type MaybeSubjectPromise<T> = Subject<T> | Promise<Subject<T>> | undefined;
 
 export class Compose<T extends INode = Node> {
-  public static readonly inject: InjectArray = [IDOM, IController, ITargetedInstruction, IRenderingEngine];
+  public static readonly inject: readonly Key[] = [IDOM, IController, ITargetedInstruction, IRenderingEngine];
 
   public static readonly kind: ICustomElementResource = CustomElementResource;
   public static readonly description: Required<ITemplateDefinition> = Object.freeze({

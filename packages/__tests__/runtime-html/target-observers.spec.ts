@@ -1,4 +1,3 @@
-
 import { ILifecycle, LifecycleFlags } from '@aurelia/runtime';
 import {
   AttributeNSAccessor,
@@ -263,11 +262,6 @@ describe('StyleAccessor', function () {
 });
 
 describe('ClassAccessor', function () {
-  let sut: ClassAttributeAccessor;
-  let el: HTMLElement;
-  let lifecycle: ILifecycle;
-  let initialClassList: string;
-
   const markupArr = [
     '<div></div>',
     '<div class=""></div>',
@@ -279,39 +273,48 @@ describe('ClassAccessor', function () {
   for (const markup of markupArr) {
     for (const classList of classListArr) {
 
-      describe('with flags.none', function () {
-        beforeEach(function () {
-          const ctx = TestContext.createHTMLTestContext();
-          el = ctx.createElementFromMarkup(markup);
-          initialClassList = el.classList.toString();
-          const { lifecycle: $lifecycle } = setup();
-          lifecycle = $lifecycle;
-          sut = new ClassAttributeAccessor(lifecycle, el);
-          sut.bind(LifecycleFlags.none);
-        });
+      function setup() {
+        const ctx = TestContext.createHTMLTestContext();
+        const el = ctx.createElementFromMarkup(markup);
+        const initialClassList = el.classList.toString();
+        const { lifecycle } = ctx;
+        const sut = new ClassAttributeAccessor(lifecycle, el);
+        sut.bind(LifecycleFlags.none);
 
-        afterEach(function () {
+        function tearDown() {
+          lifecycle.processRAFQueue(LifecycleFlags.none);
           sut.unbind(LifecycleFlags.none);
-        });
+        }
+
+        return { sut, el, initialClassList, lifecycle, tearDown };
+      }
+
+      describe('with flags.none', function () {
 
         it(`setValue("${classList}") updates ${markup} flags.none`, function () {
+          const { sut, el, initialClassList, lifecycle, tearDown } = setup();
+
           sut.setValue(classList, LifecycleFlags.none);
 
-          assert.strictEqual(el.classList.toString(), initialClassList, `el.classList.toString()`);
+          assert.strictEqual(el.classList.toString(), initialClassList, `el.classList.toString() === initialClassList`);
 
           lifecycle.processRAFQueue(LifecycleFlags.none);
 
           const updatedClassList = el.classList.toString();
           for (const cls of initialClassList.split(' ')) {
-            assert.includes(updatedClassList, cls, `updatedClassList`);
+            assert.includes(updatedClassList, cls, `updatedClassList includes class from initialClassList "${initialClassList}"`);
           }
           for (const cls of classList.split(' ')) {
-            assert.includes(updatedClassList, cls, `updatedClassList`);
+            assert.includes(updatedClassList, cls, `updatedClassList includes class from classList "${classList}"`);
           }
+
+          tearDown();
         });
 
         for (const secondClassList of secondClassListArr) {
           it(`setValue("${secondClassList}") updates already-updated ${markup} flags.none`, function () {
+            const { sut, el, initialClassList, lifecycle, tearDown } = setup();
+
             sut.setValue(classList, LifecycleFlags.none);
 
             lifecycle.processRAFQueue(LifecycleFlags.none);
@@ -326,45 +329,39 @@ describe('ClassAccessor', function () {
             const secondUpdatedClassList = el.classList.toString();
             for (const cls of initialClassList.split(' ')) {
               if (!classList.includes(cls)) {
-                assert.includes(secondUpdatedClassList, cls, `secondUpdatedClassList`);
+                assert.includes(secondUpdatedClassList, cls, `secondUpdatedClassList includes class from initialClassList "${initialClassList}" (except classes from classList "${classList}")`);
               }
             }
             for (const cls of secondClassList.split(' ')) {
-              assert.includes(secondUpdatedClassList, cls, `secondUpdatedClassList`);
+              assert.includes(secondUpdatedClassList, cls, `secondUpdatedClassList includes class from secondClassList "${secondClassList}"`);
             }
+
+            tearDown();
           });
         }
       });
 
       describe('with flags.fromBind', function () {
-        beforeEach(function () {
-          const ctx = TestContext.createHTMLTestContext();
-          el = ctx.createElementFromMarkup(markup);
-          initialClassList = el.classList.toString();
-          const { lifecycle: $lifecycle } = setup();
-          lifecycle = $lifecycle;
-          sut = new ClassAttributeAccessor(lifecycle, el);
-          sut.bind(LifecycleFlags.none);
-        });
-
-        afterEach(function () {
-          sut.unbind(LifecycleFlags.none);
-        });
-
         it(`setValue("${classList}") updates ${markup} flags.fromBind`, function () {
+          const { sut, el, initialClassList, lifecycle, tearDown } = setup();
+
           sut.setValue(classList, LifecycleFlags.fromBind);
 
           const updatedClassList = el.classList.toString();
           for (const cls of initialClassList.split(' ')) {
-            assert.includes(updatedClassList, cls, `updatedClassList`);
+            assert.includes(updatedClassList, cls, `updatedClassList includes class from initialClassList "${initialClassList}"`);
           }
           for (const cls of classList.split(' ')) {
-            assert.includes(updatedClassList, cls, `updatedClassList`);
+            assert.includes(updatedClassList, cls, `updatedClassList includes class from classList "${classList}"`);
           }
+
+          tearDown();
         });
 
         for (const secondClassList of secondClassListArr) {
           it(`setValue("${secondClassList}") updates already-updated ${markup} flags.fromBind`, function () {
+            const { sut, el, initialClassList, lifecycle, tearDown } = setup();
+
             sut.setValue(classList, LifecycleFlags.fromBind);
 
             sut.setValue(secondClassList, LifecycleFlags.fromBind);
@@ -372,12 +369,14 @@ describe('ClassAccessor', function () {
             const secondUpdatedClassList = el.classList.toString();
             for (const cls of initialClassList.split(' ')) {
               if (!classList.includes(cls)) {
-                assert.includes(secondUpdatedClassList, cls, `secondUpdatedClassList`);
+                assert.includes(secondUpdatedClassList, cls, `secondUpdatedClassList includes class from initialClassList "${initialClassList}" (except classes from classList "${classList}")`);
               }
             }
             for (const cls of secondClassList.split(' ')) {
-              assert.includes(secondUpdatedClassList, cls, `secondUpdatedClassList`);
+              assert.includes(secondUpdatedClassList, cls, `secondUpdatedClassList includes class from secondClassList "${secondClassList}"`);
             }
+
+            tearDown();
           });
         }
       });

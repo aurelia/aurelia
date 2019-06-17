@@ -81,24 +81,26 @@ interface IElementTemplateProvider {
   getElementTemplate(renderingEngine: unknown, customElementType: unknown, parentContext: IServiceLocator): ITemplate;
 }
 
-type BindingContext<T extends INode, C extends IViewModel<T>> = C & IIndexable & {
-  render(flags: LifecycleFlags, host: T, parts: Record<string, TemplateDefinition>, parentContext: IServiceLocator): IElementTemplateProvider | void;
-  created(flags: LifecycleFlags): void;
+type BindingContext<T extends INode, C extends IViewModel<T>> = IIndexable<
+  C & {
+    render(flags: LifecycleFlags, host: T, parts: Record<string, TemplateDefinition>, parentContext: IServiceLocator): IElementTemplateProvider | void;
+    created(flags: LifecycleFlags): void;
 
-  binding(flags: LifecycleFlags): MaybePromiseOrTask;
-  bound(flags: LifecycleFlags): void;
+    binding(flags: LifecycleFlags): MaybePromiseOrTask;
+    bound(flags: LifecycleFlags): void;
 
-  unbinding(flags: LifecycleFlags): MaybePromiseOrTask;
-  unbound(flags: LifecycleFlags): void;
+    unbinding(flags: LifecycleFlags): MaybePromiseOrTask;
+    unbound(flags: LifecycleFlags): void;
 
-  attaching(flags: LifecycleFlags): void;
-  attached(flags: LifecycleFlags): void;
+    attaching(flags: LifecycleFlags): void;
+    attached(flags: LifecycleFlags): void;
 
-  detaching(flags: LifecycleFlags): void;
-  detached(flags: LifecycleFlags): void;
+    detaching(flags: LifecycleFlags): void;
+    detached(flags: LifecycleFlags): void;
 
-  caching(flags: LifecycleFlags): void;
-};
+    caching(flags: LifecycleFlags): void;
+  }
+>;
 
 export class Controller<
   T extends INode = INode,
@@ -262,7 +264,7 @@ export class Controller<
             }
           } else {
             const dom = parentContext.get(IDOM);
-            template = renderingEngine.getElementTemplate(dom, description, parentContext, Type as ICustomElementType);
+            template = renderingEngine.getElementTemplate(dom, description as Required<ITemplateDefinition>, parentContext, Type as ICustomElementType);
           }
 
           if (template !== void 0) {
@@ -301,7 +303,7 @@ export class Controller<
             parentContext.get(IDOM),
             this,
             host,
-            description
+            description as Required<ITemplateDefinition>
           );
 
           this.location = void 0;
@@ -1028,10 +1030,10 @@ function createObservers(
   lifecycle: ILifecycle,
   description: Description,
   flags: LifecycleFlags,
-  instance: IIndexable,
+  instance: object,
 ): void {
-  const hasLookup = instance.$observers != void 0;
-  const observers: Record<string, SelfObserver> = hasLookup ? instance.$observers as Record<string, SelfObserver> : {};
+  const hasLookup = (instance as IIndexable).$observers != void 0;
+  const observers: Record<string, SelfObserver> = hasLookup ? (instance as IIndexable).$observers as Record<string, SelfObserver> : {};
   const bindables = description.bindables as Record<string, Required<IBindableDescription>>;
   const observableNames = Object.getOwnPropertyNames(bindables);
   const useProxy = (flags & LifecycleFlags.proxyStrategy) > 0 ;
@@ -1060,10 +1062,10 @@ function createObservers(
   }
 }
 
-function getBindingContext<T extends INode, C extends IViewModel<T>>(flags: LifecycleFlags, instance: IIndexable): BindingContext<T, C> {
-  if (instance.noProxy === true || (flags & LifecycleFlags.proxyStrategy) === 0) {
+function getBindingContext<T extends INode, C extends IViewModel<T>>(flags: LifecycleFlags, instance: object): BindingContext<T, C> {
+  if ((instance as IIndexable).noProxy === true || (flags & LifecycleFlags.proxyStrategy) === 0) {
     return instance as BindingContext<T, C>;
   }
 
-  return ProxyObserver.getOrCreate(instance).proxy as BindingContext<T, C>;
+  return ProxyObserver.getOrCreate(instance).proxy as unknown as BindingContext<T, C>;
 }

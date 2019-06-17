@@ -1,6 +1,6 @@
 import {
   IContainer,
-  InjectArray,
+  Key,
   nextId,
   PLATFORM,
   Registration
@@ -22,7 +22,6 @@ import {
 import {
   IController,
   IViewFactory,
-  Priority,
 } from '../../lifecycle';
 import {
   ContinuationTask,
@@ -31,9 +30,8 @@ import {
   PromiseTask
 } from '../../lifecycle-task';
 import {
-  IObserversLookup,
+  InlineObserversLookup,
 } from '../../observation';
-import { SetterObserver } from '../../observation/setter-observer';
 import { Bindable } from '../../templating/bindable';
 import {
   CustomAttributeResource,
@@ -41,7 +39,7 @@ import {
 } from '../custom-attribute';
 
 export class If<T extends INode = INode> {
-  public static readonly inject: InjectArray = [IViewFactory, IRenderLocation];
+  public static readonly inject: readonly Key[] = [IViewFactory, IRenderLocation];
 
   public static readonly kind: ICustomAttributeResource = CustomAttributeResource;
   public static readonly description: Required<IAttributeDefinition> = Object.freeze({
@@ -68,9 +66,9 @@ export class If<T extends INode = INode> {
     }
   }
 
-  public readonly $observers: IObserversLookup = {
-    value: this as this & SetterObserver,
-  };
+  public readonly $observers: InlineObserversLookup<this> = Object.freeze({
+    value: this,
+  });
 
   public elseFactory?: IViewFactory<T>;
   public elseView?: IController<T>;
@@ -271,7 +269,7 @@ export class If<T extends INode = INode> {
 }
 
 export class Else<T extends INode = INode> {
-  public static readonly inject: InjectArray = [IViewFactory];
+  public static readonly inject: readonly Key[] = [IViewFactory];
 
   public static readonly kind: ICustomAttributeResource = CustomAttributeResource;
   public static readonly description: Required<IAttributeDefinition> = {

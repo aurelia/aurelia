@@ -1,8 +1,9 @@
-import { IPerformanceEntry, ITimerHandler, IWindowOrWorkerGlobalScope } from './interfaces';
+import { IPerformanceEntry, ITimerHandler, IWindowOrWorkerGlobalScope, IPerformance } from './interfaces';
 
 // tslint:disable-next-line:no-redundant-jump
 function $noop(): void { return; }
 
+declare var process: { versions: { node: unknown } };
 declare var global: IWindowOrWorkerGlobalScope;
 declare var self: IWindowOrWorkerGlobalScope;
 declare var window: IWindowOrWorkerGlobalScope;
@@ -31,6 +32,23 @@ const $global: IWindowOrWorkerGlobalScope = (function (): IWindowOrWorkerGlobalS
     return {} as IWindowOrWorkerGlobalScope;
   }
 })();
+
+const isBrowserLike = (
+  typeof window !== 'undefined'
+  && typeof (window as unknown as { document: unknown }).document !== 'undefined'
+);
+
+const isWebWorkerLike = (
+  typeof self === 'object'
+  && self.constructor != null
+  && self.constructor.name === 'DedicatedWorkerGlobalScope'
+);
+
+const isNodeLike = (
+  typeof process !== 'undefined'
+  && process.versions != null
+  && process.versions.node != null
+);
 
 // performance.now polyfill for non-browser envs based on https://github.com/myrne/performance-now
 const $now = (function (): () => number {
@@ -281,7 +299,31 @@ const hasOwnProperty = Object.prototype.hasOwnProperty as unknown as {
 const emptyArray = Object.freeze([]) as unknown as any[];
 const emptyObject = Object.freeze({}) as any;
 
-export const PLATFORM = {
+const $PLATFORM = Object.freeze({
+  /**
+   * `true` if there is a `window` variable in the global scope with a `document` property.
+   *
+   * NOTE: this does not guarantee that the code is actually running in a browser, as some libraries tamper with globals.
+   * The only conclusion that can be drawn is that the `window` global is available and likely behaves similar to how it would in a browser.
+   */
+  isBrowserLike,
+
+  /**
+   * `true` if there is a `self` variable (of type `object`) in the global scope with constructor name `'DedicatedWorkerGlobalScope'`.
+   *
+   * NOTE: this does not guarantee that the code is actually running in a web worker, as some libraries tamper with globals.
+   * The only conclusion that can be drawn is that the `self` global is available and likely behaves similar to how it would in a web worker.
+   */
+  isWebWorkerLike,
+
+  /**
+   * `true` if there is a `process` variable in the global scope with a `versions` property which has a `node` property.
+   *
+   * NOTE: this is not a guarantee that the code is actually running in nodejs, as some libraries tamper with globals.
+   * The only conclusion that can be drawn is that the `process` global is available and likely behaves similar to how it would in nodejs.
+   */
+  isNodeLike,
+
   global: $global,
   emptyArray,
   emptyObject,
@@ -319,5 +361,67 @@ export const PLATFORM = {
   // tslint:disable-next-line:no-any
   setTimeout(handler: ITimerHandler, timeout?: number, ...args: any[]): number {
     return $global.setTimeout(handler, timeout, ...args);
-  }
-};
+  },
+
+  restore(): void {
+    Object.assign(PLATFORM, $PLATFORM);
+  },
+});
+
+interface IPlatform extends IPerformance {
+  /**
+   * `true` if there is a `window` variable in the global scope with a `document` property.
+   *
+   * NOTE: this does not guarantee that the code is actually running in a browser, as some libraries tamper with globals.
+   * The only conclusion that can be drawn is that the `window` global is available and likely behaves similar to how it would in a browser.
+   */
+  isBrowserLike: boolean;
+
+  /**
+   * `true` if there is a `self` variable (of type `object`) in the global scope with constructor name `'DedicatedWorkerGlobalScope'`.
+   *
+   * NOTE: this does not guarantee that the code is actually running in a web worker, as some libraries tamper with globals.
+   * The only conclusion that can be drawn is that the `self` global is available and likely behaves similar to how it would in a web worker.
+   */
+  isWebWorkerLike: boolean;
+
+  /**
+   * `true` if there is a `process` variable in the global scope with a `versions` property which has a `node` property.
+   *
+   * NOTE: this is not a guarantee that the code is actually running in nodejs, as some libraries tamper with globals.
+   * The only conclusion that can be drawn is that the `process` global is available and likely behaves similar to how it would in nodejs.
+   */
+  isNodeLike: boolean;
+
+  global: IWindowOrWorkerGlobalScope;
+  emptyArray: any[];
+  emptyObject: any;
+
+  noop(): void;
+
+  hasOwnProperty: {
+    call<V, T = object, K extends PropertyKey = PropertyKey>(target: T, key: K): target is (
+      T & { [P in K]: V; }
+    );
+    call<T, K extends keyof T>(target: T, key: K): target is (
+      T & { [P in K]-?: T[P]; }
+    );
+  };
+
+  requestAnimationFrame(callback: (time: number) => void): number;
+  cancelAnimationFrame(handle: number): void;
+  clearInterval(handle?: number): void;
+  clearTimeout(handle?: number): void;
+  setInterval(handler: ITimerHandler, timeout?: number, ...args: any[]): number;
+  setTimeout(handler: ITimerHandler, timeout?: number, ...args: any[]): number;
+
+  /**
+   * Restore the global `PLATFORM` object to its original state as it was immediately after module initialization.
+   * Useful for when you need to stub out one or more of its methods in a unit test.
+   *
+   * Extraneous properties are NOT removed.
+   */
+  restore(): void;
+}
+
+export const PLATFORM: IPlatform = { ...$PLATFORM };

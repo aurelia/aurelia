@@ -35,7 +35,7 @@ export function bindingBehavior(definition: IBindingBehaviorDefinition): Binding
 export function bindingBehavior(name: string): BindingBehaviorDecorator;
 export function bindingBehavior(nameOrDefinition: string | IBindingBehaviorDefinition): BindingBehaviorDecorator;
 export function bindingBehavior(nameOrDefinition: string | IBindingBehaviorDefinition): BindingBehaviorDecorator {
-  return target => BindingBehaviorResource.define(nameOrDefinition, target);
+  return target => BindingBehaviorResource.define(nameOrDefinition, target) as any; // TODO: fix this at some point
 }
 
 function keyFrom(this: IBindingBehaviorResource, name: string): string {
@@ -56,14 +56,14 @@ function define<T extends Constructable = Constructable>(this: IBindingBehaviorR
     ? { name: nameOrDefinition }
     : nameOrDefinition;
 
-  WritableType.kind = BindingBehaviorResource as IBindingBehaviorResource;
+  WritableType.kind = BindingBehaviorResource;
   WritableType.description = description;
   Type.register = register;
 
   return Type;
 }
 
-export const BindingBehaviorResource = {
+export const BindingBehaviorResource: IBindingBehaviorResource = {
   name: 'binding-behavior',
   keyFrom,
   isType,

@@ -1,9 +1,15 @@
 import { PLATFORM, Reporter } from '@aurelia/kernel';
+import { Priority, ILifecycle } from '@aurelia/runtime';
 
 export interface QueueItem<T> {
   resolve?: ((value?: void | PromiseLike<void>) => void);
   reject?: ((value?: void | PromiseLike<void>) => void);
   cost?: number;
+}
+
+export interface IQueueOptions {
+  lifecycle: ILifecycle;
+  tickLimit: number;
 }
 
 export class Queue<T> {
@@ -13,6 +19,7 @@ export class Queue<T> {
   public tickLimit: number;
   public unticked: number;
   private readonly callback: (item?: QueueItem<T>) => void;
+  private lifecycle: ILifecycle;
 
   constructor(callback: (item?: QueueItem<T>) => void) {
     this.pending = [];
@@ -27,19 +34,20 @@ export class Queue<T> {
     return this.pending.length;
   }
 
-  public activate(tickLimit: number): void {
+  public activate(options: IQueueOptions): void {
     if (this.isActive) {
       throw new Error('Queue has already been activated');
     }
     this.isActive = true;
-    this.tickLimit = tickLimit;
-    PLATFORM.ticker.add(this.dequeue, this);
+    this.lifecycle = options.lifecycle;
+    this.tickLimit = options.tickLimit;
+    this.lifecycle.enqueueRAF(this.dequeue, this, Priority.preempt);
   }
   public deactivate(): void {
     if (!this.isActive) {
       throw new Error('Queue has not been activated');
     }
-    PLATFORM.ticker.remove(this.dequeue, this);
+    this.lifecycle.dequeueRAF(this.dequeue, this);
     this.tickLimit = null;
     this.isActive = false;
   }

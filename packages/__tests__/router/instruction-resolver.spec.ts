@@ -1,3 +1,4 @@
+import { BasicConfiguration } from '@aurelia/jit-html-browser';
 import { DebugConfiguration } from '@aurelia/debug';
 import { Aurelia, CustomElementResource } from '@aurelia/runtime';
 import { Router, ViewportCustomElement, ViewportInstruction } from '@aurelia/router';
@@ -14,9 +15,9 @@ describe('InstructionResolver', function () {
 
     const router = container.get(Router);
     const mockBrowserHistoryLocation = new MockBrowserHistoryLocation();
-    mockBrowserHistoryLocation.changeCallback = router.historyBrowser.pathChanged;
-    router.historyBrowser.history = mockBrowserHistoryLocation as any;
-    router.historyBrowser.location = mockBrowserHistoryLocation as any;
+    mockBrowserHistoryLocation.changeCallback = router.navigation.handlePopstate;
+    router.navigation.history = mockBrowserHistoryLocation as any;
+    router.navigation.location = mockBrowserHistoryLocation as any;
 
     const host = ctx.doc.createElement('div');
     ctx.doc.body.appendChild(host);

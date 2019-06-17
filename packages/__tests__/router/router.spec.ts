@@ -74,9 +74,9 @@ describe('Router', function () {
 
     const router = container.get(Router);
     const mockBrowserHistoryLocation = new MockBrowserHistoryLocation();
-    mockBrowserHistoryLocation.changeCallback = router.historyBrowser.pathChanged;
-    router.historyBrowser.history = mockBrowserHistoryLocation as any;
-    router.historyBrowser.location = mockBrowserHistoryLocation as any;
+    mockBrowserHistoryLocation.changeCallback = router.navigation.handlePopstate;
+    router.navigation.history = mockBrowserHistoryLocation as any;
+    router.navigation.location = mockBrowserHistoryLocation as any;
 
     const host = ctx.doc.createElement('div');
     ctx.doc.body.appendChild(host as any);
@@ -178,15 +178,15 @@ describe('Router', function () {
 
     const { host, router, tearDown } = await setup();
 
-    const historyLength = router.historyBrowser.history.length;
+    const historyLength = router.navigation.history.length;
     await $goto('foo@left', router);
     assert.includes(host.textContent, 'foo', `host.textContent`);
-    assert.strictEqual(router.historyBrowser.history.length, historyLength + 1, `router.historyBrowser.history.length`);
+    assert.strictEqual(router.navigation.history.length, historyLength + 1, `router.navigation.history.length`);
 
     await router.replace('bar@left');
     await waitForNavigation(router);
     assert.includes(host.textContent, 'bar', `host.textContent`);
-    assert.strictEqual(router.historyBrowser.history.length, historyLength + 1, `router.historyBrowser.history.length`);
+    assert.strictEqual(router.navigation.history.length, historyLength + 1, `router.navigation.history.length`);
 
     await tearDown();
   });
@@ -662,9 +662,9 @@ describe('Router', function () {
 
       const router = container.get(Router);
       const mockBrowserHistoryLocation = new MockBrowserHistoryLocation();
-      mockBrowserHistoryLocation.changeCallback = router.historyBrowser.pathChanged;
-      router.historyBrowser.history = mockBrowserHistoryLocation as any;
-      router.historyBrowser.location = mockBrowserHistoryLocation as any;
+      mockBrowserHistoryLocation.changeCallback = router.navigation.handlePopstate;
+      router.navigation.history = mockBrowserHistoryLocation as any;
+      router.navigation.location = mockBrowserHistoryLocation as any;
 
       router.activate().catch(error => { throw error; });
       await Promise.resolve();

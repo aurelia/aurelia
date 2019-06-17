@@ -63,7 +63,9 @@ export interface IRouter {
 export const IRouter = DI.createInterface<IRouter>('IRouter').withDefault(x => x.singleton(Router));
 
 export class Router implements IRouter {
-  public static readonly inject: InjectArray = [IContainer, IRouteTransformer];
+  public static readonly inject: InjectArray = [IContainer, Navigator, BrowserNavigation, IRouteTransformer, LinkHandler, InstructionResolver];
+
+  public readonly container: IContainer;
 
   public rootScope: Scope;
   public scopes: Scope[] = [];
@@ -82,18 +84,25 @@ export class Router implements IRouter {
   private options: IRouterOptions;
   private isActive: boolean = false;
 
+  private readonly routeTransformer: IRouteTransformer;
   private readonly pendingNavigations: Queue<INavigationInstruction>;
   private processingNavigation: INavigationInstruction = null;
   private lastNavigation: INavigationInstruction = null;
 
-  private readonly routeTransformer: IRouteTransformer;
-
-  constructor(public container: IContainer, routeTransformer: IRouteTransformer) {
-    this.navigator = new Navigator();
-    this.navigation = new BrowserNavigation();
-    this.linkHandler = new LinkHandler();
-    this.instructionResolver = new InstructionResolver();
-
+  constructor(
+    container: IContainer,
+    navigator: Navigator,
+    navigation: BrowserNavigation,
+    routeTransformer: IRouteTransformer,
+    linkHandler: LinkHandler,
+    instructionResolver: InstructionResolver
+  ) {
+    this.container = container;
+    this.navigator = navigator;
+    this.navigation = navigation;
+    this.routeTransformer = routeTransformer;
+    this.linkHandler = linkHandler;
+    this.instructionResolver = instructionResolver;
     this.pendingNavigations = new Queue<INavigationInstruction>(this.processNavigations);
     this.routeTransformer = routeTransformer;
   }

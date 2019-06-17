@@ -1,4 +1,5 @@
-import { PLATFORM, Reporter } from '@aurelia/kernel';
+import { InjectArray, Reporter } from '@aurelia/kernel';
+import { ILifecycle } from '@aurelia/runtime';
 import { IStoredNavigationEntry } from './navigator';
 import { Queue, QueueItem } from './queue';
 
@@ -43,6 +44,10 @@ interface ForwardedState {
   resolve?: ((value?: void | PromiseLike<void>) => void);
 }
 export class BrowserNavigation implements INavigationStore, INavigationViewer {
+  public static readonly inject: InjectArray = [ILifecycle];
+
+  public readonly lifecycle: ILifecycle;
+
   public window: Window;
   public history: History;
   public location: Location;
@@ -56,7 +61,11 @@ export class BrowserNavigation implements INavigationStore, INavigationViewer {
 
   private forwardedState: ForwardedState;
 
-  constructor() {
+  constructor(
+    lifecycle: ILifecycle,
+  ) {
+    this.lifecycle = lifecycle;
+
     this.window = window;
     this.history = window.history;
     this.location = window.location;
@@ -74,7 +83,7 @@ export class BrowserNavigation implements INavigationStore, INavigationViewer {
     }
     this.isActive = true;
     this.callback = callback;
-    this.pendingCalls.activate(this.allowedNoOfExecsWithinTick);
+    this.pendingCalls.activate({ lifecycle: this.lifecycle, tickLimit: this.allowedNoOfExecsWithinTick });
     this.window.addEventListener('popstate', this.handlePopstate);
 
     return new Promise(resolve => {

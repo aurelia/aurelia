@@ -30,6 +30,12 @@ export {
 } from './navigator';
 
 export {
+  QueueItem,
+  IQueueOptions,
+  Queue,
+} from './queue';
+
+export {
   RouteHandler,
   ConfigurableRoute,
   HandlerEntry,

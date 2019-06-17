@@ -1,6 +1,6 @@
 import {
   IContainer,
-  InjectArray,
+  Key,
   nextId,
   PLATFORM,
   Registration
@@ -24,9 +24,8 @@ import {
   IController,
   IViewFactory
 } from '../../lifecycle';
-import { IObserversLookup } from '../../observation';
+import { InlineObserversLookup } from '../../observation';
 import { Scope } from '../../observation/binding-context';
-import { SetterObserver } from '../../observation/setter-observer';
 import { Bindable } from '../../templating/bindable';
 import {
   CustomAttributeResource,
@@ -34,7 +33,7 @@ import {
 } from '../custom-attribute';
 
 export class With<T extends INode = INode> {
-  public static readonly inject: InjectArray = [IViewFactory, IRenderLocation];
+  public static readonly inject: readonly Key[] = [IViewFactory, IRenderLocation];
 
   public static readonly kind: ICustomAttributeResource = CustomAttributeResource;
   public static readonly description: Required<IAttributeDefinition> = Object.freeze({
@@ -61,9 +60,9 @@ export class With<T extends INode = INode> {
     }
   }
 
-  public readonly $observers: IObserversLookup = {
-    value: this as this & SetterObserver,
-  };
+  public readonly $observers: InlineObserversLookup<this> = Object.freeze({
+    value: this,
+  });
 
   public readonly view: IController<T>;
   private readonly factory: IViewFactory<T>;

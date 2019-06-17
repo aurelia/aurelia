@@ -427,7 +427,6 @@ export {
   IObservedArray,
   IObservedMap,
   IObservedSet,
-  IObserversLookup,
   IOverrideContext,
   IPropertyChangeTracker,
   IPropertyObserver,

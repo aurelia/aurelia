@@ -17,6 +17,8 @@ export {
   ResolveCallback,
   singleton,
   transient,
+  Injectable,
+  InterfaceSymbol,
   InstanceProvider
 } from './di';
 export {
@@ -28,9 +30,6 @@ export {
   IDisposable,
   IFrameRequestCallback,
   IIndexable,
-  InjectArray,
-  Injectable,
-  InterfaceSymbol,
   IPerformance,
   ITimerHandler,
   IWindowOrWorkerGlobalScope,
@@ -89,7 +88,8 @@ export {
 } from './resource';
 export {
   EventAggregator,
-  EventAggregatorCallback
+  EventAggregatorCallback,
+  IEventAggregator,
 } from './eventaggregator';
 export {
   isNumeric,

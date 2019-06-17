@@ -1,7 +1,8 @@
-import { Constructable, PLATFORM, Reporter, Tracer } from '@aurelia/kernel';
+import { Constructable, PLATFORM, Reporter, Tracer, IIndexable } from '@aurelia/kernel';
 import { LifecycleFlags } from '../flags';
 import { ILifecycle } from '../lifecycle';
 import {
+  IBindingContext,
   IBindingTargetObserver,
   ICollectionSubscribable,
   IObservable,
@@ -38,7 +39,7 @@ export function createComputedObserver(
   observerLocator: IObserverLocator,
   dirtyChecker: IDirtyChecker,
   lifecycle: ILifecycle,
-  instance: IObservable & { constructor: IObservable & ComputedLookup },
+  instance: IObservable,
   propertyName: string,
   descriptor: PropertyDescriptor): IBindingTargetObserver {
 
@@ -47,7 +48,11 @@ export function createComputedObserver(
   }
 
   if (descriptor.get) {
-    const overrides = instance.constructor.computed && instance.constructor.computed[propertyName] || computedOverrideDefaults;
+    const overrides = (
+      (instance as IObservable & { constructor: ComputedLookup }).constructor.computed
+      && (instance as IObservable & { constructor: ComputedLookup }).constructor.computed![propertyName]
+      || computedOverrideDefaults
+    );
 
     if (descriptor.set) {
       if (overrides.volatile) {
@@ -65,7 +70,7 @@ export interface CustomSetterObserver extends IBindingTargetObserver { }
 // Used when the getter is dependent solely on changes that happen within the setter.
 @subscriberCollection()
 export class CustomSetterObserver implements CustomSetterObserver {
-  public readonly obj: IObservable;
+  public readonly obj: IObservable & IIndexable;
   public readonly propertyKey: string;
   public currentValue: unknown;
   public oldValue: unknown;
@@ -245,7 +250,7 @@ const toStringTag = Object.prototype.toString;
 function createGetterTraps(flags: LifecycleFlags, observerLocator: IObserverLocator, observer: GetterObserver): ProxyHandler<object> {
   if (Tracer.enabled) { Tracer.enter('computed', 'createGetterTraps', slice.call(arguments)); }
   const traps = {
-    get: function(target: object, key: PropertyKey, receiver?: unknown): unknown {
+    get: function(target: IObservable | IBindingContext, key: PropertyKey, receiver?: unknown): unknown {
       if (Tracer.enabled) { Tracer.enter('computed', 'get', slice.call(arguments)); }
       if (observer.doNotCollect(key)) {
         if (Tracer.enabled) { Tracer.leave(); }

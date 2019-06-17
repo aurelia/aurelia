@@ -1,4 +1,4 @@
-import { DI, IContainer, InjectArray, InterfaceSymbol, IResolver, Profiler, Registration } from '@aurelia/kernel';
+import { DI, IContainer, Key, InterfaceSymbol, IResolver, Profiler, Registration } from '@aurelia/kernel';
 import { IDOM, INode } from '@aurelia/runtime';
 
 /**
@@ -45,7 +45,7 @@ const markupCache: Record<string, HTMLTemplateElement | undefined> = {};
  * @internal
  */
 export class HTMLTemplateElementFactory implements ITemplateElementFactory {
-  public static readonly inject: InjectArray = [IDOM];
+  public static readonly inject: readonly Key[] = [IDOM];
 
   private readonly dom: IDOM;
   private template: HTMLTemplateElement;

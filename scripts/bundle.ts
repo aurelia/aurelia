@@ -20,7 +20,7 @@ async function getTerserOptions() {
   // This is not foolproof however, and we should parse the generated .d.ts files and tell the minifier not to mangle any of the class names, functions, constants, properties, etc
   // that are present there so the public API stays untouched, but it should be able to mangle anything else without breaking stuff
   const names = [
-    ...project.packages
+    ...project.packages.filter(p => p.name.npm !== '@aurelia/__tests__')
     .map(pkg => ts.createSourceFile(pkg.src.entry, readFileSync(pkg.src.entry, { encoding: 'utf8' }), ts.ScriptTarget.ES2018))
     .reduce((acc, cur) => {
       acc.push(...cur.statements.filter(s => ts.isExportDeclaration(s)) as ts.ExportDeclaration[]);
@@ -211,7 +211,7 @@ async function createBundle(): Promise<void> {
   console.log(args);
 
   const outputs = args[0].split(',');
-  let packages = project.packages.slice();
+  let packages = project.packages.slice().filter(p => p.name.npm !== '@aurelia/__tests__');
   packages = await sortByDependencies(packages);
   if (args.length > 1 && args[1] !== 'all') {
     const filter = args[1].split(',');
@@ -240,11 +240,11 @@ async function createBundle(): Promise<void> {
       ...project.packages.filter(p => p.name.npm !== pkg.name.npm).map(p => p.name.npm)
     ];
     const plugins = [
-      replace({
-        // We're just replacing `Tracer.enabled` with `false` and let dead code elimination take care of the rest
-        'Tracer.enabled': 'false',
-        'Profiler.enabled': 'false'
-      }),
+      // replace({
+      //   // We're just replacing `Tracer.enabled` with `false` and let dead code elimination take care of the rest
+      //   'Tracer.enabled': 'false',
+      //   'Profiler.enabled': 'false'
+      // }),
       resolve({ jsnext: true }), // use the jsnext:main field from our packages package.json files to resolve dependencies
       typescript2({
         tsconfig: pkg.tsconfig,

@@ -35,7 +35,7 @@ export class Call {
 
   constructor(
     sourceExpression: IsBindingBehavior,
-    target: IObservable | IBindingContext,
+    target: object,
     targetProperty: string,
     observerLocator: IObserverLocator,
     locator: IServiceLocator,

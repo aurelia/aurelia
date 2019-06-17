@@ -3,7 +3,7 @@ import {
   DI,
   IContainer,
   IDisposable,
-  InjectArray,
+  Key,
   InstanceProvider,
   IRegistry,
   IResolver,
@@ -192,7 +192,7 @@ export const IRenderingEngine = DI.createInterface<IRenderingEngine>('IRendering
 
 /** @internal */
 export class RenderingEngine implements IRenderingEngine {
-  public static readonly inject: InjectArray = [IContainer, ITemplateFactory, ILifecycle, all(ITemplateCompiler)];
+  public static readonly inject: readonly Key[] = [IContainer, ITemplateFactory, ILifecycle, all(ITemplateCompiler)];
 
   private readonly compilers: Record<string, ITemplateCompiler>;
   private readonly container: IContainer;

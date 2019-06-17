@@ -39,7 +39,7 @@ export class LetBinding implements IPartialConnectableBinding {
   public locator: IServiceLocator;
   public observerLocator: IObserverLocator;
   public sourceExpression: IExpression;
-  public target: IObservable | null;
+  public target: (IObservable & IIndexable) | null;
   public targetProperty: string;
 
   private readonly toViewModel: boolean;

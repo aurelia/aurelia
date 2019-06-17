@@ -2,8 +2,8 @@
   "name": "jit-webpack-ts",
   "license": "MIT",
   "engines": {
-    "node": ">=8.11.4 <11.0.0",
-    "npm": ">=6.1.0 <7.0.0"
+    "node": ">=10.16.0",
+    "npm": ">=6.1.0"
   },
   "version": "0.3.0",
   "scripts": {
@@ -28,7 +28,7 @@
     "http-server": "latest",
     "rimraf": "latest",
     "ts-loader": "latest",
-    "typescript": "~3.3.4000",
+    "typescript": "latest",
     "webpack-cli": "latest",
     "webpack-dev-server": "latest",
     "webpack": "latest"

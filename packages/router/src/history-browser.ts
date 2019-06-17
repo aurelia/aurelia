@@ -1,4 +1,4 @@
-import { Reporter, InjectArray } from '@aurelia/kernel';
+import { Reporter, Key } from '@aurelia/kernel';
 import { QueuedBrowserHistory } from './queued-browser-history';
 import { ILifecycle } from '@aurelia/runtime';
 export interface IHistoryEntry {
@@ -32,7 +32,7 @@ export interface INavigationInstruction extends IHistoryEntry, INavigationFlags 
 }
 
 export class HistoryBrowser {
-  public static readonly inject: InjectArray = [ILifecycle];
+  public static readonly inject: readonly Key[] = [ILifecycle];
 
   public currentEntry: IHistoryEntry;
   public historyEntries: IHistoryEntry[];
@@ -158,7 +158,7 @@ export class HistoryBrowser {
     return this.history.replaceState(state, null, `${pathname}${search}${hash}`);
   }
 
-  public getState(key: string): Record<string, unknown> {
+  public getState<T = Record<string, unknown>>(key: string): T {
     const state = { ...this.history.state };
     return state[key];
   }
@@ -217,7 +217,7 @@ export class HistoryBrowser {
     const navigationFlags: INavigationFlags = {};
 
     let previousEntry: IHistoryEntry;
-    let historyEntry: IHistoryEntry = this.getState('HistoryEntry') as IHistoryEntry;
+    let historyEntry: IHistoryEntry = this.getState('HistoryEntry');
     if (this.activeEntry && this.activeEntry.path === path) { // Only happens with new history entries (including replacing ones)
       navigationFlags.isNew = true;
       const index = (this.isReplacing ? this.currentEntry.index : this.history.length - this.historyOffset);
@@ -245,9 +245,9 @@ export class HistoryBrowser {
         'HistoryEntry': this.currentEntry
       });
     } else { // Refresh, history navigation, first navigation, manual navigation or cancel
-      this.historyEntries = (this.historyEntries || this.getState('HistoryEntries') || []) as IHistoryEntry[];
+      this.historyEntries = (this.historyEntries || this.getState('HistoryEntries') || []);
       // tslint:disable-next-line:strict-boolean-expressions
-      this.historyOffset = (this.historyOffset || this.getState('HistoryOffset') || 0) as number;
+      this.historyOffset = (this.historyOffset || this.getState('HistoryOffset') || 0);
       if (!historyEntry && !this.currentEntry) {
         navigationFlags.isNew = true;
         navigationFlags.isFirst = true;

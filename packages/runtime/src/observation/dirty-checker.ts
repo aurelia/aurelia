@@ -1,11 +1,11 @@
-import { DI, PLATFORM, Reporter, Tracer, InjectArray } from '@aurelia/kernel';
+import { DI, Key, Reporter, Tracer, IIndexable } from '@aurelia/kernel';
 import { LifecycleFlags } from '../flags';
+import { ILifecycle, Priority } from '../lifecycle';
 import { IBindingTargetObserver, IObservable, ISubscriber } from '../observation';
 import { subscriberCollection } from './subscriber-collection';
-import { ILifecycle, Priority } from '../lifecycle';
 
 export interface IDirtyChecker {
-  createProperty(obj: IObservable, propertyName: string): IBindingTargetObserver;
+  createProperty(obj: object, propertyName: string): IBindingTargetObserver;
   addProperty(property: DirtyCheckProperty): void;
   removeProperty(property: DirtyCheckProperty): void;
 }
@@ -54,7 +54,7 @@ export const DirtyCheckSettings = {
 
 /** @internal */
 export class DirtyChecker {
-  public static readonly inject: InjectArray = [ILifecycle];
+  public static readonly inject: readonly Key[] = [ILifecycle];
 
   private readonly tracked: DirtyCheckProperty[];
   private readonly lifecycle: ILifecycle;
@@ -67,7 +67,7 @@ export class DirtyChecker {
     this.lifecycle = lifecycle;
   }
 
-  public createProperty(obj: IObservable, propertyName: string): DirtyCheckProperty {
+  public createProperty(obj: object, propertyName: string): DirtyCheckProperty {
     if (DirtyCheckSettings.throw) {
       throw Reporter.error(800, propertyName); // TODO: create/organize error code
     }
@@ -119,15 +119,15 @@ export interface DirtyCheckProperty extends IBindingTargetObserver { }
 
 @subscriberCollection()
 export class DirtyCheckProperty implements DirtyCheckProperty {
-  public obj: IObservable;
+  public obj: IObservable & IIndexable;
   public oldValue: unknown;
   public propertyKey: string;
 
   private readonly dirtyChecker: IDirtyChecker;
 
-  constructor(dirtyChecker: IDirtyChecker, obj: IObservable, propertyKey: string) {
+  constructor(dirtyChecker: IDirtyChecker, obj: object, propertyKey: string) {
     if (Tracer.enabled) { Tracer.enter('DirtyCheckProperty', 'constructor', slice.call(arguments)); }
-    this.obj = obj;
+    this.obj = obj as IObservable & IIndexable;
     this.propertyKey = propertyKey;
 
     this.dirtyChecker = dirtyChecker;

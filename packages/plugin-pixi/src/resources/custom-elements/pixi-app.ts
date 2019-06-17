@@ -1,4 +1,4 @@
-import { InjectArray } from '@aurelia/kernel';
+import { Key } from '@aurelia/kernel';
 import {
   bindable,
   customElement
@@ -11,7 +11,7 @@ import {
 
 @customElement({ name: 'pixi-app', template: '<template><div replaceable part="children"></div></template>' })
 export class PixiApp {
-  public static readonly inject: InjectArray = [Element];
+  public static readonly inject: readonly Key[] = [Element];
 
   public get app(): Application | null {
     return this._app;

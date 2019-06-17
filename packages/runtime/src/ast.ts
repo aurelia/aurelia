@@ -74,7 +74,7 @@ export interface IExpression {
 
 export interface IConnectable {
   readonly locator: IServiceLocator;
-  observeProperty(flags: LifecycleFlags, obj: IIndexable, propertyName: string): void;
+  observeProperty(flags: LifecycleFlags, obj: object, propertyName: string): void;
 }
 
 export interface IBindingBehaviorExpression extends IExpression {

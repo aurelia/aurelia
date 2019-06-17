@@ -33,7 +33,7 @@ export function load(name: string, req: Require, onLoad: RequireOnLoad, config: 
           dependencies: Array.prototype.slice.call(arguments, 1)
         };
 
-        onLoad({default: CustomElementResource.define(templateSource, null)});
+        onLoad({default: CustomElementResource.define(templateSource)});
       });
     });
   }

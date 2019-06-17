@@ -25,7 +25,7 @@ export class SelfObserver {
   constructor(
     lifecycle: ILifecycle,
     flags: LifecycleFlags,
-    obj: IIndexable,
+    obj: object,
     propertyName: string,
     cbName: string
   ) {
@@ -35,9 +35,9 @@ export class SelfObserver {
     if (ProxyObserver.isProxy(obj)) {
       isProxy = true;
       obj.$observer.subscribe(this, propertyName);
-      this.obj = obj.$raw;
+      this.obj = obj.$raw as IIndexable;
     } else {
-      this.obj = obj;
+      this.obj = obj as IIndexable;
     }
     this.propertyKey = propertyName;
     this.currentValue = void 0;

@@ -15,6 +15,7 @@ import { SelfBindingBehavior } from './resources/binding-behaviors/self';
 import { UpdateTriggerBindingBehavior } from './resources/binding-behaviors/update-trigger';
 import { Blur } from './resources/custom-attributes/blur';
 import { Focus } from './resources/custom-attributes/focus';
+import { Portal } from './resources/custom-attributes/portal';
 import { Compose } from './resources/custom-elements/compose';
 
 export const IProjectorLocatorRegistration = HTMLProjectorLocator as IRegistry;
@@ -39,6 +40,7 @@ export const DefaultComponents = [
 export const AttrBindingBehaviorRegistration = AttrBindingBehavior as IRegistry;
 export const SelfBindingBehaviorRegistration = SelfBindingBehavior as IRegistry;
 export const UpdateTriggerBindingBehaviorRegistration = UpdateTriggerBindingBehavior as IRegistry;
+export const PortalRegistration = Portal as IRegistry;
 export const ComposeRegistration = Compose as IRegistry;
 export const FocusRegistration = Focus as unknown as IRegistry;
 export const BlurRegistration = Blur as unknown as IRegistry;
@@ -52,6 +54,7 @@ export const DefaultResources = [
   AttrBindingBehaviorRegistration,
   SelfBindingBehaviorRegistration,
   UpdateTriggerBindingBehaviorRegistration,
+  PortalRegistration,
   ComposeRegistration,
   FocusRegistration,
   BlurRegistration

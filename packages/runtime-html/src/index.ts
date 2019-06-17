@@ -74,6 +74,9 @@ export {
 export {
   Focus
 } from './resources/custom-attributes/focus';
+export {
+  Portal
+} from './resources/custom-attributes/portal';
 
 export {
   Subject,
@@ -91,6 +94,7 @@ export {
   AttrBindingBehaviorRegistration,
   SelfBindingBehaviorRegistration,
   UpdateTriggerBindingBehaviorRegistration,
+  PortalRegistration,
   ComposeRegistration,
 
   DefaultResources,

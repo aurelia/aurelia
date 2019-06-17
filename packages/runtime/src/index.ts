@@ -452,6 +452,7 @@ export {
   ISubscriberCollection,
   ObservedCollection,
   ObserversLookup,
+  InlineObserversLookup,
   PropertyObserver,
   CollectionObserver,
   ICollectionSubscriberCollection,

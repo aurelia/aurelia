@@ -49,6 +49,7 @@ export class Queue<T> {
     }
     this.lifecycle.dequeueRAF(this.dequeue, this);
     this.tickLimit = null;
+    this.clear();
     this.isActive = false;
   }
 
@@ -69,8 +70,8 @@ export class Queue<T> {
           this.processing = null;
           this.dequeue();
         };
-        qItem.reject = () => {
-          reject();
+        qItem.reject = (reason: unknown) => {
+          reject(reason);
           this.processing = null;
           this.dequeue();
         };
@@ -101,5 +102,9 @@ export class Queue<T> {
     this.processing = this.pending.shift();
     this.unticked += this.processing.cost;
     this.callback(this.processing);
+  }
+
+  public clear(): void {
+    this.pending.splice(0, this.pending.length);
   }
 }

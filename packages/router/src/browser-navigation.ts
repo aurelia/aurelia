@@ -1,4 +1,4 @@
-import { InjectArray, Reporter } from '@aurelia/kernel';
+import { Key, Reporter } from '@aurelia/kernel';
 import { ILifecycle } from '@aurelia/runtime';
 import { IStoredNavigationEntry } from './navigator';
 import { Queue, QueueItem } from './queue';
@@ -44,7 +44,7 @@ interface ForwardedState {
   resolve?: ((value?: void | PromiseLike<void>) => void);
 }
 export class BrowserNavigation implements INavigationStore, INavigationViewer {
-  public static readonly inject: InjectArray = [ILifecycle];
+  public static readonly inject: readonly Key[] = [ILifecycle];
 
   public readonly lifecycle: ILifecycle;
 

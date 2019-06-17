@@ -49,6 +49,8 @@ describe('LinkHandler', function () {
   it('can be deactivated', function () {
     const { sut, tearDown, removeEventListener } = setup();
 
+    sut.activate({ callback: callback});
+
     sut.deactivate();
 
     tearDown();
@@ -87,7 +89,7 @@ describe('LinkHandler', function () {
     } catch (e) {
       err = e;
     }
-    assert.includes(err.message, 'LinkHandler has already been activated.', `err.message`);
+    assert.includes(err.message, 'Link handler has already been activated', `err.message`);
   });
 
 });

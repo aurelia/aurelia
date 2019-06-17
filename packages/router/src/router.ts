@@ -85,7 +85,6 @@ export class Router implements IRouter {
   private isActive: boolean = false;
 
   private readonly routeTransformer: IRouteTransformer;
-  private readonly pendingNavigations: Queue<INavigationInstruction>;
   private processingNavigation: INavigationInstruction = null;
   private lastNavigation: INavigationInstruction = null;
 
@@ -103,8 +102,6 @@ export class Router implements IRouter {
     this.routeTransformer = routeTransformer;
     this.linkHandler = linkHandler;
     this.instructionResolver = instructionResolver;
-    this.pendingNavigations = new Queue<INavigationInstruction>(this.processNavigations);
-    this.routeTransformer = routeTransformer;
   }
 
   public get isNavigating(): boolean {
@@ -333,7 +330,7 @@ export class Router implements IRouter {
         this.addedViewports.push(new ViewportInstruction(componentOrInstruction, viewport));
       }
     } else if (this.lastNavigation) {
-      this.pendingNavigations.enqueue({ instruction: '', fullStateInstruction: '', repeating: true, navigation: {} });
+      this.navigator.navigate({ instruction: '', fullStateInstruction: '', repeating: true });
       // Don't wait for the (possibly slow) navigation
     }
   }
@@ -436,7 +433,7 @@ export class Router implements IRouter {
     });
     await this.navigator.cancel(qInstruction as INavigationInstruction);
     this.processingNavigation = null;
-    qInstruction.reject();
+    qInstruction.resolve();
   }
 
   private ensureRootScope(): void {

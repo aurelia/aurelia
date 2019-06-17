@@ -19,6 +19,7 @@ export interface INavigationEntry extends IStoredNavigationEntry {
   fromBrowser?: boolean;
   replacing?: boolean;
   refreshing?: boolean;
+  repeating?: boolean;
   untracked?: boolean;
   historyMovement?: number;
   resolve?: ((value?: void | PromiseLike<void>) => void);
@@ -70,9 +71,13 @@ export class Navigator {
     this.isActive = false;
   }
 
+  public get queued(): number {
+    return this.pendingNavigations.length;
+  }
+
   public activate(options?: INavigatorOptions): void {
     if (this.isActive) {
-      throw new Error('Navigator has already been activated.');
+      throw new Error('Navigator has already been activated');
     }
 
     this.isActive = true;
@@ -83,6 +88,7 @@ export class Navigator {
     if (!this.isActive) {
       throw new Error('Navigator has not been activated');
     }
+    this.pendingNavigations.clear();
     this.isActive = false;
   }
 

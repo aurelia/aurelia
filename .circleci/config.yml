@@ -340,12 +340,12 @@ workflows:
           <<: *filter_ignore_develop_release
       #- e2e_cypress_doc_example:
       #    <<: *filter_ignore_develop_release
-      - e2e_wdio:
-          <<: *filter_ignore_develop_release
-          name: jit-fuse-box-ts
-          path: "examples/jit-fuse-box-ts"
-          requires:
-            - lint_packages # not a real requirement but forces long-running jobs to go first
+      #- e2e_wdio:
+      #    <<: *filter_ignore_develop_release
+      #    name: jit-fuse-box-ts
+      #    path: "examples/jit-fuse-box-ts"
+      #    requires:
+      #      - lint_packages # not a real requirement but forces long-running jobs to go first
       - e2e_wdio:
           <<: *filter_ignore_develop_release
           name: jit-webpack-ts
@@ -373,7 +373,7 @@ workflows:
             - lint_packages
             - e2e_browserstack
             #- e2e_cypress_doc_example
-            - jit-fuse-box-ts
+            #- jit-fuse-box-ts
             - jit-webpack-ts
             - jit-parcel-ts
             - jit-iife-inline

@@ -18,11 +18,13 @@ export function getCurrentVersion(): {major: string; minor: string; patch: strin
 
 export function getDate(sep?: string): string {
   const s = sep === undefined ? '' : sep;
-  const raw = new Date().toISOString().replace(/:|T|\.|-/g, '').slice(0, 8);
+  const raw = new Date().toISOString().replace(/:|T|\.|-/g, '').slice(0, 12);
   const y = raw.slice(0, 4);
   const m = raw.slice(4, 6);
   const d = raw.slice(6, 8);
-  return `${y}${s}${m}${s}${d}`;
+  const hh = raw.slice(8, 10);
+  const mm = raw.slice(10, 12);
+  return `${y}${s}${m}${s}${d}${hh}${mm}`;
 }
 
 export function getNewVersion(

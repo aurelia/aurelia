@@ -236,10 +236,7 @@ export class Portal<T extends ParentNode = ParentNode> {
     }
 
     this.task = this.deactivate(flags);
-
-    if (newTarget != null) {
-      this.task = this.activate(newTarget, flags);
-    }
+    this.task = this.activate(newTarget, flags);
   }
 
   private activate(target: T, flags: LifecycleFlags): ILifecycleTask {

@@ -317,27 +317,27 @@ workflows:
   # Triggered by push to master or topic branches
   build_test:
     jobs:
-      - unit_test:
-          <<: *filter_ignore_develop_release
-          name: unit_test_chrome
-          e: docker-circleci
-          npm_command: "test-chrome"
-      - unit_test:
-         <<: *filter_ignore_develop_release
-         name: unit_test_firefox
-         e: docker-circleci
-         npm_command: "test-firefox"
-         coverage: false
-      - unit_test:
-         <<: *filter_ignore_develop_release
-         name: unit_test_node
-         e: docker-circleci
-         npm_command: "test-node"
-         coverage: false
-      - lint_packages:
-          <<: *filter_ignore_develop_release
-      - e2e_browserstack:
-          <<: *filter_ignore_develop_release
+      #- unit_test:
+      #    <<: *filter_ignore_develop_release
+      #    name: unit_test_chrome
+      #    e: docker-circleci
+      #    npm_command: "test-chrome"
+      #- unit_test:
+      #   <<: *filter_ignore_develop_release
+      #   name: unit_test_firefox
+      #   e: docker-circleci
+      #   npm_command: "test-firefox"
+      #   coverage: false
+      #- unit_test:
+      #   <<: *filter_ignore_develop_release
+      #   name: unit_test_node
+      #   e: docker-circleci
+      #   npm_command: "test-node"
+      #   coverage: false
+      #- lint_packages:
+      #    <<: *filter_ignore_develop_release
+      #- e2e_browserstack:
+      #    <<: *filter_ignore_develop_release
       #- e2e_cypress_doc_example:
       #    <<: *filter_ignore_develop_release
       #- e2e_wdio:
@@ -346,46 +346,46 @@ workflows:
       #    path: "examples/jit-fuse-box-ts"
       #    requires:
       #      - lint_packages # not a real requirement but forces long-running jobs to go first
-      - e2e_wdio:
-          <<: *filter_ignore_develop_release
-          name: jit-webpack-ts
-          path: "examples/jit-webpack-ts"
-          requires:
-            - lint_packages # not a real requirement but forces long-running jobs to go first
-      - e2e_wdio:
-          <<: *filter_ignore_develop_release
-          name: jit-parcel-ts
-          path: "examples/jit-parcel-ts"
-          requires:
-            - lint_packages # not a real requirement but forces long-running jobs to go first
-      - e2e_wdio:
-          <<: *filter_ignore_develop_release
-          name: jit-iife-inline
-          path: "examples/jit-iife-inline"
-          requires:
-            - lint_packages # not a real requirement but forces long-running jobs to go first
-      - merge_and_dist:
-          <<: *filter_only_master
-          requires:
-            - unit_test_chrome
-            - unit_test_firefox
-            - unit_test_node
-            - lint_packages
-            - e2e_browserstack
-            #- e2e_cypress_doc_example
-            #- jit-fuse-box-ts
-            - jit-webpack-ts
-            - jit-parcel-ts
-            - jit-iife-inline
-          from: master
-          to: develop
-          channel: dev
+      #- e2e_wdio:
+      #    <<: *filter_ignore_develop_release
+      #    name: jit-webpack-ts
+      #    path: "examples/jit-webpack-ts"
+      #    requires:
+      #      - lint_packages # not a real requirement but forces long-running jobs to go first
+      #- e2e_wdio:
+      #    <<: *filter_ignore_develop_release
+      #    name: jit-parcel-ts
+      #    path: "examples/jit-parcel-ts"
+      #    requires:
+      #      - lint_packages # not a real requirement but forces long-running jobs to go first
+      #- e2e_wdio:
+      #    <<: *filter_ignore_develop_release
+      #    name: jit-iife-inline
+      #    path: "examples/jit-iife-inline"
+      #    requires:
+      #      - lint_packages # not a real requirement but forces long-running jobs to go first
+      #- merge_and_dist:
+      #    <<: *filter_only_master
+      #    requires:
+      #      - unit_test_chrome
+      #      - unit_test_firefox
+      #      - unit_test_node
+      #      - lint_packages
+      #      - e2e_browserstack
+      #      #- e2e_cypress_doc_example
+      #      #- jit-fuse-box-ts
+      #      - jit-webpack-ts
+      #      - jit-parcel-ts
+      #      - jit-iife-inline
+      #    from: master
+      #    to: develop
+      #    channel: dev
       - publish_npm:
           <<: *filter_only_master
           channel: dev
           branch: develop
-          requires:
-            - merge_and_dist
+          #requires:
+          #  - merge_and_dist
 
   # Runs build and tests, and pushes the built artifacts to the release branch (which then triggers publish_latest)
   # Triggered by push to tag

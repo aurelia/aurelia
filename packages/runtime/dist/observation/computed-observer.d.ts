@@ -1,3 +1,4 @@
+import { IIndexable } from '@aurelia/kernel';
 import { IBindingTargetObserver, IObservable, ISubscriber } from '../observation';
 export interface ComputedOverrides {
     static?: boolean;
@@ -10,7 +11,7 @@ export declare function computed(config: ComputedOverrides): PropertyDecorator;
 export interface CustomSetterObserver extends IBindingTargetObserver {
 }
 export declare class CustomSetterObserver implements CustomSetterObserver {
-    readonly obj: IObservable;
+    readonly obj: IObservable & IIndexable;
     readonly propertyKey: string;
     currentValue: unknown;
     oldValue: unknown;

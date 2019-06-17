@@ -30,6 +30,14 @@
           return {};
       }
   })();
+  const isBrowserLike = (typeof window !== 'undefined'
+      && typeof window.document !== 'undefined');
+  const isWebWorkerLike = (typeof self === 'object'
+      && self.constructor != null
+      && self.constructor.name === 'DedicatedWorkerGlobalScope');
+  const isNodeLike = (typeof process !== 'undefined'
+      && process.versions != null
+      && process.versions.node != null);
   // performance.now polyfill for non-browser envs based on https://github.com/myrne/performance-now
   const $now = (function () {
       let getNanoSeconds;
@@ -247,7 +255,28 @@
   const hasOwnProperty = Object.prototype.hasOwnProperty;
   const emptyArray = Object.freeze([]);
   const emptyObject = Object.freeze({});
-  const PLATFORM = {
+  const $PLATFORM = Object.freeze({
+      /**
+       * `true` if there is a `window` variable in the global scope with a `document` property.
+       *
+       * NOTE: this does not guarantee that the code is actually running in a browser, as some libraries tamper with globals.
+       * The only conclusion that can be drawn is that the `window` global is available and likely behaves similar to how it would in a browser.
+       */
+      isBrowserLike,
+      /**
+       * `true` if there is a `self` variable (of type `object`) in the global scope with constructor name `'DedicatedWorkerGlobalScope'`.
+       *
+       * NOTE: this does not guarantee that the code is actually running in a web worker, as some libraries tamper with globals.
+       * The only conclusion that can be drawn is that the `self` global is available and likely behaves similar to how it would in a web worker.
+       */
+      isWebWorkerLike,
+      /**
+       * `true` if there is a `process` variable in the global scope with a `versions` property which has a `node` property.
+       *
+       * NOTE: this is not a guarantee that the code is actually running in nodejs, as some libraries tamper with globals.
+       * The only conclusion that can be drawn is that the `process` global is available and likely behaves similar to how it would in nodejs.
+       */
+      isNodeLike,
       global: $global,
       emptyArray,
       emptyObject,
@@ -279,8 +308,12 @@
       // tslint:disable-next-line:no-any
       setTimeout(handler, timeout, ...args) {
           return $global.setTimeout(handler, timeout, ...args);
-      }
-  };
+      },
+      restore() {
+          Object.assign(PLATFORM, $PLATFORM);
+      },
+  });
+  const PLATFORM = { ...$PLATFORM };
 
   (function (LogLevel) {
       LogLevel[LogLevel["error"] = 0] = "error";
@@ -352,25 +385,25 @@
           };
       };
   }
-  function createContainer(...params) {
-      if (arguments.length === 0) {
-          return new Container();
-      }
-      else {
-          return new Container().register(...params);
-      }
-  }
   const hasOwnProperty$1 = PLATFORM.hasOwnProperty;
-  const DI = {
-      createContainer,
-      getDesignParamTypes(target) {
+  class DI {
+      constructor() { }
+      static createContainer(...params) {
+          if (params.length === 0) {
+              return new Container();
+          }
+          else {
+              return new Container().register(...params);
+          }
+      }
+      static getDesignParamTypes(target) {
           const paramTypes = Reflect.getOwnMetadata('design:paramtypes', target);
           if (paramTypes == null) {
               return PLATFORM.emptyArray;
           }
           return paramTypes;
-      },
-      getDependencies(Type) {
+      }
+      static getDependencies(Type) {
           let dependencies;
           if (Type.inject == null) {
               dependencies = DI.getDesignParamTypes(Type);
@@ -386,8 +419,8 @@
               }
           }
           return dependencies;
-      },
-      createInterface(friendlyName) {
+      }
+      static createInterface(friendlyName) {
           const Interface = function (target, property, index) {
               if (target == null) {
                   throw Reporter.error(16, Interface.friendlyName, Interface); // TODO: add error (trying to resolve an InterfaceSymbol that has no registrations)
@@ -429,8 +462,8 @@
               return Interface;
           };
           return Interface;
-      },
-      inject(...dependencies) {
+      }
+      static inject(...dependencies) {
           return function (target, key, descriptor) {
               if (typeof descriptor === 'number') { // It's a parameter decorator.
                   if (!hasOwnProperty$1.call(target, 'inject')) {
@@ -446,7 +479,7 @@
               else if (key) { // It's a property decorator. Not supported by the container without plugins.
                   const actualTarget = target.constructor;
                   if (actualTarget.inject == null) {
-                      actualTarget.inject = {};
+                      actualTarget.inject = [];
                   }
                   actualTarget.inject[key] = dependencies[0];
               }
@@ -464,7 +497,7 @@
                   }
               }
           };
-      },
+      }
       // tslint:disable:jsdoc-format
       /**
        * Registers the `target` class as a transient dependency; each time the dependency is resolved
@@ -486,13 +519,13 @@
     ```
        */
       // tslint:enable:jsdoc-format
-      transient(target) {
+      static transient(target) {
           target.register = function register(container) {
               const registration = Registration.transient(target, target);
               return registration.register(container, target);
           };
           return target;
-      },
+      }
       // tslint:disable:jsdoc-format
       /**
        * Registers the `target` class as a singleton dependency; the class will only be created once. Each
@@ -513,14 +546,14 @@
     ```
        */
       // tslint:enable:jsdoc-format
-      singleton(target) {
+      static singleton(target) {
           target.register = function register(container) {
               const registration = Registration.singleton(target, target);
               return registration.register(container, target);
           };
           return target;
       }
-  };
+  }
   const IContainer = DI.createInterface('IContainer').noDefault();
   const IServiceLocator = IContainer;
   function createResolver(getter) {
@@ -757,11 +790,15 @@
               return false;
           }
           if (resolver.getFactory) {
-              const handler = resolver.getFactory(this);
-              if (handler == null) {
+              const factory = resolver.getFactory(this);
+              if (factory == null) {
                   return false;
               }
-              return handler.registerTransformer(transformer);
+              // This type cast is a bit of a hacky one, necessary due to the duplicity of IResolverLike.
+              // Problem is that that interface's type arg can be of type Key, but the getFactory method only works on
+              // type Constructable. So the return type of that optional method has this additional constraint, which
+              // seems to confuse the type checker.
+              return factory.registerTransformer(transformer);
           }
           return false;
       }
@@ -825,6 +862,7 @@
                   return resolver.resolve(current, this);
               }
           }
+          throw new Error(`Unable to resolve key: ${key}`);
       }
       getAll(key) {
           if (Tracer.enabled) {
@@ -856,11 +894,11 @@
           }
           return PLATFORM.emptyArray;
       }
-      getFactory(Type) {
-          let factory = this.factories.get(Type);
+      getFactory(key) {
+          let factory = this.factories.get(key);
           if (factory == null) {
-              factory = Factory.create(Type);
-              this.factories.set(Type, factory);
+              factory = Factory.create(key);
+              this.factories.set(key, factory);
           }
           return factory;
       }
@@ -894,45 +932,24 @@
           return resolver;
       }
   }
-  const Registration = {
-      instance(key, value) {
+  class Registration {
+      constructor() { }
+      static instance(key, value) {
           return new Resolver(key, 0 /* instance */, value);
-      },
-      singleton(key, value) {
-          return new Resolver(key, 1 /* singleton */, value);
-      },
-      transient(key, value) {
-          return new Resolver(key, 2 /* transient */, value);
-      },
-      callback(key, callback) {
-          return new Resolver(key, 3 /* callback */, callback);
-      },
-      alias(originalKey, aliasKey) {
-          return new Resolver(aliasKey, 5 /* alias */, originalKey);
-      },
-      interpret(interpreterKey, ...rest) {
-          return {
-              register(container) {
-                  const resolver = container.getResolver(interpreterKey);
-                  if (resolver != null) {
-                      let registry = null;
-                      if (resolver.getFactory) {
-                          const factory = resolver.getFactory(container);
-                          if (factory != null) {
-                              registry = factory.construct(container, rest);
-                          }
-                      }
-                      else {
-                          registry = resolver.resolve(container, container);
-                      }
-                      if (registry != null) {
-                          registry.register(container);
-                      }
-                  }
-              }
-          };
       }
-  };
+      static singleton(key, value) {
+          return new Resolver(key, 1 /* singleton */, value);
+      }
+      static transient(key, value) {
+          return new Resolver(key, 2 /* transient */, value);
+      }
+      static callback(key, callback) {
+          return new Resolver(key, 3 /* callback */, callback);
+      }
+      static alias(originalKey, aliasKey) {
+          return new Resolver(aliasKey, 5 /* alias */, originalKey);
+      }
+  }
   class InstanceProvider {
       constructor() {
           this.instance = null;
@@ -1429,6 +1446,7 @@
           Reporter.error(0, e); // TODO: create error code
       }
   }
+  const IEventAggregator = DI.createInterface('IEventAggregator').withDefault(x => x.singleton(EventAggregator));
   /**
    * Enables loosely coupled publish/subscribe messaging.
    */
@@ -1644,6 +1662,7 @@
   exports.DI = DI;
   exports.EventAggregator = EventAggregator;
   exports.IContainer = IContainer;
+  exports.IEventAggregator = IEventAggregator;
   exports.IServiceLocator = IServiceLocator;
   exports.InstanceProvider = InstanceProvider;
   exports.PLATFORM = PLATFORM;

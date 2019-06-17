@@ -1,5 +1,5 @@
 import { Class, Constructable, IResourceKind, IResourceType } from '@aurelia/kernel';
-import { customElementKey, ITemplateDefinition, TemplateDefinition } from '../definitions';
+import { ITemplateDefinition, TemplateDefinition } from '../definitions';
 import { IDOM, INode, INodeSequence, IRenderLocation } from '../dom';
 import { IController, IViewModel } from '../lifecycle';
 export interface ICustomElementType<C extends Constructable = Constructable> extends IResourceType<ITemplateDefinition, InstanceType<C> & IViewModel>, ICustomElementStaticProperties {
@@ -35,17 +35,7 @@ export interface ICustomElementResource<T extends INode = INode> extends IResour
 export declare function customElement(definition: ITemplateDefinition): ICustomElementDecorator;
 export declare function customElement(name: string): ICustomElementDecorator;
 export declare function customElement(nameOrDefinition: string | ITemplateDefinition): ICustomElementDecorator;
-declare function isType<T>(this: ICustomElementResource, Type: T & Partial<ICustomElementType>): Type is T & ICustomElementType;
-declare function define<T extends Constructable = Constructable>(this: ICustomElementResource, definition: ITemplateDefinition, ctor?: T | null): T & ICustomElementType<T>;
-declare function define<T extends Constructable = Constructable>(this: ICustomElementResource, name: string, ctor?: T | null): T & ICustomElementType<T>;
-declare function define<T extends Constructable = Constructable>(this: ICustomElementResource, nameOrDefinition: string | ITemplateDefinition, ctor: T | null): T & ICustomElementType<T>;
-export declare const CustomElementResource: {
-    name: string;
-    keyFrom: typeof customElementKey;
-    isType: typeof isType;
-    behaviorFor: (node: INode) => IController<INode, IViewModel<INode>> | undefined;
-    define: typeof define;
-};
+export declare const CustomElementResource: ICustomElementResource;
 export interface ICustomElementDecorator {
     <T extends Constructable>(target: T): T & ICustomElementType<T>;
 }

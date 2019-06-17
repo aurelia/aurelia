@@ -1,9 +1,9 @@
-import { InjectArray } from '@aurelia/kernel';
+import { Key } from '@aurelia/kernel';
 import { IController, INode, IRenderContext, IRenderingEngine, LifecycleFlags, TemplateDefinition } from '@aurelia/runtime';
 import { Router } from '../router';
 import { Viewport } from '../viewport';
 export declare class ViewportCustomElement {
-    static readonly inject: InjectArray;
+    static readonly inject: readonly Key[];
     name: string;
     scope: boolean;
     usedBy: string;

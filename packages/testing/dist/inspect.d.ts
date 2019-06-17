@@ -24,7 +24,6 @@ export interface IInspectContext extends IInspectOptions {
 interface IStyles {
     special: 'cyan';
     number: 'yellow';
-    bigint: 'yellow';
     boolean: 'yellow';
     undefined: 'grey';
     null: 'bold';
@@ -66,7 +65,6 @@ export declare class AssertionError extends Error {
     [customInspectSymbol](recurseTimes: number, ctx: IInspectContext): string;
 }
 export declare function formatNumber(fn: (value: string, styleType: keyof IStyles) => string, value: number): string;
-export declare function formatBigInt(fn: (value: string, styleType: keyof IStyles) => string, value: bigint): string;
 export declare function formatPrimitive(fn: (value: string, styleType: keyof IStyles) => string, value: Primitive, ctx: IInspectContext): string;
 export declare function formatError(value: Error): string;
 export declare function formatSpecialArray(ctx: IInspectContext, value: any[], recurseTimes: number, maxLength: number, output: string[], i: number): string[];

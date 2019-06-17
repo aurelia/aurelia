@@ -1,4 +1,4 @@
-import { IIndexable, IServiceLocator, StrictPrimitive } from '@aurelia/kernel';
+import { IServiceLocator, StrictPrimitive } from '@aurelia/kernel';
 import { ExpressionKind, LifecycleFlags } from './flags';
 import { Collection, IScope, ObservedCollection } from './observation';
 export declare type IsPrimary = IAccessThisExpression | IAccessScopeExpression | IArrayLiteralExpression | IObjectLiteralExpression | IPrimitiveLiteralExpression | ITemplateExpression;
@@ -58,7 +58,7 @@ export interface IExpression {
 }
 export interface IConnectable {
     readonly locator: IServiceLocator;
-    observeProperty(flags: LifecycleFlags, obj: IIndexable, propertyName: string): void;
+    observeProperty(flags: LifecycleFlags, obj: object, propertyName: string): void;
 }
 export interface IBindingBehaviorExpression extends IExpression {
     readonly $kind: ExpressionKind.BindingBehavior;

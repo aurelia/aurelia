@@ -12,7 +12,7 @@ export declare class Ref implements IBinding {
     locator: IServiceLocator;
     sourceExpression: IsBindingBehavior;
     target: IObservable;
-    constructor(sourceExpression: IsBindingBehavior, target: IObservable, locator: IServiceLocator);
+    constructor(sourceExpression: IsBindingBehavior, target: object, locator: IServiceLocator);
     $bind(flags: LifecycleFlags, scope: IScope): void;
     $unbind(flags: LifecycleFlags): void;
     observeProperty(flags: LifecycleFlags, obj: IIndexable, propertyName: string): void;

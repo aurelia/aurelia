@@ -816,6 +816,7 @@ class TemplateCompiler {
         this.compileChildNodes(surrogate);
         this.instructionRows = null;
         this.parts = null;
+        definition.build = buildNotRequired;
         if (Profiler.enabled) {
             leave$2();
         }

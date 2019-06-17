@@ -1,4 +1,4 @@
-import { IServiceLocator } from '@aurelia/kernel';
+import { IIndexable, IServiceLocator } from '@aurelia/kernel';
 import { IExpression } from '../ast';
 import { LifecycleFlags, State } from '../flags';
 import { ILifecycle } from '../lifecycle';
@@ -15,7 +15,7 @@ export declare class LetBinding implements IPartialConnectableBinding {
     locator: IServiceLocator;
     observerLocator: IObserverLocator;
     sourceExpression: IExpression;
-    target: IObservable | null;
+    target: (IObservable & IIndexable) | null;
     targetProperty: string;
     private readonly toViewModel;
     constructor(sourceExpression: IExpression, targetProperty: string, observerLocator: IObserverLocator, locator: IServiceLocator, toViewModel?: boolean);

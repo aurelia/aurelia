@@ -151,7 +151,7 @@ function load(name, req, onLoad, config) {
                     },
                     dependencies: Array.prototype.slice.call(arguments, 1)
                 };
-                onLoad({ default: CustomElementResource.define(templateSource, null) });
+                onLoad({ default: CustomElementResource.define(templateSource) });
             });
         });
     }

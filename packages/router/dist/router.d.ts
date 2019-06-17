@@ -1,4 +1,4 @@
-import { IContainer, InjectArray } from '@aurelia/kernel';
+import { IContainer, Key } from '@aurelia/kernel';
 import { ICustomElementType, IRenderContext } from '@aurelia/runtime';
 import { HistoryBrowser, IHistoryOptions, INavigationInstruction } from './history-browser';
 import { InstructionResolver, IRouteSeparators } from './instruction-resolver';
@@ -11,7 +11,7 @@ export interface IRouteTransformer {
     transformFromUrl?(route: string, router: Router): string | ViewportInstruction[];
     transformToUrl?(instructions: ViewportInstruction[], router: Router): string | ViewportInstruction[];
 }
-export declare const IRouteTransformer: import("@aurelia/kernel/dist/interfaces").InterfaceSymbol<IRouteTransformer>;
+export declare const IRouteTransformer: import("@aurelia/kernel").InterfaceSymbol<IRouteTransformer>;
 export interface IRouterOptions extends IHistoryOptions, IRouteTransformer {
     separators?: IRouteSeparators;
     reportCallback?(instruction: INavigationInstruction): void;
@@ -42,9 +42,9 @@ export interface IRouter {
     addNav(name: string, routes: INavRoute[]): void;
     findNav(name: string): Nav;
 }
-export declare const IRouter: import("@aurelia/kernel/dist/interfaces").InterfaceSymbol<IRouter>;
+export declare const IRouter: import("@aurelia/kernel").InterfaceSymbol<IRouter>;
 export declare class Router implements IRouter {
-    static readonly inject: InjectArray;
+    static readonly inject: readonly Key[];
     readonly container: IContainer;
     rootScope: Scope;
     scopes: Scope[];

@@ -903,7 +903,7 @@ this.au.runtime = (function (exports, kernel) {
         container.register(kernel.Registration.singleton(this, this));
     }
     function bindingBehavior(nameOrDefinition) {
-        return target => BindingBehaviorResource.define(nameOrDefinition, target);
+        return target => BindingBehaviorResource.define(nameOrDefinition, target); // TODO: fix this at some point
     }
     function keyFrom(name) {
         return `${this.name}:${name}`;
@@ -935,7 +935,7 @@ this.au.runtime = (function (exports, kernel) {
         container.register(kernel.Registration.singleton(this, this));
     }
     function valueConverter(nameOrDefinition) {
-        return target => ValueConverterResource.define(nameOrDefinition, target);
+        return target => ValueConverterResource.define(nameOrDefinition, target); // TODO: fix this at some point
     }
     function keyFrom$1(name) {
         return `${this.name}:${name}`;
@@ -2808,7 +2808,7 @@ this.au.runtime = (function (exports, kernel) {
                 return;
             }
             this.isFlushingRAF = true;
-            if (timestamp > this.rafStartTime) {
+            if (timestamp >= this.rafStartTime) {
                 const prevFrameDuration = this.prevFrameDuration = timestamp - this.rafStartTime;
                 if (prevFrameDuration + 1 < this.minFrameDuration) {
                     return;
@@ -4556,7 +4556,9 @@ this.au.runtime = (function (exports, kernel) {
             return dirtyChecker.createProperty(instance, propertyName);
         }
         if (descriptor.get) {
-            const overrides = instance.constructor.computed && instance.constructor.computed[propertyName] || computedOverrideDefaults;
+            const overrides = (instance.constructor.computed
+                && instance.constructor.computed[propertyName]
+                || computedOverrideDefaults);
             if (descriptor.set) {
                 if (overrides.volatile) {
                     return new exports.GetterObserver(flags, overrides, instance, propertyName, descriptor, observerLocator, lifecycle);
@@ -5709,11 +5711,13 @@ this.au.runtime = (function (exports, kernel) {
                     def.strategy = ensureValidStrategy(nameOrDef.strategy);
                     templateDefinitionAssignables.forEach(prop => {
                         if (nameOrDef[prop]) {
+                            // @ts-ignore // TODO: wait for fix for https://github.com/microsoft/TypeScript/issues/31904
                             def[prop] = nameOrDef[prop];
                         }
                     });
                     templateDefinitionArrays.forEach(prop => {
                         if (nameOrDef[prop]) {
+                            // @ts-ignore // TODO: wait for fix for https://github.com/microsoft/TypeScript/issues/31904
                             def[prop] = kernel.toArray(nameOrDef[prop]);
                         }
                     });
@@ -5747,12 +5751,12 @@ this.au.runtime = (function (exports, kernel) {
         }
     }
     function customAttribute(nameOrDefinition) {
-        return target => CustomAttributeResource.define(nameOrDefinition, target);
+        return target => CustomAttributeResource.define(nameOrDefinition, target); // TODO: fix this at some point
     }
     function templateController(nameOrDefinition) {
         return target => CustomAttributeResource.define(typeof nameOrDefinition === 'string'
             ? { isTemplateController: true, name: nameOrDefinition }
-            : { isTemplateController: true, ...nameOrDefinition }, target);
+            : { isTemplateController: true, ...nameOrDefinition }, target); // TODO: fix this at some point
     }
     function dynamicOptionsDecorator(target) {
         target.hasDynamicOptions = true;
@@ -6053,9 +6057,9 @@ this.au.runtime = (function (exports, kernel) {
 
     class If {
         constructor(ifFactory, location) {
-            this.$observers = {
+            this.$observers = Object.freeze({
                 value: this,
-            };
+            });
             this.id = kernel.nextId('au$component');
             this.elseFactory = void 0;
             this.elseView = void 0;
@@ -6270,9 +6274,9 @@ this.au.runtime = (function (exports, kernel) {
 
     class Repeat {
         constructor(location, renderable, factory) {
-            this.$observers = {
+            this.$observers = Object.freeze({
                 items: this,
-            };
+            });
             this.id = kernel.nextId('au$component');
             this.factory = factory;
             this.hasPendingInstanceMutation = false;
@@ -6831,9 +6835,9 @@ this.au.runtime = (function (exports, kernel) {
 
     class With {
         constructor(factory, location) {
-            this.$observers = {
+            this.$observers = Object.freeze({
                 value: this,
-            };
+            });
             this.id = kernel.nextId('au$component');
             this.factory = factory;
             this.view = this.factory.create();

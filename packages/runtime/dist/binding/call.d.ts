@@ -1,7 +1,7 @@
 import { IServiceLocator } from '@aurelia/kernel';
 import { IsBindingBehavior } from '../ast';
 import { LifecycleFlags, State } from '../flags';
-import { IAccessor, IBindingContext, IObservable, IScope } from '../observation';
+import { IAccessor, IScope } from '../observation';
 import { IObserverLocator } from '../observation/observer-locator';
 import { IConnectableBinding } from './connectable';
 export interface Call extends IConnectableBinding {
@@ -12,7 +12,7 @@ export declare class Call {
     locator: IServiceLocator;
     sourceExpression: IsBindingBehavior;
     targetObserver: IAccessor;
-    constructor(sourceExpression: IsBindingBehavior, target: IObservable | IBindingContext, targetProperty: string, observerLocator: IObserverLocator, locator: IServiceLocator);
+    constructor(sourceExpression: IsBindingBehavior, target: object, targetProperty: string, observerLocator: IObserverLocator, locator: IServiceLocator);
     callSource(args: object): unknown;
     $bind(flags: LifecycleFlags, scope: IScope): void;
     $unbind(flags: LifecycleFlags): void;

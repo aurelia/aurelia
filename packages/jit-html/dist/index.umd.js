@@ -817,6 +817,7 @@
           this.compileChildNodes(surrogate);
           this.instructionRows = null;
           this.parts = null;
+          definition.build = buildNotRequired;
           if (kernel.Profiler.enabled) {
               leave$2();
           }

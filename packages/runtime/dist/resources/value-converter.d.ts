@@ -12,17 +12,6 @@ export interface IValueConverterResource extends IResourceKind<IValueConverterDe
 export declare function valueConverter(definition: IValueConverterDefinition): ValueConverterDecorator;
 export declare function valueConverter(name: string): ValueConverterDecorator;
 export declare function valueConverter(nameOrDefinition: string | IValueConverterDefinition): ValueConverterDecorator;
-declare function keyFrom(this: IValueConverterResource, name: string): string;
-declare function isType<T>(this: IValueConverterResource, Type: T & Partial<IValueConverterType>): Type is T & IValueConverterType;
-declare function define<T extends Constructable = Constructable>(this: IValueConverterResource, definition: IValueConverterDefinition, ctor: T): T & IValueConverterType<T>;
-declare function define<T extends Constructable = Constructable>(this: IValueConverterResource, name: string, ctor: T): T & IValueConverterType<T>;
-declare function define<T extends Constructable = Constructable>(this: IValueConverterResource, nameOrDefinition: string | IValueConverterDefinition, ctor: T): T & IValueConverterType<T>;
-export declare const ValueConverterResource: {
-    name: string;
-    keyFrom: typeof keyFrom;
-    isType: typeof isType;
-    define: typeof define;
-};
+export declare const ValueConverterResource: IValueConverterResource;
 export declare type ValueConverterDecorator = <T extends Constructable>(target: T) => T & IValueConverterType<T>;
-export {};
 //# sourceMappingURL=value-converter.d.ts.map

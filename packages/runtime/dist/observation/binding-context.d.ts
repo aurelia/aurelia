@@ -7,7 +7,7 @@ export declare class BindingContext implements IBindingContext {
     static partName: string | null;
     [key: string]: unknown;
     readonly $synthetic: true;
-    $observers?: ObserversLookup<IOverrideContext>;
+    $observers?: ObserversLookup;
     private constructor();
     /**
      * Create a new synthetic `BindingContext` for use in a `Scope`.
@@ -28,10 +28,10 @@ export declare class BindingContext implements IBindingContext {
      */
     static create(flags: LifecycleFlags, keyOrObj?: string | IIndexable, value?: unknown): BindingContext;
     static get(scope: IScope, name: string, ancestor: number, flags: LifecycleFlags): IBindingContext | IOverrideContext | IBinding | undefined | null;
-    getObservers(flags: LifecycleFlags): ObserversLookup<IOverrideContext>;
+    getObservers(flags: LifecycleFlags): ObserversLookup;
 }
 export declare class Scope implements IScope {
-    bindingContext: object;
+    bindingContext: IBindingContext;
     overrideContext: IOverrideContext;
     partScopes?: Record<string, IScope | undefined>;
     private constructor();
@@ -67,12 +67,13 @@ export declare class Scope implements IScope {
     static fromParent(flags: LifecycleFlags, ps: IScope | null, bc: object): Scope;
 }
 export declare class OverrideContext implements IOverrideContext {
-    [key: string]: ObservedCollection | StrictPrimitive | IIndexable;
+    [key: string]: unknown;
     readonly $synthetic: true;
-    bindingContext: object;
+    $observers?: ObserversLookup;
+    bindingContext: IBindingContext;
     parentOverrideContext: IOverrideContext | null;
     private constructor();
     static create(flags: LifecycleFlags, bc: object, poc: IOverrideContext | null): OverrideContext;
-    getObservers(): ObserversLookup<IOverrideContext>;
+    getObservers(): ObserversLookup;
 }
 //# sourceMappingURL=binding-context.d.ts.map

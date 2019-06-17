@@ -1,20 +1,20 @@
-import { IContainer, InjectArray } from '@aurelia/kernel';
+import { IContainer, Key } from '@aurelia/kernel';
 import { ForOfStatement } from '../../binding/ast';
 import { IAttributeDefinition } from '../../definitions';
 import { INode, IRenderLocation } from '../../dom';
 import { LifecycleFlags as LF } from '../../flags';
 import { IController, IViewFactory } from '../../lifecycle';
 import { ILifecycleTask } from '../../lifecycle-task';
-import { CollectionObserver, IndexMap, IObservable, IObservedArray, IObserversLookup, ObservedCollection } from '../../observation';
+import { CollectionObserver, IndexMap, InlineObserversLookup, IObservable, IObservedArray, ObservedCollection } from '../../observation';
 import { ICustomAttributeResource } from '../custom-attribute';
-declare type Items<C extends ObservedCollection = IObservedArray> = C | undefined | undefined;
+declare type Items<C extends ObservedCollection = IObservedArray> = C | undefined;
 export declare class Repeat<C extends ObservedCollection = IObservedArray, T extends INode = INode> implements IObservable {
-    static readonly inject: InjectArray;
+    static readonly inject: readonly Key[];
     static readonly kind: ICustomAttributeResource;
     static readonly description: Required<IAttributeDefinition>;
     readonly id: number;
     items: Items<C>;
-    readonly $observers: IObserversLookup;
+    readonly $observers: InlineObserversLookup<this>;
     forOf: ForOfStatement;
     hasPendingInstanceMutation: boolean;
     local: string;

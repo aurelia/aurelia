@@ -2,8 +2,8 @@
   "program": {
     "fileInfos": {
       "/home/circleci/repo/node_modules/typescript/lib/lib.es5.d.ts": {
-        "version": "c8665e66018917580e71792b91022bcaf53fb946fab4aaf8dfb0738ed564db88",
-        "signature": "c8665e66018917580e71792b91022bcaf53fb946fab4aaf8dfb0738ed564db88"
+        "version": "1f753cee573dea40df8a9dc873fef5566957b19ad513874f6643d8dfb14842d0",
+        "signature": "1f753cee573dea40df8a9dc873fef5566957b19ad513874f6643d8dfb14842d0"
       },
       "/home/circleci/repo/node_modules/typescript/lib/lib.es2015.d.ts": {
         "version": "7994d44005046d1413ea31d046577cdda33b8b2470f30281fd9c8b3c99fe2d96",
@@ -22,20 +22,20 @@
         "signature": "2edd3ddf436ef8e12df876dcae4ecd6a8748577944c477bf4b20d5596e0c9843"
       },
       "/home/circleci/repo/node_modules/typescript/lib/lib.es2019.d.ts": {
-        "version": "6549045e428b5f483bc82d6e8f6d01a72decd0cb7387f650f365f2210fe10808",
-        "signature": "6549045e428b5f483bc82d6e8f6d01a72decd0cb7387f650f365f2210fe10808"
+        "version": "0fc0f68d3f4d94aa65fab955592e4a9f2066e6f8ee2f66fcc45adf4037fc167b",
+        "signature": "0fc0f68d3f4d94aa65fab955592e4a9f2066e6f8ee2f66fcc45adf4037fc167b"
       },
       "/home/circleci/repo/node_modules/typescript/lib/lib.esnext.d.ts": {
         "version": "1c05c805f62c1c06a60b7812cd8de2dff7a5bda2218ce5edda5d9d298b1c48e1",
         "signature": "1c05c805f62c1c06a60b7812cd8de2dff7a5bda2218ce5edda5d9d298b1c48e1"
       },
       "/home/circleci/repo/node_modules/typescript/lib/lib.dom.d.ts": {
-        "version": "6994c583b66862deca24d7bbf77297d95b9d3da8160dbd9beef6b847cf7c1376",
-        "signature": "6994c583b66862deca24d7bbf77297d95b9d3da8160dbd9beef6b847cf7c1376"
+        "version": "973df4e41aea3780ce77073777d37dd5896f684124f4c42409f3a832133837a4",
+        "signature": "973df4e41aea3780ce77073777d37dd5896f684124f4c42409f3a832133837a4"
       },
       "/home/circleci/repo/node_modules/typescript/lib/lib.es2015.core.d.ts": {
-        "version": "384f66a3422d80014c51de2682159bb26f1e35854029880ccd5f6d1f00e6a36d",
-        "signature": "384f66a3422d80014c51de2682159bb26f1e35854029880ccd5f6d1f00e6a36d"
+        "version": "2a0390a665763bcc90f0670e43c587928d8fefe2a94a11209c1e22cba7b09f52",
+        "signature": "2a0390a665763bcc90f0670e43c587928d8fefe2a94a11209c1e22cba7b09f52"
       },
       "/home/circleci/repo/node_modules/typescript/lib/lib.es2015.collection.d.ts": {
         "version": "dd94d8ef48c562389eb58af8df3a3a34d11367f7c818192aa5f16470d469e3f0",
@@ -46,12 +46,12 @@
         "signature": "828413486bdcaa342558e8e4570b1b287b776cb61b4b70b0214bd10c5d9a94c3"
       },
       "/home/circleci/repo/node_modules/typescript/lib/lib.es2015.iterable.d.ts": {
-        "version": "4d1f39313a169b8599b8817688f504b56ba8204c2ebafd03f66ff77ddb1899a4",
-        "signature": "4d1f39313a169b8599b8817688f504b56ba8204c2ebafd03f66ff77ddb1899a4"
+        "version": "6c9f73334f8bf47aea685ca5b46a8f7e992a223e96fbceb030f26a4d2324ba21",
+        "signature": "6c9f73334f8bf47aea685ca5b46a8f7e992a223e96fbceb030f26a4d2324ba21"
       },
       "/home/circleci/repo/node_modules/typescript/lib/lib.es2015.promise.d.ts": {
-        "version": "7c07d934680d0e33275a44d22fb11a4ff31d46c8c26a8d056828a478753f1efe",
-        "signature": "7c07d934680d0e33275a44d22fb11a4ff31d46c8c26a8d056828a478753f1efe"
+        "version": "e6b8ff2798f8ebd7a1c7afd8671f2cb67ee1901c422f5964d74b0b34c6574ea2",
+        "signature": "e6b8ff2798f8ebd7a1c7afd8671f2cb67ee1901c422f5964d74b0b34c6574ea2"
       },
       "/home/circleci/repo/node_modules/typescript/lib/lib.es2015.proxy.d.ts": {
         "version": "5e72f949a89717db444e3bd9433468890068bb21a5638d8ab15a1359e05e54fe",
@@ -113,6 +113,10 @@
         "version": "fc7c02b980e7dda0ed14d57ee71705c09efc51ec6286a10b971a25a3bb29262b",
         "signature": "fc7c02b980e7dda0ed14d57ee71705c09efc51ec6286a10b971a25a3bb29262b"
       },
+      "/home/circleci/repo/node_modules/typescript/lib/lib.es2019.object.d.ts": {
+        "version": "989b95205f1189943fab0ce12a39c80570edf8f200aca60e0fdc500afc4d5859",
+        "signature": "989b95205f1189943fab0ce12a39c80570edf8f200aca60e0fdc500afc4d5859"
+      },
       "/home/circleci/repo/node_modules/typescript/lib/lib.es2019.string.d.ts": {
         "version": "669427ac10ef9f52b6a7a502a66670eaabba675e0a660eb971041bd73c9894e3",
         "signature": "669427ac10ef9f52b6a7a502a66670eaabba675e0a660eb971041bd73c9894e3"
@@ -134,20 +138,20 @@
         "signature": "8a0a25ded65c0cb7b03c0109bc6ca580eeb8435bb073c5fb89cd043c9a1ee42e"
       },
       "/home/circleci/repo/packages/kernel/dist/interfaces.d.ts": {
-        "version": "0d03d1293ea1d488abb70631c3174bf38a2c2522316a2945efbff097fb7f617e",
-        "signature": "0d03d1293ea1d488abb70631c3174bf38a2c2522316a2945efbff097fb7f617e"
+        "version": "9b5008f2c42988bcb4f1ef431800c924f0ebcb109911d81160d468c5a9ebff6c",
+        "signature": "9b5008f2c42988bcb4f1ef431800c924f0ebcb109911d81160d468c5a9ebff6c"
       },
       "/home/circleci/repo/packages/kernel/dist/di.d.ts": {
-        "version": "8ee3263d3d6588030c9186a25e57efa356d3335dfae8d4906fd865d6e1fcf5e7",
-        "signature": "8ee3263d3d6588030c9186a25e57efa356d3335dfae8d4906fd865d6e1fcf5e7"
+        "version": "44271c526390d19084ce821003fc5a8cdb527d7fecf5f6891fd0e1696a4cd278",
+        "signature": "44271c526390d19084ce821003fc5a8cdb527d7fecf5f6891fd0e1696a4cd278"
       },
       "/home/circleci/repo/packages/kernel/dist/path.d.ts": {
         "version": "df8f848b1cd834606c182c50be4904b733de38769f742c43a5fae8b5bd3c23dd",
         "signature": "df8f848b1cd834606c182c50be4904b733de38769f742c43a5fae8b5bd3c23dd"
       },
       "/home/circleci/repo/packages/kernel/dist/platform.d.ts": {
-        "version": "5f23fef232200fb3cf160b86c0a2c9808aacbf6748b64e367078c81d81e6194f",
-        "signature": "5f23fef232200fb3cf160b86c0a2c9808aacbf6748b64e367078c81d81e6194f"
+        "version": "26771162ba965ee47a9577d3f787c5247fa9b8f882a98ce62c6a3e1312baa4b7",
+        "signature": "26771162ba965ee47a9577d3f787c5247fa9b8f882a98ce62c6a3e1312baa4b7"
       },
       "/home/circleci/repo/packages/kernel/dist/reporter.d.ts": {
         "version": "40e77727b3795848e271ae2b32c48602638562b9172fad55ef554480a577f942",
@@ -162,16 +166,16 @@
         "signature": "4ecda712bcbb63d361fd9f51d873ba568c55ee79799c10dfc7fdda11414565cc"
       },
       "/home/circleci/repo/packages/kernel/dist/eventaggregator.d.ts": {
-        "version": "69b319e84b16d4aba545cdd682a9ff40c2514ec4bedecd11741b2df39571cbb5",
-        "signature": "69b319e84b16d4aba545cdd682a9ff40c2514ec4bedecd11741b2df39571cbb5"
+        "version": "4a6ae6d71d60fb71cdba594ad29f3bea463cc436a3856dfd7940466740af3037",
+        "signature": "4a6ae6d71d60fb71cdba594ad29f3bea463cc436a3856dfd7940466740af3037"
       },
       "/home/circleci/repo/packages/kernel/dist/functions.d.ts": {
         "version": "80f353c14eb4cd1ef9972edeac1ab711060f2b51a9843ba381c2f5d360aa64e0",
         "signature": "80f353c14eb4cd1ef9972edeac1ab711060f2b51a9843ba381c2f5d360aa64e0"
       },
       "/home/circleci/repo/packages/kernel/dist/index.d.ts": {
-        "version": "0d1a7e8a322e0aa036ca4a5da01848b9c0494dfee9a3cba2459b51eb58ec5e35",
-        "signature": "0d1a7e8a322e0aa036ca4a5da01848b9c0494dfee9a3cba2459b51eb58ec5e35"
+        "version": "451928791ab124dfc0decf06806384ddc16d346dcc3039f56fcfc626e49b6cd9",
+        "signature": "451928791ab124dfc0decf06806384ddc16d346dcc3039f56fcfc626e49b6cd9"
       },
       "/home/circleci/repo/packages/runtime/dist/flags.d.ts": {
         "version": "6880e4ea1752da77152a5a972f13c3d85eade665159c9bf34881ac2098f3030a",
@@ -190,60 +194,60 @@
         "signature": "e7a51c70d2229706c74c5596747eb0ab5dc8a42e9b99b43c3364c1309b57914c"
       },
       "/home/circleci/repo/packages/runtime/dist/resources/custom-element.d.ts": {
-        "version": "0725a61aed266f9515ebdd3400b6f07ade01bbc1d0c380bae247c2a90ffbf2c2",
-        "signature": "0725a61aed266f9515ebdd3400b6f07ade01bbc1d0c380bae247c2a90ffbf2c2"
+        "version": "844bbf1d6d2693a7d82026c4fe3f7da311b013678ae40d69eaf4f1d6019ed85f",
+        "signature": "844bbf1d6d2693a7d82026c4fe3f7da311b013678ae40d69eaf4f1d6019ed85f"
       },
       "/home/circleci/repo/packages/runtime/dist/lifecycle.d.ts": {
         "version": "d577486f176c651eabf860c3dcfbe151e6529dcb3e74c1c0c2e849f458ece8b3",
         "signature": "d577486f176c651eabf860c3dcfbe151e6529dcb3e74c1c0c2e849f458ece8b3"
       },
       "/home/circleci/repo/packages/runtime/dist/observation.d.ts": {
-        "version": "00a9c5f13a73c8270e7efb6ca49e784082c6ef88ad4b993cd5244c39961c3463",
-        "signature": "00a9c5f13a73c8270e7efb6ca49e784082c6ef88ad4b993cd5244c39961c3463"
+        "version": "b33990a7cb8236342f88ed4924a8232f8ab66b82718747315140dab5f332a6ff",
+        "signature": "b33990a7cb8236342f88ed4924a8232f8ab66b82718747315140dab5f332a6ff"
       },
       "/home/circleci/repo/packages/runtime/dist/ast.d.ts": {
-        "version": "3aa84a8ea10ef15321282ba16e31efe64413e67a3160f8a582ed6af2b46a9c77",
-        "signature": "3aa84a8ea10ef15321282ba16e31efe64413e67a3160f8a582ed6af2b46a9c77"
+        "version": "ac185df220be24d230ce44c796d140c0ff3ce37f30f6d6b79c6c01485333c233",
+        "signature": "ac185df220be24d230ce44c796d140c0ff3ce37f30f6d6b79c6c01485333c233"
       },
       "/home/circleci/repo/packages/runtime/dist/resources/binding-behavior.d.ts": {
-        "version": "d4708d09923b77eeb167fd0d2f7a8117ec41e64355999fc23005ebcba37010bb",
-        "signature": "d4708d09923b77eeb167fd0d2f7a8117ec41e64355999fc23005ebcba37010bb"
+        "version": "cd8a530d5bea585460155f2ed9209f9f281c0d3360a64be8aa8cddf98bb8c1f8",
+        "signature": "cd8a530d5bea585460155f2ed9209f9f281c0d3360a64be8aa8cddf98bb8c1f8"
       },
       "/home/circleci/repo/packages/runtime/dist/observation/observer-locator.d.ts": {
-        "version": "c8630a1808f3f43b31566aea29106b578d510782e03d8f3aa6a9cd1634537125",
-        "signature": "c8630a1808f3f43b31566aea29106b578d510782e03d8f3aa6a9cd1634537125"
+        "version": "ee2a6e2953a84672f54298fa9703c3746651d56edd2e675f8d7ab9f89471bdd5",
+        "signature": "ee2a6e2953a84672f54298fa9703c3746651d56edd2e675f8d7ab9f89471bdd5"
       },
       "/home/circleci/repo/packages/runtime/dist/binding/connectable.d.ts": {
-        "version": "8be13fd8ded416163c4edd5a64c4e6616b8ff931915bf9f0475a7d91bcaa5251",
-        "signature": "8be13fd8ded416163c4edd5a64c4e6616b8ff931915bf9f0475a7d91bcaa5251"
+        "version": "7abfeef654579f515cfdec0faf86404ff341e9e2defa78ea13f0ec98f4b7a4db",
+        "signature": "7abfeef654579f515cfdec0faf86404ff341e9e2defa78ea13f0ec98f4b7a4db"
       },
       "/home/circleci/repo/packages/runtime/dist/binding/ast.d.ts": {
         "version": "5cbd95999e5968ce8788353831203980a05c1777393814f03ca177fa66504cd7",
         "signature": "5cbd95999e5968ce8788353831203980a05c1777393814f03ca177fa66504cd7"
       },
       "/home/circleci/repo/packages/runtime/dist/binding/binding.d.ts": {
-        "version": "66b8f324b4c18c413e4aca6b5419e3cc74ec1293e28f3b13a44d56ef8e1fc00d",
-        "signature": "66b8f324b4c18c413e4aca6b5419e3cc74ec1293e28f3b13a44d56ef8e1fc00d"
+        "version": "918c0b455234700a3d59043b7f1deaffeff601a6cc61d12dda0c6f6f63299f41",
+        "signature": "918c0b455234700a3d59043b7f1deaffeff601a6cc61d12dda0c6f6f63299f41"
       },
       "/home/circleci/repo/packages/runtime/dist/binding/call.d.ts": {
-        "version": "ecb91402ff11df9947138141c33a4fa5883ded317c96278ccd1884efd1f4ddcb",
-        "signature": "ecb91402ff11df9947138141c33a4fa5883ded317c96278ccd1884efd1f4ddcb"
+        "version": "e9f1a75ec7c39195930b58b4db7fd1b9ba21634365f4c77fa8afd8f1447b5a8d",
+        "signature": "e9f1a75ec7c39195930b58b4db7fd1b9ba21634365f4c77fa8afd8f1447b5a8d"
       },
       "/home/circleci/repo/packages/runtime/dist/binding/expression-parser.d.ts": {
         "version": "972a1d511b353706fd944c42953a0a5f65edaff90a66ab63250943305813cbe2",
         "signature": "972a1d511b353706fd944c42953a0a5f65edaff90a66ab63250943305813cbe2"
       },
       "/home/circleci/repo/packages/runtime/dist/binding/interpolation-binding.d.ts": {
-        "version": "64cf5dceef4e2d8ee0aaefb36db50b86d51d27c84ac712051068e899231228e9",
-        "signature": "64cf5dceef4e2d8ee0aaefb36db50b86d51d27c84ac712051068e899231228e9"
+        "version": "aa3ff8f648ca80bc04934ced77a4e5b7f8679085c71e619c73d195285b35b272",
+        "signature": "aa3ff8f648ca80bc04934ced77a4e5b7f8679085c71e619c73d195285b35b272"
       },
       "/home/circleci/repo/packages/runtime/dist/binding/let-binding.d.ts": {
-        "version": "1c8e352e364db1ec646145d42cf10ff737483baf8522bfa8bdc3b0e0a66addcd",
-        "signature": "1c8e352e364db1ec646145d42cf10ff737483baf8522bfa8bdc3b0e0a66addcd"
+        "version": "60830a31047e38fcf1f0b28457708c0717c50a4a2ceb3137b66d07b2973b7531",
+        "signature": "60830a31047e38fcf1f0b28457708c0717c50a4a2ceb3137b66d07b2973b7531"
       },
       "/home/circleci/repo/packages/runtime/dist/binding/ref.d.ts": {
-        "version": "cbe51804d7ab04c83b469adb840de049c5bf6e02aba700f43256a3eb5c1528af",
-        "signature": "cbe51804d7ab04c83b469adb840de049c5bf6e02aba700f43256a3eb5c1528af"
+        "version": "f27560707e551418b27e8edd97d99f2f06ee3d62891220581c5524ffbe3b0781",
+        "signature": "f27560707e551418b27e8edd97d99f2f06ee3d62891220581c5524ffbe3b0781"
       },
       "/home/circleci/repo/packages/runtime/dist/observation/collection-length-observer.d.ts": {
         "version": "26ed72d00b69933f9334ed4ce411fcc0e1e259ce70a22cb9c982a52f958e3cda",
@@ -266,16 +270,16 @@
         "signature": "ec3310fed6f71ee75cf98feea3920d5ddf397535ac0b529045adc2ef360753e7"
       },
       "/home/circleci/repo/packages/runtime/dist/observation/binding-context.d.ts": {
-        "version": "656fb8981ec15d98c18866bf97cd274c93689316aa8170d6920cfcae434874ab",
-        "signature": "656fb8981ec15d98c18866bf97cd274c93689316aa8170d6920cfcae434874ab"
+        "version": "9243902aa8c7616efc2e758103a3f0a9368c32e72e312edb2387df1c4a81e961",
+        "signature": "9243902aa8c7616efc2e758103a3f0a9368c32e72e312edb2387df1c4a81e961"
       },
       "/home/circleci/repo/packages/runtime/dist/observation/computed-observer.d.ts": {
-        "version": "fd8988f30f51a4f0c51410c2c58774c5ede6f1b61ad181dbbe7bc583f69ebeaa",
-        "signature": "fd8988f30f51a4f0c51410c2c58774c5ede6f1b61ad181dbbe7bc583f69ebeaa"
+        "version": "0f0403df192ecac198ab87aa0e1d9b93a023de9c47ea8a72028d61bcc277a3a4",
+        "signature": "0f0403df192ecac198ab87aa0e1d9b93a023de9c47ea8a72028d61bcc277a3a4"
       },
       "/home/circleci/repo/packages/runtime/dist/observation/dirty-checker.d.ts": {
-        "version": "ad3d39831e10a212b48f86fc69acb267fa56c381c04746b11c8f65124556ba9a",
-        "signature": "ad3d39831e10a212b48f86fc69acb267fa56c381c04746b11c8f65124556ba9a"
+        "version": "05d10956b292c808249d156d24f619dfd57f257c0d09fd91bd70d73adc8e8323",
+        "signature": "05d10956b292c808249d156d24f619dfd57f257c0d09fd91bd70d73adc8e8323"
       },
       "/home/circleci/repo/packages/runtime/dist/observation/primitive-observer.d.ts": {
         "version": "91b4c445884ce7a616a615f9495364e3764d4e8e4b3a866a52eccf5e48c2a647",
@@ -290,12 +294,12 @@
         "signature": "d4bae3fd76074b03a504a8223a86379ae2fb86327cb299c743a751fd6406b7f2"
       },
       "/home/circleci/repo/packages/runtime/dist/observation/self-observer.d.ts": {
-        "version": "026be3c13a429fede7e2522209ed8f5516f1e5fe36f353b1e1d90d709a279f97",
-        "signature": "026be3c13a429fede7e2522209ed8f5516f1e5fe36f353b1e1d90d709a279f97"
+        "version": "8e046af15cbf531760e0ef6b98044f9a60e2060d75b4f2582401d0d9ee1378d8",
+        "signature": "8e046af15cbf531760e0ef6b98044f9a60e2060d75b4f2582401d0d9ee1378d8"
       },
       "/home/circleci/repo/packages/runtime/dist/observation/setter-observer.d.ts": {
-        "version": "1bcff880cacac3ec8730f95a612b5ab898e7472fdf61c95f2b898462f7e35942",
-        "signature": "1bcff880cacac3ec8730f95a612b5ab898e7472fdf61c95f2b898462f7e35942"
+        "version": "004a88b07a8ff86d0241f3ae699d3f8d0f358938e6bd79a2cbe04d57fcd8cc29",
+        "signature": "004a88b07a8ff86d0241f3ae699d3f8d0f358938e6bd79a2cbe04d57fcd8cc29"
       },
       "/home/circleci/repo/packages/runtime/dist/observation/signaler.d.ts": {
         "version": "44ea41da27c8b345fd29f52ad0e9d99b5ec77c99254805a0a6f093f997b6ddcb",
@@ -318,40 +322,40 @@
         "signature": "632dc6c13485ba95c91ad48abe491d284a3d029e96ce21c678410084aac183c1"
       },
       "/home/circleci/repo/packages/runtime/dist/resources/binding-behaviors/signals.d.ts": {
-        "version": "eb2bd81e4e2c1560074ae8f97c0c5ecc3a10c8556140693d37b9ec578aac0d5d",
-        "signature": "eb2bd81e4e2c1560074ae8f97c0c5ecc3a10c8556140693d37b9ec578aac0d5d"
+        "version": "f0d2c647de4ed2a33bef6533be0d393dacc66ec59ac1760a050f4fb61dd61a94",
+        "signature": "f0d2c647de4ed2a33bef6533be0d393dacc66ec59ac1760a050f4fb61dd61a94"
       },
       "/home/circleci/repo/packages/runtime/dist/resources/binding-behaviors/throttle.d.ts": {
         "version": "7ee363e782cb845aef1ae1a9369245213e22a70013dcb97fef20630c5f4faebc",
         "signature": "7ee363e782cb845aef1ae1a9369245213e22a70013dcb97fef20630c5f4faebc"
       },
       "/home/circleci/repo/packages/runtime/dist/resources/custom-attribute.d.ts": {
-        "version": "4372aa98d5e7a7472a00e65cd745ce3945d29d861ac49a819bf36438d3ef54d2",
-        "signature": "4372aa98d5e7a7472a00e65cd745ce3945d29d861ac49a819bf36438d3ef54d2"
+        "version": "a5d134513779a500fad86beccdc7d065919dcff01d1ca82f6a0713aecdb578d2",
+        "signature": "a5d134513779a500fad86beccdc7d065919dcff01d1ca82f6a0713aecdb578d2"
       },
       "/home/circleci/repo/packages/runtime/dist/resources/custom-attributes/if.d.ts": {
-        "version": "10843b7b43e72e07d8d0f55e146397fd2fcd9f60784f3ed6998c04542b5fa272",
-        "signature": "10843b7b43e72e07d8d0f55e146397fd2fcd9f60784f3ed6998c04542b5fa272"
+        "version": "a09b5da218017d3563f45cd6c2d398567bfce08910eb3a75f67b1573046ae52c",
+        "signature": "a09b5da218017d3563f45cd6c2d398567bfce08910eb3a75f67b1573046ae52c"
       },
       "/home/circleci/repo/packages/runtime/dist/resources/custom-attributes/repeat.d.ts": {
-        "version": "69b88a1592c0630106d2e272402ed8104b81cdf25d8c46fe536a608836af1f2d",
-        "signature": "69b88a1592c0630106d2e272402ed8104b81cdf25d8c46fe536a608836af1f2d"
+        "version": "81a462870d99390b39e41376838918397b970ce05e6868d265ef627d5c14b4e6",
+        "signature": "81a462870d99390b39e41376838918397b970ce05e6868d265ef627d5c14b4e6"
       },
       "/home/circleci/repo/packages/runtime/dist/resources/custom-attributes/replaceable.d.ts": {
-        "version": "e18f205492d7b0f16ae1e4407190821fca72164784e2fafae4b406becdfa46bf",
-        "signature": "e18f205492d7b0f16ae1e4407190821fca72164784e2fafae4b406becdfa46bf"
+        "version": "d537e4e7d3515529f4c25fd5088d02dca755d110ff7cbd1ce4df50dea22b059f",
+        "signature": "d537e4e7d3515529f4c25fd5088d02dca755d110ff7cbd1ce4df50dea22b059f"
       },
       "/home/circleci/repo/packages/runtime/dist/resources/custom-attributes/with.d.ts": {
-        "version": "5e9702ff4da88e06898d7f7297b5c0f76a2ee0f3d15ca69622119d1963fc2eeb",
-        "signature": "5e9702ff4da88e06898d7f7297b5c0f76a2ee0f3d15ca69622119d1963fc2eeb"
+        "version": "796941a26eec8dc0f0661303fd3e12319c8319b0e1fc9984dbe38aa4014b45a2",
+        "signature": "796941a26eec8dc0f0661303fd3e12319c8319b0e1fc9984dbe38aa4014b45a2"
       },
       "/home/circleci/repo/packages/runtime/dist/resources/value-converter.d.ts": {
-        "version": "1ed8c0c799fa3fb6b4463a3e8c3b3726c7a746ce1ae96803084769f2a9a9e42f",
-        "signature": "1ed8c0c799fa3fb6b4463a3e8c3b3726c7a746ce1ae96803084769f2a9a9e42f"
+        "version": "53e18e1f01f04b84ed632aca6e11aa0dc9fa154d1ade7ad5b828ffe443e839eb",
+        "signature": "53e18e1f01f04b84ed632aca6e11aa0dc9fa154d1ade7ad5b828ffe443e839eb"
       },
       "/home/circleci/repo/packages/runtime/dist/resources/value-converters/sanitize.d.ts": {
-        "version": "ecab030458c89b8b6d59982c70a11254022eba1c0b41fff106b3b2a1c4ffcb3d",
-        "signature": "ecab030458c89b8b6d59982c70a11254022eba1c0b41fff106b3b2a1c4ffcb3d"
+        "version": "552908d65ebfd55103b50fb77c2eea0fbdf6b9e8b131ce57b2c5de6cf01f5a56",
+        "signature": "552908d65ebfd55103b50fb77c2eea0fbdf6b9e8b131ce57b2c5de6cf01f5a56"
       },
       "/home/circleci/repo/packages/runtime/dist/templating/bindable.d.ts": {
         "version": "22b5f8218d8324d00cd485120c591d6d3c9e5bb1e0a7f6e73f2bb304a976bc65",
@@ -362,8 +366,8 @@
         "signature": "48d7eed30136a08414e008ec691e60f5c4ecc2bd5b7ee5f71927e4aa77398be8"
       },
       "/home/circleci/repo/packages/runtime/dist/templating/controller.d.ts": {
-        "version": "db5ef0ae0045df9846e523a1b452c8347dfc64afdc040ccf47e4f3354eaccbc2",
-        "signature": "db5ef0ae0045df9846e523a1b452c8347dfc64afdc040ccf47e4f3354eaccbc2"
+        "version": "56611f3c6eacf1d34713d8129a2a6837f678bd90475c4ae31019cb2c0d3ecb0b",
+        "signature": "56611f3c6eacf1d34713d8129a2a6837f678bd90475c4ae31019cb2c0d3ecb0b"
       },
       "/home/circleci/repo/packages/runtime/dist/templating/view.d.ts": {
         "version": "25215a527d6adde53330ca95323157ed4023833e2fd1e9d054ee87afa6faa784",
@@ -386,16 +390,16 @@
         "signature": "8b5196e894e55dfe373fe30f4adf194f9760d7ebafbcb0def151697163eacc43"
       },
       "/home/circleci/repo/packages/runtime/dist/renderer.d.ts": {
-        "version": "8d3215df96ca505d9a4b60b463bc491ff4d27990a94e3dfd1a9279501cb9076f",
-        "signature": "8d3215df96ca505d9a4b60b463bc491ff4d27990a94e3dfd1a9279501cb9076f"
+        "version": "8cff08f5e8f48adfd07d0ca362534811922d4629df26cd0cccaf94ff8400a45c",
+        "signature": "8cff08f5e8f48adfd07d0ca362534811922d4629df26cd0cccaf94ff8400a45c"
       },
       "/home/circleci/repo/packages/runtime/dist/index.d.ts": {
-        "version": "4ed5a288d47d5dcea2fcbf42b294eb91b1e17d6f158cafa59927cb8184f9b404",
-        "signature": "4ed5a288d47d5dcea2fcbf42b294eb91b1e17d6f158cafa59927cb8184f9b404"
+        "version": "a16b4b26cc5e584664345ece16100133969780215c844c4878c496647adc5481",
+        "signature": "a16b4b26cc5e584664345ece16100133969780215c844c4878c496647adc5481"
       },
       "/home/circleci/repo/packages/runtime-html/src/dom.ts": {
-        "version": "70497e76239d88c20d057feda03b3781497fbddf5d198dab8ac14c5fa258d6b3",
-        "signature": "1d25f526ab9878c2c64126be9c53c4099449d95e53e25ceaec3e3fc29f514dae"
+        "version": "178e5c797587e1bc4447af48b64e421502f0fd939b379516a2947dac23b30fc6",
+        "signature": "41b3b9592b21bff415dfdb0dce51113df2cd8d39ca72a61e1a93ff82fc27d7e8"
       },
       "/home/circleci/repo/packages/runtime-html/src/observation/element-attribute-observer.ts": {
         "version": "afc1e1224042a8e2af643fddd6f52701e7e38744681ecfe6c37010d700daf247",
@@ -418,15 +422,15 @@
         "signature": "2dab501085d542894beb688c61d4e258239653e32f28f012b78ac66680e5ecac"
       },
       "/home/circleci/repo/packages/runtime-html/src/html-renderer.ts": {
-        "version": "fd6967a923222fb97ec88d0099fbd1417ae658aa6fb4453a91afb93c780ae891",
-        "signature": "7c40002bd780668954d7403ce1011e3f9f54436113d2d841f6fd8dbf46093cfe"
+        "version": "897091d8f03a10d93d7c89e768cb660b4f0dc923ae9270d6eca30b8e23f55582",
+        "signature": "2966e85295c66be62ddff7b29e1f9945df9ebc3f006801fdb1f8d2eb8a19e776"
       },
       "/home/circleci/repo/packages/runtime-html/src/observation/attribute-ns-accessor.ts": {
         "version": "967b40a1b520460b43616141df58803f8db3f267435e398d607faa2533f25dcd",
         "signature": "e3a7f2a87cd3450094ea8c1847902f3bf003e1b84c4c761d5d4d62afa7ed7ebc"
       },
       "/home/circleci/repo/packages/runtime-html/src/observation/value-attribute-observer.ts": {
-        "version": "587f22d8a3e26d64350bcd2cb82a878919b26f7015986ba8ecd3480bfd5fc71d",
+        "version": "a250297697b932e7b27da34a4ac37926987df109162818e64635551de738a00a",
         "signature": "ec303aaedfafad9a993eb4ebd88987509cb8ee4b4318b3a9b414832f705486c0"
       },
       "/home/circleci/repo/packages/runtime-html/src/observation/checked-observer.ts": {
@@ -442,8 +446,8 @@
         "signature": "50db8b0fbe42d9887653b9aa79a950ee6c6f26b5f9da1c12778ae03aa7a1cf77"
       },
       "/home/circleci/repo/packages/runtime-html/src/observation/element-property-accessor.ts": {
-        "version": "7636110a98137397fc94ddb9b7e4e08e2f537cf715624c4ac14a5783ed7340b8",
-        "signature": "f7d6888b0eb545c0b552996a78d7d62a53498b226cab48c3cdc4a4c868a46841"
+        "version": "48c1f2af56d9cfdac529f5af390bada9c3cd96e1b54814a9d7447ad07dbb058f",
+        "signature": "68c66e0958dfdcff572a10f841507029556ae7c263895f5e123ebe75b10607ca"
       },
       "/home/circleci/repo/packages/runtime-html/src/observation/select-value-observer.ts": {
         "version": "43baed8a19c6aeb17301ed0d517bc2b335b3178d2d0db86c26b39fb424c34ec8",
@@ -458,8 +462,8 @@
         "signature": "f143eb61352c36e7da764f5df395ef1d942df27e24938db3f51e51bb990e7e61"
       },
       "/home/circleci/repo/packages/runtime-html/src/observation/observer-locator.ts": {
-        "version": "0ddfaf2a144da174ca411c32df9169cbd186bbaadb4d8e3a5bf28279c441a4c6",
-        "signature": "375f9ff03de2deccdf0ead875b7f95823c572d0ebdb7af6f5e2bbe288d5d24cb"
+        "version": "2f53fcc37ec6582d4ac245bd93d3d9bd3d70d9affb295269857b4bd64360c9f5",
+        "signature": "f122969d3b1afc42942c2e68ad9484e1e5cc77c2384fa1f77cdff02532ad4c99"
       },
       "/home/circleci/repo/packages/runtime-html/src/projectors.ts": {
         "version": "0e5936427225b6375311f8f6b9135cbe48473070c62702e937e5bbb6c57f9ede",
@@ -474,8 +478,8 @@
         "signature": "dcca1ca2cf96e2b83d20ccee5445c0a67e74669cbceeab1df05a1464f551e58d"
       },
       "/home/circleci/repo/packages/runtime-html/src/resources/binding-behaviors/update-trigger.ts": {
-        "version": "f59e5a5d653e7c69935cf954f31c40c72ef3c232435a2b894880c8de8f6999d7",
-        "signature": "efc6fdb2d31f8c0f2917dec550f75c71fb4b0c1c74532c5ebdae2dbac0130296"
+        "version": "a6d889be552fa306b7785f1cdc68c6de78822f0b9a4b0fcb7e3cce158b3542d6",
+        "signature": "d99de578d3c1a4e2eaeacce9868e3a27110f55311b095fe7477d808ac6e31663"
       },
       "/home/circleci/repo/packages/runtime-html/src/instructions.ts": {
         "version": "8fabff79ae202fcf84f5e256f5aa4df6a3b940aa47fbd9d601847d88b47ab484",
@@ -486,8 +490,8 @@
         "signature": "7e4989eedada04dfd8b985041ed46fb8d764820cf636c12ddd38ed1209bd2f24"
       },
       "/home/circleci/repo/packages/runtime-html/src/resources/custom-elements/compose.ts": {
-        "version": "f84c894d36231a40146f1d2be04485339af8199ecb9ad1db217e09a0ddc08c66",
-        "signature": "94020e0b65dfe471301d7cf0cb50158f3102e6e4d3cceea9aa24b3c63e1f4e15"
+        "version": "eafc5734d1cfe078cf7ca8b6103a1a261459c0f0e5436321809dfa2cf86140bc",
+        "signature": "4d57faaf2c64286f67105a0e80058cbc58c2b7e6ad8ac5acfd1a3cfa8f276038"
       },
       "/home/circleci/repo/packages/runtime-html/src/configuration.ts": {
         "version": "85571a6fbda0cc160933a248464497ca5da54c97400950e4875d689a1fc2fdcc",
@@ -499,6 +503,7 @@
       }
     },
     "options": {
+      "pretty": true,
       "lib": [
         "lib.esnext.d.ts",
         "lib.dom.d.ts"
@@ -535,7 +540,8 @@
         "/home/circleci/repo/packages/kernel/dist/interfaces.d.ts"
       ],
       "/home/circleci/repo/packages/kernel/dist/eventaggregator.d.ts": [
-        "/home/circleci/repo/packages/kernel/dist/interfaces.d.ts"
+        "/home/circleci/repo/packages/kernel/dist/interfaces.d.ts",
+        "/home/circleci/repo/packages/kernel/dist/di.d.ts"
       ],
       "/home/circleci/repo/packages/kernel/dist/index.d.ts": [
         "/home/circleci/repo/packages/kernel/dist/di.d.ts",
@@ -689,12 +695,13 @@
         "/home/circleci/repo/packages/runtime/dist/observation.d.ts"
       ],
       "/home/circleci/repo/packages/runtime/dist/observation/computed-observer.d.ts": [
+        "/home/circleci/repo/packages/kernel/dist/index.d.ts",
         "/home/circleci/repo/packages/runtime/dist/observation.d.ts"
       ],
       "/home/circleci/repo/packages/runtime/dist/observation/dirty-checker.d.ts": [
+        "/home/circleci/repo/packages/kernel/dist/index.d.ts",
         "/home/circleci/repo/packages/runtime/dist/flags.d.ts",
-        "/home/circleci/repo/packages/runtime/dist/observation.d.ts",
-        "/home/circleci/repo/packages/kernel/dist/index.d.ts"
+        "/home/circleci/repo/packages/runtime/dist/observation.d.ts"
       ],
       "/home/circleci/repo/packages/runtime/dist/observation/primitive-observer.d.ts": [
         "/home/circleci/repo/packages/kernel/dist/index.d.ts",
@@ -1442,9 +1449,13 @@
         "/home/circleci/repo/packages/runtime/dist/observation.d.ts"
       ],
       "/home/circleci/repo/packages/runtime/dist/observation/dirty-checker.d.ts": [
+        "/home/circleci/repo/packages/kernel/dist/index.d.ts",
         "/home/circleci/repo/packages/runtime/dist/flags.d.ts",
-        "/home/circleci/repo/packages/runtime/dist/observation.d.ts",
-        "/home/circleci/repo/packages/kernel/dist/index.d.ts"
+        "/home/circleci/repo/packages/runtime/dist/observation.d.ts"
+      ],
+      "/home/circleci/repo/packages/runtime/dist/observation/computed-observer.d.ts": [
+        "/home/circleci/repo/packages/kernel/dist/index.d.ts",
+        "/home/circleci/repo/packages/runtime/dist/observation.d.ts"
       ],
       "/home/circleci/repo/packages/runtime/dist/observation/binding-context.d.ts": [
         "/home/circleci/repo/packages/kernel/dist/index.d.ts",
@@ -1581,9 +1592,6 @@
       "/home/circleci/repo/packages/runtime/dist/observation/property-accessor.d.ts": [
         "/home/circleci/repo/packages/runtime/dist/observation.d.ts"
       ],
-      "/home/circleci/repo/packages/runtime/dist/observation/computed-observer.d.ts": [
-        "/home/circleci/repo/packages/runtime/dist/observation.d.ts"
-      ],
       "/home/circleci/repo/packages/runtime/dist/observation/collection-size-observer.d.ts": [
         "/home/circleci/repo/packages/runtime/dist/flags.d.ts",
         "/home/circleci/repo/packages/runtime/dist/observation.d.ts"
@@ -1602,7 +1610,8 @@
         "/home/circleci/repo/packages/kernel/dist/index.d.ts"
       ],
       "/home/circleci/repo/packages/kernel/dist/eventaggregator.d.ts": [
-        "/home/circleci/repo/packages/kernel/dist/interfaces.d.ts"
+        "/home/circleci/repo/packages/kernel/dist/interfaces.d.ts",
+        "/home/circleci/repo/packages/kernel/dist/di.d.ts"
       ],
       "/home/circleci/repo/packages/kernel/dist/resource.d.ts": [
         "/home/circleci/repo/packages/kernel/dist/di.d.ts",
@@ -1644,6 +1653,7 @@
       "/home/circleci/repo/node_modules/typescript/lib/lib.es2018.promise.d.ts",
       "/home/circleci/repo/node_modules/typescript/lib/lib.es2018.regexp.d.ts",
       "/home/circleci/repo/node_modules/typescript/lib/lib.es2019.array.d.ts",
+      "/home/circleci/repo/node_modules/typescript/lib/lib.es2019.object.d.ts",
       "/home/circleci/repo/node_modules/typescript/lib/lib.es2019.string.d.ts",
       "/home/circleci/repo/node_modules/typescript/lib/lib.es2019.symbol.d.ts",
       "/home/circleci/repo/node_modules/typescript/lib/lib.esnext.intl.d.ts",
@@ -1742,5 +1752,5 @@
       "/home/circleci/repo/packages/runtime-html/src/index.ts"
     ]
   },
-  "version": "3.4.5"
+  "version": "3.5.2"
 }

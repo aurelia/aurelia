@@ -1,17 +1,17 @@
-import { IContainer, InjectArray } from '@aurelia/kernel';
+import { IContainer, Key } from '@aurelia/kernel';
 import { IAttributeDefinition } from '../../definitions';
 import { INode, IRenderLocation } from '../../dom';
 import { LifecycleFlags } from '../../flags';
 import { IController, IViewFactory } from '../../lifecycle';
-import { IObserversLookup } from '../../observation';
+import { InlineObserversLookup } from '../../observation';
 import { ICustomAttributeResource } from '../custom-attribute';
 export declare class With<T extends INode = INode> {
-    static readonly inject: InjectArray;
+    static readonly inject: readonly Key[];
     static readonly kind: ICustomAttributeResource;
     static readonly description: Required<IAttributeDefinition>;
     readonly id: number;
     value: object | undefined;
-    readonly $observers: IObserversLookup;
+    readonly $observers: InlineObserversLookup<this>;
     readonly view: IController<T>;
     private readonly factory;
     private $controller;

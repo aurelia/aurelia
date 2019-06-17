@@ -7,6 +7,11 @@ export interface Subscription extends IDisposable {
  * @param event The event that triggered the callback. Only available on channel based messaging.
  */
 export declare type EventAggregatorCallback<T = any> = (data?: T, event?: string) => any;
+export declare const IEventAggregator: import("./di").InterfaceSymbol<IEventAggregator>;
+export interface IEventAggregator {
+    publish(channel: string, data?: unknown): void;
+    subscribe<T>(channel: string, callback: EventAggregatorCallback<T>): IDisposable;
+}
 /**
  * Enables loosely coupled publish/subscribe messaging.
  */

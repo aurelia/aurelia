@@ -1,4 +1,4 @@
-import { InjectArray } from '@aurelia/kernel';
+import { Key } from '@aurelia/kernel';
 import { HTMLDOM } from '@aurelia/runtime-html';
 import { HttpClientConfiguration } from './http-client-configuration';
 import { Interceptor } from './interfaces';
@@ -6,7 +6,7 @@ import { Interceptor } from './interfaces';
  * An HTTP client based on the Fetch API.
  */
 export declare class HttpClient {
-    static readonly inject: InjectArray;
+    static readonly inject: readonly Key[];
     /**
      * The current number of active requests.
      * Requests being processed by interceptors are considered active.

@@ -53,11 +53,11 @@ export interface IDisposable {
 export declare type Constructable<T = {}> = {
     new (...args: any[]): T;
 };
-export declare type Class<T, C = IIndexable> = C & {
+export declare type Class<T, C = {}> = C & {
     readonly prototype: T;
     new (...args: any[]): T;
 };
-export declare type ConstructableClass<T, C = IIndexable> = C & {
+export declare type ConstructableClass<T, C = {}> = C & {
     readonly prototype: T & {
         constructor: C;
     };
@@ -65,14 +65,9 @@ export declare type ConstructableClass<T, C = IIndexable> = C & {
         constructor: C;
     };
 };
-export declare type InterfaceSymbol<T = any> = (target: Injectable<T>, property: string, index: number) => Injectable<T>;
-export declare type InjectArray = ReadonlyArray<InterfaceSymbol | Constructable | string>;
-export declare type Injectable<T = {}> = Constructable<T> & {
-    inject?: (InterfaceSymbol<any> | Constructable)[];
-};
-export declare type IIndexable<T extends object = object> = T & {
-    [key: string]: unknown;
-};
+export declare type IIndexable<TBase extends {} = {}, TValue = unknown, TKey extends PropertyKey = Exclude<PropertyKey, keyof TBase>> = {
+    [K in TKey]: TValue;
+} & TBase;
 export declare type Writable<T> = {
     -readonly [K in keyof T]: T[K];
 };
@@ -134,7 +129,7 @@ export declare type Pick3<T, K1 extends keyof T, K2 extends keyof T[K1], K3 exte
         };
     };
 };
-export declare type Primitive = undefined | null | number | boolean | string | symbol | bigint;
+export declare type Primitive = undefined | null | number | boolean | string | symbol;
 export declare type Unwrap<T> = T extends (infer U)[] ? U : T extends (...args: unknown[]) => infer U ? U : T extends Promise<infer U> ? U : T;
 export declare type StrictPrimitive = string | number | boolean | null | undefined;
 export declare type IfEquals<X, Y, A = X, B = never> = (<T>() => T extends X ? 1 : 2) extends (<T>() => T extends Y ? 1 : 2) ? A : B;

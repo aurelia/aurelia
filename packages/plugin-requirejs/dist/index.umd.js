@@ -155,7 +155,7 @@
                       },
                       dependencies: Array.prototype.slice.call(arguments, 1)
                   };
-                  onLoad({ default: runtime.CustomElementResource.define(templateSource, null) });
+                  onLoad({ default: runtime.CustomElementResource.define(templateSource) });
               });
           });
       }

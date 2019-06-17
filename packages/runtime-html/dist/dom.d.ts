@@ -25,7 +25,7 @@ export declare class HTMLDOM implements IDOM {
     readonly window: Window;
     readonly document: Document;
     constructor(window: Window, document: Document, TNode: typeof Node, TElement: typeof Element, THTMLElement: typeof HTMLElement, TCustomEvent: typeof CustomEvent);
-    static register(container: IContainer): IResolver<HTMLDOM>;
+    static register(container: IContainer): IResolver<IDOM>;
     addEventListener(eventName: string, subscriber: EventListenerOrEventListenerObject, publisher?: Node, options?: boolean | AddEventListenerOptions): void;
     appendChild(parent: Node, child: Node): void;
     cloneNode<T>(node: T, deep?: boolean): T;

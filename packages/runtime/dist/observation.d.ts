@@ -58,7 +58,7 @@ export interface ICollectionSubscriberCollection extends ICollectionSubscribable
 /**
  * Describes a complete property observer with an accessor, change tracking fields, normal and batched subscribers
  */
-export interface IPropertyObserver<TObj extends Record<string, unknown>, TProp extends keyof TObj> extends IAccessor<TObj[TProp]>, IPropertyChangeTracker<TObj, TProp>, ISubscriberCollection, IBatchable {
+export interface IPropertyObserver<TObj extends object, TProp extends keyof TObj> extends IAccessor<TObj[TProp]>, IPropertyChangeTracker<TObj, TProp>, ISubscriberCollection, IBatchable {
     inBatch: boolean;
     observing: boolean;
     persistentFlags: LifecycleFlags;
@@ -105,10 +105,10 @@ export declare type LengthPropertyName<T> = T extends unknown[] ? 'length' : T e
 export declare type CollectionTypeToKind<T> = T extends unknown[] ? CollectionKind.array | CollectionKind.indexed : T extends Set<unknown> ? CollectionKind.set | CollectionKind.keyed : T extends Map<unknown, unknown> ? CollectionKind.map | CollectionKind.keyed : never;
 export declare type CollectionKindToType<T> = T extends CollectionKind.array ? unknown[] : T extends CollectionKind.indexed ? unknown[] : T extends CollectionKind.map ? Map<unknown, unknown> : T extends CollectionKind.set ? Set<unknown> : T extends CollectionKind.keyed ? Set<unknown> | Map<unknown, unknown> : never;
 export declare type ObservedCollectionKindToType<T> = T extends CollectionKind.array ? IObservedArray : T extends CollectionKind.indexed ? IObservedArray : T extends CollectionKind.map ? IObservedMap : T extends CollectionKind.set ? IObservedSet : T extends CollectionKind.keyed ? IObservedSet | IObservedMap : never;
-export interface IProxyObserver<TObj extends object = object> extends IProxySubscriberCollection {
+export interface IProxyObserver<TObj extends {} = {}> extends IProxySubscriberCollection {
     proxy: IProxy<TObj>;
 }
-export declare type IProxy<TObj extends object = object> = TObj & {
+export declare type IProxy<TObj extends {} = {}> = TObj & {
     $raw: TObj;
     $observer: IProxyObserver<TObj>;
 };
@@ -151,7 +151,7 @@ export declare function isIndexMap(value: unknown): value is IndexMap;
 /**
  * Describes a type that specifically tracks changes in an object property, or simply something that can have a getter and/or setter
  */
-export interface IPropertyChangeTracker<TObj extends Record<string, unknown>, TProp = keyof TObj, TValue = unknown> {
+export interface IPropertyChangeTracker<TObj, TProp = keyof TObj, TValue = unknown> {
     obj: TObj;
     propertyKey?: TProp;
     currentValue?: TValue;
@@ -185,16 +185,16 @@ export declare type CollectionObserver = ICollectionObserver<CollectionKind>;
 export interface IBindingContext {
     [key: string]: unknown;
     readonly $synthetic?: true;
-    readonly $observers?: ObserversLookup<IOverrideContext>;
-    getObservers?(flags: LifecycleFlags): ObserversLookup<IOverrideContext>;
+    readonly $observers?: ObserversLookup;
+    getObservers?(flags: LifecycleFlags): ObserversLookup;
 }
 export interface IOverrideContext {
     [key: string]: unknown;
     readonly $synthetic?: true;
-    readonly $observers?: ObserversLookup<IOverrideContext>;
+    readonly $observers?: ObserversLookup;
     readonly bindingContext: IBindingContext;
     readonly parentOverrideContext: IOverrideContext | null;
-    getObservers(flags: LifecycleFlags): ObserversLookup<IOverrideContext>;
+    getObservers(flags: LifecycleFlags): ObserversLookup;
 }
 export interface IScope {
     readonly bindingContext: IBindingContext;
@@ -204,16 +204,13 @@ export interface IScope {
      */
     readonly partScopes?: Record<string, IScope | undefined>;
 }
-export interface IObserversLookup<TObj extends IIndexable = IIndexable, TKey extends keyof TObj = Exclude<keyof TObj, '$synthetic' | '$observers' | 'bindingContext' | 'overrideContext' | 'parentOverrideContext'>> {
-}
-export declare type ObserversLookup<TObj extends IIndexable = IIndexable, TKey extends keyof TObj = Exclude<keyof TObj, '$synthetic' | '$observers' | 'bindingContext' | 'overrideContext' | 'parentOverrideContext'>> = {
-    [P in TKey]: PropertyObserver;
-} & {
+export declare type ObserversLookup = IIndexable<{
     getOrCreate(lifecycle: ILifecycle, flags: LifecycleFlags, obj: IBindingContext | IOverrideContext, key: string): PropertyObserver;
-};
-export declare type IObservable = IIndexable & {
+}, PropertyObserver>;
+export declare type InlineObserversLookup<T> = IIndexable<{}, T>;
+export declare type IObservable<T = {}> = {
     readonly $synthetic?: false;
-    $observers?: IObserversLookup;
+    $observers?: ObserversLookup | InlineObserversLookup<T>;
 };
 export {};
 //# sourceMappingURL=observation.d.ts.map

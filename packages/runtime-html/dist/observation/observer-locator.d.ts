@@ -1,8 +1,8 @@
-import { IContainer, InjectArray, IResolver } from '@aurelia/kernel';
+import { IContainer, Key, IResolver } from '@aurelia/kernel';
 import { IBindingTargetAccessor, IBindingTargetObserver, IDOM, ILifecycle, IObserverLocator, ITargetAccessorLocator, ITargetObserverLocator, LifecycleFlags } from '@aurelia/runtime';
 import { ISVGAnalyzer } from './svg-analyzer';
 export declare class TargetObserverLocator implements ITargetObserverLocator {
-    static readonly inject: InjectArray;
+    static readonly inject: readonly Key[];
     private readonly dom;
     private readonly svgAnalyzer;
     constructor(dom: IDOM, svgAnalyzer: ISVGAnalyzer);
@@ -12,7 +12,7 @@ export declare class TargetObserverLocator implements ITargetObserverLocator {
     handles(flags: LifecycleFlags, obj: unknown): boolean;
 }
 export declare class TargetAccessorLocator implements ITargetAccessorLocator {
-    static readonly inject: InjectArray;
+    static readonly inject: readonly Key[];
     private readonly dom;
     private readonly svgAnalyzer;
     constructor(dom: IDOM, svgAnalyzer: ISVGAnalyzer);

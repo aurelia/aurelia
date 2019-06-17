@@ -10,7 +10,7 @@ import { IElementProjector } from '../resources/custom-element';
 interface IElementTemplateProvider {
     getElementTemplate(renderingEngine: unknown, customElementType: unknown, parentContext: IServiceLocator): ITemplate;
 }
-declare type BindingContext<T extends INode, C extends IViewModel<T>> = C & IIndexable & {
+declare type BindingContext<T extends INode, C extends IViewModel<T>> = IIndexable<C & {
     render(flags: LifecycleFlags, host: T, parts: Record<string, TemplateDefinition>, parentContext: IServiceLocator): IElementTemplateProvider | void;
     created(flags: LifecycleFlags): void;
     binding(flags: LifecycleFlags): MaybePromiseOrTask;
@@ -22,7 +22,7 @@ declare type BindingContext<T extends INode, C extends IViewModel<T>> = C & IInd
     detaching(flags: LifecycleFlags): void;
     detached(flags: LifecycleFlags): void;
     caching(flags: LifecycleFlags): void;
-};
+}>;
 export declare class Controller<T extends INode = INode, C extends IViewModel<T> = IViewModel<T>> implements IController<T, C> {
     private static readonly lookup;
     readonly id: number;

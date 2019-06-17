@@ -901,7 +901,7 @@ function register(container) {
     container.register(Registration.singleton(this, this));
 }
 function bindingBehavior(nameOrDefinition) {
-    return target => BindingBehaviorResource.define(nameOrDefinition, target);
+    return target => BindingBehaviorResource.define(nameOrDefinition, target); // TODO: fix this at some point
 }
 function keyFrom(name) {
     return `${this.name}:${name}`;
@@ -933,7 +933,7 @@ function register$1(container) {
     container.register(Registration.singleton(this, this));
 }
 function valueConverter(nameOrDefinition) {
-    return target => ValueConverterResource.define(nameOrDefinition, target);
+    return target => ValueConverterResource.define(nameOrDefinition, target); // TODO: fix this at some point
 }
 function keyFrom$1(name) {
     return `${this.name}:${name}`;
@@ -2814,7 +2814,7 @@ class Lifecycle {
             return;
         }
         this.isFlushingRAF = true;
-        if (timestamp > this.rafStartTime) {
+        if (timestamp >= this.rafStartTime) {
             const prevFrameDuration = this.prevFrameDuration = timestamp - this.rafStartTime;
             if (prevFrameDuration + 1 < this.minFrameDuration) {
                 return;
@@ -4565,7 +4565,9 @@ function createComputedObserver(flags, observerLocator, dirtyChecker, lifecycle,
         return dirtyChecker.createProperty(instance, propertyName);
     }
     if (descriptor.get) {
-        const overrides = instance.constructor.computed && instance.constructor.computed[propertyName] || computedOverrideDefaults;
+        const overrides = (instance.constructor.computed
+            && instance.constructor.computed[propertyName]
+            || computedOverrideDefaults);
         if (descriptor.set) {
             if (overrides.volatile) {
                 return new GetterObserver(flags, overrides, instance, propertyName, descriptor, observerLocator, lifecycle);
@@ -5728,11 +5730,13 @@ function buildTemplateDefinition(ctor, nameOrDef, template, cache, build, bindab
                 def.strategy = ensureValidStrategy(nameOrDef.strategy);
                 templateDefinitionAssignables.forEach(prop => {
                     if (nameOrDef[prop]) {
+                        // @ts-ignore // TODO: wait for fix for https://github.com/microsoft/TypeScript/issues/31904
                         def[prop] = nameOrDef[prop];
                     }
                 });
                 templateDefinitionArrays.forEach(prop => {
                     if (nameOrDef[prop]) {
+                        // @ts-ignore // TODO: wait for fix for https://github.com/microsoft/TypeScript/issues/31904
                         def[prop] = toArray(nameOrDef[prop]);
                     }
                 });
@@ -5766,12 +5770,12 @@ function registerAttribute(container) {
     }
 }
 function customAttribute(nameOrDefinition) {
-    return target => CustomAttributeResource.define(nameOrDefinition, target);
+    return target => CustomAttributeResource.define(nameOrDefinition, target); // TODO: fix this at some point
 }
 function templateController(nameOrDefinition) {
     return target => CustomAttributeResource.define(typeof nameOrDefinition === 'string'
         ? { isTemplateController: true, name: nameOrDefinition }
-        : { isTemplateController: true, ...nameOrDefinition }, target);
+        : { isTemplateController: true, ...nameOrDefinition }, target); // TODO: fix this at some point
 }
 function dynamicOptionsDecorator(target) {
     target.hasDynamicOptions = true;
@@ -6072,9 +6076,9 @@ function hasAsyncWork(value) {
 
 class If {
     constructor(ifFactory, location) {
-        this.$observers = {
+        this.$observers = Object.freeze({
             value: this,
-        };
+        });
         this.id = nextId('au$component');
         this.elseFactory = void 0;
         this.elseView = void 0;
@@ -6289,9 +6293,9 @@ Else.description = {
 
 class Repeat {
     constructor(location, renderable, factory) {
-        this.$observers = {
+        this.$observers = Object.freeze({
             items: this,
-        };
+        });
         this.id = nextId('au$component');
         this.factory = factory;
         this.hasPendingInstanceMutation = false;
@@ -6850,9 +6854,9 @@ Replaceable.description = Object.freeze({
 
 class With {
     constructor(factory, location) {
-        this.$observers = {
+        this.$observers = Object.freeze({
             value: this,
-        };
+        });
         this.id = nextId('au$component');
         this.factory = factory;
         this.view = this.factory.create();

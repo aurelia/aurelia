@@ -1,4 +1,4 @@
-import { IContainer, InjectArray, IResolver } from '@aurelia/kernel';
+import { IContainer, Key, IResolver } from '@aurelia/kernel';
 import { Aurelia, CustomElementHost, HydrateElementInstruction, HydrateTemplateController, IBindingTargetAccessor, IBindingTargetObserver, IDOM, IDOMInitializer, IElementProjector, IInstructionRenderer, ILifecycle, INode, INodeSequence, INodeSequenceFactory, IObserverLocator, IProjectorLocator, IController, IRenderContext, IRenderLocation, IsBindingBehavior, ISinglePageApp, ITargetAccessorLocator, ITargetedInstruction, ITargetObserverLocator, ITemplate, ITemplateDefinition, ITemplateFactory, LetElementInstruction, LifecycleFlags, TargetedInstruction, TemplateDefinition } from '@aurelia/runtime';
 export declare class AuNode implements INode {
     readonly nodeName: string;
@@ -96,13 +96,13 @@ export declare class AuNodeSequenceFactory implements INodeSequenceFactory<AuNod
     createNodeSequence(): AuNodeSequence;
 }
 export declare class AuDOMInitializer implements IDOMInitializer {
-    static readonly inject: InjectArray;
+    static readonly inject: readonly Key[];
     private readonly container;
     constructor(container: IContainer);
     initialize(config?: ISinglePageApp<AuNode>): AuDOM;
 }
 export declare class AuTemplateFactory implements ITemplateFactory<AuNode> {
-    static readonly inject: InjectArray;
+    static readonly inject: readonly Key[];
     private readonly dom;
     constructor(dom: AuDOM);
     create(parentRenderContext: IRenderContext<AuNode>, definition: TemplateDefinition): ITemplate<AuNode>;

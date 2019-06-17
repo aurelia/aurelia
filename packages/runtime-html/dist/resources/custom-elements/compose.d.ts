@@ -1,10 +1,10 @@
-import { Constructable, IContainer, InjectArray } from '@aurelia/kernel';
+import { Constructable, IContainer, Key } from '@aurelia/kernel';
 import { IController, ICustomElementResource, IDOM, IHydrateElementInstruction, ILifecycleTask, INode, IRenderingEngine, ITemplateDefinition, IViewFactory, LifecycleFlags, TemplateDefinition } from '@aurelia/runtime';
 import { RenderPlan } from '../../create-element';
 export declare type Subject<T extends INode = Node> = IViewFactory<T> | IController<T> | RenderPlan<T> | Constructable | TemplateDefinition;
 export declare type MaybeSubjectPromise<T> = Subject<T> | Promise<Subject<T>> | undefined;
 export declare class Compose<T extends INode = Node> {
-    static readonly inject: InjectArray;
+    static readonly inject: readonly Key[];
     static readonly kind: ICustomElementResource;
     static readonly description: Required<ITemplateDefinition>;
     readonly id: number;

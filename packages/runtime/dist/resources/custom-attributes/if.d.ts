@@ -1,18 +1,18 @@
-import { IContainer, InjectArray } from '@aurelia/kernel';
+import { IContainer, Key } from '@aurelia/kernel';
 import { IAttributeDefinition } from '../../definitions';
 import { INode, IRenderLocation } from '../../dom';
 import { LifecycleFlags } from '../../flags';
 import { IController, IViewFactory } from '../../lifecycle';
 import { ILifecycleTask } from '../../lifecycle-task';
-import { IObserversLookup } from '../../observation';
+import { InlineObserversLookup } from '../../observation';
 import { ICustomAttributeResource } from '../custom-attribute';
 export declare class If<T extends INode = INode> {
-    static readonly inject: InjectArray;
+    static readonly inject: readonly Key[];
     static readonly kind: ICustomAttributeResource;
     static readonly description: Required<IAttributeDefinition>;
     readonly id: number;
     value: boolean;
-    readonly $observers: IObserversLookup;
+    readonly $observers: InlineObserversLookup<this>;
     elseFactory?: IViewFactory<T>;
     elseView?: IController<T>;
     ifFactory: IViewFactory<T>;
@@ -40,7 +40,7 @@ export declare class If<T extends INode = INode> {
     private attachView;
 }
 export declare class Else<T extends INode = INode> {
-    static readonly inject: InjectArray;
+    static readonly inject: readonly Key[];
     static readonly kind: ICustomAttributeResource;
     static readonly description: Required<IAttributeDefinition>;
     private readonly factory;

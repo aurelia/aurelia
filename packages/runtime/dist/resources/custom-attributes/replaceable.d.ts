@@ -1,4 +1,4 @@
-import { IContainer, InjectArray } from '@aurelia/kernel';
+import { IContainer, Key } from '@aurelia/kernel';
 import { IAttributeDefinition } from '../../definitions';
 import { INode, IRenderLocation } from '../../dom';
 import { LifecycleFlags } from '../../flags';
@@ -6,7 +6,7 @@ import { IController, IViewFactory } from '../../lifecycle';
 import { ILifecycleTask } from '../../lifecycle-task';
 import { ICustomAttributeResource } from '../custom-attribute';
 export declare class Replaceable<T extends INode = INode> {
-    static readonly inject: InjectArray;
+    static readonly inject: readonly Key[];
     static readonly kind: ICustomAttributeResource;
     static readonly description: Required<IAttributeDefinition>;
     readonly id: number;

@@ -121,7 +121,7 @@ commands:
     steps:
       - run: ./node_modules/.bin/lerna clean -y
       - run: rm -rf packages/*/dist/build/**
-      - run: git add packages/\*/dist/* --force && git status
+      - run: git add packages/\*/dist/*.ts packages/\*/dist/*.js packages/\*/dist/*.map --force && git status
       - run: git stash && git status
       - run: git checkout << parameters.to >> && git status
       - run: git reset --hard origin/<< parameters.to >> && git status
@@ -129,7 +129,7 @@ commands:
       - run: rm -rf packages/*/dist && git status
       - run: git add . && git status
       - run: git checkout stash -- . && git status
-      - run: git add packages/\*/dist/* --force && git status
+      - run: git add packages/\*/dist/*.ts packages/\*/dist/*.js packages/\*/dist/*.map --force && git status
       - run: npm run change-package-refs:rollup
       - run: npm run bump-version:<< parameters.channel >> -- << parameters.suffix >>
       - run: git add . && git status
@@ -199,7 +199,7 @@ jobs:
     steps:
       - checkout_install_bootstrap
       - run: npm run build
-      - run: npm run bundle:release
+      - run: npm run bundle:all
       - clean_merge_commit_dist:
           from: << parameters.from >>
           to: << parameters.to >>

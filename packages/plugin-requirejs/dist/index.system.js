@@ -1,4 +1,4 @@
-System.register('pluginRequirejs', ['@aurelia/runtime'], function (exports, module) {
+System.register('pluginRequirejs', ['@aurelia/runtime'], function (exports) {
   'use strict';
   var CustomElementResource;
   return {

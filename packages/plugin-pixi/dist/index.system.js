@@ -1,4 +1,4 @@
-System.register('pluginPixi', ['@aurelia/kernel', '@aurelia/runtime', 'pixi.js'], function (exports, module) {
+System.register('pluginPixi', ['@aurelia/kernel', '@aurelia/runtime', 'pixi.js'], function (exports) {
     'use strict';
     var DI, bindable, customElement, Application, Sprite, loader;
     return {

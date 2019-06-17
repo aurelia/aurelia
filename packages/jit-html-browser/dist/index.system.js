@@ -1,4 +1,4 @@
-System.register('jitHtmlBrowser', ['@aurelia/jit', '@aurelia/jit-html', '@aurelia/kernel', '@aurelia/runtime-html-browser'], function (exports, module) {
+System.register('jitHtmlBrowser', ['@aurelia/jit', '@aurelia/jit-html', '@aurelia/kernel', '@aurelia/runtime-html-browser'], function (exports) {
   'use strict';
   var DefaultBindingLanguage, DefaultBindingSyntax, DefaultComponents, DefaultBindingLanguage$1, DefaultComponents$1, Profiler, DI, BasicConfiguration$1;
   return {

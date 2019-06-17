@@ -1,4 +1,4 @@
-System.register('runtimeHtmlBrowser', ['@aurelia/kernel', '@aurelia/runtime', '@aurelia/runtime-html'], function (exports, module) {
+System.register('runtimeHtmlBrowser', ['@aurelia/kernel', '@aurelia/runtime', '@aurelia/runtime-html'], function (exports) {
   'use strict';
   var DI, Registration, IContainer, IDOMInitializer, IDOM, BasicConfiguration$1, HTMLDOM;
   return {

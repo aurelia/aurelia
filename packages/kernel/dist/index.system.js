@@ -1,4 +1,4 @@
-System.register('kernel', [], function (exports, module) {
+System.register('kernel', [], function (exports) {
   'use strict';
   return {
     execute: function () {

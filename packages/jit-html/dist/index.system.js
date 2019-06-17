@@ -1,4 +1,4 @@
-System.register('jitHtml', ['@aurelia/jit', '@aurelia/runtime-html', '@aurelia/kernel', '@aurelia/runtime'], function (exports, module) {
+System.register('jitHtml', ['@aurelia/jit', '@aurelia/runtime-html', '@aurelia/kernel', '@aurelia/runtime'], function (exports) {
   'use strict';
   var getTarget, BindingCommandResource, attributePattern, AttrSyntax, PlainElementSymbol, CustomElementSymbol, LetElementSymbol, BindableInfo, BindingSymbol, TextSymbol, TemplateControllerSymbol, CustomAttributeSymbol, PlainAttributeSymbol, ReplacePartSymbol, ResourceModel, IAttributeParser, DefaultComponents$1, DefaultBindingSyntax, DefaultBindingLanguage$1, TriggerBindingInstruction, DelegateBindingInstruction, CaptureBindingInstruction, AttributeBindingInstruction, TextBindingInstruction, SetAttributeInstruction, BasicConfiguration$1, Profiler, Tracer, camelCase, DI, Registration, PLATFORM, BindingMode, IDOM, ITemplateCompiler, LetBindingInstruction, LetElementInstruction, HydrateElementInstruction, HydrateTemplateController, SetPropertyInstruction, InterpolationInstruction, HydrateAttributeInstruction, RefBindingInstruction, IExpressionParser;
   return {

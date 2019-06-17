@@ -1,4 +1,4 @@
-System.register('fetchClient', ['@aurelia/kernel', '@aurelia/runtime'], function (exports, module) {
+System.register('fetchClient', ['@aurelia/kernel', '@aurelia/runtime'], function (exports) {
   'use strict';
   var PLATFORM, DOM, IDOM;
   return {

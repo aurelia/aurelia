@@ -1,4 +1,4 @@
-System.register('pluginParcel', [], function (exports, module) {
+System.register('pluginParcel', [], function (exports) {
 	'use strict';
 	return {
 		execute: function () {

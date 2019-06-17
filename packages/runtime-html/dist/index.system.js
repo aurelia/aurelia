@@ -1,4 +1,4 @@
-System.register('runtimeHtml', ['@aurelia/kernel', '@aurelia/runtime'], function (exports, module) {
+System.register('runtimeHtml', ['@aurelia/kernel', '@aurelia/runtime'], function (exports) {
   'use strict';
   var Tracer, Reporter, DI, Registration, nextId, PLATFORM, toArray, hasBind, hasUnbind, subscriberCollection, DOM, connectable, ILifecycle, BindingMode, DelegationStrategy, ITargetObserverLocator, SetterObserver, IDOM, ITargetAccessorLocator, BindingBehaviorResource, IObserverLocator, CustomElementResource, buildTemplateDefinition, HydrateElementInstruction, LifecycleTask, ContinuationTask, PromiseTask, IController, ITargetedInstruction, IRenderingEngine, Bindable, HooksDefinition, INode, NodeSequence, ITemplateFactory, CompiledTemplate, IExpressionParser, instructionRenderer, ensureExpression, MultiInterpolationBinding, InterpolationBinding, addBinding, Binding, IProjectorLocator, RuntimeBasicConfiguration;
   return {

@@ -1,6 +1,6 @@
-System.register('jit', ['@aurelia/kernel', '@aurelia/runtime'], function (exports, module) {
+System.register('jit', ['@aurelia/kernel', '@aurelia/runtime'], function (exports) {
   'use strict';
-  var PLATFORM, DI, Registration, Reporter, Profiler, all, camelCase, kebabCase, OneTimeBindingInstruction, ToViewBindingInstruction, FromViewBindingInstruction, TwoWayBindingInstruction, BindingMode, CallBindingInstruction, IteratorBindingInstruction, PrimitiveLiteral, AccessThis, Unary, BindingIdentifier, AccessScope, Template, AccessMember, AccessKeyed, CallScope, CallMember, CallFunction, TaggedTemplate, Binary, Conditional, Assign, ValueConverter, BindingBehavior, ArrayBindingPattern, ArrayLiteral, ForOfStatement, ObjectBindingPattern, ObjectLiteral, Interpolation, IExpressionParser, RuntimeBasicConfiguration, CustomElementResource, CustomAttributeResource;
+  var PLATFORM, DI, Registration, Reporter, Profiler, all, camelCase, kebabCase, OneTimeBindingInstruction, ToViewBindingInstruction, FromViewBindingInstruction, TwoWayBindingInstruction, BindingMode, CallBindingInstruction, IteratorBindingInstruction, PrimitiveLiteral, AccessThis, Unary, BindingIdentifier, AccessScope, Template, ForOfStatement, AccessMember, AccessKeyed, CallScope, CallMember, CallFunction, TaggedTemplate, Binary, Conditional, Assign, ValueConverter, BindingBehavior, ArrayBindingPattern, ArrayLiteral, ObjectBindingPattern, ObjectLiteral, Interpolation, IExpressionParser, RuntimeBasicConfiguration, CustomElementResource, CustomAttributeResource;
   return {
     setters: [function (module) {
       PLATFORM = module.PLATFORM;
@@ -25,6 +25,7 @@ System.register('jit', ['@aurelia/kernel', '@aurelia/runtime'], function (export
       BindingIdentifier = module.BindingIdentifier;
       AccessScope = module.AccessScope;
       Template = module.Template;
+      ForOfStatement = module.ForOfStatement;
       AccessMember = module.AccessMember;
       AccessKeyed = module.AccessKeyed;
       CallScope = module.CallScope;
@@ -38,7 +39,6 @@ System.register('jit', ['@aurelia/kernel', '@aurelia/runtime'], function (export
       BindingBehavior = module.BindingBehavior;
       ArrayBindingPattern = module.ArrayBindingPattern;
       ArrayLiteral = module.ArrayLiteral;
-      ForOfStatement = module.ForOfStatement;
       ObjectBindingPattern = module.ObjectBindingPattern;
       ObjectLiteral = module.ObjectLiteral;
       Interpolation = module.Interpolation;

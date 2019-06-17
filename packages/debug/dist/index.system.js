@@ -1,4 +1,4 @@
-System.register('debug', ['@aurelia/kernel', '@aurelia/runtime'], function (exports, module) {
+System.register('debug', ['@aurelia/kernel', '@aurelia/runtime'], function (exports) {
   'use strict';
   var Reporter$1, PLATFORM, Tracer$1, AccessKeyed, AccessMember, AccessScope, AccessThis, ArrayBindingPattern, ArrayLiteral, Assign, Binary, BindingBehavior, BindingIdentifier, CallFunction, CallMember, CallScope, Conditional, ForOfStatement, HtmlLiteral, Interpolation, ObjectBindingPattern, ObjectLiteral, PrimitiveLiteral, TaggedTemplate, Template, Unary, ValueConverter;
   return {

@@ -1,4 +1,4 @@
-System.register('pluginWebpack', [], function (exports, module) {
+System.register('pluginWebpack', [], function (exports) {
 	'use strict';
 	return {
 		execute: function () {

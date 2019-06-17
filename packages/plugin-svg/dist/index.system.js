@@ -1,4 +1,4 @@
-System.register('pluginSvg', ['@aurelia/runtime-html'], function (exports, module) {
+System.register('pluginSvg', ['@aurelia/runtime-html'], function (exports) {
   'use strict';
   var ISVGAnalyzer;
   return {

@@ -1,4 +1,4 @@
-System.register('runtimeHtmlJsdom', ['@aurelia/kernel', '@aurelia/runtime', '@aurelia/runtime-html', 'jsdom'], function (exports, module) {
+System.register('runtimeHtmlJsdom', ['@aurelia/kernel', '@aurelia/runtime', '@aurelia/runtime-html', 'jsdom'], function (exports) {
   'use strict';
   var DI, Registration, IContainer, IDOMInitializer, IDOM, BasicConfiguration$1, HTMLDOM, JSDOM;
   return {

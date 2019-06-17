@@ -1,4 +1,4 @@
-System.register('runtime', ['@aurelia/kernel'], function (exports, module) {
+System.register('runtime', ['@aurelia/kernel'], function (exports) {
     'use strict';
     var Tracer, PLATFORM, Reporter, DI, Registration, isNumeric, kebabCase, toArray, nextId, compareNumber, RuntimeCompilationResources, IContainer, all, InstanceProvider, Profiler;
     return {

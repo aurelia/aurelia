@@ -1,4 +1,4 @@
-System.register('aot', [], function (exports, module) {
+System.register('aot', [], function (exports) {
 	'use strict';
 	return {
 		execute: function () {

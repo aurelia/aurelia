@@ -328,7 +328,7 @@ export class Portal<T extends ParentNode = ParentNode> {
       if (this.strict) {
         throw new Error('Render target not found');
       } else {
-        target = this.dom.document as unknown as ResolvedTarget<T>;
+        target = this.dom.document.body as unknown as ResolvedTarget<T>;
       }
     }
 

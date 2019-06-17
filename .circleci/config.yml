@@ -340,24 +340,18 @@ workflows:
           <<: *filter_ignore_develop_release
       #- e2e_cypress_doc_example:
       #    <<: *filter_ignore_develop_release
-      #- e2e_wdio:
-      #    <<: *filter_ignore_develop_release
-      #    name: jit-aurelia-cli-ts
-      #    path: "examples/jit-aurelia-cli-ts"
-      #    requires:
-      #      - lint_packages # not a real requirement but forces long-running jobs to go first
-      #- e2e_wdio:
-      #    <<: *filter_ignore_develop_release
-      #    name: jit-fuse-box-ts
-      #    path: "examples/jit-fuse-box-ts"
-      #    requires:
-      #      - lint_packages # not a real requirement but forces long-running jobs to go first
-      #- e2e_wdio:
-      #    <<: *filter_ignore_develop_release
-      #    name: jit-webpack-ts
-      #    path: "examples/jit-webpack-ts"
-      #    requires:
-      #      - lint_packages # not a real requirement but forces long-running jobs to go first
+      - e2e_wdio:
+          <<: *filter_ignore_develop_release
+          name: jit-fuse-box-ts
+          path: "examples/jit-fuse-box-ts"
+          requires:
+            - lint_packages # not a real requirement but forces long-running jobs to go first
+      - e2e_wdio:
+          <<: *filter_ignore_develop_release
+          name: jit-webpack-ts
+          path: "examples/jit-webpack-ts"
+          requires:
+            - lint_packages # not a real requirement but forces long-running jobs to go first
       - e2e_wdio:
           <<: *filter_ignore_develop_release
           name: jit-parcel-ts
@@ -379,9 +373,8 @@ workflows:
             - lint_packages
             - e2e_browserstack
             #- e2e_cypress_doc_example
-            #- jit-aurelia-cli-ts
-            #- jit-fuse-box-ts
-            #- jit-webpack-ts
+            - jit-fuse-box-ts
+            - jit-webpack-ts
             - jit-parcel-ts
             - jit-iife-inline
           from: master
@@ -448,7 +441,7 @@ workflows:
     triggers:
       - schedule:
           <<: *filter_only_master
-          cron: "07 2 * * *"
+          cron: "0 5 * * *"
     jobs:
       # this merge_and_dist is only to ensure the correct version in develop branch
       - merge_and_dist:

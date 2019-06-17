@@ -30,7 +30,6 @@ import {
 
 import {
   ArrayBuffer_isView,
-  BigInt_valueOf,
   Boolean_valueOf,
   Date_getTime,
   FloatArray,
@@ -40,7 +39,6 @@ import {
   getPrototypeOf,
   hasOwnProperty,
   isAnyArrayBuffer,
-  isBigIntObject,
   isBooleanObject,
   isBoxedPrimitive,
   isDate,
@@ -175,12 +173,6 @@ export function isEqualBoxedPrimitive(val1: unknown, val2: unknown): boolean {
     return (
       isBooleanObject(val2)
       && Boolean_valueOf(val1) === Boolean_valueOf(val2)
-    );
-  }
-  if (isBigIntObject(val1)) {
-    return (
-      isBigIntObject(val2)
-      && BigInt_valueOf(val1) === BigInt_valueOf(val2)
     );
   }
   return (

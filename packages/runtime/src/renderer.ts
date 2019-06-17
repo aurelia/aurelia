@@ -2,7 +2,7 @@ import {
   all,
   Class,
   IContainer,
-  InjectArray,
+  Key,
   IRegistry,
   IResolver,
   Registration,
@@ -93,7 +93,7 @@ export function instructionRenderer<TType extends string>(instructionType: TType
 export class Renderer implements IRenderer {
   // TODO: fix this
   // @ts-ignore
-  public static readonly inject: InjectArray = [all(IInstructionRenderer)];
+  public static readonly inject: readonly Key[] = [all(IInstructionRenderer)];
 
   public instructionRenderers: Record<InstructionTypeName, IInstructionRenderer>;
 
@@ -259,7 +259,7 @@ export class CustomAttributeRenderer implements IInstructionRenderer {
 @instructionRenderer(TargetedInstructionType.hydrateTemplateController)
 /** @internal */
 export class TemplateControllerRenderer implements IInstructionRenderer {
-  public static readonly inject: InjectArray = [IRenderingEngine];
+  public static readonly inject: readonly Key[] = [IRenderingEngine];
   public static readonly register: IRegistry['register'];
 
   private readonly renderingEngine: IRenderingEngine;
@@ -306,7 +306,7 @@ export class TemplateControllerRenderer implements IInstructionRenderer {
 @instructionRenderer(TargetedInstructionType.hydrateLetElement)
 /** @internal */
 export class LetElementRenderer implements IInstructionRenderer {
-  public static readonly inject: InjectArray = [IExpressionParser, IObserverLocator];
+  public static readonly inject: readonly Key[] = [IExpressionParser, IObserverLocator];
   public static readonly register: IRegistry['register'];
 
   private readonly parser: IExpressionParser;
@@ -339,7 +339,7 @@ export class LetElementRenderer implements IInstructionRenderer {
 @instructionRenderer(TargetedInstructionType.callBinding)
 /** @internal */
 export class CallBindingRenderer implements IInstructionRenderer {
-  public static readonly inject: InjectArray = [IExpressionParser, IObserverLocator];
+  public static readonly inject: readonly Key[] = [IExpressionParser, IObserverLocator];
   public static readonly register: IRegistry['register'];
 
   private readonly parser: IExpressionParser;
@@ -362,7 +362,7 @@ export class CallBindingRenderer implements IInstructionRenderer {
 @instructionRenderer(TargetedInstructionType.refBinding)
 /** @internal */
 export class RefBindingRenderer implements IInstructionRenderer {
-  public static readonly inject: InjectArray = [IExpressionParser];
+  public static readonly inject: readonly Key[] = [IExpressionParser];
   public static readonly register: IRegistry['register'];
 
   private readonly parser: IExpressionParser;
@@ -383,7 +383,7 @@ export class RefBindingRenderer implements IInstructionRenderer {
 @instructionRenderer(TargetedInstructionType.interpolation)
 /** @internal */
 export class InterpolationBindingRenderer implements IInstructionRenderer {
-  public static readonly inject: InjectArray = [IExpressionParser, IObserverLocator];
+  public static readonly inject: readonly Key[] = [IExpressionParser, IObserverLocator];
   public static readonly register: IRegistry['register'];
 
   private readonly parser: IExpressionParser;
@@ -411,7 +411,7 @@ export class InterpolationBindingRenderer implements IInstructionRenderer {
 @instructionRenderer(TargetedInstructionType.propertyBinding)
 /** @internal */
 export class PropertyBindingRenderer implements IInstructionRenderer {
-  public static readonly inject: InjectArray = [IExpressionParser, IObserverLocator];
+  public static readonly inject: readonly Key[] = [IExpressionParser, IObserverLocator];
   public static readonly register: IRegistry['register'];
 
   private readonly parser: IExpressionParser;
@@ -434,7 +434,7 @@ export class PropertyBindingRenderer implements IInstructionRenderer {
 @instructionRenderer(TargetedInstructionType.iteratorBinding)
 /** @internal */
 export class IteratorBindingRenderer implements IInstructionRenderer {
-  public static readonly inject: InjectArray = [IExpressionParser, IObserverLocator];
+  public static readonly inject: readonly Key[] = [IExpressionParser, IObserverLocator];
   public static readonly register: IRegistry['register'];
 
   private readonly parser: IExpressionParser;

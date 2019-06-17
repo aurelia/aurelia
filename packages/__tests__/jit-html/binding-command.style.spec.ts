@@ -1,8 +1,20 @@
-import { Constructable } from '@aurelia/kernel';
+import { PLATFORM, Constructable } from '@aurelia/kernel';
 import { Aurelia, CustomElementResource, ILifecycle, LifecycleFlags } from '@aurelia/runtime';
 import { IEventManager } from '@aurelia/runtime-html';
 import { BasicConfiguration } from '@aurelia/jit-html';
 import { TestContext, eachCartesianJoin, assert } from '@aurelia/testing';
+
+// Remove certain defaults/fallbacks which are added by certain browsers to allow the assertion to pass
+function getNormalizedStyle(el: HTMLElement, ruleName: string): string {
+  const styleString = el.style.getPropertyValue(ruleName);
+  switch (ruleName) {
+    case 'background':
+      // FireFox adds this
+      return styleString.replace(' none repeat scroll 0% 0%', '');
+    default:
+      return styleString;
+  }
+}
 
 // TemplateCompiler - Binding Commands integration
 describe('template-compiler.binding-commands.style', () => {
@@ -14,10 +26,20 @@ describe('template-compiler.binding-commands.style', () => {
     ['background-color', 'red', ''],
     ['font-size', '10px', ''],
     ['font-family', 'Arial', ''],
-    ['-webkit-user-select', 'none', ''],
-    ['--customprop', 'red', ''],
+    ...(
+      // For tests that only work in the browser, only run them in the browser
+      PLATFORM.isBrowserLike
+        ? [
+          ['-webkit-user-select', 'none', ''],
+          ['--customprop', 'red', ''],
+          ['--custumprop', 'nah!important', ''],
+        ] as [string, string, string][]
+        : [
+
+        ]
+    )
+    ,
     ['background', 'red!important', ''],
-    ['--custumprop', 'nah!important', ''],
     // non happy path
     ['-webkit-user-select', 'of course', '', true, ''],
   ];
@@ -47,7 +69,7 @@ describe('template-compiler.binding-commands.style', () => {
         for (let i = 0, ii = childEls.length; ii > i; ++i) {
           const child = childEls[i];
           assert.strictEqual(
-            child.style.getPropertyValue(ruleName),
+            getNormalizedStyle(child, ruleName),
             isInvalid ? valueOnInvalid : ruleValueNoPriority,
             `[${ruleName}]component.value="${ruleValue}" 1`
           );
@@ -62,7 +84,7 @@ describe('template-compiler.binding-commands.style', () => {
 
         for (let i = 0, ii = childEls.length; ii > i; ++i) {
           const child = childEls[i];
-          assert.strictEqual(child.style.getPropertyValue(ruleName), ruleDefaultValue, `[${ruleName}]component.value="" 1`);
+          assert.strictEqual(getNormalizedStyle(child, ruleName), ruleDefaultValue, `[${ruleName}]component.value="" 1`);
           if (hasImportant) {
             assert.strictEqual(
               child.style.getPropertyPriority(ruleName),
@@ -79,7 +101,7 @@ describe('template-compiler.binding-commands.style', () => {
         for (let i = 0, ii = childEls.length; ii > i; ++i) {
           const child = childEls[i];
           assert.strictEqual(
-            child.style.getPropertyValue(ruleName),
+            getNormalizedStyle(child, ruleName),
             isInvalid ? valueOnInvalid : ruleValueNoPriority,
             `[${ruleName}]component.value="${ruleValue}" 2`
           );
@@ -152,7 +174,7 @@ describe('template-compiler.binding-commands.style', () => {
           for (let i = 0; ii > i; ++i) {
             const el = els[i];
             assert.strictEqual(
-              el.style.getPropertyValue(ruleName),
+              getNormalizedStyle(el, ruleName),
               isInvalid ? valueOnInvalid : ruleValueNoPriority,
               `[${ruleName}]vm.value="${ruleValue}" 1`
             );
@@ -171,7 +193,7 @@ describe('template-compiler.binding-commands.style', () => {
 
           for (let i = 0; ii > i; ++i) {
             const el = els[i];
-            assert.strictEqual(el.style.getPropertyValue(ruleName), ruleDefaultValue, `[${ruleName}]vm.value="" 2`);
+            assert.strictEqual(getNormalizedStyle(el, ruleName), ruleDefaultValue, `[${ruleName}]vm.value="" 2`);
             if (hasImportant) {
               assert.strictEqual(
                 el.style.getPropertyPriority(ruleName),
@@ -188,7 +210,7 @@ describe('template-compiler.binding-commands.style', () => {
           for (let i = 0; ii > i; ++i) {
             const el = els[i];
             assert.strictEqual(
-              el.style.getPropertyValue(ruleName),
+              getNormalizedStyle(el, ruleName),
               isInvalid ? valueOnInvalid : ruleValueNoPriority,
               `[${ruleName}]vm.value="${ruleValue}" 3`
             );
@@ -207,7 +229,7 @@ describe('template-compiler.binding-commands.style', () => {
 
           for (let i = 0; ii > i; ++i) {
             const el = els[i];
-            assert.strictEqual(el.style.getPropertyValue(ruleName), ruleDefaultValue, `[${ruleName}]vm.value="" 4`);
+            assert.strictEqual(getNormalizedStyle(el, ruleName), ruleDefaultValue, `[${ruleName}]vm.value="" 4`);
             if (hasImportant) {
               assert.strictEqual(
                 el.style.getPropertyPriority(ruleName),

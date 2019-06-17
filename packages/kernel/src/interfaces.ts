@@ -72,7 +72,7 @@ export type Constructable<T = {}> = {
   new(...args: any[]): T;
 };
 
-export type Class<T, C = IIndexable> = C & {
+export type Class<T, C = {}> = C & {
   readonly prototype: T;
   new(...args: any[]): T;
 };
@@ -81,18 +81,16 @@ export type Class<T, C = IIndexable> = C & {
 // with a separate type from Class, since that one is used for other things where this constructor property
 // would break the typings.
 // So, in lack of a better name.. we probably need to clean this up, but this is how it works for now.
-export type ConstructableClass<T, C = IIndexable> = C & {
+export type ConstructableClass<T, C = {}> = C & {
   readonly prototype: T & { constructor: C };
   new(...args: any[]): T & { constructor: C };
 };
 
-export type InterfaceSymbol<T = any> = (target: Injectable<T>, property: string, index: number) => Injectable<T>;
-
-export type InjectArray = ReadonlyArray<InterfaceSymbol | Constructable | string>;
-
-export type Injectable<T = {}> = Constructable<T> & { inject?: (InterfaceSymbol<any> | Constructable)[] };
-
-export type IIndexable<T extends object = object> = T & { [key: string]: unknown };
+export type IIndexable<
+  TBase extends {} = {},
+  TValue = unknown,
+  TKey extends PropertyKey = Exclude<PropertyKey, keyof TBase>,
+> = { [K in TKey]: TValue } & TBase;
 
 export type Writable<T> = {
   -readonly [K in keyof T]: T[K]
@@ -155,7 +153,7 @@ export type Pick3<T, K1 extends keyof T, K2 extends keyof T[K1], K3 extends keyo
   [P1 in K1]: { [P2 in K2]: { [P3 in K3]: ((T[K1])[K2])[P3] } }
 };
 
-export type Primitive = undefined | null | number | boolean | string | symbol | bigint;
+export type Primitive = undefined | null | number | boolean | string | symbol;
 
 // https://github.com/palantir/tslint/issues/4235
 // tslint:disable:no-shadowed-variable
@@ -168,7 +166,7 @@ export type Unwrap<T> =
 
 export type StrictPrimitive = string | number | boolean | null | undefined;
 
-export type IfEquals<X, Y, A=X, B=never> =
+export type IfEquals<X, Y, A = X, B = never> =
   (<T>() => T extends X ? 1 : 2) extends
   (<T>() => T extends Y ? 1 : 2) ? A : B;
 

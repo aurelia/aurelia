@@ -33,7 +33,7 @@
     "rimraf": "latest",
     "style-loader": "latest",
     "ts-loader": "latest",
-    "typescript": "~3.3.4000",
+    "typescript": "latest",
     "webpack": "latest",
     "webpack-cli": "latest",
     "webpack-dev-server": "latest"

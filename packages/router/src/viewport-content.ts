@@ -1,4 +1,4 @@
-import { IContainer, Reporter } from '@aurelia/kernel';
+import { IContainer, Reporter, Constructable } from '@aurelia/kernel';
 import { CustomElementResource, ICustomElementType, INode, IRenderContext, IViewModel, LifecycleFlags, IController, Controller } from '@aurelia/runtime';
 import { INavigationInstruction } from './history-browser';
 import { mergeParameters } from './parser';
@@ -263,9 +263,9 @@ export class ViewportContent {
       return this.content;
     } else {
       const container = context.get(IContainer);
-      const resolver = container.getResolver(CustomElementResource.keyFrom(this.content));
+      const resolver = container.getResolver<Constructable & IRouteableCustomElementType>(CustomElementResource.keyFrom(this.content));
       if (resolver !== null) {
-        return resolver.getFactory(container).Type as IRouteableCustomElementType;
+        return resolver.getFactory(container).Type;
       }
       return null;
     }

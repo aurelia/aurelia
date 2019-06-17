@@ -1,4 +1,4 @@
-import { InjectArray, InterfaceSymbol, IRegistry, Tracer } from '@aurelia/kernel';
+import { Key, InterfaceSymbol, IRegistry, Tracer } from '@aurelia/kernel';
 import {
   addBinding,
   Binding,
@@ -33,7 +33,7 @@ const slice = Array.prototype.slice;
 @instructionRenderer(HTMLTargetedInstructionType.textBinding)
 /** @internal */
 export class TextBindingRenderer implements IInstructionRenderer {
-  public static readonly inject: InjectArray = [IExpressionParser, IObserverLocator];
+  public static readonly inject: readonly Key[] = [IExpressionParser, IObserverLocator];
   public static readonly register: IRegistry['register'];
 
   private readonly parser: IExpressionParser;
@@ -65,7 +65,7 @@ export class TextBindingRenderer implements IInstructionRenderer {
 @instructionRenderer(HTMLTargetedInstructionType.listenerBinding)
 /** @internal */
 export class ListenerBindingRenderer implements IInstructionRenderer {
-  public static readonly inject: InjectArray = [IExpressionParser, IEventManager];
+  public static readonly inject: readonly Key[] = [IExpressionParser, IEventManager];
   public static readonly register: IRegistry['register'];
 
   private readonly parser: IExpressionParser;
@@ -100,7 +100,7 @@ export class SetAttributeRenderer implements IInstructionRenderer {
 @instructionRenderer(HTMLTargetedInstructionType.stylePropertyBinding)
 /** @internal */
 export class StylePropertyBindingRenderer implements IInstructionRenderer {
-  public static readonly inject: InjectArray = [IExpressionParser, IObserverLocator];
+  public static readonly inject: readonly Key[] = [IExpressionParser, IObserverLocator];
   public static readonly register: IRegistry['register'];
 
   private readonly parser: IExpressionParser;

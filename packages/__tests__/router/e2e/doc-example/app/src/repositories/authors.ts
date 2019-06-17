@@ -1,4 +1,4 @@
-import { inject } from '@aurelia//kernel';
+import { inject } from '@aurelia/kernel';
 import { BooksRepository } from '../repositories/books';
 
 @inject(BooksRepository)

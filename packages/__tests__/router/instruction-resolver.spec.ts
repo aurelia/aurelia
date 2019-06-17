@@ -4,7 +4,8 @@ import { Router, ViewportCustomElement, ViewportInstruction } from '@aurelia/rou
 import { MockBrowserHistoryLocation, TestContext, HTMLTestContext, assert } from '@aurelia/testing';
 
 describe('InstructionResolver', function () {
-  const setup = async (): Promise<{ au; container; host; router }> => {
+  async function setup() {
+    const ctx = TestContext.createHTMLTestContext();
     const container = ctx.container;
 
     const App = CustomElementResource.define({ name: 'app', template: '<template><au-viewport name="left"></au-viewport><au-viewport name="right"></au-viewport></template>' });
@@ -20,36 +21,33 @@ describe('InstructionResolver', function () {
     const host = ctx.doc.createElement('div');
     ctx.doc.body.appendChild(host);
 
-    const au = window['au'] = new Aurelia(container)
+    const au = ctx.wnd['au'] = new Aurelia(container)
       .register(DebugConfiguration)
-      .app({ host: host, component: App })
-      .start();
+      .app({ host: host, component: App });
+
+    await au.start().wait();
+
+    async function tearDown() {
+      await au.stop().wait();
+      ctx.doc.body.removeChild(host);
+      router.deactivate();
+    };
 
     await router.activate();
-    return { au, container, host, router };
+
+    return { au, container, host, router, tearDown, ctx };
   };
-
-  const teardown = async (host, router) => {
-    ctx.doc.body.removeChild(host);
-    router.deactivate();
-  };
-
-  let ctx: HTMLTestContext;
-
-  beforeEach(function () {
-    ctx = TestContext.createHTMLTestContext();
-  });
 
   this.timeout(5000);
   it('can be created', async function () {
-    const { host, router } = await setup();
+    const { router, tearDown } = await setup();
     await waitForNavigation(router);
 
-    await teardown(host, router);
+    await tearDown();
   });
 
   it('handles state strings', async function () {
-    const { host, router } = await setup();
+    const { host, router, tearDown } = await setup();
     await waitForNavigation(router);
 
     let instructions: ViewportInstruction[] = [
@@ -71,7 +69,7 @@ describe('InstructionResolver', function () {
     newInstructions = router.instructionResolver.parseViewportInstructions(instructionsString);
     assert.deepStrictEqual(newInstructions, instructions, `newInstructions`);
 
-    await teardown(host, router);
+    await tearDown();
   });
 
   interface InstructionTest {
@@ -92,7 +90,7 @@ describe('InstructionResolver', function () {
     const { instruction, viewportInstruction } = instructionTest;
 
     it(`parses viewport instruction: ${instruction}`, async function () {
-      const { host, router } = await setup();
+      const { host, router, tearDown } = await setup();
       await waitForNavigation(router);
 
       const parsed = router.instructionResolver.parseViewportInstruction(instruction);
@@ -100,7 +98,7 @@ describe('InstructionResolver', function () {
       const newInstruction = router.instructionResolver.stringifyViewportInstruction(parsed);
       assert.strictEqual(newInstruction, instruction, `newInstruction`);
 
-      await teardown(host, router);
+      await tearDown();
     });
   }
 });

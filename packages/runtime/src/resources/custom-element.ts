@@ -107,7 +107,7 @@ function define<T extends Constructable = Constructable>(this: ICustomElementRes
   return Type;
 }
 
-export const CustomElementResource = {
+export const CustomElementResource: ICustomElementResource = {
   name: customElementName,
   keyFrom: customElementKey,
   isType,

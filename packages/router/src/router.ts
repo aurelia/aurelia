@@ -1,4 +1,4 @@
-import { DI, IContainer, InjectArray, Reporter } from '@aurelia/kernel';
+import { DI, IContainer, Key, Reporter } from '@aurelia/kernel';
 import { Aurelia, ICustomElementType, IRenderContext } from '@aurelia/runtime';
 import { HistoryBrowser, IHistoryOptions, INavigationInstruction } from './history-browser';
 import { InstructionResolver, IRouteSeparators } from './instruction-resolver';
@@ -62,7 +62,7 @@ export interface IRouter {
 export const IRouter = DI.createInterface<IRouter>('IRouter').withDefault(x => x.singleton(Router));
 
 export class Router implements IRouter {
-  public static readonly inject: InjectArray = [IContainer, IRouteTransformer, HistoryBrowser, LinkHandler, InstructionResolver];
+  public static readonly inject: readonly Key[] = [IContainer, IRouteTransformer, HistoryBrowser, LinkHandler, InstructionResolver];
 
   public readonly container: IContainer;
 

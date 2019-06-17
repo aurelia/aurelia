@@ -59,7 +59,7 @@ export function customAttribute(definition: IAttributeDefinition): CustomAttribu
 export function customAttribute(name: string): CustomAttributeDecorator;
 export function customAttribute(nameOrDefinition: string | IAttributeDefinition): CustomAttributeDecorator;
 export function customAttribute(nameOrDefinition: string | IAttributeDefinition): CustomAttributeDecorator {
-  return target => CustomAttributeResource.define(nameOrDefinition, target);
+  return target => CustomAttributeResource.define(nameOrDefinition, target) as any; // TODO: fix this at some point
 }
 
 /**
@@ -75,7 +75,7 @@ export function templateController(nameOrDefinition: string | Omit<IAttributeDef
     typeof nameOrDefinition === 'string'
     ? { isTemplateController: true , name: nameOrDefinition }
     : { isTemplateController: true, ...nameOrDefinition },
-    target);
+    target) as any; // TODO: fix this at some point
 }
 
 type HasDynamicOptions = Pick<IAttributeDefinition, 'hasDynamicOptions'>;
@@ -109,14 +109,14 @@ function define<T extends Constructable = Constructable>(this: ICustomAttributeR
   const WritableType = Type as T & Writable<ICustomAttributeType<T>>;
   const description = createCustomAttributeDescription(typeof nameOrDefinition === 'string' ? { name: nameOrDefinition } : nameOrDefinition, Type);
 
-  WritableType.kind = CustomAttributeResource as ICustomAttributeResource;
+  WritableType.kind = CustomAttributeResource;
   WritableType.description = description;
   Type.register = registerAttribute;
 
   return Type;
 }
 
-export const CustomAttributeResource = {
+export const CustomAttributeResource: ICustomAttributeResource = {
   name: customAttributeName,
   keyFrom: customAttributeKey,
   isType,

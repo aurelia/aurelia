@@ -193,7 +193,7 @@ function expectedException(
       ) {
         continue;
       }
-      compareExceptionKey(actual, expected, key, msg, keys);
+      compareExceptionKey(actual as IIndexable, expected as IIndexable, key, msg, keys);
     }
     return true;
   }

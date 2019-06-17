@@ -39,7 +39,7 @@ export class MultiInterpolationBinding implements IBinding {
   constructor(
     observerLocator: IObserverLocator,
     interpolation: IInterpolationExpression,
-    target: IObservable,
+    target: object,
     targetProperty: string,
     mode: BindingMode,
     locator: IServiceLocator,
@@ -51,7 +51,7 @@ export class MultiInterpolationBinding implements IBinding {
     this.locator = locator;
     this.mode = mode;
     this.observerLocator = observerLocator;
-    this.target = target;
+    this.target = target as IObservable;
     this.targetProperty = targetProperty;
 
     // Note: the child expressions of an Interpolation expression are full Aurelia expressions, meaning they may include
@@ -117,7 +117,7 @@ export class InterpolationBinding implements IPartialConnectableBinding {
   constructor(
     sourceExpression: IExpression,
     interpolation: IInterpolationExpression,
-    target: IObservable,
+    target: object,
     targetProperty: string,
     mode: BindingMode,
     observerLocator: IObserverLocator,
@@ -133,7 +133,7 @@ export class InterpolationBinding implements IPartialConnectableBinding {
     this.locator = locator;
     this.observerLocator = observerLocator;
     this.sourceExpression = sourceExpression;
-    this.target = target;
+    this.target = target as IObservable;
     this.targetProperty = targetProperty;
 
     this.targetObserver = observerLocator.getAccessor(LifecycleFlags.none, target, targetProperty);

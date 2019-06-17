@@ -1,4 +1,4 @@
-// import { InjectArray } from '@aurelia/kernel';
+// import { Key } from '@aurelia/kernel';
 // import { Aurelia, CustomElementResource as CE, IViewModel, INode, LifecycleFlags as LF } from '@aurelia/runtime';
 // import { TestContext, eachCartesianJoin } from '@aurelia/testing';
 
@@ -153,7 +153,7 @@
 //                       ]
 //                     },
 //                     class {
-//                       public static readonly inject: InjectArray = [INode];
+//                       public static readonly inject: readonly Key[] = [INode];
 //                       public thing: IThing;
 //                       constructor(public el: Element) {
 //                         this.thing = thing1;
@@ -188,7 +188,7 @@
 //                 ]
 //               },
 //               class {
-//                 public static readonly inject: InjectArray = [INode];
+//                 public static readonly inject: readonly Key[] = [INode];
 //                 constructor(public el: Element) {}
 //               }
 //             );

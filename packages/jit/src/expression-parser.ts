@@ -986,7 +986,7 @@ const unexpectedCharacter: CharScanner = s => {
 unexpectedCharacter.notMapped = true;
 
 // ASCII IdentifierPart lookup
-const AsciiIdParts = new Set();
+const AsciiIdParts = new Set<number>();
 decompress(null, AsciiIdParts, codes.AsciiIdPart, true);
 
 // IdentifierPart lookup

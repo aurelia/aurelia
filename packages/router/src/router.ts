@@ -1,4 +1,4 @@
-import { DI, IContainer, InjectArray, Reporter } from '@aurelia/kernel';
+import { DI, IContainer, Key, Reporter } from '@aurelia/kernel';
 import { Aurelia, ICustomElementType, IRenderContext } from '@aurelia/runtime';
 import { BrowserNavigation, INavigationViewerEvent } from './browser-navigation';
 import { InstructionResolver, IRouteSeparators } from './instruction-resolver';
@@ -63,7 +63,7 @@ export interface IRouter {
 export const IRouter = DI.createInterface<IRouter>('IRouter').withDefault(x => x.singleton(Router));
 
 export class Router implements IRouter {
-  public static readonly inject: InjectArray = [IContainer, Navigator, BrowserNavigation, IRouteTransformer, LinkHandler, InstructionResolver];
+  public static readonly inject: readonly Key[] = [IContainer, Navigator, BrowserNavigation, IRouteTransformer, LinkHandler, InstructionResolver];
 
   public readonly container: IContainer;
 
@@ -438,8 +438,8 @@ export class Router implements IRouter {
 
   private ensureRootScope(): void {
     if (!this.rootScope) {
-      const root = this.container.get(Aurelia).root();
-      this.rootScope = new Scope(this, root.$host as Element, root.$context, null);
+      const root = this.container.get(Aurelia).root;
+      this.rootScope = new Scope(this, root.host as Element, root.controller.context, null);
       this.scopes.push(this.rootScope);
     }
   }

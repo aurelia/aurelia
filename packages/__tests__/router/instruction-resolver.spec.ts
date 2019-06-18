@@ -1,7 +1,7 @@
 import { BasicConfiguration } from '@aurelia/jit-html-browser';
 import { DebugConfiguration } from '@aurelia/debug';
 import { Aurelia, CustomElementResource } from '@aurelia/runtime';
-import { Router, ViewportCustomElement, ViewportInstruction } from '@aurelia/router';
+import { Router, RouterConfiguration, ViewportCustomElement, ViewportInstruction } from '@aurelia/router';
 import { MockBrowserHistoryLocation, TestContext, HTMLTestContext, assert } from '@aurelia/testing';
 
 describe('InstructionResolver', function () {

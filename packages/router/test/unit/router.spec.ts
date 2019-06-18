@@ -57,8 +57,8 @@ describe('Router', function () {
     await goto('bar@right', router);
     expect(host.textContent).to.contain('Viewport: bar');
     await goto('-', router);
-    expect(host.textContent).to.not.contain('Viewport foo');
-    expect(host.textContent).to.not.contain('Viewport bar');
+    expect(host.textContent).to.not.contain('Viewport: foo');
+    expect(host.textContent).to.not.contain('Viewport: bar');
 
     await teardown(host, router, 1);
   });

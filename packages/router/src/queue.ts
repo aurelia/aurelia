@@ -86,18 +86,14 @@ export class Queue<T> {
     if (this.processing !== null) {
       return;
     }
-    if (!this.pending.length) {
+    if (delta !== undefined) {
       this.unticked = 0;
+    }
+    if (!this.pending.length) {
       return;
     }
-    if (this.tickLimit !== null) {
-      if (delta === undefined) {
-        if (this.unticked + this.pending[0].cost > this.tickLimit) {
-          return;
-        }
-      } else {
-        this.unticked = 0;
-      }
+    if (this.tickLimit !== null && delta === undefined && this.unticked + this.pending[0].cost > this.tickLimit) {
+      return;
     }
     this.processing = this.pending.shift();
     this.unticked += this.processing.cost;

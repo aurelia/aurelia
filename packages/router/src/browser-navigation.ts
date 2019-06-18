@@ -1,5 +1,6 @@
 import { Key, Reporter } from '@aurelia/kernel';
 import { ILifecycle } from '@aurelia/runtime';
+import { DOM } from '@aurelia/runtime-html';
 import { IStoredNavigationEntry } from './navigator';
 import { Queue, QueueItem } from './queue';
 
@@ -66,9 +67,9 @@ export class BrowserNavigation implements INavigationStore, INavigationViewer {
   ) {
     this.lifecycle = lifecycle;
 
-    this.window = window;
-    this.history = window.history;
-    this.location = window.location;
+    this.window = DOM.window;
+    this.history = DOM.window.history;
+    this.location = DOM.window.location;
     this.useHash = true;
     this.allowedNoOfExecsWithinTick = 2;
     this.pendingCalls = new Queue<Call>(this.processCalls);
@@ -202,6 +203,7 @@ export class BrowserNavigation implements INavigationStore, INavigationViewer {
     costs.push(1);
 
     promises.push(this.pendingCalls.enqueue(calls, costs)[0]);
+    // console.log('pendingCalls', this.pendingCalls.length, calls, this.pendingCalls);
     return promises[0];
   }
 

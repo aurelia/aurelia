@@ -1,6 +1,6 @@
-import { Reporter, Key } from '@aurelia/kernel';
-import { QueuedBrowserHistory } from './queued-browser-history';
+import { Key, Reporter } from '@aurelia/kernel';
 import { ILifecycle } from '@aurelia/runtime';
+import { QueuedBrowserHistory } from './queued-browser-history';
 export interface IHistoryEntry {
   path: string;
   fullStatePath?: string;

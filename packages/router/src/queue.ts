@@ -1,5 +1,4 @@
-import { PLATFORM, Reporter } from '@aurelia/kernel';
-import { Priority, ILifecycle } from '@aurelia/runtime';
+import { ILifecycle, Priority } from '@aurelia/runtime';
 
 export interface QueueItem<T> {
   resolve?: ((value?: void | PromiseLike<void>) => void);

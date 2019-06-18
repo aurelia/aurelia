@@ -330,7 +330,7 @@ export class Router implements IRouter {
         this.addedViewports.push(new ViewportInstruction(componentOrInstruction, viewport));
       }
     } else if (this.lastNavigation) {
-      this.navigator.navigate({ instruction: '', fullStateInstruction: '', repeating: true });
+      this.navigator.navigate({ instruction: '', fullStateInstruction: '', repeating: true }).catch(error => { throw error; });
       // Don't wait for the (possibly slow) navigation
     }
   }

@@ -42,14 +42,12 @@ describe('InstructionResolver', function () {
   this.timeout(5000);
   it('can be created', async function () {
     const { router, tearDown } = await setup();
-    await waitForNavigation(router);
 
     await tearDown();
   });
 
   it('handles state strings', async function () {
     const { host, router, tearDown } = await setup();
-    await waitForNavigation(router);
 
     let instructions: ViewportInstruction[] = [
       new ViewportInstruction('foo', 'left', '123'),
@@ -92,7 +90,6 @@ describe('InstructionResolver', function () {
 
     it(`parses viewport instruction: ${instruction}`, async function () {
       const { host, router, tearDown } = await setup();
-      await waitForNavigation(router);
 
       const parsed = router.instructionResolver.parseViewportInstruction(instruction);
       assert.deepStrictEqual(parsed, viewportInstruction, `parsed`);

@@ -118,8 +118,6 @@ describe('Router', function () {
 
     const { router, tearDown } = await setup();
 
-    await waitForNavigation(router);
-
     await tearDown();
   });
 
@@ -127,9 +125,10 @@ describe('Router', function () {
     this.timeout(5000);
 
     const { lifecycle, host, router, tearDown } = await setup();
-    await waitForNavigation(router);
+
     assert.includes(host.textContent, 'left', `host.textContent`);
     assert.includes(host.textContent, 'right', `host.textContent`);
+
     await tearDown();
   });
 
@@ -198,7 +197,7 @@ describe('Router', function () {
     assert.strictEqual(router.navigation.history.length, historyLength + 1, `router.navigation.history.length`);
 
     await router.replace('bar@left');
-    await waitForNavigation(router);
+
     assert.includes(host.textContent, 'bar', `host.textContent`);
     assert.strictEqual(router.navigation.history.length, historyLength + 1, `router.navigation.history.length`);
 
@@ -266,12 +265,12 @@ describe('Router', function () {
     assert.includes(host.textContent, 'Viewport: bar', `host.textContent`);
 
     await router.back();
-    await waitForNavigation(router);
+
     assert.includes(host.textContent, 'Viewport: foo', `host.textContent`);
     assert.notIncludes(host.textContent, 'Viewport: bar', `host.textContent`);
 
     await router.forward();
-    await waitForNavigation(router);
+
     assert.notIncludes(host.textContent, 'Viewport: foo', `host.textContent`);
     assert.includes(host.textContent, 'Viewport: bar', `host.textContent`);
 
@@ -292,12 +291,12 @@ describe('Router', function () {
     assert.includes(host.textContent, 'Viewport: bar', `host.textContent`);
 
     await router.back();
-    await waitForNavigation(router);
+
     assert.includes(host.textContent, 'Viewport: foo', `host.textContent`);
     assert.notIncludes(host.textContent, 'Viewport: bar', `host.textContent`);
 
     await router.forward();
-    await waitForNavigation(router);
+
     assert.includes(host.textContent, 'Viewport: foo', `host.textContent`);
     assert.includes(host.textContent, 'Viewport: bar', `host.textContent`);
 
@@ -998,7 +997,6 @@ let plughReentryBehavior = 'default';
 const $goto = async (path: string, router: Router, lifecycle: ILifecycle) => {
   await router.goto(path);
   lifecycle.processRAFQueue(LifecycleFlags.none);
-  // await waitForNavigation(router);
 }
 
 const wait = async (time = 500) => {

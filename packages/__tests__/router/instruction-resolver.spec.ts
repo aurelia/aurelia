@@ -125,21 +125,3 @@ const setup = async (): Promise<{ au; container; host; router }> => {
   await router.activate();
   return { au, container, host, router };
 };
-
-const teardown = async (host, router) => {
-  document.body.removeChild(host);
-  router.deactivate();
-};
-
-const wait = async (time = 500) => {
-  await new Promise((resolve) => {
-    setTimeout(resolve, time);
-  });
-};
-
-const waitForNavigation = async (router) => {
-  let guard = 100;
-  while (router.processingNavigation && guard--) {
-    await wait(100);
-  }
-};

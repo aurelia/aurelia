@@ -203,7 +203,6 @@ export class BrowserNavigation implements INavigationStore, INavigationViewer {
     costs.push(1);
 
     promises.push(this.pendingCalls.enqueue(calls, costs)[0]);
-    // console.log('pendingCalls', this.pendingCalls.length, calls, this.pendingCalls);
     return promises[0];
   }
 

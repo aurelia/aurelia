@@ -111,10 +111,11 @@ async function setup() {
   const host = ctx.createElement('div');
   ctx.doc.body.appendChild(host);
 
-  const au = window['au'] = new Aurelia(container)
+  const au = ctx.wnd['au'] = new Aurelia(container)
     .register(DebugConfiguration, RouterConfiguration)
-    .app({ host: host, component: App })
-    .start();
+    .app({ host: host, component: App });
+
+  await au.start().wait();
 
   const router = container.get(Router);
   const mockBrowserHistoryLocation = new MockBrowserHistoryLocation();

@@ -750,7 +750,7 @@ describe('Router', function () {
       ctx.doc.body.appendChild(host as any);
       const component = new App();
 
-      const au = new Aurelia(container);
+      const au = ctx.wnd['au'] = new Aurelia(container);
 
       au.app({ host, component });
       await au.start().wait();

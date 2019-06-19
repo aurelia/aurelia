@@ -218,7 +218,7 @@ export class Navigator {
     } else if (this.currentEntry.replacing) {
       this.entries[this.currentEntry.index] = this.toStorableEntry(this.currentEntry);
       await this.saveState();
-    } else {
+    } else { // New entry (add and discard later entries)
       this.entries = this.entries.slice(0, this.currentEntry.index);
       this.entries.push(this.toStorableEntry(this.currentEntry));
       await this.saveState(true);

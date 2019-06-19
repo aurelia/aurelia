@@ -1,6 +1,6 @@
 import { Key, Reporter } from '@aurelia/kernel';
-import { ILifecycle } from '@aurelia/runtime';
-import { DOM } from '@aurelia/runtime-html';
+import { IDOM, ILifecycle } from '@aurelia/runtime';
+import { HTMLDOM } from '@aurelia/runtime-html';
 import { IStoredNavigationEntry } from './navigator';
 import { Queue, QueueItem } from './queue';
 
@@ -45,7 +45,7 @@ interface ForwardedState {
   resolve?: ((value?: void | PromiseLike<void>) => void);
 }
 export class BrowserNavigation implements INavigationStore, INavigationViewer {
-  public static readonly inject: readonly Key[] = [ILifecycle];
+  public static readonly inject: readonly Key[] = [ILifecycle, IDOM];
 
   public readonly lifecycle: ILifecycle;
 
@@ -64,12 +64,13 @@ export class BrowserNavigation implements INavigationStore, INavigationViewer {
 
   constructor(
     lifecycle: ILifecycle,
+    dom: HTMLDOM
   ) {
     this.lifecycle = lifecycle;
 
-    this.window = DOM.window;
-    this.history = DOM.window.history;
-    this.location = DOM.window.location;
+    this.window = dom.window;
+    this.history = dom.window.history;
+    this.location = dom.window.location;
     this.useHash = true;
     this.allowedExecutionCostWithinTick = 2;
     this.pendingCalls = new Queue<Call>(this.processCalls);
@@ -202,6 +203,8 @@ export class BrowserNavigation implements INavigationStore, INavigationViewer {
     });
     costs.push(1);
 
+    // The first promise is the relevant one since it's either a) the propagated one (in
+    // case of a browser action), or b) the only one since there's only one call
     promises.push(this.pendingCalls.enqueue(calls, costs)[0]);
     return promises[0];
   }

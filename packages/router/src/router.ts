@@ -149,6 +149,7 @@ export class Router implements IRouter {
       const context = scope.scopeContext();
       href = this.instructionResolver.buildScopedLink(context, href);
     }
+    // Adds to Navigator's Queue, which makes sure it's serial
     this.goto(href).catch(error => { throw error; });
   }
 

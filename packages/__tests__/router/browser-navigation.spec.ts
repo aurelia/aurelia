@@ -33,6 +33,7 @@ describe('BrowserNavigation', function () {
 
   function setup() {
     const ctx = TestContext.createHTMLTestContext();
+    const { lifecycle, dom } = ctx;
     // const originalWnd = ctx.wnd;
 
     // const mockWnd = new MockWindow(originalWnd, originalWnd.history, originalWnd.location);
@@ -41,9 +42,8 @@ describe('BrowserNavigation', function () {
 
     // (DOM as Writable<typeof DOM>).window = mockWnd;
 
-    const lifecycle = DI.createContainer().get(ILifecycle);
     lifecycle.startTicking();
-    const sut = new BrowserNavigation(lifecycle);
+    const sut = new BrowserNavigation(lifecycle, dom);
     const mockBrowserHistoryLocation = new MockBrowserHistoryLocation();
     mockBrowserHistoryLocation.changeCallback = sut.handlePopstate;
     sut.history = mockBrowserHistoryLocation as any;

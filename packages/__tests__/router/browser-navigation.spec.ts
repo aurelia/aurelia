@@ -59,18 +59,18 @@ describe('BrowserNavigation', function () {
       callbackCount++;
     });
 
-    return { addEventListener, removeEventListener, sut, tearDown, callback, lifecycle };
+    return { sut, tearDown, callback, lifecycle };
   }
 
   it('can be created', function () {
-    const { sut, tearDown, addEventListener, callback } = setup();
+    const { sut, tearDown, callback } = setup();
 
     assert.notStrictEqual(sut, null, `sut`);
     tearDown();
   });
 
   it('can be activated', async function () {
-    const { sut, tearDown, addEventListener, callback } = setup();
+    const { sut, tearDown, callback } = setup();
 
     await sut.activate(callback);
 
@@ -83,7 +83,7 @@ describe('BrowserNavigation', function () {
   });
 
   it('can be deactivated', async function () {
-    const { sut, tearDown, addEventListener, removeEventListener, callback } = setup();
+    const { sut, tearDown, callback } = setup();
 
     await sut.activate(callback);
     assert.strictEqual(sut['isActive'], true, `sut.isActive`);
@@ -98,7 +98,7 @@ describe('BrowserNavigation', function () {
   });
 
   it('throws when activated while active', async function () {
-    const { sut, tearDown, addEventListener, callback } = setup();
+    const { sut, tearDown, callback } = setup();
 
     await sut.activate(callback);
     assert.strictEqual(sut['isActive'], true, `sut.isActive`);
@@ -117,7 +117,7 @@ describe('BrowserNavigation', function () {
   });
 
   it('suppresses popstate event callback', async function () {
-    const { sut, tearDown, addEventListener, callback } = setup();
+    const { sut, tearDown, callback } = setup();
 
     let counter = 0;
     await sut.activate(
@@ -142,7 +142,7 @@ describe('BrowserNavigation', function () {
   });
 
   it('queues consecutive calls', async function () {
-    const { sut, tearDown, addEventListener, callback } = setup();
+    const { sut, tearDown, callback } = setup();
 
     await sut.activate(callback);
     await wait();
@@ -163,7 +163,7 @@ describe('BrowserNavigation', function () {
   });
 
   it('awaits go', async function () {
-    const { sut, tearDown, addEventListener, callback } = setup();
+    const { sut, tearDown, callback } = setup();
 
     let counter = 0;
     await sut.activate(

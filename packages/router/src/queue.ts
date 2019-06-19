@@ -8,15 +8,15 @@ export interface QueueItem<T> {
 
 export interface IQueueOptions {
   lifecycle: ILifecycle;
-  tickLimit: number;
+  allowedExecutionCostWithinTick: number;
 }
 
 export class Queue<T> {
   public isActive: boolean;
   public readonly pending: QueueItem<T>[];
   public processing: QueueItem<T>;
-  public tickLimit: number;
-  public unticked: number;
+  public allowedExecutionCostWithinTick: number;
+  public currentExecutionCostInCurrentTick: number;
   private readonly callback: (item?: QueueItem<T>) => void;
   private lifecycle: ILifecycle;
 
@@ -24,8 +24,8 @@ export class Queue<T> {
     this.pending = [];
     this.processing = null;
     this.callback = callback;
-    this.tickLimit = null;
-    this.unticked = 0;
+    this.allowedExecutionCostWithinTick = null;
+    this.currentExecutionCostInCurrentTick = 0;
     this.isActive = false;
   }
 
@@ -39,7 +39,7 @@ export class Queue<T> {
     }
     this.isActive = true;
     this.lifecycle = options.lifecycle;
-    this.tickLimit = options.tickLimit;
+    this.allowedExecutionCostWithinTick = options.allowedExecutionCostWithinTick;
     this.lifecycle.enqueueRAF(this.dequeue, this, Priority.preempt);
   }
   public deactivate(): void {
@@ -47,7 +47,7 @@ export class Queue<T> {
       throw new Error('Queue has not been activated');
     }
     this.lifecycle.dequeueRAF(this.dequeue, this);
-    this.tickLimit = null;
+    this.allowedExecutionCostWithinTick = null;
     this.clear();
     this.isActive = false;
   }
@@ -89,16 +89,16 @@ export class Queue<T> {
       return;
     }
     if (delta !== undefined) {
-      this.unticked = 0;
+      this.currentExecutionCostInCurrentTick = 0;
     }
     if (!this.pending.length) {
       return;
     }
-    if (this.tickLimit !== null && delta === undefined && this.unticked + this.pending[0].cost > this.tickLimit) {
+    if (this.allowedExecutionCostWithinTick !== null && delta === undefined && this.currentExecutionCostInCurrentTick + this.pending[0].cost > this.allowedExecutionCostWithinTick) {
       return;
     }
     this.processing = this.pending.shift();
-    this.unticked += this.processing.cost;
+    this.currentExecutionCostInCurrentTick += this.processing.cost;
     this.callback(this.processing);
   }
 

@@ -75,7 +75,7 @@ describe('Queue', function () {
       await wait(100);
       qAnimal.resolve();
     });
-    q.activate({ tickLimit: 0, lifecycle });
+    q.activate({ allowedExecutionCostWithinTick: 0, lifecycle });
     let promise = q.enqueue(new Animal('dog', 'Pluto'));
     assert.strictEqual(q.pending.length, 1, `q.pending.length`);
     await wait(50);

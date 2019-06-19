@@ -54,7 +54,7 @@ export class BrowserNavigation implements INavigationStore, INavigationViewer {
   public location: Location;
 
   public useHash: boolean;
-  public allowedNoOfExecsWithinTick: number; // Limit no of executed actions within the same RAF (due to browser limitation)
+  public allowedExecutionCostWithinTick: number; // Limit no of executed actions within the same RAF (due to browser limitation)
 
   private readonly pendingCalls: Queue<Call>;
   private isActive: boolean;
@@ -71,7 +71,7 @@ export class BrowserNavigation implements INavigationStore, INavigationViewer {
     this.history = DOM.window.history;
     this.location = DOM.window.location;
     this.useHash = true;
-    this.allowedNoOfExecsWithinTick = 2;
+    this.allowedExecutionCostWithinTick = 2;
     this.pendingCalls = new Queue<Call>(this.processCalls);
     this.isActive = false;
     this.callback = null;
@@ -84,7 +84,7 @@ export class BrowserNavigation implements INavigationStore, INavigationViewer {
     }
     this.isActive = true;
     this.callback = callback;
-    this.pendingCalls.activate({ lifecycle: this.lifecycle, tickLimit: this.allowedNoOfExecsWithinTick });
+    this.pendingCalls.activate({ lifecycle: this.lifecycle, allowedExecutionCostWithinTick: this.allowedExecutionCostWithinTick });
     this.window.addEventListener('popstate', this.handlePopstate);
 
     return new Promise(resolve => {

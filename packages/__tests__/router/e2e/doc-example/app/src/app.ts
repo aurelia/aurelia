@@ -47,7 +47,7 @@ export class App {
     authorsRepository.authors(); // Only here to initialize repositories
   }
 
-  public bound() {
+  public binding() {
     this.router.activate({
       // transformFromUrl: (path, router) => {
       //   if (!path.length) {

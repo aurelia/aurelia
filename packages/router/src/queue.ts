@@ -11,6 +11,15 @@ export interface IQueueOptions {
   allowedExecutionCostWithinTick: number;
 }
 
+/**
+ * A first-in-first-out queue that only processes the next queued item
+ * when the current one has been resolved or rejected. Sends queued items
+ * one at a time to a specified callback function. The callback function
+ * should resolve or reject the queued item when processing is done.
+ * Enqueued items can be awaited. Enqueued items can specify an (arbitrary)
+ * execution cost and the queue can be set up (activated) to only process
+ * a specific amount of execution cost per RAF/tick.
+ */
 export class Queue<T> {
   public isActive: boolean;
   public readonly pending: QueueItem<T>[];

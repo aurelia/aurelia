@@ -93,7 +93,7 @@ export class Navigator {
   }
 
   public navigate(entry: INavigationEntry): Promise<void> {
-    return this.pendingNavigations.enqueue(entry) as Promise<void>;
+    return this.pendingNavigations.enqueue(entry);
   }
 
   public processNavigations = (qEntry: QueueItem<INavigationInstruction>): void => {

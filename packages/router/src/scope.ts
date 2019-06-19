@@ -16,36 +16,51 @@ export interface IFindViewportsResult {
 
 export type ChildContainer = IContainer & { parent?: ChildContainer };
 
-export class Scope {
-  public element: Element;
-  public context: IRenderContext | IContainer;
-  public parent: Scope;
 
-  public viewport: Viewport;
+/**
+ * @class BasicScope
+ */
+class BasicScope {
+
+  public children: BasicScope[] = [];
+
+  constructor(
+        protected readonly router: Router,
+        public element: Element,
+        public context: IRenderContext | IContainer,
+        public parent: BasicScope
+    ) {
+        if (parent) parent.addChild(this);
+    }
+    public addChild(child: BasicScope): void {
+        const idx = this.children.indexOf(child);
+        if (idx < 0) this.children.push(child);
+    }
+
+    public removeChild(child: BasicScope): void {
+        const idx = this.children.indexOf(child);
+        if (idx >= 0) this.children.splice(idx, 1);
+    }
+
+    public forEachChildDeep(func) {
+        for (const child of this.children) {
+            child.forEachChildDeep(func);
+        }
+    }
+
+}
+
+export class Scope extends BasicScope {
 
   public children: Scope[];
-  public viewports: Viewport[];
+  public parent: Scope;
 
-  private readonly router: Router;
+
+  public viewport: Viewport = null;
+  public viewports: Viewport[]  = [];
 
   private viewportInstructions: ViewportInstruction[];
-  private availableViewports: Record<string, Viewport>;
-
-  constructor(router: Router, element: Element, context: IRenderContext | IContainer, parent: Scope) {
-    this.router = router;
-    this.element = element;
-    this.context = context;
-    this.parent = parent;
-
-    this.viewport = null;
-    this.children = [];
-    this.viewports = [];
-    this.availableViewports = null;
-
-    if (this.parent) {
-      this.parent.addChild(this);
-    }
-  }
+  private availableViewports: Record<string, Viewport> = null;
 
   public getEnabledViewports(): Record<string, Viewport> {
     return this.viewports.filter((viewport) => viewport.enabled).reduce(
@@ -200,22 +215,8 @@ export class Scope {
   }
 
   public removeScope(): void {
-    for (const child of this.children) {
-      child.removeScope();
-    }
-    const viewports = this.getEnabledViewports();
-    for (const name in viewports) {
-      this.router.removeViewport(viewports[name], null, null);
-    }
-  }
-
-  public addChild(child: Scope): void {
-    if (this.children.indexOf(child) < 0) {
-      this.children.push(child);
-    }
-  }
-  public removeChild(child: Scope): void {
-    this.children.splice(this.children.indexOf(child), 1);
+    disableViewport(this);
+    this.forEachChildDeep(disableViewport);
   }
 
   public viewportStates(full: boolean = false, active: boolean = false): string[] {
@@ -270,4 +271,11 @@ export class Scope {
     }
     return null;
   }
+}
+
+function disableViewport(that) {
+    const viewports = that.getEnabledViewports();
+    for (const name in viewports) {
+      that.router.removeViewport(viewports[name], null, null);
+    }
 }

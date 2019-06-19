@@ -176,20 +176,20 @@ export class Navigator {
   }
 
   public saveState(push: boolean = false): Promise<void> {
-    const storedEntry = this.storableEntry(this.currentEntry);
+    const storedEntry = this.toStorableEntry(this.currentEntry);
     this.entries[storedEntry.index] = storedEntry;
     const state: INavigationState = {
       NavigationEntries: this.entries,
       NavigationEntry: storedEntry,
     };
     if (push) {
-      return this.options.store.push(state);
+      return this.options.store.pushNavigationState(state);
     } else {
-      return this.options.store.replace(state);
+      return this.options.store.replaceNavigationState(state);
     }
   }
 
-  public storableEntry(entry: INavigationInstruction): IStoredNavigationEntry {
+  public toStorableEntry(entry: INavigationInstruction): IStoredNavigationEntry {
     const {
       previous,
       fromBrowser,
@@ -210,17 +210,17 @@ export class Navigator {
     this.currentEntry = instruction;
     if (this.currentEntry.untracked) {
       if (instruction.fromBrowser) {
-        await this.options.store.pop();
+        await this.options.store.popNavigationState();
       }
       this.currentEntry.index--;
-      this.entries[this.currentEntry.index] = this.storableEntry(this.currentEntry);
+      this.entries[this.currentEntry.index] = this.toStorableEntry(this.currentEntry);
       await this.saveState();
     } else if (this.currentEntry.replacing) {
-      this.entries[this.currentEntry.index] = this.storableEntry(this.currentEntry);
+      this.entries[this.currentEntry.index] = this.toStorableEntry(this.currentEntry);
       await this.saveState();
     } else {
       this.entries = this.entries.slice(0, this.currentEntry.index);
-      this.entries.push(this.storableEntry(this.currentEntry));
+      this.entries.push(this.toStorableEntry(this.currentEntry));
       await this.saveState(true);
     }
     this.currentEntry.resolve();
@@ -229,7 +229,7 @@ export class Navigator {
   public async cancel(instruction: INavigationInstruction): Promise<void> {
     if (instruction.fromBrowser) {
       if (instruction.navigation.new) {
-        await this.options.store.pop();
+        await this.options.store.popNavigationState();
       } else {
         await this.options.store.go(-instruction.historyMovement, true);
       }
@@ -240,7 +240,7 @@ export class Navigator {
   private invokeCallback(entry: INavigationEntry, navigationFlags: INavigationFlags, previousEntry: INavigationEntry): void {
     const instruction: INavigationInstruction = { ...entry };
     instruction.navigation = navigationFlags;
-    instruction.previous = this.storableEntry(previousEntry);
+    instruction.previous = this.toStorableEntry(previousEntry);
     Reporter.write(10000, 'callback', instruction, instruction.previous, this.entries);
     if (this.options.callback) {
       this.options.callback(instruction);

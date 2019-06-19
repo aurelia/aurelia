@@ -52,6 +52,9 @@ export class Queue<T> {
     this.isActive = false;
   }
 
+  public enqueue(item: T, cost?: number): Promise<void>;
+  public enqueue(items: T[], cost?: number): Promise<void>[];
+  public enqueue(items: T[], costs?: number[]): Promise<void>[];
   public enqueue(itemOrItems: T | T[], costOrCosts?: number | number[]): Promise<void> | Promise<void>[] {
     const list = Array.isArray(itemOrItems);
     const items: T[] = list ? itemOrItems as T[] : [itemOrItems as T];

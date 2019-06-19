@@ -1,4 +1,3 @@
-import { BasicConfiguration } from '@aurelia/jit-html-browser';
 import { DebugConfiguration } from '@aurelia/debug';
 import { Aurelia, CustomElementResource } from '@aurelia/runtime';
 import { Router, RouterConfiguration, ViewportCustomElement, ViewportInstruction } from '@aurelia/router';
@@ -101,15 +100,16 @@ describe('InstructionResolver', function () {
   }
 });
 
-const setup = async (): Promise<{ au; container; host; router }> => {
-  const container = BasicConfiguration.createContainer();
+async function setup() {
+  const ctx = TestContext.createHTMLTestContext();
+  const { container } = ctx;
 
-  const App = (CustomElementResource as any).define({ name: 'app', template: '<template><au-viewport name="left"></au-viewport><au-viewport name="right"></au-viewport></template>' });
-  container.register(Router as any);
-  container.register(ViewportCustomElement as any);
+  const App = CustomElementResource.define({ name: 'app', template: '<template><au-viewport name="left"></au-viewport><au-viewport name="right"></au-viewport></template>' });
+  container.register(Router);
+  container.register(ViewportCustomElement);
 
-  const host = document.createElement('div');
-  document.body.appendChild(host as any);
+  const host = ctx.createElement('div');
+  ctx.doc.body.appendChild(host);
 
   const au = window['au'] = new Aurelia(container)
     .register(DebugConfiguration, RouterConfiguration)

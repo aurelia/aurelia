@@ -8,9 +8,9 @@ export interface INavigationStore {
   length: number;
   state: Record<string, unknown>;
   go(delta?: number, suppressPopstate?: boolean): Promise<void>;
-  push(state: INavigationState): Promise<void>;
-  replace(state: INavigationState): Promise<void>;
-  pop(): Promise<void>;
+  pushNavigationState(state: INavigationState): Promise<void>;
+  replaceNavigationState(state: INavigationState): Promise<void>;
+  popNavigationState(): Promise<void>;
 }
 
 export interface INavigationViewer {
@@ -54,7 +54,7 @@ export class BrowserNavigation implements INavigationStore, INavigationViewer {
   public location: Location;
 
   public useHash: boolean;
-  public allowedNoOfExecsWithinTick: number; // Limit no of executed actions within the same PLATFORM.Tick (due to browser limitation)
+  public allowedNoOfExecsWithinTick: number; // Limit no of executed actions within the same RAF (due to browser limitation)
 
   private readonly pendingCalls: Queue<Call>;
   private isActive: boolean;
@@ -117,17 +117,17 @@ export class BrowserNavigation implements INavigationStore, INavigationViewer {
     return this.enqueue(this.history, 'go', [delta], suppressPopstate);
   }
 
-  public push(state: INavigationState): Promise<void> {
+  public pushNavigationState(state: INavigationState): Promise<void> {
     const { title, path } = state.NavigationEntry;
     return this.enqueue(this.history, 'pushState', [state, title, `#${path}`]);
   }
 
-  public replace(state: INavigationState): Promise<void> {
+  public replaceNavigationState(state: INavigationState): Promise<void> {
     const { title, path } = state.NavigationEntry;
     return this.enqueue(this.history, 'replaceState', [state, title, `#${path}`]);
   }
 
-  public pop(): Promise<void> {
+  public popNavigationState(): Promise<void> {
     return this.enqueue(this, 'popState', []);
   }
 
@@ -158,7 +158,7 @@ export class BrowserNavigation implements INavigationStore, INavigationViewer {
     // TODO: Fix browser forward bug after pop on first entry
     if (state && state.navigationEntry && !state.NavigationEntry.firstEntry) {
       await this.go(-1, true);
-      return this.push(state);
+      return this.pushNavigationState(state);
     }
     resolve();
   }

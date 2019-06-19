@@ -126,9 +126,9 @@ describe('BrowserNavigation', function () {
         counter++;
       });
 
-    await sut.push(navigationState('one'));
+    await sut.pushNavigationState(toNavigationState('one'));
     assert.strictEqual(sut.history.state.NavigationEntry.instruction, 'one', `sut.history.state.NavigationEntry.instruction`);
-    await sut.push(navigationState('two'));
+    await sut.pushNavigationState(toNavigationState('two'));
     assert.strictEqual(sut.history.state.NavigationEntry.instruction, 'two', `sut.history.state.NavigationEntry.instruction`);
     await sut.go(-1, true);
     await Promise.resolve();
@@ -148,8 +148,8 @@ describe('BrowserNavigation', function () {
     await wait();
 
     const length = sut['pendingCalls'].length;
-    sut.push(navigationState('one')); // 1 item, cost 1
-    sut.replace(navigationState('two')); // 1 item, cost 1
+    sut.pushNavigationState(toNavigationState('one')); // 1 item, cost 1
+    sut.replaceNavigationState(toNavigationState('two')); // 1 item, cost 1
     sut.go(-1); // 2 items (forwardState + go), cost 0 + 1
     sut.go(1); // 2 items (forwardState + go), cost 0 + 1
     const noOfItems = 6;
@@ -172,9 +172,9 @@ describe('BrowserNavigation', function () {
         counter++;
       });
 
-    await sut.push(navigationState('one'));
+    await sut.pushNavigationState(toNavigationState('one'));
     assert.strictEqual(sut.history.state.NavigationEntry.instruction, 'one', `sut.history.state.NavigationEntry.instruction`);
-    await sut.push(navigationState('two'));
+    await sut.pushNavigationState(toNavigationState('two'));
     assert.strictEqual(sut.history.state.NavigationEntry.instruction, 'two', `sut.history.state.NavigationEntry.instruction`);
     await sut.go(-1);
     await Promise.resolve();
@@ -188,7 +188,7 @@ describe('BrowserNavigation', function () {
   });
 });
 
-const navigationState = (instruction: string): INavigationState => {
+const toNavigationState = (instruction: string): INavigationState => {
   return {
     NavigationEntries: [],
     NavigationEntry: {

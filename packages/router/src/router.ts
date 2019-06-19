@@ -153,6 +153,7 @@ export class Router implements IRouter {
   }
 
   public navigatorCallback = (instruction: INavigationInstruction): void => {
+    // Instructions extracted from queue, one at a time
     this.processNavigations(instruction).catch(error => { throw error; });
   }
   public navigationCallback = (navigation: INavigationViewerEvent): void => {

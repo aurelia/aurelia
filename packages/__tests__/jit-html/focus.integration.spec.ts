@@ -3,7 +3,7 @@ import { Aurelia, CustomElementResource } from '@aurelia/runtime';
 import { FocusCustomAttribute } from '@aurelia/runtime-html';
 import { eachCartesianJoin, HTMLTestContext, TestContext, assert } from '@aurelia/testing';
 
-describe.only('focus.integration.spec.ts', function() {
+describe('focus.integration.spec.ts', function() {
 
   interface IApp {
     hasFocus?: boolean;

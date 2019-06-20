@@ -1,6 +1,6 @@
 import { IContainer } from '@aurelia/kernel';
 import { ICustomElementType, IRenderContext, LifecycleFlags } from '@aurelia/runtime';
-import { INavigationInstruction } from './history-browser';
+import { INavigationInstruction } from './navigator';
 import { Router } from './router';
 import { Scope } from './scope';
 import { IViewportOptions } from './viewport';

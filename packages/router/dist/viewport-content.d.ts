@@ -1,6 +1,6 @@
 import { IContainer } from '@aurelia/kernel';
 import { ICustomElementType, INode, IRenderContext, IViewModel } from '@aurelia/runtime';
-import { INavigationInstruction } from './history-browser';
+import { INavigationInstruction } from './navigator';
 import { Viewport } from './viewport';
 import { ViewportInstruction } from './viewport-instruction';
 export interface IRouteableCustomElementType extends Partial<ICustomElementType> {

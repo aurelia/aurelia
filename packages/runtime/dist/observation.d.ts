@@ -183,7 +183,7 @@ export interface ICollectionObserver<T extends CollectionKind> extends ICollecti
 }
 export declare type CollectionObserver = ICollectionObserver<CollectionKind>;
 export interface IBindingContext {
-    [key: string]: unknown;
+    [key: string]: any;
     readonly $synthetic?: true;
     readonly $observers?: ObserversLookup;
     getObservers?(flags: LifecycleFlags): ObserversLookup;

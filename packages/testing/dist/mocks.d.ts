@@ -74,7 +74,7 @@ export declare class MockContext {
 }
 export declare type ExposedContext = IRenderContext & IDisposable & IContainer;
 export declare class MockBrowserHistoryLocation {
-    changeCallback?: () => void;
+    changeCallback?: (ev: PopStateEvent) => Promise<void>;
     private readonly states;
     private readonly paths;
     private index;

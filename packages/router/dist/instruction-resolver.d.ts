@@ -26,7 +26,7 @@ export declare class InstructionResolver {
     stringifyScopedViewportInstruction(instructions: ViewportInstruction | string | (ViewportInstruction | string)[]): string;
     buildScopedLink(scopeContext: string, href: string): string;
     shouldClearViewports(path: string): {
-        clearViewports: boolean;
+        clear: boolean;
         newPath: string;
     };
     removeStateDuplicates(states: string[]): string[];

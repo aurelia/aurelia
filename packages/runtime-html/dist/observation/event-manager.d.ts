@@ -65,5 +65,5 @@ export declare type EventSubscription = DelegateOrCaptureSubscription | TriggerS
 export interface IEventManager extends IDisposable {
     addEventListener(dom: IDOM, target: Node, targetEvent: string, callbackOrListener: EventListenerOrEventListenerObject, delegate: DelegationStrategy): IDisposable;
 }
-export declare const IEventManager: import("@aurelia/kernel").InterfaceSymbol<IEventManager>;
+export declare const IEventManager: import("@aurelia/kernel/dist/di").InterfaceSymbol<IEventManager>;
 //# sourceMappingURL=event-manager.d.ts.map

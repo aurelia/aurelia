@@ -1,9 +1,11 @@
 import { IContainer, Key } from '@aurelia/kernel';
 import { ICustomElementType, IRenderContext } from '@aurelia/runtime';
-import { HistoryBrowser, IHistoryOptions, INavigationInstruction } from './history-browser';
+import { BrowserNavigation, INavigationViewerEvent } from './browser-navigation';
 import { InstructionResolver, IRouteSeparators } from './instruction-resolver';
 import { AnchorEventInfo, LinkHandler } from './link-handler';
 import { INavRoute, Nav } from './nav';
+import { INavigationInstruction, INavigatorOptions, Navigator } from './navigator';
+import { QueueItem } from './queue';
 import { Scope } from './scope';
 import { IViewportOptions, Viewport } from './viewport';
 import { ViewportInstruction } from './viewport-instruction';
@@ -12,7 +14,7 @@ export interface IRouteTransformer {
     transformToUrl?(instructions: ViewportInstruction[], router: Router): string | ViewportInstruction[];
 }
 export declare const IRouteTransformer: import("@aurelia/kernel").InterfaceSymbol<IRouteTransformer>;
-export interface IRouterOptions extends IHistoryOptions, IRouteTransformer {
+export interface IRouterOptions extends INavigatorOptions, IRouteTransformer {
     separators?: IRouteSeparators;
     reportCallback?(instruction: INavigationInstruction): void;
 }
@@ -25,8 +27,7 @@ export interface IRouter {
     activate(options?: IRouterOptions): Promise<void>;
     deactivate(): void;
     linkCallback(info: AnchorEventInfo): void;
-    historyCallback(instruction: INavigationInstruction): void;
-    processNavigations(): Promise<void>;
+    processNavigations(qInstruction: QueueItem<INavigationInstruction>): Promise<void>;
     addProcessingViewport(componentOrInstruction: string | Partial<ICustomElementType> | ViewportInstruction, viewport?: Viewport | string): void;
     addViewport(name: string, element: Element, context: IRenderContext, options?: IViewportOptions): Viewport;
     removeViewport(viewport: Viewport, element: Element, context: IRenderContext): void;
@@ -48,7 +49,8 @@ export declare class Router implements IRouter {
     readonly container: IContainer;
     rootScope: Scope;
     scopes: Scope[];
-    historyBrowser: HistoryBrowser;
+    navigator: Navigator;
+    navigation: BrowserNavigation;
     linkHandler: LinkHandler;
     instructionResolver: InstructionResolver;
     navs: Record<string, Nav>;
@@ -57,24 +59,24 @@ export declare class Router implements IRouter {
     private options;
     private isActive;
     private readonly routeTransformer;
-    private readonly pendingNavigations;
     private processingNavigation;
     private lastNavigation;
-    constructor(container: IContainer, routeTransformer: IRouteTransformer, historyBrowser: HistoryBrowser, linkHandler: LinkHandler, instructionResolver: InstructionResolver);
+    constructor(container: IContainer, navigator: Navigator, navigation: BrowserNavigation, routeTransformer: IRouteTransformer, linkHandler: LinkHandler, instructionResolver: InstructionResolver);
     readonly isNavigating: boolean;
     activate(options?: IRouterOptions): Promise<void>;
     deactivate(): void;
     linkCallback: (info: AnchorEventInfo) => void;
-    historyCallback(instruction: INavigationInstruction): void;
-    processNavigations(): Promise<void>;
+    navigatorCallback: (instruction: INavigationInstruction) => void;
+    navigationCallback: (navigation: INavigationViewerEvent) => void;
+    processNavigations: (qInstruction: QueueItem<INavigationInstruction>) => Promise<void>;
     addProcessingViewport(componentOrInstruction: string | Partial<ICustomElementType> | ViewportInstruction, viewport?: Viewport | string): void;
     findScope(element: Element): Scope;
     getViewport(name: string): Viewport;
-    addViewport(name: string, element: Element, context: IRenderContext | IContainer, options?: IViewportOptions): Viewport;
-    removeViewport(viewport: Viewport, element: Element, context: IRenderContext | IContainer): void;
+    addViewport(name: string, element: Element, context: IRenderContext, options?: IViewportOptions): Viewport;
+    removeViewport(viewport: Viewport, element: Element, context: IRenderContext): void;
     allViewports(): Viewport[];
     removeScope(scope: Scope): void;
-    goto(pathOrViewports: string | Record<string, Viewport>, title?: string, data?: Record<string, unknown>): Promise<void>;
+    goto(pathOrViewports: string | Record<string, Viewport>, title?: string, data?: Record<string, unknown>, replace?: boolean): Promise<void>;
     replace(pathOrViewports: string | Record<string, Viewport>, title?: string, data?: Record<string, unknown>): Promise<void>;
     refresh(): Promise<void>;
     back(): Promise<void>;

@@ -627,7 +627,7 @@ this.au.debug = (function (exports, kernel, AST) {
       },
       2003: {
           level: 0 /* error */,
-          message: 'Queued browser history has already been activated.'
+          message: 'Browser navigation has already been activated.'
       },
       2004: {
           level: 0 /* error */,

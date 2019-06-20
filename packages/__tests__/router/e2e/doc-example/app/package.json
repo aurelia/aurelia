@@ -14,6 +14,7 @@
     "@aurelia/jit-html-browser": "file:../../../../../jit-html-browser",
     "@aurelia/jit": "file:../../../../../jit",
     "@aurelia/kernel": "file:../../../../../kernel",
+    "@aurelia/router": "file:../../../../../router",
     "@aurelia/runtime-html": "file:../../../../../runtime-html",
     "@aurelia/runtime": "file:../../../../../runtime"
   },

@@ -1,4 +1,5 @@
 import {
+  IContainer,
   Key,
   Writable
 } from '@aurelia/kernel';
@@ -119,10 +120,10 @@ export class ViewportCustomElement {
     if (this.element.hasAttribute('stateful')) {
       options.stateful = true;
     }
-    this.viewport = this.router.addViewport(this.name, this.element, this.$controller.context, options);
+    this.viewport = this.router.addViewport(this.name, this.element, this.$controller.context as IRenderContext, options);
   }
   public disconnect(): void {
-    this.router.removeViewport(this.viewport, this.element, this.$controller.context);
+    this.router.removeViewport(this.viewport, this.element, this.$controller.context as IRenderContext);
   }
 
   public binding(flags: LifecycleFlags): void {

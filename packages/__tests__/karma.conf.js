@@ -29,6 +29,7 @@ module.exports = function (config) {
     browsers = ['Chrome'];
   }
 
+  const setup = 'setup-browser' + (config.package ? '-' + config.package : '');
   const options = {
     basePath,
     browserDisconnectTimeout: 10000,
@@ -38,10 +39,10 @@ module.exports = function (config) {
       'mocha',
     ],
     files: [
-      'dist/build/__tests__/setup-browser.js',
+      `dist/build/__tests__/${setup}.js`,
     ],
     preprocessors: {
-      ['dist/build/__tests__/setup-browser.js']: [
+      [`dist/build/__tests__/${setup}.js`]: [
         'webpack',
         'sourcemap',
       ],

@@ -1,11 +1,10 @@
 export {
-  IHistoryEntry,
-  IHistoryOptions,
-  INavigationFlags,
-  INavigationInstruction,
-
-  HistoryBrowser,
-} from './history-browser';
+  INavigationStore,
+  INavigationViewer,
+  INavigationViewerEvent,
+  INavigationState,
+  BrowserNavigation,
+} from './browser-navigation';
 
 export {
   ILinkHandlerOptions,
@@ -22,8 +21,19 @@ export {
 } from './nav';
 
 export {
-  QueuedBrowserHistory,
-} from './queued-browser-history';
+  IStoredNavigationEntry,
+  INavigationEntry,
+  INavigatorOptions,
+  INavigationFlags,
+  INavigationInstruction,
+  Navigator,
+} from './navigator';
+
+export {
+  QueueItem,
+  IQueueOptions,
+  Queue,
+} from './queue';
 
 export {
   RouteHandler,

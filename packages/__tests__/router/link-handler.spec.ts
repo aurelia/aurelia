@@ -28,12 +28,18 @@ describe('LinkHandler', function () {
     return { addEventListener, removeEventListener, sut, tearDown };
   }
 
+  it('can be created', function () {
+    const { sut, tearDown, addEventListener } = setup();
+
+    assert.notStrictEqual(sut, null, `sut`);
+
+    tearDown();
+  });
+
   it('can be activated', function () {
     const { sut, tearDown, addEventListener } = setup();
 
     sut.activate({ callback: callback});
-
-    tearDown();
 
     assert.strictEqual(sut['isActive'], true, `linkHandler.isActive`);
 
@@ -44,14 +50,16 @@ describe('LinkHandler', function () {
       ],
       `addEventListener.calls`,
     );
+
+    tearDown();
   });
 
   it('can be deactivated', function () {
     const { sut, tearDown, removeEventListener } = setup();
 
-    sut.deactivate();
+    sut.activate({ callback: callback});
 
-    tearDown();
+    sut.deactivate();
 
     assert.strictEqual(sut['isActive'], false, `linkHandler.isActive`);
 
@@ -62,14 +70,14 @@ describe('LinkHandler', function () {
       ],
       `removeEventListener.calls`,
     );
+
+    tearDown();
   });
 
   it('throws when activated while active', function () {
     const { sut, tearDown, addEventListener } = setup();
 
     sut.activate({ callback: callback});
-
-    tearDown();
 
     assert.strictEqual(sut['isActive'], true, `linkHandler.isActive`);
 
@@ -87,7 +95,22 @@ describe('LinkHandler', function () {
     } catch (e) {
       err = e;
     }
-    assert.includes(err.message, 'LinkHandler has already been activated.', `err.message`);
+    assert.includes(err.message, 'Link handler has already been activated', `err.message`);
+
+    tearDown();
   });
 
+  it('throws when deactivated while not active', function () {
+    const { sut, tearDown, addEventListener } = setup();
+
+    let err;
+    try {
+      sut.deactivate();
+    } catch (e) {
+      err = e;
+    }
+    assert.includes(err.message, 'Link handler has not been activated', `err.message`);
+
+    tearDown();
+  });
 });

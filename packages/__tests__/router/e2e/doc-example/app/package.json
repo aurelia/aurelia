@@ -4,7 +4,9 @@
   "scripts": {
     "watch": "webpack-dev-server --no-inline",
     "build": "rimraf dist && webpack --config webpack.config.js",
-    "serve": "http-server -c-1 -p 9000 dist"
+    "serve": "http-server -c-1 -p 9000 dist",
+    "build-serve": "rimraf dist && webpack --config webpack.config.js && http-server -c-1 -p 9000 dist",
+    "now": "rimraf dist && webpack --config webpack.config.js && cd dist && now && cd .."
   },
   "dependencies": {
     "@aurelia/debug": "file:../../../../../debug",
@@ -19,7 +21,7 @@
     "@types/node": "latest",
     "html-loader": "latest",
     "html-webpack-plugin": "latest",
-    "http-server": "latest",
+    "http-server": "^0.9.0",
     "rimraf": "latest",
     "ts-loader": "latest",
     "typescript": "latest",

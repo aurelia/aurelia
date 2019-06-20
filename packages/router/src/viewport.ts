@@ -1,6 +1,6 @@
 import { IContainer, Reporter } from '@aurelia/kernel';
 import { ICustomElementType, IRenderContext, LifecycleFlags } from '@aurelia/runtime';
-import { INavigationInstruction } from './history-browser';
+import { INavigationInstruction } from './navigator';
 import { Router } from './router';
 import { Scope } from './scope';
 import { IViewportOptions } from './viewport';
@@ -87,7 +87,7 @@ export class Viewport {
 
     // ReentryBehavior 'refresh' takes precedence
     if (!this.content.equalComponent(this.nextContent) ||
-      instruction.isRefresh ||
+      instruction.navigation.refresh ||
       this.content.reentryBehavior() === ReentryBehavior.refresh) {
       return true;
     }

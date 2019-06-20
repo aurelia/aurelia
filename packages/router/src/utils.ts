@@ -10,10 +10,8 @@ export function closestCustomElement(element: CustomElementHost<Element>): Custo
   return element;
 }
 
-// tslint:disable-next-line:no-any
-export function arrayRemove(arr: any[], func: (value: any, index?: number, obj?: any[]) => boolean): any[] {
-  // tslint:disable-next-line:no-any
-  const removed: any[] = [];
+export function arrayRemove<T>(arr: T[], func: (value: T, index?: number, obj?: T[]) => boolean): T[] {
+  const removed: T[] = [];
   let arrIndex = arr.findIndex(func);
   while (arrIndex >= 0) {
     removed.push(arr.splice(arrIndex, 1)[0]);

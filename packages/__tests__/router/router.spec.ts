@@ -181,8 +181,8 @@ describe('Router', function () {
     await $goto('bar@right', router, lifecycle);
     assert.includes(host.textContent, 'Viewport: bar', `host.textContent`);
     await $goto('-', router, lifecycle);
-    assert.notIncludes(host.textContent, 'Viewport foo', `host.textContent`);
-    assert.notIncludes(host.textContent, 'Viewport bar', `host.textContent`);
+    assert.notIncludes(host.textContent, 'Viewport: foo', `host.textContent`);
+    assert.notIncludes(host.textContent, 'Viewport: bar', `host.textContent`);
 
     await tearDown();
   });

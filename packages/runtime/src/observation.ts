@@ -319,7 +319,7 @@ export interface ICollectionObserver<T extends CollectionKind> extends
 export type CollectionObserver = ICollectionObserver<CollectionKind>;
 
 export interface IBindingContext {
-  [key: string]: unknown;
+  [key: string]: any;
 
   readonly $synthetic?: true;
   readonly $observers?: ObserversLookup;

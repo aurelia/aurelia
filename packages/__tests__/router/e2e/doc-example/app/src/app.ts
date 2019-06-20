@@ -36,7 +36,7 @@ import { State } from './state';
       </div>
     </div>
     <au-viewport name="lists" used-by="authors,books" default="authors"></au-viewport>
-    <au-viewport name="content" stateful default="about"></au-viewport>
+    <au-viewport name="content" default="about"></au-viewport>
     <au-viewport name="chat" used-by="chat" no-link no-history></au-viewport>
   </div>
 </template>
@@ -45,6 +45,9 @@ export class App {
   public color: string = 'lightgreen';
   constructor(private readonly router: Router, authorsRepository: AuthorsRepository, private readonly state: State) {
     authorsRepository.authors(); // Only here to initialize repositories
+  }
+
+  public binding() {
     this.router.activate({
       // transformFromUrl: (path, router) => {
       //   if (!path.length) {

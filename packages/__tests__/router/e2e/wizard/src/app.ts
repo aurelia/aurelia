@@ -201,10 +201,10 @@ export class App {
     this.router.forward();
   }
   public clickBack2() {
-    this.router.historyBrowser.history.go(-2);
+    this.router.navigation.history.go(-2);
   }
   public clickForward2() {
-    this.router.historyBrowser.history.go(2);
+    this.router.navigation.history.go(2);
   }
   public clickCancel() {
     this.router.historyBrowser.cancel();

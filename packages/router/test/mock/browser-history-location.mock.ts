@@ -109,9 +109,9 @@ export class MockBrowserHistoryLocation {
     const newIndex = this.index + movement;
     if (newIndex >= 0 && newIndex < this.states.length) {
       this.index = newIndex;
-      if (!suppressPopstate) {
+      // if (!suppressPopstate) {
         this.notifyChange();
-      }
+      // }
     }
   }
 

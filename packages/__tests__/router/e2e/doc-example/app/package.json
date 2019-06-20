@@ -21,7 +21,7 @@
     "@types/node": "latest",
     "html-loader": "latest",
     "html-webpack-plugin": "latest",
-    "http-server": "^0.9.0",
+    "http-server": "^0.11.1",
     "rimraf": "latest",
     "ts-loader": "latest",
     "typescript": "latest",

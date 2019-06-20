@@ -214,7 +214,11 @@ export class Router implements IRouter {
 
     const usedViewports = (clearViewports ? this.allViewports().filter((value) => value.content.component !== null) : []);
     const doneDefaultViewports: Viewport[] = [];
-    let defaultViewports = this.allViewports().filter((viewport) => viewport.options.default && viewport.content.component === null && !doneDefaultViewports.find(done => done === viewport));
+    let defaultViewports = this.allViewports().filter(viewport =>
+      viewport.options.default
+      && viewport.content.component === null
+      && doneDefaultViewports.every(done => done !== viewport)
+    );
     const updatedViewports: Viewport[] = [];
 
     // TODO: Take care of cancellations down in subsets/iterations
@@ -228,7 +232,7 @@ export class Router implements IRouter {
 
       for (const defaultViewport of defaultViewports) {
         doneDefaultViewports.push(defaultViewport);
-        if (!viewportInstructions.find(value => value.viewport === defaultViewport)) {
+        if (viewportInstructions.every(value => value.viewport !== defaultViewport)) {
           const defaultInstruction = this.instructionResolver.parseViewportInstruction(defaultViewport.options.default);
           defaultInstruction.viewport = defaultViewport;
           viewportInstructions.push(defaultInstruction);
@@ -276,7 +280,7 @@ export class Router implements IRouter {
       }
 
       for (const viewport of changedViewports) {
-        if (!updatedViewports.find((value) => value === viewport)) {
+        if (updatedViewports.every(value => value !== viewport)) {
           updatedViewports.push(viewport);
         }
       }
@@ -287,13 +291,17 @@ export class Router implements IRouter {
       let addedViewport: ViewportInstruction;
       while (addedViewport = this.addedViewports.shift()) {
         // TODO: Should this overwrite instead? I think so.
-        if (!remaining.viewportInstructions.find((value) => value.viewport === addedViewport.viewport)) {
+        if (remaining.viewportInstructions.every(value => value.viewport !== addedViewport.viewport)) {
           viewportInstructions.push(addedViewport);
         }
       }
       viewportInstructions = [...viewportInstructions, ...remaining.viewportInstructions];
       viewportsRemaining = remaining.viewportsRemaining;
-      defaultViewports = this.allViewports().filter((viewport) => viewport.options.default && viewport.content.component === null && !doneDefaultViewports.find(done => done === viewport));
+      defaultViewports = this.allViewports().filter(viewport =>
+        viewport.options.default
+        && viewport.content.component === null
+        && doneDefaultViewports.every(done => done !== viewport)
+      );
       if (!this.allViewports().length) {
         viewportsRemaining = false;
       }
@@ -324,13 +332,13 @@ export class Router implements IRouter {
       if (componentOrInstruction instanceof ViewportInstruction) {
         if (!componentOrInstruction.viewport) {
           // TODO: Deal with not yet existing viewports
-          componentOrInstruction.viewport = this.allViewports().find((vp) => vp.name === componentOrInstruction.viewportName);
+          componentOrInstruction.viewport = this.allViewports().find(vp => vp.name === componentOrInstruction.viewportName);
         }
         this.addedViewports.push(componentOrInstruction);
       } else {
         if (typeof viewport === 'string') {
           // TODO: Deal with not yet existing viewports
-          viewport = this.allViewports().find((vp) => vp.name === viewport);
+          viewport = this.allViewports().find(vp => vp.name === viewport);
         }
         this.addedViewports.push(new ViewportInstruction(componentOrInstruction, viewport));
       }
@@ -452,7 +460,7 @@ export class Router implements IRouter {
   private closestScope(element: Element): Scope {
     let el = element;
     while (el.parentElement) {
-      const viewport = this.allViewports().find((item) => item.element === el);
+      const viewport = this.allViewports().find(item => item.element === el);
       if (viewport && viewport.owningScope) {
         return viewport.owningScope;
       }

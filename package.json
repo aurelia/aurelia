@@ -20,8 +20,6 @@
     "postbundle:dist": "rimraf .rpt2_cache packages/*/dist/.rpt2_cache",
     "bundle:all": "ts-node -P scripts/tsconfig.json scripts/bundle.ts umd,esm,system,iife all",
     "postbundle:all": "rimraf .rpt2_cache packages/*/dist/.rpt2_cache dist/.rpt2_cache",
-    "bundle:release": "ts-node -P scripts/tsconfig.json scripts/bundle.ts umd,esm,system,iife all min",
-    "postbundle:release": "rimraf .rpt2_cache packages/*/dist/.rpt2_cache dist/.rpt2_cache",
     "lint": "lerna run lint",
     "change-package-refs:tsc": "ts-node -P scripts/tsconfig.json scripts/change-package-refs.ts tsc",
     "change-package-refs:rollup": "ts-node -P scripts/tsconfig.json scripts/change-package-refs.ts rollup",

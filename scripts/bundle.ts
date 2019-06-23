@@ -180,7 +180,7 @@ async function createBundle(): Promise<void> {
 
     log(`${logPrefix} ${filesWithChanges.length} type def files were changed by rollup. ${filesWithChanges.length > 0 ? ' Restoring..' : ''}`);
 
-    await Promise.all(filesWithChanges.map(file => file.restore));
+    await Promise.all(filesWithChanges.map(file => file.restore()));
 
     log(`${logPrefix} ${c.greenBright('done')}`);
   }

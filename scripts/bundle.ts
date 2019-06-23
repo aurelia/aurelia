@@ -169,18 +169,9 @@ async function createBundle(): Promise<void> {
       await fullBundle.write(options);
     }
 
-    const filesWithChanges: File[] = [];
-    await Promise.all(
-      typeDefFiles.map(async file => {
-        if (await file.hasChanges()) {
-          filesWithChanges.push(file);
-        }
-      })
-    );
+    log(`${logPrefix}  Restoring type definition files..`);
 
-    log(`${logPrefix} ${filesWithChanges.length} type def files were changed by rollup. ${filesWithChanges.length > 0 ? ' Restoring..' : ''}`);
-
-    await Promise.all(filesWithChanges.map(file => file.restore()));
+    await Promise.all(typeDefFiles.map(file => file.restore()));
 
     log(`${logPrefix} ${c.greenBright('done')}`);
   }

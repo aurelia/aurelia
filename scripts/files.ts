@@ -4,13 +4,12 @@ import { join } from 'path';
 const { readFile, writeFile } = promises;
 
 const readdirOpts = {
-  encoding: 'utf8' as 'utf8',
   withFileTypes: true as true,
 };
 
 export async function getFiles(
   dir: string,
-  isMatch: (dir: string, name: string) => boolean = (dir, name) => true,
+  isMatch: (dir: string, dirent: Dirent) => boolean = (dir, dirent) => true,
 ) {
   const files: File[] = [];
   let pending = 0;
@@ -32,7 +31,7 @@ export async function getFiles(
 
         for (let i = 0; i < dirents_length; ++i) {
           dirent = dirents[i];
-          if (isMatch(dir, dirent.name)) {
+          if (isMatch(dir, dirent)) {
             if (dirent.isDirectory()) {
               walk(join(dir, dirent.name));
             } else {

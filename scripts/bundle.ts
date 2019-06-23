@@ -76,11 +76,15 @@ async function createBundle(): Promise<void> {
 
   const typeDefFiles = (
     await Promise.all(
-      packages.map(async pkg => await getFiles(pkg.dist.path, (dir, name) => /\.d\.ts(?:\.map)?$/.test(name)))
+      packages.map(async pkg => await getFiles(pkg.dist.path, (dir, dirent) => dirent.isDirectory() || /\.d\.ts(?:\.map)?$/.test(dirent.name)))
     )
-  ).flat();
+  ).flat().sort((a, b) => a.path > b.path ? 1 : -1);
 
   await Promise.all(typeDefFiles.map(file => file.readContent()));
+
+  for (const file of typeDefFiles) {
+    log(`- type definition found: ${file.path} (${file.content.length} B)`);
+  }
 
   const count = packages.length;
   let cur = 0;

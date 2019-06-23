@@ -4,6 +4,7 @@ import { OutputOptions, GlobalsOption } from 'rollup';
 import { c, createLogger } from './logger';
 import { loadPackageJson } from './package.json';
 import project from './project';
+import { getFiles, File } from './files';
 
 const log = createLogger('bundle');
 
@@ -72,6 +73,14 @@ async function createBundle(): Promise<void> {
     globals[pkg.name.npm] = pkg.name.camel;
   }
   const write_iife = outputs.indexOf('iife') !== -1;
+
+  const typeDefFiles = (
+    await Promise.all(
+      packages.map(async pkg => await getFiles(pkg.dist.path, (dir, name) => /\.d\.ts(?:\.map)?$/.test(name)))
+    )
+  ).flat();
+
+  await Promise.all(typeDefFiles.map(file => file.readContent()));
 
   const count = packages.length;
   let cur = 0;
@@ -155,6 +164,19 @@ async function createBundle(): Promise<void> {
 
       await fullBundle.write(options);
     }
+
+    const filesWithChanges: File[] = [];
+    await Promise.all(
+      typeDefFiles.map(async file => {
+        if (await file.hasChanges()) {
+          filesWithChanges.push(file);
+        }
+      })
+    );
+
+    log(`${logPrefix} ${filesWithChanges.length} type def files were changed by rollup. ${filesWithChanges.length > 0 ? ' Restoring..' : ''}`);
+
+    await Promise.all(filesWithChanges.map(file => file.restore));
 
     log(`${logPrefix} ${c.greenBright('done')}`);
   }

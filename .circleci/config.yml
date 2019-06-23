@@ -42,7 +42,7 @@ map-5: &filter_only_tag
       ignore: /.*/
     tags:
       only: /^v[0-9]+(\.[0-9]+)*$/
-        
+
 map-6: &filter_only_topic
   filters:
     branches:
@@ -133,8 +133,8 @@ commands:
         default: true
     steps:
       - run: ./node_modules/.bin/lerna clean -y
-      - run: rm -rf packages/*/dist/build/**
-      - run: git add packages/\*/dist/*.ts packages/\*/dist/*.js packages/\*/dist/*.map --force && git status
+      - run: rm -rf packages/*/dist/build/** packages/*/dist/tsconfig.tsbuildinfo
+      - run: git add packages/*/dist --force && git status
       - run: git stash && git status
       - when:
           condition: << parameters.merge_topic >>
@@ -147,7 +147,7 @@ commands:
       - run: rm -rf packages/*/dist && git status
       - run: git add . && git status
       - run: git checkout stash -- . && git status
-      - run: git add packages/\*/dist/*.ts packages/\*/dist/*.js packages/\*/dist/*.map --force && git status
+      - run: git add packages/*/dist --force && git status
       - run: npm run change-package-refs:rollup
       - run: npm run bump-version:<< parameters.channel >> -- << parameters.suffix >>
       - run: git add . && git status

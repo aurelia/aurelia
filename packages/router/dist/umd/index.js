@@ -1,0 +1,58 @@
+(function (factory) {
+    if (typeof module === "object" && typeof module.exports === "object") {
+        var v = factory(require, exports);
+        if (v !== undefined) module.exports = v;
+    }
+    else if (typeof define === "function" && define.amd) {
+        define(["require", "exports", "./browser-navigation", "./link-handler", "./nav", "./navigator", "./queue", "./route-recognizer", "./router", "./scope", "./viewport", "./viewport-content", "./viewport-instruction", "./configuration"], factory);
+    }
+})(function (require, exports) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    var browser_navigation_1 = require("./browser-navigation");
+    exports.BrowserNavigation = browser_navigation_1.BrowserNavigation;
+    var link_handler_1 = require("./link-handler");
+    exports.LinkHandler = link_handler_1.LinkHandler;
+    var nav_1 = require("./nav");
+    exports.Nav = nav_1.Nav;
+    var navigator_1 = require("./navigator");
+    exports.Navigator = navigator_1.Navigator;
+    var queue_1 = require("./queue");
+    exports.Queue = queue_1.Queue;
+    var route_recognizer_1 = require("./route-recognizer");
+    exports.HandlerEntry = route_recognizer_1.HandlerEntry;
+    exports.RouteGenerator = route_recognizer_1.RouteGenerator;
+    exports.TypesRecord = route_recognizer_1.TypesRecord;
+    exports.RecognizeResult = route_recognizer_1.RecognizeResult;
+    exports.CharSpec = route_recognizer_1.CharSpec;
+    exports.State = route_recognizer_1.State;
+    exports.StaticSegment = route_recognizer_1.StaticSegment;
+    exports.DynamicSegment = route_recognizer_1.DynamicSegment;
+    exports.StarSegment = route_recognizer_1.StarSegment;
+    exports.EpsilonSegment = route_recognizer_1.EpsilonSegment;
+    exports.RouteRecognizer = route_recognizer_1.RouteRecognizer;
+    var router_1 = require("./router");
+    exports.IRouteTransformer = router_1.IRouteTransformer;
+    exports.IRouter = router_1.IRouter;
+    exports.Router = router_1.Router;
+    var scope_1 = require("./scope");
+    exports.Scope = scope_1.Scope;
+    var viewport_1 = require("./viewport");
+    exports.Viewport = viewport_1.Viewport;
+    var viewport_content_1 = require("./viewport-content");
+    exports.ContentStatus = viewport_content_1.ContentStatus;
+    exports.ReentryBehavior = viewport_content_1.ReentryBehavior;
+    exports.ViewportContent = viewport_content_1.ViewportContent;
+    var viewport_instruction_1 = require("./viewport-instruction");
+    exports.ViewportInstruction = viewport_instruction_1.ViewportInstruction;
+    var configuration_1 = require("./configuration");
+    exports.RouterConfiguration = configuration_1.RouterConfiguration;
+    exports.RouterRegistration = configuration_1.RouterRegistration;
+    exports.DefaultComponents = configuration_1.DefaultComponents;
+    exports.DefaultResources = configuration_1.DefaultResources;
+    exports.ViewportCustomElement = configuration_1.ViewportCustomElement;
+    exports.ViewportCustomElementRegistration = configuration_1.ViewportCustomElementRegistration;
+    exports.NavCustomElement = configuration_1.NavCustomElement;
+    exports.NavCustomElementRegistration = configuration_1.NavCustomElementRegistration;
+});
+//# sourceMappingURL=index.js.map

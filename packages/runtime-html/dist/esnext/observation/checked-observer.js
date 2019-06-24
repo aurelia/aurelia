@@ -1,0 +1,157 @@
+import * as tslib_1 from "tslib";
+import { subscriberCollection, } from '@aurelia/runtime';
+function defaultMatcher(a, b) {
+    return a === b;
+}
+let CheckedObserver = class CheckedObserver {
+    constructor(lifecycle, observerLocator, handler, obj) {
+        this.lifecycle = lifecycle;
+        this.observerLocator = observerLocator;
+        this.handler = handler;
+        this.obj = obj;
+        this.currentValue = void 0;
+        this.oldValue = void 0;
+        this.hasChanges = false;
+        this.priority = 12288 /* propagate */;
+        this.arrayObserver = void 0;
+        this.valueObserver = void 0;
+    }
+    getValue() {
+        return this.currentValue;
+    }
+    setValue(newValue, flags) {
+        this.currentValue = newValue;
+        this.hasChanges = newValue !== this.oldValue;
+        if ((flags & 4096 /* fromBind */) > 0) {
+            this.flushRAF(flags);
+        }
+    }
+    flushRAF(flags) {
+        if (this.hasChanges) {
+            this.hasChanges = false;
+            const { currentValue } = this;
+            this.oldValue = currentValue;
+            if (this.valueObserver === void 0) {
+                if (this.obj.$observers !== void 0) {
+                    if (this.obj.$observers.model !== void 0) {
+                        this.valueObserver = this.obj.$observers.model;
+                    }
+                    else if (this.obj.$observers.value !== void 0) {
+                        this.valueObserver = this.obj.$observers.value;
+                    }
+                }
+                if (this.valueObserver !== void 0) {
+                    this.valueObserver.subscribe(this);
+                }
+            }
+            if (this.arrayObserver !== void 0) {
+                this.arrayObserver.unsubscribeFromCollection(this);
+                this.arrayObserver = void 0;
+            }
+            if (this.obj.type === 'checkbox' && Array.isArray(currentValue)) {
+                this.arrayObserver = this.observerLocator.getArrayObserver(flags, currentValue);
+                this.arrayObserver.subscribeToCollection(this);
+            }
+            this.synchronizeElement();
+        }
+    }
+    handleCollectionChange(indexMap, flags) {
+        const { currentValue, oldValue } = this;
+        if ((flags & 4096 /* fromBind */) > 0) {
+            this.oldValue = currentValue;
+            this.synchronizeElement();
+        }
+        else {
+            this.hasChanges = true;
+        }
+        this.callSubscribers(currentValue, oldValue, flags);
+    }
+    handleChange(newValue, previousValue, flags) {
+        if ((flags & 4096 /* fromBind */) > 0) {
+            this.synchronizeElement();
+        }
+        else {
+            this.hasChanges = true;
+        }
+        this.callSubscribers(newValue, previousValue, flags);
+    }
+    synchronizeElement() {
+        const { currentValue, obj } = this;
+        const elementValue = obj.hasOwnProperty('model') ? obj.model : obj.value;
+        const isRadio = obj.type === 'radio';
+        const matcher = obj.matcher !== void 0 ? obj.matcher : defaultMatcher;
+        if (isRadio) {
+            obj.checked = !!matcher(currentValue, elementValue);
+        }
+        else if (currentValue === true) {
+            obj.checked = true;
+        }
+        else if (Array.isArray(currentValue)) {
+            obj.checked = currentValue.findIndex(item => !!matcher(item, elementValue)) !== -1;
+        }
+        else {
+            obj.checked = false;
+        }
+    }
+    handleEvent() {
+        this.oldValue = this.currentValue;
+        let { currentValue } = this;
+        const { obj } = this;
+        const elementValue = obj.hasOwnProperty('model') ? obj.model : obj.value;
+        let index;
+        const matcher = obj.matcher !== void 0 ? obj.matcher : defaultMatcher;
+        if (obj.type === 'checkbox') {
+            if (Array.isArray(currentValue)) {
+                index = currentValue.findIndex(item => !!matcher(item, elementValue));
+                if (obj.checked && index === -1) {
+                    currentValue.push(elementValue);
+                }
+                else if (!obj.checked && index !== -1) {
+                    currentValue.splice(index, 1);
+                }
+                // when existing currentValue is array, do not invoke callback as only the array obj has changed
+                return;
+            }
+            currentValue = obj.checked;
+        }
+        else if (obj.checked) {
+            currentValue = elementValue;
+        }
+        else {
+            return;
+        }
+        this.currentValue = currentValue;
+        this.callSubscribers(this.currentValue, this.oldValue, 131072 /* fromDOMEvent */ | 524288 /* allowPublishRoundtrip */);
+    }
+    bind(flags) {
+        this.lifecycle.enqueueRAF(this.flushRAF, this, this.priority);
+        this.currentValue = this.obj.checked;
+    }
+    unbind(flags) {
+        if (this.arrayObserver !== void 0) {
+            this.arrayObserver.unsubscribeFromCollection(this);
+            this.arrayObserver = void 0;
+        }
+        if (this.valueObserver !== void 0) {
+            this.valueObserver.unsubscribe(this);
+        }
+        this.lifecycle.dequeueRAF(this.flushRAF, this);
+    }
+    subscribe(subscriber) {
+        if (!this.hasSubscribers()) {
+            this.handler.subscribe(this.obj, this);
+        }
+        this.addSubscriber(subscriber);
+    }
+    unsubscribe(subscriber) {
+        this.removeSubscriber(subscriber);
+        if (!this.hasSubscribers()) {
+            this.handler.dispose();
+        }
+    }
+};
+CheckedObserver = tslib_1.__decorate([
+    subscriberCollection()
+], CheckedObserver);
+export { CheckedObserver };
+//# sourceMappingURL=checked-observer.js.map

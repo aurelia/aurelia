@@ -7,9 +7,9 @@
   },
   "dependencies": {},
   "devDependencies": {
-    "@cypress/webpack-preprocessor": "^4.0.3",
+    "@cypress/webpack-preprocessor": "^4.1.0",
     "@types/node": "latest",
-    "cypress": "^3.2.0",
+    "cypress": "^3.3.1",
     "ts-loader": "latest",
     "typescript": "latest",
     "webpack": "latest"

@@ -25,7 +25,7 @@
     "@types/node": "latest",
     "browser-sync": "latest",
     "browserify": "latest",
-    "gulp": "^4.0.0",
+    "gulp": "^4.0.2",
     "http-server": "latest",
     "rimraf": "latest",
     "stringify": "latest",

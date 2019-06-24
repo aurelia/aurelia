@@ -1,7 +1,7 @@
 import { read, readdir, promises, createReadStream, Dirent } from 'fs';
 import { join } from 'path';
 
-const { readFile, writeFile } = promises;
+const { readFile, writeFile, unlink } = promises;
 
 const readdirOpts = {
   withFileTypes: true as true,
@@ -68,12 +68,29 @@ export class File {
     this.buffer = emptyBuffer;
   }
 
-  public async restore() {
-    await writeFile(this.path, this.buffer);
+  public async restore(fromPath?: string, deleteFromPath: boolean = true) {
+    if (typeof fromPath === 'string') {
+      const content = await readFile(fromPath);
+      await this.overwrite(content);
+
+      if (deleteFromPath) {
+        await unlink(fromPath);
+      }
+    } else {
+      await writeFile(this.path, this.buffer);
+    }
+  }
+
+  public async saveAs(newPath: string) {
+    await writeFile(newPath, this.content);
   }
 
   public async readContent() {
     return this.content = await readFile(this.path);
+  }
+
+  public async overwrite(newContent: Buffer) {
+    await writeFile(this.path, newContent);
   }
 
   public async hasChanges() {

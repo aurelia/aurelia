@@ -149,6 +149,7 @@ commands:
       - run: git add . && git status
       - run: git checkout stash -- . && git status
       - run: git add packages/*/dist --force && git status
+      - run: npm run change-package-refs:release
       - run: npm run bump-version:<< parameters.channel >> -- << parameters.suffix >>
       - run: git add . && git status
       - run: git commit --allow-empty -m "<< parameters.message >>" && git status

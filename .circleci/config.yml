@@ -135,7 +135,6 @@ commands:
         default: true
     steps:
       - run: ./node_modules/.bin/lerna clean -y
-      - run: rm -rf packages/*/dist/build/** packages/*/dist/tsconfig.tsbuildinfo
       - run: git add packages/*/dist --force && git status
       - run: git stash && git status
       - when:

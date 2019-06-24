@@ -39,10 +39,10 @@ module.exports = function (config) {
       'mocha',
     ],
     files: [
-      `dist/build/__tests__/${setup}.js`,
+      `dist/esnext/__tests__/${setup}.js`,
     ],
     preprocessors: {
-      [`dist/build/__tests__/${setup}.js`]: [
+      [`dist/esnext/__tests__/${setup}.js`]: [
         'webpack',
         'sourcemap',
       ],

@@ -5,17 +5,17 @@ import project from './project';
 const log = createLogger('change-package-refs');
 
 const refs = {
-  tsc: {
-    'main': 'dist/build/index.js',
-    'module': 'dist/build/index.js',
-    'jsnext:main': 'dist/build/index.js',
-    'browser': 'dist/build/index.js'
+  dev: {
+    'main': 'dist/esnext/index.js',
+    'module': 'dist/esnext/index.js',
+    'jsnext:main': 'dist/esnext/index.js',
+    'browser': 'dist/esnext/index.js'
   },
-  rollup: {
-    'main': 'dist/index.umd.js',
-    'module': 'dist/index.es6.js',
-    'jsnext:main': 'dist/index.es6.js',
-    'browser': 'dist/index.umd.js'
+  release: {
+    'main': 'dist/umd/index.js',
+    'module': 'dist/esnext/index.js',
+    'jsnext:main': 'dist/esnext/index.js',
+    'browser': 'dist/esnext/index.js'
   }
 };
 

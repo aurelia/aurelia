@@ -429,12 +429,12 @@ workflows:
           from: master
           to: develop
           channel: dev
-      #- publish_npm:
-      #    <<: *filter_only_master
-      #    channel: dev
-      #    branch: develop
-      #    requires:
-      #      - merge_and_dist
+      - publish_npm:
+          <<: *filter_only_master
+          channel: dev
+          branch: develop
+          requires:
+            - merge_and_dist
 
   # Runs build and tests, and pushes the built artifacts to the release branch (which then triggers publish_latest)
   # Triggered by push to tag

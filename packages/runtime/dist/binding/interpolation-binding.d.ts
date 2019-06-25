@@ -8,6 +8,7 @@ import { IConnectableBinding, IPartialConnectableBinding } from './connectable';
 export declare class MultiInterpolationBinding implements IBinding {
     $state: State;
     $scope?: IScope;
+    part?: string;
     interpolation: IInterpolationExpression;
     observerLocator: IObserverLocator;
     locator: IServiceLocator;
@@ -16,7 +17,7 @@ export declare class MultiInterpolationBinding implements IBinding {
     target: IObservable;
     targetProperty: string;
     constructor(observerLocator: IObserverLocator, interpolation: IInterpolationExpression, target: object, targetProperty: string, mode: BindingMode, locator: IServiceLocator);
-    $bind(flags: LifecycleFlags, scope: IScope): void;
+    $bind(flags: LifecycleFlags, scope: IScope, part?: string): void;
     $unbind(flags: LifecycleFlags): void;
 }
 export interface InterpolationBinding extends IConnectableBinding {
@@ -24,6 +25,7 @@ export interface InterpolationBinding extends IConnectableBinding {
 export declare class InterpolationBinding implements IPartialConnectableBinding {
     id: number;
     $scope?: IScope;
+    part?: string;
     $state: State;
     interpolation: IInterpolationExpression;
     isFirst: boolean;
@@ -37,7 +39,7 @@ export declare class InterpolationBinding implements IPartialConnectableBinding 
     constructor(sourceExpression: IExpression, interpolation: IInterpolationExpression, target: object, targetProperty: string, mode: BindingMode, observerLocator: IObserverLocator, locator: IServiceLocator, isFirst: boolean);
     updateTarget(value: unknown, flags: LifecycleFlags): void;
     handleChange(_newValue: unknown, _previousValue: unknown, flags: LifecycleFlags): void;
-    $bind(flags: LifecycleFlags, scope: IScope): void;
+    $bind(flags: LifecycleFlags, scope: IScope, part?: string): void;
     $unbind(flags: LifecycleFlags): void;
 }
 //# sourceMappingURL=interpolation-binding.d.ts.map

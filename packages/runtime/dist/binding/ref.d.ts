@@ -9,11 +9,12 @@ export interface Ref extends IConnectableBinding {
 export declare class Ref implements IBinding {
     $state: State;
     $scope?: IScope;
+    part?: string;
     locator: IServiceLocator;
     sourceExpression: IsBindingBehavior;
     target: IObservable;
     constructor(sourceExpression: IsBindingBehavior, target: object, locator: IServiceLocator);
-    $bind(flags: LifecycleFlags, scope: IScope): void;
+    $bind(flags: LifecycleFlags, scope: IScope, part?: string): void;
     $unbind(flags: LifecycleFlags): void;
     observeProperty(flags: LifecycleFlags, obj: IIndexable, propertyName: string): void;
     handleChange(newValue: unknown, previousValue: unknown, flags: LifecycleFlags): void;

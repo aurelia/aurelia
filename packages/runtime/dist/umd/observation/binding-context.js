@@ -60,7 +60,7 @@
             }
             return bc;
         }
-        static get(scope, name, ancestor, flags) {
+        static get(scope, name, ancestor, flags, part) {
             if (kernel_1.Tracer.enabled) {
                 kernel_1.Tracer.enter('BindingContext', 'get', slice.call(arguments));
             }
@@ -98,7 +98,7 @@
             }
             // the name wasn't found. see if parent scope traversal is allowed and if so, try that
             if ((flags & 536870912 /* allowParentScopeTraversal */) > 0) {
-                const partScope = scope.partScopes[BindingContext.partName];
+                const partScope = scope.partScopes[part];
                 const result = this.get(partScope, name, ancestor, flags
                     // unset the flag; only allow one level of scope boundary traversal
                     & ~536870912 /* allowParentScopeTraversal */
@@ -138,7 +138,6 @@
             return this.$observers;
         }
     }
-    BindingContext.partName = null;
     exports.BindingContext = BindingContext;
     class Scope {
         constructor(bindingContext, overrideContext) {

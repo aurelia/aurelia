@@ -1,4 +1,5 @@
 import { IBindingTargetAccessor } from '../observation';
+import { LifecycleFlags } from '../flags';
 export interface PropertyAccessor extends IBindingTargetAccessor<Record<string, unknown>, string> {
 }
 export declare class PropertyAccessor implements PropertyAccessor {
@@ -6,6 +7,7 @@ export declare class PropertyAccessor implements PropertyAccessor {
     propertyKey: string;
     constructor(obj: Record<string, unknown>, propertyKey: string);
     getValue(): unknown;
-    setValue(value: unknown): void;
+    setValue(value: unknown, flags?: LifecycleFlags): void;
+    private setValueDirect;
 }
 //# sourceMappingURL=property-accessor.d.ts.map

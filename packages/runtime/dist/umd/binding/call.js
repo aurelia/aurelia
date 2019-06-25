@@ -25,7 +25,7 @@
             }
             const overrideContext = this.$scope.overrideContext;
             Object.assign(overrideContext, args);
-            const result = this.sourceExpression.evaluate(2097152 /* mustEvaluate */, this.$scope, this.locator);
+            const result = this.sourceExpression.evaluate(2097152 /* mustEvaluate */, this.$scope, this.locator, this.part);
             for (const prop in args) {
                 Reflect.deleteProperty(overrideContext, prop);
             }
@@ -34,7 +34,7 @@
             }
             return result;
         }
-        $bind(flags, scope) {
+        $bind(flags, scope, part) {
             if (kernel_1.Tracer.enabled) {
                 kernel_1.Tracer.enter('Call', '$bind', slice.call(arguments));
             }
@@ -50,6 +50,7 @@
             // add isBinding flag
             this.$state |= 1 /* isBinding */;
             this.$scope = scope;
+            this.part = part;
             if (ast_1.hasBind(this.sourceExpression)) {
                 this.sourceExpression.bind(flags, scope, this);
             }

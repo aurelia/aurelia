@@ -40,7 +40,7 @@
             if (flags & 16 /* updateTargetInstance */) {
                 const { target, targetProperty } = this;
                 const previousValue = target[targetProperty];
-                const newValue = this.sourceExpression.evaluate(flags, this.$scope, this.locator);
+                const newValue = this.sourceExpression.evaluate(flags, this.$scope, this.locator, this.part);
                 if (newValue !== previousValue) {
                     target[targetProperty] = newValue;
                 }
@@ -51,7 +51,7 @@
             }
             throw kernel_1.Reporter.error(15, flags);
         }
-        $bind(flags, scope) {
+        $bind(flags, scope, part) {
             if (kernel_1.Tracer.enabled) {
                 kernel_1.Tracer.enter('LetBinding', '$bind', slice.call(arguments));
             }
@@ -67,14 +67,15 @@
             // add isBinding flag
             this.$state |= 1 /* isBinding */;
             this.$scope = scope;
+            this.part = part;
             this.target = (this.toViewModel ? scope.bindingContext : scope.overrideContext);
             const sourceExpression = this.sourceExpression;
             if (sourceExpression.bind) {
                 sourceExpression.bind(flags, scope, this);
             }
             // sourceExpression might have been changed during bind
-            this.target[this.targetProperty] = this.sourceExpression.evaluate(4096 /* fromBind */, scope, this.locator);
-            this.sourceExpression.connect(flags, scope, this);
+            this.target[this.targetProperty] = this.sourceExpression.evaluate(4096 /* fromBind */, scope, this.locator, part);
+            this.sourceExpression.connect(flags, scope, this, part);
             // add isBound flag and remove isBinding flag
             this.$state |= 4 /* isBound */;
             this.$state &= ~1 /* isBinding */;

@@ -186,7 +186,8 @@
             }
             return this.unmountSynthetic(flags);
         }
-        bind(flags, scope) {
+        bind(flags, scope, part) {
+            this.part = part;
             // TODO: benchmark which of these techniques is fastest:
             // - the current one (enum with switch)
             // - set the name of the method in the constructor, e.g. this.bindMethod = 'bindCustomElement'
@@ -404,7 +405,7 @@
             if (bindings !== void 0) {
                 const { length } = bindings;
                 for (let i = 0; i < length; ++i) {
-                    bindings[i].$bind(flags, scope);
+                    bindings[i].$bind(flags, scope, this.part);
                 }
             }
         }
@@ -415,7 +416,7 @@
             if (controllers !== void 0) {
                 const { length } = controllers;
                 for (let i = 0; i < length; ++i) {
-                    task = controllers[i].bind(flags, scope);
+                    task = controllers[i].bind(flags, scope, this.part);
                     if (!task.done) {
                         if (tasks === void 0) {
                             tasks = [];

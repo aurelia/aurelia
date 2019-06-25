@@ -4,7 +4,7 @@
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "@aurelia/kernel", "../../definitions", "../../dom", "../../flags", "../../lifecycle", "../../observation/binding-context", "../custom-attribute"], factory);
+        define(["require", "exports", "@aurelia/kernel", "../../definitions", "../../dom", "../../flags", "../../lifecycle", "../custom-attribute"], factory);
     }
 })(function (require, exports) {
     "use strict";
@@ -14,7 +14,6 @@
     const dom_1 = require("../../dom");
     const flags_1 = require("../../flags");
     const lifecycle_1 = require("../../lifecycle");
-    const binding_context_1 = require("../../observation/binding-context");
     const custom_attribute_1 = require("../custom-attribute");
     class Replaceable {
         constructor(factory, location) {
@@ -28,18 +27,7 @@
             container.register(kernel_1.Registration.transient(this, this));
         }
         binding(flags) {
-            const prevName = binding_context_1.BindingContext.partName;
-            binding_context_1.BindingContext.partName = this.factory.name;
-            const task = this.view.bind(flags | 536870912 /* allowParentScopeTraversal */, this.$controller.scope);
-            if (task.done) {
-                binding_context_1.BindingContext.partName = prevName;
-            }
-            else {
-                task.wait().then(() => {
-                    binding_context_1.BindingContext.partName = prevName;
-                });
-            }
-            return task;
+            return this.view.bind(flags | 536870912 /* allowParentScopeTraversal */, this.$controller.scope, this.factory.name);
         }
         attaching(flags) {
             this.view.attach(flags);

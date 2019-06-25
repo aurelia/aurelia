@@ -106,14 +106,14 @@
             this.args = args;
             this.behaviorKey = binding_behavior_1.BindingBehaviorResource.keyFrom(this.name);
         }
-        evaluate(flags, scope, locator) {
-            return this.expression.evaluate(flags, scope, locator);
+        evaluate(flags, scope, locator, part) {
+            return this.expression.evaluate(flags, scope, locator, part);
         }
-        assign(flags, scope, locator, value) {
-            return this.expression.assign(flags, scope, locator, value);
+        assign(flags, scope, locator, value, part) {
+            return this.expression.assign(flags, scope, locator, value, part);
         }
-        connect(flags, scope, binding) {
-            this.expression.connect(flags, scope, binding);
+        connect(flags, scope, binding, part) {
+            this.expression.connect(flags, scope, binding, part);
         }
         bind(flags, scope, binding) {
             if (scope == null) {
@@ -170,7 +170,7 @@
             this.args = args;
             this.converterKey = value_converter_1.ValueConverterResource.keyFrom(this.name);
         }
-        evaluate(flags, scope, locator) {
+        evaluate(flags, scope, locator, part) {
             if (!locator) {
                 throw kernel_1.Reporter.error(202 /* NoLocator */, this);
             }
@@ -182,15 +182,15 @@
                 const args = this.args;
                 const len = args.length;
                 const result = Array(len + 1);
-                result[0] = this.expression.evaluate(flags, scope, locator);
+                result[0] = this.expression.evaluate(flags, scope, locator, part);
                 for (let i = 0; i < len; ++i) {
-                    result[i + 1] = args[i].evaluate(flags, scope, locator);
+                    result[i + 1] = args[i].evaluate(flags, scope, locator, part);
                 }
                 return converter.toView.call(converter, ...result);
             }
-            return this.expression.evaluate(flags, scope, locator);
+            return this.expression.evaluate(flags, scope, locator, part);
         }
-        assign(flags, scope, locator, value) {
+        assign(flags, scope, locator, value, part) {
             if (!locator) {
                 throw kernel_1.Reporter.error(202 /* NoLocator */, this);
             }
@@ -201,9 +201,9 @@
             if ('fromView' in converter) {
                 value = converter.fromView.call(converter, value, ...(evalList(flags, scope, locator, this.args)));
             }
-            return this.expression.assign(flags, scope, locator, value);
+            return this.expression.assign(flags, scope, locator, value, part);
         }
-        connect(flags, scope, binding) {
+        connect(flags, scope, binding, part) {
             if (scope == null) {
                 throw kernel_1.Reporter.error(250 /* NilScope */, this);
             }
@@ -214,10 +214,10 @@
             if (!locator) {
                 throw kernel_1.Reporter.error(202 /* NoLocator */, this);
             }
-            this.expression.connect(flags, scope, binding);
+            this.expression.connect(flags, scope, binding, part);
             const args = this.args;
             for (let i = 0, ii = args.length; i < ii; ++i) {
-                args[i].connect(flags, scope, binding);
+                args[i].connect(flags, scope, binding, part);
             }
             const converter = locator.get(this.converterKey);
             if (!converter) {
@@ -255,15 +255,15 @@
             this.target = target;
             this.value = value;
         }
-        evaluate(flags, scope, locator) {
-            return this.target.assign(flags, scope, locator, this.value.evaluate(flags, scope, locator));
+        evaluate(flags, scope, locator, part) {
+            return this.target.assign(flags, scope, locator, this.value.evaluate(flags, scope, locator), part);
         }
-        connect(flags, scope, binding) {
+        connect(flags, scope, binding, part) {
             return;
         }
-        assign(flags, scope, locator, value) {
-            this.value.assign(flags, scope, locator, value);
-            return this.target.assign(flags, scope, locator, value);
+        assign(flags, scope, locator, value, part) {
+            this.value.assign(flags, scope, locator, value, part);
+            return this.target.assign(flags, scope, locator, value, part);
         }
         accept(visitor) {
             return visitor.visitAssign(this);
@@ -278,20 +278,20 @@
             this.yes = yes;
             this.no = no;
         }
-        evaluate(flags, scope, locator) {
-            return (!!this.condition.evaluate(flags, scope, locator))
-                ? this.yes.evaluate(flags, scope, locator)
-                : this.no.evaluate(flags, scope, locator);
+        evaluate(flags, scope, locator, part) {
+            return (!!this.condition.evaluate(flags, scope, locator, part))
+                ? this.yes.evaluate(flags, scope, locator, part)
+                : this.no.evaluate(flags, scope, locator, part);
         }
-        connect(flags, scope, binding) {
+        connect(flags, scope, binding, part) {
             const condition = this.condition;
-            if (condition.evaluate(flags, scope, null)) {
-                this.condition.connect(flags, scope, binding);
-                this.yes.connect(flags, scope, binding);
+            if (condition.evaluate(flags, scope, null, part)) {
+                this.condition.connect(flags, scope, binding, part);
+                this.yes.connect(flags, scope, binding, part);
             }
             else {
-                this.condition.connect(flags, scope, binding);
-                this.no.connect(flags, scope, binding);
+                this.condition.connect(flags, scope, binding, part);
+                this.no.connect(flags, scope, binding, part);
             }
         }
         accept(visitor) {
@@ -306,9 +306,12 @@
             this.connect = kernel_1.PLATFORM.noop;
             this.ancestor = ancestor;
         }
-        evaluate(flags, scope, locator) {
+        evaluate(flags, scope, locator, part) {
             if (scope == null) {
                 throw kernel_1.Reporter.error(250 /* NilScope */, this);
+            }
+            if ((flags & 536870912 /* allowParentScopeTraversal */) > 0) {
+                scope = scope.partScopes[part];
             }
             let oc = scope.overrideContext;
             let i = this.ancestor;
@@ -330,11 +333,11 @@
             this.name = name;
             this.ancestor = ancestor;
         }
-        evaluate(flags, scope, locator) {
-            return binding_context_1.BindingContext.get(scope, this.name, this.ancestor, flags)[this.name];
+        evaluate(flags, scope, locator, part) {
+            return binding_context_1.BindingContext.get(scope, this.name, this.ancestor, flags, part)[this.name];
         }
-        assign(flags, scope, locator, value) {
-            const obj = binding_context_1.BindingContext.get(scope, this.name, this.ancestor, flags);
+        assign(flags, scope, locator, value, part) {
+            const obj = binding_context_1.BindingContext.get(scope, this.name, this.ancestor, flags, part);
             if (obj instanceof Object) {
                 if (obj.$observers !== void 0 && obj.$observers[this.name] !== void 0) {
                     obj.$observers[this.name].setValue(value, flags);
@@ -346,8 +349,8 @@
             }
             return void 0;
         }
-        connect(flags, scope, binding) {
-            const context = binding_context_1.BindingContext.get(scope, this.name, this.ancestor, flags);
+        connect(flags, scope, binding, part) {
+            const context = binding_context_1.BindingContext.get(scope, this.name, this.ancestor, flags, part);
             binding.observeProperty(flags, context, this.name);
         }
         accept(visitor) {
@@ -361,12 +364,12 @@
             this.object = object;
             this.name = name;
         }
-        evaluate(flags, scope, locator) {
-            const instance = this.object.evaluate(flags, scope, locator);
+        evaluate(flags, scope, locator, part) {
+            const instance = this.object.evaluate(flags, scope, locator, part);
             return instance == null ? instance : instance[this.name];
         }
-        assign(flags, scope, locator, value) {
-            const obj = this.object.evaluate(flags, scope, locator);
+        assign(flags, scope, locator, value, part) {
+            const obj = this.object.evaluate(flags, scope, locator, part);
             if (obj instanceof Object) {
                 if (obj.$observers !== void 0 && obj.$observers[this.name] !== void 0) {
                     obj.$observers[this.name].setValue(value, flags);
@@ -380,9 +383,9 @@
             }
             return value;
         }
-        connect(flags, scope, binding) {
-            const obj = this.object.evaluate(flags, scope, null);
-            this.object.connect(flags, scope, binding);
+        connect(flags, scope, binding, part) {
+            const obj = this.object.evaluate(flags, scope, null, part);
+            this.object.connect(flags, scope, binding, part);
             if (obj instanceof Object) {
                 binding.observeProperty(flags, obj, this.name);
             }
@@ -398,25 +401,25 @@
             this.object = object;
             this.key = key;
         }
-        evaluate(flags, scope, locator) {
-            const instance = this.object.evaluate(flags, scope, locator);
+        evaluate(flags, scope, locator, part) {
+            const instance = this.object.evaluate(flags, scope, locator, part);
             if (instance instanceof Object) {
-                const key = this.key.evaluate(flags, scope, locator);
+                const key = this.key.evaluate(flags, scope, locator, part);
                 return instance[key];
             }
             return void 0;
         }
-        assign(flags, scope, locator, value) {
-            const instance = this.object.evaluate(flags, scope, locator);
-            const key = this.key.evaluate(flags, scope, locator);
+        assign(flags, scope, locator, value, part) {
+            const instance = this.object.evaluate(flags, scope, locator, part);
+            const key = this.key.evaluate(flags, scope, locator, part);
             return instance[key] = value;
         }
-        connect(flags, scope, binding) {
-            const obj = this.object.evaluate(flags, scope, null);
-            this.object.connect(flags, scope, binding);
+        connect(flags, scope, binding, part) {
+            const obj = this.object.evaluate(flags, scope, null, part);
+            this.object.connect(flags, scope, binding, part);
             if (obj instanceof Object) {
-                this.key.connect(flags, scope, binding);
-                const key = this.key.evaluate(flags, scope, null);
+                this.key.connect(flags, scope, binding, part);
+                const key = this.key.evaluate(flags, scope, null, part);
                 if (Array.isArray(obj) && kernel_1.isNumeric(key)) {
                     // Only observe array indexers in proxy mode
                     if (flags & 2 /* proxyStrategy */) {
@@ -443,19 +446,19 @@
             this.args = args;
             this.ancestor = ancestor;
         }
-        evaluate(flags, scope, locator) {
-            const args = evalList(flags, scope, locator, this.args);
-            const context = binding_context_1.BindingContext.get(scope, this.name, this.ancestor, flags);
+        evaluate(flags, scope, locator, part) {
+            const args = evalList(flags, scope, locator, this.args, part);
+            const context = binding_context_1.BindingContext.get(scope, this.name, this.ancestor, flags, part);
             const func = getFunction(flags, context, this.name);
             if (func) {
                 return func.apply(context, args);
             }
             return void 0;
         }
-        connect(flags, scope, binding) {
+        connect(flags, scope, binding, part) {
             const args = this.args;
             for (let i = 0, ii = args.length; i < ii; ++i) {
-                args[i].connect(flags, scope, binding);
+                args[i].connect(flags, scope, binding, part);
             }
         }
         accept(visitor) {
@@ -471,22 +474,22 @@
             this.name = name;
             this.args = args;
         }
-        evaluate(flags, scope, locator) {
-            const instance = this.object.evaluate(flags, scope, locator);
-            const args = evalList(flags, scope, locator, this.args);
+        evaluate(flags, scope, locator, part) {
+            const instance = this.object.evaluate(flags, scope, locator, part);
+            const args = evalList(flags, scope, locator, this.args, part);
             const func = getFunction(flags, instance, this.name);
             if (func) {
                 return func.apply(instance, args);
             }
             return void 0;
         }
-        connect(flags, scope, binding) {
-            const obj = this.object.evaluate(flags, scope, null);
-            this.object.connect(flags, scope, binding);
+        connect(flags, scope, binding, part) {
+            const obj = this.object.evaluate(flags, scope, null, part);
+            this.object.connect(flags, scope, binding, part);
             if (getFunction(flags & ~2097152 /* mustEvaluate */, obj, this.name)) {
                 const args = this.args;
                 for (let i = 0, ii = args.length; i < ii; ++i) {
-                    args[i].connect(flags, scope, binding);
+                    args[i].connect(flags, scope, binding, part);
                 }
             }
         }
@@ -502,23 +505,23 @@
             this.func = func;
             this.args = args;
         }
-        evaluate(flags, scope, locator) {
-            const func = this.func.evaluate(flags, scope, locator);
+        evaluate(flags, scope, locator, part) {
+            const func = this.func.evaluate(flags, scope, locator, part);
             if (typeof func === 'function') {
-                return func.apply(null, evalList(flags, scope, locator, this.args));
+                return func.apply(null, evalList(flags, scope, locator, this.args, part));
             }
             if (!(flags & 2097152 /* mustEvaluate */) && (func == null)) {
                 return void 0;
             }
             throw kernel_1.Reporter.error(207 /* NotAFunction */, this);
         }
-        connect(flags, scope, binding) {
-            const func = this.func.evaluate(flags, scope, null);
-            this.func.connect(flags, scope, binding);
+        connect(flags, scope, binding, part) {
+            const func = this.func.evaluate(flags, scope, null, part);
+            this.func.connect(flags, scope, binding, part);
             if (typeof func === 'function') {
                 const args = this.args;
                 for (let i = 0, ii = args.length; i < ii; ++i) {
-                    args[i].connect(flags, scope, binding);
+                    args[i].connect(flags, scope, binding, part);
                 }
             }
         }
@@ -539,48 +542,48 @@
             // work to do; we can do this because the operation can't change after it's parsed
             this.evaluate = this[operation];
         }
-        evaluate(flags, scope, locator) {
+        evaluate(flags, scope, locator, part) {
             throw kernel_1.Reporter.error(208 /* UnknownOperator */, this);
         }
-        connect(flags, scope, binding) {
-            const left = this.left.evaluate(flags, scope, null);
-            this.left.connect(flags, scope, binding);
+        connect(flags, scope, binding, part) {
+            const left = this.left.evaluate(flags, scope, null, part);
+            this.left.connect(flags, scope, binding, part);
             if (this.operation === '&&' && !left || this.operation === '||' && left) {
                 return;
             }
-            this.right.connect(flags, scope, binding);
+            this.right.connect(flags, scope, binding, part);
         }
-        ['&&'](f, s, l) {
-            return this.left.evaluate(f, s, l) && this.right.evaluate(f, s, l);
+        ['&&'](f, s, l, p) {
+            return this.left.evaluate(f, s, l, p) && this.right.evaluate(f, s, l, p);
         }
-        ['||'](f, s, l) {
-            return this.left.evaluate(f, s, l) || this.right.evaluate(f, s, l);
+        ['||'](f, s, l, p) {
+            return this.left.evaluate(f, s, l, p) || this.right.evaluate(f, s, l, p);
         }
-        ['=='](f, s, l) {
+        ['=='](f, s, l, p) {
             // tslint:disable-next-line:triple-equals
-            return this.left.evaluate(f, s, l) == this.right.evaluate(f, s, l);
+            return this.left.evaluate(f, s, l, p) == this.right.evaluate(f, s, l, p);
         }
-        ['==='](f, s, l) {
-            return this.left.evaluate(f, s, l) === this.right.evaluate(f, s, l);
+        ['==='](f, s, l, p) {
+            return this.left.evaluate(f, s, l, p) === this.right.evaluate(f, s, l, p);
         }
-        ['!='](f, s, l) {
+        ['!='](f, s, l, p) {
             // tslint:disable-next-line:triple-equals
-            return this.left.evaluate(f, s, l) != this.right.evaluate(f, s, l);
+            return this.left.evaluate(f, s, l, p) != this.right.evaluate(f, s, l, p);
         }
-        ['!=='](f, s, l) {
-            return this.left.evaluate(f, s, l) !== this.right.evaluate(f, s, l);
+        ['!=='](f, s, l, p) {
+            return this.left.evaluate(f, s, l, p) !== this.right.evaluate(f, s, l, p);
         }
-        ['instanceof'](f, s, l) {
-            const right = this.right.evaluate(f, s, l);
+        ['instanceof'](f, s, l, p) {
+            const right = this.right.evaluate(f, s, l, p);
             if (typeof right === 'function') {
-                return this.left.evaluate(f, s, l) instanceof right;
+                return this.left.evaluate(f, s, l, p) instanceof right;
             }
             return false;
         }
-        ['in'](f, s, l) {
-            const right = this.right.evaluate(f, s, l);
+        ['in'](f, s, l, p) {
+            const right = this.right.evaluate(f, s, l, p);
             if (right instanceof Object) {
-                return this.left.evaluate(f, s, l) in right;
+                return this.left.evaluate(f, s, l, p) in right;
             }
             return false;
         }
@@ -588,32 +591,32 @@
         // and where it isn't, you kind of want it to behave like the spec anyway (e.g. return NaN when adding a number to undefined)
         // this makes bugs in user code easier to track down for end users
         // also, skipping these checks and leaving it to the runtime is a nice little perf boost and simplifies our code
-        ['+'](f, s, l) {
-            return this.left.evaluate(f, s, l) + this.right.evaluate(f, s, l);
+        ['+'](f, s, l, p) {
+            return this.left.evaluate(f, s, l, p) + this.right.evaluate(f, s, l, p);
         }
-        ['-'](f, s, l) {
-            return this.left.evaluate(f, s, l) - this.right.evaluate(f, s, l);
+        ['-'](f, s, l, p) {
+            return this.left.evaluate(f, s, l, p) - this.right.evaluate(f, s, l, p);
         }
-        ['*'](f, s, l) {
-            return this.left.evaluate(f, s, l) * this.right.evaluate(f, s, l);
+        ['*'](f, s, l, p) {
+            return this.left.evaluate(f, s, l, p) * this.right.evaluate(f, s, l, p);
         }
-        ['/'](f, s, l) {
-            return this.left.evaluate(f, s, l) / this.right.evaluate(f, s, l);
+        ['/'](f, s, l, p) {
+            return this.left.evaluate(f, s, l, p) / this.right.evaluate(f, s, l, p);
         }
-        ['%'](f, s, l) {
-            return this.left.evaluate(f, s, l) % this.right.evaluate(f, s, l);
+        ['%'](f, s, l, p) {
+            return this.left.evaluate(f, s, l, p) % this.right.evaluate(f, s, l, p);
         }
-        ['<'](f, s, l) {
-            return this.left.evaluate(f, s, l) < this.right.evaluate(f, s, l);
+        ['<'](f, s, l, p) {
+            return this.left.evaluate(f, s, l, p) < this.right.evaluate(f, s, l, p);
         }
-        ['>'](f, s, l) {
-            return this.left.evaluate(f, s, l) > this.right.evaluate(f, s, l);
+        ['>'](f, s, l, p) {
+            return this.left.evaluate(f, s, l, p) > this.right.evaluate(f, s, l, p);
         }
-        ['<='](f, s, l) {
-            return this.left.evaluate(f, s, l) <= this.right.evaluate(f, s, l);
+        ['<='](f, s, l, p) {
+            return this.left.evaluate(f, s, l, p) <= this.right.evaluate(f, s, l, p);
         }
-        ['>='](f, s, l) {
-            return this.left.evaluate(f, s, l) >= this.right.evaluate(f, s, l);
+        ['>='](f, s, l, p) {
+            return this.left.evaluate(f, s, l, p) >= this.right.evaluate(f, s, l, p);
         }
         // tslint:disable-next-line:member-ordering
         accept(visitor) {
@@ -630,26 +633,26 @@
             // see Binary (we're doing the same thing here)
             this.evaluate = this[operation];
         }
-        evaluate(flags, scope, locator) {
+        evaluate(flags, scope, locator, part) {
             throw kernel_1.Reporter.error(208 /* UnknownOperator */, this);
         }
-        connect(flags, scope, binding) {
-            this.expression.connect(flags, scope, binding);
+        connect(flags, scope, binding, part) {
+            this.expression.connect(flags, scope, binding, part);
         }
-        ['void'](f, s, l) {
-            return void this.expression.evaluate(f, s, l);
+        ['void'](f, s, l, p) {
+            return void this.expression.evaluate(f, s, l, p);
         }
-        ['typeof'](f, s, l) {
-            return typeof this.expression.evaluate(f, s, l);
+        ['typeof'](f, s, l, p) {
+            return typeof this.expression.evaluate(f, s, l, p);
         }
-        ['!'](f, s, l) {
-            return !this.expression.evaluate(f, s, l);
+        ['!'](f, s, l, p) {
+            return !this.expression.evaluate(f, s, l, p);
         }
-        ['-'](f, s, l) {
-            return -this.expression.evaluate(f, s, l);
+        ['-'](f, s, l, p) {
+            return -this.expression.evaluate(f, s, l, p);
         }
-        ['+'](f, s, l) {
-            return +this.expression.evaluate(f, s, l);
+        ['+'](f, s, l, p) {
+            return +this.expression.evaluate(f, s, l, p);
         }
         accept(visitor) {
             return visitor.visitUnary(this);
@@ -663,7 +666,7 @@
             this.connect = kernel_1.PLATFORM.noop;
             this.value = value;
         }
-        evaluate(flags, scope, locator) {
+        evaluate(flags, scope, locator, part) {
             return this.value;
         }
         accept(visitor) {
@@ -682,12 +685,12 @@
             this.assign = kernel_1.PLATFORM.noop;
             this.parts = parts;
         }
-        evaluate(flags, scope, locator) {
+        evaluate(flags, scope, locator, part) {
             const elements = this.parts;
             let result = '';
             let value;
             for (let i = 0, ii = elements.length; i < ii; ++i) {
-                value = elements[i].evaluate(flags, scope, locator);
+                value = elements[i].evaluate(flags, scope, locator, part);
                 if (value == null) {
                     continue;
                 }
@@ -695,9 +698,9 @@
             }
             return result;
         }
-        connect(flags, scope, binding) {
+        connect(flags, scope, binding, part) {
             for (let i = 0, ii = this.parts.length; i < ii; ++i) {
-                this.parts[i].connect(flags, scope, binding);
+                this.parts[i].connect(flags, scope, binding, part);
             }
         }
         accept(visitor) {
@@ -711,19 +714,19 @@
             this.assign = kernel_1.PLATFORM.noop;
             this.elements = elements;
         }
-        evaluate(flags, scope, locator) {
+        evaluate(flags, scope, locator, part) {
             const elements = this.elements;
             const length = elements.length;
             const result = Array(length);
             for (let i = 0; i < length; ++i) {
-                result[i] = elements[i].evaluate(flags, scope, locator);
+                result[i] = elements[i].evaluate(flags, scope, locator, part);
             }
             return result;
         }
-        connect(flags, scope, binding) {
+        connect(flags, scope, binding, part) {
             const elements = this.elements;
             for (let i = 0, ii = elements.length; i < ii; ++i) {
-                elements[i].connect(flags, scope, binding);
+                elements[i].connect(flags, scope, binding, part);
             }
         }
         accept(visitor) {
@@ -739,20 +742,20 @@
             this.keys = keys;
             this.values = values;
         }
-        evaluate(flags, scope, locator) {
+        evaluate(flags, scope, locator, part) {
             const instance = {};
             const keys = this.keys;
             const values = this.values;
             for (let i = 0, ii = keys.length; i < ii; ++i) {
-                instance[keys[i]] = values[i].evaluate(flags, scope, locator);
+                instance[keys[i]] = values[i].evaluate(flags, scope, locator, part);
             }
             return instance;
         }
-        connect(flags, scope, binding) {
+        connect(flags, scope, binding, part) {
             const keys = this.keys;
             const values = this.values;
             for (let i = 0, ii = keys.length; i < ii; ++i) {
-                values[i].connect(flags, scope, binding);
+                values[i].connect(flags, scope, binding, part);
             }
         }
         accept(visitor) {
@@ -768,20 +771,20 @@
             this.cooked = cooked;
             this.expressions = expressions === void 0 ? kernel_1.PLATFORM.emptyArray : expressions;
         }
-        evaluate(flags, scope, locator) {
+        evaluate(flags, scope, locator, part) {
             const expressions = this.expressions;
             const cooked = this.cooked;
             let result = cooked[0];
             for (let i = 0, ii = expressions.length; i < ii; ++i) {
-                result += expressions[i].evaluate(flags, scope, locator);
+                result += expressions[i].evaluate(flags, scope, locator, part);
                 result += cooked[i + 1];
             }
             return result;
         }
-        connect(flags, scope, binding) {
+        connect(flags, scope, binding, part) {
             const expressions = this.expressions;
             for (let i = 0, ii = expressions.length; i < ii; ++i) {
-                expressions[i].connect(flags, scope, binding);
+                expressions[i].connect(flags, scope, binding, part);
                 i++;
             }
         }
@@ -800,20 +803,20 @@
             this.func = func;
             this.expressions = expressions === void 0 ? kernel_1.PLATFORM.emptyArray : expressions;
         }
-        evaluate(flags, scope, locator) {
+        evaluate(flags, scope, locator, part) {
             const expressions = this.expressions;
             const len = expressions.length;
             const results = Array(len);
             for (let i = 0, ii = len; i < ii; ++i) {
-                results[i] = expressions[i].evaluate(flags, scope, locator);
+                results[i] = expressions[i].evaluate(flags, scope, locator, part);
             }
-            const func = this.func.evaluate(flags, scope, locator);
+            const func = this.func.evaluate(flags, scope, locator, part);
             if (typeof func !== 'function') {
                 throw kernel_1.Reporter.error(207 /* NotAFunction */, this);
             }
             return func.apply(null, [this.cooked].concat(results));
         }
-        connect(flags, scope, binding) {
+        connect(flags, scope, binding, part) {
             const expressions = this.expressions;
             for (let i = 0, ii = expressions.length; i < ii; ++i) {
                 expressions[i].connect(flags, scope, binding);
@@ -831,15 +834,15 @@
             this.$kind = 65556 /* ArrayBindingPattern */;
             this.elements = elements;
         }
-        evaluate(flags, scope, locator) {
+        evaluate(flags, scope, locator, part) {
             // TODO
             return void 0;
         }
-        assign(flags, scope, locator, obj) {
+        assign(flags, scope, locator, obj, part) {
             // TODO
             return void 0;
         }
-        connect(flags, scope, binding) {
+        connect(flags, scope, binding, part) {
             return;
         }
         accept(visitor) {
@@ -854,15 +857,15 @@
             this.keys = keys;
             this.values = values;
         }
-        evaluate(flags, scope, locator) {
+        evaluate(flags, scope, locator, part) {
             // TODO
             return void 0;
         }
-        assign(flags, scope, locator, obj) {
+        assign(flags, scope, locator, obj, part) {
             // TODO
             return void 0;
         }
-        connect(flags, scope, binding) {
+        connect(flags, scope, binding, part) {
             return;
         }
         accept(visitor) {
@@ -875,10 +878,10 @@
             this.$kind = 65558 /* BindingIdentifier */;
             this.name = name;
         }
-        evaluate(flags, scope, locator) {
+        evaluate(flags, scope, locator, part) {
             return this.name;
         }
-        connect(flags, scope, binding) {
+        connect(flags, scope, binding, part) {
             return;
         }
         accept(visitor) {
@@ -896,8 +899,8 @@
             this.declaration = declaration;
             this.iterable = iterable;
         }
-        evaluate(flags, scope, locator) {
-            return this.iterable.evaluate(flags, scope, locator);
+        evaluate(flags, scope, locator, part) {
+            return this.iterable.evaluate(flags, scope, locator, part);
         }
         count(flags, result) {
             return exports.CountForOfStatement[toStringTag.call(result)](result);
@@ -905,9 +908,9 @@
         iterate(flags, result, func) {
             exports.IterateForOfStatement[toStringTag.call(result)](flags | 33554432 /* isOriginalArray */, result, func);
         }
-        connect(flags, scope, binding) {
-            this.declaration.connect(flags, scope, binding);
-            this.iterable.connect(flags, scope, binding);
+        connect(flags, scope, binding, part) {
+            this.declaration.connect(flags, scope, binding, part);
+            this.iterable.connect(flags, scope, binding, part);
         }
         bind(flags, scope, binding) {
             if (hasBind(this.iterable)) {
@@ -938,23 +941,23 @@
             this.isMulti = this.expressions.length > 1;
             this.firstExpression = this.expressions[0];
         }
-        evaluate(flags, scope, locator) {
+        evaluate(flags, scope, locator, part) {
             if (this.isMulti) {
                 const expressions = this.expressions;
                 const parts = this.parts;
                 let result = parts[0];
                 for (let i = 0, ii = expressions.length; i < ii; ++i) {
-                    result += expressions[i].evaluate(flags, scope, locator);
+                    result += expressions[i].evaluate(flags, scope, locator, part);
                     result += parts[i + 1];
                 }
                 return result;
             }
             else {
                 const parts = this.parts;
-                return parts[0] + this.firstExpression.evaluate(flags, scope, locator) + parts[1];
+                return parts[0] + this.firstExpression.evaluate(flags, scope, locator, part) + parts[1];
             }
         }
-        connect(flags, scope, binding) {
+        connect(flags, scope, binding, part) {
             return;
         }
         accept(visitor) {
@@ -963,11 +966,11 @@
     }
     exports.Interpolation = Interpolation;
     /// Evaluate the [list] in context of the [scope].
-    function evalList(flags, scope, locator, list) {
+    function evalList(flags, scope, locator, list, part) {
         const len = list.length;
         const result = Array(len);
         for (let i = 0; i < len; ++i) {
-            result[i] = list[i].evaluate(flags, scope, locator);
+            result[i] = list[i].evaluate(flags, scope, locator, part);
         }
         return result;
     }

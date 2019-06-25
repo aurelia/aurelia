@@ -10,6 +10,7 @@ export declare class AttributeBinding implements IPartialConnectableBinding {
     $state: State;
     $lifecycle: ILifecycle;
     $scope: IScope;
+    part?: string;
     locator: IServiceLocator;
     mode: BindingMode;
     observerLocator: IObserverLocator;
@@ -26,7 +27,7 @@ export declare class AttributeBinding implements IPartialConnectableBinding {
     updateTarget(value: unknown, flags: LifecycleFlags): void;
     updateSource(value: unknown, flags: LifecycleFlags): void;
     handleChange(newValue: unknown, _previousValue: unknown, flags: LifecycleFlags): void;
-    $bind(flags: LifecycleFlags, scope: IScope): void;
+    $bind(flags: LifecycleFlags, scope: IScope, part?: string): void;
     $unbind(flags: LifecycleFlags): void;
     connect(flags: LifecycleFlags): void;
 }

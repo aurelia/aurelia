@@ -141,7 +141,7 @@ export class Compose {
     }
     bindView(flags) {
         if (this.view != void 0 && (this.$controller.state & (5 /* isBoundOrBinding */)) > 0) {
-            return this.view.bind(flags, this.renderable.scope);
+            return this.view.bind(flags, this.renderable.scope, this.$controller.part);
         }
         return LifecycleTask.done;
     }

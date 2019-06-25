@@ -180,7 +180,7 @@
         }
         bindView(flags) {
             if (this.view !== void 0 && (this.$controller.state & 5 /* isBoundOrBinding */) > 0) {
-                return this.view.bind(flags, this.$controller.scope);
+                return this.view.bind(flags, this.$controller.scope, this.$controller.part);
             }
             return lifecycle_task_1.LifecycleTask.done;
         }

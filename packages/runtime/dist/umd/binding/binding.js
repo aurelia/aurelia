@@ -41,7 +41,7 @@
         }
         updateSource(value, flags) {
             flags |= this.persistentFlags;
-            this.sourceExpression.assign(flags, this.$scope, this.locator, value);
+            this.sourceExpression.assign(flags, this.$scope, this.locator, value, this.part);
         }
         handleChange(newValue, _previousValue, flags) {
             if (kernel_1.Tracer.enabled) {
@@ -58,14 +58,14 @@
                 const previousValue = this.targetObserver.getValue();
                 // if the only observable is an AccessScope then we can assume the passed-in newValue is the correct and latest value
                 if (this.sourceExpression.$kind !== 10082 /* AccessScope */ || this.observerSlots > 1) {
-                    newValue = this.sourceExpression.evaluate(flags, this.$scope, this.locator);
+                    newValue = this.sourceExpression.evaluate(flags, this.$scope, this.locator, this.part);
                 }
                 if (newValue !== previousValue) {
                     this.updateTarget(newValue, flags);
                 }
                 if ((this.mode & oneTime) === 0) {
                     this.version++;
-                    this.sourceExpression.connect(flags, this.$scope, this);
+                    this.sourceExpression.connect(flags, this.$scope, this, this.part);
                     this.unobserve(false);
                 }
                 if (kernel_1.Tracer.enabled) {
@@ -74,7 +74,7 @@
                 return;
             }
             if ((flags & 32 /* updateSourceExpression */) > 0) {
-                if (newValue !== this.sourceExpression.evaluate(flags, this.$scope, this.locator)) {
+                if (newValue !== this.sourceExpression.evaluate(flags, this.$scope, this.locator, this.part)) {
                     this.updateSource(newValue, flags);
                 }
                 if (kernel_1.Tracer.enabled) {
@@ -87,7 +87,7 @@
             }
             throw kernel_1.Reporter.error(15, flags);
         }
-        $bind(flags, scope) {
+        $bind(flags, scope, part) {
             if (kernel_1.Tracer.enabled) {
                 kernel_1.Tracer.enter('Binding', '$bind', slice.call(arguments));
             }
@@ -106,6 +106,7 @@
             // to the AST during evaluate/connect/assign
             this.persistentFlags = flags & 536870927 /* persistentBindingFlags */;
             this.$scope = scope;
+            this.part = part;
             let sourceExpression = this.sourceExpression;
             if (ast_1.hasBind(sourceExpression)) {
                 sourceExpression.bind(flags, scope, this);
@@ -125,10 +126,10 @@
             // during bind, binding behavior might have changed sourceExpression
             sourceExpression = this.sourceExpression;
             if (this.mode & toViewOrOneTime) {
-                this.updateTarget(sourceExpression.evaluate(flags, scope, this.locator), flags);
+                this.updateTarget(sourceExpression.evaluate(flags, scope, this.locator, part), flags);
             }
             if (this.mode & toView) {
-                sourceExpression.connect(flags, scope, this);
+                sourceExpression.connect(flags, scope, this, part);
             }
             if (this.mode & fromView) {
                 targetObserver.subscribe(this);

@@ -4,7 +4,6 @@ import { IBinding } from '../lifecycle';
 import { IBindingContext, IOverrideContext, IScope, ObservedCollection, ObserversLookup } from '../observation';
 export declare type BindingContextValue = ObservedCollection | StrictPrimitive | IIndexable;
 export declare class BindingContext implements IBindingContext {
-    static partName: string | null;
     [key: string]: unknown;
     readonly $synthetic: true;
     $observers?: ObserversLookup;
@@ -27,7 +26,7 @@ export declare class BindingContext implements IBindingContext {
      * to keep strong typing in situations where the arguments are dynamic.
      */
     static create(flags: LifecycleFlags, keyOrObj?: string | IIndexable, value?: unknown): BindingContext;
-    static get(scope: IScope, name: string, ancestor: number, flags: LifecycleFlags): IBindingContext | IOverrideContext | IBinding | undefined | null;
+    static get(scope: IScope, name: string, ancestor: number, flags: LifecycleFlags, part?: string): IBindingContext | IOverrideContext | IBinding | undefined | null;
     getObservers(flags: LifecycleFlags): ObserversLookup;
 }
 export declare class Scope implements IScope {

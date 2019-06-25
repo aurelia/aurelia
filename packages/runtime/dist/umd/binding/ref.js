@@ -20,7 +20,7 @@
             this.sourceExpression = sourceExpression;
             this.target = target;
         }
-        $bind(flags, scope) {
+        $bind(flags, scope, part) {
             if (kernel_1.Tracer.enabled) {
                 kernel_1.Tracer.enter('Ref', '$bind', slice.call(arguments));
             }
@@ -36,10 +36,11 @@
             // add isBinding flag
             this.$state |= 1 /* isBinding */;
             this.$scope = scope;
+            this.part = part;
             if (ast_1.hasBind(this.sourceExpression)) {
                 this.sourceExpression.bind(flags, scope, this);
             }
-            this.sourceExpression.assign(flags, this.$scope, this.locator, this.target);
+            this.sourceExpression.assign(flags, this.$scope, this.locator, this.target, part);
             // add isBound flag and remove isBinding flag
             this.$state |= 4 /* isBound */;
             this.$state &= ~1 /* isBinding */;
@@ -59,8 +60,8 @@
             }
             // add isUnbinding flag
             this.$state |= 2 /* isUnbinding */;
-            if (this.sourceExpression.evaluate(flags, this.$scope, this.locator) === this.target) {
-                this.sourceExpression.assign(flags, this.$scope, this.locator, null);
+            if (this.sourceExpression.evaluate(flags, this.$scope, this.locator, this.part) === this.target) {
+                this.sourceExpression.assign(flags, this.$scope, this.locator, null, this.part);
             }
             const sourceExpression = this.sourceExpression;
             if (ast_1.hasUnbind(sourceExpression)) {

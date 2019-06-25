@@ -22,7 +22,7 @@ export class MultiInterpolationBinding {
             parts[i] = new InterpolationBinding(expressions[i], interpolation, target, targetProperty, mode, observerLocator, locator, i === 0);
         }
     }
-    $bind(flags, scope) {
+    $bind(flags, scope, part) {
         if (this.$state & 4 /* isBound */) {
             if (this.$scope === scope) {
                 return;
@@ -31,9 +31,10 @@ export class MultiInterpolationBinding {
         }
         this.$state |= 4 /* isBound */;
         this.$scope = scope;
+        this.part = part;
         const parts = this.parts;
         for (let i = 0, ii = parts.length; i < ii; ++i) {
-            parts[i].$bind(flags, scope);
+            parts[i].$bind(flags, scope, part);
         }
     }
     $unbind(flags) {
@@ -71,17 +72,17 @@ let InterpolationBinding = class InterpolationBinding {
             return;
         }
         const previousValue = this.targetObserver.getValue();
-        const newValue = this.interpolation.evaluate(flags, this.$scope, this.locator);
+        const newValue = this.interpolation.evaluate(flags, this.$scope, this.locator, this.part);
         if (newValue !== previousValue) {
             this.updateTarget(newValue, flags);
         }
         if ((this.mode & oneTime) === 0) {
             this.version++;
-            this.sourceExpression.connect(flags, this.$scope, this);
+            this.sourceExpression.connect(flags, this.$scope, this, this.part);
             this.unobserve(false);
         }
     }
-    $bind(flags, scope) {
+    $bind(flags, scope, part) {
         if (this.$state & 4 /* isBound */) {
             if (this.$scope === scope) {
                 return;
@@ -90,6 +91,7 @@ let InterpolationBinding = class InterpolationBinding {
         }
         this.$state |= 4 /* isBound */;
         this.$scope = scope;
+        this.part = part;
         const sourceExpression = this.sourceExpression;
         if (sourceExpression.bind) {
             sourceExpression.bind(flags, scope, this);
@@ -100,10 +102,10 @@ let InterpolationBinding = class InterpolationBinding {
         // since the interpolation already gets the whole value, we only need to let the first
         // text binding do the update if there are multiple
         if (this.isFirst) {
-            this.updateTarget(this.interpolation.evaluate(flags, scope, this.locator), flags);
+            this.updateTarget(this.interpolation.evaluate(flags, scope, this.locator, part), flags);
         }
         if (this.mode & toView) {
-            sourceExpression.connect(flags, scope, this);
+            sourceExpression.connect(flags, scope, this, part);
         }
     }
     $unbind(flags) {

@@ -23,7 +23,7 @@ export class Listener {
         }
         const overrideContext = this.$scope.overrideContext;
         overrideContext.$event = event;
-        const result = this.sourceExpression.evaluate(2097152 /* mustEvaluate */, this.$scope, this.locator);
+        const result = this.sourceExpression.evaluate(2097152 /* mustEvaluate */, this.$scope, this.locator, this.part);
         Reflect.deleteProperty(overrideContext, '$event');
         if (result !== true && this.preventDefault) {
             event.preventDefault();
@@ -36,7 +36,7 @@ export class Listener {
     handleEvent(event) {
         this.callSource(event);
     }
-    $bind(flags, scope) {
+    $bind(flags, scope, part) {
         if (Tracer.enabled) {
             Tracer.enter('Listener', '$bind', slice.call(arguments));
         }
@@ -52,6 +52,7 @@ export class Listener {
         // add isBinding flag
         this.$state |= 1 /* isBinding */;
         this.$scope = scope;
+        this.part = part;
         const sourceExpression = this.sourceExpression;
         if (hasBind(sourceExpression)) {
             sourceExpression.bind(flags, scope, this);

@@ -272,6 +272,7 @@
             let task;
             let view;
             this.$controller.lifecycle.bound.begin();
+            const part = this.$controller.part;
             const factory = this.factory;
             const local = this.local;
             const items = this.items;
@@ -279,7 +280,7 @@
             const views = this.views = Array(newLen);
             this.forOf.iterate(flags, items, (arr, i, item) => {
                 view = views[i] = factory.create(flags);
-                task = view.bind(flags, this.createScope(flags, local, item, view));
+                task = view.bind(flags, this.createScope(flags, local, item, view), part);
                 if (!task.done) {
                     if (tasks === undefined) {
                         tasks = [];
@@ -302,12 +303,13 @@
             const local = this.local;
             const items = this.items;
             this.$controller.lifecycle.bound.begin();
+            const part = this.$controller.part;
             const mapLen = indexMap.length;
             for (let i = 0; i < mapLen; ++i) {
                 if (indexMap[i] === -2) {
                     view = factory.create(flags);
                     // TODO: test with map/set/undefined/null, make sure we can use strong typing here as well, etc
-                    task = view.bind(flags, this.createScope(flags, local, items[i], view));
+                    task = view.bind(flags, this.createScope(flags, local, items[i], view), part);
                     views.splice(i, 0, view);
                     if (!task.done) {
                         if (tasks === undefined) {

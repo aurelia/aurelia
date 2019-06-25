@@ -18,6 +18,11 @@
             }
             this.obj = obj;
             this.propertyKey = propertyKey;
+            if (obj.$observers !== void 0
+                && obj.$observers[propertyKey] !== void 0
+                && obj.$observers[propertyKey].setValue !== void 0) {
+                this.setValue = this.setValueDirect;
+            }
             if (kernel_1.Tracer.enabled) {
                 kernel_1.Tracer.leave();
             }
@@ -25,8 +30,11 @@
         getValue() {
             return this.obj[this.propertyKey];
         }
-        setValue(value) {
+        setValue(value, flags) {
             this.obj[this.propertyKey] = value;
+        }
+        setValueDirect(value, flags) {
+            this.obj.$observers[this.propertyKey].setValue(value, flags);
         }
     }
     exports.PropertyAccessor = PropertyAccessor;

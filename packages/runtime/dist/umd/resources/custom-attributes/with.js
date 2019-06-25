@@ -61,7 +61,8 @@
         }
         bindChild(flags) {
             const scope = binding_context_1.Scope.fromParent(flags, this.$controller.scope, this.value === void 0 ? {} : this.value);
-            this.view.bind(flags, scope);
+            scope.partScopes = this.$controller.scope.partScopes;
+            this.view.bind(flags, scope, this.$controller.part);
         }
     }
     With.inject = [lifecycle_1.IViewFactory, dom_1.IRenderLocation];

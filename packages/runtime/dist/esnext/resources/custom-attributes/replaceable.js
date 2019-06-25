@@ -3,7 +3,6 @@ import { HooksDefinition, } from '../../definitions';
 import { IRenderLocation, } from '../../dom';
 import { BindingMode, } from '../../flags';
 import { IViewFactory, } from '../../lifecycle';
-import { BindingContext, } from '../../observation/binding-context';
 import { CustomAttributeResource, } from '../custom-attribute';
 export class Replaceable {
     constructor(factory, location) {
@@ -17,18 +16,7 @@ export class Replaceable {
         container.register(Registration.transient(this, this));
     }
     binding(flags) {
-        const prevName = BindingContext.partName;
-        BindingContext.partName = this.factory.name;
-        const task = this.view.bind(flags | 536870912 /* allowParentScopeTraversal */, this.$controller.scope);
-        if (task.done) {
-            BindingContext.partName = prevName;
-        }
-        else {
-            task.wait().then(() => {
-                BindingContext.partName = prevName;
-            });
-        }
-        return task;
+        return this.view.bind(flags | 536870912 /* allowParentScopeTraversal */, this.$controller.scope, this.factory.name);
     }
     attaching(flags) {
         this.view.attach(flags);

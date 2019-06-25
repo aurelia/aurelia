@@ -34,7 +34,7 @@
             }
             const overrideContext = this.$scope.overrideContext;
             overrideContext.$event = event;
-            const result = this.sourceExpression.evaluate(2097152 /* mustEvaluate */, this.$scope, this.locator);
+            const result = this.sourceExpression.evaluate(2097152 /* mustEvaluate */, this.$scope, this.locator, this.part);
             Reflect.deleteProperty(overrideContext, '$event');
             if (result !== true && this.preventDefault) {
                 event.preventDefault();
@@ -47,7 +47,7 @@
         handleEvent(event) {
             this.callSource(event);
         }
-        $bind(flags, scope) {
+        $bind(flags, scope, part) {
             if (kernel_1.Tracer.enabled) {
                 kernel_1.Tracer.enter('Listener', '$bind', slice.call(arguments));
             }
@@ -63,6 +63,7 @@
             // add isBinding flag
             this.$state |= 1 /* isBinding */;
             this.$scope = scope;
+            this.part = part;
             const sourceExpression = this.sourceExpression;
             if (runtime_1.hasBind(sourceExpression)) {
                 sourceExpression.bind(flags, scope, this);

@@ -50,6 +50,7 @@ export declare class Controller<T extends INode = INode, C extends IViewModel<T>
     readonly host?: T;
     readonly vmKind: ViewModelKind;
     scope?: IScope;
+    part?: string;
     projector?: IElementProjector;
     nodes?: INodeSequence<T>;
     context?: IContainer | IRenderContext<T>;
@@ -62,7 +63,7 @@ export declare class Controller<T extends INode = INode, C extends IViewModel<T>
     lockScope(scope: IScope): void;
     hold(location: IRenderLocation<T>): void;
     release(flags: LifecycleFlags): boolean;
-    bind(flags: LifecycleFlags, scope?: IScope): ILifecycleTask;
+    bind(flags: LifecycleFlags, scope?: IScope, part?: string): ILifecycleTask;
     unbind(flags: LifecycleFlags): ILifecycleTask;
     bound(flags: LifecycleFlags): void;
     unbound(flags: LifecycleFlags): void;

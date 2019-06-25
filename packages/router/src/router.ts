@@ -1,5 +1,5 @@
 import { DI, IContainer, Key, Reporter } from '@aurelia/kernel';
-import { Aurelia, ICustomElementType, IRenderContext } from '@aurelia/runtime';
+import { Aurelia, ICustomElementType, IRenderContext, IController } from '@aurelia/runtime';
 import { BrowserNavigation, INavigationViewerEvent } from './browser-navigation';
 import { InstructionResolver, IRouteSeparators } from './instruction-resolver';
 import { AnchorEventInfo, LinkHandler } from './link-handler';
@@ -447,15 +447,34 @@ export class Router implements IRouter {
   }
 
   private closestScope(element: Element): Scope {
-    let el = element;
-    while (el.parentElement) {
-      const viewport = this.allViewports().find((item) => item.element === el);
-      if (viewport && viewport.owningScope) {
-        return viewport.owningScope;
-      }
+    let el: any = element;
+    while (!el.$controller && el.parentElement) {
       el = el.parentElement;
     }
+    let controller = el.$controller;
+    while (controller) {
+      if (controller.host) {
+        const viewport = this.allViewports().find((item) => item.element === controller.host);
+        if (viewport && (viewport.scope || viewport.owningScope)) {
+          return viewport.scope || viewport.owningScope;
+        }
+      }
+      controller = controller.parent;
+    }
     return this.rootScope;
+
+
+    // let el = element;
+    // while (el.parentElement) {
+    //   const viewport = this.allViewports().find((item) => item.element === el);
+    //   if (viewport && viewport.owningScope) {
+    //     return viewport.owningScope;
+    //   }
+    //   el = el.parentElement;
+    // }
+    // return this.rootScope;
+
+
     // TODO: It would be better if it was something like this
     // const el = closestCustomElement(element);
     // let container: ChildContainer = el.$customElement.$context.get(IContainer);

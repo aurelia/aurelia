@@ -67,6 +67,27 @@ describe('replaceable', function () {
 
   });
 
+  // TODO: run this case with more combinations
+  it(`replaceable - bind to parent scope when binding inside replace-part has multiple template controllers in between`, function () {
+
+    const App = CustomElementResource.define({ name: 'app', template: `<template><foo><div replace-part="bar"><div if.bind="true" repeat.for="i of 1">\${baz}</div></div></foo></template>` }, class { public baz = 'def'; });
+    const Foo = CustomElementResource.define({ name: 'foo', template: `<template><div replaceable part="bar"></div></template>` }, class { });
+
+    const ctx = TestContext.createHTMLTestContext();
+    ctx.container.register(Foo);
+    const au = new Aurelia(ctx.container);
+
+    const host = ctx.createElement('div');
+    const component = new App();
+
+    au.app({ host, component });
+
+    au.start();
+
+    assert.strictEqual(host.textContent, 'def', `host.textContent`);
+
+  });
+
   it(`replaceable - bind to parent scope`, function () {
 
     const App = CustomElementResource.define({ name: 'app', template: `<template><foo><div replace-part="bar">\${baz}</div></foo></template>` }, class { public baz = 'def'; });

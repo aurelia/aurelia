@@ -275,14 +275,25 @@ export class TemplateControllerRenderer implements IInstructionRenderer {
     const component = context.get<object>(customAttributeKey(instruction.res));
     const instructionRenderers = context.get(IRenderer).instructionRenderers;
     const childInstructions = instruction.instructions;
+    if (instruction.parts !== void 0) {
+      if (parts === void 0) {
+        // Just assign it, no need to create new variables
+        parts = instruction.parts;
+      } else {
+        // Create a new object because we shouldn't accidentally put child information in the parent part object.
+        // If the parts conflict, the instruction's parts overwrite the passed-in parts because they were declared last.
+        parts = {
+          ...parts,
+          ...instruction.parts,
+        };
+      }
+    }
 
     const controller = Controller.forCustomAttribute(
       component,
       context,
       flags,
-      instruction.parts == void 0
-        ? PLATFORM.emptyArray
-        : Object.keys(instruction.parts),
+      parts == void 0 ? PLATFORM.emptyArray : Object.keys(parts),
     );
 
     if (instruction.link) {

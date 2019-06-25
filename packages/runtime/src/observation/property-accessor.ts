@@ -13,7 +13,11 @@ export class PropertyAccessor implements PropertyAccessor {
     if (Tracer.enabled) { Tracer.enter('PropertyAccessor', 'constructor', slice.call(arguments)); }
     this.obj = obj;
     this.propertyKey = propertyKey;
-    if (obj.$observers !== void 0 && (obj.$observers as Record<string, unknown>)[propertyKey] !== void 0) {
+    if (
+      obj.$observers !== void 0
+      && (obj.$observers as Record<string, unknown>)[propertyKey] !== void 0
+      && ((obj.$observers as Record<string, unknown>)[propertyKey] as IBindingTargetAccessor).setValue !== void 0
+    ) {
       this.setValue = this.setValueDirect;
     }
     if (Tracer.enabled) { Tracer.leave(); }

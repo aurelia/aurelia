@@ -219,9 +219,21 @@ class TemplateControllerRenderer {
         const component = context.get(customAttributeKey(instruction.res));
         const instructionRenderers = context.get(IRenderer).instructionRenderers;
         const childInstructions = instruction.instructions;
-        const controller = Controller.forCustomAttribute(component, context, flags, instruction.parts == void 0
-            ? PLATFORM.emptyArray
-            : Object.keys(instruction.parts));
+        if (instruction.parts !== void 0) {
+            if (parts === void 0) {
+                // Just assign it, no need to create new variables
+                parts = instruction.parts;
+            }
+            else {
+                // Create a new object because we shouldn't accidentally put child information in the parent part object.
+                // If the parts conflict, the instruction's parts overwrite the passed-in parts because they were declared last.
+                parts = {
+                    ...parts,
+                    ...instruction.parts,
+                };
+            }
+        }
+        const controller = Controller.forCustomAttribute(component, context, flags, parts == void 0 ? PLATFORM.emptyArray : Object.keys(parts));
         if (instruction.link) {
             const controllers = renderable.controllers;
             component.link(controllers[controllers.length - 1]);

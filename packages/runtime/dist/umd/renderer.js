@@ -236,9 +236,21 @@
             const component = context.get(definitions_1.customAttributeKey(instruction.res));
             const instructionRenderers = context.get(rendering_engine_1.IRenderer).instructionRenderers;
             const childInstructions = instruction.instructions;
-            const controller = controller_1.Controller.forCustomAttribute(component, context, flags, instruction.parts == void 0
-                ? kernel_1.PLATFORM.emptyArray
-                : Object.keys(instruction.parts));
+            if (instruction.parts !== void 0) {
+                if (parts === void 0) {
+                    // Just assign it, no need to create new variables
+                    parts = instruction.parts;
+                }
+                else {
+                    // Create a new object because we shouldn't accidentally put child information in the parent part object.
+                    // If the parts conflict, the instruction's parts overwrite the passed-in parts because they were declared last.
+                    parts = {
+                        ...parts,
+                        ...instruction.parts,
+                    };
+                }
+            }
+            const controller = controller_1.Controller.forCustomAttribute(component, context, flags, parts == void 0 ? kernel_1.PLATFORM.emptyArray : Object.keys(parts));
             if (instruction.link) {
                 const controllers = renderable.controllers;
                 component.link(controllers[controllers.length - 1]);

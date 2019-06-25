@@ -292,6 +292,7 @@ export class Repeat<C extends ObservedCollection = IObservedArray, T extends INo
     for (let i = iStart; i < iEnd; ++i) {
       view = views[i];
       task = view.unbind(flags);
+      view.parent = void 0;
       if (!task.done) {
         if (tasks === undefined) {
           tasks = [];
@@ -343,6 +344,7 @@ export class Repeat<C extends ObservedCollection = IObservedArray, T extends INo
     for (; i < deletedLen; ++i) {
       view = views[deleted[i]];
       task = view.unbind(flags);
+      view.parent = void 0;
       if (!task.done) {
         if (tasks === undefined) {
           tasks = [];
@@ -383,6 +385,7 @@ export class Repeat<C extends ObservedCollection = IObservedArray, T extends INo
     const views = this.views = Array(newLen);
     this.forOf.iterate(flags, items, (arr, i, item) => {
       view = views[i] = factory.create(flags);
+      view.parent = this.$controller;
       task = view.bind(flags, this.createScope(flags, local, item, view));
 
       if (!task.done) {
@@ -420,6 +423,7 @@ export class Repeat<C extends ObservedCollection = IObservedArray, T extends INo
       if (indexMap[i] === -2) {
         view = factory.create(flags);
         // TODO: test with map/set/undefined/null, make sure we can use strong typing here as well, etc
+        view.parent = this.$controller;
         task = view.bind(flags, this.createScope(flags, local, (items as any)[i], view));
         views.splice(i, 0, view);
 

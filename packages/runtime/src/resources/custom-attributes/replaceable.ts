@@ -76,6 +76,7 @@ export class Replaceable<T extends INode = INode> {
   public binding(flags: LifecycleFlags): ILifecycleTask {
     const prevName = BindingContext.partName;
     BindingContext.partName = this.factory.name;
+    this.view.parent = this.$controller;
     const task = this.view.bind(flags | LifecycleFlags.allowParentScopeTraversal, this.$controller.scope);
     if (task.done) {
       BindingContext.partName = prevName;
@@ -96,6 +97,8 @@ export class Replaceable<T extends INode = INode> {
   }
 
   public unbinding(flags: LifecycleFlags): ILifecycleTask {
-    return this.view.unbind(flags);
+    const task = this.view.unbind(flags);
+    this.view.parent = void 0;
+    return task;
   }
 }

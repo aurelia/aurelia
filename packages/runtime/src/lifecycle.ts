@@ -80,6 +80,7 @@ export interface IController<
   readonly flags: LifecycleFlags;
   readonly viewCache?: IViewCache<T>;
 
+  parent?: IController<T>;
   bindings?: IBinding[];
   controllers?: IController<T>[];
 

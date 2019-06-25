@@ -88,9 +88,6 @@ export class BrowserNavigation implements INavigationStore, INavigationViewer {
     this.pendingCalls.activate({ lifecycle: this.lifecycle, allowedExecutionCostWithinTick: this.allowedExecutionCostWithinTick });
     this.window.addEventListener('popstate', this.handlePopstate);
 
-    // await a bit so that viewports on first page with default components
-    // have time to be rendered
-    await Promise.resolve();
     return this.handlePopstate(null);
   }
   public deactivate(): void {

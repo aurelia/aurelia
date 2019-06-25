@@ -144,6 +144,7 @@ export class Controller<
   public readonly vmKind: ViewModelKind;
 
   public scope?: IScope;
+  public part?: string;
   public projector?: IElementProjector;
 
   public nodes?: INodeSequence<T>;
@@ -412,7 +413,8 @@ export class Controller<
     return this.unmountSynthetic(flags);
   }
 
-  public bind(flags: LifecycleFlags, scope?: IScope): ILifecycleTask {
+  public bind(flags: LifecycleFlags, scope?: IScope, part?: string): ILifecycleTask {
+    this.part = part;
     // TODO: benchmark which of these techniques is fastest:
     // - the current one (enum with switch)
     // - set the name of the method in the constructor, e.g. this.bindMethod = 'bindCustomElement'
@@ -668,7 +670,7 @@ export class Controller<
     if (bindings !== void 0) {
       const { length } = bindings;
       for (let i = 0; i < length; ++i) {
-        bindings[i].$bind(flags, scope);
+        bindings[i].$bind(flags, scope, this.part);
       }
     }
   }
@@ -681,7 +683,7 @@ export class Controller<
     if (controllers !== void 0) {
       const { length } = controllers;
       for (let i = 0; i < length; ++i) {
-        task = controllers[i].bind(flags, scope);
+        task = controllers[i].bind(flags, scope, this.part);
         if (!task.done) {
           if (tasks === void 0) {
             tasks = [];

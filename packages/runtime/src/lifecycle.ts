@@ -43,8 +43,9 @@ const slice = Array.prototype.slice;
 export interface IBinding {
   readonly locator: IServiceLocator;
   readonly $scope?: IScope;
+  readonly part?: string;
   readonly $state: State;
-  $bind(flags: LifecycleFlags, scope: IScope): void;
+  $bind(flags: LifecycleFlags, scope: IScope, part?: string): void;
   $unbind(flags: LifecycleFlags): void;
 }
 
@@ -96,6 +97,7 @@ export interface IController<
   readonly vmKind: ViewModelKind;
 
   scope?: IScope;
+  part?: string;
   projector?: IElementProjector;
 
   nodes?: INodeSequence<T>;
@@ -107,7 +109,7 @@ export interface IController<
   lockScope(scope: IScope): void;
   hold(location: IRenderLocation<T>): void;
   release(flags: LifecycleFlags): boolean;
-  bind(flags: LifecycleFlags, scope?: IScope): ILifecycleTask;
+  bind(flags: LifecycleFlags, scope?: IScope, partName?: string): ILifecycleTask;
   unbind(flags: LifecycleFlags): ILifecycleTask;
   bound(flags: LifecycleFlags): void;
   unbound(flags: LifecycleFlags): void;

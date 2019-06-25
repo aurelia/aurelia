@@ -244,7 +244,7 @@ export class Compose<T extends INode = Node> {
 
   private bindView(flags: LifecycleFlags): ILifecycleTask {
     if (this.view != void 0 && (this.$controller.state & (State.isBoundOrBinding)) > 0) {
-      return this.view.bind(flags, this.renderable.scope);
+      return this.view.bind(flags, this.renderable.scope, this.$controller.part);
     }
     return LifecycleTask.done;
   }

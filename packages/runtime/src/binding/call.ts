@@ -28,6 +28,7 @@ export interface Call extends IConnectableBinding {}
 export class Call {
   public $state: State;
   public $scope?: IScope;
+  public part?: string;
 
   public locator: IServiceLocator;
   public sourceExpression: IsBindingBehavior;
@@ -51,7 +52,7 @@ export class Call {
     if (Tracer.enabled) { Tracer.enter('Call', 'callSource', slice.call(arguments)); }
     const overrideContext = this.$scope!.overrideContext;
     Object.assign(overrideContext, args);
-    const result = this.sourceExpression.evaluate(LifecycleFlags.mustEvaluate, this.$scope!, this.locator);
+    const result = this.sourceExpression.evaluate(LifecycleFlags.mustEvaluate, this.$scope!, this.locator, this.part);
 
     for (const prop in args) {
       Reflect.deleteProperty(overrideContext, prop);
@@ -61,7 +62,7 @@ export class Call {
     return result;
   }
 
-  public $bind(flags: LifecycleFlags, scope: IScope): void {
+  public $bind(flags: LifecycleFlags, scope: IScope, part?: string): void {
     if (Tracer.enabled) { Tracer.enter('Call', '$bind', slice.call(arguments)); }
     if (this.$state & State.isBound) {
       if (this.$scope === scope) {
@@ -75,6 +76,7 @@ export class Call {
     this.$state |= State.isBinding;
 
     this.$scope = scope;
+    this.part = part;
 
     if (hasBind(this.sourceExpression)) {
       this.sourceExpression.bind(flags, scope, this);

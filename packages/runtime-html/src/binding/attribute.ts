@@ -21,6 +21,7 @@ export class AttributeBinding implements IPartialConnectableBinding {
   public $state: State;
   public $lifecycle: ILifecycle;
   public $scope: IScope;
+  public part?: string;
 
   public locator: IServiceLocator;
   public mode: BindingMode;
@@ -94,14 +95,14 @@ export class AttributeBinding implements IPartialConnectableBinding {
       const previousValue = this.targetObserver.getValue();
       // if the only observable is an AccessScope then we can assume the passed-in newValue is the correct and latest value
       if (this.sourceExpression.$kind !== ExpressionKind.AccessScope || this.observerSlots > 1) {
-        newValue = this.sourceExpression.evaluate(flags, this.$scope, this.locator);
+        newValue = this.sourceExpression.evaluate(flags, this.$scope, this.locator, this.part);
       }
       if (newValue !== previousValue) {
         this.updateTarget(newValue, flags);
       }
       if ((this.mode & oneTime) === 0) {
         this.version++;
-        this.sourceExpression.connect(flags, this.$scope, this);
+        this.sourceExpression.connect(flags, this.$scope, this, this.part);
         this.unobserve(false);
       }
       if (Tracer.enabled) { Tracer.leave(); }
@@ -109,7 +110,7 @@ export class AttributeBinding implements IPartialConnectableBinding {
     }
 
     if (flags & LifecycleFlags.updateSourceExpression) {
-      if (newValue !== this.sourceExpression.evaluate(flags, this.$scope, this.locator)) {
+      if (newValue !== this.sourceExpression.evaluate(flags, this.$scope, this.locator, this.part)) {
         this.updateSource(newValue, flags);
       }
       if (Tracer.enabled) { Tracer.leave(); }
@@ -119,7 +120,7 @@ export class AttributeBinding implements IPartialConnectableBinding {
     throw Reporter.error(15, flags);
   }
 
-  public $bind(flags: LifecycleFlags, scope: IScope): void {
+  public $bind(flags: LifecycleFlags, scope: IScope, part?: string): void {
     if (Tracer.enabled) { Tracer.enter('Binding', '$bind', slice.call(arguments)); }
     if (this.$state & State.isBound) {
       if (this.$scope === scope) {
@@ -136,6 +137,7 @@ export class AttributeBinding implements IPartialConnectableBinding {
     this.persistentFlags = flags & LifecycleFlags.persistentBindingFlags;
 
     this.$scope = scope;
+    this.part = part;
 
     let sourceExpression = this.sourceExpression;
     if (hasBind(sourceExpression)) {
@@ -159,10 +161,10 @@ export class AttributeBinding implements IPartialConnectableBinding {
     // during bind, binding behavior might have changed sourceExpression
     sourceExpression = this.sourceExpression;
     if (this.mode & toViewOrOneTime) {
-      this.updateTarget(sourceExpression.evaluate(flags, scope, this.locator), flags);
+      this.updateTarget(sourceExpression.evaluate(flags, scope, this.locator, part), flags);
     }
     if (this.mode & toView) {
-      sourceExpression.connect(flags, scope, this);
+      sourceExpression.connect(flags, scope, this, part);
     }
     if (this.mode & fromView) {
       (targetObserver as IBindingTargetObserver & { [key: string]: number })[this.id] |= LifecycleFlags.updateSourceExpression;
@@ -210,7 +212,7 @@ export class AttributeBinding implements IPartialConnectableBinding {
     if (Tracer.enabled) { Tracer.enter('Binding', 'connect', slice.call(arguments)); }
     if (this.$state & State.isBound) {
       flags |= this.persistentFlags;
-      this.sourceExpression.connect(flags | LifecycleFlags.mustEvaluate, this.$scope, this);
+      this.sourceExpression.connect(flags | LifecycleFlags.mustEvaluate, this.$scope, this, this.part); // why do we have a connect method here in the first place? will this be called after bind?
     }
     if (Tracer.enabled) { Tracer.leave(); }
   }

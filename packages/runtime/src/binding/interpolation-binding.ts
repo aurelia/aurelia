@@ -27,6 +27,7 @@ const { toView, oneTime } = BindingMode;
 export class MultiInterpolationBinding implements IBinding {
   public $state: State;
   public $scope?: IScope;
+  public part?: string;
 
   public interpolation: IInterpolationExpression;
   public observerLocator: IObserverLocator;
@@ -65,7 +66,7 @@ export class MultiInterpolationBinding implements IBinding {
     }
   }
 
-  public $bind(flags: LifecycleFlags, scope: IScope): void {
+  public $bind(flags: LifecycleFlags, scope: IScope, part?: string): void {
     if (this.$state & State.isBound) {
       if (this.$scope === scope) {
         return;
@@ -74,10 +75,11 @@ export class MultiInterpolationBinding implements IBinding {
     }
     this.$state |= State.isBound;
     this.$scope = scope;
+    this.part = part;
 
     const parts = this.parts;
     for (let i = 0, ii = parts.length; i < ii; ++i) {
-      parts[i].$bind(flags, scope);
+      parts[i].$bind(flags, scope, part);
     }
   }
 
@@ -100,6 +102,7 @@ export interface InterpolationBinding extends IConnectableBinding {}
 export class InterpolationBinding implements IPartialConnectableBinding {
   public id!: number;
   public $scope?: IScope;
+  public part?: string;
   public $state: State;
 
   public interpolation: IInterpolationExpression;
@@ -149,19 +152,19 @@ export class InterpolationBinding implements IPartialConnectableBinding {
     }
 
     const previousValue = this.targetObserver.getValue();
-    const newValue = this.interpolation.evaluate(flags, this.$scope!, this.locator);
+    const newValue = this.interpolation.evaluate(flags, this.$scope!, this.locator, this.part);
     if (newValue !== previousValue) {
       this.updateTarget(newValue, flags);
     }
 
     if ((this.mode & oneTime) === 0) {
       this.version++;
-      this.sourceExpression.connect(flags, this.$scope!, this);
+      this.sourceExpression.connect(flags, this.$scope!, this, this.part);
       this.unobserve(false);
     }
   }
 
-  public $bind(flags: LifecycleFlags, scope: IScope): void {
+  public $bind(flags: LifecycleFlags, scope: IScope, part?: string): void {
     if (this.$state & State.isBound) {
       if (this.$scope === scope) {
         return;
@@ -171,6 +174,7 @@ export class InterpolationBinding implements IPartialConnectableBinding {
 
     this.$state |= State.isBound;
     this.$scope = scope;
+    this.part = part;
 
     const sourceExpression = this.sourceExpression;
     if (sourceExpression.bind) {
@@ -183,10 +187,10 @@ export class InterpolationBinding implements IPartialConnectableBinding {
     // since the interpolation already gets the whole value, we only need to let the first
     // text binding do the update if there are multiple
     if (this.isFirst) {
-      this.updateTarget(this.interpolation.evaluate(flags, scope, this.locator), flags);
+      this.updateTarget(this.interpolation.evaluate(flags, scope, this.locator, part), flags);
     }
     if (this.mode & toView) {
-      sourceExpression.connect(flags, scope, this);
+      sourceExpression.connect(flags, scope, this, part);
     }
   }
 

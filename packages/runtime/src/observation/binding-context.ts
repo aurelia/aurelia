@@ -41,8 +41,6 @@ export class InternalObserversLookup {
 export type BindingContextValue = ObservedCollection | StrictPrimitive | IIndexable;
 
 export class BindingContext implements IBindingContext {
-  public static partName: string | null = null;
-
   [key: string]: unknown;
 
   public readonly $synthetic: true;
@@ -93,7 +91,7 @@ export class BindingContext implements IBindingContext {
     return bc;
   }
 
-  public static get(scope: IScope, name: string, ancestor: number, flags: LifecycleFlags): IBindingContext | IOverrideContext | IBinding | undefined | null {
+  public static get(scope: IScope, name: string, ancestor: number, flags: LifecycleFlags, part?: string): IBindingContext | IOverrideContext | IBinding | undefined | null {
     if (Tracer.enabled) { Tracer.enter('BindingContext', 'get', slice.call(arguments)); }
     if (scope == null) {
       throw Reporter.error(RuntimeError.NilScope);
@@ -128,7 +126,7 @@ export class BindingContext implements IBindingContext {
 
     // the name wasn't found. see if parent scope traversal is allowed and if so, try that
     if ((flags & LifecycleFlags.allowParentScopeTraversal) > 0) {
-      const partScope = scope.partScopes![BindingContext.partName!]!;
+      const partScope = scope.partScopes![part!]!;
       const result = this.get(partScope, name, ancestor, flags
         // unset the flag; only allow one level of scope boundary traversal
         & ~LifecycleFlags.allowParentScopeTraversal

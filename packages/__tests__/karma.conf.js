@@ -127,7 +127,8 @@ module.exports = function (config) {
       captureConsole: true,
       mocha: {
         bail: config['bail'],
-        ui: 'bdd'
+        ui: 'bdd',
+        timeout: 5000,
       }
     }
   };

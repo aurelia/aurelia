@@ -103,7 +103,7 @@ export class TemplateControllerSymbol implements IResourceAttributeSymbol, IPare
   constructor(dom: IDOM, syntax: AttrSyntax, info: AttrInfo, partName: string | null) {
     this.flags = SymbolFlags.isTemplateController | SymbolFlags.hasMarker;
     this.res = info.name;
-    this.partName = partName;
+    this.partName = info.name === 'replaceable' ? partName : null;
     this.physicalNode = null!;
     this.syntax = syntax;
     this.template = null!;

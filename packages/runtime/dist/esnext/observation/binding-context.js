@@ -127,10 +127,10 @@ export class BindingContext {
     }
 }
 export class Scope {
-    constructor(bindingContext, overrideContext) {
+    constructor(bindingContext, overrideContext, partScopes) {
         this.bindingContext = bindingContext;
         this.overrideContext = overrideContext;
-        this.partScopes = void 0;
+        this.partScopes = partScopes;
     }
     static create(flags, bc, oc) {
         if (Tracer.enabled) {
@@ -163,7 +163,7 @@ export class Scope {
         if (Tracer.enabled) {
             Tracer.leave();
         }
-        return new Scope(bc, OverrideContext.create(flags, bc, ps.overrideContext));
+        return new Scope(bc, OverrideContext.create(flags, bc, ps.overrideContext), ps.partScopes);
     }
 }
 export class OverrideContext {

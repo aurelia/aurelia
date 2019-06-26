@@ -112,6 +112,7 @@
             const parentManifestRootSave = this.parentManifestRoot;
             const manifestRootSave = this.manifestRoot;
             const manifestSave = this.manifest;
+            const partNameSave = this.partName;
             // get the part name to override the name of the compiled definition
             this.partName = node.getAttribute('part');
             let manifestRoot = (void 0);
@@ -146,6 +147,7 @@
             this.parentManifestRoot = parentManifestRootSave;
             this.manifestRoot = manifestRootSave;
             this.manifest = manifestSave;
+            this.partName = partNameSave;
             if (kernel_1.Tracer.enabled) {
                 kernel_1.Tracer.leave();
             }
@@ -310,7 +312,6 @@
             const command = this.resources.getBindingCommand(attrSyntax);
             if (command == null && attrInfo.hasDynamicOptions) {
                 symbol = new jit_1.TemplateControllerSymbol(this.dom, attrSyntax, attrInfo, this.partName);
-                this.partName = null;
                 this.bindMultiAttribute(symbol, attrInfo, attrSyntax.rawValue);
             }
             else {
@@ -318,7 +319,6 @@
                 const bindingType = command == null ? 2048 /* Interpolation */ : command.bindingType;
                 const expr = this.exprParser.parse(attrSyntax.rawValue, bindingType);
                 symbol.bindings.push(new jit_1.BindingSymbol(command, attrInfo.bindable, expr, attrSyntax.rawValue, attrSyntax.target));
-                this.partName = null;
             }
             if (kernel_1.Tracer.enabled) {
                 kernel_1.Tracer.leave();

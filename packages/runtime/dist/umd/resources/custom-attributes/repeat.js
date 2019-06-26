@@ -280,7 +280,7 @@
             const views = this.views = Array(newLen);
             this.forOf.iterate(flags, items, (arr, i, item) => {
                 view = views[i] = factory.create(flags);
-                task = view.bind(flags, this.createScope(flags, local, item, view), part);
+                task = view.bind(flags, binding_context_1.Scope.fromParent(flags, this.$controller.scope, binding_context_1.BindingContext.create(flags, local, item)), part);
                 if (!task.done) {
                     if (tasks === undefined) {
                         tasks = [];
@@ -309,7 +309,7 @@
                 if (indexMap[i] === -2) {
                     view = factory.create(flags);
                     // TODO: test with map/set/undefined/null, make sure we can use strong typing here as well, etc
-                    task = view.bind(flags, this.createScope(flags, local, items[i], view), part);
+                    task = view.bind(flags, binding_context_1.Scope.fromParent(flags, this.$controller.scope, binding_context_1.BindingContext.create(flags, local, items[i])), part);
                     views.splice(i, 0, view);
                     if (!task.done) {
                         if (tasks === undefined) {
@@ -328,26 +328,6 @@
                 return lifecycle_task_1.LifecycleTask.done;
             }
             return new lifecycle_task_1.AggregateContinuationTask(tasks, this.$controller.lifecycle.bound.end, this.$controller.lifecycle.bound, flags);
-        }
-        createScope(flags, local, item, view) {
-            const controller = this.$controller;
-            const parentScope = controller.scope;
-            const ctx = binding_context_1.BindingContext.create(flags, local, item);
-            ctx.$view = view;
-            const scope = binding_context_1.Scope.fromParent(flags, parentScope, ctx);
-            if (controller.scopeParts !== kernel_1.PLATFORM.emptyArray) {
-                if (parentScope.partScopes !== void 0 &&
-                    parentScope.partScopes !== kernel_1.PLATFORM.emptyObject) {
-                    scope.partScopes = { ...parentScope.partScopes };
-                }
-                else {
-                    scope.partScopes = {};
-                }
-                for (const partName of controller.scopeParts) {
-                    scope.partScopes[partName] = scope;
-                }
-            }
-            return scope;
         }
         attachViews(indexMap, flags) {
             let view;

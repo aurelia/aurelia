@@ -54,7 +54,7 @@
         constructor(dom, syntax, info, partName) {
             this.flags = 1 /* isTemplateController */ | 512 /* hasMarker */;
             this.res = info.name;
-            this.partName = partName;
+            this.partName = info.name === 'replaceable' ? partName : null;
             this.physicalNode = null;
             this.syntax = syntax;
             this.template = null;

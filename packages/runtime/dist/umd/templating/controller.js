@@ -309,22 +309,28 @@
         bindCustomElement(flags, scope) {
             const $scope = this.scope;
             if ($scope.partScopes == void 0) {
-                if (scope != null &&
-                    scope.partScopes != void 0 &&
-                    scope.partScopes !== kernel_1.PLATFORM.emptyObject) {
+                if (scope != void 0
+                    && scope.partScopes != void 0
+                    && scope.partScopes !== kernel_1.PLATFORM.emptyObject) {
                     $scope.partScopes = { ...scope.partScopes };
                 }
                 else if (this.scopeParts !== kernel_1.PLATFORM.emptyArray) {
                     $scope.partScopes = {};
                 }
-                if ($scope.partScopes == void 0) {
+                else {
                     $scope.partScopes = kernel_1.PLATFORM.emptyObject;
                 }
-                else {
-                    for (const partName of this.scopeParts) {
-                        $scope.partScopes[partName] = $scope;
-                    }
-                }
+            }
+            else if (scope != void 0
+                && scope.partScopes != void 0
+                && scope.partScopes !== kernel_1.PLATFORM.emptyObject) {
+                $scope.partScopes = {
+                    ...scope.partScopes,
+                    ...$scope.partScopes,
+                };
+            }
+            for (const partName of this.scopeParts) {
+                $scope.partScopes[partName] = $scope;
             }
             if ((flags & 134217728 /* updateOneTimeBindings */) > 0) {
                 this.bindBindings(flags, $scope);
@@ -412,6 +418,7 @@
         bindControllers(flags, scope) {
             let tasks = void 0;
             let task;
+            let controller;
             const { controllers } = this;
             if (controllers !== void 0) {
                 const { length } = controllers;

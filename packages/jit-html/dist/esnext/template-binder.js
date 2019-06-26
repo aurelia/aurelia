@@ -101,6 +101,7 @@ export class TemplateBinder {
         const parentManifestRootSave = this.parentManifestRoot;
         const manifestRootSave = this.manifestRoot;
         const manifestSave = this.manifest;
+        const partNameSave = this.partName;
         // get the part name to override the name of the compiled definition
         this.partName = node.getAttribute('part');
         let manifestRoot = (void 0);
@@ -135,6 +136,7 @@ export class TemplateBinder {
         this.parentManifestRoot = parentManifestRootSave;
         this.manifestRoot = manifestRootSave;
         this.manifest = manifestSave;
+        this.partName = partNameSave;
         if (Tracer.enabled) {
             Tracer.leave();
         }
@@ -299,7 +301,6 @@ export class TemplateBinder {
         const command = this.resources.getBindingCommand(attrSyntax);
         if (command == null && attrInfo.hasDynamicOptions) {
             symbol = new TemplateControllerSymbol(this.dom, attrSyntax, attrInfo, this.partName);
-            this.partName = null;
             this.bindMultiAttribute(symbol, attrInfo, attrSyntax.rawValue);
         }
         else {
@@ -307,7 +308,6 @@ export class TemplateBinder {
             const bindingType = command == null ? 2048 /* Interpolation */ : command.bindingType;
             const expr = this.exprParser.parse(attrSyntax.rawValue, bindingType);
             symbol.bindings.push(new BindingSymbol(command, attrInfo.bindable, expr, attrSyntax.rawValue, attrSyntax.target));
-            this.partName = null;
         }
         if (Tracer.enabled) {
             Tracer.leave();

@@ -44,7 +44,6 @@ export declare class Repeat<C extends ObservedCollection = IObservedArray, T ext
     private unbindAndRemoveViewsByKey;
     private createAndBindAllViews;
     private createAndBindNewViewsByKey;
-    private createScope;
     private attachViews;
     private attachViewsKeyed;
     private sortViewsByKey;

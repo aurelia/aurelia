@@ -140,10 +140,10 @@
     }
     exports.BindingContext = BindingContext;
     class Scope {
-        constructor(bindingContext, overrideContext) {
+        constructor(bindingContext, overrideContext, partScopes) {
             this.bindingContext = bindingContext;
             this.overrideContext = overrideContext;
-            this.partScopes = void 0;
+            this.partScopes = partScopes;
         }
         static create(flags, bc, oc) {
             if (kernel_1.Tracer.enabled) {
@@ -176,7 +176,7 @@
             if (kernel_1.Tracer.enabled) {
                 kernel_1.Tracer.leave();
             }
-            return new Scope(bc, OverrideContext.create(flags, bc, ps.overrideContext));
+            return new Scope(bc, OverrideContext.create(flags, bc, ps.overrideContext), ps.partScopes);
         }
     }
     exports.Scope = Scope;

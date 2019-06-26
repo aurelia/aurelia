@@ -674,7 +674,6 @@ describe(`TemplateCompiler - combinations`, function () {
           instructions: [],
           surrogates: [],
         };
-
         const expected = {
           template: ctx.createElementFromMarkup(`<template><${el} ${n1}="${v1}" class="au"></${el}></template>`),
           instructions: [[i1]],

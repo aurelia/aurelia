@@ -409,7 +409,16 @@ export class AccessThis implements IAccessThisExpression {
     }
 
     if ((flags & LifecycleFlags.allowParentScopeTraversal) > 0) {
-      scope = scope.partScopes![part!]!;
+      let parent = scope.parentScope;
+      while (parent !== null) {
+        if (!parent.scopeParts.includes(part!)) {
+          parent = parent.parentScope;
+        }
+      }
+
+      if (parent === null) {
+        throw new Error(`No target scope cold be found for part "${part}"`);
+      }
     }
     let oc: IOverrideContext | null = scope.overrideContext;
     let i = this.ancestor;

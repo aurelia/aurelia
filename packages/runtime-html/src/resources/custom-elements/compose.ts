@@ -1,8 +1,8 @@
 import {
   Constructable,
   IContainer,
-  Key,
   IRegistry,
+  Key,
   nextId,
   PLATFORM,
   Registration,
@@ -67,6 +67,7 @@ export class Compose<T extends INode = Node> {
     hasSlots: false,
     strategy: BindingStrategy.getterSetter,
     hooks: Object.freeze(new HooksDefinition(Compose.prototype)),
+    scopeParts: PLATFORM.emptyArray,
   });
 
   public readonly id: number;

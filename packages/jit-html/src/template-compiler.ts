@@ -17,7 +17,16 @@ import {
   TemplateControllerSymbol,
   TextSymbol
 } from '@aurelia/jit';
-import { IContainer, Key, IResolver, IResourceDescriptions, PLATFORM, Profiler, Registration } from '@aurelia/kernel';
+import {
+  IContainer,
+  IResolver,
+  IResourceDescriptions,
+  Key,
+  mergeDistinct,
+  PLATFORM,
+  Profiler,
+  Registration,
+} from '@aurelia/kernel';
 import {
   HydrateAttributeInstruction,
   HydrateElementInstruction,
@@ -71,6 +80,7 @@ export class TemplateCompiler implements ITemplateCompiler {
    */
   private instructionRows: HTMLInstructionRow[];
 
+  private scopeParts: string[];
   private parts: Record<string, ITemplateDefinition>;
 
   public get name(): string {
@@ -83,6 +93,7 @@ export class TemplateCompiler implements ITemplateCompiler {
     this.exprParser = exprParser;
     this.instructionRows = null!;
     this.parts = null!;
+    this.scopeParts = null!;
   }
 
   public static register(container: IContainer): IResolver<ITemplateCompiler> {
@@ -100,9 +111,13 @@ export class TemplateCompiler implements ITemplateCompiler {
     if (surrogate.hasSlots === true) {
       definition.hasSlots = true;
     }
+    if (definition.scopeParts === void 0 || definition.scopeParts === PLATFORM.emptyArray) {
+      definition.scopeParts = [];
+    }
 
     this.instructionRows = definition.instructions as HTMLInstructionRow[];
     this.parts = {};
+    this.scopeParts = definition.scopeParts as (readonly string[]) & string[];
 
     const attributes = surrogate.attributes;
     const len = attributes.length;
@@ -121,6 +136,7 @@ export class TemplateCompiler implements ITemplateCompiler {
 
     this.instructionRows = null!;
     this.parts = null!;
+    this.scopeParts = null!;
 
     definition.build = buildNotRequired;
 
@@ -193,11 +209,15 @@ export class TemplateCompiler implements ITemplateCompiler {
   private compileTemplateController(symbol: TemplateControllerSymbol): void {
     const bindings = this.compileBindings(symbol);
     const instructionRowsSave = this.instructionRows;
+    const scopePartsSave = this.scopeParts;
     const controllerInstructions = this.instructionRows = [];
+    const scopeParts = this.scopeParts = [];
     this.compileParentNode(symbol.template);
     this.instructionRows = instructionRowsSave;
+    this.scopeParts = mergeDistinct(scopePartsSave, scopeParts, false);
 
     const def: ITemplateDefinition = {
+      scopeParts,
       name: symbol.partName == null ? symbol.res : symbol.partName,
       template: symbol.physicalNode,
       instructions: controllerInstructions,
@@ -308,20 +328,29 @@ export class TemplateCompiler implements ITemplateCompiler {
       const replaceParts = symbol.parts;
       const ii = replaceParts.length;
       let instructionRowsSave: HTMLInstructionRow[];
+      let partScopesSave: string[];
+      let scopeParts: string[];
       let partInstructions: HTMLInstructionRow[];
       let replacePart: ReplacePartSymbol;
       for (let i = 0; i < ii; ++i) {
         replacePart = replaceParts[i];
         instructionRowsSave = this.instructionRows;
+        partScopesSave = this.scopeParts;
+        if (partScopesSave.indexOf(replacePart.name) === -1) {
+          partScopesSave.push(replacePart.name);
+        }
+        scopeParts = this.scopeParts = [];
         partInstructions = this.instructionRows = [];
         this.compileParentNode(replacePart.template);
         this.parts[replacePart.name] = parts[replacePart.name] = {
+          scopeParts,
           name: replacePart.name,
           template: replacePart.physicalNode,
           instructions: partInstructions,
-          build: buildNotRequired
+          build: buildNotRequired,
         };
         this.instructionRows = instructionRowsSave;
+        this.scopeParts = partScopesSave;
       }
     } else {
       parts = PLATFORM.emptyObject;

@@ -1,3 +1,5 @@
+import { PLATFORM } from './platform';
+
 const camelCaseLookup: Record<string, string> = {};
 const kebabCaseLookup: Record<string, string> = {};
 const isNumericLookup: Record<string, boolean> = {};
@@ -139,4 +141,54 @@ export function resetId(context: string): void {
  */
 export function compareNumber(a: number, b: number): number {
   return a - b;
+}
+
+const emptyArray = PLATFORM.emptyArray;
+
+/**
+ * Efficiently merge and deduplicate the (primitive) values in two arrays.
+ *
+ * Does not deduplicate existing values in the first array.
+ *
+ * Guards against null or undefined arrays.
+ *
+ * Returns `PLATFORM.emptyArray` if both arrays are either `null`, `undefined` or `PLATFORM.emptyArray`
+ *
+ * @param slice If `true`, always returns a new array copy (unless neither array is/has a value)
+ */
+export function mergeDistinct<T>(
+  arr1: readonly T[] | T[] | null | undefined,
+  arr2: readonly T[] | T[] | null | undefined,
+  slice: boolean,
+): T[] {
+  if (arr1 === void 0 || arr1 === null || arr1 === emptyArray) {
+    if (arr2 === void 0 || arr2 === null || arr2 === emptyArray) {
+      return emptyArray;
+    } else {
+      return slice ? arr2.slice(0) : arr2 as T[];
+    }
+  } else if (arr2 === void 0 || arr2 === null || arr2 === emptyArray) {
+    return slice ? arr1.slice(0) : arr1 as T[];
+  }
+
+  const lookup: Record<string, true | undefined> = {};
+  const arr3 = slice ? arr1.slice(0) : arr1 as (readonly T[]) & T[];
+
+  let len1 = arr1.length;
+  let len2 = arr2.length;
+
+  while (len1-- > 0) {
+    lookup[arr1[len1] as unknown as string] = true;
+  }
+
+  let item;
+  while (len2-- > 0) {
+    item = arr2[len2];
+    if (lookup[item as unknown as string] === void 0) {
+      arr3.push(item);
+      lookup[item as unknown as string] = true;
+    }
+  }
+
+  return arr3;
 }

@@ -289,12 +289,7 @@ export class TemplateControllerRenderer implements IInstructionRenderer {
       }
     }
 
-    const controller = Controller.forCustomAttribute(
-      component,
-      context,
-      flags,
-      parts == void 0 ? PLATFORM.emptyArray : Object.keys(parts),
-    );
+    const controller = Controller.forCustomAttribute(component, context, flags);
 
     if (instruction.link) {
       const controllers = renderable.controllers!;

@@ -3,13 +3,10 @@ import {
   DI,
   IContainer,
   IDisposable,
-  Key,
   InstanceProvider,
-  IRegistry,
   IResolver,
   IResourceDescriptions,
-  IServiceLocator,
-  PLATFORM,
+  Key,
   Reporter,
   RuntimeCompilationResources,
   Writable,
@@ -296,7 +293,7 @@ export class RenderingEngine implements IRenderingEngine {
 export function createRenderContext(
   dom: IDOM,
   parent: IRenderContext | IContainer,
-  dependencies: IRegistry[],
+  dependencies: Key[],
   componentType?: ICustomElementType
 ): IRenderContext {
   const context = parent.createChild() as ExposedContext;

@@ -1,6 +1,6 @@
 {
   "name": "@aurelia/runtime-html-jsdom",
-  "version": "0.4.0-dev.201906262136",
+  "version": "0.4.0-dev.201906262210",
   "main": "dist/umd/index.js",
   "module": "dist/esnext/index.js",
   "jsnext:main": "dist/esnext/index.js",
@@ -37,9 +37,9 @@
     "access": "public"
   },
   "dependencies": {
-    "@aurelia/kernel": "0.4.0-dev.201906262136",
-    "@aurelia/runtime": "0.4.0-dev.201906262136",
-    "@aurelia/runtime-html": "0.4.0-dev.201906262136",
+    "@aurelia/kernel": "0.4.0-dev.201906262210",
+    "@aurelia/runtime": "0.4.0-dev.201906262210",
+    "@aurelia/runtime-html": "0.4.0-dev.201906262210",
     "jsdom": "^15.1.1"
   },
   "devDependencies": {

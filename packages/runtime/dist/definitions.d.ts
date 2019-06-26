@@ -1,4 +1,4 @@
-import { Constructable, IRegistry, IResourceDefinition, Omit, ResourceDescription, ResourcePartDescription } from '@aurelia/kernel';
+import { Constructable, IResourceDefinition, Key, Omit, ResourceDescription, ResourcePartDescription } from '@aurelia/kernel';
 import { IForOfStatement, IInterpolationExpression, IsBindingBehavior } from './ast';
 import { BindingMode, BindingStrategy } from './flags';
 export declare type IElementHydrationOptions = {
@@ -41,7 +41,7 @@ export interface ITemplateDefinition extends IResourceDefinition {
     cache?: '*' | number;
     template?: unknown;
     instructions?: ITargetedInstruction[][];
-    dependencies?: IRegistry[];
+    dependencies?: Key[];
     build?: IBuildInstruction;
     surrogates?: ITargetedInstruction[];
     bindables?: Record<string, IBindableDescription> | string[];

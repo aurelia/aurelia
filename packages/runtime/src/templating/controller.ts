@@ -15,11 +15,10 @@ import {
   IAttributeDefinition,
   IBindableDescription,
   IElementHydrationOptions,
-  ITemplateDefinition,
-  TemplateDefinition,
   IHydrateElementInstruction,
-  TargetedInstructionType,
-  IHydrateTemplateController
+  IHydrateTemplateController,
+  ITemplateDefinition,
+  TemplateDefinition
 } from '../definitions';
 import {
   IDOM,
@@ -552,22 +551,29 @@ export class Controller<
 
     if ($scope.partScopes == void 0) {
       if (
-        scope != null &&
-        scope.partScopes != void 0 &&
-        scope.partScopes !== PLATFORM.emptyObject
+        scope != void 0
+        && scope.partScopes != void 0
+        && scope.partScopes !== PLATFORM.emptyObject
       ) {
         $scope.partScopes = { ...scope.partScopes };
       } else if (this.scopeParts !== PLATFORM.emptyArray) {
         $scope.partScopes = {};
-      }
-
-      if ($scope.partScopes == void 0) {
-        $scope.partScopes = PLATFORM.emptyObject;
       } else {
-        for (const partName of this.scopeParts) {
-          $scope.partScopes[partName] = $scope;
-        }
+        $scope.partScopes = PLATFORM.emptyObject;
       }
+    } else if (
+      scope != void 0
+      && scope.partScopes != void 0
+      && scope.partScopes !== PLATFORM.emptyObject
+    ) {
+      $scope.partScopes = {
+        ...scope.partScopes,
+        ...$scope.partScopes,
+      };
+    }
+
+    for (const partName of this.scopeParts) {
+      $scope.partScopes![partName] = $scope;
     }
 
     if ((flags & LifecycleFlags.updateOneTimeBindings) > 0) {
@@ -678,6 +684,7 @@ export class Controller<
   private bindControllers(flags: LifecycleFlags, scope: IScope): ILifecycleTask {
     let tasks: ILifecycleTask[] | undefined = void 0;
     let task: ILifecycleTask | undefined;
+    let controller: IController;
 
     const { controllers } = this;
     if (controllers !== void 0) {

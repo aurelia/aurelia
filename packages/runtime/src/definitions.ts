@@ -3,6 +3,7 @@ import {
   DI,
   IRegistry,
   IResourceDefinition,
+  Key,
   Omit,
   PLATFORM,
   ResourceDescription,
@@ -89,7 +90,7 @@ export interface ITemplateDefinition extends IResourceDefinition {
   cache?: '*' | number;
   template?: unknown;
   instructions?: ITargetedInstruction[][];
-  dependencies?: IRegistry[];
+  dependencies?: Key[];
   build?: IBuildInstruction;
   surrogates?: ITargetedInstruction[];
   bindables?: Record<string, IBindableDescription> | string[];

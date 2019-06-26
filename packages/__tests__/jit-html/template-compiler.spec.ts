@@ -562,6 +562,7 @@ function createCustomAttribute(ctx: HTMLTestContext, resName: string, finalize: 
     template: finalize ? ctx.createElementFromMarkup(`<template><div>${outputMarkup.outerHTML}</div></template>`) : outputMarkup,
     instructions: [[instruction, ...siblingInstructions], ...nestedElInstructions],
     build: buildNotRequired,
+    scopeParts: [],
   };
   return [input, output];
 }

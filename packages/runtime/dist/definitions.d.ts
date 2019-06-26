@@ -52,6 +52,7 @@ export interface ITemplateDefinition extends IResourceDefinition {
     hasSlots?: boolean;
     strategy?: BindingStrategy;
     hooks?: Readonly<HooksDefinition>;
+    scopeParts?: readonly string[];
 }
 export declare type TemplateDefinition = ResourceDescription<ITemplateDefinition>;
 export declare type TemplatePartDefinitions = Record<string, ResourcePartDescription<ITemplateDefinition>>;

@@ -88,6 +88,7 @@ class DefaultTemplateDefinition {
         this.hasSlots = false;
         this.strategy = 1 /* getterSetter */;
         this.hooks = HooksDefinition.none;
+        this.scopeParts = PLATFORM.emptyArray;
     }
 }
 const templateDefinitionAssignables = [

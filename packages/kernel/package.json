@@ -1,6 +1,6 @@
 {
   "name": "@aurelia/kernel",
-  "version": "0.4.0-dev.201906260805",
+  "version": "0.4.0-dev.201906262136",
   "main": "dist/umd/index.js",
   "module": "dist/esnext/index.js",
   "jsnext:main": "dist/esnext/index.js",

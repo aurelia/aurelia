@@ -47,5 +47,6 @@
     exports.nextId = functions_1.nextId;
     exports.resetId = functions_1.resetId;
     exports.compareNumber = functions_1.compareNumber;
+    exports.mergeDistinct = functions_1.mergeDistinct;
 });
 //# sourceMappingURL=index.js.map

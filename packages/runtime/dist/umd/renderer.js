@@ -250,7 +250,7 @@
                     };
                 }
             }
-            const controller = controller_1.Controller.forCustomAttribute(component, context, flags, parts == void 0 ? kernel_1.PLATFORM.emptyArray : Object.keys(parts));
+            const controller = controller_1.Controller.forCustomAttribute(component, context, flags);
             if (instruction.link) {
                 const controllers = renderable.controllers;
                 component.link(controllers[controllers.length - 1]);

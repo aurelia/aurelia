@@ -207,5 +207,6 @@ Compose.description = Object.freeze({
     hasSlots: false,
     strategy: 1 /* getterSetter */,
     hooks: Object.freeze(new HooksDefinition(Compose.prototype)),
+    scopeParts: PLATFORM.emptyArray,
 });
 //# sourceMappingURL=compose.js.map

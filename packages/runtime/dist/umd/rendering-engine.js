@@ -47,6 +47,7 @@
             }
             const nodes = controller.nodes = this.factory.createNodeSequence();
             controller.context = this.renderContext;
+            controller.scopeParts = this.definition.scopeParts;
             flags |= this.definition.strategy;
             this.renderContext.render(flags, controller, nodes.findTargets(), this.definition, host, parts);
         }

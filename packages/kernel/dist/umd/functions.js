@@ -4,11 +4,12 @@
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports"], factory);
+        define(["require", "exports", "./platform"], factory);
     }
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
+    const platform_1 = require("./platform");
     const camelCaseLookup = {};
     const kebabCaseLookup = {};
     const isNumericLookup = {};
@@ -153,5 +154,47 @@
         return a - b;
     }
     exports.compareNumber = compareNumber;
+    const emptyArray = platform_1.PLATFORM.emptyArray;
+    /**
+     * Efficiently merge and deduplicate the (primitive) values in two arrays.
+     *
+     * Does not deduplicate existing values in the first array.
+     *
+     * Guards against null or undefined arrays.
+     *
+     * Returns `PLATFORM.emptyArray` if both arrays are either `null`, `undefined` or `PLATFORM.emptyArray`
+     *
+     * @param slice If `true`, always returns a new array copy (unless neither array is/has a value)
+     */
+    function mergeDistinct(arr1, arr2, slice) {
+        if (arr1 === void 0 || arr1 === null || arr1 === emptyArray) {
+            if (arr2 === void 0 || arr2 === null || arr2 === emptyArray) {
+                return emptyArray;
+            }
+            else {
+                return slice ? arr2.slice(0) : arr2;
+            }
+        }
+        else if (arr2 === void 0 || arr2 === null || arr2 === emptyArray) {
+            return slice ? arr1.slice(0) : arr1;
+        }
+        const lookup = {};
+        const arr3 = slice ? arr1.slice(0) : arr1;
+        let len1 = arr1.length;
+        let len2 = arr2.length;
+        while (len1-- > 0) {
+            lookup[arr1[len1]] = true;
+        }
+        let item;
+        while (len2-- > 0) {
+            item = arr2[len2];
+            if (lookup[item] === void 0) {
+                arr3.push(item);
+                lookup[item] = true;
+            }
+        }
+        return arr3;
+    }
+    exports.mergeDistinct = mergeDistinct;
 });
 //# sourceMappingURL=functions.js.map

@@ -1,5 +1,5 @@
 import * as tslib_1 from "tslib";
-import { all, Registration, Reporter, Tracer, PLATFORM } from '@aurelia/kernel';
+import { all, Registration, Reporter, Tracer } from '@aurelia/kernel';
 import { Binding } from './binding/binding';
 import { Call } from './binding/call';
 import { IExpressionParser } from './binding/expression-parser';
@@ -233,7 +233,7 @@ class TemplateControllerRenderer {
                 };
             }
         }
-        const controller = Controller.forCustomAttribute(component, context, flags, parts == void 0 ? PLATFORM.emptyArray : Object.keys(parts));
+        const controller = Controller.forCustomAttribute(component, context, flags);
         if (instruction.link) {
             const controllers = renderable.controllers;
             component.link(controllers[controllers.length - 1]);

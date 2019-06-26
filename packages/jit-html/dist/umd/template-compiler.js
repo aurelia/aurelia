@@ -32,6 +32,7 @@
             this.exprParser = exprParser;
             this.instructionRows = null;
             this.parts = null;
+            this.scopeParts = null;
         }
         get name() {
             return 'default';
@@ -52,8 +53,12 @@
             if (surrogate.hasSlots === true) {
                 definition.hasSlots = true;
             }
+            if (definition.scopeParts === void 0 || definition.scopeParts === kernel_1.PLATFORM.emptyArray) {
+                definition.scopeParts = [];
+            }
             this.instructionRows = definition.instructions;
             this.parts = {};
+            this.scopeParts = definition.scopeParts;
             const attributes = surrogate.attributes;
             const len = attributes.length;
             if (len > 0) {
@@ -69,6 +74,7 @@
             this.compileChildNodes(surrogate);
             this.instructionRows = null;
             this.parts = null;
+            this.scopeParts = null;
             definition.build = buildNotRequired;
             if (kernel_1.Profiler.enabled) {
                 leave();
@@ -131,10 +137,14 @@
         compileTemplateController(symbol) {
             const bindings = this.compileBindings(symbol);
             const instructionRowsSave = this.instructionRows;
+            const scopePartsSave = this.scopeParts;
             const controllerInstructions = this.instructionRows = [];
+            const scopeParts = this.scopeParts = [];
             this.compileParentNode(symbol.template);
             this.instructionRows = instructionRowsSave;
+            this.scopeParts = kernel_1.mergeDistinct(scopePartsSave, scopeParts, false);
             const def = {
+                scopeParts,
                 name: symbol.partName == null ? symbol.res : symbol.partName,
                 template: symbol.physicalNode,
                 instructions: controllerInstructions,
@@ -244,20 +254,29 @@
                 const replaceParts = symbol.parts;
                 const ii = replaceParts.length;
                 let instructionRowsSave;
+                let partScopesSave;
+                let scopeParts;
                 let partInstructions;
                 let replacePart;
                 for (let i = 0; i < ii; ++i) {
                     replacePart = replaceParts[i];
                     instructionRowsSave = this.instructionRows;
+                    partScopesSave = this.scopeParts;
+                    if (partScopesSave.indexOf(replacePart.name) === -1) {
+                        partScopesSave.push(replacePart.name);
+                    }
+                    scopeParts = this.scopeParts = [];
                     partInstructions = this.instructionRows = [];
                     this.compileParentNode(replacePart.template);
                     this.parts[replacePart.name] = parts[replacePart.name] = {
+                        scopeParts,
                         name: replacePart.name,
                         template: replacePart.physicalNode,
                         instructions: partInstructions,
-                        build: buildNotRequired
+                        build: buildNotRequired,
                     };
                     this.instructionRows = instructionRowsSave;
+                    this.scopeParts = partScopesSave;
                 }
             }
             else {

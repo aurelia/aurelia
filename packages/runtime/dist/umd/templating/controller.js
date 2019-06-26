@@ -23,7 +23,7 @@
         return type.description != void 0;
     }
     class Controller {
-        constructor(flags, viewCache, lifecycle, viewModel, parentContext, host, options, scopeParts) {
+        constructor(flags, viewCache, lifecycle, viewModel, parentContext, host, options) {
             this.id = kernel_1.nextId('au$component');
             this.nextBound = void 0;
             this.nextUnbound = void 0;
@@ -42,7 +42,6 @@
             this.bindings = void 0;
             this.controllers = void 0;
             this.state = 0 /* none */;
-            this.scopeParts = scopeParts;
             if (viewModel == void 0) {
                 if (viewCache == void 0) {
                     // TODO: create error code
@@ -58,6 +57,7 @@
                 this.bindingContext = void 0; // stays undefined
                 this.host = void 0; // stays undefined
                 this.vmKind = 2 /* synthetic */;
+                this.scopeParts = void 0; // will be populated during ITemplate.render() immediately after the constructor is done
                 this.scope = void 0; // will be populated during bindSynthetic()
                 this.projector = void 0; // stays undefined
                 this.nodes = void 0; // will be populated during ITemplate.render() immediately after the constructor is done
@@ -125,9 +125,6 @@
                                 else {
                                     parts = { ...options.parts, ...instruction.parts };
                                 }
-                                if (scopeParts === kernel_1.PLATFORM.emptyArray) {
-                                    this.scopeParts = Object.keys(instruction.parts);
-                                }
                             }
                             template.render(this, host, parts);
                         }
@@ -154,21 +151,21 @@
         static forCustomElement(viewModel, parentContext, host, flags = 0 /* none */, options = kernel_1.PLATFORM.emptyObject) {
             let controller = Controller.lookup.get(viewModel);
             if (controller === void 0) {
-                controller = new Controller(flags, void 0, void 0, viewModel, parentContext, host, options, kernel_1.PLATFORM.emptyArray);
+                controller = new Controller(flags, void 0, void 0, viewModel, parentContext, host, options);
                 this.lookup.set(viewModel, controller);
             }
             return controller;
         }
-        static forCustomAttribute(viewModel, parentContext, flags = 0 /* none */, scopeParts = kernel_1.PLATFORM.emptyArray) {
+        static forCustomAttribute(viewModel, parentContext, flags = 0 /* none */) {
             let controller = Controller.lookup.get(viewModel);
             if (controller === void 0) {
-                controller = new Controller(flags, void 0, void 0, viewModel, parentContext, void 0, kernel_1.PLATFORM.emptyObject, scopeParts);
+                controller = new Controller(flags, void 0, void 0, viewModel, parentContext, void 0, kernel_1.PLATFORM.emptyObject);
                 this.lookup.set(viewModel, controller);
             }
             return controller;
         }
         static forSyntheticView(viewCache, lifecycle, flags = 0 /* none */) {
-            return new Controller(flags, viewCache, lifecycle, void 0, void 0, void 0, kernel_1.PLATFORM.emptyObject, kernel_1.PLATFORM.emptyArray);
+            return new Controller(flags, viewCache, lifecycle, void 0, void 0, void 0, kernel_1.PLATFORM.emptyObject);
         }
         lockScope(scope) {
             this.scope = scope;
@@ -308,30 +305,8 @@
         // #region bind/unbind
         bindCustomElement(flags, scope) {
             const $scope = this.scope;
-            if ($scope.partScopes == void 0) {
-                if (scope != void 0
-                    && scope.partScopes != void 0
-                    && scope.partScopes !== kernel_1.PLATFORM.emptyObject) {
-                    $scope.partScopes = { ...scope.partScopes };
-                }
-                else if (this.scopeParts !== kernel_1.PLATFORM.emptyArray) {
-                    $scope.partScopes = {};
-                }
-                else {
-                    $scope.partScopes = kernel_1.PLATFORM.emptyObject;
-                }
-            }
-            else if (scope != void 0
-                && scope.partScopes != void 0
-                && scope.partScopes !== kernel_1.PLATFORM.emptyObject) {
-                $scope.partScopes = {
-                    ...scope.partScopes,
-                    ...$scope.partScopes,
-                };
-            }
-            for (const partName of this.scopeParts) {
-                $scope.partScopes[partName] = $scope;
-            }
+            $scope.parentScope = scope === void 0 ? null : scope;
+            $scope.scopeParts = this.scopeParts;
             if ((flags & 134217728 /* updateOneTimeBindings */) > 0) {
                 this.bindBindings(flags, $scope);
                 return lifecycle_task_1.LifecycleTask.done;
@@ -381,6 +356,7 @@
             if (scope == void 0) {
                 throw new Error(`Scope is null or undefined`); // TODO: create error code
             }
+            scope.scopeParts = kernel_1.mergeDistinct(scope.scopeParts, this.scopeParts, false);
             if ((flags & 134217728 /* updateOneTimeBindings */) > 0) {
                 this.bindBindings(flags, scope);
                 return lifecycle_task_1.LifecycleTask.done;
@@ -418,7 +394,6 @@
         bindControllers(flags, scope) {
             let tasks = void 0;
             let task;
-            let controller;
             const { controllers } = this;
             if (controllers !== void 0) {
                 const { length } = controllers;
@@ -449,6 +424,7 @@
             if ((this.state & 4 /* isBound */) === 0) {
                 return lifecycle_task_1.LifecycleTask.done;
             }
+            this.scope.parentScope = null;
             this.state |= 2 /* isUnbinding */;
             flags |= 8192 /* fromUnbind */;
             this.lifecycle.unbound.begin();

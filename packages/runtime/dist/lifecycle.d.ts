@@ -43,13 +43,13 @@ export interface IController<T extends INode = INode, C extends IViewModel<T> = 
     readonly bindingContext?: C & IIndexable;
     readonly host?: T;
     readonly vmKind: ViewModelKind;
+    readonly scopeParts?: readonly string[];
     scope?: IScope;
     part?: string;
     projector?: IElementProjector;
     nodes?: INodeSequence<T>;
     context?: IContainer | IRenderContext<T>;
     location?: IRenderLocation<T>;
-    readonly scopeParts: readonly string[];
     lockScope(scope: IScope): void;
     hold(location: IRenderLocation<T>): void;
     release(flags: LifecycleFlags): boolean;

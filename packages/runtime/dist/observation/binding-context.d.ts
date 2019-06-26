@@ -30,9 +30,10 @@ export declare class BindingContext implements IBindingContext {
     getObservers(flags: LifecycleFlags): ObserversLookup;
 }
 export declare class Scope implements IScope {
+    parentScope: IScope | null;
+    scopeParts: readonly string[];
     bindingContext: IBindingContext;
     overrideContext: IOverrideContext;
-    partScopes?: Record<string, IScope | undefined>;
     private constructor();
     /**
      * Create a new `Scope` backed by the provided `BindingContext` and a new standalone `OverrideContext`.

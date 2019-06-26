@@ -19,6 +19,7 @@
         RuntimeError[RuntimeError["NilOverrideContext"] = 252] = "NilOverrideContext";
         RuntimeError[RuntimeError["NilParentScope"] = 253] = "NilParentScope";
     })(RuntimeError || (RuntimeError = {}));
+    const marker = Object.freeze({});
     /** @internal */
     class InternalObserversLookup {
         getOrCreate(lifecycle, flags, obj, key) {
@@ -98,17 +99,30 @@
             }
             // the name wasn't found. see if parent scope traversal is allowed and if so, try that
             if ((flags & 536870912 /* allowParentScopeTraversal */) > 0) {
-                const partScope = scope.partScopes[part];
-                const result = this.get(partScope, name, ancestor, flags
-                    // unset the flag; only allow one level of scope boundary traversal
-                    & ~536870912 /* allowParentScopeTraversal */
-                    // tell the scope to return null if the name could not be found
-                    | 16777216 /* isTraversingParentScope */);
-                if (result !== null) {
-                    if (kernel_1.Tracer.enabled) {
-                        kernel_1.Tracer.leave();
+                let parent = scope.parentScope;
+                while (parent !== null) {
+                    if (parent.scopeParts.includes(part)) {
+                        const result = this.get(parent, name, ancestor, flags
+                            // unset the flag; only allow one level of scope boundary traversal
+                            & ~536870912 /* allowParentScopeTraversal */
+                            // tell the scope to return null if the name could not be found
+                            | 16777216 /* isTraversingParentScope */);
+                        if (kernel_1.Tracer.enabled) {
+                            kernel_1.Tracer.leave();
+                        }
+                        if (result === marker) {
+                            return scope.bindingContext || scope.overrideContext;
+                        }
+                        else {
+                            return result;
+                        }
                     }
-                    return result;
+                    else {
+                        parent = parent.parentScope;
+                    }
+                }
+                if (parent === null) {
+                    throw new Error(`No target scope could be found for part "${part}"`);
                 }
             }
             // still nothing found. return the root binding context (or null
@@ -118,7 +132,7 @@
                 if (kernel_1.Tracer.enabled) {
                     kernel_1.Tracer.leave();
                 }
-                return null;
+                return marker;
             }
             if (kernel_1.Tracer.enabled) {
                 kernel_1.Tracer.leave();
@@ -140,10 +154,11 @@
     }
     exports.BindingContext = BindingContext;
     class Scope {
-        constructor(bindingContext, overrideContext, partScopes) {
+        constructor(parentScope, bindingContext, overrideContext) {
+            this.parentScope = parentScope;
+            this.scopeParts = kernel_1.PLATFORM.emptyArray;
             this.bindingContext = bindingContext;
             this.overrideContext = overrideContext;
-            this.partScopes = partScopes;
         }
         static create(flags, bc, oc) {
             if (kernel_1.Tracer.enabled) {
@@ -152,7 +167,7 @@
             if (kernel_1.Tracer.enabled) {
                 kernel_1.Tracer.leave();
             }
-            return new Scope(bc, oc == null ? OverrideContext.create(flags, bc, oc) : oc);
+            return new Scope(null, bc, oc == null ? OverrideContext.create(flags, bc, oc) : oc);
         }
         static fromOverride(flags, oc) {
             if (kernel_1.Tracer.enabled) {
@@ -164,7 +179,7 @@
             if (kernel_1.Tracer.enabled) {
                 kernel_1.Tracer.leave();
             }
-            return new Scope(oc.bindingContext, oc);
+            return new Scope(null, oc.bindingContext, oc);
         }
         static fromParent(flags, ps, bc) {
             if (kernel_1.Tracer.enabled) {
@@ -176,7 +191,7 @@
             if (kernel_1.Tracer.enabled) {
                 kernel_1.Tracer.leave();
             }
-            return new Scope(bc, OverrideContext.create(flags, bc, ps.overrideContext), ps.partScopes);
+            return new Scope(ps, bc, OverrideContext.create(flags, bc, ps.overrideContext));
         }
     }
     exports.Scope = Scope;

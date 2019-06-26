@@ -311,7 +311,15 @@
                 throw kernel_1.Reporter.error(250 /* NilScope */, this);
             }
             if ((flags & 536870912 /* allowParentScopeTraversal */) > 0) {
-                scope = scope.partScopes[part];
+                let parent = scope.parentScope;
+                while (parent !== null) {
+                    if (!parent.scopeParts.includes(part)) {
+                        parent = parent.parentScope;
+                    }
+                }
+                if (parent === null) {
+                    throw new Error(`No target scope cold be found for part "${part}"`);
+                }
             }
             let oc = scope.overrideContext;
             let i = this.ancestor;

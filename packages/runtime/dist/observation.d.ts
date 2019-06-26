@@ -197,12 +197,10 @@ export interface IOverrideContext {
     getObservers(flags: LifecycleFlags): ObserversLookup;
 }
 export interface IScope {
+    readonly parentScope: IScope | null;
+    readonly scopeParts: readonly string[];
     readonly bindingContext: IBindingContext;
     readonly overrideContext: IOverrideContext;
-    /**
-     * Associates replace-part names with the scopes they have access to.
-     */
-    readonly partScopes?: Record<string, IScope | undefined>;
 }
 export declare type ObserversLookup = IIndexable<{
     getOrCreate(lifecycle: ILifecycle, flags: LifecycleFlags, obj: IBindingContext | IOverrideContext, key: string): PropertyObserver;

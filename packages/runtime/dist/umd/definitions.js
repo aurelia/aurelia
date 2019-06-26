@@ -104,6 +104,7 @@
             this.hasSlots = false;
             this.strategy = 1 /* getterSetter */;
             this.hooks = HooksDefinition.none;
+            this.scopeParts = kernel_1.PLATFORM.emptyArray;
         }
     }
     const templateDefinitionAssignables = [

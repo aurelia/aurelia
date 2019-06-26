@@ -218,6 +218,7 @@
         hasSlots: false,
         strategy: 1 /* getterSetter */,
         hooks: Object.freeze(new runtime_1.HooksDefinition(Compose.prototype)),
+        scopeParts: kernel_1.PLATFORM.emptyArray,
     });
     exports.Compose = Compose;
 });

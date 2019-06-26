@@ -53,4 +53,16 @@ export declare function resetId(context: string): void;
  * This is needed for numeric sort, since the default sorts them as strings.
  */
 export declare function compareNumber(a: number, b: number): number;
+/**
+ * Efficiently merge and deduplicate the (primitive) values in two arrays.
+ *
+ * Does not deduplicate existing values in the first array.
+ *
+ * Guards against null or undefined arrays.
+ *
+ * Returns `PLATFORM.emptyArray` if both arrays are either `null`, `undefined` or `PLATFORM.emptyArray`
+ *
+ * @param slice If `true`, always returns a new array copy (unless neither array is/has a value)
+ */
+export declare function mergeDistinct<T>(arr1: readonly T[] | T[] | null | undefined, arr2: readonly T[] | T[] | null | undefined, slice: boolean): T[];
 //# sourceMappingURL=functions.d.ts.map

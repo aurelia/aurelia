@@ -50,7 +50,6 @@ export class With {
     }
     bindChild(flags) {
         const scope = Scope.fromParent(flags, this.$controller.scope, this.value === void 0 ? {} : this.value);
-        scope.partScopes = this.$controller.scope.partScopes;
         this.view.bind(flags, scope, this.$controller.part);
     }
 }

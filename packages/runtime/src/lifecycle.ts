@@ -96,6 +96,8 @@ export interface IController<
 
   readonly vmKind: ViewModelKind;
 
+  readonly scopeParts?: readonly string[];
+
   scope?: IScope;
   part?: string;
   projector?: IElementProjector;
@@ -103,8 +105,6 @@ export interface IController<
   nodes?: INodeSequence<T>;
   context?: IContainer | IRenderContext<T>;
   location?: IRenderLocation<T>;
-
-  readonly scopeParts: readonly string[];
 
   lockScope(scope: IScope): void;
   hold(location: IRenderLocation<T>): void;

@@ -1,4 +1,4 @@
-import { IIndexable, Reporter, StrictPrimitive, Tracer } from '@aurelia/kernel';
+import { IIndexable, Reporter, StrictPrimitive, Tracer, PLATFORM } from '@aurelia/kernel';
 import { LifecycleFlags } from '../flags';
 import { IBinding, ILifecycle } from '../lifecycle';
 import {
@@ -19,6 +19,8 @@ const enum RuntimeError {
   NilOverrideContext = 252,
   NilParentScope = 253
 }
+
+const marker = Object.freeze({});
 
 /** @internal */
 export class InternalObserversLookup {
@@ -126,15 +128,27 @@ export class BindingContext implements IBindingContext {
 
     // the name wasn't found. see if parent scope traversal is allowed and if so, try that
     if ((flags & LifecycleFlags.allowParentScopeTraversal) > 0) {
-      const partScope = scope.partScopes![part!]!;
-      const result = this.get(partScope, name, ancestor, flags
-        // unset the flag; only allow one level of scope boundary traversal
-        & ~LifecycleFlags.allowParentScopeTraversal
-        // tell the scope to return null if the name could not be found
-        | LifecycleFlags.isTraversingParentScope);
-      if (result !== null) {
-        if (Tracer.enabled) { Tracer.leave(); }
-        return result;
+      let parent = scope.parentScope;
+      while (parent !== null) {
+        if (parent.scopeParts.includes(part!)) {
+          const result = this.get(parent, name, ancestor, flags
+            // unset the flag; only allow one level of scope boundary traversal
+            & ~LifecycleFlags.allowParentScopeTraversal
+            // tell the scope to return null if the name could not be found
+            | LifecycleFlags.isTraversingParentScope);
+          if (Tracer.enabled) { Tracer.leave(); }
+          if (result === marker) {
+            return scope.bindingContext || scope.overrideContext;
+          } else {
+            return result;
+          }
+        } else {
+          parent = parent.parentScope;
+        }
+      }
+
+      if (parent === null) {
+        throw new Error(`No target scope could be found for part "${part}"`);
       }
     }
 
@@ -143,7 +157,7 @@ export class BindingContext implements IBindingContext {
     // correct level)
     if (flags & LifecycleFlags.isTraversingParentScope) {
       if (Tracer.enabled) { Tracer.leave(); }
-      return null;
+      return marker;
     }
     if (Tracer.enabled) { Tracer.leave(); }
     return scope.bindingContext || scope.overrideContext;
@@ -160,19 +174,20 @@ export class BindingContext implements IBindingContext {
 }
 
 export class Scope implements IScope {
+  public parentScope: IScope | null;
+  public scopeParts: readonly string[];
   public bindingContext: IBindingContext;
   public overrideContext: IOverrideContext;
 
-  public partScopes?: Record<string, IScope | undefined>;
-
   private constructor(
+    parentScope: IScope | null,
     bindingContext: IBindingContext,
     overrideContext: IOverrideContext,
-    partScopes?: Record<string, IScope | undefined>
   ) {
+    this.parentScope = parentScope;
+    this.scopeParts = PLATFORM.emptyArray;
     this.bindingContext = bindingContext;
     this.overrideContext = overrideContext;
-    this.partScopes = partScopes;
   }
 
   /**
@@ -206,7 +221,7 @@ export class Scope implements IScope {
   public static create(flags: LifecycleFlags, bc: object, oc?: IOverrideContext | null): Scope {
     if (Tracer.enabled) { Tracer.enter('Scope', 'create', slice.call(arguments)); }
     if (Tracer.enabled) { Tracer.leave(); }
-    return new Scope(bc as IBindingContext, oc == null ? OverrideContext.create(flags, bc, oc!) : oc);
+    return new Scope(null, bc as IBindingContext, oc == null ? OverrideContext.create(flags, bc, oc!) : oc);
   }
 
   public static fromOverride(flags: LifecycleFlags, oc: IOverrideContext): Scope {
@@ -215,7 +230,7 @@ export class Scope implements IScope {
       throw Reporter.error(RuntimeError.NilOverrideContext);
     }
     if (Tracer.enabled) { Tracer.leave(); }
-    return new Scope(oc.bindingContext, oc);
+    return new Scope(null, oc.bindingContext, oc);
   }
 
   public static fromParent(flags: LifecycleFlags, ps: IScope | null, bc: object): Scope {
@@ -224,7 +239,7 @@ export class Scope implements IScope {
       throw Reporter.error(RuntimeError.NilParentScope);
     }
     if (Tracer.enabled) { Tracer.leave(); }
-    return new Scope(bc as IBindingContext, OverrideContext.create(flags, bc, ps.overrideContext), ps.partScopes);
+    return new Scope(ps, bc as IBindingContext, OverrideContext.create(flags, bc, ps.overrideContext));
   }
 }
 

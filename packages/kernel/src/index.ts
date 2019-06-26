@@ -99,4 +99,5 @@ export {
   nextId,
   resetId,
   compareNumber,
+  mergeDistinct,
 } from './functions';

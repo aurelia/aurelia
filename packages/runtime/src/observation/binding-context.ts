@@ -165,10 +165,14 @@ export class Scope implements IScope {
 
   public partScopes?: Record<string, IScope | undefined>;
 
-  private constructor(bindingContext: IBindingContext, overrideContext: IOverrideContext) {
+  private constructor(
+    bindingContext: IBindingContext,
+    overrideContext: IOverrideContext,
+    partScopes?: Record<string, IScope | undefined>
+  ) {
     this.bindingContext = bindingContext;
     this.overrideContext = overrideContext;
-    this.partScopes = void 0;
+    this.partScopes = partScopes;
   }
 
   /**
@@ -220,7 +224,7 @@ export class Scope implements IScope {
       throw Reporter.error(RuntimeError.NilParentScope);
     }
     if (Tracer.enabled) { Tracer.leave(); }
-    return new Scope(bc as IBindingContext, OverrideContext.create(flags, bc, ps.overrideContext));
+    return new Scope(bc as IBindingContext, OverrideContext.create(flags, bc, ps.overrideContext), ps.partScopes);
   }
 }
 

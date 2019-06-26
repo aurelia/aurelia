@@ -1,11 +1,11 @@
-import { Aurelia, CustomElementResource, IViewModel } from '@aurelia/runtime';
+import { Aurelia, CustomElementResource, LifecycleFlags as LF } from '@aurelia/runtime';
 import { TestContext, HTMLTestContext, hJsx, assert } from '@aurelia/testing';
 
 // IMPORTANT:
 //      JSX is used to eliminate space between tags so test result can be easier to manually constructed
 //      if template string can be used to achieve the same effect, it could be converted back
 
-describe.skip('replaceable', function () {
+describe('replaceable', function () {
 
   describe('Difficult cases', function() {
     describe('+ scope altering template controllers', function() {
@@ -200,9 +200,9 @@ describe.skip('replaceable', function () {
             </foo>,
             createItems(2),
             `0-item-0. Message: Aurelia.`,
-            async (host, app, foo) => {
+            async (ctx, host, app, foo) => {
               app.message = 'Hello world from Aurelia';
-              await Promise.resolve();
+              ctx.lifecycle.processRAFQueue(LF.none);
               assert.strictEqual(
                 host.textContent,
                 '0-item-0. Message: Hello world from Aurelia.',
@@ -224,9 +224,9 @@ describe.skip('replaceable', function () {
             </foo>,
             createItems(2),
             `0-item-0. Message: Aurelia.`,
-            async (host, app, foo) => {
+            async (ctx, host, app, foo) => {
               app.message = 'Hello world from Aurelia';
-              await Promise.resolve();
+              ctx.lifecycle.processRAFQueue(LF.none);
               assert.strictEqual(
                 host.textContent,
                 '0-item-0. Message: Hello world from Aurelia.',
@@ -234,74 +234,74 @@ describe.skip('replaceable', function () {
               );
             }
           ],
-          [
-            [
-              '[with]',
-              '  [replaceable #0] << replace #0',
-              '🔻',
-              '[foo]',
-              '  [template r#0]',
-              '    [with] <-- by a with'
-            ].join('\n'),
-            <div with$="{ item: items[0] }">
-              <div replaceable part="p0">{'${item.name}'}</div>
-            </div>,
-            <foo>
-              <template replace-part="p0">
-                <template with$="{ item: items[0] }">{'${item.idx}-${item.name}.'}</template>
-              </template>
-            </foo>,
-            createItems(2),
-            `0-item-0.`,
-            async (host, app, foo) => {
-              foo.items = createItems(3, 'ITEM');
-              await Promise.resolve();
-              assert.strictEqual(
-                host.textContent,
-                `0-ITEM-0`,
-                'host.textContent@changed',
-              );
+          // [
+          //   [
+          //     '[with]',
+          //     '  [replaceable #0] << replace #0',
+          //     '🔻',
+          //     '[foo]',
+          //     '  [template r#0]',
+          //     '    [with] <-- by a with'
+          //   ].join('\n'),
+          //   <div with$="{ item: items[0] }">
+          //     <div replaceable part="p0">{'${item.name}'}</div>
+          //   </div>,
+          //   <foo>
+          //     <template replace-part="p0">
+          //       <template with$="{ item: items[0] }">{'${item.idx}-${item.name}.'}</template>
+          //     </template>
+          //   </foo>,
+          //   createItems(2),
+          //   `0-item-0.`,
+          //   async (ctx, host, app, foo) => {
+          //     foo.items = createItems(3, 'ITEM');
+          //     ctx.lifecycle.processRAFQueue(LF.none);
+          //     assert.strictEqual(
+          //       host.textContent,
+          //       `0-ITEM-0`,
+          //       'host.textContent@changed',
+          //     );
 
-              foo.items = [];
-              await Promise.resolve();
-              assert.strictEqual(
-                host.textContent,
-                '',
-                'host.textContent@[]',
-              );
-            }
-          ],
-          // Same with previous. Though [with] + [replaceable] are on same element
-          [
-            [
-              '[with] [replaceable #0] << replace #0',
-              '🔻',
-              '[foo]',
-              '  [template r#0]',
-              '    [with] <-- by a with'
-            ].join('\n'),
-            <div with$="{ item: items[0] }" replaceable part="p0">{'${item.name}'}</div>,
-            <foo>
-              <template replace-part="p0">
-                <template with$="{ item: items[0] }">{'${item.idx}-${item.name}.'}</template>
-              </template>
-            </foo>,
-            createItems(2),
-            `0-item-0.`,
-            async (host, app, foo) => {
-              foo.items = createItems(3, 'ITEM');
-              await Promise.resolve();
-              assert.strictEqual(
-                host.textContent,
-                `0-ITEM-0.`,
-                'host.textContent@changed',
-              );
+          //     foo.items = [];
+          //     ctx.lifecycle.processRAFQueue(LF.none);
+          //     assert.strictEqual(
+          //       host.textContent,
+          //       '',
+          //       'host.textContent@[]',
+          //     );
+          //   }
+          // ],
+          // // Same with previous. Though [with] + [replaceable] are on same element
+          // [
+          //   [
+          //     '[with] [replaceable #0] << replace #0',
+          //     '🔻',
+          //     '[foo]',
+          //     '  [template r#0]',
+          //     '    [with] <-- by a with'
+          //   ].join('\n'),
+          //   <div with$="{ item: items[0] }" replaceable part="p0">{'${item.name}'}</div>,
+          //   <foo>
+          //     <template replace-part="p0">
+          //       <template with$="{ item: items[0] }">{'${item.idx}-${item.name}.'}</template>
+          //     </template>
+          //   </foo>,
+          //   createItems(2),
+          //   `0-item-0.`,
+          //   async (ctx, host, app, foo) => {
+          //     foo.items = createItems(3, 'ITEM');
+          //     ctx.lifecycle.processRAFQueue(LF.none);
+          //     assert.strictEqual(
+          //       host.textContent,
+          //       `0-ITEM-0.`,
+          //       'host.textContent@changed',
+          //     );
 
-              foo.items = [];
-              await Promise.resolve();
-              assert.strictEqual(host.textContent, '', 'host.textContent@[]');
-            }
-          ]
+          //     foo.items = [];
+          //     ctx.lifecycle.processRAFQueue(LF.none);
+          //     assert.strictEqual(host.textContent, '', 'host.textContent@[]');
+          //   }
+          // ]
         ];
         for (
           const [
@@ -331,13 +331,13 @@ describe.skip('replaceable', function () {
             const component = new App();
 
             au.app({ host, component });
-            au.start();
+            await au.start().wait();
 
             assert.strictEqual(host.textContent, expectedTextContent, `host.textContent`);
             if (customAssertion) {
-              await customAssertion(host, component, component.$controller.controllers[0] as any as IFoo);
+              await customAssertion(ctx, host, component, component.$controller.controllers[0] as any as IFoo);
             }
-            tearDown(au);
+            await tearDown(au);
           });
         }
 
@@ -347,7 +347,7 @@ describe.skip('replaceable', function () {
         interface IApp {
           message: string;
         }
-        type ICustomAssertion = (host: HTMLElement, app: IApp, foo: IFoo) => void;
+        type ICustomAssertion = (ctx: HTMLTestContext, host: HTMLElement, app: IApp, foo: IFoo) => void;
       });
     });
   });
@@ -357,8 +357,8 @@ describe.skip('replaceable', function () {
     name: string;
   }
 
-  function tearDown(au: Aurelia) {
-    au.stop();
+  async function tearDown(au: Aurelia) {
+    await au.stop().wait();
     (au.root.host as Element).remove();
   }
 

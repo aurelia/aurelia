@@ -733,7 +733,7 @@ describe(`TemplateCompiler - combinations`, function () {
       if (childInstruction.mode !== undefined) {
         childInstruction.oneTime = childInstruction.mode === BindingMode.oneTime;
       }
-      const def = { name: camelCase(attr), defaultBindingMode, bindables };
+      const def = { name: attr, defaultBindingMode, bindables };
       const markup = `<div ${name}="${value}"></div>`;
 
       it(`${markup}  CustomAttribute=${JSON.stringify(def)}`, function () {

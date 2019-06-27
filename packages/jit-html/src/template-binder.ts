@@ -422,11 +422,6 @@ export class TemplateBinder {
   private bindPlainAttribute(attrSyntax: AttrSyntax, attr: Attr): void {
     if (Tracer.enabled) { Tracer.enter('TemplateBinder', 'bindPlainAttribute', slice.call(arguments)); }
 
-    if (attrSyntax.rawValue.length === 0) {
-      if (Tracer.enabled) { Tracer.leave(); }
-      return;
-    }
-
     const command = this.resources.getBindingCommand(attrSyntax);
     const bindingType = command == null ? BindingType.Interpolation : command.bindingType;
     const manifest = this.manifest;
@@ -435,8 +430,13 @@ export class TemplateBinder {
       attrSyntax.rawValue.length === 0
       && (bindingType & BindingType.BindCommand | BindingType.OneTimeCommand | BindingType.ToViewCommand | BindingType.TwoWayCommand) > 0
     ) {
-      // Default to the name of the attr for empty binding commands
-      expr = this.exprParser.parse(camelCase(attrSyntax.target), bindingType);
+      if ((bindingType & BindingType.BindCommand | BindingType.OneTimeCommand | BindingType.ToViewCommand | BindingType.TwoWayCommand) > 0) {
+        // Default to the name of the attr for empty binding commands
+        expr = this.exprParser.parse(camelCase(attrSyntax.target), bindingType);
+      } else {
+        if (Tracer.enabled) { Tracer.leave(); }
+        return;
+      }
     } else {
       expr = this.exprParser.parse(attrSyntax.rawValue, bindingType);
     }

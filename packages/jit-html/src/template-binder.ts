@@ -436,7 +436,7 @@ export class TemplateBinder {
       && (bindingType & BindingType.BindCommand | BindingType.OneTimeCommand | BindingType.ToViewCommand | BindingType.TwoWayCommand) > 0
     ) {
       // Default to the name of the attr for empty binding commands
-      expr = this.exprParser.parse(camelCase(attrSyntax.rawName), bindingType);
+      expr = this.exprParser.parse(camelCase(attrSyntax.target), bindingType);
     } else {
       expr = this.exprParser.parse(attrSyntax.rawValue, bindingType);
     }

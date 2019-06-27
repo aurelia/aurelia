@@ -367,20 +367,22 @@ export class TemplateBinder {
         if (Tracer.enabled) {
             Tracer.enter('TemplateBinder', 'bindPlainAttribute', slice.call(arguments));
         }
-        if (attrSyntax.rawValue.length === 0) {
-            if (Tracer.enabled) {
-                Tracer.leave();
-            }
-            return;
-        }
         const command = this.resources.getBindingCommand(attrSyntax);
         const bindingType = command == null ? 2048 /* Interpolation */ : command.bindingType;
         const manifest = this.manifest;
         let expr;
         if (attrSyntax.rawValue.length === 0
             && (bindingType & 53 /* BindCommand */ | 49 /* OneTimeCommand */ | 50 /* ToViewCommand */ | 52 /* TwoWayCommand */) > 0) {
-            // Default to the name of the attr for empty binding commands
-            expr = this.exprParser.parse(camelCase(attrSyntax.target), bindingType);
+            if ((bindingType & 53 /* BindCommand */ | 49 /* OneTimeCommand */ | 50 /* ToViewCommand */ | 52 /* TwoWayCommand */) > 0) {
+                // Default to the name of the attr for empty binding commands
+                expr = this.exprParser.parse(camelCase(attrSyntax.target), bindingType);
+            }
+            else {
+                if (Tracer.enabled) {
+                    Tracer.leave();
+                }
+                return;
+            }
         }
         else {
             expr = this.exprParser.parse(attrSyntax.rawValue, bindingType);

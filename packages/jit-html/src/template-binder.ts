@@ -28,7 +28,8 @@ import {
   BindingMode,
   BindingType,
   IDOM,
-  IExpressionParser
+  IExpressionParser,
+  AnyBindingExpression
 } from '@aurelia/runtime';
 import {
   NodeType,
@@ -429,7 +430,16 @@ export class TemplateBinder {
     const command = this.resources.getBindingCommand(attrSyntax);
     const bindingType = command == null ? BindingType.Interpolation : command.bindingType;
     const manifest = this.manifest;
-    const expr = this.exprParser.parse(attrSyntax.rawValue, bindingType);
+    let expr: AnyBindingExpression;
+    if (
+      attrSyntax.rawValue.length === 0
+      && (bindingType & BindingType.BindCommand | BindingType.OneTimeCommand | BindingType.ToViewCommand | BindingType.TwoWayCommand) > 0
+    ) {
+      // Default to the name of the attr for empty binding commands
+      expr = this.exprParser.parse(camelCase(attrSyntax.rawName), bindingType);
+    } else {
+      expr = this.exprParser.parse(attrSyntax.rawValue, bindingType);
+    }
 
     if (manifest!.flags & SymbolFlags.isCustomElement) {
       const bindable = (manifest as CustomElementSymbol).bindables[attrSyntax.target];

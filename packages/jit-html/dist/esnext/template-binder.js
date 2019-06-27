@@ -380,7 +380,7 @@ export class TemplateBinder {
         if (attrSyntax.rawValue.length === 0
             && (bindingType & 53 /* BindCommand */ | 49 /* OneTimeCommand */ | 50 /* ToViewCommand */ | 52 /* TwoWayCommand */) > 0) {
             // Default to the name of the attr for empty binding commands
-            expr = this.exprParser.parse(camelCase(attrSyntax.rawName), bindingType);
+            expr = this.exprParser.parse(camelCase(attrSyntax.target), bindingType);
         }
         else {
             expr = this.exprParser.parse(attrSyntax.rawValue, bindingType);

@@ -1,5 +1,4 @@
 import {
-  camelCase,
   IResourceDescriptions,
   kebabCase,
   Reporter,

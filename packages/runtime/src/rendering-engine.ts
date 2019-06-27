@@ -3,13 +3,10 @@ import {
   DI,
   IContainer,
   IDisposable,
-  Key,
   InstanceProvider,
-  IRegistry,
   IResolver,
   IResourceDescriptions,
-  IServiceLocator,
-  PLATFORM,
+  Key,
   Reporter,
   RuntimeCompilationResources,
   Writable,
@@ -117,6 +114,7 @@ export class CompiledTemplate<T extends INode = INode> implements ITemplate {
     }
     const nodes = (controller as Writable<IController>).nodes = this.factory.createNodeSequence();
     (controller as Writable<IController>).context = this.renderContext;
+    (controller as Writable<IController>).scopeParts = this.definition.scopeParts;
     flags |= this.definition.strategy;
     this.renderContext.render(flags, controller, nodes.findTargets(), this.definition, host, parts);
   }
@@ -295,7 +293,7 @@ export class RenderingEngine implements IRenderingEngine {
 export function createRenderContext(
   dom: IDOM,
   parent: IRenderContext | IContainer,
-  dependencies: IRegistry[],
+  dependencies: Key[],
   componentType?: ICustomElementType
 ): IRenderContext {
   const context = parent.createChild() as ExposedContext;

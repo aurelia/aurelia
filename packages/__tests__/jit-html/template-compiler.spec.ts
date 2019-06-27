@@ -463,7 +463,8 @@ function createTemplateController(ctx: HTMLTestContext, attr: string, target: st
         name: target,
         template: ctx.createElementFromMarkup(`<template><au-m class="au"></au-m></template>`),
         instructions: [[childInstr]],
-        build: buildNotRequired
+        build: buildNotRequired,
+        scopeParts: [],
       },
       instructions: createTplCtrlAttributeInstruction(attr, value),
       link: attr === 'else'
@@ -476,6 +477,7 @@ function createTemplateController(ctx: HTMLTestContext, attr: string, target: st
       template: ctx.createElementFromMarkup(`<template><div><au-m class="au"></au-m></div></template>`),
       instructions: [[instruction]],
       build: buildNotRequired,
+      scopeParts: [],
     };
     // @ts-ignore
     return [input, output];
@@ -496,7 +498,8 @@ function createTemplateController(ctx: HTMLTestContext, attr: string, target: st
         name: target,
         template: ctx.createElementFromMarkup(tagName === 'template' ? compiledMarkup : `<template>${compiledMarkup}</template>`),
         instructions,
-        build: buildNotRequired
+        build: buildNotRequired,
+        scopeParts: [],
       },
       instructions: createTplCtrlAttributeInstruction(attr, value),
       link: attr === 'else'
@@ -510,6 +513,7 @@ function createTemplateController(ctx: HTMLTestContext, attr: string, target: st
       template: ctx.createElementFromMarkup(finalize ? `<template><div><au-m class="au"></au-m></div></template>` : `<au-m class="au"></au-m>`),
       instructions: [[instruction]],
       build: buildNotRequired,
+      scopeParts: [],
     };
     // @ts-ignore
     return [input, output];
@@ -535,6 +539,7 @@ function createCustomElement(ctx: HTMLTestContext, tagName: string, finalize: bo
     template: finalize ? ctx.createElementFromMarkup(`<template><div>${outputMarkup.outerHTML}</div></template>`) : outputMarkup,
     instructions: [[instruction, ...siblingInstructions], ...nestedElInstructions],
     build: buildNotRequired,
+    scopeParts: [],
   };
   return [input, output];
 }
@@ -557,6 +562,7 @@ function createCustomAttribute(ctx: HTMLTestContext, resName: string, finalize: 
     template: finalize ? ctx.createElementFromMarkup(`<template><div>${outputMarkup.outerHTML}</div></template>`) : outputMarkup,
     instructions: [[instruction, ...siblingInstructions], ...nestedElInstructions],
     build: buildNotRequired,
+    scopeParts: [],
   };
   return [input, output];
 }
@@ -664,8 +670,18 @@ describe(`TemplateCompiler - combinations`, function () {
       const markup = `<${el} ${n1}="${v1}"></${el}>`;
 
       it(markup, function () {
-        const input = { template: markup, instructions: [], surrogates: [] };
-        const expected = { template: ctx.createElementFromMarkup(`<template><${el} ${n1}="${v1}" class="au"></${el}></template>`), instructions: [[i1]], surrogates: [], build: buildNotRequired };
+        const input = {
+          template: markup,
+          instructions: [],
+          surrogates: [],
+        };
+        const expected = {
+          template: ctx.createElementFromMarkup(`<template><${el} ${n1}="${v1}" class="au"></${el}></template>`),
+          instructions: [[i1]],
+          surrogates: [],
+          build: buildNotRequired,
+          scopeParts: [],
+        };
 
         const { sut, resources, dom } = setup(ctx);
 
@@ -717,13 +733,27 @@ describe(`TemplateCompiler - combinations`, function () {
       if (childInstruction.mode !== undefined) {
         childInstruction.oneTime = childInstruction.mode === BindingMode.oneTime;
       }
-      const def = { name: camelCase(attr), defaultBindingMode, bindables };
+      const def = { name: attr, defaultBindingMode, bindables };
       const markup = `<div ${name}="${value}"></div>`;
 
       it(`${markup}  CustomAttribute=${JSON.stringify(def)}`, function () {
-        const input = { template: markup, instructions: [], surrogates: [] };
-        const instruction = { type: TT.hydrateAttribute, res: def.name, instructions: [childInstruction] };
-        const expected = { template: ctx.createElementFromMarkup(`<template><div ${name}="${value}" class="au"></div></template>`), instructions: [[instruction]], surrogates: [], build: buildNotRequired };
+        const input = {
+          template: markup,
+          instructions: [],
+          surrogates: [],
+        };
+        const instruction = {
+          type: TT.hydrateAttribute,
+          res: def.name,
+          instructions: [childInstruction],
+        };
+        const expected = {
+          template: ctx.createElementFromMarkup(`<template><div ${name}="${value}" class="au"></div></template>`),
+          instructions: [[instruction]],
+          surrogates: [],
+          build: buildNotRequired,
+          scopeParts: [],
+        };
 
         const $def = CustomAttributeResource.define(def, ctor);
         const { sut, resources, dom  } = setup(ctx, $def);
@@ -990,6 +1020,7 @@ describe(`TemplateCompiler - combinations`, function () {
           template: ctx.createElementFromMarkup(`<template><div>${output1.template['outerHTML']}${output2.template['outerHTML']}${output3.template['outerHTML']}</div></template>`),
           instructions: [output1.instructions[0], output2.instructions[0], output3.instructions[0]],
           build: buildNotRequired,
+          scopeParts: [],
         };
         //enableTracing();
         //Tracer.enableLiveLogging(SymbolTraceWriter);

@@ -1,4 +1,4 @@
-import { Aurelia, CustomElementResource } from '@aurelia/runtime';
+import { Aurelia, CustomElementResource, LifecycleFlags as LF } from '@aurelia/runtime';
 import { TestContext, assert } from '@aurelia/testing';
 
 describe('replaceable', function () {
@@ -65,6 +65,53 @@ describe('replaceable', function () {
 
     assert.strictEqual(host.textContent, 'abc', `host.textContent`);
 
+  });
+
+  // TODO: run this case with more combinations
+  it(`replaceable - bind to parent scope when binding inside replace-part has multiple template controllers in between`, function () {
+
+    const App = CustomElementResource.define({ name: 'app', template: `<template><foo><div replace-part="bar"><div if.bind="true" repeat.for="i of 1">\${baz}</div></div></foo></template>` }, class { public baz = 'def'; });
+    const Foo = CustomElementResource.define({ name: 'foo', template: `<template><div replaceable part="bar"></div></template>` }, class { });
+
+    const ctx = TestContext.createHTMLTestContext();
+    ctx.container.register(Foo);
+    const au = new Aurelia(ctx.container);
+
+    const host = ctx.createElement('div');
+    const component = new App();
+
+    au.app({ host, component });
+
+    au.start();
+
+    assert.strictEqual(host.textContent, 'def', `host.textContent`);
+
+  });
+
+  // TODO: run this case with more combinations
+  it(`replaceable - bind to parent scope when binding inside replace-part has an if that starts as false`, async function () {
+
+    const App = CustomElementResource.define({ name: 'app', template: `<template><foo><div replace-part="bar"><div if.bind="show">\${baz}</div></div></foo></template>` }, class { public baz = 'def'; public show = false; });
+    const Foo = CustomElementResource.define({ name: 'foo', template: `<template><div replaceable part="bar"></div></template>` }, class { });
+
+    const ctx = TestContext.createHTMLTestContext();
+    ctx.container.register(Foo);
+    const au = new Aurelia(ctx.container);
+
+    const host = ctx.createElement('div');
+    const component = new App();
+
+    au.app({ host, component });
+
+    await au.start().wait();
+
+    assert.strictEqual(host.textContent, '', `host.textContent`);
+
+    component.show = true;
+
+    ctx.lifecycle.processRAFQueue(LF.none)
+
+    assert.strictEqual(host.textContent, 'def', `host.textContent`);
   });
 
   it(`replaceable - bind to parent scope`, function () {

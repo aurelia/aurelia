@@ -2,6 +2,7 @@ import {
   IContainer,
   IIndexable,
   IServiceLocator,
+  mergeDistinct,
   nextId,
   PLATFORM,
   Writable,
@@ -15,11 +16,10 @@ import {
   IAttributeDefinition,
   IBindableDescription,
   IElementHydrationOptions,
-  ITemplateDefinition,
-  TemplateDefinition,
   IHydrateElementInstruction,
-  TargetedInstructionType,
-  IHydrateTemplateController
+  IHydrateTemplateController,
+  ITemplateDefinition,
+  TemplateDefinition
 } from '../definitions';
 import {
   IDOM,
@@ -144,14 +144,15 @@ export class Controller<
 
   public readonly vmKind: ViewModelKind;
 
+  public scopeParts?: string[];
+
   public scope?: IScope;
+  public part?: string;
   public projector?: IElementProjector;
 
   public nodes?: INodeSequence<T>;
   public context?: IContainer | IRenderContext<T>;
   public location?: IRenderLocation<T>;
-
-  public readonly scopeParts: readonly string[];
 
   constructor(
     flags: LifecycleFlags,
@@ -161,7 +162,6 @@ export class Controller<
     parentContext: IContainer | IRenderContext<T> | undefined,
     host: T | undefined,
     options: Partial<IElementHydrationOptions>,
-    scopeParts: readonly string[],
   ) {
     this.id = nextId('au$component');
 
@@ -188,8 +188,6 @@ export class Controller<
 
     this.state = State.none;
 
-    this.scopeParts = scopeParts;
-
     if (viewModel == void 0) {
       if (viewCache == void 0) {
         // TODO: create error code
@@ -208,6 +206,8 @@ export class Controller<
       this.host = void 0; // stays undefined
 
       this.vmKind = ViewModelKind.synthetic;
+
+      this.scopeParts = void 0; // will be populated during ITemplate.render() immediately after the constructor is done
 
       this.scope = void 0; // will be populated during bindSynthetic()
       this.projector = void 0; // stays undefined
@@ -290,10 +290,6 @@ export class Controller<
               } else {
                 parts = { ...options.parts, ...(instruction.parts as typeof parts) };
               }
-
-              if (scopeParts === PLATFORM.emptyArray) {
-                this.scopeParts = Object.keys(instruction.parts!);
-              }
             }
             template.render(this, host, parts);
           }
@@ -346,7 +342,6 @@ export class Controller<
         parentContext,
         host,
         options,
-        PLATFORM.emptyArray,
       );
       this.lookup.set(viewModel, controller);
     }
@@ -357,7 +352,6 @@ export class Controller<
     viewModel: object,
     parentContext: IContainer | IRenderContext<T>,
     flags: LifecycleFlags = LifecycleFlags.none,
-    scopeParts: readonly string[] = PLATFORM.emptyArray,
   ): Controller<T> {
     let controller = Controller.lookup.get(viewModel) as Controller<T> | undefined;
     if (controller === void 0) {
@@ -369,7 +363,6 @@ export class Controller<
         parentContext,
         void 0,
         PLATFORM.emptyObject,
-        scopeParts,
       );
       this.lookup.set(viewModel, controller);
     }
@@ -389,7 +382,6 @@ export class Controller<
       void 0,
       void 0,
       PLATFORM.emptyObject,
-      PLATFORM.emptyArray,
     );
   }
 
@@ -413,7 +405,8 @@ export class Controller<
     return this.unmountSynthetic(flags);
   }
 
-  public bind(flags: LifecycleFlags, scope?: IScope): ILifecycleTask {
+  public bind(flags: LifecycleFlags, scope?: IScope, part?: string): ILifecycleTask {
+    this.part = part;
     // TODO: benchmark which of these techniques is fastest:
     // - the current one (enum with switch)
     // - set the name of the method in the constructor, e.g. this.bindMethod = 'bindCustomElement'
@@ -549,25 +542,8 @@ export class Controller<
   private bindCustomElement(flags: LifecycleFlags, scope?: IScope): ILifecycleTask {
     const $scope = this.scope as Writable<IScope>;
 
-    if ($scope.partScopes == void 0) {
-      if (
-        scope != null &&
-        scope.partScopes != void 0 &&
-        scope.partScopes !== PLATFORM.emptyObject
-      ) {
-        $scope.partScopes = { ...scope.partScopes };
-      } else if (this.scopeParts !== PLATFORM.emptyArray) {
-        $scope.partScopes = {};
-      }
-
-      if ($scope.partScopes == void 0) {
-        $scope.partScopes = PLATFORM.emptyObject;
-      } else {
-        for (const partName of this.scopeParts) {
-          $scope.partScopes[partName] = $scope;
-        }
-      }
-    }
+    $scope.parentScope = scope === void 0 ? null : scope;
+    $scope.scopeParts = this.scopeParts!;
 
     if ((flags & LifecycleFlags.updateOneTimeBindings) > 0) {
       this.bindBindings(flags, $scope);
@@ -632,6 +608,8 @@ export class Controller<
       throw new Error(`Scope is null or undefined`); // TODO: create error code
     }
 
+    (scope as Writable<IScope>).scopeParts = mergeDistinct(scope.scopeParts, this.scopeParts, false);
+
     if ((flags & LifecycleFlags.updateOneTimeBindings) > 0) {
       this.bindBindings(flags, scope);
       return LifecycleTask.done;
@@ -669,7 +647,7 @@ export class Controller<
     if (bindings !== void 0) {
       const { length } = bindings;
       for (let i = 0; i < length; ++i) {
-        bindings[i].$bind(flags, scope);
+        bindings[i].$bind(flags, scope, this.part);
       }
     }
   }
@@ -683,7 +661,7 @@ export class Controller<
       const { length } = controllers;
       for (let i = 0; i < length; ++i) {
         controllers[i].parent = this;
-        task = controllers[i].bind(flags, scope);
+        task = controllers[i].bind(flags, scope, this.part);
         if (!task.done) {
           if (tasks === void 0) {
             tasks = [];
@@ -712,6 +690,8 @@ export class Controller<
     if ((this.state & State.isBound) === 0) {
       return LifecycleTask.done;
     }
+
+    (this.scope as Writable<IScope>).parentScope = null;
 
     this.state |= State.isUnbinding;
 

@@ -42,7 +42,7 @@ map-5: &filter_only_tag
       ignore: /.*/
     tags:
       only: /^v[0-9]+(\.[0-9]+)*$/
-        
+
 map-6: &filter_only_topic
   filters:
     branches:
@@ -104,8 +104,10 @@ commands:
     steps:
       - common/configure_git
       - checkout_install_bootstrap
-      - run: npm run build
-      - run: npm run bundle:all
+      - run: npm run build:release
+      - run: npm run change-tsconfigs:overwrite:umd
+      - run: npm run build:release
+      - run: npm run change-tsconfigs:restore
       - clean_merge_commit_dist:
           from: << parameters.from >>
           to: << parameters.to >>
@@ -133,8 +135,7 @@ commands:
         default: true
     steps:
       - run: ./node_modules/.bin/lerna clean -y
-      - run: rm -rf packages/*/dist/build/**
-      - run: git add packages/\*/dist/*.ts packages/\*/dist/*.js packages/\*/dist/*.map --force && git status
+      - run: git add packages/*/dist --force && git status
       - run: git stash && git status
       - when:
           condition: << parameters.merge_topic >>
@@ -147,8 +148,8 @@ commands:
       - run: rm -rf packages/*/dist && git status
       - run: git add . && git status
       - run: git checkout stash -- . && git status
-      - run: git add packages/\*/dist/*.ts packages/\*/dist/*.js packages/\*/dist/*.map --force && git status
-      - run: npm run change-package-refs:rollup
+      - run: git add packages/*/dist --force && git status
+      - run: npm run change-package-refs:release
       - run: npm run bump-version:<< parameters.channel >> -- << parameters.suffix >>
       - run: git add . && git status
       - run: git commit --allow-empty -m "<< parameters.message >>" && git status
@@ -222,8 +223,10 @@ jobs:
         default: true
     steps:
       - checkout_install_bootstrap
-      - run: npm run build
-      - run: npm run bundle:all
+      - run: npm run build:release
+      - run: npm run change-tsconfigs:overwrite:umd
+      - run: npm run build:release
+      - run: npm run change-tsconfigs:restore
       - clean_merge_commit_dist:
           from: << parameters.from >>
           to: << parameters.to >>
@@ -386,14 +389,15 @@ workflows:
           path: "examples/jit-parcel-ts"
           requires:
             - lint_packages # not a real requirement but forces long-running jobs to go first
-      - e2e_wdio:
-          <<: *filter_ignore_develop_release
-          name: jit-iife-inline
-          path: "examples/jit-iife-inline"
-          requires:
-            - lint_packages # not a real requirement but forces long-running jobs to go first
+      #- e2e_wdio:
+      #    <<: *filter_ignore_develop_release
+      #    name: jit-iife-inline
+      #    path: "examples/jit-iife-inline"
+      #    requires:
+      #      - lint_packages # not a real requirement but forces long-running jobs to go first
       - merge_and_dist:
           <<: *filter_only_master
+          name: merge_and_dist_master
           requires:
             - unit_test_chrome
             - unit_test_firefox
@@ -404,7 +408,7 @@ workflows:
             #- jit-fuse-box-ts
             - jit-webpack-ts
             - jit-parcel-ts
-            - jit-iife-inline
+            #- jit-iife-inline
           from: master
           to: develop
           channel: dev
@@ -412,6 +416,7 @@ workflows:
           merge_topic: false
       - merge_and_dist:
           <<: *filter_only_topic
+          name: merge_and_dist_topic
           requires:
             - unit_test_chrome
             - unit_test_firefox
@@ -422,16 +427,16 @@ workflows:
             #- jit-fuse-box-ts
             - jit-webpack-ts
             - jit-parcel-ts
-            - jit-iife-inline
+            #- jit-iife-inline
           from: master
           to: develop
           channel: dev
-      #- publish_npm:
-      #    <<: *filter_only_master
-      #    channel: dev
-      #    branch: develop
-      #    requires:
-      #      - merge_and_dist
+      - publish_npm:
+          <<: *filter_only_master
+          channel: dev
+          branch: develop
+          requires:
+            - merge_and_dist_master
 
   # Runs build and tests, and pushes the built artifacts to the release branch (which then triggers publish_latest)
   # Triggered by push to tag

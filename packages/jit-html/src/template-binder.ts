@@ -28,7 +28,8 @@ import {
   BindingMode,
   BindingType,
   IDOM,
-  IExpressionParser
+  IExpressionParser,
+  AnyBindingExpression
 } from '@aurelia/runtime';
 import {
   NodeType,
@@ -152,6 +153,7 @@ export class TemplateBinder {
     const parentManifestRootSave = this.parentManifestRoot;
     const manifestRootSave = this.manifestRoot;
     const manifestSave = this.manifest;
+    const partNameSave = this.partName;
 
     // get the part name to override the name of the compiled definition
     this.partName = node.getAttribute('part');
@@ -190,6 +192,7 @@ export class TemplateBinder {
     this.parentManifestRoot = parentManifestRootSave;
     this.manifestRoot = manifestRootSave;
     this.manifest = manifestSave;
+    this.partName = partNameSave;
 
     if (Tracer.enabled) { Tracer.leave(); }
   }
@@ -357,14 +360,12 @@ export class TemplateBinder {
     const command = this.resources.getBindingCommand(attrSyntax);
     if (command == null && attrInfo.hasDynamicOptions) {
       symbol = new TemplateControllerSymbol(this.dom, attrSyntax, attrInfo, this.partName);
-      this.partName = null;
       this.bindMultiAttribute(symbol, attrInfo, attrSyntax.rawValue);
     } else {
       symbol = new TemplateControllerSymbol(this.dom, attrSyntax, attrInfo, this.partName);
       const bindingType = command == null ? BindingType.Interpolation : command.bindingType;
       const expr = this.exprParser.parse(attrSyntax.rawValue, bindingType);
       symbol.bindings.push(new BindingSymbol(command, attrInfo.bindable, expr, attrSyntax.rawValue, attrSyntax.target));
-      this.partName = null;
     }
 
     if (Tracer.enabled) { Tracer.leave(); }
@@ -421,15 +422,24 @@ export class TemplateBinder {
   private bindPlainAttribute(attrSyntax: AttrSyntax, attr: Attr): void {
     if (Tracer.enabled) { Tracer.enter('TemplateBinder', 'bindPlainAttribute', slice.call(arguments)); }
 
-    if (attrSyntax.rawValue.length === 0) {
-      if (Tracer.enabled) { Tracer.leave(); }
-      return;
-    }
-
     const command = this.resources.getBindingCommand(attrSyntax);
     const bindingType = command == null ? BindingType.Interpolation : command.bindingType;
     const manifest = this.manifest;
-    const expr = this.exprParser.parse(attrSyntax.rawValue, bindingType);
+    let expr: AnyBindingExpression;
+    if (
+      attrSyntax.rawValue.length === 0
+      && (bindingType & BindingType.BindCommand | BindingType.OneTimeCommand | BindingType.ToViewCommand | BindingType.TwoWayCommand) > 0
+    ) {
+      if ((bindingType & BindingType.BindCommand | BindingType.OneTimeCommand | BindingType.ToViewCommand | BindingType.TwoWayCommand) > 0) {
+        // Default to the name of the attr for empty binding commands
+        expr = this.exprParser.parse(camelCase(attrSyntax.target), bindingType);
+      } else {
+        if (Tracer.enabled) { Tracer.leave(); }
+        return;
+      }
+    } else {
+      expr = this.exprParser.parse(attrSyntax.rawValue, bindingType);
+    }
 
     if (manifest!.flags & SymbolFlags.isCustomElement) {
       const bindable = (manifest as CustomElementSymbol).bindables[attrSyntax.target];

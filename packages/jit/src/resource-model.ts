@@ -1,5 +1,4 @@
 import {
-  camelCase,
   IResourceDescriptions,
   kebabCase,
   Reporter,
@@ -61,16 +60,15 @@ export class ResourceModel {
    * @returns The resource information if the attribute exists, or `null` if it does not exist.
    */
   public getAttributeInfo(syntax: AttrSyntax): AttrInfo | null {
-    const name = camelCase(syntax.target);
-    let result = this.attributeLookup[name];
+    let result = this.attributeLookup[syntax.target];
     if (result === void 0) {
-      const def = this.resources.find(CustomAttributeResource, name);
+      const def = this.resources.find(CustomAttributeResource, syntax.target);
       if (def == null) {
         result = null!;
       } else {
         result = createAttributeInfo(def);
       }
-      this.attributeLookup[name] = result;
+      this.attributeLookup[syntax.target] = result;
     }
     return result;
   }

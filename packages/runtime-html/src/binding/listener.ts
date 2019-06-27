@@ -24,6 +24,7 @@ export class Listener implements IBinding {
 
   public $state: State;
   public $scope!: IScope;
+  public part?: string;
 
   public delegationStrategy: DelegationStrategy;
   public locator: IServiceLocator;
@@ -64,7 +65,7 @@ export class Listener implements IBinding {
     const overrideContext = this.$scope.overrideContext;
     overrideContext.$event = event;
 
-    const result = this.sourceExpression.evaluate(LifecycleFlags.mustEvaluate, this.$scope, this.locator);
+    const result = this.sourceExpression.evaluate(LifecycleFlags.mustEvaluate, this.$scope, this.locator, this.part);
 
     Reflect.deleteProperty(overrideContext, '$event');
 
@@ -80,7 +81,7 @@ export class Listener implements IBinding {
     this.callSource(event);
   }
 
-  public $bind(flags: LifecycleFlags, scope: IScope): void {
+  public $bind(flags: LifecycleFlags, scope: IScope, part?: string): void {
     if (Tracer.enabled) { Tracer.enter('Listener', '$bind', slice.call(arguments)); }
     if (this.$state & State.isBound) {
       if (this.$scope === scope) {
@@ -94,6 +95,7 @@ export class Listener implements IBinding {
     this.$state |= State.isBinding;
 
     this.$scope = scope;
+    this.part = part;
 
     const sourceExpression = this.sourceExpression;
     if (hasBind(sourceExpression)) {

@@ -26,9 +26,6 @@ import {
   ILifecycleTask,
 } from '../../lifecycle-task';
 import {
-  BindingContext,
-} from '../../observation/binding-context';
-import {
   CustomAttributeResource,
   ICustomAttributeResource,
 } from '../custom-attribute';
@@ -74,18 +71,8 @@ export class Replaceable<T extends INode = INode> {
   }
 
   public binding(flags: LifecycleFlags): ILifecycleTask {
-    const prevName = BindingContext.partName;
-    BindingContext.partName = this.factory.name;
     this.view.parent = this.$controller;
-    const task = this.view.bind(flags | LifecycleFlags.allowParentScopeTraversal, this.$controller.scope);
-    if (task.done) {
-      BindingContext.partName = prevName;
-    } else {
-      task.wait().then(() => {
-        BindingContext.partName = prevName;
-      });
-    }
-    return task;
+    return this.view.bind(flags | LifecycleFlags.allowParentScopeTraversal, this.$controller.scope, this.factory.name);
   }
 
   public attaching(flags: LifecycleFlags): void {

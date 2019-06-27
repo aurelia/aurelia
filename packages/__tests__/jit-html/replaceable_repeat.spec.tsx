@@ -1,11 +1,11 @@
-import { Aurelia, CustomElementResource, IViewModel } from '@aurelia/runtime';
+import { Aurelia, CustomElementResource, LifecycleFlags as LF } from '@aurelia/runtime';
 import { TestContext, HTMLTestContext, hJsx, assert } from '@aurelia/testing';
 
 // IMPORTANT:
 //      JSX is used to eliminate space between tags so test result can be easier to manually constructed
 //      if template string can be used to achieve the same effect, it could be converted back
 
-describe.skip('replaceable', function () {
+describe('replaceable', function () {
 
   describe('Difficult cases', function() {
     describe('+ scope altering template controllers', function() {
@@ -199,10 +199,10 @@ describe.skip('replaceable', function () {
               <template replace-part="p0">{'${item.idx}-${item.name}. Message: ${message}.'}</template>
             </foo>,
             createItems(2),
-            `0-item-0. Message: Aurelia.1-item-1 Message: Aurelia.`,
-            async (host, app, foo) => {
+            `0-item-0. Message: Aurelia.1-item-1. Message: Aurelia.`,
+            async (ctx, host, app, foo) => {
               app.message = 'Hello world from Aurelia';
-              await Promise.resolve();
+              ctx.lifecycle.processRAFQueue(LF.none);
               assert.strictEqual(
                 host.textContent,
                 '0-item-0. Message: Hello world from Aurelia.1-item-1. Message: Hello world from Aurelia.',
@@ -223,10 +223,10 @@ describe.skip('replaceable', function () {
               <template replace-part="p0">{'${item.idx}-${item.name}. Message: ${message}.'}</template>
             </foo>,
             createItems(2),
-            `0-item-0. Message: Aurelia.1-item-1 Message: Aurelia.`,
-            async (host, app, foo) => {
+            `0-item-0. Message: Aurelia.1-item-1. Message: Aurelia.`,
+            async (ctx, host, app, foo) => {
               app.message = 'Hello world from Aurelia';
-              await Promise.resolve();
+              ctx.lifecycle.processRAFQueue(LF.none);
               assert.strictEqual(
                 host.textContent,
                 '0-item-0. Message: Hello world from Aurelia.1-item-1. Message: Hello world from Aurelia.',
@@ -255,9 +255,9 @@ describe.skip('replaceable', function () {
             </foo>,
             createItems(2),
             `0-item-0.1-item-1.0-item-0.1-item-1.`,
-            async (host, app, foo) => {
+            async (ctx, host, app, foo) => {
               foo.items = createItems(3, 'ITEM');
-              await Promise.resolve();
+              ctx.lifecycle.processRAFQueue(LF.none);
               assert.strictEqual(
                 host.textContent,
                 `0-ITEM-0.1-ITEM-1.2-ITEM-2.`.repeat(3),
@@ -265,20 +265,20 @@ describe.skip('replaceable', function () {
               );
 
               foo.items = [];
-              await Promise.resolve();
+              ctx.lifecycle.processRAFQueue(LF.none);
               assert.strictEqual(host.textContent, '', 'host.textContent@[]');
 
               foo.items.push(...createItems(1));
-              await Promise.resolve();
+              ctx.lifecycle.processRAFQueue(LF.none);
               assert.strictEqual(host.textContent, '0-item-0.', 'host.textContent@[1]');
 
               foo.items.push(...createItems(2).slice(1));
-              await Promise.resolve();
-              assert.strictEqual(host.textContent, '0-item-0.1-item-1.', 'host.textContent@[1]');
+              ctx.lifecycle.processRAFQueue(LF.none);
+              assert.strictEqual(host.textContent, '0-item-0.1-item-1.'.repeat(2), 'host.textContent@[1]');
 
               foo.items.sort((i1, i2) => i1.idx > i2.idx ? -1 : 1);
-              await Promise.resolve();
-              assert.strictEqual(host.textContent, '1-item-1.0-item-0.', 'host.textContent@[0🔁1]');
+              ctx.lifecycle.processRAFQueue(LF.none);
+              assert.strictEqual(host.textContent, '1-item-1.0-item-0.'.repeat(2), 'host.textContent@[0🔁1]');
             }
           ],
           // Same with previous. Though [repeat] + [replaceable] are on same element
@@ -300,9 +300,9 @@ describe.skip('replaceable', function () {
             </foo>,
             createItems(2),
             `0-item-0.1-item-1.0-item-0.1-item-1.`,
-            async (host, app, foo) => {
+            async (ctx, host, app, foo) => {
               foo.items = createItems(3, 'ITEM');
-              await Promise.resolve();
+              ctx.lifecycle.processRAFQueue(LF.none);
               assert.strictEqual(
                 host.textContent,
                 `0-ITEM-0.1-ITEM-1.2-ITEM-2.`.repeat(3),
@@ -310,20 +310,20 @@ describe.skip('replaceable', function () {
               );
 
               foo.items = [];
-              await Promise.resolve();
+              ctx.lifecycle.processRAFQueue(LF.none);
               assert.strictEqual(host.textContent, '', 'host.textContent@[]');
 
               foo.items.push(...createItems(1));
-              await Promise.resolve();
+              ctx.lifecycle.processRAFQueue(LF.none);
               assert.strictEqual(host.textContent, '0-item-0.', 'host.textContent@[1]');
 
               foo.items.push(...createItems(2).slice(1));
-              await Promise.resolve();
-              assert.strictEqual(host.textContent, '0-item-0.1-item-1.', 'host.textContent@[1]');
+              ctx.lifecycle.processRAFQueue(LF.none);
+              assert.strictEqual(host.textContent, '0-item-0.1-item-1.'.repeat(2), 'host.textContent@[1]');
 
               foo.items.sort((i1, i2) => i1.idx > i2.idx ? -1 : 1);
-              await Promise.resolve();
-              assert.strictEqual(host.textContent, '1-item-1.0-item-0.', 'host.textContent@[0🔁1]');
+              ctx.lifecycle.processRAFQueue(LF.none);
+              assert.strictEqual(host.textContent, '1-item-1.0-item-0.'.repeat(2), 'host.textContent@[0🔁1]');
             }
           ]
         ];
@@ -355,13 +355,13 @@ describe.skip('replaceable', function () {
             const component = new App();
 
             au.app({ host, component });
-            au.start();
+            await au.start().wait();
 
             assert.strictEqual(host.textContent, expectedTextContent, `host.textContent`);
             if (customAssertion) {
-              await customAssertion(host, component, component.$controller.controllers[0] as any as IFoo);
+              await customAssertion(ctx, host, component, component.$controller.controllers[0]!.viewModel as any as IFoo);
             }
-            tearDown(au);
+            await tearDown(au);
           });
         }
 
@@ -371,7 +371,7 @@ describe.skip('replaceable', function () {
         interface IApp {
           message: string;
         }
-        type ICustomAssertion = (host: HTMLElement, app: IApp, foo: IFoo) => void;
+        type ICustomAssertion = (ctx: HTMLTestContext, host: HTMLElement, app: IApp, foo: IFoo) => void;
 
         function createExpectedReplacementText(count: number, itemBaseName: string = 'item') {
           let text = '';
@@ -389,8 +389,8 @@ describe.skip('replaceable', function () {
     name: string;
   }
 
-  function tearDown(au: Aurelia) {
-    au.stop();
+  async function tearDown(au: Aurelia) {
+    await au.stop().wait();
     (au.root.host as Element).remove();
   }
 

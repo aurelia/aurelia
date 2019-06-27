@@ -39,10 +39,10 @@ module.exports = function (config) {
       'mocha',
     ],
     files: [
-      `dist/build/__tests__/${setup}.js`,
+      `dist/esnext/__tests__/${setup}.js`,
     ],
     preprocessors: {
-      [`dist/build/__tests__/${setup}.js`]: [
+      [`dist/esnext/__tests__/${setup}.js`]: [
         'webpack',
         'sourcemap',
       ],
@@ -127,7 +127,8 @@ module.exports = function (config) {
       captureConsole: true,
       mocha: {
         bail: config['bail'],
-        ui: 'bdd'
+        ui: 'bdd',
+        timeout: 5000,
       }
     }
   };

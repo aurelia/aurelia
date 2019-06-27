@@ -115,6 +115,6 @@ export class With<T extends INode = INode> {
 
   private bindChild(flags: LifecycleFlags): void {
     const scope = Scope.fromParent(flags, this.$controller.scope!, this.value === void 0 ? {} : this.value);
-    this.view.bind(flags, scope);
+    this.view.bind(flags, scope, this.$controller.part);
   }
 }

@@ -259,7 +259,7 @@ export class If<T extends INode = INode> {
   private bindView(flags: LifecycleFlags): ILifecycleTask {
     if (this.view !== void 0 && (this.$controller.state & State.isBoundOrBinding) > 0) {
       this.view.parent = this.$controller;
-      return this.view.bind(flags, this.$controller.scope);
+      return this.view.bind(flags, this.$controller.scope, this.$controller.part);
     }
     return LifecycleTask.done;
   }

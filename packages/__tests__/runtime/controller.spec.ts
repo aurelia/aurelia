@@ -148,6 +148,7 @@ describe.skip('controller', function () {
       hasSlots: false,
       strategy: BindingStrategy.getterSetter,
       hooks,
+      scopeParts: PLATFORM.emptyArray,
     });
   }
 

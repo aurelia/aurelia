@@ -337,12 +337,10 @@ export interface IOverrideContext {
 }
 
 export interface IScope {
+  readonly parentScope: IScope | null;
+  readonly scopeParts: readonly string[];
   readonly bindingContext: IBindingContext;
   readonly overrideContext: IOverrideContext;
-  /**
-   * Associates replace-part names with the scopes they have access to.
-   */
-  readonly partScopes?: Record<string, IScope | undefined>;
 }
 
 export type ObserversLookup = IIndexable<

@@ -3,6 +3,7 @@ import {
   DI,
   IRegistry,
   IResourceDefinition,
+  Key,
   Omit,
   PLATFORM,
   ResourceDescription,
@@ -89,7 +90,7 @@ export interface ITemplateDefinition extends IResourceDefinition {
   cache?: '*' | number;
   template?: unknown;
   instructions?: ITargetedInstruction[][];
-  dependencies?: IRegistry[];
+  dependencies?: Key[];
   build?: IBuildInstruction;
   surrogates?: ITargetedInstruction[];
   bindables?: Record<string, IBindableDescription> | string[];
@@ -98,6 +99,7 @@ export interface ITemplateDefinition extends IResourceDefinition {
   hasSlots?: boolean;
   strategy?: BindingStrategy;
   hooks?: Readonly<HooksDefinition>;
+  scopeParts?: readonly string[]
 }
 
 export type TemplateDefinition = ResourceDescription<ITemplateDefinition>;
@@ -282,6 +284,7 @@ class DefaultTemplateDefinition implements Required<ITemplateDefinition> {
   public hasSlots: boolean;
   public strategy: BindingStrategy;
   public hooks: Readonly<HooksDefinition>;
+  public scopeParts: readonly string[];
 
   constructor() {
     this.name = 'unnamed';
@@ -297,6 +300,7 @@ class DefaultTemplateDefinition implements Required<ITemplateDefinition> {
     this.hasSlots = false;
     this.strategy = BindingStrategy.getterSetter;
     this.hooks = HooksDefinition.none;
+    this.scopeParts = PLATFORM.emptyArray;
   }
 }
 

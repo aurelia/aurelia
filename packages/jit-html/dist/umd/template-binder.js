@@ -387,7 +387,15 @@
             const command = this.resources.getBindingCommand(attrSyntax);
             const bindingType = command == null ? 2048 /* Interpolation */ : command.bindingType;
             const manifest = this.manifest;
-            const expr = this.exprParser.parse(attrSyntax.rawValue, bindingType);
+            let expr;
+            if (attrSyntax.rawValue.length === 0
+                && (bindingType & 53 /* BindCommand */ | 49 /* OneTimeCommand */ | 50 /* ToViewCommand */ | 52 /* TwoWayCommand */) > 0) {
+                // Default to the name of the attr for empty binding commands
+                expr = this.exprParser.parse(kernel_1.camelCase(attrSyntax.rawName), bindingType);
+            }
+            else {
+                expr = this.exprParser.parse(attrSyntax.rawValue, bindingType);
+            }
             if (manifest.flags & 16 /* isCustomElement */) {
                 const bindable = manifest.bindables[attrSyntax.target];
                 if (bindable != null) {

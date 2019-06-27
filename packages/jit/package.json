@@ -1,6 +1,6 @@
 {
   "name": "@aurelia/jit",
-  "version": "0.4.0-dev.201906262210",
+  "version": "0.4.0-dev.201906270134",
   "main": "dist/umd/index.js",
   "module": "dist/esnext/index.js",
   "jsnext:main": "dist/esnext/index.js",
@@ -37,8 +37,8 @@
     "access": "public"
   },
   "dependencies": {
-    "@aurelia/kernel": "0.4.0-dev.201906262210",
-    "@aurelia/runtime": "0.4.0-dev.201906262210"
+    "@aurelia/kernel": "0.4.0-dev.201906270134",
+    "@aurelia/runtime": "0.4.0-dev.201906270134"
   },
   "devDependencies": {
     "@types/node": "^10.12.27",

@@ -52,17 +52,16 @@
          * @returns The resource information if the attribute exists, or `null` if it does not exist.
          */
         getAttributeInfo(syntax) {
-            const name = kernel_1.camelCase(syntax.target);
-            let result = this.attributeLookup[name];
+            let result = this.attributeLookup[syntax.target];
             if (result === void 0) {
-                const def = this.resources.find(runtime_1.CustomAttributeResource, name);
+                const def = this.resources.find(runtime_1.CustomAttributeResource, syntax.target);
                 if (def == null) {
                     result = null;
                 }
                 else {
                     result = createAttributeInfo(def);
                 }
-                this.attributeLookup[name] = result;
+                this.attributeLookup[syntax.target] = result;
             }
             return result;
         }

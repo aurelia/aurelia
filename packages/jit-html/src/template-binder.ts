@@ -483,8 +483,6 @@ export class TemplateBinder {
 
     const symbol = new ReplacePartSymbol(name);
 
-    this.bindChildNodes(node);
-
     if (Tracer.enabled) { Tracer.leave(); }
     return symbol;
   }

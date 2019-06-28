@@ -432,7 +432,6 @@ export class TemplateBinder {
         }
         node.removeAttribute('replace-part');
         const symbol = new ReplacePartSymbol(name);
-        this.bindChildNodes(node);
         if (Tracer.enabled) {
             Tracer.leave();
         }

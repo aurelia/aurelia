@@ -443,7 +443,6 @@
             }
             node.removeAttribute('replace-part');
             const symbol = new jit_1.ReplacePartSymbol(name);
-            this.bindChildNodes(node);
             if (kernel_1.Tracer.enabled) {
                 kernel_1.Tracer.leave();
             }

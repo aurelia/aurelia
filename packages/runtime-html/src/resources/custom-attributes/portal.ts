@@ -243,7 +243,7 @@ export class Portal<T extends ParentNode = ParentNode> {
     const { activating, activated, callbackContext, view } = this;
     let task = this.task;
 
-    view.hold(target);
+    (view as IController & { hold(location: T, locationIsContainer?: boolean): void }).hold(target, true);
 
     if ((this.$controller.state & State.isAttachedOrAttaching) === 0) {
       return task;

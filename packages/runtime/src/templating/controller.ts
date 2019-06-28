@@ -154,6 +154,7 @@ export class Controller<
   public nodes?: INodeSequence<T>;
   public context?: IContainer | IRenderContext<T>;
   public location?: IRenderLocation<T>;
+  public locationIsContainer?: boolean;
 
   constructor(
     flags: LifecycleFlags,
@@ -391,9 +392,10 @@ export class Controller<
     this.state |= State.hasLockedScope;
   }
 
-  public hold(location: IRenderLocation<T>): void {
+  public hold(location: IRenderLocation<T>, locationIsContainer: boolean = false): void {
     this.state = (this.state | State.canBeCached) ^ State.canBeCached;
     this.location = location;
+    this.locationIsContainer = locationIsContainer;
   }
 
   public release(flags: LifecycleFlags): boolean {

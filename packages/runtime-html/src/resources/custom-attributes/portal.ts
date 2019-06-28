@@ -51,6 +51,9 @@ function toTask(maybePromiseOrTask: void | Promise<void> | ILifecycleTask): ILif
   return maybePromiseOrTask as ILifecycleTask;
 }
 
+/**
+ * Portal class
+ */
 export class Portal<T extends ParentNode = ParentNode> {
   public static readonly inject: readonly Key[] = [IViewFactory, IRenderLocation, IDOM];
 

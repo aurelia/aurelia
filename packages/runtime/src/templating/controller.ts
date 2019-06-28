@@ -930,9 +930,17 @@ export class Controller<
   }
 
   private mountSynthetic(flags: LifecycleFlags): void {
+    const nodes = this.nodes!;
+    const location = this.location!;
+
     this.state |= State.isMounted;
-    // tslint:disable-next-line: no-non-null-assertion // non-null is implied by the hook
-    this.nodes!.insertBefore(this.location!);
+    if (this.locationIsContainer) {
+      nodes.appendTo(location as T);
+    }
+    else {
+      // tslint:disable-next-line: no-non-null-assertion // non-null is implied by the hook
+      nodes.insertBefore(location!);
+    }
   }
 
   private unmountCustomElement(flags: LifecycleFlags): void {

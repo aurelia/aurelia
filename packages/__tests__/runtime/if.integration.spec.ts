@@ -2,7 +2,7 @@ import {
   Writable
 } from '@aurelia/kernel';
 import {
-  AccessScope,
+  AccessScopeExpression,
   addBinding,
   Binding,
   BindingContext,
@@ -177,7 +177,7 @@ describe(`If/Else`, function () {
           const wrapper = AuNode.createTemplate().appendChild(text);
 
           const nodes = new AuNodeSequence(dom, wrapper);
-          const binding = new Binding(new AccessScope(ifPropName), text, 'textContent', BindingMode.toView, observerLocator, container);
+          const binding = new Binding(new AccessScopeExpression(ifPropName), text, 'textContent', BindingMode.toView, observerLocator, container);
           binding.persistentFlags |= baseFlags;
 
           (controller as Writable<typeof controller>).nodes = nodes;
@@ -194,7 +194,7 @@ describe(`If/Else`, function () {
           const wrapper = AuNode.createTemplate().appendChild(text);
 
           const nodes = new AuNodeSequence(dom, wrapper);
-          const binding = new Binding(new AccessScope(elsePropName), text, 'textContent', BindingMode.toView, observerLocator, container);
+          const binding = new Binding(new AccessScopeExpression(elsePropName), text, 'textContent', BindingMode.toView, observerLocator, container);
           binding.persistentFlags |= baseFlags;
 
           (controller as Writable<typeof controller>).nodes = nodes;

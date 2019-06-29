@@ -4,7 +4,7 @@ import {
   ITemplateFactory,
   createRenderContext,
   Interpolation,
-  AccessScope,
+  AccessScopeExpression,
   CustomElementResource,
   ICustomElementResource,
   ITemplateDefinition,
@@ -12,7 +12,7 @@ import {
   BindingStrategy,
   HooksDefinition,
   BindingMode,
-  BindingBehavior,
+  BindingBehaviorExpression,
   HydrateElementInstruction,
   BindingType,
   HydrateTemplateController,
@@ -267,7 +267,7 @@ describe.skip('controller', function () {
         [
           [
             new TextBindingInstruction(
-              new Interpolation(['', ''], [new BindingBehavior(new AccessScope('id'), 'oneTime', PLATFORM.emptyArray)])
+              new Interpolation(['', ''], [new BindingBehaviorExpression(new AccessScopeExpression('id'), 'oneTime', PLATFORM.emptyArray)])
             ),
           ],
         ],

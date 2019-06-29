@@ -2,7 +2,7 @@ import {
   Writable, DI
 } from '@aurelia/kernel';
 import {
-  AccessScope,
+  AccessScopeExpression,
   addBinding,
   addComponent,
   Binding,
@@ -404,7 +404,7 @@ describe.skip(`ViewFactory`, function () {
 //           childWrapper.appendChild(wrapper);
 
 //           const nodes = new AuNodeSequence(dom, wrapper);
-//           const binding = new Binding(new AccessScope(propName), text, 'textContent', BindingMode.oneTime, observerLocator, container);
+//           const binding = new Binding(new AccessScopeExpression(propName), text, 'textContent', BindingMode.oneTime, observerLocator, container);
 
 //           (renderable as Writable<typeof renderable>).nodes = nodes;
 //           addBinding(renderable, binding);
@@ -423,7 +423,7 @@ describe.skip(`ViewFactory`, function () {
 //           const text = AuNode.createText();
 //           const wrapper = AuNode.createTemplate().appendChild(text).appendChild(childWrapper);
 //           const nodes = new AuNodeSequence(dom, wrapper);
-//           const binding = new Binding(new AccessScope(propName), text, 'textContent', BindingMode.oneTime, observerLocator, container);
+//           const binding = new Binding(new AccessScopeExpression(propName), text, 'textContent', BindingMode.oneTime, observerLocator, container);
 
 //           (renderable as Writable<typeof renderable>).nodes = nodes;
 //           addBinding(renderable, binding);

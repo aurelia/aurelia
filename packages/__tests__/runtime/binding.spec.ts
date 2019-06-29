@@ -1,7 +1,7 @@
 import {
-  AccessMember,
-  AccessScope,
-  Binary,
+  AccessMemberExpression,
+  AccessScopeExpression,
+  BinaryExpression,
   Binding,
   BindingMode,
   ExpressionKind,
@@ -11,8 +11,8 @@ import {
   ISubscriber,
   IScope,
   LifecycleFlags as LF,
-  ObjectLiteral,
-  PrimitiveLiteral,
+  ObjectLiteralExpression,
+  PrimitiveLiteralExpression,
   PropertyAccessor,
   RuntimeBasicConfiguration,
   Scope,
@@ -89,7 +89,7 @@ describe('Binding', function () {
   });
 
   it(`$bind() [to-view] works with 200 observers`, function () {
-    let expr: AccessScope | Binary;
+    let expr: AccessScopeExpression | BinaryExpression;
 
     const count = 200;
     const rawExpr = '';
@@ -99,9 +99,9 @@ describe('Binding', function () {
       const prop = args[i] = `$${i}`;
       ctx[prop] = 1;
       if (expr === undefined) {
-        expr = new AccessScope(prop, 0);
+        expr = new AccessScopeExpression(prop, 0);
       } else {
-        expr = new Binary('+', expr, new AccessScope(prop, 0));
+        expr = new BinaryExpression('+', expr, new AccessScopeExpression(prop, 0));
       }
     }
     const container = RuntimeBasicConfiguration.createContainer();
@@ -143,11 +143,11 @@ describe('Binding', function () {
     ];
 
     const exprVariations: (() => [IExpression, string])[] = [
-      () => [new ObjectLiteral(['foo'], [new PrimitiveLiteral(null)]), `{foo:null} `],
-      () => [new AccessScope('foo'),                                   `foo        `],
-      () => [new AccessMember(new AccessScope('foo'), 'bar'),          `foo.bar    `],
-      () => [new PrimitiveLiteral(null),                               `null       `],
-      () => [new PrimitiveLiteral(undefined),                          `undefined  `]
+      () => [new ObjectLiteralExpression(['foo'], [new PrimitiveLiteralExpression(null)]), `{foo:null} `],
+      () => [new AccessScopeExpression('foo'),                                   `foo        `],
+      () => [new AccessMemberExpression(new AccessScopeExpression('foo'), 'bar'),          `foo.bar    `],
+      () => [new PrimitiveLiteralExpression(null),                               `null       `],
+      () => [new PrimitiveLiteralExpression(undefined),                          `undefined  `]
     ];
 
     const flagsVariations: (() => [LF, string])[] = [
@@ -216,11 +216,11 @@ describe('Binding', function () {
     ];
 
     const exprVariations: (() => [IExpression, string])[] = [
-      () => [new ObjectLiteral(['foo'], [new PrimitiveLiteral(null)]), `{foo:null} `],
-      () => [new AccessScope('foo'),                                   `foo        `],
-      () => [new AccessMember(new AccessScope('foo'), 'bar'),          `foo.bar    `],
-      () => [new PrimitiveLiteral(null),                               `null       `],
-      () => [new PrimitiveLiteral(undefined),                          `undefined  `]
+      () => [new ObjectLiteralExpression(['foo'], [new PrimitiveLiteralExpression(null)]), `{foo:null} `],
+      () => [new AccessScopeExpression('foo'),                                   `foo        `],
+      () => [new AccessMemberExpression(new AccessScopeExpression('foo'), 'bar'),          `foo.bar    `],
+      () => [new PrimitiveLiteralExpression(null),                               `null       `],
+      () => [new PrimitiveLiteralExpression(undefined),                          `undefined  `]
     ];
 
     const flagsVariations: (() => [LF, string])[] = [
@@ -264,11 +264,11 @@ describe('Binding', function () {
           const observer00: SetterObserver = sut['_observer0'];
           const observer01: SetterObserver = sut['_observer1'];
           const observer02: SetterObserver = sut['_observer2'];
-          if (expr instanceof AccessScope) {
+          if (expr instanceof AccessScopeExpression) {
             assert.instanceOf(observer00, SetterObserver, `observer00 #01`);
             assert.strictEqual(observer01, undefined, `observer01 #02`);
             assert.strictEqual(observer02, undefined, `observer02 #03`);
-          } else if (expr instanceof AccessMember) {
+          } else if (expr instanceof AccessMemberExpression) {
             assert.instanceOf(observer00, SetterObserver, `observer00 #04`);
             assert.instanceOf(observer01, SetterObserver, `observer01 #05`);
             assert.strictEqual(observer02, undefined, `observer02 #06`);
@@ -288,14 +288,14 @@ describe('Binding', function () {
           //assert.strictEqual(lifecycle.flushCount, 0, `lifecycle.flushCount #15`);
 
           // verify the behavior of the sourceExpression (redundant)
-          if (expr instanceof AccessMember) {
+          if (expr instanceof AccessMemberExpression) {
             //expect(sut.addObserver, `sut.addObserver #16`).to.have.been.calledTwice;
             //expect(sut.observeProperty, `sut.observeProperty #17`).to.have.been.calledTwice;
 
             const obj = scope.bindingContext[expr.object['name']];
             //expect(sut.observeProperty, `sut.observeProperty #18`).to.have.been.calledWithExactly(flags , obj, expr.name);
             //expect(sut.observeProperty, `sut.observeProperty #19`).to.have.been.calledWithExactly(flags, scope.bindingContext, expr.object['name']);
-          } else if (expr instanceof AccessScope) {
+          } else if (expr instanceof AccessScopeExpression) {
             //expect(sut.addObserver, `sut.addObserver #20`).to.have.been.calledOnce;
             //expect(sut.observeProperty, `sut.observeProperty #21`).to.have.been.calledOnce;
             //expect(sut.observeProperty, `sut.observeProperty #22`).to.have.been.calledWithExactly(flags, scope.bindingContext, expr.name);
@@ -341,12 +341,12 @@ describe('Binding', function () {
           const observer10: SetterObserver = sut['_observer0'];
           const observer11: SetterObserver = sut['_observer1'];
           const observer12: SetterObserver = sut['_observer2'];
-          if (expr instanceof AccessScope) {
+          if (expr instanceof AccessScopeExpression) {
             assert.instanceOf(observer10, SetterObserver, `observer10 #25`);
             assert.strictEqual(observer10, observer00, `observer10 #26`);
             assert.strictEqual(observer11, undefined, `observer11 #27`);
             assert.strictEqual(observer12, undefined, `observer12 #28`);
-          } else if (expr instanceof AccessMember) {
+          } else if (expr instanceof AccessMemberExpression) {
             assert.instanceOf(observer10, SetterObserver, `observer10 #29`);
             assert.strictEqual(observer10, observer00, `observer10 #30`);
             assert.instanceOf(observer11, SetterObserver, `observer11 #31`);
@@ -401,7 +401,7 @@ describe('Binding', function () {
               //expect(sut.unobserve, `sut.unobserve #49`).to.have.been.calledWithExactly(false);
 
               // verify the behavior of the sourceExpression (connect) (redundant)
-              if (expr instanceof AccessMember) {
+              if (expr instanceof AccessMemberExpression) {
                 //expect(sut.addObserver, `sut.addObserver #50`).to.have.been.calledTwice;
                 //expect(sut.observeProperty, `sut.observeProperty #51`).to.have.been.calledTwice;
 
@@ -411,7 +411,7 @@ describe('Binding', function () {
 
                 //expect(sut.addObserver, `sut.addObserver #54`).to.have.been.calledWithExactly(observer00);
                 //expect(sut.addObserver, `sut.addObserver #55`).to.have.been.calledWithExactly(observer01);
-              } else if (expr instanceof AccessScope) {
+              } else if (expr instanceof AccessScopeExpression) {
                 //expect(sut.addObserver, `sut.addObserver #56`).to.have.been.calledOnce;
                 //expect(sut.observeProperty, `sut.observeProperty #57`).to.have.been.calledOnce;
                 //expect(sut.observeProperty, `sut.observeProperty #58`).to.have.been.calledWithExactly(flags, scope.bindingContext, expr.name);
@@ -450,7 +450,7 @@ describe('Binding', function () {
     ];
 
     const exprVariations: (() => [IExpression, string])[] = [
-      () => [new AccessScope('foo'), `foo `]
+      () => [new AccessScopeExpression('foo'), `foo `]
     ];
 
     const flagsVariations: (() => [LF, string])[] = [
@@ -563,11 +563,11 @@ describe('Binding', function () {
     ];
 
     const exprVariations: (() => [IExpression, string])[] = [
-      () => [new ObjectLiteral(['foo'], [new PrimitiveLiteral(null)]), `{foo:null} `],
-      () => [new AccessScope('foo'),                                   `foo        `],
-      () => [new AccessMember(new AccessScope('foo'), 'bar'),          `foo.bar    `],
-      () => [new PrimitiveLiteral(null),                               `null       `],
-      () => [new PrimitiveLiteral(undefined),                          `undefined  `]
+      () => [new ObjectLiteralExpression(['foo'], [new PrimitiveLiteralExpression(null)]), `{foo:null} `],
+      () => [new AccessScopeExpression('foo'),                                   `foo        `],
+      () => [new AccessMemberExpression(new AccessScopeExpression('foo'), 'bar'),          `foo.bar    `],
+      () => [new PrimitiveLiteralExpression(null),                               `null       `],
+      () => [new PrimitiveLiteralExpression(undefined),                          `undefined  `]
     ];
 
     const flagsVariations: (() => [LF, string])[] = [
@@ -610,10 +610,10 @@ describe('Binding', function () {
 
           const subscriber00: ISubscriber = targetObserver['_subscriber0'];
           const subscriber01: ISubscriber = targetObserver['_subscriber1'];
-          if (expr instanceof AccessScope) {
+          if (expr instanceof AccessScopeExpression) {
             assert.instanceOf(observer00, SetterObserver, `observer00 #01`);
             assert.strictEqual(observer01, undefined, `observer01 #02`);
-          } else if (expr instanceof AccessMember) {
+          } else if (expr instanceof AccessMemberExpression) {
             assert.instanceOf(observer00, SetterObserver, `observer00 #03`);
             assert.instanceOf(observer01, SetterObserver, `observer01 #04`);
             assert.strictEqual(observer02, undefined, `observer02 #05`);
@@ -643,13 +643,13 @@ describe('Binding', function () {
           //expect(targetObserver.subscribe, `targetObserver.subscribe #19`).to.have.been.calledWithExactly(sut);
 
           // verify the behavior of the sourceExpression (redundant)
-          if (expr instanceof AccessMember) {
+          if (expr instanceof AccessMemberExpression) {
             //expect(sut.addObserver, `sut.addObserver #20`).to.have.been.calledTwice;
             //expect(sut.observeProperty, `sut.observeProperty #21`).to.have.been.calledTwice;
             const obj = scope.bindingContext[expr.object['name']];
             //expect(sut.observeProperty, `sut.observeProperty #22`).to.have.been.calledWithExactly(flags, obj, expr.name);
             //expect(sut.observeProperty, `sut.observeProperty #23`).to.have.been.calledWithExactly(flags, scope.bindingContext, expr.object['name']);
-          } else if (expr instanceof AccessScope) {
+          } else if (expr instanceof AccessScopeExpression) {
             //expect(sut.addObserver, `sut.addObserver #24`).to.have.been.calledOnce;
             //expect(sut.observeProperty, `sut.observeProperty #25`).to.have.been.calledOnce;
             //expect(sut.observeProperty, `sut.observeProperty #26`).to.have.been.calledWithExactly(flags, scope.bindingContext, expr.name);
@@ -708,12 +708,12 @@ describe('Binding', function () {
 
           const subscriber10: ISubscriber = targetObserver['_subscriber0'];
           const subscriber11: ISubscriber = targetObserver['_subscriber1'];
-          if (expr instanceof AccessScope) {
+          if (expr instanceof AccessScopeExpression) {
             assert.instanceOf(observer10, SetterObserver, `observer10 #38`);
             assert.strictEqual(observer10, observer00, `observer10 #39`);
             assert.strictEqual(observer11, undefined, `observer11 #40`);
             assert.strictEqual(observer12, undefined, `observer12 #41`);
-          } else if (expr instanceof AccessMember) {
+          } else if (expr instanceof AccessMemberExpression) {
             assert.instanceOf(observer10, SetterObserver, `observer10 #42`);
             assert.strictEqual(observer10, observer00, `observer10 #43`);
             assert.instanceOf(observer11, SetterObserver, `observer11 #44`);
@@ -747,10 +747,10 @@ describe('Binding', function () {
               //expect(expr.assign, `expr.assign #67`).to.have.been.calledOnce;
 
               // verify the behavior of the sourceExpression (connect) (redundant)
-              if (expr instanceof AccessMember) {
+              if (expr instanceof AccessMemberExpression) {
                 //assert.strictEqual((sut.addObserver as SinonSpy).getCalls().length, 0, `(sut.addObserver as SinonSpy).getCalls().length #68`);
                 //assert.strictEqual((sut.observeProperty as SinonSpy).getCalls().length, 0, `(sut.observeProperty as SinonSpy).getCalls().length #69`);
-              } else if (expr instanceof AccessScope) {
+              } else if (expr instanceof AccessScopeExpression) {
                 //assert.strictEqual((sut.addObserver as SinonSpy).getCalls().length, 0, `(sut.addObserver as SinonSpy).getCalls().length #74`);
                 //assert.strictEqual((sut.observeProperty as SinonSpy).getCalls().length, 0, `(sut.observeProperty as SinonSpy).getCalls().length #75`);
               }
@@ -783,7 +783,7 @@ describe('Binding', function () {
               //expect(expr.assign, `expr.assign #67`).to.have.been.calledOnce;
 
               // verify the behavior of the sourceExpression (connect) (redundant)
-              if (expr instanceof AccessMember) {
+              if (expr instanceof AccessMemberExpression) {
                 //assert.strictEqual((sut.addObserver as SinonSpy).getCalls().length, 2, `(sut.addObserver as SinonSpy).getCalls().length #68`);
                 //assert.strictEqual((sut.observeProperty as SinonSpy).getCalls().length, 2, `(sut.observeProperty as SinonSpy).getCalls().length #69`);
                 const obj = scope.bindingContext[expr.object['name']];
@@ -793,7 +793,7 @@ describe('Binding', function () {
                 if (observer01) {
                   //expect(sut.addObserver, `sut.addObserver #73`).to.have.been.calledWithExactly(observer01);
                 }
-              } else if (expr instanceof AccessScope) {
+              } else if (expr instanceof AccessScopeExpression) {
                 //assert.strictEqual((sut.addObserver as SinonSpy).getCalls().length, 1, `(sut.addObserver as SinonSpy).getCalls().length #74`);
                 //assert.strictEqual((sut.observeProperty as SinonSpy).getCalls().length, 1, `(sut.observeProperty as SinonSpy).getCalls().length #75`);
                 //expect(sut.observeProperty, `sut.observeProperty #76`).to.have.been.calledWithExactly(flags, scope.bindingContext, expr.name);
@@ -986,11 +986,11 @@ describe('Binding', function () {
 
   // TODO: create proper unparser
   function unparse(expr: IExpression): string {
-    return expr instanceof AccessScope
-      ? `AccessScope{${expr.name} | ${expr.ancestor}}`
-      : expr instanceof AccessMember
-        ? `AccessMember{${unparse(expr.object)}.${expr.name}}`
-        : expr instanceof PrimitiveLiteral
+    return expr instanceof AccessScopeExpression
+      ? `AccessScopeExpression{${expr.name} | ${expr.ancestor}}`
+      : expr instanceof AccessMemberExpression
+        ? `AccessMemberExpression{${unparse(expr.object)}.${expr.name}}`
+        : expr instanceof PrimitiveLiteralExpression
           ? `Primitive{${expr.value}}`
           : expr.constructor.name;
   }

@@ -11,7 +11,7 @@ import {
   kebabCase
 } from '@aurelia/kernel';
 import {
-  AccessScope,
+  AccessScopeExpression,
   bindable,
   BindingIdentifier,
   BindingMode,
@@ -29,7 +29,7 @@ import {
   IHydrateTemplateController,
   ITemplateCompiler,
   ITemplateDefinition,
-  PrimitiveLiteral,
+  PrimitiveLiteralExpression,
   TargetedInstructionType as TT
 } from '@aurelia/runtime';
 import { HTMLTargetedInstructionType as HTT } from '@aurelia/runtime-html';
@@ -267,13 +267,13 @@ describe('TemplateCompiler', function () {
           const [hydratePropAttrInstruction] = instructions[0] as unknown as [HydrateTemplateController];
           verifyInstructions(hydratePropAttrInstruction.instructions, [
             { toVerify: ['type', 'to', 'from'],
-              type: TT.propertyBinding, to: 'value', from: new AccessScope('p') }
+              type: TT.propertyBinding, to: 'value', from: new AccessScopeExpression('p') }
           ]);
           verifyInstructions(hydratePropAttrInstruction.def.instructions[0], [
             { toVerify: ['type', 'to', 'from'],
-              type: TT.propertyBinding, to: 'name', from: new AccessScope('name') },
+              type: TT.propertyBinding, to: 'name', from: new AccessScopeExpression('name') },
             { toVerify: ['type', 'to', 'from'],
-              type: TT.propertyBinding, to: 'title', from: new AccessScope('title') },
+              type: TT.propertyBinding, to: 'title', from: new AccessScopeExpression('title') },
           ]);
         });
 
@@ -309,7 +309,7 @@ describe('TemplateCompiler', function () {
               const templateControllerInst = instructions[0][0] as IHydrateTemplateController;
               verifyInstructions(templateControllerInst.instructions, [
                 { toVerify: ['type', 'to', 'from'],
-                  type: TT.propertyBinding, to: 'value', from: new AccessScope('value') }
+                  type: TT.propertyBinding, to: 'value', from: new AccessScopeExpression('value') }
               ]);
               const [hydrateNotDivInstruction] = templateControllerInst.def.instructions[0] as [IHydrateElementInstruction];
               verifyInstructions([hydrateNotDivInstruction], [
@@ -420,13 +420,13 @@ function createTplCtrlAttributeInstruction(attr: string, value: string) {
       type: TT.iteratorBinding,
       from: new ForOfStatement(
         new BindingIdentifier(value.split(' of ')[0]),
-        new AccessScope(value.split(' of ')[1])),
+        new AccessScopeExpression(value.split(' of ')[1])),
       to: 'items'
     }];
   } else if (attr.indexOf('.') !== -1) {
     return [{
       type: TT.propertyBinding,
-      from: value.length === 0 ? PrimitiveLiteral.$empty : new AccessScope(value),
+      from: value.length === 0 ? PrimitiveLiteralExpression.$empty : new AccessScopeExpression(value),
       to: 'value',
       mode: BindingMode.toView,
       oneTime: false
@@ -656,15 +656,15 @@ describe(`TemplateCompiler - combinations`, function () {
       ] as ((ctx: HTMLTestContext, $1: [string]) => [string, string, string])[],
       [
         (ctx, $1, [, , value]) => [`ref`,               value, { type: TT.refBinding,      from: value }],
-        (ctx, $1, [attr, to, value]) => [`${attr}.bind`,      value, { type: TT.propertyBinding, from: new AccessScope(value), to, mode: BindingMode.toView,   oneTime: false }],
-        (ctx, $1, [attr, to, value]) => [`${attr}.to-view`,   value, { type: TT.propertyBinding, from: new AccessScope(value), to, mode: BindingMode.toView,   oneTime: false }],
-        (ctx, $1, [attr, to, value]) => [`${attr}.one-time`,  value, { type: TT.propertyBinding, from: new AccessScope(value), to, mode: BindingMode.oneTime,  oneTime: true  }],
-        (ctx, $1, [attr, to, value]) => [`${attr}.from-view`, value, { type: TT.propertyBinding, from: new AccessScope(value), to, mode: BindingMode.fromView, oneTime: false }],
-        (ctx, $1, [attr, to, value]) => [`${attr}.two-way`,   value, { type: TT.propertyBinding, from: new AccessScope(value), to, mode: BindingMode.twoWay,   oneTime: false }],
-        (ctx, $1, [attr, to, value]) => [`${attr}.trigger`,   value, { type: HTT.listenerBinding, from: new AccessScope(value), to, strategy: DelegationStrategy.none,      preventDefault: true }],
-        (ctx, $1, [attr, to, value]) => [`${attr}.delegate`,  value, { type: HTT.listenerBinding, from: new AccessScope(value), to, strategy: DelegationStrategy.bubbling,  preventDefault: false }],
-        (ctx, $1, [attr, to, value]) => [`${attr}.capture`,   value, { type: HTT.listenerBinding, from: new AccessScope(value), to, strategy: DelegationStrategy.capturing, preventDefault: false }],
-        (ctx, $1, [attr, to, value]) => [`${attr}.call`,      value, { type: TT.callBinding,     from: new AccessScope(value), to }]
+        (ctx, $1, [attr, to, value]) => [`${attr}.bind`,      value, { type: TT.propertyBinding, from: new AccessScopeExpression(value), to, mode: BindingMode.toView,   oneTime: false }],
+        (ctx, $1, [attr, to, value]) => [`${attr}.to-view`,   value, { type: TT.propertyBinding, from: new AccessScopeExpression(value), to, mode: BindingMode.toView,   oneTime: false }],
+        (ctx, $1, [attr, to, value]) => [`${attr}.one-time`,  value, { type: TT.propertyBinding, from: new AccessScopeExpression(value), to, mode: BindingMode.oneTime,  oneTime: true  }],
+        (ctx, $1, [attr, to, value]) => [`${attr}.from-view`, value, { type: TT.propertyBinding, from: new AccessScopeExpression(value), to, mode: BindingMode.fromView, oneTime: false }],
+        (ctx, $1, [attr, to, value]) => [`${attr}.two-way`,   value, { type: TT.propertyBinding, from: new AccessScopeExpression(value), to, mode: BindingMode.twoWay,   oneTime: false }],
+        (ctx, $1, [attr, to, value]) => [`${attr}.trigger`,   value, { type: HTT.listenerBinding, from: new AccessScopeExpression(value), to, strategy: DelegationStrategy.none,      preventDefault: true }],
+        (ctx, $1, [attr, to, value]) => [`${attr}.delegate`,  value, { type: HTT.listenerBinding, from: new AccessScopeExpression(value), to, strategy: DelegationStrategy.bubbling,  preventDefault: false }],
+        (ctx, $1, [attr, to, value]) => [`${attr}.capture`,   value, { type: HTT.listenerBinding, from: new AccessScopeExpression(value), to, strategy: DelegationStrategy.capturing, preventDefault: false }],
+        (ctx, $1, [attr, to, value]) => [`${attr}.call`,      value, { type: TT.callBinding,     from: new AccessScopeExpression(value), to }]
       ] as ((ctx: HTMLTestContext, $1: [string], $2: [string, string, string]) => [string, string, any])[]
     ],                       (ctx, [el], $2, [n1, v1, i1]) => {
       const markup = `<${el} ${n1}="${v1}"></${el}>`;
@@ -723,11 +723,11 @@ describe(`TemplateCompiler - combinations`, function () {
       ] as ((ctx: HTMLTestContext) => BindingMode | undefined)[],
       [
         (ctx, [, , to], [attr, value]) => [`${attr}`,           { type: TT.setProperty, to, value }],
-        (ctx, [, mode, to], [attr, value], defaultMode) => [`${attr}.bind`,      { type: TT.propertyBinding, from: value.length > 0 ? new AccessScope(value) : new PrimitiveLiteral(value), to, mode: (mode && mode !== BindingMode.default) ? mode : (defaultMode || BindingMode.toView) }],
-        (ctx, [, , to],      [attr, value]) => [`${attr}.to-view`,   { type: TT.propertyBinding, from: value.length > 0 ? new AccessScope(value) : new PrimitiveLiteral(value), to, mode: BindingMode.toView }],
-        (ctx, [, , to],      [attr, value]) => [`${attr}.one-time`,  { type: TT.propertyBinding, from: value.length > 0 ? new AccessScope(value) : new PrimitiveLiteral(value), to, mode: BindingMode.oneTime }],
-        (ctx, [, , to],      [attr, value]) => [`${attr}.from-view`, { type: TT.propertyBinding, from: value.length > 0 ? new AccessScope(value) : new PrimitiveLiteral(value), to, mode: BindingMode.fromView }],
-        (ctx, [, , to],      [attr, value]) => [`${attr}.two-way`,   { type: TT.propertyBinding, from: value.length > 0 ? new AccessScope(value) : new PrimitiveLiteral(value), to, mode: BindingMode.twoWay }]
+        (ctx, [, mode, to], [attr, value], defaultMode) => [`${attr}.bind`,      { type: TT.propertyBinding, from: value.length > 0 ? new AccessScopeExpression(value) : new PrimitiveLiteralExpression(value), to, mode: (mode && mode !== BindingMode.default) ? mode : (defaultMode || BindingMode.toView) }],
+        (ctx, [, , to],      [attr, value]) => [`${attr}.to-view`,   { type: TT.propertyBinding, from: value.length > 0 ? new AccessScopeExpression(value) : new PrimitiveLiteralExpression(value), to, mode: BindingMode.toView }],
+        (ctx, [, , to],      [attr, value]) => [`${attr}.one-time`,  { type: TT.propertyBinding, from: value.length > 0 ? new AccessScopeExpression(value) : new PrimitiveLiteralExpression(value), to, mode: BindingMode.oneTime }],
+        (ctx, [, , to],      [attr, value]) => [`${attr}.from-view`, { type: TT.propertyBinding, from: value.length > 0 ? new AccessScopeExpression(value) : new PrimitiveLiteralExpression(value), to, mode: BindingMode.fromView }],
+        (ctx, [, , to],      [attr, value]) => [`${attr}.two-way`,   { type: TT.propertyBinding, from: value.length > 0 ? new AccessScopeExpression(value) : new PrimitiveLiteralExpression(value), to, mode: BindingMode.twoWay }]
       ] as ((ctx: HTMLTestContext, $1: [Record<string, IBindableDescription>, BindingMode, string], $2: [string, string, Constructable], $3: BindingMode) => [string, any])[]
     ],                       (ctx, [bindables], [attr, value, ctor], defaultBindingMode, [name, childInstruction]) => {
       if (childInstruction.mode !== undefined) {

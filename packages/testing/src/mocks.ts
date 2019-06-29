@@ -9,8 +9,8 @@ import {
   IIndexable
 } from '@aurelia/kernel';
 import {
-  AccessMember,
-  AccessScope,
+  AccessMemberExpression,
+  AccessScopeExpression,
   addBinding,
   addComponent,
   Binding,

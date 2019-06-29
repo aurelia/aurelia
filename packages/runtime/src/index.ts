@@ -89,11 +89,11 @@ export {
   UnaryOperator
 } from './ast';
 export {
-  Binding
-} from './binding/binding';
+  PropertyBinding
+} from './binding/property-binding';
 export {
-  Call
-} from './binding/call';
+  CallBinding
+} from './binding/call-binding';
 export {
   IPartialConnectableBinding,
   IConnectableBinding,
@@ -111,8 +111,8 @@ export {
   LetBinding
 } from './binding/let-binding';
 export {
-  Ref
-} from './binding/ref';
+  RefBinding
+} from './binding/ref-binding';
 
 export {
   ArrayObserver,

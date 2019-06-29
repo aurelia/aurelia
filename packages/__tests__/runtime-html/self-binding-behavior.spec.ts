@@ -1,17 +1,17 @@
 import { DI, IContainer } from '@aurelia/kernel';
-import { Binding } from '@aurelia/runtime';
+import { PropertyBinding } from '@aurelia/runtime';
 import { SelfBindingBehavior } from '@aurelia/runtime-html';
 import { assert } from '@aurelia/testing';
 
 describe('SelfBindingBehavior', function () {
   const container: IContainer = DI.createContainer();
   let sut: SelfBindingBehavior;
-  let binding: Binding;
+  let binding: PropertyBinding;
   let originalCallSource: () => void;
 
   beforeEach(function () {
     sut = new SelfBindingBehavior();
-    binding = new Binding(undefined, undefined, undefined, undefined, undefined, container as any);
+    binding = new PropertyBinding(undefined, undefined, undefined, undefined, undefined, container as any);
     originalCallSource = binding['callSource'] = function () { return; };
     binding['targetEvent'] = 'foo';
     sut.bind(undefined, undefined, binding as any);

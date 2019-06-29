@@ -8,7 +8,7 @@ import {
 } from '@aurelia/kernel';
 
 import { ForOfStatement } from '../../binding/ast';
-import { Binding } from '../../binding/binding';
+import { PropertyBinding } from '../../binding/property-binding';
 import {
   HooksDefinition,
   IAttributeDefinition,
@@ -136,9 +136,9 @@ export class Repeat<C extends ObservedCollection = IObservedArray, T extends INo
 
   public binding(flags: LF): ILifecycleTask {
     this.checkCollectionObserver(flags);
-    const bindings = this.renderable.bindings as Binding[];
+    const bindings = this.renderable.bindings as PropertyBinding[];
     const { length } = bindings;
-    let binding: Binding;
+    let binding: PropertyBinding;
     for (let i = 0; i < length; ++i) {
       binding = bindings[i];
       if (binding.target === this && binding.targetProperty === 'items') {

@@ -2,7 +2,7 @@ import {
   AccessMemberExpression,
   AccessScopeExpression,
   BinaryExpression,
-  Binding,
+  PropertyBinding,
   BindingMode,
   ExpressionKind,
   IBindingTargetObserver,
@@ -44,7 +44,7 @@ export function padRight(str: any, len: number): string {
 const $nil: any = undefined;
 const getName = (o: any) => Object.prototype.toString.call(o).slice(8, -1);
 
-describe('Binding', function () {
+describe('PropertyBinding', function () {
   let dummySourceExpression: IExpression;
   let dummyTarget: Record<string, unknown>;
   let dummyTargetProperty: string;
@@ -54,7 +54,7 @@ describe('Binding', function () {
     const container = RuntimeBasicConfiguration.createContainer();
     const observerLocator = createObserverLocator(container);
     const lifecycle = container.get(ILifecycle);
-    const sut = new Binding(sourceExpression, target, targetProperty, mode, observerLocator, container);
+    const sut = new PropertyBinding(sourceExpression, target, targetProperty, mode, observerLocator, container);
 
     return { sut, lifecycle, container, observerLocator };
   }
@@ -71,7 +71,7 @@ describe('Binding', function () {
 
     for (const ii of invalidInputs) {
       it(`throws on invalid input parameters of type ${getName(ii)}`, function () {
-        assert.throws(() => new Binding(ii, ii, ii, ii, ii, ii), `() => new Binding(ii, ii, ii, ii, ii, ii)`);
+        assert.throws(() => new PropertyBinding(ii, ii, ii, ii, ii, ii), `() => new PropertyBinding(ii, ii, ii, ii, ii, ii)`);
       });
     }
   });
@@ -107,7 +107,7 @@ describe('Binding', function () {
     const container = RuntimeBasicConfiguration.createContainer();
     const observerLocator = createObserverLocator(container);
     const target = {val: 0};
-    const sut = new Binding(expr as any, target, 'val', BindingMode.toView, observerLocator, container);
+    const sut = new PropertyBinding(expr as any, target, 'val', BindingMode.toView, observerLocator, container);
     const scope = Scope.create(LF.none, ctx, null);
 
     sut.$bind(LF.fromBind, scope);

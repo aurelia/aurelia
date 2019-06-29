@@ -13,7 +13,7 @@ import {
   AccessScopeExpression,
   addBinding,
   addComponent,
-  Binding,
+  PropertyBinding,
   BindingMode,
   Else,
   ExpressionKind,

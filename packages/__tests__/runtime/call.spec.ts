@@ -1,7 +1,7 @@
 import {
   AccessScopeExpression,
   BindingBehaviorExpression,
-  Call,
+  CallBinding,
   CallScopeExpression,
   ExpressionKind,
   IExpression,
@@ -19,12 +19,12 @@ import {
   assert
 } from '@aurelia/testing';
 
-describe.skip('Call', function () {
+describe.skip('CallBinding', function () {
   function setup(sourceExpression: IExpression, target: any, targetProperty: string) {
     const container = RuntimeBasicConfiguration.createContainer();
     const lifecycle = container.get(ILifecycle);
     const observerLocator = createObserverLocator(container);
-    const sut = new Call(sourceExpression as any, target, targetProperty, observerLocator, container);
+    const sut = new CallBinding(sourceExpression as any, target, targetProperty, observerLocator, container);
 
     return { sut, lifecycle, container, observerLocator };
   }

@@ -1,5 +1,5 @@
 import { IRegistry, PLATFORM } from '@aurelia/kernel';
-import { Binding } from '../../binding/binding';
+import { PropertyBinding } from '../../binding/property-binding';
 import { BindingMode, LifecycleFlags } from '../../flags';
 import { IBinding } from '../../lifecycle';
 import { IScope } from '../../observation';
@@ -57,7 +57,7 @@ export class DebounceBindingBehavior {
     let callContextToDebounce;
     let debouncer: typeof debounceCall | typeof debounceCallSource;
 
-    if (binding instanceof Binding) {
+    if (binding instanceof PropertyBinding) {
       methodToDebounce = 'handleChange';
       debouncer = debounceCall;
       callContextToDebounce = binding.mode & fromView ? LifecycleFlags.updateSourceExpression : LifecycleFlags.updateTargetInstance;

@@ -1,5 +1,5 @@
 import { IRegistry } from '@aurelia/kernel';
-import { Binding } from '../../binding/binding';
+import { PropertyBinding } from '../../binding/property-binding';
 import { BindingMode, LifecycleFlags } from '../../flags';
 import { IScope } from '../../observation';
 import { BindingBehaviorResource } from '../binding-behavior';
@@ -15,12 +15,12 @@ export abstract class BindingModeBehavior {
     this.mode = mode;
   }
 
-  public bind(flags: LifecycleFlags, scope: IScope, binding: Binding & WithMode): void {
+  public bind(flags: LifecycleFlags, scope: IScope, binding: PropertyBinding & WithMode): void {
     binding.originalMode = binding.mode;
     binding.mode = this.mode;
   }
 
-  public unbind(flags: LifecycleFlags, scope: IScope, binding: Binding & WithMode): void {
+  public unbind(flags: LifecycleFlags, scope: IScope, binding: PropertyBinding & WithMode): void {
     binding.mode = binding.originalMode!;
     binding.originalMode = null!;
   }

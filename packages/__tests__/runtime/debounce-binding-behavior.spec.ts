@@ -3,7 +3,7 @@ import {
   IContainer
 } from '@aurelia/kernel';
 import {
-  Binding,
+  PropertyBinding,
   BindingMode,
   DebounceBindingBehavior,
   IObserverLocator,
@@ -16,12 +16,12 @@ import { assert } from '@aurelia/testing';
 describe('DebounceBindingBehavior', function () {
   const container: IContainer = DI.createContainer();
   let sut: DebounceBindingBehavior;
-  let binding: Binding;
+  let binding: PropertyBinding;
   let originalFn: (newValue: unknown, previousValue: unknown, flags: LifecycleFlags) => void;
 
   beforeEach(function () {
     sut = new DebounceBindingBehavior();
-    binding = new Binding(undefined, undefined, undefined, undefined, undefined, container);
+    binding = new PropertyBinding(undefined, undefined, undefined, undefined, undefined, container);
     originalFn = binding.handleChange;
     sut.bind(undefined, undefined, binding as any);
   });

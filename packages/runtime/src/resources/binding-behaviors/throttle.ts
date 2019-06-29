@@ -1,5 +1,5 @@
 import { IRegistry, PLATFORM } from '@aurelia/kernel';
-import { Binding } from '../../binding/binding';
+import { PropertyBinding } from '../../binding/property-binding';
 import { BindingMode, LifecycleFlags } from '../../flags';
 import { IBinding } from '../../lifecycle';
 import { IScope } from '../../observation';
@@ -49,7 +49,7 @@ export class ThrottleBindingBehavior {
   public bind(flags: LifecycleFlags, scope: IScope, binding: ThrottleableBinding, delay: number = 200): void {
     let methodToThrottle: string;
 
-    if (binding instanceof Binding) {
+    if (binding instanceof PropertyBinding) {
       if (binding.mode === BindingMode.twoWay) {
         methodToThrottle = 'updateSource';
       } else {

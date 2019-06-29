@@ -4,8 +4,8 @@ import {
 } from '@aurelia/kernel';
 
 import {
-  Binding,
-} from '../../binding/binding';
+  PropertyBinding,
+} from '../../binding/property-binding';
 import {
   Priority,
 } from '../../lifecycle';
@@ -28,7 +28,7 @@ export class PriorityBindingBehavior {
     container.register(Registration.singleton(this, this));
   }
 
-  public bind(binding: Binding, priority: number | keyof typeof Priority = Priority.low): void {
+  public bind(binding: PropertyBinding, priority: number | keyof typeof Priority = Priority.low): void {
     const { targetObserver } = binding;
     if (targetObserver != void 0) {
       this[binding.id] = targetObserver.priority;
@@ -64,7 +64,7 @@ export class PriorityBindingBehavior {
     }
   }
 
-  public unbind(binding: Binding): void {
+  public unbind(binding: PropertyBinding): void {
     if (binding.targetObserver != void 0) {
       binding.targetObserver.priority = this[binding.id];
     }

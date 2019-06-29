@@ -9,8 +9,8 @@ import {
 } from '@aurelia/kernel';
 
 import {
-  Binding,
-} from '../binding/binding';
+  PropertyBinding,
+} from '../binding/property-binding';
 import {
   HooksDefinition,
   IAttributeDefinition,
@@ -529,7 +529,7 @@ export class Controller<
   public getTargetAccessor(propertyName: string): IBindingTargetAccessor | undefined {
     const { bindings } = this;
     if (bindings !== void 0) {
-      const binding = bindings.find(b => (b as Binding).targetProperty === propertyName) as Binding;
+      const binding = bindings.find(b => (b as PropertyBinding).targetProperty === propertyName) as PropertyBinding;
       if (binding !== void 0) {
         return binding.targetObserver;
       }

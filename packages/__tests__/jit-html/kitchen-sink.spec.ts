@@ -2,7 +2,7 @@ import { IAttributeParser, ResourceModel } from '@aurelia/jit';
 import { RuntimeCompilationResources } from '@aurelia/kernel';
 import {
   Aurelia,
-  CustomElementResource,
+  CustomElement,
   IExpressionParser,
   INodeSequence,
   ISignaler,
@@ -17,7 +17,7 @@ const spec = 'kitchen-sink';
 describe(spec, function () {
   it.skip('startup with App type', function () {
     const ctx = TestContext.createHTMLTestContext();
-    const component = CustomElementResource.define({ name: 'app', template: `<template>\${message}</template>` }, class { public message = 'Hello!'; });
+    const component = CustomElement.define({ name: 'app', template: `<template>\${message}</template>` }, class { public message = 'Hello!'; });
     const host = ctx.createElement('div');
     const au = new Aurelia(ctx.container).register().app({ host, component });
     au.start();
@@ -33,7 +33,7 @@ describe(spec, function () {
   it.skip('signaler', async function () {
 
     const items = [0, 1, 2];
-    const App = CustomElementResource.define({
+    const App = CustomElement.define({
       name: 'app',
       template: `<template><div repeat.for="i of 3">\${items[i] & signal:'updateItem'}</div></template>`
     },                                       class {
@@ -69,7 +69,7 @@ describe(spec, function () {
   it.skip('signaler + oneTime', async function () {
 
     const items = [0, 1, 2];
-    const App = CustomElementResource.define({
+    const App = CustomElement.define({
       name: 'app',
       template: `<template><div repeat.for="i of 3">\${items[i] & signal:'updateItem' & oneTime}</div></template>`
     },                                       class {
@@ -105,7 +105,7 @@ describe(spec, function () {
   it.skip('render hook', async function () {
 
     const ctx = TestContext.createHTMLTestContext();
-    const App = CustomElementResource.define({
+    const App = CustomElement.define({
       name: 'app',
       template: `<template></template>`
     },                                       class {
@@ -179,14 +179,14 @@ describe('xml node compiler tests', function () {
 describe('dependency injection', function () {
 
   it.skip('register local dependencies ', function () {
-    const Foo = CustomElementResource.define(
+    const Foo = CustomElement.define(
       {
         name: 'foo',
         template: 'bar'
       },
       null
     );
-    const App = CustomElementResource.define(
+    const App = CustomElement.define(
       {
         name: 'app',
         template: '<foo></foo>',
@@ -222,7 +222,7 @@ describe('dependency injection', function () {
 //     const host = document.createElement('div');
 //     const hosthost = document.createElement('div');
 //     hosthost.appendChild(host);
-//     const App = CustomElementResource.define(
+//     const App = CustomElement.define(
 //       {
 //         name: 'app',
 //         template: '<div if.bind="value">${ifText}</div><div else>${elseText}</div>'

@@ -1,5 +1,5 @@
 import { Constructable } from '@aurelia/kernel';
-import { Aurelia, BindingMode, CustomElementResource, ILifecycle, LifecycleFlags } from '@aurelia/runtime';
+import { Aurelia, BindingMode, CustomElement, ILifecycle, LifecycleFlags } from '@aurelia/runtime';
 import { IEventManager } from '@aurelia/runtime-html';
 import { BasicConfiguration } from '@aurelia/jit-html';
 import { TestContext, eachCartesianJoin, eachCartesianJoinAsync, assert } from '@aurelia/testing';
@@ -134,7 +134,7 @@ describe('template-compiler.binding-commands.class', function() {
             public value: unknown = true;
           },
           BasicConfiguration,
-          CustomElementResource.define(
+          CustomElement.define(
             {
               name: 'child',
               template: `<template ${className}.class="value"></template>`
@@ -221,7 +221,7 @@ describe('template-compiler.binding-commands.class', function() {
     container.register(...registrations);
     const host = ctx.doc.body.appendChild(ctx.createElement('app'));
     const au = new Aurelia(container);
-    const App = CustomElementResource.define({ name: 'app', template }, $class);
+    const App = CustomElement.define({ name: 'app', template }, $class);
     const component = new App();
 
     function tearDown() {

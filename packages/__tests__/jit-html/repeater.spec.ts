@@ -1,4 +1,4 @@
-import { Aurelia, CustomElementResource } from '@aurelia/runtime';
+import { Aurelia, CustomElement } from '@aurelia/runtime';
 import { eachCartesianJoin, TestContext, TestConfiguration, assert } from '@aurelia/testing';
 
 const spec = 'repeater';
@@ -218,7 +218,7 @@ describe(spec, function () {
         container.register(TestConfiguration);
 
         const markup = createTemplate(forof, item);
-        const App = CustomElementResource.define({ name: 'app', template: markup }, class {});
+        const App = CustomElement.define({ name: 'app', template: markup }, class {});
 
         const host = ctx.createElement('div');
         const component = new App();

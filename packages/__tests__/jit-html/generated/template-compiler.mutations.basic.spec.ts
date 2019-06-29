@@ -1,5 +1,5 @@
 // // tslint:disable:quotemark member-access no-all-duplicated-branches
-// import { Aurelia, CustomElementResource, INode } from "@aurelia/runtime";
+// import { Aurelia, CustomElement, INode } from "@aurelia/runtime";
 // import { expect } from "chai";
 // import { TestContext } from "@aurelia/testing";
 
@@ -12,10 +12,10 @@
 //     }
 //     it("works 1", function () {
 //         const { au, host } = setup();
-//         const App = CustomElementResource.define({ name: "app", template: "<template><foo></foo></template>" }, class {
+//         const App = CustomElement.define({ name: "app", template: "<template><foo></foo></template>" }, class {
 //         });
 //         const items = [];
-//         const Foo = CustomElementResource.define({ name: "foo", template: "<template><div repeat.for=\"item of items\">${item}</div></template>" }, class {
+//         const Foo = CustomElement.define({ name: "foo", template: "<template><div repeat.for=\"item of items\">${item}</div></template>" }, class {
 //             static inject = [INode];
 //             items = items;
 //             el;
@@ -80,10 +80,10 @@
 //     });
 //     it("works 2", function () {
 //         const { au, host } = setup();
-//         const App = CustomElementResource.define({ name: "app", template: "<template><foo></foo></template>" }, class {
+//         const App = CustomElement.define({ name: "app", template: "<template><foo></foo></template>" }, class {
 //         });
 //         const items = [];
-//         const Foo = CustomElementResource.define({ name: "foo", template: "<template><div repeat.for=\"item of items\">${item}</div></template>" }, class {
+//         const Foo = CustomElement.define({ name: "foo", template: "<template><div repeat.for=\"item of items\">${item}</div></template>" }, class {
 //             static inject = [INode];
 //             items = items;
 //             el;
@@ -143,10 +143,10 @@
 //     });
 //     it("works 3", function () {
 //         const { au, host } = setup();
-//         const App = CustomElementResource.define({ name: "app", template: "<template><foo></foo></template>" }, class {
+//         const App = CustomElement.define({ name: "app", template: "<template><foo></foo></template>" }, class {
 //         });
 //         const items = [];
-//         const Foo = CustomElementResource.define({ name: "foo", template: "<template><div repeat.for=\"item of items\" if.bind=\"item % mod === 0\">${item}</div></template>" }, class {
+//         const Foo = CustomElement.define({ name: "foo", template: "<template><div repeat.for=\"item of items\" if.bind=\"item % mod === 0\">${item}</div></template>" }, class {
 //             static inject = [INode];
 //             items = items;
 //             mod = 2;
@@ -213,10 +213,10 @@
 //     });
 //     it("works 4", function () {
 //         const { au, host } = setup();
-//         const App = CustomElementResource.define({ name: "app", template: "<template><foo></foo></template>" }, class {
+//         const App = CustomElement.define({ name: "app", template: "<template><foo></foo></template>" }, class {
 //         });
 //         const items = [];
-//         const Foo = CustomElementResource.define({ name: "foo", template: "<template><div repeat.for=\"item of items\" if.bind=\"item % mod === 0\">${item}</div></template>" }, class {
+//         const Foo = CustomElement.define({ name: "foo", template: "<template><div repeat.for=\"item of items\" if.bind=\"item % mod === 0\">${item}</div></template>" }, class {
 //             static inject = [INode];
 //             items = items;
 //             mod = 2;

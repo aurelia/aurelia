@@ -1,5 +1,5 @@
 import {
-  CustomElementResource,
+  CustomElement,
   HydrateElementInstruction,
   ICustomElementType,
   INode,
@@ -118,8 +118,8 @@ describe(`createElement() creates element based on tag`, function () {
 describe(`createElement() creates element based on type`, function () {
   eachCartesianJoin([
     [
-      () => CustomElementResource.define({ name: 'foo' }, class Foo {}),
-      () => CustomElementResource.define({ name: 'foo', bindables: { foo: {} } }, class Foo {})
+      () => CustomElement.define({ name: 'foo' }, class Foo {}),
+      () => CustomElement.define({ name: 'foo', bindables: { foo: {} } }, class Foo {})
     ] as (() => ICustomElementType)[]
   ],
                     (createType: () => ICustomElementType) => {

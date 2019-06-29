@@ -1,8 +1,8 @@
 import {
-  AccessScope,
-  BindingBehavior,
-  Call,
-  CallScope,
+  AccessScopeExpression,
+  BindingBehaviorExpression,
+  CallBinding,
+  CallScopeExpression,
   ExpressionKind,
   IExpression,
   ILifecycle,
@@ -19,12 +19,12 @@ import {
   assert
 } from '@aurelia/testing';
 
-describe.skip('Call', function () {
+describe.skip('CallBinding', function () {
   function setup(sourceExpression: IExpression, target: any, targetProperty: string) {
     const container = RuntimeBasicConfiguration.createContainer();
     const lifecycle = container.get(ILifecycle);
     const observerLocator = createObserverLocator(container);
-    const sut = new Call(sourceExpression as any, target, targetProperty, observerLocator, container);
+    const sut = new CallBinding(sourceExpression as any, target, targetProperty, observerLocator, container);
 
     return { sut, lifecycle, container, observerLocator };
   }
@@ -42,8 +42,8 @@ describe.skip('Call', function () {
     ];
 
     const exprVariations: (() => [IExpression, string])[] = [
-      () => [new CallScope('theFunc', []),          `theFunc()`],
-      () => [new BindingBehavior(new CallScope('theFunc', []), 'debounce', []),          `theFunc()`]
+      () => [new CallScopeExpression('theFunc', []),          `theFunc()`],
+      () => [new BindingBehaviorExpression(new CallScopeExpression('theFunc', []), 'debounce', []),          `theFunc()`]
     ];
 
     const scopeVariations: (() => [IScope, string])[] = [
@@ -143,8 +143,8 @@ describe.skip('Call', function () {
     ];
 
     const exprVariations: (() => [IExpression, string])[] = [
-      () => [new CallScope('theFunc', []),          `theFunc()`],
-      () => [new BindingBehavior(new CallScope('theFunc', []), 'debounce', []),          `theFunc()`]
+      () => [new CallScopeExpression('theFunc', []),          `theFunc()`],
+      () => [new BindingBehaviorExpression(new CallScopeExpression('theFunc', []), 'debounce', []),          `theFunc()`]
     ];
 
     const scopeVariations: (() => [IScope, string])[] = [
@@ -247,8 +247,8 @@ describe.skip('Call', function () {
     ];
 
     const exprVariations: (() => [IExpression, string])[] = [
-      () => [new CallScope('theFunc', []),          `theFunc()`],
-      () => [new CallScope('theFunc', [new AccessScope('arg1'), new AccessScope('arg2'), new AccessScope('arg3')]), `theFunc(arg1, arg2, arg3)`]
+      () => [new CallScopeExpression('theFunc', []),          `theFunc()`],
+      () => [new CallScopeExpression('theFunc', [new AccessScopeExpression('arg1'), new AccessScopeExpression('arg2'), new AccessScopeExpression('arg3')]), `theFunc(arg1, arg2, arg3)`]
     ];
 
     const scopeVariations: (() => [IScope, string])[] = [

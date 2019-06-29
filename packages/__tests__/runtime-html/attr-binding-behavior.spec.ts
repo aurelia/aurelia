@@ -1,5 +1,5 @@
 import { IContainer } from '@aurelia/kernel';
-import { Binding } from '@aurelia/runtime';
+import { PropertyBinding } from '@aurelia/runtime';
 import { AttrBindingBehavior, DataAttributeAccessor } from '@aurelia/runtime-html';
 import { TestContext, assert } from '@aurelia/testing';
 
@@ -8,7 +8,7 @@ describe('AttrBindingBehavior', function () {
   let targetProperty: string;
   let container: IContainer;
   let sut: AttrBindingBehavior;
-  let binding: Binding;
+  let binding: PropertyBinding;
 
   beforeEach(function () {
     const ctx = TestContext.createHTMLTestContext();
@@ -16,7 +16,7 @@ describe('AttrBindingBehavior', function () {
     targetProperty = 'foo';
     sut = new AttrBindingBehavior();
     container = ctx.container;
-    binding = new Binding(undefined, target, targetProperty, undefined, undefined, container);
+    binding = new PropertyBinding(undefined, target, targetProperty, undefined, undefined, container);
     sut.bind(undefined, undefined, binding);
   });
 

@@ -1,7 +1,7 @@
 import {
   Aurelia,
   BindingStrategy,
-  CustomElementResource,
+  CustomElement,
   ILifecycle,
   LifecycleFlags
 } from '@aurelia/runtime';
@@ -539,13 +539,13 @@ describe(spec, function () {
 
       const initialItems = createItems();
 
-      const Component = CustomElementResource.define(
+      const Component = CustomElement.define(
         {
           name: 'app',
           template: createAppTemplate(behaviors),
           strategy,
           dependencies: [
-            CustomElementResource.define(
+            CustomElement.define(
               {
                 name: 'foo',
                 template: createCETemplate(behaviors),

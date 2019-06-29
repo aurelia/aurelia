@@ -7,7 +7,7 @@ import {
 import {
   bindable,
   createRenderContext,
-  CustomElementResource,
+  CustomElement,
   IController,
   ICustomElementType,
   IDOM,
@@ -151,4 +151,4 @@ export class ViewportCustomElement {
   }
 }
 // tslint:disable-next-line:no-invalid-template-strings
-CustomElementResource.define({ name: 'au-viewport', template: '<template><div class="viewport-header"> Viewport: <b>${name}</b> ${scope ? "[new scope]" : ""} : <b>${viewport.content && viewport.content.componentName()}</b></div></template>' }, ViewportCustomElement);
+CustomElement.define({ name: 'au-viewport', template: '<template><div class="viewport-header"> Viewport: <b>${name}</b> ${scope ? "[new scope]" : ""} : <b>${viewport.content && viewport.content.componentName()}</b></div></template>' }, ViewportCustomElement);

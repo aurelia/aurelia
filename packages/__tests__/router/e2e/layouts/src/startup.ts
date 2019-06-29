@@ -1,6 +1,6 @@
 import { HTMLJitConfiguration } from '../../../../../jit-html/src/index';
 import { NavCustomElement, ViewportCustomElement } from '../../../../../router';
-import { Aurelia, CustomElementResource } from '../../../../../runtime';
+import { Aurelia, CustomElement } from '../../../../../runtime';
 import { App } from './app';
 
 import { About } from './components/about';
@@ -25,7 +25,7 @@ container.register(
   Board as any,
   Inventory as any,
 );
-const component = container.get(CustomElementResource.keyFrom('app'));
+const component = container.get(CustomElement.keyFrom('app'));
 
 const au = new Aurelia(container);
 window['au'] = au;

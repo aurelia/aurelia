@@ -1,5 +1,5 @@
 import { PLATFORM, Constructable } from '@aurelia/kernel';
-import { Aurelia, CustomElementResource, ILifecycle, LifecycleFlags } from '@aurelia/runtime';
+import { Aurelia, CustomElement, ILifecycle, LifecycleFlags } from '@aurelia/runtime';
 import { IEventManager } from '@aurelia/runtime-html';
 import { BasicConfiguration } from '@aurelia/jit-html';
 import { TestContext, eachCartesianJoin, assert } from '@aurelia/testing';
@@ -149,7 +149,7 @@ describe('template-compiler.binding-commands.style', () => {
             public value: string = ruleValue;
           },
           BasicConfiguration,
-          CustomElementResource.define(
+          CustomElement.define(
             {
               name: 'child',
               template: `<template ${ruleName}.style="value"></template>`
@@ -271,7 +271,7 @@ describe('template-compiler.binding-commands.style', () => {
     container.register(...registrations);
     const host = ctx.doc.body.appendChild(ctx.createElement('app'));
     const au = new Aurelia(container);
-    const App = CustomElementResource.define({ name: 'app', template }, $class);
+    const App = CustomElement.define({ name: 'app', template }, $class);
     const component: T = new App();
 
     function tearDown() {

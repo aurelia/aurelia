@@ -1,9 +1,9 @@
 import { IRenderContext } from '@aurelia/runtime';
-import { CustomElementResource } from '@aurelia/runtime';
+import { CustomElement } from '@aurelia/runtime';
 import { Router, ViewportContent } from '@aurelia/router';
 import { assert, TestContext } from '@aurelia/testing';
 
-const define = (CustomElementResource as any).define;
+const define = (CustomElement as any).define;
 
 describe('ViewportContent', function () {
   it('can be created', function () {
@@ -74,7 +74,7 @@ describe('ViewportContent', function () {
       const { container, router } = await $setup([Local]);
 
       container.register(Global);
-      // Registration.alias(CustomElementResource.keyFrom('global'), Global).register(container);
+      // Registration.alias(CustomElement.keyFrom('global'), Global).register(container);
 
       const viewport = new ViewportContent(Global, null, null, router.container as unknown as IRenderContext);
       const component = viewport.componentInstance(router.container as unknown as IRenderContext);

@@ -1,8 +1,8 @@
 import { Writable } from '@aurelia/kernel';
 import {
-  AccessScope,
+  AccessScopeExpression,
   addBinding,
-  Binding,
+  PropertyBinding,
   BindingContext,
   BindingIdentifier,
   BindingMode,
@@ -596,7 +596,7 @@ describe(`Repeat`, function () {
           const wrapper = AuNode.createTemplate().appendChild(text);
 
           const nodes = new AuNodeSequence(dom, wrapper);
-          const itemBinding = new Binding(new AccessScope('item'), text, 'textContent', BindingMode.toView, observerLocator, container);
+          const itemBinding = new PropertyBinding(new AccessScopeExpression('item'), text, 'textContent', BindingMode.toView, observerLocator, container);
           binding.persistentFlags |= strategy;
 
           (itemRenderable as Writable<typeof itemRenderable>).nodes = nodes;
@@ -606,10 +606,10 @@ describe(`Repeat`, function () {
 
       const itemFactory = new ViewFactory<AuNode>(`item-view`, itemTemplate, lifecycle);
 
-      const binding: Binding = {
+      const binding: PropertyBinding = {
         target: null,
         targetProperty: 'items',
-        sourceExpression: new ForOfStatement(new BindingIdentifier('item'), new AccessScope('items'))
+        sourceExpression: new ForOfStatement(new BindingIdentifier('item'), new AccessScopeExpression('items'))
       } as any;
       const renderable: IController<AuNode> = {
         bindings: [binding]

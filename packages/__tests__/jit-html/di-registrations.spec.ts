@@ -2,7 +2,7 @@
 // import {
 //   Aurelia,
 //   BindingContext,
-//   CustomElementResource,
+//   CustomElement,
 //   IViewModel,
 //   INode,
 //   LifecycleFlags as LF,
@@ -25,7 +25,7 @@
 //     it('from within the type in which it was registered', function () {
 //       const { au, host } = setup();
 
-//       const Foo = CustomElementResource.define(
+//       const Foo = CustomElement.define(
 //         {
 //           name: 'foo',
 //           template: 'foo'
@@ -33,7 +33,7 @@
 //         class {}
 //       );
 
-//       const App = CustomElementResource.define(
+//       const App = CustomElement.define(
 //         {
 //           name: 'app',
 //           template: `<foo></foo>`,
@@ -52,7 +52,7 @@
 //     it('from within a child type of the type in which is was registered', function () {
 //       const { au, host } = setup();
 
-//       const Bar = CustomElementResource.define(
+//       const Bar = CustomElement.define(
 //         {
 //           name: 'bar',
 //           template: 'bar'
@@ -60,7 +60,7 @@
 //         class {}
 //       );
 
-//       const Foo = CustomElementResource.define(
+//       const Foo = CustomElement.define(
 //         {
 //           name: 'foo',
 //           template: 'foo<bar></bar>'
@@ -68,7 +68,7 @@
 //         class {}
 //       );
 
-//       const App = CustomElementResource.define(
+//       const App = CustomElement.define(
 //         {
 //           name: 'app',
 //           template: `<foo></foo>`,
@@ -87,7 +87,7 @@
 //     it('from within a grandchild type of the type in which is was registered', function () {
 //       const { au, host } = setup();
 
-//       const Baz = CustomElementResource.define(
+//       const Baz = CustomElement.define(
 //         {
 //           name: 'baz',
 //           template: 'baz'
@@ -95,7 +95,7 @@
 //         class {}
 //       );
 
-//       const Bar = CustomElementResource.define(
+//       const Bar = CustomElement.define(
 //         {
 //           name: 'bar',
 //           template: 'bar<baz></baz>'
@@ -103,7 +103,7 @@
 //         class {}
 //       );
 
-//       const Foo = CustomElementResource.define(
+//       const Foo = CustomElement.define(
 //         {
 //           name: 'foo',
 //           template: 'foo<bar></bar>'
@@ -111,7 +111,7 @@
 //         class {}
 //       );
 
-//       const App = CustomElementResource.define(
+//       const App = CustomElement.define(
 //         {
 //           name: 'app',
 //           template: `<foo></foo>`,
@@ -130,7 +130,7 @@
 //     it('from within a type whose child has registered it, which is a parent via recursion', function () {
 //       const { au, host } = setup();
 
-//       const Bar = CustomElementResource.define(
+//       const Bar = CustomElement.define(
 //         {
 //           name: 'bar',
 //           template: 'bar<foo depth.bind="depth + 1"></foo>'
@@ -142,7 +142,7 @@
 //         }
 //       );
 
-//       const Foo = CustomElementResource.define(
+//       const Foo = CustomElement.define(
 //         {
 //           name: 'foo',
 //           template: 'foo<bar if.bind="depth === 0" depth.bind="depth"></bar>',
@@ -155,7 +155,7 @@
 //         }
 //       );
 
-//       const App = CustomElementResource.define(
+//       const App = CustomElement.define(
 //         {
 //           name: 'app',
 //           template: `<foo depth.bind="depth"></foo>`,
@@ -179,7 +179,7 @@
 //     it('from within the type in which it was registered', function () {
 //       const { au, host } = setup();
 
-//       const Foo = CustomElementResource.define(
+//       const Foo = CustomElement.define(
 //         {
 //           name: 'foo',
 //           template: 'foo'
@@ -187,7 +187,7 @@
 //         class {}
 //       );
 
-//       const App = CustomElementResource.define(
+//       const App = CustomElement.define(
 //         {
 //           name: 'app',
 //           template: `app`,
@@ -222,7 +222,7 @@
 //     it('from within a child type of the type in which is was registered', function () {
 //       const { au, host } = setup();
 
-//       const Bar = CustomElementResource.define(
+//       const Bar = CustomElement.define(
 //         {
 //           name: 'bar',
 //           template: 'bar'
@@ -230,7 +230,7 @@
 //         class {}
 //       );
 
-//       const Foo = CustomElementResource.define(
+//       const Foo = CustomElement.define(
 //         {
 //           name: 'foo',
 //           template: 'foo'
@@ -255,7 +255,7 @@
 //         }
 //       );
 
-//       const App = CustomElementResource.define(
+//       const App = CustomElement.define(
 //         {
 //           name: 'app',
 //           template: `app<foo></foo>`,
@@ -274,7 +274,7 @@
 //     it('from within a grandchild type of the type in which is was registered', function () {
 //       const { au, host } = setup();
 
-//       const Baz = CustomElementResource.define(
+//       const Baz = CustomElement.define(
 //         {
 //           name: 'baz',
 //           template: 'baz'
@@ -282,7 +282,7 @@
 //         class {}
 //       );
 
-//       const Bar = CustomElementResource.define(
+//       const Bar = CustomElement.define(
 //         {
 //           name: 'bar',
 //           template: 'bar'
@@ -307,7 +307,7 @@
 //         }
 //       );
 
-//       const Foo = CustomElementResource.define(
+//       const Foo = CustomElement.define(
 //         {
 //           name: 'foo',
 //           template: 'foo<bar></bar>'
@@ -315,7 +315,7 @@
 //         class {}
 //       );
 
-//       const App = CustomElementResource.define(
+//       const App = CustomElement.define(
 //         {
 //           name: 'app',
 //           template: `app<foo></foo>`,

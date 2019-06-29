@@ -82,7 +82,7 @@ export function customElement(definition: ITemplateDefinition): ICustomElementDe
 export function customElement(name: string): ICustomElementDecorator;
 export function customElement(nameOrDefinition: string | ITemplateDefinition): ICustomElementDecorator;
 export function customElement(nameOrDefinition: string | ITemplateDefinition): ICustomElementDecorator {
-  return (target => CustomElementResource.define(nameOrDefinition, target)) as ICustomElementDecorator;
+  return (target => CustomElement.define(nameOrDefinition, target)) as ICustomElementDecorator;
 }
 
 function isType<T>(this: ICustomElementResource, Type: T & Partial<ICustomElementType>): Type is T & ICustomElementType {
@@ -100,14 +100,14 @@ function define<T extends Constructable = Constructable>(this: ICustomElementRes
   const WritableType = Type as Writable<ICustomElementType<T>>;
   const description = buildTemplateDefinition(Type, nameOrDefinition);
 
-  WritableType.kind = CustomElementResource as ICustomElementResource;
+  WritableType.kind = CustomElement as ICustomElementResource;
   Type.description = description;
   Type.register = registerElement;
 
   return Type;
 }
 
-export const CustomElementResource: ICustomElementResource = {
+export const CustomElement: ICustomElementResource = {
   name: customElementName,
   keyFrom: customElementKey,
   isType,

@@ -1,5 +1,5 @@
 import { Key, IRegistry, Reporter, Writable } from '@aurelia/kernel';
-import { Binding, BindingBehaviorResource, BindingMode, IDOM, IObserverLocator, IScope, LifecycleFlags } from '@aurelia/runtime';
+import { PropertyBinding, BindingBehavior, BindingMode, IDOM, IObserverLocator, IScope, LifecycleFlags } from '@aurelia/runtime';
 import { CheckedObserver } from '../../observation/checked-observer';
 import { EventSubscriber, IEventSubscriber } from '../../observation/event-manager';
 import { SelectValueObserver } from '../../observation/select-value-observer';
@@ -13,7 +13,7 @@ export type UpdateTriggerableObserver = (
   originalHandler?: IEventSubscriber;
 };
 
-export type UpdateTriggerableBinding = Binding & {
+export type UpdateTriggerableBinding = PropertyBinding & {
   targetObserver: UpdateTriggerableObserver;
 };
 
@@ -62,4 +62,4 @@ export class UpdateTriggerBindingBehavior {
     binding.targetObserver.originalHandler = null!;
   }
 }
-BindingBehaviorResource.define('updateTrigger', UpdateTriggerBindingBehavior);
+BindingBehavior.define('updateTrigger', UpdateTriggerBindingBehavior);

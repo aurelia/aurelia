@@ -1,4 +1,4 @@
-// import { Aurelia, CustomElementResource, ILifecycle, LifecycleFlags } from '@aurelia/runtime';
+// import { Aurelia, CustomElement, ILifecycle, LifecycleFlags } from '@aurelia/runtime';
 // import { TestContext } from '@aurelia/testing';
 
 // describe('hooks', function () {
@@ -76,7 +76,7 @@
 //       return result;
 //     }
 
-//     const Col = CustomElementResource.define({
+//     const Col = CustomElement.define({
 //       name: 'col',
 //       template: `<template><template if.bind="row.show && col.show">\${row[col.name].text1}</template><template else>\${row[col.name].text2}</template></template>`
 //     },                                       class {
@@ -112,7 +112,7 @@
 //       }
 //     });
 
-//     const Row = CustomElementResource.define({
+//     const Row = CustomElement.define({
 //       name: 'row',
 //       template: `<template><col repeat.for="col of cols" col.bind="col" row.bind="row"></col></template>`
 //     },                                       class {
@@ -148,7 +148,7 @@
 //       }
 //     });
 
-//     const CustomTable = CustomElementResource.define({
+//     const CustomTable = CustomElement.define({
 //       name: 'custom-table',
 //       template: `<template><row repeat.for="row of rows" row.bind="row" cols.bind="cols"></row></template>`
 //     },                                               class {
@@ -184,7 +184,7 @@
 //       }
 //     });
 
-//     const App = CustomElementResource.define({
+//     const App = CustomElement.define({
 //       name: 'app',
 //       template: `<template><custom-table rows.bind="rows" cols.bind="cols"></custom-table></template>`
 //     },                                       class {
@@ -269,7 +269,7 @@
 
 //   it('attached task awaited indirectly', async function () {
 
-//     const Foo = CustomElementResource.define({
+//     const Foo = CustomElement.define({
 //       name: 'foo',
 //       template: `<template><div ref="div">bar</div></template>`
 //     },                                       class {
@@ -287,7 +287,7 @@
 //       }
 //     });
 
-//     const App = CustomElementResource.define({
+//     const App = CustomElement.define({
 //       name: 'app',
 //       template: `<template><foo if.bind="true"></foo></template>`
 //     },                                       class {});
@@ -328,7 +328,7 @@
 
 //   it('attached task awaited directly', async function () {
 
-//     const Foo = CustomElementResource.define({
+//     const Foo = CustomElement.define({
 //       name: 'foo',
 //       template: `<template><div ref="div">bar</div></template>`
 //     },                                       class {
@@ -346,7 +346,7 @@
 //       }
 //     });
 
-//     const App = CustomElementResource.define({
+//     const App = CustomElement.define({
 //       name: 'app',
 //       template: `<template><foo if.bind="true"></foo></template>`
 //     },                                       class {});
@@ -392,7 +392,7 @@
 
 //   it('attached task (triple then) awaited indirectly', async function () {
 
-//     const Foo = CustomElementResource.define({
+//     const Foo = CustomElement.define({
 //       name: 'foo',
 //       template: `<template><div ref="div">bar</div></template>`
 //     },                                       class {
@@ -410,7 +410,7 @@
 //       }
 //     });
 
-//     const App = CustomElementResource.define({
+//     const App = CustomElement.define({
 //       name: 'app',
 //       template: `<template><foo if.bind="true"></foo></template>`
 //     },                                       class {});
@@ -459,7 +459,7 @@
 
 //   it('attached task (triple then) awaited directly', async function () {
 
-//     const Foo = CustomElementResource.define({
+//     const Foo = CustomElement.define({
 //       name: 'foo',
 //       template: `<template><div ref="div">bar</div></template>`
 //     },                                       class {
@@ -477,7 +477,7 @@
 //       }
 //     });
 
-//     const App = CustomElementResource.define({
+//     const App = CustomElement.define({
 //       name: 'app',
 //       template: `<template><foo if.bind="true"></foo></template>`
 //     },                                       class {});
@@ -523,7 +523,7 @@
 
 //   it('detached task awaited indirectly', async function () {
 
-//     const Foo = CustomElementResource.define({
+//     const Foo = CustomElement.define({
 //       name: 'foo',
 //       template: `<template><div ref="div">bar</div></template>`
 //     },                                       class {
@@ -541,7 +541,7 @@
 //       }
 //     });
 
-//     const App = CustomElementResource.define({
+//     const App = CustomElement.define({
 //       name: 'app',
 //       template: `<template><foo if.bind="true"></foo></template>`
 //     },                                       class {});
@@ -584,7 +584,7 @@
 
 //   it('detached task awaited directly', async function () {
 
-//     const Foo = CustomElementResource.define({
+//     const Foo = CustomElement.define({
 //       name: 'foo',
 //       template: `<template><div ref="div">bar</div></template>`
 //     },                                       class {
@@ -602,7 +602,7 @@
 //       }
 //     });
 
-//     const App = CustomElementResource.define({
+//     const App = CustomElement.define({
 //       name: 'app',
 //       template: `<template><foo if.bind="true"></foo></template>`
 //     },                                       class {});
@@ -645,7 +645,7 @@
 
 //   it('detached task (triple then) awaited indirectly', async function () {
 
-//     const Foo = CustomElementResource.define({
+//     const Foo = CustomElement.define({
 //       name: 'foo',
 //       template: `<template><div ref="div">bar</div></template>`
 //     },                                       class {
@@ -663,7 +663,7 @@
 //       }
 //     });
 
-//     const App = CustomElementResource.define({
+//     const App = CustomElement.define({
 //       name: 'app',
 //       template: `<template><foo if.bind="true"></foo></template>`
 //     },                                       class {});
@@ -709,7 +709,7 @@
 
 //   it('detached task (triple then) awaited directly', async function () {
 
-//     const Foo = CustomElementResource.define({
+//     const Foo = CustomElement.define({
 //       name: 'foo',
 //       template: `<template><div ref="div">bar</div></template>`
 //     },                                       class {
@@ -727,7 +727,7 @@
 //       }
 //     });
 
-//     const App = CustomElementResource.define({
+//     const App = CustomElement.define({
 //       name: 'app',
 //       template: `<template><foo if.bind="true"></foo></template>`
 //     },                                       class {});

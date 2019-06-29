@@ -1,5 +1,5 @@
 // import { Key } from '@aurelia/kernel';
-// import { Aurelia, CustomElementResource as CE, IViewModel, INode, LifecycleFlags as LF } from '@aurelia/runtime';
+// import { Aurelia, CustomElement as CE, IViewModel, INode, LifecycleFlags as LF } from '@aurelia/runtime';
 // import { TestContext, eachCartesianJoin } from '@aurelia/testing';
 
 // interface IThing {

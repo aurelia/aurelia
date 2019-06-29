@@ -1,4 +1,4 @@
-import { Aurelia, CustomElementResource, LifecycleFlags as LF } from '@aurelia/runtime';
+import { Aurelia, CustomElement, LifecycleFlags as LF } from '@aurelia/runtime';
 import { TestContext, assert } from '@aurelia/testing';
 
 describe('replaceable', function () {
@@ -28,8 +28,8 @@ describe('replaceable', function () {
   ]) {
     it(`replaceable - ${title}`, function () {
 
-      const App = CustomElementResource.define({ name: 'app', template: `<template><foo>${appMarkup}</foo></template>` }, class {});
-      const Foo = CustomElementResource.define({ name: 'foo', template: `<template>${ceMarkup}</template>` }, class {});
+      const App = CustomElement.define({ name: 'app', template: `<template><foo>${appMarkup}</foo></template>` }, class {});
+      const Foo = CustomElement.define({ name: 'foo', template: `<template>${ceMarkup}</template>` }, class {});
 
       const ctx = TestContext.createHTMLTestContext();
       ctx.container.register(Foo);
@@ -49,8 +49,8 @@ describe('replaceable', function () {
 
   it(`replaceable - bind to target scope`, function () {
 
-    const App = CustomElementResource.define({ name: 'app', template: `<template><foo><div replace-part="bar">\${baz}</div></foo></template>` }, class { public baz = 'def'; });
-    const Foo = CustomElementResource.define({ name: 'foo', template: `<template><div replaceable part="bar"></div></template>` }, class { public baz = 'abc'; });
+    const App = CustomElement.define({ name: 'app', template: `<template><foo><div replace-part="bar">\${baz}</div></foo></template>` }, class { public baz = 'def'; });
+    const Foo = CustomElement.define({ name: 'foo', template: `<template><div replaceable part="bar"></div></template>` }, class { public baz = 'abc'; });
 
     const ctx = TestContext.createHTMLTestContext();
     ctx.container.register(Foo);
@@ -70,8 +70,8 @@ describe('replaceable', function () {
   // TODO: run this case with more combinations
   it(`replaceable - bind to parent scope when binding inside replace-part has multiple template controllers in between`, function () {
 
-    const App = CustomElementResource.define({ name: 'app', template: `<template><foo><div replace-part="bar"><div if.bind="true" repeat.for="i of 1">\${baz}</div></div></foo></template>` }, class { public baz = 'def'; });
-    const Foo = CustomElementResource.define({ name: 'foo', template: `<template><div replaceable part="bar"></div></template>` }, class { });
+    const App = CustomElement.define({ name: 'app', template: `<template><foo><div replace-part="bar"><div if.bind="true" repeat.for="i of 1">\${baz}</div></div></foo></template>` }, class { public baz = 'def'; });
+    const Foo = CustomElement.define({ name: 'foo', template: `<template><div replaceable part="bar"></div></template>` }, class { });
 
     const ctx = TestContext.createHTMLTestContext();
     ctx.container.register(Foo);
@@ -91,8 +91,8 @@ describe('replaceable', function () {
   // TODO: run this case with more combinations
   it(`replaceable - bind to parent scope when binding inside replace-part has an if that starts as false`, async function () {
 
-    const App = CustomElementResource.define({ name: 'app', template: `<template><foo><div replace-part="bar"><div if.bind="show">\${baz}</div></div></foo></template>` }, class { public baz = 'def'; public show = false; });
-    const Foo = CustomElementResource.define({ name: 'foo', template: `<template><div replaceable part="bar"></div></template>` }, class { });
+    const App = CustomElement.define({ name: 'app', template: `<template><foo><div replace-part="bar"><div if.bind="show">\${baz}</div></div></foo></template>` }, class { public baz = 'def'; public show = false; });
+    const Foo = CustomElement.define({ name: 'foo', template: `<template><div replaceable part="bar"></div></template>` }, class { });
 
     const ctx = TestContext.createHTMLTestContext();
     ctx.container.register(Foo);
@@ -116,8 +116,8 @@ describe('replaceable', function () {
 
   it(`replaceable - bind to parent scope`, function () {
 
-    const App = CustomElementResource.define({ name: 'app', template: `<template><foo><div replace-part="bar">\${baz}</div></foo></template>` }, class { public baz = 'def'; });
-    const Foo = CustomElementResource.define({ name: 'foo', template: `<template><div replaceable part="bar"></div></template>` }, class {});
+    const App = CustomElement.define({ name: 'app', template: `<template><foo><div replace-part="bar">\${baz}</div></foo></template>` }, class { public baz = 'def'; });
+    const Foo = CustomElement.define({ name: 'foo', template: `<template><div replaceable part="bar"></div></template>` }, class {});
 
     const ctx = TestContext.createHTMLTestContext();
     ctx.container.register(Foo);
@@ -136,8 +136,8 @@ describe('replaceable', function () {
 
   it(`replaceable/template - bind to target scope`, function () {
 
-    const App = CustomElementResource.define({ name: 'app', template: `<template><foo><template replace-part="bar">\${baz}</template></foo></template>` }, class { public baz = 'def'; });
-    const Foo = CustomElementResource.define({ name: 'foo', template: `<template><template replaceable part="bar"></template></template>` }, class { public baz = 'abc'; });
+    const App = CustomElement.define({ name: 'app', template: `<template><foo><template replace-part="bar">\${baz}</template></foo></template>` }, class { public baz = 'def'; });
+    const Foo = CustomElement.define({ name: 'foo', template: `<template><template replaceable part="bar"></template></template>` }, class { public baz = 'abc'; });
 
     const ctx = TestContext.createHTMLTestContext();
     ctx.container.register(Foo);
@@ -156,8 +156,8 @@ describe('replaceable', function () {
 
   it(`replaceable/template - bind to parent scope`, function () {
 
-    const App = CustomElementResource.define({ name: 'app', template: `<template><foo><template replace-part="bar">\${baz}</template></foo></template>` }, class { public baz = 'def'; });
-    const Foo = CustomElementResource.define({ name: 'foo', template: `<template><template replaceable part="bar"></template></template>` }, class {});
+    const App = CustomElement.define({ name: 'app', template: `<template><foo><template replace-part="bar">\${baz}</template></foo></template>` }, class { public baz = 'def'; });
+    const Foo = CustomElement.define({ name: 'foo', template: `<template><template replaceable part="bar"></template></template>` }, class {});
 
     const ctx = TestContext.createHTMLTestContext();
     ctx.container.register(Foo);
@@ -176,8 +176,8 @@ describe('replaceable', function () {
 
   it(`replaceable/template - uses last on name conflict`, function () {
 
-    const App = CustomElementResource.define({ name: 'app', template: `<template><foo><template replace-part="bar">\${qux}</template><template replace-part="bar">\${baz}</template></foo></template>` }, class { public baz = 'def'; });
-    const Foo = CustomElementResource.define({ name: 'foo', template: `<template><template replaceable part="bar"></template></template>` }, class {});
+    const App = CustomElement.define({ name: 'app', template: `<template><foo><template replace-part="bar">\${qux}</template><template replace-part="bar">\${baz}</template></foo></template>` }, class { public baz = 'def'; });
+    const Foo = CustomElement.define({ name: 'foo', template: `<template><template replaceable part="bar"></template></template>` }, class {});
 
     const ctx = TestContext.createHTMLTestContext();
     ctx.container.register(Foo);
@@ -196,8 +196,8 @@ describe('replaceable', function () {
 
   it(`replaceable/template - same part multiple times`, function () {
 
-    const App = CustomElementResource.define({ name: 'app', template: `<template><foo><template replace-part="bar">\${baz}</template></foo></template>` }, class { public baz = 'def'; });
-    const Foo = CustomElementResource.define({ name: 'foo', template: `<template><template replaceable part="bar"></template><template replaceable part="bar"></template></template>` }, class { public baz = 'abc'; });
+    const App = CustomElement.define({ name: 'app', template: `<template><foo><template replace-part="bar">\${baz}</template></foo></template>` }, class { public baz = 'def'; });
+    const Foo = CustomElement.define({ name: 'foo', template: `<template><template replaceable part="bar"></template><template replaceable part="bar"></template></template>` }, class { public baz = 'abc'; });
 
     const ctx = TestContext.createHTMLTestContext();
     ctx.container.register(Foo);
@@ -217,8 +217,8 @@ describe('replaceable', function () {
   // TODO: fix this scenario
   it(`replaceable/template - parent template controller`, function () {
 
-    const App = CustomElementResource.define({ name: 'app', template: `<template><foo><template if.bind="true"><template replace-part="bar">\${baz}</template></template></foo></template>` }, class { public baz = 'def'; });
-    const Foo = CustomElementResource.define({ name: 'foo', template: `<template><template replaceable part="bar"></template></template>` }, class { public baz = 'abc'; });
+    const App = CustomElement.define({ name: 'app', template: `<template><foo><template if.bind="true"><template replace-part="bar">\${baz}</template></template></foo></template>` }, class { public baz = 'def'; });
+    const Foo = CustomElement.define({ name: 'foo', template: `<template><template replaceable part="bar"></template></template>` }, class { public baz = 'abc'; });
 
     const ctx = TestContext.createHTMLTestContext();
     ctx.container.register(Foo);
@@ -237,8 +237,8 @@ describe('replaceable', function () {
 
   it(`replaceable/template - sibling lefthand side template controller`, function () {
 
-    const App = CustomElementResource.define({ name: 'app', template: `<template><foo><template if.bind="true" replace-part="bar">\${baz}</template></foo></template>` }, class { public baz = 'def'; });
-    const Foo = CustomElementResource.define({ name: 'foo', template: `<template><template replaceable part="bar"></template></template>` }, class { public baz = 'abc'; });
+    const App = CustomElement.define({ name: 'app', template: `<template><foo><template if.bind="true" replace-part="bar">\${baz}</template></foo></template>` }, class { public baz = 'def'; });
+    const Foo = CustomElement.define({ name: 'foo', template: `<template><template replaceable part="bar"></template></template>` }, class { public baz = 'abc'; });
 
     const ctx = TestContext.createHTMLTestContext();
     ctx.container.register(Foo);
@@ -257,8 +257,8 @@ describe('replaceable', function () {
 
   it(`replaceable/template - sibling righthand side template controller`, function () {
 
-    const App = CustomElementResource.define({ name: 'app', template: `<template><foo><template replace-part="bar" if.bind="true">\${baz}</template></foo></template>` }, class { public baz = 'def'; });
-    const Foo = CustomElementResource.define({ name: 'foo', template: `<template><template replaceable part="bar"></template></template>` }, class { public baz = 'abc'; });
+    const App = CustomElement.define({ name: 'app', template: `<template><foo><template replace-part="bar" if.bind="true">\${baz}</template></foo></template>` }, class { public baz = 'def'; });
+    const Foo = CustomElement.define({ name: 'foo', template: `<template><template replaceable part="bar"></template></template>` }, class { public baz = 'abc'; });
 
     const ctx = TestContext.createHTMLTestContext();
     ctx.container.register(Foo);
@@ -277,8 +277,8 @@ describe('replaceable', function () {
 
   it(`replaceable/template - sibling if/else with conflicting part names`, function () {
 
-    const App = CustomElementResource.define({ name: 'app', template: `<template><foo><template replace-part="bar" if.bind="true">\${baz}</template></foo><foo><template replace-part="bar" if.bind="false">\${baz}</template></foo></template>` }, class { public baz = 'def'; });
-    const Foo = CustomElementResource.define({ name: 'foo', template: `<template><template replaceable part="bar"></template></template>` }, class { public baz = 'abc'; });
+    const App = CustomElement.define({ name: 'app', template: `<template><foo><template replace-part="bar" if.bind="true">\${baz}</template></foo><foo><template replace-part="bar" if.bind="false">\${baz}</template></foo></template>` }, class { public baz = 'def'; });
+    const Foo = CustomElement.define({ name: 'foo', template: `<template><template replaceable part="bar"></template></template>` }, class { public baz = 'abc'; });
 
     const ctx = TestContext.createHTMLTestContext();
     ctx.container.register(Foo);
@@ -325,11 +325,11 @@ describe('replaceable', function () {
 
       for (let i = 1; 11 > i; ++i) {
         it(`works with replaceable on normal <div/> with. Nesting level: ${i}`, function() {
-          const App = CustomElementResource.define(
+          const App = CustomElement.define(
             { name: 'app', template: `<template><foo><template replace-part="p-${i}"><span>replace-part-p</span></template></foo></template>` },
             class App {}
           );
-          const Foo = CustomElementResource.define(
+          const Foo = CustomElement.define(
             { name: 'foo', template: `<template>${createReplaceableDiv(i)}</template>` },
             class Foo {}
           );
@@ -372,13 +372,13 @@ describe('replaceable', function () {
       };
       for (let i = 1; 11 > i; ++i) {
         it(`works with replaceable on normal <div/>. Siblings count: ${i}`, function() {
-          const App = CustomElementResource.define(
+          const App = CustomElement.define(
             { name: 'app', template:
               `<template><foo>${buildReplacementTemplate(i)}</foo></template>`
             },
             class App {}
           );
-          const Foo = CustomElementResource.define(
+          const Foo = CustomElement.define(
             { name: 'foo', template: `<template>${buildReplaceableDiv(i)}</template>` },
             class Foo {}
           );
@@ -464,13 +464,13 @@ describe('replaceable', function () {
     //   for (let baseReplaceableCount = 0; 10 > baseReplaceableCount; ++baseReplaceableCount) {
     //     for (let nestedDepth = 0; 10 > nestedDepth; ++nestedDepth) {
     //       it(`works with replaceable on normal <div/>. Siblings count: ${baseReplaceableCount}`, function() {
-    //         const App = CustomElementResource.define(
+    //         const App = CustomElement.define(
     //           { name: 'app', template:
     //             `<template><foo>${buildNestedReplacementTemplate(baseReplaceableCount, nestedDepth)}</foo></template>`
     //           },
     //           class App {}
     //         );
-    //         const Foo = CustomElementResource.define(
+    //         const Foo = CustomElement.define(
     //           { name: 'foo', template: `<template>${buildNestedReplaceableDiv(baseReplaceableCount, nestedDepth)}</template>` },
     //           class Foo {}
     //         );

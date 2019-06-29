@@ -14,7 +14,7 @@ import {
   customAttribute,
   customElement,
 
-  CustomElementResource,
+  CustomElement,
 
   HydrateAttributeInstruction,
   HydrateElementInstruction,
@@ -368,7 +368,7 @@ import {
 //     const Type = (obj as { prototype?: any })['prototype'] ? obj : function (this: any): void {
 //       Object.assign(this, obj);
 //     };
-//     const App = CustomElementResource.define(definition, Type as any);
+//     const App = CustomElement.define(definition, Type as any);
 //     return new TestBuilder(App) as any;
 //   }
 
@@ -377,7 +377,7 @@ import {
 //     const Type = (obj as { prototype?: any })['prototype'] ? obj : function (this: any): void {
 //       Object.assign(this, obj);
 //     };
-//     const Resource = CustomElementResource.define(definition, Type as any);
+//     const Resource = CustomElement.define(definition, Type as any);
 //     this.container.register(Resource);
 //     return this;
 //   }
@@ -578,7 +578,7 @@ export function createScopeForTest(bindingContext: any = {}, parentBindingContex
 //   dom.registerElementResolver(container, elementProvider);
 
 //   const element = container.get<T & IViewModel>(
-//     CustomElementResource.keyFrom(ElementType.description.name)
+//     CustomElement.keyFrom(ElementType.description.name)
 //   ) as T & IViewModel & InstanceType<typeof Type>;
 
 //   element.$hydrate(LF.none, container, host);

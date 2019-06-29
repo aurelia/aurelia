@@ -2,7 +2,7 @@ import {startFPSMonitor, startMemMonitor, initProfiler, startProfile, endProfile
 import * as faker from 'faker';
 import './app.scss';
 
-import { customElement, IViewModel, IDOM, CustomElementResource, buildTemplateDefinition, IteratorBindingInstruction, HydrateTemplateController, InterpolationInstruction, bindable, BindingStrategy, IController } from '@aurelia/runtime';
+import { customElement, IViewModel, IDOM, CustomElement, buildTemplateDefinition, IteratorBindingInstruction, HydrateTemplateController, InterpolationInstruction, bindable, BindingStrategy, IController } from '@aurelia/runtime';
 import { Subject, createElement, TextBindingInstruction } from '@aurelia/runtime-html'
 
 startFPSMonitor();

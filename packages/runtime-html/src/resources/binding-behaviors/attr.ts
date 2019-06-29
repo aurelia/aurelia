@@ -1,5 +1,5 @@
 import { IRegistry } from '@aurelia/kernel';
-import { PropertyBinding, BindingBehaviorResource, ILifecycle, IScope, LifecycleFlags } from '@aurelia/runtime';
+import { PropertyBinding, BindingBehavior, ILifecycle, IScope, LifecycleFlags } from '@aurelia/runtime';
 import { DataAttributeAccessor } from '../../observation/data-attribute-accessor';
 
 export class AttrBindingBehavior {
@@ -13,4 +13,4 @@ export class AttrBindingBehavior {
     return;
   }
 }
-BindingBehaviorResource.define('attr', AttrBindingBehavior);
+BindingBehavior.define('attr', AttrBindingBehavior);

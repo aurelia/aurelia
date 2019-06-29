@@ -1,5 +1,5 @@
 import { Constructable, IContainer, Reporter } from '@aurelia/kernel';
-import { Controller, CustomElementResource, ICustomElementType, INode, IRenderContext, IViewModel, LifecycleFlags } from '@aurelia/runtime';
+import { Controller, CustomElement, ICustomElementType, INode, IRenderContext, IViewModel, LifecycleFlags } from '@aurelia/runtime';
 import { INavigationInstruction } from './navigator';
 import { mergeParameters } from './parser';
 import { Viewport } from './viewport';
@@ -263,7 +263,7 @@ export class ViewportContent {
       return this.content;
     } else {
       const container = context.get(IContainer);
-      const resolver = container.getResolver<Constructable & IRouteableCustomElementType>(CustomElementResource.keyFrom(this.content));
+      const resolver = container.getResolver<Constructable & IRouteableCustomElementType>(CustomElement.keyFrom(this.content));
       if (resolver !== null) {
         return resolver.getFactory(container).Type;
       }
@@ -280,7 +280,7 @@ export class ViewportContent {
     if (typeof component !== 'string') {
       return container.get<IRouteableCustomElement>(component);
     } else {
-      return container.get<IRouteableCustomElement>(CustomElementResource.keyFrom(component));
+      return container.get<IRouteableCustomElement>(CustomElement.keyFrom(component));
     }
   }
 }

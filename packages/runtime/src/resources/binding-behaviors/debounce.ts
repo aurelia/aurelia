@@ -3,7 +3,7 @@ import { PropertyBinding } from '../../binding/property-binding';
 import { BindingMode, LifecycleFlags } from '../../flags';
 import { IBinding } from '../../lifecycle';
 import { IScope } from '../../observation';
-import { BindingBehaviorResource } from '../binding-behavior';
+import { BindingBehavior } from '../binding-behavior';
 
 export type DebounceableBinding = IBinding & {
   debouncedMethod: ((newValue: unknown, oldValue: unknown, flags: LifecycleFlags) => void) & { originalName: string };
@@ -94,4 +94,4 @@ export class DebounceBindingBehavior {
     binding.debounceState = null!;
   }
 }
-BindingBehaviorResource.define('debounce', DebounceBindingBehavior);
+BindingBehavior.define('debounce', DebounceBindingBehavior);

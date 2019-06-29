@@ -70,12 +70,12 @@ import { BindingContext } from '../observation/binding-context';
 import { ProxyObserver } from '../observation/proxy-observer';
 import { ISignaler } from '../observation/signaler';
 import {
-  BindingBehaviorResource,
+  BindingBehavior,
   IBindingBehavior,
 } from '../resources/binding-behavior';
 import {
   IValueConverter,
-  ValueConverterResource,
+  ValueConverter,
 } from '../resources/value-converter';
 import { IConnectableBinding } from './connectable';
 
@@ -162,7 +162,7 @@ export class BindingBehaviorExpression implements IBindingBehaviorExpression {
     this.expression = expression;
     this.name = name;
     this.args = args;
-    this.behaviorKey = BindingBehaviorResource.keyFrom(this.name);
+    this.behaviorKey = BindingBehavior.keyFrom(this.name);
   }
 
   public evaluate(flags: LifecycleFlags, scope: IScope, locator: IServiceLocator, part?: string): unknown {
@@ -236,7 +236,7 @@ export class ValueConverterExpression implements IValueConverterExpression {
     this.expression = expression;
     this.name = name;
     this.args = args;
-    this.converterKey = ValueConverterResource.keyFrom(this.name);
+    this.converterKey = ValueConverter.keyFrom(this.name);
   }
 
   public evaluate(flags: LifecycleFlags, scope: IScope, locator: IServiceLocator, part?: string): unknown {

@@ -12,7 +12,7 @@ import {
   BindingMode,
   BindingStrategy,
   ContinuationTask,
-  CustomElementResource,
+  CustomElement,
   HooksDefinition,
   IController,
   ICustomElementResource,
@@ -45,7 +45,7 @@ export type MaybeSubjectPromise<T> = Subject<T> | Promise<Subject<T>> | undefine
 export class Compose<T extends INode = Node> {
   public static readonly inject: readonly Key[] = [IDOM, IController, ITargetedInstruction, IRenderingEngine];
 
-  public static readonly kind: ICustomElementResource = CustomElementResource;
+  public static readonly kind: ICustomElementResource = CustomElement;
   public static readonly description: Required<ITemplateDefinition> = Object.freeze({
     name: 'au-compose',
     template: null,

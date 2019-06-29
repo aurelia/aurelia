@@ -1,7 +1,7 @@
-import { CustomElementResource } from '@aurelia/runtime';
+import { CustomElement } from '@aurelia/runtime';
 import { Viewport } from '@aurelia/router';
 
-const define = (CustomElementResource as any).define;
+const define = (CustomElement as any).define;
 
 describe('Viewport', function () {
   it('can be created', function () {

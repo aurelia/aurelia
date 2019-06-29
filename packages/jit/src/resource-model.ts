@@ -6,8 +6,8 @@ import {
 import {
   AttributeDefinition,
   BindingMode,
-  CustomAttributeResource,
-  CustomElementResource,
+  CustomAttribute,
+  CustomElement,
   IBindableDescription,
   TemplateDefinition
 } from '@aurelia/runtime';
@@ -41,7 +41,7 @@ export class ResourceModel {
   public getElementInfo(name: string): ElementInfo | null {
     let result = this.elementLookup[name];
     if (result === void 0) {
-      const def = this.resources.find(CustomElementResource, name);
+      const def = this.resources.find(CustomElement, name);
       if (def == null) {
         result = null!;
       } else {
@@ -62,7 +62,7 @@ export class ResourceModel {
   public getAttributeInfo(syntax: AttrSyntax): AttrInfo | null {
     let result = this.attributeLookup[syntax.target];
     if (result === void 0) {
-      const def = this.resources.find(CustomAttributeResource, syntax.target);
+      const def = this.resources.find(CustomAttribute, syntax.target);
       if (def == null) {
         result = null!;
       } else {

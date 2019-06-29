@@ -5,7 +5,7 @@ import {
   createRenderContext,
   Interpolation,
   AccessScopeExpression,
-  CustomElementResource,
+  CustomElement,
   ICustomElementResource,
   ITemplateDefinition,
   ITargetedInstruction,
@@ -160,7 +160,7 @@ describe.skip('controller', function () {
 
     const inject: readonly Key[] = Object.freeze([CallCollection]);
 
-    const kind: ICustomElementResource = CustomElementResource;
+    const kind: ICustomElementResource = CustomElement;
 
     const description = createDescription(
       'view-model',

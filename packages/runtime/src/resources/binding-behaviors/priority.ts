@@ -10,7 +10,7 @@ import {
   Priority,
 } from '../../lifecycle';
 import {
-  BindingBehaviorResource,
+  BindingBehavior,
   IBindingBehaviorDefinition,
   IBindingBehaviorResource,
 } from '../binding-behavior';
@@ -18,7 +18,7 @@ import {
 export class PriorityBindingBehavior {
   [id: number]: number | undefined;
 
-  public static readonly kind: IBindingBehaviorResource = BindingBehaviorResource;
+  public static readonly kind: IBindingBehaviorResource = BindingBehavior;
   public static readonly description: Required<IBindingBehaviorDefinition> = Object.freeze({
     name: 'priority',
   });

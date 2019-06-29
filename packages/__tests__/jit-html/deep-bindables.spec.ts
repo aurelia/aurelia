@@ -2,7 +2,7 @@
 // import {
 //   Aurelia,
 //   BindingStrategy,
-//   CustomElementResource,
+//   CustomElement,
 //   IViewModel,
 //   LifecycleFlags
 // } from '@aurelia/runtime';
@@ -40,7 +40,7 @@
 //         items: { property: 'items', attribute: 'items' },
 //         item: { property: 'item', attribute: 'item' }
 //       };
-//       const FooA = CustomElementResource.define(
+//       const FooA = CustomElement.define(
 //         {
 //           name: 'foo-a',
 //           template: `a\${depth}.\${item} <foo-a if.bind="depth<=max" repeat.for="i of items${bb}" max.bind="max" depth.bind="depth+1" items.bind="items" item.bind="i"></foo-a>`,
@@ -49,7 +49,7 @@
 //         class { public static bindables = bindables; }
 //       );
 
-//       const FooB = CustomElementResource.define(
+//       const FooB = CustomElement.define(
 //         {
 //           name: 'foo-b',
 //           template: `b\${depth}.\${item} <foo-b if.bind="depth<=max" repeat.for="i of items${bb}" max.bind="max" depth.bind="depth+1" items.bind="items" item.bind="i"></foo-b>`,
@@ -64,7 +64,7 @@
 //         public depth: number = 0;
 //         public items: number[] = [1, 2, 3];
 //       }
-//       const App = CustomElementResource.define(
+//       const App = CustomElement.define(
 //         {
 //           name: 'app',
 //           template: `<foo-a if.bind="a" max.bind="max" depth.bind="depth+1" items.bind="items" item.bind="0"></foo-a><foo-b else max.bind="max" depth.bind="depth+1" items.bind="items" item.bind="0"></foo-b>`,
@@ -179,7 +179,7 @@
 
 //       const interpolations = arr.map((v, i) => `\${item${i + 1}}`).join('');
 //       const bindings = arr.map((v, i) => `item${i + 1}.bind="item${i + 1}"`).join(' ');
-//       const Foo = CustomElementResource.define(
+//       const Foo = CustomElement.define(
 //         {
 //           name: 'foo',
 //           template: `${interpolations}`,
@@ -193,7 +193,7 @@
 //         public item2: string = '$2';
 //         public item3: string = '$3';
 //       }
-//       const App = CustomElementResource.define(
+//       const App = CustomElement.define(
 //         {
 //           name: 'app',
 //           template: `<foo repeat.for="i of ${elementCount}${bb}" ${bindings}></foo>`,
@@ -223,7 +223,7 @@
 //   //   const { ctx, container, lifecycle, au, host } = setup();
 //   //   let proxyStrategy = true;
 
-//   //   const Foo = CustomElementResource.define(
+//   //   const Foo = CustomElement.define(
 //   //     {
 //   //       name: 'foo',
 //   //       template: `\${a}\${b}\${c}\${d}\${e}\${f}\${g}\${h}\${i}\${j}`,
@@ -242,7 +242,7 @@
 //   //       public j = 'j';
 //   //     }
 //   //   );
-//   //   const App = CustomElementResource.define(
+//   //   const App = CustomElement.define(
 //   //     {
 //   //       name: 'app',
 //   //       template: `<foo repeat.for="i of ${count}"></foo>`,
@@ -315,7 +315,7 @@
 // //   template.content.appendChild(text);
 // //   template.content.appendChild(fooA_el);
 
-// //   const $App = CustomElementResource.define({ name: 'app', template }, class App {});
+// //   const $App = CustomElement.define({ name: 'app', template }, class App {});
 // //   container.register($App);
 // //   ctx.i = fooA_el;
 // //   return $App;
@@ -341,7 +341,7 @@
 // //     @bindable() public display: boolean;
 // //     @bindable() public things: any[];
 // //   }
-// //   const $FooA = CustomElementResource.define({ name: 'foo-a', template }, FooA);
+// //   const $FooA = CustomElement.define({ name: 'foo-a', template }, FooA);
 // //   container.register($FooA);
 // //   ctx.j = fooB_el;
 // //   return $FooA;
@@ -367,7 +367,7 @@
 // //     @bindable() public display: boolean;
 // //     @bindable() public things: any[];
 // //   }
-// //   const $FooB = CustomElementResource.define({ name: 'foo-b', template }, FooB);
+// //   const $FooB = CustomElement.define({ name: 'foo-b', template }, FooB);
 // //   container.register($FooB);
 // //   ctx.k = fooC_el;
 // //   return $FooB;
@@ -387,7 +387,7 @@
 // //     @bindable() public display: boolean;
 // //     @bindable() public things: any[];
 // //   }
-// //   const $FooC = CustomElementResource.define({ name: 'foo-c', template }, FooC);
+// //   const $FooC = CustomElement.define({ name: 'foo-c', template }, FooC);
 // //   container.register($FooC);
 // //   return $FooC;
 // // });

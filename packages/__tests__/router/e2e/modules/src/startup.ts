@@ -1,7 +1,7 @@
 import { BasicConfiguration } from '../../../../../jit';
 import { DI } from '../../../../../kernel';
 import { NavCustomElement, ViewportCustomElement } from '../../../../../router';
-import { Aurelia, CustomElementResource } from '../../../../../runtime';
+import { Aurelia, CustomElement } from '../../../../../runtime';
 import { App } from './app';
 import { AbcComponent } from './components/abc-component';
 import { DefComponent } from './components/def-component';
@@ -52,7 +52,7 @@ container.register(BasicConfiguration,
                    Alpha as any,
                    Beta as any,
 );
-const component = container.get(CustomElementResource.keyFrom('app'));
+const component = container.get(CustomElement.keyFrom('app'));
 
 const au = new Aurelia(container);
 window['au'] = au;

@@ -1,4 +1,4 @@
-import { Aurelia, CustomElementResource, LifecycleFlags as LF } from '@aurelia/runtime';
+import { Aurelia, CustomElement, LifecycleFlags as LF } from '@aurelia/runtime';
 import { TestContext, HTMLTestContext, hJsx, assert } from '@aurelia/testing';
 
 // IMPORTANT:
@@ -338,11 +338,11 @@ describe('replaceable', function () {
           ] of testCases
         ) {
           it(`\n----\n${testTitle}`, async function() {
-            const Foo = CustomElementResource.define(
+            const Foo = CustomElement.define(
               { name: 'foo', template: <template>{fooContentTemplate}</template> },
               class Foo { items = fooItems }
             );
-            const App = CustomElementResource.define(
+            const App = CustomElement.define(
               { name: 'app', template: <template>{appContentTemplate}</template> },
               class App { message = 'Aurelia' }
             );

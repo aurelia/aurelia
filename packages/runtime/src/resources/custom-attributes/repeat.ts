@@ -49,7 +49,7 @@ import {
 import { getCollectionObserver } from '../../observation/observer-locator';
 import { Bindable } from '../../templating/bindable';
 import {
-  CustomAttributeResource,
+  CustomAttribute,
   ICustomAttributeResource,
 } from '../custom-attribute';
 
@@ -63,7 +63,7 @@ const isMountedOrAttachedOrDetachingOrAttaching = isMountedOrAttachedOrDetaching
 export class Repeat<C extends ObservedCollection = IObservedArray, T extends INode = INode> implements IObservable {
   public static readonly inject: readonly Key[] = [IRenderLocation, IController, IViewFactory];
 
-  public static readonly kind: ICustomAttributeResource = CustomAttributeResource;
+  public static readonly kind: ICustomAttributeResource = CustomAttribute;
   public static readonly description: Required<IAttributeDefinition> = Object.freeze({
     name: 'repeat',
     aliases: PLATFORM.emptyArray as typeof PLATFORM.emptyArray & string[],

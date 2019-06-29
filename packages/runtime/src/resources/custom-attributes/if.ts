@@ -34,14 +34,14 @@ import {
 } from '../../observation';
 import { Bindable } from '../../templating/bindable';
 import {
-  CustomAttributeResource,
+  CustomAttribute,
   ICustomAttributeResource
 } from '../custom-attribute';
 
 export class If<T extends INode = INode> {
   public static readonly inject: readonly Key[] = [IViewFactory, IRenderLocation];
 
-  public static readonly kind: ICustomAttributeResource = CustomAttributeResource;
+  public static readonly kind: ICustomAttributeResource = CustomAttribute;
   public static readonly description: Required<IAttributeDefinition> = Object.freeze({
     name: 'if',
     aliases: PLATFORM.emptyArray as typeof PLATFORM.emptyArray & string[],
@@ -271,7 +271,7 @@ export class If<T extends INode = INode> {
 export class Else<T extends INode = INode> {
   public static readonly inject: readonly Key[] = [IViewFactory];
 
-  public static readonly kind: ICustomAttributeResource = CustomAttributeResource;
+  public static readonly kind: ICustomAttributeResource = CustomAttribute;
   public static readonly description: Required<IAttributeDefinition> = {
     name: 'else',
     aliases: PLATFORM.emptyArray as typeof PLATFORM.emptyArray & string[],

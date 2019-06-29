@@ -187,7 +187,7 @@ export {
 
 export {
   bindingBehavior,
-  BindingBehaviorResource,
+  BindingBehavior,
   IBindingBehavior,
   IBindingBehaviorDefinition,
   IBindingBehaviorResource,
@@ -220,7 +220,7 @@ export {
   customAttribute,
   CustomAttributeConstructor,
   CustomAttributeDecorator,
-  CustomAttributeResource,
+  CustomAttribute,
   dynamicOptions,
   ICustomAttributeResource,
   ICustomAttributeType,
@@ -244,7 +244,7 @@ export {
   containerless,
   customElement,
   CustomElementHost,
-  CustomElementResource,
+  CustomElement,
   ICustomElementDecorator,
   ICustomElementResource,
   ICustomElementType,
@@ -259,7 +259,7 @@ export {
   IValueConverterResource,
   IValueConverterType,
   valueConverter,
-  ValueConverterResource
+  ValueConverter
 } from './resources/value-converter';
 export {
   ISanitizer,

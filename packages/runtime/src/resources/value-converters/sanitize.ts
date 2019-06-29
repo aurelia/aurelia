@@ -1,5 +1,5 @@
 import { DI, Key, IRegistry } from '@aurelia/kernel';
-import { ValueConverterResource } from '../value-converter';
+import { ValueConverter } from '../value-converter';
 
 const SCRIPT_REGEX = /<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi;
 
@@ -44,4 +44,4 @@ export class SanitizeValueConverter {
     return this.sanitizer.sanitize(untrustedMarkup);
   }
 }
-ValueConverterResource.define('sanitize', SanitizeValueConverter);
+ValueConverter.define('sanitize', SanitizeValueConverter);

@@ -17,9 +17,9 @@ import {
   BindingMode,
   BindingType,
   customAttribute,
-  CustomAttributeResource,
+  CustomAttribute,
   customElement,
-  CustomElementResource,
+  CustomElement,
   DelegationStrategy,
   ForOfStatement,
   HydrateTemplateController,
@@ -54,7 +54,7 @@ describe('TemplateCompiler', function () {
     ctx = TestContext.createHTMLTestContext();
     container = ctx.container;
     sut = ctx.templateCompiler;
-    container.registerResolver<string>(CustomAttributeResource.keyFrom('foo'), { getFactory: () => ({ Type: { description: {} } }) } as any);
+    container.registerResolver<string>(CustomAttribute.keyFrom('foo'), { getFactory: () => ({ Type: { description: {} } }) } as any);
     resources = new RuntimeCompilationResources(container);
     dom = ctx.dom;
   });
@@ -755,7 +755,7 @@ describe(`TemplateCompiler - combinations`, function () {
           scopeParts: [],
         };
 
-        const $def = CustomAttributeResource.define(def, ctor);
+        const $def = CustomAttribute.define(def, ctor);
         const { sut, resources, dom  } = setup(ctx, $def);
 
         // @ts-ignore
@@ -807,7 +807,7 @@ describe(`TemplateCompiler - combinations`, function () {
 
         const { sut, resources, dom  } = setup(
           ctx,
-          CustomAttributeResource.define({ name: 'asdf', bindables, hasDynamicOptions: true }, class FooBar {})
+          CustomAttribute.define({ name: 'asdf', bindables, hasDynamicOptions: true }, class FooBar {})
         );
 
         const instruction = createAttributeInstruction(bindableDescription, attrName, attrValue, true);
@@ -888,10 +888,10 @@ describe(`TemplateCompiler - combinations`, function () {
 
         const { sut, resources, dom } = setup(
           ctx,
-          CustomAttributeResource.define({ name: 'foo', isTemplateController: true }, class Foo {}),
-          CustomAttributeResource.define({ name: 'bar', isTemplateController: true }, class Bar {}),
-          CustomAttributeResource.define({ name: 'baz', isTemplateController: true }, class Baz {}),
-          CustomAttributeResource.define({ name: 'qux', isTemplateController: true }, class Qux {})
+          CustomAttribute.define({ name: 'foo', isTemplateController: true }, class Foo {}),
+          CustomAttribute.define({ name: 'bar', isTemplateController: true }, class Bar {}),
+          CustomAttribute.define({ name: 'baz', isTemplateController: true }, class Baz {}),
+          CustomAttribute.define({ name: 'qux', isTemplateController: true }, class Qux {})
         );
 
         const actual = sut.compile(dom, input, resources);
@@ -949,11 +949,11 @@ describe(`TemplateCompiler - combinations`, function () {
 
         const { sut, resources, dom } = setup(
           ctx,
-          CustomAttributeResource.define({ name: 'foo',  isTemplateController: true }, class Foo {}),
-          CustomAttributeResource.define({ name: 'bar',  isTemplateController: true }, class Bar {}),
-          CustomAttributeResource.define({ name: 'baz',  isTemplateController: true }, class Baz {}),
-          CustomAttributeResource.define({ name: 'qux',  isTemplateController: true }, class Qux {}),
-          CustomAttributeResource.define({ name: 'quux', isTemplateController: true }, class Quux {})
+          CustomAttribute.define({ name: 'foo',  isTemplateController: true }, class Foo {}),
+          CustomAttribute.define({ name: 'bar',  isTemplateController: true }, class Bar {}),
+          CustomAttribute.define({ name: 'baz',  isTemplateController: true }, class Baz {}),
+          CustomAttribute.define({ name: 'qux',  isTemplateController: true }, class Qux {}),
+          CustomAttribute.define({ name: 'quux', isTemplateController: true }, class Quux {})
         );
 
         const actual = sut.compile(dom, input, resources);
@@ -1010,9 +1010,9 @@ describe(`TemplateCompiler - combinations`, function () {
 
         const { sut, resources, dom } = setup(
           ctx,
-          CustomAttributeResource.define({ name: 'foo', isTemplateController: true }, class Foo {}),
-          CustomAttributeResource.define({ name: 'bar', isTemplateController: true }, class Bar {}),
-          CustomAttributeResource.define({ name: 'baz', isTemplateController: true }, class Baz {})
+          CustomAttribute.define({ name: 'foo', isTemplateController: true }, class Foo {}),
+          CustomAttribute.define({ name: 'bar', isTemplateController: true }, class Bar {}),
+          CustomAttribute.define({ name: 'baz', isTemplateController: true }, class Baz {})
         );
 
         const output = {
@@ -1085,7 +1085,7 @@ describe(`TemplateCompiler - combinations`, function () {
 
         const { sut, resources, dom } = setup(
           ctx,
-          CustomElementResource.define({ name: 'foobar', bindables }, class FooBar {})
+          CustomElement.define({ name: 'foobar', bindables }, class FooBar {})
         );
 
         const instruction = createAttributeInstruction(bindableDescription, attrName, attrValue, false);
@@ -1151,9 +1151,9 @@ describe(`TemplateCompiler - combinations`, function () {
 
         const { sut, resources, dom } = setup(
           ctx,
-          CustomElementResource.define({ name: 'foo' }, class Foo {}),
-          CustomElementResource.define({ name: 'bar' }, class Bar {}),
-          CustomElementResource.define({ name: 'baz' }, class Baz {})
+          CustomElement.define({ name: 'foo' }, class Foo {}),
+          CustomElement.define({ name: 'bar' }, class Bar {}),
+          CustomElement.define({ name: 'baz' }, class Baz {})
         );
 
         // enableTracing();

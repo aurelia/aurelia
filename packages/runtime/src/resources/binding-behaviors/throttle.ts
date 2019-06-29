@@ -3,7 +3,7 @@ import { PropertyBinding } from '../../binding/property-binding';
 import { BindingMode, LifecycleFlags } from '../../flags';
 import { IBinding } from '../../lifecycle';
 import { IScope } from '../../observation';
-import { BindingBehaviorResource } from '../binding-behavior';
+import { BindingBehavior } from '../binding-behavior';
 
 export type ThrottleableBinding = IBinding & {
   throttledMethod: ((value: unknown) => unknown) & { originalName: string };
@@ -85,4 +85,4 @@ export class ThrottleBindingBehavior {
     binding.throttleState = null!;
   }
 }
-BindingBehaviorResource.define('throttle', ThrottleBindingBehavior);
+BindingBehavior.define('throttle', ThrottleBindingBehavior);

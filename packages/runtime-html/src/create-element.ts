@@ -7,7 +7,7 @@ import {
 
 import {
   buildTemplateDefinition,
-  CustomElementResource,
+  CustomElement,
   HydrateElementInstruction,
   IBindableDescription,
   IController,
@@ -39,7 +39,7 @@ export function createElement<T extends INode = Node, C extends Constructable = 
 ): RenderPlan<T> {
   if (typeof tagOrType === 'string') {
     return createElementForTag(dom, tagOrType, props, children);
-  } else if (CustomElementResource.isType(tagOrType)) {
+  } else if (CustomElement.isType(tagOrType)) {
     return createElementForType(dom, tagOrType, props, children);
   } else {
     throw new Error(`Invalid tagOrType.`);

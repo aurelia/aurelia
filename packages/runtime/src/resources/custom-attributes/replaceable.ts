@@ -26,14 +26,14 @@ import {
   ILifecycleTask,
 } from '../../lifecycle-task';
 import {
-  CustomAttributeResource,
+  CustomAttribute,
   ICustomAttributeResource,
 } from '../custom-attribute';
 
 export class Replaceable<T extends INode = INode> {
   public static readonly inject: readonly Key[] = [IViewFactory, IRenderLocation];
 
-  public static readonly kind: ICustomAttributeResource = CustomAttributeResource;
+  public static readonly kind: ICustomAttributeResource = CustomAttribute;
   public static readonly description: Required<IAttributeDefinition> = Object.freeze({
     name: 'replaceable',
     aliases: PLATFORM.emptyArray as typeof PLATFORM.emptyArray & string[],

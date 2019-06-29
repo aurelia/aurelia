@@ -1,7 +1,7 @@
 import { Key, InterfaceSymbol, IRegistry, Tracer } from '@aurelia/kernel';
 import {
   addBinding,
-  Binding,
+  PropertyBinding,
   BindingMode,
   BindingType,
   ensureExpression,
@@ -114,7 +114,7 @@ export class StylePropertyBindingRenderer implements IInstructionRenderer {
   public render(flags: LifecycleFlags, dom: IDOM, context: IRenderContext, renderable: IController, target: HTMLElement, instruction: IStylePropertyBindingInstruction): void {
     if (Tracer.enabled) { Tracer.enter('StylePropertyBindingRenderer', 'render', slice.call(arguments)); }
     const expr = ensureExpression(this.parser, instruction.from, BindingType.IsPropertyCommand | BindingMode.toView);
-    const binding = new Binding(expr, target.style, instruction.to, BindingMode.toView, this.observerLocator, context);
+    const binding = new PropertyBinding(expr, target.style, instruction.to, BindingMode.toView, this.observerLocator, context);
     addBinding(renderable, binding);
     if (Tracer.enabled) { Tracer.leave(); }
   }

@@ -40,10 +40,10 @@ const { oneTime, toView, fromView } = BindingMode;
 // pre-combining flags for bitwise checks is a minor perf tweak
 const toViewOrOneTime = toView | oneTime;
 
-export interface Binding extends IConnectableBinding {}
+export interface PropertyBinding extends IConnectableBinding {}
 
 @connectable()
-export class Binding implements IPartialConnectableBinding {
+export class PropertyBinding implements IPartialConnectableBinding {
   public id!: number;
   public $state: State;
   public $lifecycle: ILifecycle;

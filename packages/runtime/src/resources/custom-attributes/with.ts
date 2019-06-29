@@ -28,14 +28,14 @@ import { InlineObserversLookup } from '../../observation';
 import { Scope } from '../../observation/binding-context';
 import { Bindable } from '../../templating/bindable';
 import {
-  CustomAttributeResource,
+  CustomAttribute,
   ICustomAttributeResource
 } from '../custom-attribute';
 
 export class With<T extends INode = INode> {
   public static readonly inject: readonly Key[] = [IViewFactory, IRenderLocation];
 
-  public static readonly kind: ICustomAttributeResource = CustomAttributeResource;
+  public static readonly kind: ICustomAttributeResource = CustomAttribute;
   public static readonly description: Required<IAttributeDefinition> = Object.freeze({
     name: 'with',
     aliases: PLATFORM.emptyArray as typeof PLATFORM.emptyArray & string[],

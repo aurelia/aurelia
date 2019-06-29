@@ -18,7 +18,7 @@ import {
   PropertyBindingRendererRegistration,
   SetPropertyRendererRegistration,
   TemplateControllerRendererRegistration,
-  ValueConverterResource,
+  ValueConverter,
 } from '@aurelia/runtime';
 import {
   IProjectorLocatorRegistration,
@@ -139,13 +139,13 @@ const container = DI.createContainer().register(
   Router as any,
 
   // custom inline registrations
-  ValueConverterResource.define('pascal', class {
+  ValueConverter.define('pascal', class {
     public toView(input: string): string {
       const camel = camelCase(input);
       return camel.slice(0, 1).toUpperCase() + camel.slice(1);
     }
   }),
-  ValueConverterResource.define('sort', class {
+  ValueConverter.define('sort', class {
     public toView(arr: unknown[], prop?: string, dir: 'asc' | 'desc' = 'asc'): unknown[] {
       if (Array.isArray(arr)) {
         const factor = dir === 'asc' ? 1 : -1;

@@ -1,6 +1,6 @@
 // tslint:disable:quotemark member-access no-all-duplicated-branches
 import { Profiler } from "@aurelia/kernel";
-import { Aurelia, CustomElementResource } from "@aurelia/runtime";
+import { Aurelia, CustomElement } from "@aurelia/runtime";
 import { TestContext, writeProfilerReport, assert, h } from "@aurelia/testing";
 
 describe("generated.template-compiler.repeat", function () {
@@ -12,7 +12,7 @@ describe("generated.template-compiler.repeat", function () {
     }
     it("10 _", function () {
         const { au, host } = setup();
-        const App = CustomElementResource.define(
+        const App = CustomElement.define(
           {
             name: "app",
             template: `<div repeat.for="i of items">\${i}</div>`
@@ -30,7 +30,7 @@ describe("generated.template-compiler.repeat", function () {
     });
     it("01 _", function () {
         const { au, host } = setup();
-        const App = CustomElementResource.define(
+        const App = CustomElement.define(
           {
             name: "app",
             template: `<div repeat.for="i of items">\${i}</div>`
@@ -50,7 +50,7 @@ describe("generated.template-compiler.repeat", function () {
 
     it("012 _", function () {
       const { au, host } = setup();
-      const App = CustomElementResource.define(
+      const App = CustomElement.define(
         {
           name: "app",
           template: `<div repeat.for="i of items">\${i}</div>`
@@ -68,7 +68,7 @@ describe("generated.template-compiler.repeat", function () {
   });
   it("021 _", function () {
     const { au, host } = setup();
-    const App = CustomElementResource.define(
+    const App = CustomElement.define(
       {
         name: "app",
         template: `<div repeat.for="i of items">\${i}</div>`
@@ -86,7 +86,7 @@ describe("generated.template-compiler.repeat", function () {
   });
   it("102 _", function () {
     const { au, host } = setup();
-    const App = CustomElementResource.define(
+    const App = CustomElement.define(
       {
         name: "app",
         template: `<div repeat.for="i of items">\${i}</div>`
@@ -104,7 +104,7 @@ describe("generated.template-compiler.repeat", function () {
   });
   it("120 _", function () {
     const { au, host } = setup();
-    const App = CustomElementResource.define(
+    const App = CustomElement.define(
       {
         name: "app",
         template: `<div repeat.for="i of items">\${i}</div>`
@@ -122,7 +122,7 @@ describe("generated.template-compiler.repeat", function () {
   });
   it("201 _", function () {
     const { au, host } = setup();
-    const App = CustomElementResource.define(
+    const App = CustomElement.define(
       {
         name: "app",
         template: `<div repeat.for="i of items">\${i}</div>`
@@ -140,7 +140,7 @@ describe("generated.template-compiler.repeat", function () {
   });
   it("210 _", function () {
     const { au, host } = setup();
-    const App = CustomElementResource.define(
+    const App = CustomElement.define(
       {
         name: "app",
         template: `<div repeat.for="i of items">\${i}</div>`
@@ -160,7 +160,7 @@ describe("generated.template-compiler.repeat", function () {
 
   it("0123 _", function () {
     const { au, host } = setup();
-    const App = CustomElementResource.define(
+    const App = CustomElement.define(
       {
         name: "app",
         template: `<div repeat.for="i of items">\${i}</div>`
@@ -178,7 +178,7 @@ describe("generated.template-compiler.repeat", function () {
   });
   it("0132 _", function () {
     const { au, host } = setup();
-    const App = CustomElementResource.define(
+    const App = CustomElement.define(
       {
         name: "app",
         template: `<div repeat.for="i of items">\${i}</div>`
@@ -196,7 +196,7 @@ describe("generated.template-compiler.repeat", function () {
   });
   it("0213 _", function () {
     const { au, host } = setup();
-    const App = CustomElementResource.define(
+    const App = CustomElement.define(
       {
         name: "app",
         template: `<div repeat.for="i of items">\${i}</div>`
@@ -214,7 +214,7 @@ describe("generated.template-compiler.repeat", function () {
   });
   it("0231 _", function () {
     const { au, host } = setup();
-    const App = CustomElementResource.define(
+    const App = CustomElement.define(
       {
         name: "app",
         template: `<div repeat.for="i of items">\${i}</div>`
@@ -232,7 +232,7 @@ describe("generated.template-compiler.repeat", function () {
   });
   it("0312 _", function () {
     const { au, host } = setup();
-    const App = CustomElementResource.define(
+    const App = CustomElement.define(
       {
         name: "app",
         template: `<div repeat.for="i of items">\${i}</div>`
@@ -250,7 +250,7 @@ describe("generated.template-compiler.repeat", function () {
   });
   it("0321 _", function () {
     const { au, host } = setup();
-    const App = CustomElementResource.define(
+    const App = CustomElement.define(
       {
         name: "app",
         template: `<div repeat.for="i of items">\${i}</div>`
@@ -268,7 +268,7 @@ describe("generated.template-compiler.repeat", function () {
   });
   it("1023 _", function () {
     const { au, host } = setup();
-    const App = CustomElementResource.define(
+    const App = CustomElement.define(
       {
         name: "app",
         template: `<div repeat.for="i of items">\${i}</div>`
@@ -286,7 +286,7 @@ describe("generated.template-compiler.repeat", function () {
   });
   it("1032 _", function () {
     const { au, host } = setup();
-    const App = CustomElementResource.define(
+    const App = CustomElement.define(
       {
         name: "app",
         template: `<div repeat.for="i of items">\${i}</div>`
@@ -304,7 +304,7 @@ describe("generated.template-compiler.repeat", function () {
   });
   it("1203 _", function () {
     const { au, host } = setup();
-    const App = CustomElementResource.define(
+    const App = CustomElement.define(
       {
         name: "app",
         template: `<div repeat.for="i of items">\${i}</div>`
@@ -322,7 +322,7 @@ describe("generated.template-compiler.repeat", function () {
   });
   it("1230 _", function () {
     const { au, host } = setup();
-    const App = CustomElementResource.define(
+    const App = CustomElement.define(
       {
         name: "app",
         template: `<div repeat.for="i of items">\${i}</div>`
@@ -340,7 +340,7 @@ describe("generated.template-compiler.repeat", function () {
   });
   it("1302 _", function () {
     const { au, host } = setup();
-    const App = CustomElementResource.define(
+    const App = CustomElement.define(
       {
         name: "app",
         template: `<div repeat.for="i of items">\${i}</div>`
@@ -358,7 +358,7 @@ describe("generated.template-compiler.repeat", function () {
   });
   it("1320 _", function () {
     const { au, host } = setup();
-    const App = CustomElementResource.define(
+    const App = CustomElement.define(
       {
         name: "app",
         template: `<div repeat.for="i of items">\${i}</div>`
@@ -376,7 +376,7 @@ describe("generated.template-compiler.repeat", function () {
   });
   it("2013 _", function () {
     const { au, host } = setup();
-    const App = CustomElementResource.define(
+    const App = CustomElement.define(
       {
         name: "app",
         template: `<div repeat.for="i of items">\${i}</div>`
@@ -394,7 +394,7 @@ describe("generated.template-compiler.repeat", function () {
   });
   it("2031 _", function () {
     const { au, host } = setup();
-    const App = CustomElementResource.define(
+    const App = CustomElement.define(
       {
         name: "app",
         template: `<div repeat.for="i of items">\${i}</div>`
@@ -412,7 +412,7 @@ describe("generated.template-compiler.repeat", function () {
   });
   it("2103 _", function () {
     const { au, host } = setup();
-    const App = CustomElementResource.define(
+    const App = CustomElement.define(
       {
         name: "app",
         template: `<div repeat.for="i of items">\${i}</div>`
@@ -430,7 +430,7 @@ describe("generated.template-compiler.repeat", function () {
   });
   it("2130 _", function () {
     const { au, host } = setup();
-    const App = CustomElementResource.define(
+    const App = CustomElement.define(
       {
         name: "app",
         template: `<div repeat.for="i of items">\${i}</div>`
@@ -448,7 +448,7 @@ describe("generated.template-compiler.repeat", function () {
   });
   it("2301 _", function () {
     const { au, host } = setup();
-    const App = CustomElementResource.define(
+    const App = CustomElement.define(
       {
         name: "app",
         template: `<div repeat.for="i of items">\${i}</div>`
@@ -466,7 +466,7 @@ describe("generated.template-compiler.repeat", function () {
   });
   it("2310 _", function () {
     const { au, host } = setup();
-    const App = CustomElementResource.define(
+    const App = CustomElement.define(
       {
         name: "app",
         template: `<div repeat.for="i of items">\${i}</div>`
@@ -484,7 +484,7 @@ describe("generated.template-compiler.repeat", function () {
   });
   it("3012 _", function () {
     const { au, host } = setup();
-    const App = CustomElementResource.define(
+    const App = CustomElement.define(
       {
         name: "app",
         template: `<div repeat.for="i of items">\${i}</div>`
@@ -502,7 +502,7 @@ describe("generated.template-compiler.repeat", function () {
   });
   it("3021 _", function () {
     const { au, host } = setup();
-    const App = CustomElementResource.define(
+    const App = CustomElement.define(
       {
         name: "app",
         template: `<div repeat.for="i of items">\${i}</div>`
@@ -520,7 +520,7 @@ describe("generated.template-compiler.repeat", function () {
   });
   it("3102 _", function () {
     const { au, host } = setup();
-    const App = CustomElementResource.define(
+    const App = CustomElement.define(
       {
         name: "app",
         template: `<div repeat.for="i of items">\${i}</div>`
@@ -538,7 +538,7 @@ describe("generated.template-compiler.repeat", function () {
   });
   it("3120 _", function () {
     const { au, host } = setup();
-    const App = CustomElementResource.define(
+    const App = CustomElement.define(
       {
         name: "app",
         template: `<div repeat.for="i of items">\${i}</div>`
@@ -556,7 +556,7 @@ describe("generated.template-compiler.repeat", function () {
   });
   it("3201 _", function () {
     const { au, host } = setup();
-    const App = CustomElementResource.define(
+    const App = CustomElement.define(
       {
         name: "app",
         template: `<div repeat.for="i of items">\${i}</div>`
@@ -574,7 +574,7 @@ describe("generated.template-compiler.repeat", function () {
   });
   it("3210 _", function () {
     const { au, host } = setup();
-    const App = CustomElementResource.define(
+    const App = CustomElement.define(
       {
         name: "app",
         template: `<div repeat.for="i of items">\${i}</div>`

@@ -1,11 +1,11 @@
 import { Key, IRegistry, Reporter } from '@aurelia/kernel';
-import { Binding } from '../../binding/binding';
+import { PropertyBinding } from '../../binding/property-binding';
 import { LifecycleFlags } from '../../flags';
 import { IScope } from '../../observation';
 import { ISignaler } from '../../observation/signaler';
-import { BindingBehaviorResource } from '../binding-behavior';
+import { BindingBehavior } from '../binding-behavior';
 
-export type SignalableBinding = Binding & {
+export type SignalableBinding = PropertyBinding & {
   signal: string | string[];
 };
 
@@ -60,4 +60,4 @@ export class SignalBindingBehavior {
     }
   }
 }
-BindingBehaviorResource.define('signal', SignalBindingBehavior);
+BindingBehavior.define('signal', SignalBindingBehavior);

@@ -334,7 +334,7 @@ const ObservationArgsProcessor = {
     switch (info.objName) {
       case 'Listener':
         return ((info.params as ReadonlyArray<{ type: string }>)[0]).type;
-      case 'Call':
+      case 'CallBinding':
         const names: string[] = [];
         if (info.params != null) {
           for (let i = 0, ii = info.params.length; i < ii; ++i) {

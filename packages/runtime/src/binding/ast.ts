@@ -70,12 +70,12 @@ import { BindingContext } from '../observation/binding-context';
 import { ProxyObserver } from '../observation/proxy-observer';
 import { ISignaler } from '../observation/signaler';
 import {
-  BindingBehaviorResource,
+  BindingBehavior,
   IBindingBehavior,
 } from '../resources/binding-behavior';
 import {
   IValueConverter,
-  ValueConverterResource,
+  ValueConverter,
 } from '../resources/value-converter';
 import { IConnectableBinding } from './connectable';
 
@@ -150,7 +150,7 @@ const enum RuntimeError {
   NilScope = 250,
 }
 
-export class BindingBehavior implements IBindingBehaviorExpression {
+export class BindingBehaviorExpression implements IBindingBehaviorExpression {
   public readonly $kind: ExpressionKind.BindingBehavior;
   public readonly expression: IsBindingBehavior;
   public readonly name: string;
@@ -162,7 +162,7 @@ export class BindingBehavior implements IBindingBehaviorExpression {
     this.expression = expression;
     this.name = name;
     this.args = args;
-    this.behaviorKey = BindingBehaviorResource.keyFrom(this.name);
+    this.behaviorKey = BindingBehavior.keyFrom(this.name);
   }
 
   public evaluate(flags: LifecycleFlags, scope: IScope, locator: IServiceLocator, part?: string): unknown {
@@ -224,7 +224,7 @@ export class BindingBehavior implements IBindingBehaviorExpression {
   }
 }
 
-export class ValueConverter implements IValueConverterExpression {
+export class ValueConverterExpression implements IValueConverterExpression {
   public readonly $kind: ExpressionKind.ValueConverter;
   public readonly expression: IsValueConverter;
   public readonly name: string;
@@ -236,14 +236,14 @@ export class ValueConverter implements IValueConverterExpression {
     this.expression = expression;
     this.name = name;
     this.args = args;
-    this.converterKey = ValueConverterResource.keyFrom(this.name);
+    this.converterKey = ValueConverter.keyFrom(this.name);
   }
 
   public evaluate(flags: LifecycleFlags, scope: IScope, locator: IServiceLocator, part?: string): unknown {
     if (!locator) {
       throw Reporter.error(RuntimeError.NoLocator, this);
     }
-    const converter = locator.get<ValueConverter & IValueConverter>(this.converterKey);
+    const converter = locator.get<ValueConverterExpression & IValueConverter>(this.converterKey);
     if (!converter) {
       throw Reporter.error(RuntimeError.NoConverterFound, this);
     }
@@ -264,7 +264,7 @@ export class ValueConverter implements IValueConverterExpression {
     if (!locator) {
       throw Reporter.error(RuntimeError.NoLocator, this);
     }
-    const converter = locator.get<ValueConverter & IValueConverter>(this.converterKey);
+    const converter = locator.get<ValueConverterExpression & IValueConverter>(this.converterKey);
     if (!converter) {
       throw Reporter.error(RuntimeError.NoConverterFound, this);
     }
@@ -322,7 +322,7 @@ export class ValueConverter implements IValueConverterExpression {
   }
 }
 
-export class Assign implements IAssignExpression {
+export class AssignExpression implements IAssignExpression {
   public readonly $kind: ExpressionKind.Assign;
   public readonly target: IsAssignable;
   public readonly value: IsAssign;
@@ -351,7 +351,7 @@ export class Assign implements IAssignExpression {
   }
 }
 
-export class Conditional implements IConditionalExpression {
+export class ConditionalExpression implements IConditionalExpression {
   public readonly $kind: ExpressionKind.Conditional;
   public assign: IExpression['assign'];
   public readonly condition: IsBinary;
@@ -388,9 +388,9 @@ export class Conditional implements IConditionalExpression {
   }
 }
 
-export class AccessThis implements IAccessThisExpression {
-  public static readonly $this: AccessThis = new AccessThis(0);
-  public static readonly $parent: AccessThis = new AccessThis(1);
+export class AccessThisExpression implements IAccessThisExpression {
+  public static readonly $this: AccessThisExpression = new AccessThisExpression(0);
+  public static readonly $parent: AccessThisExpression = new AccessThisExpression(1);
   public readonly $kind: ExpressionKind.AccessThis;
   public assign: IExpression['assign'];
   public connect: IExpression['connect'];
@@ -433,7 +433,7 @@ export class AccessThis implements IAccessThisExpression {
   }
 }
 
-export class AccessScope implements IAccessScopeExpression {
+export class AccessScopeExpression implements IAccessScopeExpression {
   public readonly $kind: ExpressionKind.AccessScope;
   public readonly name: string;
   public readonly ancestor: number;
@@ -471,7 +471,7 @@ export class AccessScope implements IAccessScopeExpression {
   }
 }
 
-export class AccessMember implements IAccessMemberExpression {
+export class AccessMemberExpression implements IAccessMemberExpression {
   public readonly $kind: ExpressionKind.AccessMember;
   public readonly object: IsLeftHandSide;
   public readonly name: string;
@@ -514,7 +514,7 @@ export class AccessMember implements IAccessMemberExpression {
   }
 }
 
-export class AccessKeyed implements IAccessKeyedExpression {
+export class AccessKeyedExpression implements IAccessKeyedExpression {
   public readonly $kind: ExpressionKind.AccessKeyed;
   public readonly object: IsLeftHandSide;
   public readonly key: IsAssign;
@@ -565,7 +565,7 @@ export class AccessKeyed implements IAccessKeyedExpression {
   }
 }
 
-export class CallScope implements ICallScopeExpression {
+export class CallScopeExpression implements ICallScopeExpression {
   public readonly $kind: ExpressionKind.CallScope;
   public assign: IExpression['assign'];
   public readonly name: string;
@@ -602,7 +602,7 @@ export class CallScope implements ICallScopeExpression {
   }
 }
 
-export class CallMember implements ICallMemberExpression {
+export class CallMemberExpression implements ICallMemberExpression {
   public readonly $kind: ExpressionKind.CallMember;
   public assign: IExpression['assign'];
   public readonly object: IsLeftHandSide;
@@ -643,7 +643,7 @@ export class CallMember implements ICallMemberExpression {
   }
 }
 
-export class CallFunction implements ICallFunctionExpression {
+export class CallFunctionExpression implements ICallFunctionExpression {
   public readonly $kind: ExpressionKind.CallFunction;
   public assign: IExpression['assign'];
   public readonly func: IsLeftHandSide;
@@ -683,7 +683,7 @@ export class CallFunction implements ICallFunctionExpression {
   }
 }
 
-export class Binary implements IBinaryExpression {
+export class BinaryExpression implements IBinaryExpression {
   public readonly $kind: ExpressionKind.Binary;
   public assign: IExpression['assign'];
   public readonly operation: BinaryOperator;
@@ -788,7 +788,7 @@ export class Binary implements IBinaryExpression {
   }
 }
 
-export class Unary implements IUnaryExpression {
+export class UnaryExpression implements IUnaryExpression {
   public readonly $kind: ExpressionKind.Unary;
   public assign: IExpression['assign'];
   public readonly operation: UnaryOperator;
@@ -832,12 +832,12 @@ export class Unary implements IUnaryExpression {
     return visitor.visitUnary(this);
   }
 }
-export class PrimitiveLiteral<TValue extends StrictPrimitive = StrictPrimitive> implements IPrimitiveLiteralExpression {
-  public static readonly $undefined: PrimitiveLiteral<undefined> = new PrimitiveLiteral<undefined>(void 0);
-  public static readonly $null: PrimitiveLiteral<null> = new PrimitiveLiteral<null>(null);
-  public static readonly $true: PrimitiveLiteral<true> = new PrimitiveLiteral<true>(true);
-  public static readonly $false: PrimitiveLiteral<false> = new PrimitiveLiteral<false>(false);
-  public static readonly $empty: PrimitiveLiteral<string> = new PrimitiveLiteral<''>('');
+export class PrimitiveLiteralExpression<TValue extends StrictPrimitive = StrictPrimitive> implements IPrimitiveLiteralExpression {
+  public static readonly $undefined: PrimitiveLiteralExpression<undefined> = new PrimitiveLiteralExpression<undefined>(void 0);
+  public static readonly $null: PrimitiveLiteralExpression<null> = new PrimitiveLiteralExpression<null>(null);
+  public static readonly $true: PrimitiveLiteralExpression<true> = new PrimitiveLiteralExpression<true>(true);
+  public static readonly $false: PrimitiveLiteralExpression<false> = new PrimitiveLiteralExpression<false>(false);
+  public static readonly $empty: PrimitiveLiteralExpression<string> = new PrimitiveLiteralExpression<''>('');
   public readonly $kind: ExpressionKind.PrimitiveLiteral;
   public connect: IExpression['connect'];
   public assign: IExpression['assign'];
@@ -859,12 +859,12 @@ export class PrimitiveLiteral<TValue extends StrictPrimitive = StrictPrimitive> 
   }
 }
 
-export class HtmlLiteral implements IHtmlLiteralExpression {
+export class HtmlLiteralExpression implements IHtmlLiteralExpression {
   public readonly $kind: ExpressionKind.HtmlLiteral;
   public assign: IExpression['assign'];
-  public readonly parts: ReadonlyArray<HtmlLiteral>;
+  public readonly parts: ReadonlyArray<HtmlLiteralExpression>;
 
-  constructor(parts: ReadonlyArray<HtmlLiteral>) {
+  constructor(parts: ReadonlyArray<HtmlLiteralExpression>) {
     this.$kind = ExpressionKind.HtmlLiteral;
     this.assign = PLATFORM.noop as () => unknown;
     this.parts = parts;
@@ -895,8 +895,8 @@ export class HtmlLiteral implements IHtmlLiteralExpression {
   }
 }
 
-export class ArrayLiteral implements IArrayLiteralExpression {
-  public static readonly $empty: ArrayLiteral = new ArrayLiteral(PLATFORM.emptyArray);
+export class ArrayLiteralExpression implements IArrayLiteralExpression {
+  public static readonly $empty: ArrayLiteralExpression = new ArrayLiteralExpression(PLATFORM.emptyArray);
   public readonly $kind: ExpressionKind.ArrayLiteral;
   public assign: IExpression['assign'];
   public readonly elements: ReadonlyArray<IsAssign>;
@@ -929,8 +929,8 @@ export class ArrayLiteral implements IArrayLiteralExpression {
   }
 }
 
-export class ObjectLiteral implements IObjectLiteralExpression {
-  public static readonly $empty: ObjectLiteral = new ObjectLiteral(PLATFORM.emptyArray, PLATFORM.emptyArray);
+export class ObjectLiteralExpression implements IObjectLiteralExpression {
+  public static readonly $empty: ObjectLiteralExpression = new ObjectLiteralExpression(PLATFORM.emptyArray, PLATFORM.emptyArray);
   public readonly $kind: ExpressionKind.ObjectLiteral;
   public assign: IExpression['assign'];
   public readonly keys: ReadonlyArray<number | string>;
@@ -966,8 +966,8 @@ export class ObjectLiteral implements IObjectLiteralExpression {
   }
 }
 
-export class Template implements ITemplateExpression {
-  public static readonly $empty: Template = new Template(['']);
+export class TemplateExpression implements ITemplateExpression {
+  public static readonly $empty: TemplateExpression = new TemplateExpression(['']);
   public readonly $kind: ExpressionKind.Template;
   public assign: IExpression['assign'];
   public readonly cooked: ReadonlyArray<string>;
@@ -1004,7 +1004,7 @@ export class Template implements ITemplateExpression {
   }
 }
 
-export class TaggedTemplate implements ITaggedTemplateExpression {
+export class TaggedTemplateExpression implements ITaggedTemplateExpression {
   public readonly $kind: ExpressionKind.TaggedTemplate;
   public assign: IExpression['assign'];
   public readonly cooked: ReadonlyArray<string> & { raw?: ReadonlyArray<string> };

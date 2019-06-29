@@ -1,5 +1,5 @@
 import { DebugConfiguration } from '@aurelia/debug';
-import { Aurelia, CustomElementResource } from '@aurelia/runtime';
+import { Aurelia, CustomElement } from '@aurelia/runtime';
 import { NavCustomElement, Router, ViewportCustomElement } from '@aurelia/router';
 import { MockBrowserHistoryLocation, TestContext, assert } from '@aurelia/testing';
 
@@ -8,19 +8,19 @@ describe('Nav', function () {
     const ctx = TestContext.createHTMLTestContext();
     const container = ctx.container;
 
-    const App = CustomElementResource.define({ name: 'app', template: `<template><au-viewport name="app" used-by="${component}" default="${component}"></au-viewport></template>` });
-    const Foo = CustomElementResource.define({ name: 'foo', template: '<template>Nav: foo <au-nav name="main-nav"></au-nav></template>' }, class {
+    const App = CustomElement.define({ name: 'app', template: `<template><au-viewport name="app" used-by="${component}" default="${component}"></au-viewport></template>` });
+    const Foo = CustomElement.define({ name: 'foo', template: '<template>Nav: foo <au-nav name="main-nav"></au-nav></template>' }, class {
       public static inject = [Router];
       constructor(private readonly r: Router) { }
       public enter() { this.r.setNav('main-nav', [{ title: 'Bar', route: 'bar' }]); }
     });
-    const Bar = CustomElementResource.define({ name: 'bar', template: '<template>Nav: bar <au-nav name="main-nav"></au-nav><au-viewport name="main-viewport" default="baz"></au-viewport></template>' }, class {
+    const Bar = CustomElement.define({ name: 'bar', template: '<template>Nav: bar <au-nav name="main-nav"></au-nav><au-viewport name="main-viewport" default="baz"></au-viewport></template>' }, class {
       public static inject = [Router];
       constructor(private readonly r: Router) { }
       public enter() { this.r.setNav('main-nav', [{ title: 'Baz', route: 'baz' }]); }
     });
-    const Baz = CustomElementResource.define({ name: 'baz', template: '<template>Baz</template>' }, class { });
-    const Qux = CustomElementResource.define({ name: 'qux', template: '<template>Nav: qux <au-nav name="main-nav"></au-nav><au-viewport name="main-viewport" default="baz"></au-viewport></template>' }, class {
+    const Baz = CustomElement.define({ name: 'baz', template: '<template>Baz</template>' }, class { });
+    const Qux = CustomElement.define({ name: 'qux', template: '<template>Nav: qux <au-nav name="main-nav"></au-nav><au-viewport name="main-viewport" default="baz"></au-viewport></template>' }, class {
       public static inject = [Router];
       constructor(private readonly r: Router) { }
       public enter() {

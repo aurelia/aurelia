@@ -14,7 +14,7 @@ import {
 import {
   addBinding,
   Aurelia,
-  Binding,
+  PropertyBinding,
   BindingMode,
   BindingType,
   CompiledTemplate,
@@ -672,7 +672,7 @@ export class AuTextRenderer implements IInstructionRenderer {
     } else {
       realTarget = target;
     }
-    const bindable = new Binding(instruction.from, realTarget, 'textContent', BindingMode.toView, this.observerLocator, context);
+    const bindable = new PropertyBinding(instruction.from, realTarget, 'textContent', BindingMode.toView, this.observerLocator, context);
     addBinding(renderable, bindable);
     if (Tracer.enabled) { Tracer.leave(); }
   }

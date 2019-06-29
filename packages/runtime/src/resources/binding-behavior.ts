@@ -26,7 +26,7 @@ export interface IBindingBehaviorResource extends
 }
 
 function register(this: IBindingBehaviorType, container: IContainer): void {
-  const resourceKey = BindingBehaviorResource.keyFrom(this.description.name);
+  const resourceKey = BindingBehavior.keyFrom(this.description.name);
   container.register(Registration.singleton(resourceKey, this));
   container.register(Registration.singleton(this, this));
 }
@@ -35,7 +35,7 @@ export function bindingBehavior(definition: IBindingBehaviorDefinition): Binding
 export function bindingBehavior(name: string): BindingBehaviorDecorator;
 export function bindingBehavior(nameOrDefinition: string | IBindingBehaviorDefinition): BindingBehaviorDecorator;
 export function bindingBehavior(nameOrDefinition: string | IBindingBehaviorDefinition): BindingBehaviorDecorator {
-  return target => BindingBehaviorResource.define(nameOrDefinition, target) as any; // TODO: fix this at some point
+  return target => BindingBehavior.define(nameOrDefinition, target) as any; // TODO: fix this at some point
 }
 
 function keyFrom(this: IBindingBehaviorResource, name: string): string {
@@ -56,14 +56,14 @@ function define<T extends Constructable = Constructable>(this: IBindingBehaviorR
     ? { name: nameOrDefinition }
     : nameOrDefinition;
 
-  WritableType.kind = BindingBehaviorResource;
+  WritableType.kind = BindingBehavior;
   WritableType.description = description;
   Type.register = register;
 
   return Type;
 }
 
-export const BindingBehaviorResource: IBindingBehaviorResource = {
+export const BindingBehavior: IBindingBehaviorResource = {
   name: 'binding-behavior',
   keyFrom,
   isType,

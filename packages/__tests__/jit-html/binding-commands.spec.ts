@@ -1,4 +1,4 @@
-// import { Aurelia, CustomElementResource as CE, IViewModel, LifecycleFlags as LF } from '@aurelia/runtime';
+// import { Aurelia, CustomElement as CE, IViewModel, LifecycleFlags as LF } from '@aurelia/runtime';
 // import { IEventManager } from '@aurelia/runtime-html';
 // import { HTMLTestContext, TestContext, TestConfiguration, setupAndStart, setupWithDocumentAndStart, tearDown } from '@aurelia/testing';
 

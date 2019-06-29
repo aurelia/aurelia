@@ -1,6 +1,6 @@
 import { DebugConfiguration } from '@aurelia/debug';
 import { HTMLJitConfiguration } from '@aurelia/jit-html';
-import { Aurelia, CustomElementResource } from '@aurelia/runtime';
+import { Aurelia, CustomElement } from '@aurelia/runtime';
 import { NavCustomElement, ViewportCustomElement } from '../../../../../router/src/index';
 import { App } from './app';
 
@@ -35,7 +35,7 @@ container.register(
   Delayed as any,
   Cancel as any,
 );
-const component = container.get(CustomElementResource.keyFrom('app'));
+const component = container.get(CustomElement.keyFrom('app'));
 
 window['au'] = new Aurelia(container)
   .register(DebugConfiguration)

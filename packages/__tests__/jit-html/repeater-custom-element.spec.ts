@@ -2,7 +2,7 @@
 //   Aurelia,
 //   bindable,
 //   customElement,
-//   CustomElementResource,
+//   CustomElement,
 //   LifecycleFlags
 // } from '@aurelia/runtime';
 // import { getVisibleText, HTMLTestContext, TestContext,
@@ -182,7 +182,7 @@
 //     this.timeout(10000);
 //     let childrenCount = 0;
 //     let childrenChangedCount = 0;
-//     const FooEl = CustomElementResource.define({
+//     const FooEl = CustomElement.define({
 //       name: 'foo-el',
 //       template: `<template>\${txt}<foo-el if.bind="cur<max" cnt.bind="cnt" max.bind="max" cur.bind="cur+1" txt.bind="txt" repeat.for="i of cnt"></foo-el></template>`
 //     },                                         class {
@@ -201,7 +201,7 @@
 //         childrenChangedCount++;
 //       }
 //     });
-//     const App = CustomElementResource.define({
+//     const App = CustomElement.define({
 //       name: 'app',
 //       template: `<template><foo-el cnt.bind="cnt" max.bind="max" cur="0" txt.bind="txt" repeat.for="i of cnt" ref.bind="'foo'+i"></foo-el></template>`
 //     },                                       class {
@@ -406,7 +406,7 @@
 //   //   this.timeout(10000);
 //   //   let childrenCount = 0;
 //   //   let childrenChangedCount = 0;
-//   //   const FooEl = CustomElementResource.define({
+//   //   const FooEl = CustomElement.define({
 //   //     name: 'foo-el',
 //   //     template: `<template>\${txt}<foo-el if.bind="cur<max" cnt.bind="cnt" max.bind="max" cur.bind="cur+1" txt.bind="txt" repeat.for="i of cnt & keyed"></foo-el></template>`
 //   //   },                                         class {
@@ -425,7 +425,7 @@
 //   //       childrenChangedCount++;
 //   //     }
 //   //   });
-//   //   const App = CustomElementResource.define({
+//   //   const App = CustomElement.define({
 //   //     name: 'app',
 //   //     template: `<template><foo-el cnt.bind="cnt" max.bind="max" cur="0" txt.bind="txt" repeat.for="i of cnt & keyed" ref.bind="'foo'+i"></foo-el></template>`
 //   //   },                                       class {

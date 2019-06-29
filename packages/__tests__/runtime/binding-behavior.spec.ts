@@ -1,5 +1,5 @@
 import { DI, IContainer } from '@aurelia/kernel';
-import { bindingBehavior, BindingBehaviorResource } from '@aurelia/runtime';
+import { bindingBehavior, BindingBehavior } from '@aurelia/runtime';
 import { assert } from '@aurelia/testing';
 
 describe(`@bindingBehavior('foo')`, function () {
@@ -14,10 +14,10 @@ describe(`@bindingBehavior('foo')`, function () {
   class FooBindingBehavior { }
 
   it(`should define the binding behavior`, function () {
-    assert.strictEqual(FooBindingBehavior['kind'], BindingBehaviorResource, `FooBindingBehavior['kind']`);
+    assert.strictEqual(FooBindingBehavior['kind'], BindingBehavior, `FooBindingBehavior['kind']`);
     assert.strictEqual(FooBindingBehavior['description'].name, 'foo', `FooBindingBehavior['description'].name`);
     FooBindingBehavior['register'](container);
-    const instance = container.get(BindingBehaviorResource.keyFrom('foo'));
+    const instance = container.get(BindingBehavior.keyFrom('foo'));
     assert.instanceOf(instance, FooBindingBehavior, `instance`);
   });
 

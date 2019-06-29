@@ -59,7 +59,7 @@ export function customAttribute(definition: IAttributeDefinition): CustomAttribu
 export function customAttribute(name: string): CustomAttributeDecorator;
 export function customAttribute(nameOrDefinition: string | IAttributeDefinition): CustomAttributeDecorator;
 export function customAttribute(nameOrDefinition: string | IAttributeDefinition): CustomAttributeDecorator {
-  return target => CustomAttributeResource.define(nameOrDefinition, target) as any; // TODO: fix this at some point
+  return target => CustomAttribute.define(nameOrDefinition, target) as any; // TODO: fix this at some point
 }
 
 /**
@@ -71,7 +71,7 @@ export function templateController(definition: IAttributeDefinition): CustomAttr
 export function templateController(name: string): CustomAttributeDecorator;
 export function templateController(nameOrDefinition: string | Omit<IAttributeDefinition, 'isTemplateController'>): CustomAttributeDecorator;
 export function templateController(nameOrDefinition: string | Omit<IAttributeDefinition, 'isTemplateController'>): CustomAttributeDecorator {
-  return target => CustomAttributeResource.define(
+  return target => CustomAttribute.define(
     typeof nameOrDefinition === 'string'
     ? { isTemplateController: true , name: nameOrDefinition }
     : { isTemplateController: true, ...nameOrDefinition },
@@ -109,14 +109,14 @@ function define<T extends Constructable = Constructable>(this: ICustomAttributeR
   const WritableType = Type as T & Writable<ICustomAttributeType<T>>;
   const description = createCustomAttributeDescription(typeof nameOrDefinition === 'string' ? { name: nameOrDefinition } : nameOrDefinition, Type);
 
-  WritableType.kind = CustomAttributeResource;
+  WritableType.kind = CustomAttribute;
   WritableType.description = description;
   Type.register = registerAttribute;
 
   return Type;
 }
 
-export const CustomAttributeResource: ICustomAttributeResource = {
+export const CustomAttribute: ICustomAttributeResource = {
   name: customAttributeName,
   keyFrom: customAttributeKey,
   isType,

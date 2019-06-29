@@ -3,7 +3,7 @@ import {
   IContainer
 } from '@aurelia/kernel';
 import {
-  Binding,
+  PropertyBinding,
   BindingMode,
   FromViewBindingBehavior,
   OneTimeBindingBehavior,
@@ -22,7 +22,7 @@ const tests = [
 describe('BindingModeBehavior', function () {
   const container: IContainer = DI.createContainer();
   let sut: OneTimeBindingBehavior;
-  let binding: Binding;
+  let binding: PropertyBinding;
 
   for (const { Behavior, mode } of tests) {
     const initModeArr = [BindingMode.oneTime, BindingMode.toView, BindingMode.fromView, BindingMode.twoWay, BindingMode.default];
@@ -31,7 +31,7 @@ describe('BindingModeBehavior', function () {
       describe(Behavior.name, function () {
         beforeEach(function () {
           sut = new Behavior();
-          binding = new Binding(undefined, undefined, undefined, initMode, undefined, container as any);
+          binding = new PropertyBinding(undefined, undefined, undefined, initMode, undefined, container as any);
           sut.bind(undefined, undefined, binding);
         });
 

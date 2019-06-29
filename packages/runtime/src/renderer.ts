@@ -12,12 +12,12 @@ import {
   PLATFORM
 } from '@aurelia/kernel';
 import { AnyBindingExpression } from './ast';
-import { Binding } from './binding/binding';
-import { Call } from './binding/call';
+import { PropertyBinding } from './binding/property-binding';
+import { CallBinding } from './binding/call-binding';
 import { BindingType, IExpressionParser } from './binding/expression-parser';
 import { InterpolationBinding, MultiInterpolationBinding } from './binding/interpolation-binding';
 import { LetBinding } from './binding/let-binding';
-import { Ref } from './binding/ref';
+import { RefBinding } from './binding/ref-binding';
 import {
   customAttributeKey,
   customElementKey,
@@ -359,7 +359,7 @@ export class CallBindingRenderer implements IInstructionRenderer {
   public render(flags: LifecycleFlags, dom: IDOM, context: IRenderContext, renderable: IController, target: IController, instruction: ICallBindingInstruction): void {
     if (Tracer.enabled) { Tracer.enter('CallBindingRenderer', 'render', slice.call(arguments)); }
     const expr = ensureExpression(this.parser, instruction.from, BindingType.CallCommand);
-    const binding = new Call(expr, getTarget(target), instruction.to, this.observerLocator, context);
+    const binding = new CallBinding(expr, getTarget(target), instruction.to, this.observerLocator, context);
     addBinding(renderable, binding);
     if (Tracer.enabled) { Tracer.leave(); }
   }
@@ -380,7 +380,7 @@ export class RefBindingRenderer implements IInstructionRenderer {
   public render(flags: LifecycleFlags, dom: IDOM, context: IRenderContext, renderable: IController, target: IController, instruction: IRefBindingInstruction): void {
     if (Tracer.enabled) { Tracer.enter('RefBindingRenderer', 'render', slice.call(arguments)); }
     const expr = ensureExpression(this.parser, instruction.from, BindingType.IsRef);
-    const binding = new Ref(expr, getTarget(target), context);
+    const binding = new RefBinding(expr, getTarget(target), context);
     addBinding(renderable, binding);
     if (Tracer.enabled) { Tracer.leave(); }
   }
@@ -431,7 +431,7 @@ export class PropertyBindingRenderer implements IInstructionRenderer {
   public render(flags: LifecycleFlags, dom: IDOM, context: IRenderContext, renderable: IController, target: IController, instruction: IPropertyBindingInstruction): void {
     if (Tracer.enabled) { Tracer.enter('PropertyBindingRenderer', 'render', slice.call(arguments)); }
     const expr = ensureExpression(this.parser, instruction.from, BindingType.IsPropertyCommand | instruction.mode);
-    const binding = new Binding(expr, getTarget(target), instruction.to, instruction.mode, this.observerLocator, context);
+    const binding = new PropertyBinding(expr, getTarget(target), instruction.to, instruction.mode, this.observerLocator, context);
     addBinding(renderable, binding);
     if (Tracer.enabled) { Tracer.leave(); }
   }
@@ -454,7 +454,7 @@ export class IteratorBindingRenderer implements IInstructionRenderer {
   public render(flags: LifecycleFlags, dom: IDOM, context: IRenderContext, renderable: IController, target: IController, instruction: IIteratorBindingInstruction): void {
     if (Tracer.enabled) { Tracer.enter('IteratorBindingRenderer', 'render', slice.call(arguments)); }
     const expr = ensureExpression(this.parser, instruction.from, BindingType.ForCommand);
-    const binding = new Binding(expr, getTarget(target), instruction.to, BindingMode.toView, this.observerLocator, context);
+    const binding = new PropertyBinding(expr, getTarget(target), instruction.to, BindingMode.toView, this.observerLocator, context);
     addBinding(renderable, binding);
     if (Tracer.enabled) { Tracer.leave(); }
   }

@@ -1,5 +1,5 @@
 import { Constructable, IContainer } from '@aurelia/kernel';
-import { CustomElementResource, ICustomElementType, IRenderContext } from '@aurelia/runtime';
+import { CustomElement, ICustomElementType, IRenderContext } from '@aurelia/runtime';
 import { Router } from './router';
 import { Viewport } from './viewport';
 import { IRouteableCustomElementType } from './viewport-content';
@@ -77,7 +77,7 @@ export class ViewportInstruction {
       return this.component;
     }
     const container = context.get(IContainer);
-    const resolver = container.getResolver<Constructable & IRouteableCustomElementType>(CustomElementResource.keyFrom(this.componentName));
+    const resolver = container.getResolver<Constructable & IRouteableCustomElementType>(CustomElement.keyFrom(this.componentName));
     if (resolver !== null) {
       return resolver.getFactory(container).Type;
     }

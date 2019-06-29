@@ -4,15 +4,15 @@ import {
   ITemplateFactory,
   createRenderContext,
   Interpolation,
-  AccessScope,
-  CustomElementResource,
+  AccessScopeExpression,
+  CustomElement,
   ICustomElementResource,
   ITemplateDefinition,
   ITargetedInstruction,
   BindingStrategy,
   HooksDefinition,
   BindingMode,
-  BindingBehavior,
+  BindingBehaviorExpression,
   HydrateElementInstruction,
   BindingType,
   HydrateTemplateController,
@@ -160,7 +160,7 @@ describe.skip('controller', function () {
 
     const inject: readonly Key[] = Object.freeze([CallCollection]);
 
-    const kind: ICustomElementResource = CustomElementResource;
+    const kind: ICustomElementResource = CustomElement;
 
     const description = createDescription(
       'view-model',
@@ -267,7 +267,7 @@ describe.skip('controller', function () {
         [
           [
             new TextBindingInstruction(
-              new Interpolation(['', ''], [new BindingBehavior(new AccessScope('id'), 'oneTime', PLATFORM.emptyArray)])
+              new Interpolation(['', ''], [new BindingBehaviorExpression(new AccessScopeExpression('id'), 'oneTime', PLATFORM.emptyArray)])
             ),
           ],
         ],

@@ -1,5 +1,5 @@
 import { DebugConfiguration } from '@aurelia/debug';
-import { Aurelia, CustomElementResource } from '@aurelia/runtime';
+import { Aurelia, CustomElement } from '@aurelia/runtime';
 import { Router, RouterConfiguration, ViewportCustomElement, ViewportInstruction } from '@aurelia/router';
 import { MockBrowserHistoryLocation, TestContext, HTMLTestContext, assert } from '@aurelia/testing';
 
@@ -8,7 +8,7 @@ describe('InstructionResolver', function () {
     const ctx = TestContext.createHTMLTestContext();
     const container = ctx.container;
 
-    const App = CustomElementResource.define({ name: 'app', template: '<template><au-viewport name="left"></au-viewport><au-viewport name="right"></au-viewport></template>' });
+    const App = CustomElement.define({ name: 'app', template: '<template><au-viewport name="left"></au-viewport><au-viewport name="right"></au-viewport></template>' });
     container.register(Router);
     container.register(ViewportCustomElement);
 
@@ -104,7 +104,7 @@ async function setup() {
   const ctx = TestContext.createHTMLTestContext();
   const { container } = ctx;
 
-  const App = CustomElementResource.define({ name: 'app', template: '<template><au-viewport name="left"></au-viewport><au-viewport name="right"></au-viewport></template>' });
+  const App = CustomElement.define({ name: 'app', template: '<template><au-viewport name="left"></au-viewport><au-viewport name="right"></au-viewport></template>' });
   container.register(Router);
   container.register(ViewportCustomElement);
 

@@ -1,5 +1,5 @@
 export {
-  CallFunction,
+  CallFunctionExpression,
   connects,
   observes,
   callsFunction,
@@ -13,24 +13,24 @@ export {
   isLiteral,
   arePureLiterals,
   isPureLiteral,
-  BindingBehavior,
-  ValueConverter,
-  Assign,
-  Conditional,
-  AccessThis,
-  AccessScope,
-  AccessMember,
-  AccessKeyed,
-  CallScope,
-  CallMember,
-  Binary,
-  Unary,
-  PrimitiveLiteral,
-  HtmlLiteral,
-  ArrayLiteral,
-  ObjectLiteral,
-  Template,
-  TaggedTemplate,
+  BindingBehaviorExpression,
+  ValueConverterExpression,
+  AssignExpression,
+  ConditionalExpression,
+  AccessThisExpression,
+  AccessScopeExpression,
+  AccessMemberExpression,
+  AccessKeyedExpression,
+  CallScopeExpression,
+  CallMemberExpression,
+  BinaryExpression,
+  UnaryExpression,
+  PrimitiveLiteralExpression,
+  HtmlLiteralExpression,
+  ArrayLiteralExpression,
+  ObjectLiteralExpression,
+  TemplateExpression,
+  TaggedTemplateExpression,
   ArrayBindingPattern,
   ObjectBindingPattern,
   BindingIdentifier,
@@ -89,11 +89,11 @@ export {
   UnaryOperator
 } from './ast';
 export {
-  Binding
-} from './binding/binding';
+  PropertyBinding
+} from './binding/property-binding';
 export {
-  Call
-} from './binding/call';
+  CallBinding
+} from './binding/call-binding';
 export {
   IPartialConnectableBinding,
   IConnectableBinding,
@@ -111,8 +111,8 @@ export {
   LetBinding
 } from './binding/let-binding';
 export {
-  Ref
-} from './binding/ref';
+  RefBinding
+} from './binding/ref-binding';
 
 export {
   ArrayObserver,
@@ -187,7 +187,7 @@ export {
 
 export {
   bindingBehavior,
-  BindingBehaviorResource,
+  BindingBehavior,
   IBindingBehavior,
   IBindingBehaviorDefinition,
   IBindingBehaviorResource,
@@ -220,7 +220,7 @@ export {
   customAttribute,
   CustomAttributeConstructor,
   CustomAttributeDecorator,
-  CustomAttributeResource,
+  CustomAttribute,
   dynamicOptions,
   ICustomAttributeResource,
   ICustomAttributeType,
@@ -244,7 +244,7 @@ export {
   containerless,
   customElement,
   CustomElementHost,
-  CustomElementResource,
+  CustomElement,
   ICustomElementDecorator,
   ICustomElementResource,
   ICustomElementType,
@@ -259,7 +259,7 @@ export {
   IValueConverterResource,
   IValueConverterType,
   valueConverter,
-  ValueConverterResource
+  ValueConverter
 } from './resources/value-converter';
 export {
   ISanitizer,

@@ -3,7 +3,7 @@
 //   bindable,
 //   Binding,
 //   customElement,
-//   CustomElementResource,
+//   CustomElement,
 //   InterpolationBinding,
 //   LifecycleFlags,
 //   PropertyAccessor,
@@ -181,7 +181,7 @@
 //     container.register(TestConfiguration);
 //     const host = ctx.createElement('app');
 //     const au = new Aurelia(container);
-//     const App = CustomElementResource.define({ name: 'app', template: '<template><foo1 value.bind="value"></foo1>\${value}</template>' }, null);
+//     const App = CustomElement.define({ name: 'app', template: '<template><foo1 value.bind="value"></foo1>\${value}</template>' }, null);
 //     const component = new App();
 //     component.value = 'w00t';
 //     au.app({ host, component }).start();

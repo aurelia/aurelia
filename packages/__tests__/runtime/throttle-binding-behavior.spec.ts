@@ -3,7 +3,7 @@ import {
   IContainer
 } from '@aurelia/kernel';
 import {
-  Binding,
+  PropertyBinding,
   LifecycleFlags,
   ThrottleBindingBehavior
 } from '@aurelia/runtime';
@@ -12,12 +12,12 @@ import { assert } from '@aurelia/testing';
 describe('ThrottleBindingBehavior', function () {
   const container: IContainer = DI.createContainer();
   let sut: ThrottleBindingBehavior;
-  let binding: Binding;
+  let binding: PropertyBinding;
   let originalFn: (value: unknown, flags: LifecycleFlags) => void;
 
   beforeEach(function () {
     sut = new ThrottleBindingBehavior();
-    binding = new Binding(undefined, undefined, undefined, undefined, undefined, container);
+    binding = new PropertyBinding(undefined, undefined, undefined, undefined, undefined, container);
     originalFn = binding.updateTarget;
     sut.bind(undefined, undefined, binding as any);
   });

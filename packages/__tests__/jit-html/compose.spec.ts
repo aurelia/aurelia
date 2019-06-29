@@ -1,7 +1,7 @@
 import { IContainer } from '@aurelia/kernel';
 import {
   Aurelia,
-  CustomElementResource,
+  CustomElement,
   IDOM,
   ILifecycle,
   IObserverLocator,
@@ -129,7 +129,7 @@ describe(spec, function () {
       const { au, host } = ctx;
 
       class App { public sub: any = null; }
-      CustomElementResource.define({ name: 'app', template }, App);
+      CustomElement.define({ name: 'app', template }, App);
       const component = new App();
       component.sub = subject;
       const task = au.app({ host, component }).start();

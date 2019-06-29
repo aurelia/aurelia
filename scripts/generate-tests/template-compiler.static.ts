@@ -247,7 +247,7 @@ function generateTests(testTags: Tag[], textBindings: TextBinding[], ifElsePairs
           markup = `<${tag.name} replaceable part="part1"></${tag.name}><${tag.name} replaceable part="part2"></${tag.name}>`
         }
         return [
-          $$const(tag.elName, $call('CustomElementResource.define', [
+          $$const(tag.elName, $call('CustomElement.define', [
             $expression({
               name: kebabCase(tag.elName),
               template: `<template>${markup}</template>`
@@ -853,7 +853,7 @@ function $$test(markup: string, expectedText: string, properties: PropertyDeclar
       $$const(['au', 'host'], $call('setup')),
       undefined,
       ...resources,
-      $$const('App', $call('CustomElementResource.define', [
+      $$const('App', $call('CustomElement.define', [
         $expression({ name: 'app', template: `<template>${markup}</template>` }),
         $class(properties)
       ])),
@@ -870,7 +870,7 @@ function generateAndEmit(): void {
     const tests = testsRecord[suffix];
     const nodes = [
       $$import('@aurelia/kernel', 'Profiler'),
-      $$import('@aurelia/runtime', 'Aurelia', 'CustomElementResource'),
+      $$import('@aurelia/runtime', 'Aurelia', 'CustomElement'),
       $$import('@aurelia/testing', 'TestContext', 'writeProfilerReport', 'assert'),
       null,
       $$functionExpr('describe', [

@@ -20,6 +20,6 @@
         }
     }
     exports.AttrBindingBehavior = AttrBindingBehavior;
-    runtime_1.BindingBehaviorResource.define('attr', AttrBindingBehavior);
+    runtime_1.BindingBehavior.define('attr', AttrBindingBehavior);
 });
 //# sourceMappingURL=attr.js.map

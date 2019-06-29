@@ -1,5 +1,5 @@
 import * as tslib_1 from "tslib";
-import { bindable, createRenderContext, CustomElementResource, IDOM, INode, IRenderingEngine } from '@aurelia/runtime';
+import { bindable, createRenderContext, CustomElement, IDOM, INode, IRenderingEngine } from '@aurelia/runtime';
 import { Router } from '../router';
 export class ViewportCustomElement {
     constructor(router, element, renderingEngine) {
@@ -122,5 +122,5 @@ tslib_1.__decorate([
     bindable
 ], ViewportCustomElement.prototype, "stateful", void 0);
 // tslint:disable-next-line:no-invalid-template-strings
-CustomElementResource.define({ name: 'au-viewport', template: '<template><div class="viewport-header"> Viewport: <b>${name}</b> ${scope ? "[new scope]" : ""} : <b>${viewport.content && viewport.content.componentName()}</b></div></template>' }, ViewportCustomElement);
+CustomElement.define({ name: 'au-viewport', template: '<template><div class="viewport-header"> Viewport: <b>${name}</b> ${scope ? "[new scope]" : ""} : <b>${viewport.content && viewport.content.componentName()}</b></div></template>' }, ViewportCustomElement);
 //# sourceMappingURL=viewport.js.map

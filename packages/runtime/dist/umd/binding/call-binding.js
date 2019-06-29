@@ -12,7 +12,7 @@
     const kernel_1 = require("@aurelia/kernel");
     const ast_1 = require("./ast");
     const slice = Array.prototype.slice;
-    class Call {
+    class CallBinding {
         constructor(sourceExpression, target, targetProperty, observerLocator, locator) {
             this.$state = 0 /* none */;
             this.locator = locator;
@@ -21,7 +21,7 @@
         }
         callSource(args) {
             if (kernel_1.Tracer.enabled) {
-                kernel_1.Tracer.enter('Call', 'callSource', slice.call(arguments));
+                kernel_1.Tracer.enter('CallBinding', 'callSource', slice.call(arguments));
             }
             const overrideContext = this.$scope.overrideContext;
             Object.assign(overrideContext, args);
@@ -36,7 +36,7 @@
         }
         $bind(flags, scope, part) {
             if (kernel_1.Tracer.enabled) {
-                kernel_1.Tracer.enter('Call', '$bind', slice.call(arguments));
+                kernel_1.Tracer.enter('CallBinding', '$bind', slice.call(arguments));
             }
             if (this.$state & 4 /* isBound */) {
                 if (this.$scope === scope) {
@@ -64,7 +64,7 @@
         }
         $unbind(flags) {
             if (kernel_1.Tracer.enabled) {
-                kernel_1.Tracer.enter('Call', '$unbind', slice.call(arguments));
+                kernel_1.Tracer.enter('CallBinding', '$unbind', slice.call(arguments));
             }
             if (!(this.$state & 4 /* isBound */)) {
                 if (kernel_1.Tracer.enabled) {
@@ -92,6 +92,6 @@
             return;
         }
     }
-    exports.Call = Call;
+    exports.CallBinding = CallBinding;
 });
-//# sourceMappingURL=call.js.map
+//# sourceMappingURL=call-binding.js.map

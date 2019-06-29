@@ -2,8 +2,8 @@ import { isNumeric, PLATFORM, Reporter, } from '@aurelia/kernel';
 import { BindingContext } from '../observation/binding-context';
 import { ProxyObserver } from '../observation/proxy-observer';
 import { ISignaler } from '../observation/signaler';
-import { BindingBehaviorResource, } from '../resources/binding-behavior';
-import { ValueConverterResource, } from '../resources/value-converter';
+import { BindingBehavior, } from '../resources/binding-behavior';
+import { ValueConverter, } from '../resources/value-converter';
 export function connects(expr) {
     return (expr.$kind & 32 /* Connects */) === 32 /* Connects */;
 }
@@ -74,13 +74,13 @@ var RuntimeError;
     RuntimeError[RuntimeError["UnknownOperator"] = 208] = "UnknownOperator";
     RuntimeError[RuntimeError["NilScope"] = 250] = "NilScope";
 })(RuntimeError || (RuntimeError = {}));
-export class BindingBehavior {
+export class BindingBehaviorExpression {
     constructor(expression, name, args) {
         this.$kind = 38962 /* BindingBehavior */;
         this.expression = expression;
         this.name = name;
         this.args = args;
-        this.behaviorKey = BindingBehaviorResource.keyFrom(this.name);
+        this.behaviorKey = BindingBehavior.keyFrom(this.name);
     }
     evaluate(flags, scope, locator, part) {
         return this.expression.evaluate(flags, scope, locator, part);
@@ -137,13 +137,13 @@ export class BindingBehavior {
         return visitor.visitBindingBehavior(this);
     }
 }
-export class ValueConverter {
+export class ValueConverterExpression {
     constructor(expression, name, args) {
         this.$kind = 36913 /* ValueConverter */;
         this.expression = expression;
         this.name = name;
         this.args = args;
-        this.converterKey = ValueConverterResource.keyFrom(this.name);
+        this.converterKey = ValueConverter.keyFrom(this.name);
     }
     evaluate(flags, scope, locator, part) {
         if (!locator) {
@@ -223,7 +223,7 @@ export class ValueConverter {
         return visitor.visitValueConverter(this);
     }
 }
-export class Assign {
+export class AssignExpression {
     constructor(target, value) {
         this.$kind = 8208 /* Assign */;
         this.target = target;
@@ -243,7 +243,7 @@ export class Assign {
         return visitor.visitAssign(this);
     }
 }
-export class Conditional {
+export class ConditionalExpression {
     constructor(condition, yes, no) {
         this.$kind = 63 /* Conditional */;
         this.assign = PLATFORM.noop;
@@ -271,7 +271,7 @@ export class Conditional {
         return visitor.visitConditional(this);
     }
 }
-export class AccessThis {
+export class AccessThisExpression {
     constructor(ancestor = 0) {
         this.$kind = 1793 /* AccessThis */;
         this.assign = PLATFORM.noop;
@@ -304,9 +304,9 @@ export class AccessThis {
         return visitor.visitAccessThis(this);
     }
 }
-AccessThis.$this = new AccessThis(0);
-AccessThis.$parent = new AccessThis(1);
-export class AccessScope {
+AccessThisExpression.$this = new AccessThisExpression(0);
+AccessThisExpression.$parent = new AccessThisExpression(1);
+export class AccessScopeExpression {
     constructor(name, ancestor = 0) {
         this.$kind = 10082 /* AccessScope */;
         this.name = name;
@@ -336,7 +336,7 @@ export class AccessScope {
         return visitor.visitAccessScope(this);
     }
 }
-export class AccessMember {
+export class AccessMemberExpression {
     constructor(object, name) {
         this.$kind = 9323 /* AccessMember */;
         this.object = object;
@@ -372,7 +372,7 @@ export class AccessMember {
         return visitor.visitAccessMember(this);
     }
 }
-export class AccessKeyed {
+export class AccessKeyedExpression {
     constructor(object, key) {
         this.$kind = 9324 /* AccessKeyed */;
         this.object = object;
@@ -414,7 +414,7 @@ export class AccessKeyed {
         return visitor.visitAccessKeyed(this);
     }
 }
-export class CallScope {
+export class CallScopeExpression {
     constructor(name, args, ancestor = 0) {
         this.$kind = 1448 /* CallScope */;
         this.assign = PLATFORM.noop;
@@ -441,7 +441,7 @@ export class CallScope {
         return visitor.visitCallScope(this);
     }
 }
-export class CallMember {
+export class CallMemberExpression {
     constructor(object, name, args) {
         this.$kind = 1161 /* CallMember */;
         this.assign = PLATFORM.noop;
@@ -472,7 +472,7 @@ export class CallMember {
         return visitor.visitCallMember(this);
     }
 }
-export class CallFunction {
+export class CallFunctionExpression {
     constructor(func, args) {
         this.$kind = 1162 /* CallFunction */;
         this.assign = PLATFORM.noop;
@@ -503,7 +503,7 @@ export class CallFunction {
         return visitor.visitCallFunction(this);
     }
 }
-export class Binary {
+export class BinaryExpression {
     constructor(operation, left, right) {
         this.$kind = 46 /* Binary */;
         this.assign = PLATFORM.noop;
@@ -596,7 +596,7 @@ export class Binary {
         return visitor.visitBinary(this);
     }
 }
-export class Unary {
+export class UnaryExpression {
     constructor(operation, expression) {
         this.$kind = 39 /* Unary */;
         this.assign = PLATFORM.noop;
@@ -630,7 +630,7 @@ export class Unary {
         return visitor.visitUnary(this);
     }
 }
-export class PrimitiveLiteral {
+export class PrimitiveLiteralExpression {
     constructor(value) {
         this.$kind = 17925 /* PrimitiveLiteral */;
         this.assign = PLATFORM.noop;
@@ -644,12 +644,12 @@ export class PrimitiveLiteral {
         return visitor.visitPrimitiveLiteral(this);
     }
 }
-PrimitiveLiteral.$undefined = new PrimitiveLiteral(void 0);
-PrimitiveLiteral.$null = new PrimitiveLiteral(null);
-PrimitiveLiteral.$true = new PrimitiveLiteral(true);
-PrimitiveLiteral.$false = new PrimitiveLiteral(false);
-PrimitiveLiteral.$empty = new PrimitiveLiteral('');
-export class HtmlLiteral {
+PrimitiveLiteralExpression.$undefined = new PrimitiveLiteralExpression(void 0);
+PrimitiveLiteralExpression.$null = new PrimitiveLiteralExpression(null);
+PrimitiveLiteralExpression.$true = new PrimitiveLiteralExpression(true);
+PrimitiveLiteralExpression.$false = new PrimitiveLiteralExpression(false);
+PrimitiveLiteralExpression.$empty = new PrimitiveLiteralExpression('');
+export class HtmlLiteralExpression {
     constructor(parts) {
         this.$kind = 51 /* HtmlLiteral */;
         this.assign = PLATFORM.noop;
@@ -677,7 +677,7 @@ export class HtmlLiteral {
         return visitor.visitHtmlLiteral(this);
     }
 }
-export class ArrayLiteral {
+export class ArrayLiteralExpression {
     constructor(elements) {
         this.$kind = 17955 /* ArrayLiteral */;
         this.assign = PLATFORM.noop;
@@ -702,8 +702,8 @@ export class ArrayLiteral {
         return visitor.visitArrayLiteral(this);
     }
 }
-ArrayLiteral.$empty = new ArrayLiteral(PLATFORM.emptyArray);
-export class ObjectLiteral {
+ArrayLiteralExpression.$empty = new ArrayLiteralExpression(PLATFORM.emptyArray);
+export class ObjectLiteralExpression {
     constructor(keys, values) {
         this.$kind = 17956 /* ObjectLiteral */;
         this.assign = PLATFORM.noop;
@@ -730,8 +730,8 @@ export class ObjectLiteral {
         return visitor.visitObjectLiteral(this);
     }
 }
-ObjectLiteral.$empty = new ObjectLiteral(PLATFORM.emptyArray, PLATFORM.emptyArray);
-export class Template {
+ObjectLiteralExpression.$empty = new ObjectLiteralExpression(PLATFORM.emptyArray, PLATFORM.emptyArray);
+export class TemplateExpression {
     constructor(cooked, expressions) {
         this.$kind = 17958 /* Template */;
         this.assign = PLATFORM.noop;
@@ -759,8 +759,8 @@ export class Template {
         return visitor.visitTemplate(this);
     }
 }
-Template.$empty = new Template(['']);
-export class TaggedTemplate {
+TemplateExpression.$empty = new TemplateExpression(['']);
+export class TaggedTemplateExpression {
     constructor(cooked, raw, func, expressions) {
         this.$kind = 1197 /* TaggedTemplate */;
         this.assign = PLATFORM.noop;

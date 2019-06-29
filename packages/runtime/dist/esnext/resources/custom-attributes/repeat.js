@@ -7,7 +7,7 @@ import { AggregateContinuationTask, ContinuationTask, LifecycleTask, } from '../
 import { BindingContext, Scope } from '../../observation/binding-context';
 import { getCollectionObserver } from '../../observation/observer-locator';
 import { Bindable } from '../../templating/bindable';
-import { CustomAttributeResource, } from '../custom-attribute';
+import { CustomAttribute, } from '../custom-attribute';
 const isMountedOrAttached = 64 /* isMounted */ | 32 /* isAttached */;
 const isMountedOrAttachedOrAttaching = isMountedOrAttached | 8 /* isAttaching */;
 const isMountedOrAttachedOrDetaching = isMountedOrAttached | 16 /* isDetaching */;
@@ -391,7 +391,7 @@ export class Repeat {
     }
 }
 Repeat.inject = [IRenderLocation, IController, IViewFactory];
-Repeat.kind = CustomAttributeResource;
+Repeat.kind = CustomAttribute;
 Repeat.description = Object.freeze({
     name: 'repeat',
     aliases: PLATFORM.emptyArray,

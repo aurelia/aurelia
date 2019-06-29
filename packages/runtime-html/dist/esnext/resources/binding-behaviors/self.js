@@ -1,5 +1,5 @@
 import { Reporter } from '@aurelia/kernel';
-import { BindingBehaviorResource } from '@aurelia/runtime';
+import { BindingBehavior } from '@aurelia/runtime';
 import { findOriginalEventTarget } from '../../observation/event-manager';
 /** @internal */
 export function handleSelfEvent(event) {
@@ -22,5 +22,5 @@ export class SelfBindingBehavior {
         binding.selfEventCallSource = null;
     }
 }
-BindingBehaviorResource.define('self', SelfBindingBehavior);
+BindingBehavior.define('self', SelfBindingBehavior);
 //# sourceMappingURL=self.js.map

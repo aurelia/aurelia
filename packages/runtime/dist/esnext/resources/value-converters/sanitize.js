@@ -1,5 +1,5 @@
 import { DI } from '@aurelia/kernel';
-import { ValueConverterResource } from '../value-converter';
+import { ValueConverter } from '../value-converter';
 const SCRIPT_REGEX = /<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi;
 export const ISanitizer = DI.createInterface('ISanitizer').withDefault(x => x.singleton(class {
     sanitize(input) {
@@ -25,5 +25,5 @@ export class SanitizeValueConverter {
     }
 }
 SanitizeValueConverter.inject = [ISanitizer];
-ValueConverterResource.define('sanitize', SanitizeValueConverter);
+ValueConverter.define('sanitize', SanitizeValueConverter);
 //# sourceMappingURL=sanitize.js.map

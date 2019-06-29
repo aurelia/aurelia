@@ -20,7 +20,7 @@
     }
     exports.registerElement = registerElement;
     function customElement(nameOrDefinition) {
-        return (target => exports.CustomElementResource.define(nameOrDefinition, target));
+        return (target => exports.CustomElement.define(nameOrDefinition, target));
     }
     exports.customElement = customElement;
     function isType(Type) {
@@ -34,12 +34,12 @@
         } : ctor);
         const WritableType = Type;
         const description = definitions_1.buildTemplateDefinition(Type, nameOrDefinition);
-        WritableType.kind = exports.CustomElementResource;
+        WritableType.kind = exports.CustomElement;
         Type.description = description;
         Type.register = registerElement;
         return Type;
     }
-    exports.CustomElementResource = {
+    exports.CustomElement = {
         name: definitions_1.customElementName,
         keyFrom: definitions_1.customElementKey,
         isType,

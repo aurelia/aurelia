@@ -4,9 +4,9 @@ import { LifecycleFlags, State } from '../flags';
 import { IBinding } from '../lifecycle';
 import { IObservable, IScope } from '../observation';
 import { IConnectableBinding } from './connectable';
-export interface Ref extends IConnectableBinding {
+export interface RefBinding extends IConnectableBinding {
 }
-export declare class Ref implements IBinding {
+export declare class RefBinding implements IBinding {
     $state: State;
     $scope?: IScope;
     part?: string;
@@ -19,4 +19,4 @@ export declare class Ref implements IBinding {
     observeProperty(flags: LifecycleFlags, obj: IIndexable, propertyName: string): void;
     handleChange(newValue: unknown, previousValue: unknown, flags: LifecycleFlags): void;
 }
-//# sourceMappingURL=ref.d.ts.map
+//# sourceMappingURL=ref-binding.d.ts.map

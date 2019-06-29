@@ -5,7 +5,7 @@ import { BindingMode } from '../../flags';
 import { IViewFactory } from '../../lifecycle';
 import { Scope } from '../../observation/binding-context';
 import { Bindable } from '../../templating/bindable';
-import { CustomAttributeResource } from '../custom-attribute';
+import { CustomAttribute } from '../custom-attribute';
 export class With {
     constructor(factory, location) {
         this.$observers = Object.freeze({
@@ -54,7 +54,7 @@ export class With {
     }
 }
 With.inject = [IViewFactory, IRenderLocation];
-With.kind = CustomAttributeResource;
+With.kind = CustomAttribute;
 With.description = Object.freeze({
     name: 'with',
     aliases: PLATFORM.emptyArray,

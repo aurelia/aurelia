@@ -37,7 +37,7 @@
                         },
                         dependencies: Array.prototype.slice.call(arguments, 1)
                     };
-                    onLoad({ default: runtime_1.CustomElementResource.define(templateSource) });
+                    onLoad({ default: runtime_1.CustomElement.define(templateSource) });
                 });
             });
         }

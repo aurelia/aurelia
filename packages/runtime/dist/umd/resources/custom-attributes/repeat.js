@@ -402,7 +402,7 @@
         }
     }
     Repeat.inject = [dom_1.IRenderLocation, lifecycle_1.IController, lifecycle_1.IViewFactory];
-    Repeat.kind = custom_attribute_1.CustomAttributeResource;
+    Repeat.kind = custom_attribute_1.CustomAttribute;
     Repeat.description = Object.freeze({
         name: 'repeat',
         aliases: kernel_1.PLATFORM.emptyArray,

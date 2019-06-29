@@ -35,7 +35,7 @@ export interface ICustomElementResource<T extends INode = INode> extends IResour
 export declare function customElement(definition: ITemplateDefinition): ICustomElementDecorator;
 export declare function customElement(name: string): ICustomElementDecorator;
 export declare function customElement(nameOrDefinition: string | ITemplateDefinition): ICustomElementDecorator;
-export declare const CustomElementResource: ICustomElementResource;
+export declare const CustomElement: ICustomElementResource;
 export interface ICustomElementDecorator {
     <T extends Constructable>(target: T): T & ICustomElementType<T>;
 }

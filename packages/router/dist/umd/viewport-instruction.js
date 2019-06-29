@@ -71,7 +71,7 @@
                 return this.component;
             }
             const container = context.get(kernel_1.IContainer);
-            const resolver = container.getResolver(runtime_1.CustomElementResource.keyFrom(this.componentName));
+            const resolver = container.getResolver(runtime_1.CustomElement.keyFrom(this.componentName));
             if (resolver !== null) {
                 return resolver.getFactory(container).Type;
             }

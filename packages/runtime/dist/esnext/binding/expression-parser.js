@@ -1,5 +1,5 @@
 import { DI, PLATFORM, Reporter, } from '@aurelia/kernel';
-import { AccessMember, AccessScope, CallMember, CallScope, PrimitiveLiteral, } from './ast';
+import { AccessMemberExpression, AccessScopeExpression, CallMemberExpression, CallScopeExpression, PrimitiveLiteralExpression, } from './ast';
 export const IExpressionParser = DI.createInterface('IExpressionParser').withDefault(x => x.singleton(ExpressionParser));
 /** @internal */
 export class ExpressionParser {
@@ -28,7 +28,7 @@ export class ExpressionParser {
                 // Allow empty strings for normal bindings and those that are empty by default (such as a custom attribute without an equals sign)
                 // But don't cache it, because empty strings are always invalid for any other type of binding
                 if (expression.length === 0 && (bindingType & (53 /* BindCommand */ | 49 /* OneTimeCommand */ | 50 /* ToViewCommand */))) {
-                    return PrimitiveLiteral.$empty;
+                    return PrimitiveLiteralExpression.$empty;
                 }
                 let found = this.expressionLookup[expression];
                 if (found === void 0) {
@@ -60,19 +60,19 @@ export class ExpressionParser {
             const firstPart = parts[0];
             let current;
             if (firstPart.endsWith('()')) {
-                current = new CallScope(firstPart.replace('()', ''), PLATFORM.emptyArray);
+                current = new CallScopeExpression(firstPart.replace('()', ''), PLATFORM.emptyArray);
             }
             else {
-                current = new AccessScope(parts[0]);
+                current = new AccessScopeExpression(parts[0]);
             }
             let index = 1;
             while (index < parts.length) {
                 const currentPart = parts[index];
                 if (currentPart.endsWith('()')) {
-                    current = new CallMember(current, currentPart.replace('()', ''), PLATFORM.emptyArray);
+                    current = new CallMemberExpression(current, currentPart.replace('()', ''), PLATFORM.emptyArray);
                 }
                 else {
-                    current = new AccessMember(current, parts[index]);
+                    current = new AccessMemberExpression(current, parts[index]);
                 }
                 index++;
             }

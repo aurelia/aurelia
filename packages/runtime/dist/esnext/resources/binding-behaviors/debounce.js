@@ -1,7 +1,7 @@
 import { PLATFORM } from '@aurelia/kernel';
-import { Binding } from '../../binding/binding';
+import { PropertyBinding } from '../../binding/property-binding';
 import { BindingMode } from '../../flags';
-import { BindingBehaviorResource } from '../binding-behavior';
+import { BindingBehavior } from '../binding-behavior';
 const unset = {};
 /** @internal */
 export function debounceCallSource(newValue, oldValue, flags) {
@@ -34,7 +34,7 @@ export class DebounceBindingBehavior {
         let methodToDebounce;
         let callContextToDebounce;
         let debouncer;
-        if (binding instanceof Binding) {
+        if (binding instanceof PropertyBinding) {
             methodToDebounce = 'handleChange';
             debouncer = debounceCall;
             callContextToDebounce = binding.mode & fromView ? 32 /* updateSourceExpression */ : 16 /* updateTargetInstance */;
@@ -68,5 +68,5 @@ export class DebounceBindingBehavior {
         binding.debounceState = null;
     }
 }
-BindingBehaviorResource.define('debounce', DebounceBindingBehavior);
+BindingBehavior.define('debounce', DebounceBindingBehavior);
 //# sourceMappingURL=debounce.js.map

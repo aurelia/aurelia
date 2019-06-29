@@ -32,27 +32,27 @@
         }
     }
     exports.OneTimeBindingBehavior = OneTimeBindingBehavior;
-    binding_behavior_1.BindingBehaviorResource.define('oneTime', OneTimeBindingBehavior);
+    binding_behavior_1.BindingBehavior.define('oneTime', OneTimeBindingBehavior);
     class ToViewBindingBehavior extends BindingModeBehavior {
         constructor() {
             super(toView);
         }
     }
     exports.ToViewBindingBehavior = ToViewBindingBehavior;
-    binding_behavior_1.BindingBehaviorResource.define('toView', ToViewBindingBehavior);
+    binding_behavior_1.BindingBehavior.define('toView', ToViewBindingBehavior);
     class FromViewBindingBehavior extends BindingModeBehavior {
         constructor() {
             super(fromView);
         }
     }
     exports.FromViewBindingBehavior = FromViewBindingBehavior;
-    binding_behavior_1.BindingBehaviorResource.define('fromView', FromViewBindingBehavior);
+    binding_behavior_1.BindingBehavior.define('fromView', FromViewBindingBehavior);
     class TwoWayBindingBehavior extends BindingModeBehavior {
         constructor() {
             super(twoWay);
         }
     }
     exports.TwoWayBindingBehavior = TwoWayBindingBehavior;
-    binding_behavior_1.BindingBehaviorResource.define('twoWay', TwoWayBindingBehavior);
+    binding_behavior_1.BindingBehavior.define('twoWay', TwoWayBindingBehavior);
 });
 //# sourceMappingURL=binding-mode.js.map

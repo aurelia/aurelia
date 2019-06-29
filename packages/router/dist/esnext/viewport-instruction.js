@@ -1,5 +1,5 @@
 import { IContainer } from '@aurelia/kernel';
-import { CustomElementResource } from '@aurelia/runtime';
+import { CustomElement } from '@aurelia/runtime';
 export class ViewportInstruction {
     constructor(component, viewport, parameters, ownsScope = false, nextScopeInstruction = null) {
         this.component = null;
@@ -60,7 +60,7 @@ export class ViewportInstruction {
             return this.component;
         }
         const container = context.get(IContainer);
-        const resolver = container.getResolver(CustomElementResource.keyFrom(this.componentName));
+        const resolver = container.getResolver(CustomElement.keyFrom(this.componentName));
         if (resolver !== null) {
             return resolver.getFactory(container).Type;
         }

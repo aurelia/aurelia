@@ -3,7 +3,7 @@ import { HooksDefinition, } from '../../definitions';
 import { IRenderLocation, } from '../../dom';
 import { BindingMode, } from '../../flags';
 import { IViewFactory, } from '../../lifecycle';
-import { CustomAttributeResource, } from '../custom-attribute';
+import { CustomAttribute, } from '../custom-attribute';
 export class Replaceable {
     constructor(factory, location) {
         this.id = nextId('au$component');
@@ -29,7 +29,7 @@ export class Replaceable {
     }
 }
 Replaceable.inject = [IViewFactory, IRenderLocation];
-Replaceable.kind = CustomAttributeResource;
+Replaceable.kind = CustomAttribute;
 Replaceable.description = Object.freeze({
     name: 'replaceable',
     aliases: PLATFORM.emptyArray,

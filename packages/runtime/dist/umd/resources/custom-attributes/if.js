@@ -191,7 +191,7 @@
         }
     }
     If.inject = [lifecycle_1.IViewFactory, dom_1.IRenderLocation];
-    If.kind = custom_attribute_1.CustomAttributeResource;
+    If.kind = custom_attribute_1.CustomAttribute;
     If.description = Object.freeze({
         name: 'if',
         aliases: kernel_1.PLATFORM.emptyArray,
@@ -223,7 +223,7 @@
         }
     }
     Else.inject = [lifecycle_1.IViewFactory];
-    Else.kind = custom_attribute_1.CustomAttributeResource;
+    Else.kind = custom_attribute_1.CustomAttribute;
     Else.description = {
         name: 'else',
         aliases: kernel_1.PLATFORM.emptyArray,

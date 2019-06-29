@@ -298,7 +298,7 @@
     //     const Type = (obj as { prototype?: any })['prototype'] ? obj : function (this: any): void {
     //       Object.assign(this, obj);
     //     };
-    //     const App = CustomElementResource.define(definition, Type as any);
+    //     const App = CustomElement.define(definition, Type as any);
     //     return new TestBuilder(App) as any;
     //   }
     //   public element(obj: Record<string, unknown>, def: DefinitionCb): TestBuilder<T> {
@@ -306,7 +306,7 @@
     //     const Type = (obj as { prototype?: any })['prototype'] ? obj : function (this: any): void {
     //       Object.assign(this, obj);
     //     };
-    //     const Resource = CustomElementResource.define(definition, Type as any);
+    //     const Resource = CustomElement.define(definition, Type as any);
     //     this.container.register(Resource);
     //     return this;
     //   }
@@ -479,7 +479,7 @@
 //   container.registerResolver(ITargetedInstruction, instructionProvider);
 //   dom.registerElementResolver(container, elementProvider);
 //   const element = container.get<T & IViewModel>(
-//     CustomElementResource.keyFrom(ElementType.description.name)
+//     CustomElement.keyFrom(ElementType.description.name)
 //   ) as T & IViewModel & InstanceType<typeof Type>;
 //   element.$hydrate(LF.none, container, host);
 //   return { element, parent };

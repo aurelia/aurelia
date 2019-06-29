@@ -18,7 +18,7 @@
         if (typeof tagOrType === 'string') {
             return createElementForTag(dom, tagOrType, props, children);
         }
-        else if (runtime_1.CustomElementResource.isType(tagOrType)) {
+        else if (runtime_1.CustomElement.isType(tagOrType)) {
             return createElementForType(dom, tagOrType, props, children);
         }
         else {

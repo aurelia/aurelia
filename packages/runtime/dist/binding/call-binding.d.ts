@@ -4,9 +4,9 @@ import { LifecycleFlags, State } from '../flags';
 import { IAccessor, IScope } from '../observation';
 import { IObserverLocator } from '../observation/observer-locator';
 import { IConnectableBinding } from './connectable';
-export interface Call extends IConnectableBinding {
+export interface CallBinding extends IConnectableBinding {
 }
-export declare class Call {
+export declare class CallBinding {
     $state: State;
     $scope?: IScope;
     part?: string;
@@ -20,4 +20,4 @@ export declare class Call {
     observeProperty(flags: LifecycleFlags, obj: object, propertyName: string): void;
     handleChange(newValue: unknown, previousValue: unknown, flags: LifecycleFlags): void;
 }
-//# sourceMappingURL=call.d.ts.map
+//# sourceMappingURL=call-binding.d.ts.map

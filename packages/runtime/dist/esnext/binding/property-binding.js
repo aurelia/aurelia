@@ -9,7 +9,7 @@ const slice = Array.prototype.slice;
 const { oneTime, toView, fromView } = BindingMode;
 // pre-combining flags for bitwise checks is a minor perf tweak
 const toViewOrOneTime = toView | oneTime;
-let Binding = class Binding {
+let PropertyBinding = class PropertyBinding {
     constructor(sourceExpression, target, targetProperty, mode, observerLocator, locator) {
         connectable.assignIdTo(this);
         this.$state = 0 /* none */;
@@ -164,8 +164,8 @@ let Binding = class Binding {
         }
     }
 };
-Binding = tslib_1.__decorate([
+PropertyBinding = tslib_1.__decorate([
     connectable()
-], Binding);
-export { Binding };
-//# sourceMappingURL=binding.js.map
+], PropertyBinding);
+export { PropertyBinding };
+//# sourceMappingURL=property-binding.js.map

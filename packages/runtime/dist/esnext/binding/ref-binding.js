@@ -1,7 +1,7 @@
 import { Tracer, } from '@aurelia/kernel';
 import { hasBind, hasUnbind, } from './ast';
 const slice = Array.prototype.slice;
-export class Ref {
+export class RefBinding {
     constructor(sourceExpression, target, locator) {
         this.$state = 0 /* none */;
         this.$scope = void 0;
@@ -70,4 +70,4 @@ export class Ref {
         return;
     }
 }
-//# sourceMappingURL=ref.js.map
+//# sourceMappingURL=ref-binding.js.map

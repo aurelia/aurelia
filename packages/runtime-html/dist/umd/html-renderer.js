@@ -106,7 +106,7 @@
                 kernel_1.Tracer.enter('StylePropertyBindingRenderer', 'render', slice.call(arguments));
             }
             const expr = runtime_1.ensureExpression(this.parser, instruction.from, 48 /* IsPropertyCommand */ | runtime_1.BindingMode.toView);
-            const binding = new runtime_1.Binding(expr, target.style, instruction.to, runtime_1.BindingMode.toView, this.observerLocator, context);
+            const binding = new runtime_1.PropertyBinding(expr, target.style, instruction.to, runtime_1.BindingMode.toView, this.observerLocator, context);
             runtime_1.addBinding(renderable, binding);
             if (kernel_1.Tracer.enabled) {
                 kernel_1.Tracer.leave();

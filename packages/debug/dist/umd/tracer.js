@@ -312,7 +312,7 @@
             switch (info.objName) {
                 case 'Listener':
                     return (info.params[0]).type;
-                case 'Call':
+                case 'CallBinding':
                     const names = [];
                     if (info.params != null) {
                         for (let i = 0, ii = info.params.length; i < ii; ++i) {

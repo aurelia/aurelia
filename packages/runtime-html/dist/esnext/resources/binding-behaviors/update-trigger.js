@@ -1,5 +1,5 @@
 import { Reporter } from '@aurelia/kernel';
-import { BindingBehaviorResource, BindingMode, IDOM, IObserverLocator } from '@aurelia/runtime';
+import { BindingBehavior, BindingMode, IDOM, IObserverLocator } from '@aurelia/runtime';
 import { EventSubscriber } from '../../observation/event-manager';
 export class UpdateTriggerBindingBehavior {
     constructor(observerLocator) {
@@ -32,5 +32,5 @@ export class UpdateTriggerBindingBehavior {
     }
 }
 UpdateTriggerBindingBehavior.inject = [IObserverLocator];
-BindingBehaviorResource.define('updateTrigger', UpdateTriggerBindingBehavior);
+BindingBehavior.define('updateTrigger', UpdateTriggerBindingBehavior);
 //# sourceMappingURL=update-trigger.js.map

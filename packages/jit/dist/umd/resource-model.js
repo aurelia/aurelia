@@ -33,7 +33,7 @@
         getElementInfo(name) {
             let result = this.elementLookup[name];
             if (result === void 0) {
-                const def = this.resources.find(runtime_1.CustomElementResource, name);
+                const def = this.resources.find(runtime_1.CustomElement, name);
                 if (def == null) {
                     result = null;
                 }
@@ -54,7 +54,7 @@
         getAttributeInfo(syntax) {
             let result = this.attributeLookup[syntax.target];
             if (result === void 0) {
-                const def = this.resources.find(runtime_1.CustomAttributeResource, syntax.target);
+                const def = this.resources.find(runtime_1.CustomAttribute, syntax.target);
                 if (def == null) {
                     result = null;
                 }

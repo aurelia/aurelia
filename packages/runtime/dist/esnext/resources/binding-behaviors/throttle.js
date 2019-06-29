@@ -1,7 +1,7 @@
 import { PLATFORM } from '@aurelia/kernel';
-import { Binding } from '../../binding/binding';
+import { PropertyBinding } from '../../binding/property-binding';
 import { BindingMode } from '../../flags';
-import { BindingBehaviorResource } from '../binding-behavior';
+import { BindingBehavior } from '../binding-behavior';
 /** @internal */
 export function throttle(newValue) {
     const state = this.throttleState;
@@ -26,7 +26,7 @@ export function throttle(newValue) {
 export class ThrottleBindingBehavior {
     bind(flags, scope, binding, delay = 200) {
         let methodToThrottle;
-        if (binding instanceof Binding) {
+        if (binding instanceof PropertyBinding) {
             if (binding.mode === BindingMode.twoWay) {
                 methodToThrottle = 'updateSource';
             }
@@ -60,5 +60,5 @@ export class ThrottleBindingBehavior {
         binding.throttleState = null;
     }
 }
-BindingBehaviorResource.define('throttle', ThrottleBindingBehavior);
+BindingBehavior.define('throttle', ThrottleBindingBehavior);
 //# sourceMappingURL=throttle.js.map

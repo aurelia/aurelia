@@ -1,11 +1,11 @@
 import * as tslib_1 from "tslib";
 import { all, Registration, Reporter, Tracer } from '@aurelia/kernel';
-import { Binding } from './binding/binding';
-import { Call } from './binding/call';
+import { PropertyBinding } from './binding/property-binding';
+import { CallBinding } from './binding/call-binding';
 import { IExpressionParser } from './binding/expression-parser';
 import { InterpolationBinding, MultiInterpolationBinding } from './binding/interpolation-binding';
 import { LetBinding } from './binding/let-binding';
-import { Ref } from './binding/ref';
+import { RefBinding } from './binding/ref-binding';
 import { customAttributeKey, customElementKey } from './definitions';
 import { BindingMode } from './flags';
 import { Controller, } from './templating/controller';
@@ -302,7 +302,7 @@ class CallBindingRenderer {
             Tracer.enter('CallBindingRenderer', 'render', slice.call(arguments));
         }
         const expr = ensureExpression(this.parser, instruction.from, 153 /* CallCommand */);
-        const binding = new Call(expr, getTarget(target), instruction.to, this.observerLocator, context);
+        const binding = new CallBinding(expr, getTarget(target), instruction.to, this.observerLocator, context);
         addBinding(renderable, binding);
         if (Tracer.enabled) {
             Tracer.leave();
@@ -326,7 +326,7 @@ class RefBindingRenderer {
             Tracer.enter('RefBindingRenderer', 'render', slice.call(arguments));
         }
         const expr = ensureExpression(this.parser, instruction.from, 1280 /* IsRef */);
-        const binding = new Ref(expr, getTarget(target), context);
+        const binding = new RefBinding(expr, getTarget(target), context);
         addBinding(renderable, binding);
         if (Tracer.enabled) {
             Tracer.leave();
@@ -382,7 +382,7 @@ class PropertyBindingRenderer {
             Tracer.enter('PropertyBindingRenderer', 'render', slice.call(arguments));
         }
         const expr = ensureExpression(this.parser, instruction.from, 48 /* IsPropertyCommand */ | instruction.mode);
-        const binding = new Binding(expr, getTarget(target), instruction.to, instruction.mode, this.observerLocator, context);
+        const binding = new PropertyBinding(expr, getTarget(target), instruction.to, instruction.mode, this.observerLocator, context);
         addBinding(renderable, binding);
         if (Tracer.enabled) {
             Tracer.leave();
@@ -407,7 +407,7 @@ class IteratorBindingRenderer {
             Tracer.enter('IteratorBindingRenderer', 'render', slice.call(arguments));
         }
         const expr = ensureExpression(this.parser, instruction.from, 539 /* ForCommand */);
-        const binding = new Binding(expr, getTarget(target), instruction.to, BindingMode.toView, this.observerLocator, context);
+        const binding = new PropertyBinding(expr, getTarget(target), instruction.to, BindingMode.toView, this.observerLocator, context);
         addBinding(renderable, binding);
         if (Tracer.enabled) {
             Tracer.leave();

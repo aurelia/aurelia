@@ -39,7 +39,7 @@
                     // Allow empty strings for normal bindings and those that are empty by default (such as a custom attribute without an equals sign)
                     // But don't cache it, because empty strings are always invalid for any other type of binding
                     if (expression.length === 0 && (bindingType & (53 /* BindCommand */ | 49 /* OneTimeCommand */ | 50 /* ToViewCommand */))) {
-                        return ast_1.PrimitiveLiteral.$empty;
+                        return ast_1.PrimitiveLiteralExpression.$empty;
                     }
                     let found = this.expressionLookup[expression];
                     if (found === void 0) {
@@ -71,19 +71,19 @@
                 const firstPart = parts[0];
                 let current;
                 if (firstPart.endsWith('()')) {
-                    current = new ast_1.CallScope(firstPart.replace('()', ''), kernel_1.PLATFORM.emptyArray);
+                    current = new ast_1.CallScopeExpression(firstPart.replace('()', ''), kernel_1.PLATFORM.emptyArray);
                 }
                 else {
-                    current = new ast_1.AccessScope(parts[0]);
+                    current = new ast_1.AccessScopeExpression(parts[0]);
                 }
                 let index = 1;
                 while (index < parts.length) {
                     const currentPart = parts[index];
                     if (currentPart.endsWith('()')) {
-                        current = new ast_1.CallMember(current, currentPart.replace('()', ''), kernel_1.PLATFORM.emptyArray);
+                        current = new ast_1.CallMemberExpression(current, currentPart.replace('()', ''), kernel_1.PLATFORM.emptyArray);
                     }
                     else {
-                        current = new ast_1.AccessMember(current, parts[index]);
+                        current = new ast_1.AccessMemberExpression(current, parts[index]);
                     }
                     index++;
                 }

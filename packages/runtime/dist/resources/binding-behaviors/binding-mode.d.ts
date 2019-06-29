@@ -1,5 +1,5 @@
 import { IRegistry } from '@aurelia/kernel';
-import { Binding } from '../../binding/binding';
+import { PropertyBinding } from '../../binding/property-binding';
 import { BindingMode, LifecycleFlags } from '../../flags';
 import { IScope } from '../../observation';
 export declare type WithMode = {
@@ -9,8 +9,8 @@ export declare type WithMode = {
 export declare abstract class BindingModeBehavior {
     private readonly mode;
     constructor(mode: BindingMode);
-    bind(flags: LifecycleFlags, scope: IScope, binding: Binding & WithMode): void;
-    unbind(flags: LifecycleFlags, scope: IScope, binding: Binding & WithMode): void;
+    bind(flags: LifecycleFlags, scope: IScope, binding: PropertyBinding & WithMode): void;
+    unbind(flags: LifecycleFlags, scope: IScope, binding: PropertyBinding & WithMode): void;
 }
 export declare class OneTimeBindingBehavior extends BindingModeBehavior {
     static register: IRegistry['register'];

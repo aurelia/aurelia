@@ -1,5 +1,5 @@
 import { nextId, PLATFORM, Registration, } from '@aurelia/kernel';
-import { Bindable, BindingMode, ContinuationTask, CustomElementResource, HooksDefinition, IController, IDOM, IRenderingEngine, ITargetedInstruction, LifecycleTask, PromiseTask, } from '@aurelia/runtime';
+import { Bindable, BindingMode, ContinuationTask, CustomElement, HooksDefinition, IController, IDOM, IRenderingEngine, ITargetedInstruction, LifecycleTask, PromiseTask, } from '@aurelia/runtime';
 import { createElement, } from '../../create-element';
 const bindables = ['subject', 'composing'];
 export class Compose {
@@ -185,7 +185,7 @@ export class Compose {
     }
 }
 Compose.inject = [IDOM, IController, ITargetedInstruction, IRenderingEngine];
-Compose.kind = CustomElementResource;
+Compose.kind = CustomElement;
 Compose.description = Object.freeze({
     name: 'au-compose',
     template: null,

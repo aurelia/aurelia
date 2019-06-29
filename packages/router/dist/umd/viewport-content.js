@@ -237,7 +237,7 @@
             }
             else {
                 const container = context.get(kernel_1.IContainer);
-                const resolver = container.getResolver(runtime_1.CustomElementResource.keyFrom(this.content));
+                const resolver = container.getResolver(runtime_1.CustomElement.keyFrom(this.content));
                 if (resolver !== null) {
                     return resolver.getFactory(container).Type;
                 }
@@ -255,7 +255,7 @@
                 return container.get(component);
             }
             else {
-                return container.get(runtime_1.CustomElementResource.keyFrom(component));
+                return container.get(runtime_1.CustomElement.keyFrom(component));
             }
         }
     }

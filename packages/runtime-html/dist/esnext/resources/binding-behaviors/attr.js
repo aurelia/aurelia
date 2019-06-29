@@ -1,4 +1,4 @@
-import { BindingBehaviorResource, ILifecycle } from '@aurelia/runtime';
+import { BindingBehavior, ILifecycle } from '@aurelia/runtime';
 import { DataAttributeAccessor } from '../../observation/data-attribute-accessor';
 export class AttrBindingBehavior {
     bind(flags, scope, binding) {
@@ -8,5 +8,5 @@ export class AttrBindingBehavior {
         return;
     }
 }
-BindingBehaviorResource.define('attr', AttrBindingBehavior);
+BindingBehavior.define('attr', AttrBindingBehavior);
 //# sourceMappingURL=attr.js.map

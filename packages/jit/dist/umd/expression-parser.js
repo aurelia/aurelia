@@ -13,12 +13,12 @@
     const runtime_1 = require("@aurelia/runtime");
     const common_1 = require("./common");
     const { enter, leave } = kernel_1.Profiler.createTimer('ExpressionParser');
-    const $false = runtime_1.PrimitiveLiteral.$false;
-    const $true = runtime_1.PrimitiveLiteral.$true;
-    const $null = runtime_1.PrimitiveLiteral.$null;
-    const $undefined = runtime_1.PrimitiveLiteral.$undefined;
-    const $this = runtime_1.AccessThis.$this;
-    const $parent = runtime_1.AccessThis.$parent;
+    const $false = runtime_1.PrimitiveLiteralExpression.$false;
+    const $true = runtime_1.PrimitiveLiteralExpression.$true;
+    const $null = runtime_1.PrimitiveLiteralExpression.$null;
+    const $undefined = runtime_1.PrimitiveLiteralExpression.$undefined;
+    const $this = runtime_1.AccessThisExpression.$this;
+    const $parent = runtime_1.AccessThisExpression.$parent;
     /** @internal */
     class ParserState {
         get tokenRaw() {
@@ -119,7 +119,7 @@
              */
             const op = TokenValues[state.currentToken & 63 /* Type */];
             nextToken(state);
-            result = new runtime_1.Unary(op, parse(state, access, 449 /* LeftHandSide */, bindingType));
+            result = new runtime_1.UnaryExpression(op, parse(state, access, 449 /* LeftHandSide */, bindingType));
             state.assignable = false;
         }
         else {
@@ -130,8 +130,8 @@
              *   1. this
              *   2. IdentifierName
              *   3. Literal
-             *   4. ArrayLiteral
-             *   5. ObjectLiteral
+             *   4. ArrayLiteralExpression
+             *   5. ObjectLiteralExpression
              *   6. TemplateLiteral
              *   7. ParenthesizedExpression
              *
@@ -170,7 +170,7 @@
                         }
                         else if (state.currentToken & 524288 /* AccessScopeTerminal */) {
                             const ancestor = access & 511 /* Ancestor */;
-                            result = ancestor === 0 ? $this : ancestor === 1 ? $parent : new runtime_1.AccessThis(ancestor);
+                            result = ancestor === 0 ? $this : ancestor === 1 ? $parent : new runtime_1.AccessThisExpression(ancestor);
                             access = 512 /* This */;
                             break primary;
                         }
@@ -187,7 +187,7 @@
                         result = new runtime_1.BindingIdentifier(state.tokenValue);
                     }
                     else {
-                        result = new runtime_1.AccessScope(state.tokenValue, access & 511 /* Ancestor */);
+                        result = new runtime_1.AccessScopeExpression(state.tokenValue, access & 511 /* Ancestor */);
                         access = 1024 /* Scope */;
                     }
                     state.assignable = true;
@@ -214,7 +214,7 @@
                     access = 0 /* Reset */;
                     break;
                 case 540713 /* TemplateTail */:
-                    result = new runtime_1.Template([state.tokenValue]);
+                    result = new runtime_1.TemplateExpression([state.tokenValue]);
                     state.assignable = false;
                     nextToken(state);
                     access = 0 /* Reset */;
@@ -225,7 +225,7 @@
                     break;
                 case 4096 /* StringLiteral */:
                 case 8192 /* NumericLiteral */:
-                    result = new runtime_1.PrimitiveLiteral(state.tokenValue);
+                    result = new runtime_1.PrimitiveLiteralExpression(state.tokenValue);
                     state.assignable = false;
                     nextToken(state);
                     access = 0 /* Reset */;
@@ -308,23 +308,23 @@
                         // Change $This to $Scope, change $Scope to $Member, keep $Member as-is, change $Keyed to $Member, disregard other flags
                         access = ((access & (512 /* This */ | 1024 /* Scope */)) << 1) | (access & 2048 /* Member */) | ((access & 4096 /* Keyed */) >> 1);
                         if (state.currentToken === 671750 /* OpenParen */) {
-                            if (access === 0 /* Reset */) { // if the left hand side is a literal, make sure we parse a CallMember
+                            if (access === 0 /* Reset */) { // if the left hand side is a literal, make sure we parse a CallMemberExpression
                                 access = 2048 /* Member */;
                             }
                             continue;
                         }
                         if (access & 1024 /* Scope */) {
-                            result = new runtime_1.AccessScope(name, result.ancestor);
+                            result = new runtime_1.AccessScopeExpression(name, result.ancestor);
                         }
                         else { // if it's not $Scope, it's $Member
-                            result = new runtime_1.AccessMember(result, name);
+                            result = new runtime_1.AccessMemberExpression(result, name);
                         }
                         continue;
                     case 671756 /* OpenBracket */:
                         state.assignable = true;
                         nextToken(state);
                         access = 4096 /* Keyed */;
-                        result = new runtime_1.AccessKeyed(result, parse(state, 0 /* Reset */, 62 /* Assign */, bindingType));
+                        result = new runtime_1.AccessKeyedExpression(result, parse(state, 0 /* Reset */, 62 /* Assign */, bindingType));
                         consume(state, 1835021 /* CloseBracket */);
                         break;
                     case 671750 /* OpenParen */:
@@ -339,20 +339,20 @@
                         }
                         consume(state, 1835018 /* CloseParen */);
                         if (access & 1024 /* Scope */) {
-                            result = new runtime_1.CallScope(name, args, result.ancestor);
+                            result = new runtime_1.CallScopeExpression(name, args, result.ancestor);
                         }
                         else if (access & 2048 /* Member */) {
-                            result = new runtime_1.CallMember(result, name, args);
+                            result = new runtime_1.CallMemberExpression(result, name, args);
                         }
                         else {
-                            result = new runtime_1.CallFunction(result, args);
+                            result = new runtime_1.CallFunctionExpression(result, args);
                         }
                         access = 0;
                         break;
                     case 540713 /* TemplateTail */:
                         state.assignable = false;
                         const strings = [state.tokenValue];
-                        result = new runtime_1.TaggedTemplate(strings, strings, result);
+                        result = new runtime_1.TaggedTemplateExpression(strings, strings, result);
                         nextToken(state);
                         break;
                     case 540714 /* TemplateContinuation */:
@@ -401,7 +401,7 @@
                 break;
             }
             nextToken(state);
-            result = new runtime_1.Binary(TokenValues[opToken & 63 /* Type */], result, parse(state, access, opToken & 448 /* Precedence */, bindingType));
+            result = new runtime_1.BinaryExpression(TokenValues[opToken & 63 /* Type */], result, parse(state, access, opToken & 448 /* Precedence */, bindingType));
             state.assignable = false;
         }
         if (63 /* Conditional */ < minPrecedence) {
@@ -425,7 +425,7 @@
         if (consumeOpt(state, 1572879 /* Question */)) {
             const yes = parse(state, access, 62 /* Assign */, bindingType);
             consume(state, 1572878 /* Colon */);
-            result = new runtime_1.Conditional(result, yes, parse(state, access, 62 /* Assign */, bindingType));
+            result = new runtime_1.ConditionalExpression(result, yes, parse(state, access, 62 /* Assign */, bindingType));
             state.assignable = false;
         }
         if (62 /* Assign */ < minPrecedence) {
@@ -453,7 +453,7 @@
                 }
                 throw kernel_1.Reporter.error(150 /* NotAssignable */, { state });
             }
-            result = new runtime_1.Assign(result, parse(state, access, 62 /* Assign */, bindingType));
+            result = new runtime_1.AssignExpression(result, parse(state, access, 62 /* Assign */, bindingType));
         }
         if (61 /* Variadic */ < minPrecedence) {
             if (kernel_1.Profiler.enabled) {
@@ -477,7 +477,7 @@
             while (consumeOpt(state, 1572878 /* Colon */)) {
                 args.push(parse(state, access, 62 /* Assign */, bindingType));
             }
-            result = new runtime_1.ValueConverter(result, name, args);
+            result = new runtime_1.ValueConverterExpression(result, name, args);
         }
         /** parseBindingBehavior
          */
@@ -494,7 +494,7 @@
             while (consumeOpt(state, 1572878 /* Colon */)) {
                 args.push(parse(state, access, 62 /* Assign */, bindingType));
             }
-            result = new runtime_1.BindingBehavior(result, name, args);
+            result = new runtime_1.BindingBehaviorExpression(result, name, args);
         }
         if (state.currentToken !== 1572864 /* EOF */) {
             if (bindingType & 2048 /* Interpolation */) {
@@ -524,9 +524,9 @@
     exports.parse = parse;
     /**
      * parseArrayLiteralExpression
-     * https://tc39.github.io/ecma262/#prod-ArrayLiteral
+     * https://tc39.github.io/ecma262/#prod-ArrayLiteralExpression
      *
-     * ArrayLiteral :
+     * ArrayLiteralExpression :
      *   [ Elision(opt) ]
      *   [ ElementList ]
      *   [ ElementList, Elision(opt) ]
@@ -567,7 +567,7 @@
         }
         else {
             state.assignable = false;
-            return new runtime_1.ArrayLiteral(elements);
+            return new runtime_1.ArrayLiteralExpression(elements);
         }
     }
     function parseForOfStatement(state, result) {
@@ -586,7 +586,7 @@
      * parseObjectLiteralExpression
      * https://tc39.github.io/ecma262/#prod-Literal
      *
-     * ObjectLiteral :
+     * ObjectLiteralExpression :
      *   { }
      *   { PropertyDefinitionList }
      *
@@ -643,7 +643,7 @@
         }
         else {
             state.assignable = false;
-            return new runtime_1.ObjectLiteral(keys, values);
+            return new runtime_1.ObjectLiteralExpression(keys, values);
         }
     }
     function parseInterpolation(state) {
@@ -686,7 +686,7 @@
      * parseTemplateLiteralExpression
      * https://tc39.github.io/ecma262/#prod-Literal
      *
-     * Template :
+     * TemplateExpression :
      *   NoSubstitutionTemplate
      *   TemplateHead
      *
@@ -728,11 +728,11 @@
         state.assignable = false;
         if (tagged) {
             nextToken(state);
-            return new runtime_1.TaggedTemplate(cooked, cooked, result, expressions);
+            return new runtime_1.TaggedTemplateExpression(cooked, cooked, result, expressions);
         }
         else {
             nextToken(state);
-            return new runtime_1.Template(cooked, expressions);
+            return new runtime_1.TemplateExpression(cooked, expressions);
         }
     }
     function nextToken(state) {

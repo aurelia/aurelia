@@ -1,9 +1,9 @@
 import { Key, IRegistry } from '@aurelia/kernel';
-import { Binding } from '../../binding/binding';
+import { PropertyBinding } from '../../binding/property-binding';
 import { LifecycleFlags } from '../../flags';
 import { IScope } from '../../observation';
 import { ISignaler } from '../../observation/signaler';
-export declare type SignalableBinding = Binding & {
+export declare type SignalableBinding = PropertyBinding & {
     signal: string | string[];
 };
 export declare class SignalBindingBehavior {

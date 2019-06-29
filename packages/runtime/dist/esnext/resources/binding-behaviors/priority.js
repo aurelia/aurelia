@@ -1,5 +1,5 @@
 import { Registration, } from '@aurelia/kernel';
-import { BindingBehaviorResource, } from '../binding-behavior';
+import { BindingBehavior, } from '../binding-behavior';
 export class PriorityBindingBehavior {
     static register(container) {
         container.register(Registration.singleton(`binding-behavior:priority`, this));
@@ -47,7 +47,7 @@ export class PriorityBindingBehavior {
         }
     }
 }
-PriorityBindingBehavior.kind = BindingBehaviorResource;
+PriorityBindingBehavior.kind = BindingBehavior;
 PriorityBindingBehavior.description = Object.freeze({
     name: 'priority',
 });

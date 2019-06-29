@@ -27,11 +27,11 @@
     }
     exports.registerAttribute = registerAttribute;
     function customAttribute(nameOrDefinition) {
-        return target => exports.CustomAttributeResource.define(nameOrDefinition, target); // TODO: fix this at some point
+        return target => exports.CustomAttribute.define(nameOrDefinition, target); // TODO: fix this at some point
     }
     exports.customAttribute = customAttribute;
     function templateController(nameOrDefinition) {
-        return target => exports.CustomAttributeResource.define(typeof nameOrDefinition === 'string'
+        return target => exports.CustomAttribute.define(typeof nameOrDefinition === 'string'
             ? { isTemplateController: true, name: nameOrDefinition }
             : { isTemplateController: true, ...nameOrDefinition }, target); // TODO: fix this at some point
     }
@@ -51,12 +51,12 @@
         const Type = ctor;
         const WritableType = Type;
         const description = createCustomAttributeDescription(typeof nameOrDefinition === 'string' ? { name: nameOrDefinition } : nameOrDefinition, Type);
-        WritableType.kind = exports.CustomAttributeResource;
+        WritableType.kind = exports.CustomAttribute;
         WritableType.description = description;
         Type.register = registerAttribute;
         return Type;
     }
-    exports.CustomAttributeResource = {
+    exports.CustomAttribute = {
         name: definitions_1.customAttributeName,
         keyFrom: definitions_1.customAttributeKey,
         isType,

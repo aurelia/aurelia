@@ -5,7 +5,7 @@ function register(container) {
     container.register(Registration.singleton(this, this));
 }
 export function valueConverter(nameOrDefinition) {
-    return target => ValueConverterResource.define(nameOrDefinition, target); // TODO: fix this at some point
+    return target => ValueConverter.define(nameOrDefinition, target); // TODO: fix this at some point
 }
 function keyFrom(name) {
     return `${this.name}:${name}`;
@@ -18,12 +18,12 @@ function define(nameOrDefinition, ctor) {
     const description = typeof nameOrDefinition === 'string'
         ? { name: nameOrDefinition }
         : nameOrDefinition;
-    Type.kind = ValueConverterResource;
+    Type.kind = ValueConverter;
     Type.description = description;
     Type.register = register;
     return Type;
 }
-export const ValueConverterResource = {
+export const ValueConverter = {
     name: 'value-converter',
     keyFrom,
     isType,

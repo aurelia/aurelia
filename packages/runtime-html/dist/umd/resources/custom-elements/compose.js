@@ -196,7 +196,7 @@
         }
     }
     Compose.inject = [runtime_1.IDOM, runtime_1.IController, runtime_1.ITargetedInstruction, runtime_1.IRenderingEngine];
-    Compose.kind = runtime_1.CustomElementResource;
+    Compose.kind = runtime_1.CustomElement;
     Compose.description = Object.freeze({
         name: 'au-compose',
         template: null,

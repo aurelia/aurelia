@@ -1,6 +1,6 @@
 import { Reporter } from '@aurelia/kernel';
 import { ISignaler } from '../../observation/signaler';
-import { BindingBehaviorResource } from '../binding-behavior';
+import { BindingBehavior } from '../binding-behavior';
 export class SignalBindingBehavior {
     constructor(signaler) {
         this.signaler = signaler;
@@ -43,5 +43,5 @@ export class SignalBindingBehavior {
     }
 }
 SignalBindingBehavior.inject = [ISignaler];
-BindingBehaviorResource.define('signal', SignalBindingBehavior);
+BindingBehavior.define('signal', SignalBindingBehavior);
 //# sourceMappingURL=signals.js.map

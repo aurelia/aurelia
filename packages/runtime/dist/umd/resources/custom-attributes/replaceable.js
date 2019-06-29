@@ -40,7 +40,7 @@
         }
     }
     Replaceable.inject = [lifecycle_1.IViewFactory, dom_1.IRenderLocation];
-    Replaceable.kind = custom_attribute_1.CustomAttributeResource;
+    Replaceable.kind = custom_attribute_1.CustomAttribute;
     Replaceable.description = Object.freeze({
         name: 'replaceable',
         aliases: kernel_1.PLATFORM.emptyArray,

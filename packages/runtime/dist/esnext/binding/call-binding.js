@@ -1,7 +1,7 @@
 import { Tracer, } from '@aurelia/kernel';
 import { hasBind, hasUnbind, } from './ast';
 const slice = Array.prototype.slice;
-export class Call {
+export class CallBinding {
     constructor(sourceExpression, target, targetProperty, observerLocator, locator) {
         this.$state = 0 /* none */;
         this.locator = locator;
@@ -10,7 +10,7 @@ export class Call {
     }
     callSource(args) {
         if (Tracer.enabled) {
-            Tracer.enter('Call', 'callSource', slice.call(arguments));
+            Tracer.enter('CallBinding', 'callSource', slice.call(arguments));
         }
         const overrideContext = this.$scope.overrideContext;
         Object.assign(overrideContext, args);
@@ -25,7 +25,7 @@ export class Call {
     }
     $bind(flags, scope, part) {
         if (Tracer.enabled) {
-            Tracer.enter('Call', '$bind', slice.call(arguments));
+            Tracer.enter('CallBinding', '$bind', slice.call(arguments));
         }
         if (this.$state & 4 /* isBound */) {
             if (this.$scope === scope) {
@@ -53,7 +53,7 @@ export class Call {
     }
     $unbind(flags) {
         if (Tracer.enabled) {
-            Tracer.enter('Call', '$unbind', slice.call(arguments));
+            Tracer.enter('CallBinding', '$unbind', slice.call(arguments));
         }
         if (!(this.$state & 4 /* isBound */)) {
             if (Tracer.enabled) {
@@ -81,4 +81,4 @@ export class Call {
         return;
     }
 }
-//# sourceMappingURL=call.js.map
+//# sourceMappingURL=call-binding.js.map

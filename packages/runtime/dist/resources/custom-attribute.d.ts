@@ -31,7 +31,7 @@ export declare function dynamicOptions(): typeof dynamicOptionsDecorator;
  * Decorator: Indicates that the custom attributes has dynamic options.
  */
 export declare function dynamicOptions<T extends Constructable>(target: T & HasDynamicOptions): T & Required<HasDynamicOptions>;
-export declare const CustomAttributeResource: ICustomAttributeResource;
+export declare const CustomAttribute: ICustomAttributeResource;
 export declare type CustomAttributeDecorator = <T extends Constructable>(target: T) => T & ICustomAttributeType<T>;
 export {};
 //# sourceMappingURL=custom-attribute.d.ts.map

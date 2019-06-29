@@ -1,5 +1,5 @@
 import { BindingMode } from '../../flags';
-import { BindingBehaviorResource } from '../binding-behavior';
+import { BindingBehavior } from '../binding-behavior';
 const { oneTime, toView, fromView, twoWay } = BindingMode;
 export class BindingModeBehavior {
     constructor(mode) {
@@ -19,23 +19,23 @@ export class OneTimeBindingBehavior extends BindingModeBehavior {
         super(oneTime);
     }
 }
-BindingBehaviorResource.define('oneTime', OneTimeBindingBehavior);
+BindingBehavior.define('oneTime', OneTimeBindingBehavior);
 export class ToViewBindingBehavior extends BindingModeBehavior {
     constructor() {
         super(toView);
     }
 }
-BindingBehaviorResource.define('toView', ToViewBindingBehavior);
+BindingBehavior.define('toView', ToViewBindingBehavior);
 export class FromViewBindingBehavior extends BindingModeBehavior {
     constructor() {
         super(fromView);
     }
 }
-BindingBehaviorResource.define('fromView', FromViewBindingBehavior);
+BindingBehavior.define('fromView', FromViewBindingBehavior);
 export class TwoWayBindingBehavior extends BindingModeBehavior {
     constructor() {
         super(twoWay);
     }
 }
-BindingBehaviorResource.define('twoWay', TwoWayBindingBehavior);
+BindingBehavior.define('twoWay', TwoWayBindingBehavior);
 //# sourceMappingURL=binding-mode.js.map

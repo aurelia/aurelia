@@ -5,9 +5,9 @@ import { ILifecycle } from '../lifecycle';
 import { AccessorOrObserver, IObservable, IScope } from '../observation';
 import { IObserverLocator } from '../observation/observer-locator';
 import { IConnectableBinding, IPartialConnectableBinding } from './connectable';
-export interface Binding extends IConnectableBinding {
+export interface PropertyBinding extends IConnectableBinding {
 }
-export declare class Binding implements IPartialConnectableBinding {
+export declare class PropertyBinding implements IPartialConnectableBinding {
     id: number;
     $state: State;
     $lifecycle: ILifecycle;
@@ -28,4 +28,4 @@ export declare class Binding implements IPartialConnectableBinding {
     $bind(flags: LifecycleFlags, scope: IScope, part?: string): void;
     $unbind(flags: LifecycleFlags): void;
 }
-//# sourceMappingURL=binding.d.ts.map
+//# sourceMappingURL=property-binding.d.ts.map

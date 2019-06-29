@@ -1,7 +1,7 @@
 import * as tslib_1 from "tslib";
 import { parseExpression } from '@aurelia/jit';
 import { DI, IContainer, inject, Registration, Tracer } from '@aurelia/kernel';
-import { addBinding, Aurelia, Binding, BindingMode, CompiledTemplate, HydrateElementInstruction, HydrateTemplateController, IDOM, IDOMInitializer, ILifecycle, INode, instructionRenderer, IObserverLocator, IProjectorLocator, ITargetAccessorLocator, ITargetObserverLocator, ITemplateFactory, IteratorBindingInstruction, LetBindingInstruction, LetElementInstruction, RuntimeBasicConfiguration, ToViewBindingInstruction } from '@aurelia/runtime';
+import { addBinding, Aurelia, PropertyBinding, BindingMode, CompiledTemplate, HydrateElementInstruction, HydrateTemplateController, IDOM, IDOMInitializer, ILifecycle, INode, instructionRenderer, IObserverLocator, IProjectorLocator, ITargetAccessorLocator, ITargetObserverLocator, ITemplateFactory, IteratorBindingInstruction, LetBindingInstruction, LetElementInstruction, RuntimeBasicConfiguration, ToViewBindingInstruction } from '@aurelia/runtime';
 const slice = Array.prototype.slice;
 export class AuNode {
     get isConnected() {
@@ -517,7 +517,7 @@ class AuTextRenderer {
         else {
             realTarget = target;
         }
-        const bindable = new Binding(instruction.from, realTarget, 'textContent', BindingMode.toView, this.observerLocator, context);
+        const bindable = new PropertyBinding(instruction.from, realTarget, 'textContent', BindingMode.toView, this.observerLocator, context);
         addBinding(renderable, bindable);
         if (Tracer.enabled) {
             Tracer.leave();

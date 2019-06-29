@@ -11,30 +11,30 @@
     Object.defineProperty(exports, "__esModule", { value: true });
     const AST = require("@aurelia/runtime");
     const astTypeMap = [
-        { type: AST.AccessKeyed, name: 'AccessKeyed' },
-        { type: AST.AccessMember, name: 'AccessMember' },
-        { type: AST.AccessScope, name: 'AccessScope' },
-        { type: AST.AccessThis, name: 'AccessThis' },
+        { type: AST.AccessKeyedExpression, name: 'AccessKeyedExpression' },
+        { type: AST.AccessMemberExpression, name: 'AccessMemberExpression' },
+        { type: AST.AccessScopeExpression, name: 'AccessScopeExpression' },
+        { type: AST.AccessThisExpression, name: 'AccessThisExpression' },
         { type: AST.ArrayBindingPattern, name: 'ArrayBindingPattern' },
-        { type: AST.ArrayLiteral, name: 'ArrayLiteral' },
-        { type: AST.Assign, name: 'Assign' },
-        { type: AST.Binary, name: 'Binary' },
-        { type: AST.BindingBehavior, name: 'BindingBehavior' },
+        { type: AST.ArrayLiteralExpression, name: 'ArrayLiteralExpression' },
+        { type: AST.AssignExpression, name: 'AssignExpression' },
+        { type: AST.BinaryExpression, name: 'BinaryExpression' },
+        { type: AST.BindingBehaviorExpression, name: 'BindingBehaviorExpression' },
         { type: AST.BindingIdentifier, name: 'BindingIdentifier' },
-        { type: AST.CallFunction, name: 'CallFunction' },
-        { type: AST.CallMember, name: 'CallMember' },
-        { type: AST.CallScope, name: 'CallScope' },
-        { type: AST.Conditional, name: 'Conditional' },
+        { type: AST.CallFunctionExpression, name: 'CallFunctionExpression' },
+        { type: AST.CallMemberExpression, name: 'CallMemberExpression' },
+        { type: AST.CallScopeExpression, name: 'CallScopeExpression' },
+        { type: AST.ConditionalExpression, name: 'ConditionalExpression' },
         { type: AST.ForOfStatement, name: 'ForOfStatement' },
-        { type: AST.HtmlLiteral, name: 'HtmlLiteral' },
+        { type: AST.HtmlLiteralExpression, name: 'HtmlLiteralExpression' },
         { type: AST.Interpolation, name: 'Interpolation' },
         { type: AST.ObjectBindingPattern, name: 'ObjectBindingPattern' },
-        { type: AST.ObjectLiteral, name: 'ObjectLiteral' },
-        { type: AST.PrimitiveLiteral, name: 'PrimitiveLiteral' },
-        { type: AST.TaggedTemplate, name: 'TaggedTemplate' },
-        { type: AST.Template, name: 'Template' },
-        { type: AST.Unary, name: 'Unary' },
-        { type: AST.ValueConverter, name: 'ValueConverter' }
+        { type: AST.ObjectLiteralExpression, name: 'ObjectLiteralExpression' },
+        { type: AST.PrimitiveLiteralExpression, name: 'PrimitiveLiteralExpression' },
+        { type: AST.TaggedTemplateExpression, name: 'TaggedTemplateExpression' },
+        { type: AST.TemplateExpression, name: 'TemplateExpression' },
+        { type: AST.UnaryExpression, name: 'UnaryExpression' },
+        { type: AST.ValueConverterExpression, name: 'ValueConverterExpression' }
     ];
     function enableImprovedExpressionDebugging() {
         astTypeMap.forEach(x => { adoptDebugMethods(x.type, x.name); });
@@ -283,58 +283,58 @@
             return expr.accept(visitor);
         }
         visitAccessMember(expr) {
-            return `{"type":"AccessMember","name":${expr.name},"object":${expr.object.accept(this)}}`;
+            return `{"type":"AccessMemberExpression","name":${expr.name},"object":${expr.object.accept(this)}}`;
         }
         visitAccessKeyed(expr) {
-            return `{"type":"AccessKeyed","object":${expr.object.accept(this)},"key":${expr.key.accept(this)}}`;
+            return `{"type":"AccessKeyedExpression","object":${expr.object.accept(this)},"key":${expr.key.accept(this)}}`;
         }
         visitAccessThis(expr) {
-            return `{"type":"AccessThis","ancestor":${expr.ancestor}}`;
+            return `{"type":"AccessThisExpression","ancestor":${expr.ancestor}}`;
         }
         visitAccessScope(expr) {
-            return `{"type":"AccessScope","name":"${expr.name}","ancestor":${expr.ancestor}}`;
+            return `{"type":"AccessScopeExpression","name":"${expr.name}","ancestor":${expr.ancestor}}`;
         }
         visitArrayLiteral(expr) {
-            return `{"type":"ArrayLiteral","elements":${this.serializeExpressions(expr.elements)}}`;
+            return `{"type":"ArrayLiteralExpression","elements":${this.serializeExpressions(expr.elements)}}`;
         }
         visitObjectLiteral(expr) {
-            return `{"type":"ObjectLiteral","keys":${serializePrimitives(expr.keys)},"values":${this.serializeExpressions(expr.values)}}`;
+            return `{"type":"ObjectLiteralExpression","keys":${serializePrimitives(expr.keys)},"values":${this.serializeExpressions(expr.values)}}`;
         }
         visitPrimitiveLiteral(expr) {
-            return `{"type":"PrimitiveLiteral","value":${serializePrimitive(expr.value)}}`;
+            return `{"type":"PrimitiveLiteralExpression","value":${serializePrimitive(expr.value)}}`;
         }
         visitCallFunction(expr) {
-            return `{"type":"CallFunction","func":${expr.func.accept(this)},"args":${this.serializeExpressions(expr.args)}}`;
+            return `{"type":"CallFunctionExpression","func":${expr.func.accept(this)},"args":${this.serializeExpressions(expr.args)}}`;
         }
         visitCallMember(expr) {
-            return `{"type":"CallMember","name":"${expr.name}","object":${expr.object.accept(this)},"args":${this.serializeExpressions(expr.args)}}`;
+            return `{"type":"CallMemberExpression","name":"${expr.name}","object":${expr.object.accept(this)},"args":${this.serializeExpressions(expr.args)}}`;
         }
         visitCallScope(expr) {
-            return `{"type":"CallScope","name":"${expr.name}","ancestor":${expr.ancestor},"args":${this.serializeExpressions(expr.args)}}`;
+            return `{"type":"CallScopeExpression","name":"${expr.name}","ancestor":${expr.ancestor},"args":${this.serializeExpressions(expr.args)}}`;
         }
         visitTemplate(expr) {
-            return `{"type":"Template","cooked":${serializePrimitives(expr.cooked)},"expressions":${this.serializeExpressions(expr.expressions)}}`;
+            return `{"type":"TemplateExpression","cooked":${serializePrimitives(expr.cooked)},"expressions":${this.serializeExpressions(expr.expressions)}}`;
         }
         visitTaggedTemplate(expr) {
-            return `{"type":"TaggedTemplate","cooked":${serializePrimitives(expr.cooked)},"raw":${serializePrimitives(expr.cooked.raw)},"expressions":${this.serializeExpressions(expr.expressions)}}`;
+            return `{"type":"TaggedTemplateExpression","cooked":${serializePrimitives(expr.cooked)},"raw":${serializePrimitives(expr.cooked.raw)},"expressions":${this.serializeExpressions(expr.expressions)}}`;
         }
         visitUnary(expr) {
-            return `{"type":"Unary","operation":"${expr.operation}","expression":${expr.expression.accept(this)}}`;
+            return `{"type":"UnaryExpression","operation":"${expr.operation}","expression":${expr.expression.accept(this)}}`;
         }
         visitBinary(expr) {
-            return `{"type":"Binary","operation":"${expr.operation}","left":${expr.left.accept(this)},"right":${expr.right.accept(this)}}`;
+            return `{"type":"BinaryExpression","operation":"${expr.operation}","left":${expr.left.accept(this)},"right":${expr.right.accept(this)}}`;
         }
         visitConditional(expr) {
-            return `{"type":"Conditional","condition":${expr.condition.accept(this)},"yes":${expr.yes.accept(this)},"no":${expr.no.accept(this)}}`;
+            return `{"type":"ConditionalExpression","condition":${expr.condition.accept(this)},"yes":${expr.yes.accept(this)},"no":${expr.no.accept(this)}}`;
         }
         visitAssign(expr) {
-            return `{"type":"Assign","target":${expr.target.accept(this)},"value":${expr.value.accept(this)}}`;
+            return `{"type":"AssignExpression","target":${expr.target.accept(this)},"value":${expr.value.accept(this)}}`;
         }
         visitValueConverter(expr) {
-            return `{"type":"ValueConverter","name":"${expr.name}","expression":${expr.expression.accept(this)},"args":${this.serializeExpressions(expr.args)}}`;
+            return `{"type":"ValueConverterExpression","name":"${expr.name}","expression":${expr.expression.accept(this)},"args":${this.serializeExpressions(expr.args)}}`;
         }
         visitBindingBehavior(expr) {
-            return `{"type":"BindingBehavior","name":"${expr.name}","expression":${expr.expression.accept(this)},"args":${this.serializeExpressions(expr.args)}}`;
+            return `{"type":"BindingBehaviorExpression","name":"${expr.name}","expression":${expr.expression.accept(this)},"args":${this.serializeExpressions(expr.args)}}`;
         }
         visitArrayBindingPattern(expr) {
             return `{"type":"ArrayBindingPattern","elements":${this.serializeExpressions(expr.elements)}}`;

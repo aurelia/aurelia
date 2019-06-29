@@ -4,13 +4,13 @@
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "@aurelia/kernel", "../../binding/binding", "../../flags", "../binding-behavior"], factory);
+        define(["require", "exports", "@aurelia/kernel", "../../binding/property-binding", "../../flags", "../binding-behavior"], factory);
     }
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     const kernel_1 = require("@aurelia/kernel");
-    const binding_1 = require("../../binding/binding");
+    const property_binding_1 = require("../../binding/property-binding");
     const flags_1 = require("../../flags");
     const binding_behavior_1 = require("../binding-behavior");
     /** @internal */
@@ -38,7 +38,7 @@
     class ThrottleBindingBehavior {
         bind(flags, scope, binding, delay = 200) {
             let methodToThrottle;
-            if (binding instanceof binding_1.Binding) {
+            if (binding instanceof property_binding_1.PropertyBinding) {
                 if (binding.mode === flags_1.BindingMode.twoWay) {
                     methodToThrottle = 'updateSource';
                 }
@@ -73,6 +73,6 @@
         }
     }
     exports.ThrottleBindingBehavior = ThrottleBindingBehavior;
-    binding_behavior_1.BindingBehaviorResource.define('throttle', ThrottleBindingBehavior);
+    binding_behavior_1.BindingBehavior.define('throttle', ThrottleBindingBehavior);
 });
 //# sourceMappingURL=throttle.js.map

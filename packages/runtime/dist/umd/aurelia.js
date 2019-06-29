@@ -41,7 +41,7 @@
             this.strategy = config.strategy != void 0 ? config.strategy : 1 /* getterSetter */;
             const initializer = this.container.get(exports.IDOMInitializer);
             this.dom = initializer.initialize(config);
-            this.viewModel = custom_element_1.CustomElementResource.isType(config.component)
+            this.viewModel = custom_element_1.CustomElement.isType(config.component)
                 ? this.container.get(config.component)
                 : config.component;
             this.controller = controller_1.Controller.forCustomElement(this.viewModel, this.container, this.host, this.strategy);

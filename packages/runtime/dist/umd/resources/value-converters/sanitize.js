@@ -37,6 +37,6 @@
     }
     SanitizeValueConverter.inject = [exports.ISanitizer];
     exports.SanitizeValueConverter = SanitizeValueConverter;
-    value_converter_1.ValueConverterResource.define('sanitize', SanitizeValueConverter);
+    value_converter_1.ValueConverter.define('sanitize', SanitizeValueConverter);
 });
 //# sourceMappingURL=sanitize.js.map

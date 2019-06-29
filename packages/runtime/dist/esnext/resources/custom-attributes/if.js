@@ -5,7 +5,7 @@ import { BindingMode } from '../../flags';
 import { IViewFactory, } from '../../lifecycle';
 import { ContinuationTask, LifecycleTask, PromiseTask } from '../../lifecycle-task';
 import { Bindable } from '../../templating/bindable';
-import { CustomAttributeResource } from '../custom-attribute';
+import { CustomAttribute } from '../custom-attribute';
 export class If {
     constructor(ifFactory, location) {
         this.$observers = Object.freeze({
@@ -180,7 +180,7 @@ export class If {
     }
 }
 If.inject = [IViewFactory, IRenderLocation];
-If.kind = CustomAttributeResource;
+If.kind = CustomAttribute;
 If.description = Object.freeze({
     name: 'if',
     aliases: PLATFORM.emptyArray,
@@ -211,7 +211,7 @@ export class Else {
     }
 }
 Else.inject = [IViewFactory];
-Else.kind = CustomAttributeResource;
+Else.kind = CustomAttribute;
 Else.description = {
     name: 'else',
     aliases: PLATFORM.emptyArray,

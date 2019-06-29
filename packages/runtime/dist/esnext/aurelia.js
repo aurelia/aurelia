@@ -3,7 +3,7 @@ import { IActivator } from './activator';
 import { INode } from './dom';
 import { ILifecycle, } from './lifecycle';
 import { ContinuationTask, LifecycleTask, } from './lifecycle-task';
-import { CustomElementResource } from './resources/custom-element';
+import { CustomElement } from './resources/custom-element';
 import { Controller } from './templating/controller';
 const { enter: enterStart, leave: leaveStart } = Profiler.createTimer('Aurelia.start');
 const { enter: enterStop, leave: leaveStop } = Profiler.createTimer('Aurelia.stop');
@@ -30,7 +30,7 @@ export class CompositionRoot {
         this.strategy = config.strategy != void 0 ? config.strategy : 1 /* getterSetter */;
         const initializer = this.container.get(IDOMInitializer);
         this.dom = initializer.initialize(config);
-        this.viewModel = CustomElementResource.isType(config.component)
+        this.viewModel = CustomElement.isType(config.component)
             ? this.container.get(config.component)
             : config.component;
         this.controller = Controller.forCustomElement(this.viewModel, this.container, this.host, this.strategy);

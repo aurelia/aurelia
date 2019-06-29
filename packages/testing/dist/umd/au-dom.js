@@ -538,7 +538,7 @@
             else {
                 realTarget = target;
             }
-            const bindable = new runtime_1.Binding(instruction.from, realTarget, 'textContent', runtime_1.BindingMode.toView, this.observerLocator, context);
+            const bindable = new runtime_1.PropertyBinding(instruction.from, realTarget, 'textContent', runtime_1.BindingMode.toView, this.observerLocator, context);
             runtime_1.addBinding(renderable, bindable);
             if (kernel_1.Tracer.enabled) {
                 kernel_1.Tracer.leave();

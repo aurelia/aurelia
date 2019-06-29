@@ -44,6 +44,6 @@
     }
     UpdateTriggerBindingBehavior.inject = [runtime_1.IObserverLocator];
     exports.UpdateTriggerBindingBehavior = UpdateTriggerBindingBehavior;
-    runtime_1.BindingBehaviorResource.define('updateTrigger', UpdateTriggerBindingBehavior);
+    runtime_1.BindingBehavior.define('updateTrigger', UpdateTriggerBindingBehavior);
 });
 //# sourceMappingURL=update-trigger.js.map

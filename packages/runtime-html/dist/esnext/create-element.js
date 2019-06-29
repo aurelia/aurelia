@@ -1,5 +1,5 @@
 import { Tracer } from '@aurelia/kernel';
-import { buildTemplateDefinition, CustomElementResource, HydrateElementInstruction } from '@aurelia/runtime';
+import { buildTemplateDefinition, CustomElement, HydrateElementInstruction } from '@aurelia/runtime';
 import { isHTMLTargetedInstruction } from './definitions';
 import { SetAttributeInstruction } from './instructions';
 const slice = Array.prototype.slice;
@@ -7,7 +7,7 @@ export function createElement(dom, tagOrType, props, children) {
     if (typeof tagOrType === 'string') {
         return createElementForTag(dom, tagOrType, props, children);
     }
-    else if (CustomElementResource.isType(tagOrType)) {
+    else if (CustomElement.isType(tagOrType)) {
         return createElementForType(dom, tagOrType, props, children);
     }
     else {

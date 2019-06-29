@@ -12,7 +12,7 @@
     const kernel_1 = require("@aurelia/kernel");
     const ast_1 = require("./ast");
     const slice = Array.prototype.slice;
-    class Ref {
+    class RefBinding {
         constructor(sourceExpression, target, locator) {
             this.$state = 0 /* none */;
             this.$scope = void 0;
@@ -81,6 +81,6 @@
             return;
         }
     }
-    exports.Ref = Ref;
+    exports.RefBinding = RefBinding;
 });
-//# sourceMappingURL=ref.js.map
+//# sourceMappingURL=ref-binding.js.map

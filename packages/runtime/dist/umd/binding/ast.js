@@ -98,13 +98,13 @@
         RuntimeError[RuntimeError["UnknownOperator"] = 208] = "UnknownOperator";
         RuntimeError[RuntimeError["NilScope"] = 250] = "NilScope";
     })(RuntimeError || (RuntimeError = {}));
-    class BindingBehavior {
+    class BindingBehaviorExpression {
         constructor(expression, name, args) {
             this.$kind = 38962 /* BindingBehavior */;
             this.expression = expression;
             this.name = name;
             this.args = args;
-            this.behaviorKey = binding_behavior_1.BindingBehaviorResource.keyFrom(this.name);
+            this.behaviorKey = binding_behavior_1.BindingBehavior.keyFrom(this.name);
         }
         evaluate(flags, scope, locator, part) {
             return this.expression.evaluate(flags, scope, locator, part);
@@ -161,14 +161,14 @@
             return visitor.visitBindingBehavior(this);
         }
     }
-    exports.BindingBehavior = BindingBehavior;
-    class ValueConverter {
+    exports.BindingBehaviorExpression = BindingBehaviorExpression;
+    class ValueConverterExpression {
         constructor(expression, name, args) {
             this.$kind = 36913 /* ValueConverter */;
             this.expression = expression;
             this.name = name;
             this.args = args;
-            this.converterKey = value_converter_1.ValueConverterResource.keyFrom(this.name);
+            this.converterKey = value_converter_1.ValueConverter.keyFrom(this.name);
         }
         evaluate(flags, scope, locator, part) {
             if (!locator) {
@@ -248,8 +248,8 @@
             return visitor.visitValueConverter(this);
         }
     }
-    exports.ValueConverter = ValueConverter;
-    class Assign {
+    exports.ValueConverterExpression = ValueConverterExpression;
+    class AssignExpression {
         constructor(target, value) {
             this.$kind = 8208 /* Assign */;
             this.target = target;
@@ -269,8 +269,8 @@
             return visitor.visitAssign(this);
         }
     }
-    exports.Assign = Assign;
-    class Conditional {
+    exports.AssignExpression = AssignExpression;
+    class ConditionalExpression {
         constructor(condition, yes, no) {
             this.$kind = 63 /* Conditional */;
             this.assign = kernel_1.PLATFORM.noop;
@@ -298,8 +298,8 @@
             return visitor.visitConditional(this);
         }
     }
-    exports.Conditional = Conditional;
-    class AccessThis {
+    exports.ConditionalExpression = ConditionalExpression;
+    class AccessThisExpression {
         constructor(ancestor = 0) {
             this.$kind = 1793 /* AccessThis */;
             this.assign = kernel_1.PLATFORM.noop;
@@ -332,10 +332,10 @@
             return visitor.visitAccessThis(this);
         }
     }
-    AccessThis.$this = new AccessThis(0);
-    AccessThis.$parent = new AccessThis(1);
-    exports.AccessThis = AccessThis;
-    class AccessScope {
+    AccessThisExpression.$this = new AccessThisExpression(0);
+    AccessThisExpression.$parent = new AccessThisExpression(1);
+    exports.AccessThisExpression = AccessThisExpression;
+    class AccessScopeExpression {
         constructor(name, ancestor = 0) {
             this.$kind = 10082 /* AccessScope */;
             this.name = name;
@@ -365,8 +365,8 @@
             return visitor.visitAccessScope(this);
         }
     }
-    exports.AccessScope = AccessScope;
-    class AccessMember {
+    exports.AccessScopeExpression = AccessScopeExpression;
+    class AccessMemberExpression {
         constructor(object, name) {
             this.$kind = 9323 /* AccessMember */;
             this.object = object;
@@ -402,8 +402,8 @@
             return visitor.visitAccessMember(this);
         }
     }
-    exports.AccessMember = AccessMember;
-    class AccessKeyed {
+    exports.AccessMemberExpression = AccessMemberExpression;
+    class AccessKeyedExpression {
         constructor(object, key) {
             this.$kind = 9324 /* AccessKeyed */;
             this.object = object;
@@ -445,8 +445,8 @@
             return visitor.visitAccessKeyed(this);
         }
     }
-    exports.AccessKeyed = AccessKeyed;
-    class CallScope {
+    exports.AccessKeyedExpression = AccessKeyedExpression;
+    class CallScopeExpression {
         constructor(name, args, ancestor = 0) {
             this.$kind = 1448 /* CallScope */;
             this.assign = kernel_1.PLATFORM.noop;
@@ -473,8 +473,8 @@
             return visitor.visitCallScope(this);
         }
     }
-    exports.CallScope = CallScope;
-    class CallMember {
+    exports.CallScopeExpression = CallScopeExpression;
+    class CallMemberExpression {
         constructor(object, name, args) {
             this.$kind = 1161 /* CallMember */;
             this.assign = kernel_1.PLATFORM.noop;
@@ -505,8 +505,8 @@
             return visitor.visitCallMember(this);
         }
     }
-    exports.CallMember = CallMember;
-    class CallFunction {
+    exports.CallMemberExpression = CallMemberExpression;
+    class CallFunctionExpression {
         constructor(func, args) {
             this.$kind = 1162 /* CallFunction */;
             this.assign = kernel_1.PLATFORM.noop;
@@ -537,8 +537,8 @@
             return visitor.visitCallFunction(this);
         }
     }
-    exports.CallFunction = CallFunction;
-    class Binary {
+    exports.CallFunctionExpression = CallFunctionExpression;
+    class BinaryExpression {
         constructor(operation, left, right) {
             this.$kind = 46 /* Binary */;
             this.assign = kernel_1.PLATFORM.noop;
@@ -631,8 +631,8 @@
             return visitor.visitBinary(this);
         }
     }
-    exports.Binary = Binary;
-    class Unary {
+    exports.BinaryExpression = BinaryExpression;
+    class UnaryExpression {
         constructor(operation, expression) {
             this.$kind = 39 /* Unary */;
             this.assign = kernel_1.PLATFORM.noop;
@@ -666,8 +666,8 @@
             return visitor.visitUnary(this);
         }
     }
-    exports.Unary = Unary;
-    class PrimitiveLiteral {
+    exports.UnaryExpression = UnaryExpression;
+    class PrimitiveLiteralExpression {
         constructor(value) {
             this.$kind = 17925 /* PrimitiveLiteral */;
             this.assign = kernel_1.PLATFORM.noop;
@@ -681,13 +681,13 @@
             return visitor.visitPrimitiveLiteral(this);
         }
     }
-    PrimitiveLiteral.$undefined = new PrimitiveLiteral(void 0);
-    PrimitiveLiteral.$null = new PrimitiveLiteral(null);
-    PrimitiveLiteral.$true = new PrimitiveLiteral(true);
-    PrimitiveLiteral.$false = new PrimitiveLiteral(false);
-    PrimitiveLiteral.$empty = new PrimitiveLiteral('');
-    exports.PrimitiveLiteral = PrimitiveLiteral;
-    class HtmlLiteral {
+    PrimitiveLiteralExpression.$undefined = new PrimitiveLiteralExpression(void 0);
+    PrimitiveLiteralExpression.$null = new PrimitiveLiteralExpression(null);
+    PrimitiveLiteralExpression.$true = new PrimitiveLiteralExpression(true);
+    PrimitiveLiteralExpression.$false = new PrimitiveLiteralExpression(false);
+    PrimitiveLiteralExpression.$empty = new PrimitiveLiteralExpression('');
+    exports.PrimitiveLiteralExpression = PrimitiveLiteralExpression;
+    class HtmlLiteralExpression {
         constructor(parts) {
             this.$kind = 51 /* HtmlLiteral */;
             this.assign = kernel_1.PLATFORM.noop;
@@ -715,8 +715,8 @@
             return visitor.visitHtmlLiteral(this);
         }
     }
-    exports.HtmlLiteral = HtmlLiteral;
-    class ArrayLiteral {
+    exports.HtmlLiteralExpression = HtmlLiteralExpression;
+    class ArrayLiteralExpression {
         constructor(elements) {
             this.$kind = 17955 /* ArrayLiteral */;
             this.assign = kernel_1.PLATFORM.noop;
@@ -741,9 +741,9 @@
             return visitor.visitArrayLiteral(this);
         }
     }
-    ArrayLiteral.$empty = new ArrayLiteral(kernel_1.PLATFORM.emptyArray);
-    exports.ArrayLiteral = ArrayLiteral;
-    class ObjectLiteral {
+    ArrayLiteralExpression.$empty = new ArrayLiteralExpression(kernel_1.PLATFORM.emptyArray);
+    exports.ArrayLiteralExpression = ArrayLiteralExpression;
+    class ObjectLiteralExpression {
         constructor(keys, values) {
             this.$kind = 17956 /* ObjectLiteral */;
             this.assign = kernel_1.PLATFORM.noop;
@@ -770,9 +770,9 @@
             return visitor.visitObjectLiteral(this);
         }
     }
-    ObjectLiteral.$empty = new ObjectLiteral(kernel_1.PLATFORM.emptyArray, kernel_1.PLATFORM.emptyArray);
-    exports.ObjectLiteral = ObjectLiteral;
-    class Template {
+    ObjectLiteralExpression.$empty = new ObjectLiteralExpression(kernel_1.PLATFORM.emptyArray, kernel_1.PLATFORM.emptyArray);
+    exports.ObjectLiteralExpression = ObjectLiteralExpression;
+    class TemplateExpression {
         constructor(cooked, expressions) {
             this.$kind = 17958 /* Template */;
             this.assign = kernel_1.PLATFORM.noop;
@@ -800,9 +800,9 @@
             return visitor.visitTemplate(this);
         }
     }
-    Template.$empty = new Template(['']);
-    exports.Template = Template;
-    class TaggedTemplate {
+    TemplateExpression.$empty = new TemplateExpression(['']);
+    exports.TemplateExpression = TemplateExpression;
+    class TaggedTemplateExpression {
         constructor(cooked, raw, func, expressions) {
             this.$kind = 1197 /* TaggedTemplate */;
             this.assign = kernel_1.PLATFORM.noop;
@@ -835,7 +835,7 @@
             return visitor.visitTaggedTemplate(this);
         }
     }
-    exports.TaggedTemplate = TaggedTemplate;
+    exports.TaggedTemplateExpression = TaggedTemplateExpression;
     class ArrayBindingPattern {
         // We'll either have elements, or keys+values, but never all 3
         constructor(elements) {

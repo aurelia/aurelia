@@ -65,7 +65,7 @@
         }
     }
     With.inject = [lifecycle_1.IViewFactory, dom_1.IRenderLocation];
-    With.kind = custom_attribute_1.CustomAttributeResource;
+    With.kind = custom_attribute_1.CustomAttribute;
     With.description = Object.freeze({
         name: 'with',
         aliases: kernel_1.PLATFORM.emptyArray,

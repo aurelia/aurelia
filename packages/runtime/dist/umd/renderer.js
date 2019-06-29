@@ -4,19 +4,19 @@
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "tslib", "@aurelia/kernel", "./binding/binding", "./binding/call", "./binding/expression-parser", "./binding/interpolation-binding", "./binding/let-binding", "./binding/ref", "./definitions", "./flags", "./templating/controller", "./observation/observer-locator", "./rendering-engine"], factory);
+        define(["require", "exports", "tslib", "@aurelia/kernel", "./binding/property-binding", "./binding/call-binding", "./binding/expression-parser", "./binding/interpolation-binding", "./binding/let-binding", "./binding/ref-binding", "./definitions", "./flags", "./templating/controller", "./observation/observer-locator", "./rendering-engine"], factory);
     }
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     const tslib_1 = require("tslib");
     const kernel_1 = require("@aurelia/kernel");
-    const binding_1 = require("./binding/binding");
-    const call_1 = require("./binding/call");
+    const property_binding_1 = require("./binding/property-binding");
+    const call_binding_1 = require("./binding/call-binding");
     const expression_parser_1 = require("./binding/expression-parser");
     const interpolation_binding_1 = require("./binding/interpolation-binding");
     const let_binding_1 = require("./binding/let-binding");
-    const ref_1 = require("./binding/ref");
+    const ref_binding_1 = require("./binding/ref-binding");
     const definitions_1 = require("./definitions");
     const flags_1 = require("./flags");
     const controller_1 = require("./templating/controller");
@@ -319,7 +319,7 @@
                 kernel_1.Tracer.enter('CallBindingRenderer', 'render', slice.call(arguments));
             }
             const expr = ensureExpression(this.parser, instruction.from, 153 /* CallCommand */);
-            const binding = new call_1.Call(expr, getTarget(target), instruction.to, this.observerLocator, context);
+            const binding = new call_binding_1.CallBinding(expr, getTarget(target), instruction.to, this.observerLocator, context);
             addBinding(renderable, binding);
             if (kernel_1.Tracer.enabled) {
                 kernel_1.Tracer.leave();
@@ -343,7 +343,7 @@
                 kernel_1.Tracer.enter('RefBindingRenderer', 'render', slice.call(arguments));
             }
             const expr = ensureExpression(this.parser, instruction.from, 1280 /* IsRef */);
-            const binding = new ref_1.Ref(expr, getTarget(target), context);
+            const binding = new ref_binding_1.RefBinding(expr, getTarget(target), context);
             addBinding(renderable, binding);
             if (kernel_1.Tracer.enabled) {
                 kernel_1.Tracer.leave();
@@ -399,7 +399,7 @@
                 kernel_1.Tracer.enter('PropertyBindingRenderer', 'render', slice.call(arguments));
             }
             const expr = ensureExpression(this.parser, instruction.from, 48 /* IsPropertyCommand */ | instruction.mode);
-            const binding = new binding_1.Binding(expr, getTarget(target), instruction.to, instruction.mode, this.observerLocator, context);
+            const binding = new property_binding_1.PropertyBinding(expr, getTarget(target), instruction.to, instruction.mode, this.observerLocator, context);
             addBinding(renderable, binding);
             if (kernel_1.Tracer.enabled) {
                 kernel_1.Tracer.leave();
@@ -424,7 +424,7 @@
                 kernel_1.Tracer.enter('IteratorBindingRenderer', 'render', slice.call(arguments));
             }
             const expr = ensureExpression(this.parser, instruction.from, 539 /* ForCommand */);
-            const binding = new binding_1.Binding(expr, getTarget(target), instruction.to, flags_1.BindingMode.toView, this.observerLocator, context);
+            const binding = new property_binding_1.PropertyBinding(expr, getTarget(target), instruction.to, flags_1.BindingMode.toView, this.observerLocator, context);
             addBinding(renderable, binding);
             if (kernel_1.Tracer.enabled) {
                 kernel_1.Tracer.leave();

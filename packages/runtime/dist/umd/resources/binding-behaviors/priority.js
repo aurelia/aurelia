@@ -58,7 +58,7 @@
             }
         }
     }
-    PriorityBindingBehavior.kind = binding_behavior_1.BindingBehaviorResource;
+    PriorityBindingBehavior.kind = binding_behavior_1.BindingBehavior;
     PriorityBindingBehavior.description = Object.freeze({
         name: 'priority',
     });

@@ -1,5 +1,5 @@
 import { IContainer, Reporter } from '@aurelia/kernel';
-import { Controller, CustomElementResource } from '@aurelia/runtime';
+import { Controller, CustomElement } from '@aurelia/runtime';
 import { mergeParameters } from './parser';
 import { ViewportInstruction } from './viewport-instruction';
 export var ContentStatus;
@@ -226,7 +226,7 @@ export class ViewportContent {
         }
         else {
             const container = context.get(IContainer);
-            const resolver = container.getResolver(CustomElementResource.keyFrom(this.content));
+            const resolver = container.getResolver(CustomElement.keyFrom(this.content));
             if (resolver !== null) {
                 return resolver.getFactory(container).Type;
             }
@@ -244,7 +244,7 @@ export class ViewportContent {
             return container.get(component);
         }
         else {
-            return container.get(CustomElementResource.keyFrom(component));
+            return container.get(CustomElement.keyFrom(component));
         }
     }
 }

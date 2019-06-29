@@ -35,6 +35,6 @@
         }
     }
     exports.SelfBindingBehavior = SelfBindingBehavior;
-    runtime_1.BindingBehaviorResource.define('self', SelfBindingBehavior);
+    runtime_1.BindingBehavior.define('self', SelfBindingBehavior);
 });
 //# sourceMappingURL=self.js.map

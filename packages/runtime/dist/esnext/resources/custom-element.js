@@ -8,7 +8,7 @@ export function registerElement(container) {
     container.register(Registration.transient(this, this));
 }
 export function customElement(nameOrDefinition) {
-    return (target => CustomElementResource.define(nameOrDefinition, target));
+    return (target => CustomElement.define(nameOrDefinition, target));
 }
 function isType(Type) {
     return Type.kind === this;
@@ -21,12 +21,12 @@ function define(nameOrDefinition, ctor = null) {
     } : ctor);
     const WritableType = Type;
     const description = buildTemplateDefinition(Type, nameOrDefinition);
-    WritableType.kind = CustomElementResource;
+    WritableType.kind = CustomElement;
     Type.description = description;
     Type.register = registerElement;
     return Type;
 }
-export const CustomElementResource = {
+export const CustomElement = {
     name: customElementName,
     keyFrom: customElementKey,
     isType,

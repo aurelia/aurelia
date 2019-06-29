@@ -55,6 +55,6 @@
     }
     SignalBindingBehavior.inject = [signaler_1.ISignaler];
     exports.SignalBindingBehavior = SignalBindingBehavior;
-    binding_behavior_1.BindingBehaviorResource.define('signal', SignalBindingBehavior);
+    binding_behavior_1.BindingBehavior.define('signal', SignalBindingBehavior);
 });
 //# sourceMappingURL=signals.js.map

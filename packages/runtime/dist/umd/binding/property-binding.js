@@ -20,7 +20,7 @@
     const { oneTime, toView, fromView } = flags_1.BindingMode;
     // pre-combining flags for bitwise checks is a minor perf tweak
     const toViewOrOneTime = toView | oneTime;
-    let Binding = class Binding {
+    let PropertyBinding = class PropertyBinding {
         constructor(sourceExpression, target, targetProperty, mode, observerLocator, locator) {
             connectable_1.connectable.assignIdTo(this);
             this.$state = 0 /* none */;
@@ -175,9 +175,9 @@
             }
         }
     };
-    Binding = tslib_1.__decorate([
+    PropertyBinding = tslib_1.__decorate([
         connectable_1.connectable()
-    ], Binding);
-    exports.Binding = Binding;
+    ], PropertyBinding);
+    exports.PropertyBinding = PropertyBinding;
 });
-//# sourceMappingURL=binding.js.map
+//# sourceMappingURL=property-binding.js.map

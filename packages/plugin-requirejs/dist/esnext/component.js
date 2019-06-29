@@ -1,4 +1,4 @@
-import { CustomElementResource } from '@aurelia/runtime';
+import { CustomElement } from '@aurelia/runtime';
 import { createTemplateDescription, escape, kebabCase, loadFromFile, parseImport, processImports } from './processing';
 const buildMap = {};
 function finishLoad(name, content, onLoad) {
@@ -26,7 +26,7 @@ export function load(name, req, onLoad, config) {
                     },
                     dependencies: Array.prototype.slice.call(arguments, 1)
                 };
-                onLoad({ default: CustomElementResource.define(templateSource) });
+                onLoad({ default: CustomElement.define(templateSource) });
             });
         });
     }

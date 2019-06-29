@@ -1,5 +1,5 @@
 import { Key, IRegistry } from '@aurelia/kernel';
-import { Binding, IObserverLocator, IScope, LifecycleFlags } from '@aurelia/runtime';
+import { PropertyBinding, IObserverLocator, IScope, LifecycleFlags } from '@aurelia/runtime';
 import { CheckedObserver } from '../../observation/checked-observer';
 import { IEventSubscriber } from '../../observation/event-manager';
 import { SelectValueObserver } from '../../observation/select-value-observer';
@@ -7,7 +7,7 @@ import { ValueAttributeObserver } from '../../observation/value-attribute-observ
 export declare type UpdateTriggerableObserver = ((ValueAttributeObserver & Required<ValueAttributeObserver>) | (CheckedObserver & Required<CheckedObserver>) | (SelectValueObserver & Required<SelectValueObserver>)) & {
     originalHandler?: IEventSubscriber;
 };
-export declare type UpdateTriggerableBinding = Binding & {
+export declare type UpdateTriggerableBinding = PropertyBinding & {
     targetObserver: UpdateTriggerableObserver;
 };
 export declare class UpdateTriggerBindingBehavior {

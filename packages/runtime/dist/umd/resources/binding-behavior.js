@@ -11,12 +11,12 @@
     Object.defineProperty(exports, "__esModule", { value: true });
     const kernel_1 = require("@aurelia/kernel");
     function register(container) {
-        const resourceKey = exports.BindingBehaviorResource.keyFrom(this.description.name);
+        const resourceKey = exports.BindingBehavior.keyFrom(this.description.name);
         container.register(kernel_1.Registration.singleton(resourceKey, this));
         container.register(kernel_1.Registration.singleton(this, this));
     }
     function bindingBehavior(nameOrDefinition) {
-        return target => exports.BindingBehaviorResource.define(nameOrDefinition, target); // TODO: fix this at some point
+        return target => exports.BindingBehavior.define(nameOrDefinition, target); // TODO: fix this at some point
     }
     exports.bindingBehavior = bindingBehavior;
     function keyFrom(name) {
@@ -31,12 +31,12 @@
         const description = typeof nameOrDefinition === 'string'
             ? { name: nameOrDefinition }
             : nameOrDefinition;
-        WritableType.kind = exports.BindingBehaviorResource;
+        WritableType.kind = exports.BindingBehavior;
         WritableType.description = description;
         Type.register = register;
         return Type;
     }
-    exports.BindingBehaviorResource = {
+    exports.BindingBehavior = {
         name: 'binding-behavior',
         keyFrom,
         isType,

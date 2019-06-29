@@ -1,5 +1,5 @@
 import { kebabCase, Reporter, } from '@aurelia/kernel';
-import { BindingMode, CustomAttributeResource, CustomElementResource } from '@aurelia/runtime';
+import { BindingMode, CustomAttribute, CustomElement } from '@aurelia/runtime';
 import { BindingCommandResource } from './binding-command';
 /**
  * A pre-processed piece of information about declared custom elements, attributes and
@@ -22,7 +22,7 @@ export class ResourceModel {
     getElementInfo(name) {
         let result = this.elementLookup[name];
         if (result === void 0) {
-            const def = this.resources.find(CustomElementResource, name);
+            const def = this.resources.find(CustomElement, name);
             if (def == null) {
                 result = null;
             }
@@ -43,7 +43,7 @@ export class ResourceModel {
     getAttributeInfo(syntax) {
         let result = this.attributeLookup[syntax.target];
         if (result === void 0) {
-            const def = this.resources.find(CustomAttributeResource, syntax.target);
+            const def = this.resources.find(CustomAttribute, syntax.target);
             if (def == null) {
                 result = null;
             }

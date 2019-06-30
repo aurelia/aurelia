@@ -10,6 +10,9 @@ import {
 
 export type IIntersectionObserverConstructor = new(cb: IntersectionObserverCallback) => IntersectionObserver;
 
+/**
+ * Visible attribute class
+ */
 export class VisibleCustomAttribute {
 
   public static register: IRegistry['register'];
@@ -54,6 +57,7 @@ export class VisibleCustomAttribute {
       throw new Error('IntersectionObserver not supported.'); // todo: proper error code
     }
     const observer = this.observer = new Ctor((entries) => {
+      debugger;
       this.value = entries[0].isIntersecting;
       this.visibility = entries[0].intersectionRatio;
     });
@@ -66,8 +70,8 @@ export class VisibleCustomAttribute {
   }
 }
 
-CustomAttributeResource.define('visible', VisibleCustomAttribute);
 VisibleCustomAttribute.bindables = {
   value: { property: 'value', attribute: 'value', mode: BindingMode.fromView },
   visibility: { property: 'visibility', attribute: 'visibility', mode: BindingMode.fromView }
 };
+CustomAttributeResource.define('visible', VisibleCustomAttribute);

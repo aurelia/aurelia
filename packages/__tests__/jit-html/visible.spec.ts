@@ -1,11 +1,12 @@
-import { Constructable } from '@aurelia/kernel';
-import { Aurelia, INodeSequence, Controller, CustomElementResource } from '@aurelia/runtime';
+import { Constructable, Tracer } from '@aurelia/kernel';
+import { Aurelia, INodeSequence, Controller, CustomElementResource, ValueConverterResource, bindable } from '@aurelia/runtime';
 import { FocusCustomAttribute } from '@aurelia/runtime-html';
-import { assert, HTMLTestContext } from '@aurelia/testing';
+import { assert, HTMLTestContext, enableTracing } from '@aurelia/testing';
 import { HTMLDOM } from '@aurelia/runtime-html';
 // import { setup } from '../integration/util';
 import { TestContext } from '@aurelia/testing';
 import { eachCartesianJoin } from '@aurelia/testing';
+import { DebugConfiguration, TraceConfiguration } from '@aurelia/debug';
 
 describe.only('built-in-resources.visible', function() {
 
@@ -38,44 +39,53 @@ describe.only('built-in-resources.visible', function() {
   describe.only('basic scenarios', function() {
 
     const visibleAttrs = [
-      'visible.bind="isVisible"',
-      'visible.two-way="isVisible"',
-      'visible.from-view="isVisible"',
-      'visible="value.two-way: isVisible"',
-      'visible="value.from-view: isVisible"',
-      'visible="value.bind: isVisible"'
+      // 'visible.bind="isVisible"',
+      'visible.from-view="isVisible | logMe"',
+      // 'visible.from-view="isVisible"',
+      // 'visible="value.two-way: isVisible"',
+      // 'visible="value.from-view: isVisible"',
+      // 'visible="value.bind: isVisible"'
     ];
-    const testCases: ITestCase[] = [
+    const testCases: IVisibleAttributeTestCase[] = [
       {
         title: 'Visible when it stays at the edge of the visible viewpot',
         template: (visibleAttr) => `<template>
-          <div stlye="height: 500px; overflow-y: auto">
+          <div style="height: 500px; overflow-y: auto">
             <div style="height: 500px;"></div>
            <input ${visibleAttr} class="\${isVisible ? 'visible' : 'not-visible' }" id="input1" />
           </div>
           <button>Click me</button>
         </template>`,
-        app: class App {
-          public isBlur = true;
-          public lifecycleCount = defaultLifecycleCount();
-          public $controller: Controller;
+        app: (() => {
+          class App {
+            
+            public isBlur = true;
+            public lifecycleCount = defaultLifecycleCount();
+            public $controller: Controller;
+            
+            @bindable isVisible = 0 as any;
 
-          public bound() {
-            this.lifecycleCount.bound++;
-            const $el = this.$controller.host as Element;
-            const input = $el.querySelector('input');
-            assert.equal(input.classList.contains('visible'), false, 'LifeCycles > Bound. It should have been visible when not connected.');
-          }
+            // public bound() {
+            //   this.lifecycleCount.bound++;
+            //   const $nodes = this.$controller.nodes;
+            //   const input = findInNodeSequence($nodes, 'input');
+            //   assert.notEqual(input, null, 'it should have had input element');
+            //   assert.equal(input.classList.contains('visible'), false, 'LifeCycles > Bound. It should have been visible when not connected.');
+            // }
 
-          public attaching() {
-            this.lifecycleCount.attaching++;
-            const $el = this.$controller.host as Element;
-            const input = $el.querySelector('input');
-            assert.equal(input.classList.contains('visible'), false, 'LifeCycles > Attaching. It should have been visible when not connected.');
+            public attaching() {
+              this.lifecycleCount.attaching++;
+              const $nodes = this.$controller.nodes;
+              const input = findInNodeSequence($nodes, 'input');
+              assert.notEqual(input, null, 'it should have had input element');
+              assert.equal(input.classList.contains('visible'), false, 'LifeCycles > Attaching. It should have been visible when not connected.');
+            }
           }
-        },
+          return App;
+        })(),
         async assert({ window, document }: HTMLDOM, component, focusable) {
-          assert.equal(component.lifecycleCount.bound, 1, 'It should have invoked bound');
+          // assert.equal(component.lifecycleCount.bound, 1, 'It should have invoked bound');
+          debugger;
           assert.equal(component.lifecycleCount.attaching, 1, 'It should have invoked attaching');
           const input = document.querySelector('input');
           assert.equal(component.isVisible, true, 'component.isVisible should have been true as element is visible.');
@@ -107,8 +117,9 @@ describe.only('built-in-resources.visible', function() {
 
           public bound() {
             this.lifecycleCount.bound++;
-            const $el = this.$controller.host as Element;
-            const input = $el.querySelector('input');
+            const $nodes = this.$controller.nodes;
+            const input = findInNodeSequence($nodes, 'input');
+            assert.notEqual(input, null, 'it should have had input element');
             assert.equal(input.classList.contains('visible'), false, 'It should have been visible when not connected.');
             assert.equal(this.isVisible, false, 'component.isVisible state should not have been altered.');
             assert.equal(this.isVisibleAssignmentCount, 0, 'It should not have tried to assign to "component.isVisible".');
@@ -116,8 +127,9 @@ describe.only('built-in-resources.visible', function() {
 
           public attaching() {
             this.lifecycleCount.attaching++;
-            const $el = this.$controller.host as Element;
-            const input = $el.querySelector('input');
+            const $nodes = this.$controller.nodes;
+            const input = findInNodeSequence($nodes, 'input');
+            assert.notEqual(input, null, 'it should have had input element');
             assert.equal(input.classList.contains('visible'), false, 'It should have been visible when not connected.');
             assert.equal(this.isVisible, false, 'component.isVisible state should not have been altered.');
             assert.equal(this.isVisibleAssignmentCount, 0, 'It should not have tried to assign to "component.isVisible".');
@@ -155,8 +167,9 @@ describe.only('built-in-resources.visible', function() {
 
           public bound() {
             this.lifecycleCount.bound++;
-            const $el = this.$controller.host as Element;
-            const input = $el.querySelector('input');
+            const $nodes = this.$controller.nodes;
+            const input = findInNodeSequence($nodes, 'input');
+            assert.notEqual(input, null, 'it should have had input element');
             assert.equal(input.classList.contains('visible'), false, 'It should have been visible when not connected.');
             assert.equal(this.isVisible, false, 'component.isVisible state should not have been altered.');
             assert.equal(this.isVisibleAssignmentCount, 0, 'It should not have tried to assign to "component.isVisible".');
@@ -164,8 +177,8 @@ describe.only('built-in-resources.visible', function() {
 
           public attaching() {
             this.lifecycleCount.attaching++;
-            const $el = this.$controller.host as Element;
-            const input = $el.querySelector('input');
+            const $nodes = this.$controller.nodes;
+            const input = findInNodeSequence($nodes, 'input');
             assert.equal(input.classList.contains('visible'), false, 'It should have been visible when not connected.');
             assert.equal(this.isVisible, false, 'component.isVisible state should not have been altered.');
             assert.equal(this.isVisibleAssignmentCount, 0, 'It should not have tried to assign to "component.isVisible".');
@@ -183,8 +196,8 @@ describe.only('built-in-resources.visible', function() {
     ];
 
     eachCartesianJoin(
-      [visibleAttrs, testCases],
-      (command, { title, template, app, assert }: ITestCase) => {
+      [visibleAttrs, testCases.slice(0, 1)],
+      (command, { title, template, app, assert }: IVisibleAttributeTestCase) => {
         it(title, function() {
           const { au, component, dom } = setupAndStartNormal<IApp>(
             template(command),
@@ -206,7 +219,7 @@ describe.only('built-in-resources.visible', function() {
       'visible="value.from-view: isVisible"',
       'visible="value.bind: isVisible"'
     ];
-    const testCases: ITestCase[] = [
+    const testCases: IVisibleAttributeTestCase[] = [
       {
         title: 'Visible when it becomes visible because of styling changes',
         template: (visibleAttr) => `<template>
@@ -219,15 +232,17 @@ describe.only('built-in-resources.visible', function() {
 
           public bound() {
             this.lifecycleCount.bound++;
-            const $el = this.$controller.host as Element;
-            const input = $el.querySelector('input');
+            const $nodes = this.$controller.nodes;
+            const input = findInNodeSequence($nodes, 'input');
+            assert.notEqual(input, null, 'it should have had input element');
             assert.equal(input.classList.contains('visible'), false, 'It should have been visible when not connected.');
           }
 
           public attaching() {
             this.lifecycleCount.attaching++;
-            const $el = this.$controller.host as Element;
-            const input = $el.querySelector('input');
+            const $nodes = this.$controller.nodes;
+            const input = findInNodeSequence($nodes, 'input');
+            assert.notEqual(input, null, 'it should have had input element');
             assert.equal(input.classList.contains('visible'), false, 'It should have been visible when not connected.');
           }
         },
@@ -255,15 +270,17 @@ describe.only('built-in-resources.visible', function() {
 
           public bound() {
             this.lifecycleCount.bound++;
-            const $el = this.$controller.host as Element;
-            const input = $el.querySelector('input');
+            const $nodes = this.$controller.nodes;
+            const input = findInNodeSequence($nodes, 'input');
+            assert.notEqual(input, null, 'it should have had input element');
             assert.equal(input.classList.contains('visible'), false, 'It should have been visible when not connected.');
           }
 
           public attaching() {
             this.lifecycleCount.attaching++;
-            const $el = this.$controller.host as Element;
-            const input = $el.querySelector('input');
+            const $nodes = this.$controller.nodes;
+            const input = findInNodeSequence($nodes, 'input');
+            assert.notEqual(input, null, 'it should have had input element');
             assert.equal(input.classList.contains('visible'), false, 'It should have been visible when not connected.');
           }
         },
@@ -283,7 +300,7 @@ describe.only('built-in-resources.visible', function() {
 
     eachCartesianJoin(
       [visibleAttrs, testCases],
-      (command, { title, template, app, assert }: ITestCase) => {
+      (command, { title, template, app, assert }: IVisibleAttributeTestCase) => {
         it(title, function() {
           const { au, component, dom } = setupAndStartNormal<IApp>(
             template(command),
@@ -305,7 +322,7 @@ describe.only('built-in-resources.visible', function() {
       'visible="value.from-view: isVisible"',
       'visible="value.bind: isVisible"'
     ];
-    const testCases: ITestCase[] = [
+    const testCases: IVisibleAttributeTestCase[] = [
       {
         title: 'Visible when it gets scrolled into visible viewport',
         template: (visibleAttr) => `<template>
@@ -331,8 +348,9 @@ describe.only('built-in-resources.visible', function() {
 
           public bound() {
             this.lifecycleCount.bound++;
-            const $el = this.$controller.host as Element;
-            const input = $el.querySelector('input');
+            const $nodes = this.$controller.nodes;
+            const input = findInNodeSequence($nodes, 'input');
+            assert.notEqual(input, null, 'it should have had input element');
             assert.equal(input.classList.contains('visible'), false, 'It should have been visible when not connected.');
             assert.equal(this.isVisible, false, 'component.isVisible state should not have been altered.');
             assert.equal(this.isVisibleAssignmentCount, 0, 'It should not have tried to assign to "component.isVisible".');
@@ -340,8 +358,9 @@ describe.only('built-in-resources.visible', function() {
 
           public attaching() {
             this.lifecycleCount.attaching++;
-            const $el = this.$controller.host as Element;
-            const input = $el.querySelector('input');
+            const $nodes = this.$controller.nodes;
+            const input = findInNodeSequence($nodes, 'input');
+            assert.notEqual(input, null, 'it should have had input element');
             assert.equal(input.classList.contains('visible'), false, 'It should have been visible when not connected.');
             assert.equal(this.isVisible, false, 'component.isVisible state should not have been altered.');
             assert.equal(this.isVisibleAssignmentCount, 0, 'It should not have tried to assign to "component.isVisible".');
@@ -391,8 +410,9 @@ describe.only('built-in-resources.visible', function() {
 
           public bound() {
             this.lifecycleCount.bound++;
-            const $el = this.$controller.host as Element;
-            const input = $el.querySelector('input');
+            const $nodes = this.$controller.nodes;
+            const input = findInNodeSequence($nodes, 'input');
+            assert.notEqual(input, null, 'it should have had input element');
             assert.equal(input.classList.contains('visible'), false, 'It should have been visible when not connected.');
             assert.equal(this.isVisible, false, 'component.isVisible state should not have been altered.');
             assert.equal(this.isVisibleAssignmentCount, 0, 'It should not have tried to assign to "component.isVisible".');
@@ -400,8 +420,9 @@ describe.only('built-in-resources.visible', function() {
 
           public attaching() {
             this.lifecycleCount.attaching++;
-            const $el = this.$controller.host as Element;
-            const input = $el.querySelector('input');
+            const $nodes = this.$controller.nodes;
+            const input = findInNodeSequence($nodes, 'input');
+            assert.notEqual(input, null, 'it should have had input element');
             assert.equal(input.classList.contains('visible'), false, 'It should have been visible when not connected.');
             assert.equal(this.isVisible, false, 'component.isVisible state should not have been altered.');
             assert.equal(this.isVisibleAssignmentCount, 0, 'It should not have tried to assign to "component.isVisible".');
@@ -432,7 +453,7 @@ describe.only('built-in-resources.visible', function() {
 
     eachCartesianJoin(
       [visibleAttrs, testCases],
-      (command, { title, template, app, assert }: ITestCase) => {
+      (command, { title, template, app, assert }: IVisibleAttributeTestCase) => {
         it(title, function() {
           const { au, component, dom } = setupAndStartNormal<IApp>(
             template(command),
@@ -444,7 +465,7 @@ describe.only('built-in-resources.visible', function() {
     );
   });
 
-  interface ITestCase<T extends IApp = IApp> {
+  interface IVisibleAttributeTestCase<T extends IApp = IApp> {
     title: string;
     template: TemplateFn;
     app: Constructable<T>;
@@ -453,9 +474,30 @@ describe.only('built-in-resources.visible', function() {
   }
 
   function setupAndStartNormal<T>(template: string | Node, $class: Constructable | null, ...registrations: any[]) {
+    // enableTracing();
+    // Tracer.enableLiveLogging({
+    //   di: true,
+    //   jit: true,
+    //   rendering: true,
+    //   lifecycle: true,
+    //   binding: true,
+    //   attaching: true,
+    //   mounting: true,
+    //   observation: true
+    // });
     const ctx = TestContext.createHTMLTestContext();
-    registrations = Array.from(new Set([...registrations, FocusCustomAttribute]));
+
+    registrations = Array.from(new Set([
+      ...registrations,
+      ValueConverterResource.define('logMe', class {
+        fromView() {
+          console.log(arguments);
+          return arguments[0];
+        }
+      })
+    ]));
     const { container, lifecycle, host, au, component, observerLocator } = setup(ctx, template, $class, ...registrations);
+
 
     ctx.doc.body.innerHTML = '';
     ctx.doc.body.appendChild(host);

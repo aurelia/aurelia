@@ -77,6 +77,9 @@ export {
 export {
   FocusCustomAttribute
 } from './resources/custom-attributes/focus';
+export {
+  VisibleCustomAttribute
+} from './resources/custom-attributes/visible';
 // #end-section custom attributes
 
 export {
@@ -91,6 +94,8 @@ export {
   SelfBindingBehaviorRegistration,
   UpdateTriggerBindingBehaviorRegistration,
   ComposeRegistration,
+  FocusAttributeRegistration,
+  VisibleAttributeRegistration,
 
   DefaultResources,
 

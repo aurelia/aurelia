@@ -31,7 +31,9 @@
     "lint": "tslint --project tsconfig.json -t stylish",
     "build": "tsc -b",
     "bundle": "ts-node -P ../../scripts/tsconfig.json ../../scripts/bundle.ts umd,esm,system testing",
-    "dev": "tsc -b -w"
+    "dev": "tsc -b -w",
+    "snyk-protect": "snyk protect",
+    "prepublish": "npm run snyk-protect"
   },
   "publishConfig": {
     "access": "public"
@@ -55,7 +57,8 @@
     "@aurelia/store": "0.3.0",
     "@aurelia/validation": "0.3.0",
     "jsdom": "^15.1.1",
-    "mocha": "^6.1.4"
+    "mocha": "^6.1.4",
+    "snyk": "^1.189.0"
   },
   "devDependencies": {
     "tslib": "^1.9.3",
@@ -63,5 +66,6 @@
     "tslint-microsoft-contrib": "^6.1.1",
     "tslint-sonarts": "^1.9.0",
     "typescript": "^3.5.2"
-  }
+  },
+  "snyk": true
 }

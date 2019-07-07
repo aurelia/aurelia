@@ -1,5 +1,5 @@
 import { IContainer } from '@aurelia/kernel';
-import { ICustomElementType, IRenderContext } from '@aurelia/runtime';
+import { IController, ICustomElementType, IRenderContext } from '@aurelia/runtime';
 import { Router } from './router';
 import { IFindViewportsResult } from './scope';
 import { IViewportOptions, Viewport } from './viewport';
@@ -249,25 +249,41 @@ export class Scope {
     if (this.viewport) {
       parents.unshift(this.viewport.description(full));
     }
-    let viewport: Viewport = this.parent.closestViewport((this.context.get(IContainer) as ChildContainer).parent);
+    let viewport: Viewport = this.parent.closestViewport((this.element as any).$controller.parent);
     while (viewport && viewport.owningScope === this.parent) {
       parents.unshift(viewport.description(full));
-      viewport = this.closestViewport((viewport.context.get(IContainer) as ChildContainer).parent);
+      // TODO: Write thorough tests for this!
+      viewport = this.closestViewport((viewport.element as any).$controller.parent);
+      // viewport = this.closestViewport((viewport.context.get(IContainer) as ChildContainer).parent);
     }
     parents.unshift(this.parent.scopeContext(full));
 
     return this.router.instructionResolver.stringifyScopedViewportInstruction(parents.filter((value) => value && value.length));
   }
 
-  private closestViewport(container: ChildContainer): Viewport {
+  private closestViewport(controller: IController): Viewport {
     const viewports = Object.values(this.getEnabledViewports());
-    while (container) {
-      const viewport = viewports.find((item) => item.context.get(IContainer) === container);
-      if (viewport) {
-        return viewport;
+    while (controller) {
+      if (controller.host) {
+        const viewport = viewports.find(item => item.element === controller.host);
+        if (viewport) {
+          return viewport;
+        }
       }
-      container = container.parent;
+      controller = controller.parent;
     }
     return null;
   }
+
+  // private closestViewport(container: ChildContainer): Viewport {
+  //   const viewports = Object.values(this.getEnabledViewports());
+  //   while (container) {
+  //     const viewport = viewports.find((item) => item.context.get(IContainer) === container);
+  //     if (viewport) {
+  //       return viewport;
+  //     }
+  //     container = container.parent;
+  //   }
+  //   return null;
+  // }
 }

@@ -79,7 +79,7 @@ export class BrowserNavigation implements INavigationStore, INavigationViewer {
     this.forwardedState = {};
   }
 
-  public activate(callback: (ev?: INavigationViewerEvent) => void): Promise<void> {
+  public async activate(callback: (ev?: INavigationViewerEvent) => void): Promise<void> {
     if (this.isActive) {
       throw new Error('Browser navigation has already been activated');
     }
@@ -88,14 +88,7 @@ export class BrowserNavigation implements INavigationStore, INavigationViewer {
     this.pendingCalls.activate({ lifecycle: this.lifecycle, allowedExecutionCostWithinTick: this.allowedExecutionCostWithinTick });
     this.window.addEventListener('popstate', this.handlePopstate);
 
-    return new Promise(resolve => {
-      setTimeout(
-        async () => {
-          await this.handlePopstate(null);
-          resolve();
-        },
-        0);
-    });
+    return this.handlePopstate(null);
   }
   public deactivate(): void {
     if (!this.isActive) {

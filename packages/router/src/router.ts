@@ -1,5 +1,5 @@
 import { DI, IContainer, Key, Reporter } from '@aurelia/kernel';
-import { Aurelia, ICustomElementType, IRenderContext, IController } from '@aurelia/runtime';
+import { Aurelia, IController, ICustomElementType, IRenderContext } from '@aurelia/runtime';
 import { BrowserNavigation, INavigationViewerEvent } from './browser-navigation';
 import { InstructionResolver, IRouteSeparators } from './instruction-resolver';
 import { AnchorEventInfo, LinkHandler } from './link-handler';
@@ -474,7 +474,6 @@ export class Router implements IRouter {
     }
     return this.rootScope;
 
-
     // let el = element;
     // while (el.parentElement) {
     //   const viewport = this.allViewports().find((item) => item.element === el);
@@ -484,7 +483,6 @@ export class Router implements IRouter {
     //   el = el.parentElement;
     // }
     // return this.rootScope;
-
 
     // TODO: It would be better if it was something like this
     // const el = closestCustomElement(element);

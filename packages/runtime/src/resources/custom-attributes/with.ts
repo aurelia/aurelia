@@ -96,6 +96,7 @@ export class With<T extends INode = INode> {
   }
 
   public binding(flags: LifecycleFlags): void {
+    this.view.parent = this.$controller;
     this.bindChild(flags);
   }
 
@@ -109,6 +110,7 @@ export class With<T extends INode = INode> {
 
   public unbinding(flags: LifecycleFlags): void {
     this.view.unbind(flags);
+    this.view.parent = void 0;
   }
 
   private bindChild(flags: LifecycleFlags): void {

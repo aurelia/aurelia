@@ -2,7 +2,7 @@ import { DI, IContainer, IRegistry } from '@aurelia/kernel';
 
 import { NavCustomElement } from './resources/nav';
 import { ViewportCustomElement } from './resources/viewport';
-import { Router } from './router';
+import { IRouterOptions, Router } from './router';
 
 export const RouterRegistration = Router as unknown as IRegistry;
 
@@ -34,7 +34,7 @@ export const DefaultResources: IRegistry[] = [
 /**
  * A DI configuration object containing router resource registrations.
  */
-export const RouterConfiguration = {
+const routerConfiguration = {
   /**
    * Apply this configuration to the provided container.
    */
@@ -42,7 +42,7 @@ export const RouterConfiguration = {
     return container.register(
       ...DefaultComponents,
       ...DefaultResources
-      );
+    );
   },
   /**
    * Create a new container with this configuration applied to it.
@@ -50,4 +50,13 @@ export const RouterConfiguration = {
   createContainer(): IContainer {
     return this.register(DI.createContainer());
   }
+};
+export const RouterConfiguration = {
+  /**
+   * Make it possible to specify options to Router activation
+   */
+  customize(config: IRouterOptions = {}) {
+    return { ...routerConfiguration };
+  },
+  ...routerConfiguration,
 };

@@ -1,5 +1,5 @@
 import { IContainer } from '@aurelia/kernel';
-import { ICustomElementType, IRenderContext, IController } from '@aurelia/runtime';
+import { IController, ICustomElementType, IRenderContext } from '@aurelia/runtime';
 import { Router } from './router';
 import { IFindViewportsResult } from './scope';
 import { IViewportOptions, Viewport } from './viewport';
@@ -252,6 +252,7 @@ export class Scope {
     let viewport: Viewport = this.parent.closestViewport((this.element as any).$controller.parent);
     while (viewport && viewport.owningScope === this.parent) {
       parents.unshift(viewport.description(full));
+      // TODO: Change this to controller implementation?
       viewport = this.closestViewport((viewport.context.get(IContainer) as ChildContainer).parent);
     }
     parents.unshift(this.parent.scopeContext(full));
@@ -259,7 +260,7 @@ export class Scope {
     return this.router.instructionResolver.stringifyScopedViewportInstruction(parents.filter((value) => value && value.length));
   }
 
-  private closestViewport(controller: any): Viewport {
+  private closestViewport(controller: IController): Viewport {
     const viewports = Object.values(this.getEnabledViewports());
     while (controller) {
       if (controller.host) {

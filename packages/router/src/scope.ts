@@ -252,8 +252,9 @@ export class Scope {
     let viewport: Viewport = this.parent.closestViewport((this.element as any).$controller.parent);
     while (viewport && viewport.owningScope === this.parent) {
       parents.unshift(viewport.description(full));
-      // TODO: Change this to controller implementation?
-      viewport = this.closestViewport((viewport.context.get(IContainer) as ChildContainer).parent);
+      // TODO: Write thorough tests for this!
+      viewport = this.closestViewport((viewport.element as any).$controller.parent);
+      // viewport = this.closestViewport((viewport.context.get(IContainer) as ChildContainer).parent);
     }
     parents.unshift(this.parent.scopeContext(full));
 

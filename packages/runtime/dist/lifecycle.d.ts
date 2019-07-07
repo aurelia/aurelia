@@ -34,6 +34,7 @@ export interface IController<T extends INode = INode, C extends IViewModel<T> = 
     prevUnmount?: IController<T>;
     readonly flags: LifecycleFlags;
     readonly viewCache?: IViewCache<T>;
+    parent?: IController<T>;
     bindings?: IBinding[];
     controllers?: IController<T>[];
     state: State;

@@ -40,6 +40,7 @@ export declare class Controller<T extends INode = INode, C extends IViewModel<T>
     prevUnmount?: Controller<T, C>;
     readonly flags: LifecycleFlags;
     readonly viewCache?: IViewCache<T>;
+    parent?: IController<T>;
     bindings?: IBinding[];
     controllers?: Controller<T, C>[];
     state: State;

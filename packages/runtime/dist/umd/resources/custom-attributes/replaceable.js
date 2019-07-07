@@ -27,6 +27,7 @@
             container.register(kernel_1.Registration.transient(this, this));
         }
         binding(flags) {
+            this.view.parent = this.$controller;
             return this.view.bind(flags | 536870912 /* allowParentScopeTraversal */, this.$controller.scope, this.factory.name);
         }
         attaching(flags) {
@@ -36,7 +37,9 @@
             this.view.detach(flags);
         }
         unbinding(flags) {
-            return this.view.unbind(flags);
+            const task = this.view.unbind(flags);
+            this.view.parent = void 0;
+            return task;
         }
     }
     Replaceable.inject = [lifecycle_1.IViewFactory, dom_1.IRenderLocation];

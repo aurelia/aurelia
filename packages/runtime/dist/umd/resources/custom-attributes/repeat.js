@@ -207,6 +207,7 @@
             for (let i = iStart; i < iEnd; ++i) {
                 view = views[i];
                 task = view.unbind(flags);
+                view.parent = void 0;
                 if (!task.done) {
                     if (tasks === undefined) {
                         tasks = [];
@@ -248,6 +249,7 @@
             for (; i < deletedLen; ++i) {
                 view = views[deleted[i]];
                 task = view.unbind(flags);
+                view.parent = void 0;
                 if (!task.done) {
                     if (tasks === undefined) {
                         tasks = [];
@@ -280,6 +282,7 @@
             const views = this.views = Array(newLen);
             this.forOf.iterate(flags, items, (arr, i, item) => {
                 view = views[i] = factory.create(flags);
+                view.parent = this.$controller;
                 task = view.bind(flags, binding_context_1.Scope.fromParent(flags, this.$controller.scope, binding_context_1.BindingContext.create(flags, local, item)), part);
                 if (!task.done) {
                     if (tasks === undefined) {
@@ -309,6 +312,7 @@
                 if (indexMap[i] === -2) {
                     view = factory.create(flags);
                     // TODO: test with map/set/undefined/null, make sure we can use strong typing here as well, etc
+                    view.parent = this.$controller;
                     task = view.bind(flags, binding_context_1.Scope.fromParent(flags, this.$controller.scope, binding_context_1.BindingContext.create(flags, local, items[i])), part);
                     views.splice(i, 0, view);
                     if (!task.done) {

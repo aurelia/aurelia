@@ -89,7 +89,7 @@
                 unique.push(sorted.shift());
                 while (sorted.length) {
                     const state = sorted.shift();
-                    if (unique.find((value) => {
+                    if (unique.every(value => {
                         return value.indexOf(state) === -1;
                     })) {
                         unique.push(state);
@@ -148,6 +148,9 @@
                 if (instruction.parametersString) {
                     // TODO: Review parameters in ViewportInstruction
                     instructionString += this.separators.parameters + instruction.parametersString + this.separators.parametersEnd;
+                }
+                if (instruction.ownsScope) {
+                    instructionString += this.separators.ownsScope;
                 }
                 return instructionString;
             }

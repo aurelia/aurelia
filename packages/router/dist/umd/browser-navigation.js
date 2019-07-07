@@ -44,7 +44,7 @@
             this.callback = null;
             this.forwardedState = {};
         }
-        activate(callback) {
+        async activate(callback) {
             if (this.isActive) {
                 throw new Error('Browser navigation has already been activated');
             }
@@ -52,12 +52,7 @@
             this.callback = callback;
             this.pendingCalls.activate({ lifecycle: this.lifecycle, allowedExecutionCostWithinTick: this.allowedExecutionCostWithinTick });
             this.window.addEventListener('popstate', this.handlePopstate);
-            return new Promise(resolve => {
-                setTimeout(async () => {
-                    await this.handlePopstate(null);
-                    resolve();
-                }, 0);
-            });
+            return this.handlePopstate(null);
         }
         deactivate() {
             if (!this.isActive) {

@@ -24,7 +24,7 @@ export const DefaultResources = [
 /**
  * A DI configuration object containing router resource registrations.
  */
-export const RouterConfiguration = {
+const routerConfiguration = {
     /**
      * Apply this configuration to the provided container.
      */
@@ -37,5 +37,14 @@ export const RouterConfiguration = {
     createContainer() {
         return this.register(DI.createContainer());
     }
+};
+export const RouterConfiguration = {
+    /**
+     * Make it possible to specify options to Router activation
+     */
+    customize(config = {}) {
+        return { ...routerConfiguration };
+    },
+    ...routerConfiguration,
 };
 //# sourceMappingURL=configuration.js.map

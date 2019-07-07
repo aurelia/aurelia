@@ -16,6 +16,7 @@ export class Replaceable {
         container.register(Registration.transient(this, this));
     }
     binding(flags) {
+        this.view.parent = this.$controller;
         return this.view.bind(flags | 536870912 /* allowParentScopeTraversal */, this.$controller.scope, this.factory.name);
     }
     attaching(flags) {
@@ -25,7 +26,9 @@ export class Replaceable {
         this.view.detach(flags);
     }
     unbinding(flags) {
-        return this.view.unbind(flags);
+        const task = this.view.unbind(flags);
+        this.view.parent = void 0;
+        return task;
     }
 }
 Replaceable.inject = [IViewFactory, IRenderLocation];

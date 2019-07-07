@@ -199,14 +199,14 @@
         description(full = false) {
             if (this.content.content) {
                 const component = this.content.componentName();
-                if (full || this.scope || this.options.forceDescription) {
+                if (full || this.options.forceDescription) {
                     return this.router.instructionResolver.stringifyViewportInstruction(new viewport_instruction_1.ViewportInstruction(component, this, this.content.parameters, this.scope !== null));
                 }
                 const found = this.owningScope.findViewports([new viewport_instruction_1.ViewportInstruction(component)]);
                 if (!found || !found.viewportInstructions || !found.viewportInstructions.length) {
-                    return this.router.instructionResolver.stringifyViewportInstruction(new viewport_instruction_1.ViewportInstruction(component, this, this.content.parameters));
+                    return this.router.instructionResolver.stringifyViewportInstruction(new viewport_instruction_1.ViewportInstruction(component, this, this.content.parameters, this.scope !== null));
                 }
-                return this.router.instructionResolver.stringifyViewportInstruction(new viewport_instruction_1.ViewportInstruction(component, null, this.content.parameters));
+                return this.router.instructionResolver.stringifyViewportInstruction(new viewport_instruction_1.ViewportInstruction(component, null, this.content.parameters, this.scope !== null));
             }
         }
         scopedDescription(full = false) {

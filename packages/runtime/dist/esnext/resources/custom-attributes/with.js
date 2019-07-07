@@ -37,6 +37,7 @@ export class With {
         }
     }
     binding(flags) {
+        this.view.parent = this.$controller;
         this.bindChild(flags);
     }
     attaching(flags) {
@@ -47,6 +48,7 @@ export class With {
     }
     unbinding(flags) {
         this.view.unbind(flags);
+        this.view.parent = void 0;
     }
     bindChild(flags) {
         const scope = Scope.fromParent(flags, this.$controller.scope, this.value === void 0 ? {} : this.value);

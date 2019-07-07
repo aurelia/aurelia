@@ -159,7 +159,9 @@
                 return lifecycle_task_1.LifecycleTask.done;
             }
             view.detach(flags); // TODO: link this up with unbind
-            return view.unbind(flags);
+            const task = view.unbind(flags);
+            view.parent = void 0;
+            return task;
         }
         activate(view, flags) {
             this.view = view;
@@ -180,6 +182,7 @@
         }
         bindView(flags) {
             if (this.view !== void 0 && (this.$controller.state & 5 /* isBoundOrBinding */) > 0) {
+                this.view.parent = this.$controller;
                 return this.view.bind(flags, this.$controller.scope, this.$controller.part);
             }
             return lifecycle_task_1.LifecycleTask.done;

@@ -4,12 +4,11 @@
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "@aurelia/kernel", "./viewport"], factory);
+        define(["require", "exports", "./viewport"], factory);
     }
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
-    const kernel_1 = require("@aurelia/kernel");
     const viewport_1 = require("./viewport");
     class Scope {
         constructor(router, element, context, parent) {
@@ -209,22 +208,26 @@
             if (this.viewport) {
                 parents.unshift(this.viewport.description(full));
             }
-            let viewport = this.parent.closestViewport(this.context.get(kernel_1.IContainer).parent);
+            let viewport = this.parent.closestViewport(this.element.$controller.parent);
             while (viewport && viewport.owningScope === this.parent) {
                 parents.unshift(viewport.description(full));
-                viewport = this.closestViewport(viewport.context.get(kernel_1.IContainer).parent);
+                // TODO: Write thorough tests for this!
+                viewport = this.closestViewport(viewport.element.$controller.parent);
+                // viewport = this.closestViewport((viewport.context.get(IContainer) as ChildContainer).parent);
             }
             parents.unshift(this.parent.scopeContext(full));
             return this.router.instructionResolver.stringifyScopedViewportInstruction(parents.filter((value) => value && value.length));
         }
-        closestViewport(container) {
+        closestViewport(controller) {
             const viewports = Object.values(this.getEnabledViewports());
-            while (container) {
-                const viewport = viewports.find((item) => item.context.get(kernel_1.IContainer) === container);
-                if (viewport) {
-                    return viewport;
+            while (controller) {
+                if (controller.host) {
+                    const viewport = viewports.find(item => item.element === controller.host);
+                    if (viewport) {
+                        return viewport;
+                    }
                 }
-                container = container.parent;
+                controller = controller.parent;
             }
             return null;
         }

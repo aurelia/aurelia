@@ -398,6 +398,7 @@
             if (controllers !== void 0) {
                 const { length } = controllers;
                 for (let i = 0; i < length; ++i) {
+                    controllers[i].parent = this;
                     task = controllers[i].bind(flags, scope, this.part);
                     if (!task.done) {
                         if (tasks === void 0) {
@@ -477,6 +478,7 @@
             if (controllers !== void 0) {
                 for (let i = controllers.length - 1; i >= 0; --i) {
                     task = controllers[i].unbind(flags);
+                    controllers[i].parent = void 0;
                     if (!task.done) {
                         if (tasks === void 0) {
                             tasks = [];

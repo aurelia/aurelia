@@ -36,7 +36,7 @@
     /**
      * A DI configuration object containing router resource registrations.
      */
-    exports.RouterConfiguration = {
+    const routerConfiguration = {
         /**
          * Apply this configuration to the provided container.
          */
@@ -49,6 +49,15 @@
         createContainer() {
             return this.register(kernel_1.DI.createContainer());
         }
+    };
+    exports.RouterConfiguration = {
+        /**
+         * Make it possible to specify options to Router activation
+         */
+        customize(config = {}) {
+            return { ...routerConfiguration };
+        },
+        ...routerConfiguration,
     };
 });
 //# sourceMappingURL=configuration.js.map

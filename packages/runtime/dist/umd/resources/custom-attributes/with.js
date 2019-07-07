@@ -48,6 +48,7 @@
             }
         }
         binding(flags) {
+            this.view.parent = this.$controller;
             this.bindChild(flags);
         }
         attaching(flags) {
@@ -58,6 +59,7 @@
         }
         unbinding(flags) {
             this.view.unbind(flags);
+            this.view.parent = void 0;
         }
         bindChild(flags) {
             const scope = binding_context_1.Scope.fromParent(flags, this.$controller.scope, this.value === void 0 ? {} : this.value);

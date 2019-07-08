@@ -10,6 +10,7 @@
     "packages/aot",
     "packages/debug",
     "packages/fetch-client",
+    "packages/i18n",
     "packages/jit",
     "packages/jit-html",
     "packages/jit-html-browser",

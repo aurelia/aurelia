@@ -22,12 +22,15 @@
   },
   "devDependencies": {
     "@types/node": "latest",
+    "css-loader": "^3.0.0",
+    "file-loader": "^4.0.0",
     "html-loader": "latest",
     "html-webpack-plugin": "latest",
     "http-server": "^0.11.1",
     "rimraf": "latest",
     "ts-loader": "latest",
     "typescript": "latest",
+    "url-loader": "^2.0.1",
     "webpack": "latest",
     "webpack-cli": "latest",
     "webpack-dev-server": "latest"

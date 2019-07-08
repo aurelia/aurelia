@@ -24,7 +24,7 @@ const $global: IWindowOrWorkerGlobalScope = (function (): IWindowOrWorkerGlobalS
   // tslint:enable:no-typeof-undefined
   try {
     // Not all environments allow eval and Function. Use only as a last resort:
-    // tslint:disable-next-line:no-function-constructor-with-string-args function-constructor
+    // tslint:disable-next-line:function-constructor
     return new Function('return this')();
   } catch {
     // If all fails, give up and create an object.

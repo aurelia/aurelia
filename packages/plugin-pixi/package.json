@@ -41,7 +41,7 @@
     "@aurelia/runtime": "0.3.0",
     "@aurelia/runtime-html": "0.3.0",
     "@aurelia/runtime-html-browser": "0.3.0",
-    "pixi.js": "^4.8.7"
+    "pixi.js": "^4.8.8"
   },
   "devDependencies": {
     "@types/node": "^10.12.27",

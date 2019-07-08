@@ -155,7 +155,7 @@ function enableLiveLogging(this: typeof Tracer, optionsOrWriter?: ILiveLoggingOp
   if (optionsOrWriter && 'write' in optionsOrWriter) {
     this.liveWriter = optionsOrWriter;
   } else {
-    const options = optionsOrWriter !== undefined ? (optionsOrWriter as ILiveLoggingOptions) : defaultOptions;
+    const options = optionsOrWriter !== undefined ? optionsOrWriter : defaultOptions;
     this.liveWriter = createLiveTraceWriter(options);
   }
 }

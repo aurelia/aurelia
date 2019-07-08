@@ -1,4 +1,4 @@
-import { DI, IContainer, Key, InterfaceSymbol, IResolver, Profiler, Registration } from '@aurelia/kernel';
+import { DI, IContainer, InterfaceSymbol, IResolver, Key, Profiler, Registration } from '@aurelia/kernel';
 import { IDOM, INode } from '@aurelia/runtime';
 
 /**

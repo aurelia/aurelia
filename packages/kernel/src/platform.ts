@@ -1,4 +1,4 @@
-import { IPerformanceEntry, ITimerHandler, IWindowOrWorkerGlobalScope, IPerformance } from './interfaces';
+import { IPerformance, IPerformanceEntry, ITimerHandler, IWindowOrWorkerGlobalScope } from './interfaces';
 
 // tslint:disable-next-line:no-redundant-jump
 function $noop(): void { return; }
@@ -397,8 +397,6 @@ interface IPlatform extends IPerformance {
   emptyArray: any[];
   emptyObject: any;
 
-  noop(): void;
-
   hasOwnProperty: {
     call<V, T = object, K extends PropertyKey = PropertyKey>(target: T, key: K): target is (
       T & { [P in K]: V; }
@@ -407,6 +405,8 @@ interface IPlatform extends IPerformance {
       T & { [P in K]-?: T[P]; }
     );
   };
+
+  noop(): void;
 
   requestAnimationFrame(callback: (time: number) => void): number;
   cancelAnimationFrame(handle: number): void;

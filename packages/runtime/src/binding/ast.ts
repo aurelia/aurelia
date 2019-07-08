@@ -529,7 +529,7 @@ export class AccessKeyedExpression implements IAccessKeyedExpression {
     const instance = this.object.evaluate(flags, scope, locator, part) as IIndexable;
     if (instance instanceof Object) {
       const key = this.key.evaluate(flags, scope, locator, part) as string;
-      return (instance as IIndexable)[key];
+      return instance[key];
     }
     return void 0;
   }

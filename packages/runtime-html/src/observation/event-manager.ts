@@ -116,12 +116,12 @@ export class ListenerTracker {
  * Enable dispose() pattern for `delegate` & `capture` commands
  */
 export class DelegateOrCaptureSubscription implements IDisposable {
-  public entry: { decrement: () => void; };
+  public entry: { decrement(): void };
   public lookup: Record<string, EventListenerOrEventListenerObject>;
   public targetEvent: string;
 
   constructor(
-    entry: { decrement: () => void; },
+    entry: { decrement(): void },
     lookup: Record<string, EventListenerOrEventListenerObject>,
     targetEvent: string,
     callback: EventListenerOrEventListenerObject

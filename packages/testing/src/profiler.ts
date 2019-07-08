@@ -1,5 +1,5 @@
 import { Profiler } from '@aurelia/kernel';
-import { padRight, padLeft } from './string-manipulation';
+import { padLeft, padRight } from './string-manipulation';
 
 export function writeProfilerReport(testName: string): void {
   let msg = '\n';

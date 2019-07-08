@@ -1,8 +1,8 @@
 import {
   DI,
   IContainer,
-  Key,
   IResolver,
+  Key,
   Primitive,
   Registration,
   Reporter,

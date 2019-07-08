@@ -1,4 +1,4 @@
-import { DI, Key, IRegistry } from '@aurelia/kernel';
+import { DI, IRegistry, Key } from '@aurelia/kernel';
 import { ValueConverter } from '../value-converter';
 
 const SCRIPT_REGEX = /<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi;

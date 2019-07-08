@@ -39,6 +39,7 @@ import {
   DOM,
 } from '@aurelia/runtime-html';
 
+import { Call } from './tracing';
 import {
   Boolean_valueOf,
   colors,
@@ -109,7 +110,6 @@ import {
   TypedArray,
   TypedArrayConstructor,
 } from './util';
-import { Call } from './tracing';
 
 // tslint:disable: no-commented-code
 // tslint:disable: no-big-function
@@ -1151,7 +1151,7 @@ export function formatTypedArray(
   const output = new Array(maxLength);
   let i = 0;
   for (; i < maxLength; ++i) {
-    output[i] = formatNumber(ctx.stylize, value[i] as number);
+    output[i] = formatNumber(ctx.stylize, value[i]);
   }
   if (remaining > 0) {
     output[i] = `... ${remaining} more item${remaining > 1 ? 's' : ''}`;

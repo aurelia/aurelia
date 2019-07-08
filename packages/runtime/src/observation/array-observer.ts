@@ -145,7 +145,7 @@ function quickSort(arr: IObservedArray, indexMap: IndexMap, from: number, to: nu
   }
 }
 
-const proto = Array.prototype as { [K in keyof Array<any>]: Array<any>[K] & { observing?: boolean } };
+const proto = Array.prototype as { [K in keyof any[]]: any[][K] & { observing?: boolean } };
 
 const $push = proto.push;
 const $unshift = proto.unshift;

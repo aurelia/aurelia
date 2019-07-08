@@ -25,11 +25,11 @@ import {
   Tracer,
 } from '@aurelia/kernel';
 import {
+  AnyBindingExpression,
   BindingMode,
   BindingType,
   IDOM,
-  IExpressionParser,
-  AnyBindingExpression
+  IExpressionParser
 } from '@aurelia/runtime';
 import {
   NodeType,

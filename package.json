@@ -37,7 +37,7 @@
   },
   "dependencies": {
     "jsdom": "^15.1.1",
-    "pixi.js": "^4.8.7"
+    "pixi.js": "^4.8.8"
   },
   "devDependencies": {
     "@types/acorn": "^4.0.5",
@@ -47,7 +47,7 @@
     "@types/karma": "^3.0.2",
     "@types/mocha": "^5.2.6",
     "@types/node": "^10.12.27",
-    "@types/pixi.js": "^4.8.6",
+    "@types/pixi.js": "^4.8.8",
     "@types/request": "^2.48.1",
     "@types/webpack": "^4.4.26",
     "@types/webpack-env": "^1.13.9",

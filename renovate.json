@@ -31,6 +31,10 @@
     {
       "packageNames": ["chromedriver"],
       "allowedVersions": "~2.45.0"
+    },
+    {
+      "packageNames": ["pixi.js", "@types/pixi.js"],
+      "allowedVersions": "~4.8.8"
     }
   ]
 }

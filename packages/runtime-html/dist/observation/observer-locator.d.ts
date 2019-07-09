@@ -1,4 +1,4 @@
-import { IContainer, Key, IResolver } from '@aurelia/kernel';
+import { IContainer, IResolver, Key } from '@aurelia/kernel';
 import { IBindingTargetAccessor, IBindingTargetObserver, IDOM, ILifecycle, IObserverLocator, ITargetAccessorLocator, ITargetObserverLocator, LifecycleFlags } from '@aurelia/runtime';
 import { ISVGAnalyzer } from './svg-analyzer';
 export declare class TargetObserverLocator implements ITargetObserverLocator {

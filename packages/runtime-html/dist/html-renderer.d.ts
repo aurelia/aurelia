@@ -1,5 +1,5 @@
-import { Key, InterfaceSymbol, IRegistry } from '@aurelia/kernel';
-import { IDOM, IExpressionParser, IInstructionRenderer, IObserverLocator, IController, IRenderContext, LifecycleFlags } from '@aurelia/runtime';
+import { InterfaceSymbol, IRegistry, Key } from '@aurelia/kernel';
+import { IController, IDOM, IExpressionParser, IInstructionRenderer, IObserverLocator, IRenderContext, LifecycleFlags } from '@aurelia/runtime';
 import { IAttributeBindingInstruction, IListenerBindingInstruction, ISetAttributeInstruction, IStylePropertyBindingInstruction, ITextBindingInstruction } from './definitions';
 import { IEventManager } from './observation/event-manager';
 export declare class TextBindingRenderer implements IInstructionRenderer {

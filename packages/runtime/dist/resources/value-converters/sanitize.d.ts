@@ -1,4 +1,4 @@
-import { Key, IRegistry } from '@aurelia/kernel';
+import { IRegistry, Key } from '@aurelia/kernel';
 export interface ISanitizer {
     /**
      * Sanitizes the provided input.

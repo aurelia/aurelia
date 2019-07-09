@@ -4,7 +4,7 @@
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "@aurelia/kernel", "./lifecycle", "./observation/observer-locator", "./renderer", "./resources/binding-behaviors/binding-mode", "./resources/binding-behaviors/debounce", "./resources/binding-behaviors/signals", "./resources/binding-behaviors/throttle", "./resources/custom-attributes/if", "./resources/custom-attributes/repeat", "./resources/custom-attributes/replaceable", "./resources/custom-attributes/with", "./resources/value-converters/sanitize", "./resources/binding-behaviors/priority"], factory);
+        define(["require", "exports", "@aurelia/kernel", "./lifecycle", "./observation/observer-locator", "./renderer", "./resources/binding-behaviors/binding-mode", "./resources/binding-behaviors/debounce", "./resources/binding-behaviors/priority", "./resources/binding-behaviors/signals", "./resources/binding-behaviors/throttle", "./resources/custom-attributes/if", "./resources/custom-attributes/repeat", "./resources/custom-attributes/replaceable", "./resources/custom-attributes/with", "./resources/value-converters/sanitize"], factory);
     }
 })(function (require, exports) {
     "use strict";
@@ -15,6 +15,7 @@
     const renderer_1 = require("./renderer");
     const binding_mode_1 = require("./resources/binding-behaviors/binding-mode");
     const debounce_1 = require("./resources/binding-behaviors/debounce");
+    const priority_1 = require("./resources/binding-behaviors/priority");
     const signals_1 = require("./resources/binding-behaviors/signals");
     const throttle_1 = require("./resources/binding-behaviors/throttle");
     const if_1 = require("./resources/custom-attributes/if");
@@ -22,7 +23,6 @@
     const replaceable_1 = require("./resources/custom-attributes/replaceable");
     const with_1 = require("./resources/custom-attributes/with");
     const sanitize_1 = require("./resources/value-converters/sanitize");
-    const priority_1 = require("./resources/binding-behaviors/priority");
     exports.IObserverLocatorRegistration = observer_locator_1.ObserverLocator;
     exports.ILifecycleRegistration = lifecycle_1.Lifecycle;
     exports.IRendererRegistration = renderer_1.Renderer;

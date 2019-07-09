@@ -1,4 +1,4 @@
-import { Reporter, PLATFORM } from '@aurelia/kernel';
+import { PLATFORM, Reporter } from '@aurelia/kernel';
 import { Controller } from './controller';
 export class ViewFactory {
     constructor(name, template, lifecycle) {

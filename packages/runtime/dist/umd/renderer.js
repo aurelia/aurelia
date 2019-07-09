@@ -4,24 +4,24 @@
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "tslib", "@aurelia/kernel", "./binding/property-binding", "./binding/call-binding", "./binding/expression-parser", "./binding/interpolation-binding", "./binding/let-binding", "./binding/ref-binding", "./definitions", "./flags", "./templating/controller", "./observation/observer-locator", "./rendering-engine"], factory);
+        define(["require", "exports", "tslib", "@aurelia/kernel", "./binding/call-binding", "./binding/expression-parser", "./binding/interpolation-binding", "./binding/let-binding", "./binding/property-binding", "./binding/ref-binding", "./definitions", "./flags", "./observation/observer-locator", "./rendering-engine", "./templating/controller"], factory);
     }
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     const tslib_1 = require("tslib");
     const kernel_1 = require("@aurelia/kernel");
-    const property_binding_1 = require("./binding/property-binding");
     const call_binding_1 = require("./binding/call-binding");
     const expression_parser_1 = require("./binding/expression-parser");
     const interpolation_binding_1 = require("./binding/interpolation-binding");
     const let_binding_1 = require("./binding/let-binding");
+    const property_binding_1 = require("./binding/property-binding");
     const ref_binding_1 = require("./binding/ref-binding");
     const definitions_1 = require("./definitions");
     const flags_1 = require("./flags");
-    const controller_1 = require("./templating/controller");
     const observer_locator_1 = require("./observation/observer-locator");
     const rendering_engine_1 = require("./rendering-engine");
+    const controller_1 = require("./templating/controller");
     const slice = Array.prototype.slice;
     function instructionRenderer(instructionType) {
         return function decorator(target) {

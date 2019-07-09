@@ -1,8 +1,8 @@
+import { ITemplateDefinition, TemplatePartDefinitions } from '../definitions';
 import { INode } from '../dom';
 import { LifecycleFlags } from '../flags';
 import { IController, ILifecycle, IViewFactory } from '../lifecycle';
 import { ITemplate } from '../rendering-engine';
-import { TemplatePartDefinitions, ITemplateDefinition } from '../definitions';
 export declare class ViewFactory<T extends INode = INode> implements IViewFactory<T> {
     static maxCacheSize: number;
     isCaching: boolean;

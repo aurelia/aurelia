@@ -26,7 +26,7 @@
         // tslint:enable:no-typeof-undefined
         try {
             // Not all environments allow eval and Function. Use only as a last resort:
-            // tslint:disable-next-line:no-function-constructor-with-string-args function-constructor
+            // tslint:disable-next-line:function-constructor
             return new Function('return this')();
         }
         catch (_a) {

@@ -1,16 +1,16 @@
 import * as tslib_1 from "tslib";
 import { all, Registration, Reporter, Tracer } from '@aurelia/kernel';
-import { PropertyBinding } from './binding/property-binding';
 import { CallBinding } from './binding/call-binding';
 import { IExpressionParser } from './binding/expression-parser';
 import { InterpolationBinding, MultiInterpolationBinding } from './binding/interpolation-binding';
 import { LetBinding } from './binding/let-binding';
+import { PropertyBinding } from './binding/property-binding';
 import { RefBinding } from './binding/ref-binding';
 import { customAttributeKey, customElementKey } from './definitions';
 import { BindingMode } from './flags';
-import { Controller, } from './templating/controller';
 import { IObserverLocator } from './observation/observer-locator';
 import { IInstructionRenderer, IRenderer, IRenderingEngine } from './rendering-engine';
+import { Controller, } from './templating/controller';
 const slice = Array.prototype.slice;
 export function instructionRenderer(instructionType) {
     return function decorator(target) {

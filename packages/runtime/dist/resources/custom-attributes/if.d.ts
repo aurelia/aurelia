@@ -7,11 +7,11 @@ import { ILifecycleTask } from '../../lifecycle-task';
 import { InlineObserversLookup } from '../../observation';
 import { ICustomAttributeResource } from '../custom-attribute';
 export declare class If<T extends INode = INode> {
+    value: boolean;
     static readonly inject: readonly Key[];
     static readonly kind: ICustomAttributeResource;
     static readonly description: Required<IAttributeDefinition>;
     readonly id: number;
-    value: boolean;
     readonly $observers: InlineObserversLookup<this>;
     elseFactory?: IViewFactory<T>;
     elseView?: IController<T>;
@@ -20,8 +20,8 @@ export declare class If<T extends INode = INode> {
     location: IRenderLocation<T>;
     readonly noProxy: true;
     view?: IController<T>;
-    private task;
     $controller: IController<T>;
+    private task;
     private _value;
     constructor(ifFactory: IViewFactory<T>, location: IRenderLocation<T>);
     static register(container: IContainer): void;

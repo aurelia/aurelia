@@ -1,5 +1,5 @@
-import { IContainer, Key, IResolver } from '@aurelia/kernel';
-import { Aurelia, CustomElementHost, HydrateElementInstruction, HydrateTemplateController, IBindingTargetAccessor, IBindingTargetObserver, IDOM, IDOMInitializer, IElementProjector, IInstructionRenderer, ILifecycle, INode, INodeSequence, INodeSequenceFactory, IObserverLocator, IProjectorLocator, IController, IRenderContext, IRenderLocation, IsBindingBehavior, ISinglePageApp, ITargetAccessorLocator, ITargetedInstruction, ITargetObserverLocator, ITemplate, ITemplateDefinition, ITemplateFactory, LetElementInstruction, LifecycleFlags, TargetedInstruction, TemplateDefinition } from '@aurelia/runtime';
+import { IContainer, IResolver, Key } from '@aurelia/kernel';
+import { Aurelia, CustomElementHost, HydrateElementInstruction, HydrateTemplateController, IBindingTargetAccessor, IBindingTargetObserver, IController, IDOM, IDOMInitializer, IElementProjector, IInstructionRenderer, ILifecycle, INode, INodeSequence, INodeSequenceFactory, IObserverLocator, IProjectorLocator, IRenderContext, IRenderLocation, IsBindingBehavior, ISinglePageApp, ITargetAccessorLocator, ITargetedInstruction, ITargetObserverLocator, ITemplate, ITemplateDefinition, ITemplateFactory, LetElementInstruction, LifecycleFlags, TargetedInstruction, TemplateDefinition } from '@aurelia/runtime';
 export declare class AuNode implements INode {
     readonly nodeName: string;
     readonly isWrapper: boolean;

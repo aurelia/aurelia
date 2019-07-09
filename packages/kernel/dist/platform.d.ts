@@ -1,4 +1,4 @@
-import { ITimerHandler, IWindowOrWorkerGlobalScope, IPerformance } from './interfaces';
+import { IPerformance, ITimerHandler, IWindowOrWorkerGlobalScope } from './interfaces';
 interface IPlatform extends IPerformance {
     /**
      * `true` if there is a `window` variable in the global scope with a `document` property.
@@ -24,7 +24,6 @@ interface IPlatform extends IPerformance {
     global: IWindowOrWorkerGlobalScope;
     emptyArray: any[];
     emptyObject: any;
-    noop(): void;
     hasOwnProperty: {
         call<V, T = object, K extends PropertyKey = PropertyKey>(target: T, key: K): target is (T & {
             [P in K]: V;
@@ -33,6 +32,7 @@ interface IPlatform extends IPerformance {
             [P in K]-?: T[P];
         });
     };
+    noop(): void;
     requestAnimationFrame(callback: (time: number) => void): number;
     cancelAnimationFrame(handle: number): void;
     clearInterval(handle?: number): void;

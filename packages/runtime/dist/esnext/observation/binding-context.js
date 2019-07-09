@@ -1,4 +1,4 @@
-import { Reporter, Tracer, PLATFORM } from '@aurelia/kernel';
+import { PLATFORM, Reporter, Tracer } from '@aurelia/kernel';
 import { ProxyObserver } from './proxy-observer';
 import { SetterObserver } from './setter-observer';
 const slice = Array.prototype.slice;

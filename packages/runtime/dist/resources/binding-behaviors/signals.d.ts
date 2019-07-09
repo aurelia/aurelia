@@ -1,4 +1,4 @@
-import { Key, IRegistry } from '@aurelia/kernel';
+import { IRegistry, Key } from '@aurelia/kernel';
 import { PropertyBinding } from '../../binding/property-binding';
 import { LifecycleFlags } from '../../flags';
 import { IScope } from '../../observation';

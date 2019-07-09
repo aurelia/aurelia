@@ -6,7 +6,7 @@
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "@aurelia/debug", "@aurelia/kernel", "@aurelia/runtime-html", "./util", "./tracing"], factory);
+        define(["require", "exports", "@aurelia/debug", "@aurelia/kernel", "@aurelia/runtime-html", "./tracing", "./util"], factory);
     }
 })(function (require, exports) {
     "use strict";
@@ -35,8 +35,8 @@
     const debug_1 = require("@aurelia/debug");
     const kernel_1 = require("@aurelia/kernel");
     const runtime_html_1 = require("@aurelia/runtime-html");
-    const util_1 = require("./util");
     const tracing_1 = require("./tracing");
+    const util_1 = require("./util");
     // tslint:disable: no-commented-code
     // tslint:disable: no-big-function
     // tslint:disable: no-any

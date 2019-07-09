@@ -1,4 +1,4 @@
-import { Class, Key, IRegistry } from '@aurelia/kernel';
+import { Class, IRegistry, Key } from '@aurelia/kernel';
 import { BindingType, IExpressionParser } from './binding/expression-parser';
 import { ICallBindingInstruction, IHydrateAttributeInstruction, IHydrateElementInstruction, IHydrateLetElementInstruction, IHydrateTemplateController, IInterpolationInstruction, IIteratorBindingInstruction, IPropertyBindingInstruction, IRefBindingInstruction, ISetPropertyInstruction, TemplatePartDefinitions } from './definitions';
 import { IDOM, INode } from './dom';

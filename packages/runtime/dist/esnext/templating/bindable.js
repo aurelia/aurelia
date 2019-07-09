@@ -1,4 +1,4 @@
-import { Reporter, kebabCase, } from '@aurelia/kernel';
+import { kebabCase, Reporter, } from '@aurelia/kernel';
 import { BindingMode, } from '../flags';
 export function bindable(configOrTarget, prop) {
     let config;

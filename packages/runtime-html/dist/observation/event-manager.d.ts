@@ -21,12 +21,12 @@ export declare class ListenerTracker {
  */
 export declare class DelegateOrCaptureSubscription implements IDisposable {
     entry: {
-        decrement: () => void;
+        decrement(): void;
     };
     lookup: Record<string, EventListenerOrEventListenerObject>;
     targetEvent: string;
     constructor(entry: {
-        decrement: () => void;
+        decrement(): void;
     }, lookup: Record<string, EventListenerOrEventListenerObject>, targetEvent: string, callback: EventListenerOrEventListenerObject);
     dispose(): void;
 }

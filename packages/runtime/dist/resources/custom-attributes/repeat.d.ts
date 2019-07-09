@@ -9,11 +9,11 @@ import { CollectionObserver, IndexMap, InlineObserversLookup, IObservable, IObse
 import { ICustomAttributeResource } from '../custom-attribute';
 declare type Items<C extends ObservedCollection = IObservedArray> = C | undefined;
 export declare class Repeat<C extends ObservedCollection = IObservedArray, T extends INode = INode> implements IObservable {
+    items: Items<C>;
     static readonly inject: readonly Key[];
     static readonly kind: ICustomAttributeResource;
     static readonly description: Required<IAttributeDefinition>;
     readonly id: number;
-    items: Items<C>;
     readonly $observers: InlineObserversLookup<this>;
     forOf: ForOfStatement;
     hasPendingInstanceMutation: boolean;
@@ -25,8 +25,8 @@ export declare class Repeat<C extends ObservedCollection = IObservedArray, T ext
     views: IController<T>[];
     key?: string;
     readonly noProxy: true;
-    private task;
     $controller: IController<T>;
+    private task;
     private _items;
     constructor(location: IRenderLocation<T>, renderable: IController<T>, factory: IViewFactory<T>);
     static register(container: IContainer): void;

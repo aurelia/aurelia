@@ -1,7 +1,7 @@
 import * as tslib_1 from "tslib";
 import { parseExpression } from '@aurelia/jit';
 import { DI, IContainer, inject, Registration, Tracer } from '@aurelia/kernel';
-import { addBinding, Aurelia, PropertyBinding, BindingMode, CompiledTemplate, HydrateElementInstruction, HydrateTemplateController, IDOM, IDOMInitializer, ILifecycle, INode, instructionRenderer, IObserverLocator, IProjectorLocator, ITargetAccessorLocator, ITargetObserverLocator, ITemplateFactory, IteratorBindingInstruction, LetBindingInstruction, LetElementInstruction, RuntimeBasicConfiguration, ToViewBindingInstruction } from '@aurelia/runtime';
+import { addBinding, Aurelia, BindingMode, CompiledTemplate, HydrateElementInstruction, HydrateTemplateController, IDOM, IDOMInitializer, ILifecycle, INode, instructionRenderer, IObserverLocator, IProjectorLocator, ITargetAccessorLocator, ITargetObserverLocator, ITemplateFactory, IteratorBindingInstruction, LetBindingInstruction, LetElementInstruction, PropertyBinding, RuntimeBasicConfiguration, ToViewBindingInstruction } from '@aurelia/runtime';
 const slice = Array.prototype.slice;
 export class AuNode {
     get isConnected() {

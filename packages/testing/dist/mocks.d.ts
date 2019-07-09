@@ -1,5 +1,5 @@
-import { IContainer, IDisposable, IServiceLocator, IIndexable } from '@aurelia/kernel';
-import { ExpressionKind, IBinding, IRenderContext, IScope, ISignaler, LifecycleFlags, State, IndexMap, ISubscribable, IConnectableBinding, IObserverLocator } from '@aurelia/runtime';
+import { IContainer, IDisposable, IIndexable, IServiceLocator } from '@aurelia/kernel';
+import { ExpressionKind, IBinding, IConnectableBinding, IndexMap, IObserverLocator, IRenderContext, IScope, ISignaler, ISubscribable, LifecycleFlags, State } from '@aurelia/runtime';
 export declare class MockBinding implements IConnectableBinding {
     id: number;
     observerSlots: number;

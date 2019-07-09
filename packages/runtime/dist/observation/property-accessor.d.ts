@@ -1,5 +1,5 @@
-import { IBindingTargetAccessor } from '../observation';
 import { LifecycleFlags } from '../flags';
+import { IBindingTargetAccessor } from '../observation';
 export interface PropertyAccessor extends IBindingTargetAccessor<Record<string, unknown>, string> {
 }
 export declare class PropertyAccessor implements PropertyAccessor {

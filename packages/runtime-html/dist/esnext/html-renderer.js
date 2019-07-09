@@ -1,6 +1,6 @@
 import * as tslib_1 from "tslib";
 import { Tracer } from '@aurelia/kernel';
-import { addBinding, PropertyBinding, BindingMode, ensureExpression, IExpressionParser, instructionRenderer, InterpolationBinding, IObserverLocator, MultiInterpolationBinding } from '@aurelia/runtime';
+import { addBinding, BindingMode, ensureExpression, IExpressionParser, instructionRenderer, InterpolationBinding, IObserverLocator, MultiInterpolationBinding, PropertyBinding } from '@aurelia/runtime';
 import { AttributeBinding } from './binding/attribute';
 import { Listener } from './binding/listener';
 import { IEventManager } from './observation/event-manager';

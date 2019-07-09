@@ -15,7 +15,7 @@ const refs = {
     'main': 'dist/umd/index.js',
     'module': 'dist/esnext/index.js',
     'jsnext:main': 'dist/esnext/index.js',
-    'browser': 'dist/esnext/index.js'
+    'browser': 'dist/umd/index.js'
   }
 };
 

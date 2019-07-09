@@ -71,7 +71,7 @@ function define<T extends Constructable>(this: IBindingCommandResource, nameOrDe
   const WritableType = Type as T & Writable<IBindingCommandType>;
   const description = typeof nameOrDefinition === 'string' ? { name: nameOrDefinition, target: null } : nameOrDefinition;
 
-  WritableType.kind = BindingCommandResource as IBindingCommandResource;
+  WritableType.kind = BindingCommandResource;
   WritableType.description = description;
   Type.register = register;
 

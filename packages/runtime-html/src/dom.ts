@@ -1,8 +1,8 @@
 import {
   Constructable,
   IContainer,
-  Key,
   IResolver,
+  Key,
   PLATFORM,
   Registration,
   Reporter,

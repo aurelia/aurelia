@@ -26,6 +26,7 @@ import {
   TwoWayBindingBehavior
 } from './resources/binding-behaviors/binding-mode';
 import { DebounceBindingBehavior } from './resources/binding-behaviors/debounce';
+import { PriorityBindingBehavior } from './resources/binding-behaviors/priority';
 import { SignalBindingBehavior } from './resources/binding-behaviors/signals';
 import { ThrottleBindingBehavior } from './resources/binding-behaviors/throttle';
 import {
@@ -36,7 +37,6 @@ import { Repeat } from './resources/custom-attributes/repeat';
 import { Replaceable } from './resources/custom-attributes/replaceable';
 import { With } from './resources/custom-attributes/with';
 import { SanitizeValueConverter } from './resources/value-converters/sanitize';
-import { PriorityBindingBehavior } from './resources/binding-behaviors/priority';
 
 export const IObserverLocatorRegistration = ObserverLocator as IRegistry;
 export const ILifecycleRegistration = Lifecycle as IRegistry;

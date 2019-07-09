@@ -99,7 +99,7 @@ export interface ITemplateDefinition extends IResourceDefinition {
   hasSlots?: boolean;
   strategy?: BindingStrategy;
   hooks?: Readonly<HooksDefinition>;
-  scopeParts?: readonly string[]
+  scopeParts?: readonly string[];
 }
 
 export type TemplateDefinition = ResourceDescription<ITemplateDefinition>;

@@ -1,4 +1,5 @@
-import { Reporter, PLATFORM } from '@aurelia/kernel';
+import { PLATFORM, Reporter } from '@aurelia/kernel';
+import { ITemplateDefinition, TemplatePartDefinitions } from '../definitions';
 import { INode } from '../dom';
 import { LifecycleFlags, State } from '../flags';
 import {
@@ -8,7 +9,6 @@ import {
 } from '../lifecycle';
 import { ITemplate } from '../rendering-engine';
 import { Controller } from './controller';
-import { TemplatePartDefinitions, ITemplateDefinition } from '../definitions';
 
 export class ViewFactory<T extends INode = INode> implements IViewFactory<T> {
   public static maxCacheSize: number = 0xFFFF;
@@ -21,7 +21,6 @@ export class ViewFactory<T extends INode = INode> implements IViewFactory<T> {
   private cacheSize: number;
   private readonly lifecycle: ILifecycle;
   private readonly template: ITemplate<T>;
-
 
   constructor(name: string, template: ITemplate<T>, lifecycle: ILifecycle) {
     this.isCaching = false;

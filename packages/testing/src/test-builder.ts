@@ -12,16 +12,15 @@ import {
 import {
   BindingType,
   customAttribute,
-  customElement,
-
   CustomElement,
+
+  customElement,
 
   HydrateAttributeInstruction,
   HydrateElementInstruction,
   HydrateTemplateController,
   IAttributeDefinition,
-  IViewModel,
-
+  IController,
 
   ICustomElementType,
 
@@ -43,8 +42,8 @@ import {
   ITargetObserverLocator,
   ITemplateDefinition,
   IteratorBindingInstruction,
-  IController,
   IViewFactory,
+  IViewModel,
   LifecycleFlags as LF,
   OverrideContext,
   Scope,

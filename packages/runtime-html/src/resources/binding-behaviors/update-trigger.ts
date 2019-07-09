@@ -1,5 +1,5 @@
-import { Key, IRegistry, Reporter, Writable } from '@aurelia/kernel';
-import { PropertyBinding, BindingBehavior, BindingMode, IDOM, IObserverLocator, IScope, LifecycleFlags } from '@aurelia/runtime';
+import { IRegistry, Key, Reporter, Writable } from '@aurelia/kernel';
+import { BindingBehavior, BindingMode, IDOM, IObserverLocator, IScope, LifecycleFlags, PropertyBinding } from '@aurelia/runtime';
 import { CheckedObserver } from '../../observation/checked-observer';
 import { EventSubscriber, IEventSubscriber } from '../../observation/event-manager';
 import { SelectValueObserver } from '../../observation/select-value-observer';

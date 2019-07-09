@@ -100,7 +100,7 @@ function define<T extends Constructable = Constructable>(this: ICustomElementRes
   const WritableType = Type as Writable<ICustomElementType<T>>;
   const description = buildTemplateDefinition(Type, nameOrDefinition);
 
-  WritableType.kind = CustomElement as ICustomElementResource;
+  WritableType.kind = CustomElement;
   Type.description = description;
   Type.register = registerElement;
 

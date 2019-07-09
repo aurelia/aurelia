@@ -18,8 +18,6 @@ import {
   HydrateTemplateController,
   ToViewBindingInstruction,
   If,
-  IController,
-  INode,
 } from '@aurelia/runtime';
 import {
   parseExpression,

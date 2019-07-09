@@ -1,12 +1,12 @@
 import { DI, IContainer, Key, Reporter } from '@aurelia/kernel';
-import { Aurelia, IController, ICustomElementType, IRenderContext } from '@aurelia/runtime';
+import { Aurelia, ICustomElementType, IRenderContext } from '@aurelia/runtime';
 import { BrowserNavigation, INavigationViewerEvent } from './browser-navigation';
 import { InstructionResolver, IRouteSeparators } from './instruction-resolver';
 import { AnchorEventInfo, LinkHandler } from './link-handler';
 import { INavRoute, Nav } from './nav';
 import { INavigationEntry, INavigationInstruction, INavigatorOptions, Navigator } from './navigator';
 import { IParsedQuery, parseQuery } from './parser';
-import { Queue, QueueItem } from './queue';
+import { QueueItem } from './queue';
 import { RouteTable } from './route-table';
 import { Scope } from './scope';
 import { arrayRemove } from './utils';

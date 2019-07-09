@@ -1,7 +1,7 @@
 import { DebugConfiguration } from '@aurelia/debug';
 import { Aurelia, CustomElement } from '@aurelia/runtime';
 import { Router, RouterConfiguration, ViewportCustomElement, ViewportInstruction } from '@aurelia/router';
-import { MockBrowserHistoryLocation, TestContext, HTMLTestContext, assert } from '@aurelia/testing';
+import { MockBrowserHistoryLocation, TestContext, assert } from '@aurelia/testing';
 
 describe('InstructionResolver', function () {
   async function setup() {

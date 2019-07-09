@@ -23,8 +23,7 @@ import {
   ensureValidStrategy
 } from './flags';
 import {
-  IController,
-  IViewModel
+  IController
 } from './lifecycle';
 import { CustomElementHost } from './resources/custom-element';
 import { Bindable } from './templating/bindable';

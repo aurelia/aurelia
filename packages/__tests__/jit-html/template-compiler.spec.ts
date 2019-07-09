@@ -7,7 +7,6 @@ import {
   IResourceDescriptions,
   PLATFORM,
   RuntimeCompilationResources,
-  camelCase,
   kebabCase
 } from '@aurelia/kernel';
 import {

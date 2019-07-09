@@ -25,7 +25,6 @@
 
 import {
   stringifyLifecycleFlags,
-  Unparser,
 } from '@aurelia/debug';
 import {
   Char,

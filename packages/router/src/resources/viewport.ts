@@ -1,5 +1,4 @@
 import {
-  IContainer,
   Key,
   Writable
 } from '@aurelia/kernel';

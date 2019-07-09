@@ -1,20 +1,20 @@
-import { Key, InterfaceSymbol, IRegistry, Tracer } from '@aurelia/kernel';
+import { InterfaceSymbol, IRegistry, Key, Tracer } from '@aurelia/kernel';
 import {
   addBinding,
-  PropertyBinding,
   BindingMode,
   BindingType,
   ensureExpression,
+  IController,
   IDOM,
   IExpressionParser,
   IInstructionRenderer,
   instructionRenderer,
   InterpolationBinding,
   IObserverLocator,
-  IController,
   IRenderContext,
   LifecycleFlags,
-  MultiInterpolationBinding
+  MultiInterpolationBinding,
+  PropertyBinding
 } from '@aurelia/runtime';
 import { AttributeBinding } from './binding/attribute';
 import { Listener } from './binding/listener';

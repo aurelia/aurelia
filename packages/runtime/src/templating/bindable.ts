@@ -1,7 +1,7 @@
 import {
   Constructable,
-  Reporter,
   kebabCase,
+  Reporter,
 } from '@aurelia/kernel';
 
 import {

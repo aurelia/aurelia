@@ -61,6 +61,17 @@ const isMountedOrAttachedOrDetaching = isMountedOrAttached | State.isDetaching;
 const isMountedOrAttachedOrDetachingOrAttaching = isMountedOrAttachedOrDetaching | State.isAttaching;
 
 export class Repeat<C extends ObservedCollection = IObservedArray, T extends INode = INode> implements IObservable {
+
+  public get items(): Items<C> {
+    return this._items;
+  }
+  public set items(newValue: Items<C>) {
+    const oldValue = this._items;
+    if (oldValue !== newValue) {
+      this._items = newValue;
+      this.itemsChanged(this.$controller.flags);
+    }
+  }
   public static readonly inject: readonly Key[] = [IRenderLocation, IController, IViewFactory];
 
   public static readonly kind: ICustomAttributeResource = CustomAttribute;
@@ -77,17 +88,6 @@ export class Repeat<C extends ObservedCollection = IObservedArray, T extends INo
 
   public readonly id: number;
 
-  public get items(): Items<C> {
-    return this._items;
-  }
-  public set items(newValue: Items<C>) {
-    const oldValue = this._items;
-    if (oldValue !== newValue) {
-      this._items = newValue;
-      this.itemsChanged(this.$controller.flags);
-    }
-  }
-
   public readonly $observers: InlineObserversLookup<this> = Object.freeze({
     items: this,
   });
@@ -103,10 +103,10 @@ export class Repeat<C extends ObservedCollection = IObservedArray, T extends INo
   public key?: string;
   public readonly noProxy: true;
 
-  private task: ILifecycleTask;
-
   // tslint:disable-next-line: prefer-readonly // This is set by the controller after this instance is constructed
   public $controller!: IController<T>;
+
+  private task: ILifecycleTask;
 
   private _items: Items<C>;
 
@@ -471,7 +471,6 @@ export class Repeat<C extends ObservedCollection = IObservedArray, T extends INo
       flags,
     );
   }
-
 
   private attachViews(indexMap: IndexMap | undefined, flags: LF): void {
     let view: IController<T>;

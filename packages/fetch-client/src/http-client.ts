@@ -1,4 +1,4 @@
-import { Key, PLATFORM, IIndexable } from '@aurelia/kernel';
+import { IIndexable, Key, PLATFORM } from '@aurelia/kernel';
 import { DOM, IDOM } from '@aurelia/runtime';
 import { HTMLDOM } from '@aurelia/runtime-html';
 import { HttpClientConfiguration } from './http-client-configuration';

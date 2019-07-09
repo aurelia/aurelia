@@ -51,7 +51,6 @@ function isNodeOrTextOrComment(obj: unknown): obj is Text | Comment | Node {
 
 const eventCmds = { delegate: 1, capture: 1, call: 1 };
 
-
 /**
  * jsx with aurelia binding command friendly version of h
  */
@@ -133,4 +132,4 @@ export const hJsx = function(name: string, attrs: Record<string, string> | null,
     }
   }
   return el;
-}
+};

@@ -16,7 +16,7 @@ import {
   Tracer,
   Writable,
 } from '@aurelia/kernel';
-import { getOwnPropertyDescriptors, defineProperty, Reflect_apply } from './util';
+import { defineProperty, getOwnPropertyDescriptors, Reflect_apply } from './util';
 
 const RuntimeTracer = { ...Tracer };
 export function enableTracing(): void {

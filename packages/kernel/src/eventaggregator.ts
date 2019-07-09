@@ -1,4 +1,4 @@
-import { IContainer, IResolver, Registration, DI } from './di';
+import { DI, IContainer, IResolver, Registration } from './di';
 import { Constructable, IDisposable } from './interfaces';
 import { Reporter } from './reporter';
 

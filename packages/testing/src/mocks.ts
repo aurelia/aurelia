@@ -2,48 +2,48 @@ import {
   DI,
   IContainer,
   IDisposable,
+  IIndexable,
   IResourceType,
   IServiceLocator,
   PLATFORM,
-  Writable,
-  IIndexable
+  Writable
 } from '@aurelia/kernel';
 import {
   AccessMemberExpression,
   AccessScopeExpression,
   addBinding,
   addComponent,
-  PropertyBinding,
   BindingMode,
   Else,
   ExpressionKind,
   IAttributeDefinition,
   IBinding,
+  IConnectableBinding,
   IController,
   ICustomElementType,
   IDOM,
   If,
   ILifecycle,
+  IndexMap,
   INode,
   INodeSequence,
+  IObserverLocator,
   IRenderContext,
   IRenderer,
   IRenderingEngine,
   IScope,
   ISignaler,
+  ISubscribable,
   ITemplate,
   ITemplateDefinition,
   IViewFactory,
   IViewModel,
   LifecycleFlags,
   ObserverLocator,
+  PropertyBinding,
   State,
   TemplatePartDefinitions,
-  ViewFactory,
-  IndexMap,
-  ISubscribable,
-  IConnectableBinding,
-  IObserverLocator
+  ViewFactory
 } from '@aurelia/runtime';
 import { HTMLTestContext } from './html-test-context';
 
@@ -225,7 +225,6 @@ export class MockValueConverter {
     this.calls.push([fnName, ...args]);
   }
 }
-
 
 export class MockContext {
   public log: any[] = [];
@@ -449,7 +448,6 @@ export class CollectionChangeSet implements IDisposable {
     this._indexMap = (void 0)!;
   }
 }
-
 
 export class SpySubscriber implements IDisposable {
   public get changes(): ChangeSet[] {

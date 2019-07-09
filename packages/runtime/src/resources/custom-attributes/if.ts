@@ -39,6 +39,17 @@ import {
 } from '../custom-attribute';
 
 export class If<T extends INode = INode> {
+
+  public get value(): boolean {
+    return this._value;
+  }
+  public set value(newValue: boolean) {
+    const oldValue = this._value;
+    if (oldValue !== newValue) {
+      this._value = newValue;
+      this.valueChanged(newValue, oldValue, this.$controller.flags);
+    }
+  }
   public static readonly inject: readonly Key[] = [IViewFactory, IRenderLocation];
 
   public static readonly kind: ICustomAttributeResource = CustomAttribute;
@@ -55,17 +66,6 @@ export class If<T extends INode = INode> {
 
   public readonly id: number;
 
-  public get value(): boolean {
-    return this._value;
-  }
-  public set value(newValue: boolean) {
-    const oldValue = this._value;
-    if (oldValue !== newValue) {
-      this._value = newValue;
-      this.valueChanged(newValue, oldValue, this.$controller.flags);
-    }
-  }
-
   public readonly $observers: InlineObserversLookup<this> = Object.freeze({
     value: this,
   });
@@ -77,10 +77,10 @@ export class If<T extends INode = INode> {
   public location: IRenderLocation<T>;
   public readonly noProxy: true;
   public view?: IController<T>;
-
-  private task: ILifecycleTask;
   // tslint:disable-next-line: prefer-readonly // This is set by the controller after this instance is constructed
   public $controller!: IController<T>;
+
+  private task: ILifecycleTask;
 
   private _value: boolean;
 

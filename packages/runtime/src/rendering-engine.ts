@@ -78,7 +78,7 @@ export const ITemplateFactory = DI.createInterface<ITemplateFactory>('ITemplateF
 export interface ITemplate<T extends INode = INode> {
   readonly renderContext: IRenderContext<T>;
   readonly dom: IDOM<T>;
-  readonly definition: TemplateDefinition
+  readonly definition: TemplateDefinition;
   render(controller: IController<T>, host?: T, parts?: Record<string, ITemplateDefinition>, flags?: LifecycleFlags): void;
   render(viewModel: IViewModel<T>, host?: T, parts?: Record<string, ITemplateDefinition>, flags?: LifecycleFlags): void;
 }
@@ -366,7 +366,6 @@ export function createRenderContext(
 
   return context;
 }
-
 
 /** @internal */
 export class ViewFactoryProvider implements IResolver {

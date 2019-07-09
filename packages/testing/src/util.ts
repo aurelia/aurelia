@@ -486,7 +486,7 @@ export type ISpy<
   readonly calls: (readonly unknown[])[];
   restore(): void;
   reset(): void;
-}
+};
 
 export function createSpy<
   T extends {},
@@ -532,7 +532,7 @@ export function createSpy<
     $restore = PLATFORM.noop;
   } else {
     if (!(key in instanceOrInnerFn)) {
-      throw new Error(`No method named '${key}' exists in object of type ${Reflect.getPrototypeOf(instanceOrInnerFn).constructor.name}`)
+      throw new Error(`No method named '${key}' exists in object of type ${Reflect.getPrototypeOf(instanceOrInnerFn).constructor.name}`);
     }
     let descriptorOwner = instanceOrInnerFn;
     let descriptor = Reflect.getOwnPropertyDescriptor(descriptorOwner, key)!;

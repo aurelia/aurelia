@@ -17,9 +17,9 @@
   },
   "devDependencies": {
     "@types/chai": "^4.1.7",
-    "@types/mocha": "^5.2.6",
+    "@types/mocha": "^5.2.7",
     "@types/node": "^10.12.27",
-    "@types/selenium-webdriver": "^3.0.15",
+    "@types/selenium-webdriver": "^4.0.1",
     "chai": "^4.2.0",
     "chromedriver": "~2.45.0",
     "cross-env": "^5.2.0",
@@ -27,12 +27,12 @@
     "mocha": "^6.1.4",
     "path": "^0.12.7",
     "rimraf": "^2.6.3",
-    "selenium-webdriver": "^4.0.0-alpha.1",
-    "ts-loader": "^5.3.3",
-    "ts-node": "^8.0.3",
+    "selenium-webdriver": "^4.0.0-alpha.4",
+    "ts-loader": "^6.0.4",
+    "ts-node": "^8.3.0",
     "tsconfig-paths": "^3.8.0",
-    "typescript": "^3.3.4000",
-    "webpack": "^4.31.0",
-    "webpack-cli": "^3.3.0"
+    "typescript": "^3.5.3",
+    "webpack": "^4.35.3",
+    "webpack-cli": "^3.3.5"
   }
 }

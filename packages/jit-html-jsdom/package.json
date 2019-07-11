@@ -1,6 +1,6 @@
 {
   "name": "@aurelia/jit-html-jsdom",
-  "version": "0.4.0-dev.201907110207",
+  "version": "0.4.0-dev.201907110209",
   "main": "dist/umd/index.js",
   "module": "dist/esnext/index.js",
   "jsnext:main": "dist/esnext/index.js",
@@ -37,12 +37,12 @@
     "access": "public"
   },
   "dependencies": {
-    "@aurelia/kernel": "0.4.0-dev.201907110207",
-    "@aurelia/runtime": "0.4.0-dev.201907110207",
-    "@aurelia/runtime-html": "0.4.0-dev.201907110207",
-    "@aurelia/runtime-html-jsdom": "0.4.0-dev.201907110207",
-    "@aurelia/jit": "0.4.0-dev.201907110207",
-    "@aurelia/jit-html": "0.4.0-dev.201907110207",
+    "@aurelia/kernel": "0.4.0-dev.201907110209",
+    "@aurelia/runtime": "0.4.0-dev.201907110209",
+    "@aurelia/runtime-html": "0.4.0-dev.201907110209",
+    "@aurelia/runtime-html-jsdom": "0.4.0-dev.201907110209",
+    "@aurelia/jit": "0.4.0-dev.201907110209",
+    "@aurelia/jit-html": "0.4.0-dev.201907110209",
     "jsdom": "^15.1.1"
   },
   "devDependencies": {

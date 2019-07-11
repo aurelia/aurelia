@@ -8,18 +8,16 @@ const refs = {
   dev: {
     'main': 'dist/esnext/index.js',
     'module': 'dist/esnext/index.js',
-    'jsnext:main': 'dist/esnext/index.js',
-    'browser': 'dist/esnext/index.js'
+    'jsnext:main': 'dist/esnext/index.js'
   },
   release: {
     'main': 'dist/umd/index.js',
     'module': 'dist/esnext/index.js',
-    'jsnext:main': 'dist/esnext/index.js',
-    'browser': 'dist/umd/index.js'
+    'jsnext:main': 'dist/esnext/index.js'
   }
 };
 
-const fields = ['main', 'module', 'jsnext:main', 'browser'];
+const fields = ['main', 'module', 'jsnext:main'];
 
 async function run(): Promise<void> {
   const ref = process.argv.slice(2)[0];

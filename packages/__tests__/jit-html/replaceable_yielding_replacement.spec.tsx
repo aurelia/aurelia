@@ -1,5 +1,5 @@
-import { Aurelia, CustomElement, IViewModel } from '@aurelia/runtime';
-import { TestContext, HTMLTestContext, hJsx, assert } from '@aurelia/testing';
+import { Aurelia, CustomElement } from '@aurelia/runtime';
+import { TestContext, hJsx, assert } from '@aurelia/testing';
 
 // IMPORTANT:
 //      JSX is used to eliminate space between tags so test result can be easier to manually constructed

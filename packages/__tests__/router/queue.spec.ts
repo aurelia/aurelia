@@ -1,4 +1,4 @@
-import { assert, createSpy, TestContext } from '@aurelia/testing';
+import { assert, TestContext } from '@aurelia/testing';
 import { Queue, QueueItem } from '@aurelia/router';
 
 class Animal {

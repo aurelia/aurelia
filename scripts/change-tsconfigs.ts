@@ -1,5 +1,5 @@
 import { File } from './files';
-import { c, createLogger } from './logger';
+import { createLogger } from './logger';
 import project from './project';
 
 (async function () {

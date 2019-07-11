@@ -1,51 +1,23 @@
 import {
-  DI,
   IContainer,
   IDisposable,
   IIndexable,
-  IResourceType,
   IServiceLocator,
-  PLATFORM,
-  Writable
+  PLATFORM
 } from '@aurelia/kernel';
 import {
-  AccessMemberExpression,
-  AccessScopeExpression,
-  addBinding,
-  addComponent,
-  BindingMode,
-  Else,
   ExpressionKind,
-  IAttributeDefinition,
   IBinding,
   IConnectableBinding,
-  IController,
-  ICustomElementType,
-  IDOM,
-  If,
-  ILifecycle,
   IndexMap,
-  INode,
-  INodeSequence,
   IObserverLocator,
   IRenderContext,
-  IRenderer,
-  IRenderingEngine,
   IScope,
   ISignaler,
   ISubscribable,
-  ITemplate,
-  ITemplateDefinition,
-  IViewFactory,
-  IViewModel,
   LifecycleFlags,
-  ObserverLocator,
-  PropertyBinding,
-  State,
-  TemplatePartDefinitions,
-  ViewFactory
+  State
 } from '@aurelia/runtime';
-import { HTMLTestContext } from './html-test-context';
 
 export class MockBinding implements IConnectableBinding {
   public id!: number;

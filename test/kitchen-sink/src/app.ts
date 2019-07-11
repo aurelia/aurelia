@@ -1,8 +1,8 @@
-import {startFPSMonitor, startMemMonitor, initProfiler, startProfile, endProfile} from 'perf-monitor';
+import {startFPSMonitor, startMemMonitor} from 'perf-monitor';
 import * as faker from 'faker';
 import './app.scss';
 
-import { customElement, IViewModel, IDOM, CustomElement, buildTemplateDefinition, IteratorBindingInstruction, HydrateTemplateController, InterpolationInstruction, bindable, BindingStrategy, IController } from '@aurelia/runtime';
+import { customElement, IDOM, IteratorBindingInstruction, HydrateTemplateController, bindable, BindingStrategy, IController } from '@aurelia/runtime';
 import { Subject, createElement, TextBindingInstruction } from '@aurelia/runtime-html'
 
 startFPSMonitor();

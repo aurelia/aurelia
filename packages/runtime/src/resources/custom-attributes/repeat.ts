@@ -39,7 +39,6 @@ import {
   InlineObserversLookup,
   IObservable,
   IObservedArray,
-  IScope,
   ObservedCollection,
 } from '../../observation';
 import {

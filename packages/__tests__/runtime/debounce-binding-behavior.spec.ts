@@ -4,11 +4,7 @@ import {
 } from '@aurelia/kernel';
 import {
   PropertyBinding,
-  BindingMode,
   DebounceBindingBehavior,
-  IObserverLocator,
-  IsBindingBehavior,
-  IScope,
   LifecycleFlags
 } from '@aurelia/runtime';
 import { assert } from '@aurelia/testing';

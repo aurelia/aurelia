@@ -1,5 +1,5 @@
 import { join } from 'path';
-import { PropertyDeclaration, Statement, createBinary, SyntaxKind, Expression } from 'typescript';
+import { PropertyDeclaration, Statement } from 'typescript';
 import { kebabCase } from '../../packages/kernel/src/index';
 import project from '../project';
 import {
@@ -17,8 +17,7 @@ import {
   $functionExpr,
   $param,
   $property,
-  emit,
-  $id
+  emit
 } from './util';
 
 function outFile(suffix: string): string {

@@ -1,4 +1,4 @@
-import { CustomElementResource, Priority, LifecycleFlags } from '@aurelia/runtime';
+import { CustomElementResource, LifecycleFlags } from '@aurelia/runtime';
 import { clock } from "./app";
 
 export const Dot = CustomElementResource.define(

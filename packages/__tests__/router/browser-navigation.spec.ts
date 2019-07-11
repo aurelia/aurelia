@@ -1,7 +1,6 @@
 import { assert, TestContext, createSpy, MockBrowserHistoryLocation } from '@aurelia/testing';
 import { DOM } from '@aurelia/runtime-html';
-import { Writable, DI } from '@aurelia/kernel';
-import { ILifecycle } from '@aurelia/runtime';
+import { Writable } from '@aurelia/kernel';
 import { BrowserNavigation, INavigationState } from '@aurelia/router';
 
 describe('BrowserNavigation', function () {

@@ -10,13 +10,11 @@ import {
 import {
   Class,
   IContainer,
-  IIndexable,
   ITraceInfo,
   Registration,
   Tracer,
-  Writable,
 } from '@aurelia/kernel';
-import { defineProperty, getOwnPropertyDescriptors, Reflect_apply } from './util';
+import { getOwnPropertyDescriptors, Reflect_apply } from './util';
 
 const RuntimeTracer = { ...Tracer };
 export function enableTracing(): void {

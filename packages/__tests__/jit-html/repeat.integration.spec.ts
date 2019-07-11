@@ -1,7 +1,6 @@
 // tslint:disable:quotemark member-access no-all-duplicated-branches
-import { Profiler } from "@aurelia/kernel";
 import { Aurelia, CustomElement } from "@aurelia/runtime";
-import { TestContext, writeProfilerReport, assert, h } from "@aurelia/testing";
+import { TestContext, assert, h } from "@aurelia/testing";
 
 describe("generated.template-compiler.repeat", function () {
     function setup() {

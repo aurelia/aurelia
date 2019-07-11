@@ -1,5 +1,4 @@
 import {
-  IIndexable,
   IServiceLocator,
   StrictPrimitive
 } from '@aurelia/kernel';

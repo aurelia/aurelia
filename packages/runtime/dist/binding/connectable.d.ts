@@ -16,14 +16,13 @@ export interface IConnectableBinding extends IPartialConnectableBinding, IConnec
 declare type DecoratableConnectable<TProto, TClass> = Class<TProto & Partial<IConnectableBinding> & IPartialConnectableBinding, TClass>;
 declare type DecoratedConnectable<TProto, TClass> = Class<TProto & IConnectableBinding, TClass>;
 declare function connectableDecorator<TProto, TClass>(target: DecoratableConnectable<TProto, TClass>): DecoratedConnectable<TProto, TClass>;
-declare function connectable(): typeof connectableDecorator;
-declare namespace connectable {
+export declare function connectable(): typeof connectableDecorator;
+export declare namespace connectable {
     var assignIdTo: (instance: IConnectableBinding) => void;
 }
-export default connectable;
-declare function connectable<TProto, TClass>(target: DecoratableConnectable<TProto, TClass>): DecoratedConnectable<TProto, TClass>;
-declare namespace connectable {
+export declare function connectable<TProto, TClass>(target: DecoratableConnectable<TProto, TClass>): DecoratedConnectable<TProto, TClass>;
+export declare namespace connectable {
     var assignIdTo: (instance: IConnectableBinding) => void;
 }
-export default connectable;
+export {};
 //# sourceMappingURL=connectable.d.ts.map

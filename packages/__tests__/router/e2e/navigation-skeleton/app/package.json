@@ -17,14 +17,14 @@
     "@aurelia/router": "file:../../../../../router",
     "@aurelia/runtime": "file:../../../../../runtime",
     "@aurelia/runtime-html": "file:../../../../../runtime-html",
-    "bootstrap": "^3.3.6",
+    "bootstrap": "^3.3.6 || ^4.0.0",
     "font-awesome": "^4.6.3"
   },
   "devDependencies": {
     "@types/node": "latest",
     "html-loader": "latest",
     "html-webpack-plugin": "latest",
-    "http-server": "^0.9.0",
+    "http-server": "^0.11.1",
     "rimraf": "latest",
     "ts-loader": "latest",
     "typescript": "latest",

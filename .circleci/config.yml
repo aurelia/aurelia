@@ -409,7 +409,7 @@ workflows:
             - unit_test_firefox
             - unit_test_node
             - lint_packages
-            - e2e_browserstack
+            #- e2e_browserstack
             #- e2e_cypress_doc_example
             #- jit-fuse-box-ts
             - jit-webpack-ts
@@ -429,7 +429,7 @@ workflows:
             - unit_test_firefox
             - unit_test_node
             - lint_packages
-            - e2e_browserstack
+            #- e2e_browserstack
             #- e2e_cypress_doc_example
             #- jit-fuse-box-ts
             - jit-webpack-ts

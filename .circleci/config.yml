@@ -389,6 +389,12 @@ workflows:
           path: "examples/jit-parcel-ts"
           requires:
             - lint_packages # not a real requirement but forces long-running jobs to go first
+      # - e2e_wdio:
+      #     <<: *filter_ignore_develop_release
+      #     name: jit-browserify-ts
+      #     path: "examples/jit-browserify-ts"
+      #     requires:
+      #       - lint_packages # not a real requirement but forces long-running jobs to go first
       #- e2e_wdio:
       #    <<: *filter_ignore_develop_release
       #    name: jit-iife-inline
@@ -403,11 +409,12 @@ workflows:
             - unit_test_firefox
             - unit_test_node
             - lint_packages
-            - e2e_browserstack
+            #- e2e_browserstack
             #- e2e_cypress_doc_example
             #- jit-fuse-box-ts
             - jit-webpack-ts
             - jit-parcel-ts
+            # - jit-browserify-ts
             #- jit-iife-inline
           from: master
           to: develop
@@ -422,11 +429,12 @@ workflows:
             - unit_test_firefox
             - unit_test_node
             - lint_packages
-            - e2e_browserstack
+            #- e2e_browserstack
             #- e2e_cypress_doc_example
             #- jit-fuse-box-ts
             - jit-webpack-ts
             - jit-parcel-ts
+            # - jit-browserify-ts
             #- jit-iife-inline
           from: master
           to: develop

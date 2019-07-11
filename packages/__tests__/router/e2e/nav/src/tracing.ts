@@ -1,4 +1,4 @@
-import { ITraceInfo, PLATFORM, Tracer } from '@aurelia/kernel';
+import { ITraceInfo, Tracer } from '@aurelia/kernel';
 import { Tracer as DebugTracer } from '../../../../../debug/src/tracer';
 
 export const TraceWriter = {

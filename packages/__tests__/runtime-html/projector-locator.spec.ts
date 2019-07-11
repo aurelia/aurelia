@@ -1,4 +1,4 @@
-import { CustomElement, ICustomElementType, Controller } from '@aurelia/runtime';
+import { CustomElement, Controller } from '@aurelia/runtime';
 import { ContainerlessProjector, HostProjector, HTMLProjectorLocator, ShadowDOMProjector } from '@aurelia/runtime-html';
 import { TestContext, assert } from '@aurelia/testing';
 

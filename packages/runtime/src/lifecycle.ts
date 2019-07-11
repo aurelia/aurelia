@@ -7,7 +7,6 @@ import {
   IServiceLocator,
   PLATFORM,
   Registration,
-  Tracer,
 } from '@aurelia/kernel';
 
 import {

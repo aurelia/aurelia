@@ -1,4 +1,3 @@
-import { Reporter } from '@aurelia/kernel';
 import { DOM } from '@aurelia/runtime-html';
 
 /**

@@ -20,7 +20,6 @@ import {
   State
 } from '@aurelia/runtime';
 import {
-  _,
   createObserverLocator,
   createScopeForTest,
   eachCartesianJoinFactory,

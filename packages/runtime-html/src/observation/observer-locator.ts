@@ -1,5 +1,5 @@
 
-import { IContainer, InterfaceSymbol, IResolver, Key, Registration } from '@aurelia/kernel';
+import { IContainer, IResolver, Key, Registration } from '@aurelia/kernel';
 import {
   IBindingTargetAccessor,
   IBindingTargetObserver,

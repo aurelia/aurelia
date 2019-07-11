@@ -5,11 +5,9 @@ import {
   IRegistry,
   IResolver,
   Key,
-  PLATFORM,
   Registration,
   Reporter,
-  Tracer,
-  Writable
+  Tracer
 } from '@aurelia/kernel';
 import { AnyBindingExpression } from './ast';
 import { CallBinding } from './binding/call-binding';
@@ -39,7 +37,7 @@ import {
   TemplateDefinition,
   TemplatePartDefinitions
 } from './definitions';
-import { DOM, IDOM, INode } from './dom';
+import { IDOM, INode } from './dom';
 import { BindingMode, LifecycleFlags } from './flags';
 import {
   IBinding,

@@ -1,7 +1,7 @@
 import { ChildRouter } from './child-router';
 import { DebugConfiguration } from '@aurelia/debug';
 import { BasicConfiguration } from '@aurelia/jit-html-browser';
-import { Aurelia, IDOM } from '@aurelia/runtime';
+import { Aurelia } from '@aurelia/runtime';
 import { RouterConfiguration } from '@aurelia/router';
 import { registerComponent } from './utils';
 

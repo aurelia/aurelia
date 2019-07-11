@@ -1,9 +1,7 @@
 import {
   CollectionKind,
-  collectionSubscriberCollection,
   IAccessor,
   ICollectionObserver,
-  ICollectionSubscriberCollection,
   ILifecycle,
   IndexMap,
   IObserverLocator,

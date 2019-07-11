@@ -8,9 +8,6 @@ import * as html from './app.html';
 // import './styles.css';
 
 import './nav-bar.html';
-import { Welcome } from './welcome';
-import { Users } from './users';
-import { ChildRouter } from './child-router';
 
 @inject(Router)
 @customElement({ name: 'app', template: html })

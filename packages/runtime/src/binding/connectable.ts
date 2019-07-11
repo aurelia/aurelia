@@ -1,6 +1,5 @@
 import {
   Class,
-  IIndexable,
   Tracer
 } from '@aurelia/kernel';
 

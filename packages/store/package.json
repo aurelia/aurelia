@@ -3,8 +3,6 @@
   "version": "0.4.0-dev.201907110209",
   "main": "dist/umd/index.js",
   "module": "dist/esnext/index.js",
-  "jsnext:main": "dist/esnext/index.js",
-  "browser": "dist/umd/index.js",
   "types": "dist/index.d.ts",
   "typings": "dist/index.d.ts",
   "license": "MIT",
@@ -37,8 +35,8 @@
     "access": "public"
   },
   "dependencies": {
-    "@aurelia/kernel": "0.4.0-dev.201907110209",
-    "rxjs": "^6.4.0"
+    "@aurelia/kernel": "0.3.0",
+    "rxjs": "^6.5.2"
   },
   "devDependencies": {
     "@types/node": "^10.12.27",

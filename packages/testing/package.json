@@ -35,7 +35,7 @@
     "access": "public"
   },
   "dependencies": {
-    "@types/mocha": "^5.2.6",
+    "@types/mocha": "^5.2.7",
     "@types/node": "^10.12.27",
     "@aurelia/aot": "0.3.0",
     "@aurelia/debug": "0.3.0",

@@ -22,6 +22,7 @@
     { "path": "plugin-pixi" },
     { "path": "plugin-requirejs" },
     { "path": "plugin-webpack" },
-    { "path": "plugin-svg" }
+    { "path": "plugin-svg" },
+    { "path": "plugin-conventions" }
   ]
 }

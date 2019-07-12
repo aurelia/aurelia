@@ -9,6 +9,7 @@
   "scripts": {
     "test-node": "mocha --opts mocha.opts --reporter min --exit dist/esnext/__tests__/setup-node.js dist/esnext/__tests__/**/*.spec.js",
     "test-node:kernel": "mocha --opts mocha.opts dist/esnext/__tests__/setup-node.js dist/esnext/__tests__/kernel/**/*.spec.js --watch",
+    "test-node:plugin-conventions": "mocha --opts mocha.opts dist/esnext/__tests__/setup-node.js dist/esnext/__tests__/plugin-conventions/**/*.spec.js --watch",
     "test-node:runtime": "mocha --opts mocha.opts dist/esnext/__tests__/setup-node.js dist/esnext/__tests__/runtime/**/*.spec.js --watch",
     "test-node:runtime-html": "mocha --opts mocha.opts dist/esnext/__tests__/setup-node.js dist/esnext/__tests__/runtime-html/**/*.spec.js --watch",
     "test-node:jit": "mocha --opts mocha.opts dist/esnext/__tests__/setup-node.js dist/esnext/__tests__/jit/**/*.spec.js --watch",
@@ -33,6 +34,7 @@
     "@aurelia/jit-html": "0.3.0",
     "@aurelia/jit": "0.3.0",
     "@aurelia/kernel": "0.3.0",
+    "@aurelia/plugin-conventions": "0.3.0",
     "@aurelia/router": "0.3.0",
     "@aurelia/runtime-html-browser": "0.3.0",
     "@aurelia/runtime-html-jsdom": "0.3.0",

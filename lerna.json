@@ -15,6 +15,7 @@
     "packages/jit-html-browser",
     "packages/jit-html-jsdom",
     "packages/kernel",
+    "packages/plugin-conventions",
     "packages/plugin-parcel",
     "packages/plugin-pixi",
     "packages/plugin-requirejs",

@@ -15,6 +15,7 @@ import {
   IRenderLocation,
   LifecycleFlags
 } from '@aurelia/runtime';
+import { I18N } from './i18n';
 
 /**
  * `t` custom attribute to facilitate the translation via HTML
@@ -31,7 +32,7 @@ export class TCustomAttribute {
   //         this.valueChanged(newValue, oldValue, this.$controller.flags);
   //     }
   // }
-  public static readonly inject: readonly Key[] = [IRenderLocation];
+  public static readonly inject: readonly Key[] = [/* IRenderLocation, */ I18N];
   public static readonly kind: ICustomAttributeResource = CustomAttribute;
   public static readonly description: Required<IAttributeDefinition> = Object.freeze({
     name: 't',
@@ -44,7 +45,8 @@ export class TCustomAttribute {
     hooks: Object.freeze(new HooksDefinition(TCustomAttribute.prototype)),
   });
 
-  private value: string;
+  constructor(/* private renderLocation: IRenderLocation, */ private i18n: I18N) { }
+  private value: string = (void 0)!;
 
   public static register(container: IContainer): void {
     container.register(Registration.transient('custom-attribute:t', this));

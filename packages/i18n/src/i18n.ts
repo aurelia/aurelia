@@ -1,6 +1,6 @@
 import { LogLevel, Reporter } from '@aurelia/kernel';
-import { Aurelia, ContinuationTask, IController, ILifecycleTask, LifecycleTask, IDOM } from '@aurelia/runtime';
-import i18next from 'i18next';
+import { Aurelia, ContinuationTask, IController, IDOM, ILifecycleTask, LifecycleTask } from '@aurelia/runtime';
+import i18nextCore from 'i18next';
 import { I18nConfigurationOptions } from './i18n-configuration-options';
 
 // import {
@@ -32,16 +32,14 @@ export class I18N {
 
   // public static inject() { return [EventAggregator, BindingSignaler]; }
 
-  public i18next: i18next.i18n;
   private options!: I18nConfigurationOptions;
   private task: ILifecycleTask;
   // public Intl: typeof Intl;
   // private globalVars: { [key: string]: any } = {};
 
-  constructor(options: I18nConfigurationOptions/* , private DOM: IDOM, private ea: EventAggregator, private signaler: BindingSignaler */) {
+  constructor(public i18next: i18nextCore.i18n, options: I18nConfigurationOptions, private dom: IDOM) {
     // this.Intl = PLATFORM.global.Intl;
 
-    this.i18next = i18next;
     this.task = LifecycleTask.done;
     this.initializeI18next(options);
   }
@@ -98,7 +96,7 @@ export class I18N {
   //   return new this.Intl.DateTimeFormat(locales || this.getLocale(), options);
   // }
 
-  public tr(key: string | string[], options?: i18next.TOptions<object>) {
+  public tr(key: string | string[], options?: i18nextCore.TOptions<object>) {
     // let fullOptions = this.globalVars;
 
     // if (options !== undefined) {
@@ -237,7 +235,7 @@ export class I18N {
         // anything other than text,prepend,append or html will be added as an attribute on the element.
         switch (attr) {
           case 'text':
-            const newChild = document.createTextNode(this.tr(key, params));
+            const newChild = this.dom.createTextNode(this.tr(key, params));
             if ((node as any)._newChild && (node as any)._newChild.parentNode === node) {
               node.removeChild((node as any)._newChild);
             }
@@ -302,8 +300,8 @@ export class I18N {
   private initializeI18next(options: I18nConfigurationOptions) {
     const defaultOptions: I18nConfigurationOptions = {
       lng: 'en',
-      fallbackLng: 'en',
-      debug: true,
+      fallbackLng: ['en'],
+      debug: false,
       plugins: [],
       attributes: ['t', 'i18n'],
       skipTranslationOnMissingKey: false,

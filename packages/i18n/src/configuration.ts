@@ -1,25 +1,25 @@
 import { IContainer, IRegistry, Registration } from '@aurelia/kernel';
-import { I18N } from './i18n';
+import i18next from 'i18next';
 import { I18nConfigurationOptions } from './i18n-configuration-options';
 import { TCustomAttribute } from './t-custom-attribute';
 
+export type I18NConfigOptionsProvider = () => I18nConfigurationOptions;
+
 const TCustomAttributeRegistration = TCustomAttribute as IRegistry;
 
-const i18nConfiguration: IRegistry & { options: I18nConfigurationOptions } = {
-  options: Object.create(null),
+const i18nConfiguration: IRegistry & { optionsProvider: I18NConfigOptionsProvider } = {
+  optionsProvider: () => Object.create(null),
   register(container: IContainer): IContainer {
     container.register(TCustomAttributeRegistration);
-
-    const i18n = new I18N(this.options);
-    Registration.instance(I18N, i18n).register(container);
-
+    Registration.instance(i18next, i18next).register(container);
+    Registration.callback(I18nConfiguration, this.optionsProvider).register(container);
     return container;
   }
 };
 
-export const I18nConfiguration: IRegistry & { customize(options?: I18nConfigurationOptions): IRegistry } = {
-  customize(options?: I18nConfigurationOptions) {
-    i18nConfiguration.options = options ? options : i18nConfiguration.options;
+export const I18nConfiguration: IRegistry & { customize(cb: I18NConfigOptionsProvider): IRegistry } = {
+  customize(cb?: () => I18nConfigurationOptions) {
+    i18nConfiguration.optionsProvider = cb ? cb : i18nConfiguration.optionsProvider;
     return {
       ...i18nConfiguration,
     };

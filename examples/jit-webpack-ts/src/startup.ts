@@ -10,7 +10,7 @@ window['au'] = new Aurelia()
     I18nConfiguration
     .customize({
       resources: {
-        en: { translations: { whatever: "works" } }
+        en: { translation: { whatever: "works" } }
       }
     }) as IRegistry
     )

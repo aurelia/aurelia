@@ -1,5 +1,8 @@
+import { LogLevel, Reporter } from '@aurelia/kernel';
+import { Aurelia, ContinuationTask, IController, ILifecycleTask, LifecycleTask, IDOM } from '@aurelia/runtime';
 import i18next from 'i18next';
 import { I18nConfigurationOptions } from './i18n-configuration-options';
+
 // import {
 //   DOM,
 //   PLATFORM
@@ -29,32 +32,19 @@ export class I18N {
 
   // public static inject() { return [EventAggregator, BindingSignaler]; }
 
-  public i18nextDeferred: Promise<i18next.i18n>;
   public i18next: i18next.i18n;
-  private options: I18nConfigurationOptions;
+  private options!: I18nConfigurationOptions;
+  private task: ILifecycleTask;
   // public Intl: typeof Intl;
   // private globalVars: { [key: string]: any } = {};
 
-  constructor(options: I18nConfigurationOptions/* private ea: EventAggregator, private signaler: BindingSignaler */) {
+  constructor(options: I18nConfigurationOptions/* , private DOM: IDOM, private ea: EventAggregator, private signaler: BindingSignaler */) {
     // this.Intl = PLATFORM.global.Intl;
 
     this.i18next = i18next;
-    const defaultOptions: I18nConfigurationOptions = {
-      lng: 'en',
-      fallbackLng: 'en',
-      debug: true,
-      plugins: [],
-      attributes: ['t', 'i18n'],
-      skipTranslationOnMissingKey: false,
-    };
-    this.options = { ...defaultOptions, ...options };
-    for (const plugin of  this.options.plugins!) {
-      this.i18next.use(plugin);
-    }
-    this.i18nextDeferred = i18next.init(this.options)
-      .then(() => this.i18next);
+    this.task = LifecycleTask.done;
+    this.initializeI18next(options);
   }
-
   // public i18nextReady() {
   //   return this.i18nextDeferred;
   // }
@@ -108,15 +98,15 @@ export class I18N {
   //   return new this.Intl.DateTimeFormat(locales || this.getLocale(), options);
   // }
 
-  // public tr(key: string | string[], options?: i18next.TOptions<object>) {
-  //   let fullOptions = this.globalVars;
+  public tr(key: string | string[], options?: i18next.TOptions<object>) {
+    // let fullOptions = this.globalVars;
 
-  //   if (options !== undefined) {
-  //     fullOptions = Object.assign(Object.assign({}, this.globalVars), options);
-  //   }
+    // if (options !== undefined) {
+    //   fullOptions = Object.assign(Object.assign({}, this.globalVars), options);
+    // }
 
-  //   return this.i18next.t(key, fullOptions);
-  // }
+    return this.i18next.t(key, options);
+  }
 
   // public registerGlobalVariable(key: string, value: any) {
   //   this.globalVars[key] = value;
@@ -174,131 +164,154 @@ export class I18N {
   //   }
   // }
 
-  // public updateValue(node: Element & { au: any }, value: string, params: any) {
-  //   if (value === null || value === undefined) {
-  //     return;
-  //   }
+  public updateValue(node: Element & { $au: Aurelia; $controller: IController }, value: string, params: any) {
+    if (this.task.done) {
+      this.updateValueCore(node, value, params);
+    } else {
+      this.task = new ContinuationTask(this.task, this.updateValueCore, this, node, value, params);
+    }
+  }
+  private updateValueCore(node: Element & { $au: Aurelia; $controller: IController }, value: string, params: any) {
+    if (value === null || value === undefined) {
+      return;
+    }
 
-  //   const keys = value.toString().split(";");
-  //   let i = keys.length;
+    const keys = value.toString().split(';');
+    let i = keys.length;
 
-  //   while (i--) {
-  //     let key = keys[i];
-  //     // remove the optional attribute
-  //     const re = /\[([a-z\-, ]*)\]/ig;
+    while (i--) {
+      let key = keys[i];
+      // remove the optional attribute
+      const re = /\[([a-z\-, ]*)\]/ig;
 
-  //     let m;
-  //     let attr = "text";
-  //     // set default attribute to src if this is an image node
-  //     if (node.nodeName === "IMG") { attr = "src"; }
+      let m;
+      let attr = 'text';
+      // set default attribute to src if this is an image node
+      if (node.nodeName === 'IMG') { attr = 'src'; }
 
-  //     // check if a attribute was specified in the key
-  //     // tslint:disable-next-line:no-conditional-assignment
-  //     while ((m = re.exec(key)) !== null) {
-  //       if (m.index === re.lastIndex) {
-  //         re.lastIndex++;
-  //       }
-  //       if (m) {
-  //         key = key.replace(m[0], "");
-  //         attr = m[1];
-  //       }
-  //     }
+      // check if a attribute was specified in the key
+      // tslint:disable-next-line:no-conditional-assignment
+      while ((m = re.exec(key)) !== null) {
+        if (m.index === re.lastIndex) {
+          re.lastIndex++;
+        }
+        if (!!m) {
+          key = key.replace(m[0], '');
+          attr = m[1];
+        }
+      }
 
-  //     const attrs = attr.split(",");
-  //     let j = attrs.length;
+      const attrs = attr.split(',');
+      let j = attrs.length;
 
-  //     while (j--) {
-  //       attr = attrs[j].trim();
+      while (j--) {
+        attr = attrs[j].trim();
 
-  //       if (!(node as any)._textContent) { (node as any)._textContent = node.textContent; }
-  //       if (!(node as any)._innerHTML) { (node as any)._innerHTML = node.innerHTML; }
+        if (!(node as any)._textContent) { (node as any)._textContent = node.textContent; }
+        if (!(node as any)._innerHTML) { (node as any)._innerHTML = node.innerHTML; }
 
-  //       // convert to camelCase
-  //       // tslint:disable-next-line:only-arrow-functions
-  //       const attrCC = attr.replace(/-([a-z])/g, function(g) { return g[1].toUpperCase(); });
-  //       const reservedNames = ["prepend", "append", "text", "html"];
-  //       const i18nLogger = LogManager.getLogger("i18n");
+        // convert to camelCase
+        // tslint:disable-next-line:only-arrow-functions
+        const attrCC = attr.replace(/-([a-z])/g, function (g) { return g[1].toUpperCase(); });
+        // const reservedNames = ['prepend', 'append', 'text', 'html'];
+        // const i18nLogger = LogManager.getLogger('i18n');
 
-  //       if (reservedNames.indexOf(attr) > -1 &&
-  //         node.au &&
-  //         node.au.controller &&
-  //         node.au.controller.viewModel &&
-  //         attrCC in node.au.controller.viewModel) {
-  //         i18nLogger.warn(`Aurelia I18N reserved attribute name\n
-  // [${reservedNames.join(", ")}]\n
-  // Your custom element has a bindable named ${attr} which is a reserved word.\n
-  // If you'd like Aurelia I18N to translate your bindable instead, please consider giving it another name.`);
-  //       }
+        //       if (reservedNames.indexOf(attr) > -1 &&
+        //         node.au &&
+        //         node.au.controller &&
+        //         node.au.controller.viewModel &&
+        //         attrCC in node.au.controller.viewModel) {
+        //         Reporter.write(LogLevel.warn, `Aurelia I18N reserved attribute name\n
+        // [${reservedNames.join(', ')}]\n
+        // Your custom element has a bindable named ${attr} which is a reserved word.\n
+        // If you'd like Aurelia I18N to translate your bindable instead, please consider giving it another name.`);
+        //       }
 
-  //       if (this.i18next.options.skipTranslationOnMissingKey &&
-  //         this.tr(key, params) === key) {
-  //         i18nLogger.warn(`Couldn't find translation for key: ${key}`);
-  //         return;
-  //       }
+        if (this.options.skipTranslationOnMissingKey &&
+          this.tr(key, params) === key) {
+          Reporter.write(LogLevel.warn, `Couldn't find translation for key: ${key}`);
+          return;
+        }
 
-  //       // handle various attributes
-  //       // anything other than text,prepend,append or html will be added as an attribute on the element.
-  //       switch (attr) {
-  //         case "text":
-  //           const newChild = DOM.createTextNode(this.tr(key, params));
-  //           if ((node as any)._newChild && (node as any)._newChild.parentNode === node) {
-  //             node.removeChild((node as any)._newChild);
-  //           }
+        // handle various attributes
+        // anything other than text,prepend,append or html will be added as an attribute on the element.
+        switch (attr) {
+          case 'text':
+            const newChild = document.createTextNode(this.tr(key, params));
+            if ((node as any)._newChild && (node as any)._newChild.parentNode === node) {
+              node.removeChild((node as any)._newChild);
+            }
 
-  //           (node as any)._newChild = newChild;
-  //           while (node.firstChild) {
-  //             node.removeChild(node.firstChild);
-  //           }
-  //           node.appendChild((node as any)._newChild);
-  //           break;
-  //         case "prepend":
-  //           const prependParser = DOM.createElement("div");
-  //           prependParser.innerHTML = this.tr(key, params);
-  //           for (let ni = node.childNodes.length - 1; ni >= 0; ni--) {
-  //             if ((node.childNodes[ni] as any)._prepended) {
-  //               node.removeChild(node.childNodes[ni]);
-  //             }
-  //           }
+            (node as any)._newChild = newChild;
+            while (node.firstChild) {
+              node.removeChild(node.firstChild);
+            }
+            node.appendChild((node as any)._newChild);
+            break;
+          // case 'prepend':
+          //   const prependParser = DOM.createElement('div');
+          //   prependParser.innerHTML = this.tr(key, params);
+          //   for (let ni = node.childNodes.length - 1; ni >= 0; ni--) {
+          //     if ((node.childNodes[ni] as any)._prepended) {
+          //       node.removeChild(node.childNodes[ni]);
+          //     }
+          //   }
 
-  //           for (let pi = prependParser.childNodes.length - 1; pi >= 0; pi--) {
-  //             (prependParser.childNodes[pi] as any)._prepended = true;
-  //             if (node.firstChild) {
-  //               node.insertBefore(prependParser.childNodes[pi], node.firstChild);
-  //             } else {
-  //               node.appendChild(prependParser.childNodes[pi]);
-  //             }
-  //           }
-  //           break;
-  //         case "append":
-  //           const appendParser = DOM.createElement("div");
-  //           appendParser.innerHTML = this.tr(key, params);
-  //           for (let ni = node.childNodes.length - 1; ni >= 0; ni--) {
-  //             if ((node.childNodes[ni] as any)._appended) {
-  //               node.removeChild(node.childNodes[ni]);
-  //             }
-  //           }
+          //   for (let pi = prependParser.childNodes.length - 1; pi >= 0; pi--) {
+          //     (prependParser.childNodes[pi] as any)._prepended = true;
+          //     if (node.firstChild) {
+          //       node.insertBefore(prependParser.childNodes[pi], node.firstChild);
+          //     } else {
+          //       node.appendChild(prependParser.childNodes[pi]);
+          //     }
+          //   }
+          //   break;
+          // case 'append':
+          //   const appendParser = DOM.createElement('div');
+          //   appendParser.innerHTML = this.tr(key, params);
+          //   for (let ni = node.childNodes.length - 1; ni >= 0; ni--) {
+          //     if ((node.childNodes[ni] as any)._appended) {
+          //       node.removeChild(node.childNodes[ni]);
+          //     }
+          //   }
 
-  //           while (appendParser.firstChild) {
-  //             (appendParser.firstChild as any)._appended = true;
-  //             node.appendChild(appendParser.firstChild);
-  //           }
-  //           break;
-  //         case "html":
-  //           node.innerHTML = this.tr(key, params);
-  //           break;
-  //         default: // normal html attribute
-  //           if (node.au &&
-  //             node.au.controller &&
-  //             node.au.controller.viewModel &&
-  //             attrCC in node.au.controller.viewModel) {
-  //             node.au.controller.viewModel[attrCC] = this.tr(key, params);
-  //           } else {
-  //             node.setAttribute(attr, this.tr(key, params));
-  //           }
+          //   while (appendParser.firstChild) {
+          //     (appendParser.firstChild as any)._appended = true;
+          //     node.appendChild(appendParser.firstChild);
+          //   }
+          //   break;
+          // case 'html':
+          //   node.innerHTML = this.tr(key, params);
+          //   break;
+          default: // normal html attribute
+            if (node.$au &&
+              node.$controller &&
+              node.$controller.viewModel &&
+              attrCC in node.$controller.viewModel) {
+              (node.$controller.viewModel as any)[attrCC] = this.tr(key, params);
+            } else {
+              node.setAttribute(attr, this.tr(key, params));
+            }
 
-  //           break;
-  //       }
-  //     }
-  //   }
-  // }
+            break;
+        }
+      }
+    }
+  }
+
+  private initializeI18next(options: I18nConfigurationOptions) {
+    const defaultOptions: I18nConfigurationOptions = {
+      lng: 'en',
+      fallbackLng: 'en',
+      debug: true,
+      plugins: [],
+      attributes: ['t', 'i18n'],
+      skipTranslationOnMissingKey: false,
+    };
+    this.options = { ...defaultOptions, ...options };
+    for (const plugin of this.options.plugins!) {
+      this.i18next.use(plugin);
+    }
+    this.task = new ContinuationTask(this.task, () => this.i18next.init(this.options), this);
+  }
 }

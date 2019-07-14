@@ -2,21 +2,19 @@ import {
   all,
   Class,
   IContainer,
-  Key,
   IRegistry,
   IResolver,
+  Key,
   Registration,
   Reporter,
-  Tracer,
-  Writable,
-  PLATFORM
+  Tracer
 } from '@aurelia/kernel';
 import { AnyBindingExpression } from './ast';
-import { PropertyBinding } from './binding/property-binding';
 import { CallBinding } from './binding/call-binding';
 import { BindingType, IExpressionParser } from './binding/expression-parser';
 import { InterpolationBinding, MultiInterpolationBinding } from './binding/interpolation-binding';
 import { LetBinding } from './binding/let-binding';
+import { PropertyBinding } from './binding/property-binding';
 import { RefBinding } from './binding/ref-binding';
 import {
   customAttributeKey,
@@ -39,16 +37,13 @@ import {
   TemplateDefinition,
   TemplatePartDefinitions
 } from './definitions';
-import { IDOM, INode, DOM } from './dom';
+import { IDOM, INode } from './dom';
 import { BindingMode, LifecycleFlags } from './flags';
 import {
   IBinding,
   IController,
   IRenderContext,
 } from './lifecycle';
-import {
-  Controller,
-} from './templating/controller';
 import { IObserverLocator } from './observation/observer-locator';
 import {
   IInstructionRenderer,
@@ -56,6 +51,9 @@ import {
   IRenderer,
   IRenderingEngine
 } from './rendering-engine';
+import {
+  Controller,
+} from './templating/controller';
 
 const slice = Array.prototype.slice;
 

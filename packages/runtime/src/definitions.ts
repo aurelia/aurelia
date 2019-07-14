@@ -23,8 +23,7 @@ import {
   ensureValidStrategy
 } from './flags';
 import {
-  IController,
-  IViewModel
+  IController
 } from './lifecycle';
 import { CustomElementHost } from './resources/custom-element';
 import { Bindable } from './templating/bindable';
@@ -99,7 +98,7 @@ export interface ITemplateDefinition extends IResourceDefinition {
   hasSlots?: boolean;
   strategy?: BindingStrategy;
   hooks?: Readonly<HooksDefinition>;
-  scopeParts?: readonly string[]
+  scopeParts?: readonly string[];
 }
 
 export type TemplateDefinition = ResourceDescription<ITemplateDefinition>;

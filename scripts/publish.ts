@@ -1,7 +1,6 @@
 import lerna from 'lerna';
 import { getCurrentVersion, getNewVersion } from './get-version-info';
 import { createLogger } from './logger';
-import { getRecommendedVersionBump } from './bump-version';
 
 const log = createLogger('publish');
 

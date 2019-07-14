@@ -11,7 +11,6 @@ import {
   State,
 } from '../flags';
 import {
-  IBinding,
   ILifecycle,
 } from '../lifecycle';
 import {

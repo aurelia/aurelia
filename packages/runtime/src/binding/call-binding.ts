@@ -8,11 +8,8 @@ import {
   LifecycleFlags,
   State,
 } from '../flags';
-import { IBinding } from '../lifecycle';
 import {
   IAccessor,
-  IBindingContext,
-  IObservable,
   IScope,
 } from '../observation';
 import { IObserverLocator } from '../observation/observer-locator';

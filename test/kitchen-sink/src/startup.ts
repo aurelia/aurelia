@@ -53,7 +53,7 @@ import {
   Router
 } from '@aurelia/router';
 import { App } from './app';
-import { DI, PLATFORM, Tracer, camelCase } from '@aurelia/kernel';
+import { DI, Tracer, camelCase } from '@aurelia/kernel';
 
 window['faker'] = faker;
 

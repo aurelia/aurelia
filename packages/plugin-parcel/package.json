@@ -3,8 +3,6 @@
   "version": "0.3.0",
   "main": "dist/esnext/index.js",
   "module": "dist/esnext/index.js",
-  "jsnext:main": "dist/esnext/index.js",
-  "browser": "dist/esnext/index.js",
   "types": "dist/index.d.ts",
   "typings": "dist/index.d.ts",
   "license": "MIT",
@@ -42,10 +40,10 @@
   },
   "devDependencies": {
     "@types/node": "^10.12.27",
-    "tslib": "^1.9.3",
-    "tslint": "^5.16.0",
-    "tslint-microsoft-contrib": "^6.1.1",
+    "tslib": "^1.10.0",
+    "tslint": "^5.18.0",
+    "tslint-microsoft-contrib": "^6.2.0",
     "tslint-sonarts": "^1.9.0",
-    "typescript": "^3.5.2"
+    "typescript": "^3.5.3"
   }
 }

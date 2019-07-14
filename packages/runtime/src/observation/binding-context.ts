@@ -1,4 +1,4 @@
-import { IIndexable, Reporter, StrictPrimitive, Tracer, PLATFORM } from '@aurelia/kernel';
+import { IIndexable, PLATFORM, Reporter, StrictPrimitive, Tracer } from '@aurelia/kernel';
 import { LifecycleFlags } from '../flags';
 import { IBinding, ILifecycle } from '../lifecycle';
 import {

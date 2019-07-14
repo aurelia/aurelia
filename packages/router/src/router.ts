@@ -6,7 +6,7 @@ import { AnchorEventInfo, LinkHandler } from './link-handler';
 import { INavRoute, Nav } from './nav';
 import { INavigationEntry, INavigationInstruction, INavigatorOptions, Navigator } from './navigator';
 import { IParsedQuery, parseQuery } from './parser';
-import { Queue, QueueItem } from './queue';
+import { QueueItem } from './queue';
 import { RouteTable } from './route-table';
 import { Scope } from './scope';
 import { arrayRemove } from './utils';
@@ -458,15 +458,32 @@ export class Router implements IRouter {
   }
 
   private closestScope(element: Element): Scope {
-    let el = element;
-    while (el.parentElement) {
-      const viewport = this.allViewports().find(item => item.element === el);
-      if (viewport && viewport.owningScope) {
-        return viewport.owningScope;
-      }
+    let el: any = element;
+    while (!el.$controller && el.parentElement) {
       el = el.parentElement;
     }
+    let controller = el.$controller;
+    while (controller) {
+      if (controller.host) {
+        const viewport = this.allViewports().find((item) => item.element === controller.host);
+        if (viewport && (viewport.scope || viewport.owningScope)) {
+          return viewport.scope || viewport.owningScope;
+        }
+      }
+      controller = controller.parent;
+    }
     return this.rootScope;
+
+    // let el = element;
+    // while (el.parentElement) {
+    //   const viewport = this.allViewports().find((item) => item.element === el);
+    //   if (viewport && viewport.owningScope) {
+    //     return viewport.owningScope;
+    //   }
+    //   el = el.parentElement;
+    // }
+    // return this.rootScope;
+
     // TODO: It would be better if it was something like this
     // const el = closestCustomElement(element);
     // let container: ChildContainer = el.$customElement.$context.get(IContainer);

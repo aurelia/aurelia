@@ -1,4 +1,4 @@
-import { Constructable, DI, IContainer, Key, IRegistry, IResolver, Registration } from '@aurelia/kernel';
+import { DI, IContainer, IRegistry, IResolver, Key, Registration } from '@aurelia/kernel';
 import { IDOM, IDOMInitializer, ISinglePageApp } from '@aurelia/runtime';
 import { BasicConfiguration as RuntimeHtmlConfiguration, HTMLDOM } from '@aurelia/runtime-html';
 import { JSDOM } from 'jsdom';

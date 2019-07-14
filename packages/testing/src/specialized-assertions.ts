@@ -2,7 +2,7 @@ import {
   Serializer,
   Unparser,
 } from '@aurelia/debug';
-import { Aurelia, IController, IElementProjector, If, INode, IViewModel, Repeat, Replaceable, TargetedInstructionType, With } from '@aurelia/runtime';
+import { IController, IElementProjector, If, Repeat, Replaceable, TargetedInstructionType, With } from '@aurelia/runtime';
 import { Compose, HTMLTargetedInstructionType } from '@aurelia/runtime-html';
 import { assert } from './assert';
 

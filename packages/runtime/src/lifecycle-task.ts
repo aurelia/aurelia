@@ -97,7 +97,7 @@ export class ContinuationTask<TArgs extends unknown[]> implements ILifecycleTask
         return;
       }
       this.hasStarted = true;
-      const nextResult = next.call(context, ...args) as MaybePromiseOrTask;
+      const nextResult = next.call(context, ...args);
       if (nextResult === void 0) {
         this.done = true;
       } else {

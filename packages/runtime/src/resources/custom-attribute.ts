@@ -129,7 +129,7 @@ export function createCustomAttributeDescription(def: IAttributeDefinition, Type
   const defaultBindingMode = def.defaultBindingMode;
   return {
     name: def.name,
-    aliases: aliases == null ? PLATFORM.emptyArray as typeof PLATFORM['emptyArray'] & any[] : aliases,
+    aliases: aliases == null ? PLATFORM.emptyArray : aliases,
     defaultBindingMode: defaultBindingMode == null ? BindingMode.toView : defaultBindingMode,
     hasDynamicOptions: def.hasDynamicOptions === undefined ? false : def.hasDynamicOptions,
     isTemplateController: def.isTemplateController === undefined ? false : def.isTemplateController,

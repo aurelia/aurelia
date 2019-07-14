@@ -12,7 +12,6 @@ import {
   SetterObserver
 } from '@aurelia/runtime';
 import {
-  _,
   createObserverLocator,
   createScopeForTest,
   eachCartesianJoinFactory,

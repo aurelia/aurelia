@@ -1,6 +1,6 @@
 import { LifecycleFlags as LF } from '@aurelia/runtime';
 import { SelectValueObserver } from '@aurelia/runtime-html';
-import { _, h, HTMLTestContext, TestContext, verifyEqual, assert, createSpy } from '@aurelia/testing';
+import { h, HTMLTestContext, TestContext, verifyEqual, assert, createSpy } from '@aurelia/testing';
 
 type Anything = any;
 

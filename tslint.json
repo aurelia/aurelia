@@ -17,6 +17,7 @@
     * Security Rules. The following rules should be turned on because they find security issues
     * or are recommended in the Microsoft Secure Development Lifecycle (SDL)
     */
+    "function-constructor": true,
     "insecure-random": true,
     "no-banned-terms": true,
     "no-cookies": true,
@@ -26,8 +27,8 @@
     "no-document-write": true,
     "no-eval": true,
     "no-exec-script": true,
-    "no-function-constructor-with-string-args": true,
-      "no-http-string": [true,
+    "no-function-constructor-with-string-args": false, // Deprecated, superseded by `function-constructor`
+    "no-http-string": [true,
       "http://localhost:?.*",
       // https://infra.spec.whatwg.org/#namespaces
       "http://www.w3.org/1999/xhtml",
@@ -92,7 +93,7 @@
     "no-string-literal": false,
     "no-string-throw": true,
     "no-submodule-imports": false,
-    "no-unnecessary-bind": true,
+    "no-unnecessary-bind": false, // Deprecated, superseded by `unnecessary-bind`
     "no-unnecessary-callback-wrapper": true,
     "no-unnecessary-initializer": true,
     "no-unnecessary-override": true,
@@ -118,6 +119,7 @@
     "switch-default": false,
     "switch-final-break": false,
     "triple-equals": [false],
+    "unnecessary-bind": true,
     "use-isnan": true,
     "use-named-parameter": true,
 

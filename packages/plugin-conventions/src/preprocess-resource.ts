@@ -2,6 +2,7 @@ import * as ts from 'typescript';
 import modifyCode from 'modify-code';
 import { kebabCase, camelCase } from '@aurelia/kernel';
 import { nameConvention, ResourceType } from './name-convention';
+import { fileBase } from './file-base';
 
 interface capturedImport {
   names: string[],
@@ -12,8 +13,8 @@ interface capturedImport {
 export function preprocessResource(filePath: string, jsCode: string, hasHtmlPair: boolean = false) {
   const m = modifyCode(jsCode, filePath);
 
-  const basename = base(filePath);
-  const implicitResourceName = kebabCase(basename);
+  const basename = fileBase(filePath);
+  const implicitCustomElementName = kebabCase(basename);
 
   const sf = ts.createSourceFile(filePath, jsCode, ts.ScriptTarget.Latest);
 
@@ -57,7 +58,7 @@ export function preprocessResource(filePath: string, jsCode: string, hasHtmlPair
 
     const className = s.name.text;
     const {name, type} = nameConvention(className);
-    const isImplicitResource = name === implicitResourceName;
+    const isImplicitResource = name === implicitCustomElementName;
     const decoratedType = findDecoratedResourceType(s);
 
     if (decoratedType) {
@@ -165,10 +166,4 @@ function findDecoratedResourceType(node: ts.Node): ResourceType | void {
       }
     }
   }
-}
-
-function base(filePath: string): string {
-  const fileName = filePath.split(/\\|\//).pop() as string;
-  const dotIdx = fileName.lastIndexOf('.');
-  return dotIdx >= 0 ? fileName.slice(0, dotIdx) : fileName;
 }

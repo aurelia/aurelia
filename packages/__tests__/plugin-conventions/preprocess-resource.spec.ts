@@ -82,7 +82,7 @@ export class FooBarCustomAttribute {}
   it('injects valueConverter decorator', function () {
     const code = `export class FooBarValueConverter {}\n`;
     const expected = `import { valueConverter } from '@aurelia/runtime';
-@valueConverter('foo-bar')
+@valueConverter('fooBar')
 export class FooBarValueConverter {}
 `;
     const result = preprocessResource('bar/foo-bar.js', code, false);
@@ -92,7 +92,7 @@ export class FooBarValueConverter {}
   it('injects valueConverter decorator for non-kebab case file name', function () {
     const code = `export class FooBarValueConverter {}\n`;
     const expected = `import { valueConverter } from '@aurelia/runtime';
-@valueConverter('foo-bar')
+@valueConverter('fooBar')
 export class FooBarValueConverter {}
 `;
     const result = preprocessResource('bar/FooBar.js', code, true);
@@ -102,7 +102,7 @@ export class FooBarValueConverter {}
   it('injects bindingBehavior decorator', function () {
     const code = `export class FooBarBindingBehavior {}\n`;
     const expected = `import { bindingBehavior } from '@aurelia/runtime';
-@bindingBehavior('foo-bar')
+@bindingBehavior('fooBar')
 export class FooBarBindingBehavior {}
 `;
     const result = preprocessResource('bar/foo-bar.js', code, false);
@@ -112,7 +112,7 @@ export class FooBarBindingBehavior {}
   it('injects bindingBehavior decorator for non-kebab case file name', function () {
     const code = `export class FooBarBindingBehavior {}\n`;
     const expected = `import { bindingBehavior } from '@aurelia/runtime';
-@bindingBehavior('foo-bar')
+@bindingBehavior('fooBar')
 export class FooBarBindingBehavior {}
 `;
     const result = preprocessResource('bar/FooBar.js', code, true);
@@ -191,7 +191,7 @@ export class ForOne {
   }
 }
 
-@valueConverter('the-second')
+@valueConverter('theSecond')
 export class TheSecondValueConverter {
   toView(value) {
     return value;
@@ -269,7 +269,7 @@ export class ForOne {
   }
 }
 
-@valueConverter('the-second')
+@valueConverter('theSecond')
 export class TheSecondValueConverter {
   toView(value: string): string {
     return value;

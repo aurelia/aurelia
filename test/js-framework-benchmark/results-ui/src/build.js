@@ -20,6 +20,7 @@ function filterFramework(file) {
 }
 
 function encodeBench(obj) {
+	console.log(obj);
     return [
         obj.benchmark.substr(0,2),
     //  +obj.min.toFixed(2),
@@ -27,7 +28,7 @@ function encodeBench(obj) {
         +obj.mean.toFixed(2),
     //  +obj.median.toFixed(2),
     //  +obj.geometricMean.toFixed(2),
-        +obj.standardDeviation.toFixed(2),
+		obj.standardDeviation && +obj.standardDeviation.toFixed(2),
     //  obj.values.map(v => +v.toFixed(2)),
     ];
 }

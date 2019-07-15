@@ -1,0 +1,43 @@
+{
+  "name": "jit-webpack-ts",
+  "license": "MIT",
+  "engines": {
+    "node": ">=10.16.0",
+    "npm": ">=6.1.0"
+  },
+  "version": "0.3.0",
+  "scripts": {
+    "watch": "webpack-dev-server --no-inline",
+    "preserve": "rimraf dist && webpack --config webpack.config.js",
+    "serve": "http-server -c-1 -p 9000 dist",
+    "cypress:run": "cypress run",
+    "cypress:debug": "cypress open --config watchForFileChanges=true",
+    "e2e": "start-server-and-test serve http://localhost:9000 cypress:run",
+    "e2e:debug": "start-server-and-test watch http://localhost:9000 cypress:debug"
+  },
+  "dependencies": {
+    "@aurelia/debug": "file:../../../debug",
+    "@aurelia/i18n": "file:../../../i18n",
+    "@aurelia/jit": "file:../../../jit",
+    "@aurelia/jit-html": "file:../../../jit-html",
+    "@aurelia/jit-html-browser": "file:../../../jit-html-browser",
+    "@aurelia/kernel": "file:../../../kernel",
+    "@aurelia/runtime": "file:../../../runtime",
+    "@aurelia/runtime-html": "file:../../../runtime-html",
+    "@aurelia/runtime-html-browser": "file:../../../runtime-html-browser"
+  },
+  "devDependencies": {
+    "@types/node": "latest",
+    "cypress": "^3.4.0",
+    "html-loader": "latest",
+    "html-webpack-plugin": "latest",
+    "http-server": "latest",
+    "rimraf": "latest",
+    "start-server-and-test": "^1.9.1",
+    "ts-loader": "latest",
+    "typescript": "latest",
+    "webpack": "latest",
+    "webpack-cli": "latest",
+    "webpack-dev-server": "latest"
+  }
+}

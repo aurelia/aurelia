@@ -17,7 +17,7 @@
     "@aurelia/router": "file:../../../../../router",
     "@aurelia/runtime": "file:../../../../../runtime",
     "@aurelia/runtime-html": "file:../../../../../runtime-html",
-    "bootstrap": "^3.3.6 || ^4.0.0",
+    "bootstrap": "^3.3.6",
     "font-awesome": "^4.6.3"
   },
   "devDependencies": {

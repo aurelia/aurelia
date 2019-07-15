@@ -29,8 +29,8 @@
       "rangeStrategy": "widen"
     },
     {
-      "packageNames": ["chromedriver"],
-      "allowedVersions": "~2.45.0"
+      "packageNames": ["bootstrap"],
+      "allowedVersions": "^3.3.6"
     },
     {
       "packageNames": ["pixi.js", "@types/pixi.js"],

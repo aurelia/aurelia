@@ -6,6 +6,15 @@ This is a simple benchmark for several javascript frameworks. The benchmarks cre
 
 ![Screenshot](images/screenshot.png?raw=true "Screenshot")
 
+
+## Run all scripts and generate output
+1. Make sure nodejs and chrome are installed
+2. Navigate to the root of the project
+3. Execute "npm run run-all" from a terminal
+4. Wait for all tests to finish and chrome to close
+5. Navigate to http://localhost:8080 in chrome where the implementations and links will appear
+6. Navigate to the <a href="http://localhost:8080/webdriver-ts-results/table.html">Interactive Table Report</a> link to view the results!
+
 ## About the benchmarks
 
 The following operations are benchmarked for each framework:

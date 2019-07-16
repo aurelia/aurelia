@@ -200,6 +200,64 @@ jobs:
             - store_artifacts:
                 path: packages/__tests__/coverage
 
+  js_framework_benchmark:
+    executor: docker-circleci
+    steps:
+      - checkout_install_bootstrap_build_bundle_publish_verdaccio:
+          from: ${CIRCLE_BRANCH}
+          to: develop
+          channel: dev
+          suffix: "-${CIRCLE_BUILD_NUM}"
+      - run:
+          name: "Install js-framework-benchmark"
+          command: |
+            cd test/js-framework-benchmark
+            npm install
+      - run:
+          name: "Serve test app"
+          background: true
+          command: |
+            cd test/js-framework-benchmark
+            npm run start
+      - run:
+          name: "Install & build webdriver-ts"
+          command: |
+            cd test/js-framework-benchmark/webdriver-ts
+            npm install
+            npm run build-prod
+      - run:
+          name: "Install webdriver-ts-results"
+          command: |
+            cd test/js-framework-benchmark/webdriver-ts-results
+            npm install
+      - run:
+          name: "Run the benchmark"
+          command: |
+            cd test/js-framework-benchmark
+            npm run build -- --check
+      - run:
+          name: "Create the results"
+          command: |
+            cd test/js-framework-benchmark/webdriver-ts
+            node dist/createResultJS.js
+      - run:
+          name: "Build webdriver-ts-results"
+          command: |
+            cd test/js-framework-benchmark/webdriver-ts-results
+            npm run build-prod
+      - run:
+          name: "Run webdriver-ts index"
+          command: |
+            cd test/js-framework-benchmark/webdriver-ts
+            node dist/createIndex.js
+      - store_test_results:
+          path: test/js-framework-benchmark/webdriver-ts-results/table.html
+      - store_artifacts:
+          path: test/js-framework-benchmark/webdriver-ts-results/table.html
+      - run:
+          name: "Post benchmark result to comment"
+          command: npm run post-benchmark-result
+
   lint_packages:
     executor: docker-circleci
     steps:
@@ -368,6 +426,8 @@ workflows:
       - lint_packages:
           <<: *filter_ignore_develop_release
       - e2e_browserstack:
+          <<: *filter_ignore_develop_release
+      - js_framework_benchmark:
           <<: *filter_ignore_develop_release
       #- e2e_cypress_doc_example:
       #    <<: *filter_ignore_develop_release

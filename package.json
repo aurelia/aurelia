@@ -25,6 +25,7 @@
     "lint": "lerna run lint",
     "change-tsconfigs:overwrite:umd": "ts-node -P scripts/tsconfig.json scripts/change-tsconfigs.ts overwrite umd",
     "change-tsconfigs:restore": "ts-node -P scripts/tsconfig.json scripts/change-tsconfigs.ts restore",
+    "post-benchmark-result": "ts-node -P scripts/tsconfig.json scripts/post-benchmark-result.ts",
     "prepare-release": "ts-node -P scripts/tsconfig.json scripts/prepare-release.ts",
     "prepare-release:conventional": "lerna version --conventional-commits --no-push --no-git-tag-version --exact --loglevel verbose -y",
     "publish:dev": "ts-node -P scripts/tsconfig.json scripts/publish.ts dev",

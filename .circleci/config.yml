@@ -250,6 +250,8 @@ jobs:
           command: |
             cd test/js-framework-benchmark/webdriver-ts
             node dist/createIndex.js
+      - store_test_results:
+          path: test/js-framework-benchmark/webdriver-ts-results/table.html
       - store_artifacts:
           path: test/js-framework-benchmark/webdriver-ts-results/table.html
 

@@ -234,7 +234,7 @@ jobs:
           name: "Run the benchmark"
           command: |
             cd test/js-framework-benchmark
-            npm build -- --check
+            npm run build -- --check
       - run:
           name: "Create the results"
           command: |

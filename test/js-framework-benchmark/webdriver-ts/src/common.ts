@@ -179,7 +179,7 @@ async function loadFrameworkInfo(pathInFrameworksDir: string): Promise<Framework
 export async function loadFrameworkVersionInformation(matchPredicate: IMatchPredicate = matchAll): Promise<FrameworkVersionInformation[]> {
     let results = new Array<Promise<FrameworkVersionInformation>>();
     let frameworksPath = path.resolve('..','frameworks');
-    ['keyed','non-keyed'].forEach((keyedType: KeyedType) => {
+    ['keyed'/*,'non-keyed'*/].forEach((keyedType: KeyedType) => {
         let directories = fs.readdirSync(path.resolve(frameworksPath, keyedType));
 
         for (let directory of directories) {

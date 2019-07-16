@@ -21,7 +21,7 @@ var core = args.benchmarks_only ? [] : ["webdriver-ts", "webdriver-ts-results"].
 
 var frameworks = [].concat(
   fs.readdirSync('./frameworks/keyed').map(f => ['frameworks/keyed/', f]),
-  fs.readdirSync('./frameworks/non-keyed').map(f => ['frameworks/non-keyed/', f]));
+  /*fs.readdirSync('./frameworks/non-keyed').map(f => ['frameworks/non-keyed/', f])*/);
 
 var notRestarter = ([_, name]) => !name.startsWith(restartWithFramework || undefined);
 var [skippable, buildable] = !restartWithFramework

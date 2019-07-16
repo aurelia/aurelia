@@ -254,6 +254,9 @@ jobs:
           path: test/js-framework-benchmark/webdriver-ts-results/table.html
       - store_artifacts:
           path: test/js-framework-benchmark/webdriver-ts-results/table.html
+      - run:
+          name: "Post benchmark result to comment"
+          command: npm run post-benchmark.result
 
   lint_packages:
     executor: docker-circleci

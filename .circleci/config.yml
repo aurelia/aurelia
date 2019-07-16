@@ -209,10 +209,47 @@ jobs:
           channel: dev
           suffix: "-${CIRCLE_BUILD_NUM}"
       - run:
+          name: "Install js-framework-benchmark"
+          command: |
+            cd test/js-framework-benchmark
+            npm install
+      - run:
+          name: "Serve test app"
+          background: true
+          command: |
+            cd test/js-framework-benchmark
+            npm run start
+      - run:
+          name: "Install & build webdriver-ts"
+          command: |
+            cd test/js-framework-benchmark/webdriver-ts
+            npm install
+            npm run build-prod
+      - run:
+          name: "Install webdriver-ts-results"
+          command: |
+            cd test/js-framework-benchmark/webdriver-ts-results
+            npm install
+      - run:
           name: "Run the benchmark"
           command: |
             cd test/js-framework-benchmark
-            npm run run-all
+            npm build -- --check
+      - run:
+          name: "Create the results"
+          command: |
+            cd test/js-framework-benchmark/webdriver-ts
+            node dist/createResultJS.js
+      - run:
+          name: "Build webdriver-ts-results"
+          command: |
+            cd test/js-framework-benchmark/webdriver-ts-results
+            npm run build-prod
+      - run:
+          name: "Run webdriver-ts index"
+          command: |
+            cd test/js-framework-benchmark/webdriver-ts
+            node dist/createIndex.js
       - store_artifacts:
           path: test/js-framework-benchmark/webdriver-ts-results
 

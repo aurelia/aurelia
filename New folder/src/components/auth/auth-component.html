@@ -1,0 +1,42 @@
+<template>
+  <div class="auth-page">
+    <div class="container page">
+      <div class="row">
+
+        <div class="col-md-6 offset-md-3 col-xs-12">
+          <h1 class="text-xs-center">Sign ${type === 'login' ? 'in' : 'up'}</h1>
+          <p class="text-xs-center">
+            <a route-href="route: login" if.bind="type === 'register'">Have an account?</a>
+            <a route-href="route: register" if.bind="type === 'login'">Need an account?</a>
+          </p>
+
+          <ul class="error-messages" if.bind="controller.errors">
+            <li repeat.for="error of controller.errors">
+              ${error.message}
+            </li>
+          </ul>
+
+          <ul class="error-messages">
+            <li repeat.for="key of errors | keys">${key}&nbsp;${errors[key]}</li>
+          </ul>
+
+          <form>
+            <fieldset class="form-group" if.bind="type === 'register'">
+              <input class="form-control form-control-lg" type="text" placeholder="Your Name" value.bind="username" required>
+            </fieldset>
+            <fieldset class="form-group">
+              <input class="form-control form-control-lg" type="text" placeholder="Email" value.bind="email" required>
+            </fieldset>
+            <fieldset class="form-group">
+              <input class="form-control form-control-lg" type="password" placeholder="Password" value.bind="password">
+            </fieldset>
+            <button class="btn btn-lg btn-primary pull-xs-right" click.trigger="submit()" disabled.bind="!canSave">
+              Sign ${type === 'login' ? 'in' : 'up'}
+            </button>
+          </form>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</template>

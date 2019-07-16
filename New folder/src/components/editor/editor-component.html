@@ -1,0 +1,37 @@
+<template>
+  <div class="editor-page">
+    <div class="container page">
+      <div class="row">
+
+        <div class="col-md-10 offset-md-1 col-xs-12">
+          <form>
+            <fieldset>
+              <fieldset class="form-group">
+                <input type="text" class="form-control form-control-lg" placeholder="Article Title" value.bind="article.title">
+              </fieldset>
+              <fieldset class="form-group">
+                <input type="text" class="form-control" placeholder="What's this article about?" value.bind="article.description">
+              </fieldset>
+              <fieldset class="form-group">
+                <textarea class="form-control" rows="8" placeholder="Write your article (in markdown)" value.bind="article.body"></textarea>
+              </fieldset>
+              <fieldset class="form-group">
+                <input type="text" class="form-control" placeholder="Enter tags" value.bind="tag & updateTrigger:'blur'">
+                <div class="tag-list">
+                  <span repeat.for="tag of article.tagList" class="tag-default tag-pill">
+                    <i class="ion-close-round" click.delegate="removeTag(tag)"></i>
+                    ${tag}</span>
+                </div>
+              </fieldset>
+              <button class="btn btn-lg pull-xs-right btn-primary" type="button" click.delegate="publishArticle()">
+                Publish Article
+              </button>
+            </fieldset>
+          </form>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+</template>

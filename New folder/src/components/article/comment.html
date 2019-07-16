@@ -1,0 +1,18 @@
+<template>
+  <div class="card">
+    <div class="card-block">
+      <p class="card-text">${comment.body}</p>
+    </div>
+    <div class="card-footer">
+      <a route-href="route: profile; params.bind: {name: comment.author.username}" class="comment-author">
+        <img src.bind="comment.author.image" class="comment-author-img" />
+      </a>
+      &nbsp;
+      <a route-href="route: profile; params.bind: {name: comment.author.username}" class="comment-author">${comment.author.username}</a>
+      <span class="date-posted">${comment.createdAt | date}</span>
+      <span class="mod-options" if.bind="canModify">
+        <i class="ion-trash-a" click.delegate="deleteCb({commentId: comment.id})"></i>
+      </span>
+    </div>
+  </div>
+</template>

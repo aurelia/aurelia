@@ -1,0 +1,25 @@
+<template>
+  <require from="../../shared/buttons/favorite-button"></require>
+  <div class="article-preview">
+    <div class="article-meta">
+      <a route-href="route: profile; params.bind: {name: article.author.username}">
+        <img src.bind="article.author.image" /></a>
+      <div class="info">
+        <a route-href="route: profile; params.bind: {name: article.author.username}" class="author">
+          ${article.author.username}</a>
+        <span class="date">${article.createdAt | date}</span>
+      </div>
+      <favorite-button article.bind="article" toggle.bind="onToggleFavorited" class="pull-xs-right">
+        ${article.favoritesCount}
+      </favorite-button>
+    </div>
+    <a route-href="route: article; params.bind: { slug: article.slug }" class="preview-link">
+      <h1>${article.title}</h1>
+      <p>${article.description}</p>
+      <span>Read more...</span>
+      <ul class="tag-list">
+        <li repeat.for="tag of article.tagList" class="tag-default tag-pill tag-outline">${tag}</li>
+      </ul>
+    </a>
+  </div>
+</template>

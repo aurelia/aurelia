@@ -1,0 +1,33 @@
+<template>
+  <require from="../../shared/buttons/favorite-button"></require>
+  <require from="../../shared/buttons/follow-button"></require>
+  <div class="article-meta">
+    <a route-href="route: profile; params.bind: {name: article.author.username}">
+      <img src.bind="article.author.image" /></a>
+    <div class="info">
+      <a route-href="route: profile; params.bind: {name: article.author.username}"
+         class="author">${article.author.username}</a>
+      <span class="date">${article.createdAt | date}</span>
+    </div>
+    <span if.bind="canModify">
+      <a class="btn btn-outline-secondary btn-sm" route-href="route: editor; params.bind: {slug: article.slug}">
+        <i class="ion-edit"></i>&nbsp;Edit Article
+      </a>
+      &nbsp;&nbsp;
+      <button class="btn btn-outline-danger btn-sm" click.delegate="deleteArticle()">
+        <i class="ion-trash-a"></i>&nbsp;Delete Article
+      </button>
+    </span>
+    <span if.bind="!canModify">
+      <follow-button article.bind="article" toggle.bind="onToggleFollowing">
+        &nbsp;
+        ${article.author.following ? 'Unfollow' : 'Follow'} ${article.author.username}
+      </follow-button>
+      &nbsp;&nbsp;
+      <favorite-button article.bind="article" toggle.bind="onToggleFavorited">
+        &nbsp;
+        ${article.favorited ? 'Unfavorite' : 'Favorite'} Post <span class="counter">(${article.favoritesCount})</span>
+      </favorite-button>
+    </span>
+  </div>
+</template>

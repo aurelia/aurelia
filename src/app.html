@@ -1,0 +1,8 @@
+<template>
+  <require from="./shared/layouts/header-layout"></require>
+  <require from="./shared/layouts/footer-layout"></require>
+
+  <header-layout router-config.bind="router.currentInstruction.config"></header-layout>
+  <router-view></router-view>
+  <footer-layout></footer-layout>
+</template>

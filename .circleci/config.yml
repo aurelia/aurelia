@@ -251,7 +251,7 @@ jobs:
             cd test/js-framework-benchmark/webdriver-ts
             node dist/createIndex.js
       - store_artifacts:
-          path: test/js-framework-benchmark/webdriver-ts-results
+          path: test/js-framework-benchmark/webdriver-ts-results/table.html
 
   lint_packages:
     executor: docker-circleci

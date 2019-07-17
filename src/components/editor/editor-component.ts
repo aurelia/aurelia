@@ -9,6 +9,7 @@ export type Article = {
   body?: string;
   tagList?: any;
   slug?: string;
+  favoritesCount?: number
 };
 
 @inject(ArticleService, Router)

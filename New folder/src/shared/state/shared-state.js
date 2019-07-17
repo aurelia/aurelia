@@ -4,6 +4,6 @@ export class SharedState {
 
   constructor() {
     this.currentUser = new User();
-    this.isAuthenticated = false;
+    this.isAuthenticated = true;
   }
 }

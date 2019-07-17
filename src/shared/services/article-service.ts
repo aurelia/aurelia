@@ -1,5 +1,11 @@
 import { ApiService } from './api-service';
 import { inject } from '@aurelia/kernel';
+import { Article } from '../../components/editor/editor-component';
+
+export type ArticleResponse = {
+  articles: Article[];
+  articlesCount: number;
+}
 
 @inject(ApiService)
 export class ArticleService {
@@ -7,8 +13,8 @@ export class ArticleService {
   constructor(private readonly apiService: ApiService) {
   }
 
-  getList(type: string, params: any) {
-    return this.apiService.get('/articles' + ((type === 'feed') ? '/feed' : ''), params)
+  getList(type: string, params: any): Promise<ArticleResponse> {
+    return this.apiService.get('/articles' + ((type === 'feed') ? '/feed' : ''), params);
   }
 
   get(slug: string) {
@@ -20,7 +26,7 @@ export class ArticleService {
     return this.apiService.delete('/articles/' + slug)
   }
 
-  save(article: { slug: string; }) {
+  save(article: Article) {
     if (article.slug) {
       // If we're updating an existing article
       return this.apiService.put('/articles/' + article.slug, { article: article })

@@ -1,11 +1,12 @@
 import { SharedState } from "../../shared/state/shared-state";
 import { inject } from "@aurelia/kernel";
-import { bindable } from "@aurelia/runtime";
-
+import { bindable, customElement } from "@aurelia/runtime";
+import template from './comment.html';
 @inject(SharedState)
+@customElement({ name: 'comment', template: template })
 export class CommentCustomElement {
-  @bindable comment;
-  @bindable deleteCb;
+  @bindable comment: any;
+  @bindable deleteCb: any;
 
   constructor(private readonly sharedState: SharedState) {
   }

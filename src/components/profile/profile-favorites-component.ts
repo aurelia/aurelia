@@ -1,7 +1,9 @@
 import { ArticleService } from "../../shared/services/article-service";
 import { inject } from "@aurelia/kernel";
-
+import { customElement } from "@aurelia/runtime";
+import template from './profile-favorites-component.html';
 @inject(ArticleService)
+@customElement({ name: 'profile-favorites-component', template: template })
 export class ProfileFavoritesComponent {
   articles = [];
   pageNumber;
@@ -13,7 +15,8 @@ export class ProfileFavoritesComponent {
   constructor(private readonly articleService: ArticleService) {
   }
 
-  activate(params, routeConfig) {
+  enter(params) {
+    console.log(params);
     this.username = params.name;
     return this.getArticles();
   }

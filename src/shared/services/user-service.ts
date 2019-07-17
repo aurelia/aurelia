@@ -36,21 +36,17 @@ export class UserService {
     this.sharedState.isAuthenticated = false;
   }
 
-  attemptAuth(type, credentials) {
+  async attemptAuth(type, credentials) {
     const route = (type === 'login') ? '/login' : '';
-    return this.apiService.post('/users' + route, { user: credentials })
-      .then(data => {
-        this.setAuth(data.user);
-        return data;
-      });
+    const data = await this.apiService.post('/users' + route, { user: credentials });
+    this.setAuth(data.user);
+    return data;
   }
 
-  update(user) {
-    return this.apiService.put('/user', { user })
-      .then(data => {
-        this.sharedState.currentUser = data.user;
-        return data.user;
-      });
+  async update(user) {
+    const data = await this.apiService.put('/user', { user });
+    this.sharedState.currentUser = data.user;
+    return data.user;
 
   }
 }

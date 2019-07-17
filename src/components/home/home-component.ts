@@ -2,19 +2,24 @@ import { SharedState } from '../../shared/state/shared-state';
 import { ArticleService } from "../../shared/services/article-service"
 import { TagService } from '../../shared/services/tag-service';
 import { inject } from '@aurelia/kernel';
+import { customElement } from '@aurelia/runtime';
+import template from './home-component.html';
+import { Article } from '../editor/editor-component';
 
 @inject(SharedState, ArticleService, TagService)
+@customElement({ name: 'home-component', template })
 export class HomeComponent {
-  articles = [];
-  shownList = 'all';
-  tags = [];
-  filterTag = undefined;
-  pageNumber;
-  totalPages;
-  currentPage = 1;
-  limit = 10;
+  private articles: Article[] = [];
+  private shownList = 'all';
+  private tags: string[] = [];
+  private filterTag = undefined;
+  private pageNumber: number;
+  private totalPages: number[];
+  private currentPage = 1;
+  private limit = 10;
 
   constructor(private readonly sharedState: SharedState, private readonly articleService: ArticleService, private readonly tagService: TagService) {
+    console.log(sharedState)
   }
 
   attached() {
@@ -32,8 +37,7 @@ export class HomeComponent {
       params.tag = this.filterTag;
     this.articleService.getList(this.shownList, params)
       .then(response => {
-        this.articles.splice(0);
-        this.articles.push(...response.articles)
+        this.articles = response.articles;
 
         // Used from http://www.jstips.co/en/create-range-0...n-easily-using-one-line/
         this.totalPages = Array.from(new Array(Math.ceil(response.articlesCount / this.limit)), (val, index) => index + 1);
@@ -43,8 +47,7 @@ export class HomeComponent {
   getTags() {
     this.tagService.getList()
       .then(response => {
-        this.tags.splice(0);
-        this.tags.push(...response);
+        this.tags = response;
       })
   }
 

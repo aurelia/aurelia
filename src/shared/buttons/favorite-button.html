@@ -2,6 +2,6 @@
   <button class="btn ${!article.favorited ? 'btn-outline-primary' : 'btn-primary'} btn-sm" 
       click.delegate="onToggleFavorited()">
     <i class="ion-heart"></i>
-    <slot></slot>
+    <div replaceable part="content"></div>
   </button>
 </template>

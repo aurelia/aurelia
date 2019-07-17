@@ -2,8 +2,11 @@ import { ArticleService } from "../../shared/services/article-service";
 import { CommentService } from "../../shared/services/comment-service";
 import { SharedState } from "../../shared/state/shared-state";
 import { inject } from "@aurelia/kernel";
+import { customElement } from "@aurelia/runtime";
+import template from './article-component.html';
 
 @inject(ArticleService, CommentService, SharedState)
+@customElement({ name: 'article-component', template })
 export class ArticleComponent {
   article: any;
   comments: any[];
@@ -13,7 +16,7 @@ export class ArticleComponent {
   constructor(private readonly articleService: ArticleService, private readonly commentService: CommentService, private readonly sharedState: SharedState) {
   }
 
-  activate(params: { slug: any; }) {
+  enter(params: { slug: any; }) {
     this.slug = params.slug;
 
     return this.articleService.get(this.slug)

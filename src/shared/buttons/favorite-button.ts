@@ -2,9 +2,12 @@ import { SharedState } from '../state/shared-state';
 import { ArticleService } from '../services/article-service';
 import { inject } from '@aurelia/kernel';
 import { Router } from '@aurelia/router';
-import { bindable } from '@aurelia/runtime';
+import { bindable, customElement, BindingType, BindingStrategy } from '@aurelia/runtime';
+import template from './favorite-button.html';
+
 
 @inject(Router, SharedState, ArticleService)
+@customElement({ name: 'favorite-button', template: template })
 export class FavoriteButton {
   @bindable article;
   @bindable toggle;

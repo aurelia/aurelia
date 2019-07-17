@@ -1,5 +1,8 @@
-import {bindable} from 'aurelia-framework';
+import { bindable, customElement } from "@aurelia/runtime";
+import template from './article-list.html';
 
+
+@customElement({ name: 'article-list', template })
 export class ArticleList {
   @bindable articles;
   @bindable pageNumber;

@@ -2,9 +2,11 @@ import { ArticleService } from "../../shared/services/article-service";
 import { SharedState } from "../../shared/state/shared-state";
 import { inject } from "@aurelia/kernel";
 import { Router } from "@aurelia/router";
-import { bindable } from "@aurelia/runtime";
+import { bindable, customElement } from "@aurelia/runtime";
+import template from './article-meta.html';
 
 @inject(ArticleService, SharedState, Router)
+@customElement({ name: 'article-meta', template })
 export class ArticleMeta {
   @bindable article;
 
@@ -13,6 +15,10 @@ export class ArticleMeta {
 
   get canModify() {
     return this.article.author.username === this.sharedState.currentUser.username;
+  }
+
+  bound() {
+    console.log(this.article);
   }
 
   onToggleFavorited(value) {

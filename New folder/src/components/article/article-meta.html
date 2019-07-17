@@ -6,7 +6,7 @@
       <img src.bind="article.author.image" /></a>
     <div class="info">
       <a route-href="route: profile; params.bind: {name: article.author.username}"
-         class="author">${article.author.username}</a>
+        class="author">${article.author.username}</a>
       <span class="date">${article.createdAt | date}</span>
     </div>
     <span if.bind="canModify">
@@ -25,8 +25,10 @@
       </follow-button>
       &nbsp;&nbsp;
       <favorite-button article.bind="article" toggle.bind="onToggleFavorited">
-        &nbsp;
-        ${article.favorited ? 'Unfavorite' : 'Favorite'} Post <span class="counter">(${article.favoritesCount})</span>
+        <template replace-part="content">
+          &nbsp;
+          ${article.favorited ? 'Unfavorite' : 'Favorite'} Post <span class="counter">(${article.favoritesCount})</span>
+        </template>
       </favorite-button>
     </span>
   </div>

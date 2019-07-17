@@ -1,7 +1,10 @@
-import {bindable} from 'aurelia-framework';
+import { bindable, customElement } from "@aurelia/runtime";
+import { Article } from "../../components/editor/editor-component";
+import template from './article-preview.html';
 
+@customElement({ name: 'article-preview', template })
 export class ArticlePreview {
-  @bindable article;
+  @bindable article: Article;
 
   onToggleFavorited(value) {
     if (value) {

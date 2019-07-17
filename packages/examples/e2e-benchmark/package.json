@@ -9,7 +9,7 @@
     "@types/node": "^10.12.27",
     "@types/selenium-webdriver": "^4.0.1",
     "chai": "^4.2.0",
-    "chromedriver": "~2.45.0",
+    "chromedriver": "^74.0.0",
     "esm": "^3.2.25",
     "mocha": "^6.1.4",
     "path": "^0.12.7",

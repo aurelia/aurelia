@@ -1,9 +1,8 @@
-
 # Writing Documentation
 
 Greetings! We're so glad that you're interested in contributing to Aurelia's documentation. We'd love for you to join us in our quest to create great documentation, guidance, code examples and more.
 
-> What you'll learn...
+> Here's what you'll learn...
 > * What are the three types of documentation?
 > * How do I contribute to each type of documentation?
 > * What syntax is used throughout the documentation?

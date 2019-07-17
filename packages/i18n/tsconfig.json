@@ -1,6 +1,7 @@
 {
   "extends": "../tsconfig-build.json",
   "compilerOptions": {
+    "allowSyntheticDefaultImports": true,
     "declarationDir": "dist",
     "outDir": "dist/esnext",
     "preserveConstEnums": true,

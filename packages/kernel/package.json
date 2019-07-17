@@ -26,9 +26,9 @@
     "LICENSE"
   ],
   "scripts": {
-    "lint": "tslint --project tsconfig.json -t stylish",
+    "lint": "eslint --cache --ext .js,.ts src/",
     "build": "tsc -b",
-    "bundle": "ts-node -P ../../scripts/tsconfig.json ../../scripts/bundle.ts umd,esm,system kernel",
+    "bundle": "ts-node -P ../../tsconfig.json ../../scripts/bundle.ts umd,esm,system kernel",
     "dev": "tsc -b -w"
   },
   "publishConfig": {
@@ -38,9 +38,6 @@
     "@types/node": "^10.14.13",
     "reflect-metadata": "^0.1.13",
     "tslib": "^1.10.0",
-    "tslint": "^5.19.0",
-    "tslint-microsoft-contrib": "^6.2.0",
-    "tslint-sonarts": "^1.9.0",
     "typescript": "^3.5.3"
   }
 }

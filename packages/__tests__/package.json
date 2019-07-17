@@ -7,6 +7,7 @@
     "npm": ">=6.1.0"
   },
   "scripts": {
+    "lint": "eslint --cache --ext .js,.ts .",
     "test-node": "cross-env NODE_ICU_DATA=../../node_modules/full-icu mocha --opts mocha.opts --reporter min --exit dist/esnext/__tests__/setup-node.js dist/esnext/__tests__/**/*.spec.js",
     "test-node:kernel": "mocha --opts mocha.opts dist/esnext/__tests__/setup-node.js dist/esnext/__tests__/kernel/**/*.spec.js --watch",
     "test-node:plugin-conventions": "mocha --opts mocha.opts dist/esnext/__tests__/setup-node.js dist/esnext/__tests__/plugin-conventions/**/*.spec.js --watch",

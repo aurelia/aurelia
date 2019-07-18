@@ -21,8 +21,8 @@ export class AuthComponent {
     // return activationStrategy.replace;
   }
 
-  enter() {
-    this.type = this.router.activeComponents[this.router.activeComponents.length - 1];
+  enter(parameters) {
+    this.type = parameters.type;
   }
 
   get canSave() {

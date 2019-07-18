@@ -20,7 +20,7 @@ export class FavoriteButton {
 
   onToggleFavorited() {
     if (!this.sharedState.isAuthenticated) {
-      this.router.goto('login');
+      this.router.goto('auth-component(type=login)');
       return;
     }
     this.article.favorited = !this.article.favorited;

@@ -6,8 +6,8 @@
         <div class="col-md-6 offset-md-3 col-xs-12">
           <h1 class="text-xs-center">Sign ${type === 'login' ? 'in' : 'up'}</h1>
           <p class="text-xs-center">
-            <a href="route: login" if.bind="type === 'register'">Have an account?</a>
-            <a href="route: register" if.bind="type === 'login'">Need an account?</a>
+            <a href="auth-component(type=login)" if.bind="type === 'register'">Have an account?</a>
+            <a href="auth-component(type=register)" if.bind="type === 'login'">Need an account?</a>
           </p>
 
           <ul class="error-messages" if.bind="controller.errors">
@@ -22,7 +22,8 @@
 
           <form>
             <fieldset class="form-group" if.bind="type === 'register'">
-              <input class="form-control form-control-lg" type="text" placeholder="Your Name" value.bind="username" required>
+              <input class="form-control form-control-lg" type="text" placeholder="Your Name" value.bind="username"
+                required>
             </fieldset>
             <fieldset class="form-group">
               <input class="form-control form-control-lg" type="text" placeholder="Email" value.bind="email" required>

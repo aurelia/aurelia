@@ -2,7 +2,7 @@
 import 'promise-polyfill/lib/polyfill';
 import { DebugConfiguration } from '@aurelia/debug';
 import { BasicConfiguration } from '@aurelia/jit-html-browser';
-import { Aurelia } from '@aurelia/runtime';
+import { Aurelia, CustomElement } from '@aurelia/runtime';
 import { App } from './app';
 import { HomeComponent } from './components/home/home-component';
 import { Registration } from '@aurelia/kernel';
@@ -54,8 +54,7 @@ const container =
     MarkdownHtmlValueConverter
   );
 
-
-// Registration.alias('auth-component', 'login').register(container);
+// Registration.alias(CustomElement.keyFrom(AuthComponent.name), 'login').register(container);
 
 global['au'] = new Aurelia(container)
   .register(BasicConfiguration, DebugConfiguration)

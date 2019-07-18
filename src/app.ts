@@ -1,20 +1,32 @@
 import { customElement, IViewModel, LifecycleFlags } from '@aurelia/runtime';
 import template from './app.html';
-import { Router } from '@aurelia/router';
+import { Router, ViewportInstruction, INavigationInstruction } from '@aurelia/router';
 import { inject } from '@aurelia/kernel';
 import { UserService } from './shared/services/user-service';
+import { SharedState } from './shared/state/shared-state';
+import { SettingsComponent } from './components/settings/settings-component';
+import { EditorComponent } from './components/editor/editor-component';
 
 @customElement({ name: 'app', template })
-@inject(Router, UserService)
+@inject(Router, UserService, SharedState)
 export class App implements IViewModel {
   message: string;
 
-  constructor(private readonly router: Router, private readonly userService: UserService) {
+  constructor(private readonly router: Router, private readonly userService: UserService, private readonly state: SharedState) {
     this.message = 'Hello World!'; // just for unit testing ;)
   }
 
-  public bound() {
-    this.router.activate();
+  public async bound() {
+    this.router.guardian.addGuard(
+      (viewportInstructions?: ViewportInstruction[], navigationInstruction?: INavigationInstruction) => {
+        if (this.state.isAuthenticated) return true;
+        this.router.goto(`auth-component(type=login)`);
+        return [];
+      }
+      , { include: [{ componentName: 'editor-component' }, { componentName: 'settings-component' }] }
+    );
+    await this.router.activate();
+
     // Yeah, this is cheating somewhat, should've reacted to actual count
     // this.router.addNav('main',
     //   [
@@ -47,26 +59,3 @@ export class App implements IViewModel {
     this.userService.populate();
   }
 }
-
-
-
-
-// @inject(SharedState)
-// export class AuthorizeStep {
-//   state: any;
-
-//   constructor(state) {
-//     this.state = state;
-//   }
-
-//   run(navigationInstruction, next) {
-//     if (navigationInstruction.getAllInstructions().some(i => i.config.settings.auth)) {
-//       const isLoggedIn = this.state.isAuthenticated;
-//       if (!isLoggedIn) {
-//         return next.cancel(new Redirect('login'));
-//       }
-//     }
-
-//     return next();
-//   }
-// }

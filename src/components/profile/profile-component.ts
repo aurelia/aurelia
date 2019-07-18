@@ -56,7 +56,7 @@ export class ProfileComponent {
 
   onToggleFollowing() {
     if (!this.sharedState.isAuthenticated) {
-      this.router.goto('login');
+      this.router.goto('auth-component(type=login)');
       return;
     }
     this.profile.following = !this.profile.following;

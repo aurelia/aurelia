@@ -58,7 +58,7 @@ module.exports = function (config) {
           'node_modules'
         ],
         mainFields: [
-          'module',
+          'module', 'main'
         ],
       },
       devtool: 'inline-source-map',

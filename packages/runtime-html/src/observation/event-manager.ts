@@ -208,10 +208,10 @@ export class EventSubscriber implements IEventSubscriber {
     const node = this.target;
     const callbackOrListener = this.handler;
     const events = this.events;
-    const remove = this.dom.removeEventListener;
+    const dom = this.dom;
 
     for (let i = 0, ii = events.length; ii > i; ++i) {
-      remove(events[i], callbackOrListener, node);
+      dom.removeEventListener(events[i], callbackOrListener, node);
     }
 
     this.target = this.handler = null!;

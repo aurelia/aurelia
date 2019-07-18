@@ -4,4 +4,3 @@ export interface Author {
     image: string;
     following: boolean;
   }
-  

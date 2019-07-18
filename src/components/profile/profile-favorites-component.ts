@@ -1,10 +1,11 @@
-import { ArticleService } from "shared/services/article-service";
 import { inject } from "@aurelia/kernel";
 import { customElement } from "@aurelia/runtime";
-import template from './profile-favorites-component.html';
 import { Article } from "models/article";
+import { getPages } from "shared/get-pages";
+import { ArticleService } from "shared/services/article-service";
+import template from './profile-favorites-component.html';
 @inject(ArticleService)
-@customElement({ name: 'profile-favorites-component', template: template })
+@customElement({ name: 'profile-favorites-component', template })
 export class ProfileFavoritesComponent {
   private articles: Article[] = [];
   private pageNumber?: number;
@@ -16,30 +17,26 @@ export class ProfileFavoritesComponent {
   constructor(private readonly articleService: ArticleService) {
   }
 
-  enter(params: { name: string }) {
-    console.log(params);
+  public async enter(params: { name: string }) {
     this.username = params.name;
-    return this.getArticles();
+    await this.getArticles();
   }
 
-  getArticles() {
-    let queryParams = {
+  public async getArticles() {
+    const queryParams = {
+      favorited: this.username,
       limit: this.limit,
       offset: this.limit * (this.currentPage - 1),
-      favorited: this.username
     };
-    return this.articleService.getList('all', queryParams)
-      .then(response => {
-        this.articles.splice(0);
-        this.articles.push(...response.articles)
 
-        // Used from http://www.jstips.co/en/create-range-0...n-easily-using-one-line/
-        this.totalPages = Array.from(new Array(Math.ceil(response.articlesCount / this.limit)), (val, index) => index + 1);
-      })
+    const response = await this.articleService.getList('all', queryParams);
+    this.articles.splice(0);
+    this.articles.push(...response.articles);
+    this.totalPages = getPages(response.articlesCount, this.limit);
   }
 
-  setPageTo(pageNumber: number) {
+  public async setPageTo(pageNumber: number) {
     this.currentPage = pageNumber;
-    this.getArticles();
+    await this.getArticles();
   }
 }

@@ -1,5 +1,5 @@
 export class HttpError extends Error {
-  msg: Response;
+  public msg: Response;
   constructor(msg: Response) {
     super();
     this.msg = msg;

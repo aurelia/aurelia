@@ -32,7 +32,9 @@
       ]
     },
     "plugins": [
-      { "name": "typescript-tslint-plugin" }
+      {
+        "name": "typescript-tslint-plugin"
+      }
     ],
     "strictBindCallApply": true,
     "strictNullChecks": true,
@@ -48,6 +50,9 @@
     "removeComments": true,
     "preserveConstEnums": true
   },
+  "exclude": [
+    "node_modules"
+  ],
   "include": [
     "./src/**/*"
   ],

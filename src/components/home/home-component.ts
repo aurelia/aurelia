@@ -1,11 +1,12 @@
-import { SharedState } from 'shared/state/shared-state';
-import { ArticleService } from "shared/services/article-service"
-import { TagService } from 'shared/services/tag-service';
 import { inject } from '@aurelia/kernel';
 import { customElement } from '@aurelia/runtime';
-import template from './home-component.html';
-import { ArticleRequest } from 'models/article-request';
 import { Article } from 'models/article';
+import { ArticleRequest } from 'models/article-request';
+import { getPages } from 'shared/get-pages';
+import { ArticleService } from "shared/services/article-service";
+import { TagService } from 'shared/services/tag-service';
+import { SharedState } from 'shared/state/shared-state';
+import template from './home-component.html';
 
 @inject(SharedState, ArticleService, TagService)
 @customElement({ name: 'home-component', template })
@@ -19,57 +20,55 @@ export class HomeComponent {
   private currentPage = 1;
   private limit = 10;
 
-  constructor(private readonly sharedState: SharedState, private readonly articleService: ArticleService, private readonly tagService: TagService) {
-    console.log(sharedState)
+  constructor(private readonly sharedState: SharedState,
+              private readonly articleService: ArticleService,
+              private readonly tagService: TagService) {
   }
 
-  attached() {
+  public attached() {
     this.getArticles();
     this.getTags();
   }
 
-  getArticles() {
-    let params = {
+  public async getArticles() {
+    const params: ArticleRequest = {
       limit: this.limit,
-      offset: this.limit * (this.currentPage - 1)
-    } as ArticleRequest;
+      offset: this.limit * (this.currentPage - 1),
+    };
 
-    if (this.filterTag)
+    if (this.filterTag) {
       params.tag = this.filterTag!;
+    }
 
-    this.articleService.getList(this.shownList, params)
-      .then(response => {
-        this.articles = response.articles;
-
-        // Used from http://www.jstips.co/en/create-range-0...n-easily-using-one-line/
-        this.totalPages = Array.from(new Array(Math.ceil(response.articlesCount / this.limit)), (val, index) => index + 1);
-      })
+    const response = await this.articleService.getList(this.shownList, params);
+    this.articles = response.articles;
+    this.totalPages = getPages(response.articlesCount, this.limit);
   }
 
-  getTags() {
-    this.tagService.getList()
-      .then(response => {
-        this.tags = response;
-      })
+  public async getTags() {
+    const response = await this.tagService.getList();
+    this.tags = response;
   }
 
-  setListTo(type: string, tag: string) {
-    if (type === 'feed' && !this.sharedState.isAuthenticated) return;
+  public setListTo(type: string, tag: string) {
+    if (type === 'feed' && !this.sharedState.isAuthenticated) { return; }
     this.shownList = type;
     this.filterTag = tag;
     this.getArticles();
   }
 
-  getFeedLinkClass() {
+  public getFeedLinkClass() {
     let clazz = '';
-    if (!this.sharedState.isAuthenticated)
+    if (!this.sharedState.isAuthenticated) {
       clazz += ' disabled';
-    if (this.shownList === 'feed')
+    }
+    if (this.shownList === 'feed') {
       clazz += ' active';
+    }
     return clazz;
   }
 
-  setPageTo(pageNumber: number) {
+  public setPageTo(pageNumber: number) {
     this.currentPage = pageNumber;
     this.getArticles();
   }

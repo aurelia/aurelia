@@ -1,6 +1,5 @@
-import * as format from 'date-fns/format'
 import { valueConverter } from '@aurelia/runtime';
-
+import * as format from 'date-fns/format';
 @valueConverter({ name: 'date' })
 export class DateValueConverter {
   /*
@@ -8,11 +7,10 @@ export class DateValueConverter {
   * into
   * "July 27, 2017"
   */
-  toView(value: Date | string | number) {
+  public toView(value: Date | string | number) {
     return format(
       value,
-      'MMMM D, YYYY'
-    )
+      'MMMM D, YYYY',
+    );
   }
 }
-

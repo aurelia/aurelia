@@ -1,5 +1,5 @@
-import { ApiService } from './api-service';
 import { inject } from '@aurelia/kernel';
+import { ApiService } from './api-service';
 
 @inject(ApiService)
 export class TagService {
@@ -7,8 +7,8 @@ export class TagService {
   constructor(private readonly apiService: ApiService) {
   }
 
-  getList() {
-    return this.apiService.get('/tags')
-      .then(data => data.tags)
+  public async getList() {
+    const data = await this.apiService.get('/tags');
+    return data.tags;
   }
 }

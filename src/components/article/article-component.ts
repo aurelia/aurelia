@@ -20,33 +20,25 @@ export class ArticleComponent {
               private readonly sharedState: SharedState) {
   }
 
-  public enter(params: { slug: any; }) {
+  public async enter(params: { slug: any; }) {
     this.slug = params.slug;
 
-    return this.articleService.get(this.slug)
-      .then((article) => {
-        this.article = article;
-        this.commentService.getList(this.slug)
-          .then((comments) => this.comments = comments);
-      });
+    const result = await Promise.all([this.articleService.get(this.slug), this.commentService.getList(this.slug)]);
+    this.article = result[0];
+    this.comments = result[1];
   }
 
-  public postComment() {
+  public async postComment() {
     if (!this.myComment) { return; }
-    return this.commentService.add(this.slug, this.myComment)
-      .then((comment) => {
-        if (!this.comments) { this.comments = []; }
-        this.comments.push(comment);
-        this.myComment = '';
-      });
+    const comment = await this.commentService.add(this.slug, this.myComment);
+    if (!this.comments) { this.comments = []; }
+    this.comments.push(comment);
+    this.myComment = '';
   }
 
-  public deleteComment(commentId: any) {
-    this.commentService.destroy(commentId, this.slug)
-      .then(() => {
-        this.commentService.getList(this.slug)
-          .then((comments) => this.comments = comments);
-      });
+  public async deleteComment(commentId: any) {
+    await this.commentService.destroy(commentId, this.slug);
+    await this.commentService.getList(this.slug);
   }
 
 }

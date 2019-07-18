@@ -1,23 +1,23 @@
 export class JwtService {
 
-  getToken() {
-    return window.localStorage['jwtToken'];
+  public getToken() {
+    return window.localStorage.jwtToken;
   }
 
-  saveToken(token: string) {
-    window.localStorage['jwtToken'] = token;
+  public saveToken(token: string) {
+    window.localStorage.jwtToken = token;
   }
 
-  destroyToken() {
+  public destroyToken() {
     window.localStorage.removeItem('jwtToken');
   }
 
-  isTokenValid() {
+  public isTokenValid() {
     return typeof this.getToken() !== 'undefined' && this.getToken() !== '';
   }
 
-  getAuthorizationHeader(): string {
+  public getAuthorizationHeader(): string {
     return this.isTokenValid() ? `Token ${this.getToken()}` : '';
-  };
+  }
 
 }

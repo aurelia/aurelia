@@ -7,4 +7,3 @@ export interface Comment {
     body: string;
     author: Author;
   }
-  

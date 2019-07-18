@@ -17,7 +17,7 @@ export class ArticleService {
     return this.apiService.get('/articles' + ((type === 'feed') ? '/feed' : ''), params);
   }
 
-  public async get(slug: string) {
+  public async get(slug: string): Promise<Article> {
     const data = await this.apiService.get('/articles/' + slug);
     return data.article;
   }
@@ -26,7 +26,7 @@ export class ArticleService {
     return this.apiService.delete('/articles/' + slug);
   }
 
-  public async save(article: Article) {
+  public async save(article: Article): Promise<Article> {
     if (article.slug) {
       // If we're updating an existing article
       const data = await this.apiService.put('/articles/' + article.slug, { article });

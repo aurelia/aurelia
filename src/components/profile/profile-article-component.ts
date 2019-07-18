@@ -1,5 +1,6 @@
 import { inject } from "@aurelia/kernel";
 import { customElement } from "@aurelia/runtime";
+import { getPages } from "shared/get-pages";
 import { Article } from "shared/models/article";
 import { ArticleService } from "shared/services/article-service";
 import template from './profile-article-component.html';
@@ -21,23 +22,20 @@ export class ProfileArticleComponent {
     return this.getArticles();
   }
 
-  public getArticles() {
+  public async getArticles() {
     const queryParams = {
       author: this.username,
       limit: this.limit,
       offset: this.limit * (this.currentPage - 1),
     };
-    return this.articleService.getList('all', queryParams)
-      .then((response) => {
-        this.articles.splice(0);
-        this.articles.push(...response.articles);
-        this.totalPages = Array.from(new Array(Math.ceil(response.articlesCount / this.limit)),
-          (_, index) => index + 1);
-      });
+    const response = await this.articleService.getList('all', queryParams);
+    this.articles.splice(0);
+    this.articles.push(...response.articles);
+    this.totalPages = getPages(response.articlesCount, this.limit);
   }
 
-  public setPageTo(pageNumber: number) {
+  public async setPageTo(pageNumber: number) {
     this.currentPage = pageNumber;
-    this.getArticles();
+    await this.getArticles();
   }
 }

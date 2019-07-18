@@ -11,7 +11,6 @@ export class HttpInterceptor implements Interceptor {
   }
 
   public request(request: Request) {
-    console.log(request);
     if (!this.jwtService.isTokenValid()) {
       return request;
     }

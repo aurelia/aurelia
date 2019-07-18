@@ -58,7 +58,6 @@ export class Guardian {
     let modified: boolean = false;
     for (const guard of this.guards[type]) {
       if (guard.matches(viewportInstructions)) {
-        console.log('#### Guard matches:', guard);
         const outcome = guard.check(viewportInstructions, navigationInstruction);
         if (typeof outcome === 'boolean') {
           if (!outcome) {
@@ -67,7 +66,6 @@ export class Guardian {
         } else {
           viewportInstructions = outcome;
           modified = true;
-          console.log('#### Instructions modified:', viewportInstructions);
         }
       }
     }

@@ -25,6 +25,8 @@ import { ProfileFavoritesComponent } from './components/profile/profile-favorite
 import { CommentCustomElement } from './components/article/comment';
 import { ArticleComponent } from './components/article/article-component';
 import { MarkdownHtmlValueConverter } from './resources/value-converters/markdown-html';
+import { SettingsComponent } from './components/settings/settings-component';
+import { UpdateTriggerBindingBehavior } from '@aurelia/runtime-html';
 
 const container =
   BasicConfiguration.createContainer().register(
@@ -45,12 +47,15 @@ const container =
     FormatHtmlValueConverter,
     KeysValueConverter,
     SharedState,
+    SettingsComponent,
     ProfileArticleComponent,
     ProfileFavoritesComponent,
     CommentCustomElement,
     MarkdownHtmlValueConverter
   );
 
+
+// Registration.alias('auth-component', 'login').register(container);
 
 global['au'] = new Aurelia(container)
   .register(BasicConfiguration, DebugConfiguration)

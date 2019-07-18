@@ -2,8 +2,11 @@ import { UserService } from '../../shared/services/user-service';
 import { SharedState } from '../../shared/state/shared-state';
 import { inject } from '@aurelia/kernel';
 import { Router } from '@aurelia/router';
+import { customElement } from '@aurelia/runtime';
+import template from './auth-component.html';
 
 @inject(UserService, SharedState, Router)
+@customElement({ name: 'auth-component', template: template })
 export class AuthComponent {
   type = '';
   username = '';
@@ -18,8 +21,8 @@ export class AuthComponent {
     // return activationStrategy.replace;
   }
 
-  activate(params, routeConfig) {
-    this.type = routeConfig.name;
+  enter() {
+    this.type = this.router.activeComponents[this.router.activeComponents.length - 1];
   }
 
   get canSave() {

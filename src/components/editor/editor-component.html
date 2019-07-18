@@ -16,7 +16,7 @@
                 <textarea class="form-control" rows="8" placeholder="Write your article (in markdown)" value.bind="article.body"></textarea>
               </fieldset>
               <fieldset class="form-group">
-                <input type="text" class="form-control" placeholder="Enter tags" value.bind="tag & updateTrigger:'blur'">
+                <input type="text" class="form-control" placeholder="Enter tags" value.two-way="tag & updateTrigger:'blur'">
                 <div class="tag-list">
                   <span repeat.for="tag of article.tagList" class="tag-default tag-pill">
                     <i class="ion-close-round" click.delegate="removeTag(tag)"></i>

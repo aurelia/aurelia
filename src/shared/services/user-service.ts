@@ -43,7 +43,7 @@ export class UserService {
     return data;
   }
 
-  async update(user) {
+  async update(user: User) {
     const data = await this.apiService.put('/user', { user });
     this.sharedState.currentUser = data.user;
     return data.user;

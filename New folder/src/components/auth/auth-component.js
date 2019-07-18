@@ -1,9 +1,10 @@
-import {inject} from 'aurelia-dependency-injection';
-import {Router, activationStrategy} from 'aurelia-router';
-import {UserService} from '../../shared/services/user-service';
-import {SharedState} from '../../shared/state/shared-state';
-
+import { inject } from 'aurelia-dependency-injection';
+import { Router, activationStrategy } from 'aurelia-router';
+import { UserService } from '../../shared/services/user-service';
+import { SharedState } from '../../shared/state/shared-state';
+import template from './auth-component.html';
 @inject(UserService, SharedState, Router)
+@customElement({ name: 'auth-component', template: template })
 export class AuthComponent {
   type = '';
   username = '';

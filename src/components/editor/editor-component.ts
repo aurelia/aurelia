@@ -1,7 +1,8 @@
 import { ArticleService } from "../../shared/services/article-service";
 import { inject } from "@aurelia/kernel";
 import { Router } from "@aurelia/router";
-import { observes, bindable } from "@aurelia/runtime";
+import { observes, bindable, customElement, BindingMode } from "@aurelia/runtime";
+import template from './editor-component.html';
 
 export type Article = {
   title?: string;
@@ -13,17 +14,16 @@ export type Article = {
 };
 
 @inject(ArticleService, Router)
+@customElement({ name: 'editor-component', template: template })
 export class EditorComponent {
   article: Article;
-  @bindable() tag: any;
-  routeConfig: any;
-  slug: any;
+  @bindable({ mode: BindingMode.twoWay }) tag: string;
+  slug: string;
 
   constructor(private readonly articleService: ArticleService, private readonly router: Router) {
   }
 
-  activate(params: { slug: any; }, routeConfig: any) {
-    this.routeConfig = routeConfig;
+  enter(params: { slug: any; }) {
     this.slug = params.slug;
 
     if (this.slug) {

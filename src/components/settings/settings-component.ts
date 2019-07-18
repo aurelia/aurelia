@@ -19,6 +19,6 @@ export class SettingsComponent {
 
   public logout() {
     this.userService.purgeAuth();
-    this.router.goto('home');
+    this.router.goto('home-component');
   }
 }

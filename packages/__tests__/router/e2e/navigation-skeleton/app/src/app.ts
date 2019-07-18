@@ -3,9 +3,9 @@ import { inject } from '@aurelia/kernel';
 import { Router } from '@aurelia/router';
 import * as html from './app.html';
 
-// import '../node_modules/bootstrap/dist/css/bootstrap.min.css';
-// import '../node_modules/font-awesome/css/font-awesome.min.css';
-// import './styles.css';
+import 'bootstrap/dist/css/bootstrap.min.css';
+import 'font-awesome/css/font-awesome.min.css';
+import './styles.css';
 
 import './nav-bar.html';
 

@@ -1,21 +1,22 @@
-import { ArticleService } from "../../shared/services/article-service";
+import { ArticleService } from "shared/services/article-service";
 import { inject } from "@aurelia/kernel";
 import { customElement } from "@aurelia/runtime";
 import template from './profile-favorites-component.html';
+import { Article } from "models/article";
 @inject(ArticleService)
 @customElement({ name: 'profile-favorites-component', template: template })
 export class ProfileFavoritesComponent {
-  articles = [];
-  pageNumber;
-  totalPages;
-  currentPage = 1;
-  limit = 10;
-  username: any;
+  private articles: Article[] = [];
+  private pageNumber?: number;
+  private totalPages?: number[];
+  private currentPage = 1;
+  private limit = 10;
+  private username: any;
 
   constructor(private readonly articleService: ArticleService) {
   }
 
-  enter(params) {
+  enter(params: { name: string }) {
     console.log(params);
     this.username = params.name;
     return this.getArticles();
@@ -37,7 +38,7 @@ export class ProfileFavoritesComponent {
       })
   }
 
-  setPageTo(pageNumber) {
+  setPageTo(pageNumber: number) {
     this.currentPage = pageNumber;
     this.getArticles();
   }

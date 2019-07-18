@@ -1,10 +1,6 @@
-import { User } from '../models/user';
+import { User } from 'models/user';
 
 export class SharedState {
-  currentUser: User;
-  isAuthenticated: boolean;
-
-  constructor() {
-    this.currentUser = new User();
-  }
+  public currentUser: User = {};
+  public isAuthenticated: boolean = false;
 }

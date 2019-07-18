@@ -1,5 +1,5 @@
-import {ApiService} from './api-service';
 import { inject } from '@aurelia/kernel';
+import { ApiService } from './api-service';
 
 @inject(ApiService)
 export class CommentService {
@@ -7,17 +7,17 @@ export class CommentService {
   constructor(private readonly apiService: ApiService) {
   }
 
-  add(slug, payload) {
-    return this.apiService.post(`/articles/${slug}/comments`, {comment: {body: payload}})
-      .then(data => data.comment)
+  public async add(slug: string, payload: string) {
+    const data = await this.apiService.post(`/articles/${slug}/comments`, { comment: { body: payload } });
+    return data.comment;
   }
 
-  getList(slug) {
-    return this.apiService.get(`/articles/${slug}/comments`)
-      .then(data => data.comments)
+  public async getList(slug: string) {
+    const data = await this.apiService.get(`/articles/${slug}/comments`);
+    return data.comments;
   }
 
-  destroy(commentId, articleSlug) {
-    return this.apiService.delete(`/articles/${articleSlug}/comments/${commentId}`)
+  public destroy(commentId: number, articleSlug: string) {
+    return this.apiService.delete(`/articles/${articleSlug}/comments/${commentId}`);
   }
 }

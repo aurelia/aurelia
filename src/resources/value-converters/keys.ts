@@ -3,9 +3,10 @@ import { valueConverter } from "@aurelia/runtime";
 @valueConverter({ name: 'keys' })
 export class KeysValueConverter {
 
-  toView(value) {
-    if (value)
+  public toView(value: object) {
+    if (value) {
       return Reflect.ownKeys(value);
+    }
+    return null;
   }
-
 }

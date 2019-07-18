@@ -16,9 +16,8 @@ export class JwtService {
     return typeof this.getToken() !== 'undefined' && this.getToken() !== '';
   }
 
-  getAuthorizationHeader() {
-    if (this.isTokenValid())
-      return `Token ${this.getToken()}`;
+  getAuthorizationHeader(): string {
+    return this.isTokenValid() ? `Token ${this.getToken()}` : '';
   };
 
 }

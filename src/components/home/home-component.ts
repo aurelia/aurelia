@@ -1,10 +1,11 @@
-import { SharedState } from '../../shared/state/shared-state';
-import { ArticleService } from "../../shared/services/article-service"
-import { TagService } from '../../shared/services/tag-service';
+import { SharedState } from 'shared/state/shared-state';
+import { ArticleService } from "shared/services/article-service"
+import { TagService } from 'shared/services/tag-service';
 import { inject } from '@aurelia/kernel';
 import { customElement } from '@aurelia/runtime';
 import template from './home-component.html';
-import { Article } from '../editor/editor-component';
+import { ArticleRequest } from 'models/article-request';
+import { Article } from 'models/article';
 
 @inject(SharedState, ArticleService, TagService)
 @customElement({ name: 'home-component', template })
@@ -12,9 +13,9 @@ export class HomeComponent {
   private articles: Article[] = [];
   private shownList = 'all';
   private tags: string[] = [];
-  private filterTag = undefined;
-  private pageNumber: number;
-  private totalPages: number[];
+  private filterTag?: string;
+  private pageNumber?: number;
+  private totalPages?: number[];
   private currentPage = 1;
   private limit = 10;
 
@@ -30,11 +31,12 @@ export class HomeComponent {
   getArticles() {
     let params = {
       limit: this.limit,
-      tag: undefined,
       offset: this.limit * (this.currentPage - 1)
-    };
-    if (this.filterTag !== undefined)
-      params.tag = this.filterTag;
+    } as ArticleRequest;
+
+    if (this.filterTag)
+      params.tag = this.filterTag!;
+
     this.articleService.getList(this.shownList, params)
       .then(response => {
         this.articles = response.articles;
@@ -51,7 +53,7 @@ export class HomeComponent {
       })
   }
 
-  setListTo(type, tag) {
+  setListTo(type: string, tag: string) {
     if (type === 'feed' && !this.sharedState.isAuthenticated) return;
     this.shownList = type;
     this.filterTag = tag;
@@ -67,7 +69,7 @@ export class HomeComponent {
     return clazz;
   }
 
-  setPageTo(pageNumber) {
+  setPageTo(pageNumber: number) {
     this.currentPage = pageNumber;
     this.getArticles();
   }

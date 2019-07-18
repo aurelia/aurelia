@@ -1,9 +1,9 @@
-import { config } from './config';
 import { HttpClient, json } from '@aurelia/fetch-client';
-import * as qs from 'querystringify';
-import { JwtService } from './jwt-service';
-import { status, parseError } from './service-helper';
 import { inject } from '@aurelia/kernel';
+import * as qs from 'querystringify';
+import { config } from './config';
+import { JwtService } from './jwt-service';
+import { parseError, status } from './service-helper';
 
 @inject(HttpClient, JwtService)
 export class ApiService {
@@ -11,68 +11,64 @@ export class ApiService {
   constructor(private readonly http: HttpClient, private readonly jwtService: JwtService) {
   }
 
-  setHeaders() {
+  public setHeaders() {
     const headersConfig = {
+      'Accept': 'application/json',
       'Content-Type': 'application/json',
-      'Accept': 'application/json'
     };
     return new Headers(headersConfig);
   }
 
-  async get(path: string, params?: unknown) {
+  public async get(path: string, params: object = {}) {
     const options = {
+      headers: this.setHeaders(),
       method: 'GET',
-      headers: this.setHeaders()
     };
     try {
-      let response = await this.http.fetch(`${config.api_url}${path}?${qs.stringify(params)}`, options);
+      const response = await this.http.fetch(`${config.api_url}${path}?${qs.stringify(params)}`, options);
       return status(response);
-    }
-    catch (error) {
+    } catch (error) {
       return parseError(error);
     }
   }
 
-  async put(path: string, body = {}) {
+  public async put(path: string, body = {}) {
     const options = {
+      body: json(body),
+      headers: this.setHeaders(),
       method: 'PUT',
-      headers: this.setHeaders(),
-      body: json(body)
     };
     try {
-      let response = await this.http.fetch(`${config.api_url}${path}`, options);
+      const response = await this.http.fetch(`${config.api_url}${path}`, options);
       return status(response);
-    }
-    catch (error) {
+    } catch (error) {
       return parseError(error);
     }
   }
 
-  async post(path: string, body = {}) {
+  public async post(path: string, body = {}) {
     const options = {
+      body: json(body),
+      headers: this.setHeaders(),
       method: 'POST',
-      headers: this.setHeaders(),
-      body: json(body)
     };
     try {
-      let response = await this.http.fetch(`${config.api_url}${path}`, options);
+      const response = await this.http.fetch(`${config.api_url}${path}`, options);
       return status(response);
-    }
-    catch (error) {
+    } catch (error) {
       return parseError(error);
     }
   }
 
-  async delete(path: string) {
+  public async delete(path: string) {
     const options = {
+      headers: this.setHeaders(),
       method: 'DELETE',
-      headers: this.setHeaders()
     };
     try {
-      let response = await this.http.fetch(`${config.api_url}${path}`, options);
+      const response = await this.http.fetch(`${config.api_url}${path}`, options);
       return status(response);
-    }
-    catch (error) {
+    } catch (error) {
       return parseError(error);
     }
   }

@@ -1,12 +1,14 @@
 import { bindable, customElement } from "@aurelia/runtime";
-import { Article } from "../../components/editor/editor-component";
+import { Article } from "shared/models/article";
 import template from './article-preview.html';
 
 @customElement({ name: 'article-preview', template })
 export class ArticlePreview {
-  @bindable article: Article;
+  @bindable public article?: Article;
 
-  onToggleFavorited(value) {
+  public onToggleFavorited(value: boolean) {
+    if (!this.article || !this.article.favoritesCount) { return; }
+
     if (value) {
       this.article.favoritesCount++;
     } else {

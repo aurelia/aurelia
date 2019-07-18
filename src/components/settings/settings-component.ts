@@ -1,6 +1,6 @@
 import { customElement } from '@aurelia/runtime';
-import { UserService } from '../../shared/services/user-service';
-import { SharedState } from '../../shared/state/shared-state';
+import { UserService } from 'shared/services/user-service';
+import { SharedState } from 'shared/state/shared-state';
 import { inject } from '@aurelia/kernel';
 import { Router } from '@aurelia/router';
 import template from './settings-component.html';

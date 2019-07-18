@@ -1,8 +1,8 @@
-import { ApiService } from './api-service';
 import { inject } from '@aurelia/kernel';
-import { Article } from '../../components/editor/editor-component';
+import { Article } from 'shared/models/article';
+import { ApiService } from './api-service';
 
-export type ArticleResponse = {
+export interface ArticleResponse {
   articles: Article[];
   articlesCount: number;
 }
@@ -13,37 +13,37 @@ export class ArticleService {
   constructor(private readonly apiService: ApiService) {
   }
 
-  getList(type: string, params: any): Promise<ArticleResponse> {
+  public getList(type: string, params: any): Promise<ArticleResponse> {
     return this.apiService.get('/articles' + ((type === 'feed') ? '/feed' : ''), params);
   }
 
-  get(slug: string) {
-    return this.apiService.get('/articles/' + slug)
-      .then((data: { article: any; }) => data.article)
+  public async get(slug: string) {
+    const data = await this.apiService.get('/articles/' + slug);
+    return data.article;
   }
 
-  destroy(slug: string) {
-    return this.apiService.delete('/articles/' + slug)
+  public destroy(slug: string) {
+    return this.apiService.delete('/articles/' + slug);
   }
 
-  save(article: Article) {
+  public async save(article: Article) {
     if (article.slug) {
       // If we're updating an existing article
-      return this.apiService.put('/articles/' + article.slug, { article: article })
-        .then(data => data.article)
+      const data = await this.apiService.put('/articles/' + article.slug, { article });
+      return data.article;
     } else {
       // Otherwise, create a new article
-      return this.apiService.post('/articles/', { article: article })
-        .then(data => data.article)
+      const result = await this.apiService.post('/articles/', { article });
+      return result.article;
     }
   }
 
-  favorite(slug: string) {
-    return this.apiService.post('/articles/' + slug + '/favorite')
+  public favorite(slug: string) {
+    return this.apiService.post('/articles/' + slug + '/favorite');
   }
 
-  unfavorite(slug: string) {
-    return this.apiService.delete('/articles/' + slug + '/favorite')
+  public unfavorite(slug: string) {
+    return this.apiService.delete('/articles/' + slug + '/favorite');
   }
 
 }

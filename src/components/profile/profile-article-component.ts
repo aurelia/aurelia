@@ -1,42 +1,42 @@
-import { ArticleService } from "../../shared/services/article-service";
 import { inject } from "@aurelia/kernel";
 import { customElement } from "@aurelia/runtime";
+import { Article } from "shared/models/article";
+import { ArticleService } from "shared/services/article-service";
 import template from './profile-article-component.html';
 @inject(ArticleService)
-@customElement({ name: 'profile-article-component', template: template })
+@customElement({ name: 'profile-article-component', template })
 export class ProfileArticleComponent {
-  articles = [];
-  pageNumber: any;
-  totalPages: number[];
-  currentPage = 1;
-  limit = 10;
-  username: any;
+  private articles: Article[] = [];
+  private pageNumber?: number;
+  private totalPages?: number[];
+  private currentPage = 1;
+  private limit = 10;
+  private username?: string;
 
   constructor(private readonly articleService: ArticleService) {
   }
 
-  enter(params: any) {
+  public enter(params: any) {
     this.username = params.name;
     return this.getArticles();
   }
 
-  getArticles() {
-    let queryParams = {
+  public getArticles() {
+    const queryParams = {
+      author: this.username,
       limit: this.limit,
       offset: this.limit * (this.currentPage - 1),
-      author: this.username
     };
     return this.articleService.getList('all', queryParams)
-      .then(response => {
+      .then((response) => {
         this.articles.splice(0);
-        this.articles.push(...response.articles)
-
-        // Used from http://www.jstips.co/en/create-range-0...n-easily-using-one-line/
-        this.totalPages = Array.from(new Array(Math.ceil(response.articlesCount / this.limit)), (val, index) => index + 1);
-      })
+        this.articles.push(...response.articles);
+        this.totalPages = Array.from(new Array(Math.ceil(response.articlesCount / this.limit)),
+          (_, index) => index + 1);
+      });
   }
 
-  setPageTo(pageNumber: number) {
+  public setPageTo(pageNumber: number) {
     this.currentPage = pageNumber;
     this.getArticles();
   }

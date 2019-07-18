@@ -22,16 +22,16 @@
 
           <form>
             <fieldset class="form-group" if.bind="type === 'register'">
-              <input class="form-control form-control-lg" type="text" placeholder="Your Name" value.bind="username"
+              <input class="form-control form-control-lg" type="text" placeholder="Your Name" value.bind="user.username"
                 required>
             </fieldset>
             <fieldset class="form-group">
-              <input class="form-control form-control-lg" type="text" placeholder="Email" value.bind="email" required>
+              <input class="form-control form-control-lg" type="text" placeholder="Email" value.bind="user.email" required>
             </fieldset>
             <fieldset class="form-group">
-              <input class="form-control form-control-lg" type="password" placeholder="Password" value.bind="password">
+              <input class="form-control form-control-lg" type="password" placeholder="Password" value.bind="user.password">
             </fieldset>
-            <button class="btn btn-lg btn-primary pull-xs-right" click.trigger="submit()" disabled.bind="!canSave">
+            <button class="btn btn-lg btn-primary pull-xs-right" click.delegate="submit()" disabled.bind="!canSave">
               Sign ${type === 'login' ? 'in' : 'up'}
             </button>
           </form>

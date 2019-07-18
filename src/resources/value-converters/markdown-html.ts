@@ -1,9 +1,8 @@
-import marked from 'marked';
 import { valueConverter } from '@aurelia/runtime';
+import * as marked from 'marked';
 @valueConverter({ name: 'markdownHtml' })
 export class MarkdownHtmlValueConverter {
-  toView(value: string) {
+  public toView(value: string) {
     return marked(value);
   }
 }
-

@@ -1,65 +1,64 @@
-import { ArticleService } from "../../shared/services/article-service";
 import { inject } from "@aurelia/kernel";
 import { Router } from "@aurelia/router";
-import { observes, bindable, customElement, BindingMode } from "@aurelia/runtime";
+import { bindable, BindingMode, customElement } from "@aurelia/runtime";
+import { Article } from "shared/models/article";
+import { ArticleService } from "shared/services/article-service";
 import template from './editor-component.html';
 
-export type Article = {
-  title?: string;
-  description?: string;
-  body?: string;
-  tagList?: any;
-  slug?: string;
-  favoritesCount?: number
-};
-
 @inject(ArticleService, Router)
-@customElement({ name: 'editor-component', template: template })
+@customElement({ name: 'editor-component', template })
 export class EditorComponent {
-  article: Article;
-  @bindable({ mode: BindingMode.twoWay }) tag: string;
-  slug: string;
+  @bindable({ mode: BindingMode.twoWay }) public tag?: string;
+  private article?: Article;
+  private slug?: string;
 
   constructor(private readonly articleService: ArticleService, private readonly router: Router) {
   }
 
-  enter(params: { slug: any; }) {
+  public enter(params: { slug: any; }) {
     this.slug = params.slug;
 
     if (this.slug) {
       return this.articleService.get(this.slug)
-        .then(article => {
+        .then((article) => {
           this.article = article;
         });
     } else {
       this.article = {
-        title: '',
-        description: '',
         body: '',
-        tagList: []
+        description: '',
+        tagList: [],
+        title: '',
       };
     }
     return null;
   }
 
-  tagChanged(newValue: string, oldValue: any) {
-    if (newValue !== undefined && newValue !== '')
+  public tagChanged(newValue: string) {
+    if (newValue !== undefined && newValue !== '') {
       this.addTag(this.tag);
+    }
   }
 
-  addTag(tag: any) {
+  public addTag(tag: any) {
+    if (!this.article) { return; }
+    if (!this.article.tagList) {
+      this.article.tagList = [];
+    }
+
     this.article.tagList.push(tag);
   }
 
-  removeTag(tag: any) {
-    this.article.tagList.splice(this.article.tagList.indexOf(tag), 1);
+  public removeTag(tag: string) {
+    this.article!.tagList!.splice(this.article!.tagList!.indexOf(tag), 1);
   }
 
-  publishArticle() {
+  public publishArticle() {
+    if (!this.article) { return; }
     this.articleService.save(this.article)
       .then((article) => {
         this.slug = article.slug;
-        this.router.goto('article', null, { slug: this.slug })
-      })
+        this.router.goto('article', 'article', { slug: this.slug });
+      });
   }
 }

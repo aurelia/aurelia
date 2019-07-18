@@ -1,4 +1,4 @@
-import { SharedState } from "../../shared/state/shared-state";
+import { SharedState } from "shared/state/shared-state";
 import { inject } from "@aurelia/kernel";
 import { bindable, customElement } from "@aurelia/runtime";
 import template from './comment.html';

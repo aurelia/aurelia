@@ -1,32 +1,31 @@
-// Promise polyfill for old browsers
-import 'promise-polyfill/lib/polyfill';
 import { DebugConfiguration } from '@aurelia/debug';
+import { HttpClient } from '@aurelia/fetch-client';
 import { BasicConfiguration } from '@aurelia/jit-html-browser';
-import { Aurelia, CustomElement } from '@aurelia/runtime';
+import { ViewportCustomElement } from '@aurelia/router';
+import { Aurelia } from '@aurelia/runtime';
+import 'promise-polyfill/lib/polyfill';
+import { HttpInterceptor } from 'shared/services/http-interceptor';
 import { App } from './app';
+import { ArticleComponent } from './components/article/article-component';
+import { CommentCustomElement } from './components/article/comment';
+import { AuthComponent } from './components/auth/auth-component';
+import { EditorComponent } from './components/editor/editor-component';
 import { HomeComponent } from './components/home/home-component';
-import { Registration } from '@aurelia/kernel';
-import { ViewportCustomElement, NavCustomElement } from '@aurelia/router';
-import { HeaderLayout } from './shared/layouts/header-layout';
-import { FooterLayout } from './shared/layouts/footer-layout';
-import { FavoriteButton } from './shared/buttons/favorite-button';
-import { FollowButton } from './shared/buttons/follow-button';
+import { ProfileArticleComponent } from './components/profile/profile-article-component';
+import { ProfileComponent } from './components/profile/profile-component';
+import { ProfileFavoritesComponent } from './components/profile/profile-favorites-component';
+import { SettingsComponent } from './components/settings/settings-component';
 import { ArticleList } from './resources/elements/article-list';
 import { ArticlePreview } from './resources/elements/article-preview';
-import { ProfileComponent } from './components/profile/profile-component';
-import { EditorComponent } from './components/editor/editor-component';
-import { AuthComponent } from './components/auth/auth-component';
 import { DateValueConverter } from './resources/value-converters/date';
 import { FormatHtmlValueConverter } from './resources/value-converters/format-html';
 import { KeysValueConverter } from './resources/value-converters/keys';
-import { SharedState } from './shared/state/shared-state';
-import { ProfileArticleComponent } from './components/profile/profile-article-component';
-import { ProfileFavoritesComponent } from './components/profile/profile-favorites-component';
-import { CommentCustomElement } from './components/article/comment';
-import { ArticleComponent } from './components/article/article-component';
 import { MarkdownHtmlValueConverter } from './resources/value-converters/markdown-html';
-import { SettingsComponent } from './components/settings/settings-component';
-import { UpdateTriggerBindingBehavior } from '@aurelia/runtime-html';
+import { FavoriteButton } from './shared/buttons/favorite-button';
+import { FollowButton } from './shared/buttons/follow-button';
+import { FooterLayout } from './shared/layouts/footer-layout';
+import { HeaderLayout } from './shared/layouts/header-layout';
+import { SharedState } from './shared/state/shared-state';
 
 const container =
   BasicConfiguration.createContainer().register(
@@ -51,15 +50,22 @@ const container =
     ProfileArticleComponent,
     ProfileFavoritesComponent,
     CommentCustomElement,
-    MarkdownHtmlValueConverter
+    MarkdownHtmlValueConverter,
+    HttpClient,
   );
 
-// Registration.alias(CustomElement.keyFrom(AuthComponent.name), 'login').register(container);
-
-global['au'] = new Aurelia(container)
+(global as any).au = new Aurelia(container)
   .register(BasicConfiguration, DebugConfiguration)
   .app({
-    host: document.querySelector('app'),
-    component: App
+    component: App,
+    host: document.querySelector('app')!,
   })
   .start();
+
+const http = container.get(HttpClient);
+const interceptor = container.get(HttpInterceptor);
+http.configure((config) => {
+  config
+    .withInterceptor(interceptor);
+  return config;
+});

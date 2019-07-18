@@ -1,29 +1,33 @@
-import { SharedState } from '../state/shared-state';
-import { ProfileService } from '../services/profile-service';
 import { inject } from '@aurelia/kernel';
-import { bindable, customElement } from '@aurelia/runtime';
 import { Router } from '@aurelia/router';
+import { bindable, customElement } from '@aurelia/runtime';
 import template from './follow-button.html';
 
-@inject(Router, SharedState, ProfileService)
-@customElement({ name: 'follow-button', template: template })
-export class FollowButton {
-  @bindable article: any;
-  @bindable toggle: any;
+import { ProfileService } from 'shared/services/profile-service';
+import { SharedState } from 'shared/state/shared-state';
 
-  constructor(private readonly router: Router, private readonly sharedState: SharedState, private readonly profileService: ProfileService) {
+@inject(Router, SharedState, ProfileService)
+@customElement({ name: 'follow-button', template })
+export class FollowButton {
+  @bindable public article: any;
+  @bindable public toggle: any;
+
+  constructor(private readonly router: Router,
+              private readonly sharedState: SharedState,
+              private readonly profileService: ProfileService) {
   }
 
-  onToggleFollowing() {
+  public onToggleFollowing() {
     if (!this.sharedState.isAuthenticated) {
       this.router.goto('auth-component(type=login)');
       return;
     }
     this.article.author.following = !this.article.author.following;
-    if (this.article.author.following)
+    if (this.article.author.following) {
       this.profileService.follow(this.article.author.username);
-    else
+    } else {
       this.profileService.unfollow(this.article.author.username);
+    }
 
     this.toggle(this.article.author.following);
   }

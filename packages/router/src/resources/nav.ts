@@ -5,18 +5,29 @@ import { bindable, customElement, INode } from '@aurelia/runtime';
 import { NavRoute } from '../nav-route';
 import { Router } from '../router';
 
+export interface INavClasses {
+  nav?: string;
+  ul?: string;
+  li?: string;
+  a?: string;
+
+  ulActive?: string;
+  liActive?: string;
+  aActive?: string;
+}
+
 @inject(Router, INode)
 @customElement({
   name: 'au-nav', template:
     `<template>
-  <nav if.bind="name" class="\${name}">
-    <au-nav routes.bind="navRoutes" containerless></au-nav>
+  <nav if.bind="name" class="\${name} \${navClasses.nav}">
+    <au-nav routes.bind="navRoutes" classes.bind="navClasses" containerless></au-nav>
   </nav>
-  <ul if.bind="routes" class="nav-level-\${level}">
-    <li repeat.for="route of routes" class="\${route.active} \${route.hasChildren}">
-      <a if.bind="route.link && route.link.length" href="\${route.link}">\${route.title}</a>
-      <a if.bind="!route.link || !route.link.length" click.delegate="route.toggleActive()" href="">\${route.title}</a>
-      <au-nav if.bind="route.children" routes.bind="route.children" level.bind="level + 1" containerless></au-nav>
+  <ul if.bind="routes" class="nav-level-\${level} \${classes.ul}">
+    <li repeat.for="route of routes" class="\${route.active ? classes.liActive : ''} \${route.hasChildren} \${classes.li}">
+      <a if.bind="route.link && route.link.length" href="\${route.link}" class="\${route.active ? classes.aActive : ''} \${classes.a}">\${route.title}</a>
+      <a if.bind="!route.link || !route.link.length" click.delegate="route.toggleActive()" href="" class="\${route.active ? classes.aActive : ''} \${classes.a}">\${route.title}</a>
+      <au-nav if.bind="route.children" routes.bind="route.children" level.bind="level + 1" classes.bind="classes" containerless></au-nav>
     </li>
   </ul>
 </template>` })
@@ -24,6 +35,7 @@ export class NavCustomElement {
   @bindable public name: string;
   @bindable public routes: NavRoute[];
   @bindable public level: number;
+  @bindable public classes: INavClasses;
 
   private readonly router: Router;
 
@@ -33,11 +45,29 @@ export class NavCustomElement {
     this.name = null;
     this.routes = null;
     this.level = 0;
+    this.classes = {};
   }
 
   get navRoutes(): NavRoute[] {
     const nav = this.router.navs[this.name];
     return (nav ? nav.routes : []);
+  }
+
+  get navClasses(): INavClasses {
+    const nav = this.router.navs[this.name];
+    const navClasses = (nav ? nav.classes : {});
+    return {
+      ... {
+        nav: '',
+        ul: '',
+        li: '',
+        a: '',
+
+        ulActive: '',
+        liActive: 'nav-active',
+        aActive: '',
+      }, ...navClasses
+    };
   }
 
   public active(route: NavRoute): string {

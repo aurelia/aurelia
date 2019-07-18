@@ -8,6 +8,7 @@ import { INavRoute, Nav } from './nav';
 import { INavigationEntry, INavigationInstruction, INavigatorOptions, Navigator } from './navigator';
 import { IParsedQuery, parseQuery } from './parser';
 import { QueueItem } from './queue';
+import { INavClasses } from './resources/nav';
 import { RouteTable } from './route-table';
 import { Scope } from './scope';
 import { arrayRemove } from './utils';
@@ -57,8 +58,8 @@ export interface IRouter {
   back(): Promise<void>;
   forward(): Promise<void>;
 
-  setNav(name: string, routes: INavRoute[]): void;
-  addNav(name: string, routes: INavRoute[]): void;
+  setNav(name: string, routes: INavRoute[], classes?: INavClasses): void;
+  addNav(name: string, routes: INavRoute[], classes?: INavClasses): void;
   findNav(name: string): Nav;
 }
 
@@ -434,20 +435,20 @@ export class Router implements IRouter {
     return this.navigator.go(1);
   }
 
-  public setNav(name: string, routes: INavRoute[]): void {
+  public setNav(name: string, routes: INavRoute[], classes?: INavClasses): void {
     const nav = this.findNav(name);
     if (nav) {
       nav.routes = [];
     }
-    this.addNav(name, routes);
+    this.addNav(name, routes, classes);
   }
-  public addNav(name: string, routes: INavRoute[]): void {
+  public addNav(name: string, routes: INavRoute[], classes?: INavClasses): void {
     let nav = this.navs[name];
     if (!nav) {
-      nav = this.navs[name] = new Nav(this, name);
+      nav = this.navs[name] = new Nav(this, name, [], classes);
     }
     nav.addRoutes(routes);
-    this.navs[name] = new Nav(nav.router, nav.name, nav.routes);
+    this.navs[name] = new Nav(nav.router, nav.name, nav.routes, nav.classes);
   }
   public findNav(name: string): Nav {
     return this.navs[name];

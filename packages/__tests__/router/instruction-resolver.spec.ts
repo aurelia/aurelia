@@ -53,7 +53,7 @@ describe('InstructionResolver', function () {
       new ViewportInstruction('bar', 'right', '456'),
     ];
     let instructionsString = router.instructionResolver.stringifyViewportInstructions(instructions);
-    assert.strictEqual(instructionsString, 'foo@left(123)+bar@right(456)', `instructionsString`);
+    assert.strictEqual(instructionsString, 'foo(123)@left+bar(456)@right', `instructionsString`);
     let newInstructions = router.instructionResolver.parseViewportInstructions(instructionsString);
     assert.deepStrictEqual(newInstructions, instructions, `newInstructions`);
 
@@ -78,7 +78,7 @@ describe('InstructionResolver', function () {
   const instructions: InstructionTest[] = [
     { instruction: 'foo', viewportInstruction: new ViewportInstruction('foo') },
     { instruction: 'foo@left', viewportInstruction: new ViewportInstruction('foo', 'left') },
-    { instruction: 'foo@left(123)', viewportInstruction: new ViewportInstruction('foo', 'left', '123') },
+    { instruction: 'foo(123)@left', viewportInstruction: new ViewportInstruction('foo', 'left', '123') },
     { instruction: 'foo(123)', viewportInstruction: new ViewportInstruction('foo', undefined, '123') },
     { instruction: 'foo/bar', viewportInstruction: new ViewportInstruction('foo', undefined, undefined, false, new ViewportInstruction('bar')) },
     { instruction: 'foo(123)/bar@left/baz', viewportInstruction: new ViewportInstruction('foo', undefined, '123', false, new ViewportInstruction('bar', 'left', undefined, false, new ViewportInstruction('baz'))) },

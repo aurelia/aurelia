@@ -1,7 +1,7 @@
 import { DebugConfiguration } from '@aurelia/debug';
 import { HttpClient } from '@aurelia/fetch-client';
 import { BasicConfiguration } from '@aurelia/jit-html-browser';
-import { ViewportCustomElement } from '@aurelia/router';
+import { RouterConfiguration } from '@aurelia/router';
 import { Aurelia } from '@aurelia/runtime';
 import 'promise-polyfill/lib/polyfill';
 import { HttpInterceptor } from 'shared/services/http-interceptor';
@@ -30,7 +30,6 @@ import { SharedState } from './shared/state/shared-state';
 const container =
   BasicConfiguration.createContainer().register(
     App,
-    ViewportCustomElement,
     HomeComponent,
     HeaderLayout,
     FooterLayout,
@@ -55,7 +54,7 @@ const container =
   );
 
 (global as any).au = new Aurelia(container)
-  .register(BasicConfiguration, DebugConfiguration)
+  .register(BasicConfiguration, DebugConfiguration, RouterConfiguration)
   .app({
     component: App,
     host: document.querySelector('app')!,

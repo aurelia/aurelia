@@ -1,5 +1,7 @@
 export { INavigationStore, INavigationViewer, INavigationViewerEvent, INavigationState, BrowserNavigation, } from './browser-navigation';
 export { ILinkHandlerOptions, AnchorEventInfo, LinkHandler, } from './link-handler';
+export { Guard, } from './guard';
+export { IGuardTarget, GuardTypes, GuardFunction, GuardTarget, GuardIdentity, IGuardOptions, Guardian, } from './guardian';
 export { IViewportComponent, NavInstruction, INavRoute, Nav, } from './nav';
 export { IStoredNavigationEntry, INavigationEntry, INavigatorOptions, INavigationFlags, INavigationInstruction, Navigator, } from './navigator';
 export { QueueItem, IQueueOptions, Queue, } from './queue';

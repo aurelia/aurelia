@@ -59,6 +59,12 @@ export class InstructionResolver {
         }
         return instructions.map((instruction) => this.stringifyViewportInstruction(instruction)).join(this.separators.scope);
     }
+    encodeViewportInstructions(instructions) {
+        return encodeURIComponent(this.stringifyViewportInstructions(instructions)).replace(/\(/g, '%28').replace(/\)/g, '%29');
+    }
+    decodeViewportInstructions(instructions) {
+        return this.parseViewportInstructions(decodeURIComponent(instructions));
+    }
     buildScopedLink(scopeContext, href) {
         if (scopeContext) {
             href = `/${scopeContext}${this.separators.scope}${href}`;
@@ -69,6 +75,22 @@ export class InstructionResolver {
         const clearViewports = (path === this.separators.clear || path.startsWith(this.separators.clear + this.separators.add));
         const newPath = path.startsWith(this.separators.clear) ? path.slice(2) : path;
         return { clear: clearViewports, newPath };
+    }
+    mergeViewportInstructions(instructions) {
+        const merged = [];
+        for (let instruction of instructions) {
+            if (typeof instruction === 'string') {
+                instruction = this.parseViewportInstruction(instruction);
+            }
+            const index = merged.findIndex(merge => merge.sameViewport(instruction));
+            if (index >= 0) {
+                merged.splice(index, 1, instruction);
+            }
+            else {
+                merged.push(instruction);
+            }
+        }
+        return merged;
     }
     removeStateDuplicates(states) {
         let sorted = states.slice().sort((a, b) => b.split(this.separators.scope).length - a.split(this.separators.scope).length);
@@ -97,26 +119,14 @@ export class InstructionResolver {
         return strings.join(this.separators.sibling);
     }
     parseAViewportInstruction(instruction) {
-        let component;
-        let viewport;
-        let parameters;
         let scope;
-        const [componentPart, rest] = instruction.split(this.separators.viewport);
-        if (rest === undefined) {
-            [component, ...parameters] = componentPart.split(this.separators.parameters);
-            if (component.endsWith(this.separators.ownsScope)) {
-                scope = true;
-                component = component.slice(0, -this.separators.ownsScope.length);
-            }
+        // Scope is always at the end, regardless of anything else
+        if (instruction.endsWith(this.separators.ownsScope)) {
+            scope = true;
+            instruction = instruction.slice(0, -this.separators.ownsScope.length);
         }
-        else {
-            component = componentPart;
-            [viewport, ...parameters] = rest.split(this.separators.parameters);
-            if (viewport.endsWith(this.separators.ownsScope)) {
-                scope = true;
-                viewport = viewport.slice(0, -this.separators.ownsScope.length);
-            }
-        }
+        const [componentPart, viewport] = instruction.split(this.separators.viewport);
+        const [component, ...parameters] = componentPart.split(this.separators.parameters);
         let parametersString = parameters.length ? parameters.join(this.separators.parameters) : undefined;
         // The parameter separator can be either a standalone character (such as / or =) or a pair of enclosing characters
         // (such as ()). The separating character is consumed but the end character is not, so we still need to remove that.
@@ -131,12 +141,12 @@ export class InstructionResolver {
         }
         else {
             let instructionString = instruction.componentName;
-            if (instruction.viewportName != null && !excludeViewport) {
-                instructionString += this.separators.viewport + instruction.viewportName;
-            }
             if (instruction.parametersString) {
                 // TODO: Review parameters in ViewportInstruction
                 instructionString += this.separators.parameters + instruction.parametersString + this.separators.parametersEnd;
+            }
+            if (instruction.viewportName !== null && !excludeViewport) {
+                instructionString += this.separators.viewport + instruction.viewportName;
             }
             if (instruction.ownsScope) {
                 instructionString += this.separators.ownsScope;

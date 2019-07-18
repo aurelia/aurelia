@@ -1,6 +1,7 @@
 import { IContainer, Key } from '@aurelia/kernel';
 import { ICustomElementType, IRenderContext } from '@aurelia/runtime';
 import { BrowserNavigation, INavigationViewerEvent } from './browser-navigation';
+import { Guardian } from './guardian';
 import { InstructionResolver, IRouteSeparators } from './instruction-resolver';
 import { AnchorEventInfo, LinkHandler } from './link-handler';
 import { INavRoute, Nav } from './nav';
@@ -28,7 +29,7 @@ export interface IRouter {
     deactivate(): void;
     linkCallback(info: AnchorEventInfo): void;
     processNavigations(qInstruction: QueueItem<INavigationInstruction>): Promise<void>;
-    addProcessingViewport(componentOrInstruction: string | Partial<ICustomElementType> | ViewportInstruction, viewport?: Viewport | string): void;
+    addProcessingViewport(componentOrInstruction: string | Partial<ICustomElementType> | ViewportInstruction, viewport?: Viewport | string, onlyIfProcessingStatus?: boolean): void;
     addViewport(name: string, element: Element, context: IRenderContext, options?: IViewportOptions): Viewport;
     removeViewport(viewport: Viewport, element: Element, context: IRenderContext): void;
     allViewports(): Viewport[];
@@ -53,6 +54,7 @@ export declare class Router implements IRouter {
     navigation: BrowserNavigation;
     linkHandler: LinkHandler;
     instructionResolver: InstructionResolver;
+    guardian: Guardian;
     navs: Record<string, Nav>;
     activeComponents: string[];
     addedViewports: ViewportInstruction[];
@@ -69,7 +71,7 @@ export declare class Router implements IRouter {
     navigatorCallback: (instruction: INavigationInstruction) => void;
     navigationCallback: (navigation: INavigationViewerEvent) => void;
     processNavigations: (qInstruction: QueueItem<INavigationInstruction>) => Promise<void>;
-    addProcessingViewport(componentOrInstruction: string | Partial<ICustomElementType> | ViewportInstruction, viewport?: Viewport | string): void;
+    addProcessingViewport(componentOrInstruction: string | Partial<ICustomElementType> | ViewportInstruction, viewport?: Viewport | string, onlyIfProcessingStatus?: boolean): void;
     findScope(element: Element): Scope;
     getViewport(name: string): Viewport;
     addViewport(name: string, element: Element, context: IRenderContext, options?: IViewportOptions): Viewport;

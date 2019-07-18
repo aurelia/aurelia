@@ -4,7 +4,7 @@
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "@aurelia/kernel", "@aurelia/runtime", "./browser-navigation", "./instruction-resolver", "./link-handler", "./nav", "./navigator", "./parser", "./route-table", "./scope", "./utils", "./viewport-instruction"], factory);
+        define(["require", "exports", "@aurelia/kernel", "@aurelia/runtime", "./browser-navigation", "./guardian", "./instruction-resolver", "./link-handler", "./nav", "./navigator", "./parser", "./route-table", "./scope", "./utils", "./viewport-instruction"], factory);
     }
 })(function (require, exports) {
     "use strict";
@@ -12,6 +12,7 @@
     const kernel_1 = require("@aurelia/kernel");
     const runtime_1 = require("@aurelia/runtime");
     const browser_navigation_1 = require("./browser-navigation");
+    const guardian_1 = require("./guardian");
     const instruction_resolver_1 = require("./instruction-resolver");
     const link_handler_1 = require("./link-handler");
     const nav_1 = require("./nav");
@@ -119,6 +120,13 @@
                         }
                     }
                     const changedViewports = [];
+                    const outcome = this.guardian.passes("before" /* Before */, viewportInstructions, instruction);
+                    if (!outcome) {
+                        return this.cancelNavigation([...changedViewports, ...updatedViewports], instruction);
+                    }
+                    if (typeof outcome !== 'boolean') {
+                        viewportInstructions = outcome;
+                    }
                     for (const viewportInstruction of viewportInstructions) {
                         const viewport = viewportInstruction.viewport;
                         const componentWithParameters = this.instructionResolver.stringifyViewportInstruction(viewportInstruction, true);
@@ -176,7 +184,8 @@
                     viewportsRemaining = remaining.viewportsRemaining;
                     defaultViewports = this.allViewports().filter(viewport => viewport.options.default
                         && viewport.content.component === null
-                        && doneDefaultViewports.every(done => done !== viewport));
+                        && doneDefaultViewports.every(done => done !== viewport)
+                        && updatedViewports.every(updated => updated !== viewport));
                     if (!this.allViewports().length) {
                         viewportsRemaining = false;
                     }
@@ -204,6 +213,7 @@
             this.routeTransformer = routeTransformer;
             this.linkHandler = linkHandler;
             this.instructionResolver = instructionResolver;
+            this.guardian = new guardian_1.Guardian();
         }
         get isNavigating() {
             return this.processingNavigation !== null;
@@ -235,8 +245,8 @@
             this.navigator.deactivate();
             this.navigation.deactivate();
         }
-        addProcessingViewport(componentOrInstruction, viewport) {
-            if (this.processingNavigation) {
+        addProcessingViewport(componentOrInstruction, viewport, onlyIfProcessingStatus) {
+            if (this.processingNavigation && (onlyIfProcessingStatus === undefined || onlyIfProcessingStatus)) {
                 if (componentOrInstruction instanceof viewport_instruction_1.ViewportInstruction) {
                     if (!componentOrInstruction.viewport) {
                         // TODO: Deal with not yet existing viewports
@@ -252,7 +262,7 @@
                     this.addedViewports.push(new viewport_instruction_1.ViewportInstruction(componentOrInstruction, viewport));
                 }
             }
-            else if (this.lastNavigation) {
+            else if (this.lastNavigation && (onlyIfProcessingStatus === undefined || !onlyIfProcessingStatus)) {
                 this.navigator.navigate({ instruction: '', fullStateInstruction: '', repeating: true }).catch(error => { throw error; });
                 // Don't wait for the (possibly slow) navigation
             }

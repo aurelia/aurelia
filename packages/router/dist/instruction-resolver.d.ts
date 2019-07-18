@@ -24,11 +24,14 @@ export declare class InstructionResolver {
     stringifyViewportInstruction(instruction: ViewportInstruction | string, excludeViewport?: boolean): string;
     parseScopedViewportInstruction(instruction: string): ViewportInstruction[];
     stringifyScopedViewportInstruction(instructions: ViewportInstruction | string | (ViewportInstruction | string)[]): string;
+    encodeViewportInstructions(instructions: ViewportInstruction[]): string;
+    decodeViewportInstructions(instructions: string): ViewportInstruction[];
     buildScopedLink(scopeContext: string, href: string): string;
     shouldClearViewports(path: string): {
         clear: boolean;
         newPath: string;
     };
+    mergeViewportInstructions(instructions: (string | ViewportInstruction)[]): ViewportInstruction[];
     removeStateDuplicates(states: string[]): string[];
     stateStringsToString(stateStrings: string[], clear?: boolean): string;
     private parseAViewportInstruction;

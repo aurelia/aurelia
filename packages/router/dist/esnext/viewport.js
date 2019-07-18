@@ -106,7 +106,7 @@ export class Viewport {
             this.context = context;
         }
         if (!this.content.component && (!this.nextContent || !this.nextContent.component) && this.options.default) {
-            this.router.addProcessingViewport(this.options.default, this);
+            this.router.addProcessingViewport(this.options.default, this, false);
         }
     }
     remove(element, context) {

@@ -89,6 +89,9 @@
             }
             return compareType ? this.component === other.component : this.componentName === other.componentName;
         }
+        sameViewport(other) {
+            return (this.viewport ? this.viewport.name : this.viewportName) === (other.viewport ? other.viewport.name : other.viewportName);
+        }
     }
     exports.ViewportInstruction = ViewportInstruction;
 });

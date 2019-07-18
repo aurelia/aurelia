@@ -19,5 +19,6 @@ export declare class ViewportInstruction {
     componentType(context: IRenderContext): IRouteableCustomElementType;
     viewportInstance(router: Router): Viewport;
     sameComponent(other: ViewportInstruction, compareParameters?: boolean, compareType?: boolean): boolean;
+    sameViewport(other: ViewportInstruction): boolean;
 }
 //# sourceMappingURL=viewport-instruction.d.ts.map

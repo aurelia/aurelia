@@ -1,5 +1,7 @@
 export { BrowserNavigation, } from './browser-navigation';
 export { LinkHandler, } from './link-handler';
+export { Guard, } from './guard';
+export { GuardTypes, Guardian, } from './guardian';
 export { Nav, } from './nav';
 export { Navigator, } from './navigator';
 export { Queue, } from './queue';

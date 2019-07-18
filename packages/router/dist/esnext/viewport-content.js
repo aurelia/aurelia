@@ -75,7 +75,8 @@ export class ViewportContent {
         if (!this.component.canEnter) {
             return Promise.resolve(true);
         }
-        const merged = mergeParameters(this.parameters, this.instruction.query, this.content.parameters);
+        const contentType = this.component !== null ? this.component.constructor : this.content;
+        const merged = mergeParameters(this.parameters, this.instruction.query, contentType.parameters);
         this.instruction.parameters = merged.namedParameters;
         this.instruction.parameterList = merged.parameterList;
         const result = this.component.canEnter(merged.merged, this.instruction, previousInstruction);
@@ -104,7 +105,8 @@ export class ViewportContent {
             return;
         }
         if (this.component.enter) {
-            const merged = mergeParameters(this.parameters, this.instruction.query, this.content.parameters);
+            const contentType = this.component !== null ? this.component.constructor : this.content;
+            const merged = mergeParameters(this.parameters, this.instruction.query, contentType.parameters);
             this.instruction.parameters = merged.namedParameters;
             this.instruction.parameterList = merged.parameterList;
             await this.component.enter(merged.merged, this.instruction, previousInstruction);

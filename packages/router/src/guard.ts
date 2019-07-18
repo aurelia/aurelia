@@ -1,7 +1,7 @@
 import { ICustomElementType } from '@aurelia/runtime';
 
 import { GuardFunction, GuardIdentity, GuardTarget, GuardTypes, IGuardOptions, IGuardTarget } from './guardian';
-import { INavigationInstruction } from './history-browser';
+import { INavigationInstruction } from './navigator';
 import { Viewport } from './viewport';
 import { ViewportInstruction } from './viewport-instruction';
 

@@ -14,14 +14,16 @@ export {
 } from './link-handler';
 
 export {
+  Guard,
+} from './guard';
+
+export {
   IGuardTarget,
-  Target,
   GuardTypes,
   GuardFunction,
   GuardTarget,
   GuardIdentity,
   IGuardOptions,
-  Guard,
   Guardian,
 } from './guardian';
 

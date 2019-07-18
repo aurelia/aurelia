@@ -38,7 +38,8 @@
     "typescript": "^3.0.0",
     "webpack": "^4.0.0",
     "webpack-cli": "^3.0.0",
-    "webpack-dev-server": "^3.0.0"
+    "webpack-dev-server": "^3.0.0",
+    "typescript-tslint-plugin": "^0.5.4"
   },
   "scripts": {
     "lint:html": "htmlhint -c .htmlhintrc src",

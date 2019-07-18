@@ -11,7 +11,7 @@ import template from './auth-component.html';
 export class AuthComponent {
   private user: User = {};
   private type: string = 'login';
-  private errors: string[] = [];
+  private errors?: string[];
 
   constructor(private readonly userService: UserService, private readonly router: Router) {
   }

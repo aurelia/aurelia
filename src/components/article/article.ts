@@ -5,10 +5,10 @@ import { Comment } from "shared/models/comment";
 import { ArticleService } from "shared/services/article-service";
 import { CommentService } from "shared/services/comment-service";
 import { SharedState } from "shared/state/shared-state";
-import template from './article-component.html';
+import template from './article.html';
 
 @inject(ArticleService, CommentService, SharedState)
-@customElement({ name: 'article-component', template })
+@customElement({ name: 'article', template })
 export class ArticleComponent {
   private article?: Article;
   private comments?: Comment[];

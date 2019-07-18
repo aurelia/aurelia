@@ -4,10 +4,10 @@ import { customElement } from '@aurelia/runtime';
 import { Profile } from 'shared/models/profile';
 import { ProfileService } from "shared/services/profile-service";
 import { SharedState } from 'shared/state/shared-state';
-import template from './profile-component.html';
+import template from './profile.html';
 
 @inject(SharedState, ProfileService, Router)
-@customElement({ name: 'profile-component', template })
+@customElement({ name: 'profile', template })
 export class ProfileComponent {
   private username?: string;
   private profile?: Profile;
@@ -24,15 +24,15 @@ export class ProfileComponent {
   }
 
   public gotoFavorites() {
-    this.router.goto(`profile-favorites-component(name=${this.username})@profile-posts`, 'Profile');
+    this.router.goto(`profile-favorites(name=${this.username})@profile-posts`, 'Profile');
   }
 
   get isFavoritesActive() {
-    return this.router.activeComponents.some((y) => y.indexOf('profile-favorites-component') > -1);
+    return this.router.activeComponents.some((y) => y.indexOf('profile-favorites') > -1);
   }
 
   public gotoPosts() {
-    this.router.goto(`profile-article-component(name=${this.username})@profile-posts`, 'Profile');
+    this.router.goto(`profile-article(name=${this.username})@profile-posts`, 'Profile');
   }
 
   get isUser() {
@@ -42,7 +42,7 @@ export class ProfileComponent {
 
   public onToggleFollowing() {
     if (!this.sharedState.isAuthenticated) {
-      this.router.goto('auth-component(type=login)');
+      this.router.goto('auth(type=login)');
       return;
     }
     if (!this.profile) { return; }

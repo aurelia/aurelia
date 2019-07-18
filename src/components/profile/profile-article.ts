@@ -3,9 +3,9 @@ import { customElement } from "@aurelia/runtime";
 import { getPages } from "shared/get-pages";
 import { Article } from "shared/models/article";
 import { ArticleService } from "shared/services/article-service";
-import template from './profile-article-component.html';
+import template from './profile-article.html';
 @inject(ArticleService)
-@customElement({ name: 'profile-article-component', template })
+@customElement({ name: 'profile-article', template })
 export class ProfileArticleComponent {
   private articles: Article[] = [];
   private pageNumber?: number;

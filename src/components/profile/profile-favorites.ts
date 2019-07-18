@@ -3,9 +3,9 @@ import { customElement } from "@aurelia/runtime";
 import { Article } from "models/article";
 import { getPages } from "shared/get-pages";
 import { ArticleService } from "shared/services/article-service";
-import template from './profile-favorites-component.html';
+import template from './profile-favorites.html';
 @inject(ArticleService)
-@customElement({ name: 'profile-favorites-component', template })
+@customElement({ name: 'profile-favorites', template })
 export class ProfileFavoritesComponent {
   private articles: Article[] = [];
   private pageNumber?: number;

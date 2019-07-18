@@ -61,11 +61,4 @@ const container =
     host: document.querySelector('app')!,
   })
   .start();
-
-const http = container.get(HttpClient);
-const interceptor = container.get(HttpInterceptor);
-http.configure((config) => {
-  config
-    .withInterceptor(interceptor);
-  return config;
-});
+  

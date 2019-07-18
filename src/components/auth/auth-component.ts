@@ -25,16 +25,18 @@ export class AuthComponent {
     return this.user.username !== '' && this.user.email !== '' && this.user.password !== '';
   }
 
-  public submit() {
+  public async submit() {
     const credentials = {
       email: this.user.email,
       password: this.user.password,
       username: this.user.username,
     };
-    this.userService.attemptAuth(this.type, credentials)
-      .then(() => this.router.goto('home-component'))
-      .catch((promise) => {
-        promise.then((err: { errors: string[]; }) => this.errors = err.errors);
-      });
+    try {
+      await this.userService.attemptAuth(this.type, credentials);
+      await this.router.goto('home-component');
+    } catch (err) {
+      this.errors = err.errors;
+    }
+
   }
 }

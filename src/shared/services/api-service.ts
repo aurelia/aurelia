@@ -2,13 +2,22 @@ import { HttpClient, json } from '@aurelia/fetch-client';
 import { inject } from '@aurelia/kernel';
 import * as qs from 'querystringify';
 import { config } from './config';
+import { HttpInterceptor } from './http-interceptor';
 import { JwtService } from './jwt-service';
 import { parseError, status } from './service-helper';
 
-@inject(HttpClient, JwtService)
+@inject(HttpClient, JwtService, HttpInterceptor)
 export class ApiService {
 
-  constructor(private readonly http: HttpClient, private readonly jwtService: JwtService) {
+  constructor(private readonly http: HttpClient,
+              private readonly jwtService: JwtService,
+              private interceptor: HttpInterceptor) {
+    http.configure((httpConfiguration) => {
+      httpConfiguration
+        .withInterceptor(interceptor);
+      return httpConfiguration;
+    });
+
   }
 
   public setHeaders() {

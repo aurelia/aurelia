@@ -14,10 +14,10 @@ export class UserService {
 
   // Verify JWT in localstorage with server & load user's info.
   // This runs once on application startup.
-  public populate() {
+  public async populate() {
     if (this.jwtService.getToken()) {
-      this.apiService.get('/user')
-        .then((data) => this.setAuth(data.user));
+      const data = await this.apiService.get('/user');
+      this.setAuth(data.user);
     } else {
       // Remove any potential remnants of previous auth states
       this.purgeAuth();

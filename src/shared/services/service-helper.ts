@@ -15,7 +15,7 @@ export function status(response: Response) {
 
 export function parseError(error: any) {
   if (!(error instanceof Error)) {
-    return new Promise((resolve, reject) => reject(error.json()))
+    return new Promise((resolve, reject) => reject(error.json()));
   }
   return undefined;
 }

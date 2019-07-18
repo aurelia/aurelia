@@ -212,7 +212,6 @@ export class AbcBindingCommand {
     assert.equal(result.code, expected);
   });
 
-
   it('injects various decorators when there is implicit custom element', function () {
     const code = `import {Foo} from './foo';
 import { valueConverter } from '@aurelia/runtime';

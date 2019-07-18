@@ -1,11 +1,9 @@
-import { kebabCase, camelCase } from '@aurelia/kernel';
+import { kebabCase } from '@aurelia/kernel';
 import modifyCode from 'modify-code';
 import { fileBase } from './file-base';
 import { stripHtmlImport } from './strip-html-import';
 
 export function preprocessHtmlTemplate(filePath: string, rawHtml: string, ts: boolean = false) {
-  const name = kebabCase(fileBase(filePath));
-
   const { html, deps } = stripHtmlImport(rawHtml);
 
   const viewDeps: string[] = [];
@@ -18,7 +16,6 @@ export function preprocessHtmlTemplate(filePath: string, rawHtml: string, ts: bo
     if (isCss(ext)) {
       importStatement = `import ${s(d)};\n`;
     } else if (ext === '.html') {
-      const elementName = kebabCase(fileBase(d));
       importStatement = `import * as h${i} from ${s(d)};\n`;
       importStatement += `const d${i} = h${i}.getHTMLOnlyElement();\n`;
       viewDeps.push(`d${i}`);
@@ -30,22 +27,25 @@ export function preprocessHtmlTemplate(filePath: string, rawHtml: string, ts: bo
     importStatements.push(importStatement);
   });
 
+  const name = kebabCase(fileBase(filePath));
   const m = modifyCode('', filePath);
   m.append("import { CustomElement } from '@aurelia/runtime';\n");
   importStatements.forEach(s => m.append(s));
-  m.append(`export const name = ${s(name)};\n`);
-  m.append(`export const template = ${s(html)};\n`);
-  m.append('export default template;\n');
-  m.append(`export const dependencies${ts ? ': any[]' : ''} = [ ${viewDeps.join(', ')} ];\n`);
-  m.append(`let _htmlOnlyElement${ts ? ': any' : ''};
+  m.append(`export const name = ${s(name)};
+export const template = ${s(html)};
+export default template;
+export const dependencies${ts ? ': any[]' : ''} = [ ${viewDeps.join(', ')} ];
+let _e${ts ? ': any' : ''};
 export function getHTMLOnlyElement()${ts ? ': any' : ''} {
-  if (!_htmlOnlyElement) {
-    _htmlOnlyElement = CustomElement.define({ name, template, dependencies });
+  if (!_e) {
+    _e = CustomElement.define({ name, template, dependencies });
   }
-  return _htmlOnlyElement;
+  return _e;
 }
 `);
-  return m.transform();
+  const { code, map } = m.transform();
+  map.sourcesContent = [ rawHtml ];
+  return { code, map };
 }
 
 function s(str: string) {

@@ -9,12 +9,12 @@ export const name = "foo-bar";
 export const template = "<template></template>";
 export default template;
 export const dependencies = [  ];
-let _htmlOnlyElement;
+let _e;
 export function getHTMLOnlyElement() {
-  if (!_htmlOnlyElement) {
-    _htmlOnlyElement = CustomElement.define({ name, template, dependencies });
+  if (!_e) {
+    _e = CustomElement.define({ name, template, dependencies });
   }
-  return _htmlOnlyElement;
+  return _e;
 }
 `;
     const result = preprocessHtmlTemplate('lo/foo-bar.html', html);
@@ -28,12 +28,12 @@ export const name = "foo-bar";
 export const template = "<template></template>";
 export default template;
 export const dependencies: any[] = [  ];
-let _htmlOnlyElement: any;
+let _e: any;
 export function getHTMLOnlyElement(): any {
-  if (!_htmlOnlyElement) {
-    _htmlOnlyElement = CustomElement.define({ name, template, dependencies });
+  if (!_e) {
+    _e = CustomElement.define({ name, template, dependencies });
   }
-  return _htmlOnlyElement;
+  return _e;
 }
 `;
     const result = preprocessHtmlTemplate('lo/foo-bar.html', html, true);
@@ -51,12 +51,12 @@ export const name = "foo-bar";
 export const template = "<template></template>";
 export default template;
 export const dependencies = [ d0, d1 ];
-let _htmlOnlyElement;
+let _e;
 export function getHTMLOnlyElement() {
-  if (!_htmlOnlyElement) {
-    _htmlOnlyElement = CustomElement.define({ name, template, dependencies });
+  if (!_e) {
+    _e = CustomElement.define({ name, template, dependencies });
   }
-  return _htmlOnlyElement;
+  return _e;
 }
 `;
     const result = preprocessHtmlTemplate('lo\\FooBar.html', html);
@@ -74,12 +74,12 @@ export const name = "foo-bar";
 export const template = "<template></template>";
 export default template;
 export const dependencies: any[] = [ d0, d1 ];
-let _htmlOnlyElement: any;
+let _e: any;
 export function getHTMLOnlyElement(): any {
-  if (!_htmlOnlyElement) {
-    _htmlOnlyElement = CustomElement.define({ name, template, dependencies });
+  if (!_e) {
+    _e = CustomElement.define({ name, template, dependencies });
   }
-  return _htmlOnlyElement;
+  return _e;
 }
 `;
     const result = preprocessHtmlTemplate('lo\\FooBar.html', html, true);

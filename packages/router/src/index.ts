@@ -14,6 +14,20 @@ export {
 } from './link-handler';
 
 export {
+  Guard,
+} from './guard';
+
+export {
+  IGuardTarget,
+  GuardTypes,
+  GuardFunction,
+  GuardTarget,
+  GuardIdentity,
+  IGuardOptions,
+  Guardian,
+} from './guardian';
+
+export {
   IViewportComponent,
   NavInstruction,
   INavRoute,

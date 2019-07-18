@@ -19,6 +19,9 @@ import { Books } from './components/books/books';
 import { Chat } from './components/chat/chat';
 import { ChatUser } from './components/chat/chat-user';
 import { ChatUsers } from './components/chat/chat-users';
+import { Login } from './components/login';
+import { LoginSpecial } from './components/login-special';
+import { Main } from './components/main';
 import { State } from './state';
 
 const container = BasicConfiguration.createContainer();
@@ -42,6 +45,10 @@ registerComponent(
   Chat as any,
   ChatUser as any,
   ChatUsers as any,
+
+  Login as any,
+  LoginSpecial as any,
+  Main as any,
 );
 
 window['au'] = new Aurelia(container)

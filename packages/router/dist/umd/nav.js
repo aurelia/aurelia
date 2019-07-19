@@ -11,10 +11,11 @@
     Object.defineProperty(exports, "__esModule", { value: true });
     const nav_route_1 = require("./nav-route");
     class Nav {
-        constructor(router, name, routes = []) {
+        constructor(router, name, routes = [], classes = {}) {
             this.router = router;
             this.name = name;
             this.routes = routes;
+            this.classes = classes;
         }
         addRoutes(routes) {
             for (const route of routes) {

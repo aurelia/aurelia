@@ -319,20 +319,20 @@ export class Router {
     forward() {
         return this.navigator.go(1);
     }
-    setNav(name, routes) {
+    setNav(name, routes, classes) {
         const nav = this.findNav(name);
         if (nav) {
             nav.routes = [];
         }
-        this.addNav(name, routes);
+        this.addNav(name, routes, classes);
     }
-    addNav(name, routes) {
+    addNav(name, routes, classes) {
         let nav = this.navs[name];
         if (!nav) {
-            nav = this.navs[name] = new Nav(this, name);
+            nav = this.navs[name] = new Nav(this, name, [], classes);
         }
         nav.addRoutes(routes);
-        this.navs[name] = new Nav(nav.router, nav.name, nav.routes);
+        this.navs[name] = new Nav(nav.router, nav.name, nav.routes, nav.classes);
     }
     findNav(name) {
         return this.navs[name];

@@ -7,6 +7,7 @@ import { AnchorEventInfo, LinkHandler } from './link-handler';
 import { INavRoute, Nav } from './nav';
 import { INavigationInstruction, INavigatorOptions, Navigator } from './navigator';
 import { QueueItem } from './queue';
+import { INavClasses } from './resources/nav';
 import { Scope } from './scope';
 import { IViewportOptions, Viewport } from './viewport';
 import { ViewportInstruction } from './viewport-instruction';
@@ -40,8 +41,8 @@ export interface IRouter {
     refresh(): Promise<void>;
     back(): Promise<void>;
     forward(): Promise<void>;
-    setNav(name: string, routes: INavRoute[]): void;
-    addNav(name: string, routes: INavRoute[]): void;
+    setNav(name: string, routes: INavRoute[], classes?: INavClasses): void;
+    addNav(name: string, routes: INavRoute[], classes?: INavClasses): void;
     findNav(name: string): Nav;
 }
 export declare const IRouter: import("@aurelia/kernel").InterfaceSymbol<IRouter>;
@@ -83,8 +84,8 @@ export declare class Router implements IRouter {
     refresh(): Promise<void>;
     back(): Promise<void>;
     forward(): Promise<void>;
-    setNav(name: string, routes: INavRoute[]): void;
-    addNav(name: string, routes: INavRoute[]): void;
+    setNav(name: string, routes: INavRoute[], classes?: INavClasses): void;
+    addNav(name: string, routes: INavRoute[], classes?: INavClasses): void;
     findNav(name: string): Nav;
     private cancelNavigation;
     private ensureRootScope;

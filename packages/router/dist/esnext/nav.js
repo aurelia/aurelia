@@ -1,9 +1,10 @@
 import { NavRoute } from './nav-route';
 export class Nav {
-    constructor(router, name, routes = []) {
+    constructor(router, name, routes = [], classes = {}) {
         this.router = router;
         this.name = name;
         this.routes = routes;
+        this.classes = classes;
     }
     addRoutes(routes) {
         for (const route of routes) {

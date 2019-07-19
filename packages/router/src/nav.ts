@@ -1,5 +1,6 @@
 import { ICustomElementType } from '@aurelia/runtime';
 import { NavRoute } from './nav-route';
+import { INavClasses } from './resources/nav';
 import { Router } from './router';
 import { ViewportInstruction } from './viewport-instruction';
 
@@ -23,13 +24,15 @@ export interface INavRoute {
 export class Nav {
   public name: string;
   public routes: NavRoute[];
+  public classes: INavClasses;
 
   public router: Router;
 
-  constructor(router: Router, name: string, routes: NavRoute[] = []) {
+  constructor(router: Router, name: string, routes: NavRoute[] = [], classes: INavClasses = {}) {
     this.router = router;
     this.name = name;
     this.routes = routes;
+    this.classes = classes;
   }
 
   public addRoutes(routes: INavRoute[]): void {

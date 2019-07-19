@@ -197,7 +197,7 @@
             };
         }
         else {
-            throw new Error('Unsupported runtime'); // Can't really happen, can it?
+            return {}; // if the runtime doesn't supply these methods, just let them be undefined because the framework doesn't need them
         }
     })();
     // RAF polyfill for non-browser envs from https://github.com/chrisdickinson/raf/blob/master/index.js

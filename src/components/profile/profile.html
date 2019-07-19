@@ -29,20 +29,10 @@
 
         <div class="col-xs-12 col-md-10 offset-md-1">
           <div class="articles-toggle">
-            <ul class="nav nav-pills outline-active">
-              <li class="nav-item">
-                <a class="nav-link ${!isFavoritesActive ? 'active' : ''}"
-                  href="#" click.delegate="gotoPosts()">My Posts</a>
-              </li>
-              <li class="nav-item">
-                <a class="nav-link ${isFavoritesActive ? 'active' : ''}"
-                  href="#" click.delegate="gotoFavorites()">Favorited Posts</a>
-              </li>
-            </ul>
+            <au-nav name="profile-posts"></au-nav>
           </div>
 
-          <au-viewport name="profile-posts" default="profile-article(name=${username})" no-link></au-viewport>
-
+          <au-viewport name="profile-posts" default="profile-article(name=${username})" used-by="profile-favorites,profile-article" no-link></au-viewport>
 
         </div>
       </div>

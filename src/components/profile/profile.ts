@@ -12,27 +12,31 @@ export class ProfileComponent {
   private username?: string;
   private profile?: Profile;
 
-  constructor(private readonly sharedState: SharedState,
-              private readonly profileService: ProfileService,
-              private readonly router: Router) {
+  constructor(
+    private readonly sharedState: SharedState,
+    private readonly profileService: ProfileService,
+    private readonly router: Router) {
   }
 
   public async enter(parameters: { name: string }) {
     this.username = parameters.name;
     const profile = await this.profileService.get(this.username);
+    this.router.setNav('profile-posts', [
+      {
+        route: `profile-article(name=${this.username})`,
+        title: 'My Posts',
+      },
+      {
+        route: `profile-favorites(name=${this.username})`,
+        title: 'Favorited Posts',
+      },
+    ], {
+        ul: 'nav nav-pills outline-active',
+        li: 'nav-item',
+        a: 'nav-link',
+        aActive: 'active',
+      });
     return this.profile = profile;
-  }
-
-  public gotoFavorites() {
-    this.router.goto(`profile-favorites(name=${this.username})@profile-posts`, 'Profile');
-  }
-
-  get isFavoritesActive() {
-    return this.router.activeComponents.some((y) => y.indexOf('profile-favorites') > -1);
-  }
-
-  public gotoPosts() {
-    this.router.goto(`profile-article(name=${this.username})@profile-posts`, 'Profile');
   }
 
   get isUser() {

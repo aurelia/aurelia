@@ -38,5 +38,15 @@ function initializeBrowserTestContext(): void {
 
 initializeBrowserTestContext();
 
-const testContext = require.context('.', true, /\.spec\.js$/i);
-testContext.keys().forEach(testContext);
+function importAll (r) {
+  r.keys().forEach(r);
+}
+
+// Explicitly add to browser test
+importAll(require.context('./fetch-client/', true, /\.spec\.js$/));
+importAll(require.context('./jit/', true, /\.spec\.js$/));
+importAll(require.context('./jit-html/', true, /\.spec\.js$/));
+importAll(require.context('./kernel/', true, /\.spec\.js$/));
+importAll(require.context('./router/', true, /\.spec\.js$/));
+importAll(require.context('./runtime/', true, /\.spec\.js$/));
+importAll(require.context('./runtime-html/', true, /\.spec\.js$/));

@@ -21,7 +21,8 @@
     { "path": "plugin-parcel" },
     { "path": "plugin-pixi" },
     { "path": "plugin-requirejs" },
-    { "path": "plugin-webpack" },
-    { "path": "plugin-svg" }
+    { "path": "webpack-loader" },
+    { "path": "plugin-svg" },
+    { "path": "plugin-conventions" }
   ]
 }

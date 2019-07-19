@@ -3,6 +3,8 @@ import { I18nConfiguration } from '@aurelia/i18n';
 import { BasicConfiguration } from '@aurelia/jit-html-browser';
 import { Aurelia } from '@aurelia/runtime';
 import { App } from './app';
+import * as de from './locales/de/translations.json';
+import * as en from './locales/en/translations.json';
 
 window['au'] = new Aurelia()
   .register(
@@ -10,7 +12,8 @@ window['au'] = new Aurelia()
     DebugConfiguration,
     I18nConfiguration.customize(() => ({
       resources: {
-        en: { translation: { whatever: 'works' } }
+        en: { translation: en },
+        de: { translation: de },
       }
     }))
   )

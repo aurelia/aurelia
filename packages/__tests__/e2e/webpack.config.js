@@ -12,7 +12,7 @@ module.exports = function(env, { mode }) {
       mainFields: ['module']
     },
     devServer: {
-      port: 9000,
+      port: 9500,
       historyApiFallback: true,
       lazy: false
     },

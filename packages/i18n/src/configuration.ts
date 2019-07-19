@@ -5,13 +5,12 @@ import { TCustomAttribute } from './t-custom-attribute';
 
 export type I18NConfigOptionsProvider = () => I18nConfigurationOptions;
 
-const TCustomAttributeRegistration = TCustomAttribute as IRegistry;
+// const TCustomAttributeRegistration = TCustomAttribute as IRegistry;
 
 const i18nConfiguration: IRegistry & { optionsProvider: I18NConfigOptionsProvider } = {
   optionsProvider: () => Object.create(null),
   register(container: IContainer): IContainer {
-    container.register(TCustomAttributeRegistration);
-    Registration.instance(i18next, i18next).register(container);
+    container.register(TCustomAttribute as IRegistry);
     Registration.callback(I18nConfiguration, this.optionsProvider).register(container);
     return container;
   }

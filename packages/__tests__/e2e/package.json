@@ -13,7 +13,7 @@
     "cypress:run": "cypress run",
     "cypress:debug": "cypress open --config watchForFileChanges=true",
     "e2e": "start-server-and-test watch http://localhost:9000 cypress:run",
-    "e2e:debug": "start-server-and-test watch http://localhost:9000 cypress:debug"
+    "e2e:debug": "start-server-and-test watch http://localhost:9500 cypress:debug"
   },
   "dependencies": {
     "@aurelia/debug": "file:../../debug",
@@ -27,6 +27,7 @@
     "@aurelia/runtime-html-browser": "file:../../runtime-html-browser"
   },
   "devDependencies": {
+    "@cypress/webpack-preprocessor": "^4.1.0",
     "@types/node": "latest",
     "cypress": "^3.4.0",
     "html-loader": "latest",

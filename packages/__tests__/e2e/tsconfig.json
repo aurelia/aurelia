@@ -8,7 +8,8 @@
     "skipLibCheck": true,
     "outDir": "dist",
     "rootDir": "src",
-    "target": "es2018"
+    "target": "es2018",
+    "resolveJsonModule": true
   },
   "include": ["src"],
 }

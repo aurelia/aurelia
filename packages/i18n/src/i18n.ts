@@ -1,7 +1,10 @@
-import { LogLevel, Reporter } from '@aurelia/kernel';
-import { Aurelia, ContinuationTask, IController, IDOM, ILifecycleTask, LifecycleTask } from '@aurelia/runtime';
+import { LogLevel, Reporter, Key } from '@aurelia/kernel';
+import { Aurelia, ContinuationTask, IController, IDOM, ILifecycleTask, LifecycleTask, PromiseTask } from '@aurelia/runtime';
 import i18nextCore from 'i18next';
 import { I18nConfigurationOptions } from './i18n-configuration-options';
+import i18next from 'i18next';
+import { I18nConfiguration } from './configuration';
+import { I18nextWrapper } from './i18next-wrapper';
 
 // import {
 //   DOM,
@@ -29,20 +32,26 @@ export interface I18NEventPayload {
 export const I18N_EA_SIGNAL = 'i18n:locale:changed';
 
 export class I18N {
+  public static readonly inject: readonly Key[] = [I18nextWrapper, I18nConfiguration, IDOM];
 
-  // public static inject() { return [EventAggregator, BindingSignaler]; }
-
+  public i18next: i18nextCore.i18n;
   private options!: I18nConfigurationOptions;
   private task: ILifecycleTask;
   // public Intl: typeof Intl;
   // private globalVars: { [key: string]: any } = {};
 
-  constructor(public i18next: i18nextCore.i18n, options: I18nConfigurationOptions, private dom: IDOM) {
+  constructor(i18nextWrapper: I18nextWrapper, options: I18nConfigurationOptions, private dom: IDOM) {
+    console.log("i18n#ctor");
     // this.Intl = PLATFORM.global.Intl;
 
+    this.i18next = i18nextWrapper.i18next;
     this.task = LifecycleTask.done;
     this.initializeI18next(options);
   }
+
+  // public static inject() {
+  //   return [I18nextWrapper, I18nConfiguration, IDOM];
+  // }
   // public i18nextReady() {
   //   return this.i18nextDeferred;
   // }
@@ -310,6 +319,7 @@ export class I18N {
     for (const plugin of this.options.plugins!) {
       this.i18next.use(plugin);
     }
-    this.task = new ContinuationTask(this.task, () => this.i18next.init(this.options), this);
+    this.task = new PromiseTask((async () => { await this.i18next.init(this.options); })(), null, this);
+    //  new ContinuationTask(this.task, () => this.i18next.init(this.options), this);
   }
 }

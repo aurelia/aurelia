@@ -219,7 +219,7 @@ const {
       }
     };
   } else {
-    return {}; // if the runtime doesn't supply these methods, just let them be undefined because the framework doesn't need them
+    return {} as any; // if the runtime doesn't supply these methods, just let them be undefined because the framework doesn't need them
   }
 })();
 

@@ -5,14 +5,23 @@ import { IRegistry } from '@aurelia/kernel';
 import { Aurelia } from '@aurelia/runtime';
 import { App } from './app';
 
-window['au'] = new Aurelia()
+const au = new Aurelia()
   .register(BasicConfiguration, DebugConfiguration,
     I18nConfiguration
-    .customize({
-      resources: {
-        en: { translation: { whatever: "works" } }
-      }
-    }) as IRegistry
-    )
-  .app({ host: document.querySelector('app'), component: new App() })
-  .start();
+      .customize(() => ({
+        resources: {
+          en: { translation: { whatever: "works" } }
+        }
+      })) as IRegistry
+  );
+console.log("registered");
+try {
+  au.app({ host: document.querySelector('app'), component: new App() });
+  console.log("starting");
+} catch (e) {
+  console.log(e);
+  throw e;
+}
+au.start();
+
+  // window['au'] = au;

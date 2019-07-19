@@ -7,6 +7,8 @@ import template from './profile-favorites.html';
 @inject(ArticleService)
 @customElement({ name: 'profile-favorites', template })
 export class ProfileFavoritesComponent {
+  public static parameters: string[] = ['name'];
+
   private articles: Article[] = [];
   private pageNumber?: number;
   private totalPages?: number[];

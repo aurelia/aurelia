@@ -7,6 +7,8 @@ import template from './profile-article.html';
 @inject(ArticleService)
 @customElement({ name: 'profile-article', template })
 export class ProfileArticleComponent {
+  public static parameters: string[] = ['name'];
+
   private articles: Article[] = [];
   private pageNumber?: number;
   private totalPages?: number[];

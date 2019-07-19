@@ -28,7 +28,7 @@
         </li>
         <li class="${'nav-item' + (activeParentRoute.indexOf('profile') > -1 ? ' active' : '')}"
             if.bind="sharedState.currentUser && sharedState.isAuthenticated">
-          <a class="nav-link" href="profile(name=${sharedState.currentUser.username})">${sharedState.currentUser.username}</a>
+          <a class="nav-link" href="profile(${sharedState.currentUser.username})">${sharedState.currentUser.username}</a>
         </li>
       </ul>
     </div>

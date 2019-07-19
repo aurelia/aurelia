@@ -9,6 +9,8 @@ import template from './profile.html';
 @inject(SharedState, ProfileService, Router)
 @customElement({ name: 'profile', template })
 export class ProfileComponent {
+  public static parameters: string[] = ['name'];
+
   private username?: string;
   private profile?: Profile;
 
@@ -23,11 +25,11 @@ export class ProfileComponent {
     const profile = await this.profileService.get(this.username);
     this.router.setNav('profile-posts', [
       {
-        route: `profile-article(name=${this.username})`,
+        route: `profile-article(${this.username})`,
         title: 'My Posts',
       },
       {
-        route: `profile-favorites(name=${this.username})`,
+        route: `profile-favorites(${this.username})`,
         title: 'Favorited Posts',
       },
     ], {

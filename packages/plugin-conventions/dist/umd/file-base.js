@@ -9,6 +9,11 @@
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
-    exports.placeholder = null;
+    function fileBase(filePath) {
+        const fileName = filePath.split(/\\|\//).pop();
+        const dotIdx = fileName.lastIndexOf('.');
+        return dotIdx >= 0 ? fileName.slice(0, dotIdx) : fileName;
+    }
+    exports.fileBase = fileBase;
 });
-//# sourceMappingURL=index.js.map
+//# sourceMappingURL=file-base.js.map

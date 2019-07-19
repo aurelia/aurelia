@@ -1,0 +1,1 @@
+{"version":3,"file":"name-convention.d.ts","sourceRoot":"","sources":["../src/name-convention.ts"],"names":[],"mappings":"AAEA,oBAAY,YAAY,GAAG,eAAe,GAAG,iBAAiB,GAAG,gBAAgB,GAAG,iBAAiB,GAAG,gBAAgB,CAAC;AAEzH,UAAU,cAAc;IACtB,IAAI,EAAE,MAAM,CAAC;IACb,IAAI,EAAE,YAAY,CAAA;CACnB;AAED,wBAAgB,cAAc,CAAC,SAAS,EAAE,MAAM,GAAG,cAAc,CAahE"}

@@ -1,12 +1,14 @@
 import { DI, IContainer, Key, Reporter } from '@aurelia/kernel';
 import { Aurelia, ICustomElementType, IRenderContext } from '@aurelia/runtime';
 import { BrowserNavigation, INavigationViewerEvent } from './browser-navigation';
+import { Guardian, GuardTypes } from './guardian';
 import { InstructionResolver, IRouteSeparators } from './instruction-resolver';
 import { AnchorEventInfo, LinkHandler } from './link-handler';
 import { INavRoute, Nav } from './nav';
 import { INavigationEntry, INavigationInstruction, INavigatorOptions, Navigator } from './navigator';
 import { IParsedQuery, parseQuery } from './parser';
 import { QueueItem } from './queue';
+import { INavClasses } from './resources/nav';
 import { RouteTable } from './route-table';
 import { Scope } from './scope';
 import { arrayRemove } from './utils';
@@ -39,7 +41,7 @@ export interface IRouter {
   linkCallback(info: AnchorEventInfo): void;
 
   processNavigations(qInstruction: QueueItem<INavigationInstruction>): Promise<void>;
-  addProcessingViewport(componentOrInstruction: string | Partial<ICustomElementType> | ViewportInstruction, viewport?: Viewport | string): void;
+  addProcessingViewport(componentOrInstruction: string | Partial<ICustomElementType> | ViewportInstruction, viewport?: Viewport | string, onlyIfProcessingStatus?: boolean): void;
 
   // Called from the viewport custom element in attached()
   addViewport(name: string, element: Element, context: IRenderContext, options?: IViewportOptions): Viewport;
@@ -56,8 +58,8 @@ export interface IRouter {
   back(): Promise<void>;
   forward(): Promise<void>;
 
-  setNav(name: string, routes: INavRoute[]): void;
-  addNav(name: string, routes: INavRoute[]): void;
+  setNav(name: string, routes: INavRoute[], classes?: INavClasses): void;
+  addNav(name: string, routes: INavRoute[], classes?: INavClasses): void;
   findNav(name: string): Nav;
 }
 
@@ -76,6 +78,7 @@ export class Router implements IRouter {
 
   public linkHandler: LinkHandler;
   public instructionResolver: InstructionResolver;
+  public guardian: Guardian;
 
   public navs: Record<string, Nav> = {};
   public activeComponents: string[] = [];
@@ -103,6 +106,7 @@ export class Router implements IRouter {
     this.routeTransformer = routeTransformer;
     this.linkHandler = linkHandler;
     this.instructionResolver = instructionResolver;
+    this.guardian = new Guardian();
   }
 
   public get isNavigating(): boolean {
@@ -240,6 +244,15 @@ export class Router implements IRouter {
       }
 
       const changedViewports: Viewport[] = [];
+
+      const outcome = this.guardian.passes(GuardTypes.Before, viewportInstructions, instruction);
+      if (!outcome) {
+        return this.cancelNavigation([...changedViewports, ...updatedViewports], instruction);
+      }
+      if (typeof outcome !== 'boolean') {
+        viewportInstructions = outcome;
+      }
+
       for (const viewportInstruction of viewportInstructions) {
         const viewport = viewportInstruction.viewport;
         const componentWithParameters = this.instructionResolver.stringifyViewportInstruction(viewportInstruction, true);
@@ -259,6 +272,7 @@ export class Router implements IRouter {
       if (results.some(result => result === false)) {
         return this.cancelNavigation([...changedViewports, ...updatedViewports], instruction);
       }
+
       results = await Promise.all(changedViewports.map(async (value) => {
         const canEnter = await value.canEnter();
         if (typeof canEnter === 'boolean') {
@@ -301,6 +315,7 @@ export class Router implements IRouter {
         viewport.options.default
         && viewport.content.component === null
         && doneDefaultViewports.every(done => done !== viewport)
+        && updatedViewports.every(updated => updated !== viewport)
       );
       if (!this.allViewports().length) {
         viewportsRemaining = false;
@@ -327,8 +342,8 @@ export class Router implements IRouter {
     await this.navigator.finalize(instruction);
   }
 
-  public addProcessingViewport(componentOrInstruction: string | Partial<ICustomElementType> | ViewportInstruction, viewport?: Viewport | string): void {
-    if (this.processingNavigation) {
+  public addProcessingViewport(componentOrInstruction: string | Partial<ICustomElementType> | ViewportInstruction, viewport?: Viewport | string, onlyIfProcessingStatus?: boolean): void {
+    if (this.processingNavigation && (onlyIfProcessingStatus === undefined || onlyIfProcessingStatus)) {
       if (componentOrInstruction instanceof ViewportInstruction) {
         if (!componentOrInstruction.viewport) {
           // TODO: Deal with not yet existing viewports
@@ -342,7 +357,7 @@ export class Router implements IRouter {
         }
         this.addedViewports.push(new ViewportInstruction(componentOrInstruction, viewport));
       }
-    } else if (this.lastNavigation) {
+    } else if (this.lastNavigation && (onlyIfProcessingStatus === undefined || !onlyIfProcessingStatus)) {
       this.navigator.navigate({ instruction: '', fullStateInstruction: '', repeating: true }).catch(error => { throw error; });
       // Don't wait for the (possibly slow) navigation
     }
@@ -420,20 +435,20 @@ export class Router implements IRouter {
     return this.navigator.go(1);
   }
 
-  public setNav(name: string, routes: INavRoute[]): void {
+  public setNav(name: string, routes: INavRoute[], classes?: INavClasses): void {
     const nav = this.findNav(name);
     if (nav) {
       nav.routes = [];
     }
-    this.addNav(name, routes);
+    this.addNav(name, routes, classes);
   }
-  public addNav(name: string, routes: INavRoute[]): void {
+  public addNav(name: string, routes: INavRoute[], classes?: INavClasses): void {
     let nav = this.navs[name];
     if (!nav) {
-      nav = this.navs[name] = new Nav(this, name);
+      nav = this.navs[name] = new Nav(this, name, [], classes);
     }
     nav.addRoutes(routes);
-    this.navs[name] = new Nav(nav.router, nav.name, nav.routes);
+    this.navs[name] = new Nav(nav.router, nav.name, nav.routes, nav.classes);
   }
   public findNav(name: string): Nav {
     return this.navs[name];

@@ -1,13 +1,33 @@
-import { BooksComponent, Shared, BookComponent } from './selectors.po';
+import * as cypressConfig from '../../cypress.json';
+import { BookComponent, BooksComponent, LoginComponent, Shared } from './selectors.po';
 
 describe('doc-example / books route', () => {
   it('navigates to books route', () => {
-    cy.visit('/#/books+about')
+    cy.visit(cypressConfig.baseUrl + '/#/books+about')
       .url()
       .should('contain', '/#/books+about');
   });
 
+  it('shows login button', () => {
+    cy.get(LoginComponent.loginButton)
+      .should('exist');
+  });
+
+  it('performs login', () => {
+    cy.get(LoginComponent.loginButton)
+      .click();
+
+    cy.get(LoginComponent.loginButton)
+      .should('not.exist');
+  });
+
   it('displays the correct viewports', () => {
+    before(async () => {
+      cy.get(LoginComponent.loginButton)
+        .click();
+      await Promise.resolve();
+    });
+
     cy.get(Shared.listsViewport)
       .should('exist');
     cy.get(Shared.listsViewportHeader)

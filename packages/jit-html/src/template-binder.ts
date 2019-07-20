@@ -245,10 +245,98 @@ export class TemplateBinder {
       if (attributesToIgnore[attr.name as keyof typeof attributesToIgnore] === true) {
         continue;
       }
+
       const attrSyntax = this.attrParser.parse(attr.name, attr.value);
       const attrInfo = this.resources.getAttributeInfo(attrSyntax);
 
       if (attrInfo == null) {
+        switch (node.tagName) {
+          case 'LABEL':
+            switch (attrSyntax.target) {
+              case 'for':
+                attrSyntax.target = 'htmlFor';
+                break;
+            }
+            break;
+          case 'IMG':
+            switch (attrSyntax.target) {
+              case 'usemap':
+                attrSyntax.target = 'useMap';
+                break;
+            }
+            break;
+          case 'INPUT':
+            switch (attrSyntax.target) {
+              case 'maxlength':
+                attrSyntax.target = 'maxLength';
+                break;
+              case 'minlength':
+                attrSyntax.target = 'minLength';
+                break;
+              case 'formaction':
+                attrSyntax.target = 'formAction';
+                break;
+              case 'formenctype':
+                attrSyntax.target = 'formEncType';
+                break;
+              case 'formmethod':
+                attrSyntax.target = 'formMethod';
+                break;
+              case 'formnovalidate':
+                attrSyntax.target = 'formNoValidate';
+                break;
+              case 'formtarget':
+                attrSyntax.target = 'formTarget';
+                break;
+            }
+            break;
+          case 'TEXTAREA':
+            switch (attrSyntax.target) {
+              case 'maxlength':
+                attrSyntax.target = 'maxLength';
+                break;
+            }
+            break;
+          case 'TD':
+          case 'TH':
+            switch (attrSyntax.target) {
+              case 'rowspan':
+                attrSyntax.target = 'rowSpan';
+                break;
+              case 'colspan':
+                attrSyntax.target = 'colSpan';
+                break;
+            }
+            break;
+          default:
+            switch (attrSyntax.target) {
+              case 'accesskey':
+                attrSyntax.target = 'accessKey';
+                break;
+              case 'contenteditable':
+                attrSyntax.target = 'contentEditable';
+                break;
+              case 'tabindex':
+                attrSyntax.target = 'tabIndex';
+                break;
+              case 'textcontent':
+                attrSyntax.target = 'textContent';
+                break;
+              case 'innerhtml':
+                attrSyntax.target = 'innerHTML';
+                break;
+              case 'scrolltop':
+                attrSyntax.target = 'scrollTop';
+                break;
+              case 'scrollleft':
+                attrSyntax.target = 'scrollLeft';
+                break;
+              case 'readonly':
+                attrSyntax.target = 'readOnly';
+                break;
+            }
+            break;
+        }
         // it's not a custom attribute but might be a regular bound attribute or interpolation (it might also be nothing)
         this.bindPlainAttribute(attrSyntax, attr);
       } else if (attrInfo.isTemplateController) {

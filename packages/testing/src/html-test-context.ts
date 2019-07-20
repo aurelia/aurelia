@@ -176,6 +176,10 @@ export class HTMLTestContext {
     return this.doc.createElement(name);
   }
 
+  public createTextNode(data: string): Text {
+    return this.doc.createTextNode(data);
+  }
+
   public createAttribute(name: string, value: string): Attr {
     const attr = this.doc.createAttribute(name);
     attr.value = value;

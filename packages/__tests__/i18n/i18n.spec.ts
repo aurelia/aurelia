@@ -1,6 +1,14 @@
 import { I18N, I18nConfigurationOptions } from '@aurelia/i18n';
-import { assert } from '@aurelia/testing';
+import { IDOM } from '@aurelia/runtime';
+import { assert, HTMLTestContext, TestContext } from '@aurelia/testing';
 import i18next from 'i18next';
+
+const translation = {
+  simple: {
+    text: 'simple text',
+    attr: 'simple attribute'
+  }
+};
 
 interface I18nextSpy {
   mock: i18next.i18n;
@@ -58,10 +66,11 @@ function mockI18next(): I18nextSpy {
 
 export function i18nTests() {
   describe('I18N', () => {
-    let sut: I18N, mockContext: I18nextSpy;
+    let sut: I18N, mockContext: I18nextSpy, ctx: HTMLTestContext;
     const arrange = async (options: I18nConfigurationOptions = {}) => {
       mockContext = mockI18next();
-      sut = new I18N({ i18next: mockContext.mock }, options, undefined);
+      ctx = TestContext.createHTMLTestContext();
+      sut = new I18N({ i18next: mockContext.mock }, options, ctx as unknown as IDOM<Node>);
       await sut['task'].wait();
     };
 
@@ -111,6 +120,21 @@ export function i18nTests() {
 
       mockContext.methodCalledNthTimeWith('use', 1, [customization.plugins[0]]);
       mockContext.methodCalledNthTimeWith('use', 2, [customization.plugins[1]]);
+    });
+
+    it('can update textContent of an element given translations', async () => {
+      const customization = {
+        resources: {
+          en: { translation }
+        }
+      };
+      await arrange(customization);
+
+      const span = ctx.createElement('span');
+      sut.updateValue(span as any, 'simple.text', undefined);
+      await sut['task'].wait();
+
+      assert.equal(span.innerText, translation.simple.text);
     });
   });
 }

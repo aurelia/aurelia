@@ -5,6 +5,10 @@ import { I18nConfiguration } from './configuration';
 import { I18nConfigurationOptions } from './i18n-configuration-options';
 import { I18nextWrapper } from './i18next-wrapper';
 
+/**
+ * Translation service class.
+ * @export
+ */
 export class I18N {
   public static readonly inject: readonly Key[] = [I18nextWrapper, I18nConfiguration, IDOM];
 

@@ -1,5 +1,4 @@
 import { I18N, I18nConfigurationOptions } from '@aurelia/i18n';
-import { ContinuationTask } from '@aurelia/runtime';
 import { assert } from '@aurelia/testing';
 import i18next from 'i18next';
 
@@ -60,44 +59,37 @@ function mockI18next(): I18nextSpy {
 export function i18nTests() {
   describe('I18N', () => {
     let sut: I18N, mockContext: I18nextSpy;
-    const arrange = (options: I18nConfigurationOptions = {}) => {
+    const arrange = async (options: I18nConfigurationOptions = {}) => {
       mockContext = mockI18next();
-      sut = new I18N(mockContext.mock, options, undefined);
+      sut = new I18N({ i18next: mockContext.mock }, options, undefined);
+      await sut['task'].wait();
     };
 
     it('initializes i18next with default options on instantiation', async () => {
-      await new ContinuationTask(
-        (async () => { arrange(); })(),
-        () => {
-          mockContext.methodCalledOnceWith('init', [{
-            lng: 'en',
-            fallbackLng: ['en'],
-            debug: false,
-            plugins: [],
-            attributes: ['t', 'i18n'],
-            skipTranslationOnMissingKey: false,
-          }]);
-        },
-        undefined)
-        .wait();
+      await arrange();
+
+      mockContext.methodCalledOnceWith('init', [{
+        lng: 'en',
+        fallbackLng: ['en'],
+        debug: false,
+        plugins: [],
+        attributes: ['t', 'i18n'],
+        skipTranslationOnMissingKey: false,
+      }]);
     });
 
     it('respects user-defined config options', async () => {
       const customization = { lng: 'de', attributes: ['foo'] };
-      await new ContinuationTask(
-        (async () => { arrange(customization); })(),
-        () => {
-          mockContext.methodCalledOnceWith('init', [{
-            lng: customization.lng,
-            fallbackLng: ['en'],
-            debug: false,
-            plugins: [],
-            attributes: customization.attributes,
-            skipTranslationOnMissingKey: false,
-          }]);
-        },
-        undefined)
-        .wait();
+      await arrange(customization);
+
+      mockContext.methodCalledOnceWith('init', [{
+        lng: customization.lng,
+        fallbackLng: ['en'],
+        debug: false,
+        plugins: [],
+        attributes: customization.attributes,
+        skipTranslationOnMissingKey: false,
+      }]);
     });
 
     it('registers external plugins provided by user-defined options', async () => {
@@ -115,14 +107,10 @@ export function i18nTests() {
           }
         ]
       };
-      await new ContinuationTask(
-        (async () => { arrange(customization); })(),
-        () => {
-          mockContext.methodCalledNthTimeWith('use', 1, [customization.plugins[0]]);
-          mockContext.methodCalledNthTimeWith('use', 2, [customization.plugins[1]]);
-        },
-        undefined)
-        .wait();
+      await arrange(customization);
+
+      mockContext.methodCalledNthTimeWith('use', 1, [customization.plugins[0]]);
+      mockContext.methodCalledNthTimeWith('use', 2, [customization.plugins[1]]);
     });
   });
 }

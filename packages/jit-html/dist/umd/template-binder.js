@@ -195,97 +195,96 @@
                 if (attributesToIgnore[attr.name] === true) {
                     continue;
                 }
-                let attrName = attr.name;
-                switch (node.tagName) {
-                    case 'LABEL':
-                        switch (attrName) {
-                            case 'for':
-                                attrName = 'htmlFor';
-                                break;
-                        }
-                        break;
-                    case 'IMG':
-                        switch (attrName) {
-                            case 'usemap':
-                                attrName = 'useMap';
-                                break;
-                        }
-                        break;
-                    case 'INPUT':
-                        switch (attrName) {
-                            case 'maxlength':
-                                attrName = 'maxLength';
-                                break;
-                            case 'minlength':
-                                attrName = 'minLength';
-                                break;
-                            case 'formaction':
-                                attrName = 'formAction';
-                                break;
-                            case 'formenctype':
-                                attrName = 'formEncType';
-                                break;
-                            case 'formmethod':
-                                attrName = 'formMethod';
-                                break;
-                            case 'formnovalidate':
-                                attrName = 'formNoValidate';
-                                break;
-                            case 'formtarget':
-                                attrName = 'formTarget';
-                                break;
-                        }
-                        break;
-                    case 'TEXTAREA':
-                        switch (attrName) {
-                            case 'maxlength':
-                                attrName = 'maxLength';
-                                break;
-                        }
-                        break;
-                    case 'TD':
-                    case 'TH':
-                        switch (attrName) {
-                            case 'rowspan':
-                                attrName = 'rowSpan';
-                                break;
-                            case 'colspan':
-                                attrName = 'colSpan';
-                                break;
-                        }
-                        break;
-                    default:
-                        switch (attrName) {
-                            case 'accesskey':
-                                attrName = 'accessKey';
-                                break;
-                            case 'contenteditable':
-                                attrName = 'contentEditable';
-                                break;
-                            case 'tabindex':
-                                attrName = 'tabIndex';
-                                break;
-                            case 'textcontent':
-                                attrName = 'textContent';
-                                break;
-                            case 'innerhtml':
-                                attrName = 'innerHTML';
-                                break;
-                            case 'scrolltop':
-                                attrName = 'scrollTop';
-                                break;
-                            case 'scrollleft':
-                                attrName = 'scrollLeft';
-                                break;
-                            case 'readonly':
-                                attrName = 'readOnly';
-                                break;
-                        }
-                        break;
-                }
-                const attrSyntax = this.attrParser.parse(attrName, attr.value);
+                const attrSyntax = this.attrParser.parse(attr.name, attr.value);
                 const attrInfo = this.resources.getAttributeInfo(attrSyntax);
                 if (attrInfo == null) {
+                    switch (node.tagName) {
+                        case 'LABEL':
+                            switch (attrSyntax.target) {
+                                case 'for':
+                                    attrSyntax.target = 'htmlFor';
+                                    break;
+                            }
+                            break;
+                        case 'IMG':
+                            switch (attrSyntax.target) {
+                                case 'usemap':
+                                    attrSyntax.target = 'useMap';
+                                    break;
+                            }
+                            break;
+                        case 'INPUT':
+                            switch (attrSyntax.target) {
+                                case 'maxlength':
+                                    attrSyntax.target = 'maxLength';
+                                    break;
+                                case 'minlength':
+                                    attrSyntax.target = 'minLength';
+                                    break;
+                                case 'formaction':
+                                    attrSyntax.target = 'formAction';
+                                    break;
+                                case 'formenctype':
+                                    attrSyntax.target = 'formEncType';
+                                    break;
+                                case 'formmethod':
+                                    attrSyntax.target = 'formMethod';
+                                    break;
+                                case 'formnovalidate':
+                                    attrSyntax.target = 'formNoValidate';
+                                    break;
+                                case 'formtarget':
+                                    attrSyntax.target = 'formTarget';
+                                    break;
+                            }
+                            break;
+                        case 'TEXTAREA':
+                            switch (attrSyntax.target) {
+                                case 'maxlength':
+                                    attrSyntax.target = 'maxLength';
+                                    break;
+                            }
+                            break;
+                        case 'TD':
+                        case 'TH':
+                            switch (attrSyntax.target) {
+                                case 'rowspan':
+                                    attrSyntax.target = 'rowSpan';
+                                    break;
+                                case 'colspan':
+                                    attrSyntax.target = 'colSpan';
+                                    break;
+                            }
+                            break;
+                        default:
+                            switch (attrSyntax.target) {
+                                case 'accesskey':
+                                    attrSyntax.target = 'accessKey';
+                                    break;
+                                case 'contenteditable':
+                                    attrSyntax.target = 'contentEditable';
+                                    break;
+                                case 'tabindex':
+                                    attrSyntax.target = 'tabIndex';
+                                    break;
+                                case 'textcontent':
+                                    attrSyntax.target = 'textContent';
+                                    break;
+                                case 'innerhtml':
+                                    attrSyntax.target = 'innerHTML';
+                                    break;
+                                case 'scrolltop':
+                                    attrSyntax.target = 'scrollTop';
+                                    break;
+                                case 'scrollleft':
+                                    attrSyntax.target = 'scrollLeft';
+                                    break;
+                                case 'readonly':
+                                    attrSyntax.target = 'readOnly';
+                                    break;
+                            }
+                            break;
+                    }
                     // it's not a custom attribute but might be a regular bound attribute or interpolation (it might also be nothing)
                     this.bindPlainAttribute(attrSyntax, attr);
                 }

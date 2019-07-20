@@ -3,8 +3,8 @@ import { I18nConfiguration } from '@aurelia/i18n';
 import { BasicConfiguration } from '@aurelia/jit-html-browser';
 import { Aurelia } from '@aurelia/runtime';
 import { App } from './app';
-import * as de from './locales/de/translations.json.js';
-import * as en from './locales/en/translations.json.js';
+import * as de from './locales/de/translations.json';
+import * as en from './locales/en/translations.json';
 
 window['au'] = new Aurelia()
   .register(

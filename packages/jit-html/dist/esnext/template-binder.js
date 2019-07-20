@@ -184,7 +184,95 @@ export class TemplateBinder {
             if (attributesToIgnore[attr.name] === true) {
                 continue;
             }
-            const attrSyntax = this.attrParser.parse(attr.name, attr.value);
+            let attrName = attr.name;
+            switch (node.tagName) {
+                case 'LABEL':
+                    switch (attrName) {
+                        case 'for':
+                            attrName = 'htmlFor';
+                            break;
+                    }
+                    break;
+                case 'IMG':
+                    switch (attrName) {
+                        case 'usemap':
+                            attrName = 'useMap';
+                            break;
+                    }
+                    break;
+                case 'INPUT':
+                    switch (attrName) {
+                        case 'maxlength':
+                            attrName = 'maxLength';
+                            break;
+                        case 'minlength':
+                            attrName = 'minLength';
+                            break;
+                        case 'formaction':
+                            attrName = 'formAction';
+                            break;
+                        case 'formenctype':
+                            attrName = 'formEncType';
+                            break;
+                        case 'formmethod':
+                            attrName = 'formMethod';
+                            break;
+                        case 'formnovalidate':
+                            attrName = 'formNoValidate';
+                            break;
+                        case 'formtarget':
+                            attrName = 'formTarget';
+                            break;
+                    }
+                    break;
+                case 'TEXTAREA':
+                    switch (attrName) {
+                        case 'maxlength':
+                            attrName = 'maxLength';
+                            break;
+                    }
+                    break;
+                case 'TD':
+                case 'TH':
+                    switch (attrName) {
+                        case 'rowspan':
+                            attrName = 'rowSpan';
+                            break;
+                        case 'colspan':
+                            attrName = 'colSpan';
+                            break;
+                    }
+                    break;
+                default:
+                    switch (attrName) {
+                        case 'accesskey':
+                            attrName = 'accessKey';
+                            break;
+                        case 'contenteditable':
+                            attrName = 'contentEditable';
+                            break;
+                        case 'tabindex':
+                            attrName = 'tabIndex';
+                            break;
+                        case 'textcontent':
+                            attrName = 'textContent';
+                            break;
+                        case 'innerhtml':
+                            attrName = 'innerHTML';
+                            break;
+                        case 'scrolltop':
+                            attrName = 'scrollTop';
+                            break;
+                        case 'scrollleft':
+                            attrName = 'scrollLeft';
+                            break;
+                        case 'readonly':
+                            attrName = 'readOnly';
+                            break;
+                    }
+                    break;
+            }
+            const attrSyntax = this.attrParser.parse(attrName, attr.value);
             const attrInfo = this.resources.getAttributeInfo(attrSyntax);
             if (attrInfo == null) {
                 // it's not a custom attribute but might be a regular bound attribute or interpolation (it might also be nothing)

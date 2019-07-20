@@ -319,7 +319,7 @@ export class I18N {
     for (const plugin of this.options.plugins!) {
       this.i18next.use(plugin);
     }
-    this.task = new PromiseTask((async () => { await this.i18next.init(this.options); })(), null, this);
-    //  new ContinuationTask(this.task, () => this.i18next.init(this.options), this);
+    // this.task = new PromiseTask((async () => { await this.i18next.init(this.options); })(), null, this);
+    this.task = new ContinuationTask(this.task, async () => { await this.i18next.init(this.options) }, this);
   }
 }

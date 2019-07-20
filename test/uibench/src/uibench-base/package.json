@@ -1,0 +1,68 @@
+{
+  "_from": "github:localvoid/uibench-base",
+  "_id": "uibench-base@0.1.1",
+  "_inBundle": false,
+  "_integrity": "",
+  "_location": "/uibench-base",
+  "_phantomChildren": {},
+  "_requested": {
+    "type": "git",
+    "raw": "uibench-base@github:localvoid/uibench-base",
+    "name": "uibench-base",
+    "escapedName": "uibench-base",
+    "rawSpec": "github:localvoid/uibench-base",
+    "saveSpec": "github:localvoid/uibench-base",
+    "fetchSpec": null,
+    "gitCommittish": null
+  },
+  "_requiredBy": [
+    "/"
+  ],
+  "_resolved": "github:localvoid/uibench-base#efacae672bbf4133360a928305876ee1de643e64",
+  "_spec": "uibench-base@github:localvoid/uibench-base",
+  "_where": "C:\\Users\\e060589\\Desktop\\uibench-aurelia2",
+  "author": {
+    "name": "Boris Kaul",
+    "email": "localvoid@gmail.com",
+    "url": "https://github.com/localvoid"
+  },
+  "bugs": {
+    "url": "https://github.com/localvoid/uibench-base/issues"
+  },
+  "bundleDependencies": false,
+  "dependencies": {},
+  "deprecated": false,
+  "description": "uibench base library",
+  "devDependencies": {
+    "del": "^2.2.0",
+    "gulp": "github:gulpjs/gulp#4.0",
+    "gulp-gh-pages": "^0.5.4",
+    "gulp-tslint": "^5.0.0",
+    "gulp-typescript": "^2.13.4",
+    "merge2": "^1.0.2",
+    "rollup": "^0.26.3",
+    "rollup-plugin-replace": "^1.1.0",
+    "rollup-plugin-typescript": "^0.7.5",
+    "tslint": "^3.10.2",
+    "typescript": "^1.9.0-dev.20160602-1.0"
+  },
+  "homepage": "https://github.com/localvoid/uibench-base",
+  "jsnext:main": "dist/es6/uibench.js",
+  "keywords": [
+    "virtual",
+    "dom",
+    "vdom",
+    "browser",
+    "benchmark"
+  ],
+  "license": "BSD",
+  "main": "dist/umd/uibench.js",
+  "name": "uibench-base",
+  "private": true,
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/localvoid/uibench-base.git"
+  },
+  "typings": "dist/typings/uibench.d.ts",
+  "version": "0.1.1"
+}

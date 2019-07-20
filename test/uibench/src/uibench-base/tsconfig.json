@@ -1,0 +1,14 @@
+{
+  "compilerOptions": {
+    "target": "es6",
+    "outDir": "build/es6",
+    "noImplicitAny": true,
+    "strictNullChecks": true,
+    "removeComments": false,
+    "moduleResolution": "node"
+  },
+  "files": [
+    "lib/"
+  ],
+  "compileOnSave": false
+}

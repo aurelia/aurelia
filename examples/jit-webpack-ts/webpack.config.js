@@ -5,7 +5,7 @@ module.exports = function(env, { mode }) {
   return {
     mode: production ? 'production' : 'development',
     entry: './src/startup.ts',
-    devtool: "inline-cheap-module-source-map",
+    devtool: false,
     resolve: {
       extensions: ['.ts', '.js'],
       modules: ['src', 'node_modules'],

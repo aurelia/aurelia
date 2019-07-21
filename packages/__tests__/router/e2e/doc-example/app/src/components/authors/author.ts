@@ -46,7 +46,7 @@ export class Author {
     console.log('### enter', this, parameters);
     this.author = this.authorsRepository.author(+parameters.id);
     this.router.setNav('author-menu', [
-      { title: 'Details', route: `author-details(${this.author.id})` },
+      { title: '<strong>Details</strong>', route: `author-details(${this.author.id})` },
       { title: 'About authors', route: 'about-authors' },
       { title: 'Author information', route: 'information' },
     ]);

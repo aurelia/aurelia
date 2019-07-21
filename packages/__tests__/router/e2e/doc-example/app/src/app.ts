@@ -18,9 +18,18 @@ import { arrayRemove } from '../../../../../../router/src/utils';
   <label><input data-test="special-timed-out-checkbox" type="checkbox" checked.two-way="state.specialTimedOut"><i>Special</i> timed out</label><br>
 </div>
 <div><a href="login">login</a></div>
+<div>
+<div innerhtml.bind="'bind'"></div>
+<div innerhtml.to-view="'to-view'"></div>
+<div innerhtml.two-way="'two-way'"></div>
+<div innerhtml.bind="msg"></div>
+<div innerhtml.to-view="msg"></div>
+<div innerhtml.two-way="msg"></div>
+</div>
 <au-viewport name="gate" used-by="main,login" default="\${!state.loggedIn ? 'login' : 'main'}"></au-viewport>
 ` })
 export class App {
+  public msg: string = 'Message';
   constructor(private readonly router: Router, authorsRepository: AuthorsRepository, private readonly state: State) {
     authorsRepository.authors(); // Only here to initialize repositories
   }

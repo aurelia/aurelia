@@ -21,7 +21,6 @@ import { arrayRemove } from '../../../../../../router/src/utils';
 <au-viewport name="gate" used-by="main,login" default="\${!state.loggedIn ? 'login' : 'main'}"></au-viewport>
 ` })
 export class App {
-  public msg: string = 'Message';
   constructor(private readonly router: Router, authorsRepository: AuthorsRepository, private readonly state: State) {
     authorsRepository.authors(); // Only here to initialize repositories
   }

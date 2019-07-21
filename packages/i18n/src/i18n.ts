@@ -1,22 +1,24 @@
-import { Key } from '@aurelia/kernel';
-import { Aurelia, ContinuationTask, IController, IDOM, ILifecycleTask, PromiseTask } from '@aurelia/runtime';
+import { DI } from '@aurelia/kernel';
+import { ContinuationTask, IDOM, ILifecycleTask, PromiseTask } from '@aurelia/runtime';
 import i18nextCore from 'i18next';
-import { I18nConfiguration } from './configuration';
 import { I18nConfigurationOptions } from './i18n-configuration-options';
-import { I18nextWrapper } from './i18next-wrapper';
+import { I18nextWrapper, I18nWrapper } from './i18next-wrapper';
 
+export const I18N = DI.createInterface<I18nService>('I18nService').withDefault(x => x.singleton(I18nService));
 /**
  * Translation service class.
  * @export
  */
-export class I18N {
-  public static readonly inject: readonly Key[] = [I18nextWrapper, I18nConfiguration, IDOM];
+export class I18nService {
 
   public i18next: i18nextCore.i18n;
   private options!: I18nConfigurationOptions;
   private task: ILifecycleTask;
 
-  constructor(i18nextWrapper: I18nextWrapper, options: I18nConfigurationOptions, private dom: IDOM<Node>) {
+  constructor(
+    @I18nWrapper i18nextWrapper: I18nextWrapper,
+    @I18nConfigurationOptions options: I18nConfigurationOptions,
+    @IDOM private readonly dom: IDOM<Node>) {
     this.i18next = i18nextWrapper.i18next;
     this.task = new PromiseTask(this.initializeI18next(options), null, this);
   }
@@ -25,7 +27,7 @@ export class I18N {
     return this.i18next.t(key, options);
   }
 
-  public updateValue(node: Element & { $au: Aurelia; $controller: IController }, value: string, params: any) {
+  public updateValue(node: Node, value: string, params?: i18nextCore.TOptions<object>) {
     if (this.task.done) {
       this.updateValueCore(node, value, params);
     } else {
@@ -33,8 +35,8 @@ export class I18N {
     }
   }
 
-  private updateValueCore(node: Element & { $au: Aurelia; $controller: IController }, value: string, params: any) {
-    if (value === null || value === undefined) {
+  private updateValueCore(node: Node, value: string, params?: i18nextCore.TOptions<object>) {
+    if (!value) {
       return;
     }
 
@@ -42,48 +44,52 @@ export class I18N {
     let i = keys.length;
 
     while (i--) {
-      let key = keys[i];
-      // remove the optional attribute
-      const re = /\[([a-z\-, ]*)\]/ig;
-
-      let m;
-      let attr = 'text';
-      // set default attribute to src if this is an image node
-      if (node.nodeName === 'IMG') { attr = 'src'; }
-
-      // check if a attribute was specified in the key
-      // tslint:disable-next-line:no-conditional-assignment
-      while ((m = re.exec(key)) !== null) {
-        if (m.index === re.lastIndex) {
-          re.lastIndex++;
-        }
-        if (!!m) {
-          key = key.replace(m[0], '');
-          attr = m[1];
-        }
-      }
-
-      this.applyTranslations(attr.split(','), key, params, node);
+      const { attr, key } = this.extractAttributesFromKey(node, keys[i]);
+      this.applyTranslations(node, attr.split(','), key, params);
     }
   }
 
-  private applyTranslations(attrs: string[], key: string, params: any, node: Element) {
+  private extractAttributesFromKey(node: Node, key: string) {
+    const re = /\[([a-z\-, ]*)\]/ig;
+    let m, attr = 'text';
+
+    // set default attribute to src if this is an image node
+    if (node.nodeName === 'IMG') { attr = 'src'; }
+
+    // check if a attribute was specified in the key
+    // tslint:disable-next-line:no-conditional-assignment
+    while (!!(m = re.exec(key))) {
+      if (m.index === re.lastIndex) {
+        re.lastIndex++;
+      }
+      key = key.replace(m[0], '');
+      attr = m[1];
+    }
+
+    return { attr, key };
+  }
+
+  private applyTranslations(node: Node, attrs: string[], key: string, params?: i18nextCore.TOptions<object>) {
     let j = attrs.length;
     while (j--) {
       // handle various attributes
       // anything other than text,prepend,append or html will be added as an attribute on the element.
       switch (attrs[j].trim()) {
         case 'text':
-          const newChild = this.dom.createTextNode(this.tr(key, params));
-          while (node.firstChild) {
-            node.removeChild(node.firstChild);
-          }
-          node.appendChild(newChild);
+          this.replaceTextContent(node, key, params);
           break;
         default:
           break;
       }
     }
+  }
+
+  private replaceTextContent(node: Node, key: string, params?: i18nextCore.TOptions<object>) {
+    const newChild = this.dom.createTextNode(this.tr(key, params));
+    while (node.firstChild) {
+      node.removeChild(node.firstChild);
+    }
+    node.appendChild(newChild);
   }
 
   private async initializeI18next(options: I18nConfigurationOptions) {

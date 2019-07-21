@@ -1,4 +1,7 @@
+import { DI } from '@aurelia/kernel';
 import i18next from 'i18next';
+
+export const I18nConfigurationOptions = DI.createInterface<I18nConfigurationOptions>('I18nConfigurationOptions');
 export interface I18nConfigurationOptions extends i18next.InitOptions {
   /**
    * Collection of i18next plugins to use.

@@ -1,7 +1,8 @@
-import { I18N, I18nConfigurationOptions } from '@aurelia/i18n';
+import { I18nConfigurationOptions, I18nService } from '@aurelia/i18n';
 import { IDOM } from '@aurelia/runtime';
 import { assert, HTMLTestContext, TestContext } from '@aurelia/testing';
 import i18next from 'i18next';
+import { Spy } from './Spy';
 
 const translation = {
   simple: {
@@ -10,67 +11,13 @@ const translation = {
   }
 };
 
-interface I18nextSpy {
-  mock: i18next.i18n;
-  callRecords: Map<string, any[][]>;
-  clearCallRecords(): void;
-  methodCalledTimes(methodName: string, times: number): void;
-  methodCalledOnceWith(methodName: string, ...expectedArgs: any[]): void;
-  methodCalledNthTimeWith(methodName: string, n: number, ...expectedArgs: any[]): void;
-}
-function mockI18next(): I18nextSpy {
-  const callRecords = new Map<string, any[][]>();
-  const setCallRecord = (methodName: string, args: any[]) => {
-    let record = callRecords.get(methodName);
-    if (record) {
-      record.push(args);
-    } else {
-      record = [args];
-    }
-    callRecords.set(methodName, record);
-  };
-  const clearCallRecords = () => { callRecords.clear(); };
-  const methodCalledTimes = (methodName: string, times: number) => {
-    const calls = callRecords.get(methodName);
-    assert.equal(!!calls, true);
-    assert.equal(calls.length, times);
-  };
-  const methodCalledOnceWith = (methodName: string, expectedArgs: any[]) => {
-    methodCalledTimes(methodName, 1);
-    methodCalledNthTimeWith(methodName, 1, expectedArgs);
-  };
-  const methodCalledNthTimeWith = (methodName: string, n: number, expectedArgs: any[]) => {
-    const calls = callRecords.get(methodName);
-    assert.equal(JSON.stringify(calls[n - 1]), JSON.stringify(expectedArgs));
-  };
-
-  return {
-    callRecords,
-    clearCallRecords,
-    methodCalledOnceWith,
-    methodCalledTimes,
-    methodCalledNthTimeWith,
-    mock: new Proxy(i18next, {
-      get(target: i18next.i18n, propertyKey: string, _receiver) {
-        const original = target[propertyKey];
-        return typeof original !== 'function'
-          ? original
-          : function (...args: any[]) {
-            setCallRecord(propertyKey, args);
-            return original.apply(this, args);
-          };
-      }
-    }),
-  };
-}
-
 export function i18nTests() {
   describe('I18N', () => {
-    let sut: I18N, mockContext: I18nextSpy, ctx: HTMLTestContext;
+    let sut: I18nService, mockContext: Spy, ctx: HTMLTestContext;
     const arrange = async (options: I18nConfigurationOptions = {}) => {
-      mockContext = mockI18next();
+      mockContext = new Spy();
       ctx = TestContext.createHTMLTestContext();
-      sut = new I18N({ i18next: mockContext.mock }, options, ctx as unknown as IDOM<Node>);
+      sut = new I18nService({ i18next: mockContext.getMock(i18next) }, options, ctx as unknown as IDOM<Node>);
       await sut['task'].wait();
     };
 
@@ -131,10 +78,10 @@ export function i18nTests() {
       await arrange(customization);
 
       const span = ctx.createElement('span');
-      sut.updateValue(span as any, 'simple.text', undefined);
+      sut.updateValue(span as any, 'simple.text');
       await sut['task'].wait();
 
-      assert.equal(span.innerText, translation.simple.text);
+      assert.equal(span.textContent, translation.simple.text);
     });
   });
 }

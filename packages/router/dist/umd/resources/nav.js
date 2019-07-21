@@ -1,4 +1,3 @@
-// NOTE: this file is currently not in use
 (function (factory) {
     if (typeof module === "object" && typeof module.exports === "object") {
         var v = factory(require, exports);
@@ -66,8 +65,8 @@
   </nav>
   <ul if.bind="routes" class="nav-level-\${level} \${classes.ul}">
     <li repeat.for="route of routes" class="\${route.active ? classes.liActive : ''} \${route.hasChildren} \${classes.li}">
-      <a if.bind="route.link && route.link.length" href="\${route.link}" class="\${route.active ? classes.aActive : ''} \${classes.a}">\${route.title}</a>
-      <a if.bind="!route.link || !route.link.length" click.delegate="route.toggleActive()" href="" class="\${route.active ? classes.aActive : ''} \${classes.a}">\${route.title}</a>
+      <a if.bind="route.link && route.link.length" href="\${route.link}" class="\${route.active ? classes.aActive : ''} \${classes.a}" innerhtml.bind="route.title"></a>
+      <a if.bind="!route.link || !route.link.length" click.delegate="route.toggleActive()" href="" class="\${route.active ? classes.aActive : ''} \${classes.a}" innerhtml.bind="route.title"></a>
       <au-nav if.bind="route.children" routes.bind="route.children" level.bind="level + 1" classes.bind="classes" containerless></au-nav>
     </li>
   </ul>

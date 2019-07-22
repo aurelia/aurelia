@@ -165,8 +165,7 @@ import { other, bindingCommand } from '@aurelia/jit';
 
 export class LeaveMeAlone {}
 
-@customElement({ ...__fooBarViewDef, dependencies: [ ...__fooBarViewDef.dependencies, LoremCustomAttribute, ForOne, TheSecondValueConverter, SomeBindingBehavior, AbcBindingCommand ] })
-export class FooBar {}
+
 
 @customAttribute('lorem')
 export class LoremCustomAttribute {
@@ -196,6 +195,9 @@ export class SomeBindingBehavior {
 export class AbcBindingCommand {
 
 }
+
+@customElement({ ...__fooBarViewDef, dependencies: [ ...__fooBarViewDef.dependencies, LoremCustomAttribute, ForOne, TheSecondValueConverter, SomeBindingBehavior, AbcBindingCommand ] })
+export class FooBar {}
 `;
     const context = {
       async: () => function(err, code, map) {

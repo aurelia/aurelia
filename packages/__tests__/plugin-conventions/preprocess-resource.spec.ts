@@ -253,8 +253,7 @@ import { other, bindingCommand } from '@aurelia/jit';
 
 export class LeaveMeAlone {}
 
-@customElement({ ...__fooBarViewDef, dependencies: [ ...__fooBarViewDef.dependencies, LoremCustomAttribute, ForOne, TheSecondValueConverter, SomeBindingBehavior, AbcBindingCommand ] })
-export class FooBar {}
+
 
 @customAttribute('lorem')
 export class LoremCustomAttribute {
@@ -284,6 +283,36 @@ export class SomeBindingBehavior {
 export class AbcBindingCommand {
 
 }
+
+@customElement({ ...__fooBarViewDef, dependencies: [ ...__fooBarViewDef.dependencies, LoremCustomAttribute, ForOne, TheSecondValueConverter, SomeBindingBehavior, AbcBindingCommand ] })
+export class FooBar {}
+`;
+    const result = preprocessResource('bar/foo-bar.ts', code, true);
+    assert.equal(result.code, expected);
+  });
+
+  it('makes sure implicit custom element is after in-file dependencies', function () {
+    const code = `export class FooBar {}
+
+export class SomeValueConverter {
+  toView(value: string): string {
+    return value;
+  }
+}
+`;
+    const expected = `import * as __fooBarViewDef from './foo-bar.html';
+import { customElement, valueConverter } from '@aurelia/runtime';
+
+
+@valueConverter('some')
+export class SomeValueConverter {
+  toView(value: string): string {
+    return value;
+  }
+}
+
+@customElement({ ...__fooBarViewDef, dependencies: [ ...__fooBarViewDef.dependencies, SomeValueConverter ] })
+export class FooBar {}
 `;
     const result = preprocessResource('bar/foo-bar.ts', code, true);
     assert.equal(result.code, expected);

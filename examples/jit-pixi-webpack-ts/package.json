@@ -21,7 +21,7 @@
     "@types/node": "latest",
     "@types/pixi.js": "^4.8.8",
     "copy-webpack-plugin": "^5.0.3",
-    "file-loader": "^4.0.0",
+    "file-loader": "^4.1.0",
     "html-loader": "latest",
     "html-webpack-plugin": "latest",
     "http-server": "latest",

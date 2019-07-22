@@ -115,7 +115,7 @@ export const CustomElement: Readonly<ICustomElementResource> = Object.freeze({
 
 export interface ICustomElementDecorator {
   // Using a type breaks syntax highlighting: https://github.com/Microsoft/TypeScript-TmLanguage/issues/481
-  // tslint:disable-next-line:callable-types
+  // eslint-disable-next-line @typescript-eslint/prefer-function-type
   <T extends Constructable>(target: T): T & ICustomElementType<T>;
 }
 

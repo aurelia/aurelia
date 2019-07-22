@@ -64,11 +64,7 @@ import {
   TypedArray,
 } from './util';
 
-// tslint:disable: no-commented-code
-// tslint:disable: no-any
-// tslint:disable: cognitive-complexity
-// tslint:disable: no-non-null-assertion
-// tslint:disable: ban-types
+/* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/no-non-null-assertion, @typescript-eslint/ban-types */
 
 export const enum IterationType {
   noIterator = 0,

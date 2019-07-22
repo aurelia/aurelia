@@ -1,4 +1,4 @@
-// tslint:disable:quotemark member-access no-all-duplicated-branches
+/* eslint-disable @typescript-eslint/explicit-member-accessibility */
 import { Profiler } from "@aurelia/kernel";
 import { Aurelia, CustomElement } from "@aurelia/runtime";
 import { TestContext, writeProfilerReport, assert } from "@aurelia/testing";

@@ -1,8 +1,6 @@
 import { PLATFORM, kebabCase, camelCase, toArray } from '@aurelia/kernel';
 import { _, assert } from '@aurelia/testing';
 
-// tslint:disable:no-typeof-undefined
-
 const toString = Object.prototype.toString;
 
 const stringCases = [

@@ -58,9 +58,7 @@ export function stripMetaData(rawHtml: string): IStrippedHtml {
   return { html, deps, shadowMode, containerless, bindables, aliases };
 }
 
-// tslint:disable-next-line:no-any
 function traverse(tree: any, cb: (node: DefaultTreeElement) => void) {
-  // tslint:disable-next-line:no-any
   tree.childNodes.forEach((n: any) => {
     cb(n as DefaultTreeElement);
     if (n.childNodes) traverse(n, cb);

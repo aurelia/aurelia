@@ -266,7 +266,6 @@ export class Unparser implements AST.IVisitor<void> {
   public visitInterpolation(expr: AST.Interpolation): void {
     const { parts, expressions } = expr;
     const length = expressions.length;
-    // tslint:disable-next-line:no-invalid-template-strings
     this.text += '${';
     this.text += parts[0];
     for (let i = 0; i < length; i++) {

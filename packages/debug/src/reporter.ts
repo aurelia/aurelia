@@ -22,7 +22,6 @@ export const Reporter: typeof RuntimeReporter = {
     const info = getMessageInfoForCode(code);
     const message = `Code ${code}: ${info.message}`;
 
-    // tslint:disable:no-console
     switch (info.level) {
       case LogLevel.debug:
         if (this.level >= LogLevel.debug) {
@@ -42,7 +41,6 @@ export const Reporter: typeof RuntimeReporter = {
       case LogLevel.error:
         throw this.error(code, ...params);
     }
-    // tslint:enable:no-console
   },
   error(code: number, ...params: unknown[]): Error {
     const info = getMessageInfoForCode(code);

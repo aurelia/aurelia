@@ -1,4 +1,3 @@
-// tslint:disable: no-object-literal-type-assertion
 import { I18nConfiguration, TranslationBinding, TranslationParametersAttributePattern, TranslationParametersBindingCommand, TranslationParametersBindingInstruction, TranslationParametersBindingRenderer, TranslationParametersInstructionType } from '@aurelia/i18n';
 import { AttributePatternDefinition, AttrSyntax, BindingCommandResource, IAttributePattern, IBindingCommand, PlainAttributeSymbol } from '@aurelia/jit';
 import { AttrBindingCommand } from '@aurelia/jit-html';

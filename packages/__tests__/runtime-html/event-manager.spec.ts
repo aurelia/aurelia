@@ -33,7 +33,6 @@ function assertHandlerPath(expectedPhases: number[], actualPhases: ReturnType<ty
   }
 
   if (errors.length > 0) {
-    // tslint:disable-next-line:no-nested-template-literals
     const msg = `ASSERTION ERRORS:\n${errors.map(e => `  - ${e}`).join('\n')}`;
     throw new Error(msg);
   }

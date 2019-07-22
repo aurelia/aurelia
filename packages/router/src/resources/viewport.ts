@@ -39,8 +39,7 @@ export class ViewportCustomElement {
 
   public viewport: Viewport | null = null;
 
-  // tslint:disable-next-line: prefer-readonly // This is set by the controller after this instance is constructed
-  public $controller!: IController;
+  public $controller!: IController; // This is set by the controller after this instance is constructed
 
   constructor(
     private readonly router: IRouter,
@@ -142,5 +141,5 @@ export class ViewportCustomElement {
     }
   }
 }
-// tslint:disable-next-line:no-invalid-template-strings
+// eslint-disable-next-line no-template-curly-in-string
 CustomElement.define({ name: 'au-viewport', template: '<template><div class="viewport-header" style="display: none;"> Viewport: <b>${name}</b> ${scope ? "[new scope]" : ""} : <b>${viewport.content && viewport.content.toComponentName()}</b></div></template>' }, ViewportCustomElement);

@@ -1,4 +1,3 @@
-// tslint:disable:typedef
 export class AppConstants {
   public static get cssSelectors() {
     return {

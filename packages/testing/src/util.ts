@@ -29,11 +29,7 @@ import {
   Primitive,
 } from '@aurelia/kernel';
 
-// tslint:disable: no-commented-code
-// tslint:disable: use-primitive-type
-// tslint:disable: ban-types
-// tslint:disable: no-any
-// tslint:disable: no-control-regex
+/* eslint-disable @typescript-eslint/ban-types, @typescript-eslint/no-explicit-any, no-control-regex */
 
 export type BoxedPrimitive = Number | Boolean | String | Symbol;
 

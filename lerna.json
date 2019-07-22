@@ -18,7 +18,7 @@
     "packages/plugin-conventions",
     "packages/plugin-parcel",
     "packages/plugin-pixi",
-    "packages/plugin-requirejs",
+    "packages/plugin-gulp",
     "packages/plugin-svg",
     "packages/webpack-loader",
     "packages/router",

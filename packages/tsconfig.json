@@ -20,7 +20,7 @@
     { "path": "aot" },
     { "path": "plugin-parcel" },
     { "path": "plugin-pixi" },
-    { "path": "plugin-requirejs" },
+    { "path": "plugin-gulp" },
     { "path": "webpack-loader" },
     { "path": "plugin-svg" },
     { "path": "plugin-conventions" }

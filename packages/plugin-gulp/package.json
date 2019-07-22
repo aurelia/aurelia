@@ -1,5 +1,5 @@
 {
-  "name": "@aurelia/plugin-requirejs",
+  "name": "@aurelia/plugin-gulp",
   "version": "0.3.0",
   "main": "dist/esnext/index.js",
   "module": "dist/esnext/index.js",
@@ -16,7 +16,7 @@
   },
   "keywords": [
     "aurelia",
-    "plugin-requirejs"
+    "plugin-gulp"
   ],
   "files": [
     "dist",
@@ -28,7 +28,7 @@
   "scripts": {
     "lint": "tslint --project tsconfig.json -t stylish",
     "build": "tsc -b",
-    "bundle": "ts-node -P ../../scripts/tsconfig.json ../../scripts/bundle.ts umd,esm,system plugin-requirejs",
+    "bundle": "ts-node -P ../../scripts/tsconfig.json ../../scripts/bundle.ts umd,esm,system plugin-gulp",
     "dev": "tsc -b -w"
   },
   "publishConfig": {
@@ -36,10 +36,12 @@
   },
   "dependencies": {
     "@aurelia/kernel": "0.3.0",
-    "@aurelia/runtime": "0.3.0"
+    "@aurelia/runtime": "0.3.0",
+    "@aurelia/plugin-conventions": "0.3.0"
   },
   "devDependencies": {
     "@types/node": "^10.12.27",
+    "@types/vinyl": "^2.0.3",
     "tslib": "^1.10.0",
     "tslint": "^5.18.0",
     "tslint-microsoft-contrib": "^6.2.0",

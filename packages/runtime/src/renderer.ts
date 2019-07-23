@@ -185,7 +185,7 @@ export class SetPropertyRenderer implements IInstructionRenderer {
 
   public render(flags: LifecycleFlags, dom: IDOM, context: IRenderContext, renderable: IController, target: IController, instruction: ISetPropertyInstruction): void {
     if (Tracer.enabled) { Tracer.enter('SetPropertyRenderer', 'render', slice.call(arguments)); }
-    getTarget(target)[instruction.to as keyof object] = instruction.value as never; // Yeah, yeah..
+    getTarget(target)[instruction.to as keyof object] = (instruction.value === '' ? true : instruction.value) as never; // Yeah, yeah..
     if (Tracer.enabled) { Tracer.leave(); }
   }
 }

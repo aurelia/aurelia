@@ -35,8 +35,6 @@
     "access": "public"
   },
   "dependencies": {
-    "@aurelia/kernel": "0.3.0",
-    "@aurelia/runtime": "0.3.0",
     "@aurelia/plugin-conventions": "0.3.0"
   },
   "devDependencies": {

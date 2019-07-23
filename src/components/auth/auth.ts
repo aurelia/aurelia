@@ -3,11 +3,10 @@ import { Router } from '@aurelia/router';
 import { customElement } from '@aurelia/runtime';
 import { User } from 'shared/models/user';
 import { UserService } from 'shared/services/user-service';
-import { SharedState } from 'shared/state/shared-state';
-import template from './auth-component.html';
+import template from './auth.html';
 
-@inject(UserService, SharedState, Router)
-@customElement({ name: 'auth-component', template })
+@inject(UserService, Router)
+@customElement({ name: 'auth', template })
 export class AuthComponent {
   private user: User = {};
   private type: string = 'login';
@@ -33,7 +32,7 @@ export class AuthComponent {
     };
     try {
       await this.userService.attemptAuth(this.type, credentials);
-      await this.router.goto('home-component');
+      await this.router.goto('home');
     } catch (err) {
       this.errors = err.errors;
     }

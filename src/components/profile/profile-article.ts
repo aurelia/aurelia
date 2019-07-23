@@ -1,34 +1,35 @@
 import { inject } from "@aurelia/kernel";
 import { customElement } from "@aurelia/runtime";
-import { Article } from "models/article";
 import { getPages } from "shared/get-pages";
+import { Article } from "shared/models/article";
 import { ArticleService } from "shared/services/article-service";
-import template from './profile-favorites-component.html';
+import template from './profile-article.html';
 @inject(ArticleService)
-@customElement({ name: 'profile-favorites-component', template })
-export class ProfileFavoritesComponent {
+@customElement({ name: 'profile-article', template })
+export class ProfileArticleComponent {
+  public static parameters: string[] = ['name'];
+
   private articles: Article[] = [];
   private pageNumber?: number;
   private totalPages?: number[];
   private currentPage = 1;
   private limit = 10;
-  private username: any;
+  private username?: string;
 
   constructor(private readonly articleService: ArticleService) {
   }
 
-  public async enter(params: { name: string }) {
+  public enter(params: any) {
     this.username = params.name;
-    await this.getArticles();
+    return this.getArticles();
   }
 
   public async getArticles() {
     const queryParams = {
-      favorited: this.username,
+      author: this.username,
       limit: this.limit,
       offset: this.limit * (this.currentPage - 1),
     };
-
     const response = await this.articleService.getList('all', queryParams);
     this.articles.splice(0);
     this.articles.push(...response.articles);

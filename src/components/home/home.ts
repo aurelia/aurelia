@@ -6,10 +6,10 @@ import { getPages } from 'shared/get-pages';
 import { ArticleService } from "shared/services/article-service";
 import { TagService } from 'shared/services/tag-service';
 import { SharedState } from 'shared/state/shared-state';
-import template from './home-component.html';
+import template from './home.html';
 
 @inject(SharedState, ArticleService, TagService)
-@customElement({ name: 'home-component', template })
+@customElement({ name: 'home', template })
 export class HomeComponent {
   private articles: Article[] = [];
   private shownList = 'all';

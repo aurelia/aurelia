@@ -3,10 +3,10 @@ import { Router } from "@aurelia/router";
 import { bindable, BindingMode, customElement } from "@aurelia/runtime";
 import { Article } from "shared/models/article";
 import { ArticleService } from "shared/services/article-service";
-import template from './editor-component.html';
+import template from './editor.html';
 
 @inject(ArticleService, Router)
-@customElement({ name: 'editor-component', template })
+@customElement({ name: 'editor', template })
 export class EditorComponent {
   @bindable({ mode: BindingMode.twoWay }) public tag?: string;
   private article?: Article;

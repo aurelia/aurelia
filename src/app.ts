@@ -20,15 +20,12 @@ export class App implements IViewModel {
     this.router.guardian.addGuard(
       () => {
         if (this.state.isAuthenticated) { return true; }
-        this.router.goto(`auth-component(type=login)`);
+        this.router.goto(`auth(type=login)`);
         return [];
       }
-      , { include: [{ componentName: 'editor-component' }, { componentName: 'settings-component' }] },
+      , { include: [{ componentName: 'editor' }, { componentName: 'settings' }] },
     );
     await this.router.activate();
-  }
-
-  public binding() {
     this.userService.populate();
   }
 }

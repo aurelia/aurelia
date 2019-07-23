@@ -3,9 +3,9 @@ import { Router } from '@aurelia/router';
 import { customElement } from '@aurelia/runtime';
 import { UserService } from 'shared/services/user-service';
 import { SharedState } from 'shared/state/shared-state';
-import template from './settings-component.html';
+import template from './settings.html';
 @inject(UserService, SharedState, Router)
-@customElement({ name: 'settings-component', template })
+@customElement({ name: 'settings', template })
 export class SettingsComponent {
 
   constructor(private readonly userService: UserService,
@@ -19,6 +19,6 @@ export class SettingsComponent {
 
   public logout() {
     this.userService.purgeAuth();
-    this.router.goto('home-component');
+    this.router.goto('home');
   }
 }

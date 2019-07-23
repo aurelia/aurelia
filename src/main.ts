@@ -1,20 +1,20 @@
 import { DebugConfiguration } from '@aurelia/debug';
 import { HttpClient } from '@aurelia/fetch-client';
 import { BasicConfiguration } from '@aurelia/jit-html-browser';
-import { ViewportCustomElement } from '@aurelia/router';
+import { RouterConfiguration } from '@aurelia/router';
 import { Aurelia } from '@aurelia/runtime';
 import 'promise-polyfill/lib/polyfill';
 import { HttpInterceptor } from 'shared/services/http-interceptor';
 import { App } from './app';
-import { ArticleComponent } from './components/article/article-component';
+import { ArticleComponent } from './components/article/article';
 import { CommentCustomElement } from './components/article/comment';
-import { AuthComponent } from './components/auth/auth-component';
-import { EditorComponent } from './components/editor/editor-component';
-import { HomeComponent } from './components/home/home-component';
-import { ProfileArticleComponent } from './components/profile/profile-article-component';
-import { ProfileComponent } from './components/profile/profile-component';
-import { ProfileFavoritesComponent } from './components/profile/profile-favorites-component';
-import { SettingsComponent } from './components/settings/settings-component';
+import { AuthComponent } from './components/auth/auth';
+import { EditorComponent } from './components/editor/editor';
+import { HomeComponent } from './components/home/home';
+import { ProfileArticleComponent } from './components/profile/profile-article';
+import { ProfileComponent } from './components/profile/profile';
+import { ProfileFavoritesComponent } from './components/profile/profile-favorites';
+import { SettingsComponent } from './components/settings/settings';
 import { ArticleList } from './resources/elements/article-list';
 import { ArticlePreview } from './resources/elements/article-preview';
 import { DateValueConverter } from './resources/value-converters/date';
@@ -30,7 +30,6 @@ import { SharedState } from './shared/state/shared-state';
 const container =
   BasicConfiguration.createContainer().register(
     App,
-    ViewportCustomElement,
     HomeComponent,
     HeaderLayout,
     FooterLayout,
@@ -55,7 +54,7 @@ const container =
   );
 
 (global as any).au = new Aurelia(container)
-  .register(BasicConfiguration, DebugConfiguration)
+  .register(BasicConfiguration, DebugConfiguration, RouterConfiguration)
   .app({
     component: App,
     host: document.querySelector('app')!,

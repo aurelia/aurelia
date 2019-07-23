@@ -1,7 +1,8 @@
 import { getOptions } from 'loader-utils';
 import * as webpack from 'webpack';
-import { preprocessResource, preprocessHtmlTemplate } from '@aurelia/plugin-conventions';
+import { preprocess } from '@aurelia/plugin-conventions';
 import * as fs from 'fs';
+import * as path from 'path';
 
 export default function(
   this: webpack.loader.LoaderContext,
@@ -14,7 +15,7 @@ export default function(
 export function loader(
   this: webpack.loader.LoaderContext,
   contents: string,
-  _fileExists = fileExists // for testing
+  _preprocess = preprocess // for testing
 ) {
   // tslint:disable-next-line:no-unused-expression strict-boolean-expressions
   this.cacheable && this.cacheable();
@@ -22,39 +23,22 @@ export function loader(
   const options = getOptions(this);
   const ts = options && options.ts as boolean;
   const filePath = this.resourcePath;
-  const ext = extname(filePath);
+  const ext = path.extname(filePath);
 
-  let result;
   try {
-    if (ext === '.html') {
-      result = preprocessHtmlTemplate(filePath, contents, ts);
-    } else {
-      const htmlFilePath = filePath.slice(0, - ext.length) + '.html';
-      const hasHtmlPair = _fileExists(htmlFilePath);
-      result = preprocessResource(filePath, contents, hasHtmlPair);
+    if (ext === '.html' || ext === '.js' || ext === '.ts') {
+      const result = _preprocess(filePath, contents, ts);
+
+      // webpack uses source-map 0.6.1 typings for RawSourceMap which
+      // contains typing error version: string (should be number).
+      // use result.map as any to bypass the typing issue.
+      cb(null, result.code, result.map as any);
+      return;
     }
+
+    // bypass
+    cb(null, contents);
   } catch (e) {
     cb(e);
-    return;
-  }
-
-  // webpack uses source-map 0.6.1 typings for RawSourceMap which
-  // contains typing error version: string (should be number).
-  // use result.map as any to bypass the typing issue.
-  cb(null, result.code, result.map as any);
-}
-
-function extname(filePath: string): string {
-  const idx = filePath.lastIndexOf('.');
-  if (idx !== -1) return filePath.slice(idx);
-  return '';
-}
-
-function fileExists(filePath: string): boolean {
-  try {
-    const stats = fs.statSync(filePath);
-    return stats.isFile();
-  } catch (e) {
-    return false;
   }
 }

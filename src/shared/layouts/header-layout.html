@@ -1,36 +1,8 @@
 <template>
-  <nav class="navbar navbar-light">
+    <nav class="navbar navbar-light">
     <div class="container">
       <a class="navbar-brand" href="home">conduit</a>
-      <ul class="nav navbar-nav pull-xs-right">
-        <li class="${'nav-item' + (activeParentRoute.indexOf('home') ? ' active' : '')}">
-          <a class="nav-link" href="home">Home</a>
-        </li>
-        <li class="${'nav-item' + (activeParentRoute.indexOf('new') ? ' active' : '')}"
-            if.bind="sharedState.currentUser && sharedState.isAuthenticated">
-          <a class="nav-link" href="editor(type=new)">
-            <i class="ion-compose"></i>&nbsp;New Post
-          </a>
-        </li>
-        <li class="${'nav-item' + (activeParentRoute.indexOf('settings') > -1 ? ' active' : '')}"
-            if.bind="sharedState.currentUser && sharedState.isAuthenticated">
-          <a class="nav-link" href="settings">
-            <i class="ion-gear-a"></i>&nbsp;Settings
-          </a>
-        </li>
-        <li class="${'nav-item' + (activeParentRoute.indexOf('login') > -1? ' active' : '')}"
-            if.bind="!sharedState.isAuthenticated">
-          <a class="nav-link" href="auth(type=login)">Sign in</a>
-        </li>
-        <li class="${'nav-item' + (activeParentRoute.indexOf('register') > -1 ? ' active' : '')}"
-            if.bind="!sharedState.isAuthenticated">
-          <a class="nav-link" href="auth(type=register)">Sign up</a>
-        </li>
-        <li class="${'nav-item' + (activeParentRoute.indexOf('profile') > -1 ? ' active' : '')}"
-            if.bind="sharedState.currentUser && sharedState.isAuthenticated">
-          <a class="nav-link" href="profile(${sharedState.currentUser.username})">${sharedState.currentUser.username}</a>
-        </li>
-      </ul>
+      <au-nav name="main"></au-nav>
     </div>
   </nav>
 </template>

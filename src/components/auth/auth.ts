@@ -3,10 +3,9 @@ import { Router } from '@aurelia/router';
 import { customElement } from '@aurelia/runtime';
 import { User } from 'shared/models/user';
 import { UserService } from 'shared/services/user-service';
-import { SharedState } from 'shared/state/shared-state';
 import template from './auth.html';
 
-@inject(UserService, SharedState, Router)
+@inject(UserService, Router)
 @customElement({ name: 'auth', template })
 export class AuthComponent {
   private user: User = {};

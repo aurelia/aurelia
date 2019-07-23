@@ -32,7 +32,7 @@ export class Spy {
 
   public methodCalledTimes(methodName: string, times: number) {
     const calls = this.callRecords.get(methodName);
-    assert.equal(!!calls, true);
+    assert.notEqual(calls, undefined);
     assert.equal(calls.length, times);
   }
 
@@ -43,6 +43,6 @@ export class Spy {
 
   public methodCalledNthTimeWith(methodName: string, n: number, expectedArgs: any[]) {
     const calls = this.callRecords.get(methodName);
-    assert.equal(JSON.stringify(calls[n - 1]), JSON.stringify(expectedArgs));
+    assert.deepEqual(calls[n - 1], expectedArgs);
   }
 }

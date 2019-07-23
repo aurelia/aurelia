@@ -1,5 +1,6 @@
-import { IContainer } from '@aurelia/kernel';
+import { IContainer, Registration } from '@aurelia/kernel';
 import { I18nConfigurationOptions } from './i18n-configuration-options';
+import { I18nextWrapper, I18nWrapper } from './i18next-wrapper';
 import { TCustomAttribute } from './t-custom-attribute';
 
 export type I18NConfigOptionsProvider = () => I18nConfigurationOptions;
@@ -10,7 +11,8 @@ function createI18nConfiguration(optionsProvider: I18NConfigOptionsProvider) {
     register(container: IContainer) {
       return container.register(
         TCustomAttribute,
-        I18nConfigurationOptions.withDefault(x => x.callback(this.optionsProvider)),
+        Registration.callback(I18nConfigurationOptions, this.optionsProvider),
+        Registration.singleton(I18nWrapper, I18nextWrapper)
       );
     },
     customize(cb?: I18NConfigOptionsProvider) {

@@ -33,6 +33,7 @@ export class I18nService {
     } else {
       this.task = new ContinuationTask(this.task, this.updateValueCore, this, node, value, params);
     }
+    return this.task;
   }
 
   private updateValueCore(node: Node, value: string, params?: i18nextCore.TOptions<object>) {
@@ -51,19 +52,14 @@ export class I18nService {
 
   private extractAttributesFromKey(node: Node, key: string) {
     const re = /\[([a-z\-, ]*)\]/ig;
-    let m, attr = 'text';
-
     // set default attribute to src if this is an image node
-    if (node.nodeName === 'IMG') { attr = 'src'; }
+    let attr = node.nodeName === 'IMG' ? 'src' : 'text';
 
     // check if a attribute was specified in the key
-    // tslint:disable-next-line:no-conditional-assignment
-    while (!!(m = re.exec(key))) {
-      if (m.index === re.lastIndex) {
-        re.lastIndex++;
-      }
-      key = key.replace(m[0], '');
-      attr = m[1];
+    const matches = re.exec(key);
+    if (matches) {
+      key = key.replace(matches[0], '');
+      attr = matches[1];
     }
 
     return { attr, key };
@@ -76,20 +72,12 @@ export class I18nService {
       // anything other than text,prepend,append or html will be added as an attribute on the element.
       switch (attrs[j].trim()) {
         case 'text':
-          this.replaceTextContent(node, key, params);
+          node.textContent = this.tr(key, params);
           break;
         default:
           break;
       }
     }
-  }
-
-  private replaceTextContent(node: Node, key: string, params?: i18nextCore.TOptions<object>) {
-    const newChild = this.dom.createTextNode(this.tr(key, params));
-    while (node.firstChild) {
-      node.removeChild(node.firstChild);
-    }
-    node.appendChild(newChild);
   }
 
   private async initializeI18next(options: I18nConfigurationOptions) {

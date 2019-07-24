@@ -31,11 +31,9 @@ export class InternalObserversLookup {
     obj: IBindingContext | IOverrideContext,
     key: string,
   ): PropertyObserver {
-    if (Tracer.enabled) { Tracer.enter('InternalObserversLookup', 'getOrCreate', slice.call(arguments)); }
     if (this[key] === void 0) {
       this[key] = new SetterObserver(lifecycle, flags, obj, key);
     }
-    if (Tracer.enabled) { Tracer.leave(); }
     return this[key];
   }
 }
@@ -94,7 +92,6 @@ export class BindingContext implements IBindingContext {
   }
 
   public static get(scope: IScope, name: string, ancestor: number, flags: LifecycleFlags, part?: string): IBindingContext | IOverrideContext | IBinding | undefined | null {
-    if (Tracer.enabled) { Tracer.enter('BindingContext', 'get', slice.call(arguments)); }
     if (scope == null) {
       throw Reporter.error(RuntimeError.NilScope);
     }
@@ -104,14 +101,12 @@ export class BindingContext implements IBindingContext {
       // jump up the required number of ancestor contexts (eg $parent.$parent requires two jumps)
       while (ancestor > 0) {
         if (overrideContext.parentOverrideContext == null) {
-          if (Tracer.enabled) { Tracer.leave(); }
           return void 0;
         }
         ancestor--;
         overrideContext = overrideContext.parentOverrideContext;
       }
 
-      if (Tracer.enabled) { Tracer.leave(); }
       return name in overrideContext ? overrideContext : overrideContext.bindingContext;
     }
 
@@ -121,7 +116,6 @@ export class BindingContext implements IBindingContext {
     }
 
     if (overrideContext) {
-      if (Tracer.enabled) { Tracer.leave(); }
       // we located a context with the property.  return it.
       return name in overrideContext ? overrideContext : overrideContext.bindingContext;
     }
@@ -136,7 +130,6 @@ export class BindingContext implements IBindingContext {
             & ~LifecycleFlags.allowParentScopeTraversal
             // tell the scope to return null if the name could not be found
             | LifecycleFlags.isTraversingParentScope);
-          if (Tracer.enabled) { Tracer.leave(); }
           if (result === marker) {
             return scope.bindingContext || scope.overrideContext;
           } else {
@@ -156,19 +149,15 @@ export class BindingContext implements IBindingContext {
     // if this is a parent scope traversal, to ensure we fall back to the
     // correct level)
     if (flags & LifecycleFlags.isTraversingParentScope) {
-      if (Tracer.enabled) { Tracer.leave(); }
       return marker;
     }
-    if (Tracer.enabled) { Tracer.leave(); }
     return scope.bindingContext || scope.overrideContext;
   }
 
   public getObservers(flags: LifecycleFlags): ObserversLookup {
-    if (Tracer.enabled) { Tracer.enter('BindingContext', 'getObservers', slice.call(arguments)); }
     if (this.$observers == null) {
       this.$observers = new InternalObserversLookup() as ObserversLookup;
     }
-    if (Tracer.enabled) { Tracer.leave(); }
     return this.$observers;
   }
 }
@@ -219,26 +208,20 @@ export class Scope implements IScope {
    */
   public static create(flags: LifecycleFlags, bc: object, oc: null): Scope;
   public static create(flags: LifecycleFlags, bc: object, oc?: IOverrideContext | null): Scope {
-    if (Tracer.enabled) { Tracer.enter('Scope', 'create', slice.call(arguments)); }
-    if (Tracer.enabled) { Tracer.leave(); }
     return new Scope(null, bc as IBindingContext, oc == null ? OverrideContext.create(flags, bc, oc!) : oc);
   }
 
   public static fromOverride(flags: LifecycleFlags, oc: IOverrideContext): Scope {
-    if (Tracer.enabled) { Tracer.enter('Scope', 'fromOverride', slice.call(arguments)); }
     if (oc == null) {
       throw Reporter.error(RuntimeError.NilOverrideContext);
     }
-    if (Tracer.enabled) { Tracer.leave(); }
     return new Scope(null, oc.bindingContext, oc);
   }
 
   public static fromParent(flags: LifecycleFlags, ps: IScope | null, bc: object): Scope {
-    if (Tracer.enabled) { Tracer.enter('Scope', 'fromParent', slice.call(arguments)); }
     if (ps == null) {
       throw Reporter.error(RuntimeError.NilParentScope);
     }
-    if (Tracer.enabled) { Tracer.leave(); }
     return new Scope(ps, bc as IBindingContext, OverrideContext.create(flags, bc, ps.overrideContext));
   }
 }
@@ -258,17 +241,13 @@ export class OverrideContext implements IOverrideContext {
   }
 
   public static create(flags: LifecycleFlags, bc: object, poc: IOverrideContext | null): OverrideContext {
-    if (Tracer.enabled) { Tracer.enter('OverrideContext', 'create', slice.call(arguments)); }
-    if (Tracer.enabled) { Tracer.leave(); }
     return new OverrideContext(bc as IBindingContext, poc === void 0 ? null : poc);
   }
 
   public getObservers(): ObserversLookup {
-    if (Tracer.enabled) { Tracer.enter('OverrideContext', 'getObservers', slice.call(arguments)); }
     if (this.$observers === void 0) {
       this.$observers = new InternalObserversLookup() as ObserversLookup;
     }
-    if (Tracer.enabled) { Tracer.leave(); }
     return this.$observers;
   }
 }

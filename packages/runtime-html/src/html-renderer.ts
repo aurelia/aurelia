@@ -45,7 +45,6 @@ export class TextBindingRenderer implements IInstructionRenderer {
   }
 
   public render(flags: LifecycleFlags, dom: IDOM, context: IRenderContext, renderable: IController, target: ChildNode, instruction: ITextBindingInstruction): void {
-    if (Tracer.enabled) { Tracer.enter('TextBindingRenderer', 'render', slice.call(arguments)); }
     const next = target.nextSibling;
     if (dom.isMarker(target)) {
       dom.remove(target);
@@ -58,7 +57,6 @@ export class TextBindingRenderer implements IInstructionRenderer {
       binding = new InterpolationBinding(expr.firstExpression, expr, next!, 'textContent', BindingMode.toView, this.observerLocator, context, true);
     }
     addBinding(renderable, binding);
-    if (Tracer.enabled) { Tracer.leave(); }
   }
 }
 
@@ -77,11 +75,9 @@ export class ListenerBindingRenderer implements IInstructionRenderer {
   }
 
   public render(flags: LifecycleFlags, dom: IDOM, context: IRenderContext, renderable: IController, target: HTMLElement, instruction: IListenerBindingInstruction): void {
-    if (Tracer.enabled) { Tracer.enter('ListenerBindingRenderer', 'render', slice.call(arguments)); }
     const expr = ensureExpression(this.parser, instruction.from, BindingType.IsEventCommand | (instruction.strategy + BindingType.DelegationStrategyDelta));
     const binding = new Listener(dom, instruction.to, instruction.strategy, expr, target, instruction.preventDefault, this.eventManager, context);
     addBinding(renderable, binding);
-    if (Tracer.enabled) { Tracer.leave(); }
   }
 }
 
@@ -91,9 +87,7 @@ export class SetAttributeRenderer implements IInstructionRenderer {
   public static readonly register: IRegistry['register'];
 
   public render(flags: LifecycleFlags, dom: IDOM, context: IRenderContext, renderable: IController, target: HTMLElement, instruction: ISetAttributeInstruction): void {
-    if (Tracer.enabled) { Tracer.enter('SetAttributeRenderer', 'render', slice.call(arguments)); }
     target.setAttribute(instruction.to, instruction.value);
-    if (Tracer.enabled) { Tracer.leave(); }
   }
 }
 
@@ -112,11 +106,9 @@ export class StylePropertyBindingRenderer implements IInstructionRenderer {
   }
 
   public render(flags: LifecycleFlags, dom: IDOM, context: IRenderContext, renderable: IController, target: HTMLElement, instruction: IStylePropertyBindingInstruction): void {
-    if (Tracer.enabled) { Tracer.enter('StylePropertyBindingRenderer', 'render', slice.call(arguments)); }
     const expr = ensureExpression(this.parser, instruction.from, BindingType.IsPropertyCommand | BindingMode.toView);
     const binding = new PropertyBinding(expr, target.style, instruction.to, BindingMode.toView, this.observerLocator, context);
     addBinding(renderable, binding);
-    if (Tracer.enabled) { Tracer.leave(); }
   }
 }
 
@@ -136,7 +128,6 @@ export class AttributeBindingRenderer implements IInstructionRenderer {
   }
 
   public render(flags: LifecycleFlags, dom: IDOM, context: IRenderContext, renderable: IController, target: HTMLElement, instruction: IAttributeBindingInstruction): void {
-    if (Tracer.enabled) { Tracer.enter('StylePropertyBindingRenderer', 'render', slice.call(arguments)); }
     const expr = ensureExpression(this.parser, instruction.from, BindingType.IsPropertyCommand | BindingMode.toView);
     const binding = new AttributeBinding(
       expr,
@@ -148,6 +139,5 @@ export class AttributeBindingRenderer implements IInstructionRenderer {
       context
     );
     addBinding(renderable, binding);
-    if (Tracer.enabled) { Tracer.leave(); }
   }
 }

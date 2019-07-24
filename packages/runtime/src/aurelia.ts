@@ -263,7 +263,6 @@ export class Aurelia<TNode extends INode = INode> {
     Reflect.set(root.host, '$au', this);
     this._root = root;
     this._isStarting = true;
-    if (Profiler.enabled) { enterStart(); }
   }
 
   private onAfterStart(root: CompositionRoot): ILifecycleTask {
@@ -271,14 +270,12 @@ export class Aurelia<TNode extends INode = INode> {
     this._isStarting = false;
     this.dispatchEvent(root, 'aurelia-composed', root.dom);
     this.dispatchEvent(root, 'au-started', root.host as Publisher);
-    if (Profiler.enabled) { leaveStart(); }
     return LifecycleTask.done;
   }
 
   private onBeforeStop(root: CompositionRoot): void {
     this._isRunning = false;
     this._isStopping = true;
-    if (Profiler.enabled) { enterStop(); }
   }
 
   private onAfterStop(root: CompositionRoot): ILifecycleTask {
@@ -286,7 +283,6 @@ export class Aurelia<TNode extends INode = INode> {
     this._root = void 0;
     this._isStopping = false;
     this.dispatchEvent(root, 'au-stopped', root.host as Publisher);
-    if (Profiler.enabled) { leaveStop(); }
     return LifecycleTask.done;
   }
 

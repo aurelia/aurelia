@@ -143,17 +143,14 @@ export function parse<TPrec extends Precedence, TType extends BindingType>(state
     TType extends BindingType.Interpolation ? IInterpolationExpression :
     TType extends BindingType.ForCommand ? IForOfStatement :
     never : never {
-  if (Profiler.enabled) { enter(); }
 
   if (state.index === 0) {
     if (bindingType & BindingType.Interpolation) {
-      if (Profiler.enabled) { leave(); }
       // tslint:disable-next-line:no-any
       return parseInterpolation(state) as any;
     }
     nextToken(state);
     if (state.currentToken & Token.ExpressionTerminal) {
-      if (Profiler.enabled) { leave(); }
       throw Reporter.error(SyntaxError.InvalidExpressionStart, { state });
     }
   }
@@ -217,10 +214,8 @@ export function parse<TPrec extends Precedence, TType extends BindingType>(state
         access++; // ancestor
         if (consumeOpt(state, Token.Dot)) {
           if ((state.currentToken as Token) === Token.Dot) {
-            if (Profiler.enabled) { leave(); }
             throw Reporter.error(SyntaxError.DoubleDot, { state });
           } else if ((state.currentToken as Token) === Token.EOF) {
-            if (Profiler.enabled) { leave(); }
             throw Reporter.error(SyntaxError.ExpectedIdentifier, { state });
           }
         } else if (state.currentToken & Token.AccessScopeTerminal) {
@@ -229,7 +224,6 @@ export function parse<TPrec extends Precedence, TType extends BindingType>(state
           access = Access.This;
           break primary;
         } else {
-          if (Profiler.enabled) { leave(); }
           throw Reporter.error(SyntaxError.InvalidMemberExpression, { state });
         }
       } while (state.currentToken === Token.ParentScope);
@@ -292,21 +286,17 @@ export function parse<TPrec extends Precedence, TType extends BindingType>(state
       break;
     default:
       if (state.index >= state.length) {
-        if (Profiler.enabled) { leave(); }
         throw Reporter.error(SyntaxError.UnexpectedEndOfExpression, { state });
       } else {
-        if (Profiler.enabled) { leave(); }
         throw Reporter.error(SyntaxError.UnconsumedToken, { state });
       }
     }
 
     if (bindingType & BindingType.IsIterator) {
-      if (Profiler.enabled) { leave(); }
       // tslint:disable-next-line:no-any
       return parseForOfStatement(state, result as BindingIdentifierOrPattern) as any;
     }
     if (Precedence.LeftHandSide < minPrecedence) {
-      if (Profiler.enabled) { leave(); }
       // tslint:disable-next-line:no-any
       return result as any;
     }
@@ -342,7 +332,6 @@ export function parse<TPrec extends Precedence, TType extends BindingType>(state
           state.assignable = true;
           nextToken(state);
           if ((state.currentToken & Token.IdentifierName) === 0) {
-            if (Profiler.enabled) { leave(); }
             throw Reporter.error(SyntaxError.ExpectedIdentifier, { state });
           }
           name = state.tokenValue as string;
@@ -402,7 +391,6 @@ export function parse<TPrec extends Precedence, TType extends BindingType>(state
   }
 
   if (Precedence.Binary < minPrecedence) {
-    if (Profiler.enabled) { leave(); }
     // tslint:disable-next-line:no-any
     return result as any;
   }
@@ -444,7 +432,6 @@ export function parse<TPrec extends Precedence, TType extends BindingType>(state
     state.assignable = false;
   }
   if (Precedence.Conditional < minPrecedence) {
-    if (Profiler.enabled) { leave(); }
     // tslint:disable-next-line:no-any
     return result as any;
   }
@@ -468,7 +455,6 @@ export function parse<TPrec extends Precedence, TType extends BindingType>(state
     state.assignable = false;
   }
   if (Precedence.Assign < minPrecedence) {
-    if (Profiler.enabled) { leave(); }
     // tslint:disable-next-line:no-any
     return result as any;
   }
@@ -486,13 +472,11 @@ export function parse<TPrec extends Precedence, TType extends BindingType>(state
    */
   if (consumeOpt(state, Token.Equals)) {
     if (!state.assignable) {
-      if (Profiler.enabled) { leave(); }
       throw Reporter.error(SemanticError.NotAssignable, { state });
     }
     result = new AssignExpression(result as IsAssignable, parse(state, access, Precedence.Assign, bindingType));
   }
   if (Precedence.Variadic < minPrecedence) {
-    if (Profiler.enabled) { leave(); }
     // tslint:disable-next-line:no-any
     return result as any;
   }
@@ -501,7 +485,6 @@ export function parse<TPrec extends Precedence, TType extends BindingType>(state
    */
   while (consumeOpt(state, Token.Bar)) {
     if (state.currentToken === Token.EOF) {
-      if (Profiler.enabled) { leave(); }
       throw Reporter.error(112);
     }
     const name = state.tokenValue as string;
@@ -517,7 +500,6 @@ export function parse<TPrec extends Precedence, TType extends BindingType>(state
    */
   while (consumeOpt(state, Token.Ampersand)) {
     if (state.currentToken === Token.EOF) {
-      if (Profiler.enabled) { leave(); }
       throw Reporter.error(113);
     }
     const name = state.tokenValue as string;
@@ -530,18 +512,14 @@ export function parse<TPrec extends Precedence, TType extends BindingType>(state
   }
   if (state.currentToken !== Token.EOF) {
     if (bindingType & BindingType.Interpolation) {
-      if (Profiler.enabled) { leave(); }
       // tslint:disable-next-line:no-any
       return result as any;
     }
     if (state.tokenRaw === 'of') {
-      if (Profiler.enabled) { leave(); }
       throw Reporter.error(SemanticError.UnexpectedForOf, { state });
     }
-    if (Profiler.enabled) { leave(); }
     throw Reporter.error(SyntaxError.UnconsumedToken, { state });
   }
-  if (Profiler.enabled) { leave(); }
   // tslint:disable-next-line:no-any
   return result as any;
 }

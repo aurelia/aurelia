@@ -7,9 +7,11 @@
   "lerna": "3.13.4",
   "packages": [
     "packages/__tests__",
+    "packages/__tests__/e2e",
     "packages/aot",
     "packages/debug",
     "packages/fetch-client",
+    "packages/i18n",
     "packages/jit",
     "packages/jit-html",
     "packages/jit-html-browser",

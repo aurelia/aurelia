@@ -346,6 +346,23 @@ jobs:
             cd packages/__tests__/router/e2e/doc-example
             npm run test
 
+  e2e_cypress:
+    executor: docker-circleci
+    steps:
+      - checkout_install_bootstrap
+      - run: npm run build
+      - run:
+          name: "Install cypress"
+          command: |
+            cd packages/__tests__/e2e
+            npm install
+      - run:
+          name: "Run e2e tests"
+          background: true
+          command: |
+            cd packages/__tests__/e2e
+            npm run e2e
+
   publish_npm:
     executor: docker-aurelia
     parameters:
@@ -429,6 +446,8 @@ workflows:
           <<: *filter_ignore_develop_release
       - js_framework_benchmark:
           <<: *filter_ignore_develop_release
+      - e2e_cypress:
+         <<: *filter_ignore_develop_release
       #- e2e_cypress_doc_example:
       #    <<: *filter_ignore_develop_release
       #- e2e_wdio:
@@ -470,6 +489,7 @@ workflows:
             - unit_test_node
             - lint_packages
             - e2e_browserstack
+            - e2e_cypress
             #- e2e_cypress_doc_example
             #- jit-fuse-box-ts
             - jit-webpack-ts
@@ -490,6 +510,7 @@ workflows:
             - unit_test_node
             - lint_packages
             - e2e_browserstack
+            - e2e_cypress
             #- e2e_cypress_doc_example
             #- jit-fuse-box-ts
             - jit-webpack-ts
@@ -530,6 +551,8 @@ workflows:
           <<: *filter_only_tag
       - e2e_browserstack:
           <<: *filter_only_tag
+      - e2e_cypress:
+         <<: *filter_only_tag
       #- e2e_cypress_doc_example:
       #    <<: *filter_only_tag
       - merge_and_dist:
@@ -540,6 +563,7 @@ workflows:
             - unit_test_node
             - lint_packages
             - e2e_browserstack
+            - e2e_cypress
             #- e2e_cypress_doc_example
           from: $CIRCLE_TAG
           to: release

@@ -16,8 +16,6 @@
     const lifecycle_task_1 = require("./lifecycle-task");
     const custom_element_1 = require("./resources/custom-element");
     const controller_1 = require("./templating/controller");
-    const { enter: enterStart, leave: leaveStart } = kernel_1.Profiler.createTimer('Aurelia.start');
-    const { enter: enterStop, leave: leaveStop } = kernel_1.Profiler.createTimer('Aurelia.stop');
     class CompositionRoot {
         constructor(config, container) {
             this.config = config;
@@ -41,25 +39,27 @@
             this.strategy = config.strategy != void 0 ? config.strategy : 1 /* getterSetter */;
             const initializer = this.container.get(exports.IDOMInitializer);
             this.dom = initializer.initialize(config);
-            this.viewModel = custom_element_1.CustomElement.isType(config.component)
-                ? this.container.get(config.component)
-                : config.component;
-            this.controller = controller_1.Controller.forCustomElement(this.viewModel, this.container, this.host, this.strategy);
             this.lifecycle = this.container.get(lifecycle_1.ILifecycle);
             this.activator = this.container.get(activator_1.IActivator);
-            if (config.enableTimeSlicing === true) {
-                this.lifecycle.enableTimeslicing(config.adaptiveTimeSlicing);
+            const taskManager = this.container.get(lifecycle_task_1.IStartTaskManager);
+            const beforeCreateTask = taskManager.runBeforeCreate();
+            if (beforeCreateTask.done) {
+                this.task = lifecycle_task_1.LifecycleTask.done;
+                this.create();
             }
             else {
-                this.lifecycle.disableTimeslicing();
+                this.task = new lifecycle_task_1.ContinuationTask(beforeCreateTask, this.create, this);
             }
-            this.task = lifecycle_task_1.LifecycleTask.done;
-            this.hasPendingStartFrame = true;
-            this.hasPendingStopFrame = true;
         }
         activate(antecedent) {
             const { task, host, viewModel, container, activator, strategy } = this;
             const flags = strategy | 1024 /* fromStartTask */;
+            if (viewModel === void 0) {
+                if (this.createTask === void 0) {
+                    this.createTask = new lifecycle_task_1.ContinuationTask(task, this.activate, this, antecedent);
+                }
+                return this.createTask;
+            }
             if (task.done) {
                 if (antecedent == void 0 || antecedent.done) {
                     this.task = activator.activate(host, viewModel, container, flags, void 0);
@@ -82,6 +82,12 @@
         deactivate(antecedent) {
             const { task, viewModel, activator, strategy } = this;
             const flags = strategy | 2048 /* fromStopTask */;
+            if (viewModel === void 0) {
+                if (this.createTask === void 0) {
+                    this.createTask = new lifecycle_task_1.ContinuationTask(task, this.deactivate, this, antecedent);
+                }
+                return this.createTask;
+            }
             if (task.done) {
                 if (antecedent == void 0 || antecedent.done) {
                     this.task = activator.deactivate(viewModel, flags);
@@ -100,6 +106,19 @@
                 }
             }
             return this.task;
+        }
+        create() {
+            const config = this.config;
+            this.viewModel = custom_element_1.CustomElement.isType(config.component)
+                ? this.container.get(config.component)
+                : config.component;
+            this.controller = controller_1.Controller.forCustomElement(this.viewModel, this.container, this.host, this.strategy);
+            if (config.enableTimeSlicing === true) {
+                this.lifecycle.enableTimeslicing(config.adaptiveTimeSlicing);
+            }
+            else {
+                this.lifecycle.disableTimeslicing();
+            }
         }
     }
     exports.CompositionRoot = CompositionRoot;

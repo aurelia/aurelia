@@ -15,21 +15,21 @@ export interface ISinglePageApp<THost extends INode = INode> {
 export declare class CompositionRoot<T extends INode = INode> {
     readonly config: ISinglePageApp<T>;
     readonly container: IContainer;
-    readonly controller: IController;
     readonly host: T & {
         $au?: Aurelia<T>;
     };
     readonly dom: IDOM<T>;
-    readonly viewModel: IHydratedViewModel<T>;
     readonly strategy: BindingStrategy;
     readonly lifecycle: ILifecycle;
     readonly activator: IActivator;
     task: ILifecycleTask;
-    hasPendingStartFrame: boolean;
-    hasPendingStopFrame: boolean;
+    controller?: IController;
+    viewModel?: IHydratedViewModel<T>;
+    private createTask?;
     constructor(config: ISinglePageApp<T>, container: IContainer);
     activate(antecedent?: ILifecycleTask): ILifecycleTask;
     deactivate(antecedent?: ILifecycleTask): ILifecycleTask;
+    private create;
 }
 export declare class Aurelia<TNode extends INode = INode> {
     readonly container: IContainer;

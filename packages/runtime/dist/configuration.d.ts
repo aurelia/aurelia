@@ -2,6 +2,7 @@ import { IContainer, IRegistry } from '@aurelia/kernel';
 export declare const IObserverLocatorRegistration: IRegistry;
 export declare const ILifecycleRegistration: IRegistry;
 export declare const IRendererRegistration: IRegistry;
+export declare const IStartTaskManagerRegistration: IRegistry;
 /**
  * Default implementations for the following interfaces:
  * - `IObserverLocator`

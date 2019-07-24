@@ -246,6 +246,11 @@
     exports.ContinuationTask = lifecycle_task_1.ContinuationTask;
     exports.LifecycleTask = lifecycle_task_1.LifecycleTask;
     exports.PromiseTask = lifecycle_task_1.PromiseTask;
+    exports.TaskSlot = lifecycle_task_1.TaskSlot;
+    exports.StartTask = lifecycle_task_1.StartTask;
+    exports.IStartTask = lifecycle_task_1.IStartTask;
+    exports.IStartTaskManager = lifecycle_task_1.IStartTaskManager;
+    exports.ProviderTask = lifecycle_task_1.ProviderTask;
     var observation_1 = require("./observation");
     exports.CollectionKind = observation_1.CollectionKind;
     exports.DelegationStrategy = observation_1.DelegationStrategy;

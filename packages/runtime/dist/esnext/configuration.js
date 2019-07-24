@@ -1,5 +1,6 @@
 import { DI } from '@aurelia/kernel';
 import { Lifecycle } from './lifecycle';
+import { StartTaskManager } from './lifecycle-task';
 import { ObserverLocator } from './observation/observer-locator';
 import { CallBindingRenderer, CustomAttributeRenderer, CustomElementRenderer, InterpolationBindingRenderer, IteratorBindingRenderer, LetElementRenderer, PropertyBindingRenderer, RefBindingRenderer, Renderer, SetPropertyRenderer, TemplateControllerRenderer } from './renderer';
 import { FromViewBindingBehavior, OneTimeBindingBehavior, ToViewBindingBehavior, TwoWayBindingBehavior } from './resources/binding-behaviors/binding-mode';
@@ -15,6 +16,7 @@ import { SanitizeValueConverter } from './resources/value-converters/sanitize';
 export const IObserverLocatorRegistration = ObserverLocator;
 export const ILifecycleRegistration = Lifecycle;
 export const IRendererRegistration = Renderer;
+export const IStartTaskManagerRegistration = StartTaskManager;
 /**
  * Default implementations for the following interfaces:
  * - `IObserverLocator`
@@ -24,7 +26,8 @@ export const IRendererRegistration = Renderer;
 export const DefaultComponents = [
     IObserverLocatorRegistration,
     ILifecycleRegistration,
-    IRendererRegistration
+    IRendererRegistration,
+    IStartTaskManagerRegistration,
 ];
 export const IfRegistration = If;
 export const ElseRegistration = Else;

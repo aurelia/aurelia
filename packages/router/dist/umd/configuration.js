@@ -4,12 +4,13 @@
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "@aurelia/kernel", "./resources/nav", "./resources/viewport", "./router"], factory);
+        define(["require", "exports", "@aurelia/kernel", "@aurelia/runtime", "./resources/nav", "./resources/viewport", "./router"], factory);
     }
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     const kernel_1 = require("@aurelia/kernel");
+    const runtime_1 = require("@aurelia/runtime");
     const nav_1 = require("./resources/nav");
     exports.NavCustomElement = nav_1.NavCustomElement;
     const viewport_1 = require("./resources/viewport");
@@ -21,7 +22,7 @@
      * - `IRouter`
      */
     exports.DefaultComponents = [
-        exports.RouterRegistration
+        exports.RouterRegistration,
     ];
     exports.ViewportCustomElementRegistration = viewport_1.ViewportCustomElement;
     exports.NavCustomElementRegistration = nav_1.NavCustomElement;
@@ -41,7 +42,7 @@
          * Apply this configuration to the provided container.
          */
         register(container) {
-            return container.register(...exports.DefaultComponents, ...exports.DefaultResources);
+            return container.register(...exports.DefaultComponents, ...exports.DefaultResources, runtime_1.StartTask.with(router_1.IRouter).beforeAttach().call(router => router.activate()));
         },
         /**
          * Create a new container with this configuration applied to it.

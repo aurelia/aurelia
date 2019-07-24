@@ -1,4 +1,4 @@
-export { all, DI, IContainer, inject, IServiceLocator, lazy, optional, Registration, singleton, transient, InstanceProvider } from './di';
+export { all, DI, IContainer, inject, IServiceLocator, lazy, optional, Registration, singleton, transient, InstanceProvider, } from './di';
 export { relativeToFile, join, buildQueryString, parseQueryString } from './path';
 export { PLATFORM } from './platform';
 export { Reporter, Tracer, LogLevel, } from './reporter';

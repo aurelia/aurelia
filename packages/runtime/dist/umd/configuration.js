@@ -4,13 +4,14 @@
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "@aurelia/kernel", "./lifecycle", "./observation/observer-locator", "./renderer", "./resources/binding-behaviors/binding-mode", "./resources/binding-behaviors/debounce", "./resources/binding-behaviors/priority", "./resources/binding-behaviors/signals", "./resources/binding-behaviors/throttle", "./resources/custom-attributes/if", "./resources/custom-attributes/repeat", "./resources/custom-attributes/replaceable", "./resources/custom-attributes/with", "./resources/value-converters/sanitize"], factory);
+        define(["require", "exports", "@aurelia/kernel", "./lifecycle", "./lifecycle-task", "./observation/observer-locator", "./renderer", "./resources/binding-behaviors/binding-mode", "./resources/binding-behaviors/debounce", "./resources/binding-behaviors/priority", "./resources/binding-behaviors/signals", "./resources/binding-behaviors/throttle", "./resources/custom-attributes/if", "./resources/custom-attributes/repeat", "./resources/custom-attributes/replaceable", "./resources/custom-attributes/with", "./resources/value-converters/sanitize"], factory);
     }
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     const kernel_1 = require("@aurelia/kernel");
     const lifecycle_1 = require("./lifecycle");
+    const lifecycle_task_1 = require("./lifecycle-task");
     const observer_locator_1 = require("./observation/observer-locator");
     const renderer_1 = require("./renderer");
     const binding_mode_1 = require("./resources/binding-behaviors/binding-mode");
@@ -26,6 +27,7 @@
     exports.IObserverLocatorRegistration = observer_locator_1.ObserverLocator;
     exports.ILifecycleRegistration = lifecycle_1.Lifecycle;
     exports.IRendererRegistration = renderer_1.Renderer;
+    exports.IStartTaskManagerRegistration = lifecycle_task_1.StartTaskManager;
     /**
      * Default implementations for the following interfaces:
      * - `IObserverLocator`
@@ -35,7 +37,8 @@
     exports.DefaultComponents = [
         exports.IObserverLocatorRegistration,
         exports.ILifecycleRegistration,
-        exports.IRendererRegistration
+        exports.IRendererRegistration,
+        exports.IStartTaskManagerRegistration,
     ];
     exports.IfRegistration = if_1.If;
     exports.ElseRegistration = if_1.Else;

@@ -47,7 +47,7 @@ export { DOM, INode, IRenderLocation, IDOM, NodeSequence } from './dom';
 export { BindingMode, BindingStrategy, ExpressionKind, Hooks, LifecycleFlags, State } from './flags';
 export { CallBindingInstruction, FromViewBindingInstruction, HydrateAttributeInstruction, HydrateElementInstruction, HydrateTemplateController, InterpolationInstruction, IteratorBindingInstruction, LetBindingInstruction, LetElementInstruction, OneTimeBindingInstruction, RefBindingInstruction, SetPropertyInstruction, ToViewBindingInstruction, TwoWayBindingInstruction } from './instructions';
 export { ViewModelKind, ILifecycle, IController, IViewFactory, Priority, } from './lifecycle';
-export { AggregateContinuationTask, TerminalTask, AggregateTerminalTask, ContinuationTask, LifecycleTask, PromiseTask } from './lifecycle-task';
+export { AggregateContinuationTask, TerminalTask, AggregateTerminalTask, ContinuationTask, LifecycleTask, PromiseTask, TaskSlot, StartTask, IStartTask, IStartTaskManager, ProviderTask, } from './lifecycle-task';
 export { CollectionKind, DelegationStrategy, isIndexMap, copyIndexMap, cloneIndexMap, createIndexMap, } from './observation';
 export { instructionRenderer, ensureExpression, addComponent, addBinding } from './renderer';
 export { CompiledTemplate, createRenderContext, IInstructionRenderer, IRenderer, IRenderingEngine, ITemplateCompiler, ITemplateFactory, ViewCompileFlags, } from './rendering-engine';

@@ -1,7 +1,7 @@
 import { I18nConfigurationOptions, I18nService } from '@aurelia/i18n';
 import { DOM } from '@aurelia/runtime-html';
 import { assert } from '@aurelia/testing';
-import i18next from 'i18next';
+import i18next, { I18nModule } from 'i18next';
 import { Spy } from './Spy';
 
 const translation = {
@@ -60,7 +60,7 @@ describe('I18N', function () {
           name: 'custom2',
           process: function (value) { return value; }
         }
-      ]
+      ] as I18nModule[]
     };
     const { mockContext } = await setup(customization);
 

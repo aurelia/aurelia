@@ -22,7 +22,6 @@ export class PrimitiveObserver implements IAccessor, ISubscribable {
   public obj: Primitive;
 
   constructor(obj: Primitive, propertyKey: PropertyKey) {
-    if (Tracer.enabled) { Tracer.enter('PrimitiveObserver', 'constructor', slice.call(arguments)); }
     // we don't need to store propertyName because only 'length' can return a useful value
     if (propertyKey === 'length') {
       // deliberately not checking for typeof string as users probably still want to know via an error that their string is undefined
@@ -31,7 +30,6 @@ export class PrimitiveObserver implements IAccessor, ISubscribable {
     } else {
       this.getValue = this.returnUndefined;
     }
-    if (Tracer.enabled) { Tracer.leave(); }
   }
 
   private getStringLength(): number {

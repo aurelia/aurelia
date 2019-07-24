@@ -10,7 +10,6 @@ export class PropertyAccessor implements PropertyAccessor {
   public propertyKey: string;
 
   constructor(obj: Record<string, unknown>, propertyKey: string) {
-    if (Tracer.enabled) { Tracer.enter('PropertyAccessor', 'constructor', slice.call(arguments)); }
     this.obj = obj;
     this.propertyKey = propertyKey;
     if (
@@ -20,7 +19,6 @@ export class PropertyAccessor implements PropertyAccessor {
     ) {
       this.setValue = this.setValueDirect;
     }
-    if (Tracer.enabled) { Tracer.leave(); }
   }
 
   public getValue(): unknown {

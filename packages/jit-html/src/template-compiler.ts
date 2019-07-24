@@ -101,7 +101,6 @@ export class TemplateCompiler implements ITemplateCompiler {
   }
 
   public compile(dom: IDOM, definition: ITemplateDefinition, descriptions: IResourceDescriptions): TemplateDefinition {
-    if (Profiler.enabled) { enter(); }
     const binder = new TemplateBinder(dom, new ResourceModel(descriptions), this.attrParser, this.exprParser);
     const template = definition.template = this.factory.createTemplate(definition.template) as HTMLTemplateElement;
     const surrogate = binder.bind(template);
@@ -140,7 +139,6 @@ export class TemplateCompiler implements ITemplateCompiler {
 
     definition.build = buildNotRequired;
 
-    if (Profiler.enabled) { leave(); }
     return definition as TemplateDefinition;
   }
 

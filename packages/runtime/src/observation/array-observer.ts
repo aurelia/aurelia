@@ -382,7 +382,6 @@ export class ArrayObserver {
   public inBatch: boolean;
 
   constructor(flags: LifecycleFlags, lifecycle: ILifecycle, array: IObservedArray) {
-    if (Tracer.enabled) { Tracer.enter('ArrayObserver', 'constructor', slice.call(arguments)); }
 
     if (!enableArrayObservationCalled) {
       enableArrayObservationCalled = true;
@@ -408,7 +407,6 @@ export class ArrayObserver {
       },
     );
 
-    if (Tracer.enabled) { Tracer.leave(); }
   }
 
   public notify(): void {

@@ -78,9 +78,7 @@ export class AttributeBinding implements IPartialConnectableBinding {
   }
 
   public handleChange(newValue: unknown, _previousValue: unknown, flags: LifecycleFlags): void {
-    if (Tracer.enabled) { Tracer.enter('Binding', 'handleChange', slice.call(arguments)); }
     if (!(this.$state & State.isBound)) {
-      if (Tracer.enabled) { Tracer.leave(); }
       return;
     }
 
@@ -105,7 +103,6 @@ export class AttributeBinding implements IPartialConnectableBinding {
         this.sourceExpression.connect(flags, this.$scope, this, this.part);
         this.unobserve(false);
       }
-      if (Tracer.enabled) { Tracer.leave(); }
       return;
     }
 
@@ -113,7 +110,6 @@ export class AttributeBinding implements IPartialConnectableBinding {
       if (newValue !== this.sourceExpression.evaluate(flags, this.$scope, this.locator, this.part)) {
         this.updateSource(newValue, flags);
       }
-      if (Tracer.enabled) { Tracer.leave(); }
       return;
     }
 
@@ -121,10 +117,8 @@ export class AttributeBinding implements IPartialConnectableBinding {
   }
 
   public $bind(flags: LifecycleFlags, scope: IScope, part?: string): void {
-    if (Tracer.enabled) { Tracer.enter('Binding', '$bind', slice.call(arguments)); }
     if (this.$state & State.isBound) {
       if (this.$scope === scope) {
-        if (Tracer.enabled) { Tracer.leave(); }
         return;
       }
       this.$unbind(flags | LifecycleFlags.fromBind);
@@ -174,13 +168,10 @@ export class AttributeBinding implements IPartialConnectableBinding {
     // add isBound flag and remove isBinding flag
     this.$state |= State.isBound;
     this.$state &= ~State.isBinding;
-    if (Tracer.enabled) { Tracer.leave(); }
   }
 
   public $unbind(flags: LifecycleFlags): void {
-    if (Tracer.enabled) { Tracer.enter('Binding', '$unbind', slice.call(arguments)); }
     if (!(this.$state & State.isBound)) {
-      if (Tracer.enabled) { Tracer.leave(); }
       return;
     }
     // add isUnbinding flag
@@ -205,15 +196,12 @@ export class AttributeBinding implements IPartialConnectableBinding {
 
     // remove isBound and isUnbinding flags
     this.$state &= ~(State.isBound | State.isUnbinding);
-    if (Tracer.enabled) { Tracer.leave(); }
   }
 
   public connect(flags: LifecycleFlags): void {
-    if (Tracer.enabled) { Tracer.enter('Binding', 'connect', slice.call(arguments)); }
     if (this.$state & State.isBound) {
       flags |= this.persistentFlags;
       this.sourceExpression.connect(flags | LifecycleFlags.mustEvaluate, this.$scope, this, this.part); // why do we have a connect method here in the first place? will this be called after bind?
     }
-    if (Tracer.enabled) { Tracer.leave(); }
   }
 }

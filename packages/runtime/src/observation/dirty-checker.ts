@@ -126,12 +126,10 @@ export class DirtyCheckProperty implements DirtyCheckProperty {
   private readonly dirtyChecker: IDirtyChecker;
 
   constructor(dirtyChecker: IDirtyChecker, obj: object, propertyKey: string) {
-    if (Tracer.enabled) { Tracer.enter('DirtyCheckProperty', 'constructor', slice.call(arguments)); }
     this.obj = obj as IObservable & IIndexable;
     this.propertyKey = propertyKey;
 
     this.dirtyChecker = dirtyChecker;
-    if (Tracer.enabled) { Tracer.leave(); }
   }
 
   public isDirty(): boolean {

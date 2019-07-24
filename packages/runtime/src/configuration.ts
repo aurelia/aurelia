@@ -5,6 +5,7 @@ import {
 } from '@aurelia/kernel';
 
 import { Lifecycle } from './lifecycle';
+import { StartTaskManager } from './lifecycle-task';
 import { ObserverLocator } from './observation/observer-locator';
 import {
   CallBindingRenderer,
@@ -41,6 +42,7 @@ import { SanitizeValueConverter } from './resources/value-converters/sanitize';
 export const IObserverLocatorRegistration = ObserverLocator as IRegistry;
 export const ILifecycleRegistration = Lifecycle as IRegistry;
 export const IRendererRegistration = Renderer as IRegistry;
+export const IStartTaskManagerRegistration = StartTaskManager as IRegistry;
 
 /**
  * Default implementations for the following interfaces:
@@ -51,7 +53,8 @@ export const IRendererRegistration = Renderer as IRegistry;
 export const DefaultComponents = [
   IObserverLocatorRegistration,
   ILifecycleRegistration,
-  IRendererRegistration
+  IRendererRegistration,
+  IStartTaskManagerRegistration,
 ];
 
 export const IfRegistration = If as IRegistry;

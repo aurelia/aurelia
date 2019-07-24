@@ -408,7 +408,12 @@ export {
   ContinuationTask,
   ILifecycleTask,
   LifecycleTask,
-  PromiseTask
+  PromiseTask,
+  TaskSlot,
+  StartTask,
+  IStartTask,
+  IStartTaskManager,
+  ProviderTask,
 } from './lifecycle-task';
 export {
   AccessorOrObserver,

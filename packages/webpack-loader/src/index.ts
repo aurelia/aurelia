@@ -1,7 +1,6 @@
 import { getOptions } from 'loader-utils';
 import * as webpack from 'webpack';
 import { preprocess } from '@aurelia/plugin-conventions';
-import * as fs from 'fs';
 import * as path from 'path';
 
 export default function(

@@ -1,10 +1,10 @@
 import { getOptions } from 'loader-utils';
-import { preprocessResource, preprocessHtmlTemplate } from '@aurelia/plugin-conventions';
-import * as fs from 'fs';
+import { preprocess } from '@aurelia/plugin-conventions';
+import * as path from 'path';
 export default function (contents, sourceMap) {
     return loader.call(this, contents);
 }
-export function loader(contents, _fileExists = fileExists // for testing
+export function loader(contents, _preprocess = preprocess // for testing
 ) {
     // tslint:disable-next-line:no-unused-expression strict-boolean-expressions
     this.cacheable && this.cacheable();
@@ -12,40 +12,21 @@ export function loader(contents, _fileExists = fileExists // for testing
     const options = getOptions(this);
     const ts = options && options.ts;
     const filePath = this.resourcePath;
-    const ext = extname(filePath);
-    let result;
+    const ext = path.extname(filePath);
     try {
-        if (ext === '.html') {
-            result = preprocessHtmlTemplate(filePath, contents, ts);
+        if (ext === '.html' || ext === '.js' || ext === '.ts') {
+            const result = _preprocess(filePath, contents, ts);
+            // webpack uses source-map 0.6.1 typings for RawSourceMap which
+            // contains typing error version: string (should be number).
+            // use result.map as any to bypass the typing issue.
+            cb(null, result.code, result.map);
+            return;
         }
-        else {
-            const htmlFilePath = filePath.slice(0, -ext.length) + '.html';
-            const hasHtmlPair = _fileExists(htmlFilePath);
-            result = preprocessResource(filePath, contents, hasHtmlPair);
-        }
+        // bypass
+        cb(null, contents);
     }
     catch (e) {
         cb(e);
-        return;
-    }
-    // webpack uses source-map 0.6.1 typings for RawSourceMap which
-    // contains typing error version: string (should be number).
-    // use result.map as any to bypass the typing issue.
-    cb(null, result.code, result.map);
-}
-function extname(filePath) {
-    const idx = filePath.lastIndexOf('.');
-    if (idx !== -1)
-        return filePath.slice(idx);
-    return '';
-}
-function fileExists(filePath) {
-    try {
-        const stats = fs.statSync(filePath);
-        return stats.isFile();
-    }
-    catch (e) {
-        return false;
     }
 }
 //# sourceMappingURL=index.js.map

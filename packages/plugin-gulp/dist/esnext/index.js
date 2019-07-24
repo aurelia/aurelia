@@ -1,11 +1,10 @@
 import { Transform } from 'stream';
-import * as fs from 'fs';
-import { preprocessResource, preprocessHtmlTemplate } from '@aurelia/plugin-conventions';
+import { preprocess } from '@aurelia/plugin-conventions';
 export default function (opts = {}) {
     const ts = !!opts.ts;
     return plugin(ts);
 }
-export function plugin(ts = false, _fileExists = fileExists // for testing
+export function plugin(ts = false, _preprocess = preprocess // for testing
 ) {
     return new Transform({
         objectMode: true,
@@ -15,18 +14,12 @@ export function plugin(ts = false, _fileExists = fileExists // for testing
             }
             else if (file.isBuffer()) {
                 const { extname } = file;
-                let result;
-                if (extname === '.html') {
+                if (extname === '.html' || extname === '.js' || extname === '.ts') {
                     // Rewrite foo.html to foo.html.js
-                    result = preprocessHtmlTemplate(file.relative, file.contents.toString(), ts);
-                    file.basename += '.js';
-                }
-                else if (extname === '.js' || extname === '.ts') {
-                    const htmlFilePath = file.path.slice(0, -3) + '.html';
-                    const hasHtmlPair = _fileExists(htmlFilePath);
-                    result = preprocessResource(file.relative, file.contents.toString(), hasHtmlPair);
-                }
-                if (result) {
+                    const result = _preprocess(file.relative, file.contents.toString(), ts);
+                    if (extname === '.html') {
+                        file.basename += '.js';
+                    }
                     file.contents = Buffer.from(result.code);
                     if (file.sourceMap) {
                         // ignore existing source map for now
@@ -37,14 +30,5 @@ export function plugin(ts = false, _fileExists = fileExists // for testing
             cb(undefined, file);
         }
     });
-}
-function fileExists(filePath) {
-    try {
-        const stats = fs.statSync(filePath);
-        return stats.isFile();
-    }
-    catch (e) {
-        return false;
-    }
 }
 //# sourceMappingURL=index.js.map

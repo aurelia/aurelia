@@ -1,5 +1,6 @@
 import { kebabCase } from '@aurelia/kernel';
 import modifyCode from 'modify-code';
+import * as path from 'path';
 import { fileBase } from './file-base';
 import { stripHtmlImport } from './strip-html-import';
 export function preprocessHtmlTemplate(filePath, rawHtml, ts = false) {
@@ -7,7 +8,7 @@ export function preprocessHtmlTemplate(filePath, rawHtml, ts = false) {
     const viewDeps = [];
     const importStatements = [];
     deps.forEach((d, i) => {
-        const ext = extname(d);
+        const ext = path.extname(d);
         let importStatement;
         if (isCss(ext)) {
             importStatement = `import ${s(d)};\n`;
@@ -45,12 +46,6 @@ export function getHTMLOnlyElement()${ts ? ': any' : ''} {
 }
 function s(str) {
     return JSON.stringify(str);
-}
-function extname(filePath) {
-    const idx = filePath.lastIndexOf('.');
-    if (idx !== -1)
-        return filePath.slice(idx);
-    return '';
 }
 const CSS_EXTS = ['.css', '.sass', '.scss', '.less', '.styl'];
 function isCss(ext) {

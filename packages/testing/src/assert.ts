@@ -386,7 +386,7 @@ export function fail(message: string | Error = 'Failed'): never {
 }
 
 export function visibleTextEqual(root: CompositionRoot, expectedText: string, message?: string): void {
-  const actualText = getVisibleText(root.controller, root.host as Node);
+  const actualText = getVisibleText(root.controller!, root.host as Node);
   if (actualText !== expectedText) {
     innerFail({
       actual: actualText,

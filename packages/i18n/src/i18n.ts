@@ -4,7 +4,7 @@ import i18nextCore from 'i18next';
 import { I18nConfigurationOptions } from './i18n-configuration-options';
 import { I18nextWrapper, I18nWrapper } from './i18next-wrapper';
 
-export const I18N = DI.createInterface<I18nService>('I18nService').withDefault(x => x.singleton(I18nService));
+export const I18N = DI.createInterface<I18nService>('I18nService').noDefault();
 /**
  * Translation service class.
  * @export

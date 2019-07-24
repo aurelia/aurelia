@@ -1,4 +1,4 @@
-import { bindable, customAttribute, INode, LifecycleFlags } from '@aurelia/runtime';
+import { bindable, customAttribute, INode, LifecycleFlags, LifecycleTask } from '@aurelia/runtime';
 import { I18N, I18nService } from './i18n';
 
 // TODO write unit tests
@@ -15,14 +15,17 @@ export class TCustomAttribute {
   }
 
   public binding(flags: LifecycleFlags) {
-    this.ensureStringValue();
-    return this.i18n.updateValue(this.node, this.value);
+    return this.isStringValue(this.value)
+      ? this.i18n.updateValue(this.node, this.value)
+      : LifecycleTask.done;
   }
 
-  private ensureStringValue() {
-    const valueType = typeof this.value;
+  private isStringValue(value: unknown): value is string {
+    const valueType = typeof value;
     if (valueType !== 'string') {
       throw new Error(`Only string value is supported by the localization attribute, found value of type ${valueType}`);
     }
+    // skip translation if the value is null, undefined, or empty
+    return !!value;
   }
 }

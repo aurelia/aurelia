@@ -1,6 +1,6 @@
 import { I18nConfigurationOptions, I18nService } from '@aurelia/i18n';
-import { IDOM } from '@aurelia/runtime';
-import { assert, HTMLTestContext, TestContext } from '@aurelia/testing';
+import { DOM } from '@aurelia/runtime-html';
+import { assert } from '@aurelia/testing';
 import i18next from 'i18next';
 import { Spy } from './Spy';
 
@@ -13,15 +13,14 @@ const translation = {
 
 describe('I18N', function () {
   async function setup(options: I18nConfigurationOptions = {}) {
-    let sut: I18nService, mockContext: Spy, ctx: HTMLTestContext;
+    let sut: I18nService, mockContext: Spy;
     mockContext = new Spy();
-    ctx = TestContext.createHTMLTestContext();
-    sut = new I18nService({ i18next: mockContext.getMock(i18next) }, options, ctx as unknown as IDOM<Node>);
+    sut = new I18nService({ i18next: mockContext.getMock(i18next) }, options, DOM);
     await sut['task'].wait();
-    return { mockContext, sut, ctx };
+    return { mockContext, sut };
   }
 
-  it('initializes i18next with default options on instantiation', async () => {
+  it('initializes i18next with default options on instantiation', async function () {
     const { mockContext } = await setup();
 
     mockContext.methodCalledOnceWith('init', [{
@@ -34,7 +33,7 @@ describe('I18N', function () {
     }]);
   });
 
-  it('respects user-defined config options', async () => {
+  it('respects user-defined config options', async function () {
     const customization = { lng: 'de', attributes: ['foo'] };
     const { mockContext } = await setup(customization);
 
@@ -48,7 +47,7 @@ describe('I18N', function () {
     }]);
   });
 
-  it('registers external plugins provided by user-defined options', async () => {
+  it('registers external plugins provided by user-defined options', async function () {
     const customization = {
       plugins: [
         {
@@ -69,18 +68,18 @@ describe('I18N', function () {
     mockContext.methodCalledNthTimeWith('use', 2, [customization.plugins[1]]);
   });
 
-  it('can update textContent of an element given translations', async () => {
+  it('can update textContent of an element given translations', async function () {
     const customization = {
       resources: {
         en: { translation }
       }
     };
-    const { sut, ctx } = await setup(customization);
+    const { sut } = await setup(customization);
 
-    const span = ctx.createElement('span');
+    const span = DOM.createElement('span');
     sut.updateValue(span as any, 'simple.text');
     await sut['task'].wait();
 
-    assert.equal(span.textContent, translation.simple.text);
+    assert.strictEqual(span.textContent, translation.simple.text);
   });
 });

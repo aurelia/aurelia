@@ -2,25 +2,27 @@
   "extends": "../tsconfig-build.json",
   "compilerOptions": {
     "declarationDir": "dist",
-    "outDir": "dist/esnext",
-    "lib": ["esnext", "dom"],
-
-
+    "outDir": "dist/umd",
+    "lib": [
+      "esnext",
+      "dom"
+    ],
     "resolveJsonModule": true,
     "forceConsistentCasingInFileNames": false,
     "strict": false,
     "alwaysStrict": true,
-
     "jsx": "react",
     "jsxFactory": "hJsx",
-
     "types": [
       "node",
       "mocha",
       "webpack-env"
-    ]
+    ],
+    "module": "umd"
   },
-  "include": ["."],
+  "include": [
+    "."
+  ],
   "exclude": [
     "router/e2e",
     "dist",

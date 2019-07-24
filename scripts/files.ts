@@ -1,4 +1,4 @@
-import { read, readdir, promises, createReadStream, Dirent } from 'fs';
+import { existsSync, read, readdir, promises, createReadStream, Dirent } from 'fs';
 import { join } from 'path';
 
 const { readFile, writeFile, unlink } = promises;
@@ -70,11 +70,13 @@ export class File {
 
   public async restore(fromPath?: string, deleteFromPath: boolean = true) {
     if (typeof fromPath === 'string') {
-      const content = await readFile(fromPath);
-      await this.overwrite(content);
-
-      if (deleteFromPath) {
-        await unlink(fromPath);
+      if (existsSync(fromPath)) {
+        const content = await readFile(fromPath);
+        await this.overwrite(content);
+  
+        if (deleteFromPath) {
+          await unlink(fromPath);
+        }
       }
     } else {
       await writeFile(this.path, this.buffer);

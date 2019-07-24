@@ -5,7 +5,7 @@
     "declarationDir": "dist",
     "outDir": "dist/esnext",
     "types": [
-      "node",
+      "node"
     ]
   },
   "include": ["src"]

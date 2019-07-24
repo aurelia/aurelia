@@ -2,9 +2,9 @@ import { File } from './files';
 import { createLogger } from './logger';
 import project from './project';
 
-(async function () {
-  const log = createLogger('change-tsconfigs');
+const log = createLogger('change-tsconfigs');
 
+(async function (): Promise<void> {
   const [, , operation, mod] = process.argv;
 
   const packages = project.packages;
@@ -40,4 +40,8 @@ import project from './project';
     }
   }
 
-})();
+  log('Done.');
+})().catch(err => {
+  log.error(err);
+  process.exit(1);
+});

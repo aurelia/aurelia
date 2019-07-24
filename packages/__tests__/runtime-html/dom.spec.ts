@@ -16,7 +16,7 @@ function verifyThrows(call: () => void): void {
   } catch (e) {
     err = e;
   }
-  assert.strictEqual(err instanceof Error, true, `err instanceof Error`);
+  assert.strictEqual(err instanceof Error, true, 'err instanceof Error');
 }
 
 function verifyDoesNotThrow(call: () => void): void {
@@ -26,7 +26,7 @@ function verifyDoesNotThrow(call: () => void): void {
   } catch (e) {
     err = e;
   }
-  assert.strictEqual(err, undefined, `err`);
+  assert.strictEqual(err, undefined, 'err');
 }
 
 describe('NodeSequenceFactory', function () {
@@ -49,7 +49,7 @@ describe('NodeSequenceFactory', function () {
             const factory = new NodeSequenceFactory(ctx.dom, markup);
             const view = factory.createNodeSequence();
             if (markup.length === 0) {
-              assert.strictEqual(view, NodeSequence.empty, `view`);
+              assert.strictEqual(view, NodeSequence.empty, 'view');
             } else {
               const fragment = view['fragment'] as DocumentFragment;
               let parsedMarkup = '';
@@ -64,7 +64,7 @@ describe('NodeSequenceFactory', function () {
                 }
                 i++;
               }
-              assert.strictEqual(parsedMarkup, markup, `parsedMarkup`);
+              assert.strictEqual(parsedMarkup, markup, 'parsedMarkup');
             }
           });
 
@@ -140,7 +140,7 @@ describe('dom', function () {
         [
           ['div'],
         ],
-        `createElementSpy`,
+        'createElementSpy',
       );
 
       createElementSpy.restore();
@@ -148,7 +148,7 @@ describe('dom', function () {
 
     it('should create an element', function () {
       const el = ctx.dom.createElement('div');
-      assert.strictEqual(el['outerHTML'], '<div></div>', `el['outerHTML']`);
+      assert.strictEqual(el['outerHTML'], '<div></div>', 'el[\'outerHTML\']');
     });
 
     const validInputArr: any[] = ['asdf', 'div', new Error(), true, false, undefined, null];
@@ -179,7 +179,7 @@ describe('dom', function () {
           [
             [true],
           ],
-          `cloneNodeSpy.calls`,
+          'cloneNodeSpy.calls',
         );
       });
     }
@@ -194,7 +194,7 @@ describe('dom', function () {
         [
           [true],
         ],
-        `cloneNodeSpy.calls`,
+        'cloneNodeSpy.calls',
       );
     });
 
@@ -208,7 +208,7 @@ describe('dom', function () {
         [
           [false],
         ],
-        `cloneNodeSpy.calls`,
+        'cloneNodeSpy.calls',
       );
     });
   });
@@ -226,7 +226,7 @@ describe('dom', function () {
     for (const [node, text] of nodes) {
       it(`should return true if the value is of type ${Object.prototype.toString.call(node)} (${text})`, function () {
         const actual = ctx.dom.isNodeInstance(node);
-        assert.strictEqual(actual, true, `actual`);
+        assert.strictEqual(actual, true, 'actual');
       });
     }
 
@@ -237,7 +237,7 @@ describe('dom', function () {
     for (const nonNode of nonNodes) {
       it(`should return false if the value is of type ${Object.prototype.toString.call(nonNode)}`, function () {
         const actual = ctx.dom.isNodeInstance(nonNode);
-        assert.strictEqual(actual, false, `actual`);
+        assert.strictEqual(actual, false, 'actual');
       });
     }
   });
@@ -248,7 +248,7 @@ describe('dom', function () {
       const childNode = ctx.dom.createElement('div');
       node.appendChild(childNode);
       ctx.dom.remove(childNode);
-      assert.strictEqual(node.childNodes.length, 0, `node.childNodes.length`);
+      assert.strictEqual(node.childNodes.length, 0, 'node.childNodes.length');
     });
 
     it('should remove the childNode from its parent (polyfilled)', function () {
@@ -258,7 +258,7 @@ describe('dom', function () {
       const childNode = ctx.dom.createElement('div');
       node.appendChild(childNode);
       ctx.dom.remove(childNode);
-      assert.strictEqual(node.childNodes.length, 0, `node.childNodes.length`);
+      assert.strictEqual(node.childNodes.length, 0, 'node.childNodes.length');
       ctx.Element.prototype.remove = remove;
     });
   });
@@ -268,7 +268,7 @@ describe('dom', function () {
       const node = ctx.dom.createElement('div');
       const childNode = ctx.dom.createElement('div');
       ctx.dom.appendChild(node, childNode);
-      assert.strictEqual(node.firstChild === childNode, true, `node.firstChild === childNode`);
+      assert.strictEqual(node.firstChild === childNode, true, 'node.firstChild === childNode');
     });
   });
 
@@ -281,9 +281,9 @@ describe('dom', function () {
       node.appendChild(refNode1);
       node.appendChild(refNode2);
       ctx.dom.insertBefore(childNode, refNode2);
-      assert.strictEqual(node.childNodes.item(0) === refNode1, true, `node.childNodes.item(0) === refNode1`);
-      assert.strictEqual(node.childNodes.item(1) === childNode, true, `node.childNodes.item(1) === childNode`);
-      assert.strictEqual(node.childNodes.item(2) === refNode2, true, `node.childNodes.item(2) === refNode2`);
+      assert.strictEqual(node.childNodes.item(0) === refNode1, true, 'node.childNodes.item(0) === refNode1');
+      assert.strictEqual(node.childNodes.item(1) === childNode, true, 'node.childNodes.item(1) === childNode');
+      assert.strictEqual(node.childNodes.item(2) === refNode2, true, 'node.childNodes.item(2) === refNode2');
     });
   });
 
@@ -296,7 +296,7 @@ describe('dom', function () {
 
       setTimeout(
         () => {
-          assert.strictEqual(eventListener.calls.length, 1, `eventListener.calls.length`);
+          assert.strictEqual(eventListener.calls.length, 1, 'eventListener.calls.length');
           done();
         },
         0,
@@ -310,7 +310,7 @@ describe('dom', function () {
 
       setTimeout(
         () => {
-          assert.strictEqual(eventListener.calls.length, 1, `eventListener.calls.length`);
+          assert.strictEqual(eventListener.calls.length, 1, 'eventListener.calls.length');
           done();
         },
         0,
@@ -328,7 +328,7 @@ describe('dom', function () {
 
       setTimeout(
         () => {
-          assert.strictEqual(eventListener.calls.length, 0, `eventListener.calls.length`);
+          assert.strictEqual(eventListener.calls.length, 0, 'eventListener.calls.length');
           done();
         },
         0,
@@ -343,7 +343,7 @@ describe('dom', function () {
 
       setTimeout(
         () => {
-          assert.strictEqual(eventListener.calls.length, 0, `eventListener.calls.length`);
+          assert.strictEqual(eventListener.calls.length, 0, 'eventListener.calls.length');
           done();
         },
         0,
@@ -362,13 +362,13 @@ describe('dom', function () {
     it('should replace the provided node with two comment nodes', function () {
       const {node, childNode} = createTestNodes();
       const location = ctx.dom.convertToRenderLocation(childNode);
-      assert.strictEqual(location['nodeName'], '#comment', `location['nodeName']`);
-      assert.strictEqual(location.$start['nodeName'], '#comment', `location.$start['nodeName']`);
-      assert.strictEqual(childNode === location, false, `childNode === location`);
-      assert.strictEqual(node.childNodes.length, 2, `node.childNodes.length`);
-      assert.strictEqual(node.firstChild === location, false, `node.firstChild === location`);
-      assert.strictEqual(node.firstChild === location.$start, true, `node.firstChild === location.$start`);
-      assert.strictEqual(node.lastChild === location, true, `node.lastChild === location`);
+      assert.strictEqual(location['nodeName'], '#comment', 'location[\'nodeName\']');
+      assert.strictEqual(location.$start['nodeName'], '#comment', 'location.$start[\'nodeName\']');
+      assert.strictEqual(childNode === location, false, 'childNode === location');
+      assert.strictEqual(node.childNodes.length, 2, 'node.childNodes.length');
+      assert.strictEqual(node.firstChild === location, false, 'node.firstChild === location');
+      assert.strictEqual(node.firstChild === location.$start, true, 'node.firstChild === location.$start');
+      assert.strictEqual(node.lastChild === location, true, 'node.lastChild === location');
     });
   });
 
@@ -394,7 +394,7 @@ describe('dom', function () {
           [
             [key, resolver],
           ],
-          `mockContainer.registerResolver.calls`,
+          'mockContainer.registerResolver.calls',
         );
       });
     }
@@ -412,9 +412,9 @@ describe('FragmentNodeSequence', function () {
         const node = ctx.dom.createElement('div');
         const fragment = createFragment(ctx, node, 0, 1, width);
         sut = new FragmentNodeSequence(ctx.dom, fragment);
-        assert.strictEqual(sut.childNodes.length, width, `sut.childNodes.length`);
-        assert.strictEqual(sut.childNodes[0] === sut.firstChild, true, `sut.childNodes[0] === sut.firstChild`);
-        assert.strictEqual(sut.childNodes[width - 1] === sut.lastChild, true, `sut.childNodes[width - 1] === sut.lastChild`);
+        assert.strictEqual(sut.childNodes.length, width, 'sut.childNodes.length');
+        assert.strictEqual(sut.childNodes[0] === sut.firstChild, true, 'sut.childNodes[0] === sut.firstChild');
+        assert.strictEqual(sut.childNodes[width - 1] === sut.lastChild, true, 'sut.childNodes[width - 1] === sut.lastChild');
       });
     }
   });
@@ -428,7 +428,7 @@ describe('FragmentNodeSequence', function () {
           const fragment = createFragment(ctx, node, 0, depth, width);
           sut = new FragmentNodeSequence(ctx.dom, fragment);
           const actual = sut.findTargets();
-          assert.strictEqual(actual.length, 0, `actual.length`);
+          assert.strictEqual(actual.length, 0, 'actual.length');
         });
 
         it(`should return all elements when all are targets targets (depth=${depth},width=${width})`, function () {
@@ -437,7 +437,7 @@ describe('FragmentNodeSequence', function () {
           const fragment = createFragment(ctx, node, 0, depth, width);
           sut = new FragmentNodeSequence(ctx.dom, fragment);
           const actual = sut.findTargets();
-          assert.strictEqual(actual.length, fragment.querySelectorAll('div').length, `actual.length`);
+          assert.strictEqual(actual.length, fragment.querySelectorAll('div').length, 'actual.length');
         });
       }
     }
@@ -457,16 +457,16 @@ describe('FragmentNodeSequence', function () {
           parent.appendChild(ref2);
           // @ts-ignore
           sut.insertBefore(ref2);
-          assert.strictEqual(parent.childNodes.length, width + 2, `parent.childNodes.length`);
-          assert.strictEqual(fragment.childNodes.length, 0, `fragment.childNodes.length`);
-          assert.strictEqual(parent.childNodes.item(0) === ref1, true, `parent.childNodes.item(0) === ref1`);
+          assert.strictEqual(parent.childNodes.length, width + 2, 'parent.childNodes.length');
+          assert.strictEqual(fragment.childNodes.length, 0, 'fragment.childNodes.length');
+          assert.strictEqual(parent.childNodes.item(0) === ref1, true, 'parent.childNodes.item(0) === ref1');
           let i = 0;
           while (i < width) {
-            assert.strictEqual(parent.childNodes.item(i + 1) === sut.childNodes[i], true, `parent.childNodes.item(i + 1) === sut.childNodes[i]`);
+            assert.strictEqual(parent.childNodes.item(i + 1) === sut.childNodes[i], true, 'parent.childNodes.item(i + 1) === sut.childNodes[i]');
             i++;
           }
-          assert.strictEqual(parent.childNodes.item(width + 1) === ref2, true, `parent.childNodes.item(width + 1) === ref2`);
-          assert.strictEqual(fragment.childNodes.length, 0, `fragment.childNodes.length`);
+          assert.strictEqual(parent.childNodes.item(width + 1) === ref2, true, 'parent.childNodes.item(width + 1) === ref2');
+          assert.strictEqual(fragment.childNodes.length, 0, 'fragment.childNodes.length');
         });
       }
     }
@@ -481,11 +481,11 @@ describe('FragmentNodeSequence', function () {
           sut = new FragmentNodeSequence(ctx.dom, fragment);
           const parent = ctx.dom.createElement('div');
           sut.appendTo(parent);
-          assert.strictEqual(parent.childNodes.length, width, `parent.childNodes.length`);
-          assert.strictEqual(fragment.childNodes.length, 0, `fragment.childNodes.length`);
+          assert.strictEqual(parent.childNodes.length, width, 'parent.childNodes.length');
+          assert.strictEqual(fragment.childNodes.length, 0, 'fragment.childNodes.length');
           let i = 0;
           while (i < width) {
-            assert.strictEqual(parent.childNodes.item(i) === sut.childNodes[i], true, `parent.childNodes.item(i) === sut.childNodes[i]`);
+            assert.strictEqual(parent.childNodes.item(i) === sut.childNodes[i], true, 'parent.childNodes.item(i) === sut.childNodes[i]');
             i++;
           }
         });
@@ -501,14 +501,14 @@ describe('FragmentNodeSequence', function () {
           const fragment = createFragment(ctx, node, 0, depth, width);
           sut = new FragmentNodeSequence(ctx.dom, fragment);
           const parent = ctx.dom.createElement('div');
-          assert.strictEqual(parent.childNodes.length, 0, `parent.childNodes.length`);
-          assert.strictEqual(fragment.childNodes.length, width, `fragment.childNodes.length`);
+          assert.strictEqual(parent.childNodes.length, 0, 'parent.childNodes.length');
+          assert.strictEqual(fragment.childNodes.length, width, 'fragment.childNodes.length');
           parent.appendChild(fragment);
-          assert.strictEqual(parent.childNodes.length, width, `parent.childNodes.length`);
-          assert.strictEqual(fragment.childNodes.length, 0, `fragment.childNodes.length`);
+          assert.strictEqual(parent.childNodes.length, width, 'parent.childNodes.length');
+          assert.strictEqual(fragment.childNodes.length, 0, 'fragment.childNodes.length');
           sut.remove();
-          assert.strictEqual(parent.childNodes.length, 0, `parent.childNodes.length`);
-          assert.strictEqual(fragment.childNodes.length, width, `fragment.childNodes.length`);
+          assert.strictEqual(parent.childNodes.length, 0, 'parent.childNodes.length');
+          assert.strictEqual(fragment.childNodes.length, width, 'fragment.childNodes.length');
         });
       }
     }

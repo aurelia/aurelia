@@ -11,6 +11,6 @@ describe('RuntimeCompilationResources', function () {
       return name;
     } } as any;
     resources.find(res, 'a');
-    assert.strictEqual(container.getResolver(res.keyFrom('a'), false), null, `container.getResolver(res.keyFrom('a'), false)`);
+    assert.strictEqual(container.getResolver(res.keyFrom('a'), false), null, 'container.getResolver(res.keyFrom(\'a\'), false)');
   });
 });

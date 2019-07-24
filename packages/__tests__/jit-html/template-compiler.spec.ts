@@ -62,7 +62,7 @@ describe('TemplateCompiler', function () {
 
     it('set hasSlots to true <slot/>', function () {
       const definition = compileWith('<template><slot></slot></template>', []);
-      assert.strictEqual(definition.hasSlots, true, `definition.hasSlots`);
+      assert.strictEqual(definition.hasSlots, true, 'definition.hasSlots');
 
       // test this with nested slot inside template controller
     });
@@ -73,7 +73,7 @@ describe('TemplateCompiler', function () {
 
         it('compiles surrogate', function () {
           const { instructions, surrogates } = compileWith(
-            `<template class="h-100"></template>`,
+            '<template class="h-100"></template>',
             []
           );
           verifyInstructions(instructions, []);
@@ -84,7 +84,7 @@ describe('TemplateCompiler', function () {
 
         it('compiles surrogate with binding expression', function () {
           const { instructions, surrogates } = compileWith(
-            `<template class.bind="base"></template>`,
+            '<template class.bind="base"></template>',
             []
           );
           verifyInstructions(instructions, [], 'normal');
@@ -95,7 +95,7 @@ describe('TemplateCompiler', function () {
 
         it('compiles surrogate with interpolation expression', function () {
           const { instructions, surrogates } = compileWith(
-            `<template class="h-100 \${base}"></template>`,
+            '<template class="h-100 ${base}"></template>',
             []
           );
           verifyInstructions(instructions, [], 'normal');
@@ -132,8 +132,8 @@ describe('TemplateCompiler', function () {
           </template>`,
           [El, Prop]
         );
-        assert.strictEqual(actual.instructions.length, 1, `actual.instructions.length`);
-        assert.strictEqual(actual.instructions[0].length, 3, `actual.instructions[0].length`);
+        assert.strictEqual(actual.instructions.length, 1, 'actual.instructions.length');
+        assert.strictEqual(actual.instructions[0].length, 3, 'actual.instructions[0].length');
         const siblingInstructions = actual.instructions[0].slice(1);
         const expectedSiblingInstructions = [
           { toVerify: ['type', 'res', 'to'], type: TT.hydrateAttribute, res: 'prop3' },
@@ -242,12 +242,12 @@ describe('TemplateCompiler', function () {
             public value: any;
           }
           const { template, instructions } = compileWith(
-            `<template><el prop.bind="p"></el></template>`,
+            '<template><el prop.bind="p"></el></template>',
             [Prop]
           );
-          assert.strictEqual((template as HTMLTemplateElement).outerHTML, '<template><au-m class="au"></au-m></template>', `(template as HTMLTemplateElement).outerHTML`);
+          assert.strictEqual((template as HTMLTemplateElement).outerHTML, '<template><au-m class="au"></au-m></template>', '(template as HTMLTemplateElement).outerHTML');
           const [hydratePropAttrInstruction] = instructions[0] as unknown as [HydrateTemplateController];
-          assert.strictEqual((hydratePropAttrInstruction.def.template as HTMLTemplateElement).outerHTML, '<template><el></el></template>', `(hydratePropAttrInstruction.def.template as HTMLTemplateElement).outerHTML`);
+          assert.strictEqual((hydratePropAttrInstruction.def.template as HTMLTemplateElement).outerHTML, '<template><el></el></template>', '(hydratePropAttrInstruction.def.template as HTMLTemplateElement).outerHTML');
         });
 
         it('moves attrbiutes instructions before the template controller into it', function () {
@@ -259,10 +259,10 @@ describe('TemplateCompiler', function () {
             public value: any;
           }
           const { template, instructions } = compileWith(
-            `<template><el name.bind="name" title.bind="title" prop.bind="p"></el></template>`,
+            '<template><el name.bind="name" title.bind="title" prop.bind="p"></el></template>',
             [Prop]
           );
-          assert.strictEqual((template as HTMLTemplateElement).outerHTML, '<template><au-m class="au"></au-m></template>', `(template as HTMLTemplateElement).outerHTML`);
+          assert.strictEqual((template as HTMLTemplateElement).outerHTML, '<template><au-m class="au"></au-m></template>', '(template as HTMLTemplateElement).outerHTML');
           const [hydratePropAttrInstruction] = instructions[0] as unknown as [HydrateTemplateController];
           verifyInstructions(hydratePropAttrInstruction.instructions, [
             { toVerify: ['type', 'to', 'from'],
@@ -289,7 +289,7 @@ describe('TemplateCompiler', function () {
 
           it('does not throw when element is not found', function () {
             const { instructions } = compileWith('<template><div as-element="not-div"></div></template>');
-            assert.strictEqual(instructions.length, 0, `instructions.length`);
+            assert.strictEqual(instructions.length, 0, 'instructions.length');
           });
 
           describe('with template controller', function () {
@@ -324,13 +324,13 @@ describe('TemplateCompiler', function () {
       describe('<let/> element', function () {
 
         it('compiles', function () {
-          const { instructions } = compileWith(`<template><let></let></template>`);
-          assert.strictEqual(instructions.length, 1, `instructions.length`);
+          const { instructions } = compileWith('<template><let></let></template>');
+          assert.strictEqual(instructions.length, 1, 'instructions.length');
         });
 
         it('does not generate instructions when there is no bindings', function () {
-          const { instructions } = compileWith(`<template><let></let></template>`);
-          assert.strictEqual((instructions[0][0]).instructions.length, 0, `(instructions[0][0]).instructions.length`);
+          const { instructions } = compileWith('<template><let></let></template>');
+          assert.strictEqual((instructions[0][0]).instructions.length, 0, '(instructions[0][0]).instructions.length');
         });
 
         it('ignores custom element resource', function () {
@@ -338,7 +338,7 @@ describe('TemplateCompiler', function () {
           class Let {}
 
           const { instructions } = compileWith(
-            `<template><let></let></template>`,
+            '<template><let></let></template>',
             [Let]
           );
           verifyInstructions(instructions[0], [
@@ -347,7 +347,7 @@ describe('TemplateCompiler', function () {
         });
 
         it('compiles with attributes', function () {
-          const { instructions } = compileWith(`<let a.bind="b" c="\${d}"></let>`);
+          const { instructions } = compileWith('<let a.bind="b" c="${d}"></let>');
           verifyInstructions((instructions[0][0]).instructions, [
             { toVerify: ['type', 'to', 'srcOrExp'],
               type: TT.letBinding, to: 'a', from: 'b' },
@@ -358,16 +358,16 @@ describe('TemplateCompiler', function () {
 
         describe('[to-view-model]', function () {
           it('understands [to-view-model]', function () {
-            const { instructions } = compileWith(`<template><let to-view-model></let></template>`);
-            assert.strictEqual((instructions[0][0]).toViewModel, true, `(instructions[0][0]).toViewModel`);
+            const { instructions } = compileWith('<template><let to-view-model></let></template>');
+            assert.strictEqual((instructions[0][0]).toViewModel, true, '(instructions[0][0]).toViewModel');
           });
 
           it('ignores [to-view-model] order', function () {
-            let instructions = compileWith(`<template><let a.bind="a" to-view-model></let></template>`).instructions[0];
+            let instructions = compileWith('<template><let a.bind="a" to-view-model></let></template>').instructions[0];
             verifyInstructions(instructions, [
               { toVerify: ['type', 'toViewModel'], type: TT.hydrateLetElement, toViewModel: true }
             ]);
-            instructions = compileWith(`<template><let to-view-model a.bind="a"></let></template>`).instructions[0];
+            instructions = compileWith('<template><let to-view-model a.bind="a"></let></template>').instructions[0];
             verifyInstructions(instructions, [
               { toVerify: ['type', 'toViewModel'], type: TT.hydrateLetElement, toViewModel: true }
             ]);
@@ -460,7 +460,7 @@ function createTemplateController(ctx: HTMLTestContext, attr: string, target: st
       res: target,
       def: {
         name: target,
-        template: ctx.createElementFromMarkup(`<template><au-m class="au"></au-m></template>`),
+        template: ctx.createElementFromMarkup('<template><au-m class="au"></au-m></template>'),
         instructions: [[childInstr]],
         build: buildNotRequired,
         scopeParts: [],
@@ -473,7 +473,7 @@ function createTemplateController(ctx: HTMLTestContext, attr: string, target: st
       instructions: []
     };
     const output = {
-      template: ctx.createElementFromMarkup(`<template><div><au-m class="au"></au-m></div></template>`),
+      template: ctx.createElementFromMarkup('<template><div><au-m class="au"></au-m></div></template>'),
       instructions: [[instruction]],
       build: buildNotRequired,
       scopeParts: [],
@@ -509,7 +509,7 @@ function createTemplateController(ctx: HTMLTestContext, attr: string, target: st
       instructions: []
     };
     const output = {
-      template: ctx.createElementFromMarkup(finalize ? `<template><div><au-m class="au"></au-m></div></template>` : `<au-m class="au"></au-m>`),
+      template: ctx.createElementFromMarkup(finalize ? '<template><div><au-m class="au"></au-m></div></template>' : '<au-m class="au"></au-m>'),
       instructions: [[instruction]],
       build: buildNotRequired,
       scopeParts: [],
@@ -629,7 +629,7 @@ type CTCResult = [ITemplateDefinition, ITemplateDefinition];
 
 type Bindables = { [pdName: string]: IBindableDescription };
 
-describe(`TemplateCompiler - combinations`, function () {
+describe('TemplateCompiler - combinations', function () {
   function setup(ctx: HTMLTestContext, ...globals: IRegistry[]) {
     const container = ctx.container;
     container.register(...globals);
@@ -654,7 +654,7 @@ describe(`TemplateCompiler - combinations`, function () {
         (ctx) => ['value', 'value', 'value']
       ] as ((ctx: HTMLTestContext, $1: [string]) => [string, string, string])[],
       [
-        (ctx, $1, [, , value]) => [`ref`,               value, { type: TT.refBinding,      from: value }],
+        (ctx, $1, [, , value]) => ['ref',               value, { type: TT.refBinding,      from: value }],
         (ctx, $1, [attr, to, value]) => [`${attr}.bind`,      value, { type: TT.propertyBinding, from: new AccessScopeExpression(value), to, mode: BindingMode.toView,   oneTime: false }],
         (ctx, $1, [attr, to, value]) => [`${attr}.to-view`,   value, { type: TT.propertyBinding, from: new AccessScopeExpression(value), to, mode: BindingMode.toView,   oneTime: false }],
         (ctx, $1, [attr, to, value]) => [`${attr}.one-time`,  value, { type: TT.propertyBinding, from: new AccessScopeExpression(value), to, mode: BindingMode.oneTime,  oneTime: true  }],
@@ -787,13 +787,13 @@ describe(`TemplateCompiler - combinations`, function () {
         (ctx, pdName, pdProp) => ({ [pdName]: { property: pdProp, attribute: kebabCase(pdProp), mode: BindingMode.twoWay   } })
       ] as ((ctx: HTMLTestContext, $1: string, $2: string) => Bindables)[],
       [
-        (ctx) => [``,           `''`],
-        (ctx) => [``,           `\${a}`],
-        (ctx) => [`.bind`,      `''`],
-        (ctx) => [`.one-time`,  `''`],
-        (ctx) => [`.to-view`,   `''`],
-        (ctx) => [`.from-view`, `''`],
-        (ctx) => [`.two-way`,   `''`]
+        (ctx) => ['',           '\'\''],
+        (ctx) => ['',           '${a}'],
+        (ctx) => ['.bind',      '\'\''],
+        (ctx) => ['.one-time',  '\'\''],
+        (ctx) => ['.to-view',   '\'\''],
+        (ctx) => ['.from-view', '\'\''],
+        (ctx) => ['.two-way',   '\'\'']
       ] as ((ctx: HTMLTestContext) => [string, string])[],
       [
         (ctx, pdName, pdProp, bindables, [cmd]) => [bindables[pdName], `${pdProp}${cmd}`],
@@ -1063,13 +1063,13 @@ describe(`TemplateCompiler - combinations`, function () {
         (ctx, pdName, pdProp, pdAttr) => ({ [pdName]: { property: pdProp, attribute: pdAttr, mode: BindingMode.twoWay   } })
       ] as ((ctx: HTMLTestContext, $1: string, $2: string, $3: string) => Bindables)[],
       [
-        (ctx) => [``,           `''`],
-        (ctx) => [``,           `\${a}`],
-        (ctx) => [`.bind`,      `''`],
-        (ctx) => [`.one-time`,  `''`],
-        (ctx) => [`.to-view`,   `''`],
-        (ctx) => [`.from-view`, `''`],
-        (ctx) => [`.two-way`,   `''`]
+        (ctx) => ['',           '\'\''],
+        (ctx) => ['',           '${a}'],
+        (ctx) => ['.bind',      '\'\''],
+        (ctx) => ['.one-time',  '\'\''],
+        (ctx) => ['.to-view',   '\'\''],
+        (ctx) => ['.from-view', '\'\''],
+        (ctx) => ['.two-way',   '\'\'']
       ] as ((ctx: HTMLTestContext) => [string, string])[],
       [
         (ctx, pdName, pdProp, pdAttr, bindables, [cmd]) => [bindables[pdName], `${pdAttr}${cmd}`],
@@ -1077,7 +1077,7 @@ describe(`TemplateCompiler - combinations`, function () {
         (ctx, pdName, pdProp, pdAttr, bindables, [cmd]) => [null,              `${pdAttr}-qux${cmd}`]
       ] as ((ctx: HTMLTestContext, $1: string, $2: string, $3: string, $4: Bindables, $5: [string, string]) => [IBindableDescription, string])[],
       [
-        (ctx) => `''`
+        (ctx) => '\'\''
       ] as ((ctx: HTMLTestContext) => string)[]
     ],                       (ctx, pdName, pdProp, pdAttr, bindables, [cmd, attrValue], [bindableDescription, attrName]) => {
       it(`customElement - pdName=${pdName}  pdProp=${pdProp}  pdAttr=${pdAttr}  cmd=${cmd}  attrName=${attrName}  attrValue="${attrValue}"`, function () {
@@ -1130,9 +1130,9 @@ describe(`TemplateCompiler - combinations`, function () {
         TestContext.createHTMLTestContext
       ],
       [
-        (ctx) => createCustomElement(ctx, `foo`, true, [], [], [], []),
-        (ctx) => createCustomElement(ctx, `bar`, true, [], [], [], []),
-        (ctx) => createCustomElement(ctx, `baz`, true, [], [], [], [])
+        (ctx) => createCustomElement(ctx, 'foo', true, [], [], [], []),
+        (ctx) => createCustomElement(ctx, 'bar', true, [], [], [], []),
+        (ctx) => createCustomElement(ctx, 'baz', true, [], [], [], [])
       ] as ((ctx: HTMLTestContext) => CTCResult)[]
       // <(($1: CTCResult) => CTCResult)[]>[
       //   ([input, output]) => createCustomElement(`foo`, false, [], [], [], output.instructions, output, input),

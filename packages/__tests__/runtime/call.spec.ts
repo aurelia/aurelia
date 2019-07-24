@@ -31,27 +31,27 @@ describe.skip('CallBinding', function () {
   describe('$bind -> $bind', function () {
 
     const targetVariations: (() => [{foo?: string}, string])[] = [
-      () => [({}), `{}`],
-      () => [({ fooz: () => { return; } }), `fooz:()=>{}`]
+      () => [({}), '{}'],
+      () => [({ fooz: () => { return; } }), 'fooz:()=>{}']
     ];
 
     const propVariations: (() => [string, string])[] = [
-      () => ['fooz', `'fooz' `],
-      () => ['barz', `'barz' `]
+      () => ['fooz', '\'fooz\' '],
+      () => ['barz', '\'barz\' ']
     ];
 
     const exprVariations: (() => [IExpression, string])[] = [
-      () => [new CallScopeExpression('theFunc', []),          `theFunc()`],
-      () => [new BindingBehaviorExpression(new CallScopeExpression('theFunc', []), 'debounce', []),          `theFunc()`]
+      () => [new CallScopeExpression('theFunc', []),          'theFunc()'],
+      () => [new BindingBehaviorExpression(new CallScopeExpression('theFunc', []), 'debounce', []),          'theFunc()']
     ];
 
     const scopeVariations: (() => [IScope, string])[] = [
-      () => [createScopeForTest({theFunc: () => { return; }}),       `{theFunc:()=>{}}       `]
+      () => [createScopeForTest({theFunc: () => { return; }}),       '{theFunc:()=>{}}       ']
     ];
 
     const renewScopeVariations: (() => [boolean, string])[] = [
-      () => [true,       `true`],
-      () => [false,       `false`]
+      () => [true,       'true'],
+      () => [false,       'false']
     ];
 
     const inputs: [typeof targetVariations, typeof propVariations, typeof exprVariations, typeof scopeVariations, typeof renewScopeVariations]
@@ -77,8 +77,8 @@ describe.skip('CallBinding', function () {
 
           // - Assert -
           // double check we have the correct target observer
-          assert.strictEqual(sut.targetObserver, targetObserver, `sut.targetObserver`);
-          assert.instanceOf(sut.targetObserver, SetterObserver, `sut.targetObserver`);
+          assert.strictEqual(sut.targetObserver, targetObserver, 'sut.targetObserver');
+          assert.instanceOf(sut.targetObserver, SetterObserver, 'sut.targetObserver');
 
           //expect(expr.bind).to.have.been.calledOnce;
           // assert.deepStrictEqual(
@@ -106,8 +106,8 @@ describe.skip('CallBinding', function () {
           sut.$bind(flags, scope);
 
           // - Assert -
-          assert.instanceOf(sut.targetObserver, SetterObserver, `sut.targetObserver`);
-          assert.strictEqual(sut.targetObserver, targetObserver, `sut.targetObserver`);
+          assert.instanceOf(sut.targetObserver, SetterObserver, 'sut.targetObserver');
+          assert.strictEqual(sut.targetObserver, targetObserver, 'sut.targetObserver');
           if (renewScope) {
             // called during $bind, then during $unbind, then during $bind again
             //expect(targetObserver.setValue).to.have.been.calledThrice;
@@ -132,22 +132,22 @@ describe.skip('CallBinding', function () {
   describe('$bind -> $unbind -> $unbind', function () {
 
     const targetVariations: (() => [{foo?: string}, string])[] = [
-      () => [({}), `{}`],
-      () => [({ fooz: () => { return; } }), `fooz:()=>{}`]
+      () => [({}), '{}'],
+      () => [({ fooz: () => { return; } }), 'fooz:()=>{}']
     ];
 
     const propVariations: (() => [string, string])[] = [
-      () => ['fooz', `'fooz' `],
-      () => ['barz', `'barz' `]
+      () => ['fooz', '\'fooz\' '],
+      () => ['barz', '\'barz\' ']
     ];
 
     const exprVariations: (() => [IExpression, string])[] = [
-      () => [new CallScopeExpression('theFunc', []),          `theFunc()`],
-      () => [new BindingBehaviorExpression(new CallScopeExpression('theFunc', []), 'debounce', []),          `theFunc()`]
+      () => [new CallScopeExpression('theFunc', []),          'theFunc()'],
+      () => [new BindingBehaviorExpression(new CallScopeExpression('theFunc', []), 'debounce', []),          'theFunc()']
     ];
 
     const scopeVariations: (() => [IScope, string])[] = [
-      () => [createScopeForTest({theFunc: () => { return; }}),       `{theFunc:()=>{}}       `]
+      () => [createScopeForTest({theFunc: () => { return; }}),       '{theFunc:()=>{}}       ']
     ];
 
     const inputs: [typeof targetVariations, typeof propVariations, typeof exprVariations, typeof scopeVariations]
@@ -173,8 +173,8 @@ describe.skip('CallBinding', function () {
 
           // - Assert -
           // double check we have the correct target observer
-          assert.strictEqual(sut.targetObserver, targetObserver, `sut.targetObserver`);
-          assert.instanceOf(sut.targetObserver, SetterObserver, `sut.targetObserver`);
+          assert.strictEqual(sut.targetObserver, targetObserver, 'sut.targetObserver');
+          assert.instanceOf(sut.targetObserver, SetterObserver, 'sut.targetObserver');
 
           //expect(expr.bind).to.have.been.calledOnce;
           // assert.deepStrictEqual(
@@ -198,11 +198,11 @@ describe.skip('CallBinding', function () {
           sut.$unbind(flags);
 
           // - Assert -
-          assert.instanceOf(sut.targetObserver, SetterObserver, `sut.targetObserver`);
-          assert.strictEqual(sut.targetObserver, targetObserver, `sut.targetObserver`);
+          assert.instanceOf(sut.targetObserver, SetterObserver, 'sut.targetObserver');
+          assert.strictEqual(sut.targetObserver, targetObserver, 'sut.targetObserver');
 
           //expect(expr.unbind).to.have.been.calledOnce;
-          assert.strictEqual(target[prop], null, `target[prop]`);
+          assert.strictEqual(target[prop], null, 'target[prop]');
 
           //assert.strictEqual(lifecycle.flushCount, 0, `lifecycle.flushCount`);
 
@@ -216,8 +216,8 @@ describe.skip('CallBinding', function () {
           sut.$unbind(flags);
 
           // - Assert -
-          assert.instanceOf(sut.targetObserver, SetterObserver, `sut.targetObserver`);
-          assert.strictEqual(sut.targetObserver, targetObserver, `sut.targetObserver`);
+          assert.instanceOf(sut.targetObserver, SetterObserver, 'sut.targetObserver');
+          assert.strictEqual(sut.targetObserver, targetObserver, 'sut.targetObserver');
 
           //assert.strictEqual(lifecycle.flushCount, 0, `lifecycle.flushCount`);
           //expect(expr.unbind).not.to.have.been.called;
@@ -229,29 +229,29 @@ describe.skip('CallBinding', function () {
   describe('$bind -> call -> $unbind', function () {
 
     const targetVariations: (() => [{foo?: string}, string])[] = [
-      () => [({}), `{}`],
-      () => [({ fooz: () => { return; } }), `fooz:()=>{}`]
+      () => [({}), '{}'],
+      () => [({ fooz: () => { return; } }), 'fooz:()=>{}']
     ];
 
     const propVariations: (() => [string, string])[] = [
-      () => ['fooz', `'fooz' `],
-      () => ['barz', `'barz' `]
+      () => ['fooz', '\'fooz\' '],
+      () => ['barz', '\'barz\' ']
     ];
 
     const argsVariations: (() => [{}, string])[] = [
-      () => [{ arg1: 'asdf' }, `{} `],
-      () => [{ arg2: 42 }, `{} `],
-      () => [{ arg3: null }, `{} `],
-      () => [{ arg3: ';lkasdf', arg1: {}, arg2: 42  }, `{} `]
+      () => [{ arg1: 'asdf' }, '{} '],
+      () => [{ arg2: 42 }, '{} '],
+      () => [{ arg3: null }, '{} '],
+      () => [{ arg3: ';lkasdf', arg1: {}, arg2: 42  }, '{} ']
     ];
 
     const exprVariations: (() => [IExpression, string])[] = [
-      () => [new CallScopeExpression('theFunc', []),          `theFunc()`],
-      () => [new CallScopeExpression('theFunc', [new AccessScopeExpression('arg1'), new AccessScopeExpression('arg2'), new AccessScopeExpression('arg3')]), `theFunc(arg1, arg2, arg3)`]
+      () => [new CallScopeExpression('theFunc', []),          'theFunc()'],
+      () => [new CallScopeExpression('theFunc', [new AccessScopeExpression('arg1'), new AccessScopeExpression('arg2'), new AccessScopeExpression('arg3')]), 'theFunc(arg1, arg2, arg3)']
     ];
 
     const scopeVariations: (() => [IScope, string])[] = [
-      () => [createScopeForTest({theFunc: () => { return; }}),       `{theFunc:()=>{}}       `]
+      () => [createScopeForTest({theFunc: () => { return; }}),       '{theFunc:()=>{}}       ']
     ];
 
     const inputs: [typeof targetVariations, typeof propVariations, typeof argsVariations, typeof exprVariations, typeof scopeVariations]
@@ -274,8 +274,8 @@ describe.skip('CallBinding', function () {
 
           // - Assert -
           // double check we have the correct target observer
-          assert.strictEqual(sut.targetObserver, targetObserver, `sut.targetObserver`);
-          assert.instanceOf(sut.targetObserver, SetterObserver, `sut.targetObserver`);
+          assert.strictEqual(sut.targetObserver, targetObserver, 'sut.targetObserver');
+          assert.instanceOf(sut.targetObserver, SetterObserver, 'sut.targetObserver');
 
           //expect(targetObserver.setValue).to.have.been.calledOnce;
           //assert.strictEqual(lifecycle.flushCount, 0, `lifecycle.flushCount`);
@@ -310,7 +310,7 @@ describe.skip('CallBinding', function () {
           sut.$unbind(flags);
 
           // - Assert -
-          assert.strictEqual(target[prop], null, `target[prop]`);
+          assert.strictEqual(target[prop], null, 'target[prop]');
         });
       }
     );

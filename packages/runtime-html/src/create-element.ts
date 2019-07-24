@@ -42,7 +42,7 @@ export function createElement<T extends INode = Node, C extends Constructable = 
   } else if (CustomElement.isType(tagOrType)) {
     return createElementForType(dom, tagOrType, props, children);
   } else {
-    throw new Error(`Invalid tagOrType.`);
+    throw new Error('Invalid tagOrType.');
   }
 }
 

@@ -557,12 +557,12 @@ describe('EventManager', function () {
                     switch (strategy) {
                       case DelegationStrategy.bubbling:
                       case DelegationStrategy.capturing:
-                        assert.instanceOf(parentSubscription, DelegateOrCaptureSubscription, `parentSubscription`);
-                        assert.instanceOf(childSubscription, DelegateOrCaptureSubscription, `childSubscription`);
+                        assert.instanceOf(parentSubscription, DelegateOrCaptureSubscription, 'parentSubscription');
+                        assert.instanceOf(childSubscription, DelegateOrCaptureSubscription, 'childSubscription');
                         break;
                       case DelegationStrategy.none:
-                        assert.instanceOf(parentSubscription, TriggerSubscription, `parentSubscription`);
-                        assert.instanceOf(childSubscription, TriggerSubscription, `childSubscription`);
+                        assert.instanceOf(parentSubscription, TriggerSubscription, 'parentSubscription');
+                        assert.instanceOf(childSubscription, TriggerSubscription, 'childSubscription');
                     }
 
                     childEl.dispatchEvent(event);
@@ -572,15 +572,15 @@ describe('EventManager', function () {
                         if (bubbles && shadow == null) {
                           assert.strictEqual(childHandlerPath.length, 1, 'childHandlerPath.length');
                           assert.strictEqual(childHandlerPath[0].eventPhase, BUBBLING_PHASE, 'eventPhase');
-                          assert.strictEqual(childHandlerPath[0].target.nodeName, 'CHILD-DIV', `childHandlerPath[0].target.nodeName`);
-                          assert.strictEqual(childHandlerPath[0].currentTarget, ctx.doc, `childHandlerPath[0].currentTarget`);
+                          assert.strictEqual(childHandlerPath[0].target.nodeName, 'CHILD-DIV', 'childHandlerPath[0].target.nodeName');
+                          assert.strictEqual(childHandlerPath[0].currentTarget, ctx.doc, 'childHandlerPath[0].currentTarget');
                           if (stopPropagation) {
                             assert.strictEqual(parentHandlerPath.length, 0, 'parentHandlerPath.length');
                           } else {
                             assert.strictEqual(parentHandlerPath.length, 1, 'parentHandlerPath.length');
                             assert.strictEqual(parentHandlerPath[0].eventPhase, BUBBLING_PHASE, 'eventPhase');
-                            assert.strictEqual(parentHandlerPath[0].target.nodeName, 'CHILD-DIV', `parentHandlerPath[0].target.nodeName`);
-                            assert.strictEqual(parentHandlerPath[0].currentTarget, ctx.doc, `parentHandlerPath[0].currentTarget`);
+                            assert.strictEqual(parentHandlerPath[0].target.nodeName, 'CHILD-DIV', 'parentHandlerPath[0].target.nodeName');
+                            assert.strictEqual(parentHandlerPath[0].currentTarget, ctx.doc, 'parentHandlerPath[0].currentTarget');
                           }
                         } else {
                           assert.strictEqual(childHandlerPath.length, 0, 'childHandlerPath.length');
@@ -591,15 +591,15 @@ describe('EventManager', function () {
                         if (shadow == null) {
                           assert.strictEqual(parentHandlerPath.length, 1, 'parentHandlerPath.length');
                           assert.strictEqual(parentHandlerPath[0].eventPhase, CAPTURING_PHASE, 'eventPhase');
-                          assert.strictEqual(parentHandlerPath[0].target.nodeName, 'CHILD-DIV', `parentHandlerPath[0].target.nodeName`);
-                          assert.strictEqual(parentHandlerPath[0].currentTarget, ctx.doc, `parentHandlerPath[0].currentTarget`);
+                          assert.strictEqual(parentHandlerPath[0].target.nodeName, 'CHILD-DIV', 'parentHandlerPath[0].target.nodeName');
+                          assert.strictEqual(parentHandlerPath[0].currentTarget, ctx.doc, 'parentHandlerPath[0].currentTarget');
                           if (stopPropagation) {
                             assert.strictEqual(childHandlerPath.length, 0, 'childHandlerPath.length');
                           } else {
                             assert.strictEqual(childHandlerPath.length, 1, 'childHandlerPath.length');
                             assert.strictEqual(childHandlerPath[0].eventPhase, CAPTURING_PHASE, 'eventPhase');
-                            assert.strictEqual(childHandlerPath[0].target.nodeName, 'CHILD-DIV', `childHandlerPath[0].target.nodeName`);
-                            assert.strictEqual(childHandlerPath[0].currentTarget, ctx.doc, `childHandlerPath[0].currentTarget`);
+                            assert.strictEqual(childHandlerPath[0].target.nodeName, 'CHILD-DIV', 'childHandlerPath[0].target.nodeName');
+                            assert.strictEqual(childHandlerPath[0].currentTarget, ctx.doc, 'childHandlerPath[0].currentTarget');
                           }
                         } else {
                           assert.strictEqual(parentHandlerPath.length, 0, 'parentHandlerPath.length');
@@ -609,13 +609,13 @@ describe('EventManager', function () {
                       case DelegationStrategy.none:
                         assert.strictEqual(childHandlerPath.length, 1, 'childHandlerPath.length');
                         assert.strictEqual(childHandlerPath[0].eventPhase, AT_TARGET, 'eventPhase');
-                        assert.strictEqual(childHandlerPath[0].target.nodeName, 'CHILD-DIV', `childHandlerPath[0].target.nodeName`);
-                        assert.strictEqual(childHandlerPath[0].currentTarget, childEl, `childHandlerPath[0].currentTarget`);
+                        assert.strictEqual(childHandlerPath[0].target.nodeName, 'CHILD-DIV', 'childHandlerPath[0].target.nodeName');
+                        assert.strictEqual(childHandlerPath[0].currentTarget, childEl, 'childHandlerPath[0].currentTarget');
                         if (bubbles && !stopPropagation) {
                           assert.strictEqual(parentHandlerPath.length, 1, 'parentHandlerPath.length');
                           assert.strictEqual(parentHandlerPath[0].eventPhase, BUBBLING_PHASE, 'eventPhase');
-                          assert.strictEqual(parentHandlerPath[0].target.nodeName, 'CHILD-DIV', `parentHandlerPath[0].target.nodeName`);
-                          assert.strictEqual(parentHandlerPath[0].currentTarget, parentEl, `parentHandlerPath[0].currentTarget`);
+                          assert.strictEqual(parentHandlerPath[0].target.nodeName, 'CHILD-DIV', 'parentHandlerPath[0].target.nodeName');
+                          assert.strictEqual(parentHandlerPath[0].currentTarget, parentEl, 'parentHandlerPath[0].currentTarget');
                         } else {
                           assert.strictEqual(parentHandlerPath.length, 0, 'parentHandlerPath.length');
                         }
@@ -632,8 +632,8 @@ describe('EventManager', function () {
                         if (bubbles && shadow == null) {
                           assert.strictEqual(parentHandlerPath.length, 1, 'parentHandlerPath.length');
                           assert.strictEqual(parentHandlerPath[0].eventPhase, BUBBLING_PHASE, 'eventPhase');
-                          assert.strictEqual(parentHandlerPath[0].target.nodeName, 'PARENT-DIV', `parentHandlerPath[0].target.nodeName`);
-                          assert.strictEqual(parentHandlerPath[0].currentTarget, ctx.doc, `parentHandlerPath[0].currentTarget`);
+                          assert.strictEqual(parentHandlerPath[0].target.nodeName, 'PARENT-DIV', 'parentHandlerPath[0].target.nodeName');
+                          assert.strictEqual(parentHandlerPath[0].currentTarget, ctx.doc, 'parentHandlerPath[0].currentTarget');
                         } else {
                           assert.strictEqual(parentHandlerPath.length, 0, 'parentHandlerPath.length');
                         }
@@ -643,8 +643,8 @@ describe('EventManager', function () {
                         if (shadow == null) {
                           assert.strictEqual(parentHandlerPath.length, 1, 'parentHandlerPath.length');
                           assert.strictEqual(parentHandlerPath[0].eventPhase, CAPTURING_PHASE, 'eventPhase');
-                          assert.strictEqual(parentHandlerPath[0].target.nodeName, 'PARENT-DIV', `parentHandlerPath[0].target.nodeName`);
-                          assert.strictEqual(parentHandlerPath[0].currentTarget, ctx.doc, `parentHandlerPath[0].currentTarget`);
+                          assert.strictEqual(parentHandlerPath[0].target.nodeName, 'PARENT-DIV', 'parentHandlerPath[0].target.nodeName');
+                          assert.strictEqual(parentHandlerPath[0].currentTarget, ctx.doc, 'parentHandlerPath[0].currentTarget');
                         } else {
                           assert.strictEqual(parentHandlerPath.length, 0, 'parentHandlerPath.length');
                         }
@@ -653,8 +653,8 @@ describe('EventManager', function () {
                         assert.strictEqual(childHandlerPath.length, 0, 'childHandlerPath.length');
                         assert.strictEqual(parentHandlerPath.length, 1, 'parentHandlerPath.length');
                         assert.strictEqual(parentHandlerPath[0].eventPhase, AT_TARGET, 'eventPhase');
-                        assert.strictEqual(parentHandlerPath[0].target.nodeName, 'PARENT-DIV', `parentHandlerPath[0].target.nodeName`);
-                        assert.strictEqual(parentHandlerPath[0].currentTarget, parentEl, `parentHandlerPath[0].currentTarget`);
+                        assert.strictEqual(parentHandlerPath[0].target.nodeName, 'PARENT-DIV', 'parentHandlerPath[0].target.nodeName');
+                        assert.strictEqual(parentHandlerPath[0].currentTarget, parentEl, 'parentHandlerPath[0].currentTarget');
                     }
 
                     tearDown({ ctx, wrapper, parentSubscription, childSubscription });

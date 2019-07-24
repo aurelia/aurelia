@@ -67,7 +67,7 @@ describe('template-compiler.binding-commands.class', function() {
       assert: async (au, lifecycle, host, component, testCase, className) => {
         const childEls = host.querySelectorAll('child');
 
-        assert.strictEqual(childEls.length, 6, `childEls.length`);
+        assert.strictEqual(childEls.length, 6, 'childEls.length');
 
         await eachCartesianJoinAsync(
           [falsyValues, truthyValues],

@@ -20,20 +20,20 @@ import {
   assert
 } from '@aurelia/testing';
 
-describe(`createElement() creates element based on tag`, function () {
+describe('createElement() creates element based on tag', function () {
   eachCartesianJoin([['div', 'template']], (tag: string) => {
     describe(`tag=${tag}`, function () {
-      it(`translates raw object properties to attributes`, function () {
+      it('translates raw object properties to attributes', function () {
         const ctx = TestContext.createHTMLTestContext();
         const actual = sut(ctx.dom, tag, { title: 'asdf', foo: 'bar' });
 
         const node = actual['node'] as Element;
 
-        assert.strictEqual(node.getAttribute('title'), 'asdf', `node.getAttribute('title')`);
-        assert.strictEqual(node.getAttribute('foo'), 'bar', `node.getAttribute('foo')`);
+        assert.strictEqual(node.getAttribute('title'), 'asdf', 'node.getAttribute(\'title\')');
+        assert.strictEqual(node.getAttribute('foo'), 'bar', 'node.getAttribute(\'foo\')');
 
-        assert.strictEqual(actual['instructions'].length, 0, `actual['instructions'].length`);
-        assert.strictEqual(node.getAttribute('class'), null, `node.getAttribute('class')`);
+        assert.strictEqual(actual['instructions'].length, 0, 'actual[\'instructions\'].length');
+        assert.strictEqual(node.getAttribute('class'), null, 'node.getAttribute(\'class\')');
       });
 
       eachCartesianJoin([[[null, 'null'], [undefined, 'undefined']]], ([props, str]) => {
@@ -44,8 +44,8 @@ describe(`createElement() creates element based on tag`, function () {
 
           const node = actual['node'] as Element;
 
-          assert.strictEqual(actual['instructions'].length, 0, `actual['instructions'].length`);
-          assert.strictEqual(node.getAttribute('class'), null, `node.getAttribute('class')`);
+          assert.strictEqual(actual['instructions'].length, 0, 'actual[\'instructions\'].length');
+          assert.strictEqual(node.getAttribute('class'), null, 'node.getAttribute(\'class\')');
         });
       });
 
@@ -78,10 +78,10 @@ describe(`createElement() creates element based on tag`, function () {
           const instruction = actual['instructions'][0][0] as TargetedInstruction;
           const node = actual['node'] as Element;
 
-          assert.strictEqual(actual['instructions'].length, 1, `actual['instructions'].length`);
-          assert.strictEqual(actual['instructions'][0].length, 1, `actual['instructions'][0].length`);
-          assert.strictEqual(instruction.type, t, `instruction.type`);
-          assert.strictEqual(node.getAttribute('class'), 'au', `node.getAttribute('class')`);
+          assert.strictEqual(actual['instructions'].length, 1, 'actual[\'instructions\'].length');
+          assert.strictEqual(actual['instructions'][0].length, 1, 'actual[\'instructions\'][0].length');
+          assert.strictEqual(instruction.type, t, 'instruction.type');
+          assert.strictEqual(node.getAttribute('class'), 'au', 'node.getAttribute(\'class\')');
         });
       });
 
@@ -105,17 +105,17 @@ describe(`createElement() creates element based on tag`, function () {
 
           const node = actual['node'] as Element;
 
-          assert.strictEqual(actual['instructions'].length, 0, `actual['instructions'].length`);
-          assert.strictEqual(node.getAttribute('class'), null, `node.getAttribute('class')`);
+          assert.strictEqual(actual['instructions'].length, 0, 'actual[\'instructions\'].length');
+          assert.strictEqual(node.getAttribute('class'), null, 'node.getAttribute(\'class\')');
 
-          assert.strictEqual(node.textContent, expected, `node.textContent`);
+          assert.strictEqual(node.textContent, expected, 'node.textContent');
         });
       });
     });
   });
 });
 
-describe(`createElement() creates element based on type`, function () {
+describe('createElement() creates element based on type', function () {
   eachCartesianJoin([
     [
       () => CustomElement.define({ name: 'foo' }, class Foo {}),
@@ -124,7 +124,7 @@ describe(`createElement() creates element based on type`, function () {
   ],
                     (createType: () => ICustomElementType) => {
     describe(_`type=${createType()}`, function () {
-      it(`translates raw object properties to attributes`, function () {
+      it('translates raw object properties to attributes', function () {
         const ctx = TestContext.createHTMLTestContext();
         const type = createType();
         const actual = sut(ctx.dom, type, { title: 'asdf', foo: 'bar' });
@@ -132,25 +132,25 @@ describe(`createElement() creates element based on type`, function () {
         const node = actual['node'] as Element;
         const instruction = (actual['instructions'][0][0] as any) as HydrateElementInstruction;
 
-        assert.strictEqual(node.getAttribute('title'), null, `node.getAttribute('title')`);
-        assert.strictEqual(node.getAttribute('foo'), null, `node.getAttribute('foo')`);
+        assert.strictEqual(node.getAttribute('title'), null, 'node.getAttribute(\'title\')');
+        assert.strictEqual(node.getAttribute('foo'), null, 'node.getAttribute(\'foo\')');
 
-        assert.strictEqual(actual['instructions'].length, 1, `actual['instructions'].length`);
-        assert.strictEqual(actual['instructions'][0].length, 1, `actual['instructions'][0].length`);
-        assert.strictEqual(instruction.type, TargetedInstructionType.hydrateElement, `instruction.type`);
-        assert.strictEqual(instruction.res, type.description.name, `instruction.res`);
-        assert.strictEqual(instruction.instructions.length, 2, `instruction.instructions.length`);
-        assert.strictEqual(instruction.instructions[0].type, HTMLTargetedInstructionType.setAttribute, `instruction.instructions[0].type`);
-        assert.strictEqual(instruction.instructions[0]['to'], 'title', `instruction.instructions[0]['to']`);
-        assert.strictEqual(instruction.instructions[0]['value'], 'asdf', `instruction.instructions[0]['value']`);
+        assert.strictEqual(actual['instructions'].length, 1, 'actual[\'instructions\'].length');
+        assert.strictEqual(actual['instructions'][0].length, 1, 'actual[\'instructions\'][0].length');
+        assert.strictEqual(instruction.type, TargetedInstructionType.hydrateElement, 'instruction.type');
+        assert.strictEqual(instruction.res, type.description.name, 'instruction.res');
+        assert.strictEqual(instruction.instructions.length, 2, 'instruction.instructions.length');
+        assert.strictEqual(instruction.instructions[0].type, HTMLTargetedInstructionType.setAttribute, 'instruction.instructions[0].type');
+        assert.strictEqual(instruction.instructions[0]['to'], 'title', 'instruction.instructions[0][\'to\']');
+        assert.strictEqual(instruction.instructions[0]['value'], 'asdf', 'instruction.instructions[0][\'value\']');
         if (type.description.bindables['foo']) {
-          assert.strictEqual(instruction.instructions[1].type, TargetedInstructionType.setProperty, `instruction.instructions[1].type`);
+          assert.strictEqual(instruction.instructions[1].type, TargetedInstructionType.setProperty, 'instruction.instructions[1].type');
         } else {
-          assert.strictEqual(instruction.instructions[1].type, HTMLTargetedInstructionType.setAttribute, `instruction.instructions[1].type`);
+          assert.strictEqual(instruction.instructions[1].type, HTMLTargetedInstructionType.setAttribute, 'instruction.instructions[1].type');
         }
-        assert.strictEqual(instruction.instructions[1]['to'], 'foo', `instruction.instructions[1]['to']`);
-        assert.strictEqual(instruction.instructions[1]['value'], 'bar', `instruction.instructions[1]['value']`);
-        assert.strictEqual(node.getAttribute('class'), 'au', `node.getAttribute('class')`);
+        assert.strictEqual(instruction.instructions[1]['to'], 'foo', 'instruction.instructions[1][\'to\']');
+        assert.strictEqual(instruction.instructions[1]['value'], 'bar', 'instruction.instructions[1][\'value\']');
+        assert.strictEqual(node.getAttribute('class'), 'au', 'node.getAttribute(\'class\')');
       });
 
       eachCartesianJoin([[[null, 'null'], [undefined, 'undefined']]], ([props, str]) => {
@@ -163,10 +163,10 @@ describe(`createElement() creates element based on type`, function () {
           const node = actual['node'] as Element;
           const instruction = (actual['instructions'][0][0] as any) as HydrateElementInstruction;
 
-          assert.strictEqual(actual['instructions'].length, 1, `actual['instructions'].length`);
-          assert.strictEqual(actual['instructions'][0].length, 1, `actual['instructions'][0].length`);
-          assert.strictEqual(instruction.instructions.length, 0, `instruction.instructions.length`);
-          assert.strictEqual(node.getAttribute('class'), 'au', `node.getAttribute('class')`);
+          assert.strictEqual(actual['instructions'].length, 1, 'actual[\'instructions\'].length');
+          assert.strictEqual(actual['instructions'][0].length, 1, 'actual[\'instructions\'][0].length');
+          assert.strictEqual(instruction.instructions.length, 0, 'instruction.instructions.length');
+          assert.strictEqual(node.getAttribute('class'), 'au', 'node.getAttribute(\'class\')');
         });
       });
 
@@ -200,13 +200,13 @@ describe(`createElement() creates element based on type`, function () {
           const node = actual['node'] as Element;
           const instruction = (actual['instructions'][0][0] as any) as HydrateElementInstruction;
 
-          assert.strictEqual(actual['instructions'].length, 1, `actual['instructions'].length`);
-          assert.strictEqual(actual['instructions'][0].length, 1, `actual['instructions'][0].length`);
-          assert.strictEqual(instruction.type, TargetedInstructionType.hydrateElement, `instruction.type`);
-          assert.strictEqual(instruction.res, type.description.name, `instruction.res`);
-          assert.strictEqual(instruction.instructions.length, 1, `instruction.instructions.length`);
-          assert.strictEqual(instruction.instructions[0].type, t, `instruction.instructions[0].type`);
-          assert.strictEqual(node.getAttribute('class'), 'au', `node.getAttribute('class')`);
+          assert.strictEqual(actual['instructions'].length, 1, 'actual[\'instructions\'].length');
+          assert.strictEqual(actual['instructions'][0].length, 1, 'actual[\'instructions\'][0].length');
+          assert.strictEqual(instruction.type, TargetedInstructionType.hydrateElement, 'instruction.type');
+          assert.strictEqual(instruction.res, type.description.name, 'instruction.res');
+          assert.strictEqual(instruction.instructions.length, 1, 'instruction.instructions.length');
+          assert.strictEqual(instruction.instructions[0].type, t, 'instruction.instructions[0].type');
+          assert.strictEqual(node.getAttribute('class'), 'au', 'node.getAttribute(\'class\')');
         });
       });
 
@@ -232,14 +232,14 @@ describe(`createElement() creates element based on type`, function () {
           const node = actual['node'] as Element;
           const instruction = (actual['instructions'][0][0] as any) as HydrateElementInstruction;
 
-          assert.strictEqual(actual['instructions'].length, 1, `actual['instructions'].length`);
-          assert.strictEqual(actual['instructions'][0].length, 1, `actual['instructions'][0].length`);
-          assert.strictEqual(instruction.type, TargetedInstructionType.hydrateElement, `instruction.type`);
-          assert.strictEqual(instruction.res, type.description.name, `instruction.res`);
-          assert.strictEqual(instruction.instructions.length, 0, `instruction.instructions.length`);
-          assert.strictEqual(node.getAttribute('class'), 'au', `node.getAttribute('class')`);
+          assert.strictEqual(actual['instructions'].length, 1, 'actual[\'instructions\'].length');
+          assert.strictEqual(actual['instructions'][0].length, 1, 'actual[\'instructions\'][0].length');
+          assert.strictEqual(instruction.type, TargetedInstructionType.hydrateElement, 'instruction.type');
+          assert.strictEqual(instruction.res, type.description.name, 'instruction.res');
+          assert.strictEqual(instruction.instructions.length, 0, 'instruction.instructions.length');
+          assert.strictEqual(node.getAttribute('class'), 'au', 'node.getAttribute(\'class\')');
 
-          assert.strictEqual(node.textContent, expected, `node.textContent`);
+          assert.strictEqual(node.textContent, expected, 'node.textContent');
         });
       });
     });

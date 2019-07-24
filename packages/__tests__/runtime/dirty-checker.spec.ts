@@ -198,10 +198,10 @@ describe.skip('DirtyChecker', function () {
 
         obj1.foo = obj2.foo = `${frameCount + 1}`;
 
-        assert.strictEqual(callCount1, 0, `callCount1`);
-        assert.strictEqual(callCount2, 0, `callCount2`);
-        assert.strictEqual(callCount3, 0, `callCount3`);
-        assert.strictEqual(callCount4, 0, `callCount4`);
+        assert.strictEqual(callCount1, 0, 'callCount1');
+        assert.strictEqual(callCount2, 0, 'callCount2');
+        assert.strictEqual(callCount3, 0, 'callCount3');
+        assert.strictEqual(callCount4, 0, 'callCount4');
         PLATFORM.requestAnimationFrame(() => {
           obj1.foo = obj2.foo = `${++frameCount + 1}`;
           verifyCalled(2);
@@ -269,20 +269,20 @@ describe.skip('DirtyChecker', function () {
 
     observer.subscribe(subscriber);
 
-    obj.foo = `1`;
+    obj.foo = '1';
 
-    assert.strictEqual(callCount, 0, `callCount`);
+    assert.strictEqual(callCount, 0, 'callCount');
 
     PLATFORM.requestAnimationFrame(() => {
-      assert.strictEqual(callCount, 0, `callCount`);
+      assert.strictEqual(callCount, 0, 'callCount');
       PLATFORM.requestAnimationFrame(() => {
-        assert.strictEqual(callCount, 0, `callCount`);
+        assert.strictEqual(callCount, 0, 'callCount');
         PLATFORM.requestAnimationFrame(() => {
-          assert.strictEqual(callCount, 0, `callCount`);
+          assert.strictEqual(callCount, 0, 'callCount');
           PLATFORM.requestAnimationFrame(() => {
-            assert.strictEqual(callCount, 0, `callCount`);
+            assert.strictEqual(callCount, 0, 'callCount');
             PLATFORM.requestAnimationFrame(() => {
-              assert.strictEqual(callCount, 0, `callCount`);
+              assert.strictEqual(callCount, 0, 'callCount');
               observer.unsubscribe(subscriber);
               done();
             });
@@ -303,7 +303,7 @@ describe.skip('DirtyChecker', function () {
     } catch (e) {
       err = e;
     }
-    assert.match(err.message, /800/, `err.message`);
+    assert.match(err.message, /800/, 'err.message');
   });
 
   it('warns by default', function () {
@@ -318,7 +318,7 @@ describe.skip('DirtyChecker', function () {
 
     const obj = { foo: '0' };
     dirtyChecker.createProperty(obj, 'foo');
-    assert.strictEqual(warnCalled, true, `warnCalled`);
+    assert.strictEqual(warnCalled, true, 'warnCalled');
     Reporter.write = writeBackup;
   });
 
@@ -335,7 +335,7 @@ describe.skip('DirtyChecker', function () {
 
     const obj = { foo: '0' };
     dirtyChecker.createProperty(obj, 'foo');
-    assert.strictEqual(warnCalled, false, `warnCalled`);
+    assert.strictEqual(warnCalled, false, 'warnCalled');
     Reporter.write = writeBackup;
   });
 });

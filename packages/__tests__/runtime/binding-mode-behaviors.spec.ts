@@ -36,12 +36,12 @@ describe('BindingModeBehavior', function () {
         });
 
         it(`bind()   should apply  bindingMode ${mode}`, function () {
-          assert.strictEqual(binding.mode, mode, `binding.mode`);
+          assert.strictEqual(binding.mode, mode, 'binding.mode');
         });
 
         it(`unbind() should revert bindingMode ${initMode}`, function () {
           sut.unbind(undefined, undefined, binding);
-          assert.strictEqual(binding.mode, initMode, `binding.mode`);
+          assert.strictEqual(binding.mode, initMode, 'binding.mode');
         });
       });
     }

@@ -24,7 +24,7 @@ export class PriorityBindingBehavior {
   });
 
   public static register(container: IContainer): void {
-    container.register(Registration.singleton(`binding-behavior:priority`, this));
+    container.register(Registration.singleton('binding-behavior:priority', this));
     container.register(Registration.singleton(this, this));
   }
 

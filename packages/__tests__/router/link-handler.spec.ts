@@ -31,7 +31,7 @@ describe('LinkHandler', function () {
   it('can be created', function () {
     const { sut, tearDown, addEventListener } = setup();
 
-    assert.notStrictEqual(sut, null, `sut`);
+    assert.notStrictEqual(sut, null, 'sut');
 
     tearDown();
   });
@@ -41,14 +41,14 @@ describe('LinkHandler', function () {
 
     sut.activate({ callback: callback});
 
-    assert.strictEqual(sut['isActive'], true, `linkHandler.isActive`);
+    assert.strictEqual(sut['isActive'], true, 'linkHandler.isActive');
 
     assert.deepStrictEqual(
       addEventListener.calls,
       [
         ['click', sut['handler'], true],
       ],
-      `addEventListener.calls`,
+      'addEventListener.calls',
     );
 
     tearDown();
@@ -61,14 +61,14 @@ describe('LinkHandler', function () {
 
     sut.deactivate();
 
-    assert.strictEqual(sut['isActive'], false, `linkHandler.isActive`);
+    assert.strictEqual(sut['isActive'], false, 'linkHandler.isActive');
 
     assert.deepStrictEqual(
       removeEventListener.calls,
       [
         ['click', sut['handler'], true],
       ],
-      `removeEventListener.calls`,
+      'removeEventListener.calls',
     );
 
     tearDown();
@@ -79,14 +79,14 @@ describe('LinkHandler', function () {
 
     sut.activate({ callback: callback});
 
-    assert.strictEqual(sut['isActive'], true, `linkHandler.isActive`);
+    assert.strictEqual(sut['isActive'], true, 'linkHandler.isActive');
 
     assert.deepStrictEqual(
       addEventListener.calls,
       [
         ['click', sut['handler'], true],
       ],
-      `addEventListener.calls`,
+      'addEventListener.calls',
     );
 
     let err;
@@ -95,7 +95,7 @@ describe('LinkHandler', function () {
     } catch (e) {
       err = e;
     }
-    assert.includes(err.message, 'Link handler has already been activated', `err.message`);
+    assert.includes(err.message, 'Link handler has already been activated', 'err.message');
 
     tearDown();
   });
@@ -109,7 +109,7 @@ describe('LinkHandler', function () {
     } catch (e) {
       err = e;
     }
-    assert.includes(err.message, 'Link handler has not been activated', `err.message`);
+    assert.includes(err.message, 'Link handler has not been activated', 'err.message');
 
     tearDown();
   });

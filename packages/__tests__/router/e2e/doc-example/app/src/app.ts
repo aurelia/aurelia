@@ -94,7 +94,7 @@ export class App {
         ...instructions
       ]);
       this.state.loggedInSpecial = false;
-      this.router.goto(`login-special`);
+      this.router.goto('login-special');
       return [];
     }, { include: [{ viewportName: 'author-tabs' }], exclude: ['', 'login-special'] });
 

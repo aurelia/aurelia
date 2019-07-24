@@ -4,26 +4,26 @@ import { TestContext, assert } from '@aurelia/testing';
 describe('replaceable', function () {
   for (const [title, appMarkup, ceMarkup, , , , , , expected] of [
     [
-      `single, static`,
-      `<div replace-part="bar">43</div>`,
-      `<div replaceable part="bar">42</div>`,
+      'single, static',
+      '<div replace-part="bar">43</div>',
+      '<div replaceable part="bar">42</div>',
       null,
       null,
       null,
       null,
       '',
-      `43`
+      '43'
     ],
     [
-      `multiple, static`,
-      `<div replace-part="bar">43</div>`.repeat(2),
-      `<div replaceable part="bar">42</div>`.repeat(2),
+      'multiple, static',
+      '<div replace-part="bar">43</div>'.repeat(2),
+      '<div replaceable part="bar">42</div>'.repeat(2),
       null,
       null,
       null,
       null,
       '',
-      `43`.repeat(2)
+      '43'.repeat(2)
     ]
   ]) {
     it(`replaceable - ${title}`, function () {
@@ -42,36 +42,15 @@ describe('replaceable', function () {
 
       au.start();
 
-      assert.strictEqual(host.textContent, expected, `host.textContent`);
+      assert.strictEqual(host.textContent, expected, 'host.textContent');
 
     });
   }
 
-  it(`replaceable - bind to target scope`, function () {
+  it('replaceable - bind to target scope', function () {
 
-    const App = CustomElement.define({ name: 'app', template: `<template><foo><div replace-part="bar">\${baz}</div></foo></template>` }, class { public baz = 'def'; });
-    const Foo = CustomElement.define({ name: 'foo', template: `<template><div replaceable part="bar"></div></template>` }, class { public baz = 'abc'; });
-
-    const ctx = TestContext.createHTMLTestContext();
-    ctx.container.register(Foo);
-    const au = new Aurelia(ctx.container);
-
-    const host = ctx.createElement('div');
-    const component = new App();
-
-    au.app({ host, component });
-
-    au.start();
-
-    assert.strictEqual(host.textContent, 'abc', `host.textContent`);
-
-  });
-
-  // TODO: run this case with more combinations
-  it(`replaceable - bind to parent scope when binding inside replace-part has multiple template controllers in between`, function () {
-
-    const App = CustomElement.define({ name: 'app', template: `<template><foo><div replace-part="bar"><div if.bind="true" repeat.for="i of 1">\${baz}</div></div></foo></template>` }, class { public baz = 'def'; });
-    const Foo = CustomElement.define({ name: 'foo', template: `<template><div replaceable part="bar"></div></template>` }, class { });
+    const App = CustomElement.define({ name: 'app', template: '<template><foo><div replace-part="bar">${baz}</div></foo></template>' }, class { public baz = 'def'; });
+    const Foo = CustomElement.define({ name: 'foo', template: '<template><div replaceable part="bar"></div></template>' }, class { public baz = 'abc'; });
 
     const ctx = TestContext.createHTMLTestContext();
     ctx.container.register(Foo);
@@ -84,15 +63,36 @@ describe('replaceable', function () {
 
     au.start();
 
-    assert.strictEqual(host.textContent, 'def', `host.textContent`);
+    assert.strictEqual(host.textContent, 'abc', 'host.textContent');
 
   });
 
   // TODO: run this case with more combinations
-  it(`replaceable - bind to parent scope when binding inside replace-part has an if that starts as false`, async function () {
+  it('replaceable - bind to parent scope when binding inside replace-part has multiple template controllers in between', function () {
 
-    const App = CustomElement.define({ name: 'app', template: `<template><foo><div replace-part="bar"><div if.bind="show">\${baz}</div></div></foo></template>` }, class { public baz = 'def'; public show = false; });
-    const Foo = CustomElement.define({ name: 'foo', template: `<template><div replaceable part="bar"></div></template>` }, class { });
+    const App = CustomElement.define({ name: 'app', template: '<template><foo><div replace-part="bar"><div if.bind="true" repeat.for="i of 1">${baz}</div></div></foo></template>' }, class { public baz = 'def'; });
+    const Foo = CustomElement.define({ name: 'foo', template: '<template><div replaceable part="bar"></div></template>' }, class { });
+
+    const ctx = TestContext.createHTMLTestContext();
+    ctx.container.register(Foo);
+    const au = new Aurelia(ctx.container);
+
+    const host = ctx.createElement('div');
+    const component = new App();
+
+    au.app({ host, component });
+
+    au.start();
+
+    assert.strictEqual(host.textContent, 'def', 'host.textContent');
+
+  });
+
+  // TODO: run this case with more combinations
+  it('replaceable - bind to parent scope when binding inside replace-part has an if that starts as false', async function () {
+
+    const App = CustomElement.define({ name: 'app', template: '<template><foo><div replace-part="bar"><div if.bind="show">${baz}</div></div></foo></template>' }, class { public baz = 'def'; public show = false; });
+    const Foo = CustomElement.define({ name: 'foo', template: '<template><div replaceable part="bar"></div></template>' }, class { });
 
     const ctx = TestContext.createHTMLTestContext();
     ctx.container.register(Foo);
@@ -105,19 +105,19 @@ describe('replaceable', function () {
 
     await au.start().wait();
 
-    assert.strictEqual(host.textContent, '', `host.textContent`);
+    assert.strictEqual(host.textContent, '', 'host.textContent');
 
     component.show = true;
 
     ctx.lifecycle.processRAFQueue(LF.none)
 
-    assert.strictEqual(host.textContent, 'def', `host.textContent`);
+    assert.strictEqual(host.textContent, 'def', 'host.textContent');
   });
 
-  it(`replaceable - bind to parent scope`, function () {
+  it('replaceable - bind to parent scope', function () {
 
-    const App = CustomElement.define({ name: 'app', template: `<template><foo><div replace-part="bar">\${baz}</div></foo></template>` }, class { public baz = 'def'; });
-    const Foo = CustomElement.define({ name: 'foo', template: `<template><div replaceable part="bar"></div></template>` }, class {});
+    const App = CustomElement.define({ name: 'app', template: '<template><foo><div replace-part="bar">${baz}</div></foo></template>' }, class { public baz = 'def'; });
+    const Foo = CustomElement.define({ name: 'foo', template: '<template><div replaceable part="bar"></div></template>' }, class {});
 
     const ctx = TestContext.createHTMLTestContext();
     ctx.container.register(Foo);
@@ -130,14 +130,14 @@ describe('replaceable', function () {
 
     au.start();
 
-    assert.strictEqual(host.textContent, 'def', `host.textContent`);
+    assert.strictEqual(host.textContent, 'def', 'host.textContent');
 
   });
 
-  it(`replaceable/template - bind to target scope`, function () {
+  it('replaceable/template - bind to target scope', function () {
 
-    const App = CustomElement.define({ name: 'app', template: `<template><foo><template replace-part="bar">\${baz}</template></foo></template>` }, class { public baz = 'def'; });
-    const Foo = CustomElement.define({ name: 'foo', template: `<template><template replaceable part="bar"></template></template>` }, class { public baz = 'abc'; });
+    const App = CustomElement.define({ name: 'app', template: '<template><foo><template replace-part="bar">${baz}</template></foo></template>' }, class { public baz = 'def'; });
+    const Foo = CustomElement.define({ name: 'foo', template: '<template><template replaceable part="bar"></template></template>' }, class { public baz = 'abc'; });
 
     const ctx = TestContext.createHTMLTestContext();
     ctx.container.register(Foo);
@@ -150,14 +150,14 @@ describe('replaceable', function () {
 
     au.start();
 
-    assert.strictEqual(host.textContent, 'abc', `host.textContent`);
+    assert.strictEqual(host.textContent, 'abc', 'host.textContent');
 
   });
 
-  it(`replaceable/template - bind to parent scope`, function () {
+  it('replaceable/template - bind to parent scope', function () {
 
-    const App = CustomElement.define({ name: 'app', template: `<template><foo><template replace-part="bar">\${baz}</template></foo></template>` }, class { public baz = 'def'; });
-    const Foo = CustomElement.define({ name: 'foo', template: `<template><template replaceable part="bar"></template></template>` }, class {});
+    const App = CustomElement.define({ name: 'app', template: '<template><foo><template replace-part="bar">${baz}</template></foo></template>' }, class { public baz = 'def'; });
+    const Foo = CustomElement.define({ name: 'foo', template: '<template><template replaceable part="bar"></template></template>' }, class {});
 
     const ctx = TestContext.createHTMLTestContext();
     ctx.container.register(Foo);
@@ -170,14 +170,14 @@ describe('replaceable', function () {
 
     au.start();
 
-    assert.strictEqual(host.textContent, 'def', `host.textContent`);
+    assert.strictEqual(host.textContent, 'def', 'host.textContent');
 
   });
 
-  it(`replaceable/template - uses last on name conflict`, function () {
+  it('replaceable/template - uses last on name conflict', function () {
 
-    const App = CustomElement.define({ name: 'app', template: `<template><foo><template replace-part="bar">\${qux}</template><template replace-part="bar">\${baz}</template></foo></template>` }, class { public baz = 'def'; });
-    const Foo = CustomElement.define({ name: 'foo', template: `<template><template replaceable part="bar"></template></template>` }, class {});
+    const App = CustomElement.define({ name: 'app', template: '<template><foo><template replace-part="bar">${qux}</template><template replace-part="bar">${baz}</template></foo></template>' }, class { public baz = 'def'; });
+    const Foo = CustomElement.define({ name: 'foo', template: '<template><template replaceable part="bar"></template></template>' }, class {});
 
     const ctx = TestContext.createHTMLTestContext();
     ctx.container.register(Foo);
@@ -190,14 +190,14 @@ describe('replaceable', function () {
 
     au.start();
 
-    assert.strictEqual(host.textContent, 'def', `host.textContent`);
+    assert.strictEqual(host.textContent, 'def', 'host.textContent');
 
   });
 
-  it(`replaceable/template - same part multiple times`, function () {
+  it('replaceable/template - same part multiple times', function () {
 
-    const App = CustomElement.define({ name: 'app', template: `<template><foo><template replace-part="bar">\${baz}</template></foo></template>` }, class { public baz = 'def'; });
-    const Foo = CustomElement.define({ name: 'foo', template: `<template><template replaceable part="bar"></template><template replaceable part="bar"></template></template>` }, class { public baz = 'abc'; });
+    const App = CustomElement.define({ name: 'app', template: '<template><foo><template replace-part="bar">${baz}</template></foo></template>' }, class { public baz = 'def'; });
+    const Foo = CustomElement.define({ name: 'foo', template: '<template><template replaceable part="bar"></template><template replaceable part="bar"></template></template>' }, class { public baz = 'abc'; });
 
     const ctx = TestContext.createHTMLTestContext();
     ctx.container.register(Foo);
@@ -210,15 +210,15 @@ describe('replaceable', function () {
 
     au.start();
 
-    assert.strictEqual(host.textContent, 'abcabc', `host.textContent`);
+    assert.strictEqual(host.textContent, 'abcabc', 'host.textContent');
 
   });
 
   // TODO: fix this scenario
-  it(`replaceable/template - parent template controller`, function () {
+  it('replaceable/template - parent template controller', function () {
 
-    const App = CustomElement.define({ name: 'app', template: `<template><foo><template if.bind="true"><template replace-part="bar">\${baz}</template></template></foo></template>` }, class { public baz = 'def'; });
-    const Foo = CustomElement.define({ name: 'foo', template: `<template><template replaceable part="bar"></template></template>` }, class { public baz = 'abc'; });
+    const App = CustomElement.define({ name: 'app', template: '<template><foo><template if.bind="true"><template replace-part="bar">${baz}</template></template></foo></template>' }, class { public baz = 'def'; });
+    const Foo = CustomElement.define({ name: 'foo', template: '<template><template replaceable part="bar"></template></template>' }, class { public baz = 'abc'; });
 
     const ctx = TestContext.createHTMLTestContext();
     ctx.container.register(Foo);
@@ -231,14 +231,14 @@ describe('replaceable', function () {
 
     au.start();
 
-    assert.strictEqual(host.textContent, 'abc', `host.textContent`);
+    assert.strictEqual(host.textContent, 'abc', 'host.textContent');
 
   });
 
-  it(`replaceable/template - sibling lefthand side template controller`, function () {
+  it('replaceable/template - sibling lefthand side template controller', function () {
 
-    const App = CustomElement.define({ name: 'app', template: `<template><foo><template if.bind="true" replace-part="bar">\${baz}</template></foo></template>` }, class { public baz = 'def'; });
-    const Foo = CustomElement.define({ name: 'foo', template: `<template><template replaceable part="bar"></template></template>` }, class { public baz = 'abc'; });
+    const App = CustomElement.define({ name: 'app', template: '<template><foo><template if.bind="true" replace-part="bar">${baz}</template></foo></template>' }, class { public baz = 'def'; });
+    const Foo = CustomElement.define({ name: 'foo', template: '<template><template replaceable part="bar"></template></template>' }, class { public baz = 'abc'; });
 
     const ctx = TestContext.createHTMLTestContext();
     ctx.container.register(Foo);
@@ -251,14 +251,14 @@ describe('replaceable', function () {
 
     au.start();
 
-    assert.strictEqual(host.textContent, 'abc', `host.textContent`);
+    assert.strictEqual(host.textContent, 'abc', 'host.textContent');
 
   });
 
-  it(`replaceable/template - sibling righthand side template controller`, function () {
+  it('replaceable/template - sibling righthand side template controller', function () {
 
-    const App = CustomElement.define({ name: 'app', template: `<template><foo><template replace-part="bar" if.bind="true">\${baz}</template></foo></template>` }, class { public baz = 'def'; });
-    const Foo = CustomElement.define({ name: 'foo', template: `<template><template replaceable part="bar"></template></template>` }, class { public baz = 'abc'; });
+    const App = CustomElement.define({ name: 'app', template: '<template><foo><template replace-part="bar" if.bind="true">${baz}</template></foo></template>' }, class { public baz = 'def'; });
+    const Foo = CustomElement.define({ name: 'foo', template: '<template><template replaceable part="bar"></template></template>' }, class { public baz = 'abc'; });
 
     const ctx = TestContext.createHTMLTestContext();
     ctx.container.register(Foo);
@@ -271,14 +271,14 @@ describe('replaceable', function () {
 
     au.start();
 
-    assert.strictEqual(host.textContent, 'abc', `host.textContent`);
+    assert.strictEqual(host.textContent, 'abc', 'host.textContent');
 
   });
 
-  it(`replaceable/template - sibling if/else with conflicting part names`, function () {
+  it('replaceable/template - sibling if/else with conflicting part names', function () {
 
-    const App = CustomElement.define({ name: 'app', template: `<template><foo><template replace-part="bar" if.bind="true">\${baz}</template></foo><foo><template replace-part="bar" if.bind="false">\${baz}</template></foo></template>` }, class { public baz = 'def'; });
-    const Foo = CustomElement.define({ name: 'foo', template: `<template><template replaceable part="bar"></template></template>` }, class { public baz = 'abc'; });
+    const App = CustomElement.define({ name: 'app', template: '<template><foo><template replace-part="bar" if.bind="true">${baz}</template></foo><foo><template replace-part="bar" if.bind="false">${baz}</template></foo></template>' }, class { public baz = 'def'; });
+    const Foo = CustomElement.define({ name: 'foo', template: '<template><template replaceable part="bar"></template></template>' }, class { public baz = 'abc'; });
 
     const ctx = TestContext.createHTMLTestContext();
     ctx.container.register(Foo);
@@ -291,7 +291,7 @@ describe('replaceable', function () {
 
     au.start();
 
-    assert.strictEqual(host.textContent, 'abc', `host.textContent`);
+    assert.strictEqual(host.textContent, 'abc', 'host.textContent');
 
   });
 
@@ -393,7 +393,7 @@ describe('replaceable', function () {
           au.app({ host, component });
           au.start();
 
-          assert.strictEqual(host.textContent, `replace-part-p`.repeat(i), `[i=${i}]host.textContent`);
+          assert.strictEqual(host.textContent, 'replace-part-p'.repeat(i), `[i=${i}]host.textContent`);
           tearDown(au);
         });
       }

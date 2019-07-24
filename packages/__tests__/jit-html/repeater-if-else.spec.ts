@@ -389,7 +389,7 @@ describe(spec, function () {
         component.display = true;
         lifecycle.processRAFQueue(LifecycleFlags.none);
 
-        assert.strictEqual(trimFull(host.textContent), ifText.repeat(count), `trimFull(host.textContent)`);
+        assert.strictEqual(trimFull(host.textContent), ifText.repeat(count), 'trimFull(host.textContent)');
       }
     },
     {
@@ -400,7 +400,7 @@ describe(spec, function () {
         component.display = false;
         lifecycle.processRAFQueue(LifecycleFlags.none);
 
-        assert.strictEqual(trimFull(host.textContent), elseText.repeat(count), `trimFull(host.textContent)`);
+        assert.strictEqual(trimFull(host.textContent), elseText.repeat(count), 'trimFull(host.textContent)');
       }
     },
     {
@@ -409,7 +409,7 @@ describe(spec, function () {
         component.items = [{if: 2, else: 1}, {if: 4, else: 3}];
         lifecycle.processRAFQueue(LifecycleFlags.none);
 
-        assert.strictEqual(trimFull(host.textContent), '13'.repeat(count), `trimFull(host.textContent)`);
+        assert.strictEqual(trimFull(host.textContent), '13'.repeat(count), 'trimFull(host.textContent)');
       }
     },
     {
@@ -421,7 +421,7 @@ describe(spec, function () {
         component.items[1].else = 8;
         lifecycle.processRAFQueue(LifecycleFlags.none);
 
-        assert.strictEqual(trimFull(host.textContent), `68${elseText.slice(2)}`.repeat(count), `trimFull(host.textContent)`);
+        assert.strictEqual(trimFull(host.textContent), `68${elseText.slice(2)}`.repeat(count), 'trimFull(host.textContent)');
       }
     },
     {
@@ -430,7 +430,7 @@ describe(spec, function () {
         component.items.reverse();
         lifecycle.processRAFQueue(LifecycleFlags.none);
 
-        assert.strictEqual(trimFull(host.textContent), (elseText.split('').reverse().join('')).repeat(count), `trimFull(host.textContent)`);
+        assert.strictEqual(trimFull(host.textContent), (elseText.split('').reverse().join('')).repeat(count), 'trimFull(host.textContent)');
       }
     },
     {
@@ -440,7 +440,7 @@ describe(spec, function () {
         component.display = true;
         lifecycle.processRAFQueue(LifecycleFlags.none);
 
-        assert.strictEqual(trimFull(host.textContent), (ifText.split('').reverse().join('')).repeat(count), `trimFull(host.textContent)`);
+        assert.strictEqual(trimFull(host.textContent), (ifText.split('').reverse().join('')).repeat(count), 'trimFull(host.textContent)');
       }
     },
     {
@@ -449,7 +449,7 @@ describe(spec, function () {
         component.items = [{if: 'a', else: 'b'}];
         lifecycle.processRAFQueue(LifecycleFlags.none);
 
-        assert.strictEqual(trimFull(host.textContent), 'b'.repeat(count), `trimFull(host.textContent)`);
+        assert.strictEqual(trimFull(host.textContent), 'b'.repeat(count), 'trimFull(host.textContent)');
       }
     },
     {
@@ -459,7 +459,7 @@ describe(spec, function () {
         component.display = true;
         lifecycle.processRAFQueue(LifecycleFlags.none);
 
-        assert.strictEqual(trimFull(host.textContent), 'a'.repeat(count), `trimFull(host.textContent)`);
+        assert.strictEqual(trimFull(host.textContent), 'a'.repeat(count), 'trimFull(host.textContent)');
       }
     },
     {
@@ -468,7 +468,7 @@ describe(spec, function () {
         component.items.pop();
         lifecycle.processRAFQueue(LifecycleFlags.none);
 
-        assert.strictEqual(trimFull(host.textContent), elseText.slice(0, -1).repeat(count), `trimFull(host.textContent)`);
+        assert.strictEqual(trimFull(host.textContent), elseText.slice(0, -1).repeat(count), 'trimFull(host.textContent)');
       }
     },
     {
@@ -478,7 +478,7 @@ describe(spec, function () {
         component.display = true;
         lifecycle.processRAFQueue(LifecycleFlags.none);
 
-        assert.strictEqual(trimFull(host.textContent), ifText.slice(0, -1).repeat(count), `trimFull(host.textContent)`);
+        assert.strictEqual(trimFull(host.textContent), ifText.slice(0, -1).repeat(count), 'trimFull(host.textContent)');
       }
     },
     {
@@ -487,7 +487,7 @@ describe(spec, function () {
         component.items = component.items.slice().concat({if: 'x', else: 'y'});
         lifecycle.processRAFQueue(LifecycleFlags.none);
 
-        assert.strictEqual(trimFull(host.textContent), `${elseText}y`.repeat(count), `trimFull(host.textContent)`);
+        assert.strictEqual(trimFull(host.textContent), `${elseText}y`.repeat(count), 'trimFull(host.textContent)');
       }
     },
     {
@@ -497,7 +497,7 @@ describe(spec, function () {
         component.display = true;
         lifecycle.processRAFQueue(LifecycleFlags.none);
 
-        assert.strictEqual(trimFull(host.textContent), 'ace'.repeat(count), `trimFull(host.textContent)`);
+        assert.strictEqual(trimFull(host.textContent), 'ace'.repeat(count), 'trimFull(host.textContent)');
       }
     },
     {
@@ -506,7 +506,7 @@ describe(spec, function () {
         component.items.push({if: 5, else: 6});
         lifecycle.processRAFQueue(LifecycleFlags.none);
 
-        assert.strictEqual(trimFull(host.textContent), `${elseText}6`.repeat(count), `trimFull(host.textContent)`);
+        assert.strictEqual(trimFull(host.textContent), `${elseText}6`.repeat(count), 'trimFull(host.textContent)');
       }
     },
     {
@@ -516,7 +516,7 @@ describe(spec, function () {
         component.display = true;
         lifecycle.processRAFQueue(LifecycleFlags.none);
 
-        assert.strictEqual(trimFull(host.textContent), `${ifText}5`.repeat(count), `trimFull(host.textContent)`);
+        assert.strictEqual(trimFull(host.textContent), `${ifText}5`.repeat(count), 'trimFull(host.textContent)');
       }
     }
   ];
@@ -580,12 +580,12 @@ describe(spec, function () {
       const component = au.root.controller.bindingContext;
       await task.wait();
 
-      assert.strictEqual(trimFull(host.textContent), elseText.repeat(count), `trimFull(host.textContent) === elseText.repeat(count)`);
+      assert.strictEqual(trimFull(host.textContent), elseText.repeat(count), 'trimFull(host.textContent) === elseText.repeat(count)');
 
       execute(component as any, ctx.lifecycle, host, count, ifText, elseText);
 
       au.stop();
-      assert.strictEqual(trimFull(host.textContent), '', `trimFull(host.textContent) === ''`);
+      assert.strictEqual(trimFull(host.textContent), '', 'trimFull(host.textContent) === \'\'');
     });
   });
 

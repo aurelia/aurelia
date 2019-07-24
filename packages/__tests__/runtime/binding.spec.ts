@@ -70,7 +70,7 @@ describe('PropertyBinding', function () {
 
     for (const ii of invalidInputs) {
       it(`throws on invalid input parameters of type ${getName(ii)}`, function () {
-        assert.throws(() => new PropertyBinding(ii, ii, ii, ii, ii, ii), `() => new PropertyBinding(ii, ii, ii, ii, ii, ii)`);
+        assert.throws(() => new PropertyBinding(ii, ii, ii, ii, ii, ii), '() => new PropertyBinding(ii, ii, ii, ii, ii, ii)');
       });
     }
   });
@@ -87,7 +87,7 @@ describe('PropertyBinding', function () {
 
   });
 
-  it(`$bind() [to-view] works with 200 observers`, function () {
+  it('$bind() [to-view] works with 200 observers', function () {
     let expr: AccessScopeExpression | BinaryExpression;
 
     const count = 200;
@@ -111,13 +111,13 @@ describe('PropertyBinding', function () {
 
     sut.$bind(LF.fromBind, scope);
 
-    assert.strictEqual(target.val, count, `target.val`);
+    assert.strictEqual(target.val, count, 'target.val');
 
     for (let i = 0; i < count; ++i) {
       ctx[args[i]] = 2;
     }
 
-    assert.strictEqual(target.val, count * 2, `target.val`);
+    assert.strictEqual(target.val, count * 2, 'target.val');
 
     const ctx2 = {};
     for (let i = 0; i < count; ++i) {
@@ -127,40 +127,40 @@ describe('PropertyBinding', function () {
 
     sut.$bind(LF.fromBind, scope2);
 
-    assert.strictEqual(target.val, count * 3, `target.val`);
+    assert.strictEqual(target.val, count * 3, 'target.val');
   }).timeout(20000);
 
   describe('$bind() [one-time] assigns the target value', function () {
     const targetVariations: (() => [{foo?: string}, string])[] = [
-      () => [({ foo: 'bar' }), `{foo:'bar'} `],
-      () => [({}),             `{}          `]
+      () => [({ foo: 'bar' }), '{foo:\'bar\'} '],
+      () => [({}),             '{}          ']
     ];
 
     const propVariations: (() => [string, string])[] = [
-      () => ['fooz', `'foo' `],
-      () => ['barz', `'bar' `]
+      () => ['fooz', '\'foo\' '],
+      () => ['barz', '\'bar\' ']
     ];
 
     const exprVariations: (() => [IExpression, string])[] = [
-      () => [new ObjectLiteralExpression(['foo'], [new PrimitiveLiteralExpression(null)]), `{foo:null} `],
-      () => [new AccessScopeExpression('foo'),                                   `foo        `],
-      () => [new AccessMemberExpression(new AccessScopeExpression('foo'), 'bar'),          `foo.bar    `],
-      () => [new PrimitiveLiteralExpression(null),                               `null       `],
-      () => [new PrimitiveLiteralExpression(undefined),                          `undefined  `]
+      () => [new ObjectLiteralExpression(['foo'], [new PrimitiveLiteralExpression(null)]), '{foo:null} '],
+      () => [new AccessScopeExpression('foo'),                                   'foo        '],
+      () => [new AccessMemberExpression(new AccessScopeExpression('foo'), 'bar'),          'foo.bar    '],
+      () => [new PrimitiveLiteralExpression(null),                               'null       '],
+      () => [new PrimitiveLiteralExpression(undefined),                          'undefined  ']
     ];
 
     const flagsVariations: (() => [LF, string])[] = [
-      () => [LF.fromBind,                                            `fromBind               `],
-      () => [LF.updateTargetInstance,                                `updateTarget           `],
-      () => [LF.updateTargetInstance | LF.fromFlush, `updateTarget|fromFlush `]
+      () => [LF.fromBind,                                            'fromBind               '],
+      () => [LF.updateTargetInstance,                                'updateTarget           '],
+      () => [LF.updateTargetInstance | LF.fromFlush, 'updateTarget|fromFlush ']
     ];
 
     const scopeVariations: (() => [IScope, string])[] = [
-      () => [createScopeForTest({foo: {bar: {}}}),       `{foo:{bar:{}}}       `],
-      () => [createScopeForTest({foo: {bar: 42}}),       `{foo:{bar:42}}       `],
-      () => [createScopeForTest({foo: {bar: undefined}}), `{foo:{bar:undefined}}`],
-      () => [createScopeForTest({foo: {bar: null}}),     `{foo:{bar:null}}     `],
-      () => [createScopeForTest({foo: {bar: 'baz'}}),    `{foo:{bar:'baz'}}    `]
+      () => [createScopeForTest({foo: {bar: {}}}),       '{foo:{bar:{}}}       '],
+      () => [createScopeForTest({foo: {bar: 42}}),       '{foo:{bar:42}}       '],
+      () => [createScopeForTest({foo: {bar: undefined}}), '{foo:{bar:undefined}}'],
+      () => [createScopeForTest({foo: {bar: null}}),     '{foo:{bar:null}}     '],
+      () => [createScopeForTest({foo: {bar: 'baz'}}),    '{foo:{bar:\'baz\'}}    ']
     ];
 
     const inputs: [typeof targetVariations, typeof propVariations, typeof exprVariations, typeof flagsVariations, typeof scopeVariations]
@@ -186,8 +186,8 @@ describe('PropertyBinding', function () {
 
           // - Assert -
           // double check we have the correct target observer
-          assert.instanceOf(sut.targetObserver, PropertyAccessor, `sut.targetObserver`);
-          assert.strictEqual(target['$observers'], undefined, `target['$observers']`);
+          assert.instanceOf(sut.targetObserver, PropertyAccessor, 'sut.targetObserver');
+          assert.strictEqual(target['$observers'], undefined, 'target[\'$observers\']');
 
           // verify the behavior inside $bind
           //expect(expr.evaluate, `expr.evaluate`).to.have.been.calledOnce;
@@ -204,36 +204,36 @@ describe('PropertyBinding', function () {
   describe('$bind() [to-view] assigns the target value and listens for changes', function () {
 
     const targetVariations: (() => [{foo?: string}, string])[] = [
-      () => [({ foo: 'bar' }), `{foo:'bar'} `],
-      () => [({ foo: null }),  `{foo:null}  `],
-      () => [({}),             `{}          `]
+      () => [({ foo: 'bar' }), '{foo:\'bar\'} '],
+      () => [({ foo: null }),  '{foo:null}  '],
+      () => [({}),             '{}          ']
     ];
 
     const propVariations: (() => [string, string])[] = [
-      () => ['fooz', `'fooz' `], // the target properties are named a bit different to ensure no argument match collision occurs for the observerLocator stub
-      () => ['barz', `'barz' `]
+      () => ['fooz', '\'fooz\' '], // the target properties are named a bit different to ensure no argument match collision occurs for the observerLocator stub
+      () => ['barz', '\'barz\' ']
     ];
 
     const exprVariations: (() => [IExpression, string])[] = [
-      () => [new ObjectLiteralExpression(['foo'], [new PrimitiveLiteralExpression(null)]), `{foo:null} `],
-      () => [new AccessScopeExpression('foo'),                                   `foo        `],
-      () => [new AccessMemberExpression(new AccessScopeExpression('foo'), 'bar'),          `foo.bar    `],
-      () => [new PrimitiveLiteralExpression(null),                               `null       `],
-      () => [new PrimitiveLiteralExpression(undefined),                          `undefined  `]
+      () => [new ObjectLiteralExpression(['foo'], [new PrimitiveLiteralExpression(null)]), '{foo:null} '],
+      () => [new AccessScopeExpression('foo'),                                   'foo        '],
+      () => [new AccessMemberExpression(new AccessScopeExpression('foo'), 'bar'),          'foo.bar    '],
+      () => [new PrimitiveLiteralExpression(null),                               'null       '],
+      () => [new PrimitiveLiteralExpression(undefined),                          'undefined  ']
     ];
 
     const flagsVariations: (() => [LF, string])[] = [
-      () => [LF.fromBind,                                            `fromBind               `],
-      () => [LF.updateTargetInstance,                                `updateTarget           `],
-      () => [LF.updateTargetInstance | LF.fromFlush, `updateTarget|fromFlush `]
+      () => [LF.fromBind,                                            'fromBind               '],
+      () => [LF.updateTargetInstance,                                'updateTarget           '],
+      () => [LF.updateTargetInstance | LF.fromFlush, 'updateTarget|fromFlush ']
     ];
 
     const scopeVariations: (() => [IScope, string])[] = [
-      () => [createScopeForTest({foo: {bar: {}}}),       `{foo:{bar:{}}}       `],
-      () => [createScopeForTest({foo: {bar: 42}}),       `{foo:{bar:42}}       `],
-      () => [createScopeForTest({foo: {bar: undefined}}), `{foo:{bar:undefined}}`],
-      () => [createScopeForTest({foo: {bar: null}}),     `{foo:{bar:null}}     `],
-      () => [createScopeForTest({foo: {bar: 'baz'}}),    `{foo:{bar:'baz'}}    `]
+      () => [createScopeForTest({foo: {bar: {}}}),       '{foo:{bar:{}}}       '],
+      () => [createScopeForTest({foo: {bar: 42}}),       '{foo:{bar:42}}       '],
+      () => [createScopeForTest({foo: {bar: undefined}}), '{foo:{bar:undefined}}'],
+      () => [createScopeForTest({foo: {bar: null}}),     '{foo:{bar:null}}     '],
+      () => [createScopeForTest({foo: {bar: 'baz'}}),    '{foo:{bar:\'baz\'}}    ']
     ];
 
     const inputs: [typeof targetVariations, typeof propVariations, typeof exprVariations, typeof flagsVariations, typeof scopeVariations]
@@ -264,17 +264,17 @@ describe('PropertyBinding', function () {
           const observer01: SetterObserver = sut['_observer1'];
           const observer02: SetterObserver = sut['_observer2'];
           if (expr instanceof AccessScopeExpression) {
-            assert.instanceOf(observer00, SetterObserver, `observer00 #01`);
-            assert.strictEqual(observer01, undefined, `observer01 #02`);
-            assert.strictEqual(observer02, undefined, `observer02 #03`);
+            assert.instanceOf(observer00, SetterObserver, 'observer00 #01');
+            assert.strictEqual(observer01, undefined, 'observer01 #02');
+            assert.strictEqual(observer02, undefined, 'observer02 #03');
           } else if (expr instanceof AccessMemberExpression) {
-            assert.instanceOf(observer00, SetterObserver, `observer00 #04`);
-            assert.instanceOf(observer01, SetterObserver, `observer01 #05`);
-            assert.strictEqual(observer02, undefined, `observer02 #06`);
+            assert.instanceOf(observer00, SetterObserver, 'observer00 #04');
+            assert.instanceOf(observer01, SetterObserver, 'observer01 #05');
+            assert.strictEqual(observer02, undefined, 'observer02 #06');
           }
 
-          assert.instanceOf(sut.targetObserver, PropertyAccessor, `sut.targetObserver #07`);
-          assert.strictEqual(target['$observers'], undefined, `target['$observers'] #08`);
+          assert.instanceOf(sut.targetObserver, PropertyAccessor, 'sut.targetObserver #07');
+          assert.strictEqual(target['$observers'], undefined, 'target[\'$observers\'] #08');
 
           //expect(expr.evaluate, `expr.evaluate #09`).to.have.been.calledOnce;
           //expect(expr.evaluate, `expr.evaluate #10`).to.have.been.calledWithExactly(flags, scope, container);
@@ -304,9 +304,9 @@ describe('PropertyBinding', function () {
           }
 
           if (srcVal instanceof Object) {
-            assert.deepStrictEqual(target[prop], srcVal, `target[prop] #23`);
+            assert.deepStrictEqual(target[prop], srcVal, 'target[prop] #23');
           } else {
-            assert.strictEqual(target[prop], srcVal, `target[prop] #24`);
+            assert.strictEqual(target[prop], srcVal, 'target[prop] #24');
           }
 
           // - Arrange - Part 2
@@ -341,16 +341,16 @@ describe('PropertyBinding', function () {
           const observer11: SetterObserver = sut['_observer1'];
           const observer12: SetterObserver = sut['_observer2'];
           if (expr instanceof AccessScopeExpression) {
-            assert.instanceOf(observer10, SetterObserver, `observer10 #25`);
-            assert.strictEqual(observer10, observer00, `observer10 #26`);
-            assert.strictEqual(observer11, undefined, `observer11 #27`);
-            assert.strictEqual(observer12, undefined, `observer12 #28`);
+            assert.instanceOf(observer10, SetterObserver, 'observer10 #25');
+            assert.strictEqual(observer10, observer00, 'observer10 #26');
+            assert.strictEqual(observer11, undefined, 'observer11 #27');
+            assert.strictEqual(observer12, undefined, 'observer12 #28');
           } else if (expr instanceof AccessMemberExpression) {
-            assert.instanceOf(observer10, SetterObserver, `observer10 #29`);
-            assert.strictEqual(observer10, observer00, `observer10 #30`);
-            assert.instanceOf(observer11, SetterObserver, `observer11 #31`);
-            assert.strictEqual(observer11, observer01, `observer11 #32`);
-            assert.strictEqual(observer12, undefined, `observer12 #33`);
+            assert.instanceOf(observer10, SetterObserver, 'observer10 #29');
+            assert.strictEqual(observer10, observer00, 'observer10 #30');
+            assert.instanceOf(observer11, SetterObserver, 'observer11 #31');
+            assert.strictEqual(observer11, observer01, 'observer11 #32');
+            assert.strictEqual(observer12, undefined, 'observer12 #33');
           }
 
           if (observer00) {
@@ -373,7 +373,7 @@ describe('PropertyBinding', function () {
               //expect(sut.unobserve, `sut.unobserve #48`).not.to.have.been.called;
               //expect(sut.addObserver, `sut.addObserver #56`).not.to.have.been.called;
               //expect(sut.observeProperty, `sut.observeProperty #57`).not.to.have.been.called;
-              assert.notStrictEqual(target[prop], newValue, `target[prop] #60`);
+              assert.notStrictEqual(target[prop], newValue, 'target[prop] #60');
               //assert.strictEqual(lifecycle.flushCount, 0, `lifecycle.flushCount #61`);
             } else {
               //expect(sut.handleChange, `sut.handleChange #38`).to.have.been.calledOnce;
@@ -419,7 +419,7 @@ describe('PropertyBinding', function () {
               }
 
               // verify the behavior of the targetObserver (redundant)
-              assert.strictEqual(target[prop], newValue, `target[prop] #60`);
+              assert.strictEqual(target[prop], newValue, 'target[prop] #60');
               //assert.strictEqual(lifecycle.flushCount, 0, `lifecycle.flushCount #61`);
             }
           }
@@ -431,35 +431,35 @@ describe('PropertyBinding', function () {
   describe('$bind() [from-view] does not assign the target, and listens for changes', function () {
 
     const targetVariations: (() => [{foo?: string}, string])[] = [
-      () => [({ foo: 'bar' }), `{foo:'bar'} `],
-      () => [({ foo: null }),  `{foo:null}  `],
-      () => [({}),             `{}          `]
+      () => [({ foo: 'bar' }), '{foo:\'bar\'} '],
+      () => [({ foo: null }),  '{foo:null}  '],
+      () => [({}),             '{}          ']
     ];
 
     const propVariations: (() => [string, string])[] = [
-      () => ['foo', `'foo' `],
-      () => ['bar', `'bar' `]
+      () => ['foo', '\'foo\' '],
+      () => ['bar', '\'bar\' ']
     ];
 
     const newValueVariations: (() => [any, string])[] = [
-      () => [{},        `{}        `],
-      () => [null,      `null      `],
-      () => [undefined, `undefined `],
-      () => [42,        `42        `]
+      () => [{},        '{}        '],
+      () => [null,      'null      '],
+      () => [undefined, 'undefined '],
+      () => [42,        '42        ']
     ];
 
     const exprVariations: (() => [IExpression, string])[] = [
-      () => [new AccessScopeExpression('foo'), `foo `]
+      () => [new AccessScopeExpression('foo'), 'foo ']
     ];
 
     const flagsVariations: (() => [LF, string])[] = [
-      () => [LF.fromBind,                                            `fromBind               `],
-      () => [LF.updateTargetInstance,                                `updateTarget           `],
-      () => [LF.updateTargetInstance | LF.fromFlush, `updateTarget|fromFlush `]
+      () => [LF.fromBind,                                            'fromBind               '],
+      () => [LF.updateTargetInstance,                                'updateTarget           '],
+      () => [LF.updateTargetInstance | LF.fromFlush, 'updateTarget|fromFlush ']
     ];
 
     const scopeVariations: (() => [IScope, string])[] = [
-      () => [createScopeForTest({foo: {}}), `{foo:{}} `]
+      () => [createScopeForTest({foo: {}}), '{foo:{}} ']
     ];
 
     const inputs: [typeof targetVariations, typeof propVariations, typeof newValueVariations, typeof exprVariations, typeof flagsVariations, typeof scopeVariations]
@@ -484,11 +484,11 @@ describe('PropertyBinding', function () {
           // - Assert - Part 1
           //assert.strictEqual(lifecycle.flushCount, 0, `lifecycle.flushCount`);
 
-          assert.instanceOf(sut.targetObserver, SetterObserver, `sut.targetObserver`);
-          assert.instanceOf(target['$observers'][prop], SetterObserver, `target['$observers'][prop]`);
+          assert.instanceOf(sut.targetObserver, SetterObserver, 'sut.targetObserver');
+          assert.instanceOf(target['$observers'][prop], SetterObserver, 'target[\'$observers\'][prop]');
 
-          assert.strictEqual(sut['_observer0'], undefined, `sut['_observer0']`);
-          assert.strictEqual(sut['_observer1'], undefined, `sut['_observer1']`);
+          assert.strictEqual(sut['_observer0'], undefined, 'sut[\'_observer0\']');
+          assert.strictEqual(sut['_observer1'], undefined, 'sut[\'_observer1\']');
 
           // verify the behavior inside $bind
           //expect(targetObserver.subscribe, `targetObserver.subscribe`).to.have.been.calledOnce;
@@ -512,8 +512,8 @@ describe('PropertyBinding', function () {
           //assert.strictEqual(lifecycle.flushCount, 0, `lifecycle.flushCount`);
 
           // verify the behavior of the targetObserver (redundant)
-          assert.strictEqual(sut['_observer0'], undefined, `sut['_observer0']`);
-          assert.strictEqual(sut['_observer1'], undefined, `sut['_observer1']`);
+          assert.strictEqual(sut['_observer0'], undefined, 'sut[\'_observer0\']');
+          assert.strictEqual(sut['_observer1'], undefined, 'sut[\'_observer1\']');
 
           if (initialVal !== newValue) {
             //expect(sut.handleChange, `sut.handleChange`).to.have.been.calledOnce;
@@ -545,42 +545,42 @@ describe('PropertyBinding', function () {
   describe('$bind() [two-way] assign the targets, and listens for changes', function () {
 
     const targetVariations: (() => [{foo?: string}, string])[] = [
-      () => [{ foo: 'bar' },       `{foo:'bar'}     `],
-      () => [({ foo: null }),      `{foo:null}      `],
-      () => [({ foo: undefined }), `{foo:undefined} `],
-      () => [({}),                 `{}              `]
+      () => [{ foo: 'bar' },       '{foo:\'bar\'}     '],
+      () => [({ foo: null }),      '{foo:null}      '],
+      () => [({ foo: undefined }), '{foo:undefined} '],
+      () => [({}),                 '{}              ']
     ];
 
     const propVariations: (() => [string, string])[] = [
-      () => ['foo', `'foo' `],
-      () => ['bar', `'bar' `]
+      () => ['foo', '\'foo\' '],
+      () => ['bar', '\'bar\' ']
     ];
 
     const newValueVariations: (() => [any, string])[] = [
-      () => [[{}, {}],      `{}, {} `],
-      () => [[41, 43],      `41, 43 `]
+      () => [[{}, {}],      '{}, {} '],
+      () => [[41, 43],      '41, 43 ']
     ];
 
     const exprVariations: (() => [IExpression, string])[] = [
-      () => [new ObjectLiteralExpression(['foo'], [new PrimitiveLiteralExpression(null)]), `{foo:null} `],
-      () => [new AccessScopeExpression('foo'),                                   `foo        `],
-      () => [new AccessMemberExpression(new AccessScopeExpression('foo'), 'bar'),          `foo.bar    `],
-      () => [new PrimitiveLiteralExpression(null),                               `null       `],
-      () => [new PrimitiveLiteralExpression(undefined),                          `undefined  `]
+      () => [new ObjectLiteralExpression(['foo'], [new PrimitiveLiteralExpression(null)]), '{foo:null} '],
+      () => [new AccessScopeExpression('foo'),                                   'foo        '],
+      () => [new AccessMemberExpression(new AccessScopeExpression('foo'), 'bar'),          'foo.bar    '],
+      () => [new PrimitiveLiteralExpression(null),                               'null       '],
+      () => [new PrimitiveLiteralExpression(undefined),                          'undefined  ']
     ];
 
     const flagsVariations: (() => [LF, string])[] = [
-      () => [LF.fromBind,             `fromBind     `],
-      () => [LF.updateTargetInstance, `updateTarget `]
+      () => [LF.fromBind,             'fromBind     '],
+      () => [LF.updateTargetInstance, 'updateTarget ']
     ];
 
     const scopeVariations: (() => [IScope, string])[] = [
-      () => [createScopeForTest({foo: {}}),              `{foo:{}} `],
-      () => [createScopeForTest({foo: {bar: {}}}),       `{foo:{bar:{}}}       `],
-      () => [createScopeForTest({foo: {bar: 42}}),       `{foo:{bar:42}}       `],
-      () => [createScopeForTest({foo: {bar: undefined}}), `{foo:{bar:undefined}}`],
-      () => [createScopeForTest({foo: {bar: null}}),     `{foo:{bar:null}}     `],
-      () => [createScopeForTest({foo: {bar: 'baz'}}),    `{foo:{bar:'baz'}}    `]
+      () => [createScopeForTest({foo: {}}),              '{foo:{}} '],
+      () => [createScopeForTest({foo: {bar: {}}}),       '{foo:{bar:{}}}       '],
+      () => [createScopeForTest({foo: {bar: 42}}),       '{foo:{bar:42}}       '],
+      () => [createScopeForTest({foo: {bar: undefined}}), '{foo:{bar:undefined}}'],
+      () => [createScopeForTest({foo: {bar: null}}),     '{foo:{bar:null}}     '],
+      () => [createScopeForTest({foo: {bar: 'baz'}}),    '{foo:{bar:\'baz\'}}    ']
     ];
 
     const inputs: [typeof targetVariations, typeof propVariations, typeof newValueVariations, typeof exprVariations, typeof flagsVariations, typeof scopeVariations]
@@ -610,22 +610,22 @@ describe('PropertyBinding', function () {
           const subscriber00: ISubscriber = targetObserver['_subscriber0'];
           const subscriber01: ISubscriber = targetObserver['_subscriber1'];
           if (expr instanceof AccessScopeExpression) {
-            assert.instanceOf(observer00, SetterObserver, `observer00 #01`);
-            assert.strictEqual(observer01, undefined, `observer01 #02`);
+            assert.instanceOf(observer00, SetterObserver, 'observer00 #01');
+            assert.strictEqual(observer01, undefined, 'observer01 #02');
           } else if (expr instanceof AccessMemberExpression) {
-            assert.instanceOf(observer00, SetterObserver, `observer00 #03`);
-            assert.instanceOf(observer01, SetterObserver, `observer01 #04`);
-            assert.strictEqual(observer02, undefined, `observer02 #05`);
+            assert.instanceOf(observer00, SetterObserver, 'observer00 #03');
+            assert.instanceOf(observer01, SetterObserver, 'observer01 #04');
+            assert.strictEqual(observer02, undefined, 'observer02 #05');
           } else {
-            assert.strictEqual(observer00, undefined, `observer00 #06`);
+            assert.strictEqual(observer00, undefined, 'observer00 #06');
           }
 
-          assert.strictEqual(subscriber00, sut, `subscriber00 #07`);
-          assert.strictEqual(subscriber01, undefined, `subscriber01 #08`);
+          assert.strictEqual(subscriber00, sut, 'subscriber00 #07');
+          assert.strictEqual(subscriber01, undefined, 'subscriber01 #08');
 
-          assert.strictEqual(sut.targetObserver, targetObserver, `sut.targetObserver #09`);
-          assert.instanceOf(sut.targetObserver, SetterObserver, `sut.targetObserver #10`);
-          assert.instanceOf(target['$observers'][prop], SetterObserver, `target['$observers'][prop] #11`);
+          assert.strictEqual(sut.targetObserver, targetObserver, 'sut.targetObserver #09');
+          assert.instanceOf(sut.targetObserver, SetterObserver, 'sut.targetObserver #10');
+          assert.instanceOf(target['$observers'][prop], SetterObserver, 'target[\'$observers\'][prop] #11');
 
           //expect(expr.assign).not.to.have.been.called;
 
@@ -663,11 +663,11 @@ describe('PropertyBinding', function () {
 
           // verify the behavior of the targetObserver (redundant)
           if (srcVal instanceof Object) {
-            assert.deepStrictEqual(target[prop], srcVal, `target[prop] #30`);
-            assert.deepStrictEqual(targetObserver.currentValue, srcVal, `targetObserver.currentValue #31`);
+            assert.deepStrictEqual(target[prop], srcVal, 'target[prop] #30');
+            assert.deepStrictEqual(targetObserver.currentValue, srcVal, 'targetObserver.currentValue #31');
           } else {
-            assert.strictEqual(target[prop], srcVal, `target[prop] #32`);
-            assert.strictEqual(targetObserver.currentValue, srcVal, `targetObserver.currentValue #33`);
+            assert.strictEqual(target[prop], srcVal, 'target[prop] #32');
+            assert.strictEqual(targetObserver.currentValue, srcVal, 'targetObserver.currentValue #33');
           }
 
           if (!(flags & LF.fromBind)) {
@@ -708,22 +708,22 @@ describe('PropertyBinding', function () {
           const subscriber10: ISubscriber = targetObserver['_subscriber0'];
           const subscriber11: ISubscriber = targetObserver['_subscriber1'];
           if (expr instanceof AccessScopeExpression) {
-            assert.instanceOf(observer10, SetterObserver, `observer10 #38`);
-            assert.strictEqual(observer10, observer00, `observer10 #39`);
-            assert.strictEqual(observer11, undefined, `observer11 #40`);
-            assert.strictEqual(observer12, undefined, `observer12 #41`);
+            assert.instanceOf(observer10, SetterObserver, 'observer10 #38');
+            assert.strictEqual(observer10, observer00, 'observer10 #39');
+            assert.strictEqual(observer11, undefined, 'observer11 #40');
+            assert.strictEqual(observer12, undefined, 'observer12 #41');
           } else if (expr instanceof AccessMemberExpression) {
-            assert.instanceOf(observer10, SetterObserver, `observer10 #42`);
-            assert.strictEqual(observer10, observer00, `observer10 #43`);
-            assert.instanceOf(observer11, SetterObserver, `observer11 #44`);
-            assert.strictEqual(observer11, observer01, `observer11 #45`);
-            assert.strictEqual(observer12, undefined, `observer12 #46`);
+            assert.instanceOf(observer10, SetterObserver, 'observer10 #42');
+            assert.strictEqual(observer10, observer00, 'observer10 #43');
+            assert.instanceOf(observer11, SetterObserver, 'observer11 #44');
+            assert.strictEqual(observer11, observer01, 'observer11 #45');
+            assert.strictEqual(observer12, undefined, 'observer12 #46');
           } else {
-            assert.strictEqual(observer10, undefined, `observer10 #47`);
+            assert.strictEqual(observer10, undefined, 'observer10 #47');
           }
 
-          assert.strictEqual(subscriber10, sut, `subscriber10 #48`);
-          assert.strictEqual(subscriber11, undefined, `subscriber11 #49`);
+          assert.strictEqual(subscriber10, sut, 'subscriber10 #48');
+          assert.strictEqual(subscriber11, undefined, 'subscriber11 #49');
 
           if (observer00) {
             // verify the behavior of the sourceExpression / sourceObserver (redundant)
@@ -753,8 +753,8 @@ describe('PropertyBinding', function () {
                 //assert.strictEqual((sut.addObserver as SinonSpy).getCalls().length, 0, `(sut.addObserver as SinonSpy).getCalls().length #74`);
                 //assert.strictEqual((sut.observeProperty as SinonSpy).getCalls().length, 0, `(sut.observeProperty as SinonSpy).getCalls().length #75`);
               }
-              assert.notStrictEqual(targetObserver.currentValue, newValue1, `targetObserver.currentValue #78`);
-              assert.notStrictEqual(target[prop], newValue1, `target[prop] #79`);
+              assert.notStrictEqual(targetObserver.currentValue, newValue1, 'targetObserver.currentValue #78');
+              assert.notStrictEqual(target[prop], newValue1, 'target[prop] #79');
             } else {
               //expect(sut.handleChange, `sut.handleChange #54`).to.have.been.calledOnce;
               //expect(sut.handleChange, `sut.handleChange #55`).to.have.been.calledWithExactly(newValue1, srcVal, flags);
@@ -800,8 +800,8 @@ describe('PropertyBinding', function () {
                 //expect(sut.addObserver, `sut.addObserver #77`).to.have.been.calledWithExactly(observer00);
               }
 
-              assert.strictEqual(targetObserver.currentValue, newValue1, `targetObserver.currentValue #78`);
-              assert.strictEqual(target[prop], newValue1, `target[prop] #79`);
+              assert.strictEqual(targetObserver.currentValue, newValue1, 'targetObserver.currentValue #78');
+              assert.strictEqual(target[prop], newValue1, 'target[prop] #79');
             }
           }
 
@@ -861,7 +861,7 @@ describe('PropertyBinding', function () {
       const scope: any = {};
       sut['$scope'] = scope;
       sut.$unbind(LF.fromUnbind);
-      assert.strictEqual(sut['$scope'] === scope, true, `sut['$scope'] === scope`);
+      assert.strictEqual(sut['$scope'] === scope, true, 'sut[\'$scope\'] === scope');
     });
 
     xit('should unbind if it is bound', function () {
@@ -874,8 +874,8 @@ describe('PropertyBinding', function () {
       const unbindSpy = dummySourceExpression.unbind = createSpy();
       (dummySourceExpression as any).$kind |= ExpressionKind.HasUnbind;
       sut.$unbind(LF.fromUnbind);
-      assert.strictEqual(sut['$scope'], undefined, `sut['$scope']`);
-      assert.strictEqual(sut['$state'] & State.isBound, 0, `sut['$state'] & State.isBound`);
+      assert.strictEqual(sut['$scope'], undefined, 'sut[\'$scope\']');
+      assert.strictEqual(sut['$state'] & State.isBound, 0, 'sut[\'$state\'] & State.isBound');
       ////expect(unobserveSpy, `unobserveSpy`).to.have.been.calledWith(true);
       ////expect(unbindSpy, `unbindSpy`).to.have.been.calledWith(LF.fromUnbind, scope, sut);
     });
@@ -891,8 +891,8 @@ describe('PropertyBinding', function () {
         while (i < count) {
           const observer = new MockObserver();
           sut.addObserver(observer);
-          assert.strictEqual(sut[`_observer${i}`] === observer, true, `sut[\`_observer\${i}\`] === observer`);
-          assert.strictEqual(sut[`_observerVersion${i}`] === 0, true, `sut[\`_observerVersion\${i}\`] === 0`);
+          assert.strictEqual(sut[`_observer${i}`] === observer, true, 'sut[`_observer${i}`] === observer');
+          assert.strictEqual(sut[`_observerVersion${i}`] === 0, true, 'sut[`_observerVersion${i}`] === 0');
           i++;
         }
       });
@@ -908,7 +908,7 @@ describe('PropertyBinding', function () {
             [
               [sut],
             ],
-            `observer.subscribe.calls`,
+            'observer.subscribe.calls',
           );
           i++;
         }
@@ -945,12 +945,12 @@ describe('PropertyBinding', function () {
         while (i < count) {
           const observer = sut[`_observer${i}`];
           sut.addObserver(observer);
-          assert.strictEqual(sut[`_observerVersion${i}`] === version, true, `sut[\`_observerVersion\${i}\`] === version`);
+          assert.strictEqual(sut[`_observerVersion${i}`] === version, true, 'sut[`_observerVersion${i}`] === version');
           i++;
         }
       });
 
-      it(`only updates the version for for added observers`, function () {
+      it('only updates the version for for added observers', function () {
         const { sut } = setup();
         let i = 0;
         while (i < count) {
@@ -967,8 +967,8 @@ describe('PropertyBinding', function () {
         }
         i = 0;
         while (i < count) {
-          assert.strictEqual(sut[`_observerVersion${i}`] === version, true, `sut[\`_observerVersion\${i}\`] === version`);
-          assert.strictEqual(sut[`_observerVersion${i + 1}`] === version, false, `sut[\`_observerVersion\${i + 1}\`] === version`);
+          assert.strictEqual(sut[`_observerVersion${i}`] === version, true, 'sut[`_observerVersion${i}`] === version');
+          assert.strictEqual(sut[`_observerVersion${i + 1}`] === version, false, 'sut[`_observerVersion${i + 1}`] === version');
           i += 2;
         }
       });

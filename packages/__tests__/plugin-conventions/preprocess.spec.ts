@@ -43,21 +43,21 @@ export function getHTMLOnlyElement(): any {
   });
 
   it('does not touch js/ts file without html pair', function () {
-    const js = `export class Foo {}\n`;
+    const js = 'export class Foo {}\n';
     const result = preprocess('src/foo.js', js, false, () => false);
     assert.equal(result.code, js);
     assert.equal(result.map.version, 3);
   });
 
   it('does not touch js/ts file with html pair but wrong resource name', function () {
-    const js = `export class Foo {}\n`;
+    const js = 'export class Foo {}\n';
     const result = preprocess('src/bar.js', js, false, () => true);
     assert.equal(result.code, js);
     assert.equal(result.map.version, 3);
   });
 
   it('injects customElement decorator', function () {
-    const js = `export class FooBar {}\n`;
+    const js = 'export class FooBar {}\n';
     const expected = `import * as __fooBarViewDef from './foo-bar.html';
 import { customElement } from '@aurelia/runtime';
 @customElement(__fooBarViewDef)

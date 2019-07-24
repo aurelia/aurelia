@@ -20,9 +20,9 @@ describe(spec, function () {
     const bindSpecs: BindSpec[] = [
       {
         t: '01',
-        forof: `[a,b,c]`,
-        item: `\${item}`,
-        expected: `123`,
+        forof: '[a,b,c]',
+        item: '${item}',
+        expected: '123',
         initialize(c: {a: number; b: number; c: number}) {
           c.a = 1;
           c.b = 2;
@@ -31,9 +31,9 @@ describe(spec, function () {
       },
       {
         t: '02',
-        forof: `[c,b,a]|sort`,
-        item: `\${item}`,
-        expected: `123`,
+        forof: '[c,b,a]|sort',
+        item: '${item}',
+        expected: '123',
         initialize(c: {a: number; b: number; c: number}) {
           c.a = 1;
           c.b = 2;
@@ -42,44 +42,44 @@ describe(spec, function () {
       },
       {
         t: '03',
-        forof: `[1+1,2+1,3+1]`,
-        item: `\${item}`,
-        expected: `234`,
+        forof: '[1+1,2+1,3+1]',
+        item: '${item}',
+        expected: '234',
         initialize() { return; }
       },
       {
         t: '04',
-        forof: `[1,2,3]`,
-        item: `\${item}`,
-        expected: `123`,
+        forof: '[1,2,3]',
+        item: '${item}',
+        expected: '123',
         initialize() { return; }
       },
       {
         t: '05',
-        forof: `[3,2,1]|sort`,
-        item: `\${item}`,
-        expected: `123`,
+        forof: '[3,2,1]|sort',
+        item: '${item}',
+        expected: '123',
         initialize() { return; }
       },
       {
         t: '06',
-        forof: `[{i:1},{i:2},{i:3}]`,
-        item: `\${item.i}`,
-        expected: `123`,
+        forof: '[{i:1},{i:2},{i:3}]',
+        item: '${item.i}',
+        expected: '123',
         initialize() { return; }
       },
       {
         t: '07',
-        forof: `[[1],[2],[3]]`,
-        item: `\${item[0]}`,
-        expected: `123`,
+        forof: '[[1],[2],[3]]',
+        item: '${item[0]}',
+        expected: '123',
         initialize() { return; }
       },
       {
         t: '08',
-        forof: `[[a],[b],[c]]`,
-        item: `\${item[0]}`,
-        expected: `123`,
+        forof: '[[a],[b],[c]]',
+        item: '${item[0]}',
+        expected: '123',
         initialize(c: {a: number; b: number; c: number}) {
           c.a = 1;
           c.b = 2;
@@ -88,75 +88,75 @@ describe(spec, function () {
       },
       {
         t: '09',
-        forof: `3`,
-        item: `\${item}`,
-        expected: `012`,
+        forof: '3',
+        item: '${item}',
+        expected: '012',
         initialize() { return; }
       },
       {
         t: '10',
-        forof: `null`,
-        item: `\${item}`,
-        expected: ``,
+        forof: 'null',
+        item: '${item}',
+        expected: '',
         initialize() { return; }
       },
       {
         t: '11',
-        forof: `undefined`,
-        item: `\${item}`,
-        expected: ``,
+        forof: 'undefined',
+        item: '${item}',
+        expected: '',
         initialize() { return; }
       },
       {
         t: '12',
-        forof: `items`,
-        item: `\${item}`,
-        expected: `123`,
+        forof: 'items',
+        item: '${item}',
+        expected: '123',
         initialize(c: {items: string[]}) {
           c.items = ['1', '2', '3'];
         }
       },
       {
         t: '13',
-        forof: `items|sort`,
-        item: `\${item}`,
-        expected: `123`,
+        forof: 'items|sort',
+        item: '${item}',
+        expected: '123',
         initialize(c: {items: string[]}) {
           c.items = ['3', '2', '1'];
         }
       },
       {
         t: '14',
-        forof: `items`,
-        item: `\${item.i}`,
-        expected: `123`,
+        forof: 'items',
+        item: '${item.i}',
+        expected: '123',
         initialize(c: {items: {i: number}[]}) {
            c.items = [{i: 1}, {i: 2}, {i: 3}];
         }
       },
       {
         t: '15',
-        forof: `items|sort:'i'`,
-        item: `\${item.i}`,
-        expected: `123`,
+        forof: 'items|sort:\'i\'',
+        item: '${item.i}',
+        expected: '123',
         initialize(c: {items: {i: number}[]}) {
            c.items = [{i: 3}, {i: 2}, {i: 1}];
         }
       },
       {
         t: '16',
-        forof: `items`,
-        item: `\${item}`,
-        expected: `123`,
+        forof: 'items',
+        item: '${item}',
+        expected: '123',
         initialize(c: {items: Set<string>}) {
            c.items = new Set(['1', '2', '3']);
         }
       },
       {
         t: '17',
-        forof: `items`,
-        item: `\${item[0]}\${item[1]}`,
-        expected: `1a2b3c`,
+        forof: 'items',
+        item: '${item[0]}${item[1]}',
+        expected: '1a2b3c',
         initialize(c: {items: Map<string, string>}) {
            c.items = new Map([['1', 'a'], ['2', 'b'], ['3', 'c']]);
         }

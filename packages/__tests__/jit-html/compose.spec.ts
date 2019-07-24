@@ -46,36 +46,36 @@ describe(spec, function () {
   const subjectSpecs: SubjectSpec[] = [
     {
       t: '1',
-      createSubject: () => ({ template: `<template>Hello!</template>`, build }),
+      createSubject: () => ({ template: '<template>Hello!</template>', build }),
       expectedText: 'Hello!'
     },
     {
       t: '2',
-      createSubject: () => Promise.resolve({ template: `<template>Hello!</template>`, build }),
+      createSubject: () => Promise.resolve({ template: '<template>Hello!</template>', build }),
       expectedText: 'Hello!'
     },
     {
       t: '3',
       createSubject: () => Promise.resolve().then(() => {
         return new Promise(resolve => {
-          setTimeout(() => { resolve({ template: `<template>Hello!</template>`, build }); }, 50);
+          setTimeout(() => { resolve({ template: '<template>Hello!</template>', build }); }, 50);
         });
       }),
       expectedText: 'Hello!'
     },
     {
       t: '4',
-      createSubject: ctx => ctx.re.getViewFactory(ctx.dom, { name: 'cmp', template: `<template>Hello!</template>`, build }, ctx.container),
+      createSubject: ctx => ctx.re.getViewFactory(ctx.dom, { name: 'cmp', template: '<template>Hello!</template>', build }, ctx.container),
       expectedText: 'Hello!'
     },
     {
       t: '5',
-      createSubject: ctx => ctx.re.getViewFactory(ctx.dom, {  name: 'cmp', template: `<template>Hello!</template>`, build }, ctx.container).create(),
+      createSubject: ctx => ctx.re.getViewFactory(ctx.dom, {  name: 'cmp', template: '<template>Hello!</template>', build }, ctx.container).create(),
       expectedText: 'Hello!'
     },
     {
       t: '6',
-      createSubject: ctx => new RenderPlan(ctx.dom, `<div>Hello!</div>`, [], []),
+      createSubject: ctx => new RenderPlan(ctx.dom, '<div>Hello!</div>', [], []),
       expectedText: 'Hello!'
     }
   ];
@@ -83,39 +83,39 @@ describe(spec, function () {
   const templateSpecs: TemplateSpec[] = [
     {
       t: '1',
-      template: `<template><au-compose subject.bind="sub"></au-compose></template>`
+      template: '<template><au-compose subject.bind="sub"></au-compose></template>'
     },
     {
       t: '2',
-      template: `<template><template as-element="au-compose" subject.bind="sub"></template></template>`
+      template: '<template><template as-element="au-compose" subject.bind="sub"></template></template>'
     },
     {
       t: '13',
-      template: `<template><au-compose repeat.for="i of 1" subject.bind="sub"></au-compose></template>`
+      template: '<template><au-compose repeat.for="i of 1" subject.bind="sub"></au-compose></template>'
     },
     {
       t: '4',
-      template: `<template><au-compose if.bind="true" subject.bind="sub"></au-compose></template>`
+      template: '<template><au-compose if.bind="true" subject.bind="sub"></au-compose></template>'
     },
     {
       t: '5',
-      template: `<template><div if.bind="false"></div><au-compose else subject.bind="sub"></au-compose></template>`
+      template: '<template><div if.bind="false"></div><au-compose else subject.bind="sub"></au-compose></template>'
     },
     {
       t: '16',
-      template: `<template><au-compose if.bind="true" repeat.for="i of 1" subject.bind="sub"></au-compose></template>`
+      template: '<template><au-compose if.bind="true" repeat.for="i of 1" subject.bind="sub"></au-compose></template>'
     },
     {
       t: '17',
-      template: `<template><au-compose if.bind="true" repeat.for="i of 1" subject.bind="sub"></au-compose></template>`
+      template: '<template><au-compose if.bind="true" repeat.for="i of 1" subject.bind="sub"></au-compose></template>'
     },
     {
       t: '18',
-      template: `<template><au-compose subject.bind="sub" if.bind="true" repeat.for="i of 1"></au-compose></template>`
+      template: '<template><au-compose subject.bind="sub" if.bind="true" repeat.for="i of 1"></au-compose></template>'
     },
     {
       t: '19',
-      template: `<template><au-compose if.bind="true" subject.bind="sub" repeat.for="i of 1"></au-compose></template>`
+      template: '<template><au-compose if.bind="true" subject.bind="sub" repeat.for="i of 1"></au-compose></template>'
     },
   ];
 
@@ -134,11 +134,11 @@ describe(spec, function () {
       component.sub = subject;
       const task = au.app({ host, component }).start();
       if (subject instanceof Promise) {
-        assert.strictEqual(trimFull(host.textContent), '', `host.textContent #1`);
+        assert.strictEqual(trimFull(host.textContent), '', 'host.textContent #1');
         await task.wait();
-        assert.strictEqual(trimFull(host.textContent), expectedText, `host.textContent #2`);
+        assert.strictEqual(trimFull(host.textContent), expectedText, 'host.textContent #2');
       } else {
-        assert.strictEqual(trimFull(host.textContent), expectedText, `host.textContent #3`);
+        assert.strictEqual(trimFull(host.textContent), expectedText, 'host.textContent #3');
       }
     });
   });

@@ -25,7 +25,7 @@ describe.skip('CheckedObserver', function () {
     function setup(hasSubscriber: boolean) {
       const ctx = TestContext.createHTMLTestContext();
       const { container, lifecycle, observerLocator } = ctx;
-      const el = ctx.createElementFromMarkup(`<input type="checkbox"/>`) as IInputElement;
+      const el = ctx.createElementFromMarkup('<input type="checkbox"/>') as IInputElement;
       ctx.doc.body.appendChild(el);
 
       const sut = ctx.observerLocator.getObserver(LF.none, el, 'checked') as CheckedObserver;
@@ -79,7 +79,7 @@ describe.skip('CheckedObserver', function () {
                 assert.deepStrictEqual(
                   subscriber.handleChange,
                   [],
-                  `subscriber.handleChange`,
+                  'subscriber.handleChange',
                 );
 
                 tearDown({ ctx, sut, lifecycle, el });
@@ -95,7 +95,7 @@ describe.skip('CheckedObserver', function () {
     function setup() {
       const ctx = TestContext.createHTMLTestContext();
       const { container, lifecycle, observerLocator } = ctx;
-      const el = ctx.createElementFromMarkup(`<input type="checkbox"/>`) as IInputElement;
+      const el = ctx.createElementFromMarkup('<input type="checkbox"/>') as IInputElement;
       ctx.doc.body.appendChild(el);
 
       const sut = ctx.observerLocator.getObserver(LF.none, el, 'checked') as CheckedObserver;
@@ -126,7 +126,7 @@ describe.skip('CheckedObserver', function () {
               [
                 [checkedBefore, null, LF.fromDOMEvent | LF.allowPublishRoundtrip],
               ],
-              `subscriber.handleChange`,
+              'subscriber.handleChange',
             );
 
             el.checked = checkedAfter;
@@ -140,7 +140,7 @@ describe.skip('CheckedObserver', function () {
                   [checkedBefore, null, LF.fromDOMEvent | LF.allowPublishRoundtrip],
                   [checkedAfter, checkedBefore, LF.fromDOMEvent | LF.allowPublishRoundtrip],
                 ],
-                `subscriber.handleChange`,
+                'subscriber.handleChange',
               );
             } else {
               assert.deepStrictEqual(
@@ -148,7 +148,7 @@ describe.skip('CheckedObserver', function () {
                 [
                   [checkedBefore, null, LF.fromDOMEvent | LF.allowPublishRoundtrip],
                 ],
-                `subscriber.handleChange`,
+                'subscriber.handleChange',
               );
             }
 
@@ -164,9 +164,9 @@ describe.skip('CheckedObserver', function () {
       const ctx = TestContext.createHTMLTestContext();
       const { container, lifecycle, observerLocator } = ctx;
 
-      const elA = ctx.createElementFromMarkup(`<input name="foo" type="radio" value="A"/>`) as ObservedInputElement;
-      const elB = ctx.createElementFromMarkup(`<input name="foo" type="radio" value="B"/>`) as ObservedInputElement;
-      const elC = ctx.createElementFromMarkup(`<input name="foo" type="radio" value="C"/>`) as ObservedInputElement;
+      const elA = ctx.createElementFromMarkup('<input name="foo" type="radio" value="A"/>') as ObservedInputElement;
+      const elB = ctx.createElementFromMarkup('<input name="foo" type="radio" value="B"/>') as ObservedInputElement;
+      const elC = ctx.createElementFromMarkup('<input name="foo" type="radio" value="C"/>') as ObservedInputElement;
       ctx.doc.body.appendChild(elA);
       ctx.doc.body.appendChild(elB);
       ctx.doc.body.appendChild(elC);
@@ -243,17 +243,17 @@ describe.skip('CheckedObserver', function () {
             assert.deepStrictEqual(
               subscriberA.handleChange,
               [],
-              `subscriberA.handleChange`,
+              'subscriberA.handleChange',
             );
             assert.deepStrictEqual(
               subscriberB.handleChange,
               [],
-              `subscriberB.handleChange`,
+              'subscriberB.handleChange',
             );
             assert.deepStrictEqual(
               subscriberC.handleChange,
               [],
-              `subscriberC.handleChange`,
+              'subscriberC.handleChange',
             );
 
             tearDown({ ctx, sutA, sutB, sutC, elA, elB, elC, lifecycle });
@@ -268,9 +268,9 @@ describe.skip('CheckedObserver', function () {
       const ctx = TestContext.createHTMLTestContext();
       const { container, lifecycle, observerLocator } = ctx;
 
-      const elA = ctx.createElementFromMarkup(`<input name="foo" type="radio" value="A"/>`) as ObservedInputElement;
-      const elB = ctx.createElementFromMarkup(`<input name="foo" type="radio" value="B"/>`) as ObservedInputElement;
-      const elC = ctx.createElementFromMarkup(`<input name="foo" type="radio" value="C"/>`) as ObservedInputElement;
+      const elA = ctx.createElementFromMarkup('<input name="foo" type="radio" value="A"/>') as ObservedInputElement;
+      const elB = ctx.createElementFromMarkup('<input name="foo" type="radio" value="B"/>') as ObservedInputElement;
+      const elC = ctx.createElementFromMarkup('<input name="foo" type="radio" value="C"/>') as ObservedInputElement;
       ctx.doc.body.appendChild(elA);
       ctx.doc.body.appendChild(elB);
       ctx.doc.body.appendChild(elC);
@@ -342,7 +342,7 @@ describe.skip('CheckedObserver', function () {
       const ctx = TestContext.createHTMLTestContext();
       const { container, lifecycle, observerLocator } = ctx;
 
-      const el = ctx.createElementFromMarkup(`<input type="checkbox"/>`) as ObservedInputElement;
+      const el = ctx.createElementFromMarkup('<input type="checkbox"/>') as ObservedInputElement;
       el[prop] = value;
       ctx.doc.body.appendChild(el);
 
@@ -399,7 +399,7 @@ describe.skip('CheckedObserver', function () {
                     assert.deepStrictEqual(
                       subscriber.handleChange,
                       [],
-                      `subscriber.handleChange`,
+                      'subscriber.handleChange',
                     );
 
                     tearDown({ ctx, sut, lifecycle, el });
@@ -418,7 +418,7 @@ describe.skip('CheckedObserver', function () {
       const ctx = TestContext.createHTMLTestContext();
       const { container, lifecycle, observerLocator } = ctx;
 
-      const el = ctx.createElementFromMarkup(`<input type="checkbox"/>`) as ObservedInputElement;
+      const el = ctx.createElementFromMarkup('<input type="checkbox"/>') as ObservedInputElement;
       el[prop] = value;
       ctx.doc.body.appendChild(el);
 
@@ -470,7 +470,7 @@ describe.skip('CheckedObserver', function () {
             assert.deepStrictEqual(
               subscriber.handleChange,
               [],
-              `subscriber.handleChange`,
+              'subscriber.handleChange',
             );
 
             tearDown({ ctx, sut, lifecycle, el });
@@ -485,7 +485,7 @@ describe.skip('CheckedObserver', function () {
       const ctx = TestContext.createHTMLTestContext();
       const { container, observerLocator } = ctx;
 
-      const el = ctx.createElementFromMarkup(`<input type="checkbox"/>`) as ObservedInputElement;
+      const el = ctx.createElementFromMarkup('<input type="checkbox"/>') as ObservedInputElement;
       el[prop] = value;
       ctx.doc.body.appendChild(el);
 
@@ -519,23 +519,23 @@ describe.skip('CheckedObserver', function () {
                 el.dispatchEvent(new ctx.Event(event, eventDefaults));
                 let actual = sut.getValue() as IInputElement[];
                 if (checkedBefore) {
-                  assert.strictEqual(actual[0], prop === 'value' ? (value !== null ? `${value}` : '') : value, `actual[0]`); // TODO: maybe we should coerce value in the observer
+                  assert.strictEqual(actual[0], prop === 'value' ? (value !== null ? `${value}` : '') : value, 'actual[0]'); // TODO: maybe we should coerce value in the observer
                 } else {
-                  assert.strictEqual(actual, array, `actual`);
+                  assert.strictEqual(actual, array, 'actual');
                 }
 
                 el.checked = checkedAfter;
                 el.dispatchEvent(new ctx.Event(event, eventDefaults));
                 actual = sut.getValue() as IInputElement[];
                 if (checkedAfter) {
-                  assert.strictEqual(actual[0], prop === 'value' ? (value !== null ? `${value}` : '') : value, `actual[0]`); // TODO: maybe we should coerce value in the observer
+                  assert.strictEqual(actual[0], prop === 'value' ? (value !== null ? `${value}` : '') : value, 'actual[0]'); // TODO: maybe we should coerce value in the observer
                 } else {
-                  assert.strictEqual(actual, array, `actual`);
+                  assert.strictEqual(actual, array, 'actual');
                 }
                 assert.deepStrictEqual(
                   subscriber.handleChange,
                   [],
-                  `subscriber.handleChange`,
+                  'subscriber.handleChange',
                 );
 
                 tearDown({ ctx, sut, el });
@@ -552,7 +552,7 @@ describe.skip('CheckedObserver', function () {
       const ctx = TestContext.createHTMLTestContext();
       const { container, lifecycle, observerLocator } = ctx;
 
-      const el = ctx.createElementFromMarkup(`<input type="checkbox"/>`) as ObservedInputElement;
+      const el = ctx.createElementFromMarkup('<input type="checkbox"/>') as ObservedInputElement;
       ctx.doc.body.appendChild(el);
 
       const sut = observerLocator.getObserver(LF.none, el, 'checked') as CheckedObserver;
@@ -610,7 +610,7 @@ describe.skip('CheckedObserver', function () {
                     assert.deepStrictEqual(
                       subscriber.handleChange,
                       [],
-                      `subscriber.handleChange`,
+                      'subscriber.handleChange',
                     );
 
                     tearDown({ ctx, sut, el });

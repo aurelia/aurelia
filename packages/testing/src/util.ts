@@ -570,7 +570,7 @@ export function createSpy<
         return callThroughOrInnerFn(...args);
       };
     } else {
-      throw new Error(`Invalid spy`);
+      throw new Error('Invalid spy');
     }
 
     Reflect.defineProperty(instanceOrInnerFn, key, {

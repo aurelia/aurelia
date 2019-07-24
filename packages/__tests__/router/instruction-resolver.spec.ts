@@ -53,9 +53,9 @@ describe('InstructionResolver', function () {
       new ViewportInstruction('bar', 'right', '456'),
     ];
     let instructionsString = router.instructionResolver.stringifyViewportInstructions(instructions);
-    assert.strictEqual(instructionsString, 'foo(123)@left+bar(456)@right', `instructionsString`);
+    assert.strictEqual(instructionsString, 'foo(123)@left+bar(456)@right', 'instructionsString');
     let newInstructions = router.instructionResolver.parseViewportInstructions(instructionsString);
-    assert.deepStrictEqual(newInstructions, instructions, `newInstructions`);
+    assert.deepStrictEqual(newInstructions, instructions, 'newInstructions');
 
     instructions = [
       new ViewportInstruction('foo', undefined, '123'),
@@ -63,9 +63,9 @@ describe('InstructionResolver', function () {
       new ViewportInstruction('baz'),
     ];
     instructionsString = router.instructionResolver.stringifyViewportInstructions(instructions);
-    assert.strictEqual(instructionsString, 'foo(123)+bar@right+baz', `instructionsString`);
+    assert.strictEqual(instructionsString, 'foo(123)+bar@right+baz', 'instructionsString');
     newInstructions = router.instructionResolver.parseViewportInstructions(instructionsString);
-    assert.deepStrictEqual(newInstructions, instructions, `newInstructions`);
+    assert.deepStrictEqual(newInstructions, instructions, 'newInstructions');
 
     await tearDown();
   });
@@ -91,9 +91,9 @@ describe('InstructionResolver', function () {
       const { host, router, tearDown } = await setup();
 
       const parsed = router.instructionResolver.parseViewportInstruction(instruction);
-      assert.deepStrictEqual(parsed, viewportInstruction, `parsed`);
+      assert.deepStrictEqual(parsed, viewportInstruction, 'parsed');
       const newInstruction = router.instructionResolver.stringifyViewportInstruction(parsed);
-      assert.strictEqual(newInstruction, instruction, `newInstruction`);
+      assert.strictEqual(newInstruction, instruction, 'newInstruction');
 
       await tearDown();
     });

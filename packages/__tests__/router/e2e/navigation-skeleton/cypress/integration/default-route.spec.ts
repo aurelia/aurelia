@@ -117,7 +117,7 @@ describe('doc-example / default route', () => {
 
   describe('author details component', () => {
     before(() => {
-      cy.visit("/#/author(1)");
+      cy.visit('/#/author(1)');
     });
 
     it('displays the correct viewport', () => {

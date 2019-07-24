@@ -3,19 +3,19 @@ import { assert } from '@aurelia/testing';
 
 describe('preprocessResource', function () {
   it('ignores file without html pair', function () {
-    const code = `export class Foo {}\n`;
+    const code = 'export class Foo {}\n';
     const result = preprocessResource('bar/foo.js', code, false);
     assert.equal(result.code, code);
   });
 
   it('ignores file with html pair but wrong resource name', function () {
-    const code = `export class Bar {}\n`;
+    const code = 'export class Bar {}\n';
     const result = preprocessResource('bar/foo.js', code, true);
     assert.equal(result.code, code);
   });
 
   it('injects customElement decorator', function () {
-    const code = `export class FooBar {}\n`;
+    const code = 'export class FooBar {}\n';
     const expected = `import * as __fooBarViewDef from './foo-bar.html';
 import { customElement } from '@aurelia/runtime';
 @customElement(__fooBarViewDef)
@@ -26,7 +26,7 @@ export class FooBar {}
   });
 
   it('injects customElement decorator for non-kebab case file name', function () {
-    const code = `export class FooBar {}\n`;
+    const code = 'export class FooBar {}\n';
     const expected = `import * as __fooBarViewDef from './FooBar.html';
 import { customElement } from '@aurelia/runtime';
 @customElement(__fooBarViewDef)
@@ -60,7 +60,7 @@ function b() {}
   });
 
   it('injects customAttribute decorator', function () {
-    const code = `export class FooBarCustomAttribute {}\n`;
+    const code = 'export class FooBarCustomAttribute {}\n';
     const expected = `import { customAttribute } from '@aurelia/runtime';
 @customAttribute('foo-bar')
 export class FooBarCustomAttribute {}
@@ -70,7 +70,7 @@ export class FooBarCustomAttribute {}
   });
 
   it('injects customAttribute decorator for non-kebab case file name', function () {
-    const code = `export class FooBarCustomAttribute {}\n`;
+    const code = 'export class FooBarCustomAttribute {}\n';
     const expected = `import { customAttribute } from '@aurelia/runtime';
 @customAttribute('foo-bar')
 export class FooBarCustomAttribute {}
@@ -80,7 +80,7 @@ export class FooBarCustomAttribute {}
   });
 
   it('injects valueConverter decorator', function () {
-    const code = `export class FooBarValueConverter {}\n`;
+    const code = 'export class FooBarValueConverter {}\n';
     const expected = `import { valueConverter } from '@aurelia/runtime';
 @valueConverter('fooBar')
 export class FooBarValueConverter {}
@@ -90,7 +90,7 @@ export class FooBarValueConverter {}
   });
 
   it('injects valueConverter decorator for non-kebab case file name', function () {
-    const code = `export class FooBarValueConverter {}\n`;
+    const code = 'export class FooBarValueConverter {}\n';
     const expected = `import { valueConverter } from '@aurelia/runtime';
 @valueConverter('fooBar')
 export class FooBarValueConverter {}
@@ -100,7 +100,7 @@ export class FooBarValueConverter {}
   });
 
   it('injects bindingBehavior decorator', function () {
-    const code = `export class FooBarBindingBehavior {}\n`;
+    const code = 'export class FooBarBindingBehavior {}\n';
     const expected = `import { bindingBehavior } from '@aurelia/runtime';
 @bindingBehavior('fooBar')
 export class FooBarBindingBehavior {}
@@ -110,7 +110,7 @@ export class FooBarBindingBehavior {}
   });
 
   it('injects bindingBehavior decorator for non-kebab case file name', function () {
-    const code = `export class FooBarBindingBehavior {}\n`;
+    const code = 'export class FooBarBindingBehavior {}\n';
     const expected = `import { bindingBehavior } from '@aurelia/runtime';
 @bindingBehavior('fooBar')
 export class FooBarBindingBehavior {}
@@ -120,7 +120,7 @@ export class FooBarBindingBehavior {}
   });
 
   it('injects bindingCommand decorator', function () {
-    const code = `export class FooBarBindingCommand {}\n`;
+    const code = 'export class FooBarBindingCommand {}\n';
     const expected = `import { bindingCommand } from '@aurelia/jit';
 @bindingCommand('foo-bar')
 export class FooBarBindingCommand {}
@@ -130,7 +130,7 @@ export class FooBarBindingCommand {}
   });
 
   it('injects bindingCommand decorator for non-kebab case file name', function () {
-    const code = `export class FooBarBindingCommand {}\n`;
+    const code = 'export class FooBarBindingCommand {}\n';
     const expected = `import { bindingCommand } from '@aurelia/jit';
 @bindingCommand('foo-bar')
 export class FooBarBindingCommand {}

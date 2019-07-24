@@ -42,23 +42,23 @@ class StubTemplate {
   }
 }
 
-describe.skip(`ViewFactory`, function () {
-  describe(`tryReturnToCache`, function () {
+describe.skip('ViewFactory', function () {
+  describe('tryReturnToCache', function () {
     const doNotOverrideVariations: [string, boolean][] = [
       [' true', true],
       ['false', false]
     ];
 
     const sizeVariations: [string, any, boolean][] = [
-      [`  -2`,  -2,  false],
-      [`  -1`,  -1,  false],
-      [`   0`,   0,  false],
-      [`   1`,   1,   true],
-      [`'-2'`, '-2', false],
-      [`'-1'`, '-1', false],
-      [` '0'`,  '0', false],
-      [` '1'`,  '1',  true],
-      [` '*'`,  '*',  true]
+      ['  -2',  -2,  false],
+      ['  -1',  -1,  false],
+      ['   0',   0,  false],
+      ['   1',   1,   true],
+      ['\'-2\'', '-2', false],
+      ['\'-1\'', '-1', false],
+      [' \'0\'',  '0', false],
+      [' \'1\'',  '1',  true],
+      [' \'*\'',  '*',  true]
     ];
 
     const doNotOverrideVariations2: [string, boolean][] = [
@@ -67,15 +67,15 @@ describe.skip(`ViewFactory`, function () {
     ];
 
     const sizeVariations2: [string, any, boolean][] = [
-      [`  -2`,  -2,  false],
-      [`  -1`,  -1,  false],
-      [`   0`,   0,  false],
-      [`   1`,   1,   true],
-      [`'-2'`, '-2', false],
-      [`'-1'`, '-1', false],
-      [` '0'`,  '0', false],
-      [` '1'`,  '1',  true],
-      [` '*'`,  '*',  true]
+      ['  -2',  -2,  false],
+      ['  -1',  -1,  false],
+      ['   0',   0,  false],
+      ['   1',   1,   true],
+      ['\'-2\'', '-2', false],
+      ['\'-1\'', '-1', false],
+      [' \'0\'',  '0', false],
+      [' \'1\'',  '1',  true],
+      [' \'*\'',  '*',  true]
     ];
 
     const inputs: [typeof doNotOverrideVariations, typeof sizeVariations, typeof doNotOverrideVariations2, typeof sizeVariations2]

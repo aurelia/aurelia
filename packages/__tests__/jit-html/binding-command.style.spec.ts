@@ -60,7 +60,7 @@ describe('template-compiler.binding-commands.style', () => {
         const hasImportant = ruleValue.indexOf('!important') > -1;
         const ruleValueNoPriority = hasImportant ? ruleValue.replace('!important', '') : ruleValue;
 
-        assert.strictEqual(childEls.length, 6, `childEls.length`);
+        assert.strictEqual(childEls.length, 6, 'childEls.length');
 
         component.value = ruleValue;
 
@@ -74,7 +74,7 @@ describe('template-compiler.binding-commands.style', () => {
             `[${ruleName}]component.value="${ruleValue}" 1`
           );
           if (hasImportant) {
-            assert.strictEqual(child.style.getPropertyPriority(ruleName), 'important', `child.style.getPropertyPriority(ruleName)`);
+            assert.strictEqual(child.style.getPropertyPriority(ruleName), 'important', 'child.style.getPropertyPriority(ruleName)');
           }
         }
 

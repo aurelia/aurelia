@@ -1,4 +1,4 @@
-import { customElement, valueConverter } from "@aurelia/runtime";
+import { customElement, valueConverter } from '@aurelia/runtime';
 import * as html from './welcome.html';
 
 @customElement({ name: 'welcome', template: html })

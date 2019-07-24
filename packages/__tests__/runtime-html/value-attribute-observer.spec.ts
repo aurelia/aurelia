@@ -88,7 +88,7 @@ describe.skip('ValueAttributeObserver', function () {
                 );
               }
               if (hasSubscriber) {
-                assert.strictEqual(subscriber.handleChange.calls.length, callCount, `subscriber.handleChange.calls.length`);
+                assert.strictEqual(subscriber.handleChange.calls.length, callCount, 'subscriber.handleChange.calls.length');
               }
 
               tearDown({ ctx, sut, lifecycle, el });
@@ -160,7 +160,7 @@ describe.skip('ValueAttributeObserver', function () {
                  'subscriber.handleChange.calls',
                 );
               }
-              assert.strictEqual(subscriber.handleChange.calls.length, callCount, `subscriber.handleChange.calls.length`);
+              assert.strictEqual(subscriber.handleChange.calls.length, callCount, 'subscriber.handleChange.calls.length');
 
               tearDown({ ctx, sut, el });
             });

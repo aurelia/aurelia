@@ -113,7 +113,7 @@ describe('doc-example / common elements', () => {
         .click();
 
       cy.get(ChatDetailsComponent.chatTitle)
-        .should('contain', `Chatting with eisenbergeffect (Rob Eisenberg)`);
+        .should('contain', 'Chatting with eisenbergeffect (Rob Eisenberg)');
     });
   });
 });

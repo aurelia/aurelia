@@ -126,8 +126,8 @@ describe('Router', function () {
 
     const { lifecycle, host, router, tearDown } = await setup();
 
-    assert.includes(host.textContent, 'left', `host.textContent`);
-    assert.includes(host.textContent, 'right', `host.textContent`);
+    assert.includes(host.textContent, 'left', 'host.textContent');
+    assert.includes(host.textContent, 'right', 'host.textContent');
 
     await tearDown();
   });
@@ -138,7 +138,7 @@ describe('Router', function () {
     const { lifecycle, host, router, tearDown } = await setup();
 
     await $goto('foo@left', router, lifecycle);
-    assert.includes(host.textContent, 'foo', `host.textContent`);
+    assert.includes(host.textContent, 'foo', 'host.textContent');
 
     await tearDown();
   });
@@ -151,9 +151,9 @@ describe('Router', function () {
     router.goto('uier@left');
     const last = router.goto('bar@left');
     // Depending on browser/node, there can be 1 or 2 in the queue here
-    assert.notStrictEqual(router.navigator.queued, 0, `router.navigator.queued`);
+    assert.notStrictEqual(router.navigator.queued, 0, 'router.navigator.queued');
     await last;
-    assert.includes(host.textContent, 'Viewport: bar', `host.textContent`);
+    assert.includes(host.textContent, 'Viewport: bar', 'host.textContent');
 
     await tearDown();
   });
@@ -164,9 +164,9 @@ describe('Router', function () {
     const { lifecycle, host, router, tearDown } = await setup();
 
     await $goto('foo@left', router, lifecycle);
-    assert.includes(host.textContent, 'foo', `host.textContent`);
+    assert.includes(host.textContent, 'foo', 'host.textContent');
     await $goto('-@left', router, lifecycle);
-    assert.notIncludes(host.textContent, 'foo', `host.textContent`);
+    assert.notIncludes(host.textContent, 'foo', 'host.textContent');
 
     await tearDown();
   });
@@ -177,12 +177,12 @@ describe('Router', function () {
     const { lifecycle, host, router, tearDown } = await setup();
 
     await $goto('foo@left', router, lifecycle);
-    assert.includes(host.textContent, 'Viewport: foo', `host.textContent`);
+    assert.includes(host.textContent, 'Viewport: foo', 'host.textContent');
     await $goto('bar@right', router, lifecycle);
-    assert.includes(host.textContent, 'Viewport: bar', `host.textContent`);
+    assert.includes(host.textContent, 'Viewport: bar', 'host.textContent');
     await $goto('-', router, lifecycle);
-    assert.notIncludes(host.textContent, 'Viewport: foo', `host.textContent`);
-    assert.notIncludes(host.textContent, 'Viewport: bar', `host.textContent`);
+    assert.notIncludes(host.textContent, 'Viewport: foo', 'host.textContent');
+    assert.notIncludes(host.textContent, 'Viewport: bar', 'host.textContent');
 
     await tearDown();
   });
@@ -194,13 +194,13 @@ describe('Router', function () {
 
     const historyLength = router.navigation.history.length;
     await $goto('foo@left', router, lifecycle);
-    assert.includes(host.textContent, 'foo', `host.textContent`);
-    assert.strictEqual(router.navigation.history.length, historyLength + 1, `router.navigation.history.length`);
+    assert.includes(host.textContent, 'foo', 'host.textContent');
+    assert.strictEqual(router.navigation.history.length, historyLength + 1, 'router.navigation.history.length');
 
     await router.replace('bar@left');
 
-    assert.includes(host.textContent, 'bar', `host.textContent`);
-    assert.strictEqual(router.navigation.history.length, historyLength + 1, `router.navigation.history.length`);
+    assert.includes(host.textContent, 'bar', 'host.textContent');
+    assert.strictEqual(router.navigation.history.length, historyLength + 1, 'router.navigation.history.length');
 
     await tearDown();
   });
@@ -211,7 +211,7 @@ describe('Router', function () {
     const { lifecycle, host, router, tearDown } = await setup();
 
     await $goto('bar@right', router, lifecycle);
-    assert.includes(host.textContent, 'bar', `host.textContent`);
+    assert.includes(host.textContent, 'bar', 'host.textContent');
 
     await tearDown();
   });
@@ -222,12 +222,12 @@ describe('Router', function () {
     const { lifecycle, host, router, tearDown } = await setup();
 
     await $goto('foo@left', router, lifecycle);
-    assert.includes(host.textContent, 'Viewport: foo', `host.textContent`);
-    assert.notIncludes(host.textContent, 'Viewport: bar', `host.textContent`);
+    assert.includes(host.textContent, 'Viewport: foo', 'host.textContent');
+    assert.notIncludes(host.textContent, 'Viewport: bar', 'host.textContent');
 
     await $goto('bar@right', router, lifecycle);
-    assert.includes(host.textContent, 'Viewport: foo', `host.textContent`);
-    assert.includes(host.textContent, 'Viewport: bar', `host.textContent`);
+    assert.includes(host.textContent, 'Viewport: foo', 'host.textContent');
+    assert.includes(host.textContent, 'Viewport: bar', 'host.textContent');
 
     await tearDown();
   });
@@ -238,16 +238,16 @@ describe('Router', function () {
     const { lifecycle, host, router, tearDown } = await setup();
 
     await $goto('foo@left', router, lifecycle);
-    assert.includes(host.textContent, 'Viewport: foo', `host.textContent`);
-    assert.notIncludes(host.textContent, 'Viewport: bar', `host.textContent`);
+    assert.includes(host.textContent, 'Viewport: foo', 'host.textContent');
+    assert.notIncludes(host.textContent, 'Viewport: bar', 'host.textContent');
 
     await $goto('bar@right', router, lifecycle);
-    assert.includes(host.textContent, 'Viewport: foo', `host.textContent`);
-    assert.includes(host.textContent, 'Viewport: bar', `host.textContent`);
+    assert.includes(host.textContent, 'Viewport: foo', 'host.textContent');
+    assert.includes(host.textContent, 'Viewport: bar', 'host.textContent');
 
     await router.refresh();
-    assert.includes(host.textContent, 'Viewport: foo', `host.textContent`);
-    assert.includes(host.textContent, 'Viewport: bar', `host.textContent`);
+    assert.includes(host.textContent, 'Viewport: foo', 'host.textContent');
+    assert.includes(host.textContent, 'Viewport: bar', 'host.textContent');
 
     await tearDown();
   });
@@ -258,22 +258,22 @@ describe('Router', function () {
     const { lifecycle, host, router, tearDown } = await setup();
 
     await $goto('foo@left', router, lifecycle);
-    assert.includes(host.textContent, 'Viewport: foo', `host.textContent`);
-    assert.notIncludes(host.textContent, 'Viewport: bar', `host.textContent`);
+    assert.includes(host.textContent, 'Viewport: foo', 'host.textContent');
+    assert.notIncludes(host.textContent, 'Viewport: bar', 'host.textContent');
 
     await $goto('bar@left', router, lifecycle);
-    assert.notIncludes(host.textContent, 'Viewport: foo', `host.textContent`);
-    assert.includes(host.textContent, 'Viewport: bar', `host.textContent`);
+    assert.notIncludes(host.textContent, 'Viewport: foo', 'host.textContent');
+    assert.includes(host.textContent, 'Viewport: bar', 'host.textContent');
 
     await router.back();
 
-    assert.includes(host.textContent, 'Viewport: foo', `host.textContent`);
-    assert.notIncludes(host.textContent, 'Viewport: bar', `host.textContent`);
+    assert.includes(host.textContent, 'Viewport: foo', 'host.textContent');
+    assert.notIncludes(host.textContent, 'Viewport: bar', 'host.textContent');
 
     await router.forward();
 
-    assert.notIncludes(host.textContent, 'Viewport: foo', `host.textContent`);
-    assert.includes(host.textContent, 'Viewport: bar', `host.textContent`);
+    assert.notIncludes(host.textContent, 'Viewport: foo', 'host.textContent');
+    assert.includes(host.textContent, 'Viewport: bar', 'host.textContent');
 
     await tearDown();
   });
@@ -284,22 +284,22 @@ describe('Router', function () {
     const { lifecycle, host, router, tearDown } = await setup();
 
     await $goto('foo@left', router, lifecycle);
-    assert.includes(host.textContent, 'Viewport: foo', `host.textContent`);
-    assert.notIncludes(host.textContent, 'Viewport: bar', `host.textContent`);
+    assert.includes(host.textContent, 'Viewport: foo', 'host.textContent');
+    assert.notIncludes(host.textContent, 'Viewport: bar', 'host.textContent');
 
     await $goto('bar@right', router, lifecycle);
-    assert.includes(host.textContent, 'Viewport: foo', `host.textContent`);
-    assert.includes(host.textContent, 'Viewport: bar', `host.textContent`);
+    assert.includes(host.textContent, 'Viewport: foo', 'host.textContent');
+    assert.includes(host.textContent, 'Viewport: bar', 'host.textContent');
 
     await router.back();
 
-    assert.includes(host.textContent, 'Viewport: foo', `host.textContent`);
-    assert.notIncludes(host.textContent, 'Viewport: bar', `host.textContent`);
+    assert.includes(host.textContent, 'Viewport: foo', 'host.textContent');
+    assert.notIncludes(host.textContent, 'Viewport: bar', 'host.textContent');
 
     await router.forward();
 
-    assert.includes(host.textContent, 'Viewport: foo', `host.textContent`);
-    assert.includes(host.textContent, 'Viewport: bar', `host.textContent`);
+    assert.includes(host.textContent, 'Viewport: foo', 'host.textContent');
+    assert.includes(host.textContent, 'Viewport: bar', 'host.textContent');
 
     await tearDown();
   });
@@ -310,8 +310,8 @@ describe('Router', function () {
     const { lifecycle, host, router, tearDown } = await setup();
 
     await $goto('foo@left+bar@right', router, lifecycle);
-    assert.includes(host.textContent, 'foo', `host.textContent`);
-    assert.includes(host.textContent, 'bar', `host.textContent`);
+    assert.includes(host.textContent, 'foo', 'host.textContent');
+    assert.includes(host.textContent, 'bar', 'host.textContent');
 
     await tearDown();
   });
@@ -322,14 +322,14 @@ describe('Router', function () {
     const { lifecycle, host, router, tearDown } = await setup();
 
     await $goto('baz@left+qux@right', router, lifecycle);
-    assert.includes(host.textContent, 'Viewport: baz', `host.textContent`);
-    assert.includes(host.textContent, 'Viewport: qux', `host.textContent`);
+    assert.includes(host.textContent, 'Viewport: baz', 'host.textContent');
+    assert.includes(host.textContent, 'Viewport: qux', 'host.textContent');
 
     await $goto('foo@left+bar@right', router, lifecycle);
-    assert.includes(host.textContent, 'Viewport: baz', `host.textContent`);
-    assert.includes(host.textContent, 'Viewport: qux', `host.textContent`);
-    assert.notIncludes(host.textContent, 'Viewport: foo', `host.textContent`);
-    assert.notIncludes(host.textContent, 'Viewport: bar', `host.textContent`);
+    assert.includes(host.textContent, 'Viewport: baz', 'host.textContent');
+    assert.includes(host.textContent, 'Viewport: qux', 'host.textContent');
+    assert.notIncludes(host.textContent, 'Viewport: foo', 'host.textContent');
+    assert.notIncludes(host.textContent, 'Viewport: bar', 'host.textContent');
 
     await tearDown();
   });
@@ -340,10 +340,10 @@ describe('Router', function () {
     const { lifecycle, host, router, tearDown } = await setup();
 
     await $goto('foo@left+bar@right+baz@foo+qux@bar', router, lifecycle);
-    assert.includes(host.textContent, 'Viewport: foo', `host.textContent`);
-    assert.includes(host.textContent, 'Viewport: bar', `host.textContent`);
-    assert.includes(host.textContent, 'Viewport: baz', `host.textContent`);
-    assert.includes(host.textContent, 'Viewport: qux', `host.textContent`);
+    assert.includes(host.textContent, 'Viewport: foo', 'host.textContent');
+    assert.includes(host.textContent, 'Viewport: bar', 'host.textContent');
+    assert.includes(host.textContent, 'Viewport: baz', 'host.textContent');
+    assert.includes(host.textContent, 'Viewport: qux', 'host.textContent');
 
     await tearDown();
   });
@@ -356,12 +356,12 @@ describe('Router', function () {
       const { lifecycle, host, router, tearDown } = await setup();
 
       await $goto('foo@left', router, lifecycle);
-      assert.includes(host.textContent, 'foo', `host.textContent`);
+      assert.includes(host.textContent, 'foo', 'host.textContent');
 
       (host.getElementsByTagName('SPAN')[0] as HTMLElement).parentElement.click();
       await wait(100);
       await waitForNavigation(router);
-      assert.includes(host.textContent, 'Viewport: baz', `host.textContent`);
+      assert.includes(host.textContent, 'Viewport: baz', 'host.textContent');
 
       await tearDown();
     });
@@ -373,10 +373,10 @@ describe('Router', function () {
     const { lifecycle, host, router, tearDown } = await setup();
 
     await $goto('corge@left', router, lifecycle);
-    assert.includes(host.textContent, 'Viewport: corge', `host.textContent`);
+    assert.includes(host.textContent, 'Viewport: corge', 'host.textContent');
 
     await $goto('baz', router, lifecycle);
-    assert.includes(host.textContent, 'Viewport: baz', `host.textContent`);
+    assert.includes(host.textContent, 'Viewport: baz', 'host.textContent');
 
     await tearDown();
   });
@@ -399,12 +399,12 @@ describe('Router', function () {
     const { lifecycle, host, router, tearDown } = await setup();
 
     await $goto('bar(123)@left', router, lifecycle);
-    assert.includes(host.textContent, 'Viewport: bar', `host.textContent`);
-    assert.includes(host.textContent, 'Parameter id: [123]', `host.textContent`);
+    assert.includes(host.textContent, 'Viewport: bar', 'host.textContent');
+    assert.includes(host.textContent, 'Parameter id: [123]', 'host.textContent');
 
     await $goto('bar(456)@left', router, lifecycle);
-    assert.includes(host.textContent, 'Viewport: bar', `host.textContent`);
-    assert.includes(host.textContent, 'Parameter id: [456]', `host.textContent`);
+    assert.includes(host.textContent, 'Viewport: bar', 'host.textContent');
+    assert.includes(host.textContent, 'Parameter id: [456]', 'host.textContent');
 
     await tearDown();
   });
@@ -415,12 +415,12 @@ describe('Router', function () {
     const { lifecycle, host, router, tearDown } = await setup();
 
     await $goto('bar(id=123)@left', router, lifecycle);
-    assert.includes(host.textContent, 'Viewport: bar', `host.textContent`);
-    assert.includes(host.textContent, 'Parameter id: [123]', `host.textContent`);
+    assert.includes(host.textContent, 'Viewport: bar', 'host.textContent');
+    assert.includes(host.textContent, 'Parameter id: [123]', 'host.textContent');
 
     await $goto('bar(id=456)@left', router, lifecycle);
-    assert.includes(host.textContent, 'Viewport: bar', `host.textContent`);
-    assert.includes(host.textContent, 'Parameter id: [456]', `host.textContent`);
+    assert.includes(host.textContent, 'Viewport: bar', 'host.textContent');
+    assert.includes(host.textContent, 'Parameter id: [456]', 'host.textContent');
 
     await tearDown();
   });
@@ -431,13 +431,13 @@ describe('Router', function () {
     const { lifecycle, host, router, tearDown } = await setup();
 
     await $goto('bar(123)@left', router, lifecycle);
-    assert.includes(host.textContent, 'Viewport: bar', `host.textContent`);
-    assert.includes(host.textContent, 'Parameter id: [123]', `host.textContent`);
+    assert.includes(host.textContent, 'Viewport: bar', 'host.textContent');
+    assert.includes(host.textContent, 'Parameter id: [123]', 'host.textContent');
 
     await $goto('bar(456)@right', router, lifecycle);
-    assert.includes(host.textContent, 'Viewport: bar', `host.textContent`);
-    assert.includes(host.textContent, 'Parameter id: [123]', `host.textContent`);
-    assert.includes(host.textContent, 'Parameter id: [456]', `host.textContent`);
+    assert.includes(host.textContent, 'Viewport: bar', 'host.textContent');
+    assert.includes(host.textContent, 'Parameter id: [123]', 'host.textContent');
+    assert.includes(host.textContent, 'Parameter id: [456]', 'host.textContent');
 
     await tearDown();
   });
@@ -448,11 +448,11 @@ describe('Router', function () {
     const { lifecycle, host, router, tearDown } = await setup();
 
     await $goto('corge@left', router, lifecycle);
-    assert.includes(host.textContent, 'Viewport: corge', `host.textContent`);
+    assert.includes(host.textContent, 'Viewport: corge', 'host.textContent');
 
     await $goto('baz(123)', router, lifecycle);
-    assert.includes(host.textContent, 'Viewport: baz', `host.textContent`);
-    assert.includes(host.textContent, 'Parameter id: [123]', `host.textContent`);
+    assert.includes(host.textContent, 'Viewport: baz', 'host.textContent');
+    assert.includes(host.textContent, 'Parameter id: [123]', 'host.textContent');
 
     await tearDown();
   });
@@ -463,11 +463,11 @@ describe('Router', function () {
     const { lifecycle, host, router, tearDown } = await setup();
 
     await $goto('corge@left', router, lifecycle);
-    assert.includes(host.textContent, 'Viewport: corge', `host.textContent`);
+    assert.includes(host.textContent, 'Viewport: corge', 'host.textContent');
 
     await $goto('baz(id=123)', router, lifecycle);
-    assert.includes(host.textContent, 'Viewport: baz', `host.textContent`);
-    assert.includes(host.textContent, 'Parameter id: [123]', `host.textContent`);
+    assert.includes(host.textContent, 'Viewport: baz', 'host.textContent');
+    assert.includes(host.textContent, 'Parameter id: [123]', 'host.textContent');
 
     await tearDown();
   });
@@ -478,14 +478,14 @@ describe('Router', function () {
     const { lifecycle, host, router, tearDown } = await setup();
 
     await $goto('bar(123&OneTwoThree)@left', router, lifecycle);
-    assert.includes(host.textContent, 'Viewport: bar', `host.textContent`);
-    assert.includes(host.textContent, 'Parameter id: [123]', `host.textContent`);
-    assert.includes(host.textContent, 'Parameter name: [OneTwoThree]', `host.textContent`);
+    assert.includes(host.textContent, 'Viewport: bar', 'host.textContent');
+    assert.includes(host.textContent, 'Parameter id: [123]', 'host.textContent');
+    assert.includes(host.textContent, 'Parameter name: [OneTwoThree]', 'host.textContent');
 
     await $goto('bar(456&FourFiveSix)@left', router, lifecycle);
-    assert.includes(host.textContent, 'Viewport: bar', `host.textContent`);
-    assert.includes(host.textContent, 'Parameter id: [456]', `host.textContent`);
-    assert.includes(host.textContent, 'Parameter name: [FourFiveSix]', `host.textContent`);
+    assert.includes(host.textContent, 'Viewport: bar', 'host.textContent');
+    assert.includes(host.textContent, 'Parameter id: [456]', 'host.textContent');
+    assert.includes(host.textContent, 'Parameter name: [FourFiveSix]', 'host.textContent');
 
     await tearDown();
   });
@@ -496,14 +496,14 @@ describe('Router', function () {
     const { lifecycle, host, router, tearDown } = await setup();
 
     await $goto('bar(id=123&name=OneTwoThree)@left', router, lifecycle);
-    assert.includes(host.textContent, 'Viewport: bar', `host.textContent`);
-    assert.includes(host.textContent, 'Parameter id: [123]', `host.textContent`);
-    assert.includes(host.textContent, 'Parameter name: [OneTwoThree]', `host.textContent`);
+    assert.includes(host.textContent, 'Viewport: bar', 'host.textContent');
+    assert.includes(host.textContent, 'Parameter id: [123]', 'host.textContent');
+    assert.includes(host.textContent, 'Parameter name: [OneTwoThree]', 'host.textContent');
 
     await $goto('bar(name=FourFiveSix&id=456)@left', router, lifecycle);
-    assert.includes(host.textContent, 'Viewport: bar', `host.textContent`);
-    assert.includes(host.textContent, 'Parameter id: [456]', `host.textContent`);
-    assert.includes(host.textContent, 'Parameter name: [FourFiveSix]', `host.textContent`);
+    assert.includes(host.textContent, 'Viewport: bar', 'host.textContent');
+    assert.includes(host.textContent, 'Parameter id: [456]', 'host.textContent');
+    assert.includes(host.textContent, 'Parameter name: [FourFiveSix]', 'host.textContent');
 
     await tearDown();
   });
@@ -514,13 +514,13 @@ describe('Router', function () {
     const { lifecycle, host, router, tearDown } = await setup();
 
     await $goto('bar@left?id=123', router, lifecycle);
-    assert.includes(host.textContent, 'Viewport: bar', `host.textContent`);
-    assert.includes(host.textContent, 'Parameter id: [123]', `host.textContent`);
+    assert.includes(host.textContent, 'Viewport: bar', 'host.textContent');
+    assert.includes(host.textContent, 'Parameter id: [123]', 'host.textContent');
 
     await $goto('bar@left?id=456&name=FourFiveSix', router, lifecycle);
-    assert.includes(host.textContent, 'Viewport: bar', `host.textContent`);
-    assert.includes(host.textContent, 'Parameter id: [456]', `host.textContent`);
-    assert.includes(host.textContent, 'Parameter name: [FourFiveSix]', `host.textContent`);
+    assert.includes(host.textContent, 'Viewport: bar', 'host.textContent');
+    assert.includes(host.textContent, 'Parameter id: [456]', 'host.textContent');
+    assert.includes(host.textContent, 'Parameter name: [FourFiveSix]', 'host.textContent');
 
     await tearDown();
   });
@@ -531,18 +531,18 @@ describe('Router', function () {
     const { lifecycle, host, router, tearDown } = await setup();
 
     await $goto('bar(456)@left?id=123', router, lifecycle);
-    assert.includes(host.textContent, 'Viewport: bar', `host.textContent`);
-    assert.includes(host.textContent, 'Parameter id: [456]', `host.textContent`);
+    assert.includes(host.textContent, 'Viewport: bar', 'host.textContent');
+    assert.includes(host.textContent, 'Parameter id: [456]', 'host.textContent');
 
     await $goto('bar(456&FourFiveSix)@left?id=123&name=OneTwoThree', router, lifecycle);
-    assert.includes(host.textContent, 'Viewport: bar', `host.textContent`);
-    assert.includes(host.textContent, 'Parameter id: [456]', `host.textContent`);
-    assert.includes(host.textContent, 'Parameter name: [FourFiveSix]', `host.textContent`);
+    assert.includes(host.textContent, 'Viewport: bar', 'host.textContent');
+    assert.includes(host.textContent, 'Parameter id: [456]', 'host.textContent');
+    assert.includes(host.textContent, 'Parameter name: [FourFiveSix]', 'host.textContent');
 
     await $goto('bar(name=SevenEightNine&id=789)@left?id=123&name=OneTwoThree', router, lifecycle);
-    assert.includes(host.textContent, 'Viewport: bar', `host.textContent`);
-    assert.includes(host.textContent, 'Parameter id: [789]', `host.textContent`);
-    assert.includes(host.textContent, 'Parameter name: [SevenEightNine]', `host.textContent`);
+    assert.includes(host.textContent, 'Viewport: bar', 'host.textContent');
+    assert.includes(host.textContent, 'Parameter id: [789]', 'host.textContent');
+    assert.includes(host.textContent, 'Parameter name: [SevenEightNine]', 'host.textContent');
 
     await tearDown();
   });
@@ -553,20 +553,20 @@ describe('Router', function () {
     const { lifecycle, host, router, tearDown } = await setup();
 
     await $goto('plugh(123)@left', router, lifecycle);
-    assert.includes(host.textContent, 'Parameter: 123', `host.textContent`);
-    assert.includes(host.textContent, 'Entry: 1', `host.textContent`);
+    assert.includes(host.textContent, 'Parameter: 123', 'host.textContent');
+    assert.includes(host.textContent, 'Entry: 1', 'host.textContent');
 
     await $goto('plugh(123)@left', router, lifecycle);
-    assert.includes(host.textContent, 'Parameter: 123', `host.textContent`);
-    assert.includes(host.textContent, 'Entry: 1', `host.textContent`);
+    assert.includes(host.textContent, 'Parameter: 123', 'host.textContent');
+    assert.includes(host.textContent, 'Entry: 1', 'host.textContent');
 
     await $goto('plugh(456)@left', router, lifecycle);
-    assert.includes(host.textContent, 'Parameter: 456', `host.textContent`);
-    assert.includes(host.textContent, 'Entry: 2', `host.textContent`);
+    assert.includes(host.textContent, 'Parameter: 456', 'host.textContent');
+    assert.includes(host.textContent, 'Entry: 2', 'host.textContent');
 
     await $goto('plugh(456)@left', router, lifecycle);
-    assert.includes(host.textContent, 'Parameter: 456', `host.textContent`);
-    assert.includes(host.textContent, 'Entry: 2', `host.textContent`);
+    assert.includes(host.textContent, 'Parameter: 456', 'host.textContent');
+    assert.includes(host.textContent, 'Entry: 2', 'host.textContent');
 
     await tearDown();
   });
@@ -578,33 +578,33 @@ describe('Router', function () {
 
     plughReentryBehavior = 'enter'; // Affects navigation AFTER this one
     await $goto('plugh(123)@left', router, lifecycle);
-    assert.includes(host.textContent, 'Parameter: 123', `host.textContent`);
-    assert.includes(host.textContent, 'Entry: 1', `host.textContent`);
+    assert.includes(host.textContent, 'Parameter: 123', 'host.textContent');
+    assert.includes(host.textContent, 'Entry: 1', 'host.textContent');
 
     plughReentryBehavior = 'refresh'; // Affects navigation AFTER this one
     await $goto('plugh(123)@left', router, lifecycle);
-    assert.includes(host.textContent, 'Parameter: 123', `host.textContent`);
-    assert.includes(host.textContent, 'Entry: 2', `host.textContent`);
+    assert.includes(host.textContent, 'Parameter: 123', 'host.textContent');
+    assert.includes(host.textContent, 'Entry: 2', 'host.textContent');
 
     plughReentryBehavior = 'default'; // Affects navigation AFTER this one
     await $goto('plugh(456)@left', router, lifecycle);
-    assert.includes(host.textContent, 'Parameter: 456', `host.textContent`);
-    assert.includes(host.textContent, 'Entry: 1', `host.textContent`);
+    assert.includes(host.textContent, 'Parameter: 456', 'host.textContent');
+    assert.includes(host.textContent, 'Entry: 1', 'host.textContent');
 
     plughReentryBehavior = 'enter'; // Affects navigation AFTER this one
     await $goto('plugh(456)@left', router, lifecycle);
-    assert.includes(host.textContent, 'Parameter: 456', `host.textContent`);
-    assert.includes(host.textContent, 'Entry: 1', `host.textContent`);
+    assert.includes(host.textContent, 'Parameter: 456', 'host.textContent');
+    assert.includes(host.textContent, 'Entry: 1', 'host.textContent');
 
     plughReentryBehavior = 'disallow'; // Affects navigation AFTER this one
     await $goto('plugh(123)@left', router, lifecycle);
-    assert.includes(host.textContent, 'Parameter: 123', `host.textContent`);
-    assert.includes(host.textContent, 'Entry: 2', `host.textContent`);
+    assert.includes(host.textContent, 'Parameter: 123', 'host.textContent');
+    assert.includes(host.textContent, 'Entry: 2', 'host.textContent');
 
     plughReentryBehavior = 'default'; // Affects navigation AFTER this one
     await $goto('plugh(456)@left', router, lifecycle);
-    assert.includes(host.textContent, 'Parameter: 123', `host.textContent`);
-    assert.includes(host.textContent, 'Entry: 2', `host.textContent`);
+    assert.includes(host.textContent, 'Parameter: 123', 'host.textContent');
+    assert.includes(host.textContent, 'Entry: 2', 'host.textContent');
 
     await tearDown();
   });
@@ -615,27 +615,27 @@ describe('Router', function () {
     const { lifecycle, host, router, tearDown } = await setup();
 
     await $goto('grault@left', router, lifecycle);
-    assert.includes(host.textContent, 'toggle', `host.textContent`);
-    assert.notIncludes(host.textContent, 'Viewport: grault', `host.textContent`);
-    assert.notIncludes(host.textContent, 'garply', `host.textContent`);
+    assert.includes(host.textContent, 'toggle', 'host.textContent');
+    assert.notIncludes(host.textContent, 'Viewport: grault', 'host.textContent');
+    assert.notIncludes(host.textContent, 'garply', 'host.textContent');
 
     (host as any).getElementsByTagName('INPUT')[0].click();
     await Promise.resolve();
     await waitForNavigation(router);
-    assert.includes(host.textContent, 'Viewport: grault', `host.textContent`);
-    assert.includes(host.textContent, 'garply', `host.textContent`);
+    assert.includes(host.textContent, 'Viewport: grault', 'host.textContent');
+    assert.includes(host.textContent, 'garply', 'host.textContent');
 
     (host as any).getElementsByTagName('INPUT')[0].click();
     await Promise.resolve();
     await waitForNavigation(router);
-    assert.notIncludes(host.textContent, 'Viewport: grault', `host.textContent`);
-    assert.notIncludes(host.textContent, 'garply', `host.textContent`);
+    assert.notIncludes(host.textContent, 'Viewport: grault', 'host.textContent');
+    assert.notIncludes(host.textContent, 'garply', 'host.textContent');
 
     (host as any).getElementsByTagName('INPUT')[0].click();
     await Promise.resolve();
     await waitForNavigation(router);
-    assert.includes(host.textContent, 'Viewport: grault', `host.textContent`);
-    assert.includes(host.textContent, 'garply', `host.textContent`);
+    assert.includes(host.textContent, 'Viewport: grault', 'host.textContent');
+    assert.includes(host.textContent, 'garply', 'host.textContent');
 
     await tearDown();
   });
@@ -648,29 +648,29 @@ describe('Router', function () {
       const { lifecycle, host, router, tearDown } = await setup();
 
       await $goto('grault@left', router, lifecycle);
-      assert.includes(host.textContent, 'toggle', `host.textContent`);
-      assert.notIncludes(host.textContent, 'Viewport: grault', `host.textContent`);
-      assert.notIncludes(host.textContent, 'garply', `host.textContent`);
+      assert.includes(host.textContent, 'toggle', 'host.textContent');
+      assert.notIncludes(host.textContent, 'Viewport: grault', 'host.textContent');
+      assert.notIncludes(host.textContent, 'garply', 'host.textContent');
 
       (host as any).getElementsByTagName('INPUT')[0].click();
       await Promise.resolve();
       await waitForNavigation(router);
-      assert.includes(host.textContent, 'Viewport: grault', `host.textContent`);
-      assert.includes(host.textContent, 'garply', `host.textContent`);
+      assert.includes(host.textContent, 'Viewport: grault', 'host.textContent');
+      assert.includes(host.textContent, 'garply', 'host.textContent');
 
       (host as any).getElementsByTagName('INPUT')[1].value = 'asdf';
 
       await $goto('corge@grault', router, lifecycle);
 
-      assert.notIncludes(host.textContent, 'garply', `host.textContent`);
-      assert.includes(host.textContent, 'Viewport: corge', `host.textContent`);
+      assert.notIncludes(host.textContent, 'garply', 'host.textContent');
+      assert.includes(host.textContent, 'Viewport: corge', 'host.textContent');
 
       await $goto('garply@grault', router, lifecycle);
 
-      assert.notIncludes(host.textContent, 'Viewport: corge', `host.textContent`);
-      assert.includes(host.textContent, 'garply', `host.textContent`);
+      assert.notIncludes(host.textContent, 'Viewport: corge', 'host.textContent');
+      assert.includes(host.textContent, 'garply', 'host.textContent');
 
-      assert.strictEqual((host as any).getElementsByTagName('INPUT')[1].value, 'asdf', `(host as any).getElementsByTagName('INPUT')[1].value`);
+      assert.strictEqual((host as any).getElementsByTagName('INPUT')[1].value, 'asdf', '(host as any).getElementsByTagName(\'INPUT\')[1].value');
 
       await tearDown();
     });
@@ -681,32 +681,32 @@ describe('Router', function () {
     const { lifecycle, host, router, tearDown } = await setup();
 
     await $goto('waldo@left', router, lifecycle);
-    assert.includes(host.textContent, 'Viewport: waldo', `host.textContent`);
-    assert.includes(host.textContent, 'toggle', `host.textContent`);
-    assert.notIncludes(host.textContent, 'Viewport: grault', `host.textContent`);
-    assert.notIncludes(host.textContent, 'garply', `host.textContent`);
+    assert.includes(host.textContent, 'Viewport: waldo', 'host.textContent');
+    assert.includes(host.textContent, 'toggle', 'host.textContent');
+    assert.notIncludes(host.textContent, 'Viewport: grault', 'host.textContent');
+    assert.notIncludes(host.textContent, 'garply', 'host.textContent');
 
     (host as any).getElementsByTagName('INPUT')[0].click();
     await Promise.resolve();
     await wait();
     await waitForNavigation(router);
-    assert.includes(host.textContent, 'Viewport: grault', `host.textContent`);
-    assert.includes(host.textContent, 'garply', `host.textContent`);
+    assert.includes(host.textContent, 'Viewport: grault', 'host.textContent');
+    assert.includes(host.textContent, 'garply', 'host.textContent');
 
     (host as any).getElementsByTagName('INPUT')[1].value = 'asdf';
 
     await $goto('foo@waldo', router, lifecycle);
 
-    assert.notIncludes(host.textContent, 'Viewport: grault', `host.textContent`);
-    assert.includes(host.textContent, 'Viewport: foo', `host.textContent`);
+    assert.notIncludes(host.textContent, 'Viewport: grault', 'host.textContent');
+    assert.includes(host.textContent, 'Viewport: foo', 'host.textContent');
 
     await $goto('grault@waldo', router, lifecycle);
 
-    assert.notIncludes(host.textContent, 'Viewport: corge', `host.textContent`);
-    assert.includes(host.textContent, 'Viewport: grault', `host.textContent`);
-    assert.includes(host.textContent, 'garply', `host.textContent`);
+    assert.notIncludes(host.textContent, 'Viewport: corge', 'host.textContent');
+    assert.includes(host.textContent, 'Viewport: grault', 'host.textContent');
+    assert.includes(host.textContent, 'garply', 'host.textContent');
 
-    assert.strictEqual((host as any).getElementsByTagName('INPUT')[1].value, 'asdf', `(host as any).getElementsByTagName('INPUT')[1].value`);
+    assert.strictEqual((host as any).getElementsByTagName('INPUT')[1].value, 'asdf', '(host as any).getElementsByTagName(\'INPUT\')[1].value');
 
     await tearDown();
   });
@@ -718,21 +718,21 @@ describe('Router', function () {
     const { lifecycle, host, router, tearDown } = await setup();
 
     await $goto('quux@left', router, lifecycle);
-    assert.includes(host.textContent, 'Viewport: quux', `host.textContent`);
+    assert.includes(host.textContent, 'Viewport: quux', 'host.textContent');
 
     await $goto('quux@quux!', router, lifecycle);
-    assert.includes(host.textContent, 'Viewport: quux', `host.textContent`);
+    assert.includes(host.textContent, 'Viewport: quux', 'host.textContent');
 
     await $goto('quux@left/foo@quux!', router, lifecycle);
-    assert.includes(host.textContent, 'Viewport: foo', `host.textContent`);
+    assert.includes(host.textContent, 'Viewport: foo', 'host.textContent');
 
     (host.getElementsByTagName('SPAN')[0] as HTMLElement).click();
     await waitForNavigation(router);
-    assert.includes(host.textContent, 'Viewport: baz', `host.textContent`);
+    assert.includes(host.textContent, 'Viewport: baz', 'host.textContent');
 
     await $goto('bar@left', router, lifecycle);
-    assert.includes(host.textContent, 'Viewport: bar', `host.textContent`);
-    assert.notIncludes(host.textContent, 'Viewport: quux', `host.textContent`);
+    assert.includes(host.textContent, 'Viewport: bar', 'host.textContent');
+    assert.notIncludes(host.textContent, 'Viewport: quux', 'host.textContent');
 
     await tearDown();
   });
@@ -786,7 +786,7 @@ describe('Router', function () {
 
       await $goto('global', router, lifecycle);
 
-      assert.match(host.textContent, /.*global.*/, `host.textContent`);
+      assert.match(host.textContent, /.*global.*/, 'host.textContent');
 
       await $teardown();
     });
@@ -797,7 +797,7 @@ describe('Router', function () {
 
       await $goto('local', router, lifecycle);
 
-      assert.match(host.textContent, /.*local.*/, `host.textContent`);
+      assert.match(host.textContent, /.*local.*/, 'host.textContent');
 
       await $teardown();
     });
@@ -809,7 +809,7 @@ describe('Router', function () {
 
       await $goto('local1+local2', router, lifecycle);
 
-      assert.match(host.textContent, /.*local1.*local2.*/, `host.textContent`);
+      assert.match(host.textContent, /.*local1.*local2.*/, 'host.textContent');
 
       await $teardown();
     });
@@ -823,7 +823,7 @@ describe('Router', function () {
 
       await $goto('local1+local2+global3', router, lifecycle);
 
-      assert.match(host.textContent, /.*local1.*local2.*global3.*/, `host.textContent`);
+      assert.match(host.textContent, /.*local1.*local2.*global3.*/, 'host.textContent');
 
       await $teardown();
     });
@@ -837,7 +837,7 @@ describe('Router', function () {
 
       await $goto('local1+global2+local3', router, lifecycle);
 
-      assert.match(host.textContent, /.*local1.*global2.*local3.*/, `host.textContent`);
+      assert.match(host.textContent, /.*local1.*global2.*local3.*/, 'host.textContent');
 
       await $teardown();
     });
@@ -851,7 +851,7 @@ describe('Router', function () {
 
       await $goto('global1+local2+local3', router, lifecycle);
 
-      assert.match(host.textContent, /.*global1.*local2.*local3.*/, `host.textContent`);
+      assert.match(host.textContent, /.*global1.*local2.*local3.*/, 'host.textContent');
 
       await $teardown();
     });
@@ -864,7 +864,7 @@ describe('Router', function () {
 
       await $goto('local1+local2+local3', router, lifecycle);
 
-      assert.match(host.textContent, /.*local1.*local2.*local3.*/, `host.textContent`);
+      assert.match(host.textContent, /.*local1.*local2.*local3.*/, 'host.textContent');
 
       await $teardown();
     });
@@ -878,11 +878,11 @@ describe('Router', function () {
 
       await $goto('local1@default+conflict@one', router, lifecycle);
 
-      assert.match(host.textContent, /.*local1.*conflict1.*/, `host.textContent`);
+      assert.match(host.textContent, /.*local1.*conflict1.*/, 'host.textContent');
 
       await $goto('local2@default+conflict@two', router, lifecycle);
 
-      assert.match(host.textContent, /.*local2.*conflict2.*/, `host.textContent`);
+      assert.match(host.textContent, /.*local2.*conflict2.*/, 'host.textContent');
 
       await $teardown();
     });
@@ -897,11 +897,11 @@ describe('Router', function () {
 
       await $goto('global1@default+conflict@one', router, lifecycle);
 
-      assert.match(host.textContent, /.*global1.*conflict1.*/, `host.textContent`);
+      assert.match(host.textContent, /.*global1.*conflict1.*/, 'host.textContent');
 
       await $goto('global2@default+conflict@two', router, lifecycle);
 
-      assert.match(host.textContent, /.*global2.*conflict2.*/, `host.textContent`);
+      assert.match(host.textContent, /.*global2.*conflict2.*/, 'host.textContent');
 
       await $teardown();
     });
@@ -916,11 +916,11 @@ describe('Router', function () {
 
       await $goto('local1@default+conflict@one', router, lifecycle);
 
-      assert.match(host.textContent, /.*local1.*conflict1.*/, `host.textContent`);
+      assert.match(host.textContent, /.*local1.*conflict1.*/, 'host.textContent');
 
       await $goto('global2@default+conflict@two', router, lifecycle);
 
-      assert.match(host.textContent, /.*global2.*conflict2.*/, `host.textContent`);
+      assert.match(host.textContent, /.*global2.*conflict2.*/, 'host.textContent');
 
       await $teardown();
     });
@@ -985,7 +985,7 @@ describe('Router', function () {
 
           await $goto(path, router, lifecycle);
 
-          assert.match(host.textContent, expectedText, `host.textContent`);
+          assert.match(host.textContent, expectedText, 'host.textContent');
 
           await $teardown();
         });

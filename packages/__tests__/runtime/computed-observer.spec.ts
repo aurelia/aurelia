@@ -265,7 +265,7 @@ describe.skip('ComputedObserver', function () {
   // only run this test in browser for now as it hangs in node due to subtleties with prototype stuff
   // TODO: fix this in node
   if (typeof document !== 'undefined') {
-    it(`complex nested dependencies`, function () {
+    it('complex nested dependencies', function () {
       this.timeout(30000);
       const { locator, dirtyChecker, lifecycle } = setup();
 
@@ -448,7 +448,7 @@ describe.skip('ComputedObserver', function () {
 
     const sut = createComputedObserver(LF.none, locator, dirtyChecker, lifecycle, foo, 'bar', pd);
 
-    assert.instanceOf(sut, DirtyCheckProperty, `sut`);
+    assert.instanceOf(sut, DirtyCheckProperty, 'sut');
   });
 
   it('throws in case of no getter', function () {

@@ -29,14 +29,14 @@ describe('SelectValueObserver', function () {
           it(`sets 'value' from "${initial}" to "${next}"`, function () {
             const { lifecycle, el, sut } = createFixture(initial, values);
 
-            assert.strictEqual(el.value, initial, `el.value`);
+            assert.strictEqual(el.value, initial, 'el.value');
 
             sut.bind();
 
             el.options.item(values.indexOf(next)).selected = true;
 
             lifecycle.processRAFQueue(LF.none);
-            assert.strictEqual(el.value, next, `el.value`);
+            assert.strictEqual(el.value, next, 'el.value');
 
             sut.unbind();
           });
@@ -81,8 +81,8 @@ describe('SelectValueObserver', function () {
 
         sut.unbind();
 
-        assert.strictEqual(count, 1, `count`);
-        assert.strictEqual(sut['nodeObserver'], null, `sut['nodeObserver']`);
+        assert.strictEqual(count, 1, 'count');
+        assert.strictEqual(sut['nodeObserver'], null, 'sut[\'nodeObserver\']');
       }
     });
     it('unsubscribes array observer', function () {
@@ -103,8 +103,8 @@ describe('SelectValueObserver', function () {
 
         sut.unbind();
 
-        assert.strictEqual(count, 1, `count`);
-        assert.strictEqual(sut['arrayObserver'], null, `sut['arrayObserver']`);
+        assert.strictEqual(count, 1, 'count');
+        assert.strictEqual(sut['arrayObserver'], null, 'sut[\'arrayObserver\']');
       }
     });
   });
@@ -134,12 +134,12 @@ describe('SelectValueObserver', function () {
 
         const currentValue = sut.currentValue as any[];
         assert.instanceOf(currentValue, Array);
-        assert.strictEqual(currentValue['length'], 0, `currentValue['length']`);
+        assert.strictEqual(currentValue['length'], 0, 'currentValue[\'length\']');
 
         sut.synchronizeValue();
 
-        assert.strictEqual(currentValue, sut.currentValue, `currentValue`);
-        assert.strictEqual(currentValue['length'], 2, `currentValue['length']`);
+        assert.strictEqual(currentValue, sut.currentValue, 'currentValue');
+        assert.strictEqual(currentValue['length'], 2, 'currentValue[\'length\']');
 
         sut.unbind();
       });
@@ -154,11 +154,11 @@ describe('SelectValueObserver', function () {
         sut.bind();
 
         const currentValue = sut.currentValue as any;
-        assert.strictEqual(currentValue, null, `currentValue`);
+        assert.strictEqual(currentValue, null, 'currentValue');
 
         sut.synchronizeValue();
 
-        assert.strictEqual(currentValue, sut.currentValue, `currentValue`);
+        assert.strictEqual(currentValue, sut.currentValue, 'currentValue');
 
         sut.unbind();
       });
@@ -173,11 +173,11 @@ describe('SelectValueObserver', function () {
         sut.bind();
 
         const currentValue = sut.currentValue as any;
-        assert.strictEqual(currentValue, undefined, `currentValue`);
+        assert.strictEqual(currentValue, undefined, 'currentValue');
 
         sut.synchronizeValue();
 
-        assert.strictEqual(currentValue, sut.currentValue, `currentValue`);
+        assert.strictEqual(currentValue, sut.currentValue, 'currentValue');
 
         sut.unbind();
       });
@@ -195,8 +195,8 @@ describe('SelectValueObserver', function () {
 
         sut.synchronizeValue();
 
-        assert.strictEqual(currentValue, sut.currentValue, `currentValue`);
-        assert.strictEqual(currentValue['length'], 2, `currentValue['length']`);
+        assert.strictEqual(currentValue, sut.currentValue, 'currentValue');
+        assert.strictEqual(currentValue['length'], 2, 'currentValue[\'length\']');
 
         verifyEqual(
           currentValue,
@@ -222,8 +222,8 @@ describe('SelectValueObserver', function () {
 
         sut.synchronizeValue();
 
-        assert.strictEqual(currentValue, sut.currentValue, `currentValue`);
-        assert.strictEqual(currentValue['length'], 2, `currentValue['length']`);
+        assert.strictEqual(currentValue, sut.currentValue, 'currentValue');
+        assert.strictEqual(currentValue['length'], 2, 'currentValue[\'length\']');
 
         verifyEqual(
           currentValue,
@@ -249,7 +249,7 @@ describe('SelectValueObserver', function () {
 
         sut.synchronizeValue();
 
-        assert.strictEqual(currentValue, sut.currentValue, `currentValue`);
+        assert.strictEqual(currentValue, sut.currentValue, 'currentValue');
 
         verifyEqual(
           currentValue,
@@ -279,8 +279,8 @@ describe('SelectValueObserver', function () {
 
           sut.synchronizeValue();
 
-          assert.strictEqual(currentValue, sut.currentValue, `currentValue`);
-          assert.strictEqual(currentValue['length'], 2, `currentValue['length']`);
+          assert.strictEqual(currentValue, sut.currentValue, 'currentValue');
+          assert.strictEqual(currentValue['length'], 2, 'currentValue[\'length\']');
 
           verifyEqual(
             currentValue,

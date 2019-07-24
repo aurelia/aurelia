@@ -302,7 +302,7 @@ export class Else<T extends INode = INode> {
     } else if (ifBehavior.viewModel instanceof If) {
       ifBehavior.viewModel.elseFactory = this.factory;
     } else {
-      throw new Error(`Unsupported IfBehavior`); // TODO: create error code
+      throw new Error('Unsupported IfBehavior'); // TODO: create error code
     }
   }
 }

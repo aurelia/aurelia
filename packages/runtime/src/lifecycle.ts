@@ -715,7 +715,7 @@ export class MountQueue implements IProcessingQueue<IController> {
   public add(controller: IController): void {
     if ((controller.state & State.inUnmountQueue) > 0) {
       this.lifecycle.unmount.remove(controller);
-      console.log(`in unmount queue during mountQueue.add, so removing`, this);
+      console.log('in unmount queue during mountQueue.add, so removing', this);
       return;
     }
     if (this.head === void 0) {

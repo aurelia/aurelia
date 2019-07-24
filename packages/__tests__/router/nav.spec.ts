@@ -62,10 +62,10 @@ describe('Nav', function () {
     this.timeout(5000);
     const { host, router, tearDown } = await setup('foo');
     await waitForNavigation(router);
-    assert.includes(host.innerHTML, 'foo', `host.innerHTML`);
-    assert.includes(host.innerHTML, 'Bar', `host.innerHTML`);
-    assert.includes(host.innerHTML, 'href="bar"', `host.innerHTML`);
-    assert.notIncludes(host.innerHTML, 'nav-active', `host.innerHTML`);
+    assert.includes(host.innerHTML, 'foo', 'host.innerHTML');
+    assert.includes(host.innerHTML, 'Bar', 'host.innerHTML');
+    assert.includes(host.innerHTML, 'href="bar"', 'host.innerHTML');
+    assert.notIncludes(host.innerHTML, 'nav-active', 'host.innerHTML');
     await tearDown();
   });
 
@@ -74,7 +74,7 @@ describe('Nav', function () {
     const { host, router, tearDown } = await setup('bar');
     router.activeComponents = ['baz@main-viewport'];
     await waitForNavigation(router);
-    assert.includes(host.innerHTML, 'href="baz"', `host.innerHTML`);
+    assert.includes(host.innerHTML, 'href="baz"', 'host.innerHTML');
     //assert.includes(host.innerHTML, 'nav-active', `host.innerHTML`); // TODO: fix this
     await tearDown();
   });
@@ -84,9 +84,9 @@ describe('Nav', function () {
     const { host, router, tearDown } = await setup('qux');
     router.activeComponents = ['baz@main-viewport'];
     await waitForNavigation(router);
-    assert.includes(host.innerHTML, 'href="baz"', `host.innerHTML`);
-    assert.includes(host.innerHTML, 'nav-has-children', `host.innerHTML`);
-    assert.includes(host.innerHTML, 'nav-level-1', `host.innerHTML`);
+    assert.includes(host.innerHTML, 'href="baz"', 'host.innerHTML');
+    assert.includes(host.innerHTML, 'nav-has-children', 'host.innerHTML');
+    assert.includes(host.innerHTML, 'nav-level-1', 'host.innerHTML');
     await tearDown();
   });
 });

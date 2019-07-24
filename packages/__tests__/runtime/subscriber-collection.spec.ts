@@ -44,70 +44,70 @@ describe('subscriberCollection', function () {
       [
         ['new value', 'old value', flags & ~LifecycleFlags.update],
       ],
-      `callable1.handleChange`,
+      'callable1.handleChange',
     );
     assert.deepStrictEqual(
       callable2.handleChange.calls,
       [
         ['new value', 'old value', flags  & ~LifecycleFlags.update],
       ],
-      `callable2.handleChange`,
+      'callable2.handleChange',
     );
     assert.deepStrictEqual(
       callable3.handleChange.calls,
       [
         ['new value', 'old value', flags  & ~LifecycleFlags.update],
       ],
-      `callable3.handleChange`,
+      'callable3.handleChange',
     );
     assert.deepStrictEqual(
       callable4.handleChange.calls,
       [
         ['new value', 'old value', flags  & ~LifecycleFlags.update],
       ],
-      `callable4.handleChange`,
+      'callable4.handleChange',
     );
     assert.deepStrictEqual(
       callable5.handleChange.calls,
       [
         ['new value', 'old value', flags  & ~LifecycleFlags.update],
       ],
-      `callable5.handleChange`,
+      'callable5.handleChange',
     );
     assert.deepStrictEqual(
       callable6.handleChange.calls,
       [
         ['new value2', 'old value2', flags  & ~LifecycleFlags.update],
       ],
-      `callable6.handleChange`,
+      'callable6.handleChange',
     );
     assert.deepStrictEqual(
       callable7.handleChange.calls,
       [
         ['new value2', 'old value2', flags  & ~LifecycleFlags.update],
       ],
-      `callable7.handleChange`,
+      'callable7.handleChange',
     );
     assert.deepStrictEqual(
       callable8.handleChange.calls,
       [
         ['new value2', 'old value2', flags  & ~LifecycleFlags.update],
       ],
-      `callable8.handleChange`,
+      'callable8.handleChange',
     );
     assert.deepStrictEqual(
       callable9.handleChange.calls,
       [
         ['new value2', 'old value2', flags  & ~LifecycleFlags.update],
       ],
-      `callable9.handleChange`,
+      'callable9.handleChange',
     );
     assert.deepStrictEqual(
       callable10.handleChange.calls,
       [
         ['new value2', 'old value2', flags  & ~LifecycleFlags.update],
       ],
-      `callable10.handleChange`,
+      'callable10.handleChange',
     );
   });
 
@@ -126,8 +126,8 @@ describe('subscriberCollection', function () {
         removalCount++;
       }
     }
-    assert.strictEqual(observer['_subscribersRest'].length, subscribers.length - 3 - removalCount, `observer['_subscribersRest'].length`);
+    assert.strictEqual(observer['_subscribersRest'].length, subscribers.length - 3 - removalCount, 'observer[\'_subscribersRest\'].length');
 
-    assert.strictEqual(observer['removeSubscriber']({} as any), false, `observer['removeSubscriber']({} as any)`);
+    assert.strictEqual(observer['removeSubscriber']({} as any), false, 'observer[\'removeSubscriber\']({} as any)');
   });
 });

@@ -27,7 +27,7 @@ describe('ViewportContent', function () {
 
       container.register(Global);
       const viewport = new ViewportContent('global', null, null, router.container as unknown as IRenderContext);
-      assert.strictEqual(viewport.componentName(), 'global', `viewport.componentName()`);
+      assert.strictEqual(viewport.componentName(), 'global', 'viewport.componentName()');
     });
     it('resolves component name from type', async function () {
       const Local = define({ name: 'local', template: 'local' }, null);
@@ -36,7 +36,7 @@ describe('ViewportContent', function () {
 
       container.register(Global);
       const viewport = new ViewportContent('global', null, null, router.container as unknown as IRenderContext);
-      assert.strictEqual(viewport.componentName(), 'global', `viewport.componentName()`);
+      assert.strictEqual(viewport.componentName(), 'global', 'viewport.componentName()');
     });
 
     it('resolves component type from string', async function () {
@@ -46,7 +46,7 @@ describe('ViewportContent', function () {
 
       container.register(Global);
       const viewport = new ViewportContent('global', null, null, router.container as unknown as IRenderContext);
-      assert.strictEqual(viewport.componentType(router.container as unknown as IRenderContext), Global, `viewport.componentType(router.container as unknown as IRenderContext)`);
+      assert.strictEqual(viewport.componentType(router.container as unknown as IRenderContext), Global, 'viewport.componentType(router.container as unknown as IRenderContext)');
     });
     it('resolves component type from type', async function () {
       const Local = define({ name: 'local', template: 'local' }, null);
@@ -55,7 +55,7 @@ describe('ViewportContent', function () {
 
       container.register(Global);
       const viewport = new ViewportContent(Global, null, null, router.container as unknown as IRenderContext);
-      assert.strictEqual(viewport.componentType(router.container as unknown as IRenderContext), Global, `viewport.componentType(router.container as unknown as IRenderContext)`);
+      assert.strictEqual(viewport.componentType(router.container as unknown as IRenderContext), Global, 'viewport.componentType(router.container as unknown as IRenderContext)');
     });
 
     it('resolves component instance from string', async function () {
@@ -66,7 +66,7 @@ describe('ViewportContent', function () {
       container.register(Global);
       const viewport = new ViewportContent('global', null, null, router.container as unknown as IRenderContext);
       const component = viewport.componentInstance(router.container as unknown as IRenderContext);
-      assert.strictEqual(component.constructor, Global, `component.constructor`);
+      assert.strictEqual(component.constructor, Global, 'component.constructor');
     });
     it('resolves component instance from type', async function () {
       const Local = define({ name: 'local', template: 'local' }, null);
@@ -78,7 +78,7 @@ describe('ViewportContent', function () {
 
       const viewport = new ViewportContent(Global, null, null, router.container as unknown as IRenderContext);
       const component = viewport.componentInstance(router.container as unknown as IRenderContext);
-      assert.strictEqual(component.constructor, Global, `component.constructor`);
+      assert.strictEqual(component.constructor, Global, 'component.constructor');
     });
   });
 });

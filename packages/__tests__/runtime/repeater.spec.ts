@@ -31,7 +31,7 @@ import {
   assert,
 } from '@aurelia/testing';
 
-describe(`Repeat`, function () {
+describe('Repeat', function () {
   function runBindLifecycle(lifecycle: ILifecycle, sut: Repeat<IObservedArray, AuNode>, flags: LifecycleFlags, scope: IScope): void {
     lifecycle.bound.begin();
     sut.$controller.bind(flags, scope);
@@ -604,7 +604,7 @@ describe(`Repeat`, function () {
         }
       };
 
-      const itemFactory = new ViewFactory<AuNode>(`item-view`, itemTemplate, lifecycle);
+      const itemFactory = new ViewFactory<AuNode>('item-view', itemTemplate, lifecycle);
 
       const binding: PropertyBinding = {
         target: null,

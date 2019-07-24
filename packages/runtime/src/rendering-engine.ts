@@ -110,7 +110,7 @@ export class CompiledTemplate<T extends INode = INode> implements ITemplate {
       ? viewModelOrController as IController<T>
       : (viewModelOrController as IViewModel<T>).$controller;
     if (controller == void 0) {
-      throw new Error(`Controller is missing from the view model`); // TODO: create error code
+      throw new Error('Controller is missing from the view model'); // TODO: create error code
     }
     const nodes = (controller as Writable<IController>).nodes = this.factory.createNodeSequence();
     (controller as Writable<IController>).context = this.renderContext;
@@ -243,7 +243,7 @@ export class RenderingEngine implements IRenderingEngine {
     parentContext?: IContainer | IRenderContext<T>
   ): IViewFactory<T> {
     if (definition == void 0) {
-      throw new Error(`No definition provided`); // TODO: create error code
+      throw new Error('No definition provided'); // TODO: create error code
     }
 
     let factory = this.viewFactoryLookup.get(definition);

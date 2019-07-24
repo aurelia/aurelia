@@ -219,19 +219,19 @@ const codeLookup: Record<string, IMessageInfo> = {
   },
   401: {
     level: LogLevel.warn,
-    message: `AttributePattern is missing a handler for '%s'.`
+    message: 'AttributePattern is missing a handler for \'%s\'.'
   },
   402: {
     level: LogLevel.warn,
-    message: `AttributePattern handler for '%s' is not a function.`
+    message: 'AttributePattern handler for \'%s\' is not a function.'
   },
   800: {
     level: LogLevel.error,
-    message: `Property '%s' is being dirty-checked.`
+    message: 'Property \'%s\' is being dirty-checked.'
   },
   801: {
     level: LogLevel.warn,
-    message: `Property '%s' is being dirty-checked.`
+    message: 'Property \'%s\' is being dirty-checked.'
   },
   2000: {
     level: LogLevel.error,

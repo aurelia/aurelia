@@ -51,11 +51,11 @@ describe('AttributeNSAccessor', function () {
         sut = new AttributeNSAccessor(lifecycle, el, name, 'http://www.w3.org/1999/xlink');
 
         let actual = sut.getValue();
-        assert.strictEqual(actual, null, `actual`);
+        assert.strictEqual(actual, null, 'actual');
 
         sut.bind(LifecycleFlags.none);
         actual = sut.getValue();
-        assert.strictEqual(actual, value, `actual`);
+        assert.strictEqual(actual, value, 'actual');
 
         sut.unbind(LifecycleFlags.none);
       });
@@ -73,11 +73,11 @@ describe('AttributeNSAccessor', function () {
 
         sut.bind(LifecycleFlags.none);
         sut.setValue('foo', LifecycleFlags.none);
-        assert.strictEqual(sut.getValue(), 'foo', `sut.getValue()`);
-        assert.strictEqual(el.getAttributeNS(sut.namespace, sut.propertyKey), value, `el.getAttributeNS(sut.namespace, sut.propertyKey) before flush`);
+        assert.strictEqual(sut.getValue(), 'foo', 'sut.getValue()');
+        assert.strictEqual(el.getAttributeNS(sut.namespace, sut.propertyKey), value, 'el.getAttributeNS(sut.namespace, sut.propertyKey) before flush');
 
         lifecycle.processRAFQueue(LifecycleFlags.none);
-        assert.strictEqual(el.getAttributeNS(sut.namespace, sut.propertyKey), 'foo', `el.getAttributeNS(sut.namespace, sut.propertyKey) after flush`);
+        assert.strictEqual(el.getAttributeNS(sut.namespace, sut.propertyKey), 'foo', 'el.getAttributeNS(sut.namespace, sut.propertyKey) after flush');
 
         sut.unbind(LifecycleFlags.none);
       });
@@ -95,8 +95,8 @@ describe('AttributeNSAccessor', function () {
 
         sut.bind(LifecycleFlags.none);
         sut.setValue('foo', LifecycleFlags.fromBind);
-        assert.strictEqual(sut.getValue(), 'foo', `sut.getValue()`);
-        assert.strictEqual(el.getAttributeNS(sut.namespace, sut.propertyKey), 'foo', `el.getAttributeNS(sut.namespace, sut.propertyKey) before flush`);
+        assert.strictEqual(sut.getValue(), 'foo', 'sut.getValue()');
+        assert.strictEqual(el.getAttributeNS(sut.namespace, sut.propertyKey), 'foo', 'el.getAttributeNS(sut.namespace, sut.propertyKey) before flush');
 
         sut.unbind(LifecycleFlags.none);
       });
@@ -122,11 +122,11 @@ describe('DataAttributeAccessor', function () {
           sut = new DataAttributeAccessor(lifecycle, el, name);
 
           let actual = sut.getValue();
-          assert.strictEqual(actual, null, `actual`);
+          assert.strictEqual(actual, null, 'actual');
 
           sut.bind(LifecycleFlags.none);
           actual = sut.getValue();
-          assert.strictEqual(actual, value, `actual`);
+          assert.strictEqual(actual, value, 'actual');
 
           sut.unbind(LifecycleFlags.none);
         });
@@ -139,7 +139,7 @@ describe('DataAttributeAccessor', function () {
       for (const value of valueArr) {
         it(`sets attribute "${name}" to "${value}" only after flushing RAF`, function () {
           const ctx = TestContext.createHTMLTestContext();
-          el = ctx.createElementFromMarkup(`<div></div>`);
+          el = ctx.createElementFromMarkup('<div></div>');
           const { lifecycle: $lifecycle } = setup();
           lifecycle = $lifecycle;
           const expected = value != null ? `<div ${name}="${value}"></div>` : '<div></div>';
@@ -147,11 +147,11 @@ describe('DataAttributeAccessor', function () {
 
           sut.bind(LifecycleFlags.none);
           sut.setValue(value, LifecycleFlags.none);
-          assert.strictEqual(sut.getValue(), value, `sut.getValue()`);
-          assert.strictEqual(el.outerHTML, '<div></div>', `el.outerHTML before flush`);
+          assert.strictEqual(sut.getValue(), value, 'sut.getValue()');
+          assert.strictEqual(el.outerHTML, '<div></div>', 'el.outerHTML before flush');
 
           lifecycle.processRAFQueue(LifecycleFlags.none);
-          assert.strictEqual(el.outerHTML, expected, `el.outerHTML after flush`);
+          assert.strictEqual(el.outerHTML, expected, 'el.outerHTML after flush');
 
           sut.unbind(LifecycleFlags.none);
         });
@@ -164,7 +164,7 @@ describe('DataAttributeAccessor', function () {
       for (const value of valueArr) {
         it(`sets attribute "${name}" to "${value}" immediately`, function () {
           const ctx = TestContext.createHTMLTestContext();
-          el = ctx.createElementFromMarkup(`<div></div>`);
+          el = ctx.createElementFromMarkup('<div></div>');
           const { lifecycle: $lifecycle } = setup();
           lifecycle = $lifecycle;
           const expected = value != null ? `<div ${name}="${value}"></div>` : '<div></div>';
@@ -172,8 +172,8 @@ describe('DataAttributeAccessor', function () {
 
           sut.bind(LifecycleFlags.none);
           sut.setValue(value, LifecycleFlags.fromBind);
-          assert.strictEqual(sut.getValue(), value, `sut.getValue()`);
-          assert.strictEqual(el.outerHTML, expected, `el.outerHTML before flush`);
+          assert.strictEqual(sut.getValue(), value, 'sut.getValue()');
+          assert.strictEqual(el.outerHTML, expected, 'el.outerHTML before flush');
 
           sut.unbind(LifecycleFlags.none);
         });
@@ -207,7 +207,7 @@ describe('StyleAccessor', function () {
       assert.deepStrictEqual(
         setPropertySpy.calls,
         [],
-        `setPropertySpy.calls`,
+        'setPropertySpy.calls',
       );
 
       lifecycle.processRAFQueue(LifecycleFlags.none);
@@ -216,7 +216,7 @@ describe('StyleAccessor', function () {
         [
           [propName, value],
         ],
-        `setPropertySpy.calls`,
+        'setPropertySpy.calls',
       );
 
       sut.unbind(LifecycleFlags.none);
@@ -242,22 +242,22 @@ describe('StyleAccessor', function () {
         [
           [propName, value],
         ],
-        `setPropertySpy.calls`,
+        'setPropertySpy.calls',
       );
 
       sut.unbind(LifecycleFlags.none);
     });
   }
 
-  it(`getValue - style="display: block;"`, function () {
+  it('getValue - style="display: block;"', function () {
     const ctx = TestContext.createHTMLTestContext();
-    el = ctx.createElementFromMarkup(`<div style="display: block;"></div>`);
+    el = ctx.createElementFromMarkup('<div style="display: block;"></div>');
     const { lifecycle: $lifecycle } = setup();
     lifecycle = $lifecycle;
     sut = new StyleAttributeAccessor(lifecycle, el);
 
     const actual = sut.getValue();
-    assert.strictEqual(actual, 'display: block;', `actual`);
+    assert.strictEqual(actual, 'display: block;', 'actual');
   });
 });
 
@@ -296,7 +296,7 @@ describe('ClassAccessor', function () {
 
           sut.setValue(classList, LifecycleFlags.none);
 
-          assert.strictEqual(el.classList.toString(), initialClassList, `el.classList.toString() === initialClassList`);
+          assert.strictEqual(el.classList.toString(), initialClassList, 'el.classList.toString() === initialClassList');
 
           lifecycle.processRAFQueue(LifecycleFlags.none);
 
@@ -322,7 +322,7 @@ describe('ClassAccessor', function () {
             const updatedClassList = el.classList.toString();
 
             sut.setValue(secondClassList, LifecycleFlags.none);
-            assert.strictEqual(el.classList.toString(), updatedClassList, `el.classList.toString()`);
+            assert.strictEqual(el.classList.toString(), updatedClassList, 'el.classList.toString()');
 
             lifecycle.processRAFQueue(LifecycleFlags.none);
 

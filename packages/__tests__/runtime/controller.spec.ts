@@ -244,7 +244,7 @@ describe.skip('controller', function () {
       });
     }
 
-    it(`correctly executes 1 CustomElement lifecycles`, function () {
+    it('correctly executes 1 CustomElement lifecycles', function () {
       const {
         lifecycle,
         container,
@@ -371,7 +371,7 @@ describe.skip('controller', function () {
       tearDown();
     });
 
-    it(`correctly executes 1-1 CustomElement+if lifecycles`, function () {
+    it('correctly executes 1-1 CustomElement+if lifecycles', function () {
       const {
         lifecycle,
         container,
@@ -764,7 +764,7 @@ describe.skip('controller', function () {
       tearDown();
     });
 
-    it(`correctly executes 1-1 CustomElement+if with bindables lifecycles`, function () {
+    it('correctly executes 1-1 CustomElement+if with bindables lifecycles', function () {
       const {
         lifecycle,
         container,

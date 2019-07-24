@@ -79,7 +79,7 @@ export class CompositionRoot<T extends INode = INode> {
       this.container = container;
       this.host = container.get(INode) as T;
     } else {
-      throw new Error(`No host element found.`);
+      throw new Error('No host element found.');
     }
     this.strategy = config.strategy != void 0 ? config.strategy : BindingStrategy.getterSetter;
 
@@ -167,7 +167,7 @@ export class Aurelia<TNode extends INode = INode> {
   public get root(): CompositionRoot<TNode> {
     if (this._root == void 0) {
       if (this.next == void 0) {
-        throw new Error(`root is not defined`); // TODO: create error code
+        throw new Error('root is not defined'); // TODO: create error code
       }
       return this.next;
     }
@@ -213,7 +213,7 @@ export class Aurelia<TNode extends INode = INode> {
 
   public start(root: CompositionRoot<TNode> | undefined = this.next): ILifecycleTask {
     if (root == void 0) {
-      throw new Error(`There is no composition root`); // TODO: create error code
+      throw new Error('There is no composition root'); // TODO: create error code
     }
 
     this.stop(root);

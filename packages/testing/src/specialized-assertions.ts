@@ -9,21 +9,21 @@ import { assert } from './assert';
 export function verifyASTEqual(actual: any, expected: any, errors?: string[], path?: string): any {
   if (expected == null) {
     if (actual != null) {
-      assert.strictEqual(actual, null, `actual`);
+      assert.strictEqual(actual, null, 'actual');
     }
   } else if (actual == null) {
     const expectedSerialized = Serializer.serialize(expected);
-    assert.strictEqual(actual, expectedSerialized, `actual`);
+    assert.strictEqual(actual, expectedSerialized, 'actual');
   } else {
     const expectedSerialized = Serializer.serialize(expected);
     const expectedUnparsed = Unparser.unparse(expected);
     const actualSerialized = Serializer.serialize(actual);
     const actualUnparsed = Unparser.unparse(actual);
     if (actualSerialized !== expectedSerialized) {
-      assert.strictEqual(actualSerialized, expectedSerialized, `actualSerialized`);
+      assert.strictEqual(actualSerialized, expectedSerialized, 'actualSerialized');
     }
     if (actualUnparsed !== expectedUnparsed) {
-      assert.strictEqual(actualUnparsed, expectedUnparsed, `actualUnparsed`);
+      assert.strictEqual(actualUnparsed, expectedUnparsed, 'actualUnparsed');
     }
   }
 }

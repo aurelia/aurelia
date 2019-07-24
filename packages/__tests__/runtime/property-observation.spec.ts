@@ -31,16 +31,16 @@ describe('PrimitiveObserver', function () {
           if (propertyName === 'length') {
             if (typeof primitive === 'string') {
               const actual = sut.getValue();
-              assert.strictEqual(actual, primitive.length, `actual`);
+              assert.strictEqual(actual, primitive.length, 'actual');
             } else if (primitive != null) {
               const actual = sut.getValue();
-              assert.strictEqual(actual, void 0, `actual`);
+              assert.strictEqual(actual, void 0, 'actual');
             } else {
               assert.throws(() => sut.getValue());
             }
           } else {
             const actual = sut.getValue();
-            assert.strictEqual(actual, undefined, `actual`);
+            assert.strictEqual(actual, undefined, 'actual');
           }
         });
       }
@@ -49,25 +49,25 @@ describe('PrimitiveObserver', function () {
 
   describe('setValue()', function () {
     it('is a no-op', function () {
-      assert.strictEqual(new PrimitiveObserver(null, 0).setValue === PLATFORM.noop, true, `new PrimitiveObserver(null, 0).setValue === PLATFORM.noop`);
+      assert.strictEqual(new PrimitiveObserver(null, 0).setValue === PLATFORM.noop, true, 'new PrimitiveObserver(null, 0).setValue === PLATFORM.noop');
     });
   });
 
   describe('subscribe()', function () {
     it('is a no-op', function () {
-      assert.strictEqual(new PrimitiveObserver(null, 0).subscribe === PLATFORM.noop, true, `new PrimitiveObserver(null, 0).subscribe === PLATFORM.noop`);
+      assert.strictEqual(new PrimitiveObserver(null, 0).subscribe === PLATFORM.noop, true, 'new PrimitiveObserver(null, 0).subscribe === PLATFORM.noop');
     });
   });
 
   describe('unsubscribe()', function () {
     it('is a no-op', function () {
-      assert.strictEqual(new PrimitiveObserver(null, 0).unsubscribe === PLATFORM.noop, true, `new PrimitiveObserver(null, 0).unsubscribe === PLATFORM.noop`);
+      assert.strictEqual(new PrimitiveObserver(null, 0).unsubscribe === PLATFORM.noop, true, 'new PrimitiveObserver(null, 0).unsubscribe === PLATFORM.noop');
     });
   });
 
   describe('doNotCache', function () {
     it('is true', function () {
-      assert.strictEqual(new PrimitiveObserver(null, 0).doNotCache, true, `new PrimitiveObserver(null, 0).doNotCache`);
+      assert.strictEqual(new PrimitiveObserver(null, 0).doNotCache, true, 'new PrimitiveObserver(null, 0).doNotCache');
     });
   });
 });
@@ -92,7 +92,7 @@ describe('SetterObserver', function () {
           const { sut } = setup(LF.none, object, propertyName as any);
           sut.subscribe(new SpySubscriber());
           const actual = sut.getValue();
-          assert.strictEqual(actual, object[propertyName], `actual`);
+          assert.strictEqual(actual, object[propertyName], 'actual');
         });
       }
     }
@@ -110,7 +110,7 @@ describe('SetterObserver', function () {
             const { sut } = setup(LF.none, object, propertyName as any);
             sut.subscribe(new SpySubscriber());
             sut.setValue(value, flags);
-            assert.strictEqual(object[propertyName], value, `object[propertyName]`);
+            assert.strictEqual(object[propertyName], value, 'object[propertyName]');
           });
         }
       }
@@ -193,7 +193,7 @@ describe('SelfObserver', function () {
     const values = createObjectArr();
     values.forEach(value => {
       const observer = setup(LF.none, {}, 'a');
-      assert.strictEqual(observer['callback'], void 0, `observer['callback']`);
+      assert.strictEqual(observer['callback'], void 0, 'observer[\'callback\']');
     });
   });
 
@@ -206,7 +206,7 @@ describe('SelfObserver', function () {
           const { sut } = setup(LF.none, object, propertyName as any);
           sut.subscribe(new SpySubscriber());
           const actual = sut.getValue();
-          assert.strictEqual(actual, object[propertyName], `actual`);
+          assert.strictEqual(actual, object[propertyName], 'actual');
         });
       }
     }
@@ -224,7 +224,7 @@ describe('SelfObserver', function () {
             const { sut } = setup(LF.none, object, propertyName as any);
             sut.subscribe(new SpySubscriber());
             sut.setValue(value, flags);
-            assert.strictEqual(object[propertyName], value, `object[propertyName]`);
+            assert.strictEqual(object[propertyName], value, 'object[propertyName]');
           });
         }
       }

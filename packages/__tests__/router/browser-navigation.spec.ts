@@ -64,7 +64,7 @@ describe('BrowserNavigation', function () {
   it('can be created', function () {
     const { sut, tearDown, callback } = setup();
 
-    assert.notStrictEqual(sut, null, `sut`);
+    assert.notStrictEqual(sut, null, 'sut');
     tearDown();
   });
 
@@ -73,7 +73,7 @@ describe('BrowserNavigation', function () {
 
     await sut.activate(callback);
 
-    assert.strictEqual(sut['isActive'], true, `sut.isActive`);
+    assert.strictEqual(sut['isActive'], true, 'sut.isActive');
     // assert.strictEqual(addEventListener.calls.length, 1, `addEventListener.calls.length`);
 
     sut.deactivate();
@@ -85,12 +85,12 @@ describe('BrowserNavigation', function () {
     const { sut, tearDown, callback } = setup();
 
     await sut.activate(callback);
-    assert.strictEqual(sut['isActive'], true, `sut.isActive`);
+    assert.strictEqual(sut['isActive'], true, 'sut.isActive');
     // assert.strictEqual(addEventListener.calls.length, 1, `addEventListener.calls.length`);
 
     sut.deactivate();
 
-    assert.strictEqual(sut['isActive'], false, `sut.isActive`);
+    assert.strictEqual(sut['isActive'], false, 'sut.isActive');
     // assert.strictEqual(removeEventListener.calls.length, 1, `removeEventListener.calls.length`);
 
     tearDown();
@@ -100,7 +100,7 @@ describe('BrowserNavigation', function () {
     const { sut, tearDown, callback } = setup();
 
     await sut.activate(callback);
-    assert.strictEqual(sut['isActive'], true, `sut.isActive`);
+    assert.strictEqual(sut['isActive'], true, 'sut.isActive');
 
     let err;
     try {
@@ -108,7 +108,7 @@ describe('BrowserNavigation', function () {
     } catch (e) {
       err = e;
     }
-    assert.strictEqual(err.message, 'Browser navigation has already been activated', `err.message`);
+    assert.strictEqual(err.message, 'Browser navigation has already been activated', 'err.message');
 
     sut.deactivate();
 
@@ -126,14 +126,14 @@ describe('BrowserNavigation', function () {
       });
 
     await sut.pushNavigationState(toNavigationState('one'));
-    assert.strictEqual(sut.history.state.NavigationEntry.instruction, 'one', `sut.history.state.NavigationEntry.instruction`);
+    assert.strictEqual(sut.history.state.NavigationEntry.instruction, 'one', 'sut.history.state.NavigationEntry.instruction');
     await sut.pushNavigationState(toNavigationState('two'));
-    assert.strictEqual(sut.history.state.NavigationEntry.instruction, 'two', `sut.history.state.NavigationEntry.instruction`);
+    assert.strictEqual(sut.history.state.NavigationEntry.instruction, 'two', 'sut.history.state.NavigationEntry.instruction');
     await sut.go(-1, true);
     await Promise.resolve();
-    assert.strictEqual(sut.history.state.NavigationEntry.instruction, 'one', `sut.history.state.NavigationEntry.instruction`);
+    assert.strictEqual(sut.history.state.NavigationEntry.instruction, 'one', 'sut.history.state.NavigationEntry.instruction');
 
-    assert.strictEqual(counter, 1, `counter`); // Initial (and not + the above 'go')
+    assert.strictEqual(counter, 1, 'counter'); // Initial (and not + the above 'go')
 
     sut.deactivate();
 
@@ -153,7 +153,7 @@ describe('BrowserNavigation', function () {
     sut.go(1); // 2 items (forwardState + go), cost 0 + 1
     const noOfItems = 6;
     const processedItems = 3; // sut.allowedNoOfExecsWithinTick === 2
-    assert.strictEqual(sut['pendingCalls'].length, length + noOfItems - processedItems, `sut.pendingCalls.length`);
+    assert.strictEqual(sut['pendingCalls'].length, length + noOfItems - processedItems, 'sut.pendingCalls.length');
     await wait();
 
     sut.deactivate();
@@ -172,14 +172,14 @@ describe('BrowserNavigation', function () {
       });
 
     await sut.pushNavigationState(toNavigationState('one'));
-    assert.strictEqual(sut.history.state.NavigationEntry.instruction, 'one', `sut.history.state.NavigationEntry.instruction`);
+    assert.strictEqual(sut.history.state.NavigationEntry.instruction, 'one', 'sut.history.state.NavigationEntry.instruction');
     await sut.pushNavigationState(toNavigationState('two'));
-    assert.strictEqual(sut.history.state.NavigationEntry.instruction, 'two', `sut.history.state.NavigationEntry.instruction`);
+    assert.strictEqual(sut.history.state.NavigationEntry.instruction, 'two', 'sut.history.state.NavigationEntry.instruction');
     await sut.go(-1);
     await Promise.resolve();
-    assert.strictEqual(sut.history.state.NavigationEntry.instruction, 'one', `sut.history.state.NavigationEntry.instruction`);
+    assert.strictEqual(sut.history.state.NavigationEntry.instruction, 'one', 'sut.history.state.NavigationEntry.instruction');
 
-    assert.strictEqual(counter, 2, `counter`);
+    assert.strictEqual(counter, 2, 'counter');
 
     sut.deactivate();
 

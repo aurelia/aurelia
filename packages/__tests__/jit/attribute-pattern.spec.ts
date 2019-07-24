@@ -165,21 +165,21 @@ describe('@attributePattern', function () {
             assert.strictEqual(
               attrPattern.$patternDefs.map(d => d.pattern).indexOf(result.pattern) >= 0,
               true,
-              `attrPattern.$patternDefs.map(d => d.pattern).indexOf(result.pattern) >= 0`
+              'attrPattern.$patternDefs.map(d => d.pattern).indexOf(result.pattern) >= 0'
             );
             attrPattern[result.pattern](value, 'foo', result.parts);
-            assert.strictEqual(receivedRawName, value, `receivedRawName`);
-            assert.strictEqual(receivedRawValue, 'foo', `receivedRawValue`);
-            assert.deepStrictEqual(receivedParts, result.parts, `receivedParts`);
+            assert.strictEqual(receivedRawName, value, 'receivedRawName');
+            assert.strictEqual(receivedRawValue, 'foo', 'receivedRawValue');
+            assert.deepStrictEqual(receivedParts, result.parts, 'receivedParts');
           } else {
             assert.strictEqual(
               attrPattern.$patternDefs.map(d => d.pattern).indexOf(result.pattern) === -1,
               true,
-              `attrPattern.$patternDefs.map(d => d.pattern).indexOf(result.pattern) === -1`
+              'attrPattern.$patternDefs.map(d => d.pattern).indexOf(result.pattern) === -1'
             );
           }
 
-          assert.deepStrictEqual(result.parts, values, `result.parts`);
+          assert.deepStrictEqual(result.parts, values, 'result.parts');
         });
       }
     });

@@ -24,7 +24,7 @@ describe('event aggregator', function () {
 
         ea.publish('dinner');
 
-        assert.strictEqual(data, 1, `data`);
+        assert.strictEqual(data, 1, 'data');
       });
 
       it('adds event with callback to the eventLookup object', function () {
@@ -32,8 +32,8 @@ describe('event aggregator', function () {
         const callback = function () { return; };
         ea.subscribe('dinner', callback);
 
-        assert.strictEqual(ea.eventLookup.dinner.length, 1, `ea.eventLookup.dinner.length`);
-        assert.strictEqual(ea.eventLookup.dinner[0], callback, `ea.eventLookup.dinner[0]`);
+        assert.strictEqual(ea.eventLookup.dinner.length, 1, 'ea.eventLookup.dinner.length');
+        assert.strictEqual(ea.eventLookup.dinner[0], callback, 'ea.eventLookup.dinner[0]');
       });
 
       it('adds multiple callbacks the same event', function () {
@@ -44,9 +44,9 @@ describe('event aggregator', function () {
         const callback2 = function () { return; };
         ea.subscribe('dinner', callback2);
 
-        assert.strictEqual(ea.eventLookup.dinner.length, 2, `ea.eventLookup.dinner.length`);
-        assert.strictEqual(ea.eventLookup.dinner[0], callback, `ea.eventLookup.dinner[0]`);
-        assert.strictEqual(ea.eventLookup.dinner[1], callback2, `ea.eventLookup.dinner[1]`);
+        assert.strictEqual(ea.eventLookup.dinner.length, 2, 'ea.eventLookup.dinner.length');
+        assert.strictEqual(ea.eventLookup.dinner[0], callback, 'ea.eventLookup.dinner[0]');
+        assert.strictEqual(ea.eventLookup.dinner[1], callback2, 'ea.eventLookup.dinner[1]');
       });
 
       it('removes the callback after execution', function () {
@@ -58,17 +58,17 @@ describe('event aggregator', function () {
         const callback2 = function () { return; };
         const subscription2 = ea.subscribe('dinner', callback2);
 
-        assert.strictEqual(ea.eventLookup.dinner.length, 2, `ea.eventLookup.dinner.length`);
-        assert.strictEqual(ea.eventLookup.dinner[0], callback, `ea.eventLookup.dinner[0]`);
-        assert.strictEqual(ea.eventLookup.dinner[1], callback2, `ea.eventLookup.dinner[1]`);
+        assert.strictEqual(ea.eventLookup.dinner.length, 2, 'ea.eventLookup.dinner.length');
+        assert.strictEqual(ea.eventLookup.dinner[0], callback, 'ea.eventLookup.dinner[0]');
+        assert.strictEqual(ea.eventLookup.dinner[1], callback2, 'ea.eventLookup.dinner[1]');
 
         subscription.dispose();
 
-        assert.strictEqual(ea.eventLookup.dinner.length, 1, `ea.eventLookup.dinner.length`);
-        assert.strictEqual(ea.eventLookup.dinner[0], callback2, `ea.eventLookup.dinner[0]`);
+        assert.strictEqual(ea.eventLookup.dinner.length, 1, 'ea.eventLookup.dinner.length');
+        assert.strictEqual(ea.eventLookup.dinner[0], callback2, 'ea.eventLookup.dinner[0]');
 
         subscription2.dispose();
-        assert.strictEqual(ea.eventLookup.dinner.length, 0, `ea.eventLookup.dinner.length`);
+        assert.strictEqual(ea.eventLookup.dinner.length, 0, 'ea.eventLookup.dinner.length');
       });
 
       it('will respond to an event any time it is published', function () {
@@ -76,15 +76,15 @@ describe('event aggregator', function () {
         const callback = function () { return; };
         ea.subscribe('dinner', callback);
 
-        assert.strictEqual(ea.eventLookup.dinner.length, 1, `ea.eventLookup.dinner.length`);
-        assert.strictEqual(ea.eventLookup.dinner[0], callback, `ea.eventLookup.dinner[0]`);
+        assert.strictEqual(ea.eventLookup.dinner.length, 1, 'ea.eventLookup.dinner.length');
+        assert.strictEqual(ea.eventLookup.dinner[0], callback, 'ea.eventLookup.dinner[0]');
 
         ea.publish('dinner');
         ea.publish('dinner');
         ea.publish('dinner');
 
-        assert.strictEqual(ea.eventLookup.dinner.length, 1, `ea.eventLookup.dinner.length`);
-        assert.strictEqual(ea.eventLookup.dinner[0], callback, `ea.eventLookup.dinner[0]`);
+        assert.strictEqual(ea.eventLookup.dinner.length, 1, 'ea.eventLookup.dinner.length');
+        assert.strictEqual(ea.eventLookup.dinner[0], callback, 'ea.eventLookup.dinner[0]');
       });
 
       it('will pass published data to the callback function', function () {
@@ -93,11 +93,11 @@ describe('event aggregator', function () {
         const callback = function(d) { data = d; };
         ea.subscribe('dinner', callback);
 
-        assert.strictEqual(ea.eventLookup.dinner.length, 1, `ea.eventLookup.dinner.length`);
-        assert.strictEqual(ea.eventLookup.dinner[0], callback, `ea.eventLookup.dinner[0]`);
+        assert.strictEqual(ea.eventLookup.dinner.length, 1, 'ea.eventLookup.dinner.length');
+        assert.strictEqual(ea.eventLookup.dinner[0], callback, 'ea.eventLookup.dinner[0]');
 
         ea.publish('dinner', { foo: 'bar' });
-        assert.strictEqual(data.foo, 'bar', `data.foo`);
+        assert.strictEqual(data.foo, 'bar', 'data.foo');
       });
 
     });
@@ -116,7 +116,7 @@ describe('event aggregator', function () {
 
         ea.publish(new AnotherDinnerEvent(''));
 
-        assert.strictEqual(data, 1, `data`);
+        assert.strictEqual(data, 1, 'data');
       });
 
       it('adds handler with messageType and callback to the messageHandlers array', function () {
@@ -124,9 +124,9 @@ describe('event aggregator', function () {
         const callback = function () { return; };
         ea.subscribe(DinnerEvent, callback);
 
-        assert.strictEqual(ea.messageHandlers.length, 1, `ea.messageHandlers.length`);
-        assert.strictEqual(ea.messageHandlers[0].messageType, DinnerEvent, `ea.messageHandlers[0].messageType`);
-        assert.strictEqual(ea.messageHandlers[0].callback, callback, `ea.messageHandlers[0].callback`);
+        assert.strictEqual(ea.messageHandlers.length, 1, 'ea.messageHandlers.length');
+        assert.strictEqual(ea.messageHandlers[0].messageType, DinnerEvent, 'ea.messageHandlers[0].messageType');
+        assert.strictEqual(ea.messageHandlers[0].callback, callback, 'ea.messageHandlers[0].callback');
       });
 
       it('removes the handler after execution', function () {
@@ -134,9 +134,9 @@ describe('event aggregator', function () {
         const callback = function () { return; };
         const subscription = ea.subscribe(DinnerEvent, callback);
 
-        assert.strictEqual(ea.messageHandlers.length, 1, `ea.messageHandlers.length`);
+        assert.strictEqual(ea.messageHandlers.length, 1, 'ea.messageHandlers.length');
         subscription.dispose();
-        assert.strictEqual(ea.messageHandlers.length, 0, `ea.messageHandlers.length`);
+        assert.strictEqual(ea.messageHandlers.length, 0, 'ea.messageHandlers.length');
       });
 
     });
@@ -162,9 +162,9 @@ describe('event aggregator', function () {
         const callback = function () { return; };
         ea.subscribeOnce('dinner', callback);
 
-        assert.strictEqual(ea.eventLookup.dinner.length, 1, `ea.eventLookup.dinner.length`);
-        assert.strictEqual(ea.eventLookup.dinner[0] === callback, false, `ea.eventLookup.dinner[0] === callback`);
-        assert.strictEqual(typeof ea.eventLookup.dinner[0] === 'function', true, `typeof ea.eventLookup.dinner[0] === 'function'`);
+        assert.strictEqual(ea.eventLookup.dinner.length, 1, 'ea.eventLookup.dinner.length');
+        assert.strictEqual(ea.eventLookup.dinner[0] === callback, false, 'ea.eventLookup.dinner[0] === callback');
+        assert.strictEqual(typeof ea.eventLookup.dinner[0] === 'function', true, 'typeof ea.eventLookup.dinner[0] === \'function\'');
       });
 
       it('adds multiple callbacks the same event', function () {
@@ -175,11 +175,11 @@ describe('event aggregator', function () {
         const callback2 = function () { return; };
         ea.subscribeOnce('dinner', callback2);
 
-        assert.strictEqual(ea.eventLookup.dinner.length, 2, `ea.eventLookup.dinner.length`);
-        assert.strictEqual(ea.eventLookup.dinner[0] === callback, false, `ea.eventLookup.dinner[0] === callback`);
-        assert.strictEqual(typeof ea.eventLookup.dinner[0] === 'function', true, `typeof ea.eventLookup.dinner[0] === 'function'`);
-        assert.strictEqual(ea.eventLookup.dinner[1] === callback, false, `ea.eventLookup.dinner[1] === callback`);
-        assert.strictEqual(typeof ea.eventLookup.dinner[1] === 'function', true, `typeof ea.eventLookup.dinner[1] === 'function'`);
+        assert.strictEqual(ea.eventLookup.dinner.length, 2, 'ea.eventLookup.dinner.length');
+        assert.strictEqual(ea.eventLookup.dinner[0] === callback, false, 'ea.eventLookup.dinner[0] === callback');
+        assert.strictEqual(typeof ea.eventLookup.dinner[0] === 'function', true, 'typeof ea.eventLookup.dinner[0] === \'function\'');
+        assert.strictEqual(ea.eventLookup.dinner[1] === callback, false, 'ea.eventLookup.dinner[1] === callback');
+        assert.strictEqual(typeof ea.eventLookup.dinner[1] === 'function', true, 'typeof ea.eventLookup.dinner[1] === \'function\'');
       });
 
       it('removes the callback after execution', function () {
@@ -190,19 +190,19 @@ describe('event aggregator', function () {
         const callback2 = function () { return; };
         const subscription2 = ea.subscribeOnce('dinner', callback2);
 
-        assert.strictEqual(ea.eventLookup.dinner.length, 2, `ea.eventLookup.dinner.length`);
-        assert.strictEqual(ea.eventLookup.dinner[0] === callback, false, `ea.eventLookup.dinner[0] === callback`);
-        assert.strictEqual(typeof ea.eventLookup.dinner[0] === 'function', true, `typeof ea.eventLookup.dinner[0] === 'function'`);
-        assert.strictEqual(ea.eventLookup.dinner[1] === callback2, false, `ea.eventLookup.dinner[1] === callback2`);
-        assert.strictEqual(typeof ea.eventLookup.dinner[1] === 'function', true, `typeof ea.eventLookup.dinner[1] === 'function'`);
+        assert.strictEqual(ea.eventLookup.dinner.length, 2, 'ea.eventLookup.dinner.length');
+        assert.strictEqual(ea.eventLookup.dinner[0] === callback, false, 'ea.eventLookup.dinner[0] === callback');
+        assert.strictEqual(typeof ea.eventLookup.dinner[0] === 'function', true, 'typeof ea.eventLookup.dinner[0] === \'function\'');
+        assert.strictEqual(ea.eventLookup.dinner[1] === callback2, false, 'ea.eventLookup.dinner[1] === callback2');
+        assert.strictEqual(typeof ea.eventLookup.dinner[1] === 'function', true, 'typeof ea.eventLookup.dinner[1] === \'function\'');
 
         subscription.dispose();
 
-        assert.strictEqual(ea.eventLookup.dinner.length, 1, `ea.eventLookup.dinner.length`);
-        assert.strictEqual(typeof ea.eventLookup.dinner[0] === 'function', true, `typeof ea.eventLookup.dinner[0] === 'function'`);
+        assert.strictEqual(ea.eventLookup.dinner.length, 1, 'ea.eventLookup.dinner.length');
+        assert.strictEqual(typeof ea.eventLookup.dinner[0] === 'function', true, 'typeof ea.eventLookup.dinner[0] === \'function\'');
 
         subscription2.dispose();
-        assert.strictEqual(ea.eventLookup.dinner.length, 0, `ea.eventLookup.dinner.length`);
+        assert.strictEqual(ea.eventLookup.dinner.length, 0, 'ea.eventLookup.dinner.length');
       });
 
       it('will respond to an event only once', function () {
@@ -212,18 +212,18 @@ describe('event aggregator', function () {
         const callback = function () { data = 'something'; };
         ea.subscribeOnce('dinner', callback);
 
-        assert.strictEqual(ea.eventLookup.dinner.length, 1, `ea.eventLookup.dinner.length`);
-        assert.strictEqual(ea.eventLookup.dinner[0] === callback, false, `ea.eventLookup.dinner[0] === callback`);
-        assert.strictEqual(typeof ea.eventLookup.dinner[0] === 'function', true, `typeof ea.eventLookup.dinner[0] === 'function'`);
+        assert.strictEqual(ea.eventLookup.dinner.length, 1, 'ea.eventLookup.dinner.length');
+        assert.strictEqual(ea.eventLookup.dinner[0] === callback, false, 'ea.eventLookup.dinner[0] === callback');
+        assert.strictEqual(typeof ea.eventLookup.dinner[0] === 'function', true, 'typeof ea.eventLookup.dinner[0] === \'function\'');
 
         ea.publish('dinner');
-        assert.strictEqual(data, 'something', `data`);
+        assert.strictEqual(data, 'something', 'data');
 
-        assert.strictEqual(ea.eventLookup.dinner.length, 0, `ea.eventLookup.dinner.length`);
+        assert.strictEqual(ea.eventLookup.dinner.length, 0, 'ea.eventLookup.dinner.length');
 
         data = null;
         ea.publish('dinner');
-        assert.strictEqual(data, null, `data`);
+        assert.strictEqual(data, null, 'data');
       });
 
       it('will pass published data to the callback function', function () {
@@ -233,16 +233,16 @@ describe('event aggregator', function () {
         const callback = function(d) { data = d; };
         ea.subscribeOnce('dinner', callback);
 
-        assert.strictEqual(ea.eventLookup.dinner.length, 1, `ea.eventLookup.dinner.length`);
-        assert.strictEqual(ea.eventLookup.dinner[0] === callback, false, `ea.eventLookup.dinner[0] === callback`);
-        assert.strictEqual(typeof ea.eventLookup.dinner[0] === 'function', true, `typeof ea.eventLookup.dinner[0] === 'function'`);
+        assert.strictEqual(ea.eventLookup.dinner.length, 1, 'ea.eventLookup.dinner.length');
+        assert.strictEqual(ea.eventLookup.dinner[0] === callback, false, 'ea.eventLookup.dinner[0] === callback');
+        assert.strictEqual(typeof ea.eventLookup.dinner[0] === 'function', true, 'typeof ea.eventLookup.dinner[0] === \'function\'');
 
         ea.publish('dinner', { foo: 'bar' });
-        assert.strictEqual(data.foo, 'bar', `data.foo`);
+        assert.strictEqual(data.foo, 'bar', 'data.foo');
 
         data = null;
         ea.publish('dinner');
-        assert.strictEqual(data, null, `data`);
+        assert.strictEqual(data, null, 'data');
       });
     });
 
@@ -254,10 +254,10 @@ describe('event aggregator', function () {
         const callback = function () { return; };
         ea.subscribeOnce(DinnerEvent, callback);
 
-        assert.strictEqual(ea.messageHandlers.length, 1, `ea.messageHandlers.length`);
-        assert.strictEqual(ea.messageHandlers[0].messageType, DinnerEvent, `ea.messageHandlers[0].messageType`);
-        assert.strictEqual(ea.messageHandlers[0].callback === callback, false, `ea.messageHandlers[0].callback === callback`);
-        assert.strictEqual(typeof ea.messageHandlers[0].callback === 'function', true, `typeof ea.messageHandlers[0].callback === 'function'`);
+        assert.strictEqual(ea.messageHandlers.length, 1, 'ea.messageHandlers.length');
+        assert.strictEqual(ea.messageHandlers[0].messageType, DinnerEvent, 'ea.messageHandlers[0].messageType');
+        assert.strictEqual(ea.messageHandlers[0].callback === callback, false, 'ea.messageHandlers[0].callback === callback');
+        assert.strictEqual(typeof ea.messageHandlers[0].callback === 'function', true, 'typeof ea.messageHandlers[0].callback === \'function\'');
 
       });
 
@@ -266,9 +266,9 @@ describe('event aggregator', function () {
         const callback = function () { return; };
         const subscription = ea.subscribeOnce(DinnerEvent, callback);
 
-        assert.strictEqual(ea.messageHandlers.length, 1, `ea.messageHandlers.length`);
+        assert.strictEqual(ea.messageHandlers.length, 1, 'ea.messageHandlers.length');
         subscription.dispose();
-        assert.strictEqual(ea.messageHandlers.length, 0, `ea.messageHandlers.length`);
+        assert.strictEqual(ea.messageHandlers.length, 0, 'ea.messageHandlers.length');
       });
 
     });
@@ -297,8 +297,8 @@ describe('event aggregator', function () {
         const data = {foo: 'bar'};
         ea.publish('dinner', data);
 
-        assert.strictEqual(someData, data, `someData`);
-        assert.strictEqual(someData2, data, `someData2`);
+        assert.strictEqual(someData, data, 'someData');
+        assert.strictEqual(someData2, data, 'someData2');
       });
 
       it('does not call the callback functions if subscriber does not exist', function () {
@@ -337,7 +337,7 @@ describe('event aggregator', function () {
 
         ea.publish('dinner', data);
 
-        assert.strictEqual(someMessage, data, `someMessage`);
+        assert.strictEqual(someMessage, data, 'someMessage');
       });
 
     });
@@ -357,12 +357,12 @@ describe('event aggregator', function () {
         const americanDinner = new DinnerEvent('Cajun chicken');
         ea.publish(americanDinner);
 
-        assert.strictEqual(someMessage.message, 'Cajun chicken', `someMessage.message`);
+        assert.strictEqual(someMessage.message, 'Cajun chicken', 'someMessage.message');
 
         const swedishDinner = new DinnerEvent('Meatballs');
         ea.publish(swedishDinner);
 
-        assert.strictEqual(someMessage.message, 'Meatballs', `someMessage.message`);
+        assert.strictEqual(someMessage.message, 'Meatballs', 'someMessage.message');
       });
 
       it('does not call the callback funtions if message is not an instance of the messageType', function () {
@@ -400,7 +400,7 @@ describe('event aggregator', function () {
 
         ea.publish(new DinnerEvent(data));
 
-        assert.strictEqual(someMessage.message, data, `someMessage.message`);
+        assert.strictEqual(someMessage.message, data, 'someMessage.message');
       });
 
     });

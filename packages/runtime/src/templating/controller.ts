@@ -191,11 +191,11 @@ export class Controller<
     if (viewModel == void 0) {
       if (viewCache == void 0) {
         // TODO: create error code
-        throw new Error(`No IViewCache was provided when rendering a synthetic view.`);
+        throw new Error('No IViewCache was provided when rendering a synthetic view.');
       }
       if (lifecycle == void 0) {
         // TODO: create error code
-        throw new Error(`No ILifecycle was provided when rendering a synthetic view.`);
+        throw new Error('No ILifecycle was provided when rendering a synthetic view.');
       }
       this.lifecycle = lifecycle;
 
@@ -218,7 +218,7 @@ export class Controller<
     } else {
       if (parentContext == void 0) {
         // TODO: create error code
-        throw new Error(`No parentContext was provided when rendering a custom element or attribute.`);
+        throw new Error('No parentContext was provided when rendering a custom element or attribute.');
       }
       this.lifecycle = parentContext.get(ILifecycle);
 
@@ -227,7 +227,7 @@ export class Controller<
       const Type = viewModel.constructor;
       if (!hasDescription(Type)) {
         // TODO: create error code
-        throw new Error(`The provided viewModel does not have a (valid) description.`);
+        throw new Error('The provided viewModel does not have a (valid) description.');
       }
       const { description } = Type;
       flags |= description.strategy;
@@ -242,7 +242,7 @@ export class Controller<
         case 'custom-element':
           if (host == void 0) {
             // TODO: create error code
-            throw new Error(`No host element was provided when rendering a custom element.`);
+            throw new Error('No host element was provided when rendering a custom element.');
           }
 
           this.vmKind = ViewModelKind.customElement;
@@ -605,7 +605,7 @@ export class Controller<
 
   private bindSynthetic(flags: LifecycleFlags, scope?: IScope): ILifecycleTask {
     if (scope == void 0) {
-      throw new Error(`Scope is null or undefined`); // TODO: create error code
+      throw new Error('Scope is null or undefined'); // TODO: create error code
     }
 
     (scope as Writable<IScope>).scopeParts = mergeDistinct(scope.scopeParts, this.scopeParts, false);

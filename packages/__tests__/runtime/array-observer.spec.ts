@@ -56,7 +56,7 @@ export class SynchronizingCollectionSubscriber implements ICollectionSubscriber 
   }
 }
 
-describe(`ArrayObserver`, function () {
+describe('ArrayObserver', function () {
   let sut: ArrayObserver;
 
   before(function () {
@@ -168,7 +168,7 @@ describe(`ArrayObserver`, function () {
     });
   });
 
-  describe(`observePush`, function () {
+  describe('observePush', function () {
     const initArr = [[], [1], [1, 2]];
     const itemsArr = [undefined, [], [1], [1, 2]];
     const repeatArr = [1, 2];
@@ -226,7 +226,7 @@ describe(`ArrayObserver`, function () {
     )
   });
 
-  describe(`observeUnshift`, function () {
+  describe('observeUnshift', function () {
     const initArr = [[], [1], [1, 2]];
     const itemsArr = [undefined, [], [1], [1, 2]];
     const repeatArr = [1, 2];
@@ -283,7 +283,7 @@ describe(`ArrayObserver`, function () {
     );
   });
 
-  describe(`observePop`, function () {
+  describe('observePop', function () {
     const initArr = [[], [1], [1, 2]];
     const repeatArr = [1, 2, 3, 4];
 
@@ -303,7 +303,7 @@ describe(`ArrayObserver`, function () {
           while (i < repeat) {
             expectedResult = expectedArr.pop();
             actualResult = arr.pop();
-            assert.strictEqual(actualResult, expectedResult, `actualResult`);
+            assert.strictEqual(actualResult, expectedResult, 'actualResult');
             assert.deepStrictEqual(arr, expectedArr);
             i++;
           }
@@ -325,7 +325,7 @@ describe(`ArrayObserver`, function () {
     );
   });
 
-  describe(`observeShift`, function () {
+  describe('observeShift', function () {
     const initArr = [[], [1], [1, 2]];
     const repeatArr = [1, 2, 3, 4];
 
@@ -345,7 +345,7 @@ describe(`ArrayObserver`, function () {
           while (i < repeat) {
             expectedResult = expectedArr.shift();
             actualResult = arr.shift();
-            assert.strictEqual(actualResult, expectedResult, `actualResult`);
+            assert.strictEqual(actualResult, expectedResult, 'actualResult');
             assert.deepStrictEqual(arr, expectedArr);
             i++;
           }
@@ -367,7 +367,7 @@ describe(`ArrayObserver`, function () {
     );
   });
 
-  describe(`observeSplice`, function () {
+  describe('observeSplice', function () {
     const initArr = [[], [1], [1, 2]];
     const startArr = [undefined, -1, 0, 1, 2];
     const deleteCountArr = [undefined, -1, 0, 1, 2, 3];
@@ -442,7 +442,7 @@ describe(`ArrayObserver`, function () {
     );
   });
 
-  describe(`observeReverse`, function () {
+  describe('observeReverse', function () {
     const initArr = [[], [1], [1, 2], [1, 2, 3], [1, 2, 3, 4]];
     const repeatArr = [1, 2];
 
@@ -484,7 +484,7 @@ describe(`ArrayObserver`, function () {
     );
   });
 
-  describe(`observeSort`, function () {
+  describe('observeSort', function () {
     const arraySizes = [0, 1, 2, 3, 5, 10, 500, 2500];
     const types = ['undefined', 'null', 'boolean', 'string', 'number', 'object', 'mixed'];
     const compareFns = [
@@ -517,8 +517,8 @@ describe(`ArrayObserver`, function () {
               sut = new ArrayObserver(LF.none, DI.createContainer().get(ILifecycle), arr);
               const expectedResult = expectedArr.sort(compareFn);
               const actualResult = arr.sort(compareFn);
-              assert.strictEqual(expectedResult, expectedArr, `expectedResult`);
-              assert.strictEqual(actualResult, arr, `actualResult`);
+              assert.strictEqual(expectedResult, expectedArr, 'expectedResult');
+              assert.strictEqual(actualResult, arr, 'actualResult');
               try {
                 assert.deepStrictEqual(arr, expectedArr);
               } catch (e) {

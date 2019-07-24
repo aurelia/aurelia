@@ -31,7 +31,7 @@ import {
   assert,
 } from '@aurelia/testing';
 
-describe(`If/Else`, function () {
+describe('If/Else', function () {
   function runBindLifecycle(lifecycle: ILifecycle, sut: If<AuNode>, flags: LifecycleFlags, scope: IScope): void {
     lifecycle.bound.begin();
     sut.$controller.bind(flags, scope);

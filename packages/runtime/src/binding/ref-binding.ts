@@ -46,10 +46,8 @@ export class RefBinding implements IBinding {
   }
 
   public $bind(flags: LifecycleFlags, scope: IScope, part?: string): void {
-    if (Tracer.enabled) { Tracer.enter('Ref', '$bind', slice.call(arguments)); }
     if (this.$state & State.isBound) {
       if (this.$scope === scope) {
-        if (Tracer.enabled) { Tracer.leave(); }
         return;
       }
 
@@ -70,13 +68,10 @@ export class RefBinding implements IBinding {
     // add isBound flag and remove isBinding flag
     this.$state |= State.isBound;
     this.$state &= ~State.isBinding;
-    if (Tracer.enabled) { Tracer.leave(); }
   }
 
   public $unbind(flags: LifecycleFlags): void {
-    if (Tracer.enabled) { Tracer.enter('Ref', '$unbind', slice.call(arguments)); }
     if (!(this.$state & State.isBound)) {
-      if (Tracer.enabled) { Tracer.leave(); }
       return;
     }
     // add isUnbinding flag
@@ -95,7 +90,6 @@ export class RefBinding implements IBinding {
 
     // remove isBound and isUnbinding flags
     this.$state &= ~(State.isBound | State.isUnbinding);
-    if (Tracer.enabled) { Tracer.leave(); }
   }
 
   public observeProperty(flags: LifecycleFlags, obj: IIndexable, propertyName: string): void {

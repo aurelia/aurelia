@@ -135,7 +135,6 @@ export class SetObserver {
   public inBatch: boolean;
 
   constructor(flags: LifecycleFlags, lifecycle: ILifecycle, observedSet: IObservedSet) {
-    if (Tracer.enabled) { Tracer.enter('SetObserver', 'constructor', slice.call(arguments)); }
 
     if (!enableSetObservationCalled) {
       enableSetObservationCalled = true;
@@ -152,7 +151,6 @@ export class SetObserver {
 
     observedSet.$observer = this;
 
-    if (Tracer.enabled) { Tracer.leave(); }
   }
 
   public notify(): void {

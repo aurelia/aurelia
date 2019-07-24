@@ -26,7 +26,6 @@ export const BasicConfiguration = {
    * Apply this configuration to the provided container.
    */
   register(container: IContainer): IContainer {
-    if (Profiler.enabled) { enter(); }
     RuntimeHtmlBrowserBasicConfiguration
       .register(container)
       .register(
@@ -36,16 +35,13 @@ export const BasicConfiguration = {
         ...JitHtmlDefaultBindingLanguage,
         ...JitHtmlDefaultComponents
       );
-    if (Profiler.enabled) { leave(); }
     return container;
   },
   /**
    * Create a new container with this configuration applied to it.
    */
   createContainer(): IContainer {
-    if (Profiler.enabled) { enter(); }
     const container = this.register(DI.createContainer());
-    if (Profiler.enabled) { leave(); }
     return container;
   }
 };

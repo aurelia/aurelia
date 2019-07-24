@@ -89,8 +89,6 @@ export class TemplateBinder {
   }
 
   public bind(node: HTMLTemplateElement): PlainElementSymbol {
-    if (Tracer.enabled) { Tracer.enter('TemplateBinder', 'bind', slice.call(arguments)); }
-    if (Profiler.enabled) { enter(); }
 
     const surrogateSave = this.surrogate;
     const parentManifestRootSave = this.parentManifestRoot;
@@ -106,7 +104,6 @@ export class TemplateBinder {
       const attrSyntax = this.attrParser.parse(attr.name, attr.value);
 
       if (invalidSurrogateAttribute[attrSyntax.target as keyof typeof invalidSurrogateAttribute] === true) {
-        if (Profiler.enabled) { leave(); }
         throw new Error(`Invalid surrogate attribute: ${attrSyntax.target}`);
         // TODO: use reporter
       }
@@ -114,7 +111,6 @@ export class TemplateBinder {
       if (attrInfo == null) {
         this.bindPlainAttribute(attrSyntax, attr);
       } else if (attrInfo.isTemplateController) {
-        if (Profiler.enabled) { leave(); }
         throw new Error('Cannot have template controller on surrogate element.');
         // TODO: use reporter
       } else {
@@ -130,19 +126,15 @@ export class TemplateBinder {
     this.manifestRoot = manifestRootSave;
     this.manifest = manifestSave;
 
-    if (Profiler.enabled) { leave(); }
-    if (Tracer.enabled) { Tracer.leave(); }
     return manifest;
   }
 
   private bindManifest(parentManifest: IElementSymbol, node: HTMLTemplateElement | HTMLElement): void {
-    if (Tracer.enabled) { Tracer.enter('TemplateBinder', 'bindManifest', slice.call(arguments)); }
 
     switch (node.nodeName) {
       case 'LET':
         // let cannot have children and has some different processing rules, so return early
         this.bindLetElement(parentManifest, node);
-        if (Tracer.enabled) { Tracer.leave(); }
         return;
       case 'SLOT':
         this.surrogate!.hasSlots = true;
@@ -194,7 +186,6 @@ export class TemplateBinder {
     this.manifest = manifestSave;
     this.partName = partNameSave;
 
-    if (Tracer.enabled) { Tracer.leave(); }
   }
 
   private bindLetElement(parentManifest: IElementSymbol, node: HTMLElement): void {
@@ -224,7 +215,6 @@ export class TemplateBinder {
   }
 
   private bindAttributes(node: HTMLTemplateElement | HTMLElement, parentManifest: IElementSymbol): void {
-    if (Tracer.enabled) { Tracer.enter('TemplateBinder', 'bindAttributes', slice.call(arguments)); }
 
     const { parentManifestRoot, manifestRoot, manifest } = this;
     // This is the top-level symbol for the current depth.
@@ -386,11 +376,9 @@ export class TemplateBinder {
       processReplacePart(this.dom, replacePart, manifestProxy);
     }
 
-    if (Tracer.enabled) { Tracer.leave(); }
   }
 
   private bindChildNodes(node: HTMLTemplateElement | HTMLElement): void {
-    if (Tracer.enabled) { Tracer.enter('TemplateBinder', 'bindChildNodes', slice.call(arguments)); }
 
     let childNode: ChildNode;
     if (node.nodeName === 'TEMPLATE') {
@@ -422,11 +410,9 @@ export class TemplateBinder {
       }
     }
 
-    if (Tracer.enabled) { Tracer.leave(); }
   }
 
   private bindText(node: Text): ChildNode {
-    if (Tracer.enabled) { Tracer.enter('TemplateBinder', 'bindText', slice.call(arguments)); }
     const interpolation = this.exprParser.parse(node.wholeText, BindingType.Interpolation);
     if (interpolation != null) {
       const symbol = new TextSymbol(this.dom, node, interpolation);
@@ -436,12 +422,10 @@ export class TemplateBinder {
     while (node.nextSibling != null && node.nextSibling.nodeType === NodeType.Text) {
       node = node.nextSibling as Text;
     }
-    if (Tracer.enabled) { Tracer.leave(); }
     return node;
   }
 
   private declareTemplateController(attrSyntax: AttrSyntax, attrInfo: AttrInfo): TemplateControllerSymbol {
-    if (Tracer.enabled) { Tracer.enter('TemplateBinder', 'declareTemplateController', slice.call(arguments)); }
 
     let symbol: TemplateControllerSymbol;
     // dynamicOptions logic here is similar to (and explained in) bindCustomAttribute
@@ -456,12 +440,10 @@ export class TemplateBinder {
       symbol.bindings.push(new BindingSymbol(command, attrInfo.bindable, expr, attrSyntax.rawValue, attrSyntax.target));
     }
 
-    if (Tracer.enabled) { Tracer.leave(); }
     return symbol;
   }
 
   private bindCustomAttribute(attrSyntax: AttrSyntax, attrInfo: AttrInfo): void {
-    if (Tracer.enabled) { Tracer.enter('TemplateBinder', 'bindCustomAttribute', slice.call(arguments)); }
 
     const command = this.resources.getBindingCommand(attrSyntax);
     let symbol: CustomAttributeSymbol;
@@ -481,11 +463,9 @@ export class TemplateBinder {
     this.manifest!.attributes.push(symbol);
     this.manifest!.isTarget = true;
 
-    if (Tracer.enabled) { Tracer.leave(); }
   }
 
   private bindMultiAttribute(symbol: IResourceAttributeSymbol, attrInfo: AttrInfo, value: string): void {
-    if (Tracer.enabled) { Tracer.enter('TemplateBinder', 'bindMultiAttribute', slice.call(arguments)); }
 
     const attributes = parseMultiAttributeBinding(value);
     let attr: IAttrLike;
@@ -504,11 +484,9 @@ export class TemplateBinder {
       symbol.bindings.push(new BindingSymbol(command, bindable, expr, attrSyntax.rawValue, attrSyntax.target));
     }
 
-    if (Tracer.enabled) { Tracer.leave(); }
   }
 
   private bindPlainAttribute(attrSyntax: AttrSyntax, attr: Attr): void {
-    if (Tracer.enabled) { Tracer.enter('TemplateBinder', 'bindPlainAttribute', slice.call(arguments)); }
 
     const command = this.resources.getBindingCommand(attrSyntax);
     const bindingType = command == null ? BindingType.Interpolation : command.bindingType;
@@ -522,7 +500,6 @@ export class TemplateBinder {
         // Default to the name of the attr for empty binding commands
         expr = this.exprParser.parse(camelCase(attrSyntax.target), bindingType);
       } else {
-        if (Tracer.enabled) { Tracer.leave(); }
         return;
       }
     } else {
@@ -556,22 +533,18 @@ export class TemplateBinder {
       attr.value = '';
     }
 
-    if (Tracer.enabled) { Tracer.leave(); }
   }
 
   private declareReplacePart(node: HTMLTemplateElement | HTMLElement): ReplacePartSymbol {
-    if (Tracer.enabled) { Tracer.enter('TemplateBinder', 'declareReplacePart', slice.call(arguments)); }
 
     const name = node.getAttribute('replace-part');
     if (name == null) {
-      if (Tracer.enabled) { Tracer.leave(); }
       return null!;
     }
     node.removeAttribute('replace-part');
 
     const symbol = new ReplacePartSymbol(name);
 
-    if (Tracer.enabled) { Tracer.leave(); }
     return symbol;
   }
 }

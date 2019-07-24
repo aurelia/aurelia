@@ -46,7 +46,6 @@ export class CallBinding {
   }
 
   public callSource(args: object): unknown {
-    if (Tracer.enabled) { Tracer.enter('CallBinding', 'callSource', slice.call(arguments)); }
     const overrideContext = this.$scope!.overrideContext;
     Object.assign(overrideContext, args);
     const result = this.sourceExpression.evaluate(LifecycleFlags.mustEvaluate, this.$scope!, this.locator, this.part);
@@ -55,15 +54,12 @@ export class CallBinding {
       Reflect.deleteProperty(overrideContext, prop);
     }
 
-    if (Tracer.enabled) { Tracer.leave(); }
     return result;
   }
 
   public $bind(flags: LifecycleFlags, scope: IScope, part?: string): void {
-    if (Tracer.enabled) { Tracer.enter('CallBinding', '$bind', slice.call(arguments)); }
     if (this.$state & State.isBound) {
       if (this.$scope === scope) {
-        if (Tracer.enabled) { Tracer.leave(); }
         return;
       }
 
@@ -84,13 +80,10 @@ export class CallBinding {
     // add isBound flag and remove isBinding flag
     this.$state |= State.isBound;
     this.$state &= ~State.isBinding;
-    if (Tracer.enabled) { Tracer.leave(); }
   }
 
   public $unbind(flags: LifecycleFlags): void {
-    if (Tracer.enabled) { Tracer.enter('CallBinding', '$unbind', slice.call(arguments)); }
     if (!(this.$state & State.isBound)) {
-      if (Tracer.enabled) { Tracer.leave(); }
       return;
     }
     // add isUnbinding flag
@@ -105,7 +98,6 @@ export class CallBinding {
 
     // remove isBound and isUnbinding flags
     this.$state &= ~(State.isBound | State.isUnbinding);
-    if (Tracer.enabled) { Tracer.leave(); }
   }
 
   public observeProperty(flags: LifecycleFlags, obj: object, propertyName: string): void {

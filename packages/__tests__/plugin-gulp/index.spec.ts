@@ -5,10 +5,17 @@ import * as v from 'vinyl';
 const Vinyl = ((v as any).default || v) as typeof import('vinyl');
 type Vinyl = typeof Vinyl.prototype;
 
+function preprocess(filePath: string, contents: string, ts: boolean = false) {
+  return {
+    code: (ts ? 'ts ' : '') + 'processed ' + filePath + ' ' + contents,
+    map: { version: 3 }
+  };
+}
+
 describe('plugin-gulp', function () {
   it('complains about stream mode', function (done) {
     const files: Vinyl[] = [];
-    const t = plugin();
+    const t = plugin.call(undefined, false, preprocess);
     t.pipe(new Writable({
       objectMode: true,
       write(file: Vinyl, enc, cb) {
@@ -31,7 +38,7 @@ describe('plugin-gulp', function () {
   it('ignores non js/ts/html file', function (done) {
     const css = '.a { color: red; }';
     const files: Vinyl[] = [];
-    const t = plugin();
+    const t = plugin.call(undefined, false, preprocess);
     t.pipe(new Writable({
       objectMode: true,
       write(file: Vinyl, enc, cb) {
@@ -55,23 +62,11 @@ describe('plugin-gulp', function () {
   });
 
   it('transforms html file', function(done) {
-    const html = '<template></template>';
-    const expected = `import { CustomElement } from '@aurelia/runtime';
-export const name = "foo-bar";
-export const template = "<template></template>";
-export default template;
-export const dependencies = [  ];
-let _e;
-export function getHTMLOnlyElement() {
-  if (!_e) {
-    _e = CustomElement.define({ name, template, dependencies });
-  }
-  return _e;
-}
-`;
+    const content = 'content';
+    const expected = 'processed src/foo-bar.html content';
 
     const files: Vinyl[] = [];
-    const t = plugin();
+    const t = plugin.call(undefined, false, preprocess);
     t.pipe(new Writable({
       objectMode: true,
       write(file: Vinyl, enc, cb) {
@@ -82,36 +77,25 @@ export function getHTMLOnlyElement() {
     t.on('error', done);
     t.on('end', () => {
       assert.equal(files.length, 1);
-      assert.equal(files[0].relative, 'test/foo-bar.html.js');
+      assert.equal(files[0].relative, 'src/foo-bar.html.js');
       assert.equal(files[0].contents.toString(), expected);
       assert.equal(files[0].sourceMap, undefined);
       done();
     });
 
     t.end(new Vinyl({
-      path: 'test/foo-bar.html',
-      contents: Buffer.from(html)
+      path: 'src/foo-bar.html',
+      contents: Buffer.from(content)
     }));
   });
 
   it('transforms html file in ts mode', function(done) {
-    const html = '<template></template>';
-    const expected = `import { CustomElement } from '@aurelia/runtime';
-export const name = "foo-bar";
-export const template = "<template></template>";
-export default template;
-export const dependencies: any[] = [  ];
-let _e: any;
-export function getHTMLOnlyElement(): any {
-  if (!_e) {
-    _e = CustomElement.define({ name, template, dependencies });
-  }
-  return _e;
-}
-`;
+    const content = 'content';
+    const expected = 'ts processed src/foo-bar.html content';
+
 
     const files: Vinyl[] = [];
-    const t = plugin(true);
+    const t = plugin.call(undefined, true, preprocess);
     t.pipe(new Writable({
       objectMode: true,
       write(file: Vinyl, enc, cb) {
@@ -122,23 +106,25 @@ export function getHTMLOnlyElement(): any {
     t.on('error', done);
     t.on('end', () => {
       assert.equal(files.length, 1);
-      assert.equal(files[0].relative, 'test/foo-bar.html.js');
+      assert.equal(files[0].relative, 'src/foo-bar.html.js');
       assert.equal(files[0].contents.toString(), expected);
       assert.equal(files[0].sourceMap.version, 3);
       done();
     });
 
     t.end(new Vinyl({
-      path: 'test/foo-bar.html',
-      contents: Buffer.from(html),
+      path: 'src/foo-bar.html',
+      contents: Buffer.from(content),
       sourceMap: {}
     }));
   });
 
-  it('does not touch js/ts file without html pair', function(done) {
-    const js = `export class Foo {}\n`;
+  it('transforms js file', function(done) {
+    const content = 'content';
+    const expected = 'processed src/foo-bar.js content';
+
     const files: Vinyl[] = [];
-    const t = plugin(false, () => false);
+    const t = plugin.call(undefined, false, preprocess);
     t.pipe(new Writable({
       objectMode: true,
       write(file: Vinyl, enc, cb) {
@@ -149,152 +135,24 @@ export function getHTMLOnlyElement(): any {
     t.on('error', done);
     t.on('end', () => {
       assert.equal(files.length, 1);
-      assert.equal(files[0].relative, 'test/foo.js');
-      assert.equal(files[0].contents.toString(), js);
-      assert.equal(files[0].sourceMap, undefined);
-      done();
-    });
-
-    t.end(new Vinyl({
-      path: 'test/foo.js',
-      contents: Buffer.from(js)
-    }));
-  });
-
-  it('does not touch js/ts file with html pair but wrong resource name', function(done) {
-    const js = `export class Foo {}\n`;
-    const files: Vinyl[] = [];
-    const t = plugin(true, () => true);
-    t.pipe(new Writable({
-      objectMode: true,
-      write(file: Vinyl, enc, cb) {
-        files.push(file);
-        cb();
-      }
-    }));
-    t.on('error', done);
-    t.on('end', () => {
-      assert.equal(files.length, 1);
-      assert.equal(files[0].relative, 'test/foo-bar.js');
-      assert.equal(files[0].contents.toString(), js);
-      assert.equal(files[0].sourceMap, undefined);
-      done();
-    });
-
-    t.end(new Vinyl({
-      path: 'test/foo-bar.js',
-      contents: Buffer.from(js)
-    }));
-  });
-
-  it('injects customElement decorator', function(done) {
-    const js = `export class FooBar {}\n`;
-    const expected = `import * as __fooBarViewDef from './foo-bar.html';
-import { customElement } from '@aurelia/runtime';
-@customElement(__fooBarViewDef)
-export class FooBar {}
-`;
-    const files: Vinyl[] = [];
-    const t = plugin(false, () => true);
-    t.pipe(new Writable({
-      objectMode: true,
-      write(file: Vinyl, enc, cb) {
-        files.push(file);
-        cb();
-      }
-    }));
-    t.on('error', done);
-    t.on('end', () => {
-      assert.equal(files.length, 1);
-      assert.equal(files[0].relative, 'test/foo-bar.js');
+      assert.equal(files[0].relative, 'src/foo-bar.js');
       assert.equal(files[0].contents.toString(), expected);
       assert.equal(files[0].sourceMap, undefined);
       done();
     });
 
     t.end(new Vinyl({
-      path: 'test/foo-bar.js',
-      contents: Buffer.from(js)
+      path: 'src/foo-bar.js',
+      contents: Buffer.from(content)
     }));
   });
 
-  it('injects various decorators when there is implicit custom element', function (done) {
-    const js = `import {Foo} from './foo';
-import { valueConverter } from '@aurelia/runtime';
-import { other } from '@aurelia/jit';
+  it('transforms ts file', function(done) {
+    const content = 'content';
+    const expected = 'processed src/foo-bar.ts content';
 
-export class LeaveMeAlone {}
-
-export class FooBar {}
-
-export class LoremCustomAttribute {
-
-}
-
-@valueConverter('one')
-export class ForOne {
-  toView(value: number): string {
-    return '' + value;
-  }
-}
-
-export class TheSecondValueConverter {
-  toView(value: string): string {
-    return value;
-  }
-}
-
-export class SomeBindingBehavior {
-
-}
-
-export class AbcBindingCommand {
-
-}
-`;
-    const expected = `import * as __fooBarViewDef from './foo-bar.html';
-import {Foo} from './foo';
-import { valueConverter, customElement, customAttribute, bindingBehavior } from '@aurelia/runtime';
-import { other, bindingCommand } from '@aurelia/jit';
-
-export class LeaveMeAlone {}
-
-
-
-@customAttribute('lorem')
-export class LoremCustomAttribute {
-
-}
-
-@valueConverter('one')
-export class ForOne {
-  toView(value: number): string {
-    return '' + value;
-  }
-}
-
-@valueConverter('theSecond')
-export class TheSecondValueConverter {
-  toView(value: string): string {
-    return value;
-  }
-}
-
-@bindingBehavior('some')
-export class SomeBindingBehavior {
-
-}
-
-@bindingCommand('abc')
-export class AbcBindingCommand {
-
-}
-
-@customElement({ ...__fooBarViewDef, dependencies: [ ...__fooBarViewDef.dependencies, LoremCustomAttribute, ForOne, TheSecondValueConverter, SomeBindingBehavior, AbcBindingCommand ] })
-export class FooBar {}
-`;
     const files: Vinyl[] = [];
-    const t = plugin(false, () => true);
+    const t = plugin.call(undefined, false, preprocess);
     t.pipe(new Writable({
       objectMode: true,
       write(file: Vinyl, enc, cb) {
@@ -305,16 +163,15 @@ export class FooBar {}
     t.on('error', done);
     t.on('end', () => {
       assert.equal(files.length, 1);
-      assert.equal(files[0].relative, 'test/foo-bar.ts');
+      assert.equal(files[0].relative, 'src/foo-bar.ts');
       assert.equal(files[0].contents.toString(), expected);
-      assert.equal(files[0].sourceMap.version, 3);
+      assert.equal(files[0].sourceMap, undefined);
       done();
     });
 
     t.end(new Vinyl({
-      path: 'test/foo-bar.ts',
-      contents: Buffer.from(js),
-      sourceMap: {}
+      path: 'src/foo-bar.ts',
+      contents: Buffer.from(content)
     }));
   });
 });

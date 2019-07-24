@@ -4,11 +4,12 @@ import {
   IResolver,
   IServiceLocator,
   Registration,
+  Key,
 } from '@aurelia/kernel';
 
 import { INode } from './dom';
 import { LifecycleFlags } from './flags';
-import { IViewModel, IController } from './lifecycle';
+import { IController, IViewModel } from './lifecycle';
 import {
   ContinuationTask,
   ILifecycleTask,
@@ -27,6 +28,8 @@ export const IActivator = DI.createInterface<IActivator>('IActivator').withDefau
 
 /** @internal */
 export class Activator implements IActivator {
+  public static readonly inject: readonly Key[] = [IStartTaskManager];
+
   constructor(
     private readonly taskManager: IStartTaskManager,
   ) {}

@@ -1,4 +1,3 @@
-import { Tracer, } from '@aurelia/kernel';
 import { hasBind, hasUnbind, } from './ast';
 const slice = Array.prototype.slice;
 export class RefBinding {
@@ -10,14 +9,8 @@ export class RefBinding {
         this.target = target;
     }
     $bind(flags, scope, part) {
-        if (Tracer.enabled) {
-            Tracer.enter('Ref', '$bind', slice.call(arguments));
-        }
         if (this.$state & 4 /* isBound */) {
             if (this.$scope === scope) {
-                if (Tracer.enabled) {
-                    Tracer.leave();
-                }
                 return;
             }
             this.$unbind(flags | 4096 /* fromBind */);
@@ -33,18 +26,9 @@ export class RefBinding {
         // add isBound flag and remove isBinding flag
         this.$state |= 4 /* isBound */;
         this.$state &= ~1 /* isBinding */;
-        if (Tracer.enabled) {
-            Tracer.leave();
-        }
     }
     $unbind(flags) {
-        if (Tracer.enabled) {
-            Tracer.enter('Ref', '$unbind', slice.call(arguments));
-        }
         if (!(this.$state & 4 /* isBound */)) {
-            if (Tracer.enabled) {
-                Tracer.leave();
-            }
             return;
         }
         // add isUnbinding flag
@@ -59,9 +43,6 @@ export class RefBinding {
         this.$scope = void 0;
         // remove isBound and isUnbinding flags
         this.$state &= ~(4 /* isBound */ | 2 /* isUnbinding */);
-        if (Tracer.enabled) {
-            Tracer.leave();
-        }
     }
     observeProperty(flags, obj, propertyName) {
         return;

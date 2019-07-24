@@ -29,24 +29,15 @@
             });
         }
         parse(name, value) {
-            if (kernel_1.Profiler.enabled) {
-                enter();
-            }
             let interpretation = this.cache[name];
             if (interpretation == null) {
                 interpretation = this.cache[name] = this.interpreter.interpret(name);
             }
             const pattern = interpretation.pattern;
             if (pattern == null) {
-                if (kernel_1.Profiler.enabled) {
-                    leave();
-                }
                 return new ast_1.AttrSyntax(name, value, name, null);
             }
             else {
-                if (kernel_1.Profiler.enabled) {
-                    leave();
-                }
                 return this.patterns[pattern][pattern](name, value, interpretation.parts);
             }
         }

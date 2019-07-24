@@ -1,5 +1,4 @@
 import * as tslib_1 from "tslib";
-import { Tracer } from '@aurelia/kernel';
 import { addBinding, BindingMode, ensureExpression, IExpressionParser, instructionRenderer, InterpolationBinding, IObserverLocator, MultiInterpolationBinding, PropertyBinding } from '@aurelia/runtime';
 import { AttributeBinding } from './binding/attribute';
 import { Listener } from './binding/listener';
@@ -13,9 +12,6 @@ class TextBindingRenderer {
         this.observerLocator = observerLocator;
     }
     render(flags, dom, context, renderable, target, instruction) {
-        if (Tracer.enabled) {
-            Tracer.enter('TextBindingRenderer', 'render', slice.call(arguments));
-        }
         const next = target.nextSibling;
         if (dom.isMarker(target)) {
             dom.remove(target);
@@ -29,9 +25,6 @@ class TextBindingRenderer {
             binding = new InterpolationBinding(expr.firstExpression, expr, next, 'textContent', BindingMode.toView, this.observerLocator, context, true);
         }
         addBinding(renderable, binding);
-        if (Tracer.enabled) {
-            Tracer.leave();
-        }
     }
 };
 TextBindingRenderer.inject = [IExpressionParser, IObserverLocator];
@@ -48,15 +41,9 @@ class ListenerBindingRenderer {
         this.eventManager = eventManager;
     }
     render(flags, dom, context, renderable, target, instruction) {
-        if (Tracer.enabled) {
-            Tracer.enter('ListenerBindingRenderer', 'render', slice.call(arguments));
-        }
         const expr = ensureExpression(this.parser, instruction.from, 80 /* IsEventCommand */ | (instruction.strategy + 6 /* DelegationStrategyDelta */));
         const binding = new Listener(dom, instruction.to, instruction.strategy, expr, target, instruction.preventDefault, this.eventManager, context);
         addBinding(renderable, binding);
-        if (Tracer.enabled) {
-            Tracer.leave();
-        }
     }
 };
 ListenerBindingRenderer.inject = [IExpressionParser, IEventManager];
@@ -69,13 +56,7 @@ let SetAttributeRenderer =
 /** @internal */
 class SetAttributeRenderer {
     render(flags, dom, context, renderable, target, instruction) {
-        if (Tracer.enabled) {
-            Tracer.enter('SetAttributeRenderer', 'render', slice.call(arguments));
-        }
         target.setAttribute(instruction.to, instruction.value);
-        if (Tracer.enabled) {
-            Tracer.leave();
-        }
     }
 };
 SetAttributeRenderer = tslib_1.__decorate([
@@ -91,15 +72,9 @@ class StylePropertyBindingRenderer {
         this.observerLocator = observerLocator;
     }
     render(flags, dom, context, renderable, target, instruction) {
-        if (Tracer.enabled) {
-            Tracer.enter('StylePropertyBindingRenderer', 'render', slice.call(arguments));
-        }
         const expr = ensureExpression(this.parser, instruction.from, 48 /* IsPropertyCommand */ | BindingMode.toView);
         const binding = new PropertyBinding(expr, target.style, instruction.to, BindingMode.toView, this.observerLocator, context);
         addBinding(renderable, binding);
-        if (Tracer.enabled) {
-            Tracer.leave();
-        }
     }
 };
 StylePropertyBindingRenderer.inject = [IExpressionParser, IObserverLocator];
@@ -116,15 +91,9 @@ class AttributeBindingRenderer {
         this.observerLocator = observerLocator;
     }
     render(flags, dom, context, renderable, target, instruction) {
-        if (Tracer.enabled) {
-            Tracer.enter('StylePropertyBindingRenderer', 'render', slice.call(arguments));
-        }
         const expr = ensureExpression(this.parser, instruction.from, 48 /* IsPropertyCommand */ | BindingMode.toView);
         const binding = new AttributeBinding(expr, target, instruction.attr /*targetAttribute*/, instruction.to /*targetKey*/, BindingMode.toView, this.observerLocator, context);
         addBinding(renderable, binding);
-        if (Tracer.enabled) {
-            Tracer.leave();
-        }
     }
 };
 // @ts-ignore

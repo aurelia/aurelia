@@ -30,9 +30,6 @@ export class TemplateCompiler {
         return Registration.singleton(ITemplateCompiler, this).register(container);
     }
     compile(dom, definition, descriptions) {
-        if (Profiler.enabled) {
-            enter();
-        }
         const binder = new TemplateBinder(dom, new ResourceModel(descriptions), this.attrParser, this.exprParser);
         const template = definition.template = this.factory.createTemplate(definition.template);
         const surrogate = binder.bind(template);
@@ -65,9 +62,6 @@ export class TemplateCompiler {
         this.parts = null;
         this.scopeParts = null;
         definition.build = buildNotRequired;
-        if (Profiler.enabled) {
-            leave();
-        }
         return definition;
     }
     compileChildNodes(parent) {

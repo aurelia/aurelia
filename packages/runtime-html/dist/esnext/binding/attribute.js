@@ -1,5 +1,5 @@
 import * as tslib_1 from "tslib";
-import { Reporter, Tracer } from '@aurelia/kernel';
+import { Reporter } from '@aurelia/kernel';
 import { BindingMode, connectable, hasBind, hasUnbind, ILifecycle } from '@aurelia/runtime';
 import { AttributeObserver } from '../observation/element-attribute-observer';
 const slice = Array.prototype.slice;
@@ -40,13 +40,7 @@ let AttributeBinding = class AttributeBinding {
         this.sourceExpression.assign(flags | 32 /* updateSourceExpression */, this.$scope, this.locator, value);
     }
     handleChange(newValue, _previousValue, flags) {
-        if (Tracer.enabled) {
-            Tracer.enter('Binding', 'handleChange', slice.call(arguments));
-        }
         if (!(this.$state & 4 /* isBound */)) {
-            if (Tracer.enabled) {
-                Tracer.leave();
-            }
             return;
         }
         flags |= this.persistentFlags;
@@ -68,31 +62,19 @@ let AttributeBinding = class AttributeBinding {
                 this.sourceExpression.connect(flags, this.$scope, this, this.part);
                 this.unobserve(false);
             }
-            if (Tracer.enabled) {
-                Tracer.leave();
-            }
             return;
         }
         if (flags & 32 /* updateSourceExpression */) {
             if (newValue !== this.sourceExpression.evaluate(flags, this.$scope, this.locator, this.part)) {
                 this.updateSource(newValue, flags);
             }
-            if (Tracer.enabled) {
-                Tracer.leave();
-            }
             return;
         }
         throw Reporter.error(15, flags);
     }
     $bind(flags, scope, part) {
-        if (Tracer.enabled) {
-            Tracer.enter('Binding', '$bind', slice.call(arguments));
-        }
         if (this.$state & 4 /* isBound */) {
             if (this.$scope === scope) {
-                if (Tracer.enabled) {
-                    Tracer.leave();
-                }
                 return;
             }
             this.$unbind(flags | 4096 /* fromBind */);
@@ -130,18 +112,9 @@ let AttributeBinding = class AttributeBinding {
         // add isBound flag and remove isBinding flag
         this.$state |= 4 /* isBound */;
         this.$state &= ~1 /* isBinding */;
-        if (Tracer.enabled) {
-            Tracer.leave();
-        }
     }
     $unbind(flags) {
-        if (Tracer.enabled) {
-            Tracer.enter('Binding', '$unbind', slice.call(arguments));
-        }
         if (!(this.$state & 4 /* isBound */)) {
-            if (Tracer.enabled) {
-                Tracer.leave();
-            }
             return;
         }
         // add isUnbinding flag
@@ -162,20 +135,11 @@ let AttributeBinding = class AttributeBinding {
         this.unobserve(true);
         // remove isBound and isUnbinding flags
         this.$state &= ~(4 /* isBound */ | 2 /* isUnbinding */);
-        if (Tracer.enabled) {
-            Tracer.leave();
-        }
     }
     connect(flags) {
-        if (Tracer.enabled) {
-            Tracer.enter('Binding', 'connect', slice.call(arguments));
-        }
         if (this.$state & 4 /* isBound */) {
             flags |= this.persistentFlags;
             this.sourceExpression.connect(flags | 2097152 /* mustEvaluate */, this.$scope, this, this.part); // why do we have a connect method here in the first place? will this be called after bind?
-        }
-        if (Tracer.enabled) {
-            Tracer.leave();
         }
     }
 };

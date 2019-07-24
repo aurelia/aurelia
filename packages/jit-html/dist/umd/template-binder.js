@@ -40,12 +40,6 @@
             this.partName = null;
         }
         bind(node) {
-            if (kernel_1.Tracer.enabled) {
-                kernel_1.Tracer.enter('TemplateBinder', 'bind', slice.call(arguments));
-            }
-            if (kernel_1.Profiler.enabled) {
-                enter();
-            }
             const surrogateSave = this.surrogate;
             const parentManifestRootSave = this.parentManifestRoot;
             const manifestRootSave = this.manifestRoot;
@@ -57,9 +51,6 @@
                 const attr = attributes[i];
                 const attrSyntax = this.attrParser.parse(attr.name, attr.value);
                 if (invalidSurrogateAttribute[attrSyntax.target] === true) {
-                    if (kernel_1.Profiler.enabled) {
-                        leave();
-                    }
                     throw new Error(`Invalid surrogate attribute: ${attrSyntax.target}`);
                     // TODO: use reporter
                 }
@@ -68,9 +59,6 @@
                     this.bindPlainAttribute(attrSyntax, attr);
                 }
                 else if (attrInfo.isTemplateController) {
-                    if (kernel_1.Profiler.enabled) {
-                        leave();
-                    }
                     throw new Error('Cannot have template controller on surrogate element.');
                     // TODO: use reporter
                 }
@@ -84,25 +72,13 @@
             this.parentManifestRoot = parentManifestRootSave;
             this.manifestRoot = manifestRootSave;
             this.manifest = manifestSave;
-            if (kernel_1.Profiler.enabled) {
-                leave();
-            }
-            if (kernel_1.Tracer.enabled) {
-                kernel_1.Tracer.leave();
-            }
             return manifest;
         }
         bindManifest(parentManifest, node) {
-            if (kernel_1.Tracer.enabled) {
-                kernel_1.Tracer.enter('TemplateBinder', 'bindManifest', slice.call(arguments));
-            }
             switch (node.nodeName) {
                 case 'LET':
                     // let cannot have children and has some different processing rules, so return early
                     this.bindLetElement(parentManifest, node);
-                    if (kernel_1.Tracer.enabled) {
-                        kernel_1.Tracer.leave();
-                    }
                     return;
                 case 'SLOT':
                     this.surrogate.hasSlots = true;
@@ -148,9 +124,6 @@
             this.manifestRoot = manifestRootSave;
             this.manifest = manifestSave;
             this.partName = partNameSave;
-            if (kernel_1.Tracer.enabled) {
-                kernel_1.Tracer.leave();
-            }
         }
         bindLetElement(parentManifest, node) {
             const symbol = new jit_1.LetElementSymbol(this.dom, node);
@@ -176,9 +149,6 @@
             node.parentNode.replaceChild(symbol.marker, node);
         }
         bindAttributes(node, parentManifest) {
-            if (kernel_1.Tracer.enabled) {
-                kernel_1.Tracer.enter('TemplateBinder', 'bindAttributes', slice.call(arguments));
-            }
             const { parentManifestRoot, manifestRoot, manifest } = this;
             // This is the top-level symbol for the current depth.
             // If there are no template controllers or replace-parts, it is always the manifest itself.
@@ -331,14 +301,8 @@
                 }
                 processReplacePart(this.dom, replacePart, manifestProxy);
             }
-            if (kernel_1.Tracer.enabled) {
-                kernel_1.Tracer.leave();
-            }
         }
         bindChildNodes(node) {
-            if (kernel_1.Tracer.enabled) {
-                kernel_1.Tracer.enter('TemplateBinder', 'bindChildNodes', slice.call(arguments));
-            }
             let childNode;
             if (node.nodeName === 'TEMPLATE') {
                 childNode = node.content.firstChild;
@@ -368,14 +332,8 @@
                         childNode = childNode.firstChild;
                 }
             }
-            if (kernel_1.Tracer.enabled) {
-                kernel_1.Tracer.leave();
-            }
         }
         bindText(node) {
-            if (kernel_1.Tracer.enabled) {
-                kernel_1.Tracer.enter('TemplateBinder', 'bindText', slice.call(arguments));
-            }
             const interpolation = this.exprParser.parse(node.wholeText, 2048 /* Interpolation */);
             if (interpolation != null) {
                 const symbol = new jit_1.TextSymbol(this.dom, node, interpolation);
@@ -385,15 +343,9 @@
             while (node.nextSibling != null && node.nextSibling.nodeType === 3 /* Text */) {
                 node = node.nextSibling;
             }
-            if (kernel_1.Tracer.enabled) {
-                kernel_1.Tracer.leave();
-            }
             return node;
         }
         declareTemplateController(attrSyntax, attrInfo) {
-            if (kernel_1.Tracer.enabled) {
-                kernel_1.Tracer.enter('TemplateBinder', 'declareTemplateController', slice.call(arguments));
-            }
             let symbol;
             // dynamicOptions logic here is similar to (and explained in) bindCustomAttribute
             const command = this.resources.getBindingCommand(attrSyntax);
@@ -407,15 +359,9 @@
                 const expr = this.exprParser.parse(attrSyntax.rawValue, bindingType);
                 symbol.bindings.push(new jit_1.BindingSymbol(command, attrInfo.bindable, expr, attrSyntax.rawValue, attrSyntax.target));
             }
-            if (kernel_1.Tracer.enabled) {
-                kernel_1.Tracer.leave();
-            }
             return symbol;
         }
         bindCustomAttribute(attrSyntax, attrInfo) {
-            if (kernel_1.Tracer.enabled) {
-                kernel_1.Tracer.enter('TemplateBinder', 'bindCustomAttribute', slice.call(arguments));
-            }
             const command = this.resources.getBindingCommand(attrSyntax);
             let symbol;
             if (command == null && attrInfo.hasDynamicOptions) {
@@ -434,14 +380,8 @@
             }
             this.manifest.attributes.push(symbol);
             this.manifest.isTarget = true;
-            if (kernel_1.Tracer.enabled) {
-                kernel_1.Tracer.leave();
-            }
         }
         bindMultiAttribute(symbol, attrInfo, value) {
-            if (kernel_1.Tracer.enabled) {
-                kernel_1.Tracer.enter('TemplateBinder', 'bindMultiAttribute', slice.call(arguments));
-            }
             const attributes = parseMultiAttributeBinding(value);
             let attr;
             for (let i = 0, ii = attributes.length; i < ii; ++i) {
@@ -457,14 +397,8 @@
                 }
                 symbol.bindings.push(new jit_1.BindingSymbol(command, bindable, expr, attrSyntax.rawValue, attrSyntax.target));
             }
-            if (kernel_1.Tracer.enabled) {
-                kernel_1.Tracer.leave();
-            }
         }
         bindPlainAttribute(attrSyntax, attr) {
-            if (kernel_1.Tracer.enabled) {
-                kernel_1.Tracer.enter('TemplateBinder', 'bindPlainAttribute', slice.call(arguments));
-            }
             const command = this.resources.getBindingCommand(attrSyntax);
             const bindingType = command == null ? 2048 /* Interpolation */ : command.bindingType;
             const manifest = this.manifest;
@@ -476,9 +410,6 @@
                     expr = this.exprParser.parse(kernel_1.camelCase(attrSyntax.target), bindingType);
                 }
                 else {
-                    if (kernel_1.Tracer.enabled) {
-                        kernel_1.Tracer.leave();
-                    }
                     return;
                 }
             }
@@ -513,26 +444,14 @@
                 // if it's an interpolation, clear the attribute value
                 attr.value = '';
             }
-            if (kernel_1.Tracer.enabled) {
-                kernel_1.Tracer.leave();
-            }
         }
         declareReplacePart(node) {
-            if (kernel_1.Tracer.enabled) {
-                kernel_1.Tracer.enter('TemplateBinder', 'declareReplacePart', slice.call(arguments));
-            }
             const name = node.getAttribute('replace-part');
             if (name == null) {
-                if (kernel_1.Tracer.enabled) {
-                    kernel_1.Tracer.leave();
-                }
                 return null;
             }
             node.removeAttribute('replace-part');
             const symbol = new jit_1.ReplacePartSymbol(name);
-            if (kernel_1.Tracer.enabled) {
-                kernel_1.Tracer.leave();
-            }
             return symbol;
         }
     }

@@ -61,9 +61,6 @@
         }
         // tslint:disable-next-line:parameters-max-number
         render(flags, dom, context, renderable, targets, definition, host, parts) {
-            if (kernel_1.Tracer.enabled) {
-                kernel_1.Tracer.enter('Renderer', 'render', slice.call(arguments));
-            }
             const targetInstructions = definition.instructions;
             const instructionRenderers = this.instructionRenderers;
             if (targets.length !== targetInstructions.length) {
@@ -92,9 +89,6 @@
                     instructionRenderers[current.type].render(flags, dom, context, renderable, host, current, parts);
                 }
             }
-            if (kernel_1.Tracer.enabled) {
-                kernel_1.Tracer.leave();
-            }
         }
     }
     // TODO: fix this
@@ -109,32 +103,20 @@
     }
     exports.ensureExpression = ensureExpression;
     function addBinding(renderable, binding) {
-        if (kernel_1.Tracer.enabled) {
-            kernel_1.Tracer.enter('Renderer', 'addBinding', slice.call(arguments));
-        }
         if (renderable.bindings == void 0) {
             renderable.bindings = [binding];
         }
         else {
             renderable.bindings.push(binding);
         }
-        if (kernel_1.Tracer.enabled) {
-            kernel_1.Tracer.leave();
-        }
     }
     exports.addBinding = addBinding;
     function addComponent(renderable, component) {
-        if (kernel_1.Tracer.enabled) {
-            kernel_1.Tracer.enter('Renderer', 'addComponent', slice.call(arguments));
-        }
         if (renderable.controllers == void 0) {
             renderable.controllers = [component];
         }
         else {
             renderable.controllers.push(component);
-        }
-        if (kernel_1.Tracer.enabled) {
-            kernel_1.Tracer.leave();
         }
     }
     exports.addComponent = addComponent;
@@ -149,13 +131,7 @@
     /** @internal */
     class SetPropertyRenderer {
         render(flags, dom, context, renderable, target, instruction) {
-            if (kernel_1.Tracer.enabled) {
-                kernel_1.Tracer.enter('SetPropertyRenderer', 'render', slice.call(arguments));
-            }
-            getTarget(target)[instruction.to] = instruction.value; // Yeah, yeah..
-            if (kernel_1.Tracer.enabled) {
-                kernel_1.Tracer.leave();
-            }
+            getTarget(target)[instruction.to] = (instruction.value === '' ? true : instruction.value); // Yeah, yeah..
         }
     };
     SetPropertyRenderer = tslib_1.__decorate([
@@ -167,9 +143,6 @@
     /** @internal */
     class CustomElementRenderer {
         render(flags, dom, context, renderable, target, instruction) {
-            if (kernel_1.Tracer.enabled) {
-                kernel_1.Tracer.enter('CustomElementRenderer', 'render', slice.call(arguments));
-            }
             const operation = context.beginComponentOperation(renderable, target, instruction, null, null, target, true);
             const component = context.get(definitions_1.customElementKey(instruction.res));
             const instructionRenderers = context.get(rendering_engine_1.IRenderer).instructionRenderers;
@@ -182,9 +155,6 @@
             }
             addComponent(renderable, controller);
             operation.dispose();
-            if (kernel_1.Tracer.enabled) {
-                kernel_1.Tracer.leave();
-            }
         }
     };
     CustomElementRenderer = tslib_1.__decorate([
@@ -196,9 +166,6 @@
     /** @internal */
     class CustomAttributeRenderer {
         render(flags, dom, context, renderable, target, instruction) {
-            if (kernel_1.Tracer.enabled) {
-                kernel_1.Tracer.enter('CustomAttributeRenderer', 'render', slice.call(arguments));
-            }
             const operation = context.beginComponentOperation(renderable, target, instruction);
             const component = context.get(definitions_1.customAttributeKey(instruction.res));
             const instructionRenderers = context.get(rendering_engine_1.IRenderer).instructionRenderers;
@@ -211,9 +178,6 @@
             }
             addComponent(renderable, controller);
             operation.dispose();
-            if (kernel_1.Tracer.enabled) {
-                kernel_1.Tracer.leave();
-            }
         }
     };
     CustomAttributeRenderer = tslib_1.__decorate([
@@ -228,9 +192,6 @@
             this.renderingEngine = renderingEngine;
         }
         render(flags, dom, context, renderable, target, instruction, parts) {
-            if (kernel_1.Tracer.enabled) {
-                kernel_1.Tracer.enter('TemplateControllerRenderer', 'render', slice.call(arguments));
-            }
             const factory = this.renderingEngine.getViewFactory(dom, instruction.def, context);
             const operation = context.beginComponentOperation(renderable, target, instruction, factory, parts, dom.convertToRenderLocation(target), false);
             const component = context.get(definitions_1.customAttributeKey(instruction.res));
@@ -262,9 +223,6 @@
             }
             addComponent(renderable, controller);
             operation.dispose();
-            if (kernel_1.Tracer.enabled) {
-                kernel_1.Tracer.leave();
-            }
         }
     };
     TemplateControllerRenderer.inject = [rendering_engine_1.IRenderingEngine];
@@ -281,9 +239,6 @@
             this.observerLocator = observerLocator;
         }
         render(flags, dom, context, renderable, target, instruction) {
-            if (kernel_1.Tracer.enabled) {
-                kernel_1.Tracer.enter('LetElementRenderer', 'render', slice.call(arguments));
-            }
             dom.remove(target);
             const childInstructions = instruction.instructions;
             const toViewModel = instruction.toViewModel;
@@ -295,9 +250,6 @@
                 expr = ensureExpression(this.parser, childInstruction.from, 48 /* IsPropertyCommand */);
                 binding = new let_binding_1.LetBinding(expr, childInstruction.to, this.observerLocator, context, toViewModel);
                 addBinding(renderable, binding);
-            }
-            if (kernel_1.Tracer.enabled) {
-                kernel_1.Tracer.leave();
             }
         }
     };
@@ -315,15 +267,9 @@
             this.observerLocator = observerLocator;
         }
         render(flags, dom, context, renderable, target, instruction) {
-            if (kernel_1.Tracer.enabled) {
-                kernel_1.Tracer.enter('CallBindingRenderer', 'render', slice.call(arguments));
-            }
             const expr = ensureExpression(this.parser, instruction.from, 153 /* CallCommand */);
             const binding = new call_binding_1.CallBinding(expr, getTarget(target), instruction.to, this.observerLocator, context);
             addBinding(renderable, binding);
-            if (kernel_1.Tracer.enabled) {
-                kernel_1.Tracer.leave();
-            }
         }
     };
     CallBindingRenderer.inject = [expression_parser_1.IExpressionParser, observer_locator_1.IObserverLocator];
@@ -339,15 +285,9 @@
             this.parser = parser;
         }
         render(flags, dom, context, renderable, target, instruction) {
-            if (kernel_1.Tracer.enabled) {
-                kernel_1.Tracer.enter('RefBindingRenderer', 'render', slice.call(arguments));
-            }
             const expr = ensureExpression(this.parser, instruction.from, 1280 /* IsRef */);
             const binding = new ref_binding_1.RefBinding(expr, getTarget(target), context);
             addBinding(renderable, binding);
-            if (kernel_1.Tracer.enabled) {
-                kernel_1.Tracer.leave();
-            }
         }
     };
     RefBindingRenderer.inject = [expression_parser_1.IExpressionParser];
@@ -364,9 +304,6 @@
             this.observerLocator = observerLocator;
         }
         render(flags, dom, context, renderable, target, instruction) {
-            if (kernel_1.Tracer.enabled) {
-                kernel_1.Tracer.enter('InterpolationBindingRenderer', 'render', slice.call(arguments));
-            }
             let binding;
             const expr = ensureExpression(this.parser, instruction.from, 2048 /* Interpolation */);
             if (expr.isMulti) {
@@ -376,9 +313,6 @@
                 binding = new interpolation_binding_1.InterpolationBinding(expr.firstExpression, expr, getTarget(target), instruction.to, flags_1.BindingMode.toView, this.observerLocator, context, true);
             }
             addBinding(renderable, binding);
-            if (kernel_1.Tracer.enabled) {
-                kernel_1.Tracer.leave();
-            }
         }
     };
     InterpolationBindingRenderer.inject = [expression_parser_1.IExpressionParser, observer_locator_1.IObserverLocator];
@@ -395,15 +329,9 @@
             this.observerLocator = observerLocator;
         }
         render(flags, dom, context, renderable, target, instruction) {
-            if (kernel_1.Tracer.enabled) {
-                kernel_1.Tracer.enter('PropertyBindingRenderer', 'render', slice.call(arguments));
-            }
             const expr = ensureExpression(this.parser, instruction.from, 48 /* IsPropertyCommand */ | instruction.mode);
             const binding = new property_binding_1.PropertyBinding(expr, getTarget(target), instruction.to, instruction.mode, this.observerLocator, context);
             addBinding(renderable, binding);
-            if (kernel_1.Tracer.enabled) {
-                kernel_1.Tracer.leave();
-            }
         }
     };
     PropertyBindingRenderer.inject = [expression_parser_1.IExpressionParser, observer_locator_1.IObserverLocator];
@@ -420,15 +348,9 @@
             this.observerLocator = observerLocator;
         }
         render(flags, dom, context, renderable, target, instruction) {
-            if (kernel_1.Tracer.enabled) {
-                kernel_1.Tracer.enter('IteratorBindingRenderer', 'render', slice.call(arguments));
-            }
             const expr = ensureExpression(this.parser, instruction.from, 539 /* ForCommand */);
             const binding = new property_binding_1.PropertyBinding(expr, getTarget(target), instruction.to, flags_1.BindingMode.toView, this.observerLocator, context);
             addBinding(renderable, binding);
-            if (kernel_1.Tracer.enabled) {
-                kernel_1.Tracer.leave();
-            }
         }
     };
     IteratorBindingRenderer.inject = [expression_parser_1.IExpressionParser, observer_locator_1.IObserverLocator];

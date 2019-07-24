@@ -1,5 +1,5 @@
 import * as tslib_1 from "tslib";
-import { Reporter, Tracer, } from '@aurelia/kernel';
+import { Reporter, } from '@aurelia/kernel';
 import { BindingMode, } from '../flags';
 import { ILifecycle } from '../lifecycle';
 import { hasBind, hasUnbind, } from './ast';
@@ -33,13 +33,7 @@ let PropertyBinding = class PropertyBinding {
         this.sourceExpression.assign(flags, this.$scope, this.locator, value, this.part);
     }
     handleChange(newValue, _previousValue, flags) {
-        if (Tracer.enabled) {
-            Tracer.enter('Binding', 'handleChange', slice.call(arguments));
-        }
         if ((this.$state & 4 /* isBound */) === 0) {
-            if (Tracer.enabled) {
-                Tracer.leave();
-            }
             return;
         }
         flags |= this.persistentFlags;
@@ -57,34 +51,19 @@ let PropertyBinding = class PropertyBinding {
                 this.sourceExpression.connect(flags, this.$scope, this, this.part);
                 this.unobserve(false);
             }
-            if (Tracer.enabled) {
-                Tracer.leave();
-            }
             return;
         }
         if ((flags & 32 /* updateSourceExpression */) > 0) {
             if (newValue !== this.sourceExpression.evaluate(flags, this.$scope, this.locator, this.part)) {
                 this.updateSource(newValue, flags);
             }
-            if (Tracer.enabled) {
-                Tracer.leave();
-            }
             return;
-        }
-        if (Tracer.enabled) {
-            Tracer.leave();
         }
         throw Reporter.error(15, flags);
     }
     $bind(flags, scope, part) {
-        if (Tracer.enabled) {
-            Tracer.enter('Binding', '$bind', slice.call(arguments));
-        }
         if (this.$state & 4 /* isBound */) {
             if (this.$scope === scope) {
-                if (Tracer.enabled) {
-                    Tracer.leave();
-                }
                 return;
             }
             this.$unbind(flags | 4096 /* fromBind */);
@@ -127,18 +106,9 @@ let PropertyBinding = class PropertyBinding {
         // add isBound flag and remove isBinding flag
         this.$state |= 4 /* isBound */;
         this.$state &= ~1 /* isBinding */;
-        if (Tracer.enabled) {
-            Tracer.leave();
-        }
     }
     $unbind(flags) {
-        if (Tracer.enabled) {
-            Tracer.enter('Binding', '$unbind', slice.call(arguments));
-        }
         if (!(this.$state & 4 /* isBound */)) {
-            if (Tracer.enabled) {
-                Tracer.leave();
-            }
             return;
         }
         // add isUnbinding flag
@@ -159,9 +129,6 @@ let PropertyBinding = class PropertyBinding {
         this.unobserve(true);
         // remove isBound and isUnbinding flags
         this.$state &= ~(4 /* isBound */ | 2 /* isUnbinding */);
-        if (Tracer.enabled) {
-            Tracer.leave();
-        }
     }
 };
 PropertyBinding = tslib_1.__decorate([

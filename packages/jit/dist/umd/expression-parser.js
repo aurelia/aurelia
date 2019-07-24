@@ -78,22 +78,13 @@
     // For reference, most of the parsing logic is based on: https://tc39.github.io/ecma262/#sec-ecmascript-language-expressions
     // tslint:disable-next-line:no-big-function cognitive-complexity
     function parse(state, access, minPrecedence, bindingType) {
-        if (kernel_1.Profiler.enabled) {
-            enter();
-        }
         if (state.index === 0) {
             if (bindingType & 2048 /* Interpolation */) {
-                if (kernel_1.Profiler.enabled) {
-                    leave();
-                }
                 // tslint:disable-next-line:no-any
                 return parseInterpolation(state);
             }
             nextToken(state);
             if (state.currentToken & 1048576 /* ExpressionTerminal */) {
-                if (kernel_1.Profiler.enabled) {
-                    leave();
-                }
                 throw kernel_1.Reporter.error(100 /* InvalidExpressionStart */, { state });
             }
         }
@@ -156,15 +147,9 @@
                         access++; // ancestor
                         if (consumeOpt(state, 16392 /* Dot */)) {
                             if (state.currentToken === 16392 /* Dot */) {
-                                if (kernel_1.Profiler.enabled) {
-                                    leave();
-                                }
                                 throw kernel_1.Reporter.error(102 /* DoubleDot */, { state });
                             }
                             else if (state.currentToken === 1572864 /* EOF */) {
-                                if (kernel_1.Profiler.enabled) {
-                                    leave();
-                                }
                                 throw kernel_1.Reporter.error(105 /* ExpectedIdentifier */, { state });
                             }
                         }
@@ -175,9 +160,6 @@
                             break primary;
                         }
                         else {
-                            if (kernel_1.Profiler.enabled) {
-                                leave();
-                            }
                             throw kernel_1.Reporter.error(103 /* InvalidMemberExpression */, { state });
                         }
                     } while (state.currentToken === 3077 /* ParentScope */);
@@ -241,29 +223,17 @@
                     break;
                 default:
                     if (state.index >= state.length) {
-                        if (kernel_1.Profiler.enabled) {
-                            leave();
-                        }
                         throw kernel_1.Reporter.error(104 /* UnexpectedEndOfExpression */, { state });
                     }
                     else {
-                        if (kernel_1.Profiler.enabled) {
-                            leave();
-                        }
                         throw kernel_1.Reporter.error(101 /* UnconsumedToken */, { state });
                     }
             }
             if (bindingType & 512 /* IsIterator */) {
-                if (kernel_1.Profiler.enabled) {
-                    leave();
-                }
                 // tslint:disable-next-line:no-any
                 return parseForOfStatement(state, result);
             }
             if (449 /* LeftHandSide */ < minPrecedence) {
-                if (kernel_1.Profiler.enabled) {
-                    leave();
-                }
                 // tslint:disable-next-line:no-any
                 return result;
             }
@@ -298,9 +268,6 @@
                         state.assignable = true;
                         nextToken(state);
                         if ((state.currentToken & 3072 /* IdentifierName */) === 0) {
-                            if (kernel_1.Profiler.enabled) {
-                                leave();
-                            }
                             throw kernel_1.Reporter.error(105 /* ExpectedIdentifier */, { state });
                         }
                         name = state.tokenValue;
@@ -362,9 +329,6 @@
             }
         }
         if (448 /* Binary */ < minPrecedence) {
-            if (kernel_1.Profiler.enabled) {
-                leave();
-            }
             // tslint:disable-next-line:no-any
             return result;
         }
@@ -405,9 +369,6 @@
             state.assignable = false;
         }
         if (63 /* Conditional */ < minPrecedence) {
-            if (kernel_1.Profiler.enabled) {
-                leave();
-            }
             // tslint:disable-next-line:no-any
             return result;
         }
@@ -429,9 +390,6 @@
             state.assignable = false;
         }
         if (62 /* Assign */ < minPrecedence) {
-            if (kernel_1.Profiler.enabled) {
-                leave();
-            }
             // tslint:disable-next-line:no-any
             return result;
         }
@@ -448,17 +406,11 @@
          */
         if (consumeOpt(state, 1048615 /* Equals */)) {
             if (!state.assignable) {
-                if (kernel_1.Profiler.enabled) {
-                    leave();
-                }
                 throw kernel_1.Reporter.error(150 /* NotAssignable */, { state });
             }
             result = new runtime_1.AssignExpression(result, parse(state, access, 62 /* Assign */, bindingType));
         }
         if (61 /* Variadic */ < minPrecedence) {
-            if (kernel_1.Profiler.enabled) {
-                leave();
-            }
             // tslint:disable-next-line:no-any
             return result;
         }
@@ -466,9 +418,6 @@
          */
         while (consumeOpt(state, 1572883 /* Bar */)) {
             if (state.currentToken === 1572864 /* EOF */) {
-                if (kernel_1.Profiler.enabled) {
-                    leave();
-                }
                 throw kernel_1.Reporter.error(112);
             }
             const name = state.tokenValue;
@@ -483,9 +432,6 @@
          */
         while (consumeOpt(state, 1572880 /* Ampersand */)) {
             if (state.currentToken === 1572864 /* EOF */) {
-                if (kernel_1.Profiler.enabled) {
-                    leave();
-                }
                 throw kernel_1.Reporter.error(113);
             }
             const name = state.tokenValue;
@@ -498,25 +444,13 @@
         }
         if (state.currentToken !== 1572864 /* EOF */) {
             if (bindingType & 2048 /* Interpolation */) {
-                if (kernel_1.Profiler.enabled) {
-                    leave();
-                }
                 // tslint:disable-next-line:no-any
                 return result;
             }
             if (state.tokenRaw === 'of') {
-                if (kernel_1.Profiler.enabled) {
-                    leave();
-                }
                 throw kernel_1.Reporter.error(151 /* UnexpectedForOf */, { state });
             }
-            if (kernel_1.Profiler.enabled) {
-                leave();
-            }
             throw kernel_1.Reporter.error(101 /* UnconsumedToken */, { state });
-        }
-        if (kernel_1.Profiler.enabled) {
-            leave();
         }
         // tslint:disable-next-line:no-any
         return result;

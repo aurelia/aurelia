@@ -50,18 +50,12 @@
             this.observing = false;
         }
         setValue(newValue) {
-            if (kernel_1.Tracer.enabled) {
-                kernel_1.Tracer.enter('CustomSetterObserver', 'setValue', slice.call(arguments));
-            }
             // tslint:disable-next-line: no-non-null-assertion // Non-null is implied because descriptors without setters won't end up here
             this.descriptor.set.call(this.obj, newValue);
             if (this.currentValue !== newValue) {
                 this.oldValue = this.currentValue;
                 this.currentValue = newValue;
                 this.callSubscribers(newValue, this.oldValue, 16 /* updateTargetInstance */);
-            }
-            if (kernel_1.Tracer.enabled) {
-                kernel_1.Tracer.leave();
             }
         }
         subscribe(subscriber) {
@@ -74,16 +68,10 @@
             this.removeSubscriber(subscriber);
         }
         convertProperty() {
-            if (kernel_1.Tracer.enabled) {
-                kernel_1.Tracer.enter('CustomSetterObserver', 'convertProperty', slice.call(arguments));
-            }
             this.observing = true;
             this.currentValue = this.obj[this.propertyKey];
             const set = (newValue) => { this.setValue(newValue); };
             Reflect.defineProperty(this.obj, this.propertyKey, { set });
-            if (kernel_1.Tracer.enabled) {
-                kernel_1.Tracer.leave();
-            }
         }
     };
     CustomSetterObserver = tslib_1.__decorate([
@@ -119,9 +107,6 @@
             }
         }
         getValue() {
-            if (kernel_1.Tracer.enabled) {
-                kernel_1.Tracer.enter('GetterObserver', 'getValue', slice.call(arguments));
-            }
             if (this.subscriberCount === 0 || this.isCollecting) {
                 // tslint:disable-next-line: no-non-null-assertion // Non-null is implied because descriptors without getters won't end up here
                 this.currentValue = Reflect.apply(this.descriptor.get, this.proxy, kernel_1.PLATFORM.emptyArray);
@@ -129,9 +114,6 @@
             else {
                 // tslint:disable-next-line: no-non-null-assertion // Non-null is implied because descriptors without getters won't end up here
                 this.currentValue = Reflect.apply(this.descriptor.get, this.obj, kernel_1.PLATFORM.emptyArray);
-            }
-            if (kernel_1.Tracer.enabled) {
-                kernel_1.Tracer.leave();
             }
             return this.currentValue;
         }
@@ -162,9 +144,6 @@
             }
         }
         getValueAndCollectDependencies(requireCollect) {
-            if (kernel_1.Tracer.enabled) {
-                kernel_1.Tracer.enter('GetterObserver', 'getValueAndCollectDependencies', slice.call(arguments));
-            }
             const dynamicDependencies = !this.overrides.static || requireCollect;
             if (dynamicDependencies) {
                 this.unsubscribeAllDependencies();
@@ -175,9 +154,6 @@
                 this.propertyDeps.forEach(x => { x.subscribe(this); });
                 this.collectionDeps.forEach(x => { x.subscribeToCollection(this); });
                 this.isCollecting = false;
-            }
-            if (kernel_1.Tracer.enabled) {
-                kernel_1.Tracer.leave();
             }
             return this.currentValue;
         }
@@ -197,18 +173,9 @@
     exports.GetterObserver = GetterObserver;
     const toStringTag = Object.prototype.toString;
     function createGetterTraps(flags, observerLocator, observer) {
-        if (kernel_1.Tracer.enabled) {
-            kernel_1.Tracer.enter('computed', 'createGetterTraps', slice.call(arguments));
-        }
         const traps = {
             get: function (target, key, receiver) {
-                if (kernel_1.Tracer.enabled) {
-                    kernel_1.Tracer.enter('computed', 'get', slice.call(arguments));
-                }
                 if (observer.doNotCollect(key)) {
-                    if (kernel_1.Tracer.enabled) {
-                        kernel_1.Tracer.leave();
-                    }
                     return Reflect.get(target, key, receiver);
                 }
                 // The length and iterator properties need to be invoked on the original object (for Map and Set
@@ -217,39 +184,24 @@
                     case '[object Array]':
                         observer.addCollectionDep(observerLocator.getArrayObserver(flags, target));
                         if (key === 'length') {
-                            if (kernel_1.Tracer.enabled) {
-                                kernel_1.Tracer.leave();
-                            }
                             return Reflect.get(target, key, target);
                         }
                     case '[object Map]':
                         observer.addCollectionDep(observerLocator.getMapObserver(flags, target));
                         if (key === 'size') {
-                            if (kernel_1.Tracer.enabled) {
-                                kernel_1.Tracer.leave();
-                            }
                             return Reflect.get(target, key, target);
                         }
                     case '[object Set]':
                         observer.addCollectionDep(observerLocator.getSetObserver(flags, target));
                         if (key === 'size') {
-                            if (kernel_1.Tracer.enabled) {
-                                kernel_1.Tracer.leave();
-                            }
                             return Reflect.get(target, key, target);
                         }
                     default:
                         observer.addPropertyDep(observerLocator.getObserver(flags, target, key));
                 }
-                if (kernel_1.Tracer.enabled) {
-                    kernel_1.Tracer.leave();
-                }
                 return proxyOrValue(flags, target, key, observerLocator, observer);
             }
         };
-        if (kernel_1.Tracer.enabled) {
-            kernel_1.Tracer.leave();
-        }
         return traps;
     }
     function proxyOrValue(flags, target, key, observerLocator, observer) {

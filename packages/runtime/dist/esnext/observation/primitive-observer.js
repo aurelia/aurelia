@@ -1,4 +1,4 @@
-import { PLATFORM, Tracer } from '@aurelia/kernel';
+import { PLATFORM } from '@aurelia/kernel';
 const slice = Array.prototype.slice;
 const noop = PLATFORM.noop;
 // note: string.length is the only property of any primitive that is not a function,
@@ -7,9 +7,6 @@ const noop = PLATFORM.noop;
 export class PrimitiveObserver {
     constructor(obj, propertyKey) {
         this.doNotCache = true;
-        if (Tracer.enabled) {
-            Tracer.enter('PrimitiveObserver', 'constructor', slice.call(arguments));
-        }
         // we don't need to store propertyName because only 'length' can return a useful value
         if (propertyKey === 'length') {
             // deliberately not checking for typeof string as users probably still want to know via an error that their string is undefined
@@ -18,9 +15,6 @@ export class PrimitiveObserver {
         }
         else {
             this.getValue = this.returnUndefined;
-        }
-        if (Tracer.enabled) {
-            Tracer.leave();
         }
     }
     getStringLength() {

@@ -4,12 +4,11 @@
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "@aurelia/kernel", "@aurelia/runtime", "./definitions", "./instructions"], factory);
+        define(["require", "exports", "@aurelia/runtime", "./definitions", "./instructions"], factory);
     }
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
-    const kernel_1 = require("@aurelia/kernel");
     const runtime_1 = require("@aurelia/runtime");
     const definitions_1 = require("./definitions");
     const instructions_1 = require("./instructions");
@@ -61,9 +60,6 @@
     }
     exports.RenderPlan = RenderPlan;
     function createElementForTag(dom, tagName, props, children) {
-        if (kernel_1.Tracer.enabled) {
-            kernel_1.Tracer.enter('createElement', 'createElementForTag', slice.call(arguments));
-        }
         const instructions = [];
         const allInstructions = [];
         const dependencies = [];
@@ -89,15 +85,9 @@
         if (children) {
             addChildren(dom, element, children, allInstructions, dependencies);
         }
-        if (kernel_1.Tracer.enabled) {
-            kernel_1.Tracer.leave();
-        }
         return new RenderPlan(dom, element, allInstructions, dependencies);
     }
     function createElementForType(dom, Type, props, children) {
-        if (kernel_1.Tracer.enabled) {
-            kernel_1.Tracer.enter('createElement', 'createElementForType', slice.call(arguments));
-        }
         const tagName = Type.description.name;
         const instructions = [];
         const allInstructions = [instructions];
@@ -134,9 +124,6 @@
         }
         if (children) {
             addChildren(dom, element, children, allInstructions, dependencies);
-        }
-        if (kernel_1.Tracer.enabled) {
-            kernel_1.Tracer.leave();
         }
         return new RenderPlan(dom, element, allInstructions, dependencies);
     }

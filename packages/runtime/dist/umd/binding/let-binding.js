@@ -28,13 +28,7 @@
             this.toViewModel = toViewModel;
         }
         handleChange(_newValue, _previousValue, flags) {
-            if (kernel_1.Tracer.enabled) {
-                kernel_1.Tracer.enter('LetBinding', 'handleChange', slice.call(arguments));
-            }
             if (!(this.$state & 4 /* isBound */)) {
-                if (kernel_1.Tracer.enabled) {
-                    kernel_1.Tracer.leave();
-                }
                 return;
             }
             if (flags & 16 /* updateTargetInstance */) {
@@ -44,22 +38,13 @@
                 if (newValue !== previousValue) {
                     target[targetProperty] = newValue;
                 }
-                if (kernel_1.Tracer.enabled) {
-                    kernel_1.Tracer.leave();
-                }
                 return;
             }
             throw kernel_1.Reporter.error(15, flags);
         }
         $bind(flags, scope, part) {
-            if (kernel_1.Tracer.enabled) {
-                kernel_1.Tracer.enter('LetBinding', '$bind', slice.call(arguments));
-            }
             if (this.$state & 4 /* isBound */) {
                 if (this.$scope === scope) {
-                    if (kernel_1.Tracer.enabled) {
-                        kernel_1.Tracer.leave();
-                    }
                     return;
                 }
                 this.$unbind(flags | 4096 /* fromBind */);
@@ -79,18 +64,9 @@
             // add isBound flag and remove isBinding flag
             this.$state |= 4 /* isBound */;
             this.$state &= ~1 /* isBinding */;
-            if (kernel_1.Tracer.enabled) {
-                kernel_1.Tracer.leave();
-            }
         }
         $unbind(flags) {
-            if (kernel_1.Tracer.enabled) {
-                kernel_1.Tracer.enter('LetBinding', '$unbind', slice.call(arguments));
-            }
             if (!(this.$state & 4 /* isBound */)) {
-                if (kernel_1.Tracer.enabled) {
-                    kernel_1.Tracer.leave();
-                }
                 return;
             }
             // add isUnbinding flag
@@ -103,9 +79,6 @@
             this.unobserve(true);
             // remove isBound and isUnbinding flags
             this.$state &= ~(4 /* isBound */ | 2 /* isUnbinding */);
-            if (kernel_1.Tracer.enabled) {
-                kernel_1.Tracer.leave();
-            }
         }
     };
     LetBinding = tslib_1.__decorate([

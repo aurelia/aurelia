@@ -1,5 +1,5 @@
 import * as tslib_1 from "tslib";
-import { Reporter, Tracer, } from '@aurelia/kernel';
+import { Reporter, } from '@aurelia/kernel';
 import { ILifecycle, } from '../lifecycle';
 import { connectable, } from './connectable';
 const slice = Array.prototype.slice;
@@ -17,13 +17,7 @@ let LetBinding = class LetBinding {
         this.toViewModel = toViewModel;
     }
     handleChange(_newValue, _previousValue, flags) {
-        if (Tracer.enabled) {
-            Tracer.enter('LetBinding', 'handleChange', slice.call(arguments));
-        }
         if (!(this.$state & 4 /* isBound */)) {
-            if (Tracer.enabled) {
-                Tracer.leave();
-            }
             return;
         }
         if (flags & 16 /* updateTargetInstance */) {
@@ -33,22 +27,13 @@ let LetBinding = class LetBinding {
             if (newValue !== previousValue) {
                 target[targetProperty] = newValue;
             }
-            if (Tracer.enabled) {
-                Tracer.leave();
-            }
             return;
         }
         throw Reporter.error(15, flags);
     }
     $bind(flags, scope, part) {
-        if (Tracer.enabled) {
-            Tracer.enter('LetBinding', '$bind', slice.call(arguments));
-        }
         if (this.$state & 4 /* isBound */) {
             if (this.$scope === scope) {
-                if (Tracer.enabled) {
-                    Tracer.leave();
-                }
                 return;
             }
             this.$unbind(flags | 4096 /* fromBind */);
@@ -68,18 +53,9 @@ let LetBinding = class LetBinding {
         // add isBound flag and remove isBinding flag
         this.$state |= 4 /* isBound */;
         this.$state &= ~1 /* isBinding */;
-        if (Tracer.enabled) {
-            Tracer.leave();
-        }
     }
     $unbind(flags) {
-        if (Tracer.enabled) {
-            Tracer.enter('LetBinding', '$unbind', slice.call(arguments));
-        }
         if (!(this.$state & 4 /* isBound */)) {
-            if (Tracer.enabled) {
-                Tracer.leave();
-            }
             return;
         }
         // add isUnbinding flag
@@ -92,9 +68,6 @@ let LetBinding = class LetBinding {
         this.unobserve(true);
         // remove isBound and isUnbinding flags
         this.$state &= ~(4 /* isBound */ | 2 /* isUnbinding */);
-        if (Tracer.enabled) {
-            Tracer.leave();
-        }
     }
 };
 LetBinding = tslib_1.__decorate([

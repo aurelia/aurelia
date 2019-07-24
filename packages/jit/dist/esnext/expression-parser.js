@@ -65,22 +65,13 @@ export function parseExpression(input, bindingType) {
 // For reference, most of the parsing logic is based on: https://tc39.github.io/ecma262/#sec-ecmascript-language-expressions
 // tslint:disable-next-line:no-big-function cognitive-complexity
 export function parse(state, access, minPrecedence, bindingType) {
-    if (Profiler.enabled) {
-        enter();
-    }
     if (state.index === 0) {
         if (bindingType & 2048 /* Interpolation */) {
-            if (Profiler.enabled) {
-                leave();
-            }
             // tslint:disable-next-line:no-any
             return parseInterpolation(state);
         }
         nextToken(state);
         if (state.currentToken & 1048576 /* ExpressionTerminal */) {
-            if (Profiler.enabled) {
-                leave();
-            }
             throw Reporter.error(100 /* InvalidExpressionStart */, { state });
         }
     }
@@ -143,15 +134,9 @@ export function parse(state, access, minPrecedence, bindingType) {
                     access++; // ancestor
                     if (consumeOpt(state, 16392 /* Dot */)) {
                         if (state.currentToken === 16392 /* Dot */) {
-                            if (Profiler.enabled) {
-                                leave();
-                            }
                             throw Reporter.error(102 /* DoubleDot */, { state });
                         }
                         else if (state.currentToken === 1572864 /* EOF */) {
-                            if (Profiler.enabled) {
-                                leave();
-                            }
                             throw Reporter.error(105 /* ExpectedIdentifier */, { state });
                         }
                     }
@@ -162,9 +147,6 @@ export function parse(state, access, minPrecedence, bindingType) {
                         break primary;
                     }
                     else {
-                        if (Profiler.enabled) {
-                            leave();
-                        }
                         throw Reporter.error(103 /* InvalidMemberExpression */, { state });
                     }
                 } while (state.currentToken === 3077 /* ParentScope */);
@@ -228,29 +210,17 @@ export function parse(state, access, minPrecedence, bindingType) {
                 break;
             default:
                 if (state.index >= state.length) {
-                    if (Profiler.enabled) {
-                        leave();
-                    }
                     throw Reporter.error(104 /* UnexpectedEndOfExpression */, { state });
                 }
                 else {
-                    if (Profiler.enabled) {
-                        leave();
-                    }
                     throw Reporter.error(101 /* UnconsumedToken */, { state });
                 }
         }
         if (bindingType & 512 /* IsIterator */) {
-            if (Profiler.enabled) {
-                leave();
-            }
             // tslint:disable-next-line:no-any
             return parseForOfStatement(state, result);
         }
         if (449 /* LeftHandSide */ < minPrecedence) {
-            if (Profiler.enabled) {
-                leave();
-            }
             // tslint:disable-next-line:no-any
             return result;
         }
@@ -285,9 +255,6 @@ export function parse(state, access, minPrecedence, bindingType) {
                     state.assignable = true;
                     nextToken(state);
                     if ((state.currentToken & 3072 /* IdentifierName */) === 0) {
-                        if (Profiler.enabled) {
-                            leave();
-                        }
                         throw Reporter.error(105 /* ExpectedIdentifier */, { state });
                     }
                     name = state.tokenValue;
@@ -349,9 +316,6 @@ export function parse(state, access, minPrecedence, bindingType) {
         }
     }
     if (448 /* Binary */ < minPrecedence) {
-        if (Profiler.enabled) {
-            leave();
-        }
         // tslint:disable-next-line:no-any
         return result;
     }
@@ -392,9 +356,6 @@ export function parse(state, access, minPrecedence, bindingType) {
         state.assignable = false;
     }
     if (63 /* Conditional */ < minPrecedence) {
-        if (Profiler.enabled) {
-            leave();
-        }
         // tslint:disable-next-line:no-any
         return result;
     }
@@ -416,9 +377,6 @@ export function parse(state, access, minPrecedence, bindingType) {
         state.assignable = false;
     }
     if (62 /* Assign */ < minPrecedence) {
-        if (Profiler.enabled) {
-            leave();
-        }
         // tslint:disable-next-line:no-any
         return result;
     }
@@ -435,17 +393,11 @@ export function parse(state, access, minPrecedence, bindingType) {
      */
     if (consumeOpt(state, 1048615 /* Equals */)) {
         if (!state.assignable) {
-            if (Profiler.enabled) {
-                leave();
-            }
             throw Reporter.error(150 /* NotAssignable */, { state });
         }
         result = new AssignExpression(result, parse(state, access, 62 /* Assign */, bindingType));
     }
     if (61 /* Variadic */ < minPrecedence) {
-        if (Profiler.enabled) {
-            leave();
-        }
         // tslint:disable-next-line:no-any
         return result;
     }
@@ -453,9 +405,6 @@ export function parse(state, access, minPrecedence, bindingType) {
      */
     while (consumeOpt(state, 1572883 /* Bar */)) {
         if (state.currentToken === 1572864 /* EOF */) {
-            if (Profiler.enabled) {
-                leave();
-            }
             throw Reporter.error(112);
         }
         const name = state.tokenValue;
@@ -470,9 +419,6 @@ export function parse(state, access, minPrecedence, bindingType) {
      */
     while (consumeOpt(state, 1572880 /* Ampersand */)) {
         if (state.currentToken === 1572864 /* EOF */) {
-            if (Profiler.enabled) {
-                leave();
-            }
             throw Reporter.error(113);
         }
         const name = state.tokenValue;
@@ -485,25 +431,13 @@ export function parse(state, access, minPrecedence, bindingType) {
     }
     if (state.currentToken !== 1572864 /* EOF */) {
         if (bindingType & 2048 /* Interpolation */) {
-            if (Profiler.enabled) {
-                leave();
-            }
             // tslint:disable-next-line:no-any
             return result;
         }
         if (state.tokenRaw === 'of') {
-            if (Profiler.enabled) {
-                leave();
-            }
             throw Reporter.error(151 /* UnexpectedForOf */, { state });
         }
-        if (Profiler.enabled) {
-            leave();
-        }
         throw Reporter.error(101 /* UnconsumedToken */, { state });
-    }
-    if (Profiler.enabled) {
-        leave();
     }
     // tslint:disable-next-line:no-any
     return result;

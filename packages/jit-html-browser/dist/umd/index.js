@@ -28,28 +28,16 @@
          * Apply this configuration to the provided container.
          */
         register(container) {
-            if (kernel_1.Profiler.enabled) {
-                enter();
-            }
             runtime_html_browser_1.BasicConfiguration
                 .register(container)
                 .register(...jit_1.DefaultBindingLanguage, ...jit_1.DefaultBindingSyntax, ...jit_1.DefaultComponents, ...jit_html_1.DefaultBindingLanguage, ...jit_html_1.DefaultComponents);
-            if (kernel_1.Profiler.enabled) {
-                leave();
-            }
             return container;
         },
         /**
          * Create a new container with this configuration applied to it.
          */
         createContainer() {
-            if (kernel_1.Profiler.enabled) {
-                enter();
-            }
             const container = this.register(kernel_1.DI.createContainer());
-            if (kernel_1.Profiler.enabled) {
-                leave();
-            }
             return container;
         }
     };

@@ -1,5 +1,5 @@
 import * as tslib_1 from "tslib";
-import { Reporter, Tracer } from '@aurelia/kernel';
+import { Reporter } from '@aurelia/kernel';
 import { subscriberCollection } from './subscriber-collection';
 let SetterObserver = class SetterObserver {
     constructor(lifecycle, flags, obj, propertyKey) {
@@ -11,9 +11,6 @@ let SetterObserver = class SetterObserver {
         this.inBatch = false;
         this.observing = false;
         this.persistentFlags = flags & 536870927 /* persistentBindingFlags */;
-        if (Tracer.enabled) {
-            Tracer.leave();
-        }
     }
     getValue() {
         return this.currentValue;

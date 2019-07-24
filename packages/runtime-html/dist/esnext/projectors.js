@@ -1,4 +1,4 @@
-import { PLATFORM, Registration, Reporter, toArray, Tracer } from '@aurelia/kernel';
+import { PLATFORM, Registration, Reporter, toArray } from '@aurelia/kernel';
 import { IProjectorLocator } from '@aurelia/runtime';
 const slice = Array.prototype.slice;
 const defaultShadowOptions = {
@@ -50,23 +50,11 @@ export class ShadowDOMProjector {
         return this.shadowRoot;
     }
     project(nodes) {
-        if (Tracer.enabled) {
-            Tracer.enter('ShadowDOMProjector', 'project', slice.call(arguments));
-        }
         nodes.appendTo(this.shadowRoot);
-        if (Tracer.enabled) {
-            Tracer.leave();
-        }
     }
     take(nodes) {
-        if (Tracer.enabled) {
-            Tracer.enter('ShadowDOMProjector', 'take', slice.call(arguments));
-        }
         nodes.remove();
         nodes.unlink();
-        if (Tracer.enabled) {
-            Tracer.leave();
-        }
     }
 }
 /** @internal */
@@ -93,23 +81,11 @@ export class ContainerlessProjector {
         return this.host.getRootNode();
     }
     project(nodes) {
-        if (Tracer.enabled) {
-            Tracer.enter('ContainerlessProjector', 'project', slice.call(arguments));
-        }
         nodes.insertBefore(this.host);
-        if (Tracer.enabled) {
-            Tracer.leave();
-        }
     }
     take(nodes) {
-        if (Tracer.enabled) {
-            Tracer.enter('ContainerlessProjector', 'take', slice.call(arguments));
-        }
         nodes.remove();
         nodes.unlink();
-        if (Tracer.enabled) {
-            Tracer.leave();
-        }
     }
 }
 /** @internal */
@@ -128,23 +104,11 @@ export class HostProjector {
         return this.host.getRootNode();
     }
     project(nodes) {
-        if (Tracer.enabled) {
-            Tracer.enter('HostProjector', 'project', slice.call(arguments));
-        }
         nodes.appendTo(this.host);
-        if (Tracer.enabled) {
-            Tracer.leave();
-        }
     }
     take(nodes) {
-        if (Tracer.enabled) {
-            Tracer.enter('HostProjector', 'take', slice.call(arguments));
-        }
         nodes.remove();
         nodes.unlink();
-        if (Tracer.enabled) {
-            Tracer.leave();
-        }
     }
 }
 //# sourceMappingURL=projectors.js.map

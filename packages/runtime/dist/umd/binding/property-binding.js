@@ -44,13 +44,7 @@
             this.sourceExpression.assign(flags, this.$scope, this.locator, value, this.part);
         }
         handleChange(newValue, _previousValue, flags) {
-            if (kernel_1.Tracer.enabled) {
-                kernel_1.Tracer.enter('Binding', 'handleChange', slice.call(arguments));
-            }
             if ((this.$state & 4 /* isBound */) === 0) {
-                if (kernel_1.Tracer.enabled) {
-                    kernel_1.Tracer.leave();
-                }
                 return;
             }
             flags |= this.persistentFlags;
@@ -68,34 +62,19 @@
                     this.sourceExpression.connect(flags, this.$scope, this, this.part);
                     this.unobserve(false);
                 }
-                if (kernel_1.Tracer.enabled) {
-                    kernel_1.Tracer.leave();
-                }
                 return;
             }
             if ((flags & 32 /* updateSourceExpression */) > 0) {
                 if (newValue !== this.sourceExpression.evaluate(flags, this.$scope, this.locator, this.part)) {
                     this.updateSource(newValue, flags);
                 }
-                if (kernel_1.Tracer.enabled) {
-                    kernel_1.Tracer.leave();
-                }
                 return;
-            }
-            if (kernel_1.Tracer.enabled) {
-                kernel_1.Tracer.leave();
             }
             throw kernel_1.Reporter.error(15, flags);
         }
         $bind(flags, scope, part) {
-            if (kernel_1.Tracer.enabled) {
-                kernel_1.Tracer.enter('Binding', '$bind', slice.call(arguments));
-            }
             if (this.$state & 4 /* isBound */) {
                 if (this.$scope === scope) {
-                    if (kernel_1.Tracer.enabled) {
-                        kernel_1.Tracer.leave();
-                    }
                     return;
                 }
                 this.$unbind(flags | 4096 /* fromBind */);
@@ -138,18 +117,9 @@
             // add isBound flag and remove isBinding flag
             this.$state |= 4 /* isBound */;
             this.$state &= ~1 /* isBinding */;
-            if (kernel_1.Tracer.enabled) {
-                kernel_1.Tracer.leave();
-            }
         }
         $unbind(flags) {
-            if (kernel_1.Tracer.enabled) {
-                kernel_1.Tracer.enter('Binding', '$unbind', slice.call(arguments));
-            }
             if (!(this.$state & 4 /* isBound */)) {
-                if (kernel_1.Tracer.enabled) {
-                    kernel_1.Tracer.leave();
-                }
                 return;
             }
             // add isUnbinding flag
@@ -170,9 +140,6 @@
             this.unobserve(true);
             // remove isBound and isUnbinding flags
             this.$state &= ~(4 /* isBound */ | 2 /* isUnbinding */);
-            if (kernel_1.Tracer.enabled) {
-                kernel_1.Tracer.leave();
-            }
         }
     };
     PropertyBinding = tslib_1.__decorate([

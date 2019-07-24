@@ -1,14 +1,11 @@
 var ProxyObserver_1;
 import * as tslib_1 from "tslib";
-import { PLATFORM, Tracer } from '@aurelia/kernel';
+import { PLATFORM } from '@aurelia/kernel';
 import { proxySubscriberCollection, subscriberCollection } from './subscriber-collection';
 const slice = Array.prototype.slice;
 const lookup = new WeakMap();
 let ProxySubscriberCollection = class ProxySubscriberCollection {
     constructor(proxy, raw, key) {
-        if (Tracer.enabled) {
-            Tracer.enter('ProxySubscriberCollection', 'constructor', slice.call(arguments));
-        }
         this.inBatch = false;
         this.raw = raw;
         this.key = key;
@@ -17,9 +14,6 @@ let ProxySubscriberCollection = class ProxySubscriberCollection {
         this.unsubscribe = this.removeSubscriber;
         if (raw[key] instanceof Object) { // Ensure we observe array indices and newly created object properties
             raw[key] = ProxyObserver.getOrCreate(raw[key]).proxy;
-        }
-        if (Tracer.enabled) {
-            Tracer.leave();
         }
     }
     setValue(value, flags) {
@@ -41,16 +35,10 @@ ProxySubscriberCollection = tslib_1.__decorate([
 export { ProxySubscriberCollection };
 let ProxyObserver = ProxyObserver_1 = class ProxyObserver {
     constructor(obj) {
-        if (Tracer.enabled) {
-            Tracer.enter('ProxyObserver', 'constructor', slice.call(arguments));
-        }
         this.raw = obj;
         this.proxy = new Proxy(obj, this);
         lookup.set(obj, this.proxy);
         this.subscribers = {};
-        if (Tracer.enabled) {
-            Tracer.leave();
-        }
     }
     static getProxyOrSelf(obj) {
         if (obj.$raw === void 0) {

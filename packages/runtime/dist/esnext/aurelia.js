@@ -176,35 +176,23 @@ export class Aurelia {
         Reflect.set(root.host, '$au', this);
         this._root = root;
         this._isStarting = true;
-        if (Profiler.enabled) {
-            enterStart();
-        }
     }
     onAfterStart(root) {
         this._isRunning = true;
         this._isStarting = false;
         this.dispatchEvent(root, 'aurelia-composed', root.dom);
         this.dispatchEvent(root, 'au-started', root.host);
-        if (Profiler.enabled) {
-            leaveStart();
-        }
         return LifecycleTask.done;
     }
     onBeforeStop(root) {
         this._isRunning = false;
         this._isStopping = true;
-        if (Profiler.enabled) {
-            enterStop();
-        }
     }
     onAfterStop(root) {
         Reflect.deleteProperty(root.host, '$au');
         this._root = void 0;
         this._isStopping = false;
         this.dispatchEvent(root, 'au-stopped', root.host);
-        if (Profiler.enabled) {
-            leaveStop();
-        }
         return LifecycleTask.done;
     }
     dispatchEvent(root, name, target) {

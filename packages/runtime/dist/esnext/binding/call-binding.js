@@ -1,4 +1,3 @@
-import { Tracer, } from '@aurelia/kernel';
 import { hasBind, hasUnbind, } from './ast';
 const slice = Array.prototype.slice;
 export class CallBinding {
@@ -9,29 +8,17 @@ export class CallBinding {
         this.targetObserver = observerLocator.getObserver(0 /* none */, target, targetProperty);
     }
     callSource(args) {
-        if (Tracer.enabled) {
-            Tracer.enter('CallBinding', 'callSource', slice.call(arguments));
-        }
         const overrideContext = this.$scope.overrideContext;
         Object.assign(overrideContext, args);
         const result = this.sourceExpression.evaluate(2097152 /* mustEvaluate */, this.$scope, this.locator, this.part);
         for (const prop in args) {
             Reflect.deleteProperty(overrideContext, prop);
         }
-        if (Tracer.enabled) {
-            Tracer.leave();
-        }
         return result;
     }
     $bind(flags, scope, part) {
-        if (Tracer.enabled) {
-            Tracer.enter('CallBinding', '$bind', slice.call(arguments));
-        }
         if (this.$state & 4 /* isBound */) {
             if (this.$scope === scope) {
-                if (Tracer.enabled) {
-                    Tracer.leave();
-                }
                 return;
             }
             this.$unbind(flags | 4096 /* fromBind */);
@@ -47,18 +34,9 @@ export class CallBinding {
         // add isBound flag and remove isBinding flag
         this.$state |= 4 /* isBound */;
         this.$state &= ~1 /* isBinding */;
-        if (Tracer.enabled) {
-            Tracer.leave();
-        }
     }
     $unbind(flags) {
-        if (Tracer.enabled) {
-            Tracer.enter('CallBinding', '$unbind', slice.call(arguments));
-        }
         if (!(this.$state & 4 /* isBound */)) {
-            if (Tracer.enabled) {
-                Tracer.leave();
-            }
             return;
         }
         // add isUnbinding flag
@@ -70,9 +48,6 @@ export class CallBinding {
         this.targetObserver.setValue(null, flags);
         // remove isBound and isUnbinding flags
         this.$state &= ~(4 /* isBound */ | 2 /* isUnbinding */);
-        if (Tracer.enabled) {
-            Tracer.leave();
-        }
     }
     observeProperty(flags, obj, propertyName) {
         return;

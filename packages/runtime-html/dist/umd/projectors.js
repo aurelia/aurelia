@@ -62,23 +62,11 @@
             return this.shadowRoot;
         }
         project(nodes) {
-            if (kernel_1.Tracer.enabled) {
-                kernel_1.Tracer.enter('ShadowDOMProjector', 'project', slice.call(arguments));
-            }
             nodes.appendTo(this.shadowRoot);
-            if (kernel_1.Tracer.enabled) {
-                kernel_1.Tracer.leave();
-            }
         }
         take(nodes) {
-            if (kernel_1.Tracer.enabled) {
-                kernel_1.Tracer.enter('ShadowDOMProjector', 'take', slice.call(arguments));
-            }
             nodes.remove();
             nodes.unlink();
-            if (kernel_1.Tracer.enabled) {
-                kernel_1.Tracer.leave();
-            }
         }
     }
     exports.ShadowDOMProjector = ShadowDOMProjector;
@@ -106,23 +94,11 @@
             return this.host.getRootNode();
         }
         project(nodes) {
-            if (kernel_1.Tracer.enabled) {
-                kernel_1.Tracer.enter('ContainerlessProjector', 'project', slice.call(arguments));
-            }
             nodes.insertBefore(this.host);
-            if (kernel_1.Tracer.enabled) {
-                kernel_1.Tracer.leave();
-            }
         }
         take(nodes) {
-            if (kernel_1.Tracer.enabled) {
-                kernel_1.Tracer.enter('ContainerlessProjector', 'take', slice.call(arguments));
-            }
             nodes.remove();
             nodes.unlink();
-            if (kernel_1.Tracer.enabled) {
-                kernel_1.Tracer.leave();
-            }
         }
     }
     exports.ContainerlessProjector = ContainerlessProjector;
@@ -142,23 +118,11 @@
             return this.host.getRootNode();
         }
         project(nodes) {
-            if (kernel_1.Tracer.enabled) {
-                kernel_1.Tracer.enter('HostProjector', 'project', slice.call(arguments));
-            }
             nodes.appendTo(this.host);
-            if (kernel_1.Tracer.enabled) {
-                kernel_1.Tracer.leave();
-            }
         }
         take(nodes) {
-            if (kernel_1.Tracer.enabled) {
-                kernel_1.Tracer.enter('HostProjector', 'take', slice.call(arguments));
-            }
             nodes.remove();
             nodes.unlink();
-            if (kernel_1.Tracer.enabled) {
-                kernel_1.Tracer.leave();
-            }
         }
     }
     exports.HostProjector = HostProjector;

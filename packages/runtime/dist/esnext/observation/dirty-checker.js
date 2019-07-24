@@ -1,5 +1,5 @@
 import * as tslib_1 from "tslib";
-import { DI, Reporter, Tracer } from '@aurelia/kernel';
+import { DI, Reporter } from '@aurelia/kernel';
 import { ILifecycle } from '../lifecycle';
 import { subscriberCollection } from './subscriber-collection';
 export const IDirtyChecker = DI.createInterface('IDirtyChecker').withDefault(x => x.singleton(DirtyChecker));
@@ -94,15 +94,9 @@ DirtyChecker.inject = [ILifecycle];
 const slice = Array.prototype.slice;
 let DirtyCheckProperty = class DirtyCheckProperty {
     constructor(dirtyChecker, obj, propertyKey) {
-        if (Tracer.enabled) {
-            Tracer.enter('DirtyCheckProperty', 'constructor', slice.call(arguments));
-        }
         this.obj = obj;
         this.propertyKey = propertyKey;
         this.dirtyChecker = dirtyChecker;
-        if (Tracer.enabled) {
-            Tracer.leave();
-        }
     }
     isDirty() {
         return this.oldValue !== this.obj[this.propertyKey];

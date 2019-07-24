@@ -320,27 +320,15 @@
             return this.host;
         }
         project(nodes) {
-            if (kernel_1.Tracer.enabled) {
-                kernel_1.Tracer.enter('AuProjector', 'project', slice.call(arguments));
-            }
             if (this.host.isRenderLocation) {
                 nodes.insertBefore(this.host);
             }
             else {
                 nodes.appendTo(this.host);
             }
-            if (kernel_1.Tracer.enabled) {
-                kernel_1.Tracer.leave();
-            }
         }
         take(nodes) {
-            if (kernel_1.Tracer.enabled) {
-                kernel_1.Tracer.enter('AuProjector', 'take', slice.call(arguments));
-            }
             nodes.remove();
-            if (kernel_1.Tracer.enabled) {
-                kernel_1.Tracer.leave();
-            }
         }
     }
     exports.AuProjector = AuProjector;
@@ -527,9 +515,6 @@
             this.observerLocator = observerLocator;
         }
         render(flags, dom, context, renderable, target, instruction) {
-            if (kernel_1.Tracer.enabled) {
-                kernel_1.Tracer.enter('AuTextRenderer', 'render', slice.call(arguments));
-            }
             let realTarget;
             if (target.isRenderLocation) {
                 realTarget = AuNode.createText();
@@ -540,9 +525,6 @@
             }
             const bindable = new runtime_1.PropertyBinding(instruction.from, realTarget, 'textContent', runtime_1.BindingMode.toView, this.observerLocator, context);
             runtime_1.addBinding(renderable, bindable);
-            if (kernel_1.Tracer.enabled) {
-                kernel_1.Tracer.leave();
-            }
         }
     };
     AuTextRenderer = tslib_1.__decorate([

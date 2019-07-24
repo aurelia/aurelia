@@ -4,12 +4,11 @@
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "@aurelia/kernel"], factory);
+        define(["require", "exports"], factory);
     }
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
-    const kernel_1 = require("@aurelia/kernel");
     // TODO: add connect-queue (or something similar) back in when everything else is working, to improve startup time
     const slice = Array.prototype.slice;
     const slotNames = [];
@@ -57,9 +56,6 @@
     exports.addObserver = addObserver;
     /** @internal */
     function observeProperty(flags, obj, propertyName) {
-        if (kernel_1.Tracer.enabled) {
-            kernel_1.Tracer.enter(this['constructor'].name, 'observeProperty', slice.call(arguments));
-        }
         const observer = this.observerLocator.getObserver(flags, obj, propertyName);
         /* Note: we need to cast here because we can indeed get an accessor instead of an observer,
          *  in which case the call to observer.subscribe will throw. It's not very clean and we can solve this in 2 ways:
@@ -69,9 +65,6 @@
          * We'll probably want to implement some global configuration (like a "strict" toggle) so users can pick between enforced correctness vs. ease-of-use
          */
         this.addObserver(observer);
-        if (kernel_1.Tracer.enabled) {
-            kernel_1.Tracer.leave();
-        }
     }
     exports.observeProperty = observeProperty;
     /** @internal */

@@ -4,13 +4,12 @@
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "tslib", "@aurelia/kernel", "@aurelia/runtime", "./binding/attribute", "./binding/listener", "./observation/event-manager"], factory);
+        define(["require", "exports", "tslib", "@aurelia/runtime", "./binding/attribute", "./binding/listener", "./observation/event-manager"], factory);
     }
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     const tslib_1 = require("tslib");
-    const kernel_1 = require("@aurelia/kernel");
     const runtime_1 = require("@aurelia/runtime");
     const attribute_1 = require("./binding/attribute");
     const listener_1 = require("./binding/listener");
@@ -24,9 +23,6 @@
             this.observerLocator = observerLocator;
         }
         render(flags, dom, context, renderable, target, instruction) {
-            if (kernel_1.Tracer.enabled) {
-                kernel_1.Tracer.enter('TextBindingRenderer', 'render', slice.call(arguments));
-            }
             const next = target.nextSibling;
             if (dom.isMarker(target)) {
                 dom.remove(target);
@@ -40,9 +36,6 @@
                 binding = new runtime_1.InterpolationBinding(expr.firstExpression, expr, next, 'textContent', runtime_1.BindingMode.toView, this.observerLocator, context, true);
             }
             runtime_1.addBinding(renderable, binding);
-            if (kernel_1.Tracer.enabled) {
-                kernel_1.Tracer.leave();
-            }
         }
     };
     TextBindingRenderer.inject = [runtime_1.IExpressionParser, runtime_1.IObserverLocator];
@@ -59,15 +52,9 @@
             this.eventManager = eventManager;
         }
         render(flags, dom, context, renderable, target, instruction) {
-            if (kernel_1.Tracer.enabled) {
-                kernel_1.Tracer.enter('ListenerBindingRenderer', 'render', slice.call(arguments));
-            }
             const expr = runtime_1.ensureExpression(this.parser, instruction.from, 80 /* IsEventCommand */ | (instruction.strategy + 6 /* DelegationStrategyDelta */));
             const binding = new listener_1.Listener(dom, instruction.to, instruction.strategy, expr, target, instruction.preventDefault, this.eventManager, context);
             runtime_1.addBinding(renderable, binding);
-            if (kernel_1.Tracer.enabled) {
-                kernel_1.Tracer.leave();
-            }
         }
     };
     ListenerBindingRenderer.inject = [runtime_1.IExpressionParser, event_manager_1.IEventManager];
@@ -80,13 +67,7 @@
     /** @internal */
     class SetAttributeRenderer {
         render(flags, dom, context, renderable, target, instruction) {
-            if (kernel_1.Tracer.enabled) {
-                kernel_1.Tracer.enter('SetAttributeRenderer', 'render', slice.call(arguments));
-            }
             target.setAttribute(instruction.to, instruction.value);
-            if (kernel_1.Tracer.enabled) {
-                kernel_1.Tracer.leave();
-            }
         }
     };
     SetAttributeRenderer = tslib_1.__decorate([
@@ -102,15 +83,9 @@
             this.observerLocator = observerLocator;
         }
         render(flags, dom, context, renderable, target, instruction) {
-            if (kernel_1.Tracer.enabled) {
-                kernel_1.Tracer.enter('StylePropertyBindingRenderer', 'render', slice.call(arguments));
-            }
             const expr = runtime_1.ensureExpression(this.parser, instruction.from, 48 /* IsPropertyCommand */ | runtime_1.BindingMode.toView);
             const binding = new runtime_1.PropertyBinding(expr, target.style, instruction.to, runtime_1.BindingMode.toView, this.observerLocator, context);
             runtime_1.addBinding(renderable, binding);
-            if (kernel_1.Tracer.enabled) {
-                kernel_1.Tracer.leave();
-            }
         }
     };
     StylePropertyBindingRenderer.inject = [runtime_1.IExpressionParser, runtime_1.IObserverLocator];
@@ -127,15 +102,9 @@
             this.observerLocator = observerLocator;
         }
         render(flags, dom, context, renderable, target, instruction) {
-            if (kernel_1.Tracer.enabled) {
-                kernel_1.Tracer.enter('StylePropertyBindingRenderer', 'render', slice.call(arguments));
-            }
             const expr = runtime_1.ensureExpression(this.parser, instruction.from, 48 /* IsPropertyCommand */ | runtime_1.BindingMode.toView);
             const binding = new attribute_1.AttributeBinding(expr, target, instruction.attr /*targetAttribute*/, instruction.to /*targetKey*/, runtime_1.BindingMode.toView, this.observerLocator, context);
             runtime_1.addBinding(renderable, binding);
-            if (kernel_1.Tracer.enabled) {
-                kernel_1.Tracer.leave();
-            }
         }
     };
     // @ts-ignore

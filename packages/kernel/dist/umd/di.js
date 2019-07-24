@@ -313,24 +313,15 @@
             return new Factory(Type, invoker, dependencies);
         }
         construct(container, dynamicDependencies) {
-            if (reporter_1.Tracer.enabled) {
-                reporter_1.Tracer.enter('Factory', 'construct', [this.Type, ...slice.call(arguments)]);
-            }
             const transformers = this.transformers;
             let instance = dynamicDependencies !== void 0
                 ? this.invoker.invokeWithDynamicDependencies(container, this.Type, this.dependencies, dynamicDependencies)
                 : this.invoker.invoke(container, this.Type, this.dependencies);
             if (transformers == null) {
-                if (reporter_1.Tracer.enabled) {
-                    reporter_1.Tracer.leave();
-                }
                 return instance;
             }
             for (let i = 0, ii = transformers.length; i < ii; ++i) {
                 instance = transformers[i](instance);
-            }
-            if (reporter_1.Tracer.enabled) {
-                reporter_1.Tracer.leave();
             }
             return instance;
         }
@@ -369,9 +360,6 @@
             this.resolvers.set(exports.IContainer, containerResolver);
         }
         register(...params) {
-            if (reporter_1.Tracer.enabled) {
-                reporter_1.Tracer.enter('Container', 'register', slice.call(arguments));
-            }
             if (++this.registerDepth === 100) {
                 throw new Error('Unable to autoregister dependency');
                 // TODO: change to reporter.error and add various possible causes in description.
@@ -409,9 +397,6 @@
                 }
             }
             --this.registerDepth;
-            if (reporter_1.Tracer.enabled) {
-                reporter_1.Tracer.leave();
-            }
             return this;
         }
         registerResolver(key, resolver) {
@@ -479,14 +464,8 @@
                     : false;
         }
         get(key) {
-            if (reporter_1.Tracer.enabled) {
-                reporter_1.Tracer.enter('Container', 'get', slice.call(arguments));
-            }
             validateKey(key);
             if (key.resolve !== void 0) {
-                if (reporter_1.Tracer.enabled) {
-                    reporter_1.Tracer.leave();
-                }
                 return key.resolve(this, this);
             }
             let current = this;
@@ -496,26 +475,17 @@
                 if (resolver == null) {
                     if (current.parent == null) {
                         resolver = this.jitRegister(key, current);
-                        if (reporter_1.Tracer.enabled) {
-                            reporter_1.Tracer.leave();
-                        }
                         return resolver.resolve(current, this);
                     }
                     current = current.parent;
                 }
                 else {
-                    if (reporter_1.Tracer.enabled) {
-                        reporter_1.Tracer.leave();
-                    }
                     return resolver.resolve(current, this);
                 }
             }
             throw new Error(`Unable to resolve key: ${key}`);
         }
         getAll(key) {
-            if (reporter_1.Tracer.enabled) {
-                reporter_1.Tracer.enter('Container', 'getAll', slice.call(arguments));
-            }
             validateKey(key);
             let current = this;
             let resolver;
@@ -523,22 +493,13 @@
                 resolver = current.resolvers.get(key);
                 if (resolver == null) {
                     if (this.parent == null) {
-                        if (reporter_1.Tracer.enabled) {
-                            reporter_1.Tracer.leave();
-                        }
                         return platform_1.PLATFORM.emptyArray;
                     }
                     current = current.parent;
                 }
                 else {
-                    if (reporter_1.Tracer.enabled) {
-                        reporter_1.Tracer.leave();
-                    }
                     return buildAllResponse(resolver, current, this);
                 }
-            }
-            if (reporter_1.Tracer.enabled) {
-                reporter_1.Tracer.leave();
             }
             return platform_1.PLATFORM.emptyArray;
         }
@@ -551,16 +512,10 @@
             return factory;
         }
         createChild() {
-            if (reporter_1.Tracer.enabled) {
-                reporter_1.Tracer.enter('Container', 'createChild', slice.call(arguments));
-            }
             const config = this.configuration;
             const childConfig = { factories: config.factories, resourceLookup: Object.assign(Object.create(null), config.resourceLookup) };
             const child = new Container(childConfig);
             child.parent = this;
-            if (reporter_1.Tracer.enabled) {
-                reporter_1.Tracer.leave();
-            }
             return child;
         }
         jitRegister(keyAsValue, handler) {

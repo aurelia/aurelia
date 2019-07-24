@@ -51,13 +51,7 @@
             this.sourceExpression.assign(flags | 32 /* updateSourceExpression */, this.$scope, this.locator, value);
         }
         handleChange(newValue, _previousValue, flags) {
-            if (kernel_1.Tracer.enabled) {
-                kernel_1.Tracer.enter('Binding', 'handleChange', slice.call(arguments));
-            }
             if (!(this.$state & 4 /* isBound */)) {
-                if (kernel_1.Tracer.enabled) {
-                    kernel_1.Tracer.leave();
-                }
                 return;
             }
             flags |= this.persistentFlags;
@@ -79,31 +73,19 @@
                     this.sourceExpression.connect(flags, this.$scope, this, this.part);
                     this.unobserve(false);
                 }
-                if (kernel_1.Tracer.enabled) {
-                    kernel_1.Tracer.leave();
-                }
                 return;
             }
             if (flags & 32 /* updateSourceExpression */) {
                 if (newValue !== this.sourceExpression.evaluate(flags, this.$scope, this.locator, this.part)) {
                     this.updateSource(newValue, flags);
                 }
-                if (kernel_1.Tracer.enabled) {
-                    kernel_1.Tracer.leave();
-                }
                 return;
             }
             throw kernel_1.Reporter.error(15, flags);
         }
         $bind(flags, scope, part) {
-            if (kernel_1.Tracer.enabled) {
-                kernel_1.Tracer.enter('Binding', '$bind', slice.call(arguments));
-            }
             if (this.$state & 4 /* isBound */) {
                 if (this.$scope === scope) {
-                    if (kernel_1.Tracer.enabled) {
-                        kernel_1.Tracer.leave();
-                    }
                     return;
                 }
                 this.$unbind(flags | 4096 /* fromBind */);
@@ -141,18 +123,9 @@
             // add isBound flag and remove isBinding flag
             this.$state |= 4 /* isBound */;
             this.$state &= ~1 /* isBinding */;
-            if (kernel_1.Tracer.enabled) {
-                kernel_1.Tracer.leave();
-            }
         }
         $unbind(flags) {
-            if (kernel_1.Tracer.enabled) {
-                kernel_1.Tracer.enter('Binding', '$unbind', slice.call(arguments));
-            }
             if (!(this.$state & 4 /* isBound */)) {
-                if (kernel_1.Tracer.enabled) {
-                    kernel_1.Tracer.leave();
-                }
                 return;
             }
             // add isUnbinding flag
@@ -173,20 +146,11 @@
             this.unobserve(true);
             // remove isBound and isUnbinding flags
             this.$state &= ~(4 /* isBound */ | 2 /* isUnbinding */);
-            if (kernel_1.Tracer.enabled) {
-                kernel_1.Tracer.leave();
-            }
         }
         connect(flags) {
-            if (kernel_1.Tracer.enabled) {
-                kernel_1.Tracer.enter('Binding', 'connect', slice.call(arguments));
-            }
             if (this.$state & 4 /* isBound */) {
                 flags |= this.persistentFlags;
                 this.sourceExpression.connect(flags | 2097152 /* mustEvaluate */, this.$scope, this, this.part); // why do we have a connect method here in the first place? will this be called after bind?
-            }
-            if (kernel_1.Tracer.enabled) {
-                kernel_1.Tracer.leave();
             }
         }
     };

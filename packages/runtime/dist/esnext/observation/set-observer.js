@@ -1,5 +1,4 @@
 import * as tslib_1 from "tslib";
-import { Tracer } from '@aurelia/kernel';
 import { createIndexMap } from '../observation';
 import { CollectionSizeObserver } from './collection-size-observer';
 import { collectionSubscriberCollection } from './subscriber-collection';
@@ -116,9 +115,6 @@ export function disableSetObservation() {
 const slice = Array.prototype.slice;
 let SetObserver = class SetObserver {
     constructor(flags, lifecycle, observedSet) {
-        if (Tracer.enabled) {
-            Tracer.enter('SetObserver', 'constructor', slice.call(arguments));
-        }
         if (!enableSetObservationCalled) {
             enableSetObservationCalled = true;
             enableSetObservation();
@@ -130,9 +126,6 @@ let SetObserver = class SetObserver {
         this.lifecycle = lifecycle;
         this.lengthObserver = (void 0);
         observedSet.$observer = this;
-        if (Tracer.enabled) {
-            Tracer.leave();
-        }
     }
     notify() {
         if (this.lifecycle.batch.depth > 0) {

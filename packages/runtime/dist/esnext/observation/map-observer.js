@@ -1,5 +1,4 @@
 import * as tslib_1 from "tslib";
-import { Tracer } from '@aurelia/kernel';
 import { createIndexMap } from '../observation';
 import { CollectionSizeObserver } from './collection-size-observer';
 import { collectionSubscriberCollection } from './subscriber-collection';
@@ -126,9 +125,6 @@ export function disableMapObservation() {
 const slice = Array.prototype.slice;
 let MapObserver = class MapObserver {
     constructor(flags, lifecycle, map) {
-        if (Tracer.enabled) {
-            Tracer.enter('MapObserver', 'constructor', slice.call(arguments));
-        }
         if (!enableMapObservationCalled) {
             enableMapObservationCalled = true;
             enableMapObservation();
@@ -140,9 +136,6 @@ let MapObserver = class MapObserver {
         this.lifecycle = lifecycle;
         this.lengthObserver = (void 0);
         map.$observer = this;
-        if (Tracer.enabled) {
-            Tracer.leave();
-        }
     }
     notify() {
         if (this.lifecycle.batch.depth > 0) {

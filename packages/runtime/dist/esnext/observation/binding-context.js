@@ -1,4 +1,4 @@
-import { PLATFORM, Reporter, Tracer } from '@aurelia/kernel';
+import { PLATFORM, Reporter } from '@aurelia/kernel';
 import { ProxyObserver } from './proxy-observer';
 import { SetterObserver } from './setter-observer';
 const slice = Array.prototype.slice;
@@ -12,14 +12,8 @@ const marker = Object.freeze({});
 /** @internal */
 export class InternalObserversLookup {
     getOrCreate(lifecycle, flags, obj, key) {
-        if (Tracer.enabled) {
-            Tracer.enter('InternalObserversLookup', 'getOrCreate', slice.call(arguments));
-        }
         if (this[key] === void 0) {
             this[key] = new SetterObserver(lifecycle, flags, obj, key);
-        }
-        if (Tracer.enabled) {
-            Tracer.leave();
         }
         return this[key];
     }
@@ -50,9 +44,6 @@ export class BindingContext {
         return bc;
     }
     static get(scope, name, ancestor, flags, part) {
-        if (Tracer.enabled) {
-            Tracer.enter('BindingContext', 'get', slice.call(arguments));
-        }
         if (scope == null) {
             throw Reporter.error(250 /* NilScope */);
         }
@@ -61,16 +52,10 @@ export class BindingContext {
             // jump up the required number of ancestor contexts (eg $parent.$parent requires two jumps)
             while (ancestor > 0) {
                 if (overrideContext.parentOverrideContext == null) {
-                    if (Tracer.enabled) {
-                        Tracer.leave();
-                    }
                     return void 0;
                 }
                 ancestor--;
                 overrideContext = overrideContext.parentOverrideContext;
-            }
-            if (Tracer.enabled) {
-                Tracer.leave();
             }
             return name in overrideContext ? overrideContext : overrideContext.bindingContext;
         }
@@ -79,9 +64,6 @@ export class BindingContext {
             overrideContext = overrideContext.parentOverrideContext;
         }
         if (overrideContext) {
-            if (Tracer.enabled) {
-                Tracer.leave();
-            }
             // we located a context with the property.  return it.
             return name in overrideContext ? overrideContext : overrideContext.bindingContext;
         }
@@ -95,9 +77,6 @@ export class BindingContext {
                         & ~536870912 /* allowParentScopeTraversal */
                         // tell the scope to return null if the name could not be found
                         | 16777216 /* isTraversingParentScope */);
-                    if (Tracer.enabled) {
-                        Tracer.leave();
-                    }
                     if (result === marker) {
                         return scope.bindingContext || scope.overrideContext;
                     }
@@ -117,25 +96,13 @@ export class BindingContext {
         // if this is a parent scope traversal, to ensure we fall back to the
         // correct level)
         if (flags & 16777216 /* isTraversingParentScope */) {
-            if (Tracer.enabled) {
-                Tracer.leave();
-            }
             return marker;
-        }
-        if (Tracer.enabled) {
-            Tracer.leave();
         }
         return scope.bindingContext || scope.overrideContext;
     }
     getObservers(flags) {
-        if (Tracer.enabled) {
-            Tracer.enter('BindingContext', 'getObservers', slice.call(arguments));
-        }
         if (this.$observers == null) {
             this.$observers = new InternalObserversLookup();
-        }
-        if (Tracer.enabled) {
-            Tracer.leave();
         }
         return this.$observers;
     }
@@ -148,35 +115,17 @@ export class Scope {
         this.overrideContext = overrideContext;
     }
     static create(flags, bc, oc) {
-        if (Tracer.enabled) {
-            Tracer.enter('Scope', 'create', slice.call(arguments));
-        }
-        if (Tracer.enabled) {
-            Tracer.leave();
-        }
         return new Scope(null, bc, oc == null ? OverrideContext.create(flags, bc, oc) : oc);
     }
     static fromOverride(flags, oc) {
-        if (Tracer.enabled) {
-            Tracer.enter('Scope', 'fromOverride', slice.call(arguments));
-        }
         if (oc == null) {
             throw Reporter.error(252 /* NilOverrideContext */);
-        }
-        if (Tracer.enabled) {
-            Tracer.leave();
         }
         return new Scope(null, oc.bindingContext, oc);
     }
     static fromParent(flags, ps, bc) {
-        if (Tracer.enabled) {
-            Tracer.enter('Scope', 'fromParent', slice.call(arguments));
-        }
         if (ps == null) {
             throw Reporter.error(253 /* NilParentScope */);
-        }
-        if (Tracer.enabled) {
-            Tracer.leave();
         }
         return new Scope(ps, bc, OverrideContext.create(flags, bc, ps.overrideContext));
     }
@@ -188,23 +137,11 @@ export class OverrideContext {
         this.parentOverrideContext = parentOverrideContext;
     }
     static create(flags, bc, poc) {
-        if (Tracer.enabled) {
-            Tracer.enter('OverrideContext', 'create', slice.call(arguments));
-        }
-        if (Tracer.enabled) {
-            Tracer.leave();
-        }
         return new OverrideContext(bc, poc === void 0 ? null : poc);
     }
     getObservers() {
-        if (Tracer.enabled) {
-            Tracer.enter('OverrideContext', 'getObservers', slice.call(arguments));
-        }
         if (this.$observers === void 0) {
             this.$observers = new InternalObserversLookup();
-        }
-        if (Tracer.enabled) {
-            Tracer.leave();
         }
         return this.$observers;
     }

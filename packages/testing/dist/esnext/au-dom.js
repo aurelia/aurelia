@@ -1,6 +1,6 @@
 import * as tslib_1 from "tslib";
 import { parseExpression } from '@aurelia/jit';
-import { DI, IContainer, inject, Registration, Tracer } from '@aurelia/kernel';
+import { DI, IContainer, inject, Registration } from '@aurelia/kernel';
 import { addBinding, Aurelia, BindingMode, CompiledTemplate, HydrateElementInstruction, HydrateTemplateController, IDOM, IDOMInitializer, ILifecycle, INode, instructionRenderer, IObserverLocator, IProjectorLocator, ITargetAccessorLocator, ITargetObserverLocator, ITemplateFactory, IteratorBindingInstruction, LetBindingInstruction, LetElementInstruction, PropertyBinding, RuntimeBasicConfiguration, ToViewBindingInstruction } from '@aurelia/runtime';
 const slice = Array.prototype.slice;
 export class AuNode {
@@ -306,27 +306,15 @@ export class AuProjector {
         return this.host;
     }
     project(nodes) {
-        if (Tracer.enabled) {
-            Tracer.enter('AuProjector', 'project', slice.call(arguments));
-        }
         if (this.host.isRenderLocation) {
             nodes.insertBefore(this.host);
         }
         else {
             nodes.appendTo(this.host);
         }
-        if (Tracer.enabled) {
-            Tracer.leave();
-        }
     }
     take(nodes) {
-        if (Tracer.enabled) {
-            Tracer.enter('AuProjector', 'take', slice.call(arguments));
-        }
         nodes.remove();
-        if (Tracer.enabled) {
-            Tracer.leave();
-        }
     }
 }
 export class AuNodeSequence {
@@ -506,9 +494,6 @@ class AuTextRenderer {
         this.observerLocator = observerLocator;
     }
     render(flags, dom, context, renderable, target, instruction) {
-        if (Tracer.enabled) {
-            Tracer.enter('AuTextRenderer', 'render', slice.call(arguments));
-        }
         let realTarget;
         if (target.isRenderLocation) {
             realTarget = AuNode.createText();
@@ -519,9 +504,6 @@ class AuTextRenderer {
         }
         const bindable = new PropertyBinding(instruction.from, realTarget, 'textContent', BindingMode.toView, this.observerLocator, context);
         addBinding(renderable, bindable);
-        if (Tracer.enabled) {
-            Tracer.leave();
-        }
     }
 };
 AuTextRenderer = tslib_1.__decorate([

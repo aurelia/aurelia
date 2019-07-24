@@ -17,28 +17,16 @@ export const BasicConfiguration = {
      * Apply this configuration to the provided container.
      */
     register(container) {
-        if (Profiler.enabled) {
-            enter();
-        }
         RuntimeJSDOMBrowserBasicConfiguration
             .register(container)
             .register(...JitDefaultBindingLanguage, ...JitDefaultBindingSyntax, ...JitDefaultComponents, ...JitHtmlDefaultBindingLanguage, ...JitHtmlDefaultComponents);
-        if (Profiler.enabled) {
-            leave();
-        }
         return container;
     },
     /**
      * Create a new container with this configuration applied to it.
      */
     createContainer() {
-        if (Profiler.enabled) {
-            enter();
-        }
         const container = this.register(DI.createContainer());
-        if (Profiler.enabled) {
-            leave();
-        }
         return container;
     }
 };

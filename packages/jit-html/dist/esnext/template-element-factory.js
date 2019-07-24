@@ -20,9 +20,6 @@ export class HTMLTemplateElementFactory {
         return Registration.singleton(ITemplateElementFactory, this).register(container);
     }
     createTemplate(input) {
-        if (Profiler.enabled) {
-            enter();
-        }
         if (typeof input === 'string') {
             let result = markupCache[input];
             if (result === void 0) {
@@ -43,27 +40,18 @@ export class HTMLTemplateElementFactory {
                 }
                 markupCache[input] = result;
             }
-            if (Profiler.enabled) {
-                leave();
-            }
             return result.cloneNode(true);
         }
         if (input.nodeName !== 'TEMPLATE') {
             // if we get one node that is not a template, wrap it in one
             const template = this.dom.createTemplate();
             template.content.appendChild(input);
-            if (Profiler.enabled) {
-                leave();
-            }
             return template;
         }
         // we got a template element, remove it from the DOM if it's present there and don't
         // do any other processing
         if (input.parentNode != null) {
             input.parentNode.removeChild(input);
-        }
-        if (Profiler.enabled) {
-            leave();
         }
         return input;
     }

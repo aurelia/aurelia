@@ -1,4 +1,3 @@
-import { Tracer } from '@aurelia/kernel';
 import { buildTemplateDefinition, CustomElement, HydrateElementInstruction } from '@aurelia/runtime';
 import { isHTMLTargetedInstruction } from './definitions';
 import { SetAttributeInstruction } from './instructions';
@@ -48,9 +47,6 @@ export class RenderPlan {
     }
 }
 function createElementForTag(dom, tagName, props, children) {
-    if (Tracer.enabled) {
-        Tracer.enter('createElement', 'createElementForTag', slice.call(arguments));
-    }
     const instructions = [];
     const allInstructions = [];
     const dependencies = [];
@@ -76,15 +72,9 @@ function createElementForTag(dom, tagName, props, children) {
     if (children) {
         addChildren(dom, element, children, allInstructions, dependencies);
     }
-    if (Tracer.enabled) {
-        Tracer.leave();
-    }
     return new RenderPlan(dom, element, allInstructions, dependencies);
 }
 function createElementForType(dom, Type, props, children) {
-    if (Tracer.enabled) {
-        Tracer.enter('createElement', 'createElementForType', slice.call(arguments));
-    }
     const tagName = Type.description.name;
     const instructions = [];
     const allInstructions = [instructions];
@@ -121,9 +111,6 @@ function createElementForType(dom, Type, props, children) {
     }
     if (children) {
         addChildren(dom, element, children, allInstructions, dependencies);
-    }
-    if (Tracer.enabled) {
-        Tracer.leave();
     }
     return new RenderPlan(dom, element, allInstructions, dependencies);
 }

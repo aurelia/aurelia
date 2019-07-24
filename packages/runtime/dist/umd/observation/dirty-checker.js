@@ -106,15 +106,9 @@
     const slice = Array.prototype.slice;
     let DirtyCheckProperty = class DirtyCheckProperty {
         constructor(dirtyChecker, obj, propertyKey) {
-            if (kernel_1.Tracer.enabled) {
-                kernel_1.Tracer.enter('DirtyCheckProperty', 'constructor', slice.call(arguments));
-            }
             this.obj = obj;
             this.propertyKey = propertyKey;
             this.dirtyChecker = dirtyChecker;
-            if (kernel_1.Tracer.enabled) {
-                kernel_1.Tracer.leave();
-            }
         }
         isDirty() {
             return this.oldValue !== this.obj[this.propertyKey];

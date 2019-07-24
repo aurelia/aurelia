@@ -41,9 +41,6 @@
             return kernel_1.Registration.singleton(runtime_1.ITemplateCompiler, this).register(container);
         }
         compile(dom, definition, descriptions) {
-            if (kernel_1.Profiler.enabled) {
-                enter();
-            }
             const binder = new template_binder_1.TemplateBinder(dom, new jit_1.ResourceModel(descriptions), this.attrParser, this.exprParser);
             const template = definition.template = this.factory.createTemplate(definition.template);
             const surrogate = binder.bind(template);
@@ -76,9 +73,6 @@
             this.parts = null;
             this.scopeParts = null;
             definition.build = buildNotRequired;
-            if (kernel_1.Profiler.enabled) {
-                leave();
-            }
             return definition;
         }
         compileChildNodes(parent) {

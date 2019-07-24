@@ -18,9 +18,6 @@
     const lookup = new WeakMap();
     let ProxySubscriberCollection = class ProxySubscriberCollection {
         constructor(proxy, raw, key) {
-            if (kernel_1.Tracer.enabled) {
-                kernel_1.Tracer.enter('ProxySubscriberCollection', 'constructor', slice.call(arguments));
-            }
             this.inBatch = false;
             this.raw = raw;
             this.key = key;
@@ -29,9 +26,6 @@
             this.unsubscribe = this.removeSubscriber;
             if (raw[key] instanceof Object) { // Ensure we observe array indices and newly created object properties
                 raw[key] = ProxyObserver.getOrCreate(raw[key]).proxy;
-            }
-            if (kernel_1.Tracer.enabled) {
-                kernel_1.Tracer.leave();
             }
         }
         setValue(value, flags) {
@@ -53,16 +47,10 @@
     exports.ProxySubscriberCollection = ProxySubscriberCollection;
     let ProxyObserver = ProxyObserver_1 = class ProxyObserver {
         constructor(obj) {
-            if (kernel_1.Tracer.enabled) {
-                kernel_1.Tracer.enter('ProxyObserver', 'constructor', slice.call(arguments));
-            }
             this.raw = obj;
             this.proxy = new Proxy(obj, this);
             lookup.set(obj, this.proxy);
             this.subscribers = {};
-            if (kernel_1.Tracer.enabled) {
-                kernel_1.Tracer.leave();
-            }
         }
         static getProxyOrSelf(obj) {
             if (obj.$raw === void 0) {

@@ -4,13 +4,12 @@
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "tslib", "@aurelia/kernel", "../observation", "./collection-length-observer", "./subscriber-collection"], factory);
+        define(["require", "exports", "tslib", "../observation", "./collection-length-observer", "./subscriber-collection"], factory);
     }
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     const tslib_1 = require("tslib");
-    const kernel_1 = require("@aurelia/kernel");
     const observation_1 = require("../observation");
     const collection_length_observer_1 = require("./collection-length-observer");
     const subscriber_collection_1 = require("./subscriber-collection");
@@ -400,9 +399,6 @@
     const slice = Array.prototype.slice;
     let ArrayObserver = class ArrayObserver {
         constructor(flags, lifecycle, array) {
-            if (kernel_1.Tracer.enabled) {
-                kernel_1.Tracer.enter('ArrayObserver', 'constructor', slice.call(arguments));
-            }
             if (!enableArrayObservationCalled) {
                 enableArrayObservationCalled = true;
                 enableArrayObservation();
@@ -419,9 +415,6 @@
                 writable: true,
                 configurable: true,
             });
-            if (kernel_1.Tracer.enabled) {
-                kernel_1.Tracer.leave();
-            }
         }
         notify() {
             if (this.lifecycle.batch.depth > 0) {

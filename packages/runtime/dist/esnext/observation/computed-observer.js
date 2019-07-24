@@ -1,5 +1,5 @@
 import * as tslib_1 from "tslib";
-import { PLATFORM, Reporter, Tracer } from '@aurelia/kernel';
+import { PLATFORM, Reporter } from '@aurelia/kernel';
 import { subscriberCollection } from './subscriber-collection';
 const slice = Array.prototype.slice;
 export function computed(config) {
@@ -37,18 +37,12 @@ let CustomSetterObserver = class CustomSetterObserver {
         this.observing = false;
     }
     setValue(newValue) {
-        if (Tracer.enabled) {
-            Tracer.enter('CustomSetterObserver', 'setValue', slice.call(arguments));
-        }
         // tslint:disable-next-line: no-non-null-assertion // Non-null is implied because descriptors without setters won't end up here
         this.descriptor.set.call(this.obj, newValue);
         if (this.currentValue !== newValue) {
             this.oldValue = this.currentValue;
             this.currentValue = newValue;
             this.callSubscribers(newValue, this.oldValue, 16 /* updateTargetInstance */);
-        }
-        if (Tracer.enabled) {
-            Tracer.leave();
         }
     }
     subscribe(subscriber) {
@@ -61,16 +55,10 @@ let CustomSetterObserver = class CustomSetterObserver {
         this.removeSubscriber(subscriber);
     }
     convertProperty() {
-        if (Tracer.enabled) {
-            Tracer.enter('CustomSetterObserver', 'convertProperty', slice.call(arguments));
-        }
         this.observing = true;
         this.currentValue = this.obj[this.propertyKey];
         const set = (newValue) => { this.setValue(newValue); };
         Reflect.defineProperty(this.obj, this.propertyKey, { set });
-        if (Tracer.enabled) {
-            Tracer.leave();
-        }
     }
 };
 CustomSetterObserver = tslib_1.__decorate([
@@ -106,9 +94,6 @@ let GetterObserver = class GetterObserver {
         }
     }
     getValue() {
-        if (Tracer.enabled) {
-            Tracer.enter('GetterObserver', 'getValue', slice.call(arguments));
-        }
         if (this.subscriberCount === 0 || this.isCollecting) {
             // tslint:disable-next-line: no-non-null-assertion // Non-null is implied because descriptors without getters won't end up here
             this.currentValue = Reflect.apply(this.descriptor.get, this.proxy, PLATFORM.emptyArray);
@@ -116,9 +101,6 @@ let GetterObserver = class GetterObserver {
         else {
             // tslint:disable-next-line: no-non-null-assertion // Non-null is implied because descriptors without getters won't end up here
             this.currentValue = Reflect.apply(this.descriptor.get, this.obj, PLATFORM.emptyArray);
-        }
-        if (Tracer.enabled) {
-            Tracer.leave();
         }
         return this.currentValue;
     }
@@ -149,9 +131,6 @@ let GetterObserver = class GetterObserver {
         }
     }
     getValueAndCollectDependencies(requireCollect) {
-        if (Tracer.enabled) {
-            Tracer.enter('GetterObserver', 'getValueAndCollectDependencies', slice.call(arguments));
-        }
         const dynamicDependencies = !this.overrides.static || requireCollect;
         if (dynamicDependencies) {
             this.unsubscribeAllDependencies();
@@ -162,9 +141,6 @@ let GetterObserver = class GetterObserver {
             this.propertyDeps.forEach(x => { x.subscribe(this); });
             this.collectionDeps.forEach(x => { x.subscribeToCollection(this); });
             this.isCollecting = false;
-        }
-        if (Tracer.enabled) {
-            Tracer.leave();
         }
         return this.currentValue;
     }
@@ -184,18 +160,9 @@ GetterObserver = tslib_1.__decorate([
 export { GetterObserver };
 const toStringTag = Object.prototype.toString;
 function createGetterTraps(flags, observerLocator, observer) {
-    if (Tracer.enabled) {
-        Tracer.enter('computed', 'createGetterTraps', slice.call(arguments));
-    }
     const traps = {
         get: function (target, key, receiver) {
-            if (Tracer.enabled) {
-                Tracer.enter('computed', 'get', slice.call(arguments));
-            }
             if (observer.doNotCollect(key)) {
-                if (Tracer.enabled) {
-                    Tracer.leave();
-                }
                 return Reflect.get(target, key, receiver);
             }
             // The length and iterator properties need to be invoked on the original object (for Map and Set
@@ -204,39 +171,24 @@ function createGetterTraps(flags, observerLocator, observer) {
                 case '[object Array]':
                     observer.addCollectionDep(observerLocator.getArrayObserver(flags, target));
                     if (key === 'length') {
-                        if (Tracer.enabled) {
-                            Tracer.leave();
-                        }
                         return Reflect.get(target, key, target);
                     }
                 case '[object Map]':
                     observer.addCollectionDep(observerLocator.getMapObserver(flags, target));
                     if (key === 'size') {
-                        if (Tracer.enabled) {
-                            Tracer.leave();
-                        }
                         return Reflect.get(target, key, target);
                     }
                 case '[object Set]':
                     observer.addCollectionDep(observerLocator.getSetObserver(flags, target));
                     if (key === 'size') {
-                        if (Tracer.enabled) {
-                            Tracer.leave();
-                        }
                         return Reflect.get(target, key, target);
                     }
                 default:
                     observer.addPropertyDep(observerLocator.getObserver(flags, target, key));
             }
-            if (Tracer.enabled) {
-                Tracer.leave();
-            }
             return proxyOrValue(flags, target, key, observerLocator, observer);
         }
     };
-    if (Tracer.enabled) {
-        Tracer.leave();
-    }
     return traps;
 }
 function proxyOrValue(flags, target, key, observerLocator, observer) {

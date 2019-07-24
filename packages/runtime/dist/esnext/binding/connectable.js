@@ -1,4 +1,3 @@
-import { Tracer } from '@aurelia/kernel';
 // TODO: add connect-queue (or something similar) back in when everything else is working, to improve startup time
 const slice = Array.prototype.slice;
 const slotNames = [];
@@ -45,9 +44,6 @@ export function addObserver(observer) {
 }
 /** @internal */
 export function observeProperty(flags, obj, propertyName) {
-    if (Tracer.enabled) {
-        Tracer.enter(this['constructor'].name, 'observeProperty', slice.call(arguments));
-    }
     const observer = this.observerLocator.getObserver(flags, obj, propertyName);
     /* Note: we need to cast here because we can indeed get an accessor instead of an observer,
      *  in which case the call to observer.subscribe will throw. It's not very clean and we can solve this in 2 ways:
@@ -57,9 +53,6 @@ export function observeProperty(flags, obj, propertyName) {
      * We'll probably want to implement some global configuration (like a "strict" toggle) so users can pick between enforced correctness vs. ease-of-use
      */
     this.addObserver(observer);
-    if (Tracer.enabled) {
-        Tracer.leave();
-    }
 }
 /** @internal */
 export function unobserve(all) {

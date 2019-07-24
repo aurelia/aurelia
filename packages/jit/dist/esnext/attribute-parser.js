@@ -18,24 +18,15 @@ export class AttributeParser {
         });
     }
     parse(name, value) {
-        if (Profiler.enabled) {
-            enter();
-        }
         let interpretation = this.cache[name];
         if (interpretation == null) {
             interpretation = this.cache[name] = this.interpreter.interpret(name);
         }
         const pattern = interpretation.pattern;
         if (pattern == null) {
-            if (Profiler.enabled) {
-                leave();
-            }
             return new AttrSyntax(name, value, name, null);
         }
         else {
-            if (Profiler.enabled) {
-                leave();
-            }
             return this.patterns[pattern][pattern](name, value, interpretation.parts);
         }
     }

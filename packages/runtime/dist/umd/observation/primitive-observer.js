@@ -18,9 +18,6 @@
     class PrimitiveObserver {
         constructor(obj, propertyKey) {
             this.doNotCache = true;
-            if (kernel_1.Tracer.enabled) {
-                kernel_1.Tracer.enter('PrimitiveObserver', 'constructor', slice.call(arguments));
-            }
             // we don't need to store propertyName because only 'length' can return a useful value
             if (propertyKey === 'length') {
                 // deliberately not checking for typeof string as users probably still want to know via an error that their string is undefined
@@ -29,9 +26,6 @@
             }
             else {
                 this.getValue = this.returnUndefined;
-            }
-            if (kernel_1.Tracer.enabled) {
-                kernel_1.Tracer.leave();
             }
         }
         getStringLength() {

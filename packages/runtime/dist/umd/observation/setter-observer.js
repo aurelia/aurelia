@@ -22,9 +22,6 @@
             this.inBatch = false;
             this.observing = false;
             this.persistentFlags = flags & 536870927 /* persistentBindingFlags */;
-            if (kernel_1.Tracer.enabled) {
-                kernel_1.Tracer.leave();
-            }
         }
         getValue() {
             return this.currentValue;

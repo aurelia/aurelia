@@ -13,13 +13,13 @@ function parseArgs(): {tag: string; suffix: string; registry: string} {
   return { tag, suffix, registry };
 }
 
-async function run(): Promise<void> {
+(async function (): Promise<void> {
   const { tag, suffix, registry } = parseArgs();
   const { major, minor, patch } = getCurrentVersion();
   const newVersion = getNewVersion(major, minor, patch, tag, 'none', suffix);
-  lerna(['publish', newVersion, '--dist-tag', tag, '--no-git-tag-version', '--no-push', '--no-verify-registry', '--no-verify-access', '--registry', registry, '-y']);
-}
-
-run().then(() => {
-  log(`Done.`);
+  await lerna(['publish', newVersion, '--dist-tag', tag, '--no-git-tag-version', '--no-push', '--no-verify-registry', '--no-verify-access', '--registry', registry, '-y']);
+  log('Done.');
+})().catch(err => {
+  log.error(err);
+  process.exit(1);
 });

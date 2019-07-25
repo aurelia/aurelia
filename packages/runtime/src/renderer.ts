@@ -4,6 +4,7 @@ import {
   IContainer,
   IRegistry,
   IResolver,
+  Key,
   Registration,
   Reporter,
 } from '@aurelia/kernel';
@@ -87,11 +88,11 @@ export function instructionRenderer<TType extends string>(instructionType: TType
 
 /* @internal */
 export class Renderer implements IRenderer {
+  public static readonly inject: readonly Key[] = [all(IInstructionRenderer)];
+
   public instructionRenderers: Record<InstructionTypeName, IInstructionRenderer['render']>;
 
-  constructor(
-    @all(IInstructionRenderer) instructionRenderers: IInstructionRenderer[],
-  ) {
+  constructor(instructionRenderers: IInstructionRenderer[]) {
     const record: Record<InstructionTypeName, IInstructionRenderer['render']> = this.instructionRenderers = {};
     instructionRenderers.forEach(item => {
       // Binding the functions to the renderer instances and calling the functions directly,

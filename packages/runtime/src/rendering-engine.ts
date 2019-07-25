@@ -14,7 +14,6 @@ import {
 
 import {
   buildTemplateDefinition,
-  customElementBehavior,
   InstructionTypeName,
   ITargetedInstruction,
   ITemplateDefinition,
@@ -47,6 +46,7 @@ import { subscriberCollection } from './observation/subscriber-collection';
 import {
   ICustomElementType,
   IElementProjector,
+  CustomElement,
 } from './resources/custom-element';
 import { Controller } from './templating/controller';
 import { ViewFactory } from './templating/view';
@@ -486,7 +486,7 @@ export function findElements<T extends INode = INode>(nodes: ArrayLike<T>): ICon
 
   for (let i = 0, ii = nodes.length; i < ii; ++i) {
     const current = nodes[i];
-    const component = customElementBehavior<T>(current);
+    const component = CustomElement.behaviorFor<T>(current);
 
     if (component != void 0) {
       components.push(component);

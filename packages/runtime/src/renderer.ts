@@ -4,10 +4,8 @@ import {
   IContainer,
   IRegistry,
   IResolver,
-  Key,
   Registration,
   Reporter,
-  Tracer
 } from '@aurelia/kernel';
 import { AnyBindingExpression } from './ast';
 import { CallBinding } from './binding/call-binding';
@@ -17,8 +15,6 @@ import { LetBinding } from './binding/let-binding';
 import { PropertyBinding } from './binding/property-binding';
 import { RefBinding } from './binding/ref-binding';
 import {
-  customAttributeKey,
-  customElementKey,
   ICallBindingInstruction,
   IElementHydrationOptions,
   IHydrateAttributeInstruction,
@@ -51,6 +47,12 @@ import {
   IRenderer,
   IRenderingEngine
 } from './rendering-engine';
+import {
+  CustomAttribute,
+} from './resources/custom-attribute';
+import {
+  CustomElement,
+} from './resources/custom-element';
 import {
   Controller,
 } from './templating/controller';
@@ -92,6 +94,9 @@ export class Renderer implements IRenderer {
   ) {
     const record: Record<InstructionTypeName, IInstructionRenderer['render']> = this.instructionRenderers = {};
     instructionRenderers.forEach(item => {
+      // Binding the functions to the renderer instances and calling the functions directly,
+      // prevents the `render` call sites from going megamorphic.
+      // Consumes slightly more memory but significantly less CPU.
       record[item.instructionType as string] = item.render.bind(item);
     });
   }
@@ -179,7 +184,7 @@ export class SetPropertyRenderer implements IInstructionRenderer {
 export class CustomElementRenderer implements IInstructionRenderer {
   public render(flags: LifecycleFlags, dom: IDOM, context: IRenderContext, renderable: IController, target: INode, instruction: IHydrateElementInstruction): void {
     const operation = context.beginComponentOperation(renderable, target, instruction, null!, null!, target, true);
-    const component = context.get<object>(customElementKey(instruction.res));
+    const component = context.get<object>(CustomElement.keyFrom(instruction.res));
     const instructionRenderers = context.get(IRenderer).instructionRenderers;
     const childInstructions = instruction.instructions;
 
@@ -208,7 +213,7 @@ export class CustomElementRenderer implements IInstructionRenderer {
 export class CustomAttributeRenderer implements IInstructionRenderer {
   public render(flags: LifecycleFlags, dom: IDOM, context: IRenderContext, renderable: IController, target: INode, instruction: IHydrateAttributeInstruction): void {
     const operation = context.beginComponentOperation(renderable, target, instruction);
-    const component = context.get<object>(customAttributeKey(instruction.res));
+    const component = context.get<object>(CustomAttribute.keyFrom(instruction.res));
     const instructionRenderers = context.get(IRenderer).instructionRenderers;
     const childInstructions = instruction.instructions;
 
@@ -240,7 +245,7 @@ export class TemplateControllerRenderer implements IInstructionRenderer {
   public render(flags: LifecycleFlags, dom: IDOM, context: IRenderContext, renderable: IController, target: INode, instruction: IHydrateTemplateController, parts?: TemplatePartDefinitions): void {
     const factory = this.renderingEngine.getViewFactory(dom, instruction.def, context);
     const operation = context.beginComponentOperation(renderable, target, instruction, factory, parts, dom.convertToRenderLocation(target), false);
-    const component = context.get<object>(customAttributeKey(instruction.res));
+    const component = context.get<object>(CustomAttribute.keyFrom(instruction.res));
     const instructionRenderers = context.get(IRenderer).instructionRenderers;
     const childInstructions = instruction.instructions;
     if (instruction.parts !== void 0) {

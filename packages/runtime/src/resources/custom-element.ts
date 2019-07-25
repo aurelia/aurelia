@@ -12,9 +12,6 @@ import {
 
 import {
   buildTemplateDefinition,
-  customElementBehavior,
-  customElementKey,
-  customElementName,
   ITemplateDefinition,
   TemplateDefinition
 } from '../definitions';
@@ -65,14 +62,7 @@ export interface ICustomElementStaticProperties {
 
 export interface ICustomElementResource<T extends INode = INode> extends
   IResourceKind<ITemplateDefinition, IViewModel, Class<IViewModel> & ICustomElementStaticProperties> {
-  behaviorFor(node: T): IController<T> | undefined;
-}
-
-/** @internal */
-export function registerElement(this: ICustomElementType, container: IContainer): void {
-  const resourceKey = this.kind.keyFrom(this.description.name);
-  container.register(Registration.transient(resourceKey, this));
-  container.register(Registration.transient(this, this));
+  behaviorFor<N extends INode = T>(node: N): IController<N> | undefined;
 }
 
 /**
@@ -85,35 +75,35 @@ export function customElement(nameOrDefinition: string | ITemplateDefinition): I
   return (target => CustomElement.define(nameOrDefinition, target)) as ICustomElementDecorator;
 }
 
-function isType<T>(this: ICustomElementResource, Type: T & Partial<ICustomElementType>): Type is T & ICustomElementType {
-  return Type.kind === this;
-}
+export const CustomElement: Readonly<ICustomElementResource> = Object.freeze({
+  name: 'custom-element',
+  keyFrom(name: string): string {
+    return `${CustomElement.name}:${name}`;
+  },
+  isType<T>(Type: T & Partial<ICustomElementType>): Type is T & ICustomElementType {
+    return Type.kind === CustomElement;
+  },
+  behaviorFor<T extends INode = INode>(node: T): IController<T> | undefined {
+    return (node as CustomElementHost<T>).$controller;
+  },
+  define<T extends Constructable = Constructable>(nameOrDefinition: string | ITemplateDefinition, ctor: T | null = null): T & ICustomElementType<T> {
+    if (!nameOrDefinition) {
+      throw Reporter.error(70);
+    }
+    const Type = (ctor == null ? class HTMLOnlyElement { /* HTML Only */ } : ctor) as T & ICustomElementType<T>;
+    const WritableType = Type as Writable<ICustomElementType<T>>;
+    const description = buildTemplateDefinition(Type, nameOrDefinition);
 
-function define<T extends Constructable = Constructable>(this: ICustomElementResource, definition: ITemplateDefinition, ctor?: T | null): T & ICustomElementType<T>;
-function define<T extends Constructable = Constructable>(this: ICustomElementResource, name: string, ctor?: T | null): T & ICustomElementType<T>;
-function define<T extends Constructable = Constructable>(this: ICustomElementResource, nameOrDefinition: string | ITemplateDefinition, ctor: T | null): T & ICustomElementType<T>;
-function define<T extends Constructable = Constructable>(this: ICustomElementResource, nameOrDefinition: string | ITemplateDefinition, ctor: T | null = null): T & ICustomElementType<T> {
-  if (!nameOrDefinition) {
-    throw Reporter.error(70);
-  }
-  const Type = (ctor == null ? class HTMLOnlyElement { /* HTML Only */ } : ctor) as T & ICustomElementType<T>;
-  const WritableType = Type as Writable<ICustomElementType<T>>;
-  const description = buildTemplateDefinition(Type, nameOrDefinition);
+    WritableType.kind = CustomElement;
+    Type.description = description;
+    Type.register = function register(container: IContainer): void {
+      Registration.transient(Type, Type).register(container);
+      Registration.alias(Type, CustomElement.keyFrom(description.name)).register(container);
+    };
 
-  WritableType.kind = CustomElement;
-  Type.description = description;
-  Type.register = registerElement;
-
-  return Type;
-}
-
-export const CustomElement: ICustomElementResource = {
-  name: customElementName,
-  keyFrom: customElementKey,
-  isType,
-  behaviorFor: customElementBehavior as ICustomElementResource['behaviorFor'],
-  define
-};
+    return Type;
+  },
+});
 
 // tslint:enable:align
 

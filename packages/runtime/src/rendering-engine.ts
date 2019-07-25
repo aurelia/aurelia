@@ -156,7 +156,7 @@ export interface IInstructionRenderer<
 export const IInstructionRenderer = DI.createInterface<IInstructionRenderer>('IInstructionRenderer').noDefault();
 
 export interface IRenderer {
-  instructionRenderers: Record<string, IInstructionRenderer>;
+  instructionRenderers: Record<string, IInstructionRenderer['render']>;
   render(
     flags: LifecycleFlags,
     dom: IDOM,

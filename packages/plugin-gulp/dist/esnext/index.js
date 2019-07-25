@@ -16,7 +16,7 @@ export function plugin(ts = false, _preprocess = preprocess // for testing
                 const { extname } = file;
                 if (extname === '.html' || extname === '.js' || extname === '.ts') {
                     // Rewrite foo.html to foo.html.js
-                    const result = _preprocess(file.relative, file.contents.toString(), ts);
+                    const result = _preprocess(file.relative, file.contents.toString(), ts, file.base);
                     if (extname === '.html') {
                         file.basename += '.js';
                     }

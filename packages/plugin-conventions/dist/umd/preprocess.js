@@ -13,14 +13,19 @@
     const preprocess_html_template_1 = require("./preprocess-html-template");
     const fs = require("fs");
     const path = require("path");
-    function preprocess(filePath, contents, ts = false, _fileExists = fileExists // for testing
-    ) {
+    function preprocess(
+    // The filePath is used in sourceMap.
+    filePath, contents, ts = false, 
+    // The base file path that filePath is related to. Used for checking existence of html pair.
+    basePath = '', 
+    // For testing
+    _fileExists = fileExists) {
         const ext = path.extname(filePath);
         if (ext === '.html') {
             return preprocess_html_template_1.preprocessHtmlTemplate(filePath, contents, ts);
         }
         else {
-            const htmlFilePath = filePath.slice(0, -ext.length) + '.html';
+            const htmlFilePath = path.join(basePath, filePath.slice(0, -ext.length) + '.html');
             const hasHtmlPair = _fileExists(htmlFilePath);
             return preprocess_resource_1.preprocessResource(filePath, contents, hasHtmlPair);
         }

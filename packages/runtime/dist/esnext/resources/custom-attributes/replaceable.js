@@ -1,19 +1,15 @@
-import { nextId, PLATFORM, Registration, } from '@aurelia/kernel';
-import { HooksDefinition, } from '../../definitions';
-import { IRenderLocation, } from '../../dom';
-import { BindingMode, } from '../../flags';
-import { IViewFactory, } from '../../lifecycle';
-import { CustomAttribute, } from '../custom-attribute';
-export class Replaceable {
+import * as tslib_1 from "tslib";
+import { nextId } from '@aurelia/kernel';
+import { IRenderLocation } from '../../dom';
+import { IViewFactory } from '../../lifecycle';
+import { templateController } from '../custom-attribute';
+let Replaceable = class Replaceable {
     constructor(factory, location) {
-        this.id = nextId('au$component');
         this.factory = factory;
+        this.location = location;
+        this.id = nextId('au$component');
         this.view = this.factory.create();
         this.view.hold(location);
-    }
-    static register(container) {
-        container.register(Registration.transient('custom-attribute:replaceable', this));
-        container.register(Registration.transient(this, this));
     }
     binding(flags) {
         this.view.parent = this.$controller;
@@ -30,17 +26,11 @@ export class Replaceable {
         this.view.parent = void 0;
         return task;
     }
-}
-Replaceable.inject = [IViewFactory, IRenderLocation];
-Replaceable.kind = CustomAttribute;
-Replaceable.description = Object.freeze({
-    name: 'replaceable',
-    aliases: PLATFORM.emptyArray,
-    defaultBindingMode: BindingMode.toView,
-    hasDynamicOptions: false,
-    isTemplateController: true,
-    bindables: PLATFORM.emptyObject,
-    strategy: 1 /* getterSetter */,
-    hooks: Object.freeze(new HooksDefinition(Replaceable.prototype)),
-});
+};
+Replaceable = tslib_1.__decorate([
+    templateController('replaceable'),
+    tslib_1.__param(0, IViewFactory),
+    tslib_1.__param(1, IRenderLocation)
+], Replaceable);
+export { Replaceable };
 //# sourceMappingURL=replaceable.js.map

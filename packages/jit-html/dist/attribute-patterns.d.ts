@@ -1,7 +1,4 @@
-import { AttrSyntax, IAttributePattern } from '@aurelia/jit';
-import { IRegistry } from '@aurelia/kernel';
-export interface AttrAttributePattern extends IAttributePattern {
-}
+import { AttrSyntax } from '@aurelia/jit';
 /**
  * Attribute syntax pattern recognizer, helping Aurelia understand template:
  * ```html
@@ -9,12 +6,9 @@ export interface AttrAttributePattern extends IAttributePattern {
  * <div some-attr.attr="someAttrValue"></div>
  * ````
  */
-export declare class AttrAttributePattern implements AttrAttributePattern {
-    static register: IRegistry['register'];
+export declare class AttrAttributePattern {
     ['attr.PART'](rawName: string, rawValue: string, parts: string[]): AttrSyntax;
     ['PART.attr'](rawName: string, rawValue: string, parts: string[]): AttrSyntax;
-}
-export interface StyleAttributePattern extends IAttributePattern {
 }
 /**
  * Style syntax pattern recognizer, helps Aurelia understand template:
@@ -29,12 +23,9 @@ export interface StyleAttributePattern extends IAttributePattern {
  * <div style.--custom-prop-css="cssProp"></div>
  * ```
  */
-export declare class StyleAttributePattern implements StyleAttributePattern {
-    static register: IRegistry['register'];
+export declare class StyleAttributePattern {
     ['style.PART'](rawName: string, rawValue: string, parts: string[]): AttrSyntax;
     ['PART.style'](rawName: string, rawValue: string, parts: string[]): AttrSyntax;
-}
-export interface ClassAttributePattern extends IAttributePattern {
 }
 /**
  * Class syntax pattern recognizer, helps Aurelia understand template:
@@ -45,9 +36,8 @@ export interface ClassAttributePattern extends IAttributePattern {
  * <div class.✔="checked"></div>
  * ```
  */
-export declare class ClassAttributePattern implements ClassAttributePattern {
-    static register: IRegistry['register'];
+export declare class ClassAttributePattern {
     ['class.PART'](rawName: string, rawValue: string, parts: string[]): AttrSyntax;
     ['PART.class'](rawName: string, rawValue: string, parts: string[]): AttrSyntax;
 }
-//# sourceMappingURL=attribute-pattern.d.ts.map
+//# sourceMappingURL=attribute-patterns.d.ts.map

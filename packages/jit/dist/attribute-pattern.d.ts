@@ -32,31 +32,5 @@ declare type DecoratableAttributePattern<TProto, TClass> = Class<TProto & Partia
 declare type DecoratedAttributePattern<TProto, TClass> = Class<TProto & IAttributePattern | IAttributePatternHandler, TClass> & IRegistry;
 declare type AttributePatternDecorator = <TProto, TClass>(target: DecoratableAttributePattern<TProto, TClass>) => DecoratedAttributePattern<TProto, TClass>;
 export declare function attributePattern(...patternDefs: AttributePatternDefinition[]): AttributePatternDecorator;
-export interface DotSeparatedAttributePattern extends IAttributePattern {
-}
-export declare class DotSeparatedAttributePattern implements DotSeparatedAttributePattern {
-    static register: IRegistry['register'];
-    ['PART.PART'](rawName: string, rawValue: string, parts: string[]): AttrSyntax;
-    ['PART.PART.PART'](rawName: string, rawValue: string, parts: string[]): AttrSyntax;
-}
-export interface RefAttributePattern extends IAttributePattern {
-}
-export declare class RefAttributePattern implements RefAttributePattern {
-    static register: IRegistry['register'];
-    ['ref'](rawName: string, rawValue: string, parts: string[]): AttrSyntax;
-    ['ref.PART'](rawName: string, rawValue: string, parts: string[]): AttrSyntax;
-}
-export interface ColonPrefixedBindAttributePattern extends IAttributePattern {
-}
-export declare class ColonPrefixedBindAttributePattern implements ColonPrefixedBindAttributePattern {
-    static register: IRegistry['register'];
-    [':PART'](rawName: string, rawValue: string, parts: string[]): AttrSyntax;
-}
-export interface AtPrefixedTriggerAttributePattern extends IAttributePattern {
-}
-export declare class AtPrefixedTriggerAttributePattern implements AtPrefixedTriggerAttributePattern {
-    static register: IRegistry['register'];
-    ['@PART'](rawName: string, rawValue: string, parts: string[]): AttrSyntax;
-}
 export {};
 //# sourceMappingURL=attribute-pattern.d.ts.map

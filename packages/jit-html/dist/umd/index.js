@@ -4,18 +4,18 @@
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "./binding-command", "./configuration", "./debugging", "./template-binder", "./template-element-factory"], factory);
+        define(["require", "exports", "./binding-commands", "./configuration", "./debugging", "./template-binder", "./template-element-factory"], factory);
     }
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
-    var binding_command_1 = require("./binding-command");
-    exports.TriggerBindingCommand = binding_command_1.TriggerBindingCommand;
-    exports.DelegateBindingCommand = binding_command_1.DelegateBindingCommand;
-    exports.CaptureBindingCommand = binding_command_1.CaptureBindingCommand;
-    exports.AttrBindingCommand = binding_command_1.AttrBindingCommand;
-    exports.ClassBindingCommand = binding_command_1.ClassBindingCommand;
-    exports.StyleBindingCommand = binding_command_1.StyleBindingCommand;
+    var binding_commands_1 = require("./binding-commands");
+    exports.TriggerBindingCommand = binding_commands_1.TriggerBindingCommand;
+    exports.DelegateBindingCommand = binding_commands_1.DelegateBindingCommand;
+    exports.CaptureBindingCommand = binding_commands_1.CaptureBindingCommand;
+    exports.AttrBindingCommand = binding_commands_1.AttrBindingCommand;
+    exports.ClassBindingCommand = binding_commands_1.ClassBindingCommand;
+    exports.StyleBindingCommand = binding_commands_1.StyleBindingCommand;
     var configuration_1 = require("./configuration");
     exports.ITemplateCompilerRegistration = configuration_1.ITemplateCompilerRegistration;
     exports.ITemplateElementFactoryRegistration = configuration_1.ITemplateElementFactoryRegistration;

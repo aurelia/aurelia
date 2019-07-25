@@ -12,40 +12,39 @@
     const kernel_1 = require("@aurelia/kernel");
     const definitions_1 = require("../definitions");
     exports.IProjectorLocator = kernel_1.DI.createInterface('IProjectorLocator').noDefault();
-    /** @internal */
-    function registerElement(container) {
-        const resourceKey = this.kind.keyFrom(this.description.name);
-        container.register(kernel_1.Registration.transient(resourceKey, this));
-        container.register(kernel_1.Registration.transient(this, this));
-    }
-    exports.registerElement = registerElement;
     function customElement(nameOrDefinition) {
         return (target => exports.CustomElement.define(nameOrDefinition, target));
     }
     exports.customElement = customElement;
-    function isType(Type) {
-        return Type.kind === this;
-    }
-    function define(nameOrDefinition, ctor = null) {
-        if (!nameOrDefinition) {
-            throw kernel_1.Reporter.error(70);
-        }
-        const Type = (ctor == null ? class HTMLOnlyElement {
-        } : ctor);
-        const WritableType = Type;
-        const description = definitions_1.buildTemplateDefinition(Type, nameOrDefinition);
-        WritableType.kind = exports.CustomElement;
-        Type.description = description;
-        Type.register = registerElement;
-        return Type;
-    }
-    exports.CustomElement = {
-        name: definitions_1.customElementName,
-        keyFrom: definitions_1.customElementKey,
-        isType,
-        behaviorFor: definitions_1.customElementBehavior,
-        define
-    };
+    exports.CustomElement = Object.freeze({
+        name: 'custom-element',
+        keyFrom(name) {
+            return `${exports.CustomElement.name}:${name}`;
+        },
+        isType(Type) {
+            return Type.kind === exports.CustomElement;
+        },
+        behaviorFor(node) {
+            return node.$controller;
+        },
+        define(nameOrDefinition, ctor = null) {
+            if (!nameOrDefinition) {
+                throw kernel_1.Reporter.error(70);
+            }
+            const Type = (ctor == null ? class HTMLOnlyElement {
+            } : ctor);
+            const WritableType = Type;
+            const description = definitions_1.buildTemplateDefinition(Type, nameOrDefinition);
+            WritableType.kind = exports.CustomElement;
+            Type.description = description;
+            Type.register = function register(container) {
+                const key = exports.CustomElement.keyFrom(description.name);
+                kernel_1.Registration.transient(key, Type).register(container);
+                kernel_1.Registration.alias(key, Type).register(container);
+            };
+            return Type;
+        },
+    });
     const defaultShadowOptions = {
         mode: 'open'
     };

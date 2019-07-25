@@ -13,19 +13,6 @@
     const definitions_1 = require("../definitions");
     const flags_1 = require("../flags");
     const bindable_1 = require("../templating/bindable");
-    /** @internal */
-    function registerAttribute(container) {
-        const description = this.description;
-        const resourceKey = this.kind.keyFrom(description.name);
-        const aliases = description.aliases;
-        container.register(kernel_1.Registration.transient(resourceKey, this));
-        container.register(kernel_1.Registration.transient(this, this));
-        for (let i = 0, ii = aliases.length; i < ii; ++i) {
-            const aliasKey = this.kind.keyFrom(aliases[i]);
-            container.register(kernel_1.Registration.alias(resourceKey, aliasKey));
-        }
-    }
-    exports.registerAttribute = registerAttribute;
     function customAttribute(nameOrDefinition) {
         return target => exports.CustomAttribute.define(nameOrDefinition, target); // TODO: fix this at some point
     }
@@ -44,24 +31,32 @@
         return target === undefined ? dynamicOptionsDecorator : dynamicOptionsDecorator(target);
     }
     exports.dynamicOptions = dynamicOptions;
-    function isType(Type) {
-        return Type.kind === this;
-    }
-    function define(nameOrDefinition, ctor) {
-        const Type = ctor;
-        const WritableType = Type;
-        const description = createCustomAttributeDescription(typeof nameOrDefinition === 'string' ? { name: nameOrDefinition } : nameOrDefinition, Type);
-        WritableType.kind = exports.CustomAttribute;
-        WritableType.description = description;
-        Type.register = registerAttribute;
-        return Type;
-    }
-    exports.CustomAttribute = {
-        name: definitions_1.customAttributeName,
-        keyFrom: definitions_1.customAttributeKey,
-        isType,
-        define
-    };
+    exports.CustomAttribute = Object.freeze({
+        name: 'custom-attribute',
+        keyFrom(name) {
+            return `${exports.CustomAttribute.name}:${name}`;
+        },
+        isType(Type) {
+            return Type.kind === exports.CustomAttribute;
+        },
+        define(nameOrDefinition, ctor) {
+            const Type = ctor;
+            const WritableType = Type;
+            const description = createCustomAttributeDescription(typeof nameOrDefinition === 'string' ? { name: nameOrDefinition } : nameOrDefinition, Type);
+            WritableType.kind = exports.CustomAttribute;
+            WritableType.description = description;
+            Type.register = function register(container) {
+                const aliases = description.aliases;
+                const key = exports.CustomAttribute.keyFrom(description.name);
+                kernel_1.Registration.transient(key, Type).register(container);
+                kernel_1.Registration.alias(key, Type).register(container);
+                for (let i = 0, ii = aliases.length; i < ii; ++i) {
+                    kernel_1.Registration.alias(key, exports.CustomAttribute.keyFrom(aliases[i])).register(container);
+                }
+            };
+            return Type;
+        },
+    });
     /** @internal */
     function createCustomAttributeDescription(def, Type) {
         const aliases = def.aliases;

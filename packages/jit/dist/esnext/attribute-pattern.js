@@ -1,5 +1,4 @@
 import { DI, PLATFORM, Registration, Reporter } from '@aurelia/kernel';
-import { AttrSyntax } from './ast';
 /** @internal */
 export class CharSpec {
     constructor(chars, repeat, isSymbol, isInverted) {
@@ -369,39 +368,9 @@ export function attributePattern(...patternDefs) {
         validatePrototype(proto, patternDefs);
         proto.$patternDefs = patternDefs;
         target.register = function register(container) {
-            return Registration.singleton(IAttributePattern, target).register(container, IAttributePattern);
+            Registration.singleton(IAttributePattern, target).register(container);
         };
         return target;
     };
 }
-export class DotSeparatedAttributePattern {
-    ['PART.PART'](rawName, rawValue, parts) {
-        return new AttrSyntax(rawName, rawValue, parts[0], parts[1]);
-    }
-    ['PART.PART.PART'](rawName, rawValue, parts) {
-        return new AttrSyntax(rawName, rawValue, parts[0], parts[2]);
-    }
-}
-attributePattern({ pattern: 'PART.PART', symbols: '.' }, { pattern: 'PART.PART.PART', symbols: '.' })(DotSeparatedAttributePattern);
-export class RefAttributePattern {
-    ['ref'](rawName, rawValue, parts) {
-        return new AttrSyntax(rawName, rawValue, 'ref', null);
-    }
-    ['ref.PART'](rawName, rawValue, parts) {
-        return new AttrSyntax(rawName, rawValue, 'ref', parts[1]);
-    }
-}
-attributePattern({ pattern: 'ref', symbols: '' }, { pattern: 'ref.PART', symbols: '.' })(RefAttributePattern);
-export class ColonPrefixedBindAttributePattern {
-    [':PART'](rawName, rawValue, parts) {
-        return new AttrSyntax(rawName, rawValue, parts[0], 'bind');
-    }
-}
-attributePattern({ pattern: ':PART', symbols: ':' })(ColonPrefixedBindAttributePattern);
-export class AtPrefixedTriggerAttributePattern {
-    ['@PART'](rawName, rawValue, parts) {
-        return new AttrSyntax(rawName, rawValue, parts[0], 'trigger');
-    }
-}
-attributePattern({ pattern: '@PART', symbols: '@' })(AtPrefixedTriggerAttributePattern);
 //# sourceMappingURL=attribute-pattern.js.map

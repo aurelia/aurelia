@@ -1,9 +1,10 @@
 import * as tslib_1 from "tslib";
 import { all, DI, IContainer, InstanceProvider, Reporter, RuntimeCompilationResources, } from '@aurelia/kernel';
-import { buildTemplateDefinition, customElementBehavior, ITargetedInstruction, } from './definitions';
+import { buildTemplateDefinition, ITargetedInstruction, } from './definitions';
 import { IDOM, IRenderLocation, NodeSequence, } from './dom';
 import { IController, ILifecycle, IViewFactory, } from './lifecycle';
 import { subscriberCollection } from './observation/subscriber-collection';
+import { CustomElement, } from './resources/custom-element';
 import { Controller } from './templating/controller';
 import { ViewFactory } from './templating/view';
 export const ITemplateCompiler = DI.createInterface('ITemplateCompiler').noDefault();
@@ -248,7 +249,7 @@ export function findElements(nodes) {
     const components = [];
     for (let i = 0, ii = nodes.length; i < ii; ++i) {
         const current = nodes[i];
-        const component = customElementBehavior(current);
+        const component = CustomElement.behaviorFor(current);
         if (component != void 0) {
             components.push(component);
         }

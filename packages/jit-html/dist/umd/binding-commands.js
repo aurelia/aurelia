@@ -4,56 +4,75 @@
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "@aurelia/jit", "@aurelia/runtime-html"], factory);
+        define(["require", "exports", "tslib", "@aurelia/jit", "@aurelia/runtime-html"], factory);
     }
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
+    const tslib_1 = require("tslib");
     const jit_1 = require("@aurelia/jit");
     const runtime_html_1 = require("@aurelia/runtime-html");
     /**
      * Trigger binding command. Compile attr with binding symbol with command `trigger` to `TriggerBindingInstruction`
      */
-    class TriggerBindingCommand {
+    let TriggerBindingCommand = class TriggerBindingCommand {
+        /**
+         * Trigger binding command. Compile attr with binding symbol with command `trigger` to `TriggerBindingInstruction`
+         */
         constructor() {
             this.bindingType = 86 /* TriggerCommand */;
         }
         compile(binding) {
             return new runtime_html_1.TriggerBindingInstruction(binding.expression, jit_1.getTarget(binding, false));
         }
-    }
+    };
+    TriggerBindingCommand = tslib_1.__decorate([
+        jit_1.bindingCommand('trigger')
+    ], TriggerBindingCommand);
     exports.TriggerBindingCommand = TriggerBindingCommand;
-    jit_1.BindingCommandResource.define('trigger', TriggerBindingCommand);
     /**
      * Delegate binding command. Compile attr with binding symbol with command `delegate` to `DelegateBindingInstruction`
      */
-    class DelegateBindingCommand {
+    let DelegateBindingCommand = class DelegateBindingCommand {
+        /**
+         * Delegate binding command. Compile attr with binding symbol with command `delegate` to `DelegateBindingInstruction`
+         */
         constructor() {
             this.bindingType = 88 /* DelegateCommand */;
         }
         compile(binding) {
             return new runtime_html_1.DelegateBindingInstruction(binding.expression, jit_1.getTarget(binding, false));
         }
-    }
+    };
+    DelegateBindingCommand = tslib_1.__decorate([
+        jit_1.bindingCommand('delegate')
+    ], DelegateBindingCommand);
     exports.DelegateBindingCommand = DelegateBindingCommand;
-    jit_1.BindingCommandResource.define('delegate', DelegateBindingCommand);
     /**
      * Capture binding command. Compile attr with binding symbol with command `capture` to `CaptureBindingInstruction`
      */
-    class CaptureBindingCommand {
+    let CaptureBindingCommand = class CaptureBindingCommand {
+        /**
+         * Capture binding command. Compile attr with binding symbol with command `capture` to `CaptureBindingInstruction`
+         */
         constructor() {
             this.bindingType = 87 /* CaptureCommand */;
         }
         compile(binding) {
             return new runtime_html_1.CaptureBindingInstruction(binding.expression, jit_1.getTarget(binding, false));
         }
-    }
+    };
+    CaptureBindingCommand = tslib_1.__decorate([
+        jit_1.bindingCommand('capture')
+    ], CaptureBindingCommand);
     exports.CaptureBindingCommand = CaptureBindingCommand;
-    jit_1.BindingCommandResource.define('capture', CaptureBindingCommand);
     /**
      * Attr binding command. Compile attr with binding symbol with command `attr` to `AttributeBindingInstruction`
      */
-    class AttrBindingCommand {
+    let AttrBindingCommand = class AttrBindingCommand {
+        /**
+         * Attr binding command. Compile attr with binding symbol with command `attr` to `AttributeBindingInstruction`
+         */
         constructor() {
             this.bindingType = 32 /* IsProperty */;
         }
@@ -61,34 +80,46 @@
             const target = jit_1.getTarget(binding, false);
             return new runtime_html_1.AttributeBindingInstruction(target, binding.expression, target);
         }
-    }
+    };
+    AttrBindingCommand = tslib_1.__decorate([
+        jit_1.bindingCommand('attr')
+    ], AttrBindingCommand);
     exports.AttrBindingCommand = AttrBindingCommand;
-    jit_1.BindingCommandResource.define('attr', AttrBindingCommand);
     /**
      * Style binding command. Compile attr with binding symbol with command `style` to `AttributeBindingInstruction`
      */
-    class StyleBindingCommand {
+    let StyleBindingCommand = class StyleBindingCommand {
+        /**
+         * Style binding command. Compile attr with binding symbol with command `style` to `AttributeBindingInstruction`
+         */
         constructor() {
             this.bindingType = 32 /* IsProperty */;
         }
         compile(binding) {
             return new runtime_html_1.AttributeBindingInstruction('style', binding.expression, jit_1.getTarget(binding, false));
         }
-    }
+    };
+    StyleBindingCommand = tslib_1.__decorate([
+        jit_1.bindingCommand('style')
+    ], StyleBindingCommand);
     exports.StyleBindingCommand = StyleBindingCommand;
-    jit_1.BindingCommandResource.define('style', StyleBindingCommand);
     /**
      * Class binding command. Compile attr with binding symbol with command `class` to `AttributeBindingInstruction`
      */
-    class ClassBindingCommand {
+    let ClassBindingCommand = class ClassBindingCommand {
+        /**
+         * Class binding command. Compile attr with binding symbol with command `class` to `AttributeBindingInstruction`
+         */
         constructor() {
             this.bindingType = 32 /* IsProperty */;
         }
         compile(binding) {
             return new runtime_html_1.AttributeBindingInstruction('class', binding.expression, jit_1.getTarget(binding, false));
         }
-    }
+    };
+    ClassBindingCommand = tslib_1.__decorate([
+        jit_1.bindingCommand('class')
+    ], ClassBindingCommand);
     exports.ClassBindingCommand = ClassBindingCommand;
-    jit_1.BindingCommandResource.define('class', ClassBindingCommand);
 });
-//# sourceMappingURL=binding-command.js.map
+//# sourceMappingURL=binding-commands.js.map

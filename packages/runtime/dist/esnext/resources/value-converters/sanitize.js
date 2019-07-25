@@ -1,5 +1,6 @@
+import * as tslib_1 from "tslib";
 import { DI } from '@aurelia/kernel';
-import { ValueConverter } from '../value-converter';
+import { valueConverter } from '../value-converter';
 const SCRIPT_REGEX = /<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi;
 export const ISanitizer = DI.createInterface('ISanitizer').withDefault(x => x.singleton(class {
     sanitize(input) {
@@ -9,7 +10,7 @@ export const ISanitizer = DI.createInterface('ISanitizer').withDefault(x => x.si
 /**
  * Simple html sanitization converter to preserve whitelisted elements and attributes on a bound property containing html.
  */
-export class SanitizeValueConverter {
+let SanitizeValueConverter = class SanitizeValueConverter {
     constructor(sanitizer) {
         this.sanitizer = sanitizer;
     }
@@ -23,7 +24,10 @@ export class SanitizeValueConverter {
         }
         return this.sanitizer.sanitize(untrustedMarkup);
     }
-}
-SanitizeValueConverter.inject = [ISanitizer];
-ValueConverter.define('sanitize', SanitizeValueConverter);
+};
+SanitizeValueConverter = tslib_1.__decorate([
+    valueConverter('sanitize'),
+    tslib_1.__param(0, ISanitizer)
+], SanitizeValueConverter);
+export { SanitizeValueConverter };
 //# sourceMappingURL=sanitize.js.map

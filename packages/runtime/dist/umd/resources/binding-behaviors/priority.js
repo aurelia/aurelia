@@ -4,18 +4,14 @@
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "@aurelia/kernel", "../binding-behavior"], factory);
+        define(["require", "exports", "tslib", "../binding-behavior"], factory);
     }
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
-    const kernel_1 = require("@aurelia/kernel");
+    const tslib_1 = require("tslib");
     const binding_behavior_1 = require("../binding-behavior");
-    class PriorityBindingBehavior {
-        static register(container) {
-            container.register(kernel_1.Registration.singleton(`binding-behavior:priority`, this));
-            container.register(kernel_1.Registration.singleton(this, this));
-        }
+    let PriorityBindingBehavior = class PriorityBindingBehavior {
         bind(binding, priority = 4096 /* low */) {
             const { targetObserver } = binding;
             if (targetObserver != void 0) {
@@ -57,11 +53,10 @@
                 binding.targetObserver.priority = this[binding.id];
             }
         }
-    }
-    PriorityBindingBehavior.kind = binding_behavior_1.BindingBehavior;
-    PriorityBindingBehavior.description = Object.freeze({
-        name: 'priority',
-    });
+    };
+    PriorityBindingBehavior = tslib_1.__decorate([
+        binding_behavior_1.bindingBehavior('priority')
+    ], PriorityBindingBehavior);
     exports.PriorityBindingBehavior = PriorityBindingBehavior;
 });
 //# sourceMappingURL=priority.js.map

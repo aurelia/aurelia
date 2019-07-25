@@ -10,37 +10,33 @@
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     const kernel_1 = require("@aurelia/kernel");
-    function register(container) {
-        const resourceKey = exports.BindingBehavior.keyFrom(this.description.name);
-        container.register(kernel_1.Registration.singleton(resourceKey, this));
-        container.register(kernel_1.Registration.singleton(this, this));
-    }
     function bindingBehavior(nameOrDefinition) {
         return target => exports.BindingBehavior.define(nameOrDefinition, target); // TODO: fix this at some point
     }
     exports.bindingBehavior = bindingBehavior;
-    function keyFrom(name) {
-        return `${this.name}:${name}`;
-    }
-    function isType(Type) {
-        return Type.kind === this;
-    }
-    function define(nameOrDefinition, ctor) {
-        const Type = ctor;
-        const WritableType = Type;
-        const description = typeof nameOrDefinition === 'string'
-            ? { name: nameOrDefinition }
-            : nameOrDefinition;
-        WritableType.kind = exports.BindingBehavior;
-        WritableType.description = description;
-        Type.register = register;
-        return Type;
-    }
-    exports.BindingBehavior = {
+    exports.BindingBehavior = Object.freeze({
         name: 'binding-behavior',
-        keyFrom,
-        isType,
-        define
-    };
+        keyFrom(name) {
+            return `${exports.BindingBehavior.name}:${name}`;
+        },
+        isType(Type) {
+            return Type.kind === exports.BindingBehavior;
+        },
+        define(nameOrDefinition, ctor) {
+            const Type = ctor;
+            const WritableType = Type;
+            const description = typeof nameOrDefinition === 'string'
+                ? { name: nameOrDefinition }
+                : nameOrDefinition;
+            WritableType.kind = exports.BindingBehavior;
+            WritableType.description = description;
+            Type.register = function register(container) {
+                const key = exports.BindingBehavior.keyFrom(description.name);
+                kernel_1.Registration.singleton(key, Type).register(container);
+                kernel_1.Registration.alias(key, Type).register(container);
+            };
+            return Type;
+        },
+    });
 });
 //# sourceMappingURL=binding-behavior.js.map

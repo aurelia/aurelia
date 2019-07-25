@@ -1,4 +1,3 @@
-import { IRegistry } from '@aurelia/kernel';
 import { LifecycleFlags } from '../../flags';
 import { IBinding } from '../../lifecycle';
 import { IScope } from '../../observation';
@@ -14,7 +13,6 @@ export declare type DebounceableBinding = IBinding & {
     };
 };
 export declare class DebounceBindingBehavior {
-    static register: IRegistry['register'];
     bind(flags: LifecycleFlags, scope: IScope, binding: DebounceableBinding, delay?: number): void;
     unbind(flags: LifecycleFlags, scope: IScope, binding: DebounceableBinding): void;
 }

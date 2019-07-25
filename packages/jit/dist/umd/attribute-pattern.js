@@ -4,13 +4,12 @@
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "@aurelia/kernel", "./ast"], factory);
+        define(["require", "exports", "@aurelia/kernel"], factory);
     }
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     const kernel_1 = require("@aurelia/kernel");
-    const ast_1 = require("./ast");
     /** @internal */
     class CharSpec {
         constructor(chars, repeat, isSymbol, isInverted) {
@@ -388,45 +387,11 @@
             validatePrototype(proto, patternDefs);
             proto.$patternDefs = patternDefs;
             target.register = function register(container) {
-                return kernel_1.Registration.singleton(exports.IAttributePattern, target).register(container, exports.IAttributePattern);
+                kernel_1.Registration.singleton(exports.IAttributePattern, target).register(container);
             };
             return target;
         };
     }
     exports.attributePattern = attributePattern;
-    class DotSeparatedAttributePattern {
-        ['PART.PART'](rawName, rawValue, parts) {
-            return new ast_1.AttrSyntax(rawName, rawValue, parts[0], parts[1]);
-        }
-        ['PART.PART.PART'](rawName, rawValue, parts) {
-            return new ast_1.AttrSyntax(rawName, rawValue, parts[0], parts[2]);
-        }
-    }
-    exports.DotSeparatedAttributePattern = DotSeparatedAttributePattern;
-    attributePattern({ pattern: 'PART.PART', symbols: '.' }, { pattern: 'PART.PART.PART', symbols: '.' })(DotSeparatedAttributePattern);
-    class RefAttributePattern {
-        ['ref'](rawName, rawValue, parts) {
-            return new ast_1.AttrSyntax(rawName, rawValue, 'ref', null);
-        }
-        ['ref.PART'](rawName, rawValue, parts) {
-            return new ast_1.AttrSyntax(rawName, rawValue, 'ref', parts[1]);
-        }
-    }
-    exports.RefAttributePattern = RefAttributePattern;
-    attributePattern({ pattern: 'ref', symbols: '' }, { pattern: 'ref.PART', symbols: '.' })(RefAttributePattern);
-    class ColonPrefixedBindAttributePattern {
-        [':PART'](rawName, rawValue, parts) {
-            return new ast_1.AttrSyntax(rawName, rawValue, parts[0], 'bind');
-        }
-    }
-    exports.ColonPrefixedBindAttributePattern = ColonPrefixedBindAttributePattern;
-    attributePattern({ pattern: ':PART', symbols: ':' })(ColonPrefixedBindAttributePattern);
-    class AtPrefixedTriggerAttributePattern {
-        ['@PART'](rawName, rawValue, parts) {
-            return new ast_1.AttrSyntax(rawName, rawValue, parts[0], 'trigger');
-        }
-    }
-    exports.AtPrefixedTriggerAttributePattern = AtPrefixedTriggerAttributePattern;
-    attributePattern({ pattern: '@PART', symbols: '@' })(AtPrefixedTriggerAttributePattern);
 });
 //# sourceMappingURL=attribute-pattern.js.map

@@ -1,7 +1,8 @@
+import * as tslib_1 from "tslib";
 import { PLATFORM } from '@aurelia/kernel';
 import { PropertyBinding } from '../../binding/property-binding';
 import { BindingMode } from '../../flags';
-import { BindingBehavior } from '../binding-behavior';
+import { bindingBehavior } from '../binding-behavior';
 /** @internal */
 export function throttle(newValue) {
     const state = this.throttleState;
@@ -23,7 +24,7 @@ export function throttle(newValue) {
         state.timeoutId = timeoutId;
     }
 }
-export class ThrottleBindingBehavior {
+let ThrottleBindingBehavior = class ThrottleBindingBehavior {
     bind(flags, scope, binding, delay = 200) {
         let methodToThrottle;
         if (binding instanceof PropertyBinding) {
@@ -59,6 +60,9 @@ export class ThrottleBindingBehavior {
         PLATFORM.global.clearTimeout(binding.throttleState.timeoutId);
         binding.throttleState = null;
     }
-}
-BindingBehavior.define('throttle', ThrottleBindingBehavior);
+};
+ThrottleBindingBehavior = tslib_1.__decorate([
+    bindingBehavior('throttle')
+], ThrottleBindingBehavior);
+export { ThrottleBindingBehavior };
 //# sourceMappingURL=throttle.js.map

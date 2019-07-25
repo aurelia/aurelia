@@ -12,25 +12,6 @@
     const kernel_1 = require("@aurelia/kernel");
     const flags_1 = require("./flags");
     const bindable_1 = require("./templating/bindable");
-    /** @internal */
-    exports.customElementName = 'custom-element';
-    /** @internal */
-    function customElementKey(name) {
-        return `${exports.customElementName}:${name}`;
-    }
-    exports.customElementKey = customElementKey;
-    /** @internal */
-    function customElementBehavior(node) {
-        return node.$controller;
-    }
-    exports.customElementBehavior = customElementBehavior;
-    /** @internal */
-    exports.customAttributeName = 'custom-attribute';
-    /** @internal */
-    function customAttributeKey(name) {
-        return `${exports.customAttributeName}:${name}`;
-    }
-    exports.customAttributeKey = customAttributeKey;
     /**
      * TargetedInstructionType enum values become the property names for the associated renderers when they are injected
      * into the `Renderer`.

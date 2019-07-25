@@ -1,22 +1,6 @@
 import { DI, PLATFORM, toArray } from '@aurelia/kernel';
 import { ensureValidStrategy } from './flags';
 import { Bindable } from './templating/bindable';
-/** @internal */
-export const customElementName = 'custom-element';
-/** @internal */
-export function customElementKey(name) {
-    return `${customElementName}:${name}`;
-}
-/** @internal */
-export function customElementBehavior(node) {
-    return node.$controller;
-}
-/** @internal */
-export const customAttributeName = 'custom-attribute';
-/** @internal */
-export function customAttributeKey(name) {
-    return `${customAttributeName}:${name}`;
-}
 /**
  * TargetedInstructionType enum values become the property names for the associated renderers when they are injected
  * into the `Renderer`.

@@ -1,8 +1,8 @@
 import { DefaultBindingLanguage as JitDefaultBindingLanguage, DefaultBindingSyntax as JitDefaultBindingSyntax, DefaultComponents as JitDefaultComponents } from '@aurelia/jit';
 import { DI } from '@aurelia/kernel';
 import { BasicConfiguration as RuntimeHtmlBasicConfiguration } from '@aurelia/runtime-html';
-import { AttrAttributePattern, ClassAttributePattern, StyleAttributePattern } from './attribute-pattern';
-import { AttrBindingCommand, CaptureBindingCommand, ClassBindingCommand, DelegateBindingCommand, StyleBindingCommand, TriggerBindingCommand } from './binding-command';
+import { AttrAttributePattern, ClassAttributePattern, StyleAttributePattern } from './attribute-patterns';
+import { AttrBindingCommand, CaptureBindingCommand, ClassBindingCommand, DelegateBindingCommand, StyleBindingCommand, TriggerBindingCommand } from './binding-commands';
 import { TemplateCompiler } from './template-compiler';
 import { HTMLTemplateElementFactory } from './template-element-factory';
 export const ITemplateCompilerRegistration = TemplateCompiler;

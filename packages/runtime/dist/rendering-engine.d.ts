@@ -43,7 +43,7 @@ export interface IInstructionRenderer<TType extends InstructionTypeName = Instru
 }
 export declare const IInstructionRenderer: import("@aurelia/kernel").InterfaceSymbol<IInstructionRenderer<string>>;
 export interface IRenderer {
-    instructionRenderers: Record<string, IInstructionRenderer>;
+    instructionRenderers: Record<string, IInstructionRenderer['render']>;
     render(flags: LifecycleFlags, dom: IDOM, context: IRenderContext, renderable: IController, targets: ArrayLike<INode>, templateDefinition: TemplateDefinition, host?: INode, parts?: TemplatePartDefinitions): void;
 }
 export declare const IRenderer: import("@aurelia/kernel").InterfaceSymbol<IRenderer>;

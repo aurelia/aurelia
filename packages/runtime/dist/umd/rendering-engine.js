@@ -4,7 +4,7 @@
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "tslib", "@aurelia/kernel", "./definitions", "./dom", "./lifecycle", "./observation/subscriber-collection", "./templating/controller", "./templating/view"], factory);
+        define(["require", "exports", "tslib", "@aurelia/kernel", "./definitions", "./dom", "./lifecycle", "./observation/subscriber-collection", "./resources/custom-element", "./templating/controller", "./templating/view"], factory);
     }
 })(function (require, exports) {
     "use strict";
@@ -15,6 +15,7 @@
     const dom_1 = require("./dom");
     const lifecycle_1 = require("./lifecycle");
     const subscriber_collection_1 = require("./observation/subscriber-collection");
+    const custom_element_1 = require("./resources/custom-element");
     const controller_1 = require("./templating/controller");
     const view_1 = require("./templating/view");
     exports.ITemplateCompiler = kernel_1.DI.createInterface('ITemplateCompiler').noDefault();
@@ -263,7 +264,7 @@
         const components = [];
         for (let i = 0, ii = nodes.length; i < ii; ++i) {
             const current = nodes[i];
-            const component = definitions_1.customElementBehavior(current);
+            const component = custom_element_1.CustomElement.behaviorFor(current);
             if (component != void 0) {
                 components.push(component);
             }

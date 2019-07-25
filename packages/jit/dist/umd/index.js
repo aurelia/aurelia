@@ -4,7 +4,7 @@
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "./ast", "./attribute-parser", "./attribute-pattern", "./binding-command", "./configuration", "./common", "./expression-parser", "./resource-model", "./semantic-model"], factory);
+        define(["require", "exports", "./ast", "./attribute-parser", "./attribute-pattern", "./attribute-patterns", "./binding-command", "./binding-commands", "./configuration", "./common", "./expression-parser", "./resource-model", "./semantic-model"], factory);
     }
 })(function (require, exports) {
     "use strict";
@@ -14,26 +14,27 @@
     var attribute_parser_1 = require("./attribute-parser");
     exports.IAttributeParser = attribute_parser_1.IAttributeParser;
     var attribute_pattern_1 = require("./attribute-pattern");
-    exports.AtPrefixedTriggerAttributePattern = attribute_pattern_1.AtPrefixedTriggerAttributePattern;
     exports.attributePattern = attribute_pattern_1.attributePattern;
-    exports.ColonPrefixedBindAttributePattern = attribute_pattern_1.ColonPrefixedBindAttributePattern;
-    exports.DotSeparatedAttributePattern = attribute_pattern_1.DotSeparatedAttributePattern;
     exports.IAttributePattern = attribute_pattern_1.IAttributePattern;
     exports.Interpretation = attribute_pattern_1.Interpretation;
     exports.ISyntaxInterpreter = attribute_pattern_1.ISyntaxInterpreter;
-    exports.RefAttributePattern = attribute_pattern_1.RefAttributePattern;
+    var attribute_patterns_1 = require("./attribute-patterns");
+    exports.AtPrefixedTriggerAttributePattern = attribute_patterns_1.AtPrefixedTriggerAttributePattern;
+    exports.ColonPrefixedBindAttributePattern = attribute_patterns_1.ColonPrefixedBindAttributePattern;
+    exports.DotSeparatedAttributePattern = attribute_patterns_1.DotSeparatedAttributePattern;
+    exports.RefAttributePattern = attribute_patterns_1.RefAttributePattern;
     var binding_command_1 = require("./binding-command");
     exports.bindingCommand = binding_command_1.bindingCommand;
     exports.BindingCommandResource = binding_command_1.BindingCommandResource;
-    exports.CallBindingCommand = binding_command_1.CallBindingCommand;
-    exports.DefaultBindingCommand = binding_command_1.DefaultBindingCommand;
-    exports.ForBindingCommand = binding_command_1.ForBindingCommand;
-    exports.FromViewBindingCommand = binding_command_1.FromViewBindingCommand;
-    exports.getMode = binding_command_1.getMode;
     exports.getTarget = binding_command_1.getTarget;
-    exports.OneTimeBindingCommand = binding_command_1.OneTimeBindingCommand;
-    exports.ToViewBindingCommand = binding_command_1.ToViewBindingCommand;
-    exports.TwoWayBindingCommand = binding_command_1.TwoWayBindingCommand;
+    var binding_commands_1 = require("./binding-commands");
+    exports.CallBindingCommand = binding_commands_1.CallBindingCommand;
+    exports.DefaultBindingCommand = binding_commands_1.DefaultBindingCommand;
+    exports.ForBindingCommand = binding_commands_1.ForBindingCommand;
+    exports.FromViewBindingCommand = binding_commands_1.FromViewBindingCommand;
+    exports.OneTimeBindingCommand = binding_commands_1.OneTimeBindingCommand;
+    exports.ToViewBindingCommand = binding_commands_1.ToViewBindingCommand;
+    exports.TwoWayBindingCommand = binding_commands_1.TwoWayBindingCommand;
     var configuration_1 = require("./configuration");
     exports.IExpressionParserRegistration = configuration_1.IExpressionParserRegistration;
     exports.DefaultComponents = configuration_1.DefaultComponents;

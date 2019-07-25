@@ -4,7 +4,7 @@
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "@aurelia/jit", "@aurelia/kernel", "@aurelia/runtime-html", "./attribute-pattern", "./binding-command", "./template-compiler", "./template-element-factory"], factory);
+        define(["require", "exports", "@aurelia/jit", "@aurelia/kernel", "@aurelia/runtime-html", "./attribute-patterns", "./binding-commands", "./template-compiler", "./template-element-factory"], factory);
     }
 })(function (require, exports) {
     "use strict";
@@ -12,8 +12,8 @@
     const jit_1 = require("@aurelia/jit");
     const kernel_1 = require("@aurelia/kernel");
     const runtime_html_1 = require("@aurelia/runtime-html");
-    const attribute_pattern_1 = require("./attribute-pattern");
-    const binding_command_1 = require("./binding-command");
+    const attribute_patterns_1 = require("./attribute-patterns");
+    const binding_commands_1 = require("./binding-commands");
     const template_compiler_1 = require("./template-compiler");
     const template_element_factory_1 = require("./template-element-factory");
     exports.ITemplateCompilerRegistration = template_compiler_1.TemplateCompiler;
@@ -31,16 +31,16 @@
      * Default HTML-specific (but environment-agnostic) implementations for style binding
      */
     exports.JitAttrBindingSyntax = [
-        attribute_pattern_1.StyleAttributePattern,
-        attribute_pattern_1.ClassAttributePattern,
-        attribute_pattern_1.AttrAttributePattern
+        attribute_patterns_1.StyleAttributePattern,
+        attribute_patterns_1.ClassAttributePattern,
+        attribute_patterns_1.AttrAttributePattern
     ];
-    exports.TriggerBindingCommandRegistration = binding_command_1.TriggerBindingCommand;
-    exports.DelegateBindingCommandRegistration = binding_command_1.DelegateBindingCommand;
-    exports.CaptureBindingCommandRegistration = binding_command_1.CaptureBindingCommand;
-    exports.AttrBindingCommandRegistration = binding_command_1.AttrBindingCommand;
-    exports.ClassBindingCommandRegistration = binding_command_1.ClassBindingCommand;
-    exports.StyleBindingCommandRegistration = binding_command_1.StyleBindingCommand;
+    exports.TriggerBindingCommandRegistration = binding_commands_1.TriggerBindingCommand;
+    exports.DelegateBindingCommandRegistration = binding_commands_1.DelegateBindingCommand;
+    exports.CaptureBindingCommandRegistration = binding_commands_1.CaptureBindingCommand;
+    exports.AttrBindingCommandRegistration = binding_commands_1.AttrBindingCommand;
+    exports.ClassBindingCommandRegistration = binding_commands_1.ClassBindingCommand;
+    exports.StyleBindingCommandRegistration = binding_commands_1.StyleBindingCommand;
     /**
      * Default HTML-specific (but environment-agnostic) binding commands:
      * - Event listeners: `.trigger`, `.delegate`, `.capture`

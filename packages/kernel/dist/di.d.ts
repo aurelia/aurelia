@@ -154,14 +154,13 @@ export declare function singleton<T extends Constructable>(target: T & Partial<R
 export declare const all: (key: any) => any;
 export declare const lazy: (key: any) => any;
 export declare const optional: (key: any) => any;
-export declare class Registration {
-    private constructor();
-    static instance<T>(key: Key, value: T): IRegistration<T>;
-    static singleton<T extends Constructable>(key: Key, value: T): IRegistration<InstanceType<T>>;
-    static transient<T extends Constructable>(key: Key, value: T): IRegistration<InstanceType<T>>;
-    static callback<T>(key: Key, callback: ResolveCallback<T>): IRegistration<Resolved<T>>;
-    static alias<T>(originalKey: T, aliasKey: Key): IRegistration<Resolved<T>>;
-}
+export declare const Registration: Readonly<{
+    instance<T>(key: Key, value: T): IRegistration<T>;
+    singleton<T extends Constructable<{}>>(key: Key, value: T): IRegistration<InstanceType<T>>;
+    transient<T extends Constructable<{}>>(key: Key, value: T): IRegistration<InstanceType<T>>;
+    callback<T>(key: Key, callback: ResolveCallback<T>): IRegistration<T extends InterfaceSymbol<infer T> ? T : T extends Constructable<{}> ? InstanceType<T> : T extends IResolverLike<infer T1, any> ? T1 extends Constructable<{}> ? InstanceType<T1> : T1 : T>;
+    alias<T>(originalKey: T, aliasKey: Key): IRegistration<T extends InterfaceSymbol<infer T> ? T : T extends Constructable<{}> ? InstanceType<T> : T extends IResolverLike<infer T1, any> ? T1 extends Constructable<{}> ? InstanceType<T1> : T1 : T>;
+}>;
 export declare class InstanceProvider<K extends Key> implements IResolver<K | null> {
     private instance;
     constructor();

@@ -4,11 +4,12 @@
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "@aurelia/kernel", "../../binding/property-binding", "../../flags", "../binding-behavior"], factory);
+        define(["require", "exports", "tslib", "@aurelia/kernel", "../../binding/property-binding", "../../flags", "../binding-behavior"], factory);
     }
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
+    const tslib_1 = require("tslib");
     const kernel_1 = require("@aurelia/kernel");
     const property_binding_1 = require("../../binding/property-binding");
     const flags_1 = require("../../flags");
@@ -42,7 +43,7 @@
     }
     exports.debounceCall = debounceCall;
     const fromView = flags_1.BindingMode.fromView;
-    class DebounceBindingBehavior {
+    let DebounceBindingBehavior = class DebounceBindingBehavior {
         bind(flags, scope, binding, delay = 200) {
             let methodToDebounce;
             let callContextToDebounce;
@@ -80,8 +81,10 @@
             kernel_1.PLATFORM.global.clearTimeout(binding.debounceState.timeoutId);
             binding.debounceState = null;
         }
-    }
+    };
+    DebounceBindingBehavior = tslib_1.__decorate([
+        binding_behavior_1.bindingBehavior('debounce')
+    ], DebounceBindingBehavior);
     exports.DebounceBindingBehavior = DebounceBindingBehavior;
-    binding_behavior_1.BindingBehavior.define('debounce', DebounceBindingBehavior);
 });
 //# sourceMappingURL=debounce.js.map

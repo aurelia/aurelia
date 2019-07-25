@@ -15,6 +15,6 @@ export interface IBindingBehaviorResource extends IResourceKind<IBindingBehavior
 export declare function bindingBehavior(definition: IBindingBehaviorDefinition): BindingBehaviorDecorator;
 export declare function bindingBehavior(name: string): BindingBehaviorDecorator;
 export declare function bindingBehavior(nameOrDefinition: string | IBindingBehaviorDefinition): BindingBehaviorDecorator;
-export declare const BindingBehavior: IBindingBehaviorResource;
+export declare const BindingBehavior: Readonly<IBindingBehaviorResource>;
 export declare type BindingBehaviorDecorator = <T extends Constructable>(target: T) => T & IBindingBehaviorType<T>;
 //# sourceMappingURL=binding-behavior.d.ts.map

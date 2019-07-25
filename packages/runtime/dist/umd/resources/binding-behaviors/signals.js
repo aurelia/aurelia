@@ -4,15 +4,16 @@
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "@aurelia/kernel", "../../observation/signaler", "../binding-behavior"], factory);
+        define(["require", "exports", "tslib", "@aurelia/kernel", "../../observation/signaler", "../binding-behavior"], factory);
     }
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
+    const tslib_1 = require("tslib");
     const kernel_1 = require("@aurelia/kernel");
     const signaler_1 = require("../../observation/signaler");
     const binding_behavior_1 = require("../binding-behavior");
-    class SignalBindingBehavior {
+    let SignalBindingBehavior = class SignalBindingBehavior {
         constructor(signaler) {
             this.signaler = signaler;
         }
@@ -52,9 +53,11 @@
                 this.signaler.removeSignalListener(name, binding);
             }
         }
-    }
-    SignalBindingBehavior.inject = [signaler_1.ISignaler];
+    };
+    SignalBindingBehavior = tslib_1.__decorate([
+        binding_behavior_1.bindingBehavior('signal'),
+        tslib_1.__param(0, signaler_1.ISignaler)
+    ], SignalBindingBehavior);
     exports.SignalBindingBehavior = SignalBindingBehavior;
-    binding_behavior_1.BindingBehavior.define('signal', SignalBindingBehavior);
 });
 //# sourceMappingURL=signals.js.map

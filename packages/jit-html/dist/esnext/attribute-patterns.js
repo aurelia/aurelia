@@ -1,3 +1,4 @@
+import * as tslib_1 from "tslib";
 import { attributePattern, AttrSyntax } from '@aurelia/jit';
 /**
  * Attribute syntax pattern recognizer, helping Aurelia understand template:
@@ -6,15 +7,18 @@ import { attributePattern, AttrSyntax } from '@aurelia/jit';
  * <div some-attr.attr="someAttrValue"></div>
  * ````
  */
-export class AttrAttributePattern {
+let AttrAttributePattern = class AttrAttributePattern {
     ['attr.PART'](rawName, rawValue, parts) {
         return new AttrSyntax(rawName, rawValue, parts[1], 'attr');
     }
     ['PART.attr'](rawName, rawValue, parts) {
         return new AttrSyntax(rawName, rawValue, parts[0], 'attr');
     }
-}
-attributePattern({ pattern: 'attr.PART', symbols: '.' }, { pattern: 'PART.attr', symbols: '.' })(AttrAttributePattern);
+};
+AttrAttributePattern = tslib_1.__decorate([
+    attributePattern({ pattern: 'attr.PART', symbols: '.' }, { pattern: 'PART.attr', symbols: '.' })
+], AttrAttributePattern);
+export { AttrAttributePattern };
 /**
  * Style syntax pattern recognizer, helps Aurelia understand template:
  * ```html
@@ -28,15 +32,18 @@ attributePattern({ pattern: 'attr.PART', symbols: '.' }, { pattern: 'PART.attr',
  * <div style.--custom-prop-css="cssProp"></div>
  * ```
  */
-export class StyleAttributePattern {
+let StyleAttributePattern = class StyleAttributePattern {
     ['style.PART'](rawName, rawValue, parts) {
         return new AttrSyntax(rawName, rawValue, parts[1], 'style');
     }
     ['PART.style'](rawName, rawValue, parts) {
         return new AttrSyntax(rawName, rawValue, parts[0], 'style');
     }
-}
-attributePattern({ pattern: 'style.PART', symbols: '.' }, { pattern: 'PART.style', symbols: '.' })(StyleAttributePattern);
+};
+StyleAttributePattern = tslib_1.__decorate([
+    attributePattern({ pattern: 'style.PART', symbols: '.' }, { pattern: 'PART.style', symbols: '.' })
+], StyleAttributePattern);
+export { StyleAttributePattern };
 /**
  * Class syntax pattern recognizer, helps Aurelia understand template:
  * ```html
@@ -46,13 +53,16 @@ attributePattern({ pattern: 'style.PART', symbols: '.' }, { pattern: 'PART.style
  * <div class.✔="checked"></div>
  * ```
  */
-export class ClassAttributePattern {
+let ClassAttributePattern = class ClassAttributePattern {
     ['class.PART'](rawName, rawValue, parts) {
         return new AttrSyntax(rawName, rawValue, parts[1], 'class');
     }
     ['PART.class'](rawName, rawValue, parts) {
         return new AttrSyntax(rawName, rawValue, parts[0], 'class');
     }
-}
-attributePattern({ pattern: 'class.PART', symbols: '.' }, { pattern: 'PART.class', symbols: '.' })(ClassAttributePattern);
-//# sourceMappingURL=attribute-pattern.js.map
+};
+ClassAttributePattern = tslib_1.__decorate([
+    attributePattern({ pattern: 'class.PART', symbols: '.' }, { pattern: 'PART.class', symbols: '.' })
+], ClassAttributePattern);
+export { ClassAttributePattern };
+//# sourceMappingURL=attribute-patterns.js.map

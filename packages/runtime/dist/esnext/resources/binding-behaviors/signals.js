@@ -1,7 +1,8 @@
+import * as tslib_1 from "tslib";
 import { Reporter } from '@aurelia/kernel';
 import { ISignaler } from '../../observation/signaler';
-import { BindingBehavior } from '../binding-behavior';
-export class SignalBindingBehavior {
+import { bindingBehavior } from '../binding-behavior';
+let SignalBindingBehavior = class SignalBindingBehavior {
     constructor(signaler) {
         this.signaler = signaler;
     }
@@ -41,7 +42,10 @@ export class SignalBindingBehavior {
             this.signaler.removeSignalListener(name, binding);
         }
     }
-}
-SignalBindingBehavior.inject = [ISignaler];
-BindingBehavior.define('signal', SignalBindingBehavior);
+};
+SignalBindingBehavior = tslib_1.__decorate([
+    bindingBehavior('signal'),
+    tslib_1.__param(0, ISignaler)
+], SignalBindingBehavior);
+export { SignalBindingBehavior };
 //# sourceMappingURL=signals.js.map

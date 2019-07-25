@@ -4,11 +4,12 @@
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "@aurelia/kernel", "../value-converter"], factory);
+        define(["require", "exports", "tslib", "@aurelia/kernel", "../value-converter"], factory);
     }
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
+    const tslib_1 = require("tslib");
     const kernel_1 = require("@aurelia/kernel");
     const value_converter_1 = require("../value-converter");
     const SCRIPT_REGEX = /<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi;
@@ -20,7 +21,7 @@
     /**
      * Simple html sanitization converter to preserve whitelisted elements and attributes on a bound property containing html.
      */
-    class SanitizeValueConverter {
+    let SanitizeValueConverter = class SanitizeValueConverter {
         constructor(sanitizer) {
             this.sanitizer = sanitizer;
         }
@@ -34,9 +35,11 @@
             }
             return this.sanitizer.sanitize(untrustedMarkup);
         }
-    }
-    SanitizeValueConverter.inject = [exports.ISanitizer];
+    };
+    SanitizeValueConverter = tslib_1.__decorate([
+        value_converter_1.valueConverter('sanitize'),
+        tslib_1.__param(0, exports.ISanitizer)
+    ], SanitizeValueConverter);
     exports.SanitizeValueConverter = SanitizeValueConverter;
-    value_converter_1.ValueConverter.define('sanitize', SanitizeValueConverter);
 });
 //# sourceMappingURL=sanitize.js.map

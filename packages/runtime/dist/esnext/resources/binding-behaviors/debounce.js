@@ -1,7 +1,8 @@
+import * as tslib_1 from "tslib";
 import { PLATFORM } from '@aurelia/kernel';
 import { PropertyBinding } from '../../binding/property-binding';
 import { BindingMode } from '../../flags';
-import { BindingBehavior } from '../binding-behavior';
+import { bindingBehavior } from '../binding-behavior';
 const unset = {};
 /** @internal */
 export function debounceCallSource(newValue, oldValue, flags) {
@@ -29,7 +30,7 @@ export function debounceCall(newValue, oldValue, flags) {
     state.timeoutId = timeoutId;
 }
 const fromView = BindingMode.fromView;
-export class DebounceBindingBehavior {
+let DebounceBindingBehavior = class DebounceBindingBehavior {
     bind(flags, scope, binding, delay = 200) {
         let methodToDebounce;
         let callContextToDebounce;
@@ -67,6 +68,9 @@ export class DebounceBindingBehavior {
         PLATFORM.global.clearTimeout(binding.debounceState.timeoutId);
         binding.debounceState = null;
     }
-}
-BindingBehavior.define('debounce', DebounceBindingBehavior);
+};
+DebounceBindingBehavior = tslib_1.__decorate([
+    bindingBehavior('debounce')
+], DebounceBindingBehavior);
+export { DebounceBindingBehavior };
 //# sourceMappingURL=debounce.js.map

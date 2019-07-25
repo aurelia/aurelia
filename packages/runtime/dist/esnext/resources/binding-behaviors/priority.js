@@ -1,10 +1,6 @@
-import { Registration, } from '@aurelia/kernel';
-import { BindingBehavior, } from '../binding-behavior';
-export class PriorityBindingBehavior {
-    static register(container) {
-        container.register(Registration.singleton(`binding-behavior:priority`, this));
-        container.register(Registration.singleton(this, this));
-    }
+import * as tslib_1 from "tslib";
+import { bindingBehavior, } from '../binding-behavior';
+let PriorityBindingBehavior = class PriorityBindingBehavior {
     bind(binding, priority = 4096 /* low */) {
         const { targetObserver } = binding;
         if (targetObserver != void 0) {
@@ -46,9 +42,9 @@ export class PriorityBindingBehavior {
             binding.targetObserver.priority = this[binding.id];
         }
     }
-}
-PriorityBindingBehavior.kind = BindingBehavior;
-PriorityBindingBehavior.description = Object.freeze({
-    name: 'priority',
-});
+};
+PriorityBindingBehavior = tslib_1.__decorate([
+    bindingBehavior('priority')
+], PriorityBindingBehavior);
+export { PriorityBindingBehavior };
 //# sourceMappingURL=priority.js.map

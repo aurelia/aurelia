@@ -1,30 +1,28 @@
 import * as tslib_1 from "tslib";
-import { all, Registration, Reporter } from '@aurelia/kernel';
+import { all, Registration, Reporter, } from '@aurelia/kernel';
 import { CallBinding } from './binding/call-binding';
 import { IExpressionParser } from './binding/expression-parser';
 import { InterpolationBinding, MultiInterpolationBinding } from './binding/interpolation-binding';
 import { LetBinding } from './binding/let-binding';
 import { PropertyBinding } from './binding/property-binding';
 import { RefBinding } from './binding/ref-binding';
-import { customAttributeKey, customElementKey } from './definitions';
 import { BindingMode } from './flags';
 import { IObserverLocator } from './observation/observer-locator';
 import { IInstructionRenderer, IRenderer, IRenderingEngine } from './rendering-engine';
+import { CustomAttribute, } from './resources/custom-attribute';
+import { CustomElement, } from './resources/custom-element';
 import { Controller, } from './templating/controller';
-const slice = Array.prototype.slice;
 export function instructionRenderer(instructionType) {
     return function decorator(target) {
         // wrap the constructor to set the instructionType to the instance (for better performance than when set on the prototype)
         const decoratedTarget = function (...args) {
-            // TODO: fix this
-            // @ts-ignore
             const instance = new target(...args);
             instance.instructionType = instructionType;
             return instance;
         };
         // make sure we register the decorated constructor with DI
         decoratedTarget.register = function register(container) {
-            return Registration.singleton(IInstructionRenderer, decoratedTarget).register(container, IInstructionRenderer);
+            Registration.singleton(IInstructionRenderer, decoratedTarget).register(container);
         };
         // copy over any static properties such as inject (set by preceding decorators)
         // also copy the name, to be less confusing to users (so they can still use constructor.name for whatever reason)
@@ -41,7 +39,10 @@ export class Renderer {
     constructor(instructionRenderers) {
         const record = this.instructionRenderers = {};
         instructionRenderers.forEach(item => {
-            record[item.instructionType] = item;
+            // Binding the functions to the renderer instances and calling the functions directly,
+            // prevents the `render` call sites from going megamorphic.
+            // Consumes slightly more memory but significantly less CPU.
+            record[item.instructionType] = item.render.bind(item);
         });
     }
     static register(container) {
@@ -67,20 +68,18 @@ export class Renderer {
             target = targets[i];
             for (let j = 0, jj = instructions.length; j < jj; ++j) {
                 current = instructions[j];
-                instructionRenderers[current.type].render(flags, dom, context, renderable, target, current, parts);
+                instructionRenderers[current.type](flags, dom, context, renderable, target, current, parts);
             }
         }
         if (host) {
             const surrogateInstructions = definition.surrogates;
             for (let i = 0, ii = surrogateInstructions.length; i < ii; ++i) {
                 current = surrogateInstructions[i];
-                instructionRenderers[current.type].render(flags, dom, context, renderable, host, current, parts);
+                instructionRenderers[current.type](flags, dom, context, renderable, host, current, parts);
             }
         }
     }
 }
-// TODO: fix this
-// @ts-ignore
 Renderer.inject = [all(IInstructionRenderer)];
 export function ensureExpression(parser, srcOrExpr, bindingType) {
     if (typeof srcOrExpr === 'string') {
@@ -127,14 +126,14 @@ let CustomElementRenderer =
 class CustomElementRenderer {
     render(flags, dom, context, renderable, target, instruction) {
         const operation = context.beginComponentOperation(renderable, target, instruction, null, null, target, true);
-        const component = context.get(customElementKey(instruction.res));
+        const component = context.get(CustomElement.keyFrom(instruction.res));
         const instructionRenderers = context.get(IRenderer).instructionRenderers;
         const childInstructions = instruction.instructions;
         const controller = Controller.forCustomElement(component, context, target, flags, instruction);
         let current;
         for (let i = 0, ii = childInstructions.length; i < ii; ++i) {
             current = childInstructions[i];
-            instructionRenderers[current.type].render(flags, dom, context, renderable, controller, current);
+            instructionRenderers[current.type](flags, dom, context, renderable, controller, current);
         }
         addComponent(renderable, controller);
         operation.dispose();
@@ -150,14 +149,14 @@ let CustomAttributeRenderer =
 class CustomAttributeRenderer {
     render(flags, dom, context, renderable, target, instruction) {
         const operation = context.beginComponentOperation(renderable, target, instruction);
-        const component = context.get(customAttributeKey(instruction.res));
+        const component = context.get(CustomAttribute.keyFrom(instruction.res));
         const instructionRenderers = context.get(IRenderer).instructionRenderers;
         const childInstructions = instruction.instructions;
         const controller = Controller.forCustomAttribute(component, context, flags);
         let current;
         for (let i = 0, ii = childInstructions.length; i < ii; ++i) {
             current = childInstructions[i];
-            instructionRenderers[current.type].render(flags, dom, context, renderable, controller, current);
+            instructionRenderers[current.type](flags, dom, context, renderable, controller, current);
         }
         addComponent(renderable, controller);
         operation.dispose();
@@ -171,13 +170,14 @@ export { CustomAttributeRenderer };
 let TemplateControllerRenderer = 
 /** @internal */
 class TemplateControllerRenderer {
-    constructor(renderingEngine) {
+    constructor(renderingEngine, observerLocator) {
         this.renderingEngine = renderingEngine;
+        this.observerLocator = observerLocator;
     }
     render(flags, dom, context, renderable, target, instruction, parts) {
         const factory = this.renderingEngine.getViewFactory(dom, instruction.def, context);
         const operation = context.beginComponentOperation(renderable, target, instruction, factory, parts, dom.convertToRenderLocation(target), false);
-        const component = context.get(customAttributeKey(instruction.res));
+        const component = context.get(CustomAttribute.keyFrom(instruction.res));
         const instructionRenderers = context.get(IRenderer).instructionRenderers;
         const childInstructions = instruction.instructions;
         if (instruction.parts !== void 0) {
@@ -202,16 +202,17 @@ class TemplateControllerRenderer {
         let current;
         for (let i = 0, ii = childInstructions.length; i < ii; ++i) {
             current = childInstructions[i];
-            instructionRenderers[current.type].render(flags, dom, context, renderable, controller, current);
+            instructionRenderers[current.type](flags, dom, context, renderable, controller, current);
         }
         addComponent(renderable, controller);
         operation.dispose();
     }
 };
-TemplateControllerRenderer.inject = [IRenderingEngine];
 TemplateControllerRenderer = tslib_1.__decorate([
     instructionRenderer("rc" /* hydrateTemplateController */)
     /** @internal */
+    ,
+    tslib_1.__param(0, IRenderingEngine), tslib_1.__param(1, IObserverLocator)
 ], TemplateControllerRenderer);
 export { TemplateControllerRenderer };
 let LetElementRenderer = 
@@ -236,10 +237,12 @@ class LetElementRenderer {
         }
     }
 };
-LetElementRenderer.inject = [IExpressionParser, IObserverLocator];
 LetElementRenderer = tslib_1.__decorate([
     instructionRenderer("rd" /* hydrateLetElement */)
     /** @internal */
+    ,
+    tslib_1.__param(0, IExpressionParser),
+    tslib_1.__param(1, IObserverLocator)
 ], LetElementRenderer);
 export { LetElementRenderer };
 let CallBindingRenderer = 
@@ -255,10 +258,12 @@ class CallBindingRenderer {
         addBinding(renderable, binding);
     }
 };
-CallBindingRenderer.inject = [IExpressionParser, IObserverLocator];
 CallBindingRenderer = tslib_1.__decorate([
     instructionRenderer("rh" /* callBinding */)
     /** @internal */
+    ,
+    tslib_1.__param(0, IExpressionParser),
+    tslib_1.__param(1, IObserverLocator)
 ], CallBindingRenderer);
 export { CallBindingRenderer };
 let RefBindingRenderer = 
@@ -273,10 +278,11 @@ class RefBindingRenderer {
         addBinding(renderable, binding);
     }
 };
-RefBindingRenderer.inject = [IExpressionParser];
 RefBindingRenderer = tslib_1.__decorate([
     instructionRenderer("rj" /* refBinding */)
     /** @internal */
+    ,
+    tslib_1.__param(0, IExpressionParser)
 ], RefBindingRenderer);
 export { RefBindingRenderer };
 let InterpolationBindingRenderer = 
@@ -298,10 +304,12 @@ class InterpolationBindingRenderer {
         addBinding(renderable, binding);
     }
 };
-InterpolationBindingRenderer.inject = [IExpressionParser, IObserverLocator];
 InterpolationBindingRenderer = tslib_1.__decorate([
     instructionRenderer("rf" /* interpolation */)
     /** @internal */
+    ,
+    tslib_1.__param(0, IExpressionParser),
+    tslib_1.__param(1, IObserverLocator)
 ], InterpolationBindingRenderer);
 export { InterpolationBindingRenderer };
 let PropertyBindingRenderer = 
@@ -317,10 +325,12 @@ class PropertyBindingRenderer {
         addBinding(renderable, binding);
     }
 };
-PropertyBindingRenderer.inject = [IExpressionParser, IObserverLocator];
 PropertyBindingRenderer = tslib_1.__decorate([
     instructionRenderer("rg" /* propertyBinding */)
     /** @internal */
+    ,
+    tslib_1.__param(0, IExpressionParser),
+    tslib_1.__param(1, IObserverLocator)
 ], PropertyBindingRenderer);
 export { PropertyBindingRenderer };
 let IteratorBindingRenderer = 
@@ -336,10 +346,12 @@ class IteratorBindingRenderer {
         addBinding(renderable, binding);
     }
 };
-IteratorBindingRenderer.inject = [IExpressionParser, IObserverLocator];
 IteratorBindingRenderer = tslib_1.__decorate([
     instructionRenderer("rk" /* iteratorBinding */)
     /** @internal */
+    ,
+    tslib_1.__param(0, IExpressionParser),
+    tslib_1.__param(1, IObserverLocator)
 ], IteratorBindingRenderer);
 export { IteratorBindingRenderer };
 //# sourceMappingURL=renderer.js.map

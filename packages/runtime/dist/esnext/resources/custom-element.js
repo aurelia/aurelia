@@ -1,38 +1,38 @@
 import { DI, Registration, Reporter } from '@aurelia/kernel';
-import { buildTemplateDefinition, customElementBehavior, customElementKey, customElementName } from '../definitions';
+import { buildTemplateDefinition } from '../definitions';
 export const IProjectorLocator = DI.createInterface('IProjectorLocator').noDefault();
-/** @internal */
-export function registerElement(container) {
-    const resourceKey = this.kind.keyFrom(this.description.name);
-    container.register(Registration.transient(resourceKey, this));
-    container.register(Registration.transient(this, this));
-}
 export function customElement(nameOrDefinition) {
     return (target => CustomElement.define(nameOrDefinition, target));
 }
-function isType(Type) {
-    return Type.kind === this;
-}
-function define(nameOrDefinition, ctor = null) {
-    if (!nameOrDefinition) {
-        throw Reporter.error(70);
-    }
-    const Type = (ctor == null ? class HTMLOnlyElement {
-    } : ctor);
-    const WritableType = Type;
-    const description = buildTemplateDefinition(Type, nameOrDefinition);
-    WritableType.kind = CustomElement;
-    Type.description = description;
-    Type.register = registerElement;
-    return Type;
-}
-export const CustomElement = {
-    name: customElementName,
-    keyFrom: customElementKey,
-    isType,
-    behaviorFor: customElementBehavior,
-    define
-};
+export const CustomElement = Object.freeze({
+    name: 'custom-element',
+    keyFrom(name) {
+        return `${CustomElement.name}:${name}`;
+    },
+    isType(Type) {
+        return Type.kind === CustomElement;
+    },
+    behaviorFor(node) {
+        return node.$controller;
+    },
+    define(nameOrDefinition, ctor = null) {
+        if (!nameOrDefinition) {
+            throw Reporter.error(70);
+        }
+        const Type = (ctor == null ? class HTMLOnlyElement {
+        } : ctor);
+        const WritableType = Type;
+        const description = buildTemplateDefinition(Type, nameOrDefinition);
+        WritableType.kind = CustomElement;
+        Type.description = description;
+        Type.register = function register(container) {
+            const key = CustomElement.keyFrom(description.name);
+            Registration.transient(key, Type).register(container);
+            Registration.alias(key, Type).register(container);
+        };
+        return Type;
+    },
+});
 const defaultShadowOptions = {
     mode: 'open'
 };

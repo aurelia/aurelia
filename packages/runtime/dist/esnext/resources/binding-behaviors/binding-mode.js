@@ -1,41 +1,53 @@
+import * as tslib_1 from "tslib";
 import { BindingMode } from '../../flags';
-import { BindingBehavior } from '../binding-behavior';
-const { oneTime, toView, fromView, twoWay } = BindingMode;
+import { bindingBehavior } from '../binding-behavior';
 export class BindingModeBehavior {
     constructor(mode) {
         this.mode = mode;
+        this.originalModes = new WeakMap();
     }
     bind(flags, scope, binding) {
-        binding.originalMode = binding.mode;
+        this.originalModes.set(binding, binding.mode);
         binding.mode = this.mode;
     }
     unbind(flags, scope, binding) {
-        binding.mode = binding.originalMode;
-        binding.originalMode = null;
+        binding.mode = this.originalModes.get(binding);
     }
 }
-export class OneTimeBindingBehavior extends BindingModeBehavior {
+let OneTimeBindingBehavior = class OneTimeBindingBehavior extends BindingModeBehavior {
     constructor() {
-        super(oneTime);
+        super(BindingMode.oneTime);
     }
-}
-BindingBehavior.define('oneTime', OneTimeBindingBehavior);
-export class ToViewBindingBehavior extends BindingModeBehavior {
+};
+OneTimeBindingBehavior = tslib_1.__decorate([
+    bindingBehavior('oneTime')
+], OneTimeBindingBehavior);
+export { OneTimeBindingBehavior };
+let ToViewBindingBehavior = class ToViewBindingBehavior extends BindingModeBehavior {
     constructor() {
-        super(toView);
+        super(BindingMode.toView);
     }
-}
-BindingBehavior.define('toView', ToViewBindingBehavior);
-export class FromViewBindingBehavior extends BindingModeBehavior {
+};
+ToViewBindingBehavior = tslib_1.__decorate([
+    bindingBehavior('toView')
+], ToViewBindingBehavior);
+export { ToViewBindingBehavior };
+let FromViewBindingBehavior = class FromViewBindingBehavior extends BindingModeBehavior {
     constructor() {
-        super(fromView);
+        super(BindingMode.fromView);
     }
-}
-BindingBehavior.define('fromView', FromViewBindingBehavior);
-export class TwoWayBindingBehavior extends BindingModeBehavior {
+};
+FromViewBindingBehavior = tslib_1.__decorate([
+    bindingBehavior('fromView')
+], FromViewBindingBehavior);
+export { FromViewBindingBehavior };
+let TwoWayBindingBehavior = class TwoWayBindingBehavior extends BindingModeBehavior {
     constructor() {
-        super(twoWay);
+        super(BindingMode.twoWay);
     }
-}
-BindingBehavior.define('twoWay', TwoWayBindingBehavior);
+};
+TwoWayBindingBehavior = tslib_1.__decorate([
+    bindingBehavior('twoWay')
+], TwoWayBindingBehavior);
+export { TwoWayBindingBehavior };
 //# sourceMappingURL=binding-mode.js.map

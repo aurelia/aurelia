@@ -1,5 +1,5 @@
 import { IContainer, IRegistry } from '@aurelia/kernel';
-import { AttrAttributePattern, ClassAttributePattern, StyleAttributePattern } from './attribute-pattern';
+import { AttrAttributePattern, ClassAttributePattern, StyleAttributePattern } from './attribute-patterns';
 export declare const ITemplateCompilerRegistration: IRegistry;
 export declare const ITemplateElementFactoryRegistration: IRegistry;
 /**

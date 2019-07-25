@@ -1,7 +1,7 @@
 import { DI } from '@aurelia/kernel';
 import { IExpressionParser, RuntimeBasicConfiguration } from '@aurelia/runtime';
-import { AtPrefixedTriggerAttributePattern, ColonPrefixedBindAttributePattern, DotSeparatedAttributePattern, RefAttributePattern } from './attribute-pattern';
-import { CallBindingCommand, DefaultBindingCommand, ForBindingCommand, FromViewBindingCommand, OneTimeBindingCommand, ToViewBindingCommand, TwoWayBindingCommand } from './binding-command';
+import { AtPrefixedTriggerAttributePattern, ColonPrefixedBindAttributePattern, DotSeparatedAttributePattern, RefAttributePattern } from './attribute-patterns';
+import { CallBindingCommand, DefaultBindingCommand, ForBindingCommand, FromViewBindingCommand, OneTimeBindingCommand, ToViewBindingCommand, TwoWayBindingCommand } from './binding-commands';
 import { parseExpression } from './expression-parser';
 export const IExpressionParserRegistration = {
     register(container) {

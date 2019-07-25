@@ -164,7 +164,7 @@
         // tslint:enable:jsdoc-format
         static transient(target) {
             target.register = function register(container) {
-                const registration = Registration.transient(target, target);
+                const registration = exports.Registration.transient(target, target);
                 return registration.register(container, target);
             };
             return target;
@@ -191,7 +191,7 @@
         // tslint:enable:jsdoc-format
         static singleton(target) {
             target.register = function register(container) {
-                const registration = Registration.singleton(target, target);
+                const registration = exports.Registration.singleton(target, target);
                 return registration.register(container, target);
             };
             return target;
@@ -377,7 +377,7 @@
                     current.register(this);
                 }
                 else if (isClass(current)) {
-                    Registration.singleton(current, current).register(this);
+                    exports.Registration.singleton(current, current).register(this);
                 }
                 else {
                     keys = Object.keys(current);
@@ -536,25 +536,23 @@
         }
     }
     exports.Container = Container;
-    class Registration {
-        constructor() { }
-        static instance(key, value) {
+    exports.Registration = Object.freeze({
+        instance(key, value) {
             return new Resolver(key, 0 /* instance */, value);
-        }
-        static singleton(key, value) {
+        },
+        singleton(key, value) {
             return new Resolver(key, 1 /* singleton */, value);
-        }
-        static transient(key, value) {
+        },
+        transient(key, value) {
             return new Resolver(key, 2 /* transient */, value);
-        }
-        static callback(key, callback) {
+        },
+        callback(key, callback) {
             return new Resolver(key, 3 /* callback */, callback);
-        }
-        static alias(originalKey, aliasKey) {
+        },
+        alias(originalKey, aliasKey) {
             return new Resolver(aliasKey, 5 /* alias */, originalKey);
-        }
-    }
-    exports.Registration = Registration;
+        },
+    });
     class InstanceProvider {
         constructor() {
             this.instance = null;

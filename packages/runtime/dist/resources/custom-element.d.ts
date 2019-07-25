@@ -27,7 +27,7 @@ export interface ICustomElementStaticProperties {
     strategy?: TemplateDefinition['strategy'];
 }
 export interface ICustomElementResource<T extends INode = INode> extends IResourceKind<ITemplateDefinition, IViewModel, Class<IViewModel> & ICustomElementStaticProperties> {
-    behaviorFor(node: T): IController<T> | undefined;
+    behaviorFor<N extends INode = T>(node: N): IController<N> | undefined;
 }
 /**
  * Decorator: Indicates that the decorated class is a custom element.
@@ -35,7 +35,7 @@ export interface ICustomElementResource<T extends INode = INode> extends IResour
 export declare function customElement(definition: ITemplateDefinition): ICustomElementDecorator;
 export declare function customElement(name: string): ICustomElementDecorator;
 export declare function customElement(nameOrDefinition: string | ITemplateDefinition): ICustomElementDecorator;
-export declare const CustomElement: ICustomElementResource;
+export declare const CustomElement: Readonly<ICustomElementResource>;
 export interface ICustomElementDecorator {
     <T extends Constructable>(target: T): T & ICustomElementType<T>;
 }

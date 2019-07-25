@@ -519,24 +519,23 @@ export class Container {
         return resolver;
     }
 }
-export class Registration {
-    constructor() { }
-    static instance(key, value) {
+export const Registration = Object.freeze({
+    instance(key, value) {
         return new Resolver(key, 0 /* instance */, value);
-    }
-    static singleton(key, value) {
+    },
+    singleton(key, value) {
         return new Resolver(key, 1 /* singleton */, value);
-    }
-    static transient(key, value) {
+    },
+    transient(key, value) {
         return new Resolver(key, 2 /* transient */, value);
-    }
-    static callback(key, callback) {
+    },
+    callback(key, callback) {
         return new Resolver(key, 3 /* callback */, callback);
-    }
-    static alias(originalKey, aliasKey) {
+    },
+    alias(originalKey, aliasKey) {
         return new Resolver(aliasKey, 5 /* alias */, originalKey);
-    }
-}
+    },
+});
 export class InstanceProvider {
     constructor() {
         this.instance = null;

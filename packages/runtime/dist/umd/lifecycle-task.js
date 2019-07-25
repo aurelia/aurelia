@@ -114,10 +114,10 @@
             if (this._task === void 0) {
                 switch (this.type) {
                     case 0 /* with */:
-                        this._task = new TerminalTask(this.promiseOrTask);
+                        this._task = new ProviderTask(this.container, this.key, this.callback);
                         break;
                     case 1 /* from */:
-                        this._task = new ProviderTask(this.container, this.key, this.callback);
+                        this._task = new TerminalTask(this.promiseOrTask);
                         break;
                 }
             }

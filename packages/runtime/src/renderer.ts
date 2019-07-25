@@ -7,7 +7,6 @@ import {
   Key,
   Registration,
   Reporter,
-  Tracer
 } from '@aurelia/kernel';
 import { AnyBindingExpression } from './ast';
 import { CallBinding } from './binding/call-binding';
@@ -17,8 +16,6 @@ import { LetBinding } from './binding/let-binding';
 import { PropertyBinding } from './binding/property-binding';
 import { RefBinding } from './binding/ref-binding';
 import {
-  customAttributeKey,
-  customElementKey,
   ICallBindingInstruction,
   IElementHydrationOptions,
   IHydrateAttributeInstruction,
@@ -52,10 +49,14 @@ import {
   IRenderingEngine
 } from './rendering-engine';
 import {
+  CustomAttribute,
+} from './resources/custom-attribute';
+import {
+  CustomElement,
+} from './resources/custom-element';
+import {
   Controller,
 } from './templating/controller';
-
-const slice = Array.prototype.slice;
 
 type DecoratableInstructionRenderer<TType extends string, TProto, TClass> = Class<TProto & Partial<IInstructionTypeClassifier<TType> & Pick<IInstructionRenderer, 'render'>>, TClass> & Partial<IRegistry>;
 type DecoratedInstructionRenderer<TType extends string, TProto, TClass> =  Class<TProto & IInstructionTypeClassifier<TType> & Pick<IInstructionRenderer, 'render'>, TClass> & IRegistry;
@@ -66,15 +67,13 @@ export function instructionRenderer<TType extends string>(instructionType: TType
   return function decorator<TProto, TClass>(target: DecoratableInstructionRenderer<TType, TProto, TClass>): DecoratedInstructionRenderer<TType, TProto, TClass> {
     // wrap the constructor to set the instructionType to the instance (for better performance than when set on the prototype)
     const decoratedTarget = function(...args: unknown[]): TProto {
-      // TODO: fix this
-      // @ts-ignore
       const instance = new target(...args);
       instance.instructionType = instructionType;
       return instance;
     } as unknown as DecoratedInstructionRenderer<TType, TProto, TClass>;
     // make sure we register the decorated constructor with DI
-    decoratedTarget.register = function register(container: IContainer): IResolver {
-      return Registration.singleton(IInstructionRenderer, decoratedTarget).register(container, IInstructionRenderer);
+    decoratedTarget.register = function register(container: IContainer): void {
+      Registration.singleton(IInstructionRenderer, decoratedTarget).register(container);
     };
     // copy over any static properties such as inject (set by preceding decorators)
     // also copy the name, to be less confusing to users (so they can still use constructor.name for whatever reason)
@@ -89,16 +88,17 @@ export function instructionRenderer<TType extends string>(instructionType: TType
 
 /* @internal */
 export class Renderer implements IRenderer {
-  // TODO: fix this
-  // @ts-ignore
   public static readonly inject: readonly Key[] = [all(IInstructionRenderer)];
 
-  public instructionRenderers: Record<InstructionTypeName, IInstructionRenderer>;
+  public instructionRenderers: Record<InstructionTypeName, IInstructionRenderer['render']>;
 
   constructor(instructionRenderers: IInstructionRenderer[]) {
-    const record: Record<InstructionTypeName, IInstructionRenderer> = this.instructionRenderers = {};
+    const record: Record<InstructionTypeName, IInstructionRenderer['render']> = this.instructionRenderers = {};
     instructionRenderers.forEach(item => {
-      record[item.instructionType!] = item;
+      // Binding the functions to the renderer instances and calling the functions directly,
+      // prevents the `render` call sites from going megamorphic.
+      // Consumes slightly more memory but significantly less CPU.
+      record[item.instructionType as string] = item.render.bind(item);
     });
   }
 
@@ -127,7 +127,7 @@ export class Renderer implements IRenderer {
 
       for (let j = 0, jj = instructions.length; j < jj; ++j) {
         current = instructions[j];
-        instructionRenderers[current.type].render(flags, dom, context, renderable, target, current, parts);
+        instructionRenderers[current.type](flags, dom, context, renderable, target, current, parts);
       }
     }
 
@@ -136,7 +136,7 @@ export class Renderer implements IRenderer {
 
       for (let i = 0, ii = surrogateInstructions.length; i < ii; ++i) {
         current = surrogateInstructions[i];
-        instructionRenderers[current.type].render(flags, dom, context, renderable, host, current, parts);
+        instructionRenderers[current.type](flags, dom, context, renderable, host, current, parts);
       }
     }
   }
@@ -175,8 +175,6 @@ export function getTarget(potentialTarget: object): object {
 @instructionRenderer(TargetedInstructionType.setProperty)
 /** @internal */
 export class SetPropertyRenderer implements IInstructionRenderer {
-  public static readonly register: IRegistry['register'];
-
   public render(flags: LifecycleFlags, dom: IDOM, context: IRenderContext, renderable: IController, target: IController, instruction: ISetPropertyInstruction): void {
     getTarget(target)[instruction.to as keyof object] = (instruction.value === '' ? true : instruction.value) as never; // Yeah, yeah..
   }
@@ -185,11 +183,9 @@ export class SetPropertyRenderer implements IInstructionRenderer {
 @instructionRenderer(TargetedInstructionType.hydrateElement)
 /** @internal */
 export class CustomElementRenderer implements IInstructionRenderer {
-  public static readonly register: IRegistry['register'];
-
   public render(flags: LifecycleFlags, dom: IDOM, context: IRenderContext, renderable: IController, target: INode, instruction: IHydrateElementInstruction): void {
     const operation = context.beginComponentOperation(renderable, target, instruction, null!, null!, target, true);
-    const component = context.get<object>(customElementKey(instruction.res));
+    const component = context.get<object>(CustomElement.keyFrom(instruction.res));
     const instructionRenderers = context.get(IRenderer).instructionRenderers;
     const childInstructions = instruction.instructions;
 
@@ -204,7 +200,7 @@ export class CustomElementRenderer implements IInstructionRenderer {
     let current: ITargetedInstruction;
     for (let i = 0, ii = childInstructions.length; i < ii; ++i) {
       current = childInstructions[i];
-      instructionRenderers[current.type].render(flags, dom, context, renderable, controller, current);
+      instructionRenderers[current.type](flags, dom, context, renderable, controller, current);
     }
 
     addComponent(renderable, controller);
@@ -216,11 +212,9 @@ export class CustomElementRenderer implements IInstructionRenderer {
 @instructionRenderer(TargetedInstructionType.hydrateAttribute)
 /** @internal */
 export class CustomAttributeRenderer implements IInstructionRenderer {
-  public static readonly register: IRegistry['register'];
-
   public render(flags: LifecycleFlags, dom: IDOM, context: IRenderContext, renderable: IController, target: INode, instruction: IHydrateAttributeInstruction): void {
     const operation = context.beginComponentOperation(renderable, target, instruction);
-    const component = context.get<object>(customAttributeKey(instruction.res));
+    const component = context.get<object>(CustomAttribute.keyFrom(instruction.res));
     const instructionRenderers = context.get(IRenderer).instructionRenderers;
     const childInstructions = instruction.instructions;
 
@@ -233,7 +227,7 @@ export class CustomAttributeRenderer implements IInstructionRenderer {
     let current: ITargetedInstruction;
     for (let i = 0, ii = childInstructions.length; i < ii; ++i) {
       current = childInstructions[i];
-      instructionRenderers[current.type].render(flags, dom, context, renderable, controller, current);
+      instructionRenderers[current.type](flags, dom, context, renderable, controller, current);
     }
 
     addComponent(renderable, controller);
@@ -245,19 +239,14 @@ export class CustomAttributeRenderer implements IInstructionRenderer {
 @instructionRenderer(TargetedInstructionType.hydrateTemplateController)
 /** @internal */
 export class TemplateControllerRenderer implements IInstructionRenderer {
-  public static readonly inject: readonly Key[] = [IRenderingEngine];
-  public static readonly register: IRegistry['register'];
-
-  private readonly renderingEngine: IRenderingEngine;
-
-  constructor(renderingEngine: IRenderingEngine) {
-    this.renderingEngine = renderingEngine;
-  }
+  constructor(
+    @IRenderingEngine private readonly renderingEngine: IRenderingEngine,    @IObserverLocator private readonly observerLocator: IObserverLocator,
+  ) {}
 
   public render(flags: LifecycleFlags, dom: IDOM, context: IRenderContext, renderable: IController, target: INode, instruction: IHydrateTemplateController, parts?: TemplatePartDefinitions): void {
     const factory = this.renderingEngine.getViewFactory(dom, instruction.def, context);
     const operation = context.beginComponentOperation(renderable, target, instruction, factory, parts, dom.convertToRenderLocation(target), false);
-    const component = context.get<object>(customAttributeKey(instruction.res));
+    const component = context.get<object>(CustomAttribute.keyFrom(instruction.res));
     const instructionRenderers = context.get(IRenderer).instructionRenderers;
     const childInstructions = instruction.instructions;
     if (instruction.parts !== void 0) {
@@ -284,7 +273,7 @@ export class TemplateControllerRenderer implements IInstructionRenderer {
     let current: ITargetedInstruction;
     for (let i = 0, ii = childInstructions.length; i < ii; ++i) {
       current = childInstructions[i];
-      instructionRenderers[current.type].render(flags, dom, context, renderable, controller, current);
+      instructionRenderers[current.type](flags, dom, context, renderable, controller, current);
     }
 
     addComponent(renderable, controller);
@@ -296,16 +285,10 @@ export class TemplateControllerRenderer implements IInstructionRenderer {
 @instructionRenderer(TargetedInstructionType.hydrateLetElement)
 /** @internal */
 export class LetElementRenderer implements IInstructionRenderer {
-  public static readonly inject: readonly Key[] = [IExpressionParser, IObserverLocator];
-  public static readonly register: IRegistry['register'];
-
-  private readonly parser: IExpressionParser;
-  private readonly observerLocator: IObserverLocator;
-
-  constructor(parser: IExpressionParser, observerLocator: IObserverLocator) {
-    this.parser = parser;
-    this.observerLocator = observerLocator;
-  }
+  constructor(
+    @IExpressionParser private readonly parser: IExpressionParser,
+    @IObserverLocator private readonly observerLocator: IObserverLocator,
+  ) {}
 
   public render(flags: LifecycleFlags, dom: IDOM, context: IRenderContext, renderable: IController, target: INode, instruction: IHydrateLetElementInstruction): void {
     dom.remove(target);
@@ -327,16 +310,10 @@ export class LetElementRenderer implements IInstructionRenderer {
 @instructionRenderer(TargetedInstructionType.callBinding)
 /** @internal */
 export class CallBindingRenderer implements IInstructionRenderer {
-  public static readonly inject: readonly Key[] = [IExpressionParser, IObserverLocator];
-  public static readonly register: IRegistry['register'];
-
-  private readonly parser: IExpressionParser;
-  private readonly observerLocator: IObserverLocator;
-
-  constructor(parser: IExpressionParser, observerLocator: IObserverLocator) {
-    this.parser = parser;
-    this.observerLocator = observerLocator;
-  }
+  constructor(
+    @IExpressionParser private readonly parser: IExpressionParser,
+    @IObserverLocator private readonly observerLocator: IObserverLocator,
+  ) {}
 
   public render(flags: LifecycleFlags, dom: IDOM, context: IRenderContext, renderable: IController, target: IController, instruction: ICallBindingInstruction): void {
     const expr = ensureExpression(this.parser, instruction.from, BindingType.CallCommand);
@@ -348,14 +325,9 @@ export class CallBindingRenderer implements IInstructionRenderer {
 @instructionRenderer(TargetedInstructionType.refBinding)
 /** @internal */
 export class RefBindingRenderer implements IInstructionRenderer {
-  public static readonly inject: readonly Key[] = [IExpressionParser];
-  public static readonly register: IRegistry['register'];
-
-  private readonly parser: IExpressionParser;
-
-  constructor(parser: IExpressionParser) {
-    this.parser = parser;
-  }
+  constructor(
+    @IExpressionParser private readonly parser: IExpressionParser,
+  ) {}
 
   public render(flags: LifecycleFlags, dom: IDOM, context: IRenderContext, renderable: IController, target: IController, instruction: IRefBindingInstruction): void {
     const expr = ensureExpression(this.parser, instruction.from, BindingType.IsRef);
@@ -367,16 +339,10 @@ export class RefBindingRenderer implements IInstructionRenderer {
 @instructionRenderer(TargetedInstructionType.interpolation)
 /** @internal */
 export class InterpolationBindingRenderer implements IInstructionRenderer {
-  public static readonly inject: readonly Key[] = [IExpressionParser, IObserverLocator];
-  public static readonly register: IRegistry['register'];
-
-  private readonly parser: IExpressionParser;
-  private readonly observerLocator: IObserverLocator;
-
-  constructor(parser: IExpressionParser, observerLocator: IObserverLocator) {
-    this.parser = parser;
-    this.observerLocator = observerLocator;
-  }
+  constructor(
+    @IExpressionParser private readonly parser: IExpressionParser,
+    @IObserverLocator private readonly observerLocator: IObserverLocator,
+  ) {}
 
   public render(flags: LifecycleFlags, dom: IDOM, context: IRenderContext, renderable: IController, target: IController, instruction: IInterpolationInstruction): void {
     let binding: MultiInterpolationBinding | InterpolationBinding;
@@ -393,16 +359,10 @@ export class InterpolationBindingRenderer implements IInstructionRenderer {
 @instructionRenderer(TargetedInstructionType.propertyBinding)
 /** @internal */
 export class PropertyBindingRenderer implements IInstructionRenderer {
-  public static readonly inject: readonly Key[] = [IExpressionParser, IObserverLocator];
-  public static readonly register: IRegistry['register'];
-
-  private readonly parser: IExpressionParser;
-  private readonly observerLocator: IObserverLocator;
-
-  constructor(parser: IExpressionParser, observerLocator: IObserverLocator) {
-    this.parser = parser;
-    this.observerLocator = observerLocator;
-  }
+  constructor(
+    @IExpressionParser private readonly parser: IExpressionParser,
+    @IObserverLocator private readonly observerLocator: IObserverLocator,
+  ) {}
 
   public render(flags: LifecycleFlags, dom: IDOM, context: IRenderContext, renderable: IController, target: IController, instruction: IPropertyBindingInstruction): void {
     const expr = ensureExpression(this.parser, instruction.from, BindingType.IsPropertyCommand | instruction.mode);
@@ -414,16 +374,10 @@ export class PropertyBindingRenderer implements IInstructionRenderer {
 @instructionRenderer(TargetedInstructionType.iteratorBinding)
 /** @internal */
 export class IteratorBindingRenderer implements IInstructionRenderer {
-  public static readonly inject: readonly Key[] = [IExpressionParser, IObserverLocator];
-  public static readonly register: IRegistry['register'];
-
-  private readonly parser: IExpressionParser;
-  private readonly observerLocator: IObserverLocator;
-
-  constructor(parser: IExpressionParser, observerLocator: IObserverLocator) {
-    this.parser = parser;
-    this.observerLocator = observerLocator;
-  }
+  constructor(
+    @IExpressionParser private readonly parser: IExpressionParser,
+    @IObserverLocator private readonly observerLocator: IObserverLocator,
+  ) {}
 
   public render(flags: LifecycleFlags, dom: IDOM, context: IRenderContext, renderable: IController, target: IController, instruction: IIteratorBindingInstruction): void {
     const expr = ensureExpression(this.parser, instruction.from, BindingType.ForCommand);

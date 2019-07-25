@@ -21,12 +21,6 @@ export interface IValueConverterType<C extends Constructable = Constructable> ex
 export interface IValueConverterResource extends
   IResourceKind<IValueConverterDefinition, IValueConverter, Class<IValueConverter>> { }
 
-function register(this: IValueConverterType, container: IContainer): void {
-  const resourceKey = this.kind.keyFrom(this.description.name);
-  container.register(Registration.singleton(resourceKey, this));
-  container.register(Registration.singleton(this, this));
-}
-
 export function valueConverter(definition: IValueConverterDefinition): ValueConverterDecorator;
 export function valueConverter(name: string): ValueConverterDecorator;
 export function valueConverter(nameOrDefinition: string | IValueConverterDefinition): ValueConverterDecorator;
@@ -34,35 +28,30 @@ export function valueConverter(nameOrDefinition: string | IValueConverterDefinit
   return target => ValueConverter.define(nameOrDefinition, target) as any; // TODO: fix this at some point
 }
 
-function keyFrom(this: IValueConverterResource, name: string): string {
-  return `${this.name}:${name}`;
-}
-
-function isType<T>(this: IValueConverterResource, Type: T & Partial<IValueConverterType>): Type is T & IValueConverterType {
-  return Type.kind === this;
-}
-
-function define<T extends Constructable = Constructable>(this: IValueConverterResource, definition: IValueConverterDefinition, ctor: T): T & IValueConverterType<T>;
-function define<T extends Constructable = Constructable>(this: IValueConverterResource, name: string, ctor: T): T & IValueConverterType<T>;
-function define<T extends Constructable = Constructable>(this: IValueConverterResource, nameOrDefinition: string | IValueConverterDefinition, ctor: T): T & IValueConverterType<T>;
-function define<T extends Constructable = Constructable>(this: IValueConverterResource, nameOrDefinition: string | IValueConverterDefinition, ctor: T): T & IValueConverterType<T> {
-  const Type = ctor as T & Writable<IValueConverterType>;
-  const description = typeof nameOrDefinition === 'string'
-    ? { name: nameOrDefinition }
-    : nameOrDefinition;
-
-  Type.kind = ValueConverter;
-  Type.description = description;
-  Type.register = register;
-
-  return Type as T & IValueConverterType<T>;
-}
-
-export const ValueConverter: IValueConverterResource = {
+export const ValueConverter: Readonly<IValueConverterResource> = Object.freeze({
   name: 'value-converter',
-  keyFrom,
-  isType,
-  define
-};
+  keyFrom(name: string): string {
+    return `${ValueConverter.name}:${name}`;
+  },
+  isType<T>(Type: T & Partial<IValueConverterType>): Type is T & IValueConverterType {
+    return Type.kind === ValueConverter;
+  },
+  define<T extends Constructable = Constructable>(nameOrDefinition: string | IValueConverterDefinition, ctor: T): T & IValueConverterType<T> {
+    const Type = ctor as T & Writable<IValueConverterType>;
+    const description = typeof nameOrDefinition === 'string'
+      ? { name: nameOrDefinition }
+      : nameOrDefinition;
+
+    Type.kind = ValueConverter;
+    Type.description = description;
+    Type.register = function register(container: IContainer): void {
+      const key = ValueConverter.keyFrom(description.name);
+      Registration.singleton(key, Type).register(container);
+      Registration.alias(key, Type).register(container);
+    };
+
+    return Type as T & IValueConverterType<T>;
+  },
+});
 
 export type ValueConverterDecorator = <T extends Constructable>(target: T) => T & IValueConverterType<T>;

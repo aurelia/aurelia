@@ -1,7 +1,5 @@
-import { attributePattern, AttrSyntax, IAttributePattern } from '@aurelia/jit';
-import { IRegistry } from '@aurelia/kernel';
+import { attributePattern, AttrSyntax } from '@aurelia/jit';
 
-export interface AttrAttributePattern extends IAttributePattern {}
 /**
  * Attribute syntax pattern recognizer, helping Aurelia understand template:
  * ```html
@@ -9,9 +7,11 @@ export interface AttrAttributePattern extends IAttributePattern {}
  * <div some-attr.attr="someAttrValue"></div>
  * ````
  */
-export class AttrAttributePattern implements AttrAttributePattern {
-  public static register: IRegistry['register'];
-
+@attributePattern(
+  { pattern: 'attr.PART', symbols: '.' },
+  { pattern: 'PART.attr', symbols: '.' }
+)
+export class AttrAttributePattern {
   public ['attr.PART'](rawName: string, rawValue: string, parts: string[]): AttrSyntax {
     return new AttrSyntax(rawName, rawValue, parts[1], 'attr');
   }
@@ -21,12 +21,6 @@ export class AttrAttributePattern implements AttrAttributePattern {
   }
 }
 
-attributePattern(
-  { pattern: 'attr.PART', symbols: '.' },
-  { pattern: 'PART.attr', symbols: '.' }
-)(AttrAttributePattern);
-
-export interface StyleAttributePattern extends IAttributePattern {}
 /**
  * Style syntax pattern recognizer, helps Aurelia understand template:
  * ```html
@@ -40,9 +34,11 @@ export interface StyleAttributePattern extends IAttributePattern {}
  * <div style.--custom-prop-css="cssProp"></div>
  * ```
  */
-export class StyleAttributePattern implements StyleAttributePattern {
-  public static register: IRegistry['register'];
-
+@attributePattern(
+  { pattern: 'style.PART', symbols: '.' },
+  { pattern: 'PART.style', symbols: '.' }
+)
+export class StyleAttributePattern {
   public ['style.PART'](rawName: string, rawValue: string, parts: string[]): AttrSyntax {
     return new AttrSyntax(rawName, rawValue, parts[1], 'style');
   }
@@ -52,12 +48,6 @@ export class StyleAttributePattern implements StyleAttributePattern {
   }
 }
 
-attributePattern(
-  { pattern: 'style.PART', symbols: '.' },
-  { pattern: 'PART.style', symbols: '.' }
-)(StyleAttributePattern);
-
-export interface ClassAttributePattern extends IAttributePattern {}
 /**
  * Class syntax pattern recognizer, helps Aurelia understand template:
  * ```html
@@ -67,9 +57,11 @@ export interface ClassAttributePattern extends IAttributePattern {}
  * <div class.✔="checked"></div>
  * ```
  */
-export class ClassAttributePattern implements ClassAttributePattern {
-  public static register: IRegistry['register'];
-
+@attributePattern(
+  { pattern: 'class.PART', symbols: '.' },
+  { pattern: 'PART.class', symbols: '.' }
+)
+export class ClassAttributePattern {
   public ['class.PART'](rawName: string, rawValue: string, parts: string[]): AttrSyntax {
     return new AttrSyntax(rawName, rawValue, parts[1], 'class');
   }
@@ -78,8 +70,3 @@ export class ClassAttributePattern implements ClassAttributePattern {
     return new AttrSyntax(rawName, rawValue, parts[0], 'class');
   }
 }
-
-attributePattern(
-  { pattern: 'class.PART', symbols: '.' },
-  { pattern: 'PART.class', symbols: '.' }
-)(ClassAttributePattern);

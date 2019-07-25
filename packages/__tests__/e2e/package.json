@@ -29,7 +29,7 @@
   },
   "devDependencies": {
     "@cypress/webpack-preprocessor": "^4.1.0",
-    "@types/node": "^10.12.27",
+    "@types/node": "^10.14.13",
     "cypress": "^3.4.0",
     "html-loader": "latest",
     "html-webpack-plugin": "latest",
@@ -38,7 +38,7 @@
     "start-server-and-test": "^1.9.1",
     "ts-loader": "^6.0.4",
     "typescript": "^3.5.3",
-    "webpack": "^4.35.3",
+    "webpack": "^4.37.0",
     "webpack-cli": "latest",
     "webpack-dev-server": "latest"
   }

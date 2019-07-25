@@ -4,7 +4,6 @@
       "hoist": "**"
     }
   },
-  "lerna": "3.13.4",
   "packages": [
     "packages/__tests__",
     "packages/__tests__/e2e",

@@ -37,13 +37,13 @@
     "access": "public"
   },
   "dependencies": {
-    "@aurelia/kernel": "0.4.0-dev.201907252001",
-    "@aurelia/runtime": "0.4.0-dev.201907252001",
-    "@aurelia/runtime-html": "0.4.0-dev.201907252001",
-    "i18next": "^17.0.6"
+    "@aurelia/kernel": "^0.3.0",
+    "@aurelia/runtime": "^0.3.0",
+    "@aurelia/runtime-html": "^0.3.0",
+    "i18next": "^17.0.0"
   },
   "devDependencies": {
-    "@types/node": "^10.12.27",
+    "@types/node": "^10.14.13",
     "tslib": "^1.10.0",
     "tslint": "^5.18.0",
     "tslint-microsoft-contrib": "^6.2.0",

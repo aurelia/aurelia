@@ -43,7 +43,7 @@
     "@aurelia/jit-html": "0.4.0-dev.201907252001"
   },
   "devDependencies": {
-    "@types/node": "^10.12.27",
+    "@types/node": "^10.14.13",
     "tslib": "^1.10.0",
     "tslint": "^5.18.0",
     "tslint-microsoft-contrib": "^6.2.0",

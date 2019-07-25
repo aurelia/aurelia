@@ -36,6 +36,7 @@ export interface IRouter {
   readonly isNavigating: boolean;
 
   activate(options?: IRouterOptions): Promise<void>;
+  loadUrl(): Promise<void>;
   deactivate(): void;
 
   linkCallback(info: AnchorEventInfo): void;
@@ -133,6 +134,10 @@ export class Router implements IRouter {
     });
     this.linkHandler.activate({ callback: this.linkCallback });
     return this.navigation.activate(this.navigationCallback);
+  }
+
+  public loadUrl(): Promise<void> {
+    return this.navigation.loadUrl();
   }
 
   public deactivate(): void {

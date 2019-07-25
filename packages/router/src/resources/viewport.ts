@@ -18,14 +18,17 @@ import {
   TemplateDefinition
 } from '@aurelia/runtime';
 
-import { Router } from '../router';
+import {
+  IRouter,
+  Router
+} from '../router';
 import {
   IViewportOptions,
   Viewport
 } from '../viewport';
 
 export class ViewportCustomElement {
-  public static readonly inject: readonly Key[] = [Router, INode, IRenderingEngine];
+  public static readonly inject: readonly Key[] = [IRouter, INode, IRenderingEngine];
 
   @bindable public name: string;
   @bindable public scope: boolean;

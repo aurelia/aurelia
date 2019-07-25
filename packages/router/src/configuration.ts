@@ -3,7 +3,7 @@ import { StartTask } from '@aurelia/runtime';
 
 import { NavCustomElement } from './resources/nav';
 import { ViewportCustomElement } from './resources/viewport';
-import { IRouterOptions, Router, IRouter } from './router';
+import { IRouter, IRouterOptions, Router } from './router';
 
 export const RouterRegistration = Router as unknown as IRegistry;
 
@@ -43,7 +43,8 @@ const routerConfiguration = {
     return container.register(
       ...DefaultComponents,
       ...DefaultResources,
-      StartTask.with(IRouter).beforeAttach().call(router => router.activate())
+      StartTask.with(IRouter).beforeBind().call(router => router.activate()),
+      StartTask.with(IRouter).beforeAttach().call(router => router.loadUrl()),
     );
   },
   /**

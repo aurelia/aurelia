@@ -1,5 +1,3 @@
-import { camelCase } from '@aurelia/kernel';
-
 import {
   AttributeInstruction,
   BindingMode,
@@ -16,23 +14,13 @@ import {
 
 import {
   bindingCommand,
+  getTarget,
   IBindingCommand,
 } from './binding-command';
 import {
   BindingSymbol,
   PlainAttributeSymbol,
-  SymbolFlags,
 } from './semantic-model';
-
-function getTarget(binding: PlainAttributeSymbol | BindingSymbol, makeCamelCase: boolean): string {
-  if (binding.flags & SymbolFlags.isBinding) {
-    return (binding as BindingSymbol).bindable.propName;
-  } else if (makeCamelCase) {
-    return camelCase((binding as PlainAttributeSymbol).syntax.target);
-  } else {
-    return (binding as PlainAttributeSymbol).syntax.target;
-  }
-}
 
 @bindingCommand('one-time')
 export class OneTimeBindingCommand implements IBindingCommand {

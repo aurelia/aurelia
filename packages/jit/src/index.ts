@@ -25,6 +25,7 @@ export {
   IBindingCommandDefinition,
   IBindingCommandResource,
   IBindingCommandType,
+  getTarget,
 } from './binding-command';
 export {
   CallBindingCommand,

@@ -1,4 +1,5 @@
 import {
+  camelCase,
   Class,
   Constructable,
   IContainer,
@@ -16,6 +17,7 @@ import {
 import {
   BindingSymbol,
   PlainAttributeSymbol,
+  SymbolFlags,
 } from './semantic-model';
 
 export interface IBindingCommand {
@@ -62,3 +64,13 @@ export const BindingCommandResource: IBindingCommandResource = Object.freeze({
     return Type;
   },
 });
+
+export function getTarget(binding: PlainAttributeSymbol | BindingSymbol, makeCamelCase: boolean): string {
+  if (binding.flags & SymbolFlags.isBinding) {
+    return (binding as BindingSymbol).bindable.propName;
+  } else if (makeCamelCase) {
+    return camelCase((binding as PlainAttributeSymbol).syntax.target);
+  } else {
+    return (binding as PlainAttributeSymbol).syntax.target;
+  }
+}

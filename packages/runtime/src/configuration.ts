@@ -95,16 +95,16 @@ export const DefaultResources = [
   TwoWayBindingBehaviorRegistration
 ];
 
-export const CallBindingRendererRegistration = CallBindingRenderer as IRegistry;
-export const CustomAttributeRendererRegistration = CustomAttributeRenderer as IRegistry;
-export const CustomElementRendererRegistration = CustomElementRenderer as IRegistry;
-export const InterpolationBindingRendererRegistration = InterpolationBindingRenderer as IRegistry;
-export const IteratorBindingRendererRegistration = IteratorBindingRenderer as IRegistry;
-export const LetElementRendererRegistration = LetElementRenderer as IRegistry;
-export const PropertyBindingRendererRegistration = PropertyBindingRenderer as IRegistry;
-export const RefBindingRendererRegistration = RefBindingRenderer as IRegistry;
-export const SetPropertyRendererRegistration = SetPropertyRenderer as IRegistry;
-export const TemplateControllerRendererRegistration = TemplateControllerRenderer as IRegistry;
+export const CallBindingRendererRegistration = CallBindingRenderer as unknown as IRegistry;
+export const CustomAttributeRendererRegistration = CustomAttributeRenderer as unknown as IRegistry;
+export const CustomElementRendererRegistration = CustomElementRenderer as unknown as IRegistry;
+export const InterpolationBindingRendererRegistration = InterpolationBindingRenderer as unknown as IRegistry;
+export const IteratorBindingRendererRegistration = IteratorBindingRenderer as unknown as IRegistry;
+export const LetElementRendererRegistration = LetElementRenderer as unknown as IRegistry;
+export const PropertyBindingRendererRegistration = PropertyBindingRenderer as unknown as IRegistry;
+export const RefBindingRendererRegistration = RefBindingRenderer as unknown as IRegistry;
+export const SetPropertyRendererRegistration = SetPropertyRenderer as unknown as IRegistry;
+export const TemplateControllerRendererRegistration = TemplateControllerRenderer as unknown as IRegistry;
 
 /**
  * Default renderers for:

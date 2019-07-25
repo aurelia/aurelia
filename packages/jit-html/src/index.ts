@@ -5,7 +5,7 @@ export {
   AttrBindingCommand,
   ClassBindingCommand,
   StyleBindingCommand
-} from './binding-command';
+} from './binding-commands';
 export {
   ITemplateCompilerRegistration,
   ITemplateElementFactoryRegistration,

@@ -137,10 +137,7 @@
     "chai-vague-errors": false,
     "class-name": false,
     "comment-format": true,
-    "completed-docs": {
-      "severity": "warning",
-      "options": "classes"
-    },
+    "completed-docs": false,
     "export-name": false,
     "function-name": false,
     "import-name": true,

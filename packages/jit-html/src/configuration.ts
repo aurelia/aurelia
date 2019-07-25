@@ -9,7 +9,7 @@ import {
   AttrAttributePattern,
   ClassAttributePattern,
   StyleAttributePattern
-} from './attribute-pattern';
+} from './attribute-patterns';
 import {
   AttrBindingCommand,
   CaptureBindingCommand,
@@ -17,7 +17,7 @@ import {
   DelegateBindingCommand,
   StyleBindingCommand,
   TriggerBindingCommand
-} from './binding-command';
+} from './binding-commands';
 import { TemplateCompiler } from './template-compiler';
 import { HTMLTemplateElementFactory } from './template-element-factory';
 
@@ -43,12 +43,12 @@ export const JitAttrBindingSyntax = [
   AttrAttributePattern
 ];
 
-export const TriggerBindingCommandRegistration = TriggerBindingCommand as IRegistry;
-export const DelegateBindingCommandRegistration = DelegateBindingCommand as IRegistry;
-export const CaptureBindingCommandRegistration = CaptureBindingCommand as IRegistry;
-export const AttrBindingCommandRegistration = AttrBindingCommand as IRegistry;
-export const ClassBindingCommandRegistration = ClassBindingCommand as IRegistry;
-export const StyleBindingCommandRegistration = StyleBindingCommand as IRegistry;
+export const TriggerBindingCommandRegistration = TriggerBindingCommand as unknown as IRegistry;
+export const DelegateBindingCommandRegistration = DelegateBindingCommand as unknown as IRegistry;
+export const CaptureBindingCommandRegistration = CaptureBindingCommand as unknown as IRegistry;
+export const AttrBindingCommandRegistration = AttrBindingCommand as unknown as IRegistry;
+export const ClassBindingCommandRegistration = ClassBindingCommand as unknown as IRegistry;
+export const StyleBindingCommandRegistration = StyleBindingCommand as unknown as IRegistry;
 
 /**
  * Default HTML-specific (but environment-agnostic) binding commands:

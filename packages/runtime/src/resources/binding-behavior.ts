@@ -25,12 +25,6 @@ export interface IBindingBehaviorResource extends
   IResourceKind<IBindingBehaviorDefinition, IBindingBehavior, Class<IBindingBehavior>> {
 }
 
-function register(this: IBindingBehaviorType, container: IContainer): void {
-  const resourceKey = BindingBehavior.keyFrom(this.description.name);
-  container.register(Registration.singleton(resourceKey, this));
-  container.register(Registration.singleton(this, this));
-}
-
 export function bindingBehavior(definition: IBindingBehaviorDefinition): BindingBehaviorDecorator;
 export function bindingBehavior(name: string): BindingBehaviorDecorator;
 export function bindingBehavior(nameOrDefinition: string | IBindingBehaviorDefinition): BindingBehaviorDecorator;
@@ -38,36 +32,31 @@ export function bindingBehavior(nameOrDefinition: string | IBindingBehaviorDefin
   return target => BindingBehavior.define(nameOrDefinition, target) as any; // TODO: fix this at some point
 }
 
-function keyFrom(this: IBindingBehaviorResource, name: string): string {
-  return `${this.name}:${name}`;
-}
-
-function isType<T>(this: IBindingBehaviorResource, Type: T & Partial<IBindingBehaviorType>): Type is T & IBindingBehaviorType {
-  return Type.kind === this;
-}
-
-function define<T extends Constructable = Constructable>(this: IBindingBehaviorResource, definition: IBindingBehaviorDefinition, ctor: T): T & IBindingBehaviorType<T>;
-function define<T extends Constructable = Constructable>(this: IBindingBehaviorResource, name: string, ctor: T): T & IBindingBehaviorType<T>;
-function define<T extends Constructable = Constructable>(this: IBindingBehaviorResource, nameOrDefinition: string | IBindingBehaviorDefinition, ctor: T): T & IBindingBehaviorType<T>;
-function define<T extends Constructable = Constructable>(this: IBindingBehaviorResource, nameOrDefinition: string | IBindingBehaviorDefinition, ctor: T): T & IBindingBehaviorType<T> {
-  const Type = ctor as T & IBindingBehaviorType<T>;
-  const WritableType = Type as T & Writable<IBindingBehaviorType<T>>;
-  const description = typeof nameOrDefinition === 'string'
-    ? { name: nameOrDefinition }
-    : nameOrDefinition;
-
-  WritableType.kind = BindingBehavior;
-  WritableType.description = description;
-  Type.register = register;
-
-  return Type;
-}
-
-export const BindingBehavior: IBindingBehaviorResource = {
+export const BindingBehavior: Readonly<IBindingBehaviorResource> = Object.freeze({
   name: 'binding-behavior',
-  keyFrom,
-  isType,
-  define
-};
+  keyFrom(name: string): string {
+    return `${BindingBehavior.name}:${name}`;
+  },
+  isType<T>(Type: T & Partial<IBindingBehaviorType>): Type is T & IBindingBehaviorType {
+    return Type.kind === BindingBehavior;
+  },
+  define<T extends Constructable = Constructable>(nameOrDefinition: string | IBindingBehaviorDefinition, ctor: T): T & IBindingBehaviorType<T> {
+    const Type = ctor as T & IBindingBehaviorType<T>;
+    const WritableType = Type as T & Writable<IBindingBehaviorType<T>>;
+    const description = typeof nameOrDefinition === 'string'
+      ? { name: nameOrDefinition }
+      : nameOrDefinition;
+
+    WritableType.kind = BindingBehavior;
+    WritableType.description = description;
+    Type.register = function register(container: IContainer): void {
+      const key = BindingBehavior.keyFrom(description.name);
+      Registration.singleton(key, Type).register(container);
+      Registration.alias(key, Type).register(container);
+    };
+
+    return Type;
+  },
+});
 
 export type BindingBehaviorDecorator = <T extends Constructable>(target: T) => T & IBindingBehaviorType<T>;

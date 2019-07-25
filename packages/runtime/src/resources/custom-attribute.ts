@@ -11,8 +11,6 @@ import {
   Writable
 } from '@aurelia/kernel';
 import {
-  customAttributeKey,
-  customAttributeName,
   HooksDefinition,
   IAttributeDefinition
 } from '../definitions';
@@ -35,21 +33,6 @@ export interface ICustomAttributeType<C extends Constructable = Constructable> e
 
 export interface ICustomAttributeResource extends
   IResourceKind<IAttributeDefinition, IViewModel, Class<IViewModel> & CustomAttributeStaticProperties> {
-}
-
-/** @internal */
-export function registerAttribute(this: ICustomAttributeType, container: IContainer): void {
-  const description = this.description;
-  const resourceKey = this.kind.keyFrom(description.name);
-  const aliases = description.aliases;
-
-  container.register(Registration.transient(resourceKey, this));
-  container.register(Registration.transient(this, this));
-
-  for (let i = 0, ii = aliases.length; i < ii; ++i) {
-    const aliasKey = this.kind.keyFrom(aliases[i]);
-    container.register(Registration.alias(resourceKey, aliasKey));
-  }
 }
 
 /**
@@ -97,31 +80,36 @@ export function dynamicOptions<T extends Constructable>(target?: T & HasDynamicO
   return target === undefined ? dynamicOptionsDecorator : dynamicOptionsDecorator<T>(target);
 }
 
-function isType<T>(this: ICustomAttributeResource, Type: T & Partial<ICustomAttributeType>): Type is T & ICustomAttributeType {
-  return Type.kind === this;
-}
+export const CustomAttribute: Readonly<ICustomAttributeResource> = Object.freeze({
+  name: 'custom-attribute',
+  keyFrom(name: string): string {
+    return `${CustomAttribute.name}:${name}`;
+  },
+  isType<T>(Type: T & Partial<ICustomAttributeType>): Type is T & ICustomAttributeType {
+    return Type.kind === CustomAttribute;
+  },
+  define<T extends Constructable = Constructable>(nameOrDefinition: string | IAttributeDefinition, ctor: T): T & ICustomAttributeType<T> {
+    const Type = ctor as T & ICustomAttributeType<T>;
+    const WritableType = Type as T & Writable<ICustomAttributeType<T>>;
+    const description = createCustomAttributeDescription(typeof nameOrDefinition === 'string' ? { name: nameOrDefinition } : nameOrDefinition, Type);
 
-function define<T extends Constructable = Constructable>(this: ICustomAttributeResource, definition: IAttributeDefinition, ctor: T): T & ICustomAttributeType<T>;
-function define<T extends Constructable = Constructable>(this: ICustomAttributeResource, name: string, ctor: T): T & ICustomAttributeType<T>;
-function define<T extends Constructable = Constructable>(this: ICustomAttributeResource, nameOrDefinition: string | IAttributeDefinition, ctor: T): T & ICustomAttributeType<T>;
-function define<T extends Constructable = Constructable>(this: ICustomAttributeResource, nameOrDefinition: string | IAttributeDefinition, ctor: T): T & ICustomAttributeType<T> {
-  const Type = ctor as T & ICustomAttributeType<T>;
-  const WritableType = Type as T & Writable<ICustomAttributeType<T>>;
-  const description = createCustomAttributeDescription(typeof nameOrDefinition === 'string' ? { name: nameOrDefinition } : nameOrDefinition, Type);
+    WritableType.kind = CustomAttribute;
+    WritableType.description = description;
+    Type.register = function register(container: IContainer): void {
+      const aliases = description.aliases;
 
-  WritableType.kind = CustomAttribute;
-  WritableType.description = description;
-  Type.register = registerAttribute;
+      const key = CustomAttribute.keyFrom(description.name);
+      Registration.transient(key, Type).register(container);
+      Registration.alias(key, Type).register(container);
 
-  return Type;
-}
+      for (let i = 0, ii = aliases.length; i < ii; ++i) {
+        Registration.alias(key, CustomAttribute.keyFrom(aliases[i])).register(container);
+      }
+    };
 
-export const CustomAttribute: ICustomAttributeResource = {
-  name: customAttributeName,
-  keyFrom: customAttributeKey,
-  isType,
-  define
-};
+    return Type;
+  },
+});
 
 /** @internal */
 export function createCustomAttributeDescription(def: IAttributeDefinition, Type: ICustomAttributeType): ResourceDescription<IAttributeDefinition> {

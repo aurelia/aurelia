@@ -40,15 +40,15 @@ export function bindingCommand(nameOrDefinition: string | IBindingCommandDefinit
   return target => BindingCommandResource.define(nameOrDefinition, target);
 }
 
-export const BindingCommandResource: IBindingCommandResource = Object.freeze({
+export const BindingCommandResource: Readonly<IBindingCommandResource> = Object.freeze({
   name: 'binding-command',
-  keyFrom(this: IBindingCommandResource, name: string): string {
+  keyFrom(name: string): string {
     return `${BindingCommandResource.name}:${name}`;
   },
-  isType<T>(this: IBindingCommandResource, Type: T & Partial<IBindingCommandType>): Type is T & IBindingCommandType {
+  isType<T>(Type: T & Partial<IBindingCommandType>): Type is T & IBindingCommandType {
     return Type.kind === BindingCommandResource;
   },
-  define<T extends Constructable>(this: IBindingCommandResource, nameOrDefinition: string | IBindingCommandDefinition, ctor: T): T & IBindingCommandType {
+  define<T extends Constructable>(nameOrDefinition: string | IBindingCommandDefinition, ctor: T): T & IBindingCommandType {
     const Type = ctor as T & IBindingCommandType;
     const WritableType = Type as T & Writable<IBindingCommandType>;
     const description = typeof nameOrDefinition === 'string' ? { name: nameOrDefinition, target: null } : nameOrDefinition;
@@ -58,7 +58,7 @@ export const BindingCommandResource: IBindingCommandResource = Object.freeze({
 
     Type.register = function register(container: IContainer): void {
       Registration.singleton(Type, Type).register(container);
-      Registration.alias(BindingCommandResource.keyFrom(description.name), Type).register(container);
+      Registration.alias(Type, BindingCommandResource.keyFrom(description.name)).register(container);
     };
 
     return Type;

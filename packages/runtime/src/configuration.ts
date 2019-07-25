@@ -62,15 +62,15 @@ export const ElseRegistration = Else as IRegistry;
 export const RepeatRegistration = Repeat as IRegistry;
 export const ReplaceableRegistration = Replaceable as IRegistry;
 export const WithRegistration = With as IRegistry;
-export const SanitizeValueConverterRegistration = SanitizeValueConverter as IRegistry;
-export const DebounceBindingBehaviorRegistration = DebounceBindingBehavior as IRegistry;
-export const OneTimeBindingBehaviorRegistration = OneTimeBindingBehavior as IRegistry;
-export const ToViewBindingBehaviorRegistration = ToViewBindingBehavior as IRegistry;
-export const FromViewBindingBehaviorRegistration = FromViewBindingBehavior as IRegistry;
-export const SignalBindingBehaviorRegistration = SignalBindingBehavior as IRegistry;
-export const ThrottleBindingBehaviorRegistration = ThrottleBindingBehavior as IRegistry;
-export const TwoWayBindingBehaviorRegistration = TwoWayBindingBehavior as IRegistry;
-export const PriorityBindingBehaviorRegistration = PriorityBindingBehavior as IRegistry;
+export const SanitizeValueConverterRegistration = SanitizeValueConverter as unknown as IRegistry;
+export const DebounceBindingBehaviorRegistration = DebounceBindingBehavior as unknown as IRegistry;
+export const OneTimeBindingBehaviorRegistration = OneTimeBindingBehavior as unknown as IRegistry;
+export const ToViewBindingBehaviorRegistration = ToViewBindingBehavior as unknown as IRegistry;
+export const FromViewBindingBehaviorRegistration = FromViewBindingBehavior as unknown as IRegistry;
+export const SignalBindingBehaviorRegistration = SignalBindingBehavior as unknown as IRegistry;
+export const ThrottleBindingBehaviorRegistration = ThrottleBindingBehavior as unknown as IRegistry;
+export const TwoWayBindingBehaviorRegistration = TwoWayBindingBehavior as unknown as IRegistry;
+export const PriorityBindingBehaviorRegistration = PriorityBindingBehavior as unknown as IRegistry;
 
 /**
  * Default resources:

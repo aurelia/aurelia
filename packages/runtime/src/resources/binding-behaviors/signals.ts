@@ -1,24 +1,19 @@
-import { IRegistry, Key, Reporter } from '@aurelia/kernel';
+import { Reporter } from '@aurelia/kernel';
 import { PropertyBinding } from '../../binding/property-binding';
 import { LifecycleFlags } from '../../flags';
 import { IScope } from '../../observation';
 import { ISignaler } from '../../observation/signaler';
-import { BindingBehavior } from '../binding-behavior';
+import { bindingBehavior } from '../binding-behavior';
 
 export type SignalableBinding = PropertyBinding & {
   signal: string | string[];
 };
 
+@bindingBehavior('signal')
 export class SignalBindingBehavior {
-  public static readonly inject: readonly Key[] = [ISignaler];
-
-  public static register: IRegistry['register'];
-
-  private readonly signaler: ISignaler;
-
-  constructor(signaler: ISignaler) {
-    this.signaler = signaler;
-  }
+  constructor(
+    @ISignaler private readonly signaler: ISignaler,
+  ) {}
 
   public bind(flags: LifecycleFlags, scope: IScope, binding: SignalableBinding, ...args: string[]): void {
     if (!binding.updateTarget) {
@@ -60,4 +55,3 @@ export class SignalBindingBehavior {
     }
   }
 }
-BindingBehavior.define('signal', SignalBindingBehavior);

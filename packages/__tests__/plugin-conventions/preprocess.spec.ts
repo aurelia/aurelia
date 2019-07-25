@@ -1,5 +1,6 @@
 import { preprocess } from '@aurelia/plugin-conventions';
 import { assert } from '@aurelia/testing';
+import * as path from 'path';
 
 describe('preprocess', function () {
   it('transforms html file', function () {
@@ -44,14 +45,14 @@ export function getHTMLOnlyElement(): any {
 
   it('does not touch js/ts file without html pair', function () {
     const js = `export class Foo {}\n`;
-    const result = preprocess('src/foo.js', js, false, () => false);
+    const result = preprocess('src/foo.js', js, false, '', () => false);
     assert.equal(result.code, js);
     assert.equal(result.map.version, 3);
   });
 
   it('does not touch js/ts file with html pair but wrong resource name', function () {
     const js = `export class Foo {}\n`;
-    const result = preprocess('src/bar.js', js, false, () => true);
+    const result = preprocess('src/bar.js', js, false, '', () => true);
     assert.equal(result.code, js);
     assert.equal(result.map.version, 3);
   });
@@ -63,7 +64,13 @@ import { customElement } from '@aurelia/runtime';
 @customElement(__fooBarViewDef)
 export class FooBar {}
 `;
-    const result = preprocess('src/foo-bar.ts', js, false, () => true);
+    const result = preprocess(
+      path.join('src', 'foo-bar.ts'),
+      js,
+      false,
+      'base',
+      (filePath: string) => filePath === path.join('base', 'src', 'foo-bar.html')
+    );
     assert.equal(result.code, expected);
     assert.equal(result.map.version, 3);
   });
@@ -143,7 +150,7 @@ export class AbcBindingCommand {
 @customElement({ ...__fooBarViewDef, dependencies: [ ...__fooBarViewDef.dependencies, LoremCustomAttribute, ForOne, TheSecondValueConverter, SomeBindingBehavior, AbcBindingCommand ] })
 export class FooBar {}
 `;
-    const result = preprocess('src/foo-bar.js', js, true, () => true);
+    const result = preprocess('src/foo-bar.js', js, true, '', () => true);
     assert.equal(result.code, expected);
     assert.equal(result.map.version, 3);
   });

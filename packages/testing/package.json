@@ -35,8 +35,6 @@
     "access": "public"
   },
   "dependencies": {
-    "@types/mocha": "^5.2.7",
-    "@types/node": "^10.12.27",
     "@aurelia/aot": "0.3.0",
     "@aurelia/debug": "0.3.0",
     "@aurelia/fetch-client": "0.3.0",
@@ -51,11 +49,13 @@
     "@aurelia/runtime-html": "0.3.0",
     "@aurelia/runtime": "0.3.0",
     "@aurelia/store": "0.3.0",
-    "@aurelia/validation": "0.3.0",
-    "jsdom": "^15.1.1",
-    "mocha": "^6.1.4"
+    "@aurelia/validation": "0.3.0"
   },
   "devDependencies": {
+    "@types/mocha": "^5.2.7",
+    "@types/node": "^10.14.13",
+    "jsdom": "^15.1.1",
+    "mocha": "~6.1.4",
     "tslib": "^1.10.0",
     "tslint": "^5.18.0",
     "tslint-microsoft-contrib": "^6.2.0",

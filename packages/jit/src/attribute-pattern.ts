@@ -470,8 +470,8 @@ export function attributePattern(...patternDefs: AttributePatternDefinition[]): 
     validatePrototype(proto as IAttributePatternHandler, patternDefs);
     proto.$patternDefs = patternDefs;
 
-    target.register = function register(container: IContainer): IResolver {
-      return Registration.singleton(IAttributePattern, target).register(container, IAttributePattern);
+    target.register = function register(container: IContainer): void {
+      Registration.singleton(IAttributePattern, target).register(container);
     };
     return target as DecoratedAttributePattern<TProto, TClass>;
   } as AttributePatternDecorator;

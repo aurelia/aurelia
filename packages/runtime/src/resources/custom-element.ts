@@ -97,8 +97,9 @@ export const CustomElement: Readonly<ICustomElementResource> = Object.freeze({
     WritableType.kind = CustomElement;
     Type.description = description;
     Type.register = function register(container: IContainer): void {
-      Registration.transient(Type, Type).register(container);
-      Registration.alias(Type, CustomElement.keyFrom(description.name)).register(container);
+      const key = CustomElement.keyFrom(description.name);
+      Registration.transient(key, Type).register(container);
+      Registration.alias(key, Type).register(container);
     };
 
     return Type;

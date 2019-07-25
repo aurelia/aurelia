@@ -45,8 +45,9 @@ export const ValueConverter: Readonly<IValueConverterResource> = Object.freeze({
     Type.kind = ValueConverter;
     Type.description = description;
     Type.register = function register(container: IContainer): void {
-      Registration.singleton(Type, Type).register(container);
-      Registration.alias(Type, ValueConverter.keyFrom(description.name)).register(container);
+      const key = ValueConverter.keyFrom(description.name);
+      Registration.singleton(key, Type).register(container);
+      Registration.alias(key, Type).register(container);
     };
 
     return Type as T & IValueConverterType<T>;

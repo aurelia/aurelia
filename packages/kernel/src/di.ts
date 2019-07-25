@@ -766,29 +766,23 @@ export class Container implements IContainer {
   }
 }
 
-export class Registration {
-  private constructor() {}
-
-  public static instance<T>(key: Key, value: T): IRegistration<T> {
+export const Registration = Object.freeze({
+  instance<T>(key: Key, value: T): IRegistration<T> {
     return new Resolver(key, ResolverStrategy.instance, value);
-  }
-
-  public static singleton<T extends Constructable>(key: Key, value: T): IRegistration<InstanceType<T>> {
+  },
+  singleton<T extends Constructable>(key: Key, value: T): IRegistration<InstanceType<T>> {
     return new Resolver(key, ResolverStrategy.singleton, value);
-  }
-
-  public static transient<T extends Constructable>(key: Key, value: T): IRegistration<InstanceType<T>> {
+  },
+  transient<T extends Constructable>(key: Key, value: T): IRegistration<InstanceType<T>> {
     return new Resolver(key, ResolverStrategy.transient, value);
-  }
-
-  public static callback<T>(key: Key, callback: ResolveCallback<T>): IRegistration<Resolved<T>> {
+  },
+  callback<T>(key: Key, callback: ResolveCallback<T>): IRegistration<Resolved<T>> {
     return new Resolver(key, ResolverStrategy.callback, callback);
-  }
-
-  public static alias<T>(originalKey: T, aliasKey: Key): IRegistration<Resolved<T>> {
+  },
+  alias<T>(originalKey: T, aliasKey: Key): IRegistration<Resolved<T>> {
     return new Resolver(aliasKey, ResolverStrategy.alias, originalKey);
-  }
-}
+  },
+});
 
 export class InstanceProvider<K extends Key> implements IResolver<K | null> {
   private instance: Resolved<K> | null;

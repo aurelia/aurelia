@@ -64,7 +64,7 @@ export class AttributeObserver implements AttributeObserver, ElementMutationSubs
 
     this.hasChanges = false;
     this.priority = Priority.propagate;
-    this.persistentFlags = flags & LifecycleFlags.persistentBindingFlags;
+    this.persistentFlags = flags & LifecycleFlags.targetObserverFlags;
   }
 
   public getValue(): unknown {

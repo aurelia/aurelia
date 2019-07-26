@@ -71,7 +71,7 @@ export class CheckedObserver implements IAccessor<unknown> {
 
     this.arrayObserver = void 0;
     this.valueObserver = void 0;
-    this.persistentFlags = flags & LifecycleFlags.persistentBindingFlags;
+    this.persistentFlags = flags & LifecycleFlags.targetObserverFlags;
   }
 
   public getValue(): unknown {

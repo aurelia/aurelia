@@ -33,7 +33,7 @@ export class DataAttributeAccessor implements IAccessor<string | null> {
 
     this.hasChanges = false;
     this.priority = Priority.propagate;
-    this.persistentFlags = flags & LifecycleFlags.persistentBindingFlags;
+    this.persistentFlags = flags & LifecycleFlags.targetObserverFlags;
   }
 
   public getValue(): string | null {

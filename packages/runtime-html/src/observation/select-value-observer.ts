@@ -80,7 +80,7 @@ export class SelectValueObserver implements IAccessor<unknown> {
     this.nodeObserver = void 0;
 
     this.handleNodeChange = this.handleNodeChange.bind(this);
-    this.persistentFlags = flags & LifecycleFlags.persistentBindingFlags;
+    this.persistentFlags = flags & LifecycleFlags.targetObserverFlags;
   }
 
   public getValue(): unknown {

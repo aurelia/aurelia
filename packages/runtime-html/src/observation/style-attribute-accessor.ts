@@ -36,7 +36,7 @@ export class StyleAttributeAccessor implements IAccessor<unknown> {
 
     this.hasChanges = false;
     this.priority = Priority.propagate;
-    this.persistentFlags = flags & LifecycleFlags.persistentBindingFlags;
+    this.persistentFlags = flags & LifecycleFlags.targetObserverFlags;
   }
 
   public getValue(): string {

@@ -6,7 +6,7 @@ export class AttrBindingBehavior {
   public static readonly register: IRegistry['register'];
 
   public bind(flags: LifecycleFlags, scope: IScope, binding: PropertyBinding): void {
-    binding.targetObserver = new DataAttributeAccessor(binding.locator.get(ILifecycle), binding.target as HTMLElement, binding.targetProperty);
+    binding.targetObserver = new DataAttributeAccessor(binding.locator.get(ILifecycle), flags, binding.target as HTMLElement, binding.targetProperty);
   }
 
   public unbind(flags: LifecycleFlags, scope: IScope, binding: PropertyBinding): void {

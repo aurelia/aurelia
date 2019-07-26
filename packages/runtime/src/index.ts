@@ -227,6 +227,11 @@ export {
   templateController
 } from './resources/custom-attribute';
 export {
+  FrequentMutations,
+  InfrequentMutations,
+  ObserveShallow,
+} from './resources/custom-attributes/flags';
+export {
   If,
   Else
 } from './resources/custom-attributes/if';

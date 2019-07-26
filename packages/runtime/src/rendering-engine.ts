@@ -425,7 +425,6 @@ export class ChildrenObserver implements Partial<IChildrenObserver> {
   private select: typeof defaultChildSelect;
 
   constructor(
-    lifecycle: ILifecycle,
     controller: IController,
     filter = defaultChildFilter,
     select = defaultChildSelect
@@ -435,7 +434,7 @@ export class ChildrenObserver implements Partial<IChildrenObserver> {
     this.select = select;
     this.children = (void 0)!;
     this.controller = controller;
-    this.lifecycle = lifecycle;
+    this.lifecycle = controller.lifecycle;
     this.projector = this.controller.projector!;
     this.observing = false;
     this.ticking = false;

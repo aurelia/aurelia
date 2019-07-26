@@ -26,11 +26,14 @@ export class ValueAttributeObserver implements IAccessor<unknown> {
   public currentValue: unknown;
   public oldValue: unknown;
 
+  public readonly persistentFlags: LifecycleFlags;
+
   public hasChanges: boolean;
   public priority: Priority;
 
   constructor(
     lifecycle: ILifecycle,
+    flags: LifecycleFlags,
     handler: IEventSubscriber,
     obj: Node,
     propertyKey: string,
@@ -45,6 +48,7 @@ export class ValueAttributeObserver implements IAccessor<unknown> {
 
     this.hasChanges = false;
     this.priority = Priority.propagate;
+    this.persistentFlags = flags & LifecycleFlags.persistentBindingFlags;
   }
 
   public getValue(): unknown {
@@ -54,8 +58,10 @@ export class ValueAttributeObserver implements IAccessor<unknown> {
   public setValue(newValue: string | null, flags: LifecycleFlags): void {
     this.currentValue = newValue;
     this.hasChanges = newValue !== this.oldValue;
-    if ((flags & LifecycleFlags.fromBind) > 0) {
+    if ((flags & LifecycleFlags.fromBind) > 0 || this.persistentFlags === LifecycleFlags.noTargetObserverQueue) {
       this.flushRAF(flags);
+    } else if (this.persistentFlags !== LifecycleFlags.persistentTargetObserverQueue) {
+      this.lifecycle.enqueueRAF(this.flushRAF, this, this.priority, true);
     }
   }
 
@@ -101,10 +107,14 @@ export class ValueAttributeObserver implements IAccessor<unknown> {
   }
 
   public bind(flags: LifecycleFlags): void {
-    this.lifecycle.enqueueRAF(this.flushRAF, this, this.priority);
+    if (this.persistentFlags === LifecycleFlags.persistentTargetObserverQueue) {
+      this.lifecycle.enqueueRAF(this.flushRAF, this, this.priority);
+    }
   }
 
   public unbind(flags: LifecycleFlags): void {
-    this.lifecycle.dequeueRAF(this.flushRAF, this);
+    if (this.persistentFlags === LifecycleFlags.persistentTargetObserverQueue) {
+      this.lifecycle.dequeueRAF(this.flushRAF, this);
+    }
   }
 }

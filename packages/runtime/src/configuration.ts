@@ -30,6 +30,7 @@ import { DebounceBindingBehavior } from './resources/binding-behaviors/debounce'
 import { PriorityBindingBehavior } from './resources/binding-behaviors/priority';
 import { SignalBindingBehavior } from './resources/binding-behaviors/signals';
 import { ThrottleBindingBehavior } from './resources/binding-behaviors/throttle';
+import { FrequentMutations, InfrequentMutations, ObserveShallow } from './resources/custom-attributes/flags';
 import {
   Else,
   If
@@ -57,6 +58,9 @@ export const DefaultComponents = [
   IStartTaskManagerRegistration,
 ];
 
+export const FrequentMutationsRegistration = FrequentMutations as unknown as IRegistry;
+export const InfrequentMutationsRegistration = InfrequentMutations as unknown as IRegistry;
+export const ObserveShallowRegistration = ObserveShallow as unknown as IRegistry;
 export const IfRegistration = If as IRegistry;
 export const ElseRegistration = Else as IRegistry;
 export const RepeatRegistration = Repeat as IRegistry;
@@ -79,6 +83,9 @@ export const PriorityBindingBehaviorRegistration = PriorityBindingBehavior as un
  * - Binding Behaviors (`oneTime`, `toView`, `fromView`, `twoWay`, `signal`, `debounce`, `throttle`)
  */
 export const DefaultResources = [
+  FrequentMutationsRegistration,
+  InfrequentMutationsRegistration,
+  ObserveShallowRegistration,
   IfRegistration,
   ElseRegistration,
   RepeatRegistration,

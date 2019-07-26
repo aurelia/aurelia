@@ -12,6 +12,8 @@ export class ClassAttributeAccessor implements IAccessor<string> {
   public currentValue: string;
   public oldValue: string;
 
+  public readonly persistentFlags: LifecycleFlags;
+
   public readonly doNotCache: true;
   public nameIndex: Record<string, number>;
   public version: number;
@@ -22,6 +24,7 @@ export class ClassAttributeAccessor implements IAccessor<string> {
 
   constructor(
     lifecycle: ILifecycle,
+    flags: LifecycleFlags,
     obj: HTMLElement,
   ) {
     this.lifecycle = lifecycle;
@@ -37,6 +40,7 @@ export class ClassAttributeAccessor implements IAccessor<string> {
     this.isActive = false;
     this.hasChanges = false;
     this.priority = Priority.propagate;
+    this.persistentFlags = flags & LifecycleFlags.persistentBindingFlags;
   }
 
   public getValue(): string {
@@ -46,8 +50,10 @@ export class ClassAttributeAccessor implements IAccessor<string> {
   public setValue(newValue: string, flags: LifecycleFlags): void {
     this.currentValue = newValue;
     this.hasChanges = newValue !== this.oldValue;
-    if ((flags & LifecycleFlags.fromBind) > 0) {
+    if ((flags & LifecycleFlags.fromBind) > 0 || this.persistentFlags === LifecycleFlags.noTargetObserverQueue) {
       this.flushRAF(flags);
+    } else if (this.persistentFlags !== LifecycleFlags.persistentTargetObserverQueue) {
+      this.lifecycle.enqueueRAF(this.flushRAF, this, this.priority, true);
     }
   }
 
@@ -101,10 +107,14 @@ export class ClassAttributeAccessor implements IAccessor<string> {
   }
 
   public bind(flags: LifecycleFlags): void {
-    this.lifecycle.enqueueRAF(this.flushRAF, this, this.priority);
+    if (this.persistentFlags === LifecycleFlags.persistentTargetObserverQueue) {
+      this.lifecycle.enqueueRAF(this.flushRAF, this, this.priority);
+    }
   }
 
   public unbind(flags: LifecycleFlags): void {
-    this.lifecycle.dequeueRAF(this.flushRAF, this);
+    if (this.persistentFlags === LifecycleFlags.persistentTargetObserverQueue) {
+      this.lifecycle.dequeueRAF(this.flushRAF, this);
+    }
   }
 }

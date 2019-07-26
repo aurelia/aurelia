@@ -12,6 +12,8 @@ export class StyleAttributeAccessor implements IAccessor<unknown> {
   public currentValue: string | Record<string, string>;
   public oldValue: string | Record<string, string>;
 
+  public readonly persistentFlags: LifecycleFlags;
+
   public styles: Record<string, number>;
   public version: number;
 
@@ -20,6 +22,7 @@ export class StyleAttributeAccessor implements IAccessor<unknown> {
 
   constructor(
     lifecycle: ILifecycle,
+    flags: LifecycleFlags,
     obj: HTMLElement,
   ) {
     this.lifecycle = lifecycle;
@@ -33,6 +36,7 @@ export class StyleAttributeAccessor implements IAccessor<unknown> {
 
     this.hasChanges = false;
     this.priority = Priority.propagate;
+    this.persistentFlags = flags & LifecycleFlags.persistentBindingFlags;
   }
 
   public getValue(): string {
@@ -42,8 +46,10 @@ export class StyleAttributeAccessor implements IAccessor<unknown> {
   public setValue(newValue: string | Record<string, string>, flags: LifecycleFlags): void {
     this.currentValue = newValue;
     this.hasChanges = newValue !== this.oldValue;
-    if ((flags & LifecycleFlags.fromBind) > 0) {
+    if ((flags & LifecycleFlags.fromBind) > 0 || this.persistentFlags === LifecycleFlags.noTargetObserverQueue) {
       this.flushRAF(flags);
+    } else if (this.persistentFlags !== LifecycleFlags.persistentTargetObserverQueue) {
+      this.lifecycle.enqueueRAF(this.flushRAF, this, this.priority, true);
     }
   }
 
@@ -106,11 +112,15 @@ export class StyleAttributeAccessor implements IAccessor<unknown> {
   }
 
   public bind(flags: LifecycleFlags): void {
-    this.lifecycle.enqueueRAF(this.flushRAF, this, this.priority);
+    if (this.persistentFlags === LifecycleFlags.persistentTargetObserverQueue) {
+      this.lifecycle.enqueueRAF(this.flushRAF, this, this.priority);
+    }
     this.oldValue = this.currentValue = this.obj.style.cssText;
   }
 
   public unbind(flags: LifecycleFlags): void {
-    this.lifecycle.dequeueRAF(this.flushRAF, this);
+    if (this.persistentFlags === LifecycleFlags.persistentTargetObserverQueue) {
+      this.lifecycle.dequeueRAF(this.flushRAF, this);
+    }
   }
 }

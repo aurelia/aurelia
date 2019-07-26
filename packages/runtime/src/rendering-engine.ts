@@ -418,27 +418,34 @@ export class ChildrenObserver implements Partial<IChildrenObserver> {
   private readonly controller: IController;
   private readonly lifecycle: ILifecycle;
   private readonly projector: IElementProjector;
-  private children: IController[];
+  private children: any[];
   private observing: boolean;
   private ticking: boolean;
+  private filter: typeof defaultChildFilter;
+  private select: typeof defaultChildSelect;
 
-  constructor(lifecycle: ILifecycle, controller: IController) {
+  constructor(
+    lifecycle: ILifecycle,
+    controller: IController,
+    filter = defaultChildFilter,
+    select = defaultChildSelect
+    ) {
     this.hasChanges = false;
-
+    this.filter = filter;
+    this.select = select;
     this.children = (void 0)!;
     this.controller = controller;
     this.lifecycle = lifecycle;
-    this.controller = Controller.forCustomElement(controller, (void 0)!, (void 0)!);
     this.projector = this.controller.projector!;
     this.observing = false;
     this.ticking = false;
   }
 
-  public getValue(): IController[] {
+  public getValue(): any[] {
     if (!this.observing) {
       this.observing = true;
       this.projector.subscribeToChildrenChange(() => { this.onChildrenChanged(); });
-      this.children = findElements(this.projector.children);
+      this.children = filterChildren(this.projector.children, this.filter, this.select);
     }
 
     return this.children;
@@ -470,7 +477,7 @@ export class ChildrenObserver implements Partial<IChildrenObserver> {
   }
 
   private onChildrenChanged(): void {
-    this.children = findElements(this.projector.children);
+    this.children = filterChildren(this.projector.children, this.filter, this.select);
 
     if (hasChildrenChanged(this.controller.viewModel)) {
       this.controller.viewModel.$childrenChanged();
@@ -481,19 +488,32 @@ export class ChildrenObserver implements Partial<IChildrenObserver> {
 }
 
 /** @internal */
-export function findElements<T extends INode = INode>(nodes: ArrayLike<T>): IController<T>[] {
-  const components: IController<T>[] = [];
+export function filterChildren<T extends INode = INode>(
+  nodes: ArrayLike<T>,
+  filter: typeof defaultChildFilter,
+  select: typeof defaultChildSelect
+): any[] {
+  const children = [];
 
   for (let i = 0, ii = nodes.length; i < ii; ++i) {
-    const current = nodes[i];
-    const component = CustomElement.behaviorFor<T>(current);
+    const node = nodes[i];
+    const controller = CustomElement.behaviorFor(node);
+    const viewModel = controller ? controller.viewModel : null;
 
-    if (component != void 0) {
-      components.push(component);
+    if (filter(node, controller, viewModel)) {
+      children.push(select(node, controller, viewModel));
     }
   }
 
-  return components;
+  return children;
+}
+
+function defaultChildFilter(node: INode, controller?: IController, viewModel?: any): boolean {
+  return !!viewModel;
+}
+
+function defaultChildSelect(node: INode, controller?: IController, viewModel?: any): any {
+  return viewModel;
 }
 
 /** @internal */

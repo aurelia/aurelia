@@ -73,12 +73,12 @@ export class ShadowDOMProjector implements IElementProjector<Node> {
   }
 
   public get children(): ArrayLike<CustomElementHost<Node>> {
-    return this.shadowRoot.childNodes;
+    return this.host.childNodes;
   }
 
   public subscribeToChildrenChange(callback: () => void): void {
     // TODO: add a way to dispose/disconnect
-    this.dom.createNodeObserver!(this.shadowRoot, callback, childObserverOptions);
+    this.dom.createNodeObserver!(this.host, callback, childObserverOptions);
   }
 
   public provideEncapsulationSource(): CustomElementHost<ShadowRoot> {

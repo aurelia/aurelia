@@ -10,6 +10,7 @@ import {
   Reporter,
   RuntimeCompilationResources,
   Writable,
+  IIndexable,
 } from '@aurelia/kernel';
 
 import {
@@ -41,6 +42,7 @@ import {
   ISubscribable,
   ISubscriber,
   ISubscriberCollection,
+  IPropertyObserver,
 } from './observation';
 import { subscriberCollection } from './observation/subscriber-collection';
 import {
@@ -399,90 +401,95 @@ export class ViewFactoryProvider implements IResolver {
   }
 }
 
-export interface IChildrenObserver extends
+export interface ChildrenObserver extends
   IAccessor,
   ISubscribable,
-  ISubscriberCollection { }
-
-type HasChildrenChanged = IViewModel & { $childrenChanged(): void };
-function hasChildrenChanged(viewModel: IViewModel | undefined): viewModel is HasChildrenChanged {
-  return viewModel != void 0 && '$childrenChanged' in viewModel;
-}
+  ISubscriberCollection,
+  IPropertyObserver<IIndexable, string>{ }
 
 /** @internal */
 @subscriberCollection()
-export class ChildrenObserver implements Partial<IChildrenObserver> {
-  [key: number]: LifecycleFlags;
-  public hasChanges: boolean;
-
+export class ChildrenObserver {
+  public readonly propertyKey: string;
+  public observing: boolean;
   private readonly controller: IController;
-  private readonly lifecycle: ILifecycle;
   private readonly projector: IElementProjector;
   private children: any[];
-  private observing: boolean;
-  private ticking: boolean;
   private filter: typeof defaultChildFilter;
   private select: typeof defaultChildSelect;
+  private readonly callback: () => void;
 
   constructor(
     controller: IController,
+    flags: LifecycleFlags,
+    propertyName: string,
+    cbName: string,
     filter = defaultChildFilter,
     select = defaultChildSelect
     ) {
-    this.hasChanges = false;
+    this.propertyKey = propertyName;
+    this.callback = (controller.viewModel as any)[cbName] as typeof ChildrenObserver.prototype.callback;
     this.filter = filter;
     this.select = select;
     this.children = (void 0)!;
     this.controller = controller;
-    this.lifecycle = controller.lifecycle;
     this.projector = this.controller.projector!;
     this.observing = false;
-    this.ticking = false;
+    this.persistentFlags = flags & LifecycleFlags.persistentBindingFlags;
+
+    if (this.callback === void 0) {
+      this.observing = false;
+    } else {
+      this.tryStartObserving();
+    }
   }
 
   public getValue(): any[] {
-    if (!this.observing) {
-      this.observing = true;
-      this.projector.subscribeToChildrenChange(() => { this.onChildrenChanged(); });
-      this.children = filterChildren(this.projector.children, this.filter, this.select);
-    }
-
+    this.tryStartObserving();
     return this.children;
   }
 
   public setValue(newValue: unknown): void { /* do nothing */ }
 
-  public flushRAF(this: ChildrenObserver & IChildrenObserver, flags: LifecycleFlags): void {
-    if (this.hasChanges) {
-      this.callSubscribers(this.children, undefined, flags | LifecycleFlags.updateTargetInstance);
-      this.hasChanges = false;
-    }
-  }
-
-  public subscribe(this: ChildrenObserver & IChildrenObserver, subscriber: ISubscriber): void {
-    if (!this.ticking) {
-      this.ticking = true;
-      this.lifecycle.enqueueRAF(this.flushRAF, this, Priority.bind);
-    }
+  public subscribe(subscriber: ISubscriber): void {
+    this.tryStartObserving();
     this.addSubscriber(subscriber);
   }
 
-  public unsubscribe(this: ChildrenObserver & IChildrenObserver, subscriber: ISubscriber): void {
-    this.removeSubscriber(subscriber);
-    if (this.ticking && !this.hasSubscribers()) {
-      this.ticking = false;
-      this.lifecycle.dequeueRAF(this.flushRAF, this);
+  private tryStartObserving() {
+    if (!this.observing) {
+      this.observing = true;
+      this.children = filterChildren(this.projector.children, this.filter, this.select);
+      this.projector.subscribeToChildrenChange(() => { this.onChildrenChanged(); });
+      this.createGetterSetter();
     }
   }
 
   private onChildrenChanged(): void {
     this.children = filterChildren(this.projector.children, this.filter, this.select);
 
-    if (hasChildrenChanged(this.controller.viewModel)) {
-      this.controller.viewModel.$childrenChanged();
+    if (this.callback !== void 0) {
+      this.callback.call(this.controller.viewModel);
     }
 
-    this.hasChanges = true;
+    this.callSubscribers(this.children, undefined, this.persistentFlags | LifecycleFlags.updateTargetInstance);
+  }
+
+  private createGetterSetter(): void {
+    if (
+      !Reflect.defineProperty(
+        this.controller.viewModel!,
+        this.propertyKey,
+        {
+          enumerable: true,
+          configurable: true,
+          get: () => this.getValue(),
+          set: () => { },
+        }
+      )
+    ) {
+      Reporter.write(1, this.propertyKey, this.controller.viewModel);
+    }
   }
 }
 

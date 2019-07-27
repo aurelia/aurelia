@@ -22,6 +22,8 @@ import {
   ensureValidStrategy
 } from './flags';
 import { Bindable } from './templating/bindable';
+import { INode } from './dom';
+import { IController } from './lifecycle';
 
 export type IElementHydrationOptions = { parts?: Record<string, TemplateDefinition> };
 
@@ -32,6 +34,13 @@ export interface IBindableDescription {
   callback?: string;
   attribute?: string;
   property?: string;
+}
+
+export interface IChildrenObserverDescription {
+  callback?: string;
+  property?: string;
+  filter?: (node: INode, controller?: IController, viewModel?: any) => boolean;
+  select?: (node: INode, controller?: IController, viewModel?: any) => any;
 }
 
 /**
@@ -70,6 +79,7 @@ export interface ITemplateDefinition extends IResourceDefinition {
   build?: IBuildInstruction;
   surrogates?: ITargetedInstruction[];
   bindables?: Record<string, IBindableDescription> | string[];
+  childrenObservers?: Record<string, IChildrenObserverDescription>
   containerless?: boolean;
   shadowOptions?: { mode: 'open' | 'closed' };
   hasSlots?: boolean;

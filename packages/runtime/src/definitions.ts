@@ -24,6 +24,7 @@ import {
 import { Bindable } from './templating/bindable';
 import { INode } from './dom';
 import { IController } from './lifecycle';
+import { IElementProjector } from './resources/custom-element';
 
 export type IElementHydrationOptions = { parts?: Record<string, TemplateDefinition> };
 
@@ -39,8 +40,10 @@ export interface IBindableDescription {
 export interface IChildrenObserverDescription {
   callback?: string;
   property?: string;
+  options?: MutationObserverInit;
+  query?: (projector: IElementProjector) => ArrayLike<INode>;
   filter?: (node: INode, controller?: IController, viewModel?: any) => boolean;
-  select?: (node: INode, controller?: IController, viewModel?: any) => any;
+  map?: (node: INode, controller?: IController, viewModel?: any) => any;
 }
 
 /**

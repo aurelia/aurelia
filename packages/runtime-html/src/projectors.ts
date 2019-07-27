@@ -76,9 +76,9 @@ export class ShadowDOMProjector implements IElementProjector<Node> {
     return this.host.childNodes;
   }
 
-  public subscribeToChildrenChange(callback: () => void): void {
+  public subscribeToChildrenChange(callback: () => void, options = childObserverOptions): void {
     // TODO: add a way to dispose/disconnect
-    this.dom.createNodeObserver!(this.host, callback, childObserverOptions);
+    this.dom.createNodeObserver!(this.host, callback, options);
   }
 
   public provideEncapsulationSource(): CustomElementHost<ShadowRoot> {
@@ -117,9 +117,7 @@ export class ContainerlessProjector implements IElementProjector<Node> {
   }
 
   public subscribeToChildrenChange(callback: () => void): void {
-    // TODO: add a way to dispose/disconnect
-    const observer = new MutationObserver(callback);
-    observer.observe(this.host, childObserverOptions);
+    // Containerless does not have a container node to observe children on.
   }
 
   public provideEncapsulationSource(): Node {

@@ -1058,8 +1058,10 @@ function createObservers(
             flags,
             name,
             childrenDescription.callback,
+            childrenDescription.query,
             childrenDescription.filter,
-            childrenDescription.select
+            childrenDescription.map,
+            childrenDescription.options
           );
         }
       }

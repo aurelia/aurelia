@@ -416,7 +416,9 @@ export class ChildrenObserver {
   private readonly projector: IElementProjector;
   private children: any[];
   private filter: typeof defaultChildFilter;
-  private select: typeof defaultChildSelect;
+  private map: typeof defaultChildMap;
+  private query: typeof defaultChildQuery;
+  private options?: MutationObserverInit;
   private readonly callback: () => void;
 
   constructor(
@@ -424,13 +426,17 @@ export class ChildrenObserver {
     flags: LifecycleFlags,
     propertyName: string,
     cbName: string,
+    query = defaultChildQuery,
     filter = defaultChildFilter,
-    select = defaultChildSelect
+    map = defaultChildMap,
+    options?: MutationObserverInit
     ) {
     this.propertyKey = propertyName;
     this.callback = (controller.viewModel as any)[cbName] as typeof ChildrenObserver.prototype.callback;
+    this.query = query;
     this.filter = filter;
-    this.select = select;
+    this.map = map;
+    this.options = options;
     this.children = (void 0)!;
     this.controller = controller;
     this.projector = this.controller.projector!;
@@ -461,13 +467,13 @@ export class ChildrenObserver {
   private tryStartObserving() {
     if (!this.observing) {
       this.observing = true;
-      this.children = filterChildren(this.projector.children, this.filter, this.select);
-      this.projector.subscribeToChildrenChange(() => { this.onChildrenChanged(); });
+      this.children = filterChildren(this.projector, this.query, this.filter, this.map);
+      this.projector.subscribeToChildrenChange(() => { this.onChildrenChanged(); }, this.options);
     }
   }
 
   private onChildrenChanged(): void {
-    this.children = filterChildren(this.projector.children, this.filter, this.select);
+    this.children = filterChildren(this.projector, this.query, this.filter, this.map);
 
     if (this.callback !== void 0) {
       this.callback.call(this.controller.viewModel);
@@ -495,11 +501,13 @@ export class ChildrenObserver {
 }
 
 /** @internal */
-export function filterChildren<T extends INode = INode>(
-  nodes: ArrayLike<T>,
+export function filterChildren(
+  projector: IElementProjector,
+  query: typeof defaultChildQuery,
   filter: typeof defaultChildFilter,
-  select: typeof defaultChildSelect
+  map: typeof defaultChildMap
 ): any[] {
+  const nodes = query(projector);
   const children = [];
 
   for (let i = 0, ii = nodes.length; i < ii; ++i) {
@@ -508,18 +516,22 @@ export function filterChildren<T extends INode = INode>(
     const viewModel = controller ? controller.viewModel : null;
 
     if (filter(node, controller, viewModel)) {
-      children.push(select(node, controller, viewModel));
+      children.push(map(node, controller, viewModel));
     }
   }
 
   return children;
 }
 
+function defaultChildQuery(projector: IElementProjector): ArrayLike<INode> {
+  return projector.children;
+}
+
 function defaultChildFilter(node: INode, controller?: IController, viewModel?: any): boolean {
   return !!viewModel;
 }
 
-function defaultChildSelect(node: INode, controller?: IController, viewModel?: any): any {
+function defaultChildMap(node: INode, controller?: IController, viewModel?: any): any {
   return viewModel;
 }
 

@@ -44,7 +44,7 @@ export interface IElementProjector<T extends INode = INode> {
   project(nodes: INodeSequence<T>): void;
   take(nodes: INodeSequence<T>): void;
 
-  subscribeToChildrenChange(callback: () => void): void;
+  subscribeToChildrenChange(callback: () => void, options?: any): void;
 }
 
 export const IProjectorLocator = DI.createInterface<IProjectorLocator>('IProjectorLocator').noDefault();

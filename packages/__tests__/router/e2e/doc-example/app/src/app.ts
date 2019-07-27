@@ -1,5 +1,5 @@
 import { inject } from '@aurelia/kernel';
-import { IRouter, Router } from '@aurelia/router';
+import { IRouter } from '@aurelia/router';
 import { customElement } from '@aurelia/runtime';
 import { About } from './components/about';
 import { Authors } from './components/authors/authors';
@@ -21,7 +21,7 @@ import { arrayRemove } from '../../../../../../router/src/utils';
 <au-viewport name="gate" used-by="main,login" default="\${!state.loggedIn ? 'login' : 'main'}"></au-viewport>
 ` })
 export class App {
-  constructor(private readonly router: Router, authorsRepository: AuthorsRepository, private readonly state: State) {
+  constructor(private readonly router: IRouter, authorsRepository: AuthorsRepository, private readonly state: State) {
     authorsRepository.authors(); // Only here to initialize repositories
   }
 

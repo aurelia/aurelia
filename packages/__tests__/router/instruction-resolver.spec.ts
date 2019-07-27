@@ -1,6 +1,6 @@
 import { DebugConfiguration } from '@aurelia/debug';
 import { Aurelia, CustomElement } from '@aurelia/runtime';
-import { Router, RouterConfiguration, ViewportCustomElement, ViewportInstruction } from '@aurelia/router';
+import { IRouter, RouterConfiguration, ViewportCustomElement, ViewportInstruction } from '@aurelia/router';
 import { MockBrowserHistoryLocation, TestContext, assert } from '@aurelia/testing';
 
 describe('InstructionResolver', function () {
@@ -9,10 +9,10 @@ describe('InstructionResolver', function () {
     const container = ctx.container;
 
     const App = CustomElement.define({ name: 'app', template: '<template><au-viewport name="left"></au-viewport><au-viewport name="right"></au-viewport></template>' });
-    container.register(Router);
+    container.register(IRouter);
     container.register(ViewportCustomElement);
 
-    const router = container.get(Router);
+    const router = container.get(IRouter);
     const mockBrowserHistoryLocation = new MockBrowserHistoryLocation();
     mockBrowserHistoryLocation.changeCallback = router.navigation.handlePopstate;
     router.navigation.history = mockBrowserHistoryLocation as any;
@@ -105,7 +105,7 @@ async function setup() {
   const { container } = ctx;
 
   const App = CustomElement.define({ name: 'app', template: '<template><au-viewport name="left"></au-viewport><au-viewport name="right"></au-viewport></template>' });
-  container.register(Router);
+  container.register(IRouter);
   container.register(ViewportCustomElement);
 
   const host = ctx.createElement('div');
@@ -117,7 +117,7 @@ async function setup() {
 
   await au.start().wait();
 
-  const router = container.get(Router);
+  const router = container.get(IRouter);
   const mockBrowserHistoryLocation = new MockBrowserHistoryLocation();
   mockBrowserHistoryLocation.changeCallback = router.navigation.handlePopstate as any;
   router.navigation.history = mockBrowserHistoryLocation as any;

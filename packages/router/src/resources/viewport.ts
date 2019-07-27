@@ -20,7 +20,6 @@ import {
 
 import {
   IRouter,
-  Router
 } from '../router';
 import {
   IViewportOptions,
@@ -43,11 +42,11 @@ export class ViewportCustomElement {
   // tslint:disable-next-line: prefer-readonly // This is set by the controller after this instance is constructed
   public $controller!: IController;
 
-  private readonly router: Router;
+  private readonly router: IRouter;
   private readonly element: Element;
   private readonly renderingEngine: IRenderingEngine;
 
-  constructor(router: Router, element: Element, renderingEngine: IRenderingEngine) {
+  constructor(router: IRouter, element: Element, renderingEngine: IRenderingEngine) {
     this.name = 'default';
     this.scope = null;
     this.usedBy = null;

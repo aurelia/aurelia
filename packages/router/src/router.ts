@@ -16,8 +16,8 @@ import { IViewportOptions, Viewport } from './viewport';
 import { ViewportInstruction } from './viewport-instruction';
 
 export interface IRouteTransformer {
-  transformFromUrl?(route: string, router: Router): string | ViewportInstruction[];
-  transformToUrl?(instructions: ViewportInstruction[], router: Router): string | ViewportInstruction[];
+  transformFromUrl?(route: string, router: IRouter): string | ViewportInstruction[];
+  transformToUrl?(instructions: ViewportInstruction[], router: IRouter): string | ViewportInstruction[];
 }
 
 export const IRouteTransformer = DI.createInterface<IRouteTransformer>('IRouteTransformer').withDefault(x => x.singleton(RouteTable));
@@ -34,8 +34,16 @@ export interface IRouteViewport {
 
 export interface IRouter {
   readonly isNavigating: boolean;
+  activeComponents: string[];
+  readonly container: IContainer;
+  readonly scopes: Scope[];
+  readonly instructionResolver: InstructionResolver;
+  navigator: Navigator;
+  readonly navigation: BrowserNavigation;
+  readonly guardian: Guardian;
+  readonly navs: Record<string, Nav>;
 
-  activate(options?: IRouterOptions): Promise<void>;
+  activate(options?: IRouterOptions): void;
   loadUrl(): Promise<void>;
   deactivate(): void;
 
@@ -114,7 +122,7 @@ export class Router implements IRouter {
     return this.processingNavigation !== null;
   }
 
-  public activate(options?: IRouterOptions): Promise<void> {
+  public activate(options?: IRouterOptions): void {
     if (this.isActive) {
       throw new Error('Router has already been activated');
     }
@@ -133,7 +141,7 @@ export class Router implements IRouter {
       store: this.navigation,
     });
     this.linkHandler.activate({ callback: this.linkCallback });
-    return this.navigation.activate(this.navigationCallback);
+    this.navigation.activate(this.navigationCallback);
   }
 
   public loadUrl(): Promise<void> {

@@ -1,7 +1,7 @@
 import { IContainer, Reporter } from '@aurelia/kernel';
 import { ICustomElementType, IRenderContext, LifecycleFlags } from '@aurelia/runtime';
 import { INavigationInstruction } from './navigator';
-import { Router } from './router';
+import { IRouter } from './router';
 import { Scope } from './scope';
 import { IViewportOptions } from './viewport';
 import { ReentryBehavior, ViewportContent } from './viewport-content';
@@ -30,7 +30,7 @@ export class Viewport {
 
   public enabled: boolean;
 
-  private readonly router: Router;
+  private readonly router: IRouter;
 
   private clear: boolean;
   private elementResolve?: ((value?: void | PromiseLike<void>) => void) | null;
@@ -39,7 +39,7 @@ export class Viewport {
 
   private cache: ViewportContent[];
 
-  constructor(router: Router, name: string, element: Element, context: IRenderContext | IContainer, owningScope: Scope, scope: Scope, options?: IViewportOptions) {
+  constructor(router: IRouter, name: string, element: Element, context: IRenderContext | IContainer, owningScope: Scope, scope: Scope, options?: IViewportOptions) {
     this.router = router;
     this.name = name;
     this.element = element;

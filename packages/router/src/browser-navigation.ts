@@ -14,7 +14,7 @@ export interface INavigationStore {
 }
 
 export interface INavigationViewer {
-  activate(callback: (ev?: INavigationViewerEvent) => void): Promise<void>;
+  activate(callback: (ev?: INavigationViewerEvent) => void): void;
   deactivate(): void;
 }
 
@@ -79,7 +79,7 @@ export class BrowserNavigation implements INavigationStore, INavigationViewer {
     this.forwardedState = {};
   }
 
-  public activate(callback: (ev?: INavigationViewerEvent) => void): Promise<void> {
+  public activate(callback: (ev?: INavigationViewerEvent) => void): void {
     if (this.isActive) {
       throw new Error('Browser navigation has already been activated');
     }
@@ -87,8 +87,6 @@ export class BrowserNavigation implements INavigationStore, INavigationViewer {
     this.callback = callback;
     this.pendingCalls.activate({ lifecycle: this.lifecycle, allowedExecutionCostWithinTick: this.allowedExecutionCostWithinTick });
     this.window.addEventListener('popstate', this.handlePopstate);
-
-    return Promise.resolve();
   }
 
   public loadUrl(): Promise<void> {

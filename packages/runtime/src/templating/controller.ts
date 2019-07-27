@@ -1022,6 +1022,7 @@ function createObservers(
   const observableNames = Object.getOwnPropertyNames(bindables);
   const useProxy = (flags & LifecycleFlags.proxyStrategy) > 0 ;
   const lifecycle = controller.lifecycle;
+  let hasChildrenObservers = 'childrenObservers' in description;
 
   const { length } = observableNames;
   let name: string;
@@ -1039,8 +1040,8 @@ function createObservers(
     }
   }
 
-  if ('childrenObservers' in description) {
-    const childrenObservers = description.childrenObservers as Record<string, Required<IChildrenObserverDescription>>;
+  if (hasChildrenObservers) {
+    const childrenObservers = (description as any).childrenObservers as Record<string, Required<IChildrenObserverDescription>>;
 
     if (childrenObservers) {
       const childObserverNames = Object.getOwnPropertyNames(childrenObservers);
@@ -1065,7 +1066,7 @@ function createObservers(
     }
   }
 
-  if (!useProxy) {
+  if (!useProxy || hasChildrenObservers) {
     Reflect.defineProperty(instance, '$observers', {
       enumerable: false,
       value: observers

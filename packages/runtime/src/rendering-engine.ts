@@ -437,6 +437,8 @@ export class ChildrenObserver {
     this.observing = false;
     this.persistentFlags = flags & LifecycleFlags.persistentBindingFlags;
 
+    this.createGetterSetter();
+
     if (this.callback === void 0) {
       this.observing = false;
     } else {
@@ -461,7 +463,6 @@ export class ChildrenObserver {
       this.observing = true;
       this.children = filterChildren(this.projector.children, this.filter, this.select);
       this.projector.subscribeToChildrenChange(() => { this.onChildrenChanged(); });
-      this.createGetterSetter();
     }
   }
 

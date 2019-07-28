@@ -4,9 +4,13 @@
   <!-- <button id="locale-changer-de" click.delegate="changeLocale('de')">DE</button>
   <button id="rt-changer" click.delegate="changeMyDate()">Change my date</button> -->
 
-  <span id="i18n-simple" t="simple.text"></span>
-  <!-- <span id="i18n-attr" t="[title]simple.attr">attribute test</span>
-  <span id="i18n-multiple-attr" t="simple.text;[title]simple.attr"></span>
+  <span id="i18n-simple"    t="simple.text"></span><br>
+  <span id="i18n-vm-bound"  t.bind="obj.key"></span><br>
+
+  <!-- <span id="i18n-simple-2" t="${obj.key}">interpolated attr.</span><br> -->
+
+  <!-- <span id="i18n-attr" t="[title]simple.attr">attribute test</span> -->
+  <!-- <span id="i18n-multiple-attr" t="simple.text;[title]simple.attr"></span>
   <span id="i18n-multiple-attr-same-key" t="simple.text;[title,data-foo]simple.attr"></span>
   <span id="i18n-nested" t="$t(simple.text) $t(simple.attr)"></span>
 

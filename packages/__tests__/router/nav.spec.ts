@@ -1,5 +1,5 @@
 import { DebugConfiguration } from '@aurelia/debug';
-import { IRouter, NavCustomElement, RouterConfiguration, ViewportCustomElement } from '@aurelia/router';
+import { IRouter, RouterConfiguration } from '@aurelia/router';
 import { Aurelia, CustomElement } from '@aurelia/runtime';
 import { assert, MockBrowserHistoryLocation, TestContext } from '@aurelia/testing';
 
@@ -28,10 +28,6 @@ describe('Nav', function () {
       }
     });
 
-    // container.register(IRouter);
-    // container.register(ViewportCustomElement, NavCustomElement);
-    // container.register(Foo, Bar, Baz, Qux);
-
     const host = ctx.doc.createElement('div');
     ctx.doc.body.appendChild(host);
 
@@ -49,9 +45,6 @@ describe('Nav', function () {
 
     await au.start().wait();
 
-    // await router.activate();
-    // await router.loadUrl();
-
     async function tearDown() {
       await au.stop().wait();
       ctx.doc.body.removeChild(host);
@@ -59,7 +52,7 @@ describe('Nav', function () {
     }
 
     return { au, container, host, router, ctx, tearDown };
-  };
+  }
 
   it('generates nav with a link', async function () {
     this.timeout(5000);
@@ -93,7 +86,6 @@ describe('Nav', function () {
     await tearDown();
   });
 });
-
 
 const wait = async (time = 500) => {
   await new Promise((resolve) => {

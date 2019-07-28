@@ -43,7 +43,10 @@ const routerConfiguration = {
     return container.register(
       ...DefaultComponents,
       ...DefaultResources,
-      StartTask.with(IRouter).beforeBind().call(router => { router.activate(); return Promise.resolve(); }),
+      StartTask.with(IRouter).beforeBind().call(router => {
+        router.activate();
+        return Promise.resolve();
+      }),
       StartTask.with(IRouter).beforeAttach().call(router => router.loadUrl()),
     );
   },

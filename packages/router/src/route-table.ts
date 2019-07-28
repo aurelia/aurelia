@@ -1,4 +1,4 @@
-import { IRouteTransformer, IRouter } from './router';
+import { IRouter, IRouteTransformer } from './router';
 import { ViewportInstruction } from './viewport-instruction';
 
 /**

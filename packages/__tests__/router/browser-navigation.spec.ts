@@ -1,7 +1,5 @@
-import { assert, TestContext, createSpy, MockBrowserHistoryLocation } from '@aurelia/testing';
-import { DOM } from '@aurelia/runtime-html';
-import { Writable } from '@aurelia/kernel';
 import { BrowserNavigation, INavigationState } from '@aurelia/router';
+import { assert, MockBrowserHistoryLocation, TestContext } from '@aurelia/testing';
 
 describe('BrowserNavigation', function () {
   this.timeout(5000);

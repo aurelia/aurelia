@@ -1,11 +1,10 @@
 import { DI } from '@aurelia/kernel';
-import { IDOM, ILifecycleTask, PromiseTask } from '@aurelia/runtime';
+import { ILifecycleTask, PromiseTask } from '@aurelia/runtime';
 import i18nextCore from 'i18next';
 import { I18nConfigurationOptions } from './i18n-configuration-options';
 import { I18nextWrapper, I18nWrapper } from './i18next-wrapper';
 
 export interface I18nKeyEvaluationResult {
-  key: string;
   value: string;
   attributes: string[];
 }
@@ -23,8 +22,7 @@ export class I18nService {
 
   constructor(
     @I18nWrapper i18nextWrapper: I18nextWrapper,
-    @I18nConfigurationOptions options: I18nConfigurationOptions,
-    @IDOM private readonly dom: IDOM<Node>) {
+    @I18nConfigurationOptions options: I18nConfigurationOptions) {
     this.i18next = i18nextWrapper.i18next;
     this.task = new PromiseTask(this.initializeI18next(options), null, this);
   }
@@ -34,7 +32,7 @@ export class I18nService {
     const result: I18nKeyEvaluationResult[] = [];
     for (const part of parts) {
       const { attributes, key } = this.extractAttributesFromKey(part);
-      result.push({ attributes, key, value: this.tr(key) });
+      result.push({ attributes, value: this.tr(key) });
     }
     return result;
   }
@@ -43,7 +41,7 @@ export class I18nService {
     return this.i18next.t(key, options);
   }
 
-  private extractAttributesFromKey(key: string): Omit<I18nKeyEvaluationResult, 'value'> {
+  private extractAttributesFromKey(key: string) {
     const re = /\[([a-z\-, ]*)\]/ig;
     let attributes: string[] = [];
 

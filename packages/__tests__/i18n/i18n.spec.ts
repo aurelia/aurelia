@@ -1,5 +1,4 @@
 import { I18nConfigurationOptions, I18nModule, I18nService } from '@aurelia/i18n';
-import { DOM } from '@aurelia/runtime-html';
 import { assert } from '@aurelia/testing';
 import i18next from 'i18next';
 import { Spy } from './Spy';
@@ -11,11 +10,11 @@ const translation = {
   }
 };
 
-describe('I18N', function () {
+describe.only('I18N', function () {
   async function setup(options: I18nConfigurationOptions = {}) {
     let sut: I18nService, mockContext: Spy;
     mockContext = new Spy();
-    sut = new I18nService({ i18next: mockContext.getMock(i18next) }, options, DOM);
+    sut = new I18nService({ i18next: mockContext.getMock(i18next) }, options);
     await sut['task'].wait();
     return { mockContext, sut };
   }
@@ -68,18 +67,21 @@ describe('I18N', function () {
     mockContext.methodCalledNthTimeWith('use', 2, [customization.plugins[1]]);
   });
 
-  it('can update textContent of an element given translations', async function () {
-    const customization = {
-      resources: {
-        en: { translation }
-      }
-    };
-    const { sut } = await setup(customization);
+  [
+    { input: 'simple.text', output: [{ attributes: [], value: translation.simple.text }] },
+    { input: '[foo]simple.text', output: [{ attributes: ['foo'], value: translation.simple.text }] },
+    { input: '[foo,bar]simple.text', output: [{ attributes: ['foo', 'bar'], value: translation.simple.text }] },
+    { input: '[foo,bar]simple.text;[baz]simple.attr', output: [{ attributes: ['foo', 'bar'], value: translation.simple.text }, { attributes: ['baz'], value: translation.simple.attr }] },
+  ].forEach(({ input, output }) =>
+    it(`'evaluate' resolves key expression ${input} to ${JSON.stringify(output)}`, async function () {
+      const customization = {
+        resources: {
+          en: { translation }
+        }
+      };
+      const { sut } = await setup(customization);
 
-    const span = DOM.createElement('span');
-    sut.updateValue(span as any, 'simple.text');
-    await sut['task'].wait();
-
-    assert.strictEqual(span.textContent, translation.simple.text);
-  });
+      const result = sut.evaluate(input);
+      assert.deepEqual(result, output);
+    }));
 });

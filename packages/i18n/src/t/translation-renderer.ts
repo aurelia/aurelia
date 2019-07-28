@@ -5,7 +5,6 @@ import { TranslationBinding } from './translation-binding';
 
 export const TranslationInstructionType = 'tt';
 
-// @attributePattern({ pattern: 't', symbols: '' })
 export class TranslationAttributePattern implements IAttributePattern {
   [key: string]: ((rawName: string, rawValue: string, parts: string[]) => AttrSyntax) | AttributePatternDefinition[];
 

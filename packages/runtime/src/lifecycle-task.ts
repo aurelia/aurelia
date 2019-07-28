@@ -52,7 +52,7 @@ export interface ICallbackSlotChooser<K extends Key> {
 }
 
 export interface ICallbackChooser<K extends Key> {
-  call<K1 extends Key = K>(fn: (instance: Resolved<K1>) => PromiseOrTask): IStartTask;
+  call<K1 extends Key = K>(fn: (instance: Resolved<K1>) => MaybePromiseOrTask): IStartTask;
 }
 
 const enum TaskType {

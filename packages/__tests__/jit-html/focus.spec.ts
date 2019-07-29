@@ -146,10 +146,17 @@ describe('focus.spec.ts', function() {
           const isFocusable = ceProp && (typeof ceProp.tabIndex !== undefined || ceProp.contentEditable);
           // tslint:disable-next-line:insecure-random
           const ceName = `ce-${Math.random().toString().slice(-6)}`;
-          const CustomEl = defineCustomElement(ceName, ceTemplate, { tabIndex: 1 }, shadowMode);
 
           it(`works with ${isFocusable ? 'focusable' : ''} custom element ${ceName}, #shadowRoot: ${shadowMode}`, function() {
             let callCount = 0;
+
+            const { au, component, ctx } = setup<IApp>(
+              `<template><${ceName} focus.bind=hasFocus></${ceName}></template>`,
+              class App {
+                public hasFocus = true;
+              }
+            );
+            const CustomEl = defineCustomElement(ctx, ceName, ceTemplate, { tabIndex: 1 }, shadowMode);
             // only track call, virtually no different without this layer
             CustomEl.prototype['focus'] = function focus(options?: FocusOptions): void {
               callCount++;
@@ -167,13 +174,6 @@ describe('focus.spec.ts', function() {
                 return HTMLElement.prototype.focus.call(this, options);
               }
             };
-
-            const { au, component, ctx } = setup<IApp>(
-              `<template><${ceName} focus.bind=hasFocus></${ceName}></template>`,
-              class App {
-                public hasFocus = true;
-              }
-            );
 
             const activeElement = ctx.doc.activeElement;
             const ceEl = ctx.doc.querySelector(`app ${ceName}`);
@@ -321,11 +321,11 @@ describe('focus.spec.ts', function() {
     );
 
     interface IFocusTestCase<T extends IApp = IApp> {
-      title: (focusAttr: string) => string;
       template: TemplateFn;
       app: Constructable<T>;
       assertionFn: AssertionFn;
       getFocusable: string | ((doc: Document) => HTMLElement);
+      title(focusAttr: string): string;
     }
   });
 
@@ -344,8 +344,8 @@ describe('focus.spec.ts', function() {
     return { ctx, container, lifecycle, host, au, component, observerLocator };
   }
 
-  function defineCustomElement(name: string, template: string, props: Record<string, any> = null, mode: 'open' | 'closed' | null = 'open') {
-    class CustomEl extends HTMLElement {
+  function defineCustomElement(ctx: HTMLTestContext, name: string, template: string, props: Record<string, any> = null, mode: 'open' | 'closed' | null = 'open') {
+    class CustomEl extends ctx.dom.HTMLElement {
       constructor() {
         super();
         if (mode !== null) {

@@ -1,9 +1,13 @@
-import { Constructable } from '@aurelia/kernel';
+import { Constructable, PLATFORM } from '@aurelia/kernel';
 import { Aurelia, CustomElement } from '@aurelia/runtime';
 import { Focus } from '@aurelia/runtime-html';
 import { assert, eachCartesianJoin, HTMLTestContext, TestContext } from '@aurelia/testing';
 
 describe('focus.spec.ts', function() {
+
+  if (!PLATFORM.isBrowserLike) {
+    return;
+  }
 
   interface IApp {
     hasFocus?: boolean;

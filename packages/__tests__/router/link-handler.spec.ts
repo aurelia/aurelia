@@ -1,7 +1,7 @@
-import { LinkHandler } from '@aurelia/router';
-import { assert, createSpy } from '@aurelia/testing';
-import { DOM } from '@aurelia/runtime-html';
 import { Writable } from '@aurelia/kernel';
+import { LinkHandler } from '@aurelia/router';
+import { DOM } from '@aurelia/runtime-html';
+import { assert, createSpy } from '@aurelia/testing';
 
 describe('LinkHandler', function () {
   const callback = ((info) => { return; });

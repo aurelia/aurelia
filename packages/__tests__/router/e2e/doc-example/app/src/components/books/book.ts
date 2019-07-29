@@ -1,6 +1,6 @@
 import { inject } from '@aurelia//kernel';
 import { customElement } from '@aurelia/runtime';
-import { Router } from '@aurelia/router';
+import { IRouter } from '@aurelia/router';
 import { BooksRepository } from '../../repositories/books';
 import { Information } from './information';
 import { RedirectAbout } from './redirect-about';
@@ -20,13 +20,13 @@ import { RedirectInformation } from './redirect-information';
 </template>`,
   dependencies: [Information as any, RedirectInformation as any, RedirectAbout as any]
 })
-@inject(Router, BooksRepository)
+@inject(IRouter, BooksRepository)
 export class Book {
   public static parameters = ['id'];
 
   public book: { id: number };
 
-  constructor(private readonly router: Router, private readonly booksRepository: BooksRepository) { }
+  constructor(private readonly router: IRouter, private readonly booksRepository: BooksRepository) { }
 
   public enter(parameters) {
     let id = +(parameters.id ? parameters.id : parameters[0]);

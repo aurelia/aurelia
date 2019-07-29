@@ -1,5 +1,5 @@
-import { ChildrenObserverSource, ITemplateDefinition, IChildrenObserverDescription } from '../definitions';
 import { Constructable } from '@aurelia/kernel';
+import { ChildrenObserverSource, IChildrenObserverDescription, ITemplateDefinition } from '../definitions';
 
 export type HasChildrenObservers = Pick<ITemplateDefinition, 'childrenObservers'>;
 export type ChildrenDecorator = <T extends InstanceType<Constructable & Partial<HasChildrenObservers>>>
@@ -35,7 +35,7 @@ export function children<T extends InstanceType<Constructable & Partial<HasChild
     }
 
     const childrenObservers =
-      $target.constructor.childrenObservers || ($target.constructor.childrenObservers = {});
+      ($target.constructor as HasChildrenObservers).childrenObservers || (($target.constructor as HasChildrenObservers).childrenObservers = {});
 
     if (!config.callback) {
       config.callback = `${config.property}Changed`;

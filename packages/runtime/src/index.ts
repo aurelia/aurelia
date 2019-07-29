@@ -464,7 +464,7 @@ export {
 export {
   CompiledTemplate,
   createRenderContext,
-  IChildrenObserver,
+  ChildrenObserver,
   IInstructionRenderer,
   IInstructionTypeClassifier,
   IRenderer,

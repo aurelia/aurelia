@@ -11,7 +11,7 @@ export interface INavigationStore {
     popNavigationState(): Promise<void>;
 }
 export interface INavigationViewer {
-    activate(callback: (ev?: INavigationViewerEvent) => void): Promise<void>;
+    activate(callback: (ev?: INavigationViewerEvent) => void): void;
     deactivate(): void;
 }
 export interface INavigationViewerEvent {
@@ -39,7 +39,8 @@ export declare class BrowserNavigation implements INavigationStore, INavigationV
     private callback;
     private forwardedState;
     constructor(lifecycle: ILifecycle, dom: HTMLDOM);
-    activate(callback: (ev?: INavigationViewerEvent) => void): Promise<void>;
+    activate(callback: (ev?: INavigationViewerEvent) => void): void;
+    loadUrl(): Promise<void>;
     deactivate(): void;
     readonly length: number;
     readonly state: Record<string, unknown>;

@@ -57,7 +57,7 @@
         runtime_1.bindable
     ], NavCustomElement.prototype, "classes", void 0);
     NavCustomElement = tslib_1.__decorate([
-        kernel_1.inject(router_1.Router, runtime_1.INode),
+        kernel_1.inject(router_1.IRouter, runtime_1.INode),
         runtime_1.customElement({
             name: 'au-nav', template: `<template>
   <nav if.bind="name" class="\${name} \${navClasses.nav}">

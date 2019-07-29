@@ -200,10 +200,12 @@ export class ProviderTask {
     wait() {
         if (this.promise === void 0) {
             const instance = this.container.get(this.key);
-            const promiseOrTask = this.callback.call(void 0, instance);
-            this.promise = promiseOrTask.then instanceof Function
-                ? promiseOrTask
-                : promiseOrTask.wait();
+            const maybePromiseOrTask = this.callback.call(void 0, instance);
+            this.promise = maybePromiseOrTask === void 0
+                ? Promise.resolve()
+                : maybePromiseOrTask.then instanceof Function
+                    ? maybePromiseOrTask
+                    : maybePromiseOrTask.wait();
             this.promise = this.promise.then(() => {
                 this.done = true;
                 this.container = (void 0);

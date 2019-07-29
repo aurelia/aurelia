@@ -5,9 +5,10 @@ export declare class DataAttributeAccessor implements IAccessor<string | null> {
     readonly propertyKey: string;
     currentValue: string | null;
     oldValue: string | null;
+    readonly persistentFlags: LifecycleFlags;
     hasChanges: boolean;
     priority: Priority;
-    constructor(lifecycle: ILifecycle, obj: HTMLElement, propertyKey: string);
+    constructor(lifecycle: ILifecycle, flags: LifecycleFlags, obj: HTMLElement, propertyKey: string);
     getValue(): string | null;
     setValue(newValue: string | null, flags: LifecycleFlags): void;
     flushRAF(flags: LifecycleFlags): void;

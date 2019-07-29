@@ -65,36 +65,36 @@ export class TargetObserverLocator {
     getObserver(flags, lifecycle, observerLocator, obj, propertyName) {
         switch (propertyName) {
             case 'checked':
-                return new CheckedObserver(lifecycle, observerLocator, new EventSubscriber(this.dom, inputEvents), obj);
+                return new CheckedObserver(lifecycle, flags, observerLocator, new EventSubscriber(this.dom, inputEvents), obj);
             case 'value':
                 if (obj.tagName === 'SELECT') {
-                    return new SelectValueObserver(lifecycle, observerLocator, this.dom, new EventSubscriber(this.dom, selectEvents), obj);
+                    return new SelectValueObserver(lifecycle, flags, observerLocator, this.dom, new EventSubscriber(this.dom, selectEvents), obj);
                 }
-                return new ValueAttributeObserver(lifecycle, new EventSubscriber(this.dom, inputEvents), obj, propertyName);
+                return new ValueAttributeObserver(lifecycle, flags, new EventSubscriber(this.dom, inputEvents), obj, propertyName);
             case 'files':
-                return new ValueAttributeObserver(lifecycle, new EventSubscriber(this.dom, inputEvents), obj, propertyName);
+                return new ValueAttributeObserver(lifecycle, flags, new EventSubscriber(this.dom, inputEvents), obj, propertyName);
             case 'textContent':
             case 'innerHTML':
-                return new ValueAttributeObserver(lifecycle, new EventSubscriber(this.dom, contentEvents), obj, propertyName);
+                return new ValueAttributeObserver(lifecycle, flags, new EventSubscriber(this.dom, contentEvents), obj, propertyName);
             case 'scrollTop':
             case 'scrollLeft':
-                return new ValueAttributeObserver(lifecycle, new EventSubscriber(this.dom, scrollEvents), obj, propertyName);
+                return new ValueAttributeObserver(lifecycle, flags, new EventSubscriber(this.dom, scrollEvents), obj, propertyName);
             case 'class':
-                return new ClassAttributeAccessor(lifecycle, obj);
+                return new ClassAttributeAccessor(lifecycle, flags, obj);
             case 'style':
             case 'css':
-                return new StyleAttributeAccessor(lifecycle, obj);
+                return new StyleAttributeAccessor(lifecycle, flags, obj);
             case 'model':
                 return new SetterObserver(lifecycle, flags, obj, propertyName);
             case 'role':
-                return new DataAttributeAccessor(lifecycle, obj, propertyName);
+                return new DataAttributeAccessor(lifecycle, flags, obj, propertyName);
             default:
                 if (nsAttributes[propertyName] !== undefined) {
                     const nsProps = nsAttributes[propertyName];
-                    return new AttributeNSAccessor(lifecycle, obj, nsProps[0], nsProps[1]);
+                    return new AttributeNSAccessor(lifecycle, flags, obj, nsProps[0], nsProps[1]);
                 }
                 if (isDataAttribute(obj, propertyName, this.svgAnalyzer)) {
-                    return new DataAttributeAccessor(lifecycle, obj, propertyName);
+                    return new DataAttributeAccessor(lifecycle, flags, obj, propertyName);
                 }
         }
         return null;
@@ -119,28 +119,28 @@ export class TargetAccessorLocator {
         switch (propertyName) {
             case 'textContent':
                 // note: this case is just an optimization (textContent is the most often used property)
-                return new ElementPropertyAccessor(lifecycle, obj, propertyName);
+                return new ElementPropertyAccessor(lifecycle, flags, obj, propertyName);
             case 'class':
-                return new ClassAttributeAccessor(lifecycle, obj);
+                return new ClassAttributeAccessor(lifecycle, flags, obj);
             case 'style':
             case 'css':
-                return new StyleAttributeAccessor(lifecycle, obj);
+                return new StyleAttributeAccessor(lifecycle, flags, obj);
             // TODO: there are (many) more situation where we want to default to DataAttributeAccessor,
             // but for now stick to what vCurrent does
             case 'src':
             case 'href':
             // https://html.spec.whatwg.org/multipage/dom.html#wai-aria
             case 'role':
-                return new DataAttributeAccessor(lifecycle, obj, propertyName);
+                return new DataAttributeAccessor(lifecycle, flags, obj, propertyName);
             default:
                 if (nsAttributes[propertyName] !== undefined) {
                     const nsProps = nsAttributes[propertyName];
-                    return new AttributeNSAccessor(lifecycle, obj, nsProps[0], nsProps[1]);
+                    return new AttributeNSAccessor(lifecycle, flags, obj, nsProps[0], nsProps[1]);
                 }
                 if (isDataAttribute(obj, propertyName, this.svgAnalyzer)) {
-                    return new DataAttributeAccessor(lifecycle, obj, propertyName);
+                    return new DataAttributeAccessor(lifecycle, flags, obj, propertyName);
                 }
-                return new ElementPropertyAccessor(lifecycle, obj, propertyName);
+                return new ElementPropertyAccessor(lifecycle, flags, obj, propertyName);
         }
     }
     handles(flags, obj) {

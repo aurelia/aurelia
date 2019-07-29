@@ -12,8 +12,8 @@ import { Scope } from './scope';
 import { IViewportOptions, Viewport } from './viewport';
 import { ViewportInstruction } from './viewport-instruction';
 export interface IRouteTransformer {
-    transformFromUrl?(route: string, router: Router): string | ViewportInstruction[];
-    transformToUrl?(instructions: ViewportInstruction[], router: Router): string | ViewportInstruction[];
+    transformFromUrl?(route: string, router: IRouter): string | ViewportInstruction[];
+    transformToUrl?(instructions: ViewportInstruction[], router: IRouter): string | ViewportInstruction[];
 }
 export declare const IRouteTransformer: import("@aurelia/kernel").InterfaceSymbol<IRouteTransformer>;
 export interface IRouterOptions extends INavigatorOptions, IRouteTransformer {
@@ -26,7 +26,16 @@ export interface IRouteViewport {
 }
 export interface IRouter {
     readonly isNavigating: boolean;
-    activate(options?: IRouterOptions): Promise<void>;
+    activeComponents: string[];
+    readonly container: IContainer;
+    readonly scopes: Scope[];
+    readonly instructionResolver: InstructionResolver;
+    navigator: Navigator;
+    readonly navigation: BrowserNavigation;
+    readonly guardian: Guardian;
+    readonly navs: Readonly<Record<string, Nav>>;
+    activate(options?: IRouterOptions): void;
+    loadUrl(): Promise<void>;
     deactivate(): void;
     linkCallback(info: AnchorEventInfo): void;
     processNavigations(qInstruction: QueueItem<INavigationInstruction>): Promise<void>;
@@ -66,7 +75,8 @@ export declare class Router implements IRouter {
     private lastNavigation;
     constructor(container: IContainer, navigator: Navigator, navigation: BrowserNavigation, routeTransformer: IRouteTransformer, linkHandler: LinkHandler, instructionResolver: InstructionResolver);
     readonly isNavigating: boolean;
-    activate(options?: IRouterOptions): Promise<void>;
+    activate(options?: IRouterOptions): void;
+    loadUrl(): Promise<void>;
     deactivate(): void;
     linkCallback: (info: AnchorEventInfo) => void;
     navigatorCallback: (instruction: INavigationInstruction) => void;

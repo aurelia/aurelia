@@ -36,7 +36,7 @@ export interface ICallbackSlotChooser<K extends Key> {
     at(slot: TaskSlot): ICallbackChooser<K>;
 }
 export interface ICallbackChooser<K extends Key> {
-    call<K1 extends Key = K>(fn: (instance: Resolved<K1>) => PromiseOrTask): IStartTask;
+    call<K1 extends Key = K>(fn: (instance: Resolved<K1>) => MaybePromiseOrTask): IStartTask;
 }
 export declare const StartTask: {
     with<K extends Key>(key: K): ICallbackSlotChooser<K>;

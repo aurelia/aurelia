@@ -1,7 +1,7 @@
 import { IContainer } from '@aurelia/kernel';
 import { ICustomElementType, IRenderContext, LifecycleFlags } from '@aurelia/runtime';
 import { INavigationInstruction } from './navigator';
-import { Router } from './router';
+import { IRouter } from './router';
 import { Scope } from './scope';
 import { IViewportOptions } from './viewport';
 import { ViewportContent } from './viewport-content';
@@ -30,7 +30,7 @@ export declare class Viewport {
     private elementResolve?;
     private previousViewportState?;
     private cache;
-    constructor(router: Router, name: string, element: Element, context: IRenderContext | IContainer, owningScope: Scope, scope: Scope, options?: IViewportOptions);
+    constructor(router: IRouter, name: string, element: Element, context: IRenderContext | IContainer, owningScope: Scope, scope: Scope, options?: IViewportOptions);
     setNextContent(content: Partial<ICustomElementType> | string, instruction: INavigationInstruction): boolean;
     setElement(element: Element, context: IRenderContext | IContainer, options: IViewportOptions): void;
     remove(element: Element, context: IRenderContext | IContainer): boolean;

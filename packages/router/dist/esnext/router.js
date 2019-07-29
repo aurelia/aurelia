@@ -224,7 +224,10 @@ export class Router {
             store: this.navigation,
         });
         this.linkHandler.activate({ callback: this.linkCallback });
-        return this.navigation.activate(this.navigationCallback);
+        this.navigation.activate(this.navigationCallback);
+    }
+    loadUrl() {
+        return this.navigation.loadUrl();
     }
     deactivate() {
         if (!this.isActive) {

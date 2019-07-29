@@ -18,11 +18,12 @@ export declare class SelectValueObserver implements IAccessor<unknown> {
     readonly obj: ISelectElement;
     currentValue: unknown;
     oldValue: unknown;
+    readonly persistentFlags: LifecycleFlags;
     hasChanges: boolean;
     priority: Priority;
     arrayObserver?: ICollectionObserver<CollectionKind.array>;
     nodeObserver?: MutationObserver;
-    constructor(lifecycle: ILifecycle, observerLocator: IObserverLocator, dom: IDOM, handler: IEventSubscriber, obj: ISelectElement);
+    constructor(lifecycle: ILifecycle, flags: LifecycleFlags, observerLocator: IObserverLocator, dom: IDOM, handler: IEventSubscriber, obj: ISelectElement);
     getValue(): unknown;
     setValue(newValue: unknown, flags: LifecycleFlags): void;
     flushRAF(flags: LifecycleFlags): void;
@@ -32,8 +33,8 @@ export declare class SelectValueObserver implements IAccessor<unknown> {
     handleEvent(): void;
     synchronizeOptions(indexMap?: IndexMap): void;
     synchronizeValue(): boolean;
-    bind(): void;
-    unbind(): void;
+    bind(flags: LifecycleFlags): void;
+    unbind(flags: LifecycleFlags): void;
     handleNodeChange(): void;
     subscribe(subscriber: ISubscriber): void;
     unsubscribe(subscriber: ISubscriber): void;

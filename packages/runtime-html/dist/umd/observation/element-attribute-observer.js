@@ -17,7 +17,7 @@
      * TODO: handle SVG/attributes with namespace
      */
     let AttributeObserver = class AttributeObserver {
-        constructor(lifecycle, observerLocator, element, propertyKey, targetAttribute) {
+        constructor(lifecycle, flags, observerLocator, element, propertyKey, targetAttribute) {
             this.observerLocator = observerLocator;
             this.lifecycle = lifecycle;
             this.obj = element;
@@ -27,6 +27,7 @@
             this.oldValue = null;
             this.hasChanges = false;
             this.priority = 12288 /* propagate */;
+            this.persistentFlags = flags & 1610612751 /* targetObserverFlags */;
         }
         getValue() {
             return this.currentValue;
@@ -34,8 +35,11 @@
         setValue(newValue, flags) {
             this.currentValue = newValue;
             this.hasChanges = newValue !== this.oldValue;
-            if ((flags & 4096 /* fromBind */) > 0) {
+            if ((flags & 4096 /* fromBind */) > 0 || this.persistentFlags === 536870912 /* noTargetObserverQueue */) {
                 this.flushRAF(flags);
+            }
+            else if (this.persistentFlags !== 1073741824 /* persistentTargetObserverQueue */) {
+                this.lifecycle.enqueueRAF(this.flushRAF, this, this.priority, true);
             }
         }
         flushRAF(flags) {
@@ -119,10 +123,14 @@
             }
         }
         bind(flags) {
-            this.lifecycle.enqueueRAF(this.flushRAF, this, this.priority);
+            if (this.persistentFlags === 1073741824 /* persistentTargetObserverQueue */) {
+                this.lifecycle.enqueueRAF(this.flushRAF, this, this.priority);
+            }
         }
         unbind(flags) {
-            this.lifecycle.dequeueRAF(this.flushRAF, this);
+            if (this.persistentFlags === 1073741824 /* persistentTargetObserverQueue */) {
+                this.lifecycle.dequeueRAF(this.flushRAF, this);
+            }
         }
     };
     AttributeObserver = tslib_1.__decorate([

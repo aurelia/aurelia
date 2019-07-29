@@ -15,7 +15,7 @@
         return a === b;
     }
     let CheckedObserver = class CheckedObserver {
-        constructor(lifecycle, observerLocator, handler, obj) {
+        constructor(lifecycle, flags, observerLocator, handler, obj) {
             this.lifecycle = lifecycle;
             this.observerLocator = observerLocator;
             this.handler = handler;
@@ -26,6 +26,7 @@
             this.priority = 12288 /* propagate */;
             this.arrayObserver = void 0;
             this.valueObserver = void 0;
+            this.persistentFlags = flags & 1610612751 /* targetObserverFlags */;
         }
         getValue() {
             return this.currentValue;
@@ -33,8 +34,11 @@
         setValue(newValue, flags) {
             this.currentValue = newValue;
             this.hasChanges = newValue !== this.oldValue;
-            if ((flags & 4096 /* fromBind */) > 0) {
+            if ((flags & 4096 /* fromBind */) > 0 || this.persistentFlags === 536870912 /* noTargetObserverQueue */) {
                 this.flushRAF(flags);
+            }
+            else if (this.persistentFlags !== 1073741824 /* persistentTargetObserverQueue */) {
+                this.lifecycle.enqueueRAF(this.flushRAF, this, this.priority, true);
             }
         }
         flushRAF(flags) {
@@ -68,21 +72,27 @@
         }
         handleCollectionChange(indexMap, flags) {
             const { currentValue, oldValue } = this;
-            if ((flags & 4096 /* fromBind */) > 0) {
+            if ((flags & 4096 /* fromBind */) > 0 || this.persistentFlags === 536870912 /* noTargetObserverQueue */) {
                 this.oldValue = currentValue;
                 this.synchronizeElement();
             }
             else {
                 this.hasChanges = true;
             }
+            if (this.persistentFlags !== 1073741824 /* persistentTargetObserverQueue */) {
+                this.lifecycle.enqueueRAF(this.flushRAF, this, this.priority, true);
+            }
             this.callSubscribers(currentValue, oldValue, flags);
         }
         handleChange(newValue, previousValue, flags) {
-            if ((flags & 4096 /* fromBind */) > 0) {
+            if ((flags & 4096 /* fromBind */) > 0 || this.persistentFlags === 536870912 /* noTargetObserverQueue */) {
                 this.synchronizeElement();
             }
             else {
                 this.hasChanges = true;
+            }
+            if (this.persistentFlags !== 1073741824 /* persistentTargetObserverQueue */) {
+                this.lifecycle.enqueueRAF(this.flushRAF, this, this.priority, true);
             }
             this.callSubscribers(newValue, previousValue, flags);
         }
@@ -135,7 +145,9 @@
             this.callSubscribers(this.currentValue, this.oldValue, 131072 /* fromDOMEvent */ | 524288 /* allowPublishRoundtrip */);
         }
         bind(flags) {
-            this.lifecycle.enqueueRAF(this.flushRAF, this, this.priority);
+            if (this.persistentFlags === 1073741824 /* persistentTargetObserverQueue */) {
+                this.lifecycle.enqueueRAF(this.flushRAF, this, this.priority);
+            }
             this.currentValue = this.obj.checked;
         }
         unbind(flags) {
@@ -146,7 +158,9 @@
             if (this.valueObserver !== void 0) {
                 this.valueObserver.unsubscribe(this);
             }
-            this.lifecycle.dequeueRAF(this.flushRAF, this);
+            if (this.persistentFlags === 1073741824 /* persistentTargetObserverQueue */) {
+                this.lifecycle.dequeueRAF(this.flushRAF, this);
+            }
         }
         subscribe(subscriber) {
             if (!this.hasSubscribers()) {

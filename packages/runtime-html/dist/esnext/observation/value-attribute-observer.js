@@ -2,7 +2,7 @@ import * as tslib_1 from "tslib";
 import { subscriberCollection, } from '@aurelia/runtime';
 // TODO: handle file attribute properly again, etc
 let ValueAttributeObserver = class ValueAttributeObserver {
-    constructor(lifecycle, handler, obj, propertyKey) {
+    constructor(lifecycle, flags, handler, obj, propertyKey) {
         this.lifecycle = lifecycle;
         this.handler = handler;
         this.obj = obj;
@@ -11,6 +11,7 @@ let ValueAttributeObserver = class ValueAttributeObserver {
         this.oldValue = '';
         this.hasChanges = false;
         this.priority = 12288 /* propagate */;
+        this.persistentFlags = flags & 1610612751 /* targetObserverFlags */;
     }
     getValue() {
         return this.currentValue;
@@ -18,8 +19,11 @@ let ValueAttributeObserver = class ValueAttributeObserver {
     setValue(newValue, flags) {
         this.currentValue = newValue;
         this.hasChanges = newValue !== this.oldValue;
-        if ((flags & 4096 /* fromBind */) > 0) {
+        if ((flags & 4096 /* fromBind */) > 0 || this.persistentFlags === 536870912 /* noTargetObserverQueue */) {
             this.flushRAF(flags);
+        }
+        else if (this.persistentFlags !== 1073741824 /* persistentTargetObserverQueue */) {
+            this.lifecycle.enqueueRAF(this.flushRAF, this, this.priority, true);
         }
     }
     flushRAF(flags) {
@@ -60,10 +64,14 @@ let ValueAttributeObserver = class ValueAttributeObserver {
         }
     }
     bind(flags) {
-        this.lifecycle.enqueueRAF(this.flushRAF, this, this.priority);
+        if (this.persistentFlags === 1073741824 /* persistentTargetObserverQueue */) {
+            this.lifecycle.enqueueRAF(this.flushRAF, this, this.priority);
+        }
     }
     unbind(flags) {
-        this.lifecycle.dequeueRAF(this.flushRAF, this);
+        if (this.persistentFlags === 1073741824 /* persistentTargetObserverQueue */) {
+            this.lifecycle.dequeueRAF(this.flushRAF, this);
+        }
     }
 };
 ValueAttributeObserver = tslib_1.__decorate([

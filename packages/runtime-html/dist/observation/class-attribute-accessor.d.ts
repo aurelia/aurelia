@@ -4,13 +4,14 @@ export declare class ClassAttributeAccessor implements IAccessor<string> {
     readonly obj: HTMLElement;
     currentValue: string;
     oldValue: string;
+    readonly persistentFlags: LifecycleFlags;
     readonly doNotCache: true;
     nameIndex: Record<string, number>;
     version: number;
     hasChanges: boolean;
     isActive: boolean;
     priority: Priority;
-    constructor(lifecycle: ILifecycle, obj: HTMLElement);
+    constructor(lifecycle: ILifecycle, flags: LifecycleFlags, obj: HTMLElement);
     getValue(): string;
     setValue(newValue: string, flags: LifecycleFlags): void;
     flushRAF(flags: LifecycleFlags): void;

@@ -282,7 +282,7 @@ export class AccessThisExpression {
         if (scope == null) {
             throw Reporter.error(250 /* NilScope */, this);
         }
-        if ((flags & 536870912 /* allowParentScopeTraversal */) > 0) {
+        if ((flags & 134217728 /* allowParentScopeTraversal */) > 0) {
             let parent = scope.parentScope;
             while (parent !== null) {
                 if (!parent.scopeParts.includes(part)) {
@@ -363,7 +363,9 @@ export class AccessMemberExpression {
     }
     connect(flags, scope, binding, part) {
         const obj = this.object.evaluate(flags, scope, null, part);
-        this.object.connect(flags, scope, binding, part);
+        if ((flags & 268435456 /* observeLeafPropertiesOnly */) === 0) {
+            this.object.connect(flags, scope, binding, part);
+        }
         if (obj instanceof Object) {
             binding.observeProperty(flags, obj, this.name);
         }
@@ -393,7 +395,9 @@ export class AccessKeyedExpression {
     }
     connect(flags, scope, binding, part) {
         const obj = this.object.evaluate(flags, scope, null, part);
-        this.object.connect(flags, scope, binding, part);
+        if ((flags & 268435456 /* observeLeafPropertiesOnly */) === 0) {
+            this.object.connect(flags, scope, binding, part);
+        }
         if (obj instanceof Object) {
             this.key.connect(flags, scope, binding, part);
             const key = this.key.evaluate(flags, scope, null, part);
@@ -460,7 +464,9 @@ export class CallMemberExpression {
     }
     connect(flags, scope, binding, part) {
         const obj = this.object.evaluate(flags, scope, null, part);
-        this.object.connect(flags, scope, binding, part);
+        if ((flags & 268435456 /* observeLeafPropertiesOnly */) === 0) {
+            this.object.connect(flags, scope, binding, part);
+        }
         if (getFunction(flags & ~2097152 /* mustEvaluate */, obj, this.name)) {
             const args = this.args;
             for (let i = 0, ii = args.length; i < ii; ++i) {
@@ -868,7 +874,7 @@ export class ForOfStatement {
         return CountForOfStatement[toStringTag.call(result)](result);
     }
     iterate(flags, result, func) {
-        IterateForOfStatement[toStringTag.call(result)](flags | 33554432 /* isOriginalArray */, result, func);
+        IterateForOfStatement[toStringTag.call(result)](flags | 16777216 /* isOriginalArray */, result, func);
     }
     connect(flags, scope, binding, part) {
         this.declaration.connect(flags, scope, binding, part);
@@ -944,7 +950,7 @@ function getFunction(flags, obj, name) {
     }
     throw Reporter.error(207 /* NotAFunction */, obj, name, func);
 }
-const proxyAndOriginalArray = 2 /* proxyStrategy */ | 33554432 /* isOriginalArray */;
+const proxyAndOriginalArray = 2 /* proxyStrategy */ | 16777216 /* isOriginalArray */;
 /** @internal */
 export const IterateForOfStatement = {
     ['[object Array]'](flags, result, func) {
@@ -976,7 +982,7 @@ export const IterateForOfStatement = {
         for (const entry of result.entries()) {
             arr[++i] = entry;
         }
-        IterateForOfStatement['[object Array]'](flags & ~33554432 /* isOriginalArray */, arr, func);
+        IterateForOfStatement['[object Array]'](flags & ~16777216 /* isOriginalArray */, arr, func);
     },
     ['[object Set]'](flags, result, func) {
         const arr = Array(result.size);
@@ -984,14 +990,14 @@ export const IterateForOfStatement = {
         for (const key of result.keys()) {
             arr[++i] = key;
         }
-        IterateForOfStatement['[object Array]'](flags & ~33554432 /* isOriginalArray */, arr, func);
+        IterateForOfStatement['[object Array]'](flags & ~16777216 /* isOriginalArray */, arr, func);
     },
     ['[object Number]'](flags, result, func) {
         const arr = Array(result);
         for (let i = 0; i < result; ++i) {
             arr[i] = i;
         }
-        IterateForOfStatement['[object Array]'](flags & ~33554432 /* isOriginalArray */, arr, func);
+        IterateForOfStatement['[object Array]'](flags & ~16777216 /* isOriginalArray */, arr, func);
     },
     ['[object Null]'](flags, result, func) {
         return;

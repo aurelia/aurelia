@@ -94,7 +94,7 @@
             this.$state |= 1 /* isBinding */;
             // Store flags which we can only receive during $bind and need to pass on
             // to the AST during evaluate/connect/assign
-            this.persistentFlags = flags & 536870927 /* persistentBindingFlags */;
+            this.persistentFlags = flags & 2013265935 /* persistentBindingFlags */;
             this.$scope = scope;
             this.part = part;
             let sourceExpression = this.sourceExpression;
@@ -103,7 +103,7 @@
             }
             let targetObserver = this.targetObserver;
             if (!targetObserver) {
-                targetObserver = this.targetObserver = new element_attribute_observer_1.AttributeObserver(this.$lifecycle, this.observerLocator, this.target, this.targetProperty, this.targetAttribute);
+                targetObserver = this.targetObserver = new element_attribute_observer_1.AttributeObserver(this.$lifecycle, flags, this.observerLocator, this.target, this.targetProperty, this.targetAttribute);
             }
             if (targetObserver.bind) {
                 targetObserver.bind(flags);

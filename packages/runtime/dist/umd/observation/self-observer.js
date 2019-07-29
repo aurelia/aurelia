@@ -42,7 +42,7 @@
                     this.createGetterSetter();
                 }
             }
-            this.persistentFlags = flags & 536870927 /* persistentBindingFlags */;
+            this.persistentFlags = flags & 2013265935 /* persistentBindingFlags */;
         }
         handleChange(newValue, oldValue, flags) {
             this.setValue(newValue, flags);

@@ -4,7 +4,7 @@
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "./binding/ast", "./binding/property-binding", "./binding/call-binding", "./binding/connectable", "./binding/expression-parser", "./binding/interpolation-binding", "./binding/let-binding", "./binding/ref-binding", "./observation/array-observer", "./observation/map-observer", "./observation/set-observer", "./observation/binding-context", "./observation/collection-length-observer", "./observation/collection-size-observer", "./observation/computed-observer", "./observation/dirty-checker", "./observation/observer-locator", "./observation/primitive-observer", "./observation/property-accessor", "./observation/proxy-observer", "./observation/self-observer", "./observation/setter-observer", "./observation/signaler", "./observation/subscriber-collection", "./resources/binding-behavior", "./resources/binding-behaviors/binding-mode", "./resources/binding-behaviors/debounce", "./resources/binding-behaviors/priority", "./resources/binding-behaviors/signals", "./resources/binding-behaviors/throttle", "./resources/custom-attribute", "./resources/custom-attributes/if", "./resources/custom-attributes/repeat", "./resources/custom-attributes/replaceable", "./resources/custom-attributes/with", "./resources/custom-element", "./resources/value-converter", "./resources/value-converters/sanitize", "./templating/bindable", "./templating/controller", "./templating/view", "./aurelia", "./configuration", "./definitions", "./dom", "./flags", "./instructions", "./lifecycle", "./lifecycle-task", "./observation", "./renderer", "./rendering-engine"], factory);
+        define(["require", "exports", "./binding/ast", "./binding/property-binding", "./binding/call-binding", "./binding/connectable", "./binding/expression-parser", "./binding/interpolation-binding", "./binding/let-binding", "./binding/ref-binding", "./observation/array-observer", "./observation/map-observer", "./observation/set-observer", "./observation/binding-context", "./observation/collection-length-observer", "./observation/collection-size-observer", "./observation/computed-observer", "./observation/dirty-checker", "./observation/observer-locator", "./observation/primitive-observer", "./observation/property-accessor", "./observation/proxy-observer", "./observation/self-observer", "./observation/setter-observer", "./observation/signaler", "./observation/subscriber-collection", "./resources/binding-behavior", "./resources/binding-behaviors/binding-mode", "./resources/binding-behaviors/debounce", "./resources/binding-behaviors/priority", "./resources/binding-behaviors/signals", "./resources/binding-behaviors/throttle", "./resources/custom-attribute", "./resources/custom-attributes/flags", "./resources/custom-attributes/if", "./resources/custom-attributes/repeat", "./resources/custom-attributes/replaceable", "./resources/custom-attributes/with", "./resources/custom-element", "./resources/value-converter", "./resources/value-converters/sanitize", "./templating/bindable", "./templating/controller", "./templating/view", "./aurelia", "./configuration", "./definitions", "./dom", "./flags", "./instructions", "./lifecycle", "./lifecycle-task", "./observation", "./renderer", "./rendering-engine"], factory);
     }
 })(function (require, exports) {
     "use strict";
@@ -136,6 +136,10 @@
     exports.CustomAttribute = custom_attribute_1.CustomAttribute;
     exports.dynamicOptions = custom_attribute_1.dynamicOptions;
     exports.templateController = custom_attribute_1.templateController;
+    var flags_1 = require("./resources/custom-attributes/flags");
+    exports.FrequentMutations = flags_1.FrequentMutations;
+    exports.InfrequentMutations = flags_1.InfrequentMutations;
+    exports.ObserveShallow = flags_1.ObserveShallow;
     var if_1 = require("./resources/custom-attributes/if");
     exports.If = if_1.If;
     exports.Else = if_1.Else;
@@ -211,13 +215,13 @@
     exports.IRenderLocation = dom_1.IRenderLocation;
     exports.IDOM = dom_1.IDOM;
     exports.NodeSequence = dom_1.NodeSequence;
-    var flags_1 = require("./flags");
-    exports.BindingMode = flags_1.BindingMode;
-    exports.BindingStrategy = flags_1.BindingStrategy;
-    exports.ExpressionKind = flags_1.ExpressionKind;
-    exports.Hooks = flags_1.Hooks;
-    exports.LifecycleFlags = flags_1.LifecycleFlags;
-    exports.State = flags_1.State;
+    var flags_2 = require("./flags");
+    exports.BindingMode = flags_2.BindingMode;
+    exports.BindingStrategy = flags_2.BindingStrategy;
+    exports.ExpressionKind = flags_2.ExpressionKind;
+    exports.Hooks = flags_2.Hooks;
+    exports.LifecycleFlags = flags_2.LifecycleFlags;
+    exports.State = flags_2.State;
     var instructions_1 = require("./instructions");
     exports.CallBindingInstruction = instructions_1.CallBindingInstruction;
     exports.FromViewBindingInstruction = instructions_1.FromViewBindingInstruction;

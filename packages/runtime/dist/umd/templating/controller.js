@@ -223,7 +223,7 @@
             this.bindingContext.unbound(flags);
         }
         attach(flags) {
-            if ((this.state & 40 /* isAttachedOrAttaching */) > 0 && (flags & 268435456 /* reorderNodes */) === 0) {
+            if ((this.state & 40 /* isAttachedOrAttaching */) > 0 && (flags & 67108864 /* reorderNodes */) === 0) {
                 return;
             }
             flags |= 16384 /* fromAttach */;
@@ -307,10 +307,6 @@
             const $scope = this.scope;
             $scope.parentScope = scope === void 0 ? null : scope;
             $scope.scopeParts = this.scopeParts;
-            if ((flags & 134217728 /* updateOneTimeBindings */) > 0) {
-                this.bindBindings(flags, $scope);
-                return lifecycle_task_1.LifecycleTask.done;
-            }
             if ((this.state & 4 /* isBound */) > 0) {
                 return lifecycle_task_1.LifecycleTask.done;
             }
@@ -357,10 +353,6 @@
                 throw new Error(`Scope is null or undefined`); // TODO: create error code
             }
             scope.scopeParts = kernel_1.mergeDistinct(scope.scopeParts, this.scopeParts, false);
-            if ((flags & 134217728 /* updateOneTimeBindings */) > 0) {
-                this.bindBindings(flags, scope);
-                return lifecycle_task_1.LifecycleTask.done;
-            }
             if ((this.state & 4 /* isBound */) > 0) {
                 if (this.scope === scope || (this.state & 16384 /* hasLockedScope */) > 0) {
                     return lifecycle_task_1.LifecycleTask.done;
@@ -540,7 +532,7 @@
             this.lifecycle.attached.end(flags);
         }
         attachSynthetic(flags) {
-            if (((this.state & 32 /* isAttached */) > 0 && flags & 268435456 /* reorderNodes */) > 0) {
+            if (((this.state & 32 /* isAttached */) > 0 && flags & 67108864 /* reorderNodes */) > 0) {
                 this.lifecycle.mount.add(this);
             }
             else {

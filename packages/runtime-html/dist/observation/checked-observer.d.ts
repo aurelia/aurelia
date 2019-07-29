@@ -19,11 +19,12 @@ export declare class CheckedObserver implements IAccessor<unknown> {
     readonly obj: IInputElement;
     currentValue: unknown;
     oldValue: unknown;
+    readonly persistentFlags: LifecycleFlags;
     hasChanges: boolean;
     priority: Priority;
     arrayObserver?: ICollectionObserver<CollectionKind.array>;
     valueObserver?: ValueAttributeObserver | SetterObserver;
-    constructor(lifecycle: ILifecycle, observerLocator: IObserverLocator, handler: IEventSubscriber, obj: IInputElement);
+    constructor(lifecycle: ILifecycle, flags: LifecycleFlags, observerLocator: IObserverLocator, handler: IEventSubscriber, obj: IInputElement);
     getValue(): unknown;
     setValue(newValue: unknown, flags: LifecycleFlags): void;
     flushRAF(flags: LifecycleFlags): void;

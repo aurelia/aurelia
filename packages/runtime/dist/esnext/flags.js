@@ -93,8 +93,12 @@ export var LifecycleFlags;
     LifecycleFlags[LifecycleFlags["none"] = 0] = "none";
     // Bitmask for flags that need to be stored on a binding during $bind for mutation
     // callbacks outside of $bind
-    LifecycleFlags[LifecycleFlags["persistentBindingFlags"] = 536870927] = "persistentBindingFlags";
-    LifecycleFlags[LifecycleFlags["allowParentScopeTraversal"] = 536870912] = "allowParentScopeTraversal";
+    LifecycleFlags[LifecycleFlags["persistentBindingFlags"] = 2013265935] = "persistentBindingFlags";
+    LifecycleFlags[LifecycleFlags["allowParentScopeTraversal"] = 134217728] = "allowParentScopeTraversal";
+    LifecycleFlags[LifecycleFlags["observeLeafPropertiesOnly"] = 268435456] = "observeLeafPropertiesOnly";
+    LifecycleFlags[LifecycleFlags["targetObserverFlags"] = 1610612751] = "targetObserverFlags";
+    LifecycleFlags[LifecycleFlags["noTargetObserverQueue"] = 536870912] = "noTargetObserverQueue";
+    LifecycleFlags[LifecycleFlags["persistentTargetObserverQueue"] = 1073741824] = "persistentTargetObserverQueue";
     LifecycleFlags[LifecycleFlags["bindingStrategy"] = 15] = "bindingStrategy";
     LifecycleFlags[LifecycleFlags["getterSetterStrategy"] = 1] = "getterSetterStrategy";
     LifecycleFlags[LifecycleFlags["proxyStrategy"] = 2] = "proxyStrategy";
@@ -120,14 +124,10 @@ export var LifecycleFlags;
     LifecycleFlags[LifecycleFlags["isPublishing"] = 1048576] = "isPublishing";
     LifecycleFlags[LifecycleFlags["mustEvaluate"] = 2097152] = "mustEvaluate";
     LifecycleFlags[LifecycleFlags["parentUnmountQueued"] = 4194304] = "parentUnmountQueued";
-    // this flag is for the synchronous flush before detach (no point in updating the
-    // DOM if it's about to be detached)
-    LifecycleFlags[LifecycleFlags["doNotUpdateDOM"] = 8388608] = "doNotUpdateDOM";
-    LifecycleFlags[LifecycleFlags["isTraversingParentScope"] = 16777216] = "isTraversingParentScope";
-    LifecycleFlags[LifecycleFlags["isOriginalArray"] = 33554432] = "isOriginalArray";
-    LifecycleFlags[LifecycleFlags["isCollectionMutation"] = 67108864] = "isCollectionMutation";
-    LifecycleFlags[LifecycleFlags["updateOneTimeBindings"] = 134217728] = "updateOneTimeBindings";
-    LifecycleFlags[LifecycleFlags["reorderNodes"] = 268435456] = "reorderNodes";
+    LifecycleFlags[LifecycleFlags["isTraversingParentScope"] = 8388608] = "isTraversingParentScope";
+    LifecycleFlags[LifecycleFlags["isOriginalArray"] = 16777216] = "isOriginalArray";
+    LifecycleFlags[LifecycleFlags["isCollectionMutation"] = 33554432] = "isCollectionMutation";
+    LifecycleFlags[LifecycleFlags["reorderNodes"] = 67108864] = "reorderNodes";
 })(LifecycleFlags || (LifecycleFlags = {}));
 export var ExpressionKind;
 (function (ExpressionKind) {

@@ -5,10 +5,11 @@ export declare class AttributeNSAccessor implements IAccessor<string | null> {
     readonly propertyKey: string;
     currentValue: string | null;
     oldValue: string | null;
+    readonly persistentFlags: LifecycleFlags;
     readonly namespace: string;
     hasChanges: boolean;
     priority: Priority;
-    constructor(lifecycle: ILifecycle, obj: HTMLElement, propertyKey: string, namespace: string);
+    constructor(lifecycle: ILifecycle, flags: LifecycleFlags, obj: HTMLElement, propertyKey: string, namespace: string);
     getValue(): string | null;
     setValue(newValue: string | null, flags: LifecycleFlags): void;
     flushRAF(flags: LifecycleFlags): void;

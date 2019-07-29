@@ -24,7 +24,7 @@
         }
         binding(flags) {
             this.view.parent = this.$controller;
-            return this.view.bind(flags | 536870912 /* allowParentScopeTraversal */, this.$controller.scope, this.factory.name);
+            return this.view.bind(flags | 134217728 /* allowParentScopeTraversal */, this.$controller.scope, this.factory.name);
         }
         attaching(flags) {
             this.view.attach(flags);

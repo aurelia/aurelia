@@ -1,6 +1,6 @@
 import * as tslib_1 from "tslib";
 import { bindable, createRenderContext, CustomElement, IDOM, INode, IRenderingEngine } from '@aurelia/runtime';
-import { Router } from '../router';
+import { IRouter, } from '../router';
 export class ViewportCustomElement {
     constructor(router, element, renderingEngine) {
         this.name = 'default';
@@ -99,7 +99,7 @@ export class ViewportCustomElement {
         }
     }
 }
-ViewportCustomElement.inject = [Router, INode, IRenderingEngine];
+ViewportCustomElement.inject = [IRouter, INode, IRenderingEngine];
 tslib_1.__decorate([
     bindable
 ], ViewportCustomElement.prototype, "name", void 0);

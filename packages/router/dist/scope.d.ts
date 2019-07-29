@@ -1,6 +1,6 @@
 import { IContainer } from '@aurelia/kernel';
 import { ICustomElementType, IRenderContext } from '@aurelia/runtime';
-import { Router } from './router';
+import { IRouter } from './router';
 import { IFindViewportsResult } from './scope';
 import { IViewportOptions, Viewport } from './viewport';
 import { ViewportInstruction } from './viewport-instruction';
@@ -24,7 +24,7 @@ export declare class Scope {
     private readonly router;
     private viewportInstructions;
     private availableViewports;
-    constructor(router: Router, element: Element, context: IRenderContext | IContainer, parent: Scope);
+    constructor(router: IRouter, element: Element, context: IRenderContext | IContainer, parent: Scope);
     getEnabledViewports(): Record<string, Viewport>;
     findViewports(viewportInstructions?: ViewportInstruction[]): IFindViewportsResult;
     foundViewport(instruction: ViewportInstruction, viewport: Viewport): IFindViewportsResult;

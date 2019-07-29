@@ -16,7 +16,7 @@
     const viewport_1 = require("./resources/viewport");
     exports.ViewportCustomElement = viewport_1.ViewportCustomElement;
     const router_1 = require("./router");
-    exports.RouterRegistration = router_1.Router;
+    exports.RouterRegistration = router_1.IRouter;
     /**
      * Default runtime/environment-agnostic implementations for the following interfaces:
      * - `IRouter`
@@ -42,7 +42,7 @@
          * Apply this configuration to the provided container.
          */
         register(container) {
-            return container.register(...exports.DefaultComponents, ...exports.DefaultResources, runtime_1.StartTask.with(router_1.IRouter).beforeAttach().call(router => router.activate()));
+            return container.register(...exports.DefaultComponents, ...exports.DefaultResources, runtime_1.StartTask.with(router_1.IRouter).beforeBind().call(router => router.activate()), runtime_1.StartTask.with(router_1.IRouter).beforeAttach().call(router => router.loadUrl()));
         },
         /**
          * Create a new container with this configuration applied to it.

@@ -505,7 +505,7 @@
         if (flags & 2097152 /* mustEvaluate */) {
             flagNames.push('mustEvaluate');
         }
-        if (flags & 67108864 /* isCollectionMutation */) {
+        if (flags & 33554432 /* isCollectionMutation */) {
             flagNames.push('isCollectionMutation');
         }
         if (flags & 16 /* updateTargetInstance */) {
@@ -553,13 +553,10 @@
         if (flags & 4194304 /* parentUnmountQueued */) {
             flagNames.push('parentUnmountQueued');
         }
-        if (flags & 8388608 /* doNotUpdateDOM */) {
-            flagNames.push('doNotUpdateDOM');
-        }
-        if (flags & 16777216 /* isTraversingParentScope */) {
+        if (flags & 8388608 /* isTraversingParentScope */) {
             flagNames.push('isTraversingParentScope');
         }
-        if (flags & 536870912 /* allowParentScopeTraversal */) {
+        if (flags & 134217728 /* allowParentScopeTraversal */) {
             flagNames.push('allowParentScopeTraversal');
         }
         if (flags & 1 /* getterSetterStrategy */) {

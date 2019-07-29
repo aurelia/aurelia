@@ -10,6 +10,9 @@ export declare const IStartTaskManagerRegistration: IRegistry;
  * - `IRenderer`
  */
 export declare const DefaultComponents: IRegistry[];
+export declare const FrequentMutationsRegistration: IRegistry;
+export declare const InfrequentMutationsRegistration: IRegistry;
+export declare const ObserveShallowRegistration: IRegistry;
 export declare const IfRegistration: IRegistry;
 export declare const ElseRegistration: IRegistry;
 export declare const RepeatRegistration: IRegistry;

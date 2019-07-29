@@ -10,7 +10,7 @@
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     class AttributeNSAccessor {
-        constructor(lifecycle, obj, propertyKey, namespace) {
+        constructor(lifecycle, flags, obj, propertyKey, namespace) {
             this.lifecycle = lifecycle;
             this.obj = obj;
             this.propertyKey = propertyKey;
@@ -19,6 +19,7 @@
             this.namespace = namespace;
             this.hasChanges = false;
             this.priority = 12288 /* propagate */;
+            this.persistentFlags = flags & 1610612751 /* targetObserverFlags */;
         }
         getValue() {
             return this.currentValue;
@@ -26,8 +27,11 @@
         setValue(newValue, flags) {
             this.currentValue = newValue;
             this.hasChanges = newValue !== this.oldValue;
-            if ((flags & 4096 /* fromBind */) > 0) {
+            if ((flags & 4096 /* fromBind */) > 0 || this.persistentFlags === 536870912 /* noTargetObserverQueue */) {
                 this.flushRAF(flags);
+            }
+            else if (this.persistentFlags !== 1073741824 /* persistentTargetObserverQueue */) {
+                this.lifecycle.enqueueRAF(this.flushRAF, this, this.priority, true);
             }
         }
         flushRAF(flags) {
@@ -44,11 +48,15 @@
             }
         }
         bind(flags) {
-            this.lifecycle.enqueueRAF(this.flushRAF, this, this.priority);
+            if (this.persistentFlags === 1073741824 /* persistentTargetObserverQueue */) {
+                this.lifecycle.enqueueRAF(this.flushRAF, this, this.priority);
+            }
             this.currentValue = this.oldValue = this.obj.getAttributeNS(this.namespace, this.propertyKey);
         }
         unbind(flags) {
-            this.lifecycle.dequeueRAF(this.flushRAF, this);
+            if (this.persistentFlags === 1073741824 /* persistentTargetObserverQueue */) {
+                this.lifecycle.dequeueRAF(this.flushRAF, this);
+            }
         }
     }
     exports.AttributeNSAccessor = AttributeNSAccessor;

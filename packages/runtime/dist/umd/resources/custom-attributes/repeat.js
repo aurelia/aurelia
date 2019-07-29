@@ -379,7 +379,7 @@
             const seq = longestIncreasingSubsequence(indexMap);
             const seqLen = seq.length;
             this.$controller.lifecycle.attached.begin();
-            flags |= 268435456 /* reorderNodes */;
+            flags |= 67108864 /* reorderNodes */;
             let next;
             let j = seqLen - 1;
             let i = indexMap.length - 1;

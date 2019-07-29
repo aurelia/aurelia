@@ -33,7 +33,7 @@ export class BrowserNavigation {
         this.callback = null;
         this.forwardedState = {};
     }
-    async activate(callback) {
+    activate(callback) {
         if (this.isActive) {
             throw new Error('Browser navigation has already been activated');
         }
@@ -41,6 +41,8 @@ export class BrowserNavigation {
         this.callback = callback;
         this.pendingCalls.activate({ lifecycle: this.lifecycle, allowedExecutionCostWithinTick: this.allowedExecutionCostWithinTick });
         this.window.addEventListener('popstate', this.handlePopstate);
+    }
+    loadUrl() {
         return this.handlePopstate(null);
     }
     deactivate() {

@@ -1,5 +1,5 @@
 import { ICustomElementType, IRenderContext } from '@aurelia/runtime';
-import { Router } from './router';
+import { IRouter } from './router';
 import { Viewport } from './viewport';
 import { IRouteableCustomElementType } from './viewport-content';
 export declare class ViewportInstruction {
@@ -17,7 +17,7 @@ export declare class ViewportInstruction {
     setViewport(viewport: Viewport | string): void;
     setParameters(parameters: Record<string, unknown> | string): void;
     componentType(context: IRenderContext): IRouteableCustomElementType;
-    viewportInstance(router: Router): Viewport;
+    viewportInstance(router: IRouter): Viewport;
     sameComponent(other: ViewportInstruction, compareParameters?: boolean, compareType?: boolean): boolean;
     sameViewport(other: ViewportInstruction): boolean;
 }

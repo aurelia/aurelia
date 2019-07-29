@@ -1,7 +1,7 @@
 import * as tslib_1 from "tslib";
 import { inject } from '@aurelia/kernel';
 import { bindable, customElement, INode } from '@aurelia/runtime';
-import { Router } from '../router';
+import { IRouter } from '../router';
 let NavCustomElement = class NavCustomElement {
     constructor(router) {
         this.router = router;
@@ -46,7 +46,7 @@ tslib_1.__decorate([
     bindable
 ], NavCustomElement.prototype, "classes", void 0);
 NavCustomElement = tslib_1.__decorate([
-    inject(Router, INode),
+    inject(IRouter, INode),
     customElement({
         name: 'au-nav', template: `<template>
   <nav if.bind="name" class="\${name} \${navClasses.nav}">

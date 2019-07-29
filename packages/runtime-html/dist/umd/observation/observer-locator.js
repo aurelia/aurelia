@@ -76,36 +76,36 @@
         getObserver(flags, lifecycle, observerLocator, obj, propertyName) {
             switch (propertyName) {
                 case 'checked':
-                    return new checked_observer_1.CheckedObserver(lifecycle, observerLocator, new event_manager_1.EventSubscriber(this.dom, inputEvents), obj);
+                    return new checked_observer_1.CheckedObserver(lifecycle, flags, observerLocator, new event_manager_1.EventSubscriber(this.dom, inputEvents), obj);
                 case 'value':
                     if (obj.tagName === 'SELECT') {
-                        return new select_value_observer_1.SelectValueObserver(lifecycle, observerLocator, this.dom, new event_manager_1.EventSubscriber(this.dom, selectEvents), obj);
+                        return new select_value_observer_1.SelectValueObserver(lifecycle, flags, observerLocator, this.dom, new event_manager_1.EventSubscriber(this.dom, selectEvents), obj);
                     }
-                    return new value_attribute_observer_1.ValueAttributeObserver(lifecycle, new event_manager_1.EventSubscriber(this.dom, inputEvents), obj, propertyName);
+                    return new value_attribute_observer_1.ValueAttributeObserver(lifecycle, flags, new event_manager_1.EventSubscriber(this.dom, inputEvents), obj, propertyName);
                 case 'files':
-                    return new value_attribute_observer_1.ValueAttributeObserver(lifecycle, new event_manager_1.EventSubscriber(this.dom, inputEvents), obj, propertyName);
+                    return new value_attribute_observer_1.ValueAttributeObserver(lifecycle, flags, new event_manager_1.EventSubscriber(this.dom, inputEvents), obj, propertyName);
                 case 'textContent':
                 case 'innerHTML':
-                    return new value_attribute_observer_1.ValueAttributeObserver(lifecycle, new event_manager_1.EventSubscriber(this.dom, contentEvents), obj, propertyName);
+                    return new value_attribute_observer_1.ValueAttributeObserver(lifecycle, flags, new event_manager_1.EventSubscriber(this.dom, contentEvents), obj, propertyName);
                 case 'scrollTop':
                 case 'scrollLeft':
-                    return new value_attribute_observer_1.ValueAttributeObserver(lifecycle, new event_manager_1.EventSubscriber(this.dom, scrollEvents), obj, propertyName);
+                    return new value_attribute_observer_1.ValueAttributeObserver(lifecycle, flags, new event_manager_1.EventSubscriber(this.dom, scrollEvents), obj, propertyName);
                 case 'class':
-                    return new class_attribute_accessor_1.ClassAttributeAccessor(lifecycle, obj);
+                    return new class_attribute_accessor_1.ClassAttributeAccessor(lifecycle, flags, obj);
                 case 'style':
                 case 'css':
-                    return new style_attribute_accessor_1.StyleAttributeAccessor(lifecycle, obj);
+                    return new style_attribute_accessor_1.StyleAttributeAccessor(lifecycle, flags, obj);
                 case 'model':
                     return new runtime_1.SetterObserver(lifecycle, flags, obj, propertyName);
                 case 'role':
-                    return new data_attribute_accessor_1.DataAttributeAccessor(lifecycle, obj, propertyName);
+                    return new data_attribute_accessor_1.DataAttributeAccessor(lifecycle, flags, obj, propertyName);
                 default:
                     if (nsAttributes[propertyName] !== undefined) {
                         const nsProps = nsAttributes[propertyName];
-                        return new attribute_ns_accessor_1.AttributeNSAccessor(lifecycle, obj, nsProps[0], nsProps[1]);
+                        return new attribute_ns_accessor_1.AttributeNSAccessor(lifecycle, flags, obj, nsProps[0], nsProps[1]);
                     }
                     if (isDataAttribute(obj, propertyName, this.svgAnalyzer)) {
-                        return new data_attribute_accessor_1.DataAttributeAccessor(lifecycle, obj, propertyName);
+                        return new data_attribute_accessor_1.DataAttributeAccessor(lifecycle, flags, obj, propertyName);
                     }
             }
             return null;
@@ -131,28 +131,28 @@
             switch (propertyName) {
                 case 'textContent':
                     // note: this case is just an optimization (textContent is the most often used property)
-                    return new element_property_accessor_1.ElementPropertyAccessor(lifecycle, obj, propertyName);
+                    return new element_property_accessor_1.ElementPropertyAccessor(lifecycle, flags, obj, propertyName);
                 case 'class':
-                    return new class_attribute_accessor_1.ClassAttributeAccessor(lifecycle, obj);
+                    return new class_attribute_accessor_1.ClassAttributeAccessor(lifecycle, flags, obj);
                 case 'style':
                 case 'css':
-                    return new style_attribute_accessor_1.StyleAttributeAccessor(lifecycle, obj);
+                    return new style_attribute_accessor_1.StyleAttributeAccessor(lifecycle, flags, obj);
                 // TODO: there are (many) more situation where we want to default to DataAttributeAccessor,
                 // but for now stick to what vCurrent does
                 case 'src':
                 case 'href':
                 // https://html.spec.whatwg.org/multipage/dom.html#wai-aria
                 case 'role':
-                    return new data_attribute_accessor_1.DataAttributeAccessor(lifecycle, obj, propertyName);
+                    return new data_attribute_accessor_1.DataAttributeAccessor(lifecycle, flags, obj, propertyName);
                 default:
                     if (nsAttributes[propertyName] !== undefined) {
                         const nsProps = nsAttributes[propertyName];
-                        return new attribute_ns_accessor_1.AttributeNSAccessor(lifecycle, obj, nsProps[0], nsProps[1]);
+                        return new attribute_ns_accessor_1.AttributeNSAccessor(lifecycle, flags, obj, nsProps[0], nsProps[1]);
                     }
                     if (isDataAttribute(obj, propertyName, this.svgAnalyzer)) {
-                        return new data_attribute_accessor_1.DataAttributeAccessor(lifecycle, obj, propertyName);
+                        return new data_attribute_accessor_1.DataAttributeAccessor(lifecycle, flags, obj, propertyName);
                     }
-                    return new element_property_accessor_1.ElementPropertyAccessor(lifecycle, obj, propertyName);
+                    return new element_property_accessor_1.ElementPropertyAccessor(lifecycle, flags, obj, propertyName);
             }
         }
         handles(flags, obj) {

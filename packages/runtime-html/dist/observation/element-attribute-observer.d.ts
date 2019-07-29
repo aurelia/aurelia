@@ -21,9 +21,10 @@ export declare class AttributeObserver implements AttributeObserver, ElementMuta
     readonly targetAttribute: string;
     currentValue: unknown;
     oldValue: unknown;
+    readonly persistentFlags: LifecycleFlags;
     hasChanges: boolean;
     priority: Priority;
-    constructor(lifecycle: ILifecycle, observerLocator: IObserverLocator, element: Element, propertyKey: string, targetAttribute: string);
+    constructor(lifecycle: ILifecycle, flags: LifecycleFlags, observerLocator: IObserverLocator, element: Element, propertyKey: string, targetAttribute: string);
     getValue(): unknown;
     setValue(newValue: unknown, flags: LifecycleFlags): void;
     flushRAF(flags: LifecycleFlags): void;

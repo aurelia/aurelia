@@ -1,5 +1,5 @@
 import { NavRoute } from '../nav-route';
-import { Router } from '../router';
+import { IRouter } from '../router';
 export interface INavClasses {
     nav?: string;
     ul?: string;
@@ -15,7 +15,7 @@ export declare class NavCustomElement {
     level: number;
     classes: INavClasses;
     private readonly router;
-    constructor(router: Router);
+    constructor(router: IRouter);
     readonly navRoutes: NavRoute[];
     readonly navClasses: INavClasses;
     active(route: NavRoute): string;

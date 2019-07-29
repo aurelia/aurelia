@@ -21,7 +21,7 @@
             this.oldValue = void 0;
             this.inBatch = false;
             this.observing = false;
-            this.persistentFlags = flags & 536870927 /* persistentBindingFlags */;
+            this.persistentFlags = flags & 2013265935 /* persistentBindingFlags */;
         }
         getValue() {
             return this.currentValue;

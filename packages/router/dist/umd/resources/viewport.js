@@ -110,7 +110,7 @@
             }
         }
     }
-    ViewportCustomElement.inject = [router_1.Router, runtime_1.INode, runtime_1.IRenderingEngine];
+    ViewportCustomElement.inject = [router_1.IRouter, runtime_1.INode, runtime_1.IRenderingEngine];
     tslib_1.__decorate([
         runtime_1.bindable
     ], ViewportCustomElement.prototype, "name", void 0);

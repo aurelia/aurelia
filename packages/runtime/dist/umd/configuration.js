@@ -4,7 +4,7 @@
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "@aurelia/kernel", "./lifecycle", "./lifecycle-task", "./observation/observer-locator", "./renderer", "./resources/binding-behaviors/binding-mode", "./resources/binding-behaviors/debounce", "./resources/binding-behaviors/priority", "./resources/binding-behaviors/signals", "./resources/binding-behaviors/throttle", "./resources/custom-attributes/if", "./resources/custom-attributes/repeat", "./resources/custom-attributes/replaceable", "./resources/custom-attributes/with", "./resources/value-converters/sanitize"], factory);
+        define(["require", "exports", "@aurelia/kernel", "./lifecycle", "./lifecycle-task", "./observation/observer-locator", "./renderer", "./resources/binding-behaviors/binding-mode", "./resources/binding-behaviors/debounce", "./resources/binding-behaviors/priority", "./resources/binding-behaviors/signals", "./resources/binding-behaviors/throttle", "./resources/custom-attributes/flags", "./resources/custom-attributes/if", "./resources/custom-attributes/repeat", "./resources/custom-attributes/replaceable", "./resources/custom-attributes/with", "./resources/value-converters/sanitize"], factory);
     }
 })(function (require, exports) {
     "use strict";
@@ -19,6 +19,7 @@
     const priority_1 = require("./resources/binding-behaviors/priority");
     const signals_1 = require("./resources/binding-behaviors/signals");
     const throttle_1 = require("./resources/binding-behaviors/throttle");
+    const flags_1 = require("./resources/custom-attributes/flags");
     const if_1 = require("./resources/custom-attributes/if");
     const repeat_1 = require("./resources/custom-attributes/repeat");
     const replaceable_1 = require("./resources/custom-attributes/replaceable");
@@ -40,6 +41,9 @@
         exports.IRendererRegistration,
         exports.IStartTaskManagerRegistration,
     ];
+    exports.FrequentMutationsRegistration = flags_1.FrequentMutations;
+    exports.InfrequentMutationsRegistration = flags_1.InfrequentMutations;
+    exports.ObserveShallowRegistration = flags_1.ObserveShallow;
     exports.IfRegistration = if_1.If;
     exports.ElseRegistration = if_1.Else;
     exports.RepeatRegistration = repeat_1.Repeat;
@@ -61,6 +65,9 @@
      * - Binding Behaviors (`oneTime`, `toView`, `fromView`, `twoWay`, `signal`, `debounce`, `throttle`)
      */
     exports.DefaultResources = [
+        exports.FrequentMutationsRegistration,
+        exports.InfrequentMutationsRegistration,
+        exports.ObserveShallowRegistration,
         exports.IfRegistration,
         exports.ElseRegistration,
         exports.RepeatRegistration,

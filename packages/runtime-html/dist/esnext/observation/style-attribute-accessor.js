@@ -1,5 +1,5 @@
 export class StyleAttributeAccessor {
-    constructor(lifecycle, obj) {
+    constructor(lifecycle, flags, obj) {
         this.lifecycle = lifecycle;
         this.obj = obj;
         this.currentValue = '';
@@ -8,6 +8,7 @@ export class StyleAttributeAccessor {
         this.version = 0;
         this.hasChanges = false;
         this.priority = 12288 /* propagate */;
+        this.persistentFlags = flags & 1610612751 /* targetObserverFlags */;
     }
     getValue() {
         return this.obj.style.cssText;
@@ -15,8 +16,11 @@ export class StyleAttributeAccessor {
     setValue(newValue, flags) {
         this.currentValue = newValue;
         this.hasChanges = newValue !== this.oldValue;
-        if ((flags & 4096 /* fromBind */) > 0) {
+        if ((flags & 4096 /* fromBind */) > 0 || this.persistentFlags === 536870912 /* noTargetObserverQueue */) {
             this.flushRAF(flags);
+        }
+        else if (this.persistentFlags !== 1073741824 /* persistentTargetObserverQueue */) {
+            this.lifecycle.enqueueRAF(this.flushRAF, this, this.priority, true);
         }
     }
     flushRAF(flags) {
@@ -73,11 +77,15 @@ export class StyleAttributeAccessor {
         this.obj.style.setProperty(style, value, priority);
     }
     bind(flags) {
-        this.lifecycle.enqueueRAF(this.flushRAF, this, this.priority);
+        if (this.persistentFlags === 1073741824 /* persistentTargetObserverQueue */) {
+            this.lifecycle.enqueueRAF(this.flushRAF, this, this.priority);
+        }
         this.oldValue = this.currentValue = this.obj.style.cssText;
     }
     unbind(flags) {
-        this.lifecycle.dequeueRAF(this.flushRAF, this);
+        if (this.persistentFlags === 1073741824 /* persistentTargetObserverQueue */) {
+            this.lifecycle.dequeueRAF(this.flushRAF, this);
+        }
     }
 }
 //# sourceMappingURL=style-attribute-accessor.js.map

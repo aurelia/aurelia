@@ -41,7 +41,7 @@ export interface IRouter {
   navigator: Navigator;
   readonly navigation: BrowserNavigation;
   readonly guardian: Guardian;
-  readonly navs: Record<string, Nav>;
+  readonly navs: Readonly<Record<string, Nav>>;
 
   activate(options?: IRouterOptions): void;
   loadUrl(): Promise<void>;

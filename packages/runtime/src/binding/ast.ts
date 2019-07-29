@@ -503,7 +503,9 @@ export class AccessMemberExpression implements IAccessMemberExpression {
 
   public connect(flags: LifecycleFlags, scope: IScope, binding: IConnectableBinding, part?: string): void {
     const obj = this.object.evaluate(flags, scope, null, part) as IIndexable;
-    this.object.connect(flags, scope, binding, part);
+    if ((flags & LifecycleFlags.observeLeafPropertiesOnly) === 0) {
+      this.object.connect(flags, scope, binding, part);
+    }
     if (obj instanceof Object) {
       binding.observeProperty(flags, obj, this.name);
     }
@@ -542,7 +544,9 @@ export class AccessKeyedExpression implements IAccessKeyedExpression {
 
   public connect(flags: LifecycleFlags, scope: IScope, binding: IConnectableBinding, part?: string): void {
     const obj = this.object.evaluate(flags, scope, null, part);
-    this.object.connect(flags, scope, binding, part);
+    if ((flags & LifecycleFlags.observeLeafPropertiesOnly) === 0) {
+      this.object.connect(flags, scope, binding, part);
+    }
     if (obj instanceof Object) {
       this.key.connect(flags, scope, binding, part);
       const key = this.key.evaluate(flags, scope, null, part);
@@ -629,7 +633,9 @@ export class CallMemberExpression implements ICallMemberExpression {
 
   public connect(flags: LifecycleFlags, scope: IScope, binding: IConnectableBinding, part?: string): void {
     const obj = this.object.evaluate(flags, scope, null, part) as IIndexable;
-    this.object.connect(flags, scope, binding, part);
+    if ((flags & LifecycleFlags.observeLeafPropertiesOnly) === 0) {
+      this.object.connect(flags, scope, binding, part);
+    }
     if (getFunction(flags & ~LifecycleFlags.mustEvaluate, obj, this.name)) {
       const args = this.args;
       for (let i = 0, ii = args.length; i < ii; ++i) {

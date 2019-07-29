@@ -1,8 +1,8 @@
 import { DebugConfiguration } from '@aurelia/debug';
-import { Aurelia, CustomElement, LifecycleFlags, ILifecycle } from '@aurelia/runtime';
-import { Router, ViewportCustomElement } from '@aurelia/router';
-import { MockBrowserHistoryLocation, TestContext, assert } from '@aurelia/testing';
 import { PLATFORM } from '@aurelia/kernel';
+import { IRouter, RouterConfiguration } from '@aurelia/router';
+import { Aurelia, CustomElement, ILifecycle, LifecycleFlags } from '@aurelia/runtime';
+import { assert, MockBrowserHistoryLocation, TestContext } from '@aurelia/testing';
 
 describe('Router', function () {
   async function setup() {
@@ -82,36 +82,31 @@ describe('Router', function () {
         }
       });
 
+    const host = ctx.doc.createElement('div');
+    ctx.doc.body.appendChild(host as any);
 
-    container.register(Router as any);
-    container.register(ViewportCustomElement as any);
+    const au = ctx.wnd['au'] = new Aurelia(container)
+      .register(DebugConfiguration, RouterConfiguration)
+      .app({ host: host, component: App });
+
     container.register(Foo, Bar, Baz, Qux, Quux, Corge, Uier, Grault, Garply, Waldo, Plugh);
 
-    const router = container.get(Router);
+    const router = container.get(IRouter);
     const mockBrowserHistoryLocation = new MockBrowserHistoryLocation();
     mockBrowserHistoryLocation.changeCallback = router.navigation.handlePopstate;
     router.navigation.history = mockBrowserHistoryLocation as any;
     router.navigation.location = mockBrowserHistoryLocation as any;
 
-    const host = ctx.doc.createElement('div');
-    ctx.doc.body.appendChild(host as any);
-
-    const au = ctx.wnd['au'] = new Aurelia(container)
-      .register(DebugConfiguration)
-      .app({ host: host, component: App });
-
     await au.start().wait();
-
-    await router.activate();
 
     async function tearDown() {
       await au.stop().wait();
       ctx.doc.body.removeChild(host);
       router.deactivate();
-    };
+    }
 
     return { au, container, lifecycle, host, router, ctx, tearDown };
-  };
+  }
 
   it('can be created', async function () {
     this.timeout(5000);
@@ -747,26 +742,23 @@ describe('Router', function () {
 
       const { container, lifecycle } = ctx;
 
-      container.register(ViewportCustomElement);
       const App = CustomElement.define({ name: 'app', template: '<au-viewport></au-viewport>', dependencies }, null);
 
       const host = ctx.doc.createElement('div');
       ctx.doc.body.appendChild(host as any);
       const component = new App();
 
-      const au = ctx.wnd['au'] = new Aurelia(container);
+      const au = ctx.wnd['au'] = new Aurelia(container)
+      .register(DebugConfiguration, RouterConfiguration)
+      .app({ host: host, component: App });
 
-      au.app({ host, component });
-      await au.start().wait();
-
-      const router = container.get(Router);
+      const router = container.get(IRouter);
       const mockBrowserHistoryLocation = new MockBrowserHistoryLocation();
       mockBrowserHistoryLocation.changeCallback = router.navigation.handlePopstate;
       router.navigation.history = mockBrowserHistoryLocation as any;
       router.navigation.location = mockBrowserHistoryLocation as any;
 
-      await router.activate();
-      await Promise.resolve();
+      await au.start().wait();
 
       async function $teardown() {
         await au.stop().wait();
@@ -998,7 +990,7 @@ describe('Router', function () {
 let quxCantLeave = 2;
 let plughReentryBehavior = 'default';
 
-const $goto = async (path: string, router: Router, lifecycle: ILifecycle) => {
+const $goto = async (path: string, router: IRouter, lifecycle: ILifecycle) => {
   await router.goto(path);
   lifecycle.processRAFQueue(LifecycleFlags.none);
 }
@@ -1015,4 +1007,3 @@ const waitForNavigation = async (router) => {
     await wait(100);
   }
 };
-

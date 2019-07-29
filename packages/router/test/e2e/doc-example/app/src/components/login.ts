@@ -1,6 +1,6 @@
 import { inject } from '@aurelia/kernel';
 import { customElement, ICustomElement } from '@aurelia/runtime';
-import { Router } from '../../../../../../src';
+import { IRouter } from '../../../../../../src';
 import { State } from '../state';
 import { ViewportInstruction } from '../../../../../../src/viewport-instruction';
 
@@ -10,9 +10,9 @@ import { ViewportInstruction } from '../../../../../../src/viewport-instruction'
   <p>You need to be logged in to continue.</p>
   <button data-test="login-button" click.trigger="login()">Okay, log me in</button>
 </div>` })
-@inject(State, Router)
+@inject(State, IRouter)
 export class Login {
-  constructor(private readonly state: State, private readonly router: Router) { }
+  constructor(private readonly state: State, private readonly router: IRouter) { }
 
   public login() {
     this.state.loggedIn = true;

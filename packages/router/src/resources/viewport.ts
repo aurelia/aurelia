@@ -18,14 +18,16 @@ import {
   TemplateDefinition
 } from '@aurelia/runtime';
 
-import { Router } from '../router';
+import {
+  IRouter,
+} from '../router';
 import {
   IViewportOptions,
   Viewport
 } from '../viewport';
 
 export class ViewportCustomElement {
-  public static readonly inject: readonly Key[] = [Router, INode, IRenderingEngine];
+  public static readonly inject: readonly Key[] = [IRouter, INode, IRenderingEngine];
 
   @bindable public name: string;
   @bindable public scope: boolean;
@@ -40,11 +42,11 @@ export class ViewportCustomElement {
   // tslint:disable-next-line: prefer-readonly // This is set by the controller after this instance is constructed
   public $controller!: IController;
 
-  private readonly router: Router;
+  private readonly router: IRouter;
   private readonly element: Element;
   private readonly renderingEngine: IRenderingEngine;
 
-  constructor(router: Router, element: Element, renderingEngine: IRenderingEngine) {
+  constructor(router: IRouter, element: Element, renderingEngine: IRenderingEngine) {
     this.name = 'default';
     this.scope = null;
     this.usedBy = null;

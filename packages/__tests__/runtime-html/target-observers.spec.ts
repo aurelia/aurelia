@@ -48,7 +48,7 @@ describe('AttributeNSAccessor', function () {
         const { ctx, lifecycle: $lifecycle } = setup();
         lifecycle = $lifecycle;
         el = createSvgUseElement(ctx, name, value) as HTMLElement;
-        sut = new AttributeNSAccessor(lifecycle, el, name, 'http://www.w3.org/1999/xlink');
+        sut = new AttributeNSAccessor(lifecycle, LifecycleFlags.none, el, name, 'http://www.w3.org/1999/xlink');
 
         let actual = sut.getValue();
         assert.strictEqual(actual, null, `actual`);
@@ -69,7 +69,7 @@ describe('AttributeNSAccessor', function () {
         el = createSvgUseElement(ctx, name, value) as HTMLElement;
         const { lifecycle: $lifecycle } = setup();
         lifecycle = $lifecycle;
-        sut = new AttributeNSAccessor(lifecycle, el, name, 'http://www.w3.org/1999/xlink');
+        sut = new AttributeNSAccessor(lifecycle, LifecycleFlags.none, el, name, 'http://www.w3.org/1999/xlink');
 
         sut.bind(LifecycleFlags.none);
         sut.setValue('foo', LifecycleFlags.none);
@@ -91,7 +91,7 @@ describe('AttributeNSAccessor', function () {
         el = createSvgUseElement(ctx, name, value) as HTMLElement;
         const { lifecycle: $lifecycle } = setup();
         lifecycle = $lifecycle;
-        sut = new AttributeNSAccessor(lifecycle, el, name, 'http://www.w3.org/1999/xlink');
+        sut = new AttributeNSAccessor(lifecycle, LifecycleFlags.none, el, name, 'http://www.w3.org/1999/xlink');
 
         sut.bind(LifecycleFlags.none);
         sut.setValue('foo', LifecycleFlags.fromBind);
@@ -119,7 +119,7 @@ describe('DataAttributeAccessor', function () {
           el = ctx.createElementFromMarkup(`<div ${name}="${value}"></div>`);
           const { lifecycle: $lifecycle } = setup();
           lifecycle = $lifecycle;
-          sut = new DataAttributeAccessor(lifecycle, el, name);
+          sut = new DataAttributeAccessor(lifecycle, LifecycleFlags.none, el, name);
 
           let actual = sut.getValue();
           assert.strictEqual(actual, null, `actual`);
@@ -143,7 +143,7 @@ describe('DataAttributeAccessor', function () {
           const { lifecycle: $lifecycle } = setup();
           lifecycle = $lifecycle;
           const expected = value != null ? `<div ${name}="${value}"></div>` : '<div></div>';
-          sut = new DataAttributeAccessor(lifecycle, el, name);
+          sut = new DataAttributeAccessor(lifecycle, LifecycleFlags.none, el, name);
 
           sut.bind(LifecycleFlags.none);
           sut.setValue(value, LifecycleFlags.none);
@@ -168,7 +168,7 @@ describe('DataAttributeAccessor', function () {
           const { lifecycle: $lifecycle } = setup();
           lifecycle = $lifecycle;
           const expected = value != null ? `<div ${name}="${value}"></div>` : '<div></div>';
-          sut = new DataAttributeAccessor(lifecycle, el, name);
+          sut = new DataAttributeAccessor(lifecycle, LifecycleFlags.none, el, name);
 
           sut.bind(LifecycleFlags.none);
           sut.setValue(value, LifecycleFlags.fromBind);
@@ -199,7 +199,7 @@ describe('StyleAccessor', function () {
       el = ctx.createElementFromMarkup('<div></div>');
       const { lifecycle: $lifecycle } = setup();
       lifecycle = $lifecycle;
-      sut = new StyleAttributeAccessor(lifecycle, el);
+      sut = new StyleAttributeAccessor(lifecycle, LifecycleFlags.none, el);
       const setPropertySpy = createSpy(sut, 'setProperty', true);
 
       sut.bind(LifecycleFlags.none);
@@ -232,7 +232,7 @@ describe('StyleAccessor', function () {
       el = ctx.createElementFromMarkup('<div></div>');
       const { lifecycle: $lifecycle } = setup();
       lifecycle = $lifecycle;
-      sut = new StyleAttributeAccessor(lifecycle, el);
+      sut = new StyleAttributeAccessor(lifecycle, LifecycleFlags.none, el);
       const setPropertySpy = createSpy(sut, 'setProperty', true);
 
       sut.bind(LifecycleFlags.none);
@@ -254,7 +254,7 @@ describe('StyleAccessor', function () {
     el = ctx.createElementFromMarkup(`<div style="display: block;"></div>`);
     const { lifecycle: $lifecycle } = setup();
     lifecycle = $lifecycle;
-    sut = new StyleAttributeAccessor(lifecycle, el);
+    sut = new StyleAttributeAccessor(lifecycle, LifecycleFlags.none, el);
 
     const actual = sut.getValue();
     assert.strictEqual(actual, 'display: block;', `actual`);
@@ -278,7 +278,7 @@ describe('ClassAccessor', function () {
         const el = ctx.createElementFromMarkup(markup);
         const initialClassList = el.classList.toString();
         const { lifecycle } = ctx;
-        const sut = new ClassAttributeAccessor(lifecycle, el);
+        const sut = new ClassAttributeAccessor(lifecycle, LifecycleFlags.none, el);
         sut.bind(LifecycleFlags.none);
 
         function tearDown() {

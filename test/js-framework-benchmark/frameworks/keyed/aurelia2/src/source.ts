@@ -14,11 +14,13 @@ export class Store {
     data: any[];
     id: number;
     backup: any;
+    selectedIdx: number;
     constructor(
         private lifecycle: ILifecycle,
     ) {
         this.data = [];
         this.id = 1;
+        this.selectedIdx = -1;
     }
     buildData(count = 1000) {
         var data = [];
@@ -53,8 +55,15 @@ export class Store {
     select(id: any) {
         const data = this.data;
         const len = data.length;
+        if (this.selectedIdx > -1 && data[this.selectedIdx]) {
+          data[this.selectedIdx].selected = false;
+        }
         for (let i = 0; i < len; ++i) {
-            data[i].selected = data[i].id === id;
+          if (data[i].id === id) {
+            data[i].selected = true;
+            this.selectedIdx = i;
+            break;
+          }
         }
     }
     hideAll() {
@@ -70,6 +79,7 @@ export class Store {
     }
     clear() {
         this.data = [];
+        this.selectedIdx = -1;
     }
     swapRows() {
         if (this.data.length > 998) {

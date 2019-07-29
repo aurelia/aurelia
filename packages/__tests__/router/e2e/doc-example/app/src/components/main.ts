@@ -1,12 +1,12 @@
 import { inject } from '@aurelia/kernel';
+import { IRouter } from '@aurelia/router';
 import { customElement } from '@aurelia/runtime';
-import { Router } from '@aurelia/router';
 import { State } from '../state';
 import { About } from './about';
 import { Authors } from './authors/authors';
 import { Books } from './books/books';
 
-@inject(Router, State)
+@inject(IRouter, State)
 @customElement({
   name: 'main', template:
     `
@@ -40,7 +40,7 @@ import { Books } from './books/books';
   </div>
 ` })
 export class Main {
-  constructor(private readonly router: Router, private readonly state: State) {
+  constructor(private readonly router: IRouter, private readonly state: State) {
     this.router.setNav('main-menu', [
       {
         title: 'Authors',

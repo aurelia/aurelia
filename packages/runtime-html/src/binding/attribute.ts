@@ -142,6 +142,7 @@ export class AttributeBinding implements IPartialConnectableBinding {
     if (!targetObserver) {
       targetObserver = this.targetObserver = new AttributeObserver(
         this.$lifecycle,
+        flags,
         this.observerLocator,
         this.target,
         this.targetProperty,

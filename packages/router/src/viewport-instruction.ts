@@ -1,6 +1,6 @@
 import { Constructable, IContainer } from '@aurelia/kernel';
 import { CustomElement, ICustomElementType, IRenderContext } from '@aurelia/runtime';
-import { Router } from './router';
+import { IRouter } from './router';
 import { Viewport } from './viewport';
 import { IRouteableCustomElementType } from './viewport-content';
 
@@ -84,7 +84,7 @@ export class ViewportInstruction {
     return null;
   }
 
-  public viewportInstance(router: Router): Viewport {
+  public viewportInstance(router: IRouter): Viewport {
     if (this.viewport !== null) {
       return this.viewport;
     }

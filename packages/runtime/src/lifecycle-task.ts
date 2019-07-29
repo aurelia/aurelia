@@ -52,7 +52,7 @@ export interface ICallbackSlotChooser<K extends Key> {
 }
 
 export interface ICallbackChooser<K extends Key> {
-  call<K1 extends Key = K>(fn: (instance: Resolved<K1>) => PromiseOrTask): IStartTask;
+  call<K1 extends Key = K>(fn: (instance: Resolved<K1>) => MaybePromiseOrTask): IStartTask;
 }
 
 const enum TaskType {
@@ -309,11 +309,13 @@ export class ProviderTask implements ILifecycleTask {
   public wait(): Promise<unknown> {
     if (this.promise === void 0) {
       const instance = this.container.get(this.key);
-      const promiseOrTask = this.callback.call(void 0, instance);
+      const maybePromiseOrTask = this.callback.call(void 0, instance);
 
-      this.promise = (promiseOrTask as Promise<unknown>).then instanceof Function
-        ? promiseOrTask as Promise<unknown>
-        : (promiseOrTask as ILifecycleTask).wait();
+      this.promise = maybePromiseOrTask === void 0
+        ? Promise.resolve()
+        : (maybePromiseOrTask as Promise<unknown>).then instanceof Function
+          ? maybePromiseOrTask as Promise<unknown>
+          : (maybePromiseOrTask as ILifecycleTask).wait();
 
       this.promise = this.promise.then(() => {
         this.done = true;

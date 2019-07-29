@@ -1,7 +1,5 @@
-import { assert, TestContext, createSpy, MockBrowserHistoryLocation } from '@aurelia/testing';
-import { DOM } from '@aurelia/runtime-html';
-import { Writable } from '@aurelia/kernel';
 import { BrowserNavigation, INavigationState } from '@aurelia/router';
+import { assert, MockBrowserHistoryLocation, TestContext } from '@aurelia/testing';
 
 describe('BrowserNavigation', function () {
   this.timeout(5000);
@@ -120,7 +118,7 @@ describe('BrowserNavigation', function () {
 
     let counter = 0;
     await sut.activate(
-      // Called once as part of activation and then for each url/location change
+      // Called once for each url/location change (no longer in as part of activation)
       function () {
         counter++;
       });
@@ -133,7 +131,7 @@ describe('BrowserNavigation', function () {
     await Promise.resolve();
     assert.strictEqual(sut.history.state.NavigationEntry.instruction, 'one', `sut.history.state.NavigationEntry.instruction`);
 
-    assert.strictEqual(counter, 1, `counter`); // Initial (and not + the above 'go')
+    assert.strictEqual(counter, 0, `counter`); // Not the above 'go' (and no longer initial)
 
     sut.deactivate();
 
@@ -166,7 +164,7 @@ describe('BrowserNavigation', function () {
 
     let counter = 0;
     await sut.activate(
-      // Called once as part of activation and then for each url/location change
+      // Called once for each url/location change (no longer in as part of activation)
       function () {
         counter++;
       });
@@ -179,7 +177,7 @@ describe('BrowserNavigation', function () {
     await Promise.resolve();
     assert.strictEqual(sut.history.state.NavigationEntry.instruction, 'one', `sut.history.state.NavigationEntry.instruction`);
 
-    assert.strictEqual(counter, 2, `counter`);
+    assert.strictEqual(counter, 1, `counter`);
 
     sut.deactivate();
 

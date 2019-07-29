@@ -13,6 +13,10 @@ describe('i18n', () => {
       name: 'should work for simple text-content',
       suts: [{ selector: `#i18n-simple`, expected: en.simple.text, expectedDe: de.simple.text }]
     },
+    {
+      name: 'should work when key is bound from vm property',
+      suts: [{ selector: `#i18n-vm-bound`, expected: en.simple.text, expectedDe: de.simple.text }]
+    },
   ];
 
   for (const { name, suts } of specs) {

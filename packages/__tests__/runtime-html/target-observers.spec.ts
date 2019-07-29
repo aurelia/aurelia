@@ -269,7 +269,7 @@ describe('ClassAccessor', function () {
     '<div class="foo bar baz"></div>'
   ];
   const classListArr = ['', 'foo', 'foo bar', 'bar baz', 'qux', 'bar qux', 'qux quux'];
-  const secondClassListArr = ['', 'fooo'];
+  const secondClassListArr = ['', 'fooo', { fooo: true }, { fooo: 'true' }, { fooo: true, baaar: false }, { fooo: 'true', baaar: 'false' }];
   for (const markup of markupArr) {
     for (const classList of classListArr) {
 
@@ -327,13 +327,29 @@ describe('ClassAccessor', function () {
             lifecycle.processRAFQueue(LifecycleFlags.none);
 
             const secondUpdatedClassList = el.classList.toString();
-            for (const cls of initialClassList.split(' ')) {
-              if (!classList.includes(cls)) {
-                assert.includes(secondUpdatedClassList, cls, `secondUpdatedClassList includes class from initialClassList "${initialClassList}" (except classes from classList "${classList}")`);
+
+            if (typeof secondClassList === 'string') {
+              for (const cls of initialClassList.split(' ')) {
+                if (!classList.includes(cls)) {
+                  assert.includes(secondUpdatedClassList, cls, `secondUpdatedClassList includes class from initialClassList "${initialClassList}" (except classes from classList "${classList}")`);
+                }
               }
-            }
-            for (const cls of secondClassList.split(' ')) {
-              assert.includes(secondUpdatedClassList, cls, `secondUpdatedClassList includes class from secondClassList "${secondClassList}"`);
+              for (const cls of secondClassList.split(' ')) {
+                assert.includes(secondUpdatedClassList, cls, `secondUpdatedClassList includes class from secondClassList "${secondClassList}"`);
+              }
+            } else if (secondClassList instanceof Object) {
+              for (const cls of initialClassList.split(' ')) {
+                if (!classList.includes(cls)) {
+                  assert.includes(secondUpdatedClassList, cls, `secondUpdatedClassList includes class from initialClassList "${initialClassList}" (except classes from classList "${classList}")`);
+                }
+              }
+              for (const cls in secondClassList) {
+                if (!!secondClassList[cls]) {
+                  assert.includes(secondUpdatedClassList, cls, `secondUpdatedClassList includes class from secondClassList "${JSON.stringify(secondClassList)}"`);
+                } else {
+                  assert.notIncludes(secondUpdatedClassList, cls, `secondUpdatedClassList excludes class from secondClassList "${JSON.stringify(secondClassList)}"`);
+                }
+              }
             }
 
             tearDown();
@@ -367,13 +383,28 @@ describe('ClassAccessor', function () {
             sut.setValue(secondClassList, LifecycleFlags.fromBind);
 
             const secondUpdatedClassList = el.classList.toString();
-            for (const cls of initialClassList.split(' ')) {
-              if (!classList.includes(cls)) {
-                assert.includes(secondUpdatedClassList, cls, `secondUpdatedClassList includes class from initialClassList "${initialClassList}" (except classes from classList "${classList}")`);
+            if (typeof secondClassList === 'string') {
+              for (const cls of initialClassList.split(' ')) {
+                if (!classList.includes(cls)) {
+                  assert.includes(secondUpdatedClassList, cls, `secondUpdatedClassList includes class from initialClassList "${initialClassList}" (except classes from classList "${classList}")`);
+                }
               }
-            }
-            for (const cls of secondClassList.split(' ')) {
-              assert.includes(secondUpdatedClassList, cls, `secondUpdatedClassList includes class from secondClassList "${secondClassList}"`);
+              for (const cls of secondClassList.split(' ')) {
+                assert.includes(secondUpdatedClassList, cls, `secondUpdatedClassList includes class from secondClassList "${secondClassList}"`);
+              }
+            } else if (secondClassList instanceof Object) {
+              for (const cls of initialClassList.split(' ')) {
+                if (!classList.includes(cls)) {
+                  assert.includes(secondUpdatedClassList, cls, `secondUpdatedClassList includes class from initialClassList "${initialClassList}" (except classes from classList "${classList}")`);
+                }
+              }
+              for (const cls in secondClassList) {
+                if (!!secondClassList[cls]) {
+                  assert.includes(secondUpdatedClassList, cls, `secondUpdatedClassList includes class from secondClassList "${JSON.stringify(secondClassList)}"`);
+                } else {
+                  assert.notIncludes(secondUpdatedClassList, cls, `secondUpdatedClassList excludes class from secondClassList "${JSON.stringify(secondClassList)}"`);
+                }
+              }
             }
 
             tearDown();

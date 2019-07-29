@@ -5,12 +5,12 @@ import {
   Priority,
 } from '@aurelia/runtime';
 
-export class ClassAttributeAccessor implements IAccessor<string> {
+export class ClassAttributeAccessor implements IAccessor<unknown> {
   public readonly lifecycle: ILifecycle;
 
   public readonly obj: HTMLElement;
-  public currentValue: string;
-  public oldValue: string;
+  public currentValue: unknown;
+  public oldValue: unknown;
 
   public readonly persistentFlags: LifecycleFlags;
 
@@ -43,11 +43,11 @@ export class ClassAttributeAccessor implements IAccessor<string> {
     this.persistentFlags = flags & LifecycleFlags.targetObserverFlags;
   }
 
-  public getValue(): string {
+  public getValue(): unknown {
     return this.currentValue;
   }
 
-  public setValue(newValue: string, flags: LifecycleFlags): void {
+  public setValue(newValue: unknown, flags: LifecycleFlags): void {
     this.currentValue = newValue;
     this.hasChanges = newValue !== this.oldValue;
     if ((flags & LifecycleFlags.fromBind) > 0 || this.persistentFlags === LifecycleFlags.noTargetObserverQueue) {
@@ -56,28 +56,22 @@ export class ClassAttributeAccessor implements IAccessor<string> {
       this.lifecycle.enqueueRAF(this.flushRAF, this, this.priority, true);
     }
   }
-
   public flushRAF(flags: LifecycleFlags): void {
     if (this.hasChanges) {
       this.hasChanges = false;
       const { currentValue, nameIndex } = this;
       let { version } = this;
-
       this.oldValue = currentValue;
-      let names: string[];
-      let name: string;
-
-      // Add the classes, tracking the version at which they were added.
-      if (currentValue.length) {
-        const node = this.obj;
-        names = currentValue.split(/\s+/);
-        for (let i = 0, length = names.length; i < length; i++) {
-          name = names[i];
-          if (!name.length) {
-            continue;
-          }
-          nameIndex[name] = version;
-          node.classList.add(name);
+      if (currentValue instanceof Object) {
+        const classesToAdd = this.getClassesToAdd(currentValue as Record<string, unknown>);
+        if (classesToAdd.length > 0) {
+          this.addClassesAndUpdateIndex(classesToAdd);
+        }
+      } else if (typeof currentValue === 'string' && currentValue.length) {
+        // Get strings split on a space not including empties
+        const classNames = currentValue.match(/\S+/g);
+        if (classNames != null && classNames.length > 0) {
+          this.addClassesAndUpdateIndex(classNames);
         }
       }
 
@@ -92,7 +86,7 @@ export class ClassAttributeAccessor implements IAccessor<string> {
 
       // Remove classes from previous version.
       version -= 1;
-      for (name in nameIndex) {
+      for (const name in nameIndex) {
         if (!nameIndex.hasOwnProperty(name) || nameIndex[name] !== version) {
           continue;
         }
@@ -115,6 +109,30 @@ export class ClassAttributeAccessor implements IAccessor<string> {
   public unbind(flags: LifecycleFlags): void {
     if (this.persistentFlags === LifecycleFlags.persistentTargetObserverQueue) {
       this.lifecycle.dequeueRAF(this.flushRAF, this);
+    }
+  }
+  private getClassesToAdd(object: Record<string, unknown>): string[] {
+    const returnVal: string[] = [];
+    for (const property in object) {
+      // Let non typical values also evaluate true so disable bool check
+      // tslint:disable-next-line: strict-boolean-expressions
+      if (!!object[property]) {
+        returnVal.push(property);
+        continue;
+      }
+    }
+    return returnVal;
+  }
+
+  private addClassesAndUpdateIndex(classes: string[]) {
+    const node = this.obj;
+    for (let i = 0, length = classes.length; i < length; i++) {
+      const className = classes[i];
+      if (!className.length) {
+        continue;
+      }
+      this.nameIndex[className] = this.version;
+      node.classList.add(className);
     }
   }
 }

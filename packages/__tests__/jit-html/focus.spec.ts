@@ -349,7 +349,7 @@ describe('focus.spec.ts', function() {
   }
 
   function defineCustomElement(ctx: HTMLTestContext, name: string, template: string, props: Record<string, any> = null, mode: 'open' | 'closed' | null = 'open') {
-    class CustomEl extends ctx.HTMLElement {
+    class CustomEl extends HTMLElement {
       constructor() {
         super();
         if (mode !== null) {

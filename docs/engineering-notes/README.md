@@ -126,7 +126,7 @@ Ensure that you have the latest LTS version of [Node.js](https://nodejs.org/) an
 
 - Clone this repo
 - Run `npm ci && npm run bootstrap && npm run build`
-- Run `cd packages && cd examples && cd jit-browserify && npm ci`
+- Run `cd packages && cd examples && cd jit-webpack-ts && npm ci`
 
 ## Cross-package development workflow (manual browser testing)
 

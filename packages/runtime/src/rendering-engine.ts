@@ -10,6 +10,7 @@ import {
   Reporter,
   RuntimeCompilationResources,
   Writable,
+  IIndexable,
 } from '@aurelia/kernel';
 
 import {
@@ -41,6 +42,7 @@ import {
   ISubscribable,
   ISubscriber,
   ISubscriberCollection,
+  IPropertyObserver,
 } from './observation';
 import { subscriberCollection } from './observation/subscriber-collection';
 import {
@@ -399,101 +401,134 @@ export class ViewFactoryProvider implements IResolver {
   }
 }
 
-export interface IChildrenObserver extends
+export interface ChildrenObserver extends
   IAccessor,
   ISubscribable,
-  ISubscriberCollection { }
-
-type HasChildrenChanged = IViewModel & { $childrenChanged(): void };
-function hasChildrenChanged(viewModel: IViewModel | undefined): viewModel is HasChildrenChanged {
-  return viewModel != void 0 && '$childrenChanged' in viewModel;
-}
+  ISubscriberCollection,
+  IPropertyObserver<IIndexable, string>{ }
 
 /** @internal */
 @subscriberCollection()
-export class ChildrenObserver implements Partial<IChildrenObserver> {
-  [key: number]: LifecycleFlags;
-  public hasChanges: boolean;
+export class ChildrenObserver {
+  public readonly propertyKey: string;
+  public readonly obj: IIndexable;
+  public observing: boolean;
 
   private readonly controller: IController;
-  private readonly lifecycle: ILifecycle;
-  private readonly projector: IElementProjector;
-  private children: IController[];
-  private observing: boolean;
-  private ticking: boolean;
+  private readonly filter: typeof defaultChildFilter;
+  private readonly map: typeof defaultChildMap;
+  private readonly query: typeof defaultChildQuery;
+  private readonly options?: MutationObserverInit;
+  private readonly callback: () => void;
+  private children: any[];
 
-  constructor(lifecycle: ILifecycle, controller: IController) {
-    this.hasChanges = false;
-
+  constructor(
+    controller: IController,
+    viewModel: any,
+    flags: LifecycleFlags,
+    propertyName: string,
+    cbName: string,
+    query = defaultChildQuery,
+    filter = defaultChildFilter,
+    map = defaultChildMap,
+    options?: MutationObserverInit
+    ) {
+    this.propertyKey = propertyName;
+    this.obj = viewModel;
+    this.callback = viewModel[cbName] as typeof ChildrenObserver.prototype.callback;
+    this.query = query;
+    this.filter = filter;
+    this.map = map;
+    this.options = options;
     this.children = (void 0)!;
     this.controller = controller;
-    this.lifecycle = lifecycle;
-    this.controller = Controller.forCustomElement(controller, (void 0)!, (void 0)!);
-    this.projector = this.controller.projector!;
     this.observing = false;
-    this.ticking = false;
+    this.persistentFlags = flags & LifecycleFlags.persistentBindingFlags;
+    this.createGetterSetter();
   }
 
-  public getValue(): IController[] {
-    if (!this.observing) {
-      this.observing = true;
-      this.projector.subscribeToChildrenChange(() => { this.onChildrenChanged(); });
-      this.children = findElements(this.projector.children);
-    }
-
+  public getValue(): any[] {
+    this.tryStartObserving();
     return this.children;
   }
 
   public setValue(newValue: unknown): void { /* do nothing */ }
 
-  public flushRAF(this: ChildrenObserver & IChildrenObserver, flags: LifecycleFlags): void {
-    if (this.hasChanges) {
-      this.callSubscribers(this.children, undefined, flags | LifecycleFlags.updateTargetInstance);
-      this.hasChanges = false;
-    }
-  }
-
-  public subscribe(this: ChildrenObserver & IChildrenObserver, subscriber: ISubscriber): void {
-    if (!this.ticking) {
-      this.ticking = true;
-      this.lifecycle.enqueueRAF(this.flushRAF, this, Priority.bind);
-    }
+  public subscribe(subscriber: ISubscriber): void {
+    this.tryStartObserving();
     this.addSubscriber(subscriber);
   }
 
-  public unsubscribe(this: ChildrenObserver & IChildrenObserver, subscriber: ISubscriber): void {
-    this.removeSubscriber(subscriber);
-    if (this.ticking && !this.hasSubscribers()) {
-      this.ticking = false;
-      this.lifecycle.dequeueRAF(this.flushRAF, this);
+  private tryStartObserving() {
+    if (!this.observing) {
+      this.observing = true;
+      const projector = this.controller.projector!;
+      this.children = filterChildren(projector, this.query, this.filter, this.map);
+      projector.subscribeToChildrenChange(() => { this.onChildrenChanged(); }, this.options);
     }
   }
 
   private onChildrenChanged(): void {
-    this.children = findElements(this.projector.children);
+    this.children = filterChildren(this.controller.projector!, this.query, this.filter, this.map);
 
-    if (hasChildrenChanged(this.controller.viewModel)) {
-      this.controller.viewModel.$childrenChanged();
+    if (this.callback !== void 0) {
+      this.callback.call(this.obj);
     }
 
-    this.hasChanges = true;
+    this.callSubscribers(this.children, undefined, this.persistentFlags | LifecycleFlags.updateTargetInstance);
+  }
+
+  private createGetterSetter(): void {
+    if (
+      !Reflect.defineProperty(
+        this.obj,
+        this.propertyKey,
+        {
+          enumerable: true,
+          configurable: true,
+          get: () => this.getValue(),
+          set: () => { },
+        }
+      )
+    ) {
+      Reporter.write(1, this.propertyKey, this.obj);
+    }
   }
 }
 
 /** @internal */
-export function findElements<T extends INode = INode>(nodes: ArrayLike<T>): IController<T>[] {
-  const components: IController<T>[] = [];
+export function filterChildren(
+  projector: IElementProjector,
+  query: typeof defaultChildQuery,
+  filter: typeof defaultChildFilter,
+  map: typeof defaultChildMap
+): any[] {
+  const nodes = query(projector);
+  const children = [];
 
   for (let i = 0, ii = nodes.length; i < ii; ++i) {
-    const current = nodes[i];
-    const component = CustomElement.behaviorFor<T>(current);
+    const node = nodes[i];
+    const controller = CustomElement.behaviorFor(node);
+    const viewModel = controller ? controller.viewModel : null;
 
-    if (component != void 0) {
-      components.push(component);
+    if (filter(node, controller, viewModel)) {
+      children.push(map(node, controller, viewModel));
     }
   }
 
-  return components;
+  return children;
+}
+
+function defaultChildQuery(projector: IElementProjector): ArrayLike<INode> {
+  return projector.children;
+}
+
+function defaultChildFilter(node: INode, controller?: IController, viewModel?: any): boolean {
+  return !!viewModel;
+}
+
+function defaultChildMap(node: INode, controller?: IController, viewModel?: any): any {
+  return viewModel;
 }
 
 /** @internal */

@@ -147,6 +147,7 @@ describe.skip('controller', function () {
       strategy: BindingStrategy.getterSetter,
       hooks,
       scopeParts: PLATFORM.emptyArray,
+      childrenObservers: PLATFORM.emptyObject
     });
   }
 

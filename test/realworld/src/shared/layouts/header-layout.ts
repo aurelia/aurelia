@@ -1,22 +1,19 @@
 import { inject } from '@aurelia/kernel';
-import { Router } from '@aurelia/router';
+import { IRouter } from '@aurelia/router';
 import { customElement, IObserverLocator, LifecycleFlags } from '@aurelia/runtime';
 import { SharedState } from 'shared/state/shared-state';
 import template from './header-layout.html';
 
-@inject(Router, SharedState)
+@inject(IRouter, SharedState)
 @customElement({ name: "header-layout", template })
 export class HeaderLayout {
-  constructor(private readonly router: Router, private readonly sharedState: SharedState) {
+  constructor(private readonly router: IRouter, private readonly sharedState: SharedState) {
     const observerLocator = this.router.container.get(IObserverLocator);
     const observer = observerLocator.getObserver(LifecycleFlags.none, this.sharedState, 'isAuthenticated') as any;
     observer.subscribe(this);
   }
 
   public handleChange(): void {
-    if (!this.router['isActive']) {
-      return;
-    }
     this.router.setNav('main',
       this.routes,
       {

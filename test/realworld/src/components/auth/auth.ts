@@ -1,18 +1,18 @@
 import { inject } from '@aurelia/kernel';
-import { Router } from '@aurelia/router';
+import { IRouter } from '@aurelia/router';
 import { customElement } from '@aurelia/runtime';
 import { User } from 'shared/models/user';
 import { UserService } from 'shared/services/user-service';
 import template from './auth.html';
 
-@inject(UserService, Router)
+@inject(UserService, IRouter)
 @customElement({ name: 'auth', template })
 export class AuthComponent {
   private user: User = {};
   private type: string = 'login';
   private errors?: string[];
 
-  constructor(private readonly userService: UserService, private readonly router: Router) {
+  constructor(private readonly userService: UserService, private readonly router: IRouter) {
   }
 
   public enter(parameters: { type: string }) {

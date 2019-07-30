@@ -1,12 +1,12 @@
 import { inject } from '@aurelia/kernel';
-import { Router } from '@aurelia/router';
+import { IRouter } from '@aurelia/router';
 import { customElement } from '@aurelia/runtime';
 import { Profile } from 'shared/models/profile';
 import { ProfileService } from "shared/services/profile-service";
 import { SharedState } from 'shared/state/shared-state';
 import template from './profile.html';
 
-@inject(SharedState, ProfileService, Router)
+@inject(SharedState, ProfileService, IRouter)
 @customElement({ name: 'profile', template })
 export class ProfileComponent {
   public static parameters: string[] = ['name'];
@@ -17,7 +17,7 @@ export class ProfileComponent {
   constructor(
     private readonly sharedState: SharedState,
     private readonly profileService: ProfileService,
-    private readonly router: Router) {
+    private readonly router: IRouter) {
   }
 
   public async enter(parameters: { name: string }) {

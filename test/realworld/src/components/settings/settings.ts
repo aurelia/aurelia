@@ -1,16 +1,16 @@
 import { inject } from '@aurelia/kernel';
-import { Router } from '@aurelia/router';
+import { IRouter } from '@aurelia/router';
 import { customElement } from '@aurelia/runtime';
 import { UserService } from 'shared/services/user-service';
 import { SharedState } from 'shared/state/shared-state';
 import template from './settings.html';
-@inject(UserService, SharedState, Router)
+@inject(UserService, SharedState, IRouter)
 @customElement({ name: 'settings', template })
 export class SettingsComponent {
 
   constructor(private readonly userService: UserService,
               private readonly sharedState: SharedState,
-              private readonly router: Router) {
+              private readonly router: IRouter) {
   }
 
   public update() {

@@ -1,9 +1,9 @@
 import { IAccessor, ILifecycle, LifecycleFlags, Priority } from '@aurelia/runtime';
-export declare class ClassAttributeAccessor implements IAccessor<string> {
+export declare class ClassAttributeAccessor implements IAccessor<unknown> {
     readonly lifecycle: ILifecycle;
     readonly obj: HTMLElement;
-    currentValue: string;
-    oldValue: string;
+    currentValue: unknown;
+    oldValue: unknown;
     readonly persistentFlags: LifecycleFlags;
     readonly doNotCache: true;
     nameIndex: Record<string, number>;
@@ -12,10 +12,12 @@ export declare class ClassAttributeAccessor implements IAccessor<string> {
     isActive: boolean;
     priority: Priority;
     constructor(lifecycle: ILifecycle, flags: LifecycleFlags, obj: HTMLElement);
-    getValue(): string;
-    setValue(newValue: string, flags: LifecycleFlags): void;
+    getValue(): unknown;
+    setValue(newValue: unknown, flags: LifecycleFlags): void;
     flushRAF(flags: LifecycleFlags): void;
     bind(flags: LifecycleFlags): void;
     unbind(flags: LifecycleFlags): void;
+    private getClassesToAdd;
+    private addClassesAndUpdateIndex;
 }
 //# sourceMappingURL=class-attribute-accessor.d.ts.map

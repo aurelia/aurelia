@@ -42,23 +42,19 @@
                 const { currentValue, nameIndex } = this;
                 let { version } = this;
                 this.oldValue = currentValue;
-                let names;
-                let name;
-                // Add the classes, tracking the version at which they were added.
-                if (currentValue.length) {
-                    const node = this.obj;
-                    names = currentValue.split(/\s+/);
-                    for (let i = 0, length = names.length; i < length; i++) {
-                        name = names[i];
-                        if (!name.length) {
-                            continue;
-                        }
-                        nameIndex[name] = version;
-                        node.classList.add(name);
+                if (currentValue instanceof Object) {
+                    const classesToAdd = this.getClassesToAdd(currentValue);
+                    if (classesToAdd.length > 0) {
+                        this.addClassesAndUpdateIndex(classesToAdd);
                     }
                 }
-                // Update state variables.
-                this.nameIndex = nameIndex;
+                else if (typeof currentValue === 'string' && currentValue.length) {
+                    // Get strings split on a space not including empties
+                    const classNames = currentValue.match(/\S+/g);
+                    if (classNames != null && classNames.length > 0) {
+                        this.addClassesAndUpdateIndex(classNames);
+                    }
+                }
                 this.version += 1;
                 // First call to setValue?  We're done.
                 if (version === 0) {
@@ -66,7 +62,7 @@
                 }
                 // Remove classes from previous version.
                 version -= 1;
-                for (name in nameIndex) {
+                for (const name in nameIndex) {
                     if (!nameIndex.hasOwnProperty(name) || nameIndex[name] !== version) {
                         continue;
                     }
@@ -86,6 +82,29 @@
         unbind(flags) {
             if (this.persistentFlags === 1073741824 /* persistentTargetObserverQueue */) {
                 this.lifecycle.dequeueRAF(this.flushRAF, this);
+            }
+        }
+        getClassesToAdd(object) {
+            const returnVal = [];
+            for (const property in object) {
+                // Let non typical values also evaluate true so disable bool check
+                // tslint:disable-next-line: strict-boolean-expressions
+                if (!!object[property]) {
+                    returnVal.push(property);
+                    continue;
+                }
+            }
+            return returnVal;
+        }
+        addClassesAndUpdateIndex(classes) {
+            const node = this.obj;
+            for (let i = 0, length = classes.length; i < length; i++) {
+                const className = classes[i];
+                if (!className.length) {
+                    continue;
+                }
+                this.nameIndex[className] = this.version;
+                node.classList.add(className);
             }
         }
     }

@@ -87,7 +87,6 @@ export class CustomSetterObserver implements CustomSetterObserver {
   }
 
   public setValue(newValue: unknown): void {
-    if (Tracer.enabled) { Tracer.enter('CustomSetterObserver', 'setValue', slice.call(arguments)); }
     // tslint:disable-next-line: no-non-null-assertion // Non-null is implied because descriptors without setters won't end up here
     this.descriptor.set!.call(this.obj, newValue);
     if (this.currentValue !== newValue) {
@@ -95,7 +94,6 @@ export class CustomSetterObserver implements CustomSetterObserver {
       this.currentValue = newValue;
       this.callSubscribers(newValue, this.oldValue, LifecycleFlags.updateTargetInstance);
     }
-    if (Tracer.enabled) { Tracer.leave(); }
   }
 
   public subscribe(subscriber: ISubscriber): void {
@@ -110,13 +108,11 @@ export class CustomSetterObserver implements CustomSetterObserver {
   }
 
   public convertProperty(): void {
-    if (Tracer.enabled) { Tracer.enter('CustomSetterObserver', 'convertProperty', slice.call(arguments)); }
     this.observing = true;
     this.currentValue = this.obj[this.propertyKey];
 
     const set = (newValue: unknown): void => { this.setValue(newValue); };
     Reflect.defineProperty(this.obj, this.propertyKey, { set });
-    if (Tracer.enabled) { Tracer.leave(); }
   }
 }
 
@@ -170,7 +166,6 @@ export class GetterObserver implements GetterObserver {
   }
 
   public getValue(): unknown {
-    if (Tracer.enabled) { Tracer.enter('GetterObserver', 'getValue', slice.call(arguments)); }
     if (this.subscriberCount === 0 || this.isCollecting) {
       // tslint:disable-next-line: no-non-null-assertion // Non-null is implied because descriptors without getters won't end up here
       this.currentValue = Reflect.apply(this.descriptor.get!, this.proxy, PLATFORM.emptyArray);
@@ -178,7 +173,6 @@ export class GetterObserver implements GetterObserver {
       // tslint:disable-next-line: no-non-null-assertion // Non-null is implied because descriptors without getters won't end up here
       this.currentValue = Reflect.apply(this.descriptor.get!, this.obj, PLATFORM.emptyArray);
     }
-    if (Tracer.enabled) { Tracer.leave(); }
     return this.currentValue;
   }
 
@@ -213,7 +207,6 @@ export class GetterObserver implements GetterObserver {
   }
 
   public getValueAndCollectDependencies(requireCollect: boolean): unknown {
-    if (Tracer.enabled) { Tracer.enter('GetterObserver', 'getValueAndCollectDependencies', slice.call(arguments)); }
     const dynamicDependencies = !this.overrides.static || requireCollect;
 
     if (dynamicDependencies) {
@@ -229,7 +222,6 @@ export class GetterObserver implements GetterObserver {
       this.isCollecting = false;
     }
 
-    if (Tracer.enabled) { Tracer.leave(); }
     return this.currentValue;
   }
 
@@ -248,12 +240,9 @@ export class GetterObserver implements GetterObserver {
 const toStringTag = Object.prototype.toString;
 
 function createGetterTraps(flags: LifecycleFlags, observerLocator: IObserverLocator, observer: GetterObserver): ProxyHandler<object> {
-  if (Tracer.enabled) { Tracer.enter('computed', 'createGetterTraps', slice.call(arguments)); }
   const traps = {
     get: function(target: IObservable | IBindingContext, key: PropertyKey, receiver?: unknown): unknown {
-      if (Tracer.enabled) { Tracer.enter('computed', 'get', slice.call(arguments)); }
       if (observer.doNotCollect(key)) {
-        if (Tracer.enabled) { Tracer.leave(); }
         return Reflect.get(target, key, receiver);
       }
 
@@ -263,30 +252,25 @@ function createGetterTraps(flags: LifecycleFlags, observerLocator: IObserverLoca
         case '[object Array]':
           observer.addCollectionDep(observerLocator.getArrayObserver(flags, target as unknown[]));
           if (key === 'length') {
-            if (Tracer.enabled) { Tracer.leave(); }
             return Reflect.get(target, key, target);
           }
         case '[object Map]':
           observer.addCollectionDep(observerLocator.getMapObserver(flags, target as Map<unknown, unknown>));
           if (key === 'size') {
-            if (Tracer.enabled) { Tracer.leave(); }
             return Reflect.get(target, key, target);
           }
         case '[object Set]':
           observer.addCollectionDep(observerLocator.getSetObserver(flags, target as Set<unknown>));
           if (key === 'size') {
-            if (Tracer.enabled) { Tracer.leave(); }
             return Reflect.get(target, key, target);
           }
         default:
           observer.addPropertyDep(observerLocator.getObserver(flags, target, key as string) as IBindingTargetObserver);
       }
 
-      if (Tracer.enabled) { Tracer.leave(); }
       return proxyOrValue(flags, target, key, observerLocator, observer);
     }
   };
-  if (Tracer.enabled) { Tracer.leave(); }
   return traps;
 }
 

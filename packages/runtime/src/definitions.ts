@@ -16,35 +16,12 @@ import {
   IInterpolationExpression,
   IsBindingBehavior
 } from './ast';
-import { INode } from './dom';
 import {
   BindingMode,
   BindingStrategy,
   ensureValidStrategy
 } from './flags';
-import {
-  IController
-} from './lifecycle';
-import { CustomElementHost } from './resources/custom-element';
 import { Bindable } from './templating/bindable';
-
-/** @internal */
-export const customElementName = 'custom-element';
-/** @internal */
-export function customElementKey(name: string): string {
-  return `${customElementName}:${name}`;
-}
-/** @internal */
-export function customElementBehavior<T extends INode = INode>(node: T): IController<T> | undefined {
-  return (node as CustomElementHost<T>).$controller;
-}
-
-/** @internal */
-export const customAttributeName = 'custom-attribute';
-/** @internal */
-export function customAttributeKey(name: string): string {
-  return `${customAttributeName}:${name}`;
-}
 
 export type IElementHydrationOptions = { parts?: Record<string, TemplateDefinition> };
 

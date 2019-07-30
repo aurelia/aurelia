@@ -1,6 +1,6 @@
 import { ICustomElementType, IObserverLocator, IPropertyObserver, LifecycleFlags } from '@aurelia/runtime';
 import { INavRoute, IViewportComponent, Nav, NavInstruction } from './nav';
-import { Router } from './router';
+import { IRouter } from './router';
 import { ViewportInstruction } from './viewport-instruction';
 
 export class NavRoute {
@@ -15,7 +15,7 @@ export class NavRoute {
   public active: string = '';
 
   private readonly observerLocator: IObserverLocator;
-  private readonly observer: IPropertyObserver<Router, 'activeComponents'>;
+  private readonly observer: IPropertyObserver<IRouter, 'activeComponents'>;
 
   constructor(nav: Nav, route?: INavRoute) {
     this.nav = nav;
@@ -29,7 +29,7 @@ export class NavRoute {
     this.link = this._link(this.instructions);
     this.linkActive = route.consideredActive ? this._link(this.parseRoute(route.consideredActive)) : this.link;
     this.observerLocator = this.nav.router.container.get(IObserverLocator);
-    this.observer = this.observerLocator.getObserver(LifecycleFlags.none, this.nav.router, 'activeComponents') as IPropertyObserver<Router, 'activeComponents'>;
+    this.observer = this.observerLocator.getObserver(LifecycleFlags.none, this.nav.router, 'activeComponents') as IPropertyObserver<IRouter, 'activeComponents'>;
     this.observer.subscribe(this);
   }
 

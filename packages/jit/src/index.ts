@@ -5,34 +5,37 @@ export {
   IAttributeParser
 } from './attribute-parser';
 export {
-  AtPrefixedTriggerAttributePattern,
   attributePattern,
   AttributePatternDefinition,
-  ColonPrefixedBindAttributePattern,
-  DotSeparatedAttributePattern,
   IAttributePattern,
   IAttributePatternHandler,
   Interpretation,
   ISyntaxInterpreter,
-  RefAttributePattern,
 } from './attribute-pattern';
+export {
+  AtPrefixedTriggerAttributePattern,
+  ColonPrefixedBindAttributePattern,
+  DotSeparatedAttributePattern,
+  RefAttributePattern,
+} from './attribute-patterns';
 export {
   bindingCommand,
   BindingCommandResource,
-  CallBindingCommand,
-  DefaultBindingCommand,
-  ForBindingCommand,
-  FromViewBindingCommand,
-  getMode,
-  getTarget,
   IBindingCommand,
   IBindingCommandDefinition,
   IBindingCommandResource,
   IBindingCommandType,
+  getTarget,
+} from './binding-command';
+export {
+  CallBindingCommand,
+  DefaultBindingCommand,
+  ForBindingCommand,
+  FromViewBindingCommand,
   OneTimeBindingCommand,
   ToViewBindingCommand,
   TwoWayBindingCommand
-} from './binding-command';
+} from './binding-commands';
 export {
   IExpressionParserRegistration,
 

@@ -1,7 +1,7 @@
 import { inject } from '@aurelia/kernel';
 import { bindable, customElement, INode } from '@aurelia/runtime';
 import { NavRoute } from '../nav-route';
-import { Router } from '../router';
+import { IRouter } from '../router';
 
 export interface INavClasses {
   nav?: string;
@@ -14,7 +14,7 @@ export interface INavClasses {
   aActive?: string;
 }
 
-@inject(Router, INode)
+@inject(IRouter, INode)
 @customElement({
   name: 'au-nav', template:
     `<template>
@@ -35,9 +35,9 @@ export class NavCustomElement {
   @bindable public level: number;
   @bindable public classes: INavClasses;
 
-  private readonly router: Router;
+  private readonly router: IRouter;
 
-  constructor(router: Router) {
+  constructor(router: IRouter) {
     this.router = router;
 
     this.name = null;

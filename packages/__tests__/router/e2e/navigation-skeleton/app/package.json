@@ -22,7 +22,7 @@
   },
   "devDependencies": {
     "@types/node": "latest",
-    "css-loader": "^3.0.0",
+    "css-loader": "^3.1.0",
     "file-loader": "^4.0.0",
     "html-loader": "latest",
     "html-webpack-plugin": "latest",

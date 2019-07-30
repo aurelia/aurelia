@@ -36,8 +36,6 @@ export class SetterObserver {
 
     this.observing = false;
     this.persistentFlags = flags & LifecycleFlags.persistentBindingFlags;
-
-    if (Tracer.enabled) { Tracer.leave(); }
   }
 
   public getValue(): unknown {

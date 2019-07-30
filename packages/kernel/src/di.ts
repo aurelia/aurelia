@@ -492,14 +492,12 @@ export class Factory<T extends Constructable = any> implements IFactory<T> {
   }
 
   public construct(container: IContainer, dynamicDependencies?: Key[]): Resolved<T> {
-    if (Tracer.enabled) { Tracer.enter('Factory', 'construct', [this.Type, ...slice.call(arguments)]); }
     const transformers = this.transformers;
     let instance = dynamicDependencies !== void 0
       ? this.invoker.invokeWithDynamicDependencies(container, this.Type, this.dependencies, dynamicDependencies)
       : this.invoker.invoke(container, this.Type, this.dependencies);
 
     if (transformers == null) {
-      if (Tracer.enabled) { Tracer.leave(); }
       return instance;
     }
 
@@ -507,7 +505,6 @@ export class Factory<T extends Constructable = any> implements IFactory<T> {
       instance = transformers[i](instance);
     }
 
-    if (Tracer.enabled) { Tracer.leave(); }
     return instance;
   }
 
@@ -564,7 +561,6 @@ export class Container implements IContainer {
   }
 
   public register(...params: any[]): IContainer {
-    if (Tracer.enabled) { Tracer.enter('Container', 'register', slice.call(arguments)); }
     if (++this.registerDepth === 100) {
       throw new Error('Unable to autoregister dependency');
       // TODO: change to reporter.error and add various possible causes in description.
@@ -599,7 +595,6 @@ export class Container implements IContainer {
       }
     }
     --this.registerDepth;
-    if (Tracer.enabled) { Tracer.leave(); }
     return this;
   }
 
@@ -683,11 +678,9 @@ export class Container implements IContainer {
   }
 
   public get<K extends Key>(key: K): Resolved<K> {
-    if (Tracer.enabled) { Tracer.enter('Container', 'get', slice.call(arguments)); }
     validateKey(key);
 
     if ((key as IResolver).resolve !== void 0) {
-      if (Tracer.enabled) { Tracer.leave(); }
       return (key as IResolver).resolve(this, this);
     }
 
@@ -700,13 +693,11 @@ export class Container implements IContainer {
       if (resolver == null) {
         if (current.parent == null) {
           resolver = this.jitRegister(key, current);
-          if (Tracer.enabled) { Tracer.leave(); }
           return resolver.resolve(current, this);
         }
 
         current = current.parent;
       } else {
-        if (Tracer.enabled) { Tracer.leave(); }
         return resolver.resolve(current, this);
       }
     }
@@ -715,7 +706,6 @@ export class Container implements IContainer {
   }
 
   public getAll<K extends Key>(key: K): readonly Resolved<K>[] {
-    if (Tracer.enabled) { Tracer.enter('Container', 'getAll', slice.call(arguments)); }
     validateKey(key);
 
     let current: Container | null = this;
@@ -726,18 +716,15 @@ export class Container implements IContainer {
 
       if (resolver == null) {
         if (this.parent == null) {
-          if (Tracer.enabled) { Tracer.leave(); }
           return PLATFORM.emptyArray;
         }
 
         current = current.parent;
       } else {
-        if (Tracer.enabled) { Tracer.leave(); }
         return buildAllResponse(resolver, current, this);
       }
     }
 
-    if (Tracer.enabled) { Tracer.leave(); }
     return PLATFORM.emptyArray;
   }
 
@@ -753,12 +740,10 @@ export class Container implements IContainer {
   }
 
   public createChild(): IContainer {
-    if (Tracer.enabled) { Tracer.enter('Container', 'createChild', slice.call(arguments)); }
     const config = this.configuration;
     const childConfig = { factories: config.factories, resourceLookup: Object.assign(Object.create(null), config.resourceLookup) };
     const child = new Container(childConfig);
     child.parent = this;
-    if (Tracer.enabled) { Tracer.leave(); }
     return child;
   }
 
@@ -781,29 +766,23 @@ export class Container implements IContainer {
   }
 }
 
-export class Registration {
-  private constructor() {}
-
-  public static instance<T>(key: Key, value: T): IRegistration<T> {
+export const Registration = Object.freeze({
+  instance<T>(key: Key, value: T): IRegistration<T> {
     return new Resolver(key, ResolverStrategy.instance, value);
-  }
-
-  public static singleton<T extends Constructable>(key: Key, value: T): IRegistration<InstanceType<T>> {
+  },
+  singleton<T extends Constructable>(key: Key, value: T): IRegistration<InstanceType<T>> {
     return new Resolver(key, ResolverStrategy.singleton, value);
-  }
-
-  public static transient<T extends Constructable>(key: Key, value: T): IRegistration<InstanceType<T>> {
+  },
+  transient<T extends Constructable>(key: Key, value: T): IRegistration<InstanceType<T>> {
     return new Resolver(key, ResolverStrategy.transient, value);
-  }
-
-  public static callback<T>(key: Key, callback: ResolveCallback<T>): IRegistration<Resolved<T>> {
+  },
+  callback<T>(key: Key, callback: ResolveCallback<T>): IRegistration<Resolved<T>> {
     return new Resolver(key, ResolverStrategy.callback, callback);
-  }
-
-  public static alias<T>(originalKey: T, aliasKey: Key): IRegistration<Resolved<T>> {
+  },
+  alias<T>(originalKey: T, aliasKey: Key): IRegistration<Resolved<T>> {
     return new Resolver(aliasKey, ResolverStrategy.alias, originalKey);
-  }
-}
+  },
+});
 
 export class InstanceProvider<K extends Key> implements IResolver<K | null> {
   private instance: Resolved<K> | null;

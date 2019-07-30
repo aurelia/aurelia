@@ -25,6 +25,7 @@ import {
 import {
   ContinuationTask,
   ILifecycleTask,
+  IStartTaskManager,
   LifecycleTask,
 } from './lifecycle-task';
 import { ExposedContext } from './rendering-engine';
@@ -33,9 +34,6 @@ import {
   ICustomElementType
 } from './resources/custom-element';
 import { Controller } from './templating/controller';
-
-const { enter: enterStart, leave: leaveStart } = Profiler.createTimer('Aurelia.start');
-const { enter: enterStop, leave: leaveStop } = Profiler.createTimer('Aurelia.stop');
 
 export interface ISinglePageApp<THost extends INode = INode> {
   enableTimeSlicing?: boolean;
@@ -51,16 +49,17 @@ type Publisher = { dispatchEvent(evt: unknown, options?: unknown): void };
 export class CompositionRoot<T extends INode = INode> {
   public readonly config: ISinglePageApp<T>;
   public readonly container: IContainer;
-  public readonly controller: IController;
   public readonly host: T & { $au?: Aurelia<T> };
   public readonly dom: IDOM<T>;
-  public readonly viewModel: IHydratedViewModel<T>;
   public readonly strategy: BindingStrategy;
   public readonly lifecycle: ILifecycle;
   public readonly activator: IActivator;
   public task: ILifecycleTask;
-  public hasPendingStartFrame: boolean;
-  public hasPendingStopFrame: boolean;
+
+  public controller?: IController;
+  public viewModel?: IHydratedViewModel<T>;
+
+  private createTask?: ILifecycleTask;
 
   constructor(
     config: ISinglePageApp<T>,
@@ -86,31 +85,30 @@ export class CompositionRoot<T extends INode = INode> {
     const initializer = this.container.get(IDOMInitializer);
     this.dom = initializer.initialize(config) as IDOM<T>;
 
-    this.viewModel = CustomElement.isType(config.component as ICustomElementType)
-      ? this.container.get(config.component as Constructable | {}) as IHydratedViewModel<T>
-      : config.component as IHydratedViewModel<T>;
-
-    this.controller = Controller.forCustomElement(
-      this.viewModel,
-      this.container as ExposedContext,
-      this.host,
-      this.strategy as number,
-    );
     this.lifecycle = this.container.get(ILifecycle);
     this.activator = this.container.get(IActivator);
-    if (config.enableTimeSlicing === true) {
-      this.lifecycle.enableTimeslicing(config.adaptiveTimeSlicing);
+
+    const taskManager = this.container.get(IStartTaskManager);
+    const beforeCreateTask = taskManager.runBeforeCreate();
+
+    if (beforeCreateTask.done) {
+      this.task = LifecycleTask.done;
+      this.create();
     } else {
-      this.lifecycle.disableTimeslicing();
+      this.task = new ContinuationTask(beforeCreateTask, this.create, this);
     }
-    this.task = LifecycleTask.done;
-    this.hasPendingStartFrame = true;
-    this.hasPendingStopFrame = true;
   }
 
   public activate(antecedent?: ILifecycleTask): ILifecycleTask {
     const { task, host, viewModel, container, activator, strategy } = this;
     const flags = strategy | LifecycleFlags.fromStartTask;
+
+    if (viewModel === void 0) {
+      if (this.createTask === void 0) {
+        this.createTask = new ContinuationTask(task, this.activate, this, antecedent);
+      }
+      return this.createTask;
+    }
 
     if (task.done) {
       if (antecedent == void 0 || antecedent.done) {
@@ -134,6 +132,13 @@ export class CompositionRoot<T extends INode = INode> {
     const { task, viewModel, activator, strategy } = this;
     const flags = strategy | LifecycleFlags.fromStopTask;
 
+    if (viewModel === void 0) {
+      if (this.createTask === void 0) {
+        this.createTask = new ContinuationTask(task, this.deactivate, this, antecedent);
+      }
+      return this.createTask;
+    }
+
     if (task.done) {
       if (antecedent == void 0 || antecedent.done) {
         this.task = activator.deactivate(viewModel, flags);
@@ -150,6 +155,25 @@ export class CompositionRoot<T extends INode = INode> {
     }
 
     return this.task;
+  }
+
+  private create(): void {
+    const config = this.config;
+    this.viewModel = CustomElement.isType(config.component as ICustomElementType)
+      ? this.container.get(config.component as Constructable | {}) as IHydratedViewModel<T>
+      : config.component as IHydratedViewModel<T>;
+
+    this.controller = Controller.forCustomElement(
+      this.viewModel,
+      this.container as ExposedContext,
+      this.host,
+      this.strategy as number,
+    );
+    if (config.enableTimeSlicing === true) {
+      this.lifecycle.enableTimeslicing(config.adaptiveTimeSlicing);
+    } else {
+      this.lifecycle.disableTimeslicing();
+    }
   }
 }
 
@@ -263,7 +287,6 @@ export class Aurelia<TNode extends INode = INode> {
     Reflect.set(root.host, '$au', this);
     this._root = root;
     this._isStarting = true;
-    if (Profiler.enabled) { enterStart(); }
   }
 
   private onAfterStart(root: CompositionRoot): ILifecycleTask {
@@ -271,14 +294,12 @@ export class Aurelia<TNode extends INode = INode> {
     this._isStarting = false;
     this.dispatchEvent(root, 'aurelia-composed', root.dom);
     this.dispatchEvent(root, 'au-started', root.host as Publisher);
-    if (Profiler.enabled) { leaveStart(); }
     return LifecycleTask.done;
   }
 
   private onBeforeStop(root: CompositionRoot): void {
     this._isRunning = false;
     this._isStopping = true;
-    if (Profiler.enabled) { enterStop(); }
   }
 
   private onAfterStop(root: CompositionRoot): ILifecycleTask {
@@ -286,7 +307,6 @@ export class Aurelia<TNode extends INode = INode> {
     this._root = void 0;
     this._isStopping = false;
     this.dispatchEvent(root, 'au-stopped', root.host as Publisher);
-    if (Profiler.enabled) { leaveStop(); }
     return LifecycleTask.done;
   }
 

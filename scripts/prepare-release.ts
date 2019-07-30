@@ -5,11 +5,11 @@ import project from './project';
 
 const log = createLogger('prepare-release');
 
-async function run(): Promise<void> {
+(async function (): Promise<void> {
   const newVersion = await generateChangeLog(`v${project.lerna.version}`, 'HEAD');
   await updateDependencyVersions(newVersion);
-}
-
-run().then(() => {
-  log(`Done.`);
+  log('Done.');
+})().catch(err => {
+  log.error(err);
+  process.exit(1);
 });

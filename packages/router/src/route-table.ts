@@ -1,4 +1,4 @@
-import { IRouteTransformer, Router } from './router';
+import { IRouter, IRouteTransformer } from './router';
 import { ViewportInstruction } from './viewport-instruction';
 
 /**
@@ -13,7 +13,7 @@ export class RouteTable implements IRouteTransformer {
    * @param router The application router.
    * @returns The viewport instructions for a found route or the route if not found.
    */
-  public transformFromUrl = (route: string, router: Router): string | ViewportInstruction[] => {
+  public transformFromUrl = (route: string, router: IRouter): string | ViewportInstruction[] => {
     // TODO: Implement route recognizing to transform a configured route to a set of viewport instructions
     return route;
   }
@@ -25,7 +25,7 @@ export class RouteTable implements IRouteTransformer {
    * @param router The application router.
    * @returns The route for a found set of viewport instructions or the viewport instructions if not found.
    */
-  public transformToUrl = (instructions: ViewportInstruction[], router: Router): string | ViewportInstruction[] => {
+  public transformToUrl = (instructions: ViewportInstruction[], router: IRouter): string | ViewportInstruction[] => {
     // TODO: Implement mapping from set of viewport instructions to a configured route
     return instructions;
   }

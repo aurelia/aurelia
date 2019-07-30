@@ -5,6 +5,7 @@ import {
 } from '@aurelia/kernel';
 
 import { Lifecycle } from './lifecycle';
+import { StartTaskManager } from './lifecycle-task';
 import { ObserverLocator } from './observation/observer-locator';
 import {
   CallBindingRenderer,
@@ -29,6 +30,7 @@ import { DebounceBindingBehavior } from './resources/binding-behaviors/debounce'
 import { PriorityBindingBehavior } from './resources/binding-behaviors/priority';
 import { SignalBindingBehavior } from './resources/binding-behaviors/signals';
 import { ThrottleBindingBehavior } from './resources/binding-behaviors/throttle';
+import { FrequentMutations, InfrequentMutations, ObserveShallow } from './resources/custom-attributes/flags';
 import {
   Else,
   If
@@ -41,6 +43,7 @@ import { SanitizeValueConverter } from './resources/value-converters/sanitize';
 export const IObserverLocatorRegistration = ObserverLocator as IRegistry;
 export const ILifecycleRegistration = Lifecycle as IRegistry;
 export const IRendererRegistration = Renderer as IRegistry;
+export const IStartTaskManagerRegistration = StartTaskManager as IRegistry;
 
 /**
  * Default implementations for the following interfaces:
@@ -51,23 +54,27 @@ export const IRendererRegistration = Renderer as IRegistry;
 export const DefaultComponents = [
   IObserverLocatorRegistration,
   ILifecycleRegistration,
-  IRendererRegistration
+  IRendererRegistration,
+  IStartTaskManagerRegistration,
 ];
 
+export const FrequentMutationsRegistration = FrequentMutations as unknown as IRegistry;
+export const InfrequentMutationsRegistration = InfrequentMutations as unknown as IRegistry;
+export const ObserveShallowRegistration = ObserveShallow as unknown as IRegistry;
 export const IfRegistration = If as IRegistry;
 export const ElseRegistration = Else as IRegistry;
 export const RepeatRegistration = Repeat as IRegistry;
-export const ReplaceableRegistration = Replaceable as IRegistry;
+export const ReplaceableRegistration = Replaceable as unknown as IRegistry;
 export const WithRegistration = With as IRegistry;
-export const SanitizeValueConverterRegistration = SanitizeValueConverter as IRegistry;
-export const DebounceBindingBehaviorRegistration = DebounceBindingBehavior as IRegistry;
-export const OneTimeBindingBehaviorRegistration = OneTimeBindingBehavior as IRegistry;
-export const ToViewBindingBehaviorRegistration = ToViewBindingBehavior as IRegistry;
-export const FromViewBindingBehaviorRegistration = FromViewBindingBehavior as IRegistry;
-export const SignalBindingBehaviorRegistration = SignalBindingBehavior as IRegistry;
-export const ThrottleBindingBehaviorRegistration = ThrottleBindingBehavior as IRegistry;
-export const TwoWayBindingBehaviorRegistration = TwoWayBindingBehavior as IRegistry;
-export const PriorityBindingBehaviorRegistration = PriorityBindingBehavior as IRegistry;
+export const SanitizeValueConverterRegistration = SanitizeValueConverter as unknown as IRegistry;
+export const DebounceBindingBehaviorRegistration = DebounceBindingBehavior as unknown as IRegistry;
+export const OneTimeBindingBehaviorRegistration = OneTimeBindingBehavior as unknown as IRegistry;
+export const ToViewBindingBehaviorRegistration = ToViewBindingBehavior as unknown as IRegistry;
+export const FromViewBindingBehaviorRegistration = FromViewBindingBehavior as unknown as IRegistry;
+export const SignalBindingBehaviorRegistration = SignalBindingBehavior as unknown as IRegistry;
+export const ThrottleBindingBehaviorRegistration = ThrottleBindingBehavior as unknown as IRegistry;
+export const TwoWayBindingBehaviorRegistration = TwoWayBindingBehavior as unknown as IRegistry;
+export const PriorityBindingBehaviorRegistration = PriorityBindingBehavior as unknown as IRegistry;
 
 /**
  * Default resources:
@@ -76,6 +83,9 @@ export const PriorityBindingBehaviorRegistration = PriorityBindingBehavior as IR
  * - Binding Behaviors (`oneTime`, `toView`, `fromView`, `twoWay`, `signal`, `debounce`, `throttle`)
  */
 export const DefaultResources = [
+  FrequentMutationsRegistration,
+  InfrequentMutationsRegistration,
+  ObserveShallowRegistration,
   IfRegistration,
   ElseRegistration,
   RepeatRegistration,
@@ -92,16 +102,16 @@ export const DefaultResources = [
   TwoWayBindingBehaviorRegistration
 ];
 
-export const CallBindingRendererRegistration = CallBindingRenderer as IRegistry;
-export const CustomAttributeRendererRegistration = CustomAttributeRenderer as IRegistry;
-export const CustomElementRendererRegistration = CustomElementRenderer as IRegistry;
-export const InterpolationBindingRendererRegistration = InterpolationBindingRenderer as IRegistry;
-export const IteratorBindingRendererRegistration = IteratorBindingRenderer as IRegistry;
-export const LetElementRendererRegistration = LetElementRenderer as IRegistry;
-export const PropertyBindingRendererRegistration = PropertyBindingRenderer as IRegistry;
-export const RefBindingRendererRegistration = RefBindingRenderer as IRegistry;
-export const SetPropertyRendererRegistration = SetPropertyRenderer as IRegistry;
-export const TemplateControllerRendererRegistration = TemplateControllerRenderer as IRegistry;
+export const CallBindingRendererRegistration = CallBindingRenderer as unknown as IRegistry;
+export const CustomAttributeRendererRegistration = CustomAttributeRenderer as unknown as IRegistry;
+export const CustomElementRendererRegistration = CustomElementRenderer as unknown as IRegistry;
+export const InterpolationBindingRendererRegistration = InterpolationBindingRenderer as unknown as IRegistry;
+export const IteratorBindingRendererRegistration = IteratorBindingRenderer as unknown as IRegistry;
+export const LetElementRendererRegistration = LetElementRenderer as unknown as IRegistry;
+export const PropertyBindingRendererRegistration = PropertyBindingRenderer as unknown as IRegistry;
+export const RefBindingRendererRegistration = RefBindingRenderer as unknown as IRegistry;
+export const SetPropertyRendererRegistration = SetPropertyRenderer as unknown as IRegistry;
+export const TemplateControllerRendererRegistration = TemplateControllerRenderer as unknown as IRegistry;
 
 /**
  * Default renderers for:

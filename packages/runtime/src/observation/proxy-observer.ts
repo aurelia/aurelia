@@ -24,7 +24,6 @@ export class ProxySubscriberCollection<TObj extends object = object> implements 
   public readonly raw: TObj;
   public readonly key: string | number;
   constructor(proxy: IProxy<TObj>, raw: TObj, key: string | number) {
-    if (Tracer.enabled) { Tracer.enter('ProxySubscriberCollection', 'constructor', slice.call(arguments)); }
 
     this.inBatch = false;
 
@@ -36,7 +35,6 @@ export class ProxySubscriberCollection<TObj extends object = object> implements 
     if (raw[key as keyof TObj] instanceof Object) { // Ensure we observe array indices and newly created object properties
       raw[key as keyof TObj] = ProxyObserver.getOrCreate(raw[key as keyof TObj] as unknown as object).proxy as unknown as TObj[keyof TObj];
     }
-    if (Tracer.enabled) { Tracer.leave(); }
   }
 
   public setValue(value: unknown, flags?: LifecycleFlags): void {
@@ -64,12 +62,10 @@ export class ProxyObserver<TObj extends object = object> implements ProxyObserve
   private readonly subscribers: Record<string | number, ProxySubscriberCollection<TObj>>;
 
   constructor(obj: TObj) {
-    if (Tracer.enabled) { Tracer.enter('ProxyObserver', 'constructor', slice.call(arguments)); }
     this.raw = obj;
     this.proxy = new Proxy<TObj>(obj, this) as IProxy<TObj>;
     lookup.set(obj, this.proxy);
     this.subscribers = {};
-    if (Tracer.enabled) { Tracer.leave(); }
   }
 
   public static getProxyOrSelf<T extends object = object>(obj: T): T {

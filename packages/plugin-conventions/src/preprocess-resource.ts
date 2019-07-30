@@ -21,7 +21,8 @@ export function preprocessResource(filePath: string, jsCode: string, hasHtmlPair
   const runtimeImport: capturedImport = { names: [], start: 0, end: 0 };
   const jitImport: capturedImport = { names: [], start: 0, end: 0 };
 
-  let implicitElementStart: number = -1;
+  let implicitElementStart = -1;
+  let implicitElementEnd = -1;
   // When there are multiple exported classes (e.g. local value converters),
   // they might be deps for rendering the main implicit custom element.
   const mayBeDependencies: string[] = [];
@@ -71,6 +72,7 @@ export function preprocessResource(filePath: string, jsCode: string, hasHtmlPair
         // Custom element can only be implicit resource
         if (isImplicitResource && hasHtmlPair) {
           implicitElementStart = exportPos;
+          implicitElementEnd = s.end;
           ensureTypeIsExported(runtimeImport.names, type);
         }
       } else {
@@ -89,12 +91,15 @@ export function preprocessResource(filePath: string, jsCode: string, hasHtmlPair
     const viewDef = '__' + camelCase(basename) + 'ViewDef';
     m.prepend(`import * as ${viewDef} from './${basename}.html';\n`);
 
-    conventionalDecorators.push([
-      implicitElementStart,
-      mayBeDependencies.length ?
-        `@customElement({ ...${viewDef}, dependencies: [ ...${viewDef}.dependencies, ${mayBeDependencies.join(', ')} ] })\n` :
-        `@customElement(${viewDef})\n`
-    ]);
+    if (mayBeDependencies.length) {
+      // When in-file deps are used, move the body of custom element to end of the file,
+      // in order to avoid TS2449: Class '...' used before its declaration.
+      const elementStatement = jsCode.slice(implicitElementStart, implicitElementEnd);
+      m.replace(implicitElementStart, implicitElementEnd, '');
+      m.append(`\n@customElement({ ...${viewDef}, dependencies: [ ...${viewDef}.dependencies, ${mayBeDependencies.join(', ')} ] })\n${elementStatement}\n`);
+    } else {
+      conventionalDecorators.push([implicitElementStart, `@customElement(${viewDef})\n`]);
+    }
   }
 
   if (conventionalDecorators.length) {

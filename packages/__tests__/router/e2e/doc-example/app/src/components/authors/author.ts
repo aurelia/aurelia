@@ -1,6 +1,6 @@
 import { inject } from '@aurelia//kernel';
+import { IRouter } from '@aurelia/router';
 import { customElement } from '@aurelia/runtime';
-import { Router } from '@aurelia/router';
 import { AuthorsRepository } from '../../repositories/authors';
 import { State } from '../../state';
 import { wait } from '../../utils';
@@ -25,7 +25,7 @@ import { Information } from './information';
 </template>`,
   dependencies: [Information as any]
 })
-@inject(Router, AuthorsRepository, State)
+@inject(IRouter, AuthorsRepository, State)
 export class Author {
   public static parameters = ['id'];
 
@@ -33,7 +33,7 @@ export class Author {
 
   public hideTabs: boolean = false;
 
-  constructor(private readonly router: Router, private readonly authorsRepository: AuthorsRepository, private readonly state: State) { }
+  constructor(private readonly router: IRouter, private readonly authorsRepository: AuthorsRepository, private readonly state: State) { }
 
   public created() {
     console.log('### created', this);

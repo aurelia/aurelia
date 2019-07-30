@@ -545,11 +545,6 @@ export class Controller<
     $scope.parentScope = scope === void 0 ? null : scope;
     $scope.scopeParts = this.scopeParts!;
 
-    if ((flags & LifecycleFlags.updateOneTimeBindings) > 0) {
-      this.bindBindings(flags, $scope);
-      return LifecycleTask.done;
-    }
-
     if ((this.state & State.isBound) > 0) {
       return LifecycleTask.done;
     }
@@ -609,11 +604,6 @@ export class Controller<
     }
 
     (scope as Writable<IScope>).scopeParts = mergeDistinct(scope.scopeParts, this.scopeParts, false);
-
-    if ((flags & LifecycleFlags.updateOneTimeBindings) > 0) {
-      this.bindBindings(flags, scope);
-      return LifecycleTask.done;
-    }
 
     if ((this.state & State.isBound) > 0) {
       if (this.scope === scope || (this.state & State.hasLockedScope) > 0) {

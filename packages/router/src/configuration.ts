@@ -1,17 +1,18 @@
 import { DI, IContainer, IRegistry } from '@aurelia/kernel';
+import { StartTask } from '@aurelia/runtime';
 
 import { NavCustomElement } from './resources/nav';
 import { ViewportCustomElement } from './resources/viewport';
-import { IRouterOptions, Router } from './router';
+import { IRouter, IRouterOptions, Router } from './router';
 
-export const RouterRegistration = Router as unknown as IRegistry;
+export const RouterRegistration = IRouter as unknown as IRegistry;
 
 /**
  * Default runtime/environment-agnostic implementations for the following interfaces:
  * - `IRouter`
  */
 export const DefaultComponents = [
-  RouterRegistration
+  RouterRegistration,
 ];
 
 export {
@@ -41,7 +42,9 @@ const routerConfiguration = {
   register(container: IContainer): IContainer {
     return container.register(
       ...DefaultComponents,
-      ...DefaultResources
+      ...DefaultResources,
+      StartTask.with(IRouter).beforeBind().call(router => router.activate()),
+      StartTask.with(IRouter).beforeAttach().call(router => router.loadUrl()),
     );
   },
   /**

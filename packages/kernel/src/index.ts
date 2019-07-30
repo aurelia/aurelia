@@ -19,7 +19,8 @@ export {
   transient,
   Injectable,
   InterfaceSymbol,
-  InstanceProvider
+  InstanceProvider,
+  Resolved,
 } from './di';
 export {
   Class,

@@ -47,7 +47,7 @@ function parseArgs(): {tag: string; suffix: string} {
   return { tag, suffix };
 }
 
-async function run(): Promise<void> {
+(async function (): Promise<void> {
   const { tag, suffix } = parseArgs();
   const { major, minor, patch } = getCurrentVersion();
   const bump = await getRecommendedVersionBump();
@@ -55,8 +55,8 @@ async function run(): Promise<void> {
   if (tag === 'dev') {
     await updateDependencyVersions(newVersion);
   }
-}
-
-run().then(() => {
-  log(`Done.`);
+  log('Done.');
+})().catch(err => {
+  log.error(err);
+  process.exit(1);
 });

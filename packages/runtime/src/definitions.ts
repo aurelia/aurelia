@@ -43,7 +43,7 @@ export interface IChildrenObserverDescription<TNode extends INode = INode> {
   options?: MutationObserverInit;
   query?: (projector: IElementProjector<TNode>) => ArrayLike<TNode>;
   filter?: (node: INode, controller?: IController<TNode>, viewModel?: IViewModel<TNode>) => boolean;
-  map?: <T>(node: INode, controller?: IController<TNode>, viewModel?: IViewModel<TNode>) => T;
+  map?: (node: INode, controller?: IController<TNode>, viewModel?: IViewModel<TNode>) => any;
 }
 
 export type ChildrenObserverSource = Omit<IChildrenObserverDescription, 'property'>;

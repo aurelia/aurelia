@@ -75,8 +75,6 @@ export class ClassAttributeAccessor implements IAccessor<unknown> {
         }
       }
 
-      // Update state variables.
-      this.nameIndex = nameIndex;
       this.version += 1;
 
       // First call to setValue?  We're done.

@@ -39,6 +39,7 @@ export { containerless, customElement, CustomElementHost, CustomElement, ICustom
 export { IValueConverter, IValueConverterDefinition, IValueConverterResource, IValueConverterType, valueConverter, ValueConverter } from './resources/value-converter';
 export { ISanitizer, SanitizeValueConverter } from './resources/value-converters/sanitize';
 export { bindable, BindableDecorator, WithBindables, Bindable, } from './templating/bindable';
+export { children, ChildrenDecorator, HasChildrenObservers } from './templating/children';
 export { Controller, } from './templating/controller';
 export { ViewFactory, } from './templating/view';
 export { Aurelia, IDOMInitializer, ISinglePageApp, CompositionRoot, } from './aurelia';
@@ -51,5 +52,5 @@ export { ViewModelKind, IBinding, ILifecycle, IViewModel, IController, IRenderCo
 export { PromiseOrTask, MaybePromiseOrTask, AggregateContinuationTask, TerminalTask, AggregateTerminalTask, ContinuationTask, ILifecycleTask, LifecycleTask, PromiseTask, TaskSlot, StartTask, IStartTask, IStartTaskManager, ProviderTask, } from './lifecycle-task';
 export { AccessorOrObserver, Collection, CollectionKind, DelegationStrategy, IAccessor, IBindingContext, IBindingTargetAccessor, IBindingTargetObserver, ICollectionChangeTracker, ICollectionObserver, ICollectionSubscriber, IndexMap, IObservable, IObservedArray, IObservedMap, IObservedSet, IOverrideContext, IPropertyChangeTracker, IPropertyObserver, IScope, ISubscribable, ISubscriberCollection, ObservedCollection, ObserversLookup, PropertyObserver, CollectionObserver, ICollectionSubscriberCollection, IProxyObserver, IProxy, IProxySubscribable, IProxySubscriber, IProxySubscriberCollection, ICollectionSubscribable, ISubscriber, isIndexMap, copyIndexMap, cloneIndexMap, createIndexMap, } from './observation';
 export { instructionRenderer, ensureExpression, addComponent, addBinding } from './renderer';
-export { CompiledTemplate, createRenderContext, IChildrenObserver, IInstructionRenderer, IInstructionTypeClassifier, IRenderer, IRenderingEngine, ITemplate, ITemplateCompiler, ITemplateFactory, ViewCompileFlags, } from './rendering-engine';
+export { CompiledTemplate, createRenderContext, ChildrenObserver, IInstructionRenderer, IInstructionTypeClassifier, IRenderer, IRenderingEngine, ITemplate, ITemplateCompiler, ITemplateFactory, ViewCompileFlags, } from './rendering-engine';
 //# sourceMappingURL=index.d.ts.map

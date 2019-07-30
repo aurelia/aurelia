@@ -64,6 +64,7 @@ class DefaultTemplateDefinition {
         this.cache = 0;
         this.build = buildNotRequired;
         this.bindables = PLATFORM.emptyObject;
+        this.childrenObservers = PLATFORM.emptyObject;
         this.instructions = PLATFORM.emptyArray;
         this.dependencies = PLATFORM.emptyArray;
         this.surrogates = PLATFORM.emptyArray;
@@ -90,11 +91,13 @@ const templateDefinitionArrays = [
     'surrogates'
 ];
 // tslint:disable-next-line:parameters-max-number // TODO: Reduce complexity (currently at 64)
-export function buildTemplateDefinition(ctor, nameOrDef, template, cache, build, bindables, instructions, dependencies, surrogates, containerless, shadowOptions, hasSlots, strategy) {
+export function buildTemplateDefinition(ctor, nameOrDef, template, cache, build, bindables, instructions, dependencies, surrogates, containerless, shadowOptions, hasSlots, strategy, childrenObservers) {
     const def = new DefaultTemplateDefinition();
     // all cases fall through intentionally
     const argLen = arguments.length;
     switch (argLen) {
+        case 14: if (childrenObservers !== null)
+            def.childrenObservers = { ...childrenObservers };
         case 13: if (strategy != null)
             def.strategy = ensureValidStrategy(strategy);
         case 12: if (hasSlots != null)
@@ -128,6 +131,9 @@ export function buildTemplateDefinition(ctor, nameOrDef, template, cache, build,
                 if (ctor.shadowOptions) {
                     def.shadowOptions = ctor.shadowOptions;
                 }
+                if (ctor.childrenObservers) {
+                    def.childrenObservers = ctor.childrenObservers;
+                }
                 if (ctor.prototype) {
                     def.hooks = new HooksDefinition(ctor.prototype);
                 }
@@ -157,6 +163,14 @@ export function buildTemplateDefinition(ctor, nameOrDef, template, cache, build,
                     }
                     else {
                         Object.assign(def.bindables, nameOrDef.bindables);
+                    }
+                }
+                if (nameOrDef['childrenObservers']) {
+                    if (def.childrenObservers === PLATFORM.emptyObject) {
+                        def.childrenObservers = { ...nameOrDef.childrenObservers };
+                    }
+                    else {
+                        Object.assign(def.childrenObservers, nameOrDef.childrenObservers);
                     }
                 }
             }

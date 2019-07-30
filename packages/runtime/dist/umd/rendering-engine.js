@@ -8,8 +8,10 @@
     }
 })(function (require, exports) {
     "use strict";
+    var ChildrenObserver_1;
     Object.defineProperty(exports, "__esModule", { value: true });
     const tslib_1 = require("tslib");
+    "use strict";
     const kernel_1 = require("@aurelia/kernel");
     const definitions_1 = require("./definitions");
     const dom_1 = require("./dom");
@@ -203,74 +205,84 @@
         }
     }
     exports.ViewFactoryProvider = ViewFactoryProvider;
-    function hasChildrenChanged(viewModel) {
-        return viewModel != void 0 && '$childrenChanged' in viewModel;
-    }
     /** @internal */
-    let ChildrenObserver = class ChildrenObserver {
-        constructor(lifecycle, controller) {
-            this.hasChanges = false;
+    let ChildrenObserver = ChildrenObserver_1 = class ChildrenObserver {
+        constructor(controller, viewModel, flags, propertyName, cbName, query = defaultChildQuery, filter = defaultChildFilter, map = defaultChildMap, options) {
+            this.propertyKey = propertyName;
+            this.obj = viewModel;
+            this.callback = viewModel[cbName];
+            this.query = query;
+            this.filter = filter;
+            this.map = map;
+            this.options = options;
             this.children = (void 0);
             this.controller = controller;
-            this.lifecycle = lifecycle;
-            this.controller = controller_1.Controller.forCustomElement(controller, (void 0), (void 0));
-            this.projector = this.controller.projector;
             this.observing = false;
-            this.ticking = false;
+            this.persistentFlags = flags & 2013265935 /* persistentBindingFlags */;
+            this.createGetterSetter();
         }
         getValue() {
-            if (!this.observing) {
-                this.observing = true;
-                this.projector.subscribeToChildrenChange(() => { this.onChildrenChanged(); });
-                this.children = findElements(this.projector.children);
-            }
+            this.tryStartObserving();
             return this.children;
         }
         setValue(newValue) { }
-        flushRAF(flags) {
-            if (this.hasChanges) {
-                this.callSubscribers(this.children, undefined, flags | 16 /* updateTargetInstance */);
-                this.hasChanges = false;
-            }
-        }
         subscribe(subscriber) {
-            if (!this.ticking) {
-                this.ticking = true;
-                this.lifecycle.enqueueRAF(this.flushRAF, this, 24576 /* bind */);
-            }
+            this.tryStartObserving();
             this.addSubscriber(subscriber);
         }
-        unsubscribe(subscriber) {
-            this.removeSubscriber(subscriber);
-            if (this.ticking && !this.hasSubscribers()) {
-                this.ticking = false;
-                this.lifecycle.dequeueRAF(this.flushRAF, this);
+        tryStartObserving() {
+            if (!this.observing) {
+                this.observing = true;
+                const projector = this.controller.projector;
+                this.children = filterChildren(projector, this.query, this.filter, this.map);
+                projector.subscribeToChildrenChange(() => { this.onChildrenChanged(); }, this.options);
             }
         }
         onChildrenChanged() {
-            this.children = findElements(this.projector.children);
-            if (hasChildrenChanged(this.controller.viewModel)) {
-                this.controller.viewModel.$childrenChanged();
+            this.children = filterChildren(this.controller.projector, this.query, this.filter, this.map);
+            if (this.callback !== void 0) {
+                this.callback.call(this.obj);
             }
-            this.hasChanges = true;
+            this.callSubscribers(this.children, undefined, this.persistentFlags | 16 /* updateTargetInstance */);
+        }
+        createGetterSetter() {
+            if (!Reflect.defineProperty(this.obj, this.propertyKey, {
+                enumerable: true,
+                configurable: true,
+                get: () => this.getValue(),
+                set: () => { },
+            })) {
+                kernel_1.Reporter.write(1, this.propertyKey, this.obj);
+            }
         }
     };
-    ChildrenObserver = tslib_1.__decorate([
+    ChildrenObserver = ChildrenObserver_1 = tslib_1.__decorate([
         subscriber_collection_1.subscriberCollection()
     ], ChildrenObserver);
     exports.ChildrenObserver = ChildrenObserver;
     /** @internal */
-    function findElements(nodes) {
-        const components = [];
+    function filterChildren(projector, query, filter, map) {
+        const nodes = query(projector);
+        const children = [];
         for (let i = 0, ii = nodes.length; i < ii; ++i) {
-            const current = nodes[i];
-            const component = custom_element_1.CustomElement.behaviorFor(current);
-            if (component != void 0) {
-                components.push(component);
+            const node = nodes[i];
+            const controller = custom_element_1.CustomElement.behaviorFor(node);
+            const viewModel = controller ? controller.viewModel : null;
+            if (filter(node, controller, viewModel)) {
+                children.push(map(node, controller, viewModel));
             }
         }
-        return components;
+        return children;
     }
-    exports.findElements = findElements;
+    exports.filterChildren = filterChildren;
+    function defaultChildQuery(projector) {
+        return projector.children;
+    }
+    function defaultChildFilter(node, controller, viewModel) {
+        return !!viewModel;
+    }
+    function defaultChildMap(node, controller, viewModel) {
+        return viewModel;
+    }
 });
 //# sourceMappingURL=rendering-engine.js.map

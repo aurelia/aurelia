@@ -40,11 +40,11 @@ export class ShadowDOMProjector {
         this.shadowRoot.$controller = $controller;
     }
     get children() {
-        return this.shadowRoot.childNodes;
+        return this.host.childNodes;
     }
-    subscribeToChildrenChange(callback) {
+    subscribeToChildrenChange(callback, options = childObserverOptions) {
         // TODO: add a way to dispose/disconnect
-        this.dom.createNodeObserver(this.shadowRoot, callback, childObserverOptions);
+        this.dom.createNodeObserver(this.host, callback, options);
     }
     provideEncapsulationSource() {
         return this.shadowRoot;
@@ -73,9 +73,8 @@ export class ContainerlessProjector {
         return this.childNodes;
     }
     subscribeToChildrenChange(callback) {
-        // TODO: add a way to dispose/disconnect
-        const observer = new MutationObserver(callback);
-        observer.observe(this.host, childObserverOptions);
+        // TODO: turn this into an error
+        // Containerless does not have a container node to observe children on.
     }
     provideEncapsulationSource() {
         return this.host.getRootNode();

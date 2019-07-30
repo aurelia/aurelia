@@ -78,7 +78,7 @@
                 }
                 const { description } = Type;
                 flags |= description.strategy;
-                createObservers(this.lifecycle, description, flags, viewModel);
+                createObservers(this, description, flags, viewModel);
                 this.hooks = description.hooks;
                 this.viewModel = viewModel;
                 this.bindingContext = getBindingContext(flags, viewModel);
@@ -673,12 +673,14 @@
     }
     Controller.lookup = new WeakMap();
     exports.Controller = Controller;
-    function createObservers(lifecycle, description, flags, instance) {
+    function createObservers(controller, description, flags, instance) {
         const hasLookup = instance.$observers != void 0;
         const observers = hasLookup ? instance.$observers : {};
         const bindables = description.bindables;
         const observableNames = Object.getOwnPropertyNames(bindables);
         const useProxy = (flags & 2 /* proxyStrategy */) > 0;
+        const lifecycle = controller.lifecycle;
+        let hasChildrenObservers = 'childrenObservers' in description;
         const { length } = observableNames;
         let name;
         for (let i = 0; i < length; ++i) {
@@ -687,7 +689,22 @@
                 observers[name] = new self_observer_1.SelfObserver(lifecycle, flags, useProxy ? proxy_observer_1.ProxyObserver.getOrCreate(instance).proxy : instance, name, bindables[name].callback);
             }
         }
-        if (!useProxy) {
+        if (hasChildrenObservers) {
+            const childrenObservers = description.childrenObservers;
+            if (childrenObservers) {
+                const childObserverNames = Object.getOwnPropertyNames(childrenObservers);
+                const { length } = childObserverNames;
+                let name;
+                for (let i = 0; i < length; ++i) {
+                    name = childObserverNames[i];
+                    if (observers[name] == void 0) {
+                        const childrenDescription = childrenObservers[name];
+                        observers[name] = new rendering_engine_1.ChildrenObserver(controller, instance, flags, name, childrenDescription.callback, childrenDescription.query, childrenDescription.filter, childrenDescription.map, childrenDescription.options);
+                    }
+                }
+            }
+        }
+        if (!useProxy || hasChildrenObservers) {
             Reflect.defineProperty(instance, '$observers', {
                 enumerable: false,
                 value: observers

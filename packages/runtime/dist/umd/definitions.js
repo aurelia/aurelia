@@ -77,6 +77,7 @@
             this.cache = 0;
             this.build = buildNotRequired;
             this.bindables = kernel_1.PLATFORM.emptyObject;
+            this.childrenObservers = kernel_1.PLATFORM.emptyObject;
             this.instructions = kernel_1.PLATFORM.emptyArray;
             this.dependencies = kernel_1.PLATFORM.emptyArray;
             this.surrogates = kernel_1.PLATFORM.emptyArray;
@@ -103,11 +104,13 @@
         'surrogates'
     ];
     // tslint:disable-next-line:parameters-max-number // TODO: Reduce complexity (currently at 64)
-    function buildTemplateDefinition(ctor, nameOrDef, template, cache, build, bindables, instructions, dependencies, surrogates, containerless, shadowOptions, hasSlots, strategy) {
+    function buildTemplateDefinition(ctor, nameOrDef, template, cache, build, bindables, instructions, dependencies, surrogates, containerless, shadowOptions, hasSlots, strategy, childrenObservers) {
         const def = new DefaultTemplateDefinition();
         // all cases fall through intentionally
         const argLen = arguments.length;
         switch (argLen) {
+            case 14: if (childrenObservers !== null)
+                def.childrenObservers = { ...childrenObservers };
             case 13: if (strategy != null)
                 def.strategy = flags_1.ensureValidStrategy(strategy);
             case 12: if (hasSlots != null)
@@ -141,6 +144,9 @@
                     if (ctor.shadowOptions) {
                         def.shadowOptions = ctor.shadowOptions;
                     }
+                    if (ctor.childrenObservers) {
+                        def.childrenObservers = ctor.childrenObservers;
+                    }
                     if (ctor.prototype) {
                         def.hooks = new HooksDefinition(ctor.prototype);
                     }
@@ -170,6 +176,14 @@
                         }
                         else {
                             Object.assign(def.bindables, nameOrDef.bindables);
+                        }
+                    }
+                    if (nameOrDef['childrenObservers']) {
+                        if (def.childrenObservers === kernel_1.PLATFORM.emptyObject) {
+                            def.childrenObservers = { ...nameOrDef.childrenObservers };
+                        }
+                        else {
+                            Object.assign(def.childrenObservers, nameOrDef.childrenObservers);
                         }
                     }
                 }

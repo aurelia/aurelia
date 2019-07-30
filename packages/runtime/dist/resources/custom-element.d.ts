@@ -14,7 +14,7 @@ export interface IElementProjector<T extends INode = INode> {
     provideEncapsulationSource(): T;
     project(nodes: INodeSequence<T>): void;
     take(nodes: INodeSequence<T>): void;
-    subscribeToChildrenChange(callback: () => void): void;
+    subscribeToChildrenChange(callback: () => void, options?: any): void;
 }
 export declare const IProjectorLocator: import("@aurelia/kernel").InterfaceSymbol<IProjectorLocator<INode>>;
 export interface IProjectorLocator<T extends INode = INode> {

@@ -38,6 +38,7 @@ export { containerless, customElement, CustomElement, IProjectorLocator, useShad
 export { valueConverter, ValueConverter } from './resources/value-converter';
 export { ISanitizer, SanitizeValueConverter } from './resources/value-converters/sanitize';
 export { bindable, Bindable, } from './templating/bindable';
+export { children } from './templating/children';
 // These exports are temporary until we have a proper way to unit test them
 export { Controller, } from './templating/controller';
 export { ViewFactory, } from './templating/view';
@@ -51,5 +52,5 @@ export { ViewModelKind, ILifecycle, IController, IViewFactory, Priority, } from 
 export { AggregateContinuationTask, TerminalTask, AggregateTerminalTask, ContinuationTask, LifecycleTask, PromiseTask, TaskSlot, StartTask, IStartTask, IStartTaskManager, ProviderTask, } from './lifecycle-task';
 export { CollectionKind, DelegationStrategy, isIndexMap, copyIndexMap, cloneIndexMap, createIndexMap, } from './observation';
 export { instructionRenderer, ensureExpression, addComponent, addBinding } from './renderer';
-export { CompiledTemplate, createRenderContext, IInstructionRenderer, IRenderer, IRenderingEngine, ITemplateCompiler, ITemplateFactory, ViewCompileFlags, } from './rendering-engine';
+export { CompiledTemplate, createRenderContext, ChildrenObserver, IInstructionRenderer, IRenderer, IRenderingEngine, ITemplateCompiler, ITemplateFactory, ViewCompileFlags, } from './rendering-engine';
 //# sourceMappingURL=index.js.map

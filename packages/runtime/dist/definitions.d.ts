@@ -1,6 +1,9 @@
 import { Constructable, IResourceDefinition, Key, Omit, ResourceDescription, ResourcePartDescription } from '@aurelia/kernel';
 import { IForOfStatement, IInterpolationExpression, IsBindingBehavior } from './ast';
 import { BindingMode, BindingStrategy } from './flags';
+import { INode } from './dom';
+import { IController, IViewModel } from './lifecycle';
+import { IElementProjector } from './resources/custom-element';
 export declare type IElementHydrationOptions = {
     parts?: Record<string, TemplateDefinition>;
 };
@@ -11,6 +14,15 @@ export interface IBindableDescription {
     attribute?: string;
     property?: string;
 }
+export interface IChildrenObserverDescription<TNode extends INode = INode> {
+    callback?: string;
+    property?: string;
+    options?: MutationObserverInit;
+    query?: (projector: IElementProjector<TNode>) => ArrayLike<TNode>;
+    filter?: (node: INode, controller?: IController<TNode>, viewModel?: IViewModel<TNode>) => boolean;
+    map?: (node: INode, controller?: IController<TNode>, viewModel?: IViewModel<TNode>) => any;
+}
+export declare type ChildrenObserverSource = Omit<IChildrenObserverDescription, 'property'>;
 /**
  * TargetedInstructionType enum values become the property names for the associated renderers when they are injected
  * into the `Renderer`.
@@ -45,6 +57,7 @@ export interface ITemplateDefinition extends IResourceDefinition {
     build?: IBuildInstruction;
     surrogates?: ITargetedInstruction[];
     bindables?: Record<string, IBindableDescription> | string[];
+    childrenObservers?: Record<string, IChildrenObserverDescription>;
     containerless?: boolean;
     shadowOptions?: {
         mode: 'open' | 'closed';
@@ -156,11 +169,12 @@ export declare type CustomElementConstructor = Constructable & {
     containerless?: TemplateDefinition['containerless'];
     shadowOptions?: TemplateDefinition['shadowOptions'];
     bindables?: TemplateDefinition['bindables'];
+    childrenObservers?: TemplateDefinition['childrenObservers'];
 };
 export declare function buildTemplateDefinition(ctor: CustomElementConstructor, name: string): TemplateDefinition;
 export declare function buildTemplateDefinition(ctor: null, def: ITemplateDefinition): TemplateDefinition;
 export declare function buildTemplateDefinition(ctor: CustomElementConstructor | null, nameOrDef: string | ITemplateDefinition): TemplateDefinition;
 export declare function buildTemplateDefinition(ctor: CustomElementConstructor | null, name: string | null, template: unknown, cache?: number | '*' | null, build?: IBuildInstruction | boolean | null, bindables?: Record<string, IBindableDescription> | null, instructions?: ReadonlyArray<ReadonlyArray<ITargetedInstruction>> | null, dependencies?: ReadonlyArray<unknown> | null, surrogates?: ReadonlyArray<ITargetedInstruction> | null, containerless?: boolean | null, shadowOptions?: {
     mode: 'open' | 'closed';
-} | null, hasSlots?: boolean | null, strategy?: BindingStrategy | null): TemplateDefinition;
+} | null, hasSlots?: boolean | null, strategy?: BindingStrategy | null, childrenObservers?: Record<string, IChildrenObserverDescription> | null): TemplateDefinition;
 //# sourceMappingURL=definitions.d.ts.map

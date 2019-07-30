@@ -1,19 +1,19 @@
 import { inject } from "@aurelia/kernel";
-import { Router } from "@aurelia/router";
+import { IRouter } from "@aurelia/router";
 import { bindable, customElement } from "@aurelia/runtime";
 import { Article } from "shared/models/article";
 import { ArticleService } from "shared/services/article-service";
 import { SharedState } from "shared/state/shared-state";
 import template from './article-meta.html';
 
-@inject(ArticleService, SharedState, Router)
+@inject(ArticleService, SharedState, IRouter)
 @customElement({ name: 'article-meta', template })
 export class ArticleMeta {
   @bindable public article?: Article;
 
   constructor(private readonly articleService: ArticleService,
               private readonly sharedState: SharedState,
-              private readonly router: Router) {
+              private readonly router: IRouter) {
   }
 
   get canModify() {

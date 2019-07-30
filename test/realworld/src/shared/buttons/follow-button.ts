@@ -1,18 +1,18 @@
 import { inject } from '@aurelia/kernel';
-import { Router } from '@aurelia/router';
+import { IRouter } from '@aurelia/router';
 import { bindable, customElement } from '@aurelia/runtime';
 import template from './follow-button.html';
 
 import { ProfileService } from 'shared/services/profile-service';
 import { SharedState } from 'shared/state/shared-state';
 
-@inject(Router, SharedState, ProfileService)
+@inject(IRouter, SharedState, ProfileService)
 @customElement({ name: 'follow-button', template })
 export class FollowButton {
   @bindable public article: any;
   @bindable public toggle: any;
 
-  constructor(private readonly router: Router,
+  constructor(private readonly router: IRouter,
               private readonly sharedState: SharedState,
               private readonly profileService: ProfileService) {
   }

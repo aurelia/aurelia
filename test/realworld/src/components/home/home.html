@@ -17,16 +17,16 @@
           <div class="feed-toggle">
             <ul class="nav nav-pills outline-active">
               <li if.bind="sharedState.isAuthenticated" class="nav-item">
-                <a class="nav-link" class.bind="shownList === 'feed' && !filterTag ? ' active' : ''"
-                   click.delegate="setListTo('feed')">Your Feed</a>
+                <a class="nav-link" href="" class.bind="shownList === 'feed' && !filterTag ? ' active' : ''"
+                  click.delegate="setListTo('feed')">Your Feed</a>
               </li>
               <li class="nav-item">
-                <a class="nav-link" class.bind="shownList === 'all' && !filterTag ? 'active' : ''"
-                   click.delegate="setListTo('all')">Global Feed</a>
+                <a class="nav-link" href="" class.bind="shownList === 'all' && !filterTag ? 'active' : ''"
+                  click.delegate="setListTo('all')">Global Feed</a>
               </li>
               <li if.bind="filterTag" class="nav-item">
                 <a class="nav-link active">
-                  <i class="ion-pound"></i>                  
+                  <i class="ion-pound"></i>
                   ${filterTag}
                 </a>
               </li>
@@ -45,7 +45,8 @@
             <p>Popular Tags</p>
 
             <div class="tag-list">
-              <a repeat.for="tag of tags" href="#" class="tag-pill tag-default" click.delegate="setListTo('all', tag)">${tag}</a>
+              <a repeat.for="tag of tags" href="#" class="tag-pill tag-default"
+                click.delegate="setListTo('all', tag)">${tag}</a>
               <div if.bind="tags.length === 0">No tags are here... yet.</div>
             </div>
           </div>

@@ -19,7 +19,8 @@ import {
   IHydrateElementInstruction,
   IHydrateTemplateController,
   ITemplateDefinition,
-  TemplateDefinition
+  TemplateDefinition,
+  IChildrenObserverDescription
 } from '../definitions';
 import {
   IDOM,
@@ -62,7 +63,7 @@ import {
   SelfObserver,
 } from '../observation/self-observer';
 import {
-  IRenderingEngine, ITemplate,
+  IRenderingEngine, ITemplate, ChildrenObserver,
 } from '../rendering-engine';
 import {
   ICustomElementType,
@@ -231,7 +232,7 @@ export class Controller<
       }
       const { description } = Type;
       flags |= description.strategy;
-      createObservers(this.lifecycle, description, flags, viewModel);
+      createObservers(this, description, flags, viewModel);
       this.hooks = description.hooks;
       this.viewModel = viewModel;
       this.bindingContext = getBindingContext<T, C>(flags, viewModel);
@@ -1000,16 +1001,18 @@ export class Controller<
 }
 
 function createObservers(
-  lifecycle: ILifecycle,
+  controller: IController,
   description: Description,
   flags: LifecycleFlags,
   instance: object,
 ): void {
   const hasLookup = (instance as IIndexable).$observers != void 0;
-  const observers: Record<string, SelfObserver> = hasLookup ? (instance as IIndexable).$observers as Record<string, SelfObserver> : {};
+  const observers: Record<string, SelfObserver | ChildrenObserver> = hasLookup ? (instance as IIndexable).$observers as Record<string, SelfObserver> : {};
   const bindables = description.bindables as Record<string, Required<IBindableDescription>>;
   const observableNames = Object.getOwnPropertyNames(bindables);
   const useProxy = (flags & LifecycleFlags.proxyStrategy) > 0 ;
+  const lifecycle = controller.lifecycle;
+  let hasChildrenObservers = 'childrenObservers' in description;
 
   const { length } = observableNames;
   let name: string;
@@ -1027,7 +1030,36 @@ function createObservers(
     }
   }
 
-  if (!useProxy) {
+  if (hasChildrenObservers) {
+    const childrenObservers = (description as any).childrenObservers as Record<string, Required<IChildrenObserverDescription>>;
+
+    if (childrenObservers) {
+      const childObserverNames = Object.getOwnPropertyNames(childrenObservers);
+      const { length } = childObserverNames;
+
+      let name: string;
+      for (let i = 0; i < length; ++i) {
+        name = childObserverNames[i];
+
+        if (observers[name] == void 0) {
+          const childrenDescription = childrenObservers[name];
+          observers[name] = new ChildrenObserver(
+            controller,
+            instance,
+            flags,
+            name,
+            childrenDescription.callback,
+            childrenDescription.query,
+            childrenDescription.filter,
+            childrenDescription.map,
+            childrenDescription.options
+          );
+        }
+      }
+    }
+  }
+
+  if (!useProxy || hasChildrenObservers) {
     Reflect.defineProperty(instance, '$observers', {
       enumerable: false,
       value: observers

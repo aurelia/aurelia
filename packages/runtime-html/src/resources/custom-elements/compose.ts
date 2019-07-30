@@ -68,6 +68,7 @@ export class Compose<T extends INode = Node> {
     strategy: BindingStrategy.getterSetter,
     hooks: Object.freeze(new HooksDefinition(Compose.prototype)),
     scopeParts: PLATFORM.emptyArray,
+    childrenObservers: PLATFORM.emptyObject
   });
 
   public readonly id: number;

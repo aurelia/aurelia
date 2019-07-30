@@ -1055,6 +1055,7 @@ function createObservers(
           const childrenDescription = childrenObservers[name];
           observers[name] = new ChildrenObserver(
             controller,
+            instance,
             flags,
             name,
             childrenDescription.callback,

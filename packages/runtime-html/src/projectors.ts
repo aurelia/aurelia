@@ -117,6 +117,7 @@ export class ContainerlessProjector implements IElementProjector<Node> {
   }
 
   public subscribeToChildrenChange(callback: () => void): void {
+    // TODO: turn this into an error
     // Containerless does not have a container node to observe children on.
   }
 

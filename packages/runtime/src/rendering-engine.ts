@@ -411,18 +411,20 @@ export interface ChildrenObserver extends
 @subscriberCollection()
 export class ChildrenObserver {
   public readonly propertyKey: string;
+  public readonly obj: IIndexable;
   public observing: boolean;
+
   private readonly controller: IController;
-  private readonly projector: IElementProjector;
-  private children: any[];
-  private filter: typeof defaultChildFilter;
-  private map: typeof defaultChildMap;
-  private query: typeof defaultChildQuery;
-  private options?: MutationObserverInit;
+  private readonly filter: typeof defaultChildFilter;
+  private readonly map: typeof defaultChildMap;
+  private readonly query: typeof defaultChildQuery;
+  private readonly options?: MutationObserverInit;
   private readonly callback: () => void;
+  private children: any[];
 
   constructor(
     controller: IController,
+    viewModel: any,
     flags: LifecycleFlags,
     propertyName: string,
     cbName: string,
@@ -432,24 +434,17 @@ export class ChildrenObserver {
     options?: MutationObserverInit
     ) {
     this.propertyKey = propertyName;
-    this.callback = (controller.viewModel as any)[cbName] as typeof ChildrenObserver.prototype.callback;
+    this.obj = viewModel;
+    this.callback = viewModel[cbName] as typeof ChildrenObserver.prototype.callback;
     this.query = query;
     this.filter = filter;
     this.map = map;
     this.options = options;
     this.children = (void 0)!;
     this.controller = controller;
-    this.projector = this.controller.projector!;
     this.observing = false;
     this.persistentFlags = flags & LifecycleFlags.persistentBindingFlags;
-
     this.createGetterSetter();
-
-    if (this.callback === void 0) {
-      this.observing = false;
-    } else {
-      this.tryStartObserving();
-    }
   }
 
   public getValue(): any[] {
@@ -467,16 +462,17 @@ export class ChildrenObserver {
   private tryStartObserving() {
     if (!this.observing) {
       this.observing = true;
-      this.children = filterChildren(this.projector, this.query, this.filter, this.map);
-      this.projector.subscribeToChildrenChange(() => { this.onChildrenChanged(); }, this.options);
+      const projector = this.controller.projector!;
+      this.children = filterChildren(projector, this.query, this.filter, this.map);
+      projector.subscribeToChildrenChange(() => { this.onChildrenChanged(); }, this.options);
     }
   }
 
   private onChildrenChanged(): void {
-    this.children = filterChildren(this.projector, this.query, this.filter, this.map);
+    this.children = filterChildren(this.controller.projector!, this.query, this.filter, this.map);
 
     if (this.callback !== void 0) {
-      this.callback.call(this.controller.viewModel);
+      this.callback.call(this.obj);
     }
 
     this.callSubscribers(this.children, undefined, this.persistentFlags | LifecycleFlags.updateTargetInstance);
@@ -485,7 +481,7 @@ export class ChildrenObserver {
   private createGetterSetter(): void {
     if (
       !Reflect.defineProperty(
-        this.controller.viewModel!,
+        this.obj,
         this.propertyKey,
         {
           enumerable: true,
@@ -495,7 +491,7 @@ export class ChildrenObserver {
         }
       )
     ) {
-      Reporter.write(1, this.propertyKey, this.controller.viewModel);
+      Reporter.write(1, this.propertyKey, this.obj);
     }
   }
 }
